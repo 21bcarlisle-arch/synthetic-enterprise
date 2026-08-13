@@ -112,6 +112,25 @@ TOU_PEAK_MULTIPLIER = 1.50
 TOU_OFFPEAK_MULTIPLIER = (1.0 - 0.30 * TOU_PEAK_MULTIPLIER) / 0.70  # ≈ 0.786
 
 
+def split_flat_rate_to_tou(flat_rate_gbp_per_mwh: float) -> tuple[float, float]:
+    """Split an already-struck flat rate into (peak, off-peak) £/MWh.
+
+    KNIFE step 25 (register §3t): the multipliers were applied in two places --
+    `price_tou_tariff` below, which strikes its own flat rate from a forward
+    price, and inline in `simulation/run_phase2b.py`, which had the rate the
+    customer is actually CONTRACTED at (post renewal-rate-chain) and so could not
+    use the function. Neither was wrong; there were simply two of them, and a
+    supplier that changes its peak multiplier in one place is quoting two
+    different products. This is the one split; both callers use it.
+
+    Revenue-neutral at the 30/70 peak/off-peak consumption split assumption.
+    """
+    return (
+        flat_rate_gbp_per_mwh * TOU_PEAK_MULTIPLIER,
+        flat_rate_gbp_per_mwh * TOU_OFFPEAK_MULTIPLIER,
+    )
+
+
 def price_tou_tariff(
     forward_price: float, eac_kwh: int, term_start: str,
     naked_fraction: float = DEFAULT_NAKED_FRACTION,
@@ -126,4 +145,4 @@ def price_tou_tariff(
     actual revenue impact emerges from real HH consumption data.
     """
     flat = price_fixed_tariff(forward_price, eac_kwh, term_start, naked_fraction)
-    return flat * TOU_PEAK_MULTIPLIER, flat * TOU_OFFPEAK_MULTIPLIER
+    return split_flat_rate_to_tou(flat)

@@ -334,12 +334,30 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     # price records.
     ("simulation.run_phase2b", "saas.cost_to_serve"),
     ("simulation.run_phase2b", "saas.customer_reaction"),
-    ("simulation.run_phase2b", "saas.demand_response"),
+    # ("simulation.run_phase2b", "saas.demand_response") -- 1 tuple DELETED
+    # 2026-08-13 by `B9_demand_response_is_world_physics` step 26 (register §3u).
+    # NOT a composition lift and re-ruled before it was cut, as §3t asked: how
+    # much load a household ACTUALLY shifts when it is put on a ToU tariff is a
+    # fact about the world, not the supplier's belief about it. The module was
+    # misfiled, so this is a MODULE MOVE (B1's shape) -- `simulation/demand_
+    # response.py`, beside `simulation/nudge_physics.py`, which is the same kind
+    # of behavioural physics already filed on the correct side. The two B1
+    # safety measurements were re-taken immediately before the move, never
+    # inherited from the ruling: ZERO company-side importers (so the move cannot
+    # create a class-(a) edge) and stdlib-only imports (so it cannot create a
+    # sim -> company edge in the other direction).
     ("simulation.run_phase2b", "saas.growth_mandate"),
     ("simulation.run_phase2b", "saas.ledger"),
     ("simulation.run_phase2b", "saas.property_model"),
-    ("simulation.run_phase2b", "saas.smart_meter_rollout"),
-    ("simulation.run_phase2b", "saas.tariff_pricing"),
+    # ("simulation.run_phase2b", "saas.{smart_meter_rollout,tariff_pricing}") --
+    # 2 tuples DELETED 2026-08-13 by `A_composition_lift` step 25 (register §3t).
+    # The world composed the supplier's ToU offer -- eligibility rule AND the
+    # peak/off-peak split applied inline to the contracted rate -- and struck the
+    # gas fixed rate itself, lock decision and naked fraction included. Two doors:
+    # `company/interfaces/tou_offer.py` for the offer, and `request_fixed_unit_rate`
+    # on the EXISTING `company/interfaces/renewal_offer.py` for the strike, because
+    # the gas schedule builds its own term and does not use an offer object. The
+    # METER stays the world's: it arrives on the customer record the door reads.
     ("simulation.run_phase4c_on_phase2b", "company.billing.dd_review_runner"),
     # ("simulation.run_phase4c_on_phase2b", "company.billing.pre_bill_validation")
     # and ("…", "company.compliance.domain_invariants") -- 2 tuples DELETED

@@ -1,6 +1,6 @@
 """Phase 52 — ToU demand response model tests."""
 import pytest
-from saas.demand_response import (
+from simulation.demand_response import (
     PEAK_PERIODS,
     OFFPEAK_PERIODS,
     BASE_SHIFT_FRACTION,

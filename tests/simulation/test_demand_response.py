@@ -1,8 +1,8 @@
-"""Tests for saas/demand_response.py -- Phase 52."""
+"""Tests for simulation/demand_response.py -- Phase 52."""
 
 import pytest
 
-from saas.demand_response import (
+from simulation.demand_response import (
     BASE_SHIFT_FRACTION,
     EV_BOOST,
     HEAT_PUMP_BOOST,
@@ -64,14 +64,14 @@ def test_apply_demand_shift_conserves_total():
 
 def test_apply_demand_shift_reduces_peak():
     profile = _flat_profile(1.0)
-    from saas.demand_response import _PEAK_INDICES
+    from simulation.demand_response import _PEAK_INDICES
     shifted, _ = apply_demand_shift(profile, 0.15)
     assert all(shifted[i] < 1.0 for i in _PEAK_INDICES)
 
 
 def test_apply_demand_shift_increases_offpeak():
     profile = _flat_profile(1.0)
-    from saas.demand_response import _OFFPEAK_INDICES
+    from simulation.demand_response import _OFFPEAK_INDICES
     shifted, _ = apply_demand_shift(profile, 0.15)
     assert all(shifted[i] > 1.0 for i in _OFFPEAK_INDICES)
 
@@ -93,7 +93,7 @@ def test_apply_demand_shift_wrong_length_unchanged():
 def test_apply_demand_shift_returns_shifted_kwh():
     # Flat profile: 48 × 1.0 kWh, peak indices are 7 periods (SP32-38)
     profile = _flat_profile(1.0)
-    from saas.demand_response import PEAK_PERIODS
+    from simulation.demand_response import PEAK_PERIODS
     n_peak = len(PEAK_PERIODS)
     _, moved = apply_demand_shift(profile, BASE_SHIFT_FRACTION)
     expected = n_peak * 1.0 * BASE_SHIFT_FRACTION

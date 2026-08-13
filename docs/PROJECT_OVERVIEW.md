@@ -1,6 +1,6 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-07-12. 2,500+ commits. 17,061 tests collected (full suite). Codebase: ~55,700 lines across 360+ Python modules.*
+*Last updated: 2026-08-09. 2,500+ commits. 23,826 tests collected (full suite). Codebase: ~55,700 lines across 360+ Python modules.*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
@@ -112,6 +112,22 @@ The system has four layers, each with a clean seam to the next:
 ---
 
 ## 4. Build History — Phase by Phase
+
+### KNIFE2_customer_straddle: the simulation stops reaching into the customer module (2026-08-09, self-refill draw, level 0->2)
+
+KNIFE pass 2 of 4. Sixteen `simulation/` modules imported `saas/customers.py` directly -- the company's own customer roster, read by the simulated world, sixteen separate times, none of them a declared crossing. All sixteen edges are gone from `LEGACY_SIM_READS_COMPANY`; class (b) fell **104 -> 88**, exactly the number the atom's EXIT clause predicted, re-measured independently by `tools/knife_hotspot_measure.py` (`customer_straddle` 17 files/16 edges -> 1 file/0 edges; `KNIFE LEDGER: OK`).
+
+**The cut is a new seam, `company/interfaces/supply_book.py` -- "the supply book": which meter points this supplier has registered.** That framing is the design, not decoration. In GB a supplier registers against an MPAN and the industry *learns* the point is on its book, so the world knowing the registered population is real; sixteen modules reaching into the CRM to find it out was not. It is deliberately a separate file from `sim_interface.py`, which is the opposite direction (the company asking the world) -- merging two directions behind one name is how a seam stops meaning anything.
+
+**Why this is not laundering, and how that claim is falsifiable.** KNIFE pass 1 refused to route a dependency through `tools/` because `tools/` sits outside the wall walker's `WALL_DIRS` -- the edge would have vanished from the *measurement* rather than the code. `company/interfaces/**` is the opposite: walked byte for byte as before, exempt by the ratchet's own published `SEAM_PACKAGE` rule, whose doctrine string names this exact remedy. The test is whether the wall can still catch a regression, and it can -- re-add `from saas.customers import CUSTOMERS` to any SIM module today and `test_no_new_sim_reads_company` reds immediately, with no grandfathered tuple left to hide behind. That was not true yesterday.
+
+**R15 -- the property that would have failed silently.** The three rosters are mutable module-level lists: `run_phase2b` appends each fresh-market acquisition to `ACQUIRED_CUSTOMERS`, and test teardown clears it in place. A seam accessor returning a defensive copy -- the most natural "tidy-up" a future reviewer would wave through -- would leave the simulation appending registrations into a list nobody reads, with a green suite and a wrong world. The accessors therefore return the live objects, and that contract now has its own control (`tests/company/interfaces/test_supply_book_seam.py`, 10 tests, `is`-identity not equality). Both its mutation proofs were **vacuity-checked**: neutering the injected defect reds them (2 failed, 8 passed), so they are not tautologies.
+
+**Wall 4 (byte-identical output): no comparable artefact, stated rather than substituted with something weaker.** This pass changes no rendering path and the artefact would need the ~100-minute Phase 2b run. The identity assertion is the stronger check here anyway -- a copy is the only way this refactor could alter behaviour, and identity refutes it directly.
+
+**Three things it did NOT do, recorded in the seam's own docstring so nobody reads 16->0 as decoupling:** the same records still cross (one reviewable chokepoint instead of sixteen unreviewable ones); the seam does not yet narrow the record to what a real MPAN registration publishes (`contract_type` and the internal `segment` label still cross -- owed to pass 3 / the Epoch-3 adapters); and dwelling truth (`home_type`, `bedrooms`, `epc_rating`) is still filed company-side, because the clean fix would re-open class (a), which pass 1 drove to zero.
+
+Two pre-existing defects surfaced and were QUEUED, not fixed on sight (SELF_INTERRUPT_DISCIPLINE): `simulation/run_phase2a.py` and `run_phase2a_repriced.py` do not import at all, and KNIFE pass 1's paydown half was sitting uncommitted at HEAD while its committed doc said LANDED. 10 new tests, 23,826 tests collected (full suite), epistemic PASS.
 
 ### W5_1_banking_payment_rails: L3 EARNED, verified by a fourth independent Expert Hour review (2026-07-12, self-refill draw, level 2->3)
 
@@ -6629,10 +6645,10 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 ---
 
 ### Phase 52 — ToU Demand Response Model (2026-06-25)
-**Files:** `saas/demand_response.py` (new), `simulation/run_phase2b.py`, `tests/saas/test_phase52_demand_response.py` (new), `tests/background/test_session_watchdog.py`, `background/session_watchdog.py`
+**Files:** `saas/demand_response.py` (new; MOVED to `simulation/demand_response.py` 2026-08-13 by KNIFE3 step 26 -- world physics, was misfiled), `simulation/run_phase2b.py`, `tests/saas/test_phase52_demand_response.py` (new; now `tests/simulation/`), `tests/background/test_session_watchdog.py`, `background/session_watchdog.py`
 
 **What was built:**
-- `saas/demand_response.py`: `PEAK_PERIODS` = SP 32-38 (16:00-18:30 UK); `OFFPEAK_PERIODS` = SP 1-14 + SP 47-48. `compute_shift_fraction(assets)` — base 15% peak-to-offpeak shift + EV +12% + heat_pump +8%, capped at 100%. `apply_demand_shift(hh_profile, shift_fraction)` — redistributes shifted_kwh uniformly across offpeak periods; energy conserved. `make_shifted_shape_fn(base_shape_fn, shift_fraction)` — wraps existing shape callable for use in `run_hedged_term()`.
+- `simulation/demand_response.py` (was `saas/`): `PEAK_PERIODS` = SP 32-38 (16:00-18:30 UK); `OFFPEAK_PERIODS` = SP 1-14 + SP 47-48. `compute_shift_fraction(assets)` — base 15% peak-to-offpeak shift + EV +12% + heat_pump +8%, capped at 100%. `apply_demand_shift(hh_profile, shift_fraction)` — redistributes shifted_kwh uniformly across offpeak periods; energy conserved. `make_shifted_shape_fn(base_shape_fn, shift_fraction)` — wraps existing shape callable for use in `run_hedged_term()`.
 - `simulation/run_phase2b.py`: ToU-eligible customers use `make_shifted_shape_fn()` to produce a modified consumption shape; passed to `run_hedged_term()` as `effective_shape_fn`. `demand_response_log` per term written to run output (customer_id, shift_fraction, has_ev, has_heat_pump).
 - `background/session_watchdog.py`: API connectivity check (`check_api_reachable()`), exponential backoff on failure (1m/2m/5m then 10min indefinitely), NTFY Rich on first failure and every hour while still down. Pre-start curl check before each restart.
 
@@ -6989,6 +7005,7 @@ tools/           2 tests
 | `docs/staging/` | repo | Active instruction queue (Rich's staged instructions + run_complete markers) |
 | `docs/observability/PHASE_10a_SUMMARY.md` | repo | Phase 10a design decisions, findings, open questions |
 | `docs/retrospectives/` | repo | Standing-practice retrospectives (multi-day/multi-false-claim problems, every ~50 phases, harness rule changes) |
+| `docs/design/PUBLISH_DECOUPLING.md` | repo | The site breathes: publish freshness decoupled from HEAD perfection (scoped publish-path gate + last-known-good under a dated banner, 2026-08-10) |
 
 ---
 
@@ -7036,7 +7053,11 @@ C7–C9 named customers have synthetic HH data. The segment model's "smart" segm
 **Codebase:**
 - 360+ Python modules (company layer + tools), ~55,700 lines total
 - 2,500+ git commits (now live-counted on the Project tab via tools/generate_phases_json.py::_total_commits, not hand-maintained here)
-- 17,214 tests collected (full suite) -- W5_1_banking_payment_rails L3 EARNED: the last named
+- 23,826 tests collected (full suite) -- KNIFE2_customer_straddle: the 16 `simulation -> saas.customers`
+  crossings routed through a new seam (`company/interfaces/supply_book.py`), class (b) 104 -> 88,
+  every KNIFE hotspot now disjoint from every other; 10 new tests, both mutation proofs
+  vacuity-checked. See Section 4's entry. On top of the prior 17,214 tests collected (full suite)
+  -- W5_1_banking_payment_rails L3 EARNED: the last named
   blocker (mandate setup not gating collection) fixed and verified against the real full pipeline
   run, then a fourth fresh-context Expert Hour review confirmed all four fixes across this atom's
   four passes hold together (PASS, not self-graded); two honest non-blocking residuals it named

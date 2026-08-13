@@ -55,9 +55,47 @@ from __future__ import annotations
 
 from datetime import date
 
-from company.pricing.renewal_desk import RenewalOffer
+from company.pricing.renewal_desk import FixedRateStrike, RenewalOffer
 
-__all__ = ("RenewalOffer", "request_company_forward_estimate", "request_renewal_offer")
+__all__ = (
+    "FixedRateStrike",
+    "RenewalOffer",
+    "request_company_forward_estimate",
+    "request_fixed_unit_rate",
+    "request_renewal_offer",
+)
+
+
+def request_fixed_unit_rate(
+    *,
+    tariff_type: str,
+    company_forward_price_gbp_per_mwh: float,
+    eac_kwh: int,
+    term_start: str,
+    published_policy_cost_per_mwh: float,
+    published_network_cost_per_mwh: float,
+) -> FixedRateStrike:
+    """Ask the company what rate it strikes for this term, and what it locks.
+
+    KNIFE step 25 (register §3t), and a NARROWER door than `request_renewal_offer`
+    for the same reason `request_company_forward_estimate` above is: the gas
+    renewal schedule in `simulation/run_phase2b.py` builds the term itself and
+    needs the strike, not an electricity-shaped offer object it does not use.
+
+    Note what is ABSENT from the signature: `naked_fraction`. The world used to
+    read the company's own hedging mandate and pass it back in. The desk reads its
+    own canon now -- see `company.pricing.renewal_desk.strike_fixed_unit_rate`.
+    """
+    from company.pricing.renewal_desk import strike_fixed_unit_rate
+
+    return strike_fixed_unit_rate(
+        tariff_type=tariff_type,
+        company_forward_price_gbp_per_mwh=company_forward_price_gbp_per_mwh,
+        eac_kwh=eac_kwh,
+        term_start=term_start,
+        published_policy_cost_per_mwh=published_policy_cost_per_mwh,
+        published_network_cost_per_mwh=published_network_cost_per_mwh,
+    )
 
 
 def request_company_forward_estimate(

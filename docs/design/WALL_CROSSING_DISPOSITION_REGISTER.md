@@ -2030,6 +2030,209 @@ wall crossing. STEP 20'S MASKING FINDING IS ALSO STILL OPEN.
 
 ---
 
+## 3t. The ToU offer, and the gas strike — added 2026-08-13 (step 25)
+
+**2 EDGES CUT, 16 → 14 LIVE (14 → 12 direct).** The 2 indirect are again UNMOVED, for the twelfth
+consecutive step — which is again the proof that a bridge route was not silently taken instead of a
+cut. `simulation.run_phase2b -> saas.smart_meter_rollout` and `-> saas.tariff_pricing`.
+
+### The group: TWO acts, and they are deliberately NOT one door
+
+Step 24's group test asks whether the writers form one number. These two do not, and the register
+says so rather than borrowing §3s's argument. What they share is a FILE, not an arithmetic. So this
+step makes a new door for the one that is genuinely a composition, and reuses an existing door,
+narrowly, for the one that is genuinely a duplicate — the same shape step 24 landed, and for the
+same reason: a door that carries an object its caller does not use starts lying about what crosses
+it.
+
+### What the WORLD was doing that is not the world's
+
+**(a) The ToU OFFER — the composition, not the constants.** The world asked `is_tou_eligible` whether
+the supplier would offer a ToU tariff, then built the pair itself as
+`(unit_rate * TOU_PEAK_MULTIPLIER, unit_rate * TOU_OFFPEAK_MULTIPLIER)`. Both halves are the
+supplier's. Whether the customer HAS a smart meter is NOT — the rollout happened, the world stamps
+`metering`/`smart_meter` on the customer record, and a supplier observes it. That fact still crosses,
+on the record the door is handed, and the door reads nothing else off it. What moved is the
+DECISION: offering a ToU product to everyone whose meter permits it is a commercial choice, and it
+is ALLOWED TO BE WRONG — the pair is revenue-neutral at an ASSUMED 30/70 peak/off-peak split, and the
+gap between that assumption and the customer's actual half-hourly shape is exactly the quantity the
+COUPLED TRIAD scores.
+
+**(b) The SPLIT EXISTED TWICE, once on each side of the wall.** `saas.tariff_pricing.price_tou_tariff`
+applies the same two multipliers — but strikes its own flat rate from a forward price, so the world
+could not call it: the world holds the rate the customer is CONTRACTED at, after the renewal rate
+chain (§3s) has moved it. Neither site was wrong. There were simply two, and a supplier that edits
+its peak multiplier in one of them is quoting two different products. The split is now
+`saas.tariff_pricing.split_flat_rate_to_tou`, called by both, and the control compares the two sites'
+VALUES rather than reading their imports.
+
+**(c) The GAS STRIKE, and the sentence that was already written.** `_build_gas_renewal_schedule`
+decided which published components a pass-through product locks, fetched
+`hedge_mandate().naked_fraction` to hand the company's own hedging mandate back to the company's own
+pricing function, and called `price_fixed_tariff` itself — while `quote_renewal` ran the identical
+sequence for electricity. The company module's own docstring already stated the contract the world
+was breaking: *"WHAT GETS LOCKED IS A PRODUCT DECISION, which is why it is decided here rather than
+by the world that publishes the schedules."* The world publishes the schedules. It was also reading
+them. Both sides now call ONE `strike_fixed_unit_rate` in `company/pricing/renewal_desk.py`.
+
+### ONE new door, and a SECOND, narrower one added to an existing seam
+
+`company/interfaces/tou_offer.py` takes the customer record and the contracted rate and returns a
+`TouOffer` or `None`. `None`, not a `TouOffer` of nulls: an offer object with null rates is billable
+against by a caller that only checks the object exists. `request_fixed_unit_rate` goes on the
+EXISTING `company/interfaces/renewal_offer.py`, next to step 24's
+`request_company_forward_estimate`, because the gas schedule builds its own term and needs the
+strike, not an electricity-shaped offer object.
+
+Note what is ABSENT from the strike's signature: `naked_fraction`. It stopped crossing. The desk
+reads its own canon, and `desk.NAKED_FRACTION == hedge_mandate().naked_fraction` is CHECKED in the
+control rather than assumed — they are the same float today, so no number moves; what changes is
+that only one side can move it tomorrow.
+
+### Behaviour is unchanged, and it is MEASURED rather than asserted
+
+`_drive_pre_cut` / `_drive_pre_cut_gas_strike` are the world's blocks transcribed from
+`simulation/run_phase2b.py` as it stood at `880ab94e2` — the file BEFORE the cut — never from the
+module under test, which would be a mirror (R15 TAUTOLOGY). The ToU comparison runs over SIX customer
+shapes: HH-metered, NHH-with-smart-meter, NHH-without, NHH with the field absent, both facts set, and
+an empty record — three eligible and three not, over four rates including zero. Identity is claimed
+for the customers who are NOT offered ToU as loudly as for those who are, because an eligibility rule
+copied slightly wrong produces no log line and no test counts absences. The gas comparison runs both
+products across three price regimes, including a term where the GGL has not yet started so the policy
+cost is a real zero that must still be told apart from a locked zero.
+
+### THE ONE DELIBERATE DIVERGENCE, NAMED rather than smoothed over
+
+The world's gas block zeroed only for `pass_through`. A **flex** gas term would therefore have been
+quoted a locked rate, where the desk answers `None` — the product rule electricity has always used.
+That is a CORRECTION, not a no-op, and it is unreachable on today's tree: no gas customer carries
+`flex`. `test_a_flex_gas_term_is_the_one_case_that_deliberately_diverges` pins that population, so
+the day a flex gas customer appears the control reds and asks for the ruling rather than repricing
+the gas book quietly.
+
+### THE DEFECTS THESE CUTS REMOVE — two orders that nothing could see
+
+**The lock is before the strike.** A pass-through product that strikes against the published
+components and zeroes them afterwards sells a rate with levies baked into it that it will bill again
+at settlement. In the pre-cut world those were two blocks four lines apart with nothing asserting the
+sequence. The control performs exactly that reorder on a copy of the desk and asserts the answer
+moves.
+
+**The split is off the FINAL rate.** The ToU pair is struck from the rate the renewal chain (§3s) has
+finished moving. Ask the door before the chain runs and the peak rate is a multiple of a number the
+customer was never contracted at. The pair also has a property neither multiplier asserts alone:
+`0.30*peak + 0.70*offpeak == flat`. Swap them and a 30/70 customer pays ~29% more for the same
+energy — the control performs the swap and reds.
+
+### The controls
+
+- `tests/company/interfaces/test_tou_offer_seam.py` — 38 tests. Identity vs the pre-cut world over
+  6 shapes × 4 rates; a VACUITY test asserting the fixture contains both verdicts (if every fixture
+  customer were eligible, deleting the eligibility rule would pass every identity assertion);
+  one-split-not-two by value; revenue-neutrality with its own asymmetry guard; and the door-surface
+  control with two widenings performed — re-export the predicate, re-export the desk — neither of
+  which moves a wall edge, which is why the ratchet cannot be the control here.
+- `tests/company/interfaces/test_renewal_offer_seam.py` — the strike's identity, the fixed-vs-
+  pass-through vacuity guard, the naked-fraction equality check, the order mutation, and the flex
+  divergence pin.
+
+### What did NOT fall
+
+`saas.demand_response` stays LIVE and owed. It is gated by the same `if`, and it was tempting to take
+it in the same step — but how much load a customer actually shifts when put on a ToU tariff is the
+WORLD's physics, not the supplier's belief about it. It is a MODULE MOVE (a B-shaped cut), not a
+composition lift, and taking it here would have meant ruling it under a design block that does not
+describe it. It stays `owed` under `A_composition_lift` and the next step that touches it should
+re-rule it first.
+
+---
+
+## 3u. Demand response is the world's physics, and it was filed under `saas/` — added 2026-08-13 (step 26)
+
+**1 EDGE CUT, 14 → 13 LIVE (12 → 11 direct).** The 2 indirect are UNMOVED for the thirteenth
+consecutive step, which is again the proof that a bridge route was not quietly taken instead of a cut.
+`simulation.run_phase2b -> saas.demand_response`.
+
+### This is the edge step 25 declined, and it was RE-RULED before it was cut
+
+§3t ends by naming this one and refusing it in the same breath: it was gated by the same `if` as the
+ToU offer and it would have been cheap to take in the same step, but it is not a composition lift, and
+taking it under `A_composition_lift` would have meant ruling it under a design block that does not
+describe it. It asked the next step to **re-rule it first**. That is what this section is. The row's
+`design=` moved from `A_composition_lift` to `B9_demand_response_is_world_physics` and then to `cut` in
+the same step, which is why no design block for B9 appears in §3 — a block no `owed` row references is
+"a plan for nothing" (rc 2), and a design executed on arrival is exactly that.
+
+### What the WORLD was doing that IS the world's
+
+Nothing. That is the finding, and it is the opposite of every other section here.
+
+`saas/demand_response.py` answers one question: how much of its peak consumption does a household
+**actually** move when it is put on a Time-of-Use tariff? Its own calibration basis says what it is —
+Ofgem's Smart Metering Consumer Experience Study, Octopus Agile/Go customer data, EST/BEIS heat-pump
+trials. Those are measurements of what households DID. The module takes the customer's appliances (EV,
+heat pump) and returns a redistributed half-hourly profile. A real supplier cannot compute that number.
+It finds out what happened when the meter reads arrive, and its own forecast of the shift is allowed to
+be wrong — which is the belief-vs-truth gap the coupled triad exists to score.
+
+So the edge was never a wall violation in its DIRECTION. It was a **filing error**, and that is the
+same defect `B1_behavioural_physics_is_misfiled` cut on 2026-08-09: world physics sitting on the company
+side, making a legitimate read look like a crossing every time the world used it. The nearest module
+that is already filed correctly is `simulation/nudge_physics.py` — the same kind of behavioural physics,
+one directory over. The cut is therefore a **module move**, not a door:
+`saas/demand_response.py` → `simulation/demand_response.py`, with both unit-test files moved beside it.
+
+### The two B1 safety measurements were RE-TAKEN, never inherited from the ruling
+
+B1 established that a module move is only safe if two things are measured **immediately before** it, and
+this step measured both rather than citing the 2026-08-09 result:
+
+1. **ZERO company-side importers.** The only importer in the repo is `simulation/run_phase2b.py`, plus
+   the module's own two test files and a path string in `tools/generate_saas_coverage_data.py`. So the
+   move cannot create a class-(a) `company -> simulation` edge — the class KNIFE pass 1 drove to zero.
+   (Three grep hits look like importers and are not: `DEMAND_RESPONSE = 'demand_response'` is an enum
+   string in `company/market/capacity_market.py` and `flexible_asset.py`, and
+   `triad_response_book.demand_response_summary` is a method name.)
+2. **Stdlib-only imports.** The module imports `typing.Callable` and nothing else, so the move cannot
+   create a `sim -> company` edge in the other direction either.
+
+Both are now LIVE assertions rather than commit-message claims —
+`test_no_company_side_importer` and `test_the_module_imports_nothing_but_the_stdlib`.
+
+### Behaviour is unchanged by construction, and pinned anyway
+
+The move is a `git mv` plus an import-line rewrite; no line of arithmetic changed. That is the strongest
+form of the claim, and it is also the form that rots silently, because nothing would go red if a later
+edit moved `BASE_SHIFT_FRACTION` or reversed the windows. So the pre-cut answers were computed against
+`saas/demand_response.py` **before `git mv` ran** — 4 asset shapes × 3 profile shapes, 12 rows of
+(total kWh, shifted kWh, two off-peak receivers, one in-peak period) — and transcribed as literals into
+`tests/architecture/test_demand_response_is_world_physics.py`. The pin is pre-cut evidence, not a
+re-record of the post-cut tree, which is the tautology this project keeps catching.
+
+### The two ways this cut could rot silently, and the control that fires on each
+
+- **The supplier starts reading the truth.** A `company/` or `saas/` module imports
+  `simulation.demand_response`, the supplier's forecast becomes the world's answer, the belief-vs-truth
+  gap goes to zero — and every wall control stays green, because a class-(a) edge is counted repo-wide
+  by a ratchet that nothing re-runs per module. `test_no_company_side_importer` counts it per module,
+  and includes `saas/` in its sweep precisely because that is the side the module came from.
+- **The move quietly changes a number.** Covered by the 12 pinned rows plus a conservation/direction
+  test, which exists because a peak/off-peak **swap** conserves energy perfectly and would pass a
+  conservation-only check.
+
+Mutation-proven both ways (R15), 23 tests green unmutated: the constant moved → 12 red; the index sets
+swapped → 14 red, including the direction test; a `company/` importer added → exactly 1 red, and nothing
+else in the repo, which is the reason the per-module count exists.
+
+### What did NOT fall
+
+`saas.cost_to_serve`, `saas.customer_reaction`, `saas.growth_mandate`, `saas.ledger` and
+`saas.property_model` remain live on `run_phase2b` and owed to `A_composition_lift`. None of them is a
+filing error — each is a genuine composition of a supplier decision inside the world's loop, which is a
+door, not a move. This step deliberately did not widen a module-move ruling to cover them.
+
+---
+
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
 
 These were designs in §3 until they were carried out. They are recorded
@@ -2553,12 +2756,12 @@ edge: simulation.run_phase2b -> company.trading.hedge_decision | disposition=cut
 edge: simulation.run_phase2b -> company.trading.wholesale_credit_exposure | disposition=cut | reason=Step 19 executed 2026-08-12 (§3n) — the wholesale credit register, and the semi-annual point-in-time sampling that finds its peak, moved to `company/risk/counterparty_collateral_desk.py` behind `company.interfaces.counterparty_collateral`. The world hands over the book it holds, its customer register's commodity column and the two PUBLIC spot histories; counterparty lines, rating bands and the peak are read company-side.
 edge: simulation.run_phase2b -> saas.cost_to_serve | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> saas.customer_reaction | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> saas.demand_response | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> saas.demand_response | disposition=cut | reason=`B9_demand_response_is_world_physics` step 26, 2026-08-13 (§3u) — RE-RULED off `A_composition_lift` first, as §3t asked. Not a composition: how much load a household ACTUALLY shifts on a ToU tariff is the world's physics, calibrated to Ofgem/Octopus/EST trial measurements, and the supplier is allowed to be wrong about it. A filing error of B1's exact shape, so a MODULE MOVE — `simulation/demand_response.py`, beside `nudge_physics.py`. Both B1 safety measurements re-taken before the move (zero company-side importers, stdlib-only imports) and now live as tests.
 edge: simulation.run_phase2b -> saas.growth_mandate | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> saas.ledger | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> saas.property_model | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> saas.smart_meter_rollout | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> saas.tariff_pricing | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> saas.smart_meter_rollout | disposition=cut | reason=`A_composition_lift` step 25, 2026-08-13 (§3t) — whether the customer HAS a smart or HH meter is the world's fact and still arrives on the customer record; whether the supplier OFFERS a ToU product to everyone whose meter permits it is a commercial decision it is allowed to get wrong, and the world was making it.
+edge: simulation.run_phase2b -> saas.tariff_pricing | disposition=cut | reason=`A_composition_lift` step 25, 2026-08-13 (§3t) — TWO uses, and the edge only fell when both went: the ToU peak/off-peak split applied inline to the CONTRACTED rate (a second copy of the supplier's product shape, now `split_flat_rate_to_tou`), and the gas fixed strike, where the world also decided which published components a pass-through product locks and read the company's own naked fraction back to it.
 edge: simulation.run_phase3a -> saas.customer_reaction | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase3a` is 100% composition (`94` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records). It moved to `tools/run_phase3a.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
 edge: simulation.run_phase4b_on_phase2b -> saas.churn_model | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase4b_on_phase2b` is 100% composition (`75` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records + its own supply book). It moved to `tools/run_phase4b_on_phase2b.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
 edge: simulation.run_phase4b_on_phase2b -> saas.cost_to_serve | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase4b_on_phase2b` is 100% composition (`75` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records + its own supply book). It moved to `tools/run_phase4b_on_phase2b.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.

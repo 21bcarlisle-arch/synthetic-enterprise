@@ -114,6 +114,79 @@ APPROVAL_LATENCY_DAYS = 1
 
 
 @dataclass(frozen=True)
+class FixedRateStrike:
+    """The rate the company strikes for one fixed-shaped term, and what it locked.
+
+    KNIFE step 25 (register §3t). Three answers that are one act: WHICH of the
+    published cost components this product commits to at signing, the rate that
+    falls out once they are committed, and whether a rate is committed at all.
+    Separating them is what let the world do two of the three for gas.
+
+    unit_rate_gbp_per_mwh is None for a flex tariff -- same rule as `RenewalOffer`,
+    because it is the same product decision.
+    """
+
+    unit_rate_gbp_per_mwh: float | None
+    locked_policy_cost_gbp_per_mwh: float
+    locked_network_cost_gbp_per_mwh: float
+
+
+def strike_fixed_unit_rate(
+    *,
+    tariff_type: str,
+    company_forward_price_gbp_per_mwh: float,
+    eac_kwh: int,
+    term_start: str,
+    published_policy_cost_per_mwh: float,
+    published_network_cost_per_mwh: float,
+) -> FixedRateStrike:
+    """Strike this term's unit rate from the company's own forward view.
+
+    KNIFE step 25 (register §3t). `simulation/run_phase2b.py::
+    _build_gas_renewal_schedule` ran this sequence inline for gas -- it decided
+    which published components a pass-through product locks, it fetched the
+    company's own naked fraction to hand back to the company's own pricing
+    function, and it called `price_fixed_tariff` itself -- while `quote_renewal`
+    below ran the identical sequence for electricity. The docstring of that
+    branch already said why the world may not: "WHAT GETS LOCKED IS A PRODUCT
+    DECISION, which is why it is decided here rather than by the world that
+    publishes the schedules." The world publishes the schedules. It was also
+    reading them.
+
+    `naked_fraction` does NOT cross: the fraction of the term priced for capital
+    cost is whatever the company's own minimum-hedge mandate leaves open, and it
+    is read here from company canon rather than accepted as an argument. The
+    world's `hedge_mandate().naked_fraction` and this module's `NAKED_FRACTION`
+    are the same float today -- checked, not assumed -- so no number moves; what
+    changes is that only one side can move it tomorrow.
+
+    ORDER IS THE SIGNATURE: the lock decision is made BEFORE the strike, because
+    a pass-through product that strikes first and zeroes second sells a rate with
+    levies baked into it that it will bill again at settlement.
+    """
+    if tariff_type in ("flex", "pass_through"):
+        locked_policy = 0.0
+        locked_network = 0.0
+    else:
+        locked_policy = published_policy_cost_per_mwh
+        locked_network = published_network_cost_per_mwh
+
+    if tariff_type == "flex":
+        return FixedRateStrike(None, locked_policy, locked_network)
+
+    return FixedRateStrike(
+        price_fixed_tariff(
+            company_forward_price_gbp_per_mwh, eac_kwh, term_start,
+            naked_fraction=NAKED_FRACTION,
+            policy_cost_per_mwh=locked_policy,
+            network_cost_per_mwh=locked_network,
+        ),
+        locked_policy,
+        locked_network,
+    )
+
+
+@dataclass(frozen=True)
 class RenewalOffer:
     """What the company tells the world about one renewal term.
 
@@ -209,22 +282,22 @@ def quote_renewal(
     # Phase 41a: flex tariffs have no locked unit rate -- only the markup is agreed
     # at signing. WHAT GETS LOCKED IS A PRODUCT DECISION, which is why it is decided
     # here rather than by the world that publishes the schedules.
-    if tariff_type in ("flex", "pass_through"):
-        locked_policy = 0.0
-        locked_network = 0.0
-    else:
-        locked_policy = published_policy_cost_per_mwh
-        locked_network = published_network_cost_per_mwh
+    # KNIFE step 25 (§3t): that sequence is now `strike_fixed_unit_rate` above, so
+    # electricity here and gas behind `request_fixed_unit_rate` run ONE
+    # implementation of it rather than two copies that agreed by inspection.
+    _strike = strike_fixed_unit_rate(
+        tariff_type=tariff_type,
+        company_forward_price_gbp_per_mwh=company_fwd,
+        eac_kwh=eac_kwh,
+        term_start=term_start_str,
+        published_policy_cost_per_mwh=published_policy_cost_per_mwh,
+        published_network_cost_per_mwh=published_network_cost_per_mwh,
+    )
+    unit_rate = _strike.unit_rate_gbp_per_mwh
+    locked_policy = _strike.locked_policy_cost_gbp_per_mwh
+    locked_network = _strike.locked_network_cost_gbp_per_mwh
 
-    if tariff_type == "flex":
-        unit_rate = None
-    else:
-        unit_rate = price_fixed_tariff(
-            company_fwd, eac_kwh, term_start_str,
-            naked_fraction=NAKED_FRACTION,
-            policy_cost_per_mwh=locked_policy,
-            network_cost_per_mwh=locked_network,
-        )
+    if unit_rate is not None:
         _route_pricing_move(
             customer_id=customer_id,
             term_start=term_start,

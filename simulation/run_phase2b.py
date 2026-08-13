@@ -22,7 +22,11 @@ from datetime import date, datetime, time, timedelta
 
 import sim.risk_committee_agent as risk_committee_agent
 from company.interfaces.point_in_time_view import PointInTimeView, build_price_bitemporal_log
-from company.interfaces.renewal_offer import request_company_forward_estimate
+from company.interfaces.renewal_offer import (
+    request_company_forward_estimate,
+    request_fixed_unit_rate,
+)
+from company.interfaces.tou_offer import request_tou_offer
 from company.interfaces.statutory_obligations import build_statutory_obligations
 from company.interfaces.renewal_rate_chain import decide_renewal_rate
 from saas.customer_reaction import _billing_account_id
@@ -49,9 +53,7 @@ from saas.property_model import (
     DEFAULT_OCCUPANCY_PATTERN,
     build_properties,
 )
-from saas.smart_meter_rollout import is_tou_eligible
-from saas.demand_response import compute_shift_fraction, make_shifted_shape_fn
-from saas.tariff_pricing import TOU_OFFPEAK_MULTIPLIER, TOU_PEAK_MULTIPLIER, price_fixed_tariff
+from simulation.demand_response import compute_shift_fraction, make_shifted_shape_fn
 from sim.cache_store import get_cached_prices, log_cache_access
 from sim.forward_curve import (
     BASE_TERM_PREMIUM,
@@ -511,22 +513,22 @@ def _build_gas_renewal_schedule(
             + get_ggl_per_mwh(term_start, aq_kwh)
         )
         gas_network = get_gas_network_cost_per_mwh(term_start)
-        # Phase 40b: pass-through tariffs lock only wholesale+margin at term start.
-        if tariff_type == "pass_through":
-            locked_gas_policy = 0.0
-            locked_gas_network = 0.0
-        else:
-            locked_gas_policy = gas_policy
-            locked_gas_network = gas_network
-        unit_rate = price_fixed_tariff(
-            company_fwd, aq_kwh, term_start,
-            # KNIFE3 step 23 (§3r): `1 - floor` was the world doing the desk's
-            # arithmetic. The cost of capital is priced on the position the desk
-            # intends to leave open, so the desk states it.
-            naked_fraction=hedge_mandate().naked_fraction,
-            policy_cost_per_mwh=locked_gas_policy,
-            network_cost_per_mwh=locked_gas_network,
+        # KNIFE step 25 (§3t): WHICH of the published components this product
+        # locks at signing (Phase 40b), the naked fraction the capital cost is
+        # priced on, and the strike itself are ONE act and it is the supplier's.
+        # The world publishes the levy and network schedules; it was also
+        # reading them on the company's behalf. Electricity has struck its rate
+        # behind `quote_renewal` since B7 -- gas now uses the same
+        # implementation, not a second copy that agreed by inspection.
+        _gas_strike = request_fixed_unit_rate(
+            tariff_type=tariff_type,
+            company_forward_price_gbp_per_mwh=company_fwd,
+            eac_kwh=aq_kwh,
+            term_start=term_start,
+            published_policy_cost_per_mwh=gas_policy,
+            published_network_cost_per_mwh=gas_network,
         )
+        unit_rate = _gas_strike.unit_rate_gbp_per_mwh
         schedule.append({
             "acquisition_date": term_start,
             "notice_date": gas_notice_date,
@@ -1829,13 +1831,20 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 counterfactual_risk = assess_term_risk(term_start_str, float(eac_kwh), forward_price, elec_records)
                 current_risk[cid] = risk
 
-                # HH or smart-meter customers get ToU pricing — flat unit_rate is the
-                # base; peak/off-peak rates are derived from it via the ToU multipliers.
-                # Phase 51: is_tou_eligible() broadens the gate to acquired customers
-                # with smart_meter=True (stamped at acquisition by Phase 50 rollout model).
+                # Phase 50/51: the customer record carries the METERING FACTS the
+                # rollout stamped -- `metering` and `smart_meter`. The world owns
+                # those; whether they buy a ToU offer is answered at the door.
+                # KNIFE step 25 (§3t): WHETHER a ToU product is offered to a
+                # customer whose meter permits it, and the peak/off-peak shape of
+                # the pair, are the supplier's commercial decision -- one door,
+                # `company/interfaces/tou_offer.py`. The METER is the world's and
+                # stays here, on the customer record the door is handed.
+                _tou = request_tou_offer(
+                    customer=customer, flat_unit_rate_gbp_per_mwh=unit_rate,
+                )
                 tou_rates = None
-                if is_tou_eligible(customer):
-                    tou_rates = (unit_rate * TOU_PEAK_MULTIPLIER, unit_rate * TOU_OFFPEAK_MULTIPLIER)
+                if _tou is not None:
+                    tou_rates = (_tou.peak_rate_gbp_per_mwh, _tou.offpeak_rate_gbp_per_mwh)
                     # Phase 52: demand response — ToU-eligible customers shift a fraction
                     # of peak consumption to off-peak (base 15%, +12% EV, +8% heat pump).
                     _assets = properties.get(cid, DEFAULT_PROPERTY).get("assets")

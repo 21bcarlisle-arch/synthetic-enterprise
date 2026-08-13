@@ -62,7 +62,7 @@ plainly rather than let the reader infer it:
 | CX / engagement decisioning | Braze, Salesforce Marketing Cloud | `saas/contact_model.py`, `company/crm/`, `company/policy/decision_policy.py` | B |
 | Regulatory compliance stack | Gentrack Regulatory, bespoke in-house | `company/regulatory/` (62 wired schemes, Phase OL), `company/compliance/` | B |
 | ESG / carbon reporting | Position Green, Workiva, Diligent ESG | `company/sustainability/`, `company/billing/carbon_footprint.py` | B |
-| Demand response / flexibility | Kaluza Flex, Limejump | `saas/demand_response.py` | B |
+| Demand response / flexibility | Kaluza Flex, Limejump | `simulation/demand_response.py` | B |
 | Nudge / behavioural engagement physics | Opower (social norms), in-house | `simulation/nudge_physics.py`, `company/analytics/nudge_discovery.py` (Phase RV) | B |
 | Customer Data Platform (CDP) | Segment, Braze CDP, Tealium | none needed -- single event-native data model (`site/data/*.json`) replaces the stitching problem a CDP solves | A |
 | iPaaS / integration middleware | MuleSoft, Boomi, Workato | none needed -- one codebase, direct module imports, no point-to-point integration surface | A |

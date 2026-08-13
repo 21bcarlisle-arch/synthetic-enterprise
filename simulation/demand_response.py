@@ -1,5 +1,23 @@
 """ToU demand response model — Phase 52.
 
+WHICH SIDE OF THE WALL THIS IS ON, AND WHY (KNIFE3 step 26, register §3u)
+--------------------------------------------------------------------------
+This is WORLD PHYSICS and it lives on the SIM side. It was filed under `saas/`
+until 2026-08-13, which made a legitimate fact about the world look like a
+crossing every time `run_phase2b` used it.
+
+How much load a household ACTUALLY shifts when it is put on a Time-of-Use
+tariff is a fact about that household — its appliances, its EV, its heat pump,
+whether anyone is home at 17:00. It is not the supplier's belief about that
+fact. A real supplier cannot know these numbers; it learns what happened from
+the meter reads that arrive afterwards, and its own estimate of the shift is
+allowed to be wrong. That gap is the coupled triad's score, so nothing here may
+be imported by `company/` or `saas/` — `tests/architecture/
+test_demand_response_is_world_physics.py` fails if anything ever does.
+
+Its nearest neighbour on this side is `simulation/nudge_physics.py`: the same
+kind of behavioural physics, already correctly filed.
+
 Models load-shifting behaviour when customers are on Time-of-Use tariffs.
 Smart-meter/HH customers receiving ToU price signals shift a fraction of
 their peak-window consumption to off-peak windows, reducing grid stress and
