@@ -1,4 +1,35 @@
-<!-- SUPERVISOR_DRAW: blocked -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- ACTIVATED 2026-08-13 -- REMAINING #3 IS DONE, the block is gone, and this doc is now a
+  re-baseline follow-through rather than a held mint.
+  Director console, verbatim: "Authorised: activate the population draw (SE_DRAW_POPULATION) and
+  wire the entrypoints. The book stays earned, never granted. Tell me before any published figure
+  moves, and re-baseline honestly." That is the R13 curriculum word this doc has been held on since
+  2026-07-24 (escalated on every tick since).
+  WHAT LANDED: (1) activation state moved OUT of an environment variable and INTO a committed
+  curriculum artefact, docs/design/curriculum/population_draw_activation.json -- the env var is now
+  only an override, so the activated world is reconstructible from the repo alone (IaC core) instead
+  of riding on one machine's export. Fail-closed to OFF on a missing/malformed file.
+  (2) The PUBLISHED chain is seam-wired: run_phase4c_on_phase2b (the module tools.run_annual_report
+  drives) + run_phase2b + run_phase2a now bind the book through live_population(). run_phase3a wired
+  too, and its two unguarded c["home_type"] reads hardened.
+  (3) The drawn cohort is now REGISTERED on the supply book (a fourth registration list, pushed IN
+  from the SIM side), because iterating a book the run cannot RESOLVE BY ID was a live crash: a
+  home-move win on a drawn customer looked the account back up through registered_point(), got None,
+  and passed the None straight into register_acquired_point().
+  (4) make_acquired_customer() hardened for a drawn predecessor (it read predecessor["home_type"]
+  and ["epc_rating"] unguarded, which a drawn record does not carry).
+  EARNED, NEVER GRANTED -- measured, not assumed: the activated book is 18 -> 20. TWO drawn
+  acquisitions (SYN-2021-001, SYN-2025-001), carrying acquisition_type "synthetic_draw" so they can
+  never be counted as fresh-market wins and charged CPA. The N=200 coverage POOL is NOT appended and
+  a control now fails if anything approaching it ever is. Note honestly: this doc's own "~5 SYN
+  acquisitions" was the Poisson MEAN over five years, not a measurement; the realised draw at the
+  fixed seed is 2.
+  STILL OPEN, which is why this is self-drawable and not archived: the RE-BASELINE. No published
+  figure has moved yet -- the activated book has not been through a full run. The next auto-processed
+  run is the first that faces the drawn world, and its deltas are owed to the director BEFORE they
+  are published (his instruction). Also still owed: the ~12 non-published calibration/diagnostic
+  entrypoints (run_phase1d/1e/1e_repriced/2a_repriced/3b*/3c/4b, run_phase1c_renewals) remain on the
+  static roster -- named, not silently skipped. -->
 <!-- BLOCK_RELEASE: director_live_run -- all non-walled draw landed (SYN property model + generate_hh_data/customer_sample/dashboard_data + SYN-safe run_phase0c/1c/1c_full_window settlement drivers, commit f5a5c2e19, R15 both-ways); ONLY REMAINING #3 stands = the director-reserved SE_DRAW_POPULATION=1 flip + downstream re-baseline, a curriculum act (which world the company faces every run, W2_2 ruling + R13). RELEASE CONDITION: a director console word authorising live activation (escalated via NTFY, prior tick + this one). -->
 <!-- RELEASED 2026-07-28: director console BUILD_OPEN (ruling_consumption_authority_seam_signoff, terms unchanged from 0ac3e1b5e); recorded in docs/observability/gate_authorizations.jsonl (channel=console, authorized_by=director). The R13 ACTIVATION (SE_DRAW_POPULATION on + entrypoint wiring) is the director-authored curriculum act now authorised. The LEVEL move stays director-reserved: the build fork re-applies blocked_on/director_level_up on completion (R16). -->
 <!-- draw-visibility marker (2026-07-28 FINAL UPDATE): BLOCKED — ALL non-walled draw is COMPLETE. The SYN property model (REMAINING #1) and the generator draw-wiring (REMAINING #2: generate_hh_data + generate_customer_sample + generate_dashboard_data + the SYN-safe run_phase0c/1c/1c_full_window settlement drivers, commit f5a5c2e19 "last non-walled draw") all LANDED — seam-routed via live_population(), byte-identical while the flag is off, R15 both-ways. The ONLY remaining step is REMAINING #3: the director-reserved SE_DRAW_POPULATION=1 flip + downstream re-baseline — a curriculum act (which world the company faces every run), director-reserved (W2_2 ruling + R13). blocked_on: director activation word for SE_DRAW_POPULATION. RELEASE CONDITION: a director console word authorising live activation (escalated via NTFY, prior tick + this one). The property-dependent run_phase2a/2b/3a drivers + the run_phase3a diagnostic are QUEUED with the held flip (activation-time hardening, gated behind #3, not fixed-on-sight per SELF_INTERRUPT_DISCIPLINE). Line 1's blocked token (lowercased == staging_disposition BLOCKED_MARKER) makes both draw parsers agree: no self-drawable next-step remains. -->

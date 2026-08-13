@@ -1,4 +1,20 @@
-<!-- SUPERVISOR_DRAW: blocked -->
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- UNBLOCKED 2026-08-13 (director: "unblock the other four mints on the usual reversible terms").
+  The FOURTEENTH-touch block below rests on trigger (a): "the mc2_collateral_death_test key appears
+  in run_output_latest.json only on the next AUTO-PROCESSED sim run; once it lands, the SITE RENDER
+  becomes drawable." That trigger COULD NOT FIRE, and the reason was not a director act.
+  run_phase2b.py:2676 has emitted the key on every run since 2026-07-27; the publish reduction
+  (saas/reporting/annual_report.py::extract_report_data) is a WHITELIST, and it never listed the
+  key -- so seventeen days of runs computed the death test and dropped it on the way to the file the
+  trigger watches. That is the module's OWN self-named "silent-drop class" (its comment records
+  three prior instances: dd_collection_book, the trading-book trio, the W1_11 settlement switch);
+  this is the fourth. The key is now forwarded, so trigger (a) fires on the next auto-processed run
+  and the site render is drawable behind it.
+  Trigger (b) (per-run run_ledger emission) also moved today: it was coupled to the "HELD/gated
+  activation core -- flag-flip + ~19 entrypoint hardening", and the director authorised exactly that
+  core on 2026-08-13 (SE_DRAW_POPULATION is ON; the published chain is seam-wired).
+  STILL WALLED, unchanged and not touched here: (c) the section-6 survival SCORE / capital organ,
+  and (d) the WVC_R world-half. R12/R13 intact -- no difficulty knob, no curriculum value created. -->
 <!-- BLOCK_RELEASE: director_live_run -- MC-2 death-test key lands on the next auto-processed run then the site render is self-drawable; run-ledger/score and WVC_R stay director/twin-gated -->
 <!-- marker FLIPPED self-drawable→blocked (2026-07-27, FOURTEENTH touch): the MC-2 death-test's last non-walled company-side worker-tick step — wiring the breaking_strain_sweep into a real 2021-22 replay in run_phase2b + surfacing its §2 fields to the run output — is now SHIPPED (commit below). No non-walled, non-automatic company-side BUILD step remains. The three follow-ons are each walled or automatic: (a) LIVE-PIXEL: the `mc2_collateral_death_test` key appears in run_output_latest.json only on the next AUTO-PROCESSED sim run (not a worker-tick action); once it lands, the SITE RENDER of the death-test figures becomes drawable (same pattern as the eleventh-tick credit-organ render). (b) PER-RUN run_ledger.jsonl EMISSION (append_to_ledger from the run loop): couples to the §3 run-manifest ACTIVATION CORE, which RUN_LEDGER_AND_SCORES_BUILD_2026-07-25 lists as the HELD/gated core (flag-flip + ~19 entrypoint hardening) and requires a whole-run survival manifest semantically DISTINCT from this collateral verdict — director/§3-gated, NOT a clean worker-tick step. (c) §6 survival SCORE / capital organ: director-session gated (RUN_LEDGER §6). (d) WVC_R world-half: twin-gated coupled atom (ruling §5). UNBLOCK TRIGGERS (verify on next draw per planner_mints_need_ruling_check): next auto-publish lands the mc2 key → site render self-drawable; director opens §3 run-ledger activation or §6; twin opens WVC_R. R12/R13 walls intact — no difficulty knob, no curriculum value created. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
 <!-- superseded self-drawable marker (2026-07-27, TWELFTH touch): the ELEVENTH-tick block had gone STALE — the DIRECTOR_RULING MC-2 (commit 2c233c6ff, 2026-07-25) resolved all three cited blockers, so drawable BUILD work was hidden here. That work (MC-2 mechanism → run-loop wiring) is now discharged; see the THIRTEENTH + FOURTEENTH touch notes at doc end. -->

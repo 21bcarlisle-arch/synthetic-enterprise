@@ -49,16 +49,25 @@ def _hidden_cohort_field_names() -> set:
 
 @pytest.fixture(autouse=True)
 def _clear_flag(monkeypatch):
-    """Ensure each test controls the activation flag explicitly (default OFF)."""
-    monkeypatch.delenv("SE_DRAW_POPULATION", raising=False)
+    """Pin the activation flag OFF so each test states the state it tests.
+
+    CHANGED 2026-08-13 (activation): this used to DELETE the variable, because
+    unset meant OFF -- the draw was default-OFF and held for a director word.
+    That word came, the committed curriculum
+    (`docs/design/curriculum/population_draw_activation.json`) now says
+    activated, and unset therefore means ON. The OFF-path invariants below are
+    unchanged and still fully tested; what changed is that they now have to SAY
+    off instead of assuming it. Tests of the new default set their own state.
+    """
+    monkeypatch.setenv("SE_DRAW_POPULATION", "0")
     yield
 
 
-def test_default_off_flag_predicate_is_false():
+def test_flag_off_predicate_is_false():
     assert lp.draw_population_enabled() is False
 
 
-def test_default_off_is_static_book_byte_identical():
+def test_flag_off_is_static_book_byte_identical():
     """Flag OFF: the seam returns exactly the static CUSTOMERS content."""
     book = lp.live_population()
     assert book == list(CUSTOMERS)
@@ -66,7 +75,7 @@ def test_default_off_is_static_book_byte_identical():
     assert book is not CUSTOMERS
 
 
-def test_default_off_returns_fresh_list_each_call():
+def test_flag_off_returns_fresh_list_each_call():
     a = lp.live_population()
     a.append({"customer_id": "MUTANT"})
     b = lp.live_population()
@@ -95,7 +104,7 @@ def test_mutation_flag_off_reverts_exactly(monkeypatch):
     entries come from the flag, not from an unconditional code path."""
     monkeypatch.setenv("SE_DRAW_POPULATION", "1")
     assert any(c["customer_id"].startswith("SYN-") for c in lp.live_population())
-    monkeypatch.delenv("SE_DRAW_POPULATION", raising=False)
+    monkeypatch.setenv("SE_DRAW_POPULATION", "0")
     off = lp.live_population()
     assert off == list(CUSTOMERS)
     assert not any(c["customer_id"].startswith("SYN-") for c in off)
@@ -331,3 +340,126 @@ def test_the_company_import_guard_can_fail():
     assert _company_logic_offenders(_company_imports_in(defect)) == {
         "company.analytics.cohort_discovery"
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ACTIVATION (director console 2026-08-13). The draw is ON by committed
+# curriculum, not by an export on one machine. These tests pin the ACTIVATED
+# state itself -- without them the activation is a fact about this laptop's
+# environment, which is exactly the out-of-tree state the IaC core forbids.
+# ═══════════════════════════════════════════════════════════════════════════
+
+import json as _json  # noqa: E402
+
+
+def test_activation_is_on_by_committed_curriculum(monkeypatch):
+    """THE ACTIVATION, pinned: with NO environment override, the seam draws.
+
+    This is the test that fails if someone reverts the curriculum file, and the
+    one that would have failed every day before 2026-08-13.
+    """
+    monkeypatch.delenv("SE_DRAW_POPULATION", raising=False)
+    assert lp.draw_population_enabled() is True
+    book = lp.live_population()
+    assert len(book) > len(CUSTOMERS)
+    assert any(c["customer_id"].startswith("SYN-") for c in book)
+
+
+def test_curriculum_file_is_the_state_of_record_not_the_environment(monkeypatch):
+    """Reconstruct-from-repo-alone: the ON state comes from the committed file.
+
+    MUTATION: point the module at a curriculum that says `activated: false` and
+    the seam must go dark with the environment untouched -- proving the file is
+    load-bearing and the activation is not secretly riding on an export.
+    """
+    monkeypatch.delenv("SE_DRAW_POPULATION", raising=False)
+    assert lp.draw_population_enabled() is True          # the real file
+    import pathlib
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        off = pathlib.Path(d) / "off.json"
+        off.write_text(_json.dumps({"activated": {"value": False}}))
+        monkeypatch.setattr(lp, "_ACTIVATION_CURRICULUM", off)
+        assert lp.draw_population_enabled() is False
+        assert lp.live_population() == list(CUSTOMERS)
+
+
+@pytest.mark.parametrize(
+    "content",
+    [None, "", "{}", '{"activated": {}}', '{"activated": {"value": "yes"}}', "not json at all"],
+    ids=["missing", "empty", "no-key", "no-value", "wrong-type", "malformed"],
+)
+def test_unreadable_curriculum_fails_closed_to_off(monkeypatch, content):
+    """R15 FAIL-OPEN killer: a broken curriculum file must NOT activate.
+
+    OFF is the byte-identical default, so degrading to OFF leaves today's world
+    running; degrading to ON would silently change which world the company faces
+    on the strength of a typo.
+    """
+    monkeypatch.delenv("SE_DRAW_POPULATION", raising=False)
+    import pathlib
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        f = pathlib.Path(d) / "c.json"
+        if content is not None:
+            f.write_text(content)
+        monkeypatch.setattr(lp, "_ACTIVATION_CURRICULUM", f)
+        assert lp.draw_population_enabled() is False
+
+
+def test_env_override_beats_the_curriculum_both_ways(monkeypatch):
+    """An explicit env value wins in BOTH directions -- the escape hatch a test
+    or a one-off replay needs, proven to work against an ACTIVATED curriculum."""
+    monkeypatch.setenv("SE_DRAW_POPULATION", "0")
+    assert lp.draw_population_enabled() is False
+    monkeypatch.setenv("SE_DRAW_POPULATION", "1")
+    assert lp.draw_population_enabled() is True
+
+
+def test_the_book_stays_earned_never_granted(monkeypatch):
+    """The director's binding constraint, as a control that can fail.
+
+    Activation appends the lambda=1.0 EARNED trickle, never the N=200 coverage
+    POOL. A regression that swapped the trickle for the pool would hand the
+    company ~200 customers it never won; this fails long before anyone reads a
+    margin figure and wonders why it moved.
+    """
+    monkeypatch.delenv("SE_DRAW_POPULATION", raising=False)
+    drawn = [c for c in lp.live_population() if c["customer_id"].startswith("SYN-")]
+    assert 0 < len(drawn) <= 15, (
+        f"activated book drew {len(drawn)} customers -- a trickle is single digits; "
+        "anything near 200 means the coverage POOL has been appended as a BOOK"
+    )
+    assert all(c["acquisition_type"] == "synthetic_draw" for c in drawn), (
+        "drawn points must stay distinguishable from fresh_market wins, or "
+        "acquisition-cost accounting will charge CPA for a customer nobody won"
+    )
+
+
+def test_every_point_the_seam_returns_resolves_by_id(monkeypatch):
+    """A book you can iterate but not RESOLVE is what broke the home-move path.
+
+    `run_phase2b` looks a winning account back up through `registered_point()`
+    and passes the result to `register_acquired_point()`. Before activation
+    registered the drawn cohort, that lookup returned None for a SYN customer
+    and the None went straight into the clone.
+    """
+    monkeypatch.delenv("SE_DRAW_POPULATION", raising=False)
+    from company.interfaces.supply_book import registered_point
+    book = lp.live_population()
+    unresolvable = [c["customer_id"] for c in book if registered_point(c["customer_id"]) is None]
+    assert not unresolvable, f"seam returned points the book cannot resolve: {unresolvable}"
+
+
+def test_registration_is_idempotent(monkeypatch):
+    """Entrypoints bind the book at import time in arbitrary order, so the
+    activation runs repeatedly per process. A non-idempotent register would
+    grow the book on every call -- a grant by accident."""
+    monkeypatch.delenv("SE_DRAW_POPULATION", raising=False)
+    from company.interfaces.supply_book import drawn_supply_points
+    first = len(lp.live_population())
+    for _ in range(5):
+        lp.live_population()
+    assert len(lp.live_population()) == first
+    ids = [c["customer_id"] for c in drawn_supply_points()]
+    assert len(ids) == len(set(ids)), f"drawn book has duplicates: {ids}"

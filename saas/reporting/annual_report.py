@@ -44,7 +44,7 @@ _PROJECT = Path(__file__).resolve().parent.parent.parent
 from saas.clv_model import build_clv
 from saas.cost_to_serve import build_cost_to_serve
 from saas.customer_reaction import _billing_account_id
-from saas.customers import ACQUIRED_CUSTOMERS, CUSTOMERS, SUCCESSOR_CUSTOMERS
+from saas.customers import ACQUIRED_CUSTOMERS, CUSTOMERS, DRAWN_CUSTOMERS, SUCCESSOR_CUSTOMERS
 from company.market.tou_periods import is_peak_period
 from saas.capital.bsc_credit import compute_bsc_credit_by_year
 from saas.capital.solvency import compute_solvency_by_year, compute_solvency_signal
@@ -117,7 +117,17 @@ def _build_clv_snapshots(
             account_id: [r for r in renewals if r["renewal_period"] <= cutoff[:7]]
             for account_id, renewals in churn_risk.items()
         }
-        cts_to_year = build_cost_to_serve(records_to_year, CUSTOMERS + SUCCESSOR_CUSTOMERS)
+        # DRAWN_CUSTOMERS (generator_draw_wiring activation, 2026-08-13): the
+        # settlement records this reduces over come from the ACTIVATED book, so the
+        # roster it resolves them against has to be the same book -- `build_cost_to_serve`
+        # raises KeyError on a record whose customer it cannot find, and a drawn
+        # customer settles from 2021. Empty while the draw is off, so this is
+        # byte-identical then. Stays inside `saas.customers` rather than reaching for
+        # `live_population()`: KNIFE pass 1 took `simulation` off this module's import
+        # graph on purpose and this must not put it back.
+        cts_to_year = build_cost_to_serve(
+            records_to_year, CUSTOMERS + SUCCESSOR_CUSTOMERS + DRAWN_CUSTOMERS
+        )
         clv_to_year = build_clv(risk_to_year, cts_to_year)
         snapshots[year] = {
             account_id: v["clv_gbp"] for account_id, v in clv_to_year.items()
@@ -201,7 +211,7 @@ def extract_report_data(run_output: dict) -> dict:
     won_successor_activations: dict[str, str] = run_output.get("won_successor_activations", {})
     segment_by_customer = {
         c["customer_id"]: c["segment"]
-        for c in CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS
+        for c in CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS + DRAWN_CUSTOMERS
     }
 
     # Phase 8a: growth mandate data
@@ -469,7 +479,7 @@ def extract_report_data(run_output: dict) -> dict:
         }
 
     per_customer_lifetime = {}
-    for c in CUSTOMERS + SUCCESSOR_CUSTOMERS:
+    for c in CUSTOMERS + SUCCESSOR_CUSTOMERS + DRAWN_CUSTOMERS:
         cid = c["customer_id"]
         recs = [r for r in all_records if r["customer_id"] == cid]
         if not recs:
@@ -689,6 +699,20 @@ def extract_report_data(run_output: dict) -> dict:
         "trading_book": phase2b.get("trading_book", {}),
         "wholesale_credit_exposure": phase2b.get("wholesale_credit_exposure", {}),
         "margin_call_book": phase2b.get("margin_call_book", {}),
+        # MC-2 collateral death-test (added 2026-08-13). FOURTH instance of the
+        # silent-drop class this dict keeps producing, and the most expensive so
+        # far: `run_phase2b` has emitted `mc2_collateral_death_test` on every run
+        # since the breaking-strain sweep was wired on 2026-07-27, and this
+        # whitelist dropped all of them. `PLANNER_MINTED_value_chain_observation_
+        # window_cap` had been parked BLOCKED for 17 days on the trigger "the
+        # mc2 key appears in run_output_latest.json on the next auto-processed
+        # run, and then the site render becomes drawable" -- a trigger that could
+        # never fire, because nothing between the emission and the file carried
+        # the key. The mint was waiting on a director-adjacent "live run", and was
+        # in fact waiting on this line. `None` (not `{}`) when the run does not
+        # reach the 2021-22 window, because "the death test did not run" and "the
+        # death test found nothing" are different facts and must not render alike.
+        "mc2_collateral_death_test": phase2b.get("mc2_collateral_death_test"),
         # W1_11 settlement switch (2026-08-03): WHICH GENERATOR SETTLED EACH
         # CUSTOMER, forwarded on the same reasoning as trading_book above and
         # caught the same way -- run_phase2b records these precisely so "an
@@ -745,6 +769,9 @@ def extract_report_data(run_output: dict) -> dict:
         "company_gas_churn_log": phase2b.get("company_gas_churn_log", []),
         "margin_feedback_log": phase2b.get("margin_feedback_log", []),
         "dynamic_pricing_log": phase2b.get("dynamic_pricing_log", []),
+        # EP2 sub-atom 3: the ONE decomposed rate span per renewal (original -> contracted).
+        # The per-writer logs above are links in that chain, not spans in their own right.
+        "rate_decomposition_log": phase2b.get("rate_decomposition_log", []),
         "demand_estimation_log": phase2b.get("demand_estimation_log", []),  # Phase 23a
         # Phase NK: churn model calibration KPI (recall/precision/F1) from Phase NJ
         "churn_model_performance": phase2b.get("churn_model_performance", {}),
@@ -2347,6 +2374,46 @@ def _clv_trajectory_section(data: dict) -> str:
     ])
 
 
+_RATE_SPAN_TOLERANCE_PCT = 0.05
+
+
+def _rate_span_is_own(entry: dict, coefficient_pct: float) -> bool:
+    """Does this entry's own before/after span match the coefficient it publishes?
+
+    EP2 sub-atom 3 (2026-08-13). Four writers move one `unit_rate` at renewal. A writer whose
+    logged pair straddles ANOTHER writer's move publishes a row that fails its own arithmetic —
+    the defect found on `ANNUAL_REPORT.md` (28 of 29 surcharge rows, 2026-08-13). This is the
+    renderer's guard: a pair that does not reconcile to its own stated coefficient is not
+    rendered at all. Withholding a figure and saying so is honest; silently re-deriving the
+    missing end would hide the producer defect behind a repaired-looking row.
+
+    Returns False on a missing/None end, so an absent value is a FAILED check, not a pass.
+    """
+    before = entry.get("unit_rate_before")
+    after = entry.get("unit_rate_after")
+    if before is None or after is None or not before:
+        return False
+    implied_pct = (after / before - 1.0) * 100.0
+    return abs(implied_pct - coefficient_pct) <= _RATE_SPAN_TOLERANCE_PCT
+
+
+def _fmt_rate(value) -> str:
+    """A rate cell, or an em-dash when the producer did not publish a trustworthy one."""
+    return "—" if value is None else f"£{value:.2f}/MWh"
+
+
+def _withheld_note(withheld: int, total: int, what: str) -> list[str]:
+    """R9: name what was withheld and why, rather than leaving a silent em-dash."""
+    if not withheld:
+        return []
+    return [
+        "",
+        f"> {withheld} of {total} row(s) show — for {what}: this run predates the decomposed "
+        "rate chain (`rate_decomposition_log`), so the writer's logged pair straddles another "
+        "writer's move and cannot be reconciled to its own coefficient. Withheld, not repaired.",
+    ]
+
+
 def _section_margin_feedback(data: dict) -> str:
     """Phase 16c + 19a: realized-margin recovery surcharges applied during the run."""
     log = data.get("margin_feedback_log", [])
@@ -2363,19 +2430,28 @@ def _section_margin_feedback(data: dict) -> str:
         f"Company applied {total_surcharge_events} recovery surcharge(s) at renewal based on prior-term losses "
         f"({len(gas_events)} gas). Avg surcharge: {avg_surcharge:.1f}%.",
         "",
-        "| Customer | Commodity | Term start | Prior margin | Prior revenue | Surcharge | Rate before | Rate after |",
-        "|----------|-----------|------------|-------------|--------------|-----------|------------|-----------|",
+        "| Customer | Commodity | Term start | Prior margin | Prior revenue | Surcharge | Rate into surcharge | Rate out | Contracted |",
+        "|----------|-----------|------------|-------------|--------------|-----------|--------------------|----------|-----------|",
     ]
+    withheld = 0
     for e in sorted(log, key=lambda x: x["term_start"]):
         comm = e.get("commodity", "electricity")
+        # EP2 sub-atom 3: this table publishes the SURCHARGE's own link in the rate chain, so
+        # its pair must reconcile to the surcharge coefficient and nothing else. `Contracted` is
+        # the rate the customer actually got after every writer, read only off the chain.
+        own_span = _rate_span_is_own(e, e["surcharge_pct"])
+        if not own_span:
+            withheld += 1
         lines.append(
             f"| {e['customer_id']} | {comm} | {e['term_start']} "
             f"| {_fmt_gbp(e['prev_margin_gbp'])} "
             f"| {_fmt_gbp(e['prev_revenue_gbp'])} "
             f"| +{e['surcharge_pct']:.1f}% "
-            f"| £{e['unit_rate_before']:.2f}/MWh "
-            f"| £{e['unit_rate_after']:.2f}/MWh |"
+            f"| {_fmt_rate(e['unit_rate_before'] if own_span else None)} "
+            f"| {_fmt_rate(e['unit_rate_after'] if own_span else None)} "
+            f"| {_fmt_rate(e.get('unit_rate_contracted'))} |"
         )
+    lines.extend(_withheld_note(withheld, total_surcharge_events, "the surcharge span"))
     lines.append("")
     return "\n".join(lines)
 
@@ -2423,19 +2499,28 @@ def _section_dynamic_pricing(data: dict) -> str:
         f"({len(gas_events)} gas) based on recent portfolio-wide margin rates: "
         f"{len(pos_events)} surcharge(s), {len(neg_events)} discount(s).",
         "",
-        "| Customer | Commodity | Term start | Mean recent margin | Portfolio premium | Rate before | Rate after |",
-        "|----------|-----------|------------|-------------------|-------------------|------------|-----------|",
+        "| Customer | Commodity | Term start | Mean recent margin | Portfolio premium | Rate into premium | Rate out | Contracted |",
+        "|----------|-----------|------------|-------------------|-------------------|------------------|----------|-----------|",
     ]
+    withheld = 0
     for e in sorted(log, key=lambda x: x["term_start"]):
         sign = "+" if e["portfolio_premium_pct"] >= 0 else ""
         comm = e.get("commodity", "electricity")
+        # EP2 sub-atom 3: the premium fires FIRST, so its own pair was always self-consistent —
+        # what it never was is the contracted rate. `Rate out` is this writer's link; the
+        # surcharge, the profitability uplift and the price cap all still move it afterwards.
+        own_span = _rate_span_is_own(e, e["portfolio_premium_pct"])
+        if not own_span:
+            withheld += 1
         lines.append(
             f"| {e['customer_id']} | {comm} | {e['term_start']} "
             f"| {e['mean_recent_margin_rate'] * 100:.1f}% "
             f"| {sign}{e['portfolio_premium_pct']:.1f}% "
-            f"| £{e['unit_rate_before']:.2f}/MWh "
-            f"| £{e['unit_rate_after']:.2f}/MWh |"
+            f"| {_fmt_rate(e['unit_rate_before'] if own_span else None)} "
+            f"| {_fmt_rate(e['unit_rate_after'] if own_span else None)} "
+            f"| {_fmt_rate(e.get('unit_rate_contracted'))} |"
         )
+    lines.extend(_withheld_note(withheld, total_events, "the premium span"))
     lines.append("")
     return "\n".join(lines)
 
@@ -3645,8 +3730,8 @@ def _section_ic_portfolio(data: dict) -> str:
                 pass
 
     # Build I&C customer set from customers module
-    from saas.customers import CUSTOMERS as _CUST_LIST, SUCCESSOR_CUSTOMERS as _SUCC_LIST, ACQUIRED_CUSTOMERS as _ACQ_LIST
-    _all_customers = _CUST_LIST + _SUCC_LIST + list(_ACQ_LIST)
+    from saas.customers import CUSTOMERS as _CUST_LIST, SUCCESSOR_CUSTOMERS as _SUCC_LIST, ACQUIRED_CUSTOMERS as _ACQ_LIST, DRAWN_CUSTOMERS as _DRAWN_LIST
+    _all_customers = _CUST_LIST + _SUCC_LIST + list(_ACQ_LIST) + list(_DRAWN_LIST)
     _ic_cust_ids = {c["customer_id"] for c in _all_customers if c.get("segment") == "I&C"}
 
     # Aggregate by customer from all_records — I&C customers only
@@ -7388,39 +7473,61 @@ def _section_dynamic_pricing_activity(data: dict) -> str:
         if not yr:
             continue
         mfl_by_year.setdefault(yr, []).append(e)
+    # EP2 sub-atom 3 (2026-08-13): when the run publishes the decomposed chain, the year delta is
+    # the WHOLE renewal move (original -> contracted, every writer). Without it, the only span
+    # available is the portfolio premium's own link — which is a smaller thing, and is now
+    # labelled as such rather than as "the margin feedback loop".
+    chain_by_key = {
+        (e.get("customer_id"), e.get("commodity"), e.get("term_start")): e
+        for e in (data.get("rate_decomposition_log") or [])
+    }
     rows = []
     for yr in sorted(by_year.keys()):
         entries = by_year[yr]
-        avg_delta = sum(e.get("unit_rate_after", 0) - e.get("unit_rate_before", 0) for e in entries) / len(entries)
-        ups = sum(1 for e in entries if e.get("unit_rate_after", 0) > e.get("unit_rate_before", 0))
-        downs = sum(1 for e in entries if e.get("unit_rate_after", 0) < e.get("unit_rate_before", 0))
-        emergency = len(mfl_by_year.get(yr, []))
-        rows.append((yr, len(entries), avg_delta, ups, downs, emergency))
+        spans = []
+        for e in entries:
+            chain = chain_by_key.get(
+                (e.get("customer_id"), e.get("commodity"), e.get("term_start"))
+            )
+            if chain and chain.get("unit_rate_contracted") is not None:
+                spans.append(chain["unit_rate_contracted"] - chain.get("unit_rate_original", 0))
+            else:
+                spans.append(e.get("unit_rate_after", 0) - e.get("unit_rate_before", 0))
+        avg_delta = sum(spans) / len(spans)
+        ups = sum(1 for s in spans if s > 0)
+        downs = sum(1 for s in spans if s < 0)
+        surcharges = len(mfl_by_year.get(yr, []))
+        rows.append((yr, len(entries), avg_delta, ups, downs, surcharges))
+    whole_move = bool(chain_by_key)
+    span_label = "whole renewal move" if whole_move else "portfolio premium only"
     lines = [
         "## Dynamic Pricing Activity",
         "",
-        "Rate adjustments driven by the margin feedback loop and emergency reprice events.",
+        "Renewals the company repriced, and the recovery surcharges it applied at renewal.",
         "",
-        "| Year | Adjustments | Avg Delta £/MWh | Up | Down | Emergency |",
-        "|------|------------|-----------------|-----|------|-----------|",
+        "| Year | Repriced renewals | Avg Delta £/MWh | Up | Down | Margin surcharges |",
+        "|------|------------------|-----------------|-----|------|------------------|",
     ]
-    for yr, adj, avg_d, up, dn, emerg in rows:
+    for yr, adj, avg_d, up, dn, surch in rows:
         sign = "+" if avg_d >= 0 else ""
         lines.append("| {} | {} | {}{:.1f} | {} | {} | {} |".format(
-            yr, adj, sign, avg_d, up, dn, emerg))
+            yr, adj, sign, avg_d, up, dn, surch))
     total_adj = sum(r[1] for r in rows)
     peak_yr, peak_delta = max(((r[0], r[2]) for r in rows), key=lambda x: x[1])
-    max_emerg_yr = max(rows, key=lambda r: r[5])
-    total_emergency = sum(r[5] for r in rows)
+    max_surch_yr = max(rows, key=lambda r: r[5])
+    total_surcharges = sum(r[5] for r in rows)
     lines.extend([
         "",
-        "**Total adjustments 2016-2025: {}** | **Peak avg adjustment: {} (+{:.1f} £/MWh)**".format(
+        "**Total repriced renewals 2016-2025: {}** | **Peak avg adjustment: {} (+{:.1f} £/MWh)**".format(
             total_adj, peak_yr, peak_delta if peak_delta >= 0 else -peak_delta),
-        "**Emergency reprices: {} total** ({} in {})".format(
-            total_emergency, max_emerg_yr[5], max_emerg_yr[0]),
+        "**Margin recovery surcharges: {} total** ({} in {})".format(
+            total_surcharges, max_surch_yr[5], max_surch_yr[0]),
         "",
-        "> Emergency reprices triggered when recent margin dropped below cost floor.",
-        "> Normal adjustments from rolling margin feedback; £/MWh delta versus prior contracted rate.",
+        "> Margin recovery surcharges fire at RENEWAL, on the prior term's realised net margin: "
+        "a loss exceeding 5% of that term's revenue triggers a surcharge of the excess, capped "
+        "at +20% (`compute_margin_surcharge`).",
+        "> Repriced renewals are the portfolio learning premium (`compute_portfolio_premium`); "
+        "the Avg Delta spans the {}.".format(span_label),
         "",
     ])
     return "\n".join(lines)

@@ -46,9 +46,6 @@ import sim.risk_committee_agent as risk_committee_agent
 from company.interfaces.supply_book import (
     registered_point as get_customer,
 )
-from company.interfaces.supply_book import (
-    registered_supply_points,
-)
 from sim.cache_store import get_cached_prices, log_cache_access
 from sim.hedging_strategy import evolve_hedge_fraction
 from sim.profile_class_1 import load_pc1_shape
@@ -57,14 +54,17 @@ from sim.risk_committee import RiskCommitteeMonitor
 from sim.risk_engine import assess_term_risk, is_administration_triggered
 from sim.system_prices_history import get_system_prices_range
 from simulation.hedged_settlement import run_hedged_term
+from simulation.live_population import live_population
 from simulation.portfolio_pnl import build_portfolio_pnl
 from simulation.renewals import build_renewal_schedule
 from simulation.settlement import CONTRACT_LENGTH_DAYS
 
-# The supply book, bound once at import: the seam hands back the LIVE roster
-# objects (see company/interfaces/supply_book.py, IDENTITY), so a runtime append
-# to the acquired book is visible here exactly as it was before KNIFE pass 2.
-CUSTOMERS = registered_supply_points()
+# generator_draw_wiring ACTIVATION (2026-08-13): book via the population seam.
+# Byte-identical flag-OFF; flag-ON adds the curriculum's drawn 2021-2025 trickle.
+# NOTE this module sums `c["eac_kwh"]` unguarded (STARTING_TREASURY_GBP below) --
+# safe, because the drawn dicts carry `eac_kwh`; it is `home_type`/`epc_rating`
+# they lack, and this module reads neither.
+CUSTOMERS = live_population()
 
 REPORT_START = "2016-01-01"
 REPORT_END = "2025-06-07"

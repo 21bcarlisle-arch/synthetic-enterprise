@@ -1,4 +1,20 @@
 <!-- SUPERVISOR_DRAW: blocked -->
+<!-- STAYS BLOCKED 2026-08-13, and this is the one of the five that genuinely cannot be released
+  (director: "or name in one line each why it genuinely can't be").
+  ONE LINE: its only remaining step is the A0/A1 coefficient recalibration the director rejected as
+  R12 goal-seek, so unblocking it would authorise the tuning the wall forbids -- R12 is a WALL, not
+  a dial, and this is a block on physics, not on permission.
+  WHAT WOULD ACTUALLY RELEASE IT, re-pointed at a drawable predecessor so the queue stops hiding
+  real work behind this park: the release condition is W1_6b_merit_order_reconstruction landing, and
+  W1_6b is NOT itself blocked -- checked against the map today, not assumed:
+    blocked_on: null | loop_stage: build | level_current 2 -> level_target 3.
+  It is drawable RIGHT NOW. Its own record names the three measured gaps between 2 and 3: criterion 1
+  is 2/5 on calm cells against SSP; the merit-order engine is reachable but is not the default price
+  path; and no crisis-year or tight-hour measurement exists, so the coupled-triad rule is unsatisfied.
+  So the honest status of THIS mint is not "waiting on the director" and never was -- it is waiting
+  on a build that anyone can draw. Draw W1_6b; this re-measures itself against the SAME per-cell lift
+  table and the SAME naive baseline, unmoved, and that unchanged measurement is the test of whether
+  pricing became RIGHT rather than TUNED. No interim tuning (R12 unchanged). -->
 <!-- BLOCK_RELEASE: W1_6b_merit_order_reconstruction -- part(a) held; unblocks when the merit-order/gas-first reconstruction (W1_6b) has landed, no interim tuning (R12) -->
 <!-- draw-visibility marker (2026-07-25): FLIPPED self-drawable -> blocked. The autonomous-drawable DIAGNOSTIC lane is now EXHAUSTED (Tests A/B/C/D complete — the partition question is fully answered, per-year ceiling reached). The ONE remaining step is part (a), RE-SCOPED by DIRECTOR RULING 2026-07-25 (see blocking-sub-item below): NOT a coefficient recalibration (the director rejected that shape as R12 goal-seek) but a merit-order / gas-first RECONSTRUCTION of the price engine (Board Spec 004 reconstructibility; converges with Spec 001 F1), sequenced with the VALUE_CHAIN work — a director-reserved structural build, a wall for a bounded autonomous tick, not a lack of a next idea. Still an OPEN mint (keeps the rung-7 "rungs empty" premise FALSE), just no longer self-drawn each tick. Fail-closed structured token parsed by background/staging_disposition.selfdrawable_mint_in_progress. -->
 

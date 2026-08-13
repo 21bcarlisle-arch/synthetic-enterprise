@@ -150,6 +150,48 @@ _SYN_DEFAULT_BEDROOMS = 3          # MEDIUM-equivalent when band is missing/unkn
 _SYN_DEFAULT_PROPERTY_TYPE = "semi"
 _SYN_MODAL_EPC_RATING = "D"        # UK domestic modal EPC band; honest population default
 
+# The SAME derivation expressed in the roster's `home_type` vocabulary, for the one
+# caller that needs a `home_type` rather than a `property_type`:
+# `saas.customers.make_acquired_customer()`, which clones a predecessor's dwelling
+# fields when a home move is won on a drawn property. Kept beside the property-type
+# map, not near its caller, because the two MUST agree -- `PROPERTY_TYPE_BY_HOME_TYPE
+# [_SYN_HOME_TYPE_BY_BAND[band]] == _SYN_PROPERTY_TYPE_BY_BAND[band]` for every band,
+# so a drawn customer and its home-move successor describe the same dwelling. That
+# identity is asserted in tests/saas/test_property_model.py rather than trusted.
+_SYN_HOME_TYPE_BY_BAND = {
+    "LOW": "urban_flat",
+    "MEDIUM": "suburban_semi",
+    "HIGH": "rural_detached",
+}
+_SYN_DEFAULT_HOME_TYPE = "suburban_semi"   # MEDIUM-equivalent, matches the default above
+
+
+def _epc_rating_of(c: dict) -> str:
+    """The customer's `epc_rating`, derived from the observable for a drawn record.
+
+    Sibling of `_home_type_of`. Same reason it exists: the static roster authors
+    `epc_rating`, a drawn (SYN-*) record does not carry it, and every site that
+    reads it must get the SAME answer or two parts of the company will describe
+    one customer's dwelling differently.
+    """
+    if "epc_rating" in c:
+        return c["epc_rating"]
+    return _derive_syn_property_fields(c)["epc_rating"]
+
+
+def _home_type_of(c: dict) -> str:
+    """The customer's `home_type`, derived from the observable for a drawn record.
+
+    The static roster authors `home_type`; a drawn (SYN-*) record carries
+    `consumption_band` instead. One accessor so that every caller needing a
+    home_type gets the SAME answer -- `make_acquired_customer()` and the phase-3a
+    shock diagnostic previously each read `c["home_type"]` directly, which is a
+    KeyError the moment the population draw is activated.
+    """
+    if "home_type" in c:
+        return c["home_type"]
+    return _SYN_HOME_TYPE_BY_BAND.get(c.get("consumption_band"), _SYN_DEFAULT_HOME_TYPE)
+
 
 def _derive_syn_property_fields(c: dict) -> dict:
     """Derive `property_type`/`epc_rating`/`bedrooms` for a SYN-shaped customer.

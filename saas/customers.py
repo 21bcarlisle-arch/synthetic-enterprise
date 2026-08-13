@@ -429,6 +429,54 @@ def _clear_acquired_customers() -> None:
     ACQUIRED_CUSTOMERS.clear()
 
 
+# generator_draw_wiring ACTIVATION (2026-08-13, director console: "activate the
+# population draw and wire the entrypoints"). A FOURTH registration book, kept
+# separate from the three above on purpose.
+#
+# WHY A SEPARATE LIST, AND NOT AN APPEND TO EITHER EXISTING ONE:
+#   - `CUSTOMERS` is the hand-authored 2016-2020 starting roster. Appending here
+#     would change what `registered_supply_points()` returns, so the flag-OFF
+#     path would stop being byte-identical and every consumer of the static
+#     roster would silently move. The seam's whole contract is that OFF changes
+#     nothing.
+#   - `ACQUIRED_CUSTOMERS` is the run's OWN fresh-market wins, and it is what
+#     acquisition-cost accounting counts (`COST_PER_ACQUISITION`). A drawn
+#     customer was not won by this run's sales effort, so charging CPA for it
+#     would be granting the company a book AND billing it for one. The drawn
+#     dicts carry `acquisition_type: "synthetic_draw"` precisely so the two
+#     never merge.
+#
+# WHAT IT IS: the meter points the curriculum says this supplier registered over
+# 2021-2025 (W2_2 Profile B trickle, lambda=1.0/yr). Registration is a published
+# industry act, so the book knowing about them is exactly right -- what must NOT
+# happen is the company reading the SIM's hidden cohort, and it cannot: these are
+# saas-shaped observable dicts, `to_customer_dict()` omits the ground-truth
+# `cohort` by construction.
+#
+# DIRECTION: this list is written by the SIM side pushing registrations IN through
+# `company.interfaces.supply_book.register_drawn_points()`. Nothing here imports
+# `simulation.*` -- the company never pulls from the generator.
+DRAWN_CUSTOMERS: list[dict] = []
+
+
+def _register_drawn_customers(points: list[dict]) -> list[dict]:
+    """Register drawn supply points, idempotently by `customer_id`.
+
+    Idempotent because the activation runs once per process but entrypoints bind
+    the book at import time in any order -- a second call must not double the
+    book. Returns the points actually added (empty on a repeat call).
+    """
+    known = {c["customer_id"] for c in DRAWN_CUSTOMERS}
+    added = [p for p in points if p["customer_id"] not in known]
+    DRAWN_CUSTOMERS.extend(added)
+    return added
+
+
+def _clear_drawn_customers() -> None:
+    """Clear the drawn-registration book. Use in test teardown."""
+    DRAWN_CUSTOMERS.clear()
+
+
 def make_acquired_customer(
     customer_id: str,
     predecessor: dict,
@@ -444,15 +492,32 @@ def make_acquired_customer(
     acq_year = int(acquisition_date[:4])
     segment = predecessor.get("segment", "resi")
     has_smart_meter = get_smart_meter_status(customer_id, acq_year, segment)
+    # A DRAWN (SYN-*) predecessor carries `consumption_band` instead of the static
+    # roster's `home_type`/`epc_rating`/`bedrooms` (generator_draw_wiring
+    # activation). Branch on `home_type` exactly as `property_model.build_properties`
+    # does, so the static path stays byte-identical and winning the home move on a
+    # drawn property derives the dwelling fields from the observable rather than
+    # raising KeyError. Local import: same cycle-avoidance as `get_smart_meter_status`
+    # above.
+    if "home_type" in predecessor:
+        _home_type = predecessor["home_type"]
+        _epc_rating = predecessor["epc_rating"]
+        _bedrooms = predecessor.get("bedrooms")
+    else:
+        from saas.property_model import _derive_syn_property_fields, _home_type_of
+        _phys = _derive_syn_property_fields(predecessor)
+        _home_type = _home_type_of(predecessor)
+        _epc_rating = _phys["epc_rating"]
+        _bedrooms = _phys["bedrooms"]
     return {
         "customer_id": customer_id,
         "successor_of": predecessor["customer_id"],
         "acquisition_type": "fresh_market",
         "acquisition_date": acquisition_date,
         "location": predecessor["location"],
-        "home_type": predecessor["home_type"],
-        "bedrooms": predecessor.get("bedrooms"),
-        "epc_rating": predecessor["epc_rating"],
+        "home_type": _home_type,
+        "bedrooms": _bedrooms,
+        "epc_rating": _epc_rating,
         "eac_kwh": predecessor.get("eac_kwh", 3200),
         "commodity": "electricity",
         "contract_type": predecessor.get("contract_type", "fixed_1yr"),
@@ -469,7 +534,13 @@ def get_customer(customer_id: str) -> dict | None:
     :param customer_id: The unique identifier for the customer.
     :return: The customer dictionary if found, otherwise None.
     """
-    all_customers = CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS
+    # DRAWN_CUSTOMERS last: it is empty unless the population draw is activated,
+    # so the flag-OFF lookup is the same three books in the same order as before.
+    # It has to be searched at all because an activated run ITERATES the drawn
+    # points (via `live_population()`) and then looks them back up by id -- a
+    # book you can iterate but not resolve is what made a home-move win hand
+    # `None` to `make_acquired_customer()`.
+    all_customers = CUSTOMERS + SUCCESSOR_CUSTOMERS + ACQUIRED_CUSTOMERS + DRAWN_CUSTOMERS
     return next((customer for customer in all_customers if customer["customer_id"] == customer_id), None)
 
 

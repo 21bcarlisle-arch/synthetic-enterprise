@@ -1032,6 +1032,14 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     prev_term_revenue: dict[str, float] = {}
     margin_feedback_log: list[dict] = []
     profitability_uplift_log: list[dict] = []
+    # EP2 sub-atom 3 (2026-08-13, WORKER_FINDING_TWO_PRICING_LOOPS_...): four writers move one
+    # `unit_rate` at renewal — the portfolio premium, the margin surcharge, the profitability
+    # uplift and the domestic price cap. Each of their own logs used to record a before/after
+    # pair as though it were the only writer, so no published pair spanned the move the customer
+    # actually got. This is the ONE decomposed span per renewal: original -> contracted, with
+    # each cause named and its own chained sub-span. The per-writer logs stay (each is now a
+    # true link in the chain) but the contracted rate is only ever read from here.
+    rate_decomposition_log: list[dict] = []
     demand_response_log: list[dict] = []   # Phase 52: per-term DR shift records
     hedge_var_log: list[dict] = []   # Trading & Market tab: realized VaR per hedge decision
     # Phase 22a: post-crisis hangover — how many more renewals get the +12% churn uplift
@@ -1153,6 +1161,14 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         term_index = term_indices[cid]
         term_indices[cid] += 1
 
+        # EP2 sub-atom 3: open the rate chain for this renewal. `rate_original` is the rate as
+        # the term was struck, before any of the four writers below; `rate_components` collects
+        # each writer's own chained sub-span; `rate_chain_entries` holds the per-writer log dicts
+        # so the contracted rate can be stamped back onto them once every writer has run.
+        rate_original = unit_rate
+        rate_components: list[dict] = []
+        rate_chain_entries: list[dict] = []
+
         # Phase 17a + 19a: portfolio learning premium (electricity and gas)
         # Phase 41a: skip for flex/deemed — no locked unit rate to adjust.
         _portfolio_rates = (
@@ -1164,15 +1180,28 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             if abs(portfolio_prem) > 1e-6:
                 rate_before = unit_rate
                 unit_rate *= (1.0 + portfolio_prem)
-                dynamic_pricing_log.append({
+                _entry = {
                     "customer_id": cid,
                     "commodity": commodity,
                     "term_start": term_start_str,
                     "recent_margin_rates": [round(r, 4) for r in lookback],
                     "mean_recent_margin_rate": round(sum(lookback) / len(lookback), 4),
                     "portfolio_premium_pct": round(portfolio_prem * 100, 2),
+                    # EP2 sub-atom 3: this pair spans THIS writer's move only. The rate the
+                    # customer contracted is `unit_rate_contracted`, stamped on below once the
+                    # surcharge, the uplift and the cap have each had their turn.
+                    "unit_rate_original": round(rate_original, 4),
                     "unit_rate_before": round(rate_before, 4),
                     "unit_rate_after": round(unit_rate, 4),
+                }
+                dynamic_pricing_log.append(_entry)
+                rate_chain_entries.append(_entry)
+                rate_components.append({
+                    "cause": "portfolio_premium",
+                    "basis": "pct",
+                    "magnitude": round(portfolio_prem * 100, 4),
+                    "rate_before": round(rate_before, 4),
+                    "rate_after": round(unit_rate, 4),
                 })
 
         # Phase 16c + 19a: apply realized-margin recovery surcharge at renewal (all commodities)
@@ -1180,16 +1209,32 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         if unit_rate is not None and term_index >= 1 and cid in prev_term_margin:
             surcharge = compute_margin_surcharge(prev_term_margin[cid], prev_term_revenue.get(cid, 0.0))
             if surcharge > 0:
+                # EP2 sub-atom 3: `rate_before` is the rate as it ENTERS this writer — i.e. after
+                # the portfolio premium above. It used to be re-read off `term[...]`, which is
+                # never rebound, so the logged pair carried the premium's move inside a span
+                # labelled with only the surcharge's coefficient and the row failed its own
+                # arithmetic (28 of 29 rows, 2026-08-13).
+                rate_before = unit_rate
                 unit_rate *= (1.0 + surcharge)
-                margin_feedback_log.append({
+                _entry = {
                     "customer_id": cid,
                     "commodity": commodity,
                     "term_start": term_start_str,
                     "prev_margin_gbp": round(prev_term_margin[cid], 4),
                     "prev_revenue_gbp": round(prev_term_revenue.get(cid, 0.0), 4),
                     "surcharge_pct": round(surcharge * 100, 2),
-                    "unit_rate_before": round(term["unit_rate_gbp_per_mwh"] or 0.0, 4),
+                    "unit_rate_original": round(rate_original or 0.0, 4),
+                    "unit_rate_before": round(rate_before, 4),
                     "unit_rate_after": round(unit_rate, 4),
+                }
+                margin_feedback_log.append(_entry)
+                rate_chain_entries.append(_entry)
+                rate_components.append({
+                    "cause": "margin_surcharge",
+                    "basis": "pct",
+                    "magnitude": round(surcharge * 100, 4),
+                    "rate_before": round(rate_before, 4),
+                    "rate_after": round(unit_rate, 4),
                 })
 
         # Phase 44a: activity-based profitability uplift for net-negative customers.
@@ -1208,13 +1253,25 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             settled_records=all_records,
         )
         if pnl_uplift > 0:
+            rate_before = unit_rate
             unit_rate += pnl_uplift
-            profitability_uplift_log.append({
+            _entry = {
                 "customer_id": billing_account,
                 "commodity": commodity,
                 "term_start": term_start_str,
                 "uplift_gbp_per_mwh": round(pnl_uplift, 4),
+                "unit_rate_original": round(rate_original or 0.0, 4),
+                "unit_rate_before": round(rate_before, 4),
                 "unit_rate_after": round(unit_rate, 4),
+            }
+            profitability_uplift_log.append(_entry)
+            rate_chain_entries.append(_entry)
+            rate_components.append({
+                "cause": "profitability_uplift",
+                "basis": "gbp_per_mwh",
+                "magnitude": round(pnl_uplift, 4),
+                "rate_before": round(rate_before, 4),
+                "rate_after": round(unit_rate, 4),
             })
 
         # Phase 47a: Ofgem domestic price cap — final ceiling for resi fixed-term customers.
@@ -1229,7 +1286,35 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 commodity, date.fromisoformat(term_start_str[:10])
             )
             if _cap is not None:
+                if _cap < unit_rate:
+                    # EP2 sub-atom 3: the cap is the fourth writer and the only one that can move
+                    # the rate DOWN. Nothing logged it before, so a capped renewal's published
+                    # "after" was a rate above the one the customer was charged.
+                    rate_components.append({
+                        "cause": "price_cap",
+                        "basis": "gbp_per_mwh",
+                        "magnitude": round(_cap - unit_rate, 4),
+                        "rate_before": round(unit_rate, 4),
+                        "rate_after": round(_cap, 4),
+                    })
                 unit_rate = min(unit_rate, _cap)
+
+        # EP2 sub-atom 3: close the chain. One decomposed span per renewal — original ->
+        # contracted, causes named in the order they fired — and the contracted rate stamped
+        # back onto every writer's own entry so no reader has to mistake a link for the whole.
+        if rate_components:
+            _contracted = round(unit_rate, 4)
+            for _e in rate_chain_entries:
+                _e["unit_rate_contracted"] = _contracted
+            rate_decomposition_log.append({
+                "customer_id": cid,
+                "billing_account": billing_account,
+                "commodity": commodity,
+                "term_start": term_start_str,
+                "unit_rate_original": round(rate_original or 0.0, 4),
+                "unit_rate_contracted": _contracted,
+                "components": rate_components,
+            })
 
         # Phase 11a: record basis risk (company estimate vs sim ground truth)
         basis_risk_terms.append({
@@ -2631,6 +2716,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         "demand_response_log": demand_response_log,   # Phase 52
         "hedge_var_log": hedge_var_log,
         "dynamic_pricing_log": dynamic_pricing_log,
+        "rate_decomposition_log": rate_decomposition_log,   # EP2 sub-atom 3
         # Phase 12e: aggregated company-model divergence by year
         "company_divergence": _compute_company_divergence(
             basis_risk_terms,

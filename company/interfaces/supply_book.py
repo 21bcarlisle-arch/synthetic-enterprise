@@ -78,7 +78,9 @@ from typing import Any
 from saas.customers import (
     ACQUIRED_CUSTOMERS,
     CUSTOMERS,
+    DRAWN_CUSTOMERS,
     SUCCESSOR_CUSTOMERS,
+    _register_drawn_customers,
     customer_to_settlement_input,
     get_customer,
     make_acquired_customer,
@@ -113,8 +115,42 @@ def acquired_supply_points() -> list[SupplyPoint]:
     return ACQUIRED_CUSTOMERS
 
 
+def drawn_supply_points() -> list[SupplyPoint]:
+    """Points the curriculum's population draw registered over 2021-2025.
+
+    Empty unless the draw is activated (`SE_DRAW_POPULATION=1`). Live object,
+    same identity contract as the three books above.
+    """
+    return DRAWN_CUSTOMERS
+
+
+def register_drawn_points(points: list[SupplyPoint]) -> list[SupplyPoint]:
+    """Register drawn meter points onto the book. Idempotent by `customer_id`.
+
+    DIRECTION -- read this before calling it. This is the SIM side PUSHING a
+    registration in, which is the same direction `run_phase2b` already uses when
+    a fresh-market win lands (`register_acquired_point` then append). The company
+    never pulls from the generator: nothing under `company/` or `saas/` imports
+    `simulation.*`, and the dicts arriving here are saas-shaped OBSERVABLES --
+    `SyntheticCustomer.to_customer_dict()` omits the hidden ground-truth `cohort`
+    by construction, so registering them cannot carry segment truth across.
+
+    Registration is the right verb: in GB a supplier that takes on a meter point
+    registers against its MPAN and the industry sees it from that moment. These
+    are the points the W2_2 Profile B trickle says this supplier took on.
+
+    Returns the points actually added -- empty on a repeat call, so an entrypoint
+    that binds the book at import time cannot double it.
+    """
+    return _register_drawn_customers(points)
+
+
 def registered_point(customer_id: str) -> SupplyPoint | None:
-    """Look a point up by its identifier across all three registration books.
+    """Look a point up by its identifier across all FOUR registration books.
+
+    The fourth is `drawn_supply_points()` (2026-08-13 activation) and it is
+    searched last; it is empty unless the population draw is on, so a flag-off
+    lookup is the same three books in the same order as before.
 
     Returns None when nothing on the book matches — the industry answer to
     "is this MPAN ours?" for a point that is not.

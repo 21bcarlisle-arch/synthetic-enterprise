@@ -1,3 +1,13 @@
+<!-- SUPERVISOR_DRAW: self-drawable -->
+<!-- 2026-08-13 (director: "unblock the other four mints on the usual reversible terms"). The
+  2026-08-10 UNBLOCKED note below says the marker was "flipped blocked -> self-drawable". Half of
+  that happened: the BLOCKED marker was deleted and the SELF-DRAWABLE marker was never written, and
+  background.staging_disposition.selfdrawable_mint_in_progress is FAIL-CLOSED -- unmarked means
+  parked. So for three days this doc was drawable in prose and invisible to the draw, which is the
+  same class the 2026-08-10 note was itself recording (a release that rewrites the header and not
+  the mechanism). Marker now actually present. NOTHING ELSE CHANGED: the owed work is unchanged --
+  verify the four rung-5 charts on the LIVE surface (R11, deferred to "the next publish" and never
+  taken), then self-certify the level on that evidence. No director act is involved. -->
 <!-- BLOCK_RELEASE: propose_then_proceed -- was 'director_level_up', an act abolished 2026-07-29 and swept 2026-08-03: propose, record, act. Original note: deep node RE-HOMED 2026-07-29: `wholesale-price-formation` -> `electricity-wholesale` (git-mv'd dir + JSON meta.topic_id/topic-id/title/7 edges + render harness + 31-test suite + the two site/world links, and a noindex redirect at the old URL so no dead backlink). The four rung-5 charts (price-series, merit-order, seasonal, negative-price freq) RENDER on the re-homed path; the DoD gate (chartless-cannot-ship, R15 both-ways) now guards site/knowledge/electricity-wholesale/; full site suite green (388 passed, 7 skipped). BUILD DONE at SITE L2-quality -- only the director LEVEL move remains (R16, no self-bump). -->
 
 # [PLANNER-MINTED] One node filled to full depth, with charts (ruling's pilot output) (2026-07-28)

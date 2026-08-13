@@ -135,14 +135,37 @@ processes:
   - session: discovery-daemon
     command: python3 background/discovery_agent.py --daemon
     match: discovery_agent.py
-    owner: systemd
-    state: enabled
-    launched_by: systemd   # CUTOVER COMPLETED (unit installed+enabled+ACTIVE); flip made 2026-08-09 by the
-                           # publish-wedge investigation. Same half-done cutover as staging-watcher /
-                           # ntfy-responder above, which were closed at the INSTANCE on 2026-07-29 and
-                           # left this row un-flipped: two launchers declared, AND excluded from
-                           # _systemd_owned_sessions() so boot-SHA drift could never see it stale.
-    purpose: "Validates sim assumptions every 6h via Qwen"
+    owner: (none — systemd unit stopped + disabled 2026-08-10)
+    state: retired
+    reason: >-
+      RETIRED by director instruction 2026-08-13 ("decide the discovery daemon — restart or
+      formally retire it, no third state"). It had been in exactly that third state since
+      2026-08-10: this row said `enabled` while the unit was stopped and disabled, so the
+      reconciler reported MISSING every cycle against a daemon nobody intended to run.
+      TWO independent reasons, either sufficient.
+      (1) IT COULD NOT FIRE. `_assess_assumption()` initialises `verdict = "ok"` and only
+      overrides it if Qwen returns a parseable answer, so an absent model, a timeout, a
+      JSON error or ANY exception scores the assumption OK — R15's FAIL-OPEN killer
+      pattern exactly. 106 cycles from 2026-06-19 to 2026-08-10 returned "0 warnings, 0
+      critical" without a single exception, on 10 of 176 assumptions. Those verdicts are
+      not evidence the assumptions are sound; they are consistent with a control that
+      cannot report anything else. It also still uses the `/no_think` suffix that
+      PROJECT_OVERVIEW.md §Phase-6 records as unreliable on this server (the fix, the
+      explicit `think: false` parameter, was applied to internal_audit.py and never here).
+      (2) ITS MODEL IS DELIBERATELY GONE. Its only path is `_call_qwen`; the director's
+      2026-08-10 MEMORY_CLEANSE evicted qwen3:14b to reclaim 5.1GB on a 16GB box that was
+      already 3.8GB into swap. Restarting means reloading a 5.5GB model 6-hourly to run a
+      check that cannot fail.
+      RESIDUAL GAP, NAMED NOT PAPERED OVER: nothing now re-validates ASSUMPTIONS.md on a
+      schedule. That gap is not new — it has been open since 2026-06-19, because a
+      fail-open checker never closed it. Recorded as a finding rather than left implied:
+      docs/staging/WORKER_FINDING_THE_DISCOVERY_DAEMONS_VERDICT_COULD_ONLY_EVER_BE_OK_2026-08-13.md
+    flip: >-
+      Reviving needs BOTH repairs first, not a restart: make the verdict FAIL-CLOSED on an
+      unavailable model (an unavailable check is a FAILED check, R15), and adopt the
+      explicit `think: false` parameter. Until then a restart would re-arm a control that
+      reports OK when it has learned nothing.
+    purpose: "RETIRED — 6-hourly Qwen assumption validator; verdict path was fail-open"
 
   - session: sim-runner
     command: python3 background/sim_runner.py

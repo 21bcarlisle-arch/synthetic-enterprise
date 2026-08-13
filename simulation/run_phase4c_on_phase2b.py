@@ -70,7 +70,6 @@ from company.interfaces.billing_experience import build_billing_experience_view
 from company.interfaces.customer_value import build_customer_value_view
 from company.interfaces.supply_book import (
     acquired_supply_points,
-    registered_supply_points,
     successor_supply_points,
 )
 from simulation.arrears_engine import (
@@ -86,6 +85,7 @@ from simulation.meter_reads import (
     generate_meter_read_log,
     meter_type_for_customer,
 )
+from simulation.live_population import live_population
 from simulation.run_phase2b import main as run_phase2b
 from tools.contact_centre_port import ContactCentreMessage
 from tools.meter_read_port import MeterReadMessage
@@ -94,7 +94,11 @@ from tools.meter_read_port import MeterReadMessage
 # objects (see company/interfaces/supply_book.py, IDENTITY), so a runtime append
 # to the acquired book is visible here exactly as it was before KNIFE pass 2.
 ACQUIRED_CUSTOMERS = acquired_supply_points()
-CUSTOMERS = registered_supply_points()
+# generator_draw_wiring ACTIVATION (2026-08-13): book via the population seam.
+# Byte-identical flag-OFF; flag-ON adds the curriculum's drawn 2021-2025 trickle.
+# This is the module `tools.run_annual_report` drives, so this binding is the one
+# that decides whether a PUBLISHED figure sees the drawn book.
+CUSTOMERS = live_population()
 SUCCESSOR_CUSTOMERS = successor_supply_points()
 
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4b_on_phase2b.py

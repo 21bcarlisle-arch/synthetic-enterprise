@@ -13,14 +13,18 @@ Delegation note: hand-written (orchestration-adjacent, per protocol).
 
 from collections import defaultdict
 
-from company.interfaces.supply_book import registered_supply_points
 from saas.customer_reaction import score_experience_signals
+from saas.property_model import _home_type_of
+from simulation.live_population import live_population
 from simulation.run_phase2b import main as run_phase2b
 
 # The supply book, bound once at import: the seam hands back the LIVE roster
 # objects (see company/interfaces/supply_book.py, IDENTITY), so a runtime append
 # to the acquired book is visible here exactly as it was before KNIFE pass 2.
-CUSTOMERS = registered_supply_points()
+# generator_draw_wiring ACTIVATION (2026-08-13): book via the population seam.
+# This is a DIAGNOSTIC, not a published figure; it is wired so the diagnostic
+# describes the same world the published run faces.
+CUSTOMERS = live_population()
 
 
 def _bill_shock_events(signals, year_prefixes):
@@ -54,7 +58,7 @@ def main():
         if cid not in signals:
             continue
         region = c["location"]["region"]
-        home_type = c["home_type"]
+        home_type = _home_type_of(c)
         print(f"{cid:<8} {region:<12} {home_type:<16} {shocks_2016.get(cid, 0):>12} {shocks_crisis.get(cid, 0):>15}")
 
     print("\n=== By region ===")
@@ -77,7 +81,7 @@ def main():
         cid = c["customer_id"]
         if cid not in signals:
             continue
-        home_type = c["home_type"]
+        home_type = _home_type_of(c)
         by_home_2016[home_type] += shocks_2016.get(cid, 0)
         by_home_crisis[home_type] += shocks_crisis.get(cid, 0)
     for home_type in sorted(by_home_2016):

@@ -32,6 +32,13 @@ This module is pure: it takes the plain-dict output of
 epc_rating) and returns a plain dict. No imports from `sim/`.
 """
 
+# The one import this module has, and it is a saas sibling, not `sim/`: a DRAWN
+# customer carries `consumption_band` instead of `epc_rating`, and the derivation
+# from that observable belongs beside the other property derivations rather than
+# duplicated here (two copies of a derivation drift, and the drifting copy is
+# always the one nobody is looking at). `property_model` is a leaf module.
+from saas.property_model import _epc_rating_of
+
 # Baseline win probability when our price is exactly at the market average
 # (price_differential_pct == 0), by segment.
 BASE_WIN_PROBABILITY = {
@@ -307,8 +314,14 @@ def build_home_move_win_rates(churn_risk: dict, customers: list[dict], price_dif
     win_rates: dict[str, list[dict]] = {}
     for account_id, renewals in churn_risk.items():
         profile = profile_by_account[account_id]
+        # A DRAWN (SYN-*) customer carries `consumption_band`, not the static
+        # roster's `epc_rating` (generator_draw_wiring activation, 2026-08-13).
+        # Read it through the shared accessor rather than off the dict, so this
+        # site and `property_model.build_properties()` cannot disagree about the
+        # same customer's EPC. Unguarded, this was the KeyError that killed the
+        # whole 10-year run the moment the population draw was activated.
         win_probability = home_move_win_probability(
-            profile["segment"], profile["epc_rating"], price_differential_pct
+            profile["segment"], _epc_rating_of(profile), price_differential_pct
         )
 
         account_win_rates = []

@@ -42,7 +42,11 @@ _ACTIVATION_ENV = "SE_DRAW_POPULATION"
 def _flag_off_by_default(monkeypatch):
     """Pin the activation flag OFF unless a test sets it, so a leaked env var
     from another process/test cannot flip this suite (SCHEDULED_FLAG isolation)."""
-    monkeypatch.delenv(_ACTIVATION_ENV, raising=False)
+    # ACTIVATION 2026-08-13: unset now means ON (committed curriculum,
+    # docs/design/curriculum/population_draw_activation.json). These OFF-path
+    # invariants are unchanged -- they now STATE the state they test instead of
+    # inheriting it from a default that the director has since moved.
+    monkeypatch.setenv(_ACTIVATION_ENV, "0")
 
 
 def test_resolve_book_flag_off_byte_identical_to_static_customers():

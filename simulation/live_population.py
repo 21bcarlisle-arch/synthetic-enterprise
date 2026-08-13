@@ -13,16 +13,24 @@ segment-coupled acquisition cohort drawn by `simulation.population_draw`
 FRAME-found "book stops acquiring after 2020" gap with SYN-* 2021-2025
 acquisitions. Additive-not-replacive: every existing `customer_id` survives.
 
-WALL / R13 ACTIVATION — DIRECTOR-RESERVED (held, escalated):
+WALL / R13 ACTIVATION — AUTHORISED 2026-08-13 (director console):
   Flipping this flag on changes WHICH WORLD the company faces every run — a
-  CURRICULUM act reserved to the director (W2_2's own ruling "the agent may
-  STAGE the integration but must not flip it on"; the 2026-07-24 waiver
-  preserved "curriculum values remain director-reserved"). This module
-  therefore ships the mechanism DEFAULT-OFF and does NOT wire itself into any
-  run entrypoint — both wiring the ~19 `run_phase*` entrypoints to consume this
-  seam AND flipping the flag are the escalated irreducible core, held for the
-  director. Building the seam is the reversible part of the ESCALATION_IS_NTFY
-  decompose (build the reversible half; escalate + hold the core).
+  CURRICULUM act reserved to the director (W2_2's own ruling; the 2026-07-24
+  waiver preserved "curriculum values remain director-reserved"). It was held
+  from 2026-07-24 until the director's console word on 2026-08-13: *"activate
+  the population draw (SE_DRAW_POPULATION) and wire the entrypoints. The book
+  stays earned, never granted."* The mechanism still ships DEFAULT-OFF and the
+  flag is still the only switch; what changed is that the switch is now
+  authorised to be thrown, and the published run throws it (see
+  `docs/design/curriculum/POPULATION_DRAW_ACTIVATION.md`).
+
+EARNED, NEVER GRANTED (the director's own term, and the binding constraint):
+  Activation appends the λ=1.0 "Profile B trickle" the director signed in W2_2 —
+  a Poisson(1.0)/yr draw over 2021-2025, which at the fixed base seed realises
+  as TWO customers (SYN-2021-001, SYN-2025-001). It does NOT append the N=200
+  COVERAGE POOL; that is a separate concept for coverage reporting and it is not
+  a book. A run that hands the company 200 customers it never won would be a
+  grant, and this seam must never become one.
 
 EPISTEMIC WALL (never crosses `company/interfaces/sim_interface.py`):
   The drawn `SyntheticCustomer`'s HIDDEN GROUND-TRUTH `cohort` is NEVER exposed
@@ -44,18 +52,25 @@ seam. The seam's contract is only "produce the additive book"; it does not
 claim the whole pipeline is SYN-ready.
 """
 
+import json
 import os
+from pathlib import Path
 from typing import List, Optional
 
-from company.interfaces.supply_book import registered_supply_points
+from company.interfaces.supply_book import register_drawn_points, registered_supply_points
 
 # The supply book, bound once at import: the seam hands back the LIVE roster
 # objects (see company/interfaces/supply_book.py, IDENTITY), so a runtime append
 # to the acquired book is visible here exactly as it was before KNIFE pass 2.
 CUSTOMERS = registered_supply_points()
 
-# Director-reserved activation flag (R13 curriculum). Default OFF.
+# Director-authorised activation (R13 curriculum). The env var is the OVERRIDE;
+# the committed curriculum file is the durable state of record.
 _ACTIVATION_ENV = "SE_DRAW_POPULATION"
+_ACTIVATION_CURRICULUM = (
+    Path(__file__).resolve().parent.parent
+    / "docs" / "design" / "curriculum" / "population_draw_activation.json"
+)
 
 # Fixed base seed so the drawn cohort is deterministic + replayable (C-S2).
 # This is a MECHANISM default (determinism), NOT a curriculum knob — the
@@ -64,9 +79,45 @@ _ACTIVATION_ENV = "SE_DRAW_POPULATION"
 _DEFAULT_BASE_SEED = 20260724
 
 
+def _curriculum_activated() -> bool:
+    """Read the committed activation curriculum. FAIL-CLOSED to OFF.
+
+    The activation state is a versioned artefact in the repo, not an export on one
+    machine: behaviour-determining state must be reconstructible from the repo
+    alone (OPERATIONAL_LAYER_DESIGN, IaC core). Read LIVE on every call, the same
+    idiom `population_draw` uses for the segmentation curriculum, so a director
+    change is one versioned edit and never a code change.
+
+    Missing, unreadable, or malformed file -> False. Fail-closed is the correct
+    direction HERE and only here: OFF is the byte-identical default, so a broken
+    curriculum file degrades to today's world rather than silently activating a
+    different one. (Note this is the opposite of the model-tier classifier, which
+    fails closed toward the EXPENSIVE option -- in both cases "closed" means
+    toward the outcome whose failure mode is cheapest, not toward a fixed value.)
+    """
+    try:
+        with open(_ACTIVATION_CURRICULUM, encoding="utf-8") as fh:
+            doc = json.load(fh)
+        return doc["activated"]["value"] is True
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
+
+
 def draw_population_enabled() -> bool:
-    """True iff the director-reserved activation flag is set. Default OFF."""
-    return os.environ.get(_ACTIVATION_ENV, "") == "1"
+    """True iff the population draw is activated.
+
+    Precedence: an EXPLICIT `SE_DRAW_POPULATION` env value wins ("1" on, "0" off)
+    so a test can pin either state without editing a committed curriculum file;
+    otherwise the committed curriculum decides. Unset env + curriculum activated
+    == ON, which is what makes the published run see the drawn book without any
+    out-of-tree state.
+    """
+    env = os.environ.get(_ACTIVATION_ENV, "")
+    if env == "1":
+        return True
+    if env == "0":
+        return False
+    return _curriculum_activated()
 
 
 def live_population(base_seed: Optional[int] = None) -> List[dict]:
@@ -111,4 +162,16 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
         sc.to_customer_dict()
         for sc in draw_population(seed, draw_region=True, assign_cohorts=True)
     ]
+    # ACTIVATION (2026-08-13): register the drawn points on the supply book before
+    # handing them back. Iterating a book you cannot then RESOLVE BY ID is what
+    # broke the home-move path -- `run_phase2b` looks a winning account back up
+    # with `registered_point()`, got `None` for a drawn customer, and passed that
+    # `None` into `register_acquired_point()`. Registering closes that gap at the
+    # single point where the drawn cohort enters the system, so every entrypoint
+    # gets it, not just the ones that remembered to.
+    #
+    # Idempotent by `customer_id`: entrypoints bind the book at import time in
+    # whatever order Python resolves them, so this runs more than once per process
+    # and must not double the book.
+    register_drawn_points(drawn)
     return list(CUSTOMERS) + drawn

@@ -1,0 +1,25 @@
+{
+  "_meta": {
+    "artefact": "population_draw_activation",
+    "version": 1,
+    "status": "ACTIVE — director-authorised 2026-08-13",
+    "authority": "Director console 2026-08-13, verbatim: \"Authorised: activate the population draw (SE_DRAW_POPULATION) and wire the entrypoints. The book stays earned, never granted. Tell me before any published figure moves, and re-baseline honestly.\" This is the R13 curriculum act that had been held since 2026-07-24 (W2_2 ruling; PLANNER_MINTED_generator_draw_wiring, REMAINING #3).",
+    "r13_discipline": "Activation changes WHICH WORLD the company faces every run — a curriculum act, the director's alone. It is recorded HERE, in a versioned committed artefact, and not in a hand-set environment variable on one machine, because behaviour-determining state must be reconstructible from the repo alone (OPERATIONAL_LAYER_DESIGN, IaC core). A future change of this value is one versioned edit to this file plus a re-baseline, never a code change and never a silent export.",
+    "consumed_by": "simulation.live_population.draw_population_enabled()"
+  },
+  "activated": {
+    "value": true,
+    "basis": "Director console word, 2026-08-13. Prior state: false (default-OFF since the seam was built 2026-07-24), held for exactly this word.",
+    "effect": "simulation.live_population.live_population() appends the drawn 2021-2025 acquisition cohort to the static roster, and registers those points on the supply book so they resolve by id."
+  },
+  "profile": {
+    "value": "B_trickle_lambda_1.0",
+    "basis": "W2_2 acquisition curriculum, director-decided 2026-07-14 (re-affirmed): 'Profile B — trickle continuation at ~1 synthetic customer/yr from 2021, matching the 2017-2020 acquisition pace (near-flat, steady-state supplier).' Ratified detail in docs/design/curriculum/W2_2_acquisition_curriculum.md.",
+    "earned_never_granted": "This is the EARNED book: a Poisson(1.0)/yr draw over 2021-2025. It is NOT the N=200 coverage pool, which is a reporting concept and must never be appended to a run's book — that would grant the company customers it never won. POOL_VS_BOOK_LAMBDA_STANDS, 2026-07-27."
+  },
+  "base_seed": {
+    "value": 20260724,
+    "basis": "MECHANISM default (determinism/replayability, C-S2), not a curriculum knob. The curriculum decision is on/off and the profile; the seed only fixes WHICH deterministic draw the 'on' state yields.",
+    "realised_draw": "At this seed the Profile B trickle realises as TWO customers — SYN-2021-001 (2021-12-23) and SYN-2025-001 (2025-11-28). The mint doc's '≈5' was the Poisson MEAN over five years, not a measurement; 2 is the actual draw and is what the activated book contains."
+  }
+}

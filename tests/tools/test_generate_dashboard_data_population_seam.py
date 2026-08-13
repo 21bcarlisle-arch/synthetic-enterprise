@@ -44,7 +44,11 @@ _ACTIVATION_ENV = "SE_DRAW_POPULATION"
 def _flag_off_by_default(monkeypatch):
     """Pin the activation flag OFF unless a test sets it, so a leaked env var
     from another process/test cannot flip this suite (SCHEDULED_FLAG isolation)."""
-    monkeypatch.delenv(_ACTIVATION_ENV, raising=False)
+    # ACTIVATION 2026-08-13: unset now means ON (committed curriculum,
+    # docs/design/curriculum/population_draw_activation.json). These OFF-path
+    # invariants are unchanged -- they now STATE the state they test instead of
+    # inheriting it from a default that the director has since moved.
+    monkeypatch.setenv(_ACTIVATION_ENV, "0")
 
 
 def test_resolve_book_flag_off_byte_identical_to_static_customers():
@@ -122,9 +126,19 @@ def test_get_customer_union_sites_not_routed_through_seam():
     future change that naively routes those sites through the CUSTOMERS-only seam
     (dropping successor/acquired) trips here."""
     import saas.customers as sc
+    # ACTIVATION 2026-08-13: this used to hand-copy the union as
+    # CUSTOMERS + SUCCESSOR + ACQUIRED. That copy went stale the moment a FOURTH
+    # book (DRAWN_CUSTOMERS) was registered -- the exact drift this file's own
+    # header warns about. Assert the PROPERTY instead of a copy of the sum: what
+    # the guard has always meant is "get_customer resolves a superset of the
+    # seam's book", so ask get_customer, which cannot drift from itself.
     union_ids = {c["customer_id"] for c in
-                 sc.CUSTOMERS + sc.SUCCESSOR_CUSTOMERS + sc.ACQUIRED_CUSTOMERS}
-    seam_ids = {c["customer_id"] for c in _resolve_book()}  # flag-off = CUSTOMERS
-    # The union is a superset: routing get_customer through the seam would drop
-    # exactly (union - seam). If that set is non-empty, the non-wiring matters.
+                 sc.CUSTOMERS + sc.SUCCESSOR_CUSTOMERS + sc.ACQUIRED_CUSTOMERS
+                 + sc.DRAWN_CUSTOMERS}
+    seam_ids = {c["customer_id"] for c in _resolve_book()}
     assert seam_ids <= union_ids
+    # Stronger, and the form that survives a fifth book: every point the seam
+    # hands out must actually RESOLVE. A naive re-route that dropped
+    # successor/acquired would still trip the subset check above; this trips if
+    # the lookup silently stops covering something the seam serves.
+    assert all(sc.get_customer(cid) is not None for cid in seam_ids)
