@@ -2,6 +2,8 @@
 
 **Severity:** LATENT · **Lane:** H_harness
 
+**Discharged:** `tests/tools/test_pre_commit_gate_class_checker.py::test_staging_only_commit_still_runs_the_checker`, `tests/tools/test_pre_commit_gate_class_checker.py::test_broken_consolidation_refuses_the_commit`, `tests/tools/test_pre_commit_gate_class_checker.py::test_unimportable_checker_fails_closed`, `tests/tools/test_pre_commit_gate_class_checker.py::test_checker_imports_from_a_foreign_cwd`, `tools/pre_commit_test_gate.py` — the checker now has an automated caller in the pre-commit gate, scoped to commits touching the staging room and running BEFORE the pure-docs early return; moving it after that return (the obvious wiring, which would miss every staging-only commit) fires the first node by name. The three decisions this finding said a repair had to make are each proven: WHERE (node 1), WHAT A FAILURE DOES (node 2 — rc 1, reason on stderr), FAIL-CLOSED ON UNAVAILABILITY (node 3 — R15's third killer pattern, injected both ways). Node 4 is the regression the gate caught on itself: the first draft imported without putting the repo root on sys.path, so under the hook's own script invocation the fail-closed branch fired environmentally and refused every staging commit.
+
 **Date:** 2026-08-12 · **Found by:** the rung-1c draw that added rule 6 to `check()`
 (`WORKER_REPORT_A_CONSOLIDATIONS_SEVERITY_IS_WRITTEN_ONCE_AND_NEVER_RE_READ_2026-08-12.md`)
 

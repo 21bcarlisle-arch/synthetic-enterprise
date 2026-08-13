@@ -403,8 +403,80 @@ def _gitless_env(env: dict) -> dict:
     return {k: v for k, v in env.items() if not k.startswith("GIT_")}
 
 
+STAGING_ROOM_PREFIX = "docs/staging/"
+
+
+def _class_consolidation_check() -> tuple[bool, str]:
+    """Run the finding-class checker against the REAL tree. FAIL-CLOSED.
+
+    `background.finding_classes.check()` enforces six rules over the five class
+    documents (at most one class per finding, no unconsolidated instance, no
+    resurrection, printed count == list length, no document in two rooms, printed
+    severity == derived severity). Until now NOTHING ran it -- every class document
+    says membership "is DERIVED, never hand-kept" and re-derives "if a live finding
+    belongs to this class and is not listed here", which read as a standing
+    guarantee and was in fact an invitation to type a command
+    (`WORKER_FINDING_THE_CLASS_CHECKER_HAS_NO_AUTOMATED_CALLER_2026-08-12`).
+
+    FAIL-CLOSED is the whole point, and it is R15's THIRD killer pattern
+    (FAIL-SILENT: a check skipped because its module did not import is a check that
+    passed). An import error, an unexpected exception, anything at all -> the commit
+    is REFUSED with the reason. There is no path through this function that reports
+    success without `check()` having actually returned a clean result.
+    """
+    # ROOT ON sys.path FIRST, and this is not boilerplate. The gate's own legal
+    # committer (`tools/surgical_land.py`) runs it against a SCRATCH CHECKOUT of the
+    # tree the commit would create -- a different cwd, with `background` nowhere on
+    # the default path. Without this line the import below raises
+    # ModuleNotFoundError, the fail-closed branch fires for an ENVIRONMENTAL reason,
+    # and EVERY staging commit is refused with a message blaming the class checker.
+    # Caught by surgical_land refusing this very commit; `test_checker_imports_from_a_foreign_cwd`
+    # is the falsifier.
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    try:
+        from background.finding_classes import check
+    except Exception as e:  # noqa: BLE001 -- an unavailable check is a FAILED check
+        return False, (
+            f"class checker UNAVAILABLE: {type(e).__name__}: {e}\n"
+            "An unavailable check is a FAILED check (R15 FAIL-SILENT). If the module is "
+            "genuinely being removed, remove this gate step in the same commit."
+        )
+    try:
+        result = check()
+    except Exception as e:  # noqa: BLE001
+        return False, f"class checker RAISED: {type(e).__name__}: {e}"
+    if result.ok:
+        return True, "class consolidation holds"
+    return False, "\n".join(f"  - {f}" for f in result.failures)
+
+
 def main() -> int:
-    targets = select_targets(staged_files())
+    staged = staged_files()
+
+    # THE CLASS-DOCUMENT SURFACE. Fourth sibling of LEVEL_SURFACE / MINT_MARKER /
+    # CANON_SURFACE, same reason each time: when a data file's CONTENT is a control,
+    # its change is a code change.
+    #
+    # THIS RUNS BEFORE THE PURE-DOCS EARLY RETURN ON PURPOSE. A commit that only
+    # touches `docs/staging/**` selects no test targets, so it takes the `return 0`
+    # below -- and a staging-only commit is EXACTLY the commit that files a
+    # sixteenth instance against an unrendered class, or walks an archived finding
+    # back into the root. Putting the check after that return would have wired the
+    # caller to everything except the writes that cause the rot.
+    if any(p.startswith(STAGING_ROOM_PREFIX) for p in staged):
+        ok, detail = _class_consolidation_check()
+        if not ok:
+            sys.stderr.write(
+                "\n[test-gate] ❌ FINDING-CLASS CONSOLIDATION BROKEN -- COMMIT REFUSED.\n"
+                f"{detail}\n"
+                "[test-gate] Re-render with `python3 -m background.finding_classes --render`, "
+                "or fix the membership, then commit. Verify with `--check`.\n"
+            )
+            return 1
+        print("[test-gate] ✓ finding-class consolidation holds")
+
+    targets = select_targets(staged)
     if not targets:
         return 0  # pure docs/data commit -- nothing that can break a control
     print(f"[test-gate] {len(targets)} test file(s): {', '.join(targets)}")
