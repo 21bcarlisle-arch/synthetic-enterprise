@@ -116,6 +116,15 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-08-13  E731 19 -> 19  (NO MOVE — the SECOND red at HEAD, hidden behind
+#     the first) `tests/background/test_gap_ledger_reconciler.py` grew an
+#     assigned lambda in 7a9bf56be. It was invisible while I001 was red because
+#     the finding that reported the red quoted the I001 line only, and it was
+#     invisible on the desk because the def-form repair was sitting UNCOMMITTED
+#     in the working tree — the same uncommitted-and-orphaned-work class as the
+#     I001 entry below, twice in one census. Committed, not baselined. LESSON:
+#     re-run the WHOLE ratchet against a fresh HEAD export after clearing one
+#     rule; a per-rule fix proves nothing about the other codes.
 #   2026-08-13  I001 1379 -> 1379  (NO MOVE — HEAD came back to the floor)
 #     Logged here because a red at HEAD that nobody can attribute is how this
 #     ratchet dies (WORKER_FINDING_THE_ISORT_RATCHET_IS_RED_AT_HEAD_2026-08-13).

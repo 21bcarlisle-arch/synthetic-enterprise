@@ -577,7 +577,9 @@ def test_SUPPORT_CHANGED_IS_NOT_OFFERED_A_COMMAND_so_the_drain_cannot_publish_it
     staleness -- the only difference is whether the population moved. With it unchanged the
     drain hands over the `surgical_land` command; with it moved the drain offers nothing at all,
     which is the automatic republish of a replaced figure not happening."""
-    stale_at_head = (lambda sha, paths: 0 if sha == "b" * 40 else 3)
+    def stale_at_head(sha, paths):
+        return 0 if sha == "b" * 40 else 3
+
     same_pop = _both(_sized(1557, 31), _sized(1557, 31, run_git_commit="b" * 40),
                      since=stale_at_head)
     assert _status(same_pop, _ATOM) == glr.MEASURED_NOT_LANDED
