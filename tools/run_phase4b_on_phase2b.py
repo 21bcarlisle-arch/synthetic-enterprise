@@ -22,7 +22,7 @@ Delegation note: hand-written (orchestration-adjacent, per protocol).
 from company.interfaces.supply_book import registered_supply_points
 from saas.churn_model import build_churn_risk
 from saas.cost_to_serve import build_cost_to_serve
-from saas.enterprise_value import build_enterprise_value
+from saas.enterprise_value import build_enterprise_value, ceased_billing_accounts
 from simulation.run_phase2b import main as run_phase2b
 
 # The supply book, bound once at import: the seam hands back the LIVE roster
@@ -40,7 +40,8 @@ def main():
     cost_to_serve = build_cost_to_serve(all_records, CUSTOMERS)
     churn_risk = build_churn_risk(all_records, CUSTOMERS)
     enterprise_value = build_enterprise_value(
-        churn_risk, cost_to_serve, CUSTOMERS, PRICE_DIFFERENTIAL_PCT
+        churn_risk, cost_to_serve, CUSTOMERS, PRICE_DIFFERENTIAL_PCT,
+        ceased_accounts=ceased_billing_accounts(all_records),
     )
 
     print("\n" + "=" * 60)

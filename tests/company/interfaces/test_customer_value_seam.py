@@ -249,7 +249,7 @@ def _pre_cut_sequence(records, customers, price_differential_pct):
     """
     from saas.churn_model import build_churn_risk
     from saas.cost_to_serve import build_cost_to_serve, build_cost_to_serve_ledger_events
-    from saas.enterprise_value import build_enterprise_value
+    from saas.enterprise_value import build_enterprise_value, ceased_billing_accounts
     from saas.home_move_win_rate import build_home_move_win_rates
 
     cost_to_serve = build_cost_to_serve(records, customers)
@@ -257,8 +257,14 @@ def _pre_cut_sequence(records, customers, price_differential_pct):
     home_move_win_rates = build_home_move_win_rates(
         churn_risk, customers, price_differential_pct
     )
+    # The supplied-book join (book-value finding, 2026-08-13). This mirror
+    # tracks the view deliberately: the test's subject is that the view IS this
+    # sequence, so when the sequence gains a step the mirror gains it too. What
+    # the test would catch is the view diverging from it -- e.g. valuing a
+    # different roster than the one derived here.
     enterprise_value = build_enterprise_value(
-        churn_risk, cost_to_serve, customers, price_differential_pct
+        churn_risk, cost_to_serve, customers, price_differential_pct,
+        ceased_accounts=ceased_billing_accounts(records),
     )
     # ... ~50 lines of printing in between, then:
     cost_to_serve_ledger_events = build_cost_to_serve_ledger_events(records, customers)

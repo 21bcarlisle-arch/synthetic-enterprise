@@ -68,7 +68,7 @@ from dataclasses import dataclass
 
 from saas.churn_model import build_churn_risk
 from saas.cost_to_serve import build_cost_to_serve, build_cost_to_serve_ledger_events
-from saas.enterprise_value import build_enterprise_value
+from saas.enterprise_value import build_enterprise_value, ceased_billing_accounts
 from saas.home_move_win_rate import build_home_move_win_rates
 
 __all__ = ["CustomerValueView", "build_customer_value_view"]
@@ -112,8 +112,16 @@ def build_customer_value_view(
     home_move_win_rates = build_home_move_win_rates(
         churn_risk, customers, price_differential_pct
     )
+    # The supplied book, read off the supplier's OWN settled records. Note what
+    # this does NOT do: the world's `churned_billing_accounts` sits in the same
+    # run output and is not consulted, so the note at the top of this file
+    # ("The world knows who actually churned; this module never asks it") still
+    # holds. What changed is that the supplier now notices its own meters have
+    # stopped settling, which it always could have.
+    ceased = ceased_billing_accounts(settlement_records)
     enterprise_value = build_enterprise_value(
-        churn_risk, cost_to_serve, customers, price_differential_pct
+        churn_risk, cost_to_serve, customers, price_differential_pct,
+        ceased_accounts=ceased,
     )
     cost_to_serve_ledger_events = build_cost_to_serve_ledger_events(
         settlement_records, customers

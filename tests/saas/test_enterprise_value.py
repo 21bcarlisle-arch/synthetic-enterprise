@@ -66,13 +66,13 @@ def test_adjust_churn_risk_preserves_accounts_with_no_renewals():
 
 
 def test_build_enterprise_value_excludes_accounts_with_no_renewals():
-    result = build_enterprise_value(CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0, n_draws=50)
+    result = build_enterprise_value(CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0, ceased_accounts=set(), n_draws=50)
     assert set(result["by_customer"].keys()) == {"C1", "C2"}
     assert result["portfolio"]["account_count"] == 2
 
 
 def test_build_enterprise_value_portfolio_total_matches_sum_of_accounts():
-    result = build_enterprise_value(CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0, n_draws=50)
+    result = build_enterprise_value(CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0, ceased_accounts=set(), n_draws=50)
     total = sum(entry["clv_gbp"] for entry in result["by_customer"].values())
     assert result["portfolio"]["enterprise_value_gbp"] == pytest.approx(total)
 
@@ -81,7 +81,7 @@ def test_home_move_win_back_increases_clv_versus_raw_churn():
     # Lower effective churn (thanks to win-back potential) -> longer expected
     # lifetime -> higher CLV than clv_model's raw-churn projection.
     raw_clv = build_clv(CHURN_RISK, COST_TO_SERVE, n_draws=50)
-    result = build_enterprise_value(CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0, n_draws=50)
+    result = build_enterprise_value(CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0, ceased_accounts=set(), n_draws=50)
 
     for account_id in ("C1", "C2"):
         assert result["by_customer"][account_id]["clv_gbp"] >= raw_clv[account_id]["clv_gbp"]
@@ -90,14 +90,14 @@ def test_home_move_win_back_increases_clv_versus_raw_churn():
 def test_higher_price_differential_reduces_enterprise_value():
     # A price disadvantage lowers win_probability, raising effective churn,
     # which should not increase enterprise value relative to price parity.
-    at_parity = build_enterprise_value(CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0, n_draws=50)
-    overpriced = build_enterprise_value(CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.1, n_draws=50)
+    at_parity = build_enterprise_value(CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0, ceased_accounts=set(), n_draws=50)
+    overpriced = build_enterprise_value(CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.1, ceased_accounts=set(), n_draws=50)
 
     assert overpriced["portfolio"]["enterprise_value_gbp"] <= at_parity["portfolio"]["enterprise_value_gbp"]
 
 
 def test_build_enterprise_value_empty_churn_risk_returns_empty():
-    result = build_enterprise_value({"C1": []}, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0, n_draws=50)
+    result = build_enterprise_value({"C1": []}, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0, ceased_accounts=set(), n_draws=50)
     assert result["by_customer"] == {}
     assert result["portfolio"] == {"enterprise_value_gbp": 0.0, "account_count": 0}
 
@@ -110,7 +110,7 @@ def test_effective_churn_probability_monotone_in_churn_rate():
 
 
 def test_build_enterprise_value_by_customer_has_clv_key():
-    result = build_enterprise_value(CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0, n_draws=50)
+    result = build_enterprise_value(CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0, ceased_accounts=set(), n_draws=50)
     for entry in result["by_customer"].values():
         assert "clv_gbp" in entry
 
@@ -119,3 +119,190 @@ def test_effective_churn_probability_bounded_by_raw_churn():
     raw = 0.15
     result = effective_churn_probability(raw, 0.5)
     assert 0.0 <= result <= raw
+
+
+# ---------------------------------------------------------------------------
+# THE VALUED POPULATION IS THE SUPPLIED BOOK
+#
+# WORKER_FINDING_THE_BOOK_VALUE_COUNTS_CUSTOMERS_WHO_HAVE_ALREADY_LEFT (BLOCKING,
+# lane B_commercial, 2026-08-13): five of thirteen billing accounts churned during
+# the published run and every one still carried a forward-looking CLV in the final
+# artefact and in every year-end snapshot after it left -- 51.8% of the residential
+# book's published CLV total. `build_enterprise_value`'s roster was "has renewal
+# history", never "is still supplied".
+# ---------------------------------------------------------------------------
+
+from datetime import date, timedelta  # noqa: E402
+
+from saas.enterprise_value import (  # noqa: E402
+    SUPPLY_CONTINUITY_DAYS,
+    ceased_billing_accounts,
+)
+
+
+def _daily_records(customer_id: str, start: str, end: str) -> list[dict]:
+    """Settlement records for a supplied meter point: one per day it is on
+    supply, matching `simulation/settlement.py`'s emission (48 periods a day
+    for every day between acquisition and contract end)."""
+    day, last = date.fromisoformat(start), date.fromisoformat(end)
+    out = []
+    while day <= last:
+        out.append({"customer_id": customer_id, "settlement_date": day.isoformat()})
+        day += timedelta(days=1)
+    return out
+
+
+# C1 stops settling at the end of 2021; C2 settles to the edge of the window.
+BOOK_RECORDS = (
+    _daily_records("C1", "2021-11-01", "2021-12-30")
+    + _daily_records("C1g", "2021-11-01", "2021-12-30")
+    + _daily_records("C2", "2021-11-01", "2025-12-31")
+    + _daily_records("C2g", "2021-11-01", "2025-12-31")
+)
+
+
+def test_ceased_accounts_are_read_off_the_suppliers_own_settled_records():
+    """The account that went quiet is ceased; the one still settling is not."""
+    ceased = ceased_billing_accounts(BOOK_RECORDS)
+    assert ceased == {"C1"}
+
+
+def test_a_dual_fuel_account_is_ceased_only_when_both_legs_go_quiet():
+    """Losing the electricity leg is not losing the household -- the gas leg is
+    still on supply and still worth something, so the account stays valued."""
+    half_gone = (
+        _daily_records("C1", "2021-11-01", "2021-12-30")      # elec leg stops
+        + _daily_records("C1g", "2021-11-01", "2025-12-31")   # gas leg continues
+        + _daily_records("C2", "2021-11-01", "2025-12-31")
+    )
+    assert ceased_billing_accounts(half_gone) == set()
+
+
+def test_an_account_that_only_just_left_is_not_yet_declared_ceased():
+    """The supplier cannot tell a cessation from a late read inside the
+    continuity window, and this control pins that it does not pretend to.
+    C1's last record is 2021-12-30; as at 2021-12-31 it is still on the book."""
+    assert ceased_billing_accounts(BOOK_RECORDS, as_of="2021-12-31") == set()
+    beyond = (date(2021, 12, 30) + timedelta(days=SUPPLY_CONTINUITY_DAYS + 1)).isoformat()
+    assert ceased_billing_accounts(BOOK_RECORDS, as_of=beyond) == {"C1"}
+
+
+def test_no_records_declares_no_cessations():
+    """Absent data must not manufacture a cessation -- an empty book is not a
+    book of departed customers."""
+    assert ceased_billing_accounts([]) == set()
+
+
+def test_a_ceased_account_is_dropped_from_the_valued_book():
+    """The finding's headline: an account that has gone carries no forward value."""
+    result = build_enterprise_value(
+        CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0,
+        ceased_accounts={"C1"}, n_draws=50,
+    )
+    assert "C1" not in result["by_customer"]
+    assert result["portfolio"]["account_count"] == 1
+    assert result["excluded_ceased_accounts"] == ["C1"]
+
+
+def test_the_exclusion_is_not_vacuous_the_same_account_is_valued_when_supplied():
+    """Anti-vacuity in the direction that matters: the test above must be
+    removing something. With nobody ceased, C1 is valued and carries real money,
+    so `by_customer` shrinking is the exclusion working and not C1 having been
+    absent all along."""
+    valued = build_enterprise_value(
+        CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0,
+        ceased_accounts=set(), n_draws=50,
+    )
+    assert "C1" in valued["by_customer"]
+    assert valued["by_customer"]["C1"]["clv_gbp"] > 0
+    assert valued["excluded_ceased_accounts"] == []
+
+
+def test_mutation_a_valued_account_marked_ceased_removes_its_value_from_the_total():
+    """R15, the mutation the finding named: mark one valued account as ceased and
+    the book must lose its value.
+
+    NOTE WHAT THIS ASSERTS AND WHAT IT DELIBERATELY DOES NOT. The finding asked
+    for "the total must fall by EXACTLY that account's CLV". Measured, it does
+    not, and the reason is the sibling BLOCKING finding
+    (WORKER_FINDING_THE_LIFETIME_ESTIMATE_DOES_NOT_MOVE_WHEN_THE_BELIEF_DOES):
+    the per-account lifetime is a function of the account's position in the
+    posterior-predictive draw, so removing C1 also moves C2's projection. Writing
+    the exact-equality assertion anyway would have meant tuning this control until
+    it went green against a defect it is not about. The strict-decrease and
+    absence properties below are true regardless of that coupling; the coupling
+    itself is pinned by the next test so it cannot be forgotten."""
+    full = build_enterprise_value(
+        CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0,
+        ceased_accounts=set(), n_draws=50,
+    )
+    mutated = build_enterprise_value(
+        CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0,
+        ceased_accounts={"C1"}, n_draws=50,
+    )
+    assert mutated["portfolio"]["enterprise_value_gbp"] < full["portfolio"]["enterprise_value_gbp"]
+    # The total is exactly the accounts that remain -- no residue of the departed.
+    assert mutated["portfolio"]["enterprise_value_gbp"] == pytest.approx(
+        sum(e["clv_gbp"] for e in mutated["by_customer"].values())
+    )
+    assert full["by_customer"]["C1"]["clv_gbp"] not in [
+        e["clv_gbp"] for e in mutated["by_customer"].values()
+    ]
+
+
+def test_removing_one_account_still_moves_another_accounts_projection():
+    """A TRIPWIRE, not an endorsement. This pins the cross-contamination measured
+    above so that the day the estimator is made per-account (the sibling finding's
+    fix), this test goes RED and forces the exact-additivity control the book-value
+    finding originally asked for to be written. A defect that is merely known
+    decays; a defect with a red test attached does not."""
+    full = build_enterprise_value(
+        CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0,
+        ceased_accounts=set(), n_draws=50,
+    )
+    mutated = build_enterprise_value(
+        CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0,
+        ceased_accounts={"C1"}, n_draws=50,
+    )
+    # Distinguish the two ways this can go red. If the exclusion itself has been
+    # removed, C1 is still in the draw and C2's projection is trivially
+    # unchanged -- that is the exclusion breaking, not the estimator being fixed,
+    # and the message below would be wrong. Assert the premise first.
+    assert "C1" not in mutated["by_customer"], (
+        "the ceased-account exclusion is not being applied -- fix that first; "
+        "this test's subject is the estimator coupling, not the exclusion"
+    )
+    assert full["by_customer"]["C2"]["expected_lifetime_periods"] != pytest.approx(
+        mutated["by_customer"]["C2"]["expected_lifetime_periods"]
+    ), (
+        "C2's projection no longer depends on whether C1 is in the draw -- the "
+        "sibling estimator finding appears to be fixed. Tighten "
+        "test_mutation_a_valued_account_marked_ceased_removes_its_value_from_the_total "
+        "to assert the total falls by exactly the removed account's CLV, then delete this test."
+    )
+
+
+def test_build_enterprise_value_refuses_to_default_the_valued_population():
+    """The fail-open proof. `ceased_accounts` has no default on purpose: a default
+    of `set()` would have silently restored the published defect at every call site
+    that never thought about the roster."""
+    with pytest.raises(TypeError):
+        build_enterprise_value(
+            CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0, n_draws=50
+        )
+
+
+def test_a_departed_customers_history_still_informs_the_churn_prior():
+    """Dropping their VALUE must not drop their EVIDENCE. A supplier learns most
+    from the customers who left; the Beta prior is fitted over every account's
+    renewal history whether or not that account is still supplied."""
+    full = build_enterprise_value(
+        CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0,
+        ceased_accounts=set(), n_draws=50,
+    )
+    mutated = build_enterprise_value(
+        CHURN_RISK, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0,
+        ceased_accounts={"C1"}, n_draws=50,
+    )
+    assert mutated["by_customer"]["C2"]["alpha"] == pytest.approx(full["by_customer"]["C2"]["alpha"])
+    assert mutated["by_customer"]["C2"]["beta"] == pytest.approx(full["by_customer"]["C2"]["beta"])

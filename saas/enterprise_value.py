@@ -29,8 +29,71 @@ plain dict. It imports `clv_model` and `home_move_win_rate` (both
 themselves pure/seam-safe) — no imports from `sim/`.
 """
 
+from datetime import date, timedelta
+
 from saas.clv_model import build_clv
+from saas.customer_reaction import _billing_account_id
 from saas.home_move_win_rate import build_home_move_win_rates
+
+# How long an account may go without settling before this supplier reads it as
+# no longer on supply. Settlement records arrive for every day a meter point is
+# registered to us (`simulation/settlement.py` emits 48 periods per supplied
+# day), so a supplied account is never quiet for a month; a ceased one is quiet
+# forever. 35 days is one monthly billing cycle plus slack.
+#
+# This is the supplier's own READING of its own records, and it is allowed to be
+# wrong — an account that ceased three days before the as-of date is
+# indistinguishable here from one whose data is merely late, which is exactly
+# the ambiguity a real supplier faces between cessation and a missing read. The
+# gap between this belief and the world's `churned_billing_accounts` is a
+# measurable quantity, not something to paper over by reading the world's set.
+SUPPLY_CONTINUITY_DAYS = 35
+
+
+def ceased_billing_accounts(
+    settlement_records: list[dict],
+    as_of: str | None = None,
+    continuity_days: int = SUPPLY_CONTINUITY_DAYS,
+) -> set[str]:
+    """Billing accounts this supplier can see it no longer supplies, derived
+    from its OWN settled records and nothing else.
+
+    An account is read as ceased when its most recent settlement record is more
+    than `continuity_days` before `as_of` (default: the latest settlement date
+    anywhere in `settlement_records` — the edge of what the supplier has
+    observed). Records are keyed by per-commodity `customer_id`; accounts are
+    billing accounts, so a dual-fuel household is ceased only when BOTH legs
+    have gone quiet (`saas.customer_reaction._billing_account_id`).
+
+    WHY THIS IS NOT A WALL CROSSING. The world computes its own
+    `churned_billing_accounts` in `simulation/run_phase2b.py` and this function
+    deliberately does not read it. Losing a registration and ceasing to settle
+    is the single most visible thing that happens to a supplier's own book; no
+    simulation internal is consulted to notice it.
+
+    Returns an empty set for empty input — with no records observed there is no
+    account to declare ceased, which keeps this from inventing cessations out of
+    absent data. Note that "empty in, empty out" here is NOT fail-open for the
+    valuation: `build_enterprise_value` cannot be called without deciding this
+    question, and an empty roster means it values nothing either.
+    """
+    if not settlement_records:
+        return set()
+
+    last_seen: dict[str, str] = {}
+    for record in settlement_records:
+        account_id = _billing_account_id(record["customer_id"])
+        settlement_date = record["settlement_date"]
+        if settlement_date > last_seen.get(account_id, ""):
+            last_seen[account_id] = settlement_date
+
+    edge = as_of if as_of is not None else max(last_seen.values())
+    cutoff = (date.fromisoformat(edge) - timedelta(days=continuity_days)).isoformat()
+    return {
+        account_id
+        for account_id, settlement_date in last_seen.items()
+        if settlement_date < cutoff
+    }
 
 
 def effective_churn_probability(churn_probability: float, win_probability: float) -> float:
@@ -86,6 +149,8 @@ def build_enterprise_value(
     cost_to_serve: dict,
     customers: list[dict],
     price_differential_pct: float,
+    *,
+    ceased_accounts: set[str],
     n_draws: int = 500,
     random_seed: int = 42,
 ) -> dict:
@@ -105,11 +170,35 @@ def build_enterprise_value(
 
     Accounts with no renewal points are excluded from both `by_customer` and
     the portfolio total, matching `clv_model.build_clv()`.
+
+    `ceased_accounts` is REQUIRED and has no default, which is the point of it.
+    Enterprise value is the discounted future margin of the book this supplier
+    still supplies; before this argument existed the valued roster was
+    "every account with renewal history", so five accounts that had already left
+    kept a forward value in every artefact after their exit — 51.8% of the
+    residential book's published CLV
+    (`docs/staging/done/WORKER_FINDING_THE_BOOK_VALUE_COUNTS_CUSTOMERS_WHO_HAVE_ALREADY_LEFT_2026-08-13.md`).
+    A default of `set()` would have restored that defect silently at every call
+    site that forgot to think about it, which is the fail-open shape R15 names;
+    a caller that genuinely values a whole book must pass `set()` and say so.
+    Derive it with `ceased_billing_accounts()` from the same records the rest of
+    the view is built from.
+
+    A ceased account is dropped from the VALUED population only. Its renewal
+    history still informs the portfolio's churn prior inside `build_clv` — a
+    supplier learns most from the customers who left, so deleting their evidence
+    along with their value would be the worse error.
     """
     home_move_win_rates = build_home_move_win_rates(churn_risk, customers, price_differential_pct)
     adjusted_churn_risk = adjust_churn_risk_for_home_move(churn_risk, home_move_win_rates)
 
-    by_customer = build_clv(adjusted_churn_risk, cost_to_serve, n_draws=n_draws, random_seed=random_seed)
+    by_customer = build_clv(
+        adjusted_churn_risk,
+        cost_to_serve,
+        n_draws=n_draws,
+        random_seed=random_seed,
+        excluded_accounts=ceased_accounts,
+    )
 
     return {
         "by_customer": by_customer,
@@ -117,4 +206,5 @@ def build_enterprise_value(
             "enterprise_value_gbp": sum(entry["clv_gbp"] for entry in by_customer.values()),
             "account_count": len(by_customer),
         },
+        "excluded_ceased_accounts": sorted(ceased_accounts),
     }

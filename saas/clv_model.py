@@ -158,6 +158,7 @@ def _annuity_factor(periods: float, rate: float) -> float:
 def build_clv(
     churn_risk: dict, cost_to_serve: dict, n_draws: int = 500, random_seed: int = 42,
     override_avg_margin_by_account: dict | None = None,
+    excluded_accounts: set[str] | None = None,
 ) -> dict:
     """Project customer lifetime value (CLV) for every billing account with
     at least one renewal point.
@@ -172,7 +173,9 @@ def build_clv(
 
     Returns `{billing_account_id: {alpha, beta, expected_lifetime_periods,
     avg_annual_net_margin_gbp, clv_gbp}}`. Accounts with no renewal points
-    are excluded (nothing to project).
+    are excluded (nothing to project), as are any in `excluded_accounts` —
+    the caller's judgement about which accounts are still supplied, which
+    this module does not attempt to make for itself.
 
     `clv_gbp = avg_annual_net_margin_gbp * annuity_factor(expected_lifetime,
     DISCOUNT_RATE_ANNUAL)` — the present value of `expected_lifetime_periods`
@@ -196,9 +199,21 @@ def build_clv(
     # Only include accounts that have both renewal history and cost_to_serve data.
     # Per-year snapshots may have churn data for an account that churned before
     # accumulating any billed records in the truncated window.
+    #
+    # `excluded_accounts` removes accounts the CALLER has determined are no
+    # longer supplied. It is applied HERE, to the valued population, and
+    # deliberately not to `churn_risk` upstream: the model and its theta prior
+    # below are still fitted over every account's renewal history, so a departed
+    # customer keeps informing what the company believes about churn while
+    # ceasing to contribute forward value. Projecting a future for a customer
+    # who has gone was the published defect
+    # (WORKER_FINDING_THE_BOOK_VALUE_COUNTS_CUSTOMERS_WHO_HAVE_ALREADY_LEFT);
+    # forgetting they ever churned would be a second one.
+    excluded = excluded_accounts or set()
     accounts = [
         account_id for account_id, renewals in churn_risk.items()
         if renewals and account_id in net_margin_by_account
+        and account_id not in excluded
     ]
     if not accounts:
         return {}

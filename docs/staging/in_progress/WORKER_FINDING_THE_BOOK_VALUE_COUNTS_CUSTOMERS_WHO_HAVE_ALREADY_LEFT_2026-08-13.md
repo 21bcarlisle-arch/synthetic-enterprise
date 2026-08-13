@@ -1,3 +1,39 @@
+> **DISPOSITION 2026-08-13 (worker tick, RUNG 1c blocking draw) — PARTLY DISCHARGED, PARKED IN PROGRESS.**
+>
+> **STILL OPEN, and what unblocks it:** discharge item 3 — *"the featured-household
+> selection must prefer a currently-supplied account, and any panel showing a forward
+> value must state the account's status."* The DATA half landed (`by_billing_account`
+> now carries `still_supplied` / `last_settlement_date` / `book_as_of`), but the
+> selection and the render are SITE-lane and sit behind a chain this tick did not
+> touch: `run_output` -> `tools/generate_customer_sample.py` -> `site/data/company.json`
+> (`DRILLDOWN_ID = "C1"`, hardcoded at `tools/generate_company_data.py:43`) ->
+> `site/company/index.html:811,819`. **Unblocked by:** propagating `still_supplied`
+> through the two generators, replacing the hardcoded `DRILLDOWN_ID` with a
+> prefer-a-supplied-account rule, and rendering the status beside the CLV tile.
+>
+> **ALSO STILL OPEN — item 1, the R11 live fetch.** Not attempted: autonomous runs have
+> no network. Nothing here is claimed against the live origin.
+>
+> **AND NOTE:** none of the published artefacts change until a full simulation run
+> regenerates them. The fix is in the code and proven by controls; `run_output_latest.json`
+> and `site/data/company.json` still carry the defective figures at the time of writing.
+>
+> **WHAT LANDED (items 2 and 4):** cessation is now derived from the supplier's OWN
+> settled records (`saas.enterprise_value.ceased_billing_accounts`, no read of the world's
+> `churned_billing_accounts`); `build_enterprise_value` takes a REQUIRED `ceased_accounts`
+> with no default; `_build_clv_snapshots` re-derives the supplied roster at each
+> Point-in-Time cutoff. R15 both ways, four mutations each killing a named test.
+>
+> **ONE THING THE FINDING ASKED FOR THAT COULD NOT BE WRITTEN AS STATED:** item 4's
+> *"the total must fall by exactly that account's CLV"*. Measured, it does not — excluding
+> C1 moved C2's expected lifetime from 50.000 to 35.900 periods. That is independent
+> confirmation of the sibling finding
+> (`WORKER_FINDING_THE_LIFETIME_ESTIMATE_DOES_NOT_MOVE_WHEN_THE_BELIEF_DOES_2026-08-13.md`,
+> still BLOCKING and untouched). Rather than tune the control until it passed against a
+> defect it is not about, the exact-additivity assertion is deferred and the coupling is
+> pinned by `test_removing_one_account_still_moves_another_accounts_projection`, which goes
+> RED the day the estimator is fixed and names the tightening it then owes.
+
 # WORKER FINDING — the published book value counts customers who have already left, and the site's featured household is one of them
 
 **Severity:** BLOCKING · **Lane:** B_commercial

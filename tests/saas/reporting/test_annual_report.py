@@ -2888,3 +2888,129 @@ def test_section_svt_comparison_silent_without_svt_data():
         "is_active_renewal": False,
     }
     assert _section_svt_comparison({"churn_basis_risk": [rec]}) == ""
+
+
+# ---------------------------------------------------------------------------
+# PER-YEAR CLV SNAPSHOTS DROP THE CUSTOMERS WHO HAVE ALREADY LEFT
+#
+# WORKER_FINDING_THE_BOOK_VALUE_COUNTS_CUSTOMERS_WHO_HAVE_ALREADY_LEFT (BLOCKING,
+# 2026-08-13): `clv_snapshots` carried a forward value for each churned account in
+# EVERY year after its churn date -- C3 £2,852 (2021) falling only to £2,309 (2025),
+# six months to five years after it had gone. Each snapshot is Point-in-Time by
+# construction, so the supplied roster has to be re-read at each cutoff too.
+# ---------------------------------------------------------------------------
+
+from datetime import date as _date, timedelta as _timedelta  # noqa: E402
+
+from saas.reporting.annual_report import _build_clv_snapshots  # noqa: E402
+
+
+def _settled_days(customer_id: str, start: str, end: str) -> list[dict]:
+    day, last = _date.fromisoformat(start), _date.fromisoformat(end)
+    out = []
+    while day <= last:
+        out.append({
+            "customer_id": customer_id,
+            "settlement_date": day.isoformat(),
+            "revenue_gbp": 2.0,
+            "margin_gbp": 1.0,
+        })
+        day += _timedelta(days=1)
+    return out
+
+
+# C1 leaves at the end of 2021; C2 is supplied throughout.
+_LEAVER_RECORDS = (
+    _settled_days("C1", "2020-01-01", "2021-12-30")
+    + _settled_days("C2", "2020-01-01", "2023-12-31")
+)
+_LEAVER_CHURN_RISK = {
+    "C1": [
+        {"renewal_period": "2021-01", "bill_shock_count": 1, "churn_probability": 0.08},
+        {"renewal_period": "2021-06", "bill_shock_count": 0, "churn_probability": 0.05},
+    ],
+    "C2": [
+        {"renewal_period": "2021-01", "bill_shock_count": 0, "churn_probability": 0.05},
+        {"renewal_period": "2022-01", "bill_shock_count": 2, "churn_probability": 0.11},
+    ],
+}
+_LEAVER_YEARS = ["2021", "2022", "2023"]
+
+
+def test_a_departed_account_carries_no_clv_in_the_years_after_it_left():
+    """The finding's published symptom, as a control: C1 stops settling on
+    2021-12-30 and must be absent from the 2022 and 2023 snapshots."""
+    snapshots = _build_clv_snapshots(_LEAVER_RECORDS, _LEAVER_CHURN_RISK, _LEAVER_YEARS)
+    assert "C1" not in snapshots["2022"]
+    assert "C1" not in snapshots["2023"]
+
+
+def test_the_snapshot_exclusion_is_point_in_time_not_retrospective():
+    """Anti-vacuity, and the Point-in-Time half. C1 must still be valued in the
+    2021 snapshot -- it was on supply for that whole year, and back-dating its
+    departure into a year the supplier had not yet observed it would be the
+    foresight error this function exists to avoid. If this ever goes red because
+    C1 vanished from 2021 too, the exclusion has become retrospective."""
+    snapshots = _build_clv_snapshots(_LEAVER_RECORDS, _LEAVER_CHURN_RISK, _LEAVER_YEARS)
+    assert "C1" in snapshots["2021"]
+    assert snapshots["2021"]["C1"] > 0
+
+
+def test_the_surviving_account_is_still_valued_in_every_snapshot():
+    """The exclusion must not empty the book -- the cheapest way to pass the two
+    tests above is to drop everyone, and this refuses it."""
+    snapshots = _build_clv_snapshots(_LEAVER_RECORDS, _LEAVER_CHURN_RISK, _LEAVER_YEARS)
+    for year in _LEAVER_YEARS:
+        assert "C2" in snapshots[year], f"C2 missing from the {year} snapshot"
+        assert snapshots[year]["C2"] > 0
+
+
+# ---------------------------------------------------------------------------
+# THE PUBLISHED PER-ACCOUNT RECORD CAN SAY THE CUSTOMER LEFT
+#
+# The book-value finding's user-visible half: `/company/` featured account C1 with
+# `clv_gbp: 2840.5` and `expected_lifetime_periods: 14.94` under a 2026-08-12 stamp,
+# and "no attribute on that panel says the customer left". A forward-looking figure
+# is only safe to publish beside a status the surface can render.
+# ---------------------------------------------------------------------------
+
+def test_every_published_account_record_carries_its_supply_status():
+    data = extract_report_data(_run_output())
+    assert data["by_billing_account"], "fixture produced no accounts to check"
+    for account_id, entry in data["by_billing_account"].items():
+        assert "still_supplied" in entry, f"{account_id} cannot say whether it is supplied"
+        assert isinstance(entry["still_supplied"], bool)
+        assert "last_settlement_date" in entry
+        assert "book_as_of" in entry
+
+
+def test_an_account_that_stopped_settling_is_published_as_no_longer_supplied():
+    """The named instance: C1's records stop long before the book's edge, so its
+    record must say so rather than presenting a forward value unqualified."""
+    run_output = _run_output()
+    # C2 settles to the edge of the window; C1's last record stays in 2017.
+    run_output["phase2b"]["all_records"].append(
+        _record("C2", "electricity", "2021-01-01", 1, 10.0, 2.0, 8.0, 50.0, 1100.0)
+    )
+    data = extract_report_data(run_output)
+
+    assert data["by_billing_account"]["C1"]["still_supplied"] is False
+    assert data["by_billing_account"]["C1"]["last_settlement_date"] == "2017-01-01"
+    # Anti-vacuity: the field must not be False for everyone. The account that
+    # kept settling is still on the book.
+    assert data["by_billing_account"]["C2"]["still_supplied"] is True
+    assert data["by_billing_account"]["C2"]["last_settlement_date"] == "2021-01-01"
+
+
+def test_an_account_that_never_settled_is_not_reported_as_supplied():
+    """Fail-open guard on absent data: `ceased_billing_accounts` can only speak
+    about accounts it has seen, so 'not in the ceased set' must not by itself
+    mean 'on supply'."""
+    data = extract_report_data(_run_output())
+    never_settled = [
+        account_id for account_id, entry in data["by_billing_account"].items()
+        if entry["last_settlement_date"] is None
+    ]
+    assert never_settled, "fixture has no never-settled account to exercise this"
+    for account_id in never_settled:
+        assert data["by_billing_account"][account_id]["still_supplied"] is False

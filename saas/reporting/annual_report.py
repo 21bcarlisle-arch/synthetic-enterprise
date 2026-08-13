@@ -44,6 +44,7 @@ _PROJECT = Path(__file__).resolve().parent.parent.parent
 from saas.clv_model import build_clv
 from saas.cost_to_serve import build_cost_to_serve
 from saas.customer_reaction import _billing_account_id
+from saas.enterprise_value import ceased_billing_accounts
 from saas.customers import ACQUIRED_CUSTOMERS, CUSTOMERS, DRAWN_CUSTOMERS, SUCCESSOR_CUSTOMERS
 from company.market.tou_periods import is_peak_period
 from saas.capital.bsc_credit import compute_bsc_credit_by_year
@@ -108,6 +109,16 @@ def _build_clv_snapshots(
     up to and including 31-Dec-Y. Accounts with no renewal points through year
     Y are excluded (nothing to project). Returns
     {year: {billing_account_id: clv_gbp | None}}.
+
+    Accounts that had already ceased supply as at 31-Dec-Y are also excluded,
+    read from the truncated record window itself so each snapshot uses only
+    what the supplier could see at its own cutoff — the Point-in-Time discipline
+    this function already applies to records and renewals. Without it a customer
+    who left in 2020 carried a forward value in the 2021..2025 snapshots, which
+    is what
+    `WORKER_FINDING_THE_BOOK_VALUE_COUNTS_CUSTOMERS_WHO_HAVE_ALREADY_LEFT_2026-08-13`
+    measured (C3 £2,852 in 2021 falling to £2,309 in 2025, six months after it
+    had gone).
     """
     snapshots: dict[str, dict] = {}
     for year in years:
@@ -128,7 +139,11 @@ def _build_clv_snapshots(
         cts_to_year = build_cost_to_serve(
             records_to_year, CUSTOMERS + SUCCESSOR_CUSTOMERS + DRAWN_CUSTOMERS
         )
-        clv_to_year = build_clv(risk_to_year, cts_to_year)
+        clv_to_year = build_clv(
+            risk_to_year,
+            cts_to_year,
+            excluded_accounts=ceased_billing_accounts(records_to_year, as_of=cutoff),
+        )
         snapshots[year] = {
             account_id: v["clv_gbp"] for account_id, v in clv_to_year.items()
         }
@@ -539,6 +554,29 @@ def extract_report_data(run_output: dict) -> dict:
     # CLV/churn/enterprise-value are computed per billing account (dual-fuel
     # electricity+gas legs combined, see _billing_account_id) -- a different
     # key space than per_customer_lifetime's per-commodity customer_id.
+    # Which accounts this supplier can still see settling, and when each last
+    # did. A forward-looking figure published against an account that has gone
+    # is only safe if the record it travels in can SAY it has gone -- a CLV tile
+    # that cannot render "this customer left in 2021" is the fail-open shape the
+    # book-value finding named. `still_supplied` and `last_settlement_date` are
+    # that sentence's data.
+    #
+    # AS-OF IS EXPLICIT, not defaulted, and this is the whole window on purpose:
+    # `by_billing_account` is the END-OF-RUN statement of the book, so its clock
+    # is the edge of the observed record and nothing later exists to leak from.
+    # The Point-in-Time obligation lands on `_build_clv_snapshots` above, which
+    # re-derives this per year against its own cutoff. Same reasoning as the
+    # module-level note on `build_customer_value_view`.
+    _last_settlement_by_account: dict[str, str] = {}
+    for _rec in all_records:
+        _acct = _billing_account_id(_rec["customer_id"])
+        if _rec["settlement_date"] > _last_settlement_by_account.get(_acct, ""):
+            _last_settlement_by_account[_acct] = _rec["settlement_date"]
+    _book_as_of = max(_last_settlement_by_account.values()) if _last_settlement_by_account else None
+    _ceased_accounts = (
+        ceased_billing_accounts(all_records, as_of=_book_as_of) if _book_as_of else set()
+    )
+
     by_billing_account = {}
     for cid, c in {c["customer_id"]: c for c in CUSTOMERS}.items():
         account_id = _billing_account_id(cid)
@@ -554,6 +592,18 @@ def extract_report_data(run_output: dict) -> dict:
             "clv_gbp": ev["clv_gbp"] if ev else None,
             "expected_lifetime_periods": ev["expected_lifetime_periods"] if ev else None,
             "avg_annual_net_margin_gbp": ev["avg_annual_net_margin_gbp"] if ev else None,
+            # An account with NO settlement record anywhere has never settled to
+            # us and is not on supply either -- reporting it as supplied because
+            # it failed to appear in the ceased set would be fail-open on absent
+            # data, which is the same shape as the defect this field exists to
+            # close. `ceased_billing_accounts` can only speak about accounts it
+            # has seen; the "seen at all" half is asserted here.
+            "still_supplied": (
+                account_id in _last_settlement_by_account
+                and account_id not in _ceased_accounts
+            ),
+            "last_settlement_date": _last_settlement_by_account.get(account_id),
+            "book_as_of": _book_as_of,
         }
 
     clv_values = [v["clv_gbp"] for v in by_billing_account.values() if v["clv_gbp"] is not None]
