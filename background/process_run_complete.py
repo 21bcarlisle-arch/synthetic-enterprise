@@ -138,6 +138,43 @@ PUSH_THROTTLE_SECONDS = 30 * 60
 # fast-test gate already spends ~420s of that. A cap larger than the caller's budget
 # would just move the kill one level up and lose the log line that explains it.
 GIT_COMMIT_HOOK_TIMEOUT_SECONDS = 5 * 60
+
+
+# THE KILL'S OWN DIAGNOSTIC WAS BLOCK-BUFFERED AWAY (2026-08-13, R15 fail-silent).
+#
+# The TimeoutExpired handler below has promised, since H30, to print "hook output before the
+# kill (names the SLOW hook)". It has never once delivered it. Both of today's kills
+# (sim-runner-log.md, 2026-08-13 01:30 UTC and 2026-08-12) logged the fallback branch --
+# "hook output: nothing captured before the kill" -- so seven commit timeouts have named the
+# chain and never the link, and diagnosing which hook is slow costs a whole tick each time.
+#
+# The cause is NOT that the streams are dropped. `subprocess.run(capture_output=True,
+# timeout=N)` does populate `TimeoutExpired.stdout/.stderr` on this platform, and
+# `child_diagnostics.stderr_tail` already decodes the bytes it hands back undecoded. Measured
+# on this box (python 3.14.4), a child that prints and then hangs:
+#
+#     default                -> exc.stdout = None
+#     PYTHONUNBUFFERED=1     -> exc.stdout = b'HOOK: pre_commit_test_gate starting\n'
+#
+# Every hook in the chain is `python3 tools/<gate>.py`. Python block-buffers stdout when it is
+# a pipe rather than a tty, so each hook's progress sits in the HOOK's own 8KB userspace buffer
+# and dies with it -- unflushed bytes are not in the pipe for the kill path to collect. The
+# capture was correct; there was simply nothing on the wire. A diagnostic that exists only on a
+# tty is a diagnostic that is absent from every autonomous run, which is all of them.
+#
+# git passes its environment to its hooks, so setting this on `git commit` reaches every link.
+# FAIL-SAFE: unbuffering can only make output arrive EARLIER; it cannot change a hook's verdict,
+# so the worst case of getting this wrong is a slightly slower write, never a wrong commit.
+GIT_COMMIT_HOOK_ENV_UNBUFFERED = "PYTHONUNBUFFERED"
+
+
+def _commit_hook_env(base=None):
+    """The environment `git commit` runs its hook chain under — the inherited environment
+    plus unbuffered hook stdout, so a hook killed by the deadline has already put its progress
+    on the wire. Never mutates the caller's environment."""
+    env = dict(os.environ if base is None else base)
+    env[GIT_COMMIT_HOOK_ENV_UNBUFFERED] = "1"
+    return env
 # H15_publish_gate_failure_alert (2026-07-14): the publish gate (fast-test
 # suite + the processor's return code) can fail SILENTLY and repeatedly. The
 # real worked example was pytest OOM-killed (rc=-9 -> "Tests FAILED - not
@@ -2967,8 +3004,12 @@ def git_commit_push(git_hash, net_margin):
             # which the hooks split across stdout and stderr. Without it,
             # "Nothing to commit or commit failed" below is unfalsifiable: a
             # clean no-op and a gate rejection produce the identical log line.
+            # UNBUFFERED (2026-08-13): see GIT_COMMIT_HOOK_ENV_UNBUFFERED. Without it the
+            # TimeoutExpired branch below prints "nothing captured before the kill" every
+            # time, because each hook's progress is still in its own userspace buffer.
             result = subprocess.run(["git", "commit", "-m", msg], cwd=str(PROJECT_DIR),
                                     timeout=GIT_COMMIT_HOOK_TIMEOUT_SECONDS,
+                                    env=_commit_hook_env(),
                                     capture_output=True, text=True)
         except subprocess.TimeoutExpired as exc:
             # UNCAUGHT, THIS CRASHED THE PUBLISH (CLAUDE.md's own standing learning:

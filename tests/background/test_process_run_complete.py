@@ -5,6 +5,8 @@ import functools
 import importlib
 import inspect
 import json
+import os
+import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -1397,6 +1399,71 @@ def test_commit_timeout_budget_fits_inside_the_workers_own_cap():
     assert prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS < min(caps), (
         "commit cap {}s must fit inside the sweep's own {}s cap on the whole "
         "process".format(prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS, min(caps)))
+
+
+def test_the_kills_diagnostic_survives_the_kill_only_when_the_hooks_are_unbuffered():
+    """THE REAL-PLATFORM PROOF, not a stub: does a hook's progress line actually reach the
+    parent when the hook is killed mid-run?
+
+    Seven commit timeouts have logged "hook output: nothing captured before the kill" and
+    named the chain instead of the link (sim-runner-log.md, 2026-08-13 01:30 UTC). The
+    capture was never the problem -- python block-buffers stdout into a pipe, so each hook's
+    progress died in its own userspace buffer, and the promised "names the SLOW hook" tail
+    could not exist on any non-tty run, which is every autonomous run.
+
+    ANTI-TAUTOLOGY (R15): this drives a real child through real buffering rather than
+    asserting against a mock's stdout attribute -- a mock would pass either way, which is
+    precisely why nothing caught this. The control's subject is the platform.
+    """
+    import subprocess as _sp
+    child = [sys.executable, "-c",
+             "print('HOOK: pre_commit_test_gate starting'); import time; time.sleep(60)"]
+
+    def _captured(env):
+        try:
+            _sp.run(child, capture_output=True, text=True, timeout=3.0, env=env)
+        except _sp.TimeoutExpired as exc:
+            return prc.stderr_tail(exc.stderr) or prc.stderr_tail(exc.stdout)
+        raise AssertionError("the child was supposed to outlive the deadline")
+
+    with_env = _captured(prc._commit_hook_env())
+    assert "pre_commit_test_gate starting" in with_env, (
+        "the hook's own progress line must reach the parent before the kill -- this is the "
+        "diagnostic the timeout branch promises; got {!r}".format(with_env))
+
+    without_env = _captured(None)
+    if without_env:
+        pytest.skip("this platform no longer block-buffers a piped child's stdout; the "
+                    "unbuffered env is then belt-and-braces rather than the fix")
+
+
+def test_the_commit_runs_its_hook_chain_unbuffered(monkeypatch):
+    """THE WIRING. The env above only helps if `git commit` is actually given it -- git
+    passes its own environment to every hook, so this one call reaches the whole chain.
+
+    MUTATION: drop `env=_commit_hook_env()` from the `git commit` subprocess.run in
+    git_commit_push and this fails, restoring the blind kill.
+    """
+    seen = {}
+
+    def _run(argv, **kw):
+        if argv[:2] == ["git", "commit"]:
+            seen["env"] = kw.get("env")
+        return _FakeCompleted(0)
+
+    _commit_push_with(monkeypatch, _run)
+
+    env = seen.get("env")
+    assert env is not None, "`git commit` must be given an explicit environment"
+    assert env.get(prc.GIT_COMMIT_HOOK_ENV_UNBUFFERED) == "1", (
+        "the hook chain must run unbuffered or its progress dies with it; got {!r}".format(
+            env.get(prc.GIT_COMMIT_HOOK_ENV_UNBUFFERED)))
+    assert "PATH" in env, "the inherited environment must be preserved, not replaced"
+    # The builder must never write through to the process it is called from: a publish cycle
+    # runs other children (the gate suite among them) whose buffering is not ours to change.
+    before = dict(os.environ)
+    prc._commit_hook_env()
+    assert dict(os.environ) == before, "_commit_hook_env must not mutate os.environ"
 
 
 def test_commit_timeout_has_real_headroom_over_the_hook_chain():
