@@ -2266,9 +2266,9 @@
   depends_on: []
   records_rehomed: [evidence, expert_hour_findings]
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
-  simplifications_count: 28
+  simplifications_count: 33
   notes_rehomed: [harden_note, level_hold_note]
-  expert_hour: {last: '2026-08-12', status: attempted_finding_open}
+  expert_hour: {last: '2026-08-13', status: attempted_finding_open}
 - id: D6_payment_ageing_gap_validity
   name: "Is the payment AGEING gap real or a metric artefact? The live coupled-triad measurement reports an ageing gap of 1.1538 -- ABOVE 1.0, meaning the company's debt-ageing belief scores worse than the flag-nobody baseline the metric norms against. Decide which of two things that is: a genuine company failure mode (oldest-first Clayton's-Case allocation actively misdating debt, which a real supplier would recognise) or a metric-shape defect (detection-style normalisation misapplied to a bucket-distance dimension). Until resolved, the ageing dimension is not evidence of anything and must not be cited as fidelity."
   lane: D_billing_metering
@@ -2458,6 +2458,7 @@
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
   depends_on: [D27_belief_window_saturates_on_this_book]
+  simplifications_count: 2
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
   real_world_twin: "a collections MI pack whose arrears-risk number is quoted as evidence the team's lookback is set right, when the report is run a month after the last failed collection -- so a team that drops a customer off the risk list after three weeks and a team that never puts them on it produce the same figure, and the only memory settings the pack can tell apart are ones nobody would choose"
 
@@ -2504,7 +2505,7 @@
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
   depends_on: [D34_the_resolution_floor_covers_two_of_five_figures]
-  simplifications_count: 1
+  simplifications_count: 2
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
   real_world_twin: a collections MI pack whose methodology note certifies the precision of the tables it contains, while the same figures are re-rendered to a different number of places in the board deck the pack is pasted into -- and the certification was written by reading the pack
 - id: D34_the_resolution_floor_covers_two_of_five_figures
@@ -2519,6 +2520,7 @@
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
   depends_on: [D33_the_collapse_predicate_is_bit_equality]
+  simplifications_count: 1
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
   real_world_twin: "a collections MI pack whose methodology note says 'differences below 0.00005 are rounding' -- true of the four-decimal arrears percentages on page 1, and printed under the days-late figure on page 3 that the pack itself only ever shows to two"
 - id: D33_the_collapse_predicate_is_bit_equality
@@ -2533,7 +2535,7 @@
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
   depends_on: [D32_the_latency_headline_cannot_attribute_its_two_knobs]
-  simplifications_count: 1
+  simplifications_count: 2
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
   real_world_twin: "a collections MI pack whose footnote says 'this figure cannot detect a memory error smaller than 309 days' when the figure it is printed under cannot detect one smaller than 314 -- and the analyst who derived the footnote measured the book, not the report"
 - id: D32_the_latency_headline_cannot_attribute_its_two_knobs
@@ -2562,6 +2564,7 @@
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
   depends_on: [D25_ageing_resolution_is_the_harness_calendar]
+  simplifications_count: 1
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
   real_world_twin: "a collections team whose 'did we spot it' KPI is measured only on debts already a month old, so no reasonable change to when the team starts chasing can move the number -- the report cannot distinguish a team that chases at day 15 from one that chases at day 29"
 
@@ -3857,7 +3860,7 @@
 - id: KNIFE3_wall_crossing_paydown
   title: "Pay down the remaining wall crossings"
   gain: "What is left of the 107 direct SIM/company imports goes through the one sanctioned seam, which is the same seam a real go-live would swap for real endpoints."
-  name: "KNIFE pass 3 of 4 (AO5), LAST of the three wall passes. Cut the crossings that survive passes 1 and 2. STALE-DOORBELL NOTICE (added by a 2026-08-12 draw that found this text unchanged since mint): the FIRST STEP described below is DONE -- build_edges/company_reads_sim/sim_reads_company already live in tools/epistemic_wall.py as the one shared definition, ratchet+ledger+pass 3 all import from there, and tests/architecture/test_epistemic_wall_single_source.py enforces it stays that way. This atom is PARTIALLY BUILT, 20 KNIFE3/A_composition_lift steps landed as of commit 048bc10f8 (2026-08-12) -- DO NOT REDRAW AS IF FROM ZERO or repeat the extraction. Live state per docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md + docs/design/simplifications/KNIFE3_wall_crossing_paydown.yaml (map_records.exit_evidence, updated every step -- read that before the next cut): 91 crossings ruled total, 63 cut, 28 still owed (24 to design A_composition_lift, 4 to design B2_company_brain_decides_the_world), matching tools/knife_hotspot_measure.py's live count of 28 (26 direct + 2 indirect). level_current is DELIBERATELY still 0 at 28/91 remaining -- booking the target at two-thirds-paid is the false-completion class this project names explicitly; do not bump level_target progress until owed=0. Original text preserved below for provenance. || ORIGINAL: FIRST STEP, BEFORE ANY CUT: lift build_edges / company_reads_sim / sim_reads_company out of tests/architecture/test_epistemic_wall_ratchet.py into a shared module so the ratchet, the KNIFE ledger and this pass read ONE definition of 'a crossing'. That extraction is deliberately deferred to here rather than done while planning, because moving the net while planning the cuts is the error the MAP->NET->KNIFE sequence exists to prevent. EXIT: stated when the pass is drawn, against the count that survives passes 1 and 2 -- NOT against today's 107, which will be stale."
+  name: "KNIFE pass 3 of 4 (AO5), LAST of the three wall passes. Cut the crossings that survive passes 1 and 2. STALE-DOORBELL NOTICE (added 2026-08-12, RE-STATED 2026-08-13 by step 25 -- the 2026-08-12 text was itself stale by two steps, which is exactly the class this notice exists to stop, so REFRESH THESE NUMBERS IN THIS FIELD every step, not only in the yaml): the FIRST STEP described below is DONE -- build_edges/company_reads_sim/sim_reads_company already live in tools/epistemic_wall.py as the one shared definition, ratchet+ledger+pass 3 all import from there, and tests/architecture/test_epistemic_wall_single_source.py enforces it stays that way. This atom is PARTIALLY BUILT, 25 KNIFE3/A_composition_lift steps landed as of 2026-08-13 -- DO NOT REDRAW AS IF FROM ZERO or repeat the extraction. NEVER TRUST THIS FIELD'S COUNTS OVER THE TOOL: run `python3 -m tools.wall_crossing_dispositions`, which measures the WORKING TREE. Live state per docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md + docs/design/simplifications/KNIFE3_wall_crossing_paydown.yaml (map_records.exit_evidence, updated every step -- read that before the next cut): 91 crossings ruled total, 77 cut, 14 still owed (10 to design A_composition_lift, 4 to design B2_company_brain_decides_the_world), matching tools/knife_hotspot_measure.py's live count of 14 (12 direct + 2 indirect). level_current is DELIBERATELY still 0 at 14/91 remaining -- booking the target at six-sevenths-paid is the false-completion class this project names explicitly; do not bump level_target progress until owed=0. Original text preserved below for provenance. || ORIGINAL: FIRST STEP, BEFORE ANY CUT: lift build_edges / company_reads_sim / sim_reads_company out of tests/architecture/test_epistemic_wall_ratchet.py into a shared module so the ratchet, the KNIFE ledger and this pass read ONE definition of 'a crossing'. That extraction is deliberately deferred to here rather than done while planning, because moving the net while planning the cuts is the error the MAP->NET->KNIFE sequence exists to prevent. EXIT: stated when the pass is drawn, against the count that survives passes 1 and 2 -- NOT against today's 107, which will be stale."
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3996,6 +3999,7 @@
   depends_on: []
   couples_with: []
   records_rehomed: [evidence]
+  simplifications_count: 1
   file_scope: ['tools/map_assertion_provenance.py', 'tests/tools/test_map_assertion_provenance.py']
   notes_rehomed: [origin_note]
 - id: AO12_scale_probe_10k
@@ -4183,6 +4187,8 @@
   provenance: director_ruling
   depends_on: ['AO12_scale_probe_10k']
   couples_with: []
+  records_rehomed: [evidence]
+  simplifications_count: 1
   file_scope: []
 - id: PB2_opening_book_won_not_assigned
   title: "The company starts with a real book, and it had to win it"
@@ -4198,6 +4204,8 @@
   provenance: director_ruling
   depends_on: ['PB1_population_target_and_its_price']
   couples_with: []
+  records_rehomed: [evidence]
+  simplifications_count: 1
   file_scope: []
 - id: PB3_book_growth_as_earned_outcome
   title: "A growth curve that can be lost"

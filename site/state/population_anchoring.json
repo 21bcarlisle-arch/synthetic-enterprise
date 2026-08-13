@@ -9,11 +9,11 @@
   },
   "overall_rag": "AMBER",
   "long_run_comparison": {
-    "sim_avg_pct": 6.1,
+    "sim_avg_pct": 5.8,
     "ofgem_avg_pct": 13.6,
-    "ratio": 0.45,
+    "ratio": 0.42,
     "years_compared": 10,
-    "total_renewals": 55,
+    "total_renewals": 58,
     "rag": "GREEN",
     "note": "SIM portfolio is predominantly I&C (B2B contract churn) vs Ofgem residential switching. Long-run average comparison is more robust than single-year with N<15 renewals."
   },
@@ -189,7 +189,7 @@
       "ofgem_rate_prev": 0.08,
       "ofgem_rate_curr": 0.13,
       "sim_rate_prev": 0.0,
-      "sim_rate_curr": 0.2857,
+      "sim_rate_curr": 0.25,
       "rag": "GREEN"
     },
     {
@@ -198,7 +198,7 @@
       "sim_direction": "down",
       "ofgem_rate_prev": 0.13,
       "ofgem_rate_curr": 0.14,
-      "sim_rate_prev": 0.2857,
+      "sim_rate_prev": 0.25,
       "sim_rate_curr": 0.0,
       "rag": "GREEN"
     }
@@ -247,23 +247,23 @@
       "calibrated_multiplier": 0.57
     },
     "2022": {
-      "renewals": 7,
+      "renewals": 8,
       "churns": 0,
       "sim_churn_rate": 0.0,
       "ofgem_benchmark": 0.04,
       "calibrated_multiplier": 0.44
     },
     "2023": {
-      "renewals": 7,
+      "renewals": 8,
       "churns": 0,
       "sim_churn_rate": 0.0,
       "ofgem_benchmark": 0.08,
       "calibrated_multiplier": 0.79
     },
     "2024": {
-      "renewals": 5,
+      "renewals": 6,
       "churns": 2,
-      "sim_churn_rate": 0.2857,
+      "sim_churn_rate": 0.25,
       "ofgem_benchmark": 0.13,
       "calibrated_multiplier": 1.0
     },
@@ -318,7 +318,7 @@
     },
     {
       "year": 2021,
-      "complaint_rate_pct": 5.28,
+      "complaint_rate_pct": 5.26,
       "benchmark_green_hi": 8.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": true,
@@ -334,7 +334,7 @@
     },
     {
       "year": 2023,
-      "complaint_rate_pct": 5.71,
+      "complaint_rate_pct": 5.64,
       "benchmark_green_hi": 8.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": true,
@@ -342,7 +342,7 @@
     },
     {
       "year": 2024,
-      "complaint_rate_pct": 5.08,
+      "complaint_rate_pct": 4.98,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -350,7 +350,7 @@
     },
     {
       "year": 2025,
-      "complaint_rate_pct": 5.7,
+      "complaint_rate_pct": 5.49,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -446,8 +446,8 @@
     {
       "year": 2021,
       "new_arrears_count": 5,
-      "active_customers": 15,
-      "new_arrears_rate_pct": 33.3,
+      "active_customers": 16,
+      "new_arrears_rate_pct": 31.2,
       "ic_arrears_count": 2,
       "ic_active_customers": 5,
       "ic_arrears_rate_pct": 40.0,
@@ -463,8 +463,8 @@
     {
       "year": 2022,
       "new_arrears_count": 2,
-      "active_customers": 13,
-      "new_arrears_rate_pct": 15.4,
+      "active_customers": 14,
+      "new_arrears_rate_pct": 14.3,
       "ic_arrears_count": 0,
       "ic_active_customers": 5,
       "ic_arrears_rate_pct": 0.0,
@@ -479,9 +479,9 @@
     },
     {
       "year": 2023,
-      "new_arrears_count": 4,
-      "active_customers": 13,
-      "new_arrears_rate_pct": 30.8,
+      "new_arrears_count": 5,
+      "active_customers": 14,
+      "new_arrears_rate_pct": 35.7,
       "ic_arrears_count": 0,
       "ic_active_customers": 5,
       "ic_arrears_rate_pct": 0.0,
@@ -497,8 +497,8 @@
     {
       "year": 2024,
       "new_arrears_count": 6,
-      "active_customers": 13,
-      "new_arrears_rate_pct": 46.2,
+      "active_customers": 14,
+      "new_arrears_rate_pct": 42.9,
       "ic_arrears_count": 1,
       "ic_active_customers": 5,
       "ic_arrears_rate_pct": 20.0,
@@ -514,7 +514,7 @@
     {
       "year": 2025,
       "new_arrears_count": 0,
-      "active_customers": 10,
+      "active_customers": 11,
       "new_arrears_rate_pct": 0.0,
       "ic_arrears_count": 0,
       "ic_active_customers": 5,
