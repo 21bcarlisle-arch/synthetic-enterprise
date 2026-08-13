@@ -106,11 +106,15 @@ def test_up_down_columns():
     assert "| 2022 | 2 |" in result
 
 
-# 9. Note about emergency reprices
-def test_emergency_note():
+# 9. Note about the surcharge column.
+# EP2 sub-atom 3 (2026-08-13): this used to assert the column was labelled "Emergency". It
+# counts `margin_feedback_log`, which fires at renewal on the prior term's realised loss —
+# so the label was another mechanism's name and the test was pinning the defect.
+def test_margin_surcharge_note():
     d = {"dynamic_pricing_log": [_entry("2022-01-01", 100.0, 120.0)], "margin_feedback_log": []}
     result = _section_dynamic_pricing_activity(d)
-    assert "Emergency" in result or "emergency" in result
+    assert "Margin surcharges" in result
+    assert "emergency" not in result.lower()
 
 
 # 10. Total emergency count
@@ -159,7 +163,8 @@ def test_rate_increase_delta_shown():
     assert "+20.0" in result or "20.0" in result
 
 
-def test_emergency_flag_shown():
+def test_surcharge_column_present_even_with_no_surcharges():
     d = {"dynamic_pricing_log": [_emerg("2022-06-01", 200.0, 250.0)], "margin_feedback_log": []}
     result = _section_dynamic_pricing_activity(d)
-    assert "emergency" in result.lower() or "EMERG" in result
+    assert "Margin surcharges" in result
+    assert "Margin recovery surcharges: 0 total" in result

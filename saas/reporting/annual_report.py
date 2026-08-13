@@ -4708,7 +4708,12 @@ def _section_churn_root_cause(data: dict) -> str:
         final_rate = None
         if last_price:
             rb = last_price.get("unit_rate_before", 0)
-            ra = last_price.get("unit_rate_after", 0)
+            # EP2 sub-atom 3 (2026-08-13): the premium's `unit_rate_after` is its own link in the
+            # rate chain, not the rate this customer contracted and then churned over — the
+            # surcharge, the profitability uplift and the price cap all still move it afterwards.
+            # The shock that explains a churn is the whole renewal move, so read the contracted
+            # rate wherever the run publishes one.
+            ra = last_price.get("unit_rate_contracted") or last_price.get("unit_rate_after", 0)
             if rb:
                 rate_shock_pct = (ra - rb) / rb * 100
             final_rate = ra

@@ -2,6 +2,14 @@
 
 **Severity:** BLOCKING · **Lane:** B_commercial
 
+**Discharged:** `tests/saas/reporting/test_ep2_rate_chain_decomposition.py::test_the_surcharge_table_withholds_a_span_it_cannot_reconcile` `tests/saas/reporting/test_ep2_rate_chain_decomposition.py::test_the_premium_table_never_calls_its_intermediate_the_contracted_rate` `tests/saas/reporting/test_ep2_rate_chain_decomposition.py::test_the_surcharge_count_is_not_labelled_emergency` `tests/saas/reporting/test_ep2_rate_chain_decomposition.py::test_no_rate_log_reads_its_before_off_the_never_rebound_term`
+
+**Discharge note (2026-08-13):** built as the rate chain — one decomposed span per renewal across
+all FOUR writers (the cap and the profitability uplift are two the finding below did not count),
+plus the `Emergency` column renamed to what it counts. Report:
+`docs/staging/WORKER_REPORT_THE_TWO_PRICING_LOOPS_ARE_NOW_ONE_CHAIN_2026-08-13.md`. The original
+finding text is left below unedited.
+
 **Status:** measured and reported, not fixed. A published table's three columns contradict each
 other arithmetically, so a reader who checks the row gets a different answer than the row gives.
 Found during the `EP2_variance_learning_loop` DISCOVER draw — attribution of a realised change to
