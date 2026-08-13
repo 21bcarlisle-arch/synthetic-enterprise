@@ -53,3 +53,35 @@ standing rule against.
 The second half — whether the pre-commit gate should always run the static-quality ratchet
 regardless of pathspec, on the grounds that a repo-wide census is not decomposable by pathspec — is
 a real design question and belongs with the existing finding of that name, not decided here.
+
+---
+
+## DISCHARGED 2026-08-13 (worker tick, RUNG 1c blocking draw)
+
+**Repaired at source, baseline unmoved, verified against the committed tree.**
+
+* `9ff64a8e2` — the two I001 blocks named by the census diff:
+  `tests/tools/test_pre_commit_gate_class_checker.py` (landed in `f4b504e6c`) and
+  `tests/background/test_tree_divergence.py` (isort fix existed ONLY as an uncommitted
+  working-tree edit — which is why the desk read 1380 and HEAD read 1381).
+* `70660179e` — **a second red this finding could not see.** Clearing I001 exposed
+  `E731: baseline 19, now 20` at HEAD: `tests/background/test_gap_ledger_reconciler.py` grew an
+  assigned lambda in `7a9bf56be`, and *its* repair was ALSO sitting uncommitted. The finding quoted
+  the I001 lines only, so the second code was hidden behind the first in exactly the way the
+  2026-08-09 episode-3 note in the ratchet's own shrink log describes.
+
+**Consumer-verified (R1/R11 for a control): `git archive HEAD | tar -x` into a clean directory,
+then the whole suite in that export — `13 passed`, I001 = 1379, E731 = 19.** Not the working tree,
+which is the tree that understated both counts in the first place.
+
+Both no-move repairs are recorded in the ratchet's SHRINK LOG with the attribution this tick had to
+re-derive by census diff, plus the lesson: **re-run the WHOLE ratchet against a fresh HEAD export
+after clearing one rule** — a per-rule fix proves nothing about the other codes.
+
+**Still owed, and deliberately NOT decided here:** the finding's second half — the pre-commit gate
+selects test files by path stem, so it never reaches this suite for the commits that reddened it,
+and a repo-wide census is not decomposable by pathspec. That is
+`WORKER_FINDING_A_REPO_WIDE_CENSUS_IS_NOT_DECOMPOSABLE_BY_PATHSPEC_2026-08-12.md`, which is live and
+carries the design question. Until it is built, this class recurs silently: **two of the three
+offending files here had their repair sitting uncommitted, so the desk was green while HEAD was red
+in two different rules on the same day.**
