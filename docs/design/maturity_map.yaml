@@ -4091,6 +4091,7 @@
   records_rehomed: [evidence]
   file_scope: []
   notes_rehomed: [origin_note]
+  simplifications_count: 1   # 2026-08-13: 2a64b3789 landed the store note, not the count
 - id: EP2_variance_learning_loop
   title: "Expected minus realised, fed back into belief"
   gain: "Margin volatility becomes explained variance or a named defect, instead of a shrug."
@@ -5163,26 +5164,27 @@
   depends_on: []
   couples_with: [D36_bill_render_footing_and_pence, SITE3_wall_exhibit_url_rename]
   file_scope: ['site/customers/index.html', 'site/customers/test_wall_exhibit.py', 'site/customers/_wall_harness.mjs', 'site/customers/test_customers_door.py', 'site/customers/_render_harness.mjs', 'site/_redirects', 'site/test_no_links_to_redirected_urls.py', 'docs/design/SITE_CONSTITUTION.md']
-  simplifications_count: 3
+  simplifications_count: 4
   expert_hour:
     status: findings_open
     last: '2026-08-12'
     verdict: 'NO'
     independence: false   # same model family as the builder -- blindness, not independence
     ledger: docs/observability/sanity_adjudication_ledger.json  # 13 keys, prefix coldwalk:site2_
-    fixed_this_tick:
+    fixed_2026_08_12:
     - coldwalk:site2_customer_view_does_not_filter_the_op_state_exhibit
     - coldwalk:site2_wall_control_subject_excludes_the_union_of_the_page
     - coldwalk:site2_lifetime_net_captioned_after_cost_to_serve_is_before_it
-    findings:   # open; each needs its own atom -- most are SIM/COMPANY fidelity, not render
+    fixed_2026_08_13:   # render defects in file_scope; see the store record
+    - coldwalk:site2_arrears_history_visible_only_behind_the_wall
+    - coldwalk:site2_tariff_range_pounds_per_mwh_labelled_pence_per_mwh
+    - coldwalk:site2_churn_probability_carries_a_settlement_clock
+    - coldwalk:site2_landing_promises_a_view_switch_that_is_not_on_the_landing_page
+    findings:   # OPEN; reconciled vs the ledger by tests/controls/test_map_reconciliation.py
     - coldwalk:site2_churned_account_presented_in_the_present_tense
     - coldwalk:site2_dual_fuel_household_shows_electricity_only_money
     - coldwalk:site2_consumption_has_no_winter_peak_under_a_seasonality_panel
-    - coldwalk:site2_arrears_history_visible_only_behind_the_wall
-    - coldwalk:site2_tariff_range_pounds_per_mwh_labelled_pence_per_mwh
     - coldwalk:site2_behind_the_wall_view_is_empty_on_two_of_six_tabs
-    - coldwalk:site2_churn_probability_carries_a_settlement_clock
-    - coldwalk:site2_landing_promises_a_view_switch_that_is_not_on_the_landing_page
     - coldwalk:site2_coo_cost_to_serve_double_count_doubt          # adjudicated REFUTED
     - coldwalk:site2_coo_2841_percent_error_arithmetic_doubt       # adjudicated REFUTED
   records_rehomed: [evidence]

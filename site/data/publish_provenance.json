@@ -1,34 +1,32 @@
 {
   "annotation": {
-    "checked_at": "2026-08-13T18:28:20Z",
+    "checked_at": "2026-08-13T21:07:56Z",
     "nonblocking_reds": [
-      "FAILED tests/background/test_finding_severity.py::test_the_staging_root_has_zero_unclassified_documents",
-      "FAILED tests/background/test_self_clearing_alarm_census.py::test_every_live_hit_is_dispositioned",
-      "FAILED tests/design/test_atom_records_store.py::test_declarations_match_the_store_both_directions",
-      "FAILED tests/design/test_simplifications_store.py::test_counts_match_file_contents",
       "FAILED tests/harness/test_lcl_household_anchors.py::test_the_map_and_the_live_predicate_agree_about_what_this_box_cannot_pay_for",
       "FAILED tests/tools/test_capability_index.py::test_live_repo_index_is_healthy_and_substantial",
       "FAILED tests/tools/test_capability_index.py::test_cli_exit_codes_distinguish_clean_from_could_not_run",
-      "FAILED tests/tools/test_capability_index.py::test_the_live_register_rules_on_every_live_orphan"
+      "FAILED tests/tools/test_capability_index.py::test_the_live_register_rules_on_every_live_orphan",
+      "FAILED tests/tools/test_generate_saas_coverage_data.py::test_bucket_b_categories_point_to_at_least_one_real_existing_module",
+      "FAILED tests/tools/test_generate_shadow_html.py::test_every_static_site_page_has_the_copyright_footer"
     ],
-    "nonblocking_reds_total": 19,
+    "nonblocking_reds_total": 6,
     "open_findings": 71
   },
   "last_verified": {
-    "generated_at": "2026-08-13T20:33:45Z",
-    "git_commit": "491a6abc8",
-    "run_id": "run_output_491a6abc8_20260813T200349Z.json",
-    "verified_at": "2026-08-13T20:33:45Z"
+    "generated_at": "2026-08-13T21:40:37Z",
+    "git_commit": "de32e8c6b",
+    "run_id": "run_output_de32e8c6b_20260813T210856Z.json",
+    "verified_at": "2026-08-13T21:40:37Z"
   },
   "paused_reason": "scoped publish-path suite red at git=a9f924022; blocking tests: FAILED tests/controls/test_daemon_loop_mutation.py::test_dms_isolated_accounts_for_every_check_run_cycle_calls",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-13T20:33:45Z",
-    "git_commit": "491a6abc8",
-    "run_id": "run_output_491a6abc8_20260813T200349Z.json",
-    "verified_at": "2026-08-13T20:33:45Z"
+    "generated_at": "2026-08-13T21:40:37Z",
+    "git_commit": "de32e8c6b",
+    "run_id": "run_output_de32e8c6b_20260813T210856Z.json",
+    "verified_at": "2026-08-13T21:40:37Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-13T20:33:45Z"
+  "written_at": "2026-08-13T21:40:37Z"
 }
