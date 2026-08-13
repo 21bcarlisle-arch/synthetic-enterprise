@@ -1,0 +1,91 @@
+atom_id: OPS13_product_interleave_armed
+map_records:
+  exit_evidence: '2026-08-13 OPS13 L0->2 (worker tick). LANDED: the product interleave in
+    background/supervisor.py (HARNESS_LANES / _is_harness_atom / _is_product_atom /
+    _load_interleave_state / _save_interleave_state / _LanePreferringPicker / _product_side_draw /
+    _apply_product_interleave / product_interleave_digest_line), armed inside the three-lane draw
+    after the fork-budget cap, with the digest line logged unconditionally from find_work(). 16
+    named tests in tests/background/test_product_interleave.py. (1) THE ARM IS UNCONDITIONAL --
+    nothing in the mechanism reads the staging directory; the withdrawn "root < 20" trigger has no
+    successor. test_r15_the_arm_does_not_move_with_staging_depth runs the SAME grant against a
+    staging root of 0 documents and of 200 and asserts the granted atom list AND the rendered digest
+    line are identical, so any threshold between those depths changes one of them. The prose half of
+    the withdrawn trigger is struck at its source too: DIRECTOR_PRIORITY_BACKLOG_TRIAGE_AND_INTERLEAVE
+    _2026-08-10 now carries the withdrawal at the top of the file (its DRAIN stays live work; only its
+    role as the interleave gate is gone). (2) ENFORCED PER GRANT, WHICH IS STRICTER THAN PER SESSION,
+    AND THE VIOLATION IS NAMED -- a grant is one drawn doorbell and one worker invocation, the finest
+    boundary the supervisor has, so per-grant enforcement gives per-session by construction and makes
+    the exit criterion example directly checkable. test_two_harness_atoms_and_no_product_atom_is_named
+    _a_violation drives exactly that case (two harness atoms, a map with no drawable product atom) and
+    asserts INTERLEAVE VIOLATION plus both atom ids in the line. The pairing is not only reported, it
+    is MADE: test_the_owed_harness_atom_forces_the_next_grants_product_side shows grant 1 harness-only
+    (nothing else drawable) leaving the atom OWED, and grant 2 forcing the product side even though
+    the BUILD draw would have picked the harness atom again. (3) THE DIGEST CARRIES THE PAIR ACTUALLY
+    DRAWN -- test_the_digest_names_the_pair_actually_drawn asserts both ids appear AND that the record
+    equals the post-arm grant, not the pre-arm intention (the record is recomputed from the mutated
+    lane lists for exactly this reason). The clause-2 substitution is named:
+    test_a_clause_2_blocker_takes_the_product_side_slot_and_is_named (a live BLOCKING finding in
+    B_commercial makes the repair this session product side -- not a violation, and the line says
+    which lane), with the opposite direction pinned by
+    test_a_harness_lane_blocker_is_not_a_clause_2_product_substitution so clause 2 cannot become a
+    blanket excuse. (4) SILENCE IS THE FAILURE -- product_interleave_digest_line() returns a non-empty
+    line on every path including record=None (the cycle that drew no map atom at all), and find_work()
+    logs it before any of its returns. test_r15_the_digest_line_can_never_be_suppressed exercises all
+    three shapes through the REAL find_work: a granted unpaired harness atom, a cycle returning from
+    RUNG 1 above the three-lane draw, and a cycle that draws nothing. The stale-record shape is closed
+    separately (test_the_stale_record_of_a_previous_grant_cannot_be_reported_as_this_cycles_pair):
+    _self_refill_draw resets the record before any rung can return, so a priority-rung cycle cannot
+    re-report the last cycle pair as its own. (5) R15 BOTH WAYS, RUN, not asserted: mutation A
+    (re-couple the arm to a document count -- "if len(list(STAGING_DIR.glob(\"*.md\"))) >= 20: return
+    record") killed test_r15_the_arm_does_not_move_with_staging_depth and nothing else (1 failed, 15
+    passed); mutation B (the find_work log call replaced with pass) killed
+    test_r15_the_digest_line_can_never_be_suppressed and nothing else (1 failed, 15 passed); a third,
+    mutation C (record["violation"] = False, unpaired grants pass quietly) killed
+    test_two_harness_atoms_and_no_product_atom_is_named_a_violation the alternation test and the harness-blocker
+    direction (4 failed, 12 passed). Each mutation was applied to the real module and the file restored
+    byte-identical from a backup afterwards (diff -q clean each time). DESIGN CHOICE, STATED BECAUSE
+    IT IS A TRADE: the interleave ALTERNATES rather than WIDENS. MAX_CONCURRENT_FORKS is 1 (TOKEN
+    BUDGET IS BINDING AGAIN, 2026-08-03, SERIAL BY DEFAULT), so adding a second fork every time a
+    harness atom draws would buy the pairing with exactly the spend that ruling cut. Instead a
+    harness-only grant records the atom as OWED and the next grant product side is forced -- the
+    product atom takes the slot and the displaced harness atom is simply not granted that cycle (it
+    was never drawn, so it is not owed). Where width genuinely exists the pair is drawn in the SAME
+    grant (test_the_arm_adds_rather_than_displaces_when_the_fork_budget_has_room at
+    MAX_CONCURRENT_FORKS=2), and the slot-taking half is pinned at the production value of 1
+    (test_the_arm_takes_the_slot_rather_than_widening_the_grant). Either way: one product atom per
+    harness atom. THE ARM FIRES ON FREE WIDTH OR ON A DEBT, NEVER ON EVERY HARNESS GRANT -- a defect
+    this atom live-checked out of itself before landing: the first implementation displaced on every
+    harness grant, which at fork budget 1 means the product side always wins and the harness side
+    NEVER draws (0:1, not 1:1). Observed against the real map -- SITE2_two_sided_wall_exhibit
+    displaced by EP7_adapter_elexon_insights with nothing owed either way. Regression test:
+    test_an_undebted_harness_grant_is_not_displaced_it_accrues_the_debt. Re-verified live over three
+    consecutive draws against the real map and staging root: cycle 1 harness
+    (SITE2_two_sided_wall_exhibit, violation named, owed 1), cycle 2 forced product
+    (EP9_adapter_n3rgy_consented_metering, slot taken, owed 0), cycle 3 harness
+    (KNIFE3_wall_crossing_paydown, owed 1) -- the alternation, on the real map, not a fixture.
+    REUSE, NOT A SECOND FILTER: _product_side_draw runs the REAL BUILD and DISCOVER/FRAME
+    draws with a narrowed picker (_LanePreferringPicker), so dependency-met, externally-blocked,
+    build-in-progress, unmerged-work, coupled-triad and anti-livelock filtering stay in ONE place; an
+    idle/parked product atom is drawn into the DISCOVERY lane, never BUILD, so the pairing rule cannot
+    order BUILD code on an epoch-gated atom. MEASURED LIVE POPULATION AT LANDING, because it bounds
+    what this proves: python3 -m background.finding_severity reports 99 documents, 0 BLOCKING, 55
+    LATENT, 44 RECORDED, 0 UNCLASSIFIED -- so the clause-2 substitution path lands QUIESCENT and is
+    proven on synthetic populations only; the first real BLOCKING finding in a product lane is what
+    will exercise it in anger. ISOLATION DEFECT FOUND AND FIXED IN THIS FILE, worth naming: the first
+    run of these tests wrote synthetic atom ids into the LIVE docs/observability/.atom_stall_tracker.json
+    and then read each other writes (the first test two draws of the same product atom flagged it
+    stalled; the next test arm found nothing) -- the autouse fixture now redirects both that tracker
+    and the owed ledger. The owed ledger leaked directory-wide too (test_supervisor_blocker_precedence
+    wrote {"owed": ["H1_test_atom", "H1_test_atom"]} into the live file), so
+    tests/background/conftest.py now pins PRODUCT_INTERLEAVE_STATE_FILE to an absent tmp path for the
+    whole directory -- the SIXTH entry in a fixture that already documents five instances of this
+    class -- the live file was deleted, and a re-run of the three relevant suites (39 tests) leaves it
+    absent. Ten non-map ids were removed from the live stall tracker; isolating THAT file
+    directory-wide is left as a finding rather than a drive-by, because pinning it enlarges candidate
+    sets in tests currently running against real stalled state. NOT DONE,
+    deliberately: the owed ledger is not validated against the map (a phantom id costs at most one
+    extra forced PRODUCT draw before it pays off -- the direction the ruling wants erred in), and the
+    interleave line is logged to the supervisor tick log rather than added to the returned doorbell
+    string, which would have broken the byte-preserved lone-BUILD-atom message existing NTFY/log
+    parsing depends on. Report:
+    docs/staging/WORKER_REPORT_OPS13_THE_INTERLEAVE_IS_ARMED_AND_THE_PAIR_IS_NAMED_2026-08-13.md'

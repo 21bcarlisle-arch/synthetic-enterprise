@@ -1,0 +1,87 @@
+atom_id: PB1_population_target_and_its_price
+simplifications:
+- '2026-08-13 DISCOVER (LANE 3 idle draw, no BUILD, level HELD at 0, loop_stage still idle, no
+  file_scope path touched, no curriculum value moved, no map edit). Full deliverable:
+  docs/design/PB1_POPULATION_TARGET_DISCOVER.md. (a) PROPOSED PREMISE-POPULATION TARGET 4,000
+  premises, DERIVED not chosen, as the larger of two floors this repo already carries. FLOOR 1, the
+  instrument''s own resolution: tests/simulation/test_premise_population.py:37 draws BIG_N = 4_000
+  against MARGINAL_TOLERANCE_PP = 0.03 with its reason in the source ("large enough that binomial
+  noise on the smallest judged share is well inside the tolerance, so a FAILURE means a biased draw
+  rather than a small sample"), and it is R15 both ways -- line 85 asserts the tolerance CAN be
+  exceeded, commenting that otherwise "the control cannot fail and is worth nothing". Computed: on
+  the largest published share (44.8%) the binomial sd is 0.0079 at N=4,000, so 3pp is 3.82 sd out;
+  at today''s published research draw of n=200 (docs/observability/coupled_gap_ledger.json:52,
+  population_seed=17) the sd is 0.0352 and 3pp is 0.85 sd out -- TODAY''S DRAW IS BELOW THE
+  RESOLUTION OF ITS OWN CONTROL, which is the strongest reason to raise it and is independent of the
+  book. FLOOR 2, the funnel (PB2 §4): 5.8324 quotes per win, so N=4,000 supports a book of 686,
+  above the 465 the probe measured as reachable -- the world is not the binding constraint at this
+  target, which is also why not to go higher yet. 4,000 = max(4,000, 2,712) and is 20x today''s 200.
+  (b) THE COST HALF IS THE FINDING: AO12 NEVER PRICED THIS OBJECT. The report''s five stages are
+  population_draw / settlement_build / run_output_serialization / site_publish / git_transport, and
+  the stage named population_draw records its own subject in its own detail field -- "drew 10258
+  customers via simulation.population_draw" -- with tools/scale_probe_10k.py:27 labelling it "the
+  book itself". It measures the CUSTOMER acquisition draw, not simulation/premise_population.py.
+  There is therefore NO measured price for a drawn premise anywhere in the report, and exit (d)
+  governs: an unmeasured stage is an UNKNOWN cost, not a zero. Cost UNKNOWN, affordability
+  UNDECIDED, and this pass did NOT take the measurement itself because exit (b) says the cost is
+  READ from AO12''s artefact -- taking it here would have produced a number with no instrument
+  behind it and hidden the finding behind a plausible figure. What the record DOES say, quoted
+  verbatim in §3 and read from docs/observability/scale_probe_10k/report.json (run 20260812T013154Z):
+  settlement_build ceiling_death at 465 customer-years, peak RSS 3026 MiB, wall 7.05s,
+  affordability DOES_NOT_FIT (projection 59.5 GiB vs a 7.99 GiB budget); run_output_serialization
+  peak RSS 582 MiB, wall 0.73s, 126,214,554 B for 507,993 records, DOES_NOT_FIT, 248.46 B/record x
+  17,517 records/customer-yr = 4.35 MB/customer-yr RAW with THE REDUCTION UNMEASURED; site_publish
+  and git_transport both subject_kind=replica, both UNDECIDED, git_transport''s own note saying its
+  1,306x pack ratio biases size and wall LOW by an unknown factor. (c) AFFORDABILITY VERDICT,
+  COMPUTED, AND IT FAILS CLOSED BOTH WAYS ROUND. PATH A, raise the research draw alone: UNDECIDED
+  (unpriced) and PURPOSELESS -- simulation/population_draw.py does not import premise_population, so
+  the stock the company acquires from is still not this stock. PATH B, join it to the acquisition
+  path, which is what the ruling asks for: simulation/live_population.py:161-177 returns
+  list(CUSTOMERS) + drawn (read directly in this pass), so every drawn member IS a book member and
+  the book-side stages bind at the drawn size -- N=4,000 is 8.60x the MEASURED ceiling_death at 465
+  and its raw settlement working set is 174.1 GB over the 10-year window before an UNMEASURED
+  reduction: DOES_NOT_FIT. 465 is measured and 1,343 is a projection the probe''s own detail calls
+  under-stated, so fail-closed uses 465 (20.2 GB raw over 10 yr). INTERIM: the largest N whose join
+  completes a green full shipped run, by bisection, with 465 the fail-closed cap until that run
+  exists. (d) TWO POPULATIONS, DISJOINT -- the structural finding, and it is new here.
+  simulation/premise_population.py draws DrawnPremise records raked onto three published England
+  housing-stock marginals and is consumed ONLY by tools/couple_fabric.py -- a research instrument no
+  run reads; simulation/population_draw.py draws SyntheticCustomer acquisitions, imports only
+  household_segments and stdlib, and is what live_population() appends. They share no membership,
+  and premise_population''s own docstring records why (SyntheticCustomer carries no premise
+  dimensions, so make_household defaults every drawn customer to the same suburban_semi, "a
+  population of clones"). So "the company acquires a subset of the population" is false TWICE: the
+  book equals the acquisition draw (PB2 exit d) and the acquisition draw is not the premise stock
+  (this pass). Both halves must change before a population target means anything, and only the first
+  is filed anywhere. (e) SEQUENCING CONSEQUENCE, and it inverts the ruling''s reading without
+  inverting the map: on today''s seam GROWING the population IS granting the book, the one
+  implementation PB2 names as forbidden, so deliverable 1 cannot be BOUGHT before deliverable 2''s
+  remainder exists even though it is PROPOSED first. The map''s PB2.depends_on = [PB1] edge is right
+  for the proposal and reversing it would be a cycle, so the buying order is recorded as a sentence
+  rather than mechanised -- a cycle in the map is worse than a sentence in the record. (f)
+  PREREQUISITES NAMED, in binding order, per the ruling''s own governor: (1) one new AO12 stage whose
+  subject is premise_population.draw_premise_population -- the cheapest of the three and the one that
+  turns UNDECIDED into a number; (2) PB2''s unwon remainder; (3) the persisted side,
+  DIRECTOR_INSTRUCTION_QUERYABLE_PROJECTIONS_2026-08-10 (still an unconsumed mint source in the
+  staging root, so named rather than edged). Its first increment HAS landed as G12_queryable_
+  projections (L2, AO12''s envelope copied verbatim into a rebuilt store) but G12''s own record says
+  the envelope GOVERNS NOTHING YET and the store has no consumer until G13 -- so the storage
+  prerequisite is begun, not met, and nothing here clears it. (g) QUEUED FINDING, not fixed here
+  (SELF_INTERRUPT_DISCIPLINE, and not edited into another draw''s in-flight document): PB2 §4 prices
+  18,756 premises at "~16 MB to draw" from the 860 B/customer constant, and its record repeats "a
+  drawn premise costs ~860 bytes RSS". That is a SUBJECT SUBSTITUTION -- the customer draw''s
+  per-unit constant read onto premises -- R15''s wrong-subject shape. PB2''s count floors are
+  unaffected; only its cost sentence is.'
+map_records:
+  evidence:
+  - docs/design/PB1_POPULATION_TARGET_DISCOVER.md (DISCOVER pass, level held at 0)
+  - docs/observability/scale_probe_10k/report.json (AO12 run 20260812T013154Z -- the price list, and
+    the artefact that turns out to have no stage for this subject)
+  - tools/scale_probe_10k.py:27 (the probe's own header calling its population stage "the book itself")
+  - tests/simulation/test_premise_population.py:37 (BIG_N = 4_000, the derived target's floor, R15
+    both ways at line 85)
+  - docs/observability/coupled_gap_ledger.json:52 (today's published research draw, n=200, seed 17)
+  - simulation/population_draw.py (imports household_segments and stdlib only -- the disjointness)
+  - simulation/live_population.py:161-177 (list(CUSTOMERS) + drawn -- why a grown population is a
+    granted book on today's seam)
+  - docs/design/PB2_OPENING_BOOK_DISCOVER.md (the sibling pass whose funnel floor this reuses)

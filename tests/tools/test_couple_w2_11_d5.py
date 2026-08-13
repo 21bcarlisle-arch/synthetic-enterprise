@@ -6838,3 +6838,262 @@ def test_the_doors_numeric_component_render_is_now_a_searched_surface(reader_wal
     # produce the same "no sites" answer, which is why the walk refuses one.
     original = pair._DOOR_INDEX.read_text(encoding="utf-8")
     assert "Number(v).toFixed(4)" in original
+
+
+# ---------------------------------------------------------------------------
+# THE ROW'S OWN POPULATION -- atom D40, H27 Expert Hour #27
+# ---------------------------------------------------------------------------
+# Hour #21 built the door's four named regions and minted two leads it did not
+# take: D40, that `_DOOR_ROW_KNOWN_CLASSES` is a hand-typed keyset ("the open
+# question is whether the row's regions can be derived from the door's own
+# render instead of enumerated"), and D39, that the bar is a scaled render no
+# sweep here can express. They are one repair, for the same reason Hour #21's
+# own two leads were: the scaled render lives on a CLASSLESS span, so it is not
+# merely unexpressed by the literal sweeps -- it is not in the census's
+# population at all. A census keyed on `class` cannot see an element that does
+# not carry one, and this row has five of those.
+#
+# What replaces the enumeration is not a derivation from the door (that would
+# make the subject its own population -- every class the door renders would be
+# known by construction, which is the fail-open direction of the same mistake).
+# The population is the RENDERED ELEMENTS; the register says what each one IS;
+# and the two-book rule this module already turns on decides who is right.
+
+
+def _fixture_row_htmls(
+    values=(0.118, 0.129),
+    notes=("note A 0.118", "note B 0.129"),
+    components=({"n": 1.0}, {"n": 2.0}),
+    raw_gaps=(0.0, 0.0),
+    index_path=None,
+):
+    """Two rendered rows, produced by the door's OWN JavaScript.
+
+    Synthetic payloads, not published books: the subject of this control is the
+    row's SHAPE, which is the door's and not the scoring's, and driving two
+    real books through the composer to measure it would pay two scorings for a
+    property neither of them decides. That the fixture reproduces the shipped
+    population EXACTLY is asserted below rather than assumed, and the shipped
+    walk over the real books is covered by `reader_walk` one section up.
+    """
+    previous = pair._DOOR_INDEX
+    if index_path is not None:
+        pair._DOOR_INDEX = index_path
+    try:
+        out = []
+        for v, note, comp, raw in zip(values, notes, components, raw_gaps):
+            out.append(pair._door_render({"pairs": [{
+                "world_atom": pair.WORLD_ATOM_ID,
+                "company_atom": pair.TWIN_ATOM_ID,
+                "metric": "detection", "value": v, "baseline_g0": 0.5,
+                "raw_gap": raw, "note": note, "components": comp,
+                "measured_at": "2026-08-13T00:00:00Z",
+                "run_git_commit": "abcdef1234",
+                "world_level": 3, "company_level": 3, "blocks_l3": False,
+            }]}))
+        return out
+    finally:
+        pair._DOOR_INDEX = previous
+
+
+def _census(htmls, values=(0.118, 0.129), headline="detection"):
+    measured = pair.measure_door_row_surfaces(htmls, values)
+    return pair.check_door_row_surfaces(
+        {"available": True, "row_surfaces": measured,
+         "headline_dimension": headline}), measured
+
+
+@needs_node
+def test_the_row_census_is_the_rendered_elements_and_the_register_is_clean():
+    """NOT ALWAYS-RED, and the population is the ARTEFACT's. Every element the
+    door renders has a declaration, every declaration has an element, and the
+    shipped register describes the shipped door exactly."""
+    got, measured = _census(_fixture_row_htmls())
+    assert got == [], got
+    assert set(measured["surfaces"]) == set(pair._DOOR_ROW_SURFACES)
+    # THE POPULATION THE CLASS CENSUS COULD NOT EXPRESS, counted: five elements
+    # of this row carry no class at all, and one of them renders the headline.
+    classless = sorted(p for p in measured["surfaces"]
+                       if "." not in p.rsplit("/", 1)[-1])
+    assert len(classless) == 5, classless
+    assert "div.gap-row[0]/div.gap-bar[0]/span[0]" in classless
+    for path in classless:
+        assert path not in pair._DOOR_ROW_KNOWN_CLASSES
+    # ...and the movement classification is a MEASUREMENT, not a restatement of
+    # the declaration: the surfaces really do split three ways on this book pair.
+    moving = {p for p, s in measured["surfaces"].items() if s["text_moves"]}
+    assert len(moving) == 3, sorted(moving)
+    assert measured["surfaces"]["div.gap-row[0]/div.gap-bar[0]/span[0]"][
+        "attrs_moved"] == ("style",)
+
+
+@needs_node
+def test_a_classless_element_the_door_grows_fires(tmp_path):
+    """THE HOLE THE CLASS CENSUS CANNOT EXPRESS. `_DOOR_ROW_KNOWN_CLASSES`
+    refuses any class it cannot name -- and an element with no class attribute
+    is not a class it cannot name, it is an element it never looked at. The
+    door is mutated to grow one, rendering the figure, and the class census
+    stays SILENT while the element census fires."""
+    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    mutated = tmp_path / "index.html"
+    assert "'<div class=\"gap-basis\">baseline g0 '" in original
+    mutated.write_text(
+        original.replace("'<div class=\"gap-basis\">baseline g0 '",
+                         "'<span>'+fmtGap(p.value)+'</span>'+"
+                         "'<div class=\"gap-basis\">baseline g0 '"),
+        encoding="utf-8")
+    htmls = _fixture_row_htmls(index_path=mutated)
+    # THE OLD CENSUS IS SILENT ON IT -- proven, not asserted.
+    assert pair._door_row_regions(htmls[0])
+    got, _ = _census(htmls)
+    assert any("carries no class at all, which is the hole the class census "
+               "cannot express" in v for v in got), got
+    assert any("div.gap-row[0]/span[0]" in v for v in got), got
+
+
+@needs_node
+def test_a_wrapper_that_starts_rendering_the_figure_fires(tmp_path):
+    """A DECLARED STRUCTURAL WRAPPER THAT MOVES. The class census's answer to
+    any door change is the same refusal whichever it was, discharged by
+    appending a string; this one states what the surface IS and is wrong when
+    the surface stops being it."""
+    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    mutated = tmp_path / "index.html"
+    assert "'<div class=\"gap-bar\"><span style=\"width:'" in original
+    mutated.write_text(
+        original.replace("'<div class=\"gap-bar\"><span style=\"width:'",
+                         "'<div class=\"gap-bar\">'+fmtGap(p.value)+"
+                         "'<span style=\"width:'"),
+        encoding="utf-8")
+    got, _ = _census(_fixture_row_htmls(index_path=mutated))
+    assert any("div.gap-bar[0]` is declared structural and INERT, and its text "
+               "moves between books" in v for v in got), got
+
+
+@needs_node
+def test_a_searched_region_gone_constant_fires(tmp_path):
+    """AN INERT REGION IS NOT AN EMPTY ONE. The walk one level up refuses a
+    region that came back EMPTY; a region that renders the same string on both
+    books is not empty, and to the two-book rule it is indistinguishable from a
+    region that does not render the figure at all."""
+    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    mutated = tmp_path / "index.html"
+    assert "'<div class=\"gap-note\">'+esc(p.note)+'</div>'" in original
+    mutated.write_text(
+        original.replace("'<div class=\"gap-note\">'+esc(p.note)+'</div>'",
+                         "'<div class=\"gap-note\">a fixed sentence</div>'"),
+        encoding="utf-8")
+    htmls = _fixture_row_htmls(index_path=mutated)
+    # The region is PRESENT and non-empty, so the shipped guard is silent.
+    assert pair._door_row_regions(htmls[0])["door:coupled-gaps#note"].strip()
+    got, _ = _census(htmls)
+    assert any("declared a searched region (`note`) and renders the SAME text "
+               "on both books" in v for v in got), got
+
+
+@needs_node
+def test_a_declaration_that_outlived_its_element_fires(tmp_path):
+    """THE OTHER DIRECTION. A door that stops rendering a declared surface
+    reads to every sweep here exactly like a surface that renders nothing."""
+    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    mutated = tmp_path / "index.html"
+    mutated.write_text(
+        original.replace("'<div class=\"gap-basis\">baseline g0 '",
+                         "'<div class=\"gap-DELETED\">baseline g0 '"),
+        encoding="utf-8")
+    got, _ = _census(_fixture_row_htmls(index_path=mutated))
+    assert any("div.gap-basis[0]` is declared as a door surface and the "
+               "rendered row does not contain it" in v for v in got), got
+
+
+@needs_node
+def test_a_render_that_arrives_in_an_attribute_fires(tmp_path):
+    """A RENDER NEED NOT BE TEXT (atom D39's class). Every literal sweep in
+    this module reads text; the one surface of this row that renders the
+    headline outside its text was invisible to all of them."""
+    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    mutated = tmp_path / "index.html"
+    mutated.write_text(
+        original.replace("'<div class=\"gap-basis\">baseline g0 '",
+                         "'<div class=\"gap-basis\" title=\"'+fmtGap(p.value)+"
+                         "'\">baseline g0 '"),
+        encoding="utf-8")
+    got, _ = _census(_fixture_row_htmls(index_path=mutated))
+    assert any("moves in attribute(s) ['title'] that its declaration does not "
+               "allow" in v for v in got), got
+
+
+@needs_node
+def test_a_bar_that_stops_matching_its_declared_scaling_fires(tmp_path):
+    """THE SCALED RENDER, HELD TO THE PIXEL (atom D39). The declaration is what
+    makes this surface expressible at all -- so the check is that it PREDICTS
+    the rendered literal from the carrier, on every book."""
+    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    mutated = tmp_path / "index.html"
+    assert "barPct.toFixed(0)" in original
+    mutated.write_text(original.replace("barPct.toFixed(0)", "barPct.toFixed(2)"),
+                       encoding="utf-8")
+    got, _ = _census(_fixture_row_htmls(index_path=mutated))
+    assert any("declared scaling (100x at 0dp) predicts `12`" in v
+               for v in got), got
+
+
+@needs_node
+def test_a_scaled_render_finer_than_the_epsilon_fires(tmp_path):
+    """THE ALARM THE SCALED SURFACE EXISTS FOR. 100x at 0dp is 2dp of the
+    figure, coarser than the 4dp detection's epsilon is set from, so nothing
+    moves today. At 100x/3dp -- 5dp of the figure -- the reader can separate
+    two companies the epsilon calls identical, and before this Hour no sweep in
+    this module could have said so, because they all search UNSCALED digits."""
+    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    mutated = tmp_path / "index.html"
+    mutated.write_text(original.replace("barPct.toFixed(0)", "barPct.toFixed(3)"),
+                       encoding="utf-8")
+    declared = dict(pair._DOOR_ROW_SURFACES)
+    key = "div.gap-row[0]/div.gap-bar[0]/span[0]"
+    declared[key] = dict(declared[key], decimals=3)
+    original_reg = pair._DOOR_ROW_SURFACES
+    try:
+        pair._DOOR_ROW_SURFACES = declared
+        got, _ = _census(_fixture_row_htmls(index_path=mutated))
+    finally:
+        pair._DOOR_ROW_SURFACES = original_reg
+    # The declaration now DESCRIBES the door -- this is not a prediction miss.
+    assert not any("predicts" in v for v in got), got
+    assert any("renders detection at an effective 5dp (100x scaled, 3dp) while "
+               "its epsilon is set from 4dp" in v for v in got), got
+
+
+@needs_node
+def test_a_row_whose_shape_is_the_books_refuses():
+    """FAIL CLOSED ON A POPULATION THAT IS NOT ONE. Aligning what two books
+    have in common and measuring that would report the elements they agree
+    about and stay silent about an element only one of them renders -- which is
+    this walk's own subject, one level down."""
+    # A book the door renders as UNTESTED: no bar span, a different chip, so
+    # the element paths are not the same set. The real instance of this is a
+    # ledger entry with no measured gap, which the door renders every day.
+    got, measured = _census(
+        _fixture_row_htmls(values=(0.118, None)), values=(0.118, None))
+    assert measured["available"] is False
+    assert any("is not the same SHAPE on both books" in v for v in got), got
+    assert any("an unavailable check is a failed check" in v for v in got), got
+
+
+def test_a_reached_door_with_no_row_census_fires():
+    """FAIL-SILENT. An unrun census reads exactly like a clean row -- and a
+    walk that reached the door and recorded none is exactly that."""
+    got = pair.check_door_row_surfaces(
+        {"available": True, "headline_dimension": "detection"})
+    assert any("reached the door and recorded no row census at all" in v
+               for v in got), got
+    # ...and where the door was never reached, the caller's own finding covers
+    # it and this one stays quiet rather than doubling it.
+    assert pair.check_door_row_surfaces({"available": False}) == []
+
+
+def test_the_row_census_refuses_a_single_book():
+    """ONE BOOK CANNOT CLASSIFY A SURFACE. With one row, a wrapper holding a
+    constant and a region rendering the figure are the same observation."""
+    with pytest.raises(AssertionError, match="needs TWO books"):
+        pair.measure_door_row_surfaces(["<div class=\"gap-row\"></div>"])

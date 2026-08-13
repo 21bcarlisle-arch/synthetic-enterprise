@@ -145,6 +145,7 @@ import html as html_lib
 import importlib
 import inspect
 import json
+import math
 import random
 import re
 import shutil
@@ -153,6 +154,7 @@ import sys
 import tempfile
 import textwrap
 from datetime import date, datetime, time, timedelta, timezone
+from html.parser import HTMLParser
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
 
@@ -7085,8 +7087,14 @@ _DOOR_SITE_KEY = "door:coupled-gaps"
 #   * `basis`    -- `baseline_g0`/`raw_gap`, also `fmtGap` at 3dp, also the
 #                   headline's.
 # Keyed by the door's OWN class attributes rather than by position, and the row
-# is required to contain no class this walk cannot name -- a door that grows a
-# fifth region fails the walk instead of rendering a figure nobody searches.
+# is required to contain no class this walk cannot name.
+# THAT GUARANTEE WAS ONLY EVER TRUE OF ELEMENTS THAT CARRY A CLASS (atom D40,
+# Hour #27). It read "a door that grows a fifth region fails the walk instead of
+# rendering a figure nobody searches", and a census keyed on an attribute is
+# blind to every element that does not carry it -- this row has five of those,
+# and one of them renders the headline. The population is now the RENDERED
+# ELEMENTS (`_DOOR_ROW_SURFACES`, `measure_door_row_surfaces`); what follows is
+# kept as the region SPLITTER's own guard, no longer as the census.
 # The four region names, in the site-key form the register declares.
 _DOOR_REGIONS: Tuple[str, ...] = ("gap-val", "note", "components", "basis")
 # Every class the H27 row is known to carry. The structural wrappers hold no
@@ -7152,6 +7160,70 @@ def _door_render(payload: Dict[str, object]) -> str:
     return str(json.loads(proc.stdout)["coupled-gaps"]["innerHTML"])
 
 
+def _door_my_row(html: str) -> str:
+    """This pair's row, off the rendered door. Fails closed on a door that is
+    not showing this figure exactly once."""
+    rows = re.findall(r'<div class="gap-row">.*?(?=<div class="gap-row">|$)',
+                      html, re.S)
+    mine = [r for r in rows if WORLD_ATOM_ID in r]
+    if len(mine) != 1:
+        raise RuntimeError(
+            f"the door shows {len(mine)} rows for {WORLD_ATOM_ID} in {len(rows)} "
+            "-- the walk cannot measure a door that is not showing this figure "
+            "exactly once"
+        )
+    return mine[0]
+
+
+class _DoorRowWalker(HTMLParser):
+    """Every ELEMENT of the row, path-keyed, with the text it owns itself.
+
+    The class census one level up can only see elements that carry a `class`
+    attribute; this sees the row as the browser builds it, so an element with
+    no class at all is a member of the population rather than a hole in it.
+    Text is the element's OWN character data -- a nested element's text belongs
+    to the nested element, never to its wrapper, so a wrapper is inert unless
+    it prints something itself.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self._stack: List[str] = []
+        self._counts: List[Dict[str, int]] = [{}]
+        self.elements: Dict[str, Dict[str, object]] = {}
+
+    def handle_starttag(self, tag: str, attrs) -> None:      # type: ignore[override]
+        attr = {k: (v or "") for k, v in attrs}
+        seg = tag + ("." + "-".join(attr["class"].split())
+                     if attr.get("class") else "")
+        n = self._counts[-1].get(seg, 0)
+        self._counts[-1][seg] = n + 1
+        self._stack.append(f"{seg}[{n}]")
+        self._counts.append({})
+        self.elements["/".join(self._stack)] = {
+            "tag": tag, "attrs": attr, "text": "",
+        }
+
+    def handle_endtag(self, tag: str) -> None:               # type: ignore[override]
+        if self._stack:
+            self._stack.pop()
+            self._counts.pop()
+
+    def handle_data(self, data: str) -> None:                # type: ignore[override]
+        if self._stack:
+            self.elements["/".join(self._stack)]["text"] = (
+                str(self.elements["/".join(self._stack)]["text"]) + data)
+
+
+def _door_row_surfaces(html: str) -> Dict[str, Dict[str, object]]:
+    """The row's elements, path-keyed -- the population the class census could
+    not express (atom D40, H27 Expert Hour #27)."""
+    walker = _DoorRowWalker()
+    walker.feed(_door_my_row(html))
+    walker.close()
+    return walker.elements
+
+
 def _door_row_regions(html: str) -> Dict[str, str]:
     """This pair's row on the rendered door, split into its four regions and
     UNESCAPED (atom D37, H27 Expert Hour #21).
@@ -7163,16 +7235,7 @@ def _door_row_regions(html: str) -> Dict[str, str]:
     region the door stopped rendering, which would otherwise read as a figure
     that is simply not shown there).
     """
-    rows = re.findall(r'<div class="gap-row">.*?(?=<div class="gap-row">|$)',
-                      html, re.S)
-    mine = [r for r in rows if WORLD_ATOM_ID in r]
-    if len(mine) != 1:
-        raise RuntimeError(
-            f"the door shows {len(mine)} rows for {WORLD_ATOM_ID} in {len(rows)} "
-            "-- the walk cannot measure a door that is not showing this figure "
-            "exactly once"
-        )
-    row = mine[0]
+    row = _door_my_row(html)
     unknown = sorted({c for c in re.findall(r'class="([^"]*)"', row)
                       if c not in _DOOR_ROW_KNOWN_CLASSES})
     if unknown:
@@ -7207,6 +7270,344 @@ def _door_row_regions(html: str) -> Dict[str, str]:
         )
     return {f"{_DOOR_SITE_KEY}#{k}": html_lib.unescape(v)
             for k, v in regions.items()}
+
+
+def measure_door_row_surfaces(
+    htmls: Sequence[str],
+    carriers: Sequence[Optional[float]] = (),
+) -> Dict[str, object]:
+    """Every element of the row, and whether it MOVES WITH THE BOOK (atom D40,
+    H27 Expert Hour #27).
+
+    The class census this replaces the population of could only ever ask
+    "is this class one I have been told about?", which has two holes it cannot
+    express. It cannot see an element that carries no class -- the row has five
+    of them, one of which renders the headline -- and it cannot tell a new
+    STRUCTURAL wrapper from a new RENDER REGION, so its only response to any
+    door change is a stop-the-world refusal a maintainer discharges by
+    appending a string, with the same one-line discharge available whichever it
+    was.
+
+    What is measured instead is the property that actually distinguishes them:
+    a wrapper is invariant across two books BY CONSTRUCTION, and an element
+    that renders a figure moves. The same two-book discrimination rule both
+    sweeps in this module already turn on, applied one level up -- to the
+    surfaces rather than to the literals inside them.
+
+    Attributes are measured beside text because a render need not be text: the
+    bar's width is `style="width:NN%"` on a classless span, which is the
+    headline scaled by 100 and rounded to 0dp, and it is invisible to a census
+    of classes and to every literal sweep here (they search UNSCALED digits).
+    """
+    if len(htmls) < 2:
+        raise AssertionError(
+            "measure_door_row_surfaces needs TWO books, for the same reason "
+            "every other sweep in this module does: with one, a wrapper that "
+            "happens to hold a constant is indistinguishable from a surface "
+            "that renders the figure"
+        )
+    per_book = [_door_row_surfaces(h) for h in htmls]
+    shapes = [tuple(sorted(b)) for b in per_book]
+    if len(set(shapes)) != 1:
+        # FAIL CLOSED ON A ROW WHOSE SHAPE IS THE BOOK'S. Aligning what is
+        # common and measuring that would report the elements the two books
+        # agree about and stay silent about the ones only one of them renders
+        # -- which is the population defect this walk exists to close, one
+        # level down.
+        return {
+            "available": False,
+            "reason": (
+                "the door's row is not the same SHAPE on both books "
+                f"({[len(s) for s in shapes]} elements; only-in-one: "
+                f"{sorted(set(shapes[0]).symmetric_difference(*[set(s) for s in shapes[1:]]))})"
+                " -- an element the door renders for one book and not the "
+                "other is a surface no two-book measurement can classify"
+            ),
+        }
+    surfaces: Dict[str, Dict[str, object]] = {}
+    for path in shapes[0]:
+        texts = tuple(str(b[path]["text"]) for b in per_book)
+        attrs = [b[path]["attrs"] for b in per_book]
+        names = sorted(set().union(*[set(a) for a in attrs]))    # type: ignore[arg-type]
+        surfaces[path] = {
+            "tag": per_book[0][path]["tag"],
+            "text_moves": len(set(texts)) > 1,
+            "attrs_moved": tuple(n for n in names
+                                 if len({a.get(n) for a in attrs}) > 1),
+            "text_by_book": texts,
+            "attrs_by_book": tuple({n: a.get(n) for n in names} for a in attrs),
+        }
+    return {
+        "available": True,
+        "surfaces": surfaces,
+        "carriers": tuple(carriers),
+    }
+
+
+# WHAT EACH SURFACE IS, DECLARED AGAINST THE MEASUREMENT (atom D40, Hour #27).
+# This is still a hand-written register, and it is deliberately no longer the
+# POPULATION: the elements come off the rendered row, and every one of them has
+# to be here, so an element the door grows is a finding rather than a silence.
+# What each entry declares is the thing the class census could not state and
+# therefore could not be wrong about -- whether this surface MOVES WITH THE
+# BOOK. Every value below was read off the two published books, never guessed,
+# and a declaration that stops matching the artefact fires in whichever
+# direction it broke.
+_SURFACE_STRUCTURAL = "structural"
+_SURFACE_REGION = "region"
+_SURFACE_SCALED = "scaled_render"
+_DOOR_ROW_SURFACES: Dict[str, Dict[str, object]] = {
+    # --- the wrappers. Inert BY CONSTRUCTION: they own no character data, so
+    # anything they print is a render that arrived without anyone noticing.
+    "div.gap-row[0]": {"kind": _SURFACE_STRUCTURAL, "text": "inert"},
+    "div.gap-row[0]/div.gap-head[0]": {"kind": _SURFACE_STRUCTURAL, "text": "inert"},
+    "div.gap-row[0]/div.gap-head[0]/div[0]": {"kind": _SURFACE_STRUCTURAL, "text": "inert"},
+    "div.gap-row[0]/div.gap-head[0]/div[1]": {"kind": _SURFACE_STRUCTURAL, "text": "inert"},
+    "div.gap-row[0]/div.gap-head[0]/div[0]/div.gap-pair[0]": {
+        "kind": _SURFACE_STRUCTURAL, "text": "inert"},
+    "div.gap-row[0]/div.gap-bar[0]": {"kind": _SURFACE_STRUCTURAL, "text": "inert"},
+    "div.gap-row[0]/details[0]": {"kind": _SURFACE_STRUCTURAL, "text": "inert"},
+    # --- the labels. Text, but the PAIR's and the page's, not the figure's.
+    "div.gap-row[0]/div.gap-head[0]/div[0]/div.gap-pair[0]/span.wc[0]": {
+        "kind": _SURFACE_STRUCTURAL, "text": "inert"},
+    "div.gap-row[0]/div.gap-head[0]/div[0]/div.gap-pair[0]/span.wc[1]": {
+        "kind": _SURFACE_STRUCTURAL, "text": "inert"},
+    "div.gap-row[0]/div.gap-head[0]/div[0]/div.gap-pair[0]/span.arr2[0]": {
+        "kind": _SURFACE_STRUCTURAL, "text": "inert"},
+    "div.gap-row[0]/div.gap-head[0]/div[0]/div.gap-metric[0]": {
+        "kind": _SURFACE_STRUCTURAL, "text": "inert"},
+    "div.gap-row[0]/details[0]/summary[0]": {"kind": _SURFACE_STRUCTURAL, "text": "inert"},
+    # `classifyGap`'s severity chip. Its TEXT is a band label, not a figure --
+    # it moves only when the figure crosses a threshold, which two books of the
+    # same company do not. Declared inert with its reason, because a chip that
+    # started moving would be a coarse render of the figure and not a label.
+    "div.gap-row[0]/div.gap-head[0]/div[1]/span.chip-blue[0]": {
+        "kind": _SURFACE_STRUCTURAL, "text": "inert",
+        "why_inert": ("a `classifyGap` band label; it moves only when the "
+                      "figure crosses a band edge, which is a coarser reading "
+                      "than any epsilon this register sets"),
+    },
+    # --- the four named regions, which the walk already searches.
+    "div.gap-row[0]/div.gap-head[0]/div[1]/div.gap-val[0]": {
+        "kind": _SURFACE_REGION, "region": "gap-val", "text": "moves",
+        "attrs_may_move": ("style",),
+    },
+    "div.gap-row[0]/div.gap-note[0]": {
+        "kind": _SURFACE_REGION, "region": "note", "text": "moves"},
+    "div.gap-row[0]/details[0]/div.gap-note[0]": {
+        "kind": _SURFACE_REGION, "region": "components", "text": "moves"},
+    # MEASURED INERT, AND REPORTED RATHER THAN QUIETLY DECLARED (R12). This is
+    # a region the walk searches for the headline's digits every run, and on
+    # both published books it renders `baseline g0 0.500 · raw 0.000 ·
+    # measured <date>`: a designed constant, a quantity that is 0.000 at the
+    # door's 3dp, and a run stamp. To a two-book discrimination rule an inert
+    # region is indistinguishable from a region that does not render the figure
+    # at all -- so this surface can never CREDIT the headline with a site, and
+    # until this Hour nothing said so. The `empty region` guard one level up
+    # cannot see it, because a constant is not empty.
+    "div.gap-row[0]/div.gap-basis[0]": {
+        "kind": _SURFACE_REGION, "region": "basis", "text": "inert",
+        "why_inert": ("everything it prints is either a designed constant "
+                      "(`baseline g0 0.500`), a quantity that renders 0.000 at "
+                      "the door's own 3dp (`raw`), or the run stamp -- so the "
+                      "two-book rule can never credit the headline with a site "
+                      "here, and its declared ownership buys nothing"),
+    },
+    # --- THE SURFACE THE CLASS CENSUS COULD NOT SEE (D39, answered here).
+    # A classless span whose `style` carries the headline SCALED by 100 and
+    # rounded to 0dp. No class, so the census was blind to it; scaled, so every
+    # literal sweep in this module -- all of which search unscaled digits -- is
+    # blind to it as well. Its precision in the FIGURE's units is
+    # `decimals + log10(scale)` = 2dp, which is coarser than the 3dp the same
+    # door renders in `gap-val`, so no epsilon moves today. That is now a
+    # MEASUREMENT: the declaration below predicts the literal from the carrier
+    # and the check confirms it against the artefact, so a bar that starts
+    # rendering finer fires instead of staying invisible.
+    "div.gap-row[0]/div.gap-bar[0]/span[0]": {
+        "kind": _SURFACE_SCALED, "text": "inert",
+        "attrs_may_move": ("style",),
+        "attr": "style", "pattern": r"width:([0-9.]+)%",
+        "scale": 100.0, "decimals": 0,
+        # The door clamps before scaling, so the prediction has to as well --
+        # and the clamp is itself a limit worth stating: outside [0, 1] this
+        # surface renders nothing that moves at all.
+        "clamp": (0.0, 1.0),
+    },
+}
+
+
+def check_door_row_surfaces(
+    walk: Dict[str, object],
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+) -> List[str]:
+    """Put the row's own population on trial (atom D40, H27 Expert Hour #27).
+
+    Five failures the class census structurally could not express: an element
+    with no class at all (it had five, one of them a render of the headline); a
+    wrapper that started rendering something; a declared REGION that renders
+    the same thing on both books, which no two-book rule can credit; a
+    declaration outliving its element; and a SCALED render, which every literal
+    sweep here is blind to because they all search unscaled digits.
+    """
+    register = PUBLISHED_GAP_CONSUMERS if register is None else register
+    measured = walk.get("row_surfaces") or {}
+    out: List[str] = []
+    if not measured:
+        # FAIL CLOSED WHERE THE DOOR WAS REACHED. A walk that reached the door
+        # and recorded no census is a census that did not run, which reads
+        # exactly like a clean row; where the door was never reached the caller
+        # already fires its own finding and a second one adds nothing.
+        if walk.get("available") is True:
+            return [
+                "the reader walk reached the door and recorded no row census "
+                "at all -- an unrun census reads exactly like a clean row, and "
+                "an unavailable check is a failed check (R15)"
+            ]
+        return out
+    if measured.get("available") is not True:                   # type: ignore[union-attr]
+        return [
+            "the door's row census is unavailable "
+            f"({measured.get('reason', 'no reason recorded')}) -- an "        # type: ignore[union-attr]
+            "unavailable check is a failed check (R15)"
+        ]
+    surfaces: Dict[str, Dict[str, object]] = measured["surfaces"]   # type: ignore[assignment]
+    for path in sorted(set(surfaces) - set(_DOOR_ROW_SURFACES)):
+        s = surfaces[path]
+        # A path segment carries its class; a segment without one is an element
+        # the class census could not have seen even in principle.
+        classless = "." not in path.rsplit("/", 1)[-1]
+        out.append(
+            f"the door's row renders `{path}` and no surface declaration names "
+            "it -- "
+            + ("it carries no class at all, which is the hole the class census "
+               "cannot express: a census keyed on an attribute is blind to "
+               "every element that does not carry it"
+               if classless else
+               "an unnamed surface is a reader surface nobody searches")
+            + f" (text moves: {s['text_moves']}, attributes moving: "
+            f"{list(s['attrs_moved'])})"
+        )
+    for path in sorted(set(_DOOR_ROW_SURFACES) - set(surfaces)):
+        out.append(
+            f"`{path}` is declared as a door surface and the rendered row does "
+            "not contain it -- a declaration that outlived its element, which "
+            "reads to every sweep here exactly like a surface that renders "
+            "nothing"
+        )
+    for path in sorted(set(_DOOR_ROW_SURFACES) & set(surfaces)):
+        decl = _DOOR_ROW_SURFACES[path]
+        s = surfaces[path]
+        kind = str(decl["kind"])
+        moves = bool(s["text_moves"])
+        if decl.get("text") == "inert" and moves:
+            out.append(
+                f"`{path}` is declared {kind} and INERT, and its text moves "
+                f"between books ({s['text_by_book'][0][:40]!r} vs "
+                f"{s['text_by_book'][1][:40]!r}) -- an element that moves with "
+                "the book renders something the book decides, and nothing "
+                "searches this one"
+            )
+        if decl.get("text") == "moves" and not moves:
+            out.append(
+                f"`{path}` is declared a searched region (`{decl.get('region')}`) "
+                "and renders the SAME text on both books -- to the two-book "
+                "discrimination rule an inert region is indistinguishable from "
+                "one that does not render the figure at all, so this region "
+                "can never credit any figure with a site"
+            )
+        if decl.get("text") == "inert" and not moves and not decl.get("why_inert") \
+                and kind == _SURFACE_REGION:
+            out.append(                                          # pragma: no cover
+                f"`{path}` is a declared region measured inert with no stated "
+                "reason -- a region that cannot credit a site is a limit of "
+                "this instrument and has to be said out loud, not declared away"
+            )
+        allowed = set(decl.get("attrs_may_move") or ())          # type: ignore[arg-type]
+        stray = sorted(set(s["attrs_moved"]) - allowed)          # type: ignore[arg-type]
+        if stray:
+            out.append(
+                f"`{path}` moves in attribute(s) {stray} that its declaration "
+                "does not allow -- a render need not be text, and an attribute "
+                "that moves with the book is a surface every literal sweep "
+                f"here is blind to ({[a for a in s['attrs_by_book']]})"
+            )
+        if kind == _SURFACE_SCALED:
+            out.extend(_check_scaled_render(path, decl, s, measured, register, walk))
+    return out
+
+
+def _check_scaled_render(
+    path: str,
+    decl: Dict[str, object],
+    surface: Dict[str, object],
+    measured: Dict[str, object],
+    register: Dict[str, Dict[str, object]],
+    walk: Dict[str, object],
+) -> List[str]:
+    """A scaled render, PREDICTED from the carrier and confirmed against the
+    artefact (atom D39, answered by Hour #27).
+
+    The whole reason a scaled surface was left unexpressed is that a sweep
+    searching unscaled literals cannot find it and cannot say at what precision
+    it renders. This does not widen the sweep -- it makes the declaration state
+    the scaling, and then holds the declaration to the pixel: the predicted
+    literal must be the rendered one on every book, and the precision the
+    scaling implies must be coarser than the finest precision the same door
+    renders this figure at, or the reader can separate two companies the
+    epsilon calls identical.
+    """
+    out: List[str] = []
+    carriers = list(measured.get("carriers") or ())
+    attr = str(decl["attr"])
+    scale = float(decl["scale"])
+    dp = int(decl["decimals"])
+    lo, hi = decl.get("clamp") or (None, None)                   # type: ignore[misc]
+    rendered = [str((a or {}).get(attr) or "")
+                for a in surface["attrs_by_book"]]               # type: ignore[union-attr]
+    literals = [re.search(str(decl["pattern"]), r) for r in rendered]
+    if any(m is None for m in literals):
+        return [
+            f"`{path}` declares a scaled render its own pattern cannot find in "
+            f"the rendered `{attr}` ({rendered}) -- a declaration that stopped "
+            "matching the artefact is not a measurement of it"
+        ]
+    if len(carriers) != len(rendered) or any(v is None for v in carriers):
+        return [                                                 # pragma: no cover
+            f"`{path}` is a scaled render of the headline and the walk recorded "
+            f"no carrier to predict it from ({carriers}) -- unpredicted, this "
+            "surface is exactly the unexpressed scaled render it was declared "
+            "to stop being"
+        ]
+    for v, m, r in zip(carriers, literals, rendered):
+        x = float(v)                                             # type: ignore[arg-type]
+        if lo is not None:
+            x = min(max(x, float(lo)), float(hi))                # type: ignore[arg-type]
+        predicted = format(x * scale, f".{dp}f")
+        if m.group(1) != predicted:                              # type: ignore[union-attr]
+            out.append(
+                f"`{path}` renders `{m.group(1)}` where its declared scaling "  # type: ignore[union-attr]
+                f"({scale:g}x at {dp}dp) predicts `{predicted}` from the "
+                f"carrier {v!r} -- the declaration is what makes this surface "
+                f"expressible at all, and it no longer describes the pixel ({r})"
+            )
+    # THE ALARM THIS SURFACE EXISTS FOR. Its precision in the FIGURE's own
+    # units, against the finest the same door renders the same figure at.
+    figure_dp = dp + int(round(math.log10(scale)))
+    headline = str(walk.get("headline_dimension") or "")
+    entry = register.get(headline) or {}
+    # Against the EPSILON, which is the quantity the alarm is about: this
+    # register's own rule is half a step of the finest render, and a scaled
+    # render finer than the declared step is a difference the reader can see
+    # and the epsilon says does not exist.
+    if entry.get("decimals") is not None and figure_dp > int(entry["decimals"]):
+        out.append(
+            f"`{path}` renders {headline} at an effective {figure_dp}dp "
+            f"({scale:g}x scaled, {dp}dp) while its epsilon is set from "
+            f"{entry['decimals']}dp -- a scaled render finer than the "
+            "declaration is a reader surface no sweep here can see, because "
+            "every one of them searches UNSCALED digits"
+        )
+    return out
 
 
 def _walk_to_the_door(book: Dict[str, object]) -> Dict[str, object]:
@@ -7418,6 +7819,11 @@ def measure_reader_render_sites(
                 # handed used to BE the admission rule; it is now a recorded
                 # observation the identity answer can be read against.
                 carrier_by_book=tuple(door_carriers),
+                # THE ROW'S OWN POPULATION, ELEMENT BY ELEMENT (atom D40,
+                # Hour #27) -- the census the four named regions are drawn out
+                # of, measured rather than enumerated.
+                row_surfaces=measure_door_row_surfaces(
+                    [str(w["html"]) for w in walks], door_carriers),
             )
     else:
         door_state.update(available=False,
@@ -7510,6 +7916,11 @@ def check_reader_render_sites(
             "four of the five figures' measured precisions back into claims "
             "about an internal string"
         )
+    # THE ROW'S OWN POPULATION (atom D40, Hour #27). Reported here rather than
+    # from its own entry point for the reason every other stage of this walk is:
+    # a reader surface nobody searches is a defect in THIS control's coverage,
+    # not a separate subject.
+    out.extend(check_door_row_surfaces(walk, register))
     if walk.get("available") is True and walk.get("headline_dimension") not in register:
         # THE PROVENANCE THE DOOR'S OWN REGIONS ARE ATTRIBUTED BY (atom D37,
         # Hour #21). Unresolved, `<ambiguous>` owns those regions and every
@@ -9612,6 +10023,26 @@ def main() -> None:
     print(f"           reader walk: door {_walk_state.get('available')}"
           f" (carriers {_walk_state.get('carriers')}, note verbatim "
           f"{_walk_state.get('note_verbatim')})")
+    # THE ROW'S POPULATION (atom D40, Hour #27). Printed because a reader about
+    # to quote one of these figures is exactly the reader who needs to know
+    # which surfaces of the row were searched for it -- and until this Hour the
+    # answer excluded every element the door renders without a class.
+    _row = _walk_state.get("row_surfaces") or {}
+    if _row.get("available"):
+        _surf = _row["surfaces"]
+        _moving = sorted(p for p, s in _surf.items()
+                         if s["text_moves"] or s["attrs_moved"])
+        print(f"           door row census (D40): {len(_surf)} elements, "
+              f"{sum(1 for p in _surf if '.' not in p.rsplit('/', 1)[-1])} of "
+              f"them carrying no class at all; {len(_moving)} move with the book:")
+        for p in _moving:
+            kind = (_DOOR_ROW_SURFACES.get(p) or {}).get("kind", "UNDECLARED")
+            print(f"             {kind:<14} {p}"
+                  + (f"  [{', '.join(_surf[p]['attrs_moved'])}]"
+                     if _surf[p]["attrs_moved"] else ""))
+    else:
+        print(f"           door row census (D40): UNAVAILABLE "
+              f"({_row.get('reason', 'the door stage did not run')})")
     _prec_violations = (
         check_published_reading_precision(
             _prec, published=published_dimensions(result))
