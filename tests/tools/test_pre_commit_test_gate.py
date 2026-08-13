@@ -197,6 +197,14 @@ def test_pytest_subprocess_env_strips_GIT_star(monkeypatch):
     # commit; likely the core.bare=true setter). The gate MUST run pytest with GIT_* scrubbed.
     monkeypatch.setattr(gate, "staged_files", lambda: ["background/supervisor.py"])
     monkeypatch.setattr(gate, "select_targets", lambda files: ["tests/background/test_supervisor.py"])
+    # The wall-crossing step (2026-08-13) runs BEFORE the pytest launch and shells out to
+    # `git write-tree`, so the blanket `subprocess.run` fake below reaches it and it fails
+    # closed -- correctly, and on a subject that is not this test's. Neutralised HERE rather
+    # than exempted THERE: this test's subject is the pytest subprocess's environment, and a
+    # sibling refusal must not be allowed to answer it. Its own env contract (which is the
+    # OPPOSITE one -- GIT_INDEX_FILE must be INHERITED) is proven in
+    # tests/tools/test_pre_commit_gate_wall_register.py::test_index_tree_honours_GIT_INDEX_FILE.
+    monkeypatch.setattr(gate, "_wall_crossing_landed_check", lambda staged: (True, ""))
     for k in ("GIT_INDEX_FILE", "GIT_DIR", "GIT_WORK_TREE", "GIT_PREFIX"):
         monkeypatch.setenv(k, "/should/not/leak")
     captured = {}

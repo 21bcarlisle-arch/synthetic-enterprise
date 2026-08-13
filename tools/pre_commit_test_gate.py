@@ -22,8 +22,11 @@ this repo's own one_way_door.py flags as a dangerous pattern; none of our commit
 from __future__ import annotations
 
 import os
+import re
+import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -451,6 +454,125 @@ def _class_consolidation_check() -> tuple[bool, str]:
     return False, "\n".join(f"  - {f}" for f in result.failures)
 
 
+WALL_REGISTER_PATH = "docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md"
+
+
+def _index_tree(root: Path = ROOT) -> str:
+    """The sha of the tree THIS COMMIT WOULD CREATE. Raises on anything else.
+
+    `git write-tree`, against A COPY of the index in effect, and both halves of
+    that sentence were paid for.
+
+    WHICH INDEX. The environment is READ, not scrubbed — the one place in this
+    file where scrubbing `GIT_*` would be a defect. `git commit -- <pathspec>`
+    builds a TEMPORARY index and hands the hook its path in `GIT_INDEX_FILE`;
+    ignore that and write-tree serialises the REAL index instead — the whole
+    shared tree's staged state rather than the pathspec the committer chose —
+    and the gate would judge a tree nobody is about to create. (The pytest run
+    below still scrubs, for the opposite and equally deliberate reason: a test
+    subprocess must not inherit a commit in progress.)
+
+    WHY A COPY. `git write-tree` takes `index.lock` to write back the cache-tree
+    extension, and during a plain `git commit` GIT HOLDS THAT LOCK while the
+    hook runs: called on the live index it dies `rc=128 index.lock: File exists`
+    and, being fail-closed, would REFUSE EVERY COMMIT of that shape. Found the
+    way the last one was — by the gate refusing its own commit — and it is the
+    same environmental-refusal defect `surgical_land` caught when the class
+    checker was wired (a check that reds for a reason that is not its subject is
+    worse than no check). Copying costs one file write and cannot lock anything.
+    """
+    idx = os.environ.get("GIT_INDEX_FILE")
+    if not idx:
+        where = subprocess.run(["git", "rev-parse", "--git-path", "index"], cwd=str(root),
+                               capture_output=True, text=True, check=False)
+        if where.returncode != 0:
+            raise RuntimeError(f"git rev-parse --git-path index rc={where.returncode}: "
+                               f"{where.stderr.strip()[-200:]}")
+        idx = where.stdout.strip()
+    src = Path(idx) if os.path.isabs(idx) else (root / idx)
+    if not src.is_file():
+        raise RuntimeError(f"no index to read at {src}")
+    with tempfile.TemporaryDirectory(prefix="gate-index-") as tmp:
+        copy = Path(tmp) / "index"
+        shutil.copyfile(src, copy)
+        out = subprocess.run(["git", "write-tree"], cwd=str(root), capture_output=True, text=True,
+                             check=False, env={**os.environ, "GIT_INDEX_FILE": str(copy)})
+    if out.returncode != 0:
+        raise RuntimeError(f"git write-tree rc={out.returncode}: {out.stderr.strip()[-300:]}")
+    tree = out.stdout.strip()
+    if not re.fullmatch(r"[0-9a-f]{40}", tree):
+        raise RuntimeError(f"git write-tree returned something that is not a tree sha: {tree!r}")
+    return tree
+
+
+def _wall_crossing_landed_check(staged: list[str]) -> tuple[bool, str]:
+    """Reconcile the wall-crossing register against THE TREE THIS COMMIT CREATES.
+
+    THE CLASS THIS CLOSES. `tools/wall_crossing_dispositions.py --at-head` was
+    built on 2026-08-10, after the THIRD instance in two days of a register
+    entry claiming a cut that no commit contained, and it is proven against real
+    history. It then had no automated caller, and the class recurred one KNIFE
+    step later — five files of step 21 sat untracked while the atom's own record
+    said LANDED (WORKER_FINDING_THE_CLOSE_TIME_CHECK_THAT_CATCHES_THIS_HAS_NO_CALLER,
+    2026-08-13). A control invoked only by someone typing it is R15's FAIL-SILENT
+    pattern: permanently unavailable, therefore permanently passing. **A control
+    built to catch "the record outran the code" cannot be invoked by the record.
+    It has to be invoked by the thing that makes the code real — the commit.**
+
+    ORDERING, the first of the two questions that finding left open. `--at-head`
+    is asymmetric by design (working-tree register vs HEAD's code), which at
+    pre-commit time measures the tree the commit REPLACES — it would red on
+    precisely the commit that repairs a divergence. So this caller uses the
+    `--at-tree` mode against `git write-tree`: the tree the commit WOULD create,
+    both sides from that one tree. Same subject `tools/surgical_land.py` gates
+    on, and the finding named that as the remedy.
+
+    SCOPE, the second. Any staged `.py` at all, plus the register itself. Not
+    "wall-side directories": `tools/` and `background/` are BRIDGE packages the
+    walker routes INDIRECT crossings through, so a `tools/` edit can create a
+    crossing, and a scope that excluded them would be blind to exactly the edges
+    that are hardest to find. A pure docs/data commit skips it (and skips the
+    import), so the fail-closed branch below can never refuse a commit that had
+    no code in it.
+
+    The finding also asked whether a register edit and its code cut may land in
+    SEPARATE commits within one tick. They may — in the order code-then-record.
+    What reds is record-first, and that is not an honest split: it is a claim
+    published into the repo that the repo does not support. Note this adds no
+    new rule, because the working-tree gate has always demanded that coherence
+    of the desk; this demands it of the tree other people receive.
+
+    FAIL-CLOSED at every step (R15, third pattern): unimportable module, an
+    unusable index, a raising checker -> the commit is REFUSED with the reason.
+    """
+    if not (any(p.endswith(".py") for p in staged) or WALL_REGISTER_PATH in staged):
+        return True, ""
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    try:
+        from tools.wall_crossing_dispositions import run_at_tree
+    except Exception as e:  # noqa: BLE001 -- an unavailable check is a FAILED check
+        return False, (
+            f"wall-crossing checker UNAVAILABLE: {type(e).__name__}: {e}\n"
+            "An unavailable check is a FAILED check (R15 FAIL-SILENT). If the tool is "
+            "genuinely being removed, remove this gate step in the same commit."
+        )
+    try:
+        tree = _index_tree()
+    except Exception as e:  # noqa: BLE001
+        return False, f"could not determine the tree this commit would create: {e}"
+    try:
+        findings, report = run_at_tree(tree)
+    except Exception as e:  # noqa: BLE001
+        return False, f"wall-crossing checker RAISED against tree {tree[:9]}: {type(e).__name__}: {e}"
+    if not findings:
+        return True, (
+            f"wall crossings reconcile at the tree this commit creates "
+            f"({report['measured_crossings']} live, {report['rows']} ruled)"
+        )
+    return False, "\n".join(f"  - {f}" for f in findings)
+
+
 def main() -> int:
     staged = staged_files()
 
@@ -475,6 +597,25 @@ def main() -> int:
             )
             return 1
         print("[test-gate] ✓ finding-class consolidation holds")
+
+    # THE WALL-CROSSING REGISTER, checked against the tree this commit creates.
+    # Like the class checker above, this runs BEFORE the pure-docs early return:
+    # a commit that lands ONLY the register (the record without the code) selects
+    # no test targets, and that commit is the whole class this closes.
+    ok, detail = _wall_crossing_landed_check(staged)
+    if not ok:
+        sys.stderr.write(
+            "\n[test-gate] ❌ WALL-CROSSING REGISTER DISAGREES WITH THIS COMMIT'S TREE "
+            "-- COMMIT REFUSED.\n"
+            f"{detail}\n"
+            "[test-gate] The register is a claim about what LANDED. Land the code in this "
+            "commit, or correct the row.\n"
+            "[test-gate] Reproduce: `python3 -m tools.wall_crossing_dispositions "
+            "--at-tree $(git write-tree)`\n"
+        )
+        return 1
+    if detail:
+        print(f"[test-gate] ✓ {detail}")
 
     targets = select_targets(staged)
     if not targets:

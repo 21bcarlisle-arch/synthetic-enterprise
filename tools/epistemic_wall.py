@@ -580,8 +580,8 @@ class HeadExportError(RuntimeError):
     """
 
 
-def _head_python_files(repo_root: str, dirs: tuple[str, ...]) -> set[str]:
-    """The .py paths HEAD contains under `dirs`, per git's own record of it.
+def _head_python_files(repo_root: str, dirs: tuple[str, ...], rev: str = "HEAD") -> set[str]:
+    """The .py paths `rev` contains under `dirs`, per git's own record of it.
 
     This is the INDEPENDENT ORACLE for the export's completeness. It comes from
     git's object store (`ls-tree` of the commit), not from the exported
@@ -591,14 +591,14 @@ def _head_python_files(repo_root: str, dirs: tuple[str, ...]) -> set[str]:
     """
     try:
         proc = subprocess.run(
-            ["git", "-C", repo_root, "ls-tree", "-r", "--name-only", "HEAD", "--", *dirs],
+            ["git", "-C", repo_root, "ls-tree", "-r", "--name-only", rev, "--", *dirs],
             capture_output=True, text=True, check=False,
         )
     except OSError as exc:                       # git absent = a FAILED check
         raise HeadExportError(f"could not run git ls-tree: {exc}") from exc
     if proc.returncode != 0:
         raise HeadExportError(
-            f"git ls-tree HEAD failed (rc {proc.returncode}): {proc.stderr.strip()}"
+            f"git ls-tree {rev} failed (rc {proc.returncode}): {proc.stderr.strip()}"
         )
     return {
         line for line in proc.stdout.splitlines()
@@ -607,12 +607,24 @@ def _head_python_files(repo_root: str, dirs: tuple[str, ...]) -> set[str]:
 
 
 @contextmanager
-def head_export(repo_root: str = REPO_ROOT, dirs: tuple[str, ...] = WALL_DIRS):
-    """Extract the wall-side packages AT HEAD into a temp dir; yield its path.
+def head_export(repo_root: str = REPO_ROOT, dirs: tuple[str, ...] = WALL_DIRS,
+                rev: str = "HEAD"):
+    """Extract the wall-side packages AT `rev` into a temp dir; yield its path.
 
-    Uses `git archive`, which reads the commit object — never the index and
+    Uses `git archive`, which reads the named OBJECT — never the index and
     never the working tree, so a staged-but-uncommitted edit is invisible here
     exactly as it is to someone who clones the repo.
+
+    `rev` DEFAULTS TO HEAD and every existing caller leaves it there. It is a
+    parameter because there is a second tree worth measuring: the tree a commit
+    WOULD CREATE (`git write-tree` on the index), which is what the commit-time
+    caller in `tools/pre_commit_test_gate.py` passes. HEAD is the tree the
+    commit REPLACES, so gating on it reds the commit that fixes a divergence and
+    passes the one that introduces it — the ordering trap named in
+    WORKER_FINDING_THE_CLOSE_TIME_CHECK_THAT_CATCHES_THIS_HAS_NO_CALLER. Any
+    tree-ish git accepts works here; the completeness oracle below is re-derived
+    from the SAME rev, so it stays an independent check of the export and never
+    a comparison of HEAD against something else.
 
     THREE WAYS THIS REFUSES TO FAIL OPEN, each of which would otherwise hand a
     caller an empty tree that verifies every claim ever made:
@@ -624,10 +636,10 @@ def head_export(repo_root: str = REPO_ROOT, dirs: tuple[str, ...] = WALL_DIRS):
          difference both ways. This is the guard that catches a truncated
          archive, and it compares against the oracle above, not against itself.
     """
-    expected = _head_python_files(repo_root, dirs)
+    expected = _head_python_files(repo_root, dirs, rev)
     if not expected:
         raise HeadExportError(
-            f"HEAD contains no .py files under {list(dirs)} — refusing to "
+            f"{rev} contains no .py files under {list(dirs)} — refusing to "
             "measure an empty tree, because an empty tree confirms every claim"
         )
     # `git archive` errors on a pathspec matching nothing, so archive only the
@@ -644,14 +656,14 @@ def head_export(repo_root: str = REPO_ROOT, dirs: tuple[str, ...] = WALL_DIRS):
         with open(archive, "wb") as fh:
             try:
                 proc = subprocess.run(
-                    ["git", "-C", repo_root, "archive", "--format=tar", "HEAD", "--", *present],
+                    ["git", "-C", repo_root, "archive", "--format=tar", rev, "--", *present],
                     stdout=fh, stderr=subprocess.PIPE, check=False,
                 )
             except OSError as exc:
                 raise HeadExportError(f"could not run git archive: {exc}") from exc
         if proc.returncode != 0:
             raise HeadExportError(
-                f"git archive HEAD failed (rc {proc.returncode}): "
+                f"git archive {rev} failed (rc {proc.returncode}): "
                 f"{proc.stderr.decode('utf-8', 'replace').strip()}"
             )
 
@@ -668,7 +680,7 @@ def head_export(repo_root: str = REPO_ROOT, dirs: tuple[str, ...] = WALL_DIRS):
             missing = sorted(expected - got)[:5]
             extra = sorted(got - expected)[:5]
             raise HeadExportError(
-                f"the HEAD export is not what HEAD contains: git lists "
+                f"the {rev} export is not what {rev} contains: git lists "
                 f"{len(expected)} .py file(s), the export has {len(got)}. "
                 f"missing={missing} unexpected={extra}"
             )
@@ -694,7 +706,8 @@ def _safe_extract(tar: tarfile.TarFile, dest: str) -> None:
     tar.extractall(dest)                                    # noqa: S202 — checked above
 
 
-def crossings_at_head(repo_root: str = REPO_ROOT) -> dict[tuple[str, str], RawEdge]:
+def crossings_at_head(repo_root: str = REPO_ROOT,
+                     rev: str = "HEAD") -> dict[tuple[str, str], RawEdge]:
     """Every wall crossing IN THE COMMITTED TREE — what a fresh clone sees.
 
     The counterpart to `live_crossings()`. Same walker, same classifiers, same
@@ -702,12 +715,13 @@ def crossings_at_head(repo_root: str = REPO_ROOT) -> dict[tuple[str, str], RawEd
     working tree carries uncommitted wall work — which is a normal mid-pass
     state and a defect only when something CLAIMS the work has landed.
     """
-    with head_export(repo_root) as root:
+    with head_export(repo_root, rev=rev) as root:
         return crossings_at(root)
 
 
 def indirect_crossings_at_head(
     repo_root: str = REPO_ROOT,
+    rev: str = "HEAD",
 ) -> dict[tuple[str, str], IndirectEdge]:
     """Every INDIRECT wall crossing in the committed tree.
 
@@ -717,5 +731,5 @@ def indirect_crossings_at_head(
     and `head_export` still refuses an export that does not match git's own
     listing of the same wider path set.
     """
-    with head_export(repo_root, WALL_DIRS + BRIDGE_PACKAGES) as root:
+    with head_export(repo_root, WALL_DIRS + BRIDGE_PACKAGES, rev=rev) as root:
         return indirect_crossings(root)

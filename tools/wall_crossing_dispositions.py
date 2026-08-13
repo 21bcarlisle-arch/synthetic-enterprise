@@ -107,6 +107,7 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -275,14 +276,51 @@ def load_register(path: Path = REGISTER_DOC) -> tuple[list[EdgeRow], list[Design
     return parse_register(text)
 
 
+def load_register_at(rev: str, path: Path = REGISTER_DOC,
+                     repo_root: Path = REPO_ROOT) -> tuple[list[EdgeRow], list[DesignBlock]]:
+    """The register AS IT EXISTS IN `rev` — `git show rev:path`, never the disk.
+
+    The COMMIT-TIME half of this tool needs both sides from the same tree (see
+    `--at-tree`), and the register on disk is not that tree: on this shared
+    working tree it routinely carries three other lanes' half-finished edits.
+    Reading it from the object store is what makes the check a statement about
+    the commit rather than about the desk.
+
+    FAIL-CLOSED on every path: a missing file in that tree, a git that will not
+    run, a non-zero rc, or bytes that are not UTF-8 all raise RegisterError. An
+    empty register would agree with every claim, so "could not read it" must
+    never arrive as "nothing to check" — the same rule `head_export` applies to
+    the code side.
+    """
+    rel = str(path.relative_to(repo_root)) if path.is_absolute() else str(path)
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(repo_root), "show", f"{rev}:{rel}"],
+            capture_output=True, check=False,
+        )
+    except OSError as exc:
+        raise RegisterError(f"could not run git show for {rev}:{rel}: {exc}") from exc
+    if proc.returncode != 0:
+        raise RegisterError(
+            f"register not readable at {rev}: `git show {rev}:{rel}` rc={proc.returncode}: "
+            f"{proc.stderr.decode('utf-8', 'replace').strip()[-300:]}"
+        )
+    try:
+        text = proc.stdout.decode("utf-8")
+    except UnicodeDecodeError as exc:                       # pragma: no cover
+        raise RegisterError(f"register at {rev} is not UTF-8: {exc}") from exc
+    return parse_register(text)
+
+
 def measure_crossings(at_head: bool = False) -> set[tuple[str, str]]:
     """The crossings, from the ONE shared walker. Zero is a failure.
 
     `at_head=False` reads the WORKING TREE — the right default for a gate that
     must red before you commit a new crossing.
 
-    `at_head=True` reads the COMMITTED tree instead, and the pairing with the
-    working-tree REGISTER is the whole point: the register is the CLAIM, HEAD
+    `at_head=True` reads a COMMITTED tree instead — `rev`, which defaults to
+    HEAD and is any tree-ish for the commit-time caller (see `--at-tree`). The
+    pairing with the working-tree REGISTER is the point of the HEAD default: the register is the CLAIM, HEAD
     is what a reader of the repo actually gets. A `cut` row whose edge is still
     live at HEAD means the cut has been written down but not landed. See the
     `--at-head` help text for why the obvious HEAD-vs-HEAD comparison is blind
@@ -304,7 +342,7 @@ def measure_crossings(at_head: bool = False) -> set[tuple[str, str]]:
     return direct | indirect
 
 
-def measure_crossings_split(at_head: bool = False) -> tuple[set, set]:
+def measure_crossings_split(at_head: bool = False, rev: str = "HEAD") -> tuple[set, set]:
     """`measure_crossings`, with the two sources kept apart.
 
     Reported separately for a reason that surfaced the moment the union was
@@ -318,13 +356,13 @@ def measure_crossings_split(at_head: bool = False) -> tuple[set, set]:
     """
     try:
         if at_head:
-            direct = set(crossings_at_head())
-            indirect = set(indirect_crossings_at_head())
+            direct = set(crossings_at_head(rev=rev))
+            indirect = set(indirect_crossings_at_head(rev=rev))
         else:
             direct = set(live_crossings())
             indirect = set(live_indirect_crossings())
     except Exception as exc:                                # pragma: no cover
-        where = "HEAD" if at_head else "the working tree"
+        where = rev if at_head else "the working tree"
         raise MeasurementError(f"the wall walker could not run against {where}: {exc}") from exc
     if not (direct or indirect):
         raise MeasurementError(
@@ -470,10 +508,58 @@ def reconcile(
     return findings, report
 
 
+def run_at_tree(rev: str, register: Path = REGISTER_DOC) -> tuple[list[str], dict]:
+    """Reconcile the register AND the code AS THEY EXIST IN ONE TREE.
+
+    THE COMMIT-TIME MODE, and the answer to the ordering trap `--at-head` cannot
+    escape. `--at-head` is deliberately asymmetric — working-tree register against
+    HEAD's code — which is exactly right for a CLOSE-TIME question ("did what I
+    just wrote down actually land?") and exactly wrong for a GATE, because at
+    pre-commit time HEAD is the tree the commit REPLACES: the commit that repairs
+    a divergence reds, and the commit that creates it passes.
+
+    So this mode takes both sides from ONE tree, and the caller passes the tree
+    the commit WOULD CREATE (`git write-tree` on the index) — the same subject
+    `tools/surgical_land.py` gates on, for the same reason.
+
+    What it therefore enforces is the COHERENCE OF THE COMMIT: no commit may
+    publish a register claiming a cut its own tree contradicts, and none may
+    leave a live crossing its own register never ruled on. That is not a NEW
+    rule — it is the rule the working-tree gate has always applied to the desk,
+    now applied to the thing other people actually receive. It also settles the
+    "honest split" question the finding raised: a register edit and its code cut
+    MAY land in separate commits, in the order code-then-record; the order that
+    reds is record-first, which is not an honest split but a published claim the
+    repo does not yet support.
+    """
+    rows, designs = load_register_at(rev, register)
+    direct, indirect = measure_crossings_split(at_head=True, rev=rev)
+    findings, report = reconcile(
+        rows, designs, direct | indirect,
+        measured_label=f"the tree {rev[:9]} (the tree this commit would create)",
+        measured_source="tools.epistemic_wall.crossings_at_head(rev=<index tree>)",
+    )
+    report["ruled_source"] = f"{report['ruled_source']} @ {rev[:9]}"
+    report["direct_crossings"] = len(direct)
+    report["indirect_crossings"] = len(indirect)
+    return findings, report
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--json", action="store_true", help="machine-readable report")
     ap.add_argument("--register", type=Path, default=REGISTER_DOC)
+    ap.add_argument(
+        "--at-tree", metavar="TREEISH", default=None,
+        help=(
+            "reconcile BOTH SIDES against one tree-ish — the COMMIT-TIME mode. The "
+            "register is read with `git show TREEISH:<register>` and the code from a "
+            "`git archive` of the same tree, so the answer is about that tree and not "
+            "about the desk. The pre-commit gate passes `git write-tree` (the tree the "
+            "commit would create); pass a commit sha to audit history. Mutually "
+            "exclusive with --at-head, which is the asymmetric close-time instrument."
+        ),
+    )
     ap.add_argument(
         "--at-head", action="store_true",
         help=(
@@ -489,6 +575,20 @@ def main(argv=None) -> int:
         ),
     )
     args = ap.parse_args(argv)
+    if args.at_tree and args.at_head:
+        ap.error("--at-tree and --at-head are different instruments; pick one")
+
+    if args.at_tree:
+        try:
+            findings, report = run_at_tree(args.at_tree, args.register)
+        except (RegisterError, MeasurementError) as exc:
+            if args.json:
+                print(json.dumps({"error": str(exc), "findings": [str(exc)]}, indent=2))
+            else:
+                print(f"WALL-CROSSING DISPOSITIONS: FAILED — {exc}", file=sys.stderr)
+            return 2
+        _emit(args.json, findings, report)
+        return 2 if findings else 0
 
     try:
         rows, designs = load_register(args.register)
@@ -512,25 +612,35 @@ def main(argv=None) -> int:
     report["direct_crossings"] = len(direct)
     report["indirect_crossings"] = len(indirect)
 
-    if args.json:
-        print(json.dumps(report, indent=2))
-    else:
-        print(
-            f"measured against {label}: "
-            f"{report['measured_crossings']} live crossings "
-            f"({len(direct)} direct, {len(indirect)} indirect via a bridge package); "
-            f"{report['rows']} ruled "
-            f"(cut {report['by_disposition']['cut']}, "
-            f"owed {report['by_disposition']['owed']}, "
-            f"grandfathered {report['by_disposition']['grandfathered']}); "
-            f"{len(report['designs'])} cut designs"
-        )
-        for f in findings:
-            print(f"  FINDING: {f}")
-        if not findings:
-            print("WALL-CROSSING DISPOSITIONS: OK — every live crossing is examined.")
-
+    _emit(args.json, findings, report)
     return 2 if findings else 0
+
+
+def _emit(as_json: bool, findings: list[str], report: dict) -> None:
+    """The ONE renderer, shared by every mode.
+
+    Shared deliberately: the at-tree mode was added later, and a second copy of
+    this block is how a new mode quietly stops printing the breakdown that makes
+    a source going silent visible.
+    """
+    if as_json:
+        print(json.dumps(report, indent=2))
+        return
+    print(
+        f"measured against {report['measured_tree']}: "
+        f"{report['measured_crossings']} live crossings "
+        f"({report['direct_crossings']} direct, {report['indirect_crossings']} "
+        f"indirect via a bridge package); "
+        f"{report['rows']} ruled "
+        f"(cut {report['by_disposition']['cut']}, "
+        f"owed {report['by_disposition']['owed']}, "
+        f"grandfathered {report['by_disposition']['grandfathered']}); "
+        f"{len(report['designs'])} cut designs"
+    )
+    for f in findings:
+        print(f"  FINDING: {f}")
+    if not findings:
+        print("WALL-CROSSING DISPOSITIONS: OK — every live crossing is examined.")
 
 
 if __name__ == "__main__":                                  # pragma: no cover
