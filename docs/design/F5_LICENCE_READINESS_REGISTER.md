@@ -72,8 +72,19 @@ preserves the one genuine finding that DISCOVER explicitly could not resolve:
   decision PDF read directly, named here as the specific next DISCOVER step should this atom be
   reopened for further research.
 
+## Part B — the industry-systems side of the same register
+
+`EP19_counterparty_qualification_paths`'s `origin_note` requires that these two atoms **"share one
+register rather than grow two."** They do: this file is **Part A** (the Ofgem licence), and
+`docs/design/EP19_COUNTERPARTY_QUALIFICATION_REGISTER.md` is **Part B** (the industry-systems
+qualification paths — SEC/SMKI/CIO-UIT for DCC, REC/RECCo for switching, DSC/UK Link User Agreement
+for Xoserve, sponsoring bank/SUN for direct Bacs). **No row appears in both files** — a copied row is
+a second mirror that drifts. Part A is the root of Part B's dependency graph: the licensed-supplier
+status this register covers is what the industry codes in Part B are written around.
+
 ## Cross-references
 
+- `docs/design/EP19_COUNTERPARTY_QUALIFICATION_REGISTER.md` — Part B of this register (see above).
 - `docs/market_research/ofgem_licence_readiness.md` — the original DISCOVER findings this register consolidates.
 - `docs/design/maturity_map.yaml` — `F5_ofgem_licence_readiness` entry, five `simplifications` addenda (2026-07-12/13).
 - `docs/design/PRODUCTION_READINESS_PARTS_BC.md` — row C6, the production-readiness framing of this same gate ("Blocker for real go-live... not a build item this epoch").

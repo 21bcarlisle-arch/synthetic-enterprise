@@ -4477,7 +4477,7 @@
   lane: F_risk_compliance
   value_stream: close_to_learn
   epoch: 5
-  level_current: 0
+  level_current: 1
   level_target: 2
   loop_stage: idle
   block_reason: "director-reserved curriculum sequencing (R13). Epoch-5 commitment set (ruling §1); pull-forward is proposal-only (§3). Separately, ACTING on any of these paths means contacting real organisations and spending real money -- reserved classes 1 and 2 -- so this atom's ceiling is the register, never the application."
@@ -4487,6 +4487,7 @@
   couples_with: []
   records_rehomed: [evidence]
   notes_rehomed: [origin_note]
+  simplifications_count: 1
   file_scope: []
 - id: EP20_go_live_cutover_analysis
   title: "What actually happens on the day"
