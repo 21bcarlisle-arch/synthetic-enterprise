@@ -163,3 +163,18 @@ simplifications:
   same-step crossing that must red the suite. That control is protocol-shaped, it is the
   pattern this repo has already proven it can keep honest, and it makes "a mock counterparty
   and a real one are indistinguishable to the company" a testable claim rather than a hope.
+
+  ------------------------------------------------------------------------------------------
+  PROCESS CORRECTION, recorded because `git show` of this atom's commit would otherwise
+  mislead. This pass's commit 263dcf1b6 was made with a BARE `git commit -m` and no pathspec,
+  so it swept the whole shared index: 99 files, 15,109 insertions, where this atom's own
+  change was 2 files. The 97 passengers were another lane's already-staged work, including
+  `docs/design/maturity_map.yaml` -- so that commit's message line "maturity_map.yaml
+  deliberately untouched" is FALSE OF THE COMMIT, though true of this atom (I made no map
+  edit; the shared index held someone else's). Inspected before deciding: the swept map hunks
+  are `simplifications_count` bookkeeping bumps only, NO `level_current` move, and the map is
+  still modified in the working tree, so no half of an atomic write was stranded. NOT repaired
+  by `reset --soft` + re-commit: the branch was unpushed so origin was safe, but three writers
+  share this tree and a concurrent commit inside that window turns a small mislabel into a
+  real loss. Disclosure was the cheaper correct move. The class is the already-known one
+  (commit specific paths, never a bare commit on this tree) and the lapse was mine.
