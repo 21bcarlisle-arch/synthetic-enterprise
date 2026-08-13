@@ -190,9 +190,14 @@ def test_no_settlement_clamp_uses_the_annual_lookup():
     from pathlib import Path
 
     repo = Path(__file__).resolve().parents[3]
+    # KNIFE step 24 (register §3s) moved the renewal clamp OUT of the world:
+    # the supplier's own reading of who the cap binds now lives on its side of
+    # the wall. The class control follows the clamp — leaving `run_phase2b.py`
+    # listed here would assert a lookup in a file that no longer performs the
+    # clamp, and dropping the site without relocating it would fail OPEN.
     clamp_sites = [
         repo / "simulation" / "hedged_settlement.py",
-        repo / "simulation" / "run_phase2b.py",
+        repo / "company" / "pricing" / "renewal_rate_chain.py",
     ]
     for path in clamp_sites:
         assert path.exists(), f"clamp site moved or renamed: {path}"

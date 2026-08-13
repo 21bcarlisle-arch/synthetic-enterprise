@@ -125,6 +125,11 @@ BASELINE_DATE = "2026-08-06"
 #     I001 entry below, twice in one census. Committed, not baselined. LESSON:
 #     re-run the WHOLE ratchet against a fresh HEAD export after clearing one
 #     rule; a per-rule fix proves nothing about the other codes.
+#   2026-08-13  I001 1379 -> 1378  (KNIFE3 step 24, the renewal rate-chain cut)
+#     `simulation/run_phase2b.py` lost three company-pricing imports and gained
+#     two seam imports; the block came back sorted. The floor moves DOWN with
+#     it, per the ratchet's own rule that a remediation shrinks the baseline in
+#     the same change.
 #   2026-08-13  I001 1379 -> 1379  (NO MOVE — HEAD came back to the floor)
 #     Logged here because a red at HEAD that nobody can attribute is how this
 #     ratchet dies (WORKER_FINDING_THE_ISORT_RATCHET_IS_RED_AT_HEAD_2026-08-13).
@@ -271,7 +276,7 @@ BASELINE_DATE = "2026-08-06"
 # company/trading/emir_reporting_register.py.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
-    "I001": 1379,
+    "I001": 1378,
     "F401": 279,
     "E402": 193,
     "F841": 128,
@@ -291,7 +296,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2403  # was 2421 at the 08-06 freeze; -18 per the shrink log above
+RUFF_BASELINE_TOTAL = 2402  # was 2421 at the 08-06 freeze; -19 per the shrink log above
 
 
 # --------------------------------------------------------------------------

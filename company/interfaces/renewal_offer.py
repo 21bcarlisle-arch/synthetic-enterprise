@@ -57,7 +57,35 @@ from datetime import date
 
 from company.pricing.renewal_desk import RenewalOffer
 
-__all__ = ("RenewalOffer", "request_renewal_offer")
+__all__ = ("RenewalOffer", "request_company_forward_estimate", "request_renewal_offer")
+
+
+def request_company_forward_estimate(
+    *,
+    commodity: str,
+    notice_date: str,
+    observable_price_records: list[dict],
+    fallback_gbp_per_mwh: float,
+) -> float:
+    """Ask the company what forward price it is pricing this term off.
+
+    KNIFE step 24 (register §3s), and a NARROWER door than
+    `request_renewal_offer` on purpose. The gas renewal schedule in
+    `simulation/run_phase2b.py` builds the term itself -- the calendar, the
+    published levy and network schedules, the deemed gaps -- and needs only the
+    one number that is the company's: its own view of the forward. Routing it
+    through `request_renewal_offer` would have made the world accept an
+    electricity-shaped offer object it does not use, which is how a door starts
+    lying about what crosses it.
+    """
+    from company.pricing.renewal_desk import estimate_forward_price
+
+    return estimate_forward_price(
+        commodity=commodity,
+        notice_date=notice_date,
+        observable_price_records=observable_price_records,
+        fallback_gbp_per_mwh=fallback_gbp_per_mwh,
+    )
 
 
 def request_renewal_offer(

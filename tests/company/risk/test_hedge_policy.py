@@ -53,13 +53,51 @@ def test_reason_contains_actual_and_naked_figures():
     assert "200" in reason
 
 
-def test_run_phase2b_imports_from_company_layer():
-    """run_phase2b's evolve_hedge_fraction is sourced from company.risk, not sim."""
+def test_run_phase2b_rolls_the_hedge_from_the_company_layer_not_from_sim():
+    """The roll rule the world uses is the COMPANY's, not `sim.hedging_strategy`.
+
+    KNIFE3 step 23 (register §3r) put a layer above this control: `run_phase2b`
+    no longer holds `evolve_hedge_fraction` as a module attribute — it holds a
+    `HedgeDesk` and calls `roll_hedge_fraction`. The SUBJECT is unchanged and is
+    inherited rather than dropped: whichever function actually decides next
+    term's opening fraction must still resolve into `company.risk`, and the
+    world must still not be reading `sim.hedging_strategy` for it.
+    """
+    import ast
     import inspect
-    from simulation import run_phase2b
-    fn = run_phase2b.evolve_hedge_fraction
-    module = inspect.getmodule(fn).__name__
+    import os
+
+    from company.interfaces.hedge_desk import build_hedge_desk
+
+    # 1. The roll the desk actually performs resolves into company.risk.
+    source = inspect.getsource(build_hedge_desk().roll_hedge_fraction.__func__)
+    assert "company_evolve_hedge_fraction" in source
+    module = inspect.getmodule(company_evolve_hedge_fraction).__name__
     assert module.startswith("company.risk"), f"Expected company.risk, got {module}"
+
+    # 2. The world calls that desk method, and the guard is not vacuous.
+    run_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__))))),
+        "simulation", "run_phase2b.py",
+    )
+    run_source = open(run_path, encoding="utf-8").read()
+    tree = ast.parse(run_source)
+    rolls = [
+        n for n in ast.walk(tree)
+        if isinstance(n, ast.Call)
+        and isinstance(n.func, ast.Attribute)
+        and n.func.attr == "roll_hedge_fraction"
+    ]
+    assert rolls, "run_phase2b rolls the hedge nowhere — this guard would pass for free"
+
+    # 3. The regression this test was written for: the world must not go back to
+    #    the SIM's own hedging strategy for the roll.
+    imported = {
+        n.module for n in ast.walk(tree)
+        if isinstance(n, ast.ImportFrom) and n.module
+    }
+    assert "sim.hedging_strategy" not in imported
 
 
 import pytest

@@ -134,6 +134,35 @@ class RenewalOffer:
     locked_network_cost_gbp_per_mwh: float
 
 
+def estimate_forward_price(
+    *,
+    commodity: str,
+    notice_date: str,
+    observable_price_records: list[dict],
+    fallback_gbp_per_mwh: float,
+) -> float:
+    """What the company thinks this commodity's forward price is at notice date.
+
+    KNIFE step 24 (register §3s). `simulation/run_phase2b.py::
+    _build_gas_renewal_schedule` held its own `CompanyTariffEngine()` and ran
+    this three-line sequence inline for gas, while `quote_renewal` below ran the
+    identical one for electricity behind the door. The world was operating the
+    supplier's forward view on one commodity and asking for it on the other.
+
+    Same engine, same cold-start rule, same honest limit: on a customer's first
+    term the supplier's notice-date lookback window can be empty, the engine
+    raises, and the world's own estimate is used. That leak is named in this
+    module's docstring and recorded as owed in the register's §3a -- it is not
+    made worse here, and it is not silently smoothed over either.
+    """
+    try:
+        return _COMPANY_ENGINE.get_forward_price(
+            commodity, notice_date, observable_price_records
+        )
+    except ValueError:
+        return fallback_gbp_per_mwh
+
+
 def quote_renewal(
     *,
     customer_id: str,

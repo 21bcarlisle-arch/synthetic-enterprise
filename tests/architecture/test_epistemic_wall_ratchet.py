@@ -306,12 +306,32 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     # feed one total, and naming a desk over both would invent an object the
     # business does not have.
     ("simulation.run_phase2b", "company.policy.decision_policy"),
-    ("simulation.run_phase2b", "company.pricing.margin_feedback"),
-    ("simulation.run_phase2b", "company.pricing.ofgem_price_cap"),
-    ("simulation.run_phase2b", "company.pricing.tariff_engine"),
-    ("simulation.run_phase2b", "company.risk.hedge_policy"),
-    ("simulation.run_phase2b", "company.trading.forward_book"),
-    ("simulation.run_phase2b", "company.trading.hedge_decision"),
+    # KNIFE3 step 24, 2026-08-13 (register §3s): the renewal RATE CHAIN is CUT —
+    # three entries removed, `company.pricing.margin_feedback`,
+    # `company.pricing.ofgem_price_cap` and `company.pricing.tariff_engine`. The
+    # world ran every writer that moves a renewal's rate inline in its own term
+    # loop — the portfolio learning premium and how far back to learn from, the
+    # realised-margin recovery surcharge, the domestic cap clamp and its own
+    # reading of who the cap binds — and separately held a `CompanyTariffEngine()`
+    # to price gas terms off. All of it is the supplier's pricing policy and all
+    # of it now sits behind `company/interfaces/renewal_rate_chain.py` (the chain)
+    # and `company/interfaces/renewal_offer.py` (the gas forward estimate, the
+    # same door electricity has used since B7). ONE door for the chain, not
+    # three: the writers multiply and clamp each other in a fixed order, so
+    # three doors would have handed the ordering back to the world — the half of
+    # this crossing that was never an import in the first place.
+    # KNIFE3 step 23, 2026-08-13 (register §3r): the trading desk is CUT — three
+    # entries removed, `company.risk.hedge_policy`, `company.trading.forward_book`
+    # and `company.trading.hedge_decision`. The world held the supplier's mandate
+    # and did `1 - floor` arithmetic on it, took the VaR decision at both
+    # commodity sites, adjudicated the risk committee's override against it,
+    # reported the realised VaR at whichever fraction survived, sized and priced
+    # and booked the forward, settled every period against the book and rolled
+    # the fraction from the term's P&L. ONE number — the fraction of a term
+    # bought forward — passes through all three modules, so §3m's group test
+    # PASSES and this is one door: `company/interfaces/hedge_desk.py`. The world
+    # keeps `PointInTimeView` (the blindfold is the SIM's) and hands over plain
+    # price records.
     ("simulation.run_phase2b", "saas.cost_to_serve"),
     ("simulation.run_phase2b", "saas.customer_reaction"),
     ("simulation.run_phase2b", "saas.demand_response"),

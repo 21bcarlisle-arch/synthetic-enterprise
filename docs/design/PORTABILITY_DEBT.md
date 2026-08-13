@@ -93,7 +93,9 @@ make the test green.
 <!-- BEGIN market-at-the-seams baseline -->
 ```text
 # kind            path                                                 token        sites
-# Recorded debt at the seam surface, 2026-08-10. Machine-read by
+# Recorded debt at the seam surface, 2026-08-10; renewal rows amended
+# 2026-08-13 by KNIFE step 24 (register §3s) under the same-change rule.
+# Machine-read by
 # tests/architecture/test_market_at_the_seams.py. Exact in both directions.
 counterparty      company/interfaces/recorded_sim_interface.py         mpan         2
 counterparty      company/interfaces/sim_interface.py                  mpan         7
@@ -103,7 +105,8 @@ market_quantity   company/interfaces/dd_review_outcome.py              gbp      
 market_quantity   company/interfaces/internal_seams.py                 gbp          5
 market_quantity   company/interfaces/point_in_time_view.py             gbp          4
 market_quantity   company/interfaces/recorded_sim_interface.py         gbp          5
-market_quantity   company/interfaces/renewal_offer.py                  gbp          3
+market_quantity   company/interfaces/renewal_offer.py                  gbp          6
+market_quantity   company/interfaces/renewal_rate_chain.py             gbp          9
 market_quantity   company/interfaces/sim_interface.py                  gbp          12
 market_quantity   interface/contracts/flex_observable_seam.py          gbp          3
 market_quantity   interface/contracts/payment_observable_seam.py       gbp          5

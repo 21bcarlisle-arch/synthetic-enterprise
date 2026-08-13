@@ -149,7 +149,15 @@ class _Mutant:
 
 
 def test_the_door_exposes_only_the_offer_and_the_request():
-    assert seam.__all__ == ("RenewalOffer", "request_renewal_offer")
+    # KNIFE step 24 (§3s) added `request_company_forward_estimate`: the gas
+    # renewal schedule in `run_phase2b.py` needed the same notice-date forward
+    # view electricity has asked this door for since B7, and was holding its
+    # own `CompanyTariffEngine()` to get it.
+    assert seam.__all__ == (
+        "RenewalOffer",
+        "request_company_forward_estimate",
+        "request_renewal_offer",
+    )
     reachable = [n for n in FORBIDDEN_AT_THE_DOOR if hasattr(seam, n)]
     assert reachable == [], (
         "the renewal-offer door hands the world back the company's own pricing/"

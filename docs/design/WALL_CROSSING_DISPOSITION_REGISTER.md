@@ -1705,6 +1705,331 @@ wall pass never moves a number in the same commit as an import (B7).
 
 ---
 
+## 3r. The hedging desk — the mandate, the decision, the book and the roll — added 2026-08-13 (step 23)
+
+**3 edges cut, 22 → 19 live (20 → 17 direct; the 2 indirect are again UNMOVED, for the TENTH
+consecutive step, which is again the proof that a bridge route was not silently taken instead).**
+
+`A_composition_lift`, applied to the trading-desk group on `simulation/run_phase2b.py` —
+`company.trading.forward_book`, `company.trading.hedge_decision`, `company.risk.hedge_policy`. This
+is the group every step from §3l onward named as still standing and deferred, because it does not
+live in the close where the previous four lifts lived: it is threaded through the per-customer term
+loop, and its output is consumed by world physics in the middle of that loop.
+
+### The group test, applied and PASSED — and why that is a different answer from §3q's
+
+§3m's test is "do they feed ONE total?", and §3q's answer was no, so it landed two doors and said so.
+Here the answer is yes, and the total is a single number: **the fraction of a term the supplier has
+bought forward.** The mandate floors it. The VaR decision sets it. The risk committee may overrule
+it. It sizes the notional the position is opened at. The position's P&L is decomposed onto that same
+term's settlement records. The term's realised P&L rolls it into next term's opening position. One
+number, through three modules, back out as the next term's starting state. A reader can check that
+sentence against the code; that is the standard §3k set when it recorded its own group argument as
+weaker than §3j's rather than borrowing it.
+
+### What the WORLD was doing that is not the world's
+
+Before the cut, `run_phase2b.py::main()` carried all of the following:
+
+- **the mandate, and arithmetic on it** — `RESET_HEDGE_FRACTION = MIN_HEDGE_FLOOR`, and
+  `naked_fraction=1 - MIN_HEDGE_FLOOR` inside `_build_gas_renewal_schedule`. The second is the
+  sharper one: the world was deriving the share of volume the SUPPLIER intends to leave exposed, and
+  pricing the supplier's cost of capital on it. A supplier's naked fraction is a statement of its own
+  risk appetite, not a physical fact about the world.
+- **the decision** — `decide_hedge_fraction(...)` at two commodity sites, in two near-identical
+  inlined blocks differing only in which locals they read and a string literal.
+- **the adjudication** — `if cid not in pending_committee_overrides: hf = _var_hf`. Whether the risk
+  committee's standing ruling beats today's model output is a governance rule of the supplier's own
+  risk function.
+- **the report of the risk carried** — `compute_realized_var(...)` AFTER that adjudication, then a
+  dict literal assembled inline with `round(hf, 4)` and a `**` splat.
+- **the execution** — tenor from term days, notional from EAC and fraction, bid-ask from
+  `compute_bid_ask_cost` times notional, `assign_default_counterparty`, a twelve-field
+  `ForwardContract`, `TradingBook.open_hedge`.
+- **the settlement** — `trading_book.settle_period(...).pnl_gbp` per record, rounded to 6dp.
+- **the roll** — `evolve_hedge_fraction(hf, naked_net, actual_net)` at term close.
+
+None of that is world physics. What the world owns is that a term ran, that a volume was consumed,
+and what the published spot price was on each day of it. Everything else above is the supplier's own
+trading desk, and it is ALLOWED TO BE WRONG — the whole point of the coupled triad is that the
+company's hedge can be a bad one.
+
+### The world keeps the blindfold, deliberately
+
+`PointInTimeView` stays on the world's side of the door and the desk is handed plain
+`price_records`, exactly as §3n handed over spot histories. That is not an oversight: the
+point-in-time machinery is how the SIM enforces the blindfold, and a company module that could
+construct its own view could construct one at the wrong decision time. The desk therefore imports
+nothing from `simulation/` or `sim/`, which is the read-direction test that makes this a cut rather
+than a file move (§3f, §3i, §3l, §3m, §3n, §3p, §3q). Had the composition been moved with a
+`simulation.*` import intact it would have traded class-(b) crossings for class-(a) ones, the
+strictly forbidden direction, which is at zero and stays there.
+
+### THE ORDERING THAT WAS INVISIBLE, and is now a signature
+
+The two statements
+
+```python
+if cid not in pending_committee_overrides:
+    hf = _var_hf
+_realized_var = compute_realized_var(..., hf)
+```
+
+encode a real property: **the VaR reported is the risk the desk is RUNNING, not the risk the model
+ASKED FOR.** On a committee-overridden term those differ; on every other term they are identical, so
+swapping the two lines is invisible on a healthy run and wrong only on the arm nobody looks at. That
+ordering is now `decide_term_hedge`'s documented sequence with `accept_decision` as a named
+parameter, and `test_control_2_the_desk_reproduces_the_pre_cut_sequence_on_both_arms` pins it against
+a transcription of the pre-cut block on BOTH arms and BOTH commodities — four cases, not one.
+
+### The defect this cut invites — TWO CALL SITES BECAME ONE SIGNATURE, for the fourth step running
+
+§3p recorded it, §3q recorded it, and it applies again with more force: the electricity and gas
+blocks are now the same call differing only in which locals they pass and one string literal. A gas
+term labelled `"electricity"`, or `unit_rate` passed where `company_fwd` belongs, changes every VaR
+figure on the Trading & Market tab and crashes nothing. Every parameter is keyword-only and
+separately named, and `test_control_3_*` checks BOTH real call sites in `run_phase2b.py` by AST — a
+control that checked one of two would be the census defect this project has already recorded — with a
+vacuity guard and two mutations that perform the swap and the mislabel.
+
+### The defect BEHIND the class — one book, four surfaces
+
+Before the cut, that `open_hedge`, `settle_period`, the collateral door's mark (§3n) and the
+report's summary all touched the SAME book was self-evident: one local named `trading_book`. Behind
+a class it is an invariant nothing static checks, and its failure mode is silent rather than loud —
+the report would publish a book with contracts while the collateral desk marked an empty one.
+`test_control_4_open_settle_book_and_summary_are_the_same_book` asserts all four surfaces agree, and
+its mutation subclasses the desk with a `.book` that returns a fresh `TradingBook` to prove the
+control fires.
+
+### No number moves, and it is MEASURED rather than asserted
+
+Every identity control in `tests/company/interfaces/test_hedge_desk_seam.py` compares against a
+sequence **transcribed from `simulation/run_phase2b.py` as it stood at `21ad5aeea`** — the world file
+before the cut — not from `company/trading/hedge_desk.py`, which would make the control a mirror of
+the thing it checks (R15: tautology). That covers the decision, the override adjudication, the VaR
+log entry field-for-field, the notional and bid-ask arithmetic with its rounding, and the roll on all
+three of its branches.
+
+### Vacuity, stated rather than left to the reader
+
+Three properties of the fixture are asserted by `test_fixture_is_not_vacuous_*`: the decided fraction
+is strictly ABOVE the mandate floor (otherwise control 2's two arms compare the floor to itself and
+the ordering defect is undetectable), the realised VaR is strictly positive (otherwise both control-2
+mutations produce the same `0.0`), and the two commodities' fixtures produce DIFFERENT VaR figures
+(otherwise control 3's argument swap is invisible). The price history is 200 DAILY records with
+deterministic day-to-day variation, because `estimate_price_volatility` returns its floor on a flat
+or short history — and a floored volatility would make every VaR figure above a constant.
+
+### The controls
+
+`tests/company/interfaces/test_hedge_desk_seam.py` (26 tests, of which **7 are mutations that PERFORM
+the named defect**): a lazy world import (on a COPY of the source overlaid on `sys.path`, never a
+repo file edited mid-pytest-run), the realised VaR computed at the pre-decision fraction, the
+override guard dropped, the forward/unit-rate swap, the gas term mislabelled electricity, the `.book`
+surface split into a second book, and the notional sized without the hedge fraction. The
+read-direction control is BEHAVIOURAL — a clean interpreter is asked which world modules the import
+system actually loaded after the door is exercised — not a grep.
+
+### What did NOT fall
+
+`run_phase2b` keeps **12 direct + 2 indirect** — measured with `tools/knife_hotspot_measure.py`, not
+carried forward. The pricing/regulatory group (`tariff_engine`, `margin_feedback`,
+`ofgem_price_cap`, `decision_policy`) and the `saas.*` set (8) — 4 + 8 = 12, arithmetic written out.
+Beyond this module: `simulation.customer_events`' four edges (B2, a coupled-triad build, which that
+design block explicitly forbids attempting as a mechanical move) and `run_phase4c_on_phase2b`'s
+`dd_review_runner` routing residual (§3h).
+
+STEP 17'S NAMED RESIDUAL IS STILL OPEN, repeated rather than dropped:
+`FITBook.levelisation_charge_gbp(year, total_mwh_supplied)` is handed kWh and divides by 1000
+internally — arithmetic right, naming wrong. NAMING debt on `company/regulatory/fit_book.py`, not a
+wall crossing. STEP 20'S MASKING FINDING IS ALSO STILL OPEN, and this step is the closest any pass
+has come to its subject without touching it: on the ACTIVE churn arm, `bill_shock_count` /
+`behaviour_score` / `satisfaction_score` move the estimate by exactly nothing at a +33% rate rise.
+That is a fidelity question the company's model owns; a wall pass never moves a number in the same
+commit as an import (B7).
+
+---
+
+## 3s. The renewal rate chain — every writer that moves the number, in order — added 2026-08-13 (step 24)
+
+**3 edges cut, 19 → 16 live (17 → 14 direct; the 2 indirect are again UNMOVED, for the ELEVENTH
+consecutive step, which is again the proof that a bridge route was not silently taken instead).**
+
+`A_composition_lift`, applied to the pricing/regulatory group on `simulation/run_phase2b.py` —
+`company.pricing.tariff_engine`, `company.pricing.margin_feedback`, `company.pricing.ofgem_price_cap`.
+Every step from §3l onward named this group as standing; §3r named it as the whole of what was left
+on this module besides `decision_policy` and the `saas.*` set.
+
+### The group test, applied and PASSED — and the total is the most literal one yet
+
+§3m's test is "do they feed ONE total?", and §3q's answer was no, so it landed two doors and said so.
+Here the answer is yes, and the total is a single number a customer signs: **the unit rate the
+renewal is contracted at.** The term is struck at a rate off the supplier's own forward view; the
+portfolio premium multiplies it; the recovery surcharge multiplies that; the unprofitability uplift
+adds to that; the cap clamps the result. Five writers, one number, and the arithmetic is a CHAIN —
+reorder any two and the answer changes, which is a property three separate doors could not have.
+
+### What the WORLD was doing that is not the world's
+
+Before the cut, `run_phase2b.py::main()` carried all of the following inside its per-term loop:
+
+- **the learning rule, and how far back it learns** — `_portfolio_rates[-PORTFOLIO_PREMIUM_LOOKBACK:]`.
+  The world was slicing the supplier's own margin history to the supplier's own lookback depth. How
+  many completed terms a pricing team looks at before moving its book is not a fact about the world.
+- **the recovery decision** — `compute_margin_surcharge(prev_term_margin[cid], ...)` applied
+  multiplicatively, gated on `term_index >= 1` typed at two separate sites.
+- **the supplier's reading of who the price cap binds** — `cid in _RESI_CUSTOMER_IDS and
+  term_tariff_type == "fixed"`. This is the sharpest one. The cap's TEXT is a published commons and
+  both sides may read it (regulation-commons doctrine); WHICH of a supplier's own products it
+  believes the cap binds is its own compliance reading, and a real supplier that reads it wrong gets
+  fined for exactly that. The world was doing the reading.
+- **the order** — premium, then surcharge, then uplift, then clamp: four separate blocks in a
+  2,800-line function, with nothing anywhere asserting the sequence.
+- **the four publication records** — `dynamic_pricing_log`, `margin_feedback_log`,
+  `profitability_uplift_log` and the decomposition, each assembled inline from dict literals.
+- **the gas forward view** — `_build_gas_renewal_schedule` held its own `CompanyTariffEngine()` and
+  ran `get_forward_price("gas", ...)` with a `try/except ValueError` fallback, while `quote_renewal`
+  ran the IDENTICAL sequence for electricity behind the B7 door. The world was operating the
+  supplier's forward view on one commodity and asking for it on the other.
+
+None of that is world physics. What the world owns is that a term ended, that a renewal happened on a
+date, what was consumed, and what the published market and cap schedules said.
+
+### ONE door for the chain, and a SECOND, narrower one for the forward estimate
+
+`company/interfaces/renewal_rate_chain.py` takes the renewal and returns the contracted rate with its
+decomposed spans. The gas forward estimate does NOT go through it: it is answered by
+`request_company_forward_estimate` on the EXISTING `company/interfaces/renewal_offer.py`, because the
+gas schedule builds the term itself and needs only the one number that is the company's. Routing it
+through `request_renewal_offer` would have made the world accept an electricity-shaped offer object
+it does not use, which is how a door starts lying about what crosses it.
+
+Both sides now call ONE `estimate_forward_price` in `company/pricing/renewal_desk.py`. The engine it
+uses is a module-level singleton where the world held a per-call instance; `CompanyTariffEngine`
+declares no `__init__` and no instance state and `get_forward_price` is pure, so sharing it changes
+no answer — checked, not assumed, because a stateful engine shared across customers would have been
+a leak between them.
+
+### Behaviour is unchanged, and it is MEASURED rather than asserted
+
+`tests/company/interfaces/test_renewal_rate_chain_seam.py::_drive_pre_cut` is the term loop's
+sequence **transcribed from `simulation/run_phase2b.py` as it stood at `42a37c640`** — the world file
+before the cut — with its own guards and literals, not from `company/pricing/renewal_rate_chain.py`,
+which would make the control a mirror of the thing it checks (R15: tautology). The comparison is the
+WHOLE result — rate, spans, and all four log records, keys and order included — over the reference
+renewal AND over nine excluded cases (no locked rate, first term, non-domestic, pass-through, empty
+margin history, no prior term, gas, no settled book, a term outside every cap window). Identity is
+claimed for the renewals that DON'T fire as well as the one that does, because an eligibility rule
+copied slightly wrong shows up nowhere else.
+
+### THE DEFECT THIS CUT REMOVES — the order was invisible, and is now a signature
+
+For the fifth step running the finding is the same shape (§3p, §3q, §3r): what was N branches in the
+world becomes N fields behind a door. Here it is sharper than a field list. The cap is the last
+writer and the only one that can move a rate DOWN; the uplift adds £5/MWh and ran immediately before
+it. Nothing in the pre-cut code said so, and nothing could have caught the two being swapped — a
+supplier adding to a domestic fixed renewal AFTER clamping it is charging above the cap.
+`test_the_cap_is_the_last_writer_and_the_order_is_load_bearing` performs exactly that reorder on a
+copy of the desk — a pure move of the uplift block, no expression changed — and asserts both that the
+answer moves and that the reordered chain BREACHES the published cap, so the control fails on the
+consequence and not merely on a different number.
+
+### THE DEFECT THIS CUT INVITES, and the control on it
+
+Four eligibility rules the caller can no longer see. Each is asserted against a case that contains
+the thing being excluded and mutation-proven by deleting the guard on a copy of the desk: the cap's
+`domestic AND fixed` test (mutation: an I&C renewal is clamped), the first-term guard shared by the
+premium and the surcharge (mutation: an acquisition term learns from a book it has no place in), the
+no-locked-rate case, and `None`-versus-`0.0` for a prior term — absence of a completed term is not
+the same case as a term that broke exactly even, and the call site passes `prev_term_margin.get(cid)`
+where the pre-cut code tested `cid in prev_term_margin`. Those two agree because every value written
+to that dict is a float (`prev_term_margin[cid] = actual_net`, one site); the door treats `None` as
+absence, which is the same intent under a future writer that stores one.
+
+### THREE CONTROLS HAD THIS MODULE AS THEIR SUBJECT, and they moved with it
+
+Not deleted — RELOCATED, which is the difference between a control and a comment:
+
+- `test_customer_profitability_seam.py`'s control 3 ("the world passes what it observed and never a
+  literal") read the uplift CALL SITE in `run_phase2b.py`. The call site is now in
+  `company/pricing/renewal_rate_chain.py`; the control follows it. Left pointing at the old file it
+  would have failed OPEN on an absent call — caught here only by its own vacuity guard, which is why
+  that guard was worth writing.
+- `test_intra_year_cap_window.py`'s class control names the files that clamp a term with a cap
+  lookup. `run_phase2b.py` no longer clamps; `company/pricing/renewal_rate_chain.py` does. Dropping
+  the site instead of relocating it would have shrunk the class silently.
+- `test_hedge_desk_seam.py`'s control-3 mutation used `source.replace('commodity="gas",', ..., 1)` on
+  `run_phase2b.py` — a POSITIONAL anchor, whose subject is the file's line order rather than the call
+  it names. Step 24's gas forward-estimate ask sits above the hedge call, so the mutation silently
+  landed on an unrelated call and the control could no longer fire. It is now anchored on the
+  decide-call's own indentation, with an assertion that the anchor is unique.
+
+### The controls
+
+`tests/company/interfaces/test_renewal_rate_chain_seam.py` (24 tests, of which **4 are mutations that
+PERFORM the named defect**): a lazy world import (on a COPY of the source overlaid on `sys.path`,
+never a repo file edited mid-pytest-run), the chain reordered so the uplift escapes the cap, the cap
+eligibility rule widened, and the first-term guard dropped. The read-direction control is
+BEHAVIOURAL — a clean interpreter is asked which world modules the import system actually loaded
+after the door is exercised — not a grep. Two further controls hold the door's SURFACE: nothing but
+the decision and its result is reachable through it, and no `desk=`/`engine=`/`policy=` convenience
+argument exists, which would restore the removed dependency WITHOUT creating a single wall edge
+because the import would still terminate on the exempt seam package.
+
+### Vacuity, stated rather than left to the reader
+
+`test_the_fixture_is_not_degenerate` asserts that the reference renewal fires all four writers in
+order and that its term start falls inside a published cap window. Without the first, the identity
+comparison would be two empties; without the second, both cap controls would compare `None` to
+`None`. The reference renewal is a domestic fixed electricity account on its third term, on a book
+that has been under-earning, whose previous term lost the supplier money, renewing on 2021-06-01
+where the published cap is £189.50/MWh — struck at £200 and contracted at the cap.
+
+### THE REGISTER'S OWN SAME-CHANGE RULES, both honoured here
+
+`docs/design/PORTABILITY_DEBT.md`'s baseline is an ALLOWLIST that fails on a NEW breach: the two
+renewal doors' `*_gbp` field names are recorded in it in this change (`renewal_offer.py` 3 → 6, and
+`renewal_rate_chain.py` 9, a new row) rather than renamed, because remediation-on-touch is the
+doctrine and a sweep-rename of currency out of field names is a `Money` type, not a wall pass.
+`tests/architecture/test_static_quality_ratchet.py`'s isort floor moves DOWN 1379 → 1378 (total 2403
+→ 2402): `run_phase2b.py` lost three imports and gained two, and the block came back sorted.
+
+### STEP 23 WAS NEVER LANDED, and this step found it by measuring rather than reading
+
+`tools/capability_index` reported four UNTRACKED rows while step 24 was being built:
+`company/interfaces/hedge_desk.py`, `company/trading/hedge_desk.py`, and (once written)
+step 24's own two. §3r above says EXECUTED and the ratchet census had already shrunk by three, but a
+FRESH CHECKOUT had none of the hedging desk — `HEAD`'s `run_phase2b.py` still imported
+`company.trading.forward_book` directly, so `HEAD` was internally consistent and nothing was red. The
+CUT existed only in one working tree. This is the register's own §0a in reverse: a `cut` is a claim
+about the REPO, and step 23's claim was true of a desk and false of the repo.
+
+The two steps are therefore landed in ONE commit, and not by preference — `simulation/run_phase2b.py`
+carries both edits and a pathspec cannot split one file. Landing step 24 alone would have committed a
+world that imports `company/interfaces/hedge_desk.py` from a tree that does not contain it.
+
+### What did NOT fall
+
+`run_phase2b` keeps **9 direct + 2 indirect** — measured with `tools/knife_hotspot_measure.py`, not
+carried forward. `company.policy.decision_policy` and the `saas.*` set (8) — 1 + 8 = 9, arithmetic
+written out. `decision_policy` was NOT taken with this group and the group test is why: it is the
+nudge/framing policy scope threaded through the whole run, not a writer on the renewal rate, and
+folding it in would have named a desk over two objects the business does not have as one. Beyond this
+module: `simulation.customer_events`' four edges (B2, a coupled-triad build, which that design block
+explicitly forbids attempting as a mechanical move) and `run_phase4c_on_phase2b`'s `dd_review_runner`
+routing residual (§3h).
+
+B7'S COLD-START LEAK IS NOW TWO CALLERS WIDE, and is named rather than smoothed over: the world still
+hands `fallback_forward_price_gbp_per_mwh` (electricity) and `fallback_gbp_per_mwh` (gas) to the
+desk for the case where the supplier's notice-date lookback window is empty. A supplier's cold-start
+rule should be its own. This step did not make it worse and did not repair it; it stays owed in §3a.
+STEP 17'S NAMED RESIDUAL IS STILL OPEN: `FITBook.levelisation_charge_gbp(year, total_mwh_supplied)`
+is handed kWh and divides by 1000 internally — NAMING debt on `company/regulatory/fit_book.py`, not a
+wall crossing. STEP 20'S MASKING FINDING IS ALSO STILL OPEN.
+
+---
+
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
 
 These were designs in §3 until they were carried out. They are recorded
@@ -2215,16 +2540,16 @@ edge: simulation.run_phase2b -> company.finance.margin_call_book | disposition=c
 edge: simulation.run_phase2b -> company.market.flexibility_revenue_book | disposition=cut | reason=Step 18 executed 2026-08-11 (§3m) — the domestic DSR/Capacity Market book moved to `company/market/flexibility_revenue.py` behind `company.interfaces.flexibility_revenue`. The world no longer hands its `HouseholdDemandRegister` across for the book to pull asset flags out of; it resolves a per-year-end snapshot on its own side and only the answers cross.
 edge: simulation.run_phase2b -> company.market.ic_flexibility_revenue | disposition=cut | reason=Step 18 executed 2026-08-11 (§3m) — the I&C demand-response book moved with the domestic one it shares its `total_flexibility_revenue` accumulator with. The CM clearing prices, DFS rates, aggregator fee and 200 MWh eligibility floor are read company-side; the world hands over its own I&C electricity roster as (customer_id, eac_kwh) pairs.
 edge: simulation.run_phase2b -> company.policy.decision_policy | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.pricing.margin_feedback | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.pricing.ofgem_price_cap | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.pricing.tariff_engine | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> company.pricing.margin_feedback | disposition=cut | reason=`A_composition_lift` step 24, 2026-08-13 (§3s) — the realised-margin recovery surcharge is the supplier deciding to recover a loss from the same customer's next term. Moved with its group: it multiplies what the portfolio premium left and is multiplied in turn by nothing, but the cap clamps the result, so cutting it alone would have left the world holding the chain's order.
+edge: simulation.run_phase2b -> company.pricing.ofgem_price_cap | disposition=cut | reason=`A_composition_lift` step 24, 2026-08-13 (§3s) — the cap's TEXT is a published commons both sides may read; WHICH of its own products the supplier believes the cap binds is its own compliance reading, and it is allowed to get that wrong. The world was doing the reading.
+edge: simulation.run_phase2b -> company.pricing.tariff_engine | disposition=cut | reason=`A_composition_lift` step 24, 2026-08-13 (§3s) — TWO uses, and the edge only fell when both went: the portfolio learning premium (with the supplier's own lookback depth, which the world was slicing) moved into the rate chain, and `_build_gas_renewal_schedule`'s private `CompanyTariffEngine()` now asks `company/interfaces/renewal_offer.py` for the same notice-date forward estimate electricity has asked it for since B7.
 edge: simulation.run_phase2b -> company.regulatory.ccl_ledger | disposition=cut | reason=Step 17 executed 2026-08-11 (§3l) — the CCL pass-through moved to `company/regulatory/statutory_obligations.py` behind `company.interfaces.statutory_obligations`. The world hands over its settled records and its own I&C book; which customers are CCL-liable and at what rate is read company-side.
 edge: simulation.run_phase2b -> company.regulatory.fit_book | disposition=cut | reason=Step 17 executed 2026-08-11 (§3l) — the FiT levelisation levy moved with the RO block it shares its annual-volume accumulator with. The world no longer reads `_FIT_LEVELISATION_RATE_PER_MWH` across the wall.
 edge: simulation.run_phase2b -> company.regulatory.roc_ledger | disposition=cut | reason=Step 17 executed 2026-08-11 (§3l) — the Renewables Obligation moved behind the same door. The world no longer reads `_ROC_OBLIGATION_LEVEL` / `_ROC_BUY_OUT_PRICE_GBP`, two of a sibling layer's PRIVATE tables.
 edge: simulation.run_phase2b -> company.risk.collateral_death_test | disposition=cut | reason=Step 19 executed 2026-08-12 (§3n) — the MC-2 breaking-strain sweep moved behind the same door, and with it the `peak_sample_date` the world was carrying out of the credit block and back into the death test. That thread is now internal to the desk that owns both ends of it.
-edge: simulation.run_phase2b -> company.risk.hedge_policy | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.trading.forward_book | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.trading.hedge_decision | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> company.risk.hedge_policy | disposition=cut | reason=Step 23 executed 2026-08-13 (§3r) — the mandate floor moved behind `company.interfaces.hedge_desk` as a `HedgeMandate` VALUE rather than a re-exported float, because the world was not merely reading the floor: it was doing the desk's arithmetic with it (`naked_fraction=1 - MIN_HEDGE_FLOOR`, pricing a gas renewal's cost of capital on the position the desk intends to leave open). `company_evolve_hedge_fraction` moved with it as `HedgeDesk.roll_hedge_fraction` — the backward-looking arm of the same desk, setting next term's opening fraction from this term's realised P&L. No number moves: `test_the_roll_reproduces_the_pre_cut_call` and `test_the_mandate_states_the_naked_fraction_rather_than_the_world_deriving_it` pin both against the pre-cut calls.
+edge: simulation.run_phase2b -> company.trading.forward_book | disposition=cut | reason=Step 23 executed 2026-08-13 (§3r) — the `TradingBook` is now held by the `HedgeDesk` that opens positions in it, sizes them, settles them and rolls the fraction. `ForwardContract` construction, the notional sizing (`eac/1000 × hf`), the bid-ask rounding and the VALUE_CHAIN-step-2 counterparty attribution are one execution act inside `HedgeDesk.open_term_hedge`. The world holds the desk, not the book; `.book` remains reachable ONLY because the §3n collateral door marks it and the report summarises it — the world carries an object it received from company code to another company door and never learns its type. `test_control_4_*` pins all four surfaces to ONE book with a split-brain mutation.
+edge: simulation.run_phase2b -> company.trading.hedge_decision | disposition=cut | reason=Step 23 executed 2026-08-13 (§3r) — the VaR decision, the risk committee's override adjudication, the realised-VaR computation and the VaR log entry moved into `HedgeDesk.decide_term_hedge`, one door called at BOTH commodity sites with `commodity` as a named argument rather than two near-identical inlined blocks. The load-bearing ordering (realised VaR is computed at the fraction that SURVIVES the override, not the one the model proposed) is now one documented sequence instead of two adjacent statements in a 2,900-line function, and `test_control_2_*` pins it against the pre-cut transcription on BOTH arms with two mutations.
 edge: simulation.run_phase2b -> company.trading.wholesale_credit_exposure | disposition=cut | reason=Step 19 executed 2026-08-12 (§3n) — the wholesale credit register, and the semi-annual point-in-time sampling that finds its peak, moved to `company/risk/counterparty_collateral_desk.py` behind `company.interfaces.counterparty_collateral`. The world hands over the book it holds, its customer register's commodity column and the two PUBLIC spot histories; counterparty lines, rating bands and the peak are read company-side.
 edge: simulation.run_phase2b -> saas.cost_to_serve | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> saas.customer_reaction | disposition=owed | design=A_composition_lift

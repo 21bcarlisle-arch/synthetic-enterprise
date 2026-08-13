@@ -22,12 +22,9 @@ from datetime import date, datetime, time, timedelta
 
 import sim.risk_committee_agent as risk_committee_agent
 from company.interfaces.point_in_time_view import PointInTimeView, build_price_bitemporal_log
+from company.interfaces.renewal_offer import request_company_forward_estimate
 from company.interfaces.statutory_obligations import build_statutory_obligations
-from company.pricing.tariff_engine import (
-    PORTFOLIO_PREMIUM_LOOKBACK,
-    CompanyTariffEngine,
-    compute_portfolio_premium,
-)
+from company.interfaces.renewal_rate_chain import decide_renewal_rate
 from saas.customer_reaction import _billing_account_id
 from company.interfaces.supply_book import (
     acquired_supply_points,
@@ -69,12 +66,7 @@ from sim.forward_curve import (
     generate_forward_price,
 )
 from sim.gas_prices_history import load_nbp_history
-from company.pricing.margin_feedback import compute_margin_surcharge
-from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
-from company.risk.hedge_policy import (
-    COMPANY_MIN_HEDGE_FLOOR as MIN_HEDGE_FLOOR,
-    company_evolve_hedge_fraction as evolve_hedge_fraction,
-)
+from company.interfaces.hedge_desk import build_hedge_desk, hedge_mandate
 from sim.profile_class_1 import load_pc1_shape
 from sim.profile_class_3 import load_pc3_shape
 from sim.risk_committee import RiskCommitteeMonitor
@@ -97,12 +89,9 @@ from background.live_fidelity_evidence import emit_live_fidelity_evidence
 from simulation.demand_model import build_demand_shape, solar_generation_shape
 from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
-from company.trading.forward_book import ForwardContract, TradingBook, assign_default_counterparty
 from company.interfaces.counterparty_collateral import build_counterparty_collateral
-from company.trading.hedge_decision import decide_hedge_fraction, compute_bid_ask_cost, compute_realized_var
 from company.policy.decision_policy import DecisionPolicy, CURRENT_POLICY, active_policy, framing_type_for
 from simulation.nudge_physics import susceptibility_for, framing_effectiveness_multiplier
-from company.interfaces.customer_profitability import renewal_unit_rate_uplift
 from company.interfaces.churn_estimation import (
     RenewalObservation,
     crisis_hangover_periods,
@@ -237,9 +226,10 @@ GAS_ELEC_WEIGHT = 0.25
 EFFECTIVE_EAC = TOTAL_ELEC_EAC + TOTAL_GAS_AQ * GAS_ELEC_WEIGHT
 STARTING_TREASURY_GBP = 3250.0 * (EFFECTIVE_EAC / ORIGINAL_4_CUSTOMER_EAC_KWH)
 
-# Phase 5c minimum hedge mandate: every term starts at the mandate floor
-# (sim.hedging_strategy.MIN_HEDGE_FLOOR), not a neutral 50/50 guess.
-RESET_HEDGE_FRACTION = MIN_HEDGE_FLOOR
+# Phase 5c minimum hedge mandate: every term starts at the mandate floor, not a
+# neutral 50/50 guess. KNIFE3 step 23 (§3r): the floor is the DESK's mandate and
+# is now read off it, rather than the world importing the company's constant.
+RESET_HEDGE_FRACTION = hedge_mandate().opening_hedge_fraction
 
 RETENTION_THRESHOLD = 0.30
 RETENTION_EFFECTIVENESS = 0.20
@@ -490,7 +480,6 @@ def _build_gas_renewal_schedule(
     schedule = []
     term_start = acq_date
 
-    _company_engine = CompanyTariffEngine()
     while term_start <= report_end:
         term_end = _clamp_term_end(term_start, end_date=report_end)
         lookback_temps = lookback_temps_fn(term_start) if lookback_temps_fn else None
@@ -505,10 +494,16 @@ def _build_gas_renewal_schedule(
                 break
         # Phase 34a: gas tariffs also priced NOTICE_DAYS before term start.
         gas_notice_date = (date.fromisoformat(term_start) - timedelta(days=NOTICE_DAYS)).isoformat()
-        try:
-            company_fwd = _company_engine.get_forward_price("gas", gas_notice_date, gas_records)
-        except ValueError:
-            company_fwd = sim_fwd  # fallback: insufficient prior data for first term
+        # KNIFE step 24 (§3s): WHICH forward the company prices gas off is its
+        # own estimate, made behind the door -- the same door electricity has
+        # used since B7. The world still owns the cold-start fallback it hands
+        # over, which is the leak §3a records as owed.
+        company_fwd = request_company_forward_estimate(
+            commodity="gas",
+            notice_date=gas_notice_date,
+            observable_price_records=gas_records,
+            fallback_gbp_per_mwh=sim_fwd,
+        )
         # Phase 30b: gas policy cost (CCL + GGL) and network charges pass-through.
         # CCL: domestic gas exempt; GGL applies from Nov 2021.
         gas_policy = (
@@ -525,7 +520,10 @@ def _build_gas_renewal_schedule(
             locked_gas_network = gas_network
         unit_rate = price_fixed_tariff(
             company_fwd, aq_kwh, term_start,
-            naked_fraction=1 - MIN_HEDGE_FLOOR,
+            # KNIFE3 step 23 (§3r): `1 - floor` was the world doing the desk's
+            # arithmetic. The cost of capital is priced on the position the desk
+            # intends to leave open, so the desk states it.
+            naked_fraction=hedge_mandate().naked_fraction,
             policy_cost_per_mwh=locked_gas_policy,
             network_cost_per_mwh=locked_gas_network,
         )
@@ -1099,8 +1097,11 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     # Phase 23a: demand estimation divergence tracking
     demand_estimation_log: list[dict] = []
 
-    # Phase 43a: company trading book — forward position lifecycle
-    trading_book = TradingBook()
+    # Phase 43a: company trading book — forward position lifecycle.
+    # KNIFE3 step 23 (§3r): the book is held by the DESK that opens positions in
+    # it, decides the fractions those positions are sized at, settles them and
+    # rolls the fraction forward. The world holds the desk, not the book.
+    hedge_desk = build_hedge_desk()
 
     # Phase 8a: growth mandate tracking
     acquisition_spend_events: list[dict] = []
@@ -1161,160 +1162,36 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         term_index = term_indices[cid]
         term_indices[cid] += 1
 
-        # EP2 sub-atom 3: open the rate chain for this renewal. `rate_original` is the rate as
-        # the term was struck, before any of the four writers below; `rate_components` collects
-        # each writer's own chained sub-span; `rate_chain_entries` holds the per-writer log dicts
-        # so the contracted rate can be stamped back onto them once every writer has run.
-        rate_original = unit_rate
-        rate_components: list[dict] = []
-        rate_chain_entries: list[dict] = []
-
-        # Phase 17a + 19a: portfolio learning premium (electricity and gas)
-        # Phase 41a: skip for flex/deemed — no locked unit rate to adjust.
-        _portfolio_rates = (
-            portfolio_elec_margin_rates if commodity == "electricity" else portfolio_gas_margin_rates
-        )
-        if unit_rate is not None and term_index >= 1 and len(_portfolio_rates) >= 1:
-            lookback = _portfolio_rates[-PORTFOLIO_PREMIUM_LOOKBACK:]
-            portfolio_prem = compute_portfolio_premium(lookback)
-            if abs(portfolio_prem) > 1e-6:
-                rate_before = unit_rate
-                unit_rate *= (1.0 + portfolio_prem)
-                _entry = {
-                    "customer_id": cid,
-                    "commodity": commodity,
-                    "term_start": term_start_str,
-                    "recent_margin_rates": [round(r, 4) for r in lookback],
-                    "mean_recent_margin_rate": round(sum(lookback) / len(lookback), 4),
-                    "portfolio_premium_pct": round(portfolio_prem * 100, 2),
-                    # EP2 sub-atom 3: this pair spans THIS writer's move only. The rate the
-                    # customer contracted is `unit_rate_contracted`, stamped on below once the
-                    # surcharge, the uplift and the cap have each had their turn.
-                    "unit_rate_original": round(rate_original, 4),
-                    "unit_rate_before": round(rate_before, 4),
-                    "unit_rate_after": round(unit_rate, 4),
-                }
-                dynamic_pricing_log.append(_entry)
-                rate_chain_entries.append(_entry)
-                rate_components.append({
-                    "cause": "portfolio_premium",
-                    "basis": "pct",
-                    "magnitude": round(portfolio_prem * 100, 4),
-                    "rate_before": round(rate_before, 4),
-                    "rate_after": round(unit_rate, 4),
-                })
-
-        # Phase 16c + 19a: apply realized-margin recovery surcharge at renewal (all commodities)
-        # Phase 41a: skip for flex/deemed — no locked unit rate to adjust.
-        if unit_rate is not None and term_index >= 1 and cid in prev_term_margin:
-            surcharge = compute_margin_surcharge(prev_term_margin[cid], prev_term_revenue.get(cid, 0.0))
-            if surcharge > 0:
-                # EP2 sub-atom 3: `rate_before` is the rate as it ENTERS this writer — i.e. after
-                # the portfolio premium above. It used to be re-read off `term[...]`, which is
-                # never rebound, so the logged pair carried the premium's move inside a span
-                # labelled with only the surcharge's coefficient and the row failed its own
-                # arithmetic (28 of 29 rows, 2026-08-13).
-                rate_before = unit_rate
-                unit_rate *= (1.0 + surcharge)
-                _entry = {
-                    "customer_id": cid,
-                    "commodity": commodity,
-                    "term_start": term_start_str,
-                    "prev_margin_gbp": round(prev_term_margin[cid], 4),
-                    "prev_revenue_gbp": round(prev_term_revenue.get(cid, 0.0), 4),
-                    "surcharge_pct": round(surcharge * 100, 2),
-                    "unit_rate_original": round(rate_original or 0.0, 4),
-                    "unit_rate_before": round(rate_before, 4),
-                    "unit_rate_after": round(unit_rate, 4),
-                }
-                margin_feedback_log.append(_entry)
-                rate_chain_entries.append(_entry)
-                rate_components.append({
-                    "cause": "margin_surcharge",
-                    "basis": "pct",
-                    "magnitude": round(surcharge * 100, 4),
-                    "rate_before": round(rate_before, 4),
-                    "rate_after": round(unit_rate, 4),
-                })
-
-        # Phase 44a: activity-based profitability uplift for net-negative customers.
-        # KNIFE step 22 (§3q): WHICH renewals the supplier reprices for
-        # unprofitability — first term or later, electricity, fixed or
-        # pass-through, a locked rate to adjust — is its own pricing policy and
-        # now lives behind company/interfaces/customer_profitability.py. The
-        # world reports the renewal as it happened and adds whatever comes back.
-        pnl_uplift = renewal_unit_rate_uplift(
-            account_id=billing_account,
+        # KNIFE step 24 (§3s): EVERY writer that moves this renewal's rate --
+        # the portfolio learning premium, the realised-margin recovery
+        # surcharge, the unprofitability uplift and the price-cap clamp -- is
+        # the supplier's own pricing policy, including WHICH renewals each one
+        # applies to and the ORDER they fire in. They form one chain producing
+        # one number, so they are one door: company/interfaces/renewal_rate_chain.py.
+        # The world reports the renewal as it happened and records what came back.
+        _chain = decide_renewal_rate(
+            customer_id=cid,
+            billing_account=billing_account,
             commodity=commodity,
+            term_start=term_start_str,
             tariff_type=term_tariff_type,
             term_index=term_index,
-            term_start=term_start_str,
-            locked_unit_rate=unit_rate,
+            struck_unit_rate_gbp_per_mwh=unit_rate,
+            portfolio_margin_rates=(
+                portfolio_elec_margin_rates if commodity == "electricity"
+                else portfolio_gas_margin_rates
+            ),
+            prior_term_margin_gbp=prev_term_margin.get(cid),
+            prior_term_revenue_gbp=prev_term_revenue.get(cid, 0.0),
+            is_domestic=cid in _RESI_CUSTOMER_IDS,
             settled_records=all_records,
         )
-        if pnl_uplift > 0:
-            rate_before = unit_rate
-            unit_rate += pnl_uplift
-            _entry = {
-                "customer_id": billing_account,
-                "commodity": commodity,
-                "term_start": term_start_str,
-                "uplift_gbp_per_mwh": round(pnl_uplift, 4),
-                "unit_rate_original": round(rate_original or 0.0, 4),
-                "unit_rate_before": round(rate_before, 4),
-                "unit_rate_after": round(unit_rate, 4),
-            }
-            profitability_uplift_log.append(_entry)
-            rate_chain_entries.append(_entry)
-            rate_components.append({
-                "cause": "profitability_uplift",
-                "basis": "gbp_per_mwh",
-                "magnitude": round(pnl_uplift, 4),
-                "rate_before": round(rate_before, 4),
-                "rate_after": round(unit_rate, 4),
-            })
-
-        # Phase 47a: Ofgem domestic price cap — final ceiling for resi fixed-term customers.
-        # W3_1b (2026-08-03): keyed on the cap WINDOW containing the term start,
-        # not the term-start calendar year. A term starting 15 Feb 2022 was struck
-        # under the Oct-2021 cap that ran to 31 Mar 2022, not under a full-year
-        # 2022 blend that averages in the +54% April step it predates.
-        if (unit_rate is not None
-                and cid in _RESI_CUSTOMER_IDS
-                and term_tariff_type == "fixed"):
-            _cap = get_cap_unit_rate_for_date(
-                commodity, date.fromisoformat(term_start_str[:10])
-            )
-            if _cap is not None:
-                if _cap < unit_rate:
-                    # EP2 sub-atom 3: the cap is the fourth writer and the only one that can move
-                    # the rate DOWN. Nothing logged it before, so a capped renewal's published
-                    # "after" was a rate above the one the customer was charged.
-                    rate_components.append({
-                        "cause": "price_cap",
-                        "basis": "gbp_per_mwh",
-                        "magnitude": round(_cap - unit_rate, 4),
-                        "rate_before": round(unit_rate, 4),
-                        "rate_after": round(_cap, 4),
-                    })
-                unit_rate = min(unit_rate, _cap)
-
-        # EP2 sub-atom 3: close the chain. One decomposed span per renewal — original ->
-        # contracted, causes named in the order they fired — and the contracted rate stamped
-        # back onto every writer's own entry so no reader has to mistake a link for the whole.
-        if rate_components:
-            _contracted = round(unit_rate, 4)
-            for _e in rate_chain_entries:
-                _e["unit_rate_contracted"] = _contracted
-            rate_decomposition_log.append({
-                "customer_id": cid,
-                "billing_account": billing_account,
-                "commodity": commodity,
-                "term_start": term_start_str,
-                "unit_rate_original": round(rate_original or 0.0, 4),
-                "unit_rate_contracted": _contracted,
-                "components": rate_components,
-            })
+        unit_rate = _chain.unit_rate_gbp_per_mwh
+        dynamic_pricing_log.extend(_chain.dynamic_pricing_entries)
+        margin_feedback_log.extend(_chain.margin_feedback_entries)
+        profitability_uplift_log.extend(_chain.profitability_uplift_entries)
+        if _chain.decomposition is not None:
+            rate_decomposition_log.append(_chain.decomposition)
 
         # Phase 11a: record basis risk (company estimate vs sim ground truth)
         basis_risk_terms.append({
@@ -1924,24 +1801,28 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                     _decision_time = datetime.combine(date.fromisoformat(term_start_str), time.min)
                     _piv = PointInTimeView(decision_time=_decision_time, bitemporal_log=_price_bitemporal_log)
                     _elec_price_hist = _piv.get_price_history_as_of("electricity")
-                    _var_hf = decide_hedge_fraction(
-                        eac_kwh, company_fwd, unit_rate,
-                        _elec_price_hist, term_days_count
+                    # KNIFE3 step 23 (§3r): the desk takes the decision, adjudicates
+                    # the committee override against it, and reports the VaR at the
+                    # fraction that SURVIVES. The world supplies only what it can
+                    # observe — its demand estimate, its locked forward, its proposed
+                    # tariff, and a price history already through the blindfold.
+                    _elec_hedge = hedge_desk.decide_term_hedge(
+                        customer_id=cid,
+                        term_start=term_start_str,
+                        term_end=term_end_str,
+                        commodity="electricity",
+                        volume_kwh=eac_kwh,
+                        forward_price_gbp_per_mwh=company_fwd,
+                        unit_rate_gbp_per_mwh=unit_rate,
+                        price_records=_elec_price_hist,
+                        term_days=term_days_count,
+                        current_fraction=hf,
+                        accept_decision=(cid not in pending_committee_overrides),
                     )
-                    if cid not in pending_committee_overrides:
-                        hf = _var_hf
+                    if _elec_hedge.decision_accepted:
+                        hf = _elec_hedge.hedge_fraction
                         current_hf[cid] = hf
-                    _realized_var = compute_realized_var(
-                        eac_kwh, company_fwd, unit_rate, _elec_price_hist, term_days_count, hf
-                    )
-                    hedge_var_log.append({
-                        "customer_id": cid,
-                        "term_start": term_start_str,
-                        "term_end": term_end_str,
-                        "commodity": "electricity",
-                        "hedge_fraction": round(hf, 4),
-                        **_realized_var,
-                    })
+                    hedge_var_log.append(_elec_hedge.var_log_entry)
 
                 naked_kwh = eac_kwh * (1.0 - hf)
                 risk = assess_term_risk(term_start_str, naked_kwh, forward_price, elec_records)
@@ -1981,31 +1862,24 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 # agreed_price = company_fwd (the price the company locked at tariff signing).
                 # notional_mwh = hedged portion of EAC estimate.
                 if company_fwd and hf > 0:
-                    _tenor_years = term_days_count / 365.25
-                    _notional_mwh = (eac_kwh / 1000.0) * hf
-                    _bid_ask = compute_bid_ask_cost(company_fwd, _tenor_years) * _notional_mwh
-                    # VALUE_CHAIN step 2: attribute a counterparty at signing (deterministic,
-                    # wall-safe — reads only company-observable contract attributes).
-                    _cp = assign_default_counterparty(cid, term_start_str, _notional_mwh)
-                    trading_book.open_hedge(ForwardContract(
+                    # KNIFE3 step 23 (§3r): sizing the notional, pricing the spread,
+                    # attributing the counterparty (VALUE_CHAIN step 2) and booking
+                    # the contract are one execution act, and it is the desk's.
+                    hedge_desk.open_term_hedge(
                         customer_id=cid,
                         term_start=term_start_str,
                         term_end=term_end_str,
-                        notional_mwh=_notional_mwh,
-                        agreed_price_gbp_per_mwh=company_fwd,
+                        volume_kwh=eac_kwh,
+                        forward_price_gbp_per_mwh=company_fwd,
                         hedge_fraction=hf,
-                        bid_ask_cost_gbp=round(_bid_ask, 4),
-                        counterparty_id=_cp.counterparty_id,
-                        counterparty_type=_cp.counterparty_type,
-                        clearing_status=_cp.clearing_status,
-                        counterparty_rating=_cp.counterparty_rating,
-                        broker_arranged=_cp.broker_arranged,
-                    ))
+                        term_days=term_days_count,
+                    )
                     # Add hedge_pnl_gbp per settlement record (decomposed from supply margin).
                     for rec in term_records:
                         spot = rec.get("wholesale_cost_gbp", 0.0) / (rec["consumption_kwh"] / 1000.0) if rec["consumption_kwh"] > 0 else 0.0
-                        hedge = trading_book.settle_period(cid, term_start_str, rec["consumption_kwh"], spot)
-                        rec["hedge_pnl_gbp"] = round(hedge.pnl_gbp, 6)
+                        rec["hedge_pnl_gbp"] = round(hedge_desk.settle_period_pnl_gbp(
+                            cid, term_start_str, rec["consumption_kwh"], spot
+                        ), 6)
             for rec in term_records:
                 rec["data_regime"] = "historical"
                 rec["commodity"] = "electricity"
@@ -2055,24 +1929,26 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                     _gas_decision_time = datetime.combine(date.fromisoformat(term_start_str), time.min)
                     _gas_piv = PointInTimeView(decision_time=_gas_decision_time, bitemporal_log=_price_bitemporal_log)
                     _gas_price_hist = _gas_piv.get_price_history_as_of("gas")
-                    _gas_var_hf = decide_hedge_fraction(
-                        aq_kwh, company_fwd, unit_rate,
-                        _gas_price_hist, _gas_term_days
+                    # KNIFE3 step 23 (§3r): the same desk, the same door, the other
+                    # commodity — `commodity` is a named argument rather than the
+                    # two near-identical inlined blocks this replaced.
+                    _gas_hedge = hedge_desk.decide_term_hedge(
+                        customer_id=cid,
+                        term_start=term_start_str,
+                        term_end=term_end_str,
+                        commodity="gas",
+                        volume_kwh=aq_kwh,
+                        forward_price_gbp_per_mwh=company_fwd,
+                        unit_rate_gbp_per_mwh=unit_rate,
+                        price_records=_gas_price_hist,
+                        term_days=_gas_term_days,
+                        current_fraction=hf,
+                        accept_decision=(cid not in pending_committee_overrides),
                     )
-                    if cid not in pending_committee_overrides:
-                        hf = _gas_var_hf
+                    if _gas_hedge.decision_accepted:
+                        hf = _gas_hedge.hedge_fraction
                         current_hf[cid] = hf
-                    _gas_realized_var = compute_realized_var(
-                        aq_kwh, company_fwd, unit_rate, _gas_price_hist, _gas_term_days, hf
-                    )
-                    hedge_var_log.append({
-                        "customer_id": cid,
-                        "term_start": term_start_str,
-                        "term_end": term_end_str,
-                        "commodity": "gas",
-                        "hedge_fraction": round(hf, 4),
-                        **_gas_realized_var,
-                    })
+                    hedge_var_log.append(_gas_hedge.var_log_entry)
 
             # Phase NE: pass-through gas has no commodity price risk -- customer pays spot
             # directly, so company holds no naked position. Using aq_kwh here was generating
@@ -2297,7 +2173,9 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             else:
                 portfolio_gas_margin_rates.append(actual_net / term_revenue)  # Phase 19a
 
-        new_hf, reason = evolve_hedge_fraction(hf, naked_net, actual_net)
+        # KNIFE3 step 23 (§3r): the backward-looking arm of the SAME desk — was the
+        # hedge worth paying for, and where does that put next term's opening.
+        new_hf, reason = hedge_desk.roll_hedge_fraction(hf, naked_net, actual_net)
         next_hf[cid] = new_hf
         evolution_logs[cid].append({
             "term_index": term_index, "term_start": term_start_str,
@@ -2622,7 +2500,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     # its way to the death test: that thread is now internal to the desk that owns both.
     # Both failure domains stay independent -- reported on the result, not raised (§3n).
     _collateral = build_counterparty_collateral(
-        trading_book,
+        hedge_desk.book,
         commodity_by_customer_id={c["customer_id"]: c["commodity"] for c in _ALL_KNOWN_CUSTOMERS},
         elec_spot_records=elec_records,
         gas_spot_records=gas_records,
@@ -2732,7 +2610,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         ),
         "demand_estimation_log": demand_estimation_log,  # Phase 23a: full log for report
         # Phase 43a: company trading book — forward position lifecycle
-        "trading_book": trading_book.summary(),
+        "trading_book": hedge_desk.summary(),
         # VALUE_CHAIN observation feed (2026-07-24): the two board-level credit/liquidity
         # registers, marked at an end-of-run observable forward-price snapshot (None if the
         # mark could not be formed from observable history).

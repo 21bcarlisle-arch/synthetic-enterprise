@@ -49,7 +49,15 @@ from company.crm.customer_profitability import compute_profitability_uplift
 from company.interfaces import customer_profitability as door
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-RUN_MODULE_PATH = os.path.join(REPO_ROOT, "simulation", "run_phase2b.py")
+# CONTROL 3's SUBJECT MOVED, and the control moved with it. Step 22 cut this
+# door with `simulation/run_phase2b.py` as the caller. KNIFE step 24 (§3s) put
+# the whole renewal rate chain behind `company/interfaces/renewal_rate_chain.py`
+# and the uplift is now called from the supplier's own chain, in order, rather
+# than from the world's loop. Control 3 is about the CALL SITE — that literals
+# never re-decide eligibility outside the door — so it follows the call site.
+# Pointing it at run_phase2b.py after step 24 would make it a control over a
+# call that is not there: a fail-open, caught here by its own vacuity guard.
+CALLER_MODULE_PATH = os.path.join(REPO_ROOT, "company", "pricing", "renewal_rate_chain.py")
 IMPL_PATH = os.path.join(REPO_ROOT, "company", "crm", "customer_profitability.py")
 
 ACCOUNT = "C4"
@@ -254,14 +262,15 @@ def _literal_kwargs(call: ast.Call) -> set[str]:
 
 
 def test_the_world_passes_what_it_observed_and_never_a_literal():
-    with open(RUN_MODULE_PATH) as fh:
+    with open(CALLER_MODULE_PATH) as fh:
         source = fh.read()
     calls = _uplift_callsites(source)
     # VACUITY GUARD — a source with no such call would make the loop below pass
     # over an empty set.
     assert len(calls) == 1, (
-        f"expected exactly one renewal_unit_rate_uplift call in run_phase2b.py, "
-        f"found {len(calls)} — control 3 is examining the wrong thing"
+        f"expected exactly one renewal_unit_rate_uplift call in "
+        f"{os.path.basename(CALLER_MODULE_PATH)}, found {len(calls)} — control 3 "
+        "is examining the wrong thing"
     )
     call = calls[0]
     assert not call.args, "the call must be keyword-only so the arguments are named"
@@ -281,14 +290,14 @@ def test_the_world_passes_what_it_observed_and_never_a_literal():
     "defect,expected",
     [
         ('commodity=commodity,', 'commodity="electricity",'),
-        ('tariff_type=term_tariff_type,', 'tariff_type="fixed",'),
+        ('tariff_type=tariff_type,', 'tariff_type="fixed",'),
     ],
     ids=["hardcoded commodity", "hardcoded tariff type"],
 )
 def test_mutation_a_hardcoded_argument_is_caught(defect, expected):
-    """Perform the defect on a COPY of the run module's source — never on the
-    repo file, which would corrupt `inspect.getsource` for a concurrent run."""
-    with open(RUN_MODULE_PATH) as fh:
+    """Perform the defect on a COPY of the caller's source — never on the repo
+    file, which would corrupt `inspect.getsource` for a concurrent run."""
+    with open(CALLER_MODULE_PATH) as fh:
         source = fh.read()
     assert defect in source, "anchor moved — this mutation is no longer the defect"
     mutated = source.replace(defect, expected, 1)

@@ -25,7 +25,15 @@ from saas.reporting.annual_report import (
 )
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
-RUN_PHASE2B = REPO_ROOT / "simulation" / "run_phase2b.py"
+# THE PRODUCER MOVED, and these controls moved with it. Both structural controls
+# below have the RATE-CHAIN PRODUCER as their subject — the code that writes the
+# per-writer spans and the decomposition. KNIFE step 24 (register §3s) lifted the
+# whole chain out of the world's term loop into the supplier's own desk. Left
+# pointing at `run_phase2b.py` they would both pass on an absent producer: the
+# AST walk would find no `unit_rate_before` dicts to object to, and only the
+# cause-name control's string assertion would have caught it. A control whose
+# subject has left the file it names is fail-open, not green.
+RATE_CHAIN_PRODUCER = REPO_ROOT / "company" / "pricing" / "renewal_rate_chain.py"
 
 
 # ---------------------------------------------------------------- the span guard
@@ -193,27 +201,46 @@ def test_the_caption_states_which_span_the_delta_covers():
 
 
 def test_no_rate_log_reads_its_before_off_the_never_rebound_term():
-    """The defect's mechanism, structurally: `term["unit_rate_gbp_per_mwh"]` is bound once and
-    never rebound, so any writer reading its `unit_rate_before` from that subscript publishes a
-    span that starts before every earlier writer's move.
+    """The defect's mechanism, structurally: a writer's `unit_rate_before` must be the rate
+    ENTERING that writer, never the rate the term was struck at. Read it off the struck rate and
+    the published span starts before every earlier writer's move.
+
+    THE DEFECT CHANGED SHAPE WHEN THE PRODUCER MOVED, and this control changed with it. In the
+    world's loop the never-rebound source was the subscript `term["unit_rate_gbp_per_mwh"]`; in
+    the supplier's desk it is the parameter `struck_unit_rate_gbp_per_mwh` and the local
+    `rate_original` it is copied to. Keeping only the old spelling would have left a control that
+    cannot fail in the file it now names (R15) — so BOTH are named, and the vacuity guard below
+    asserts the detector has something to look at either way.
 
     Subject is the producer source, so this holds at HEAD without waiting for a sim run.
-    MUTATION: restore `"unit_rate_before": round(term["unit_rate_gbp_per_mwh"] or 0.0, 4)` in
-    `run_phase2b.py` and this fails. R15 FAIL-SILENT: an unparseable source fails, not skips.
+    MUTATION: set any writer's `"unit_rate_before"` to `round(rate_original, 4)` and this fails.
+    R15 FAIL-SILENT: an unparseable source fails, not skips.
     """
-    tree = ast.parse(RUN_PHASE2B.read_text())
+    NEVER_REBOUND = ("struck_unit_rate_gbp_per_mwh", "rate_original")
+
+    tree = ast.parse(RATE_CHAIN_PRODUCER.read_text())
     offenders = []
+    seen = 0
     for node in ast.walk(tree):
         if not isinstance(node, ast.Dict):
             continue
         for key, value in zip(node.keys, node.values):
             if not (isinstance(key, ast.Constant) and key.value == "unit_rate_before"):
                 continue
+            seen += 1
             src = ast.dump(value)
             if "'term'" in src and "unit_rate_gbp_per_mwh" in src:
-                offenders.append(f"line {getattr(value, 'lineno', '?')}")
+                offenders.append(f"line {getattr(value, 'lineno', '?')} (term subscript)")
+            elif any(f"'{name}'" in src for name in NEVER_REBOUND):
+                offenders.append(f"line {getattr(value, 'lineno', '?')} (struck rate)")
+    # VACUITY GUARD — a producer with no `unit_rate_before` at all would make the
+    # loop above pass over nothing, which is how this control fail-opens.
+    assert seen >= 3, (
+        f"found {seen} `unit_rate_before` spans in the producer, expected one per "
+        "logging writer — this control is examining the wrong file"
+    )
     assert not offenders, (
-        "a rate log takes its `unit_rate_before` from the never-rebound term dict "
+        "a rate log takes its `unit_rate_before` from a never-rebound source "
         f"instead of the rate entering that writer: {offenders}"
     )
 
@@ -221,10 +248,10 @@ def test_no_rate_log_reads_its_before_off_the_never_rebound_term():
 def test_every_rate_writer_contributes_a_named_cause_to_the_chain():
     """All four writers must appear in the decomposition, or the chain is not the whole move.
 
-    MUTATION: delete any one `rate_components.append` in `run_phase2b.py` and the missing cause
-    is named here. FAIL-CLOSED on a parse failure or a renamed cause.
+    MUTATION: delete any one `result.components.append` in the rate-chain producer and the
+    missing cause is named here. FAIL-CLOSED on a parse failure or a renamed cause.
     """
-    src = RUN_PHASE2B.read_text()
+    src = RATE_CHAIN_PRODUCER.read_text()
     for cause in ("portfolio_premium", "margin_surcharge", "profitability_uplift", "price_cap"):
         assert f'"cause": "{cause}"' in src, f"no chain component for {cause}"
-    assert "rate_decomposition_log.append(" in src
+    assert "result.decomposition = {" in src

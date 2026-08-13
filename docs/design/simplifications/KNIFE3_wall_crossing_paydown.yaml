@@ -82,101 +82,110 @@ map_records:
   - company/crm/customer_profitability.py
   - company/interfaces/customer_profitability.py
   - tests/company/interfaces/test_customer_profitability_seam.py
-  exit_evidence: 'STEP 22 (A_composition_lift, THE COMMERCIAL PAIR -- WHAT AN UNPROFITABLE CUSTOMER COSTS
-    AND WHAT THE BROKER WAS PAID), 2026-08-13 -- this atom is PARTIALLY built and must NOT be re-drawn
-    as if from zero. 2 EDGES CUT, 24 -> 22 LIVE (22 -> 20 direct; the 2 indirect deliberately UNMOVED
-    for the NINTH consecutive step, which is again the proof that a bridge route was not silently taken
-    instead). 91 ruled: cut 69, owed 22, grandfathered 0 -- verified by tools/wall_crossing_dispositions.py
-    rc=0 against THE WORKING TREE, not asserted. LEVEL DELIBERATELY STILL 0: 22 of 91 remain live, and
-    booking the target at three-quarters-paid is the false-completion class this project names explicitly;
-    do not bump level_target progress until owed=0. THIS COMMIT ALSO LANDS STEP 21, WHICH WAS NEVER COMMITTED.
-    Found by measurement, not by reading the record: step 21''s own exit_evidence (written 2026-08-13)
-    states it landed, and its five files -- company/crm/customer_experience_desk.py, company/interfaces/customer_experience.py,
-    tests/company/interfaces/test_customer_experience_seam.py, and the register/ratchet edits -- were
-    sitting UNTRACKED and UNSTAGED in the working tree at draw time. The record outran the code by one
-    full step. That is the class 0a of the register was written for (a `cut` is a claim about the REPO,
-    not about your desk), and it recurred anyway, from the INSIDE, one step after being restated -- which
-    is worth more than the fix: the close-time check tools/wall_crossing_dispositions.py --at-head EXISTS
-    and would have caught it, and nothing ran it. A HARNESS FINDING IS STAGED SEPARATELY: the step-close
-    procedure has no automated caller for the --at-head mode, so it fires only when a human remembers,
-    which is the fail-silent shape R15 names. WHAT WAS CUT IN STEP 22: run_phase2b.py''s LAST TWO company.crm.*
-    edges. (1) customer_profitability -- the WORLD was holding the supplier''s own pricing policy. Its
-    renewal loop carried `if (unit_rate is not None and term_index >= 1 and commodity == "electricity"
-    and term_tariff_type in ("fixed", "pass_through"))` and asked the company only for the NUMBER. Which
-    of its own products a supplier reprices for unprofitability -- renewals but not acquisitions, electricity
-    but not gas, fixed and pass-through but not deemed or flex -- is a pricing decision with a commercial
-    reason behind every arm, and the world had it only because an `if` was cheaper to write there than
-    a parameter was to design. Now renewal_unit_rate_uplift() holds all four arms with the two constants
-    they were always separated from, behind company/interfaces/customer_profitability.py, and returns
-    0.0 (never an exception) for every renewal the policy does not touch. (2) tpi_book -- the WORLD was
-    registering the supplier''s broker: it constructed TPIBook(), registered TPI-001 ''Standard Energy
-    Broker'' on the PREFERRED tier, on a volume basis, at GBP1.5/MWh, dated 2016-01-01, decided a deal
-    is one customer-year, chose the rounding and 1 January as the deal date, and then read the book''s
-    PRIVATE _deals list to publish a count -- a dependency across the wall on an internal the company
-    never published, the same shape step 17 found with the statutory tables. Now company/crm/tpi_commission_desk.py
-    holds all of it behind company/interfaces/tpi_commission.py; the world keeps the settled records and
-    its own I&C roster (segment == ''I&C'', computed world-side and handed over, exactly as step 18''s
-    ic_elec_roster). TWO DOORS, NOT ONE, AND THE GROUP TEST IS APPLIED AND FAILS -- that is the finding,
-    not a compromise. Every step since 15 has grouped its edges and written down why; step 18''s test
-    is the sharp one, DO THEY FEED ONE TOTAL. Here they do not: an uplift changes a unit rate inside the
-    renewal loop, per customer, per term, mid-run; broker commission is a channel cost booked once at
-    year end off the settled book. They share a package and a sentence and nothing a reader could check.
-    A CommercialDesk spanning both would be an object the business does not have, invented by a KNIFE
-    pass for its own convenience and inherited by every later reader. Step 16 recorded a group argument
-    as WEAKER than step 15''s rather than borrowing it; this is the same discipline reaching its other
-    end, where the honest answer is ''these are two things''. ONE NAME, ONE NUMBER -- A DEFECT REMOVED
-    ON THE WAY PAST, NOT INTRODUCED. The commission rate appeared TWICE as the literal 1.5: once in the
-    registration call, once independently in the published summary''s commission_rate_gbp_per_mwh. Anyone
-    checking the published headline against the charged rate was comparing a number to a second typing
-    of itself, and the two could drift with every test still green. The headline is now read off the registered
-    broker; control 3 mutation-proves it by moving the registered rate on a COPY of the desk and asserting
-    the headline moves with the commission -- against the pre-cut code that same mutation moved the commission
-    and left the headline at 1.5. _published_rate RAISES rather than averaging when a second volume-based
-    broker appears, because a single-rate headline is wrong for two brokers no matter where the number
-    came from; the silent mean is the fail-open version of the same fix. THE DEFECT THIS CUT INVITES --
-    FOUR BRANCHES BECAME FOUR FIELDS, FOR THE THIRD STEP RUNNING. Step 20 recorded ''the branch became
-    a field''; step 21 recorded it again as the instrument field; this is the third consecutive step,
-    and THE RECURRENCE IS THE FINDING: a composition lift converts control flow the caller could not fake
-    into data the caller supplies, every time, without exception. It is not hypothetical here -- in the
-    control fixture the same account''s GAS term is also net-negative, so a hardcoded commodity="electricity"
-    at the call site reprices a gas renewal and moves real money. Control 3 is an AST check over the REAL
-    call site (keyword-only, full argument set named, NO argument a Constant) with a vacuity guard on
-    the call count and two mutations performing the defect; a companion test asserts the gas arm would
-    actually change, so control 3 guards a number rather than a spelling. NO NUMBER MOVES, MEASURED NOT
-    ASSERTED. Both doors carry an identity control against the PRE-CUT sequence transcribed from run_phase2b.py
-    as it stood before this commit -- not from the module under test, which would be a mirror. For TPI
-    that is the whole published tpi_summary dict, KEYS AND ORDER included, because saas/reporting/annual_report.py
-    reads it. For the uplift it is a matrix over every eligibility arm (eligible fixed, eligible pass-through,
-    acquisition term, gas, deemed, flex, no locked rate, no tariff type at all), with test_the_matrix_is_not_degenerate
-    asserting DIRECTLY that the eligible arm returns NON-ZERO and each other arm zero, so no control here
-    can pass by comparing two zeroes. The TPI fixture contains a non-brokered domestic account and a brokered
-    account with a zero-volume year, both asserted present, and each of the two filters the caller can
-    no longer see is mutation-proven by deleting it on a copy of the desk. THE CONTROLS: tests/company/interfaces/test_tpi_commission_seam.py
-    (14 tests) and tests/company/interfaces/test_customer_profitability_seam.py (17 tests) -- 31 tests,
-    9 of them mutations that PERFORM the named defect (two lazy world imports on COPIES of the source,
-    never a repo file edited mid-pytest-run; the rate-drift mutation; the dropped roster filter; the dropped
-    volume filter; two hardcoded call-site arguments; three deleted eligibility gates). Both read-direction
-    controls are behavioural -- a clean interpreter is asked which world modules the import system actually
-    loaded -- not greps. THE PORTABILITY LAW BIT BACK AND THE FIX IS THE HONEST ONE: tests/architecture/test_market_at_the_seams.py
-    refused both doors on first run for re-exporting a GBP-per-MWh constant onto a seam surface (rule
-    2, a market-varying quantity baked into a seam). The constants were REMOVED from the doors rather
-    than the debt recorded: a supplier''s uplift amount and its broker rate are model parameters of ITS
-    market and belong inside company/crm/, which is the door''s whole point. Recorded because a green
-    run would have hidden that the law fired. WHAT DID NOT FALL: run_phase2b keeps 15 direct + 2 indirect
-    -- MEASURED with tools/epistemic_wall.live_crossings(), not carried forward. The trading desk (forward_book,
-    hedge_decision, hedge_policy), the pricing/regulatory group (tariff_engine, margin_feedback, ofgem_price_cap,
-    decision_policy) and the saas.* set (8): 3 + 4 + 8 = 15, arithmetic written out. THE CRM GROUP IS
-    NOW EMPTY -- steps 21 and 22 together took all six of this module''s company.crm.* edges. Beyond this
-    module: simulation.customer_events'' four edges (B2, a coupled-triad build, which that design block
-    explicitly forbids attempting as a mechanical move) and run_phase4c_on_phase2b''s dd_review_runner
-    routing residual (register 3h). STEP 17''S NAMED RESIDUAL IS STILL OPEN, repeated rather than dropped:
-    FITBook.levelisation_charge_gbp(year, total_mwh_supplied) is handed kWh and divides by 1000 internally
-    -- arithmetic right, naming wrong. NAMING debt on company/regulatory/fit_book.py, not a wall crossing.
-    STEP 20''S MASKING FINDING IS ALSO STILL OPEN: on the ACTIVE churn arm, bill_shock_count / behaviour_score
-    / satisfaction_score move the estimate by exactly nothing at a +33% rate rise because the two estimators
-    combine as max(rate, payment) and the rate arm dominates. That is a fidelity question the company''s
-    model owns; this step did not touch it, and a wall pass never moves a number in the same commit as
-    an import (B7). PRE-EXISTING RED, MEASURED AND NOT MINE: tests/architecture/test_static_quality_ratchet.py
-    is red at HEAD -- I001 counts 1381 in a git-archive export of HEAD against a baseline of 1379 frozen
-    2026-08-06. Per-file before/after over every modified path shows this step''s files contribute ZERO
-    I001 and the working tree is at 1380. Staged as a finding, not fixed on sight (SELF-INTERRUPT DISCIPLINE).'
+  - company/trading/hedge_desk.py
+  - company/interfaces/hedge_desk.py
+  - tests/company/interfaces/test_hedge_desk_seam.py
+  - company/pricing/renewal_rate_chain.py
+  - company/interfaces/renewal_rate_chain.py
+  - tests/company/interfaces/test_renewal_rate_chain_seam.py
+  exit_evidence: 'STEP 24 (A_composition_lift, THE RENEWAL RATE CHAIN -- EVERY WRITER THAT MOVES THE NUMBER, IN ORDER),
+    2026-08-13 -- this atom is PARTIALLY built and must NOT be re-drawn as if from zero. 3 EDGES CUT, 19 ->
+    16 LIVE (17 -> 14 direct; the 2 indirect deliberately UNMOVED for the ELEVENTH consecutive step, which
+    is again the proof that a bridge route was not silently taken instead). 91 ruled: cut 75, owed 16 (12 to
+    A_composition_lift, 4 to B2 -- COUNTED FROM THE REGISTER''S OWN ROWS, not carried forward, because a
+    step that subtracts from the previous one gets the split wrong; A''s 12 are
+    company.policy.decision_policy, the saas.* set of 8, the 2 indirect and run_phase4c_on_phase2b ->
+    company.billing.dd_review_runner), grandfathered 0 -- verified by tools/wall_crossing_dispositions.py
+    rc=0 against THE WORKING TREE, not asserted. LEVEL DELIBERATELY STILL 0: 16 of 91 remain live, and
+    booking the target at four-fifths-paid is the false-completion class this project names explicitly; do
+    not bump level_target progress until owed=0. WHAT WAS CUT: the pricing/regulatory group on run_phase2b
+    -- company.pricing.tariff_engine, company.pricing.margin_feedback, company.pricing.ofgem_price_cap.
+    Every step from 17 onward named this group as standing. THE GROUP TEST PASSED, and the total is the most
+    literal one yet: the unit rate the renewal is CONTRACTED at. The term is struck at a rate off the
+    supplier''s own forward view, the portfolio premium multiplies it, the recovery surcharge multiplies
+    that, the unprofitability uplift (behind its own door since step 22) adds to that, the cap clamps the
+    result. Five writers, one number, and the arithmetic is a CHAIN -- reorder any two and the answer
+    changes, a property three separate doors could not have. WHAT THE WORLD WAS DOING THAT IS NOT THE
+    WORLD''S: slicing the supplier''s own margin history to the supplier''s own lookback depth
+    (_portfolio_rates[-PORTFOLIO_PREMIUM_LOOKBACK:]); the recovery decision gated on term_index >= 1 typed
+    at two separate sites; and sharpest, the supplier''s READING of who the price cap binds (cid in
+    _RESI_CUSTOMER_IDS and term_tariff_type == fixed) -- the cap''s TEXT is a published commons both sides
+    may read under the regulation-commons doctrine, but WHICH of its own products a supplier believes the
+    cap binds is its own compliance reading and a real supplier gets fined for reading it wrong; the ORDER
+    of the four writers, four separate blocks in a 2,800-line function with nothing asserting the sequence;
+    the four publication records assembled inline; and _build_gas_renewal_schedule''s private
+    CompanyTariffEngine() running get_forward_price for gas while quote_renewal ran the IDENTICAL sequence
+    for electricity behind the B7 door. ONE DOOR FOR THE CHAIN AND A SECOND NARROWER ONE FOR THE FORWARD
+    ESTIMATE: company/interfaces/renewal_rate_chain.py takes the renewal and returns the contracted rate
+    with its decomposed spans; the gas forward estimate is answered by request_company_forward_estimate on
+    the EXISTING company/interfaces/renewal_offer.py, because the gas schedule builds the term itself and
+    needs only the one number that is the company''s -- routing it through request_renewal_offer would have
+    made the world accept an electricity-shaped offer object it does not use, which is how a door starts
+    lying about what crosses it. Both sides now call ONE estimate_forward_price in
+    company/pricing/renewal_desk.py; the engine is a module-level singleton where the world held a per-call
+    instance, and CompanyTariffEngine declares no __init__ and no instance state, so sharing it changes no
+    answer -- CHECKED, not assumed, because a stateful engine shared across customers would have been a leak
+    between them. NO NUMBER MOVES, MEASURED NOT ASSERTED: _drive_pre_cut is the term loop transcribed from
+    simulation/run_phase2b.py as it stood at 42a37c640 -- the world file BEFORE the cut -- never from the
+    module under test, which would be a mirror (R15 tautology). The comparison is the WHOLE result (rate,
+    spans, all four log records, keys and order included) over the reference renewal AND over nine excluded
+    cases: no locked rate, first term, non-domestic, pass-through, empty margin history, no prior term, gas,
+    no settled book, and a term outside every cap window. Identity is claimed for the renewals that DO NOT
+    fire as well as the one that does, because an eligibility rule copied slightly wrong shows up nowhere
+    else. THE DEFECT THIS CUT REMOVES -- THE ORDER WAS INVISIBLE AND IS NOW A SIGNATURE: the cap is the last
+    writer and the only one that can move a rate DOWN, and the uplift adds 5 GBP/MWh immediately before it.
+    Nothing in the pre-cut code said so and nothing could have caught the two being swapped -- a supplier
+    adding to a domestic fixed renewal AFTER clamping it is charging above the cap. The control performs
+    exactly that reorder on a copy of the desk (a pure move of the uplift block, no expression changed) and
+    asserts both that the answer moves AND that the reordered chain BREACHES the published cap, so it fails
+    on the consequence rather than merely on a different number. THE DEFECT THIS CUT INVITES, for the FIFTH
+    step running: four eligibility rules the caller can no longer see, each asserted against a case
+    containing the thing excluded and mutation-proven by deleting the guard on a copy of the desk -- the
+    cap''s domestic-AND-fixed test, the first-term guard shared by the premium and the surcharge, the no-
+    locked-rate case, and None-versus-0.0 for a prior term (absence of a completed term is not a term that
+    broke even; the call site passes prev_term_margin.get(cid) where the pre-cut code tested membership, and
+    the two agree because every value written to that dict is a float at one site). THREE CONTROLS HAD THIS
+    MODULE AS THEIR SUBJECT AND MOVED WITH IT, relocated not deleted: test_customer_profitability_seam''s
+    control 3 followed the uplift CALL SITE into company/pricing/renewal_rate_chain.py (left pointing at
+    run_phase2b.py it would have failed OPEN on an absent call, caught only by its own vacuity guard);
+    test_intra_year_cap_window''s class control now names renewal_rate_chain.py as the clamp site (dropping
+    it would have shrunk the class silently); and test_hedge_desk_seam''s control-3 mutation used a
+    POSITIONAL source.replace(commodity=gas, ..., 1) whose subject is the file''s line order rather than the
+    call it names -- step 24''s gas ask sits above the hedge call, so the mutation silently landed on an
+    unrelated call and the control could no longer fire. It is now anchored on the decide-call''s own
+    indentation with an assertion that the anchor is unique. THE CONTROLS:
+    tests/company/interfaces/test_renewal_rate_chain_seam.py, 24 tests of which 4 are MUTATIONS THAT PERFORM
+    the named defect (a lazy world import on a COPY of the source overlaid on sys.path, never a repo file
+    edited mid-pytest-run; the chain reordered so the uplift escapes the cap; the cap eligibility rule
+    widened; the first-term guard dropped). The read-direction control is BEHAVIOURAL -- a clean interpreter
+    is asked which world modules the import system actually loaded after the door is exercised -- not a
+    grep. Two further controls hold the door''s SURFACE: nothing but the decision and its result is
+    reachable through it, and no desk=/engine=/policy= convenience argument exists, which would restore the
+    removed dependency WITHOUT creating a single wall edge because the import would still terminate on the
+    exempt seam package. VACUITY IS ASSERTED, NOT LEFT TO THE READER: the reference renewal fires all four
+    writers in order and its term start falls inside a published cap window -- without the first the
+    identity comparison would be two empties, without the second both cap controls would compare None to
+    None. It is a domestic fixed electricity account on its third term, on a book that has been under-
+    earning, whose previous term lost the supplier money, renewing on 2021-06-01 where the published cap is
+    189.50 GBP/MWh: struck at 200 and contracted at the cap. TWO SAME-CHANGE REGISTER RULES HONOURED:
+    docs/design/PORTABILITY_DEBT.md''s baseline is an ALLOWLIST that fails on a NEW breach, so the two
+    renewal doors'' *_gbp field names are RECORDED in it in this change (renewal_offer.py 3 -> 6,
+    renewal_rate_chain.py 9 as a new row) rather than renamed -- remediation-on-touch is the doctrine and
+    sweeping currency out of field names is a Money type, not a wall pass; and
+    tests/architecture/test_static_quality_ratchet.py''s isort floor moves DOWN 1379 -> 1378 (total 2403 ->
+    2402) because run_phase2b.py lost three imports and gained two and the block came back sorted. WHAT DID
+    NOT FALL: run_phase2b keeps 9 direct + 2 indirect -- MEASURED with tools/knife_hotspot_measure.py, not
+    carried forward. company.policy.decision_policy and the saas.* set (8): 1 + 8 = 9, arithmetic written
+    out. decision_policy was NOT taken with this group and the group test is why -- it is the nudge/framing
+    policy scope threaded through the whole run, not a writer on the renewal rate, and folding it in would
+    have named a desk over two objects the business does not have as one. Beyond this module:
+    simulation.customer_events'' four edges (B2, a coupled-triad build, which that design block explicitly
+    forbids attempting as a mechanical move) and run_phase4c_on_phase2b''s dd_review_runner routing residual
+    (register 3h). B7''S COLD-START LEAK IS NOW TWO CALLERS WIDE and is named rather than smoothed over: the
+    world still hands a fallback forward price to the desk for the case where the supplier''s notice-date
+    lookback window is empty, for BOTH commodities now. A supplier''s cold-start rule should be its own;
+    this step did not make it worse and did not repair it, and it stays owed in register 3a. STEP 17''S
+    NAMED RESIDUAL IS STILL OPEN: FITBook.levelisation_charge_gbp(year, total_mwh_supplied) is handed kWh
+    and divides by 1000 internally -- NAMING debt on company/regulatory/fit_book.py, not a wall crossing.
+    STEP 20''S MASKING FINDING IS ALSO STILL OPEN. Live state:
+    docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md section 3s.'
