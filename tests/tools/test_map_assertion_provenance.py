@@ -852,3 +852,247 @@ def test_a_brand_new_uncommitted_file_is_reported_as_absent_at_HEAD_end_to_end(r
     assert "tools/brand_new.py" in findings[0]
     assert "does not exist at HEAD at all" in findings[0]
     assert mp._head_text("tools/brand_new.py", repo) is None
+
+
+# --- D43: whose atom did that Hour build? (H27 Expert Hour #26) -------------
+#
+# D42 asks whether an Hour's work is COMMITTED. These ask one step earlier:
+# whether what it committed is inside the subject the map says its atom is
+# about. Both halves of the question have their own rule and the asymmetry is
+# load-bearing -- coverage is prefix-aware (a directory scope really does put
+# the file under that cell's clocks), attribution is not (a directory claim is
+# DIRECTORY_SCOPE, "ownership unarbitrable", this module's own word for it).
+
+def _subject_rows(labels: dict, scopes: dict) -> dict:
+    """labels: {path: [(QUALIFIER, ordinal), ...]}; scopes: {atom_id: [paths]}."""
+    return {"labels": [{"path": p, "labels": sorted(v)} for p, v in sorted(labels.items())],
+            "scopes": scopes}
+
+
+def test_an_hour_landing_outside_its_own_cells_scope_FIRES():
+    """The witnessed shape: Hours #22 and #25 are recorded against H27 and built
+    AO11's module, which H27 does not declare and AO11 was never told about."""
+    findings = mp.hour_subject_findings(_subject_rows(
+        {"tools/map_assertion_provenance.py": [("H27", 25)]},
+        {"H27_payment_belief_gap": ["tools/couple_w2_11_d5.py"],
+         "AO11_map_assertion_provenance": ["tools/map_assertion_provenance.py"]}))
+    assert len(findings) == 1
+    assert mp.OFF_SCOPE in findings[0] and mp.FOREIGN_SCOPE in findings[0]
+    assert "AO11_map_assertion_provenance" in findings[0]
+    assert "#25" in findings[0]
+
+
+def test_an_hour_inside_its_own_cells_scope_is_silent():
+    """NOT ALWAYS-RED: the ordinary case -- an Hour that built its own subject."""
+    assert mp.hour_subject_findings(_subject_rows(
+        {"tools/couple_w2_11_d5.py": [("H27", 24)]},
+        {"H27_payment_belief_gap": ["tools/couple_w2_11_d5.py"]})) == []
+
+
+def test_a_directory_scope_COVERS_its_own_files_for_the_on_subject_question():
+    """`file_scope` mixes granularities: ~20 live cells scope bare `tools`. An
+    Hour landing inside a directory its own cell declares IS on subject, and its
+    assertion clock really does see the change."""
+    assert mp.hour_subject_findings(_subject_rows(
+        {"tools/anything.py": [("A8", 3)]},
+        {"A8_experiment_loop_speed": ["tools", "background"]})) == []
+
+
+def test_a_directory_claim_never_NAMES_the_wronged_owner():
+    """WRONG POPULATION (R15): a finding with twenty owners has none. Only a cell
+    naming the FILE is reported as the party that was not told."""
+    findings = mp.hour_subject_findings(_subject_rows(
+        {"tools/map_assertion_provenance.py": [("H27", 25)]},
+        {"H27_payment_belief_gap": ["tools/couple_w2_11_d5.py"],
+         "AO11_map_assertion_provenance": ["tools/map_assertion_provenance.py"],
+         "A8_experiment_loop_speed": ["tools", "background", "tests"],
+         "G11_activity_cost_utilisation": ["background", "tools", "site"]}))
+    assert len(findings) == 1
+    assert "AO11_map_assertion_provenance" in findings[0]
+    assert "A8_experiment_loop_speed" not in findings[0]
+    assert "G11_activity_cost_utilisation" not in findings[0]
+
+
+def test_a_path_no_cell_names_says_so_rather_than_inventing_an_owner():
+    findings = mp.hour_subject_findings(_subject_rows(
+        {"tools/orphan.py": [("H27", 9)]},
+        {"H27_payment_belief_gap": ["tools/couple_w2_11_d5.py"]}))
+    assert len(findings) == 1
+    assert mp.FOREIGN_SCOPE not in findings[0]
+    assert "No map cell names that path as its own." in findings[0]
+
+
+def test_an_ordinary_word_before_the_label_is_not_an_atom():
+    """WRONG SUBJECT, and a defect in this check's own first live run: the
+    convention's regex takes whatever word precedes "Expert Hour", so prose --
+    "...landed AFTER Expert Hour #18", "the CELL Expert Hour #15 built" --
+    parsed as a qualifier and invented seven findings against atoms that have
+    never existed. A qualifier counts only if it names a map cell, and that
+    filter is DERIVED FROM THE MAP rather than a stopword list."""
+    scopes = {"H27_payment_belief_gap": ["tools/couple_w2_11_d5.py"]}
+    for word in ("AFTER", "UNTIL", "CELL", "HOLE", "ASYMMETRY"):
+        with pytest.raises(ValueError, match="VACUITY"):
+            mp.hour_subject_findings(_subject_rows(
+                {"tools/somewhere_else.py": [(word, 18)]}, scopes))
+
+
+def test_a_real_label_beside_prose_is_still_read():
+    """The filter must not go INERT: prose is dropped, the atom label survives."""
+    findings = mp.hour_subject_findings(_subject_rows(
+        {"tools/map_assertion_provenance.py": [("AFTER", 18), ("H27", 22)]},
+        {"H27_payment_belief_gap": ["tools/couple_w2_11_d5.py"],
+         "AO11_map_assertion_provenance": ["tools/map_assertion_provenance.py"]}))
+    assert len(findings) == 1
+    assert "H27" in findings[0] and "AFTER" not in findings[0]
+
+
+def test_an_ambiguous_qualifier_is_on_subject_when_EITHER_cell_declares_it():
+    """D42's first-run defect in the opposite direction. Two live cells begin
+    `H27`; an ambiguous label must never MANUFACTURE a finding.
+
+    BOTH ORDERS, and the second one survived a mutation before it existed:
+    `_candidates` sorts, and the live pair happens to put the DECLARING cell
+    first (`H27_payment_belief_gap` < `H27_phone_act_channel`), so resolving
+    the ambiguity to `owners[0]` was indistinguishable from resolving it
+    honestly. A control certified only on the alphabetical luck of today's map
+    is testing the map, not the rule."""
+    for declarer, other in (("H27_a_declaring_cell", "H27_zz_other_cell"),
+                            ("H27_zz_declaring_cell", "H27_aa_other_cell")):
+        assert mp.hour_subject_findings(_subject_rows(
+            {"tools/couple_w2_11_d5.py": [("H27", 24)]},
+            {declarer: ["tools/couple_w2_11_d5.py"], other: []})) == [], declarer
+
+
+def test_an_ambiguous_qualifier_that_is_off_subject_for_BOTH_still_fires():
+    findings = mp.hour_subject_findings(_subject_rows(
+        {"tools/map_assertion_provenance.py": [("H27", 22)]},
+        {"H27_payment_belief_gap": ["tools/couple_w2_11_d5.py"],
+         "H27_phone_act_channel": [],
+         "AO11_map_assertion_provenance": ["tools/map_assertion_provenance.py"]}))
+    assert len(findings) == 1
+    assert "AMBIGUOUS" in findings[0]
+    assert "H27_payment_belief_gap" in findings[0] and "H27_phone_act_channel" in findings[0]
+
+
+def test_MUTATION_no_label_parsing_RAISES_rather_than_reading_clean():
+    """FAIL-SILENT (R15): a convention that drifted off atom ids is an
+    unavailable check, and an unavailable check is a FAILED check."""
+    with pytest.raises(ValueError, match="VACUITY"):
+        mp.hour_subject_findings(_subject_rows(
+            {}, {"H27_payment_belief_gap": ["tools/couple_w2_11_d5.py"]}))
+
+
+def test_an_empty_map_side_RAISES_rather_than_reporting_everything_off_subject():
+    """FAIL-OPEN ON MISSING, in the direction that COSTS: with no scopes at all
+    every label reads off-subject, which is the loudest possible report handed
+    out for free. "Nothing is off subject" and "I could not read the map" are
+    the same silence and opposite facts.
+
+    IT MATCHES THE MAP-SIDE MESSAGE, not the word VACUITY, and this survived a
+    mutation before it did: with no scopes, no qualifier resolves to a cell, so
+    every label is dropped and the LABEL floor raises anyway -- deleting the map
+    guard outright left the suite green. A test that accepts either guard's
+    refusal is testing that something refused, not that this one did."""
+    with pytest.raises(ValueError, match="subject side of this check is empty"):
+        mp.hour_subject_findings(_subject_rows(
+            {"tools/couple_w2_11_d5.py": [("H27", 24)]}, {}))
+
+
+def test_hours_on_subject_counts_only_hours_that_reached_a_declared_file():
+    rows = _subject_rows(
+        {"tools/couple_w2_11_d5.py": [("H27", 24)],
+         "tools/map_assertion_provenance.py": [("H27", 25)]},
+        {"H27_payment_belief_gap": ["tools/couple_w2_11_d5.py"],
+         "AO11_map_assertion_provenance": ["tools/map_assertion_provenance.py"]})
+    assert mp.hours_on_subject("H27_payment_belief_gap", rows) == {24}
+    assert mp.hours_on_subject("AO11_map_assertion_provenance", rows) == set()
+
+
+def test_hours_on_subject_REFUSES_a_cell_the_map_does_not_carry():
+    """FAIL-OPEN (R15): a typo'd id must not report zero Hours on subject, which
+    reads as the strongest possible finding about a real cell."""
+    with pytest.raises(KeyError):
+        mp.hours_on_subject("H27_typo", _subject_rows(
+            {"tools/couple_w2_11_d5.py": [("H27", 24)]},
+            {"H27_payment_belief_gap": ["tools/couple_w2_11_d5.py"]}))
+
+
+def test_the_working_tree_side_is_not_this_checks_subject(repo: Path):
+    """Two adjacent questions kept apart on purpose: an Hour mid-flight (D42's
+    subject) must not read as an Hour that built the wrong thing."""
+    (repo / "tools").mkdir()
+    (repo / "tools" / "couple.py").write_text("# %s\n" % _label("H27", 24), encoding="utf-8")
+    _write_map(repo, [_atom("H27_payment_belief_gap", 2, ["tools/couple.py"])])
+    _commit(repo, EARLY)
+    (repo / "tools" / "elsewhere.py").write_text("# %s\n" % _label("H27", 26), encoding="utf-8")
+    _git(repo, "add", "-A")
+
+    atoms = mp._map_atoms(repo)
+    rows = mp.hour_subject_rows(atoms, repo=repo)
+    assert [e["path"] for e in rows["labels"]] == ["tools/couple.py"]
+    assert mp.hour_subject_findings(rows) == []
+
+
+def test_the_end_to_end_check_fires_on_a_real_repo_with_real_committed_work(repo: Path):
+    """The whole path -- git grep, git show, label parse, map read -- on a repo
+    whose HEAD really does carry an Hour outside its own cell's scope."""
+    (repo / "tools").mkdir()
+    (repo / "tools" / "couple.py").write_text("# %s\n" % _label("H27", 24), encoding="utf-8")
+    (repo / "tools" / "other.py").write_text("# %s\n" % _label("H27", 25), encoding="utf-8")
+    _write_map(repo, [_atom("H27_payment_belief_gap", 2, ["tools/couple.py"]),
+                      _atom("AO11_map_assertion_provenance", 2, ["tools/other.py"])])
+    _commit(repo, EARLY)
+
+    atoms = mp._map_atoms(repo)
+    rows = mp.hour_subject_rows(atoms, repo=repo)
+    findings = mp.hour_subject_findings(rows)
+    assert len(findings) == 1
+    assert "tools/other.py" in findings[0] and "#25" in findings[0]
+    assert "AO11_map_assertion_provenance" in findings[0]
+    assert mp.hours_on_subject("H27_payment_belief_gap", rows) == {24}
+
+
+def test_off_subject_work_reaches_the_CLI_under_its_OWN_exit_code(monkeypatch, capsys):
+    """Own exit code 4 -- D42's precedent. Off-subject work is a REPORT to the
+    next draw and to the cell that owns the file, never a repo-wide refusal: the
+    honest case (a defect found here really does live there) must not wedge
+    every lane. 2 stays COULD-NOT-RUN."""
+    monkeypatch.setattr(mp, "hour_subject_rows", lambda atoms, repo=None: _subject_rows(
+        {"tools/map_assertion_provenance.py": [("H27", 25)]},
+        {"H27_payment_belief_gap": ["tools/couple_w2_11_d5.py"],
+         "AO11_map_assertion_provenance": ["tools/map_assertion_provenance.py"]}))
+    assert mp.main(["--hour-subject"]) == 4
+    assert mp.OFF_SCOPE in capsys.readouterr().err
+
+    monkeypatch.setattr(mp, "hour_subject_rows", lambda atoms, repo=None: _subject_rows(
+        {"tools/couple_w2_11_d5.py": [("H27", 24)]},
+        {"H27_payment_belief_gap": ["tools/couple_w2_11_d5.py"]}))
+    assert mp.main(["--hour-subject"]) == 0
+
+
+def test_the_CLI_refuses_rather_than_passing_when_the_subject_check_is_unavailable(
+        monkeypatch, capsys):
+    def _boom(atoms, repo=None):
+        raise RuntimeError("git grep failed")
+
+    monkeypatch.setattr(mp, "hour_subject_rows", _boom)
+    assert mp.main(["--hour-subject"]) == 2
+    assert "COULD NOT RUN" in capsys.readouterr().err
+
+
+def test_the_live_repo_names_the_off_subject_hours_this_atom_actually_ran():
+    """Proven on the REAL bytes, not a fixture -- the measurement Hour #26 was
+    drawn to make. Every H27 finding names a real cell that owns the file, and
+    the on-subject count is strictly below the highest ordinal the register
+    carries, which is the whole finding: the number answering the 2->3 draw is
+    not a count of examinations of this atom."""
+    atoms = mp._map_atoms()
+    rows = mp.hour_subject_rows(atoms)
+    findings = mp.hour_subject_findings(rows)
+    assert all(f.startswith(mp.OFF_SCOPE) for f in findings)
+    h27 = [f for f in findings if f.startswith("%s: H27 " % mp.OFF_SCOPE)]
+    assert h27, "the atom whose Hours this check was built from must still be visible"
+    assert any("AO11_map_assertion_provenance" in f for f in h27)
+    on = mp.hours_on_subject("H27_payment_belief_gap", rows)
+    assert on and max(on) >= 24
+    assert len(on) < max(on) - 1, "some recorded Hour left no mark on this cell's own files"

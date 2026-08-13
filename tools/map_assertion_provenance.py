@@ -895,6 +895,200 @@ def unlanded_hour_atoms(atoms: list[dict], repo: Path | None = None,
     return {"code": code, "records": records}
 
 
+# ---------------------------------------------------------------------------
+# WHOSE ATOM DID THAT HOUR BUILD?  (H27 Expert Hour #26, atom D43)
+#
+# AND THIS BLOCK IS ITSELF AN INSTANCE: H27 does not declare this file, AO11
+# does, so once this Hour lands the check names its own Hour #26 alongside #22
+# and #25. It is left standing rather than exempted -- an author who excuses
+# their own instance has built a rule for other people. AO11's own register
+# carries the notification, which is the remedy the FOREIGN_SCOPE half asks
+# for. The two checks hand off cleanly, which is why their subjects are kept
+# apart: while this Hour was uncommitted D42's `--unlanded` named it in both
+# files, and D43 was silent about it; after the commit that reverses.
+#
+# D42 asks whether an Hour's work is COMMITTED. This asks a question one step
+# earlier and nobody has asked at all: whether the work an Hour committed is
+# inside the SUBJECT the map says that Hour's atom is about.
+#
+# The map already states the contract -- `file_scope` is the field every
+# provenance control in this repo reads as "what this cell is about":
+# `build_rows`/`_classify` date the assertion from it, and
+# `supervisor._file_scope_sha` decides from it whether a harden cooldown
+# re-offers the atom. So an Hour that lands OUTSIDE its atom's declared scope
+# is invisible twice over -- the atom's own clocks cannot see the work done
+# under its name, and the atom that DOES declare the file is never told its
+# subject moved.
+#
+# Measured at HEAD on 2026-08-13: H27's Hours carry labels on eight distinct
+# code files and H27 declares two of them. The other six are each declared by
+# a DIFFERENT cell -- `background/gap_metric.py` (seven D-atoms), the Proof
+# door pair (D9), this module and its test (AO11), the wall ratchet test
+# (KNIFE3) -- and the two most recent landed Hours (#22, #25) built AO11's
+# module outright while writing "the level stays 2" into H27's register.
+#
+# This REPORTS; it does not refuse. Off-subject work is often the right work
+# (a defect found here may genuinely live there), and a repo-wide refusal
+# would punish the honest case. What is not optional is that somebody knows.
+# Own flag, own exit code 4, deliberately outside the shared findings list --
+# D42's precedent, and for the same reason.
+
+OFF_SCOPE = "HOUR_OFF_SCOPE"          # an Hour landed outside its own atom's declared scope
+FOREIGN_SCOPE = "HOUR_BUILT_FOREIGN_SCOPE"  # ... and the file belongs to a cell never told
+
+# Vacuity floor: below this many (path, label) pairs the labelling convention
+# has moved and this check is unavailable, which is a FAILED check (R15).
+HOUR_SUBJECT_FLOOR = 1
+
+
+def _scope_covers(scope: list[str], path: str) -> bool:
+    """Does a declared `file_scope` cover this path?
+
+    Prefix-aware because `file_scope` MIXES GRANULARITIES -- some cells name a
+    file, some a directory (`supervisor._overlaps_unmerged_work` handles the
+    same mixture for the same reason). Exact-match only would report every
+    directory-scoped atom's own Hours as off-subject: a manufactured finding,
+    which is the false-positive half of R15's wrong-population family.
+    """
+    for entry in scope:
+        if not entry:
+            continue
+        if path == entry or path.startswith(entry.rstrip("/") + "/"):
+            return True
+    return False
+
+
+def _scope_names_file(scope: list[str], path: str) -> bool:
+    """Does a declared scope name this path AS A FILE?
+
+    Deliberately NOT `_scope_covers`, and the asymmetry is the point. Whether
+    an Hour is on its own atom's subject is a question about that atom's
+    CLOCKS, and a directory scope really does put the file under them -- so
+    coverage is prefix-aware there. Whether some OTHER cell owns the file is a
+    question about ATTRIBUTION, and this module already has a name for what a
+    directory claim does to attribution: DIRECTORY_SCOPE, "ownership
+    unarbitrable". Twenty-odd cells scope bare `tools`/`background`/`tests`, so
+    letting a directory claim name an owner reported every one of them as the
+    wronged party -- a finding with twenty owners has none.
+    """
+    return any(entry and path == entry for entry in scope)
+
+
+def hour_subject_rows(atoms: list[dict], repo: Path | None = None) -> dict:
+    """Build `hour_subject_findings` input from HEAD and from the map.
+
+    Two independent readers: the labels come off the COMMITTED bytes of the
+    code, the scopes off the map's own cells. Reading the labels from the map
+    (or the scopes from the code) would be the tautology R15 names -- both
+    sides one source, unable to disagree.
+
+    The subject here is HEAD, not the working tree: D42 owns the
+    written-but-not-landed direction, and folding the two would make an Hour
+    mid-flight indistinguishable from an Hour that built the wrong thing.
+    """
+    repo = repo or REPO
+    labels = []
+    for path in _labelled_code_paths(repo):
+        head = _head_text(path, repo)
+        if head is None:            # only in the working tree: D42's question, not this one
+            continue
+        found = qualified_hour_labels(head)
+        if found:
+            labels.append({"path": path, "labels": sorted(found)})
+    scopes = {a["id"]: _scope_paths(a) for a in atoms if a.get("id")}
+    return {"labels": labels, "scopes": scopes}
+
+
+def hour_subject_findings(rows: dict) -> list[str]:
+    """Findings for Hour work committed outside its own atom's declared scope.
+
+    RAISES rather than returning clean when no label parses, or when the map
+    side is empty: "there is nothing off-subject" and "I could not look" are
+    the same silence and opposite facts, and an unavailable check is a FAILED
+    check.
+    """
+    scopes = rows.get("scopes") or {}
+    if not scopes:
+        raise ValueError(
+            "VACUITY: not one map cell supplied a file_scope -- the subject side of this "
+            "check is empty, so every label would read off-subject. An unavailable check "
+            "is a FAILED check, not a clean one")
+    parsed = 0
+    findings: list[str] = []
+    for entry in rows.get("labels") or []:
+        path = entry.get("path") or ""
+        for qualifier, ordinal in entry.get("labels") or []:
+            owners = _candidates(qualifier, scopes)
+            # A qualifier that names NO map cell is not an atom label. The
+            # convention's regex takes whatever word precedes "Expert Hour",
+            # so ordinary prose -- "...landed AFTER Expert Hour #18", "the
+            # CELL Expert Hour #15 built" -- parses as a qualifier and would
+            # invent seven findings against atoms that have never existed.
+            # The filter is DERIVED FROM THE MAP, never a stopword list: an
+            # atom qualifier names a cell by definition, and a genuinely
+            # misspelt one is D42's `no map cell carries this id` question,
+            # not this one. The vacuity floor below counts only what survives
+            # here, so a convention that drifted away from atom ids fails the
+            # check rather than passing it empty.
+            if not owners:
+                continue
+            parsed += 1
+            # ON-SUBJECT if ANY cell the label could name covers this path.
+            # An ambiguous qualifier is never allowed to MANUFACTURE a finding
+            # (D42's own first-run defect, in the opposite direction): the
+            # label is the subject, and attribution stays a courtesy.
+            if any(_scope_covers(scopes.get(o) or [], path) for o in owners):
+                continue
+            declarers = sorted(a for a, s in scopes.items()
+                               if a not in owners and _scope_names_file(s, path))
+            findings.append(
+                "%s: %s Hour #%d landed in %s, which no cell named by this label declares. "
+                "That work is outside every clock this cell has -- its assertion date and "
+                "its harden cooldown both read file_scope -- so an Hour recorded against it "
+                "moved nothing it declares. %s (%s)"
+                % (OFF_SCOPE, qualifier, ordinal, path,
+                   ("%s: %s names that path as its own and carries no record of the Hour."
+                    % (FOREIGN_SCOPE, ", ".join(declarers))) if declarers
+                   else "No map cell names that path as its own.",
+                   "map cell: %s" % owners[0] if len(owners) == 1
+                   else ("AMBIGUOUS -- this qualifier names %d cells: %s"
+                         % (len(owners), ", ".join(owners)))))
+    if parsed < HOUR_SUBJECT_FLOOR:
+        raise ValueError(
+            "VACUITY: not one Expert-Hour label parsed across %d committed code file(s) -- "
+            "the convention has moved and this check is unavailable, which is a FAILED "
+            "check, not a clean one" % len(rows.get("labels") or []))
+    return findings
+
+
+def hours_on_subject(atom_id: str, rows: dict) -> set[int]:
+    """The ordinals of this cell's Hours that reached a file it DECLARES.
+
+    This is the number a promoter should read beside the highest ordinal the
+    register carries. "Twenty-five Hours" answers how many times the atom was
+    drawn; this answers how many of them left a mark on its subject, and on
+    2026-08-13 those were different numbers.
+
+    AN UPPER BOUND, stated rather than implied: a string check cannot tell a
+    LANDING from a REFERENCE, so an ordinal that appears only because a later
+    Hour cited it counts here. That makes the useful direction the complement
+    -- an Hour absent from this set left no trace in the cell's own files at
+    all, and no reading of the label can rescue it.
+    """
+    scope = (rows.get("scopes") or {}).get(atom_id)
+    if scope is None:
+        raise KeyError("no map cell %r -- refusing to report a count for a cell that does "
+                       "not exist, which would read as zero Hours on subject" % atom_id)
+    on: set[int] = set()
+    for entry in rows.get("labels") or []:
+        if not _scope_covers(scope, entry.get("path") or ""):
+            continue
+        for qualifier, ordinal in entry.get("labels") or []:
+            if atom_id.upper().startswith(qualifier):
+                on.add(ordinal)
+    return on
+
+
 def record_verification(atom_id: str, note: str, repo: Path | None = None,
                         now: float | None = None) -> dict:
     """Append one verification to the ledger. Append-only, never rewritten."""
@@ -949,6 +1143,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--check", action="store_true", help="integrity only, no rows")
     ap.add_argument("--unlanded", action="store_true",
                     help="Hour work written in the working tree and not committed (D42)")
+    ap.add_argument("--hour-subject", action="store_true",
+                    help="Hour work committed outside its own atom's declared scope (D43)")
+    ap.add_argument("--on-subject", metavar="ID",
+                    help="how many of this cell's Hours reached a file it declares (D43)")
     ap.add_argument("--limit", type=int, default=40)
     args = ap.parse_args(argv)
 
@@ -982,6 +1180,33 @@ def main(argv: list[str] | None = None) -> int:
         for f in findings:
             print("  " + f, file=sys.stderr)
         return 3
+
+    if args.hour_subject or args.on_subject:
+        # Its OWN exit code, on D42's precedent: off-subject Hour work is a
+        # REPORT to the next draw and to the cell that owns the file, never a
+        # repo-wide refusal -- the honest case (a defect found here really does
+        # live there) must not wedge every lane. 2 stays "could not run".
+        try:
+            cells = _map_atoms()
+            rows = hour_subject_rows(cells)
+            if args.on_subject:
+                on = hours_on_subject(args.on_subject, rows)
+                print("%s: %d Hour(s) reached a file this cell declares%s"
+                      % (args.on_subject, len(on),
+                         (" -- %s" % ", ".join("#%d" % n for n in sorted(on))) if on else ""))
+                return 0
+            findings = hour_subject_findings(rows)
+        except Exception as exc:
+            print("HOUR SUBJECT: COULD NOT RUN -- %s" % exc, file=sys.stderr)
+            return 2
+        if not findings:
+            print("HOUR SUBJECT: none -- every committed Hour label sits in its own cell's scope")
+            return 0
+        print("HOUR SUBJECT: %d finding(s) -- Hour work landed outside its own cell's scope:"
+              % len(findings), file=sys.stderr)
+        for f in findings:
+            print("  " + f, file=sys.stderr)
+        return 4
 
     try:
         rows = build_rows()

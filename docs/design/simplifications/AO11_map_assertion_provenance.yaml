@@ -1,4 +1,22 @@
 atom_id: AO11_map_assertion_provenance
+simplifications:
+- 'NOTIFICATION, NOT THIS CELL''S OWN HOUR (2026-08-13, worker tick running H27 Expert Hour
+  #26). THREE EXPERT HOURS HAVE NOW REWRITTEN THIS CELL''S OWN MODULE AND EVERY ONE OF THEM
+  WAS RECORDED SOMEWHERE ELSE. H27 Hours #22 (D41, `hold_record_findings`), #25 (D42,
+  `unlanded_hour_findings`) and #26 (D43, `hour_subject_findings` -- the check that found
+  this out) all landed in `tools/map_assertion_provenance.py` and `tests/tools/test_map_assertion_provenance.py`,
+  which AO11 declares as its `file_scope` and H27 does not. Each wrote "the level stays 2"
+  into H27''s register; none of them wrote anything here, so AO11''s own provenance row read
+  STALE with no cell claiming the move and AO11''s harden cooldown -- which hashes exactly this
+  file_scope -- was re-armed three times by work nobody attributed to it. This entry is the
+  remedy the FOREIGN_SCOPE half of the new finding asks for, written by hand this once so the
+  class is visible; the general question (should the check WRITE this, or only report it) is
+  queued, not built. WHAT LANDED IN THIS CELL''S SCOPE, so a later reader of AO11 knows what
+  its module now does: `hour_subject_findings` / `hour_subject_rows` / `hours_on_subject`,
+  `--hour-subject` and `--on-subject` on the CLI under their own exit code 4, 18 new tests,
+  ten R15 mutations each firing a named test, 77 green unmutated. NO EXISTING AO11 BEHAVIOUR
+  CHANGED: `build_rows`, `_classify`, the three clocks and the ledger are byte-identical --
+  this is additive, which is this cell''s own stated design rule.'
 map_notes:
   origin_note: 'This is the STALE-CELL CLASS, not a tidy-up -- the addendum''s own words, and the most recent instance is the DD cell reading level 0 with no ledger entry while all six sub-parts were built, committed and live. The company layer is already bitemporal (company/**/bitemporal_event_log.py, valid-time and transaction-time); the governance layer that steers it is not. Reuse of that primitive is the obvious candidate AND the obvious trap -- the parent programme''s own wall says forced reuse that couples two purposes is the mirror error of duplication, so check whether it fits before taking it, and record the answer either way (that check is exactly what AO2''s gate is for). NOT delivered by AO1: the index makes no assertions to timestamp, because it re-derives on every query. Additive by design -- assert nothing the draw reads until proven, per the addendum''s own mitigation.'
 map_records:
