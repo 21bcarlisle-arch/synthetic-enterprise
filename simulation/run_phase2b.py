@@ -33,7 +33,6 @@ from company.interfaces.supply_book import (
     acquired_supply_points,
     register_acquired_point as make_acquired_customer,
     registered_point as get_customer,
-    registered_supply_points,
     successor_supply_points,
 )
 from saas.growth_mandate import (
@@ -103,7 +102,7 @@ from company.interfaces.counterparty_collateral import build_counterparty_collat
 from company.trading.hedge_decision import decide_hedge_fraction, compute_bid_ask_cost, compute_realized_var
 from company.policy.decision_policy import DecisionPolicy, CURRENT_POLICY, active_policy, framing_type_for
 from simulation.nudge_physics import susceptibility_for, framing_effectiveness_multiplier
-from company.crm.customer_profitability import compute_profitability_uplift
+from company.interfaces.customer_profitability import renewal_unit_rate_uplift
 from company.interfaces.churn_estimation import (
     RenewalObservation,
     crisis_hangover_periods,
@@ -115,18 +114,22 @@ from company.interfaces.churn_estimation import (
 from simulation.renewal_engagement import passive_churn_cap_for, rolls_active_renewal
 from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
 from simulation.sim_satisfaction import sim_satisfaction_score as _sim_satisfaction_score
-from company.crm.satisfaction_accumulator import CustomerSatisfactionAccumulator
 from simulation.feedback_survey import (
     dispatch_csat_survey,
     dispatch_nps_survey,
     dispatch_complaint_and_resolution,
 )
-from company.crm.nps_tracker import NPSTracker
-from company.crm.complaints import ComplaintBook, ComplaintCategory
+from company.interfaces.customer_experience import (
+    CustomerContact,
+    CustomerExperienceDesk,
+    PaymentOutcome,
+    RenewalReached,
+    SurveyInstrument,
+    SurveyResponse,
+)
 from simulation.reputation_index import ReputationEventType
-from company.crm.payment_behaviour_analytics import PaymentBehaviourAnalytics
 from company.interfaces.flexibility_revenue import build_flexibility_revenue
-from company.crm.tpi_book import TPIBook, TPITier, TPICommissionBasis
+from company.interfaces.tpi_commission import build_tpi_commission
 from simulation.policy_costs import (
     get_gas_ccl_per_mwh,
     get_gas_network_cost_per_mwh,
@@ -163,12 +166,18 @@ from simulation.fabric_physics import DEFAULT_LATITUDE_DEG
 from simulation.premise_trace import WEATHER_DATA_DIR as WEATHER_DATA_DIR_PATH
 from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd
 from simulation.household_demand import HouseholdDemandRegister
+from simulation.live_population import live_population
 
 # The supply book, bound once at import: the seam hands back the LIVE roster
 # objects (see company/interfaces/supply_book.py, IDENTITY), so a runtime append
 # to the acquired book is visible here exactly as it was before KNIFE pass 2.
 ACQUIRED_CUSTOMERS = acquired_supply_points()
-CUSTOMERS = registered_supply_points()
+# generator_draw_wiring ACTIVATION (2026-08-13): the run's book comes through the
+# population seam, not straight off the static roster. Flag OFF, `live_population()`
+# returns the same 18 records in the same order, so this is byte-identical; flag ON,
+# it is those 18 plus the curriculum's drawn 2021-2025 trickle, and the drawn points
+# are registered on the book so `registered_point()` can resolve them.
+CUSTOMERS = live_population()
 SUCCESSOR_CUSTOMERS = successor_supply_points()
 
 REPORT_START = "2016-01-01"
@@ -1027,13 +1036,13 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     hedge_var_log: list[dict] = []   # Trading & Market tab: realized VaR per hedge decision
     # Phase 22a: post-crisis hangover — how many more renewals get the +12% churn uplift
     hangover_remaining: dict[str, int] = {}
-    # Phase NG: company-side satisfaction tracker using observable bill-shock signals only
-    _company_sat_acc = CustomerSatisfactionAccumulator()
+    # KNIFE step 21 (§3p): the company's four customer-experience books —
+    # satisfaction, NPS, complaints, payment behaviour — now live behind one
+    # door. The world reports what happened; the desk decides what it means.
+    _cx_desk = CustomerExperienceDesk()
     _churn_journey_register = ChurnJourneyRegister()
     churn_journey_log: list[dict] = []
     # Phase RU: solicited feedback survey engine (FEEDBACK_AND_REPUTATION.md Layer 1)
-    _nps_tracker = NPSTracker()
-    _complaint_book = ComplaintBook()
     feedback_survey_log: list[dict] = []
     reputation_events_log: list[dict] = []
     # Nudge Physics Layer 1 (NUDGE_PHYSICS.md): SIM-side hidden companion to
@@ -1042,7 +1051,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     # must never read this log.
     nudge_physics_log: list[dict] = []
     # Phase NH: payment behaviour analytics -- three-signal churn model wiring
-    _payment_analytics = PaymentBehaviourAnalytics()
+    # (now one arm of the customer-experience desk above, §3p)
     _payment_rng = random.Random(42 + 7919)
     _payment_month_seen: set[tuple[str, str]] = set()  # (cid, YYYY-MM)
     # L3 payment coupled triad (W2_11 source / W4_4 seam / D5 consumer / gap),
@@ -1184,20 +1193,29 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 })
 
         # Phase 44a: activity-based profitability uplift for net-negative customers.
-        # Electricity fixed/pass-through only — deemed/flex have no locked rate to adjust.
-        if (unit_rate is not None and term_index >= 1
-                and commodity == "electricity"
-                and term_tariff_type in ("fixed", "pass_through")):
-            pnl_uplift = compute_profitability_uplift(billing_account, term_start_str, all_records)
-            if pnl_uplift > 0:
-                unit_rate += pnl_uplift
-                profitability_uplift_log.append({
-                    "customer_id": billing_account,
-                    "commodity": commodity,
-                    "term_start": term_start_str,
-                    "uplift_gbp_per_mwh": round(pnl_uplift, 4),
-                    "unit_rate_after": round(unit_rate, 4),
-                })
+        # KNIFE step 22 (§3q): WHICH renewals the supplier reprices for
+        # unprofitability — first term or later, electricity, fixed or
+        # pass-through, a locked rate to adjust — is its own pricing policy and
+        # now lives behind company/interfaces/customer_profitability.py. The
+        # world reports the renewal as it happened and adds whatever comes back.
+        pnl_uplift = renewal_unit_rate_uplift(
+            account_id=billing_account,
+            commodity=commodity,
+            tariff_type=term_tariff_type,
+            term_index=term_index,
+            term_start=term_start_str,
+            locked_unit_rate=unit_rate,
+            settled_records=all_records,
+        )
+        if pnl_uplift > 0:
+            unit_rate += pnl_uplift
+            profitability_uplift_log.append({
+                "customer_id": billing_account,
+                "commodity": commodity,
+                "term_start": term_start_str,
+                "uplift_gbp_per_mwh": round(pnl_uplift, 4),
+                "unit_rate_after": round(unit_rate, 4),
+            })
 
         # Phase 47a: Ofgem domestic price cap — final ceiling for resi fixed-term customers.
         # W3_1b (2026-08-03): keyed on the cap WINDOW containing the term start,
@@ -1306,25 +1324,27 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 # recall=0%/precision=0% (docs/staging/EVIDENCE_IN_BUSINESS_SURFACES.md).
                 _nd_shock_count = _elec_rate_shock_counts.get(cid, 0)
                 # Phase NH: payment behaviour score from observable payment history
-                _nh_behaviour_score = _payment_analytics.get_score(cid)
-                # Phase NG: apply yearly decay then record shock if rate rose >20%
-                _company_sat_acc.apply_monthly_decay(cid, months=12)
+                _nh_behaviour_score = _cx_desk.payment_behaviour_score(cid)
                 if _churn_journey_register.get_journey(billing_account) is None:
                     _churn_journey_register.register_customer(
                         billing_account, tenure_years=tenure_for_est, churn_threshold=50.0,
                     )
                 if old_elec_rate > 0 and unit_rate / old_elec_rate - 1 > _NG_BILL_SHOCK_THRESHOLD:
                     _bill_shock_this_term = True
-                    _company_sat_acc.record_bill_shock(cid)
                     _churn_journey_register.record_friction(
                         billing_account, FrictionEventType.BILL_SHOCK, date.fromisoformat(term_start_str),
                     )
-                _ng_satisfaction = _company_sat_acc.get_satisfaction(cid)
-                # Phase QT: per-year snapshot so the site can chart a real
-                # satisfaction_score_trajectory (previously only the current
-                # scalar was retained -- SIM_TAB_OVERHAUL.md's dead Satisfaction
-                # column).
-                _company_sat_acc.record_year_snapshot(cid, _renewal_year)
+                # KNIFE step 21 (§3p): the world reports the term boundary and
+                # whether this account's own rate rose past the shock threshold.
+                # The twelve-month decay, the trust cost of a shock and the
+                # per-year snapshot (Phase NG/QT) are the desk's, behind the door.
+                _cx_desk.observe_renewal(RenewalReached(
+                    customer_id=cid,
+                    account_id=billing_account,
+                    renewal_year=_renewal_year,
+                    bill_shock=_bill_shock_this_term,
+                ))
+                _ng_satisfaction = _cx_desk.satisfaction_score(cid)
                 # KNIFE step 20 (§3o): the world hands over what it can see and
                 # takes back the company's belief. Which estimator applies to a
                 # passive roller versus an active/I&C renewal is the company's
@@ -1423,18 +1443,31 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             _csat_result = dispatch_csat_survey(
                 billing_account, term_start_str, _nf_satisfaction, _churn_income_stress,
             )
-            if _csat_result.responded:
-                _company_sat_acc.record_css_score(cid, _csat_result.score_0_10)
             _survey_cust_data = get_customer(billing_account)
             _survey_segment = _survey_cust_data.get("segment", "resi") if _survey_cust_data else "resi"
+            if _csat_result.responded:
+                _cx_desk.observe_survey_response(SurveyResponse(
+                    customer_id=cid,
+                    account_id=billing_account,
+                    instrument=SurveyInstrument.CSAT,
+                    score_0_10=_csat_result.score_0_10,
+                    responded_on=date.fromisoformat(term_start_str),
+                    segment=_survey_segment,
+                    channel="renewal",
+                ))
             _nps_result = dispatch_nps_survey(
                 billing_account, term_start_str, _nf_satisfaction, _churn_income_stress,
             )
             if _nps_result.responded:
-                _nps_tracker.record(
-                    billing_account, _nps_result.score_0_10, date.fromisoformat(term_start_str),
-                    segment=_survey_segment, channel="renewal",
-                )
+                _cx_desk.observe_survey_response(SurveyResponse(
+                    customer_id=cid,
+                    account_id=billing_account,
+                    instrument=SurveyInstrument.NPS,
+                    score_0_10=_nps_result.score_0_10,
+                    responded_on=date.fromisoformat(term_start_str),
+                    segment=_survey_segment,
+                    channel="renewal",
+                ))
             feedback_survey_log.append({
                 "customer_id": billing_account,
                 "term_start": term_start_str,
@@ -1450,13 +1483,20 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 occupancy_for_customer(billing_account).value,
             )
             if _complaint_outcome.occurred:
-                _complaint_book.raise_complaint(
-                    billing_account, ComplaintCategory.BILLING, date.fromisoformat(term_start_str),
-                    description="bill-shock-driven contact" if _bill_shock_this_term else "routine contact",
-                )
-                _company_sat_acc.record_complaint_raised(cid)
+                # KNIFE step 21 (§3p): the world reports that the customer got in
+                # touch and whether the company closed it on time. Filing it under
+                # BILLING, wording it, and both trust deltas are the desk's.
+                _cx_desk.observe_contact(CustomerContact(
+                    customer_id=cid,
+                    account_id=billing_account,
+                    contacted_on=date.fromisoformat(term_start_str),
+                    about_bill_shock=_bill_shock_this_term,
+                    resolved_on_time=(
+                        _complaint_outcome.reputation_event_type
+                        == ReputationEventType.COMPLAINT_RESOLVED_ON_TIME
+                    ),
+                ))
                 if _complaint_outcome.reputation_event_type == ReputationEventType.COMPLAINT_RESOLVED_ON_TIME:
-                    _company_sat_acc.record_complaint_resolved(cid)
                     _churn_journey_register.record_friction(
                         billing_account, FrictionEventType.COMPLAINT_RESOLVED_WELL,
                         date.fromisoformat(term_start_str),
@@ -2014,7 +2054,13 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                     income_stress_value=(_income_stress.value if _income_stress is not None else None),
                     segment=cust_segment,
                 )
-                _payment_analytics.record_payment(cid, _pm_rec)
+                _cx_desk.observe_payment(PaymentOutcome(
+                    customer_id=cid,
+                    due_date=_pm_rec["due_date"],
+                    result=_pm_rec["result"],
+                    days_late=_pm_rec["days_late"],
+                    amount_gbp=_pm_rec["amount_gbp"],
+                ))
             # Real-time placeholder only -- simulation.run_phase4c_on_phase2b.main()
             # overwrites this with real, emergent bad debt from the payment/
             # arrears model (simulation.arrears_engine) once bills exist (Phase QD).
@@ -2285,45 +2331,17 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     total_flexibility_revenue = _flex.total_revenue_gbp
 
     # Phase OA: I&C Broker/TPI Commission Model.
-    # I&C customers procure electricity via brokers. Industry commission: 0.15 p/kWh (£1.5/MWh).
-    # Computed from actual settled consumption per customer per year.
-    _tpi_book = TPIBook()
-    _tpi_book.register(
-        tpi_id="TPI-001",
-        name="Standard Energy Broker",
-        tier=TPITier.PREFERRED,
-        commission_basis=TPICommissionBasis.PCT_OF_ANNUAL_CONSUMPTION,
-        commission_rate=1.5,  # £/MWh (0.15 p/kWh — standard for large I&C)
-        registered_date=date(2016, 1, 1),
-    )
+    # KNIFE step 22 (§3q): I&C customers procure electricity via brokers, and
+    # which brokers the supplier is accredited with, on what tier, on what
+    # basis and at what rate are the commercial terms of its own channel. They
+    # now live behind company/interfaces/tpi_commission.py. The world hands over
+    # the settled records and its own I&C roster; nothing else crosses.
     _ic_billing_ids = {c["customer_id"] for c in ELEC_CUSTOMERS if c.get("segment") == "I&C"}
-    _ic_yearly_recs: dict = defaultdict(list)
-    for _rec in all_records:
-        if _rec.get("customer_id") in _ic_billing_ids:
-            _ic_yearly_recs[(_rec["customer_id"], _rec["settlement_date"][:4])].append(_rec)
-
-    for (_cid_tpi, _yr_tpi), _recs_tpi in sorted(_ic_yearly_recs.items()):
-        _ann_cons_mwh = sum(_r.get("consumption_kwh", 0.0) for _r in _recs_tpi) / 1000.0
-        _ann_rev_gbp = sum(_r.get("revenue_gbp", 0.0) for _r in _recs_tpi)
-        if _ann_cons_mwh > 0:
-            _tpi_book.record_deal(
-                tpi_id="TPI-001",
-                customer_id=_cid_tpi,
-                annual_consumption_mwh=round(_ann_cons_mwh, 3),
-                annual_revenue_gbp=round(_ann_rev_gbp, 2),
-                deal_date=date(int(_yr_tpi), 1, 1),
-            )
-
-    tpi_summary = {
-        "total_commission_gbp": _tpi_book.total_commission_gbp(),
-        "commission_rate_gbp_per_mwh": 1.5,
-        "per_year": {
-            yr: _tpi_book.annual_summary(int(yr))
-            for yr in sorted(_all_years)
-        },
-        "active_tpi_count": len(_tpi_book.active_tpis()),
-        "total_deals": len(_tpi_book._deals),
-    }
+    tpi_summary = build_tpi_commission(
+        settled_records=all_records,
+        ic_elec_customer_ids=_ic_billing_ids,
+        report_years=_all_years,
+    ).summary
 
     # Phases OG/OH/OI: the supplier's annual statutory return -- Renewables
     # Obligation, FiT levelisation levy, Climate Change Levy. KNIFE pass 3 step
@@ -2654,8 +2672,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         "per_customer_behavioral": _build_behavioral_trajectories(
             ELEC_CUSTOMERS + GAS_CUSTOMERS,
             household_demand_register,
-            _payment_analytics,
-            _company_sat_acc,
+            _cx_desk,
             _bill_shock_dates,
         ),
         # Phase NJ: company churn model calibration report
@@ -2668,8 +2685,8 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         # Phase RU: solicited feedback survey engine (FEEDBACK_AND_REPUTATION.md Layer 1)
         "feedback_survey_log": feedback_survey_log,
         "reputation_events_log": reputation_events_log,
-        "nps_annual_summaries": {yr: _nps_tracker.annual_summary(yr) for yr in range(2016, 2026)},
-        "complaint_annual_summaries": {yr: _complaint_book.annual_summary(yr) for yr in range(2016, 2026)},
+        "nps_annual_summaries": {yr: _cx_desk.nps_annual_summary(yr) for yr in range(2016, 2026)},
+        "complaint_annual_summaries": {yr: _cx_desk.complaint_annual_summary(yr) for yr in range(2016, 2026)},
         "gri_trajectory": [
             {
                 "year": yr,
@@ -2682,39 +2699,36 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
 
 
 
-def _build_behavioral_trajectories(customers, hdr, payment_analytics, sat_acc, bill_shock_dates=None):
+def _build_behavioral_trajectories(customers, hdr, cx_desk, bill_shock_dates=None):
+    """Splice the world's own per-customer trajectories around the company's
+    experience record.
+
+    KNIFE step 21 (§3p): the payment score/metrics/miss-trajectory and the
+    satisfaction score/trajectory used to be assembled here, field by field,
+    out of two of the company's CRM books. They are now one call through the
+    door — `cx_desk.behavioural_record(cid)`, whose key order is part of that
+    contract. Phase QT's per-year satisfaction history and Phase QV's payment
+    miss buckets (SIM_TAB_OVERHAUL.md) are unchanged; only who assembles them
+    moved.
+    """
     if hdr is None:
         return {}
     sim_years = list(range(2016, 2026))
     out = {}
     all_cids = {c["customer_id"] for c in customers}
+    empty_record = {
+        "payment_behaviour_score": None,
+        "payment_behaviour_metrics": None,
+        "company_satisfaction_score": None,
+        "satisfaction_score_trajectory": [],
+        "payment_miss_trajectory": [],
+    }
     for cid in sorted(all_cids):
-        stress_traj = hdr.income_stress_trajectory(cid, sim_years)
-        life_hist = hdr.life_event_history(cid)
-        pay_score = payment_analytics.get_score(cid) if payment_analytics else None
-        pay_metrics = payment_analytics.get_metrics(cid) if payment_analytics else None
-        pay_miss_traj = payment_analytics.get_miss_trajectory(cid) if payment_analytics else []
-        sat_score = sat_acc.get_satisfaction(cid) if sat_acc else None
-        sat_traj = sat_acc.get_trajectory(cid) if sat_acc else []
-        shock_dates = (bill_shock_dates or {}).get(cid, [])
         out[cid] = {
-            "income_stress_trajectory": stress_traj,
-            "life_event_history": life_hist,
-            "payment_behaviour_score": pay_score.value if pay_score else None,
-            "payment_behaviour_metrics": {
-                "on_time_rate": pay_metrics["on_time_rate"] if pay_metrics else None,
-                "late_rate": pay_metrics["late_rate"] if pay_metrics else None,
-                "dd_fail_rate": pay_metrics["dd_fail_rate"] if pay_metrics else None,
-            } if pay_metrics else None,
-            "company_satisfaction_score": round(sat_score, 4) if sat_score else None,
-            # Phase QT: per-year history (SIM_TAB_OVERHAUL.md dead-column fix)
-            "satisfaction_score_trajectory": sat_traj,
-            # Phase QV: per-year event-frequency data (SIM_TAB_OVERHAUL.md event
-            # frequency panel) -- payment misses bucketed from the full per-event
-            # record history, bill shocks from the term_start_str dates recorded
-            # alongside the existing all-time rolling shock counter.
-            "payment_miss_trajectory": pay_miss_traj,
-            "bill_shock_history": shock_dates,
+            "income_stress_trajectory": hdr.income_stress_trajectory(cid, sim_years),
+            "life_event_history": hdr.life_event_history(cid),
+            **(cx_desk.behavioural_record(cid) if cx_desk else dict(empty_record)),
+            "bill_shock_history": (bill_shock_dates or {}).get(cid, []),
         }
     return out
 

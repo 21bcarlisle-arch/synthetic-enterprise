@@ -1422,6 +1422,250 @@ a citation to a commit that lacks the block is a mirror wearing a citation.
 
 ---
 
+## 3p. The customer's experience is the supplier's own record — added 2026-08-13 (step 21)
+
+**4 edges cut, 28 → 24 live (26 → 22 direct; the 2 indirect untouched for the EIGHTH consecutive
+step, which is again the proof that a bridge route was not silently taken instead).**
+
+`simulation/run_phase2b.py::main()` opened four of the supplier's CRM books at setup
+(`CustomerSatisfactionAccumulator`, `NPSTracker`, `ComplaintBook`, `PaymentBehaviourAnalytics`),
+threaded them through the renewal loop, read them at the end — and made every one of the
+supplier's bookkeeping decisions on the way past. That a bill shock costs trust. That a raised
+complaint costs more and resolving one on time gives some back. That a CSAT answer and an NPS
+answer land in different books. That satisfaction decays twelve months per renewal term. That a
+complaint about a bill is filed under `BILLING` and worded "bill-shock-driven contact". Four wall
+crossings for ONE process, at nine call sites.
+
+None of those are the world's decisions. What the world owns is that a bill went up, that a survey
+was answered with a number, that a customer got in touch and the contact was or was not closed on
+time, and that a payment landed on time, late or not at all. What those events MEAN for the
+supplier's view of its own customer — which book they land in, what they cost, how fast the memory
+fades — is the supplier's own CRM design, and it is ALLOWED TO BE WRONG: the gap between this
+desk's satisfaction score and the world's hidden `sim_satisfaction_score` is a quantity the
+COUPLED TRIAD scores, not an error to remove. Now `company/crm/customer_experience_desk.py` takes
+four observations behind `company.interfaces.customer_experience` and hands back the company's own
+beliefs.
+
+### §3o predicted a cut in the OTHER direction here. It was checked, and there is none
+
+§3o's finding was that world physics keeps ending up in `company/crm/` because that is where the
+CRM vocabulary lives — `PASSIVE_CHURN_CAP` sat in a company module labelled `# SIM ground-truth
+cap` in its own source — and it explicitly warned that "a remaining group under this design may
+need a cut in the OTHER direction before its door is honest; check for that before assuming the
+rest are pure composition lifts."
+
+Checked, and reported either way rather than only when it confirms. All four books were re-read
+symbol by symbol. Every input they take is an outcome the supplier observes on its own systems
+(a bill shock off its own rates, a survey answer, a contact and its resolution, a payment result);
+every constant in them is a supplier's own model parameter (trust deltas, decay rate, CSS
+thresholds, the score bands, `OMBUDSMAN_ESCALATION_DAYS` — which is published law, the commons,
+readable by every lane); and NONE of them rolls a die or caps anything the world does. Whether a
+customer answers a survey, whether they get in touch and whether a payment actually lands are all
+decided in `simulation/` (`feedback_survey.py`, `live_payment_triad.py`) and stay there. This one
+IS a pure composition lift. §3o's prediction was a warning to check, not a claim that the next
+group would need it, and the check is the whole of its value.
+
+### No number moves, measured not asserted
+
+Control 2 drives the four raw books through the EXACT pre-cut sequence and the desk through the
+door over the same event stream, then compares every published read: the satisfaction scalar, its
+per-year trajectory, both annual summaries across both years, the payment score, the three
+published metrics, the miss buckets, and the key ORDER of the `behavioural_record` dict that gets
+spliced into `per_customer_behavioral` for the Sim tab. The stream is one account that answers both
+surveys twice, complains twice (one resolved on time, one not), misses payments and renews twice
+with a shock on the second — chosen so satisfaction is OFF baseline, the payment score is
+non-default and both survey books are non-empty, which
+`test_the_event_stream_is_not_degenerate` asserts directly so no control here can pass on a
+degenerate fixture.
+
+### The defect this cut invites — TWO CALL SITES BECAME ONE FIELD
+
+Before the cut, a CSAT answer and an NPS answer were two DIFFERENT call sites against two
+DIFFERENT objects: `_company_sat_acc.record_css_score(...)` and `_nps_tracker.record(...)`. You
+could not route one into the other without writing a visibly different line. They are now one
+`observe_survey_response` distinguished by an `instrument` FIELD. A caller that fills it in wrongly
+silently posts CSAT answers into the PUBLISHED NPS — a headline figure — and every test that drives
+the desk directly stays green, because the desk did exactly what it was told. This is §3o's
+"the branch became a field" for the second time, and the recurrence is worth naming: a composition
+lift converts control flow the caller could not fake into data the caller supplies, every time.
+
+Control 3 is therefore an AST check over the REAL constructions in `run_phase2b.py`, pairing each
+`instrument=` with the result object its `score_0_10=` came from, with a vacuity guard on the
+number of constructions found (exactly two), and two mutations performing the defect: the swap, and
+a hardcoded instrument. Control 4 covers the mirror-image defect INSIDE the desk — the two arms
+collapsing so every survey lands in both books, which would satisfy control 3 and still be wrong —
+by asserting the arms are genuinely disjoint on a live desk, with a mutation that builds the
+collapsed desk and shows the same detector failing on it.
+
+### A third invisible thing: the ORDER inside `observe_renewal`
+
+The decay runs BEFORE the shock, so a term's worth of forgetting is applied to the score the
+customer arrived with and the shock is charged against the aged score. Swapping them damps every
+bill shock by the headroom the decay would have removed — and after the cut the caller cannot see
+the order at all. Control 5 pins it to a computed value (0.65 on a customer whose good CSAT put
+them above baseline) and mutation-proves the swap moves it.
+
+### The controls
+
+`tests/company/interfaces/test_customer_experience_seam.py` — 17 tests, of which 5 are mutations
+that PERFORM the named defect: the lazy world import (on a COPY of the source, never a repo file
+edited mid-pytest), the swapped instrument, the hardcoded instrument, the collapsed survey arms,
+and the swapped decay/shock order. The mutated desk copies are registered in `sys.modules` before
+execution because `@dataclass` resolves annotations through the module entry — loading them
+unregistered fails inside `dataclasses` rather than in the assertion, which would make the
+mutation UNAVAILABLE, and an unavailable check is a FAILED check (R15).
+
+### What did not fall
+
+`run_phase2b` keeps 17 direct + 2 indirect — measured, not carried forward. The CRM group's third
+process, the commercial pair (`customer_profitability`, `tpi_book`), is untouched; so are the
+trading desk (`forward_book`, `hedge_decision`, `hedge_policy`), the pricing/regulatory group
+(`tariff_engine`, `margin_feedback`, `ofgem_price_cap`, `decision_policy`) and the `saas.*` set
+(8) — 2 + 3 + 4 + 8 = 17, arithmetic written out. Beyond this module:
+`simulation.customer_events`' four edges (B2, a coupled-triad build) and
+`run_phase4c_on_phase2b`'s `dd_review_runner` routing residual, §3h.
+
+STEP 17'S NAMED RESIDUAL IS STILL OPEN and is repeated rather than dropped:
+`FITBook.levelisation_charge_gbp(year, total_mwh_supplied)` is handed kWh and divides by 1000
+internally — arithmetic right, naming wrong. NAMING debt on `company/regulatory/fit_book.py`, not
+a wall crossing.
+
+---
+
+## 3q. The commercial pair — what an unprofitable customer costs, and what the broker was paid — added 2026-08-13 (step 22)
+
+`A_composition_lift`, applied to the LAST TWO CRM crossings on `simulation/run_phase2b.py`:
+`company.crm.customer_profitability` and `company.crm.tpi_book`. 2 edges cut, 24 → 22 live (22 → 20
+direct; **the 2 indirect are again UNMOVED, for the ninth consecutive step, which is again the proof
+that a bridge route was not silently taken instead**).
+
+### TWO DOORS, NOT ONE — the group test is applied and FAILS, and that is the finding
+
+Every step from §3j onward has grouped its edges, and each one wrote down why. §3m's test is the
+sharp one: **do they feed ONE total?** Here they do not. The profitability uplift changes a unit rate
+inside the renewal loop, per customer, per term, mid-run. The broker commission is a channel cost
+booked once at the end off the whole settled year. They share a package (`company/crm/`) and a
+sentence ("the commercial value of a customer relationship") and nothing else that a reader could
+check.
+
+So this step lands TWO doors in ONE change set. That is not a compromise, it is the answer the test
+gave: a `CommercialDesk` spanning both would be an object the business does not have, invented by a
+KNIFE pass for its own convenience and inherited by every later reader. §3k already recorded a
+group argument as WEAKER than §3j's rather than borrowing it; this is the same discipline reaching
+its other end, where the honest answer is "these are two things".
+
+### `customer_profitability` — the WORLD was holding the supplier's pricing policy
+
+Before the cut, `run_phase2b.py::main()` carried this inside its own renewal loop:
+
+```python
+if (unit_rate is not None and term_index >= 1
+        and commodity == "electricity"
+        and term_tariff_type in ("fixed", "pass_through")):
+    pnl_uplift = compute_profitability_uplift(billing_account, term_start_str, all_records)
+```
+
+The world was deciding **which of the supplier's own products get repriced for unprofitability** —
+renewals but not acquisitions, electricity but not gas, fixed and pass-through but not deemed or
+flex. That is a pricing decision with a commercial reason behind every arm, and the world had it
+because the `if` was cheaper to write there than a parameter was to design. The supplier asked only
+for the number, which is the half of the decision that was already company-side.
+
+Now `renewal_unit_rate_uplift(...)` holds all four arms with the two constants they were always
+separated from, and returns `0.0` — not an exception — for every renewal the policy does not apply
+to, so the caller adds a number rather than re-implementing the rule.
+
+### `tpi_book` — the WORLD was registering the supplier's broker
+
+`run_phase2b.py::main()` constructed `TPIBook()`, registered `TPI-001` "Standard Energy Broker" on
+the `PREFERRED` tier, on a volume basis, at £1.5/MWh, dated 2016-01-01; decided that a deal is one
+customer-year; chose the rounding and 1 January as the deal date; and then read the book's **private
+`_deals` list** to publish a count. Which brokers a supplier is accredited with, on what tier, on
+what basis and at what rate are the commercial terms of its own acquisition channel. Reaching for a
+private attribute across the wall is the same shape §3l found with the statutory tables, and it is
+worse than the edge count says: it is a dependency on an internal the company never published.
+
+The world keeps the two things it owns — the settled records, and its own roster of which
+electricity accounts are I&C (`segment == "I&C"`, computed world-side and handed over, exactly as
+§3m's `ic_elec_roster`). `company/crm/tpi_commission_desk.py` holds the rest.
+
+### ONE NAME, ONE NUMBER — a defect REMOVED on the way past, not introduced
+
+The commission rate appeared TWICE as the literal `1.5`: once in the registration call, and once,
+independently, in the published summary's `commission_rate_gbp_per_mwh`. Anyone checking the
+published headline against the charged rate was comparing a number to a second typing of itself, and
+the two could drift with every test still green. The published rate is now read off the registered
+broker. Control 3 mutation-proves it: move the registered rate on a COPY of the desk, and the
+headline moves with the commission. Against the pre-cut code that same mutation would have moved the
+commission and left the headline at 1.5.
+
+`_published_rate` RAISES rather than averaging when a second volume-based broker appears, because a
+single-rate headline is wrong for two brokers no matter where the number came from. Stated because
+the alternative — a silent mean — is the fail-open version of the same fix.
+
+### THE DEFECT THIS CUT INVITES — FOUR BRANCHES BECAME FOUR FIELDS, for the THIRD step running
+
+§3o recorded "the branch became a field". §3p recorded it again as the instrument field. This is the
+third consecutive step to record it, and **the recurrence is the finding**: a composition lift
+converts control flow the caller could not fake into data the caller supplies, every time, without
+exception. Before the cut, applying the uplift to a gas or deemed term meant editing a visible `if`
+in the run loop. Now it means passing a wrong string — and every test that drives the door directly
+stays green, because the door did exactly what it was told.
+
+It is not hypothetical here: in the control fixture the same account's GAS term is also net-negative,
+so a hardcoded `commodity="electricity"` at the call site reprices a gas renewal and moves real
+money. Control 3 is an AST check over the REAL call site — keyword-only, the full argument set named,
+and **no argument a `Constant`** — with a vacuity guard on the call count and two mutations that
+perform the defect (hardcoded commodity, hardcoded tariff type). A companion test asserts the gas arm
+would actually change, so control 3 guards a number rather than a spelling.
+
+### Behaviour is unchanged, and it is MEASURED rather than asserted
+
+Both doors carry an identity control against the PRE-CUT sequence transcribed from `run_phase2b.py`
+as it stood before this commit — not from the module under test, which would be a mirror. For TPI
+that is the whole published `tpi_summary` dict, keys and ORDER included, because
+`saas/reporting/annual_report.py` reads it. For the uplift it is a matrix covering every eligibility
+arm — eligible fixed, eligible pass-through, acquisition term, gas, deemed, flex, no locked rate, no
+tariff type at all — with `test_the_matrix_is_not_degenerate` asserting DIRECTLY that the eligible
+arm returns a NON-ZERO uplift and each other arm returns zero, so no control here can pass by
+comparing two zeroes.
+
+The TPI fixture likewise contains a non-brokered domestic account and a brokered account with a
+zero-volume year, and `test_the_record_set_is_not_degenerate` asserts both are present — the two
+filters the caller can no longer see are each mutation-proven by deleting them on a copy of the desk.
+
+### The controls
+
+`tests/company/interfaces/test_tpi_commission_seam.py` (14 tests) and
+`tests/company/interfaces/test_customer_profitability_seam.py` (17 tests) — **31 tests, of which 9
+are mutations that PERFORM the named defect**: two lazy world imports (on COPIES of the source, never
+a repo file edited mid-pytest-run), the rate-drift mutation, the dropped roster filter, the dropped
+volume filter, two hardcoded call-site arguments, and three deleted eligibility gates. Both
+read-direction controls are behavioural — a clean interpreter is asked which world modules the import
+system actually loaded — not greps.
+
+### What did NOT fall
+
+`run_phase2b` keeps 15 direct + 2 indirect — measured with `tools/knife_hotspot_measure.py`, not
+carried forward. The trading desk (`forward_book`, `hedge_decision`, `hedge_policy`), the
+pricing/regulatory group (`tariff_engine`, `margin_feedback`, `ofgem_price_cap`, `decision_policy`)
+and the `saas.*` set (8) — 3 + 4 + 8 = 15, arithmetic written out. **The CRM group is now empty**:
+steps 21 and 22 together took all six of this module's `company.crm.*` edges. Beyond this module:
+`simulation.customer_events`' four edges (B2, a coupled-triad build, which that design block
+explicitly forbids attempting as a mechanical move) and `run_phase4c_on_phase2b`'s `dd_review_runner`
+routing residual (§3h).
+
+STEP 17'S NAMED RESIDUAL IS STILL OPEN, repeated rather than dropped:
+`FITBook.levelisation_charge_gbp(year, total_mwh_supplied)` is handed kWh and divides by 1000
+internally — arithmetic right, naming wrong. NAMING debt on `company/regulatory/fit_book.py`, not a
+wall crossing. STEP 20'S MASKING FINDING IS ALSO STILL OPEN: on the ACTIVE churn arm,
+`bill_shock_count` / `behaviour_score` / `satisfaction_score` move the estimate by exactly nothing at
+a +33% rate rise, because the two estimators combine as `max(rate, payment)` and the rate arm
+dominates. That is a fidelity question the company's model owns; this step did not touch it, and a
+wall pass never moves a number in the same commit as an import (B7).
+
+---
+
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
 
 These were designs in §3 until they were carried out. They are recorded
@@ -1921,13 +2165,13 @@ edge: simulation.run_phase1c_renewals -> saas.clv_seed | disposition=cut | reaso
 edge: simulation.run_phase1c_renewals -> saas.customer_reaction | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase1c_renewals` is 100% composition (`153` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records). It moved to `tools/run_phase1c_renewals.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
 edge: simulation.run_phase2b -> company.analytics.churn_accuracy_report | disposition=cut | reason=Step 20 executed 2026-08-12 (§3o) — the company marking its own churn homework moved behind `company.interfaces.churn_estimation` with the estimates it scores. Scoring the estimate somewhere other than where the estimate is made is how a calibration report drifts from the model it calibrates; the desk owns both ends.
 edge: simulation.run_phase2b -> company.crm.churn_model | disposition=cut | reason=Step 20 executed 2026-08-12 (§3o) — SPLIT IN TWO DIRECTIONS, which is why this row is not a plain door. The company's belief (`estimate_churn_probability` for the gas leg, `CRISIS_HANGOVER_WINDOW_PERIODS`) went behind `company.interfaces.churn_estimation`. The two symbols that were never the company's — `is_active_renewal`, which ROLLS whether a household shops, and `PASSIVE_CHURN_CAP`, labelled `# SIM ground-truth cap` in the company module's own source and clamping the customer's REAL churn — went the OTHER way, to `simulation/renewal_engagement.py`. §3g's finding for the third time. A door carrying those would have moved the crossing, not cut it.
-edge: simulation.run_phase2b -> company.crm.complaints | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.crm.customer_profitability | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> company.crm.complaints | disposition=cut | reason=Step 21 executed 2026-08-13 (§3p) — the world was opening the supplier's complaint register, choosing the BILLING category and wording the description. It now reports that a customer got in touch and whether the contact was closed on time (`CustomerContact`); the taxonomy, the wording and both trust deltas are behind `company.interfaces.customer_experience`.
+edge: simulation.run_phase2b -> company.crm.customer_profitability | disposition=cut | reason=`A_composition_lift` step 22, 2026-08-13 (§3q) — the WORLD was holding the supplier's own eligibility rule for repricing an unprofitable renewal (first term or later, electricity, fixed or pass-through, a locked rate to adjust) and asked only for the number. The whole rule now sits behind `company/interfaces/customer_profitability.py`. Cut in the same change set as `tpi_book` but behind a SEPARATE door: §3m's group test — do they feed one total? — fails for this pair, and inventing a desk over both would invent an object the business does not have.
 edge: simulation.run_phase2b -> company.crm.enriched_churn_estimate | disposition=cut | reason=Step 20 executed 2026-08-12 (§3o) — the world no longer chooses between the passive and active estimators, assembles their keyword arguments, or knows the industry base rate to fall back on when an account has no rate history. It hands one `RenewalObservation` of things the supplier can see and takes back a probability.
-edge: simulation.run_phase2b -> company.crm.nps_tracker | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.crm.payment_behaviour_analytics | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.crm.satisfaction_accumulator | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> company.crm.tpi_book | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> company.crm.nps_tracker | disposition=cut | reason=Step 21 executed 2026-08-13 (§3p) — the world dispatched the survey AND posted the answer into the supplier's NPS book, picking the channel and segment tags on the way past. It now reports one answered `SurveyResponse`; which book an instrument lands in is the desk's routing decision, and the invited defect that creates (an instrument FIELD where two call sites used to be) is what control 3 checks at the real call site.
+edge: simulation.run_phase2b -> company.crm.payment_behaviour_analytics | disposition=cut | reason=Step 21 executed 2026-08-13 (§3p) — the world held the supplier's payment-behaviour history and read scores, metrics and miss trajectories straight off it. It now reports one `PaymentOutcome` per bill (ON_TIME/LATE/DD_FAILED off its own cash and DD returns) and reads back the company's score. The canonical payment truth is unchanged — still W2_11's single event via `LivePaymentTriad.record_period`, never a second draw.
+edge: simulation.run_phase2b -> company.crm.satisfaction_accumulator | disposition=cut | reason=Step 21 executed 2026-08-13 (§3p) — the world was running the supplier's trust model by hand: applying the twelve-month decay, charging the bill shock, snapshotting the year, and charging complaints raised and resolved. It now reports a `RenewalReached` with its own billing observation and reads back a score. The order inside — decay BEFORE shock — became invisible to the caller, which is why control 5 mutation-proves it.
+edge: simulation.run_phase2b -> company.crm.tpi_book | disposition=cut | reason=`A_composition_lift` step 22, 2026-08-13 (§3q) — the world registered the supplier's broker, its tier, basis, rate and registration date, decided a deal is one customer-year, and read the book's PRIVATE `_deals` list to publish a count. All of it is now behind `company/interfaces/tpi_commission.py`; the world keeps the settled records and its own I&C roster. The duplicated `1.5` rate literal died with it — the published headline is now read off the registered broker, mutation-proven.
 edge: simulation.run_phase2b -> company.finance.margin_call_book | disposition=cut | reason=Step 19 executed 2026-08-12 (§3n) — the variation margin the company must POST is the sign-complement of the same netted MtM the credit register reads, off the same `exposure_by_counterparty` call. Cutting it separately would have left the world holding that intermediate: half a cut.
 edge: simulation.run_phase2b -> company.market.flexibility_revenue_book | disposition=cut | reason=Step 18 executed 2026-08-11 (§3m) — the domestic DSR/Capacity Market book moved to `company/market/flexibility_revenue.py` behind `company.interfaces.flexibility_revenue`. The world no longer hands its `HouseholdDemandRegister` across for the book to pull asset flags out of; it resolves a per-year-end snapshot on its own side and only the answers cross.
 edge: simulation.run_phase2b -> company.market.ic_flexibility_revenue | disposition=cut | reason=Step 18 executed 2026-08-11 (§3m) — the I&C demand-response book moved with the domestic one it shares its `total_flexibility_revenue` accumulator with. The CM clearing prices, DFS rates, aggregator fee and 200 MWh eligibility floor are read company-side; the world hands over its own I&C electricity roster as (customer_id, eac_kwh) pairs.

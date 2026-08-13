@@ -1,6 +1,12 @@
 atom_id: KNIFE3_wall_crossing_paydown
 map_notes:
-  origin_note: 'COORDINATION WALL, director-stated: the Epoch-3 adapter programme is the BOUNDARY half of this knife and is NOT duplicated here -- CHECK IT BEFORE STARTING, or two lanes cut the same seam. This pass CONTAINS passes 1 and 2 by file set (33 files including all 3 of pass 1''s and all 16 of pass 2''s), which is why depends_on chains it behind both: drawn earlier it would re-cut edges another pass owns. Its own file_scope is deliberately narrow -- the SIM-side files it touches are whatever survives, enumerated at draw time by tools/knife_hotspot_measure.py, because freezing them today would be a lie by the time this is drawn.'
+  origin_note: 'COORDINATION WALL, director-stated: the Epoch-3 adapter programme is the BOUNDARY half
+    of this knife and is NOT duplicated here -- CHECK IT BEFORE STARTING, or two lanes cut the same seam.
+    This pass CONTAINS passes 1 and 2 by file set (33 files including all 3 of pass 1''s and all 16 of
+    pass 2''s), which is why depends_on chains it behind both: drawn earlier it would re-cut edges another
+    pass owns. Its own file_scope is deliberately narrow -- the SIM-side files it touches are whatever
+    survives, enumerated at draw time by tools/knife_hotspot_measure.py, because freezing them today would
+    be a lie by the time this is drawn.'
 map_records:
   evidence:
   - docs/design/KNIFE_HOTSPOT_PASSES.md
@@ -67,4 +73,110 @@ map_records:
   - simulation/renewal_engagement.py
   - tests/simulation/test_renewal_engagement.py
   - tests/architecture/test_static_quality_ratchet.py
-  exit_evidence: "STEP 20 (A_composition_lift, THE CHURN BELIEF IS THE SUPPLIER'S AND THE DICE ROLL NEVER WAS), 2026-08-12 -- this atom is PARTIALLY built and must NOT be re-drawn as if from zero. 3 EDGES CUT, 31 -> 28 LIVE (29 -> 26 direct; the 2 indirect deliberately UNMOVED for the SEVENTH consecutive step, which is again the proof that a bridge route was not silently taken instead). 91 ruled: cut 63, owed 28, grandfathered 0. LEVEL DELIBERATELY STILL 0: 28 of 91 remain live, and booking the target at two-thirds-paid is the false-completion class. THIS RECORD IS BEING UPDATED IN THE SAME CHANGE SET AS THE CODE, which is the remedy step 19 stated procedurally after steps 18 and 19 both landed code + register without touching this file: a KNIFE step is not done at green, it is done at LANDED-AND-RECORDED. WHAT WAS CUT: run_phase2b.py::main() chose between the company's two churn estimators itself, assembled their keyword arguments itself, knew the industry base rate to fall back on when an account had no rate history, knew how many renewals the company thinks a post-crisis hangover lasts, computed the gas leg's monitoring estimate, and ran the company's own calibration report at the end of the run. Three crossings: company.crm.churn_model, company.crm.enriched_churn_estimate, company.analytics.churn_accuracy_report. Now company/crm/churn_desk.py takes one RenewalObservation behind company/interfaces/churn_estimation.py and returns a probability. Forming a view on who is about to leave is a supplier's own commercial judgement and it is ALLOWED TO BE WRONG -- that wrongness is the quantity the COUPLED TRIAD scores. Register section 3o. THE HALF THAT MAKES IT A CUT RATHER THAN A RE-EXPORT GOES THE OTHER WAY, and it is the finding of this step: two of the symbols run_phase2b imported from company/crm/churn_model.py were NEVER the company's. is_active_renewal ROLLS THE DICE on whether a household actually shops at renewal -- a supplier does not roll that dice, it OBSERVES the outcome off its own books (did this account take a new fixed deal or roll onto SVT), and event['is_active_renewal'] is how the observation reaches the company. PASSIVE_CHURN_CAP is labelled '# SIM ground-truth cap for passive churn rolls' IN THE COMPANY MODULE'S OWN SOURCE and was passed straight into roll_lifecycle_event(passive_churn_cap=...) to clamp the customer's REAL churn probability. Both now live in simulation/renewal_engagement.py on the world's side. This is B3_world_needs_its_own_cap_physics' shape for the THIRD time (register 3a for the price-cap schedule, 3g for the churn ceiling, 3o here) and the recurrence is the point: the misfiling is SYSTEMATIC, not incidental -- world physics keeps ending up in company/crm/ because that is where the churn VOCABULARY lives, and a name is not a wall. A remaining group under this design may therefore need a cut in the OTHER direction before its door is honest; check for that before assuming the rest are pure composition lifts. THE COMPANY KEEPS ITS OWN CAP AND NOTHING PINS THE TWO EQUAL: company.crm.churn_model.PASSIVE_CHURN_CAP stays exactly where it is as the company's ESTIMATE of the cap. It is NOT a donated residual -- estimate_passive_churn_probability reads it -- and test_the_same_mutation_does_move_the_companys_own_answer proves that liveness rather than assuming it, which is the vacuity guard 3g's independence test would otherwise be missing. No test asserts the two constants are equal: that would restore in the suite precisely the coupling the cut removes from the code (the refusal recorded for B3, B7 and 3g, for the fourth time). Drift is a finding for the harness to report, never something the suite pins shut (R12). NO NUMBER MOVES, MEASURED NOT ASSERTED: rolls_active_renewal reproduces is_active_renewal's draw exactly -- same seed string, same comparison, same crisis-year short-circuit -- checked against the sequence TRANSCRIBED FROM 7a199defe (that commit confirmed to EXIST and to CONTAIN the block by its own test, per [[feedback_a_mint_sources_cited_design_anchor_has_never_existed]]), over 400 seeds x 4 years and again with threaded per-customer probabilities. Both caps are 0.10; both estimators are called with the same arguments in the same order at the same rounding. THE DEFECT THIS CUT INVITES -- THE BRANCH BECAME A FIELD: before the cut, active-versus-passive was a BRANCH at the point of use (if not active_renewal and segment_for_churn != 'I&C'), so a caller could not estimate a passive roller as an active shopper without deleting a visible if. It is now one boolean on a dataclass DEFAULTING TO True. A caller that hardcodes it, or drops the field, silently switches ~65% of resi renewals onto the wrong estimator and EVERY test exercising the desk directly stays green, because the desk gets exactly what the caller chose to give it. Control 3 is therefore an AST check over the REAL call site in run_phase2b.py with a vacuity guard on the number of constructions examined, and two mutations performing the defect (the hardcoded flag; the old/new rate swap). Control 4 covers the mirror-image defect INSIDE the desk -- the two estimators collapsing into one -- by asserting the passive arm is genuinely inert relative to the active arm, with a mutation that builds the collapsed shape and shows the assertion failing on it. A FINDING THE CONTROL SURFACED, KEPT RATHER THAN TUNED AWAY: control 2's per-keyword sensitivity sweep FAILED on its first run -- on the ACTIVE arm, bill_shock_count, behaviour_score and satisfaction_score move the estimate by exactly nothing. Not a defect in the cut: both estimators combine as max(rate_estimate, payment_estimate), and at a +33% rate rise the rate arm dominates, so the entire payment/experience signal is MASKED. It is live on the PASSIVE arm, whose rate sensitivity is deliberately near-inert -- the whole reason Phase QK extended the enriched estimate to passive rollers. The control was split per-arm with the reason written into it, rather than the fixture being reshaped until the assertion passed; a fixture chosen to make an assertion pass is not evidence. The masking itself is a fidelity question the company's model owns and is NOT repaired here (B7: a wall pass never moves a number in the same commit as an import). A SECOND FINDING, NOT MINE AND FIXED ANYWAY: the ruff ratchet was RED AT PRISTINE HEAD on F401 (281 vs the frozen 279) -- the class test_static_quality_ratchet.py's own line ~197 already records. Proven pre-existing rather than assumed: the per-file F401 census of this working tree is BIT-IDENTICAL to a clean `git archive HEAD` extract, and the two offenders (tools/orphan_ratchet.py unused `ast`, site/customers/test_wall_exhibit.py unused `tempfile`) landed in the preceding six commits from other lanes. FIXED rather than baselined, which is that ratchet's own stated remedy. This step also SHRANK I001 1380 -> 1379 as a side effect (run_phase2b lost one un-sorted import block), and the baseline was lowered accordingly -- a stale entry left unlowered is how the floor stops holding. WHAT DID NOT FALL: run_phase2b keeps 21 direct + 2 indirect -- measured, not carried forward. THE CRM GROUP IS NOT ONE GROUP BUT THREE PROCESSES, and this step took the first. What remains of it is the customer-experience record (satisfaction_accumulator, nps_tracker, complaints, payment_behaviour_analytics -- four stateful books opened at setup, fed through the loop, read at the end) and the commercial pair (customer_profitability, tpi_book). Register 3l named the nine as one group because they share a PACKAGE; the step template's rule is a group sharing one INTERMEDIATE, which is a process, and company.crm is not one. Deviation from the design block's own sequencing, logged with its reason (LAW A) in 3o and in the design block itself. Beyond the CRM builders: the trading desk (forward_book, hedge_decision, hedge_policy), the pricing/regulatory group (tariff_engine, margin_feedback, ofgem_price_cap, decision_policy) and the saas.* set (8) -- 6 + 3 + 4 + 8 = 21, arithmetic written out. Beyond this module: simulation.customer_events' four edges (B2, a coupled-triad build, which that design block explicitly forbids attempting as a mechanical move) and run_phase4c_on_phase2b's dd_review_runner routing residual (register 3h). STEP 17'S NAMED RESIDUAL IS STILL OPEN and is repeated rather than dropped: FITBook.levelisation_charge_gbp(year, total_mwh_supplied) is handed kWh and divides by 1000 internally -- arithmetic right, naming wrong. NAMING debt on company/regulatory/fit_book.py, not a wall crossing."
+  - company/crm/customer_experience_desk.py
+  - company/interfaces/customer_experience.py
+  - tests/company/interfaces/test_customer_experience_seam.py
+  - company/crm/tpi_commission_desk.py
+  - company/interfaces/tpi_commission.py
+  - tests/company/interfaces/test_tpi_commission_seam.py
+  - company/crm/customer_profitability.py
+  - company/interfaces/customer_profitability.py
+  - tests/company/interfaces/test_customer_profitability_seam.py
+  exit_evidence: 'STEP 22 (A_composition_lift, THE COMMERCIAL PAIR -- WHAT AN UNPROFITABLE CUSTOMER COSTS
+    AND WHAT THE BROKER WAS PAID), 2026-08-13 -- this atom is PARTIALLY built and must NOT be re-drawn
+    as if from zero. 2 EDGES CUT, 24 -> 22 LIVE (22 -> 20 direct; the 2 indirect deliberately UNMOVED
+    for the NINTH consecutive step, which is again the proof that a bridge route was not silently taken
+    instead). 91 ruled: cut 69, owed 22, grandfathered 0 -- verified by tools/wall_crossing_dispositions.py
+    rc=0 against THE WORKING TREE, not asserted. LEVEL DELIBERATELY STILL 0: 22 of 91 remain live, and
+    booking the target at three-quarters-paid is the false-completion class this project names explicitly;
+    do not bump level_target progress until owed=0. THIS COMMIT ALSO LANDS STEP 21, WHICH WAS NEVER COMMITTED.
+    Found by measurement, not by reading the record: step 21''s own exit_evidence (written 2026-08-13)
+    states it landed, and its five files -- company/crm/customer_experience_desk.py, company/interfaces/customer_experience.py,
+    tests/company/interfaces/test_customer_experience_seam.py, and the register/ratchet edits -- were
+    sitting UNTRACKED and UNSTAGED in the working tree at draw time. The record outran the code by one
+    full step. That is the class 0a of the register was written for (a `cut` is a claim about the REPO,
+    not about your desk), and it recurred anyway, from the INSIDE, one step after being restated -- which
+    is worth more than the fix: the close-time check tools/wall_crossing_dispositions.py --at-head EXISTS
+    and would have caught it, and nothing ran it. A HARNESS FINDING IS STAGED SEPARATELY: the step-close
+    procedure has no automated caller for the --at-head mode, so it fires only when a human remembers,
+    which is the fail-silent shape R15 names. WHAT WAS CUT IN STEP 22: run_phase2b.py''s LAST TWO company.crm.*
+    edges. (1) customer_profitability -- the WORLD was holding the supplier''s own pricing policy. Its
+    renewal loop carried `if (unit_rate is not None and term_index >= 1 and commodity == "electricity"
+    and term_tariff_type in ("fixed", "pass_through"))` and asked the company only for the NUMBER. Which
+    of its own products a supplier reprices for unprofitability -- renewals but not acquisitions, electricity
+    but not gas, fixed and pass-through but not deemed or flex -- is a pricing decision with a commercial
+    reason behind every arm, and the world had it only because an `if` was cheaper to write there than
+    a parameter was to design. Now renewal_unit_rate_uplift() holds all four arms with the two constants
+    they were always separated from, behind company/interfaces/customer_profitability.py, and returns
+    0.0 (never an exception) for every renewal the policy does not touch. (2) tpi_book -- the WORLD was
+    registering the supplier''s broker: it constructed TPIBook(), registered TPI-001 ''Standard Energy
+    Broker'' on the PREFERRED tier, on a volume basis, at GBP1.5/MWh, dated 2016-01-01, decided a deal
+    is one customer-year, chose the rounding and 1 January as the deal date, and then read the book''s
+    PRIVATE _deals list to publish a count -- a dependency across the wall on an internal the company
+    never published, the same shape step 17 found with the statutory tables. Now company/crm/tpi_commission_desk.py
+    holds all of it behind company/interfaces/tpi_commission.py; the world keeps the settled records and
+    its own I&C roster (segment == ''I&C'', computed world-side and handed over, exactly as step 18''s
+    ic_elec_roster). TWO DOORS, NOT ONE, AND THE GROUP TEST IS APPLIED AND FAILS -- that is the finding,
+    not a compromise. Every step since 15 has grouped its edges and written down why; step 18''s test
+    is the sharp one, DO THEY FEED ONE TOTAL. Here they do not: an uplift changes a unit rate inside the
+    renewal loop, per customer, per term, mid-run; broker commission is a channel cost booked once at
+    year end off the settled book. They share a package and a sentence and nothing a reader could check.
+    A CommercialDesk spanning both would be an object the business does not have, invented by a KNIFE
+    pass for its own convenience and inherited by every later reader. Step 16 recorded a group argument
+    as WEAKER than step 15''s rather than borrowing it; this is the same discipline reaching its other
+    end, where the honest answer is ''these are two things''. ONE NAME, ONE NUMBER -- A DEFECT REMOVED
+    ON THE WAY PAST, NOT INTRODUCED. The commission rate appeared TWICE as the literal 1.5: once in the
+    registration call, once independently in the published summary''s commission_rate_gbp_per_mwh. Anyone
+    checking the published headline against the charged rate was comparing a number to a second typing
+    of itself, and the two could drift with every test still green. The headline is now read off the registered
+    broker; control 3 mutation-proves it by moving the registered rate on a COPY of the desk and asserting
+    the headline moves with the commission -- against the pre-cut code that same mutation moved the commission
+    and left the headline at 1.5. _published_rate RAISES rather than averaging when a second volume-based
+    broker appears, because a single-rate headline is wrong for two brokers no matter where the number
+    came from; the silent mean is the fail-open version of the same fix. THE DEFECT THIS CUT INVITES --
+    FOUR BRANCHES BECAME FOUR FIELDS, FOR THE THIRD STEP RUNNING. Step 20 recorded ''the branch became
+    a field''; step 21 recorded it again as the instrument field; this is the third consecutive step,
+    and THE RECURRENCE IS THE FINDING: a composition lift converts control flow the caller could not fake
+    into data the caller supplies, every time, without exception. It is not hypothetical here -- in the
+    control fixture the same account''s GAS term is also net-negative, so a hardcoded commodity="electricity"
+    at the call site reprices a gas renewal and moves real money. Control 3 is an AST check over the REAL
+    call site (keyword-only, full argument set named, NO argument a Constant) with a vacuity guard on
+    the call count and two mutations performing the defect; a companion test asserts the gas arm would
+    actually change, so control 3 guards a number rather than a spelling. NO NUMBER MOVES, MEASURED NOT
+    ASSERTED. Both doors carry an identity control against the PRE-CUT sequence transcribed from run_phase2b.py
+    as it stood before this commit -- not from the module under test, which would be a mirror. For TPI
+    that is the whole published tpi_summary dict, KEYS AND ORDER included, because saas/reporting/annual_report.py
+    reads it. For the uplift it is a matrix over every eligibility arm (eligible fixed, eligible pass-through,
+    acquisition term, gas, deemed, flex, no locked rate, no tariff type at all), with test_the_matrix_is_not_degenerate
+    asserting DIRECTLY that the eligible arm returns NON-ZERO and each other arm zero, so no control here
+    can pass by comparing two zeroes. The TPI fixture contains a non-brokered domestic account and a brokered
+    account with a zero-volume year, both asserted present, and each of the two filters the caller can
+    no longer see is mutation-proven by deleting it on a copy of the desk. THE CONTROLS: tests/company/interfaces/test_tpi_commission_seam.py
+    (14 tests) and tests/company/interfaces/test_customer_profitability_seam.py (17 tests) -- 31 tests,
+    9 of them mutations that PERFORM the named defect (two lazy world imports on COPIES of the source,
+    never a repo file edited mid-pytest-run; the rate-drift mutation; the dropped roster filter; the dropped
+    volume filter; two hardcoded call-site arguments; three deleted eligibility gates). Both read-direction
+    controls are behavioural -- a clean interpreter is asked which world modules the import system actually
+    loaded -- not greps. THE PORTABILITY LAW BIT BACK AND THE FIX IS THE HONEST ONE: tests/architecture/test_market_at_the_seams.py
+    refused both doors on first run for re-exporting a GBP-per-MWh constant onto a seam surface (rule
+    2, a market-varying quantity baked into a seam). The constants were REMOVED from the doors rather
+    than the debt recorded: a supplier''s uplift amount and its broker rate are model parameters of ITS
+    market and belong inside company/crm/, which is the door''s whole point. Recorded because a green
+    run would have hidden that the law fired. WHAT DID NOT FALL: run_phase2b keeps 15 direct + 2 indirect
+    -- MEASURED with tools/epistemic_wall.live_crossings(), not carried forward. The trading desk (forward_book,
+    hedge_decision, hedge_policy), the pricing/regulatory group (tariff_engine, margin_feedback, ofgem_price_cap,
+    decision_policy) and the saas.* set (8): 3 + 4 + 8 = 15, arithmetic written out. THE CRM GROUP IS
+    NOW EMPTY -- steps 21 and 22 together took all six of this module''s company.crm.* edges. Beyond this
+    module: simulation.customer_events'' four edges (B2, a coupled-triad build, which that design block
+    explicitly forbids attempting as a mechanical move) and run_phase4c_on_phase2b''s dd_review_runner
+    routing residual (register 3h). STEP 17''S NAMED RESIDUAL IS STILL OPEN, repeated rather than dropped:
+    FITBook.levelisation_charge_gbp(year, total_mwh_supplied) is handed kWh and divides by 1000 internally
+    -- arithmetic right, naming wrong. NAMING debt on company/regulatory/fit_book.py, not a wall crossing.
+    STEP 20''S MASKING FINDING IS ALSO STILL OPEN: on the ACTIVE churn arm, bill_shock_count / behaviour_score
+    / satisfaction_score move the estimate by exactly nothing at a +33% rate rise because the two estimators
+    combine as max(rate, payment) and the rate arm dominates. That is a fidelity question the company''s
+    model owns; this step did not touch it, and a wall pass never moves a number in the same commit as
+    an import (B7). PRE-EXISTING RED, MEASURED AND NOT MINE: tests/architecture/test_static_quality_ratchet.py
+    is red at HEAD -- I001 counts 1381 in a git-archive export of HEAD against a baseline of 1379 frozen
+    2026-08-06. Per-file before/after over every modified path shows this step''s files contribute ZERO
+    I001 and the working tree is at 1380. Staged as a finding, not fixed on sight (SELF-INTERRUPT DISCIPLINE).'

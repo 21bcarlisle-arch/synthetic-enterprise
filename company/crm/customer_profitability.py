@@ -187,3 +187,65 @@ def compute_profitability_uplift(
     if prior_margin is None or prior_margin >= 0.0:
         return 0.0
     return NET_NEGATIVE_UPLIFT_GBP_PER_MWH
+
+
+# ---------------------------------------------------------------------------
+# KNIFE pass 3, `A_composition_lift` step 22 (register §3q).
+#
+# Until step 22 the WORLD decided which renewals this pricing policy applied to.
+# `simulation/run_phase2b.py::main()` carried the eligibility test in its own
+# renewal loop — first term or later, electricity, fixed or pass-through, and a
+# locked unit rate to adjust — and only then asked the company for a number.
+# That is the supplier deciding which of its own products it will reprice for
+# unprofitability, which is a pricing decision, not world physics. It now lives
+# here, with the two constants it was always separated from.
+#
+# WHAT STAYS THE WORLD'S: whether the term happened, what commodity it was for,
+# what tariff type was struck and what the rate was. Those are observations. What
+# they MEAN for the supplier's pricing is behind this function.
+#
+# POINT-IN-TIME: this function reads no settlement history itself. The blindfold
+# is applied one call down, in `estimate_prior_term_net_margin`, where the
+# as_of bound is the term start — it keeps only records with
+# `settlement_date < term_start` and then takes the single most recent completed
+# term. The parameter is named `settled_records` rather than "everything" for
+# that reason: the supplier is handed its own settled book and is bounded to the
+# part of it that had already settled when the term was struck.
+# ---------------------------------------------------------------------------
+
+# The products this uplift can be applied to. Deemed and flexible terms have no
+# locked unit rate to adjust, and gas is priced off a book this policy has never
+# been calibrated against.
+UPLIFTABLE_TARIFF_TYPES: frozenset[str] = frozenset({"fixed", "pass_through"})
+UPLIFTABLE_COMMODITY: str = "electricity"
+# Term 0 is the acquisition term: there is no prior term to have been negative.
+MIN_TERM_INDEX_FOR_UPLIFT: int = 1
+
+
+def renewal_unit_rate_uplift(
+    account_id: str,
+    commodity: str,
+    tariff_type: Optional[str],
+    term_index: int,
+    term_start: str,
+    locked_unit_rate: Optional[float],
+    settled_records: list[dict],
+) -> float:
+    """Return the £/MWh the supplier adds to THIS renewal for unprofitability.
+
+    `term_start` is the as_of bound applied downstream; nothing that settled on
+    or after it can reach the answer.
+
+    Returns 0.0 — not an error, and not a raised exception — for every renewal
+    the policy does not apply to, so the caller adds a number rather than
+    re-implementing the supplier's eligibility rule at the call site.
+    """
+    if locked_unit_rate is None:
+        return 0.0
+    if term_index < MIN_TERM_INDEX_FOR_UPLIFT:
+        return 0.0
+    if commodity != UPLIFTABLE_COMMODITY:
+        return 0.0
+    if tariff_type not in UPLIFTABLE_TARIFF_TYPES:
+        return 0.0
+    return compute_profitability_uplift(account_id, term_start, settled_records)

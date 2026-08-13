@@ -279,12 +279,32 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     # its own reading of the published commons artefact
     # (`simulation/price_cap_enforcement.py`); the company keeps its reading and
     # the two are free to differ.
-    ("simulation.run_phase2b", "company.crm.complaints"),
-    ("simulation.run_phase2b", "company.crm.customer_profitability"),
-    ("simulation.run_phase2b", "company.crm.nps_tracker"),
-    ("simulation.run_phase2b", "company.crm.payment_behaviour_analytics"),
-    ("simulation.run_phase2b", "company.crm.satisfaction_accumulator"),
-    ("simulation.run_phase2b", "company.crm.tpi_book"),
+    # ("simulation.run_phase2b", "company.crm.complaints") — CUT
+    # ("simulation.run_phase2b", "company.crm.nps_tracker") — CUT
+    # ("simulation.run_phase2b", "company.crm.payment_behaviour_analytics") — CUT
+    # ("simulation.run_phase2b", "company.crm.satisfaction_accumulator") — CUT
+    # all four 2026-08-13 by KNIFE pass 3, design A_composition_lift step 21
+    # (§3p). The run loop was OPENING the supplier's four customer-experience
+    # books and making its bookkeeping decisions at nine call sites: that a bill
+    # shock costs trust, that a CSAT answer and an NPS answer land in different
+    # books, that satisfaction decays twelve months per term, that a complaint
+    # about a bill is filed under BILLING. The supplier now runs one desk
+    # (`company/crm/customer_experience_desk.py`) behind
+    # `company/interfaces/customer_experience.py`; the world reports the term
+    # boundary, the answered survey, the contact and the payment outcome.
+    # KNIFE pass 3, `A_composition_lift` step 22 (register §3q) removed the last
+    # two CRM crossings on this module. `customer_profitability`: the world
+    # carried the supplier's own eligibility rule for repricing an unprofitable
+    # renewal (first term or later, electricity, fixed or pass-through, a locked
+    # rate to adjust) and only then asked for a number; that rule is now behind
+    # `company/interfaces/customer_profitability.py`. `tpi_book`: the world
+    # registered the supplier's broker, chose its tier, basis, rate and
+    # registration date, decided a deal is one customer-year and read the book's
+    # PRIVATE `_deals` list to publish a count; all of it is now behind
+    # `company/interfaces/tpi_commission.py`. Two doors, not one — an uplift
+    # inside the renewal loop and a channel cost booked once at year end do not
+    # feed one total, and naming a desk over both would invent an object the
+    # business does not have.
     ("simulation.run_phase2b", "company.policy.decision_policy"),
     ("simulation.run_phase2b", "company.pricing.margin_feedback"),
     ("simulation.run_phase2b", "company.pricing.ofgem_price_cap"),
