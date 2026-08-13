@@ -130,6 +130,17 @@ BASELINE_DATE = "2026-08-06"
 #     two seam imports; the block came back sorted. The floor moves DOWN with
 #     it, per the ratchet's own rule that a remediation shrinks the baseline in
 #     the same change.
+#   2026-08-13  I001 1378 -> 1376  (publish-gate wedge clearance)
+#     NOT a fresh remediation — a MISSED re-freeze. Measured by bisect over a
+#     clean HEAD export: c96750be8 = 1379, c8284059b = 1376. So c8284059b
+#     ("Publishing was dead for 21.7h") cleared THREE and re-froze only one, and
+#     the floor has been 2 too high ever since. Confirmed committed, not tree
+#     dirt: the dirty working tree and a clean 860ce6f70 checkout both count
+#     1376, so this holds the floor at HEAD rather than freezing an uncommitted
+#     improvement (the trap the 2026-08-12 entry above records).
+#     Same commit, same shape as the `_check_content_publishing` hole in
+#     tests/controls/test_daemon_loop_mutation.py: a control landed without its
+#     census being re-run. Two reds, one cause.
 #   2026-08-13  I001 1379 -> 1379  (NO MOVE — HEAD came back to the floor)
 #     Logged here because a red at HEAD that nobody can attribute is how this
 #     ratchet dies (WORKER_FINDING_THE_ISORT_RATCHET_IS_RED_AT_HEAD_2026-08-13).
@@ -276,7 +287,7 @@ BASELINE_DATE = "2026-08-06"
 # company/trading/emir_reporting_register.py.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
-    "I001": 1378,
+    "I001": 1376,
     "F401": 279,
     "E402": 193,
     "F841": 128,
@@ -296,7 +307,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2402  # was 2421 at the 08-06 freeze; -19 per the shrink log above
+RUFF_BASELINE_TOTAL = 2400  # was 2421 at the 08-06 freeze; -21 per the shrink log above
 
 
 # --------------------------------------------------------------------------

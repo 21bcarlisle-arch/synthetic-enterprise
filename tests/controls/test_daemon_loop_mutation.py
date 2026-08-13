@@ -137,6 +137,29 @@ NEUTRALISED_BY_DMS_ISOLATED = (
     # longer gap would have paged the director from a unit test. That is latent, not isolated.
     "_check_open_mint_escalation",
     "_check_drawable_undrawn_escalation",
+    # ADDED 2026-08-13 by this section's own class guard, on the FIRST cycle after `run_cycle`
+    # gained it in c8284059b. Exactly the shape the guard was built for, and it caught it in one
+    # commit rather than the eighteen days `_check_operational_layer_signal` went unnoticed.
+    # Disqualified on all three counts, not one: it PAGES (`notify(kind="real_alarm")` on the
+    # PUBLISHING_DOWN class, which _capture_ntfy records -- a fire appends to `calls` and breaks
+    # the `assert len(calls) == 1` every test here is built on); it reads
+    # `publish_freshness.STATE_FILE`, an ABSOLUTE path into the real docs/observability/ that
+    # this fixture's OBSERVABILITY_DIR patch does not reach; and `publish_freshness.snapshot()`
+    # shells out to git for `last_committed_ts`. Not latent either -- publishing is stale RIGHT
+    # NOW (the wedge these tests sit inside), so its alarm branch is the live one.
+    "_check_content_publishing",
+    # NOT a `_check_*` name, and that is the whole point -- see the class guard below, whose
+    # subject was widened on 2026-08-13 because this function proved the guard was watching a
+    # NAMING CONVENTION rather than a call set. `run_cycle` calls it every cycle; it reads
+    # `notification_digest.QUEUE_FILE` (again an absolute path into the real docs/observability/)
+    # and SENDS the batched digest through the same `ntfy_utils.send_ntfy` that `_capture_ntfy`
+    # records -- observed as a second entry ("[DIGEST] 21 batched item(s)") breaking
+    # `assert len(calls) == 1` in all six stall/cooldown tests.
+    # BOUND, R9 -- what did NOT happen: the real high-water mark did not move. `flush` advances
+    # it only on a CONFIRMED delivery and `_capture_ntfy`'s lambda returns None, so the queue
+    # stayed intact (.ntfy_digest_state.json mtime unchanged across the run that observed this).
+    # The director lost no batched item. Neutralised for the count, not for a data loss.
+    "_flush_notification_digest",
 )
 
 # Allowed to run for real, each for a stated reason. A check earns a place here only if it is
@@ -145,7 +168,41 @@ NEUTRALISED_BY_DMS_ISOLATED = (
 RUN_FOR_REAL_BY_DMS_ISOLATED = {
     # Reads `git rev-parse --is-bare-repository` and logs. No subprocess suite, no notify path.
     "_check_repo_not_bare": "cheap read-only git query; logs only, never notifies",
+    # The seven below were surfaced by WIDENING the class guard past `_check_*` on 2026-08-13.
+    # None was a new addition to `run_cycle` -- every one had been running for real in these 12
+    # cycles all along, unexamined, because the guard could not see a name that did not start
+    # with `_check`. Each is recorded with WHY it is safe, so the next reader inherits a decision
+    # rather than an omission.
+    "_digest_classes": "lazy `import notification_digest` returning the module; no I/O, no notify",
+    "_reping_open_action_needed_items":
+        "CAN page, but the fixture patches action_needed.REGISTER_PATH to tmp_path, so it reads an "
+        "empty register and has nothing to re-ping -- isolated by construction, not by luck",
+    "_unprocessed_staging_files":
+        "reads the PATCHED STAGING_DIR only; must run for real -- it is how these tests get work "
+        "onto the queue at all",
+    "_self_drawable_undrawn":
+        "reads `STAGING_DIR / in_progress` -- the PATCHED dir (its own docstring says it uses the "
+        "live STAGING_DIR precisely so the test patch isolates it); read-only, never notifies",
+    "_usage_pause_active": "reads the PATCHED OBSERVABILITY_DIR pause file; read-only, never notifies",
+    "_misparked_actionable_in_progress":
+        "read-only, no subprocess, cannot page. CAVEAT, stated rather than hidden: it reads the "
+        "FROZEN `_IN_PROGRESS_DIR` (real docs/staging/in_progress/), which the STAGING_DIR patch "
+        "does NOT reach. It can only APPEND to `staged`, and every assertion here is on the notify "
+        "count, so live content cannot flip a verdict -- but if a test ever asserts on len(staged), "
+        "this is the one to isolate first",
+    "_rest_is_proven_legitimate":
+        "imports supervisor and reads real disk, but is short-circuited out on every path here "
+        "(`(not staged) and stall_by_clock and ...`) and cannot page -- it returns a bool that "
+        "fails safe toward alarm",
 }
+
+# The machinery these tests EXIST to exercise. Neutralising any of it in the fixture would delete
+# the subject rather than isolate it, so the guard must not demand a fixture classification for it.
+# `last_activity_epoch` is the commit clock itself: every stall/cooldown test monkeypatches it
+# per-case to place the gap, which is a stronger isolation than the fixture could give it.
+_INFRA_NOT_A_CHECK = frozenset({
+    "run_cycle", "log", "notify", "clear_transition", "last_activity_epoch",
+})
 
 
 @pytest.fixture(autouse=False)
@@ -214,7 +271,18 @@ def test_dms_isolated_accounts_for_every_check_run_cycle_calls():
     import re
 
     src = inspect.getsource(dms.run_cycle)
-    called = set(re.findall(r"\b(_check_[A-Za-z0-9_]+)\s*\(", src))
+    # SUBJECT WIDENED 2026-08-13. This used to match `_check_[A-Za-z0-9_]+` only, which made the
+    # guard's real subject a NAMING CONVENTION rather than run_cycle's call set -- so
+    # `_flush_notification_digest` sat in the loop sending the live digest through these 12 cycles
+    # and the guard reported all-accounted-for. A guard that only sees the names it expects is the
+    # same defect one level up ("a test isolates the paths it thought of"), so match EVERY call and
+    # keep only those that resolve to a module-level callable on `dms`: that set moves when the
+    # daemon is edited, under any name a future author picks.
+    called = {
+        name
+        for name in re.findall(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(", src)
+        if name not in _INFRA_NOT_A_CHECK and callable(getattr(dms, name, None))
+    }
 
     # FAIL-CLOSED on a lost subject (R15 fail-silent doctrine): if `run_cycle` is refactored so no
     # `_check_*` call is textually visible, this guard would pass over an empty set and prove
@@ -223,6 +291,23 @@ def test_dms_isolated_accounts_for_every_check_run_cycle_calls():
         "run_cycle() no longer shows any _check_*() call in its source -- this guard has lost its "
         "subject and is green over nothing. Re-point it at however run_cycle now dispatches its "
         "checks before trusting it again."
+    )
+
+    # THE ESCAPE HATCH IS ITSELF PINNED (R15 fail-open, found by mutation-testing this guard on
+    # 2026-08-13). `_INFRA_NOT_A_CHECK` subtracts from the subject, so anyone who drops a name into
+    # it silences this guard for that name -- the mutant "hide `_flush_notification_digest` behind
+    # the infra set" passed GREEN until this pin existed. A bypass with no control on it is the
+    # fail-open pattern, so the set is pinned to its four notify-plumbing entries plus the commit
+    # clock. Widening it is legal, but it must be a DELIBERATE edit here that says why -- never a
+    # quiet way to make a red name go away.
+    assert set(_INFRA_NOT_A_CHECK) == {
+        "run_cycle", "log", "notify", "clear_transition", "last_activity_epoch",
+    }, (
+        "_INFRA_NOT_A_CHECK has changed to {}. It subtracts from this guard's subject, so every "
+        "name in it is a check that will run FOR REAL and never be reported. Justify the new entry "
+        "here (it must be machinery these tests exercise directly, or something each test patches "
+        "itself) rather than using this set to quiet an unaccounted name.".format(
+            sorted(_INFRA_NOT_A_CHECK))
     )
 
     classified = set(NEUTRALISED_BY_DMS_ISOLATED) | set(RUN_FOR_REAL_BY_DMS_ISOLATED)

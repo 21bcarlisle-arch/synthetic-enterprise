@@ -1,6 +1,6 @@
 # WORKER FINDING — a cut recorded as EXECUTED had never been committed, and nothing was red
 
-**severity:** MEDIUM
+**Severity:** LATENT · **Lane:** H_harness
 **class:** uncommitted-and-orphaned-work
 **found:** 2026-08-13, during KNIFE3 step 24 (`A_composition_lift`, the renewal rate chain)
 **status:** DISCHARGED IN THE SAME TICK — step 23 and step 24 landed together; see below for why the
