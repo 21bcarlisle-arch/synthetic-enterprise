@@ -54,9 +54,16 @@ Symmetry with the close would silently move the bad-debt figure. The seam test
 performs exactly that filter as a mutation and asserts the view moves, so the
 choice is pinned by a control rather than by this paragraph.
 
-THE LEAK THIS CUT DOES NOT REPAIR, named rather than left to look sanctioned by
-the new door. `simulation/contact_centre.py::generate_contact_centre_log(bills,
-contact_model)` draws the world's ACTUAL contact events off
+THE LEAK THIS CUT DID NOT REPAIR — REPAIRED 2026-08-13, note kept as the record.
+The world now draws its contact events from its OWN response function
+(`simulation/contact_propensity.py`), keyed on a household archetype this module
+cannot read, and `generate_contact_centre_log` no longer accepts a
+`contact_model` at all. What this module computes stays exactly what it was: the
+supplier's ESTIMATE, now free to be wrong, and scored against the world's answer
+by `tools/couple_contact.py`. The description below is the pre-repair state.
+
+`simulation/contact_centre.py::generate_contact_centre_log(bills,
+contact_model)` drew the world's ACTUAL contact events off
 `contact_probability` — a number this module computes as the supplier's
 estimate. The company's belief about how often it will be contacted therefore
 CONSTITUTES how often it is contacted: the B2/B3 inversion, the same shape as

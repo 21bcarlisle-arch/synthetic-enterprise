@@ -990,7 +990,18 @@ claims it is. The lazy-import escape the static ratchet cannot see is covered be
 seam test builds a real view in a clean interpreter, asks `sys.modules` which world modules loaded,
 and its mutation performs exactly that import.
 
-### THE LEAK THIS CUT DOES NOT REPAIR, named because the new door would otherwise imply it was clean
+### THE LEAK THIS CUT DID NOT REPAIR — REPAIRED 2026-08-13, kept here as the record
+
+**CLOSED.** The world now draws its contacts from `simulation/contact_propensity.py`, its own
+response function, keyed on the household engagement archetype the company structurally cannot
+read; `generate_contact_centre_log` takes `bills` and no longer accepts `contact_model` at all, so
+the old call is unrepresentable rather than merely discouraged. `saas.contact_model` is untouched
+and stays the supplier's ESTIMATE. Independence is proven by mutation with a vacuity guard in
+`tests/simulation/test_contact_propensity.py`; restoring the leak fails BOTH the cut test and its
+guard. Nothing pins the world's constants equal to the company's — §3g's and B7's recorded refusal,
+for the third time. The gap that was zero BY CONSTRUCTION is now scoreable
+(`tools/couple_contact.py`), which was always the actual gain. The paragraphs below are the
+original finding text, kept verbatim so the record of what the door looked like before is legible.
 
 `simulation/contact_centre.py::generate_contact_centre_log(bills, contact_model)` draws the world's
 ACTUAL contact events off `contact_probability` — the number this view computes as the supplier's

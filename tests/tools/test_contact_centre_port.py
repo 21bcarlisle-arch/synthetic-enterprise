@@ -24,16 +24,31 @@ from tools.contact_centre_port import (
 def _sample_log() -> list[dict]:
     """A real contact-centre log from the real generator.
 
-    contact_probability=1.0 forces a contact every bill so the log is non-empty
-    and spans multiple channels across customers/periods.
+    2026-08-13: this used to hand the generator a synthetic `contact_model` with
+    `contact_probability=1.0` -- the supplier's estimate, which is exactly what
+    `WORKER_FINDING_THE_WORLDS_CONTACT_RATE_IS_THE_COMPANYS_ESTIMATE_2026-08-11`
+    removed from this seam. The generator now takes BILLS and draws off the
+    world's own propensity, so the fixture supplies bills.
+
+    They are deliberately BAD bills -- illegible (`clarity_score` 0.05) and a
+    doubled month (`bill_shock_pct` 1.0) -- across a wide book, because the
+    contact rate is now the world's answer and no fixture can dial it to 1.0
+    without reaching back through the wall. The book is sized so the log is
+    comfortably non-empty and spans multiple channels; both properties are
+    ASSERTED below rather than assumed, so a drift in the world's physics
+    surfaces as a named failure instead of silently emptying these tests.
     """
-    by_customer = {}
-    for cid in ("C1", "C2", "C3", "C4"):
-        by_customer[cid] = [
-            {"customer_id": cid, "period_end": f"2020-{m:02d}-28", "contact_probability": 1.0}
-            for m in range(1, 13)
-        ]
-    return generate_contact_centre_log([], {"by_customer": by_customer})
+    bills = [
+        {
+            "customer_id": f"CP{index:04d}",
+            "period_end": f"2020-{month:02d}-28",
+            "clarity_score": 0.05,
+            "bill_shock_pct": 1.0,
+        }
+        for index in range(40)
+        for month in range(1, 13)
+    ]
+    return generate_contact_centre_log(bills)
 
 
 def test_round_trip_is_lossless_identity_on_existing_dict():
@@ -73,9 +88,16 @@ def test_from_log_entry_carries_every_field():
 
 
 def test_channel_values_from_real_producer_are_in_known_set():
-    for e in _sample_log():
-        msg = ContactCentreMessage.from_log_entry(e)
-        assert msg.channel in ("phone", "email", "webchat")
+    channels = {ContactCentreMessage.from_log_entry(e).channel for e in _sample_log()}
+    assert channels <= {"phone", "email", "webchat"}
+    # The fixture's own claim, checked rather than asserted in prose: an empty
+    # or single-channel log would make the membership check above a statement
+    # about nothing, and it is the world's propensity -- not a dialled-in 1.0 --
+    # that now decides how many events there are.
+    assert len(channels) > 1, (
+        f"the fixture book spanned only {channels or 'no channels at all'}; the "
+        "membership check above proves nothing on a log this narrow"
+    )
 
 
 def test_port_is_runtime_checkable_protocol():

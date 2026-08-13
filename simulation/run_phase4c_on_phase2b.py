@@ -293,8 +293,17 @@ def main(report_end: str | None = None, policy=None):
 
     # Phase 3 (CORE_FIDELITY_PHASES.md item 4): contact-centre first-response
     # time, distinct from feedback_survey's complaint *resolution* timer --
-    # reuses contact_model's already-computed per-bill contact_probability
-    # as the trigger, adds the channel + first-response latency layer.
+    # the world's own contact propensity (simulation/contact_propensity.py) is
+    # the trigger, and this adds the channel + first-response latency layer.
+    #
+    # 2026-08-13, register §3k's named leak repaired: this used to pass
+    # `contact_model` -- the SUPPLIER'S ESTIMATE of its own contact rate -- so
+    # the world's actual contact events were drawn off a number the company
+    # chose (the B2/B3 inversion, third application of
+    # `B3_world_needs_its_own_cap_physics` after §3g and §3e). `contact_model`
+    # is still built above and still crosses back as the company's BELIEF; what
+    # it no longer does is constitute the outcome. The belief-vs-truth gap that
+    # was zero by construction is now scoreable -- `tools/couple_contact.py`.
     # WALLED_INTERFACES reference-flow conversion (W4_1_typed_adapters, third
     # flow): the customer-contact crossing now travels as versioned typed
     # messages (tools.contact_centre_port.ContactCentreMessage) rather than raw
@@ -306,7 +315,7 @@ def main(report_end: str | None = None, policy=None):
     # ground-truth field on this seam.
     contact_centre_messages = [
         ContactCentreMessage.from_log_entry(entry)
-        for entry in generate_contact_centre_log(bills, contact_model)
+        for entry in generate_contact_centre_log(bills)
     ]
     contact_centre_log = [message.to_log_entry() for message in contact_centre_messages]
 

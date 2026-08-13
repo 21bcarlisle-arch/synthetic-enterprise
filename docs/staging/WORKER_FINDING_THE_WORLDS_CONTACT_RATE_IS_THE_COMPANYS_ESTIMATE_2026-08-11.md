@@ -4,7 +4,43 @@
 
 **Found:** 2026-08-11, during KNIFE pass 3 step 16 (`KNIFE3_wall_crossing_paydown`, register §3k)
 **Class:** B2/B3 inversion — a company BELIEF constituting a world OUTCOME
-**Disposition:** QUEUED, not fixed on sight (`SELF_INTERRUPT_DISCIPLINE`)
+**Disposition:** QUEUED, not fixed on sight (`SELF_INTERRUPT_DISCIPLINE`) — REPAIRED 2026-08-13, see below
+**Discharged:** `tests/simulation/test_contact_propensity.py::test_mutating_the_companys_constants_does_not_move_the_worlds_contacts`, `tests/simulation/test_contact_propensity.py::test_generate_contact_centre_log_no_longer_accepts_the_companys_model`, `simulation/contact_propensity.py`, `tools/couple_contact.py` — the world draws its contacts from its own response function and the log no longer accepts the supplier's model at all.
+
+**The severity header above says what this Hour FOUND, and is left as found.** The repair is
+recorded here rather than by rewriting the header, per the standing rule that a finding's
+severity states what was discovered, not what was left behind; the machine-readable release is
+the checked `**Discharged:**` field, which `background/finding_severity.py` reads down to
+RECORDED — the same parse that raised the hold, so no second list can disagree with it. This is
+the first REAL blocker OPS11's lane refusal has held and released; its own record notes it
+landed quiescent and that the first live blocker is what would exercise it in anger.
+
+**What was built, 2026-08-13** — the "Suggested shape" section below, as suggested:
+
+- `simulation/contact_propensity.py` is the world's own response function. It is keyed on the
+  household's engagement archetype (`simulation/household_segments.py`), which the company
+  structurally cannot read — so the truth is STRUCTURALLY different from the belief, not merely
+  numerically different, and the gap cannot return to zero by construction even if every
+  constant were copied across.
+- `generate_contact_centre_log(bills)` takes `bills` and nothing else. The `contact_model`
+  parameter is GONE rather than defaulted: a parameter that still existed is a parameter
+  something could pass again. `tests/tools/test_contact_centre_port.py`'s fixture, which built
+  a synthetic `contact_model` with `contact_probability=1.0`, was the one caller that still
+  reached through the wall to dial the world's contact rate; it now supplies bills.
+- `saas/contact_model.py` is untouched. It is the supplier's estimate and is now free to be
+  wrong about the world.
+- `tools/couple_contact.py` scores belief vs truth — the COUPLED TRIAD gain that was the actual
+  point, on a quantity where the gap was previously zero BY CONSTRUCTION.
+- No test pins the world's constants equal to the company's (§3g's and B7's recorded refusal,
+  held for the third time). Independence is proven by mutation with two vacuity guards, and the
+  mutation was RUN, not merely written: restoring the leak (the world delegating to
+  `saas.contact_model`) reds four cut tests while both vacuity guards stay green.
+
+**The residual, named rather than left implied:** `clarity_score` is still computed by
+`saas/bill_generator.py`, so the world reads the company's measure of its own document's
+legibility. The defect repaired here was the RESPONSE FUNCTION being the company's, and it is
+now the world's. The world measuring document complexity for itself is a further deepening,
+queued not taken (`SELF_INTERRUPT_DISCIPLINE`).
 
 ## The measurement
 

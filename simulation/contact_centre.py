@@ -3,15 +3,23 @@ CORE_FIDELITY_PHASES.md: "No dedicated latency module exists -- distinct
 from complaint *resolution* time [simulation/feedback_survey.py, real], the
 *first-response* SLA is not [modelled]").
 
-saas/contact_model.py already computes, per bill, the probability a
-confusing/shocking bill drives a customer to contact the supplier
-(`contact_probability`) -- but that probability was never turned into a
-discrete contact EVENT with its own timing. This module is that event
-layer: given a contact occurs, it picks a real contact channel (phone /
-webchat / email -- UK energy-sector contact mix skews heavily to phone) and
-simulates how long the FIRST acknowledgement takes, distinct from
+`simulation/contact_propensity.py` computes, per bill, the WORLD's probability
+that a confusing/shocking bill drives a customer to contact the supplier -- but
+that probability is not yet a discrete contact EVENT with its own timing. This
+module is that event layer: given a contact occurs, it picks a real contact
+channel (phone / webchat / email -- UK energy-sector contact mix skews heavily
+to phone) and simulates how long the FIRST acknowledgement takes, distinct from
 `feedback_survey.dispatch_complaint_and_resolution`'s full-resolution
 timer.
+
+⚠ THE TRIGGER USED TO BE THE COMPANY'S. Until 2026-08-13 this module drew its
+events off `saas.contact_model`'s `contact_probability` -- the SUPPLIER'S
+ESTIMATE -- so the contact rate the company was measured against was the one the
+company chose (`WORKER_FINDING_THE_WORLDS_CONTACT_RATE_IS_THE_COMPANYS_ESTIMATE
+_2026-08-11.md`, register §3k, the B2/B3 inversion). The trigger is now the
+world's own propensity and this module no longer takes `contact_model` at all.
+The company's estimate is untouched and stays its estimate; the gap between the
+two is scored by `tools/couple_contact.py`.
 
 ⚠ Anchors provisional: channel-mix shares and the 24-business-hour written-
 channel first-response target are seed estimates (industry customer-service
@@ -29,6 +37,8 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass
 from typing import Optional
+
+from simulation.contact_propensity import contact_propensity_for_bill
 
 # Channel mix for a contact that occurs (UK energy-sector contact centres
 # remain phone-heavy relative to general retail; provisional -- see module
@@ -62,9 +72,14 @@ class ContactEvent:
 def simulate_contact(
     customer_id: str, period_end: str, contact_probability_value: float
 ) -> ContactEvent:
-    """Roll whether a contact occurs this bill (using the same probability
-    saas.contact_model.contact_probability already computes from clarity/
-    bill-shock), and if so, its channel and first-response latency.
+    """Roll whether a contact occurs this bill, and if so, its channel and
+    first-response latency.
+
+    `contact_probability_value` is the WORLD's propensity
+    (`simulation.contact_propensity.contact_propensity`). This function is the
+    event/timing layer and is deliberately agnostic about where the probability
+    came from; `generate_contact_centre_log` below is what fixes it to the
+    world's side of the wall.
     """
     rng = random.Random(f"contact_{customer_id}_{period_end}")
     if rng.random() >= contact_probability_value:
@@ -95,25 +110,36 @@ def simulate_contact(
     )
 
 
-def generate_contact_centre_log(bills: list[dict], contact_model: dict) -> list[dict]:
-    """One contact-centre event per bill, using saas.contact_model's already-
-    computed per-bill contact_probability as the trigger. `contact_model` is
-    saas.contact_model.build_contact_model(bills)'s output (`by_customer`).
+def generate_contact_centre_log(bills: list[dict]) -> list[dict]:
+    """One contact-centre event per bill that generates a contact, triggered by
+    the WORLD's own contact propensity.
+
+    Takes `bills` -- the documents that were actually sent -- and nothing else.
+    It deliberately no longer accepts `contact_model`: taking the supplier's
+    estimate here is the defect this signature change repairs, and a parameter
+    that still existed would be a parameter something could pass again.
+
+    The returned log is in `bills` order (it was previously grouped by
+    customer). The event SET and each event's contents are unaffected by that:
+    `simulate_contact` seeds on `(customer_id, period_end)`, so an event does
+    not depend on where in the list it is drawn, and every downstream consumer
+    (`saas/reporting/annual_report.py`'s SLC 25C breach rate,
+    `saas/reporting/css_statement.py`) aggregates rather than indexes.
     """
-    by_customer = contact_model.get("by_customer", {})
     log: list[dict] = []
-    for cid, entries in by_customer.items():
-        for entry in entries:
-            event = simulate_contact(
-                cid, entry["period_end"], entry["contact_probability"]
-            )
-            if not event.occurred:
-                continue
-            log.append({
-                "customer_id": event.customer_id,
-                "period_end": event.period_end,
-                "channel": event.channel,
-                "first_response_hours": event.first_response_hours,
-                "breached_sla": event.breached_sla,
-            })
+    for bill in bills:
+        event = simulate_contact(
+            bill["customer_id"],
+            bill["period_end"],
+            contact_propensity_for_bill(bill),
+        )
+        if not event.occurred:
+            continue
+        log.append({
+            "customer_id": event.customer_id,
+            "period_end": event.period_end,
+            "channel": event.channel,
+            "first_response_hours": event.first_response_hours,
+            "breached_sla": event.breached_sla,
+        })
     return log
