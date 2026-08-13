@@ -1,0 +1,120 @@
+atom_id: D33_the_collapse_predicate_is_bit_equality
+simplifications:
+- |-
+  2026-08-12 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw). No BUILD
+  code written and nothing in `file_scope` touched: this atom is `loop_stage: idle`, and
+  EPOCH_GATING_AND_ATOM_AUTHORSHIP rule 7 makes DISCOVER/FRAME available on a parked atom
+  while BUILD is not. Output is this record.
+
+  FIRST, WHAT IS ALREADY LANDED — READ OFF HEAD, NOT OFF THE ATOM'S PROSE. This atom's
+  `name` was written as a spin-out of H27 Expert Hour #15 and describes a reshape in the
+  future tense. Checked against HEAD, a substantial part of it is already shipped, and
+  under this atom's own id: `measure_published_resolution_floor`'s docstring opens "THE
+  SMALLEST COMPANY ERROR EACH PUBLISHED FIGURE ACTUALLY RESOLVES, per dimension, measured
+  through its own shipped scorer (**atom D33**)", and it already returns
+  `bit_equality_floor_days` beside the readable `floor_days` — i.e. the divergence this
+  atom is named for is already MEASURED and already REPORTED. `own_readable_resolution_floor_days`
+  is stamped at 310 (line 4146) and 314 (line 4254). Successor atoms D34/D36/D37 have since
+  taken the per-figure precision further. The parked atom is therefore NOT unstarted, and
+  designing it as if it were would rebuild shipped work — the filed
+  `a parked atom's work may be landed under an id the map never carried` class, here in its
+  milder form (the id matches; only the map's level does not).
+
+  SO THE RESIDUE IS NARROWER THAN THE `name` SAYS, AND IT IS EXACTLY THE PREDICATE.
+  What was fixed under Hour #15 is what the two BELIEF figures ADMIT about themselves. What
+  was not touched is the derivation that produces every declared edge in the first place:
+
+      # tools/couple_w2_11_d5.py::_measure_collapse_runs, line 4431
+      groups.setdefault(tuple(repr(reading(s, k)) for s in seeds), []).append(k)
+
+  `repr()` on a float is exact. Two counterfactual companies are "told apart" whenever their
+  readings differ in the last representable bit, at a magnitude where that bit is nowhere
+  near anything a reader is shown.
+
+  MEASURED THIS TICK, `observed-with-evidence`, by calling the real `_measure_collapse_runs`
+  — no scenario built, no sweep run, no organ invoked:
+
+      base = 0.0123                 # a rate-shaped reading; ULP here is 1.7347e-18
+      alt  = base + 1.4e-17
+      repr(base) != repr(alt)   ->  True      <- what the predicate sees
+      f"{base:.4f}" != f"{alt:.4f}" ->  False <- what the reader sees
+      _measure_collapse_runs({7: {"baseline": base,
+                                  "by_drift": {-1: alt, -2: base}}},
+                             [0, -1, -2], [7])["collapsed_runs"]
+        ->  ((-2, 0),)
+
+  Drifts 0 and -2 collapse; drift -1 is recorded as RESOLVED on a difference the published
+  figure cannot express. That is the atom's claim, reproduced on the shipped function.
+
+  A CORRECTION TO THE FIRST ATTEMPT, recorded because it is the honest shape of the
+  measurement: the same demonstration at `base = 0.5` shows NOTHING — 1.4e-17 is below the
+  ULP of 0.5 (1.11e-16), so the two floats are identical and the predicate correctly
+  collapses them. The defect is therefore MAGNITUDE-DEPENDENT: it appears only where the
+  reading's own ULP is far finer than its reader's step. Any exit test for this atom that
+  fixes a single magnitude will pass or fail for reasons unrelated to the predicate.
+
+  THE BLAST RADIUS, counted rather than estimated — every declared edge derived by this
+  predicate, across both registers at HEAD:
+
+      register                     dims  collapsed_runs  collapsed_pairs  sat_below  sat_above  total
+      ORGAN_QUERY_GRID                2              17                3          2          1     23
+      DIMENSION_DRIFT_RESOLUTION      5               8                0          2          1     11
+      TOTAL                           7              25                3          4          2     34
+
+  34 declared edges. R12/R13 note, carried forward from Hour #15 and still true: these are
+  DECLARED EDGES, not published figures. Moving them changes what the instrument says about
+  its own resolution; it does not move the detection gap, the latency mean or either belief
+  figure.
+
+  THE FRAME — AND THE THING THAT SPLITS THIS ATOM IN TWO. Re-deriving an edge "at the
+  precision the reader is actually given" requires knowing that precision. D34 already built
+  that lookup (`published_reading_epsilon`). Asked of all seven dimensions this tick:
+
+      ageing                       0.0005          (3dp reader)
+      detection                    5e-05
+      detection_latency            0.005           (2dp reader)
+      belief                       5e-05
+      belief_population_mix        5e-05
+      recon_lag_days               AssertionError — no entry in PUBLISHED_GAP_CONSUMERS
+      flagged_via_reconciliation   AssertionError — no entry in PUBLISHED_GAP_CONSUMERS
+
+  Two findings in one table.
+
+    * The five `DIMENSION_DRIFT_RESOLUTION` dimensions are READY NOW. Their epsilons vary by
+      100x (0.005 to 5e-05), which is itself the reason a single re-derivation pass cannot use
+      one tolerance — D34's own defect, one register over.
+    * The two `ORGAN_QUERY_GRID` dimensions are NOT, and they carry **23 of the 34 edges** —
+      the majority. `published_reading_epsilon` REFUSES them (correctly, fail-closed: an
+      unknown reader precision is not a default). So for two thirds of this atom's declared
+      edges, "the precision the reader is actually given" is currently UNKNOWABLE from the
+      repo, and the reshape cannot be specified, let alone tested.
+
+  WHICH MAKES THE HONEST ANSWER TO PART OF THIS ATOM "THE PREDICATE MAY ALREADY BE RIGHT
+  THERE". If `recon_lag_days` and `flagged_via_reconciliation` have no published consumer at
+  all, then they have no reader precision, and bit-equality is not a defect on them — it is
+  the only predicate with a defined meaning. Re-deriving those 23 edges at an invented
+  precision would be strictly worse than leaving them: it would replace an exact statement
+  with a tolerance nobody's reader corresponds to. This is the `fit the rate to the amount`
+  discipline applied to a predicate.
+
+  THE DEPENDENCY THIS ADDS. The atom currently declares `depends_on:
+  [D32_the_latency_headline_cannot_attribute_its_two_knobs]`. On the evidence above it also
+  depends, for its larger half, on the two ORGAN_QUERY_GRID dimensions acquiring a
+  `PUBLISHED_GAP_CONSUMERS` entry — or on a recorded finding that they have no published
+  consumer, which resolves those 23 edges to "bit-equality is correct here" and shrinks the
+  atom to the 11 edges that are ready. That question is answerable by DISCOVER (a grep of the
+  render/door surfaces for these two dimensions) and is the cheapest next move on this atom.
+  It is NOT answered here: this tick's draw was the H_harness BLOCKING rung, and reading two
+  more render surfaces properly is its own pass.
+
+  WHAT AN EXIT TEST MUST NOT BE, from the two traps above:
+    * not a single-magnitude fixture (the defect is magnitude-dependent; a fixture at 0.5
+      passes under the unfixed predicate);
+    * not one tolerance across dimensions (their epsilons differ by 100x, and a house default
+      is D34's own filed defect);
+    * and R15 both ways on the split: a dimension WITH a known reader precision whose edges
+      move must be shown to move, and a dimension WITHOUT one must be shown to be REFUSED
+      rather than silently re-derived at a default.
+
+  STATUS: FRAME only. `level_current` unchanged at 0, `loop_stage` unchanged at `idle`,
+  `provenance` unchanged at `proposal`. Nothing in `file_scope` was written.

@@ -3439,15 +3439,26 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
-  level_current: 2
+  level_current: 3
   level_target: 3
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 3
   provenance: proposal
+  infeasible_here:
+    predicate: background.lcl_household_anchors.unpayable_here_bands
+    blocks: [L1.4_weekday_weekend_separation, L1.2h_heating_shape_repeatability]
+    reason: >-
+      UNPAYABLE HERE, not met. Both bands need one acquisition -- a PER-DAY half-hourly metered
+      panel (SERL / the LCL raw archive) -- which is not a build. Drawn 15x at L2->L3, real work
+      every time, level never moved. DO NOT RELAUNCH FOR BUILD. RE-OPEN: `predicate` is live, so
+      the day such a panel lands it returns () and reds
+      `test_the_map_and_the_live_predicate_agree_about_what_this_box_cannot_pay_for` -- that red
+      IS the re-open. NOT covered: L2.4 stays RED by design (W1_12's generator, already L3).
+      Full record in the simplifications store.
   couples_with: [W1_12_premise_trace_generator, C14_thermal_parameter_inference]
   file_scope: [docs/design, tests/harness/test_premise_two_level.py, background/fabric_gap_ledger.py, background/lcl_household_anchors.py, tests/harness/test_lcl_household_anchors.py, tools/couple_fabric.py, tests/tools/test_couple_fabric.py, background/gap_ledger_reconciler.py, tests/background/test_gap_ledger_reconciler.py]
   depends_on: [W1_12_premise_trace_generator, C14_thermal_parameter_inference]
-  simplifications_count: 41
+  simplifications_count: 42
   expert_hour: {last: '2026-08-12', status: attempted_finding_open}
   real_world_twin: "an independent auditor asked whether a supplier's load model is actually realistic -- not whether it sums to the right national total, but whether any single house in it behaves like a house"
   records_rehomed: [evidence, expert_hour_findings]
@@ -3857,7 +3868,7 @@
 - id: KNIFE3_wall_crossing_paydown
   title: "Pay down the remaining wall crossings"
   gain: "What is left of the 107 direct SIM/company imports goes through the one sanctioned seam, which is the same seam a real go-live would swap for real endpoints."
-  name: "KNIFE pass 3 of 4 (AO5), LAST of the three wall passes. Cut the crossings that survive passes 1 and 2. STALE-DOORBELL NOTICE (added by a 2026-08-12 draw that found this text unchanged since mint): the FIRST STEP described below is DONE -- build_edges/company_reads_sim/sim_reads_company already live in tools/epistemic_wall.py as the one shared definition, ratchet+ledger+pass 3 all import from there, and tests/architecture/test_epistemic_wall_single_source.py enforces it stays that way. This atom is PARTIALLY BUILT, 20 KNIFE3/A_composition_lift steps landed as of commit 048bc10f8 (2026-08-12) -- DO NOT REDRAW AS IF FROM ZERO or repeat the extraction. Live state per docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md + docs/design/simplifications/KNIFE3_wall_crossing_paydown.yaml (map_records.exit_evidence, updated every step -- read that before the next cut): 91 crossings ruled total, 63 cut, 28 still owed (24 to design A_composition_lift, 4 to design B2_company_brain_decides_the_world), matching tools/knife_hotspot_measure.py's live count of 28 (26 direct + 2 indirect). level_current is DELIBERATELY still 0 at 28/91 remaining -- booking the target at two-thirds-paid is the false-completion class this project names explicitly; do not bump level_target progress until owed=0. Original text preserved below for provenance. || ORIGINAL: FIRST STEP, BEFORE ANY CUT: lift build_edges / company_reads_sim / sim_reads_company out of tests/architecture/test_epistemic_wall_ratchet.py into a shared module so the ratchet, the KNIFE ledger and this pass read ONE definition of 'a crossing'. That extraction is deliberately deferred to here rather than done while planning, because moving the net while planning the cuts is the error the MAP->NET->KNIFE sequence exists to prevent. EXIT: stated when the pass is drawn, against the count that survives passes 1 and 2 -- NOT against today's 107, which will be stale."
+  name: "KNIFE pass 3 of 4 (AO5), LAST of the three wall passes. Cut the crossings that survive passes 1 and 2. STALE-DOORBELL NOTICE (added by a 2026-08-12 draw that found this text unchanged since mint): the FIRST STEP described below is DONE -- build_edges/company_reads_sim/sim_reads_company already live in tools/epistemic_wall.py as the one shared definition, ratchet+ledger+pass 3 all import from there, and tests/architecture/test_epistemic_wall_single_source.py enforces it stays that way. This atom is PARTIALLY BUILT, 21 KNIFE3/A_composition_lift steps landed as of 2026-08-13 (step 21, register section 3p) -- DO NOT REDRAW AS IF FROM ZERO or repeat the extraction. Live state per docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md + docs/design/simplifications/KNIFE3_wall_crossing_paydown.yaml (map_records.exit_evidence, updated every step -- read that before the next cut; a sha is NOT quoted here because a doorbell that names a commit goes stale one step later, which is how this notice came to be needed): 91 crossings ruled total, 67 cut, 24 still owed (20 to design A_composition_lift, 4 to design B2_company_brain_decides_the_world), matching tools/knife_hotspot_measure.py's live count of 24 (22 direct + 2 indirect). Run tools/wall_crossing_dispositions.py -- it measures the WORKING TREE and reds on a debt ruled against a dead edge, so these numbers are checkable rather than quoted. level_current is DELIBERATELY still 0 at 24/91 remaining -- booking the target at three-quarters-paid is the false-completion class this project names explicitly; do not bump level_target progress until owed=0. Original text preserved below for provenance. || ORIGINAL: FIRST STEP, BEFORE ANY CUT: lift build_edges / company_reads_sim / sim_reads_company out of tests/architecture/test_epistemic_wall_ratchet.py into a shared module so the ratchet, the KNIFE ledger and this pass read ONE definition of 'a crossing'. That extraction is deliberately deferred to here rather than done while planning, because moving the net while planning the cuts is the error the MAP->NET->KNIFE sequence exists to prevent. EXIT: stated when the pass is drawn, against the count that survives passes 1 and 2 -- NOT against today's 107, which will be stale."
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -5087,14 +5098,15 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 2
   level_target: 2
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 1
   provenance: director_ruling
   depends_on: []
   couples_with: [OPS11_blocking_lane_refusal]
   file_scope: ['background/supervisor.py', 'tests/background/test_product_interleave.py']
+  records_rehomed: [exit_evidence]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a sprint rule that every hardening ticket is paired with a customer-facing one, reported in the same stand-up"
 
