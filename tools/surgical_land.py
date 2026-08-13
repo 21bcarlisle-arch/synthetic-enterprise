@@ -61,6 +61,24 @@ of those is a REFUSAL, never a silent pass -- the failure direction that matters
 whole point is that this tool is the legal move and a legal move that quietly skips its check
 is worse than the bypass it replaces.
 
+THE REFUSAL IN STEP 5 NEEDED A MOVE THAT TERMINATES (2026-08-13,
+WORKER_FINDING_THE_LANDING_GATE_CANNOT_WIN_THE_RACE_AGAINST_HEAD)
+------------------------------------------------------------------
+The compare-and-swap is correct and is not weakened here. But on this box it was also
+UNSATISFIABLE for expensive work: the gate ran ~9m24s while HEAD moved every 3.5-10 minutes
+(publisher and daemon commits -- `chore(provenance)`, `Auto-process run complete`,
+`chore(liveness)`), so three consecutive attempts were refused, NONE of them for a red test.
+A rule that leaves no legal move evaporates, and the observed consequence was the finished
+work sitting uncommitted in the shared tree -- the landing control MANUFACTURING the
+orphaned-work class one tick at a time.
+
+So `land()` now retries, and the retry is honest: each attempt re-reads HEAD, rebuilds the
+resulting tree against the NEW parent (so the mover's commits are kept, never overwritten)
+and RE-RUNS THE FULL GATE. No verdict is ever carried across a HEAD move; the wall is
+untouched. Only `BaseMoved` is retried -- a GATE RED is terminal on the first attempt, because
+retrying a red tree until a flaky test flips green is exactly the laundering this tool exists
+to prevent. Exhausting the attempts is a REFUSAL that commits nothing, never a bypass.
+
 R15 mutation-proven both ways in `tests/tools/test_surgical_land.py`.
 Design note: `docs/design/SURGICAL_LANDING.md`.
 """
@@ -73,6 +91,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from collections.abc import Callable
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -112,6 +131,29 @@ _NULL_SHA = "0" * 40
 class LandingRefused(Exception):
     """Raised for every refusal. Carrying one exception type keeps the fail-CLOSED contract
     provable: `land()` either returns a commit sha or raises, and never returns None."""
+
+
+class BaseMoved(LandingRefused):
+    """The ONE refusal that is retryable: HEAD moved under the gate, so the verdict describes a
+    tree that is no longer the one this commit would create.
+
+    A SUBCLASS, not a flag and not a string match on the message. The retry loop must be able to
+    ask "was this the race, or was it the tree?" and get an answer that cannot drift when someone
+    rewords the refusal -- and every existing caller catching `LandingRefused` still catches it.
+    Nothing else inherits from this: a red gate, a missing hook, a full disk and a no-op pathspec
+    are all terminal, because retrying any of them is retrying until the world agrees with you."""
+
+    def __init__(self, message: str, parent: str, observed: str):
+        super().__init__(message)
+        self.parent = parent
+        self.observed = observed
+
+
+#: Default attempts for a landing. NOT 1: a terminating move that must be opted into with a flag
+#: is prose, not mechanism (MAKE_IT_STICK), and the finding this closes was three losses in a row
+#: at the DEFAULT invocation. The cost of the extra attempts is CPU, paid only when the race is
+#: actually lost; the cost of not having them was measured in orphaned work.
+DEFAULT_ATTEMPTS = 3
 
 
 def _git(root: Path, *args: str, env: dict | None = None,
@@ -358,18 +400,60 @@ def _commit_and_swap(root: Path, result_tree: str, parent: str, message: str,
     with _write_lock(root):
         now = _git_text(root, "rev-parse", "HEAD")
         if now != parent:
-            raise LandingRefused(
+            raise BaseMoved(
                 "HEAD moved from {} to {} while the gate ran, so the gated tree is no longer the "
                 "tree this commit would create. Nothing was committed; re-run and it will gate "
-                "the new base.".format(parent[:9], now[:9]))
+                "the new base.".format(parent[:9], now[:9]), parent, now)
         new = _git_text(root, "commit-tree", result_tree, "-p", parent, "-m", message)
         _git_text(root, "update-ref", "-m", "surgical-land", "HEAD", new, parent)
         _refresh_index_for(root, result_tree, files)
         return new
 
 
-def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL) -> str:
-    """Land exactly `paths`. Returns the new commit sha, or raises LandingRefused."""
+def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
+         attempts: int = DEFAULT_ATTEMPTS, on_lost: Callable[[int, BaseMoved], None] | None = None
+         ) -> str:
+    """Land exactly `paths`, re-gating against the new base when the race is lost.
+
+    Returns the new commit sha, or raises LandingRefused. `attempts` bounds the loop; `on_lost`
+    is called with (attempt_number, exc) after each lost race, which is how the CLI reports the
+    cadence the finding had to reconstruct by hand from `git log`.
+
+    THE LOOP IS ONLY OVER `BaseMoved`. Every other refusal propagates on the first attempt --
+    including, especially, GATE RED. That asymmetry is the whole safety argument: a lost race
+    means the verdict was about the wrong tree and must be recomputed, while a red gate means the
+    verdict was about the right tree and was NO. Retrying the second is how a flaky test becomes
+    a landed regression, so the code must not be able to confuse them (hence a subclass rather
+    than a message match).
+
+    Each pass through `_land_once` re-reads HEAD, so the new attempt's parent IS the mover's
+    commit and its resulting tree is built by overlaying only `paths` onto that new parent --
+    the mover's work is preserved, not reverted, and the gate runs again in full."""
+    if attempts < 1:
+        raise LandingRefused(
+            "attempts={} would run no gate at all; a landing with no gate is the bypass this "
+            "tool replaces.".format(attempts))
+    lost: list[BaseMoved] = []
+    for attempt in range(1, attempts + 1):
+        try:
+            return _land_once(root, paths, message, hook_rel)
+        except BaseMoved as exc:
+            lost.append(exc)
+            if on_lost is not None:
+                on_lost(attempt, exc)
+    raise LandingRefused(
+        "HEAD moved under the gate on all {} attempt(s), so no verdict ever described the tree "
+        "it would have committed. Nothing was committed.\n{}\n"
+        "The gate is longer than the gap between commits on this tree, which is a defect in the "
+        "GATE'S COST, not in the refusal -- raise --attempts to spend more CPU on the race, or "
+        "cut what the gate selects.".format(
+            len(lost),
+            "\n".join("  attempt {}: {} -> {}".format(i + 1, e.parent[:9], e.observed[:9])
+                      for i, e in enumerate(lost))))
+
+
+def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL) -> str:
+    """ONE attempt: read HEAD, build the resulting tree, gate it, compare-and-swap."""
     if not paths:
         raise LandingRefused("no paths given -- a surgical landing names its paths explicitly.")
     parent = _git_text(root, "rev-parse", "HEAD")
@@ -456,6 +540,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("-m", "--message", help="commit message (the receipt is appended)")
     ap.add_argument("--verify", metavar="COMMIT",
                     help="check a commit against its own receipt and exit")
+    ap.add_argument("--attempts", type=int, default=DEFAULT_ATTEMPTS, metavar="N",
+                    help="re-gate against the new base up to N times when HEAD moves under the "
+                         "gate (default {}). A RED gate is never retried.".format(
+                             DEFAULT_ATTEMPTS))
     ap.add_argument("paths", nargs="*", help="the exact paths to land")
     args = ap.parse_args(argv)
     if args.verify:
@@ -464,8 +552,17 @@ def main(argv: list[str] | None = None) -> int:
         return rc
     if not args.message:
         ap.error("-m/--message is required when landing")
+
+    def report_lost(attempt: int, exc: BaseMoved) -> None:
+        # stderr and FLUSHED: this is the diagnostic that had to be reconstructed from `git log`
+        # last time, and a block-buffered pipe is where it would be lost again.
+        sys.stderr.write(
+            "[surgical-land] attempt {}/{} lost the race: HEAD {} -> {}; re-gating the new "
+            "base.\n".format(attempt, args.attempts, exc.parent[:9], exc.observed[:9]))
+        sys.stderr.flush()
+
     try:
-        sha = land(ROOT, args.paths, args.message)
+        sha = land(ROOT, args.paths, args.message, attempts=args.attempts, on_lost=report_lost)
     except LandingRefused as exc:
         sys.stderr.write("[surgical-land] REFUSED: {}\n".format(exc))
         return 1

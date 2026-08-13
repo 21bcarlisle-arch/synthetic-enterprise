@@ -9,6 +9,8 @@
 `tools/surgical_land.py`, which is the mechanism behind a WALL (hook-bypass), and a wall control
 is not the thing to patch in a hurry at the end of a bounded tick.
 
+**Discharged:** `tests/tools/test_surgical_land.py::test_a_lost_race_is_re_gated_against_the_new_base_and_lands`, `tests/tools/test_surgical_land.py::test_a_RED_gate_is_never_retried_however_many_attempts_are_allowed`, `tests/tools/test_surgical_land.py::test_exhausting_the_attempts_refuses_and_commits_nothing`, `tests/tools/test_surgical_land.py::test_zero_attempts_refuses_rather_than_landing_ungated`, `tools/surgical_land.py` — 2026-08-13: repair 1 taken, and the finding's own recommended repair 3 REFUTED BY MEASUREMENT before it could be taken (both refutations below). The refusal is untouched and still fires; what it gained is a bound. Mutation-proven four ways.
+
 ## Observed, with evidence
 
 `tools/surgical_land.py` is the ONLY legal landing move on this shared tree (CLAUDE.md:
@@ -69,6 +71,73 @@ a time. This tick reproduced it rather than escaping it.
 3. **Cut the gate's dominant cost.** `test_couple_w2_11_d5.py` at 1.2s/test × 457 is the whole
    bill. Splitting it, or making the gate's selection finer than a name stem, helps every lane and
    weakens no control. **Recommended first** — it is the only one of the three that touches no wall.
+
+## THE REPAIR TAKEN, AND WHAT MEASURING FIRST OVERTURNED (2026-08-13, later the same day)
+
+**Repair 1 is live.** `land()` splits into `_land_once` plus a bounded loop over `BaseMoved` —
+a new `LandingRefused` SUBCLASS, so the loop asks "was this the race or the tree?" of the type
+system and not of a message string. Each attempt re-reads HEAD, rebuilds the resulting tree by
+overlaying only the named paths onto the NEW parent (so the mover's commits are preserved, which
+`test_a_lost_race_is_re_gated_against_the_new_base_and_lands` asserts by checking the landed
+commit's parent IS the colleague's commit), and re-runs the FULL gate. No verdict crosses a HEAD
+move, so the wall is exactly where it was. Default `--attempts 3`, not 1: a terminating move that
+has to be opted into with a flag is prose, not mechanism, and the three observed losses were at
+the default invocation.
+
+**The safety half is the load-bearing one.** Only `BaseMoved` is retried. A GATE RED is terminal
+on attempt one even at `--attempts 5`, because retrying a red tree until a flaky test flips green
+is precisely the laundering this tool exists to prevent. Exhaustion is a REFUSAL naming every lost
+base, never a fall-through. `--attempts 0` refuses rather than landing ungated. All four
+mutation-proven: catching `LandingRefused` instead of `BaseMoved` reds the red-gate test; a
+fall-through on exhaustion reds the exhaustion test; deleting the `attempts < 1` guard reds the
+zero test; collapsing the loop to one pass reds the re-gate test.
+
+### Refutation 1 — splitting the test file does not reduce the gate at all
+
+Repair 3 above recommended "splitting it" FIRST. That does nothing, and would have cost a whole
+tick to discover. `pre_commit_test_gate.tests_for()` globs BOTH `tests/**/test_<stem>.py` AND
+`tests/**/test_<stem>_*.py`, and the suffix half is deliberate and load-bearing — it closed the
+2026-08-09 publish wedge where a module's qualified test file mapped to zero tests. Measured by
+creating a probe sibling and re-asking the gate:
+
+```
+tests_for('tools/couple_w2_11_d5.py')  ->  tests/tools/test_couple_w2_11_d5.py
+# after touching tests/tools/test_couple_w2_11_d5_split_probe.py:
+tests_for('tools/couple_w2_11_d5.py')  ->  tests/tools/test_couple_w2_11_d5.py
+                                           tests/tools/test_couple_w2_11_d5_split_probe.py
+```
+
+Every split file is selected too. The gate runs the same tests in more files, for the same money.
+
+### Refutation 2 — the cost is not 457 tests, it is ONE test, and not for the reason assumed
+
+The finding's own arithmetic ("1.2s/test × 457 is the whole bill") implied a diffuse cost with no
+single target. Measured with `--durations`, `457 passed in 533.55s`:
+
+| test | duration | share of gate |
+|---|---|---|
+| `test_cli_runs_and_prints_all_three_gaps` | **314.32s** | **59%** |
+| `test_an_absent_reading_is_not_counted_as_resolution` | 35.51s | 7% |
+| `test_an_inert_counterfactual_company_is_not_a_pass` | 18.35s | 3% |
+| top 5 combined | 391s | **73%** |
+| remaining 452 tests | ~142s | 27% |
+
+And the obvious cut on the 59% test — it passes `--customers 300` — is **also** refuted, because
+the population is not what it costs. Timed end to end through the CLI:
+
+```
+n=60   -> 275.95s   (every one of the test's 8 assertions still holds)
+n=300  -> 278.74s
+```
+
+A 5× smaller population buys **1%**. `main()`'s cost is fixed and lives in the sweeps, not in the
+book. So the cut is real engineering inside `main()`, not a constant change — QUEUED as its own
+atom rather than taken here (SELF-INTERRUPT DISCIPLINE), and now queued against a measurement
+instead of against an assumption.
+
+**What this changes about the class.** With `--attempts 3` the landing terminates, so the control
+stops manufacturing orphaned work while that cut is queued. The two clocks are still what they
+were; the difference is that losing the race now costs CPU instead of costing a commit.
 
 ## What this finding does NOT claim
 

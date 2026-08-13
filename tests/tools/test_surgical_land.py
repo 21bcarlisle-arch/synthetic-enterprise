@@ -183,26 +183,135 @@ def test_it_refuses_an_empty_pathspec(repo: Path):
         sl.land(repo, [], "nothing named")
 
 
+def _racing_gate(repo: Path, lose_until: int, calls: list[int]):
+    """A gate that lands a colleague's commit from inside the gate call -- exactly when a real
+    concurrent writer's commit arrives -- for the first `lose_until` attempts, then runs clean.
+
+    Each colleague commit writes a DISTINCT file, so attempt N+1's race is a genuinely new HEAD
+    move rather than an empty commit that git would refuse."""
+    real_run_gate = sl.run_gate
+
+    def gate(checkout, hook_rel=sl.HOOK_REL):
+        calls.append(len(calls) + 1)
+        rc, out = real_run_gate(checkout, hook_rel)
+        if len(calls) <= lose_until:
+            name = "colleague_{}.txt".format(len(calls))
+            (repo / name).write_text("landed mid-gate\n")
+            _run(repo, "git", "add", name)
+            _run(repo, "git", "commit", "-q", "--no-verify", "-m", "colleague {}".format(
+                len(calls)))
+        return rc, out
+
+    return gate
+
+
 def test_head_moving_under_the_gate_refuses_instead_of_landing_a_stale_verdict(
         repo: Path, monkeypatch: pytest.MonkeyPatch):
     """The shared-tree race: a concurrent writer moves HEAD while the gate runs, so the gated
     tree is no longer the tree this commit would create. Simulated by moving HEAD from inside
-    the gate call, which is exactly when a real colleague's commit would land."""
+    the gate call, which is exactly when a real colleague's commit would land.
+
+    Pinned at `attempts=1` deliberately: this is the property of the compare-and-swap ITSELF,
+    and it must stay assertable independently of how many times the retry loop above it spends."""
     (repo / "code.py").write_text("VALUE = 2\n")
-    real_run_gate = sl.run_gate
-
-    def racing_gate(checkout, hook_rel=sl.HOOK_REL):
-        rc, out = real_run_gate(checkout, hook_rel)
-        (repo / "colleague.txt").write_text("landed mid-gate\n")
-        _run(repo, "git", "add", "colleague.txt")
-        _run(repo, "git", "commit", "-q", "--no-verify", "-m", "colleague")
-        return rc, out
-
-    monkeypatch.setattr(sl, "run_gate", racing_gate)
+    calls: list[int] = []
+    monkeypatch.setattr(sl, "run_gate", _racing_gate(repo, lose_until=99, calls=calls))
     with pytest.raises(sl.LandingRefused, match="HEAD moved"):
-        sl.land(repo, ["code.py"], "stale base")
-    assert _run(repo, "git", "log", "-1", "--format=%s").stdout.strip() == "colleague", \
+        sl.land(repo, ["code.py"], "stale base", attempts=1)
+    assert _run(repo, "git", "log", "-1", "--format=%s").stdout.strip() == "colleague 1", \
         "the stale-base landing overwrote the colleague's commit"
+    assert calls == [1], "attempts=1 must run the gate exactly once"
+
+
+# --------------------------------------------------------------------------------------------
+# THE REFUSAL NEEDED A MOVE THAT TERMINATES
+# (WORKER_FINDING_THE_LANDING_GATE_CANNOT_WIN_THE_RACE_AGAINST_HEAD_2026-08-13: three
+# consecutive refusals, none for a red test, gate ~9m24s against a 3.5-10min HEAD cadence.)
+#
+# The retry is only defensible because of what it does NOT retry, so both halves are pinned:
+# a lost race is recomputed, a red gate is final, and exhaustion commits nothing.
+# --------------------------------------------------------------------------------------------
+
+def test_a_lost_race_is_re_gated_against_the_new_base_and_lands(
+        repo: Path, monkeypatch: pytest.MonkeyPatch):
+    """The finding's own shape: HEAD moves under the first two gates, the third wins.
+
+    The assertions that make this a repair rather than a loop: the gate ran ONCE PER ATTEMPT (no
+    verdict was carried across a HEAD move), and the landed commit's parent is the COLLEAGUE'S
+    commit -- so the mover's work is preserved by the retry, not reverted by it."""
+    (repo / "code.py").write_text("VALUE = 2\n")
+    calls: list[int] = []
+    monkeypatch.setattr(sl, "run_gate", _racing_gate(repo, lose_until=2, calls=calls))
+
+    sha = sl.land(repo, ["code.py"], "lands on the third", attempts=3)
+
+    assert len(calls) == 3, "the gate must re-run per attempt, not be reused across a HEAD move"
+    parent = _run(repo, "git", "rev-parse", sha + "^").stdout.strip()
+    assert _run(repo, "git", "log", "-1", "--format=%s", parent).stdout.strip() == "colleague 2", \
+        "the retry did not rebase onto the mover's commit"
+    for n in (1, 2):
+        assert (repo / "colleague_{}.txt".format(n)).exists(), "the retry reverted the mover"
+        assert _run(repo, "git", "cat-file", "-e",
+                    "{}:colleague_{}.txt".format(sha, n)).returncode == 0, \
+            "the colleague's file is missing from the landed tree"
+    assert _run(repo, "git", "show", sha + ":code.py").stdout == "VALUE = 2\n"
+
+
+def test_a_RED_gate_is_never_retried_however_many_attempts_are_allowed(
+        repo: Path, monkeypatch: pytest.MonkeyPatch):
+    """THE SAFETY HALF, and the reason `BaseMoved` is a subclass rather than a message match.
+
+    Retrying a red tree until a flaky test flips green is the laundering this whole tool exists
+    to prevent, so a red gate must be terminal on attempt ONE even with attempts=5."""
+    (repo / "gate_verdict").write_text("red")
+    (repo / "code.py").write_text("VALUE = 2\n")
+    before = _head(repo)
+    real_run_gate = sl.run_gate
+    calls: list[int] = []
+
+    def counting_gate(checkout, hook_rel=sl.HOOK_REL):
+        calls.append(len(calls) + 1)
+        return real_run_gate(checkout, hook_rel)
+
+    monkeypatch.setattr(sl, "run_gate", counting_gate)
+    with pytest.raises(sl.LandingRefused, match="GATE RED"):
+        # BOTH paths, so the RESULTING tree carries the red marker -- landing `code.py` alone
+        # would leave HEAD's green `gate_verdict` in the tree under judgement and pass.
+        sl.land(repo, ["code.py", "gate_verdict"], "red tree", attempts=5)
+    assert calls == [1], "a red gate was retried: {} gate runs".format(len(calls))
+    assert _head(repo) == before
+
+
+def test_exhausting_the_attempts_refuses_and_commits_nothing(
+        repo: Path, monkeypatch: pytest.MonkeyPatch):
+    """The bound must be a REFUSAL, never a bypass -- and the message must name every lost base,
+    because reconstructing the cadence from `git log` by hand is what the finding had to do."""
+    (repo / "code.py").write_text("VALUE = 2\n")
+    calls: list[int] = []
+    monkeypatch.setattr(sl, "run_gate", _racing_gate(repo, lose_until=99, calls=calls))
+    seen: list[tuple[int, str]] = []
+
+    with pytest.raises(sl.LandingRefused, match="on all 3 attempt") as caught:
+        sl.land(repo, ["code.py"], "never wins", attempts=3,
+                on_lost=lambda n, exc: seen.append((n, exc.observed)))
+
+    assert calls == [1, 2, 3]
+    assert [n for n, _ in seen] == [1, 2, 3], "the lost attempts were not reported as they lost"
+    assert str(caught.value).count("attempt ") >= 3, str(caught.value)
+    assert _run(repo, "git", "log", "-1", "--format=%s").stdout.strip() == "colleague 3", \
+        "an exhausted landing committed anyway"
+    assert "code.py" not in _run(repo, "git", "show", "--name-only", "--format=",
+                                 "HEAD").stdout
+
+
+def test_zero_attempts_refuses_rather_than_landing_ungated(repo: Path):
+    """The fail-open corner of the new knob: `--attempts 0` must not become a landing that skipped
+    the gate. An unrun gate is a FAILED gate (R15)."""
+    (repo / "code.py").write_text("VALUE = 2\n")
+    before = _head(repo)
+    with pytest.raises(sl.LandingRefused, match="no gate at all"):
+        sl.land(repo, ["code.py"], "ungated", attempts=0)
+    assert _head(repo) == before
 
 
 # --------------------------------------------------------------------------------------------

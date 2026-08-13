@@ -1,6 +1,6 @@
 # [CLASS] Uncommitted and orphaned work: finished work that never became part of the tree
 
-**Severity:** BLOCKING · **Lane:** H_harness
+**Severity:** LATENT · **Lane:** H_harness
 
 **Instances:** 8 · **Class:** `uncommitted_and_orphaned_work` · **Ruling's own count:** ~7 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "uncommitted/orphaned work")
 
@@ -15,7 +15,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_RUFF_BASELINE_IS_CALIBRATED_TO_UNCOMMITTED_WORK_2026-08-09.md` — LATENT
 - `WORKER_FINDING_THE_CLOSE_TIME_CHECK_THAT_CATCHES_THIS_HAS_NO_CALLER_2026-08-13.md` — RECORDED
 - `WORKER_FINDING_THE_HOURS_RECORD_LANDED_WITHOUT_ITS_MECHANISM_2026-08-11.md` — LATENT
-- `WORKER_FINDING_THE_LANDING_GATE_CANNOT_WIN_THE_RACE_AGAINST_HEAD_2026-08-13.md` — BLOCKING
+- `WORKER_FINDING_THE_LANDING_GATE_CANNOT_WIN_THE_RACE_AGAINST_HEAD_2026-08-13.md` — RECORDED
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
@@ -24,12 +24,6 @@ This document supersedes the individual findings listed below, which are **archi
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
 - **7 hours** — `WORKER_FINDING_RUFF_BASELINE_IS_CALIBRATED_TO_UNCOMMITTED_WORK_2026-08-09.md`: …which is the most expensive possible way to find it (episode 2 cost ~7 hours and ten markers under a directly analogous mis-attribution). Note th…
-
-## What is owed
-
-1 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
-
-- `WORKER_FINDING_THE_LANDING_GATE_CANNOT_WIN_THE_RACE_AGAINST_HEAD_2026-08-13.md`
 
 ## Refused consolidation — out of lane, still live
 
