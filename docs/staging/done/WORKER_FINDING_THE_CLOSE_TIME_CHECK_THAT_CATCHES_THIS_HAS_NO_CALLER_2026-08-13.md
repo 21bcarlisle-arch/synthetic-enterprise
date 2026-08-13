@@ -4,6 +4,18 @@
 committed in `357f8fa77`); the CLASS is owed — `tools/wall_crossing_dispositions.py --at-head`
 still has no automated caller.
 
+**Discharged:** `tests/tools/test_pre_commit_gate_wall_register.py::test_a_record_first_commit_is_refused_by_its_own_tree`, `tests/tools/test_pre_commit_gate_wall_register.py::test_at_tree_is_green_at_head`
+
+2026-08-13, commit d3d69b865. The check is wired into the pre-commit gate and is invoked by THE
+COMMIT — against the tree the commit would create (`--at-tree $(git write-tree)`), fail-closed on
+an unimportable checker, an unusable index or an exploding run. The first falsifier above builds a
+REAL tree object in which one live `owed` row is flipped to `cut` and asserts the commit is
+refused; the second is the other direction, so the control is proven able to pass as well as fail.
+Both design questions this finding left open are answered in that commit: ORDERING, by gating the
+tree the commit CREATES rather than the one it replaces; SCOPE, by any staged `.py` (bridge
+packages included) plus the register itself, with the record-first ordering declared a false claim
+rather than an honest split.
+
 **This is a SECOND INSTANCE of a class another lane filed the same day, and it CORRECTS that
 finding's generalisation.** `WORKER_FINDING_A_REGISTERS_LANDED_IS_CHECKED_AGAINST_ANOTHER_RECORD_NEVER_THE_TREE_2026-08-13.md`
 (H27 Expert Hour #23) reaches this: *"a register entry is a claim about what LANDED, and no control

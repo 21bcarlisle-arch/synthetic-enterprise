@@ -4,6 +4,7 @@
 **Plan:** `docs/design/KNIFE_HOTSPOT_PASSES.md` § Pass 3
 **Mechanism:** `python3 tools/wall_crossing_dispositions.py` — rc 2 if any live crossing has no ruling
 **Close-time check:** `python3 tools/wall_crossing_dispositions.py --at-head` — rc 2 if a `cut` row is not cut IN THE COMMITTED TREE (§0a)
+**Commit-time check (automated, 2026-08-13):** `tools/pre_commit_test_gate.py` runs `--at-tree $(git write-tree)` on any commit carrying a `.py` or this register — rc 1, fail-closed (§0b)
 **Measured from:** `tools/epistemic_wall.live_crossings()` — the one shared walker, extracted by this pass's first step
 **Opened:** 2026-08-09
 
@@ -56,6 +57,44 @@ B7 edges as `ruled cut but the import IS STILL IN HEAD`. R15 mutation coverage �
 modes must be able to DISAGREE, with a vacuity guard proving the disagreement comes from the commit),
 three fail-open paths (empty export, truncated export caught by an independent `git ls-tree` oracle,
 non-repo), and fail-silent (git absent is an ERROR, never a skip).
+
+---
+
+## 0b. The commit-time check: who RUNS §0a, and against which tree
+
+Added 2026-08-13. §0a built the right instrument and left it as an instruction — `--at-head` was
+invoked only when a human, or an agent reading prose, typed it. That is R15's third killer pattern:
+a check nobody runs is permanently unavailable, and an unavailable check is a FAILED check. It
+recurred one KNIFE step later, from the inside — step 21's five files sat untracked while the
+atom's own record said LANDED, and nothing fired
+(`WORKER_FINDING_THE_CLOSE_TIME_CHECK_THAT_CATCHES_THIS_HAS_NO_CALLER_2026-08-13`).
+
+**A control built to catch "the record outran the code" cannot be invoked by the record. It has to
+be invoked by the thing that makes the code real — the commit.** So `tools/pre_commit_test_gate.py`
+now calls it, and two design choices make that possible:
+
+* **WHICH TREE.** Not HEAD. At pre-commit time HEAD is the tree the commit REPLACES, so gating on
+  it reds the commit that repairs a divergence and passes the one that creates it. The gate uses
+  the new `--at-tree TREEISH` mode against `git write-tree` — **the tree the commit would create**,
+  both sides read from it (`git show TREEISH:<this file>` for the claim, `git archive TREEISH` for
+  the code). Same subject `tools/surgical_land.py` gates on. §0a's asymmetric mode is unchanged and
+  remains the right instrument for the close-time question it was built for.
+* **WHICH COMMITS.** Any staged `.py`, plus this register. Not "wall-side directories": `tools/`
+  and `background/` are BRIDGE packages the walker routes INDIRECT crossings through, so a
+  tools-only edit can create a crossing. A pure docs/data commit skips the step and its import,
+  so the fail-closed branch can never refuse a commit that had no code in it.
+
+**The honest-split question, ruled here rather than left open.** A register edit and its code cut
+MAY land in separate commits — in the order **code, then record**. Record-first reds, and that is
+not an honest split: it is a claim published into the repo that the repo does not yet support.
+Note this is no new rule; the working-tree gate has always demanded exactly this coherence of the
+desk, and the commit-time check demands it of the tree other people receive.
+
+R15 both ways: `tests/tools/test_pre_commit_gate_wall_register.py` (20 tests). The end-to-end
+falsifier builds a REAL tree object in which one live `owed` row is flipped to `cut` and asserts
+the refusal names the row; the other direction asserts HEAD reconciles. The gate found one defect
+in itself before landing: `git write-tree` takes `index.lock`, which git HOLDS during a plain
+commit, so the step now write-trees a COPY of the index in effect and can lock nothing.
 
 ---
 
