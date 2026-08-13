@@ -1,8 +1,21 @@
 # WORKER FINDING — the site lane gates the WORKING TREE, not the commit it is refusing
 
-**Severity: HIGH**
+**Severity:** LATENT · **Lane:** H_harness
 **Found:** 2026-08-13, during KNIFE3 step 26 (the `saas.demand_response` module move).
 **Rank:** after the current KNIFE3 sequence; it blocks a lane, it does not corrupt one.
+
+> **Severity header repaired 2026-08-13 (18th draw of `H_GAP_fabric_belief_truth_gap`).** This read
+> `**Severity: HIGH**` — a word outside the `BLOCKING / LATENT / RECORDED` vocabulary, and in a
+> format the parser cannot read either — so it classified UNCLASSIFIED, and an unclassified document
+> holds *every* lane's level recording repo-wide. That is the filed one-typo-holds-every-lane class.
+>
+> **Disclosed because it unblocked the editor's own commit:** the H_GAP L2→L3 move was refused by
+> the OPS11 rung naming this document. LATENT was not chosen to clear that path. It is what this
+> document's own `Rank` line already says — *"it blocks a lane, it does not corrupt one"* — and
+> `background.finding_severity.by_construction_evidence` returns `[]` on this text, i.e. nothing here
+> claims an instrument or a published figure is wrong, which is the BLOCKING test. If a later reader
+> judges the gate itself an instrument of this lane, raise it back to BLOCKING; the finding is
+> unchanged and still open.
 
 ## The finding, in one sentence
 

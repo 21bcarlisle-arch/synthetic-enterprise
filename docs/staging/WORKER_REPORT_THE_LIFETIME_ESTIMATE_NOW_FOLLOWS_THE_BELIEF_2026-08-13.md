@@ -1,6 +1,10 @@
 # WORKER REPORT — the per-customer lifetime estimate now follows the belief
 
-**Severity:** RESOLVED · **Lane:** B_commercial
+**Severity:** RECORDED · **Lane:** B_commercial
+**Severity header repaired 2026-08-13** (18th draw of `H_GAP_fabric_belief_truth_gap`): this read
+`RESOLVED`, which is outside the `BLOCKING / LATENT / RECORDED` vocabulary and so parsed
+UNCLASSIFIED, holding every lane's level recording repo-wide. `RECORDED` is the vocabulary word for
+what this document is — completed work, its finding archived, no work owed. No content changed.
 **Drawn:** 2026-08-13, RUNG 1c blocking draw (OPS12 clause 3) — the live BLOCKING finding
 `WORKER_FINDING_THE_LIFETIME_ESTIMATE_DOES_NOT_MOVE_WHEN_THE_BELIEF_DOES_2026-08-13.md`,
 ahead of the general disposition queue in this lane.

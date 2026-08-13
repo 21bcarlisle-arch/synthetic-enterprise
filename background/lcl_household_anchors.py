@@ -318,3 +318,78 @@ LCL_WEEKDAY_WEEKEND_TV_FLOOR = 0.0262
 #: The population violation rate the L1.4 floor tolerates — see the rule in the
 #: module docstring. 5% of the anchor panel's own households sit below its P05.
 LCL_WEEKDAY_WEEKEND_VIOLATION_RATE = 0.10
+
+
+# ---------------------------------------------------------------------------
+# WHAT NO BUILD DRAW ON THIS BOX CAN PAY FOR — the acquisition, as a LIVE PREDICATE
+# ---------------------------------------------------------------------------
+#
+# WHY THIS EXISTS (2026-08-13, sixteenth draw of `H_GAP_fabric_belief_truth_gap`).
+# That atom had been drawn for BUILD at L2->L3 fifteen consecutive times. Every draw
+# landed real, green, mutation-proven work; the level never moved once. It was
+# invisible by construction, and the class is filed:
+# `docs/staging/WORKER_FINDING_AN_EXIT_CRITERION_CAN_OUTLIVE_THE_BOXS_ABILITY_TO_MEET_IT_2026-08-12.md`
+# — the draw asks "is the criterion met?" and never "can any future draw meet it?".
+#
+# Asked here, the answer is measured rather than argued. The atom's two remaining
+# harness criteria are L1.4's MAGNITUDE band and L1.2h's heating-shape band, and
+# both `Band.anchor_source` strings in `fabric_gap_ledger` name the SAME blocker in
+# the same words: *a metered panel with PER-DAY half-hourly readings — SERL, or the
+# LCL trial's raw partitioned archive*. So the two criteria are ONE ACQUISITION, an
+# acquisition is not a build, and no amount of building closes either.
+#
+# WHY A PREDICATE AND NOT A SENTENCE. The reason above is a claim about a FILE, and
+# a later tick can change that file. A written-down "unpayable here" would then be
+# false with nobody re-reading it — which is the prose-only rule CLAUDE.md says
+# evaporates. This derives the answer from the panel on disk every time it is asked,
+# so it flips back to payable the moment the data arrives, and the map control in
+# `tests/harness/test_lcl_household_anchors.py` reds when it does.
+#
+# FAIL-CLOSED, AND THE DANGEROUS DIRECTION IS NAMED. The costly error is reporting
+# UNPAYABLE when the work is in fact available: that is what excuses the atom from
+# the BUILD queue. So an unreadable, missing, empty or short-column panel RAISES
+# through `load_panel` rather than answering — an unavailable check is a FAILED
+# check — and nothing here degrades to "assume the data never came".
+
+#: The bands whose only named blocker is the per-day acquisition. Both carry
+#: `AnchorStatus.NEED` with `threshold=None`; the control below proves that rather
+#: than trusting this tuple, so a band that quietly gained an anchor cannot go on
+#: being cited as a reason the atom cannot close.
+UNPAYABLE_WITHOUT_A_PER_DAY_PANEL = (
+    "L1.4_weekday_weekend_separation",
+    "L1.2h_heating_shape_repeatability",
+)
+
+#: Exactly what an ANNUAL-MEAN extract carries: four identity columns and the two
+#: mean 48-vectors. Day-level data cannot arrive without adding something — per-day
+#: columns, a date key, a reading index — whatever it is called. So the test is for
+#: ANY growth beyond this set, which guesses at no naming convention.
+ANNUAL_MEAN_PANEL_COLUMNS = frozenset(
+    {"LCLid", "stdorToU", "mean_daily_kwh", "archetype_k2"}
+    | {f"wd_{i}" for i in range(PERIODS_PER_DAY)}
+    | {f"we_{i}" for i in range(PERIODS_PER_DAY)}
+)
+
+
+def per_day_half_hourly_panel_is_available(path: str | None = None) -> bool:
+    """Can the anchor panel answer a DAY-TO-DAY question? Read off the file, now.
+
+    False on the annual-mean extract this repo ships, True the moment the panel
+    grows anything a per-day reading needs. Raises `AnchorUnavailable` if the panel
+    cannot be read at all — see the fail-closed note above.
+    """
+    return bool(set(load_panel(path)[0]) - ANNUAL_MEAN_PANEL_COLUMNS)
+
+
+def unpayable_here_bands(path: str | None = None) -> tuple[str, ...]:
+    """The bands this box cannot anchor — `()` once the acquisition has landed.
+
+    This is the live half of the map's `infeasible_here` record on
+    `H_GAP_fabric_belief_truth_gap`. The two must agree, and the control that
+    holds them together is what re-opens the atom: on the day a per-day panel
+    lands this returns `()`, the map still claims two blocked bands, and the
+    disagreement reds rather than sitting there being politely out of date.
+    """
+    if per_day_half_hourly_panel_is_available(path):
+        return ()
+    return UNPAYABLE_WITHOUT_A_PER_DAY_PANEL

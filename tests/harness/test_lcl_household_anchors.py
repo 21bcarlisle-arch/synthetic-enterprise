@@ -252,3 +252,97 @@ def test_a_TWO_HOUSEHOLD_bootstrap_is_allowed_but_a_ONE_HOUSEHOLD_one_is_not():
     with pytest.raises(anchors.AnchorUnavailable, match="theatre"):
         anchors.bootstrap_low_quantile([1.0], lambda s: sum(s))
     assert math.isfinite(anchors.bootstrap_low_quantile([1.0, 2.0], lambda s: sum(s)))
+
+
+# ---------------------------------------------------------------------------
+# WHAT THIS BOX CANNOT PAY FOR — the map's claim, held against the live predicate
+# ---------------------------------------------------------------------------
+#
+# `H_GAP_fabric_belief_truth_gap` was drawn for BUILD fifteen consecutive times at
+# L2->L3. Every draw landed real green mutation-proven work; the level never moved,
+# because the two criteria left both need a per-day half-hourly panel this box does
+# not hold and cannot fetch. The atom now carries that as `infeasible_here` and is
+# certified L3 with the residual named. These controls are what stops that record
+# from becoming a comfortable sentence nobody re-reads.
+
+
+def _atom_record():
+    import yaml
+
+    text = (anchors.LCL_PANEL_PATH.parents[3] / "docs/design/maturity_map.yaml").read_text()
+    for atom in yaml.safe_load(text):
+        if atom["id"] == "H_GAP_fabric_belief_truth_gap":
+            return atom
+    raise AssertionError("H_GAP_fabric_belief_truth_gap is not in the map")
+
+
+def test_the_map_and_the_live_predicate_agree_about_what_this_box_cannot_pay_for():
+    """THE RE-OPEN. The map says two bands cannot be anchored here; the predicate
+    re-derives that from the panel on disk. If they ever disagree the map is out of
+    date about the only thing keeping this atom out of the BUILD queue.
+
+    IF THIS REDS IT IS NOT A REGRESSION — it is the acquisition having landed. Null-
+    correct BOTH sides with `weekday_weekend_separation_vs_own_null`, give L1.4 the
+    magnitude band it has carried `AnchorStatus.NEED` for since the suite was
+    written, and re-open the atom at a higher `level_target`.
+    """
+    record = _atom_record()["infeasible_here"]
+    assert tuple(record["blocks"]) == anchors.unpayable_here_bands(), (
+        "the map's `infeasible_here.blocks` and the live predicate disagree — either "
+        "a per-day panel landed (re-open the atom) or the map is claiming a blocker "
+        "that is not there"
+    )
+    # The record must point at the predicate that decides it, by import path, so a
+    # reader can run the thing rather than believe the sentence.
+    assert record["predicate"] == "background.lcl_household_anchors.unpayable_here_bands"
+
+
+def test_the_bands_the_map_calls_UNPAYABLE_are_really_unanchored():
+    """The claim's SUBJECT, checked rather than labelled. A band that quietly gained
+    a threshold would still be listed as a reason the atom cannot close — the
+    citation outliving the thing it cites, which is this project's own filed class."""
+    from background import fabric_gap_ledger as fgl
+
+    for band in anchors.UNPAYABLE_WITHOUT_A_PER_DAY_PANEL:
+        assert fgl.BANDS[band].anchor is fgl.AnchorStatus.NEED, band
+        assert fgl.BANDS[band].threshold is None, band
+        # And both name the SAME acquisition — that is what makes them ONE item.
+        assert "per-day half-hourly" in fgl.BANDS[band].anchor_source.lower(), band
+
+
+def test_the_predicate_reads_the_PANEL_and_not_its_own_constant(tmp_path):
+    """Both directions, on real files. A predicate that cannot say 'available' is a
+    predicate that has decided the answer in advance."""
+    header = (
+        ["LCLid", "stdorToU", "mean_daily_kwh", "archetype_k2"]
+        + [f"wd_{i}" for i in range(48)]
+        + [f"we_{i}" for i in range(48)]
+    )
+    body = ["MAC0", "Std", "9.0", "0"] + ["0.020833333333"] * 96
+
+    annual = tmp_path / "annual.csv"
+    annual.write_text(",".join(header) + "\n" + ",".join(body) + "\n")
+    assert anchors.per_day_half_hourly_panel_is_available(str(annual)) is False
+    assert anchors.unpayable_here_bands(str(annual)) == anchors.UNPAYABLE_WITHOUT_A_PER_DAY_PANEL
+
+    day_level = tmp_path / "day_level.csv"
+    day_level.write_text(
+        ",".join(header + ["day"]) + "\n" + ",".join(body + ["2013-01-07"]) + "\n"
+    )
+    assert anchors.per_day_half_hourly_panel_is_available(str(day_level)) is True
+    assert anchors.unpayable_here_bands(str(day_level)) == ()
+
+
+def test_an_UNREADABLE_panel_RAISES_rather_than_reporting_UNPAYABLE(tmp_path):
+    """FAIL-CLOSED IN THE DIRECTION THAT COSTS. Reporting UNPAYABLE is what excuses
+    the atom from the BUILD queue, so a panel that cannot be read must never take
+    that branch by default: 'the data never came' and 'I could not look' are the
+    same silence and opposite facts."""
+    missing = tmp_path / "gone.csv"
+    with pytest.raises(anchors.AnchorUnavailable):
+        anchors.unpayable_here_bands(str(missing))
+
+    empty = tmp_path / "empty.csv"
+    empty.write_text("LCLid,mean_daily_kwh\n")
+    with pytest.raises(anchors.AnchorUnavailable):
+        anchors.unpayable_here_bands(str(empty))
