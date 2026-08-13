@@ -101,7 +101,7 @@
       "date": "2018-12-31",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 147.0 \u00a3/MWh",
+      "detail": "Tariff renewed at 146.0 \u00a3/MWh",
       "effect": "Unit rate stepped 3.35p/kWh -> 3.36p/kWh"
     },
     {
@@ -5036,7 +5036,7 @@
       "date": "2020-12-30",
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 8% churn risk at decision time, SIM realized probability was 17%.",
-      "company_belief": 0.082,
+      "company_belief": 0.081,
       "sim_truth": 0.17,
       "amount_gbp": null,
       "outcome": "renewed",

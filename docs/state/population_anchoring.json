@@ -32,8 +32,8 @@
   "bad_debt_vs_benchmark": [
     {
       "year": 2016,
-      "bad_debt_gbp": -0.0,
-      "bad_debt_rate": -0.0,
+      "bad_debt_gbp": 0.0,
+      "bad_debt_rate": 0.0,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
       "rag": "AMBER"
@@ -88,8 +88,8 @@
     },
     {
       "year": 2023,
-      "bad_debt_gbp": 0.0,
-      "bad_debt_rate": 0.0,
+      "bad_debt_gbp": -0.0,
+      "bad_debt_rate": -0.0,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 4.0,
       "rag": "AMBER"
@@ -342,7 +342,7 @@
     },
     {
       "year": 2024,
-      "complaint_rate_pct": 4.98,
+      "complaint_rate_pct": 4.97,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,

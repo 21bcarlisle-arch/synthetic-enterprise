@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-08-13T16:39:33Z",
+    "checked_at": "2026-08-13T17:50:12Z",
     "nonblocking_reds": [
       "FAILED tests/background/test_finding_severity.py::test_the_staging_root_has_zero_unclassified_documents",
       "FAILED tests/background/test_self_clearing_alarm_census.py::test_every_live_hit_is_dispositioned",
@@ -11,24 +11,24 @@
       "FAILED tests/tools/test_capability_index.py::test_cli_exit_codes_distinguish_clean_from_could_not_run",
       "FAILED tests/tools/test_capability_index.py::test_the_live_register_rules_on_every_live_orphan"
     ],
-    "nonblocking_reds_total": 17,
+    "nonblocking_reds_total": 19,
     "open_findings": 70
   },
   "last_verified": {
-    "generated_at": "2026-08-13T17:17:05Z",
-    "git_commit": "f232c3480",
-    "run_id": "run_output_f232c3480_20260813T164721Z.json",
-    "verified_at": "2026-08-13T17:17:05Z"
+    "generated_at": "2026-08-13T18:21:40Z",
+    "git_commit": "d5916fd67",
+    "run_id": "run_output_d5916fd67_20260813T175112Z.json",
+    "verified_at": "2026-08-13T18:21:40Z"
   },
   "paused_reason": "scoped publish-path suite red at git=ad9d44186; blocking tests: FAILED tests/background/test_staging_archive_policy.py::test_process_run_complete_still_sees_a_duplicate_after_the_sweep",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-13T17:17:05Z",
-    "git_commit": "f232c3480",
-    "run_id": "run_output_f232c3480_20260813T164721Z.json",
-    "verified_at": "2026-08-13T17:17:05Z"
+    "generated_at": "2026-08-13T18:21:40Z",
+    "git_commit": "d5916fd67",
+    "run_id": "run_output_d5916fd67_20260813T175112Z.json",
+    "verified_at": "2026-08-13T18:21:40Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-13T17:17:05Z"
+  "written_at": "2026-08-13T18:21:40Z"
 }
