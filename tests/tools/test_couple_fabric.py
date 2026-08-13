@@ -42,7 +42,8 @@ def panel(weather):
 
 @pytest.fixture(scope="module")
 def measured(panel, weather):
-    return cf.observe(panel, weather)
+    observations, detail, _no_belief = cf.observe(panel, weather)
+    return observations, detail
 
 
 # ===========================================================================
@@ -167,15 +168,132 @@ def test_the_panel_is_NOT_uniformly_smart_metered(panel):
     assert max(cadences) >= 30, "a real book contains non-smart meters"
 
 
-def test_a_premise_with_NO_certificate_falls_back_and_is_NOT_actionable(measured):
-    """Absence is one of the three register error sources. The stock-class prior
-    must never be actionable however tight its band — it contains no information
-    about THIS premise."""
-    _observations, detail = measured
-    stock = [d for d in detail if d["basis"] == "stock_prior"]
-    assert stock, "the panel must contain a premise with no certificate"
-    for d in stock:
-        assert d["is_actionable"] is False
+def test_a_premise_with_NO_certificate_yields_NO_belief_AT_ALL(panel, weather):
+    """SUPERSEDES `test_a_premise_with_NO_certificate_falls_back_and_is_NOT_actionable`
+    (2026-08-12, §2c). That test asserted the stock-class fallback was never
+    actionable — true, and it was checking the wrong thing: the fallback was only
+    reachable because `observe` handed the company `property_type_hint` computed
+    from the SIM's own household object, for a premise the register has no
+    certificate for. The Director's ruling is that suppliers know very little about
+    the property, so the honest answer is not a weak prior, it is NO prior.
+
+    `epc_prior`'s "no certificate and no property type" refusal was live code that
+    could never fire in the only run that exercises it. It fires here.
+    """
+    observations, detail, no_belief = cf.observe(panel, weather)
+    uncertificated = {entry[0] for entry in panel if entry[5] is None}
+    assert uncertificated, "the panel must contain a premise with no certificate"
+
+    assert {n["premise_id"] for n in no_belief} == uncertificated
+    for n in no_belief:
+        assert "no fabric prior for this premise at all" in n["reason"]
+
+    # And it is GONE from the measured population, not silently carrying a prior.
+    assert not (uncertificated & {o.premise_id for o in observations})
+    assert not (uncertificated & {d["premise_id"] for d in detail})
+    assert not [d for d in detail if d["basis"] == "stock_prior"], (
+        "a stock-class prior can now only come from a property attribute the "
+        "company was handed off the truth object"
+    )
+
+
+def test_the_reader_is_TOLD_the_gap_was_measured_on_a_subset(panel, weather):
+    """THE CAVEAT IS THE POINT, and it is a control because the number moved the
+    FLATTERING way. Closing the side door made the company strictly worse — it now
+    declines every premise it knows nothing about — and the drawn-population gap
+    FELL, 0.4269 -> 0.1979, because the premises that left the measurement are
+    exactly the ones it was worst about. A gap that halves on the commit that took
+    the company's information away, published bare, reads as an improvement.
+
+    R15 both ways: at full coverage the sentence must be absent, or its presence
+    carries no information.
+    """
+    observations, _detail, no_belief = cf.observe(panel, weather)
+    assert no_belief, "the authored panel must contain an uncertificated premise"
+    caveats = fgl.headline_caveats(
+        observations,
+        unit_rate_p_per_kwh=cf.DEFAULT_UNIT_RATE_P_PER_KWH,
+        premises_without_belief=len(no_belief),
+    )
+    subset = [c for c in caveats if c.startswith("MEASURED ON A SUBSET")]
+    assert len(subset) == 1
+    assert f"{len(observations)} of {len(observations) + len(no_belief)}" in subset[0]
+
+    for absent in (0, None):
+        full = fgl.headline_caveats(
+            observations,
+            unit_rate_p_per_kwh=cf.DEFAULT_UNIT_RATE_P_PER_KWH,
+            premises_without_belief=absent,
+        )
+        assert not any(c.startswith("MEASURED ON A SUBSET") for c in full)
+
+
+def test_the_company_is_handed_NO_ATTRIBUTE_OFF_THE_TRUTH_OBJECT(panel, weather, monkeypatch):
+    """THE CLASS CONTROL (R10), not the instance. The finding named
+    `property_type_hint`; `main_heating_fuel` was crossing the same way on the same
+    line, and the next one would too. So this pins the WHOLE argument set the
+    coupling run may hand the company, and any future argument computed from
+    `household` fails it whatever it is called.
+
+    R15 both ways: restoring `property_type_hint=_EPC_PROPERTY_TYPE[household.
+    property_type]` to `observe` makes this fail on the extra key, and
+    `test_a_premise_with_NO_certificate_yields_NO_belief_AT_ALL` fail on the
+    premise that reappears.
+    """
+    ALLOWED = {"premise_id", "reads", "weather", "certificate", "as_of"}
+    seen: list[set[str]] = []
+    real = ti.infer_thermal_parameters
+
+    def spy(**kwargs):
+        seen.append(set(kwargs))
+        return real(**kwargs)
+
+    monkeypatch.setattr(cf.ti, "infer_thermal_parameters", spy)
+    cf.observe(panel, weather)
+
+    assert seen, "the spy never ran — this control would pass on a tool that does nothing"
+    for keys in seen:
+        assert keys == ALLOWED, (
+            f"the company was handed {sorted(keys - ALLOWED)} — anything about the "
+            "premise must arrive ON the certificate, never computed from the "
+            "simulation's household object"
+        )
+
+
+def test_closing_the_side_door_moved_NOTHING_about_a_CERTIFICATED_premise(panel, weather):
+    """The claim that made dropping both arguments safe rather than a rewrite:
+    for a premise that HAS a certificate the two dropped values are identical to
+    what the certificate already carries (`epc_prior` reads
+    `certificate.property_type`; `_certificate_for` sets `main_heating_fuel=
+    _register_fuel(household)`). If that ever stops being true, this change
+    silently moved every certificated premise's belief and this test says so.
+    """
+    published = [
+        ti.PublishedWeatherDay(d.date, d.weather.temperature_mean_c) for d in weather
+    ]
+    checked = 0
+    for premise_id, household, trace, commodity, cadence, lodged in panel:
+        if lodged is None:
+            continue
+        certificate = cf._certificate_for(trace, household, lodged)
+        reads = cf._reads_from_trace(
+            trace, commodity, every_n_days=cadence, start=cf.WINDOW_START
+        )
+        common = dict(
+            premise_id=premise_id, reads=reads, weather=published,
+            certificate=certificate, as_of=cf.AS_OF,
+        )
+        now = ti.infer_thermal_parameters(**common)
+        before = ti.infer_thermal_parameters(
+            **common,
+            property_type_hint=cf._EPC_PROPERTY_TYPE[household.property_type],
+            main_heating_fuel=cf._register_fuel(household),
+        )
+        assert now.hlc_kw_per_k == before.hlc_kw_per_k
+        assert now.prior.hlc_kw_per_k == before.prior.hlc_kw_per_k
+        assert now.relative_sd == before.relative_sd
+        checked += 1
+    assert checked >= 10, f"only {checked} certificated premises exercised"
 
 
 # ===========================================================================
@@ -682,14 +800,14 @@ def test_the_CLOSURE_CONTROL_accepts_a_clearing_cell_and_REJECTS_a_sub_floor_one
 
 def test_the_measurement_is_DETERMINISTIC_for_a_fixed_seed(weather):
     """C-S2. A gap that moves between identical runs cannot be a diagnostic."""
-    a, _ = cf.observe(cf.build_panel(weather, seed=17, limit=5), weather)
-    b, _ = cf.observe(cf.build_panel(weather, seed=17, limit=5), weather)
+    a, _, _ = cf.observe(cf.build_panel(weather, seed=17, limit=5), weather)
+    b, _, _ = cf.observe(cf.build_panel(weather, seed=17, limit=5), weather)
     assert [o.inferred_hlc_kw_per_k for o in a] == [o.inferred_hlc_kw_per_k for o in b]
 
 
 def test_a_DIFFERENT_seed_moves_the_world_but_the_panel_still_measures(weather):
     """Independence: the finding must not rest on one lucky draw."""
-    other, _ = cf.observe(cf.build_panel(weather, seed=99, limit=8), weather)
+    other, _, _ = cf.observe(cf.build_panel(weather, seed=99, limit=8), weather)
     assert fgl.epc_vs_actual_gap(other).gap > 0.0
     assert all(o.actual_hlc_kw_per_k > 0.0 for o in other)
 
@@ -725,7 +843,12 @@ def test_the_drawn_population_is_not_the_authored_panel(drawn, panel):
 def test_the_wall_holds_on_a_DRAWN_premise_too(drawn, weather):
     """The wall is a property of the seam, not of the ten homes it was first
     exercised on. Same assertion as §2, on a premise nobody wrote down."""
-    premise_id, household, trace, commodity, cadence, lodged = drawn[0]
+    # A CERTIFICATED premise, chosen by the register rather than by position: since
+    # §2c an uncertificated draw reaches the company as nothing at all, so `drawn[0]`
+    # would be testing the refusal, not the wall.
+    premise_id, household, trace, commodity, cadence, lodged = next(
+        entry for entry in drawn if entry[5] is not None
+    )
     reads = cf._reads_from_trace(
         trace, commodity, every_n_days=cadence, start=cf.WINDOW_START
     )
@@ -738,8 +861,6 @@ def test_the_wall_holds_on_a_DRAWN_premise_too(drawn, weather):
         weather=published,
         certificate=cf._certificate_for(trace, household, lodged),
         as_of=cf.AS_OF,
-        property_type_hint=cf._EPC_PROPERTY_TYPE[household.property_type],
-        main_heating_fuel="mains gas" if household.is_gas_heated else "air source heat pump",
     )
     assert belief.hlc_kw_per_k > 0.0
 
@@ -747,8 +868,14 @@ def test_the_wall_holds_on_a_DRAWN_premise_too(drawn, weather):
 def test_a_drawn_population_measures_a_gap_end_to_end(drawn, weather):
     """The orphan-transition rule (R11) applied to the new path: the population
     flag must reach a NUMBER, not merely construct premises."""
-    observations, detail = cf.observe(drawn, weather)
-    assert len(observations) == len(drawn) == len(detail)
+    observations, detail, no_belief = cf.observe(drawn, weather)
+    # THE POPULATION IS ACCOUNTED FOR IN FULL. Since §2c a premise may leave the
+    # measured set, and the one thing that must never happen is a premise leaving
+    # it and being counted nowhere — that is the shape in which a gap quietly
+    # becomes a gap on the homes the register happens to describe.
+    assert len(observations) == len(detail)
+    assert len(observations) + len(no_belief) == len(drawn)
+    assert no_belief, "a 200-premise draw must contain uncertificated premises"
     assert fgl.epc_vs_actual_gap(observations).gap > 0.0
     assert fgl.inferred_vs_actual_gap(observations).gap > 0.0
 

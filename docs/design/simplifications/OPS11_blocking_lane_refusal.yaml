@@ -1,0 +1,59 @@
+atom_id: OPS11_blocking_lane_refusal
+map_records:
+  exit_evidence: '2026-08-13 OPS11 L0->2 (worker tick). LANDED: the lane-scoped BLOCKING refusal in
+    background/gate_authorization.py (LaneBlocker / LaneBlockedError / atom_lanes / lane_for_atom /
+    lane_blockers / refusal_message / refuse_level_raise_if_lane_blocked / record_limitation_accepted /
+    is_valid_limitation_acceptance / accepted_limitations) wired into record_level_up_self_certified,
+    plus the third commit-time control in tools/level_promotion_gate.py (atom_lane_names /
+    lane_blocked_level_increases). 30 named tests across tests/background/test_gate_authorization.py
+    (23) and tests/tools/test_level_promotion_gate.py (30 total, 8 new). EXIT (1) THE REFUSAL FIRES AT
+    BOTH PLACES A LEVEL IS ACTUALLY RECORDED -- the writer (record_level_up_self_certified raises
+    LaneBlockedError BEFORE appending, so a refused raise leaves no row) and the commit gate (a third
+    control after recorded-check and built-check). Both are needed and neither is redundant: a row
+    recorded while the lane was clear still satisfies the recorded-check on a later commit, so only the
+    commit-time half sees the lane AT THE MOMENT THE MAP MOVES. Both read ONE implementation
+    (gate_authorization.lane_blockers) so they cannot drift. The message names every blocking finding
+    AND its repo-relative path, per the exit criterion that a refusal which does not say what blocks it
+    cannot be discharged. (2) LANE SCOPE PROVEN IN BOTH DIRECTIONS, at both sites: at the writer,
+    test_a_live_in_lane_blocker_refuses_the_level_record (H_harness blocker refuses an H_harness atom)
+    and test_a_blocker_in_another_lane_does_not_refuse (the SAME blocker leaves D_billing_metering
+    alone, and the row lands); at the gate, test_a_raise_in_a_HELD_lane_is_REFUSED_and_names_the_finding
+    and test_a_raise_in_an_UNHELD_lane_PASSES_while_the_other_lane_is_held (one call, both atoms, only
+    the held one returned). Verified LIVE against the real maturity map: with a synthetic BLOCKING doc
+    in a copy of the staging root, OPS11 own raise was refused and a D_billing_metering raise recorded
+    in the same call sequence. (3) R11, THE RELEASE IS TESTED, NOT JUST THE HOLD -- both discharges are
+    asserted on the LEDGER (the row actually lands), never on the absence of an exception:
+    test_repairing_the_finding_lets_the_next_raise_through (the document gains a CHECKED **Discharged:**
+    line, which finding_severity.parse_severity_file already reads down to RECORDED -- the release is
+    the SAME parse as the hold, so no second list can disagree) and
+    test_recording_and_accepting_the_limitation_lets_the_next_raise_through (a LIMITATION_ACCEPTED row).
+    test_an_acceptance_releases_only_the_finding_it_names pins that the acceptance is per-(lane,
+    finding): a blanket lane acceptance would clear findings nobody enumerated.
+    test_a_discharge_naming_a_nonexistent_test_releases_nothing pins that the repair release is only as
+    good as its evidence check. (4) FAIL-CLOSED, NEVER WEDGING, and the reasoning is IN THE CODE (the
+    OPS11 header block in gate_authorization.py): an absent/unreadable staging root, an UNCLASSIFIED
+    document, and an atom whose lane cannot be determined all read as UNKNOWN and REFUSE, because an
+    unavailable check is a FAILED check (R15 killer pattern 3). That is safe only because release 2
+    always exists and depends on nothing the check depends on -- writing a ledger row cannot become
+    unavailable when the index does. test_an_absent_staging_root_refuses_and_is_still_dischargeable
+    proves both halves in one test: the refusal fires under the stable identity
+    <severity-index-unreadable>, and recording an acceptance for that identity lets the raise through.
+    An UNCLASSIFIED document holds EVERY lane deliberately, because attributing it to no lane would
+    make mangling a header the cheapest way to clear a hold. (5) R15 BOTH WAYS, each mutation loaded
+    from a COPY of the module under a fresh name with a uniqueness-asserted anchor: mutation A
+    (parsed.lane == lane -> False, i.e. the blocking check dropped) kills
+    test_a_live_in_lane_blocker_refuses_the_level_record while the unaffected-lane direction still
+    passes under it; mutation B (the lane comparison deleted, so every lane is refused) kills
+    test_a_blocker_in_another_lane_does_not_refuse while the hold still holds under it. Direction B is
+    what stops the control being "proven" by a version that refuses everything -- the repo-wide freeze
+    clause 2 forbids. The gate half carries the same pair as neuter tests
+    (test_neuter_no_blockers_turns_the_defect_test_RED, test_a_wholly_clean_severity_index_blocks_NOTHING).
+    MEASURED LIVE POPULATION AT LANDING, stated because it bounds what this proves: `python3 -m
+    background.finding_severity` reports 94 documents, 0 BLOCKING, 55 LATENT, 39 RECORDED, 0
+    UNCLASSIFIED -- so the control lands QUIESCENT and refuses nothing today (OPS10 consolidation plus
+    the discharge field cleared the 35 blockers OPS9 measured on 2026-08-12). Its firing is proven on
+    synthetic populations and on the real map with a synthetic blocker, NOT on a live blocker; the
+    first real BLOCKING finding in any lane is what will exercise it in anger. NOT DONE, deliberately:
+    OPS12 (blockers ahead of the disposition queue) is the other consumer of the OPS9 parse and is a
+    separate atom -- this one refuses raises, it does not re-order the draw. Report:
+    docs/staging/WORKER_REPORT_OPS11_A_BLOCKING_FINDING_NOW_HOLDS_ITS_OWN_LANE_2026-08-13.md'

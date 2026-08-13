@@ -119,7 +119,7 @@ The company hedges wholesale volume forward to lock supply margin at the point o
 | NPS (avg annual) | -25 | 4 responses — **low volume, indicative only** |
 | Direct Debit share | 87.5% | 7/8 mandates active |
 | Estimated-read rate | 27.7% | 1557 meter reads; lower is better |
-| Contact-centre SLA breaches (SLC14-style) | 11 | of 355 contacts; GSOP statutory-payment detail in the GSOP Obligations section |
+| Contact-centre SLA breaches (SLC14-style) | 13 | of 387 contacts; GSOP statutory-payment detail in the GSOP Obligations section |
 
 ### ARPU by segment (settlement revenue ÷ meter points, annualised)
 
@@ -1687,7 +1687,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (10 active customers) under 12-month forward scenarios.
-Generated: 2026-08-12T19:37:18Z
+Generated: 2026-08-13T00:29:01Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 

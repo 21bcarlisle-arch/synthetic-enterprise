@@ -216,3 +216,57 @@ def test_the_gap_runner_scores_both_directions():
         "would then be a fair summary and this runner's split buys nothing; "
         "check the multipliers still straddle 1.0"
     )
+
+
+def test_the_runner_can_write_the_gap_ledger_and_the_row_names_the_pair(tmp_path):
+    """The family-membership control's other half.
+
+    `background.gap_ledger_reconciler` takes its producer population from the
+    `tools/couple_*.py` GLOB, so a family member that cannot write is one the
+    reconciler can never attribute a stale row to. The commit that added this
+    runner deferred the write and left that control RED at HEAD; this asserts the
+    capability exists rather than that a marker string is present, which is what
+    the reconciler's regex alone would have accepted.
+    """
+    import json
+
+    from background.gap_metric import write_gap_entry
+    from tools.couple_contact import TWIN_ATOM_ID, WORLD_ATOM_ID, gap_result
+
+    ledger_path = tmp_path / "coupled_gap_ledger.json"
+    ledger = write_gap_entry(
+        WORLD_ATOM_ID, TWIN_ATOM_ID, gap_result(_bills()),
+        measured_at="2026-08-13T00:00:00+00:00", run_git_commit="deadbeef",
+        ledger_path=ledger_path,
+    )
+    row = ledger[WORLD_ATOM_ID]
+    assert row["twin_atom_id"] == TWIN_ATOM_ID
+    assert 0.0 <= row["gap"]
+    assert json.loads(ledger_path.read_text())[WORLD_ATOM_ID]["gap"] == row["gap"]
+
+
+def test_the_headline_is_normalised_to_a_no_skill_baseline_and_can_say_worthless():
+    """The gap has to be able to report BOTH outcomes, or it reports neither.
+
+    A raw mean-absolute-error would be a number nobody can read: 0.15 is neither
+    good nor bad without knowing what guessing would have scored. Normalising to
+    the no-skill baseline is what makes gap==1 mean "worth nothing over predicting
+    the average". Both directions are driven here -- a belief that IS the truth
+    must score 0, and a belief that is the blind mean must score ~1 -- so a
+    formula swapped for an unnormalised one fails this test rather than silently
+    changing what every published gap means.
+    """
+    from background.gap_metric import prediction_gap
+    from tools.couple_contact import _pairs
+
+    rows = _pairs(_bills())
+    truth = [t for _, _, t in rows]
+
+    perfect = prediction_gap(truth, truth)
+    assert perfect.gap == pytest.approx(0.0), "belief == truth must score a leak"
+
+    blind = [sum(truth) / len(truth)] * len(truth)
+    assert prediction_gap(truth, blind).gap == pytest.approx(1.0), (
+        "predicting the climatological mean must score exactly the no-skill "
+        "baseline -- if it does not, the normalisation is not the one claimed"
+    )

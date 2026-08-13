@@ -406,9 +406,35 @@ def build_drawn_population(weather, *, n: int, seed: int = 17, population_seed: 
 def observe(panel, weather, *, unit_rate_p_per_kwh=DEFAULT_UNIT_RATE_P_PER_KWH):
     """Hold the two sides together — the ONE place permitted to do so.
 
-    Returns (observations, per-premise detail). The company's belief is computed
-    from observables ONLY; the truth is read from the trace's fabric and never
-    passed into the inference call.
+    Returns (observations, per-premise detail, premises with NO belief at all).
+    The company's belief is computed from observables ONLY; the truth is read from
+    the trace's fabric and never passed into the inference call.
+
+    THE SIDE DOOR THAT WAS HERE, and why it is closed (2026-08-12, §2c of
+    `ADVISOR_FINDINGS_REGISTER_ERROR_CHANNELS_ARE_INERT_2026-08-09.md`; Director
+    ruling 2026-08-09 — *suppliers today are very bad at knowing anything about the
+    property*). This call used to pass `property_type_hint` and `main_heating_fuel`
+    computed from `household`, the SIM's own truth object, UNCONDITIONALLY — outside
+    the `certificate is None` branch. For a premise the register has no certificate
+    for, the company was still handed the property type straight off the truth and
+    used it to pick a stock prior's centre and floor area. Two consequences, both
+    now gone: the company knew more than a real supplier does, and `epc_prior`'s
+    honest failure path — "no certificate and no property type, the company has no
+    fabric prior for this premise at all" — could never fire, so a live refusal was
+    dead code in the only run that exercises it.
+
+    Both arguments are now dropped rather than made conditional, and that is not a
+    shortcut: `epc_prior` already reads `certificate.property_type`, and
+    `_certificate_for` already sets `main_heating_fuel=_register_fuel(household)`,
+    so for a premise WITH a certificate the values are identical by construction and
+    nothing about those premises moves. What changes is the premises WITHOUT one —
+    the company now has nothing, which is the truth about a real supplier's premise
+    data, and it is reported rather than papered over.
+
+    A premise with no belief is NOT dropped quietly. It is returned in its own list
+    and printed as its own population: excluding it silently would measure the gap
+    on the homes the register happens to describe, which is the register acting as
+    the selector — proposed and REJECTED in the same Director session (§3.3).
     """
     published = [
         ti.PublishedWeatherDay(day.date, day.weather.temperature_mean_c)
@@ -423,20 +449,36 @@ def observe(panel, weather, *, unit_rate_p_per_kwh=DEFAULT_UNIT_RATE_P_PER_KWH):
     # premise's apparent fabric share and steer the whole book away from insulation.
     hdd_by_day = ti.heating_degree_days(published, DEGREE_DAY_BASE_C)
     annual_degree_days = sum(hdd_by_day.values()) / len(hdd_by_day) * 365.25
-    observations, detail = [], []
+    observations, detail, no_belief = [], [], []
     for premise_id, household, trace, commodity, cadence, lodged in panel:
         certificate = _certificate_for(trace, household, lodged)
-        belief = ti.infer_thermal_parameters(
-            premise_id=premise_id,
-            reads=_reads_from_trace(
-                trace, commodity, every_n_days=cadence, start=WINDOW_START
-            ),
-            weather=published,
-            certificate=certificate,
-            as_of=AS_OF,
-            property_type_hint=_EPC_PROPERTY_TYPE[household.property_type],
-            main_heating_fuel=_register_fuel(household),
-        )
+        try:
+            belief = ti.infer_thermal_parameters(
+                premise_id=premise_id,
+                reads=_reads_from_trace(
+                    trace, commodity, every_n_days=cadence, start=WINDOW_START
+                ),
+                weather=published,
+                certificate=certificate,
+                as_of=AS_OF,
+            )
+        except ti.InsufficientObservationError as exc:
+            # The company holds NOTHING about this premise's fabric. It cannot rank
+            # it, so it declines it — an unconditional decline, and the price of
+            # that decline is not yet in the money figures below (named as an open
+            # item on the finding rather than invented here).
+            no_belief.append(
+                {
+                    "premise_id": premise_id,
+                    "certificate": "none" if certificate is None else str(lodged),
+                    "reason": str(exc),
+                    # TRUTH, for the harness's own bookkeeping only. It is what the
+                    # company forgoes knowing, never anything the company is shown.
+                    "actual": trace.fabric.heat_loss_coefficient_kw_per_k,
+                    "annual_heat_kwh": trace.annual_kwh(commodity),
+                }
+            )
+            continue
         # TRUTH — read from the SIM side, never shown to the company.
         actual = trace.fabric.heat_loss_coefficient_kw_per_k
         observations.append(
@@ -476,7 +518,7 @@ def observe(panel, weather, *, unit_rate_p_per_kwh=DEFAULT_UNIT_RATE_P_PER_KWH):
                 ).decision.value,
             }
         )
-    return observations, detail
+    return observations, detail, no_belief
 
 
 def two_level(panel, weather):
@@ -576,7 +618,8 @@ def main() -> None:
         )
     else:
         panel = build_panel(weather, seed=args.seed, limit=args.premises)
-    observations, detail = observe(panel, weather, unit_rate_p_per_kwh=args.unit_rate)
+    observations, detail, no_belief = observe(
+        panel, weather, unit_rate_p_per_kwh=args.unit_rate)
     result = two_level(panel, weather)
 
     epc = fgl.epc_vs_actual_gap(observations)
@@ -595,18 +638,36 @@ def main() -> None:
     biases = {
         arm: fgl.belief_bias(observations, belief=arm) for arm in ("epc", "inferred")
     }
-    caveats = fgl.headline_caveats(observations, unit_rate_p_per_kwh=args.unit_rate)
+    caveats = fgl.headline_caveats(
+        observations,
+        unit_rate_p_per_kwh=args.unit_rate,
+        premises_without_belief=len(no_belief),
+    )
 
+    # THE POPULATION IS THE PANEL, NEVER THE SURVIVORS. `len(observations)` is the
+    # count of premises the company could form a belief about, which since the §2c
+    # side door was closed is a SUBSET — labelling the panel with it would let the
+    # register decide what the population is called (§3.3, rejected).
     composition = (
         f"DRAWN from published stock marginals (n={args.population}, "
         f"population_seed={args.population_seed})"
         if args.population
-        else f"AUTHORED panel ({len(observations)} premises, composed to span the stock)"
+        else f"AUTHORED panel ({len(panel)} premises, composed to span the stock)"
+    )
+    coverage = (
+        f"{len(observations)} of {len(panel)} premises carry a company fabric belief;"
+        f" {len(no_belief)} have none at all (no certificate, and no property"
+        f" attribute reaches the company off the truth object). Every figure below"
+        f" is measured on the {len(observations)}."
     )
 
     if args.json:
         print(json.dumps({
             "population": composition,
+            "belief_coverage": coverage,
+            "premises_drawn": len(panel),
+            "premises_with_belief": len(observations),
+            "premises_without_belief": no_belief,
             "epc_vs_actual_gap": epc.gap,
             "inferred_vs_actual_gap": inferred.gap,
             "inference_improvement": epc.gap - inferred.gap,
@@ -626,8 +687,21 @@ def main() -> None:
         print("FABRIC coupled triad — W1_11 truth / W1_12 traces / C14 belief")
         print(f"  window                    : {WINDOW_START} -> {WINDOW_END}"
               f"  ({len(weather)} days, real Open-Meteo archive)")
-        print(f"  premises                  : {len(observations)}")
+        print(f"  premises                  : {len(observations)}"
+              f" of {len(panel)} (belief coverage)")
         print(f"  population                : {composition}")
+        # PRINTED ABOVE THE FOLD, unconditionally, and with the ids when the group is
+        # small enough to name. A gap measured on the homes the register happens to
+        # describe, reported as a gap on the population, is the wrong-population
+        # defect this line exists to make impossible to miss.
+        print(f"  no belief at all          : {len(no_belief)}"
+              f" ({len(no_belief) / len(panel):.0%} of the population)"
+              f"  — the company holds nothing about these premises and declines"
+              f" every one of them; they are in NO figure below")
+        if no_belief:
+            named = ", ".join(str(n["premise_id"]) for n in no_belief[:12])
+            more = "" if len(no_belief) <= 12 else f", ... (+{len(no_belief) - 12} more)"
+            print(f"                              {named}{more}")
         print()
         # A 200-row table is not read; the whole point of a population is the
         # aggregate. The head is printed so a reader can still see individual
@@ -752,9 +826,12 @@ def main() -> None:
         print("    * cumulative meter register reads, at each premise's own cadence")
         print("    * published daily MEAN temperature (date, degC)")
         print("    * the EPC certificate in the register's string vocabulary, or None")
-        print("    * a property-type hint and the main heating fuel, both register fields")
         print("  NOT crossed: fabric parameters, HLC truth, half-hourly traces, setpoints,")
-        print("  occupancy, the gap itself, or any number computed in this file.")
+        print("  occupancy, the gap itself, or any number computed in this file —")
+        print("  and, since 2026-08-12, NO property attribute off the truth household.")
+        print("  Property type and main heating fuel reach the company ONLY as fields")
+        print("  ON the certificate; where there is no certificate the company has")
+        print(f"  nothing, and that happened on {len(no_belief)} of {len(panel)} premises here.")
 
     if args.write_ledger:
         measured_at = dt.datetime.now(dt.timezone.utc).isoformat()
@@ -766,6 +843,7 @@ def main() -> None:
             two_level=result,
             composition=composition,
             refresh_args=_refresh_args(args),
+            premises_without_belief=len(no_belief),
         )
         print()
         print(f"  ledger written: {fgl.FABRIC_WORLD_ATOM} -> gap="

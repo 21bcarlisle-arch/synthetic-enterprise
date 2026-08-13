@@ -6369,6 +6369,7 @@ def headline_caveats(
     *,
     unit_rate_p_per_kwh: float,
     fuel: str = "gas",
+    premises_without_belief: int | None = None,
 ) -> list[str]:
     """The sentences a reader needs alongside the two numbers, or an EMPTY list.
 
@@ -6377,7 +6378,8 @@ def headline_caveats(
     would have demonstrated nothing.
     """
     return (
-        _dilution_caveats(arm_agreement(observations))
+        _coverage_caveats(observations, premises_without_belief)
+        + _dilution_caveats(arm_agreement(observations))
         + _direction_caveats(observations)
         + _verdict_caveats(
             composition_verdict(
@@ -6385,6 +6387,44 @@ def headline_caveats(
             )
         )
     )
+
+
+def _coverage_caveats(
+    observations: Sequence[FabricObservation],
+    premises_without_belief: int | None,
+) -> list[str]:
+    """§2c's sentence — THE ONE A READER OF THE HEADLINE MOST NEEDS (2026-08-12).
+
+    Closing the property-type side door made the company STRICTLY WORSE — a premise
+    with no certificate now reaches it as nothing at all, and it declines every one
+    of them — and the measured gap IMPROVED, on the drawn population from 0.4269 to
+    0.1979. Both facts are real and they are not in tension: the premises that left
+    the measurement are exactly the ones the company was worst about, because it was
+    holding a stock-class prior selected by the truth. A gap that halves on the
+    commit that removed the company's information, published without this sentence,
+    would read as the fabric belief improving.
+
+    The caveat is therefore keyed on the SHORTFALL, not on a named commit: any run
+    whose belief coverage is short of its population gets it, whatever caused the
+    shortfall. `None` means the caller did not measure coverage (legacy rows, and
+    callers holding observations with no population behind them) and is NOT reported
+    as full coverage — an unmeasured coverage claiming 100% is the fail-open shape.
+    """
+    if not premises_without_belief:
+        return []
+    measured = len(observations)
+    drawn = measured + premises_without_belief
+    return [
+        f"MEASURED ON A SUBSET: {measured} of {drawn} premises "
+        f"({premises_without_belief / drawn:.0%} of the population) carry no company "
+        f"fabric belief at all — no certificate on the register, and no property "
+        f"attribute reaches the company off the simulation's truth object. Both gap "
+        f"figures, both money figures and every verdict below are measured on the "
+        f"{measured} that do. The company is WORSE on the excluded premises, not "
+        f"absent from them: it declines every one. This figure is therefore NOT "
+        f"comparable to a row measured at full belief coverage, and a fall in the "
+        f"gap across such a change is the population moving, not the belief improving."
+    ]
 
 
 def _dilution_caveats(agreement: ArmAgreement) -> list[str]:
@@ -7275,6 +7315,7 @@ def write_fabric_gap_entries(
     path: Path | None = None,
     composition: str | None = None,
     refresh_args: Sequence[str] | None = None,
+    premises_without_belief: int | None = None,
 ) -> dict[str, GapResult]:
     """Write the fabric triad's gaps into the coupled-gap ledger.
 
@@ -7331,7 +7372,9 @@ def write_fabric_gap_entries(
         },
         "composition_verdict": composition_verdict_components(verdict),
         "headline_caveats": headline_caveats(
-            observations, unit_rate_p_per_kwh=unit_rate_p_per_kwh
+            observations,
+            unit_rate_p_per_kwh=unit_rate_p_per_kwh,
+            premises_without_belief=premises_without_belief,
         ),
     }
     # The population this row describes, and how to take it again. `premises: 200` alone does
@@ -7339,6 +7382,17 @@ def write_fabric_gap_entries(
     # which is the knowledge the next tick will not have.
     if composition is not None:
         shared["composition"] = composition
+    # WHAT `premises` LEAVES OUT (2026-08-12, §2c of the register-error-channels
+    # finding). `premises` counts the rows that HAVE a belief, and since the
+    # property-type side door was closed that is a subset of the population: a
+    # premise the register has no certificate for now reaches the company as
+    # nothing at all. A row carrying only the survivors' count would report a gap
+    # measured on the homes the register happens to describe as a gap on the
+    # population — the register acting as the selector. Absent on legacy rows,
+    # which were all written when coverage was 100% by construction.
+    if premises_without_belief is not None:
+        shared["premises_without_belief"] = premises_without_belief
+        shared["premises_drawn"] = len(observations) + premises_without_belief
     if refresh_args is not None:
         shared["refresh_args"] = list(refresh_args)
     if two_level is not None:

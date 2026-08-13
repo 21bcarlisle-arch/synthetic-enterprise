@@ -1,33 +1,34 @@
 {
   "annotation": {
-    "checked_at": "2026-08-12T20:54:28Z",
+    "checked_at": "2026-08-13T00:54:22Z",
     "nonblocking_reds": [
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
-      "FAILED tests/tools/test_generate_shadow_html.py::test_every_static_site_page_has_the_copyright_footer",
-      "FAILED tests/tools/test_map_assertion_provenance.py::test_the_population_is_derived_from_the_store_not_hand_typed",
-      "FAILED tests/tools/test_map_assertion_provenance.py::test_the_live_store_carries_no_stale_hold_record",
-      "FAILED tests/tools/test_website_integrity_fix.py::test_process_run_complete_generates_insights_before_dashboard",
-      "FAILED tests/tools/test_website_integrity_fix.py::test_main_ntfys_immediately_on_consistency_gate_failure"
+      "FAILED tests/background/test_gap_ledger_reconciler.py::test_discovery_reads_SOURCE_so_the_family_cannot_be_escaped_by_not_editing_a_list",
+      "FAILED tests/tools/test_capability_index.py::test_live_repo_index_is_healthy_and_substantial",
+      "FAILED tests/tools/test_capability_index.py::test_cli_exit_codes_distinguish_clean_from_could_not_run",
+      "FAILED tests/tools/test_contact_centre_port.py::test_round_trip_is_lossless_identity_on_existing_dict",
+      "FAILED tests/tools/test_contact_centre_port.py::test_schema_version_present_and_defaulted",
+      "FAILED tests/tools/test_contact_centre_port.py::test_channel_values_from_real_producer_are_in_known_set",
+      "FAILED tests/tools/test_contact_centre_port.py::test_port_is_runtime_checkable_protocol",
+      "FAILED tests/tools/test_generate_shadow_html.py::test_every_static_site_page_has_the_copyright_footer"
     ],
-    "nonblocking_reds_total": 7,
-    "open_findings": 55
+    "nonblocking_reds_total": 10,
+    "open_findings": 56
   },
   "last_verified": {
-    "generated_at": "2026-08-12T20:28:57Z",
-    "git_commit": "7a9bf56be",
-    "run_id": "run_output_7a9bf56be_20260812T195935Z.json",
-    "verified_at": "2026-08-12T20:28:57Z"
+    "generated_at": "2026-08-13T01:25:10Z",
+    "git_commit": "433718889",
+    "run_id": "run_output_433718889_20260813T005523Z.json",
+    "verified_at": "2026-08-13T01:25:10Z"
   },
   "paused_reason": "scoped publish-path suite red at git=ad9d44186; blocking tests: FAILED tests/background/test_staging_archive_policy.py::test_process_run_complete_still_sees_a_duplicate_after_the_sweep",
-  "paused_since": "2026-08-12T21:08:37Z",
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-12T20:28:57Z",
-    "git_commit": "7a9bf56be",
-    "run_id": "run_output_7a9bf56be_20260812T195935Z.json",
-    "verified_at": "2026-08-12T20:28:57Z"
+    "generated_at": "2026-08-13T01:25:10Z",
+    "git_commit": "433718889",
+    "run_id": "run_output_433718889_20260813T005523Z.json",
+    "verified_at": "2026-08-13T01:25:10Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-08-12T21:58:48Z"
+  "verification_state": "verified",
+  "written_at": "2026-08-13T01:25:10Z"
 }

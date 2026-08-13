@@ -112,7 +112,15 @@ _TOOLS_DIR = Path(__file__).resolve().parent
 ROOT = _TOOLS_DIR.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
-from background.gate_authorization import is_valid_level_up, read_ledger  # noqa: E402
+from background.gate_authorization import (  # noqa: E402
+    UNKNOWN_LANE,
+    UNREADABLE_INDEX_FINDING,
+    LaneBlocker,
+    atom_lanes,
+    is_valid_level_up,
+    lane_blockers,
+    read_ledger,
+)
 
 MAP_REL = "docs/design/maturity_map.yaml"
 
@@ -221,6 +229,56 @@ def unbuilt_level_increases(increases: list, scope_status: dict) -> list:
         dirty = dirty_source_paths(porcelain)
         if dirty:
             out.append({**inc, "dirty": dirty, "unverifiable": False})
+    return out
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+# THIRD CONTROL (OPS11, 2026-08-13): a level may not be RAISED in a lane a BLOCKING finding holds.
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+#
+# WHY HERE AS WELL AS AT THE WRITER (`record_level_up_self_certified` refuses the same way): the
+# ledger row and the map move are separate acts, sometimes days apart. A row recorded while the
+# lane was clear still satisfies the FIRST control on a commit made after a blocker landed, so the
+# writer-side refusal alone cannot see the state of the lane at the moment the map actually moves.
+# This half does. The two share ONE implementation (`gate_authorization.lane_blockers`) so they can
+# never disagree about what a blocker is — R15 anti-tautology applied in the other direction: the
+# risk of a second copy is not that it agrees with itself, it is that it drifts.
+#
+# THE POPULATION IS THE WORKING TREE'S STAGING ROOT, said out loud because this repo has a filed
+# finding about a gate that lints the working tree. It is the right subject here: a finding is LIVE
+# from the moment it is written, and a blocker that only counted once committed would let a lane be
+# certified in the window where its own instrument was known bad but not yet pushed. The cost is
+# that an uncommitted BLOCKING document holds its own lane — which is the intended behaviour, is
+# scoped to that lane, and has the same two cheap discharges as any other blocker.
+def atom_lane_names(map_text: str) -> dict:
+    """{atom_id: lane} from map TEXT, reusing gate_authorization's walk verbatim."""
+    out: dict = {}
+    for d in yaml.safe_load_all(map_text):
+        out.update(atom_lanes(d))
+    return out
+
+
+def lane_blocked_level_increases(increases: list, lanes: dict, blockers_for) -> list:
+    """THE third predicate: increases whose lane is held. Pure given `blockers_for` (lane ->
+    list of blockers), which is what makes it mutation-testable without a staging root.
+
+    An atom with no readable lane is refused under UNKNOWN_LANE (fail-closed): 'I cannot tell
+    which lane this is' is not evidence that the lane is clear. Lanes are looked up ONCE each,
+    so a hundred increases in one lane cost one scan, not a hundred.
+    """
+    out, cache = [], {}
+    for inc in increases:
+        lane = lanes.get(inc["atom"])
+        if not isinstance(lane, str) or not lane.strip():
+            out.append({**inc, "lane": UNKNOWN_LANE, "blockers": [LaneBlocker(
+                UNKNOWN_LANE, UNREADABLE_INDEX_FINDING, MAP_REL,
+                f"{inc['atom']} has no readable `lane` in the staged map, so the lane that would "
+                f"be held cannot be determined")]})
+            continue
+        if lane not in cache:
+            cache[lane] = list(blockers_for(lane))
+        if cache[lane]:
+            out.append({**inc, "lane": lane, "blockers": cache[lane]})
     return out
 
 
@@ -399,6 +457,31 @@ def main() -> int:
             )
         sys.stderr.write("\n[level-gate] ❌ COMMIT REFUSED (a level move must be BUILT in the commit "
                          "that declares it):\n" + "\n".join(lines) + "\n")
+        return 1
+
+    # ── THIRD CONTROL (OPS11): the lane must not be held by a live BLOCKING finding ─────────────
+    try:
+        lanes = atom_lane_names(new_text)
+    except Exception:  # noqa: BLE001 -- new_text already parsed above; a lane-walk failure means
+        lanes = {}     # every atom reads as lane-unknown, which refuses (fail-closed), never waves
+    held = lane_blocked_level_increases(increases, lanes, lane_blockers)
+    if held:
+        lines = []
+        for h in held:
+            named = "\n      ".join(b.describe() for b in h["blockers"])
+            lines.append(
+                f"§0: level_current {h['from']}->{h['to']} on {h['atom']} raises a level in lane "
+                f"`{h['lane']}`, which is HELD by {len(h['blockers'])} live BLOCKING finding(s):\n"
+                f"      {named}\n"
+                f"  A BLOCKING finding says an instrument in that lane may be wrong, so a level "
+                f"certified now is certified by it. Every OTHER lane is untouched. Two discharges: "
+                f"repair the finding and add a checked `**Discharged:**` line to its header block, "
+                f"or record-and-accept the limitation with "
+                f"background.gate_authorization.record_limitation_accepted('{h['lane']}', "
+                f"'<finding filename>', '<why this move is sound in spite of it>')."
+            )
+        sys.stderr.write("\n[level-gate] ❌ COMMIT REFUSED (OPS11 -- a live BLOCKING finding refuses "
+                         "new level-raises in its own lane):\n" + "\n".join(lines) + "\n")
         return 1
     return 0
 

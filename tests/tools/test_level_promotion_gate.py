@@ -287,3 +287,101 @@ def test_evaluate_exposes_increases_for_the_built_check():
     absent, the second control would silently never run (fail-open by omission)."""
     result = gate.evaluate(old_text=_map(2), new_text=_map(3), ledger=[VALID_LEVEL_UP])
     assert result["increases"] == [{"atom": "E4_supplier_reporting_standard", "from": 2, "to": 3}]
+
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# THIRD CONTROL (OPS11): a level may not be RAISED in a lane a live BLOCKING finding holds.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+#
+# These exercise the PURE predicate with an INJECTED `blockers_for`, so the commit gate's half is
+# tested without a staging root on disk. What a blocker IS stays defined in exactly one place
+# (`gate_authorization.lane_blockers`, mutation-proven in tests/background/test_gate_authorization
+# .py both ways) -- re-deriving it here would be the second copy that drifts.
+
+_LANE_MAP = """- id: H99_thing
+  lane: H_harness
+  level_current: 1
+- id: D9_bill
+  lane: D_billing_metering
+  level_current: 1
+- id: X_no_lane
+  level_current: 1
+"""
+
+_H_BLOCKER = gate.LaneBlocker("H_harness", "WORKER_FINDING_THE_INSTRUMENT_LIES.md",
+                              "docs/staging/WORKER_FINDING_THE_INSTRUMENT_LIES.md",
+                              "BLOCKING in H_harness")
+
+
+def _blockers_only_in_h(lane):
+    return [_H_BLOCKER] if lane == "H_harness" else []
+
+
+def test_atom_lane_names_reads_the_lane_off_the_staged_map():
+    lanes = gate.atom_lane_names(_LANE_MAP)
+    assert lanes["H99_thing"] == "H_harness" and lanes["D9_bill"] == "D_billing_metering"
+    assert lanes.get("X_no_lane") is None  # no `lane` key -> unknown, never a silent default
+
+
+def test_a_raise_in_a_HELD_lane_is_REFUSED_and_names_the_finding():
+    """(a) THE named defect. Exit criterion 1: the refusal must say which finding blocks it and
+    where it lives, or nobody can discharge it."""
+    held = gate.lane_blocked_level_increases(
+        [{"atom": "H99_thing", "from": 1, "to": 2}], gate.atom_lane_names(_LANE_MAP),
+        _blockers_only_in_h)
+    assert len(held) == 1 and held[0]["lane"] == "H_harness"
+    described = held[0]["blockers"][0].describe()
+    assert "WORKER_FINDING_THE_INSTRUMENT_LIES.md" in described
+    assert "docs/staging/WORKER_FINDING_THE_INSTRUMENT_LIES.md" in described
+
+
+def test_a_raise_in_an_UNHELD_lane_PASSES_while_the_other_lane_is_held():
+    """(b) THE PASSING DIRECTION, and exit criterion 2's second half in the gate: the SAME
+    blocker set that refuses H_harness leaves D_billing_metering alone, in one call, so the
+    lane bound is proven rather than the two directions being separately arranged."""
+    both = [{"atom": "H99_thing", "from": 1, "to": 2}, {"atom": "D9_bill", "from": 1, "to": 2}]
+    held = gate.lane_blocked_level_increases(both, gate.atom_lane_names(_LANE_MAP),
+                                             _blockers_only_in_h)
+    assert [h["atom"] for h in held] == ["H99_thing"]
+
+
+def test_a_wholly_clean_severity_index_blocks_NOTHING():
+    """The commonest case of all: no BLOCKING findings anywhere -> every lane raises freely.
+    A control that cannot pass is worth nothing (`feedback_control_that_can_only_fail_wedges`)."""
+    both = [{"atom": "H99_thing", "from": 1, "to": 2}, {"atom": "D9_bill", "from": 1, "to": 2}]
+    assert gate.lane_blocked_level_increases(both, gate.atom_lane_names(_LANE_MAP),
+                                             lambda lane: []) == []
+
+
+def test_neuter_no_blockers_turns_the_defect_test_RED():
+    """(c) INDEPENDENCE: with the blocker source neutered, (a)'s assertion collapses -- so (a)
+    is carried by the predicate and not by the fixture's shape."""
+    assert gate.lane_blocked_level_increases(
+        [{"atom": "H99_thing", "from": 1, "to": 2}], gate.atom_lane_names(_LANE_MAP),
+        lambda lane: []) == []
+
+
+def test_an_atom_with_no_lane_is_refused_under_UNKNOWN_LANE():
+    """FAIL-CLOSED. An atom the staged map gives no lane cannot be shown to be in a clear lane,
+    and an unavailable check is a FAILED check (R15). The refusal is dischargeable by
+    record-and-accept exactly like any other, so it holds without wedging."""
+    held = gate.lane_blocked_level_increases(
+        [{"atom": "X_no_lane", "from": 1, "to": 2}], gate.atom_lane_names(_LANE_MAP),
+        lambda lane: [])  # even with a totally clean index
+    assert len(held) == 1 and held[0]["lane"] == gate.UNKNOWN_LANE
+    assert gate.UNREADABLE_INDEX_FINDING in held[0]["blockers"][0].finding
+
+
+def test_one_lane_is_scanned_ONCE_however_many_atoms_it_holds():
+    """Not a micro-optimisation: `lane_blockers` walks the whole staging root, so a per-atom
+    call would turn a ten-atom commit into ten filesystem scans inside a pre-commit hook."""
+    calls = []
+
+    def counting(lane):
+        calls.append(lane)
+        return []
+
+    gate.lane_blocked_level_increases(
+        [{"atom": "H99_thing", "from": 1, "to": 2}, {"atom": "H99_thing", "from": 2, "to": 3},
+         {"atom": "D9_bill", "from": 1, "to": 2}], gate.atom_lane_names(_LANE_MAP), counting)
+    assert calls == ["H_harness", "D_billing_metering"]

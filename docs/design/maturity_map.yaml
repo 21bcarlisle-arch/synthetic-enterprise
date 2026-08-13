@@ -2533,6 +2533,7 @@
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
   depends_on: [D32_the_latency_headline_cannot_attribute_its_two_knobs]
+  simplifications_count: 1
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
   real_world_twin: "a collections MI pack whose footnote says 'this figure cannot detect a memory error smaller than 309 days' when the figure it is printed under cannot detect one smaller than 314 -- and the analyst who derived the footnote measured the book, not the report"
 - id: D32_the_latency_headline_cannot_attribute_its_two_knobs
@@ -5049,14 +5050,15 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 2
   level_target: 2
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 1
   provenance: director_ruling
   depends_on: [OPS9_finding_severity_field]
   couples_with: [OPS12_blockers_ahead_of_disposition]
-  file_scope: ['background/gate_authorization.py', 'tools/level_promotion_gate.py', 'tests/background/test_gate_authorization.py']
+  file_scope: ['background/gate_authorization.py', 'tools/level_promotion_gate.py', 'tests/background/test_gate_authorization.py', 'tests/tools/test_level_promotion_gate.py']
+  records_rehomed: [exit_evidence]
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a calibration hold: the instrument is out of certification, so this bench stops issuing certificates while the rest of the lab works on"
 

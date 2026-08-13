@@ -481,7 +481,8 @@ _SENTENCE_SPLIT = re.compile(r"(?<=[.;])\s+")
 HOUR_PARSE_FLOOR = 1
 
 # How far into an entry its own Hour may be named. Past this the entry is not
-# self-identifying and `entry_hour` refuses rather than guessing.
+# self-identifying, so it contributes NO ordinal -- see `entry_hour` for why that
+# is a None and not a raise.
 ENTRY_SELF_ID_WINDOW = 120
 
 
@@ -514,17 +515,31 @@ def entry_hour(text: str) -> int | None:
     whose record is perfectly current as one Hour behind -- the forward-pointer
     defect this check exists to catch, committed by the check itself. It cost a
     false finding on the first real run.
+
+    THE STORE HOLDS MORE THAN HOUR ENTRIES, and that is why a late ordinal is a
+    None rather than a raise. `hold_record_atoms` derives its register from
+    `simplifications_store.for_atom`, which returns EVERY entry an atom has --
+    including DISCOVER/FRAME notes ("2026-08-12 DISCOVER/FRAME ONLY, level stays
+    0...") that are not Hour entries at all and merely mention an Hour in their
+    body. This raise fired on exactly such a note and RED-WEDGED HEAD, blocking
+    every commit in the repo, because it read "this entry does not self-identify"
+    as "the convention has moved".
+
+    Those are different facts and only one of them is an emergency, so they are
+    now measured separately: an entry that does not self-identify contributes no
+    ordinal, and the CONVENTION-MOVED alarm is `HOUR_PARSE_FLOOR` in
+    `hold_record_findings` -- a population-level vacuity guard that raises when
+    NOTHING parses anywhere. That guard is the right altitude for the claim: one
+    unparsed entry is a non-Hour entry, a store where nothing parses is a broken
+    check. Returning None here cannot make the check silently inert, because the
+    floor is what decides inertness and it still raises.
     """
     mentions = _hour_mentions(text)
     if not mentions:
         return None
     position, ordinal = mentions[0]
     if position > ENTRY_SELF_ID_WINDOW:
-        raise ValueError(
-            "an entry names its first Hour at character %d, past the %d-character window "
-            "register entries self-identify in -- the convention has moved and 'the first "
-            "ordinal is this entry's own' no longer holds: %r"
-            % (position, ENTRY_SELF_ID_WINDOW, (text or "")[:160]))
+        return None
     return ordinal
 
 

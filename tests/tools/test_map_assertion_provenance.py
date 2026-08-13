@@ -488,14 +488,47 @@ def test_MUTATION_hours_recorded_with_no_verdict_anywhere_FIRES():
     assert len(findings) == 1 and mp.HOLD_UNANSWERED in findings[0]
 
 
+_DRIFTED = ["This entry buries its ordinal a very long way in, well past any "
+            "reasonable prefix, so that nothing at the front says which one it is, "
+            "and only here does it admit to being the TWENTY-SECOND HOUR."]
+
+
 def test_MUTATION_an_entry_that_stops_self_identifying_RAISES():
     """A convention change must refuse, not guess. An unavailable check is a
-    failed check (R15)."""
-    drifted = ["This entry buries its ordinal a very long way in, well past any "
-               "reasonable prefix, so that nothing at the front says which one it is, "
-               "and only here does it admit to being the TWENTY-SECOND HOUR."]
-    with pytest.raises(ValueError, match="self-identif"):
-        mp.hold_record_findings([_held_atom(drifted)])
+    failed check (R15).
+
+    The refusal now comes from the POPULATION floor rather than from the entry
+    parse, and the distinction is the point: nothing in the store parses, so the
+    check is unavailable. What changed is only which guard says so.
+    """
+    with pytest.raises(ValueError, match="VACUITY"):
+        mp.hold_record_findings([_held_atom(_DRIFTED)])
+
+
+def test_a_non_hour_entry_beside_a_real_one_contributes_nothing_and_does_NOT_raise():
+    """The other half of that discrimination, and the defect it was born from.
+
+    `simplifications_store.for_atom` returns EVERY entry an atom has, not only
+    Hour entries -- a DISCOVER/FRAME note mentioning an Hour in its body is
+    ordinary and must not be read as an Hour entry. Treating "does not
+    self-identify" as "the convention has moved" red-wedged HEAD and blocked
+    every commit in the repo until this was split.
+
+    Both directions are driven from ONE call so they cannot be separately
+    arranged: the note contributes no ordinal, AND the real Hour beside it is
+    still parsed, so the check stays live rather than being switched off.
+    """
+    note = ("2026-08-12 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 "
+            "idle draw). No BUILD code written and nothing in file_scope touched. "
+            "The lead it takes forward was opened by the TWENTY-SECOND HOUR.")
+    assert mp.entry_hour(note) is None, "a DISCOVER/FRAME note is not an Hour entry"
+    assert 22 in mp.hour_ordinals(note), "the ordinal IS present -- position is the whole test"
+
+    findings = mp.hold_record_findings([_held_atom(list(_HGAP_SHAPE) + [note])])
+    assert findings == [], (
+        "the real Hour entries beside the note still answer the draw -- if this "
+        "fires, the note was counted as a later unanswered Hour"
+    )
 
 
 def test_MUTATION_a_register_that_parses_to_nothing_RAISES_rather_than_passing():
