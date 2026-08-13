@@ -194,8 +194,8 @@ def test_the_publish_path_NAMES_an_unavailable_measure_instead_of_swallowing_it(
     its only caller. This is the consumer-verified half (R1): the notify must actually fire.
 
     MUTATION: restore the unconditional `m["total_files"]` log line and this fails."""
-    from background import process_run_complete as prc
     from background import notify as notify_mod
+    from background import process_run_complete as prc
 
     sent = []
     monkeypatch.setattr(td, "measure",

@@ -31,7 +31,6 @@ sys.path.insert(0, str(ROOT))
 
 from tools import pre_commit_test_gate as gate  # noqa: E402
 
-
 # ── 1. WHERE: the staging scope, and the early-return trap ───────────────────
 
 def test_staging_only_commit_still_runs_the_checker(monkeypatch, capsys):

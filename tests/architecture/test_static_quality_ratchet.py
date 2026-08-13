@@ -116,6 +116,18 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-08-13  I001 1379 -> 1379  (NO MOVE — HEAD came back to the floor)
+#     Logged here because a red at HEAD that nobody can attribute is how this
+#     ratchet dies (WORKER_FINDING_THE_ISORT_RATCHET_IS_RED_AT_HEAD_2026-08-13).
+#     HEAD stood at 1381 for two commits. The two blocks were identified by
+#     diffing per-file `--select I001` censuses of `git archive` extractions at
+#     the last green commit (33592d8d1) and HEAD — never by inference from the
+#     working tree, which read 1380 and so understated the debt by one:
+#       tests/tools/test_pre_commit_gate_class_checker.py  (landed f4b504e6c)
+#       tests/background/test_tree_divergence.py           (its isort fix
+#             existed ONLY as an uncommitted working-tree edit — the
+#             uncommitted-and-orphaned-work class, committed here)
+#     Fixed at source per this ratchet's own remedy; the baseline does NOT move.
 #   2026-08-12  I001 1380 -> 1379  (KNIFE3 step 20, the churn-estimation cut)
 #     `simulation/run_phase2b.py` lost one un-sorted import block when the three
 #     churn crossings were replaced by one sorted `company.interfaces.*` +
