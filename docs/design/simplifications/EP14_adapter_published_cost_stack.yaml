@@ -131,11 +131,69 @@ simplifications:
 
   WHY BLOCKING (finding_severity clause 2, by construction): £62,449.57 of the published
   `total_gap_gbp` on the front door's Reconciliation Bridge is this mis-keying. A published
-  figure in this area is wrong. NOT DISCHARGED and deliberately NOT FIXED IN THIS PASS --
-  SELF_INTERRUPT_DISCIPLINE queues a worker's own finding by default, and the repair is a
-  baseline-world fidelity change (R13: legitimate, decided blind to company P&L) which is
-  BUILD, which this draw does not carry. Filed as
+  figure in this area is wrong. Filed as
   `docs/staging/WORKER_FINDING_THE_DOMINANT_COST_COMPONENT_IS_READ_ON_A_CALENDAR_YEAR_2026-08-13.md`.
+
+  REPAIRED 2026-08-13 by the BUILD draw that took this blocking finding off the RUNG-1c lane.
+  `get_electricity_network_cost_per_mwh` now derives its key with `_ro_oy_start_year`, matching
+  its four siblings and both tables' own comments; `_DUOS_IC_BY_YEAR` gained the basis comment
+  it never carried. Verified on the shipped function, nothing monkeypatched:
+  `("2021-12-01") -> 49.0`, `("2022-01-05") -> 49.0` (was 66.0), `("2022-04-05") -> 66.0` --
+  the £17/MWh step now lands on 1 April, where the table's comment puts it.
+
+  The instance fix alone would breach R10, so the CLASS is what was actually built:
+  `policy_costs.YEAR_KEY_BASIS` declares the year convention of all 13 year-keyed tables, and
+  `tests/simulation/test_policy_cost_year_basis.py` enforces it on three independent legs --
+  a census (a new table with no declared basis fails), a behavioural probe at a JANUARY date
+  (the only date where the two conventions disagree, checked against each reader's OBSERVED
+  output), and a documentary leg that reads the source comments, so a table whose rows say
+  "2022/23" cannot be declared calendar. NOTE the naive control the finding itself recommended
+  -- "every reader calls the same helper" -- would have been WRONG: four tables here (CfD,
+  mutualization, both standing charges) are genuinely calendar-published and their readers are
+  correct. The subject is agreement with the table's OWN basis, not uniformity.
+
+  R15 (mutation-proven, all four fire; re-run at LANDING 2026-08-13, unmutated baseline
+  31 passed):
+    1. reader reverted to `int(date_str[:4])`  -> 3 tests fail (both network tables + the pin)
+    2. network table mis-declared "calendar"   -> 2 tests fail, on two INDEPENDENT legs
+    3. new undeclared year-keyed table added   -> census fails
+    4. calendar reader forced onto `apr_mar`   -> mutualization probe fails
+  Mutation 4 is the one that matters for tautology: the control is not "always demand Apr-Mar".
+  METHOD at landing: each mutation was applied IN-PROCESS (rebind the reader / the registry
+  entry on the imported module, then invoke pytest in the same interpreter), so no mutated
+  byte ever existed on the shared tree and no concurrent lane could commit one -- the
+  file-write-then-restore method has been observed here to lose a concurrent edit. The
+  probes bind through the module attribute, so a rebound reader is what the control sees.
+
+  THE £62.4k WAS RE-DERIVED BEFORE BEING ACTED ON, and the original evidence path had ROTTED:
+  finding 2 cites `per_customer_monthly` in `docs/reports/run_output_latest.json`, and that key
+  NO LONGER EXISTS in the artefact (later runs the same day changed its shape). The number was
+  therefore reproduced by a DIFFERENT method against a DIFFERENT key -- the `bills` list, each
+  bill's kWh apportioned evenly across its period days and the Jan-Mar days bucketed by year,
+  gas accounts (id suffix `g`) excluded:
+
+      yr      Q1 MWh   cal    apr   delta        err GBP
+      2017     502.0  44.0   43.0    +1.0         501.98
+      2018     760.5  42.0   44.0    -2.0      -1,520.95
+      2019   1,763.6  45.0   42.0    +3.0       5,290.81
+      2020   2,501.0  46.0   45.0    +1.0       2,501.05
+      2021   2,488.6  49.0   46.0    +3.0       7,465.83
+      2022   2,407.4  66.0   49.0   +17.0      40,925.10
+      2023   2,421.2  75.0   66.0    +9.0      21,790.97
+      2024   2,488.9  69.0   75.0    -6.0     -14,933.41
+      TOTAL                                    62,021.38
+
+  62,021.38 vs the claimed 62,449.57 -- 0.7% apart, every year's SIGN and magnitude matching,
+  including the two negative years. Independent method, independent key, same answer: the
+  quantification reproduces. Recorded because the citation itself is now dead, so a later
+  reader following finding 2's stated path would find nothing and could wrongly conclude the
+  number was never evidenced.
+
+  NOT CLAIMED: that the tables' VALUES are right (unchanged here, still Ofgem Annex 9 as
+  calibrated); that the gas-side tables were re-derived (their readers were already Apr-Mar
+  keyed and are now pinned by the same control, but the rates were not re-checked). The
+  published `total_gap_gbp` still carries the old figure -- it moves on the next sim run, and
+  that ~£62.4k fall is the repair landing, not a regression.
 
   ==========================================================================================
   FINDING 3 -- LATENT. The CfD reader is the one levy keyed on the calendar year, and its
@@ -205,4 +263,7 @@ simplifications:
   WHAT THIS PASS DID NOT DO, so the next draw is not misled: no adapter, parser, or
   schema-drift work exists yet; the gas side of the stack (£564,868 combined) was not
   decomposed; the scope brief's B1 cap-annex reconciliation was read but not run against the
-  company's build-up; and finding 2's repair is queued, not made.
+  company's build-up. Finding 2's repair was NOT part of this DISCOVER/FRAME pass (a LANE 3
+  draw carries no BUILD); it was taken separately by the RUNG-1c BUILD draw recorded under
+  finding 2 above, and landed with this commit. Read the two together: the pass discovered,
+  the later draw repaired.

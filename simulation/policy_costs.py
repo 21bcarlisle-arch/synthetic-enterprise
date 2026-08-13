@@ -153,7 +153,9 @@ _NETWORK_COST_RESI_SME_BY_YEAR: dict[int, float] = {
     2024: 69.0,   # 2024/25: £68.95/MWh
 }
 
-# I&C HV DUoS only (TNUoS tracked separately via Triad mechanism)
+# I&C HV DUoS only (TNUoS tracked separately via Triad mechanism).
+# Same Apr-Mar charging year as _NETWORK_COST_RESI_SME_BY_YEAR above: DUoS charging
+# statements run the Apr-Mar regulatory year, so key = calendar year of the April start.
 _DUOS_IC_BY_YEAR: dict[int, float] = {
     2016: 11.0,
     2017: 11.0,
@@ -173,8 +175,15 @@ def get_electricity_network_cost_per_mwh(date_str: str, segment: str = "resi") -
     Residential/SME: combined DUoS + TNUoS unit rate (£32-46/MWh, 2016-2024).
     I&C HV: DUoS only (£11-14/MWh) — TNUoS is Triad-based, tracked in triad.py.
     Gas customers: returns 0.0 (gas network charges modelled separately or not at all).
+
+    Both tables are keyed by the April-start year of the Apr-Mar charging year (as their
+    own comments state), so a Jan-Mar date takes the PRIOR key — the same derivation the
+    RO/CCL/CM/FiT readers use. Keying these on the calendar year charged Jan-Mar dates the
+    following charging year's rate before it commenced (a forward-looking error: it put the
+    Apr-2022 BSUoS demand-side reform into Jan-Mar 2022). See the basis registry at the
+    foot of this module and tests/simulation/test_policy_cost_year_basis.py.
     """
-    year = int(date_str[:4])
+    year = _ro_oy_start_year(date_str)
     if segment == "I&C":
         table = _DUOS_IC_BY_YEAR
     else:
@@ -513,4 +522,63 @@ def get_gas_standing_charge_per_day(date_str: str, segment: str = "resi") -> flo
         pence = _GAS_SC_PENCE_PER_DAY_BY_YEAR[max(_GAS_SC_PENCE_PER_DAY_BY_YEAR)]
     sc = pence / 100.0
     return sc * _SME_SC_MULTIPLIER if segment == "SME" else sc
+
+
+# ─── Year-key basis registry ─────────────────────────────────────────────────
+# Every year-keyed rate table in this module is keyed on ONE of two year conventions,
+# and its reader must derive the key the same way. Getting this wrong is silent and
+# forward-looking: it charges Jan-Mar dates a rate that had not yet commenced.
+# That defect shipped in get_electricity_network_cost_per_mwh (found 2026-08-13,
+# £62.4k mis-stated over the 2016-2025 run, 31% of 2022's network line alone).
+#
+# This registry is the machine-readable form of each table's own basis comment. It is
+# NOT a second source of truth for the rates — only for which year convention keys them.
+# Scope note: declaring a table "calendar" says its KEY convention is right; it says
+# nothing about whether the VALUE is knowable at that date. _CFD_LEVY_BY_YEAR is correctly
+# calendar-keyed AND is an ex-post annual average read at term start — a separate,
+# still-open point-in-time concern (EP14 finding 3, LATENT). Do not read a green basis
+# control as clearing that.
+#
+#   "apr_mar"  — key is the calendar year in which the Apr-Mar regulatory/obligation/
+#                charging year STARTS. A Jan-Mar date takes the PRIOR year's key.
+#                Derived by _ro_oy_start_year().
+#   "calendar" — key is the calendar year of the date itself. Derived by int(date_str[:4]).
+#
+# Enforced by tests/simulation/test_policy_cost_year_basis.py, which (a) asserts every
+# year-keyed table here is registered, (b) checks each reader's OBSERVED behaviour at a
+# Jan and an Apr date against its declared basis, and (c) independently cross-checks the
+# declaration against the table's own "YYYY/YY" value comments. Add a table, and (a) fails
+# until you declare its basis; declare it wrongly, and (b) or (c) fails.
+YEAR_KEY_BASIS: dict[str, str] = {
+    # Apr-Mar: obligation / charging / regulatory years.
+    "_RO_COST_BY_OY_START": "apr_mar",
+    "_CCL_ELECTRICITY_RATE_BY_YEAR": "apr_mar",
+    "_NETWORK_COST_RESI_SME_BY_YEAR": "apr_mar",
+    "_DUOS_IC_BY_YEAR": "apr_mar",
+    "_CM_LEVY_BY_YEAR": "apr_mar",
+    "_FIT_LEVY_BY_YEAR": "apr_mar",
+    "_GAS_CCL_RATE_BY_YEAR": "apr_mar",
+    "_GAS_NETWORK_COST_BY_YEAR": "apr_mar",
+    "_GGL_RATE_GBP_PER_METER_YEAR": "apr_mar",
+    # Calendar: these are genuinely published on a calendar-year basis, and their
+    # readers are correct to key them that way — they are NOT instances of the defect.
+    #   CfD interim levy rate: EMR Settlement publishes an annual average per calendar year.
+    #   Mutualization: the module comment above states "calendar year basis" and cites
+    #     calendar-year SoLR recovery totals.
+    #   Standing charges: sourced from Ofgem quarterly cap periods, which are calendar
+    #     quarters ("Q4 2022", "Q1 2023"), not an Apr-Mar year.
+    "_CFD_LEVY_BY_YEAR": "calendar",
+    "_MUTUALIZATION_LEVY_BY_YEAR": "calendar",
+    "_ELEC_SC_PENCE_PER_DAY_BY_YEAR": "calendar",
+    "_GAS_SC_PENCE_PER_DAY_BY_YEAR": "calendar",
+}
+
+
+def year_key_for_basis(date_str: str, basis: str) -> int:
+    """Derive the table key for date_str under the named basis. See YEAR_KEY_BASIS."""
+    if basis == "apr_mar":
+        return _ro_oy_start_year(date_str)
+    if basis == "calendar":
+        return int(date_str[:4])
+    raise ValueError(f"unknown year-key basis: {basis!r}")
 

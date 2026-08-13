@@ -2,6 +2,10 @@
 
 **Severity:** BLOCKING · **Lane:** W4_the_wall · **Disposition:** QUEUED (not fixed on sight)
 
+**Discharged:** `tests/simulation/test_policy_cost_year_basis.py::test_january_2022_network_charge_predates_the_bsuos_reform`, `tests/simulation/test_policy_cost_year_basis.py::test_reader_keys_january_on_its_declared_basis`, `tests/simulation/test_policy_cost_year_basis.py::test_every_year_keyed_table_declares_its_basis`, `tests/simulation/test_policy_cost_year_basis.py::test_a_table_documenting_charging_years_is_not_declared_calendar`, `simulation/policy_costs.py` — the reader now derives its key with the Apr-Mar helper, and the CLASS is pinned by a basis registry checked on three independent legs (census, January behavioural probe, source-comment documentary), R15-proven on four mutations at landing.
+
+The severity header above states what the finding FOUND, not what it left; the discharge is the release. Disposition QUEUED was correct for the LANE 3 pass that filed it — the repair was taken by a later BUILD draw, which is what this discharge records.
+
 **Atom:** `EP14_adapter_published_cost_stack` (LANE 3 idle draw, DISCOVER/FRAME, 2026-08-13)
 **Class:** a lookup table documents one year boundary and its reader uses another, so every
 January–March date is charged the following charging year's rate
