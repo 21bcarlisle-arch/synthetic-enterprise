@@ -15,20 +15,20 @@
     "open_findings": 71
   },
   "last_verified": {
-    "generated_at": "2026-08-13T18:21:40Z",
-    "git_commit": "d5916fd67",
-    "run_id": "run_output_d5916fd67_20260813T175112Z.json",
-    "verified_at": "2026-08-13T18:21:40Z"
+    "generated_at": "2026-08-13T20:33:45Z",
+    "git_commit": "491a6abc8",
+    "run_id": "run_output_491a6abc8_20260813T200349Z.json",
+    "verified_at": "2026-08-13T20:33:45Z"
   },
   "paused_reason": "scoped publish-path suite red at git=a9f924022; blocking tests: FAILED tests/controls/test_daemon_loop_mutation.py::test_dms_isolated_accounts_for_every_check_run_cycle_calls",
-  "paused_since": "2026-08-13T18:43:43Z",
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-13T18:21:40Z",
-    "git_commit": "d5916fd67",
-    "run_id": "run_output_d5916fd67_20260813T175112Z.json",
-    "verified_at": "2026-08-13T18:21:40Z"
+    "generated_at": "2026-08-13T20:33:45Z",
+    "git_commit": "491a6abc8",
+    "run_id": "run_output_491a6abc8_20260813T200349Z.json",
+    "verified_at": "2026-08-13T20:33:45Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-08-13T20:02:08Z"
+  "verification_state": "verified",
+  "written_at": "2026-08-13T20:33:45Z"
 }
