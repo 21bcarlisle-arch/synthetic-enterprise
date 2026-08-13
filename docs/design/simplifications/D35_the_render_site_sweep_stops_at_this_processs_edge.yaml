@@ -118,3 +118,114 @@ simplifications:
   is one instance of a repo-wide class: `simplified.json` publishes every atom's prose,
   and how many OTHER atoms' figures are quoted there, at what precision, with what clock, has
   not been counted. This atom found one; the census is not this atom's.
+- |-
+  2026-08-13 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw). No BUILD code
+  written and nothing in `file_scope` touched (EPOCH_GATING_AND_ATOM_AUTHORSHIP rule 7). This
+  pass adds no new prose to the atom's design: it TESTS the two things yesterday's entry
+  asserted and left as judgement, and one of the two answers changes the recommended shape.
+
+  MEASUREMENT HYGIENE, THE SAME CLASS THIS ATOM IS ABOUT. Every source claim below is read from
+  `git show HEAD:tools/couple_w2_11_d5.py` -- that file and its test are modified-uncommitted in
+  the shared tree by another lane, so the desk tree is not the subject. Every artefact claim
+  names its tree explicitly, because the whole finding is that the tree is the variable.
+
+  THE ATOM'S CORE CLAIM STILL STANDS AT HEAD, and is now checked repo-wide rather than
+  module-locally. No stage of the sweep opens the published bytes: the only path manipulation in
+  the module is `_walk_to_the_door` re-pointing `coupled_triad.GAP_LEDGER_PATH` at its own temp
+  ledger, and `site/data/proof.json` appears nowhere in it. Widening to the whole repo, six
+  modules mention both proof.json and the gap ledger (`tools/generate_proof_data.py`,
+  `background/gap_ledger_reconciler.py`, `background/gap_metric.py`, `background/supervisor.py`
+  and two tests) and in every one the co-occurrence is a comment, a docstring or a path-routing
+  string. NOTHING IN THE REPO OPENS THE PUBLISHED DOOR AND COMPARES ITS VALUE WITH THE LEDGER.
+
+  FINDING 1 -- THE INSTANCE IS GONE, THE CLASS IS REAL, AND IT NOW HAS A BASE RATE.
+  Yesterday's entry rested its stage-2 design on ONE observation (ledger 0.0311284046692607 vs
+  door 0.0859375). That instance does not reproduce. `observed-with-evidence`, 2026-08-13:
+  ledger and door agree on 14 of 14 pairs, bit-for-bit, at HEAD, at `origin/main` AND in the
+  working tree. A design that treated that single reading as a standing defect would have been
+  built against a state the repo was not in.
+
+  The CLASS survives the instance, and the right measurement was never the instance -- it is how
+  often the published tree is internally inconsistent. Over the 66 commits since 2026-08-06 that
+  touched either file, comparing the two blobs AS COMMITTED AT EACH COMMIT (what a reader
+  fetching that published tree would have got, against the ledger of record beside it):
+
+      DIVERGING COMMITS: 17 of 66  (26%)
+
+  Longest continuous run per pair, over that commit series (commit-granularity, so each is a
+  LOWER bound on the wall-clock a stale figure was on the door):
+
+      W2_11_payment_behaviour_source           2 runs   worst 33.4h   2026-08-09 -> 08-10
+      W1_11_fabric_physics_core                1 run    worst  7.7h   2026-08-09
+      W1_12_premise_trace_generator            3 runs   worst  7.7h   2026-08-09
+      WORLD_recontracting_relationship_start   1 run    worst  3.8h   2026-08-08
+      W2_5_life_event_stream                   1 run    worst  2.0h   2026-08-09
+      W2_8_self_rationing                      1 run    worst  0.9h   2026-08-09
+
+  And two of the 17 are a STRICTLY WORSE shape than a stale number, which yesterday's entry did
+  not anticipate: at 677a7f7bf and 7d01fffba, `WORLD_recontracting_relationship_start` is a
+  measured row in the ledger and ABSENT FROM THE DOOR'S PAIR LIST ENTIRELY -- the panel published
+  `pair_count: 13` while the ledger held 14. A population check that only compares values it
+  finds on both sides would score those two commits clean; the absent row is the failure mode,
+  so the check owes a SET comparison before it owes a value comparison.
+
+  THIS CONFIRMS THE REPORTED-FIRST RECOMMENDATION, and converts it from prudence into a number.
+  Yesterday's entry argued the population check "must land as a REPORTED status first, hard only
+  once the publish cycle's own ordering guarantee is written down", on the general ground that a
+  control redding on ordinary publish lag wedges the gate for everyone. Landed HARD against this
+  history it would have redded 17 of 66 publishing commits -- roughly one in four, for a median
+  of a few hours each, none of them a defect in the thing being gated. The recommendation stands
+  as written and now has its evidence.
+
+  FINDING 2 -- THE QUOTATION CLAIM IS NOW PROVEN ON TWO REAL BOOKS, AND THE TRAP IS SHARPER THAN
+  YESTERDAY STATED IT. The 7dp string is still published at HEAD:
+
+      site/data/simplified.json:  "W2_11_payment_behaviour_source 0.0859375 -> 0.0130940"
+
+  Yesterday ARGUED, from its shape, that this is a historical quotation rather than a render, and
+  that the module's two-book discrimination rule would reject it. That argument is now a
+  measurement, taken on two books the publish path itself produced:
+
+      book A (HEAD, origin/main)   live figure 0.0859375              quotation 0.0859375
+      book B (working tree, today) live figure 0.0833907649896623     quotation 0.0859375
+
+  The quotation does not track the figure, so it is a render of nothing and must not set the
+  epsilon -- confirmed, not asserted. But note WHICH book is the published one. On book A the
+  quotation and the live figure COINCIDE EXACTLY, because the string was written on 2026-08-11
+  when the figure was 0.0859375 and the figure has not moved in a commit since. A sweep scoring
+  ONE book -- and HEAD is the book anything published would naturally be scored against -- finds
+  the figure's own value rendered at seven decimals on a published page and has no way to tell a
+  frozen quotation from a live render. Under D34's reshaped rule it would then move `detection`'s
+  epsilon 5e-05 -> 5e-08, a thousandfold, on a string that will never move again. The two-book
+  rule is not a nicety here; it is the only thing standing between this module and a repeat of
+  the ageing epsilon move, and this is the first time it has been exercised against a real
+  published artefact rather than a constructed one. The tracked history is pinned: the quotation
+  first appears 2026-08-11T13:23 and its digits have never changed across the 31 commits touching
+  `simplified.json` since 2026-08-06.
+
+  QUEUED, NOT FIXED ON SIGHT (SELF-INTERRUPT DISCIPLINE). `background/gap_ledger_reconciler.py`
+  states the coupling this atom is about AS A FACT, in the design comment that justifies its own
+  subject: "`site/data/proof.json` is built from the ledger and both are committed and pushed."
+  That is the premise Finding 1 measures false at 17 of 66. It does not invalidate the reconciler's
+  verdict -- that module grades ledger-vs-HEAD-CODE drift and never reads a door value -- but it
+  is a load-bearing sentence about a coupling nothing enforces, in the file most likely to be
+  read as authority on it. Staged as
+  `WORKER_FINDING_A_COUPLING_STATED_IN_A_COMMENT_IS_FALSE_A_QUARTER_OF_THE_TIME_2026-08-13.md`,
+  LATENT / H_harness. It is that module's subject, not this atom's file_scope.
+
+  R12: no published number moved, nothing was tuned, nothing in `file_scope` was edited. Every
+  figure above is read out of committed blobs or the live artefacts as they already stood.
+
+  WHY THE LEVEL DOES NOT MOVE. Unchanged from yesterday and for the same reason: level 2 means
+  the published-bytes stage and the quotation class BUILT and mutation-proven both ways. A
+  DISCOVER/FRAME tick on a parked atom may not write them, and an exit criterion is not
+  renegotiated to fit what a tick was allowed to do. `level_current` stays 0.
+
+  LEADS FOR THE NEXT HOUR. (a) The published-bytes stage now has a specified shape and a base
+  rate to build against: SET comparison first (the absent-row failure), then value, both
+  REPORTED, and the divergence census above is the fixture it should reproduce. (b) Yesterday's
+  lead (b) -- the repo-wide census of figures quoted in `simplified.json` -- is unchanged and
+  still not this atom's; Finding 2 raises its value, since the trap is one-book coincidence and
+  any quotation that happens to match the live figure at scoring time has the same shape.
+  (c) UNTOUCHED BY THIS PASS AND STILL OPEN: yesterday's lead (a), the four Hours citing atom
+  ids `D37`/`D38` that the map has never carried.
