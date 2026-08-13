@@ -173,13 +173,35 @@ def test_reap_enabled_fail_safe(tmp_path):
 
 
 # ── the deadman fires it -- transition-only (mirror the gate-wall wiring) ───────────────────
-def test_deadman_fires_fork_orphans_and_is_transition_only(tmp_path, monkeypatch):
+#
+# BOTH DESTINATIONS ARE COLLECTED, not just the wire. G-N3 (2026-08-12) routes an alarm by its
+# `topic_class`: the instant classes reach `send_ntfy`, the deferrable ones are BATCHED into the
+# periodic digest via `notification_digest.defer`. FORK ORPHANS and WORKTREE UNDECLARED were
+# classed `drift` on 2026-08-13 (the worktree one had paged five times in a day about transient
+# temp worktrees), which moved their destination and left these two tests asserting on an empty
+# `send_ntfy` list. Collecting only the wire would now read a correctly-routed alarm as a SILENT
+# one -- and the same blindness runs the other way in `test_deadman_silent_when_no_orphans`
+# below, where a wire-only assertion would pass while the alarm quietly filled the digest. So
+# `_alarm_channels` returns the two lists separately: `raised` proves the alarm happened at all,
+# `paged`/`batched` prove where it went.
+def _alarm_channels(tmp_path, monkeypatch):
+    """(raised, paged, batched) -- every destination a deadman alarm can reach."""
     from background import deadmans_switch as D
+    from background import notification_digest
     import background.notify as N
     monkeypatch.setattr(N, "TRANSITIONS_FILE", tmp_path / ".notify_transitions.json")
     monkeypatch.setattr(D, "LOG_FILE", tmp_path / "log.md")
-    calls = []
-    monkeypatch.setattr(N.ntfy_utils, "send_ntfy", lambda msg, **k: calls.append(msg) or "id")
+    raised, paged, batched = [], [], []
+    monkeypatch.setattr(N.ntfy_utils, "send_ntfy",
+                        lambda msg, **k: (raised.append(msg), paged.append(msg), "id")[2])
+    monkeypatch.setattr(notification_digest, "defer",
+                        lambda msg, **k: (raised.append(msg), batched.append(msg), "deferred:0")[2])
+    return raised, paged, batched
+
+
+def test_deadman_fires_fork_orphans_and_is_transition_only(tmp_path, monkeypatch):
+    from background import deadmans_switch as D
+    raised, paged, batched = _alarm_channels(tmp_path, monkeypatch)
     monkeypatch.setattr(
         "background.fork_reconciler.evaluate_fork_lifecycle",
         lambda: {"status": "FORK_ORPHANS", "alarm": True, "detail": "3 orphaned fork branch(es)",
@@ -187,25 +209,22 @@ def test_deadman_fires_fork_orphans_and_is_transition_only(tmp_path, monkeypatch
                  "enforce": False},
     )
     D._check_fork_lifecycle()
-    assert len(calls) == 1 and "FORK ORPHANS" in calls[0]        # the alarm fires
+    assert len(raised) == 1 and "FORK ORPHANS" in raised[0]      # the alarm fires
     D._check_fork_lifecycle()
-    assert len(calls) == 1                                        # ...once -- transition-only (R5)
+    assert len(raised) == 1                                       # ...once -- transition-only (R5)
+    assert batched == raised and paged == []                      # ...into the digest (drift, G-N3)
 
 
 def test_deadman_silent_when_no_orphans(tmp_path, monkeypatch):
     from background import deadmans_switch as D
-    import background.notify as N
-    monkeypatch.setattr(N, "TRANSITIONS_FILE", tmp_path / ".notify_transitions.json")
-    monkeypatch.setattr(D, "LOG_FILE", tmp_path / "log.md")
-    calls = []
-    monkeypatch.setattr(N.ntfy_utils, "send_ntfy", lambda msg, **k: calls.append(msg) or "id")
+    raised, _paged, _batched = _alarm_channels(tmp_path, monkeypatch)
     monkeypatch.setattr(
         "background.fork_reconciler.evaluate_fork_lifecycle",
         lambda: {"status": "FORK_CLEAN", "alarm": False, "detail": "no orphans",
                  "orphans": [], "in_flight": [], "merged_eligible": [], "reaped": [], "enforce": False},
     )
     D._check_fork_lifecycle()
-    assert calls == []                                           # clean -> never pages
+    assert raised == []                              # clean -> nothing raised, on EITHER channel
 
 
 # ── live smoke: report-first, well-formed, never raises ────────────────────────────────────
@@ -318,20 +337,17 @@ def test_scan_worktrees_parses_locked_and_bare():
 
 def test_deadman_fires_worktree_undeclared_transition_only(tmp_path, monkeypatch):
     from background import deadmans_switch as D
-    import background.notify as N
-    monkeypatch.setattr(N, "TRANSITIONS_FILE", tmp_path / ".notify_transitions.json")
-    monkeypatch.setattr(D, "LOG_FILE", tmp_path / "log.md")
-    calls = []
-    monkeypatch.setattr(N.ntfy_utils, "send_ntfy", lambda msg, **k: calls.append(msg) or "id")
+    raised, paged, batched = _alarm_channels(tmp_path, monkeypatch)
     monkeypatch.setattr(
         "background.fork_reconciler.evaluate_worktree_reconcile",
         lambda: {"status": "WORKTREE_UNDECLARED", "alarm": True, "detail": "1 undeclared",
                  "undeclared": [{"path": "/wt/x", "branch": "b", "branch_state": "ORPHAN"}]},
     )
     D._check_worktree_reconcile()
-    assert len(calls) == 1 and "WORKTREE UNDECLARED" in calls[0]
+    assert len(raised) == 1 and "WORKTREE UNDECLARED" in raised[0]
     D._check_worktree_reconcile()
-    assert len(calls) == 1                                        # transition-only (R5)
+    assert len(raised) == 1                                       # transition-only (R5)
+    assert batched == raised and paged == []                      # ...into the digest (drift, G-N3)
 
 
 def test_live_worktree_reconcile_is_well_formed_and_never_prunes():
