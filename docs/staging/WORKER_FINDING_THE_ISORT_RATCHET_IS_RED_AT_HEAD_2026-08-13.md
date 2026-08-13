@@ -1,6 +1,6 @@
 # [WORKER-FINDING] The static-quality ratchet is red at HEAD, and it is nobody's commit (2026-08-13)
 
-**Severity:** OPEN · **Lane:** H_harness · **Status:** measured and reported, not fixed — the
+**Severity:** BLOCKING · **Lane:** H_harness · **Status:** measured and reported, not fixed — the
 excess is two I001 blocks in files this tick never touched.
 
 ## The measurement

@@ -1,6 +1,6 @@
 # [WORKER-FINDING] A whole KNIFE step's record said LANDED while its five files sat untracked — and the check written for exactly that has no caller (2026-08-13)
 
-**Severity:** OPEN · **Lane:** H_harness · **Status:** the instance is repaired (step 21 is
+**Severity:** BLOCKING · **Lane:** H_harness · **Status:** the instance is repaired (step 21 is
 committed in `357f8fa77`); the CLASS is owed — `tools/wall_crossing_dispositions.py --at-head`
 still has no automated caller.
 
