@@ -2779,24 +2779,71 @@ RESOLUTION_SEEDS = (7, 11, 23)
 # to be in the *ageing* band and nothing beside it ever was.
 #
 # THE FIX IS THE GRID'S PROVENANCE, not its width. It is derived from the
-# BOOK's calendar -- every integer drift across one billing cycle either way,
-# the span over which this book's due dates are actually spread -- and
-# `dense_drift_grid` may never read the register (asserted against its AST).
-# The declared drifts are still UNIONED IN so a declaration outside the grid is
-# scored rather than silently skipped; they no longer DEFINE what gets asked.
-DRIFT_GRID_SPAN_DAYS = PERIOD_SPACING_DAYS
+# BOOK's calendar -- and `dense_drift_grid` may never read the register
+# (asserted against its AST). The declared drifts are still UNIONED IN so a
+# declaration outside the grid is scored rather than silently skipped; they no
+# longer DEFINE what gets asked.
+#
+# ---------------------------------------------------------------------------
+# AND THE EXTENT WAS STILL A DECLARATION
+# (the GRID-EXTENT FINDING, 2026-08-13)
+# ---------------------------------------------------------------------------
+# D28 derived this grid's DENSITY from the book -- one integer per day -- and
+# left its WIDTH a harness constant, `DRIFT_GRID_SPAN_DAYS = PERIOD_SPACING_
+# DAYS = 21`. So `_measure_collapse_runs`, which reads saturation off a run
+# TOUCHING AN END OF THE GRID, was reading a property of where the sweep
+# happened to stop. `detection` declared `saturates_above: 17` on the run
+# `(17..21)` whose right end IS +21, and `detection_resolution_caveat`
+# interpolated that number into a sentence stamped on every published detection
+# figure: "the reading SATURATES ... above +17d ... Do not read a movement in
+# this number as days of company error."
+#
+# MEASURED, and it is false: the same scorer reads +17 and +30 and +60 and +82
+# apart (gap 0.02963 -> 0.04838 -> 0.13725 -> 0.16176 on seed 7), so the caveat
+# told the reader a movement was unreadable across a 65-day region where it is
+# readable -- worse than no caveat. The true edge is +82, all three seeds.
+#
+# THE WITNESS THAT THIS WAS ALWAYS AVAILABLE IN-REPO: `ORGAN_QUERY_GRID`'s
+# `flagged_via_reconciliation` -- the SAME reading, off the SAME book, swept on
+# the SAME detector line by the sibling knob -- has declared `saturates_below:
+# -6, saturates_above: 82` since D31, because ITS grid (`book_recon_drift_grid`)
+# derives both ends from the records. Two registers over one quantity in one
+# module, agreeing on the edge only where the grid was allowed to reach it.
+#
+# So the extent is now the SAME derivation, and it is the same derivation
+# because it is the same identity: the reconciliation knob moves the detector's
+# fire date to `due + grace + k` directly, and the terms knob moves the
+# company's BELIEVED due date by `k`, putting its fire date at `due + k +
+# grace`. One line, moved by one integer, by either knob. A reading can
+# therefore change only while that line lies between the earliest date the
+# organ is asked (the invoice's own ISSUE date -- nothing exists to reconcile
+# before it) and the last (`as_of`). Both ends are the BOOK's, and past either
+# one every further company publishes one number BECAUSE THE BOOK HAS RUN OUT,
+# which is a saturation a reader may rely on rather than one the sweep invented.
+#
+# There is no `DRIFT_GRID_SPAN_DAYS` any more, deliberately: it was the whole
+# defect, and leaving it as an unused module constant leaves the next grid a
+# declaration to reach for.
 
 
-def dense_drift_grid(span_days: int = DRIFT_GRID_SPAN_DAYS) -> Tuple[int, ...]:
-    """Every integer company terms-drift across one billing cycle either way.
+def dense_drift_grid(records: Sequence["PeriodRecord"], as_of: date,
+                     grace_days: Optional[int] = None) -> Tuple[int, ...]:
+    """Every integer company terms-drift at which this book's readings can
+    change, one per day, from the earliest to the latest the organ is asked.
 
-    DERIVED FROM THE BOOK, NEVER FROM THE REGISTER (atom D28). The span is the
-    billing cycle the book is spread over (`BILLING_CYCLE_SPREAD_DAYS ==
-    PERIOD_SPACING_DAYS`), which is the only non-arbitrary width available: a
-    drift larger than one cycle moves every invoice past the next account's
-    place in the book, so nothing about the population is left to resolve.
+    DERIVED FROM THE BOOK IN BOTH DENSITY AND EXTENT, NEVER FROM THE REGISTER
+    (atom D28 for the first, the 2026-08-13 grid-extent finding for the
+    second; asserted against its own AST never to reach one). Delegates to
+    `book_recon_drift_grid` because the two counterfactual knobs move the SAME
+    detector line over the SAME dates: the
+    reconciliation drift shifts the fire date to `due + grace + k`, the terms
+    drift shifts the believed due date by `k` and so puts the fire date at
+    `due + k + grace`. The range of drifts the book can answer about is one
+    range, so it is derived in one place -- the D28 class rule (a rule that
+    exists once cannot exist on one side of a split and not the other) applied
+    to the grid that rule was measured on.
     """
-    return tuple(range(-int(span_days), int(span_days) + 1))
+    return book_recon_drift_grid(records, as_of, grace_days)
 
 
 # THE SAME DEFECT, ON THE HALF D28 DID NOT REACH (atom D29, Expert Hour #11).
@@ -3926,6 +3973,23 @@ def check_published_figure_caveat_coverage(
     return violations
 
 
+# EVERY GROUP OF COUNTERFACTUAL COMPANIES THE DETECTION GAP PUBLISHES AS ONE
+# NUMBER (the grid-extent finding, 2026-08-13), measured on the book-derived
+# grid at n=300, seeds 7/11/23
+# and bit-identical on all three. Written out rather than summarised for the
+# same reason the sibling register's is: the rule is EXACTNESS, so an
+# undeclared collapse is a blindness and a declared one the sweep reads apart
+# is a debt entry outliving its debt. The first and last runs are the two
+# saturated tails; the fourteen between them are the quantisation.
+_DETECTION_COLLAPSED_RUNS = (
+    (-20, -19, -18, -17, -16, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6),
+    (-4, -3), (0, 1), (6, 7), (9, 10), (11, 12, 13),
+    (17, 18, 19, 20, 21, 22, 23, 24),
+    (28, 29), (44, 45), (61, 62), (65, 66, 67), (68, 69),
+    (72, 73, 74), (76, 77, 78), (80, 81),
+    (82, 83, 84, 85, 86, 87, 88),
+)
+
 DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
     "ageing": {
         "drift": "organ_terms_drift_days",
@@ -3940,18 +4004,31 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         "collapsed_pairs": (),
         "structural": True,
         "debt_atom": None,
-        # THE DIFFERENTIAL WITNESS OF ATOM D28. On the dense book-derived grid
-        # -- 43 counterfactual companies, one per integer day across a billing
-        # cycle either way -- this dimension publishes 43 DISTINCT all-seed
-        # readings: no collapsed run anywhere and neither tail saturated. It is
-        # what stops the register below from being an "everything is quantised"
-        # excuse, and it is the D25 reshape holding up under a grid it did not
-        # choose (the sparse grid could only ever confirm the four drifts D25
-        # itself named).
-        "collapsed_runs": (),
+        # THE DIFFERENTIAL WITNESS OF ATOM D28, RE-MEASURED ON THE BOOK'S OWN
+        # EXTENT (the grid-extent finding) -- and this is what that extent
+        # cost the entry, so
+        # it is worth stating plainly. On D28's +/-21 grid this dimension
+        # published 43 distinct readings, collapsed NOWHERE and saturated in
+        # neither tail, and that clean sheet was the register's whole defence
+        # against being an "everything is quantised" excuse. On the book's own
+        # -20..+88 it saturates ABOVE +63: a company under-ageing by more than
+        # nine weeks has carried every invoice in the book below the 30-day
+        # bucket floor, so there is no boundary left for a further day of error
+        # to move anything across. The clean sheet was therefore bought by the
+        # grid stopping at +21, exactly as `detection`'s false upper edge was
+        # -- one arbitrary width, two registers misled. What survives, and what
+        # `_check_register_is_differential` now asks for, is the stronger
+        # property: this dimension tells EVERY pair of adjacent companies apart
+        # across its whole defined interior, from -20 up to the tail.
+        "collapsed_runs": (
+            (63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78,
+             79, 80, 81, 82, 83, 84, 85, 86, 87, 88),
+        ),
         "saturates_below": None,
-        "saturates_above": None,
-        "saturation_atom": None,
+        "saturates_above": 63,
+        "saturation_atom": "D31_the_recon_grid_saturates_beyond_this_books_window",
+        "saturation_atom_above": (
+            "D31_the_recon_grid_saturates_beyond_this_books_window"),
         "why": (
             "THE ENTRY D25 RE-DERIVED. The headline is BUCKETS of ordinal "
             "displacement, so a dating error is visible only where it carries "
@@ -3988,31 +4065,33 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         # rot this register's own mutation suite fires on, so the residual has
         # been re-owned rather than left pointing at a closed atom.
         "debt_atom": "D26_detection_grace_line_has_no_book_beside_it",
-        # MEASURED ON THE DENSE BOOK-DERIVED GRID (atom D28, Expert Hour #10,
-        # n=300, seeds 7/11/23, every run identical on all three). The sparse
-        # register-derived grid touched {-8,-1,0,+1,+12} and reported this
-        # dimension as blind to {+1} and collapsing NOWHERE. It collapses in
-        # seven places, and BOTH TAILS ARE SATURATED: every supplier holding
-        # terms 6 or more days SHORTER than the world publishes ONE figure, as
-        # does every supplier 17 or more days LONGER. The -8 the old grid read
-        # as MOVED -- as evidence of resolution -- sits inside the saturated
-        # tail, indistinguishable from -21.
-        "collapsed_runs": (
-            (-21, -20, -19, -18, -17, -16, -15, -14, -13, -12, -11, -10, -9,
-             -8, -7, -6),
-            (-4, -3), (0, 1), (6, 7), (9, 10), (11, 12, 13),
-            (17, 18, 19, 20, 21),
-        ),
+        # MEASURED ON THE BOOK-DERIVED GRID (atom D28 for the density, the
+        # 2026-08-13 grid-extent finding for the extent; n=300, seeds 7/11/23,
+        # every run identical on all three). Three grids have now asked this
+        # dimension the same question and got three answers, and the answer
+        # moved with the GRID each time:
+        # the register-derived grid {-8,-1,0,+1,+12} reported it blind to {+1}
+        # and collapsing NOWHERE; D28's dense +/-21 grid found seven collapses
+        # and read the run `(17..21)` as an upper saturation; the book's own
+        # extent (-20..+88) reads SIXTEEN collapses and puts the upper edge at
+        # +82. `(17..24)` is an interior collapse -- eight companies publishing
+        # one figure in the middle of a region where the reading still moves --
+        # and calling it saturation cost the reader 65 days of readable
+        # movement (see the grid-extent block above `dense_drift_grid`).
+        "collapsed_runs": _DETECTION_COLLAPSED_RUNS,
         "saturates_below": -6,
-        "saturates_above": 17,
+        "saturates_above": 82,
         "saturation_atom": "D28_the_detection_gap_is_quantised_by_this_books_placement",
-        # AN OWNER PER EDGE (atom D29). Both tails of THIS dimension stop for
-        # the one reason -- the book sits nowhere near the grace line -- so
-        # both name D28; the field exists because the belief dimensions' two
-        # tails stop for two DIFFERENT reasons and one field could name only
-        # one of them.
+        # AN OWNER PER EDGE (atom D29), and after the grid-extent finding the
+        # two edges really do have two owners. BELOW is D28's: the book sits nowhere near the grace
+        # line, so a company short on its terms has flagged everything. ABOVE
+        # is D31's, and it is a different KIND of stop -- not the instrument
+        # going blind but the book running out, `as_of` reached with nothing
+        # left to detect. D28 named itself here only because its grid stopped
+        # at +21 and it never saw the real edge; one field naming both was the
+        # shape D29 built this pair to break.
         "saturation_atom_below": "D28_the_detection_gap_is_quantised_by_this_books_placement",
-        "saturation_atom_above": "D28_the_detection_gap_is_quantised_by_this_books_placement",
+        "saturation_atom_above": "D31_the_recon_grid_saturates_beyond_this_books_window",
         "why": (
             "SET membership by `as_of`, and it is now the register's ONLY "
             "on-path blindness -- D25 spread the book across the billing "
@@ -4029,18 +4108,23 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
             "rather than closed on sight. A reader must not take the ageing "
             "headline as covering this direction (the D16 rule -- aligned "
             "denominators are still different questions). AND IT SATURATES IN "
-            "BOTH TAILS (atom D28): below -6d every invoice in the book is "
-            "already past the company's grace line however much shorter its "
-            "terms get, so sixteen counterfactual suppliers -- a week short "
-            "through three weeks short -- publish ONE figure; above +17d none "
-            "of them is, and five more publish another. In between the reading "
-            "is quantised rather than continuous (five interior collapses), "
-            "because the number of invoices sitting BESIDE the grace line at "
-            "any one distance is small. A movement in this headline is "
-            "therefore not readable as days of terms error, and a supplier "
-            "flagging paying customers as in arrears -- the -6d direction, the "
-            "one that posts the dunning letter -- is indistinguishable here "
-            "from one three weeks out."
+            "BOTH TAILS (atom D28 below, atom D31 above): below -6d every "
+            "invoice in the book is already past the company's grace line "
+            "however much shorter its terms get, so every counterfactual "
+            "supplier from a week short to the earliest date the organ is "
+            "asked publishes ONE figure; above +82d none of them is past it "
+            "before `as_of`, and the rest publish another. BOTH EDGES ARE NOW "
+            "THE BOOK'S OWN END rather than the sweep's: D28 read this tail as "
+            "stopping at +17d because +21d was the last company it scored, and "
+            "the sixty-five days between +17 and +82 -- where the figure moves "
+            "0.0296 -> 0.1618 -- were published as unreadable. In between the "
+            "reading is quantised rather than continuous (fourteen interior "
+            "collapses), because the number of invoices sitting BESIDE the "
+            "grace line at any one distance is small. A movement in this "
+            "headline is therefore not readable as days of terms error, and a "
+            "supplier flagging paying customers as in arrears -- the -6d "
+            "direction, the one that posts the dunning letter -- is "
+            "indistinguishable here from one three weeks out."
         ),
     },
     "detection_latency": {
@@ -4056,12 +4140,33 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         # ATOM D28: sighted to the day across the whole grid EXCEPT its far
         # negative tail. A supplier dating every debt 19 or more days early
         # flags every invoice at the earliest candidate its detector has, so
-        # -19, -20 and -21 are one number. Small, but declared: the entry the
-        # register leans on as its sighted witness is exactly the one whose
-        # unexamined tail would be worth most to a decaying band.
-        "collapsed_runs": ((-21, -20, -19),),
+        # -19 and everything below it are one number. Small, but declared: the
+        # entry the register leans on as its sighted witness is exactly the one
+        # whose unexamined tail would be worth most to a decaying band.
+        #
+        # THIS IS THE REGISTER'S DIFFERENTIAL WITNESS (grid-extent finding).
+        # Its ONLY
+        # collapse is its own saturated tail: across the entire interior --
+        # -18 through +86, 105 counterfactual companies -- it reads every
+        # neighbouring pair APART. That is a stronger claim than the clean
+        # sheet D28's narrow grid handed the `ageing` entry, and unlike that
+        # one it cannot be bought by shrinking the sweep, because the sweep's
+        # ends are now the book's.
+        "collapsed_runs": ((-20, -19),),
         "saturates_below": -19,
         "saturates_above": None,
+        # AND ITS UPPER END IS A BOUND, NOT A BLINDNESS (grid-extent finding).
+        # Past +86
+        # the company dates nothing at all before `as_of`, so the dimension
+        # publishes no reading rather than a repeated one. `None != baseline`
+        # would otherwise score an instrument that has STOPPED as one that
+        # resolved the company -- the fail-open D28 named and this register's
+        # 21-day grid was too narrow to ever reach. Witnessed, not asserted:
+        # the reading is absent exactly where the latency population is empty,
+        # checked per seed (seed 23 still reads at +87 off a population of 1,
+        # and the witness holds because it is a PAIR).
+        "undefined_drifts": (87, 88),
+        "undefined_witness_key": ("detection_latency", "n_latency_population"),
         "saturation_atom": "D28_the_detection_gap_is_quantised_by_this_books_placement",
         "saturation_atom_below": "D28_the_detection_gap_is_quantised_by_this_books_placement",
         "why": (
@@ -4315,8 +4420,21 @@ def measure_dimension_drift_resolution(
     # exactly where the band had already answered; the declared drifts stay in
     # the union so a declaration OUTSIDE the grid is still scored rather than
     # skipped into a free pass.
+    #
+    # BUILT FROM THE POPULATION, NOT FROM A CONSTANT (grid-extent finding).
+    # The extent is
+    # a property of THIS book's dates, so it is read off the drawn scenario --
+    # via `_resolution_population` and never via `runner`, because a test may
+    # inject a runner and the grid must not become whatever the runner felt
+    # like answering. The union across seeds is deliberate: one grid for all
+    # seeds keeps the all-seed intersection below comparing like with like,
+    # and a seed whose book is shorter simply saturates earlier on it.
+    grid: set = set()
+    for s in seeds:
+        recs, _cons, _ledger, as_of = _resolution_population(n_customers, s)
+        grid |= set(dense_drift_grid(recs, as_of))
     drifts = sorted(
-        set(dense_drift_grid())
+        grid
         | {0}
         | {k for e in register.values()
            for k in tuple(e["invisible_drifts"]) + tuple(e["visible_drifts"])}
@@ -4357,6 +4475,29 @@ def measure_dimension_drift_resolution(
         unmoved = sorted(set.intersection(
             *[set(by_seed[s]["unmoved"]) for s in seeds]))
         any_movement = any_movement or bool(moved)
+        runs = _measure_collapse_runs(by_seed, drifts, seeds)
+        # THE WITNESS FOR AN ABSENT READING (grid-extent finding), the sibling
+        # register's
+        # shape brought over. `_check_saturation_and_collapse` has required
+        # since D31 that a declared `undefined_drifts` be witnessed by the
+        # population it was read over being EMPTY -- an absent reading is a
+        # BOUND only while there is nothing left to read, and an instrument
+        # that stopped for any other reason is the thing worth failing on.
+        # This register never supplied the witness because its 21-day grid
+        # never reached a drift that empties a population; the book's own
+        # extent does (`detection_latency` dates nothing at +87/+88).
+        wit_key = (register.get(dim) or {}).get("undefined_witness_key")
+        witness: Dict[int, tuple] = {}
+        if wit_key:
+            wit_dim, comp = str(wit_key[0]), str(wit_key[1])
+            witness = {
+                k: tuple(
+                    ((by_seed[s]["by_drift"][k] if k != 0
+                      else by_seed[s]["baseline"]) is None,
+                     scored[(s, k)][wit_dim].components.get(comp))
+                    for s in seeds)
+                for k in runs["undefined_readings"]
+            }
         out[dim] = {
             "seeds": tuple(seeds),
             "drifts": tuple(drifts),
@@ -4364,7 +4505,8 @@ def measure_dimension_drift_resolution(
             "moved": moved,
             "unmoved": unmoved,
             "exercised": None,
-            **_measure_collapse_runs(by_seed, drifts, seeds),
+            "undefined_witness": witness,
+            **runs,
         }
     for dim in dims:
         out[dim]["collapses"] = {
@@ -5122,6 +5264,31 @@ def _check_declared_collapses(dim: str, row: Dict[str, object],
     return out
 
 
+def _interior_collapsed_runs(entry: Dict[str, object],
+                             prefix: str = "") -> Tuple[tuple, ...]:
+    """The declared collapses that are NOT one of this entry's own saturated
+    tails (the grid-extent finding).
+
+    A run whose far end IS the saturation edge is the tail itself -- the book
+    running out, not the instrument going blind mid-range. Everything else is
+    quantisation inside the readable region, which is the thing a reader
+    quoting a movement needs to be told about.
+
+    ONE DEFINITION, TWO CONSUMERS: `_check_register_is_differential` asks for
+    an entry with none of these, and `detection_resolution_caveat` publishes
+    the count and the list. They were separate expressions of the same idea
+    until this atom, which is how a caveat and the rule that guards it drift
+    apart.
+    """
+    lo = entry.get(f"{prefix}saturates_below")
+    hi = entry.get(f"{prefix}saturates_above")
+    return tuple(
+        tuple(r) for r in tuple(entry.get(f"{prefix}collapsed_runs") or ())
+        if not (lo is not None and max(r) == lo)
+        and not (hi is not None and min(r) == hi)
+    )
+
+
 def _check_register_is_differential(
         register: Dict[str, Dict[str, object]]) -> List[str]:
     """All three declared states must be OCCUPIED. A register whose entries all
@@ -5133,22 +5300,37 @@ def _check_register_is_differential(
         for e in register.values()
     }
     out: List[str] = []
-    # ATOM D28's DIFFERENTIAL, and it is a different question from the three
-    # states below: those ask whether the register's DECLARED kinds are all
-    # occupied, this asks whether the dense grid found any dimension it could
-    # NOT collapse. A register in which every dimension saturates somewhere is
-    # an "everything is quantised" claim that would pass whatever the
-    # instrument did -- the same excuse an all-blind band would be.
-    if not any(
-        not tuple(e.get("collapsed_runs") or ())
-        and e.get("saturates_below") is None
-        and e.get("saturates_above") is None
-        for e in register.values() if e["in_causal_path"]
-    ):
+    # ATOM D28's DIFFERENTIAL, RE-DERIVED ON THE BOOK'S OWN EXTENT (2026-08-13).
+    # It is a different question from the three states below: those ask whether
+    # the register's DECLARED kinds are all occupied, this asks whether the
+    # sweep found any dimension it could not collapse. A register in which
+    # every dimension is quantised everywhere is an "everything is quantised"
+    # claim that would pass whatever the instrument did.
+    #
+    # D28 WROTE THIS RULE AS "an entry with no collapse ANYWHERE", and that
+    # form was satisfiable only while the grid was too narrow to reach a tail.
+    # Once the extent came from the book, every dimension saturated at the ends
+    # -- necessarily, because past the last date the book contains there is
+    # nothing left for a further day of company error to move -- and the rule
+    # as written would have failed on a register that had just got MORE honest.
+    # A control whose only satisfying state is an under-swept grid is a control
+    # that rewards under-sweeping.
+    #
+    # So the witness is now INTERIOR resolution: some on-path dimension must
+    # tell every pair of ADJACENT companies apart across its whole defined
+    # interior, with its only collapses being its own saturated tails. That is
+    # strictly stronger where the old rule was satisfiable at all, it survives
+    # the honest grid, and it cannot be bought back by shrinking the sweep --
+    # narrowing the grid turns interior collapses into edge runs, but the grid
+    # is `dense_drift_grid`, derived from the book and AST-guarded against
+    # reading this register.
+    if not any(not _interior_collapsed_runs(e)
+               for e in register.values() if e["in_causal_path"]):
         out.append(
-            "register: every on-path dimension collapses somewhere on the "
-            "dense grid -- with no entry the grid cannot collapse, this is a "
-            "blanket 'the instrument is quantised' claim and could not fail"
+            "register: every on-path dimension collapses somewhere INSIDE its "
+            "own saturated tails -- with no entry that resolves adjacent "
+            "companies apart across its interior, this is a blanket 'the "
+            "instrument is quantised' claim and could not fail"
         )
     for want, label in (((True, True), "on-path and BLIND"),
                         ((True, False), "on-path and SIGHTED"),
@@ -6609,7 +6791,41 @@ def _publish_one_book(spec: Dict[str, int]) -> Dict[str, object]:
             "step, and an unavailable check is a failed check (R15)"
         )
     return {"result": result, "entry": entry, "spec": dict(spec),
-            "headline_dimension": owners[0]}
+            "headline_dimension": owners[0],
+            "composer_renderers": _composer_renderer_bindings(lpt)}
+
+
+def _composer_renderer_bindings(module) -> Dict[str, object]:
+    """The renderer OBJECT the composer's own module namespace holds, per
+    dimension (atom D38, H27 Expert Hour #22).
+
+    WHICH SIDE OF THE SEAM A DIVERGENCE IS ON. `renderer_in_note` compares the
+    string the WALK's renderer produces against the note the COMPOSER wrote --
+    two different resolutions of the same name. The composer binds its
+    renderers with `from background.gap_metric import ...` at import time; the
+    walk re-resolves them from the module at walk time. When those two are the
+    same object a divergence is the composer's doing, which is the defect the
+    seam check exists for. When they are NOT, the walk executed a renderer the
+    published artefact never saw, and reading its divergence as a composer
+    defect attributes it to the wrong side -- the shape Hour #21 named in
+    `has_door_carrier` (a value test doing provenance work) and Hour #20 named
+    at the ledger seam, here one level down in the module system.
+
+    Resolved by NAME first and by `__name__` second, because the composer
+    aliases one of them (`format_detection_summary as _format_detection_summary`)
+    and an alias is the same object under a different label. `None` where the
+    composer holds no such renderer at all -- a recorded state, not a skip.
+    """
+    out: Dict[str, object] = {}
+    for dim, entry in PUBLISHED_GAP_CONSUMERS.items():
+        name = str(entry.get("renderer") or "")
+        fn = getattr(module, name, None)
+        if fn is None:
+            fn = next((v for v in vars(module).values()
+                       if callable(v) and getattr(v, "__name__", None) == name),
+                      None)
+        out[dim] = fn if callable(fn) else None
+    return out
 
 
 def published_books(
@@ -7120,6 +7336,7 @@ def measure_reader_render_sites(
     surface_owner: Dict[str, str] = {}
     renderer_status: Dict[str, str] = {}
     renderer_in_note: Dict[str, bool] = {}
+    renderer_provenance: Dict[str, str] = {}
     for dim in sorted(register):
         fn, why = _declared_renderer(register[dim])
         if fn is None:
@@ -7141,6 +7358,23 @@ def measure_reader_render_sites(
         renderer_in_note[dim] = all(
             texts[key] in note for texts, note in zip(renderer_texts, composed_notes)
         )
+        # WHOSE RENDERER THIS WALK JUST EXECUTED (atom D38, Hour #22). The
+        # `renderer_in_note` answer above is a statement about the seam only
+        # while both sides resolve to the SAME object; otherwise it is a
+        # statement about the swap. Recorded per book and fail-closed: a book
+        # that carries no binding at all is an unmeasured provenance, never a
+        # quiet pass (R15 -- an unavailable check is a failed check).
+        if any("composer_renderers" not in b for b in books):
+            renderer_provenance[dim] = "unrecorded"
+        else:
+            held = [(b["composer_renderers"] or {}).get(dim)   # type: ignore[union-attr]
+                    for b in books]
+            if all(h is None for h in held):
+                renderer_provenance[dim] = "composer_holds_no_such_renderer"
+            elif all(h is fn for h in held):
+                renderer_provenance[dim] = "the_composers"
+            else:
+                renderer_provenance[dim] = "not_the_composers"
 
     # --- the door surface -----------------------------------------------------
     door_state: Dict[str, object] = {"attempted": bool(door)}
@@ -7230,6 +7464,7 @@ def measure_reader_render_sites(
             "cross_attributed": tuple(sorted(cross)),
             "renderer_status": renderer_status.get(dim, "not attempted"),
             "renderer_in_note": renderer_in_note.get(dim),
+            "renderer_provenance": renderer_provenance.get(dim),
             # NOW A PROVENANCE FACT: is this the figure the composer handed
             # downstream as a NUMBER, so the door re-renders it at a precision
             # of its own? Every figure reaches the door; one is carried there.
@@ -7297,7 +7532,27 @@ def check_reader_render_sites(
         # recorded state the vacuity guard below handles; False means the
         # composer was called and did NOT carry this renderer's string, so every
         # `renderer:` site for this figure is a claim about an internal string.
-        if measured[dim].get("renderer_in_note") is False:
+        # WHICH SIDE OF THE SEAM MOVED (atom D38, Hour #22). A divergence is
+        # the COMPOSER's only where the walk executed the composer's own
+        # renderer object; where it did not, reading the same divergence as a
+        # composer defect attributes it to the wrong side, and reading its
+        # ABSENCE as a clean seam is worse -- both sides moved together and the
+        # seam was never measured at all. Both are refused here, and the
+        # composer sentence below is withheld unless the provenance carries it.
+        # Every state but `the_composers` refuses, including "the composer
+        # holds no renderer by that name at all": a note composed some other
+        # way makes any renderer -> note agreement a coincidence, and a
+        # coincidence is not a measurement.
+        provenance = measured[dim].get("renderer_provenance")
+        if provenance is not None and provenance != "the_composers":
+            out.append(
+                f"{dim}: this walk executed a renderer object the composer did "
+                f"not hold when it wrote the note (`{provenance}`), so the "
+                "renderer -> note seam is NOT measured on this book -- a "
+                "divergence here is the swap's, not the composer's, and an "
+                "unavailable check is a failed check (R15)"
+            )
+        elif measured[dim].get("renderer_in_note") is False:
             out.append(
                 f"{dim}: its declared renderer's output is NOT in the composed "
                 "note the reader is handed -- the composer reformatted, rounded "
@@ -7815,6 +8070,7 @@ def ageing_resolution_caveat(
             + ". Do not read a movement here as days, and do not read a zero "
             "as accurate dating."
         )
+    hi = e.get("saturates_above")
     return head + (
         "The offline book is spread across one billing cycle "
         f"({BILLING_CYCLE_SPREAD_DAYS} days), and the drift sweep measures its "
@@ -7823,6 +8079,17 @@ def ageing_resolution_caveat(
         "headline can express. R12: this is a RESOLUTION change, not a tuning "
         "-- the reshaped book moves every published ageing figure on this pair "
         "and none of them was chosen."
+        # THE TAIL THE 21-DAY GRID COULD NOT REACH (the grid-extent finding). Stated here
+        # because the rule this register enforces on itself is that a caveat
+        # may never publish a NARROWER blind spot than the instrument has, and
+        # until the extent came from the book this sentence claimed the
+        # headline moved on every drift full stop.
+        + ("" if hi is None else (
+            f" It does SATURATE above {hi:+d}d: a company under-ageing by more "
+            "than that has carried every invoice in the book below the 30-day "
+            "bucket floor, so every such supplier -- out to the last date this "
+            "book can be asked about -- publishes ONE figure and a movement "
+            "there is not readable as days."))
     )
 
 
@@ -7847,27 +8114,32 @@ def detection_resolution_caveat() -> str:
     lo, hi = e.get("saturates_below"), e.get("saturates_above")
     runs = tuple(e.get("collapsed_runs") or ())
     head = (
-        "RESOLUTION IS WHERE THIS BOOK SITS BESIDE THE GRACE LINE (atom D28, "
-        "measured 2026-08-10 on a grid derived from the book and not from this "
-        "register, seeds " + "/".join(str(s) for s in RESOLUTION_SEEDS)
+        "RESOLUTION IS WHERE THIS BOOK SITS BESIDE THE GRACE LINE (atoms D28 "
+        "and D31, measured 2026-08-13 on a grid whose density AND EXTENT are "
+        "derived from the book and not from this register, seeds "
+        + "/".join(str(s) for s in RESOLUTION_SEEDS)
         + "). This headline is SET MEMBERSHIP, so a company's terms error moves "
         "it only where that error carries an invoice across the grace line. "
     )
     if lo is None and hi is None and not runs:
         return head + (
-            "On the offline scenario every counterfactual company across a "
-            f"{DRIFT_GRID_SPAN_DAYS}-day terms error either way publishes a "
-            "distinct figure, in both directions."
+            "On the offline scenario every counterfactual company across the "
+            "whole range the book can be asked about -- from the earliest date "
+            "the organ is dated to `as_of` -- publishes a distinct figure, in "
+            "both directions."
         )
-    interior = [r for r in runs
-                if not (lo is not None and max(r) == lo)
-                and not (hi is not None and min(r) == hi)]
+    interior = list(_interior_collapsed_runs(e))
+    tail_lo = next((r for r in runs if lo is not None and max(r) == lo), ())
     body = (
         f"Offline scenario: the reading SATURATES below {lo:+d}d and above "
         f"{hi:+d}d -- every supplier whose terms are more wrong than that "
         "publishes ONE figure, so a supplier a week short on its terms (the "
         "direction that flags a paying customer as in arrears and posts the "
-        "dunning letter) is indistinguishable here from one three weeks short. "
+        "dunning letter) is indistinguishable here from one "
+        f"{abs(min(tail_lo)) if tail_lo else abs(lo)} days short. "
+        "BOTH EDGES ARE THE BOOK'S OWN END, not the sweep's (2026-08-13): past "
+        "them the book has no invoice left for a further day of company error "
+        "to move, which is why they may be relied on. "
         f"In between it is quantised, not continuous: {len(interior)} further "
         "groups of companies publish one number each "
         + ", ".join("{" + ",".join(f"{k:+d}" for k in r) + "}"

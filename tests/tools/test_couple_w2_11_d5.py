@@ -3828,37 +3828,118 @@ def test_the_resolution_grid_is_derived_from_the_book_not_the_register():
     assert "DIMENSION_DRIFT_RESOLUTION" not in names, (
         "a grid derived from the register can only ask it what it already "
         "answered")
-    assert pair.DRIFT_GRID_SPAN_DAYS == pair.PERIOD_SPACING_DAYS
-    grid = pair.dense_drift_grid()
-    assert grid == tuple(range(-21, 22)) and len(grid) == 43
+    # AND ITS EXTENT IS THE BOOK'S TOO (the 2026-08-13 grid-extent finding).
+    # `DRIFT_GRID_SPAN_DAYS` is GONE: while the width was a harness constant,
+    # `_measure_collapse_runs` -- which reads saturation off a run touching an
+    # END of the grid -- was reading a property of where the sweep stopped.
+    # The signature is the control: a grid that cannot be computed without a
+    # book cannot be a declaration.
+    assert not hasattr(pair, "DRIFT_GRID_SPAN_DAYS"), (
+        "the declared width is the defect; leaving it as an unused constant "
+        "leaves the next grid something to reach for")
+    params = inspect.signature(pair.dense_drift_grid).parameters
+    assert "records" in params and "as_of" in params
+    recs, _cons, _ledger, as_of = pair.build_scenario(120, seed=7)
+    grid = pair.dense_drift_grid(recs, as_of)
+    # ONE DERIVATION FOR BOTH KNOBS, because it is one identity: the recon
+    # drift moves the detector's fire date to `due + grace + k` and the terms
+    # drift moves the believed due date by `k`, putting it at `due + k +
+    # grace`. Same line, same book, so the same range of answerable drifts.
+    assert grid == pair.book_recon_drift_grid(recs, as_of)
+    assert grid[0] == min((r.issue_date - r.due_date).days for r in recs) \
+        - pair.DEFAULT_RECONCILIATION_GRACE_DAYS - 1
+    assert grid[-1] == max((as_of - r.due_date).days for r in recs) \
+        - pair.DEFAULT_RECONCILIATION_GRACE_DAYS + 1
 
 
 def test_the_detection_gap_saturates_in_both_tails(drift_resolution):
-    """THE ATOM D28 FINDING, measured. Seven groups of counterfactual suppliers
+    """THE ATOM D28 FINDING, RE-MEASURED ON THE BOOK'S OWN EXTENT (the
+    2026-08-13 grid-extent finding). Sixteen groups of counterfactual suppliers
     publish one bit-identical figure each, and both tails are saturated: below
     -6d every invoice in the book is already past the company's grace line
-    however much shorter its terms get, above +17d none of them is.
+    however much shorter its terms get, above +82d none of them is before
+    `as_of`.
 
     The witness that this was UNREACHABLE before: -8d -- which the old
     register-derived grid swept (it was in the *ageing* band) and read as
     MOVED, i.e. as evidence of resolution -- sits inside the saturated tail,
-    publishing the same figure as -21d."""
+    publishing the same figure as -20d."""
     row = drift_resolution["detection"]
-    assert row["saturates_below"] == -6 and row["saturates_above"] == 17
-    tail = next(r for r in row["collapsed_runs"] if -21 in r)
-    assert tail == tuple(range(-21, -5)) and len(tail) == 16
+    assert row["saturates_below"] == -6 and row["saturates_above"] == 82
+    tail = next(r for r in row["collapsed_runs"] if row["drifts"][0] in r)
+    assert tail == tuple(range(-20, -5)) and len(tail) == 15
     assert -8 in tail and -8 in row["moved"], (
-        "the old grid scored -8 as movement; it is indistinguishable from -21")
+        "the old grid scored -8 as movement; it is indistinguishable from -20")
     for seed in row["seeds"]:
         by = row["by_seed"][seed]["by_drift"]
         assert len({by[k] for k in tail}) == 1
-    assert len(row["collapsed_runs"]) == 7
-    # THE DIFFERENTIAL, and it is what makes the above a property of this
-    # dimension rather than of the grid: on the same 43 companies the ageing
-    # headline publishes 43 distinct readings and collapses nowhere.
+    assert len(row["collapsed_runs"]) == 16
+
+
+def test_the_upper_edge_was_the_grids_own_end_and_the_caveat_shipped_it():
+    """THE 2026-08-13 GRID-EXTENT FINDING, at the value that shipped.
+
+    D28 derived this grid's DENSITY from the book and left its WIDTH at
+    `PERIOD_SPACING_DAYS = 21`. The run `(17..21)` ends at +21 because the SWEEP
+    ends at +21, and `_measure_collapse_runs` calls a run touching the grid's
+    end SATURATION -- so `detection` declared `saturates_above: 17` and
+    `detection_resolution_caveat` interpolated it into a sentence stamped on
+    every published detection figure: a movement here 'is not readable as days
+    of company error'. Across +17..+82 it is readable, and the caveat was
+    therefore worse than none.
+
+    Scored HERE rather than asserted from the register, so this test fails if
+    the reading ever stops moving in that region for some other reason."""
+    recs, cons, _ledger, as_of = pair.build_scenario(300, seed=7)
+    at = {k: pair.score_triad(recs, cons, as_of,
+                              organ_terms_drift_days=k)["detection"].gap
+          for k in (17, 21, 30, 60, 82, 88)}
+    assert at[17] == at[21], "the old grid's last two points do agree"
+    assert len({at[17], at[30], at[60], at[82]}) == 4, (
+        "four companies the shipped caveat said were one figure")
+    assert at[82] == at[88], "and the real edge holds to the book's end"
+    # THE EDGE THE SIBLING REGISTER HAD ALL ALONG. `flagged_via_reconciliation`
+    # is the SAME reading off the SAME book, swept by the sibling knob on a
+    # grid whose ends come from the records -- and it has declared +82 since
+    # D31. Two registers over one quantity in one module, agreeing on the edge
+    # only where the grid was allowed to reach it.
+    assert (pair.ORGAN_QUERY_GRID["flagged_via_reconciliation"]
+            ["saturates_above"] == 82)
+    assert (pair.DIMENSION_DRIFT_RESOLUTION["detection"]["saturates_above"]
+            == 82)
+    caveat = pair.detection_resolution_caveat()
+    assert "SATURATES below -6d and above +82d" in caveat
+    assert "+17" not in caveat.split("quantised")[0], (
+        "the false edge must not survive anywhere in the saturation clause")
+
+
+def test_the_differential_witness_was_bought_by_the_narrow_grid(
+        drift_resolution):
+    """WHAT THE HONEST EXTENT COST, stated rather than quietly absorbed.
+
+    `_check_register_is_differential` demanded an on-path dimension that
+    collapses NOWHERE, and `ageing` supplied it: 43 distinct readings across
+    +/-21. On the book's own extent ageing saturates above +63 -- a company
+    under-ageing by more than nine weeks has carried every invoice below the
+    30-day bucket floor -- so the clean sheet was bought by the same width that
+    made detection's caveat false. A rule whose only satisfying state is an
+    under-swept grid rewards under-sweeping, so the witness is now INTERIOR
+    resolution, and `detection_latency` meets it: its only collapse is its own
+    saturated tail."""
     age = drift_resolution["ageing"]
-    assert age["collapsed_runs"] == ()
-    assert age["saturates_below"] is None and age["saturates_above"] is None
+    assert age["saturates_above"] == 63 and age["saturates_below"] is None
+    assert len(age["collapsed_runs"]) == 1
+    assert min(age["collapsed_runs"][0]) == 63
+
+    lat = drift_resolution["detection_latency"]
+    assert lat["collapsed_runs"] == ((-20, -19),)
+    assert lat["saturates_below"] == -19
+    # ITS ONLY RUN IS ITS OWN TAIL -- 105 adjacent pairs read apart.
+    assert not pair._interior_collapsed_runs(
+        pair.DIMENSION_DRIFT_RESOLUTION["detection_latency"])
+    assert pair._interior_collapsed_runs(
+        pair.DIMENSION_DRIFT_RESOLUTION["detection"]), (
+        "detection is the entry that does NOT witness interior resolution")
 
 
 def test_the_saturation_rule_is_not_keyed_to_a_register_state():
@@ -3893,7 +3974,7 @@ def test_the_saturation_rule_is_not_keyed_to_a_register_state():
     # like before this atom.
     (lambda r: r["detection"].__setitem__(
         "collapsed_runs", tuple(x for x in r["detection"]["collapsed_runs"]
-                                if -21 not in x)),
+                                if -20 not in x)),
      "publish ONE bit-identical reading"),
     # A declared collapse the sweep reads apart: a debt entry outliving its
     # debt, which is how a register decays after the reshape lands.
@@ -3905,15 +3986,29 @@ def test_the_saturation_rule_is_not_keyed_to_a_register_state():
     (lambda r: r["detection"].__setitem__("saturates_below", -12),
      "measured saturates_below=-6"),
     (lambda r: r["detection"].__setitem__("saturates_above", None),
-     "measured saturates_above=17"),
+     "measured saturates_above=82"),
+    # THE SHIPPED EDGE ITSELF (the 2026-08-13 grid-extent finding): put back
+    # the number that was in this register for three days and the check fires
+    # by name. It is the one mutation here that reproduces a real published
+    # defect rather than an invented one.
+    (lambda r: r["detection"].__setitem__("saturates_above", 17),
+     "measured saturates_above=82 and declares 17"),
     (lambda r: r["detection"].__setitem__("saturation_atom", None),
      "names no `saturation_atom`"),
-    # THE DIFFERENTIAL. A register in which every on-path dimension saturates
-    # somewhere is an "everything is quantised" claim that would pass whatever
-    # the instrument did.
-    (lambda r: (r["ageing"].__setitem__("collapsed_runs", ((1, 2),)),
-                r["ageing"].__setitem__("saturation_atom", "D28_x")),
-     "every on-path dimension collapses somewhere"),
+    # THE DIFFERENTIAL, re-derived on the book's own extent. A register in
+    # which every on-path dimension is quantised INSIDE its own tails is an
+    # "everything is quantised" claim that would pass whatever the instrument
+    # did. Both interior witnesses must be broken for it to fire -- which is
+    # the point: one surviving witness is enough, and there are two.
+    (lambda r: [r[d].__setitem__("collapsed_runs",
+                                 r[d]["collapsed_runs"] + ((1, 2),))
+                for d in ("ageing", "detection_latency")],
+     "collapses somewhere INSIDE its own saturated tails"),
+    # AND THE UNDEFINED REGION, which only the book's extent can reach: an
+    # absent reading compares unequal to the baseline, so an undeclared one is
+    # counted as RESOLUTION by every band below it.
+    (lambda r: r["detection_latency"].__setitem__("undefined_drifts", ()),
+     "published NO reading at drifts"),
 ))
 def test_a_lying_saturation_declaration_fires_by_name(drift_resolution, mutate,
                                                       expected):
@@ -3960,9 +4055,9 @@ def test_the_registers_own_grid_cannot_see_six_of_the_seven_collapses(
     violations = pair.check_dimension_drift_resolution(sparse)
     unreachable = [v for v in violations if "reads them apart" in v]
     mine = [v for v in unreachable if v.startswith("detection:")]
-    assert len(mine) == 6 and any("-21" in v for v in mine), (
+    assert len(mine) == 15 and any("-20" in v for v in mine), (
         "on its own grid the register can confirm exactly one of detection's "
-        "seven collapses -- the (0,+1) pair, because +1 is the one drift it "
+        "sixteen collapses -- the (0,+1) pair, because +1 is the one drift it "
         "already declared")
     # The sighted witness's own tail was equally unreachable there.
     assert any(v.startswith("detection_latency:") for v in unreachable)
@@ -3973,7 +4068,15 @@ def test_an_absent_reading_is_not_counted_as_resolution():
     population empties under a drift publishes `None`, and `None != baseline`
     reads as MOVEMENT -- an instrument that has stopped reading at all, scored
     as though it had resolved the company. It is reachable: at large positive
-    terms drifts `detection_latency` dates nothing and its gap goes None."""
+    terms drifts `detection_latency` dates nothing and its gap goes None.
+
+    AND SINCE THE GRID'S EXTENT CAME FROM THE BOOK (the 2026-08-13 grid-extent
+    finding) it is reached by the REAL sweep, not only by an injected blank.
+    The 21-day grid stopped 66 days short of the drift that empties the latency
+    population, so this fail-open was live and unreachable at the same time --
+    the region where the instrument stops reading was outside the only sweep
+    that could have noticed. It is now declared AND WITNESSED: absent exactly
+    where the population is empty."""
     class _Blank:
         gap = None
         components: dict = {}
@@ -3981,7 +4084,28 @@ def test_an_absent_reading_is_not_counted_as_resolution():
 
     real = pair.measure_dimension_drift_resolution(
         n_customers=120, seeds=(7,))
-    assert not any(row["undefined_readings"] for row in real.values())
+    assert real["detection_latency"]["undefined_readings"] == (87, 88)
+    assert not any(row["undefined_readings"] for dim, row in real.items()
+                   if dim != "detection_latency")
+    # THE WITNESS IS A PAIR, and that is what makes it a control: an absent
+    # reading over a NON-empty population would be an instrument that stopped
+    # for some other reason, and it would fail here.
+    assert real["detection_latency"]["undefined_witness"] == {
+        87: ((True, 0),), 88: ((True, 0),)}
+    # AND THE UNDEFINED CLASS ALONE IS WHAT THIS SWEEP MAY BE ASKED, because
+    # THIS sweep is not the register's population (H27 Expert Hour #24). The
+    # register's collapse runs and saturation edges are DECLARED at `_RES_N`
+    # with the default seeds, and every one of them moves with the population
+    # -- at n=120/seed 7 the ageing collapse sits at (-19,-18) where the
+    # register, measured at n=300 on three seeds, declares (-20,-19). Asserting
+    # the WHOLE check clean here asks the register about a book it was never
+    # measured on; `test_the_drift_resolution_register_is_measured_not_asserted`
+    # makes that global assertion, on the fixture the register is declared from.
+    # What IS population-invariant, and what this test is about, is that the two
+    # empty-population drifts are DECLARED: they raise no absent-reading
+    # violation, which is the half the `holed` witness below proves fires.
+    assert not [v for v in pair.check_dimension_drift_resolution(real)
+                if "published NO reading at drifts" in v]
 
     def runner(seed, k):
         scored = dict(pair.measure(n_customers=120, seed=seed))
@@ -3991,6 +4115,11 @@ def test_an_absent_reading_is_not_counted_as_resolution():
 
     holed = pair.measure_dimension_drift_resolution(
         n_customers=120, seeds=(7,), runner=runner)
+    # (12,) AND NOT (12, 87, 88): this runner re-scores the BASELINE at every
+    # drift -- it takes `k` only to punch the hole -- so the real emptiness at
+    # +87/+88 cannot appear here. It is witnessed on the REAL sweep above, and
+    # this half stays what it was built to be: an INJECTED absence, over a
+    # population that is not empty (H27 Expert Hour #24).
     assert holed["detection_latency"]["undefined_readings"] == (12,)
     assert 12 in holed["detection_latency"]["moved"], (
         "this is the fail-open: an absent reading compares unequal and is "
@@ -4008,8 +4137,8 @@ def test_the_saturation_caveat_travels_with_the_detection_number():
     flips flips the published claim with it."""
     result = pair.measure(n_customers=120, seed=7)
     caveat = result["detection"].components["drift_resolution_caveat"]
-    assert "atom D28" in caveat and caveat in result["detection"].note
-    assert "SATURATES below -6d and above +17d" in caveat
+    assert "atoms D28" in caveat and caveat in result["detection"].note
+    assert "SATURATES below -6d and above +82d" in caveat
     assert "D28_the_detection_gap_is_quantised_by_this_books_placement" in caveat
 
     # INTERPOLATED, NEVER RETYPED: move the register and the sentence moves.
@@ -6318,28 +6447,102 @@ def test_a_door_that_stops_printing_the_note_verbatim_fires(tmp_path, monkeypatc
     assert any("no longer prints the carried note verbatim" in v for v in got), got
 
 
-@needs_node
 def test_a_composer_that_stops_carrying_a_renderers_string_fires(monkeypatch):
-    """THE OTHER HALF OF THAT SEAM, AND IT WAS THE UNASSERTED ONE (atom D36).
+    """THE REAL SHAPE OF THE renderer -> NOTE DEFECT, MUTATED ON THE COMPOSER'S
+    SIDE (atom D38, H27 Expert Hour #22).
 
-    A `renderer:` site is a READER site only because the composer concatenates
-    that exact string into the published note. Hour #19 asserted note -> door
-    every run and left renderer -> note resting on a hand check. `measure_and_
-    write` holds its own reference to each renderer from import time, so
-    patching the module attribute moves what the WALK calls and not what the
-    composer already wrote -- which is precisely the divergence a reformat, a
-    re-round or a dropped companion render would produce."""
+    Until this Hour this control mutated the WALK's renderer and read the
+    resulting divergence as the composer's -- a mutation of one side used as
+    proof about the other, which is what Hour #20 named at the ledger seam and
+    Hour #21 named in `has_door_carrier`, recurring here in the module system.
+    The defect it exists for is a composer that reformats, re-rounds or drops
+    the render it is handed, so THAT is what moves: the renderer object stays
+    the shipped one and the note the reader is handed loses its string."""
     import background.gap_metric as gap_metric
-    original = gap_metric.format_ageing_summary
-    monkeypatch.setattr(
-        gap_metric, "format_ageing_summary",
-        lambda r: original(r).replace("ageing displacement", "ageing gap"))
-    measured = pair.measure_reader_render_sites()
+    import background.live_payment_triad as lpt
+    real_writer = lpt.write_gap_entry
+
+    def reformatting_composer(world_atom, twin_atom, headline, **kw):
+        headline.note = str(headline.note).replace("ageing displacement",
+                                                   "ageing gap")
+        return real_writer(world_atom, twin_atom, headline, **kw)
+
+    monkeypatch.setattr(lpt, "write_gap_entry", reformatting_composer)
+    monkeypatch.setattr(pair, "_PUBLISHED_BOOKS", {})
+    books = pair.published_books()
+    measured = pair.measure_reader_render_sites(books=books, door=False)
+    # THE MUTATION IS ONE-SIDED, AND THAT IS MEASURED RATHER THAN ASSUMED: the
+    # renderer the walk executed is the object the composer held.
+    assert measured["ageing"]["renderer_provenance"] == "the_composers"
+    assert gap_metric.format_ageing_summary is lpt.format_ageing_summary
     assert measured["ageing"]["renderer_in_note"] is False
     got = pair.check_reader_render_sites(measured,
                                          pair.measure_component_render_sites())
     assert any("its declared renderer's output is NOT in the composed note" in v
                for v in got), got
+
+
+def test_a_walk_that_swapped_the_renderer_measures_the_swap_not_the_seam(
+        monkeypatch):
+    """THE CONTROL THIS HOUR EXISTS FOR, AND IT IS THE OLD CONTROL'S OWN
+    MUTATION TURNED INTO A REFUSAL (atom D38).
+
+    Patching the renderer at its source module moves what the WALK calls; the
+    composer bound that name at ITS import time, so what it already wrote does
+    not move with it -- UNLESS the composer's module had not been imported when
+    the patch landed, in which case both sides move together and the seam is
+    not measured at all. Which of those two happened depended on whether an
+    earlier test in the file had imported the composer, i.e. on test ORDER: run
+    alone, the old control asserted a divergence that could not occur (proven
+    pre-existing at HEAD 43a456cba). The walk now records whose renderer it
+    executed, so both outcomes are loud and neither is attributed to the
+    composer."""
+    import background.gap_metric as gap_metric
+    import background.live_payment_triad as lpt  # BEFORE the patch
+    original = gap_metric.format_ageing_summary
+    monkeypatch.setattr(
+        gap_metric, "format_ageing_summary",
+        lambda r: original(r).replace("ageing displacement", "ageing gap"))
+    # The composer's binding did NOT move -- the one fact the old control
+    # depended on and never checked.
+    assert lpt.format_ageing_summary is original
+    measured = pair.measure_reader_render_sites(door=False)
+    assert measured["ageing"]["renderer_provenance"] == "not_the_composers"
+    got = pair.check_reader_render_sites(measured,
+                                         pair.measure_component_render_sites())
+    assert any("executed a renderer object the composer did not hold" in v
+               and "an unavailable check is a failed check" in v
+               for v in got), got
+    # AND THE DIVERGENCE IS NOT ATTRIBUTED TO THE COMPOSER. `renderer_in_note`
+    # is False here too, and reading that as a composer defect is precisely the
+    # wrong-side attribution this Hour is about.
+    assert measured["ageing"]["renderer_in_note"] is False
+    assert not any("its declared renderer's output is NOT in the composed note"
+                   in v for v in got), got
+
+
+def test_a_book_that_records_no_renderer_provenance_fails_closed():
+    """R15's third killer pattern, on this Hour's own field. A book carrying no
+    record of what the composer held leaves the seam unmeasured -- which must
+    read as a FAILED check, never as a clean one."""
+    # THE POSITIVE SIDE FIRST, on the shipped walk: all four walkable renderers
+    # ARE the composer's own objects -- including the one it imports under an
+    # alias, which a name-only lookup would report as held by nobody.
+    shipped = pair.measure_reader_render_sites(door=False)
+    assert {d: shipped[d]["renderer_provenance"] for d in sorted(shipped)
+            if d != "_walk"} == {
+        "ageing": "the_composers", "belief": "the_composers",
+        "belief_population_mix": None, "detection": "the_composers",
+        "detection_latency": "the_composers"}
+    books = [{k: v for k, v in b.items() if k != "composer_renderers"}
+             for b in pair.published_books()]
+    measured = pair.measure_reader_render_sites(books=books, door=False)
+    assert measured["ageing"]["renderer_provenance"] == "unrecorded"
+    got = pair.check_reader_render_sites(measured,
+                                         pair.measure_component_render_sites())
+    for dim in ("ageing", "belief", "detection", "detection_latency"):
+        assert any(v.startswith(f"{dim}: this walk executed a renderer object "
+                                "the composer did not hold") for v in got), dim
 
 
 def test_an_unreachable_door_is_a_failed_check_never_a_clean_one():
