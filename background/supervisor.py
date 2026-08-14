@@ -3591,6 +3591,326 @@ def _blocking_lane_draw(staging_dir: Path | None = None) -> tuple[str | None, fr
         "(other lanes unaffected)."
     ), frozenset(by_lane.keys())
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# OPS13 -- THE PRODUCT INTERLEAVE (DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE
+# _2026-08-12, clause 4: "The product interleave arms NOW, unconditionally. One
+# world/customer/product atom per harness atom, every session, regardless of staging
+# depth. It is no longer coupled to a document count.")
+#
+# WHY THE COUNT IS GONE: the previous trigger (DIRECTOR_PRIORITY_BACKLOG_TRIAGE_AND_
+# INTERLEAVE_2026-08-10) armed the interleave only once the staging root fell below 20
+# files -- "a number that measures the rate of self-scrutiny, not the state of the
+# project, and which has grown every day since the rule was made", withdrawn by the same
+# hand that proposed it. NOTHING below reads the staging directory; a named test varies
+# staging depth from 0 to 200 documents and asserts the arm does not move (exit 1).
+#
+# WHY IT TAKES THE SLOT RATHER THAN WIDENING: MAX_CONCURRENT_FORKS is 1 (TOKEN BUDGET IS
+# BINDING AGAIN, 2026-08-03 -- SERIAL BY DEFAULT, because each extra concurrent context
+# stream re-reads its whole context every turn and cache-read volume is the bill). Adding
+# a second fork every time a harness atom draws would buy the pairing with exactly the
+# spend that ruling cut. So the interleave ALTERNATES: a grant that takes the harness side
+# and leaves the product side unserved records the harness atom as OWED, and the next
+# grant's product side is forced -- the product atom takes the slot and the displaced
+# harness atom is simply not granted this cycle (it was never drawn, so it is not owed).
+# Where width genuinely exists (MAX_CONCURRENT_FORKS > 1) the pair is drawn in the SAME
+# grant and nothing is owed. One product atom per harness atom either way.
+#
+# PER GRANT, WHICH IS STRICTER THAN PER SESSION (exit 2): a grant is the finest boundary
+# the supervisor actually has -- one drawn doorbell, one worker invocation. Enforcing the
+# pairing per grant enforces it per session by construction, and it makes the exit
+# criterion's own example ("a session drawing two harness atoms and no product atom")
+# directly checkable.
+#
+# SILENCE IS THE FAILURE (exit 4): `product_interleave_digest_line()` returns a non-empty
+# line on EVERY path -- paired, violated, armed-and-found-nothing, clause-2 substituted,
+# and the no-atom-drawn case (a priority rung, a fallback rung, or a rest). `find_work()`
+# logs it every cycle unconditionally, so a day the interleave did not happen READS as
+# such. An interleave line that is simply absent on the bad day is the fail-silent shape
+# this atom exists to forbid.
+# ─────────────────────────────────────────────────────────────────────────────
+
+#: The harness side of the interleave. Everything else in the map is the product side --
+#: see `_is_product_atom` for why that complement is deliberate.
+HARNESS_LANES = frozenset({"H_harness"})
+
+PRODUCT_INTERLEAVE_STATE_FILE = (
+    PROJECT_DIR / "docs" / "observability" / ".product_interleave_state.json"
+)
+
+#: How many unpaid harness ids the ledger carries. DELIBERATELY TINY: an unbounded debt
+#: ledger accumulates noise (a test run, a replayed cycle, a daemon restart mid-grant) that
+#: nothing can ever pay down, and a debt that can never reach zero stops informing anyone.
+#: The alternation only needs one grant of memory; three is slack, not a budget. A phantom
+#: entry that does survive (a test fixture's atom id, a replayed cycle) costs at most one
+#: extra forced PRODUCT draw before it is paid off -- the direction the ruling wants erred in.
+_INTERLEAVE_OWED_CAP = 3
+
+_INTERLEAVE_PREFIX = "PRODUCT INTERLEAVE (OPS13, clause 4)"
+
+#: Set by `_self_refill_draw` on EVERY call: the interleave record for the grant it just
+#: made, or None when the cycle drew no maturity-map atom at all (a priority rung, a
+#: fallback rung, or a rest). Read by `find_work`, so ONE log call covers every path and
+#: no path can go quiet.
+_LAST_INTERLEAVE_RECORD: dict | None = None
+
+
+def _is_harness_atom(atom: dict) -> bool:
+    return isinstance(atom, dict) and (atom.get("lane") or "") in HARNESS_LANES
+
+
+def _is_product_atom(atom: dict) -> bool:
+    """The product side is world/customer/product work -- i.e. every lane that is not the
+    harness itself. Defined as the COMPLEMENT on purpose: a lane added to the map tomorrow
+    counts as product work without anyone remembering to extend a list here, and the
+    failure direction of a mis-classification is a product atom read as harness (which
+    UNDER-reports the pairing and shows up as a violation in the digest), never the
+    reverse -- a harness atom quietly counted as its own product partner would make the
+    interleave self-satisfying, which is the one shape that cannot be noticed."""
+    if not isinstance(atom, dict):
+        return False
+    lane = atom.get("lane")
+    return bool(lane) and lane not in HARNESS_LANES
+
+
+def _load_interleave_state() -> tuple[list[str], str | None]:
+    """(owed_harness_ids, error). An absent file is a clean slate and NOT an error; an
+    unreadable or malformed one resets the list but returns a NAMED error that the digest
+    line carries, because a debt ledger that quietly resets always reads paid."""
+    if not PRODUCT_INTERLEAVE_STATE_FILE.exists():
+        return [], None
+    try:
+        data = json.loads(PRODUCT_INTERLEAVE_STATE_FILE.read_text())
+    except (json.JSONDecodeError, OSError) as exc:
+        return [], f"owed ledger UNREADABLE ({exc.__class__.__name__}) -- reset to empty"
+    if not isinstance(data, dict) or not isinstance(data.get("owed"), list):
+        return [], "owed ledger MALFORMED (no 'owed' list) -- reset to empty"
+    return [str(x) for x in data["owed"]], None
+
+
+def _save_interleave_state(owed: list[str], record: dict) -> None:
+    payload = {
+        "owed": list(owed),
+        "last_harness": list(record.get("harness") or []),
+        "last_product": list(record.get("product") or []),
+        "updated": datetime.now(timezone.utc).isoformat(),
+    }
+    try:
+        PRODUCT_INTERLEAVE_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        PRODUCT_INTERLEAVE_STATE_FILE.write_text(json.dumps(payload, sort_keys=True))
+    except OSError as exc:
+        log(f"{_INTERLEAVE_PREFIX}: could not persist the owed ledger ({exc}) -- the pairing "
+            "debt will not survive this cycle; the digest line still names this grant's pair.")
+
+
+class _LanePreferringPicker:
+    """A drop-in for the `random` module as the map draws use it (`.choices(population,
+    weights=..., k=1)`), which picks the dial-weighted primary ONLY from atoms satisfying
+    `predicate`, falling back to the unfiltered population when none does.
+
+    Reusing the REAL draw with a narrowed picker -- rather than re-implementing "which
+    atoms are drawable" here -- is the point: dependency-met, externally-blocked,
+    build-in-progress, unmerged-work, coupled-triad and anti-livelock filtering all stay in
+    ONE place. A second copy of that ladder is exactly how a draw filter drifts out of
+    agreement with the draw it is supposed to mirror, and this project has already filed
+    that class twice."""
+
+    def __init__(self, predicate, rng=None):
+        self._predicate = predicate
+        self._rng = rng or random
+
+    def choices(self, population, weights=None, k=1):
+        weights = list(weights) if weights is not None else [1] * len(population)
+        kept = [(c, w) for c, w in zip(population, weights) if self._predicate(c)]
+        if not kept:
+            return self._rng.choices(population, weights=weights, k=k)
+        return self._rng.choices([c for c, _ in kept], weights=[w for _, w in kept], k=k)
+
+
+def _product_side_draw(exclude_ids, blocked_lanes=frozenset(), rng=None) -> tuple[dict | None, str]:
+    """One product-lane atom for the interleave slot: (atom, "BUILD"|"DISCOVERY"), or
+    (None, "") when the map has no drawable product-lane atom this cycle.
+
+    The BUILD lane is tried first. An idle/parked product atom is still legitimate
+    product-side work (EPOCH_GATING_AND_ATOM_AUTHORSHIP: parked is parked for BUILD ONLY --
+    DISCOVER/FRAME on it is available now), but it must be granted as DISCOVER/FRAME and
+    never as BUILD, or the interleave would instruct BUILD code on an epoch-gated atom to
+    satisfy its own pairing rule. Which is why the lane the atom belongs in comes back with
+    it rather than being guessed at the call site."""
+    exclude = set(exclude_ids or ())
+    blocked = frozenset(blocked_lanes or ())
+
+    def _wanted(a) -> bool:
+        return (
+            _is_product_atom(a)
+            and a.get("id") not in exclude
+            and a.get("lane") not in blocked
+        )
+
+    picker = _LanePreferringPicker(_wanted, rng=rng)
+    for kind, draw in (
+        ("BUILD", lambda: _maturity_map_draw_concurrent(rng=picker, exclude_stalled=True)),
+        ("DISCOVERY", lambda: _idle_discover_frame_draw_concurrent(
+            rng=picker, exclude_stalled=True, exclude_ids=frozenset(exclude))),
+    ):
+        try:
+            for atom in draw():
+                if _wanted(atom):
+                    return atom, kind
+        except Exception as exc:  # a draw failure is never allowed to break the cycle
+            log(f"{_INTERLEAVE_PREFIX}: {kind}-side product draw failed ({exc!r}) -- continuing")
+    return None, ""
+
+
+def _apply_product_interleave(build_atoms, site_atoms, discovery_atoms,
+                              blocked_lanes=frozenset(), rng=None) -> dict:
+    """Arm the interleave for THIS grant, and return the record the digest line renders.
+
+    MUTATES `build_atoms` / `site_atoms` / `discovery_atoms` in place when it draws the
+    product side -- appending when the fork budget has room, otherwise displacing the
+    lowest-precedence harness atom (DISCOVERY, then SITE, then BUILD) so the grant's WIDTH
+    is unchanged. Never raises: the pairing rule must not be able to break the draw."""
+    owed_in, state_error = _load_interleave_state()
+    granted = list(build_atoms) + list(site_atoms) + list(discovery_atoms)
+    harness = [a.get("id") for a in granted if _is_harness_atom(a)]
+    product = [a.get("id") for a in granted if _is_product_atom(a)]
+
+    # Clause 2: "a lane carrying a live BLOCKING finding takes the repair as its product-side
+    # draw until cleared." A blocker in a PRODUCT lane therefore SATISFIES the pairing -- the
+    # product side of this grant is the repair -- and the digest must name the substitution
+    # rather than reporting a pair that was not drawn.
+    clause2 = sorted(lane for lane in (blocked_lanes or frozenset()) if lane not in HARNESS_LANES)
+
+    record: dict = {
+        "harness": list(harness),
+        "product": list(product),
+        "carried_in": list(owed_in),
+        "clause2_lanes": clause2,
+        "armed": False,
+        "arm_result": None,
+        "displaced": None,
+        "violation": False,
+        "owed": list(owed_in),
+        "state_error": state_error,
+    }
+
+    # THE ARM. Unconditional -- the only inputs are what this grant drew, what the previous
+    # grant left owed, and clause 2. No staging depth, no document count, no date.
+    #
+    # WHEN IT FIRES, and why it is not simply "whenever a harness atom is drawn": at
+    # MAX_CONCURRENT_FORKS=1 an arm that displaced on every harness grant would mean the product
+    # side ALWAYS wins and the harness side NEVER draws -- a 0:1 ratio, not the 1:1 the ruling
+    # asks for. (Observed against the real map before this branch existed: the grant for
+    # SITE2_two_sided_wall_exhibit was displaced by EP7_adapter_elexon_insights with nothing
+    # owed either way.) So:
+    #   * free width  -> ADD the product atom, pairing inside this grant;
+    #   * a DEBT owed by a previous grant -> FORCE it, displacing if there is no room;
+    #   * neither -> grant the harness atom, record the debt, NAME the violation, and the next
+    #     grant's arm forces the product side. That is the alternation.
+    _room = MAX_CONCURRENT_FORKS - len(granted)
+    if (harness or owed_in) and not product and not clause2 and (_room > 0 or owed_in):
+        record["armed"] = True
+        atom, kind = _product_side_draw(
+            exclude_ids={a.get("id") for a in granted}, blocked_lanes=blocked_lanes, rng=rng)
+        if atom is None:
+            record["arm_result"] = "no drawable product-lane atom in the map this cycle"
+        else:
+            room = _room
+            target = build_atoms if kind == "BUILD" else discovery_atoms
+            if room > 0:
+                target.append(atom)
+                record["arm_result"] = f"ADDED to LANE {kind} (fork budget had room)"
+            else:
+                displaced = None
+                for lane_list in (discovery_atoms, site_atoms, build_atoms):
+                    for i in range(len(lane_list) - 1, -1, -1):
+                        if _is_harness_atom(lane_list[i]):
+                            displaced = lane_list.pop(i)
+                            break
+                    if displaced is not None:
+                        break
+                target.append(atom)
+                record["displaced"] = displaced.get("id") if displaced else None
+                record["arm_result"] = (
+                    f"TOOK THE SLOT in LANE {kind} (fork budget full at "
+                    f"{MAX_CONCURRENT_FORKS}; SERIAL BY DEFAULT means the interleave "
+                    "alternates rather than widens)"
+                )
+            # Recompute from the mutated lists -- the record must state what was ACTUALLY
+            # granted, never what the arm intended to grant.
+            granted = list(build_atoms) + list(site_atoms) + list(discovery_atoms)
+            harness = [a.get("id") for a in granted if _is_harness_atom(a)]
+            product = [a.get("id") for a in granted if _is_product_atom(a)]
+            record["harness"], record["product"] = list(harness), list(product)
+
+    # THE LEDGER. Every harness atom granted is a debt; every product atom granted, and a
+    # clause-2 substitution, is a payment. FIFO, so the oldest unpaired harness atom is the
+    # one a later product draw settles.
+    owed_now = list(owed_in) + list(harness)
+    for _ in range(len(product) + (1 if clause2 else 0)):
+        if owed_now:
+            owed_now.pop(0)
+    owed_now = owed_now[-_INTERLEAVE_OWED_CAP:]
+
+    record["violation"] = bool(harness) and not product and not clause2
+    record["owed"] = owed_now
+    _save_interleave_state(owed_now, record)
+    return record
+
+
+def product_interleave_digest_line(record: dict | None = None) -> str:
+    """The tick digest's interleave line. NEVER empty, on ANY path (exit 4) -- including
+    `record is None`, which is the cycle that drew no maturity-map atom at all. Reading the
+    line must be enough to answer "did the product side get served this session, and if not,
+    why not" without opening anything else."""
+    parts = [f"{_INTERLEAVE_PREFIX}: ARMED UNCONDITIONALLY (no staging-depth term)"]
+    if record is None:
+        owed, err = _load_interleave_state()
+        parts.append(
+            "NO maturity-map atom drawn this cycle (a priority rung, a fallback rung or a "
+            "rest) -- no harness/product pair to report"
+        )
+        parts.append(f"owed carried: {len(owed)}" + (f" ({', '.join(owed)})" if owed else ""))
+        if err:
+            parts.append(err)
+        return " | ".join(parts)
+
+    harness = record.get("harness") or []
+    product = record.get("product") or []
+    parts.append("harness drawn: " + (", ".join(harness) if harness else "none"))
+    parts.append("product drawn: " + (", ".join(product) if product else "none"))
+    if record.get("clause2_lanes"):
+        parts.append(
+            "CLAUSE-2 SUBSTITUTION: the product-side slot is the BLOCKING-finding repair in "
+            f"lane(s) {', '.join(record['clause2_lanes'])} (a lane carrying a live blocker takes "
+            "the repair as its product-side draw until cleared)"
+        )
+    if record.get("armed"):
+        parts.append(f"arm fired: {record.get('arm_result')}")
+        if record.get("displaced"):
+            parts.append(
+                f"harness atom {record['displaced']} NOT granted this cycle (displaced by the "
+                "product side; it is not owed because it was never drawn)"
+            )
+    if record.get("violation"):
+        parts.append(
+            f"INTERLEAVE VIOLATION -- {len(harness)} harness atom(s) drawn and NO product atom: "
+            + ", ".join(harness)
+            + ". Named here rather than passing quietly; the product side is now OWED and the "
+            "next grant's arm forces it -- at fork budget 1 the pair completes ACROSS two "
+            "grants, so this is a deferred pairing, not a lost one"
+        )
+    elif harness and product:
+        parts.append("pairing: PAIRED in this grant")
+    elif product and not harness:
+        parts.append("pairing: product-side draw, no harness atom this grant (nothing owed by it)")
+    owed = record.get("owed") or []
+    parts.append(f"owed carried: {len(owed)}" + (f" ({', '.join(owed)})" if owed else ""))
+    if record.get("state_error"):
+        parts.append(record["state_error"])
+    return " | ".join(parts)
+
+
 def _self_refill_draw() -> str | None:
     """The backlog-driven draw itself (maturity map, falling back to
     PRIORITIES.md prose only if the YAML is unavailable) -- factored out so
@@ -3648,6 +3968,12 @@ def _self_refill_draw() -> str | None:
     digest/log reader sees each lane's independent activity directly, per the
     staged instruction's own DoD. `map_exhausted` (find_work) is True only
     when ALL THREE lanes AND the backlog fallback are genuinely empty."""
+    # OPS13 (clause 4): reset the interleave record FIRST, so a cycle that returns from any
+    # priority/fallback rung below leaves `None` behind -- "no maturity-map atom drawn" -- rather
+    # than the previous cycle's pair. `find_work` logs the line off this either way; a stale
+    # record read as this cycle's pair is the same fail-silent shape as no line at all.
+    global _LAST_INTERLEAVE_RECORD
+    _LAST_INTERLEAVE_RECORD = None
     # RUNG 1 -- PUBLISH-GATE WEDGE (PRIORITY ZERO, director rulings 2026-07-23/24). Checked FIRST,
     # above every product/HARDEN lane: a publish gate wedged >60 min blocks ALL publishing, so
     # unwedging it is the single highest-value draw. Its ABSENCE was the exact 2h17m tick-silence
@@ -3701,6 +4027,14 @@ def _self_refill_draw() -> str | None:
     site_atoms = site_atoms[:max(0, _budget)]
     _budget -= len(site_atoms)
     discovery_atoms = discovery_atoms[:max(0, _budget)]
+
+    # OPS13 -- THE PRODUCT INTERLEAVE (clause 4), applied AFTER the fork-budget cap so the arm
+    # sees the grant that is actually going out, and BEFORE the per-lane counts are logged so
+    # those counts report the post-interleave truth. Mutates the three lane lists in place; the
+    # record it returns is what the digest line renders in `find_work`.
+    if build_atoms or site_atoms or discovery_atoms:
+        _LAST_INTERLEAVE_RECORD = _apply_product_interleave(
+            build_atoms, site_atoms, discovery_atoms, blocked_lanes=blocked_lanes)
 
     # DoD: per-lane atoms-drawn-per-cycle logged EVERY cycle (not only on a
     # concurrent grant) so a starved lane is visible as a zero, not a silence.
@@ -4134,6 +4468,14 @@ def find_work(resumed_from_pause: bool) -> tuple[str | None, bool]:
 
     refill = _self_refill_draw()
 
+    # OPS13 exit criterion 4 -- SILENCE IS THE FAILURE. Logged on EVERY cycle, unconditionally,
+    # BEFORE any of the returns below: paired, violated, armed-and-found-nothing, clause-2
+    # substituted, or no atom drawn at all. The one thing this line may never do is not appear
+    # -- an interleave line absent on the bad day is indistinguishable from an interleave that
+    # never fired, which is the fail-silent shape the atom exists to forbid (and this project's
+    # daily digest already has a branch that can skip itself entirely -- see OPS14).
+    log(product_interleave_digest_line(_LAST_INTERLEAVE_RECORD))
+
     if primary and refill:
         return f"{primary}; ALSO -- {refill}", False
     if primary:
@@ -4290,9 +4632,15 @@ def _check_stuck_escalation(reason: str) -> None:
     elapsed = now - first_seen_at
     if elapsed >= STUCK_THRESHOLD_SECONDS and not state.get("escalated"):
         minutes = int(elapsed // 60)
+        # `reason` is the DOORBELL -- the raw work order find_work() hands the tick. Interpolated
+        # whole, it put 114 staged filenames on the director's phone on 2026-08-13. He needs the
+        # STATE (turns granted for an hour, nothing moving) and one handle on the work, not the
+        # machine's shopping list. `background/doorbell_redaction.py` is the backstop that makes
+        # this true of every sender; this is the sender that made it necessary.
+        from background.doorbell_redaction import summarise_work_order as _summarise_work_order
         ntfy(
             f"Supervisor: granting turns for ~{minutes}min for the same work "
-            f"({reason}) with no state change -- something below the tmux "
+            f"({_summarise_work_order(reason)}) with no state change -- something below the tmux "
             "layer may be swallowing turns (see doorbell failure #4), or "
             "this is genuinely blocked and needs your input."
         )

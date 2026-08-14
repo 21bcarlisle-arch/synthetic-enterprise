@@ -1,5 +1,13 @@
+> **THE INTERLEAVE TRIGGER ON THIS PAGE IS WITHDRAWN (2026-08-12, DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE, clause 4;
+> mechanised 2026-08-13 as atom `OPS13_product_interleave_armed`).** The "<20 files then auto-arm" condition below is DEAD —
+> "a number that measures the rate of self-scrutiny, not the state of the project", withdrawn by the same hand that proposed
+> it. The interleave is now armed UNCONDITIONALLY in `background/supervisor.py::_apply_product_interleave`, and no
+> staging-depth term exists anywhere in the trigger (proven by
+> `tests/background/test_product_interleave.py::test_r15_the_arm_does_not_move_with_staging_depth`, which runs the same grant
+> at 0 and 200 staging documents). **The DRAIN below is still live work** — only its role as the interleave's gate is gone.
+>
 > **STATUS 2026-08-10 (worker tick) — PARTIALLY EXECUTED, parked here because the drain is not finished.**
-> **Blocking sub-item: the root is at 79 non-marker files (down from 98), not <20, so the product interleave has NOT armed.**
+> **Blocking sub-item (SUPERSEDED as a blocker 2026-08-13 — see the withdrawal above): the root is at 79 non-marker files (down from 98), not <20.**
 > What unblocks it: continued triage of Groups C, D and the E remainder. Receipts for what has been
 > dispositioned so far: `docs/staging/done/TRIAGE_RECEIPTS_2026-08-10.md`.
 >

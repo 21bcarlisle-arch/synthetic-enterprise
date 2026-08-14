@@ -90,6 +90,36 @@ def _isolate_publish_gate_wedge_state(tmp_path, monkeypatch):
         gap_ledger_reconciler, "LEDGER_PATH",
         tmp_path / "coupled_gap_ledger_absent.json", raising=False,
     )
+    # OPS13 PRODUCT INTERLEAVE (2026-08-13) -- the SIXTH instance, caught the day it landed and
+    # isolated in the same breath. `_apply_product_interleave` runs on every three-lane grant and
+    # PERSISTS the unpaid-harness ledger, so any test in this directory that exercises the draw
+    # writes its synthetic atom ids into the LIVE docs/observability/.product_interleave_state.json
+    # -- observed: `{"owed": ["H1_test_atom", "H1_test_atom"]}` from
+    # test_supervisor_blocker_precedence.py. The leak runs the other way too (a real owed id makes
+    # the next test's arm force a product-side draw it did not ask for). An absent tmp path is a
+    # clean slate, which is the state every test in here that is not about the interleave wants.
+    monkeypatch.setattr(
+        supervisor, "PRODUCT_INTERLEAVE_STATE_FILE",
+        tmp_path / ".product_interleave_state_absent.json", raising=False,
+    )
+    # ANTI-LIVELOCK STALL TRACKER (2026-08-13) -- the SEVENTH instance, and the only one in this
+    # fixture that is a FLAKE rather than a constant red, which is why it survived five rounds of
+    # this same fix. `_self_refill_draw` records every primary pick into the REAL
+    # docs/observability/.atom_stall_tracker.json, and ATOM_STALL_THRESHOLD is 2: two tests in one
+    # process that happen to draw the SAME fixture atom with the same fingerprint flag it stalled,
+    # and the next test needing that atom loses it from its own candidate set. Whether that happens
+    # depends on the dial-weighted RNG, so the file passes alone and reds inside a long run -- the
+    # "a control that must win a race has the weather as its subject" class. It red-ed
+    # test_supervisor_blocker_precedence::test_an_unblocked_lane_atom_still_draws_the_same_cycle in
+    # a 1,860-test gate run while passing standalone in the same tree. An absent tmp path means
+    # nothing is stalled, which is what every test in here that is not ABOUT the backoff wants; the
+    # ones that are (test_supervisor.py, test_pw4_episode_guards.py, test_draw_external_block.py,
+    # test_frame_saturation_draw_marker.py, test_governance_refusal.py) already set this path in
+    # their own body, which runs after this fixture and therefore still wins.
+    monkeypatch.setattr(
+        supervisor, "ATOM_STALL_STATE_FILE",
+        tmp_path / ".atom_stall_tracker_absent.json", raising=False,
+    )
 
 
 # ── THE GHOST-PUSHER TRIPWIRE (issue #11) ────────────────────────────────────────────────────

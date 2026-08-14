@@ -2266,7 +2266,7 @@
   depends_on: []
   records_rehomed: [evidence, expert_hour_findings]
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
-  simplifications_count: 33
+  simplifications_count: 34
   notes_rehomed: [harden_note, level_hold_note]
   expert_hour: {last: '2026-08-13', status: attempted_finding_open}
 - id: D6_payment_ageing_gap_validity
@@ -2521,7 +2521,7 @@
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
   depends_on: [D33_the_collapse_predicate_is_bit_equality]
-  simplifications_count: 1
+  simplifications_count: 2
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
   real_world_twin: "a collections MI pack whose methodology note says 'differences below 0.00005 are rounding' -- true of the four-decimal arrears percentages on page 1, and printed under the days-late figure on page 3 that the pack itself only ever shows to two"
 - id: D33_the_collapse_predicate_is_bit_equality
@@ -4356,6 +4356,7 @@
   couples_with: []
   records_rehomed: [evidence]
   notes_rehomed: [origin_note]
+  simplifications_count: 1
   file_scope: []
 - id: EP13_adapter_carbon_intensity
   title: "Carbon from the actual grid, half-hour by half-hour"
@@ -5104,9 +5105,9 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 2
   level_target: 2
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 1
   provenance: director_ruling
   records_rehomed: [exit_evidence]
