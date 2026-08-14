@@ -10,6 +10,7 @@ actually reached a tree in `c78b7a118`. Verified by `git log -S`/`git ls-tree`, 
 CLASS OPEN — and this is
 now the *third* instance of the mechanism in three days, the first two of which were also closed
 with prose rather than a control.
+**Discharged:** `tests/tools/test_landed_manifest_check.py::test_fires_on_the_2026_08_14_shape_staged_but_not_carried`, `tests/tools/test_landed_manifest_check.py::test_fail_open_a_claim_with_no_parseable_path_is_NAMED_not_skipped`, `tests/tools/test_landed_manifest_check.py::test_tautology_the_control_reads_the_TREE_not_the_working_tree`, `tools/landed_manifest_check.py`, `tools/pre_commit_test_gate.py` — the control this document required is BUILT and wired to the commit, with one correction the document could not have known and which is recorded rather than smoothed over: **the mutation it specified does not reproduce.** See "The specified mutation, measured" below. The PATH shape is closed here; the SYMBOL shape is `tools/symbol_landing_check.py`'s and was already live.
 
 ## What was observed (observed-with-evidence)
 
@@ -107,6 +108,56 @@ next tick does not re-derive the same block:
 > **To establish that a `/tmp` checkout is abandoned, read the process table, not the mount.** No
 > live `pytest`/`surgical_land`/`process_run_complete` process ⇒ every repo-shaped extract under
 > `gettempdir()` is debris, whatever `fuser` says about the tmpfs.
+
+## The specified mutation, measured (2026-08-14, the tick that built the control)
+
+This document specified its own falsifier: *"re-run it against `WORKER_FINDING_A_PATHSPEC_COMMIT_
+LANDED_THE_CONSUMER_AND_LEFT_THE_SUPPLIER_STAGED_2026-08-14.md` at parent `75290668f`. It must red
+on `tools/simplifications_store.py`."* **It does not, and the control was not widened until it
+did.** Measured, on the real document:
+
+* The sibling's `## What landed this tick` section claims the **symbol** half — `atom_name`, `name`
+  in `NOTE_FIELDS` — and names, in backticks, only `tools/migrate_atom_names.py` and
+  `tests/design/test_maturity_map_facets.py`. Both of those **are** at HEAD (`e28cefc92`,
+  `039e231ae`), so the manifest is honest about every path it actually states.
+* `tools/simplifications_store.py` appears in the document **twice and zero times inside that
+  section** — only in the evidence block, where the document is correctly reporting that the path
+  *never* landed. Widening the parser until an evidence line reads as a claim would be reading
+  prose as a manifest, which is the defect already filed as "a discharge line reads every backtick
+  as a PATH".
+* Path-existence could not have fired regardless: `tools/simplifications_store.py` **existed** at
+  `75290668f` (blob `4ec6f9bf`). Only the staged-content clause can see that shape, and the index
+  state of that moment is not reconstructable from history — so the clause is proven against a
+  purpose-built repository reproducing it exactly
+  (`test_fires_on_the_2026_08_14_shape_staged_but_not_carried`).
+
+**The consequence, which is the useful part.** This class has TWO halves and neither control covers
+both: the PATH shape (a manifest naming a file no tree carries) is `tools/landed_manifest_check.py`;
+the SYMBOL shape (a manifest naming a function no tree carries) is `tools/symbol_landing_check.py`.
+The instance that provoked this document is a SYMBOL claim, so the control this document asked for
+would never have caught it. Pinned as a tripwire rather than argued:
+`test_tripwire_the_real_instances_manifest_names_symbols_not_the_supplier_path` fails if that
+document is ever edited to name the supplier path in its manifest, at which point the specified
+mutation becomes reachable and should be built.
+
+**Two live instances found on the control's first run**, over the 120 most recent commits touching
+`docs/staging/` (clause 1 only — the historical index is not reconstructable, so the staged clause
+was not exercised): 2 reds in 120 commits, and **both are true positives**, each claiming a path
+that has never been added on any ref, at that commit or since:
+
+* `0c0733e0a` — `WORKER_REPORT_THE_WRONG_POPULATION_WAS_A_POPULATION_NOTHING_STILL_PRODUCED_2026-08-12.md`
+  claims `tests/tools/test_no_orphan_published_customer_artefacts.py` landed.
+* `40bbc32ef` — `WORKER_REPORT_THE_P0_CHANNEL_NOW_SAYS_WHEN_IT_DROPS_2026-08-12.md` claims
+  `docs/observability/ntfy-delivery-log.md` landed.
+
+Verified with `git log --all --diff-filter=A -- <path>` (empty for both). They are **not** repaired
+here — SELF_INTERRUPT_DISCIPLINE — and are queued as the class's next instances.
+
+**The control's own error bar, printed on its green path rather than buried.** Over those same 120
+commits it parsed 41 paths from documents making a landing claim and reported **42 documents as
+`unchecked`** — a claim it could see and no path it could parse. That is roughly half the
+population, it is the FAIL-OPEN pattern named honestly instead of hidden, and it is the direct
+consequence of manifests that (like the instance above) promise symbols rather than files.
 
 ## What is NOT claimed
 

@@ -214,6 +214,13 @@ def test_pytest_subprocess_env_strips_GIT_star(monkeypatch):
     # OPPOSITE one -- GIT_INDEX_FILE must be INHERITED) is proven in
     # tests/tools/test_pre_commit_gate_wall_register.py::test_index_tree_honours_GIT_INDEX_FILE.
     monkeypatch.setattr(gate, "_wall_crossing_landed_check", lambda staged: (True, ""))
+    # The symbol-landing step (2026-08-14) is the third sibling with this property and is
+    # neutralised for the identical reason: it shells out to `git write-tree` and
+    # `git cat-file` before the pytest launch, so the blanket fake below reaches it and it
+    # fails closed on a subject that is not this test's. Its own contract -- including the
+    # fail-closed behaviour being suppressed here -- is proven in
+    # tests/tools/test_symbol_landing_check.py, which is where it belongs.
+    monkeypatch.setattr(gate, "_symbol_landing_check", lambda staged: (True, ""))
     for k in ("GIT_INDEX_FILE", "GIT_DIR", "GIT_WORK_TREE", "GIT_PREFIX"):
         monkeypatch.setenv(k, "/should/not/leak")
     captured = {}

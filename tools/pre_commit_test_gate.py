@@ -636,6 +636,117 @@ def _wall_crossing_landed_check(staged: list[str]) -> tuple[bool, str]:
     return False, "\n".join(f"  - {f}" for f in findings)
 
 
+def _symbol_landing_check(staged: list[str]) -> tuple[bool, str]:
+    """Does every first-party reference this commit CHANGES resolve in the tree it creates?
+
+    THE CLASS THIS CLOSES. `19d8f94da` committed two readers of
+    `tools.simplifications_store.atom_name` and not the function itself. At HEAD the
+    symbol did not exist; in the working tree it did; the publish gate found it hours
+    later as a wedge with no attribution (229 consecutive failures, ~6,923 min). A
+    pathspec commit names the paths the author EDITED, not the paths their change CALLS.
+
+    WHY THE EXISTING CONTROLS WERE ALL BLIND, and it is one sentence: every one of them
+    was looking at a different tree. The pytest run below selects from the index and
+    executes in the WORKING TREE, where the supplier was present. The capability index's
+    untracked-row check asks "is this FILE tracked?" -- and it was; only the new function
+    inside it was missing, which is a granularity that check cannot reach.
+
+    SCOPE, and it is deliberately the narrow one. The consumer population is the `.py`
+    files this commit CHANGES (`--since-tree HEAD`), not the whole tree. Measured over
+    the last 80 commits, the whole-tree scope carries a pre-existing finding that has
+    nothing to do with the committer, and billing them for it is how a gate gets
+    disabled. The changed-file scope's measured cost on that same history: ONE commit
+    red of 80, and it is `19d8f94da` itself.
+
+    FAIL-CLOSED at every step (R15): an unimportable checker, an unusable index, a
+    raising resolver -> REFUSED with the reason. An unavailable check is a FAILED check.
+    """
+    if not any(p.endswith(".py") for p in staged):
+        return True, ""
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    try:
+        from tools.symbol_landing_check import run_at_tree
+    except Exception as e:  # noqa: BLE001 -- an unavailable check is a FAILED check
+        return False, (
+            f"symbol-landing checker UNAVAILABLE: {type(e).__name__}: {e}\n"
+            "An unavailable check is a FAILED check (R15 FAIL-SILENT). If the tool is "
+            "genuinely being removed, remove this gate step in the same commit."
+        )
+    try:
+        tree = _index_tree()
+    except Exception as e:  # noqa: BLE001
+        return False, f"could not determine the tree this commit would create: {e}"
+    try:
+        findings, report = run_at_tree(tree, since_tree="HEAD^{tree}")
+    except Exception as e:  # noqa: BLE001
+        return False, (f"symbol-landing checker RAISED against tree {tree[:9]}: "
+                       f"{type(e).__name__}: {e}")
+    if not findings:
+        return True, (f"every first-party reference resolves in the tree this commit "
+                      f"creates ({report.get('references_resolved', 0)} checked)")
+    return False, "\n".join(f"  - {f}" for f in findings)
+
+
+def _landed_manifest_check(staged: list[str]) -> tuple[bool, str]:
+    """Does every path a staged DOCUMENT claims LANDED exist in the tree this commit creates?
+
+    THE CLASS THIS CLOSES, third instance in three days. A finding opened
+    `status: INSTANCE FIXED (the supplier half landed)` and closed with a "what landed this
+    tick" manifest; none of it was in any tree, and the publish gate logged the identical
+    red for another 30 cycles while readers who believed the manifest diagnosed elsewhere
+    (229 -> 244 consecutive failures). The first two instances were both closed with PROSE.
+
+    WHY IT IS NOT THE SIBLING CHECKS. `_symbol_landing_check` resolves changed REFERENCES
+    and cannot see this: nothing was committed, so there was no changed reference to
+    resolve. `_wall_crossing_landed_check` reads a structured REGISTER; this reads a
+    document's own prose claim, which is where findings actually make their promises.
+
+    SCOPE. Staging documents this commit CHANGES, which is the moment the claim becomes
+    load-bearing for the next reader -- including the archive-to-`done/` move. Not the
+    whole rooms: paths move, and archived documents cite paths since renamed (66 dead
+    evidence paths across 80 atoms, 2026-08-13), so a whole-rooms scope would bill this
+    committer for other authors' rot. Like the class checker, it runs BEFORE the pure-docs
+    early return, because a staging-only commit selects no test targets and IS the commit
+    that files the claim.
+
+    FAIL-CLOSED at every step (R15): unimportable checker, unusable index, raising
+    resolver -> REFUSED with the reason. An unavailable check is a FAILED check.
+    """
+    if not any(p.startswith(STAGING_ROOM_PREFIX) for p in staged):
+        return True, ""
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    try:
+        from tools.landed_manifest_check import run_at_tree
+    except Exception as e:  # noqa: BLE001 -- an unavailable check is a FAILED check
+        return False, (
+            f"landed-manifest checker UNAVAILABLE: {type(e).__name__}: {e}\n"
+            "An unavailable check is a FAILED check (R15 FAIL-SILENT). If the tool is "
+            "genuinely being removed, remove this gate step in the same commit."
+        )
+    try:
+        tree = _index_tree()
+    except Exception as e:  # noqa: BLE001
+        return False, f"could not determine the tree this commit would create: {e}"
+    try:
+        findings, report = run_at_tree(tree, since_tree="HEAD^{tree}")
+    except Exception as e:  # noqa: BLE001
+        return False, (f"landed-manifest checker RAISED against tree {tree[:9]}: "
+                       f"{type(e).__name__}: {e}")
+    if findings:
+        return False, "\n".join(f"  - {f}" for f in findings)
+    # The unchecked count is PRINTED on the green path on purpose: it is the control's own
+    # error bar (claims seen, no path parsed), and a control that hides it invites the
+    # confidence its subject is made of.
+    unchecked = len(report["unchecked_documents"])
+    msg = (f"every landing claim resolves in the tree this commit creates "
+           f"({report['paths_checked']} path(s) in {report['documents_claiming_a_landing']} "
+           f"document(s)")
+    msg += f"; {unchecked} claim(s) unchecked, no path parsed)" if unchecked else ")"
+    return True, msg
+
+
 def main() -> int:
     staged = staged_files()
 
@@ -661,6 +772,24 @@ def main() -> int:
             return 1
         print("[test-gate] ✓ finding-class consolidation holds")
 
+        # THE DOCUMENT'S OWN LANDING CLAIM. Same room, same reason, and it must sit inside
+        # this staging branch: the claim it judges is written by a staging commit.
+        ok, detail = _landed_manifest_check(staged)
+        if not ok:
+            sys.stderr.write(
+                "\n[test-gate] ❌ A DOCUMENT CLAIMS A PATH LANDED THAT THIS COMMIT'S TREE "
+                "DOES NOT CARRY -- COMMIT REFUSED.\n"
+                f"{detail}\n"
+                "[test-gate] A false LANDED is worse than no finding: it redirects the next "
+                "reader away from the live cause. Land the path in this commit, or drop the "
+                "claim.\n"
+                "[test-gate] Reproduce: `python3 -m tools.landed_manifest_check --at-tree "
+                "$(git write-tree) --since-tree 'HEAD^{tree}'`\n"
+            )
+            return 1
+        if detail:
+            print(f"[test-gate] ✓ {detail}")
+
     # THE WALL-CROSSING REGISTER, checked against the tree this commit creates.
     # Like the class checker above, this runs BEFORE the pure-docs early return:
     # a commit that lands ONLY the register (the record without the code) selects
@@ -675,6 +804,26 @@ def main() -> int:
             "commit, or correct the row.\n"
             "[test-gate] Reproduce: `python3 -m tools.wall_crossing_dispositions "
             "--at-tree $(git write-tree)`\n"
+        )
+        return 1
+    if detail:
+        print(f"[test-gate] ✓ {detail}")
+
+    # THE SUPPLIER HALF OF THIS COMMIT. Also before the pure-docs early return -- not
+    # because a docs commit can trip it (it cannot; it needs a staged `.py`), but
+    # because the commit that omits a supplier is frequently one whose OWN test
+    # selection is empty, and the check must not live downstream of that `return 0`.
+    ok, detail = _symbol_landing_check(staged)
+    if not ok:
+        sys.stderr.write(
+            "\n[test-gate] ❌ A REFERENCE THIS COMMIT CHANGES DOES NOT RESOLVE IN THE TREE "
+            "IT CREATES -- COMMIT REFUSED.\n"
+            f"{detail}\n"
+            "[test-gate] The consumer is in this commit and the supplier is not. Your "
+            "pathspec named the paths you EDITED, not the paths your change CALLS -- add "
+            "the file that defines the symbol.\n"
+            "[test-gate] Reproduce: `python3 -m tools.symbol_landing_check --at-tree "
+            "$(git write-tree) --since-tree 'HEAD^{tree}'`\n"
         )
         return 1
     if detail:
