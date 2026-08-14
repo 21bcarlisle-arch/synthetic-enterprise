@@ -2265,8 +2265,8 @@
   depends_on: []
   records_rehomed: [evidence, expert_hour_findings]
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
-  simplifications_count: 37
-  expert_hour: {last: '2026-08-14', status: attempted_finding_open}
+  simplifications_count: 38
+  expert_hour: {last: '2026-08-14', status: passed_execute_after_fix}
 - id: D6_payment_ageing_gap_validity
   notes_rehomed: [build_note, discover_note, name, origin_note]
   lane: D_billing_metering
@@ -4237,6 +4237,7 @@
   couples_with: []
   records_rehomed: [evidence]
   file_scope: []
+  simplifications_count: 1
 - id: EP9_adapter_n3rgy_consented_metering
   title: "Real meter data today, via a DCC Other User"
   gain: "The metering path gets exercised against a live external system years before accession."
