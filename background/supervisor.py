@@ -607,7 +607,7 @@ def _format_atom_draw(atom: dict) -> str:
     unchanged above) and the new multi-atom concurrent message below use
     the identical format."""
     return (
-        f"{atom['id']} -- {atom.get('name', '?')} "
+        f"{atom['id']} -- {_atom_name(atom) or '?'} "
         f"(lane={atom.get('lane', '?')}, dial={atom.get('dial_inherited', '?')}, "
         f"level {atom['level_current']}->{atom['level_target']}, "
         f"loop_stage={atom.get('loop_stage', '?')})"
@@ -1033,6 +1033,19 @@ def _normalize_evidence_list(value: Any) -> list:
         "not silently vanish (R15 FAIL-SILENT); fix the map value."
     )
     return []
+
+
+def _atom_name(atom: dict) -> str:
+    """One atom's BRIEF, wherever it now lives (the 2026-08-14 `name` drain).
+
+    Same one-seam rule as `_atom_evidence` below, and the same failure it exists to
+    prevent -- except that this one is what the DRAW SHOWS. The rehome's stated
+    precondition was *hydrate, then move*: a drawn atom whose brief silently read
+    `?` would strip the draw line of the only text saying what the work IS, and,
+    for `KNIFE3_wall_crossing_paydown`, of a live DO-NOT-REDRAW-FROM-ZERO warning
+    that carries the running cut counts. Nothing raises when that goes missing, so
+    the hydration is wired here rather than left to each caller."""
+    return _atom_store.atom_name(atom)
 
 
 def _atom_evidence(atom: dict) -> Any:
@@ -2926,6 +2939,21 @@ def _current_head_hash() -> str | None:
         return None
 
 
+def _head_commit_epoch() -> float | None:
+    """HEAD's commit time as a unix epoch, for RUNG 1b's record-vs-tree freshness clause.
+    Same defensive shape as _current_head_hash above -- any git error, an empty repo, or an
+    unparseable stamp returns None, which every caller must treat as UNKNOWN (never as
+    'nothing has landed')."""
+    try:
+        r = subprocess.run(["git", "log", "-1", "--format=%ct"], cwd=str(PROJECT_DIR),
+                           capture_output=True, text=True, timeout=10)
+        if r.returncode != 0:
+            return None
+        return float(r.stdout.strip())
+    except Exception:
+        return None
+
+
 def _commit_is_ancestor(ancestor: str, descendant: str) -> bool | None:
     """Is `ancestor` reachable from `descendant`? True/False, or None when UNKNOWABLE.
 
@@ -3090,6 +3118,14 @@ def _publish_gate_wedge_active(
         f" EPISODE: {episode} consecutive failures since the wedge began -- this is not a fresh hour."
         if isinstance(episode, int) and episode > len(failures) else ""
     )
+    # THE DRAW MUST BE TOLD THE DEPTH, NOT JUST THE FIRST RED (2026-08-14, the 252-cycle wedge).
+    # The gate runs fail-fast, so the node ids above are one red unless the report-only census
+    # ran. Without this clause the drawn worker reads "BLOCKING TEST: x" and repairs x -- which
+    # is correct, and was correct five times running while the wedge stood. Defensive by the same
+    # rule as `cited`: anything but an explicit COMPLETE/PARTIAL reads as unknown depth, because
+    # a state file written before this field existed knew only the fail-fast red.
+    depth_clause = _wedge_depth_clause(state.get("red_census"), state.get("total_red"),
+                                       len(state.get("blocking_tests") or []))
     return (
         "PUBLISH-GATE WEDGE self-refill (RUNG 1, PRIORITY ZERO -- director rulings "
         "UNWEDGE_PUBLISH_PRIORITY_ZERO 2026-07-23 + WEDGE3_AND_RUNG1_MECHANISE 2026-07-24): the "
@@ -3099,13 +3135,69 @@ def _publish_gate_wedge_active(
         "`SIM_FAST_MODE=1 python3 -m pytest tests/ -m 'not operational' <heavy-ignores>` (see "
         "background/process_run_complete.py::publish_gate_pytest_argv), FIX the red test, flush the "
         "run_complete queue, and R11-verify the folded live site. NTFY the director the one-line "
-        f"cause.{episode_clause}{cure_clause} Last recorded failure: {last_reason}"
+        f"cause.{depth_clause}{episode_clause}{cure_clause} Last recorded failure: {last_reason}"
+    )
+
+
+def _wedge_depth_clause(census, total_red, named) -> str:
+    """How many tests are red behind the fail-fast verdict -- or an explicit statement that the
+    draw does not know. Split out so it can be put on trial directly (R15: a control's scope must
+    be inspectable), and so the three answers are one function rather than three format strings.
+
+    UNKNOWN IS THE DEFAULT AND IT IS LOUD. "Fix the named test" is what a worker does with a
+    fail-fast node id, and it is right; it is also exactly what happened on each of five
+    consecutive unwedge ticks against one stack of five reds. The clause the worker needs is not
+    "here is a test", it is "this may be one layer of several"."""
+    total = total_red if isinstance(total_red, int) and total_red > 0 else named
+    if census == "complete":
+        if total <= 1:
+            return (" DEPTH: the report-only census enumerated the WHOLE red set at this HEAD and "
+                    "it is ONE test -- repairing it should clear the wedge.")
+        return (f" DEPTH: {total} tests are red at this HEAD -- the report-only census enumerated "
+                "the WHOLE set. This is a STACK, not one defect: fix them TOGETHER in this tick. "
+                "Repairing the named one and re-running hands the next layer to the next tick, "
+                "which is how the 2026-08-14 wedge ran 252 cycles.")
+    if census == "partial":
+        return (f" DEPTH: AT LEAST {total} tests are red at this HEAD (the census hit its own "
+                "failure bound, so there may be more). Treat this as a stack.")
+    return (" DEPTH UNKNOWN: the gate is fail-fast and no report-only census is on record, so the "
+            "test named above may be one red of several. Enumerate before assuming it is the only "
+            "one -- run the gate's argv without `-x`.")
+
+
+def _operational_red_stale_record_prefix(state: dict, head_time_fn=None, head_hash_fn=None) -> str:
+    """RUNG 1b's record-vs-tree freshness clause, factored out so it can be put on trial directly
+    (R15: a control's scope must be inspectable). Returns the RE-RUN-FIRST prefix when HEAD was
+    committed strictly AFTER the signal record was written, else "".
+
+    Three-valued in effect, and the UNKNOWN branch is the important one: no `last_run_ts`, an
+    unparseable stamp, or git unavailable all return "" -- the draw is printed UNCHANGED and
+    UNSOFTENED. An unavailable check is a failed check (R15), and the failure mode of this one must
+    be 'diagnose from scratch', never 'assume a fix landed'."""
+    try:
+        record_ts = float(state.get("last_run_ts"))
+    except (TypeError, ValueError):
+        return ""
+    head_ts = (head_time_fn or _head_commit_epoch)()
+    if head_ts is None or not (float(head_ts) > record_ts):
+        return ""
+    sha = (head_hash_fn or _current_head_hash)() or "HEAD"
+    age_min = int(max(0.0, float(head_ts) - record_ts) // 60)
+    return (
+        f"RE-RUN THE SIGNAL FIRST -- this RED record was written {age_min} min BEFORE the current "
+        f"HEAD ({sha}) was committed, so a fix may already have landed and the record simply has not "
+        "been re-read (the check is HOURLY). Run "
+        "`python3 -c \"from background.process_run_complete import run_operational_layer_signal as r; "
+        "r(force=True)\"` and, if it comes back GREEN, the draw is discharged: say so and move to the "
+        "next rung. Only if it is STILL RED does the diagnosis below apply. || "
     )
 
 
 def _operational_red_persistent_draw(
     now: float | None = None,
     state_path: Path | None = None,
+    head_time_fn=None,
+    head_hash_fn=None,
 ) -> str | None:
     """RUNG 1b (PRIORITY ZERO) detector: has the operational-layer signal been RED for MORE than
     OPERATIONAL_RED_DRAWABLE_THRESHOLD consecutive checks? Returns a remediation draw message if so,
@@ -3136,7 +3228,22 @@ def _operational_red_persistent_draw(
     FAIL-SAFE: an unreadable/absent/malformed state file returns None (no phantom draw -- the lower
     rungs still draw real work), never an exception into the draw ladder. R15-proven both ways (fires
     on the overnight consecutive_red=13/red state; silent on green, on a below-threshold red, and on
-    a malformed file) in test_operational_red_persistent_draw.py."""
+    a malformed file) in test_operational_red_persistent_draw.py.
+
+    THE RECORD IS NOT REQUIRED TO BE CURRENT (2026-08-14, observed live). The signal is re-read on an
+    HOURLY cadence, so between a fix landing and the next check the record still says RED -- and this
+    rung, reading the record alone, keeps handing PRIORITY-ZERO to work that is already done, above
+    every other lane, for up to an hour. It happened the tick after `fb1493702` fixed the 9-hour red:
+    the record was written 15:38, the fix committed 16:11, and the very next draw was the same
+    already-discharged diagnosis.
+
+    The fix is NOT to suppress a stale draw. The stated fail-safe direction is toward drawing, and
+    the record freezes red exactly when the deadman DIES -- so 'old record => stay silent' would
+    reintroduce the overnight fail-silent this rung exists to kill. Instead the draw still fires and
+    the message CHANGES: when HEAD was committed AFTER the record was written, it leads with RE-RUN
+    THE SIGNAL FIRST (naming the sha), because re-running is ~10 minutes and a fresh diagnosis of an
+    already-fixed red is a whole wasted tick. UNKNOWN either way (git unavailable, no `last_run_ts`)
+    prints the base message unchanged -- an unavailable check never gets to soften the draw."""
     now = time.time() if now is None else now
     sp = state_path or OPERATIONAL_LAYER_SIGNAL_FILE
     try:
@@ -3153,7 +3260,7 @@ def _operational_red_persistent_draw(
         return None
     if consecutive_red <= OPERATIONAL_RED_DRAWABLE_THRESHOLD:
         return None
-    return (
+    return _operational_red_stale_record_prefix(state, head_time_fn, head_hash_fn) + (
         "OPERATIONAL-LAYER PERSISTENT-RED self-refill (RUNG 1b, PRIORITY ZERO -- director console "
         "2026-07-25): the operational-layer signal (`pytest -m operational`, the daemon-lifecycle / "
         f"IaC-reconcile / capability suite) has been RED for {consecutive_red} consecutive hourly "

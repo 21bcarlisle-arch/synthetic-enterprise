@@ -1862,7 +1862,13 @@ def _run_gate_in(cwd: Path, full_env: dict, git_hash: str):
         LAST_TESTED_HASH_FILE.write_text(git_hash)
         _clear_blocking_tests()
     else:
-        _log_gate_failure_payload(result, git_hash)
+        # THE VERDICT IS ALREADY DECIDED. `result.returncode` above is the publish verdict and
+        # nothing below can change it -- the census is a REPORT run, its return code is never
+        # read, and it runs here (inside the checkout, before it is torn down) purely so the
+        # doorbell names every red rather than the first. See GATE_RED_CENSUS_* above.
+        census = run_red_census(gate_argv, cwd, full_env, _parse_failed_node_ids(
+            "{}\n{}".format(result.stdout or "", result.stderr or "")))
+        _log_gate_failure_payload(result, git_hash, census=census)
     return result.returncode == 0, False
 
 
@@ -2221,7 +2227,7 @@ def _parse_failed_node_ids(out):
     return node_ids
 
 
-def _log_gate_failure_payload(result, git_hash="unknown"):
+def _log_gate_failure_payload(result, git_hash="unknown", census=None):
     """Log WHICH tests blocked the publish, not just THAT they did.
 
     Called only on a red gate. Emits the failing node IDs (pytest's own
@@ -2238,7 +2244,11 @@ def _log_gate_failure_payload(result, git_hash="unknown"):
     else:
         log("Publish gate RED (rc={}) -- no FAILED/ERROR summary line found".format(
             result.returncode))
-    _write_blocking_tests(node_ids, git_hash)
+    # The census (when the caller ran one) SUPERSEDES the fail-fast list, and is guaranteed by
+    # `run_red_census` to be a superset of it -- so this can only ever add node ids, never lose
+    # the one the verdict itself named.
+    census_ids, census_status = (census if census else (node_ids, CENSUS_FAIL_FAST_ONLY))
+    _write_blocking_tests(census_ids, git_hash, census=census_status)
     tail = out.strip()[-GATE_FAILURE_TAIL_CHARS:]
     if tail:
         log("Publish gate RED output tail:\n{}".format(tail))
@@ -2272,15 +2282,173 @@ GATE_BLOCKING_TESTS_FILE = PROJECT_DIR / "docs" / "observability" / ".last_gate_
 # seconds after the gate returns) and far short of the multi-hour episodes, so a wedge whose
 # cause has since been repaired cannot keep re-citing yesterday's test.
 GATE_BLOCKING_TESTS_MAX_AGE_SECONDS = 2 * GATE_SUITE_TIMEOUT_SECONDS
-GATE_MAX_CITED_BLOCKING_TESTS = 5
+# Raised 5 -> 12 with the RED CENSUS below. Under `-x` this cap could never bind (there was only
+# ever one node id to cite); with the census the record finally has a whole red set to truncate,
+# and the episode that motivated it had FIVE. Still bounded -- an alarm is a page, not a directory
+# listing -- and `_blocking_clause` now says how many were withheld rather than silently dropping
+# them, which is the difference between a cap and a lie.
+GATE_MAX_CITED_BLOCKING_TESTS = 12
+
+# ── THE WEDGE DRAW MUST SEE THE WHOLE RED SET, NOT THE FIRST ONE (2026-08-14, the 252-cycle
+# wedge; WORKER_FINDING_THE_WEDGE_WAS_FIVE_INSTANCES_OF_ONE_CLASS_AND_pytest_x_SERVED_THEM_ONE_
+# AT_A_TIME, control 2 -- "the cheap one ... it is the recommendation") ──────────────────────
+#
+# WHY. The blocking gate runs under `-x`, so a red gate reports exactly ONE failing node id no
+# matter how many are red. Measured: the publish gate was RED at every HEAD since `19d8f94da` --
+# 252 consecutive failures, ~7,163 min -- and that was not one defect with a long tail but FIVE
+# separate instances of one mechanism, stacked behind `-x` and served one per tick. Each tick
+# diagnosed the layer it was shown, repaired it, landed it, and handed the next layer to the next
+# tick. The same flag produced the eleventh wedge's "four flapping tests" that were really a
+# STACK of three (`WORKER_FINDING_THE_ELEVENTH_WEDGE_WAS_A_STACK_NOT_A_BUG`). An enumerator that
+# stops at one is not an enumerator: it reads "1 red" identically whether there is one or thirty,
+# so the doorbell's node id carried no information about DEPTH -- and depth is the whole question
+# when deciding whether an unwedge tick will be the last one.
+#
+# WHAT. On a red gate ONLY, re-run the gate's own argv once with fail-fast dropped, purely to
+# REPORT, and record the whole red set. Three properties this must have, each a test below:
+#   * THE BLOCKING VERDICT IS UNTOUCHED. The census runs AFTER the verdict is decided, its
+#     return code is never read, and any failure of it degrades to today's behaviour (the
+#     fail-fast node id alone, labelled as such). `-x` stays on the gate: it returns the publish
+#     path's latency to the lanes, and -- the reason that matters here -- a red suite run to
+#     completion near the timeout becomes a TIMEOUT, which carries NO node ids at all. Trading a
+#     reliable one for a possible five is the wrong direction.
+#   * IT CAN NEVER OUTLIVE THE PUBLISH PATH'S OWN BOUND. Its budget is DERIVED from what is left
+#     of PUBLISH_PATH_TIMEOUT_SECONDS, not hand-typed -- a wrapper bound below the work it wraps
+#     is the exact defect recorded at PUBLISH_PATH_ALLOWANCE_SECONDS above (41h wedge). Too
+#     little budget left => the census is SKIPPED and says so; it never runs unbounded.
+#   * "ONE RED" AND "WE ONLY LOOKED AT ONE" ARE DISTINGUISHABLE. Every record carries the census
+#     STATUS, and the alarm states it. Without that field a complete census reporting one red is
+#     byte-identical to no census at all, which is this finding's own subject one level up.
+GATE_RED_CENSUS_MAXFAIL = 50          # a catastrophic red stops the census, not the box
+GATE_RED_CENSUS_MAX_SECONDS = 20 * 60  # ceiling; the real bound is the derived budget below
+GATE_RED_CENSUS_MIN_SECONDS = 90      # below this a census cannot finish anything; skip honestly
+GATE_RED_CENSUS_PATH_MARGIN_SECONDS = 120  # what the red path still needs after the census
+# Set once, at import, so "how much of the publish path have we spent" is measurable from
+# anywhere in it. monotonic: never moves backwards, never NTP-corrected.
+_PROCESS_STARTED_MONOTONIC = time.monotonic()
+
+# The census's three honest answers, plus the two ways it declines. `fail_fast_only` is the
+# pre-2026-08-14 behaviour and is what every degradation lands on.
+CENSUS_COMPLETE = "complete"            # ran to the end: this IS the whole red set
+CENSUS_PARTIAL = "partial"              # hit GATE_RED_CENSUS_MAXFAIL -- there may be more
+CENSUS_FAIL_FAST_ONLY = "fail_fast_only"  # no census: the `-x` node id is all that is known
 
 
-def _write_blocking_tests(node_ids, git_hash):
-    """Publish the red gate's blocking node IDs for the alarm process. Never raises."""
+def red_census_argv(gate_argv):
+    """The REPORT-ONLY argv: the blocking gate's OWN argv, fail-fast dropped, failures bounded.
+
+    Composed from the gate argv rather than rebuilt, so the census can never end up enumerating
+    a different suite than the one that went red (two argv builders would drift, and the census
+    would then confidently name reds from a population the verdict never saw). The fail-fast
+    strip is delegated to `publish_scope.remainder_pytest_argv` -- the same primitive the
+    non-blocking annotation pass uses -- for the same reason: ONE definition of "without -x".
+    """
+    try:
+        from background import publish_scope
+        argv = list(publish_scope.remainder_pytest_argv(list(gate_argv)))
+    except Exception:  # noqa: BLE001 -- an unavailable scoper must not cost us the census
+        argv = [a for a in gate_argv if a not in ("-x", "--exitfirst")]
+    argv = [a for a in argv if not str(a).startswith("--maxfail")]
+    argv.append("--maxfail={}".format(GATE_RED_CENSUS_MAXFAIL))
+    return argv
+
+
+def red_census_budget_seconds(now_monotonic=None, started=None):
+    """Seconds the census may run for, DERIVED from the publish path's own remaining bound.
+
+    Returns 0 when there is not enough left to be worth starting. The publish path is killed by
+    its caller at PUBLISH_PATH_TIMEOUT_SECONDS; a census that ran past that would be killed
+    mid-write and take the fail-fast record with it, turning a diagnostic improvement into a
+    LOST payload. So the budget is (what the caller allows) - (what we have already spent) -
+    (what the red path still needs after us), capped, and floored at zero."""
+    now = time.monotonic() if now_monotonic is None else float(now_monotonic)
+    start = _PROCESS_STARTED_MONOTONIC if started is None else float(started)
+    remaining = (PUBLISH_PATH_TIMEOUT_SECONDS - (now - start)
+                 - GATE_RED_CENSUS_PATH_MARGIN_SECONDS)
+    budget = min(GATE_RED_CENSUS_MAX_SECONDS, remaining)
+    return budget if budget >= GATE_RED_CENSUS_MIN_SECONDS else 0.0
+
+
+def _default_census_runner(argv, cwd, env, timeout):
+    return subprocess.run(argv, cwd=cwd, env=env, timeout=timeout,
+                          capture_output=True, text=True, errors="replace")
+
+
+def run_red_census(gate_argv, cwd, full_env, fail_fast_ids, *, runner=None, budget=None):
+    """(node_ids, status) -- the WHOLE red set behind the fail-fast verdict, best effort.
+
+    NEVER raises and NEVER returns less than it was given: the result always starts from
+    `fail_fast_ids` (the node id the blocking verdict actually named) and the census only ADDS
+    to it. A census that crashed, timed out, was skipped for budget, or somehow failed to
+    re-observe the gate's own red therefore degrades to exactly today's payload -- labelled
+    `fail_fast_only` so the reader is never told a truncated set is a complete one."""
+    known = [str(n) for n in (fail_fast_ids or [])]
+
+    def _key(line):
+        """The NODE ID, stripped of pytest's own outcome word.
+
+        The two runs are independent, so the same test can arrive as `FAILED x` from one and
+        `ERROR x` from the other (a fixture that errors under load, collection order). Deduping
+        on the decorated line would then report one test twice and inflate the depth claim --
+        and an inflated depth is the same kind of lie as a truncated one."""
+        s = str(line).strip()
+        for word in ("FAILED ", "ERROR "):
+            if s.startswith(word):
+                return s[len(word):].strip()
+        return s
+
+    seen = {_key(n) for n in known}
+
+    def _merged(extra):
+        out = list(known)
+        for n in extra:
+            if _key(n) not in seen:
+                seen.add(_key(n))
+                out.append(str(n))
+        return out
+
+    budget = red_census_budget_seconds() if budget is None else float(budget)
+    if budget <= 0:
+        log("Publish gate red census SKIPPED: no budget left inside the publish path's bound "
+            "-- the blocking test above is the fail-fast one, and may not be the only red.")
+        return known, CENSUS_FAIL_FAST_ONLY
+    argv = red_census_argv(gate_argv)
+    try:
+        result = (runner or _default_census_runner)(argv, str(cwd), full_env, budget)
+    except subprocess.TimeoutExpired:
+        log("Publish gate red census TIMED OUT after {:.0f}s -- reporting the fail-fast test "
+            "only.".format(budget))
+        return known, CENSUS_FAIL_FAST_ONLY
+    except Exception as exc:  # noqa: BLE001 -- a diagnostic must never red the path it observes
+        log("Publish gate red census unavailable ({}: {}) -- reporting the fail-fast test "
+            "only.".format(type(exc).__name__, exc))
+        return known, CENSUS_FAIL_FAST_ONLY
+    out = "{}\n{}".format(getattr(result, "stdout", "") or "",
+                          getattr(result, "stderr", "") or "")
+    ids = _parse_failed_node_ids(out)
+    if not ids:
+        # The census ran and printed no summary section at all (crash, OOM, collection error).
+        # An absent answer reads as absent -- it is NOT evidence that the fail-fast red is alone.
+        log("Publish gate red census produced no FAILED/ERROR summary (rc={}) -- reporting the "
+            "fail-fast test only.".format(getattr(result, "returncode", "?")))
+        return known, CENSUS_FAIL_FAST_ONLY
+    merged = _merged(ids)
+    status = CENSUS_PARTIAL if len(ids) >= GATE_RED_CENSUS_MAXFAIL else CENSUS_COMPLETE
+    log("Publish gate red census: {} red test(s) behind the fail-fast verdict ({}).".format(
+        len(merged), status))
+    return merged, status
+
+
+def _write_blocking_tests(node_ids, git_hash, census=CENSUS_FAIL_FAST_ONLY):
+    """Publish the red gate's blocking node IDs for the alarm process. Never raises.
+
+    `total_red` is the size of the set BEFORE the citation cap, so a reader can tell a cap that
+    bound from one that did not -- the cap must never be able to look like the answer."""
     try:
         GATE_BLOCKING_TESTS_FILE.parent.mkdir(parents=True, exist_ok=True)
         GATE_BLOCKING_TESTS_FILE.write_text(json.dumps(
             {"ts": time.time(), "git_hash": str(git_hash),
+             "census": str(census), "total_red": len(node_ids),
              "node_ids": [str(n) for n in node_ids[:GATE_MAX_CITED_BLOCKING_TESTS]]},
             sort_keys=True))
     except OSError as exc:
@@ -2321,6 +2489,34 @@ def last_blocking_tests(now=None, path=None):
                 str(gh) if isinstance(gh, str) else None)
     except (json.JSONDecodeError, OSError, ValueError, TypeError):
         return [], None
+
+
+def last_red_census(now=None, path=None):
+    """(status, total_red) for the record `last_blocking_tests` just read.
+
+    Kept a SEPARATE reader rather than widening that tuple: every caller of it wants the node
+    ids, only the payload builders want the census, and a four-tuple would have had three call
+    sites unpacking a field they ignore.
+
+    Every unreadable shape answers `fail_fast_only` -- the census is a claim of COMPLETENESS,
+    and a record that cannot substantiate that claim must not make it. A record written before
+    this field existed reads as `fail_fast_only` too, which is exactly what it was."""
+    p = Path(path) if path is not None else GATE_BLOCKING_TESTS_FILE
+    now = time.time() if now is None else float(now)
+    try:
+        rec = json.loads(p.read_text())
+        if not isinstance(rec, dict):
+            return CENSUS_FAIL_FAST_ONLY, 0
+        ts = rec.get("ts")
+        if not isinstance(ts, (int, float)) or now - float(ts) > GATE_BLOCKING_TESTS_MAX_AGE_SECONDS:
+            return CENSUS_FAIL_FAST_ONLY, 0
+        status = rec.get("census")
+        if status not in (CENSUS_COMPLETE, CENSUS_PARTIAL, CENSUS_FAIL_FAST_ONLY):
+            return CENSUS_FAIL_FAST_ONLY, 0
+        total = rec.get("total_red")
+        return str(status), int(total) if isinstance(total, int) else 0
+    except (json.JSONDecodeError, OSError, ValueError, TypeError):
+        return CENSUS_FAIL_FAST_ONLY, 0
 
 
 def _run_weather_data(git_hash="unknown"):
@@ -3622,12 +3818,18 @@ def _read_publish_gate_state():
         # The blame trail derived from those node ids (H42). {} means "no blocking test was
         # recorded", never "the trail is clean".
         st.setdefault("suspects", {})
+        # HOW MUCH OF THE RED SET the blocking_tests above are (2026-08-14 red census). A state
+        # file written before this field existed knew only the fail-fast red, and that is exactly
+        # what the default says -- never `complete`, which would claim a depth nobody measured.
+        st.setdefault("red_census", CENSUS_FAIL_FAST_ONLY)
+        st.setdefault("total_red", len(st.get("blocking_tests") or []))
         st["state_unavailable"] = False
         return st
     except (json.JSONDecodeError, OSError, ValueError):
         return {"failures": [], "alerted_at": None, "wedge_since": None,
                 "episode_failures": 0, "cited_findings": [], "blocking_tests": [],
-                "suspects": {}, "state_unavailable": True}
+                "suspects": {}, "red_census": CENSUS_FAIL_FAST_ONLY, "total_red": 0,
+                "state_unavailable": True}
 
 
 PUBLISH_GATE_SINCE_FIELDS = ("wedge_since",)
@@ -3650,7 +3852,9 @@ def _write_publish_gate_state(state, *, episode_closed=False):
            "episode_failures": state.get("episode_failures", 0),
            "cited_findings": state.get("cited_findings", []),
            "blocking_tests": state.get("blocking_tests", []),
-           "suspects": state.get("suspects", {})}
+           "suspects": state.get("suspects", {}),
+           "red_census": state.get("red_census", CENSUS_FAIL_FAST_ONLY),
+           "total_red": state.get("total_red", 0)}
     out = guard_episode(_read_publish_gate_state() if PUBLISH_GATE_STATE_FILE.exists() else None,
                         out,
                         since_fields=PUBLISH_GATE_SINCE_FIELDS,
@@ -4009,7 +4213,27 @@ def _episode_phrase(wedge_since, episode_failures, now):
                 since_iso, age_min // 60, age_min % 60, episode_failures)
 
 
-def _blocking_clause(blocking, blocking_hash):
+def _census_clause(census, total_red, shown):
+    """How much of the red set the line above is -- the difference between "one red" and "we
+    stopped at one". Silence here is what let five instances of one class be served one per tick
+    across 252 gate cycles; a depth claim that cannot be wrong is not a depth claim."""
+    if census == CENSUS_COMPLETE:
+        withheld = (" ({} more withheld -- read the census in "
+                    "docs/observability/sim-runner-log.md)".format(total_red - shown)
+                    if total_red > shown else "")
+        return (" THAT IS THE WHOLE RED SET: {} test(s) red at this HEAD, enumerated by a "
+                "report-only re-run without fail-fast{}. Fix them TOGETHER -- fixing one and "
+                "re-running is how this wedge lasted 252 cycles.".format(total_red, withheld))
+    if census == CENSUS_PARTIAL:
+        return (" AT LEAST {} test(s) are red at this HEAD (the report-only census hit its own "
+                "{}-failure bound, so there may be more). This is a STACK, not a single "
+                "defect.".format(total_red, GATE_RED_CENSUS_MAXFAIL))
+    return (" DEPTH UNKNOWN: the gate runs fail-fast and the report-only census did not run "
+            "(no budget, timed out, or unavailable -- see the log), so this may be one red of "
+            "many. Do NOT read it as the only one.")
+
+
+def _blocking_clause(blocking, blocking_hash, census=CENSUS_FAIL_FAST_ONLY, total_red=0):
     """The one line that identifies the wedge -- or an honest statement that it is unknown.
 
     NEVER degrades to a guess. "Unrecorded" is a fact a reader can act on (go read the gate log);
@@ -4017,7 +4241,8 @@ def _blocking_clause(blocking, blocking_hash):
     if blocking:
         at = " (gate subject {})".format(blocking_hash) if blocking_hash else ""
         return ("BLOCKING TEST{}: {}. Run exactly that node id against a clean checkout of "
-                "HEAD.".format(at, "; ".join(blocking)))
+                "HEAD.".format(at, "; ".join(blocking))
+                + _census_clause(census, max(int(total_red or 0), len(blocking)), len(blocking)))
     return ("BLOCKING TEST: UNRECORDED -- the gate's failing node id was not captured (no red "
             "gate has run since this record was last cleared, or the record went stale). Read "
             "docs/observability/sim-runner-log.md for the last 'Publish gate RED' line; do NOT "
@@ -4027,7 +4252,8 @@ def _blocking_clause(blocking, blocking_hash):
 def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_fn,
                              *, wedge_since=None, episode_failures=0, now=None,
                              cited=None, markers_pending=None, blocking=None,
-                             blocking_hash=None, suspects=None):
+                             blocking_hash=None, suspects=None,
+                             census=CENSUS_FAIL_FAST_ONLY, total_red=0):
     now = time.time() if now is None else float(now)
     window_min = PUBLISH_GATE_WINDOW_SECONDS // 60
     n = len(recent)
@@ -4046,7 +4272,7 @@ def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_
     if unavailable:
         what += (" NOTE: the gate-state file was unreadable, so this alert fired "
                  "fail-closed on the first failure rather than risk staying silent.")
-    how = _blocking_clause(blocking, blocking_hash) + (
+    how = _blocking_clause(blocking, blocking_hash, census, total_red) + (
            " rc=-9 is almost certainly OOM (free memory or cut test parallelism), "
            "NOT a code bug; rc>0 means run that test at HEAD to find the regression. Full "
            "output: docs/observability/sim-runner-log.md, 'Publish gate RED output tail'. "
@@ -4115,6 +4341,9 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         # EVIDENCE BEFORE SUSPICION (R9): re-read on every failure, not only at fire time, so
         # the state file the RUNG-1 draw reads names the CURRENT red's test even between pages.
         blocking, blocking_hash = last_blocking_tests(now=now)
+        # Read from the SAME record, at the same moment, so the depth claim can never describe a
+        # different red than the node ids beside it.
+        census, total_red = last_red_census(now=now)
         # SUSPECTS FROM THE RED (H42): re-derived on every failure, not only at fire time, so
         # the state file the RUNG-1 draw reads describes the CURRENT red between pages too. An
         # unrecorded blocking test yields {} and therefore NO suspects and NO citations --
@@ -4127,7 +4356,8 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
             _fire_publish_gate_alert(failures, kind, rc, git_hash, unavailable, send_ntfy_fn,
                                      wedge_since=wedge_since, episode_failures=episode_failures,
                                      now=now, cited=cited, blocking=blocking,
-                                     blocking_hash=blocking_hash, suspects=suspects)
+                                     blocking_hash=blocking_hash, suspects=suspects,
+                                     census=census, total_red=total_red)
             alerted_at = now
             fired = True
         _write_publish_gate_state({"failures": failures, "alerted_at": alerted_at,
@@ -4135,6 +4365,7 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
                                    "episode_failures": episode_failures,
                                    "cited_findings": cited,
                                    "blocking_tests": blocking,
+                                   "red_census": census, "total_red": total_red,
                                    "suspects": suspects})
         log("Publish-gate failure #{} ({}, rc={}) -- alert {}".format(
             count, kind, rc, "FIRED" if fired else ("armed/cooldown" if threshold_met else "below threshold")))
