@@ -143,5 +143,123 @@ simplifications:
     `provenance` unchanged at `proposal`. Nothing in `file_scope` was written. `simplifications_count`
     IS updated here (2 -> 3), unlike in frames 1 and 2: the map is clean in the working tree this
     tick, so the edit carries no other lane's hunk.
+- |
+  2026-08-14 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw). FOURTH frame,
+  and like the second and third it exists because the previous frame's load-bearing premise does
+  not survive measurement. Frame 3 replaced frame 2's exit clause with CO-VISIBILITY and declared
+  it free: "co-visibility is DERIVABLE, not a new subject: `_DOOR_ROW_SURFACES` already carries
+  each region's DOM path, so 'no `details[` on the path' is the mechanical predicate, and the
+  control can rest on the census D40 already built rather than on a hand-typed flag." Both halves
+  of that sentence are false, and the R15 mutation frame 3 wrote to defend it does not test it.
+  No BUILD code written and nothing in `file_scope` touched: the atom is `loop_stage: idle`, so
+  EPOCH_GATING_AND_ATOM_AUTHORSHIP rule 7 makes DISCOVER/FRAME available and BUILD not. Level held
+  at 0 on the same reasoning frames 2 and 3 recorded (EP10, not EP19): the deliverable is CODE, and
+  MATURITY_MAP L1 is "been BUILT in any form", so a doc cannot earn it.
+
+  TREE STATE. HEAD `4fdebf030`. `tools/couple_w2_11_d5.py`, `tests/tools/test_couple_w2_11_d5.py`,
+  `docs/design/maturity_map.yaml` and `site/proof/index.html` all CLEAN (`git status --porcelain`
+  over those paths returned empty). Every mutation below was applied to a COPY of the page under
+  `/tmp` and passed to the fixture's `index_path` override; no repo file was written by this frame.
+
+  1. THE PREDICATE IS ANCESTRY, AND THE QUESTION IS VISIBILITY. Two mutations, each changing what
+  the reader is shown while leaving the DOM PATH bit-identical, run through
+  `measure_door_row_surfaces` + `check_door_row_surfaces`, `observed-with-evidence`:
+
+      mutation                                   rendered pixel                 census findings   digest
+      HEAD                                       <details> / gap-note plain     []                18 paths
+      <details> -> <details open>                <details open>                 []                IDENTICAL
+      note gets style="display:none"             <div class="gap-note"          []                IDENTICAL
+                                                   style="display:none">
+
+  Both are CLEAN, and the per-path digest (tag, `text_moves`, `attrs_moved`) is bit-identical to
+  HEAD's in both. So frame 3's predicate answers NOT-CO-VISIBLE for a components region the reader
+  is being shown, and CO-VISIBLE for a note the reader cannot see. It is wrong in both directions,
+  and the control that frame 3 wanted to rest on reports nothing in either.
+
+  2. AND THE CENSUS CANNOT CARRY IT -- STRUCTURALLY, NOT BY OMISSION. D40's discrimination rule is
+  TWO-BOOK MOVEMENT: `text_moves`, and `attrs_moved` = the attribute names whose values DIFFER
+  between books. Visibility is invariant across books by construction, so no verdict of that census
+  can ever be about it. This is not inference -- the deciding attribute is COLLECTED and unread:
+
+      div.gap-row[0]/details[0]   attrs_by_book: ({'open': ''}, {'open': ''})   attrs_moved: ()
+
+  `open` is in the walk's own data for both books and therefore in neither verdict. A control resting
+  on that census inherits its subject, and its subject is movement.
+
+  3. FRAME 3's OWN R15 MUTATION IS ANSWERED BY A DIFFERENT CONTROL. Frame 3 named "move
+  `site/proof/index.html`'s `gap-note` INSIDE the `<details>` wrapper and the sentence must change"
+  as the mutation that kills its version. Run: it fires FOUR findings, and every one of them comes
+  from the POPULATION half of the census that has been shipped since Hour #27 --
+
+      div.gap-row[0]/details[1]                      undeclared surface
+      div.gap-row[0]/details[1]/div.gap-note[0]      undeclared surface
+      div.gap-row[0]/details[1]/summary[0]           undeclared surface
+      div.gap-row[0]/div.gap-note[0]                 declared, and the row does not contain it
+
+  -- none of them about a sentence, all of them red whether or not any co-visibility caveat exists.
+  A mutation whose red is produced by a control that PREDATES the residue proves nothing about the
+  residue: R15's own doctrine is that a control counts only when a mutation fires THAT control on
+  ITS named defect. Frame 3's mutation would have passed while the sentence stayed untested.
+
+  4. THE FIX IS STILL CHEAP, WHICH IS WHY THIS CHANGES THE CLAUSE AND NOT THE ATOM. Co-visibility is
+  a ONE-BOOK STRUCTURAL read over the population the walk already has: for a region path, no ancestor
+  `details` lacking `open`, no `hidden`, no `display:none`, checked over `attrs_by_book[0]` at every
+  ancestor. Prototyped against the same three states the census reports identically:
+
+      state          gap-val       div.gap-row/div.gap-note   div.gap-row/details/div.gap-note
+      HEAD           CO-VISIBLE    CO-VISIBLE                 NOT (behind a closed <details>)
+      details_open   CO-VISIBLE    CO-VISIBLE                 CO-VISIBLE
+      note_hidden    CO-VISIBLE    NOT (display:none)         NOT (behind a closed <details>)
+
+  Three states, three different answers, no new render, no new scoring, no new subject -- a different
+  VERDICT over the same elements. What it cannot be is a corollary of the two-book rule.
+
+  5. THE BOUND THIS FRAME MUST STATE RATHER THAN CLAIM AROUND (R15 fail-silent). The walk parses the
+  ROW's HTML and nothing else, so two hides are outside anything this module can read. (a) CSS: a
+  stylesheet rule `.gap-note{display:none}` hides it with no attribute anywhere in the row. Read at
+  HEAD, the only shipped rules touching these are line 145 `details > summary { cursor: pointer; ...}`
+  and line 163 `.gap-note { font-size: 11px; color: var(--muted); ... }` -- no display, visibility or
+  opacity property on either, so nothing is hidden today. (b) ANCESTRY ABOVE THE ROW: `_door_my_row`
+  roots the population at `div.gap-row`, so every path in `_DOOR_ROW_SURFACES` begins there and a
+  disclosure ENCLOSING the panel is invisible to all of them. Checked structurally: `#coupled-gaps`
+  sits in a plain top-level `div.card` (line 367) and no `<details>` opens anywhere before it (the
+  page's two are at lines 403 and 495, both after), so no ancestor disclosure exists today. Both are
+  facts about the page at one commit, not properties of the instrument -- so the sentence a control
+  may publish is "no ancestor disclosure and no inline hide, stylesheet read at <commit>", bounded.
+  An unbounded "the reader is shown both" would be a claim about a surface the checker cannot read.
+
+  WHAT THE EXIT TEST MUST BE. Frames 1-3's clauses stand except frame 3's second and third; replace
+  those with:
+    * co-visibility is measured ONE-BOOK and STRUCTURALLY -- ancestor `details` without `open`,
+      `hidden`, inline `display:none` -- and never as a property of a DOM path alone; the two-book
+      movement rule cannot decide it and a control that defers to it is measuring the wrong thing;
+    * R15, the mutations that must FAIL and that frame 3's version passes: `<details>` ->
+      `<details open>` must change the sentence, and `style="display:none"` on the note must change
+      it. Both leave every DOM path and every census verdict bit-identical, so they are the pair that
+      separates a co-visibility control from a path listing;
+    * frame 3's move-the-note mutation is KEPT but demoted -- it is a valid population test and it is
+      not evidence for this sentence, because the four reds it raises are the Hour #27 census's;
+    * the published sentence states its own BOUND (the stylesheet was read; the population is the
+      row), because the checker cannot see a CSS hide or a disclosure above the row.
+
+  R12/R13. No published number moved and none was tuned. Nothing in `file_scope` was written, no
+  scoring was run and none is claimed -- frame 2's bit-identity table remains the last measurement of
+  that kind on this atom. The door renders above used the shipped shape fixture's synthetic payloads
+  (values 0.118/0.129), whose subject is the row's SHAPE and not any book; the live
+  `site/data/proof.json` was READ for the ancestry and component facts and never rewritten.
+
+  A BOUND CLOSED ON FRAME 3's SMALLER FINDING, recorded because it changes that finding's priority.
+  Frame 3 recorded `fmtComponent` as an undeclared THIRD render path that "would arrive as a
+  NON-co-visible fourth precision". Measured: `fmtComponent` renders numbers at `Number(v).toFixed(4)`
+  = 4dp (line 840), and the live W2_11 row's components are 19 keys of which none is a carrier of any
+  of the five published figures (no `*_displacement`, belief, ageing or latency key among them). So
+  `<details open>` would NOT today expose a fifth figure at a second precision -- the exposure is a
+  property of `to_ledger_entry`'s key set, exactly as frame 3 said, and today that key set does not
+  carry one. The finding is real and it is not live, which is a lower priority than frame 3 left it.
+
+  STATUS: DISCOVER/FRAME only. `level_current` unchanged at 0, `loop_stage` unchanged at `idle`,
+  `provenance` unchanged at `proposal`. Nothing in `file_scope` was written. `simplifications_count`
+  is updated here (3 -> 4): the map is clean in the working tree this tick, so the edit carries no
+  other lane's hunk.
 map_notes:
   name: 'SPUN OUT OF H27 EXPERT HOUR #16 (2026-08-11, worker tick, not fixed on sight -- SELF-INTERRUPT DISCIPLINE). Hour #15''s leads 1 and 2, taken together because they need one number: WHAT PRECISION IS THE READER ACTUALLY GIVEN? Hour #15 had installed exactly that number one Hour earlier -- `PUBLISHED_GAP_DECIMALS = 4`, ''the precision every consumer renders these gaps at'', with an independence re-read so that ''a consumer that starts publishing 6dp fails the control instead of leaving the epsilon stale''. It was neither. (1) IT COULD NOT FAIL ON THE CHANGE IT WAS BUILT FOR: the re-read collected EVERY `.Nf` in the anchored function and asked only whether 4 was among them, and `format_belief_summary` renders three other RATES at `.4f` and the mean steps at `.2f`, so it already returned {2, 4} -- a set, not a precision. Mutated live on a copy of the tree, moving the BELIEF GAP''s own render to `.6f` leaves {2, 4, 6} and the shipped check still passes. A membership test over every number in a function is not a check on the one number the figure is. (2) IT WAS THE BELIEF READER''S PRECISION, DECLARED AS EVERY READER''S: the keyset was two hand-typed consumer sites, both BELIEF, while FIVE dimensions are published. Read off the shipped renderers by AST -- `detection` and both belief figures 4dp, `ageing` 3dp (`format_ageing_summary` publishes `balanced_bucket_displacement` and never renders `.gap` at all) and `detection_latency` 2dp (`f"{mean:.2f} days mean"`, reached through a local alias). One global constant, TEN times too fine for one published figure and a HUNDRED times too fine for another -- and `_own_floor_clause` was publishing ''at the 4dp every consumer renders these gaps at'' to the reader of both belief numbers, which is false of two of the five. THIS ATOM IS THE RESHAPE Hour #16 declined to do on the promoter''s behalf: THE FLOOR ITSELF COVERS TWO OF FIVE FIGURES. `measure_published_resolution_floor` has only ever been asked of the belief pair; lead 2''s remaining half -- per-figure resolution floors for `detection`, `detection_latency` and `ageing` at their own coarser reader steps -- is now ANSWERABLE (each figure has a measured precision) but stating them moves published caveat text on three dimensions, which is a reshape with real blast radius rather than a fix on sight. LEAD 1 ANSWERED AND IT BOUNDS D33: re-derived at each dimension''s OWN reader precision on the dense book-derived grids (n=300, seeds 7/11/23, both knobs), every declared band, edge and collapse run in DIMENSION_DRIFT_RESOLUTION and ORGAN_QUERY_GRID reproduces EXACTLY -- so the bit-equality divergence D33 owns is confined to the belief cells. R12: no published number moved -- all five figures bit-identical (ageing 0.11296259117981663, belief 0.1518987341772152, mix 0.07999999999999997, detection 0.014505119453924915, latency 2.343137 at seed 7); what moved is what the instrument admits about itself, and one caveat sentence that was false. ALREADY LANDED UNDER H27''s HOUR: PUBLISHED_GAP_CONSUMERS, per dimension, keyset DERIVED from `published_dimensions` BOTH WAYS (a published figure with no entry RAISES -- the fallback IS the defect -- and an entry for a figure nobody publishes RAISES); `measure_published_reading_precision`, which reads the number off THE FORMAT SPEC THAT RENDERS THAT DIMENSION''S GAP, through one level of local alias, through the COMPONENT where the gap reaches the reader as one, and through a Subscript key so one shared renderer (the live writer''s `measure_and_write`) cannot lend a sibling''s precision to this figure; the component carrier checked NUMERICALLY against a real scoring (delta 4.1e-7 inside that figure''s own 5e-4 step) rather than believed by name, with an unchecked carrier a violation; RAISES on an absent consumer file, an absent renderer, or a gap with no fixed-point render (the pre-Hour version returned an empty tuple for a missing file and its caller read that as agreement); `published_reading_epsilon()` REFUSING a caller that names no figure, on the `_own_floor_clause` precedent; the floor taking its epsilon per figure; and the caveat sentence now stating THIS figure''s consumer''s precision. R15 both ways on eleven mutations: the gap render moved off its declared precision (the pre-Hour defect, on `belief`, and on both figures the constant was wrong about), one gap rendered at TWO precisions, the consumer file absent (fail-silent), the renderer renamed away, a gap with no fixed-point render (fail-open), a published dimension dropped (raises), an entry for a figure nobody publishes (raises), a component carrier that is not the gap, a component carrier nothing checked, a bare epsilon call, and a VACUITY guard pinning the 2-4dp spread itself -- a register giving every figure the same number would be the pre-Hour constant wearing a dict.'
