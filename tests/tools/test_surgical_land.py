@@ -672,3 +672,78 @@ def test_a_disk_refusal_names_what_the_sweep_found(repo: Path, monkeypatch: pyte
 
     with pytest.raises(sl.LandingRefused, match=r"Swept \d+ stale surgical-land extract"):
         sl.land(repo, ["code.py"], "should refuse on disk")
+
+
+# ===========================================================================
+# WHERE AN EXTRACT MATERIALISES (2026-08-14).
+#
+# The landing tool extracted into `tempfile.gettempdir()` -- `/tmp`, a tmpfs on this box, backed
+# by the same RAM the gated suites need -- while the publish gate had been moved to `/var/tmp`
+# (ext4) on 2026-08-11 for exactly that reason. One half of a class was hardened and its sibling
+# was not, and the sibling is the one on the RECOVERY path: a full tmpfs refuses EVERY commit on
+# a dirty tree, including the commit that unwedges publishing.
+#
+# These are R15 tests, so each must fail on its own named defect: reverting EXTRACT_ROOT to
+# `gettempdir()` reds the first two, and dropping the legacy root from the sweeper reds the third.
+# ===========================================================================
+def test_the_extract_root_agrees_with_the_publish_gates_checkout_root():
+    """TAUTOLOGY guard: assert against the GATE's constant, not against a literal repeated here.
+
+    A test that hard-codes "/var/tmp" passes even if the gate later moves somewhere else and the
+    two silently diverge again -- which is the whole defect. Comparing the two constants is what
+    makes divergence, not a particular path, the thing that reds.
+    """
+    import background.process_run_complete as prc
+
+    assert sl.EXTRACT_ROOT == prc.HEAD_CHECKOUT_ROOT, (
+        "the landing tool and the publish gate must materialise checkouts in the SAME place; "
+        f"landing tool says {sl.EXTRACT_ROOT}, gate says {prc.HEAD_CHECKOUT_ROOT}"
+    )
+
+
+def test_an_extract_is_not_created_under_the_tmpfs():
+    """FAIL-OPEN guard: the root must not be the default temp dir while that dir is a tmpfs.
+
+    Skips rather than passes where /tmp is not a tmpfs -- an inapplicable check is not a passing
+    one, and saying so out loud is cheaper than a green that means nothing.
+    """
+    legacy = Path(tempfile.gettempdir())
+    fstype = subprocess.run(
+        ["stat", "-f", "-c", "%T", str(legacy)], capture_output=True, text=True,
+    ).stdout.strip()
+    if fstype != "tmpfs":
+        pytest.skip(f"{legacy} is {fstype!r}, not tmpfs -- this box cannot exhibit the defect")
+    assert sl.EXTRACT_ROOT.resolve() != legacy.resolve(), (
+        f"repo-sized extracts would materialise in RAM ({legacy} is tmpfs)"
+    )
+
+
+def test_the_sweeper_still_reclaims_the_legacy_tmpfs_backlog(tmp_path: Path, monkeypatch):
+    """Moving where extracts LAND must not orphan the ones already leaked where they used to.
+
+    The backlog in the old root is precisely what filled the tmpfs; a sweeper that only looks at
+    the new root can never reclaim it. Fails if the legacy base is dropped from the default sweep.
+    """
+    new_root, legacy_root = tmp_path / "var", tmp_path / "tmp"
+    new_root.mkdir()
+    legacy_root.mkdir()
+    proc = subprocess.Popen([sys.executable, "-c", "pass"])
+    dead_pid = proc.pid
+    assert proc.wait() == 0
+    with pytest.raises(ProcessLookupError):
+        os.kill(dead_pid, 0)
+
+    stranded = _make_extract(legacy_root, "surgical-land-legacy", marker=str(dead_pid))
+    fresh = _make_extract(new_root, "surgical-land-new", marker=str(dead_pid))
+
+    monkeypatch.setattr(sl, "EXTRACT_ROOT", new_root)
+    monkeypatch.setattr(sl.tempfile, "gettempdir", lambda: str(legacy_root))
+
+    removed, _ = sl.sweep_stale_extracts()
+
+    assert not fresh.exists(), "the new root is not being swept at all"
+    assert not stranded.exists(), (
+        "the pre-move backlog in the legacy temp root was left behind -- it is the backlog that "
+        "filled the tmpfs in the first place"
+    )
+    assert removed == 2

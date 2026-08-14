@@ -127,6 +127,21 @@ MIN_FREE_MB = 500
 # removes both in one call and there is nothing to leak twice.
 OWNER_MARKER = ".owner-pid"
 
+# WHERE AN EXTRACT LIVES -- ON DISK, NOT IN RAM (2026-08-14). This MIRRORS
+# `process_run_complete.HEAD_CHECKOUT_ROOT` deliberately and for the identical reason: on this box
+# `tempfile.gettempdir()` is `/tmp`, a tmpfs backed by the same 15.9G of RAM the suites need, while
+# `/var/tmp` is ext4 with ~886G free. The publish gate was moved off the tmpfs on 2026-08-11; this
+# tool -- the only sanctioned way to LAND that gate's own repairs -- was left behind, which is the
+# sibling-half shape (`feedback_audit_sibling_half_for_hardened_class`).
+#
+# Its cost lands on the RECOVERY path, which is why it is worth a constant rather than a habit: a
+# full tmpfs refuses EVERY commit on a dirty tree, including the commit that unwedges publishing,
+# with a message that correctly says DISK and correctly says nothing failed -- observed 2026-08-14
+# ("REFUSED on DISK: 352MB free where the extract needs ~500MB") at exactly the moment a tick was
+# hunting the wedge's red test. Same env-var shape as the gate's, so the two agree by construction
+# and can be pointed elsewhere together.
+EXTRACT_ROOT = Path(os.environ.get("SE_LAND_EXTRACT_ROOT", "/var/tmp"))
+
 # Untracked DATA the suite reads (a ~291MB Elexon/NESO cache, the npm tree). `git archive` cannot
 # contain them, and a checkout without them fails ~85 tests for reasons that have nothing to do
 # with whether the commit is sound. Symlinked, never copied; a named list, never "everything
@@ -224,13 +239,26 @@ def sweep_stale_extracts(base: str | None = None) -> tuple[int, int]:
     `test_a_live_extract_survives_the_sweep` pins this; `test_sweep_removes_a_dead_extract` and
     `test_sweep_removes_a_markerless_legacy_extract` pin the other direction.
     """
-    base_dir = Path(base) if base else Path(tempfile.gettempdir())
+    # BOTH ROOTS when no explicit base is given (2026-08-14). Extracts moved from the tmpfs to
+    # `EXTRACT_ROOT`, but every directory leaked BEFORE that move is still sitting in
+    # `gettempdir()` -- and those are the ones filling the tmpfs that made the move necessary. A
+    # sweeper that only looks where new extracts land can never reclaim the backlog that caused
+    # the incident, so it looks in both and de-duplicates when they are the same path.
+    if base:
+        bases = [Path(base)]
+    else:
+        bases = [EXTRACT_ROOT]
+        legacy = Path(tempfile.gettempdir())
+        if legacy.resolve() != EXTRACT_ROOT.resolve():
+            bases.append(legacy)
     removed = 0
     freed_mb = 0
-    try:
-        candidates = sorted(base_dir.glob("surgical-land-*"))
-    except OSError:
-        return 0, 0
+    candidates: list[Path] = []
+    for base_dir in bases:
+        try:
+            candidates.extend(sorted(base_dir.glob("surgical-land-*")))
+        except OSError:
+            continue
     for path in candidates:
         if not path.is_dir():
             # `build_resulting_tree`'s index tempfile shares the "surgical-land-index-" prefix
@@ -579,7 +607,8 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
             "the named paths are already at HEAD -- the resulting tree is identical, so there is "
             "nothing to land. (If you expected a change, check the pathspec.)")
     files = changed_paths(root, parent_tree, result_tree)
-    checkout = Path(tempfile.mkdtemp(prefix="surgical-land-"))
+    EXTRACT_ROOT.mkdir(parents=True, exist_ok=True)
+    checkout = Path(tempfile.mkdtemp(prefix="surgical-land-", dir=str(EXTRACT_ROOT)))
     # Marker written FIRST, before anything else can fail or take long: this is what makes the
     # sweep below (and any concurrent lane's sweep) leave THIS checkout alone.
     (checkout / OWNER_MARKER).write_text(str(os.getpid()))
