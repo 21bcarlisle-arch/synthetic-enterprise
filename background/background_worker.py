@@ -374,9 +374,26 @@ def process_leftover_run_markers():
 
     if not pending:
         return
-    log(f"Found {len(pending)} leftover run_complete marker(s) — processing")
+    # DRAIN-SUPERSESSION (OPS3, 2026-08-14). `pending` is ascending and this loop used to walk
+    # it OLDEST-FIRST. That is the fidelity regression classify_markers() exists to prevent,
+    # reached from the other side: supersession was only ever computed against what had ALREADY
+    # published, never against the marker about to publish, so a marker that no completed run
+    # had yet overtaken was "pending" however stale it was. With one publisher cycle costing up
+    # to _publisher_deadline_seconds() against a sim_runner minting a marker every ~10 min, the
+    # queue GROWS, and the snapshot the pipeline publishes is the one at the BACK of it —
+    # measured 2026-08-14 19:22Z: 102 pending, publisher chewing 20260814T090117Z while
+    # 20260814T183636Z sat unpublished, i.e. the figures about to be published were 9.5h stale.
+    # Publishing that overwrites current figures with older ones — winding the clock backwards,
+    # which classify_markers' own docstring calls a fidelity regression under R11/R14.
+    #
+    # The queue is a STACK, not a FIFO: every marker describes the SAME thing (the state of the
+    # world after a run), so the newest strictly dominates and the older ones carry nothing it
+    # lacks. Publish the newest; the rest are superseded BY IT, retired naming it.
+    order = list(reversed(pending))
+    log(f"Found {len(pending)} leftover run_complete marker(s) — processing newest-first "
+        f"({order[0].name} first of {len(order)})")
     processor = Path(__file__).parent / "process_run_complete.py"
-    for marker in pending:
+    for position, marker in enumerate(order):
         try:
             result = subprocess.run(
                 [sys.executable, str(processor), str(marker)],
@@ -418,7 +435,7 @@ def process_leftover_run_markers():
                 f"pending; continuing to the next one."
                 + (f"\n  publisher stderr before the kill (last {STDERR_TAIL_LINES} lines):"
                    f"\n{tail}" if tail else "\n  publisher stderr: nothing captured before the kill"))
-            if marker is pending[0]:
+            if position == 0:
                 _remember_oldest_outcome(marker.name, None)
             # rc=None, kind stated: a deadline kill produces no return code, and inventing
             # one would launder a stopwatch into evidence about the tests.
@@ -427,7 +444,7 @@ def process_leftover_run_markers():
         # EPISODE4 item 2: remember what actually happened to the OLDEST pending marker, so the
         # zero-progress alarm can report an observed cause instead of inferring one. Written
         # here (not in the alarm) because this is the only place that sees the return code.
-        if marker is pending[0]:
+        if position == 0:
             _remember_oldest_outcome(marker.name, result.returncode)
         if result.returncode == EXIT_LOCK_SKIPPED:
             # NOT processed -- another instance holds the run lock and the
@@ -449,6 +466,30 @@ def process_leftover_run_markers():
             # _record_marker_published) -- written here because this is the only place that sees
             # a publish actually succeed.
             _record_marker_published(marker.name)
+            # DRAIN-SUPERSESSION (OPS3). This marker just completed its publish pipeline, so
+            # every marker still queued behind it is -- by the ordering above -- STRICTLY OLDER
+            # and now genuinely overtaken on every published surface. That is the same terminal
+            # state classify_markers() assigns, on the same evidence (a later run published);
+            # the only thing that was missing is that the frontier is read once at the TOP of
+            # the sweep, so a run published by THIS sweep never retired anything until the next
+            # one. Retiring them here is what makes the backlog drain in one cycle instead of
+            # one-marker-per-cycle against an arrival rate that outruns it.
+            #
+            # NOT a bulk-archive (R10): each is retired through the same audited path, keeping
+            # its content and gaining a note naming the run that superseded it.
+            drained = [m for m in order[position + 1:] if m.exists()]
+            if drained:
+                stamp = _marker_stamp(marker.name)
+                retired = sum(
+                    1 for m in drained
+                    if retire_superseded_marker(m, stamp, done_dir)
+                )
+                log(f"Drain-superseded {retired}/{len(drained)} older run_complete marker(s) "
+                    f"— overtaken by {marker.name}, which published in this sweep")
+            _record_publish_gate_outcome(marker, result.returncode)
+            # Publishing an older snapshot AFTER a newer one has published is the clock-rewind
+            # this ordering exists to stop, so the sweep ends here rather than walking on.
+            return
         else:
             tail = stderr_tail(getattr(result, "stderr", None))
             log(f"Failed to process {marker.name} (rc={result.returncode}) — will retry next cycle"

@@ -74,9 +74,15 @@ def test_single_marker_is_processed(monkeypatch):
 def test_collects_every_leftover_marker_unconditionally(monkeypatch):
     """The core regression guard: this is the ONE property the whole
     sim_runner.py / process_run_complete.py coupling depends on -- if this
-    glob is ever narrowed (e.g. skip markers older than N, or only the
-    most recent one), a lock-skipped marker becomes permanently orphaned
-    with nothing left to rescue it."""
+    glob is ever narrowed (e.g. skip markers older than N), a lock-skipped
+    marker becomes permanently orphaned with nothing left to rescue it.
+
+    THE PROPERTY IS DISPOSAL, NOT PUBLICATION (restated 2026-08-14, OPS3). This used to assert
+    that all three were handed to the PUBLISHER, which conflated the guard with the FIFO order
+    that happened to implement it. Under drain-supersession the newest publishes and the rest
+    are retired naming it -- every marker is still collected and still reaches a terminal state
+    in the same cycle, which is what 'never orphaned' actually means. Asserting the publisher
+    call count instead would have frozen the very ordering that made the backlog ungrowable."""
     names = [f"run_complete_2026071{i}T000000Z.md" for i in range(1, 4)]
     for name in names:
         (background_worker.STAGING_DIR / name).write_text("# Simulation Run Complete\n")
@@ -88,9 +94,15 @@ def test_collects_every_leftover_marker_unconditionally(monkeypatch):
 
     background_worker.process_leftover_run_markers()
 
-    assert len(calls) == 3
-    processed_paths = {Path(c[-1]).name for c in calls}
-    assert processed_paths == set(names)
+    published = {Path(c[-1]).name for c in calls}
+    retired = {p.name for p in (background_worker.STAGING_DIR / "done").glob("run_complete_*.md")}
+    assert published | retired == set(names), (
+        "every leftover marker must be DISPOSED this cycle -- published or retired. "
+        f"published={published} retired={retired}"
+    )
+    assert not retired & published, "a marker is published or retired, never both"
+    assert (background_worker.STAGING_DIR / "from_rich_20260713.md").exists(), \
+        "a non-marker file must never be swept up by the marker glob"
 
 
 def test_a_failed_marker_does_not_stop_the_others_being_attempted(monkeypatch):
@@ -286,20 +298,25 @@ def test_a_real_failure_is_still_recorded(monkeypatch):
 
 
 def test_processing_order_is_deterministic_sorted(monkeypatch):
-    """sorted() on the glob result means the oldest-timestamped marker
-    (by filename) is always attempted first -- a real, if minor,
-    fairness property worth locking in."""
+    """Order is deterministic (sorted on the fixed-width UTC stamp), and it is NEWEST-FIRST.
+
+    This asserted oldest-first until 2026-08-14 on a stated 'fairness' rationale. Fairness is
+    the wrong frame for this queue: the markers are not competing jobs, they are successive
+    snapshots of ONE thing, so serving them in arrival order publishes the stalest and calls it
+    fair. Determinism is the property worth locking in; the direction now follows the freshness
+    argument in process_leftover_run_markers()."""
     names = ["run_complete_20260713T030000Z.md", "run_complete_20260713T010000Z.md", "run_complete_20260713T020000Z.md"]
     for name in names:
         (background_worker.STAGING_DIR / name).write_text("# Simulation Run Complete\n")
 
     calls = []
-    monkeypatch.setattr(background_worker.subprocess, "run", lambda *a, **k: calls.append(a[0][-1]) or _fake_success())
+    monkeypatch.setattr(background_worker.subprocess, "run",
+                        lambda *a, **k: calls.append(a[0][-1]) or MagicMock(returncode=1, stderr=""))
 
     background_worker.process_leftover_run_markers()
 
     processed_order = [Path(c).name for c in calls]
-    assert processed_order == sorted(names)
+    assert processed_order == sorted(names, reverse=True)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -388,21 +405,26 @@ def test_mixed_backlog_retires_the_stale_and_publishes_the_live_one():
 
 
 def test_no_published_run_yet_retires_nothing():
-    """FAIL-SAFE DIRECTION: with an empty (or absent) done/ there is no
-    supersession frontier, so NOTHING may be retired -- every marker is
-    pending. A fix that retired markers here would be destroying unpublished
-    runs on a fresh checkout."""
+    """FAIL-SAFE DIRECTION: with an empty (or absent) done/ there is no supersession frontier,
+    so the top-of-sweep retirement may retire NOTHING -- a fix that retired markers here would
+    be destroying unpublished runs on a fresh checkout.
+
+    The publisher is held RED here deliberately (2026-08-14, OPS3): this test is about the
+    frontier read from done/, and a green publisher would additionally trigger
+    drain-supersession, which is a different mechanism with its own evidence (a run that
+    actually published) and its own tests below. Keeping them separate is what lets this one
+    still fail for its own reason."""
     markers = [_write(background_worker.STAGING_DIR, f"run_complete_2026080{d}T010000Z.md")
                for d in (1, 2, 3)]
     calls = []
     import unittest.mock as m
     with m.patch.object(background_worker.subprocess, "run",
-                        lambda *a, **k: calls.append(a[0][-1]) or _fake_success()):
+                        lambda *a, **k: calls.append(a[0][-1]) or MagicMock(returncode=1, stderr="")):
         background_worker.process_leftover_run_markers()
 
     assert len(calls) == 3
     for mk in markers:
-        assert mk.exists() or True  # consumed by the pipeline mock, not retired
+        assert mk.exists(), "no frontier and no publish means nothing may be retired"
     assert not list((background_worker.STAGING_DIR / "done").glob("*.md"))
 
 
@@ -533,6 +555,142 @@ def test_a_failed_retirement_never_breaks_the_sweep(monkeypatch):
 
     assert [Path(c).name for c in calls] == [live.name], \
         "the live marker must still be published even though retirement failed"
+
+
+# ── DRAIN-SUPERSESSION (OPS3, 2026-08-14) ──────────────────────────────────────
+# The sweep walked the queue OLDEST-FIRST while supersession was only ever computed against
+# what had ALREADY published. Measured 2026-08-14 19:22Z: 102 pending, the publisher chewing
+# 20260814T090117Z while 20260814T183636Z sat unpublished -- publishing figures 9.5h stale over
+# current ones, the clock-rewind classify_markers' own docstring forbids.
+
+def _queue(names):
+    for n in names:
+        (background_worker.STAGING_DIR / n).write_text("# Simulation Run Complete\n")
+
+
+BACKLOG = [
+    "run_complete_20260814T090117Z.md",
+    "run_complete_20260814T120000Z.md",
+    "run_complete_20260814T183636Z.md",
+]
+
+
+def test_the_newest_marker_is_the_one_published(monkeypatch):
+    """THE DEFECT: with a backlog, the sweep published the marker at the BACK of the queue.
+
+    MUTATION: drop the `reversed()` in process_leftover_run_markers and this fails -- the
+    publisher is handed the 09:01Z snapshot while the 18:36Z one waits."""
+    _queue(BACKLOG)
+    published = []
+
+    def _run(*a, **k):
+        argv = a[0]
+        if any("process_run_complete" in str(x) for x in argv):
+            published.append(Path(argv[-1]).name)
+        return MagicMock(returncode=0, stderr="")
+
+    monkeypatch.setattr(background_worker.subprocess, "run", _run)
+    background_worker.process_leftover_run_markers()
+
+    assert published == ["run_complete_20260814T183636Z.md"], (
+        "the sweep must publish the NEWEST snapshot and exactly once -- publishing an older "
+        f"one winds the published clock backwards. Got: {published}"
+    )
+
+
+def test_the_older_markers_are_retired_naming_the_run_that_superseded_them(monkeypatch):
+    """OPS3 exit criterion 2: drain-SUPERSEDED, not bulk-archived. Each older marker keeps its
+    content and gains a note naming the run that overtook it (R10: the backlog defect may not
+    be closed by deleting the backlog).
+
+    MUTATION: replace the retire_superseded_marker() call with `m.unlink()` and this fails on
+    both the archive location and the named superseding run."""
+    _queue(BACKLOG)
+    monkeypatch.setattr(background_worker.subprocess, "run",
+                        lambda *a, **k: MagicMock(returncode=0, stderr=""))
+
+    background_worker.process_leftover_run_markers()
+
+    done = background_worker.STAGING_DIR / "done"
+    for name in BACKLOG[:-1]:
+        retired = done / name
+        assert retired.exists(), f"{name} must be RETIRED to done/, not deleted and not left"
+        body = retired.read_text()
+        assert "# Simulation Run Complete" in body, "the marker's own content must survive"
+        assert "20260814T183636Z" in body, (
+            f"{name}'s retirement note must NAME the run that superseded it"
+        )
+    # The published marker is archived by process_run_complete itself, which is mocked here, so
+    # it legitimately remains. What must be gone is the BACKLOG BEHIND it -- that is this
+    # sweep's own work and the thing that could not drain before.
+    left = sorted(p.name for p in background_worker.STAGING_DIR.glob("run_complete_*.md"))
+    assert left == [BACKLOG[-1]], (
+        f"every marker behind the published one must have drained in the one cycle, left={left}"
+    )
+
+
+def test_a_red_gate_retires_nothing_and_keeps_the_whole_backlog(monkeypatch):
+    """THE FAIL-SAFE DIRECTION (R15). Retirement is justified by a marker having PUBLISHED. If
+    the publish fails, nothing was overtaken, so nothing may be retired -- otherwise a red gate
+    would silently eat the queue and the wedge would look like progress.
+
+    MUTATION: retire the remainder unconditionally (outside the rc == 0 branch) and this fails."""
+    _queue(BACKLOG)
+    monkeypatch.setattr(background_worker.subprocess, "run",
+                        lambda *a, **k: MagicMock(returncode=1, stderr=""))
+
+    background_worker.process_leftover_run_markers()
+
+    assert not (background_worker.STAGING_DIR / "done").exists() or \
+        not list((background_worker.STAGING_DIR / "done").glob("run_complete_*.md")), \
+        "a FAILED publish must retire nothing"
+    still_pending = sorted(p.name for p in
+                           background_worker.STAGING_DIR.glob("run_complete_*.md"))
+    assert still_pending == sorted(BACKLOG), \
+        "every marker must stay pending when the gate is red"
+
+
+def test_a_lock_skipped_newest_does_not_retire_the_queue_behind_it(monkeypatch):
+    """EXIT_LOCK_SKIPPED is 'not attempted', not 'published'. A concurrent publisher holding the
+    run lock must not cause this sweep to retire the backlog on the strength of a marker nobody
+    published.
+
+    MUTATION: move the retirement out of the `rc == 0` branch (proven 2026-08-14: it fails here,
+    on the red-gate test, and on the no-frontier test)."""
+    _queue(BACKLOG)
+    monkeypatch.setattr(
+        background_worker.subprocess, "run",
+        lambda *a, **k: MagicMock(returncode=background_worker.EXIT_LOCK_SKIPPED, stderr=""))
+
+    background_worker.process_leftover_run_markers()
+
+    assert sorted(p.name for p in background_worker.STAGING_DIR.glob("run_complete_*.md")) \
+        == sorted(BACKLOG), "a lock-skipped marker retires nothing -- it was never attempted"
+
+
+@pytest.mark.parametrize("rc", [-9, 2, 137])
+def test_a_crashed_publisher_is_not_a_publish_and_retires_nothing(monkeypatch, rc):
+    """FAIL-OPEN guard found by a mutation that DIDN'T reproduce (R15, 2026-08-14).
+
+    The intended mutation for the test above -- 'treat any non-1 return code as success' -- left
+    the suite green, because EXIT_LOCK_SKIPPED and EXIT_NOTHING_PUBLISHED are matched by earlier
+    branches and rc=1 was excluded by the mutation itself. Nothing was covering the codes that
+    actually reach the final branch by another route: an OOM SIGKILL (-9), a Python traceback
+    (2), a shell-reported kill (137). Those are the publisher DYING, and a death must never
+    drain the queue -- that would be the wedge eating its own evidence while looking like
+    progress, the exact fail-silent shape this sweep already paid for twice.
+
+    MUTATION: widen the branch to `result.returncode != 1` and this fails on every parameter."""
+    _queue(BACKLOG)
+    monkeypatch.setattr(background_worker.subprocess, "run",
+                        lambda *a, **k: MagicMock(returncode=rc, stderr=""))
+
+    background_worker.process_leftover_run_markers()
+
+    assert sorted(p.name for p in background_worker.STAGING_DIR.glob("run_complete_*.md")) \
+        == sorted(BACKLOG), (
+        f"a publisher that died (rc={rc}) published nothing, so nothing may be retired"
+    )
 
 
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────

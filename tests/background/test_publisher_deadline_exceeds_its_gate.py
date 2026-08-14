@@ -130,13 +130,19 @@ def two_markers(tmp_path, monkeypatch):
 def test_a_timed_out_marker_does_not_abandon_the_markers_behind_it(two_markers, monkeypatch):
     """FIRES on the pre-fix code. TimeoutExpired escaped the for-loop, so ONE slow marker
     took all 94 behind it down with it -- and the sweep is the entire safety net for a
-    lock-skipped marker, so 'next cycle' meant the same kill again."""
+    lock-skipped marker, so 'next cycle' meant the same kill again.
+
+    The kill is pinned to `second` (2026-08-14, OPS3): the sweep now works NEWEST-FIRST, so
+    `second` is the marker it attempts first and therefore the one whose death could abandon
+    the rest. Pinning it to `first` would have left this test asserting that a marker attempted
+    BEFORE any timeout was attempted -- vacuously true, and it would have gone on passing
+    through exactly the regression it exists to catch."""
     first, second = two_markers
     attempted = []
 
     def fake_run(argv, **kwargs):
         attempted.append(argv[-1])
-        if argv[-1].endswith(first.name):
+        if argv[-1].endswith(second.name):
             raise subprocess.TimeoutExpired(cmd=argv, timeout=kwargs.get("timeout"))
         return subprocess.CompletedProcess(argv, 0, stderr="")
 
@@ -146,7 +152,11 @@ def test_a_timed_out_marker_does_not_abandon_the_markers_behind_it(two_markers, 
 
     bw.process_leftover_run_markers()
 
-    assert any(a.endswith(second.name) for a in attempted), (
+    assert attempted and attempted[0].endswith(second.name), (
+        "the sweep must attempt the NEWEST marker first -- otherwise the timeout below is not "
+        f"the first attempt and this test proves nothing. attempted={attempted}"
+    )
+    assert any(a.endswith(first.name) for a in attempted), (
         "the sweep stopped at the first timeout -- every marker behind it was abandoned"
     )
 
@@ -160,11 +170,14 @@ def test_a_deadline_kill_reaches_the_detector_and_is_not_called_a_test_regressio
     Recording it with an invented non-zero rc would be worse: `_classify_gate_failure` maps
     any rc>0 to `test_regression`, which is how a stopwatch becomes evidence about tests and
     how the RUNG-1 draw spent 27h naming a test that passes."""
-    first, _second = two_markers
+    _first, second = two_markers
     recorded = _Recorded()
 
+    # Pinned to `second` for the reason given in the test above: NEWEST-FIRST (OPS3,
+    # 2026-08-14) makes it the marker the sweep actually attempts, so it is the one that can
+    # be killed by the deadline at all.
     def fake_run(argv, **kwargs):
-        if argv[-1].endswith(first.name):
+        if argv[-1].endswith(second.name):
             raise subprocess.TimeoutExpired(cmd=argv, timeout=kwargs.get("timeout"))
         return subprocess.CompletedProcess(argv, 0, stderr="")
 
@@ -174,7 +187,7 @@ def test_a_deadline_kill_reaches_the_detector_and_is_not_called_a_test_regressio
 
     bw.process_leftover_run_markers()
 
-    kills = [c for c in recorded.calls if c["marker"] == first.name]
+    kills = [c for c in recorded.calls if c["marker"] == second.name]
     assert kills, "the kill never reached the wedge detector at all (fail-silent)"
     assert kills[0]["kind"] == "deadline_kill"
     assert kills[0]["rc"] is None, (
