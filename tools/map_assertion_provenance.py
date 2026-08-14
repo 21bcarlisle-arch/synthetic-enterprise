@@ -1089,6 +1089,225 @@ def hours_on_subject(atom_id: str, rows: dict) -> set[int]:
     return on
 
 
+# ---------------------------------------------------------------------------
+# THE ID A CITATION POINTS AT  (H27 HARDEN draw 2026-08-14, atom D45)
+#
+# D42 asks whether an Hour's work is COMMITTED, and D43 whether it landed
+# inside its own cell's subject. Both take the atom id in the label as given.
+# This asks the question underneath: DOES THE CELL THAT ID NAMES EXIST?
+#
+# WHY, measured before this was built (WORKER_FINDING_A_MODULES_HOURS_CITE_
+# ATOM_IDS_THE_MAP_HAS_NEVER_CARRIED_2026-08-12, filed at three ids and left
+# to grow to eight): eight consecutive H27 Expert Hours wrote "atom D37" ...
+# "atom D44" into shipped source, into the door, and into the hold record that
+# answers the 2->3 draw -- while `grep -c "D3[7-9]_\|D4[0-4]_"` over the map
+# returned 0. The map's D series stopped at D36, and its D36 is a printed-bill
+# atom in epoch 1 whose file_scope is the customer portal: the same id, two
+# subjects. Nothing was internally inconsistent, so no detector here was red.
+#
+# This is the INVERSE of the class this repo already has memory of (the record
+# outrunning the code): here the CODE outran the record, and the citation is
+# the seam where that becomes visible. A reader auditing why `reader_renders`
+# declares a door site is sent to a cell that has never existed.
+#
+# TWO FINDINGS, KEPT APART, because unable-to-find-it and pointed-at-the-wrong-
+# one are not the same defect and do not have the same repair:
+#   PHANTOM_ATOM     -- no cell carries that lane+number at all. Repair: mint
+#                       the cell, or stop citing it.
+#   STALE_ATOM_SLUG  -- a cell carries the lane+number under a DIFFERENT slug.
+#                       Repair: correct the citation. Two live instances at
+#                       build time, both in `couple_w2_11_d5.py`, each naming
+#                       a real neighbouring atom by a slug it has never had.
+#
+# THE POPULATION IS DERIVED, never a list of the files known to cite: the
+# Hour-labelled code `_labelled_code_paths` already finds, plus the map's own
+# per-atom store records -- the two places a citation is a CLAIM about the map
+# rather than prose about one. `docs/staging/` findings are deliberately out
+# (a finding whose whole subject is a phantom id must be able to name it), and
+# so is `simplifications/archive/`: an archived snapshot is a frozen copy of a
+# record that has since been rewritten, and holding it to today's map would
+# demand edits to history.
+#
+# THE LANE-PREFIX FILTER IS DERIVED FROM THE MAP TOO, and that is a control,
+# not a convenience. The citation regex takes whatever token follows the word
+# "atom", so ordinary prose -- "no SIM atom reaches L3" -- parses as a
+# citation of "L3". A hand-typed stopword list would go stale the first time a
+# lane is added; taking the prefixes off the map's own ids means a token whose
+# prefix no cell uses is not an atom citation by definition, and the vacuity
+# floor counts only what survives the filter, so a convention that drifts away
+# from atom ids FAILS this check rather than passing it empty.
+
+PHANTOM_ATOM = "PHANTOM_ATOM"        # a citation names an id the map has never carried
+STALE_ATOM_SLUG = "STALE_ATOM_SLUG"  # the lane+number exists, under another slug
+
+# Vacuity floor: below this many citations surviving the prefix filter, the
+# citing convention has moved and this check is unavailable -- which is a
+# FAILED check, never a clean one (R15). Measured at build time: 429.
+CITATION_FLOOR = 20
+
+#: The map's OWN lane+number grammar, mirrored from
+#: `tests/design/test_maturity_map_contract.py::_LANE_NUMBER` -- the same
+#: key that test uses to catch a number reused within a lane, which is the
+#: key a slug cannot change. Mirrored rather than imported (a tool importing
+#: a test module is worse than one duplicated regex) and the duplication is
+#: PINNED: `test_the_lane_number_grammar_matches_the_map_contracts` fails if
+#: the two ever disagree about a live id.
+_LANE_NUMBER = re.compile(r"^([A-Z]+)((?:[0-9]+[a-z]?)(?:_[0-9]+[a-z]?)*)")
+
+#: Matches `atom D5`, `atoms D5 and D6`, `(atom D7, Hour #21)`, and a
+#: backticked or truncated slug after the same word.
+#: The token is CAPTURED, never assumed to be an id -- the prefix filter, the
+#: id-shape filter and the resolver decide that, and all three read the map.
+#: EVERY EXAMPLE ABOVE NAMES A CELL THAT RESOLVES, deliberately: this module
+#: is inside its own population, so an illustrative phantom or a truncated
+#: slug written here is a finding the file manufactures about itself. It did
+#: -- the first draft's own examples reported as STALE slugs, which is why
+#: the truncated forms are now described in prose instead of shown.
+_ATOM_CITATION = re.compile(r"\batoms?\s+[`'\"(\[]*([A-Z][A-Za-z0-9_]*)")
+
+
+def _lane_prefixes(atom_ids) -> set[str]:
+    """The leading letters of every id the map carries. Derived, never typed."""
+    out = set()
+    for aid in atom_ids or ():
+        m = re.match(r"^([A-Z]+)", str(aid))
+        if m:
+            out.add(m.group(1))
+    return out
+
+
+def _lane_number(token: str) -> str | None:
+    """`D37_the_thing` / `D37` -> `D37`; the key a slug cannot change."""
+    m = _LANE_NUMBER.match(token)
+    return (m.group(1) + m.group(2)) if m else None
+
+
+def _is_id_shaped(token: str) -> bool:
+    """Could this token BE an atom id, or is it a LANE?
+
+    THE SECOND FILTER, and it closes a wrong-population defect measured on the
+    live repo before this control was ever committed: the prefix filter alone
+    reported `PHANTOM_ATOM: atom W` out of the prose "a product-lane atom
+    (W*/D/B/E/C/F/G-product/SITE, NOT H_harness...)". That is a LANE GLOB, not
+    a citation of a cell -- there is no atom `W` to mint and nothing to stop
+    citing, so the finding had no repair, which is the signature of a finding
+    the control manufactured rather than found.
+
+    The rule is DERIVED FROM THE MAP, never typed: every id the map carries is
+    either lane+number (`D37`, `W2_11`) or lane+slug (`D_payments_maturity_
+    audit`), so a bare lane letter is a lane by construction. Pinned in the
+    admitting direction by `test_the_id_shape_filter_admits_every_id_the_map_
+    carries`, which is the fail-open half -- a filter that quietly dropped a
+    real citation would read exactly like a clean map.
+    """
+    return _lane_number(token) is not None or "_" in token
+
+
+def atom_citations(text: str, prefixes: set[str]) -> set[str]:
+    """Every token cited as an atom whose prefix is one the map actually uses."""
+    found = set()
+    for m in _ATOM_CITATION.finditer(text or ""):
+        token = m.group(1)
+        pm = re.match(r"^([A-Z]+)", token)
+        if pm and pm.group(1) in prefixes and _is_id_shaped(token):
+            found.add(token)
+    return found
+
+
+def resolve_citation(token: str, atom_ids) -> str | None:
+    """None if the citation resolves; otherwise which of the two findings it is.
+
+    A citation resolves if it IS an id, or if it is the short code a single id
+    extends (`D37` -> `D37_the_...`). Anything else that shares a lane+number
+    with a real cell is a STALE slug; anything else at all is a PHANTOM.
+    """
+    ids = list(atom_ids or ())
+    if token in ids:
+        return None
+    if any(str(a).startswith(token + "_") for a in ids):
+        return None
+    key = _lane_number(token)
+    if key and any(_lane_number(str(a)) == key for a in ids):
+        return STALE_ATOM_SLUG
+    return PHANTOM_ATOM
+
+
+def cited_atom_rows(atoms: list[dict], repo: Path | None = None,
+                    store_dir: Path | None = None) -> dict:
+    """Build `cited_atom_findings` input: the citing text, and the map's ids.
+
+    Two independent readers again -- the citations come off the files on disk,
+    the ids off the map's own cells. Deriving the ids from the citing text (or
+    the other way) is the tautology R15 names: one source, unable to disagree.
+    """
+    repo = repo or REPO
+    store = (store_dir if store_dir is not None
+             else repo / "docs" / "design" / "simplifications")
+    paths = list(_labelled_code_paths(repo))
+    if store.is_dir():
+        for record in sorted(store.glob("*.yaml")):    # NOT archive/ -- see the header
+            rel = (record.relative_to(repo).as_posix()
+                   if record.is_relative_to(repo) else record.as_posix())
+            paths.append(rel)
+    texts = []
+    for rel in paths:
+        disk = repo / rel
+        if disk.exists():
+            texts.append({"path": rel,
+                          "text": disk.read_text(encoding="utf-8", errors="replace")})
+    return {"texts": texts, "atom_ids": sorted(a["id"] for a in atoms if a.get("id"))}
+
+
+def cited_atom_findings(rows: dict) -> list[str]:
+    """Findings for atom ids cited in code or in the store that no cell carries.
+
+    RAISES rather than returning clean when the map side is empty, when there
+    is nothing to read, or when no citation survives the prefix filter: "no
+    citation points at a phantom" and "I could not look" are the same silence
+    and opposite facts.
+    """
+    ids = rows.get("atom_ids") or []
+    if not ids:
+        raise ValueError(
+            "VACUITY: the map supplied no atom ids -- every citation would read as a "
+            "phantom. An unavailable check is a FAILED check, not a clean one")
+    texts = rows.get("texts") or []
+    if not texts:
+        raise ValueError(
+            "VACUITY: no citing file was readable -- this check would report clean over an "
+            "empty population, which is the fail-open direction it exists to close")
+    prefixes = _lane_prefixes(ids)
+    seen: dict[str, list[str]] = {}
+    parsed = 0
+    for entry in texts:
+        for token in atom_citations(entry.get("text") or "", prefixes):
+            parsed += 1
+            verdict = resolve_citation(token, ids)
+            if verdict:
+                seen.setdefault("%s\t%s" % (verdict, token), []).append(entry.get("path") or "?")
+    if parsed < CITATION_FLOOR:
+        raise ValueError(
+            "VACUITY: only %d atom citation(s) parsed across %d file(s) -- the citing "
+            "convention has moved and this check is unavailable, which is a FAILED check, "
+            "not a clean one" % (parsed, len(texts)))
+    findings = []
+    for key in sorted(seen):
+        verdict, token = key.split("\t", 1)
+        where = sorted(set(seen[key]))
+        if verdict == STALE_ATOM_SLUG:
+            near = sorted(a for a in ids if _lane_number(str(a)) == _lane_number(token))
+            tail = ("that lane+number is %s -- the citation carries a slug it has never had"
+                    % ", ".join(near))
+        else:
+            tail = ("no cell carries that lane+number at all -- mint it, or stop citing it; "
+                    "the map is edited first and the source follows it, never the reverse")
+        findings.append(
+            "%s: `atom %s` is cited in %s%s, and %s"
+            % (verdict, token, ", ".join(where[:3]),
+               (" (+%d more)" % (len(where) - 3)) if len(where) > 3 else "", tail))
+    return findings
+
+
 def record_verification(atom_id: str, note: str, repo: Path | None = None,
                         now: float | None = None) -> dict:
     """Append one verification to the ledger. Append-only, never rewritten."""
@@ -1147,6 +1366,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="Hour work committed outside its own atom's declared scope (D43)")
     ap.add_argument("--on-subject", metavar="ID",
                     help="how many of this cell's Hours reached a file it declares (D43)")
+    ap.add_argument("--citations", action="store_true",
+                    help="atom ids cited in code or the store that no map cell carries (D45)")
     ap.add_argument("--limit", type=int, default=40)
     args = ap.parse_args(argv)
 
@@ -1208,6 +1429,21 @@ def main(argv: list[str] | None = None) -> int:
             print("  " + f, file=sys.stderr)
         return 4
 
+    if args.citations:
+        try:
+            findings = cited_atom_findings(cited_atom_rows(_map_atoms()))
+        except Exception as exc:
+            print("ATOM CITATIONS: COULD NOT RUN -- %s" % exc, file=sys.stderr)
+            return 2
+        if not findings:
+            print("ATOM CITATIONS: none -- every cited atom id resolves to a map cell")
+            return 0
+        print("ATOM CITATIONS: %d finding(s) -- cited ids the map does not carry:"
+              % len(findings), file=sys.stderr)
+        for f in findings:
+            print("  " + f, file=sys.stderr)
+        return 1
+
     try:
         rows = build_rows()
         findings = integrity_findings(rows)
@@ -1218,6 +1454,15 @@ def main(argv: list[str] | None = None) -> int:
         # behind. It raises rather than returning clean when unavailable, which
         # the same except below turns into COULD NOT RUN.
         findings = findings + hold_record_findings(hold_record_atoms(_map_atoms()))
+        # A citation naming a cell that does not exist is an integrity finding
+        # about these same cells -- the map's own record of what it carries --
+        # so it joins the list the caller already refuses to stand behind,
+        # rather than getting a report-only exit code. The two report-only
+        # checks above are about the WORKING TREE and about ATTRIBUTION, where
+        # a repo-wide refusal would punish an honest mid-flight lane; a
+        # phantom id is neither, and any lane can fix it by minting the cell
+        # or dropping the citation.
+        findings = findings + cited_atom_findings(cited_atom_rows(_map_atoms()))
     except Exception as exc:  # could not run is never a pass
         print("MAP ASSERTION PROVENANCE: COULD NOT RUN -- %s" % exc, file=sys.stderr)
         return 2

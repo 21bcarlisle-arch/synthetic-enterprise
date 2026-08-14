@@ -1096,3 +1096,265 @@ def test_the_live_repo_names_the_off_subject_hours_this_atom_actually_ran():
     on = mp.hours_on_subject("H27_payment_belief_gap", rows)
     assert on and max(on) >= 24
     assert len(on) < max(on) - 1, "some recorded Hour left no mark on this cell's own files"
+
+
+# ---------------------------------------------------------------------------
+# THE ID A CITATION POINTS AT  (D45, H27 Expert Hour #29)
+#
+# These are the tests the mechanism landed WITHOUT. It was found in the working
+# tree carrying 218 lines, a CLI flag and a wire into the default refusal path,
+# and not one line of test -- the shape of "a commit landed two controls it
+# never ran", one step earlier. So the first thing measured here is the thing
+# that check exists to measure: on the LIVE bytes, not a fixture.
+# ---------------------------------------------------------------------------
+
+#: EVERY FIXTURE ID BELOW USES THIS PREFIX, and that is a control rather than
+#: a naming whim. This file carries Expert-Hour labels, so it is INSIDE the
+#: population the check reads: a fixture writing `atom D44` is a citation of
+#: the live map, and the first draft of these tests manufactured seven
+#: findings against the repo out of its own test data. The prefix filter is
+#: derived from the map, so a prefix no lane uses cannot be a citation --
+#: pinned below, because the day a `ZQ` lane is minted this file starts lying.
+FIXTURE_PREFIX = "ZQ"
+
+
+def test_this_files_own_fixture_ids_use_a_prefix_the_map_DOES_NOT_carry():
+    """Otherwise these fixtures become findings about the real map -- the
+    wrong-population defect this very control was corrected for, committed by
+    its own test file."""
+    live = mp._lane_prefixes(a["id"] for a in mp._map_atoms() if a.get("id"))
+    assert live, "the map supplied no lane prefixes -- this pin is unavailable"
+    assert FIXTURE_PREFIX not in live
+
+
+def _cite_rows(texts: dict, ids: list[str]) -> dict:
+    """texts: {path: text}; ids: the map's own cells."""
+    return {"texts": [{"path": p, "text": t} for p, t in sorted(texts.items())],
+            "atom_ids": sorted(ids)}
+
+
+def _bulk(n: int) -> str:
+    """Citations that all resolve, to clear the vacuity floor without findings."""
+    return " ".join("atom ZQ%d_ok" % i for i in range(1, n + 1))
+
+
+def _bulk_ids(n: int) -> list[str]:
+    return ["ZQ%d_ok" % i for i in range(1, n + 1)]
+
+
+def test_a_citation_naming_no_cell_at_all_is_a_PHANTOM():
+    """The witnessed shape: eight consecutive Hours wrote `atom D37` ... `atom
+    D44` into shipped source while the map's D series stopped at D36."""
+    findings = mp.cited_atom_findings(_cite_rows(
+        {"tools/couple.py": "mechanised as atom ZQ44. " + _bulk(25)},
+        _bulk_ids(25) + ["ZQ36_bill_render_footing"]))
+    assert len(findings) == 1
+    assert findings[0].startswith(mp.PHANTOM_ATOM)
+    assert "`atom ZQ44`" in findings[0] and "tools/couple.py" in findings[0]
+    assert "mint it, or stop citing it" in findings[0]
+
+
+def test_the_two_findings_are_KEPT_APART_because_the_repairs_differ():
+    """A slug that has drifted is CORRECTED; an id nothing carries is MINTED.
+    One finding for both would send the reader to the wrong repair."""
+    ids = _bulk_ids(25) + ["ZQ35_the_render_site_sweep_stops_at_this_processs_edge"]
+    stale = mp.cited_atom_findings(_cite_rows(
+        {"a.py": "atom ZQ35_the_reader_precision_was_read_at_one_of_two_sites " + _bulk(25)},
+        ids))
+    assert len(stale) == 1 and stale[0].startswith(mp.STALE_ATOM_SLUG)
+    assert "ZQ35_the_render_site_sweep_stops_at_this_processs_edge" in stale[0]
+    phantom = mp.cited_atom_findings(_cite_rows({"a.py": "atom ZQ99_nothing " + _bulk(25)}, ids))
+    assert len(phantom) == 1 and phantom[0].startswith(mp.PHANTOM_ATOM)
+
+
+def test_a_citation_that_resolves_is_SILENT_in_both_of_its_two_forms():
+    """The full id, and the short code a single id extends -- `atom D44` must
+    resolve once `D44_the_thing` exists, or every Hour's shorthand is a finding."""
+    ids = _bulk_ids(25) + ["ZQ44_the_normalisation_kind_is_declared"]
+    assert mp.cited_atom_findings(_cite_rows(
+        {"a.py": "atom ZQ44 and atom ZQ44_the_normalisation_kind_is_declared " + _bulk(25)},
+        ids)) == []
+
+
+def test_the_prefix_filter_is_DERIVED_FROM_THE_MAP_not_a_stopword_list():
+    """A token whose prefix no live cell uses is not an atom citation BY
+    DEFINITION -- and the same token becomes one the day that lane exists. A
+    hand-typed stopword list would go stale at the first lane added; this reads
+    the map's own ids, so nothing here needs editing."""
+    assert mp.atom_citations("see atom X9_thing for the rest", {"D", "W"}) == set()
+    assert mp.atom_citations("see atom X9_thing for the rest", {"X", "D"}) == {"X9_thing"}
+
+
+def test_a_LANE_GLOB_is_not_a_citation_and_the_MUTATION_proves_the_filter_is_load_bearing():
+    """MEASURED on the live bytes before this was fixed: the prefix filter alone
+    reported `PHANTOM_ATOM: atom W` out of `a product-lane atom (W*/D/B/E/...)`.
+    A lane glob has no repair -- there is no atom W to mint and no citation to
+    correct -- so the finding was manufactured, not found. Mutating the filter
+    away brings it straight back."""
+    prose = "a product-lane atom (W*/D/B/E/C/F/G-product/SITE, NOT H_harness)"
+    assert mp.atom_citations(prose, {"W", "D", "H"}) == set()
+
+    original = mp._is_id_shaped
+    try:
+        mp._is_id_shaped = lambda token: True          # the pre-fix behaviour
+        assert mp.atom_citations(prose, {"W", "D", "H"}) == {"W"}
+    finally:
+        mp._is_id_shaped = original
+    assert mp.atom_citations(prose, {"W", "D", "H"}) == set()
+
+
+def test_the_id_shape_filter_ADMITS_every_id_the_map_carries():
+    """The fail-open direction, and the one that would look like a clean map: a
+    filter that dropped a real citation would silence the check on exactly the
+    ids it exists to find. Proven against the LIVE map, so a future id shaped
+    unlike today's (22 cells carry no number at all) fails here first."""
+    ids = [a["id"] for a in mp._map_atoms() if a.get("id")]
+    assert len(ids) > mp.ATOM_FLOOR
+    unshaped = [i for i in ids if not mp._is_id_shaped(i)]
+    assert unshaped == [], "the shape filter would drop citations of these live cells"
+
+
+def test_the_lane_number_grammar_matches_the_map_contracts():
+    """The pin the module's own comment PROMISES BY NAME -- and did not have.
+    `_LANE_NUMBER` is mirrored from the map-contract test rather than imported;
+    a mirror nothing compares is a second description that rots from the day it
+    is written."""
+    import re as _re
+    src = (Path(__file__).resolve().parents[1] / "design"
+           / "test_maturity_map_contract.py").read_text(encoding="utf-8")
+    m = _re.search(r"^_LANE_NUMBER = re\.compile\((.+)\)$", src, _re.M)
+    assert m, "the contract test no longer defines _LANE_NUMBER under that name"
+    contract = _re.compile(eval(m.group(1)))  # noqa: S307 -- our own repo's literal
+    assert contract.pattern == mp._LANE_NUMBER.pattern
+    for atom_id in (a["id"] for a in mp._map_atoms() if a.get("id")):
+        mine = mp._lane_number(atom_id)
+        theirs = contract.match(atom_id)
+        assert (mine is None) == (theirs is None)
+        if mine is not None:
+            assert mine == theirs.group(1) + theirs.group(2)
+
+
+def test_an_empty_map_side_RAISES_rather_than_calling_every_citation_a_phantom():
+    with pytest.raises(ValueError, match="VACUITY"):
+        mp.cited_atom_findings(_cite_rows({"a.py": "atom D44"}, []))
+
+
+def test_nothing_readable_RAISES_rather_than_reporting_clean_over_an_empty_population():
+    with pytest.raises(ValueError, match="VACUITY"):
+        mp.cited_atom_findings(_cite_rows({}, _bulk_ids(25)))
+
+
+def test_MUTATION_a_citing_convention_that_moved_RAISES_rather_than_reading_clean():
+    """Below the floor is INDISTINGUISHABLE from a repo with no phantoms, and
+    the two are opposite facts. An unavailable check is a FAILED check."""
+    with pytest.raises(ValueError, match="only 1 atom citation"):
+        mp.cited_atom_findings(_cite_rows({"a.py": "atom ZQ1_ok"}, _bulk_ids(25)))
+    # ... and the same population one citation above the floor does NOT raise.
+    assert mp.cited_atom_findings(_cite_rows(
+        {"a.py": _bulk(mp.CITATION_FLOOR)}, _bulk_ids(25))) == []
+
+
+def test_the_store_records_are_IN_the_population_and_the_archive_is_NOT(repo: Path, tmp_path):
+    """A citation in a per-atom store record is a CLAIM ABOUT THE MAP and is
+    read; an archived snapshot is a frozen copy of a record since rewritten,
+    and holding it to today's map would demand edits to history."""
+    (repo / "tools").mkdir()
+    (repo / "tools" / "c.py").write_text("# H27 Expert Hour #29\n", encoding="utf-8")
+    store = repo / "docs" / "design" / "simplifications"
+    (store / "archive").mkdir(parents=True)
+    (store / "ZQ5_account_hierarchy_payments.yaml").write_text(
+        "atom_id: ZQ5\nnote: mechanised as atom ZQ77_live\n", encoding="utf-8")
+    (store / "archive" / "old.yaml").write_text(
+        "note: mechanised as atom ZQ88_archived\n", encoding="utf-8")
+    _write_map(repo, [_atom("ZQ5_account_hierarchy_payments", 2, ["tools/c.py"])])
+    _commit(repo, EARLY)
+
+    rows = mp.cited_atom_rows(mp._map_atoms(repo), repo=repo, store_dir=store)
+    read = {e["path"] for e in rows["texts"]}
+    assert any(p.endswith("ZQ5_account_hierarchy_payments.yaml") for p in read)
+    assert not any("archive/" in p for p in read)
+    tokens = set()
+    for e in rows["texts"]:
+        tokens |= mp.atom_citations(e["text"], {"ZQ"})
+    assert "ZQ77_live" in tokens and "ZQ88_archived" not in tokens
+
+
+def test_the_two_readers_are_independent_the_ids_never_come_from_the_citing_text(repo: Path):
+    """The tautology R15 names: derive the ids from the text that cites them and
+    every citation resolves by construction. The ids come off the map."""
+    (repo / "tools").mkdir()
+    (repo / "tools" / "c.py").write_text(
+        "# H27 Expert Hour #29\n# mechanised as atom ZQ44_never_minted\n", encoding="utf-8")
+    store = repo / "docs" / "design" / "simplifications"
+    store.mkdir(parents=True)
+    _write_map(repo, [_atom("ZQ5_account_hierarchy_payments", 2, ["tools/c.py"])])
+    _commit(repo, EARLY)
+
+    rows = mp.cited_atom_rows(mp._map_atoms(repo), repo=repo, store_dir=store)
+    assert rows["atom_ids"] == ["ZQ5_account_hierarchy_payments"]
+    assert "ZQ44_never_minted" not in " ".join(rows["atom_ids"])
+
+
+def test_citations_reach_the_CLI_and_a_broken_read_is_never_a_PASS(monkeypatch, capsys):
+    monkeypatch.setattr(mp, "cited_atom_rows",
+                        lambda atoms, repo=None, store_dir=None: _cite_rows(
+                            {"a.py": "atom ZQ44 " + _bulk(25)}, _bulk_ids(25)))
+    assert mp.main(["--citations"]) == 1
+    assert mp.PHANTOM_ATOM in capsys.readouterr().err
+
+    monkeypatch.setattr(mp, "cited_atom_rows",
+                        lambda atoms, repo=None, store_dir=None: _cite_rows(
+                            {"a.py": _bulk(25)}, _bulk_ids(25)))
+    assert mp.main(["--citations"]) == 0
+
+    def _boom(atoms, repo=None, store_dir=None):
+        raise RuntimeError("git grep failed")
+
+    monkeypatch.setattr(mp, "cited_atom_rows", _boom)
+    assert mp.main(["--citations"]) == 2
+    assert "COULD NOT RUN" in capsys.readouterr().err
+
+
+def test_a_phantom_joins_the_DEFAULT_integrity_findings_not_a_report_only_code(
+        monkeypatch, capsys):
+    """Deliberately UNLIKE D42 and D43. Those two are about the working tree and
+    about attribution, where a repo-wide refusal would punish an honest lane
+    mid-flight; a phantom id is neither, and any lane can discharge it by
+    minting the cell or dropping the citation."""
+    monkeypatch.setattr(mp, "cited_atom_rows",
+                        lambda atoms, repo=None, store_dir=None: _cite_rows(
+                            {"a.py": "atom ZQ44 " + _bulk(25)}, _bulk_ids(25)))
+    assert mp.main([]) == 1
+    assert mp.PHANTOM_ATOM in capsys.readouterr().err
+
+
+def test_the_end_to_end_citation_check_fires_on_a_real_repo(repo: Path):
+    """git grep, disk read, map read, prefix filter, resolver -- no mocks."""
+    (repo / "tools").mkdir()
+    (repo / "tools" / "c.py").write_text(
+        "# H27 Expert Hour #29\n# mechanised as atom ZQ44, per atom ZQ5_x.\n" + _bulk(25),
+        encoding="utf-8")
+    store = repo / "docs" / "design" / "simplifications"
+    store.mkdir(parents=True)
+    _write_map(repo, [_atom(i, 2, ["tools/c.py"]) for i in _bulk_ids(25) + ["ZQ5_x"]])
+    _commit(repo, EARLY)
+
+    findings = mp.cited_atom_findings(
+        mp.cited_atom_rows(mp._map_atoms(repo), repo=repo, store_dir=store))
+    assert len(findings) == 1
+    assert findings[0].startswith(mp.PHANTOM_ATOM) and "`atom ZQ44`" in findings[0]
+
+
+def test_the_live_repo_still_carries_the_phantom_D_SERIES_this_hour_measured():
+    """The measurement, on the REAL bytes. Nine ids -- D37..D45 -- are cited as
+    minted atoms by nine consecutive H27 Hours and by this module's own header,
+    and the map has never carried one of them. This test is the class's
+    tripwire: it goes RED when the mint lands, which is the point at which the
+    hold note's outstanding repair is done and this assertion must be rewritten
+    to `== []`."""
+    findings = mp.cited_atom_findings(mp.cited_atom_rows(mp._map_atoms()))
+    phantoms = {f.split("`atom ")[1].split("`")[0]
+                for f in findings if f.startswith(mp.PHANTOM_ATOM)}
+    assert {"D%d" % n for n in range(37, 46)} <= phantoms
+    assert not any("`atom W`" in f for f in findings), \
+        "a lane glob is not a citation -- see the id-shape filter"

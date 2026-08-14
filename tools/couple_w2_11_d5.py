@@ -2762,7 +2762,7 @@ RESOLUTION_SEEDS = (7, 11, 23)
 
 # ---------------------------------------------------------------------------
 # THE GRID THE REGISTER DID NOT CHOOSE
-# (atom D28_the_resolution_grid_was_the_registers_own_claims, Expert Hour #10)
+# (atom D28_the_detection_gap_is_quantised_by_this_books_placement, Expert Hour #10)
 # ---------------------------------------------------------------------------
 # THE DEFECT THIS CONSTANT EXISTS TO STOP, and it is D23's class escaped into
 # the register built to close a resolution hole. `check_dimension_drift_
@@ -6656,7 +6656,7 @@ def check_published_reading_precision(
 
 # ---------------------------------------------------------------------------
 # RENDER SITES ARE A SET, NOT A FUNCTION
-# (atom D35_the_reader_precision_was_read_at_one_of_two_sites, Hour #17)
+# (atom D35_the_render_site_sweep_stops_at_this_processs_edge, Hour #17)
 # ---------------------------------------------------------------------------
 # THE DEFECT, MEASURED. D34 reads each figure's reader precision off the format
 # spec in ONE named function per figure. The ageing headline reaches its reader
