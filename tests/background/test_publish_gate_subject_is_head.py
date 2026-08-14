@@ -1286,8 +1286,21 @@ def test_the_supervisor_cites_the_contract_instead_of_restating_it():
 # exists to catch and not against a convenient stand-in.
 
 def _ops2_exit_text() -> str:
-    """This atom's exit criterion, as the drawer and the level move actually read it."""
+    """This atom's exit criterion, as the drawer and the level move actually read it.
+
+    THROUGH THE SEAM, not off the map dict (2026-08-14, and it wedged publishing for four
+    cycles). The `name` field drained out of `maturity_map.yaml` into the per-atom record
+    store that same morning (`ab0a6a396`, `notes_rehomed: [build_note, name]`); the drain
+    converted every PRODUCTION reader to `simplifications_store.atom_name` and missed this
+    one, so the vacuity guard below -- correctly -- refused to grade an empty criterion and
+    took the blocking gate red with it. Reading inline here would also make the control
+    LIE in the other direction once the store is the only copy: `""` names no mechanism, so
+    `_criterion_agrees_with_configuration` would return the pass branch if the guard were
+    ever softened. One seam, so a future rehome moves one line."""
     import yaml
+
+    sys.path.insert(0, str(REPO))
+    from tools import simplifications_store as _store
 
     raw = yaml.safe_load((REPO / "docs" / "design" / "maturity_map.yaml").read_text())
     found = []
@@ -1310,8 +1323,12 @@ def _ops2_exit_text() -> str:
         "expected exactly one OPS2_publish_gate_head_worktree in the map, found {} -- this "
         "control cannot grade a criterion it cannot find".format(len(found))
     )
-    text = found[0].get("name") or ""
-    assert "EXIT:" in text, "the OPS2 map entry no longer carries an exit criterion to grade"
+    text = _store.atom_name(found[0])
+    assert "EXIT:" in text, (
+        "OPS2 carries no exit criterion to grade, inline or in the record store -- the "
+        "criterion a level move is certified against has gone missing, which is a louder "
+        "defect than any disagreement this control was built to catch"
+    )
     return text
 
 

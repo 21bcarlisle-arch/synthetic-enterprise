@@ -30,6 +30,11 @@ import yaml
 PROJECT = Path(__file__).resolve().parent.parent.parent
 MAP_PATH = PROJECT / "docs" / "design" / "maturity_map.yaml"
 
+if str(PROJECT) not in sys.path:
+    sys.path.insert(0, str(PROJECT))
+
+from tools import simplifications_store as _atom_store  # noqa: E402
+
 VALID_STREAMS = {"meter_to_cash", "price_to_bill", "wholesale_to_price", "close_to_learn"}
 
 # The genuinely-close_to_learn atoms, reviewed 2026-07-18 (ONE_FRAMEWORK §7
@@ -577,7 +582,17 @@ def check_coupling_symmetry(atoms: list) -> list:
 def check_orphaned_coupled_targets(atoms: list) -> list:
     """No L3+ atom whose own text declares a coupling may lack a couples_with
     twin. Works over any atom set (the generic registration rule, COUPLED_TRIAD
-    §4)."""
+    §4).
+
+    `name` IS READ THROUGH THE SEAM, and the alternative was measured, not assumed
+    (2026-08-14). The brief drained out of the map into the per-atom record store on
+    `ab0a6a396`; reading `a["name"]` inline after that leaves this predicate scanning
+    `real_world_twin` alone, and the count says how completely: **0 of 305 atoms** still
+    carry an inline `name`, so the coupling half of the subject was empty for the entire
+    population. Nothing raised -- a fail-open control returns [] exactly like a satisfied
+    one (R15 fail-open, and this drain's second instance: the first took the publish gate
+    red the same morning). Hydrating changes 0 violations to 0, so the blindness was not
+    hiding a live orphan; it was the control's ability to ever see one that had gone."""
     violations = []
     for a in atoms:
         if not isinstance(a, dict):
@@ -585,7 +600,7 @@ def check_orphaned_coupled_targets(atoms: list) -> list:
         lt = a.get("level_target")
         if not isinstance(lt, int) or lt < 3:
             continue
-        text = f"{a.get('name', '')} {a.get('real_world_twin', '')}"
+        text = f"{_atom_store.atom_name(a)} {a.get('real_world_twin', '')}"
         if _DECLARES_COUPLING.search(text) and not (a.get("couples_with") or []):
             violations.append(
                 f"{a.get('id')}: level_target={lt} and its text declares a coupling, "
