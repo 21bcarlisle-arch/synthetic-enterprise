@@ -3,12 +3,17 @@
 from company.billing.carbon_footprint import electricity_intensity, estimate_carbon, carbon_trend
 
 
+# 2026-08-14: these pinned 266 and 115 -- the local `_ELECTRICITY_INTENSITY_G_CO2E_PER_KWH`
+# table, the LOWEST of three disagreeing series and the only one nothing rendered. The table is
+# deleted and this module now delegates to the single owner, whose values are the ones the annual
+# report has been publishing all along. The numbers below are that published series, not a new
+# choice -- see tests/company/regulatory/test_carbon_emissions_single_series.py.
 def test_electricity_intensity_2016():
-    assert electricity_intensity(2016) == 266
+    assert electricity_intensity(2016) == 315.4
 
 
 def test_electricity_intensity_2025():
-    assert electricity_intensity(2025) == 115
+    assert electricity_intensity(2025) == 175.2
 
 
 def test_electricity_intensity_falls_over_time():
@@ -25,8 +30,10 @@ def test_estimate_electricity_carbon():
 def test_estimate_gas_carbon():
     result = estimate_carbon(10000, "gas", 2025)
     assert result["kg_co2e"] > 0
-    # Gas 0.18316 kgCO2e/kWh * 10000 kWh = 1831.6 kg
-    assert abs(result["kg_co2e"] - 1831.6) < 1.0
+    # Gas 0.183 kgCO2e/kWh * 10000 kWh = 1830.0 kg. Was 0.18316 here and 0.183 in the published
+    # report; 2026-08-14 collapsed both to the PUBLISHED figure rather than revalue the report on
+    # an unfetched source. The ~0.09% difference is recorded in the owner module, not resolved.
+    assert abs(result["kg_co2e"] - 1830.0) < 1.0
 
 
 def test_electricity_carbon_decreasing():

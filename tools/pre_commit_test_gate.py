@@ -56,6 +56,17 @@ CONTROL_TESTS = [
     # matters. It also fails rc=2 if a declared daemon moves outside the
     # scanned root, so this is where a coverage hole surfaces. ~0.3s.
     "tests/tools/test_child_stderr_guard.py",
+    # R10 class closure for WORKER_FINDING_THREE_LIVE_GRID_INTENSITY_SERIES_DISAGREE_BY_HALF
+    # (2026-08-14, BLOCKING). Same reasoning as the two guards above, third class:
+    # `test_the_real_tree_carries_exactly_one_series` AST-walks EVERY file under company/ and
+    # saas/ for a second annual grid-intensity series. Per-file selection would fire it when
+    # `tools/grid_intensity_guard.py` is edited -- the case that needs it least -- and stay
+    # silent when a brand-new reporting module declares its own intensity table, which is the
+    # only case it exists for. That silence is not hypothetical: the published series lived as a
+    # LOCAL inside `annual_report._section_carbon_emissions` and disagreed with the two other
+    # live series by up to 55.6% for an unknown length of time, with nothing able to see it.
+    # ~0.6s.
+    "tests/tools/test_grid_intensity_guard.py",
     # AO8 (2026-08-08). A mechanised battery line rots when work ELSEWHERE
     # renames or deletes the check it names. Per-file selection would fire this
     # when the register is edited (needs it least) and stay silent then (the
@@ -103,6 +114,24 @@ LEVEL_SURFACE_FILES = (
 STORE_CONTRACT_TESTS = [
     "tests/design/test_atom_notes_store.py",
     "tests/design/test_atom_records_store.py",
+    # THE SIZE HALF OF THE SAME CONTRACT (2026-08-14). The two entries above were added
+    # 2026-08-10 for exactly this class and the third file was left out, so the map's own
+    # SIZE RATCHET and its `simplifications_count` check stayed unreachable from a map edit.
+    # Measured that day with `select_targets` called directly: a `docs/design/maturity_map.yaml`
+    # edit selected 7 targets and this file was not among them, and neither was it reachable
+    # from `docs/design/simplifications/<atom>.yaml` -- so BOTH controls could only be selected
+    # by editing their own implementation or themselves. EVERY EDIT THAT CAN BREAK THEM WAS AN
+    # EDIT THAT COULD NOT SELECT THEM. Consequence observed, not predicted: HEAD sat 495 B over
+    # the ratchet with two atoms declaring counts their store files contradicted, and a commit
+    # EDITING THE MAP landed through `surgical_land` at gate-rc 0 on top of it.
+    #
+    # This is R15's FAIL-SILENT shape at the SELECTION layer rather than inside the assertion --
+    # the control bodies were fine and fired correctly the moment anything ran them. A data file
+    # has no implementation stem for a name-stem selector to match, which is why this class is
+    # PERMANENT for data-file subjects rather than transient as it is for a moved module.
+    # Mutation-proven from the DATA side (tests/tools/test_pre_commit_test_gate_selection.py):
+    # one byte over the ratchet, added to the map, must RED at the commit.
+    "tests/design/test_simplifications_store.py",
 ]
 LEVEL_SENSITIVE_TESTS = [
     # tests/background/test_fronts_reconciler.py removed 2026-08-03 with the module itself (the

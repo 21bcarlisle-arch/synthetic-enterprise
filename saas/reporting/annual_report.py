@@ -5408,22 +5408,14 @@ def _section_licence_health(data: dict) -> str:
 
 
 def _section_carbon_emissions(data: dict) -> str:
-    from company.regulatory.carbon_emissions import FuelMixRecord
-
-    # UK grid fuel mix (approx, DESNZ/National Grid annual data) -- percent values
-    _UK_FUEL_MIX = {
-        2016: FuelMixRecord(2016, coal_pct=9.0, gas_pct=42.0, nuclear_pct=21.0, wind_pct=11.0, solar_pct=3.0, hydro_pct=2.0, biomass_pct=8.0, imports_pct=4.0),
-        2017: FuelMixRecord(2017, coal_pct=7.0, gas_pct=40.0, nuclear_pct=21.0, wind_pct=15.0, solar_pct=3.0, hydro_pct=2.0, biomass_pct=8.0, imports_pct=4.0),
-        2018: FuelMixRecord(2018, coal_pct=5.0, gas_pct=39.0, nuclear_pct=20.0, wind_pct=17.0, solar_pct=3.0, hydro_pct=2.0, biomass_pct=9.0, imports_pct=5.0),
-        2019: FuelMixRecord(2019, coal_pct=2.0, gas_pct=37.0, nuclear_pct=19.0, wind_pct=20.0, solar_pct=4.0, hydro_pct=2.0, biomass_pct=12.0, imports_pct=4.0),
-        2020: FuelMixRecord(2020, coal_pct=1.0, gas_pct=33.0, nuclear_pct=17.0, wind_pct=24.0, solar_pct=4.0, hydro_pct=2.0, biomass_pct=12.0, imports_pct=7.0),
-        2021: FuelMixRecord(2021, coal_pct=2.0, gas_pct=36.0, nuclear_pct=17.0, wind_pct=22.0, solar_pct=4.0, hydro_pct=2.0, biomass_pct=11.0, imports_pct=6.0),
-        2022: FuelMixRecord(2022, coal_pct=2.0, gas_pct=38.0, nuclear_pct=17.0, wind_pct=26.0, solar_pct=4.0, hydro_pct=2.0, biomass_pct=8.0, imports_pct=3.0),
-        2023: FuelMixRecord(2023, coal_pct=1.0, gas_pct=32.0, nuclear_pct=14.0, wind_pct=28.0, solar_pct=5.0, hydro_pct=2.0, biomass_pct=10.0, imports_pct=8.0),
-        2024: FuelMixRecord(2024, coal_pct=0.0, gas_pct=29.0, nuclear_pct=14.0, wind_pct=32.0, solar_pct=5.0, hydro_pct=2.0, biomass_pct=11.0, imports_pct=7.0),
-        2025: FuelMixRecord(2025, coal_pct=0.0, gas_pct=25.0, nuclear_pct=13.0, wind_pct=36.0, solar_pct=6.0, hydro_pct=3.0, biomass_pct=10.0, imports_pct=7.0),
-    }
-    _GAS_G_PER_KWH = 183.0
+    # The mix and the gas factor are NOT declared here. They were, as locals inside this function
+    # body, which is how the tree ended up with three disagreeing grid-intensity series and nothing
+    # able to see that they disagreed. Single owner as of 2026-08-14; values are unchanged by the
+    # move, so every figure this section publishes is identical to the one it published before.
+    from company.regulatory.carbon_emissions import (
+        GAS_EMISSION_FACTOR_G_CO2E_PER_KWH as _GAS_G_PER_KWH,
+    )
+    from company.regulatory.carbon_emissions import UK_GRID_FUEL_MIX as _UK_FUEL_MIX
 
     ma = data.get("management_accounts") or {}
     if not ma:
@@ -5470,7 +5462,19 @@ def _section_carbon_emissions(data: dict) -> str:
         "| **Total** | | | | | | **" + f"{total_co2:,.1f}" + " t** | |"
     )
     lines.append("")
-    lines.append("> Grid emission intensity declining: 2016 ~290g/kWh -> 2025 ~175g/kWh (40% reduction). Carbon disclosure per SECR/ESOS.")
+    # DERIVED, not narrated (2026-08-14). This was the hardcoded sentence
+    # "2016 ~290g/kWh -> 2025 ~175g/kWh (40% reduction)", and it contradicted the table
+    # DIRECTLY ABOVE IT on both counts: the 2016 row reads 315g/kWh (290 is the 2017 value), and
+    # the fall is 44%, not 40%. A summary of a table that is not computed from the table is a
+    # second, unowned copy of the same series in prose -- the same defect one layer up.
+    _first, _last = min(_UK_FUEL_MIX), max(_UK_FUEL_MIX)
+    _i0 = _UK_FUEL_MIX[_first].emission_intensity_g_per_kwh
+    _i1 = _UK_FUEL_MIX[_last].emission_intensity_g_per_kwh
+    _fall = (1.0 - _i1 / _i0) * 100.0 if _i0 else 0.0
+    lines.append(
+        f"> Grid emission intensity declining: {_first} {_i0:.0f}g/kWh -> {_last} {_i1:.0f}g/kWh "
+        f"({_fall:.0f}% reduction). Carbon disclosure per SECR/ESOS."
+    )
     return "\n".join(lines)
 
 

@@ -79,6 +79,17 @@ the annual report's path, and that path currently reads a table declared inside 
 Staged separately as its own finding, because it is a **published** figure and outlives this atom:
 `WORKER_FINDING_THREE_LIVE_GRID_INTENSITY_SERIES_DISAGREE_BY_HALF_2026-08-14.md`.
 
+> **DISCHARGED 2026-08-14** (option 1), on a RUNG 1c blocking-finding draw — now at
+> `docs/staging/done/`. The three series are one: sole owner
+> `company/regulatory/carbon_emissions.py::grid_intensity_g_co2e_per_kwh`, class control
+> `tools/grid_intensity_guard.py` in the gate's `CONTROL_TESTS`. **No published value changed** —
+> the surviving series is the published construction, because the finding named no true value and a
+> repair that picked one would have asserted the claim the finding declined to make. §7 step 1 below
+> is therefore complete, and **EP13 now has the single consumer it was waiting for**. A successor
+> finding is live in the same lane:
+> `WORKER_FINDING_TWO_PUBLISHED_FUEL_MIX_TABLES_DISAGREE_ON_LOW_CARBON_2026-08-14.md` — the report's
+> two sections publish `Low Carbon %` for the same years 3.4pp apart.
+
 *(Observed in passing, recorded not fixed: the same report section derives electricity volume as
 `elec_mwh = rev / 150_000.0` — a hardcoded £150/MWh divisor — giving 0–28 MWh a year for the whole
 book. The intensity column is the smaller error of the two. Queued per SELF_INTERRUPT, not drawn.)*
@@ -192,9 +203,14 @@ reading must fail loud, never read as great.
 
 ## 7. FRAME — the smallest closed loop, in order
 
-1. **Reconcile the three series to one.** This is owed regardless of EP13, it is a *published* figure,
-   and it is not this atom's work — it is filed as its own BLOCKING finding in `F_risk_compliance`.
-   Until it is done there is no single consumer for a feed to replace.
+1. ~~**Reconcile the three series to one.**~~ **DONE 2026-08-14** — one owner
+   (`company/regulatory/carbon_emissions.py`), two literals deleted, class control landed
+   (`tools/grid_intensity_guard.py`). The single consumer a feed can replace now exists, so this
+   step no longer gates the rest. It did NOT settle which series is *right*: nothing was sourced,
+   and the surviving construction is `PROVISIONAL` in `GRID_INTENSITY_PROVENANCE`. Sourcing is
+   still EP13's, and the successor finding
+   (`WORKER_FINDING_TWO_PUBLISHED_FUEL_MIX_TABLES_DISAGREE_ON_LOW_CARBON_2026-08-14.md`) is where
+   the remaining published disagreement lives.
 2. **Publish GSP group per supply point as an observable** in the `_GB_REGIONS` vocabulary, and write
    the already-declared `meter_points.gsp_group`. Cheap, wall-legal, and it is the join key every
    regional thing downstream needs. Independent of the API.
@@ -251,6 +267,7 @@ rather than a scalar that improves under it.
   live paths are appended alongside, never rewritten — the store is append-only by design).
 * One finding staged, not fixed:
   `WORKER_FINDING_THREE_LIVE_GRID_INTENSITY_SERIES_DISAGREE_BY_HALF_2026-08-14.md`
-  (**BLOCKING** · `F_risk_compliance`) — §1 above.
+  (**BLOCKING** · `F_risk_compliance`) — §1 above. **Discharged the same day** on a separate RUNG 1c
+  draw; the document (with its discharge record appended) is now in `docs/staging/done/`.
 
 Nothing under `company/`, `simulation/`, `sim/` or `saas/` was touched. No level moved.

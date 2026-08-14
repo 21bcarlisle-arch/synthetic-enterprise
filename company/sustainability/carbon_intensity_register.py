@@ -12,7 +12,10 @@ Key disclosures:
 Data sources (publicly observable):
 - NESO Annual Fuel Mix report
 - Elexon BSC: supplier licence conditions require FMD
-- DESNZ (formerly BEIS) grid average intensity: ~196 gCO2/kWh 2023 (down from 350g 2016)
+- Grid average intensity: NOT declared here. Single owner
+  `company.regulatory.carbon_emissions.grid_intensity_g_co2e_per_kwh`, lifecycle basis. This
+  docstring previously cited "DESNZ (formerly BEIS) ~196 gCO2/kWh 2023 (down from 350g 2016)",
+  which described the local table deleted 2026-08-14; no external source was ever fetched for it.
 - Renewable Energy Guarantees of Origin (REGO) for green tariff claims
 
 Carbon intensity has fallen ~44% from 2016 to 2023 due to:
@@ -26,6 +29,8 @@ import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional
+
+from company.regulatory.carbon_emissions import grid_intensity_g_co2e_per_kwh
 
 
 class FuelSource(str, Enum):
@@ -54,18 +59,11 @@ _CARBON_INTENSITY_G_CO2_PER_KWH: Dict[FuelSource, float] = {
     FuelSource.OTHER: 200.0,
 }
 
-_GRID_AVERAGE_INTENSITY = {
-    2016: 350.0,
-    2017: 312.0,
-    2018: 283.0,
-    2019: 256.0,
-    2020: 228.0,
-    2021: 233.0,
-    2022: 210.0,
-    2023: 196.0,
-    2024: 181.0,
-    2025: 165.0,
-}
+# The grid average this register compares a supplier mix AGAINST is not declared here. It used to
+# be `_GRID_AVERAGE_INTENSITY` (350.0 in 2016 falling to 165.0 in 2025) — the highest of three
+# mutually inconsistent series in the tree, with zero non-test importers. Deleted 2026-08-14
+# discharging WORKER_FINDING_THREE_LIVE_GRID_INTENSITY_SERIES_DISAGREE_BY_HALF_2026-08-14.md.
+# Single owner: company.regulatory.carbon_emissions. See the docstring caveat below.
 
 
 @dataclass(frozen=True)
@@ -98,8 +96,15 @@ class FuelMixSnapshot:
 
     @property
     def vs_grid_average(self) -> float:
-        grid_avg = _GRID_AVERAGE_INTENSITY.get(self.year, 200.0)
-        return self.carbon_intensity_g_co2_per_kwh - grid_avg
+        """This supplier mix minus the national grid average, gCO2/kWh.
+
+        NOTE the basis mismatch, recorded not hidden: the grid side is the owner's lifecycle
+        series, while this snapshot's own side blends `_CARBON_INTENSITY_G_CO2_PER_KWH`, a second
+        per-fuel table whose gas figure (394.0) is a direct-combustion number sitting beside
+        lifecycle values for nuclear and wind. Reconciling the PER-FUEL tables is a separate,
+        larger class than the annual series this discharge closed, and is filed as its own finding.
+        """
+        return self.carbon_intensity_g_co2_per_kwh - grid_intensity_g_co2e_per_kwh(self.year)
 
     def fuel_mix_summary(self) -> str:
         return (

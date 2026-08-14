@@ -159,7 +159,16 @@ def test_a_non_store_design_doc_is_still_pure_data():
     # swallow docs/design at large, i.e. no contract SUITE, only what actually reads the file.
     readme = gate.select_targets(["docs/design/simplifications/" + "README" + ".md"])
     assert readme == ["tests/design/test_simplifications_store.py"]
-    assert not set(gate.STORE_CONTRACT_TESTS) & set(readme)
+    # 2026-08-14: this line used to read `not set(STORE_CONTRACT_TESTS) & set(readme)` and had been
+    # RED at HEAD since `test_simplifications_store.py` was added to STORE_CONTRACT_TESTS the same
+    # day -- it contradicted the assertion directly above it, which requires exactly that file, and
+    # so refused every commit touching this gate. The intent the comment above states is that the
+    # README must not pull the whole contract SUITE, "only what actually reads the file". That is a
+    # STRICT SUBSET claim, not a disjointness one; disjointness became unsatisfiable the moment the
+    # file that reads the README joined the suite. Asserted as intended, and non-vacuously:
+    assert set(readme) < set(gate.STORE_CONTRACT_TESTS), (
+        "the README must select only the test that reads it, never the whole store suite"
+    )
 
 
 def test_store_contract_test_files_all_exist():

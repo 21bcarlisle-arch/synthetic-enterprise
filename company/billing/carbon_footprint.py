@@ -1,40 +1,37 @@
 """Carbon footprint estimation for customers.
 
-Uses Ofgem-published UK electricity fuel mix disclosure data (gCO2e/kWh)
-to estimate customer carbon footprint from electricity consumption.
+Grid intensity is NOT declared here. This module used to carry its own
+`_ELECTRICITY_INTENSITY_G_CO2E_PER_KWH` table (266 gCO2e/kWh in 2016 falling to 115 in 2025) —
+the lowest of three mutually inconsistent series in the tree, up to 55.6% below the one the
+annual report publishes, and with no renderer of its own. Deleted 2026-08-14 discharging
+`WORKER_FINDING_THREE_LIVE_GRID_INTENSITY_SERIES_DISAGREE_BY_HALF_2026-08-14.md`; the single
+owner is `company.regulatory.carbon_emissions`. Do not reintroduce a local table — the control
+`tools/grid_intensity_guard.py` fails if one reappears, wherever and however it is declared.
 
-Gas carbon intensity from DESNZ (Defra conversion factors): 0.18316 kgCO2e/kWh.
+Gas Scope 1 factor also comes from the same owner. It was 0.18316 kgCO2e/kWh here against
+0.183 in the published report; the published value survives, because this reconciliation removes
+duplicates rather than revaluing anything (the ~0.09% difference is recorded, not resolved — no
+external source was fetched).
 """
 
 from __future__ import annotations
 
+from company.regulatory.carbon_emissions import (
+    GAS_EMISSION_FACTOR_G_CO2E_PER_KWH,
+    grid_intensity_g_co2e_per_kwh,
+)
 
-# UK electricity carbon intensity estimates (gCO2e/kWh) by year
-# Source: UK DESNZ grid intensity (annual averages)
-_ELECTRICITY_INTENSITY_G_CO2E_PER_KWH = {
-    2016: 266,
-    2017: 246,
-    2018: 233,
-    2019: 214,
-    2020: 181,
-    2021: 190,
-    2022: 165,
-    2023: 141,
-    2024: 126,
-    2025: 115,
-}
-
-# Gas: DESNZ Scope 1 conversion factor kgCO2e/kWh (stable 2016-2025)
-_GAS_KG_CO2E_PER_KWH = 0.18316
+# Gas: Scope 1 conversion factor kgCO2e/kWh, derived from the single owned gram figure.
+_GAS_KG_CO2E_PER_KWH = GAS_EMISSION_FACTOR_G_CO2E_PER_KWH / 1000.0
 
 
 def electricity_intensity(year: int) -> float:
-    """Return UK grid electricity carbon intensity in gCO2e/kWh for given year."""
-    if year in _ELECTRICITY_INTENSITY_G_CO2E_PER_KWH:
-        return _ELECTRICITY_INTENSITY_G_CO2E_PER_KWH[year]
-    if year < 2016:
-        return _ELECTRICITY_INTENSITY_G_CO2E_PER_KWH[2016]
-    return _ELECTRICITY_INTENSITY_G_CO2E_PER_KWH[2025]
+    """Return UK grid electricity carbon intensity in gCO2e/kWh for given year.
+
+    Delegates to the single owner. Years outside the covered window clamp there, preserving this
+    function's long-standing pre-2016/post-2025 behaviour.
+    """
+    return grid_intensity_g_co2e_per_kwh(year)
 
 
 def estimate_carbon(
