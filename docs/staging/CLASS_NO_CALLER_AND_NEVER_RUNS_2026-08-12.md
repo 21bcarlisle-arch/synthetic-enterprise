@@ -1,6 +1,6 @@
 # [CLASS] No caller, never runs: code and controls nothing reaches
 
-**Severity:** BLOCKING · **Lane:** H_harness
+**Severity:** LATENT · **Lane:** H_harness
 
 **Instances:** 3 · **Class:** `no_caller_and_never_runs` · **Ruling's own count:** ~5 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "no-caller/never-runs")
 
@@ -9,18 +9,12 @@ This document supersedes the individual findings listed below, which are **archi
 ## The 3 instances
 
 - `WORKER_FINDING_A_POPULATION_TEST_IS_UNREACHABLE_BY_ANY_STEM_SELECTOR_2026-08-10.md` — LATENT
-- `WORKER_FINDING_THE_MAPS_TWO_CONTROLS_ARE_UNREACHABLE_FROM_THE_MAP_2026-08-14.md` — BLOCKING
+- `WORKER_FINDING_THE_MAPS_TWO_CONTROLS_ARE_UNREACHABLE_FROM_THE_MAP_2026-08-14.md` — RECORDED
 - `WORKER_FINDING_TWO_UNIMPORTABLE_PHASE2A_MODULES_2026-08-09.md` — LATENT
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
 **0 hours traced** across 3 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
-
-## What is owed
-
-1 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
-
-- `WORKER_FINDING_THE_MAPS_TWO_CONTROLS_ARE_UNREACHABLE_FROM_THE_MAP_2026-08-14.md`
 
 ## Refused consolidation — out of lane, still live
 

@@ -3,6 +3,56 @@
 **Severity:** BLOCKING · **Lane:** H_harness · **Status:** measured, not repaired — filed per
 `SELF_INTERRUPT_DISCIPLINE` (queue, do not fix on sight; this tick's draw was PB2 FRAME).
 
+**Discharged:** `tests/tools/test_pre_commit_gate_store_surface.py::test_the_selected_control_goes_RED_when_the_map_is_ONE_BYTE_over`, `tests/tools/test_pre_commit_gate_store_surface.py::test_the_count_control_goes_RED_on_a_declared_count_that_lies`, `tests/tools/test_pre_commit_gate_store_surface.py::test_a_map_commit_selects_the_size_and_count_controls`, `tools/pre_commit_test_gate.py`, `tools/migrate_atom_names.py` — repaired in the order this document set: DRAINED first (the name field rehomed to the note tenant, map 410,122 to 262,093 B, 147,507 B of headroom), both reds cleared, THEN the selection wired and mutation-proven from the DATA side.
+
+## REPAIRED (2026-08-14, worker tick, H_harness blocking draw)
+
+Both conditions this document put on the repair were met, in its stated order.
+
+**1. Drained first.** The refill was `name`: 150,389 B, 37% of the spine, and the field both
+earlier drains had EXEMPTED as atom-count driven. That exemption was true when written and was
+refuted by measuring per-atom cost against mint order — oldest 50 atoms mean 91 B, newest 50 mean
+860 B (max 4,060), a 9× rise that is accretion, not population growth. `name` had become the
+atom's narrative BRIEF. Rehomed verbatim into the existing note tenant by
+`tools/migrate_atom_names.py` (four proof layers: span, hash-through-the-loader, remainder, and
+a fourth this migration needed — see below). Map **410,122 → 262,093 B** against the unmoved
+409,600 ceiling. **The ceiling was not raised**, for the fourth time in this control's history.
+
+The two count mismatches were fixed as the same drain decision this document said they were:
+`D30` gained the `simplifications_count: 1` it never declared, `SITE2` 4 → 5.
+
+**2. Then the selection, mutation-proven from the data side.**
+`tests/design/test_simplifications_store.py` is now in `STORE_CONTRACT_TESTS`, so it is reachable
+from BOTH data paths (`docs/design/maturity_map.yaml` → 8 targets, a store file → 3; it was in
+neither before). The proof is not a membership assertion: layer 2 builds a tmp copy of the tree,
+pads the map to **exactly one byte** over the ceiling — read FROM the control, never restated
+here, or the proof would survive someone moving the line — and asserts it goes RED for that
+reason; a sibling test mutates a declared count and asserts the red NAMES the atom; and the
+anti-tautology test asserts both are GREEN unmutated.
+
+**A hazard this repair found and the document did not predict.** The obvious move — re-running
+`tools/migrate_atom_notes.py`, which migrates by `is_note_field` and would have picked `name` up
+for free — is WRONG NOW. It inserts a fresh `notes_rehomed:` line unconditionally, which was safe
+when it ran (no atom had one) and is not safe now (81 do). It would have left those atoms with
+two `notes_rehomed` keys in one block: a YAML duplicate that PyYAML resolves silently to the
+last, discarding the earlier declaration while the declaration-matches-store contract still read
+as satisfied. That is why `tools/migrate_atom_names.py` exists rather than a re-run, why it MERGES
+into an existing declaration, and why it carries a fourth proof layer checking the TEXT (a
+`safe_load` would report a clean parse over exactly this corruption).
+
+**The flow, not just the stock.** Every prior drain here moved a stock and left the flow running,
+which is why each came back within a day or two. `name` is now in the note class, so
+`check_no_inline_notes` REFUSES an inline `name` — and because of repair 2 above, that refusal is
+now reachable from a map edit. A mint cannot put the brief back in the spine. Readers hydrate
+through one seam, `simplifications_store.atom_name`, wired at the supervisor's draw line and every
+site generator; the draw line was verified to render byte-identically to what it showed before.
+
+**Not done, and deliberately.** The per-atom budgets (`MAP_MEAN_BYTES_PER_ATOM` 1400,
+`MAP_MAX_BYTES_PER_ATOM` 12,288) are now loose against a post-drain reality of mean 885 B / max
+10,495 B. Re-deriving them from a cleaned map would be legitimate by that control's own stated
+rule, but nothing asked for it, tightening a budget is how lanes get wedged, and it is a separate
+judgment from this finding.
+
 Found while landing `7a5221b0b` (PB2 FRAME), which had to write `docs/design/maturity_map.yaml`.
 
 ## The measurement, `observed-with-evidence`
