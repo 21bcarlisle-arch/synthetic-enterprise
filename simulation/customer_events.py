@@ -36,6 +36,39 @@ from simulation.switching_propensity import adjust_churn_probability
 
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4c_on_phase2b.py
 
+# Disposition of a churned account's home-move outcome. Three-valued because the
+# WIN roll and the DELIVERY of that win are two different facts.
+HOME_MOVE_ACTIVATE_SUCCESSOR = "activate_successor"
+HOME_MOVE_GO_TO_MARKET = "go_to_market"
+
+
+def home_move_disposition(home_move_won: bool, successor_id: str | None) -> str:
+    """What actually happens to a churned billing account, given the win roll and
+    whether the property HAS a successor supply point on the book.
+
+    A win is only real once there is a supply point to activate. The roster
+    carries successors for 6 of 13 billing accounts (and none at all for the
+    curriculum's drawn SYN-* points), so `home_move_won=True` with
+    `successor_id=None` is a live, common state, not an edge case.
+
+    The rule this function exists to hold: **an undeliverable win is a plain
+    loss.** It disposes to `GO_TO_MARKET`, exactly as a lost home-mover does.
+    Written as an `if won: ... elif replace: ...` chain instead, the outer branch
+    swallows the undeliverable win and the account is lost with no successor AND
+    no market replacement — making a won roll strictly worse for the company than
+    a lost one (WORKER_FINDING_A_WON_HOME_MOVER_WITH_NO_SUCCESSOR_SUPPLY_POINT_
+    SUPPRESSES_THE_REPLACEMENT_TOO_2026-08-14.md, BLOCKING).
+
+    This deliberately does NOT touch `win_probability`: the missing successor is a
+    ROSTER limitation, not a world fact about that property, so zeroing the
+    probability would encode a book artefact as a belief about the world. The
+    consequence — the realised win rate runs below its parameter for accounts with
+    no successor point — is recorded, not tuned away.
+    """
+    if home_move_won and successor_id:
+        return HOME_MOVE_ACTIVATE_SUCCESSOR
+    return HOME_MOVE_GO_TO_MARKET
+
 
 def roll_lifecycle_event(
     customer_id: str,

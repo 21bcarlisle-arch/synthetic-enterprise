@@ -36,17 +36,16 @@ from company.interfaces.supply_book import (
     registered_point as get_customer,
     successor_supply_points,
 )
-from saas.growth_mandate import (
-    COST_PER_ACQUISITION,
-    FIXED_COST_MONTHLY,
-    MANDATE,
-    should_attempt_acquisition,
+from company.interfaces.growth_desk import (
+    book_acquisition_gate,
+    book_acquisition_spend,
+    book_retention_cost,
+    decide_acquisition,
+    growth_mandate_label,
+    mandate_permits_replacement,
+    replacement_cost_avoided_gbp,
 )
-from saas.ledger import (
-    make_acquisition_spend_event,
-    make_fixed_cost_event,
-    make_retention_cost_event,
-)
+from company.interfaces.fixed_overhead import book_monthly_overhead
 from saas.property_model import (
     DEFAULT_ASSETS,
     DEFAULT_HEATING_SYSTEM,
@@ -75,7 +74,11 @@ from sim.risk_committee import RiskCommitteeMonitor
 from sim.risk_engine import assess_term_risk, is_administration_triggered
 from sim.system_prices_history import get_system_prices_range
 from sim.weather_price_sensitivity import weather_sensitivity_multiplier
-from simulation.customer_events import roll_lifecycle_event
+from simulation.customer_events import (
+    HOME_MOVE_ACTIVATE_SUCCESSOR,
+    home_move_disposition,
+    roll_lifecycle_event,
+)
 from simulation.churn_journey import ChurnJourneyRegister
 from simulation.acquisition_funnel import run_acquisition_funnel
 from tools.acquisition_funnel_port import AcquisitionFunnelMessage
@@ -1343,9 +1346,9 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                     # (pre-Phase-15b, margin-only guard) -- policy.include_acq_cost_saved_in_guard.
                     cust_data_ret = get_customer(billing_account)
                     seg_ret = cust_data_ret["segment"] if cust_data_ret else "resi"
-                    acq_cost_saved = (
-                        COST_PER_ACQUISITION.get(seg_ret, 150.0)
-                        if policy.include_acq_cost_saved_in_guard else 0.0
+                    acq_cost_saved = replacement_cost_avoided_gbp(
+                        segment=seg_ret,
+                        counted_in_guard=policy.include_acq_cost_saved_in_guard,
                     )
                     if expected_margin + acq_cost_saved > ret_cost:
                         # Nudge Physics Layer 1: framing_type is the company's own
@@ -1357,7 +1360,12 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                         _framing_multiplier = framing_effectiveness_multiplier(billing_account, _framing_type)
                         retention_modifier_val = min(0.95, RETENTION_EFFECTIVENESS * _framing_multiplier)
                         retention_cost_events.append(
-                            make_retention_cost_event(billing_account, term_start_str, ret_cost, company_est_pre)
+                            book_retention_cost(
+                                billing_account=billing_account,
+                                event_date=term_start_str,
+                                cost_gbp=ret_cost,
+                                company_churn_estimate=company_est_pre,
+                            )
                         )
                         retention_log.append({
                             "customer_id": billing_account,
@@ -1570,42 +1578,67 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                             sim_churn_probability=event.get("realized_churn_probability", event.get("churn_probability")),
                             company_churn_estimate=event.get("company_churn_estimate"),
                         )
-                    if event.get("home_move_won"):
-                        successor_id = SUCCESSOR_MAP.get(billing_account)
-                        if successor_id:
-                            won_successor_activations[successor_id] = term_start_str
-                            print(f"  [WIN] Home-mover won: {successor_id} activates at {term_start_str}")
-                            if sim_interface is not None:
-                                sim_interface.notify_acquisition(
-                                    successor_id,
-                                    term_start_str,
-                                    channel="home-move-win",
-                                    predecessor_id=billing_account,
-                                )
-                    elif MANDATE != "shrink":
+                    # The win roll and the DELIVERY of that win are two facts. Ask
+                    # the disposition helper, never `if won: ... elif replace:` —
+                    # that chain swallowed an undeliverable win and suppressed the
+                    # market replacement with it (2026-08-14 BLOCKING finding).
+                    successor_id = (
+                        SUCCESSOR_MAP.get(billing_account)
+                        if event.get("home_move_won") else None
+                    )
+                    _home_move = home_move_disposition(
+                        bool(event.get("home_move_won")), successor_id
+                    )
+                    # Stamp the undeliverable win on the event so the realised win
+                    # rate's shortfall against its parameter is visible in the
+                    # event log rather than silent. Stamped BEFORE the branch: a
+                    # wind-down mandate blocks the replacement, not the record.
+                    if event.get("home_move_won") and successor_id is None:
+                        event["home_move_win_undelivered"] = True
+                        print(
+                            f"  [WIN-UNDELIVERED] {billing_account} won its home-mover but has "
+                            f"no successor supply point — going to market instead"
+                        )
+                    if _home_move == HOME_MOVE_ACTIVATE_SUCCESSOR:
+                        won_successor_activations[successor_id] = term_start_str
+                        print(f"  [WIN] Home-mover won: {successor_id} activates at {term_start_str}")
+                        if sim_interface is not None:
+                            sim_interface.notify_acquisition(
+                                successor_id,
+                                term_start_str,
+                                channel="home-move-win",
+                                predecessor_id=billing_account,
+                            )
+                    elif mandate_permits_replacement():
                         customer_data = get_customer(billing_account)
                         segment = customer_data["segment"] if customer_data else "resi"
-                        acq_cost = COST_PER_ACQUISITION.get(segment, 150.0)
                         acq_seed = f"acquire_{billing_account}_{term_start_str}"
 
-                        # Phase 47b: cap-aware acquisition gate — company won't attempt
-                        # acquisition when cap forces resi electricity below wholesale cost.
-                        _acq_ok, _gate_reason = should_attempt_acquisition(
-                            segment, commodity, company_fwd, term_start_str
+                        # Phase 47b: cap-aware acquisition gate — the supplier declines
+                        # to go to market when the cap would force resi electricity below
+                        # wholesale cost. KNIFE3 step 27 (register §3v): the budget and
+                        # the gate are ONE question asked through
+                        # `company.interfaces.growth_desk`, not two the world answered off
+                        # its own copy of the supplier's cost table.
+                        _acq = decide_acquisition(
+                            segment=segment,
+                            commodity=commodity,
+                            company_fwd_gbp_per_mwh=company_fwd,
+                            term_start=term_start_str,
                         )
-                        if not _acq_ok:
-                            acquisition_spend_events.append({
-                                "event_type": "acquisition_gate_event",
-                                "timestamp": term_start_str,
-                                "billing_account": billing_account,
-                                "segment": segment,
-                                "amount_gbp": 0.0,
-                                "acquisition_won": False,
-                                "gate_reason": _gate_reason,
-                            })
+                        acq_cost = _acq.budget_gbp
+                        if not _acq.attempt:
+                            acquisition_spend_events.append(
+                                book_acquisition_gate(
+                                    billing_account=billing_account,
+                                    event_date=term_start_str,
+                                    segment=segment,
+                                    gate_reason=_acq.gate_reason,
+                                )
+                            )
                             print(
                                 f"  [GATE] Acquisition suppressed: {billing_account} at {term_start_str}"
-                                f" — {_gate_reason}"
+                                f" — {_acq.gate_reason}"
                             )
                             continue
 
@@ -1647,9 +1680,12 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                         acquisition_funnel_log.append(_funnel_message.to_log_entry())
 
                         acquisition_spend_events.append(
-                            make_acquisition_spend_event(
-                                billing_account, term_start_str,
-                                _funnel_result.total_cost_gbp, acq_won, segment
+                            book_acquisition_spend(
+                                billing_account=billing_account,
+                                event_date=term_start_str,
+                                amount_gbp=_funnel_result.total_cost_gbp,
+                                won=acq_won,
+                                segment=segment,
                             )
                         )
 
@@ -2004,7 +2040,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             # energy trading treasury (trading vs. ops architectural separation).
             rec_month = rec["settlement_date"][:7]
             if rec_month not in _fixed_cost_emitted:
-                fixed_cost_events.append(make_fixed_cost_event(rec_month, FIXED_COST_MONTHLY))
+                fixed_cost_events.append(book_monthly_overhead(rec_month))
                 _fixed_cost_emitted.add(rec_month)
 
             # Phase NH: generate one payment record per customer-month for analytics.
@@ -2581,7 +2617,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         "acquisition_funnel_log": acquisition_funnel_log,
         "fixed_cost_events": fixed_cost_events,
         "acquired_customers": [c["customer_id"] for c in ACQUIRED_CUSTOMERS],
-        "growth_mandate": MANDATE,
+        "growth_mandate": growth_mandate_label(),
         # Phase 11a: basis risk — company estimate vs sim ground truth per term
         "basis_risk_terms": basis_risk_terms,
         # Phase 11b: churn basis risk — company churn estimate vs sim ground truth per renewal

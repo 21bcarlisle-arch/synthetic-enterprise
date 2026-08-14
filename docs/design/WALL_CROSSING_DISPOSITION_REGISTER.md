@@ -2233,6 +2233,137 @@ door, not a move. This step deliberately did not widen a module-move ruling to c
 
 ---
 
+## 3v. The growth mandate, and the money it books — added 2026-08-14 (step 27)
+
+`A_composition_lift`, applied to the acquisition/retention group on `simulation/run_phase2b.py`:
+
+  * `simulation.run_phase2b -> saas.growth_mandate`
+  * `simulation.run_phase2b -> saas.ledger`
+
+13 -> 11 LIVE (11 -> 9 direct; the 2 indirect deliberately UNMOVED for the FOURTEENTH consecutive
+step, which is again the proof that a bridge route was not silently taken instead of a cut).
+
+### What the WORLD was doing that is not the world's
+
+A customer leaving is the world's fact and still arrives as one. Everything `run_phase2b` did NEXT
+was the supplier's, and it did all of it out of its own namespace:
+
+  * it compared the supplier's standing mandate to the literal string `"shrink"` — so it held both
+    the stance AND the knowledge of which of that field's values means stop;
+  * it read `COST_PER_ACQUISITION[segment]` to size the attempt;
+  * it called the cap-aware gate itself and formatted the refusal reason;
+  * it read the same cost table a SECOND time, at a different call site, as the `acq_cost_saved`
+    credit inside the supplier's own retention guard;
+  * it held `FIXED_COST_MONTHLY` — £50/month of metering admin, licensing and ops;
+  * and it CONSTRUCTED THE SUPPLIER'S LEDGER ROWS, including one, the zero-amount
+    `acquisition_gate_event`, that it built as an inline dict literal with no constructor at all.
+
+Every one of those is a commercial judgement a real supplier makes and is allowed to get WRONG,
+which is the belief-vs-truth gap the COUPLED TRIAD scores. None is physics.
+
+### A DOOR, not a move — and §3u is why that has to be said
+
+Step 26 cut `saas.demand_response` by MOVING it, because how much load a household actually shifts
+is the world's physics and the module was misfiled. The temptation here is to read that as a
+precedent for the rest of the `saas.*` set on this file. It is not, and §3u said so in advance.
+`saas/growth_mandate.py` and `saas/ledger.py` are on the CORRECT side of the wall already and carry
+five other company-side consumers (`saas.reporting.annual_report`, `tools.run_segments`,
+`company.finance.accounting_close`, `company.finance.double_entry`, `company.finance.pnl`). Nothing
+about them is misfiled. What was wrong was the world reaching THROUGH them, and the remedy for that
+is a door.
+
+### TWO doors, because §3m's group test says NO
+
+The group test is "do they feed ONE total?". The budget, the cap gate and the retention credit do:
+the guard's `acq_cost_saved` term IS the acquisition cost the supplier avoids by retaining, so they
+are arithmetically the same number seen from three sides. That is
+`company/interfaces/growth_desk.py`.
+
+The monthly overhead is none of that — it accrues on the calendar whether or not a single customer
+moved, is keyed by month rather than by account, and lands in account 6200 rather than against any
+supply point. Folding it in would hand the world one surface meaning two things, which is the
+re-export this pass exists to avoid. That is `company/interfaces/fixed_overhead.py`, and it takes a
+MONTH AND NOTHING ELSE: the amount never crosses, so after this cut there is no expression anywhere
+under `simulation/` from which the supplier's overhead can be read.
+
+### THE MANDATE CHECK MOVED OUT OF THE `elif`, and that is the interesting half
+
+`elif MANDATE != "shrink":` could have become `elif growth_mandate_label() != "shrink":` and the
+epistemic ratchet would have gone green. It would also have left the world branching on a supplier
+stance — the crossing paid off as an import and kept as a comparison. So the door answers the
+QUESTION (`mandate_permits_replacement()`) rather than serving the LABEL, and `growth_mandate_label()`
+survives only for the run record's `"growth_mandate"` output field, documented as reporting-only.
+
+That is also why `AcquisitionDecision` deliberately has no `mandate_permits` field. The mandate needs
+nothing about the customer; the gate needs the segment, the commodity and this term's forward. One
+combined question would force the world to look the customer up before it is entitled to, and one
+combined flag would lose which of the two suppressed an attempt — they produce different artefacts, a
+forbidding mandate booking nothing at all while a gate refusal books the visible zero-amount row.
+
+### Behaviour is unchanged, and it is MEASURED rather than asserted
+
+Every expected value in `TestBehaviour` was computed against `saas.growth_mandate` / `saas.ledger`
+BEFORE the cut landed and transcribed as a LITERAL: the mandate label, all three segment budgets
+including the unknown-segment default, the full 4-cell gate grid across two commodities, four dates
+and two forwards (with the refusal STRINGS pinned, not just the booleans), and all four ledger rows
+with their `transaction_id`s and their signs. Pre-cut evidence, not a re-record of the post-cut tree —
+a pin regenerated from the thing it pins can never fail.
+
+The gate row's ABSENCE of a `transaction_id` is pinned too. The spend and retention rows both carry
+one; this row has never had one, and moving it inside a door is exactly the moment that asymmetry
+gets "tidied up" by accident.
+
+### MUTATION-PROVEN BOTH WAYS — 28 green unmutated, 7 mutations, each red where it should be
+
+`MANDATE` -> `"shrink"` gave 2 red; `COST_PER_ACQUISITION["resi"]` 150 -> 200 gave 2 red (the budget
+AND the retention credit, which is the point of pinning both call sites); `FIXED_COST_MONTHLY`
+50 -> 60 gave 1; flipping the gate's `cap < fwd` to `cap > fwd` gave 2, including one ungated grid
+cell, because a same-year cheap forward is what proves the CAP is not the thing that decides. A
+module-scope `from saas.growth_mandate import COST_PER_ACQUISITION` in the door gave 2 — and that is
+the mutation that matters most, because it is the one the wall ratchet CANNOT see: the import still
+terminates on the exempt seam package, so the ratchet stays green while the world reads the
+supplier's table straight through the door. Re-adding the `saas.ledger` import to `run_phase2b` gave
+1; copying `FIXED_COST_MONTHLY = 50.0` onto the world side without any import gave 1.
+
+### The scanner that had the wrong subject, caught by its own first run
+
+`test_the_suppliers_own_cost_constants_are_unreadable_under_simulation` was written as a substring
+search and immediately reported `simulation/acquisition_funnel.py`. That hit is a DOCSTRING — design
+B6's own record of cutting exactly this name, prose about a crossing that no longer exists. A control
+that fires on the register's own history has the wrong subject, and the natural way to green it would
+have been to delete the explanation. It is now AST-based: the subject is a name the interpreter would
+resolve, not a word on the page.
+
+### The bug this step's own lint caught, recorded because it nearly shipped
+
+The first edit renamed the `elif` condition without adding `mandate_permits_replacement` to the
+import list. All 636 tests in the caller suites passed anyway — none of them reaches a churn without a
+home-move win — and the F821 was found by the static-quality ratchet, not by a test. The seam controls
+here do not exercise the loop, and that gap is real: this cut's runtime proof is ruff plus the
+existing `run_phase2b` suites, not a control of its own.
+
+### The portability row, recorded in the same change
+
+The door carries 13 `*_gbp` field-name occurrences, so `tests/architecture/test_market_at_the_seams.py`
+rule 2 refused it until the row was written into `PORTABILITY_DEBT.md` — the same treatment §3s's and
+§3t's doors got. This is debt item #1 (no `Money` type), remediation-on-touch; the tables themselves
+are NOT re-exported, which is the part rule 2 would not have caught.
+
+### What did NOT fall
+
+`saas.cost_to_serve`, `saas.customer_reaction` and `saas.property_model` remain live on `run_phase2b`
+and owed to `A_composition_lift`, as do `company.policy.decision_policy`, the 2 indirect edges and
+`run_phase4c_on_phase2b -> company.billing.dd_review_runner`. `saas.property_model` is worth naming
+explicitly: a household's assets, heating system and occupancy pattern LOOK like §3u's filing error,
+and a future step must re-rule it on its own evidence rather than inheriting either this step's
+door ruling or §3u's move ruling.
+
+STEP 17'S NAMED RESIDUAL IS STILL OPEN (`FITBook.levelisation_charge_gbp` is handed kWh and divides by
+1000 internally — naming debt on `company/regulatory/fit_book.py`, not a wall crossing). STEP 20'S
+MASKING FINDING IS ALSO STILL OPEN.
+
+---
+
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
 
 These were designs in §3 until they were carried out. They are recorded
@@ -2757,8 +2888,8 @@ edge: simulation.run_phase2b -> company.trading.wholesale_credit_exposure | disp
 edge: simulation.run_phase2b -> saas.cost_to_serve | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> saas.customer_reaction | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> saas.demand_response | disposition=cut | reason=`B9_demand_response_is_world_physics` step 26, 2026-08-13 (§3u) — RE-RULED off `A_composition_lift` first, as §3t asked. Not a composition: how much load a household ACTUALLY shifts on a ToU tariff is the world's physics, calibrated to Ofgem/Octopus/EST trial measurements, and the supplier is allowed to be wrong about it. A filing error of B1's exact shape, so a MODULE MOVE — `simulation/demand_response.py`, beside `nudge_physics.py`. Both B1 safety measurements re-taken before the move (zero company-side importers, stdlib-only imports) and now live as tests.
-edge: simulation.run_phase2b -> saas.growth_mandate | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> saas.ledger | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> saas.growth_mandate | disposition=cut | reason=`A_composition_lift` step 27, 2026-08-14 (§3v) — the standing mandate, the per-segment replacement-cost table and the cap-aware acquisition gate are commercial judgements the supplier is allowed to get wrong, and the world held all three. A DOOR and not §3u's module move: this module is on the correct side already and has five other company-side consumers — what was wrong was the world reaching THROUGH it. The mandate check moved OUT of the `elif` condition rather than being renamed into it, so the door answers the question instead of serving the label.
+edge: simulation.run_phase2b -> saas.ledger | disposition=cut | reason=`A_composition_lift` step 27, 2026-08-14 (§3v) — the world was constructing the supplier's own acquisition-spend, gate and retention-cost rows, one of them as an inline dict literal with no constructor at all. Cut through TWO doors, not one: `company.interfaces.growth_desk` for the acquire-or-retain rows and `company.interfaces.fixed_overhead` for the monthly overhead accrual, which §3m's group test separates because it accrues on the calendar against no supply point. The overhead AMOUNT no longer crosses at all.
 edge: simulation.run_phase2b -> saas.property_model | disposition=owed | design=A_composition_lift
 edge: simulation.run_phase2b -> saas.smart_meter_rollout | disposition=cut | reason=`A_composition_lift` step 25, 2026-08-13 (§3t) — whether the customer HAS a smart or HH meter is the world's fact and still arrives on the customer record; whether the supplier OFFERS a ToU product to everyone whose meter permits it is a commercial decision it is allowed to get wrong, and the world was making it.
 edge: simulation.run_phase2b -> saas.tariff_pricing | disposition=cut | reason=`A_composition_lift` step 25, 2026-08-13 (§3t) — TWO uses, and the edge only fell when both went: the ToU peak/off-peak split applied inline to the CONTRACTED rate (a second copy of the supplier's product shape, now `split_flat_rate_to_tou`), and the gas fixed strike, where the world also decided which published components a pass-through product locks and read the company's own naked fraction back to it.

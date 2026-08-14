@@ -346,8 +346,20 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     # inherited from the ruling: ZERO company-side importers (so the move cannot
     # create a class-(a) edge) and stdlib-only imports (so it cannot create a
     # sim -> company edge in the other direction).
-    ("simulation.run_phase2b", "saas.growth_mandate"),
-    ("simulation.run_phase2b", "saas.ledger"),
+    # ("simulation.run_phase2b", "saas.{growth_mandate,ledger}") -- 2 tuples
+    # DELETED 2026-08-14 by `A_composition_lift` step 27 (register §3v). The world
+    # held the supplier's standing growth mandate, its per-segment replacement-cost
+    # table, its cap-aware acquisition gate, the replacement credit inside its own
+    # retention guard, its monthly overhead figure, and the SHAPE OF ITS LEDGER
+    # ROWS. Every one is a commercial judgement a real supplier makes and is
+    # allowed to get wrong, so a DOOR and not a module move -- both `saas` modules
+    # are on the correct side already and have five other company-side consumers;
+    # what was wrong was the world reaching THROUGH them. TWO doors, because §3m's
+    # group test says NO here: the budget, the gate and the retention credit are
+    # one number seen from three sides (`company.interfaces.growth_desk`), while
+    # the monthly overhead accrues on the calendar against no supply point at all
+    # (`company.interfaces.fixed_overhead`). `saas.property_model` below did NOT
+    # fall with them and is still owed.
     ("simulation.run_phase2b", "saas.property_model"),
     # ("simulation.run_phase2b", "saas.{smart_meter_rollout,tariff_pricing}") --
     # 2 tuples DELETED 2026-08-13 by `A_composition_lift` step 25 (register §3t).
