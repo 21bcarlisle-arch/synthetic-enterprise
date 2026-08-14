@@ -32,55 +32,46 @@ _epoch 3 · lane H_harness · L2→L2 · build_
 - `2026-08-12` · `docs/staging/WORKER_REPORT_THE_INDEX_NOW_KNOWS_WHAT_THE_REPO_CARRIES_2026-08-12.md` (finding)
 
 ## C14_thermal_parameter_inference
-**Company-side thermal parameter inference: the supplier estimates each premise's heat loss coefficien**  
 _epoch 3 · lane C_customer_ops · L3→L3 · harden_
 
 - `2026-08-09` · `docs/staging/WORKER_FINDING_DECISION_WITHOUT_A_DO_NOTHING_OPTION_2026-08-09.md` (finding)
 
 ## D11_detection_gap_is_recall_only
-**Reshape the coupled-triad DETECTION dimension, which has two defects the 2026-08-09 H27 Expert Hour **  
 _epoch 3 · lane D_billing_metering · L2→L2 · build_
 
 - `2026-08-09` · `docs/staging/done/WORKER_FINDING_H27_EXPERT_HOUR_DETECTION_IS_RECALL_ONLY_2026-08-09.md` (finding)
 
 ## D12_detection_cell_grid_is_recall_only
-**Three published detection dimensions are still RECALL ONLY after D11 fixed the fourth: the regime-pa**  
 _epoch 3 · lane D_billing_metering · L2→L2 · build_
 
 - `2026-08-09` · `docs/staging/WORKER_FINDING_THE_SECOND_DIRECTION_NEEDS_ITS_OWN_POPULATION_2026-08-09.md` (finding)
 
 ## D19_belief_gap_is_distribution_only
-**The W2_11<->D5 triad's BELIEF dimension is a total-variation distance between two population severit**  
 _epoch 3 · lane D_billing_metering · L2→L2 · harden_
 
 - `2026-08-10` · `docs/staging/done/WORKER_FINDING_THE_BELIEF_GAP_IS_BLIND_TO_WHO_HOLDS_THE_BELIEF_2026-08-10.md` (finding)
 
 ## D20_belief_truth_rule_is_an_unmeasured_mirror
-**The W2_11<->D5 triad's BELIEF dimension publishes its two sides as 'same threshold shape, different-**  
 _epoch 3 · lane D_billing_metering · L2→L2 · harden_
 
 - `2026-08-10` · `docs/staging/done/WORKER_FINDING_THE_BELIEF_TRUTH_RULE_IS_AN_UNMEASURED_MIRROR_2026-08-10.md` (finding) — minted here, built here)
 
 ## D21_ageing_truth_side_is_the_organs_own_rule
-**The W2_11<->D5 triad's AGEING dimension -- the one whose whole subject is debt DATING -- computed it**  
 _epoch 3 · lane D_billing_metering · L2→L2 · harden_
 
 - `2026-08-10` · `docs/staging/done/WORKER_FINDING_THE_AGEING_TRUTH_SIDE_IS_THE_ORGANS_OWN_RULE_2026-08-10.md` (finding) — minted here, built here)
 
 ## D22_ageing_ordinal_is_one_directional
-**The W2_11<->D5 triad's AGEING dimension publishes an ORDINAL headline -- `mean_bucket_displacement`,**  
 _epoch 3 · lane D_billing_metering · L2→L2 · harden_
 
 - `2026-08-10` · `docs/staging/done/WORKER_FINDING_THE_AGEING_ORDINAL_HEADLINE_COUNTS_ONE_DIRECTION_2026-08-10.md` (finding) — minted here, **not** built here) · `H41_the_map_ratchet_has_no_ongoing_drain` (recurrence measured)
 
 ## D23_organ_query_grid_cannot_resolve_latency
-**The W2_11<->D5 triad's DETECTION_LATENCY dimension -- the one whose whole subject is HOW LATE the co**  
 _epoch 3 · lane D_billing_metering · L2→L2 · harden_
 
 - `2026-08-10` · `docs/staging/WORKER_FINDING_THE_INSTRUMENT_CANNOT_RESOLVE_ITS_OWN_LATENCY_2026-08-10.md` (finding) — minted here, **not** built here)
 
 ## D8_ambiguous_remittance_misdating
-**Report the Clayton's-Case date displacement as a company failure finding in its own right: unreferen**  
 _epoch 3 · lane D_billing_metering · L2→L2 · build_
 
 - `2026-08-09` · `docs/staging/done/WORKER_FINDING_DETECTION_RESIDUAL_IS_MISALLOCATION_2026-08-09.md` (finding)
