@@ -211,6 +211,54 @@ def test_operational_layer_signal_crash_does_not_crash_run_cycle(monkeypatch):
     assert "operational-layer signal check error" in dms.LOG_FILE.read_text()
 
 
+# ── G-N4 DIGEST LEAK (2026-08-14) — the defect that held the operational-layer signal RED for
+# 9 consecutive hourly checks while `pytest -m operational` was GREEN run by hand.
+#
+# run_cycle() calls _flush_notification_digest(), which reads the REAL append-only digest queue
+# and sends through the SAME background.ntfy_utils.send_ntfy that every `assert calls == []` in
+# this file monkeypatches to capture. When the 6-hourly digest is due with anything pending, that
+# digest lands in each of those lists and 27 tests here go red at once -- on the daemon's run
+# only, because the daemon spawns this suite from INSIDE run_cycle, before its own flush.
+#
+# The pin lives at DIRECTORY scope (tests/background/conftest.py, eighth entry) so it covers
+# every current and future test in here, not a hand-maintained per-file list. R15 demands the pin
+# be shown to FIRE on its own named defect, so both directions are asserted below: silent under
+# the fixture, and red the moment the pin is bypassed. The second test is the mutation -- if it
+# ever passes, the pin has stopped being load-bearing and the first test is proving nothing.
+
+def test_a_due_digest_does_not_leak_into_this_files_ntfy_assertions(monkeypatch):
+    """SILENT DIRECTION: the digest clock is forced fully due, and run_cycle still sends
+    nothing, because the directory fixture pins the queue at an absent path."""
+    from background import notification_digest as nd
+    monkeypatch.setattr(nd, "_read_state", lambda: {"digested_through_seq": 0, "last_digest_ts": 0})
+    assert nd._due(), "the clock must genuinely be due, or this test asserts nothing"
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - 60)
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
+    dms.run_cycle()
+    assert calls == []
+
+
+def test_the_digest_pin_fires_when_it_is_bypassed(tmp_path, monkeypatch):
+    """MUTATION: restore exactly what the directory fixture removes -- a due clock over a
+    NON-empty queue -- and run_cycle emits the digest into the capture list. This is the
+    observed 2026-08-14 failure, reproduced deliberately."""
+    from background import notification_digest as nd
+    queue = tmp_path / "leaky_queue.jsonl"
+    queue.write_text(json.dumps(
+        {"seq": 1, "kind": "real_alarm", "class": "seeded", "message": "a batched item"}) + "\n")
+    monkeypatch.setattr(nd, "QUEUE_FILE", queue)
+    monkeypatch.setattr(nd, "_read_state", lambda: {"digested_through_seq": 0, "last_digest_ts": 0})
+    monkeypatch.setattr(nd, "_write_state", lambda state: None)
+    monkeypatch.setattr(dms, "last_activity_epoch", lambda: time.time() - 60)
+    calls = []
+    monkeypatch.setattr("background.ntfy_utils.send_ntfy", lambda msg, **k: calls.append(msg))
+    dms.run_cycle()
+    assert any("[DIGEST]" in c for c in calls), (
+        "the pin is no longer load-bearing -- a due, non-empty digest queue must reach "
+        "send_ntfy through run_cycle, or the silent-direction test above proves nothing")
+
+
 def test_meaningful_clock_fails_closed_and_trips_blocked_when_git_unreadable(monkeypatch):
     """End-to-end: git unreadable -> meaningful epoch 0.0 -> since_commit ~= now
     -> with queued work the alarm MUST fire. An unavailable check is a FAILED

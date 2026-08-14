@@ -25,7 +25,7 @@ from pathlib import Path
 
 import pytest
 
-from background import gap_ledger_reconciler, supervisor
+from background import gap_ledger_reconciler, notification_digest, supervisor
 from tests.background import env_constant_sync as _env_sync
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -119,6 +119,35 @@ def _isolate_publish_gate_wedge_state(tmp_path, monkeypatch):
     monkeypatch.setattr(
         supervisor, "ATOM_STALL_STATE_FILE",
         tmp_path / ".atom_stall_tracker_absent.json", raising=False,
+    )
+    # G-N4 NOTIFICATION DIGEST (2026-08-14) -- the EIGHTH instance, and the one that held the
+    # operational-layer signal RED for 9 consecutive hourly checks while the suite was GREEN by
+    # hand. `deadmans_switch.run_cycle` calls `_flush_notification_digest()`, which reads the REAL
+    # append-only docs/observability/ntfy_digest_queue.jsonl and SENDS through the same
+    # ntfy_utils.send_ntfy that ~27 tests in test_deadmans_switch.py monkeypatch to capture -- so a
+    # due digest lands in every one of those `assert calls == []` lists. That file's own `_isolate`
+    # fixture neutralises six other run_cycle checks by name and never grew a seventh entry when
+    # the digest landed, which is precisely why this pin belongs at DIRECTORY scope instead: the
+    # next check to gain a real-state read is isolated here without anyone remembering to edit a
+    # per-file list.
+    #
+    # It is a FLAKE of the nastiest shape (the "weather as its subject" class, like the stall
+    # tracker above): DIGEST_INTERVAL_SECONDS is 6h and the high-water mark advances ONLY on a
+    # CONFIRMED delivery (G-N5), so the queue is due for a few minutes a day -- and stays due
+    # indefinitely if the send is dropped or rate-limited. The suite therefore passes standalone,
+    # passes by hand, and reds inside the daemon's own hourly run, which spawns the pytest from
+    # INSIDE run_cycle at a point where its own flush has not happened yet. Pinning BOTH paths at
+    # absent tmp files gives an empty queue => `pending()` is empty => `flush()` returns None
+    # without sending, whatever the clock says. test_notification_digest.py's `store` fixture sets
+    # both paths in its own body, which runs after this one and therefore still wins, so the
+    # digest's own R15 tests are untouched.
+    monkeypatch.setattr(
+        notification_digest, "QUEUE_FILE",
+        tmp_path / "ntfy_digest_queue_absent.jsonl", raising=False,
+    )
+    monkeypatch.setattr(
+        notification_digest, "STATE_FILE",
+        tmp_path / ".ntfy_digest_state_absent.json", raising=False,
     )
 
 
