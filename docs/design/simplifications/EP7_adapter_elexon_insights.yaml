@@ -4,4 +4,5 @@ map_notes:
   name: 'Adapter for the Elexon Insights Solution (bmrs.elexon.co.uk): REST for the full BMRS catalogue -- imbalance volumes, pricing stacks, dynamic BMU data, demand -- plus IRIS real-time push and the Data Archive. Access class OPEN NOW, zero accession cost. Indicative settlement prices land ~15 min after each settlement period with a D+1 refresh; Settlement messages give early warnings on calculation accuracy. Advisor research verified live 2026-08-05.'
 map_records:
   evidence:
-  - docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md
+  - docs/design/refs/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md
+  - docs/design/EP7_ELEXON_INSIGHTS_DISCOVER_FRAME.md
