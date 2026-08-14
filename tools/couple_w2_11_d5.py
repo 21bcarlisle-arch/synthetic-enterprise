@@ -177,6 +177,7 @@ from company.billing.payment_observation_consumer import (
 )
 
 from background.gap_metric import (
+    NORMALISATION_NONE,
     GapResult,
     ageing_gap,
     belief_gap,
@@ -764,6 +765,15 @@ def detection_latency_gap(
         gap=mean_with,
         raw_gap=float(mean_with) if mean_with is not None else 0.0,
         g0=0.0,
+        # Hour #28 / atom D44: the kind is DECLARED, not left for a reader of the
+        # Proof door to guess from `g0`. This dimension is in DAYS -- there is no
+        # numerator/divisor pair and `raw_gap` IS the headline.
+        normalisation=NORMALISATION_NONE,
+        normalisation_reason=DETECTION_LATENCY_NO_NORMALISER_REASON,
+        raw_gap_is=(
+            "the headline itself -- mean DAYS from due date to first company "
+            "knowledge. g0=0.0 so no reader can divide by it."
+        ),
         baseline=(
             "NONE -- absolute mean in DAYS from due date to the company's first "
             "knowledge; there is no no-skill divisor here and 1.0 does not mean "
@@ -7408,10 +7418,17 @@ _DOOR_ROW_SURFACES: Dict[str, Dict[str, object]] = {
     "div.gap-row[0]/div.gap-basis[0]": {
         "kind": _SURFACE_REGION, "region": "basis", "text": "inert",
         "why_inert": ("everything it prints is either a designed constant "
-                      "(`baseline g0 0.500`), a quantity that renders 0.000 at "
-                      "the door's own 3dp (`raw`), or the run stamp -- so the "
+                      "(the no-skill score 0.500), a quantity that renders "
+                      "0.000 at the door's own 3dp (`missed_failure_rate`), the "
+                      "D44 basis declaration, or the run stamp -- so the "
                       "two-book rule can never credit the headline with a site "
-                      "here, and its declared ownership buys nothing"),
+                      "here, and its declared ownership buys nothing. HOUR #28 "
+                      "CHANGED WHAT IT SAYS, not whether it moves: the line no "
+                      "longer renders `baseline g0 X / raw Y` under a division "
+                      "that is FALSE for this pair -- raw is one of the two "
+                      "averaged directions and g0 is a reference score -- and an "
+                      "entry that does not declare which relation it publishes "
+                      "now says UNDECLARED instead of implying the wrong one"),
     },
     # --- THE SURFACE THE CLASS CENSUS COULD NOT SEE (D39, answered here).
     # A classless span whose `style` carries the headline SCALED by 100 and

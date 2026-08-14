@@ -755,6 +755,41 @@ function classifyGap(v){
 }
 function fmtGap(v){ return v==null?"—":Number(v).toFixed(3); }
 
+// THE BASIS LINE SAYS WHICH RELATION IT IS PUBLISHING (atom D44, H27 Expert
+// Hour #28, 2026-08-13). This row used to render `baseline g0 X · raw Y` for
+// every pair, under the one relation the gap module's own docstring states --
+// gap = raw_gap / g0. THAT RELATION IS FALSE FOR THREE OF THE FOURTEEN LIVE
+// PAIRS, all of them the BALANCED successors (detection_measures / belief_
+// measures), where the headline is already a score, `g0 = 0.5` is the no-skill
+// SCORE on that same scale rather than a divisor, and `raw_gap` is ONE of the
+// two averaged error directions. On the payment triad that renders `raw 0.000`
+// beside a nonzero headline -- which reads as "the company's own error is nil"
+// when in fact the whole score is the OTHER direction (the wrongful-dunning
+// exposure); on the self-rationing pair it renders `raw 0.361` against a
+// published 0.199, and a reader who divided got 0.723.
+// An entry written before the kind existed says UNDECLARED rather than being
+// rendered under the relation that used to be assumed for it -- the reader is
+// told the basis is unknown, which is true, instead of a relation that may not be.
+function basisText(p){
+  var kind = p.normalisation, parts = [];
+  var named = String(p.raw_gap_is||"").split(":")[0].trim();
+  if(kind==="none"){
+    parts.push("un-normalised — no no-skill divisor (g0 carries no meaning here)");
+    if(p.raw_gap!=null) parts.push("raw " + fmtGap(p.raw_gap) + " is the headline");
+  } else if(kind==="reference"){
+    parts.push("no-skill SCORE " + fmtGap(p.baseline_g0) + " — a reference point, NOT a divisor");
+    if(p.raw_gap!=null) parts.push((named||"raw") + " " + fmtGap(p.raw_gap) +
+                                   " — one of two averaged directions, not the headline undivided");
+  } else {
+    parts.push("baseline g0 " + fmtGap(p.baseline_g0));
+    if(p.raw_gap!=null) parts.push("raw " + fmtGap(p.raw_gap));
+    if(kind!=="divisor") parts.push("basis UNDECLARED — this entry does not record whether g0 divides the headline");
+  }
+  if(p.measured_at) parts.push("measured " + String(p.measured_at).slice(0,10));
+  if(p.run_git_commit) parts.push("run " + String(p.run_git_commit).slice(0,8));
+  return parts.join(" · ");
+}
+
 // A coupled-gap component value may be a scalar, a list, or a nested map (the
 // regression pairs carry `belief_coeffs: {b_hdd: ..., b_cdd: ...}`). String() on a
 // map renders the literal text "[object Object]" -- which is what this door was
@@ -891,10 +926,7 @@ function renderCoupledGaps(d){
       '</div>'+
       bar+
       (p.note?'<div class="gap-note">'+esc(p.note)+'</div>':'')+
-      '<div class="gap-basis">baseline g0 '+esc(fmtGap(p.baseline_g0))+
-        (p.raw_gap!=null?' &middot; raw '+esc(fmtGap(p.raw_gap)):'')+
-        (p.measured_at?' &middot; measured '+esc(String(p.measured_at).slice(0,10)):'')+
-        (p.run_git_commit?' &middot; run '+esc(String(p.run_git_commit).slice(0,8)):'')+'</div>'+
+      '<div class="gap-basis">'+esc(basisText(p))+'</div>'+
       comp+
     '</div>';
   }).join("")||'<div class="gap-fail">No coupled pairs in the ledger — the affordability cluster should show 7. An empty list is a failure, not an empty state.</div>';

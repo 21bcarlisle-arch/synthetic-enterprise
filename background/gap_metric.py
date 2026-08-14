@@ -40,9 +40,24 @@ METRIC FAMILIES (design section 1.4), all implemented here:
     (e) misapplication  -- wrong-CLASS applied vs the answer key (W2_9)
     (f) prediction      -- continuous MAE vs a climatological baseline (W1_6)
     (g) ageing          -- ORDERED bucket displacement, DELIBERATELY un-normalised
-                           (D7). The one family that does NOT divide by a g0: on
-                           an ordered space every prevalence-shaped baseline
-                           re-imports the D6 defect (AGEING_NO_NORMALISER_REASON).
+                           (D7): on an ordered space every prevalence-shaped
+                           baseline re-imports the D6 defect
+                           (AGEING_NO_NORMALISER_REASON).
+
+`gap = raw_gap / g0` IS NOT TRUE OF EVERY FAMILY, and until 2026-08-13 this
+docstring named (g) as the only exception while THREE live published pairs sat in
+a second, unenumerated one. Which relation an entry publishes is now DECLARED on
+the entry itself (`normalisation`, atom D44) and checked against its arithmetic at
+construction -- see NORMALISATION_KINDS below. The three kinds:
+
+    divisor    -- gap = raw_gap / g0. Families (a)-(f) above.
+    reference  -- the BALANCED successors (detection_measures D11,
+                  belief_measures D19): the headline is the mean of two error
+                  directions on their OWN denominators, so it is already a score;
+                  `g0 = 0.5` is the NO-SKILL SCORE on that same scale, NOT a
+                  divisor, and `raw_gap` is ONE of the two averaged directions.
+    none       -- absolute measures (ageing D22, detection latency in days):
+                  g0 = 0.0 and raw_gap IS the headline.
 
 R13 CURRICULUM (director-authored, NEVER agent-tuned toward a gap number). The
 harm-cost weights below are the director-signed 8:1 ratio. They are read as a
@@ -88,14 +103,69 @@ QUADRANTS = tuple((a, w) for a in _ABILITY for w in _WILLINGNESS)
 
 
 # ---------------------------------------------------------------------------
+# THE NORMALISATION KIND -- what `raw_gap` and `g0` MEAN on this entry (atom D44)
+# ---------------------------------------------------------------------------
+# H27 EXPERT HOUR #28 (2026-08-13). This module's own docstring states one
+# relation between the three published fields -- `gap = raw_gap / g0` -- and
+# enumerates exactly ONE family that is exempt (ageing, un-normalised by design).
+# THAT ENUMERATION WAS INCOMPLETE, and the omission reaches the public Proof
+# door, which renders `baseline g0 <g0> · raw <raw>` on one line for every pair
+# with nothing to say which relation holds.
+#
+# MEASURED on the live ledger the door serves (14 published pairs): 11 satisfy
+# `gap == raw_gap / g0`; THREE DO NOT, and all three are the SAME unenumerated
+# family -- `detection_measures` (D11), where the headline is the MEAN of two
+# error directions on their own denominators, `g0 = 0.5` is the no-skill SCORE
+# on the headline's own scale (not a divisor), and `raw_gap` is ONE of the two
+# averaged directions. The reader is handed both readings:
+#
+#   W2_11 <-> D5   gap 0.0834, raw 0.000  -- raw is `missed_failure_rate`, which
+#                  really is 0; the WHOLE headline is the OTHER direction
+#                  (false_flag_rate 0.1668, 242 of 1451 truly-succeeded invoices
+#                  flagged). "raw 0.000" beside a nonzero score reads as "the
+#                  company's own error is nil, the score is an artefact of the
+#                  normalisation" -- the exact opposite of what happened.
+#   W2_8  <-> C10  gap 0.1993, raw 0.3613 -- raw/g0 = 0.723, 3.6x the published
+#                  headline. Same field, error in the other direction.
+#
+# THE FIX IS DECLARATION, NOT INFERENCE. The kind is DECLARED at construction and
+# CHECKED against the arithmetic there; it is never derived from the numbers,
+# because a kind inferred from `gap == raw/g0` would classify every entry
+# correctly by construction and could never catch the case it exists for (the
+# fail-OPEN direction of this same mistake -- D40's negative answer, applied to
+# the field rather than the element).
+NORMALISATION_DIVISOR = "divisor"      # gap = raw_gap / g0. The docstring relation.
+NORMALISATION_REFERENCE = "reference"  # gap already scored; g0 is the NO-SKILL SCORE
+                                       # on the gap's own scale; raw_gap is a NAMED
+                                       # component, not the numerator.
+NORMALISATION_NONE = "none"            # absolute measure; g0 carries no meaning (0.0)
+                                       # and raw_gap IS the headline.
+NORMALISATION_KINDS = (NORMALISATION_DIVISOR, NORMALISATION_REFERENCE,
+                       NORMALISATION_NONE)
+
+# How close the declared relation must hold. Tighter than any published rounding
+# (the door renders 3dp) so a real inconsistency cannot hide inside the epsilon.
+NORMALISATION_EPS = 1e-9
+
+DIVISOR_RAW_GAP_IS = "the numerator of gap = raw_gap / g0"
+
+
+# ---------------------------------------------------------------------------
 # Result container
 # ---------------------------------------------------------------------------
 
 @dataclass
 class GapResult:
-    """The computed gap for one coupled pair. `gap` is the normalised,
-    dimensionless score (raw_gap / g0). `raw_gap` and `g0` are kept for audit so
-    a reviewer can see the normalisation was not fudged (R15 independence)."""
+    """The computed gap for one coupled pair. `raw_gap` and `g0` are kept for
+    audit so a reviewer can see the normalisation was not fudged (R15
+    independence) -- and `normalisation` says WHICH relation those two fields
+    stand in to `gap`, because this module publishes three different ones and
+    the reader cannot tell them apart from the numbers.
+
+    `normalisation` has NO usable default: an undeclared kind raises. A new
+    metric family that forgets to declare cannot be constructed, which is the
+    only reason `detection_measures` was able to join the ledger in 2026-08-09
+    under a relation that was never true of it."""
 
     metric: str                      # classification|attribution|belief|detection
     gap: Optional[float]             # normalised; None only if g0 is degenerate
@@ -104,6 +174,115 @@ class GapResult:
     baseline: str                    # human-readable g0 description
     components: dict = field(default_factory=dict)
     note: str = ""
+    # --- the declaration (atom D44) ---
+    normalisation: str = ""          # one of NORMALISATION_KINDS; "" raises
+    normalisation_reason: str = ""   # required for reference/none: WHY no divisor
+    raw_gap_is: str = ""             # what `raw_gap` actually is. For `reference`
+                                     # it must NAME a key in `components`.
+
+    def __post_init__(self) -> None:
+        """Check the DECLARED kind against the arithmetic, at the point of
+        writing. Each kind carries a relation that can be false, so each one is
+        falsifiable here rather than only at audit time."""
+        if self.normalisation not in NORMALISATION_KINDS:
+            raise ValueError(
+                f"GapResult(metric={self.metric!r}) declares no normalisation "
+                f"kind (got {self.normalisation!r}). One of {NORMALISATION_KINDS} "
+                "is REQUIRED: `raw_gap` and `g0` mean different things across "
+                "this module's families and the Proof door renders them on one "
+                "line, so an undeclared entry publishes a relation nobody stated."
+            )
+
+        if self.normalisation == NORMALISATION_DIVISOR:
+            if not self.raw_gap_is:
+                self.raw_gap_is = DIVISOR_RAW_GAP_IS
+            # g0 == 0 is the documented degenerate branch (`_normalise`): no
+            # division happened, so there is no arithmetic to check.
+            if self.g0 != 0 and self.gap is not None:
+                expected = self.raw_gap / self.g0
+                if abs(self.gap - expected) > NORMALISATION_EPS:
+                    raise ValueError(
+                        f"GapResult(metric={self.metric!r}) declares "
+                        f"normalisation='divisor' but gap={self.gap!r} is not "
+                        f"raw_gap/g0 ({self.raw_gap!r}/{self.g0!r} = {expected!r}). "
+                        "Either the relation is wrong or the kind is."
+                    )
+            return
+
+        # reference / none must SAY why there is no divisor -- an unexplained
+        # exception is how the first one sat unnoticed for four days.
+        if not (self.normalisation_reason or "").strip():
+            raise ValueError(
+                f"GapResult(metric={self.metric!r}) declares "
+                f"normalisation={self.normalisation!r} with no "
+                "`normalisation_reason`. A family exempt from gap = raw_gap/g0 "
+                "states why, beside the exemption (the ageing family's shape)."
+            )
+        if not (self.raw_gap_is or "").strip():
+            raise ValueError(
+                f"GapResult(metric={self.metric!r}) declares "
+                f"normalisation={self.normalisation!r} with no `raw_gap_is`. "
+                "If `raw_gap` is not the numerator, the entry must say what it "
+                "IS -- that sentence is what the door renders instead of a bare "
+                "number under a false relation."
+            )
+
+        if self.normalisation == NORMALISATION_REFERENCE:
+            # The declaration is tied to the DATA: `raw_gap_is` names a published
+            # component and that component must carry the same number. A prose-only
+            # claim about `raw_gap` would be unfalsifiable, which is the state
+            # this whole check exists to leave.
+            key = self.raw_gap_is.split(":", 1)[0].strip()
+            if key not in self.components:
+                raise ValueError(
+                    f"GapResult(metric={self.metric!r}) declares "
+                    f"raw_gap_is={self.raw_gap_is!r}, whose leading key {key!r} "
+                    f"is not in components {sorted(self.components)}. A "
+                    "`reference` entry must name the published component "
+                    "`raw_gap` duplicates, so the reader can find it."
+                )
+            named = self.components[key]
+            if named is None:
+                # The named direction is UNDEFINED on this population (the
+                # vacuity branch), which is why raw_gap fell back to 0.0. The
+                # headline must be undefined too -- a live headline beside an
+                # undefined direction it is supposedly one half of would be the
+                # fail-open reading of exactly this field.
+                if self.gap is not None:
+                    raise ValueError(
+                        f"GapResult(metric={self.metric!r}): components[{key!r}] "
+                        f"is None (undefined) but gap={self.gap!r} is live. A "
+                        "balanced headline cannot survive a direction that has "
+                        "no population."
+                    )
+            elif abs(float(named) - self.raw_gap) > 1e-6:
+                raise ValueError(
+                    f"GapResult(metric={self.metric!r}) says raw_gap is {key!r} "
+                    f"but components[{key!r}]={named!r} != raw_gap={self.raw_gap!r}."
+                )
+            if self.g0 == 0:
+                raise ValueError(
+                    f"GapResult(metric={self.metric!r}) declares "
+                    "normalisation='reference' with g0=0: a reference kind means "
+                    "g0 is the NO-SKILL SCORE on the gap's own scale, and 0 is "
+                    "not a score a blind rule attains. Use 'none'."
+                )
+            return
+
+        # NONE: absolute measure. g0 carries nothing and raw_gap IS the headline.
+        if self.g0 != 0:
+            raise ValueError(
+                f"GapResult(metric={self.metric!r}) declares normalisation='none' "
+                f"but g0={self.g0!r}. An un-normalised measure publishes g0=0.0 so "
+                "no reader can divide by it."
+            )
+        expected_raw = self.gap if self.gap is not None else 0.0
+        if abs(self.raw_gap - float(expected_raw)) > NORMALISATION_EPS:
+            raise ValueError(
+                f"GapResult(metric={self.metric!r}) declares normalisation='none' "
+                f"but raw_gap={self.raw_gap!r} is not the headline "
+                f"gap={self.gap!r}."
+            )
 
     def to_ledger_entry(self, twin_atom_id: str,
                         measured_at: Optional[str] = None,
@@ -122,6 +301,11 @@ class GapResult:
             "run_git_commit": run_git_commit,
             "components": self.components,
             "note": self.note or self.baseline,
+            # The declaration travels WITH the numbers -- the door is the reader
+            # that was misled, and it cannot re-derive this from the entry.
+            "normalisation": self.normalisation,
+            "normalisation_reason": self.normalisation_reason,
+            "raw_gap_is": self.raw_gap_is,
         }
 
 
@@ -137,7 +321,7 @@ def _normalise(raw_gap: float, g0: float, baseline: str, metric: str,
         gap = raw_gap / g0
     return GapResult(metric=metric, gap=gap, raw_gap=float(raw_gap),
                      g0=float(g0), baseline=baseline, components=components,
-                     note=note)
+                     note=note, normalisation=NORMALISATION_DIVISOR)
 
 
 # ---------------------------------------------------------------------------
@@ -403,6 +587,7 @@ def belief_gap(truth: Sequence[float], belief: Sequence[float],
         # TV is self-normalised; g0 is the [0,1] ceiling.
         return GapResult(
             metric="belief", gap=raw_tv, raw_gap=raw_tv, g0=1.0,
+            normalisation=NORMALISATION_DIVISOR,
             baseline=("total-variation distance (self-normalised to [0,1]); "
                       + BELIEF_GAP_PERMUTATION_CAVEAT),
             components={"tv": round(raw_tv, 6),
@@ -587,6 +772,18 @@ def belief_measures(truth_labels: Sequence, belief_labels: Sequence, *,
         gap=gap,
         raw_gap=(0.0 if undercall_rate is None else float(undercall_rate)),
         g0=0.5,
+        normalisation=NORMALISATION_REFERENCE,
+        normalisation_reason=(
+            "BALANCED headline (D19): gap = mean(undercall_rate, overcall_rate), "
+            "each on its own denominator, so it is already a score in [0,1]. "
+            "g0=0.5 is the score EVERY blind rule attains on that same scale -- a "
+            "reference point, not a divisor. Dividing by it doubles the headline."
+        ),
+        raw_gap_is=(
+            "undercall_rate: ONE of the two averaged directions (accounts the "
+            "company under-called), NOT the un-normalised headline. The other "
+            "direction is overcall_rate and it is the rest of the score."
+        ),
         baseline=BELIEF_BALANCED_BASELINE,
         components=components,
         note=(
@@ -746,6 +943,11 @@ def detection_gap(truth_set: Iterable, flagged_set: Iterable,
     return GapResult(
         metric="detection", gap=gap, raw_gap=missed_harm,
         g0=(total_harm if total_harm else 0.0),
+        # The RECALL detection gap really does divide -- missed harm over total
+        # harm. Its balanced successor `detection_measures` does NOT, and both
+        # publish metric="detection", which is why the kind cannot be read off
+        # the metric name.
+        normalisation=NORMALISATION_DIVISOR,
         baseline=baseline,
         components={"miss_rate": round(miss_rate, 6),
                     "caught": len(caught), "missed": len(missed),
@@ -976,6 +1178,23 @@ def detection_measures(truth_set: Iterable, flagged_set: Iterable, *,
         gap=gap,
         raw_gap=float(missed_share),
         g0=0.5,
+        normalisation=NORMALISATION_REFERENCE,
+        normalisation_reason=(
+            "BALANCED headline (D11): gap = mean(missed_failure_rate, "
+            "false_flag_rate), each on its own denominator, so it is already a "
+            "score in [0,1]. g0=0.5 is the score EVERY blind rule attains on that "
+            "same scale -- a reference point, not a divisor. Dividing by it "
+            "DOUBLES the headline, which is what a reader who applied this "
+            "module's stated `gap = raw_gap / g0` to the W2_8<->C10 pair got "
+            "(0.723 against a published 0.199) before the kind was declared."
+        ),
+        raw_gap_is=(
+            "missed_failure_rate: ONE of the two averaged directions (true "
+            "failures the company never flagged), NOT the un-normalised "
+            "headline. On the W2_11<->D5 payment triad it is 0.000 while the "
+            "headline is nonzero, because the whole score is the OTHER "
+            "direction, false_flag_rate -- the wrongful-dunning exposure."
+        ),
         baseline=DETECTION_BALANCED_BASELINE,
         components=components,
         note=(
@@ -1518,6 +1737,13 @@ def ageing_gap(truth_labels: Sequence, belief_labels: Sequence,
         gap=(None if headline is None else float(headline)),
         raw_gap=float(headline) if headline is not None else 0.0,
         g0=0.0,
+        normalisation=NORMALISATION_NONE,
+        normalisation_reason=AGEING_NO_NORMALISER_REASON,
+        raw_gap_is=(
+            "the headline itself -- absolute ordinal displacement in buckets. "
+            "There is no numerator/divisor pair here; g0=0.0 so no reader can "
+            "divide by it."
+        ),
         baseline=baseline,
         components=components,
         note=(
@@ -1730,3 +1956,115 @@ def write_gap_entry(world_atom_id: str, twin_atom_id: str, result: GapResult,
     path.write_text(json.dumps(ledger, indent=2, sort_keys=True) + "\n",
                     encoding="utf-8")
     return ledger
+
+
+# ---------------------------------------------------------------------------
+# THE POPULATION CONTROL -- every entry the door serves (atom D44)
+# ---------------------------------------------------------------------------
+# `GapResult.__post_init__` catches a false relation at the moment of WRITING.
+# It cannot catch what is already on disk: the ledger the Proof door renders
+# carries entries written before the kind existed, and it is those entries the
+# 2026-08-13 measurement was made on. This walks the LEDGER, not the code, so an
+# entry nothing re-measures is still graded.
+#
+# FAIL-CLOSED IN BOTH DIRECTIONS. An entry with no declared kind is a FINDING,
+# not a pass -- and an undeclared entry whose numbers additionally break the
+# module's stated `gap = raw_gap / g0` is a SECOND, harder finding, because that
+# is the pair a reader was actively misled by rather than merely unable to check.
+
+NORMALISATION_FINDING_UNDECLARED = "undeclared_normalisation"
+NORMALISATION_FINDING_FALSE_DIVISOR = "undeclared_and_relation_false"
+NORMALISATION_FINDING_DIVISOR_BROKEN = "declared_divisor_arithmetic_false"
+NORMALISATION_FINDING_REFERENCE_MISMATCH = "declared_reference_component_mismatch"
+NORMALISATION_FINDING_NONE_NOT_HEADLINE = "declared_none_raw_is_not_headline"
+NORMALISATION_FINDING_UNKNOWN_KIND = "unknown_normalisation_kind"
+
+
+def audit_ledger_normalisation(ledger: Mapping) -> list:
+    """Grade every ledger entry's published (gap, raw_gap, g0) triple against the
+    relation it DECLARES. Returns a list of finding dicts, empty when clean.
+
+    Never raises on a malformed entry -- a non-numeric or missing field is
+    reported as a finding, because a checker that dies on the population it is
+    meant to grade is a fail-SILENT control (R15).
+    """
+    findings: list = []
+    for world_atom_id in sorted(ledger):
+        entry = ledger.get(world_atom_id)
+        if not isinstance(entry, Mapping):
+            continue
+        gap = entry.get("gap")
+        raw = entry.get("raw_gap")
+        g0 = entry.get("g0")
+        kind = entry.get("normalisation")
+
+        def _add(finding: str, detail: str) -> None:
+            findings.append({
+                "world_atom_id": world_atom_id,
+                "twin_atom_id": entry.get("twin_atom_id"),
+                "metric": entry.get("metric"),
+                "finding": finding,
+                "gap": gap, "raw_gap": raw, "g0": g0,
+                "declared": kind,
+                "detail": detail,
+            })
+
+        numeric = all(isinstance(v, (int, float)) and not isinstance(v, bool)
+                      for v in (gap, raw, g0))
+        divides = None
+        if numeric and g0:
+            divides = abs(float(gap) - float(raw) / float(g0)) <= 1e-6
+
+        if kind is None or kind == "":
+            if divides is False:
+                _add(NORMALISATION_FINDING_FALSE_DIVISOR,
+                     f"gap={gap} but raw_gap/g0={float(raw)/float(g0)}, and the "
+                     "entry declares no normalisation kind -- the door renders "
+                     "g0 and raw_gap on one line under a relation that is false "
+                     "for this pair. Re-measure it with a declaring writer.")
+            else:
+                _add(NORMALISATION_FINDING_UNDECLARED,
+                     "no `normalisation` on the entry: a reader cannot tell "
+                     "whether g0 is a divisor or a no-skill score. Written by a "
+                     "pre-D44 producer; re-measure it.")
+            continue
+
+        if kind not in NORMALISATION_KINDS:
+            _add(NORMALISATION_FINDING_UNKNOWN_KIND,
+                 f"{kind!r} is not one of {NORMALISATION_KINDS}")
+            continue
+
+        if not numeric:
+            _add(NORMALISATION_FINDING_UNDECLARED,
+                 f"declared {kind!r} but (gap, raw_gap, g0) = "
+                 f"({gap!r}, {raw!r}, {g0!r}) is not gradeable")
+            continue
+
+        if kind == NORMALISATION_DIVISOR:
+            if g0 and divides is False:
+                _add(NORMALISATION_FINDING_DIVISOR_BROKEN,
+                     f"declared divisor but gap={gap} != raw_gap/g0="
+                     f"{float(raw)/float(g0)}")
+        elif kind == NORMALISATION_REFERENCE:
+            components = entry.get("components")
+            key = str(entry.get("raw_gap_is") or "").split(":", 1)[0].strip()
+            named = (components or {}).get(key) if isinstance(components, Mapping) else None
+            if named is None or abs(float(named) - float(raw)) > 1e-6:
+                _add(NORMALISATION_FINDING_REFERENCE_MISMATCH,
+                     f"raw_gap_is names {key!r}; components carries {named!r} "
+                     f"against raw_gap={raw!r}")
+        elif abs(float(raw) - float(gap)) > 1e-6 or float(g0) != 0.0:
+            _add(NORMALISATION_FINDING_NONE_NOT_HEADLINE,
+                 f"declared 'none' but raw_gap={raw!r}/gap={gap!r}/g0={g0!r}")
+    return findings
+
+
+def load_gap_ledger(ledger_path=None) -> dict:
+    """Read the coupled gap ledger. Unreadable/malformed -> {} (the audit's own
+    emptiness is then visible to its caller, which is not the same as clean)."""
+    path = Path(ledger_path) if ledger_path is not None else GAP_LEDGER_PATH
+    try:
+        loaded = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, ValueError):
+        return {}
+    return loaded if isinstance(loaded, dict) else {}

@@ -507,6 +507,16 @@ def _coupled_gaps(atoms):
             baseline_g0=entry.get("g0"),
             baseline_desc=entry.get("baseline"),
             raw_gap=entry.get("raw_gap"),
+            # WHAT `g0` AND `raw_gap` MEAN on this pair (atom D44, H27 Hour #28).
+            # The door renders them on one line and cannot re-derive the relation
+            # from the numbers -- three of the fourteen live pairs do NOT satisfy
+            # `gap = raw_gap / g0`, and on the payment triad `raw` reads 0.000
+            # beside a nonzero headline because raw is one of two averaged
+            # directions and the whole score is the other one. Absent on a
+            # pre-D44 entry: passed through as None so the door says UNDECLARED
+            # rather than rendering the relation it used to imply.
+            normalisation=entry.get("normalisation"),
+            raw_gap_is=entry.get("raw_gap_is"),
             components=entry.get("components"),
             note=entry.get("note"),
             measured_at=entry.get("measured_at"),

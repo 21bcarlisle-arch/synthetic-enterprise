@@ -409,3 +409,95 @@ def test_R15_the_node_budget_and_not_the_depth_bounds_a_cyclic_payload():
         proc = subprocess.run([NODE, str(script)], capture_output=True, text=True, timeout=30)
     assert proc.returncode == 0, f"the cyclic payload was not bounded: {proc.stderr[:400]}"
     assert "1.5000" in proc.stdout, proc.stdout
+
+
+# --------------------------------------------------------------------------- #
+# THE BASIS LINE SAYS WHICH RELATION IT PUBLISHES (atom D44, H27 Hour #28).
+#
+# Until 2026-08-13 this row rendered `baseline g0 X · raw Y` for EVERY pair,
+# under the single relation `gap = raw_gap / g0` that background/gap_metric.py's
+# docstring states. Measured on the live ledger: 11 of 14 pairs satisfy it and
+# THREE DO NOT -- the balanced successors, where g0=0.5 is the no-skill SCORE on
+# the headline's own scale and raw_gap is ONE of two averaged directions. On the
+# payment triad that put `raw 0.000` beside a nonzero headline (the miss
+# direction really is zero; the whole score is the wrongful-dunning exposure);
+# on the self-rationing pair, `raw 0.361` against a published 0.199.
+# Each test below feeds the panel one kind and asserts the rendered pixel.
+# --------------------------------------------------------------------------- #
+def _basis_pair(**over):
+    data = _one_pair(0.0834)
+    pair = data["pairs"][0]
+    pair.update({"raw_gap": 0.0, "baseline_g0": 0.5, "metric": "detection",
+                 "measured_at": "2026-08-13T00:00:00+00:00",
+                 "run_git_commit": "deadbeefcafe"})
+    pair.update(over)
+    return data
+
+
+def _basis(data):
+    body = _render(data)["coupled-gaps"]["innerHTML"]
+    start = body.index('class="gap-basis"')
+    return body[start:body.index("</div>", start)]
+
+
+def test_a_reference_kind_row_does_not_render_g0_as_a_divisor():
+    """THE DEFECT, STATED AS A CONTROL. `raw 0.000` beside a live headline, with
+    nothing saying it is one of two directions, is what the door served."""
+    basis = _basis(_basis_pair(
+        normalisation="reference",
+        raw_gap_is="missed_failure_rate: one of the two averaged directions"))
+    assert "baseline g0" not in basis, "g0 must not be labelled as a divisor here"
+    assert "no-skill SCORE" in basis and "NOT a divisor" in basis
+    assert "missed_failure_rate 0.000" in basis
+    assert "one of two averaged directions" in basis
+
+
+def test_an_undeclared_entry_says_so_instead_of_implying_the_old_relation():
+    """FAIL-CLOSED at the pixel. Every entry written before D44 is undeclared,
+    which is the live state today -- the reader is told the basis is unknown
+    (true) rather than handed a relation that may be false."""
+    basis = _basis(_basis_pair(normalisation=None, raw_gap_is=None))
+    assert "basis UNDECLARED" in basis
+    assert "does not record whether g0 divides the headline" in basis
+
+
+def test_a_divisor_kind_row_renders_the_relation_it_really_publishes():
+    """NOT ALWAYS-CAVEATED: an entry that genuinely divides gets the plain line
+    and no warning, so the caveat keeps meaning something."""
+    basis = _basis(_basis_pair(value=0.4, raw_gap=0.2, baseline_g0=0.5,
+                               normalisation="divisor", raw_gap_is=None))
+    assert "baseline g0 0.500" in basis and "raw 0.200" in basis
+    assert "UNDECLARED" not in basis and "no-skill SCORE" not in basis
+
+
+def test_an_un_normalised_kind_row_does_not_offer_a_divisor_at_all():
+    basis = _basis(_basis_pair(value=1.2, raw_gap=1.2, baseline_g0=0.0,
+                               normalisation="none",
+                               raw_gap_is="the headline itself"))
+    assert "un-normalised" in basis and "no no-skill divisor" in basis
+    assert "baseline g0" not in basis
+
+
+def test_the_basis_line_still_carries_its_run_stamp_on_every_kind():
+    """The provenance the row already published must survive the reshape -- a
+    caveat that costs the reader the measurement date would be a bad trade."""
+    for kind, raw_is in (("reference", "missed_failure_rate: a direction"),
+                         ("divisor", None), ("none", "the headline itself"),
+                         (None, None)):
+        pair = {"normalisation": kind, "raw_gap_is": raw_is}
+        if kind == "none":
+            pair.update({"value": 1.2, "raw_gap": 1.2, "baseline_g0": 0.0})
+        elif kind == "divisor":
+            pair.update({"value": 0.4, "raw_gap": 0.2, "baseline_g0": 0.5})
+        basis = _basis(_basis_pair(**pair))
+        assert "measured 2026-08-13" in basis, kind
+        assert "run deadbeef" in basis, kind
+
+
+def test_the_live_panel_renders_a_basis_for_every_pair():
+    """R11 on the artefact the door actually serves, not a fixture."""
+    cg = _live_coupled_gaps()
+    body = _render(cg)["coupled-gaps"]["innerHTML"]
+    assert body.count('class="gap-basis"') == len(cg["pairs"])
+    for pair in cg["pairs"]:
+        assert pair.get("normalisation") in (None, "divisor", "reference", "none")

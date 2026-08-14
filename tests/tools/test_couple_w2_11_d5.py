@@ -2887,8 +2887,12 @@ def _pre_d22_ageing_scorer():
 
     def _one_directional(*a, **kw):
         result = real(*a, **kw)
-        return dataclasses.replace(
-            result, gap=result.components["mean_bucket_displacement"])
+        # BOTH fields move, because on an un-normalised (`none`-kind) measure
+        # `raw_gap` IS the headline -- that is what `ageing_gap` actually shipped
+        # until 2026-08-10, and D44's construction check now says so. Moving only
+        # `gap` would build a mutant no scorer could have written.
+        one_way = result.components["mean_bucket_displacement"]
+        return dataclasses.replace(result, gap=one_way, raw_gap=one_way)
 
     pair.ageing_gap = _one_directional
     try:
@@ -6767,11 +6771,11 @@ def test_a_door_region_the_walk_cannot_name_fails_closed(tmp_path, monkeypatch):
     render a figure into a region no sweep looks at."""
     mutated = tmp_path / "index.html"
     original = pair._DOOR_INDEX.read_text(encoding="utf-8")
-    assert "'<div class=\"gap-basis\">baseline g0 '" in original
+    assert "'<div class=\"gap-basis\">'" in original
     mutated.write_text(
-        original.replace("'<div class=\"gap-basis\">baseline g0 '",
+        original.replace("'<div class=\"gap-basis\">'",
                          "'<div class=\"gap-audit\">audit '+esc(fmtGap(p.value))+"
-                         "'</div><div class=\"gap-basis\">baseline g0 '"),
+                         "'</div><div class=\"gap-basis\">'"),
         encoding="utf-8")
     monkeypatch.setattr(pair, "_DOOR_INDEX", mutated)
     measured = pair.measure_reader_render_sites()
@@ -6936,11 +6940,11 @@ def test_a_classless_element_the_door_grows_fires(tmp_path):
     stays SILENT while the element census fires."""
     original = pair._DOOR_INDEX.read_text(encoding="utf-8")
     mutated = tmp_path / "index.html"
-    assert "'<div class=\"gap-basis\">baseline g0 '" in original
+    assert "'<div class=\"gap-basis\">'" in original
     mutated.write_text(
-        original.replace("'<div class=\"gap-basis\">baseline g0 '",
+        original.replace("'<div class=\"gap-basis\">'",
                          "'<span>'+fmtGap(p.value)+'</span>'+"
-                         "'<div class=\"gap-basis\">baseline g0 '"),
+                         "'<div class=\"gap-basis\">'"),
         encoding="utf-8")
     htmls = _fixture_row_htmls(index_path=mutated)
     # THE OLD CENSUS IS SILENT ON IT -- proven, not asserted.
@@ -6998,8 +7002,8 @@ def test_a_declaration_that_outlived_its_element_fires(tmp_path):
     original = pair._DOOR_INDEX.read_text(encoding="utf-8")
     mutated = tmp_path / "index.html"
     mutated.write_text(
-        original.replace("'<div class=\"gap-basis\">baseline g0 '",
-                         "'<div class=\"gap-DELETED\">baseline g0 '"),
+        original.replace("'<div class=\"gap-basis\">'",
+                         "'<div class=\"gap-DELETED\">'"),
         encoding="utf-8")
     got, _ = _census(_fixture_row_htmls(index_path=mutated))
     assert any("div.gap-basis[0]` is declared as a door surface and the "
@@ -7014,9 +7018,9 @@ def test_a_render_that_arrives_in_an_attribute_fires(tmp_path):
     original = pair._DOOR_INDEX.read_text(encoding="utf-8")
     mutated = tmp_path / "index.html"
     mutated.write_text(
-        original.replace("'<div class=\"gap-basis\">baseline g0 '",
+        original.replace("'<div class=\"gap-basis\">'",
                          "'<div class=\"gap-basis\" title=\"'+fmtGap(p.value)+"
-                         "'\">baseline g0 '"),
+                         "'\">'"),
         encoding="utf-8")
     got, _ = _census(_fixture_row_htmls(index_path=mutated))
     assert any("moves in attribute(s) ['title'] that its declaration does not "
