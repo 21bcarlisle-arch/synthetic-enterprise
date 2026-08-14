@@ -1,0 +1,172 @@
+atom_id: D30_the_belief_band_is_this_books_length
+simplifications:
+- |
+  2026-08-14 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw). No BUILD code
+  written and nothing in `file_scope` touched -- this atom is `loop_stage: idle`, and
+  EPOCH_GATING_AND_ATOM_AUTHORSHIP rule 7 makes DISCOVER/FRAME available on a parked atom while
+  BUILD is not. `MATURITY_MAP.md` §3 defines L1 as "been BUILT in any form", so a level move on a
+  reshape nobody has built would be a false claim; the draw's `0->2` is declined for that reason
+  and the deliverable is this record. Everything below is `observed-with-evidence` unless
+  labelled otherwise (R9).
+
+  WHY THIS PASS EXISTS AT ALL. `docs/observability/supervisor-log.md` records this atom
+  DEPRIORITISED TWICE for anti-livelock -- "2 consecutive draws with no state change" at
+  2026-08-11 07:17 and 2026-08-13 20:42 UTC. Two draws produced no artefact. This record is the
+  state change; the map is deliberately NOT touched (see STATUS).
+
+  HYGIENE. Measured in a detached worktree at HEAD 401fa828e (`git worktree add --detach`). Both
+  `file_scope` paths are CLEAN at HEAD this tick (`git status --porcelain` empty on both), so the
+  worktree and the desk tree agree on the instrument; the worktree was used anyway, as the D29
+  and D33 passes each did on this file. n=300, seeds 7/11/23 throughout, shipped `build_scenario`
+  / `measure_belief_window_resolution` / `score_triad`. The company's memory W is perturbed
+  through the DECLARED `organ_failure_window_drift_days` parameter, never a monkeypatch.
+  `N_PERIODS` has no parameter (unlike `cycle_spread_days`), so the spine sweep sets the module
+  attribute -- which is what makes lengthening the spine a BUILD change and not a call.
+
+  FINDING 1 -- THE SPINE IS THE KNOB D29 PROVED ITS OWN CONSTANT COULD NOT BE, AND THAT MUCH OF
+  THIS ATOM'S PREMISE HOLDS COMPLETE. D29's passes established an identity: `amnesia_floor +
+  headroom = DD_FAILURE_WINDOW_DAYS - event_age_span - 1`, invariant over all 421 values of
+  `AS_OF_BUFFER_DAYS`, so every buffer that lowers the floor raises the headroom by the same
+  number of days. Swept over `N_PERIODS` (3, 6, 9, 12, 15, 16, 17, 18, 19, 20, 24) x 3 seeds,
+  predictor cross-checked against the BUILT book at every point:
+
+      nper  pred_oldest  book_oldest(7/11/23)  floor  headroom(7/11/23)   sum(7)  saturated
+        3        92        91 / 92 / 92        29-30   309 / 308 / 308     338      True
+        9       218       217 / 218 / 218      29-30   183 / 182 / 182     212      True
+       15       344       343 / 344 / 344      29-31    57 /  56 /  56      88      True
+       17       386       385 / 386 / 386      30-31    15 /  14 /  14      45      True
+       18       407       406 / 407 / 407      29-31    -6 /  -7 /  -7      23     False
+       24       533       532 / 533 / 533      29-31  -132 /-133 /-133    -103     False
+
+  The floor stays at 29-31 at every spine length -- it is `AS_OF_BUFFER_DAYS`, D29's -- while the
+  conserved sum falls 338 -> 23 and `saturated` goes False at N_PERIODS = 18 on ALL THREE SEEDS.
+  So the atom's premise is confirmed by measurement rather than by arithmetic: the spine is the
+  only one of the four census constants that buys top-edge reach WITHOUT paying for it at the
+  floor, which is exactly the trade D29 measured its own constant could not escape.
+
+  FINDING 2 -- AND IT IS NOT ENOUGH. DE-SATURATING THE BOOK DOES NOT RESOLVE THE SCORED COMPANY,
+  ON TWO OF THREE SEEDS. `score_triad` at W = 397..403 (the scored company's own 400 in the
+  middle), distinct published values:
+
+      N_PERIODS   seed 7          seed 11         seed 23
+        3         1 belief, 1 mix  1 / 1           1 / 1      (saturated -- as this atom states)
+       18         3 belief, 3 mix  1 / 1           1 / 1      (UNSATURATED on every seed)
+       19         2 / 2            1 / 1           5 / 2
+
+  At the first spine that clears saturation on all three seeds, a SEVEN-DAY memory error is still
+  invisible on two of them. The mechanism is not mysterious -- headroom of -6 means only the six
+  days of book above W can change side, and whether those events carry an account across a
+  severity tier is the organ's business -- but the consequence is a defect in the criterion this
+  atom was heading for. `saturated == False` is NECESSARY AND NOT SUFFICIENT, and it is precisely
+  the criterion D29's second pass proposed ("`saturated == False` for the scored company"), which
+  this book satisfies while publishing one number across a week of company error. Same class as
+  that pass's own Finding 3, one atom over: a criterion greened by a move that resolves nothing.
+
+  FINDING 3 -- THE CANDIDATE THIS ATOM NEVER NAMED, AND IT IS THE CHEAPEST ONE. The atom's `name`
+  offers three reshapes -- "more periods, a longer spine, or an `as_of` that does not start 30
+  days past the last event" -- and all three change the BOOK. There is a fourth, and it changes
+  the COMPANY back to the one this repo actually ships:
+
+      company/billing/payment_observation_consumer.py:386   dd_failure_window_days: int = 90
+      tools/couple_w2_11_d5.py                              DD_FAILURE_WINDOW_DAYS = 400
+                                                            -> PaymentObservationConsumer(
+                                                                 dd_failure_window_days=400+k)
+
+  The harness constructs the graded organ with 4.4x its own production default. Scored on the
+  SHIPPED book at W = 85..95, i.e. around the organ's own 90:
+
+      seed   saturated at 90   headroom   distinct belief over 85..95   distinct mix
+        7        False            -1              4                          4
+       11        False            -2              3                          3
+       23        False            -2              7                          4
+
+  Every one of those values differs at 4dp, so they survive D34's reader-precision floor. THE
+  INSTRUMENT THAT "CANNOT RESOLVE THE COMPANY IT SCORES" ALREADY RESOLVES THE COMPANY IT SHIPS --
+  on this book, on all three seeds, with no reshape at all. The register had the fact and not the
+  consequence: `belief`'s own `own_why` already says "the organ's OWN shipped default (90d) sits
+  just BELOW the edge, publishing a different number (0.1519 -> 0.1709 at seed 7)". Nobody asked
+  what that made the 400. Hour #11's "a lead is not a control", one register field over, and this
+  is the ninth sighting of it in this module's line.
+
+  FINDING 4 -- BLAST RADIUS, BOTH CANDIDATES, MEASURED. Shipped book vs N_PERIODS=18 at drift 0,
+  and shipped book at W=400 vs W=90:
+
+      dimension               spine 3 -> 18     W 400 -> 90
+      ageing                  MOVED 3/3         bit-identical 3/3
+      belief                  MOVED 3/3         MOVED 3/3
+      belief_population_mix   MOVED 3/3         MOVED 2/3 (seed 23 identical; seed 11 moves by
+                                                1.4e-17 only -- D33's bit-equality predicate, so
+                                                ONE of three seeds moves at the 4dp a reader gets)
+      detection               MOVED 3/3         bit-identical 3/3
+      detection_latency       MOVED 3/3         bit-identical 3/3
+
+  Five of five against two of five. The spine candidate re-publishes every figure this pair
+  produces and therefore re-derives every declared band, edge, collapse run and resolution floor
+  in DIMENSION_DRIFT_RESOLUTION and ORGAN_QUERY_GRID (15 `own_*` edge/floor declarations at HEAD)
+  plus D31/D32/D33/D34's certifications on top of them; the own-default candidate touches the two
+  dimensions that read the parameter and provably nothing else. AND IT CORRECTS THE ATOM'S OWN
+  SIZING: the `name` says the reshape "moves every published belief figure on this pair", which
+  is true of the book candidate and FALSE of the cheap one -- `belief_population_mix` is
+  bit-identical on seed 23 and unreadably different on seed 11.
+
+  FINDING 5 -- WHY THIS IS A DESIGN DECISION AND NOT A FIX ON SIGHT, WHICH IS THE PART THE ATOM
+  GOT RIGHT FOR A REASON IT DID NOT STATE. The 400 is not arbitrary and its reason is still in
+  the constant's comment: generous on purpose, so the belief's own recency-decay window does not
+  confound the CHANNEL blind spot this scenario exists to measure (D27 owns it). But the
+  parameter it holds inert IS THE ONLY PARAMETER THESE TWO DIMENSIONS READ -- `_arrears_risk_belief`
+  counts observed failures inside that window and reads no dating at all, which is why the terms
+  and reconciliation drifts leave it untouched. So on this pair, CONFOUNDER-REMOVAL AND
+  RESOLUTION ARE THE SAME MECHANISM SEEN FROM TWO SIDES: the isolation was bought by publishing
+  the figure at a setting where the thing it isolates cannot move. Restoring the shipped default
+  buys resolution and re-admits the confound in the same edit. That is the trade, it is real, and
+  it is why neither candidate is a fix on sight.
+
+  RECOMMENDATION, and the build should take it unless the director says otherwise
+  (NEVER_ASK_WITHOUT_RECOMMENDING): PUBLISH BOTH COMPANIES RATHER THAN CHOOSING. The
+  channel-isolated reading (W=400, declared saturated, labelled as the reading whose company
+  parameter is inert by construction) and the shipped-company reading (W = the organ's own
+  default, resolving on all three seeds) answer different questions, and the pair's own subject
+  needs the first while its epistemic honesty needs the second. It is two scorings of one book --
+  no world change, no re-derivation of any other dimension's declared band (Finding 4), and it
+  makes the 308d of headroom D27 owns a stated property of one labelled reading instead of a
+  silent property of the only one. THE SPINE LENGTHENING IS A SEPARATE AND MUCH LATER CHANGE:
+  five of five figures, two registers of declared numbers, and Finding 2 says it does not even
+  deliver the resolution on its own.
+
+  R12 GUARD ON WHICHEVER IS BUILT, and it is the sharpest thing this pass has to say. N_PERIODS =
+  18 is where `saturated` flips, and this record has now published that fact -- so choosing 18
+  BECAUSE it is the crossing would be choosing a harness constant off a criterion it greens,
+  which is D29's Finding-3 defect committed deliberately. Any spine value must come from the
+  real-world twin (how long a domestic supplier's billing history actually runs) and be FIXED
+  BEFORE any post-reshape figure is read -- the discipline D25 recorded in its own constant's
+  comment. The 90 in the own-default candidate satisfies this by construction: it is read off
+  `payment_observation_consumer.py:386`, the company's own production default, and its blast
+  radius was measured after the value was already determined by source.
+
+  WHAT AN EXIT TEST FOR THIS ATOM MUST SHOW:
+
+    1. NOT `saturated == False`. Measured: a book that clears saturation on all three seeds still
+       publishes ONE number across a 7-day memory error on two of them (Finding 2). The criterion
+       is DISTINCT PUBLISHED VALUES at the scored company's own W, on EVERY seed, at each
+       figure's own reader precision (D34) -- resolution measured, never inferred from the flag.
+    2. The scored company's W equals the organ's shipped default, OR the divergence is declared
+       at source with its reason AND its cost stated in days of resolution. A harness that grades
+       a company the repo does not ship is the wrong-subject class; today it is undeclared.
+    3. Blast radius asserted in BOTH directions: the dimensions that must not move asserted
+       bit-identical (ageing/detection/detection_latency under the own-default candidate,
+       measured 3/3 above), and every declared band, edge, collapse run and floor in both
+       registers re-derived if the spine candidate is taken.
+    4. The chosen constant traceable to source or twin, and provably not chosen at the saturation
+       crossing (R12, above).
+
+  R12: no published number was tuned and none was written to any artefact. Every figure above was
+  scored inside a throwaway worktree to find out which of them each candidate reshape reaches.
+
+  STATUS: DISCOVER/FRAME only. `level_current` unchanged at 0, `loop_stage` unchanged at `idle`,
+  `provenance` unchanged at `proposal`. THE MAP IS NOT TOUCHED, and this tick has a mechanical
+  reason on top of the shared-index one the D29/D33/D34 passes each recorded: the spine ratchet
+  (`tests/design/test_simplifications_store.py::test_map_within_size_ratchet_when_store_populated`,
+  409,600 B) is RED AT HEAD 401fa828e at 410,095 B, so adding even a `simplifications_count` field
+  to this atom's block would deepen a red another lane owns. Filed on the existing staged finding
+  rather than fixed here (SELF-INTERRUPT DISCIPLINE); `simplifications_count` re-syncs on the next
+  `tools.merge_atom_status` fold.

@@ -54,3 +54,51 @@ is *hydrate, then move*, never the reverse.
 **Evidence:** `docs/design/maturity_map.yaml` · `tests/design/test_simplifications_store.py`
 (ceiling + roll watermark) · commits `b5fa18d3a`, `6caab295e` (the two landings whose byte counts are
 tabulated above).
+
+---
+
+## UPDATE (2026-08-14, worker tick, D30 DISCOVER/FRAME draw): it has happened, and the "it reds at the commit" clause above is WRONG
+
+**Severity of the update:** LATENT (repo-size control; no published figure affected).
+
+`docs/design/maturity_map.yaml` at HEAD `401fa828e` is **410,095 B against the 409,600 B ceiling —
+495 B RED**, confirmed by running the control:
+
+```
+tests/design/test_simplifications_store.py::test_map_within_size_ratchet_when_store_populated
+E  AssertionError: maturity_map.yaml is 410095 bytes, over the 409600-byte spine ratchet
+```
+
+Byte counts by commit: `185669ba5` 409,592 (the 8-byte landing this finding was written from) →
+**`10b65038a` 410,095** (+503, the SITE2 HARDEN landing) → `401fa828e` 410,095. The prediction in
+this document — *"the next atom to gain a field ... reds this control before it can be committed"*
+— was right about the timing and **wrong about the mechanism**, which is the part worth having.
+
+### The control is not reachable from the commit gate for its own subject
+
+`tests/design/test_simplifications_store.py` appears **nowhere** in `tools/pre_commit_test_gate.py`.
+Dry-run of `select_targets(['docs/design/maturity_map.yaml'])` at HEAD:
+
+```
+tests/background/test_gate_authorization.py      tests/design/test_maturity_map_facets.py
+tests/design/test_atom_notes_store.py            tests/test_coupled_triad_gate.py
+tests/design/test_atom_records_store.py          tests/tools/test_generate_proof_coupled_gaps.py
+                                                 tests/tools/test_level_promotion_gate.py
+```
+
+Seven tests, and the map's own size ratchet is not one of them. So a map edit of any size commits
+clean and the red surfaces later, in the full suite — which is how +503 B landed without anything
+firing. `LEVEL_SENSITIVE_TESTS` already carries `*STORE_CONTRACT_TESTS` for exactly this class
+(the 2026-08-10 note in that list says the store-contract tests "were not reachable from a
+maturity_map.yaml change", and three mints landed red on HEAD before they were added); the SIZE
+half of the same store contract was left out of that fix.
+
+**Recommendation (not asked bare):** add `tests/design/test_simplifications_store.py` to
+`LEVEL_SENSITIVE_TESTS` in the same edit as the rehome. Doing the rehome alone buys headroom and
+leaves the control unreachable, so the next refill lands red on HEAD the same way — that is the
+drain-vs-instance distinction the 2026-08-10 note in that very list already drew.
+
+**Not done here** (SELF-INTERRUPT DISCIPLINE): this tick's draw was D30 DISCOVER/FRAME and the
+repair is another lane's, with the *hydrate-then-move* ordering this document names. The D30 pass
+worked around it by not touching the map at all — see the STATUS section of
+`docs/design/simplifications/D30_the_belief_band_is_this_books_length.yaml`.
