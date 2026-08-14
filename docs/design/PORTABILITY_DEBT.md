@@ -105,6 +105,7 @@ counterparty      company/interfaces/sim_interface.py                  mpan     
 counterparty      company/interfaces/sim_interface.py                  nbp          1
 market_quantity   company/interfaces/credit_refund_requests.py         gbp          5
 market_quantity   company/interfaces/dd_review_outcome.py              gbp          2
+market_quantity   company/interfaces/growth_desk.py                    gbp         13
 market_quantity   company/interfaces/internal_seams.py                 gbp          5
 market_quantity   company/interfaces/point_in_time_view.py             gbp          4
 market_quantity   company/interfaces/recorded_sim_interface.py         gbp          5
