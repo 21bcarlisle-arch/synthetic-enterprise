@@ -80,12 +80,24 @@ Two moves, both small, deliberately left for the next draw rather than swept int
 
 1. **Adopt and land** the working-tree repair to `tools/surgical_land.py` +
    `tests/tools/test_surgical_land.py`, then discharge the blocker for real. Adopt, do not rebuild.
+   — **DONE 2026-08-14, `04880c948`** (tree `85343c497`, receipt gate-rc 0). Adopted, not rebuilt.
+   The three controls were mutation-proven both ways on the landing tick rather than trusted from
+   the prose: 2 failed/34 passed on reverting the constant, 1 failed/35 passed on dropping the
+   legacy sweeper base, restored byte-identical and green at 36. The blocker is now discharged with
+   node-level falsifiers and the class doc re-derived. Its supplier
+   (`process_run_complete.HEAD_CHECKOUT_ROOT`) was confirmed present at HEAD *before* landing, so
+   the repair was not sitting on unlanded work.
 2. **Point `parse_discharge` at a tree.** Give it the resulting-tree ref the gate already computes,
    so a discharge citing a falsifier that exists only on the desk is REFUSED rather than granted.
    That is the class-level fix, and it is what makes the release valve as honest as the gate.
+   — **STILL OWED.** Deliberately not swept into the landing tick (SELF_INTERRUPT_DISCIPLINE), and
+   the reason it stays owed is unchanged by (1): the discharge added to the blocker this tick would
+   have parsed `released=True` off the desk alone. It is sound *because the tick verified the tree
+   by hand* (`git ls-tree 04880c948`), which is exactly the manual step the control should remove.
+   The blind spot is still live for the next discharge anyone writes.
 
-Until (1) lands, `WORKER_FINDING_THE_LANDING_TOOL_EXTRACTS_INTO_THE_TMPFS_THE_GATE_WAS_MOVED_OFF_2026-08-14.md`
-**stays BLOCKING** and was deliberately left undischarged this tick.
+With (1) landed, `WORKER_FINDING_THE_LANDING_TOOL_EXTRACTS_INTO_THE_TMPFS_THE_GATE_WAS_MOVED_OFF_2026-08-14.md`
+is discharged and reads down to RECORDED. This document stays LATENT on (2).
 
 **Evidence:** the four commands above, run 2026-08-14 · `df -h /tmp` (36%, 5.0G free) ·
 `background/finding_severity.py:256` (`parse_discharge(..., repo_root=REPO_ROOT)`) ·

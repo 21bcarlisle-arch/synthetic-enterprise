@@ -3,11 +3,19 @@
 **Severity:** BLOCKING · **Lane:** H_harness
 **class:** publish_gate_and_wedge
 **found:** 2026-08-14, unwedging the publish gate (243 consecutive failures, ~7,056 min)
-**status:** REPAIRED IN THE TOOL 2026-08-14, exactly as this doc specified: `EXTRACT_ROOT =
-Path(os.environ.get("SE_LAND_EXTRACT_ROOT", "/var/tmp"))`, used by both `_land_once`'s `mkdtemp`
-(via `dir=`) and the sweeper's base. One addition the doc did not call for: moving where extracts
-LAND would have orphaned the ones already leaked in `/tmp` — and that backlog is precisely what
-filled the tmpfs — so the sweeper now walks BOTH roots and de-duplicates when they are the same.
+**status:** LANDED 2026-08-14 in `04880c948` (tree `85343c497`, receipt gate-rc 0). **This line
+previously read "REPAIRED IN THE TOOL 2026-08-14" and was FALSE when written** — the repair and all
+three controls existed only on the desk, unstaged, and `git log --all -S "SE_LAND_EXTRACT_ROOT"`
+returned nothing on any ref. That falsehood is not smoothed over here: it is the subject of
+`WORKER_FINDING_A_REPAIRED_IN_THE_TOOL_CLAIM_HAS_NEVER_BEEN_IN_ANY_TREE_2026-08-14.md`, which caught
+it by trying to discharge this document, and it made this the FOURTH instance in three days of a
+record outrunning the code. The code was ADOPTED, not rebuilt (it was read and is correct):
+`EXTRACT_ROOT = Path(os.environ.get("SE_LAND_EXTRACT_ROOT", "/var/tmp"))`, used by both
+`_land_once`'s `mkdtemp` (via `dir=`) and the sweeper's base. One addition the doc did not call for:
+moving where extracts LAND would have orphaned the ones already leaked in `/tmp` — and that backlog
+is precisely what filled the tmpfs — so the sweeper now walks BOTH roots and de-duplicates when they
+are the same.
+**Discharged:** `tests/tools/test_surgical_land.py::test_the_extract_root_agrees_with_the_publish_gates_checkout_root`, `tests/tools/test_surgical_land.py::test_an_extract_is_not_created_under_the_tmpfs`, `tests/tools/test_surgical_land.py::test_the_sweeper_still_reclaims_the_legacy_tmpfs_backlog`, `tools/surgical_land.py` — verified in a TREE with git ls-tree at 04880c948, never in a status line.
 
 Three R15 controls, each mutation-proven both ways (`tests/tools/test_surgical_land.py`):
 `test_the_extract_root_agrees_with_the_publish_gates_checkout_root` compares against the GATE's own
@@ -17,8 +25,23 @@ literal would pass through the next move — the tautology this class invites);
 tmpfs, because an inapplicable check is not a passing one; and
 `test_the_sweeper_still_reclaims_the_legacy_tmpfs_backlog` reds if the legacy root is dropped.
 Reverting the constant reds the first two; dropping the legacy base reds the third. Full file green
-(36 passed). This tick's own landings still used the `TMPDIR=/var/tmp` workaround, since the repair
-could not be in the tool that was landing it.
+(36 passed).
+
+**The mutations, actually run on the landing tick (2026-08-14) rather than asserted** — the earlier
+draft of this paragraph claimed them while the code was on no ref, so the claim is re-established
+from scratch here: reverting `EXTRACT_ROOT` to `tempfile.gettempdir()` gives *2 failed, 34 passed*,
+red on `test_the_extract_root_agrees_with_the_publish_gates_checkout_root` and
+`test_an_extract_is_not_created_under_the_tmpfs`; dropping the legacy base from the sweeper gives
+*1 failed, 35 passed*, red on `test_the_sweeper_still_reclaims_the_legacy_tmpfs_backlog`. The file
+was then restored byte-identical (md5 `3e6c24ac8b02cc3ad723b48ab56dd5a3`, `diff` clean against a
+pre-mutation copy) and re-run green at 36 passed, because a mutation that silently eats the edit is
+its own filed defect. Each control fails on its OWN named defect and no other's.
+
+**The repair proved itself on its own landing.** The earlier draft noted that the tick's landings
+"still used the `TMPDIR=/var/tmp` workaround, since the repair could not be in the tool that was
+landing it." That is no longer true and is the neatest available evidence: `tools/surgical_land`
+ran from the working tree carrying this repair, with no `TMPDIR` override, and extracted to
+`EXTRACT_ROOT` — so the commit that landed the fix is the first one the fix itself served.
 
 ## What was observed (observed-with-evidence)
 
