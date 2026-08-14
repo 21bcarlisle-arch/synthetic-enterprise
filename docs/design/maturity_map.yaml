@@ -2266,9 +2266,9 @@
   depends_on: []
   records_rehomed: [evidence, expert_hour_findings]
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
-  simplifications_count: 34
+  simplifications_count: 35
   notes_rehomed: [harden_note, level_hold_note]
-  expert_hour: {last: '2026-08-13', status: attempted_finding_open}
+  expert_hour: {last: '2026-08-14', status: attempted_finding_open}
 - id: D6_payment_ageing_gap_validity
   name: "Is the payment AGEING gap real or a metric artefact? The live coupled-triad measurement reports an ageing gap of 1.1538 -- ABOVE 1.0, meaning the company's debt-ageing belief scores worse than the flag-nobody baseline the metric norms against. Decide which of two things that is: a genuine company failure mode (oldest-first Clayton's-Case allocation actively misdating debt, which a real supplier would recognise) or a metric-shape defect (detection-style normalisation misapplied to a bucket-distance dimension). Until resolved, the ageing dimension is not evidence of anything and must not be cited as fidelity."
   lane: D_billing_metering
@@ -4211,7 +4211,7 @@
   depends_on: ['PB1_population_target_and_its_price']
   couples_with: []
   records_rehomed: [evidence]
-  simplifications_count: 1
+  simplifications_count: 2
   file_scope: []
 - id: PB3_book_growth_as_earned_outcome
   title: "A growth curve that can be lost"
