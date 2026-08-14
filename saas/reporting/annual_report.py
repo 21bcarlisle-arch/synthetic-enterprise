@@ -39,7 +39,6 @@ import argparse
 import json
 import subprocess
 from pathlib import Path
-_PROJECT = Path(__file__).resolve().parent.parent.parent
 
 from saas.clv_model import build_clv
 from saas.cost_to_serve import build_cost_to_serve
@@ -70,6 +69,14 @@ from saas.reporting.fra_capital_ratio import build_fra_ratio_series, weakest_yea
 from saas.reporting.payment_health import build_payment_health_series
 from saas.reporting.portfolio_composition import build_composition_series
 from saas.reporting.shadow_retention import build_shadow_retention_analysis
+
+# Moved below the import block 2026-08-14 (E402 ratchet repair): this assignment used to sit
+# between `from pathlib import Path` and the rest of the imports, which put every import below
+# it on the wrong side of "code before imports" and flagged E402 -- one more each time a lane
+# added an import here, which is how the ratchet went red. Nothing between its old and new
+# position reads it, so the move is behaviour-neutral: `git grep -n _PROJECT` resolves to the
+# same call sites before and after.
+_PROJECT = Path(__file__).resolve().parent.parent.parent
 
 DEFAULT_REPORT_DATA_PATH = Path("docs/reports/run_output_latest.json")
 DEFAULT_REPORT_PATH = Path("docs/reports/ANNUAL_REPORT.md")

@@ -2902,7 +2902,9 @@ def test_section_svt_comparison_silent_without_svt_data():
 
 from datetime import date as _date, timedelta as _timedelta  # noqa: E402
 
-from saas.reporting.annual_report import _build_clv_snapshots  # noqa: E402
+# `_build_clv_snapshots` is already imported at module top (line 6) -- this was a
+# duplicate import shadowing the same name from the same module (F811, the ruff
+# ratchet's own new-violation catch, 2026-08-14). Not re-added.
 
 
 def _settled_days(customer_id: str, start: str, end: str) -> list[dict]:
