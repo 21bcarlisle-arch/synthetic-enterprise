@@ -1,6 +1,13 @@
 # [WORKER-FINDING] The annual report publishes `Low Carbon %` twice for the same years, from two different tables, and the two disagree by up to 3.4pp (2026-08-14)
 
-**Severity:** BLOCKING · **Lane:** F_risk_compliance · **Status:** measured and reported, not fixed
+**Severity:** BLOCKING · **Lane:** F_risk_compliance · **Status:** DISCHARGED 2026-08-14 by clause 2
+— the limitation is now stated in the report itself, under BOTH tables, derived from both at render
+time. No published figure was revalued; the two tables still disagree and the ratchet entry stands.
+
+**Discharged:** `tests/company/regulatory/test_fuel_mix_reconciliation.py::test_both_sections_carry_it`,
+`tests/company/regulatory/test_fuel_mix_reconciliation.py::test_the_note_is_read_from_the_tables_not_narrated`,
+`tests/company/regulatory/test_fuel_mix_reconciliation.py::test_making_the_tables_agree_silences_the_note`
+
 — found while discharging
 `WORKER_FINDING_THREE_LIVE_GRID_INTENSITY_SERIES_DISAGREE_BY_HALF_2026-08-14.md`, whose §"the three
 sources" already named this table as "a fourth, partly-redundant artefact" without measuring it.
@@ -89,6 +96,43 @@ One of:
 Either way it revalues a published table, so it is a decision about what the company is willing to
 publish — stated for the director rather than taken here, for the same reason the sibling finding's
 repair deliberately changed no published value.
+
+## What was actually done (2026-08-14, same-day discharge)
+
+**Clause 2 was taken, and clause 1 was not.** Clause 1 needs a fetched source; this tick had no
+network either, so picking a winner would have been the fabrication the finding refused. Clause 2
+is reversible, changes no figure, and puts the disclosure where the misled reader actually is.
+Recommended and taken rather than asked (`NEVER_ASK_WITHOUT_RECOMMENDING`) — revaluing nothing, it
+is not one of the four reserved classes; `git revert` undoes it.
+
+* `company/regulatory/fuel_mix_reconciliation.py` — a reconciliation **view**, not a third table.
+  It reads both owners at call time and renders the disclosure paragraph. Every figure in the
+  sentence is derived: edit either table and the published sentence moves with it; make them agree
+  and it disappears. A note carrying a hardcoded "3.4pp" would have been a third copy of the same
+  disagreement, false the first time either table moved.
+* Both `_section_carbon_emissions` and `_section_fuel_mix_disclosure` in
+  `saas/reporting/annual_report.py` now carry it — a reader who lands on only one of the two tables
+  is the reader being misled, so one note would not have been a disclosure.
+* `docs/reports/ANNUAL_REPORT.md` regenerated (R11). The diff is 5 lines: the two notes, plus the
+  intensity summary correcting itself from `2016 ~290g/kWh -> 2025 ~175g/kWh (40% reduction)` to
+  `2016 315g/kWh -> 2025 175g/kWh (44% reduction)`. **That second change is not this repair's** —
+  it is the sibling finding's derive-don't-narrate fix, which landed in code earlier the same day
+  while the published artefact was never regenerated. R2's shape on a document: committed was not
+  published, and the stale prose sat under a table it contradicted until this regeneration.
+* R15, both mutations run and restored: dropping the `divergence_note` call from the Observatory
+  section turns `test_both_sections_carry_it` red; replacing the derived figures with the literal
+  `3.4pp`/`2023` turns `test_the_note_is_read_from_the_tables_not_narrated` red. The control fires
+  on its own named defect in both directions.
+* `tests/company/regulatory/test_carbon_emissions_single_series.py` — one repair not in scope but
+  forced by it: `test_the_sections_closing_sentence_agrees_with_its_own_table` located its subject
+  as `splitlines()[-1]`. Appending the disclosure below the summary turned it red without touching
+  the sentence it is about — a harness convenience that had quietly made "the last line" the
+  control's subject. Now located by content.
+
+**What is NOT discharged.** The two tables still disagree; the `KNOWN_SECOND_SERIES` ratchet entry
+in `tools/grid_intensity_guard.py` therefore stays, and `test_the_ratchet_has_no_stale_entries`
+still forces its deletion on a real reconciliation. `EP13_adapter_carbon_intensity` still owns
+sourcing it. The per-fuel factor residue in the section below remains recorded, not drawn.
 
 `EP13_adapter_carbon_intensity` is the atom that eventually sources this properly; it is epoch-3
 parked and cannot do it now (`docs/design/EP13_CARBON_INTENSITY_DISCOVER_FRAME.md` §7 step 1).

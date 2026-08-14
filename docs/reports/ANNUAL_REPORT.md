@@ -1234,6 +1234,8 @@ Company's disclosed fuel mix per year (UK national grid average — Ofgem FMD re
 > UK grid fuel mix disclosed per Ofgem FMD regulations; published annually.
 > Suppliers with 100% renewable tariffs must hold REGOs matching total supply.
 
+> **Unreconciled with the Carbon Emissions Reporting Observatory section.** This report publishes `Low Carbon %` for the same years in both sections, from two separately maintained tables — this one from company/billing/fuel_mix.py::_FUEL_MIX_BY_YEAR (5 buckets), the other from company/regulatory/carbon_emissions.py::UK_GRID_FUEL_MIX (8 buckets). They differ by up to 3.4pp (2023: 59.0% in the Carbon Emissions Reporting Observatory, 62.4% in the UK Grid Fuel Mix Disclosure, the UK Grid Fuel Mix Disclosure higher), and neither section is consistently the higher one across the decade, so this is two differently-sourced mixes rather than one definitional difference. Both count renewable + nuclear + biomass, so the difference is in the underlying mix and not in the definition; both sum to 100%. **At most one of the two is right, and this report does not assert which** — neither table carries a publication vintage, and no external source has been fetched to adjudicate them. The figures are unchanged rather than silently reconciled to a guess; sourcing them is `EP13_adapter_carbon_intensity`. The grid INTENSITY series has a single owner and is not affected: it derives from the Carbon Emissions Reporting Observatory mix only.
+
 ## Missed Retention Opportunity Analysis
 
 Customers who reached a renewal/churn trigger but received no retention offer.
@@ -1693,7 +1695,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-08-14T00:43:33Z
+Generated: 2026-08-14T02:27:05Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -2175,7 +2177,9 @@ Scope 1 emissions from gas supply (183g CO2/kWh). Source: DESNZ/National Grid an
 | 2025 | 9 | 175g/kWh | 1.5 | 1 | 0.2 | 1.7 | 68% (decarbonising) |
 | **Total** | | | | | | **30.8 t** | |
 
-> Grid emission intensity declining: 2016 ~290g/kWh -> 2025 ~175g/kWh (40% reduction). Carbon disclosure per SECR/ESOS.
+> Grid emission intensity declining: 2016 315g/kWh -> 2025 175g/kWh (44% reduction). Carbon disclosure per SECR/ESOS.
+
+> **Unreconciled with the UK Grid Fuel Mix Disclosure section.** This report publishes `Low Carbon %` for the same years in both sections, from two separately maintained tables — this one from company/regulatory/carbon_emissions.py::UK_GRID_FUEL_MIX (8 buckets), the other from company/billing/fuel_mix.py::_FUEL_MIX_BY_YEAR (5 buckets). They differ by up to 3.4pp (2023: 59.0% in the Carbon Emissions Reporting Observatory, 62.4% in the UK Grid Fuel Mix Disclosure, the UK Grid Fuel Mix Disclosure higher), and neither section is consistently the higher one across the decade, so this is two differently-sourced mixes rather than one definitional difference. Both count renewable + nuclear + biomass, so the difference is in the underlying mix and not in the definition; both sum to 100%. **At most one of the two is right, and this report does not assert which** — neither table carries a publication vintage, and no external source has been fetched to adjudicate them. The figures are unchanged rather than silently reconciled to a guess; sourcing them is `EP13_adapter_carbon_intensity`. The grid INTENSITY series has a single owner and is not affected: it derives from the Carbon Emissions Reporting Observatory mix only.
 
 ## Customer Strategic Value Matrix
 

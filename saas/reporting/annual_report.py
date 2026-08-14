@@ -47,6 +47,11 @@ from saas.customer_reaction import _billing_account_id
 from saas.enterprise_value import ceased_billing_accounts
 from saas.customers import ACQUIRED_CUSTOMERS, CUSTOMERS, DRAWN_CUSTOMERS, SUCCESSOR_CUSTOMERS
 from company.market.tou_periods import is_peak_period
+from company.regulatory.fuel_mix_reconciliation import (
+    DISCLOSURE_SECTION as _RECON_DISCLOSURE,
+    OBSERVATORY_SECTION as _RECON_OBSERVATORY,
+    divergence_note as _fuel_mix_divergence_note,
+)
 from saas.capital.bsc_credit import compute_bsc_credit_by_year
 from saas.capital.solvency import compute_solvency_by_year, compute_solvency_signal
 from company.finance import management_accounts as _ma
@@ -5475,6 +5480,13 @@ def _section_carbon_emissions(data: dict) -> str:
         f"> Grid emission intensity declining: {_first} {_i0:.0f}g/kWh -> {_last} {_i1:.0f}g/kWh "
         f"({_fall:.0f}% reduction). Carbon disclosure per SECR/ESOS."
     )
+    # This report publishes `Low Carbon %` TWICE for the same years, from two tables that disagree
+    # by up to 3.4pp with the sign flipping. Stating that under the table is the finding's own
+    # second discharge; the alternative -- picking a winner with no fetched source -- would revalue
+    # a published section on the guesser's authority. DERIVED from both tables, never narrated.
+    _note = _fuel_mix_divergence_note(_RECON_OBSERVATORY)
+    if _note:
+        lines.extend(["", _note])
     return "\n".join(lines)
 
 
@@ -6639,6 +6651,11 @@ def _section_fuel_mix_disclosure(data: dict) -> str:
         "> Suppliers with 100% renewable tariffs must hold REGOs matching total supply.",
         "",
     ])
+    # The other half of the same disclosure -- see `_section_carbon_emissions`. Both sections carry
+    # it, because a reader who reaches only one of the two tables is the reader being misled.
+    _note = _fuel_mix_divergence_note(_RECON_DISCLOSURE)
+    if _note:
+        lines.extend([_note, ""])
     return "\n".join(lines)
 
 def _section_missed_retention_analysis(data: dict) -> str:

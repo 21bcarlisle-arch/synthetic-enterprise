@@ -109,12 +109,20 @@ def test_the_annual_report_section_uses_the_owned_mix():
 
 def test_the_sections_closing_sentence_agrees_with_its_own_table():
     """It used to say "2016 ~290g/kWh ... (40% reduction)" directly under a table reading 315
-    and falling 44% — a third copy of the series, in prose, contradicting the rows above it."""
+    and falling 44% — a third copy of the series, in prose, contradicting the rows above it.
+
+    The summary is located BY CONTENT, not as `splitlines()[-1]` (2026-08-14). Position was a
+    harness convenience that quietly made "the last line" the control's subject: appending the
+    fuel-mix divergence disclosure below it turned this red without touching the sentence it is
+    actually about. A locator that breaks when a NEIGHBOUR moves is not measuring its own subject.
+    """
     from saas.reporting.annual_report import _section_carbon_emissions
 
     accounts = {str(y): {"income_statement": {"revenue_gbp": 1_000_000.0}} for y in PUBLISHED_SERIES}
     rendered = _section_carbon_emissions({"management_accounts": accounts})
-    summary = rendered.splitlines()[-1]
+    summaries = [ln for ln in rendered.splitlines() if "Grid emission intensity declining" in ln]
+    assert len(summaries) == 1, f"expected exactly one intensity summary, got {summaries}"
+    summary = summaries[0]
 
     first, last = min(PUBLISHED_SERIES), max(PUBLISHED_SERIES)
     fall = round((1.0 - PUBLISHED_SERIES[last] / PUBLISHED_SERIES[first]) * 100.0)
