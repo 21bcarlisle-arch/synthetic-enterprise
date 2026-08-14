@@ -1104,3 +1104,158 @@ def test_mutation_a_door_selector_that_never_refreshes_kills_a_named_test(tmp_pa
         "MUTATION SURVIVED: the refresh was removed and the selector still reported the "
         "customer view as active -- the assertion is not reading the repaint"
     )
+
+
+# ===========================================================================
+# (11) NEITHER SIDE OF THE WALL IS BLANK ON ANY TAB
+#      coldwalk:site2_behind_the_wall_view_is_empty_on_two_of_six_tabs
+# ===========================================================================
+# The walk found Consumption and Billing rendering customer-side panels ONLY: selecting
+# "Behind the wall" on either gave nav chrome and nothing else, and "Both sides" printed
+# the empty-column placeholder. Driving the harness while fixing it found a THIRD blank
+# sub-view the walk had not enumerated (billing:statement), which is why the control below
+# is a sweep over every rendered sub-view rather than a check of the two tabs that were
+# named. An exhibit whose whole thesis is the gap between two sides cannot show one side.
+#
+# WHY THIS IS NOT THE SAME CHECK AS SECTION (1). Section (1) asks whether a rendered block
+# DECLARED a side; it is satisfied by a tab that renders one lonely customer panel, which is
+# exactly the state the walk found. This asks whether both sides actually have content --
+# a completeness property section (1) is structurally blind to.
+_EMPTY_COLUMN = "Nothing on this side of the wall for this view."
+
+
+def _tab_sides(rendered: dict, view: str) -> dict[str, set[str]]:
+    return {tab: sides_in(html) for tab, html in rendered["views"][view].items()}
+
+
+def test_the_control_sees_every_sub_view_the_page_renders(rendered):
+    """ANTI-VACUITY, first. Every assertion below is a sweep over the rendered sub-views,
+    so it passes trivially if the harness stops producing them. Pin the population by NAME
+    -- including the two the walk named and the one it missed."""
+    tabs = set(rendered["views"]["both"])
+    for required in ("consumption", "billing:bills", "billing:statement"):
+        assert required in tabs, (
+            f"{required!r} is not in the driven population -- the blank-side control would "
+            f"be blind to the very sub-view the finding was about. Got: {sorted(tabs)}"
+        )
+    assert len(tabs) >= 8, f"only {len(tabs)} sub-views driven -- population shrank: {sorted(tabs)}"
+
+
+def test_no_tab_is_blank_behind_the_wall(rendered):
+    """THE CONTROL. Selecting 'Behind the wall' must leave content on every tab."""
+    blank = sorted(tab for tab, sides in _tab_sides(rendered, "behind").items() if not sides)
+    assert not blank, (
+        "these tabs render NOTHING behind the wall -- a reader who selects that view gets "
+        f"nav chrome and a standing note: {blank}"
+    )
+
+
+def test_no_tab_is_blank_on_the_customers_own_side(rendered):
+    """The same property in the other direction: the customer-eye view is a coherent
+    subset only if it is actually populated on every tab."""
+    blank = sorted(tab for tab, sides in _tab_sides(rendered, "customer").items() if not sides)
+    assert not blank, f"these tabs render nothing in the customer-eye view: {blank}"
+
+
+def test_the_both_sides_view_never_prints_an_empty_column(rendered):
+    """The reader-visible symptom the walk actually saw. layoutPanels() prints a
+    placeholder when a column has no panels; on this page that placeholder is a defect
+    report, so it must never reach a reader."""
+    offenders = sorted(tab for tab, html in rendered["views"]["both"].items()
+                       if _EMPTY_COLUMN in html)
+    assert not offenders, (
+        f"the empty-column placeholder ({_EMPTY_COLUMN!r}) rendered on: {offenders}"
+    )
+
+
+def test_the_two_tabs_the_walk_named_carry_real_content_not_empty_shells(rendered):
+    """A panel that declares a side and renders nothing would satisfy every check above.
+    Assert the repaired tabs carry the figures that make them load-bearing."""
+    behind = rendered["views"]["behind"]
+    cons = behind["consumption"]
+    assert "Estimated reads" in cons and "Written off under back-billing rules" in cons, (
+        "the consumption company panel lost the read-exposure figures that are its reason "
+        "to exist"
+    )
+    assert "Net &pound;/MWh" in cons or "Net £/MWh" in cons, (
+        "the consumption SIM panel lost its unit-margin column"
+    )
+    for tab in ("billing:bills", "billing:statement"):
+        assert "settled clock" in behind[tab] and "billed clock" in behind[tab], (
+            f"{tab} behind the wall no longer puts the two clocks beside each other -- "
+            "which is the whole content the finding said was missing"
+        )
+
+
+def test_the_repaired_panels_did_not_smuggle_a_figure_across_the_wall(rendered):
+    """The repair adds panels on the far side; the wall checks must still hold over them.
+    Named-instance form so this fails for a STATED reason rather than via section (3)."""
+    customer = "".join(
+        p["html"] for tab in ("consumption", "billing:bills", "billing:statement")
+        for p in scan(rendered["views"]["customer"][tab]).panels
+    )
+    leaked = figure_violations(customer, COMPANY_ONLY_FIGURES) + figure_violations(
+        customer, SIM_ONLY_FIGURES)
+    assert not leaked, f"the repaired tabs leaked into the customer-eye view: {leaked}"
+    company = "".join(
+        p["html"] for tab in ("consumption", "billing:bills", "billing:statement")
+        for p in scan(rendered["views"]["both"][tab]).panels if p["side"] == "company"
+    )
+    assert not figure_violations(company, SIM_ONLY_FIGURES), (
+        "the repaired tabs put a SIM-only figure under a company panel -- the per-year "
+        "wholesale result belongs on the SIM panel, which is why it renders there"
+    )
+
+
+# --- R15, both ways ---------------------------------------------------------
+def test_mutation_dropping_the_consumption_far_side_kills_a_named_test(tmp_path):
+    """R15 direction 1: revert Consumption to customer-only -- the state the walk found --
+    and the blank-side control must fire."""
+    src = INDEX.read_text(encoding="utf-8")
+    marker = "  out.push(consumptionCompanyPanel(d));\n  out.push(consumptionSimPanel(d));\n"
+    assert marker in src, "consumptionPanels no longer has the shape this mutation reverts"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(src.replace(marker, ""), encoding="utf-8")
+    out = _drive(mutant, tmp_path)
+    assert not sides_in(out["views"]["behind"]["consumption"]), (
+        "the mutant still rendered something behind the wall on Consumption -- this proves "
+        "nothing about the control"
+    )
+    with pytest.raises(AssertionError, match="render NOTHING behind the wall"):
+        test_no_tab_is_blank_behind_the_wall(out)
+    with pytest.raises(AssertionError, match="empty-column placeholder"):
+        test_the_both_sides_view_never_prints_an_empty_column(out)
+
+
+def test_mutation_dropping_the_billing_far_side_kills_a_named_test(tmp_path):
+    """R15 direction 2: the same defect on the other repaired tab, mutated independently
+    so one panel cannot carry the other's proof."""
+    src = INDEX.read_text(encoding="utf-8")
+    marker = '    out.push(billingCompanyPanel(BILL_FUEL==="elec"?HH.elec:HH.gas));\n'
+    assert marker in src, "billingPanels no longer has the shape this mutation reverts"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(src.replace(marker, ""), encoding="utf-8")
+    out = _drive(mutant, tmp_path)
+    assert not sides_in(out["views"]["behind"]["billing:bills"]), (
+        "the mutant still rendered something behind the wall on Billing -- proves nothing"
+    )
+    with pytest.raises(AssertionError, match="render NOTHING behind the wall"):
+        test_no_tab_is_blank_behind_the_wall(out)
+
+
+def test_mutation_a_side_declared_but_empty_panel_does_not_satisfy_the_control(tmp_path):
+    """R15 fail-open probe, the subtle one. A panel that declares a side and renders an
+    empty body would pass every side-DECLARATION check in section (1) and would pass the
+    blank-side sweep too, because a side is present. The content check is what catches it,
+    so prove the content check is what is doing the work."""
+    src = INDEX.read_text(encoding="utf-8")
+    marker = '"<div class=\\"row\\"><span class=\\"rl\\">Estimated reads</span>'
+    assert marker in src, "the consumption company panel no longer has the row this drops"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(src.replace("Estimated reads", "Something else entirely"), encoding="utf-8")
+    out = _drive(mutant, tmp_path)
+    # Still non-blank -- the sweep is satisfied, which is precisely the blind spot.
+    assert sides_in(out["views"]["behind"]["consumption"]), "mutant went blank; wrong probe"
+    test_no_tab_is_blank_behind_the_wall(out)
+    with pytest.raises(AssertionError, match="read-exposure figures"):
+        test_the_two_tabs_the_walk_named_carry_real_content_not_empty_shells(out)

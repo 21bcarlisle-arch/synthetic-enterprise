@@ -5186,11 +5186,17 @@
     - coldwalk:site2_tariff_range_pounds_per_mwh_labelled_pence_per_mwh
     - coldwalk:site2_churn_probability_carries_a_settlement_clock
     - coldwalk:site2_landing_promises_a_view_switch_that_is_not_on_the_landing_page
+    fixed_2026_08_14:   # the exhibit's own thesis: no tab is blank on either side
+    - coldwalk:site2_behind_the_wall_view_is_empty_on_two_of_six_tabs
     findings:   # OPEN; reconciled vs the ledger by tests/controls/test_map_reconciliation.py
     - coldwalk:site2_churned_account_presented_in_the_present_tense
     - coldwalk:site2_dual_fuel_household_shows_electricity_only_money
+    # NOT a SITE2 render defect and NOT closable here -- the walk's own entry says so: a
+    # WORLD/SIM fidelity finding surfaced BY the exhibit (winter:summer 0.90 where GB
+    # domestic is ~1.3-1.6:1 the other way), needing its own sim-lane atom under R12
+    # (diagnose the mechanism, never tune the output toward the band). Left OPEN here
+    # deliberately rather than carried as SITE2 debt it cannot discharge.
     - coldwalk:site2_consumption_has_no_winter_peak_under_a_seasonality_panel
-    - coldwalk:site2_behind_the_wall_view_is_empty_on_two_of_six_tabs
     - coldwalk:site2_coo_cost_to_serve_double_count_doubt          # adjudicated REFUTED
     - coldwalk:site2_coo_2841_percent_error_arithmetic_doubt       # adjudicated REFUTED
   records_rehomed: [evidence]

@@ -882,6 +882,97 @@ function accountsPanels(){
     }))
   ];
 }
+/* Cold-eyes 2026-08-12 (coldwalk:site2_behind_the_wall_view_is_empty_on_two_of_six_tabs).
+   Consumption and Billing emitted customer-side panels ONLY, so selecting "Behind the wall"
+   on either rendered nav chrome and nothing else, and "Both sides" printed "Nothing on this
+   side of the wall for this view." Measured on this page's own harness BEFORE this change:
+   the behind view had ZERO panels on consumption, billing:bills AND billing:statement --
+   three of the eight rendered sub-views blank on the exact claim the exhibit exists to make.
+   (The walk recorded "two of six tabs"; driving the harness found the statement sub-view
+   too.) The panels below are the other side of those tabs.
+
+   WHICH SIDE EACH FIGURE GOES ON, AND WHY. A real UK bill already prints the volume, the
+   unit rate, the standing charge and whether each read was Actual or Estimated -- all
+   customer-observable, and it stays where it is. What the account holder cannot see is what
+   the supplier WROTE OFF when a corrected read landed late (back-billing rules cap what it
+   may recover), and what the relationship costs to run. Per-year gross/net is the SIM's
+   wholesale trading margin -- already a NAMED SIM-only figure on the Accounts tab -- so the
+   unit-margin view of it belongs on a SIM panel here and NEVER on a company one, which is
+   exactly what test_no_sim_only_figure_renders_under_a_company_panel exists to catch.
+   Every figure is already in the per-customer JSON: no new data plumbing, per this atom's
+   own constraint. */
+function readExposure(d){
+  var inv=(d&&d.invoices)||[];
+  var est=inv.filter(function(i){return i.read_type==="E";});
+  var totKwh=inv.reduce(function(a,i){return a+Number(i.consumption_kwh||0);},0);
+  var estKwh=est.reduce(function(a,i){return a+Number(i.consumption_kwh||0);},0);
+  var cu=inv.filter(function(i){return i.catchup_applied;});
+  return {
+    invoices:inv.length,
+    estimated:est.length,
+    estShare:(totKwh>0?estKwh/totKwh:null),
+    catchups:cu.length,
+    net:cu.reduce(function(a,i){return a+Number(i.catchup_adjustment_gbp||0);},0),
+    writtenOff:cu.reduce(function(a,i){return a+Number(i.catchup_written_off_gbp||0);},0),
+    capped:cu.filter(function(i){return i.catchup_back_billing_cap_applied;}).length
+  };
+}
+/* Billed volume per calendar year, from the account's own invoices -- the denominator the
+   SIM unit-margin table divides its wholesale result by. */
+function volumeByYear(d){
+  var out={};
+  ((d&&d.invoices)||[]).forEach(function(i){
+    var y=Number(String(i.date||"").slice(0,4));
+    if(!isFinite(y)||!y)return;
+    out[y]=(out[y]||0)+Number(i.consumption_kwh||0);
+  });
+  return out;
+}
+function consumptionCompanyPanel(d){
+  if(!d)return null;
+  var x=readExposure(d);
+  if(!x.invoices)return null;
+  return panel("company","What we could not read, and what this account costs us to run",
+    "<div class=\"card\">"+
+      "<div class=\"row\"><span class=\"rl\">Estimated reads</span><span>"+x.estimated+" of "+x.invoices+" invoices"+
+        (x.estShare==null?"":" &middot; "+(x.estShare*100).toFixed(1)+"% of billed volume")+"</span></div>"+
+      "<div class=\"row\"><span class=\"rl\">Catch-up corrections</span><span>"+x.catchups+
+        (x.catchups?" &middot; net "+gbp(x.net)+" re-billed":"")+"</span></div>"+
+      "<div class=\"row\"><span class=\"rl\">Written off under back-billing rules</span><span class=\""+
+        (x.writtenOff>0?"red":"muted")+"\">"+gbp(x.writtenOff)+"</span></div>"+
+      "<div class=\"row\"><span class=\"rl\">Back-billing cap applied</span><span class=\"muted\">"+
+        x.capped+" invoice"+(x.capped===1?"":"s")+"</span></div>"+
+      "<div class=\"row\"><span class=\"rl\">Cost to Serve</span><span class=\"muted\">"+gbp(d.cost_to_serve_gbp)+"</span></div>"+
+    "</div>"+
+    "<div class=\"usage-hint\">The bill beside this one already tells the account holder which of their "+
+    "reads were estimates &mdash; that is on their bill by law, not a company secret. What is on this side "+
+    "is the <strong>consequence</strong>: when a real read finally lands and the estimate was too low, the "+
+    "supplier may only re-bill the last 12 months, and the rest is written off. That write-off, and the "+
+    "lifetime cost of serving this account at all, are the supplier's own numbers and appear on no bill.</div>");
+}
+function consumptionSimPanel(d){
+  if(!d)return null;
+  var vol=volumeByYear(d);
+  var rows=((d&&d.annual_pnl)||[]).filter(function(r){return r.gross_gbp!==0||r.net_gbp!==0;}).map(function(r){
+    var kwh=vol[r.year]||0;
+    var perMwh=(kwh>0)?(r.net_gbp/(kwh/1000)):null;
+    return "<tr><td>"+r.year+"</td>"+
+      "<td>"+(kwh?Math.round(kwh).toLocaleString("en-GB"):"&mdash;")+"</td>"+
+      "<td class=\""+nc(r.gross_gbp)+"\">"+gbp(r.gross_gbp)+"</td>"+
+      "<td class=\""+nc(r.net_gbp)+"\">"+gbp(r.net_gbp)+"</td>"+
+      "<td>"+(perMwh==null?"&mdash;":(perMwh<0?"-":"")+"&pound;"+Math.abs(perMwh).toFixed(2))+"</td></tr>";
+  }).join("");
+  if(!rows)return null;
+  return panel("sim","What this volume actually cost to buy, per unit supplied",
+    "<div class=\"card\"><table><tr><th>Year</th><th>Billed volume (kWh)</th><th>Gross</th><th>Net</th>"+
+      "<th>Net &pound;/MWh</th></tr>"+rows+"</table></div>"+
+    "<div class=\"usage-hint\">Gross/Net are the SIM's internal commodity trading margin for this account "+
+    "(wholesale-cost accounting), divided here by the volume the customer was actually billed for, to give "+
+    "what each MWh supplied left behind. No supplier reads this directly &mdash; it is the ground truth its "+
+    "own settlement figures only approximate &mdash; and no customer sees any of it. The all-in billed total "+
+    "on the Billing &amp; Payments tab is always larger: it carries standing charge, network and "+
+    "environmental pass-through and VAT on top of commodity.</div>");
+}
 function consumptionPanels(){
   var out=[];
   if(HH.elec&&HH.gas){
@@ -890,11 +981,46 @@ function consumptionPanels(){
       "<button class=\"fuel-btn fbg"+(CONS_FUEL==="gas"?" factive":"")+"\" onclick=\"setConsFuel('gas')\">Gas</button>"+
       "</div>"));
   }
+  var d=(CONS_FUEL==="elec"?HH.elec:HH.gas)||HH.elec||HH.gas;
   out.push(panel("customer","Usage","<div id=\"usage-section\"></div>"));
+  out.push(consumptionCompanyPanel(d));
+  out.push(consumptionSimPanel(d));
   return out;
 }
 function setConsFuel(f){CONS_FUEL=f;renderTab();}
 
+/* The Billing tab's other side (same cold-eyes finding as the two panels above). The
+   finding named this tab's missing content precisely: "settled-vs-billed on one bill".
+   R14 discipline is load-bearing here rather than decorative -- this panel exists to put
+   the two clocks beside each other, so EVERY row states which one it is on. The two totals
+   are deliberately NOT presented as reconciling: they are different clocks over different
+   scopes (the billed total carries standing charge, network/environmental pass-through and
+   VAT that the commodity revenue figure does not), so the difference is stated as a
+   difference, never as an error or a bridge. */
+function billingCompanyPanel(d){
+  if(!d)return null;
+  var led=d.ledger||{};
+  var billed=Number(led.total_billed_gbp||0);
+  var rev=Number(d.lifetime_revenue_gbp||0);
+  var afterCts=Number(d.lifetime_net_gbp||0)-Number(d.cost_to_serve_gbp||0);
+  return panel("company","The same supply on the supplier's clock",
+    "<div class=\"card\">"+
+      "<div class=\"row\"><span class=\"rl\">Total billed to the customer</span><span>"+gbp(billed)+" <span class=\"muted\">billed clock</span></span></div>"+
+      "<div class=\"row\"><span class=\"rl\">Collected</span><span>"+gbp(led.total_collected_gbp)+" <span class=\"muted\">banked clock</span></span></div>"+
+      "<div class=\"row\"><span class=\"rl\">Lifetime Revenue</span><span>"+gbp(rev)+" <span class=\"muted\">settled clock &middot; commodity only</span></span></div>"+
+      "<div class=\"row\"><span class=\"rl\">Lifetime Net Margin</span><span class=\""+nc(d.lifetime_net_gbp)+"\">"+gbp(d.lifetime_net_gbp)+" <span class=\"muted\">settled clock &middot; before cost to serve</span></span></div>"+
+      "<div class=\"row\"><span class=\"rl\">Cost to Serve</span><span class=\"muted\">"+gbp(d.cost_to_serve_gbp)+" <span class=\"muted\">settled clock &middot; lifetime total</span></span></div>"+
+      "<div class=\"row\"><span class=\"rl\">Net after cost to serve</span><span class=\""+nc(afterCts)+"\">"+gbp(afterCts)+" <span class=\"muted\">settled clock &middot; derived from the two rows above</span></span></div>"+
+    "</div>"+
+    "<div class=\"usage-hint\">Every invoice on the customer's side of this tab is on the <strong>billed</strong> "+
+    "clock &mdash; what was demanded, and then what was actually paid (<strong>banked</strong>). The supplier runs "+
+    "the same supply on a <strong>settled</strong> clock: what the energy cost to buy once settlement closed, "+
+    "months after the bill. The account holder never sees the second one.</div>"+
+    "<div class=\"usage-hint\">These two totals are <strong>not</strong> expected to match and no bridge is implied "+
+    "between them here: "+gbp(billed)+" billed is an all-in figure carrying standing charge, network and "+
+    "environmental pass-through and VAT, while "+gbp(rev)+" is commodity revenue alone. The front page's "+
+    "reconciliation bridge is where that relationship is actually worked out.</div>");
+}
 var BILL_VIEWS=[["bills","Bills"],["statement","Statement"],["cashflow","Cashflow"]];
 function billingPanels(){
   var out=[chrome("<div class=\"tab-nav\" style=\"margin-bottom:14px\">"+BILL_VIEWS.map(function(v){
@@ -908,9 +1034,11 @@ function billingPanels(){
   }
   if(BILL_VIEW==="bills"){
     out.push(panel("customer","Billing History","<div id=\"bills-section\"></div>"));
+    out.push(billingCompanyPanel(BILL_FUEL==="elec"?HH.elec:HH.gas));
   }else if(BILL_VIEW==="statement"){
     var sd=BILL_FUEL==="elec"?HH.elec:HH.gas;
     out.push(panel("customer","Statement"+(sd?" &mdash; "+esc(sd.account_id):""),renderStatementView(sd)));
+    out.push(billingCompanyPanel(sd));
   }else if(BILL_VIEW==="cashflow"){
     out=out.concat(cashflowPanels());
   }
