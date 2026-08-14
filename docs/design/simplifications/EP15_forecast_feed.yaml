@@ -1,6 +1,7 @@
 atom_id: EP15_forecast_feed
 map_notes:
   origin_note: 'This is the highest-risk atom on the map for the Point-in-Time Blindfold, because a forecast feed is the ONE legitimate channel through which future-dated data crosses the wall -- and the hedge-foresight bug (a point-in-time volatility-calc leak) is the precedent for how that goes wrong. The design constraint is that a forecast is a POINT-IN-TIME ARTEFACT: what was forecast, as of when, with its error unknown at the time. A feed that quietly serves the realised outturn as a forecast is the same bug with a new name. Build the leak test before the feed.'
+  name: 'The weather and market forecast feed: a point-in-time-safe forward view (weather forecast, forward curve, demand outlook) delivered through the wall as an as-of-bound observable, so the company can plan without the future being readable. Named in the ruling §1 as an Epoch-3 floor item. B3_published_forecast_error_horizons measures forecast ERROR; this is the feed whose error that atom measures.'
 map_records:
   evidence:
   - docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md

@@ -513,9 +513,31 @@ NOTE_FIELDS = (
     "harden_note",
     "level_hold_note",
     "level_note",
+    "name",
     "notes",
     "origin_note",
 )
+
+# `name` JOINED THIS CLASS 2026-08-14 (the fourth drain), and it is the one member
+# whose name does not announce it, so the reason is recorded here rather than in a
+# commit message. Both earlier drains EXEMPTED `name` in as many words -- "a new
+# atom's `name`/`lane`/levels ... which is the map doing its job" -- on the ground
+# that it is atom-COUNT driven. Measured on the live map that day (296 atoms), by
+# map position, which is mint order:
+#
+#     oldest 50 atoms   mean    91 B    max   310 B    <- a name
+#     newest 50 atoms   mean   860 B    max 4,060 B    <- a brief
+#     whole field: 150,389 B = 37% OF THE SPINE, mean 508 B/atom
+#
+# A 9x rise in per-atom cost from the oldest atoms to the newest is accretion, not
+# population growth: `name` had become the atom's narrative BRIEF (multi-KB Expert
+# Hour write-ups), i.e. the same unbounded-prose class this tenant already holds,
+# under a field name that reads like identity. The count-driven half of the earlier
+# claim is still true of `lane`/`level_*`/`loop_stage`, which stay in the spine.
+#
+# CONSEQUENCE, deliberately: `check_no_inline_notes` now REFUSES an inline `name`,
+# so a mint cannot put the brief back in the spine. Readers must hydrate -- see
+# `hydrate`, `background/supervisor.py::_atom_name`, and the site generators.
 
 # The map-side declaration naming which note fields an atom keeps in the store.
 NOTES_DECLARATION_FIELD = "notes_rehomed"
@@ -594,8 +616,15 @@ def set_note_for_atom(
 # is why H32's note rehome, which drained a different field, was back over the
 # spine ratchet inside a day: it removed a stock and left the flow running. This
 # tenant moves the flow. Every other map field's growth is atom-COUNT driven
-# (a new atom's `name`/`lane`/levels), which the per-atom budget control in
+# (a new atom's `lane`/levels), which the per-atom budget control in
 # tests/design/test_simplifications_store.py is deliberately invariant to.
+#
+# `name` WAS NAMED HERE AS COUNT-DRIVEN AND THAT WAS WRONG BY 2026-08-14 -- it had
+# grown 91 B/atom (oldest 50) to 860 B/atom (newest 50) and was 37% of the spine.
+# It is now the note tenant's; see the note beside NOTE_FIELDS above. The sentence
+# is corrected rather than deleted because "which field is the flow" is the question
+# this whole store exists to keep re-asking, and a drain that exempts a field on a
+# stated ground should show when that ground expired.
 #
 # CLASS GUARD, not an instance list (R10): `evidence` plus any `*_evidence`, so a
 # future `frame_evidence` appearing inline in the map is caught by construction
@@ -761,6 +790,28 @@ def set_record_for_atom(
     merged[field] = list(value) if isinstance(value, list) else value
     _write_tenants(atom_id, store_dir, map_records=merged)
     return records_for_atom(atom_id, store_dir)
+
+
+def atom_name(atom: dict, store_dir: Path | None = None) -> str:
+    """One atom's BRIEF, wherever it now lives (the 2026-08-14 `name` drain).
+
+    Every reader of `name` routes through here so the rehome has ONE seam rather
+    than one per call site, and so a reader added later cannot silently read a
+    field that is no longer inline and conclude the atom has no brief. That
+    failure would be quiet and user-visible: the supervisor's draw line degrades
+    to `?`, and three site surfaces render an empty atom name -- nothing raises.
+
+    Inline WINS over stored, matching `hydrate` and for the same reason: during a
+    partial migration the inline value is the one the spine is actually showing,
+    and a silently-preferred store copy would make the two-sources-of-truth
+    contract unfalsifiable. Returns `""` (never None) so format strings and
+    truthiness tests at the call sites behave as they did pre-drain."""
+    if atom.get("name"):
+        return str(atom["name"])
+    aid = atom.get("id")
+    if not aid:
+        return ""
+    return str(notes_for_atom(str(aid), store_dir).get("name") or "")
 
 
 def hydrate(atom: dict, store_dir: Path | None = None) -> dict:

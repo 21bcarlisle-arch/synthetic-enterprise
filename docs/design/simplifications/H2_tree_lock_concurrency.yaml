@@ -1,4 +1,6 @@
 atom_id: H2_tree_lock_concurrency
+map_notes:
+  name: tree_lock() serialized git writes across concurrent daemons/sessions
 map_records:
   evidence:
   - background/tree_lock.py

@@ -1,6 +1,7 @@
 atom_id: EP3_pricing_engine_late_truth
 map_notes:
   origin_note: 'Portability constraint binds at design time, not on remediation: product must be first-class wherever fuel is one, and the cost stack keyed by REGIME rather than implicitly Ofgem, or a second market never fits behind this seam. The intra-year price cap (W3_1b) is a live constraint the engine must price INSIDE, not around. R12: the cap is a binding constraint, never a target to approach.'
+  name: 'The pricing engine: ex-ante cost stack (wholesale, losses, network, policy, cost-to-serve, bad debt, capital) plus an explicit margin decision, priced against ESTIMATED costs and then reconciled as true-ups arrive. EPOCH2_EVIDENCE Q1 tested the director''s suspicion that prices are back-calculated rather than decided; this atom is the answer''s build half. Named in the ruling §1 as an Epoch-2 floor item.'
 map_records:
   evidence:
   - docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md

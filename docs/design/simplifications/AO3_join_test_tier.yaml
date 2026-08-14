@@ -1,6 +1,7 @@
 atom_id: AO3_join_test_tier
 map_notes:
   origin_note: 'Blast radius MEDIUM, and the director pre-ruled the mitigation: join tests may be brittle at first and a red join test blocks publish, so FIRST LANDING IS REPORT-ONLY, promoted to gating after a stable week. Land it report-only even if it looks green on day one -- the promotion delay is the director''s, not a judgement call. R15: a join test that passes when the chain it spans is disconnected is the fail-open shape to mutation-hunt here; each of the five needs a proof it fires when its own join is cut. Depends on AO1 so the five are written against a known inventory rather than rediscovering the chains by hand.'
+  name: 'NET step 1 -- the five system tests from ADVISOR_FINDINGS_MISSING_TEST_TIER_2026-08-04: work loop, physical chain, money chain, market chain, customer lifecycle. Rationale (director): every serious failure to date has been parts-pass-system-fails, and those are exactly the failures refactoring causes. NO STRUCTURAL REFACTOR LANDS BEFORE THE JOINS IT CROSSES ARE WATCHED -- this is the safety condition on KNIFE, not a parallel nicety.'
 map_records:
   evidence:
   - docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md

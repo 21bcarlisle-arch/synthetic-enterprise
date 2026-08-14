@@ -1,110 +1,28 @@
 atom_id: D36_bill_render_footing_and_pence
 simplifications:
-- '2026-08-12 BUILT, level 0 -> 2 (worker tick, self-certified with the evidence below per R16).
-  Part 1 of DIRECTOR_RULING_THE_PORTAL_IS_A_WALL_EXHIBIT_2026-08-12. Render-layer only: no
-  ledger, generator or invariant changed, because none of them was wrong.
+- '2026-08-12 BUILT, level 0 -> 2 (worker tick, self-certified with the evidence below per R16). Part 1 of DIRECTOR_RULING_THE_PORTAL_IS_A_WALL_EXHIBIT_2026-08-12. Render-layer only: no ledger, generator or invariant changed, because none of them was wrong.
 
-  THE DEFECT, STATED PRECISELY. Bill C1g-INV141 printed four charge lines totalling about GBP 26
-  above a total of -GBP 2, with nothing on the page explaining the sign. Every control passed it
-  and each was right to: the RECORD carries a fifth component (catchup_adjustment_gbp = -28.40),
-  BILL_FOOTS sums that component, and PRINTED_BILL_FOOTS_EXACTLY checks the ledger''s line items.
-  The renderer kept its OWN line-up -- usage, standing charge, network, VAT -- which was exactly
-  the invariant''s footing set MINUS the one component that decides the sign, and it printed every
-  figure through gbp(), a PORTFOLIO formatter that rounds to whole pounds. So the page showed
-  "GBP 12 + GBP 8 + GBP 5 + GBP 1" above "-GBP 2": five figures none of which was the figure on
-  the record, and a total nobody could reconstruct, from a record that was correct throughout.
-  The class is therefore not "the bill does not foot" but "the bill does not foot AS PRINTED, and
-  every check reads the record" -- the same shape as D_printed_figure_rederivation, one layer up.
+  THE DEFECT, STATED PRECISELY. Bill C1g-INV141 printed four charge lines totalling about GBP 26 above a total of -GBP 2, with nothing on the page explaining the sign. Every control passed it and each was right to: the RECORD carries a fifth component (catchup_adjustment_gbp = -28.40), BILL_FOOTS sums that component, and PRINTED_BILL_FOOTS_EXACTLY checks the ledger''s line items. The renderer kept its OWN line-up -- usage, standing charge, network, VAT -- which was exactly the invariant''s footing set MINUS the one component that decides the sign, and it printed every figure through gbp(), a PORTFOLIO formatter that rounds to whole pounds. So the page showed "GBP 12 + GBP 8 + GBP 5 + GBP 1" above "-GBP 2": five figures none of which was the figure on the record, and a total nobody could reconstruct, from a record that was correct throughout. The class is therefore not "the bill does not foot" but "the bill does not foot AS PRINTED, and every check reads the record" -- the same shape as D_printed_figure_rederivation, one layer up.
 
-  THE FIX, AND WHY IT IS A SET AND NOT FOUR PUSHES. billEquationHtml() and downloadBillPdf() now
-  both drive their column off BILL_COMPONENTS -- the invariant''s own footing set
-  (_FOOTING_COMPONENT_KEYS) in printing order -- so a component that exists in the record cannot
-  be missing from the printed column, and a sixth component added to the invariant tomorrow fails
-  a named test rather than quietly going unprinted. The catch-up line names the period it corrects
-  and the direction it corrects ("+ Catch-up adjustment (overcharge correction for 2021-08-01 to
-  2021-08-31)   -GBP 28.40"), and its figure is CARRIED from catchup_adjustment_gbp, never
-  re-derived. Money on the bill path now prints through billGbp() in pounds and pence; gbp() stays
-  the portfolio formatter it always was, everywhere else on the page. A negative total also says
-  on its face that it is a credit -- the catch-up line explains WHERE the sign comes from, that
-  note explains WHAT it means.
+  THE FIX, AND WHY IT IS A SET AND NOT FOUR PUSHES. billEquationHtml() and downloadBillPdf() now both drive their column off BILL_COMPONENTS -- the invariant''s own footing set (_FOOTING_COMPONENT_KEYS) in printing order -- so a component that exists in the record cannot be missing from the printed column, and a sixth component added to the invariant tomorrow fails a named test rather than quietly going unprinted. The catch-up line names the period it corrects and the direction it corrects ("+ Catch-up adjustment (overcharge correction for 2021-08-01 to 2021-08-31)   -GBP 28.40"), and its figure is CARRIED from catchup_adjustment_gbp, never re-derived. Money on the bill path now prints through billGbp() in pounds and pence; gbp() stays the portfolio formatter it always was, everywhere else on the page. A negative total also says on its face that it is a credit -- the catch-up line explains WHERE the sign comes from, that note explains WHAT it means.
 
-  EVIDENCE (R11 -- every figure asserted is READ BACK OUT OF THE RENDERED SURFACE, not out of the
-  JSON behind it). tests/company/compliance/test_printed_bill_foots_render.py 20/20 pass, driving
-  the page''s own second inline script in a VM via the new site/customers/_bill_render_harness.mjs
-  against all 21 real per-customer files -- 1682 bills, each rendered BOTH on screen and into a
-  captured jsPDF column. Of those, 141 are catch-up bills: every one prints its catch-up line on
-  BOTH surfaces, names its corrected period, and prints the ledger''s own applied figure. The
-  motivating record C1g-INV141 renders five charge lines -- GBP 11.86 + GBP 7.80 + GBP 5.07 +
-  GBP 1.24 + (-GBP 28.40) -- footing to -GBP 2.43 exactly, in pence, on screen and in the PDF.
-  Coupled set green in the same run (141 passed): test_printed_bill_foots.py,
-  test_printed_figure_rederivation.py, test_bill_correctness_addendum_defect1/2/4.py,
-  test_billing_tab_fix.py, test_billing_and_payments_ledger.py, site/customers/test_wall_exhibit.py
-  (incl. its test_the_bill_render_path_is_intact pin), test_customers_door.py. Wider portal sweep
-  115 passed. tools/verify_printed_bill_render.mjs still PASSES: 1557 rendered usage lines, 1557
-  with a printed rate, 0 arithmetic failures.
+  EVIDENCE (R11 -- every figure asserted is READ BACK OUT OF THE RENDERED SURFACE, not out of the JSON behind it). tests/company/compliance/test_printed_bill_foots_render.py 20/20 pass, driving the page''s own second inline script in a VM via the new site/customers/_bill_render_harness.mjs against all 21 real per-customer files -- 1682 bills, each rendered BOTH on screen and into a captured jsPDF column. Of those, 141 are catch-up bills: every one prints its catch-up line on BOTH surfaces, names its corrected period, and prints the ledger''s own applied figure. The motivating record C1g-INV141 renders five charge lines -- GBP 11.86 + GBP 7.80 + GBP 5.07 + GBP 1.24 + (-GBP 28.40) -- footing to -GBP 2.43 exactly, in pence, on screen and in the PDF. Coupled set green in the same run (141 passed): test_printed_bill_foots.py, test_printed_figure_rederivation.py, test_bill_correctness_addendum_defect1/2/4.py, test_billing_tab_fix.py, test_billing_and_payments_ledger.py, site/customers/test_wall_exhibit.py (incl. its test_the_bill_render_path_is_intact pin), test_customers_door.py. Wider portal sweep 115 passed. tools/verify_printed_bill_render.mjs still PASSES: 1557 rendered usage lines, 1557 with a printed rate, 0 arithmetic failures.
 
-  R15, BOTH WAYS, THREE NAMED MUTATIONS, each re-rendering the WHOLE population through a mutated
-  copy of the page: (1) dropping the catch-up entry from BILL_COMPONENTS kills four named tests
-  (the catch-up line check, the renderer-residual check, the printed-column footing check, and the
-  set-equality check against the invariant); (2) reverting billGbp to zero decimals kills the
-  pence check and its own anti-vacuity check; (3) printing catchup_raw_delta_gbp -- the correction
-  BEFORE the back-billing cap -- instead of the applied adjustment kills the carried-figure check.
-  Mutation (3) is the sharp one: the two fields agree on 139 of 141 catch-up bills and diverge
-  only where the cap bites, so a control that merely counted catch-up lines would pass it.
-  The unmutated page is re-asserted green by test_the_controls_do_not_fire_on_the_unmutated_page
-  (the other half of R15 -- a control that fires on the real page is noise, not a control).
+  R15, BOTH WAYS, THREE NAMED MUTATIONS, each re-rendering the WHOLE population through a mutated copy of the page: (1) dropping the catch-up entry from BILL_COMPONENTS kills four named tests (the catch-up line check, the renderer-residual check, the printed-column footing check, and the set-equality check against the invariant); (2) reverting billGbp to zero decimals kills the pence check and its own anti-vacuity check; (3) printing catchup_raw_delta_gbp -- the correction BEFORE the back-billing cap -- instead of the applied adjustment kills the carried-figure check. Mutation (3) is the sharp one: the two fields agree on 139 of 141 catch-up bills and diverge only where the cap bites, so a control that merely counted catch-up lines would pass it. The unmutated page is re-asserted green by test_the_controls_do_not_fire_on_the_unmutated_page (the other half of R15 -- a control that fires on the real page is noise, not a control).
 
-  A LIMIT NAMED, NOT PAPERED OVER. The fourth re-derivation shape -- computing the adjustment as
-  total-minus-the-other-four -- is NOT provable from output on this population: on every record
-  that foots, that expression equals the carried figure to the penny by construction. It is
-  guarded by a SOURCE control (test_the_render_layer_does_not_re_derive_the_catch_up_figure, itself
-  mutation-proven) and the reason is written into the test rather than the proof being overclaimed.
+  A LIMIT NAMED, NOT PAPERED OVER. The fourth re-derivation shape -- computing the adjustment as total-minus-the-other-four -- is NOT provable from output on this population: on every record that foots, that expression equals the carried figure to the penny by construction. It is guarded by a SOURCE control (test_the_render_layer_does_not_re_derive_the_catch_up_figure, itself mutation-proven) and the reason is written into the test rather than the proof being overclaimed.
 
-  WHAT THIS BUILD FOUND AND DID NOT FIX (SELF-INTERRUPT DISCIPLINE: queued, not fixed on sight).
-  The page renders site/data/customers/*.json -- 21 accounts, 1682 invoices. PRINTED_BILL_FOOTS_
-  EXACTLY runs on site/state/billing_ledger.json -- 18 accounts, 1557 invoices, 0 failures. The
-  three accounts in the difference are re-acquired accounts (C1_2, C2_2, C5_2), and 30 of their
-  invoice RECORDS do not foot by a penny. The control''s population excludes exactly the accounts
-  where the defect lives -- an R15 wrong-population finding, staged as
-  WORKER_FINDING_THE_PRINTED_FOOTING_CONTROL_RUNS_ON_A_SMALLER_POPULATION_THAN_THE_PAGE_2026-08-12.md.
-  No render-layer change can fix it, so the exact-footing test is split in two rather than being
-  quietly weakened: test_the_renderer_introduces_no_residual_of_its_own holds on the WHOLE
-  population at zero tolerance (the printed column''s residual is EXACTLY the record''s own, so the
-  render layer provably adds nothing), and the customer''s own footing test runs exact on every
-  record that foots, with a 90%-of-population floor so that exemption cannot grow into a hole.
+  WHAT THIS BUILD FOUND AND DID NOT FIX (SELF-INTERRUPT DISCIPLINE: queued, not fixed on sight). The page renders site/data/customers/*.json -- 21 accounts, 1682 invoices. PRINTED_BILL_FOOTS_ EXACTLY runs on site/state/billing_ledger.json -- 18 accounts, 1557 invoices, 0 failures. The three accounts in the difference are re-acquired accounts (C1_2, C2_2, C5_2), and 30 of their invoice RECORDS do not foot by a penny. The control''s population excludes exactly the accounts where the defect lives -- an R15 wrong-population finding, staged as WORKER_FINDING_THE_PRINTED_FOOTING_CONTROL_RUNS_ON_A_SMALLER_POPULATION_THAN_THE_PAGE_2026-08-12.md. No render-layer change can fix it, so the exact-footing test is split in two rather than being quietly weakened: test_the_renderer_introduces_no_residual_of_its_own holds on the WHOLE population at zero tolerance (the printed column''s residual is EXACTLY the record''s own, so the render layer provably adds nothing), and the customer''s own footing test runs exact on every record that foots, with a 90%-of-population floor so that exemption cannot grow into a hole.
 
-  WHY 2 AND NOT HIGHER. (a) R11 live-pixel on the DEPLOYED page lags this commit -- the assertion
-  above is to the rendered value produced by the page''s own code against the real data, which is
-  the strongest claim available before publication, and the deployed re-fetch belongs to the next
-  publish cycle, not to a claim made here (the sibling atom D_printed_figure_rederivation set that
-  precedent and it is honoured, not quietly dropped). (b) expert_hour is not_attempted; a bill is a
-  customer-facing artefact and "this reads like a real bill" is an Expert-Hour verdict, not a test
-  result. level_target is 2, so neither holds the atom below its target.'
+  WHY 2 AND NOT HIGHER. (a) R11 live-pixel on the DEPLOYED page lags this commit -- the assertion above is to the rendered value produced by the page''s own code against the real data, which is the strongest claim available before publication, and the deployed re-fetch belongs to the next publish cycle, not to a claim made here (the sibling atom D_printed_figure_rederivation set that precedent and it is honoured, not quietly dropped). (b) expert_hour is not_attempted; a bill is a customer-facing artefact and "this reads like a real bill" is an Expert-Hour verdict, not a test result. level_target is 2, so neither holds the atom below its target.'
+map_notes:
+  name: 'MINTED FROM Part 1 of DIRECTOR_RULING_THE_PORTAL_IS_A_WALL_EXHIBIT_2026-08-12 (advisor-staged, director-ruled in session 2026-08-12) -- the ruling carries NO formal ''WORK THIS CREATES'' block (a defect per DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE_2026-07-27 section 4), so this atom is derived directly from Part 1''s own Requirements/Non-negotiables sections rather than a named deliverable list; the author was asked to supply the missing block, not silently absorbed. Bill C1g-INV141 (gas, Sep 2021) renders four charge lines totalling ~26 pounds and a total of minus 2 pounds, with nothing on the page explaining the sign -- the record is correct (catchup_adjustment_gbp=-28.40, BILL_FOOTS already passes it) but the rendered page hides the fifth component that decides the sign, and every money figure on the bill path resolves to a zero-decimal gbp() built for portfolio totals, not the pence-precision one. EXIT: (1) the catch-up adjustment prints as its own labelled line in both billEquationHtml() (on-screen) and downloadBillPdf() (PDF) whenever catchup_adjustment_gbp is non-zero, naming the correcting period from catchup_period_start/catchup_period_end; (2) the rendered lines sum to the rendered total to the penny, reusing BILL_FOOTS''s own component set rather than a second hand-kept list in the renderer; (3) money on the bill path renders in pounds and pence -- checked against a genuinely non-integer value (e.g. minus 2.43 pounds), never rounded to whole pounds; (4) the printed catch-up figure is carried through from the ledger''s catchup_adjustment_gbp, never re-derived in the render layer (generate_invoice_data.py already documents 86.1% of invoices failing their own multiplication when a printed figure was re-derived instead of carried); (5) R15 both ways -- a mutation dropping the fifth line, and one reverting the bill path to the zero-decimal formatter, each kill a NAMED test; (6) the ruling''s own motivating record, C1g-INV141, renders its four charge lines plus the catch-up line summing to minus 2.43 pounds exactly, in pence, checked live. No ledger, generator or invariant change -- BILL_FOOTS and the underlying record are already correct; this is render-layer only.'
 map_records:
   evidence:
-  - 'site/customers/index.html: billGbp() (pence formatter for the bill path), BILL_COMPONENTS
-    (the invariant''s own footing set, in printing order), billComponentPrints()/
-    billComponentRowHtml(), catchupLabel()/standingChargeLabel(); billEquationHtml() and
-    downloadBillPdf() both driven off the set; bill list rows and bill totals moved to pence.'
-  - 'site/customers/_bill_render_harness.mjs (NEW): Node/vm harness running the page''s own
-    drill-down script against every real site/data/customers/*.json, capturing billEquationHtml()
-    markup and downloadBillPdf() output through a recording jsPDF stub, so both surfaces are
-    asserted as RENDERED (R11).'
-  - 'tests/company/compliance/test_printed_bill_foots_render.py (NEW, 20/20): component-set
-    equality against _FOOTING_COMPONENT_KEYS both directions; catch-up line present + period-named
-    + ledger-figure-carried on screen and in the PDF, and absent on ordinary bills; zero-residual
-    render check on all 1682 bills; exact printed footing on every footing record; pounds-and-pence
-    checks with anti-vacuity; the motivating record''s five lines footing to its own total; three
-    R15 mutation proofs plus an unmutated-page re-assertion.'
-  - 'tools/verify_printed_bill_render.mjs: PRELUDE binds billGbp alongside gbp (the auditor keeps
-    its OWN 2dp arithmetic rather than lifting the page''s -- R15 TAUTOLOGY). PASS: 1557/1557
-    rendered usage lines, 0 arithmetic failures.'
-  - 'Coupled/regression: 141 passed across test_printed_bill_foots.py,
-    test_printed_figure_rederivation.py, test_bill_correctness_addendum_defect1/2/4.py,
-    test_billing_tab_fix.py, test_billing_and_payments_ledger.py, test_wall_exhibit.py,
-    test_customers_door.py; 115 passed across the wider portal-touching set.'
-  - 'RESIDUAL (queued, not this atom''s scope): 30 invoice records on C1_2/C2_2/C5_2 do not foot by
-    a penny and sit outside PRINTED_BILL_FOOTS_EXACTLY''s population -- staged as
-    WORKER_FINDING_THE_PRINTED_FOOTING_CONTROL_RUNS_ON_A_SMALLER_POPULATION_THAN_THE_PAGE_2026-08-12.md.'
-  - 'RESIDUAL: R11 live-pixel re-fetch of the deployed bill on poesys.net, and an Expert-Hour
-    cold-eyes read of the printed bill -- both open, neither required for level 2.'
+  - 'site/customers/index.html: billGbp() (pence formatter for the bill path), BILL_COMPONENTS (the invariant''s own footing set, in printing order), billComponentPrints()/ billComponentRowHtml(), catchupLabel()/standingChargeLabel(); billEquationHtml() and downloadBillPdf() both driven off the set; bill list rows and bill totals moved to pence.'
+  - 'site/customers/_bill_render_harness.mjs (NEW): Node/vm harness running the page''s own drill-down script against every real site/data/customers/*.json, capturing billEquationHtml() markup and downloadBillPdf() output through a recording jsPDF stub, so both surfaces are asserted as RENDERED (R11).'
+  - 'tests/company/compliance/test_printed_bill_foots_render.py (NEW, 20/20): component-set equality against _FOOTING_COMPONENT_KEYS both directions; catch-up line present + period-named + ledger-figure-carried on screen and in the PDF, and absent on ordinary bills; zero-residual render check on all 1682 bills; exact printed footing on every footing record; pounds-and-pence checks with anti-vacuity; the motivating record''s five lines footing to its own total; three R15 mutation proofs plus an unmutated-page re-assertion.'
+  - 'tools/verify_printed_bill_render.mjs: PRELUDE binds billGbp alongside gbp (the auditor keeps its OWN 2dp arithmetic rather than lifting the page''s -- R15 TAUTOLOGY). PASS: 1557/1557 rendered usage lines, 0 arithmetic failures.'
+  - 'Coupled/regression: 141 passed across test_printed_bill_foots.py, test_printed_figure_rederivation.py, test_bill_correctness_addendum_defect1/2/4.py, test_billing_tab_fix.py, test_billing_and_payments_ledger.py, test_wall_exhibit.py, test_customers_door.py; 115 passed across the wider portal-touching set.'
+  - 'RESIDUAL RESOLVED 2026-08-12 (worker tick, outside this atom''s scope as filed): the 30 non-footing records on C1_2/C2_2/C5_2 were ORPHANED PUBLISHED STATE, not a control-population gap to be closed by widening the control. Those are successor accounts (saas/customers.py::SUCCESSOR_CUSTOMERS) that activate only when the predecessor churns and we win the home-mover competition; they activated in earlier runs, not this one, and generate_customer_data.generate() never removed the artefact of a departed account -- so the files sat on the publish path 33-35 days stale, fetchable (HTTP 200 on poesys.net), holding pre-RJ fabricated amounts that rounded components and total independently. Nothing still produced them, so the finding''s own recommendation (quantise in generate_invoice_data) targeted a code path that never executes for these records. Fixed at the lifecycle instead: _retire_departed_artefacts() plus the R10 class guard tests/tools/test_no_orphan_published_customer_artefacts.py. The publish path and the ledger are now the same population -- 18 accounts, 1557 invoices, 0 not footing -- so this atom''s 90% footing floor now runs at 100%. Written up in WORKER_REPORT_THE_WRONG_POPULATION_WAS_A_POPULATION_NOTHING_STILL_PRODUCED_2026-08-12.md.'
+  - 'RESIDUAL: R11 live-pixel re-fetch of the deployed bill on poesys.net, and an Expert-Hour cold-eyes read of the printed bill -- both open, neither required for level 2.'

@@ -1,6 +1,7 @@
 atom_id: FUT2_pull_forward_proposal
 map_notes:
   origin_note: 'This atom sits directly against THE STANDARD''s ''silence is validation'' default, and the ruling overrides it for exactly this act -- so the R15 mutation that matters is the one proving the path CANNOT proceed on silence (a timeout that unblocks is the failure, and it is the failure that would be written by default, since propose-then-proceed is what every other path in this codebase does). Note the surrounding law: the epoch gate is R13 CURRICULUM authorship, not build permission, which is why it survives the 2026-07-29 rip-out -- do not let it be re-implemented as a permission gate, and do not let it grow a second channel or ceremony.'
+  name: 'DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08 §3, WORK-THIS-CREATES #3: dials and the planner may PROPOSE unblocking a ripe future atom, with its accretion ledger as the case. Unblocking is a true door -- the proposal path must be wired to STOP at the director and must never proceed on silence, which is a deliberate exception to the standing propose-then-proceed default.'
 map_records:
   evidence:
   - docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md

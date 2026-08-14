@@ -1,6 +1,7 @@
 atom_id: EP20_go_live_cutover_analysis
 map_notes:
   origin_note: The Hardened security profile (container, unreadable credentials, audit, RBAC) is already filed as an Epoch-5 go-live NFR blocker and belongs in this analysis's dependency list rather than being rediscovered on the day. The honest thing this atom must produce is the list of failure modes that CANNOT be rehearsed against a mock -- because that list is the real argument for how long the dual-run period has to be, and it is the thing a cutover plan written from the mock side will silently omit.
+  name: 'Go-live analysis stubs: the cutover analysis for swapping each mocked adapter to its real transport -- ordering, dual-run/reconciliation period, rollback, and the failure modes that only appear when a real counterparty is on the other end. Named in the ruling §1 as the Epoch-5 floor item. H4_go_live_nfr_register (L1) holds the NON-FUNCTIONAL requirements and H8_harness_bootstrap_dr the DR bootstrap; neither covers the cutover itself.'
 map_records:
   evidence:
   - docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md

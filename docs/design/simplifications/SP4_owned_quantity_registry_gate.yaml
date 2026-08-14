@@ -2,6 +2,8 @@ atom_id: SP4_owned_quantity_registry_gate
 simplifications:
 - '2026-08-03 MINTED into the map (worker tick, sole-map-writer) from docs/staging/in_progress/PLANNER_MINTED_owned_quantity_registry_gate_2026-07-28.md. DISCOVER half CLOSED 2026-07-28 (docs/design/OWNED_QUANTITY_REGISTRY_DISCOVER.md) and it found REAL divergence, not a hypothetical: net margin CONTESTED across 4 second-sources including a LIVE ~4.2x dashboard divergence; treasury overloaded (needs 2 entries, 3 sources); bad debt 2 sources; carbon UNDECLARED and worst of all with 5 disagreeing emission-factor tables; EV and cost-to-serve CLEAN, which makes them the gate''s NEGATIVE CONTROLS. BUILD half parked behind director_build_open (abolished 2026-07-29, swept 2026-08-03); registered here per R17.'
 - '2026-08-03 MINT -- R15 BOTH WAYS: plant a second computation of an owned quantity in a non-owner module => the gate REDS; remove it => passes. FAIL-OPEN CHECK NAMED EXPLICITLY: an unrecognised or uncovered quantity must NOT silently pass as "owned by nobody" -- the gate is DEFAULT-CLOSED on the covered set, because a gate that only catches what it already knows about is the fail-open pattern this atom exists to kill. ANTI-GOODHART (ruling section 7): registry COVERAGE COUNT is a reported fact, never a score to maximise. Complements, does not duplicate, SP3_size_and_clone_ratchet -- SP3 caps duplicated CODE, this one caps duplicated AUTHORITY over a published number.'
+map_notes:
+  name: Owned-quantity registry + default-closed gate making a second source of truth for a published quantity structurally impossible (net margin, treasury, EV, bad debt, cost-to-serve, carbon)
 map_records:
   evidence:
   - docs/design/OWNED_QUANTITY_REGISTRY_DISCOVER.md

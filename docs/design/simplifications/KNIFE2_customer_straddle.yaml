@@ -1,6 +1,7 @@
 atom_id: KNIFE2_customer_straddle
 map_notes:
   origin_note: 'file_scope here names the OWNED files; the 16 SIM reachers are enumerated by tools/knife_hotspot_measure.py at draw time rather than frozen into this row, because pass 1 changes the set. SERIAL WALL: shares simulation/run_phase4c_on_phase2b.py with KNIFE1 and 16 files with KNIFE3 -- never concurrent with either. This pass ADDS to the seam, which is the one place a crossing is legitimate; a ''fix'' that deletes the crossing by copying customer state into the SIM is an epistemic-wall violation, not a paydown.'
+  name: 'KNIFE pass 2 of 4 (AO5). saas/customers.py (496 lines) is company-side code that 16 SIM modules import directly, bypassing company/interfaces/sim_interface.py. Route them through the seam. EXIT: those 16 edges gone from LEGACY_SIM_READS_COMPANY; class (b) drops to 88 (from 104, after pass 1 takes the return edge). WATCH: simulation.run_phase2b owns 35 of the 105 class-(b) edges, the densest source in the codebase -- this pass touches ONLY its customer edges; the rest belong to pass 3 and must not be taken opportunistically.'
 map_records:
   evidence:
   - docs/design/KNIFE_HOTSPOT_PASSES.md

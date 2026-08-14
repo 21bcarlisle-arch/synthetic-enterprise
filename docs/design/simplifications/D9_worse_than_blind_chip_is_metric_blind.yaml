@@ -1,6 +1,7 @@
 atom_id: D9_worse_than_blind_chip_is_metric_blind
 map_notes:
   origin_note: 'Minted 2026-08-08 during the D6 CLASS closure and QUEUED rather than fixed on sight (SELF_INTERRUPT_DISCIPLINE): the chip is a LATENT public-surface defect, not a live one -- the only misapplication pair published today (W2_9<->C11) reads 0.2291, below the threshold, so nothing false is on the site now. It is out of D6''s file_scope and has four consumers (proof generator, sanity-daemon digest, panel render, two test suites), so it is its own build. R15: the fix needs a mutation proving the panel still fires red for a genuine detection_gap>1 while NOT firing for a misapplication_gap>1.'
+  name: The Proof-door coupled-gap panel renders ANY gap>1 as the red chip 'worse_than_blind' (tools/generate_proof_data.py::_coupled_gaps, mirrored in background/sanity_daemon.py and the site panel). For detection_gap that reading is valid; for misapplication_gap the D6 DISCOVER refuted it -- >1 there means the minority-class share is small, not that the company is worse than blind. The renderer must read the METRIC, not just the number, before printing a red verdict on a public surface.
 map_records:
   evidence:
   - docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md

@@ -1,6 +1,7 @@
 atom_id: EP9_adapter_n3rgy_consented_metering
 map_notes:
   origin_note: The 'missing days stay missing unless re-requested' behaviour is the valuable part and the part most likely to be smoothed away -- it is a permanent hole in the company's evidence unless the company notices and asks again, which is exactly the sort of thing a real supplier gets wrong. Build the gap, then let the company be wrong about it. C-S1 event-arrival tolerance is not optional here; it is the counterparty's actual contract.
+  name: 'Adapter for a DCC Other User consented-metering API (n3rgy, with Hildebrand/Glow as the alternate): live AND sandbox services, auth by IHD MAC/CIN, registration by MPAN/MPRN. Access class SANDBOX NOW. Fidelity gold the SIM should reproduce, verified 2026-08-05: the supplier pull is ONCE DAILY PER METER, returning a midnight index read plus a half-hourly usage file -- and missing days STAY MISSING unless re-requested.'
 map_records:
   evidence:
   - docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md

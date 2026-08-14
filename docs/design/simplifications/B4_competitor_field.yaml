@@ -6,6 +6,8 @@ simplifications:
 - '2026-07-16 DISCOVER/FRAME (Lane-3, H17 draw): framing artifact written; B4 is the COMPANY side of the competitor field, coupled to WORLD atom W2_3_competitor_field (gate). Competitor aggressiveness = director-authored curriculum (R13). Level unchanged (0).'
 - '2026-07-16 FRAME (Lane-3 H17, doc-only, NO LEVEL MOVE, L0): docs/design/COMPETITOR_FIELD_FRAME.md -- WORLD-side competitor price-setting model (real GB tariff-dispersion anchors), a typed CompetitorFieldObservation the company may see across the wall (published tariffs only, never rival internals), concrete wiring points in existing code (renewal_pricing_engine.py, churn_model.py, simulation/renewals.py), and the coupled-triad belief-gap metric. Multi-rival read via tariff_benchmarking.py deferred until W2_3 generates individuated rivals (avoids an epistemic-wall violation flagged in the prior DISCOVER pass). Built-but-orphaned modules noted; stays L0 until the field is built + wired.'
 - '2026-07-16 Lane-3 H17 RE-DRAW (doc-only, no BUILD code -- EPOCH_GATING Rule 1). FRAME already saturated (existing docs/design/frame/B4_competitor_field_FRAME.md); level HELD at 0, no honest FRAME-stage move possible (target requires BUILD-gated code). BUILD-unblock gate: W2_3_competitor_field (WORLD) must emit an observable field first, then wire belief + one live coupling across the typed wall. Two pre-built modules exist but orphaned; the wiring is the missing L1 work. See LANE3_H17_BUILD_GATE_SURVEY_20260716.md for the full 6-atom gate table.'
+map_notes:
+  name: Competitor field (price ceiling / undercut pressure)
 map_records:
   evidence:
   - company/market/tariff_benchmarking.py (real, built, orphaned -- zero non-test callers)

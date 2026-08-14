@@ -1,6 +1,7 @@
 atom_id: EP16_anchored_generators
 map_notes:
   origin_note: 'R13 is the entire design constraint, not a side note: the BASELINE world may change only for fidelity-to-reality reasons decided BLIND to company P&L, and the CURRICULUM (which generated worlds the company actually lives through) is the director''s, named and versioned. This atom builds the generator; it may never choose the worlds. A generator whose parameters drift in response to company results is the goal-seek failure the whole rule exists to prevent, and the agent controls both sides of that wall.'
+  name: 'Anchored generators: synthetic but externally-calibrated worlds (weather, price, demand, population) whose generating parameters stay tethered to real observed distributions, so a generated 2031 is a plausible world rather than an invented one. Named in the ruling §1 as an Epoch-4 floor item. W1_2_generate_futures (SATURATED) generates forward CURVES; this is the whole-world generator with its anchoring discipline.'
 map_records:
   evidence:
   - docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md

@@ -1,4 +1,6 @@
 atom_id: OPS3_first_post_ruling_publish
+map_notes:
+  name: 'MINTED FROM DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09 deliverable 3, verbatim: ''The first post-ruling publish landed and stated plainly, markers drain-superseded, the GBP 1,526,252.39 candidate baseline printed and adopted per the standing recommendation.'' EXIT: (1) one publish cycle completes green with the gate''s subject a clean HEAD checkout, and .last_tested_hash names that commit; (2) the run_complete backlog is DRAIN-SUPERSEDED, not bulk-archived -- the newest marker publishes and the superseded ones are archived naming the marker that superseded them; (3) the candidate baseline is printed on the live surface and R11-verified by fetching it, quoting the rendered figure and its clock basis (R14), not the file on origin; (4) the episode counter for the publish-gate wedge returns to zero through a real pass, never by hand. R9: state the measured cause of the wedge this publish closed.'
 map_records:
   evidence:
   - docs/staging/done/DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09.md

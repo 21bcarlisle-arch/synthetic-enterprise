@@ -136,10 +136,35 @@ the real fix, and forbade a second raise without it. H32 did the rehome; the
 ratchet is back at its original 400 KB, honestly (map now 393,692 bytes).
 
 **The class.** `build_note`, `discover_note`, `harden_note`, `level_hold_note`,
-`level_note`, `notes`, `origin_note` — defined once in
+`level_note`, `name`, `notes`, `origin_note` — defined once in
 `tools/simplifications_store.NOTE_FIELDS`, plus **any** `*_note`-suffixed field.
 The suffix half makes this a class guard (R10): an atom that grows a `frame_note`
 inline is caught without anyone editing a list.
+
+**`name` joined the class on 2026-08-14, and it is the one member whose field name
+does not announce it.** Both earlier drains EXEMPTED it in as many words — *"a new
+atom's `name`/`lane`/levels … which is the map doing its job"* — on the ground that
+it is atom-COUNT driven. That was true when written. Measured on the 296-atom map
+that day, by map position (which is mint order):
+
+| atoms | mean `name` | max |
+|---|---|---|
+| oldest 50 | 91 B | 310 B |
+| newest 50 | 860 B | 4,060 B |
+
+150,389 B in total — **37% of the entire spine**, mean 508 B/atom, with 25 atoms
+holding 45% of it. A field whose per-atom cost rises 9× from the oldest atoms to
+the newest is accretion, not population growth: `name` had quietly become the
+atom's narrative **brief** (multi-KB Expert-Hour write-ups), i.e. exactly this
+tenant's class under a field name that reads like identity. The count-driven half
+of the original claim still holds for `lane`/`level_*`/`loop_stage`, which stay in
+the spine. Migration: `tools/migrate_atom_names.py` (four proof layers).
+
+**Consequence for authors, deliberately:** an inline `name:` on a map atom is now
+REFUSED at commit time. Minting an atom means writing its brief with
+`simplifications_store.set_note_for_atom(<id>, "name", <text>)` and listing `name`
+in that atom's `notes_rehomed:`. Readers must hydrate — `simplifications_store.atom_name`
+is the single seam, used by the supervisor's draw line and every site generator.
 
 **Where it lives.** The **same** per-atom file, under a `map_notes:` mapping:
 

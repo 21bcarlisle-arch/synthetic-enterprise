@@ -256,6 +256,24 @@ REVIEWED_CLOSE_TO_LEARN = {
     # tell how long it has been broken -- applied to four more of its own alarms. It moves no
     # money, meters nothing, and bills nobody; the only consumer is the operator reading a page.
     "PW4_guard_remaining_episode_states",
+    # 2026-08-14 reviewed (worker tick, minting D37..D45 -- the nine ids nine consecutive H27
+    # Expert Hours shipped under before any cell existed to carry them). Only these FOUR of the
+    # nine are here, and that split is the check working rather than a batch waved through: the
+    # other five harden the W2_11<->D5 coupled payment instrument and carry the honest
+    # `meter_to_cash` of their D30..D36 siblings. These four have a different SUBJECT -- the
+    # maturity map's own provenance control (`tools/map_assertion_provenance.py`, AO11's module),
+    # which asks whether a level, a hold note, a landing claim or a cited atom id can be believed.
+    # D41 checks that an atom's latest recorded Hour is answered in a record the draw reads; D42
+    # checks a LANDED claim against the committed tree rather than another record; D43 checks that
+    # an Hour landed inside the file_scope of the cell it names; D45 checks that a cited atom id
+    # resolves to a cell at all. Not one prices, bills, meters or settles anything -- their only
+    # consumer is the machine's own promoter reading a registry, so filing them under
+    # meter_to_cash or price_to_bill would invent a customer none of them goes near. Same
+    # close_to_learn class as AO11 itself, which owns the module all four live in.
+    "D41_the_hold_record_answers_the_draw",
+    "D42_a_landed_claim_is_checked_against_the_tree",
+    "D43_whose_atom_did_that_hour_build",
+    "D45_the_id_a_citation_points_at",
     # 2026-08-08 reviewed (worker tick, minting the EP1-EP20 commitment sets (epochs 2-5) from
     # DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08). Classified on their merits, not to clear
     # the gate -- and as with the AO batch, the gate firing on eleven at once is this control doing

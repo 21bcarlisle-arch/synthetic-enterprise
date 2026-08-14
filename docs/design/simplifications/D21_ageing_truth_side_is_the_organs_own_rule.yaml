@@ -1,101 +1,10 @@
 atom_id: D21_ageing_truth_side_is_the_organs_own_rule
 map_notes:
-  origin_note: >-
-    Minted 2026-08-10 by H27 Expert Hour #5, and BUILT in the same tick
-    (docs/staging/WORKER_FINDING_THE_AGEING_TRUTH_SIDE_IS_THE_ORGANS_OWN_RULE_2026-08-10.md).
-    The Hour was taken on `ageing` because Hour #4 named that criterion in
-    advance: it was the only dimension of the W2_11<->D5 triad never given an
-    Hour of its own. Hour #4 also handed over two leads; both were checked and
-    NEITHER was taken (the two structurally-zero error directions are a
-    property of the book and visible wherever the numbers are published; the
-    unattributed belief directions are D8's question, still open, still its
-    owner's). What was under them: tools/couple_w2_11_d5.py computed the
-    ageing dimension's TRUTH side with the company organ's own function --
-    `from company.billing.arrears_engine import age_bucket as
-    company_age_bucket` at module scope, called to build true_ageing_labels --
-    against a days-overdue the scenario constructs to be the organ's own
-    integer (world `issue = due - PAYMENT_TERMS_DAYS`; organ `due = issue_date
-    + payment_terms_days`, the same 14). Same rule, same input: the two sides
-    could not disagree about the bucket of an invoice they both held open.
-    MEASURED: `wrong_bucket` is 0 at seeds 7/11/23 and stayed 0 under every
-    drift tried, so every unit of the ordinal headline comes from a MISS --
-    the same cases understated_arrears_rate reports, rank-weighted -- and it
-    was 0 by CONSTRUCTION, not by luck. The consequence is not a mislabel: an
-    edit to the organ's `age_bucket` moved the harness's notion of ground
-    truth with it, so the dimension whose entire subject is debt DATING would
-    have certified the company's dating correct by definition. That is R15's
-    TAUTOLOGY pattern in the direction nobody checks -- the epistemic wall is
-    enforced company -> sim; this is harness -> company, the ground truth
-    computed by the thing being graded. Worse than D20's hand-copy one
-    dimension over, which could at least drift apart and be caught.
-    WHERE IT HID: under a COVERAGE_ONLY_CLAIM_CONTRACT exemption reading "two
-    different rules, not one rule over two coverages", while this same module's
-    docstring four hundred lines up said "Both sides use the IDENTICAL bucket
-    function". Both of the exemption's clauses were false, the two declarations
-    contradicted each other in one file, and the control believed the
-    exemption -- so D20's control, built one Hour earlier for exactly this
-    failure mode, was switched off for the dimension with the strongest mirror
-    of the three. The signature it was hiding: residual 0.000000 on the all-DD
-    counterfactual at seeds 7/11/23, non-vacuous, which is the coverage-only
-    claim's own fingerprint.
-  build_note: >-
-    BUILT 2026-08-10, same tick as the mint. Three parts.
-    (1) THE RULE IS HARNESS-OWNED. `_ageing_bucket` is declared in
-    tools/couple_w2_11_d5.py and the company import is gone. This is the
-    discipline background/gap_metric.py had already written down for the bucket
-    ORDER -- "Redeclared here rather than imported: background/ is harness code
-    and must not take a company import for a constant", pinned against the
-    company's by test_d7_ageing_measures.py -- and which the same dimension
-    never applied to the bucket RULE. Harness-owned does NOT mean free to
-    drift: the two sides are MEANT to run the same rule, since that is what
-    makes the residual a coverage measurement. What they may not do is be the
-    same OBJECT, because then a divergence is unrepresentable. So they are
-    pinned across 126 day values and the pin NAMES the divergence.
-    (2) THE CLASS CONTROL (R10). TRUTH_SIDE_RULE_OWNERSHIP declares, per
-    published dimension, the callable that produces its truth labels, and
-    score_triad RESOLVES THROUGH IT (`truth_side_rule("ageing")`) so the
-    register is the call path, not a parallel declaration that can quietly
-    stop describing the code -- the D19 lesson. The invariant: no dimension's
-    truth-side labelling rule may be owned by `company.*`, checked on the
-    `__module__` of the callable that actually ran. `rule: None` is the honest
-    entry for a dimension whose truth is a raw world fact (detection,
-    detection_latency), spelled out rather than omitted because an absent entry
-    is how a register fails silent; the dimension set is DERIVED from what is
-    published, and both fail-open shapes (unregistered dimension, ruleless
-    dimension asked for a rule) RAISE at the point of use.
-    (3) AGEING IS ENROLLED in COVERAGE_ONLY_CLAIM_CONTRACT with the corrected
-    reason, so D20's control now covers it. Asserted PER DIMENSION rather than
-    relying on the suite-wide sweep: the existing R15 organ-drift test passes
-    on `any()` of the claiming dimensions, so with `belief` in the set `ageing`
-    could have been enrolled and never actually exercised.
-    R15 BOTH WAYS: pointing the ageing register entry back at the organ's
-    `age_bucket` fires the ownership control; an organ-only dating drift
-    (60-day boundary -> 75, a supplier ageing on calendar months) takes the
-    ageing residual 0.0 -> 0.3627 / 0.3194 / 0.3333 at seeds 7 / 11 / 23.
-    THE MUTATION THAT REINSTATES THE DEFECT MOVES NO PUBLISHED NUMBER -- the
-    two rules are logically identical at HEAD -- and that is asserted, because
-    it is the whole reason the control has to be about ownership rather than
-    about a value, and the whole reason nothing caught this for the
-    instrument's life. R12: no published figure moved either
-    (mean_bucket_displacement 0.127451 / 0.287958 / 0.166667 and both
-    directional rates byte-identical before and after at seeds 7/11/23).
-    HONEST LIMITS, recorded not buried: (a) a drift shifting EVERY bucket
-    boundary by the same 7 days is invisible to the enrolled control on this
-    book, because build_scenario exposes only three distinct debt ages (30, 51
-    and 72 days) and that drift crosses none of their boundaries -- the control
-    sees a dating drift only where the book has an invoice near the boundary
-    that moved; (b) `90+` and `current` are never reachable on the
-    truly-overdue truth side, which is what bounds max_bucket_displacement at
-    2, so the ordinal dimension exercises 2 of its 4 buckets. Both are pinned
-    by test_the_ageing_headline_is_entirely_miss_driven_here, which fails if
-    either changes rather than letting a reader discover it. Widening the
-    scenario's age spread would move published numbers on every dimension of
-    the triad, so it is registered, not fixed on sight (SELF_INTERRUPT
-    DISCIPLINE).
-    15 new tests in tests/tools/test_couple_w2_11_d5.py; 417 green across every
-    suite touching gap_metric and the coupled pairs.
+  origin_note: 'Minted 2026-08-10 by H27 Expert Hour #5, and BUILT in the same tick (docs/staging/WORKER_FINDING_THE_AGEING_TRUTH_SIDE_IS_THE_ORGANS_OWN_RULE_2026-08-10.md). The Hour was taken on `ageing` because Hour #4 named that criterion in advance: it was the only dimension of the W2_11<->D5 triad never given an Hour of its own. Hour #4 also handed over two leads; both were checked and NEITHER was taken (the two structurally-zero error directions are a property of the book and visible wherever the numbers are published; the unattributed belief directions are D8''s question, still open, still its owner''s). What was under them: tools/couple_w2_11_d5.py computed the ageing dimension''s TRUTH side with the company organ''s own function -- `from company.billing.arrears_engine import age_bucket as company_age_bucket` at module scope, called to build true_ageing_labels -- against a days-overdue the scenario constructs to be the organ''s own integer (world `issue = due - PAYMENT_TERMS_DAYS`; organ `due = issue_date + payment_terms_days`, the same 14). Same rule, same input: the two sides could not disagree about the bucket of an invoice they both held open. MEASURED: `wrong_bucket` is 0 at seeds 7/11/23 and stayed 0 under every drift tried, so every unit of the ordinal headline comes from a MISS -- the same cases understated_arrears_rate reports, rank-weighted -- and it was 0 by CONSTRUCTION, not by luck. The consequence is not a mislabel: an edit to the organ''s `age_bucket` moved the harness''s notion of ground truth with it, so the dimension whose entire subject is debt DATING would have certified the company''s dating correct by definition. That is R15''s TAUTOLOGY pattern in the direction nobody checks -- the epistemic wall is enforced company -> sim; this is harness -> company, the ground truth computed by the thing being graded. Worse than D20''s hand-copy one dimension over, which could at least drift apart and be caught. WHERE IT HID: under a COVERAGE_ONLY_CLAIM_CONTRACT exemption reading "two different rules, not one rule over two coverages", while this same module''s docstring four hundred lines up said "Both sides use the IDENTICAL bucket function". Both of the exemption''s clauses were false, the two declarations contradicted each other in one file, and the control believed the exemption -- so D20''s control, built one Hour earlier for exactly this failure mode, was switched off for the dimension with the strongest mirror of the three. The signature it was hiding: residual 0.000000 on the all-DD counterfactual at seeds 7/11/23, non-vacuous, which is the coverage-only claim''s own fingerprint.'
+  build_note: 'BUILT 2026-08-10, same tick as the mint. Three parts. (1) THE RULE IS HARNESS-OWNED. `_ageing_bucket` is declared in tools/couple_w2_11_d5.py and the company import is gone. This is the discipline background/gap_metric.py had already written down for the bucket ORDER -- "Redeclared here rather than imported: background/ is harness code and must not take a company import for a constant", pinned against the company''s by test_d7_ageing_measures.py -- and which the same dimension never applied to the bucket RULE. Harness-owned does NOT mean free to drift: the two sides are MEANT to run the same rule, since that is what makes the residual a coverage measurement. What they may not do is be the same OBJECT, because then a divergence is unrepresentable. So they are pinned across 126 day values and the pin NAMES the divergence. (2) THE CLASS CONTROL (R10). TRUTH_SIDE_RULE_OWNERSHIP declares, per published dimension, the callable that produces its truth labels, and score_triad RESOLVES THROUGH IT (`truth_side_rule("ageing")`) so the register is the call path, not a parallel declaration that can quietly stop describing the code -- the D19 lesson. The invariant: no dimension''s truth-side labelling rule may be owned by `company.*`, checked on the `__module__` of the callable that actually ran. `rule: None` is the honest entry for a dimension whose truth is a raw world fact (detection, detection_latency), spelled out rather than omitted because an absent entry is how a register fails silent; the dimension set is DERIVED from what is published, and both fail-open shapes (unregistered dimension, ruleless dimension asked for a rule) RAISE at the point of use. (3) AGEING IS ENROLLED in COVERAGE_ONLY_CLAIM_CONTRACT with the corrected reason, so D20''s control now covers it. Asserted PER DIMENSION rather than relying on the suite-wide sweep: the existing R15 organ-drift test passes on `any()` of the claiming dimensions, so with `belief` in the set `ageing` could have been enrolled and never actually exercised. R15 BOTH WAYS: pointing the ageing register entry back at the organ''s `age_bucket` fires the ownership control; an organ-only dating drift (60-day boundary -> 75, a supplier ageing on calendar months) takes the ageing residual 0.0 -> 0.3627 / 0.3194 / 0.3333 at seeds 7 / 11 / 23. THE MUTATION THAT REINSTATES THE DEFECT MOVES NO PUBLISHED NUMBER -- the two rules are logically identical at HEAD -- and that is asserted, because it is the whole reason the control has to be about ownership rather than about a value, and the whole reason nothing caught this for the instrument''s life. R12: no published figure moved either (mean_bucket_displacement 0.127451 / 0.287958 / 0.166667 and both directional rates byte-identical before and after at seeds 7/11/23). HONEST LIMITS, recorded not buried: (a) a drift shifting EVERY bucket boundary by the same 7 days is invisible to the enrolled control on this book, because build_scenario exposes only three distinct debt ages (30, 51 and 72 days) and that drift crosses none of their boundaries -- the control sees a dating drift only where the book has an invoice near the boundary that moved; (b) `90+` and `current` are never reachable on the truly-overdue truth side, which is what bounds max_bucket_displacement at 2, so the ordinal dimension exercises 2 of its 4 buckets. Both are pinned by test_the_ageing_headline_is_entirely_miss_driven_here, which fails if either changes rather than letting a reader discover it. Widening the scenario''s age spread would move published numbers on every dimension of the triad, so it is registered, not fixed on sight (SELF_INTERRUPT DISCIPLINE). 15 new tests in tests/tools/test_couple_w2_11_d5.py; 417 green across every suite touching gap_metric and the coupled pairs.'
+  name: 'The W2_11<->D5 triad''s AGEING dimension -- the one whose whole subject is debt DATING -- computed its TRUTH side with the company organ''s own function: `from company.billing.arrears_engine import age_bucket as company_age_bucket`, applied to a days-overdue the scenario constructs to be the organ''s own integer (world `issue = due - 14`; organ `due = issue_date + 14`). Same rule, same input, so the two sides could not disagree about the bucket of an invoice they both held open: `wrong_bucket` measured 0 at every seed and under every drift tried, by CONSTRUCTION rather than by luck, and an edit to `age_bucket` moved the harness''s ground truth with it -- R15''s TAUTOLOGY pattern in the direction nobody checks (harness -> company, not company -> sim). Worse than D20''s hand-copy, which could at least drift apart and be caught. It hid under a COVERAGE_ONLY_CLAIM_CONTRACT exemption reading ''''two different rules, not one rule over two coverages'''' while the module''s own docstring said ''''Both sides use the IDENTICAL bucket function'''' -- the control believed the exemption, so the one mechanism able to catch the D20 class was switched off for the dimension with the strongest mirror of the three. CLOSED IN THE SAME TICK: the rule is harness-owned (`_ageing_bucket`), resolved through a TRUTH_SIDE_RULE_OWNERSHIP register that is the CALL PATH rather than a declaration, with a class control refusing any truth-side labelling rule owned by `company.*`; ageing enrolled in the coverage-only control (residual 0.000000 at HEAD on seeds 7/11/23, non-vacuous; an organ-only 60->75 dating drift takes it to 0.3627/0.3194/0.3333). R12: no published number moved, and the mutation that reinstates the defect moves none either -- which is exactly why ownership, not a value, is what the control checks.'
 map_records:
   evidence:
-    - tools/couple_w2_11_d5.py
-    - tests/tools/test_couple_w2_11_d5.py
-    - docs/staging/WORKER_FINDING_THE_AGEING_TRUTH_SIDE_IS_THE_ORGANS_OWN_RULE_2026-08-10.md
+  - tools/couple_w2_11_d5.py
+  - tests/tools/test_couple_w2_11_d5.py
+  - docs/staging/WORKER_FINDING_THE_AGEING_TRUTH_SIDE_IS_THE_ORGANS_OWN_RULE_2026-08-10.md

@@ -1,6 +1,7 @@
 atom_id: EP17_varied_population_draw
 map_notes:
   origin_note: 'C-S2 RNG substream discipline is load-bearing rather than advisory here: if the population draw shares a stream with anything else, adding one customer shifts every other subsystem''s outputs and cross-run comparison becomes meaningless -- which would silently destroy the tournament this atom exists to enable. The draw must be its own named seeded substream, and that must be tested, not assumed. Duplicate-risk check done at mint: W2_2_population_draw covers the single-run draw, not run-to-run variation.'
+  name: Population as a per-run DRAW with mix, skew and vulnerability hidden from the company -- the tournament's stated precondition and the third line on the wall (truth / belief / the draw). THE_VALUE_CYCLE_FRAMING C4; EPOCH2_EVIDENCE recorded the director's binding requirement directly. Named in the ruling §1 as an Epoch-4 floor item. W2_2_population_draw is the Epoch-2 mechanism at L3; this is its Epoch-4 variation across runs.
 map_records:
   evidence:
   - docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md

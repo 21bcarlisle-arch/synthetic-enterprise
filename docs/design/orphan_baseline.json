@@ -1,7 +1,7 @@
 {
   "_doc": "THE RATCHET FLOOR for the no-caller class. Every module here is unreachable from the committed schedule TODAY and is grandfathered: nobody must fix them to commit. What the gate refuses is a module that is NOT on this list becoming unreachable -- i.e. the moment a new one is created. Shrink it freely; growing it requires saying why in the commit that grows it.",
-  "entrypoint_count": 37,
-  "module_count": 911,
+  "entrypoint_count": 36,
+  "module_count": 936,
   "orphans": [
     "background.autonomous_runner",
     "background.bad_debt_reconciliation_run",
@@ -12,7 +12,6 @@
     "background.console_sanctity",
     "background.conversation_gap_ledger",
     "background.director_comments",
-    "background.finding_classes",
     "background.fork_salvage",
     "background.generate_units",
     "background.harness_exit_criterion",
@@ -221,7 +220,6 @@
     "company.market.switch_governance",
     "company.market.tariff_benchmarking",
     "company.market.tnuos_ledger",
-    "company.market.tpi_commission_book",
     "company.market.triad_notification_book",
     "company.market.uig_allocation_register",
     "company.policy",
@@ -383,6 +381,7 @@
     "tools.generate_wip_flow_data",
     "tools.map_assertion_provenance",
     "tools.migrate_atom_lists",
+    "tools.migrate_atom_names",
     "tools.migrate_atom_notes",
     "tools.migrate_simplifications",
     "tools.mutate_printed_figure_rederivation",
@@ -402,7 +401,6 @@
     "tools.ssp_refit_era_partitioned",
     "tools.ssp_refit_regime_partitioned",
     "tools.ssp_scarcity_dwell_fraction",
-    "tools.surgical_land",
     "tools.synthetic_validation",
     "tools.tenure_adoption_sensitivity",
     "tools.tournament_runner"

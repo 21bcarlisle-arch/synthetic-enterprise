@@ -1,6 +1,7 @@
 atom_id: EP18_enterprise_value_fitness
 map_notes:
   origin_note: 'A fitness function is the one place in this project where R12''s anti-goal-seek rule is deliberately INVERTED -- selection pressure is the point -- which makes it the place where a badly-chosen measure does the most damage, since every surviving strategy will have been shaped by it. That asymmetry is why the definition is its own atom rather than a parameter inside the harness. It is also why it must be director-authored curriculum: an agent that both writes the fitness function and runs the tournament is grading its own exam.'
+  name: 'Enterprise value as the fitness function of the evolutionary tournament: companies survive or die on a valuation built from their own audited results, not on margin or growth alone. Named in the ruling §1 as an Epoch-4 floor item. A5_tournament_fitness_mortality (L0, FRAME exists) and B11_evolutionary_tournament_harness (L0) are already on the map for the tournament MECHANISM; this atom is specifically the fitness DEFINITION they select on, which neither currently fixes.'
 map_records:
   evidence:
   - docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md

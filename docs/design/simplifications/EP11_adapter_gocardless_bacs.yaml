@@ -1,6 +1,7 @@
 atom_id: EP11_adapter_gocardless_bacs
 map_notes:
   origin_note: 'The four Bacs reports are the highest-value part and the reason this outranks a happy-path payments adapter: the D-lane has spent weeks measuring the company''s belief about arrears, and ADDACS/ARUDD/AUDDIS/AWACS are exactly the events that make that belief wrong in reality (a cancelled mandate the company has not yet heard about is an arrears record that is false at source). Couples to the existing W5 rails simulator, which is the SIM half. The one-way-door boundary is stated in blocked_on on purpose: sandbox yes, sponsoring bank no.'
+  name: 'Adapter for Direct Debit collection: GoCardless bureau route (full free sandbox at manage-sandbox.gocardless.com; mandate and payment lifecycle via Billing Requests; webhook events for confirmations, failures, cancellations), shaped so direct Bacs (SUN via sponsoring bank, Bacstel-IP) is a later transport swap. Verified timing physics: UK collection confirms ~4-5 working days after charge creation. The Bacs report set IS the unhappy-path spec -- ADDACS (mandate amendments/cancellations), ARUDD (returned unpaids with reason codes), AUDDIS (lodgement failures), AWACS (account switches) -- each report a generator of SIM events.'
 map_records:
   evidence:
   - docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md

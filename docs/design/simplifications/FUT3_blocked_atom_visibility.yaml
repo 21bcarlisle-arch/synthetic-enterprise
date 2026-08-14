@@ -1,6 +1,7 @@
 atom_id: FUT3_blocked_atom_visibility
 map_notes:
   origin_note: The specific risk this atom must disprove is that the blocked-atom exclusion is implemented once and reused everywhere -- supervisor._is_externally_blocked drops blocked atoms from EVERY draw, and if the target-design and staleness readers share that filter, the futures become invisible to precisely the surfaces the ruling wants them visible on, which would make the whole minting exercise a no-op that looks fine. Verify by reading the actual readers (AO7 target-design, AO11 map_assertion_provenance) against the newly-blocked ids, not by inspecting the draw.
+  name: 'DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08 §4, WORK-THIS-CREATES #4: blocked atoms are invisible to the DRAW but must be visible to the target-design deltas and the staleness clocks -- confirmed, not assumed. Verification target, measured at mint on 2026-08-08: lane weights were 82 harness vs 7 commercial across 206 atoms, with zero atoms touching CLV, named counterparty adapters or a forecast feed.'
 map_records:
   evidence:
   - docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md
