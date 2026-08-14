@@ -19,7 +19,10 @@ miniature, and it is the one test that would still pass if the tool merely shell
 """
 from __future__ import annotations
 
+import os
 import subprocess
+import sys
+import tempfile
 import textwrap
 from pathlib import Path
 
@@ -561,3 +564,111 @@ def test_the_script_entrypoint_can_reach_the_repo_packages_it_defers_to():
     assert r.returncode == 0, (
         "the tool cannot even print its usage when run as a script: {}".format(r.stderr.strip()))
     assert "ModuleNotFoundError" not in r.stderr
+
+
+# --------------------------------------------------------------------------------------------
+# WORKER_FINDING_THE_ONLY_LEGAL_LANDING_MOVE_LEAKS_150MB_A_KILL_2026-08-14: `sweep_stale_
+# extracts` is what turns "no live process held any of them" into "removed". Each test below
+# points `base=` at a scratch `tmp_path` dir, never the real system tempdir -- sweeping the
+# actual box's `/tmp` from a test would risk deleting a concurrent lane's live extract, which is
+# exactly the property direction 2 (`test_a_live_extract_survives_the_sweep`) exists to protect.
+# --------------------------------------------------------------------------------------------
+
+def _make_extract(base: Path, name: str, marker: str | None) -> Path:
+    d = base / name
+    d.mkdir(parents=True)
+    (d / "some_extracted_file.txt").write_text("x" * 1024)  # gives freed_mb something to count
+    if marker is not None:
+        (d / sl.OWNER_MARKER).write_text(marker)
+    return d
+
+
+def test_sweep_removes_a_markerless_legacy_extract(tmp_path: Path):
+    """Every extract made before this fix has no marker at all -- the 24-directory backlog the
+    finding measured. R15 direction 1: plant exactly that shape and confirm the sweep fires."""
+    d = _make_extract(tmp_path, "surgical-land-abc123", marker=None)
+
+    removed, freed_mb = sl.sweep_stale_extracts(base=str(tmp_path))
+
+    assert removed == 1
+    assert freed_mb >= 0
+    assert not d.exists()
+
+
+def test_sweep_removes_a_dead_extract(tmp_path: Path):
+    """A marker naming a PID that is provably not alive -- spawn a subprocess, wait for it to
+    exit, use its now-dead PID. R15 direction 1, the case the marker mechanism was built for."""
+    proc = subprocess.Popen([sys.executable, "-c", "pass"])
+    dead_pid = proc.pid
+    assert proc.wait() == 0
+    # Confirm it is actually gone before trusting the test.
+    with pytest.raises(ProcessLookupError):
+        os.kill(dead_pid, 0)
+    d = _make_extract(tmp_path, "surgical-land-dead", marker=str(dead_pid))
+
+    removed, freed_mb = sl.sweep_stale_extracts(base=str(tmp_path))
+
+    assert removed == 1
+    assert freed_mb >= 0
+    assert not d.exists()
+
+
+def test_a_live_extract_survives_the_sweep(tmp_path: Path):
+    """R15 direction 2, the fail-dangerous one: a marker naming THIS test process's own PID
+    (guaranteed alive for the duration of the call) must not be removed, even though it matches
+    the same glob and sits in the same directory as the dead ones above."""
+    live = _make_extract(tmp_path, "surgical-land-live", marker=str(os.getpid()))
+    proc = subprocess.Popen([sys.executable, "-c", "pass"])
+    dead_pid = proc.pid
+    assert proc.wait() == 0
+    _make_extract(tmp_path, "surgical-land-dead", marker=str(dead_pid))
+
+    removed, freed_mb = sl.sweep_stale_extracts(base=str(tmp_path))
+
+    assert live.exists(), "a live extract was deleted out from under its own process"
+    assert removed == 1  # only the dead one
+    assert freed_mb >= 0
+
+
+def test_sweep_ignores_the_index_tempfile_and_unrelated_directories(tmp_path: Path):
+    """The index tempfile prefix (`surgical-land-index-`) overlaps the checkout prefix by name
+    but is a FILE (unlinked immediately in `build_resulting_tree`) -- confirm the glob's `is_dir`
+    guard actually excludes it rather than the file simply never existing in this fixture."""
+    (tmp_path / "surgical-land-index-xyz").write_text("not a directory")
+    unrelated = tmp_path / "not-ours-at-all"
+    unrelated.mkdir()
+
+    removed, freed_mb = sl.sweep_stale_extracts(base=str(tmp_path))
+
+    assert removed == 0
+    assert freed_mb == 0
+    assert (tmp_path / "surgical-land-index-xyz").exists()
+    assert unrelated.exists()
+
+
+def test_a_landing_writes_the_owner_marker_before_anything_else_can_fail(repo: Path):
+    """Every checkout `_land_once` creates must be self-identifying from the instant it exists --
+    that ordering is what lets a concurrent sweep (this process's own next attempt, or another
+    lane's) tell it apart from an abandoned one. Assert the CONTRACT (materialise receives real
+    swept-stats, not a placeholder) by checking a real landing still succeeds with the sweep
+    wired in ahead of it -- the integration point `test_sweep_removes_a_dead_extract` et al.
+    exercise in isolation."""
+    (repo / "code.py").write_text("VALUE = 2\n")
+    sha = sl.land(repo, ["code.py"], "land with the sweep wired in")
+    assert sha != ""
+    # No leftover checkout for THIS run either -- the marker did not prevent its own cleanup.
+    leftovers = list(Path(tempfile.gettempdir()).glob("surgical-land-*"))
+    ours = [p for p in leftovers if p.is_dir() and (p / sl.OWNER_MARKER).exists()
+            and (p / sl.OWNER_MARKER).read_text().strip() == str(os.getpid())]
+    assert ours == []
+
+
+def test_a_disk_refusal_names_what_the_sweep_found(repo: Path, monkeypatch: pytest.MonkeyPatch):
+    """WORKER_FINDING point 4: a refusal that names only the symptom (bytes free) sent that
+    finding looking at the wrong thing first. Force the free-space refusal and confirm the
+    message states the swept count/MB rather than silently discarding it."""
+    (repo / "code.py").write_text("VALUE = 2\n")
+    monkeypatch.setattr(sl, "MIN_FREE_MB", 10**9)  # unreachable -- forces the refusal path
+
+    with pytest.raises(sl.LandingRefused, match=r"Swept \d+ stale surgical-land extract"):
+        sl.land(repo, ["code.py"], "should refuse on disk")

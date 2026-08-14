@@ -85,9 +85,11 @@ Design note: `docs/design/SURGICAL_LANDING.md`.
 from __future__ import annotations
 
 import argparse
+import atexit
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -117,6 +119,13 @@ HOOK_REL = "tools/git-hooks/pre-commit"
 # The extract is a full tree copy. Below this, refuse -- a gate that cannot be materialised has
 # not run (the publish gate's own floor, same reasoning).
 MIN_FREE_MB = 500
+
+# WORKER_FINDING_THE_ONLY_LEGAL_LANDING_MOVE_LEAKS_150MB_A_KILL_2026-08-14: every checkout is
+# marked with its owning PID the instant it exists, so a sweep can tell a live extract (leave it)
+# from an abandoned one (a kill that skipped `finally:`, or a dir with no marker at all -- every
+# extract before this fix). The marker lives INSIDE the checkout, not beside it, so `rmtree`
+# removes both in one call and there is nothing to leak twice.
+OWNER_MARKER = ".owner-pid"
 
 # Untracked DATA the suite reads (a ~291MB Elexon/NESO cache, the npm tree). `git archive` cannot
 # contain them, and a checkout without them fails ~85 tests for reasons that have nothing to do
@@ -185,6 +194,104 @@ def _free_mb(path: str) -> int | None:
         return shutil.disk_usage(path).free // (1024 * 1024)
     except OSError:
         return None
+
+
+def _dir_size_mb(path: Path) -> int:
+    total = 0
+    for dirpath, _dirnames, filenames in os.walk(path):
+        for name in filenames:
+            try:
+                total += (Path(dirpath) / name).stat().st_size
+            except OSError:
+                pass
+    return total // (1024 * 1024)
+
+
+def sweep_stale_extracts(base: str | None = None) -> tuple[int, int]:
+    """Remove abandoned `surgical-land-*` checkout directories and return (count, mb_freed).
+
+    Every checkout this tool creates (`_land_once`, `tempfile.mkdtemp(prefix="surgical-land-")`)
+    is stamped with `OWNER_MARKER` -- its creating PID -- before anything else touches it. A
+    directory whose marker is missing, unreadable, or names a PID that is no longer alive was
+    abandoned: `finally:` never ran for it, because `SIGTERM`/`SIGKILL` take no Python cleanup
+    path (the routine outcome when a landing outruns a caller's timeout against the ~9.5-minute
+    gate). Every extract created before this fix has no marker at all, so it sweeps too -- that
+    is the 24-directory, ~3.6GB backlog this was written against.
+
+    R15, fail-dangerous direction: a directory whose marker names a LIVE pid is left standing,
+    even mid-run, even if this process cannot see why it is slow -- a sweep that deletes the tree
+    a concurrent lane is being gated in is strictly worse than the leak it replaces.
+    `test_a_live_extract_survives_the_sweep` pins this; `test_sweep_removes_a_dead_extract` and
+    `test_sweep_removes_a_markerless_legacy_extract` pin the other direction.
+    """
+    base_dir = Path(base) if base else Path(tempfile.gettempdir())
+    removed = 0
+    freed_mb = 0
+    try:
+        candidates = sorted(base_dir.glob("surgical-land-*"))
+    except OSError:
+        return 0, 0
+    for path in candidates:
+        if not path.is_dir():
+            # `build_resulting_tree`'s index tempfile shares the "surgical-land-index-" prefix
+            # but is a FILE, unlinked immediately at creation -- never a leak source.
+            continue
+        pid = None
+        try:
+            pid = int((path / OWNER_MARKER).read_text().strip())
+        except (FileNotFoundError, ValueError, OSError):
+            pid = None
+        alive = False
+        if pid is not None:
+            try:
+                os.kill(pid, 0)
+                alive = True
+            except ProcessLookupError:
+                alive = False
+            except OSError:
+                alive = True  # exists under another user, or unclear -- conservative: leave it
+        if alive:
+            continue
+        freed_mb += _dir_size_mb(path)
+        shutil.rmtree(path, ignore_errors=True)
+        if not path.exists():
+            removed += 1
+    return removed, freed_mb
+
+
+# Extracts belonging to THIS process, so a SIGTERM/SIGINT (not SIGKILL -- no handler catches
+# that) can still clean up its own checkout even though `finally:` in `_land_once` is skipped.
+# `sweep_stale_extracts` above is the other half, for the signal this can't catch.
+_ACTIVE_CHECKOUTS: set[Path] = set()
+_SIGNAL_HANDLERS_INSTALLED = False
+
+
+def _cleanup_active_checkouts() -> None:
+    for path in list(_ACTIVE_CHECKOUTS):
+        shutil.rmtree(path, ignore_errors=True)
+        _ACTIVE_CHECKOUTS.discard(path)
+
+
+atexit.register(_cleanup_active_checkouts)
+
+
+def _install_signal_handlers() -> None:
+    global _SIGNAL_HANDLERS_INSTALLED
+    if _SIGNAL_HANDLERS_INSTALLED:
+        return
+
+    def _handler(signum: int, _frame: object) -> None:
+        _cleanup_active_checkouts()
+        signal.signal(signum, signal.SIG_DFL)
+        os.kill(os.getpid(), signum)
+
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        try:
+            signal.signal(sig, _handler)
+        except (ValueError, OSError):
+            pass  # not the main thread, or platform doesn't support it -- atexit still covers
+                  # normal exceptional exit; sweep_stale_extracts covers SIGKILL either way
+    _SIGNAL_HANDLERS_INSTALLED = True
 
 
 # ---------------------------------------------------------------------------------------------
@@ -259,14 +366,22 @@ def _overlay_untracked_data(root: Path, checkout: Path) -> None:
 
 
 def materialise(root: Path, checkout: Path, result_tree: str, parent: str,
-                paths: list[str]) -> None:
-    """Extract `result_tree` into `checkout` and stage exactly `paths` against `parent`."""
+                paths: list[str], swept: tuple[int, int] = (0, 0)) -> None:
+    """Extract `result_tree` into `checkout` and stage exactly `paths` against `parent`.
+
+    `swept` is (count, mb_freed) from this call's own `sweep_stale_extracts()`, run by the
+    caller just before this. It is folded into the disk-refusal message so a refusal names what
+    it found, not just the symptom (WORKER_FINDING_THE_ONLY_LEGAL_LANDING_MOVE_LEAKS_150MB_A_
+    KILL_2026-08-14, point 4 -- the refusal that sent that finding looking at the wrong thing
+    first)."""
     free = _free_mb(str(checkout))
     if free is not None and free < MIN_FREE_MB:
+        swept_count, swept_mb = swept
         raise LandingRefused(
             "REFUSED on DISK, not on code: {}MB free where the extract needs ~{}MB, so the gate "
-            "could not be materialised. Nothing here says a test failed. Reclaim space and "
-            "re-run.".format(free, MIN_FREE_MB))
+            "could not be materialised. Nothing here says a test failed. Swept {} stale "
+            "surgical-land extract(s) first, reclaiming {}MB -- still short. Reclaim more space "
+            "and re-run.".format(free, MIN_FREE_MB, swept_count, swept_mb))
     archive = _git(root, "archive", result_tree)
     if archive.returncode != 0:
         raise LandingRefused("`git archive {}` failed rc={}: {}".format(
@@ -465,8 +580,14 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
             "nothing to land. (If you expected a change, check the pathspec.)")
     files = changed_paths(root, parent_tree, result_tree)
     checkout = Path(tempfile.mkdtemp(prefix="surgical-land-"))
+    # Marker written FIRST, before anything else can fail or take long: this is what makes the
+    # sweep below (and any concurrent lane's sweep) leave THIS checkout alone.
+    (checkout / OWNER_MARKER).write_text(str(os.getpid()))
+    _install_signal_handlers()
+    _ACTIVE_CHECKOUTS.add(checkout)
+    swept = sweep_stale_extracts()
     try:
-        materialise(root, checkout, result_tree, parent, paths)
+        materialise(root, checkout, result_tree, parent, paths, swept=swept)
         rc, output = run_gate(checkout, hook_rel)
         tests = _test_summary(output)
         if rc != 0:
@@ -476,6 +597,7 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
                 "unstaged half is what makes it pass.\n{}".format(rc, output[-4000:]))
     finally:
         shutil.rmtree(checkout, ignore_errors=True)
+        _ACTIVE_CHECKOUTS.discard(checkout)
     receipt = build_receipt(parent, result_tree, files, rc, tests, hook_rel)
     return _commit_and_swap(root, result_tree, parent, message + "\n\n" + receipt, files)
 
