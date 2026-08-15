@@ -2,6 +2,10 @@
 
 **Severity:** BLOCKING · **Lane:** D_billing_metering
 
+**Discharged:** `tests/tools/test_couple_w2_11_d5.py::test_the_placement_explanation_is_gone_from_the_surfaces_it_shipped_on`, `tests/tools/test_couple_w2_11_d5.py::test_the_interior_cause_is_the_denominators_not_the_books_placement`, `tests/tools/test_couple_w2_11_d5.py::test_an_unmeasured_cause_is_published_as_unmeasured_not_as_a_small_one`, `tools/couple_w2_11_d5.py` — landed 2026-08-15 in commit 2a9ea1c76. The false clause is asserted ABSENT from all three surfaces it shipped on (the published drift_resolution_caveat component, the note, and the register's own why), the replacement cause is re-derived per book by check_detection_interior_change_points rather than typed, and an entry that has not declared the bands is proven to publish "NOT MEASURED" rather than falling back to the placement story. (Every backtick on this line is read as a PATH, so the prose carries none.)
+
+**The queued-as-unfixable premise was wrong, and that is the lesson:** this doc parked itself because `tools/couple_w2_11_d5.py` is the `file_scope` of D28 at `loop_stage: idle`. It checked ONE owner of a path thirty atoms share. `H27_payment_belief_gap` owns the same two paths at `loop_stage: harden`, so the fix was drawable the whole time — a park reason must be checked against every owner of the path, not the first one found.
+
 **Found by:** the D28 LANE-3 DISCOVER/FRAME tick, 2026-08-14, testing the one thing note 1
 of that atom's record left flagged as NOT ESTABLISHED — whether the interior collapsed
 runs are predicted by the book's `days_late` multiset. They are not, and the reason is a
