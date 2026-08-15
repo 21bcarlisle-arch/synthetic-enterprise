@@ -582,3 +582,145 @@ def year_key_for_basis(date_str: str, basis: str) -> int:
         return int(date_str[:4])
     raise ValueError(f"unknown year-key basis: {basis!r}")
 
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# COVERAGE — a rate served from outside its own table's window must SAY SO
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+#
+# THE DEFECT (WORKER_FINDING_THE_COST_STACK_CLAMPS_SILENTLY_INSIDE_ITS_OWN_RUN_WINDOW,
+# 2026-08-14). Every one of the 13 tables registered above ends at 2024. The run bills to
+# 2025-06-07. Seven readers carry the same sentence -- "Falls back to nearest known year" -- and
+# return `table[max(table)]` for any date past the end, and **nothing distinguishes that return
+# from a tabulated one**. The 2025 published stack is £391,531.72, 8.09% of the £4,838,389.48
+# total, and every pound of it is priced on at least one clamped table.
+#
+# Clamping is a defensible modelling choice. Clamping SILENTLY is the fail-open shape R15 names:
+# an unavailable input served as a plausible value. The repair is therefore not "stop clamping"
+# -- that is a curriculum-visible change and belongs to whoever draws it -- but "be able to say
+# that you did".
+#
+# DERIVED, NEVER DECLARED. The finding proposed a coverage declaration per table. This derives it
+# from the table itself instead, for the reason `carbon_emissions.GRID_INTENSITY_FIRST_YEAR` does
+# the same: a hand-kept first/last pair is a second copy of a fact the dict already states, and
+# the copy is wrong the first time somebody appends a year and forgets. `YEAR_KEY_BASIS` still
+# has to be hand-kept because a table cannot state its own year convention; coverage it can.
+#
+# THE SIBLING THIS COPIES. `company/regulatory/carbon_emissions.grid_intensity_is_extrapolated`
+# solved this exact problem on the intensity series and the remedy sat in the tree, unwired to
+# this module, while 8.09% of the cost stack published without it. The finding's own words: the
+# common shape here is an orphaned control, not an absent one.
+
+
+def _table_for(name: str) -> dict:
+    """The registered table object by name. KeyError-equivalent is a hard failure on purpose: a
+    name in YEAR_KEY_BASIS that no longer resolves is a broken registry, not a missing rate."""
+    return globals()[name]
+
+
+def table_coverage(name: str) -> tuple[int, int]:
+    """(first_key, last_key) actually present in the named table."""
+    keys = _table_for(name)
+    return min(keys), max(keys)
+
+
+def is_extrapolated(name: str, date_str: str) -> bool:
+    """True when reading `name` at `date_str` would CLAMP rather than look up a tabulated key.
+
+    Keyed through the table's own declared basis, so a Jan-Mar date is judged against the
+    Apr-Mar window it actually falls in -- the same distinction the 2026-08-13 network-charge
+    defect turned on. Asking the wrong basis here would make the honesty marker itself wrong
+    for exactly the three months that were hardest to get right.
+    """
+    first, last = table_coverage(name)
+    key = year_key_for_basis(date_str, YEAR_KEY_BASIS[name])
+    return not (first <= key <= last)
+
+
+def extrapolated_tables(date_str: str) -> tuple[str, ...]:
+    """Every registered table that would clamp at this date, in registry order."""
+    return tuple(name for name in YEAR_KEY_BASIS if is_extrapolated(name, date_str))
+
+
+def extrapolation_status(date_str: str) -> dict:
+    """The full answer for one date: which tables clamp, and what key each is serving instead.
+
+    Shaped for a publisher rather than for a caller of one reader -- the reader-level question
+    ("is this number tabulated?") is `is_extrapolated`; this one answers the question a PAGE has
+    to answer, which is "how much of what you are looking at is a stand-in".
+    """
+    clamped = extrapolated_tables(date_str)
+    return {
+        "date": date_str,
+        "any_extrapolated": bool(clamped),
+        "extrapolated_tables": clamped,
+        "served_keys": {
+            name: min(max(year_key_for_basis(date_str, YEAR_KEY_BASIS[name]),
+                          table_coverage(name)[0]), table_coverage(name)[1])
+            for name in clamped
+        },
+        "coverage": {name: table_coverage(name) for name in clamped},
+    }
+
+
+def coverage_report(from_date: str, to_date: str) -> dict:
+    """The run-window answer, shaped to be PUBLISHED (WORKER_FINDING_THE_COST_STACK_CLAMPS...).
+
+    Travels in the run output rather than being imported by the renderer: `saas/` never imports
+    `simulation/` (the epistemic wall), so the only honest way for the report to state that a
+    rate was extrapolated is for the SIM to say so in what it hands over. A renderer that
+    computed this itself would be the company reading the world's internals to describe them.
+
+    BOTH EDGES, and the leading one is not hypothetical. The finding's own "Not claimed" section
+    says the clamp "does not affect years before 2025 -- every other year in the run window is
+    inside every table's coverage". Measured: 12 bills dated 2016-01-31 key, under the apr_mar
+    basis, to obligation year 2015 -- below the first key of all nine Apr-Mar tables, so they are
+    priced on a clamped rate too. A forward-only marker would have inherited the claim and
+    published a coverage statement that was itself incomplete.
+    """
+    tables = {}
+    for name in YEAR_KEY_BASIS:
+        first, last = table_coverage(name)
+        lead = is_extrapolated(name, from_date)
+        trail_from = None
+        # The trailing edge: the first month at or after the table's last covered key where it
+        # starts clamping again. Scanned from the last covered year rather than from the window
+        # start so a leading clamp cannot mask it.
+        probe_from = f"{last:04d}-01-01"
+        if probe_from < to_date:
+            trail_from = first_extrapolated_date(name, probe_from, to_date)
+        if not (lead or trail_from):
+            continue
+        tables[name] = {
+            "basis": YEAR_KEY_BASIS[name],
+            "covers": [first, last],
+            "clamped_at_start": lead,
+            "clamped_from": trail_from,
+        }
+    return {
+        "window": [from_date, to_date],
+        "any_extrapolated": bool(tables),
+        "table_count": len(YEAR_KEY_BASIS),
+        "extrapolated_count": len(tables),
+        "tables": tables,
+    }
+
+
+def first_extrapolated_date(name: str, from_date: str, to_date: str) -> str | None:
+    """The earliest 1st-of-month in [from_date, to_date] at which `name` starts clamping.
+
+    Month granularity, deliberately: the answer is rendered as "from April 2025", and a
+    day-precise scan would cost 365x the work to print the same sentence. Returns None when the
+    table covers the whole window.
+    """
+    y0, m0 = int(from_date[:4]), int(from_date[5:7])
+    y1, m1 = int(to_date[:4]), int(to_date[5:7])
+    y, m = y0, m0
+    while (y, m) <= (y1, m1):
+        probe = f"{y:04d}-{m:02d}-01"
+        if is_extrapolated(name, probe):
+            return probe
+        m += 1
+        if m > 12:
+            y, m = y + 1, 1
+    return None
+
