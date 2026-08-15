@@ -702,7 +702,11 @@ def detection_latency_gap(
         # AFTER `as_of` is not yet knowable and is not counted as knowledge.
         "n_dd_observed_after_as_of": int(n_dd_observed_after_as_of),
         "headline_units": DETECTION_LATENCY_HEADLINE_UNITS,
-        "normalisation": DETECTION_LATENCY_NO_NORMALISER_REASON,
+        # `normalisation_absent_reason`, NOT `normalisation` (H27 Hour #30):
+        # the entry-level `normalisation` is the DECLARED KIND from a closed
+        # vocabulary; this is the REASON no divisor exists. Both are rendered by
+        # name in one door row, so one word cannot carry both.
+        "normalisation_absent_reason": DETECTION_LATENCY_NO_NORMALISER_REASON,
         # GRID RESOLUTION (atom D23) -- stamped AT SOURCE, so it reaches every
         # caller of this scorer rather than only the one whose Hour found it.
         # The recon arm resolves the organ to the DAY in both directions, and
@@ -4104,6 +4108,23 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         # shape D29 built this pair to break.
         "saturation_atom_below": "D28_the_detection_gap_is_quantised_by_this_books_placement",
         "saturation_atom_above": "D31_the_recon_grid_saturates_beyond_this_books_window",
+        # WHY THE INTERIOR IS QUANTISED, MEASURED RATHER THAN BLAMED ON THE
+        # BOOK'S PLACEMENT (2026-08-14 BLOCKING finding, atom D28). The
+        # entry and the caveat both used to say the interior collapses
+        # "because the number of invoices sitting BESIDE the grace line at any
+        # one distance is small". Checkable, and false: over the readable
+        # interior the flagged set steps at 62/63/61 of the 86 adjacent pairs
+        # on the EXCLUDED band alone. What is small is the part of that traffic
+        # this headline's DENOMINATORS count. Declared here as bands across
+        # seeds 7/11/23 and re-derived every run by
+        # `check_detection_interior_change_points` -- an asserted cause is
+        # exactly what decayed into a false sentence the first time.
+        "interior_pairs": 86,
+        "interior_counted_change_points": (32, 38),
+        "interior_excluded_change_points": (61, 63),
+        "interior_silent_set_moves": (34, 40),
+        "interior_quantisation_atom": (
+            "D28_the_detection_gap_is_quantised_by_this_books_placement"),
         "why": (
             "SET membership by `as_of`, and it is now the register's ONLY "
             "on-path blindness -- D25 spread the book across the billing "
@@ -4131,8 +4152,19 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
             "the sixty-five days between +17 and +82 -- where the figure moves "
             "0.0296 -> 0.1618 -- were published as unreadable. In between the "
             "reading is quantised rather than continuous (fourteen interior "
-            "collapses), because the number of invoices sitting BESIDE the "
-            "grace line at any one distance is small. A movement in this "
+            "collapses), AND THE CAUSE IS THE DENOMINATORS, NOT THE BOOK'S "
+            "PLACEMENT (2026-08-14, measured). This entry used to say the "
+            "interior collapses because few invoices sit beside the grace line "
+            "at any one distance; that is checkable and it is false. Across "
+            "the readable interior the flagged set steps at 61-63 of its 86 "
+            "adjacent pairs on the EXCLUDED band alone -- an invoice paid late "
+            "but past grace, in neither `S` nor `N` by the D10/D11 rule, which "
+            "the company was RIGHT to chase -- and the counted populations "
+            "step at only 32-38. So crossing the grace line is NECESSARY AND "
+            "NOT SUFFICIENT, and 34-40 pairs move the set while the figure "
+            "stands still. What is thin here is not the book beside the line "
+            "but the part of that traffic this headline counts. A movement in "
+            "this "
             "headline is therefore not readable as days of terms error, and a "
             "supplier flagging paying customers as in arrears -- the -6d "
             "direction, the one that posts the dunning letter -- is "
@@ -8521,6 +8553,237 @@ def ageing_resolution_caveat(
     )
 
 
+def measure_detection_interior_change_points(
+    *,
+    n_customers: int = 300,
+    seeds: Sequence[int] = RESOLUTION_SEEDS,
+    entry: Optional[Dict[str, object]] = None,
+    runner: Optional[Callable[[int, int], Dict[str, object]]] = None,
+) -> Dict[str, object]:
+    """WHY the detection headline is quantised in its readable interior --
+    decomposed into the two things it could be, and measured (2026-08-14
+    BLOCKING finding, atom D28).
+
+    Until this measurement the register and the caveat both blamed PLACEMENT:
+    "the number of invoices sitting BESIDE the grace line at any one distance
+    is small". That is checkable and it is FALSE on this book. What is small is
+    not the traffic across the line but the part of that traffic this
+    headline's own DENOMINATORS count -- 212 of 900 invoices sit past the grace
+    line and are the D10/D11 EXCLUSION (paid late but past grace, which the
+    company was RIGHT to chase), so they are in neither `S` (the true failures)
+    nor `N` (the never-flaggable negatives) and cannot move the figure however
+    many of them cross.
+
+    The decomposition rests on two properties, and BOTH are measured here
+    rather than assumed, because each is exactly the kind of premise that fails
+    silently:
+
+    * `S`, `N` and the universe are INVARIANT in the drift `k` -- the
+      counterfactual moves the COMPANY, never the world (R13). If a drift ever
+      moved a truth-side set, every count below would be comparing two
+      different populations and the whole reading is void.
+    * The published figure moves IFF the flagged set's step touches `S u N`.
+      That is the corrected caveat's own claim, and it is checked pair by pair
+      against the SHIPPED scorer's gap rather than against a re-derivation of
+      it.
+
+      NOT AN INDEPENDENCE CLAIM, and saying so is the point (R15's first
+      pattern is exactly this overclaim). The gap and the sets come out of ONE
+      `score_triad` call, and the gap is computed BY that scorer from these
+      same sets -- so the two sides share a source. What keeps the check from
+      being a tautology is that the implication is not an identity: the gap is
+      `mean(missed_failure_rate, false_flag_rate)`, and a step touching `S u N`
+      could leave it unmoved by CANCELLING between the two rates. It is that
+      cancellation this pair-by-pair sweep would catch, and nothing stronger.
+      An independent re-derivation of the gap would be a different control and
+      this module does not have one.
+
+    Returns `{"by_seed", "interior_pairs", "counted_change_points",
+    "excluded_change_points", "silent_set_moves", "seeds"}`, where the three
+    band keys are `(min, max)` across seeds -- the register's claims are
+    structural, so a band is only worth declaring across all of them.
+    """
+    e = DIMENSION_DRIFT_RESOLUTION["detection"] if entry is None else entry
+    lo, hi = e.get("saturates_below"), e.get("saturates_above")
+    if runner is None:
+        def runner(seed: int, k: int) -> Dict[str, object]:
+            # THE SAME CACHE the drift sweep fills, for the same reason: this
+            # control and `measure_dimension_drift_resolution` sweep one grid
+            # over one population, and scoring it twice per process would make
+            # a slow control slower without moving a number.
+            key = (n_customers, seed, k)
+            if key not in _RESOLUTION_SCORES:
+                recs, cons, _ledger, as_of = _resolution_population(
+                    n_customers, seed)
+                _RESOLUTION_SCORES[key] = score_triad(
+                    recs, cons, as_of, organ_terms_drift_days=k)
+            return _RESOLUTION_SCORES[key]
+
+    by_seed: Dict[int, Dict[str, object]] = {}
+    for s in seeds:
+        # THE GRID OFF THE BOOK, never off the runner (the rule
+        # `measure_dimension_drift_resolution` states): a test may inject a
+        # runner, and the swept extent must not become whatever that runner
+        # felt like answering.
+        recs, _cons, _ledger, as_of = _resolution_population(n_customers, s)
+        interior = [k for k in dense_drift_grid(recs, as_of)
+                    if (lo is None or k > lo) and (hi is None or k < hi)]
+        flagged: Dict[int, set] = {}
+        gaps: Dict[int, object] = {}
+        truth = negatives = universe = None
+        drifting_sets: List[int] = []
+        for k in interior:
+            row = runner(s, k)
+            sets_k = row["sets"]
+            flagged[k] = set(sets_k["flagged"])
+            gaps[k] = row["detection"].gap
+            triple = (set(sets_k["truth"]), set(sets_k["never_flaggable"]),
+                      set(sets_k["universe"]))
+            if truth is None:
+                truth, negatives, universe = triple
+            elif triple != (truth, negatives, universe):
+                drifting_sets.append(k)
+        counted = (truth | negatives) if truth is not None else set()
+        excluded = (universe - counted) if universe is not None else set()
+        pairs = [(a, b) for a, b in zip(interior, interior[1:]) if b == a + 1]
+        counted_cp: List[int] = []
+        excluded_cp: List[int] = []
+        silent: List[int] = []
+        disagreements: List[tuple] = []
+        for a, b in pairs:
+            delta = flagged[a] ^ flagged[b]
+            touches_counted = bool(delta & counted)
+            if touches_counted:
+                counted_cp.append(a)
+            if delta & excluded:
+                excluded_cp.append(a)
+            if delta and not touches_counted:
+                silent.append(a)
+            if touches_counted != (gaps[a] != gaps[b]):
+                disagreements.append((a, b))
+        by_seed[s] = {
+            "interior": tuple(interior),
+            "interior_pairs": len(pairs),
+            "counted_change_points": tuple(counted_cp),
+            "excluded_change_points": tuple(excluded_cp),
+            "silent_set_moves": tuple(silent),
+            "predicate_disagreements": tuple(disagreements),
+            "sets_drifted_at": tuple(drifting_sets),
+            "n_counted": len(counted),
+            "n_truth": len(truth or ()),
+            "n_negatives": len(negatives or ()),
+            "n_excluded": len(excluded),
+            "n_universe": len(universe or ()),
+        }
+
+    def _band(key: str) -> tuple:
+        got = [len(by_seed[s][key]) for s in seeds]
+        return (min(got), max(got)) if got else ()
+
+    pairs_seen = {by_seed[s]["interior_pairs"] for s in seeds}
+    return {
+        "by_seed": by_seed,
+        "seeds": tuple(seeds),
+        # ONE number where every seed's book spans the same interior, and the
+        # SET of them otherwise -- a differing extent is not something to
+        # average into a single declaration.
+        "interior_pairs": (pairs_seen.pop() if len(pairs_seen) == 1
+                           else tuple(sorted(pairs_seen))),
+        "counted_change_points": _band("counted_change_points"),
+        "excluded_change_points": _band("excluded_change_points"),
+        "silent_set_moves": _band("silent_set_moves"),
+    }
+
+
+def check_detection_interior_change_points(
+    measurement: Dict[str, object],
+    entry: Optional[Dict[str, object]] = None,
+) -> List[str]:
+    """Put the interior-quantisation DECLARATION on trial and return the
+    VIOLATIONS (atom D28, the 2026-08-14 BLOCKING finding).
+
+    This exists because the sentence it replaces could not fail. "The number of
+    invoices sitting beside the grace line at any one distance is small" was
+    asserted once, published on every surface the detection figure feeds, and
+    re-read by nothing -- so when it became false nothing said so. The rule
+    here is the D19/D20/D22/D23/D25 one: the caveat states numbers, the numbers
+    live in the register, and the register is re-derived from the book each
+    run.
+
+    NOTE WHAT THIS DOES NOT ASSERT. It does not require the excluded band to
+    keep out-crossing the counted populations. That inequality is the CURRENT
+    reading, not a contract -- the whole point of the residual is a reshape
+    that makes `S u N` dense across the interior, and a control forbidding the
+    fix it exists to motivate would be worse than none. What it requires is
+    that the DECLARATION match the BOOK: land that reshape and this fires by
+    name, demanding the register and the sentence be re-derived rather than
+    letting a stale one ride.
+    """
+    e = DIMENSION_DRIFT_RESOLUTION["detection"] if entry is None else entry
+    out: List[str] = []
+    by_seed = measurement.get("by_seed") or {}
+    if not by_seed:
+        return ["detection interior change points: measured over NO seeds -- "
+                "an empty sweep is how a resolution claim fail-opens, not a "
+                "clean sheet"]
+    for s, row in sorted(by_seed.items()):
+        if not row["interior_pairs"]:
+            out.append(
+                f"seed {s}: the readable interior between the declared "
+                "saturation edges holds NO adjacent pair of counterfactual "
+                "companies -- there is no interior to be quantised, so the "
+                "caveat's whole middle clause is vacuous")
+            continue
+        if row["sets_drifted_at"]:
+            out.append(
+                f"seed {s}: the truth-side sets MOVED under the company drift "
+                f"at {row['sets_drifted_at']!r} -- the counterfactual is "
+                "supposed to move the COMPANY and never the world (R13), and "
+                "every count here compares two populations that are no longer "
+                "the same one")
+        if row["predicate_disagreements"]:
+            out.append(
+                f"seed {s}: the published figure and the counted-set step "
+                "DISAGREE at "
+                f"{row['predicate_disagreements'][:5]!r} "
+                f"({len(row['predicate_disagreements'])} pairs) -- the caveat "
+                "tells a reader the number moves exactly where the step "
+                "touches `S u N`, and on these pairs it does not")
+        for key, label in (("n_truth", "S, the true failures"),
+                           ("n_negatives", "N, the never-flaggable negatives")):
+            if not row[key]:
+                out.append(
+                    f"seed {s}: `{label}` is EMPTY, so this headline has no "
+                    "population to be right or wrong about and its resolution "
+                    "cannot be read at all")
+    declared_pairs = e.get("interior_pairs")
+    if declared_pairs is not None and declared_pairs != measurement["interior_pairs"]:
+        out.append(
+            f"the register declares an interior of {declared_pairs!r} adjacent "
+            f"pairs and this book measures {measurement['interior_pairs']!r} "
+            "-- the extent moved under a declaration nobody re-derived")
+    for field, label in (
+        ("interior_counted_change_points",
+         "pairs where the COUNTED populations (`S u N`) change"),
+        ("interior_excluded_change_points",
+         "pairs where the EXCLUDED band changes"),
+        ("interior_silent_set_moves",
+         "pairs where the flagged set moves and the figure does not"),
+    ):
+        declared = e.get(field)
+        if declared is None:
+            continue
+        got = measurement[field[len("interior_"):]]
+        if not (tuple(declared)[0] <= got[0] and got[1] <= tuple(declared)[1]):
+            out.append(
+                f"the register declares {label} at {tuple(declared)!r} across "
+                f"seeds and this book measures {got!r} -- re-derive the band "
+                "and the sentence that publishes it (atom "
+                f"{e.get('interior_quantisation_atom')}), never widen the band "
+                "to fit")
+    return out
+
+
 def detection_resolution_caveat() -> str:
     """The resolution limit that travels WITH the detection number (atom D28).
 
@@ -8542,12 +8805,17 @@ def detection_resolution_caveat() -> str:
     lo, hi = e.get("saturates_below"), e.get("saturates_above")
     runs = tuple(e.get("collapsed_runs") or ())
     head = (
-        "RESOLUTION IS WHERE THIS BOOK SITS BESIDE THE GRACE LINE (atoms D28 "
-        "and D31, measured 2026-08-13 on a grid whose density AND EXTENT are "
-        "derived from the book and not from this register, seeds "
+        "RESOLUTION IS WHICH CASES THIS HEADLINE COUNTS (atoms D28 and D31, "
+        "measured 2026-08-13, cause corrected 2026-08-14 on a grid whose "
+        "density AND EXTENT are derived from the book and not from this "
+        "register, seeds "
         + "/".join(str(s) for s in RESOLUTION_SEEDS)
-        + "). This headline is SET MEMBERSHIP, so a company's terms error moves "
-        "it only where that error carries an invoice across the grace line. "
+        + "). This headline is SET MEMBERSHIP over TWO COUNTED POPULATIONS -- "
+        "`S`, the true failures, and `N`, the never-flaggable negatives. A "
+        "company's terms error moves it only where that error carries an "
+        "invoice across the grace line AND that invoice is in `S` or `N`: "
+        "crossing the line is NECESSARY, NOT SUFFICIENT. DO NOT RUN THAT "
+        "BACKWARDS -- an unmoved number does NOT mean nothing crossed. "
     )
     if lo is None and hi is None and not runs:
         return head + (
@@ -8572,11 +8840,62 @@ def detection_resolution_caveat() -> str:
         "groups of companies publish one number each "
         + ", ".join("{" + ",".join(f"{k:+d}" for k in r) + "}"
                     for r in interior)
-        + ". Do not read a movement in this number as days of company error, "
+        + ". "
+        + _detection_interior_cause_sentence(e)
+        + " Do not read a movement in this number as days of company error, "
         "and do not read a zero as accurate flagging. Residual owned by "
         f"{e.get('saturation_atom')}."
     )
     return head + body
+
+
+def _detection_interior_cause_sentence(e: Dict[str, object]) -> str:
+    """WHY the interior is quantised, as a NUMBER re-derived per book rather
+    than a cause asserted once (2026-08-14 BLOCKING finding, atom D28).
+
+    The clause this replaces blamed the book's placement -- "few invoices sit
+    beside the grace line at any one distance" -- and shipped inside
+    `components["drift_resolution_caveat"]`, which the ledger writer, the live
+    wiring and the dashboard all read. It was measurably false, and it was
+    false in the direction that flatters the instrument: it told a reader the
+    limit was the world's thinness rather than the headline's own exclusion.
+
+    Bands come from `DIMENSION_DRIFT_RESOLUTION["detection"]` and are put on
+    trial every run by `check_detection_interior_change_points`. An entry that
+    has not declared them says so -- an absent measurement is never published
+    as a small one (R15's third shape).
+    """
+    pairs = e.get("interior_pairs")
+    counted = e.get("interior_counted_change_points")
+    excluded = e.get("interior_excluded_change_points")
+    silent = e.get("interior_silent_set_moves")
+    if not (pairs and counted and excluded and silent):
+        return (
+            "WHY it is quantised in here is NOT MEASURED on this entry, so it "
+            "is not stated -- the placement explanation this sentence used to "
+            "carry was checked in 2026-08-14 and was false, and an unmeasured "
+            "cause is not a smaller claim than a wrong one (atom "
+            f"{e.get('interior_quantisation_atom')})."
+        )
+
+    def _band(b) -> str:
+        b = tuple(b)
+        return f"{b[0]}" if b[0] == b[1] else f"{b[0]}-{b[1]}"
+
+    return (
+        "AND THE CAUSE IS THIS HEADLINE'S DENOMINATORS, NOT THE BOOK'S "
+        f"PLACEMENT (measured 2026-08-14): of the {pairs} adjacent pairs of "
+        f"companies in here, the flagged set steps at {_band(excluded)} on the "
+        "EXCLUDED band -- invoices paid late but past grace, which the company "
+        "was RIGHT to chase, counted in neither `S` nor `N` by the D10/D11 "
+        f"rule -- and at only {_band(counted)} on the two populations this "
+        f"figure counts. At {_band(silent)} pairs the company's flagged set "
+        "moves and this number does not. The book is NOT thin beside the grace "
+        "line; what is thin is the part of that traffic this headline can see, "
+        "so a reshape that merely puts more invoices beside the line would not "
+        "move the resolution at all (atom "
+        f"{e.get('interior_quantisation_atom')})."
+    )
 
 
 def _belief_permutation_note(bel: GapResult) -> str:

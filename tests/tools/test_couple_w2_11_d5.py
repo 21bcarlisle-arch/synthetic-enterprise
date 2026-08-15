@@ -4160,6 +4160,178 @@ def test_the_saturation_caveat_travels_with_the_detection_number():
         entry.update(saved)
 
 
+# ---------------------------------------------------------------------------
+# WHY THE INTERIOR IS QUANTISED -- this headline's DENOMINATORS, not the book's
+# placement (2026-08-14 BLOCKING finding, atom D28, H27 Expert Hour #31)
+#
+# The caveat and the register both blamed placement: "the number of invoices
+# sitting BESIDE the grace line at any one distance is small". Checkable, and
+# false -- 212 of 900 invoices sit past the line at 63 distinct distances. What
+# is small is the part of that traffic the headline's own denominators count.
+# The sentence shipped inside `components["drift_resolution_caveat"]`, which
+# the ledger writer, the live wiring and the dashboard all read, so a published
+# claim was wrong while every published NUMBER was right.
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def interior_change_points():
+    """Measured ONCE for the module: the sweep re-scores three books across the
+    whole readable interior, and every mutation below is a trial of a
+    DECLARATION against this same measurement."""
+    return pair.measure_detection_interior_change_points(n_customers=_RES_N)
+
+
+def test_the_interior_cause_is_the_denominators_not_the_books_placement(
+        interior_change_points):
+    """THE FINDING'S OWN CLAIM, re-derived rather than quoted.
+
+    Two premises are asserted first because the decomposition is void without
+    them and both fail silently: the truth-side sets must not move under the
+    company drift (R13 -- a counterfactual COMPANY over one world), and the
+    published figure must move exactly where the flagged step touches `S u N`.
+    That second one is the corrected caveat's whole inference licence, and it
+    is checked against the SHIPPED scorer's gap, not a re-derivation of it.
+
+    CHARACTERIZATION on the inequality: that the excluded band out-steps the
+    counted populations is TODAY'S reading, not a contract. The declared
+    residual is a reshape that makes `S u N` dense across the interior; when it
+    lands this test is EXPECTED to fire, and re-deriving the band it fires on
+    is the point."""
+    m = interior_change_points
+    assert pair.check_detection_interior_change_points(m) == []
+    for s in m["seeds"]:
+        row = m["by_seed"][s]
+        assert row["sets_drifted_at"] == (), (
+            "the drift moved a truth-side set -- the counterfactual is a "
+            "COMPANY, and every count here would be comparing two populations")
+        assert row["predicate_disagreements"] == (), (
+            "the figure moved without the counted sets stepping, or the "
+            "reverse -- the caveat's licence is broken")
+        # THE EXCLUSION IS THE INTERIOR'S TRAFFIC, and the headline cannot see
+        # it: ~23% of the book, stepping at ~3/4 of the interior's pairs.
+        assert row["n_excluded"] / row["n_universe"] > 0.20
+        assert len(row["excluded_change_points"]) > len(
+            row["counted_change_points"]), (
+            "the placement explanation would need the reverse of this")
+        # AND THE READER'S BACKWARDS INFERENCE IS WRONG THIS OFTEN.
+        assert len(row["silent_set_moves"]) > 30
+
+
+def test_the_placement_explanation_is_gone_from_the_surfaces_it_shipped_on():
+    """R11's shape on a sentence: the false clause is checked ABSENT from the
+    artefact a reader is handed, not merely absent from the source line that
+    was edited. `components` is the surface -- the ledger writer, live wiring
+    and dashboard read it and never the note."""
+    result = pair.measure(n_customers=120, seed=7)
+    caveat = result["detection"].components["drift_resolution_caveat"]
+    why = pair.DIMENSION_DRIFT_RESOLUTION["detection"]["why"]
+    for surface, name in ((caveat, "the published component"),
+                          (result["detection"].note, "the note"),
+                          (why, "the register's own `why`")):
+        assert "BESIDE the grace line at any one distance is small" not in \
+            surface, f"the false clause survives in {name}"
+    # AND THE CORRECTION IS PRESENT, both halves of it.
+    assert "NECESSARY, NOT SUFFICIENT" in caveat
+    assert "DO NOT RUN THAT BACKWARDS" in caveat
+    assert "DENOMINATORS, NOT THE BOOK'S PLACEMENT" in caveat
+    assert "NOT thin beside the grace line" in caveat
+    assert "DENOMINATORS, NOT THE BOOK'S" in why
+
+
+def test_the_interior_cause_numbers_are_interpolated_never_retyped():
+    """Move the register and the sentence moves with it -- the D19/D20/D22/D23/
+    D25 rule that made this correction necessary in the first place: the clause
+    it replaces was typed once and re-read by nothing."""
+    entry = pair.DIMENSION_DRIFT_RESOLUTION["detection"]
+    saved = dict(entry)
+    try:
+        entry["interior_excluded_change_points"] = (5, 5)
+        entry["interior_counted_change_points"] = (77, 79)
+        caveat = pair.detection_resolution_caveat()
+        assert "steps at 5 on the EXCLUDED band" in caveat
+        assert "at only 77-79 on the two populations" in caveat
+    finally:
+        entry.clear()
+        entry.update(saved)
+
+
+def test_an_unmeasured_cause_is_published_as_unmeasured_not_as_a_small_one():
+    """R15's third shape, on a sentence. An entry that has not declared the
+    bands must SAY the cause is unmeasured -- silently falling back to the
+    placement story, or to no clause at all, is how the false one shipped for a
+    day inside a caveat that reads as complete."""
+    entry = pair.DIMENSION_DRIFT_RESOLUTION["detection"]
+    saved = dict(entry)
+    try:
+        for k in ("interior_pairs", "interior_counted_change_points",
+                  "interior_excluded_change_points",
+                  "interior_silent_set_moves"):
+            entry.pop(k, None)
+        caveat = pair.detection_resolution_caveat()
+        assert "NOT MEASURED on this entry" in caveat
+        assert "BESIDE the grace line at any one distance is small" not in caveat
+    finally:
+        entry.clear()
+        entry.update(saved)
+
+
+@pytest.mark.parametrize("field,bad,expected", (
+    ("interior_pairs", 42, "adjacent pairs and this book measures"),
+    ("interior_counted_change_points", (60, 70),
+     "pairs where the COUNTED populations"),
+    ("interior_excluded_change_points", (1, 2),
+     "pairs where the EXCLUDED band changes"),
+    ("interior_silent_set_moves", (0, 1),
+     "pairs where the flagged set moves and the figure does not"),
+))
+def test_a_declared_interior_band_that_stopped_describing_the_book_fires(
+        interior_change_points, field, bad, expected):
+    """R15 BOTH WAYS on the declaration. Each band is the register's claim
+    about THIS book; move it and the control must name it. A band nobody
+    re-derives is exactly what the corrected sentence used to be."""
+    entry = dict(pair.DIMENSION_DRIFT_RESOLUTION["detection"])
+    entry[field] = bad
+    violations = pair.check_detection_interior_change_points(
+        interior_change_points, entry=entry)
+    assert any(expected in v for v in violations), violations
+    assert any("never widen the band to fit" in v or "re-derive" in v
+               for v in violations)
+
+
+def _cp_with(measurement, seed_patch=None, **top):
+    """A copy of the measurement with one seed's row (or a top-level band)
+    mutated -- the R15 probe for the fail-open shapes, applied to the
+    MEASUREMENT rather than the declaration."""
+    out = {k: (dict(v) if isinstance(v, dict) else v)
+           for k, v in measurement.items()}
+    out["by_seed"] = {s: dict(r) for s, r in measurement["by_seed"].items()}
+    if seed_patch:
+        first = measurement["seeds"][0]
+        out["by_seed"][first].update(seed_patch)
+    out.update(top)
+    return out
+
+
+@pytest.mark.parametrize("patch,top,expected", (
+    (None, {"by_seed": {}}, "measured over NO seeds"),
+    ({"interior_pairs": 0}, {}, "holds NO adjacent pair"),
+    ({"sets_drifted_at": (3, 4)}, {}, "truth-side sets MOVED"),
+    ({"predicate_disagreements": ((3, 4),)}, {}, "DISAGREE at"),
+    ({"n_truth": 0}, {}, "`S, the true failures` is EMPTY"),
+    ({"n_negatives": 0}, {},
+     "`N, the never-flaggable negatives` is EMPTY"),
+))
+def test_the_interior_control_fires_on_its_own_named_fail_open(
+        interior_change_points, patch, top, expected):
+    """R15: the four ways this measurement could pass while measuring nothing.
+    An empty sweep, an empty interior, a drifting world and an empty counted
+    population all read EXACTLY like a clean sheet unless each is named."""
+    violations = pair.check_detection_interior_change_points(
+        _cp_with(interior_change_points, patch, **top))
+    assert any(expected in v for v in violations), violations
+
+
 def test_the_resolution_caveat_travels_with_the_ageing_number():
     """The limit is published WITH the figure -- in `components` as well as the
     prose, because the ledger writer and the live wiring never read `note` --
