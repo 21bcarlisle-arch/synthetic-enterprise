@@ -5,7 +5,17 @@
 // captured element's contents as JSON so a test can assert on the RENDERED pixels (R11), not the
 // source string.
 //
-// Usage: node _render_harness.mjs <index.html>   (company.json on stdin).
+// Usage: node _render_harness.mjs <index.html> [leg.json ...]   (company.json on stdin).
+//
+// The optional leg files are the household's per-fuel records (site/data/customers/<id>.json),
+// electricity leg FIRST -- what the page's own boot path fetches after company.json so the
+// money panels can be the household's rather than one fuel leg's
+// (coldwalk:site2_dual_fuel_household_shows_electricity_only_money). They are handed to the
+// page's OWN __assembleLegs() rather than shaped here: the "how many legs should this
+// household have" rule is the page's, and a harness that re-typed it would be grading its own
+// copy of the logic (the tautology shape site/test_door_render_functions_are_wired.py exists
+// for). Passing FEWER legs than the household has is a supported fixture -- it drives the
+// leg-scoped fallback, which is the half of the control that can actually fail.
 import fs from "node:fs";
 import vm from "node:vm";
 
@@ -38,7 +48,9 @@ const sandbox = { document, fetch, console, Date, Number, String, Object, Math, 
 sandbox.window = sandbox;
 vm.createContext(sandbox);
 vm.runInContext(code, sandbox);
-sandbox.renderCustomerState(company);
+const legRecords = process.argv.slice(3).map((p) => JSON.parse(fs.readFileSync(p, "utf8")));
+const legs = legRecords.length ? sandbox.__assembleLegs(legRecords) : null;
+sandbox.renderCustomerState(company, legs);
 sandbox.renderCustomerCarbon(company);
 
 const ids = [

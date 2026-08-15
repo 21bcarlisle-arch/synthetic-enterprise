@@ -256,6 +256,26 @@ RENDER_HARNESS = HERE / "_render_harness.mjs"
 COMPANY_DATA = HERE.parent / "data" / "company.json"
 
 
+def _op_state_render(index: Path = INDEX, legs: tuple[Path, ...] | None = None) -> dict[str, str]:
+    """Run the op-state script over company.json plus a chosen set of household fuel legs.
+
+    `legs` defaults to EVERY leg the household has, because that is what the live page's
+    own boot path fetches. Passing a SUBSET is how the leg-scoped fallback gets driven --
+    see the dual-fuel section below; that path is the half of the scope control that can
+    actually fail, so it needs to be reachable from a test.
+    """
+    if legs is None:
+        legs = _dual_fuel_pair()
+    proc = subprocess.run(
+        [NODE, str(RENDER_HARNESS), str(index), *[str(p) for p in legs]],
+        input=COMPANY_DATA.read_text(encoding="utf-8"),
+        capture_output=True, text=True, timeout=60,
+    )
+    assert proc.returncode == 0, f"op-state render harness failed: {proc.stderr}"
+    out = json.loads(proc.stdout)
+    return {k: v["innerHTML"] for k, v in out.items() if v and v["innerHTML"]}
+
+
 def _op_state_injected(index: Path = INDEX) -> dict[str, str]:
     """The op-state region's FIGURES, as its own script renders them.
 
@@ -264,16 +284,12 @@ def _op_state_injected(index: Path = INDEX) -> dict[str, str]:
     static shell alone would contain no `Lifetime net`, `Cost to serve`, `Churn risk` or
     `Satisfaction` label at all -- i.e. it would be blind to the exact figures cold-eyes
     found on screen in the customer view. So the shell is filled here first, from the same
-    published data the live page reads.
+    published data the live page reads -- INCLUDING the household's fuel legs, which the
+    live boot path fetches after company.json. Filling it from company.json alone would
+    build the union subject out of the leg-scoped FALLBACK render, i.e. out of markup no
+    live reader is served.
     """
-    proc = subprocess.run(
-        [NODE, str(RENDER_HARNESS), str(index)],
-        input=COMPANY_DATA.read_text(encoding="utf-8"),
-        capture_output=True, text=True, timeout=60,
-    )
-    assert proc.returncode == 0, f"op-state render harness failed: {proc.stderr}"
-    out = json.loads(proc.stdout)
-    filled = {k: v["innerHTML"] for k, v in out.items() if v and v["innerHTML"]}
+    filled = _op_state_render(index)
     assert filled, "the op-state script rendered nothing -- the union subject would be a shell"
     return filled
 
@@ -1259,3 +1275,165 @@ def test_mutation_a_side_declared_but_empty_panel_does_not_satisfy_the_control(t
     test_no_tab_is_blank_behind_the_wall(out)
     with pytest.raises(AssertionError, match="read-exposure figures"):
         test_the_two_tabs_the_walk_named_carry_real_content_not_empty_shells(out)
+
+
+# ---------------------------------------------------------------------------
+# The household's money is the HOUSEHOLD's, not one fuel leg's
+# (coldwalk:site2_dual_fuel_household_shows_electricity_only_money)
+#
+# The exhibit is headed "One household -- end to end" and its own first tile declares
+# "Products: dual fuel / electricity + gas". Every money figure under it came from
+# company.json's `household` block, which is commodity='electricity' ONLY. So the page
+# understated its own declared subject by ~60% on lifetime net, told the account holder --
+# on the CUSTOMER-OBSERVABLE side of the wall -- that they had received 72 invoices when
+# they had received 144, and printed "Balance £0.00 / paid up to date" while the same
+# page's Risk tab showed the household in credit.
+#
+# The rule these tests pin is a scope rule, not a value rule: a money figure is either
+# summed over EVERY leg the household has and scoped "household", or it names the single
+# leg it came from. The second half is the one that can fail, so it is driven explicitly.
+# ---------------------------------------------------------------------------
+_MONEY_PANELS = ("cust-money", "cust-value")
+
+
+def _money_tiles(index: Path = INDEX, legs: tuple[Path, ...] | None = None) -> dict[str, tuple[str, str]]:
+    """label -> (value, sub) across both op-state money panels, as the page renders them."""
+    rendered = _op_state_render(index, legs)
+    tiles: dict[str, tuple[str, str]] = {}
+    for panel in _MONEY_PANELS:
+        for m in _TILE.finditer(rendered.get(panel, "")):
+            tiles[m.group("label").strip()] = (m.group("value").strip(), (m.group("sub") or "").strip())
+    assert tiles, "no money tiles rendered at all -- every assertion below would be vacuous"
+    return tiles
+
+
+def _leg_records() -> tuple[dict, dict]:
+    elec, gas = _dual_fuel_pair()
+    return json.loads(elec.read_text(encoding="utf-8")), json.loads(gas.read_text(encoding="utf-8"))
+
+
+def _money(value: str) -> float:
+    return float(value.replace("&pound;", "").replace("£", "").replace(",", "").replace("−", "-"))
+
+
+def test_the_dual_fuel_fixture_has_two_legs_that_actually_differ():
+    """Vacuity guard, first: if the gas leg carried no money -- or the same money as the
+    electricity leg -- then summing it and not summing it would render identically, and
+    every assertion below would pass over a broken page."""
+    e, g = _leg_records()
+    assert g["ledger"]["total_billed_gbp"] > 0, "gas leg bills nothing -- the sum test is vacuous"
+    assert g["ledger"]["total_billed_gbp"] != e["ledger"]["total_billed_gbp"], (
+        "both legs bill the identical amount -- a one-leg render would be indistinguishable "
+        "from a household render and this section would prove nothing"
+    )
+    assert g["lifetime_net_gbp"] != 0, "gas leg has no net -- the company-side sum test is vacuous"
+
+
+# The two predicates, extracted so the R15 mutations below can kill the CHECKER a named
+# test runs, rather than re-deriving an equivalent check inside the mutation (which would
+# prove only that the mutation's own copy of the rule works).
+def _check_household_sums(tiles: dict[str, tuple[str, str]], e: dict, g: dict) -> None:
+    expected = {
+        "Billed (lifetime)": e["ledger"]["total_billed_gbp"] + g["ledger"]["total_billed_gbp"],
+        "Collected": e["ledger"]["total_collected_gbp"] + g["ledger"]["total_collected_gbp"],
+        "Balance": e["ledger"]["current_balance_gbp"] + g["ledger"]["current_balance_gbp"],
+        "Lifetime net (commodity)": e["lifetime_net_gbp"] + g["lifetime_net_gbp"],
+        "Cost to serve": e["cost_to_serve_gbp"] + g["cost_to_serve_gbp"],
+    }
+    for label, want in expected.items():
+        assert label in tiles, f"the exhibit no longer renders a '{label}' tile"
+        got = _money(tiles[label][0])
+        assert abs(got - want) < 0.02, (
+            f"'{label}' renders {got} but this household's two legs sum to {round(want, 2)} -- "
+            "a single-leg figure is being shown under a household heading"
+        )
+
+
+def _check_no_household_claim_without_every_leg(tiles: dict[str, tuple[str, str]]) -> None:
+    offenders = {label: sub for label, (_v, sub) in tiles.items()
+                 if "household" in sub.lower() and "clock" in sub}
+    assert not offenders, (
+        "money tiles captioned 'household' while the household's gas leg was not loaded -- "
+        f"these figures cover the electricity leg only: {offenders}"
+    )
+    scoped = [label for label, (_v, sub) in tiles.items() if "leg only" in sub]
+    assert scoped, (
+        "the incomplete render named no leg at all -- a reader cannot tell these are one "
+        "fuel account's figures rather than the household's"
+    )
+
+
+def test_the_household_money_panels_sum_every_fuel_leg():
+    """Each money figure equals the sum over the household's legs, computed here from the
+    SAME published per-customer records the page reads -- not from a number typed into this
+    test, and not from company.json's single-leg block, which is the thing being corrected."""
+    e, g = _leg_records()
+    _check_household_sums(_money_tiles(), e, g)
+
+
+def test_the_invoice_count_is_every_invoice_the_account_holder_received():
+    """The customer-observable half of the same defect: the count sits next to 'Billed
+    (lifetime)' on the side of the wall the account holder can see, so it must be the
+    invoices they actually got, across both fuels."""
+    e, g = _leg_records()
+    want = len(e["invoices"]) + len(g["invoices"])
+    sub = _money_tiles()["Billed (lifetime)"][1]
+    assert f"{want} invoices" in sub, (
+        f"the billed tile says '{sub}' -- this household received {want} invoices across its "
+        f"two fuel accounts ({len(e['invoices'])} electricity + {len(g['invoices'])} gas)"
+    )
+
+
+def test_the_household_balance_agrees_with_the_drill_downs_combined_position():
+    """The finding's cross-tab half: the exhibit showed 'Balance GBP0.00 -- paid up to date'
+    while the Risk tab showed the household combined position in credit. Two balances on one
+    page with no stated scope. They are now the same quantity."""
+    e, g = _leg_records()
+    want = e["ledger"]["current_balance_gbp"] + g["ledger"]["current_balance_gbp"]
+    got = _money(_money_tiles()["Balance"][0])
+    assert abs(got - want) < 0.02, (
+        f"the exhibit's balance is {got} but the household's combined ledger position is "
+        f"{round(want, 2)} -- the page still carries two different balances for one household"
+    )
+
+
+@pytest.mark.parametrize("one_leg", [False, True], ids=["no-legs", "one-leg"])
+def test_no_money_figure_claims_household_scope_while_derived_from_fewer_legs(one_leg):
+    """THE control. A figure summed over fewer legs than the household has must name the leg
+    it came from and must NOT be captioned 'household' -- the defect being fixed is precisely
+    a single-leg figure wearing a household caption, so an incomplete render that still said
+    'household' would reintroduce it while every value test above stayed green."""
+    fixture = (_dual_fuel_pair()[0],) if one_leg else ()
+    _check_no_household_claim_without_every_leg(_money_tiles(legs=fixture))
+
+
+def test_mutation_summing_only_the_first_leg_kills_a_named_test(tmp_path):
+    """R15, direction 1: the ORIGINAL defect, restored -- electricity-leg values under a
+    household caption. The scope word stays correct, so only the value check can catch it,
+    and the mutation is required to kill that check by name."""
+    src = INDEX.read_text(encoding="utf-8")
+    marker = "var sum=function(f){return acc.reduce(function(a,x){return a+(Number(f(x))||0);},0);};"
+    assert marker in src, "the household sum no longer has the shape this mutation reverts"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(src.replace(marker, "var sum=function(f){return Number(f(acc[0]))||0;};"),
+                      encoding="utf-8")
+    tiles = _money_tiles(mutant)
+    assert "household" in tiles["Billed (lifetime)"][1], (
+        "this mutation is meant to keep the household CAPTION and corrupt only the "
+        "arithmetic; it changed the caption instead, so it proves the wrong control"
+    )
+    with pytest.raises(AssertionError, match="single-leg figure is being shown"):
+        _check_household_sums(tiles, *_leg_records())
+
+
+def test_mutation_a_single_leg_figure_wearing_a_household_caption_kills_a_named_test(tmp_path):
+    """R15, direction 2: the scope guard itself. A fallback that says 'household' when a leg
+    is missing is the defect with the label filed off, and no value check can see it -- the
+    values are correct FOR ONE LEG."""
+    src = INDEX.read_text(encoding="utf-8")
+    marker = ': (dual?(String(h.commodity||"electricity")+" leg only"):"household \u00b7 "+String(h.commodity||""));'
+    assert marker in src, "the scope fallback no longer has the shape this mutation reverts"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(src.replace(marker, ': "household";'), encoding="utf-8")
+    with pytest.raises(AssertionError, match="captioned 'household'"):
+        _check_no_household_claim_without_every_leg(_money_tiles(mutant, legs=(_dual_fuel_pair()[0],)))

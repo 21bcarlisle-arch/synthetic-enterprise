@@ -264,7 +264,55 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
       '<div class="kpi-value'+(klass?" "+klass:"")+'">'+value+'</div>'+
       (sub?'<div class="kpi-sub">'+esc(sub)+'</div>':'')+'</div>';
   }
-  window.renderCustomerState=function(company){
+
+  // HOUSEHOLD MONEY -- coldwalk:site2_dual_fuel_household_shows_electricity_only_money.
+  //
+  // company.json's `household` block is ONE FUEL LEG (commodity='electricity'), but this
+  // exhibit is headed "One household -- end to end" and its own first tile declares
+  // "Products: dual fuel / electricity + gas". Rendering the electricity leg's money under
+  // that heading understated the household's declared subject by ~60% (lifetime net
+  // £494.47 of £1,242.99), and told the ACCOUNT HOLDER -- on the customer-observable side
+  // of the wall -- that they had been billed £2,595.82 across 72 invoices when they had
+  // actually received 144 invoices totalling £6,560.24. It also printed "Balance £0.00 /
+  // paid up to date" while the same page's Risk tab showed the household £24.37 in credit:
+  // two balances, one page, no stated scope.
+  //
+  // Every leg is already published per-customer (site/data/customers/<id>.json -- the same
+  // files the drill-down below reads), so this SUMS them. No new data plumbing, per this
+  // atom's own constraint.
+  //
+  // Two rules the tests pin, and the second is the one that matters:
+  //   1. a figure covering every leg the household has is scoped "household";
+  //   2. a figure derived from FEWER legs than the household has is NEVER presented as a
+  //      household figure -- it names the leg it is actually from. So the fallback path
+  //      (legs unavailable at render time) is leg-scoped, not silently household-shaped.
+  //      That is what makes this a control rather than a re-typing: the failure mode being
+  //      fixed IS a single-leg figure wearing a household caption.
+  window.__assembleLegs=function(records){
+    // The household's leg set, and how many legs it is SUPPOSED to have. The expected
+    // count comes from the electricity leg's own published dual_fuel_combined block, so a
+    // gas leg that failed to load is detectable as MISSING rather than as "not dual fuel".
+    var recs=(records||[]).filter(Boolean);
+    var elec=recs[0]||null;
+    return {accounts:recs, expected: elec ? (((elec.dual_fuel_combined||{}).gas_account_id) ? 2 : 1) : 0};
+  };
+  function householdMoney(legs){
+    var acc=((legs&&legs.accounts)||[]).filter(function(a){return a&&a.ledger;});
+    if(!acc.length)return null;
+    var sum=function(f){return acc.reduce(function(a,x){return a+(Number(f(x))||0);},0);};
+    return {
+      complete: acc.length===(legs.expected||0),
+      count: acc.length,
+      fuels: acc.map(function(a){return String(a.commodity||"");}),
+      billed: sum(function(a){return a.ledger.total_billed_gbp;}),
+      collected: sum(function(a){return a.ledger.total_collected_gbp;}),
+      balance: sum(function(a){return a.ledger.current_balance_gbp;}),
+      invoices: acc.reduce(function(a,x){return a+((x.invoices||[]).length);},0),
+      net: sum(function(a){return a.lifetime_net_gbp;}),
+      cts: sum(function(a){return a.cost_to_serve_gbp;})
+    };
+  }
+  window.renderCustomerState=function(company,legs){
     var h=(company&&company.household)||{};
     if(!h.available){el("cust-intro").innerHTML='<span class="red">No household snapshot available in company.json.</span>';return;}
     var stamp=[];
@@ -304,13 +352,24 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
         tile("Engagement", esc(h.engagement_level||"--"), "company estimate")+
       '</div>';
 
-    // The money -- each on its clock (R14), split by which side of the wall the figure sits on.
-    var bal=Number(h.balance_gbp);
+    // The money -- each on its clock (R14), split by which side of the wall the figure sits on,
+    // and each carrying its SCOPE: every leg of the household, or the one leg it came from.
+    var m=householdMoney(legs);
+    var whole=!!(m&&m.complete);
+    var dual=(String(h.dual_fuel)==="true"||h.dual_fuel===true);
+    // The scope suffix every money caption carries. Rule 2 above lives here: when the legs
+    // are not all present, a dual-fuel household's figures say which leg they are, and the
+    // word "household" is not used for them at all.
+    var scope=whole
+      ? "household"+(m.fuels.length>1?" · "+m.fuels.join(" + "):"")
+      : (dual?(String(h.commodity||"electricity")+" leg only"):"household · "+String(h.commodity||""));
+    var bal=Number(whole?m.balance:h.balance_gbp);
+    var invCount=whole?m.invoices:h.invoice_count;
     el("cust-money").innerHTML=[
-      tile("Billed (lifetime)", gbp(h.billed_gbp), "billed clock · "+(h.invoice_count!=null?h.invoice_count+" invoices":""), ""),
-      tile("Collected", gbp(h.banked_gbp), "banked clock", ""),
-      tile("Balance", gbp(h.balance_gbp), (bal<0?"in credit · your money, held by us":"outstanding")+" · billed − banked", (bal<0?"green":(bal>0?"amber":""))),
-      tile("Failed payments", (h.failed_payment_count!=null?String(h.failed_payment_count):"--"), "direct-debit returns", (Number(h.failed_payment_count)>0?"amber":""))
+      tile("Billed (lifetime)", gbp(whole?m.billed:h.billed_gbp), "billed clock · "+scope+(invCount!=null?" · "+invCount+" invoices":""), ""),
+      tile("Collected", gbp(whole?m.collected:h.banked_gbp), "banked clock · "+scope, ""),
+      tile("Balance", gbp(bal), (bal<0?"in credit · your money, held by us":"outstanding")+" · billed − banked · "+scope, (bal<0?"green":(bal>0?"amber":""))),
+      tile("Failed payments", (h.failed_payment_count!=null?String(h.failed_payment_count):"--"), "direct-debit returns · "+(dual?String(h.commodity||"electricity")+" leg only":scope), (Number(h.failed_payment_count)>0?"amber":""))
     ].join("");
     el("cust-value").innerHTML=[
       // Cold-eyes 2026-08-12: this tile was captioned "after cost-to-serve" and
@@ -322,11 +381,13 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
       // now says which side of cost-to-serve the figure is on, and the after-CTS
       // number is DERIVED here from the two figures already on screen -- no new
       // data plumbing, per this atom's own constraint.
-      tile("Lifetime net (commodity)", gbp(h.lifetime_net_gbp), "settled clock · before cost-to-serve", (Number(h.lifetime_net_gbp)<0?"red":"green")),
-      tile("Cost to serve", gbp(h.cost_to_serve_gbp), "settled clock", ""),
-      tile("Net after cost to serve", gbp(Number(h.lifetime_net_gbp)-Number(h.cost_to_serve_gbp)),
-        "settled clock · derived: lifetime net − cost to serve",
-        ((Number(h.lifetime_net_gbp)-Number(h.cost_to_serve_gbp))<0?"red":"green")),
+      // Same scope discipline as the customer-side money above: these are the household's
+      // figures when every leg is present, and the electricity leg's -- said so -- when not.
+      tile("Lifetime net (commodity)", gbp(whole?m.net:h.lifetime_net_gbp), "settled clock · "+scope+" · before cost-to-serve", (Number(whole?m.net:h.lifetime_net_gbp)<0?"red":"green")),
+      tile("Cost to serve", gbp(whole?m.cts:h.cost_to_serve_gbp), "settled clock · "+scope, ""),
+      tile("Net after cost to serve", gbp(Number(whole?m.net:h.lifetime_net_gbp)-Number(whole?m.cts:h.cost_to_serve_gbp)),
+        "settled clock · "+scope+" · derived: lifetime net − cost to serve",
+        ((Number(whole?m.net:h.lifetime_net_gbp)-Number(whole?m.cts:h.cost_to_serve_gbp))<0?"red":"green")),
       // Cold-eyes 2026-08-12 (coldwalk:site2_churn_probability_carries_a_settlement_clock):
       // R14's clock discipline is about FINANCIAL figures -- which cash/settlement basis a
       // number is on. A probability has no settled/billed/banked basis, so stamping one on
@@ -386,8 +447,20 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
     }
 
     var p=h.passport||{};
+    // The scope statement is part of the BASIS, not decoration: a reader who sees one
+    // "household" figure is entitled to know which accounts were summed to make it, and a
+    // reader who sees a leg-scoped one is entitled to know a leg is missing rather than
+    // absent. Per-leg split is printed so the household total stays decomposable on screen.
+    var comp=whole
+      ? " Scope: this household's "+m.count+" fuel account"+(m.count===1?"":"s")+" ("+m.fuels.join(" + ")+") summed &mdash; "+
+        ((m.count>1&&legs&&legs.accounts)?legs.accounts.map(function(a){
+          return esc(String(a.commodity||""))+" "+gbp(a.ledger&&a.ledger.total_billed_gbp)+" billed";
+        }).join(", ")+". ":"")
+      : (dual
+          ? ' <span class="amber">Scope: the '+esc(String(h.commodity||"electricity"))+" leg only</span> &mdash; this household's other fuel account could not be loaded, so these are NOT household totals."
+          : " Scope: this household's single fuel account.");
     el("cust-money-basis").innerHTML="Basis: "+esc(p.note||"billed/banked are this account's own invoice-ledger cash clocks; lifetime net is settlement-derived.")+
-      " Source: "+((p.sources||[]).map(esc).join("; ")||"company.json household block")+".";
+      " Source: "+(whole?"site/data/customers/*.json per-fuel ledgers":((p.sources||[]).map(esc).join("; ")||"company.json household block"))+"."+comp;
   };
 
   // CO2: the per-customer carbon trajectory is the mission's unit of account -- but the E5
@@ -410,10 +483,29 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
       'this panel stays an honest placeholder.</p>';
   };
 
+  // Load every fuel leg of the household company.json names, so the money above can be the
+  // household's rather than one leg's. These are already-published artefacts (the drill-down
+  // below reads the same files); nothing new is generated for them. A leg that fails to load
+  // is NOT silently treated as absent -- __assembleLegs' expected count still says 2, so the
+  // render falls back to leg-scoped captions instead of mislabelling one leg as the household.
+  function loadHouseholdLegs(id){
+    if(!id)return Promise.resolve(null);
+    var get=function(a){return fetch("../data/customers/"+encodeURIComponent(a)+".json?t="+Date.now()).then(function(r){return r.json();});};
+    return get(id).then(function(elec){
+      var gid=(elec.dual_fuel_combined||{}).gas_account_id;
+      if(!gid)return window.__assembleLegs([elec]);
+      return get(gid).then(function(gas){return window.__assembleLegs([elec,gas]);})
+                     .catch(function(){return window.__assembleLegs([elec]);});
+    }).catch(function(){return null;});
+  }
+
   window.__bootCustomerState=function(){
     fetch("../data/company.json?t="+Date.now()).then(function(r){return r.json();}).then(function(company){
-      renderCustomerState(company);
-      renderCustomerCarbon(company);
+      var h=(company&&company.household)||{};
+      return loadHouseholdLegs(h.id).then(function(legs){
+        renderCustomerState(company,legs);
+        renderCustomerCarbon(company);
+      });
     }).catch(function(e){
       el("cust-intro").innerHTML='<span class="red">Could not load company.json for the household state.</span>';
       renderCustomerCarbon({});
