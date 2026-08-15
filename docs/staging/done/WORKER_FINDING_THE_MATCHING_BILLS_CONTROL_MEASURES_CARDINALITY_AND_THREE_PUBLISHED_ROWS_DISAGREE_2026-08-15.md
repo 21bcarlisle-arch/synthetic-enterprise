@@ -1,6 +1,8 @@
 # FINDING — the meter seam is computed twice, the control named for their agreement measures cardinality instead, and three published rows disagree today
 
-**Severity:** BLOCKING · **Lane:** D_billing_metering · **Disposition:** QUEUED (not fixed on sight)
+**Severity:** BLOCKING · **Lane:** D_billing_metering · **Disposition:** DISCHARGED 2026-08-15
+
+**Discharged:** `tests/simulation/test_run_phase4c_on_phase2b.py::test_read_log_cannot_be_re_derived_without_losing_the_final_read_override`, `tests/simulation/test_run_phase4c_on_phase2b.py::test_main_produces_meter_read_log_matching_bills`, `tests/company/compliance/test_population_sanity.py::test_read_log_matches_billing_basis_fires_on_the_final_read_override_shape`, `tests/controls/test_control_mutation.py::test_population_read_log_vs_billing_basis_fires_on_equal_length_disagreement`, `company/compliance/population_sanity.py` — landed 2026-08-15 in commit 60fc315da, gate receipt verified against tree 0fdaa45ba. The first node pins reads all-estimated so the SLC 21B override is guaranteed to fire, asserts the projected log agrees on every row, then re-derives the log the OLD way and asserts the class control FIRES naming the customer: the falsifier is the defect itself, re-introduced. The second replaces the cardinality assertion with the per-row join on the same full-pipeline run. The third and fourth are the equal-length single-row flip that cardinality passes, and the fail-open guard where both sides are keyed and nothing joins. (Every backtick on this line is read as a PATH, so the prose carries none.)
 
 **Atom:** `EP8_adapter_dcc_duis` (LANE 3 idle draw, DISCOVER/FRAME, 2026-08-15)
 **Class:** a control's name asserts a per-row AGREEMENT between two independently computed

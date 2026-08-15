@@ -2,6 +2,20 @@
 
 **Severity:** LATENT · **Lane:** D_billing_metering · **Disposition:** QUEUED (not fixed on sight)
 
+**STATUS UPDATE, 2026-08-15 third tick — the OCCASION is resolved, the FINDING is not.** The
+read-seam repair this document was written while failing to land is now in HEAD at `60fc315da`
+(gate receipt verified, tree `0fdaa45ba`), so nothing below should be read as a live blockage.
+The way through was neither of the two options this document listed: the foreign lane's
+SUPPLIER was landed first and alone (`3b4b5d71b`, `simulation/policy_costs.py`, a pure addition
+with zero callers in the resulting tree), which made the consumer hunk legal and let the
+read-seam commit carry it — disclosed in its message rather than smuggled. That is a third
+option this document did not see: **when the entanglement is a supplier/consumer pair, landing
+the supplier alone is a coherent commit that costs nothing and dissolves the refusal.** It
+generalises only to that shape; two lanes editing the same function still have no such move.
+The recommendation below (a pre-landing scope check, option 1) remains UNBUILT and correct —
+this tick found the entanglement the same way the last one did, by being refused after a full
+gate cycle, and paid the diagnosis twice.
+
 **Found by:** the 2026-08-15 worker tick, attempting to land the read-seam repair that closes
 `WORKER_FINDING_THE_MATCHING_BILLS_CONTROL_MEASURES_CARDINALITY_AND_THREE_PUBLISHED_ROWS_DISAGREE_2026-08-15.md`
 (BLOCKING, this lane, live at rung 1c). The repair is written, coherent and GREEN — 542 passed,
