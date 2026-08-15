@@ -164,10 +164,46 @@ _CATEGORY_PATTERNS: dict[OneWayDoorCategory, list[str]] = {
         r"\bcard payment\b", r"\bpay(ing)? for\b[^.]{0,40}\bsubscription\b",
         r"\b(company|corporate|real) card\b",
         r"\bsubscri(be|ption)\b[^.]{0,30}\b(paid|cost|fee)\b", r"\breal (card|bank) \w+\b",
+        # 2026-08-15, EP19 DISCOVER: the money side of a code accession is a FEE, not a
+        # subscription and not a card -- "pay the SEC accession fee" matched nothing above.
+        # Verb-paired deliberately: the register DESCRIBES these fees on every row, and a
+        # description is not an act, so a bare `\w+ fee` regex would fire on this atom's own
+        # documentation work (the same jam the currency-amount omission above avoids).
+        r"\bpay\w*\b[^.]{0,40}\b(accession|membership|joining|registration|licen[cs]e|application)\s+fees?\b",
     ],
     OneWayDoorCategory.REAL_WORLD_COMMITMENT: [
         r"\bsign(ed|ing)? (a |the )?contract\b", r"\blegal(ly)? bind", r"\bregulatory filing\b",
         r"\bsubmit(ted)? to ofgem\b", r"\bbinding agreement\b", r"\bterms of service\b.*\bagree\b",
+        # 2026-08-15, EP19 DISCOVER (docs/design/EP19_QUALIFICATION_ACTS_AND_THE_WALL_DISCOVER.md).
+        # EP19's `block_reason` asserts that acting on any counterparty qualification path is
+        # reserved classes 1 and 2 -- and every one of the register's five gated acts read
+        # PROCEED here. The prose named this module; this module did not implement the prose.
+        # The misses were all near-misses of shape, not of intent: `sign (a|the) contract`
+        # requires that literal word pair, so "sign the Data Services Contract" (an instrument
+        # with a NAME between the article and the noun) fell through; `submit to ofgem` names
+        # exactly one of the eight real bodies this project would ever write to; and accession
+        # -- the actual verb of every UK energy code -- appeared nowhere.
+        r"\bsign(s|ed|ing)?\s+(a|the)\s+[\w\-/ ]{0,40}\b(contract|agreement|deed)\b",
+        r"\bacced(e|es|ed|ing)\b[^.]{0,40}\bto\b",
+        # Instruments with NO documentation sense -- you cannot "apply for SMKI" descriptively.
+        # The bare word `accession` is deliberately NOT in this list even though it is the verb
+        # of every UK energy code: this atom's own DISCOVER work says "accession" in every other
+        # sentence, and pairing it with apply/file/register fired on "apply the filename
+        # convention to the accession register" and "file the accession notes" -- documentation,
+        # not acts. Accession as an ACT is caught by the fee pattern (REAL_MONEY) and by the
+        # named-body pattern below, both of which need something no description carries.
+        r"\b(submit|lodge|apply|register)\w*\b[^.]{0,60}"
+        r"\b(supply licen[cs]e|service user number|smki|cio/uit)\b",
+        r"\b(open|opening|establish)\w*\b[^.]{0,40}\b(sponsoring bank|bank relationship|bank account)\b",
+        # ENGAGING a named real counterparty. Verb-paired for the same reason as above and for a
+        # sharper one: "elexon" and "neso" are this project's daily vocabulary, so the bodies
+        # alone would fire on every open-data fetch (B6/B8 of the register are OPEN counterparties
+        # -- reading them is not a door). `call` is deliberately absent from the verb list: "call
+        # the Elexon Insights API" is the single commonest sentence in this repo.
+        r"\b(contact|e-?mail|phone|write to|approach|negotiate with|appl(y|ies|ied|ying)|"
+        r"register with|submit|lodge|accede)\w*\b"
+        r"[^.]{0,60}\b(ofgem|elexon|neso|xoserve|cdsp|recco|rec code manager|sec panel|bsc panel"
+        r"|the dcc|bacs|a sponsoring bank)\b",
     ],
     OneWayDoorCategory.IRRETRACTABLE_PUBLIC_CLAIM: [
         r"\bpress release\b", r"\bannounce(ment)? (externally|publicly)\b",

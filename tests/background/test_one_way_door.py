@@ -309,3 +309,76 @@ def test_opening_a_new_epoch_is_classified_but_no_longer_gated():
         v = classify_action(text)
         assert v.is_one_way_door is False, f"epoch-open should no longer gate: {text}"
         assert v.advisory_category == OneWayDoorCategory.VALUES_DECISION
+
+
+# --- 2026-08-15, EP19 DISCOVER: the qualification ACTS, not the description of them.
+# docs/design/EP19_QUALIFICATION_ACTS_AND_THE_WALL_DISCOVER.md. EP19's own `block_reason`
+# says acting on any counterparty qualification path is reserved classes 1 and 2 and names
+# THIS module as what holds that ceiling. Before this batch, all five gated acts in
+# docs/design/EP19_COUNTERPARTY_QUALIFICATION_REGISTER.md read PROCEED, while the SENTENCE
+# describing the boundary ("spending real money") read DOOR -- a control that fired on its
+# own prose and not on its population (R15 fail-open, wrong subject).
+
+QUALIFICATION_ACTS_THAT_MUST_GATE = [
+    # B1 DCC: SEC accession -> SMKI -> CIO/UIT
+    "Submit a Smart Energy Code accession application to the SEC Panel and pay the accession fee",
+    "Apply for SMKI certificates and book CIO/UIT entry-process testing with the DCC",
+    # B2 CSS/REC
+    "Contact the REC Code Manager to confirm our REC eligibility for switching data access",
+    # B3/B4 Xoserve / UK Link / UNC shipper status
+    "Sign the Data Services Contract / UK Link User Agreement with Xoserve as CDSP",
+    "Accede to the Uniform Network Code as a gas shipper and sign transportation agreements",
+    # B5 Bacs
+    "Open a sponsoring bank relationship and apply for a Bacs Service User Number",
+    # B7 ECVN/ECVAA
+    "Accede to the Balancing and Settlement Code and appoint an ECVN agent",
+]
+
+
+def test_every_gated_counterparty_qualification_act_is_a_door():
+    """The R15 mutation is the pre-repair state itself: remove the EP19 patterns from
+    _CATEGORY_PATTERNS and every line below flips to PROCEED (observed 2026-08-15 before
+    the repair -- 7 of 7 read door=False). The control therefore fires on a real, named
+    defect and is not passed by construction."""
+    for act in QUALIFICATION_ACTS_THAT_MUST_GATE:
+        verdict = classify_action(act)
+        assert verdict.is_one_way_door is True, f"reserved class 1/2 act read PROCEED: {act}"
+        assert verdict.category in RESERVED_CATEGORIES
+
+
+def test_the_open_counterparties_and_the_register_work_itself_still_proceed():
+    """The other half of the mutation. These are the OPEN rows of the same register (B6/B8/B9
+    -- reading published data qualifies nobody) plus this atom's own DISCOVER/documentation
+    work. A widened wall that jams the lane writing the register would be its own defect
+    (the 2026-07-16 epoch-adjective precedent above), so both directions are pinned."""
+    for act in [
+        "Fetch open BMRS settlement datasets from the Elexon Insights REST API",
+        "Fetch the NESO Carbon Intensity API, free and key-free",
+        "Download the published Ofgem price cap annex model spreadsheet",
+        "Call the Elexon Insights API and parse the settlement periods into the price feed",
+        "Parse the Xoserve UK Link file format into the gas settlement loader",
+        "Add a Bacs ADDACS report parser to the direct debit adapter",
+        # the register's own prose -- describing a qualification is not performing one
+        "Write the EP19 counterparty qualification register documenting the SEC accession fee",
+        "Refactor the accession-path table in docs/design and re-render the register",
+        "Register the new atom in the maturity map and file the accession notes",
+        "Apply the filename convention to the accession register doc",
+        # simulated-domain vocabulary that must never reach a real-money verdict
+        "Model the customer paying an early exit fee when they leave a fixed tariff",
+        "Sign the commit with the existing key",
+    ]:
+        verdict = classify_action(act)
+        assert verdict.is_one_way_door is False, f"open/descriptive work read as a door: {act}"
+
+
+def test_a_named_instrument_between_the_article_and_the_noun_still_signs_a_contract():
+    """The specific near-miss of shape that let B3 through: `sign (a|the) contract` needed
+    that literal word pair, so every real instrument -- which always carries a NAME -- fell
+    through the wall while the toy phrasing was caught."""
+    assert classify_action("sign the contract").is_one_way_door is True
+    for named in [
+        "Sign the Data Services Contract with the CDSP",
+        "sign the UK Link User Agreement",
+        "signing a REC accession agreement",
+    ]:
+        assert classify_action(named).is_one_way_door is True, named

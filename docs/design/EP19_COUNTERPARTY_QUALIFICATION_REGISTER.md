@@ -60,6 +60,36 @@ project's Part A register has. The 2026-08-05 verification date is the freshness
 | B9 | **Ofgem / DNOs / NESO** — published cost-stack files (price cap annex model, CDCM DUoS, TNUoS, BSUoS) | Nothing; published as spreadsheets, not API'd ~ | — | **OPEN** ~ | n/a | File-ingest parsers with schema-drift tolerance, not REST clients. |
 | B10 | **Ofgem** — the supply licence itself | Holding a supply licence at all | **Part A** — `F5_LICENCE_READINESS_REGISTER.md`. Not restated here. | **GATED** | n/a | See Part A. |
 
+## Owner, per row — derived, not assigned (added 2026-08-15)
+
+The atom's `gain` asks for *"named qualifications **with owners**"*. The owner was never an external
+fact to be researched: in this company exactly two parties can perform anything, and which one owns an
+act is decided by the reserved-class enumeration in `background/one_way_door.py` (CLAUDE.md: the **SOLE**
+enumeration). Each row's owner below is the verdict of running `classify_action` on that row's act —
+`observed-with-evidence`, 2026-08-15, re-runnable.
+
+| row | the act | verdict | **owner** |
+|---|---|---|---|
+| B1 | SEC accession + fee | `real_money` | **Director** — reserved class 1 |
+| B1 | SMKI certificates, CIO/UIT testing | `real_world_commitment` | **Director** — reserved class 2 |
+| B2 | Ask the REC Code Manager to confirm eligibility | `real_world_commitment` | **Director** — reserved class 2 |
+| B3 | Sign the DSC / UK Link User Agreement | `real_world_commitment` | **Director** — reserved class 2 |
+| B4 | Accede to the UNC as a shipper | `real_world_commitment` | **Director** — reserved class 2 |
+| B5 | Sponsoring bank + Bacs SUN | `real_world_commitment` | **Director** — reserved classes 1 and 2 |
+| B7 | Accede to the BSC, appoint an ECVN agent | `real_world_commitment` | **Director** — reserved class 2 |
+| B6, B8, B9 | Fetch/download published open data | `PROCEED` | **The company lane that consumes it** (settlement, carbon, cost-stack) |
+| B10 | See Part A | — | Part A |
+
+Two things this column is, that an assigned column would not be. It is **exhaustive by construction** —
+every row gets a verdict because the classifier answers for any act — and it is **falsifiable**: the
+derivation only says anything true because the wall it reads was repaired this same pass. Run against the
+pre-2026-08-15 classifier, all seven gated rows would have come back agent-owned, which is exactly the
+defect `EP19_QUALIFICATION_ACTS_AND_THE_WALL_DISCOVER.md` records and
+`tests/background/test_one_way_door.py` now pins in both directions.
+
+What this column deliberately does **not** contain is an internal name or team. There is no org chart
+here to draw one from, and inventing one would be the fabrication this register exists to avoid.
+
 ## The paths are a graph, not a checklist
 
 The atom's source sentence — *"every gated counterparty names its own qualification path, so the Epoch-5
@@ -130,6 +160,14 @@ explicitly: *"this atom's ceiling is the register, never the application."* Acco
 - Nothing here is a proposal to unblock the atom. Pull-forward is proposal-only per
   `DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08` §3 and is not exercised.
 
+**Correction, 2026-08-15.** The first cut of this section said the reserved boundary was *"HELD, not just
+cited"*. That was true of this **document** — no row carries an action, by construction, and still does
+not — but it was **false of the mechanism the atom points at**. Every one of the seven gated acts above
+classified as PROCEED in `background/one_way_door.py` until this date, while the *sentence* describing the
+boundary (`block_reason`, containing "spending real money") classified as a door: the wall fired on the
+prose and not on the population. It is now mechanised and R15-proven in both directions —
+`EP19_QUALIFICATION_ACTS_AND_THE_WALL_DISCOVER.md`.
+
 ## Open items — named, not dropped (R10)
 
 1. **The atom's own `gain` is not met by this pass.** It reads *"go-live stops being a date and becomes a
@@ -137,6 +175,14 @@ explicitly: *"this atom's ceiling is the register, never the application."* Acco
    no costs and no lead times** — the three things that would make it a plan. That is the single largest
    gap between L1 and the atom's L2 target, and it is a genuine one: none of the three is derivable from
    the existing source.
+   **UPDATED 2026-08-15 — one third closed, and the search was in the wrong place.** *Owners* are now
+   derived per row (see the section above): they were never an external fact, so no source could have
+   held them; they follow from the reserved-class enumeration, and deriving them is what exposed the
+   fail-open wall that this atom's `block_reason` had been relying on. **Costs and lead times remain
+   open and are now the entire L2 gap.** Both are live external facts and autonomous runs have no
+   network, so neither was inferred — the next step is one *networked* DISCOVER pass to price the five
+   gated paths and record their published lead times. The level therefore stays at 1
+   (`EP19_QUALIFICATION_ACTS_AND_THE_WALL_DISCOVER.md` § The level).
 2. **B7's qualification path is unnamed.** The source records the ECVN/ECVAA channel and its June-2027 API
    consultation ✓ but never its accession requirement. BSC party accession + an ECVNA is `inferred` here
    and must not be treated as found.
@@ -157,6 +203,11 @@ the L2 blocker.
 - `docs/design/F5_LICENCE_READINESS_REGISTER.md` — **Part A**, the licence side of this one register.
 - `docs/design/refs/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md` — the sole external source
   consolidated here.
+- `docs/design/EP19_QUALIFICATION_ACTS_AND_THE_WALL_DISCOVER.md` — the 2026-08-15 pass: the seven
+  qualification acts read PROCEED at the wall this register's boundary cites, the repair, and the
+  derivation of the Owner column.
+- `background/one_way_door.py` / `tests/background/test_one_way_door.py` — the wall itself and the
+  three tests that pin these acts in both directions.
 - `docs/design/EP10_UK_LINK_XOSERVE_DISCOVER_FRAME.md` — the B3/B4 adapter atom's own DISCOVER/FRAME.
 - `docs/design/maturity_map.yaml` — `EP19_counterparty_qualification_paths`; `EP20_go_live_cutover_analysis`
   `depends_on` this atom.
