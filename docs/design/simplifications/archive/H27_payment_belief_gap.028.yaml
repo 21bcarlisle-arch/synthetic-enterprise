@@ -1,0 +1,90 @@
+atom_id: H27_payment_belief_gap
+chunk: 28
+simplifications:
+- 'THIRTY-FIRST HOUR (2026-08-14 UTC, worker tick). TWO DRAWS, ONE FILE, TAKEN
+
+  TOGETHER: the H27 2->3 HARDEN draw and the RUNG-1c BLOCKING draw on
+
+  `WORKER_FINDING_THE_CAVEAT_BLAMES_PLACEMENT_AND_THE_MEASUREMENT_SAYS_DENOMINATORS_2026-08-14.md`
+
+  (lane D_billing_metering). They are the same work: the finding''s own fix lives in
+
+  `tools/couple_w2_11_d5.py`, which is this atom''s ENTIRE `file_scope`, and the finding had
+
+  queued itself as unfixable because the D28 owner of that path is `loop_stage: idle`. It checked
+
+  one owner of a path 30 atoms share. This atom owns the same two paths at `loop_stage: harden`,
+
+  so the fix was drawable the whole time -- and forking a second context onto the one file both
+
+  draws want would have been the collision, not the parallelism. Serial, inline, one commit.
+
+
+  THE DEFECT, in one line: every published NUMBER was right and a published CLAIM was wrong.
+
+  `detection_resolution_caveat` told a reader "a company''s terms error moves it only where that
+
+  error carries an invoice across the grace line", and the register''s `why` blamed the interior
+
+  quantisation on "the number of invoices sitting BESIDE the grace line at any one distance"
+
+  being small. Both ship inside `det.components["drift_resolution_caveat"]` -- what the ledger
+
+  writer, the live wiring and the dashboard read -- and both are measurably false on this book.
+
+  212 of 900 invoices sit past the grace line at 63 distinct distances. What is small is the part
+
+  of that traffic this headline''s DENOMINATORS count.
+
+
+  WHAT LANDED: the correction, and the measurement that keeps it honest. Full detail in D28''s
+
+  own record (note 4), because that is the atom the finding re-scopes; in summary --
+
+  `measure_detection_interior_change_points` + `check_detection_interior_change_points` (new),
+
+  the two sentences corrected and now interpolated from the register rather than typed, and ten
+
+  R15 mutation cases of which six are fail-open shapes that read exactly like a clean sheet
+
+  unless named. Re-measured here rather than trusted: 86 interior pairs, the counted populations
+
+  step at 38/34/32 of them, the excluded band at 62/63/61, and the flagged set moves while the
+
+  figure stands still at 34/40/37. The move-iff-it-touches-`S u N` predicate holds 258/258 pairs
+
+  with zero disagreements against the shipped scorer.
+
+
+  THE LEVEL DOES NOT MOVE, and this is a REASONED hold rather than a silent one. The
+
+  `level_hold_note` released in 2026-08-09 says in as many words that a promoter "must run the
+
+  Expert-Hour pass on the CORRECTED instrument". This Hour is the one that CORRECTED the
+
+  instrument -- it found a false claim shipped on every surface the detection figure feeds and
+
+  fixed it. An Hour cannot be its own confirmation: L3 is "Expert Hour says this is real", and
+
+  what this Hour says is "this was not, and here is the repair". The next Hour on this atom runs
+
+  against a caveat that no longer lies and a control that re-derives its cause per book, and
+
+  that Hour can take the 2->3 on its own evidence. WHAT WOULD MAKE IT AN HONEST 3, stated now so
+
+  the next tick is not re-deriving it: an Hour that ends with no BLOCKING finding against the
+
+  corrected instrument. WHAT DOES NOT BLOCK IT: the two open D28 residuals (the `S`-side
+
+  predictor, unidentified; the reshape, unbuilt). Those are DISCLOSED limits of the instrument,
+
+  declared in the register and now published in the sentence a reader meets -- and an instrument
+
+  that states its own limits accurately is what epistemic cleanliness at L3 asks for, not an
+
+  instrument with no limits. `expert_hour.status` moves off `attempted_finding_open`: the
+
+  finding it names is closed.'
+map_records:
+  expert_hour_findings:
+  - 'SEVENTEENTH HOUR (2026-08-11), on Hour #16''s lead 2 -- the ROUNDING before the render -- which found the layer ABOVE it first: THE READER''S PRECISION WAS READ AT ONE OF THIS FIGURE''S TWO RENDER SITES. D34 reads each published figure''s reader precision off the format spec in ONE NAMED FUNCTION, and the AGEING headline reaches its reader through two -- `format_ageing_summary` at 3dp and `_ageing_direction_note` at 6dp, into the published component `ordinal_direction_caveat`, exactly the kind of surface Hour #15 established consumers actually read. So the declared reader step was 5e-4 where the reader''s own is 5e-7, and every band, floor and collapse certified for that dimension ''at the reader''s own precision'' was certified a THOUSANDFOLD too coarse. D34''s R15 list names ''one gap rendered at two precisions'' as a mutation that fires; it fires only INSIDE the anchored function, so the SHIPPED two-precision state was invisible to the control built to detect exactly it -- the third Hour running to find its defect inside the previous Hour''s control. A second undeclared site turned up in the same sweep: `belief_population_mix` renders its own gap at 4dp into its own `.note`, the string the ledger writer puts in front of the Proof door. Hour #16''s lead 2 is ANSWERED AND NEGATIVE and now pinned: no carrier''s inner quantisation is coarser than its render (ageing 6dp/6dp, latency 6dp/2dp, the rest unquantised at 17dp). LANDED: `also_rendered_at`/`component_renders` on PUBLISHED_GAP_CONSUMERS with ageing''s epsilon corrected to the FINEST site; `measure_component_render_sites`, artefact-side and reading no source, with a two-book DISCRIMINATION RULE so a literal counts only if it moves with the figure; D34''s rule reshaped with its guard MOVED onto the declared SET rather than dropped; and both controls wired into the CLI, which D34''s never was. R15 both ways on eight mutations. R12: all five published figures bit-identical. Reshape minted, not taken: D35_the_render_site_sweep_stops_at_this_processs_edge. AND THE HOLD RECORD WAS ONE HOUR STALE when this Hour drew: Hour #16 recorded itself here and in `simplifications` but not in `level_hold_note`, whose closing sentence still handed the next promoter Hour #15''s leads for an Hour already run.'
