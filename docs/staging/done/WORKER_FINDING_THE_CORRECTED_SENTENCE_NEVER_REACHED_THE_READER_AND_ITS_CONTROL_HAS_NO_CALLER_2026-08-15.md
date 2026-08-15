@@ -2,6 +2,38 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness · **Disposition:** QUEUED (not fixed on sight)
 
+**STATUS UPDATE, 2026-08-15 fourth tick — TWO OF THE THREE ARE REPAIRED AND LANDED; THE
+FINDING STAYS BLOCKING.** No discharge field is written here, deliberately: a discharge claim
+reads this whole document down to RECORDED, and BLOCKING 1 is still true of the live door as
+of this tick. What is now false is BLOCKING 2 and BLOCKING 3, both landed at `0a9c969f5`
+(pushed to origin, `python3 -m tools.surgical_land --verify 0a9c969f5` → tree `13fae02d6`,
+gate rc 0), with `tests/tools/test_couple_w2_11_d5.py` at **489 passed** on the working tree
+that produced it.
+
+* **BLOCKING 2 — done.** The interior-band comparison in
+  `tools/couple_w2_11_d5.py` is equality, not containment; it names the WIDER direction in its
+  own violation string, and an OMITTED declaration is a violation rather than a clean sheet.
+  Six new mutation cases, including the widening case this document said no case covered.
+* **BLOCKING 3 — done, and as the class fix R10 requires rather than the wiring fix.**
+  `measure_check_call_census` reads `main()` off the AST and `check_check_call_census` puts
+  every `check_*` this module defines on trial for reachability from the run that publishes.
+  This document's own 5-of-15 measurement was the census's first population; all five are now
+  dispositioned by name — three wired onto the default path with printed verdicts, two
+  declared in `CHECKS_BEHIND_A_FLAG` with the flag that guards them and the reason. The census
+  is itself on the default path, because a reachability census with no caller would have been
+  instance four. R15 both ways: an empty subject and a missing `main()` each fail closed, and
+  a stale or false exemption fires whichever side moved.
+* **BLOCKING 1 — NOT discharged, and not attempted this tick, with a reason.** Re-verified
+  live rather than assumed: `https://poesys.net/data/proof.json` → HTTP 200, 747,008 bytes,
+  `generated_at` **2026-08-14T06:04:08Z**, the uncorrected clause still served
+  (`NECESSARY, NOT SUFFICIENT` scores 0). Its supplier is not this lane's to land: at this
+  tree `site/data/proof.json` sits inside a **198-file staged index** belonging to
+  `background/process_run_complete.py`, which was live and mid-gate during this tick (pid
+  801440, full suite running). Committing that one path out of another writer's publish batch
+  is the entanglement this repo has now paid for twice; the publish is in flight and owns its
+  own discharge. **The finding therefore stays live and correctly drawing at rung 1c**, and
+  the next tick should take BLOCKING 1 alone exactly as the closing section says.
+
 **Found by:** the 2026-08-15 worker tick, THIRTY-SECOND HOUR on `H27_payment_belief_gap`
 (level 2, `level_target` 3, `loop_stage: harden`, `file_scope` = `tools/couple_w2_11_d5.py` +
 `tests/tools/test_couple_w2_11_d5.py`). Run as a fresh read-only instance with no memory of the
