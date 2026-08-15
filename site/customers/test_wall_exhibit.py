@@ -79,6 +79,11 @@ INJECTION_POINTS = {
     "forecast-cashflow-body": "company",
 }
 
+# The "(at closure)" qualifier section 13 puts on a closed household's forward-looking
+# labels. Optional everywhere it appears below, so a pattern matches the same figure on a
+# live household and on a closed one.
+_Q = r"(?: \(at closure\))?"
+
 # The named instances the atom's exit criterion (3) requires be tested specifically,
 # keyed to the markup the page actually renders for each label (not to prose, which
 # legitimately discusses these figures in the exhibit's explanatory header).
@@ -93,10 +98,16 @@ COMPANY_ONLY_FIGURES = {
                      r'class="kpi-label">Net after cost to serve', r'>Combined Net Margin<'),
     "cost-to-serve": (r'class="rl">Cost to Serve<', r'class="kpi-label">Cost to serve<',
                       r'>Cost to Serve \(lifetime\)<'),
-    "churn probability": (r'class="kpi-label">Churn Probability<', r'class="kpi-label">Churn risk<'),
-    "customer lifetime value": (r'class="rl">Customer Lifetime Value<', r'>Combined CLV<'),
+    # Section 13 stamps a closed household's forward-looking labels "(at closure)". The
+    # '<'-anchored patterns went blind the moment that shipped -- the SAME narrowed-parser
+    # class the comment above records, caught a second time by the anti-vacuity test rather
+    # than by review. `_Q` is the qualifier, optional, so the leak checker keeps seeing
+    # these figures on a closed household AND on a live one.
+    "churn probability": (rf'class="kpi-label">Churn Probability{_Q}<',
+                          r'class="kpi-label">Churn risk<'),
+    "customer lifetime value": (rf'class="rl">Customer Lifetime Value{_Q}<', r'>Combined CLV<'),
     "pricing action": (r'class="kpi-label">Pricing Action',),
-    "forecast profit": (r'class="rl">Forecast Annual Profit<', r'>Projected Net Margin<',
+    "forecast profit": (rf'class="rl">Forecast Annual Profit{_Q}<', r'>Projected Net Margin<',
                         r'>Net Cash Contribution'),
 }
 SIM_ONLY_FIGURES = {
@@ -1437,3 +1448,193 @@ def test_mutation_a_single_leg_figure_wearing_a_household_caption_kills_a_named_
     mutant.write_text(src.replace(marker, ': "household";'), encoding="utf-8")
     with pytest.raises(AssertionError, match="captioned 'household'"):
         _check_no_household_claim_without_every_leg(_money_tiles(mutant, legs=(_dual_fuel_pair()[0],)))
+
+
+# ---------------------------------------------------------------------------
+# 13. A closed account has no future, so it has no live forecast
+#     (coldwalk:site2_churned_account_presented_in_the_present_tense, render half)
+#
+# Five of the nine domestic households published to this page carry a real `churned`
+# timeline event. The page rendered their churn probability, expected lifetime, pricing
+# action, CLV and forecast annual profit as LIVE forward-looking estimates -- under a
+# present-day data stamp, directly beside its own notice reading "Account closed
+# 2021-12-30 -- final bill C1-INV72. Account settled to zero." A supplier holds no live
+# churn forecast for a household that has left; it holds the last belief it formed before
+# they left.
+#
+# The rule pinned here is a TENSE rule, not a value rule: a forward-looking figure on a
+# closed household must present as a belief frozen at the closure date, and a forward-
+# looking figure on a LIVE household must not. Both directions are asserted, because a
+# one-directional control is passed by "never stamp" (the original defect) or by "always
+# stamp" (a page that tells every reader their live account has closed). Each direction
+# is mutation-killed below.
+#
+# NOT fixed here, and deliberately: the #op-state exhibit's own churn tile reads
+# company.json's `household` block, which carries no closure field at all -- it cannot
+# know without either new plumbing (forbidden by this atom's constraint) or an inference
+# from annual_pnl's last year, which would be an inference printed as a fact. And the
+# published records themselves disagree: C1's electricity leg carries churn_probability
+# 0.23 / clv 2840.5 while its gas leg, same household and same closure date, carries
+# zeros. That is the finding's DATA half and belongs to tools/generate_customer_data.py,
+# not to this page.
+# ---------------------------------------------------------------------------
+FORWARD_LOOKING_LABELS = (
+    "Churn Probability",
+    "Expected Lifetime",
+    "Pricing Action (Electricity)",
+    "Pricing Action (Gas)",
+    "Customer Lifetime Value",
+    "Forecast Annual Profit",
+)
+FROZEN_SUFFIX = " (at closure)"
+
+# Only LABEL sites. The projection's prose says "discounted at the same rate used for
+# Customer Lifetime Value", which is a reference, not a figure wearing a label -- reading
+# raw text would make that sentence look like an unstamped figure and the control would
+# cry wolf on a page that was right.
+_LABEL_SITE = re.compile(
+    r'<span class="rl">(?P<rl>[^<]*)</span>|<div class="kpi-label">(?P<kpi>[^<]*)</div>'
+)
+
+
+def _closed_household() -> tuple[Path, Path]:
+    return CUSTOMER_DATA / "C1.json", CUSTOMER_DATA / "C1g.json"
+
+
+def _live_household() -> tuple[Path, Path]:
+    return CUSTOMER_DATA / "C2.json", CUSTOMER_DATA / "C2g.json"
+
+
+def _closure_dates(legs: tuple[Path, ...]) -> list[str]:
+    dates = []
+    for leg in legs:
+        rec = json.loads(leg.read_text(encoding="utf-8"))
+        dates += [e["date"] for e in rec.get("timeline", []) if e.get("type") == "churned"]
+    return sorted(dates)
+
+
+def _drive_pair(index: Path, tmp: Path, legs: tuple[Path, Path]) -> tuple[list[str], str]:
+    """(rendered forward-looking labels, all rendered html) for one household.
+
+    Runs the page's own code over the published records for THAT household, across every
+    tab and both injection points that carry a forward-looking figure -- the same route
+    the real fixture takes, so a mutation cannot pass by being rendered differently here.
+    """
+    proc = _run(index, legs[0], legs[1], tmp)
+    assert proc.returncode == 0, f"harness failed on {legs[0].name}: {proc.stderr}"
+    out = json.loads(proc.stdout)
+    html = "".join(out["views"]["both"].values()) + "".join(out["injected"].values())
+    labels = []
+    for m in _LABEL_SITE.finditer(html):
+        text = (m.group("rl") or m.group("kpi") or "").strip()
+        base = text[: -len(FROZEN_SUFFIX)] if text.endswith(FROZEN_SUFFIX) else text
+        if base in FORWARD_LOOKING_LABELS:
+            labels.append(text)
+    assert labels, (
+        "no forward-looking figure rendered at all -- every assertion below would be vacuous"
+    )
+    return labels, html
+
+
+# The predicates, extracted so the R15 mutations kill the CHECKER a named test runs
+# rather than a private re-derivation of the same rule.
+def _check_frozen(labels: list[str]) -> None:
+    live = sorted({lab for lab in labels if not lab.endswith(FROZEN_SUFFIX)})
+    assert not live, (
+        "this household has closed its account, and these forward-looking figures still "
+        f"render as live estimates: {live} -- the supplier holds a last belief, not a forecast"
+    )
+
+
+def _check_not_frozen(labels: list[str]) -> None:
+    stamped = sorted({lab for lab in labels if lab.endswith(FROZEN_SUFFIX)})
+    assert not stamped, (
+        "this household has NOT closed its account, yet these figures are presented as "
+        f"beliefs frozen at closure: {stamped} -- an always-stamp render would satisfy the "
+        "closed-account control while telling every live customer they had left"
+    )
+
+
+def test_the_closed_fixture_household_actually_carries_live_forward_looking_figures():
+    """Vacuity guard, first. If the closed household's published record carried zeros for
+    every forward-looking field, there would be nothing to mis-tense and the control below
+    would pass over a page that had never been fixed."""
+    elec, gas = _closed_household()
+    assert _closure_dates((elec, gas)), "the 'closed' fixture has no churned event at all"
+    rec = json.loads(elec.read_text(encoding="utf-8"))
+    forward = {k: rec.get(k) for k in
+               ("churn_probability", "clv_gbp", "expected_lifetime_periods", "forecast_annual_profit_gbp")}
+    assert all(v for v in forward.values()), (
+        f"the closed household publishes no live forward-looking figures ({forward}) -- "
+        "the tense control would have nothing to catch"
+    )
+
+
+def test_the_live_fixture_household_has_not_closed():
+    """Vacuity guard for the inverse direction: the negative fixture must really be open,
+    or 'not stamped' would be proven on a second closed household."""
+    assert not _closure_dates(_live_household()), (
+        "the 'live' fixture household carries a churned event -- the inverse direction "
+        "would be asserting that a CLOSED account is not stamped, which is the defect"
+    )
+
+
+def test_every_forward_looking_figure_on_a_closed_account_is_frozen(tmp_path):
+    """THE control. Every forward-looking figure the page renders for a household that has
+    closed its account presents as a belief frozen at closure, not a live forecast."""
+    labels, _ = _drive_pair(INDEX, tmp_path, _closed_household())
+    _check_frozen(labels)
+
+
+def test_the_closed_account_panels_say_when_the_belief_was_frozen(tmp_path):
+    """A stamp with no date is still the present tense -- the reader cannot tell WHEN the
+    belief stopped being updated. The date rendered is the household's own churn event,
+    read here from the published records rather than typed in, so a regenerated run cannot
+    make this cry wolf."""
+    legs = _closed_household()
+    _labels, html = _drive_pair(INDEX, tmp_path, legs)
+    want = _closure_dates(legs)[-1]
+    assert f"closed its account on {want}" in html, (
+        f"the closed-account panels never state the closure date {want} -- "
+        "'(at closure)' alone does not tell the reader when the forecast stopped"
+    )
+
+
+def test_a_live_households_forward_looking_figures_are_not_stamped_frozen(tmp_path):
+    """The other direction. A household that has not closed must render its forecasts as
+    forecasts -- this is what stops the control being satisfied by stamping everything."""
+    labels, _ = _drive_pair(INDEX, tmp_path, _live_household())
+    _check_not_frozen(labels)
+
+
+def test_mutation_dropping_the_frozen_stamp_kills_a_named_test(tmp_path):
+    """R15, direction 1: the ORIGINAL defect restored. fwdLabel() is the sole writer of the
+    qualifier, so returning the label unchanged is exactly the page as cold-eyes found it --
+    a closed household's churn probability, expected lifetime, pricing action, CLV and
+    forecast profit printed in the present tense. The frozen HINT survives this mutation
+    deliberately: the subject of the killed test is the labels, and a page that explains in
+    prose what its own labels contradict is the prose-control failure this atom exists to
+    remove."""
+    src = INDEX.read_text(encoding="utf-8")
+    marker = "function fwdLabel(label){return householdClosureDate()?label+FROZEN_SUFFIX:label;}"
+    assert marker in src, "the frozen-stamp writer no longer has the shape this mutation reverts"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(src.replace(marker, "function fwdLabel(label){return label;}"), encoding="utf-8")
+    labels, _ = _drive_pair(mutant, tmp_path, _closed_household())
+    with pytest.raises(AssertionError, match="still render as live estimates"):
+        _check_frozen(labels)
+
+
+def test_mutation_stamping_every_household_frozen_kills_a_named_test(tmp_path):
+    """R15, direction 2: the tautology. A closure detector that always answers 'closed'
+    makes the control above pass on any page at all -- and tells a live account holder's
+    supplier that its own customer has left. The inverse test is required to kill it."""
+    src = INDEX.read_text(encoding="utf-8")
+    marker = "  var legs=[HH.elec,HH.gas],best=null;"
+    assert marker in src, "the closure detector no longer has the shape this mutation reverts"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(src.replace(marker, '  var legs=[HH.elec,HH.gas],best="2021-12-30";'),
+                      encoding="utf-8")
+    labels, _ = _drive_pair(mutant, tmp_path, _live_household())
+    with pytest.raises(AssertionError, match="has NOT closed its account"):
+        _check_not_frozen(labels)

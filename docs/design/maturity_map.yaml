@@ -5093,7 +5093,7 @@
   depends_on: []
   couples_with: [D36_bill_render_footing_and_pence, SITE3_wall_exhibit_url_rename]
   file_scope: ['site/customers/index.html', 'site/customers/test_wall_exhibit.py', 'site/customers/_wall_harness.mjs', 'site/customers/test_customers_door.py', 'site/customers/_render_harness.mjs', 'site/_redirects', 'site/test_no_links_to_redirected_urls.py', 'docs/design/SITE_CONSTITUTION.md']
-  simplifications_count: 5
+  simplifications_count: 6
   expert_hour:
     status: findings_open
     last: '2026-08-12'
@@ -5114,6 +5114,17 @@
     fixed_2026_08_15:   # the household's money is the household's, not one fuel leg's
     - coldwalk:site2_dual_fuel_household_shows_electricity_only_money
     findings:   # OPEN; reconciled vs the ledger by tests/controls/test_map_reconciliation.py
+    # RENDER HALF FIXED 2026-08-15 (worker tick) -- see the ledger's render_half_fixed block
+    # and the store record. A closed household's forward-looking figures (churn probability,
+    # expected lifetime, pricing action, CLV, forecast profit, the cashflow projection) now
+    # present as beliefs frozen at the closure date, off the page's own churned timeline
+    # event; five of nine domestic households were affected, not the one the walk named.
+    # STAYS OPEN because the DATA half is real and is NOT SITE2's: C1's two fuel legs, same
+    # household and same 2021-12-30 closure, still disagree about whether it is a customer
+    # (elec churn_probability 0.23 / clv 2840.5 vs gas zeros). Producer is
+    # tools/generate_customer_data.py -- a generator-lane item. Also still open, and blocked
+    # on that data half: the #op-state exhibit's own churn tile, whose company.json
+    # `household` block carries no closure field to read.
     - coldwalk:site2_churned_account_presented_in_the_present_tense
     # NOT a SITE2 render defect and NOT closable here -- the walk's own entry says so: a
     # WORLD/SIM fidelity finding surfaced BY the exhibit (winter:summer 0.90 where GB

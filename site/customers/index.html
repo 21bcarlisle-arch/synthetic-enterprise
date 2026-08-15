@@ -922,9 +922,9 @@ function overviewPanels(){
       fuelCards(function(d){
         return "<div class=\"row\"><span class=\"rl\">Lifetime Net Margin</span><span class=\""+nc(d.lifetime_net_gbp)+"\">"+gbp(d.lifetime_net_gbp)+"</span></div>"+
           "<div class=\"usage-hint\">Settlement clock (SIM-internal wholesale-cost accounting) -- see the front page's reconciliation bridge for how this relates to the billed clock.</div>"+
-          "<div class=\"row\"><span class=\"rl\">Customer Lifetime Value</span><span class=\"blue\">"+gbp(d.clv_gbp)+"</span></div>"+
-          (d.forecast_annual_profit_gbp?"<div class=\"row\"><span class=\"rl\">Forecast Annual Profit</span><span class=\""+nc(d.forecast_annual_profit_gbp)+"\">"+gbp(d.forecast_annual_profit_gbp)+"</span></div>":"");
-      })+rollupHtml())
+          "<div class=\"row\"><span class=\"rl\">"+fwdLabel("Customer Lifetime Value")+"</span><span class=\"blue\">"+gbp(d.clv_gbp)+"</span></div>"+
+          (d.forecast_annual_profit_gbp?"<div class=\"row\"><span class=\"rl\">"+fwdLabel("Forecast Annual Profit")+"</span><span class=\""+nc(d.forecast_annual_profit_gbp)+"\">"+gbp(d.forecast_annual_profit_gbp)+"</span></div>":"");
+      })+frozenHint("Customer lifetime value and forecast annual profit")+rollupHtml())
   ];
 }
 
@@ -1258,6 +1258,50 @@ function renderReactionChain(chain){
     "<div class=\"usage-hint\">The hidden churn-journey state and the renewal outcomes it produced, each carrying what the company BELIEVED against what the simulation realized. The household's own arrears letters, and the supplier's collections decisions, are no longer in this chain &mdash; they are on their own sides of the wall above.</div>";
 }
 
+/* Cold-eyes 2026-08-12 (coldwalk:site2_churned_account_presented_in_the_present_tense),
+   render half. Five of the nine domestic households on this page have a real `churned`
+   timeline event -- the account is CLOSED -- and the page was still printing their churn
+   probability, expected lifetime, pricing action, CLV and forecast annual profit as live
+   forward-looking estimates, under a present-day data stamp, beside a notice reading
+   "Account closed 2021-12-30 ... settled to zero". A supplier does not hold a live churn
+   forecast for a household that has left; what it holds is the LAST BELIEF IT FORMED
+   BEFORE THEY LEFT.
+
+   The published per-customer record cannot fix this on its own: C1's electricity leg
+   still carries churn_probability 0.23 / clv 2840.5 while its gas leg (same household,
+   same closure date) carries zeros, so the two legs disagree about whether the household
+   still exists. That inconsistency is the generator's (tools/generate_customer_data.py)
+   and is filed as the finding's DATA half. This is the render half, and it does not need
+   the data half first: the drill-down already knows the closure date, off a real timeline
+   event -- the same event closedAccountNotice() fires off -- so no new plumbing is
+   involved, per this atom's own constraint.
+
+   MECHANISM, not prose. fwdLabel() is the SOLE writer of the qualifier on a
+   forward-looking label. A figure that goes out unstamped on a closed household is
+   caught by name (test_every_forward_looking_figure_on_a_closed_account_is_frozen), and
+   a stamp applied to a household that has NOT closed is caught by its inverse
+   (test_a_live_households_forward_looking_figures_are_not_stamped_frozen) -- so neither
+   "never stamp" nor "always stamp" passes. R15 both ways at the bottom of section 12. */
+function householdClosureDate(){
+  var legs=[HH.elec,HH.gas],best=null;
+  for(var i=0;i<legs.length;i++){
+    var tl=(legs[i]&&legs[i].timeline)||[];
+    for(var k=0;k<tl.length;k++){
+      if(tl[k].type==="churned"&&tl[k].date&&(best===null||tl[k].date>best))best=tl[k].date;
+    }
+  }
+  return best;
+}
+var FROZEN_SUFFIX=" (at closure)";
+function fwdLabel(label){return householdClosureDate()?label+FROZEN_SUFFIX:label;}
+function frozenHint(what){
+  var c=householdClosureDate();
+  if(!c)return "";
+  return "<div class=\"usage-hint\">This household closed its account on "+esc(c)+". "+
+    what+" above "+
+    "is the supplier's last belief formed BEFORE that date, frozen there &mdash; not a live "+
+    "forecast. Nothing is being projected forward for a household that has left.</div>";
+}
 function riskPanels(){
   var d=HH.elec||HH.gas;
   var churnP=d.churn_probability||0,cc=churnColour(churnP);
@@ -1276,7 +1320,7 @@ function riskPanels(){
     var pa=acct.pricing_action||{},paFlag=pa.flag||"OK";
     var paColor=paFlag==="URGENT_REPRICE"?"red":paFlag==="REPRICE"?"amber":paFlag==="MONITOR"?"blue":"green";
     var paSub=pa.recommended_uplift_pct?"Uplift: "+(pa.recommended_uplift_pct*100).toFixed(1)+"%":"";
-    return "<div class=\"kpi\"><div class=\"kpi-label\">Pricing Action ("+label+")</div>"+
+    return "<div class=\"kpi\"><div class=\"kpi-label\">"+fwdLabel("Pricing Action ("+label+")")+"</div>"+
       "<div class=\"kpi-value\" style=\"font-size:14px\"><span class=\""+paColor+"\">"+esc(paFlag)+"</span></div>"+
       (paSub?"<div class=\"kpi-sub\">"+paSub+"</div>":"")+
       "</div>";
@@ -1291,14 +1335,15 @@ function riskPanels(){
       "<div class=\"usage-hint\">Outstanding Balance is the household combined (both fuels) live ledger position -- see Billing &amp; Payments &rarr; Statement for the per-account detail.</div></div>"),
     panel("company","Retention &amp; Risk &mdash; the supplier's estimates",
       "<div class=\"card\"><div class=\"kpi-grid\">"+
-      "<div class=\"kpi\"><div class=\"kpi-label\">Churn Probability</div>"+
+      "<div class=\"kpi\"><div class=\"kpi-label\">"+fwdLabel("Churn Probability")+"</div>"+
       "<div class=\"kpi-value "+cc+"\">"+pct(churnP)+"</div>"+
       "<div class=\"kpi-sub\">"+churnLabel(churnP)+"</div>"+
       "<div class=\"risk-bar\"><div class=\"risk-fill\" style=\"width:"+pct(churnP)+";background:var(--"+cc+")\"></div></div></div>"+
-      "<div class=\"kpi\"><div class=\"kpi-label\">Expected Lifetime</div><div class=\"kpi-value\">"+(d.expected_lifetime_periods||0).toFixed(1)+" yrs</div></div>"+
+      "<div class=\"kpi\"><div class=\"kpi-label\">"+fwdLabel("Expected Lifetime")+"</div><div class=\"kpi-value\">"+(d.expected_lifetime_periods||0).toFixed(1)+" yrs</div></div>"+
       paCards+
       "</div>"+
-      "<div class=\"usage-hint\">Churn/CLV is modelled at the household billing-account level, not duplicated per fuel; Pricing Action is computed independently per fuel-leg and shown for each fuel this household has. Every figure here is the supplier's own estimate from observable behaviour -- the account holder is never shown any of it.</div></div>")
+      "<div class=\"usage-hint\">Churn/CLV is modelled at the household billing-account level, not duplicated per fuel; Pricing Action is computed independently per fuel-leg and shown for each fuel this household has. Every figure here is the supplier's own estimate from observable behaviour -- the account holder is never shown any of it.</div>"+
+      frozenHint("Churn probability, expected lifetime and pricing action")+"</div>")
   ];
 }
 var _LEDGER_LABEL={
@@ -1406,7 +1451,8 @@ function renderForecastCashflow(){
   body.innerHTML="<table style=\"margin-top:10px\"><tr><th>Year</th><th>Projected Net Margin</th><th>Discounted (PV)</th></tr>"+rows+"</table>"+
     "<div class=\"usage-hint\">Projects "+(d.forecast_annual_profit_gbp?gbp(d.forecast_annual_profit_gbp)+"/yr":"this household's historical average annual net margin")+
     " forward across its expected remaining lifetime, discounted at the same rate used for Customer Lifetime Value -- the discounted total ("+gbp(totalDiscounted)+
-    ") reconciles with the CLV figure above by construction. This is a forecast, not a commitment: it assumes the household's historical margin and churn behaviour continue unchanged.</div>";
+    ") reconciles with the CLV figure above by construction. This is a forecast, not a commitment: it assumes the household's historical margin and churn behaviour continue unchanged.</div>"+
+    frozenHint("The projection");
 }
 var cashflowChart=null;
 function renderCashflow(){
