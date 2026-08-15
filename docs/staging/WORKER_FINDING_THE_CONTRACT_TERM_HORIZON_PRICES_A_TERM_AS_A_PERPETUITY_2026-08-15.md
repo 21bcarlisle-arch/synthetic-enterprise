@@ -2,6 +2,14 @@
 
 **Severity:** BLOCKING · **Lane:** B_commercial · **Disposition:** QUEUED (not fixed on sight)
 
+**Discharged:** 2026-08-15, condition 1 (price the term) taken on both horizons — `tests/company/core/test_three_horizon_clv.py::test_h1_clv_rises_strictly_with_the_term`, `tests/company/core/test_three_horizon_clv.py::test_h3_clv_rises_strictly_with_remaining_term`, `tests/company/core/test_three_horizon_clv.py::test_an_expiring_contract_is_not_worth_the_same_as_a_ten_year_one`
+
+The severity line above states what the pass FOUND and is left alone; the field states what it left.
+The three falsifiers are named on ONE line because the field reads a single line and every backtick
+on it as a path — the first draft of this discharge put them on continuation lines and
+`false_discharges()` refused it, which is the field working. See the closing section for the R15
+both-ways evidence and the one defect the repair had to fix that this document did not name.
+
 **Found by:** the 2026-08-15 worker tick, LANE 3 DISCOVER/FRAME draw on `EP1_clv_three_horizon`
 (level 0→3, `loop_stage: idle`, BUILD-gated). No BUILD code written. Measured at HEAD
 `d323edc25`, on the shipped module as it sits in the tree — nothing monkeypatched, nothing
@@ -151,3 +159,71 @@ contract-term hole is **not** merely "the genuine hole with `H1Commitment` as th
 artefact". The nearest artefact is a perpetuity on both of its horizons with a test suite that
 cannot say so. Treat it as REPAIR-THEN-WIRE, and do not let the green suite stand as evidence
 that the commitment side is sound.
+
+## Discharge record — 2026-08-15 worker tick (RUNG 1c BLOCKING draw, lane B_commercial)
+
+Condition 1 taken, as this document recommended. `_term_value_gbp` is now the single valuation
+both horizons call: the present value of a margin earned over a FINITE term, closed form
+`margin × retention × (1 − r^T) / (1 + d − retention)` with `r = retention/(1+d)`. That is the old
+expression multiplied by `(1 − r^T)`, so the perpetuity survives as its `T → ∞` limit instead of as
+the answer for every `T`. The `denom <= 0` branch §2 showed to be arithmetically closed is gone as
+a branch: the unit-retention case (`retention == 1 + d`) is now the algebraically correct degenerate
+value `margin × T`, reached by a test rather than by a fallback.
+
+**The finding's own tables, re-run on the repaired module** (margin £100, churn 0.20, discount 0.08;
+ceiling = `margin × term`):
+
+```
+H1  1-day   years= 0.0027  clv=  0.2347   ceiling=   0.2738
+H1  1-year  years= 0.9993  clv= 74.0306   ceiling=  99.9316
+H1  2-year  years= 1.9986  clv=128.8793   ceiling= 199.8631
+H1  5-year  years= 4.9993  clv=221.9831   ceiling= 499.9316
+H1 30-year  years=29.9986  clv=285.6791   ceiling=2999.8631      (was 285.7143 for all five)
+H3  rem=0.00 clv=0.0000 · rem=0.50 clv=39.8106 · rem=1.00 clv=74.0741 · rem=10.00 clv=271.5043
+```
+
+§3's two accounts — 1 day vs 9 years of term, same margin and churn — now differ by three orders of
+magnitude on both horizons where they were identical, and the 1-year value sits below its £99.93
+ceiling where the perpetuity was 2.86× above it.
+
+**One defect this document did not name, which pricing the term created.** A part-term H3 forecast
+scored against a whole-term H1 value would read every account as deteriorating merely because time
+had passed — mechanical decay dressed as a signal. `h3_signal` now scores H3 against
+`H1Commitment.clv_over_years_gbp` over the SAME remaining window, so an unchanged belief reads
+`on_track` at any point in the term and a worsened one still reaches `at_risk`. Both directions are
+tested.
+
+**R15, both ways, measured this tick, not asserted.** §4's two tautological assertions
+(`test_h1_clv_formula`, `test_h3_clv`) and the two negative-churn coverage tests are gone. The suite
+is 47 tests, green on the repaired module in 0.07s. Restoring the pre-repair module from
+`HEAD 75fd42288` under the new tests turns **12 of them red** — including both term-monotonicity
+controls, both ceiling controls, both period-by-period sums, and §3's own expiring-vs-ten-year case.
+The controls can fail on their own named defect, which is what §4 said the old suite could not do.
+
+**Severity accounting.** The severity header is left as this pass wrote it (BLOCKING is what the Hour
+FOUND); the structured `**Discharged:**` field above is what releases it, reading the document down to
+RECORDED via `background.finding_severity.parse_discharge`. This document deliberately stays in the
+staging ROOT rather than being archived to `done/`, because `classifiable_documents` globs the root
+only: archiving it now would remove it from the census before `CLASS_NO_CALLER_AND_NEVER_RUNS` is
+re-rendered, and that class doc reads BLOCKING on account of this member. It is archived at the next
+render, not at this tick.
+
+**Still true, and still the instruction for the draw that opens EP1:** the caller census in §5 is
+unchanged — zero non-test importers, so no published figure moved. REPAIR-THEN-WIRE is now
+REPAIRED-THEN-WIRE; what EP1 inherits is an annuity with controls that can fail, not a perpetuity
+with a suite that certifies it.
+
+**One claim in this document was wrong, and the discharge pass measured it rather than inheriting
+it.** The "Blast radius" paragraph above predicted that `CLASS_NO_CALLER_AND_NEVER_RUNS` would read
+BLOCKING on account of this member, and called that "a real cost on a second lane". It would not
+have, on two independent grounds, both read off `background/finding_classes.py::derive_memberships`
+this tick. First, the lane guard: that class's own lane is `H_harness` and this document's severity
+header says `B_commercial`, so a lane mismatch sends it to `refused_out_of_lane` — never to
+`members`, which is the list `class_severity` maximises over. It would have sat beside
+`WORKER_FINDING_THE_GAS_INDUSTRY_SYSTEMS_LAYER_IS_ELEVEN_MODULES_AND_NO_CALLERS_2026-08-13.md`,
+already refused there for the same reason. Second, and now also true, the RECORDED filter drops a
+discharged document from the class population outright. Checked after the repair: the document is in
+`members`, `archived` and `refused_out_of_lane` of **no class at all**, and
+`no_caller_and_never_runs` has `members=[]`. The escalation to BLOCKING was still right — §4's
+tautology is what earned it — but the second-lane cost it volunteered was never real. Predicting a
+derived document's severity is not the same as rendering it.

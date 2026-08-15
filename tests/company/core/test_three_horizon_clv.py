@@ -1,10 +1,17 @@
 """Tests for Three-Horizon CLV Tracker (Phase EC)."""
 import datetime as dt
+
 import pytest
+
 from company.core.three_horizon_clv import (
-    H3Signal, H1Commitment, H2Actuals, H3Forecast,
+    _H3_AT_RISK_THRESHOLD,
+    _H3_DETERIORATE_THRESHOLD,
+    _H3_OUTPERFORM_THRESHOLD,
+    H1Commitment,
+    H2Actuals,
+    H3Forecast,
+    H3Signal,
     ThreeHorizonCLVTracker,
-    _H3_OUTPERFORM_THRESHOLD, _H3_DETERIORATE_THRESHOLD, _H3_AT_RISK_THRESHOLD,
 )
 
 START = dt.date(2024, 1, 1)
@@ -39,24 +46,92 @@ def tracker():
     return ThreeHorizonCLVTracker()
 
 
+def discounted_sum(margin, churn, discount, whole_years):
+    """Period-by-period value of a term, built by summation rather than by the
+    module's closed form — so the assertion does not restate the implementation."""
+    retention = 1.0 - churn
+    return sum(
+        margin * retention**t / (1 + discount) ** t for t in range(1, whole_years + 1)
+    )
+
+
+def h1_of_whole_years(years, margin=200.0, churn=0.18, discount=0.08):
+    start = dt.date(2024, 1, 1)
+    return H1Commitment(
+        account_id="C1",
+        committed_at=start,
+        contract_start=start,
+        contract_end=start + dt.timedelta(days=round(365.25 * years)),
+        expected_annual_margin_gbp=margin,
+        expected_churn_rate=churn,
+        discount_rate=discount,
+    )
+
+
 class TestH1Commitment:
     def test_contract_years(self):
         h1 = make_h1()
         assert h1.contract_years == pytest.approx(1.0, rel=0.01)
 
-    def test_h1_clv_formula(self):
-        h1 = make_h1(margin=200.0, churn=0.18, discount=0.08)
-        retention = 0.82
-        expected = 200.0 * retention / (1 + 0.08 - retention)
-        assert h1.h1_clv_gbp == pytest.approx(expected)
+    def test_h1_clv_matches_period_by_period_sum(self):
+        # 4 whole years (1461 days = exactly 4 x 365.25), summed term by term —
+        # an independent construction, not a restatement of the closed form.
+        h1 = h1_of_whole_years(4)
+        assert h1.contract_years == pytest.approx(4.0)
+        assert h1.h1_clv_gbp == pytest.approx(discounted_sum(200.0, 0.18, 0.08, 4))
+
+    def test_h1_clv_rises_strictly_with_the_term(self):
+        # The defect this replaces: a 1-day and a 30-year commitment priced the same.
+        values = [h1_of_whole_years(y).h1_clv_gbp for y in (1, 2, 5, 10, 30)]
+        assert values == sorted(values)
+        assert all(b > a for a, b in zip(values, values[1:]))
+
+    def test_h1_clv_never_exceeds_what_the_term_can_deliver(self):
+        # margin x term is the undiscounted ceiling; the perpetuity broke it 2.9x over.
+        for years in (1, 2, 5, 10, 30):
+            h1 = h1_of_whole_years(years)
+            assert h1.h1_clv_gbp <= 200.0 * h1.contract_years
+
+    def test_h1_clv_of_a_zero_length_contract_is_zero(self):
+        start = dt.date(2024, 1, 1)
+        h1 = H1Commitment(
+            account_id="C1",
+            committed_at=start,
+            contract_start=start,
+            contract_end=start,
+            expected_annual_margin_gbp=200.0,
+            expected_churn_rate=0.18,
+            discount_rate=0.08,
+        )
+        assert h1.contract_years == pytest.approx(0.0)
+        assert h1.h1_clv_gbp == pytest.approx(0.0)
+
+    def test_h1_clv_of_certain_churn_is_zero(self):
+        assert make_h1(churn=1.0).h1_clv_gbp == pytest.approx(0.0)
+
+    def test_a_long_term_approaches_the_perpetuity_from_below(self):
+        # The old value, now the T -> infinity limit rather than the answer for every T.
+        perpetuity = 200.0 * 0.82 / (1 + 0.08 - 0.82)
+        long_term = h1_of_whole_years(40).h1_clv_gbp
+        assert long_term < perpetuity
+        assert long_term == pytest.approx(perpetuity, rel=1e-3)
 
 
 class TestH3Forecast:
-    def test_h3_clv(self):
-        h3 = make_h3(margin=200.0, churn=0.18)
-        retention = 0.82
-        expected = 200.0 * retention / (1 + 0.08 - retention)
-        assert h3.h3_clv_gbp == pytest.approx(expected)
+    def test_h3_clv_matches_period_by_period_sum(self):
+        h3 = make_h3(margin=200.0, churn=0.18, years=3)
+        assert h3.h3_clv_gbp == pytest.approx(discounted_sum(200.0, 0.18, 0.08, 3))
+
+    def test_h3_clv_rises_strictly_with_remaining_term(self):
+        values = [make_h3(years=y).h3_clv_gbp for y in (0.5, 1.0, 2.0, 5.0, 10.0)]
+        assert all(b > a for a, b in zip(values, values[1:]))
+
+    def test_h3_clv_never_exceeds_what_the_remaining_term_can_deliver(self):
+        for years in (0.5, 1.0, 2.0, 5.0, 10.0):
+            assert make_h3(margin=200.0, years=years).h3_clv_gbp <= 200.0 * years
+
+    def test_h3_clv_of_an_expired_contract_is_zero(self):
+        assert make_h3(years=0.0).h3_clv_gbp == pytest.approx(0.0)
 
 
 class TestThreeHorizonCLVTracker:
@@ -174,18 +249,12 @@ class TestThreeHorizonCLVTrackerDepth:
         result = tracker.h1_vs_h2_variance_gbp("NOACCOUNT", MID)
         assert result is None
 
-    def test_h1_clv_fallback_negative_churn(self):
-        h1 = H1Commitment(
-            account_id="FX",
-            committed_at=START,
-            contract_start=START,
-            contract_end=END,
-            expected_annual_margin_gbp=200.0,
-            expected_churn_rate=-0.10,
-            discount_rate=0.08,
-        )
-        # retention = 1.10; denom = 1.08 - 1.10 = -0.02 <= 0 => fallback
-        assert h1.h1_clv_gbp == pytest.approx(200.0 * h1.contract_years)
+    def test_h1_clv_negative_churn_grows_and_still_tracks_the_term(self):
+        # retention = 1.10 > 1 + d: the series grows rather than decays, so the
+        # margin x term ceiling does NOT apply — but the term must still be priced.
+        h1 = h1_of_whole_years(4, churn=-0.10)
+        assert h1.h1_clv_gbp == pytest.approx(discounted_sum(200.0, -0.10, 0.08, 4))
+        assert h1.h1_clv_gbp > h1_of_whole_years(2, churn=-0.10).h1_clv_gbp
 
     def test_deteriorate_threshold_constant(self):
         assert _H3_DETERIORATE_THRESHOLD == pytest.approx(-0.10)
@@ -228,13 +297,15 @@ class TestThreeHorizonCLVTrackerDepthJX:
         assert variance is not None
         assert variance < 0
 
-    def test_h3_clv_fallback_zero_denom(self):
-        # churn_probability = -0.08 -> retention = 1.08; denom = 1+0.08-1.08 = 0 -> fallback
+    def test_h3_clv_unit_retention_is_margin_times_term(self):
+        # churn = -0.08 -> retention = 1.08 = 1 + d, so each period is worth exactly
+        # `margin` in present value and the series degenerates to margin x term.
         h3 = H3Forecast(
             account_id='FX', forecast_at=MID, remaining_contract_years=2.0,
             updated_annual_margin_gbp=100.0, updated_churn_probability=-0.08, discount_rate=0.08,
         )
         assert h3.h3_clv_gbp == pytest.approx(100.0 * 2.0)
+        assert h3.h3_clv_gbp == pytest.approx(discounted_sum(100.0, -0.08, 0.08, 2))
 
     def test_h3_signal_just_below_outperform_threshold_is_on_track(self, tracker):
         # pct = 0.09 -> NOT > 0.10 -> ON_TRACK
@@ -261,3 +332,48 @@ class TestThreeHorizonCLVTrackerDepthJX:
 
     def test_h2_margin_unknown_account_returns_zero(self, tracker):
         assert tracker.h2_margin('UNKNOWN') == pytest.approx(0.0)
+
+
+# --- The contract term is priced (2026-08-15 BLOCKING finding discharge) ---
+
+class TestTheTermIsPriced:
+    def test_an_expiring_contract_is_not_worth_the_same_as_a_ten_year_one(self, tracker):
+        """The finding's §3 scenario: same margin, same churn, term the only difference.
+        Under the perpetuity both accounts priced identically on both horizons."""
+        expiring = H1Commitment(
+            account_id='EXPIRING', committed_at=START, contract_start=START,
+            contract_end=START + dt.timedelta(days=1),
+            expected_annual_margin_gbp=100.0, expected_churn_rate=0.20, discount_rate=0.08,
+        )
+        long_run = H1Commitment(
+            account_id='LONG', committed_at=START, contract_start=START,
+            contract_end=START + dt.timedelta(days=3653),
+            expected_annual_margin_gbp=100.0, expected_churn_rate=0.20, discount_rate=0.08,
+        )
+        tracker.commit_h1(expiring)
+        tracker.commit_h1(long_run)
+        tracker.update_h3(H3Forecast('EXPIRING', MID, 1 / 365.25, 100.0, 0.20))
+        tracker.update_h3(H3Forecast('LONG', MID, 9.0, 100.0, 0.20))
+        assert expiring.h1_clv_gbp < long_run.h1_clv_gbp / 100
+        assert (
+            tracker.latest_h3('EXPIRING').h3_clv_gbp
+            < tracker.latest_h3('LONG').h3_clv_gbp / 100
+        )
+
+    def test_the_signal_scores_h3_over_the_same_window_h1_promised(self, tracker):
+        """An unchanged belief must read ON_TRACK however much term has run off —
+        the whole-term H1 value is not the baseline for a part-term H3 forecast."""
+        tracker.commit_h1(h1_of_whole_years(4, margin=200.0, churn=0.18))
+        tracker.update_h3(make_h3(margin=200.0, churn=0.18, years=0.25))
+        assert tracker.h3_signal('C1') == H3Signal.ON_TRACK
+
+    def test_the_signal_still_sees_a_worsened_belief_over_the_same_window(self, tracker):
+        tracker.commit_h1(h1_of_whole_years(4, margin=200.0, churn=0.18))
+        tracker.update_h3(make_h3(margin=60.0, churn=0.50, years=0.25))
+        assert tracker.h3_signal('C1') == H3Signal.AT_RISK
+
+    def test_clv_over_years_is_the_baseline_the_signal_uses(self):
+        h1 = h1_of_whole_years(4, margin=200.0, churn=0.18)
+        assert h1.clv_over_years_gbp(h1.contract_years) == pytest.approx(h1.h1_clv_gbp)
+        assert h1.clv_over_years_gbp(1.0) < h1.clv_over_years_gbp(4.0)
+        assert h1.clv_over_years_gbp(0.0) == pytest.approx(0.0)

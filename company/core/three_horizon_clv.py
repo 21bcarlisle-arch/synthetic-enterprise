@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 import datetime as dt
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List, Optional
+
 
 class H3Signal(str, Enum):
     OUTPERFORMING = "outperforming"
@@ -13,6 +15,50 @@ class H3Signal(str, Enum):
 _H3_OUTPERFORM_THRESHOLD = 0.10
 _H3_DETERIORATE_THRESHOLD = -0.10
 _H3_AT_RISK_THRESHOLD = -0.30
+
+# Below this the retention factor is 1 within float noise and the geometric series
+# degenerates to a flat sum; see _term_value_gbp.
+_UNIT_RETENTION_EPSILON = 1e-12
+
+
+def _term_value_gbp(
+    annual_margin_gbp: float,
+    churn_rate: float,
+    discount_rate: float,
+    term_years: float,
+) -> float:
+    """Present value of an annual margin earned over a FINITE term.
+
+        sum_{t=1..T} margin * retention^t / (1+d)^t
+          = margin * retention * (1 - r^T) / (1 + d - retention),   r = retention / (1+d)
+
+    A contract is worth what it can deliver before it ends, so the term is priced, not
+    assumed away. This replaced a perpetuity — the T -> infinity limit of the same
+    expression — which was invariant to the term on both horizons and overstated a
+    one-year commitment by ~2.9x at margin 100 / churn 0.20 / discount 0.08
+    (docs/staging/WORKER_FINDING_THE_CONTRACT_TERM_HORIZON_PRICES_A_TERM_AS_A_PERPETUITY_2026-08-15.md
+    — discharged, still in the staging ROOT until its class doc is next rendered, not in `done/`).
+
+    Where retention <= 1 + d the value is bounded above by ``margin * term_years``, the
+    undiscounted ceiling of what the term can deliver; equality holds only when
+    retention == 1 + d, i.e. churn exactly offsets the discount rate.
+    """
+    if term_years <= 0:
+        return 0.0
+    retention = 1.0 - churn_rate
+    if retention <= 0:
+        # certain churn: nothing survives the first period
+        return 0.0
+    factor = 1.0 + discount_rate
+    if factor <= 0:
+        # a rate at or below -100% is not a discount rate; price the term undiscounted
+        factor = 1.0
+    ratio = retention / factor
+    denom = factor - retention
+    if abs(denom) < _UNIT_RETENTION_EPSILON:
+        # ratio == 1: every period contributes exactly `margin` in present value
+        return annual_margin_gbp * term_years
+    return annual_margin_gbp * retention * (1.0 - ratio**term_years) / denom
 
 @dataclass(frozen=True)
 class H1Commitment:
@@ -29,13 +75,19 @@ class H1Commitment:
         delta = (self.contract_end - self.contract_start).days / 365.25
         return max(0.0, delta)
 
+    def clv_over_years_gbp(self, term_years: float) -> float:
+        """This commitment's value over an arbitrary window — the like-for-like
+        baseline an H3 re-forecast of `term_years` remaining must be compared against."""
+        return _term_value_gbp(
+            self.expected_annual_margin_gbp,
+            self.expected_churn_rate,
+            self.discount_rate,
+            term_years,
+        )
+
     @property
     def h1_clv_gbp(self) -> float:
-        retention = 1 - self.expected_churn_rate
-        denom = 1 + self.discount_rate - retention
-        if denom <= 0:
-            return self.expected_annual_margin_gbp * self.contract_years
-        return self.expected_annual_margin_gbp * retention / denom
+        return self.clv_over_years_gbp(self.contract_years)
 
 @dataclass
 class H2Actuals:
@@ -75,11 +127,12 @@ class H3Forecast:
 
     @property
     def h3_clv_gbp(self) -> float:
-        retention = 1 - self.updated_churn_probability
-        denom = 1 + self.discount_rate - retention
-        if denom <= 0:
-            return self.updated_annual_margin_gbp * self.remaining_contract_years
-        return self.updated_annual_margin_gbp * retention / denom
+        return _term_value_gbp(
+            self.updated_annual_margin_gbp,
+            self.updated_churn_probability,
+            self.discount_rate,
+            self.remaining_contract_years,
+        )
 
 class ThreeHorizonCLVTracker:
     def __init__(self):
@@ -127,7 +180,12 @@ class ThreeHorizonCLVTracker:
         h3 = self.latest_h3(account_id)
         if h1 is None or h3 is None:
             return None
-        pct = (h3.h3_clv_gbp - h1.h1_clv_gbp) / max(1.0, abs(h1.h1_clv_gbp))
+        # Like for like: the H3 forecast covers the REMAINING term, so it is scored
+        # against what the H1 commitment promised over that same window. Comparing it
+        # to the whole-term H1 value would read every account as deteriorating simply
+        # because time had passed.
+        baseline = h1.clv_over_years_gbp(h3.remaining_contract_years)
+        pct = (h3.h3_clv_gbp - baseline) / max(1.0, abs(baseline))
         if pct > _H3_OUTPERFORM_THRESHOLD:
             return H3Signal.OUTPERFORMING
         if pct < _H3_AT_RISK_THRESHOLD:
