@@ -183,11 +183,78 @@ def test_main_produces_meter_read_log_matching_bills():
     # Phase 3 (CORE_FIDELITY_PHASES.md item 1) wiring: every bill the full
     # pipeline produces must have a corresponding meter-read event, and the
     # events must carry real status/delay data (not a stub).
+    #
+    # 2026-08-15 (EP8 finding): this test's NAME promised the log MATCHES the
+    # bills; its three assertions were cardinality and value domains, so a
+    # per-row disagreement of equal length passed -- and three such rows were
+    # published. The join is now asserted here, on the same run.
     result = main()
     assert len(result["meter_read_log"]) == len(result["bills"])
     statuses = {entry["status"] for entry in result["meter_read_log"]}
     assert statuses <= {"actual", "estimated"}
     assert all(entry["delay_days"] >= 0 for entry in result["meter_read_log"])
+
+    basis_by_key = {
+        (b["customer_id"], b["period_end"]): b["billing_basis"] for b in result["bills"]
+    }
+    disagreements = [
+        (e["customer_id"], e["period_end"], e["status"],
+         basis_by_key.get((e["customer_id"], e["period_end"])))
+        for e in result["meter_read_log"]
+        if basis_by_key.get((e["customer_id"], e["period_end"])) != e["status"]
+    ]
+    assert disagreements == [], (
+        "the published read log and the bills disagree about the same "
+        f"customer-period: {disagreements[:5]}"
+    )
+    assert len(basis_by_key) == len(result["bills"]), "bill keys are not unique"
+
+
+def test_read_log_cannot_be_re_derived_without_losing_the_final_read_override():
+    """R15 MUTATION PROOF for the join control above and for the repair itself.
+
+    MUTATE: re-derive the read log from the seed (the pre-2026-08-15 pipeline
+    path, `generate_meter_read_log`) instead of projecting the events the
+    bills were assembled from. The SLC 21B final-read override is applied only
+    by the billing call site, so the re-derived log MUST disagree -- and the
+    class control MUST fire on it.
+
+    CORRECT: the projected log agrees on every row and the control is clean.
+
+    Reads are pinned all-estimated so the override is guaranteed to fire on
+    the churned account's final bill (the live run's own 3-of-3 rate, made
+    deterministic rather than left to the seed).
+    """
+    import simulation.meter_reads as mr
+    from company.compliance.population_sanity import check_read_log_matches_billing_basis
+    from simulation.run_phase4c_on_phase2b import build_monthly_bills
+
+    original_actual_prob = mr.TRADITIONAL_ACTUAL_READ_PROBABILITY
+    original_not_comm = mr.SMART_METER_NOT_COMMUNICATING_RATE
+    original_max_consecutive = mr.MAX_CONSECUTIVE_ESTIMATED_PERIODS
+    mr.TRADITIONAL_ACTUAL_READ_PROBABILITY = 0.0
+    mr.SMART_METER_NOT_COMMUNICATING_RATE = 1.0
+    mr.MAX_CONSECUTIVE_ESTIMATED_PERIODS = 10**9  # no forced catch-up
+    try:
+        records = consecutive_monthly_records("C1", 2023, [300.0, 320.0, 310.0])
+        events: list = []
+        bills = build_monthly_bills(records, {"C1"}, read_events_out=events)
+
+        projected = mr.meter_read_log_from_events(events)
+        assert [b["billing_basis"] for b in bills] == [e["status"] for e in projected]
+        assert projected[-1]["status"] == "actual", "the SLC 21B override did not fire"
+        assert check_read_log_matches_billing_basis(bills, projected) == []
+
+        re_derived = mr.generate_meter_read_log(bills, {"C1": "traditional"})
+        assert re_derived[-1]["status"] == "estimated"  # the override is invisible to it
+        fired = check_read_log_matches_billing_basis(bills, re_derived)
+        assert fired, "the control did not fire on the defect it is named for"
+        assert fired[0]["check"] == "read_log_status_vs_billing_basis"
+        assert fired[0]["customer_id"] == "C1"
+    finally:
+        mr.TRADITIONAL_ACTUAL_READ_PROBABILITY = original_actual_prob
+        mr.SMART_METER_NOT_COMMUNICATING_RATE = original_not_comm
+        mr.MAX_CONSECUTIVE_ESTIMATED_PERIODS = original_max_consecutive
 
 
 def test_main_produces_contact_centre_log():

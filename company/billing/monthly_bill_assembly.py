@@ -312,6 +312,7 @@ def build_monthly_bills(
     all_records: list[dict],
     read_feed: ReadArrivalFeed,
     churned_ids: set[str] | None = None,
+    read_events_out: list | None = None,
 ) -> list[dict]:
     """Group the supplier's own settled records into one bill per customer per
     calendar month, in chronological order, via
@@ -361,6 +362,15 @@ def build_monthly_bills(
     forcing the customer's LAST bill in this dataset to resolve as if that
     final read had arrived, same as `company/billing/account_closure.py`'s
     own (separately unwired) `receive_final_read()` concept.
+
+    `read_events_out` (2026-08-15, EP8 finding "the meter seam is computed
+    twice"): an optional sink the caller passes to receive the `MeterReadEvent`
+    each bill was ACTUALLY assembled from, in `bills` order, one per bill. It
+    is how the published meter-read log stops being a second, independent
+    re-derivation of the same decision -- see
+    `simulation.meter_reads.meter_read_log_from_events`. Nothing about the
+    bills changes when it is passed; it is a pure observation of work already
+    done here, which is why the events (not the bill dicts) carry it.
     """
     churned_ids = churned_ids or set()
     by_customer_month: dict[str, dict[str, list[dict]]] = {}
@@ -381,11 +391,16 @@ def build_monthly_bills(
         # estimate at the real unit rate instead of the true (not-yet-known)
         # consumption. Uses the SAME deterministic dispatch, arguments and
         # per-customer state-threading (trailing confirmed actuals + running
-        # consecutive-estimated count) as generate_meter_read_log(), computed
-        # here a second time on purpose (additive-first, no change to
-        # meter_reads.py or its own call site); the identical seed means the
-        # two always agree. De-duplicating the two call sites is a documented
-        # follow-up, not this step.
+        # consecutive-estimated count) as generate_meter_read_log().
+        #
+        # 2026-08-15 (EP8 finding, docs/design/simplifications/
+        # EP8_adapter_dcc_duis.yaml finding 2): this used to say "the identical
+        # seed means the two always agree", and that was FALSE -- this call
+        # site alone applies the SLC 21B final-read override below, so a
+        # separately re-derived log disagreed on every churned account's final
+        # bill (3 of 3 overrides in the 2026-08-14 run). THIS is now the only
+        # place the decision is made: the events are handed back through
+        # `read_events_out` and the published log is projected from them.
         meter_type = read_feed.meter_type_for(customer_data)
         # `previous_bill_total_gbp` is threaded on the TRUE bill total exactly
         # as before this change, so the actual-read path is byte-identical in
@@ -505,6 +520,11 @@ def build_monthly_bills(
                     "total_amount_gbp": bill["total_amount_gbp"],
                 })
             bills.append(bill)
+            # One event per bill, in bills order -- appended here, in the same
+            # step that appends the bill, so the two lists cannot fall out of
+            # alignment by construction (the caller joins them positionally).
+            if read_events_out is not None:
+                read_events_out.append(event)
             previous_bill_total_gbp = true_bill["total_amount_gbp"]
 
     # Additive year-over-year comparison (see docstring above) -- a second

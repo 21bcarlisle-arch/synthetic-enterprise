@@ -194,12 +194,84 @@ def check_payment_channel_mix(payments: list) -> list[dict]:
     }]
 
 
+def check_read_log_matches_billing_basis(bills: list, meter_read_log: list) -> list[dict]:
+    """Every published bill's `billing_basis` must equal the published read
+    log's `status` for the SAME (customer_id, period_end).
+
+    R10 CLASS control (2026-08-15, EP8 finding "the meter seam is computed
+    twice, the control named for their agreement measures cardinality
+    instead"). The instance was three rows of the 2026-08-14 run where the
+    read log said `estimated` for a churned account's final period whose own
+    bill said `actual` -- the SLC 21B final-read override is applied by the
+    billing call site, and the log was independently re-derived from the seed,
+    which cannot see it. The class is WIDER than that instance: any future
+    decision made on one side of the read seam and not the other lands here,
+    whatever its cause, because this joins the two published streams row by
+    row instead of counting them.
+
+    The control it replaces asserted `len(log) == len(bills)`: cardinality,
+    which every equal-length disagreement passes (R15 killer pattern 1 at the
+    level of a whole control).
+
+    NOT-APPLICABLE branch, asserted rather than hidden (R15 fail-open): the
+    join needs `billing_basis` on the bill side and `customer_id`/`period_end`
+    on both. A stream that carries none of those is a pre-D3 bill list, not a
+    disagreeing one, and yields no findings. But a population where BOTH sides
+    carry their keys and NOT ONE row joins is itself flagged -- that is the
+    control losing its subject, which must not read clean.
+    """
+    basis_by_key = {
+        (b.get("customer_id"), b.get("period_end")): b["billing_basis"]
+        for b in bills
+        if b.get("billing_basis") is not None
+        and b.get("customer_id") is not None
+        and b.get("period_end") is not None
+    }
+    keyed_reads = [
+        r for r in meter_read_log
+        if r.get("customer_id") is not None and r.get("period_end") is not None
+    ]
+    if not basis_by_key or not keyed_reads:
+        return []
+
+    findings = []
+    joined = 0
+    for read in keyed_reads:
+        key = (read["customer_id"], read["period_end"])
+        basis = basis_by_key.get(key)
+        if basis is None:
+            continue
+        joined += 1
+        if basis != read.get("status"):
+            findings.append({
+                "check": "read_log_status_vs_billing_basis",
+                "customer_id": read["customer_id"],
+                "year": str(read["period_end"])[:4],
+                "detail": f"{read['customer_id']} {read['period_end']}: the bill was issued on "
+                          f"basis '{basis}' but the published meter-read log says status "
+                          f"'{read.get('status')}' -- the two sides of the read seam disagree "
+                          f"about the same customer-period",
+            })
+    if joined == 0:
+        return [{
+            "check": "read_log_status_vs_billing_basis",
+            "customer_id": None,
+            "year": None,
+            "detail": f"No (customer_id, period_end) key is shared by the {len(basis_by_key)} "
+                      f"basis-carrying bills and the {len(keyed_reads)} keyed meter reads -- the "
+                      f"agreement between bills and reads is unmeasurable, which cannot read "
+                      f"clean (R15 fail-open guard).",
+        }]
+    return findings
+
+
 def run_all_population_checks(bills: list, meter_read_log: list, payments: list | None = None) -> list[dict]:
     """Every population-level check, concatenated. Empty list means clean."""
     findings = []
     findings.extend(check_consumption_distribution(bills))
     findings.extend(check_unit_rate_bands(bills))
     findings.extend(check_estimated_read_rate(meter_read_log))
+    findings.extend(check_read_log_matches_billing_basis(bills, meter_read_log))
     if payments:
         findings.extend(check_payment_channel_mix(payments))
     return findings

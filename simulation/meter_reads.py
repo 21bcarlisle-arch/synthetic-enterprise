@@ -197,13 +197,60 @@ def simulate_read(
     )
 
 
+def read_event_to_log_entry(event: MeterReadEvent) -> dict:
+    """The one serialisation of a read event into a published log entry.
+
+    Single-sourced (2026-08-15) so the log the pipeline publishes and any
+    other reader of the same events cannot drift in shape.
+    """
+    return {
+        "customer_id": event.customer_id,
+        "period_end": event.period_end,
+        "meter_type": event.meter_type,
+        "delay_days": event.delay_days,
+        "status": event.status,
+        "estimated_consumption_kwh": event.estimated_consumption_kwh,
+        "true_consumption_kwh": event.true_consumption_kwh,
+        "consecutive_estimated_count": event.consecutive_estimated_count,
+        "forced_catch_up": event.forced_catch_up,
+    }
+
+
+def meter_read_log_from_events(events: list[MeterReadEvent]) -> list[dict]:
+    """Publish the read events a bill run ACTUALLY billed on.
+
+    This is the pipeline's read-log path (2026-08-15, EP8 finding "the meter
+    seam is computed twice"): `company.billing.monthly_bill_assembly.
+    build_monthly_bills` hands back the very `MeterReadEvent` each bill was
+    assembled from -- including the SLC 21B final-read override, which only
+    that call site applies -- and this projects them. ONE stream, two readers.
+
+    The previous path (`generate_meter_read_log` below) RE-DERIVED the reads
+    from the same seed and so could not see that override: three published
+    rows of the 2026-08-14 run said `estimated` for a period whose own bill
+    said `actual`. Re-derivation is also incoherent at the first real DUIS/
+    n3rgy transport, which answers a request once and has no seed to replay.
+    """
+    return [read_event_to_log_entry(event) for event in events]
+
+
 def generate_meter_read_log(
     bills: list[dict], customer_meter_types: dict[str, str]
 ) -> list[dict]:
-    """Process bills (already grouped/sorted chronologically per customer, as
-    `simulation.run_phase4c_on_phase2b.build_monthly_bills` produces them)
-    into one meter-read event per bill. Returns plain JSON-serialisable
-    dicts, in the same order as `bills`.
+    """Re-derive one read event per bill from the seed alone.
+
+    Kept for callers that hold bills but NOT the events those bills were
+    assembled from (tests, and any standalone analysis of a bill list). It is
+    NOT the pipeline's path any more and must not become one again: it cannot
+    see any decision the billing call site made about a read (today, the SLC
+    21B final-read override), so its output can contradict the bills it was
+    derived from. `meter_read_log_from_events` is the publishing path;
+    `company.compliance.population_sanity.check_read_log_matches_billing_basis`
+    is the control that fails when the two disagree.
+
+    Bills must already be grouped/sorted chronologically per customer, as
+    `company.billing.monthly_bill_assembly.build_monthly_bills` produces them.
+    Returns plain JSON-serialisable dicts, in the same order as `bills`.
     """
     trailing_by_customer: dict[str, list[float]] = {}
     consecutive_by_customer: dict[str, int] = {}
@@ -222,17 +269,7 @@ def generate_meter_read_log(
             consecutive_by_customer[cid] = 0
         else:
             consecutive_by_customer[cid] = event.consecutive_estimated_count
-        log.append({
-            "customer_id": event.customer_id,
-            "period_end": event.period_end,
-            "meter_type": event.meter_type,
-            "delay_days": event.delay_days,
-            "status": event.status,
-            "estimated_consumption_kwh": event.estimated_consumption_kwh,
-            "true_consumption_kwh": event.true_consumption_kwh,
-            "consecutive_estimated_count": event.consecutive_estimated_count,
-            "forced_catch_up": event.forced_catch_up,
-        })
+        log.append(read_event_to_log_entry(event))
     return log
 
 

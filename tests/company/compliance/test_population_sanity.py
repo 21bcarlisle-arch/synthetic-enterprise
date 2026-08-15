@@ -4,6 +4,7 @@ from company.compliance.population_sanity import (
     check_unit_rate_bands,
     check_estimated_read_rate,
     check_payment_channel_mix,
+    check_read_log_matches_billing_basis,
     run_all_population_checks,
 )
 
@@ -153,6 +154,64 @@ def test_run_all_population_checks_payments_optional_backward_compatible():
     bills = [_bill("C1", f"2024-{m:02d}-28", 200.0, 150.0) for m in range(1, 13)]
     meter_read_log = [{"status": "estimated"}] * 30 + [{"status": "actual"}] * 70
     assert run_all_population_checks(bills, meter_read_log) == []
+
+
+def _basis_bill(cid, period_end, basis):
+    return {"customer_id": cid, "period_end": period_end, "billing_basis": basis,
+            "segment": "resi", "commodity": "electricity",
+            "total_consumption_kwh": 200.0, "commodity_amount_gbp": 30.0,
+            "days_in_period": 30.44}
+
+
+def _read(cid, period_end, status):
+    return {"customer_id": cid, "period_end": period_end, "status": status}
+
+
+def test_read_log_matches_billing_basis_clean_when_every_row_agrees():
+    bills = [_basis_bill("C1", "2024-01-31", "actual"), _basis_bill("C1", "2024-02-29", "estimated")]
+    reads = [_read("C1", "2024-01-31", "actual"), _read("C1", "2024-02-29", "estimated")]
+    assert check_read_log_matches_billing_basis(bills, reads) == []
+
+
+def test_read_log_matches_billing_basis_fires_on_the_final_read_override_shape():
+    """The real 2026-08-15 defect, in miniature: the bill resolved `actual` on
+    an SLC 21B final read, the separately-derived log still says `estimated`.
+    Equal length on both sides -- exactly what the old cardinality control
+    passed."""
+    bills = [_basis_bill("C5", "2020-12-29", "actual")]
+    reads = [_read("C5", "2020-12-29", "estimated")]
+    fired = check_read_log_matches_billing_basis(bills, reads)
+    assert len(fired) == 1
+    assert fired[0]["check"] == "read_log_status_vs_billing_basis"
+    assert fired[0]["customer_id"] == "C5"
+    assert len(bills) == len(reads)  # the property the replaced control checked
+
+
+def test_read_log_matches_billing_basis_fires_when_nothing_joins():
+    """R15 fail-open guard: both sides keyed, zero shared keys -- the control
+    has lost its subject and must not read clean."""
+    bills = [_basis_bill("C1", "2024-01-31", "actual")]
+    reads = [_read("C1", "2024-06-30", "actual")]
+    fired = check_read_log_matches_billing_basis(bills, reads)
+    assert len(fired) == 1
+    assert "unmeasurable" in fired[0]["detail"]
+
+
+def test_read_log_matches_billing_basis_documented_not_applicable_on_unkeyed_streams():
+    """DOCUMENTED not-applicable branch, asserted rather than hidden: a bill
+    list with no `billing_basis` (pre-D3 shape) carries nothing to join on."""
+    bills = [_bill("C1", "2024-01-31", 200.0, 150.0)]
+    assert check_read_log_matches_billing_basis(bills, [{"status": "actual"}]) == []
+    assert check_read_log_matches_billing_basis([], []) == []
+
+
+def test_run_all_population_checks_surfaces_the_read_seam_disagreement():
+    bills = [_basis_bill("C5", "2020-12-29", "actual")]
+    reads = [_read("C5", "2020-12-29", "estimated")] * 30 + [
+        _read("C9", f"2020-01-{d:02d}", "actual") for d in range(1, 8)
+    ]
+    checks_found = {f["check"] for f in run_all_population_checks(bills, reads)}
+    assert "read_log_status_vs_billing_basis" in checks_found
 
 
 def test_run_all_population_checks_includes_payment_channel_finding():

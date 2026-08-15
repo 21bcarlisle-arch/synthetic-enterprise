@@ -661,6 +661,32 @@ def test_population_estimated_read_rate_empty_log_fires():
     ) == []
 
 
+def test_population_read_log_vs_billing_basis_fires_on_equal_length_disagreement():
+    # 2026-08-15 (EP8 finding): the control this REPLACES asserted
+    # len(log) == len(bills) under the name "meter read log matching bills",
+    # so every equal-length per-row disagreement passed -- and three published
+    # rows disagreed. CORRECT: rows that agree read clean. MUTATE: flip ONE
+    # row's status while keeping both sides the same length (the exact input
+    # the cardinality control passed) -> it FIRES.
+    bills = [
+        {"customer_id": "C5", "period_end": "2020-12-29", "billing_basis": "actual"},
+        {"customer_id": "C6", "period_end": "2024-03-29", "billing_basis": "estimated"},
+    ]
+    clean = [
+        {"customer_id": "C5", "period_end": "2020-12-29", "status": "actual"},
+        {"customer_id": "C6", "period_end": "2024-03-29", "status": "estimated"},
+    ]
+    assert ps.check_read_log_matches_billing_basis(bills, clean) == []
+    mutated = [dict(clean[0], status="estimated"), clean[1]]
+    assert len(mutated) == len(bills)  # cardinality still passes
+    fired = ps.check_read_log_matches_billing_basis(bills, mutated)
+    assert fired and fired[0]["check"] == "read_log_status_vs_billing_basis"
+    # FAIL-OPEN guard: both sides keyed but sharing no key is unmeasurable,
+    # not clean.
+    orphan = [{"customer_id": "C9", "period_end": "2019-01-31", "status": "actual"}]
+    assert ps.check_read_log_matches_billing_basis(bills, orphan)
+
+
 def test_population_payment_channel_mix_fires_when_everyone_on_one_method():
     mixed = ([{"method": "direct_debit"}] * 7) + ([{"method": "standard_credit"}] * 3)
     assert ps.check_payment_channel_mix(mixed) == []

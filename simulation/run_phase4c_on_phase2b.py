@@ -82,10 +82,10 @@ from simulation.contact_centre import generate_contact_centre_log
 from simulation.credit_refund_events import generate_credit_refund_log
 from simulation.meter_reads import (
     SimulatedReadFeed,
-    generate_meter_read_log,
-    meter_type_for_customer,
+    meter_read_log_from_events,
 )
 from simulation.live_population import live_population
+from simulation import policy_costs as _policy_costs
 from simulation.run_phase2b import main as run_phase2b
 from tools.contact_centre_port import ContactCentreMessage
 from tools.meter_read_port import MeterReadMessage
@@ -117,7 +117,11 @@ def _get_all_customers() -> list[dict]:
 # REPORT data is persisted is a reporting concern, not the run module's.
 
 
-def build_monthly_bills(all_records: list[dict], churned_ids: set[str] | None = None) -> list[dict]:
+def build_monthly_bills(
+    all_records: list[dict],
+    churned_ids: set[str] | None = None,
+    read_events_out: list | None = None,
+) -> list[dict]:
     """Run the SUPPLIER's monthly billing over this run's settled records.
 
     The assembly itself moved to the company layer in KNIFE pass 3
@@ -132,9 +136,15 @@ def build_monthly_bills(all_records: list[dict], churned_ids: set[str] | None = 
     the wrapper is what lets the read feed be supplied world-side without every
     caller learning about it. Behaviour is unchanged: `SimulatedReadFeed` calls
     the same read functions with the same arguments the inlined code did.
+
+    `read_events_out` (2026-08-15): pass a list to take back the read events
+    the bills were actually assembled from, one per bill in bills order. The
+    published meter-read log is projected from those events rather than
+    re-derived from the seed -- see `main()` below.
     """
     return assemble_monthly_bills(
-        all_records, SimulatedReadFeed(), churned_ids=churned_ids
+        all_records, SimulatedReadFeed(), churned_ids=churned_ids,
+        read_events_out=read_events_out,
     )
 
 
@@ -164,7 +174,11 @@ def main(report_end: str | None = None, policy=None):
     # estimated run rather than leaving it unreconciled forever.
     churned_ids = set(phase2b_result.get("churned_billing_accounts", []))
 
-    bills = build_monthly_bills(all_records, churned_ids)
+    # `billed_read_events` takes back the read event each bill was actually
+    # assembled from (2026-08-15, EP8 finding) -- the published read log is a
+    # projection of these, not a second re-derivation of the same decision.
+    billed_read_events: list = []
+    bills = build_monthly_bills(all_records, churned_ids, read_events_out=billed_read_events)
 
     # W5_1_banking_payment_rails L2->L3 (2026-07-12): the rails-timed DD
     # collection book (mandate setup/collection/amendment, real AUDDIS/ARUDD/
@@ -219,10 +233,16 @@ def main(report_end: str | None = None, policy=None):
     # Phase 3 (CORE_FIDELITY_PHASES.md item 1): meter-read arrival/
     # estimation/failure events, one per bill -- company-observable data
     # layer only, does not alter settlement-based revenue recognition above.
+    #
+    # 2026-08-15 (EP8 finding): the log is now PROJECTED from the events the
+    # bills above were assembled from, not re-derived by a second call to
+    # `simulate_read` off the same seed. The re-derivation could not see the
+    # SLC 21B final-read override that only the billing call site applies, so
+    # it published `estimated` for three periods whose own bill said `actual`.
+    # One stream, two readers -- and the same shape a real DUIS/n3rgy adapter
+    # forces, since a real transport answers a request once (EP8's own
+    # "transport-only swap" promise depends on there being ONE request).
     all_customers_for_meter_type = _get_all_customers()
-    customer_meter_types = {
-        c["customer_id"]: meter_type_for_customer(c) for c in all_customers_for_meter_type
-    }
     # WALLED_INTERFACES reference-flow conversion (W4_1_typed_adapters): the
     # meter-read crossing now travels as versioned typed messages
     # (tools.meter_read_port.MeterReadMessage) rather than raw dicts. This is a
@@ -232,7 +252,7 @@ def main(report_end: str | None = None, policy=None):
     # is the follow-on "generalize the pattern" step, not done here.
     meter_read_messages = [
         MeterReadMessage.from_log_entry(entry)
-        for entry in generate_meter_read_log(bills, customer_meter_types)
+        for entry in meter_read_log_from_events(billed_read_events)
     ]
     meter_read_log = [message.to_log_entry() for message in meter_read_messages]
 
@@ -425,8 +445,20 @@ def main(report_end: str | None = None, policy=None):
     ledger_pnl = books.pnl
     ledger_meta = books.meta
 
+    # WHICH RATES IN THIS RUN WERE STAND-INS (2026-08-14, WORKER_FINDING_THE_COST_STACK_CLAMPS_
+    # SILENTLY_INSIDE_ITS_OWN_RUN_WINDOW). Computed HERE, on the sim side, because `saas/` never
+    # imports `simulation/`: the renderer cannot ask the tables what they cover, so the world has
+    # to state it in what it hands over. Measured off the run's OWN settlement window rather than
+    # a constant, so extending the tables or moving the window changes the published statement
+    # without anyone editing prose.
+    _settled = [r["settlement_date"] for r in phase2b_result["all_records"]]
+    policy_cost_coverage = (
+        _policy_costs.coverage_report(min(_settled), max(_settled)) if _settled else {}
+    )
+
     return {
         "phase2b": phase2b_result,
+        "policy_cost_coverage": policy_cost_coverage,
         "bills": bills,
         "dd_collection_book": _serialize_dd_collection_book(dd_collection_book),
         "annual_dd_review": annual_dd_review.serialise(),
