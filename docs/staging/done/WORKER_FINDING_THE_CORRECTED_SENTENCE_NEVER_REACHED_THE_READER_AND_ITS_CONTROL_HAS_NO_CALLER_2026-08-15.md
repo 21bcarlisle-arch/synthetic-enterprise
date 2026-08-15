@@ -2,6 +2,55 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness · **Disposition:** QUEUED (not fixed on sight)
 
+**Discharged:** `site/proof/test_published_caveat_reaches_the_reader.py::test_the_sentence_the_shipped_code_authors_is_the_sentence_the_door_serves`, `site/proof/test_published_caveat_reaches_the_reader.py::test_the_published_detection_caveat_carries_the_hour31_correction`, `site/data/proof.json`, `tools/couple_w2_11_d5.py`, `tests/tools/test_couple_w2_11_d5.py` — all three BLOCKING items are repaired and landed, and the last of them is now verified on the live door rather than on a file.
+
+**DISCHARGE, 2026-08-15 fifth tick — BLOCKING 1 IS CLOSED AGAINST THE LIVE SURFACE, so the
+document releases.** The previous tick's refusal to write this field was right at the time and
+is now spent. Evidence, in the order R11 asks for it — the fetched value, never the code:
+
+- **BEFORE**, fetched at the start of this tick: `https://poesys.net/data/proof.json` → HTTP 200,
+  747,008 bytes, `generated_at` 2026-08-14T06:04:08Z; the served caveat opened *"RESOLUTION IS
+  WHERE THIS BOOK SITS BESIDE THE GRACE LINE"* and `NECESSARY, NOT SUFFICIENT` scored **0**.
+- **AFTER**, fetched once the Cloudflare deploy for this commit reported success (with a
+  whole-zone cache purge, so the read is not a CDN artefact): HTTP 200, 770,702 bytes,
+  `generated_at` 2026-08-15T04:41:21Z. `NECESSARY, NOT SUFFICIENT` = **1**, `DO NOT RUN THAT
+  BACKWARDS` = **1**, `DENOMINATORS, NOT THE BOOK` = **1**, and the superseded opener is
+  **absent**. The sentence a reader now meets: *"…a company's terms error moves it only where
+  that error carries an invoice across the grace line AND that invoice is in `S` or `N`:
+  crossing the line is NECESSARY, NOT SUFFICIENT."*
+- **R12 holds — no published number moved.** caught 31, flagged_size 391, n_negatives 1451,
+  n_excluded 118, n_false_flags 242, false_flag_rate 0.166782 are bit-identical on the before
+  payload, the after payload, and in the commit.
+
+**THE FALSIFIER THIS DOCUMENT SAID DID NOT EXIST NOW DOES**, which is why the release names a
+test node and not just a URL. This finding's own diagnosis was that every assertion on that
+sentence took an in-process object as its subject and therefore could not fail on it. The new
+control's two subjects are the SHIPPED AUTHOR of the sentence
+(`tools.couple_w2_11_d5.detection_resolution_caveat`) and the PUBLISHED FILE the deploy
+uploads — the two ends the defect opened a gap between; the ledger is deliberately not
+involved, because an artefact regenerated from a stale intermediate agrees with itself.
+**R15 both ways, proven against real history rather than a fixture:** the control is RED at
+parent 3e4037c1e (that tree's door serves the superseded opener while that same tree's code
+already authors the corrected one) and GREEN at 272e35bb3. It lives in the SITE lane on
+purpose — that gate's broad trigger is site/data, any generate_*_data producer, or a
+site-consumed ledger, which is exactly the change set that can strand a correction, whereas
+the tests/ gate selects by name stem and would not have run it.
+
+**TWO THINGS THIS DISCHARGE DOES NOT COVER, named rather than absorbed:**
+1. **RECORDED 7 stays open and is now measured.** `docs/observability/coupled_gap_ledger.json`
+   in the working tree still carries a bare pytest run's population — caught 3, flagged_size 36,
+   n_negatives 245, n_excluded 17 against the door's 31/391/1451/118. It was therefore
+   deliberately NOT committed with the door: landing it would have discharged a BLOCKING
+   finding by publishing a test fixture as the live gap measurement, moving numbers R12 says
+   must not move to close a defect. The isolation fix is still owed and still lives in this
+   atom's own file_scope.
+2. **The committed ledger and the published door disagree about this very sentence.** At HEAD
+   the ledger holds the superseded caveat and n_negatives 1408 while the door holds the
+   corrected caveat and 1451 — i.e. the file proof.json nominally derives from was never the
+   file it was generated from. Not repaired here because the honest repair is a real
+   regeneration of that measurement, which is RECORDED 7's territory and would move published
+   figures; recorded so the next tick inherits the fact rather than rediscovering it.
+
 **STATUS UPDATE, 2026-08-15 fourth tick — TWO OF THE THREE ARE REPAIRED AND LANDED; THE
 FINDING STAYS BLOCKING.** No discharge field is written here, deliberately: a discharge claim
 reads this whole document down to RECORDED, and BLOCKING 1 is still true of the live door as
