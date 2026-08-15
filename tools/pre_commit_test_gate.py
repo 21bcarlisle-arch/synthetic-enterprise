@@ -517,6 +517,101 @@ def _class_consolidation_check() -> tuple[bool, str]:
     return False, "\n".join(f"  - {f}" for f in result.failures)
 
 
+def _staging_severity_check(staged: list[str]) -> tuple[bool, str]:
+    """Every staging document THIS COMMIT writes carries a parseable severity header.
+
+    WHY (2026-08-15). `background/finding_severity.py` already implements the
+    zero-unclassified control -- its `main()` returns 1 on any unclassified document, and
+    its own module comment calls it "the zero-unclassified control". NOTHING RAN IT. It
+    was reachable only by typing the command or by tripping over its consequence, which
+    is the same defect the class checker had
+    (`WORKER_FINDING_THE_CLASS_CHECKER_HAS_NO_AUTOMATED_CALLER_2026-08-12`, closed by
+    `_class_consolidation_check` above) -- and this one bites harder, because
+    `background/gate_authorization.py` refuses a level raise in EVERY lane while any
+    document is unclassified ("an unclassified document refuses EVERY lane, deliberately"
+    -- its own words, and the loophole it closes is that mangling a header would otherwise
+    be the cheapest way to clear a hold).
+
+    MEASURED: two documents with no severity header
+    (`DIRECTOR_DECISION_PENDING_RATE_REBASELINE_AND_SPLIT_APPROVAL_2026-08-14`,
+    `WORKER_REPORT_THE_LEAK_IS_MARKED_SWEPT_AND_TESTED_BOTH_WAYS_2026-08-14`) held
+    level-recording in all 13 lanes. Both authored by this machine; neither author was
+    told. Per R10 the instance fix (two header lines) does not close the class -- this
+    step is what makes the whole class fail automatically.
+
+    SCOPE IS THIS COMMIT'S OWN DOCUMENTS, not the whole room, and that is deliberate. The
+    sibling `_landed_manifest_check` states the reason: a whole-rooms scope bills this
+    committer for other authors' rot, and a fail-closed control with no reachable
+    discharge is how this project has wedged its own publishing before. A header is the
+    AUTHOR's obligation at the moment of writing, and this fires exactly there. (The
+    backlog is separately at zero as of this commit, so the narrow scope forgoes nothing
+    today.)
+
+    THE SUBJECT IS THE TREE THIS COMMIT WOULD CREATE, never the working tree. Reading the
+    working file would let a `git commit -- <pathspec>` land an unheadered blob while a
+    fixed-but-unstaged copy sat on disk saying otherwise -- the exact defect filed as
+    `WORKER_FINDING_THE_SITE_LANE_GATES_THE_WORKING_TREE_NOT_THE_COMMIT_2026-08-13`.
+
+    DELETIONS ARE SKIPPED, and that is the archive path, not an escape hatch: moving a
+    document to `docs/staging/done/` deletes it from the room, `git cat-file` finds no
+    blob, and there is nothing left to classify. Doorbells (`run_complete_*`,
+    `run_pending_*`, `from_rich_*`) are excluded by the same exact-prefix list the parser
+    uses, imported rather than re-typed, so the two populations cannot drift apart.
+
+    FAIL-CLOSED at every step (R15 killer pattern 3): unimportable parser, unusable index,
+    unreadable blob -> REFUSED with the reason. An unavailable check is a FAILED check.
+    """
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    try:
+        from background.finding_severity import DOORBELL_PREFIXES, parse_severity_text
+    except Exception as e:  # noqa: BLE001 -- an unavailable check is a FAILED check
+        return False, (
+            f"severity parser UNAVAILABLE: {type(e).__name__}: {e}\n"
+            "An unavailable check is a FAILED check (R15 FAIL-SILENT). If the module is "
+            "genuinely being removed, remove this gate step in the same commit."
+        )
+
+    # The staging ROOM is flat: `classifiable_documents` globs `*.md` and never recurses,
+    # so `done/` and `in_progress/` are outside the classified population by construction.
+    # Mirror that here with a segment count rather than a second glob.
+    candidates = [
+        p for p in staged
+        if p.startswith(STAGING_ROOM_PREFIX)
+        and p.endswith(".md")
+        and "/" not in p[len(STAGING_ROOM_PREFIX):]
+        and not p[len(STAGING_ROOM_PREFIX):].startswith(DOORBELL_PREFIXES)
+    ]
+    if not candidates:
+        return True, ""
+
+    try:
+        tree = _index_tree()
+    except Exception as e:  # noqa: BLE001
+        return False, f"could not determine the tree this commit would create: {e}"
+
+    failures: list[str] = []
+    checked = 0
+    for path in candidates:
+        try:
+            blob = subprocess.run(
+                ["git", "cat-file", "blob", f"{tree}:{path}"],
+                cwd=ROOT, capture_output=True, text=True, timeout=30,
+            )
+        except Exception as e:  # noqa: BLE001
+            return False, f"could not read {path} out of tree {tree[:9]}: {e}"
+        if blob.returncode != 0:
+            continue  # not in the tree this commit creates -- a deletion (the `done/` move)
+        result = parse_severity_text(blob.stdout, Path(path))
+        checked += 1
+        if result.severity == "UNCLASSIFIED":
+            failures.append(f"{path}: {result.reason}")
+
+    if failures:
+        return False, "\n".join(f"  - {f}" for f in failures)
+    return True, f"{checked} staging document(s) carry a parseable severity header"
+
+
 WALL_REGISTER_PATH = "docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md"
 
 
@@ -785,6 +880,28 @@ def main() -> int:
                 "claim.\n"
                 "[test-gate] Reproduce: `python3 -m tools.landed_manifest_check --at-tree "
                 "$(git write-tree) --since-tree 'HEAD^{tree}'`\n"
+            )
+            return 1
+        if detail:
+            print(f"[test-gate] ✓ {detail}")
+
+        # THE DOCUMENT'S OWN SEVERITY HEADER. Third member of this staging branch, and it
+        # belongs here for the branch's own stated reason: a staging-only commit selects no
+        # test targets, and a staging-only commit is EXACTLY the commit that files an
+        # unheadered document -- which holds level-recording in all 13 lanes, not one.
+        ok, detail = _staging_severity_check(staged)
+        if not ok:
+            sys.stderr.write(
+                "\n[test-gate] ❌ A STAGING DOCUMENT THIS COMMIT WRITES HAS NO PARSEABLE "
+                "SEVERITY HEADER -- COMMIT REFUSED.\n"
+                f"{detail}\n"
+                "[test-gate] An unclassified document refuses a level raise in EVERY lane "
+                "(background/gate_authorization.py): its severity could be BLOCKING and its "
+                "lane is unknown, so it cannot show any lane clear.\n"
+                "[test-gate] Fix is one line in the header block (first 40 lines, before the "
+                "first `## `):\n"
+                "[test-gate]   **Severity:** BLOCKING|LATENT|RECORDED · **Lane:** <lane>\n"
+                "[test-gate] Reproduce: `python3 -m background.finding_severity`\n"
             )
             return 1
         if detail:
