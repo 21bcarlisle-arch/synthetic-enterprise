@@ -4299,6 +4299,63 @@ def test_a_declared_interior_band_that_stopped_describing_the_book_fires(
                for v in violations)
 
 
+@pytest.mark.parametrize("field,wide,expected", (
+    ("interior_counted_change_points", (0, 86),
+     "pairs where the COUNTED populations"),
+    ("interior_excluded_change_points", (0, 86),
+     "pairs where the EXCLUDED band changes"),
+    ("interior_silent_set_moves", (0, 86),
+     "pairs where the flagged set moves and the figure does not"),
+))
+def test_a_declared_interior_band_WIDENED_to_fit_fires(
+        interior_change_points, field, wide, expected):
+    """THE DIRECTION THE CONTROL COULD NOT SEE (BLOCKING 2, 2026-08-15 Expert
+    Hour). Every mutation case above narrows or shifts; NONE widened, so "R15
+    both ways" was proven only in the direction that cannot hide a defect. The
+    check was CONTAINMENT while its docstring said it "requires that the
+    DECLARATION match the BOOK", so declaring the whole interior `(0, 86)`
+    returned no violation at all -- and the caveat then published the widened
+    band as its own cause, destroying the "61-63 ... and at ONLY 32-38"
+    contrast the sentence exists to draw. The violation string it could not
+    emit ends "never widen the band to fit"."""
+    entry = dict(pair.DIMENSION_DRIFT_RESOLUTION["detection"])
+    measured = tuple(interior_change_points[field[len("interior_"):]])
+    assert measured != wide, "the fixture must not already read the wide band"
+    assert wide[0] <= measured[0] and measured[1] <= wide[1], (
+        "this case must WIDEN -- a shift or a narrowing is already covered")
+    entry[field] = wide
+    violations = pair.check_detection_interior_change_points(
+        interior_change_points, entry=entry)
+    assert any(expected in v for v in violations), violations
+    assert any("WIDER than the book" in v for v in violations), violations
+    assert any("never widen the band to fit" in v for v in violations)
+
+
+@pytest.mark.parametrize("field,expected", (
+    ("interior_counted_change_points",
+     "pairs where the COUNTED populations"),
+    ("interior_excluded_change_points",
+     "pairs where the EXCLUDED band changes"),
+    ("interior_silent_set_moves",
+     "pairs where the flagged set moves and the figure does not"),
+))
+def test_an_omitted_interior_band_is_a_violation_not_a_clean_sheet(
+        interior_change_points, field, expected):
+    """R15's SECOND killer pattern on the same loop (BLOCKING 2, 2026-08-15).
+    `declared = e.get(field)` followed by `if declared is None: continue` meant
+    an entry that simply omitted a band passed -- the missing-value fail-open,
+    verbatim. `detection_resolution_caveat` publishes "NOT MEASURED on this
+    entry" in that case, so a reader is told; this control said nothing, which
+    is what let a band be dropped rather than re-derived."""
+    entry = dict(pair.DIMENSION_DRIFT_RESOLUTION["detection"])
+    entry.pop(field)
+    violations = pair.check_detection_interior_change_points(
+        interior_change_points, entry=entry)
+    assert any(expected in v for v in violations), violations
+    assert any("an absent declaration is not a clean sheet" in v
+               for v in violations), violations
+
+
 def _cp_with(measurement, seed_patch=None, **top):
     """A copy of the measurement with one seed's row (or a top-level band)
     mutated -- the R15 probe for the fail-open shapes, applied to the
@@ -7273,3 +7330,156 @@ def test_the_row_census_refuses_a_single_book():
     constant and a region rendering the figure are the same observation."""
     with pytest.raises(AssertionError, match="needs TWO books"):
         pair.measure_door_row_surfaces(["<div class=\"gap-row\"></div>"])
+
+
+# ---------------------------------------------------------------------------
+# THE CHECK-CALL CENSUS (R10 closure for the no-caller class, 2026-08-15)
+# ---------------------------------------------------------------------------
+# Three `check_*` functions in this module shipped with no caller in three
+# consecutive Expert Hours, and each was closed by adding the missing call. R10
+# forbids exactly that: the class is closed by a control that makes the whole
+# class fail automatically, and these are that control's own R15 pass. Every
+# mutation below leaves the module itself untouched -- the census reads a
+# SOURCE STRING, so each defect can be built rather than described.
+
+_CENSUS_SRC_WIRED = '''
+def check_alpha(x):
+    return []
+
+
+def check_beta(x):
+    return []
+
+
+def main():
+    args = _parse()
+    check_alpha(1)
+    if args.beta_sweep:
+        check_beta(2)
+'''
+
+
+def test_every_check_this_module_defines_is_reachable_from_main():
+    """THE SHIPPED STATE, and the reason this control exists. On 2026-08-15 the
+    census's first population was 15 defined `check_*` functions with 10 called
+    from `main()`: `check_detection_interior_change_points`,
+    `check_door_row_surfaces`, `check_scenario_constant_census`,
+    `check_published_figure_caveat_coverage` and
+    `check_published_resolution_floor` were unreachable from the run that
+    publishes, while two shipped comments said the first of them re-derived its
+    bands "every run"."""
+    measured = pair.measure_check_call_census()
+    assert measured["main_found"] is True
+    # A census over a handful of functions would be a control that had lost its
+    # subject; this module really does define this many.
+    assert len(measured["defined"]) >= 15, measured["defined"]
+    assert pair.check_check_call_census(measured) == []
+    assert measured["uncalled"] == ()
+    assert measured["conditional_unflagged"] == ()
+    # The five that were unreachable are each accounted for BY NAME, so a
+    # silent un-wiring cannot pass as a population change.
+    for name in ("check_detection_interior_change_points",
+                 "check_door_row_surfaces",
+                 "check_scenario_constant_census"):
+        assert name in measured["default_path"], name
+    for name in ("check_published_figure_caveat_coverage",
+                 "check_published_resolution_floor"):
+        assert name in measured["behind_a_flag"], name
+        assert pair.CHECKS_BEHIND_A_FLAG[name]["reason"].strip()
+    # INSTANCE FOUR GUARD: a reachability census that itself had no caller
+    # would be the defect it exists to close.
+    assert "check_check_call_census" in measured["default_path"]
+
+
+def test_the_census_is_clean_on_a_wired_module():
+    """The control must be able to say YES. A census that fires on a correctly
+    wired module would be re-derived into uselessness the first time it did."""
+    measured = pair.measure_check_call_census(_CENSUS_SRC_WIRED)
+    assert measured["default_path"] == ("check_alpha",)
+    assert measured["behind_a_flag"] == {"check_beta": ("beta_sweep",)}
+    register = {"check_beta": {"flag": "beta_sweep", "reason": "expensive"}}
+    assert pair.check_check_call_census(measured, register=register) == []
+
+
+def test_a_check_with_no_caller_in_main_fires_by_name():
+    """THE CLASS ITSELF (R10). This is what shipped three Hours running, and
+    what nothing in the repo could say out loud until this census existed."""
+    src = _CENSUS_SRC_WIRED.replace("    check_alpha(1)\n", "")
+    measured = pair.measure_check_call_census(src)
+    assert measured["uncalled"] == ("check_alpha",)
+    violations = pair.check_check_call_census(
+        measured, register={"check_beta": {"flag": "beta_sweep", "reason": "x"}})
+    assert any("`check_alpha` is DEFINED in this module and called from "
+               "NOWHERE in `main()`" in v for v in violations), violations
+
+
+def test_a_check_hidden_behind_an_undeclared_flag_fires():
+    """The escape hatch, closed. Moving a control behind an opt-in flag is
+    legitimate and cheap; doing it without declaring the flag makes an
+    unreachable control indistinguishable from a deliberately opt-in one."""
+    measured = pair.measure_check_call_census(_CENSUS_SRC_WIRED)
+    violations = pair.check_check_call_census(measured, register={})
+    assert any("only inside `if args.beta_sweep:` and nothing declares why" in v
+               for v in violations), violations
+
+
+def test_a_check_reachable_only_under_a_conditional_with_no_flag_fires():
+    """`if False:` reads EXACTLY like a wired control to any census that only
+    asks whether the name appears in `main()` -- so this one asks whether there
+    is a flag a reader could pass to make it run."""
+    src = _CENSUS_SRC_WIRED.replace("    check_alpha(1)\n",
+                                    "    if _never():\n        check_alpha(1)\n")
+    measured = pair.measure_check_call_census(src)
+    assert measured["conditional_unflagged"] == ("check_alpha",)
+    assert measured["uncalled"] == ()
+    violations = pair.check_check_call_census(
+        measured, register={"check_beta": {"flag": "beta_sweep", "reason": "x"}})
+    assert any("names no `args.<flag>`" in v for v in violations), violations
+
+
+@pytest.mark.parametrize("register,expected", (
+    ({"check_beta": {"flag": "other_flag", "reason": "x"}},
+     "the declaration has come apart from the code it describes"),
+    ({"check_beta": {"flag": "beta_sweep", "reason": "   "}},
+     "declared off the default path with NO reason"),
+    ({"check_beta": {"flag": "beta_sweep", "reason": "x"},
+      "check_gone": {"flag": "z", "reason": "x"}},
+     "a declaration outliving its subject"),
+    ({"check_beta": {"flag": "beta_sweep", "reason": "x"},
+      "check_alpha": {"flag": "alpha_flag", "reason": "x"}},
+     "the exemption is false"),
+))
+def test_a_rotted_exemption_fires_in_both_directions(register, expected):
+    """R15 ON THE REGISTER, not just on the code. An allowlist nobody re-reads
+    becomes the place controls go to stop running -- so a declaration that has
+    come apart from the code fires whichever side moved."""
+    measured = pair.measure_check_call_census(_CENSUS_SRC_WIRED)
+    violations = pair.check_check_call_census(measured, register=register)
+    assert any(expected in v for v in violations), violations
+
+
+@pytest.mark.parametrize("src,expected", (
+    ("def main():\n    pass\n", "found NO `check_*` functions"),
+    ("def check_alpha(x):\n    return []\n", "could not find `main()`"),
+))
+def test_the_census_fails_closed_on_its_own_missing_subject(src, expected):
+    """R15's THIRD pattern, on the control that closes the class: a census over
+    no functions, and one that never found the caller it measures against, both
+    read exactly like a fully wired module. An unavailable check is a failed
+    check."""
+    measured = pair.measure_check_call_census(src)
+    violations = pair.check_check_call_census(measured, register={})
+    assert any(expected in v for v in violations), violations
+
+
+def test_the_interior_control_now_runs_on_the_run_that_publishes():
+    """BLOCKING 3's wiring half, pinned separately from the census: the caveat
+    is written into the ledger by `main()`, and until 2026-08-15 that run
+    executed every SIBLING resolution check and not this one -- while two
+    shipped comments claimed the bands were "re-derived every run" by it."""
+    src = inspect.getsource(pair.main)
+    assert "measure_detection_interior_change_points(" in src
+    assert "check_detection_interior_change_points(" in src
+    # ...and the verdict is PRINTED, because a control whose result nobody
+    # renders is a control the reader of the figure never meets (the D25 rule).
+    assert "_icp_violations" in src

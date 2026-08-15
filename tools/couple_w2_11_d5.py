@@ -8770,15 +8770,38 @@ def check_detection_interior_change_points(
         ("interior_silent_set_moves",
          "pairs where the flagged set moves and the figure does not"),
     ):
+        got = tuple(measurement[field[len("interior_"):]])
         declared = e.get(field)
+        # R15's second killer pattern, closed on 2026-08-15: this loop used to
+        # `continue` on a missing declaration, so an entry that simply OMITTED a
+        # band read exactly like one whose band held. The caveat publishes these
+        # numbers as measured fact; a band nobody declared is a sentence with
+        # nothing behind it, not a clean sheet.
         if declared is None:
+            out.append(
+                f"the register declares NO band for {label} and this book "
+                f"measures {got!r} -- an absent declaration is not a clean "
+                "sheet (R15: a control that passes on the missing value cannot "
+                "fail), and the caveat publishes this band as measured fact "
+                f"(atom {e.get('interior_quantisation_atom')})")
             continue
-        got = measurement[field[len("interior_"):]]
-        if not (tuple(declared)[0] <= got[0] and got[1] <= tuple(declared)[1]):
+        # EXACTNESS, not containment. Until 2026-08-15 this was
+        # `declared[0] <= got[0] and got[1] <= declared[1]`, which is silent on
+        # the one move its own violation string names: declaring all three bands
+        # `(0, 86)` returned NO violation while the caveat published the widened
+        # band as its own cause, destroying the "61-63 ... and at ONLY 32-38"
+        # contrast the sentence exists to draw. The declaration is the book's
+        # measurement, so anything but equality is a band nobody re-derived --
+        # and a WIDER one is the direction that hides the defect.
+        if tuple(declared) != got:
+            wider = (tuple(declared)[0] <= got[0] and got[1] <= tuple(declared)[1])
             out.append(
                 f"the register declares {label} at {tuple(declared)!r} across "
-                f"seeds and this book measures {got!r} -- re-derive the band "
-                "and the sentence that publishes it (atom "
+                f"seeds and this book measures {got!r} -- "
+                + ("the declaration is WIDER than the book, which is the "
+                   "direction that publishes a weaker claim as if it were "
+                   "measured: " if wider else "")
+                + "re-derive the band and the sentence that publishes it (atom "
                 f"{e.get('interior_quantisation_atom')}), never widen the band "
                 "to fit")
     return out
@@ -10239,6 +10262,202 @@ def score_detection_by_partition(
     return out
 
 
+# ---------------------------------------------------------------------------
+# THE CHECK-CALL CENSUS (R10 closure for the no-caller class, 2026-08-15)
+# ---------------------------------------------------------------------------
+# WHY THIS IS A CENSUS AND NOT A WIRING FIX. Hour #30 found a control on this
+# instrument with no caller, added the missing call, and recorded the class
+# CLOSED because "the grader has a caller on every publish". One Hour later
+# `check_detection_interior_change_points` shipped with no caller either -- the
+# THIRD instance, and 5 of this module's 15 `check_*` functions were unreachable
+# from `main()` at the time. R10 forbids closing an absurdity-class defect at
+# the instance: what closes it is a control that makes the whole class fail
+# automatically, which is this one. It is itself called from `main()`, because a
+# reachability census with no caller would be instance four.
+#
+# The rule it enforces has two tiers. Every `check_*` defined here must be
+# CALLED from `main()` -- the run that publishes a figure is the run that must
+# put that figure's declarations on trial. A check whose measurement is too
+# expensive for every run may sit behind an opt-in flag, but only if it is
+# DECLARED below with the flag that guards it and a reason: an undeclared
+# conditional call is indistinguishable from a control quietly moved off the
+# default path, which is the decay this exists to catch.
+CHECKS_BEHIND_A_FLAG: Dict[str, Dict[str, str]] = {
+    "check_published_figure_caveat_coverage": {
+        "flag": "caveat_coverage",
+        "reason": (
+            "sweeps THREE knobs across all five published figures on three "
+            "seeds -- a second full resolution grid on top of the two this run "
+            "already pays for. Opt-in at the CLI, run unconditionally in "
+            "tests/tools/test_couple_w2_11_d5.py."
+        ),
+    },
+    "check_published_resolution_floor": {
+        "flag": "resolution_floor",
+        "reason": (
+            "bisects each figure's own drift grid to a per-seed floor, which is "
+            "a per-dimension sweep of its own. Opt-in at the CLI, run "
+            "unconditionally in tests/tools/test_couple_w2_11_d5.py."
+        ),
+    },
+}
+
+
+def measure_check_call_census(source: Optional[str] = None) -> Dict[str, object]:
+    """Which `check_*` functions this module DEFINES, and which of them `main()`
+    actually calls -- read off the AST, never off a hand-kept list.
+
+    Returns `{"defined", "default_path", "behind_a_flag", "uncalled",
+    "main_found"}`. `behind_a_flag` maps a check called ONLY inside an
+    `if args.<flag>:` branch to the flags that guard it; a check called at least
+    once unconditionally is on the default path however many guarded calls it
+    also has.
+    """
+    src = inspect.getsource(sys.modules[__name__]) if source is None else source
+    tree = ast.parse(src)
+    defined = tuple(
+        n.name for n in tree.body
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and n.name.startswith("check_")
+    )
+    mains = [n for n in tree.body
+             if isinstance(n, ast.FunctionDef) and n.name == "main"]
+    if not mains:
+        return {"defined": defined, "main_found": False, "default_path": (),
+                "behind_a_flag": {}, "uncalled": defined}
+
+    # (flags, under_a_condition) per call site. BOTH halves matter: a call
+    # reachable only inside `if <anything>:` is not on the default path even
+    # when the condition names no flag -- `if False:` would otherwise read as a
+    # wired control, which is this census's own fail-open.
+    guards_by_call: Dict[str, List[Tuple[frozenset, bool]]] = {}
+
+    def _flags(test: ast.expr) -> frozenset:
+        out = set()
+        for node in ast.walk(test):
+            if (isinstance(node, ast.Attribute)
+                    and isinstance(node.value, ast.Name)
+                    and node.value.id == "args"):
+                out.add(node.attr)
+        return frozenset(out)
+
+    def _walk(node: ast.AST, guards: frozenset, under_if: bool) -> None:
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, ast.If):
+                inner = guards | _flags(child.test)
+                for stmt in child.body:
+                    _walk(stmt, inner, True)
+                # The `else` branch runs when the flag is FALSE, so it is not
+                # guarded BY that flag -- it inherits the enclosing guards only.
+                for stmt in child.orelse:
+                    _walk(stmt, guards, True)
+                continue
+            if isinstance(child, ast.Call) and isinstance(child.func, ast.Name):
+                guards_by_call.setdefault(child.func.id, []).append(
+                    (guards, under_if))
+            _walk(child, guards, under_if)
+
+    _walk(mains[0], frozenset(), False)
+    default_path: List[str] = []
+    behind: Dict[str, Tuple[str, ...]] = {}
+    conditional: Dict[str, Tuple[str, ...]] = {}
+    for name in defined:
+        seen = guards_by_call.get(name)
+        if not seen:
+            continue
+        if any(not under_if for _flagset, under_if in seen):
+            default_path.append(name)
+            continue
+        flags = set().union(*(f for f, _u in seen))
+        if flags:
+            behind[name] = tuple(sorted(flags))
+        else:
+            conditional[name] = ()
+    return {
+        "defined": defined,
+        "main_found": True,
+        "default_path": tuple(default_path),
+        "behind_a_flag": behind,
+        "conditional_unflagged": tuple(sorted(conditional)),
+        "uncalled": tuple(n for n in defined
+                          if n not in default_path and n not in behind
+                          and n not in conditional),
+    }
+
+
+def check_check_call_census(
+    measured: Dict[str, object],
+    register: Optional[Dict[str, Dict[str, str]]] = None,
+) -> List[str]:
+    """Put every `check_*` in this module on trial for being REACHABLE from the
+    run that publishes (R10 closure, 2026-08-15). Returns violations."""
+    register = CHECKS_BEHIND_A_FLAG if register is None else register
+    out: List[str] = []
+    defined: Sequence[str] = measured.get("defined") or ()      # type: ignore[assignment]
+    # R15, both fail-open shapes on this control's own subject: a census over
+    # no functions, or one that never found `main()`, reads exactly like a
+    # module where every control is wired.
+    if not defined:
+        return ["the check-call census found NO `check_*` functions in this "
+                "module -- an empty subject reads exactly like a fully wired "
+                "one, and an unavailable check is a failed check (R15)"]
+    if not measured.get("main_found"):
+        return ["the check-call census could not find `main()` -- the caller "
+                "every control is measured against is missing, so nothing was "
+                "put on trial (R15: an unavailable check is a failed check)"]
+    behind: Dict[str, Sequence[str]] = measured.get("behind_a_flag") or {}   # type: ignore[assignment]
+    for name in measured.get("uncalled") or ():                 # type: ignore[union-attr]
+        out.append(
+            f"`{name}` is DEFINED in this module and called from NOWHERE in "
+            "`main()` -- the run that publishes the figure does not put its "
+            "declaration on trial, so the declaration can rot without anything "
+            "saying so. This is the class R10 closed at the instance twice "
+            "(Hours #30 and #31) before this census existed: wire it into "
+            "`main()` beside its siblings, or declare it in "
+            "`CHECKS_BEHIND_A_FLAG` with the flag that guards it")
+    for name in measured.get("conditional_unflagged") or ():    # type: ignore[union-attr]
+        out.append(
+            f"`{name}` is called from `main()` only inside a conditional that "
+            "names no `args.<flag>` -- there is no flag a reader could pass to "
+            "make it run, so it is unreachable in every shape this census can "
+            "see except one it cannot name (`if False:` reads exactly like a "
+            "wired control otherwise)")
+    for name, flags in sorted(behind.items()):
+        entry = register.get(name)
+        if entry is None:
+            out.append(
+                f"`{name}` is called from `main()` only inside "
+                f"`if args.{'/'.join(flags)}:` and nothing declares why -- a "
+                "control quietly moved off the default path is "
+                "indistinguishable from one that was never wired, which is the "
+                "decay this census exists to catch")
+            continue
+        if entry.get("flag") not in flags:
+            out.append(
+                f"`{name}` is declared to sit behind `--"
+                f"{str(entry.get('flag')).replace('_', '-')}` and is actually "
+                f"guarded by {sorted(flags)!r} -- the declaration has come "
+                "apart from the code it describes")
+        if not (entry.get("reason") or "").strip():
+            out.append(
+                f"`{name}` is declared off the default path with NO reason -- "
+                "an undefended exemption is how an allowlist becomes a place to "
+                "put controls that stopped running")
+    for name in sorted(register):
+        if name not in defined:
+            out.append(
+                f"`CHECKS_BEHIND_A_FLAG` declares `{name}` and this module "
+                "defines no such check -- a declaration outliving its subject "
+                "is a stale exemption nobody re-read")
+        elif name in (measured.get("default_path") or ()):
+            out.append(
+                f"`CHECKS_BEHIND_A_FLAG` declares `{name}` off the default path "
+                "and `main()` calls it unconditionally -- the exemption is "
+                "false, and a false exemption is how a real one stops being "
+                "read")
+    return out
+
+
 def _git_head() -> Optional[str]:
     try:
         return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
@@ -10258,6 +10477,21 @@ def main() -> None:
                           "SECOND population, so it is opt-in"))
     ap.add_argument("--coverage-residual-customers", type=int, default=800,
                     help="population size for --coverage-residual (default 800)")
+    # THE TWO OPT-IN CONTROLS. Both are declared in `CHECKS_BEHIND_A_FLAG` with
+    # the reason they are not on the default path, and the check-call census at
+    # the end of this run fails if a control sits behind a flag nobody declared
+    # -- an exemption that is not written down is indistinguishable from a
+    # control that was never wired (2026-08-15, R10 closure).
+    ap.add_argument("--caveat-coverage", action="store_true",
+                    help=("also sweep every knob x every published figure and "
+                          "put PUBLISHED_FIGURE_CAVEAT_CONTRACT on trial (atom "
+                          "D32) -- a third full resolution grid, so it is "
+                          "opt-in"))
+    ap.add_argument("--resolution-floor", action="store_true",
+                    help=("also bisect each published figure's own drift grid "
+                          "for its resolution floor and put the declared "
+                          "floors on trial (atom D33) -- a per-dimension sweep, "
+                          "so it is opt-in"))
     args = ap.parse_args()
 
     result = measure(args.customers, seed=args.seed)
@@ -10379,11 +10613,16 @@ def main() -> None:
     else:
         print(f"           door row census (D40): UNAVAILABLE "
               f"({_row.get('reason', 'the door stage did not run')})")
+    # ...and the ROW's own population is put on trial here rather than only in
+    # the suite (2026-08-15): `check_door_row_surfaces` was one of the five
+    # controls this module defined and never called, so the census it grades
+    # printed above with no verdict beside it.
     _prec_violations = (
         check_published_reading_precision(
             _prec, published=published_dimensions(result))
         + check_component_render_sites(_sites)
-        + check_reader_render_sites(_reader, _sites))
+        + check_reader_render_sites(_reader, _sites)
+        + check_door_row_surfaces(_walk_state))
     print("           verdict: "
           + ("every declared reader precision held" if not _prec_violations
              else f"{len(_prec_violations)} VIOLATION(S)"))
@@ -10494,6 +10733,34 @@ def main() -> None:
     for v in _ddr_violations:
         print(f"           !! {v}")
 
+    # WHY THE DETECTION HEADLINE IS QUANTISED IN ITS INTERIOR (atom D28),
+    # printed on THE RUN THAT PUBLISHES THE SENTENCE. Until 2026-08-15 this
+    # measurement and its check had no caller anywhere outside the test suite,
+    # while two shipped comments said the bands were "re-derived every run" by
+    # it -- and the run that writes the caveat into the ledger ran every sibling
+    # resolution check and not this one. The bands the caveat quotes are the
+    # ones printed here, so a register that stopped describing the book now says
+    # so where the number is read.
+    _icp = measure_detection_interior_change_points(n_customers=300)
+    _icp_entry = DIMENSION_DRIFT_RESOLUTION["detection"]
+    print("  [interior-quantisation control] why the detection reading steps "
+          f"where it does, seeds {RESOLUTION_SEEDS}:")
+    print(f"           interior {_icp['interior_pairs']!r} adjacent pair(s); "
+          f"the flagged set steps at {_icp['excluded_change_points']!r} on the "
+          f"EXCLUDED band and at only "
+          f"{_icp['counted_change_points']!r} on the two populations this "
+          f"figure counts ({_icp['silent_set_moves']!r} silent set moves) "
+          f"[declared {_icp_entry.get('interior_excluded_change_points')!r} / "
+          f"{_icp_entry.get('interior_counted_change_points')!r} / "
+          f"{_icp_entry.get('interior_silent_set_moves')!r}]")
+    _icp_violations = check_detection_interior_change_points(_icp)
+    print("           verdict: "
+          + ("the declaration matches this book EXACTLY"
+             if not _icp_violations
+             else f"{len(_icp_violations)} VIOLATION(S)"))
+    for v in _icp_violations:
+        print(f"           !! {v}")
+
     # THE OFF-PATH DIMENSIONS' OWN GRADED BAND (atom D27). Until this ran, the
     # two lines printed "OFF the drift's path ... moved by
     # HEADLINE_DIRECTION_COVERAGE: True" and stopped -- a reader could not tell
@@ -10566,6 +10833,80 @@ def main() -> None:
              if not _res_violations
              else f"{len(_res_violations)} VIOLATION(S)"))
     for v in _res_violations:
+        print(f"           !! {v}")
+
+    # THE CONSTANTS THE SCENARIO IS BUILT FROM (atom D30), on the run that
+    # publishes rather than in the suite alone -- the second of the five
+    # controls this module defined and never called. Every band printed above is
+    # a property of these values, so a census that has drifted off the book is a
+    # reader being told the resolution of a scenario nobody is running.
+    _cen_recs, _cen_c, _cen_l, _cen_as_of = build_scenario(
+        min(args.customers, 300), seed=args.seed)
+    _cen = measure_scenario_constant_census(_cen_recs, _cen_as_of)
+    print("  [scenario-constant census] the book these resolutions are "
+          "properties of:")
+    print(f"           {len(_cen['subject'])} constant(s) in the census "
+          f"subject; book ages {_cen['measured_youngest_age_days']}-"
+          f"{_cen['measured_oldest_age_days']}d vs the predicted band "
+          f"(describes this book: {_cen['describes_this_book']}); the scored "
+          f"company's {_cen['scored_company_window_days']}d memory has "
+          f"{_cen['scored_company_headroom_days']}d headroom over the oldest "
+          f"event (inert: {_cen['scored_company_is_inert']}, atom D27)")
+    _cen_violations = check_scenario_constant_census(_cen)
+    print("           verdict: "
+          + ("every constant's declared role held" if not _cen_violations
+             else f"{len(_cen_violations)} VIOLATION(S)"))
+    for v in _cen_violations:
+        print(f"           !! {v}")
+
+    # OPT-IN: the caveat-coverage contract (atom D32). Declared in
+    # CHECKS_BEHIND_A_FLAG with its reason -- a third full resolution grid.
+    if args.caveat_coverage:
+        _cc_measured = measure_published_figure_caveat_coverage(n_customers=300)
+        _cc_violations = check_published_figure_caveat_coverage(_cc_measured)
+        print("  [caveat-coverage control] every knob x every published "
+              f"figure, seeds {RESOLUTION_SEEDS}: "
+              + ("every declared caveat covered its knob"
+                 if not _cc_violations
+                 else f"{len(_cc_violations)} VIOLATION(S)"))
+        for v in _cc_violations:
+            print(f"           !! {v}")
+
+    # OPT-IN: the per-figure resolution floors (atom D33). Declared in
+    # CHECKS_BEHIND_A_FLAG with its reason -- a per-dimension bisection sweep.
+    if args.resolution_floor:
+        _rf_measured = measure_published_resolution_floor(n_customers=300)
+        _rf_violations = check_published_resolution_floor(_rf_measured)
+        print("  [resolution-floor control] smallest company error each "
+              "published figure can resolve: "
+              + ("every declared floor held" if not _rf_violations
+                 else f"{len(_rf_violations)} VIOLATION(S)"))
+        for v in _rf_violations:
+            print(f"           !! {v}")
+
+    # THE CENSUS OF THE CONTROLS THEMSELVES (R10 closure, 2026-08-15). Three
+    # `check_*` functions in this module shipped with no caller in three
+    # consecutive Hours, each closed at the instance. This asks the question the
+    # instance fixes could not: is EVERY control here reachable from the run
+    # that publishes? It runs last because it grades the run above it, and it is
+    # on the default path because a reachability census behind a flag would be
+    # the fourth instance of the class it exists to close.
+    _cnc = measure_check_call_census()
+    _cnc_violations = check_check_call_census(_cnc)
+    _cnc_flagged = ", ".join(
+        "{} (--{})".format(name, flags[0].replace("_", "-"))
+        for name, flags in sorted(_cnc["behind_a_flag"].items())) or "none"
+    print(f"  [check-call census] {len(_cnc['defined'])} `check_*` control(s): "
+          f"{len(_cnc['default_path'])} on every run, "
+          f"{len(_cnc['behind_a_flag'])} behind a declared opt-in flag "
+          f"[{_cnc_flagged}], "
+          f"{len(_cnc['conditional_unflagged'])} conditional-undeclared, "
+          f"{len(_cnc['uncalled'])} UNREACHABLE")
+    print("           verdict: "
+          + ("every control this module defines runs on a run that publishes"
+             if not _cnc_violations
+             else f"{len(_cnc_violations)} VIOLATION(S)"))
+    for v in _cnc_violations:
         print(f"           !! {v}")
 
     print(f"  allocation note: {result['notes']['allocation']}")
