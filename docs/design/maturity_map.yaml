@@ -4085,7 +4085,7 @@
   couples_with: []
   records_rehomed: [evidence]
   file_scope: []
-  simplifications_count: 4   # 2026-08-17: the belief-vs-realised CLV gap MEASURED for the first time (DISCOVER, level stays 0); two BLOCKING findings filed -- the valuation's margin basis, and an empty final-year snapshot published as a GBP 3.3m fall
+  simplifications_count: 5   # 2026-08-17 pass 5: the margin-basis repair that produced the live GBP 1,288,252.96 valuation is in NO commit -- 3 of its discharge's 4 falsifiers are untracked files, and HEAD publishes a basis sentence no code at HEAD can write
 - id: EP2_variance_learning_loop
   title: "Expected minus realised, fed back into belief"
   gain: "Margin volatility becomes explained variance or a named defect, instead of a shrug."

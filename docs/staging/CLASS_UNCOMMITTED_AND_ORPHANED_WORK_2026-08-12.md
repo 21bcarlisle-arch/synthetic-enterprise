@@ -30,6 +30,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
 
+- `WORKER_FINDING_THE_LIVE_VALUATION_IS_SERVED_BY_AN_UNCOMMITTED_GENERATOR_AND_ITS_DISCHARGE_NAMED_UNTRACKED_FALSIFIERS_2026-08-17.md` — lane `B_commercial`
 - `WORKER_FINDING_THE_POPULATION_DRAW_IS_LIVE_ON_DISK_WHILE_ITS_ROSTER_FIX_IS_UNCOMMITTED_2026-08-13.md` — lane `W2_customer_generator`
 
 ---
