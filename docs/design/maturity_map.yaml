@@ -5202,6 +5202,12 @@
     # page: 0 console errors, 0 leaked headlines in the customer view, 6/6 cards behind it.
     - coldwalk:site2_case_study_cards_render_sim_truth_in_the_customer_view
     - coldwalk:site2_wall_view_selector_throws_in_its_own_landing_state
+    fixed_2026_08_18:   # RENDER half. Full evidence: the ledger row's own fix_evidence.
+    # Two company estimators, not one quantity twice: latest_churn_probability (bill-shock
+    # model -> CLV) vs company_est (-> retention_discount_for_risk). Disagree on 54/58
+    # decisions. The caption was the defect, not the figure; both now name their producer.
+    # DATA half re-homed, B_commercial: WORKER_FINDING_TWO_CHURN_ESTIMATORS_DISAGREE_*.md.
+    - coldwalk:site2_churn_belief_published_as_23_and_5_for_one_decision
     findings_rehomed:   # real, NOT SITE2's, and not closable inside its file_scope
     # Staged for the owning lanes as
     # docs/staging/WORKER_FINDING_TWO_DEFECTS_THE_WALL_EXHIBIT_SURFACED_ARE_NOT_THE_EXHIBITS_2026-08-17.md
@@ -5231,11 +5237,11 @@
       # exhibit cannot answer is which of the two it is: a display join, or a billing engine
       # applying last year's price vintage straight through the 2022 spike.
     findings:   # OPEN; reconciled vs the ledger by tests/controls/test_map_reconciliation.py
-    # THE RE-RUN WALK's four open findings (2026-08-17). None is a fix this tick could make
-    # honestly: two need a producer-vs-render ownership call that has not been measured yet,
-    # one is a layout decision, one is a same-page contradiction whose correct resolution
-    # depends on whether the closed account's credit balance was ever refunded.
-    - coldwalk:site2_churn_belief_published_as_23_and_5_for_one_decision
+    # THE RE-RUN WALK's remaining open findings. The walk raised four (2026-08-17); the
+    # churn-belief one is FIXED 2026-08-18 and has moved to fixed_2026_08_18 below. Of the
+    # three left, one still needs a producer-vs-render ownership call that has not been
+    # measured, one is a layout decision, and one is a same-page contradiction whose correct
+    # resolution depends on whether the closed account's credit balance was ever refunded.
     - coldwalk:site2_arrears_counters_contradict_the_accounts_own_timeline
     - coldwalk:site2_c1_pinned_exhibit_reads_as_the_open_households
     - coldwalk:site2_closed_account_settled_to_zero_and_in_credit

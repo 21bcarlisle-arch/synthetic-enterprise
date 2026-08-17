@@ -103,8 +103,13 @@ COMPANY_ONLY_FIGURES = {
     # class the comment above records, caught a second time by the anti-vacuity test rather
     # than by review. `_Q` is the qualifier, optional, so the leak checker keeps seeing
     # these figures on a closed household AND on a live one.
+    # The op-state exhibit now carries TWO churn tiles -- the renewal-risk model's score
+    # and the belief the company acted on (coldwalk:site2_churn_belief_published_as_23_
+    # and_5_for_one_decision). Both are company-only figures, and a '<'-anchored "Churn
+    # risk<" saw NEITHER once each grew a producer qualifier -- the third instance of the
+    # narrowed-parser class this dict's own comments record. Unanchored on purpose.
     "churn probability": (rf'class="kpi-label">Churn Probability{_Q}<',
-                          r'class="kpi-label">Churn risk<'),
+                          r'class="kpi-label">Churn risk'),
     "customer lifetime value": (rf'class="rl">Customer Lifetime Value{_Q}<', r'>Combined CLV<'),
     "pricing action": (r'class="kpi-label">Pricing Action',),
     "forecast profit": (rf'class="rl">Forecast Annual Profit{_Q}<', r'>Projected Net Margin<',
@@ -1066,7 +1071,8 @@ def test_no_non_monetary_tile_carries_a_settlement_clock(op_state_html, rendered
 def test_mutation_a_clock_put_back_on_the_churn_probability_kills_a_named_test(tmp_path):
     """R15 for the class control above, proven through the page's own render."""
     src = INDEX.read_text(encoding="utf-8")
-    marker = '"company estimate, not a fact · belief at last renewal decision"'
+    marker = ('"company estimate, not a fact · bill-shock model scored at the last '
+              'renewal period"')
     assert marker in src, "the churn caption no longer has the shape this mutation reverts"
     mutant = tmp_path / "index.html"
     mutant.write_text(src.replace(marker, '"settled clock · company estimate"'), encoding="utf-8")
@@ -1076,6 +1082,166 @@ def test_mutation_a_clock_put_back_on_the_churn_probability_kills_a_named_test(t
     assert offenders, (
         "MUTATION SURVIVED: a settlement clock was restored on the churn PROBABILITY and "
         "the class control did not flag it"
+    )
+
+
+# --- two churn estimators, published as two ---------------------------------
+# coldwalk:site2_churn_belief_published_as_23_and_5_for_one_decision.
+#
+# The page published company.json's `latest_churn_probability` under the caption "belief
+# at last renewal decision" while rendering a DIFFERENT number -- the reaction chain's
+# `company_belief` -- for that same decision further down the same page. Measured over
+# docs/reports/run_output_latest.json on 2026-08-18, the two estimators disagree on 54 of
+# 58 renewal decisions (93%), so this is a class and not a C1 curiosity.
+#
+# The figures were never the defect; the caption was. These tests pin that each tile names
+# the producer its number came from, and that the "acted on" tile really carries the
+# chain's belief rather than a second copy of the model's score.
+_CHURN_MODEL_LABEL = "Churn risk (renewal-risk model)"
+_CHURN_ACTED_LABEL = "Churn risk the company acted on"
+
+
+def _op_state_tiles(html: str) -> dict[str, tuple[str, str]]:
+    return {m.group("label"): (m.group("value"), m.group("sub") or "")
+            for m in _TILE.finditer(html)}
+
+
+def _chain_last_belief(leg: Path) -> tuple[str, float] | None:
+    """The operative belief, read STRAIGHT from the published leg record.
+
+    Independence (R15 tautology guard): this walks the on-disk reaction_chain itself, so
+    the expected value never passes through the render path it is used to check."""
+    best = None
+    for event in json.loads(leg.read_text(encoding="utf-8")).get("reaction_chain", []):
+        if not str(event.get("event_type") or "").startswith("outcome_"):
+            continue
+        if event.get("company_belief") is None or not event.get("date"):
+            continue
+        if best is None or event["date"] > best[0]:
+            best = (event["date"], float(event["company_belief"]))
+    return best
+
+
+def _assert_producer_named(index: Path) -> None:
+    """The provenance assertions, over an ARBITRARY index, so a mutation can drive exactly
+    the same checks the named test below makes rather than a re-typed approximation."""
+    tiles = _op_state_tiles(_op_state_render(index=index).get("cust-value", ""))
+    assert _CHURN_MODEL_LABEL in tiles and _CHURN_ACTED_LABEL in tiles, (
+        "the op-state exhibit does not render both churn estimates under their own "
+        "labels. Before this repair it rendered a single 'Churn risk' tile carrying the "
+        "renewal-risk model's score under a caption claiming it was the belief the "
+        f"company acted on. Saw: {sorted(tiles)}"
+    )
+    model_sub = tiles[_CHURN_MODEL_LABEL][1]
+    assert "bill-shock model" in model_sub, (
+        f"the renewal-risk model tile does not name its producer: {model_sub!r}"
+    )
+    assert "belief at last renewal decision" not in model_sub, (
+        "the renewal-risk model's score is captioned as the belief the company held at "
+        "the last renewal decision -- that is the OTHER estimator, and the page renders "
+        "it a few hundred pixels further down with a different value"
+    )
+
+
+def test_the_two_churn_estimates_each_name_their_own_producer():
+    """Neither churn tile may claim the other's provenance."""
+    tiles = _op_state_tiles(_op_state_render().get("cust-value", ""))
+    assert _CHURN_MODEL_LABEL in tiles and _CHURN_ACTED_LABEL in tiles, (
+        "the op-state exhibit no longer renders both churn estimates -- it published one "
+        f"of them as the other before, which is the defect this pins. Saw: {sorted(tiles)}"
+    )
+    _assert_producer_named(INDEX)
+    assert "renewal decision" in tiles[_CHURN_ACTED_LABEL][1], (
+        "the acted-on tile does not say which decision its belief was formed at"
+    )
+
+
+def test_the_acted_on_churn_tile_carries_the_chains_belief_not_the_models_score():
+    """The independence half: the rendered value must be the CHAIN's number."""
+    elec, _gas = _dual_fuel_pair()
+    expected = _chain_last_belief(elec)
+    assert expected is not None, (
+        "the fixture household publishes no renewal outcome carrying a belief -- this "
+        "assertion would be vacuous"
+    )
+    date, belief = expected
+    tiles = _op_state_tiles(_op_state_render().get("cust-value", ""))
+    value, sub = tiles[_CHURN_ACTED_LABEL]
+    assert value.strip() == f"{belief * 100:.0f}%", (
+        f"the acted-on tile renders {value!r}, but the household's own reaction chain "
+        f"records {belief:.3f} at its last decision ({date}). Publishing the model's "
+        f"score here is exactly the substitution this finding named"
+    )
+    assert date in sub, f"the acted-on tile does not date its decision ({sub!r})"
+    model_value = tiles[_CHURN_MODEL_LABEL][0].strip()
+    assert model_value != value.strip(), (
+        "both churn tiles render the same number, so this fixture cannot tell a real "
+        "reconciliation from one tile copied into the other"
+    )
+
+
+def test_a_household_with_no_recorded_belief_renders_absence_not_a_number(tmp_path):
+    """FAIL-CLOSED (R15): 1 of the 19 published legs carries no outcome event with a
+    belief. Absence must render as absence -- never as agreement with the model's score,
+    which is the fail-open shape the page's own NO_BELIEF rule exists to refuse."""
+    elec, _gas = _dual_fuel_pair()
+    stripped = json.loads(elec.read_text(encoding="utf-8"))
+    stripped["reaction_chain"] = [
+        e for e in stripped.get("reaction_chain", [])
+        if not str(e.get("event_type") or "").startswith("outcome_")
+    ]
+    leg = tmp_path / "C1.json"
+    leg.write_text(json.dumps(stripped), encoding="utf-8")
+    tiles = _op_state_tiles(_op_state_render(legs=(leg,)).get("cust-value", ""))
+    value, sub = tiles[_CHURN_ACTED_LABEL]
+    assert value.strip() == "--", (
+        f"a household with no recorded decision belief renders {value!r} as though the "
+        "company had held one"
+    )
+    assert "no renewal decision" in sub, f"absence is not explained to the reader: {sub!r}"
+
+
+def test_mutation_restoring_the_false_caption_kills_a_named_test(tmp_path):
+    """R15 direction 1: put the original false provenance back."""
+    src = INDEX.read_text(encoding="utf-8")
+    marker = "company estimate, not a fact · bill-shock model scored at the last renewal period"
+    assert marker in src, "the model tile's caption no longer has the shape this reverts"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(
+        src.replace(marker, "company estimate, not a fact · belief at last renewal decision"),
+        encoding="utf-8",
+    )
+    tiles = _op_state_tiles(_op_state_render(index=mutant).get("cust-value", ""))
+    sub = tiles[_CHURN_MODEL_LABEL][1]
+    assert "belief at last renewal decision" in sub and "bill-shock model" not in sub, (
+        "MUTATION DID NOT APPLY: the caption was not reverted, so the assertion below "
+        "would prove nothing"
+    )
+    with pytest.raises(AssertionError):
+        _assert_producer_named(mutant)
+
+
+def test_mutation_publishing_the_models_score_as_the_acted_on_belief_kills_a_named_test(tmp_path):
+    """R15 direction 2: the substitution the finding actually caught -- render the model's
+    score in the tile that claims to be the belief the company acted on."""
+    src = INDEX.read_text(encoding="utf-8")
+    marker = "? tile(\"Churn risk the company acted on\", pct(op.belief),"
+    assert marker in src, "the acted-on tile no longer has the shape this mutation targets"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(
+        src.replace(marker,
+                    "? tile(\"Churn risk the company acted on\", pct(h.latest_churn_probability),"),
+        encoding="utf-8",
+    )
+    elec, _gas = _dual_fuel_pair()
+    expected = _chain_last_belief(elec)
+    assert expected is not None
+    tiles = _op_state_tiles(_op_state_render(index=mutant).get("cust-value", ""))
+    rendered_value = tiles[_CHURN_ACTED_LABEL][0].strip()
+    assert rendered_value != f"{expected[1] * 100:.0f}%", (
+        "MUTATION SURVIVED: the acted-on tile rendered the chain's belief even after the "
+        "page was changed to publish the model's score there -- the named test above "
+        "cannot tell the two estimators apart"
     )
 
 

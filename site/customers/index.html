@@ -313,6 +313,45 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
       cts: sum(function(a){return a.cost_to_serve_gbp;})
     };
   }
+  // THE BELIEF THE COMPANY ACTED ON -- coldwalk:site2_churn_belief_published_as_23_and_5_for_one_decision.
+  //
+  // company.json's `latest_churn_probability` and the reaction chain's `company_belief`
+  // are TWO DIFFERENT COMPANY-SIDE ESTIMATORS, and they disagree on 54 of the 58 renewal
+  // decisions this book records (93%). Measured 2026-08-18 against run_output_latest.json:
+  //   * `latest_churn_probability` is saas/churn_model.build_churn_risk()'s score for the
+  //     account's LAST RENEWAL PERIOD -- a retrospective model whose only input is the
+  //     count of bill-shock months in the preceding year. It feeds CLV/enterprise value.
+  //   * `company_belief` is simulation/run_phase2b's `company_est`, the number the company
+  //     actually ACTED ON -- it is what decision_policy.retention_discount_for_risk() was
+  //     handed, so it chose the discount that was really offered.
+  // For C1 those are 23% and 5% for the SAME 2021-12 decision. The page published the
+  // first under a caption claiming it was the second ("belief at last renewal decision"),
+  // while rendering the second, verbatim, in the reaction chain further down the same
+  // page. Three blind readers caught the contradiction independently.
+  //
+  // The caption was the false part, not the figure: both estimates are real and both are
+  // the company's. So each is now captioned with the producer it came from and the
+  // decision it refers to, and they are shown TOGETHER -- an exhibit about the gap between
+  // belief and truth should not hide a gap between two of its own beliefs.
+  //
+  // No new data plumbing (this atom's own constraint): the chain is already in the leg
+  // records the boot path fetches. Null-safe on purpose -- 1 of the 19 published legs
+  // carries no outcome event with a belief, and absence must render as absence, never as
+  // a fabricated agreement (the NO_BELIEF rule this page already applies to CLV).
+  window.__operativeChurnBelief=function(legs){
+    var acc=((legs&&legs.accounts)||[]).filter(Boolean);
+    var best=null;
+    for(var i=0;i<acc.length;i++){
+      var chain=acc[i].reaction_chain||[];
+      for(var j=0;j<chain.length;j++){
+        var e=chain[j];
+        if(String(e.event_type||"").indexOf("outcome_")!==0)continue;
+        if(e.company_belief==null||!e.date)continue;
+        if(best===null||e.date>best.date)best={date:e.date,belief:e.company_belief,outcome:e.outcome||null};
+      }
+    }
+    return best;
+  };
   window.renderCustomerState=function(company,legs){
     var h=(company&&company.household)||{};
     if(!h.available){el("cust-intro").innerHTML='<span class="red">No household snapshot available in company.json.</span>';return;}
@@ -357,6 +396,7 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
     // and each carrying its SCOPE: every leg of the household, or the one leg it came from.
     var m=householdMoney(legs);
     var whole=!!(m&&m.complete);
+    var op=window.__operativeChurnBelief(legs);
     var dual=(String(h.dual_fuel)==="true"||h.dual_fuel===true);
     // The scope suffix every money caption carries. Rule 2 above lives here: when the legs
     // are not all present, a dual-fuel household's figures say which leg they are, and the
@@ -395,8 +435,22 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
       // it was slot-filling, and slot-filled labelling devalues the labelling the page is
       // advertising. The honest caption for a probability is what it is (a belief) and when
       // it was formed. Enforced by test_no_non_monetary_tile_carries_a_settlement_clock.
-      tile("Churn risk", pct(h.latest_churn_probability), "company estimate, not a fact · belief at last renewal decision", "")
-    ].join("");
+      // Cold-eyes 2026-08-17 (coldwalk:site2_churn_belief_published_as_23_and_5_for_one_decision):
+      // the caption below used to read "belief at last renewal decision", which is the
+      // OTHER estimator -- see __operativeChurnBelief above for the measurement. Each tile
+      // now names its own producer, so the two figures no longer read as one quantity
+      // published twice with different values.
+      tile("Churn risk (renewal-risk model)", pct(h.latest_churn_probability), "company estimate, not a fact · bill-shock model scored at the last renewal period", ""),
+      (op
+        ? tile("Churn risk the company acted on", pct(op.belief),
+            "company estimate, not a fact · what the company believed at the "+esc(op.date)+" renewal decision, and priced the offer on",
+            "")
+        : tile("Churn risk the company acted on", "--",
+            "no renewal decision with a recorded belief on this household's legs", ""))
+    ].join("")+
+      '<div class="usage-hint">Two company estimates of the same household\'s churn risk, and they disagree'+
+      (op?" ("+pct(h.latest_churn_probability)+" against "+pct(op.belief)+")":"")+
+      '. That is not a rendering error: the first is a retrospective model scored from bill-shock counts and used for lifetime value, the second is the number the retention policy was actually handed when it chose what to offer. The reaction chain below shows the second one, decision by decision, against what the simulation had really priced.</div>';
     el("cust-sim").innerHTML=[
       tile("Satisfaction", (h.latest_satisfaction&&h.latest_satisfaction.satisfaction_score!=null?(Number(h.latest_satisfaction.satisfaction_score)*100).toFixed(0)+"%":"--"), "SIM-internal ground truth"+(h.latest_satisfaction&&h.latest_satisfaction.year?" · as of "+h.latest_satisfaction.year:""), "")
     ].join("");
