@@ -74,6 +74,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from dataclasses import dataclass, field, fields
 from pathlib import Path
 from typing import Dict, Iterable, Mapping, Optional, Sequence
@@ -229,6 +230,58 @@ class GapResult:
                 "-- rename the component (e.g. `normalisation` -> `normaliser` "
                 "for WHAT divides, `normalisation_absent_reason` for WHY nothing "
                 f"does). Reserved: {sorted(reserved_component_keys())}."
+            )
+
+        # THE NON-FINITE REFUSAL (closure condition 3 of
+        # WORKER_FINDING_A_NAN_GAP_DEFEATS_THE_UNDEFINED_READING_GUARD_2026-08-17,
+        # BLOCKING, lane H_harness). Checked BEFORE the kind check, because a
+        # value that is not a number is wrong under every kind, and because the
+        # divisor check below is precisely what this defect walks through:
+        # EVERY comparison against NaN is False, so
+        # `abs(self.gap - expected) > NORMALISATION_EPS` is False and the entry
+        # is CONSTRUCTED under a declared relation that is false. Measured on
+        # the shipped constructor before this guard existed:
+        #
+        #   gap=0.5  raw_gap=nan g0=1.0 normalisation='divisor' -> CONSTRUCTED
+        #   gap=nan  raw_gap=1.0 g0=nan normalisation='divisor' -> CONSTRUCTED
+        #
+        # The second line is the one to read twice: the entry DECLARES that
+        # `gap = raw_gap / g0`, and `nan / 1.0` is not `0.5`. The whole point of
+        # the D44 declaration -- "each kind carries a relation that can be
+        # false, so each one is falsifiable HERE rather than only at audit
+        # time" -- is defeated by a value no comparison can falsify.
+        #
+        # WHY `None` STAYS LEGAL AND NaN DOES NOT, which is the distinction this
+        # guard exists to draw. `gap: Optional[float]` is documented "None only
+        # if g0 is degenerate": None is the DESIGNED representation of an
+        # undefined headline and every downstream reader tests for it. NaN is a
+        # SECOND, undeclared representation of the same state that no `is None`
+        # check can see -- so it does not read as "undefined", it reads as a
+        # number, and it propagates as one. That asymmetry is the fail-open.
+        #
+        # FAIL-CLOSED ON THE UNTESTABLE TOO (R15): a value `math.isfinite`
+        # cannot even be applied to is not a number either, and refusing it here
+        # is the direction that cannot publish. `None` is skipped, not refused.
+        nonfinite = []
+        for name, value in (("gap", self.gap), ("raw_gap", self.raw_gap),
+                            ("g0", self.g0)):
+            if value is None:
+                continue
+            try:
+                finite = math.isfinite(value)
+            except TypeError:
+                finite = False
+            if not finite:
+                nonfinite.append(f"{name}={value!r}")
+        if nonfinite:
+            raise ValueError(
+                f"GapResult(metric={self.metric!r}) carries non-finite "
+                f"{', '.join(nonfinite)}. Every comparison against NaN is "
+                "False, so the declared-relation check below cannot falsify "
+                "such a row -- it would be published under a relation nobody "
+                "can test. An undefined headline has a designed representation "
+                "already (`gap=None`, for a degenerate g0); use it, or fix the "
+                "scorer that produced a value that is not a number."
             )
 
         if self.normalisation not in NORMALISATION_KINDS:
@@ -2039,6 +2092,7 @@ NORMALISATION_FINDING_REFERENCE_MISMATCH = "declared_reference_component_mismatc
 NORMALISATION_FINDING_NONE_NOT_HEADLINE = "declared_none_raw_is_not_headline"
 NORMALISATION_FINDING_UNKNOWN_KIND = "unknown_normalisation_kind"
 NORMALISATION_FINDING_COMPONENT_SHADOWS = "component_key_shadows_entry_field"
+NORMALISATION_FINDING_NON_FINITE = "non_finite_published_value"
 
 
 def audit_ledger_normalisation(ledger: Mapping) -> list:
@@ -2089,6 +2143,40 @@ def audit_ledger_normalisation(ledger: Mapping) -> list:
                      f"entry-level field name {key!r} (which carries "
                      f"{entry.get(key)!r}). The door renders both in one row, so "
                      "one word publishes two values -- rename the component.")
+
+        # THE NON-FINITE VALUE, graded before the kind branches for the same
+        # reason the collision above is (R10 -- the class, both halves). The
+        # construction refusal cannot reach an entry already serialised: Python's
+        # `json.dump` emits a bare `NaN` token by default and `json.loads` reads
+        # it straight back as `float('nan')`, so a pre-guard writer's row is on
+        # disk as a number that is not one, and it round-trips silently.
+        #
+        # IT IS NOT ALREADY COVERED BELOW, which is why this is not redundant
+        # with `divides is False`. A row with `g0 = 0.0` skips the division
+        # entirely (`if numeric and g0`), so `gap=nan, g0=0.0` under a declared
+        # `divisor` produces NO finding at all today. And where the divisor
+        # branch DOES fire on a NaN it reports the wrong thing -- "gap=nan !=
+        # raw_gap/g0=nan" reads as an arithmetic disagreement, when what
+        # happened is that there is no arithmetic to disagree with. This entry
+        # is ungradeable against ANY declared relation, so that is the finding,
+        # and it stops here rather than accumulating a second, misleading one.
+        nonfinite_fields = []
+        for _name, _value in (("gap", gap), ("raw_gap", raw), ("g0", g0)):
+            if _value is None or isinstance(_value, bool):
+                continue
+            try:
+                _finite = math.isfinite(_value)
+            except TypeError:
+                continue  # non-numeric is the `not numeric` branch's finding
+            if not _finite:
+                nonfinite_fields.append(f"{_name}={_value!r}")
+        if nonfinite_fields:
+            _add(NORMALISATION_FINDING_NON_FINITE,
+                 f"published {', '.join(nonfinite_fields)} -- not a number, so "
+                 "no declared relation can be checked against it and every "
+                 "`is None` reader downstream sees a value rather than an "
+                 "absence. An undefined headline is written `gap: null`.")
+            continue
 
         numeric = all(isinstance(v, (int, float)) and not isinstance(v, bool)
                       for v in (gap, raw, g0))

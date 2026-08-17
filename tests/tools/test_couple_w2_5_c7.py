@@ -298,6 +298,9 @@ def test_this_pair_does_not_publish_another_dimensions_name(measures):
     assert pair.FALSE_FLAG_NAME in rendered and pair.TRUTH_NOUN in rendered
     payment_shaped = format_detection_summary(GapResult(
         metric="detection", gap=0.1, raw_gap=0.1, g0=0.5, baseline="b",
+        normalisation="reference",
+        normalisation_reason="balanced headline; g0 is the no-skill score (D11)",
+        raw_gap_is="missed_failure_rate: one of the two averaged directions",
         components={"missed_failure_rate": 0.1, "false_flag_rate": 0.1,
                     "truth_size": 10, "n_false_flags": 1, "n_negatives": 10,
                     "n_excluded": 0}, note=""))

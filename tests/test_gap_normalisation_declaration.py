@@ -35,6 +35,7 @@ from background.gap_metric import (
     NORMALISATION_FINDING_COMPONENT_SHADOWS,
     NORMALISATION_FINDING_DIVISOR_BROKEN,
     NORMALISATION_FINDING_FALSE_DIVISOR,
+    NORMALISATION_FINDING_NON_FINITE,
     NORMALISATION_FINDING_NONE_NOT_HEADLINE,
     NORMALISATION_FINDING_REFERENCE_MISMATCH,
     NORMALISATION_FINDING_UNDECLARED,
@@ -457,3 +458,184 @@ def test_no_live_scorer_writes_a_shadowing_component():
     assert "normalisation" not in age.components
     assert "NO NORMALISER" in age.components["normalisation_absent_reason"]
     assert age.normalisation == "none"
+
+
+# --------------------------------------------------------------------------- #
+# THE NON-FINITE REFUSAL
+# (closure condition 3 of
+#  WORKER_FINDING_A_NAN_GAP_DEFEATS_THE_UNDEFINED_READING_GUARD_2026-08-17,
+#  BLOCKING, lane H_harness, drawn at rung 1c)
+#
+# THE DEFECT, reproduced on the shipped constructor before the guard existed --
+# these four rows all CONSTRUCTED:
+#
+#   gap=nan raw_gap=nan g0=1.0 normalisation=divisor  -> gap=nan
+#   gap=0.5 raw_gap=nan g0=1.0 normalisation=divisor  -> gap=0.5
+#   gap=nan raw_gap=1.0 g0=nan normalisation=divisor  -> gap=nan
+#   gap=nan raw_gap=nan g0=0.0 normalisation=none     -> gap=nan
+#
+# The second is the one to read twice: the entry DECLARES `gap = raw_gap / g0`,
+# and `nan / 1.0` is not `0.5`. The D44 check exists so "each kind carries a
+# relation that can be false" -- and every comparison against NaN is False, so
+# `abs(gap - expected) > EPS` is False and the falsifiable check passes a row
+# whose declared relation is false. A control that cannot fail.
+#
+# WHY `None` IS NOT THE SAME THING. `gap: Optional[float]` is documented "None
+# only if g0 is degenerate": None is the DESIGNED undefined headline and every
+# downstream reader tests for it. NaN is a second, undeclared representation of
+# the same state that no `is None` check can see -- it reads as a number and
+# propagates as one. That asymmetry is the fail-open, and it is why the guard
+# refuses one and must keep admitting the other.
+# --------------------------------------------------------------------------- #
+NON_FINITE = [float("nan"), float("inf"), float("-inf")]
+
+
+@pytest.mark.parametrize("bad", NON_FINITE)
+@pytest.mark.parametrize("field_name", ["gap", "raw_gap", "g0"])
+def test_a_non_finite_published_value_cannot_be_constructed(field_name, bad):
+    """EVERY FIELD, EVERY VALUE. R15 both ways in the sense this finding asked
+    for by name: a fixture using only one degenerate value passes under a repair
+    that fixes only the other, so all three are asserted on all three fields."""
+    kwargs = {"metric": "detection", "gap": 0.4, "raw_gap": 0.2, "g0": 0.5,
+              "baseline": "b", "normalisation": "divisor"}
+    kwargs[field_name] = bad
+    with pytest.raises(ValueError, match="non-finite"):
+        GapResult(**kwargs)
+
+
+def test_the_refusal_fires_on_the_row_the_declared_relation_could_not_falsify():
+    """THE MEASURED DEFECT ITSELF. `nan / 1.0` is not `0.5`, and the divisor
+    check passed this row because the comparison that would have caught it
+    involves a NaN. This is the exact triple recorded in the finding."""
+    with pytest.raises(ValueError, match="non-finite"):
+        GapResult(metric="belief", gap=0.5, raw_gap=float("nan"), g0=1.0,
+                  baseline="b", normalisation="divisor")
+
+
+def test_the_refusal_runs_before_the_kind_check():
+    """ORDER. A row can be BOTH undeclared and not-a-number; the diagnostic must
+    name the value that is not a number, because that is the defect the reader
+    has to fix first -- declaring a kind for a NaN row would only move the lie."""
+    with pytest.raises(ValueError, match="non-finite"):
+        GapResult(metric="belief", gap=float("nan"), raw_gap=0.2, g0=0.5,
+                  baseline="b")  # no `normalisation=` at all
+
+
+def test_the_refusal_is_not_always_red():
+    """NOT A TAUTOLOGY, and the two boundaries that must stay legal.
+
+    1. An ordinary finite row still constructs.
+    2. `gap=None` -- the DESIGNED undefined headline for a degenerate g0 -- is
+       admitted, not refused. A guard that swallowed this would have broken the
+       only representation of "undefined" the readers already understand.
+    3. `-0.0` is FINITE and legitimate: the sign of a zero is not a defect here
+       (it is one for the collapse predicate, which is a different control on a
+       different population, closed in `tools/couple_w2_11_d5.py`)."""
+    ok = GapResult(metric="detection", gap=0.4, raw_gap=0.2, g0=0.5,
+                   baseline="b", normalisation="divisor")
+    assert ok.gap == 0.4
+
+    degenerate = GapResult(metric="detection", gap=None, raw_gap=0.2, g0=0.0,
+                           baseline="b", normalisation="divisor")
+    assert degenerate.gap is None
+
+    signed_zero = GapResult(metric="detection", gap=-0.0, raw_gap=-0.0, g0=0.5,
+                            baseline="b", normalisation="divisor")
+    assert signed_zero.gap == 0.0
+
+
+def test_the_pre_repair_constructor_is_reproduced_and_this_control_fires_on_it():
+    """R15 MUTATION, against the shipped implementation reconstructed verbatim
+    rather than against an imagined one. The pre-repair `__post_init__` had no
+    non-finite branch at all; its divisor check is copied here exactly, and the
+    assertion is that it ACCEPTS every row the guard above refuses. If someone
+    later deletes the guard, this test is what tells them what they restored."""
+    def pre_repair_divisor_check(gap, raw_gap, g0):
+        # verbatim from the shipped code, minus the guard:
+        #     if self.g0 != 0 and self.gap is not None:
+        #         expected = self.raw_gap / self.g0
+        #         if abs(self.gap - expected) > NORMALISATION_EPS: raise
+        if g0 != 0 and gap is not None:
+            expected = raw_gap / g0
+            if abs(gap - expected) > 1e-9:
+                return "REFUSED"
+        return "CONSTRUCTED"
+
+    # The whole population the guard now catches, waved through by the old code.
+    assert pre_repair_divisor_check(float("nan"), float("nan"), 1.0) == "CONSTRUCTED"
+    assert pre_repair_divisor_check(0.5, float("nan"), 1.0) == "CONSTRUCTED"
+    assert pre_repair_divisor_check(float("nan"), 1.0, float("nan")) == "CONSTRUCTED"
+    assert pre_repair_divisor_check(float("inf"), float("inf"), 1.0) == "CONSTRUCTED"
+    # ... and it was never broken on the honest rows, so the difference between
+    # the two implementations is exactly the non-finite population.
+    assert pre_repair_divisor_check(0.4, 0.2, 0.5) == "CONSTRUCTED"
+    assert pre_repair_divisor_check(0.9, 0.2, 0.5) == "REFUSED"
+
+
+# --- the READ side: entries already serialised, which the constructor cannot reach --- #
+def test_the_audit_reports_a_non_finite_value_already_on_disk():
+    """THE HALF THAT COVERS THE EXISTING POPULATION. `json.dump` emits a bare
+    `NaN` token by default and `json.loads` reads it straight back as a float
+    NaN, so a pre-guard writer's row round-trips through the ledger file
+    silently. R15 BOTH WAYS: non-finite -> found; repaired to `null` -> gone."""
+    entry = _declared_entry(gap=float("nan"), raw_gap=0.0, g0=0.5)
+    found = audit_ledger_normalisation({"W": entry})
+    assert [f["finding"] for f in found] == [NORMALISATION_FINDING_NON_FINITE]
+    assert "gap=nan" in found[0]["detail"]
+
+    # It really does survive a JSON round-trip -- this is not a fixture-only shape.
+    assert json.loads(json.dumps(entry))["gap"] != json.loads(json.dumps(entry))["gap"]
+
+    entry["gap"] = None
+    assert not [f for f in audit_ledger_normalisation({"W": entry})
+                if f["finding"] == NORMALISATION_FINDING_NON_FINITE]
+
+
+def test_the_audit_catches_the_row_its_divisor_branch_structurally_cannot():
+    """NOT REDUNDANT WITH `divides is False`, which is the reason this finding
+    is a separate one. `if numeric and g0:` skips the division whenever g0 is
+    0.0, and the divisor branch is then guarded by `if g0 and ...` a second
+    time -- so `gap=nan, g0=0.0` under a declared `divisor` produced NO finding
+    at all before this. Assert on that exact row."""
+    entry = _declared_entry(gap=float("nan"), raw_gap=0.0, g0=0.0,
+                            normalisation="divisor",
+                            normalisation_reason="", raw_gap_is="",
+                            components={})
+    findings = {f["finding"] for f in audit_ledger_normalisation({"W": entry})}
+    assert NORMALISATION_FINDING_NON_FINITE in findings
+
+
+def test_the_audit_grades_a_non_finite_entry_with_no_declared_kind():
+    """The pre-D44 producers are the population most likely to carry one, and
+    they declare nothing -- so the check must sit ahead of the kind branches,
+    every one of which `continue`s."""
+    entry = _declared_entry(gap=float("-inf"), raw_gap=0.0, g0=0.5)
+    entry.pop("normalisation")
+    findings = {f["finding"] for f in audit_ledger_normalisation({"W": entry})}
+    assert NORMALISATION_FINDING_NON_FINITE in findings
+
+
+def test_the_audit_non_finite_check_is_not_always_red():
+    """NOT ALWAYS-RED, and specifically not red on the two legal absences: a
+    `null` gap (the degenerate-g0 representation) and a plain finite ledger."""
+    clean = {"W_ref": _declared_entry(),
+             "W_null": _declared_entry(gap=None, raw_gap=0.0, g0=0.0,
+                                       normalisation="none",
+                                       normalisation_reason="absolute measure",
+                                       raw_gap_is="the headline itself",
+                                       components={})}
+    assert not [f for f in audit_ledger_normalisation(clean)
+                if f["finding"] == NORMALISATION_FINDING_NON_FINITE]
+
+
+def test_the_live_ledger_carries_no_non_finite_value():
+    """POPULATION, not fixture. This is the measurement that made the finding's
+    own reachability `inferred` rather than observed -- the guard closes a hole
+    with an empty live population, and this test is what will notice the day it
+    stops being empty."""
+    findings = [f for f in audit_ledger_normalisation(load_gap_ledger())
+                if f["finding"] == NORMALISATION_FINDING_NON_FINITE]
+    assert findings == [], (
+        "a published gap entry carries a value that is not a number: "
+        f"{findings}"
+    )

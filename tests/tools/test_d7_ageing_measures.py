@@ -403,7 +403,11 @@ def test_the_headline_is_displacement_and_says_it_has_no_baseline():
     assert result.g0 == 0.0
     assert "NONE" in result.baseline
     entry = result.to_ledger_entry("D5_account_hierarchy_payments")
-    assert "NO NORMALISER" in entry["components"]["normalisation"]
+    # The REASON no divisor exists, under a key that does not shadow the
+    # entry-level declared kind (H27 Hour #30).
+    assert "NO NORMALISER" in entry["components"]["normalisation_absent_reason"]
+    assert "normalisation" not in entry["components"]
+    assert entry["normalisation"] == "none"
     assert "NOT a [0,1]" in entry["components"]["headline_units"]
 
     summary = format_ageing_summary(result)

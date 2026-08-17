@@ -2,6 +2,8 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
+**Discharged:** `tests/test_gap_normalisation_declaration.py::test_a_non_finite_published_value_cannot_be_constructed`, `tests/test_gap_normalisation_declaration.py::test_the_refusal_fires_on_the_row_the_declared_relation_could_not_falsify`, `tests/test_gap_normalisation_declaration.py::test_the_audit_catches_the_row_its_divisor_branch_structurally_cannot`, `tests/test_gap_normalisation_declaration.py::test_the_live_ledger_carries_no_non_finite_value`, `tests/tools/test_couple_w2_11_d5.py`, `background/gap_metric.py` — the fourth and last closure condition landed 2026-08-17: GapResult now refuses a non-finite gap/raw_gap/g0 before the kind check, the ledger audit grades the same defect on entries already serialised, and all three degenerate values are asserted on all three fields. (Every backtick on this line is read as a PATH by parse_discharge, so the prose carries none.)
+
 **Found:** 2026-08-17, worker tick, LANE 3 DISCOVER draw on `D33_the_collapse_predicate_is_bit_equality`.
 **Not fixed on sight** (SELF-INTERRUPT DISCIPLINE): the defect is in `background/gap_metric.py`,
 outside the drawn atom's `file_scope`. Queued here.
@@ -9,7 +11,66 @@ outside the drawn atom's `file_scope`. Queued here.
 
 ---
 
-## STATUS, 2026-08-17 second tick (rung 1c BLOCKING draw) — THREE OF FOUR CLOSURE CONDITIONS LANDED; ONE IS BLOCKED ON AN ENTANGLED FILE AND THE BLOCKAGE IS NAMED HERE SO THE NEXT TICK DOES NOT RE-DIAGNOSE IT
+## STATUS, 2026-08-17 THIRD tick (rung 1c BLOCKING draw) — ALL FOUR CONDITIONS LANDED. DISCHARGED.
+
+The second tick left one condition blocked and wrote the unblock in one line: *"land the H27
+Hour #30 lane (it is complete and carries its own tests), then `gap_metric.py` is clean at HEAD
+and condition 3 is a ten-line addition to `__post_init__` plus its R15 fixture at both
+degenerate values."* That is exactly what this tick did, in that order.
+
+**THE ENTANGLEMENT WAS REAL BUT IT WAS NOT A STANDOFF — IT WAS AN UNLANDED LANE.** Re-measured
+before touching anything: the whole `background/gap_metric.py` worktree diff was ONE lane
+(atom `D44_the_basis_line_declares_its_relation`, H27 Expert Hour #30), not two interleaved
+ones, so no file swap was ever needed. What the second tick correctly refused to do — force a
+guard through a destructive `checkout-index` manoeuvre — was never the only move available.
+The move was to land the other lane, which had been sitting uncommitted for three days.
+
+**AND THAT LANE WAS HALF-PUBLISHED, WHICH MAKES THE LAND A REPAIR RATHER THAN A TIDY-UP.**
+Measured at HEAD `983403352` before landing: `site/proof/index.html` (the RENDERER) carried the
+basis-audit alarm, `tools/generate_proof_data.py` (the PRODUCER) emitted no `basis_audit_ran`
+key at all, and the committed `site/data/proof.json` carried `basis_audit_ran: True` with 14
+findings. The public payload could not be reproduced from any committed tree. Worse: the
+renderer branches on `cg.basis_audit_ran === false`, and `undefined` is not `false`, so the
+fail-silent alarm built to say "this ledger was never graded" could not have fired for any
+payload HEAD was able to generate. Landed as `1135a6316` (gate-rc 0, 707 passed), six paths.
+
+**CONDITION 3, LANDED.** `GapResult.__post_init__` now refuses a non-finite `gap`/`raw_gap`/`g0`
+BEFORE the kind check — a value that is not a number is wrong under every kind, and the divisor
+check is precisely what it walked through. `None` stays legal and is the point of the guard:
+it is the DESIGNED undefined headline that every downstream reader tests for, while NaN is a
+second, undeclared representation of the same state that reads as a number and propagates as
+one. Fail-closed on the untestable too — a value `math.isfinite` cannot be applied to is
+refused, not skipped.
+
+**THE READ SIDE CAME WITH IT (R10 — the class, not the instance).** `json.dump` emits a bare
+`NaN` token by default and `json.loads` reads it straight back as a float NaN, so a pre-guard
+writer's row round-trips through the ledger file silently and the constructor can never reach
+it. `audit_ledger_normalisation` now grades `non_finite_published_value` ahead of every kind
+branch. This is NOT redundant with the existing `divides is False` check, and the test says so
+on the exact row: `if numeric and g0:` skips the division whenever `g0` is `0.0`, so
+`gap=nan, g0=0.0` under a declared `divisor` produced **no finding at all** before this.
+
+**R15, THREE MUTATIONS, run in a clean extract of HEAD rather than on the shared tree.**
+(1) write-side guard deleted → 11 fail; (2) read-side audit deleted → 3 fail; (3) **the guard
+rewritten as `value is not None`, i.e. the very fail-open this finding is about**, reintroduced
+verbatim → 11 fail. The pre-repair constructor is also reconstructed in the test file and
+asserted to ACCEPT every row the guard refuses, so a future deletion is told what it restored.
+18 new tests; the file goes 33 → 51 green.
+
+**TWO REDS FOUND BY MEASURING THE BLAST RADIUS RATHER THAN ASSERTING IT**, both in the D44
+lane's own consumers and both with their fixes sitting uncommitted in the worktree — so the
+lane was at least EIGHT files, not the six this document enumerated (`a step's own path list
+is not its change set`). `tests/tools/test_d7_ageing_measures.py` went red at `1135a6316`
+because the `components["normalisation"]` → `normalisation_absent_reason` rename never reached
+it, and `tests/tools/test_couple_w2_5_c7.py` was **already red at HEAD before this tick**
+(bisected against `983403352`) on the older D44 declaration requirement. The pre-commit gate
+could not see either: it selects tests by changed-file name STEM, and neither stem matches
+`background/gap_metric.py`. Both fixes land here. Filed as its own finding — the gate's
+selection rule is blind to a renamed key's consumers, which is a class, not these two files.
+
+---
+
+## SUPERSEDED — the second tick's blockage note, kept because the reasoning was sound on what it knew
 
 Severity stays **BLOCKING**: this document's own "what closing it would need" lists four
 conditions and one is unmet. What changed is that the half that was *reproduced on shipped
