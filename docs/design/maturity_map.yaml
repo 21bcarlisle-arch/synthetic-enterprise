@@ -4679,7 +4679,7 @@
 - id: OPS3_first_post_ruling_publish
   title: "Land the first publish under the new subject and say what it printed"
   gain: "The ruling is only real once a publish has actually landed from committed truth; until then gate-on-HEAD is a claim."
-  notes_rehomed: [name]
+  notes_rehomed: [build_note, name]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
