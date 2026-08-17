@@ -61,6 +61,11 @@ from pathlib import Path
 import yaml
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
+if str(PROJECT_DIR) not in sys.path:
+    sys.path.insert(0, str(PROJECT_DIR))
+
+from tools import simplifications_store as _atom_store  # noqa: E402 (the `name` drain)
+
 MAP_PATH = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
 LEDGER_MD_PATH = PROJECT_DIR / "docs" / "design" / "FORWARD_ATTACHMENT_LEDGER.md"
 
@@ -264,7 +269,9 @@ def render_markdown(derived: dict) -> str:
     for atom_id in sorted(ledger):
         a = atoms.get(atom_id, {})
         out.append(f"## {atom_id}")
-        title = a.get("title") or (a.get("name") or "")[:100]
+        # `name` moved to the note store 2026-08-14; hydrate rather than read inline, or
+        # every atom without a `title` renders a blank heading here and nothing raises.
+        title = a.get("title") or _atom_store.atom_name(a)[:100]
         if title:
             out.append(f"**{title}**  ")
         out.append(
