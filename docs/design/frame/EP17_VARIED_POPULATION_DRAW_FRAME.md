@@ -407,3 +407,136 @@ R12: no published number tuned; every figure above is a read, and nothing was wr
 artefact. R13: no curriculum value authored, proposed or changed.
 
 — FRAME pass 3, worker tick 2026-08-17, at HEAD `9996e4d16`.
+
+---
+
+# PASS 4 — 2026-08-17, worker tick, DISCOVER/FRAME only, at HEAD `5b882a279`
+
+Pass 3 ran the exit test pass 2 proposed and found it dead on the pair it was proposed for (headline
+`1.0` on 4/4 of the grid's own `population_seeds`), then proposed a replacement: score the **20-cell
+vector**, which moved 6/6, with the mutation "thread a constant instead of the cell seed → red."
+**Nobody ran the null control for that replacement.** This pass runs it, and the replacement fails it.
+
+## 9.1 The finding — the proposed exit test goes GREEN on a change that changes no population
+
+The candidate falsifier's positive case is "the cell vector moves when the cell seed moves." The
+control it never had is a change that moves the **sample** and cannot move the **population**: hold
+`base_seed` fixed and slide the customer-id window (`COHORT{i+off:06d}`). The law being drawn from is
+byte-identical; only the draw is new. L1 distance over the 20-cell gap vector, `tools/couple_cohort.py`
+scored unmodified:
+
+| n | seed-rotation L1 (what EP17's grid axis does) | null-resample L1 (population UNCHANGED in law) |
+|---|---|---|
+| 1,000 | 1.5062 (seeds 1,2,3) | 1.5503 (offsets 100k/200k/300k) |
+| 3,000 | 0.4914 / 0.4011 | 0.8456 / 0.6402 |
+| 12,000 | 0.3500 / 0.3003 | 0.3365 / 0.2701 |
+| 30,000 | 0.2491 | 0.1808 |
+
+(two independent measurement runs where two figures are shown; 2–3 samples per condition per cell.)
+
+The two columns are the same quantity. At n=3,000 the **null moves the vector MORE than the seed
+does**, in both runs. Both decay with n in the shape of sampling error. So the proposed test certifies
+"a fresh sample was drawn", not "the company faced a population it did not choose" — and it would
+report exactly as green for a wiring that rotated nothing but the customer-id offset. Determinism is
+clean (same seed twice → L1 = 0.0), so this is not flakiness; it is the test's subject.
+
+## 9.2 Why — `population_seeds` is a SAMPLE axis wearing a POPULATION axis's name
+
+Structural, and it is upstream of every measurement above. `assign_cohort(customer_id, base_seed)`
+draws each axis from **fixed** marginals: `_draw_curriculum_axis` reads
+`docs/design/segmentation_curriculum_v1.json` (process-cached, R13 director-set), and the
+observed-block/heating/region weights are module constants. `base_seed` keys the per-customer
+substream and **nothing else**. There is no per-run mix parameter anywhere on the path: the curriculum
+file has five marginal blocks, each a single fixed value, and no seed/run key at all
+(`grep '"[a-z_]*seed[a-z_]*"'` → nothing).
+
+Measured consequence — the population's LAW is invariant to the axis EP17 would rotate. TV between
+TRUE marginal distributions, across-seed vs the same null resample:
+
+| n | axis | across-seed TV | null-resample TV |
+|---|---|---|---|
+| 12,000 | tenure | 0.00225 | 0.01125 |
+| 12,000 | price_sensitivity | 0.00800 | 0.00367 |
+| 60,000 | tenure | 0.00268 | 0.00420 |
+| 60,000 | price_sensitivity | 0.00133 | 0.00383 |
+| 60,000 | channel_pref | 0.00282 | 0.00580 |
+| 60,000 | nssec | 0.00108 | 0.00337 |
+
+At n=60,000 the across-seed distance is **smaller than the null on 4/4 axes**. Both are converging to
+zero. Rotating `population_seeds` gives an i.i.d. resample of ONE population, forever.
+
+Sharper, on the axis the score partitions by: `cohort_tenure_for_customer` delegates to
+`simulation/household_segments.py:355 tenure_for_customer(customer_id)`, which seeds on
+`random.Random(f"tenure_{customer_id}")` — **it takes no `base_seed` argument at all**. Only the
+owner-occupier outright/mortgage split is seeded. Cell membership is therefore substantially
+seed-pinned by construction: 68.2% / 68.2% / 67.4% of a 3,000-id book keeps its exact tenure cell
+across seeds 0→1, 0→2, 0→3.
+
+## 9.3 The instrument is fine — the discrimination test the exit criterion actually needs
+
+This is the half that runs in EP17's favour, and it corrects pass 3's "EP17 has no fit-for-purpose
+score today". The cell vector CAN discriminate; it just cannot see the seed axis, because there is
+nothing there to see. A **diagnostic probe** holding a different `price_sensitivity` mix in memory for
+one process (R13: no file read-modified, no value authored, proposed or recommended — the mix stays
+the director's; this measures the instrument, not the curriculum):
+
+| n | seed-rotation L1 | null-resample L1 | mix-probe L1 |
+|---|---|---|---|
+| 3,000 | 0.4011 | 0.6402 | **2.4948** |
+| 12,000 | 0.3003 | 0.2701 | **2.3740** |
+| 30,000 | 0.2491 | 0.1808 | **2.6321** |
+
+A change in the population's law separates ~10:1 **and does not decay with n**; sampling noise decays.
+That is the exit criterion's real shape, and it is testable both ways:
+
+- **positive** — the vector distance between two rotation cells must be **stable in n**, not decaying;
+- **null control** — must be indistinguishable from zero-signal for a same-law resample (the control
+  pass 3's version omitted, which is why it passed on noise);
+- **mutation** — thread a constant instead of the cell seed → red (pass 3's, retained; necessary, and
+  now demonstrably not sufficient).
+
+Fourth-order, and it extends pass 3's §8.2 rather than repeating it: the published **headline** is
+`1.000000` for the base population AND `1.000000` for the mix-probe at every n tried. The one-sided
+floor is blind not only to seed rotation but to a genuine, large change in the population's law.
+
+## 9.4 What pass 4 changes about EP17 — the first step is a DIRECTOR item, not a build
+
+Pass 1 said item 1 was "wire the rotation, small". Pass 2 split it and said 1b (a measurement
+consumer) was the larger half. Pass 3 said the score itself was the first build step. Pass 4 places it
+one step further upstream and outside the agent:
+
+- **The instrument exists and works** (§9.3). Item 1b is not "find a score" — the score is the
+  cell vector, with the n-stability + null control above. That much is buildable.
+- **There is nothing for it to measure.** Two of the three things EP17's own title promises to hide —
+  **mix** and **skew** — cannot be produced by the axis the grid declares, at any seed, at any book
+  size, however the wiring is done. Producing them means drawing the marginals per run, which is a
+  change to the curriculum's *nature*, and R13 reserves it: "never adjusted by the agent". Named,
+  not taken; and named precisely because the atom's own `block_reason` already says population
+  activation is separately director-reserved as curriculum.
+- **A tension worth the director's eye, stated not resolved:** R13 requires curriculum change to be
+  "named, versioned, director-authored artefacts ... never silent parameter drift." A per-run *random
+  draw* of the mix is structurally a different object from a director-authored scenario. EP17 as
+  titled needs one; R13 as written describes the other. That is a question for the ruling, not a gap
+  in the code.
+- **Correction to pass 1's finding 5, against its ranking.** Finding 5 called the additive ceiling
+  (≥64% of the book byte-identical by construction) "the real gate on the stated gain". It is not.
+  Lifting the ceiling to 100% of the book, with the curriculum fixed, buys a 100% *resample* — the
+  company would still face one population forever. The fixed curriculum is the gate; the ceiling is
+  downstream of it. Item 2 stays a director item but drops below the curriculum question in order.
+- Item 3 (vulnerability as world truth) is unchanged across all four passes and is now the only one of
+  the three named properties whose build is unambiguously EP17's own and unambiguously unblocked.
+
+## 9.5 Passes 1–3 re-verified at this HEAD, all surviving unrepaired
+
+`run_rotation_cursor.json` still `{"index": 0}` with still exactly one commit in its history;
+`enumerate_cells(grid, *, draw_population_enabled)` still caller-supplied (`run_rotation.py:121`); a
+grep for `live_population(` carrying a `base_seed` argument still returns **one line in the whole
+repository and it is the `def`** (`simulation/live_population.py:123`); all 12 `tools/couple_*.py`
+still have zero `live_population` references; `SyntheticCustomer` still has no vulnerability field.
+
+QUEUED NOT FIXED (SELF_INTERRUPT_DISCIPLINE): nothing here is repaired on sight. `file_scope` is empty
+and every path named above belongs to another atom. R12: no published number tuned — every figure is a
+read, and nothing was written to any published artefact. R13: no curriculum value authored, proposed
+or changed; the §9.3 probe lived in one process's memory and no curriculum file was modified.
+
+— FRAME pass 4, worker tick 2026-08-17, at HEAD `5b882a279`.
