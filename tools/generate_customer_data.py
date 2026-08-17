@@ -15,6 +15,39 @@ OUT_DIR = PROJECT / "site" / "data" / "customers"
 _DNO_IDS = ["10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"]
 
 
+def _retire_departed_artefacts(index):
+    """Delete per-account artefacts for accounts no longer in the population.
+
+    WORKER_FINDING_THE_PRINTED_FOOTING_CONTROL_RUNS_ON_A_SMALLER_POPULATION_THAN_THE_PAGE
+    (2026-08-12): this generator wrote a file per account in the run and never removed
+    the file of an account that LEFT. The successor accounts C1_2/C2_2/C5_2
+    (saas/customers.py::SUCCESSOR_CUSTOMERS -- activated only when the predecessor
+    churns and we win the home-mover competition) activated in earlier runs and not in
+    this one, so their artefacts sat on the publish path unrefreshed for 33-35 days and
+    stayed FETCHABLE on poesys.net, still carrying invoice amounts from the pre-RJ era
+    when generate_invoice_data fabricated them by splitting lifetime revenue. That
+    fabricator rounded components and total independently, so 30 of those invoices did
+    not foot -- the entire observed footing-defect population, in the one place no
+    control could see it.
+
+    Fails CLOSED on an empty population: an empty `index` means the run produced no
+    customers, which is a broken run, not an instruction to wipe the publish path.
+    Only files this generator's own naming owns (`<account_id>.json`) are candidates,
+    so `_index.json` and any hand-added artefact are never touched.
+    """
+    if not index:
+        return []
+    keep = set(index)
+    retired = []
+    for path in sorted(OUT_DIR.glob("*.json")):
+        if path.name == "_index.json":
+            continue
+        if path.stem not in keep:
+            path.unlink()
+            retired.append(path.stem)
+    return retired
+
+
 def _digest_int(seed, n):
     """First n digits of a deterministic hash of seed -- a display identifier,
     not a claim about simulation internals (same status as account_id itself)."""
@@ -146,6 +179,65 @@ def _per_year_data(run, cid):
     return years_out
 
 
+def _round_or_none(value, ndigits):
+    """Round a figure, passing a NEVER-POPULATED field through as None.
+
+    The whole point of the attribution fix below: `round(x or 0, n)` and
+    `round(d.get(k, 0), n)` both turn "no value was computed" into the number 0,
+    and 0 is a value a reader takes as the company's belief.
+    """
+    return None if value is None else round(value, ndigits)
+
+
+# Where a record's forward-looking figures are carried. See _forward_looking_basis.
+BASIS_ACCOUNT = "account"
+BASIS_BILLING_ACCOUNT = "billing_account"
+BASIS_NO_BILLING_ACCOUNT = "no_billing_account"
+
+
+def _forward_looking_basis(cid, base, by_billing_account):
+    """Resolve WHERE this record's forward-looking figures are carried, and return
+    the billing-account row they come from (None when this record carries none).
+
+    CLV and churn are BILLING-ACCOUNT quantities, not per-commodity ones:
+    `saas.clv_model.build_clv` sums both dual-fuel legs' net margin under
+    `saas.customer_reaction._billing_account_id` ("C1g" bills under "C1", because
+    the household gets one combined dual-fuel bill) and projects a single figure
+    for the household. So a gas leg's lifetime value is neither zero nor missing --
+    it is ALREADY INSIDE its electricity sibling's figure. Publishing 0 for it
+    stated a company belief the company does not hold, on half of every dual-fuel
+    household, and left C1's two legs disagreeing about whether the household still
+    existed (site/customers/index.html, cold-eyes 2026-08-12, names this the DATA
+    half of that finding).
+
+    Three distinct states were all published as the number 0:
+
+      * this leg is not the account of record (every gas leg) -> BASIS_BILLING_ACCOUNT
+      * it IS the account of record and build_clv produced a
+        value                                                 -> BASIS_ACCOUNT
+      * no billing-account row exists for this id at all
+        (e.g. SYN-2021-001)                              -> BASIS_NO_BILLING_ACCOUNT
+
+    A row under BASIS_ACCOUNT may still carry `clv_gbp: null` -- build_clv excludes
+    accounts with no renewal points, and accounts the caller reports as no longer
+    supplied, while still recording their churn belief. That is a real and separate
+    state: the account of record, whose lifetime value was not modelled but whose
+    churn belief was. It is now visible as a null CLV beside a present churn figure
+    rather than as two indistinguishable zeros.
+
+    A genuine COMPUTED zero returns the row under BASIS_ACCOUNT and stays 0.0 -- the
+    distinction this function exists to preserve runs in both directions.
+    """
+    if cid != base:
+        # A gas leg. Its value is carried on `base`, whether or not `base` itself
+        # was valued -- the attribution statement is true either way.
+        return None, BASIS_BILLING_ACCOUNT
+    row = by_billing_account.get(base)
+    if row is None:
+        return None, BASIS_NO_BILLING_ACCOUNT
+    return row, BASIS_ACCOUNT
+
+
 def _forecast_cashflow(avg_annual_net_margin_gbp, expected_lifetime_periods, discount_rate):
     """Forward-looking per-year net cash contribution forecast (director page
     comment, /customers/, 2026-07-11: "expose forecast profit and cashflow").
@@ -159,7 +251,9 @@ def _forecast_cashflow(avg_annual_net_margin_gbp, expected_lifetime_periods, dis
     estimate). The sum of discounted_gbp reconciles with clv_gbp by
     construction (same annuity_factor math, same discount rate).
     """
-    if avg_annual_net_margin_gbp == 0 or expected_lifetime_periods <= 0:
+    if not avg_annual_net_margin_gbp or not expected_lifetime_periods:
+        return []
+    if expected_lifetime_periods <= 0:
         return []
     n_years = min(10, math.ceil(expected_lifetime_periods))
     rows = []
@@ -192,10 +286,12 @@ def generate(run_json_path=None):
         base = _base_id(cid)
         is_gas = cid.endswith("g") and cid != base
 
-        # CLV / churn from by_billing_account (electricity account only)
-        clv_data = bba.get(base, {}) if not is_gas else {}
-        clv_gbp = round(clv_data.get("clv_gbp", 0), 2)
-        churn_p = round(clv_data.get("latest_churn_probability", 0), 3)
+        # CLV / churn are BILLING-ACCOUNT quantities -- resolve which account carries
+        # this record's, and publish null (never 0) where this record carries none.
+        clv_row, fwd_basis = _forward_looking_basis(cid, base, bba)
+        clv_data = clv_row or {}
+        clv_gbp = _round_or_none(clv_data.get("clv_gbp"), 2)
+        churn_p = _round_or_none(clv_data.get("latest_churn_probability"), 3)
 
         # Commodity-level P&L split
         comm = comm_pnl.get(cid, {})
@@ -231,13 +327,19 @@ def generate(run_json_path=None):
             ),
             clv_gbp=clv_gbp,
             churn_probability=churn_p,
-            expected_lifetime_periods=round(clv_data.get("expected_lifetime_periods", 0), 2),
-            forecast_annual_profit_gbp=round(clv_data.get("avg_annual_net_margin_gbp", 0), 2),
+            expected_lifetime_periods=_round_or_none(
+                clv_data.get("expected_lifetime_periods"), 2),
+            forecast_annual_profit_gbp=_round_or_none(
+                clv_data.get("avg_annual_net_margin_gbp"), 2),
             forecast_cashflow=_forecast_cashflow(
-                clv_data.get("avg_annual_net_margin_gbp", 0),
-                clv_data.get("expected_lifetime_periods", 0),
+                clv_data.get("avg_annual_net_margin_gbp"),
+                clv_data.get("expected_lifetime_periods"),
                 DISCOUNT_RATE_ANNUAL,
             ),
+            # Which account the four fields above belong to, so a reader can tell a
+            # measured zero from a figure carried on the household's other leg.
+            forward_looking_basis=fwd_basis,
+            forward_looking_account_id=base,
             commodity_split={
                 "electricity": {
                     "net_gbp": round(elec_comm.get("net", 0), 2),
@@ -272,7 +374,10 @@ def generate(run_json_path=None):
 
     index = sorted(pcl.keys())
     (OUT_DIR / "_index.json").write_text(json.dumps(index))
+    retired = _retire_departed_artefacts(index)
     print("Generated", len(written), "customer files in", str(OUT_DIR))
+    if retired:
+        print("Retired", len(retired), "departed customer files:", ", ".join(retired))
     return index
 
 

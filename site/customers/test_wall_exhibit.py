@@ -1558,15 +1558,31 @@ def _check_not_frozen(labels: list[str]) -> None:
 def test_the_closed_fixture_household_actually_carries_live_forward_looking_figures():
     """Vacuity guard, first. If the closed household's published record carried zeros for
     every forward-looking field, there would be nothing to mis-tense and the control below
-    would pass over a page that had never been fixed."""
+    would pass over a page that had never been fixed.
+
+    ANY, not ALL -- the docstring's own condition. This asserted `all(...)` until
+    W2_17_dual_fuel_leg_clv_attribution landed the DATA half named at the top of this
+    section, and the two upstream fixes together make ALL unmeetable BY DESIGN for a
+    closed household: build_clv now excludes accounts that are no longer supplied
+    (WORKER_FINDING_THE_BOOK_VALUE_COUNTS_CUSTOMERS_WHO_HAVE_ALREADY_LEFT), so a departed
+    C1 gets no CLV, no expected lifetime and no forecast margin -- and the generator now
+    publishes those as null instead of the fabricated zeros this section was written
+    against. A household that has left SHOULD carry fewer live figures; demanding four of
+    them made this guard red for the correct behaviour.
+
+    It still guards what it was built to guard: a record blank in every field fails, and
+    the control itself carries a second, independent vacuity assert at the RENDER level
+    (`assert labels` in _drive_pair). Five of the six forward-looking labels still render
+    for this household, so the control below is nowhere near vacuous.
+    """
     elec, gas = _closed_household()
     assert _closure_dates((elec, gas)), "the 'closed' fixture has no churned event at all"
     rec = json.loads(elec.read_text(encoding="utf-8"))
     forward = {k: rec.get(k) for k in
                ("churn_probability", "clv_gbp", "expected_lifetime_periods", "forecast_annual_profit_gbp")}
-    assert all(v for v in forward.values()), (
-        f"the closed household publishes no live forward-looking figures ({forward}) -- "
-        "the tense control would have nothing to catch"
+    assert any(v for v in forward.values()), (
+        f"the closed household publishes no live forward-looking figures at all ({forward}) "
+        "-- the tense control would have nothing to catch"
     )
 
 
