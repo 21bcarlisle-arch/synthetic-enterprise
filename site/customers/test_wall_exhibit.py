@@ -1953,3 +1953,228 @@ def test_mutation_blanking_every_forward_looking_figure_kills_a_named_test(tmp_p
             test_a_household_that_does_publish_forward_looking_figures_still_renders_them(tmp_path)
     finally:
         globals()["INDEX"] = _saved
+
+
+# ---------------------------------------------------------------------------
+# 16. A lifetime-net figure names WHICH SIDE OF COST-TO-SERVE it is on
+#     (coldwalk:site2_lifetime_net_captioned_after_cost_to_serve_is_before_it --
+#      the CLASS, completed 2026-08-17)
+#
+# The 2026-08-12 walk found ONE tile printing lifetime_net_gbp (before cost to serve)
+# under an "after cost-to-serve" caption, beside a cost-to-serve tile a reader could
+# subtract -- which is what made the exhibit read at ~26% household net margin instead of
+# ~12%. That instance was repaired the same day at TWO of the page's FIVE lifetime-net
+# render sites, and the repair shipped with NO test at all: the caption could be flipped
+# straight back to the defect and nothing went red.
+#
+# So this section is R10-shaped -- the class, not the instance. The page renders a
+# lifetime-net figure in five places (op-state tile, drill-down Overview, drill-down
+# Accounts, drill-down Billing, household roll-up); three of the five stated no side, and
+# the roll-up -- the HOUSEHOLD figure the finding's own arithmetic was about -- published a
+# before-cost-to-serve net under "what these accounts are worth to the supplier" while
+# combinedTotals().net_after_cts sat computed and rendered nowhere.
+#
+# ANTI-PIN: nothing here pins a number. The expected values are read from the SAME
+# published per-customer records the page reads, so regenerating the book cannot make this
+# cry wolf -- only a figure appearing under the wrong side of cost-to-serve can.
+# ---------------------------------------------------------------------------
+_BEFORE_CTS = "before cost to serve"
+_AFTER_CTS = "after cost to serve"
+_NET_BLOCK_CLASSES = {"kpi", "row", "df-cell"}
+_BEFORE_LABELS = ("lifetime net margin", "lifetime net (commodity)", "combined net margin")
+_AFTER_LABELS = ("net after cost to serve", "combined net after cost to serve")
+_MONEY_RE = re.compile(r"-?£\s?([\d,]+(?:\.\d+)?)")
+
+
+class _BlockText(HTMLParser):
+    """Visible text of every leaf money block the page renders (.kpi / .row / .df-cell).
+
+    Reads the RENDERED markup rather than the source, so a qualifier that is written in
+    the file but never reaches the page cannot satisfy this control.
+    """
+
+    VOID = {"br", "hr", "img", "input", "meta", "link", "source", "col"}
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.depth = 0
+        self.open: list[list] = []
+        self.blocks: list[str] = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag in self.VOID:
+            return
+        self.depth += 1
+        if _NET_BLOCK_CLASSES.intersection((dict(attrs).get("class") or "").split()):
+            self.open.append([self.depth, []])
+
+    def handle_startendtag(self, tag, attrs):
+        return
+
+    def handle_endtag(self, tag):
+        if tag in self.VOID:
+            return
+        while self.open and self.open[-1][0] >= self.depth:
+            _d, buf = self.open.pop()
+            self.blocks.append(" ".join("".join(buf).split()))
+        self.depth -= 1
+
+    def handle_data(self, data):
+        for entry in self.open:
+            entry[1].append(data)
+
+
+def _money_blocks(html: str) -> list[str]:
+    p = _BlockText()
+    p.feed(html)
+    p.close()
+    return [b for b in p.blocks if b]
+
+
+def _lifetime_net_blocks(html: str) -> list[tuple[str, str]]:
+    """(declared_side, block_text) for every block rendering a lifetime-net figure.
+
+    `declared_side` is None when the block names no side at all -- which is the state
+    three of the five render sites were in, and is a failure, not an absence of one.
+    """
+    out: list[tuple[str, str]] = []
+    for text in _money_blocks(html):
+        low = text.lower()
+        is_after = any(low.startswith(x) for x in _AFTER_LABELS)
+        is_before = (not is_after) and any(low.startswith(x) for x in _BEFORE_LABELS)
+        if not (is_after or is_before):
+            continue
+        if _AFTER_CTS in low:
+            side = "after"
+        elif _BEFORE_CTS in low:
+            side = "before"
+        else:
+            side = None
+        out.append((side, text))
+    return out
+
+
+def _net_expectations() -> tuple[set[float], set[float]]:
+    """The values that legitimately belong on each side, from the published records."""
+    e, g = _leg_records()
+    before = {e["lifetime_net_gbp"], g["lifetime_net_gbp"],
+              e["lifetime_net_gbp"] + g["lifetime_net_gbp"]}
+    after = {e["lifetime_net_after_cts_gbp"], g["lifetime_net_after_cts_gbp"],
+             e["lifetime_net_after_cts_gbp"] + g["lifetime_net_after_cts_gbp"]}
+    return before, after
+
+
+def _check_lifetime_net_sides(blocks: list[tuple[str, str]]) -> None:
+    """The predicate, extracted so the R15 mutations below kill the check a NAMED test
+    runs rather than re-deriving an equivalent rule inside the mutation."""
+    assert blocks, "the page rendered no lifetime-net figure at all -- this control is vacuous"
+    unsided = [t for side, t in blocks if side is None]
+    assert not unsided, (
+        "these lifetime-net figures render without saying which side of cost-to-serve they "
+        f"are on, so a reader cannot know what the number is: {unsided}"
+    )
+    before, after = _net_expectations()
+    # The page's two gbp() formatters differ in precision (2dp in the op-state exhibit,
+    # 0dp in the drill-down), so a figure is matched to the nearest legitimate value and
+    # the SIDE of that match is what is asserted.
+    for side, text in blocks:
+        m = _MONEY_RE.search(text)
+        assert m, f"a lifetime-net block rendered no money value at all: {text}"
+        got = float(m.group(1).replace(",", "")) * (-1 if text[m.start()] == "-" else 1)
+        want = before if side == "before" else after
+        wrong = after if side == "before" else before
+        near_right = min(abs(got - c) for c in want)
+        near_wrong = min(abs(got - c) for c in wrong)
+        assert near_right <= 1.0 and near_right < near_wrong, (
+            f"'{text}' is captioned {side} cost to serve but renders {got}, which is the "
+            f"{'AFTER' if side == 'before' else 'BEFORE'}-cost-to-serve figure -- this is "
+            "the 2026-08-12 cold-eyes finding, restored"
+        )
+
+
+def test_the_two_sides_of_cost_to_serve_are_far_apart_on_this_household():
+    """Vacuity guard, first. If cost-to-serve were ~zero the before and after figures would
+    coincide and every assertion below would pass on a page that had swapped them."""
+    before, after = _net_expectations()
+    e, g = _leg_records()
+    assert e["cost_to_serve_gbp"] > 1 and g["cost_to_serve_gbp"] > 1, (
+        "a leg carries no cost to serve -- before and after are the same number and this "
+        "whole section proves nothing"
+    )
+    for b in before:
+        assert min(abs(b - a) for a in after) > 2.0, (
+            "a before-cost-to-serve value sits within the match tolerance of an after one; "
+            "the side assertion below could not tell them apart"
+        )
+
+
+def test_every_lifetime_net_figure_names_its_cost_to_serve_side(rendered):
+    """THE control. Subject is the WHOLE page in the both-sides view -- op-state exhibit
+    plus every drill-down tab -- because three of the five render sites live in the region
+    an earlier control's subject excluded (section 9's lesson, applied)."""
+    _check_lifetime_net_sides(_lifetime_net_blocks(whole_document(rendered, "both")))
+
+
+def test_the_control_sees_every_lifetime_net_render_site(rendered):
+    """Anti-vacuity, and the reason the 2026-08-12 repair was incomplete: it fixed the two
+    sites someone happened to be looking at. A scanner that finds fewer sites than the page
+    has is how the other three stayed unqualified for five days."""
+    blocks = _lifetime_net_blocks(whole_document(rendered, "both"))
+    labels = {t.lower().split("£")[0].strip().rstrip("-").strip() for _s, t in blocks}
+    for expected in ("lifetime net margin", "lifetime net (commodity)",
+                     "combined net margin", "net after cost to serve",
+                     "combined net after cost to serve"):
+        assert any(x.startswith(expected) for x in labels), (
+            f"the scanner no longer sees the '{expected}' render site -- either the page "
+            f"stopped rendering it or this control went blind to it. Saw: {sorted(labels)}"
+        )
+
+
+def test_the_household_rollup_publishes_its_net_after_cost_to_serve(rendered):
+    """The finding's own arithmetic was about the HOUSEHOLD, not one leg: shown
+    1241.48/4815.98 = 25.8% against an actual after-cost-to-serve 12.1%. The roll-up is
+    where a reader gets the household figure, and combinedTotals() already computed
+    net_after_cts -- it was simply rendered nowhere."""
+    e, g = _leg_records()
+    want = e["lifetime_net_after_cts_gbp"] + g["lifetime_net_after_cts_gbp"]
+    blocks = [t for _s, t in _lifetime_net_blocks(whole_document(rendered, "both"))
+              if t.lower().startswith("combined net after cost to serve")]
+    assert blocks, "the household roll-up publishes no after-cost-to-serve total"
+    m = _MONEY_RE.search(blocks[0])
+    got = float(m.group(1).replace(",", "")) * (-1 if blocks[0][m.start()] == "-" else 1)
+    assert abs(got - want) <= 1.0, (
+        f"the roll-up's after-cost-to-serve total renders {got}; this household's two legs "
+        f"publish {round(want, 2)}"
+    )
+
+
+# --- R15, both ways --------------------------------------------------------
+def test_mutation_the_original_defect_restored_kills_a_named_test(tmp_path):
+    """R15 direction 1: THE 2026-08-12 finding itself, put back. A before-cost-to-serve
+    value under an after-cost-to-serve caption -- the exact edit, at the exact site the
+    walk found it -- must kill a named test. Before this section shipped, it did not."""
+    src = INDEX.read_text(encoding="utf-8")
+    marker = 'return "<span class=\\"muted\\">"+(which==="after"?"after cost to serve":"before cost to serve")+"</span>";'
+    assert marker in src, "ctsSide() no longer has the shape this mutation reverts"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(
+        src.replace(marker, 'return "<span class=\\"muted\\">after cost to serve</span>";'),
+        encoding="utf-8",
+    )
+    blocks = _lifetime_net_blocks(whole_document(_drive(mutant, tmp_path), "both"))
+    with pytest.raises(AssertionError, match="restored"):
+        _check_lifetime_net_sides(blocks)
+
+
+def test_mutation_dropping_the_qualifier_kills_a_named_test(tmp_path):
+    """R15 direction 2: the state three of the five sites were actually in -- no caption at
+    all. Silence is not a safe default here; a bare 'Lifetime Net Margin £493' beside a
+    'Cost to Serve £330' is exactly what a reader mis-reads."""
+    src = INDEX.read_text(encoding="utf-8")
+    marker = 'return "<span class=\\"muted\\">"+(which==="after"?"after cost to serve":"before cost to serve")+"</span>";'
+    assert marker in src, "ctsSide() no longer has the shape this mutation reverts"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(src.replace(marker, 'return "";'), encoding="utf-8")
+    blocks = _lifetime_net_blocks(whole_document(_drive(mutant, tmp_path), "both"))
+    with pytest.raises(AssertionError, match="which side of cost-to-serve"):
+        _check_lifetime_net_sides(blocks)

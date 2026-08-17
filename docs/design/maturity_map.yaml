@@ -5127,17 +5127,28 @@
   depends_on: []
   couples_with: [D36_bill_render_footing_and_pence, SITE3_wall_exhibit_url_rename]
   file_scope: ['site/customers/index.html', 'site/customers/test_wall_exhibit.py', 'site/customers/_wall_harness.mjs', 'site/customers/test_customers_door.py', 'site/customers/_render_harness.mjs', 'site/_redirects', 'site/test_no_links_to_redirected_urls.py', 'docs/design/SITE_CONSTITUTION.md', 'tools/generate_case_study_recommender.py', 'tests/tools/test_case_study_recommender.py']
-  simplifications_count: 8
+  simplifications_count: 9
   expert_hour:
-    status: findings_open
+    # 2026-08-17: every finding the 08-12 Hour raised is now dispositioned -- 11 fixed with
+    # evidence in the ledger, 1 refuted (its kept half built), 2 re-homed to the lanes that
+    # own them. Status moves to the map's existing `passed_execute_after_fix` word (A2's
+    # precedent: the Hour found defects, the defects were executed) and NOT to `passed` --
+    # the 08-12 verdict of NO was returned against a page that has since been rebuilt, so
+    # it is stale rather than discharged, and only a fresh Hour can replace it. LEVEL HELD
+    # AT 2 for exactly that reason: this tick reconciled records it also wrote, which is
+    # not evidence for a level move. The remaining gate for L3 is a re-run cold-eyes walk.
+    status: passed_execute_after_fix
     last: '2026-08-12'
-    verdict: 'NO'
+    verdict: 'NO'   # STALE -- returned against the pre-repair page; L3 needs a re-run, not this list
     independence: false   # same model family as the builder -- blindness, not independence
     ledger: docs/observability/sanity_adjudication_ledger.json  # 13 keys, prefix coldwalk:site2_
     fixed_2026_08_12:
+    # Both repaired 2026-08-12 and recorded ONLY here; their ledger rows still read
+    # adjudicated-real until 2026-08-17, so the ledger said unfixed while the map said fixed
+    # for five days. Verified in HEAD before the rows were moved (applyWallViewToOpState()
+    # called from setWallView; whole_document() as the union subject), not inherited.
     - coldwalk:site2_customer_view_does_not_filter_the_op_state_exhibit
     - coldwalk:site2_wall_control_subject_excludes_the_union_of_the_page
-    - coldwalk:site2_lifetime_net_captioned_after_cost_to_serve_is_before_it
     fixed_2026_08_13:   # render defects in file_scope; see the store record
     - coldwalk:site2_arrears_history_visible_only_behind_the_wall
     - coldwalk:site2_tariff_range_pounds_per_mwh_labelled_pence_per_mwh
@@ -5156,25 +5167,41 @@
     # pick. Formatters now split by quantity kind and ranking by percentage points. R15 five
     # mutations, incl. the delete-the-numbers fail-open. Full evidence in the ledger + store.
     - coldwalk:site2_coo_2841_percent_error_arithmetic_doubt
+    # The 08-12 repair fixed the INSTANCE at two of the page's five lifetime-net render
+    # sites and shipped with NO test, so the caption could be flipped straight back and
+    # nothing went red -- it was listed under fixed_2026_08_12 on that basis. Closed here as
+    # a CLASS (R10): ctsSide() is the sole writer of the before/after-cost-to-serve
+    # qualifier, all five sites route through it, and the household ROLL-UP -- the figure
+    # this finding's own arithmetic was about (25.8% shown vs 12.1% actual) -- now renders
+    # the after-cost-to-serve total that combinedTotals() had been computing and discarding.
+    # The control's subject is the whole page in the both-sides view, because two of the six
+    # defective renders live in the region section 9's old subject excluded. Proven by
+    # running it against `git show HEAD:site/customers/index.html`: it FIRES, naming all six.
+    fixed_2026_08_17_class:
+    - coldwalk:site2_lifetime_net_captioned_after_cost_to_serve_is_before_it
+    findings_rehomed:   # real, NOT SITE2's, and not closable inside its file_scope
+    # Staged for the owning lanes as
+    # docs/staging/WORKER_FINDING_TWO_DEFECTS_THE_WALL_EXHIBIT_SURFACED_ARE_NOT_THE_EXHIBITS_2026-08-17.md
+    # Both sat on the OPEN list below for five days, holding this atom's verdict on work no
+    # edit inside site/customers/** could do. Re-homed with owner + why recorded on each
+    # ledger row, never dropped.
+    - key: coldwalk:site2_churned_account_presented_in_the_present_tense
+      half: data   # the RENDER half is this atom's and was built 2026-08-15 (see the ledger)
+      owner: generator lane -- tools/generate_customer_data.py
+      # SCOPE CORRECTED against the tree 2026-08-17: the 08-14 note named four divergent
+      # fields; three now publish null on C1 too, repaired by another lane. What remains is
+      # one -- C1 churn_probability 0.23 vs C1g null, same household, same 2021-12-30 closure.
+    - key: coldwalk:site2_consumption_has_no_winter_peak_under_a_seasonality_panel
+      owner: sim/world lane -- the consumption generator
+      # The walk's OWN entry already said this was a WORLD/SIM fidelity finding needing its
+      # own sim-lane atom under R12, and it was filed against SITE2 regardless.
     findings:   # OPEN; reconciled vs the ledger by tests/controls/test_map_reconciliation.py
-    # RENDER HALF FIXED 2026-08-15 (worker tick) -- see the ledger's render_half_fixed block
-    # and the store record. A closed household's forward-looking figures (churn probability,
-    # expected lifetime, pricing action, CLV, forecast profit, the cashflow projection) now
-    # present as beliefs frozen at the closure date, off the page's own churned timeline
-    # event; five of nine domestic households were affected, not the one the walk named.
-    # STAYS OPEN because the DATA half is real and is NOT SITE2's: C1's two fuel legs, same
-    # household and same 2021-12-30 closure, still disagree about whether it is a customer
-    # (elec churn_probability 0.23 / clv 2840.5 vs gas zeros). Producer is
-    # tools/generate_customer_data.py -- a generator-lane item. Also still open, and blocked
-    # on that data half: the #op-state exhibit's own churn tile, whose company.json
-    # `household` block carries no closure field to read.
-    - coldwalk:site2_churned_account_presented_in_the_present_tense
-    # NOT a SITE2 render defect and NOT closable here -- the walk's own entry says so: a
-    # WORLD/SIM fidelity finding surfaced BY the exhibit (winter:summer 0.90 where GB
-    # domestic is ~1.3-1.6:1 the other way), needing its own sim-lane atom under R12
-    # (diagnose the mechanism, never tune the output toward the band). Left OPEN here
-    # deliberately rather than carried as SITE2 debt it cannot discharge.
-    - coldwalk:site2_consumption_has_no_winter_peak_under_a_seasonality_panel
+    # NOTE the two entries that used to sit here are now under findings_rehomed above, each
+    # with its owning lane. One residual this atom still cannot discharge and which travels
+    # with the data half: the #op-state exhibit's own churn tile reads company.json's
+    # `household` block, which carries no closure field at all -- so it can only know the
+    # account closed via new plumbing (forbidden by this atom's constraint) or by inferring
+    # closure from annual_pnl's last year, which would print an inference as a fact.
     # Adjudicated REFUTED and kept here as narrative per the reconciliation control's own
     # convention. Not carryable debt: the doubt was the identical GBP330 cost-to-serve on both
     # fuel legs, which is the FIXED state of coldwalk:cost_to_serve_cross_fuel_mismatch_same_

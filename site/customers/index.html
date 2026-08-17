@@ -80,7 +80,8 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
 .df-card { background: linear-gradient(135deg,rgba(27,175,122,.05) 0%,rgba(42,120,214,.05) 100%);
   border: 1px solid rgba(27,175,122,.22); border-radius: 10px; padding: 16px 18px; margin-bottom: 12px; }
 .df-header { font-size: 11px; font-weight: 600; color: var(--teal); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.06em; }
-.df-grid { display: grid; grid-template-columns: repeat(3,1fr); }
+.df-grid { display: grid; grid-template-columns: repeat(4,1fr); }
+.df-sub { font-size: 10px; color: var(--muted); margin-top: 3px; }
 .df-cell { text-align: center; padding: 0 10px; }
 .df-cell + .df-cell { border-left: 1px solid var(--border); }
 .df-lbl { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
@@ -383,7 +384,7 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
       // data plumbing, per this atom's own constraint.
       // Same scope discipline as the customer-side money above: these are the household's
       // figures when every leg is present, and the electricity leg's -- said so -- when not.
-      tile("Lifetime net (commodity)", gbp(whole?m.net:h.lifetime_net_gbp), "settled clock · "+scope+" · before cost-to-serve", (Number(whole?m.net:h.lifetime_net_gbp)<0?"red":"green")),
+      tile("Lifetime net (commodity)", gbp(whole?m.net:h.lifetime_net_gbp), "settled clock · "+scope+" · before cost to serve", (Number(whole?m.net:h.lifetime_net_gbp)<0?"red":"green")),
       tile("Cost to serve", gbp(whole?m.cts:h.cost_to_serve_gbp), "settled clock · "+scope, ""),
       tile("Net after cost to serve", gbp(Number(whole?m.net:h.lifetime_net_gbp)-Number(whole?m.cts:h.cost_to_serve_gbp)),
         "settled clock · "+scope+" · derived: lifetime net − cost to serve",
@@ -838,6 +839,19 @@ function reconciliationLine(){
     " Lifetime Revenue shown on the Accounts tab is a different, ex-VAT commodity-only accounting figure -- it excludes standing charge, network/levy pass-through and VAT, so it will not equal the all-in cash totals here.</div>";
 }
 function toggleRollup(){ROLLUP_OPEN=!ROLLUP_OPEN;renderTab();}
+/* Cold-eyes 2026-08-12 (coldwalk:site2_lifetime_net_captioned_after_cost_to_serve_is_before_it),
+   completed 2026-08-17. The 08-12 repair captioned the two op-state/billing renders and
+   stopped there, so the HOUSEHOLD roll-up -- the very figure the finding computed at 25.8%
+   shown vs 12.1% actual -- still published a before-cost-to-serve net under "what these
+   accounts are worth to the supplier" with no statement of which side of cost-to-serve it
+   was on, and combinedTotals().net_after_cts was computed and rendered nowhere. Every
+   lifetime-net render now names its side; ctsSide() is the SOLE writer of that qualifier,
+   so a new one cannot be added without choosing. No new plumbing: net_after_cts sums each
+   leg's own published lifetime_net_after_cts_gbp, which is why the caption says so rather
+   than claiming to be derived from two figures beside it (they are not both on screen here). */
+function ctsSide(which){
+  return "<span class=\"muted\">"+(which==="after"?"after cost to serve":"before cost to serve")+"</span>";
+}
 function rollupHtml(){
   var t=combinedTotals();
   return "<label class=\"rollup-toggle\"><input type=\"checkbox\" "+(ROLLUP_OPEN?"checked":"")+" onchange=\"toggleRollup()\"> Show combined household roll-up (electricity + gas summed)</label>"+
@@ -845,7 +859,8 @@ function rollupHtml(){
     "<div class=\"df-card\"><div class=\"df-header\">⚙ Household total — "+esc(HH.base)+"</div>"+
     "<div class=\"df-grid\">"+
     "<div class=\"df-cell\"><div class=\"df-lbl\">Combined Revenue</div><div class=\"df-val blue\">"+gbp(t.revenue)+"</div></div>"+
-    "<div class=\"df-cell\"><div class=\"df-lbl\">Combined Net Margin</div><div class=\"df-val "+nc(t.net)+"\">"+gbp(t.net)+"</div></div>"+
+    "<div class=\"df-cell\"><div class=\"df-lbl\">Combined Net Margin</div><div class=\"df-val "+nc(t.net)+"\">"+gbp(t.net)+"</div><div class=\"df-sub\">"+ctsSide("before")+"</div></div>"+
+    "<div class=\"df-cell\"><div class=\"df-lbl\">Combined Net after cost to serve</div><div class=\"df-val "+nc(t.net_after_cts)+"\">"+gbp(t.net_after_cts)+"</div><div class=\"df-sub\"><span class=\"muted\">each leg's own after-cost-to-serve net, summed</span></div></div>"+
     "<div class=\"df-cell\"><div class=\"df-lbl\">Combined CLV</div><div class=\"df-val muted\">"+gbp(t.clv)+"</div></div>"+
     "</div></div></div>";
 }
@@ -940,7 +955,8 @@ function overviewPanels(){
     })),
     panel("company","What these accounts are worth to the supplier",
       fuelCards(function(d){
-        return "<div class=\"row\"><span class=\"rl\">Lifetime Net Margin</span><span class=\""+nc(d.lifetime_net_gbp)+"\">"+gbp(d.lifetime_net_gbp)+"</span></div>"+
+        return "<div class=\"row\"><span class=\"rl\">Lifetime Net Margin</span><span class=\""+nc(d.lifetime_net_gbp)+"\">"+gbp(d.lifetime_net_gbp)+" "+ctsSide("before")+"</span></div>"+
+          "<div class=\"row\"><span class=\"rl\">Net after cost to serve</span><span class=\""+nc(Number(d.lifetime_net_after_cts_gbp))+"\">"+gbp(d.lifetime_net_after_cts_gbp)+" <span class=\"muted\">this account's own cost to serve, deducted</span></span></div>"+
           "<div class=\"usage-hint\">Settlement clock (SIM-internal wholesale-cost accounting) -- see the front page's reconciliation bridge for how this relates to the billed clock.</div>"+
           "<div class=\"row\"><span class=\"rl\">"+fwdLabel("Customer Lifetime Value")+"</span><span class=\"blue\">"+gbp(d.clv_gbp)+"</span></div>"+
           (d.forecast_annual_profit_gbp?"<div class=\"row\"><span class=\"rl\">"+fwdLabel("Forecast Annual Profit")+"</span><span class=\""+nc(d.forecast_annual_profit_gbp)+"\">"+gbp(d.forecast_annual_profit_gbp)+"</span></div>":"");
@@ -980,9 +996,10 @@ function accountsPanels(){
     panel("company","The supplier's own P&amp;L on these accounts",
       fuelCards(function(d){
         return "<div class=\"row\"><span class=\"rl\">Lifetime Revenue</span><span>"+gbp(d.lifetime_revenue_gbp)+"</span></div>"+
-          "<div class=\"row\"><span class=\"rl\">Lifetime Net Margin</span><span class=\""+nc(d.lifetime_net_gbp)+"\">"+gbp(d.lifetime_net_gbp)+"</span></div>"+
+          "<div class=\"row\"><span class=\"rl\">Lifetime Net Margin</span><span class=\""+nc(d.lifetime_net_gbp)+"\">"+gbp(d.lifetime_net_gbp)+" "+ctsSide("before")+"</span></div>"+
           "<div class=\"usage-hint\">Settlement clock (SIM-internal wholesale-cost accounting) -- see the front page's reconciliation bridge for how this relates to the billed clock.</div>"+
           "<div class=\"row\"><span class=\"rl\">Cost to Serve</span><span class=\"muted\">"+gbp(d.cost_to_serve_gbp)+"</span></div>"+
+          "<div class=\"row\"><span class=\"rl\">Net after cost to serve</span><span class=\""+nc(Number(d.lifetime_net_after_cts_gbp))+"\">"+gbp(d.lifetime_net_after_cts_gbp)+" <span class=\"muted\">the two rows above, as this account's record publishes it</span></span></div>"+
           (d.avg_hedge_fraction!=null?"<div class=\"row\"><span class=\"rl\">Avg. Hedge Coverage</span><span class=\"muted\">"+Math.round(d.avg_hedge_fraction*100)+"%</span></div>":"");
       })+rollupHtml()),
     panel("sim","Wholesale trading margin, year by year",fuelCards(function(d){
@@ -1120,7 +1137,7 @@ function billingCompanyPanel(d){
       "<div class=\"row\"><span class=\"rl\">Total billed to the customer</span><span>"+gbp(billed)+" <span class=\"muted\">billed clock</span></span></div>"+
       "<div class=\"row\"><span class=\"rl\">Collected</span><span>"+gbp(led.total_collected_gbp)+" <span class=\"muted\">banked clock</span></span></div>"+
       "<div class=\"row\"><span class=\"rl\">Lifetime Revenue</span><span>"+gbp(rev)+" <span class=\"muted\">settled clock &middot; commodity only</span></span></div>"+
-      "<div class=\"row\"><span class=\"rl\">Lifetime Net Margin</span><span class=\""+nc(d.lifetime_net_gbp)+"\">"+gbp(d.lifetime_net_gbp)+" <span class=\"muted\">settled clock &middot; before cost to serve</span></span></div>"+
+      "<div class=\"row\"><span class=\"rl\">Lifetime Net Margin</span><span class=\""+nc(d.lifetime_net_gbp)+"\">"+gbp(d.lifetime_net_gbp)+" <span class=\"muted\">settled clock &middot;</span> "+ctsSide("before")+"</span></div>"+
       "<div class=\"row\"><span class=\"rl\">Cost to Serve</span><span class=\"muted\">"+gbp(d.cost_to_serve_gbp)+" <span class=\"muted\">settled clock &middot; lifetime total</span></span></div>"+
       "<div class=\"row\"><span class=\"rl\">Net after cost to serve</span><span class=\""+nc(afterCts)+"\">"+gbp(afterCts)+" <span class=\"muted\">settled clock &middot; derived from the two rows above</span></span></div>"+
     "</div>"+
