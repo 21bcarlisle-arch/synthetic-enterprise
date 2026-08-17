@@ -1,0 +1,232 @@
+# FRAME — EP16_anchored_generators: one of the four axes is generated forward, and the curriculum wall guards a rotation set of zero
+
+**Atom:** `EP16_anchored_generators` (lane `W1_market_weather`, epoch 4, `level_current: 0` → `level_target: 3`,
+`loop_stage: idle`, `provenance: director_ruling`, `block_reason:` director-reserved curriculum sequencing R13).
+**Pass:** DISCOVER/FRAME only, worker tick 2026-08-17, LANE 3 idle draw. **No BUILD code written**; `file_scope` is `[]`
+and nothing outside this doc + the atom's own store record was touched. EPOCH_GATING_AND_ATOM_AUTHORSHIP rule 1 makes
+DISCOVER/FRAME available on a parked atom while BUILD is not.
+
+**Measured at HEAD `78d4f46f5`.** `docs/design/maturity_map.yaml`, the atom's store file and `docs/design/frame/` were
+all clean in the shared tree at draw time, so every number below was read off the desk tree directly. Every claim is
+`observed-with-evidence` unless labelled `inferred` (R9).
+
+---
+
+## 0. The question this pass had to answer first
+
+The atom's own name records a duplicate-risk check at mint: *"W1_2_generate_futures (SATURATED) generates forward
+CURVES; this is the whole-world generator with its anchoring discipline."* Two knobs that only ever appear as a
+difference are one knob, so the first job was to test that separation rather than inherit it.
+
+**It survives, and it is larger than the name implies.** W1_2 is not merely "curves" — it is a regime-switching
+Markov price generator plus a coupled gas generator, wired end-to-end through the full replay pipeline, with an
+R15-hardened six-moment fidelity check behind it. That work is real and this pass does not re-open it. What EP16 names
+is genuinely absent: of the **four axes the atom lists — weather, price, demand, population — exactly one is generated
+forward.** The other three are frozen, silently absent, or another atom's.
+
+And the *discipline* half of the atom's name — "stay tethered", "director-authored curriculum" — turns out to be
+mechanised over a population of **zero worlds**, while the five worlds that actually generate futures are unwalled.
+
+---
+
+## 1. FINDING 1 — the forward world is prices; the other three axes do not move
+
+`simulation/run_scenario.py::run_forward_scenario` is the whole-world entry point. What it actually extends is two
+feeds: `build_extended_price_feeds()` returns `(extended_elec, extended_gas)` — electricity half-hourly SSP and daily
+NBP gas — and injects them into `run_phase2b.main()` by monkey-patching the two price loaders
+(`_cache.get_cached_prices`, `_gas_mod.load_nbp_history`). Nothing else about the world is generated.
+
+| axis named in the atom | forward generator | status at HEAD |
+|---|---|---|
+| **price** (elec + gas) | `sim/scenario/bimodal_generator.py`, `gas_scenario_generator.py` | **generated** — regime-switching, 5 presets, wired |
+| **weather** | `sim/weather_engine.py` (fitted, real) | **exists but has no forward caller** — §3 |
+| **demand** | — | **no generator**; follows weather, so it goes flat — §3 |
+| **population** | `simulation/population_draw.py` | **pinned to one cast**; EP17's subject, not EP16's |
+
+The weather generator is the sharp case, because it is *built and anchored*: `fit_national_macro_model` /
+`simulate_national_macro` / `fit_regional_cholesky` / `simulate_regional_deviations` fit seasonal harmonics and a
+season-switched innovation covariance to the real 2016-2025 panel and simulate new draws from it — precisely the
+"synthetic but externally-calibrated" shape this atom asks for. Its non-test callers are
+`simulation/run_phase3c_calibration.py` (a calibration study) and `sim/weather_tail_demonstration.py` (a
+demonstration). **Neither writes weather for a forward scenario, and `run_scenario.py` never imports the weather
+engine at all** (grep for `simulate_national_macro|fit_national_macro_model|simulate_regional_deviations` outside
+`sim/weather_engine.py`).
+
+So the mechanism EP16 would need on its second axis already exists to a high standard, one caller short of the world.
+
+## 2. FINDING 2 — the renewable fleet is silently frozen at 2025 in every generated future
+
+`sim/renewable_capacity_trend.py` (W1_7) is the atom's own best example of anchoring done right: the effective fleet
+scalar for each calendar year τ is *mean-matched to that year's real observed outturn*, with the DUKES/DESNZ installed
+capacity series ingested to separate capacity from load factor. It is honest about its residual and its limits in its
+own header. Inside the fitted window it is exactly the discipline EP16 exists to generalise.
+
+Outside that window it stops, and does not say so:
+
+| year | `capacity_wind(y)` | `capacity_solar(y)` |
+|---|---|---|
+| 2016 | 97,724.18 | 13,132.41 |
+| 2020 | 96,216.03 | 11,844.90 |
+| 2025 | 137,740.71 | 15,417.49 |
+| **2026** | **137,740.71** | **15,417.49** |
+| **2029** | **137,740.71** | **15,417.49** |
+| **2031** | **137,740.71** | **15,417.49** |
+
+No raise, no flag, no `data_regime` marker — the last fitted year's value is returned for every future year, byte-
+identical. The fleet grew ~41% across the fitted window and the module's own header calls that growth *"the single
+biggest driver of the falling-baseload / rising-volatility regime the price engine tries to reproduce."* In a generated
+2031 that driver is switched off: the world has 2025's fleet, forever, while the price generator independently asserts
+a 2031 price distribution that only a *different* fleet could produce.
+
+This is the atom's stated failure mode in its purest form — the generated 2031 is not a plausible world, because two
+of its parts describe different decades. **It is also the cheapest thing on this list to fix**, and the fix is a
+decision, not an algorithm: extrapolate against a published capacity trajectory (NESO FES, DESNZ), or **raise** past
+the fitted window rather than silently flatten. Raising is the R15-correct default — an unavailable anchor is a failed
+anchor, not a green one.
+
+## 3. FINDING 3 — with no weather, the generated future has no winter, and that is ~95% of a cold day's demand
+
+The per-customer demand shape is weather-driven through `_weather_adjusted_shape_fn` (`simulation/run_phase2b.py:319`),
+which wraps the base profile-class shape in `build_demand_shape(base, mean_temp, commodity, property)`. Its fallback is
+one line and it is silent:
+
+```python
+mean_temp = weather_means.get(date_str)
+if mean_temp is None:
+    shape = list(base_shape)      # unadjusted; no counter, no warning, no marker
+```
+
+**The baseline replay is clean here** — `REPORT_END = "2025-06-07"` is exactly the last row of the weather panel
+(`sim/weather_data/C1..C4.csv`, 2016-01-01..2025-06-07, 3,447 rows; `weather_means_for_customer(C1)` returns n=3,446,
+last key `2025-06-07`). The run window is pinned to the data. No silent gap exists in what ships today, and this pass
+looked for one before asserting it.
+
+The forward path removes that pin. `run_forward_scenario` sets `report_end = f"{year_to}-12-31"`, so a default
+2026-2029 run covers **1,668 days (2025-06-08 → 2029-12-31) on which every customer's `mean_temp` is `None`** — 100% of
+the generated window. What that fallback drops, measured on an 8.00 kWh base day through the real
+`build_demand_shape`:
+
+| property | commodity | 20°C | 12°C | 5°C | −2°C |
+|---|---|---|---|---|---|
+| `gas_boiler` | gas | 7.25 | 38.75 | 101.75 | **164.75** |
+| `electric_storage` (the SME default) | elec | 7.25 | 19.06 | 42.69 | **66.31** |
+
+The weather-free fallback returns the base **8.00 kWh** on every one of those days. On a −2°C day it therefore delivers
+under 5% of the gas demand the same customer would draw with weather present. The generated world's customers do not
+get cold.
+
+**Why this is EP16's central coupling defect and not a rounding error:** the scenario presets are *weather-named*.
+`stress_dunkelflaute_2027` raises `dunkelflaute_events_per_year` to 9.0 and `dunkelflaute_multiplier_mean` to 2.5 —
+but "dunkelflaute" is a **price-side parameter only** (`ScenarioParams` has 15 fields, all price: mode means/stds,
+negative-price frequency, dunkelflaute frequency/duration/multiplier, regime persistence). So the stress world raises
+prices for a still, dark, cold spell while every customer's demand stays flat and weather-blind. The correlation that
+actually kills real suppliers — demand peaking *at the same time* prices spike — is structurally absent from every
+generated world, and it is absent in the one preset built to simulate it. A company that survives
+`stress_dunkelflaute_2027` has survived a price shock with no volume shock attached.
+
+That correlation is the whole point of the coupled triad here: SIM adds the depth, the company copes through the wall,
+the harness measures the gap. With demand decoupled from the generated weather there is no gap to measure on this pair.
+
+## 4. FINDING 4 — R13's curriculum wall is enforced over a rotation set of zero, and the worlds that run are a Python dict
+
+There are **two disjoint world systems** in the tree, and the wall is on the wrong one.
+
+**System A — walled, and empty.** `sim/scenario/spine.py` (SPINE_1) implements the R13 wall properly and says so: a
+world becomes rotation-eligible only with a `ratified: true` record backed by a `ratification:` block; unratified
+worlds load but `rotation_set()` excludes them and `select_for_rotation()` raises; the object is frozen and has no
+setter, so no company-P&L outcome can write a scenario value back. Four curriculum artefacts exist
+(`sim/scenario/curriculum/*.yaml`):
+
+- `history_replay` — `ratified: true`, and its own comment says *"the baseline default is always available (not a
+  rotation member)"*
+- `crisis_2021_22`, `neso_central`, `supply_glut` — all three `ratified: false`, `true_probability: null`
+
+Measured live: **`rotation_set()` → `[]`, n=0.** And the only non-test consumer of the spine is
+`background/run_rotation.py`, which itself has **zero non-test callers** at HEAD (grep for
+`run_rotation|select_next_cell|manifest_for_next_run` outside `tests/` returns one prose reference in
+`sim/scenario/spine.py:278`) — re-verified this pass rather than inherited from the EP17 FRAME.
+
+**System B — unwalled, and it is what actually generates futures.** `bimodal_generator.SCENARIOS` and
+`gas_scenario_generator.GAS_SCENARIOS` are plain Python dicts holding five named difficulty worlds each —
+`baseline_2025`, `central_2027`, `stress_dunkelflaute_2027`, `low_renewables_2027`, `battery_saturation_2029` — of 15
+numeric parameters apiece. These are what `run_forward_scenario` runs, what `--scenario` selects from
+(`choices=list(ELEC_SCENARIOS)`), and what `scenario_comparison.py` sweeps (`sorted(ELEC_SCENARIOS.keys())`). They
+carry **no `ratified` field, no `provenance`, no `ratification:` block, no version, and no artefact** — and no test
+asserts any of that. Any BUILD tick can edit a difficulty parameter with a one-line diff.
+
+R13's words are *"difficulty changes are named, versioned, director-authored artefacts, never silent parameter
+drift."* Mechanically, that is enforced for three worlds that can never run and waived for five that do. **The
+control's population is the wrong one** — the classic R15 failure, here in its widest form: the wall is real, tested,
+and pointed at an empty set.
+
+It has already produced one false statement in live code. `sim/scenario/intraday_shape.py`'s header asserts that
+per-scenario crisis severity *"is director-reserved CURRICULUM ... expressed through the daily generator's
+per-scenario price level (**already director-owned via bimodal_generator SCENARIOS**)"* — and uses that as its stated
+reason for adding no per-scenario dial of its own. The parenthetical is false: nothing owns those values but the file
+they sit in. A later reader takes the guarantee at face value and builds on it. (`inferred`, on authorship only: the
+git author of the presets' creating commit `64dc9b8c7` is *Rich Carlisle* — but that identity is shared by every
+commit in this repo including agent commits, so it is evidence for neither side. What *is* evidence is the absence of
+any ratification record, provenance field or curriculum artefact for these five, next to four spine worlds that carry
+exactly that apparatus.)
+
+## 5. FINDING 5 — the anchoring control covers one axis, runs only in the suite, and its live verdict is a divergence
+
+`sim/scenario/fidelity_check.py` is the closest thing the repo has to EP16's "anchoring discipline", and it is good
+work: six distributional moments (mean, std, lag-1 autocorr, tail ratio, tail skew, vol clustering) against a **block
+bootstrap** of real returns, each moment added after a named red-team defeated the previous set, with R15 fail-open
+handling for empty/constant/short/non-finite series and non-finite CIs. It is the template. Three limits bound what it
+currently certifies:
+
+1. **One axis, one direction.** It compares generated *price returns* to real price returns. Nothing checks generated
+   weather, demand, fleet, or the cross-axis correlations of §3 — which is where the fidelity of a *world* actually
+   lives, as distinct from the fidelity of a series.
+2. **It can only judge the baseline.** By construction it checks the preset *expected to agree with history*. The four
+   counterfactual presets have no reference series and therefore no machine-checkable tether at all. Their anchoring
+   is a markdown file (`docs/market_research/price_distribution_high_renewables_2027.md`, 15,721 bytes, per-parameter
+   H/M/L confidence against named sources) and **no test pins any preset value to any sourced number** — grep for
+   `upper_mode_mean|lower_mode_fraction|dunkelflaute_events_per_year` in `tests/` returns only hand-built
+   `ScenarioParams` fixtures. *This is EP16's actual subject: what "anchored" can mean for a world that never
+   happened.* A moment-match cannot answer it; a **sourced-parameter-provenance** control can, and that is a different
+   mechanism from the one already built.
+3. **Its only callers are tests.** `reconcile_baseline_fidelity` (`run_scenario.py:217`) is invoked from
+   `tests/simulation/test_run_scenario.py` and nowhere else; `run_forward_scenario` does not call it. So the check
+   runs when the suite runs, not when a world is generated. Not "uninvoked" — but no generated world is gated on it.
+
+And the verdict it currently records is a **divergence, still open**: the `baseline_2025` generator under-clusters
+volatility versus real 2016-2025 SSP (`vol_clustering` ≈ 0.21 generated vs ≈ 0.42-0.51 real, robust across every real
+window), locked in by that test and registered as a tracked simplification against W1_2. Correctly handled under R12 —
+a divergence is a finding, never a cue to move the tolerance — and worth stating plainly here: **on the one axis where
+this project can measure tether, the generator is measurably off, and knows it.**
+
+---
+
+## What this pass changes about EP16
+
+**It is not W1_2 relabelled, and it is not "build a generator".** Restated from the evidence, EP16 is four items:
+
+1. **Give the built weather generator a forward caller, and route demand through it** (§1, §3) — the mechanism exists
+   and is fitted to real data; the world is one caller short. This is the item that makes
+   `stress_dunkelflaute_2027` mean what its name says, and the only one that restores a measurable gap on this
+   coupled pair.
+2. **Stop the fleet freezing silently past 2025** (§2) — smallest item here. Raise past the fitted window, or
+   extrapolate against a published trajectory. Silent flattening is the fail-open.
+3. **Move the curriculum wall onto the population that actually runs** (§4) — the five price presets need the same
+   ratified-artefact apparatus the spine's four worlds already have, or the spine's worlds need to become the ones
+   that run. Two world systems, one wall, and it is on the empty one. Correct
+   `intraday_shape.py`'s false "already director-owned" guarantee either way.
+4. **Define what "anchored" means for a world that never happened** (§5) — the moment-check cannot certify a
+   counterfactual preset. A parameter-provenance control (every generating parameter carries its source, and the
+   check fires when one has none) is EP16's own build and is not covered by any existing mechanism.
+
+`level_current` stays **0** and `loop_stage` stays **idle**: the deliverable of this atom is a mechanism, not this
+document, so DISCOVER/FRAME output moves nothing. R12: no published number tuned; no published artefact written — and
+verified as latent rather than live, `docs/reports/run_output_latest.json` carries no `scenario_name` and
+`run_history.json` has zero, so **no forward-scenario run has ever been published**; every finding above is latent.
+R13: no curriculum value authored, proposed or changed — §4 names a wall as misplaced, it does not move it; §2 names
+extrapolation as a decision, it does not take it.
+
+**Queued, not taken** (SELF-INTERRUPT DISCIPLINE): the silent fleet flattening (§2), the false director-owned claim in
+`intraday_shape.py` (§4), and the missing weather caller (§1/§3) are all outside this atom's empty `file_scope` and
+belong to W1_7, W1_2 and the run-scenario path respectively.
+
+— FRAME, worker tick 2026-08-17, at HEAD `78d4f46f5`.
