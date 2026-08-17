@@ -74,7 +74,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from pathlib import Path
 from typing import Dict, Iterable, Mapping, Optional, Sequence
 
@@ -154,6 +154,31 @@ NORMALISATION_EPS = 1e-9
 DIVISOR_RAW_GAP_IS = "the numerator of gap = raw_gap / g0"
 
 
+def reserved_component_keys() -> frozenset:
+    """The entry-level field names a `components` key may NOT reuse (atom D44,
+    H27 Expert Hour #30).
+
+    DERIVED from `GapResult`'s own dataclass fields, never hand-listed: a field
+    added to the contract tomorrow becomes reserved the same day, and the two
+    populations cannot drift apart the way a copied list would. (R15
+    independence -- the guard's subject is the contract itself, not a second
+    transcription of it.)
+
+    WHY THIS IS A DEFECT AND NOT A NAMING PREFERENCE, measured on the artefact
+    the public door actually serves. `to_dict` emits `components` as a sibling
+    of the declared fields, and the door renders BOTH in one row: the basis line
+    off the entry-level `normalisation`, and every `components` key by name
+    inside the disclosure headed "Components & measurement basis". On
+    `site/data/proof.json` row `W2_9_segment_debt_tnc` that rendered, in the same
+    row, `basis UNDECLARED -- this entry does not record whether g0 divides the
+    headline` beside `normalisation: majority-class prevalence`. One word, two
+    fields, opposite readings -- and the free-text side is not in
+    NORMALISATION_KINDS, so a reader (or a scraper) taking it for the declaration
+    gets a value outside the closed vocabulary while the D44 audit, which reads
+    only the entry level, calls the entry clean."""
+    return frozenset(f.name for f in fields(GapResult))
+
+
 # ---------------------------------------------------------------------------
 # Result container
 # ---------------------------------------------------------------------------
@@ -188,6 +213,24 @@ class GapResult:
         """Check the DECLARED kind against the arithmetic, at the point of
         writing. Each kind carries a relation that can be false, so each one is
         falsifiable here rather than only at audit time."""
+        # THE RESERVED-NAME REFUSAL (H27 Hour #30). Checked FIRST and
+        # unconditionally: a shadowing key is wrong whatever the kind turns out
+        # to be, and an entry that never gets past the kind check would
+        # otherwise carry the collision away unreported.
+        shadowed = sorted(
+            k for k in (self.components or {}) if k in reserved_component_keys()
+        )
+        if shadowed:
+            raise ValueError(
+                f"GapResult(metric={self.metric!r}) puts {shadowed} in "
+                "`components`, and those are entry-level field names. The ledger "
+                "entry carries both side by side and the Proof door renders both "
+                "in one row, so the same word would publish two different values "
+                "-- rename the component (e.g. `normalisation` -> `normaliser` "
+                "for WHAT divides, `normalisation_absent_reason` for WHY nothing "
+                f"does). Reserved: {sorted(reserved_component_keys())}."
+            )
+
         if self.normalisation not in NORMALISATION_KINDS:
             raise ValueError(
                 f"GapResult(metric={self.metric!r}) declares no normalisation "
@@ -1356,7 +1399,10 @@ def misapplication_gap(truth_labels: Sequence, applied_labels: Sequence,
     # D6: the caveat rides in components so it survives a caller replacing
     # `note`, and so the minority share the score is really keyed to is stated
     # as a number rather than left implicit inside g0.
-    components["normalisation"] = "majority-class prevalence"
+    # `normaliser`, NOT `normalisation` (H27 Hour #30): the entry-level
+    # `normalisation` is the DECLARED KIND from a closed vocabulary, and this
+    # names WHAT the divisor is. Under one word the door rendered both.
+    components["normaliser"] = "majority-class prevalence"
     components["minority_class_share"] = round(g0, 6)
     components["prevalence_caveat"] = MISAPPLICATION_PREVALENCE_CAVEAT
 
@@ -1706,7 +1752,10 @@ def ageing_gap(truth_labels: Sequence, belief_labels: Sequence,
     # STAMPED AT SOURCE (atom D22), so it reaches every caller of this scorer
     # rather than only the pair whose Expert Hour found it -- the D19 pattern.
     components["ordinal_direction_caveat"] = _ageing_direction_note(components)
-    components["normalisation"] = AGEING_NO_NORMALISER_REASON
+    # `normalisation_absent_reason`, NOT `normalisation` (H27 Hour #30): this is
+    # the REASON there is no divisor, not the declared kind. The kind for this
+    # family is NORMALISATION_NONE, declared on the entry below.
+    components["normalisation_absent_reason"] = AGEING_NO_NORMALISER_REASON
     # THE PUBLISHED EXCLUSION (D10's rule, carried across by D16), in the
     # components rather than in prose a ledger reader never sees -- and `None`
     # rather than absent when nothing was excluded, so a reader can tell "this
@@ -1944,7 +1993,7 @@ def write_gap_entry(world_atom_id: str, twin_atom_id: str, result: GapResult,
     preserved (read-merge-write).
 
     REFUSES under a test process when the resolved destination is the LIVE
-    ledger (`background/live_ledger_guard.py`, H27 Hour #33): sixty-seven test
+    ledger (`background/live_ledger_guard.py`, H27 Hour #33): twenty-plus test
     modules import `simulation/run_phase2b.py`, whose defaulted `ledger_path`
     made every one of them a writer of the record the public Proof door
     derives from. Pass `ledger_path=tmp_path / "ledger.json"` in a test.
@@ -1989,6 +2038,7 @@ NORMALISATION_FINDING_DIVISOR_BROKEN = "declared_divisor_arithmetic_false"
 NORMALISATION_FINDING_REFERENCE_MISMATCH = "declared_reference_component_mismatch"
 NORMALISATION_FINDING_NONE_NOT_HEADLINE = "declared_none_raw_is_not_headline"
 NORMALISATION_FINDING_UNKNOWN_KIND = "unknown_normalisation_kind"
+NORMALISATION_FINDING_COMPONENT_SHADOWS = "component_key_shadows_entry_field"
 
 
 def audit_ledger_normalisation(ledger: Mapping) -> list:
@@ -2019,6 +2069,26 @@ def audit_ledger_normalisation(ledger: Mapping) -> list:
                 "declared": kind,
                 "detail": detail,
             })
+
+        # THE RESERVED-NAME COLLISION, graded BEFORE every `continue` below
+        # (H27 Hour #30). The construction guard cannot reach an entry already
+        # written to disk -- `W2_9_segment_debt_tnc` was on the live ledger and
+        # in the published `site/data/proof.json` when this was built -- so the
+        # audit is the half that covers the existing population, and it must run
+        # for an entry whose kind is missing or unknown, which is exactly the
+        # shape the live offender had.
+        entry_components = entry.get("components")
+        if isinstance(entry_components, Mapping):
+            shadowed = sorted(
+                k for k in entry_components if k in reserved_component_keys()
+            )
+            for key in shadowed:
+                _add(NORMALISATION_FINDING_COMPONENT_SHADOWS,
+                     f"components[{key!r}] = "
+                     f"{str(entry_components.get(key))[:80]!r} reuses the "
+                     f"entry-level field name {key!r} (which carries "
+                     f"{entry.get(key)!r}). The door renders both in one row, so "
+                     "one word publishes two values -- rename the component.")
 
         numeric = all(isinstance(v, (int, float)) and not isinstance(v, bool)
                       for v in (gap, raw, g0))

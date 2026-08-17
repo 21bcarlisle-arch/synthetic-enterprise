@@ -477,6 +477,29 @@ def _coupled_gaps(atoms):
         return dict(available=False,
                     note="background.coupled_triad not importable at generation time")
 
+    # THE D44 GRADER, GIVEN A CALLER (H27 Expert Hour #30). `audit_ledger_
+    # normalisation` was built by Hour #28 to grade every published entry
+    # against the relation it declares; measured at the start of Hour #30, the
+    # ONLY importers in the repo were its own tests, so it had never graded the
+    # live ledger once. This generator already reads that ledger on every
+    # publish and is the reader the audit exists to protect, so it is the
+    # caller. FAIL-OPEN GUARD: the import/call is defended, but an audit that
+    # cannot run reports itself as unavailable rather than as clean -- an
+    # unavailable check is a FAILED check (R15 fail-silent).
+    # `False` UNTIL THE CALL RETURNS, never `True` with an except-branch that
+    # forgets to clear it: the first shape of this guard initialised the flag to
+    # True, and a mutant whose import failed then published `ran=True, findings=[]`
+    # -- the door would have rendered "graded, nothing found" for an audit that
+    # never executed. That is the fail-silent defect this flag exists to prevent,
+    # reproduced inside the mechanism meant to catch it (R15).
+    basis_findings, basis_audit_ran = [], False
+    try:
+        from background.gap_metric import audit_ledger_normalisation
+        basis_findings = audit_ledger_normalisation(load_gap_ledger())
+        basis_audit_ran = True
+    except Exception:
+        basis_findings, basis_audit_ran = [], False
+
     ledger = load_gap_ledger()
     coupling = build_coupling(atoms)
     by_id = {a.get("id"): a for a in atoms if isinstance(a, dict) and a.get("id")}
@@ -573,6 +596,15 @@ def _coupled_gaps(atoms):
         wall_leak_count=sum(1 for r in rows if r["chip"] == "leak"),
         worse_than_blind_count=sum(1 for r in rows if r["chip"] == "worse_than_blind"),
         unmeasured_ge_l2=unmeasured_ge_l2,
+        # THE BASIS AUDIT'S VERDICT, on the door rather than in a function
+        # nothing called. `basis_audit_ran=False` is NOT "clean": the door
+        # renders it as a failure of the check itself.
+        basis_audit_ran=basis_audit_ran,
+        basis_finding_count=len(basis_findings),
+        basis_findings=[
+            {k: f.get(k) for k in ("world_atom_id", "metric", "finding", "detail")}
+            for f in basis_findings
+        ],
         pairs=rows,
     )
 

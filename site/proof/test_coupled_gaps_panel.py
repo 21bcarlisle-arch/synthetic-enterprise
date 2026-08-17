@@ -501,3 +501,100 @@ def test_the_live_panel_renders_a_basis_for_every_pair():
     assert body.count('class="gap-basis"') == len(cg["pairs"])
     for pair in cg["pairs"]:
         assert pair.get("normalisation") in (None, "divisor", "reference", "none")
+
+
+# --------------------------------------------------------------------------- #
+# THE BASIS AUDIT'S VERDICT ON THE DOOR (atom D44, H27 Expert Hour #30)
+#
+# `background.gap_metric.audit_ledger_normalisation` was built by Hour #28 to
+# grade every published entry against the relation it declares. Measured at the
+# start of Hour #30 its ONLY importers in the whole repo were its own tests --
+# it had never graded the live ledger once, which is how a row rendering
+# `basis UNDECLARED` beside `normalisation: majority-class prevalence` reached
+# the public door and stayed there. These pin the reader half: a grader whose
+# findings nobody renders is a grader nobody reads.
+# --------------------------------------------------------------------------- #
+def _pair_with_audit(**over):
+    data = _one_pair(0.4)
+    data.update({"basis_audit_ran": True, "basis_finding_count": 0,
+                 "basis_findings": []})
+    data.update(over)
+    return data
+
+
+def test_the_basis_audit_verdict_is_rendered_when_it_finds_something():
+    out = _render(_pair_with_audit(
+        basis_finding_count=2,
+        basis_findings=[
+            {"world_atom_id": "W2_9_segment_debt_tnc", "metric": "misapplication",
+             "finding": "component_key_shadows_entry_field", "detail": "d"},
+            {"world_atom_id": "W2_4_household_budget", "metric": "belief",
+             "finding": "undeclared_normalisation", "detail": "d"},
+        ]))
+    alarms = out["gap-alarms"]["innerHTML"]
+    assert "fail the basis audit" in alarms
+    # The reader is told WHICH entries and WHICH classes, not just a count.
+    assert "W2_9_segment_debt_tnc" in alarms and "W2_4_household_budget" in alarms
+    assert "component_key_shadows_entry_field" in alarms
+    assert "undeclared_normalisation" in alarms
+
+
+def test_the_basis_alarm_is_silent_when_the_audit_is_clean():
+    """NOT ALWAYS-RED. A clean audit must render nothing, or the alarm carries no
+    information and a reader learns to ignore it."""
+    alarms = _render(_pair_with_audit())["gap-alarms"]["innerHTML"]
+    assert "basis audit" not in alarms
+
+
+def test_an_audit_that_could_not_run_renders_as_a_failure_not_as_clean():
+    """R15 FAIL-SILENT. An unavailable check is a FAILED check. The two states
+    that must never look alike are 'graded, nothing found' and 'never graded'."""
+    alarms = _render(_pair_with_audit(basis_audit_ran=False))["gap-alarms"]["innerHTML"]
+    assert "basis audit did not run" in alarms
+    assert "UNGRADED" in alarms
+
+
+def test_a_pre_hour30_payload_without_the_audit_keys_does_not_fake_a_pass():
+    """FAIL-OPEN GUARD on the door's own reader: a payload generated before this
+    Hour carries no `basis_*` keys at all. It must not render the audit as clean
+    OR crash the panel -- the other alarms still have to reach the reader."""
+    data = _one_pair(None)  # no basis_* keys whatsoever
+    alarms = _render(data)["gap-alarms"]["innerHTML"]
+    assert "fail the basis audit" not in alarms
+    assert "depth nobody copes with yet" in alarms
+
+
+def test_the_live_door_data_carries_the_audits_verdict():
+    """R11/POPULATION: the wiring is asserted on the payload the door actually
+    fetches, not only on a fixture. `basis_audit_ran` absent means the generator
+    was never wired -- the exact state Hour #30 found.
+
+    THE FLAG ALONE IS NOT ENOUGH, and this is a defect this Hour committed and
+    then caught by mutating its own control: the first version of the generator
+    initialised `basis_audit_ran = True` and cleared it in an `except`, so a
+    mutant whose import failed published `ran=True, findings=[]` and this test
+    passed on an audit that never executed. The flag is therefore checked
+    AGAINST AN INDEPENDENT CALL of the grader: if the generator drops or skips
+    the call, the two disagree. The test's subject is the WIRING, so the second
+    source is deliberately the grader itself -- what is being falsified is "the
+    generator ran it", not "the grader is right"."""
+    sys.path.insert(0, str(PROJECT))
+    from background.gap_metric import audit_ledger_normalisation, load_gap_ledger
+
+    cg = _live_coupled_gaps()
+    assert cg.get("basis_audit_ran") is True, (
+        "the D44 grader did not run on the published panel data -- an ungraded "
+        "ledger is not a clean one"
+    )
+    assert isinstance(cg.get("basis_findings"), list)
+    assert cg["basis_finding_count"] == len(cg["basis_findings"])
+
+    independent = audit_ledger_normalisation(load_gap_ledger())
+    assert cg["basis_finding_count"] == len(independent), (
+        "the panel's basis-audit verdict does not match a direct call of the "
+        "grader on the same ledger -- the generator is not actually running it"
+    )
+    assert ({(f["world_atom_id"], f["finding"]) for f in cg["basis_findings"]}
+            == {(f["world_atom_id"], f["finding"]) for f in independent})
+
+

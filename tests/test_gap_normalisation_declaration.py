@@ -32,6 +32,7 @@ import json
 import pytest
 
 from background.gap_metric import (
+    NORMALISATION_FINDING_COMPONENT_SHADOWS,
     NORMALISATION_FINDING_DIVISOR_BROKEN,
     NORMALISATION_FINDING_FALSE_DIVISOR,
     NORMALISATION_FINDING_NONE_NOT_HEADLINE,
@@ -314,6 +315,9 @@ def test_the_live_ledger_is_graded_and_its_state_is_reported_not_assumed():
         NORMALISATION_FINDING_REFERENCE_MISMATCH,
         NORMALISATION_FINDING_NONE_NOT_HEADLINE,
         NORMALISATION_FINDING_UNKNOWN_KIND,
+        # H27 Hour #30 -- and this one FIRES on the live ledger today, which is
+        # what makes this population control non-vacuous.
+        NORMALISATION_FINDING_COMPONENT_SHADOWS,
     }
 
 
@@ -328,3 +332,128 @@ def test_the_json_shape_the_door_reads_carries_the_declaration():
     assert entry["raw_gap_is"].startswith("missed_failure_rate")
     assert entry["normalisation_reason"]
     json.dumps(entry)  # ledger-serialisable
+
+
+# --------------------------------------------------------------------------- #
+# THE RESERVED-NAME COLLISION (atom D44, H27 Expert Hour #30)
+#
+# THE DEFECT, measured on the artefact the public door serves. `to_dict` emits
+# `components` as a SIBLING of the declared fields, and the door renders both in
+# one row: the basis line off the entry-level `normalisation`, and every
+# `components` key by name inside the disclosure headed "Components &
+# measurement basis". On `site/data/proof.json` row `W2_9_segment_debt_tnc` that
+# rendered `basis UNDECLARED` beside `normalisation: majority-class prevalence`
+# -- one word, two fields, opposite readings, and the free-text side is not in
+# NORMALISATION_KINDS.
+#
+# R10: closed as a CLASS, not as three instances. The reserved set is DERIVED
+# from GapResult's own fields, so a field added to the contract tomorrow is
+# reserved the same day.
+# --------------------------------------------------------------------------- #
+def test_the_reserved_set_is_derived_from_the_contract_not_transcribed():
+    """INDEPENDENCE (R15). A hand-typed list would drift the moment a field was
+    added; this asserts the guard's subject IS the dataclass."""
+    import dataclasses
+
+    from background.gap_metric import reserved_component_keys
+
+    assert reserved_component_keys() == {
+        f.name for f in dataclasses.fields(GapResult)
+    }
+    # And it genuinely covers the field the live defect was on.
+    assert {"normalisation", "raw_gap", "g0", "gap"} <= reserved_component_keys()
+
+
+def test_a_component_key_that_shadows_an_entry_field_cannot_be_written():
+    """THE WRITE SIDE. Every reserved name, not just the one that shipped."""
+    from background.gap_metric import reserved_component_keys
+
+    for name in sorted(reserved_component_keys()):
+        with pytest.raises(ValueError, match="entry-level field names"):
+            GapResult(metric="detection", gap=0.4, raw_gap=0.2, g0=0.5,
+                      baseline="b", normalisation="divisor",
+                      components={name: "majority-class prevalence"})
+
+
+def test_the_write_guard_is_not_always_red():
+    """NOT A TAUTOLOGY: a components dict that shadows nothing constructs."""
+    res = GapResult(metric="detection", gap=0.4, raw_gap=0.2, g0=0.5,
+                    baseline="b", normalisation="divisor",
+                    components={"normaliser": "majority-class prevalence",
+                                "normalisation_absent_reason": "n/a",
+                                "minority_class_share": 0.09})
+    assert res.components["normaliser"] == "majority-class prevalence"
+
+
+def test_the_write_guard_runs_before_the_kind_check():
+    """ORDER MATTERS. The live offender had NO declared kind, so a guard placed
+    after the kind check would never have reached its collision -- the entry
+    would raise on the kind and carry the shadow away unreported."""
+    with pytest.raises(ValueError, match="entry-level field names"):
+        GapResult(metric="detection", gap=0.4, raw_gap=0.2, g0=0.5,
+                  baseline="b",  # no `normalisation=` at all
+                  components={"normalisation": "majority-class prevalence"})
+
+
+def test_the_audit_reports_a_shadowing_component_already_on_disk():
+    """THE READ SIDE. The write guard cannot reach an entry already serialised
+    to JSON -- and the live offender was exactly that. This is the half that
+    covers the existing population.
+
+    R15 BOTH WAYS: present -> found; renamed -> gone."""
+    from background.gap_metric import NORMALISATION_FINDING_COMPONENT_SHADOWS
+
+    entry = _declared_entry(components={"missed_failure_rate": 0.0,
+                                        "false_flag_rate": 0.1668,
+                                        "normalisation": "majority-class prevalence"})
+    found = audit_ledger_normalisation({"W": entry})
+    shadow = [f for f in found
+              if f["finding"] == NORMALISATION_FINDING_COMPONENT_SHADOWS]
+    assert len(shadow) == 1
+    assert "majority-class prevalence" in shadow[0]["detail"]
+
+    entry["components"]["normaliser"] = entry["components"].pop("normalisation")
+    assert audit_ledger_normalisation({"W": entry}) == []
+
+
+def test_the_audit_grades_the_collision_on_an_entry_with_no_declared_kind():
+    """THE SHAPE THE LIVE OFFENDER HAD. `W2_9_segment_debt_tnc` carried
+    `components['normalisation']` AND no entry-level `normalisation` at all. The
+    audit's kind branches all `continue`, so a collision check placed after them
+    would report the undeclared kind and stay silent about the shadow -- the
+    reader would be told half of what the row is doing wrong."""
+    from background.gap_metric import NORMALISATION_FINDING_COMPONENT_SHADOWS
+
+    entry = _declared_entry(gap=0.4, raw_gap=0.2, g0=0.5,
+                            components={"normalisation": "majority-class prevalence"})
+    entry.pop("normalisation")
+    findings = {f["finding"] for f in audit_ledger_normalisation({"W": entry})}
+    assert NORMALISATION_FINDING_COMPONENT_SHADOWS in findings
+    assert NORMALISATION_FINDING_UNDECLARED in findings
+
+    # Same for an UNKNOWN kind, the other early `continue`.
+    entry["normalisation"] = "percentage"
+    findings = {f["finding"] for f in audit_ledger_normalisation({"W": entry})}
+    assert NORMALISATION_FINDING_COMPONENT_SHADOWS in findings
+    assert NORMALISATION_FINDING_UNKNOWN_KIND in findings
+
+
+def test_no_live_scorer_writes_a_shadowing_component():
+    """THE THREE OFFENDERS THIS HOUR FOUND, pinned at their sources so a rename
+    back is a red test rather than a door regression."""
+    from background.gap_metric import ageing_gap, misapplication_gap
+
+    mis = misapplication_gap(["dom"] * 100 + ["biz"] * 10,
+                             ["dom"] * 95 + ["biz"] * 15)
+    assert "normalisation" not in mis.components
+    assert mis.components["normaliser"] == "majority-class prevalence"
+
+    res = detection_measures(truth_set={"i1"}, flagged_set={"i1", "n0"},
+                             universe={"i1", "n0", "n1", "n2"})
+    assert "normalisation" not in res.components
+
+    age = ageing_gap(["current", "90+", "30-60", "current"],
+                     ["current", "current", "30-60", "60-90"])
+    assert "normalisation" not in age.components
+    assert "NO NORMALISER" in age.components["normalisation_absent_reason"]
+    assert age.normalisation == "none"

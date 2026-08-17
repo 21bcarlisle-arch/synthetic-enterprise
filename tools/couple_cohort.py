@@ -84,7 +84,8 @@ from company.analytics.cohort_discovery import (
     discover_cohort,
 )
 
-from background.gap_metric import belief_gap, write_gap_entry, GapResult
+from background.gap_metric import (NORMALISATION_DIVISOR, GapResult, belief_gap,
+                                   write_gap_entry)
 
 WORLD_ATOM_ID = "W2_2_population_draw"
 TWIN_ATOM_ID = "C_cohort_discovery"
@@ -298,6 +299,9 @@ def measure(n_customers: int = 3000, base_seed: int = 20260721, n_min: int = N_M
         gap=worst["worst_cell_gap"],
         raw_gap=worst["worst_cell_gap"],
         g0=1.0,
+        # Atom D44: the kind is declared. This one really does divide (by the
+        # [0,1] TV ceiling), which is why raw and headline read alike here.
+        normalisation=NORMALISATION_DIVISOR,
         baseline="per-(axis, true-tenure-cell) TV distance normalised to the company's own blind national prior; worst_cell_score = max gap among cells with support >= n_min (R10 knee-support proxy, see module docstring)",
         components={
             "worst_cell_id": worst["worst_cell_id"],

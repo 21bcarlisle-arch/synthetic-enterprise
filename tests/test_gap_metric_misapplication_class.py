@@ -94,7 +94,10 @@ def test_1_every_result_carries_the_prevalence_caveat():
     for kwargs in ({}, {"positive_class": "business"}):
         result = misapplication_gap(truth, belief, **kwargs)
         assert result.components["prevalence_caveat"] == MISAPPLICATION_PREVALENCE_CAVEAT
-        assert result.components["normalisation"] == "majority-class prevalence"
+        # `normaliser`, not `normalisation` -- the latter is the entry-level
+        # DECLARED KIND and a components key may not shadow it (H27 Hour #30).
+        assert result.components["normaliser"] == "majority-class prevalence"
+        assert "normalisation" not in result.components
         # The share the score is really keyed to, stated as a number rather than
         # left implicit inside g0.
         assert result.components["minority_class_share"] == pytest.approx(10 / 110, abs=1e-6)
