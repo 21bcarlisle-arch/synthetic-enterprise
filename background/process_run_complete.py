@@ -13,7 +13,36 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-from background.publish_step_ledger import PublishStepLedger
+# THIS MODULE IS RUN AS A SCRIPT PATH, SO THE REPO ROOT IS NOT ON sys.path (2026-08-17, the
+# 258th failure of the wedge episode -- and the FIRST one whose cause was visible, because
+# 0a3b39ee9 had just stopped the publish path swallowing its own crashes).
+#
+# WHAT BROKE. Both daemons launch this file the same way -- `subprocess.run([sys.executable,
+# ".../background/process_run_complete.py", marker], cwd=PROJECT_DIR)` (sim_runner.py::197,
+# background_worker.py::395). Python seeds sys.path[0] from the SCRIPT'S DIRECTORY, never from
+# cwd, so inside that process `background/` is the root and `import background` cannot resolve.
+# Setting cwd=PROJECT_DIR looks like it should fix that and does nothing at all.
+#
+# The file already knew this: three call sites below catch `ModuleNotFoundError` and retry the
+# flat name, each commented "launched as `python3 background/process_run_complete.py`". A
+# top-level `from background.publish_step_ledger import ...` landed the day before with no such
+# guard, and a top-level import has no second chance -- every publish died at line 16 before
+# main() was reached. The one invocation that DID work was the smoke check in start_worker.sh,
+# `python3 -c 'import background.process_run_complete'`, because `-c` puts cwd on sys.path: the
+# check and the daemons disagreed about how the module is entered, so the check was green
+# throughout (R15 wrong-subject -- the control tested an entry mode nothing uses).
+#
+# WHY A PATH BOOTSTRAP RATHER THAN A FOURTH try/except. The try/except idiom is per-import and
+# defers the failure: a bare `except ModuleNotFoundError: pass` here is what produced the OTHER
+# traceback in the same log -- `NameError: name 'PublishStepLedger' is not defined`, 2,600 lines
+# later inside generate_dashboard_json, with the true cause long gone. Putting the root on
+# sys.path fixes the entry mode ONCE, for this import and every future one, and is a no-op under
+# `-m` (the root is already there, and the insert is idempotent).
+_PROJECT_ROOT = str(Path(__file__).resolve().parent.parent)
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+
+from background.publish_step_ledger import PublishStepLedger  # noqa: E402 -- needs the path above
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 STAGING_DIR = PROJECT_DIR / "docs" / "staging"
