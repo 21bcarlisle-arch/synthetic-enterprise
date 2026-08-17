@@ -22,9 +22,9 @@
     "recommended_uplift_pct": 1.8
   },
   "avg_hedge_fraction": 0.9152,
-  "clv_gbp": 8573.29,
+  "clv_gbp": 7771.1,
   "churn_probability": 0.38,
-  "expected_lifetime_periods": 13.13,
+  "expected_lifetime_periods": 10.93,
   "forecast_annual_profit_gbp": 1201.15,
   "forecast_cashflow": [
     {
@@ -78,6 +78,8 @@
       "discounted_gbp": 463.09
     }
   ],
+  "forward_looking_basis": "account",
+  "forward_looking_account_id": "C7",
   "commodity_split": {
     "electricity": {
       "net_gbp": 117.83,

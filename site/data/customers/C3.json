@@ -22,62 +22,13 @@
     "recommended_uplift_pct": null
   },
   "avg_hedge_fraction": 0.8999,
-  "clv_gbp": 3434.19,
+  "clv_gbp": null,
   "churn_probability": 0.17,
-  "expected_lifetime_periods": 13.48,
-  "forecast_annual_profit_gbp": 475.04,
-  "forecast_cashflow": [
-    {
-      "year_offset": 1,
-      "undiscounted_gbp": 475.04,
-      "discounted_gbp": 431.86
-    },
-    {
-      "year_offset": 2,
-      "undiscounted_gbp": 475.04,
-      "discounted_gbp": 392.6
-    },
-    {
-      "year_offset": 3,
-      "undiscounted_gbp": 475.04,
-      "discounted_gbp": 356.91
-    },
-    {
-      "year_offset": 4,
-      "undiscounted_gbp": 475.04,
-      "discounted_gbp": 324.46
-    },
-    {
-      "year_offset": 5,
-      "undiscounted_gbp": 475.04,
-      "discounted_gbp": 294.96
-    },
-    {
-      "year_offset": 6,
-      "undiscounted_gbp": 475.04,
-      "discounted_gbp": 268.15
-    },
-    {
-      "year_offset": 7,
-      "undiscounted_gbp": 475.04,
-      "discounted_gbp": 243.77
-    },
-    {
-      "year_offset": 8,
-      "undiscounted_gbp": 475.04,
-      "discounted_gbp": 221.61
-    },
-    {
-      "year_offset": 9,
-      "undiscounted_gbp": 475.04,
-      "discounted_gbp": 201.46
-    },
-    {
-      "year_offset": 10,
-      "undiscounted_gbp": 475.04,
-      "discounted_gbp": 183.15
-    }
-  ],
+  "expected_lifetime_periods": null,
+  "forecast_annual_profit_gbp": null,
+  "forecast_cashflow": [],
+  "forward_looking_basis": "account",
+  "forward_looking_account_id": "C3",
   "commodity_split": {
     "electricity": {
       "net_gbp": 337.27,
@@ -2083,8 +2034,8 @@
       "period_start": "2020-06-01",
       "period_end": "2020-06-29",
       "commodity": "electricity",
-      "consumption_kwh": 202.8,
-      "unit_rate_p_per_kwh": 11.38,
+      "consumption_kwh": 191.2,
+      "unit_rate_p_per_kwh": 12.07,
       "commodity_amount_gbp": 23.08,
       "standing_charge_gbp": 7.83,
       "days_in_period": 29,
@@ -2096,16 +2047,16 @@
       "meter_serial": "M00040393",
       "mpan": "1000000000118",
       "mprn": null,
-      "read_type": "E",
+      "read_type": "A",
       "opening_read_kwh": 9328.9,
-      "closing_read_kwh": 9531.7,
+      "closing_read_kwh": 9520.1,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 202.8,
+          "consumption_kwh": 191.2,
           "amount_gbp": 23.08,
-          "unit_rate_p_per_kwh": 11.38
+          "unit_rate_p_per_kwh": 12.07
         }
       ],
       "catchup_applied": true,

@@ -118,7 +118,7 @@ The company hedges wholesale volume forward to lock supply margin at the point o
 | CSAT (avg score 0–10) | 6.3 | 6 survey responses (measured) |
 | NPS (avg annual) | -50 | 4 responses — **low volume, indicative only** |
 | Direct Debit share | 87.5% | 7/8 mandates active |
-| Estimated-read rate | 29.3% | 1600 meter reads; lower is better |
+| Estimated-read rate | 29.1% | 1600 meter reads; lower is better |
 | Contact-centre SLA breaches (SLC14-style) | 13 | of 392 contacts; GSOP statutory-payment detail in the GSOP Obligations section |
 
 ### ARPU by segment (settlement revenue ÷ meter points, annualised)
@@ -507,6 +507,11 @@ CM (Capacity Market) and FiT (Feed-in Tariff) levies apply to ALL demand includi
 
 Total policy cost: £3,404,189 across all years. Net margin is after deducting this. Revenue side: tariff pass-through at term-start year's levy rate — basis risk arises when cross-year terms meet a different actual levy (notably 2022 CfD rebate).
 
+> **EXTRAPOLATED RATES — 13 of 13 rate tables.** Every rate table above is published only up to a given year. Where this run bills outside that year range, the reader serves the nearest tabulated rate and the figure is a CARRIED-FORWARD stand-in, not a published rate.
+> Beyond the published range: from 2025-01-01, 4 table(s) (CfD interim levy, RO mutualisation, electricity standing charge, gas standing charge); from 2025-04-01, 9 table(s) (Capacity Market, Feed-in Tariff, Green Gas Levy, I&C DUoS and 5 more).
+> The same applies at the START of the window: 9 table(s) (Capacity Market, Feed-in Tariff, Green Gas Levy, I&C DUoS and 5 more) begin after the first settlement date in this run, so the earliest bills are priced on the earliest tabulated rate.
+> This states what the instrument can and cannot tell you. It is not a claim that the carried-forward rates are wrong.
+
 ## Network Charges — DUoS + TNUoS (Phase 29a)
 
 Electricity network charges deducted from net_margin_gbp each year. 
@@ -528,6 +533,11 @@ I&C HV: DUoS only (Triad TNUoS is an annual lump tracked in the Triad section).
 | **Total** | **869,333** | |
 
 Total network cost: £869,333 across all years. Pass-through: tariff unit rate includes network cost at term-start year's rate; settlement deducts it — basis risk near-zero for annual contracts.
+
+> **EXTRAPOLATED RATES — 13 of 13 rate tables.** Every rate table above is published only up to a given year. Where this run bills outside that year range, the reader serves the nearest tabulated rate and the figure is a CARRIED-FORWARD stand-in, not a published rate.
+> Beyond the published range: from 2025-01-01, 4 table(s) (CfD interim levy, RO mutualisation, electricity standing charge, gas standing charge); from 2025-04-01, 9 table(s) (Capacity Market, Feed-in Tariff, Green Gas Levy, I&C DUoS and 5 more).
+> The same applies at the START of the window: 9 table(s) (Capacity Market, Feed-in Tariff, Green Gas Levy, I&C DUoS and 5 more) begin after the first settlement date in this run, so the earliest bills are priced on the earliest tabulated rate.
+> This states what the instrument can and cannot tell you. It is not a claim that the carried-forward rates are wrong.
 
 ## Gas Policy Costs and Network Charges (Phase 30b)
 
@@ -1695,7 +1705,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-08-14T05:53:17Z
+Generated: 2026-08-15T17:48:34Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 

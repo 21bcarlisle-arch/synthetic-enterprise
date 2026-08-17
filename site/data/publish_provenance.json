@@ -1,34 +1,34 @@
 {
   "annotation": {
-    "checked_at": "2026-08-14T06:11:11Z",
+    "checked_at": "2026-08-15T17:38:00Z",
     "nonblocking_reds": [
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_stale_baseline_entries",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
+      "FAILED tests/background/test_blocked_atom_visibility.py::test_on_the_live_map_the_rulings_named_subjects_exist_only_in_parked_atoms",
       "FAILED tests/background/test_blocked_atom_visibility.py::test_the_committed_document_agrees_with_the_live_derivation",
-      "FAILED tests/background/test_derived_artefact_register.py::TestStaleness::test_staleness_fires_for_EVERY_registered_artefact",
       "FAILED tests/background/test_derived_artefact_register.py::TestStaleness::test_every_registered_artefact_is_currently_fresh",
-      "FAILED tests/background/test_publish_gate_subject_is_head.py::test_the_exit_criterion_agrees_with_the_checkout_mechanism_that_ships",
-      "FAILED tests/background/test_publish_gate_subject_is_head.py::test_mutation_the_pre_elimination_criterion_text_reds"
+      "FAILED tests/design/test_atom_notes_store.py::test_declarations_match_the_store",
+      "FAILED tests/design/test_atom_records_store.py::test_declarations_match_the_store_both_directions",
+      "FAILED tests/tools/test_capability_index.py::test_live_repo_index_is_healthy_and_substantial"
     ],
-    "nonblocking_reds_total": 21,
-    "open_findings": 79
+    "nonblocking_reds_total": 20,
+    "open_findings": 90
   },
   "last_verified": {
-    "generated_at": "2026-08-14T06:04:12Z",
-    "git_commit": "1b2a7255e",
-    "run_id": "run_output_1b2a7255e_20260814T055439Z.json",
-    "verified_at": "2026-08-14T06:04:12Z"
+    "generated_at": "2026-08-17T09:46:16Z",
+    "git_commit": "1f7fafc02",
+    "run_id": "run_output_1f7fafc02_20260817T093646Z.json",
+    "verified_at": "2026-08-17T09:46:16Z"
   },
   "paused_reason": "scoped publish-path suite red at git=2260965f3; blocking tests: FAILED tests/background/test_publish_gate_subject_is_head.py::test_the_exit_criterion_agrees_with_the_checkout_mechanism_that_ships",
-  "paused_since": "2026-08-14T06:29:46Z",
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-14T06:04:12Z",
-    "git_commit": "1b2a7255e",
-    "run_id": "run_output_1b2a7255e_20260814T055439Z.json",
-    "verified_at": "2026-08-14T06:04:12Z"
+    "generated_at": "2026-08-17T09:46:16Z",
+    "git_commit": "1f7fafc02",
+    "run_id": "run_output_1f7fafc02_20260817T093646Z.json",
+    "verified_at": "2026-08-17T09:46:16Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-08-14T14:00:23Z"
+  "verification_state": "verified",
+  "written_at": "2026-08-17T09:46:16Z"
 }

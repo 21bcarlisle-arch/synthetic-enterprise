@@ -3192,6 +3192,41 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     if site_data_dir.is_dir():
         for _gen_json in sorted(site_data_dir.glob("*.json")):
             files.append(str(_gen_json))
+    # THE SAME CLASS, ON THE OTHER GENERATED DIRECTORY (2026-08-17, the three-day content
+    # freeze). Everything above closed the orphaned-at-commit gap for `site/data/` with a glob and
+    # then went straight back to hand-listing `site/state/` one path at a time -- customer_sample,
+    # PROJECT_STATE, billing_ledger, population_anchoring, scenario_analysis_latest,
+    # live_decisions_log, track_record_scorecard. Three files this cycle's own log says it
+    # regenerates were never on that list and so were regenerated every cycle and committed by
+    # none: `live_portfolio.json`, `live_decisions_latest.json`, `frozen_policy_baseline.json`.
+    #
+    # THAT IS NOT A COSMETIC STALENESS. `site/proof/`'s predictions ledger takes the PREDICTION
+    # from `track_record_scorecard.json` (listed, committed) and the OUTCOME from
+    # `live_portfolio.json` (not listed, never committed) -- so the published pair was guaranteed
+    # to drift apart, and `site/proof/test_predictions_ledger_can_fail.py` refused this very
+    # publish for exactly that reason: green in the working tree where both files are fresh, red
+    # in the tree the commit would create where only one of them is.
+    #
+    # TRACKED FILES ONLY, deliberately: `site/state/` also accumulates ~23 untracked
+    # `live_decisions_YYYYMMDD.json` dailies, and a bare glob would sweep every one of them into
+    # a content publish. A file has to be added to git once, by whoever built it; from then on
+    # its refresh is committed automatically and cannot silently freeze on the live site.
+    site_state_dir = PROJECT_DIR / "site" / "state"
+    if site_state_dir.is_dir():
+        try:
+            _tracked = subprocess.run(
+                ["git", "ls-files", "-z", "--", "site/state"], cwd=str(PROJECT_DIR),
+                capture_output=True, text=True, timeout=60,  # H30: stderr captured, not discarded
+            )
+            if _tracked.returncode == 0:
+                for _rel in _tracked.stdout.split("\0"):
+                    if _rel:
+                        files.append(str(PROJECT_DIR / _rel))
+            else:
+                log("site/state tracked-file census failed (rc={}): {} -- falling back to the "
+                    "explicit appends above".format(_tracked.returncode, _tracked.stderr.strip()))
+        except Exception as _exc:  # noqa: BLE001 -- never take the publish down over a path list
+            log("site/state paths not added to the commit (non-fatal): {}".format(_exc))
     # GitHub Pages mirror (docs/staging/ADVISOR_GITHUBIO_MIRROR.md): the advisor's
     # fetch path to poesys.net proved persistently stale independent of any CD
     # incident, so shadow pages + state JSONs also ship from docs/ (GitHub Pages),

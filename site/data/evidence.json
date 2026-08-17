@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-08-14T06:03:02Z",
-  "git_hash": "1b2a7255e",
+  "generated_at": "2026-08-17T10:15:39Z",
+  "git_hash": "unknown",
   "suite": {
-    "test_count": 25273,
-    "timestamp": "2026-08-14T05:53:28.520982+00:00"
+    "test_count": 25518,
+    "timestamp": "2026-08-15T16:58:03.987263+00:00"
   },
   "sources": {
     "node_mapping": "site/data/moap_node_atoms.json",
@@ -2100,11 +2100,11 @@
               "resolved_path": "tests/controls/test_control_mutation.py",
               "raw": "2026-07-16 H17 HARDEN (R15): red-team of check_back_billing_cap_respected found its OWN named defect -- docstring finding (a), existence-check-instead-of-magnitude fail-open (a \u00a30.01 token write-off against a ~\u00a33,860 four-year breach) -- had NO mutation test that fires on it. The sibling zero-write-off test cannot distinguish the two: the old `written_off_gbp > 0` existence check and the current magnitude check BOTH return False at exactly 0.0, so a regression to the exact old bug left the whole suite green. Added tests/controls/test_control_mutation.py::test_back_billing_cap_fires_on_token_write_off_against_large_breach, proven to FAIL on the mutated existence-check control and PASS on the current magnitude check. Test-file-only change; domain_invariants.py unchanged; D3 exit tests (29) + control mutation suite (85) + epistemic verifier all green. Level stays 3->3.",
               "is_test": true,
-              "test_functions": 98
+              "test_functions": 99
             }
           ],
           "test_files": 1,
-          "test_functions": 98,
+          "test_functions": 99,
           "ledger": [],
           "missing": [
             "NO_LEDGER_RECORD"

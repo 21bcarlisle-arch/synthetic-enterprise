@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-08-13T21:14:19Z",
+    "generated_at": "2026-08-17T10:23:43Z",
     "git_commit": "unknown",
     "customer_count": 19,
     "note": "Consolidated per-customer ground truth. Fields marked pending_sim_emission will be populated once run_phase2b emits behavioral trajectories."
@@ -25,9 +25,9 @@
       "lifetime_net_gbp": 494.47,
       "cost_to_serve_gbp": 329.93,
       "lifetime_net_after_cts_gbp": 164.54,
-      "clv_gbp": 2840.5,
+      "clv_gbp": null,
       "latest_churn_probability": 0.23,
-      "expected_lifetime_periods": 14.94,
+      "expected_lifetime_periods": null,
       "annual_pnl": [
         {
           "year": 2016,
@@ -464,9 +464,9 @@
       "lifetime_net_gbp": 748.52,
       "cost_to_serve_gbp": 330.0,
       "lifetime_net_after_cts_gbp": 418.52,
-      "clv_gbp": 0,
-      "latest_churn_probability": 0,
-      "expected_lifetime_periods": 0,
+      "clv_gbp": null,
+      "latest_churn_probability": null,
+      "expected_lifetime_periods": null,
       "annual_pnl": [
         {
           "year": 2016,
@@ -686,9 +686,9 @@
       "lifetime_net_gbp": 1179.28,
       "cost_to_serve_gbp": 505.43,
       "lifetime_net_after_cts_gbp": 673.85,
-      "clv_gbp": 4855.58,
+      "clv_gbp": 4384.23,
       "latest_churn_probability": 0.41,
-      "expected_lifetime_periods": 13.47,
+      "expected_lifetime_periods": 11.1,
       "annual_pnl": [
         {
           "year": 2016,
@@ -1231,9 +1231,9 @@
       "lifetime_net_gbp": 921.75,
       "cost_to_serve_gbp": 505.55,
       "lifetime_net_after_cts_gbp": 416.2,
-      "clv_gbp": 0,
-      "latest_churn_probability": 0,
-      "expected_lifetime_periods": 0,
+      "clv_gbp": null,
+      "latest_churn_probability": null,
+      "expected_lifetime_periods": null,
       "annual_pnl": [
         {
           "year": 2016,
@@ -1533,9 +1533,9 @@
       "lifetime_net_gbp": 337.27,
       "cost_to_serve_gbp": 219.95,
       "lifetime_net_after_cts_gbp": 117.32,
-      "clv_gbp": 3434.19,
+      "clv_gbp": null,
       "latest_churn_probability": 0.17,
-      "expected_lifetime_periods": 13.48,
+      "expected_lifetime_periods": null,
       "annual_pnl": [
         {
           "year": 2016,
@@ -1820,9 +1820,9 @@
       "lifetime_net_gbp": 326.39,
       "cost_to_serve_gbp": 220.0,
       "lifetime_net_after_cts_gbp": 106.39,
-      "clv_gbp": 0,
-      "latest_churn_probability": 0,
-      "expected_lifetime_periods": 0,
+      "clv_gbp": null,
+      "latest_churn_probability": null,
+      "expected_lifetime_periods": null,
       "annual_pnl": [
         {
           "year": 2016,
@@ -2032,9 +2032,9 @@
       "lifetime_net_gbp": 226.42,
       "cost_to_serve_gbp": 439.89,
       "lifetime_net_after_cts_gbp": -213.47,
-      "clv_gbp": 1336.57,
+      "clv_gbp": null,
       "latest_churn_probability": 0.17,
-      "expected_lifetime_periods": 13.1,
+      "expected_lifetime_periods": null,
       "annual_pnl": [
         {
           "year": 2016,
@@ -2524,9 +2524,9 @@
       "lifetime_net_gbp": -3123.13,
       "cost_to_serve_gbp": 440.0,
       "lifetime_net_after_cts_gbp": -3563.13,
-      "clv_gbp": 0,
-      "latest_churn_probability": 0,
-      "expected_lifetime_periods": 0,
+      "clv_gbp": null,
+      "latest_churn_probability": null,
+      "expected_lifetime_periods": null,
       "annual_pnl": [
         {
           "year": 2016,
@@ -2799,9 +2799,9 @@
       "lifetime_net_gbp": -84.54,
       "cost_to_serve_gbp": 599.87,
       "lifetime_net_after_cts_gbp": -684.41,
-      "clv_gbp": 10406.36,
+      "clv_gbp": null,
       "latest_churn_probability": 0.38,
-      "expected_lifetime_periods": 14.43,
+      "expected_lifetime_periods": null,
       "annual_pnl": [
         {
           "year": 2016,
@@ -3179,9 +3179,9 @@
       "lifetime_net_gbp": 3449.05,
       "cost_to_serve_gbp": 959.77,
       "lifetime_net_after_cts_gbp": 2489.28,
-      "clv_gbp": 17579.51,
+      "clv_gbp": null,
       "latest_churn_probability": 0.29,
-      "expected_lifetime_periods": 11.83,
+      "expected_lifetime_periods": null,
       "annual_pnl": [
         {
           "year": 2016,
@@ -3664,9 +3664,9 @@
       "lifetime_net_gbp": 117.83,
       "cost_to_serve_gbp": 519.13,
       "lifetime_net_after_cts_gbp": -401.3,
-      "clv_gbp": 8573.29,
+      "clv_gbp": 7771.1,
       "latest_churn_probability": 0.38,
-      "expected_lifetime_periods": 13.13,
+      "expected_lifetime_periods": 10.93,
       "annual_pnl": [
         {
           "year": 2016,
@@ -4287,9 +4287,9 @@
       "lifetime_net_gbp": 2093.95,
       "cost_to_serve_gbp": 505.43,
       "lifetime_net_after_cts_gbp": 1588.52,
-      "clv_gbp": 9290.21,
+      "clv_gbp": 8423.35,
       "latest_churn_probability": 0.35,
-      "expected_lifetime_periods": 13.36,
+      "expected_lifetime_periods": 11.1,
       "annual_pnl": [
         {
           "year": 2016,
@@ -4841,9 +4841,9 @@
       "lifetime_net_gbp": 2494.16,
       "cost_to_serve_gbp": 491.72,
       "lifetime_net_after_cts_gbp": 2002.44,
-      "clv_gbp": 10369.62,
+      "clv_gbp": 8947.2,
       "latest_churn_probability": 0.14,
-      "expected_lifetime_periods": 14.76,
+      "expected_lifetime_periods": 11.06,
       "annual_pnl": [
         {
           "year": 2016,
@@ -5340,9 +5340,9 @@
       "lifetime_net_gbp": 864816.68,
       "cost_to_serve_gbp": 4218.12,
       "lifetime_net_after_cts_gbp": 860598.56,
-      "clv_gbp": 1822025.03,
+      "clv_gbp": 1458518.07,
       "latest_churn_probability": 0.29,
-      "expected_lifetime_periods": 15.54,
+      "expected_lifetime_periods": 10.11,
       "annual_pnl": [
         {
           "year": 2017,
@@ -5782,9 +5782,9 @@
       "lifetime_net_gbp": 445802.82,
       "cost_to_serve_gbp": 3718.18,
       "lifetime_net_after_cts_gbp": 442084.64,
-      "clv_gbp": 945161.56,
+      "clv_gbp": 808962.71,
       "latest_churn_probability": 0.29,
-      "expected_lifetime_periods": 13.47,
+      "expected_lifetime_periods": 10.12,
       "annual_pnl": [
         {
           "year": 2018,
@@ -6185,9 +6185,9 @@
       "lifetime_net_gbp": 130098.7,
       "cost_to_serve_gbp": 3218.32,
       "lifetime_net_after_cts_gbp": 126880.37,
-      "clv_gbp": 3137524.98,
+      "clv_gbp": 2574512.66,
       "latest_churn_probability": 0.41,
-      "expected_lifetime_periods": 15.61,
+      "expected_lifetime_periods": 10.59,
       "annual_pnl": [
         {
           "year": 2019,
@@ -6601,9 +6601,9 @@
       "lifetime_net_gbp": 64510.98,
       "cost_to_serve_gbp": 3219.18,
       "lifetime_net_after_cts_gbp": 61291.8,
-      "clv_gbp": 0,
-      "latest_churn_probability": 0,
-      "expected_lifetime_periods": 0,
+      "clv_gbp": null,
+      "latest_churn_probability": null,
+      "expected_lifetime_periods": null,
       "annual_pnl": [
         {
           "year": 2019,
@@ -6843,9 +6843,9 @@
       "lifetime_net_gbp": 32220.65,
       "cost_to_serve_gbp": 2718.52,
       "lifetime_net_after_cts_gbp": 29502.13,
-      "clv_gbp": 1578225.51,
+      "clv_gbp": 1427298.78,
       "latest_churn_probability": 0.2,
-      "expected_lifetime_periods": 13.2,
+      "expected_lifetime_periods": 10.94,
       "annual_pnl": [
         {
           "year": 2020,
@@ -7065,9 +7065,9 @@
       "lifetime_net_gbp": 482.13,
       "cost_to_serve_gbp": 190.26,
       "lifetime_net_after_cts_gbp": 291.87,
-      "clv_gbp": 0,
-      "latest_churn_probability": 0,
-      "expected_lifetime_periods": 0,
+      "clv_gbp": null,
+      "latest_churn_probability": null,
+      "expected_lifetime_periods": null,
       "annual_pnl": [
         {
           "year": 2021,

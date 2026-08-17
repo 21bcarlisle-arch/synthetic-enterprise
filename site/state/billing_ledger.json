@@ -1,6 +1,6 @@
 {
   "meta": {
-    "source_json": "/home/rich/synthetic-enterprise/docs/reports/run_output_1b2a7255e_20260814T055439Z.json",
+    "source_json": "/home/rich/synthetic-enterprise/docs/reports/run_output_1f7fafc02_20260817T093646Z.json",
     "invoice_count": 1600,
     "customer_count": 19,
     "held_bill_count": 0,
@@ -18649,9 +18649,9 @@
           "period_start": "2020-06-01",
           "period_end": "2020-06-29",
           "commodity": "electricity",
-          "consumption_kwh": 202.8,
+          "consumption_kwh": 191.2,
           "commodity_amount_gbp": 23.08,
-          "unit_rate_p_per_kwh": 11.38,
+          "unit_rate_p_per_kwh": 12.07,
           "non_commodity_amount_gbp": 10.9,
           "standing_charge_gbp": 7.83,
           "days_in_period": 29,
@@ -18665,9 +18665,9 @@
           "meter_serial": "M00040393",
           "mpan": "1000000000118",
           "mprn": null,
-          "read_type": "E",
+          "read_type": "A",
           "opening_read_kwh": 9328.9,
-          "closing_read_kwh": 9531.7,
+          "closing_read_kwh": 9520.1,
           "catchup_applied": true,
           "catchup_period_start": "2019-10-01",
           "catchup_period_end": "2020-05-31",
@@ -18681,9 +18681,9 @@
             {
               "register_id": "1",
               "label": "Anytime",
-              "consumption_kwh": 202.8,
+              "consumption_kwh": 191.2,
               "amount_gbp": 23.08,
-              "unit_rate_p_per_kwh": 11.38
+              "unit_rate_p_per_kwh": 12.07
             }
           ]
         }
@@ -32539,9 +32539,9 @@
           "period_start": "2020-12-01",
           "period_end": "2020-12-29",
           "commodity": "electricity",
-          "consumption_kwh": 1961.9,
+          "consumption_kwh": 2015.8,
           "commodity_amount_gbp": 244.05,
-          "unit_rate_p_per_kwh": 12.4395,
+          "unit_rate_p_per_kwh": 12.107,
           "non_commodity_amount_gbp": 88.47,
           "standing_charge_gbp": 11.75,
           "days_in_period": 29,
@@ -32555,9 +32555,9 @@
           "meter_serial": "M00040455",
           "mpan": "1000000000120",
           "mprn": null,
-          "read_type": "E",
+          "read_type": "A",
           "opening_read_kwh": 107275.7,
-          "closing_read_kwh": 109237.6,
+          "closing_read_kwh": 109291.5,
           "catchup_applied": true,
           "catchup_period_start": "2020-02-01",
           "catchup_period_end": "2020-11-30",
@@ -32571,9 +32571,9 @@
             {
               "register_id": "1",
               "label": "Anytime",
-              "consumption_kwh": 1961.9,
+              "consumption_kwh": 2015.8,
               "amount_gbp": 244.05,
-              "unit_rate_p_per_kwh": 12.4395
+              "unit_rate_p_per_kwh": 12.107
             }
           ]
         }
@@ -36645,9 +36645,9 @@
           "period_start": "2024-03-01",
           "period_end": "2024-03-29",
           "commodity": "electricity",
-          "consumption_kwh": 2342.5,
+          "consumption_kwh": 2346.9,
           "commodity_amount_gbp": 751.79,
-          "unit_rate_p_per_kwh": 32.0935,
+          "unit_rate_p_per_kwh": 32.0333,
           "non_commodity_amount_gbp": 133.72,
           "standing_charge_gbp": 26.54,
           "days_in_period": 29,
@@ -36661,9 +36661,9 @@
           "meter_serial": "M00040486",
           "mpan": "1000000000121",
           "mprn": null,
-          "read_type": "E",
+          "read_type": "A",
           "opening_read_kwh": 190201.5,
-          "closing_read_kwh": 192544.0,
+          "closing_read_kwh": 192548.4,
           "catchup_applied": true,
           "catchup_period_start": "2023-12-01",
           "catchup_period_end": "2024-02-29",
@@ -36677,9 +36677,9 @@
             {
               "register_id": "1",
               "label": "Anytime",
-              "consumption_kwh": 2342.5,
+              "consumption_kwh": 2346.9,
               "amount_gbp": 751.79,
-              "unit_rate_p_per_kwh": 32.0935
+              "unit_rate_p_per_kwh": 32.0333
             }
           ]
         }

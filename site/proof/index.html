@@ -892,11 +892,37 @@ function renderCoupledGaps(d){
   // Anti-decay alarm (design 5.1): a mechanically-real (>=L2) world atom whose gap is
   // unmeasured is "depth nobody copes with yet" -- the binding-rule-1 failure, made visible.
   var uge=cg.unmeasured_ge_l2||[];
-  alarms.innerHTML = uge.length
+  var alarmHtml = uge.length
     ? '<div class="gap-alarm"><strong>'+uge.length+' ≥L2 world atom'+(uge.length>1?'s':'')+
         ' with no measured gap</strong> — depth nobody copes with yet (binding rule 1): '+
         esc(uge.join(", "))+'.</div>'
     : '';
+
+  // THE BASIS AUDIT (atom D44, H27 Hour #30). Every entry is graded against the
+  // relation it DECLARES between gap, raw_gap and g0. Its verdict is shown here
+  // because a grader whose findings nobody renders is a grader nobody reads —
+  // which is precisely how the collision below survived to the public door.
+  // FAILS CLOSED AND VISIBLE: an audit that could not run says so, in red; it is
+  // never allowed to render as the same empty state as "clean".
+  if(cg.basis_audit_ran===false){
+    alarmHtml += '<div class="gap-alarm"><strong>The basis audit did not run</strong> — '+
+      'every entry below is UNGRADED against the relation it declares. An unavailable '+
+      'check is a failed check, not a clean one.</div>';
+  } else {
+    var bf = cg.basis_findings||[];
+    if(bf.length){
+      var kinds={};
+      bf.forEach(function(f){ var k=String(f.finding||"?"); kinds[k]=(kinds[k]||0)+1; });
+      alarmHtml += '<div class="gap-alarm"><strong>'+bf.length+' published entr'+
+        (bf.length>1?'ies':'y')+' fail'+(bf.length>1?'':'s')+' the basis audit</strong> — '+
+        'the door renders g0 and raw beside every headline, and these entries do not '+
+        'record (or do not satisfy) the relation that pairing implies: '+
+        esc(Object.keys(kinds).sort().map(function(k){ return k+' ×'+kinds[k]; }).join(", "))+
+        '. Affected: '+esc(bf.map(function(f){ return String(f.world_atom_id); })
+          .sort().join(", "))+'.</div>';
+    }
+  }
+  alarms.innerHTML = alarmHtml;
 
   body.innerHTML=pairs.map(function(p){
     var c=classifyGap(p.value);
