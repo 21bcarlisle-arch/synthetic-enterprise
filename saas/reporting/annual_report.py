@@ -110,6 +110,36 @@ def _avg(values: list[float]) -> float | None:
 _MARGIN_BENCHMARK_LOW = 0.02  # 2% net-margin floor per industry benchmark
 
 
+def _snapshot_observation_edge(records: list[dict], as_of: str) -> str | None:
+    """The newest settlement this supplier has actually observed at `as_of`.
+
+    THE SINGLE DEFINITION of a snapshot's observation edge — both the ceased-account
+    cutoff inside `_build_clv_snapshots` and the published `clv_snapshot_as_of` map
+    call this, so the date a snapshot is TAKEN at and the date it is LABELLED with
+    cannot drift apart.
+
+    `as_of` is a hard upper bound: a record settled after it is not readable here,
+    so the edge is always <= `as_of` and never consults a period the run has not
+    reached. Returns None when nothing has settled by `as_of` — no observation, so
+    no edge, and the caller decides what an unobserved period means rather than
+    receiving a fabricated date.
+    """
+    observed = [r["settlement_date"] for r in records if r["settlement_date"] <= as_of]
+    return max(observed) if observed else None
+
+
+def _covers_full_year(year: str, edge: str | None) -> bool:
+    """Did the run actually reach the end of `year`?
+
+    The R10 predicate behind the derived-headline guard below: a year is fully
+    covered only when the supplier observed a settlement at or after its final day.
+    A partial year is a real reading of a shorter period, NOT a low reading of a
+    full one, and ranking the two against each other is what published a
+    £3,255,946 "fall" that never happened.
+    """
+    return edge is not None and edge >= f"{year}-12-31"
+
+
 def _build_clv_snapshots(
     all_records: list[dict],
     churn_risk: dict,
@@ -135,6 +165,7 @@ def _build_clv_snapshots(
     snapshots: dict[str, dict] = {}
     for year in years:
         cutoff = f"{year}-12-31"
+        edge_for_year = _snapshot_observation_edge(all_records, as_of=cutoff)
         records_to_year = [r for r in all_records if r["settlement_date"] <= cutoff]
         risk_to_year = {
             account_id: [r for r in renewals if r["renewal_period"] <= cutoff[:7]]
@@ -151,10 +182,24 @@ def _build_clv_snapshots(
         cts_to_year = build_cost_to_serve(
             records_to_year, CUSTOMERS + SUCCESSOR_CUSTOMERS + DRAWN_CUSTOMERS
         )
+        # OBSERVATION EDGE, not the calendar year end (2026-08-17,
+        # `WORKER_FINDING_THE_FINAL_YEAR_CLV_SNAPSHOT_IS_EMPTY_AND_THE_REPORT_PUBLISHES_IT_AS_A_THREE_MILLION_FALL`).
+        # `as_of=cutoff` asked "who had gone quiet by 31-Dec-Y" of a run that had
+        # not reached 31-Dec-Y: with the newest settlement anywhere at 2025-06-07,
+        # every account read as ceased 35 days after it and the whole 2025 snapshot
+        # came out empty -- published as a £3,255,946 fall to zero while the same run
+        # reported eleven accounts settling in 2025. `ceased_billing_accounts`' OWN
+        # default is this edge; the override was the defect, so this passes it
+        # explicitly rather than restoring a silent default. Point-in-Time is intact:
+        # the edge is derived from `records_to_year`, which is already truncated at
+        # `cutoff`, so it can never be later than the cutoff and consults nothing
+        # the supplier has not observed. Full years are unaffected -- their edge IS
+        # their year end (the leaver tests below pin exactly that).
+        edge = edge_for_year or cutoff
         clv_to_year = build_clv(
             risk_to_year,
             cts_to_year,
-            excluded_accounts=ceased_billing_accounts(records_to_year, as_of=cutoff),
+            excluded_accounts=ceased_billing_accounts(records_to_year, as_of=edge),
         )
         snapshots[year] = {
             account_id: v["clv_gbp"] for account_id, v in clv_to_year.items()
@@ -651,6 +696,17 @@ def extract_report_data(run_output: dict) -> dict:
     clv_snapshots = (
         _build_clv_snapshots(all_records, churn_risk, years) if churn_risk else None
     )
+    # The as-of date each snapshot was actually taken at. Additive sibling, never
+    # folded into `clv_snapshots` itself -- that payload is {year: {account: clv}}
+    # and several consumers iterate its inner `.values()` as numbers.
+    clv_snapshot_as_of = (
+        {
+            year: _snapshot_observation_edge(all_records, as_of=f"{year}-12-31")
+            for year in years
+        }
+        if churn_risk
+        else None
+    )
 
     # Phase 13a: ToU utilization stats for HH customers (C7-C9).
     # Computed here while all_records is in scope; stored as tou_stats in output.
@@ -816,6 +872,7 @@ def extract_report_data(run_output: dict) -> dict:
         "ledger_meta": run_output.get("ledger_meta"),
         "ledger_pnl": run_output.get("ledger_pnl"),
         "clv_snapshots": clv_snapshots,
+        "clv_snapshot_as_of": clv_snapshot_as_of,
         # Phase 8a: growth mandate summary
         "growth_mandate": growth_mandate,
         "total_acquisition_spend_gbp": sum(-e["amount_gbp"] for e in acquisition_spend_events),
@@ -1234,9 +1291,14 @@ def _customer_book_section(year: str, yd: dict, data: dict) -> str:
     if year_clv:
         clv_vals = [v for v in year_clv.values() if v is not None]
         avg_yr_clv = _avg(clv_vals)
+        # The snapshot's own as-of, not an assumed year end: on a run whose last
+        # settlement is 2025-06-07 this figure is a mid-year reading and saying
+        # "year-end 2025" would misdate it (R14, one level down).
+        _edge = (data.get("clv_snapshot_as_of") or {}).get(year)
+        _as_at = _edge if _edge and not _covers_full_year(year, _edge) else f"year-end {year}"
         if avg_yr_clv is not None:
             lines.append(
-                f"- Average CLV (Point-in-Time, year-end {year}): {_fmt_gbp(avg_yr_clv)}"
+                f"- Average CLV (Point-in-Time, {_as_at}): {_fmt_gbp(avg_yr_clv)}"
             )
             per_acct = ", ".join(
                 f"{acct} {_fmt_gbp(clv)}" for acct, clv in sorted(year_clv.items()) if clv is not None
@@ -7620,22 +7682,39 @@ def _section_clv_evolution(data: dict) -> str:
     clv_snapshots = data.get("clv_snapshots") or {}
     if len(clv_snapshots) < 2:
         return ""
+    as_of_map = data.get("clv_snapshot_as_of") or {}
     rows = []
     prev_total = None
     for yr in sorted(clv_snapshots.keys()):
         accts = clv_snapshots[yr]
-        elec = {k: v for k, v in accts.items() if not k.endswith("g")}
+        # `v is not None` -- a structural blank is not a \u00a30 valuation. No snapshot
+        # carries one today; this refuses to average one in if that changes.
+        elec = {k: v for k, v in accts.items() if not k.endswith("g") and v is not None}
         total = sum(elec.values())
         count = len(elec)
         avg = total / count if count else 0
-        if prev_total is None:
+        # COMPARABLE = a year with a book in it that the supplier observed to its end.
+        # Two independent guards, and which apply depends on the evidence available:
+        # the as-of map is the DIRECT reading of coverage, used whenever the run
+        # carries one; the empty-population test needs no map and catches this same
+        # defect's shape on its own, which is what makes the guard hold on the older
+        # `run_output_latest.json` this was found in (2025: 0 accounts valued).
+        # A year absent from the map is a year we have no coverage evidence about --
+        # not evidence of under-coverage, so it is not demoted on that basis alone.
+        edge = as_of_map.get(yr)
+        comparable = count > 0 and (
+            _covers_full_year(yr, edge) if yr in as_of_map else True
+        )
+        if prev_total is None or not comparable or not rows[-1][5]:
             delta = "\u2014"
         elif total >= prev_total:
             delta = "+\u00a3{:,.0f}".format(total - prev_total)
         else:
             delta = "\u00a3{:,.0f}".format(total - prev_total)
-        rows.append((yr, count, total, avg, delta))
-        prev_total = total
+        label = yr if comparable else "{} *".format(yr)
+        rows.append((label, count, total, avg, delta, comparable, yr, edge))
+        if comparable:
+            prev_total = total
     lines = [
         "## Portfolio CLV Evolution",
         "",
@@ -7644,21 +7723,57 @@ def _section_clv_evolution(data: dict) -> str:
         "| Year | Accounts | Total CLV \u00a3 | Avg CLV \u00a3 | \u0394 CLV \u00a3 |",
         "|------|----------|-------------|-----------|---------|",
     ]
-    for yr, count, total, avg, delta in rows:
-        lines.append("| {} | {} | \u00a3{:,.0f} | \u00a3{:,.0f} | {} |".format(yr, count, total, avg, delta))
-    best_yr, best_total = max(((r[0], r[2]) for r in rows), key=lambda x: x[1])
-    worst_yr, worst_total = min(((r[0], r[2]) for r in rows), key=lambda x: x[1])
-    deltas_raw = [(rows[i][0], rows[i][2] - rows[i - 1][2]) for i in range(1, len(rows))]
-    biggest_jump_yr, biggest_jump_val = max(deltas_raw, key=lambda x: x[1])
-    biggest_drop_yr, biggest_drop_val = min(deltas_raw, key=lambda x: x[1])
-    lines.extend([
-        "",
-        "**Peak portfolio CLV: {} (\u00a3{:,.0f})** | **Earliest/lowest: {} (\u00a3{:,.0f})**".format(
-            best_yr, best_total, worst_yr, worst_total),
-        "**Largest YoY gain: {} (+\u00a3{:,.0f})**".format(biggest_jump_yr, biggest_jump_val),
-    ])
-    if biggest_drop_val < 0:
-        lines.append("**Largest YoY fall: {} (\u00a3{:,.0f})**".format(biggest_drop_yr, biggest_drop_val))
+    for label, count, total, avg, delta, _comparable, _yr, _edge in rows:
+        lines.append(
+            "| {} | {} | \u00a3{:,.0f} | \u00a3{:,.0f} | {} |".format(label, count, total, avg, delta)
+        )
+    # R10 INVARIANT (2026-08-17): no derived headline -- extremum, \u0394, ranking -- may
+    # be computed over a period the run does not fully cover. The 2025 snapshot was
+    # empty because the run's last settlement was 2025-06-07, and ranking it against
+    # full years published "Earliest/lowest: 2025 (\u00a30)" and "Largest YoY fall: 2025
+    # (\u00a3-3,255,946)" -- the series' largest reported movement was an artefact of its
+    # own cutoff. Partial years still RENDER as rows (they are real readings of a
+    # shorter period); they are excluded from the arithmetic that ranks periods
+    # against each other.
+    ranked = [r for r in rows if r[5]]
+    excluded = [r for r in rows if not r[5]]
+    if ranked:
+        best_yr, best_total = max(((r[6], r[2]) for r in ranked), key=lambda x: x[1])
+        worst_yr, worst_total = min(((r[6], r[2]) for r in ranked), key=lambda x: x[1])
+        lines.extend([
+            "",
+            "**Peak portfolio CLV: {} (\u00a3{:,.0f})** | **Lowest: {} (\u00a3{:,.0f})**".format(
+                best_yr, best_total, worst_yr, worst_total),
+        ])
+        deltas_raw = [
+            (ranked[i][6], ranked[i][2] - ranked[i - 1][2]) for i in range(1, len(ranked))
+        ]
+        if deltas_raw:
+            biggest_jump_yr, biggest_jump_val = max(deltas_raw, key=lambda x: x[1])
+            biggest_drop_yr, biggest_drop_val = min(deltas_raw, key=lambda x: x[1])
+            lines.append(
+                "**Largest YoY gain: {} (+\u00a3{:,.0f})**".format(biggest_jump_yr, biggest_jump_val)
+            )
+            if biggest_drop_val < 0:
+                lines.append(
+                    "**Largest YoY fall: {} (\u00a3{:,.0f})**".format(
+                        biggest_drop_yr, biggest_drop_val
+                    )
+                )
+    if excluded:
+        detail = "; ".join(
+            "{} (observed to {}, {} accounts valued)".format(r[6], r[7], r[1])
+            if r[7]
+            else "{} ({} accounts valued, no as-of recorded)".format(r[6], r[1])
+            for r in excluded
+        )
+        lines.extend([
+            "",
+            "> \\* Partial period \u2014 the run does not cover this year to its end, so it is "
+            "shown as a reading in its own right and excluded from the \u0394 column and from "
+            "the peak/lowest/largest-move figures above: {}. Ranking a part-year against "
+            "full years would report the cutoff as a change in the book.".format(detail),
+        ])
     lines.extend([
         "",
         "> Note: CLV snapshots are forward estimates at year-end based on remaining"

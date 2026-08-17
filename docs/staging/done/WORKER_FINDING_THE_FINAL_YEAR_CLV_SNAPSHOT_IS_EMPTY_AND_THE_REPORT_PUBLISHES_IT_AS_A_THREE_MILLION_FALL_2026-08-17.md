@@ -1,6 +1,45 @@
 # WORKER FINDING — the final-year CLV snapshot is empty, and the report publishes it as a £3.3m fall
 
-**Severity:** BLOCKING · **Lane:** B_commercial · **Disposition:** QUEUED (not fixed on sight)
+**Severity:** BLOCKING · **Lane:** B_commercial · **Disposition:** REPAIRED 2026-08-17
+
+**Discharged:** `tests/saas/reporting/test_partial_year_clv_headline_guard.py::test_the_final_partial_year_still_values_the_book`, `tests/saas/reporting/test_partial_year_clv_headline_guard.py::test_the_truncated_year_is_not_named_as_the_largest_yoy_fall`, `tests/saas/reporting/test_partial_year_clv_headline_guard.py::test_a_genuinely_departed_account_is_still_excluded_at_a_midyear_edge`
+
+Both recommendations taken. The cause: `_build_clv_snapshots` now measures cessation against
+the OBSERVATION EDGE derived from its own truncated window (`_snapshot_observation_edge`),
+not the calendar year end — `ceased_billing_accounts`' own default, which the call site had
+overridden. The consequence: `_section_clv_evolution` now excludes any period the run does not
+fully cover from the Δ column and from the peak/lowest/largest-move headlines, while still
+rendering it as a labelled reading in its own right carrying its own as-of date
+(`clv_snapshot_as_of`, a new additive sibling key).
+
+R11, rendered value, on the live `docs/reports/run_output_latest.json` — before/after the repair:
+
+    Earliest/lowest: 2025 (£0)              ->  Lowest: 2016 (£23,759)
+    Largest YoY fall: 2025 (£-3,255,946)    ->  Largest YoY fall: 2021 (£-565,263)
+    | 2025 | 0 | £0 | £0 | £-3,255,946 |    ->  | 2025 * | 0 | £0 | £0 | — |
+
+R15, three mutations run, each killing a NAMED test (not asserted — executed):
+
+    as_of=edge -> as_of=cutoff        kills test_the_final_partial_year_still_values_the_book
+    comparable -> True                kills test_the_truncated_year_is_not_named_as_the_largest_yoy_fall
+                                        (+3 more, incl. the partial row and its withheld Δ)
+    excluded_accounts -> set()        kills test_a_genuinely_departed_account_is_still_excluded_at_a_midyear_edge
+                                        (+ the 2026-08-13 leaver test, unregressed)
+
+R10, the class not the row: the invariant is `_covers_full_year` — no derived headline
+(extremum, Δ, ranking) may be computed over a period the run does not fully cover. Two
+INDEPENDENT guards implement it, and the second is why the repair bites on the artefact the
+defect was found in: the as-of map is the direct coverage reading when a run carries one, and
+the empty-population test catches the same shape with no map at all (the published
+`run_output_latest.json` has none, and 2025 reads 0 accounts valued there).
+
+Suite: 919 passed in `tests/saas/reporting/` on the exact tree this commit creates, including
+the 2026-08-13 leaver tests this repair had to leave standing.
+
+NOT closed by this: the sibling BLOCKING finding on the same lane
+(`WORKER_FINDING_THE_BOOK_IS_VALUED_ON_A_MARGIN_THAT_EXCLUDES_THREE_QUARTERS_OF_THE_COST_STACK_2026-08-17`)
+is untouched and B_commercial stays held by it. The two are independent: that one is about
+WHICH margin the book is valued on, this one about WHEN the snapshot is taken.
 
 **Found:** 2026-08-17 worker tick, LANE 3 DISCOVER/FRAME draw on `EP1_clv_three_horizon`,
 while reading `clv_snapshots` for the ex-post gap measurement (that pass's other finding is
