@@ -2,6 +2,10 @@
 
 **Severity:** BLOCKING · **Lane:** W4_the_wall · **Disposition:** QUEUED (not fixed on sight)
 
+**Discharged:** `simulation/policy_costs.py`, `docs/domain_artefact_library/regulatory/ccl_main_rates.json`, `tests/simulation/test_policy_cost_values_vs_source.py::test_every_pinned_rate_equals_the_tabulated_constant`, `tests/simulation/test_policy_cost_values_vs_source.py::test_every_in_window_year_of_a_verified_table_has_a_pin`, `tests/simulation/test_policy_cost_values_vs_source.py::test_every_year_keyed_table_is_classified`, `tests/simulation/test_policy_cost_values_vs_source.py::test_mutation_a_drifting_constant_is_caught`, `tests/simulation/test_policy_cost_values_vs_source.py::test_mutation_a_drifting_pin_is_caught` — the nine divergent years now equal the statute, and the CLASS is closed by a values-vs-source control whose pinned figures live in the regulation commons in the statute's OWN unit (GBP/kWh), so the control performs the conversion and the checked value is not derived from the source it checks.
+
+The severity header above states what the finding FOUND, not what it left; the discharge is the release. Disposition QUEUED was correct for the LANE 3 pass that filed it — the repair was taken by a later RUNG-1c BUILD draw, which is what this discharge records.
+
 **Atom:** `EP14_adapter_published_cost_stack` (LANE 3 idle draw, DISCOVER/FRAME, 2026-08-17)
 **Class:** a constant CITES a publication and does not EQUAL it, so a citation census scores it green
 

@@ -108,17 +108,35 @@ def get_electricity_policy_cost_per_mwh(date_str: str) -> float:
 # Domestic electricity is exempt from CCL (reduced rate = £0.00 since Apr 2001).
 # Business electricity pays the main CCL rate, remitted to HMRC by the supplier.
 # CCL year runs April-March (same as RO obligation year).
-# Sources: HMRC Climate Change Levy rates tables.
+#
+# REPAIRED 2026-08-17 (WORKER_FINDING_THE_ELECTRICITY_LEVY_TABLE_DIVERGES_FROM_THE_STATUTE_ITS_GAS_TWIN_MATCHES).
+# This table cited "HMRC Climate Change Levy rates tables" and was £43,074.89 (9.4% of the
+# published electricity CCL line) away from them on 9 of 11 years, always understating, while
+# _GAS_CCL_RATE_BY_YEAR below — the SAME statutory rows, the same Acts, the same sections — was
+# exact on 10 of 10. The old table also invented a gentle monotonic climb (5.44 -> 7.35) where the
+# statute has a SPIKE AND A TAPER, and its own comment named the step-change in the wrong year AND
+# with the wrong sign ("April 2020: step-change ... raised"; April 2020 was a CUT).
+# The real history: a step UP in April 2019 (5.83 -> 8.47, the Budget-2016 rebalancing), then a cut
+# to 8.11, then 7.75 flat to date as gas climbed to meet it (parity from April 2024).
+#
+# VALUES ARE NO LONGER TRANSCRIBED BY HAND. Every figure below is pinned, in the statute's own
+# GBP/kWh, in the regulation commons at
+# docs/domain_artefact_library/regulatory/ccl_main_rates.json, with the legislation URL per year;
+# tests/simulation/test_policy_cost_values_vs_source.py converts and compares, so a table that
+# drifts from its cited source now fails on sight. A CITATION IS NOT AN AGREEMENT: the previous
+# documentary control checked that a comment NAMES a source, which is fail-open on a
+# mis-transcribed constant by construction.
+# Sources: HMRC/gov.uk Climate Change Levy rates tables; FA2016 ss.145-147, FA2020 ss.92-93.
 _CCL_ELECTRICITY_RATE_BY_YEAR: dict[int, float] = {
-    2016: 5.44,    # £/MWh: 0.544p/kWh × 100 / 100 = £5.44/MWh
-    2017: 5.54,
-    2018: 5.83,
-    2019: 6.11,
-    2020: 7.17,    # April 2020: step-change — electricity CCL raised as gas CCL frozen
-    2021: 7.17,
-    2022: 7.17,
-    2023: 7.26,
-    2024: 7.35,
+    2016: 5.59,    # £/MWh = 0.559 p/kWh × 10. RECALLED, not fetched — see commons open_items
+    2017: 5.68,    # FA2016 s.145
+    2018: 5.83,    # FA2016 s.146 — the one year the old table already had right
+    2019: 8.47,    # FA2016 s.147 — April 2019: step-change UP, the Budget-2016 rebalancing
+    2020: 8.11,    # FA2020 s.92 — April 2020 was a CUT, not a rise
+    2021: 7.75,    # FA2020 s.93
+    2022: 7.75,    # bracketed by two primary 0.00775 years; CCL rates move only on 1 April
+    2023: 7.75,    # gov.uk CCL rates
+    2024: 7.75,    # gov.uk CCL rates — gas reaches parity with electricity here
 }
 
 

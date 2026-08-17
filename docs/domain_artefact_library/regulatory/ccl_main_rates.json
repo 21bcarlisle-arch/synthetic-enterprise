@@ -1,0 +1,59 @@
+{
+  "artefact": "ccl_main_rates",
+  "version": 1,
+  "published_by": "UK Parliament (Finance Acts amending FA2000 Sch.6 para.42) and HMRC/gov.uk 'Climate Change Levy rates'",
+  "what_this_is": "THE LAW, NOT A READING OF IT. The published Climate Change Levy MAIN rate per taxable commodity, stated in the unit the statute itself uses (GBP per kWh), effective from each 1 April. Nothing here interprets the law: the domestic exemption, the CCA reduced-rate scheme, the segment filter and the GBP/kWh -> GBP/MWh conversion are all READINGS, and each lane owns its own. A lane that misreads them has misread the law, rather than having been handed a different law.",
+  "basis": {
+    "units": "GBP per kWh - the unit the statute states, NOT the unit the model tabulates",
+    "conversion": "consumers convert: GBP/kWh x 1000 = GBP/MWh (equivalently p/kWh x 10)",
+    "year_key": "obligation year beginning 1 April; each entry's key is the year the rate COMMENCES, so 'from: 2019-04-01' is obligation year 2019 and runs to 2020-03-31",
+    "rate_class": "MAIN rate only. The CCA reduced rate and any effective/discounted rate are different figures and are NOT in this file (R14: the basis travels with the figure)"
+  },
+  "why_native_units": "The defect this artefact closes (2026-08-17) was a MIS-TRANSCRIPTION, not a missing citation: _CCL_ELECTRICITY_RATE_BY_YEAR cited the HMRC rates tables and was GBP43,074.89 away from them. If this file carried the model's own GBP/MWh figures, a control comparing the two would be a TAUTOLOGY in the R15 sense - the checked value derived from the source it checks. Holding the statute's own unit forces the control to perform the conversion, so the unit convention is itself under test. That is why the redundancy here is deliberate and must not be 'tidied' into GBP/MWh.",
+  "provenance_legend": {
+    "primary": "fetched from legislation.gov.uk or gov.uk during the pass that wrote this entry; the `source` URL was read, not recalled. ONLY these entries (and `bracketed`) are asserted as equalities by the control.",
+    "bracketed": "not separately fetched, but BOTH adjacent obligation years are `primary` and carry the SAME rate. CCL main rates change only on 1 April by statute, so a different value here would require two unlegislated changes. Weaker than `primary`; stated as an inference, and labelled as one.",
+    "recalled": "author recall, NEVER fetched. EXCLUDED from the control's equality assertions and counted against a ratchet, so an unverified year is visible rather than silently trusted. Each is an open item: fetch it and promote it."
+  },
+  "r13_wall": "Every date and rate here is real published tax law, transcribed blind to company P&L. No value in this file may be moved because a simulation result looks wrong. The model tables that consume it are BASELINE fidelity, not curriculum.",
+  "portability": "A schedule of commencement dates, not a set of year branches. A second market or a changed levy regime supplies its own artefact behind the same loader.",
+  "open_items": [
+    "electricity + gas 2016-04-01 are `recalled`: the FA that set the 1 April 2016 rates was not located this pass (FA2014 s.94 and FA2016 s.144 were checked and are other subjects).",
+    "gas 2022-04-01 is `recalled`: its neighbours differ (0.00465 -> 0.00672), so it cannot be bracketed. Electricity 2022 CAN be, both neighbours being 0.00775.",
+    "2025-04-01 and 2026-04-01 are pinned `primary` here but sit beyond the model tables' last key (2024), so the control does not require them. They are a sourced input already waiting for whoever draws the silent-clamping finding (WORKER_FINDING_THE_COST_STACK_CLAMPS_SILENTLY_INSIDE_ITS_OWN_RUN_WINDOW_2026-08-14)."
+  ],
+  "rates": [
+    {"from": "2016-04-01", "commodity": "electricity", "gbp_per_kwh": 0.00559, "provenance": "recalled", "source": null, "source_label": "not fetched"},
+    {"from": "2016-04-01", "commodity": "gas", "gbp_per_kwh": 0.00195, "provenance": "recalled", "source": null, "source_label": "not fetched"},
+
+    {"from": "2017-04-01", "commodity": "electricity", "gbp_per_kwh": 0.00568, "provenance": "primary", "source": "https://www.legislation.gov.uk/ukpga/2016/24/section/145", "source_label": "FA2016 s.145"},
+    {"from": "2017-04-01", "commodity": "gas", "gbp_per_kwh": 0.00198, "provenance": "primary", "source": "https://www.legislation.gov.uk/ukpga/2016/24/section/145", "source_label": "FA2016 s.145"},
+
+    {"from": "2018-04-01", "commodity": "electricity", "gbp_per_kwh": 0.00583, "provenance": "primary", "source": "https://www.legislation.gov.uk/ukpga/2016/24/section/146", "source_label": "FA2016 s.146"},
+    {"from": "2018-04-01", "commodity": "gas", "gbp_per_kwh": 0.00203, "provenance": "primary", "source": "https://www.legislation.gov.uk/ukpga/2016/24/section/146", "source_label": "FA2016 s.146"},
+
+    {"from": "2019-04-01", "commodity": "electricity", "gbp_per_kwh": 0.00847, "provenance": "primary", "source": "https://www.legislation.gov.uk/ukpga/2016/24/section/147", "source_label": "FA2016 s.147"},
+    {"from": "2019-04-01", "commodity": "gas", "gbp_per_kwh": 0.00339, "provenance": "primary", "source": "https://www.legislation.gov.uk/ukpga/2016/24/section/147", "source_label": "FA2016 s.147"},
+
+    {"from": "2020-04-01", "commodity": "electricity", "gbp_per_kwh": 0.00811, "provenance": "primary", "source": "https://www.legislation.gov.uk/ukpga/2020/14/section/92", "source_label": "FA2020 s.92"},
+    {"from": "2020-04-01", "commodity": "gas", "gbp_per_kwh": 0.00406, "provenance": "primary", "source": "https://www.legislation.gov.uk/ukpga/2020/14/section/92", "source_label": "FA2020 s.92"},
+
+    {"from": "2021-04-01", "commodity": "electricity", "gbp_per_kwh": 0.00775, "provenance": "primary", "source": "https://www.legislation.gov.uk/ukpga/2020/14/section/93", "source_label": "FA2020 s.93"},
+    {"from": "2021-04-01", "commodity": "gas", "gbp_per_kwh": 0.00465, "provenance": "primary", "source": "https://www.legislation.gov.uk/ukpga/2020/14/section/93", "source_label": "FA2020 s.93"},
+
+    {"from": "2022-04-01", "commodity": "electricity", "gbp_per_kwh": 0.00775, "provenance": "bracketed", "source": "https://www.legislation.gov.uk/ukpga/2020/14/section/93", "source_label": "bracketed by FA2020 s.93 (2021) and gov.uk CCL rates (2023), both 0.00775"},
+    {"from": "2022-04-01", "commodity": "gas", "gbp_per_kwh": 0.00568, "provenance": "recalled", "source": null, "source_label": "not fetched; neighbours differ so it cannot be bracketed"},
+
+    {"from": "2023-04-01", "commodity": "electricity", "gbp_per_kwh": 0.00775, "provenance": "primary", "source": "https://www.gov.uk/guidance/climate-change-levy-rates", "source_label": "gov.uk CCL rates, '1 April 2023 to 31 March 2024'"},
+    {"from": "2023-04-01", "commodity": "gas", "gbp_per_kwh": 0.00672, "provenance": "primary", "source": "https://www.gov.uk/guidance/climate-change-levy-rates", "source_label": "gov.uk CCL rates, '1 April 2023 to 31 March 2024'"},
+
+    {"from": "2024-04-01", "commodity": "electricity", "gbp_per_kwh": 0.00775, "provenance": "primary", "source": "https://www.gov.uk/guidance/climate-change-levy-rates", "source_label": "gov.uk CCL rates, '1 April 2024 to 31 March 2025'"},
+    {"from": "2024-04-01", "commodity": "gas", "gbp_per_kwh": 0.00775, "provenance": "primary", "source": "https://www.gov.uk/guidance/climate-change-levy-rates", "source_label": "gov.uk CCL rates, '1 April 2024 to 31 March 2025' - gas reaches parity with electricity"},
+
+    {"from": "2025-04-01", "commodity": "electricity", "gbp_per_kwh": 0.00775, "provenance": "primary", "source": "https://www.gov.uk/guidance/climate-change-levy-rates", "source_label": "gov.uk CCL rates, '1 April 2025 to 31 March 2026'"},
+    {"from": "2025-04-01", "commodity": "gas", "gbp_per_kwh": 0.00775, "provenance": "primary", "source": "https://www.gov.uk/guidance/climate-change-levy-rates", "source_label": "gov.uk CCL rates, '1 April 2025 to 31 March 2026'"},
+
+    {"from": "2026-04-01", "commodity": "electricity", "gbp_per_kwh": 0.00801, "provenance": "primary", "source": "https://www.gov.uk/guidance/climate-change-levy-rates", "source_label": "gov.uk CCL rates, '1 April 2026 to 31 March 2027'"},
+    {"from": "2026-04-01", "commodity": "gas", "gbp_per_kwh": 0.00801, "provenance": "primary", "source": "https://www.gov.uk/guidance/climate-change-levy-rates", "source_label": "gov.uk CCL rates, '1 April 2026 to 31 March 2027'"}
+  ]
+}

@@ -95,8 +95,47 @@ legislation or the publisher myself. The larger figure is stated for completenes
 recall; do not quote it without re-fetching 2016, 2017 and 2021. **2019 alone is £18,274.68**, 42% of the
 floor, because that is the year the model missed the step.
 
-Filed as `docs/staging/WORKER_FINDING_THE_ELECTRICITY_LEVY_TABLE_DIVERGES_FROM_THE_STATUTE_ITS_GAS_TWIN_MATCHES_2026-08-17.md`
+Filed as `docs/staging/done/WORKER_FINDING_THE_ELECTRICITY_LEVY_TABLE_DIVERGES_FROM_THE_STATUTE_ITS_GAS_TWIN_MATCHES_2026-08-17.md`
 (**BLOCKING** — queued, not fixed, per SELF_INTERRUPT discipline; grading argument in the finding).
+
+**REPAIRED 2026-08-17** by the RUNG-1c BUILD draw that took this blocking finding off the lane. The
+nine divergent years now carry the statutory figures; verified on the shipped functions, nothing
+monkeypatched: `get_ccl_per_mwh("2019-06-01", "I&C")` → `8.47` (was `6.11`) and
+`("2020-06-01", "I&C")` → `8.11` (was `7.17`), against FA2016 s.147 `£0.00847/kWh` and FA2020 s.92
+`£0.00811/kWh` — the same sections that set the gas rates directly beneath them, which were already
+exact. The step now lands in **April 2019 and upward**, where the statute puts it, instead of April
+2020 and the wrong sign.
+
+The instance fix alone would breach R10, so the CLASS is what was actually built. Because the defect
+was a MIS-TRANSCRIPTION and not a missing citation, the control cannot be another census: the pinned
+rates live in the regulation commons at `docs/domain_artefact_library/regulatory/ccl_main_rates.json`
+in **the statute's own unit (GBP/kWh)**, never the model's GBP/MWh, and
+`tests/simulation/test_policy_cost_values_vs_source.py` performs the conversion. That is what keeps
+the checked value independent of the value it checks — had the commons carried GBP/MWh, the control
+would have been the R15 tautology shape that let B5 score this table green in the first place.
+Provenance is load-bearing: only `primary` (fetched this pass) and `bracketed` (both neighbours
+primary AND equal) entries are asserted as equalities; the three `recalled` years are EXCLUDED from
+the assertions and counted against a ratchet, so an unverified year is visible rather than silently
+trusted.
+
+R15 — mutation-proven, all six fire, unmutated baseline 13 passed:
+
+1. the named defect replayed (2019 restored to `6.11`) → equality leg red
+2. a drifting **pin** (the commons moved instead of the table) → same leg red, so neither side is privileged
+3. a table year with no pin → coverage leg red
+4. a new year-keyed table classified nowhere → scope leg red
+5. an emptied register → loader raises, rather than the equality leg passing vacuously
+6. a missing register → loader raises; an unavailable check is a FAILED check
+
+Mutation 2 is the one that matters for tautology: the control is not "trust the commons", it is
+"the pair must agree", so a constant cannot be greened by quietly moving its own source.
+
+**NOT claimed:** that the other eleven tables' values are right. This pass source-checked three of
+thirteen; the remaining eleven are declared in the control's `_UNVERIFIED_TABLES` with a per-table
+reason and ratcheted downward-only, which makes the gap visible and shrinking rather than closed.
+The two largest lines by money (electricity network £869k, RO £1.72M) are still unverified. The
+published `total_gap_gbp` still carries the old figure — it moves on the next sim run, and that rise
+is the repair landing, not a regression (the CCL line was UNDERstated, so the stack grows).
 
 ## 2. This is what B5 was actually testing, and B5 passed it
 
