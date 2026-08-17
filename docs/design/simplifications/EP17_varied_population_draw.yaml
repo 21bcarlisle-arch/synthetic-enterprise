@@ -92,7 +92,8 @@ simplifications:
 
   md5(customer_id) when none is passed, so the static 18 get the SAME life-event stream and rationing
 
-  behaviour in every run forever. The atom''s gain -- "the company stops memorising its customers" -- is
+  behaviour in every run forever. The atom''s gain -- "the company stops memorising its customers" --
+  is
 
   capped at a tenth of the book; making it true needs a replacive draw, which is R13 curriculum with a
 
@@ -131,9 +132,69 @@ simplifications:
   depends_on EP16_anchored_generators is itself level 0 and epoch-4 parked. R12: no published number
 
   tuned. R13: no curriculum value authored, proposed or changed.'
+- '2026-08-17 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw), SECOND pass. No BUILD
+  code written and nothing in `file_scope` touched (it is empty). Full pass: `docs/design/frame/EP17_VARIED_POPULATION_DRAW_FRAME.md`
+  §7. Measured at HEAD 71071ccf7 with the map, this store file and the frame doc all clean in the shared
+  tree at draw time.
+
+
+  PASS 1''S SIX FINDINGS ALL SURVIVE UNREPAIRED, re-checked before adding anything (a closed DISCOVER
+  doc is a hypothesis): cursor still {"index": 0} with still exactly one commit in its history (f52a94133,
+  its own build commit); `enumerate_cells(grid, *, draw_population_enabled)` still caller-supplied (run_rotation.py:121);
+  all 14 production call sites still call `live_population()` bare; `SyntheticCustomer` still has no vulnerability
+  field. Live seam re-verified: enabled=True, book=20, drawn=2 (SYN-2021-001, SYN-2025-001).
+
+
+  THE FINDING -- WIRING THE ROTATION WOULD MOVE NO MEASURED GAP. Pass 1 called item 1 (wire the built
+  rotation to the seam) "small, design exists; no new mechanism" -- true about the wiring, WRONG about
+  the consequence. ALL 12 `tools/couple_*.py` have ZERO references to `live_population`; each builds its
+  population inline. `tools/couple_cohort.py` -- the coupled pair for W2_2_population_draw, the exact
+  atom EP17 varies -- runs `build_scenario(n_customers, base_seed=20260721)` over a bare `for i in range(n_customers)`,
+  `measure(n_customers=3000)`; `tools/couple_w2_7_c9.py` the same shape at `measure(n_customers=60000)`.
+  THE TWO FROZEN POPULATIONS ARE NOT EVEN THE SAME ONE: live_population.py:79 pins _DEFAULT_BASE_SEED=20260724,
+  couple_cohort pins 20260721, so the atom''s own coupled score is taken over a population drawn with
+  a seed the live seam has never used, at n=3000 (the value in the live ledger row) against a live book
+  of 20. CONSEQUENCE: threading a rotation cell''s population_seed into `live_population(base_seed=...)`
+  would change the 20-customer book the PUBLISHING tools read and leave every row in coupled_gap_ledger.json
+  BYTE-IDENTICAL -- R11 no-orphan-transitions, a release whose effect is not nothing visible but nothing
+  MEASURED. The COUPLED TRIAD says the gap is the score; EP17 is named as the tournament''s stated precondition;
+  the draw and the score currently do not touch.
+
+
+  WHY IT HID -- THE SEAM CONTROL''S SUBJECT IS THE PUBLISHING TOOLS. Seam-conformance is tested only on
+  the publishing side (test_generate_dashboard_data_population_seam / test_generate_hh_data_population_seam
+  / test_generate_customer_sample_population_seam / test_run_phase_settlement_population_seam). There
+  is NO seam-conformance test for any coupled tool. The control''s population is the tools that PUBLISH
+  a book; the tools that MEASURE against a book were never in its subject -- the wrong-population shape,
+  and why 12 tools drifted to hand-rolled populations with no red test. The needed shape exists exactly
+  ONCE and on the other side of a split: couple_fabric.py:376 threads `population_seed` into `draw_premise_population`,
+  but that is the PREMISE population (W1 fabric), not the customer book.
+
+
+  WHAT IT CHANGES: item 1 is two items, and 1b is the larger. 1a the seam wiring (still small). 1b A MEASUREMENT
+  CONSUMER -- until at least W2_2''s coupled pair draws its population through the seam or takes the cell''s
+  seed, the varied draw is unobservable in the only place this project calls a score, and THAT is where
+  EP17''s exit test belongs: not "the book differs run to run" (already W2_2''s passing property) but
+  "a coupled gap MOVES when the cell seed moves and does not when it does not". 1b interacts with the
+  finding-5 ceiling: at N=2 drawn of 20 a gap taken over the book has a support problem the n=3000 synthetic
+  population does not -- the honest reason the tools were written this way, to be designed for rather
+  than waved at. Items 2 (additive ceiling, director''s under R13) and 3 (vulnerability as world truth)
+  unchanged. QUEUED NOT FIXED (SELF_INTERRUPT_DISCIPLINE): the 12 tools'' population construction and
+  the missing seam-conformance control are outside this atom''s file_scope; that missing control is the
+  falsifier to build when 1b is drawn. R12: no published number tuned. R13: no curriculum value authored,
+  proposed or changed.'
 map_notes:
-  origin_note: 'C-S2 RNG substream discipline is load-bearing rather than advisory here: if the population draw shares a stream with anything else, adding one customer shifts every other subsystem''s outputs and cross-run comparison becomes meaningless -- which would silently destroy the tournament this atom exists to enable. The draw must be its own named seeded substream, and that must be tested, not assumed. Duplicate-risk check done at mint: W2_2_population_draw covers the single-run draw, not run-to-run variation.'
-  name: Population as a per-run DRAW with mix, skew and vulnerability hidden from the company -- the tournament's stated precondition and the third line on the wall (truth / belief / the draw). THE_VALUE_CYCLE_FRAMING C4; EPOCH2_EVIDENCE recorded the director's binding requirement directly. Named in the ruling §1 as an Epoch-4 floor item. W2_2_population_draw is the Epoch-2 mechanism at L3; this is its Epoch-4 variation across runs.
+  origin_note: 'C-S2 RNG substream discipline is load-bearing rather than advisory here: if the population
+    draw shares a stream with anything else, adding one customer shifts every other subsystem''s outputs
+    and cross-run comparison becomes meaningless -- which would silently destroy the tournament this atom
+    exists to enable. The draw must be its own named seeded substream, and that must be tested, not assumed.
+    Duplicate-risk check done at mint: W2_2_population_draw covers the single-run draw, not run-to-run
+    variation.'
+  name: Population as a per-run DRAW with mix, skew and vulnerability hidden from the company -- the tournament's
+    stated precondition and the third line on the wall (truth / belief / the draw). THE_VALUE_CYCLE_FRAMING
+    C4; EPOCH2_EVIDENCE recorded the director's binding requirement directly. Named in the ruling §1 as
+    an Epoch-4 floor item. W2_2_population_draw is the Epoch-2 mechanism at L3; this is its Epoch-4 variation
+    across runs.
 map_records:
   evidence:
   - docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md

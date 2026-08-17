@@ -174,3 +174,86 @@ independence fix (§4), both outside this atom's `file_scope` and owned by
 `stratified_run_rotation_mechanism_2026-07-25`.
 
 — FRAME, worker tick 2026-08-14, at HEAD `420b7449f`.
+
+---
+
+# PASS 2 — the draw has no consumer in the measurement layer
+
+**Pass:** DISCOVER/FRAME only, worker tick 2026-08-17, LANE 3 idle draw. **No BUILD code written**; `file_scope` is
+still `[]`. Measured at HEAD `71071ccf7`, with this doc, the atom's store file and `docs/design/maturity_map.yaml` all
+clean in the shared tree at draw time.
+
+## 7.0 Pass 1's six findings all survive, unrepaired
+
+Re-checked at this HEAD before adding anything, because a closed DISCOVER doc is a hypothesis, not a record:
+`run_rotation_cursor.json` is still `{"index": 0}` with still exactly one commit in its history (`f52a94133`, its own
+build commit); `enumerate_cells(grid, *, draw_population_enabled)` still takes the flag as a caller-supplied argument
+(`background/run_rotation.py:121`); all fourteen production call sites still call `live_population()` bare;
+`SyntheticCustomer` still carries no vulnerability field. Nothing below re-narrates them.
+
+## 7.1 The finding: wiring the rotation would move no measured gap
+
+Pass 1 called item 1 — wire the built rotation to the seam — *"small, design exists; no new mechanism."* That is true
+about the wiring and **wrong about the consequence**. The layer that would consume a varied population does not read
+the seam at all.
+
+**Observed, 12 of 12 coupled tools:** every `tools/couple_*.py` has **zero** references to `live_population`. Each
+constructs its own population inline instead:
+
+- `tools/couple_cohort.py` — the coupled pair for `W2_2_population_draw`, the exact atom EP17 varies —
+  `build_scenario(n_customers, base_seed: int = 20260721)`, a bare `for i in range(n_customers)` over synthesised
+  customer ids, `measure(n_customers: int = 3000)`.
+- `tools/couple_w2_7_c9.py` — `build_scenario(n_customers)`, same `for i in range(n_customers)` shape,
+  `measure(n_customers: int = 60000)`.
+
+**The two frozen populations are not even the same frozen population.** `simulation/live_population.py:79` pins
+`_DEFAULT_BASE_SEED = 20260724`; `couple_cohort.py` pins `base_seed = 20260721` in both `build_scenario` and `measure`,
+and exposes it as `--seed` with the same default. So the atom's own coupled score is taken over a population drawn with
+a seed the live seam has never used, at `n_customers: 3000` (the value recorded in the live ledger row) against a live
+book of **20**.
+
+**Consequence, stated as the mechanism it is:** wiring `run_rotation`'s cell `population_seed` into
+`live_population(base_seed=…)` would change the 20-customer book that the publishing tools read, and would leave every
+coupled gap in `docs/observability/coupled_gap_ledger.json` **byte-identical**, because none of those numbers is
+computed over the book. Under R11's no-orphan-transitions rule that is a release whose effect is nothing — not nothing
+*visible*, nothing *measured*. The COUPLED TRIAD's rule is that the gap is the score; EP17's stated purpose is to be
+"the tournament's stated precondition and the third line on the wall." The draw and the score currently do not touch.
+
+## 7.2 Why it hid: the seam-conformance control's subject is the publishing tools
+
+The "route the book through the one seam" discipline was applied, and tested, on the **publishing** side only —
+`tests/tools/test_generate_dashboard_data_population_seam.py`, `test_generate_hh_data_population_seam.py`,
+`test_generate_customer_sample_population_seam.py`, `tests/simulation/test_run_phase_settlement_population_seam.py`.
+There is **no seam-conformance test for any coupled tool**, and `grep live_population tests/tools/` returns hits from
+the publishing-tool tests only. The control's population is the set of tools that *publish* a book; the set that
+*measures against* a book was never in its subject. That is the wrong-population shape, and it is why twelve tools
+drifted to hand-rolled populations without a red test.
+
+**The needed shape exists exactly once, on the other side of a split:** `tools/couple_fabric.py:376` takes
+`population_seed` and threads it into `ppop.draw_premise_population(n, base_seed=population_seed, …)` — but that is the
+**premise** population (W1 fabric), not the customer book. So the parameter EP17 needs is already demonstrated as
+workable in one coupled tool, against a different population.
+
+## 7.3 What this changes about EP17's three items
+
+Item 1 is **not** "small wiring." It is two things, and the second is the larger one:
+
+1a. **The seam wiring** — a production caller for `run_rotation`, cell seed into `live_population(base_seed=…)`, plus
+    pass 1 §4's independence fix. Still small, design still exists.
+1b. **A measurement consumer** — until at least the coupled pair for `W2_2_population_draw` draws its population
+    through the seam (or takes the rotation cell's seed), the varied draw is unobservable in the only place the project
+    calls a score. This is where EP17's exit test has to live: not "the book differs run to run" (that is
+    `W2_2`'s already-passing property) but "a coupled gap **moves** when the cell seed moves, and does not when it does
+    not." Note the sequencing consequence: 1b interacts with the §5 ceiling — at N=2 drawn of 20, a gap taken over the
+    book would have a support problem that the current n=3000 synthetic population does not, which is the honest reason
+    the tools were written this way and must be designed for, not waved at.
+
+Items 2 (the additive ceiling, director's under R13) and 3 (vulnerability as world truth) are unchanged.
+
+`level_current` stays **0**, `loop_stage` stays **idle** — the deliverable is a mechanism, not this document. R12: no
+published number tuned, nothing written to any published artefact. R13: no curriculum value authored, proposed or
+changed. **Queued, not fixed on sight** (SELF-INTERRUPT DISCIPLINE): the twelve tools' population construction and the
+missing seam-conformance control are outside this atom's `file_scope` and belong to the coupled-pair tools' own owners;
+§7.2's missing control is the falsifier to build when 1b is drawn.
+
+— FRAME pass 2, worker tick 2026-08-17, at HEAD `71071ccf7`.
