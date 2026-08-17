@@ -257,3 +257,153 @@ missing seam-conformance control are outside this atom's `file_scope` and belong
 §7.2's missing control is the falsifier to build when 1b is drawn.
 
 — FRAME pass 2, worker tick 2026-08-17, at HEAD `71071ccf7`.
+
+---
+
+# PASS 3 — the exit test pass 2 proposed cannot fire on the pair it was proposed for
+
+*Worker tick 2026-08-17, DISCOVER/FRAME only, at HEAD `9996e4d16` with the map, the store file and this
+document all clean in the shared tree at draw time. `level_current` stays **0**, `loop_stage` stays `idle`,
+nothing in `file_scope` touched (it is empty). No BUILD code written.*
+
+Pass 2 closed by naming where EP17's exit test belongs: *"not 'the book differs run to run' (that is `W2_2`'s
+already-passing property) but 'a coupled gap **moves** when the cell seed moves, and does not when it does
+not.'"* That is a claim about a measurement nobody had taken. This pass took it — the whole pass is one
+question, run against `tools/couple_cohort.py`, the coupled pair for `W2_2_population_draw`, the exact atom
+EP17 varies.
+
+**It does not fire.** Not marginally: on the rotation grid's own declared seed axis it fires **zero** times
+out of six pairs, while the population underneath differs on all six.
+
+## 8.1 The measurement — the grid's own seed axis moves nothing the pair publishes
+
+`docs/design/run_rotation_grid.json` declares `"population_seeds": [0, 1, 2, 3]`. That list is the entire
+seed axis EP17 would rotate. Running the pair at each of them (n_customers=3000, the value in the live
+ledger row):
+
+```
+seed=0   headline=1.0  worst3=1.0  worst_cell=accommodation::tenure=own_outright
+seed=1   headline=1.0  worst3=1.0  worst_cell=accommodation::tenure=own_outright
+seed=2   headline=1.0  worst3=1.0  worst_cell=accommodation::tenure=own_outright
+seed=3   headline=1.0  worst3=1.0  worst_cell=accommodation::tenure=own_outright
+
+pairs whose HEADLINE differs:          0/6
+pairs whose worst3_mean_gap differs:   0/6      (the redundancy guard does not rescue it)
+pairs whose 20-CELL VECTOR differs:    6/6      (8 of the 20 cells move on every pair)
+```
+
+Not "close to equal" — `1.0` exactly, on all four, on both published statistics. The draw changed; the score
+did not. Under R11's no-orphan-transitions rule, an EP17 wired exactly as pass 2's item 1a describes and
+tested exactly as pass 2's item 1b proposes would ship a release whose measured effect is **nothing**, and
+would ship it with a green exit test's opposite: a test that correctly reports no movement.
+
+**Base rate, seeds 0–99 at n=3000** (so this is not four unlucky seeds):
+
+```
+headline EXACTLY 1.0 (pinned at the no-skill floor):   73/100
+headline range:                                        1.000000 .. 1.552941   (28 distinct values)
+underlying price_sensitivity worst cell:               0.7021   .. 1.5529     (95 distinct values)
+underlying channel_pref     worst cell:                0.1374   .. 0.3736
+```
+
+The population signal is large — the underlying quantity takes 95 distinct values across 100 seeds and spans
+0.85. The headline transmits 65% of that span and, for 73% of seeds, **none of it**.
+
+## 8.2 Why — the headline is a one-sided detector for "worse than no-skill"
+
+The cause is already filed and still OPEN:
+`docs/staging/WORKER_FINDING_A_WORST_CELL_HEADLINE_FLOORED_AT_THE_NO_SKILL_BASELINE_2026-08-10.md`. Twelve of
+the twenty cells (accommodation/cars/nssec × 4 tenures) read exactly `1.0` **by construction** — those axes
+have no company-side discovery mechanism, so the belief *is* the prior, so `gap = raw/g0 = 1.0` identically.
+Re-measured here across all 100 seeds: those twelve never leave 1.0, on any seed.
+
+What this pass adds is the other four. **`channel_pref` never exceeded 1.0 in 100 seeds** (max 0.3736). So the
+published `worst_cell_score` is not max-of-20 and not even max-of-8 — it is arithmetically
+
+```
+headline = max(1.0, max over price_sensitivity's 4 cells)
+```
+
+a **one-sided detector**: it can only report that the drawn population made the company *worse than no-skill*,
+and is structurally blind to a draw that made it better. EP17 exists so the company "stops memorising its
+customers"; the pair's headline is, by construction, incapable of registering that as anything but the floor
+unless the company also degrades past zero skill.
+
+**This re-ranks the 2026-08-10 finding.** That doc requested rank `backlog` and reasoned "the row it affects
+landed clean this tick and is honestly noted" — true of the row, and now refuted as a rank: the floor is the
+direct blocker on EP17's stated exit test, an Epoch-4 floor item named in the ruling §1. **QUEUED, not
+re-ranked on sight** (SELF-INTERRUPT DISCIPLINE) — that doc is outside this atom's `file_scope` and the
+re-rank is its owner's, with this section as the evidence.
+
+## 8.3 The other end: at the live book the pair does not degrade, it RAISES
+
+Pass 2 flagged small-n as "a support problem … the honest reason the tools were written this way, [to] be
+designed for, not waved at." Measured, it is not a support *problem*, it is a hard stop:
+
+```
+n=2      ValueError: no cell cleared the n_min=30 support bar   <- the drawn cohort alone
+n=20     ValueError: no cell cleared the n_min=30 support bar   <- THE LIVE BOOK (18 static + 2 drawn)
+n=30     ValueError            n=60   ValueError
+n=120    eligible=10/20        n=300  eligible=20/20            <- first scoreable n is in (60, 120]
+```
+
+`N_MIN = 30` is a per-(axis, tenure-cell) bar, and a 20-customer book spreads across four tenure cells, so the
+largest cell holds 10. Pass 2's item 1b — "the coupled pair draws its population through the seam" — as
+written therefore replaces a published number with an exception at the only book size EP17 is about. The two
+ends bracket the whole range and neither is usable: **below ~n=100 there is no score, above it the score is
+floored on 73% of seeds.**
+
+## 8.4 Third-order, and it is about the published row, not just EP17
+
+At the ledger's own seed (20260721) the headline is not stable in n either:
+
+```
+n=300  1.500000   n=600  1.137931   n=1200 1.000000
+n=3000 1.034483   n=6000 1.000000   n=12000 1.000000
+```
+
+`1.0344827586206897` is the value in `coupled_gap_ledger.json`. It is above the floor **only at the n the tool
+happens to default to**; the same population process at a strictly better sample (n=6000, n=12000) reads
+exactly 1.0. So the pair's one published claim — that the company is worse than no-skill in one cell — does
+not survive its own sample being enlarged. QUEUED against the pair's owner, not fixed here; it is named
+because EP17's score would inherit it.
+
+## 8.5 What pass 3 changes about EP17
+
+Item 1b is not "add a measurement consumer." It is **"EP17 has no fit-for-purpose score today, and finding one
+is the atom's first build step, ahead of any wiring."** Concretely, and in this order:
+
+1. **The exit test must be over the cell vector, not the headline.** The vector moved 6/6 where the headline
+   moved 0/6; it is the statistic that already has the sensitivity the exit test needs. A defensible EP17
+   falsifier: *the 8 discoverable cells' gap vector moves when the rotation cell's `population_seed` moves,
+   and is byte-identical when it does not* — with the mutation being "thread a constant instead of the cell
+   seed" → red. Note this is buildable **only at n ≥ ~120**, which is not the live book, so it tests the
+   generator's variation, not the book's — an honest partial, and it must be labelled as one rather than
+   presented as EP17's gain being measured.
+2. **The floor and the support bar are upstream of the wiring.** Item 1a (pass 1 §4's independence fix, cell
+   seed into `live_population(base_seed=…)`) stays small and stays correct, but sequencing it first buys a
+   release with no observable. The two blockers named above are its precondition.
+3. Items 2 (the additive ceiling, director's under R13) and 3 (vulnerability as world truth) are unchanged
+   across all three passes.
+
+## 8.6 Pass 1 and pass 2 re-verified at this HEAD
+
+A closed DISCOVER doc is a hypothesis; every prior finding was re-checked before this section was added.
+All survive, unrepaired. Two counts are **corrected upward**, in EP17's disfavour:
+
+- Cursor `docs/observability/run_rotation_cursor.json` still `{"index": 0}`, still **exactly one commit** in
+  its whole history (`f52a94133`, its own build commit). Never advanced.
+- `enumerate_cells(grid, *, draw_population_enabled: bool)` still caller-supplied (`run_rotation.py:121`) —
+  pass 1 §4's R15 independence defect stands.
+- **Correction to pass 1 finding 1:** it recorded "all 14 production call sites call it bare." At this HEAD it
+  is **27 bare call sites across 15 production modules** — pass 1's list omitted `saas/customers.py`,
+  `saas/property_model.py` and `saas/reporting/annual_report.py`. The stronger statement is the exact one:
+  `grep` for `live_population(` with a `base_seed` argument returns **one line in the whole repository, and it
+  is the `def`**. The parameter EP17 must thread has no caller anywhere — not in production, not in a test.
+- All 12 `tools/couple_*.py` still have zero `live_population` references.
+- `SyntheticCustomer` still has no vulnerability field (`grep -c vulnerab simulation/population_draw.py` → 0).
+
+R12: no published number tuned; every figure above is a read, and nothing was written to any published
+artefact. R13: no curriculum value authored, proposed or changed.
+
+— FRAME pass 3, worker tick 2026-08-17, at HEAD `9996e4d16`.

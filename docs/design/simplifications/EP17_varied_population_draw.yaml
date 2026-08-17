@@ -1,202 +1,114 @@
 atom_id: EP17_varied_population_draw
-simplifications:
-- '2026-08-14 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw). No BUILD code
-
-  written and nothing in `file_scope` touched (it is empty) -- this atom is `loop_stage: idle` and
-
-  EPOCH_GATING_AND_ATOM_AUTHORSHIP rule 1 makes DISCOVER/FRAME available while BUILD is not. Full
-
-  pass: `docs/design/frame/EP17_VARIED_POPULATION_DRAW_FRAME.md`. Measured at HEAD 420b7449f, with
-
-  the map, this store file and docs/design/frame/ all clean in the shared tree at draw time.
-
-
-  THE DUPLICATE-RISK CHECK IN THE ATOM''S OWN origin_note SURVIVES, BUT NOT IN THE SHAPE THE NAME
-
-  IMPLIES. W2_2_population_draw''s generator genuinely varies (seeds 0-19 draw 2-10 SYN customers with
-
-  different segment/band/payment mix; seed 0 = {resi 3, I&C 1, SME 1}, seed 3 = {resi 4, I&C 1}). So
-
-  run-to-run variation is not an unbuilt mechanism -- it is designed, half-built under another id, and
-
-  disconnected at one argument.
-
-
-  FINDING 1 -- THE SEAM PINS THE CAST. `live_population(base_seed=None)` falls back to
-
-  `_DEFAULT_BASE_SEED = 20260724` (live_population.py:82), and ALL 14 production call sites call it
-
-  bare -- run_phase2a/2b/4c, run_phase0c/1c/1c_full_window/3a, generate_dashboard_data,
-
-  generate_customer_sample, generate_hh_data, band_null_sweep. None passes `base_seed`. Verified live:
-
-  enabled=True, book=20, drawn pair SYN-2021-001 + SYN-2025-001, matching the activation artefact''s
-
-  recorded `realised_draw`. Since activation (2026-08-13) every run has faced a byte-identical cast.
-
-
-  FINDING 2 -- THE CHOOSER IS BUILT AND HAS NEVER RUN. `background/run_rotation.py` + grid
-
-  (`population_seeds: [0,1,2,3]`) + 13 tests incl. 2 R15 mutations exist. ZERO non-test callers (grep:
-
-  one comment in sim/scenario/spine.py:278). Cursor `docs/observability/run_rotation_cursor.json` is
-
-  `{"index": 0}` with EXACTLY ONE commit in its history -- f52a94133, its own build commit,
-
-  2026-07-29. Never advanced. EP17''s wiring half is smaller than level_target 3 implies.
-
-
-  FINDING 3 -- THE DORMANCY REASON EXPIRED 8 DAYS BEFORE THIS PASS. stratified_run_rotation_FRAME §4
-
-  and run_rotation''s docstring both say axis B is dormant "until the director-reserved release rung
-
-  flips" (SE_DRAW_POPULATION), the FRAME adding "no separate door". That rung flipped 2026-08-13
-
-  (curriculum artefact activated=true; draw_population_enabled() is True at HEAD). The axis is dormant
-
-  because nothing CALLS it, not because the flag is off -- a triager reads director-blocked where the
-
-  truth is caller-blocked. QUEUED, not fixed on sight: both paths are outside this atom''s file_scope.
-
-
-  FINDING 4 -- R15, THE ROTATION TAKES ACTIVATION AS AN ARGUMENT, NOT FROM THE RECORD.
-
-  `enumerate_cells(grid, *, draw_population_enabled: bool)` is caller-supplied; the single source of
-
-  record is the committed curriculum artefact read by `live_population.draw_population_enabled()`. One
-
-  truth, two sources. A wiring that passes False collapses axis B to a no-op cell and NO control
-
-  catches it: coverage is defined over the WORLD axis
-
-  (`test_one_period_visits_every_ratified_world_dormant_seed_axis` asserts the guarantee in the
-
-  dormant configuration BY NAME; `test_seed_axis_active_expands_grid` only exercises a hand-passed
-
-  True). The sweep would report guaranteed four-world coverage while sampling one population forever.
-
-  BUILD recommendation: default the parameter to `draw_population_enabled()`, keep it as a test-only
-
-  override, mutation = "pass False while the curriculum says activated" -> red.
-
-
-  FINDING 5 -- THE CEILING, AND IT IS THE REAL GATE ON THE STATED GAIN. Book = 18 static + N drawn;
-
-  W2_2''s founding decision is ADDITIVE-NOT-REPLACIVE (2026-07-13, protecting ~370 downstream
-
-  references). At the live seed N=2 -> 10.0% of the cast can differ run to run; over seeds 0-19, N=2-10
-
-  -> 7.1%-35.7%. So >=64% of the book is byte-identical every run BY CONSTRUCTION, 90% at today''s seed.
-
-  It reaches past composition: life_events.py and self_rationing.py both derive their base seed from
-
-  md5(customer_id) when none is passed, so the static 18 get the SAME life-event stream and rationing
-
-  behaviour in every run forever. The atom''s gain -- "the company stops memorising its customers" --
-  is
-
-  capped at a tenth of the book; making it true needs a replacive draw, which is R13 curriculum with a
-
-  370-reference blast radius. NAMED as the director''s decision, not taken.
-
-
-  FINDING 6 -- OF THE THREE THINGS THE NAME PROMISES TO HIDE, ONE HAS NO TRUTH LINE. Mix: LIVE.
-
-  Skew: LIVE (hidden `SyntheticCustomer.cohort` populated, assign_cohorts=True in the seam, omitted by
-
-  `to_customer_dict()`, wall re-proven by test_wall_drawn_book_never_exposes_ground_truth_cohort).
-
-  Vulnerability: NO drawn ground truth -- SyntheticCustomer has no vulnerability field; the world
-
-  models vulnerability-ADJACENT behaviour (self_rationing, activation_energy,
-
-  willingness_classification, switching_propensity) but the 12-flag VulnerabilityFlag taxonomy is
-
-  entirely company-side (company/crm/vulnerability_register.py, fed by service_log +
-
-  life_event_detector). The company''s vulnerability picture is a belief with nothing to be wrong
-
-  about. And the truth line that DOES exist covers the 2 SYN customers and none of the 18 static, so
-
-  the gap this atom enables is measurable over 10% of the book.
-
-
-  WHAT EP17 IS, RESTATED: (1) wire the built rotation to the seam + fix finding 4''s independence --
-
-  small, design exists; (2) put the additive ceiling to the director -- this is what actually gates the
-
-  gain; (3) draw vulnerability as world truth -- the only part with nothing behind it and the only
-
-  part that is EP17''s own build. level_current stays 0 (the deliverable is a mechanism, not this doc);
-
-  depends_on EP16_anchored_generators is itself level 0 and epoch-4 parked. R12: no published number
-
-  tuned. R13: no curriculum value authored, proposed or changed.'
-- '2026-08-17 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw), SECOND pass. No BUILD
-  code written and nothing in `file_scope` touched (it is empty). Full pass: `docs/design/frame/EP17_VARIED_POPULATION_DRAW_FRAME.md`
-  §7. Measured at HEAD 71071ccf7 with the map, this store file and the frame doc all clean in the shared
-  tree at draw time.
-
-
-  PASS 1''S SIX FINDINGS ALL SURVIVE UNREPAIRED, re-checked before adding anything (a closed DISCOVER
-  doc is a hypothesis): cursor still {"index": 0} with still exactly one commit in its history (f52a94133,
-  its own build commit); `enumerate_cells(grid, *, draw_population_enabled)` still caller-supplied (run_rotation.py:121);
-  all 14 production call sites still call `live_population()` bare; `SyntheticCustomer` still has no vulnerability
-  field. Live seam re-verified: enabled=True, book=20, drawn=2 (SYN-2021-001, SYN-2025-001).
-
-
-  THE FINDING -- WIRING THE ROTATION WOULD MOVE NO MEASURED GAP. Pass 1 called item 1 (wire the built
-  rotation to the seam) "small, design exists; no new mechanism" -- true about the wiring, WRONG about
-  the consequence. ALL 12 `tools/couple_*.py` have ZERO references to `live_population`; each builds its
-  population inline. `tools/couple_cohort.py` -- the coupled pair for W2_2_population_draw, the exact
-  atom EP17 varies -- runs `build_scenario(n_customers, base_seed=20260721)` over a bare `for i in range(n_customers)`,
-  `measure(n_customers=3000)`; `tools/couple_w2_7_c9.py` the same shape at `measure(n_customers=60000)`.
-  THE TWO FROZEN POPULATIONS ARE NOT EVEN THE SAME ONE: live_population.py:79 pins _DEFAULT_BASE_SEED=20260724,
-  couple_cohort pins 20260721, so the atom''s own coupled score is taken over a population drawn with
-  a seed the live seam has never used, at n=3000 (the value in the live ledger row) against a live book
-  of 20. CONSEQUENCE: threading a rotation cell''s population_seed into `live_population(base_seed=...)`
-  would change the 20-customer book the PUBLISHING tools read and leave every row in coupled_gap_ledger.json
-  BYTE-IDENTICAL -- R11 no-orphan-transitions, a release whose effect is not nothing visible but nothing
-  MEASURED. The COUPLED TRIAD says the gap is the score; EP17 is named as the tournament''s stated precondition;
-  the draw and the score currently do not touch.
-
-
-  WHY IT HID -- THE SEAM CONTROL''S SUBJECT IS THE PUBLISHING TOOLS. Seam-conformance is tested only on
-  the publishing side (test_generate_dashboard_data_population_seam / test_generate_hh_data_population_seam
-  / test_generate_customer_sample_population_seam / test_run_phase_settlement_population_seam). There
-  is NO seam-conformance test for any coupled tool. The control''s population is the tools that PUBLISH
-  a book; the tools that MEASURE against a book were never in its subject -- the wrong-population shape,
-  and why 12 tools drifted to hand-rolled populations with no red test. The needed shape exists exactly
-  ONCE and on the other side of a split: couple_fabric.py:376 threads `population_seed` into `draw_premise_population`,
-  but that is the PREMISE population (W1 fabric), not the customer book.
-
-
-  WHAT IT CHANGES: item 1 is two items, and 1b is the larger. 1a the seam wiring (still small). 1b A MEASUREMENT
-  CONSUMER -- until at least W2_2''s coupled pair draws its population through the seam or takes the cell''s
-  seed, the varied draw is unobservable in the only place this project calls a score, and THAT is where
-  EP17''s exit test belongs: not "the book differs run to run" (already W2_2''s passing property) but
-  "a coupled gap MOVES when the cell seed moves and does not when it does not". 1b interacts with the
-  finding-5 ceiling: at N=2 drawn of 20 a gap taken over the book has a support problem the n=3000 synthetic
-  population does not -- the honest reason the tools were written this way, to be designed for rather
-  than waved at. Items 2 (additive ceiling, director''s under R13) and 3 (vulnerability as world truth)
-  unchanged. QUEUED NOT FIXED (SELF_INTERRUPT_DISCIPLINE): the 12 tools'' population construction and
-  the missing seam-conformance control are outside this atom''s file_scope; that missing control is the
-  falsifier to build when 1b is drawn. R12: no published number tuned. R13: no curriculum value authored,
-  proposed or changed.'
 map_notes:
-  origin_note: 'C-S2 RNG substream discipline is load-bearing rather than advisory here: if the population
-    draw shares a stream with anything else, adding one customer shifts every other subsystem''s outputs
-    and cross-run comparison becomes meaningless -- which would silently destroy the tournament this atom
-    exists to enable. The draw must be its own named seeded substream, and that must be tested, not assumed.
-    Duplicate-risk check done at mint: W2_2_population_draw covers the single-run draw, not run-to-run
-    variation.'
   name: Population as a per-run DRAW with mix, skew and vulnerability hidden from the company -- the tournament's
-    stated precondition and the third line on the wall (truth / belief / the draw). THE_VALUE_CYCLE_FRAMING
-    C4; EPOCH2_EVIDENCE recorded the director's binding requirement directly. Named in the ruling §1 as
-    an Epoch-4 floor item. W2_2_population_draw is the Epoch-2 mechanism at L3; this is its Epoch-4 variation
-    across runs.
+    stated precondition and the third line on the wall (truth / belief / the draw). THE_VALUE_CYCLE_FRAMING C4;
+    EPOCH2_EVIDENCE recorded the director's binding requirement directly. Named in the ruling §1 as an Epoch-4 floor
+    item. W2_2_population_draw is the Epoch-2 mechanism at L3; this is its Epoch-4 variation across runs.
+  origin_note: 'C-S2 RNG substream discipline is load-bearing rather than advisory here: if the population draw
+    shares a stream with anything else, adding one customer shifts every other subsystem''s outputs and cross-run
+    comparison becomes meaningless -- which would silently destroy the tournament this atom exists to enable. The
+    draw must be its own named seeded substream, and that must be tested, not assumed. Duplicate-risk check done
+    at mint: W2_2_population_draw covers the single-run draw, not run-to-run variation.'
 map_records:
   evidence:
   - docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md
   - docs/design/THE_VALUE_CYCLE_FRAMING.md (C4)
   - docs/design/EPOCH2_EVIDENCE.md (Q6, fixed population)
+simplifications:
+- |-
+  2026-08-14 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw). No BUILD code
+  written and nothing in `file_scope` touched (it is empty) -- this atom is `loop_stage: idle` and
+  EPOCH_GATING_AND_ATOM_AUTHORSHIP rule 1 makes DISCOVER/FRAME available while BUILD is not. Full
+  pass: `docs/design/frame/EP17_VARIED_POPULATION_DRAW_FRAME.md`. Measured at HEAD 420b7449f, with
+  the map, this store file and docs/design/frame/ all clean in the shared tree at draw time.
+
+  THE DUPLICATE-RISK CHECK IN THE ATOM'S OWN origin_note SURVIVES, BUT NOT IN THE SHAPE THE NAME
+  IMPLIES. W2_2_population_draw's generator genuinely varies (seeds 0-19 draw 2-10 SYN customers with
+  different segment/band/payment mix; seed 0 = {resi 3, I&C 1, SME 1}, seed 3 = {resi 4, I&C 1}). So
+  run-to-run variation is not an unbuilt mechanism -- it is designed, half-built under another id, and
+  disconnected at one argument.
+
+  FINDING 1 -- THE SEAM PINS THE CAST. `live_population(base_seed=None)` falls back to
+  `_DEFAULT_BASE_SEED = 20260724` (live_population.py:82), and ALL 14 production call sites call it
+  bare -- run_phase2a/2b/4c, run_phase0c/1c/1c_full_window/3a, generate_dashboard_data,
+  generate_customer_sample, generate_hh_data, band_null_sweep. None passes `base_seed`. Verified live:
+  enabled=True, book=20, drawn pair SYN-2021-001 + SYN-2025-001, matching the activation artefact's
+  recorded `realised_draw`. Since activation (2026-08-13) every run has faced a byte-identical cast.
+
+  FINDING 2 -- THE CHOOSER IS BUILT AND HAS NEVER RUN. `background/run_rotation.py` + grid
+  (`population_seeds: [0,1,2,3]`) + 13 tests incl. 2 R15 mutations exist. ZERO non-test callers (grep:
+  one comment in sim/scenario/spine.py:278). Cursor `docs/observability/run_rotation_cursor.json` is
+  `{"index": 0}` with EXACTLY ONE commit in its history -- f52a94133, its own build commit,
+  2026-07-29. Never advanced. EP17's wiring half is smaller than level_target 3 implies.
+
+  FINDING 3 -- THE DORMANCY REASON EXPIRED 8 DAYS BEFORE THIS PASS. stratified_run_rotation_FRAME §4
+  and run_rotation's docstring both say axis B is dormant "until the director-reserved release rung
+  flips" (SE_DRAW_POPULATION), the FRAME adding "no separate door". That rung flipped 2026-08-13
+  (curriculum artefact activated=true; draw_population_enabled() is True at HEAD). The axis is dormant
+  because nothing CALLS it, not because the flag is off -- a triager reads director-blocked where the
+  truth is caller-blocked. QUEUED, not fixed on sight: both paths are outside this atom's file_scope.
+
+  FINDING 4 -- R15, THE ROTATION TAKES ACTIVATION AS AN ARGUMENT, NOT FROM THE RECORD.
+  `enumerate_cells(grid, *, draw_population_enabled: bool)` is caller-supplied; the single source of
+  record is the committed curriculum artefact read by `live_population.draw_population_enabled()`. One
+  truth, two sources. A wiring that passes False collapses axis B to a no-op cell and NO control
+  catches it: coverage is defined over the WORLD axis
+  (`test_one_period_visits_every_ratified_world_dormant_seed_axis` asserts the guarantee in the
+  dormant configuration BY NAME; `test_seed_axis_active_expands_grid` only exercises a hand-passed
+  True). The sweep would report guaranteed four-world coverage while sampling one population forever.
+  BUILD recommendation: default the parameter to `draw_population_enabled()`, keep it as a test-only
+  override, mutation = "pass False while the curriculum says activated" -> red.
+
+  FINDING 5 -- THE CEILING, AND IT IS THE REAL GATE ON THE STATED GAIN. Book = 18 static + N drawn;
+  W2_2's founding decision is ADDITIVE-NOT-REPLACIVE (2026-07-13, protecting ~370 downstream
+  references). At the live seed N=2 -> 10.0% of the cast can differ run to run; over seeds 0-19, N=2-10
+  -> 7.1%-35.7%. So >=64% of the book is byte-identical every run BY CONSTRUCTION, 90% at today's seed.
+  It reaches past composition: life_events.py and self_rationing.py both derive their base seed from
+  md5(customer_id) when none is passed, so the static 18 get the SAME life-event stream and rationing
+  behaviour in every run forever. The atom's gain -- "the company stops memorising its customers" -- is
+  capped at a tenth of the book; making it true needs a replacive draw, which is R13 curriculum with a
+  370-reference blast radius. NAMED as the director's decision, not taken.
+
+  FINDING 6 -- OF THE THREE THINGS THE NAME PROMISES TO HIDE, ONE HAS NO TRUTH LINE. Mix: LIVE.
+  Skew: LIVE (hidden `SyntheticCustomer.cohort` populated, assign_cohorts=True in the seam, omitted by
+  `to_customer_dict()`, wall re-proven by test_wall_drawn_book_never_exposes_ground_truth_cohort).
+  Vulnerability: NO drawn ground truth -- SyntheticCustomer has no vulnerability field; the world
+  models vulnerability-ADJACENT behaviour (self_rationing, activation_energy,
+  willingness_classification, switching_propensity) but the 12-flag VulnerabilityFlag taxonomy is
+  entirely company-side (company/crm/vulnerability_register.py, fed by service_log +
+  life_event_detector). The company's vulnerability picture is a belief with nothing to be wrong
+  about. And the truth line that DOES exist covers the 2 SYN customers and none of the 18 static, so
+  the gap this atom enables is measurable over 10% of the book.
+
+  WHAT EP17 IS, RESTATED: (1) wire the built rotation to the seam + fix finding 4's independence --
+  small, design exists; (2) put the additive ceiling to the director -- this is what actually gates the
+  gain; (3) draw vulnerability as world truth -- the only part with nothing behind it and the only
+  part that is EP17's own build. level_current stays 0 (the deliverable is a mechanism, not this doc);
+  depends_on EP16_anchored_generators is itself level 0 and epoch-4 parked. R12: no published number
+  tuned. R13: no curriculum value authored, proposed or changed.
+- |-
+  2026-08-17 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw), SECOND pass. No BUILD code written and nothing in `file_scope` touched (it is empty). Full pass: `docs/design/frame/EP17_VARIED_POPULATION_DRAW_FRAME.md` §7. Measured at HEAD 71071ccf7 with the map, this store file and the frame doc all clean in the shared tree at draw time.
+
+  PASS 1'S SIX FINDINGS ALL SURVIVE UNREPAIRED, re-checked before adding anything (a closed DISCOVER doc is a hypothesis): cursor still {"index": 0} with still exactly one commit in its history (f52a94133, its own build commit); `enumerate_cells(grid, *, draw_population_enabled)` still caller-supplied (run_rotation.py:121); all 14 production call sites still call `live_population()` bare; `SyntheticCustomer` still has no vulnerability field. Live seam re-verified: enabled=True, book=20, drawn=2 (SYN-2021-001, SYN-2025-001).
+
+  THE FINDING -- WIRING THE ROTATION WOULD MOVE NO MEASURED GAP. Pass 1 called item 1 (wire the built rotation to the seam) "small, design exists; no new mechanism" -- true about the wiring, WRONG about the consequence. ALL 12 `tools/couple_*.py` have ZERO references to `live_population`; each builds its population inline. `tools/couple_cohort.py` -- the coupled pair for W2_2_population_draw, the exact atom EP17 varies -- runs `build_scenario(n_customers, base_seed=20260721)` over a bare `for i in range(n_customers)`, `measure(n_customers=3000)`; `tools/couple_w2_7_c9.py` the same shape at `measure(n_customers=60000)`. THE TWO FROZEN POPULATIONS ARE NOT EVEN THE SAME ONE: live_population.py:79 pins _DEFAULT_BASE_SEED=20260724, couple_cohort pins 20260721, so the atom's own coupled score is taken over a population drawn with a seed the live seam has never used, at n=3000 (the value in the live ledger row) against a live book of 20. CONSEQUENCE: threading a rotation cell's population_seed into `live_population(base_seed=...)` would change the 20-customer book the PUBLISHING tools read and leave every row in coupled_gap_ledger.json BYTE-IDENTICAL -- R11 no-orphan-transitions, a release whose effect is not nothing visible but nothing MEASURED. The COUPLED TRIAD says the gap is the score; EP17 is named as the tournament's stated precondition; the draw and the score currently do not touch.
+
+  WHY IT HID -- THE SEAM CONTROL'S SUBJECT IS THE PUBLISHING TOOLS. Seam-conformance is tested only on the publishing side (test_generate_dashboard_data_population_seam / test_generate_hh_data_population_seam / test_generate_customer_sample_population_seam / test_run_phase_settlement_population_seam). There is NO seam-conformance test for any coupled tool. The control's population is the tools that PUBLISH a book; the tools that MEASURE against a book were never in its subject -- the wrong-population shape, and why 12 tools drifted to hand-rolled populations with no red test. The needed shape exists exactly ONCE and on the other side of a split: couple_fabric.py:376 threads `population_seed` into `draw_premise_population`, but that is the PREMISE population (W1 fabric), not the customer book.
+
+  WHAT IT CHANGES: item 1 is two items, and 1b is the larger. 1a the seam wiring (still small). 1b A MEASUREMENT CONSUMER -- until at least W2_2's coupled pair draws its population through the seam or takes the cell's seed, the varied draw is unobservable in the only place this project calls a score, and THAT is where EP17's exit test belongs: not "the book differs run to run" (already W2_2's passing property) but "a coupled gap MOVES when the cell seed moves and does not when it does not". 1b interacts with the finding-5 ceiling: at N=2 drawn of 20 a gap taken over the book has a support problem the n=3000 synthetic population does not -- the honest reason the tools were written this way, to be designed for rather than waved at. Items 2 (additive ceiling, director's under R13) and 3 (vulnerability as world truth) unchanged. QUEUED NOT FIXED (SELF_INTERRUPT_DISCIPLINE): the 12 tools' population construction and the missing seam-conformance control are outside this atom's file_scope; that missing control is the falsifier to build when 1b is drawn. R12: no published number tuned. R13: no curriculum value authored, proposed or changed.
+- |-
+  2026-08-17 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw), THIRD pass. No BUILD code written and nothing in `file_scope` touched (it is empty). Full pass: `docs/design/frame/EP17_VARIED_POPULATION_DRAW_FRAME.md` section 8. Measured at HEAD 9996e4d16 with the map, this store file and the frame doc all clean in the shared tree at draw time.
+
+  THE FINDING -- THE EXIT TEST PASS 2 PROPOSED CANNOT FIRE ON THE PAIR IT WAS PROPOSED FOR. Pass 2 closed by naming EP17's falsifier as "a coupled gap MOVES when the cell seed moves, and does not when it does not". Nobody had run it. Run against `tools/couple_cohort.py` (the coupled pair for W2_2_population_draw, the exact atom EP17 varies) over `run_rotation_grid.json`'s OWN declared `population_seeds: [0,1,2,3]` -- the entire axis EP17 would rotate -- the headline is `1.0` EXACTLY on all four, and so is `worst3_mean_gap`, so the redundancy guard does not rescue it. Pairs whose headline differs: 0/6. Pairs whose 20-cell vector differs: 6/6 (8 cells move every time). The draw changed; the score did not. Base rate seeds 0-99 at n=3000: headline exactly 1.0 on 73/100, range 1.000000-1.552941 (28 distinct values) against an underlying price_sensitivity worst cell of 0.7021-1.5529 (95 distinct values) -- the headline transmits 65% of the population signal's span and, for 73% of seeds, none of it.
+
+  WHY -- THE HEADLINE IS A ONE-SIDED DETECTOR FOR "WORSE THAN NO-SKILL". The 12 no-discovery cells (accommodation/cars/nssec x 4 tenures) are pinned at exactly 1.0 by construction on every one of the 100 seeds -- that half is the already-filed OPEN finding WORKER_FINDING_A_WORST_CELL_HEADLINE_FLOORED_AT_THE_NO_SKILL_BASELINE_2026-08-10.md. What this pass adds is the other four: `channel_pref` NEVER exceeded 1.0 in 100 seeds (max 0.3736), so the published worst_cell_score is arithmetically `max(1.0, max over price_sensitivity's 4 cells)`. It can only report that the drawn population made the company WORSE than no-skill and is structurally blind to a draw that made it better -- which is the direction EP17's stated gain runs in. RE-RANK ARGUED, NOT TAKEN (SELF_INTERRUPT_DISCIPLINE): that finding requested `backlog` reasoning "the row it affects landed clean"; it is in fact the direct blocker on the exit test of an Epoch-4 floor item named in the ruling section 1. Outside this atom's file_scope; its owner's call, with section 8.2 as the evidence.
+
+  THE OTHER END -- AT THE LIVE BOOK THE PAIR DOES NOT DEGRADE, IT RAISES. Pass 2 called small-n "a support problem ... to be designed for, not waved at". Measured, it is a hard stop: n=2, 20, 30 and 60 all raise `ValueError: no cell cleared the n_min=30 support bar`; first scoreable n is in (60,120]. N_MIN=30 is PER (axis, tenure-cell) and a 20-customer book spreads over four tenure cells, largest holding 10. EP17's live book is 20 (18 static + 2 drawn), so pass 2's item 1b as written swaps a published number for an exception. The two ends bracket the range and neither is usable: below ~n=100 there is no score, above it the score is floored on 73% of seeds.
+
+  THIRD-ORDER, AGAINST THE PUBLISHED ROW. At the ledger's own seed 20260721 the headline is not n-stable: 1.500000 @300, 1.137931 @600, 1.000000 @1200, 1.034483 @3000, 1.000000 @6000, 1.000000 @12000. `1.0344827586206897` is the value in coupled_gap_ledger.json -- above the floor only at the n the tool happens to default to, and exactly 1.0 at every strictly better sample tried. The pair's one published claim does not survive its own sample being enlarged. QUEUED against the pair's owner; named because EP17's score would inherit it.
+
+  WHAT IT CHANGES: item 1b is not "add a measurement consumer" but "EP17 HAS NO FIT-FOR-PURPOSE SCORE TODAY, and finding one is the atom's first build step, ahead of any wiring". The exit test must be over the CELL VECTOR (moved 6/6) not the headline (0/6), mutation = "thread a constant instead of the cell seed" -> red; buildable only at n >= ~120, which is not the live book, so it tests the generator's variation and must be labelled that honest partial rather than presented as EP17's gain being measured. Item 1a (seam wiring + pass 1 finding 4's independence fix) stays small and correct but sequenced FIRST it buys a release with no observable. Items 2 (additive ceiling, director's under R13) and 3 (vulnerability as world truth) unchanged across all three passes.
+
+  PASS 1 AND 2 RE-VERIFIED AT THIS HEAD, all surviving unrepaired: cursor still {"index": 0} with still exactly one commit in its history (f52a94133); `enumerate_cells(grid, *, draw_population_enabled)` still caller-supplied (run_rotation.py:121); all 12 couple_*.py still zero live_population references; SyntheticCustomer still has no vulnerability field. CORRECTION to pass 1 finding 1, in EP17's disfavour: it recorded "14 production call sites"; at this HEAD it is 27 bare call sites across 15 production modules (pass 1 omitted saas/customers.py, saas/property_model.py, saas/reporting/annual_report.py). The exact statement is stronger: a grep for `live_population(` carrying a `base_seed` argument returns ONE line in the whole repository and it is the `def` -- the parameter EP17 must thread has no caller anywhere, production or test.
+
+  R12: no published number tuned; every figure above is a read and nothing was written to any published artefact. R13: no curriculum value authored, proposed or changed.
