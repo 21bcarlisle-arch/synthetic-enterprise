@@ -200,14 +200,103 @@ this project can measure tether, the generator is measurably off, and knows it.*
 
 ---
 
+# PASS 2 (worker tick 2026-08-17, HEAD `e015bac36`) — the recommended wiring would not deliver the property it was recommended for
+
+Pass 1's five findings all survive unrepaired at this HEAD (`run_scenario.py` still has **zero** occurrences of the
+string `weather`; the gas comment quoted in §7 is still in the tree), so this pass adds rather than re-narrates. It
+takes pass 1's own item 1 — "the only one that restores a measurable gap on this coupled pair" — and tests it.
+
+## 6. FINDING 6 — the seam is compatible, so item 1 really is small; but the spike days are drawn from an independent uniform stream, so wiring weather to demand restores no correlation
+
+**The wiring is not blocked at the seam** (checked first, because EP17's pass 2 died exactly there). The consumer,
+`simulation/weather_inputs.py::weather_means_for_customer`, resolves a customer to a location and returns
+`{date_iso: temperature_mean_c}`. The generator, `sim/weather_engine.py`, returns
+`simulate_national_macro -> {var: array(n_days)}` plus `simulate_regional_deviations -> {var: {location_id: array}}`,
+and `location_id` is the same `C1..C4` key the CSVs carry in their own `location_id` column. National level + regional
+deviation per location per day, keyed by exactly what the consumer asks for. **Item 1 stays small.**
+
+**But it would not buy what pass 1 bought it for.** The property named was the one that kills real suppliers: volume
+peaking WHEN prices spike. The price spike days do not come from weather and cannot be made to by adding a weather
+caller downstream of them. In `sim/scenario/bimodal_generator.py::generate_scenario_prices`, dunkelflaute spells are
+scheduled by `rng.sample(range(safe_range), ...)` on a `random.Random(seed)` stream — a **uniform draw over calendar
+day index**, with no weather, temperature or wind input of any kind. Route generated weather into demand and you get
+cold demand days on one independent stream and price spikes on another. The correlation stays structurally absent;
+only its absence becomes harder to see, because both sides now move.
+
+**Item 1 therefore splits, the same way EP17's did**: **1a** wire the weather generator to demand (small, seam
+verified above) — **1b** make the weather draw the *upstream cause* of dunkelflaute scheduling in both price
+generators, rather than a parallel process. 1b is a different mechanism, it is where the coupled-pair gap actually
+lives, and pass 1 counted it inside 1.
+
+## 7. FINDING 7 — the elec/gas dunkelflaute coupling asserted in a comment is absent, measured at chance
+
+`sim/scenario/gas_scenario_generator.py` states the coupling twice, in prose, as its reason for needing no mechanism:
+
+> `# Dunkelflaute scheduling (same approach as electricity generator — same event structure`
+> `# means coupled dunkelflaute pressure on both commodities).`
+> `# Regime state: shared with electricity via same lower_mode_fraction`
+> `# (gas regime state follows electricity regime probabilistically)`
+
+Both are false. The gas RNG is seeded `f"gas_{seed}_..."` against electricity's `f"{seed}_..."` — a deliberately
+distinct sub-seed, so the two `rng.sample` calls are **independent realisations of the same distribution**. Same event
+*structure* is not coupled *pressure*; an independent Bernoulli with a shared parameter does not "follow" anything.
+
+Measured over all 5 shared presets × 3 seeds (15 draws), 2026-2029, by re-deriving each generator's day-index sets:
+
+| scenario (seed 1 of 3) | elec dunkelflaute days | gas | shared | expected if independent |
+|---|---|---|---|---|
+| baseline_2025 | 34 | 35 | **0** | 0.81 |
+| battery_saturation_2029 | 37 | 42 | **0** | 1.06 |
+| central_2027 | 39 | 37 | **0** | 0.99 |
+| low_renewables_2027 | 24 | 20 | **0** | 0.33 |
+| stress_dunkelflaute_2027 | 125 | 116 | **6** | 9.92 |
+
+Across all 15 draws: **mean shared days 2.33 against 2.59 expected under independence.** Not reduced coupling —
+*no* coupling, to within the noise of the estimate. For a dual-fuel supplier the joint elec+gas spike in one cold
+still spell is the event that empties the balance sheet, and it is absent by construction from every generated world,
+including the preset named for it. The comment is why no one looked: it reads as a design decision already taken.
+
+## 8. FINDING 8 — a dunkelflaute is a winter event; the generator schedules it uniformly across the calendar, and the real anchor is already in the repo
+
+This is EP16's own subject rather than a coupling bug: a generating parameter with a **directly measurable real
+counterpart that the generator does not consult**.
+
+Generated (same 15 draws): mean Dec-Feb share of dunkelflaute days **0.184 elec / 0.259 gas**, against a **0.247**
+calendar share of Dec-Feb. Uniform, as the `rng.sample(range(safe_range))` implies — roughly three quarters of every
+generated "dunkelflaute" lands outside winter, and some land in July.
+
+Real, from the observed panel already in the tree (`sim/weather_data/C1..C4.csv`, 2016-01-01..2025-06-07, n=3446 days
+with all four locations present, averaged to a national daily series):
+
+| still-and-dark definition | n days | Dec-Feb share | vs calendar 0.253 | mean temp |
+|---|---|---|---|---|
+| wind ≤ p25 (2.88 m/s) and cloud ≥ p75 (86.5%) | 181 | **0.359** | 1.42× | 9.04 °C (all days 10.15) |
+| wind ≤ p10 and cloud ≥ p90 | 39 | **0.564** | 2.23× | 6.98 °C |
+
+Both definitions are proxies and are stated as such — but they are proxies in the same direction, and the tighter one
+is the stronger: the real thing concentrates in winter and is **3.2 °C colder** than an average day, which is exactly
+the cold-still-dark conjunction the presets are named for. The anchoring failure is not that the frequency parameter
+is wrong; it is that **the schedule has no seasonality at all** while a decade of the real distribution sits in the
+repo, loaded by another module, unread by this one. It is also the concrete shape of §5's open question: this is what
+"a sourced-parameter-provenance control" would have caught, on a parameter where the source is a local CSV.
+
+Note the interaction with §2: the fleet is frozen at 2025 *and* the spells are aseasonal, and both are silent.
+
+**R13 line, explicitly:** the fix here is a **baseline-fidelity** change (seasonality is a property of the real world,
+measurable blind to company P&L), not a curriculum one. Event *frequency* per preset stays the director's. This pass
+authored, proposed and changed no preset value.
+
+---
+
 ## What this pass changes about EP16
 
 **It is not W1_2 relabelled, and it is not "build a generator".** Restated from the evidence, EP16 is four items:
 
 1. **Give the built weather generator a forward caller, and route demand through it** (§1, §3) — the mechanism exists
-   and is fitted to real data; the world is one caller short. This is the item that makes
-   `stress_dunkelflaute_2027` mean what its name says, and the only one that restores a measurable gap on this
-   coupled pair.
+   and is fitted to real data; the world is one caller short. **PASS 2 SPLITS THIS (§6):** 1a the wiring, seam
+   verified compatible and still small; **1b make weather the upstream cause of dunkelflaute scheduling** — without
+   1b the two sides move independently and the gap this atom is scored on does not open. The claim that item 1 alone
+   "restores a measurable gap on this coupled pair" is **withdrawn**; 1b is where it lives.
 2. **Stop the fleet freezing silently past 2025** (§2) — smallest item here. Raise past the fitted window, or
    extrapolate against a published trajectory. Silent flattening is the fail-open.
 3. **Move the curriculum wall onto the population that actually runs** (§4) — the five price presets need the same
@@ -216,7 +305,12 @@ this project can measure tether, the generator is measurably off, and knows it.*
    `intraday_shape.py`'s false "already director-owned" guarantee either way.
 4. **Define what "anchored" means for a world that never happened** (§5) — the moment-check cannot certify a
    counterfactual preset. A parameter-provenance control (every generating parameter carries its source, and the
-   check fires when one has none) is EP16's own build and is not covered by any existing mechanism.
+   check fires when one has none) is EP16's own build and is not covered by any existing mechanism. **PASS 2 gives
+   this item its first concrete instance (§8):** the dunkelflaute schedule is aseasonal while the real seasonality is
+   measurable from a CSV already in the tree — a provenance control would have fired on it.
+5. **(PASS 2, §7) Couple the two commodities' spells, and delete the comment that says they already are** — measured
+   at chance across 15 draws. Smallest of the five and the one with a live false statement in the tree, alongside
+   §4's `intraday_shape.py`.
 
 `level_current` stays **0** and `loop_stage` stays **idle**: the deliverable of this atom is a mechanism, not this
 document, so DISCOVER/FRAME output moves nothing. R12: no published number tuned; no published artefact written — and
@@ -230,3 +324,11 @@ extrapolation as a decision, it does not take it.
 belong to W1_7, W1_2 and the run-scenario path respectively.
 
 — FRAME, worker tick 2026-08-17, at HEAD `78d4f46f5`.
+
+**Pass 2 addendum (worker tick 2026-08-17, HEAD `e015bac36`).** `level_current` stays **0** and `loop_stage` stays
+**idle** for the same reason. R12: no published number tuned — and §6-§8 are latent on the same evidence as pass 1
+(no forward-scenario run has ever been published). R13: no curriculum value authored, proposed or changed; §8 names
+the seasonality fix as baseline-fidelity and leaves per-preset event frequency where it belongs. **Queued, not
+taken** (SELF-INTERRUPT DISCIPLINE): the false coupling comments in `sim/scenario/gas_scenario_generator.py` and the
+aseasonal schedule in both generators are outside this atom's empty `file_scope` and belong to the scenario-generator
+path with W1_2.
