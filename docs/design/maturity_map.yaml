@@ -2449,7 +2449,7 @@
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
   depends_on: [D27_belief_window_saturates_on_this_book]
-  simplifications_count: 3
+  simplifications_count: 4
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
   real_world_twin: "a collections MI pack whose arrears-risk number is quoted as evidence the team's lookback is set right, when the report is run a month after the last failed collection -- so a team that drops a customer off the risk list after three weeks and a team that never puts them on it produce the same figure, and the only memory settings the pack can tell apart are ones nobody would choose"
 

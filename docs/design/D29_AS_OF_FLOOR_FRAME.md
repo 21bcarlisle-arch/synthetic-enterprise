@@ -206,3 +206,206 @@ and not director curriculum.
 **STATUS: DISCOVER/FRAME only.** `level_current` unchanged at 0, `loop_stage` unchanged at `idle`,
 `provenance` unchanged at `proposal`. `simplifications_count` 2 → 3 (the map is clean in the tree this
 tick, unlike passes 1 and 2, so the count is folded here rather than deferred).
+
+---
+
+# PASS 4 — 2026-08-17: the invariance is real, its evidence was mostly singletons, and it holds because the belief organ is blind to when the company was told
+
+**Stage:** FRAME only, **fourth pass**. **No BUILD code written**; nothing in `file_scope`
+(`tools/couple_w2_11_d5.py`, `tests/tools/test_couple_w2_11_d5.py`) touched — both **clean at HEAD**
+this tick, as in pass 3. Measured in a detached worktree at HEAD `b7349bee0`. n=300, seeds 7/11/23,
+shipped `build_scenario` / `score_triad`, no monkeypatching: `W` moves through the declared
+counterfactual `organ_failure_window_drift_days`, `b` through the `as_of` passed to the scorer.
+
+This pass takes §6's remaining NOT-ESTABLISHED lead — *"whether the belief pair's `W − b` invariance
+also holds on a live `run_phase2b` population"* — because that invariance is, after pass 3's scope
+reduction, **this atom's sole remaining deliverable** (§4.1). Everything below is
+`observed-with-evidence` unless labelled otherwise (R9).
+
+## 8. FINDING 8 — Finding 6's grid could not have failed on 72% of its own cells
+
+Finding 6 reports "**complete over the grid: 217 distinct `W − b` families per seed, 756 cells, ZERO
+violations**". An invariance of the form *"cells sharing `W − b` agree"* is only testable on a family
+of **size ≥ 2**; a singleton family is a cell with nobody to disagree with. Re-deriving pass 3's own
+declared grid (`W ∈ {1,3,4,5,6,10,29,30,398,399,400,401}` × its 21 buffers):
+
+| | |
+|---|---|
+| cells per seed | 252 |
+| distinct `W − b` families | 217 |
+| family-size histogram | **{1: 182, 2: 35}** |
+| cells that cannot violate (singletons) | **182 (72.2%)** |
+| real within-family comparisons | **35 per seed, 105 in total** |
+
+So "756 cells, ZERO violations" is **105 comparisons**, and the number 756 measures the cost of the
+sweep rather than its power. The 217-families figure, quoted as evidence of coverage, is in fact the
+symptom: 217 families over 252 cells is near-total singleton-ness.
+
+This is not a claim that Finding 6 is wrong. It is a claim that its stated evidence did not weigh what
+it appeared to weigh — the same shape as the memory entry *a blocked test can stand for a whole
+battery*, and R15's "controls must be able to fail" applied to a measurement rather than a control.
+
+## 9. The invariance re-measured on a grid where every cell has a partner — and it HOLDS
+
+Grid designed so that no family is a singleton: `Δ = W − b ∈ {20, 40, 60, 90}` × `b ∈ {0,1,2,3,5,10,30}`,
+3 seeds = **84 cells, 12 families of 7, 72 real comparisons**, and deliberately extended **down to
+`b = 0`**, below pass 3's minimum of 5.
+
+**Result: 12 of 12 families invariant** — one distinct `belief` and one distinct
+`belief_population_mix` per family, all three seeds. Sample (seed 7, Δ=90): `belief` =
+0.151898734177 and `mix` = 0.080000000000 at every one of `b = 0,1,2,3,5,10,30` against
+`W = 90,91,92,93,95,100,120`.
+
+**Finding 6's conclusion stands, on evidence that can now fail.** That is the useful half of this
+pass for the atom's deliverable.
+
+## 10. FINDING 9 — it holds because the belief filter cannot see when the company was told, and the same scorer already knows better
+
+The filter behind both belief figures (`company/billing/payment_observation_consumer.py:613,617`):
+
+```python
+dd_failures = [
+    f for f in self._dd_failures.get(account_id, [])
+    if f.value_date <= as_of and (as_of - f.value_date).days <= self._dd_failure_window_days
+]
+```
+
+Both clauses read **`value_date`** — the collection date. Neither reads **`observed_at`**, the
+bank-feed REPORT date, which `payment_seam_adapter` lags by a per-case draw of
+`0..ARUDD_NOTIFICATION_LAG_DAYS`. Measured on this book: DD lags are **{0, 1, 2} days**, `n_dd` =
+69/61/83 on seeds 7/11/23, and `as_of₀` sits **29 days** past the newest `observed_at` on all three
+seeds (30/30/31 days past the newest `value_date`).
+
+**So a reading date is not a knowledge date.** At `b = 0`, exactly **one** counted DD failure per seed
+has `observed_at > as_of` — the belief counts a failure whose own bank-feed report lands after the
+date the harness claims to be reading on. It is counted at every `b`, because the filter never looks.
+
+**The counterfactual is decisive.** Recomputing the counted set under a knowledge-honest filter
+(adding `f.observed_at.date() <= as_of`) over the §9 grid:
+
+| seed | shipped counted set | knowledge-honest counted set |
+|---|---|---|
+| 7 | 1 distinct value in **4 of 4** families | 2 distinct values in **4 of 4** |
+| 11 | 1 distinct in 4 of 4 | 2 distinct in 4 of 4 |
+| 23 | 1 distinct in 4 of 4 | 2 distinct in 4 of 4 |
+
+**12 of 12 families break.** The exclusion depends on `b` alone, never on `W − b`, so it cannot be a
+function of the difference. The `W − b` invariance is therefore not a structural truth about arrears
+belief — **it is an artefact of the organ being blind to `observed_at`.**
+
+**And the same scorer already applies the honest rule one dimension over.** `score_triad`, on the
+DETECTION dimension (`tools/couple_w2_11_d5.py:9414-9425`):
+
+> *"A report landing after `as_of` is not yet knowledge: witnessed, never counted. POINT-IN-TIME FIX
+> (D11, 2026-08-09): the not-yet-knowable case is now excluded from `flagged_via_dd_channel` as well
+> … which is the detection dimension's own small version of a point-in-time blindfold breach."*
+
+It counts them into `n_dd_observed_after_as_of` and drops them. **D11's fix reached the detection
+dimension and not the belief dimension** — one of two sites, the shape the memory entry *the reader
+precision was read at one of two sites* names. The field is available to the company: its own ledger
+is explicitly bitemporal (`valid_time=value_date, transaction_time=observed_at`,
+`payment_observation_consumer.py:461-462`), so the belief organ holds both legs and filters on one.
+
+**NOT ESTABLISHED (R9), and it is a design call this pass does not take:** whether the *company* organ
+SHOULD filter on `observed_at`. A real supplier's "arrears view as at a past date" is a bitemporal
+query and the honest answer may be that the harness should stop asking retroactively rather than that
+the organ should change. What IS established is that the two dimensions of one scorer disagree about
+what the company knew, and that nothing currently states which is intended.
+
+## 11. THE CONSEQUENCE — pass 3's deliverable §4.1 is a ratchet against its own repair
+
+Pass 3 §4.1 says: land the `W − b` invariance as a control, with
+
+> *R15 mutation: give `_arrears_risk_belief` any explicit `as_of` dependence (a recency weight) and
+> the control must fire.*
+
+**That named mutation is the repair.** Adding the `observed_at` clause is precisely "an explicit
+`as_of` dependence", and §10 measures that it breaks the invariance on 12 of 12 families. A control
+whose specified mutation is the correct fix does not protect the figure — it fails the day someone
+fixes the defect, and its red is indistinguishable from a regression. This is R15 read the other way:
+the control CAN fail, but what it fires on is the cure.
+
+**§4.1 is therefore re-specified** (pass 4 replaces it):
+
+> Assert the `W − b` invariance **together with its precondition** — that the belief filter is
+> knowledge-blind — so the pair states *"these figures are functions of `W − b` BECAUSE the organ
+> ignores `observed_at`."* When the organ is made knowledge-honest, the control's own precondition
+> goes false and the assertion is retired by the fix rather than reddened by it.
+> **R15 mutations, both directions:** (i) make `_arrears_risk_belief` knowledge-honest → the
+> precondition clause must fire and the invariance clause must NOT be read as a regression;
+> (ii) leave the organ blind and perturb `ageing` to read `W` → must fire.
+
+§4.2 (stamp the floor as a label) and §4.3 (refuse the aggregate) are **unchanged** by this pass.
+
+## 12. FINDING 10 — the live lead, answered: untestable there, for two structural reasons
+
+Pass 3's §6 lead is **resolved as NOT-APPLICABLE rather than left unmeasured.** `run_phase2b` was not
+run this tick; the answer comes off the live path's own code and its published artefact.
+
+**(a) There is no live belief figure to be invariant of.** The live ledger entry
+`docs/observability/coupled_gap_ledger.json → W2_11_payment_behaviour_source` publishes
+`metric: "detection"`, `gap: 0.0833907649896623` (measured_at 2026-08-17T21:50:21Z, run commit
+`99dba222c`). The belief pair rides **only as prose inside that entry's `note`** — by design:
+`live_payment_triad.py:731` says the companion gaps ride inline because `::`-suffixed ledger keys
+"would wedge the publish gate". Live values, read out of the note: `belief balanced error 0.1818`,
+`belief_population_mix 0.2105`, `per-case disagreement 0.2105 (4 of 19)`.
+
+**(b) The live company is pinned deep inside the saturated region, deliberately.**
+`_RUN_SPANNING_WINDOW_DAYS = 6000` (`live_payment_triad.py:119`) is what the live consumer's
+`dd_failure_window_days` is constructed with (`:528`) — i.e. live `W = 6000` against a run the same
+comment sizes at ~3650 days. `saturated = window >= oldest` is then True with ~2,350 days of headroom
+(**inferred** on the ~3650, which is the module's own comment, not a figure measured here;
+**observed** on the constant and the wiring). Every longer memory publishes one number — the exact
+collapse D27 named at this edge, sitting on the live figure.
+
+So the invariance is neither confirmed nor refuted live: the live path has no published belief gap,
+and its memory parameter is inert by construction. **The atom's deliverable is offline-only, and that
+should be stated in the control rather than discovered by the next pass.**
+
+**Consequence, and it is filed rather than fixed** (SELF-INTERRUPT DISCIPLINE): `_RUN_SPANNING_WINDOW_DAYS`
+is the THIRD confounder-removing constant of the class `SCENARIO_CONSTANT_CENSUS` exists for — its
+comment reads "a comfortable ceiling", in the same voice as `DD_FAILURE_WINDOW_DAYS` "generous on
+purpose" (D27) and `AS_OF_BUFFER_DAYS` "comfortably past" (D29). The census cannot name it:
+`_check_census_is_complete` takes its subject from **`build_scenario`'s AST**, so it is fail-closed
+over the offline builder and structurally blind to the live one. `grep "6000\|RUN_SPANNING"` over
+`tools/couple_w2_11_d5.py` returns nothing; the census's 8 members are all offline. Filed against
+**D30**, whose census it is, as
+`WORKER_FINDING_THE_CONSTANT_CENSUS_IS_BLIND_TO_THE_LIVE_PATHS_OWN_WINDOW_2026-08-17` — it classifies
+into `controls_that_cannot_fail` and was consolidated and archived to `docs/staging/done/` in the same
+tick it was written, so the **live index for it is
+`docs/staging/CLASS_CONTROLS_THAT_CANNOT_FAIL_2026-08-12.md`**, not the staging root.
+
+**LEAD, NOT ESTABLISHED (R9):** live `belief_population_mix` (0.2105) and live per-case disagreement
+(0.2105, 4 of 19) are numerically identical. D19's reshape exists precisely because the TV-distance
+figure was degenerate to permutation while per-case agreement was not (the note's own
+`0.0713 → 0.0713` vs `0.9287 → 0.6432`). At n=19 the two coincide. Whether that is arithmetic
+coincidence at small n or the two figures collapsing live is unmeasured, and it is D19's question.
+
+## 13. Exit criteria — pass 3's four, with §4.1's amended
+
+1. **UNCHANGED** (pass 2 c1). `amnesia_floor_window_days + headroom_days` has moved off
+   `DD_FAILURE_WINDOW_DAYS − span − 1`.
+2. **UNCHANGED** (pass 3 c2). A resolved memory error at `W = 400` AND every published reading
+   `frac == 1.0`.
+3. **AMENDED by §11.** The invariance control exists, is stated **with its knowledge-blindness
+   precondition**, and fires under both named mutations — including the direction that proves it does
+   not redden when the organ is repaired.
+4. **UNCHANGED** (pass 2 c3 / pass 3 c4). `ageing` re-certified alongside the belief pair;
+   `detection` / `detection_latency` asserted bit-identical.
+5. **NEW.** The control declares itself **offline-only**, naming §12's two reasons — no published live
+   belief gap, and live `W` inert by construction.
+
+## 14. What pass 4 does not settle
+
+* Whether the belief organ should be knowledge-honest at all (§10, R9) — a design call, and the
+  strongest single question this atom has produced.
+* Whether D29 should be closed into D27 outright. Pass 3 queued it; this pass **weakens the case for
+  closure**: §10 and §11 are D29's own content and are not D27's reshape, so the atom now has a
+  deliverable that no other atom carries. Still queued, not taken.
+* The live population empirically — `run_phase2b` was not run (§12 answers from code and artefact).
+
+R12: no published number was tuned and none was written to any artefact; every figure was scored in a
+throwaway worktree. R13: harness scaffolding, not a baseline-world fidelity claim.
+
+**STATUS: DISCOVER/FRAME only.** `level_current` unchanged at **0**, `loop_stage` unchanged at
+`idle`, `provenance` unchanged at `proposal`. Nothing in `file_scope` written.
