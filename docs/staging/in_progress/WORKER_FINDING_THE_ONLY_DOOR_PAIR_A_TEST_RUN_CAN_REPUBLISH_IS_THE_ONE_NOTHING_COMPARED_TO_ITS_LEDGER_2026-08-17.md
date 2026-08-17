@@ -2,6 +2,26 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness · **Disposition:** PARTIALLY BUILT (the detecting control is landed; two named repairs are QUEUED, both outside this atom's `file_scope`)
 
+> ## PARKED IN `in_progress/` — 2026-08-17 scheduled tick, RUNG-1c draw
+>
+> **BLOCKING SUB-ITEM STILL OPEN:** §"What this tick did NOT build" **item 2** — the SITE-lane
+> live tripwire. It is unbuildable *as a gating control* until the finding-4 divergence is
+> repaired (committed door `0.0833907649896623` vs committed ledger `0.0859375`), because
+> landing it wedges the publish gate on a condition this atom cannot fix.
+> **What unblocks it:** the publish lane regenerating and committing the ledger alongside the
+> door — `WORKER_FINDING_THE_PUBLISH_PATH_COMMITS_THE_DOOR_AND_NOT_THE_RECORD_IT_RENDERED_2026-08-17.md`.
+>
+> **Item 1 is DISCHARGED, and not where this finding said it would be.** The write is stopped —
+> but at the CHOKE POINT, not at `simulation/run_phase2b.py:2448`. Fixing the caller would have
+> been an instance fix (R10), and the refusal at the write covers every `tools/couple_*.py
+> --write-ledger` main and every ledger added later. As a side effect the two-lanes-one-file
+> blocker this finding cited dissolved: `run_phase2b.py` is never touched, and its B12 hunks at
+> `:160`/`:834` are still uncommitted and untouched in this tree.
+> Record: `WORKER_RECORD_THE_TEST_PROCESS_WRITE_TO_A_LIVE_MEASUREMENT_LEDGER_IS_REFUSED_AT_THE_CHOKE_POINT_2026-08-17.md`.
+>
+> **Level unchanged.** The pre-committed Hour #31 rule still binds: this Hour ended with a
+> BLOCKING finding, so `H27_payment_belief_gap` does NOT move 2→3.
+
 **Found by:** H27 Expert Hour #33, the 2026-08-17 worker tick, drawn as
 `H27_payment_belief_gap` 2->3 HARDEN. Hour #31 pre-committed the promotion condition ("an
 Hour that ends with no BLOCKING finding against the corrected instrument") before #32 ran,

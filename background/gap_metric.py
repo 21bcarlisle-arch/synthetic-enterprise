@@ -79,6 +79,10 @@ from pathlib import Path
 from typing import Dict, Iterable, Mapping, Optional, Sequence
 
 from background.coupled_triad import GAP_LEDGER_PATH
+# Imported at TOP LEVEL with no `try` ON PURPOSE (R15 FAIL-SILENT): if the
+# refusal cannot be imported, this module must not import either. An
+# unavailable check is a FAILED check, never a skipped one.
+from background.live_ledger_guard import guard_live_ledger_write
 
 # ---------------------------------------------------------------------------
 # R13 CURRICULUM CONSTANTS -- director-signed, do NOT tune toward a gap number.
@@ -1938,8 +1942,15 @@ def write_gap_entry(world_atom_id: str, twin_atom_id: str, result: GapResult,
     An existing malformed/unreadable ledger is treated as empty and overwritten
     with a well-formed object -- it never crashes the write. Other entries are
     preserved (read-merge-write).
+
+    REFUSES under a test process when the resolved destination is the LIVE
+    ledger (`background/live_ledger_guard.py`, H27 Hour #33): sixty-seven test
+    modules import `simulation/run_phase2b.py`, whose defaulted `ledger_path`
+    made every one of them a writer of the record the public Proof door
+    derives from. Pass `ledger_path=tmp_path / "ledger.json"` in a test.
     """
     path = Path(ledger_path) if ledger_path is not None else GAP_LEDGER_PATH
+    guard_live_ledger_write(path, writer="gap_metric.write_gap_entry")
     ledger: dict = {}
     if path.is_file():
         try:

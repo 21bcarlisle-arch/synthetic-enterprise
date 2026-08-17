@@ -65,6 +65,8 @@ import math
 from pathlib import Path
 from typing import Any, Mapping, Optional
 
+from background.live_ledger_guard import guard_live_ledger_write
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 RUN_OUTPUT_PATH = PROJECT_DIR / "docs" / "reports" / "run_output_latest.json"
 GAP_LEDGER_PATH = PROJECT_DIR / "docs" / "observability" / "dd_h_solvency_gap_ledger.json"
@@ -252,6 +254,9 @@ def record_gap(
     row it appended (measurable or not -- a not-measurable row is recorded too, so
     the honest absence is legible in history rather than a silent skip)."""
     lp = ledger_path or GAP_LEDGER_PATH
+    # Same class as the coupled gap ledger (H27 Hour #33): a test process must
+    # never append its fixture measurement to the live history a digest reads.
+    guard_live_ledger_write(lp, writer="dd_h_solvency_gap.record_gap")
     row = measure_from_run_output(run_output_path)
     row["measured_at"] = measured_at
     row["run_git_commit"] = run_git_commit

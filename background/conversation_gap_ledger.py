@@ -98,6 +98,8 @@ from company.comms.susceptibility_estimator import (
     TONE_VALUES,
 )
 
+from background.live_ledger_guard import guard_live_ledger_write
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 GAP_LEDGER_PATH = PROJECT_DIR / "docs" / "observability" / "conversation_gap_ledger.json"
 
@@ -553,6 +555,9 @@ def record_gap(
     is recorded too (FAIL-SILENT guard) -- an honest absence stays legible in
     history rather than a silent skip."""
     lp = ledger_path or GAP_LEDGER_PATH
+    # Same class as the coupled gap ledger (H27 Hour #33): a test process must
+    # never append its fixture measurement to the live history a digest reads.
+    guard_live_ledger_write(lp, writer="conversation_gap_ledger.record_gap")
     try:
         row = measure(**measure_kwargs)
     except ConversationGapUnmeasurable as e:
