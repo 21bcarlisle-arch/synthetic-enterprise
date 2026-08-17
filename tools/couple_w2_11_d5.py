@@ -10263,6 +10263,218 @@ def score_detection_by_partition(
 
 
 # ---------------------------------------------------------------------------
+# THE DOOR MUST REPRODUCE THE LEDGER OF RECORD (H27 Expert Hour #33, 2026-08-17)
+# ---------------------------------------------------------------------------
+# WHAT THIS CATCHES, MEASURED ON THE REAL ARTEFACT RATHER THAN IMAGINED. This
+# pair's ledger entry is the ONLY one of the fourteen on the Proof door written
+# as a SIDE EFFECT of running the simulation (`simulation/run_phase2b.py` ->
+# `LivePaymentTriad.measure_and_write`, `ledger_path` defaulted to the real
+# file); every other pair's entry is written by its own `tools/couple_*.py
+# --write-ledger` invocation. So this pair, alone, is re-published by any
+# process that runs the simulation -- including the ten-plus test modules that
+# invoke `run_phase2b` with a fixture book.
+#
+# On 2026-08-17 that happened and reached the artefact. At 15:38:56Z the live
+# ledger held a 276-invoice book (caught 4, flagged_size 35, n_negatives 257);
+# `site/data/proof.json` was regenerated at 15:54:44Z inside that window, and
+# the working tree then carried a Proof door publishing this atom's headline as
+# 0.0311 against the production book's 0.0834 -- a 2.68x understatement of the
+# company's own payment belief-vs-truth gap. Of the fourteen pairs on that door,
+# EXACTLY ONE moved: this one. The deployed door (fetched, generated_at
+# 15:13:08Z) still carried 0.0834, so no reader had been served the fixture
+# book; the harm was one broad-pathspec commit away.
+#
+# WHY IT IS THIS MODULE'S CONTROL AND NOT THE PUBLISH LANE'S. The substitution
+# is invisible to every check that reads ONE side. The door agrees with itself,
+# the ledger agrees with itself, the generator did exactly what it was asked,
+# and the scorer is not involved at all -- there is no defect anywhere except in
+# the RELATION between the two files, which is the relation this instrument's
+# published figure IS. Both sides are read from disk here for the same reason
+# Hour #32's finding 1 gave: an in-process re-derivation agrees with itself, so
+# it cannot fail on a stranded artefact.
+#
+# WHAT IT DELIBERATELY DOES NOT DO: it does not stop a test process writing the
+# live ledger. That fix belongs at `run_phase2b.py:2448`, which is outside this
+# atom's `file_scope` and is carrying another lane's uncommitted hunks in this
+# tree -- filed, not taken (SELF-INTERRUPT DISCIPLINE). This control is the
+# CLASS closure R10 asks for regardless of which writer poisons the ledger: any
+# door figure no ledger on disk carries fails, whatever put it there.
+_DOOR_PAYLOAD_PATH = (
+    Path(__file__).resolve().parents[1] / "site" / "data" / "proof.json"
+)
+_LEDGER_OF_RECORD_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "docs" / "observability" / "coupled_gap_ledger.json"
+)
+
+# The numeric components BOTH sides carry. Not hand-chosen for convenience:
+# these are exactly the keys the door's own components block reproduces from the
+# ledger entry, and every one of them moved in the 2026-08-17 substitution.
+_DOOR_LEDGER_COMPONENTS = (
+    "caught", "flagged_size", "missed", "truth_size", "universe_size",
+    "n_negatives", "n_excluded", "n_false_flags",
+    "false_flag_rate", "missed_failure_rate",
+)
+
+
+_UNREADABLE = object()
+
+
+def _read_json_file(path: Path) -> object:
+    """Read a JSON file, or return the SENTINEL that makes it a violation.
+
+    Never returns `{}` for an unreadable file: an empty dict compares equal to
+    nothing and would make this control pass on the one state it must never pass
+    on -- the artefact being gone (R15 fail-silent)."""
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, ValueError, UnicodeDecodeError):
+        return _UNREADABLE
+
+
+def measure_published_door_against_the_ledger(
+    *,
+    door_path: Optional[Path] = None,
+    ledger_path: Optional[Path] = None,
+    world_atom_id: Optional[str] = None,
+) -> Dict[str, object]:
+    """Read the served door and the ledger of record INDEPENDENTLY, from disk.
+
+    Returns the comparison; it does not judge it. `check_*` below judges, so the
+    numbers this prints on a publishing run are available to a reader even when
+    the verdict is clean.
+    """
+    door_p = _DOOR_PAYLOAD_PATH if door_path is None else Path(door_path)
+    ledger_p = _LEDGER_OF_RECORD_PATH if ledger_path is None else Path(ledger_path)
+    atom = WORLD_ATOM_ID if world_atom_id is None else world_atom_id
+
+    out: Dict[str, object] = {
+        "door_path": str(door_p),
+        "ledger_path": str(ledger_p),
+        "world_atom_id": atom,
+        "unavailable": [],
+        "door_value": None,
+        "ledger_gap": None,
+        "door_generated_at": None,
+        "ledger_measured_at": None,
+        "compared": [],
+        "mismatched": {},
+    }
+    unavailable: List[str] = out["unavailable"]           # type: ignore[assignment]
+
+    door = _read_json_file(door_p)
+    if door is _UNREADABLE:
+        unavailable.append(
+            f"the door payload at {door_p} is missing or unreadable -- an "
+            "unavailable check is a FAILED check (R15), never a clean one"
+        )
+        door = None
+    ledger = _read_json_file(ledger_p)
+    if ledger is _UNREADABLE:
+        unavailable.append(
+            f"the ledger of record at {ledger_p} is missing or unreadable -- "
+            "the door's figure is then attributable to nothing on disk"
+        )
+        ledger = None
+
+    door_pair = None
+    if isinstance(door, dict):
+        pairs = door.get("coupled_gaps", {})
+        pairs = pairs.get("pairs", []) if isinstance(pairs, dict) else []
+        matches = [p for p in pairs
+                   if isinstance(p, dict) and p.get("world_atom") == atom]
+        if not matches:
+            unavailable.append(
+                f"the door payload carries no `{atom}` pair -- this atom's "
+                "figure is published there and a door that has stopped "
+                "carrying it is a failed read, not an agreement"
+            )
+        else:
+            door_pair = matches[0]
+            out["door_generated_at"] = door.get("generated_at")
+
+    entry = None
+    if isinstance(ledger, dict):
+        candidate = ledger.get(atom)
+        if not isinstance(candidate, dict):
+            unavailable.append(
+                f"the ledger of record carries no `{atom}` entry -- the door's "
+                "figure is derived from an entry that is not there"
+            )
+        else:
+            entry = candidate
+            out["ledger_measured_at"] = entry.get("measured_at")
+
+    if door_pair is None or entry is None:
+        return out
+
+    out["door_value"] = door_pair.get("value")
+    out["ledger_gap"] = entry.get("gap")
+
+    door_components = door_pair.get("components")
+    ledger_components = entry.get("components")
+    door_components = door_components if isinstance(door_components, dict) else {}
+    ledger_components = (
+        ledger_components if isinstance(ledger_components, dict) else {}
+    )
+    compared: List[str] = out["compared"]                 # type: ignore[assignment]
+    mismatched: Dict[str, object] = out["mismatched"]     # type: ignore[assignment]
+    for name in _DOOR_LEDGER_COMPONENTS:
+        if name not in door_components or name not in ledger_components:
+            continue
+        compared.append(name)
+        if door_components[name] != ledger_components[name]:
+            mismatched[name] = {
+                "door": door_components[name],
+                "ledger": ledger_components[name],
+            }
+    return out
+
+
+def check_published_door_reproduces_the_ledger(
+    measured: Optional[Dict[str, object]] = None,
+) -> List[str]:
+    """Every figure the door serves for this pair must be the figure the ledger
+    of record carries. Divergence is a VIOLATION whatever caused it."""
+    m = (measure_published_door_against_the_ledger()
+         if measured is None else measured)
+    violations: List[str] = list(m.get("unavailable", []))   # type: ignore[arg-type]
+    if violations:
+        return violations
+
+    atom = m.get("world_atom_id")
+    door_value, ledger_gap = m.get("door_value"), m.get("ledger_gap")
+    if door_value != ledger_gap:
+        violations.append(
+            f"`{atom}`: the door serves value {door_value!r} and the ledger of "
+            f"record carries gap {ledger_gap!r} -- the published headline is "
+            "not the measurement it is nominally derived from (door generated "
+            f"{m.get('door_generated_at')!r}, ledger measured "
+            f"{m.get('ledger_measured_at')!r}). This pair's entry is written by "
+            "every process that runs the simulation, so a fixture book can "
+            "stand in for the production one with nothing firing"
+        )
+    for name, sides in sorted(
+            (m.get("mismatched") or {}).items()):          # type: ignore[union-attr]
+        violations.append(
+            f"`{atom}`.components.{name}: the door serves "
+            f"{sides['door']!r} and the ledger of record carries "
+            f"{sides['ledger']!r}"
+        )
+
+    # VACUITY. A door pair and a ledger entry that share NO comparable component
+    # make every assertion above true by having nothing to assert on -- the
+    # shape this instrument's own leak witness shipped in until 2026-08-08.
+    if not m.get("compared"):
+        violations.append(
+            f"`{atom}`: the door pair and the ledger entry share NONE of "
+            f"{list(_DOOR_LEDGER_COMPONENTS)!r} -- this control compared "
+            "nothing and must not report agreement on an empty set"
+        )
+    return violations
+
+
+# ---------------------------------------------------------------------------
 # THE CHECK-CALL CENSUS (R10 closure for the no-caller class, 2026-08-15)
 # ---------------------------------------------------------------------------
 # WHY THIS IS A CENSUS AND NOT A WIRING FIX. Hour #30 found a control on this
@@ -10907,6 +11119,24 @@ def main() -> None:
              if not _cnc_violations
              else f"{len(_cnc_violations)} VIOLATION(S)"))
     for v in _cnc_violations:
+        print(f"           !! {v}")
+
+    # THE DOOR AGAINST THE LEDGER OF RECORD (H27 Expert Hour #33). Printed on
+    # the run that publishes, because the reader entitled to know the served
+    # figure is the measured one is the reader about to quote it. The two sides
+    # are read from disk, so this reports on the artefacts as they stand right
+    # now -- not on anything this process computed.
+    _dvl = measure_published_door_against_the_ledger()
+    _dvl_violations = check_published_door_reproduces_the_ledger(_dvl)
+    print(f"  [door-vs-ledger control] served value {_dvl['door_value']!r} "
+          f"(door generated {_dvl['door_generated_at']!r}) vs ledger of record "
+          f"gap {_dvl['ledger_gap']!r} (measured {_dvl['ledger_measured_at']!r}); "
+          f"{len(_dvl['compared'])} shared component(s) compared")
+    print("           verdict: "
+          + ("the door serves the measurement the ledger carries"
+             if not _dvl_violations
+             else f"{len(_dvl_violations)} VIOLATION(S)"))
+    for v in _dvl_violations:
         print(f"           !! {v}")
 
     print(f"  allocation note: {result['notes']['allocation']}")

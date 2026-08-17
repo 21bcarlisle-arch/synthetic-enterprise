@@ -7483,3 +7483,207 @@ def test_the_interior_control_now_runs_on_the_run_that_publishes():
     # ...and the verdict is PRINTED, because a control whose result nobody
     # renders is a control the reader of the figure never meets (the D25 rule).
     assert "_icp_violations" in src
+
+
+# ---------------------------------------------------------------------------
+# THE DOOR AGAINST THE LEDGER OF RECORD (H27 Expert Hour #33, 2026-08-17)
+# ---------------------------------------------------------------------------
+# These are HERMETIC on purpose. The live pair of artefacts is asserted by the
+# SITE-lane tripwire (`site/proof/test_door_reproduces_the_ledger_of_record.py`),
+# whose gate fires on a `site/data` change -- i.e. on a regeneration, which is
+# the moment the substitution lands. Asserting the live files HERE would put a
+# control whose whole subject is "a test process rewrote the live ledger" inside
+# a test process that can be raced by exactly that, so a true finding would
+# arrive as a flake. What belongs here is the control's own failure behaviour.
+
+def _door_payload(atom, *, value, components, generated_at="2026-08-17T00:00:00Z"):
+    return {
+        "generated_at": generated_at,
+        "coupled_gaps": {"pairs": [
+            {"world_atom": "W1_5_premise_demand_shape", "value": 1.0,
+             "components": {"caught": 1}},
+            {"world_atom": atom, "value": value, "components": dict(components)},
+        ]},
+    }
+
+
+def _ledger_payload(atom, *, gap, components,
+                    measured_at="2026-08-17T00:00:00+00:00"):
+    return {atom: {"gap": gap, "measured_at": measured_at,
+                   "components": dict(components)}}
+
+
+# The real 2026-08-17 numbers: the production book, and the fixture book that
+# stood in for it on the regenerated door. Used verbatim so these tests are
+# pinned to the incident rather than to invented digits.
+_PRODUCTION_BOOK = {
+    "caught": 31, "flagged_size": 391, "missed": 0, "truth_size": 31,
+    "universe_size": 1600, "n_negatives": 1451, "n_excluded": 118,
+    "n_false_flags": 242, "false_flag_rate": 0.166782,
+}
+_FIXTURE_BOOK = {
+    "caught": 4, "flagged_size": 35, "missed": 0, "truth_size": 4,
+    "universe_size": 276, "n_negatives": 257, "n_excluded": 15,
+    "n_false_flags": 16, "false_flag_rate": 0.062257,
+}
+_PRODUCTION_GAP = 0.0833907649896623
+_FIXTURE_GAP = 0.0311284046692607
+
+
+def _write_pair(tmp_path, door, ledger):
+    door_p, ledger_p = tmp_path / "proof.json", tmp_path / "ledger.json"
+    door_p.write_text(json.dumps(door), encoding="utf-8")
+    ledger_p.write_text(json.dumps(ledger), encoding="utf-8")
+    return door_p, ledger_p
+
+
+def _check(tmp_path, door, ledger, atom=None):
+    atom = pair.WORLD_ATOM_ID if atom is None else atom
+    door_p, ledger_p = _write_pair(tmp_path, door, ledger)
+    measured = pair.measure_published_door_against_the_ledger(
+        door_path=door_p, ledger_path=ledger_p, world_atom_id=atom)
+    return measured, pair.check_published_door_reproduces_the_ledger(measured)
+
+
+def test_a_door_serving_the_ledgers_own_measurement_is_clean(tmp_path):
+    """The control must be able to PASS, or its reds mean nothing."""
+    atom = pair.WORLD_ATOM_ID
+    measured, violations = _check(
+        tmp_path,
+        _door_payload(atom, value=_PRODUCTION_GAP, components=_PRODUCTION_BOOK),
+        _ledger_payload(atom, gap=_PRODUCTION_GAP, components=_PRODUCTION_BOOK),
+    )
+    assert violations == [], violations
+    # ...and it compared a real population, not an empty one.
+    assert len(measured["compared"]) >= 9, measured["compared"]
+
+
+def test_the_fixture_book_substitution_of_2026_08_17_fires(tmp_path):
+    """THE INCIDENT ITSELF, replayed with its own numbers.
+
+    A test process running `run_phase2b` rewrote the live ledger with a
+    276-invoice book; `site/data/proof.json` was regenerated inside that window
+    and the working tree carried a door publishing this atom's headline as
+    0.0311 against the production book's 0.0834. Exactly one of the fourteen
+    pairs on that door moved, and nothing fired. This is the state that must
+    never read clean again."""
+    atom = pair.WORLD_ATOM_ID
+    _, violations = _check(
+        tmp_path,
+        _door_payload(atom, value=_FIXTURE_GAP, components=_FIXTURE_BOOK),
+        _ledger_payload(atom, gap=_PRODUCTION_GAP, components=_PRODUCTION_BOOK),
+    )
+    blob = " ".join(violations)
+    assert any("0.0311" in v and "0.0833" in v for v in violations), violations
+    # The HEADLINE is not the only thing wrong, and naming only it would leave a
+    # reader thinking one number drifted rather than the whole book changing.
+    for name in ("universe_size", "n_negatives", "caught", "false_flag_rate"):
+        assert f"components.{name}" in blob, (name, violations)
+
+
+def test_a_headline_that_agrees_while_the_book_underneath_does_not_fires(tmp_path):
+    """R15: the components are not decoration. Two different books can round to
+    the same headline -- a balanced error over two directions is a MEAN, so a
+    smaller book with proportionally similar rates reproduces it. If only the
+    top-line float were compared, the substitution would be invisible whenever
+    the fixture happened to score alike."""
+    atom = pair.WORLD_ATOM_ID
+    _, violations = _check(
+        tmp_path,
+        _door_payload(atom, value=_PRODUCTION_GAP, components=_FIXTURE_BOOK),
+        _ledger_payload(atom, gap=_PRODUCTION_GAP, components=_PRODUCTION_BOOK),
+    )
+    assert violations, "an agreeing headline over a different book read clean"
+    assert all("components." in v for v in violations), violations
+
+
+@pytest.mark.parametrize("missing", ["door", "ledger"])
+def test_an_absent_artefact_is_a_failed_check_never_a_clean_one(tmp_path, missing):
+    """R15 FAIL-SILENT. The pre-Hour shape of this defect is a reader served a
+    figure attributable to nothing on disk; a control that passes when one side
+    is GONE would report agreement in precisely that state."""
+    atom = pair.WORLD_ATOM_ID
+    door_p, ledger_p = _write_pair(
+        tmp_path,
+        _door_payload(atom, value=_PRODUCTION_GAP, components=_PRODUCTION_BOOK),
+        _ledger_payload(atom, gap=_PRODUCTION_GAP, components=_PRODUCTION_BOOK),
+    )
+    (door_p if missing == "door" else ledger_p).unlink()
+    measured = pair.measure_published_door_against_the_ledger(
+        door_path=door_p, ledger_path=ledger_p, world_atom_id=atom)
+    violations = pair.check_published_door_reproduces_the_ledger(measured)
+    assert violations, f"a missing {missing} read as agreement"
+    assert "unavailable check is a FAILED check" in " ".join(violations) or \
+        "attributable to nothing on disk" in " ".join(violations), violations
+
+
+@pytest.mark.parametrize("side", ["door", "ledger"])
+def test_a_side_that_has_stopped_carrying_this_pair_fires(tmp_path, side):
+    """FAIL-OPEN, the second pattern. `[p for p in pairs if ...]` returning
+    nothing, and `ledger.get(atom)` returning None, both iterate zero rows and
+    every comparison below is vacuously true. A door that has stopped publishing
+    this atom is a failed read, not an agreeing one."""
+    atom = pair.WORLD_ATOM_ID
+    door = _door_payload(atom, value=_PRODUCTION_GAP, components=_PRODUCTION_BOOK)
+    ledger = _ledger_payload(atom, gap=_PRODUCTION_GAP, components=_PRODUCTION_BOOK)
+    if side == "door":
+        door["coupled_gaps"]["pairs"] = [
+            p for p in door["coupled_gaps"]["pairs"] if p["world_atom"] != atom]
+    else:
+        ledger = {}
+    _, violations = _check(tmp_path, door, ledger, atom=atom)
+    assert violations, f"a {side} with no `{atom}` row read as agreement"
+
+
+def test_a_pair_sharing_no_comparable_component_is_a_violation(tmp_path):
+    """VACUITY, the pattern this instrument's own leak witness shipped in until
+    2026-08-08: with nothing in common, every component assertion passes by
+    having no subject. Agreement on an empty set is not agreement."""
+    atom = pair.WORLD_ATOM_ID
+    _, violations = _check(
+        tmp_path,
+        _door_payload(atom, value=_PRODUCTION_GAP, components={"something_else": 1}),
+        _ledger_payload(atom, gap=_PRODUCTION_GAP, components={"another": 2}),
+    )
+    assert violations, "a pair with no shared component reported agreement"
+    assert any("compared\nnothing" in v.replace(" ", "\n") or
+               "compared nothing" in v for v in violations), violations
+
+
+def test_malformed_json_on_either_side_is_a_violation(tmp_path):
+    """An unreadable file must not be caught into `{}`: an empty dict compares
+    equal to nothing and would pass the whole control."""
+    atom = pair.WORLD_ATOM_ID
+    door_p = tmp_path / "proof.json"
+    ledger_p = tmp_path / "ledger.json"
+    door_p.write_text("{not json", encoding="utf-8")
+    ledger_p.write_text(json.dumps(
+        _ledger_payload(atom, gap=_PRODUCTION_GAP, components=_PRODUCTION_BOOK)),
+        encoding="utf-8")
+    measured = pair.measure_published_door_against_the_ledger(
+        door_path=door_p, ledger_path=ledger_p, world_atom_id=atom)
+    assert pair.check_published_door_reproduces_the_ledger(measured)
+
+
+def test_the_door_ledger_control_runs_on_the_run_that_publishes():
+    """The R10 lesson this instrument has now paid for FOUR times: a control
+    with no caller on a publishing run is a control the reader of the figure
+    never meets. The check-call census enforces this generically; this pins the
+    RENDER too, which the census cannot see."""
+    src = inspect.getsource(pair.main)
+    assert "measure_published_door_against_the_ledger(" in src
+    assert "check_published_door_reproduces_the_ledger(" in src
+    assert "_dvl_violations" in src
+
+
+def test_the_component_population_is_not_a_hand_picked_subset(tmp_path):
+    """The control's subject must be the book, not four convenient fields. Every
+    component the 2026-08-17 substitution moved is compared -- measured against
+    the incident's own two books rather than asserted."""
+    moved = {k for k in _PRODUCTION_BOOK
+             if _PRODUCTION_BOOK[k] != _FIXTURE_BOOK.get(k)}
+    assert moved, "the two incident books should differ"
+    uncovered = moved - set(pair._DOOR_LEDGER_COMPONENTS)
+    assert not uncovered, (
+        f"components that really moved in the incident are outside the "
+        f"control's population: {sorted(uncovered)}")
