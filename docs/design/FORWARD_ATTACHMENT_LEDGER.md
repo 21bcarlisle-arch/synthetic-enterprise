@@ -22,14 +22,14 @@ Nothing below is stored by hand. Delete the declaration and the row disappears.
 _epoch 3 · lane H_harness · L2→L2 · build_
 
 - `2026-08-09` · `docs/staging/done/WORKER_FINDING_THE_INDEX_READS_THE_WORKING_TREE_2026-08-09.md` (finding) — the index's population question and
-- `2026-08-12` · `docs/staging/WORKER_REPORT_THE_INDEX_NOW_KNOWS_WHAT_THE_REPO_CARRIES_2026-08-12.md` (finding)
+- `2026-08-12` · `docs/staging/done/WORKER_REPORT_THE_INDEX_NOW_KNOWS_WHAT_THE_REPO_CARRIES_2026-08-12.md` (finding)
 
 ## AO2_write_time_reuse_gate
 **Check before you build**  
 _epoch 3 · lane H_harness · L2→L2 · build_
 
 - `2026-08-09` · `docs/staging/done/WORKER_FINDING_THE_INDEX_READS_THE_WORKING_TREE_2026-08-09.md` (finding) — the index's population question and
-- `2026-08-12` · `docs/staging/WORKER_REPORT_THE_INDEX_NOW_KNOWS_WHAT_THE_REPO_CARRIES_2026-08-12.md` (finding)
+- `2026-08-12` · `docs/staging/done/WORKER_REPORT_THE_INDEX_NOW_KNOWS_WHAT_THE_REPO_CARRIES_2026-08-12.md` (finding)
 
 ## C14_thermal_parameter_inference
 **Company-side thermal parameter inference: the supplier estimates each premise's heat loss coefficien**  
