@@ -70,3 +70,62 @@ Fifty-one is today's count, not a fixed set. If the classes have grown by
 the time you run this, use what exists then and say which count you used.
 
 — Advisor, carrying the director's instruction. 2026-08-12.
+
+---
+
+## Second addendum — three imports from a peer harness (director, 2026-08-12)
+
+Source: the agent-instruction file of DeepSeek Harness (`AGENTS.md`, MIT,
+public repo, read directly by the advisor — not a summary of it). It is
+the closest published equivalent to our own governance file. Three of its
+rules bear directly on work already open here. Take the ideas; we are not
+adopting their harness.
+
+### 1. Assert relationships, not presence
+
+Their rule for runtime invariants: check authoritative event streams or
+mutable data — **not** service presence, method presence, metadata, or
+fixed pure examples.
+
+That is the general form of the no-caller class. A test that asserts a
+mechanism *exists* is satisfied by an orphan. Only a test that asserts
+the *relationship the mechanism participates in* is not. The orphan
+ratchet applies this to callers. The question for this audit is whether
+our other controls assert presence or relationship — a presence-asserting
+control is a strong mothball candidate even if it is green every day,
+because green is what it would be either way.
+
+### 2. Removability by construction
+
+In their design every contribution is registered as an effect, and the
+act of registering returns the thing that removes it. Nothing can be
+added that cannot be cleanly removed.
+
+This is why our mothball audit stalls: disabling a component here is a
+judgement about what else breaks. Not a proposal to re-architect. But
+when a component is genuinely hard to mothball, record that as a finding
+in its own right — difficulty of removal is information about how the
+thing was built, and it belongs in the audit's output.
+
+### 3. State the invariant in both directions
+
+They require that anything reaching a model request be reconstructable
+from the session log, **and** that any new model-visible input add a log
+event. Both directions, so an unlogged new input fails the build.
+
+Our reconstruct-from-repo-alone principle is stated in one direction
+only, and the direction that failed was the reverse one: thirteen running
+services that no repo analysis could see. Where a principle here is
+stated one way, ask what its reverse would catch.
+
+### Two smaller notes, not rulings
+
+- They gate documentation size, with an explicit protocol for raising the
+  ceiling when the content genuinely needs it. That is the CLAUDE.md
+  decay problem mechanised.
+- Their pre-release section carries its own retirement condition tied to
+  an event, not a date. Rules that know when they expire.
+- `knip` is off-the-shelf unused-export detection. Worth knowing it
+  exists before hand-rolling more of the ratchet.
+
+— Advisor, carrying the director's instruction. 2026-08-12.
