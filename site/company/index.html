@@ -576,7 +576,15 @@ function renderFinance(d, w){
     // DD5: held customer credit as a LIABILITY, beside treasury -- part of that cash is owed back.
     kpiTile("Customer credit held", (function(){var h=heldCredit(d);return h?gbp(h.held_gbp):"--";})(), "banked clock · liability, owed back · sample floor", "neu"),
     kpiTile("Corp. tax "+yr+partialSuffix, gbp(f.latest_year_corporation_tax_gbp), "billed clock · mgmt accounts"+partialSubSuffix, "neg"),
-    kpiTile("Enterprise value", gbp(f.enterprise_value_gbp, !!(f.enterprise_value_basis||{}).provisional), ((f.enterprise_value_basis||{}).clock||"settled")+" clock · derived · scales with drawn book")
+    // THE COST BASIS IS ON THE TILE, not only in the payload (2026-08-17,
+    // WORKER_FINDING_THE_BOOK_IS_VALUED_ON_A_MARGIN_THAT_EXCLUDES_THREE_QUARTERS_OF_THE_COST_STACK).
+    // "settled clock · derived" was true and still let the reader take £6.3m as
+    // ~4x the £1.55m net-margin tile three rows up, when it was ~1.0x a
+    // contribution line excluding 76% of the cost stack. The clock alone does not
+    // separate two margin lines on the same clock. Read from the payload, never
+    // written here: the basis this renders is the one the valuation computed on,
+    // and the publish gate refuses a run where it disagrees with its stated parent.
+    kpiTile("Enterprise value", gbp(f.enterprise_value_gbp, !!(f.enterprise_value_basis||{}).provisional), ((f.enterprise_value_basis||{}).clock||"settled")+" clock · "+(((f.enterprise_value_basis||{}).cost_basis||"basis unstated").replace(/_/g," "))+" · derived · scales with drawn book")
   ]);
   el("finance-kpis").innerHTML=kpis.join("");
   // SITE_EH1: the demoted blend lives here, WITH its reason -- kept reconcilable, never

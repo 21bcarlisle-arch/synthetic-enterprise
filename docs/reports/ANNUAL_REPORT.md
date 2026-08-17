@@ -507,11 +507,6 @@ CM (Capacity Market) and FiT (Feed-in Tariff) levies apply to ALL demand includi
 
 Total policy cost: £3,404,189 across all years. Net margin is after deducting this. Revenue side: tariff pass-through at term-start year's levy rate — basis risk arises when cross-year terms meet a different actual levy (notably 2022 CfD rebate).
 
-> **EXTRAPOLATED RATES — 13 of 13 rate tables.** Every rate table above is published only up to a given year. Where this run bills outside that year range, the reader serves the nearest tabulated rate and the figure is a CARRIED-FORWARD stand-in, not a published rate.
-> Beyond the published range: from 2025-01-01, 4 table(s) (CfD interim levy, RO mutualisation, electricity standing charge, gas standing charge); from 2025-04-01, 9 table(s) (Capacity Market, Feed-in Tariff, Green Gas Levy, I&C DUoS and 5 more).
-> The same applies at the START of the window: 9 table(s) (Capacity Market, Feed-in Tariff, Green Gas Levy, I&C DUoS and 5 more) begin after the first settlement date in this run, so the earliest bills are priced on the earliest tabulated rate.
-> This states what the instrument can and cannot tell you. It is not a claim that the carried-forward rates are wrong.
-
 ## Network Charges — DUoS + TNUoS (Phase 29a)
 
 Electricity network charges deducted from net_margin_gbp each year. 
@@ -533,11 +528,6 @@ I&C HV: DUoS only (Triad TNUoS is an annual lump tracked in the Triad section).
 | **Total** | **869,333** | |
 
 Total network cost: £869,333 across all years. Pass-through: tariff unit rate includes network cost at term-start year's rate; settlement deducts it — basis risk near-zero for annual contracts.
-
-> **EXTRAPOLATED RATES — 13 of 13 rate tables.** Every rate table above is published only up to a given year. Where this run bills outside that year range, the reader serves the nearest tabulated rate and the figure is a CARRIED-FORWARD stand-in, not a published rate.
-> Beyond the published range: from 2025-01-01, 4 table(s) (CfD interim levy, RO mutualisation, electricity standing charge, gas standing charge); from 2025-04-01, 9 table(s) (Capacity Market, Feed-in Tariff, Green Gas Levy, I&C DUoS and 5 more).
-> The same applies at the START of the window: 9 table(s) (Capacity Market, Feed-in Tariff, Green Gas Levy, I&C DUoS and 5 more) begin after the first settlement date in this run, so the earliest bills are priced on the earliest tabulated rate.
-> This states what the instrument can and cannot tell you. It is not a claim that the carried-forward rates are wrong.
 
 ## Gas Policy Costs and Network Charges (Phase 30b)
 
@@ -848,7 +838,7 @@ CLV is computed from churn renewal history and net margins accumulated up to tha
 | 2022 | — | £2,598.29 | — | £1,011.03 | — | £12,472.20 | £3,853.91 | £5,477.60 | £5,079.40 | £728,435.71 | £411,645.55 | £1,499,416.42 | £803,606.74 | £2,899.90 |
 | 2023 | — | £2,643.61 | — | £114.49 | — | £12,023.19 | £3,910.30 | £5,237.88 | £4,916.73 | £719,030.73 | £400,400.48 | £1,273,436.82 | £742,245.87 | £2,305.81 |
 | 2024 | — | £2,846.10 | — | — | — | — | £4,158.61 | £5,368.12 | £5,356.70 | £731,487.22 | £405,271.49 | £1,332,362.87 | £765,895.52 | £3,199.32 |
-| 2025 | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
+| 2025 | — | £2,607.29 | — | — | — | — | £4,547.02 | £5,009.34 | £5,298.62 | £784,094.09 | £434,059.68 | £1,451,472.72 | £839,133.36 | £3,851.28 |
 
 ## Cost to Serve & Pricing Actions
 
@@ -1705,7 +1695,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-08-17T10:26:10Z
+Generated: 2026-08-17T12:23:06Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -1788,11 +1778,13 @@ Estimated forward lifetime value of active billing accounts at each year-end.
 | 2022 | 11 | £3,476,497 | £316,045 | £-162,010 |
 | 2023 | 11 | £3,166,266 | £287,842 | £-310,231 |
 | 2024 | 9 | £3,255,946 | £361,772 | +£89,680 |
-| 2025 | 0 | £0 | £0 | £-3,255,946 |
+| 2025 * | 9 | £3,530,073 | £392,230 | — |
 
-**Peak portfolio CLV: 2020 (£4,203,770)** | **Earliest/lowest: 2025 (£0)**
+**Peak portfolio CLV: 2020 (£4,203,770)** | **Lowest: 2016 (£23,759)**
 **Largest YoY gain: 2018 (+£2,232,169)**
-**Largest YoY fall: 2025 (£-3,255,946)**
+**Largest YoY fall: 2021 (£-565,263)**
+
+> \* Partial period — the run does not cover this year to its end, so it is shown as a reading in its own right and excluded from the Δ column and from the peak/lowest/largest-move figures above: 2025 (observed to 2025-06-07, 9 accounts valued). Ranking a part-year against full years would report the cutoff as a change in the book.
 
 > Note: CLV snapshots are forward estimates at year-end based on remaining contract tenure and expected margins at that point in time.
 
@@ -3383,8 +3375,8 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
 - New acquisitions this year: none
 - Losses (churn) during year: none
   - Renewals (retained): 2 accounts
-- Average CLV across book (whole-run projection, per billing account): £787,352.26
-- Highest CLV: C_IC3 (£2,574,512.66); Lowest CLV: C2 (£4,384.23)
+- Average CLV (Point-in-Time, 2025-06-07): £392,230.38
+  - By billing account: C2 £2,607.29, C7 £4,547.02, C8 £5,009.34, C9 £5,298.62, C_IC1 £784,094.09, C_IC2 £434,059.68, C_IC3 £1,451,472.72, C_IC4 £839,133.36, SYN-2021-001 £3,851.28
 - Bill shock events (>=20%): 19 -- C7 2025-04-30 (37%); C7 2025-05-31 (38%); C7 2025-06-07 (158%); C2 2025-04-30 (34%); C2g 2025-01-31 (32%); C2g 2025-02-28 (24%); C2g 2025-05-31 (34%); C2g 2025-06-07 (73%); C8 2025-01-31 (30%); C8 2025-02-28 (24%); C8 2025-04-30 (28%); C8 2025-05-31 (42%); C8 2025-06-07 (198%); C9 2025-04-30 (25%); C9 2025-05-31 (33%); C9 2025-06-07 (72%); C_IC1 2025-06-07 (77%); C_IC2 2025-06-07 (75%); C_IC3 2025-06-07 (78%)
 - Churn risk (accounts renewing in 2025): 2 at risk (≥20% churn prob): C2 41%, C8 35%
 
