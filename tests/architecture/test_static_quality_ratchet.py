@@ -116,6 +116,63 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-08-17  I001 1375 -> 1373  (the 3-day content freeze, 2026-08-14 07:04 UTC on)
+#     TWO counts, TWO different causes, and only one of them was a working-tree
+#     transient — the split matters, because freezing the tree's number would have
+#     re-frozen a floor HEAD had already left.
+#       1375 -> 1374  HEAD ITSELF had already fallen to 1373 and nobody re-pinned it.
+#             Measured this tick against a real `git archive HEAD` extraction (NOT
+#             the working tree, per this log's standing rule): HEAD I001 = 1373,
+#             HEAD total = 2379. The commits that took it there never ran this test,
+#             because the pre-commit gate maps tests to CHANGED PATHS and none of
+#             them selected `tests/architecture/` — the mechanism named in
+#             `WORKER_FINDING_A_RED_AT_HEAD_IS_INVISIBLE_TO_EVERY_COMMIT_THAT_DOES_
+#             NOT_SELECT_ITS_FILE_2026-08-15.md`. A shrink-only ratchet cannot see
+#             its own good news, so the stale-baseline red waits at HEAD for the
+#             next wide-pathspec commit. The content publish is always that commit.
+#       1374 -> 1373  ONE real, fixable violation, in the working tree only:
+#             `tests/background/test_publish_gate_subject_is_head.py` carried a
+#             53-line uncommitted addition whose new
+#             `from tests.background.publish_gate_root_shape import ...` left the
+#             block un-sorted (I001 at :45). Repaired at source with
+#             `ruff check --select I001 --fix` on that one file, per this ratchet's
+#             own remedy — not baselined around. Tree and HEAD now agree at
+#             I001 1373 / total 2379, so the frozen floor is committed truth again.
+#     Recorded rather than left stale, per this log's standing rule.
+#   2026-08-14  E402 195 -> 176, F811 96 -> 95, I001 1376 -> 1375, F401 279 -> 278
+#     (publish-gate wedge, priority-zero unwedge tick.) `real_ruff_counts()` was
+#     exceeding on E402 (195 vs floor 193) and F811 (96 vs 95) and blocking the
+#     publish gate outright (`test_ruff_no_rule_exceeds_baseline` runs inside the
+#     blocking scope, `tests/architecture/` collects before the OPS2 failure this
+#     tick was drawn to fix). Both were real, findable regressions, not baseline
+#     drift, and both are repaired at source per this ratchet's own remedy:
+#       E402  `saas/reporting/annual_report.py` carried a module-level
+#             `_PROJECT = Path(__file__)...` BETWEEN `from pathlib import Path`
+#             and the rest of the import block -- the exact recurring shape this
+#             log already names four times above (2026-08-09, 2026-08-12 x2,
+#             2026-08-13): every import after it reads as "code before imports".
+#             071a60ec7 added one more import into that already-broken block
+#             (194 -> 195); the underlying block itself had drifted 193 -> 194
+#             some time before that and was never re-pinned. Moved the
+#             assignment below the import block (its two use sites, both well
+#             into the file, are unaffected) and the WHOLE file's E402 count
+#             drops to 0, taking the file's 19 lines with it -- 195 -> 176, nine
+#             below the recorded floor because the pre-existing 18 were never
+#             isolated as their own debt before now.
+#       F811  `tests/saas/reporting/test_annual_report.py` imported
+#             `_build_clv_snapshots` from `saas.reporting.annual_report` at
+#             module top (line 6, part of the shared import block) AND again at
+#             line 2905 inside the `WORKER_FINDING_THE_BOOK_VALUE_COUNTS_
+#             CUSTOMERS_WHO_HAVE_ALREADY_LEFT` test block, both `# noqa: E402`
+#             (deliberate, mid-file) but the second shadowed the first (F811,
+#             not noqa'd). Same name, same source module -- the second import
+#             was dead weight. Removed; 96 -> 95, back at the frozen floor.
+#     I001/F401 shrank as a side effect of the same two edits (fewer lines to
+#     sort, fewer names to track) -- not independently hunted, and recorded
+#     rather than left stale per this log's own standing rule. Verified against
+#     a clean `git write-tree` export, not the working tree (the class this log
+#     has caught twice already): `python3 -m ruff check .` inside a fresh
+#     extraction of the tree this commit creates.
 #   2026-08-13  E731 19 -> 19  (NO MOVE — the SECOND red at HEAD, hidden behind
 #     the first) `tests/background/test_gap_ledger_reconciler.py` grew an
 #     assigned lambda in 7a9bf56be. It was invisible while I001 was red because
@@ -287,9 +344,9 @@ BASELINE_DATE = "2026-08-06"
 # company/trading/emir_reporting_register.py.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
-    "I001": 1376,
-    "F401": 279,
-    "E402": 193,
+    "I001": 1373,
+    "F401": 278,
+    "E402": 176,
     "F841": 128,
     "E741": 108,
     "F811": 95,
@@ -307,7 +364,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2400  # was 2421 at the 08-06 freeze; -21 per the shrink log above
+RUFF_BASELINE_TOTAL = 2379  # was 2381; -2 (see 2026-08-17 entry above)
 
 
 # --------------------------------------------------------------------------

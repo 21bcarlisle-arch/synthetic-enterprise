@@ -10,7 +10,7 @@
 |---|---|---|
 | Invisible to the BUILD draw | `supervisor._maturity_map_draw_concurrent` (the real draw) | 95/95 parked atoms not offered — 73 proven excluded BY THE PARK (lifting the park alone makes them drawable), 22 excluded for another reason |
 | Visible to the staleness clocks | `tools/map_assertion_provenance.build_rows` (AO11) | 95/95 parked atoms carry a row |
-| Visible to the composition dial | this module, over all 305 atoms | 95 parked (20 with a gate stated in `block_reason`) |
+| Visible to the composition dial | this module, over all 306 atoms | 95 parked (20 with a gate stated in `block_reason`) |
 
 ## The dial
 
@@ -20,7 +20,7 @@ At mint (2026-08-08) the ruling measured **82 harness vs 7 commercial across 206
 |---|---:|---:|---:|
 | `H_harness` | 125 | 98 | 27 |
 | `D_billing_metering` | 46 | 34 | 12 |
-| `W2_customer_generator` | 30 | 24 | 6 |
+| `W2_customer_generator` | 31 | 25 | 6 |
 | `W1_market_weather` | 20 | 12 | 8 |
 | `C_customer_ops` | 17 | 13 | 4 |
 | `G_data_learning` | 14 | 9 | 5 |
@@ -32,7 +32,7 @@ At mint (2026-08-08) the ruling measured **82 harness vs 7 commercial across 206
 | `W3_industry_systems` | 3 | 2 | 1 |
 | `W5_banking_payment_rails` | 1 | 1 | 0 |
 
-Harness share of the whole map: **41.0%** (125 of 305).
+Harness share of the whole map: **40.8%** (125 of 306).
 This is a DIAGNOSTIC (R12). `--check` never fails on it.
 The same lane counts split by `loop_stage` are on the WIP-flow door (`tools/generate_wip_flow_data.py`); what is here and not there is the with/without-parked comparison and the two probes below it.
 
@@ -42,7 +42,7 @@ Matched on the atom id, as the ruling measured it; a floor, not a census.
 
 | Subject | Atoms | Of which survive a park-filtering reader |
 |---|---:|---:|
-| `clv` | 1 | 0 |
+| `clv` | 2 | 1 |
 | `counterparty_adapter` | 8 | 0 |
 | `forecast_feed` | 1 | 0 |
 | `tournament` | 2 | 0 |

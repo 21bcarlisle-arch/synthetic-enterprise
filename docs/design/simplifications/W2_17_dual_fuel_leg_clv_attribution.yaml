@@ -1,0 +1,15 @@
+atom_id: W2_17_dual_fuel_leg_clv_attribution
+map_notes:
+  name: tools/generate_customer_data.py:229 reads `clv_data = bba.get(base, {}) if not is_gas else {}`, so EVERY gas leg publishes churn_probability 0 / clv_gbp 0 / expected_lifetime_periods 0 / forecast_annual_profit_gbp 0 by construction -- and the published per-customer record cannot distinguish that structural blank from a measured zero
+  notes: 'MINTED 2026-08-15 (worker tick, SITE2 draw) as the OWNER of the data half of coldwalk:site2_churned_account_presented_in_the_present_tense. SITE2 deferred that half in prose to "a generator-lane item"; no such atom existed, so the finding was owned by nobody and drawable by nothing.
+
+
+    Re-diagnosed at mint (R4) and the walk''s diagnosis was WRONG about the mechanism. The walk saw the zero on C1, whose household really had churned on 2021-12-30, so a never-populated field read as a measured zero and the record was written up as the two fuel legs disagreeing about whether it is still a customer. They do not disagree -- one leg holds a belief and the other was never given one.
+
+
+    STORE ROWS WRITTEN 2026-08-17. The mint declared `notes_rehomed: [name, notes]` and `records_rehomed: [evidence]` and wrote no store file, so test_atom_notes_store.py::test_declarations_match_the_store and test_atom_records_store.py::test_declarations_match_the_store_both_directions were red at the working tree from the moment of the mint. Those two reds were 2 of the 5 that held the pre-commit gate -- and therefore the content publish -- from 2026-08-14 07:04 UTC. The mint''s own `# MINTED` comment in the map block is left exactly as written; what is added here is the `name`/`notes`/`evidence` content the declarations promised and the store never held.'
+map_records:
+  evidence:
+  - tools/generate_customer_data.py
+  - tests/tools/test_generate_customer_data.py
+  - docs/design/maturity_map.yaml

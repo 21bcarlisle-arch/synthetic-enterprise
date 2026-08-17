@@ -239,15 +239,45 @@ def test_the_dial_counts_parked_atoms_and_a_park_filtering_reader_would_not():
     assert report.lane_weights_excluding_parked["H_harness"] == 1
 
 
-def test_on_the_live_map_the_rulings_named_subjects_exist_only_in_parked_atoms():
+# The live map's UNPARKED coverage of the ruling's three named subjects, frozen and dated.
+#
+# WHY THIS IS A CENSUS AND NOT A BARE `== []` (2026-08-17). It was `== []` for all three, and
+# that is the one thing this measurement can never assert for long: `[]` encodes the DEFECT the
+# ruling was written about (every atom on these subjects parked, so a park-filtering reader sees
+# the zero the mint was made to fix), so the assertion turns RED the first time the map improves.
+# It did, on 2026-08-15, when the SITE2 draw minted `W2_17_dual_fuel_leg_clv_attribution` --
+# loop_stage `build`, `blocked_on: null`, a LIVE atom on `clv`. Good news, read as a failure, and
+# it sat in the working tree as one of the reds holding the content publish frozen from
+# 2026-08-14T07:04Z.
+#
+# Frozen rather than deleted, because the property is still load-bearing in BOTH directions: a
+# NEW unparked atom on any of the three subjects reds this, and so does W2_17 going back to
+# parked. Move an entry here only with the atom id that earned it and the date -- an empty list
+# shrinking to a name is progress and must be recorded; a name growing back to `[]` is the
+# regression this control exists to catch.
+UNPARKED_SUBJECT_COVERAGE: dict[str, list[str]] = {
+    "clv": ["W2_17_dual_fuel_leg_clv_attribution"],  # 2026-08-15, SITE2 draw
+    "counterparty_adapter": [],
+    "forecast_feed": [],
+}
+
+
+def test_on_the_live_map_the_rulings_named_subjects_are_covered_and_their_unparked_set_is_frozen():
     """The load-bearing measurement, and the reason the visibility property is not decorative: the
     ruling's evidenced problem was ZERO atoms touching CLV, a counterparty adapter or a forecast
-    feed. Every atom that now covers those subjects is parked, so a reader filtering parked atoms
-    reports exactly the zero the mint was made to fix."""
+    feed. Every such subject must still be COVERED, and the subset a park-filtering reader can
+    actually see must match `UNPARKED_SUBJECT_COVERAGE` exactly -- see that constant for why the
+    parked-only half is a dated census rather than a bare zero."""
     report = bav.build_report(bav.load_atoms(), probe_draw=False, probe_clocks=False)
-    for subject in ("clv", "counterparty_adapter", "forecast_feed"):
+    for subject, expected in UNPARKED_SUBJECT_COVERAGE.items():
         assert report.subject_coverage_all[subject], subject
-        assert report.subject_coverage_excluding_parked[subject] == [], subject
+        assert sorted(report.subject_coverage_excluding_parked[subject]) == sorted(expected), (
+            f"{subject}: a park-filtering reader now sees "
+            f"{sorted(report.subject_coverage_excluding_parked[subject])}, frozen as "
+            f"{sorted(expected)}. If an atom was unparked, record it in "
+            "UNPARKED_SUBJECT_COVERAGE with its id and date; if one went back to parked, that is "
+            "the regression this control exists to catch."
+        )
 
 
 def test_subject_coverage_is_matched_on_the_id_as_the_ruling_measured_it():

@@ -3179,6 +3179,36 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a risk system where refining one desk's model reprices every other desk's book, because they all pull from one random seed -- so no baseline survives any improvement and nobody can tell a real change from a reshuffle."
   records_rehomed: [evidence]
+- id: W2_17_dual_fuel_leg_clv_attribution
+  title: "Every gas leg's CLV is a structural blank, and one churned household made the blank look correct"
+  notes_rehomed: [name, notes]
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 2
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 2
+  provenance: worker_finding
+  # MINTED 2026-08-15 (worker tick, SITE2 draw) as the OWNER of the data half of
+  # coldwalk:site2_churned_account_presented_in_the_present_tense. SITE2 deferred that half in
+  # prose to "a generator-lane item"; no such atom existed, so the finding was owned by nobody
+  # and drawable by nothing. Re-diagnosed at mint (R4) and the walk's diagnosis was WRONG about
+  # the mechanism: tools/generate_customer_data.py:229 reads
+  #   clv_data = bba.get(base, {}) if not is_gas else {}
+  # so EVERY gas leg publishes churn_probability 0 / clv_gbp 0 / expected_lifetime_periods 0 /
+  # forecast_annual_profit_gbp 0 by construction. The walk saw it on C1, whose household really
+  # had churned on 2021-12-30, so a never-populated field read as a measured zero and the record
+  # was written up as the two fuel legs disagreeing about whether it is still a customer. They do
+  # not disagree -- one leg holds a belief and the other was never given one.
+  file_scope: [tools/generate_customer_data.py, tests/tools/test_generate_customer_data.py]
+  depends_on: []
+  blocked_on: null
+  simplifications_count: 0
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  gain: "All five published gas accounts (C1g, C2g, C3g, C4g, C_IC3g) carry zero CLV, zero churn probability, zero expected lifetime and zero forecast profit, while four of their own electricity legs are live and large -- C2 0.41/GBP4,855.58, C3 0.17/GBP3,434.19, C4 0.17/GBP1,336.57, C_IC3 0.41/GBP3,137,524.98. The published per-customer record cannot distinguish a measured zero from a field that was never populated, so the site renders a structural blank as a company belief about half of every dual-fuel household. Population is 5 legs, not the 1 household the Hour recorded."
+  real_world_twin: "a supplier whose lifetime-value model is keyed on the electricity MPAN, so the gas half of every dual-fuel household reports zero value forever -- and nobody notices until one churned account makes the zero look like the right answer"
+  records_rehomed: [evidence]
 - id: H30_sim_runner_discards_child_stderr
   notes_rehomed: [name, notes]
   lane: H_harness
