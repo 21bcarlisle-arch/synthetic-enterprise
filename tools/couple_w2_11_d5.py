@@ -215,6 +215,91 @@ AS_OF_BUFFER_DAYS = 30           # comfortably past payment_terms + the ARUDD la
 # window (default 90d in PaymentObservationConsumer) confound the reading.
 DD_FAILURE_WINDOW_DAYS = 400
 
+
+# ---------------------------------------------------------------------------
+# THE ONE READING PREDICATE (atom D33; closes
+# WORKER_FINDING_A_NAN_GAP_DEFEATS_THE_UNDEFINED_READING_GUARD_2026-08-17)
+# ---------------------------------------------------------------------------
+# WHY THIS IS ONE FUNCTION AND NOT EIGHT COMPARISONS. Every claim this module
+# makes about two counterfactual companies -- collapsed / distinct / moved /
+# unmoved / saturated -- reduces to "are these two readings ONE reading". Until
+# this existed that question was answered EIGHT times in this file, as TWO
+# different predicates: `_measure_collapse_runs` grouped on `repr()`, the other
+# seven sites compared raw floats with `==`/`!=`. Measured on the shipped
+# functions at HEAD 95cc1be06 (`observed-with-evidence`, no scenario built),
+# they disagree on both degenerate float values, in OPPOSITE directions:
+#
+#     readings (0.0, -0.0):  repr() -> DISTINCT (two companies)
+#                            ==     -> COLLAPSED (one company)
+#     readings (nan, nan):   repr() -> COLLAPSED (one company)
+#                            ==     -> DISTINCT, and distinct_from_baseline too
+#
+# THE NaN ROW IS THE FAIL-OPEN, and it walks through this module's own guard.
+# `undefined_readings` exists precisely so that "an instrument that has stopped
+# reading at all" is not counted as resolution (the D28 fail-open) -- but it
+# tested for `None`, and NaN is the OTHER value a stopped instrument publishes.
+# A dimension publishing NaN was recorded by one derivation as two companies
+# collapsing and by the other as two companies DISTINCT FROM BASELINE: a claim
+# of resolution manufactured out of an absent measurement.
+#
+# THE RULE, stated once so it cannot be half-applied: a reading is UNDEFINED if
+# it is `None` or a non-finite float (NaN, +/-inf). Undefined readings never
+# stand in a resolution claim -- they are routed to `undefined_readings`, which
+# every register must DECLARE. Two defined readings are ONE reading iff they
+# compare equal, with `+0.0` and `-0.0` normalised to one key so the sign of a
+# zero cannot mint a counterfactual company.
+#
+# BLAST RADIUS, measured before the change rather than asserted after it (the
+# `a blast radius counted is not a blast radius measured` class): the 2026-08-17
+# D33 sweep read 2,264 pairwise comparisons across both dense sweeps (n=300,
+# seeds 7/11/23) and found EVERY non-difference to be exactly zero and every
+# difference to be 7x-17x the reader's own step. There is no `-0.0` and no
+# non-finite reading on this book, so reconciling the two predicates moves ZERO
+# of the 45 declared edges and ZERO of the 17 band declarations. This lands as
+# a guard against a reachable fail-open, NOT as a re-derivation of the book.
+
+_READING_UNDEFINED = "undefined"
+
+
+def _reading_key(value):
+    """The single canonical comparison key for one dimension reading.
+
+    Hashable, so `_measure_collapse_runs` can group on it directly -- which is
+    the reason the `repr()` predicate existed at all, and the reason it drifted
+    from `==` (a raw float key is unusable for grouping: `nan != nan`, so a NaN
+    reading never matches its own group).
+    """
+    if value is None:
+        return (_READING_UNDEFINED, "None")
+    if isinstance(value, float):
+        if math.isnan(value):
+            # ALL NaNs are ONE undefined reading. Not "equal" -- undefined.
+            return (_READING_UNDEFINED, "nan")
+        if math.isinf(value):
+            return (_READING_UNDEFINED, repr(value))
+        if value == 0.0:
+            # +0.0 and -0.0 are one reading. `repr()` said otherwise.
+            return ("reading", 0.0)
+    return ("reading", value)
+
+
+def _is_undefined_reading(value) -> bool:
+    """Whether this reading is an ABSENT measurement rather than a number.
+
+    The D28 guard's subject, widened from `None` alone to every value an
+    instrument that has stopped reading can publish.
+    """
+    return _reading_key(value)[0] == _READING_UNDEFINED
+
+
+def _same_reading(left, right) -> bool:
+    """Whether two readings are ONE reading -- the module's ONLY equality on a
+    published figure. Two undefined readings are the same *undefined* reading;
+    they are still undefined, and the caller must route them to
+    `undefined_readings` rather than publish either answer as resolution."""
+    return _reading_key(left) == _reading_key(right)
+
+
 # ---------------------------------------------------------------------------
 # THE STAGGERED BILLING BOOK (atom D25_ageing_resolution_is_the_harness_calendar)
 # ---------------------------------------------------------------------------
@@ -2312,8 +2397,10 @@ def measure_organ_query_grid_resolution(
         entry = register[name]
         base = _read(entry, scored[0])
         by_drift = {k: _read(entry, scored[k]) for k in drifts if k != 0}
-        moved = sorted(k for k, v in by_drift.items() if v != base)
-        unmoved = sorted(k for k, v in by_drift.items() if v == base)
+        moved = sorted(k for k, v in by_drift.items()
+                       if not _same_reading(v, base))
+        unmoved = sorted(k for k, v in by_drift.items()
+                         if _same_reading(v, base))
         any_movement = any_movement or bool(moved)
         one_day = by_drift.get(1)
         all_readings = {**by_drift, 0: base}
@@ -2327,9 +2414,10 @@ def measure_organ_query_grid_resolution(
             "collapses": {
                 pair: {
                     "readings": (all_readings.get(pair[0]), all_readings.get(pair[1])),
-                    "collapsed": (all_readings.get(pair[0])
-                                  == all_readings.get(pair[1])),
-                    "distinct_from_baseline": (all_readings.get(pair[0]) != base),
+                    "collapsed": _same_reading(all_readings.get(pair[0]),
+                                               all_readings.get(pair[1])),
+                    "distinct_from_baseline": not _same_reading(
+                        all_readings.get(pair[0]), base),
                 }
                 for pair in tuple(entry.get("collapsed_pairs") or ())
             },
@@ -2338,8 +2426,8 @@ def measure_organ_query_grid_resolution(
             "distinctions": {
                 pair: {
                     "readings": (all_readings.get(pair[0]), all_readings.get(pair[1])),
-                    "distinct": (all_readings.get(pair[0])
-                                 != all_readings.get(pair[1])),
+                    "distinct": not _same_reading(all_readings.get(pair[0]),
+                                                  all_readings.get(pair[1])),
                 }
                 for pair in tuple(entry.get("distinct_pairs") or ())
             },
@@ -3331,8 +3419,9 @@ def measure_organ_query_grid_saturation(
             # reason -- which is the thing worth failing on.
             witness = {
                 k: tuple(
-                    ((by_seed[s]["by_drift"][k] if k != 0
-                      else by_seed[s]["baseline"]) is None,
+                    (_is_undefined_reading(
+                        by_seed[s]["by_drift"][k] if k != 0
+                        else by_seed[s]["baseline"]),
                      scored[(s, k)][1][dim_name].components.get(comp))
                     for s in seeds)
                 for k in runs["undefined_readings"]
@@ -3693,7 +3782,7 @@ def measure_published_figure_caveat_coverage(
             row = out.setdefault(dim, {})
             moved_at = sorted({
                 k for (seed, k), res in readings.items()
-                if res[dim].gap != base[seed][dim].gap
+                if not _same_reading(res[dim].gap, base[seed][dim].gap)
             })
             step = None
             if -1 in probes[knob] and 1 in probes[knob]:
@@ -4511,8 +4600,10 @@ def measure_dimension_drift_resolution(
             by_seed[s] = {
                 "baseline": base,
                 "by_drift": by_drift,
-                "moved": sorted(k for k, v in by_drift.items() if v != base),
-                "unmoved": sorted(k for k, v in by_drift.items() if v == base),
+                "moved": sorted(k for k, v in by_drift.items()
+                                if not _same_reading(v, base)),
+                "unmoved": sorted(k for k, v in by_drift.items()
+                                  if _same_reading(v, base)),
             }
         moved = sorted(set.intersection(
             *[set(by_seed[s]["moved"]) for s in seeds]))
@@ -4536,8 +4627,9 @@ def measure_dimension_drift_resolution(
             wit_dim, comp = str(wit_key[0]), str(wit_key[1])
             witness = {
                 k: tuple(
-                    ((by_seed[s]["by_drift"][k] if k != 0
-                      else by_seed[s]["baseline"]) is None,
+                    (_is_undefined_reading(
+                        by_seed[s]["by_drift"][k] if k != 0
+                        else by_seed[s]["baseline"]),
                      scored[(s, k)][wit_dim].components.get(comp))
                     for s in seeds)
                 for k in runs["undefined_readings"]
@@ -4602,19 +4694,31 @@ def _measure_collapse_runs(by_seed: Dict[int, Dict[str, object]],
     D27 found on the belief window and could only ask of an off-path entry.
 
     `undefined_readings` is the fail-open this measurement would otherwise
-    have: a dimension whose population empties under a drift publishes `None`,
-    and `None != baseline` reads as MOVEMENT -- an instrument that has stopped
-    reading at all, counted as resolution.
+    have: a dimension whose population empties under a drift publishes no
+    number, and "no number != baseline" reads as MOVEMENT -- an instrument that
+    has stopped reading at all, counted as resolution.
+
+    THE GUARD'S SUBJECT IS EVERY ABSENT READING, not `None` alone (2026-08-17).
+    It tested `is None` for its first nine months, and NaN is the other value a
+    stopped instrument publishes -- so a NaN reading walked straight through the
+    guard written to catch exactly it. `_is_undefined_reading` is now the one
+    definition, shared with `_collapse_state`, which used to disagree with this
+    function about NaN in the opposite direction.
     """
     def reading(s: int, k: int):
         return by_seed[s]["baseline"] if k == 0 else by_seed[s]["by_drift"][k]
 
     ks = sorted(drifts)
     undefined = tuple(k for k in ks
-                      if any(reading(s, k) is None for s in seeds))
+                      if any(_is_undefined_reading(reading(s, k))
+                             for s in seeds))
     groups: Dict[tuple, List[int]] = {}
     for k in ks:
-        groups.setdefault(tuple(repr(reading(s, k)) for s in seeds),
+        # `_reading_key`, NOT `repr()`: the two differed on `-0.0` (repr splits
+        # one company into two) and the sole reason `repr()` was ever used here
+        # -- that a raw float key cannot group a NaN with itself -- is now
+        # handled inside the shared key.
+        groups.setdefault(tuple(_reading_key(reading(s, k)) for s in seeds),
                           []).append(k)
     runs = tuple(sorted(tuple(v) for v in groups.values() if len(v) > 1))
     lo, hi = ks[0], ks[-1]
@@ -4629,15 +4733,24 @@ def _measure_collapse_runs(by_seed: Dict[int, Dict[str, object]],
 def _collapse_state(row: Dict[str, object], pair: Tuple[int, int]):
     """Whether a declared pair of counterfactual companies really do publish ONE
     reading, on EVERY measured seed -- re-derived from the raw per-seed readings.
-    `None` where either member was never scored."""
+    `None` where either member was never scored, OR where either member's
+    reading is UNDEFINED on any seat -- an absent measurement cannot witness a
+    collapse or a distinction, and before 2026-08-17 this function answered
+    `collapsed: False, distinct_from_baseline: True` for a pair reading
+    (nan, nan): the D28 fail-open, arriving through the one value the guard did
+    not name, while `_measure_collapse_runs` called the same pair collapsed."""
     states = []
     for s in row["seeds"]:
         readings = {**row["by_seed"][s]["by_drift"],
                     0: row["by_seed"][s]["baseline"]}
         if pair[0] not in readings or pair[1] not in readings:
             return None
-        states.append((readings[pair[0]] == readings[pair[1]],
-                       readings[pair[0]] != row["by_seed"][s]["baseline"],
+        if any(_is_undefined_reading(readings[p]) for p in pair) \
+                or _is_undefined_reading(row["by_seed"][s]["baseline"]):
+            return None
+        states.append((_same_reading(readings[pair[0]], readings[pair[1]]),
+                       not _same_reading(readings[pair[0]],
+                                         row["by_seed"][s]["baseline"]),
                        (readings[pair[0]], readings[pair[1]])))
     return {
         "collapsed": all(s[0] for s in states),
@@ -4841,9 +4954,10 @@ def measure_own_drift_resolution(
                 by_seed[s] = {
                     "baseline": base,
                     "by_drift": by_drift,
-                    "moved": sorted(k for k, v in by_drift.items() if v != base),
+                    "moved": sorted(k for k, v in by_drift.items()
+                                    if not _same_reading(v, base)),
                     "unmoved": sorted(k for k, v in by_drift.items()
-                                      if v == base),
+                                      if _same_reading(v, base)),
                 }
             moved = sorted(set.intersection(
                 *[set(by_seed[s]["moved"]) for s in seeds]))
@@ -5289,8 +5403,11 @@ def _check_declared_collapses(dim: str, row: Dict[str, object],
         if got is None:
             out.append(
                 f"{dim}: drifts {pair[0]:+d}d and {pair[1]:+d}d are "
-                "declared to COLLAPSE but were never scored -- a "
-                "declaration checked against readings nobody took"
+                "declared to COLLAPSE but carry no usable reading -- either "
+                "never scored, or scored to an UNDEFINED value (None or "
+                "non-finite) on some seat. A declaration checked against "
+                "readings nobody took, or against an instrument that had "
+                "stopped reading"
             )
         elif not got.get("collapsed"):
             out.append(
@@ -8257,7 +8374,8 @@ def measure_published_resolution_floor(
             "readable_at_every_drift_beyond_floor": beyond,
             "undefined_readings": tuple(
                 k for k in grid
-                if any(_readable(s, k, eps) is None for s in seeds)),
+                if any(_is_undefined_reading(_readable(s, k, eps))
+                       for s in seeds)),
         }
     # THE PROBE ITSELF. A knob that had stopped drifting the company would put
     # every floor at None and certify nothing -- the vacuity shape this module

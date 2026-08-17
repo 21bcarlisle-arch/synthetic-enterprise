@@ -7687,3 +7687,148 @@ def test_the_component_population_is_not_a_hand_picked_subset(tmp_path):
     assert not uncovered, (
         f"components that really moved in the incident are outside the "
         f"control's population: {sorted(uncovered)}")
+
+
+# --------------------------------------------------------------------------- #
+# THE ONE READING PREDICATE (atom D33; discharges
+# WORKER_FINDING_A_NAN_GAP_DEFEATS_THE_UNDEFINED_READING_GUARD_2026-08-17,
+# BLOCKING, lane H_harness)
+#
+# THE DEFECT, reproduced on the shipped functions at HEAD 95cc1be06 before any
+# repair was written. This module answered "are these two counterfactual
+# companies ONE company" in EIGHT places as TWO different predicates --
+# `_measure_collapse_runs` grouped on `repr()`, the other seven compared raw
+# floats -- and they disagreed on both degenerate float values, in OPPOSITE
+# directions:
+#
+#     (0.0, -0.0):  repr() -> DISTINCT      ==  -> COLLAPSED
+#     (nan, nan):   repr() -> COLLAPSED     ==  -> DISTINCT, and
+#                                                 distinct_from_baseline: True
+#
+# The NaN row is the fail-open. `undefined_readings` exists to stop "an
+# instrument that has stopped reading" being counted as resolution (the D28
+# fail-open) and it tested `is None`; NaN is the other value a stopped
+# instrument publishes, so it walked through the guard written to catch it.
+#
+# R15 BOTH WAYS, and the finding named this constraint explicitly: the fixture
+# must use BOTH degenerate values, because a NaN-only fixture passes under a
+# repair that fixes only `-0.0` and vice versa. Every test below is therefore
+# parametrised over both, or asserts on both.
+# --------------------------------------------------------------------------- #
+_NAN = float("nan")
+_DEGENERATE_PAIRS = [
+    pytest.param((_NAN, _NAN), id="nan-nan"),
+    pytest.param((0.0, -0.0), id="pos-zero-neg-zero"),
+]
+
+
+def _degenerate_row(values, seeds=(7, 11)):
+    """A minimal two-point book: drift 0 (baseline) and drift 1, on every seed."""
+    by_seed = {s: {"baseline": values[0], "by_drift": {1: values[1]}}
+               for s in seeds}
+    return by_seed, {"seeds": seeds, "by_seed": by_seed}
+
+
+@pytest.mark.parametrize("values", _DEGENERATE_PAIRS)
+def test_the_two_collapse_derivations_cannot_disagree(values):
+    """THE MUTATION THIS EXISTS FOR. Revert either site to its own old predicate
+    -- `repr()` in `_measure_collapse_runs`, or raw `==` in `_collapse_state` --
+    and one of these two assertions goes red for one of the two values. That is
+    the R15 proof: the control fires on its own named defect, and it needs both
+    parametrisations to do it."""
+    by_seed, row = _degenerate_row(values)
+    runs = pair._measure_collapse_runs(by_seed, (0, 1), row["seeds"])
+    grouped_as_one = (0, 1) in runs["collapsed_runs"]
+    state = pair._collapse_state(row, (0, 1))
+
+    if pair._is_undefined_reading(values[0]):
+        # An undefined reading is not a collapse claim in EITHER derivation.
+        assert runs["undefined_readings"] == (0, 1), (
+            "an absent measurement was not routed to `undefined_readings`")
+        assert state is None, (
+            f"`_collapse_state` published a resolution claim {state!r} from "
+            "readings that are not numbers -- the D28 fail-open")
+    else:
+        assert state is not None
+        assert grouped_as_one == state["collapsed"], (
+            f"the two derivations disagree on {values!r}: "
+            f"_measure_collapse_runs says collapsed={grouped_as_one}, "
+            f"_collapse_state says collapsed={state['collapsed']}")
+
+
+def test_a_nan_reading_is_undefined_and_never_movement():
+    """The finding's headline, pinned directly. Before the repair a NaN drift
+    reading was recorded as DISTINCT FROM BASELINE -- resolution manufactured
+    out of an absent measurement -- while `undefined_readings` stayed empty."""
+    by_seed, row = _degenerate_row((_NAN, _NAN))
+    runs = pair._measure_collapse_runs(by_seed, (0, 1), row["seeds"])
+    assert runs["undefined_readings"] == (0, 1)
+    assert pair._collapse_state(row, (0, 1)) is None
+
+    # ...and the same is true when only the DRIFT reading is NaN, which is the
+    # shape a population emptying under one drift actually produces.
+    by_seed, row = _degenerate_row((0.25, _NAN))
+    runs = pair._measure_collapse_runs(by_seed, (0, 1), row["seeds"])
+    assert runs["undefined_readings"] == (1,), (
+        "a dimension that stopped reading at one drift was not witnessed")
+    assert pair._collapse_state(row, (0, 1)) is None
+
+
+def test_the_sign_of_a_zero_does_not_mint_a_counterfactual_company():
+    """`repr(-0.0) != repr(0.0)`, so the old grouping split ONE company into two
+    on a signed zero -- a declared collapse that reads as a real distinction."""
+    by_seed, row = _degenerate_row((0.0, -0.0))
+    runs = pair._measure_collapse_runs(by_seed, (0, 1), row["seeds"])
+    assert (0, 1) in runs["collapsed_runs"], (
+        "+0.0 and -0.0 were counted as two counterfactual companies")
+    assert runs["undefined_readings"] == (), "a signed zero IS a reading"
+    assert pair._collapse_state(row, (0, 1))["collapsed"] is True
+
+
+@pytest.mark.parametrize("value,undefined", [
+    (_NAN, True),
+    (float("inf"), True),
+    (float("-inf"), True),
+    (None, True),
+    (0.0, False),
+    (-0.0, False),
+    (0.25, False),
+])
+def test_the_undefined_reading_guards_subject_is_every_absent_reading(
+        value, undefined):
+    """FAIL-OPEN (R15). The guard's subject was `None` alone for nine months.
+    Widening it to `None` OR non-finite is the repair; a signed or ordinary zero
+    must stay a READING, or the guard would swallow a real measurement and the
+    fix would be a fail-CLOSED outage instead."""
+    assert pair._is_undefined_reading(value) is undefined
+
+
+def test_the_predicate_has_exactly_one_implementation():
+    """R10 -- the class, not the instance. The finding's own closure condition
+    was "one derivation shared by all eight comparison sites", so this asserts
+    the SITES, not just the behaviour: a ninth site added tomorrow with a raw
+    `==` on a reading is how this defect comes back."""
+    src = inspect.getsource(pair)
+    # `repr()` as a reading-comparison key is the predicate that drifted.
+    assert "repr(reading(" not in src, (
+        "`repr()` is back as a reading key -- that is the predicate that "
+        "disagreed with `==` on -0.0 and on nan")
+    for fn in (pair._measure_collapse_runs, pair._collapse_state):
+        body = inspect.getsource(fn)
+        assert "_same_reading" in body or "_reading_key" in body, (
+            f"{fn.__name__} no longer routes through the shared predicate")
+    # Both derivations must consult the SAME undefined-reading definition.
+    assert "_is_undefined_reading" in inspect.getsource(pair._measure_collapse_runs)
+    assert "_is_undefined_reading" in inspect.getsource(pair._collapse_state)
+
+
+def test_the_shared_predicate_still_reads_ordinary_numbers_as_before():
+    """The guard against a fix that fires on everything. On the readings this
+    book actually produces -- finite, non-zero, 7x-17x apart in the reader's own
+    step (the 2026-08-17 D33 sweep, 2,264 comparisons) -- the new predicate must
+    be exactly the old `==`, or the repair would move declared edges."""
+    for left, right in [(0.25, 0.25), (0.25, 0.26), (1.0, 1), (0.0, 0.0),
+                        (0.1 + 0.2, 0.3), (-1.5, -1.5), (-1.5, 1.5)]:
+        assert pair._same_reading(left, right) is (left == right), (
+            f"the shared predicate disagrees with `==` on a defined pair "
+            f"({left!r}, {right!r}) -- that is a moved edge, not a repair")

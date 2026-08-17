@@ -7,6 +7,75 @@
 outside the drawn atom's `file_scope`. Queued here.
 **Rank:** backlog. Nothing published is known to be wrong today — see REACHABILITY.
 
+---
+
+## STATUS, 2026-08-17 second tick (rung 1c BLOCKING draw) — THREE OF FOUR CLOSURE CONDITIONS LANDED; ONE IS BLOCKED ON AN ENTANGLED FILE AND THE BLOCKAGE IS NAMED HERE SO THE NEXT TICK DOES NOT RE-DIAGNOSE IT
+
+Severity stays **BLOCKING**: this document's own "what closing it would need" lists four
+conditions and one is unmet. What changed is that the half that was *reproduced on shipped
+functions* is repaired, and the half that remains is the half this document labels `inferred`.
+
+**LANDED** (`tools/couple_w2_11_d5.py` + `tests/tools/test_couple_w2_11_d5.py`, this tick):
+
+1. ✅ **One derivation, all eight sites.** `_reading_key` / `_same_reading` /
+   `_is_undefined_reading` are now the module's only equality on a published reading, used at
+   every site this document enumerated (2315-2316, 2331-2332, 3696, 4514-4515, 4617, 4639,
+   4844-4846) plus the three undefined-witness sites (3423, 4630, 8375) the enumeration missed —
+   those paired an `is None` witness boolean against `undefined_readings`, so a NaN drift would
+   have been listed as undefined and simultaneously witnessed as "not undefined".
+2. ✅ **The guard closed on non-finite, not `None` alone.** `undefined_readings` now catches
+   NaN and ±inf. `_collapse_state` returns `None` — refuses to publish a resolution claim —
+   rather than answering `distinct_from_baseline: True` from readings that are not numbers.
+3. ❌ **`GapResult` refusing a non-finite `gap`/`raw_gap`/`g0` at construction — NOT LANDED.**
+   See the blockage below.
+4. ✅ **R15 both ways.** Six tests, every one parametrised over or asserting on *both*
+   degenerate values, exactly as this document required. Mutation-proven against the
+   pre-repair implementations reconstructed verbatim: the `(nan, nan)` fixture fires on
+   `undefined_readings == ()` and on the published `distinct_from_baseline: True`; the
+   `(0.0, -0.0)` fixture fires on the two derivations disagreeing and on one company being
+   split into two. **Neither fixture is redundant** — a repair fixing only one value is caught
+   by the other, which is the property this document asked for by name.
+
+**BLAST RADIUS, measured not asserted** (the `a blast radius counted is not a blast radius
+measured` class). `tests/tools/test_couple_w2_11_d5.py`: **500 passed** at the repaired tree,
+unchanged from HEAD. Zero declared edges moved, matching the D33 sweep's prediction from
+2,264 pairwise comparisons — there is no `-0.0` and no non-finite reading on this book, so
+this lands as a guard against a reachable fail-open and *not* as a re-derivation.
+
+### Why condition 3 is not landed, and it is an entanglement, not a difficulty
+
+`background/gap_metric.py` is **dirty in the shared working tree with a different lane's
+uncommitted work** — the H27 Expert Hour #30 reserved-name repair (`reserved_component_keys`,
+`NORMALISATION_FINDING_COMPONENT_SHADOWS`), which is absent from HEAD
+(`git show HEAD:background/gap_metric.py | grep -c reserved_component_keys` → **0**) and spans
+six files: `background/gap_metric.py`, `tests/test_gap_normalisation_declaration.py`,
+`tests/test_gap_metric_misapplication_class.py`, `tools/couple_cohort.py`,
+`tools/generate_proof_data.py`, `site/proof/`. Its hunks sit **inside `__post_init__`, the same
+function condition 3 must change.**
+
+`tools/surgical_land` commits the WORKTREE, so any pathspec commit naming `gap_metric.py`
+sweeps that whole lane into this one. This is precisely the shape
+`WORKER_FINDING_A_BLOCKING_REPAIR_IS_UNLANDABLE_BECAUSE_ONE_FILE_CARRIES_TWO_LANES_2026-08-15.md`
+documents, and it is that document's *unresolvable* case: its own escape hatch — "when the
+entanglement is a supplier/consumer pair, landing the supplier alone is a coherent commit" —
+**does not generalise here**, and it says so: *"two lanes editing the same function still have
+no such move."* Adopting a third lane's six-file change without its record is the record/code
+inversion that same document spent two commits repairing.
+
+**This was NOT deferred for cost.** The measurement that would have justified forcing it says
+the opposite of urgent: the live ledger carries **53** `gap`/`raw_gap`/`g0` values across 14
+entries and **zero** are non-finite (measured this tick), and no live scorer has been shown to
+produce one — this document's own REACHABILITY section already labelled that `inferred`.
+Forcing a fail-closed constructor guard through a swap-the-file manoeuvre, on a shared tree
+with live concurrent writers, risks destroying another lane's uncommitted six-file change to
+close a hole with an empty live population. That trade is not worth taking.
+
+**What unblocks it, in one line:** land the H27 Hour #30 lane (it is complete and carries its
+own tests), then `gap_metric.py` is clean at HEAD and condition 3 is a ten-line addition to
+`__post_init__` plus its R15 fixture at both degenerate values.
+
+---
+
 ## The finding
 
 `tools/couple_w2_11_d5.py::_measure_collapse_runs` carries an explicit fail-open guard, and its
