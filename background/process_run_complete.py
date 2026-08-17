@@ -13,6 +13,8 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
+from background.publish_step_ledger import PublishStepLedger
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 STAGING_DIR = PROJECT_DIR / "docs" / "staging"
 DONE_DIR = STAGING_DIR / "done"
@@ -2614,6 +2616,17 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     # Inert while SE_DRAW_POPULATION is off (byte-identical); fail-closed when on.
     if not _cohort_coverage_gate_permits_publish():
         return False
+    # PER-STEP PUBLISH LEDGER (2026-08-17, BLOCKING finding
+    # WORKER_FINDING_THE_PUBLISH_PATH_SWALLOWED_199_GENERATOR_CRASHES).
+    # Every `except Exception: log(...)` below converts a generator failure into a
+    # SILENTLY FROZEN artefact: the file the failed step should have refreshed stays on
+    # the publish path and keeps being served, and every control that reads it is
+    # satisfied by it. 199 crashes ran for four days that way. The swallow is correct
+    # (one dead generator must not cost the other twenty their publish); the SILENCE is
+    # the defect. Steps converted to `_ledger.step(...)` record which artefact they did
+    # NOT refresh, publish that to site/data/publish_steps.json, and NTFY once on the
+    # clean->degraded transition (R5).
+    _ledger = PublishStepLedger(run_stamp=git_hash, log=log)
     try:
         # Frozen-policy baseline (weekly, expensive): a full-decade replay x2
         # under CURRENT_POLICY vs NAIVE_POLICY, each invoking the real risk
@@ -2632,7 +2645,7 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
         _trigger_frozen_baseline_refresh_out_of_band(git_hash)
     except Exception as exc:
         log("Frozen-policy baseline out-of-band trigger failed (non-fatal): {}".format(exc))
-    try:
+    with _ledger.step("Margin bridge generation", ["site/data/margin_bridge.json"]):
         # D2_three_clocks (2026-07-12, ADVISOR_STEER_TWIN_READONLY.md real
         # finding): the settlement<->billed reconciliation bridge existed
         # only as a standalone script, never wired into the run pipeline --
@@ -2643,25 +2656,22 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
         bridge = gen_bridge(json_path)
         log("Generated site/data/margin_bridge.json (gap={:,.2f}, unexplained={:,.2f})".format(
             bridge.get("total_gap_gbp", 0.0), bridge.get("unexplained_remainder_gbp", 0.0)))
-    except Exception as exc:
-        log("Margin bridge generation failed: {}".format(exc))
-    try:
+    # `ok` is the CONSISTENCY-GATE verdict, a different subject from "did this step
+    # run": a generation exception must not false-alarm the gate (its own note below),
+    # so the pre-set survives the step and only the ledger records the failure.
+    ok = True
+    with _ledger.step("Dashboard data generation", ["site/data/dashboard.json"]):
         from tools.generate_dashboard_data import generate
         ok = generate(json_path)
         if ok:
             log("Generated site/data/dashboard.json")
         else:
             log("CONSISTENCY GATE FAILED — dashboard/exec-summary surfaces disagree (see stderr above)")
-    except Exception as exc:
-        log("Dashboard data generation failed: {}".format(exc))
-        ok = True  # generation exception is not a consistency-gate failure; don't false-alarm
-    try:
+    with _ledger.step("Customer data generation", ["site/data/customers/"]):
         from tools.generate_customer_data import generate as gen_cust
         gen_cust(json_path)
         log("Generated site/data/customers/ JSON")
-    except Exception as exc:
-        log("Customer data generation failed: {}".format(exc))
-    try:
+    with _ledger.step("Billing ledger generation", ["site/state/billing_ledger.json"]):
         # Must run before generate_invoice_data: real per-invoice bill-equation
         # data (usage, rate, standing charge) is wired from this ledger into the
         # customer JSON here; also must run before generate_shadow_html which reads
@@ -2669,15 +2679,11 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
         from tools.generate_billing_ledger import generate as gen_ledger
         gen_ledger(json_path)
         log("Generated site/state/billing_ledger.json")
-    except Exception as exc:
-        log("Billing ledger generation failed: {}".format(exc))
-    try:
+    with _ledger.step("Invoice data generation", ["site/data/customers/"]):
         from tools.generate_invoice_data import generate as gen_inv
         gen_inv(json_path)
         log("Generated customer invoice JSON")
-    except Exception as exc:
-        log("Invoice data generation failed: {}".format(exc))
-    try:
+    with _ledger.step("Payment ledger generation", ["site/data/customers/"]):
         # Must run after generate_billing_ledger (real payments/arrears_history
         # source) and generate_invoice_data (patches the same customer JSON
         # files, this generator only adds a new "ledger" key alongside them).
@@ -2685,15 +2691,11 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
         from tools.generate_payment_ledger_data import generate as gen_pay_ledger
         gen_pay_ledger()
         log("Generated per-account payment ledger JSON (BILLING_AND_PAYMENTS_LEDGER.md Statement/Cashflow)")
-    except Exception as exc:
-        log("Payment ledger generation failed: {}".format(exc))
-    try:
+    with _ledger.step("Customer consumption generation", ["site/data/customers/"]):
         from tools.generate_customer_consumption import generate as gen_consumption
         gen_consumption(json_path)
         log("Generated customer consumption JSON (USAGE panel)")
-    except Exception as exc:
-        log("Customer consumption generation failed: {}".format(exc))
-    try:
+    with _ledger.step("Customer reaction-chain generation", ["site/data/customers/"]):
         # Must run after generate_customer_data/generate_invoice_data/
         # generate_customer_consumption: patches real timeline "effect"
         # annotations (item 3) and the reaction_chain (item 4) onto the
@@ -2701,29 +2703,21 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
         from tools.generate_customer_reaction_chain import generate as gen_reaction
         gen_reaction(json_path)
         log("Generated customer timeline effects + reaction_chain (CUSTOMER_360_REDESIGN.md v4 items 3-4)")
-    except Exception as exc:
-        log("Customer reaction-chain generation failed: {}".format(exc))
-    try:
+    with _ledger.step("Portfolio event stream generation", ["site/data/dashboard.json"]):
         # Must run after generate_dashboard_data (dashboard.json must exist)
         # and generate_billing_ledger (arrears-opened events need it).
         # SUPPLIER_TAB_OVERHAUL.md THE SPINE: portfolio event stream.
         from tools.generate_portfolio_event_stream import generate as gen_pes
         gen_pes(json_path)
         log("Generated portfolio event stream onto dashboard.json (SUPPLIER_TAB_OVERHAUL.md spine)")
-    except Exception as exc:
-        log("Portfolio event stream generation failed: {}".format(exc))
-    try:
+    with _ledger.step("Sim data generation", ["site/data/sim_data.json"]):
         from tools.generate_sim_data import generate as gen_sim
         gen_sim(git_hash)
         log("Generated site/data/sim_data.json")
-    except Exception as exc:
-        log("Sim data generation failed: {}".format(exc))
-    try:
+    with _ledger.step("Customer sample generation", ["site/data/customer_sample.json"]):
         from tools.generate_customer_sample import generate as gen_sample
         gen_sample(json_path)
         log("Generated site/data/customer_sample.json")
-    except Exception as exc:
-        log("Customer sample generation failed: {}".format(exc))
     # R11 no-orphan-transition fix (2026-07-14, surfaced by SITE1 Director-door
     # cold-eyes): these two generators were NOT wired into the pipeline, so
     # site/data/director_twin.json + provisional_plan.json froze/drifted after
@@ -3005,6 +2999,23 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
         log("Mirrored {} file(s) to docs/shadow + docs/state for GitHub Pages".format(len(mirrored)))
     except Exception as exc:
         log("GitHub Pages mirror failed: {}".format(exc))
+    # Publish the per-step record LAST, so it describes the cycle that just ran, and
+    # alert only on the clean<->degraded transition (R5). Wrapped because a diagnostic
+    # must never red the path it observes -- but note the asymmetry that keeps this from
+    # being the very defect it closes: a write failure leaves NO ledger on disk, and
+    # `publish_step_ledger.read_ledger` RAISES on a missing ledger rather than reporting
+    # a clean one. An unwritten record reads as UNKNOWN, never as "everything published".
+    try:
+        _ledger.write()
+        _transition = _ledger.notify_on_transition()
+        if _ledger.degraded():
+            log("PUBLISH DEGRADED: {} of {} step(s) failed -- STALE on the publish path: {}".format(
+                len(_ledger.failing_steps()), len(_ledger.steps),
+                ", ".join(_ledger.stale_artefacts()) or "no named artefact"))
+        if _transition:
+            log("Publish-step ledger: NTFY sent on transition {}".format(_transition))
+    except Exception as exc:  # noqa: BLE001 -- see above; absence of the file is the signal
+        log("Publish-step ledger write/alert failed: {}".format(exc))
     return ok
 
 

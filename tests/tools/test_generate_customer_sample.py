@@ -179,3 +179,83 @@ def test_dual_fuel_false_when_only_one_leg_present(tmp_path):
     }
     out = _generate(tmp_path, customers)
     assert out["customers"]["C7"]["dual_fuel"] is False
+
+
+# --- The four-day publish freeze (2026-08-13..17) -------------------------------
+#
+# `WORKER_FINDING_THE_PUBLISH_PATH_SWALLOWED_199_GENERATOR_CRASHES_2026-08-17.md`, BLOCKING.
+# Once `build_clv` began recording `clv_gbp: null` for accounts no longer supplied (correct
+# behaviour -- an account that has left has no lifetime value), every publish raised
+# `TypeError: type NoneType doesn't define __round__ method` here, because
+# `round(d.get(k, 0), n)` handles a MISSING key and not a key PRESENT AND NULL. 100 of the
+# 199 crashes were this generator. Nothing in this file could see it: every fixture above
+# passes `by_billing_account: {}`, so no test ever put a null CLV in front of it.
+
+def _run_with_billing_accounts(tmp_path, customers, by_billing_account):
+    run = {
+        "per_customer_lifetime": customers,
+        "by_billing_account": by_billing_account,
+        "customer_events": [],
+        "basis_risk_by_billing_account": {},
+        "churn_accuracy_by_billing_account": {},
+        "per_customer_behavioral": {},
+        "years": {},
+        "feedback_survey_log": [],
+        "reputation_events_log": [],
+        "nudge_physics_log": [],
+    }
+    run_json = tmp_path / "run_bba.json"
+    run_json.write_text(json.dumps(run))
+    out_path = tmp_path / "customer_sample_bba.json"
+    state_path = tmp_path / "state_customer_sample_bba.json"
+    generate(str(run_json), out_path=str(out_path), state_path=str(state_path))
+    return json.loads(out_path.read_text())
+
+
+_LEFT = {"segment": "resi", "commodity": "electricity", "acquisition_date": "2016-01-01",
+         "revenue_gbp": 100.0, "gross_gbp": 50.0, "net_gbp": 20.0}
+
+
+def test_a_null_clv_does_not_crash_the_generator(tmp_path):
+    """MUTATION: restore `round(clv_data.get("clv_gbp", 0), 2)` and this raises TypeError --
+    the exact exception that froze site/data/customer_sample.json for four days."""
+    out = _run_with_billing_accounts(
+        tmp_path, {"C1": dict(_LEFT)},
+        {"C1": {"clv_gbp": None, "latest_churn_probability": None,
+                "expected_lifetime_periods": None}})
+    assert "C1" in out["customers"]
+
+
+def test_a_null_clv_publishes_null_and_never_the_number_zero(tmp_path):
+    """The second half of the same defect, and the reason the fix is `_round_or_none` rather
+    than `or 0`: 0 is a value a reader takes as the company's belief about this customer's
+    worth. Same doctrine as tools/generate_customer_data.py."""
+    out = _run_with_billing_accounts(
+        tmp_path, {"C1": dict(_LEFT)},
+        {"C1": {"clv_gbp": None, "latest_churn_probability": None,
+                "expected_lifetime_periods": None}})
+    rec = out["customers"]["C1"]
+    assert rec["clv_gbp"] is None
+    assert rec["latest_churn_probability"] is None
+    assert rec["expected_lifetime_periods"] is None
+
+
+def test_a_populated_clv_still_rounds(tmp_path):
+    """The fix must not turn every figure into None -- the control has to be able to fail in
+    the other direction too."""
+    out = _run_with_billing_accounts(
+        tmp_path, {"C1": dict(_LEFT)},
+        {"C1": {"clv_gbp": 2840.4567, "latest_churn_probability": 0.123456,
+                "expected_lifetime_periods": 7.891}})
+    rec = out["customers"]["C1"]
+    assert rec["clv_gbp"] == 2840.46
+    assert rec["latest_churn_probability"] == 0.1235
+    assert rec["expected_lifetime_periods"] == 7.89
+
+
+def test_the_landed_rounding_helper_is_imported_not_re_declared(tmp_path):
+    """Closure item 3 of the finding: this shape must not be patched twice. If a local copy
+    of `_round_or_none` ever appears here, the two will drift."""
+    import tools.generate_customer_data as gcd
+    import tools.generate_customer_sample as gcs
+    assert gcs._round_or_none is gcd._round_or_none

@@ -3,6 +3,7 @@
 **Severity:** BLOCKING · **Lane:** H_harness
 **Found:** 2026-08-17 worker tick, at BUILD on `W2_17_dual_fuel_leg_clv_attribution` (not in the finding that minted it)
 **Subject:** `background/process_run_complete.py` (the per-generator `except Exception: log(...)` blocks), `tools/generate_customer_sample.py:226-229`
+**Discharged:** 2026-08-17 worker tick — `tests/tools/test_generate_customer_sample.py::test_a_null_clv_does_not_crash_the_generator`, `tests/tools/test_generate_customer_sample.py::test_a_null_clv_publishes_null_and_never_the_number_zero`, `tests/background/test_publish_step_ledger.py::test_a_step_that_raises_is_recorded_as_not_refreshed`, `tests/background/test_publish_step_ledger.py::test_a_missing_ledger_raises`, `tests/background/test_publish_step_ledger.py::test_the_five_evidenced_failures_are_all_covered`, `background/publish_step_ledger.py`. Closure items 1 and 3 are LIVE and each was mutation-proven at this HEAD by RUNNING the named falsifier, not by reading a commit — five injected mutations, five reds, tabulated in "How this was discharged" at the foot of this document. Closure item 2 (a control asserting its subject's production stamp) is DELEGATED, not done: the hook it needs is assert_fresh in the module named above, and retro-fitting the existing controls to call it belongs to the sibling finding that owns that subject, `docs/staging/WORKER_FINDING_THE_PUBLISHED_ARTEFACT_CARRIES_NO_PRODUCTION_STAMP_2026-08-15.md`.
 
 ## What was found
 
@@ -97,3 +98,114 @@ R15 note: the control that *should* have caught this (the wall-exhibit vacuity g
 not merely absent — it was **actively green on the frozen file**. A control whose subject
 is an artefact that stopped being written passes forever. That is killer pattern 3
 (fail-silent) reached through the subject rather than through the checker.
+
+---
+
+## How this was discharged (2026-08-17 worker tick)
+
+Everything below is `observed-with-evidence` (R9): every claim is a command that was run at
+this HEAD and the output it produced.
+
+### The instance was still live when this tick opened
+
+`docs/observability/sim-runner-log.md` — the customer-DATA half stopped failing after W2_17
+landed (last failure 2026-08-15 17:43 UTC); the SAMPLE half was still crashing on the most
+recent publish:
+
+    - [2026-08-17 09:41 UTC] [process_run] Customer sample generation failed:
+      type NoneType doesn't define __round__ method
+
+Reproduced directly, before touching anything:
+
+    python3 -c "from tools.generate_customer_sample import generate; generate()"
+    -> TypeError: type NoneType doesn't define __round__ method
+       tools/generate_customer_sample.py:226
+
+The source book confirms the population it fires on — 5 of 13 billing accounts carry
+`clv_gbp: null` and `expected_lifetime_periods: null` in `docs/reports/run_output_latest.json`.
+
+### Closure item 3 — the shape is now landed ONCE, not patched twice
+
+`tools/generate_customer_sample.py` now **imports** `_round_or_none` from
+`tools/generate_customer_data.py` rather than re-declaring it, and applies it to the three
+forward-looking billing-account fields. The generator runs (19 customers written) and
+`site/data/customer_sample.json` now carries `clv_gbp: null` for C1 rather than a stale 2840.5.
+
+**One correction to that last sentence, because the credit is not mine and the difference
+matters.** The regeneration above ran at 10:23:43 UTC and left the fixed artefact
+UNCOMMITTED in the shared working tree; three minutes later a concurrent lane's publish
+commit `1ffe5e219` swept it in. So the artefact was already unfrozen at HEAD before this
+tick committed anything, and `git log -1 -- site/data/customer_sample.json` credits that
+commit, not this one. Two things follow, and both are the point rather than a footnote:
+
+* The four-day freeze ended as a DATA change carried by an unrelated commit while the CODE
+  that froze it was still crashing. That is the `uncommitted_and_orphaned_work` shape, and
+  it is why an artefact being correct at HEAD proves nothing about the generator: the very
+  next publish on the unfixed code would have re-frozen it, silently, exactly as before.
+* It is also a live instance of CLAUDE.md's concurrent-writers hazard on this one tree — an
+  uncommitted file belonging to one lane landing inside another lane's pathspec.
+
+The repo-wide sweep the finding asked for was RUN, not assumed. Census of
+`round(<x>.get("<field>", 0), n)` over `tools/ background/ saas/ company/`: 53 sites across 6
+files, of which **the two named in this finding were the only ones reading a field that can be
+null**. There is no third crash site. Narrow census of every Python read of `clv_gbp` /
+`latest_churn_probability` / `expected_lifetime_periods` / `avg_annual_net_margin_gbp`
+confirms it: the remaining readers either pass None through (`generate_company_data.py`) or
+already guard it (`generate_shadow_html.py`, whose `_gbp`/`_pct` render None as an em-dash).
+
+**What the sweep DID surface, filed rather than fixed on sight (SELF_INTERRUPT_DISCIPLINE):**
+seven `or 0` / `or 0.0` sites in `saas/reporting/annual_report.py` (lines 8217-8242) fold a
+null CLV into a published median, percentile and sum as the number **0**. That does not crash
+— it is the mirror half of this same defect, and it moves a published distribution. Registered
+as its own finding rather than swept in here, because it belongs to the
+`measurements_that_mirror` class and to a different lane's subject.
+
+### Closure item 1 — a failed publish step now makes its own staleness visible
+
+`background/publish_step_ledger.py` (new). The swallow STAYS — one dead generator must not
+cost the other twenty their publish, which is what the bare `except` was reaching for and was
+right about. What goes is the silence. Each converted step records whether it refreshed its
+named artefacts, and the cycle publishes `site/data/publish_steps.json` carrying
+`degraded`, `stale_artefacts`, and per step the run stamp it was **last** real at (carried
+forward across cycles, so "stale" can say *since when* instead of being a mood). The
+clean↔degraded transition NTFYs exactly once in each direction with the failing step names and
+their exceptions as payload (R5).
+
+Wired into `generate_dashboard_json` for eleven steps, including **all five that the evidence
+table above proves actually fired**. The remaining ~20 steps further down that function still
+carry the bare `except` and are NOT yet converted — stated here rather than left implied,
+because a silent cap reads as full coverage, which is this document's own subject. They are
+the same mechanical conversion; the ledger takes them without change.
+
+No new commit-list wiring was needed: the `site/data/*.json` glob at
+`background/process_run_complete.py` already commits any new generated data file, which is the
+2026-07-16 R10 class-closure doing its job.
+
+### R15 — every control here was proven able to fail
+
+Four mutations were injected at this HEAD and the suite re-run each time; each reddened its
+intended control and was then reverted (suite green again at 19/19 and 15/15):
+
+| # | mutation | result |
+|---|---|---|
+| 1 | the swallow records `ok=True` on exception (i.e. the original defect, exactly) | **9 failed** |
+| 2 | `read_ledger` returns `{"steps": [], "degraded": False}` instead of raising on a missing file (FAIL-OPEN) | **1 failed** — `test_a_missing_ledger_raises` |
+| 3 | the `was_degraded == now_degraded` guard removed (R5, alert every cycle) | **1 failed** — `test_an_unchanged_status_never_repeats` |
+| 4 | the sample step's wiring reverted to the bare `try/except` | **2 failed** — both `TestWiredIntoThePublishPath` tests |
+| 5 | `_round_or_none` reverted to `round(clv_data.get("clv_gbp", 0), 2)` | **2 failed** in `tests/tools/test_generate_customer_sample.py` |
+
+Mutation 5 is the one that matters most to this finding's own argument: **before this tick,
+that mutation was the live state of the tree and the whole existing suite was green on it.**
+No test in `tests/tools/test_generate_customer_sample.py` put a populated
+`by_billing_account` in front of the generator — every fixture passed `{}` — so the null case
+that crashed 100 publishes had no falsifier at all. It has three now, and the third asserts
+the *other* direction (a populated CLV must still round), so the fix cannot be "return None
+always".
+
+### The R15 note in the original finding is upheld and worth repeating
+
+The control that should have caught this was not absent; it was **green because publishing was
+broken**, and went red the moment the generator was fixed. `assert_fresh()` exists so a control
+can refuse to be satisfied by a file the publish path stopped maintaining — including refusing
+for an artefact no step claims to write at all, since unmeasured must not read as fine. That is
+the hook; pointing the existing controls at it is closure item 2, delegated above.

@@ -10,6 +10,16 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+# The SINGLE landed form of "round a figure that may legitimately be None"
+# (W2_17, 2026-08-17). `round(d.get(k, 0), n)` handles a MISSING key but not a
+# key PRESENT AND NULL, so it raised TypeError on every publish for four days
+# once build_clv began recording `clv_gbp: null` for no-longer-supplied
+# accounts -- and, separately, would have published 0 (a figure a reader takes
+# as the company's belief) where the company computed nothing. Imported rather
+# than re-declared: this shape must not be patched twice.
+# See docs/staging/done/WORKER_FINDING_THE_PUBLISH_PATH_SWALLOWED_199_GENERATOR_CRASHES_2026-08-17.md
+from tools.generate_customer_data import _round_or_none
+
 PROJECT = Path(__file__).resolve().parent.parent
 RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
 OUT_PATH = PROJECT / "site" / "data" / "customer_sample.json"
@@ -223,10 +233,16 @@ def generate(run_json_path=None, out_path=None, state_path=None):
             "lifetime_net_after_cts_gbp": round(
                 cdata.get("net_margin_after_cost_to_serve_gbp", 0), 2
             ),
-            "clv_gbp": round(clv_data.get("clv_gbp", 0), 2),
-            "latest_churn_probability": round(clv_data.get("latest_churn_probability", 0), 4),
-            "expected_lifetime_periods": round(
-                clv_data.get("expected_lifetime_periods", 0), 2
+            # Forward-looking BILLING-ACCOUNT figures: null (never 0) where this
+            # record carries none -- an account no longer supplied has no CLV,
+            # and 0 would read as "the company believes this customer is worth
+            # nothing". Same doctrine as generate_customer_data.py.
+            "clv_gbp": _round_or_none(clv_data.get("clv_gbp"), 2),
+            "latest_churn_probability": _round_or_none(
+                clv_data.get("latest_churn_probability"), 4
+            ),
+            "expected_lifetime_periods": _round_or_none(
+                clv_data.get("expected_lifetime_periods"), 2
             ),
             "annual_pnl": _per_year(run, cid),
             "renewal_events": events_by_cid.get(cid, []),
