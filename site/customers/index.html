@@ -552,8 +552,28 @@ function cycleCustomer(dir){
     });
   });
 }
-function gbp(n){if(n==null)return"-";var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return(n<0?"-":"")+"£"+s;}
-function pct(v){return(v*100).toFixed(0)+"%";}
+/* A FIELD THE RECORD PUBLISHES AS null IS A BLANK, NOT A ZERO.
+   ------------------------------------------------------------------
+   The per-customer records deliberately carry null for a forward-looking figure the
+   company holds no belief about -- build_clv excludes accounts that are no longer
+   supplied, and W2_17_dual_fuel_leg_clv_attribution stopped the gas legs publishing
+   fabricated zeros. gbp() already honoured that. Two other render sites did not:
+   `(d.expected_lifetime_periods||0).toFixed(1)` printed "0.0 yrs" and
+   `d.churn_probability||0` printed "0%" with a green "Low risk" caption and a
+   zero-width risk bar -- so this COMPANY-attributed panel stated, on a public page,
+   a belief the company had explicitly declined to hold, for 5 of 9 domestic
+   households. On the exhibit whose whole subject is who knows what, manufacturing a
+   company belief out of an absent one is the defect the page exists to make visible.
+   NO_BELIEF is the one marker; every forward-looking render site routes through a
+   helper that emits it, so a new one cannot reach for `||0` and stay silent. */
+var NO_BELIEF="&mdash;";
+function gbp(n){if(n==null)return NO_BELIEF;var s=Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:0,maximumFractionDigits:0});return(n<0?"-":"")+"£"+s;}
+function pct(v){return v==null?NO_BELIEF:(v*100).toFixed(0)+"%";}
+function yrs(v){return v==null?NO_BELIEF:Number(v).toFixed(1)+" yrs";}
+/* Sum of the legs that HAVE a value; null when no leg has one, so a household whose
+   every leg is a blank does not roll up into a confident zero (null+null===0 in JS,
+   which is exactly how "Combined CLV £0" was being published). */
+function sumBeliefs(vals){var t=null;for(var i=0;i<vals.length;i++){if(vals[i]!=null)t=(t||0)+vals[i];}return t;}
 function nc(v){return v>=0?"green":"red";}
 function churnColour(p){return p>=0.5?"red":p>=0.3?"amber":"green";}
 function churnLabel(p){return p>=0.5?"High risk":p>=0.3?"Medium risk":"Low risk";}
@@ -794,7 +814,7 @@ function combinedTotals(){
     revenue: (e?e.lifetime_revenue_gbp:0)+(g?g.lifetime_revenue_gbp:0),
     net: (e?e.lifetime_net_gbp:0)+(g?g.lifetime_net_gbp:0),
     net_after_cts: (e?e.lifetime_net_after_cts_gbp:0)+(g?g.lifetime_net_after_cts_gbp:0),
-    clv: (e?e.clv_gbp:0)+(g?g.clv_gbp:0)
+    clv: sumBeliefs([e?e.clv_gbp:null,g?g.clv_gbp:null])
   };
 }
 function combinedLedgerTotals(){
@@ -1190,7 +1210,9 @@ var _CHAIN_LABEL={
   arrears_dd_failed:"Payment failed",arrears_first_notice:"Arrears notice",
   arrears_second_notice:"Arrears notice",arrears_resolved:"Arrears cleared",
   arrears_written_off:"Debt written off",
-  arrears_placed_with_dca:"Placed with DCA",arrears_recovered:"Debt recovered"
+  arrears_placed_with_dca:"Placed with DCA",arrears_recovered:"Debt recovered",
+  arrears_invoice_disputed:"Invoice disputed",arrears_dispute_notice:"Dispute notice",
+  arrears_payment_plan_agreed:"Payment plan agreed"
 };
 /* WHICH SIDE OF THE WALL EACH REACTION-CHAIN EVENT SITS ON.
    Cold-eyes 2026-08-12 (coldwalk:site2_arrears_history_visible_only_behind_the_wall):
@@ -1207,6 +1229,19 @@ var _CHAIN_SIDE={
   arrears_payment_missed:"customer",arrears_dd_failed:"customer",
   arrears_first_notice:"customer",arrears_second_notice:"customer",
   arrears_resolved:"customer",arrears_placed_with_dca:"customer",
+  /* The I&C DISPUTE LADDER (simulation/arrears_engine.py::ic_arrears_stages:
+     INVOICE_DISPUTED -> DISPUTE_NOTICE(+14d) -> PAYMENT_PLAN_AGREED(+30d) | WRITTEN_OFF).
+     It is the I&C parallel of the residential ladder two lines above, stage for stage,
+     and every stage of that one is customer-observable, so these are too: the customer
+     RAISED the dispute, the dispute notice is the same artefact as first/second notice
+     (tools/generate_payment_ledger_data.py buckets DISPUTE_NOTICE with FIRST_NOTICE and
+     SECOND_NOTICE as "notice"), and a payment plan cannot be "agreed" with one party.
+     "escalated to accounts receivable" in the description is the INTERNAL consequence of
+     a notice the account holder received, not evidence the notice itself is internal.
+     The write-off/recovery tail is already sided company below, which is where the
+     ladder genuinely crosses the wall. */
+  arrears_invoice_disputed:"customer",arrears_dispute_notice:"customer",
+  arrears_payment_plan_agreed:"customer",
   arrears_written_off:"company",arrears_recovered:"company",
   retention_decision:"company",
   journey_state:"sim"
@@ -1304,7 +1339,9 @@ function frozenHint(what){
 }
 function riskPanels(){
   var d=HH.elec||HH.gas;
-  var churnP=d.churn_probability||0,cc=churnColour(churnP);
+  // null means "no churn estimate for this account", not "zero risk" -- see NO_BELIEF.
+  var churnP=(d.churn_probability==null)?null:d.churn_probability;
+  var cc=(churnP==null)?"muted":churnColour(churnP);
   var lt=combinedLedgerTotals();
   var balColor=lt.balance>0.005?"red":"green";
   // Pricing Action is computed independently per fuel-leg (unlike churn/CLV,
@@ -1337,9 +1374,10 @@ function riskPanels(){
       "<div class=\"card\"><div class=\"kpi-grid\">"+
       "<div class=\"kpi\"><div class=\"kpi-label\">"+fwdLabel("Churn Probability")+"</div>"+
       "<div class=\"kpi-value "+cc+"\">"+pct(churnP)+"</div>"+
-      "<div class=\"kpi-sub\">"+churnLabel(churnP)+"</div>"+
-      "<div class=\"risk-bar\"><div class=\"risk-fill\" style=\"width:"+pct(churnP)+";background:var(--"+cc+")\"></div></div></div>"+
-      "<div class=\"kpi\"><div class=\"kpi-label\">"+fwdLabel("Expected Lifetime")+"</div><div class=\"kpi-value\">"+(d.expected_lifetime_periods||0).toFixed(1)+" yrs</div></div>"+
+      "<div class=\"kpi-sub\">"+(churnP==null?"No churn estimate published for this account":churnLabel(churnP))+"</div>"+
+      (churnP==null?"":"<div class=\"risk-bar\"><div class=\"risk-fill\" style=\"width:"+pct(churnP)+";background:var(--"+cc+")\"></div></div>")+"</div>"+
+      "<div class=\"kpi\"><div class=\"kpi-label\">"+fwdLabel("Expected Lifetime")+"</div><div class=\"kpi-value\">"+yrs(d.expected_lifetime_periods)+"</div>"+
+      (d.expected_lifetime_periods==null?"<div class=\"kpi-sub\">Not modelled for this account</div>":"")+"</div>"+
       paCards+
       "</div>"+
       "<div class=\"usage-hint\">Churn/CLV is modelled at the household billing-account level, not duplicated per fuel; Pricing Action is computed independently per fuel-leg and shown for each fuel this household has. Every figure here is the supplier's own estimate from observable behaviour -- the account holder is never shown any of it.</div>"+

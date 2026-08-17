@@ -1654,3 +1654,302 @@ def test_mutation_stamping_every_household_frozen_kills_a_named_test(tmp_path):
     labels, _ = _drive_pair(mutant, tmp_path, _live_household())
     with pytest.raises(AssertionError, match="has NOT closed its account"):
         _check_not_frozen(labels)
+
+
+# ===========================================================================
+# (14) THE PAGE IS DRIVEN OVER THE WHOLE PUBLISHED BOOK, NOT OVER TWO FIXTURES
+#      -- a structural blank must not become either a refusal or a zero
+# ===========================================================================
+#
+# Both defects this section closes were LIVE on https://poesys.net/customers/ and were
+# invisible to a 82/82 green suite for the same reason: every control above drives one
+# dual-fuel pair (C1/C1g) plus one live pair (C2/C2g). Two households of thirteen.
+#
+# DEFECT A -- THE REFUSAL FIRED ON REAL DATA. `chainSide()` fails closed, correctly: an
+# event type nobody has sided cannot be placed, because placing it by default would be a
+# silent claim about which side of the wall it belongs on. But `_CHAIN_SIDE` was written
+# on 2026-08-13 against the RESIDENTIAL arrears ladder only, and simulation/arrears_engine
+# .py also publishes the I&C dispute ladder (INVOICE_DISPUTED -> DISPUTE_NOTICE ->
+# PAYMENT_PLAN_AGREED). Those three types are published live -- 22 events across C5, C6,
+# C_IC2, C_IC3, C_IC3g and C_IC4 -- and none was sided. So `timelinePanels()` THREW on
+# four of thirteen households, and because `renderTab()` has no catch, the Timeline tab
+# rendered as an empty body with no message: the causal reaction chain, one of the three
+# layers the atom's own exit criterion (3) names, was unreachable for those households on
+# the public page. C_IC4 escaped only because its `timeline` array is empty, which is a
+# latent version of the same bomb (queued, not fixed here: it is a generator question).
+#
+# DEFECT B -- THE BLANK BECAME A CONFIDENT ZERO. The records deliberately carry null for
+# a forward-looking figure the company holds no belief about. `gbp()` honoured that; two
+# other render sites did not. `(d.expected_lifetime_periods||0).toFixed(1)` printed
+# "0.0 yrs" and `d.churn_probability||0` printed "0%" under a green "Low risk" caption,
+# on the COMPANY-attributed Retention & Risk panel, for every household whose record says
+# the figure is not modelled. `combinedTotals().clv` summed two nulls to the number 0 and
+# published it as "Combined CLV £0" (null+null===0 in JS). This is the render instance of
+# WORKER_FINDING_A_NULL_CLV_ENTERS_THE_PUBLISHED_MEDIAN_AS_THE_NUMBER_ZERO_2026-08-17,
+# on the one surface where fabricating a company belief is the exhibit's own subject.
+#
+# THE CONTROL IS THE POPULATION, NOT THE THREE KEYS. Adding three entries to _CHAIN_SIDE
+# and three null-guards is the instance fix; R10 requires the class to fail by itself. So
+# every check below runs over EVERY published household, and the event-type census reads
+# the page's map on one side and the published book on the other -- two independent
+# sources, so the next stage the generator invents fails here before it reaches a reader.
+# ---------------------------------------------------------------------------
+_NUMERIC = re.compile(r"^-?[£$]?-?[\d,]+(?:\.\d+)?\s*(?:%|yrs|kWh)?$")
+
+# published field -> the label it renders under
+_BELIEF_SITES = {
+    "clv_gbp": "Customer Lifetime Value",
+    "expected_lifetime_periods": "Expected Lifetime",
+    "churn_probability": "Churn Probability",
+    "forecast_annual_profit_gbp": "Forecast Annual Profit",
+}
+
+
+def _published_households() -> list[tuple[str, Path, Path]]:
+    """Every household published to this page, as (base id, elec leg, gas leg).
+
+    The gas leg falls back to the electricity leg because the harness takes two paths and
+    the page's own loader passes the same record twice for a single-fuel household.
+    """
+    legs: dict[str, dict[str, Path]] = {}
+    for path in sorted(CUSTOMER_DATA.glob("*.json")):
+        if path.name.startswith("_"):
+            continue
+        rec = json.loads(path.read_text(encoding="utf-8"))
+        acct = rec.get("account_id") or path.stem
+        base = acct[:-1] if acct.endswith("g") else acct
+        legs.setdefault(base, {})["gas" if rec.get("commodity") == "gas" else "elec"] = path
+    out = []
+    for base, pair in sorted(legs.items()):
+        elec = pair.get("elec") or pair.get("gas")
+        out.append((base, elec, pair.get("gas") or elec))
+    return out
+
+
+def _chain_side_keys(index: Path) -> set[str]:
+    """The page's OWN map, read out of the page rather than restated here -- restating it
+    would make this a comparison of the test against itself."""
+    m = re.search(r"var _CHAIN_SIDE=\{(.*?)\n\};", index.read_text(encoding="utf-8"), re.S)
+    assert m, "the page no longer declares _CHAIN_SIDE in the shape this control reads"
+    body = re.sub(r"/\*.*?\*/", " ", m.group(1), flags=re.S)
+    return set(re.findall(r"([A-Za-z_][A-Za-z0-9_]*)\s*:", body))
+
+
+def _published_chain_types() -> dict[str, set[str]]:
+    """event_type -> the record files that publish it. The independent side of the census."""
+    seen: dict[str, set[str]] = {}
+    for path in sorted(CUSTOMER_DATA.glob("*.json")):
+        if path.name.startswith("_"):
+            continue
+        rec = json.loads(path.read_text(encoding="utf-8"))
+        for ev in rec.get("reaction_chain") or []:
+            seen.setdefault(str(ev.get("event_type")), set()).add(path.name)
+    return seen
+
+
+def _rendered_value(html: str, label: str) -> str | None:
+    """The value rendered immediately after a label site, or None if the label is absent."""
+    m = re.search(
+        r'(?:<div class="kpi-label">|<span class="rl">)'
+        + re.escape(label)
+        + r'(?:\s*\(at closure\))?(?:</div>|</span>)\s*<[^>]*>([^<]*)<',
+        html,
+    )
+    return m.group(1).strip() if m else None
+
+
+def _render_household(index: Path, tmp: Path, legs: tuple[Path, Path]) -> str:
+    proc = _run(index, legs[0], legs[1], tmp)
+    assert proc.returncode == 0, (
+        f"the page REFUSED to render {legs[0].name}: {proc.stderr.strip()[-400:]}"
+    )
+    out = json.loads(proc.stdout)
+    return "".join(out["views"]["both"].values()) + "".join(out["injected"].values())
+
+
+def test_the_page_renders_every_published_household(tmp_path):
+    """THE population control, and the one that would have caught defect A live.
+
+    Not "the fixture renders" -- every household this page is published to serve. A
+    refusal is a blank tab on a public surface with no message, so the whole book is the
+    subject or the control is measuring the two accounts someone happened to pick.
+    """
+    households = _published_households()
+    assert len(households) > 5, (
+        f"only {len(households)} households enumerated -- this control's whole point is "
+        "the population, so a shrunken book makes it vacuous"
+    )
+    failed = []
+    for base, elec, gas in households:
+        proc = _run(INDEX, elec, gas, tmp_path)
+        if proc.returncode != 0:
+            reason = next((ln for ln in proc.stderr.splitlines() if "Error:" in ln), "")
+            failed.append(f"{base}: {reason.strip()[:160]}")
+    assert not failed, (
+        f"{len(failed)} of {len(households)} published households do not render at all "
+        "-- their tab body is empty on the live page:\n  " + "\n  ".join(failed)
+    )
+
+
+def test_every_reaction_chain_event_type_in_the_published_book_declares_a_side(tmp_path):
+    """THE class control (R10). Independent, not tautological: one side is the page's own
+    `_CHAIN_SIDE` map, the other is every `event_type` the generator actually publishes.
+    The next stage simulation/arrears_engine.py invents fails HERE, before a reader meets
+    an empty tab."""
+    known = _chain_side_keys(INDEX)
+    published = _published_chain_types()
+    assert len(published) > 5, (
+        f"only {len(published)} event types found in the published book -- census vacuous"
+    )
+    unsided = {
+        t: sorted(files) for t, files in published.items()
+        if t not in known and not t.startswith("outcome_")
+    }
+    assert not unsided, (
+        "the published book carries reaction-chain event types the page cannot side, so "
+        "chainSide() refuses and the Timeline tab renders empty for every household "
+        f"below: {json.dumps({k: v for k, v in sorted(unsided.items())}, indent=2)}"
+    )
+
+
+def test_no_reaction_chain_row_renders_a_raw_event_type_as_its_own_label(tmp_path):
+    """A sided-but-unlabelled type renders, so the census above passes -- and prints
+    `arrears_payment_plan_agreed` at the reader. Siding and naming are separate omissions
+    and need separate checks."""
+    published = _published_chain_types()
+    src = INDEX.read_text(encoding="utf-8")
+    m = re.search(r"var _CHAIN_LABEL=\{(.*?)\n\};", src, re.S)
+    assert m, "the page no longer declares _CHAIN_LABEL in the shape this control reads"
+    labelled = set(re.findall(r"([A-Za-z_][A-Za-z0-9_]*)\s*:", re.sub(r"/\*.*?\*/", " ", m.group(1), flags=re.S)))
+    unlabelled = sorted(
+        t for t in published
+        if t not in labelled and not t.startswith("outcome_")
+    )
+    assert not unlabelled, (
+        "these published event types have no human label, so chainLabel() falls back to "
+        f"the raw snake_case identifier on a public page: {unlabelled}"
+    )
+
+
+def test_a_forward_looking_field_published_as_null_never_renders_as_a_number(tmp_path):
+    """DEFECT B, over the whole book. A record that says "no belief" must not be rendered
+    as a belief of zero. Asserted against the RENDERED value, not the source, so a second
+    render site added later is covered by the same check."""
+    offences = []
+    for base, elec, gas in _published_households():
+        rec = json.loads(elec.read_text(encoding="utf-8"))
+        html = _render_household(INDEX, tmp_path, (elec, gas))
+        for field, label in _BELIEF_SITES.items():
+            if rec.get(field) is not None:
+                continue
+            value = _rendered_value(html, label)
+            if value is not None and _NUMERIC.match(value.replace("&nbsp;", "")):
+                offences.append(f"{base}: {field} is null, but '{label}' renders '{value}'")
+    assert not offences, (
+        "a field the published record deliberately carries as null is rendered as a "
+        "number under a company-attributed label -- the page states a belief the company "
+        "declined to hold:\n  " + "\n  ".join(offences)
+    )
+
+
+def test_a_household_that_does_publish_forward_looking_figures_still_renders_them(tmp_path):
+    """The inverse, and the reason the check above cannot be satisfied by blanking
+    everything. A record that HAS a belief must show it."""
+    populated = []
+    for base, elec, gas in _published_households():
+        rec = json.loads(elec.read_text(encoding="utf-8"))
+        have = {f: rec.get(f) for f in _BELIEF_SITES if rec.get(f) is not None}
+        if not have:
+            continue
+        populated.append(base)
+        html = _render_household(INDEX, tmp_path, (elec, gas))
+        for field in have:
+            value = _rendered_value(html, _BELIEF_SITES[field])
+            assert value is not None and _NUMERIC.match(value.replace("&nbsp;", "")), (
+                f"{base} publishes {field}={have[field]!r} and the page renders "
+                f"'{_BELIEF_SITES[field]}' as {value!r} -- a real belief has been blanked"
+            )
+    assert len(populated) >= 3, (
+        f"only {populated} publish any forward-looking figure at all -- this inverse "
+        "would be proven on too small a population to stop the blank-everything fix"
+    )
+
+
+def test_the_published_book_carries_both_blank_and_populated_forward_looking_records():
+    """Anti-vacuity on the DATA, pinning the population both controls above need. If the
+    generator ever published a belief for every account, the null control would pass over
+    a page that had never been fixed; if it published none, the inverse would."""
+    blank, filled = [], []
+    for base, elec, _gas in _published_households():
+        rec = json.loads(elec.read_text(encoding="utf-8"))
+        vals = [rec.get(f) for f in _BELIEF_SITES]
+        (blank if all(v is None for v in vals) else filled).append(base)
+    assert blank and filled, (
+        f"the book no longer contains both cases (blank={blank}, populated={filled}) -- "
+        "one of the two controls above has gone vacuous"
+    )
+
+
+# --- R15, both defects, both directions -----------------------------------
+
+
+def test_mutation_unsiding_the_ic_dispute_ladder_kills_a_named_test(tmp_path):
+    """R15 on defect A: the page exactly as it was live. Removing the three I&C dispute
+    types puts the refusal back on four real households."""
+    src = INDEX.read_text(encoding="utf-8")
+    marker = '  arrears_invoice_disputed:"customer",arrears_dispute_notice:"customer",\n  arrears_payment_plan_agreed:"customer",\n'
+    assert marker in src, "the I&C dispute siding no longer has the shape this mutation reverts"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(src.replace(marker, ""), encoding="utf-8")
+    failed = []
+    for base, elec, gas in _published_households():
+        if _run(mutant, elec, gas, tmp_path).returncode != 0:
+            failed.append(base)
+    assert failed, (
+        "MUTATION SURVIVED: the page rendered every household with the I&C dispute ladder "
+        "unsided, so test_the_page_renders_every_published_household cannot catch defect A"
+    )
+    _saved, globals()["INDEX"] = INDEX, mutant
+    try:
+        with pytest.raises(AssertionError, match="do not render at all"):
+            test_the_page_renders_every_published_household(tmp_path)
+        with pytest.raises(AssertionError, match="cannot side"):
+            test_every_reaction_chain_event_type_in_the_published_book_declares_a_side(tmp_path)
+    finally:
+        globals()["INDEX"] = _saved
+
+
+def test_mutation_restoring_the_fabricated_zero_kills_a_named_test(tmp_path):
+    """R15 on defect B, direction 1: `||0` back on the expected-lifetime render site is
+    the page as it was live, printing '0.0 yrs' for a record that says 'not modelled'."""
+    src = INDEX.read_text(encoding="utf-8")
+    marker = 'yrs(d.expected_lifetime_periods)'
+    assert marker in src, "the expected-lifetime render site no longer has this shape"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(
+        src.replace(marker, '(d.expected_lifetime_periods||0).toFixed(1)+" yrs"'), encoding="utf-8"
+    )
+    _saved, globals()["INDEX"] = INDEX, mutant
+    try:
+        with pytest.raises(AssertionError, match="renders '0.0 yrs'"):
+            test_a_forward_looking_field_published_as_null_never_renders_as_a_number(tmp_path)
+    finally:
+        globals()["INDEX"] = _saved
+
+
+def test_mutation_blanking_every_forward_looking_figure_kills_a_named_test(tmp_path):
+    """R15 on defect B, direction 2 -- the fail-open the null control INVITES. A page that
+    renders every forward-looking figure as a dash satisfies the null check on any book at
+    all, while telling the supplier it has no beliefs about any of its customers. Only the
+    inverse kills it."""
+    src = INDEX.read_text(encoding="utf-8")
+    marker = 'function yrs(v){return v==null?NO_BELIEF:Number(v).toFixed(1)+" yrs";}'
+    assert marker in src, "the yrs() formatter no longer has the shape this mutation targets"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(src.replace(marker, "function yrs(v){return NO_BELIEF;}"), encoding="utf-8")
+    _saved, globals()["INDEX"] = INDEX, mutant
+    try:
+        with pytest.raises(AssertionError, match="a real belief has been blanked"):
+            test_a_household_that_does_publish_forward_looking_figures_still_renders_them(tmp_path)
+    finally:
+        globals()["INDEX"] = _saved
