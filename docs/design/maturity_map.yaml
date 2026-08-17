@@ -5125,8 +5125,8 @@
   provenance: director_ruling
   depends_on: []
   couples_with: [D36_bill_render_footing_and_pence, SITE3_wall_exhibit_url_rename]
-  file_scope: ['site/customers/index.html', 'site/customers/test_wall_exhibit.py', 'site/customers/_wall_harness.mjs', 'site/customers/test_customers_door.py', 'site/customers/_render_harness.mjs', 'site/_redirects', 'site/test_no_links_to_redirected_urls.py', 'docs/design/SITE_CONSTITUTION.md']
-  simplifications_count: 6
+  file_scope: ['site/customers/index.html', 'site/customers/test_wall_exhibit.py', 'site/customers/_wall_harness.mjs', 'site/customers/test_customers_door.py', 'site/customers/_render_harness.mjs', 'site/_redirects', 'site/test_no_links_to_redirected_urls.py', 'docs/design/SITE_CONSTITUTION.md', 'tools/generate_case_study_recommender.py', 'tests/tools/test_case_study_recommender.py']
+  simplifications_count: 7
   expert_hour:
     status: findings_open
     last: '2026-08-12'
@@ -5146,6 +5146,15 @@
     - coldwalk:site2_behind_the_wall_view_is_empty_on_two_of_six_tabs
     fixed_2026_08_15:   # the household's money is the household's, not one fuel leg's
     - coldwalk:site2_dual_fuel_household_shows_electricity_only_money
+    fixed_2026_08_17:   # a level, a ratio and a difference are three quantities
+    # Adjudicated a false positive on its ARITHMETIC (the ratio does tie unrounded) with its
+    # FRAMING half kept as a minor -- and the framing half was the real one. Fixed as a CLASS:
+    # the generator used one formatter for a probability level, a ratio and a difference, so a
+    # second live headline had the mirror-image defect ('fell 12%' for a 12.2-point drop) and
+    # the divergence slot RANKED by the ratio, moving 6 of 13 households' within-household
+    # pick. Formatters now split by quantity kind and ranking by percentage points. R15 five
+    # mutations, incl. the delete-the-numbers fail-open. Full evidence in the ledger + store.
+    - coldwalk:site2_coo_2841_percent_error_arithmetic_doubt
     findings:   # OPEN; reconciled vs the ledger by tests/controls/test_map_reconciliation.py
     # RENDER HALF FIXED 2026-08-15 (worker tick) -- see the ledger's render_half_fixed block
     # and the store record. A closed household's forward-looking figures (churn probability,
@@ -5165,8 +5174,12 @@
     # (diagnose the mechanism, never tune the output toward the band). Left OPEN here
     # deliberately rather than carried as SITE2 debt it cannot discharge.
     - coldwalk:site2_consumption_has_no_winter_peak_under_a_seasonality_panel
+    # Adjudicated REFUTED and kept here as narrative per the reconciliation control's own
+    # convention. Not carryable debt: the doubt was the identical GBP330 cost-to-serve on both
+    # fuel legs, which is the FIXED state of coldwalk:cost_to_serve_cross_fuel_mismatch_same_
+    # household (~GBP55/yr overhead per account, GBP110/household -- inside the persona's own
+    # prior), and its presentational half closed 2026-08-15 with the dual-fuel money fix above.
     - coldwalk:site2_coo_cost_to_serve_double_count_doubt          # adjudicated REFUTED
-    - coldwalk:site2_coo_2841_percent_error_arithmetic_doubt       # adjudicated REFUTED
   records_rehomed: [evidence]
   real_world_twin: "a regulator's comparison exhibit that puts a customer's own bill next to the supplier's internal cost-to-serve view, labelled so neither can be mistaken for the other"
 - id: SITE3_wall_exhibit_url_rename

@@ -834,8 +834,10 @@ New tools/generate_case_study_recommender.py ranks real per-household signals al
 by generate_customer_reaction_chain.py and generate_customer_sample.py -- nobody is hand-picked
 by account id:
 - Most eventful journey: highest timeline + reaction-chain entry count.
-- Largest company-vs-SIM churn divergence: biggest churn_estimate_error_pct from a real
-  renewal (customer_sample.json's churn_accuracy_by_renewal).
+- Largest company-vs-SIM churn divergence: biggest PERCENTAGE-POINT gap between the
+  company's estimate and the probability the sim rolled, at a real renewal
+  (customer_sample.json's churn_accuracy_by_renewal). Was `churn_estimate_error_pct`,
+  the RATIO, until 2026-08-17 -- see the module's unit doctrine.
 - Retention save, then churned anyway: a retention_decision fired in the reaction chain
   before the eventual churn.
 - Heaviest arrears cascade: most WRITTEN_OFF outcomes in the reaction chain.
