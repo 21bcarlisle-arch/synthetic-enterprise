@@ -87,7 +87,7 @@ def generate():
         note_texts, superseded = annotate_notes(notes)
         by_lane.setdefault(lane, []).append({
             "atom_id": atom.get("id"),
-            "atom_name": atom.get("name"),
+            "atom_name": store.atom_name(atom, MATURITY_MAP_YAML.parent / "simplifications"),
             "level_current": atom.get("level_current"),
             "level_target": atom.get("level_target"),
             "notes": note_texts,

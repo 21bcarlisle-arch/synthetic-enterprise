@@ -202,7 +202,7 @@ def atom_records(map_path: Path = MAP_PATH) -> dict[str, dict]:
                 ev_buf = [value]
             continue
         if key in ("name", "lane", "loop_stage", "value_stream", "epoch", "provenance",
-                   "records_rehomed"):
+                   "records_rehomed", "notes_rehomed"):
             records[current][key] = value.strip().strip("'\"")
     if current and ev_buf is not None:
         records[current]["evidence_raw"] = "\n".join(ev_buf)
@@ -213,7 +213,50 @@ def atom_records(map_path: Path = MAP_PATH) -> dict[str, dict]:
     # that copy's store, or it would silently read the real tree's evidence and the
     # fixture would be testing the wrong pair. Same rule as
     # merge_atom_status._store_dir_for.
-    return _attach_rehomed_evidence(records, Path(map_path).parent / "simplifications")
+    store_dir = Path(map_path).parent / "simplifications"
+    return _attach_rehomed_names(_attach_rehomed_evidence(records, store_dir), store_dir)
+
+
+def _attach_rehomed_names(records: dict[str, dict], store_dir: Path = STORE_DIR) -> dict:
+    """Resolve `name` for atoms that declare it REHOMED to the note store (2026-08-14).
+
+    Exactly the sibling of `_attach_rehomed_evidence` below, one tenant over, and it
+    exists for the same reason: the text parse above looks for a `name:` line that
+    296 atoms no longer carry, so without this every atom on every node renders with
+    a blank brief -- the `atom-name` paragraph is emitted only `if atom.get("name")`,
+    so the page would simply lose it and nothing would raise.
+
+    SAME TWO-TIER FAIL RULE (this module's header): a store directory that is gone,
+    or a map where every atom declares a rehomed name and NOT ONE resolves, is the
+    SOURCE being unavailable -- raise, write nothing, leave the previous page up. A
+    single unresolvable atom is per-atom absence and renders blank, as before.
+
+    Inline wins, matching `simplifications_store.atom_name`: an atom that still has
+    its `name:` line (a pre-drain fixture, or a partial migration) keeps it."""
+    declared = [
+        aid for aid, r in records.items()
+        if "name" in str(r.get("notes_rehomed") or "") and not r.get("name")
+    ]
+    if not declared:
+        return records
+    if not store_dir.is_dir():
+        raise EvidenceSourceUnavailable(
+            f"{len(declared)} atom(s) declare a rehomed name but the note store "
+            f"is missing: {store_dir}"
+        )
+    loaded = store.notes_load_all(store_dir)
+    resolved = 0
+    for aid in declared:
+        text = (loaded.get(aid) or {}).get("name")
+        if isinstance(text, str) and text.strip():
+            records[aid]["name"] = text
+            resolved += 1
+    if not resolved:
+        raise EvidenceSourceUnavailable(
+            f"{len(declared)} atom(s) declare a rehomed name and the note store "
+            f"resolved none of them: {store_dir}"
+        )
+    return records
 
 
 def _attach_rehomed_evidence(records: dict[str, dict], store_dir: Path = STORE_DIR) -> dict:

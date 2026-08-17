@@ -317,6 +317,17 @@ def _held_note(atom):
     return None
 
 
+def _atom_brief(atom):
+    """One atom's `name`, wherever it now lives (the 2026-08-14 drain into the note
+    tenant). Inline wins, same rule and same reason as `_expert_hour_findings`
+    below. Routed through the store's own accessor so this page cannot drift from
+    the seam; without it every atom_name on /proof/ renders empty and nothing
+    raises."""
+    from tools import simplifications_store as store
+
+    return store.atom_name(atom, MATURITY_MAP_YAML.parent / "simplifications")
+
+
 def _expert_hour_findings(atom, expert_hour):
     """The Expert-Hour findings for one atom, wherever they live.
 
@@ -354,7 +365,7 @@ def _verification_stack(atoms):
         if status in ("passed", "reviewed_readonly_no_defects") and findings:
             findings_total += len(findings)
             eh_reviews.append(dict(
-                atom_id=a.get("id"), atom_name=a.get("name"),
+                atom_id=a.get("id"), atom_name=_atom_brief(a),
                 lane=a.get("lane"), lane_name=LANE_NAMES.get(a.get("lane"), a.get("lane")),
                 status=status, last=eh.get("last"),
                 level_current=a.get("level_current"), level_target=a.get("level_target"),
@@ -368,7 +379,7 @@ def _verification_stack(atoms):
         if note is None:
             continue
         held.append(dict(
-            atom_id=a.get("id"), atom_name=a.get("name"),
+            atom_id=a.get("id"), atom_name=_atom_brief(a),
             lane_name=LANE_NAMES.get(a.get("lane"), a.get("lane")),
             level_current=a.get("level_current"), level_target=a.get("level_target"),
             note=note,
@@ -415,7 +426,7 @@ def _open_work(atoms):
         else:
             next_step = "Queued"
         out.append(dict(
-            atom_id=a.get("id"), atom_name=a.get("name"),
+            atom_id=a.get("id"), atom_name=_atom_brief(a),
             lane_name=LANE_NAMES.get(a.get("lane"), a.get("lane")),
             epoch=a.get("epoch"), loop_stage=stage,
             level_current=lc, level_target=lt,
@@ -497,10 +508,17 @@ def _coupled_gaps(atoms):
 
         return dict(
             world_atom=world_id,
-            world_name=world.get("name"),
+            # THE THIRD AND FOURTH SITES of the 2026-08-14 `name` drain, and the two
+            # the drain's own reader repair missed: the Expert-Hour and held-atom
+            # rows above were routed through `_atom_brief` and these two were left
+            # reading the map inline, which post-drain is `None` for all 296 atoms.
+            # A reader precision fixed at two of four sites renders blank on the
+            # other two and raises nothing -- the coupled-triad panel would have
+            # published every world/company name empty.
+            world_name=_atom_brief(world),
             world_level=world.get("level_current"),
             company_atom=twin_id,
-            company_name=twin.get("name"),
+            company_name=_atom_brief(twin),
             company_level=twin.get("level_current"),
             metric=entry.get("metric"),
             value=value,

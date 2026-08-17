@@ -165,6 +165,11 @@
     ".product_interleave_state.json": {
       "verdict": "benign",
       "why": "OPS13's pairing-debt ledger: {\"owed\": [harness atom ids], \"last_harness\", \"last_product\", \"updated\"}. No field is episode-scoped -- there is no episode-start timestamp and no consecutive-failure counter, so no write can shorten an episode. `owed` is a WORK debt, not a fault clock: it is capped at _INTERLEAVE_OWED_CAP = 3 and is paid DOWN by the machine doing the right thing, so a lost entry costs at most one forced PRODUCT draw -- and supervisor.py's own comment picks that as the direction to err in. `updated` is a latest-write watermark. Nothing reads any field for alarm SEVERITY; the consumer is product_interleave_digest_line(), which is required to emit a non-empty line on every path (the atom's own exit 4, SILENCE IS THE FAILURE). The reset paths are the opposite of self-clearing: _load_interleave_state() returns a NAMED error on an unreadable or malformed ledger and the digest line carries it, rather than resetting quietly to a state that always reads paid."
+    },
+    ".owner-pid": {
+      "verdict": "benign",
+      "guard": "n/a",
+      "why": "Not an alarm record at all: `tools/surgical_land.py::OWNER_MARKER` holds ONE integer -- the PID that created the extract directory it sits inside -- written once, before anything else in the checkout, and never read for severity. It carries no episode-start timestamp and no consecutive-failure counter, so there is no episode any write could shorten; the sweep asks only `os.kill(pid, 0)`, a question about the CURRENT world rather than an accumulated history. It is also not durable state: it lives inside the checkout and dies with it in the same `rmtree`, so 'self-clearing' is its correct and intended behaviour rather than a defect. Hit by the lexicon on `page_`/`stale` in the sweep's own prose, not on the file's contents. Landed by 5bf1efd52 (WORKER_FINDING_THE_ONLY_LEGAL_LANDING_MOVE_LEAKS_150MB_A_KILL_2026-08-14) without a row, which is what this census is for."
     }
   }
 }

@@ -20,6 +20,7 @@ import yaml
 PROJECT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT))
 from background.forward_attachment_register import attachments_by_atom  # noqa: E402
+from tools import simplifications_store as _store  # noqa: E402 (the `name` drain, 2026-08-14)
 
 MATURITY_MAP_YAML = PROJECT / "docs" / "design" / "maturity_map.yaml"
 OUT_PATH = PROJECT / "site" / "data" / "maturity_map.json"
@@ -130,7 +131,7 @@ def generate():
         stall_entry = stall_state.get(a.get("id"), {})
         out_atoms.append({
             "id": a.get("id"),
-            "name": a.get("name"),
+            "name": _store.atom_name(a, MATURITY_MAP_YAML.parent / "simplifications"),
             "lane": a.get("lane"),
             "value_stream": a.get("value_stream"),
             "value_stream_label": VALUE_STREAM_LABELS.get(a.get("value_stream"), a.get("value_stream")),

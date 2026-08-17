@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "run_stamp": "0a3b39ee9",
+  "degraded": false,
+  "step_count": 11,
+  "failing_step_count": 0,
+  "stale_artefacts": [],
+  "steps": [
+    {
+      "name": "Margin bridge generation",
+      "artefacts": [
+        "site/data/margin_bridge.json"
+      ],
+      "ok": true,
+      "refreshed_this_cycle": true,
+      "error": null,
+      "last_ok_run_stamp": "0a3b39ee9"
+    },
+    {
+      "name": "Dashboard data generation",
+      "artefacts": [
+        "site/data/dashboard.json"
+      ],
+      "ok": true,
+      "refreshed_this_cycle": true,
+      "error": null,
+      "last_ok_run_stamp": "0a3b39ee9"
+    },
+    {
+      "name": "Customer data generation",
+      "artefacts": [
+        "site/data/customers"
+      ],
+      "ok": true,
+      "refreshed_this_cycle": true,
+      "error": null,
+      "last_ok_run_stamp": "0a3b39ee9"
+    },
+    {
+      "name": "Billing ledger generation",
+      "artefacts": [
+        "site/state/billing_ledger.json"
+      ],
+      "ok": true,
+      "refreshed_this_cycle": true,
+      "error": null,
+      "last_ok_run_stamp": "0a3b39ee9"
+    },
+    {
+      "name": "Invoice data generation",
+      "artefacts": [
+        "site/data/customers"
+      ],
+      "ok": true,
+      "refreshed_this_cycle": true,
+      "error": null,
+      "last_ok_run_stamp": "0a3b39ee9"
+    },
+    {
+      "name": "Payment ledger generation",
+      "artefacts": [
+        "site/data/customers"
+      ],
+      "ok": true,
+      "refreshed_this_cycle": true,
+      "error": null,
+      "last_ok_run_stamp": "0a3b39ee9"
+    },
+    {
+      "name": "Customer consumption generation",
+      "artefacts": [
+        "site/data/customers"
+      ],
+      "ok": true,
+      "refreshed_this_cycle": true,
+      "error": null,
+      "last_ok_run_stamp": "0a3b39ee9"
+    },
+    {
+      "name": "Customer reaction-chain generation",
+      "artefacts": [
+        "site/data/customers"
+      ],
+      "ok": true,
+      "refreshed_this_cycle": true,
+      "error": null,
+      "last_ok_run_stamp": "0a3b39ee9"
+    },
+    {
+      "name": "Portfolio event stream generation",
+      "artefacts": [
+        "site/data/dashboard.json"
+      ],
+      "ok": true,
+      "refreshed_this_cycle": true,
+      "error": null,
+      "last_ok_run_stamp": "0a3b39ee9"
+    },
+    {
+      "name": "Sim data generation",
+      "artefacts": [
+        "site/data/sim_data.json"
+      ],
+      "ok": true,
+      "refreshed_this_cycle": true,
+      "error": null,
+      "last_ok_run_stamp": "0a3b39ee9"
+    },
+    {
+      "name": "Customer sample generation",
+      "artefacts": [
+        "site/data/customer_sample.json"
+      ],
+      "ok": true,
+      "refreshed_this_cycle": true,
+      "error": null,
+      "last_ok_run_stamp": "0a3b39ee9"
+    }
+  ]
+}
