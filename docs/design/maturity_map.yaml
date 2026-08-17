@@ -4085,7 +4085,7 @@
   couples_with: []
   records_rehomed: [evidence]
   file_scope: []
-  simplifications_count: 3   # 2026-08-15: the contract-term perpetuity REPAIRED and the BLOCKING finding discharged (rung 1c, not an EP1 build -- level stays 0)
+  simplifications_count: 4   # 2026-08-17: the belief-vs-realised CLV gap MEASURED for the first time (DISCOVER, level stays 0); two BLOCKING findings filed -- the valuation's margin basis, and an empty final-year snapshot published as a GBP 3.3m fall
 - id: EP2_variance_learning_loop
   title: "Expected minus realised, fed back into belief"
   gain: "Margin volatility becomes explained variance or a named defect, instead of a shrug."
