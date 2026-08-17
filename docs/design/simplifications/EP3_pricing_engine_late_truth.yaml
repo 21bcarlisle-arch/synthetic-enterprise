@@ -7,3 +7,75 @@ map_records:
   - docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md
   - docs/design/EPOCH2_EVIDENCE.md (Q1, pricing verdict)
   - docs/design/THE_VALUE_CYCLE_FRAMING.md (C3)
+simplifications:
+- |-
+  2026-08-17 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw). No BUILD code and
+  nothing in `file_scope` touched (it is empty); EPOCH_GATING_AND_ATOM_AUTHORSHIP rule 1 makes
+  DISCOVER/FRAME available while BUILD is not. Full pass:
+  `docs/design/frame/EP3_PRICING_ENGINE_LATE_TRUTH_FRAME.md`. Measured at HEAD 38d1ede94 with the
+  map, this store file and docs/design/frame/ all clean in the shared tree at draw time.
+
+  THE ATOM'S CITED EVIDENCE NAMED THE RISK; THIS PASS MEASURES THAT IT ALREADY MATERIALISED.
+  EPOCH2_EVIDENCE Q1's stated "biggest risk" was that EP3 would build a parallel pricing engine
+  duplicating working infrastructure. AST import graph over 2,310 .py files: TEN pricing-lane modules
+  have ZERO non-test importers, and three are EP3's own named deliverables --
+  `company/pricing/renewal_pricing_engine.py` (192 lines, 2 test files) whose docstring states EP3's
+  contract verbatim ("Cost-to-serve floor: price must cover wholesale + non-commodity + CTS", SVT
+  ceiling, elasticity, expected margin); `price_transparency_register.py` = the "audit trail" in EP3's
+  own gain line; `billing/tariff_change_log.py` = the versioning Q1 said was missing. Also dark:
+  `pricing/tariff_smoothing`, `pricing/price_elasticity`, `pricing/cost_to_serve`, `crm/portfolio_repricing`,
+  `market/llf_register`, and BOTH `pricing/segment_profitability` (153 lines) and
+  `finance/segment_profitability` (154 lines) -- same name, two packages, different content. The live
+  path is four modules: interfaces/renewal_offer -> pricing/renewal_desk -> saas/tariff_pricing (+
+  tou_offer -> tou_desk). CONSEQUENCE: EP3's first step is an ADJUDICATION over ten modules (wire /
+  fold / delete each, plus a de-duplication half), not a build, and `level_target: 3` may be wrong on
+  the high side. Second-order: the pricing lane's test count is not evidence of pricing behaviour --
+  ten modules' worth of tests pass against code no run executes.
+
+  FINDING 1 -- `eac_kwh` IS A DEAD PARAMETER. `price_fixed_tariff` takes the customer's consumption and
+  the return value does not depend on it: ONE distinct rate (£196.761/MWh) across a 100x EAC range
+  (500 -> 50,000 kWh), because eac_mwh cancels out of the capital term, the last size-dependent one.
+  Decomposition at fwd £80/MWh, 2024-04-01, nf 0.15: wholesale £80.00 (40.7%), capital £2.961 (1.5%),
+  margin £2.00 (1.0%), policy £42.80 (21.8%), network £69.00 (35.1%), uplift £0. Six of EP3's seven
+  named components; losses, cost-to-serve and bad debt have no term. 56.9% is pass-through the company
+  does not decide; the decided margin is 1.0%.
+
+  FINDING 1b -- THE OBVIOUS INFERENCE IS FALSE, CHECKED BEFORE WRITING IT. "CTS is £55/yr fixed, worth
+  £27.50/MWh at 2,000 kWh (13.8x the whole margin term) and it is not in the rate, so small accounts are
+  under-priced" does NOT survive: the standing charge recovers it, on either fuel alone, in every year
+  sampled (resi elec 2016 £87.60/yr, 2020 £98.55, 2024 £222.65 vs £55.00 CTS). EP3 must NOT be built as
+  "add a CTS term to the unit rate" -- that double-recovers a cost already billed and lands as an
+  R12-shaped tuning move dressed as a fidelity fix. Recorded because the wrong version is one grep away.
+
+  FINDING 1c -- THE REAL DEFECT IS WHERE THE RECOVERY SITS. The standing charge is a year-keyed table in
+  `simulation/policy_costs.py` (the WORLD side) plus a self-described "FALLBACK ONLY" constant in
+  `saas/non_commodity.py`; NO module in `company/` decides it, and its own docstring says it covers
+  "metering costs, network fixed capacity, and supplier admin". On a 3,000 kWh resi elec account in 2024
+  the company decides £6.00/yr of margin against £222.65/yr of standing charge it does not -- 2.7%. This
+  is the defensible form of the director's suspicion and it is NOT the form Q1 framed: Q1 said the MARGIN
+  CONSTANT is ungoverned (still true) and never examined the larger undecided line on the same bill.
+  Restate EP3's target accordingly. The origin_note's own REGIME-keying constraint is unmet at a named
+  signature: `get_electricity_standing_charge_per_day(date_str, segment)` has no regime parameter, and
+  `regime` greps to exactly one unrelated comment across the three cost-stack modules.
+
+  FINDING 2 -- THE "LATE TRUTH" HALF HAS NO IMPLEMENTATION AND THE MAP DOES NOT RECORD ITS DEPENDENCY.
+  `true_up|trueup|true-up` across company/ saas/ simulation/ sim/ returns 2 lines, BOTH prose in
+  docstrings (seg_export_estimator.py:9, ledger.py:300), neither a mechanism. `EP5_settlement_true_ups`
+  is level 0 / idle / epoch 2, `depends_on: []`, `couples_with: [W3_2_settlement_timetable]`; EP3 is
+  `depends_on: []`, `couples_with: []`. Neither row names the other, though EP3's title is "then met by
+  LATE COST TRUTH". QUEUED not taken (another atom's row is outside this pass's declared touch): EP3
+  should carry EP5 in depends_on, or the two should be a couples_with pair.
+
+  FALSIFIER NAMED AND ALREADY RUN, not proposed for a later pass: "the struck rate must respond to a
+  change in a per-account cost input" -- RED at HEAD 38d1ede94 per finding 1 (one distinct rate over a
+  100x range). A real exit test failing on today's code, on a pure function with no fixtures, not one
+  already green on unbuilt code. Stated limit: necessary not sufficient -- it greens on ANY size-sensitive
+  term including a wrong one, so it must be paired with 1b's no-double-recovery constraint.
+
+  FINDING 3 -- SIDE, QUEUED NOT FIXED (SELF-INTERRUPT DISCIPLINE, outside file_scope and a harness item).
+  `tests/company/test_carbon_not_a_target.py::_SURFACE_GLOBS` names `company/crm/renewal_pricing_engine.py`,
+  which does not exist (the module is under `company/pricing/`); `_surface_files()` drops a missing named
+  path silently. Its neighbouring anti-fail-silent control asserts `len(files) >= 5`, but the
+  `company/pricing/*.py` glob alone resolves ~10 files, so NO individually named path can make it fire by
+  vanishing. R15 class: a per-item FAIL-OPEN behind a population-level count. Not a live coverage hole --
+  the glob still covers the module -- a control-integrity defect.
