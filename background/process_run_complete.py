@@ -4470,6 +4470,53 @@ def _green_is_on_record_for(git_hash, last_tested_path=None):
         return False
 
 
+def _marker_git_hash(marker):
+    """The commit a marker was produced at, read WHEREVER THE MARKER NOW LIVES.
+
+    THE DEFECT THIS CLOSES (observed 2026-08-17, the wedge that could not end).
+    `record_publish_gate_outcome` read the hash with `parse_marker(Path(marker))` at the path it
+    was HANDED. But a SUCCESSFUL publish archives the marker to done/ as its last act, and only
+    then does the caller route the return code -- so on the success path that path is always
+    gone. `parse_marker` raised, the bare except left `git_hash = "unknown"`, and
+    `_green_is_on_record_for("unknown")` is False BY DESIGN. Every genuinely green publish was
+    therefore recorded "unproven" and the streak preserved:
+
+        [2026-08-17 13:01 UTC] Publish gate: run_complete_20260817T122429Z.md exited 0 but no
+        suite PASS is recorded for git=unknown -- ... the wedge streak is left exactly as it was
+        found.
+
+    while that marker reads `Git: 6a132fa61` and `.last_tested_hash` read `6a132fa61` -- the
+    gate had passed for exactly that commit, 6 minutes earlier. The success path could not fire,
+    so `episode_failures` climbed to 257 and `wedge_since` stayed pinned to 2026-08-09 against a
+    pipeline that was publishing. An alarm whose CLEAR path is unreachable is not a strict alarm;
+    it is a broken one, and it fires the RUNG-1 priority-zero draw every tick.
+
+    Asking the archive policy where the file is now is what `_process` above already does for the
+    same reason. FAIL-SAFE IS PRESERVED IN THE DIRECTION THAT MATTERS: a marker that is genuinely
+    nowhere, or unreadable, still yields "unknown" and still clears nothing (R15 -- an unavailable
+    check is a failed check). What changes is only that a marker which was archived BECAUSE the
+    publish succeeded stops being read as evidence of nothing.
+
+    Independence is untouched (R15 anti-tautology): the hash still comes from the marker, written
+    by the sim runner before the gate ran, and the pass still comes from `.last_tested_hash`,
+    written only by the gate's own rc=0. Two sources, neither derived from the other -- the fix
+    changes which DIRECTORY one of them is read from, not who wrote it."""
+    path = Path(marker)
+    if not path.is_file():
+        try:
+            from background import staging_archive_policy
+            located = staging_archive_policy.locate(path.name, done_dir=DONE_DIR)
+        except Exception:
+            located = None
+        if located is None:
+            return "unknown"
+        path = located
+    try:
+        return parse_marker(path).get("git_hash", "unknown")
+    except Exception:
+        return "unknown"
+
+
 def record_publish_gate_success(*, now=None, markers_pending=None):
     """A clean publish CLEARS the wedge state: resets the consecutive-failure streak, re-arms the
     alarm, and resolves the durable action_needed item if one was open. Idempotent; never raises.
@@ -4583,11 +4630,10 @@ def record_publish_gate_outcome(marker, rc, *, kind=None):
     try:
         if rc in NO_PUBLISH_EXIT_CODES:
             return "skipped"
-        git_hash = "unknown"
-        try:
-            git_hash = parse_marker(Path(marker)).get("git_hash", "unknown")
-        except Exception:
-            pass
+        # Read the hash WHEREVER THE MARKER IS NOW -- a successful publish archives it before
+        # this router ever runs, and reading only the handed path made every green publish
+        # "unproven". See _marker_git_hash.
+        git_hash = _marker_git_hash(marker)
         if rc == 0:
             if not _green_is_on_record_for(git_hash):
                 log("Publish gate: {} exited 0 but no suite PASS is recorded for git={} "

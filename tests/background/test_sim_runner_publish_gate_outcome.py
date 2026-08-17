@@ -46,6 +46,15 @@ def _isolate(tmp_path, monkeypatch):
     # the LIVE observability file (which on a wedged morning holds a 41-hour-old hash and would
     # decide these assertions for reasons that have nothing to do with the code under test).
     monkeypatch.setattr(prc, "LAST_TESTED_HASH_FILE", tmp_path / ".last_tested_hash")
+    # And the STAGING DIRECTORY, for the same reason one rung further out. `record_publish_gate_
+    # success` decides whether the EPISODE closes from `pending_run_complete_markers()`, which
+    # globs STAGING_DIR -- so unpatched, whether `episode_failures` reaches 0 in a unit test is
+    # decided by how many real markers happen to be queued on the box at that moment. Caught
+    # 2026-08-17: the archived-marker test below passed its "success" assertion and failed its
+    # episode assertion purely because one live marker was mid-publish.
+    staging = tmp_path / "staging"
+    staging.mkdir(exist_ok=True)
+    monkeypatch.setattr(prc, "STAGING_DIR", staging)
     yield
 
 
@@ -115,6 +124,68 @@ def test_router_rc0_at_a_different_commit_clears_nothing(tmp_path):
 
     assert prc._read_publish_gate_state().get("failures") == before, \
         "a pass recorded at another commit says nothing about this one"
+
+
+def test_router_reads_a_marker_the_successful_publish_already_archived(tmp_path, monkeypatch):
+    """THE SUCCESS PATH DESTROYS ITS OWN EVIDENCE (observed 2026-08-17, episode_failures=257).
+
+    A publish that WORKS archives the marker to done/ as its last act, and only then does the
+    caller route the return code. So on the success path the handed path is always already gone.
+    `parse_marker` raised, the bare except left "unknown", and `_green_is_on_record_for("unknown")`
+    is False by design -- so the one branch that can clear the wedge could never be reached:
+
+        [2026-08-17 13:01 UTC] run_complete_20260817T122429Z.md exited 0 but no suite PASS is
+        recorded for git=unknown -- ... the wedge streak is left exactly as it was found.
+
+    That marker reads `Git: 6a132fa61`; `.last_tested_hash` read `6a132fa61`, stamped 6 minutes
+    earlier by the gate's own rc=0. A genuinely green publish, recorded as no evidence at all.
+    `wedge_since` stayed pinned to 2026-08-09 and the RUNG-1 priority-zero doorbell fired every
+    tick against a pipeline that was publishing fine.
+
+    MUTATION: revert `_marker_git_hash` to `parse_marker(Path(marker))` on the handed path only
+    -> the hash reads "unknown", this returns "unproven", and the assertions below go red."""
+    monkeypatch.setattr(prc, "DONE_DIR", tmp_path / "done")
+    prc.record_publish_gate_failure("seed a wedge", rc=1, git_hash="dead")
+    assert prc._read_publish_gate_state().get("failures"), "precondition: streak seeded"
+    _record_a_green()  # the gate stamped THIS marker's commit
+
+    marker = _marker(tmp_path)
+    (tmp_path / "done").mkdir()
+    marker.rename(tmp_path / "done" / marker.name)  # exactly what a successful publish does
+    assert not marker.exists(), "precondition: the publish archived it, as success does"
+
+    assert prc.record_publish_gate_outcome(marker, 0) == "success"
+
+    state = prc._read_publish_gate_state()
+    assert not state.get("failures"), "an archived marker is a PUBLISHED one -- clear the streak"
+    assert state.get("episode_failures") == 0, \
+        "the episode counter must be able to return to zero through a real pass (OPS3 crit 4)"
+    assert state.get("wedge_since") is None, "and the wedge clock must stop"
+
+
+def test_router_marker_that_is_genuinely_nowhere_still_clears_nothing(tmp_path, monkeypatch):
+    """THE OTHER DIRECTION -- the fix must not become a fail-open (R15).
+
+    Looking in done/ is only legitimate because being there means a publish put it there. A
+    marker that is in NEITHER place is an unavailable check, and an unavailable check is a FAILED
+    check: it must still refuse to clear. Without this, "look somewhere else for the hash" could
+    be widened until any missing marker resolved to some green.
+
+    MUTATION: have `_marker_git_hash` fall back to reading `.last_tested_hash` (or return any
+    non-"unknown" default) when the marker is nowhere -> this goes red."""
+    monkeypatch.setattr(prc, "DONE_DIR", tmp_path / "done")
+    (tmp_path / "done").mkdir()
+    prc.record_publish_gate_failure("seed a wedge", rc=1, git_hash="dead")
+    before = prc._read_publish_gate_state().get("failures")
+    _record_a_green()
+
+    vanished = tmp_path / "run_complete_20260803T040000Z.md"
+    assert not vanished.exists(), "precondition: in neither staging nor done/"
+
+    assert prc.record_publish_gate_outcome(vanished, 0) == "unproven"
+
+    assert prc._read_publish_gate_state().get("failures") == before, \
+        "a marker nobody can find proves nothing and must clear nothing"
 
 
 def test_router_nonzero_records_failure(tmp_path):
