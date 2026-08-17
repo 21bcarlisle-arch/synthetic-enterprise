@@ -1,25 +1,20 @@
 {
   "schema": 1,
-  "run_stamp": "unknown",
-  "degraded": true,
+  "run_stamp": "54baf1675",
+  "degraded": false,
   "step_count": 11,
-  "failing_step_count": 6,
-  "stale_artefacts": [
-    "site/data/customer_sample.json",
-    "site/data/customers",
-    "site/data/margin_bridge.json",
-    "site/state/billing_ledger.json"
-  ],
+  "failing_step_count": 0,
+  "stale_artefacts": [],
   "steps": [
     {
       "name": "Margin bridge generation",
       "artefacts": [
         "site/data/margin_bridge.json"
       ],
-      "ok": false,
-      "refreshed_this_cycle": false,
-      "error": "FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-108/test_generate_dashboard_json_r0/run.json'",
-      "last_ok_run_stamp": "6a132fa61"
+      "ok": true,
+      "refreshed_this_cycle": true,
+      "error": null,
+      "last_ok_run_stamp": "54baf1675"
     },
     {
       "name": "Dashboard data generation",
@@ -29,37 +24,37 @@
       "ok": true,
       "refreshed_this_cycle": true,
       "error": null,
-      "last_ok_run_stamp": "unknown"
+      "last_ok_run_stamp": "54baf1675"
     },
     {
       "name": "Customer data generation",
       "artefacts": [
         "site/data/customers"
       ],
-      "ok": false,
-      "refreshed_this_cycle": false,
-      "error": "FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-108/test_generate_dashboard_json_r0/run.json'",
-      "last_ok_run_stamp": "6a132fa61"
+      "ok": true,
+      "refreshed_this_cycle": true,
+      "error": null,
+      "last_ok_run_stamp": "54baf1675"
     },
     {
       "name": "Billing ledger generation",
       "artefacts": [
         "site/state/billing_ledger.json"
       ],
-      "ok": false,
-      "refreshed_this_cycle": false,
-      "error": "FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-108/test_generate_dashboard_json_r0/run.json'",
-      "last_ok_run_stamp": "6a132fa61"
+      "ok": true,
+      "refreshed_this_cycle": true,
+      "error": null,
+      "last_ok_run_stamp": "54baf1675"
     },
     {
       "name": "Invoice data generation",
       "artefacts": [
         "site/data/customers"
       ],
-      "ok": false,
-      "refreshed_this_cycle": false,
-      "error": "FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-108/test_generate_dashboard_json_r0/run.json'",
-      "last_ok_run_stamp": "6a132fa61"
+      "ok": true,
+      "refreshed_this_cycle": true,
+      "error": null,
+      "last_ok_run_stamp": "54baf1675"
     },
     {
       "name": "Payment ledger generation",
@@ -69,17 +64,17 @@
       "ok": true,
       "refreshed_this_cycle": true,
       "error": null,
-      "last_ok_run_stamp": "unknown"
+      "last_ok_run_stamp": "54baf1675"
     },
     {
       "name": "Customer consumption generation",
       "artefacts": [
         "site/data/customers"
       ],
-      "ok": false,
-      "refreshed_this_cycle": false,
-      "error": "FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-108/test_generate_dashboard_json_r0/run.json'",
-      "last_ok_run_stamp": "6a132fa61"
+      "ok": true,
+      "refreshed_this_cycle": true,
+      "error": null,
+      "last_ok_run_stamp": "54baf1675"
     },
     {
       "name": "Customer reaction-chain generation",
@@ -89,7 +84,7 @@
       "ok": true,
       "refreshed_this_cycle": true,
       "error": null,
-      "last_ok_run_stamp": "unknown"
+      "last_ok_run_stamp": "54baf1675"
     },
     {
       "name": "Portfolio event stream generation",
@@ -99,7 +94,7 @@
       "ok": true,
       "refreshed_this_cycle": true,
       "error": null,
-      "last_ok_run_stamp": "unknown"
+      "last_ok_run_stamp": "54baf1675"
     },
     {
       "name": "Sim data generation",
@@ -109,17 +104,17 @@
       "ok": true,
       "refreshed_this_cycle": true,
       "error": null,
-      "last_ok_run_stamp": "unknown"
+      "last_ok_run_stamp": "54baf1675"
     },
     {
       "name": "Customer sample generation",
       "artefacts": [
         "site/data/customer_sample.json"
       ],
-      "ok": false,
-      "refreshed_this_cycle": false,
-      "error": "FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-rich/pytest-108/test_generate_dashboard_json_r0/run.json'",
-      "last_ok_run_stamp": "6a132fa61"
+      "ok": true,
+      "refreshed_this_cycle": true,
+      "error": null,
+      "last_ok_run_stamp": "54baf1675"
     }
   ]
 }

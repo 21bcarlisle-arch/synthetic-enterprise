@@ -1291,8 +1291,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 26,
       "forward_attachments": []
     },
     {
@@ -2447,8 +2447,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 13,
       "forward_attachments": []
     },
     {
@@ -2511,8 +2511,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 3,
       "forward_attachments": []
     },
     {
@@ -2819,8 +2819,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 117,
       "forward_attachments": []
     },
     {
@@ -3084,8 +3084,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 19,
       "forward_attachments": []
     },
     {
@@ -3110,8 +3110,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 13,
       "forward_attachments": []
     },
     {
@@ -3136,8 +3136,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 16,
       "forward_attachments": []
     },
     {
@@ -3162,8 +3162,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 16,
       "forward_attachments": []
     },
     {
@@ -3188,8 +3188,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 12,
       "forward_attachments": []
     },
     {
@@ -3214,8 +3214,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 14,
       "forward_attachments": []
     },
     {
@@ -3240,8 +3240,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 7,
       "forward_attachments": []
     },
     {
@@ -3266,8 +3266,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 15,
       "forward_attachments": []
     },
     {
@@ -3292,8 +3292,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 10,
       "forward_attachments": []
     },
     {
@@ -3318,8 +3318,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 8,
       "forward_attachments": []
     },
     {
@@ -3637,8 +3637,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 29,
       "forward_attachments": []
     },
     {
@@ -4190,8 +4190,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 5,
       "forward_attachments": []
     },
     {
@@ -4768,8 +4768,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 27,
       "forward_attachments": []
     },
     {
@@ -4922,7 +4922,7 @@
           "note": "the index's population question and"
         },
         {
-          "source": "docs/staging/WORKER_REPORT_THE_INDEX_NOW_KNOWS_WHAT_THE_REPO_CARRIES_2026-08-12.md",
+          "source": "docs/staging/done/WORKER_REPORT_THE_INDEX_NOW_KNOWS_WHAT_THE_REPO_CARRIES_2026-08-12.md",
           "date": "2026-08-12",
           "kind": "finding",
           "note": ""
@@ -4957,7 +4957,7 @@
           "note": "the index's population question and"
         },
         {
-          "source": "docs/staging/WORKER_REPORT_THE_INDEX_NOW_KNOWS_WHAT_THE_REPO_CARRIES_2026-08-12.md",
+          "source": "docs/staging/done/WORKER_REPORT_THE_INDEX_NOW_KNOWS_WHAT_THE_REPO_CARRIES_2026-08-12.md",
           "date": "2026-08-12",
           "kind": "finding",
           "note": ""
@@ -5078,7 +5078,7 @@
     },
     {
       "id": "KNIFE3_wall_crossing_paydown",
-      "name": "KNIFE pass 3 of 4 (AO5), LAST of the three wall passes. Cut the crossings that survive passes 1 and 2. STALE-DOORBELL NOTICE (RE-STATED 2026-08-14, step 29; it went stale by two steps once, the class it exists to stop -- REFRESH THESE NUMBERS every step, here and in the yaml. Held under the spine ratchet by compression, never by raising it): the FIRST STEP described below is DONE -- build_edges/company_reads_sim/sim_reads_company already live in tools/epistemic_wall.py as the one shared definition, ratchet+ledger+pass 3 all import from there, and tests/architecture/test_epistemic_wall_single_source.py enforces it stays that way. PARTIALLY BUILT: 29 steps landed as of 2026-08-14 (26 A_composition_lift/B-shaped cuts, step 26's module move, step 28's identity cut and step 29's incidence cut) -- DO NOT REDRAW AS IF FROM ZERO. NEVER TRUST THIS FIELD'S COUNTS OVER THE TOOL: run `python3 -m tools.wall_crossing_dispositions`, which measures the WORKING TREE. Live state per docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md + docs/design/simplifications/KNIFE3_wall_crossing_paydown.yaml (map_records.exit_evidence, updated every step -- read that before the next cut): 91 crossings ruled total, 83 cut, 8 still owed (5 to design A_composition_lift, 3 to design B2_company_brain_decides_the_world -- COUNTED FROM THE REGISTER'S OWN OWED ROWS, never carried forward by subtraction), matching knife_hotspot_measure.py's live 8 (6 direct + 2 indirect). TWO CONSECUTIVE STEPS FOUND A MIS-RULING UNDER A_composition_lift, so treat its 5 remaining rows as PROVISIONAL rulings and re-rule before cutting. level_current is DELIBERATELY still 0 at 8/91 remaining -- booking the target at six-sevenths-paid is the false-completion class this project names explicitly; do not bump level_target progress until owed=0. Original text preserved below for provenance. || ORIGINAL: FIRST STEP, BEFORE ANY CUT: lift build_edges / company_reads_sim / sim_reads_company out of tests/architecture/test_epistemic_wall_ratchet.py into a shared module so the ratchet, the KNIFE ledger and this pass read ONE definition of 'a crossing'. That extraction is deliberately deferred to here rather than done while planning, because moving the net while planning the cuts is the error the MAP->NET->KNIFE sequence exists to prevent. EXIT: stated when the pass is drawn, against the count that survives passes 1 and 2 -- NOT against today's 107, which will be stale.",
+      "name": "KNIFE pass 3 of 4 (AO5), LAST of the three wall passes. Cut the crossings that survive passes 1 and 2. STALE-DOORBELL NOTICE (RE-STATED 2026-08-17, step 31; it went stale by two steps once, the class it exists to stop -- REFRESH THESE NUMBERS every step, here and in the yaml. Held under the spine ratchet by compression, never by raising it): the FIRST STEP described below is DONE -- build_edges/company_reads_sim/sim_reads_company already live in tools/epistemic_wall.py as the one shared definition, ratchet+ledger+pass 3 all import from there, and tests/architecture/test_epistemic_wall_single_source.py enforces it stays that way. PARTIALLY BUILT: 31 steps landed as of 2026-08-17 (26 A_composition_lift/B-shaped cuts, step 26's module move, step 28's identity cut, step 29's incidence cut, step 30's RE-RULING and step 31's DEFECT REPAIR, the last two of which cut no edge on purpose) -- DO NOT REDRAW AS IF FROM ZERO. NEVER TRUST THIS FIELD'S COUNTS OVER THE TOOL: run `python3 -m tools.wall_crossing_dispositions`, which measures the WORKING TREE. Live state per docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md + docs/design/simplifications/KNIFE3_wall_crossing_paydown.yaml (map_records.exit_evidence, updated every step -- read that before the next cut): 91 crossings ruled total, 83 cut, 8 still owed (4 to design A_composition_lift, 1 to design B12_the_dwelling_is_the_worlds_and_the_company_only_discovers_it, 3 to design B2_company_brain_decides_the_world -- COUNTED FROM THE REGISTER'S OWN OWED ROWS, never carried forward by subtraction), matching knife_hotspot_measure.py's live 8 (6 direct + 2 indirect). THREE CONSECUTIVE STEPS FOUND A MIS-RULING UNDER A_composition_lift, so treat its 4 remaining rows as PROVISIONAL rulings and re-rule before cutting. B12 IS NO LONGER BLOCKED AND ITS DEFECT IS REPAIRED (step 31, register 3z): its DISCOVER half was discharged by finding the anchor ALREADY IN THE TREE -- simulation/premise_population.py::PUBLISHED_EPC_BAND_SHARE, sourced EHS 2022-23 Energy Chapter AT1_2 -- so step 30's \"that anchor is not in the tree\" was FALSE, and the BUILD half landed: the world now draws a drawn home's dwelling instead of reading back the supplier's modal-band approximation (company guess correct 0.426 of the time at scale, was 100%). THE ROW IS STILL OWED ANYWAY: what remains under B12 is the module's HOME (four company-side importers, immovable as it stands), not the dwelling's honesty -- do not take the count from 8 to 7 on the strength of the repair. level_current is DELIBERATELY still 0 at 8/91 remaining -- booking the target at six-sevenths-paid is the false-completion class this project names explicitly; do not bump level_target progress until owed=0. Original text preserved below for provenance. || ORIGINAL: FIRST STEP, BEFORE ANY CUT: lift build_edges / company_reads_sim / sim_reads_company out of tests/architecture/test_epistemic_wall_ratchet.py into a shared module so the ratchet, the KNIFE ledger and this pass read ONE definition of 'a crossing'. That extraction is deliberately deferred to here rather than done while planning, because moving the net while planning the cuts is the error the MAP->NET->KNIFE sequence exists to prevent. EXIT: stated when the pass is drawn, against the count that survives passes 1 and 2 -- NOT against today's 107, which will be stale.",
       "lane": "H_harness",
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
@@ -5096,8 +5096,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 138,
       "forward_attachments": []
     },
     {
@@ -5285,8 +5285,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 9,
       "forward_attachments": [
         {
           "source": "docs/staging/done/PLANNER_MINTED_population_and_book_growth_2026-08-11.md",
@@ -5334,8 +5334,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 9,
       "forward_attachments": []
     },
     {
@@ -5383,8 +5383,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 15,
       "forward_attachments": []
     },
     {
@@ -5405,8 +5405,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 14,
       "forward_attachments": []
     },
     {
@@ -5427,8 +5427,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 15,
       "forward_attachments": []
     },
     {
@@ -5451,8 +5451,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 12,
       "forward_attachments": []
     },
     {
@@ -5471,8 +5471,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 11,
       "forward_attachments": []
     },
     {
@@ -5515,8 +5515,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 17,
       "forward_attachments": []
     },
     {
@@ -5537,8 +5537,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 12,
       "forward_attachments": []
     },
     {
@@ -5583,8 +5583,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 10,
       "forward_attachments": []
     },
     {
@@ -5649,8 +5649,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 17,
       "forward_attachments": []
     },
     {
@@ -5691,8 +5691,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 6,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -5732,8 +5732,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -5788,8 +5788,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 5,
       "forward_attachments": []
     },
     {
@@ -5810,8 +5810,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 5,
       "forward_attachments": []
     },
     {
@@ -6043,8 +6043,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 30,
       "forward_attachments": []
     },
     {
@@ -6319,8 +6319,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 7,
       "forward_attachments": []
     },
     {
@@ -6343,8 +6343,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 10,
       "forward_attachments": []
     },
     {
@@ -6389,8 +6389,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 20,
       "forward_attachments": []
     },
     {
@@ -6573,8 +6573,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 193,
       "forward_attachments": []
     },
     {
@@ -6595,8 +6595,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 7,
       "forward_attachments": []
     },
     {

@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-08-17T12:34:16Z",
+  "generated_at": "2026-08-17T14:56:42Z",
   "source_year": 2025,
-  "treasury_gbp": 3854087.02,
+  "treasury_gbp": 3841320.95,
   "active_customer_count": 11,
   "customers": [
     {
@@ -13,7 +13,7 @@
       "next_renewal_estimate": "2026-03-30",
       "eac_kwh_per_year": 3426.0,
       "hedge_fraction": 0.8617,
-      "net_gbp_2025": 99.53
+      "net_gbp_2025": 99.54
     },
     {
       "cid": "C2g",
@@ -46,7 +46,7 @@
       "next_renewal_estimate": "2026-03-30",
       "eac_kwh_per_year": 11720.0,
       "hedge_fraction": 0.8617,
-      "net_gbp_2025": 216.59
+      "net_gbp_2025": 216.65
     },
     {
       "cid": "C9",
@@ -63,12 +63,12 @@
       "cid": "C_IC1",
       "commodity": "electricity",
       "segment": "I&C",
-      "current_rate_gbp_per_mwh": 152.8077,
+      "current_rate_gbp_per_mwh": 152.8567,
       "last_renewal_date": "2018-01-31",
       "next_renewal_estimate": "2019-01-31",
       "eac_kwh_per_year": 1964141.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 63404.31
+      "net_gbp_2025": 63064.4
     },
     {
       "cid": "C_IC2",
@@ -79,7 +79,7 @@
       "next_renewal_estimate": "2020-01-31",
       "eac_kwh_per_year": 983739.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 29994.92
+      "net_gbp_2025": 29828.22
     },
     {
       "cid": "C_IC3",
@@ -107,7 +107,7 @@
       "cid": "C_IC4",
       "commodity": "electricity",
       "segment": "I&C",
-      "current_rate_gbp_per_mwh": 273.778,
+      "current_rate_gbp_per_mwh": 274.178,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 2961742.0,
@@ -118,12 +118,12 @@
       "cid": "SYN-2021-001",
       "commodity": "electricity",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 246.7189,
+      "current_rate_gbp_per_mwh": 246.9576,
       "last_renewal_date": "2024-12-22",
       "next_renewal_estimate": "2025-12-22",
       "eac_kwh_per_year": 5255.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 146.4
+      "net_gbp_2025": 146.92
     }
   ]
 }
