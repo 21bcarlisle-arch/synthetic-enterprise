@@ -1,3 +1,20 @@
+> **[IN PROGRESS — §9.5 proposal DELIVERED 2026-08-17, build NOT started]**
+>
+> **Open sub-item:** the eight-item WORK THIS CREATES list. None of it is built.
+>
+> **Done:** §9.5 ("proposal before build") — `docs/design/SITE_STRUCTURE_PROGRAMME_PROPOSAL_2026-08-17.md`
+> returns the proposed sequence (Steps 0-7), a blast-radius assessment per step, six evidence-backed
+> corrections to this brief, and four open questions with recommendations attached.
+>
+> **What unblocks the rest:** capacity. §9.4 of this brief rules that it does not jump the queue —
+> the publish-gate wiring and the PB3 ADD path outrank it. The commitment set gets minted when those
+> clear; Step 0 (one IA register, nav derives from it) is its first drawable item.
+>
+> **Do not bulk-archive this file.** It is the canonical spec for a multi-draw programme that has
+> delivered one draw of eight.
+
+---
+
 # [DIRECTOR-BRIEF] — The website: structure, content, and the end-to-end customer traversal (2026-08-17)
 
 **Type:** [BRIEF — problem, requirements and non-negotiables. Design, mechanism, sequencing and implementation are the worker's. Nothing here prescribes markup, framework, file layout, or component structure.]
