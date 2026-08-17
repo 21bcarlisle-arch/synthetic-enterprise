@@ -272,19 +272,25 @@ RENDER_HARNESS = HERE / "_render_harness.mjs"
 COMPANY_DATA = HERE.parent / "data" / "company.json"
 
 
-def _op_state_render(index: Path = INDEX, legs: tuple[Path, ...] | None = None) -> dict[str, str]:
+def _op_state_render(index: Path = INDEX, legs: tuple[Path, ...] | None = None,
+                     company: str | None = None) -> dict[str, str]:
     """Run the op-state script over company.json plus a chosen set of household fuel legs.
 
     `legs` defaults to EVERY leg the household has, because that is what the live page's
     own boot path fetches. Passing a SUBSET is how the leg-scoped fallback gets driven --
     see the dual-fuel section below; that path is the half of the scope control that can
     actually fail, so it needs to be reachable from a test.
+
+    `company` overrides the published company.json blob. The page carries TWO producers of
+    the household's collections record (that block, and the legs' own reaction chains), so
+    a test that can only ever feed them matching inputs cannot drive the disagreement --
+    see section 18.
     """
     if legs is None:
         legs = _dual_fuel_pair()
     proc = subprocess.run(
         [NODE, str(RENDER_HARNESS), str(index), *[str(p) for p in legs]],
-        input=COMPANY_DATA.read_text(encoding="utf-8"),
+        input=COMPANY_DATA.read_text(encoding="utf-8") if company is None else company,
         capture_output=True, text=True, timeout=60,
     )
     assert proc.returncode == 0, f"op-state render harness failed: {proc.stderr}"
@@ -2530,3 +2536,440 @@ def test_mutation_letting_an_undeclared_block_through_kills_a_named_test(tmp_pat
     assert not probes["undeclared_block_withheld"], (
         "the mutation did not reach the page -- this test would be vacuous"
     )
+
+
+# ===========================================================================
+# 18. THE COLLECTIONS RECORD HAS ONE PRODUCER, NOT TWO
+#     (coldwalk:site2_arrears_counters_contradict_the_accounts_own_timeline)
+#
+# The money panel published "FAILED PAYMENTS 0 - direct-debit returns", "PAYS BY direct
+# debit" and "No arrears cases on this account's electricity record" directly above the
+# same household's own two complete four-step arrears cascades, whose rows read "Standard
+# credit payment not received". All three claims came from company.json's `household`
+# block -- ONE LEG, commodity='electricity' -- while the cascades come from the per-leg
+# reaction chains the Timeline tab renders. Two producers of one fact, published side by
+# side, never reconciled. MAJOR, all three blind personas, and the 2026-08-13 repair that
+# moved arrears onto the customer's side of the wall is what left the clean claim stranded
+# in the panel whose own footnote boasts about having fixed it.
+#
+# The rule these tests pin is a PRODUCER rule, not a value rule: every collections claim
+# on this panel is derived by __householdCollections() from the legs the page itself
+# fetched, so no claim can contradict the record rendered below it. The company.json block
+# is not thrown away -- it is reconciled leg-to-leg and a disagreement is PUBLISHED.
+#
+# Each predicate is extracted so an R15 mutation kills the CHECKER a named test runs,
+# rather than re-deriving an equivalent check inside the mutation.
+# ===========================================================================
+_ARREARS_OPENERS = {
+    "arrears_dd_failed",
+    "arrears_payment_missed",
+    "arrears_invoice_disputed",
+}
+# Every claim on the panel that asserts something about how this household pays.
+_COLLECTIONS_PANELS = ("cust-money", "cust-arrears", "cust-who")
+# The phrases that assert a clean record. A page may say any of these ONLY when every leg
+# it holds is actually clean.
+#
+# CHOSEN FROM THE DEFECT'S VOCABULARY, NOT THE FIX'S. The first draft of this list held the
+# repaired page's own wordings and PASSED against `git show HEAD:site/customers/index.html`
+# -- the shipped defect said "No arrears cases on this account's electricity record", which
+# matched none of them. A leak list written by reading the fix is a control whose subject
+# was chosen by convenience. These are deliberately the widest form of each claim, and the
+# page's per-leg breakdown says "<fuel> leg -- none" precisely so a scoped line cannot
+# collide with the household-wide claim this list forbids.
+_CLEAN_CLAIMS = ("clean payment history", "no missed payment", "no arrears case")
+
+
+def _household_legs() -> list[tuple[str, tuple[Path, ...]]]:
+    """Every published household as (base id, its OWN legs) -- one path for a single-fuel
+    account, two for a dual-fuel one.
+
+    Deliberately NOT `_published_households()`: that helper duplicates the electricity leg
+    to fill a fixed two-slot harness signature, which would double-count this section's
+    subject (an account's arrears events would be read twice) and would make every
+    single-fuel household render as an incomplete two-leg load.
+    """
+    legs: dict[str, dict[str, Path]] = {}
+    for path in sorted(CUSTOMER_DATA.glob("*.json")):
+        if path.name.startswith("_"):
+            continue
+        rec = json.loads(path.read_text(encoding="utf-8"))
+        acct = rec.get("account_id") or path.stem
+        base = acct[:-1] if acct.endswith("g") else acct
+        legs.setdefault(base, {})["gas" if rec.get("commodity") == "gas" else "elec"] = path
+    out: list[tuple[str, tuple[Path, ...]]] = []
+    for base, pair in sorted(legs.items()):
+        ordered = tuple(p for k in ("elec", "gas") if (p := pair.get(k)) is not None)
+        out.append((base, ordered))
+    assert out, "no published households at all -- every assertion in this section is vacuous"
+    return out
+
+
+def _openers_in(path: Path) -> list[dict]:
+    """The arrears cases a leg publishes, counted INDEPENDENTLY of the page.
+
+    A case is counted by its OPENER: C4 and C7 publish interleaved cascades (a second miss
+    opens before the first resolves), so pairing a ladder start to a ladder end would
+    silently merge or split real cases. This is derived here from the published record,
+    never read back out of the page's own helper -- a test that called
+    __householdCollections() to decide what __householdCollections() should say would be
+    grading its own copy.
+    """
+    rec = json.loads(path.read_text(encoding="utf-8"))
+    return [e for e in rec.get("reaction_chain") or []
+            if str(e.get("event_type")) in _ARREARS_OPENERS]
+
+
+def _channels_in(path: Path) -> list[str]:
+    rec = json.loads(path.read_text(encoding="utf-8"))
+    out: list[str] = []
+    for e in (rec.get("ledger") or {}).get("entries") or []:
+        if e.get("type") == "payment_received" and e.get("method") and e["method"] not in out:
+            out.append(str(e["method"]))
+    return out
+
+
+def _collections_text(index: Path = INDEX, legs: tuple[Path, ...] | None = None,
+                      company: str | None = None) -> str:
+    """Everything the panel says about how this household pays, as ONE subject.
+
+    The union matters: the defect was a clean claim in the money panel beside real cases
+    in the arrears block. A check whose subject is either block alone cannot see it -- the
+    wrong-subject class this module has now paid for three times.
+    """
+    rendered = _op_state_render(index, legs, company)
+    text = " ".join(rendered.get(p, "") for p in _COLLECTIONS_PANELS)
+    assert text.strip(), "the collections panels rendered nothing -- every check below is vacuous"
+    return text
+
+
+def _check_no_clean_claim_over_a_leg_with_arrears(text: str, cases: int, who: str) -> None:
+    if not cases:
+        return
+    said = [c for c in _CLEAN_CLAIMS if c in text.lower()]
+    assert not said, (
+        f"{who}: the exhibit publishes {said} while this household's own legs carry {cases} "
+        "arrears case(s) -- the same record the Timeline tab renders directly below it"
+    )
+
+
+def _check_missed_count_is_every_leg(tiles: dict[str, tuple[str, str]], cases: int, who: str) -> None:
+    assert "Payments missed" in tiles, (
+        f"{who}: the exhibit no longer renders a 'Payments missed' tile at all"
+    )
+    got = tiles["Payments missed"][0].strip()
+    assert got == str(cases), (
+        f"{who}: the tile publishes '{got}' missed payments, but this household's legs "
+        f"carry {cases} arrears case(s) -- a leg-scoped counter is wearing a household caption"
+    )
+
+
+# --- the population, before anything is asserted over it --------------------
+def test_the_published_book_carries_both_a_household_with_arrears_and_one_without():
+    """VACUITY GUARD, first. If no published household had arrears on a leg the company
+    block does not cover, the clean-claim control would pass over a page that never
+    suppresses a clean claim; if none were clean on every leg, the anti-vacuity leg below
+    would pass over a page that never MAKES one. Both halves must exist in the real book."""
+    dirty, clean = [], []
+    for base, legs in _household_legs():
+        (dirty if sum(len(_openers_in(p)) for p in legs) else clean).append(base)
+    assert dirty, "no published household carries an arrears case -- this whole section is vacuous"
+    assert clean, "every published household carries arrears -- the clean-claim leg is vacuous"
+
+
+def test_the_fixture_households_arrears_are_on_a_leg_the_company_block_does_not_cover():
+    """The finding's own shape, pinned against the data rather than restated. company.json
+    publishes ONE leg of C1; the cases are on the OTHER one. That asymmetry is what made a
+    correctly-derived single-leg counter into a false household claim, so if the book ever
+    stops having it, this section is testing a defect that can no longer occur."""
+    block = json.loads(COMPANY_DATA.read_text(encoding="utf-8"))["household"]
+    elec, gas = _dual_fuel_pair()
+    assert block["commodity"] == "electricity", "the household block is no longer the electricity leg"
+    assert not _openers_in(elec), "the electricity leg now carries arrears -- the asymmetry is gone"
+    assert _openers_in(gas), "the gas leg carries no arrears -- the contradiction cannot arise"
+    assert block.get("failed_payment_count") == 0, (
+        "the block no longer publishes a zero failed-payment count -- the finding's own instance is gone"
+    )
+
+
+# --- THE control ------------------------------------------------------------
+@pytest.mark.parametrize("base,legs", _household_legs(), ids=[b for b, _ in _household_legs()])
+def test_no_clean_payment_claim_survives_a_leg_that_carries_arrears(base, legs):
+    """THE control, driven over EVERY published household rather than the one the walk
+    named. A clean claim on this panel must be unreachable while any leg the page holds
+    publishes an arrears case."""
+    cases = sum(len(_openers_in(p)) for p in legs)
+    _check_no_clean_claim_over_a_leg_with_arrears(_collections_text(legs=legs), cases, base)
+
+
+@pytest.mark.parametrize("base,legs", _household_legs(), ids=[b for b, _ in _household_legs()])
+def test_the_missed_payment_count_covers_every_leg_the_household_has(base, legs):
+    """The value half: the counter equals the household's own arrears openers, computed
+    here from the published records rather than from company.json's single-leg block --
+    which is the thing being corrected."""
+    cases = sum(len(_openers_in(p)) for p in legs)
+    _check_missed_count_is_every_leg(_money_tiles(legs=legs), cases, base)
+
+
+def test_a_household_clean_on_every_leg_still_gets_its_clean_claim():
+    """ANTI-VACUITY for the control above. A page that simply deleted the words 'clean
+    payment history' would pass every leak check for the wrong reason. Some household must
+    still be told, in plain words, that its record is clean."""
+    for base, legs in _household_legs():
+        if sum(len(_openers_in(p)) for p in legs):
+            continue
+        text = _collections_text(legs=legs).lower()
+        assert any(c in text for c in _CLEAN_CLAIMS), (
+            f"{base} has no arrears on any leg and the panel says so nowhere -- the "
+            f"suppression is unconditional, not conditional: {text[:400]}"
+        )
+        return
+    pytest.fail("no clean household to drive -- guarded by the population test above")
+
+
+def _check_payment_channels_named(value: str | None, want: list[str]) -> None:
+    assert value is not None, "the exhibit no longer renders a 'Pays by' tile"
+    missing = [c for c in want if c.replace("_", " ") not in value]
+    assert not missing, (
+        f"'Pays by' renders '{value}' but this household actually pays by {want} across its "
+        f"legs -- a single-leg fact is wearing a household caption (missing: {missing})"
+    )
+
+
+def test_the_payment_channel_names_every_channel_the_household_actually_uses():
+    """The compounding half the walk named: 'PAYS BY direct debit' sat above arrears rows
+    reading 'Standard credit payment not received'. Both are true of ONE LEG each, and the
+    block published the first as the household's."""
+    elec, gas = _dual_fuel_pair()
+    want = _channels_in(elec) + [c for c in _channels_in(gas) if c not in _channels_in(elec)]
+    assert len(want) > 1, (
+        "this household's legs now pay the same way -- the finding's own instance is gone "
+        "and this test can no longer fail"
+    )
+    who = _op_state_render(legs=(elec, gas))["cust-who"]
+    _check_payment_channels_named(_rendered_value(who, "Pays by"), want)
+
+
+def _check_no_household_wide_claim_on_partial_load(text: str) -> None:
+    assert "not a household-wide claim" in text, (
+        "one leg loaded and the panel still made a household-scoped collections claim: "
+        f"{text[:500]}"
+    )
+    assert "clean payment history" not in text.lower(), (
+        "a partial load rendered 'clean payment history' -- the claim covers legs it never read"
+    )
+
+
+def test_an_incomplete_leg_load_publishes_no_household_wide_collections_claim():
+    """The fail-open direction. If a leg does not load, the panel must not answer the
+    household question at all -- a clean claim assembled from the legs that happened to
+    arrive is the original defect with a different cause."""
+    elec, _gas = _dual_fuel_pair()
+    _check_no_household_wide_claim_on_partial_load(_collections_text(legs=(elec,)))
+
+
+# --- the two producers, reconciled in public --------------------------------
+def _swapped_company(commodity: str = "electricity") -> str:
+    """The real company.json, whose household block keeps its own published counters. It
+    is then driven against ANOTHER household's legs -- the 'swap the belief between two
+    units' shape -- so the two producers genuinely disagree without either being faked."""
+    blob = json.loads(COMPANY_DATA.read_text(encoding="utf-8"))
+    blob["household"]["commodity"] = commodity
+    return json.dumps(blob)
+
+
+def _disagreeing_legs() -> tuple[str, tuple[Path, ...]]:
+    block = json.loads(COMPANY_DATA.read_text(encoding="utf-8"))["household"]
+    want = int(block["arrears_case_count"])
+    for base, legs in _household_legs():
+        elec = legs[0]
+        if len(_openers_in(elec)) != want:
+            return base, legs
+    pytest.fail("no published household's electricity leg disagrees with the block's count")
+
+
+def test_the_two_producers_are_reconciled_in_public_when_they_disagree():
+    """The class mechanism. The page carries two records of one fact. Where they disagree
+    it must SAY they disagree and name both -- never silently prefer either, which is what
+    publishing the block's counter alone had been doing."""
+    base, legs = _disagreeing_legs()
+    text = _collections_text(legs=legs, company=_swapped_company())
+    assert "Two company records of one fact, and they disagree" in text, (
+        f"driven against {base}'s legs, the block's counter and the legs' own chains "
+        f"disagree and the page publishes no reconciliation at all: {text[:600]}"
+    )
+
+
+def _check_no_reconciliation_when_they_agree(text: str) -> None:
+    assert "Two company records of one fact" not in text, (
+        "the reconciliation note fires on a household whose two producers agree -- it is "
+        f"unconditional, so its firing carries no information: {text[:600]}"
+    )
+
+
+def test_the_reconciliation_note_is_silent_when_the_two_producers_agree():
+    """The inverse, and the one that stops the note being decoration. On the real published
+    pairing the block and the electricity leg AGREE (0 and 0), so a page that printed the
+    disagreement unconditionally would be crying wolf on its own front door."""
+    _check_no_reconciliation_when_they_agree(_collections_text(legs=_dual_fuel_pair()))
+
+
+def test_an_unclassified_arrears_event_refuses_the_count_rather_than_undercounting(tmp_path):
+    """FAIL-CLOSED, and the reason this direction matters more than usual: an arrears event
+    the page cannot classify does not render as an undercount, it renders as a CLEAN
+    PAYMENT HISTORY. Refusing is the only honest failure mode here."""
+    elec, gas = _dual_fuel_pair()
+    rec = json.loads(gas.read_text(encoding="utf-8"))
+    rec["reaction_chain"].append({
+        "customer_id": "C1", "date": "2020-05-05", "event_type": "arrears_meter_disconnected",
+        "description": "unclassified", "amount_gbp": 10.0, "outcome": "X",
+    })
+    mutant = tmp_path / "C1g.json"
+    mutant.write_text(json.dumps(rec), encoding="utf-8")
+    text = _collections_text(legs=(elec, mutant))
+    assert "arrears_meter_disconnected" in text, (
+        "an arrears event type the page does not classify was silently dropped from the "
+        f"count instead of refusing it by name: {text[:600]}"
+    )
+    assert "clean payment history" not in text.lower(), (
+        "the refusal path still published a clean claim -- the worst direction to fail in"
+    )
+
+
+# --- R15, every direction the class can fail in ----------------------------
+def _mutant_index(tmp_path: Path, old: str, new: str) -> Path:
+    src = INDEX.read_text(encoding="utf-8")
+    assert old in src, f"the page no longer has the shape this mutation reverts: {old[:80]}"
+    out = tmp_path / "index.html"
+    out.write_text(src.replace(old, new, 1), encoding="utf-8")
+    return out
+
+
+def test_mutation_reading_the_counter_off_the_single_leg_block_kills_a_named_test(tmp_path):
+    """R15 direction 1: THE ORIGINAL DEFECT, restored -- the tile reads company.json's
+    single-leg failed_payment_count again. The value check must kill it by name."""
+    mutant = _mutant_index(
+        tmp_path,
+        '    return tile("Payments missed",String(col.total),sub,(col.total>0?"amber":""));',
+        '    return tile("Payments missed",String(h.failed_payment_count),sub,"");',
+    )
+    elec, gas = _dual_fuel_pair()
+    with pytest.raises(AssertionError, match="a leg-scoped counter is wearing a household caption"):
+        _check_missed_count_is_every_leg(
+            _money_tiles(mutant, legs=(elec, gas)), len(_openers_in(gas)), "C1")
+
+
+def test_mutation_restoring_the_unconditional_clean_claim_kills_a_named_test(tmp_path):
+    """R15 direction 2: the CLAIM half, which no value check can see. Make the clean branch
+    reachable whatever the legs carry -- the exact state the page shipped in -- and the
+    counter can stay right while the sentence beside it stays wrong."""
+    mutant = _mutant_index(tmp_path, "} else if(col&&col.total){", "} else if(false){")
+    elec, gas = _dual_fuel_pair()
+    text = _collections_text(mutant, legs=(elec, gas))
+    assert "clean payment history" in text.lower(), (
+        "this mutation was meant to restore the clean claim and did not reach the page"
+    )
+    with pytest.raises(AssertionError, match="the exhibit publishes"):
+        _check_no_clean_claim_over_a_leg_with_arrears(text, len(_openers_in(gas)), "C1")
+
+
+def test_mutation_counting_only_the_first_leg_kills_a_named_test(tmp_path):
+    """R15 direction 3: the SCOPE half. Derive from the legs, as the fix does, but stop at
+    the first one -- which for this household is the clean electricity leg, so the page
+    lands straight back on 'no missed payment' beside two live cascades."""
+    mutant = _mutant_index(
+        tmp_path,
+        "    var acc=((legs&&legs.accounts)||[]).filter(Boolean);\n    if(!acc.length)return null;\n    var out={complete:acc.length===((legs&&legs.expected)||0),count:acc.length,",
+        "    var acc=((legs&&legs.accounts)||[]).filter(Boolean).slice(0,1);\n    if(!acc.length)return null;\n    var out={complete:acc.length===((legs&&legs.expected)||0),count:acc.length,",
+    )
+    elec, gas = _dual_fuel_pair()
+    with pytest.raises(AssertionError, match="a leg-scoped counter is wearing a household caption"):
+        _check_missed_count_is_every_leg(
+            _money_tiles(mutant, legs=(elec, gas)), len(_openers_in(gas)), "C1")
+
+
+def test_mutation_failing_open_on_an_unclassified_event_kills_a_named_test(tmp_path):
+    """R15 direction 4: the refusal itself. Drop the fail-closed flag and an arrears event
+    the page cannot classify is dropped from the count in silence -- which for a household
+    whose only cases were unclassified would render as a clean payment history."""
+    mutant = _mutant_index(tmp_path, "    out.refused=out.unknown.length>0;", "    out.refused=false;")
+    elec, gas = _dual_fuel_pair()
+    rec = json.loads(gas.read_text(encoding="utf-8"))
+    rec["reaction_chain"] = [e for e in rec["reaction_chain"]
+                             if not str(e.get("event_type", "")).startswith("arrears")]
+    rec["reaction_chain"].append({
+        "customer_id": "C1", "date": "2020-05-05", "event_type": "arrears_meter_disconnected",
+        "description": "unclassified", "amount_gbp": 10.0, "outcome": "X",
+    })
+    stripped = tmp_path / "C1g.json"
+    stripped.write_text(json.dumps(rec), encoding="utf-8")
+    text = _collections_text(mutant, legs=(elec, stripped))
+    assert "clean payment history" in text.lower(), (
+        "the fail-open mutation did not reach the page -- this test would be vacuous"
+    )
+    assert "arrears_meter_disconnected" not in text, (
+        "the mutation was meant to silence the refusal and the page still named the event"
+    )
+
+
+def test_mutation_an_unconditional_reconciliation_note_kills_a_named_test(tmp_path):
+    """R15 direction 5: the reconciliation. A note that always fires reports nothing, and
+    would let a real disagreement hide inside permanent noise."""
+    mutant = _mutant_index(
+        tmp_path,
+        "    if(Number(h.arrears_case_count)===leg.cases)return \"\";",
+        "    if(false)return \"\";",
+    )
+    text = _collections_text(mutant, legs=_dual_fuel_pair())
+    with pytest.raises(AssertionError, match="unconditional, so its firing carries no information"):
+        _check_no_reconciliation_when_they_agree(text)
+
+
+def test_every_check_in_this_section_fires_on_the_page_as_it_shipped(tmp_path):
+    """R15's own subject: the SHIPPED DEFECT, not a synthetic mutation of the repair.
+
+    Each mutation above reverts one mechanism. This drives all four checkers against the
+    page exactly as it was published -- `git show HEAD~:site/customers/index.html`, or the
+    committed parent once this lands -- and requires every one of them to fire. It is the
+    test that caught the first draft of _CLEAN_CLAIMS: those phrases were read off the
+    REPAIR, so the leak check passed against a page that published "No arrears cases on
+    this account's electricity record" above two live cascades.
+
+    Skips rather than fails if no pre-fix revision is reachable, and says so: a control
+    that silently passes when its subject is unavailable is a FAILED control (R15), so the
+    skip names the reason instead of pretending the proof ran.
+    """
+    src = _pre_fix_index()
+    if src is None:
+        pytest.skip("no revision of index.html without __householdCollections is reachable "
+                    "from this checkout -- the shipped-defect proof did NOT run")
+    shipped = tmp_path / "index.html"
+    shipped.write_text(src, encoding="utf-8")
+
+    elec, gas = _dual_fuel_pair()
+    cases = len(_openers_in(gas))
+    assert cases, "the fixture household has no arrears -- this proof would be vacuous"
+    text = _collections_text(shipped, legs=(elec, gas))
+
+    with pytest.raises(AssertionError, match="the exhibit publishes"):
+        _check_no_clean_claim_over_a_leg_with_arrears(text, cases, "C1")
+    with pytest.raises(AssertionError, match="Payments missed"):
+        _check_missed_count_is_every_leg(_money_tiles(shipped, legs=(elec, gas)), cases, "C1")
+    want = _channels_in(elec) + [c for c in _channels_in(gas) if c not in _channels_in(elec)]
+    with pytest.raises(AssertionError, match="wearing a household caption"):
+        _check_payment_channels_named(
+            _rendered_value(_op_state_render(shipped, legs=(elec, gas))["cust-who"], "Pays by"), want)
+    with pytest.raises(AssertionError, match="household-scoped collections claim"):
+        _check_no_household_wide_claim_on_partial_load(_collections_text(shipped, legs=(elec,)))
+
+
+def _pre_fix_index() -> str | None:
+    """The most recent committed index.html that predates this repair, or None."""
+    for rev in ("HEAD", "HEAD~1", "HEAD~2", "HEAD~3"):
+        proc = subprocess.run(
+            ["git", "-C", str(HERE), "show", f"{rev}:site/customers/index.html"],
+            capture_output=True, text=True, timeout=60,
+        )
+        if proc.returncode == 0 and "__householdCollections" not in proc.stdout:
+            return proc.stdout
+    return None

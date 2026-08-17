@@ -352,6 +352,128 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
     }
     return best;
   };
+  // THE HOUSEHOLD'S OWN COLLECTIONS RECORD
+  // (coldwalk:site2_arrears_counters_contradict_the_accounts_own_timeline)
+  //
+  // Three customer-observable claims on this panel -- "Pays by X", the failed-payment
+  // counter and the arrears block -- were each read straight off company.json's
+  // `household` block, which is ONE LEG (commodity='electricity'). The same page renders
+  // this household's real collections journey from the legs' own reaction chains, so the
+  // exhibit published "FAILED PAYMENTS 0 - direct-debit returns", "PAYS BY direct debit"
+  // and "No arrears cases on this account's electricity record" directly above two
+  // complete four-step arrears cascades of its own, whose rows read "Standard credit
+  // payment not received". Two producers of one fact, side by side, never reconciled --
+  // and the 2026-08-13 repair that moved arrears onto the customer's side of the wall
+  // moved the cascades and left the clean claim behind, in the panel whose own footnote
+  // boasts about having fixed it. Three blind readers led with it independently.
+  //
+  // This function is the SOLE producer of every collections claim on this panel, and it
+  // derives them from the SAME records the Timeline tab renders, so the two cannot
+  // disagree by construction. The company.json block is NOT discarded: it is reconciled
+  // against the derived LEG-SCOPED figures and a disagreement is published as a
+  // disagreement (the churn-tile precedent above), never resolved silently toward either
+  // producer.
+  //
+  // A case is counted by its OPENER, never by pairing a ladder start to a ladder end:
+  // C4 and C7 publish INTERLEAVED cascades (a second miss opens before the first
+  // resolves), so any run-based grouping would silently merge or split real cases.
+  //
+  // FAIL-CLOSED on an arrears event type this function does not know -- exactly as
+  // chainSide() below refuses an unclassified event rather than placing it. An
+  // undercount here does not render as an undercount, it renders as a CLEAN PAYMENT
+  // HISTORY, which is the worst direction for this particular claim to fail in.
+  //
+  // No new data plumbing (this atom's own constraint): the chains and the ledgers are
+  // already in the leg records the boot path fetches.
+  var _ARREARS_OPENER={
+    arrears_dd_failed:{one:"direct-debit return",many:"direct-debit returns"},
+    arrears_payment_missed:{one:"standard-credit payment not received",many:"standard-credit payments not received"},
+    arrears_invoice_disputed:{one:"invoice disputed",many:"invoices disputed"}
+  };
+  var _ARREARS_LADDER={
+    arrears_first_notice:1,arrears_second_notice:1,arrears_dispute_notice:1,
+    arrears_resolved:1,arrears_written_off:1,arrears_placed_with_dca:1,
+    arrears_recovered:1,arrears_payment_plan_agreed:1
+  };
+  window.__householdCollections=function(legs){
+    var acc=((legs&&legs.accounts)||[]).filter(Boolean);
+    if(!acc.length)return null;
+    var out={complete:acc.length===((legs&&legs.expected)||0),count:acc.length,
+             fuels:[],cases:[],opened:{},byLeg:{},channels:[],unknown:[],refused:false};
+    for(var i=0;i<acc.length;i++){
+      var a=acc[i],fuel=String(a.commodity||"");
+      out.fuels.push(fuel);
+      var leg=out.byLeg[fuel]||(out.byLeg[fuel]={cases:0,channels:[]});
+      var chain=a.reaction_chain||[];
+      for(var j=0;j<chain.length;j++){
+        var t=String(chain[j].event_type||"");
+        if(t.indexOf("arrears")!==0)continue;
+        if(!_ARREARS_OPENER[t]&&!_ARREARS_LADDER[t]){
+          if(out.unknown.indexOf(t)<0)out.unknown.push(t);
+          continue;
+        }
+        if(!_ARREARS_OPENER[t])continue;
+        out.opened[t]=(out.opened[t]||0)+1;
+        leg.cases++;
+        out.cases.push({fuel:fuel,kind:t,date:chain[j].date||"",amount:chain[j].amount_gbp});
+      }
+      var ent=((a.ledger||{}).entries)||[];
+      for(var k=0;k<ent.length;k++){
+        if(ent[k].type!=="payment_received")continue;
+        var mth=String(ent[k].method||"");
+        if(!mth)continue;
+        if(leg.channels.indexOf(mth)<0)leg.channels.push(mth);
+        if(out.channels.indexOf(mth)<0)out.channels.push(mth);
+      }
+    }
+    out.refused=out.unknown.length>0;
+    out.total=out.cases.length;
+    return out;
+  };
+  function _words(s){return String(s||"").replace(/_/g," ");}
+  function _plural(n,w){return n+" "+w+(n===1?"":"s");}
+  function _kinds(n,k){return n+" "+(n===1?k.one:k.many);}
+  // The failed/missed-payment tile. Value is the DERIVED household count; the breakdown
+  // names each way a payment actually failed, because "0 direct-debit returns" and "no
+  // missed payment" are different claims and the tile used to make the second by printing
+  // the first. Fail-closed: an unclassified arrears event refuses the count outright.
+  function missTile(col,h,dual,scope){
+    if(!col){
+      return tile("Failed payments",(h.failed_payment_count!=null?String(h.failed_payment_count):"--"),
+        "direct-debit returns · company record · "+String(h.commodity||"")+" leg only",
+        (Number(h.failed_payment_count)>0?"amber":""));
+    }
+    if(col.refused){
+      return tile("Payments missed","&mdash;",
+        "not published: this household’s record carries an arrears event this page does not classify ("+
+        col.unknown.join(", ")+") · an undercount here would read as a record with nothing on it","amber");
+    }
+    var parts=[];
+    for(var t in _ARREARS_OPENER){
+      if(col.opened[t])parts.push(_kinds(col.opened[t],_ARREARS_OPENER[t]));
+    }
+    var sub=(parts.length?parts.join(" · "):"no missed payment on any leg")+" · "+
+      (col.complete?"household":"the "+col.count+" leg"+(col.count===1?"":"s")+" loaded")+
+      " · from the account’s own arrears record";
+    return tile("Payments missed",String(col.total),sub,(col.total>0?"amber":""));
+  }
+  // TWO PRODUCERS, RECONCILED IN PUBLIC. company.json's household block carries its own
+  // failed_payment_count / arrears_case_count for ONE leg. Where that disagrees with the
+  // same leg's own reaction chain -- the record the Timeline tab renders -- the page says
+  // so and names both, rather than silently preferring either. Compared LEG TO LEG on
+  // purpose: comparing a leg-scoped counter to a household total would fire on every
+  // dual-fuel household and mean nothing.
+  function reconcileCollections(col,h){
+    if(!col||col.refused)return "";
+    var fuel=String(h.commodity||"");
+    var leg=col.byLeg[fuel];
+    if(!leg||h.arrears_case_count==null)return "";
+    if(Number(h.arrears_case_count)===leg.cases)return "";
+    return '<div class="kpi-sub amber" style="margin-top:8px">Two company records of one fact, and they '+
+      'disagree: company.json&rsquo;s household block publishes '+_plural(Number(h.arrears_case_count),"arrears case")+
+      ' on the '+esc(fuel)+' leg, while that same leg&rsquo;s own reaction chain &mdash; the record the '+
+      'Timeline tab renders &mdash; carries '+leg.cases+'. Neither is silently preferred here.</div>';
+  }
   window.renderCustomerState=function(company,legs){
     var h=(company&&company.household)||{};
     if(!h.available){el("cust-intro").innerHTML='<span class="red">No household snapshot available in company.json.</span>';return;}
@@ -369,16 +491,40 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
       "them, and what only the simulation knows, are the separately-labelled panels below &mdash; never mixed "+
       "into this one.";
 
+    // The household's own collections record, derived from the legs the boot path fetched.
+    // Every payment-behaviour claim below reads THIS and not company.json's single-leg
+    // household block -- see __householdCollections above for why.
+    var col=window.__householdCollections(legs);
+
     // CUSTOMER SIDE -- products and account facts an account holder can see on their own bill.
+    // "Pays by" is one of the three claims the leg-scoped block got wrong: C1's electricity
+    // leg pays by direct debit, its gas leg by standard credit, and the block published the
+    // first as the household's. That is what put "PAYS BY direct debit" above arrears rows
+    // reading "Standard credit payment not received".
+    var payVal,paySub;
+    if(col&&col.channels.length){
+      payVal=col.channels.map(_words).join(" + ");
+      var perLeg=col.fuels.map(function(f){
+        return f+": "+((col.byLeg[f]||{channels:[]}).channels.map(_words).join(" + ")||"no payment on record");
+      }).join(" · ");
+      paySub=(col.channels.length>1?"differs by leg — "+perLeg+" · ":"")+
+        (col.complete?"household":"the "+col.count+" leg"+(col.count===1?"":"s")+" loaded")+
+        " · from the account’s own payment record";
+    } else {
+      // No legs loaded. The company block is single-leg, so it names its leg rather than
+      // wearing a household caption -- the same scope rule the money tiles below apply.
+      payVal=_words(h.payment_channel||"--");
+      paySub="company record · "+String(h.commodity||"")+" leg only";
+    }
     var prods=[];
     prods.push(esc(h.commodity||"electricity")+(String(h.dual_fuel)==="true"||h.dual_fuel===true?" + gas (dual fuel)":" only"));
     prods.push((h.smart_meter?"smart meter":"traditional meter"));
-    prods.push("pays by "+esc((h.payment_channel||"").replace("_"," ")));
+    prods.push("pays by "+esc(payVal));
     el("cust-who").innerHTML=
       '<div class="kpi-grid">'+
         tile("Products", esc((String(h.dual_fuel)==="true"||h.dual_fuel===true)?"dual fuel":"single fuel"), prods.join(" · "))+
         tile("Meter", (h.smart_meter?"smart":"traditional"), "as recorded on the bill")+
-        tile("Pays by", esc((h.payment_channel||"--").replace(/_/g," ")), "payment method")+
+        tile("Pays by", esc(payVal), paySub)+
         tile("Customer since", esc(h.acquisition_date||"--"), "supply start date")+
       '</div>';
 
@@ -410,8 +556,13 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
       tile("Billed (lifetime)", gbp(whole?m.billed:h.billed_gbp), "billed clock · "+scope+(invCount!=null?" · "+invCount+" invoices":""), ""),
       tile("Collected", gbp(whole?m.collected:h.banked_gbp), "banked clock · "+scope, ""),
       tile("Balance", gbp(bal), (bal<0?"in credit · your money, held by us":"outstanding")+" · billed − banked · "+scope, (bal<0?"green":(bal>0?"amber":""))),
-      tile("Failed payments", (h.failed_payment_count!=null?String(h.failed_payment_count):"--"), "direct-debit returns · "+(dual?String(h.commodity||"electricity")+" leg only":scope), (Number(h.failed_payment_count)>0?"amber":""))
-    ].join("");
+      // "Failed payments 0 - direct-debit returns" was TRUE as a direct-debit-return count
+      // and false as everything a reader takes it for: this household's misses are
+      // standard-credit non-payments on the gas leg, and there are two of them. The tile
+      // now counts every way a payment can fail across every leg and names the breakdown,
+      // so it can no longer read "clean" beside two arrears cascades.
+      missTile(col,h,dual,scope)
+    ].join("")+reconcileCollections(col,h);
     el("cust-value").innerHTML=[
       // Cold-eyes 2026-08-12: this tile was captioned "after cost-to-serve" and
       // was not -- lifetime_net_gbp (492.96) is the commodity net BEFORE the
@@ -474,31 +625,61 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
       '<p class="kpi-sub" style="margin:0 0 8px">Your Direct Debit collects on a <strong>fixed day of the month</strong>, and across our customers those collection days are <strong>staggered</strong> &mdash; each on their own day (1&ndash;28) &mdash; so the book spreads through the month rather than every account landing on the same date. That staggering is instrumented (DD1).</p>'+
       '<p class="kpi-sub muted" style="margin:0">Honesty note: this account is on the current <strong>Variable DD</strong> engine, so the balance above is overpayment credit, not a modelled level-DD seasonal accumulation. The per-customer level-DD balance cycle (summer-credit / winter-drawdown trajectory) and the annual-review event are <strong>DESIGNED, NOT INSTRUMENTED</strong> &mdash; stated here, never fabricated.</p>';
 
-    // Arrears -- the real collections journey if any
-    var cases=h.arrears_cases||[];
-    if(cases.length){
-      el("cust-arrears").innerHTML='<div class="sec-title" style="margin:14px 0 8px">Arrears &mdash; '+cases.length+' case'+(cases.length>1?"s":"")+' on record</div>'+
-        cases.map(function(c){
-          var stages=c.stages||[];
-          var last=stages.length?stages[stages.length-1]:null;
-          var recovered=stages.filter(function(s){return s.amount_gbp!=null;}).reduce(function(a,s){return a+Number(s.amount_gbp);},0);
-          return '<div class="card" style="margin-bottom:8px;background:var(--surface2)">'+
-            '<div style="font-weight:600;font-size:13px">'+esc(c.case_id||"arrears case")+' &mdash; '+gbp(c.arrears_gbp)+' <span class="muted" style="font-weight:400">opened '+esc(c.opened_date||"")+'</span></div>'+
-            '<div class="kpi-sub" style="margin-top:4px">Journey: '+stages.map(function(s){return esc(s.stage);}).join(" → ")+'</div>'+
-            (last?'<div class="kpi-sub">Latest: '+esc(last.stage)+' ('+esc(last.date)+') &mdash; '+esc(last.note||"")+'</div>':'')+
-            (recovered>0?'<div class="kpi-sub green">Recovered '+gbp(recovered)+' net</div>':'')+
-          '</div>';
-        }).join("");
+    // Arrears -- the real collections journey, derived from the SAME per-leg reaction
+    // chains the Timeline tab renders (__householdCollections above).
+    //
+    // Cold-eyes 2026-08-12 (coldwalk:site2_arrears_history_visible_only_behind_the_wall)
+    // scoped the claim to the leg it came from. Cold-eyes 2026-08-17
+    // (coldwalk:site2_arrears_counters_contradict_the_accounts_own_timeline) found that
+    // scoping it was not enough: a correctly-scoped clean claim still sat above the
+    // household's own two cascades, and three blind readers read it as the household's.
+    // The clean branch is now reachable ONLY when every loaded leg is clean, so the page
+    // cannot publish "no arrears" while any leg it holds publishes a case.
+    if(col&&col.refused){
+      el("cust-arrears").innerHTML='<div class="kpi-sub amber" style="margin-top:8px">'+
+        'No arrears count is published for this household: its record carries an arrears event '+
+        'this page does not classify ('+esc(col.unknown.join(", "))+'). Refusing is deliberate &mdash; '+
+        'an undercount would render as a record with nothing on it.</div>';
+    } else if(col&&col.total){
+      var byFuel=col.fuels.map(function(f){
+        var mine=col.cases.filter(function(c){return c.fuel===f;});
+        // "none", NOT "no arrears case": a PER-LEG line and a HOUSEHOLD claim must not
+        // share a phrase, or the control below cannot tell a scoped statement from the
+        // household-wide one it exists to forbid.
+        if(!mine.length)return '<div class="kpi-sub">'+esc(f)+' leg &mdash; none.</div>';
+        return '<div class="card" style="margin-bottom:8px;background:var(--surface2)">'+
+          '<div style="font-weight:600;font-size:13px">'+esc(f)+' leg &mdash; '+_plural(mine.length,"arrears case")+'</div>'+
+          mine.map(function(c){
+            return '<div class="kpi-sub" style="margin-top:4px">'+gbp(c.amount)+
+              ' &mdash; opened '+esc(c.date)+' ('+esc(_ARREARS_OPENER[c.kind].one)+')</div>';
+          }).join("")+
+        '</div>';
+      }).join("");
+      el("cust-arrears").innerHTML='<div class="sec-title" style="margin:14px 0 8px">Arrears &mdash; '+
+        _plural(col.total,"case")+' across this household&rsquo;s '+_plural(col.count,"fuel account")+'</div>'+
+        byFuel+
+        '<div class="kpi-sub">Each case&rsquo;s full journey &mdash; missed payment, first notice, second notice, '+
+        'and how it ended &mdash; is on the Timeline tab of the drill-down below, on this same side of the wall.'+
+        (col.complete?'':' <span class="amber">One of this household&rsquo;s legs did not load, so this covers '+
+          col.count+' of '+((legs&&legs.expected)||col.count)+'.</span>')+'</div>';
+    } else if(col){
+      el("cust-arrears").innerHTML='<div class="kpi-sub" style="margin-top:8px">No arrears case on '+
+        (col.complete
+          ? 'any of this household&rsquo;s '+_plural(col.count,"fuel account")+' ('+esc(col.fuels.join(" + "))+
+            ') &mdash; clean payment history.'
+          : 'the '+_plural(col.count,"leg")+' loaded ('+esc(col.fuels.join(" + "))+'). '+
+            '<span class="amber">This household has '+((legs&&legs.expected)||col.count)+
+            ' legs and the rest did not load, so this is not a household-wide claim.</span>')+
+        '</div>';
     } else {
-      // Cold-eyes 2026-08-12 (coldwalk:site2_arrears_history_visible_only_behind_the_wall):
-      // this said "No arrears cases on record -- clean payment history", a HOUSEHOLD-wide
-      // claim made from a SINGLE-LEG record. company.json's household block is the
-      // electricity leg only (commodity='electricity'), and the same page's Timeline tab
-      // carries two full arrears cascades on the gas leg. The claim now states the scope of
-      // the record it is actually derived from; the household-wide fix is the dual-fuel
-      // money atom, not a wording change here.
-      el("cust-arrears").innerHTML='<div class="kpi-sub" style="margin-top:8px">No arrears cases on this account&rsquo;s '+esc(h.commodity||"")+' record.'+
-        (h.dual_fuel?' <span class="amber">This figure covers the '+esc(h.commodity||"")+' leg only</span> &mdash; the household&rsquo;s other fuel has its own payment record, shown on the Timeline tab of the drill-down.':' Clean payment history.')+'</div>';
+      // No legs at all. The company block is ONE leg, so the claim names that leg and
+      // never wears a household caption -- the scope rule the money tiles apply above.
+      var cases=h.arrears_cases||[];
+      el("cust-arrears").innerHTML='<div class="kpi-sub" style="margin-top:8px">'+
+        (cases.length?_plural(cases.length,"arrears case"):"No arrears case")+
+        ' on this account&rsquo;s '+esc(h.commodity||"")+' record. <span class="amber">This household&rsquo;s '+
+        'other legs did not load, so this is the '+esc(h.commodity||"")+' leg only</span> &mdash; each fuel '+
+        'has its own payment record, shown on the Timeline tab of the drill-down.</div>';
     }
 
     var p=h.passport||{};
