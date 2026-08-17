@@ -390,3 +390,44 @@ def make_household(customer: dict) -> Household:
 def build_household_register(customers: list[dict]) -> dict[str, Household]:
     """Build a {customer_id: Household} lookup for all customers."""
     return {c["customer_id"]: make_household(c) for c in customers}
+
+
+# --- WHICH SUPPLY POINTS ARE ONE HOUSEHOLD (KNIFE step 28, register §3w) ------
+# A dual-fuel household is ONE household. Its electricity and gas supply points
+# are two registrations against one physical property, and when the people
+# living there leave, BOTH stop -- whatever their supplier happened to do with
+# its billing arrangements.
+#
+# The world used to ask the supplier that question: `simulation.run_phase2b` and
+# `simulation.customer_events` both imported `saas.customer_reaction.
+# _billing_account_id` (a PRIVATE name, across the wall) to decide which supply
+# points churn together and which share a lifecycle roll. That made a supplier's
+# ACCOUNT-GROUPING decision -- something a real supplier gets wrong routinely,
+# leaving a dual-fuel customer billed as two unlinked accounts -- into the
+# world's ground truth about who lives where. The two must be free to disagree;
+# that disagreement is a gap the COUPLED TRIAD can score, and while the world
+# read the supplier's grouping it was structurally unmeasurable.
+#
+# The world derives it instead from the supply book it is published. A gas leg
+# is registered under its electricity point's id with this suffix -- the roster
+# mints `C1`/`C1g` for one property, `C_IC3`/`C_IC3g` for one site -- so the
+# grammar of the published register answers the question without consulting any
+# supplier belief.
+GAS_LEG_ID_SUFFIX = "g"
+
+
+def household_of(supply_point_id: str) -> str:
+    """The household a registered supply point belongs to.
+
+    `C1g` (the gas leg) and `C1` (the electricity point) are one household;
+    an electricity-only point (`C5`), an I&C site (`C_IC1`), a successor
+    registration after a home move (`C1_2`) and a drawn point (`SYN-2021-001`)
+    each are their own.
+
+    Deliberately NOT the supplier's billing account, even though the two agree
+    on today's book: this is a fact about the property, and it must keep its
+    answer if the supplier changes how it groups bills.
+    """
+    if supply_point_id.endswith(GAS_LEG_ID_SUFFIX) and len(supply_point_id) > 1:
+        return supply_point_id[: -len(GAS_LEG_ID_SUFFIX)]
+    return supply_point_id

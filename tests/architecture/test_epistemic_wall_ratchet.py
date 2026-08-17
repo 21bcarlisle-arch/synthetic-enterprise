@@ -262,7 +262,18 @@ LEGACY_COMPANY_READS_SIM: frozenset[tuple[str, str]] = frozenset()
 LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     ("simulation.customer_events", "company.crm.churn_model"),
     ("simulation.customer_events", "saas.churn_model"),
-    ("simulation.customer_events", "saas.customer_reaction"),
+    # ("simulation.customer_events", "saas.customer_reaction") -- 1 tuple DELETED
+    # 2026-08-14 by `B10_household_identity_is_the_worlds` step 28 (register §3w),
+    # together with the `run_phase2b` tuple below. RE-RULED OFF B2 FIRST, and that
+    # re-ruling is the whole of the argument: B2's subject is WHO ACTUALLY CHURNS,
+    # a coupled-triad build its own block says must not be attempted as a
+    # mechanical move. This edge was never that. It carried ONE private name,
+    # `_billing_account_id`, answering "which supply points are one household" --
+    # and a dual-fuel household is one household whatever its supplier does with
+    # its billing arrangements. The world derives it from the id grammar of the
+    # book it is published (`simulation.household.household_of`); the supplier
+    # keeps its own account grouping, and the two are now free to disagree, which
+    # is the ordinary real-world failure the world could not previously see.
     ("simulation.customer_events", "saas.home_move_win_rate"),
     # ("simulation.dd_collection_book", "company.billing.direct_debit") — CUT
     # 2026-08-10 by KNIFE pass 3, design B4, the LAST of that design's four edges
@@ -332,8 +343,32 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     # PASSES and this is one door: `company/interfaces/hedge_desk.py`. The world
     # keeps `PointInTimeView` (the blindfold is the SIM's) and hands over plain
     # price records.
-    ("simulation.run_phase2b", "saas.cost_to_serve"),
-    ("simulation.run_phase2b", "saas.customer_reaction"),
+    # ("simulation.run_phase2b", "saas.cost_to_serve") -- 1 tuple DELETED
+    # 2026-08-14 by `B11_default_incidence_is_the_worlds` step 29 (register §3x).
+    # NOT a composition lift and NOT a door: the world accrued its real-time bad
+    # debt from `get_bad_debt_rate()`, the SUPPLIER'S PROVISIONING TABLE, so the
+    # fraction of revenue this supplier provided for WAS the fraction that went
+    # bad -- a guaranteed-zero contribution to the COUPLED TRIAD gap, and one
+    # that reached `is_administration_triggered(treasury)`, i.e. the supplier's
+    # own assumption deciding whether the supplier survived. A door would have
+    # laundered it; how much revenue actually arrives is not a supplier
+    # decision. The world now carries its own incidence
+    # (`simulation.bad_debt_incidence`) and the supplier keeps its provision.
+    # The income-stress multiplier applied on top was ALREADY world-side
+    # (`simulation.payment_timing.stress_bad_debt_multiplier`) -- the world
+    # owned the modifier and borrowed the level. No value moved: the full
+    # year x segment grid is pinned pre-cut as literals.
+    # ("simulation.run_phase2b", "saas.customer_reaction") -- 1 tuple DELETED
+    # 2026-08-14 by `B10_household_identity_is_the_worlds` step 28 (register §3w),
+    # with the `customer_events` tuple above. NOT a composition lift: nothing was
+    # composed here, the world simply asked the supplier a question about the
+    # world. `_billing_account_id` decided which supply points stop when an
+    # account churns, so the supplier's ACCOUNT GROUPING was the world's ground
+    # truth about who lives where -- and a mis-linked dual-fuel account, an
+    # ordinary supplier failure, was therefore structurally impossible and
+    # unscoreable by the COUPLED TRIAD. The world now owns the question
+    # (`simulation.household.household_of`). No value moved: the answers are
+    # identical over the whole published book, pinned pre-cut as literals.
     # ("simulation.run_phase2b", "saas.demand_response") -- 1 tuple DELETED
     # 2026-08-13 by `B9_demand_response_is_world_physics` step 26 (register §3u).
     # NOT a composition lift and re-ruled before it was cut, as §3t asked: how

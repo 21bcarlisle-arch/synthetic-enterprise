@@ -289,13 +289,18 @@ is honest. Check for that before assuming the remaining groups are pure composit
 WALL-CROSSING-DESIGN -->
 
 <!-- WALL-CROSSING-DESIGN B2_company_brain_decides_the_world
-4 edges, and the most serious inversion in the register. It was 5 until step 12 took the CEILING
+3 edges, and the most serious inversion in the register. It was 5 until step 12 took the CEILING
 half away (§3g): `simulation.satisfaction_churn` took the company's MAX_CHURN_PROBABILITY as the
 world's ceiling, and that turned out to be B3's shape rather than this one — a CONSTANT the world
-could simply own, cuttable in an afternoon without touching who decides anything. What is left is
-this design's actual subject and none of it got easier: `simulation.customer_events` imports the
-company's own churn model, its customer-reaction model and its home-move win rates in order
-to decide WHO ACTUALLY CHURNS. This makes the company's belief self-fulfilling:
+could simply own, cuttable in an afternoon without touching who decides anything. It was 4 until
+step 28 (§3w) took the `saas.customer_reaction` edge away for the SECOND instance of that same
+lesson: that edge carried one private name deciding which supply points are one HOUSEHOLD, which is
+an identity the world can simply own, and parking it behind this design meant a one-line question
+waited on a build nobody could start. TWICE NOW, so it is worth stating as a rule rather than a
+coincidence: before treating an edge as part of this design, check that it actually decides WHO
+CHURNS. What is left is this design's actual subject and none of it got easier:
+`simulation.customer_events` imports the company's own churn model, its churn-risk model and its
+home-move win rates in order to decide WHO ACTUALLY CHURNS. This makes the company's belief self-fulfilling:
 the model cannot be wrong about churn, because the model IS churn. That destroys the quantity
 the COUPLED TRIAD is built to measure — the gap between what the company believes and what the
 world does — and it silently flatters every churn-accuracy figure derived from it. Cut: the
@@ -2364,6 +2369,275 @@ MASKING FINDING IS ALSO STILL OPEN.
 
 ---
 
+## 3w. Which supply points are one household — added 2026-08-14 (step 28)
+
+`B10_household_identity_is_the_worlds`, a NEW design block, cutting both remaining edges to
+`saas.customer_reaction`:
+
+  * `simulation.run_phase2b -> saas.customer_reaction`   (was owed to `A_composition_lift`)
+  * `simulation.customer_events -> saas.customer_reaction` (was owed to `B2_company_brain_decides_the_world`)
+
+11 -> 9 LIVE (9 -> 7 direct; the 2 indirect deliberately UNMOVED for the FIFTEENTH consecutive step,
+which is again the proof that a bridge route was not silently taken instead of a cut).
+
+### The edge was MIS-RULED, and the re-ruling is most of the work
+
+Both edges carried exactly ONE name — `_billing_account_id`, and note the leading underscore: the
+world was importing a PRIVATE function out of the company's namespace, across the wall, at two
+places. The register had them filed under two different designs, and neither was right.
+
+`B2_company_brain_decides_the_world` is the more serious mis-file. Its subject is WHO ACTUALLY
+CHURNS, and its own block says in terms that it is a coupled-triad build and *must not be attempted
+as a mechanical move*. That warning is correct and it is the reason B2's other three edges are still
+owed after this step. But it never applied to this one. `_billing_account_id` does not decide who
+churns; it decides which supply points are ONE CUSTOMER once somebody has. Leaving it under B2 meant
+a one-line question was parked behind a build nobody could start — the shape §3g already recorded
+once, when the CEILING half of B2 turned out to be B3's and got cut in an afternoon.
+
+`A_composition_lift` was the wrong home for the other half for a simpler reason: nothing here is
+composed. The world was not assembling a supplier decision out of supplier parts. It asked the
+supplier a question **about the world** and took the answer as ground truth.
+
+### What the WORLD was doing that is not the world's
+
+Whether `C1` and `C1g` are one household is a fact about a physical property: two registrations,
+one dwelling, one set of people. Whether they are one BILLING ACCOUNT is a supplier decision — and
+a real supplier gets it wrong routinely. A dual-fuel customer billed as two unlinked accounts is an
+ordinary complaint, not an exotic failure mode.
+
+While the world took the supplier's grouping as its own, that mistake was structurally impossible.
+Two consequences, and the second is the worse one:
+
+  * `run_phase2b` used it to decide which supply points STOP when an account churns
+    (`churned_billing_accounts`, a published key of the run record). A supplier that failed to link
+    a dual-fuel customer would, in this world, have caused the gas leg to keep supplying — the
+    supplier's admin error rewriting physical reality.
+  * `customer_events` used it as the LIFECYCLE RNG SEED (`f"{billing_account}_{term_start}"`). So
+    the supplier's back-office account grouping did not merely describe the household; it selected
+    which random life that household led.
+
+Neither is a gap the COUPLED TRIAD could score, because a gap needs two things that are free to
+differ, and there was only one.
+
+### NOT a door, and not a module move either — the third shape
+
+A door would be wrong: there is no supplier decision the world legitimately needs here, so a seam
+function would launder the dependency rather than remove it. A module move would be wrong for the
+reason §3u names as its own precondition: `saas/customer_reaction.py` is NOT misfiled — it is the
+supplier's reaction model, and `_billing_account_id` is genuinely part of it. Measured by AST
+rather than by grep, because a grep over this name returns twice as many files as import it:
+FOUR company-side importers (`saas.churn_model`, `saas.clv_model`, `saas.enterprise_value`,
+`saas.reporting.annual_report`) and five bridge entry points under `tools/`. The supplier
+really does group bills, and it keeps doing so, unchanged, after this cut.
+
+The world simply needed its OWN answer. `simulation.household.household_of()` derives it from the id
+grammar of the supply book the world is already published — a gas leg is registered under its
+electricity point's id plus a suffix (`C1`/`C1g`, `C_IC3`/`C_IC3g`), which is a property of the
+REGISTER, not of anybody's belief about it. `simulation/household.py` is where the world's household
+model already lives, so this is one function beside the physical record it is about, importing
+nothing.
+
+### No value moved, and the pin is pre-cut
+
+The answers are identical over the whole published book — 24 registered and successor supply points
+plus the two drawn `SYN-*` points — which is exactly why this cut is safe and exactly why a VALUE
+test cannot police it. The pin was taken by running `saas.customer_reaction._billing_account_id`
+over the live book BEFORE either call site was switched and transcribing the answers as literals
+into `tests/architecture/test_household_identity_is_the_worlds.py`. It is pre-cut evidence, not a
+re-record of the post-cut tree.
+
+Two answers in that pin are load-bearing beyond the obvious: `C1_2` (a successor registration after
+a home-move win) must NOT fold back into `C1` — the previous occupants left, and merging them would
+make a home move look like a customer who never churned; and the bare string `"g"` must map to
+itself, which is the only input distinguishing the guarded implementation from an unguarded one.
+
+### There is NO assertion that the two agree, and that is deliberate
+
+Pinning `household_of(x) == _billing_account_id(x)` would have been the natural test to write and
+would have destroyed the cut — the same refusal B3 and B7 recorded (§3g). The independence proof
+runs the other way: the control replaces the supplier's mapper with the identity function (the
+supplier stops linking dual fuel) and asserts the world's answer does NOT move. Run against the
+SOURCE, that mutation left all 65 tests across the control and the two world suites green, while
+the supplier's own answer really did change — the name `simulation/customer_events.py` imported at
+HEAD returned `"C1g"` for `"C1g"`. On the pre-cut tree, that is the world's grouping, its event
+`customer_id` and its RNG seed all moving with a billing-system change.
+
+### The control, and the mutation that matters most
+
+`tests/architecture/test_household_identity_is_the_worlds.py`, 35 tests. The full mutation table is
+in its docstring. The one worth repeating here: re-adding
+`from saas.customer_reaction import _billing_account_id` to `simulation/customer_events.py` reds
+EXACTLY ONE test — the import sweep — and nothing else, anywhere. Every pinned value still agrees,
+because the two functions still agree. A control built only from values would have passed with the
+defect fully restored.
+
+### One test switched with the code, recorded rather than left silent
+
+`tests/simulation/test_home_move_undeliverable_win.py` built its own population of
+accounts-without-successor from the supplier's mapper. It is a SIM-side test asking a world
+question, so it moved to `household_of` in the same change — and until it did, the supplier mutation
+above reported a red that was the fixture's, not the world's. Worth recording because that red was
+the honest shape of a false positive: the mutation was working, the subject was wrong.
+
+### What did NOT fall
+
+`saas.cost_to_serve`, `saas.property_model` and `company.policy.decision_policy` remain live on
+`run_phase2b`, as do the 2 indirect edges and `run_phase4c_on_phase2b -> company.billing.dd_review_runner`.
+B2 keeps its THREE real edges (`company.crm.churn_model`, `saas.churn_model`,
+`saas.home_move_win_rate` out of `customer_events`) and its block's warning stands unchanged: those
+are the churn brain, they are a coupled-triad build, and this step's one-line shape is no precedent
+for them.
+
+`saas.property_model` is still the one §3v asked a future step to re-rule on its own evidence, and
+this step deliberately did not do it — a first measurement taken here says a MOVE is off the table
+for it whatever the ruling, because `saas/customers.py` and `saas/home_move_win_rate.py` both import
+it, so relocating the module would create class-(a) edges. That measurement is recorded, not acted
+on.
+
+NAMING RESIDUE, NAMED: `run_phase2b`'s local variable is still `billing_account` and the run record
+still publishes `"churned_billing_accounts"`. ~60 uses and two consumed output keys, so renaming is a
+behaviour change to a published artefact and not this step's; the VALUE no longer comes from a
+company module, which is the crossing. Same treatment §3v gave `growth_mandate_label()`.
+
+STEP 17'S NAMED RESIDUAL IS STILL OPEN (`FITBook.levelisation_charge_gbp` is handed kWh and divides by
+1000 internally — naming debt on `company/regulatory/fit_book.py`, not a wall crossing). STEP 20'S
+MASKING FINDING IS ALSO STILL OPEN.
+
+---
+
+## 3x. The bad debt the supplier provided for was the bad debt that happened — added 2026-08-14 (step 29)
+
+`B11_default_incidence_is_the_worlds`, a NEW design block, cutting one edge:
+
+  * `simulation.run_phase2b -> saas.cost_to_serve`   (was owed to `A_composition_lift`)
+
+9 -> 8 LIVE (7 -> 6 direct; the 2 indirect deliberately UNMOVED for the SIXTEENTH consecutive step,
+which is again the proof that a bridge route was not silently taken instead of a cut).
+
+### The crossing was written down in the supplier's own docstring
+
+`saas/cost_to_serve.py` said, in terms, that `BAD_DEBT_RATE` / `get_bad_debt_rate()` "remain in this
+module only because `simulation/run_phase2b.py` still uses them as a real-time placeholder". A
+company constant kept alive to serve the WORLD is the inversion this pass exists to remove, stated
+by the code about itself and read past for four months. Worth recording as a class: a module that
+explains why a name survives is naming its own only consumer, and if that consumer is across the
+wall the docstring is a crossing report nobody filed.
+
+### What the WORLD was doing that is not the world's
+
+The settlement loop books margin period by period, long before any bill exists, and something has to
+say how much of that revenue never arrives. It asked the supplier:
+
+```
+_bd_rate = get_bad_debt_rate(int(rec_year), cust_segment) * _stress_bd_mult
+```
+
+So the fraction of revenue the supplier PROVIDED FOR was the fraction that actually went bad. Three
+consequences, and the third is the one that decides this is not a small edge:
+
+  * The supplier could not be wrong about its own provision, so the COUPLED TRIAD's score for it was
+    a guaranteed zero — even though this project has already MEASURED the provision wrong, by ~30x,
+    when Phase QD replaced it with the emergent arrears model. The one quantity here with a known,
+    quantified error had no way to express it.
+  * `bad_debt_gbp` reduces `net_margin_gbp`, which accumulates into the running `treasury` balance.
+  * `is_administration_triggered(treasury)` reads that balance. The supplier's own provisioning
+    assumption therefore decided whether the supplier went bust mid-run — a company belief selecting
+    the world's most consequential outcome about that company.
+
+### HALF THE PHYSICS WAS ALREADY HOME, which is what made the edge easy to miss
+
+The multiplier beside it, `stress_bad_debt_multiplier(_income_stress)`, is
+`simulation/payment_timing.py` — world-side, and has been. The world owned how much HARDER a stressed
+household finds it to pay and borrowed only the level it multiplied. An edge where the modifier is
+correctly filed reads, at a glance, like an edge that has already been dealt with.
+
+### NOT a door, and the reason is the same one §3w gave
+
+A door (`company/interfaces/bad_debt_provision.py`, say) would have been the mechanical move and it
+would have been wrong: there is no supplier decision the world needs here. Whether a customer pays is
+not something the supplier decides, and a seam serving the provision would have laundered the
+dependency into a shape the ratchet reads as green. Not a module move either — `saas/cost_to_serve.py`
+is correctly filed (its subject is the supplier's per-account overhead) and moving it would create
+class-(a) edges. The third shape: the world gets its own answer.
+
+### The transience is stated, because it is the obvious objection
+
+On a FULL run this accrual is overwritten. `simulation/run_phase4c_on_phase2b.py` calls
+`apply_emergent_bad_debt()` once bills exist, replacing every `bad_debt_gbp` written here with the
+outcome of `simulation/arrears_engine.py`. So why cut it rather than delete it? Because `run_phase2b`
+is a legitimate entry point on its own, and inside it the number is live all the way to the
+administration trigger. "It gets overwritten later" is an argument about one caller, not about the
+module; deleting the accrual would have been a behaviour change dressed as a cut, which is why
+`test_the_accrual_still_calls_the_worlds_table` exists.
+
+### No value moved, and the pin is pre-cut
+
+The world's table carries the values `saas.cost_to_serve` carried on 2026-08-14, transcribed as
+literals from a run of `get_bad_debt_rate` BEFORE the call site was switched: the three segment
+baselines, the full 2016-2024 year grid including the 2021-22 crisis surge, both fallback edges
+(2010 and 2030) and the unrecognised-segment fallback at every year. Pre-cut evidence, not a
+re-record of the post-cut tree.
+
+ONE PIN IS A FINDING RATHER THAN A CONFIRMATION. The run window is 2016-01-01 to 2025-06-07 and the
+table stops at 2024, so the last five months of every full run accrue at the ordinary-year baseline.
+That is pinned deliberately (`2025: dict(_BASELINE)`) so the gap is visible rather than discovered
+again later. It is a fidelity question about the world's own calibration, it predates this step, and
+closing it is not part of a wall cut — recorded, not acted on.
+
+### There is NO assertion that the two tables agree, and that is deliberate
+
+Pinning `world_bad_debt_incidence(y, s) == get_bad_debt_rate(y, s)` would have been the natural test
+and would have destroyed the cut — the refusal B3, B7 and B10 each recorded (§3g). The independence
+proof runs the other way: the control zeroes the SUPPLIER's provision and asserts the world's answer
+does not move, with a vacuity guard asserting the supplier's own answer really did.
+
+### The controls, and MUTATION-PROVEN BOTH WAYS
+
+`tests/architecture/test_default_incidence_is_the_worlds.py`, 57 tests, all green unmutated. Six
+mutations, each red exactly where it should be:
+
+  * re-adding `from saas.cost_to_serve import get_bad_debt_rate` to `simulation/run_phase2b.py`
+    -> 1 failed, 56 passed: the import sweep and nothing else, anywhere. THE MUTATION THAT MATTERS
+    MOST — every pinned value still agrees, because the two tables still agree, so a control built
+    only from values would have passed with the defect fully restored.
+  * `world_bad_debt_incidence` collapsed to `return 0.02` -> 30 failed, 27 passed, including the
+    fail-open guard `test_the_pin_is_not_one_flat_number`.
+  * the accrual deleted from the settlement loop (`_bd_rate = 0.0`) -> 1 failed: the fail-silent
+    guard. This is the cheapest way to green every other test in the file and it is the one shape a
+    pure import-sweep cut cannot see.
+  * the unrecognised-segment fallback 0.02 -> 0.0 -> 14 failed. An unknown segment defaulting to no
+    bad debt at all would be invisible in every headline figure.
+  * 2022 residential 0.08 -> 0.06 -> 1 failed, the single cell, which is what a per-cell pin is for.
+  * the SUPPLIER's `BAD_DEBT_RATE["resi"]` zeroed AT SOURCE -> 0 failed here, and
+    `tests/saas/test_bad_debt.py` went red (1 failed, 13 passed). The world did not move; the
+    supplier did. That second half is the vacuity guard done as a measurement rather than asserted.
+
+### What did NOT fall
+
+`saas.property_model` and `company.policy.decision_policy` remain live on `run_phase2b`, as do the 2
+indirect edges, `run_phase4c_on_phase2b -> company.billing.dd_review_runner`, and
+`run_phase2b -> company.billing.{account_ledger, payment_observation_consumer}`. B2 keeps its THREE
+edges out of `customer_events` (`company.crm.churn_model`, `saas.churn_model`,
+`saas.home_move_win_rate`) and its block's warning stands: those are the churn brain and a
+coupled-triad build.
+
+`saas.property_model` is still the one §3v asked a future step to re-rule on its own evidence, and
+this step again did not do it — §3w's measurement (a module move is off the table, because
+`saas/customers.py` and `saas/home_move_win_rate.py` both import it) was RE-TAKEN here by AST rather
+than inherited, and it holds: four import statements across those two files, none of them the four
+names `run_phase2b` uses.
+
+`get_bad_debt_rate()` now has no production caller — test-only. That is recorded rather than treated
+as a retirement signal, per `tools/knife_hotspot_measure.py`'s `company_orphans` ruling that no-caller
+is not dead-code here; a supplier holding no bad-debt provision at all would be the less realistic
+tree, and the provision is what the harness scores the world's incidence against.
+
+STEP 17'S NAMED RESIDUAL IS STILL OPEN (`FITBook.levelisation_charge_gbp` is handed kWh and divides by
+1000 internally — naming debt on `company/regulatory/fit_book.py`, not a wall crossing). STEP 20'S
+MASKING FINDING IS ALSO STILL OPEN.
+
+---
+
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
 
 These were designs in §3 until they were carried out. They are recorded
@@ -2372,6 +2646,48 @@ here rather than deleted, and they are deliberately OUTSIDE the `WALL-CROSSING-D
 plan for nothing" (rc 2), which is what a completed design becomes. The rationale is worth
 keeping; the plan is not. Each edge's `reason=` in §4 states how it died, and the walker — never
 the claim — is what proves it.
+
+### B11_default_incidence_is_the_worlds — EXECUTED 2026-08-14 (1 edge)
+
+1 edge, minted and carried out in one step for the same reason B10 was: the edge was already ruled
+(to `A_composition_lift`) and the ruling was wrong, so the re-ruling is recorded as a design rather
+than smuggled into a `reason=` field. The bar for that is deliberately high and it is the SECOND
+time in two steps, which is worth saying plainly: `A_composition_lift` is the default home for
+everything on `run_phase2b`, and a default home is where mis-rulings accumulate. Steps 28 and 29 both
+found one there. The remaining `A_composition_lift` rows should be read as PROVISIONAL rulings, not
+as settled ones.
+
+How much of a supplier's billed revenue actually arrives is a fact about customers and the economy.
+What the supplier PROVIDES FOR is its own commercial judgement, and this project has already measured
+that judgement to be wrong by ~30x (Phase QD, against `simulation/arrears_engine.py`). The world took
+the second as the first: `simulation.run_phase2b`'s settlement loop accrued `bad_debt_gbp` at
+`saas.cost_to_serve.get_bad_debt_rate()`. Cut: the world gets its own incidence table
+(`simulation/bad_debt_incidence.py`, importing nothing); the supplier keeps `BAD_DEBT_RATE` /
+`get_bad_debt_rate()` unchanged as its provision. Not a door — there is no supplier decision the
+world legitimately needs here, so a seam function would launder the dependency rather than remove it.
+Not a module move — `saas/cost_to_serve.py` is correctly filed and its other contents are the
+supplier's overhead model. The third shape again, which is B3's shape applied to an INCIDENCE. Full
+record §3x.
+
+### B10_household_identity_is_the_worlds — EXECUTED 2026-08-14 (2 edges)
+
+2 edges, and this design was never a plan before it was executed — it was MINTED AND CARRIED OUT IN
+ONE STEP, which is allowed only because the two edges it covers were already ruled (to
+`A_composition_lift` and to `B2_company_brain_decides_the_world`) and both rulings were wrong. It
+exists so the re-ruling is recorded as a design rather than smuggled into two `reason=` fields.
+
+Which supply points are ONE HOUSEHOLD is a fact about a physical property. Which are one BILLING
+ACCOUNT is a supplier decision that real suppliers get wrong routinely. The world took the second as
+the first — `simulation.run_phase2b` and `simulation.customer_events` both imported the private
+`saas.customer_reaction._billing_account_id` — so a mis-linked dual-fuel account could not exist in
+this world, and in `customer_events` the supplier's account grouping was also the LIFECYCLE RNG SEED.
+Cut: the world derives household identity from the id grammar of the supply book it is already
+published (`simulation.household.household_of`, beside the physical household record, importing
+nothing); the supplier keeps `_billing_account_id` unchanged for its own billing. Not a door — there
+is no supplier decision the world legitimately needs, so a seam would launder the dependency rather
+than remove it. Not a module move — `saas/customer_reaction.py` is correctly filed and has four
+company-side importers. The third shape: the world gets its own answer, which is B3's shape applied
+to an IDENTITY rather than to a constant. Full record §3w.
 
 ### B1_behavioural_physics_is_misfiled — EXECUTED 2026-08-09 (6 edges)
 
@@ -2827,7 +3143,7 @@ edge: simulation.run_phase2b -> company.core.resentment_ledger | disposition=cut
 # --- B2_company_brain_decides_the_world ---
 edge: simulation.customer_events -> company.crm.churn_model | disposition=owed | design=B2_company_brain_decides_the_world
 edge: simulation.customer_events -> saas.churn_model | disposition=owed | design=B2_company_brain_decides_the_world
-edge: simulation.customer_events -> saas.customer_reaction | disposition=owed | design=B2_company_brain_decides_the_world
+edge: simulation.customer_events -> saas.customer_reaction | disposition=cut | reason=RE-RULED OFF B2 and cut in the same step — `B10_household_identity_is_the_worlds`, EXECUTED 2026-08-14 (step 28, §3w). B2's subject is WHO ACTUALLY CHURNS and its block says that build must not be attempted as a mechanical move; this edge was never that. It carried one private name, `_billing_account_id`, deciding which supply points are ONE HOUSEHOLD — and it was the LIFECYCLE RNG SEED here, so the supplier's back-office account grouping selected which random life a household led. The world derives it from the id grammar of the published supply book (`simulation.household.household_of`); the supplier keeps its own grouping and the two are now free to disagree. No value moved — pinned pre-cut over the whole book, and independence proven by mutating the SUPPLIER's mapper, never by a test pinning the two equal.
 edge: simulation.customer_events -> saas.home_move_win_rate | disposition=owed | design=B2_company_brain_decides_the_world
 edge: simulation.satisfaction_churn -> saas.churn_model | disposition=cut | reason=B3_world_needs_its_own_cap_physics applied a SECOND time, EXECUTED 2026-08-10 (step 12, §3g) — the world clamped its own ground-truth churn probability at the COMPANY's `MAX_CHURN_PROBABILITY`, so the company's belief about the ceiling WAS the ceiling. The world's ceiling now lives in `simulation/churn_ceiling.py`; the company keeps its estimate. Both are 0.95, so no simulated outcome moves — what changed is who depends on whom. Independence proven by mutation WITH a vacuity guard, never by a test pinning the two equal (B3's and B7's recorded refusal). This is B2's shape at one edge; the four `customer_events` edges are the real B2 build and are UNTOUCHED.
 # --- B3_world_needs_its_own_cap_physics ---
@@ -2885,8 +3201,8 @@ edge: simulation.run_phase2b -> company.risk.hedge_policy | disposition=cut | re
 edge: simulation.run_phase2b -> company.trading.forward_book | disposition=cut | reason=Step 23 executed 2026-08-13 (§3r) — the `TradingBook` is now held by the `HedgeDesk` that opens positions in it, sizes them, settles them and rolls the fraction. `ForwardContract` construction, the notional sizing (`eac/1000 × hf`), the bid-ask rounding and the VALUE_CHAIN-step-2 counterparty attribution are one execution act inside `HedgeDesk.open_term_hedge`. The world holds the desk, not the book; `.book` remains reachable ONLY because the §3n collateral door marks it and the report summarises it — the world carries an object it received from company code to another company door and never learns its type. `test_control_4_*` pins all four surfaces to ONE book with a split-brain mutation.
 edge: simulation.run_phase2b -> company.trading.hedge_decision | disposition=cut | reason=Step 23 executed 2026-08-13 (§3r) — the VaR decision, the risk committee's override adjudication, the realised-VaR computation and the VaR log entry moved into `HedgeDesk.decide_term_hedge`, one door called at BOTH commodity sites with `commodity` as a named argument rather than two near-identical inlined blocks. The load-bearing ordering (realised VaR is computed at the fraction that SURVIVES the override, not the one the model proposed) is now one documented sequence instead of two adjacent statements in a 2,900-line function, and `test_control_2_*` pins it against the pre-cut transcription on BOTH arms with two mutations.
 edge: simulation.run_phase2b -> company.trading.wholesale_credit_exposure | disposition=cut | reason=Step 19 executed 2026-08-12 (§3n) — the wholesale credit register, and the semi-annual point-in-time sampling that finds its peak, moved to `company/risk/counterparty_collateral_desk.py` behind `company.interfaces.counterparty_collateral`. The world hands over the book it holds, its customer register's commodity column and the two PUBLIC spot histories; counterparty lines, rating bands and the peak are read company-side.
-edge: simulation.run_phase2b -> saas.cost_to_serve | disposition=owed | design=A_composition_lift
-edge: simulation.run_phase2b -> saas.customer_reaction | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> saas.cost_to_serve | disposition=cut | reason=RE-RULED OFF A_composition_lift and cut in the same step — `B11_default_incidence_is_the_worlds`, EXECUTED 2026-08-14 (step 29, §3x). Nothing was composed: the world accrued its real-time `bad_debt_gbp` from `get_bad_debt_rate()`, the SUPPLIER'S PROVISIONING TABLE, so the fraction of revenue this supplier provided for was the fraction that actually went bad — and it reached `is_administration_triggered(treasury)`, i.e. the supplier's own assumption decided whether the supplier survived. The world now carries its own incidence (`simulation/bad_debt_incidence.py`); the supplier keeps `BAD_DEBT_RATE`/`get_bad_debt_rate()` as its provision, free to be wrong (Phase QD measured it wrong by ~30x against the emergent arrears model). The income-stress multiplier applied on top was already world-side — the world owned the modifier and borrowed the level. No value moved: the full year x segment grid is pinned pre-cut as literals, and independence is proven by mutating the SUPPLIER's table, never by a test pinning the two equal.
+edge: simulation.run_phase2b -> saas.customer_reaction | disposition=cut | reason=RE-RULED OFF A_composition_lift and cut in the same step — `B10_household_identity_is_the_worlds`, EXECUTED 2026-08-14 (step 28, §3w). Nothing was composed here: the world asked the supplier a question ABOUT THE WORLD and took the answer as ground truth. `_billing_account_id` decided which supply points stop when an account churns, so a mis-linked dual-fuel account — an ordinary supplier failure — was structurally impossible and unscoreable by the COUPLED TRIAD. The world now owns the question (`simulation.household.household_of`), answered off the id grammar of the register it is already published. Answers identical over the whole book, pinned pre-cut as literals.
 edge: simulation.run_phase2b -> saas.demand_response | disposition=cut | reason=`B9_demand_response_is_world_physics` step 26, 2026-08-13 (§3u) — RE-RULED off `A_composition_lift` first, as §3t asked. Not a composition: how much load a household ACTUALLY shifts on a ToU tariff is the world's physics, calibrated to Ofgem/Octopus/EST trial measurements, and the supplier is allowed to be wrong about it. A filing error of B1's exact shape, so a MODULE MOVE — `simulation/demand_response.py`, beside `nudge_physics.py`. Both B1 safety measurements re-taken before the move (zero company-side importers, stdlib-only imports) and now live as tests.
 edge: simulation.run_phase2b -> saas.growth_mandate | disposition=cut | reason=`A_composition_lift` step 27, 2026-08-14 (§3v) — the standing mandate, the per-segment replacement-cost table and the cap-aware acquisition gate are commercial judgements the supplier is allowed to get wrong, and the world held all three. A DOOR and not §3u's module move: this module is on the correct side already and has five other company-side consumers — what was wrong was the world reaching THROUGH it. The mandate check moved OUT of the `elif` condition rather than being renamed into it, so the door answers the question instead of serving the label.
 edge: simulation.run_phase2b -> saas.ledger | disposition=cut | reason=`A_composition_lift` step 27, 2026-08-14 (§3v) — the world was constructing the supplier's own acquisition-spend, gate and retention-cost rows, one of them as an inline dict literal with no constructor at all. Cut through TWO doors, not one: `company.interfaces.growth_desk` for the acquire-or-retain rows and `company.interfaces.fixed_overhead` for the monthly overhead accrual, which §3m's group test separates because it accrues on the calendar against no supply point. The overhead AMOUNT no longer crosses at all.

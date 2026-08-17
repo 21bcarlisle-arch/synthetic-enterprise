@@ -29,7 +29,6 @@ from company.interfaces.renewal_offer import (
 from company.interfaces.tou_offer import request_tou_offer
 from company.interfaces.statutory_obligations import build_statutory_obligations
 from company.interfaces.renewal_rate_chain import decide_renewal_rate
-from saas.customer_reaction import _billing_account_id
 from company.interfaces.supply_book import (
     acquired_supply_points,
     register_acquired_point as make_acquired_customer,
@@ -84,7 +83,7 @@ from simulation.acquisition_funnel import run_acquisition_funnel
 from tools.acquisition_funnel_port import AcquisitionFunnelMessage
 from tools.credit_adapters import get_credit_bureau_adapter
 from simulation.resentment_ledger import FrictionEventType
-from saas.cost_to_serve import get_bad_debt_rate
+from simulation.bad_debt_incidence import world_bad_debt_incidence
 from simulation.payment_timing import stress_bad_debt_multiplier, generate_payment_record
 from background.gap_metric import format_ageing_summary as _format_ageing_summary
 from background.gap_metric import format_belief_summary as _format_belief_summary
@@ -159,6 +158,7 @@ from simulation.weather_inputs import (
 from simulation.fabric_physics import DEFAULT_LATITUDE_DEG
 from simulation.premise_trace import WEATHER_DATA_DIR as WEATHER_DATA_DIR_PATH
 from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd
+from simulation.household import household_of
 from simulation.household_demand import HouseholdDemandRegister
 from simulation.live_population import live_population
 
@@ -1145,8 +1145,12 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         if administration_event:
             break
 
-        # Phase 6b: skip churned accounts (billing-account level — covers both elec + gas legs)
-        billing_account = _billing_account_id(cid)
+        # Phase 6b: skip churned accounts (household level — covers both elec + gas legs).
+        # KNIFE step 28 (§3w): the HOUSEHOLD, asked of the world, not the billing
+        # account, asked of the supplier. The local name below is the supplier's
+        # vocabulary and stays only because ~60 downstream uses and two run-record
+        # output keys carry it; the VALUE no longer comes from a company module.
+        billing_account = household_of(cid)
         if billing_account in churned_billing_accounts:
             term_indices[cid] += 1
             continue
@@ -2070,8 +2074,16 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             # Real-time placeholder only -- simulation.run_phase4c_on_phase2b.main()
             # overwrites this with real, emergent bad debt from the payment/
             # arrears model (simulation.arrears_engine) once bills exist (Phase QD).
-            # get_bad_debt_rate() itself remains as the historical benchmark table.
-            _bd_rate = get_bad_debt_rate(int(rec_year), cust_segment) * _stress_bd_mult
+            #
+            # KNIFE pass 3 (`B11_default_incidence_is_the_worlds` step 29,
+            # 2026-08-14, register §3x): the incidence is the WORLD's
+            # (simulation.bad_debt_incidence), not the supplier's provisioning
+            # table. Until this line the fraction of revenue the supplier
+            # PROVIDED FOR was the fraction that actually went bad -- including
+            # inside `is_administration_triggered(treasury)` below, so the
+            # supplier's own assumption decided whether the supplier survived.
+            # The stress multiplier beside it was already world-side.
+            _bd_rate = world_bad_debt_incidence(int(rec_year), cust_segment) * _stress_bd_mult
             _bad_debt = round(rec.get("revenue_gbp", 0.0) * _bd_rate, 6)
             rec["bad_debt_gbp"] = _bad_debt
             rec["net_margin_gbp"] = round(rec["net_margin_gbp"] - _bad_debt, 6)

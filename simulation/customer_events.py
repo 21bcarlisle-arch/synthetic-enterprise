@@ -2,7 +2,9 @@
 
 Provides `roll_lifecycle_event()`, called by `run_phase2b.main()` at each
 billing-account renewal point (electricity legs only; gas legs share the
-billing-account decision — see `saas.customer_reaction._billing_account_id`).
+household decision — see `simulation.household.household_of`, which is the
+WORLD's answer to "which supply points are one home", not the supplier's
+billing arrangement; KNIFE step 28, register §3w).
 
 The roll is fully deterministic: `random.Random(f"{billing_account}_{term_start}")`.
 Two identical runs always produce the same event sequence. Tests can force
@@ -26,10 +28,9 @@ from datetime import date
 
 from company.crm.churn_model import estimate_churn_probability
 from saas.churn_model import build_churn_risk
-from saas.customer_reaction import _billing_account_id
 from saas.home_move_win_rate import build_home_move_win_rates
 from simulation.churn_ceiling import WORLD_MAX_CHURN_PROBABILITY
-from simulation.household import IncomeStress
+from simulation.household import IncomeStress, household_of
 from simulation.market_switching_propensity import market_switching_multiplier
 from simulation.satisfaction_churn import adjust_churn_for_satisfaction
 from simulation.switching_propensity import adjust_churn_probability
@@ -116,7 +117,7 @@ def roll_lifecycle_event(
     happen when `records_so_far` is too short to compute bill-shock history
     for this account's first renewal point).
     """
-    billing_account = _billing_account_id(customer_id)
+    billing_account = household_of(customer_id)
     term_month = term_start_str[:7]
 
     churn_risk = build_churn_risk(records_so_far, customers)

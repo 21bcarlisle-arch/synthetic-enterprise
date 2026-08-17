@@ -28,13 +28,13 @@ market attempt then wins is a separate roll this test has no business pinning.
 import pytest
 
 import simulation.run_phase2b as rp
-from saas.customer_reaction import _billing_account_id
 from saas.customers import CUSTOMERS, SUCCESSOR_CUSTOMERS
 from simulation.customer_events import (
     HOME_MOVE_ACTIVATE_SUCCESSOR,
     HOME_MOVE_GO_TO_MARKET,
     home_move_disposition,
 )
+from simulation.household import household_of
 
 # Short enough to keep the two forced runs cheap; the window is only the stage on
 # which the forced churn happens, so its own event history is irrelevant.
@@ -67,7 +67,7 @@ def _accounts_without_successor() -> list[str]:
     with_successor = {
         c["successor_of"] for c in SUCCESSOR_CUSTOMERS if c["commodity"] == "electricity"
     }
-    accounts = sorted({_billing_account_id(c["customer_id"]) for c in CUSTOMERS})
+    accounts = sorted({household_of(c["customer_id"]) for c in CUSTOMERS})
     return [a for a in accounts if a not in with_successor]
 
 
