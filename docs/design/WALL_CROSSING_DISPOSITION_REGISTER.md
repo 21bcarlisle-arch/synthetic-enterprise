@@ -310,6 +310,49 @@ estimate; the harness measures the gap between them. This is a coupled-triad bui
 mechanical move, and it must not be attempted as one.
 WALL-CROSSING-DESIGN -->
 
+<!-- WALL-CROSSING-DESIGN B12_the_dwelling_is_the_worlds_and_the_company_only_discovers_it
+1 edge, re-ruled off `A_composition_lift` at step 30 (§3y, 2026-08-17):
+`simulation.run_phase2b -> saas.property_model`.
+
+WHAT IT IS. `saas/property_model.py` answers what a dwelling physically IS — property type, EPC
+band, bedrooms, occupancy pattern, people count, heating system, EV/solar/smart meter. None of that
+is a supplier decision, so nothing here is composed and `A_composition_lift` never described it.
+`company/crm/property_discovery.py` already calls this module "the sim-side ground truth" on "the
+far side of the epistemic wall", and the company already has its own belief-side dwelling module
+(`company/crm/property_model.py`) fed by observable discovery events. The FILING is the error.
+
+WHY IT IS NOT §3u's MODULE MOVE. Both B1 safety measurements fail (measured at step 30, not
+assumed): FOUR company-side importers (`saas/home_move_win_rate.py:40`, `saas/customers.py` at 318 /
+490 / 507), so a `git mv` creates class-(a) `company -> simulation` edges; and the module is not
+stdlib-only (`saas.smart_meter_rollout` at line 282), so it creates a `sim -> company` edge in the
+other direction. The filing is wrong AND the module is immovable as it stands.
+
+WHY THE CHEAP CUT IS REFUSED, which is the load-bearing half of this block. `build_properties()`
+fills a DRAWN (`SYN-*`) household's dwelling by calling `_derive_syn_property_fields()`, documented
+in its own docstring as "saas-side approximations" of the observable `consumption_band`. So the
+world's ground truth for a drawn home IS the supplier's guess about it. Measured, not argued: the
+company's zero-knowledge fallback (`DEFAULT_EPC_RATING = EPCRating.D` at confidence 0.1) is correct
+for 2/2 = 100% of the drawn cohort and 3/7 = 43% of the authored one. B3's duplicate-the-constant
+move is available and must NOT be taken alone — it would kill the crossing while leaving a SCORED
+belief that is right by construction, sourced from a literal duplicated on each side, which reads as
+two independent sources agreeing. The drawn cohort is the half that grows, so the supplier's
+dwelling accuracy drifts toward 100% as the book scales, for no reason connected to skill.
+
+THE CUT, and the two halves must land in this order:
+  (i) DISCOVER — the world gets a real EPC-band (and dwelling-type) distribution from a named
+      published source, held as a literal in the style of `HOUSEHOLD_SIZE_SHARE_ONS_TS017`. This
+      anchor is NOT in the tree and must not be invented to unblock the cut (R13: baseline changes
+      for fidelity reasons, against a real source). This half is the actual blocker.
+  (ii) BUILD — the world draws its own dwelling from that distribution in `simulation/`, with no
+      call into any `saas.*` approximation; `saas/property_model.py` keeps the company-side
+      derivations its four importers use; the harness scores the gap between the discovered belief
+      and the drawn truth. Independence proven by MUTATING the company's derivation and showing the
+      world's dwelling does not move — never by a test pinning the two equal (B3's and B7's recorded
+      refusal).
+
+A step that takes (ii) without (i) has not cut this edge, it has hidden it.
+WALL-CROSSING-DESIGN -->
+
 
 ---
 
@@ -2638,6 +2681,108 @@ MASKING FINDING IS ALSO STILL OPEN.
 
 ---
 
+## 3y. The dwelling a drawn household lives in — added 2026-08-17 (step 30)
+
+**NO EDGE CUT. 8 LIVE, unchanged (6 direct + 2 indirect).** This step is a RE-RULING, and it is the
+one §3v asked for by name. The row `simulation.run_phase2b -> saas.property_model` moves off
+`A_composition_lift` to a new block, `B12_the_dwelling_is_the_worlds_and_the_company_only_discovers_it`.
+The owed split changes from 5/3 to 4/1/3; the total does not move, and no level moves with it.
+
+A step that cuts nothing has to justify itself. §3w and §3x both recorded that the re-ruling was most
+of the work, and both were right for the same reason this one is: the cheap cut available here would
+have killed the edge while BANKING the defect that makes the edge matter, behind a wall, where the
+next reader would not find it.
+
+### Why it was NOT ruled here before, and why the old ruling was wrong
+
+§3u ruled these leftovers explicitly: "NONE of them is a filing error — each is a genuine composition
+of a supplier decision inside the world's loop, which is a door and not a move." §3v then declined to
+inherit that for this one row and asked the next step to re-rule it on its OWN evidence, because a
+household's assets, heating system and occupancy pattern LOOK like §3u's filing error.
+
+They look like it because they are it. `saas/property_model.py` answers what a dwelling physically IS
+— property type, EPC band, bedrooms, occupancy pattern, people count, heating system, EV/solar/smart
+meter. Nothing there is a supplier decision, so nothing is being composed, so `A_composition_lift`
+never described this row. The company's own code says so in terms: `company/crm/property_discovery.py`
+opens by calling `saas/property_model.py` "the sim-side ground truth" on "the far side of the
+epistemic wall".
+
+### BUT BOTH B1 SAFETY MEASUREMENTS REFUSE THE MODULE MOVE, and they were taken, not assumed
+
+§3u's precedent is only available when both of its measurements come back zero. Both were re-taken
+here against the working tree by AST walk, and **both fail** — which is why this is not §3u's shape
+after all:
+
+1. **FOUR company-side importers, not zero.** `saas/home_move_win_rate.py:40` takes `_epc_rating_of`;
+   `saas/customers.py` takes `ASSET_PROFILE_BY_CUSTOMER` (318), `get_smart_meter_status` (490) and
+   `_derive_syn_property_fields, _home_type_of` (507). A `git mv` would create two class-(a)
+   `company -> simulation` edges — the class KNIFE pass 1 drove to zero. (The five `company/crm/*`
+   hits that look like importers are NOT: they import `company.crm.property_model`, the company's own
+   separate belief-side module. Same basename, opposite side of the wall.)
+2. **The module is not stdlib-only.** Line 282 defers `from saas.smart_meter_rollout import
+   get_penetration`, so the move would create a `sim -> company` edge in the other direction.
+
+So the filing IS wrong and the module is NOT movable. That combination is the third finding of §3u's
+shape under this design, after the two step 20 recorded, and it is the first where the shape does not
+also supply the cut.
+
+### The reason the cheap cut is REFUSED: the world's dwelling is the company's own estimate
+
+`build_properties()` takes the roster as an argument, so it imports nothing — but for a DRAWN
+(`SYN-*`) customer it fills the dwelling by calling `_derive_syn_property_fields()`, whose own
+docstring says it "returns saas-side **approximations**" read off the observable `consumption_band`.
+The world's ground truth for a drawn home is therefore the SUPPLIER'S GUESS about that home.
+
+That is B2's inversion — the company's belief IS the world's fact — applied to dwelling physics
+instead of churn. And it is measurable, so it was measured rather than argued. The company's
+zero-knowledge fallback in `company/crm/property_discovery.py` is `DEFAULT_EPC_RATING = EPCRating.D`
+at `DEFAULT_ASSUMPTION_CONFIDENCE = 0.1`; the world's constant is `_SYN_MODAL_EPC_RATING = "D"`. Both
+are justified in their own comment as "the UK modal band", written twice, and they are one constant:
+
+  * **DRAWN cohort (`SYN-*`): the company's confidence-0.10 default is CORRECT 2/2 — 100%.**
+  * **AUTHORED cohort (C1–C9, dwellings the roster states): CORRECT 3/7 — 43%.**
+
+43% is what a population prior looks like when it is guessing. 100% is what it looks like when it is
+reading its own answer back. The same holds for `property_type` (`SEMI_DETACHED` / `"semi"`).
+`property_discovery.py`'s docstring says a belief built its way "MAY diverge from the customer's
+actual home; that imperfection is the point" — for the drawn cohort there is no imperfection, and
+there cannot be one.
+
+**This is why the edge must not be cut mechanically.** B3's precedent (duplicate the constant, no
+value moves, the two are now free to diverge) is exactly what is available here and exactly what
+would do damage: it kills the crossing while leaving a SCORED belief that is right by construction,
+now sourced from a duplicated literal on each side, which reads as two independent sources agreeing.
+The drawn cohort is also the half that GROWS — the book scales by drawing, not by authoring — so the
+supplier's dwelling accuracy improves toward 100% as the book grows, for no reason connected to the
+supplier getting better.
+
+### What the cut therefore requires, in the order it has to happen
+
+`B12` states both halves and the constraint that binds them, so a later step cannot take half and
+book the edge. The world needs its own dwelling draw from a real external distribution before the
+duplication is honest — an EPC-band distribution with a named published source, held as a literal in
+the house style `HOUSEHOLD_SIZE_SHARE_ONS_TS017` already sets. **That anchor is not in the tree and
+was not invented here**: fabricating a band distribution to unblock a cut would be the R13 breach
+(baseline changes for fidelity reasons only, against a real source), so it is filed as the DISCOVER
+half of B12 rather than guessed. That is the whole reason this step ends at 8 live and not 7.
+
+### What did NOT fall, and what this step deliberately did not touch
+
+`company.policy.decision_policy`, `run_phase4c_on_phase2b -> company.billing.dd_review_runner` and the
+2 indirect edges stay owed to `A_composition_lift` — now 4 rows, and step 29's warning that A is "the
+default home for everything on that file, and a default home is where mis-rulings accumulate" has now
+been borne out by a THIRD consecutive step. Read the remaining 4 as provisional too. B2's 3 are
+untouched and got no easier.
+
+The belief-is-truth measurement above is filed as a finding in its own right
+(`docs/staging/WORKER_FINDING_THE_WORLDS_DWELLING_FOR_A_DRAWN_HOME_IS_THE_COMPANYS_OWN_ESTIMATE_2026-08-17.md`,
+class `measurements_that_mirror`) rather than fixed on sight, per SELF_INTERRUPT_DISCIPLINE — it
+outlives this wall row, because it would still be true if the wall did not exist.
+
+STEP 17'S NAMED RESIDUAL IS STILL OPEN. STEP 20'S MASKING FINDING IS ALSO STILL OPEN.
+
+---
+
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
 
 These were designs in §3 until they were carried out. They are recorded
@@ -3206,7 +3351,7 @@ edge: simulation.run_phase2b -> saas.customer_reaction | disposition=cut | reaso
 edge: simulation.run_phase2b -> saas.demand_response | disposition=cut | reason=`B9_demand_response_is_world_physics` step 26, 2026-08-13 (§3u) — RE-RULED off `A_composition_lift` first, as §3t asked. Not a composition: how much load a household ACTUALLY shifts on a ToU tariff is the world's physics, calibrated to Ofgem/Octopus/EST trial measurements, and the supplier is allowed to be wrong about it. A filing error of B1's exact shape, so a MODULE MOVE — `simulation/demand_response.py`, beside `nudge_physics.py`. Both B1 safety measurements re-taken before the move (zero company-side importers, stdlib-only imports) and now live as tests.
 edge: simulation.run_phase2b -> saas.growth_mandate | disposition=cut | reason=`A_composition_lift` step 27, 2026-08-14 (§3v) — the standing mandate, the per-segment replacement-cost table and the cap-aware acquisition gate are commercial judgements the supplier is allowed to get wrong, and the world held all three. A DOOR and not §3u's module move: this module is on the correct side already and has five other company-side consumers — what was wrong was the world reaching THROUGH it. The mandate check moved OUT of the `elif` condition rather than being renamed into it, so the door answers the question instead of serving the label.
 edge: simulation.run_phase2b -> saas.ledger | disposition=cut | reason=`A_composition_lift` step 27, 2026-08-14 (§3v) — the world was constructing the supplier's own acquisition-spend, gate and retention-cost rows, one of them as an inline dict literal with no constructor at all. Cut through TWO doors, not one: `company.interfaces.growth_desk` for the acquire-or-retain rows and `company.interfaces.fixed_overhead` for the monthly overhead accrual, which §3m's group test separates because it accrues on the calendar against no supply point. The overhead AMOUNT no longer crosses at all.
-edge: simulation.run_phase2b -> saas.property_model | disposition=owed | design=A_composition_lift
+edge: simulation.run_phase2b -> saas.property_model | disposition=owed | design=B12_the_dwelling_is_the_worlds_and_the_company_only_discovers_it
 edge: simulation.run_phase2b -> saas.smart_meter_rollout | disposition=cut | reason=`A_composition_lift` step 25, 2026-08-13 (§3t) — whether the customer HAS a smart or HH meter is the world's fact and still arrives on the customer record; whether the supplier OFFERS a ToU product to everyone whose meter permits it is a commercial decision it is allowed to get wrong, and the world was making it.
 edge: simulation.run_phase2b -> saas.tariff_pricing | disposition=cut | reason=`A_composition_lift` step 25, 2026-08-13 (§3t) — TWO uses, and the edge only fell when both went: the ToU peak/off-peak split applied inline to the CONTRACTED rate (a second copy of the supplier's product shape, now `split_flat_rate_to_tou`), and the gas fixed strike, where the world also decided which published components a pass-through product locks and read the company's own naked fraction back to it.
 edge: simulation.run_phase3a -> saas.customer_reaction | disposition=cut | reason=A executed 2026-08-10, PART 1 of the lift — the seven MISFILED harnesses. `run_phase3a` is 100% composition (`94` lines, every symbol it defines unimported outside tests, its own docstring calling it a run/script), has ZERO importers anywhere inside the wall, and hands the company only OBSERVABLES (the supplier's own settled records). It moved to `tools/run_phase3a.py`, where entry points live. Not a laundering, and the distinction is measured not argued: no walled module's dependency set changed (zero walled importers), and the step-7 indirect ratchet — which walks exactly this bridge — still reports 3 indirect crossings, not 4. See §3c.
