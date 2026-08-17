@@ -658,7 +658,51 @@ function renderDoorWallView(){
   var host=document.getElementById("door-wall-view");
   if(host)host.innerHTML=wallViewNav();
 }
-function setWallView(v){WALL_VIEW=v;renderDoorWallView();applyWallViewToOpState();renderHousehold();}
+/* Cold-eyes 2026-08-17, coldwalk:site2_wall_view_selector_throws_in_its_own_landing_state.
+   Every click of the three view buttons ON THE LANDING PAGE raised
+   "Cannot read properties of null (reading 'segment')" -- setWallView called
+   renderHousehold() unconditionally, and at boot HH is {elec:null,gas:null,base:null}.
+   It was silent to a reader (the throw is after the op-state filter, so filtering still
+   applied) and invisible to the suite because _wall_harness.mjs populates HH with a full
+   household BEFORE it ever calls setWallView: the fixture never occupied the state the
+   page boots in. _landing_harness.mjs is that missing fixture. */
+function hasHousehold(){return !!(HH&&(HH.elec||HH.gas));}
+function setWallView(v){
+  WALL_VIEW=v;renderDoorWallView();applyWallViewToOpState();
+  if(hasHousehold())renderHousehold();else renderCaseStudies();
+  applyWallViewToApp();
+}
+/* THE SECOND HALF OF THE SAME WALK, and the more important one:
+   coldwalk:site2_case_study_cards_render_sim_truth_in_the_customer_view.
+   applyWallViewToOpState walks #op-state's children; layoutPanels governs the
+   drill-down. The curated case-study grid is appended to #app by a THIRD path that
+   neither of them can see, so it rendered "sim 3.2% vs company 95.0%" and "True
+   satisfaction fell 12.2 percentage points" inside the customer's view. This is the
+   2026-08-12 lesson repeating: a new component above a control does not inherit its
+   subject. So the subject is now the DOCUMENT -- every top-level child of #app must
+   declare a side or declare itself chrome, and an undeclared one is REMOVED rather
+   than shown (fail closed), because the failure mode being guarded is a leak. */
+var WALL_VIOLATIONS=[];
+function applyWallViewToApp(){
+  var app=document.getElementById("app");
+  var kids=(app&&app.children)||[];
+  for(var i=kids.length-1;i>=0;i--){
+    var el=kids[i];
+    var side=el.getAttribute?el.getAttribute("data-wall-side"):null;
+    var chromeFlag=el.getAttribute?el.getAttribute("data-wall-chrome"):null;
+    if(side&&!WALL_SIDES[side])throw new Error(
+      "an #app block declares an unknown wall-side ("+String(side)+") -- "+
+      "the view selector cannot filter it");
+    if(side&&!wallViewShows(side)){if(el.parentNode&&el.parentNode.removeChild)el.parentNode.removeChild(el);continue;}
+    if(!side&&!chromeFlag){
+      WALL_VIOLATIONS.push("undeclared top-level #app block: "+String((el.className||el.tagName||"?")));
+      if(typeof console!=="undefined"&&console.error)console.error(
+        "wall exhibit: an undeclared block reached #app and was withheld -- "+
+        "every block must carry data-wall-side or data-wall-chrome");
+      if(el.parentNode&&el.parentNode.removeChild)el.parentNode.removeChild(el);
+    }
+  }
+}
 function panel(side,title,body){
   if(!WALL_SIDES[side])throw new Error(
     "wall-side undeclared or unknown ("+String(side)+"): every panel on this page must declare "+
@@ -719,7 +763,7 @@ function wallViewNav(){
 
 function showLogin(err){
   document.getElementById("app").innerHTML=
-    "<div class=\"login-wrap\"><div class=\"login-card\">"+
+    "<div class=\"login-wrap\" data-wall-chrome=\"1\"><div class=\"login-card\">"+
     "<h1>Open a household</h1>"+
     "<p>This is not a customer login and no account is being authenticated. Enter a modelled account "+
     "number to open that household's exhibit: its own view on one side, what the company and the "+
@@ -733,6 +777,8 @@ function showLogin(err){
     "</div></div>";
   var inp=document.getElementById("acc");
   if(inp){inp.focus();inp.onkeydown=function(e){if(e.key==="Enter")doLogin();};}
+  CS_WRAP=null;
+  applyWallViewToApp();
   loadCaseStudies();
 }
 var CASE_STUDIES=null;
@@ -742,22 +788,46 @@ function loadCaseStudies(){
     .then(function(d){CASE_STUDIES=d;renderCaseStudies();})
     .catch(function(){});
 }
+var CS_WRAP=null;
+var CASE_STUDY_DROPS=[];
+var CS_EMPTY_NOTE="Nothing here in the customer's view, and that is the exhibit working rather than a "+
+  "missing panel: every curated card is chosen by comparing what the company believed with what the "+
+  "simulation knew, so the curation itself sits behind the wall. Switch to “Both sides” or "+
+  "“Behind the wall” to see it, or open any account number above.";
 function renderCaseStudies(){
   var app=document.getElementById("app");
   if(!app||!CASE_STUDIES||!CASE_STUDIES.cases||!CASE_STUDIES.cases.length)return;
+  /* Each card declares its own side, written by tools/generate_case_study_recommender.py
+     from the most privileged layer its HEADLINE reveals. A card with no side, or a side
+     this page does not know, is DROPPED -- a curated headline whose side nobody chose is
+     exactly the block that leaked, so the safe answer is not to publish it. */
+  var shown=0,dropped=[];
   var cards=CASE_STUDIES.cases.map(function(c){
+    var side=c&&c.wall_side;
+    if(!side||!WALL_SIDES[side]){dropped.push(String((c&&c.category)||"?"));return "";}
+    if(!wallViewShows(side))return "";
+    shown++;
+    var meta=WALL_SIDES[side];
     var params=new URLSearchParams(c.link).toString();
-    return "<a class=\"cs-card\" href=\"?"+params+"\">"+
-      "<div class=\"cs-cat\">"+esc(c.category)+"</div>"+
+    return "<a class=\"cs-card\" data-wall-side=\""+side+"\" href=\"?"+params+"\">"+
+      "<div class=\"cs-cat\">"+esc(c.category)+"<span class=\"wall-side-chip "+meta[1]+"\">"+meta[0]+"</span></div>"+
       "<div class=\"cs-acc\">"+esc(c.account_id)+" &middot; "+esc(c.segment)+"</div>"+
       "<div class=\"cs-headline\">"+esc(c.headline)+"</div>"+
       "</a>";
   }).join("");
+  CASE_STUDY_DROPS=dropped;
+  var html="<div class=\"cs-title\">Interesting customers to explore, auto-curated from the live run</div>"+
+    (shown?"<div class=\"cs-grid\">"+cards+"</div>":"<div class=\"no-account-note\">"+CS_EMPTY_NOTE+"</div>")+
+    (dropped.length?"<div class=\"no-account-note\">"+dropped.length+" curated card(s) withheld: a case must "+
+      "declare which side of the wall its headline sits on before this page will publish it.</div>":"");
+  if(CS_WRAP&&CS_WRAP.parentNode===app){CS_WRAP.innerHTML=html;return;}
   var wrap=document.createElement("div");
   wrap.className="cs-wrap";
-  wrap.innerHTML="<div class=\"cs-title\">Interesting customers to explore, auto-curated from the live run</div>"+
-    "<div class=\"cs-grid\">"+cards+"</div>";
+  if(wrap.setAttribute)wrap.setAttribute("data-wall-chrome","1");
+  wrap.innerHTML=html;
   app.appendChild(wrap);
+  CS_WRAP=wrap;
+  applyWallViewToApp();
 }
 function fetchAccount(id){
   return fetch("../data/customers/"+id+".json").then(function(r){
@@ -892,7 +962,7 @@ function renderHousehold(){
     return "<button class=\"tab-btn"+(ACTIVE_TAB===t[0]?" active":"")+"\" onclick=\"switchTab('"+t[0]+"')\">"+t[1]+"</button>";
   }).join("");
   document.getElementById("app").innerHTML=
-    "<div class=\"account-wrap\">"+
+    "<div class=\"account-wrap\" data-wall-chrome=\"1\">"+
     "<div class=\"account-header\">"+
     // Director page comment (2026-07-10): "Can you move the scroll to left
     // hand side?" -- prev/next customer arrows moved from the right

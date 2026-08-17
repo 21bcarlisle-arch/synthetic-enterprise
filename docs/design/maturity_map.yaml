@@ -5126,8 +5126,8 @@
   provenance: director_ruling
   depends_on: []
   couples_with: [D36_bill_render_footing_and_pence, SITE3_wall_exhibit_url_rename]
-  file_scope: ['site/customers/index.html', 'site/customers/test_wall_exhibit.py', 'site/customers/_wall_harness.mjs', 'site/customers/test_customers_door.py', 'site/customers/_render_harness.mjs', 'site/_redirects', 'site/test_no_links_to_redirected_urls.py', 'docs/design/SITE_CONSTITUTION.md', 'tools/generate_case_study_recommender.py', 'tests/tools/test_case_study_recommender.py']
-  simplifications_count: 9
+  file_scope: ['site/customers/index.html', 'site/customers/test_wall_exhibit.py', 'site/customers/_wall_harness.mjs', 'site/customers/_landing_harness.mjs', 'site/customers/test_customers_door.py', 'site/customers/_render_harness.mjs', 'site/_redirects', 'site/test_no_links_to_redirected_urls.py', 'docs/design/SITE_CONSTITUTION.md', 'tools/generate_case_study_recommender.py', 'tests/tools/test_case_study_recommender.py']
+  simplifications_count: 10
   expert_hour:
     # 2026-08-17: every finding the 08-12 Hour raised is now dispositioned -- 11 fixed with
     # evidence in the ledger, 1 refuted (its kept half built), 2 re-homed to the lanes that
@@ -5137,11 +5137,19 @@
     # it is stale rather than discharged, and only a fresh Hour can replace it. LEVEL HELD
     # AT 2 for exactly that reason: this tick reconciled records it also wrote, which is
     # not evidence for a level move. The remaining gate for L3 is a re-run cold-eyes walk.
-    status: passed_execute_after_fix
-    last: '2026-08-12'
-    verdict: 'NO'   # STALE -- returned against the pre-repair page; L3 needs a re-run, not this list
+    # 2026-08-17, SECOND ENTRY: the re-run walk the note above named as the L3 gate RAN,
+    # and returned NO. Three blindfolded personas against 28 headless-Chromium captures of
+    # the LIVE host; blindness audited, not asserted (0 repo/git/map tool calls in 52).
+    # Two of its findings were this atom's own exit criteria (2) and (3) RED again, in the
+    # one region every control in the module structurally excluded -- the page as it BOOTS
+    # -- and both were fixed in this tick with the document as the new subject. Five more
+    # are real and open; one of those is re-homed. LEVEL STAYS 2: fixing two findings from
+    # a walk that returned NO is not the walk passing.
+    status: findings_open
+    last: '2026-08-17'
+    verdict: 'NO'   # the RE-RUN's own verdict, against the current page -- not stale
     independence: false   # same model family as the builder -- blindness, not independence
-    ledger: docs/observability/sanity_adjudication_ledger.json  # 13 keys, prefix coldwalk:site2_
+    ledger: docs/observability/sanity_adjudication_ledger.json  # 20 keys, prefix coldwalk:site2_
     fixed_2026_08_12:
     # Both repaired 2026-08-12 and recorded ONLY here; their ledger rows still read
     # adjudicated-real until 2026-08-17, so the ledger said unfixed while the map said fixed
@@ -5179,6 +5187,21 @@
     # running it against `git show HEAD:site/customers/index.html`: it FIRES, naming all six.
     fixed_2026_08_17_class:
     - coldwalk:site2_lifetime_net_captioned_after_cost_to_serve_is_before_it
+    fixed_2026_08_17_walk:   # the re-run walk's two structural findings, fixed same tick
+    # Both live in the LANDING state. Every fixture in the 97-test module assigned a full
+    # household before driving anything (_wall_harness.mjs sets sandbox.HH, then calls
+    # setWallView), so no subject in the module could contain either defect -- the same
+    # "a new layer above a control must inherit its subject" class this atom has now paid
+    # for twice. site/customers/_landing_harness.mjs is the missing fixture: its subject is
+    # the rendered #app document at boot, HH left at its own declared initial value.
+    # Fixed as a CLASS, not as instances: every top-level child of #app must declare a side
+    # or declare itself chrome, and an undeclared one is REMOVED and recorded, so the next
+    # component appended by a third path fails by construction. Proven on the unfixed page
+    # (`git show HEAD:site/customers/index.html`): the leak check fires naming all six cards
+    # and the throw check fires on 3 of 3 views. R11 on a real chromium boot of the built
+    # page: 0 console errors, 0 leaked headlines in the customer view, 6/6 cards behind it.
+    - coldwalk:site2_case_study_cards_render_sim_truth_in_the_customer_view
+    - coldwalk:site2_wall_view_selector_throws_in_its_own_landing_state
     findings_rehomed:   # real, NOT SITE2's, and not closable inside its file_scope
     # Staged for the owning lanes as
     # docs/staging/WORKER_FINDING_TWO_DEFECTS_THE_WALL_EXHIBIT_SURFACED_ARE_NOT_THE_EXHIBITS_2026-08-17.md
@@ -5195,7 +5218,27 @@
       owner: sim/world lane -- the consumption generator
       # The walk's OWN entry already said this was a WORLD/SIM fidelity finding needing its
       # own sim-lane atom under R12, and it was filed against SITE2 regardless.
+      # RE-RUN 2026-08-17 reproduced it STRONGER, independently: August beats December on
+      # 3/3 checkable years, Dec 2021 sits 4.9% BELOW Nov, six-year volume CV is 0.55%, and
+      # lockdown 2020 is invisible. Same owner, more evidence.
+    - key: coldwalk:site2_renewal_effect_lags_its_cause_by_one_period
+      owner: generator/sim lane -- the customer reaction-chain producer, NOT site/customers/**
+      # Staged as docs/staging/WORKER_FINDING_THE_WALL_EXHIBITS_CAUSAL_PANEL_IS_ONE_PERIOD_LATE_2026-08-17.md
+      # Two personas reconciled it independently by shifting one row: 8/8 within 6%, with
+      # 334.0 GBP/MWh -> 33.34p exact. OBSERVED IN THE DATA, not the render -- C1's published
+      # events pair 'Tariff renewed at 128.0 GBP/MWh' with 'Unit rate stepped 11.31p ->
+      # 11.36p' -- so no edit inside site/customers/** can close it. The open question the
+      # exhibit cannot answer is which of the two it is: a display join, or a billing engine
+      # applying last year's price vintage straight through the 2022 spike.
     findings:   # OPEN; reconciled vs the ledger by tests/controls/test_map_reconciliation.py
+    # THE RE-RUN WALK's four open findings (2026-08-17). None is a fix this tick could make
+    # honestly: two need a producer-vs-render ownership call that has not been measured yet,
+    # one is a layout decision, one is a same-page contradiction whose correct resolution
+    # depends on whether the closed account's credit balance was ever refunded.
+    - coldwalk:site2_churn_belief_published_as_23_and_5_for_one_decision
+    - coldwalk:site2_arrears_counters_contradict_the_accounts_own_timeline
+    - coldwalk:site2_c1_pinned_exhibit_reads_as_the_open_households
+    - coldwalk:site2_closed_account_settled_to_zero_and_in_credit
     # NOTE the two entries that used to sit here are now under findings_rehomed above, each
     # with its owning lane. One residual this atom still cannot discharge and which travels
     # with the data half: the #op-state exhibit's own churn tile reads company.json's

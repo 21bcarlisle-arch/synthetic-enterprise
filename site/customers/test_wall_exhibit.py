@@ -2178,3 +2178,189 @@ def test_mutation_dropping_the_qualifier_kills_a_named_test(tmp_path):
     blocks = _lifetime_net_blocks(whole_document(_drive(mutant, tmp_path), "both"))
     with pytest.raises(AssertionError, match="which side of cost-to-serve"):
         _check_lifetime_net_sides(blocks)
+
+
+# ===========================================================================
+# 17. THE LANDING DOCUMENT (cold-eyes 2026-08-17, the re-run walk)
+# ===========================================================================
+# The walk that was the named L3 gate returned NO, and both structural findings were in
+# the one region every control above structurally excluded: the page AS IT BOOTS.
+#
+#   coldwalk:site2_case_study_cards_render_sim_truth_in_the_customer_view
+#     "The customer's side" rendered "sim 3.2% vs company 95.0%", "True satisfaction fell
+#     12.2 percentage points" and "Real downstream drift" -- under the view's own sentence
+#     "No company estimate and no simulation ground truth is in this view; if one appears,
+#     the page is broken". All three blindfolded personas led with it independently.
+#   coldwalk:site2_wall_view_selector_throws_in_its_own_landing_state
+#     every click of the three view buttons on the landing page raised
+#     "Cannot read properties of null (reading 'segment')".
+#
+# WHY 97 TESTS WERE GREEN AGAINST THAT PAGE, which is the reusable half. Every fixture in
+# sections 1-16 assigns a fully populated household before it drives anything:
+# `_wall_harness.mjs` sets `sandbox.HH` and only then calls setWallView. So no subject in
+# this module could contain either defect -- one lives in the branch taken when HH is
+# empty, the other in a component appended to #app by a path neither layoutPanels() nor
+# applyWallViewToOpState() can see. This is the SAME class as 2026-08-12 ("a new layer
+# above a control must inherit its subject"), caught a second time, in the same module.
+#
+# So this section's SUBJECT is the rendered #app document in the boot state, via
+# `_landing_harness.mjs`, driven through the page's own showLogin()/setWallView().
+#
+# ANTI-PIN: the leak strings are read from site/data/case_studies.json, not typed here, so
+# regenerating the book changes what is checked rather than making these cry wolf.
+LANDING_HARNESS = HERE / "_landing_harness.mjs"
+CASE_STUDIES_PATH = HERE.parent / "data" / "case_studies.json"
+
+
+def _landing(index: Path = INDEX) -> dict:
+    proc = subprocess.run(
+        [NODE, str(LANDING_HARNESS), str(index), str(CASE_STUDIES_PATH)],
+        capture_output=True, text=True, timeout=60,
+    )
+    assert proc.returncode == 0, f"landing harness failed: {proc.stderr}"
+    return json.loads(proc.stdout)
+
+
+def _cases() -> list[dict]:
+    cases = json.loads(CASE_STUDIES_PATH.read_text(encoding="utf-8"))["cases"]
+    assert cases, "no curated cases on disk -- every assertion below would be vacuous"
+    return cases
+
+
+def _check_no_behind_the_wall_case_in_the_customer_view(landing: dict) -> None:
+    """The named check. Kept as a function so a mutant page can be pushed through the
+    SAME assertion, which is what makes the mutation tests below name a real test."""
+    customer = landing["views"]["customer"]
+    leaked = [c for c in _cases()
+              if c.get("wall_side") != "customer" and c["headline"] in customer]
+    assert not leaked, (
+        "the customer's view of the landing document publishes curated headlines that are "
+        "not customer-observable -- the page's own sentence says that means it is broken: "
+        + "; ".join(f"[{c.get('wall_side')}] {c['category']}" for c in leaked)
+    )
+
+
+def test_the_view_selector_does_not_throw_in_the_pages_own_landing_state():
+    """coldwalk:site2_wall_view_selector_throws_in_its_own_landing_state. The landing page
+    IS the page's home state; every visitor who touches a view button is in it."""
+    landing = _landing()
+    threw = {v: m for v, m in landing["threw"].items() if m}
+    assert not threw, f"setWallView threw on the landing page: {threw}"
+
+
+def test_the_customer_view_of_the_landing_document_carries_no_behind_the_wall_case():
+    """coldwalk:site2_case_study_cards_render_sim_truth_in_the_customer_view."""
+    _check_no_behind_the_wall_case_in_the_customer_view(_landing())
+
+
+def test_every_curated_card_declares_a_side_the_page_knows():
+    """Structural, per the ruling's non-negotiable: a curated card whose side nobody chose
+    cannot be filtered, so it must not be publishable at all."""
+    undeclared = [c["category"] for c in _cases() if c.get("wall_side") not in SIDES]
+    assert not undeclared, (
+        f"curated cards declare no side the wall knows: {undeclared} -- "
+        "tools/generate_case_study_recommender.py must choose one"
+    )
+
+
+def test_the_behind_the_wall_view_still_publishes_every_curated_card():
+    """ANTI-VACUITY for the two tests above: if the grid simply stopped rendering, the
+    leak check would pass for the wrong reason and the exhibit would have lost a feature.
+    Every card must survive somewhere."""
+    landing = _landing()
+    missing = [c["category"] for c in _cases() if c["headline"] not in landing["views"]["behind"]]
+    assert not missing, f"curated cards vanished from the behind-the-wall view: {missing}"
+    assert landing["views"]["customer"] != landing["views"]["both"], (
+        "the customer view and the both-sides view render identically -- the selector is "
+        "not governing this region at all"
+    )
+
+
+def test_an_undeclared_block_bolted_onto_the_document_is_withheld_and_recorded():
+    """The class fix, not the instance. The case-study grid leaked because it was appended
+    to #app by a third path; the guard's subject is now the document, so ANY top-level
+    block that declares neither a side nor chrome is removed and recorded."""
+    probes = _landing()["probes"]
+    assert probes["undeclared_block_withheld"], (
+        "a block bolted onto #app with no declared side survived into the customer's view"
+    )
+    assert probes["undeclared_block_recorded"], (
+        "the undeclared block was withheld silently -- a fail-closed control that says "
+        "nothing is how the 2026-08-12 repair shipped at 2 of 5 sites"
+    )
+    assert probes["unknown_side_block"] and "marketing" in probes["unknown_side_block"], (
+        "a block declaring a side the wall does not know must be refused, not filtered"
+    )
+
+
+def test_a_case_with_no_declared_side_is_withheld_rather_than_published():
+    probes = _landing()["probes"]
+    assert "cs-card" not in probes["undeclared_case_html"], (
+        "cards with no declared side were published anyway"
+    )
+    assert len(probes["undeclared_case_drops"]) == len(_cases()), (
+        "the page did not record every withheld card"
+    )
+
+
+# --- R15, both defects, both directions ------------------------------------
+def _mutate(tmp_path: Path, marker: str, replacement: str) -> Path:
+    src = INDEX.read_text(encoding="utf-8")
+    assert marker in src, f"the page no longer has the shape this mutation reverts: {marker!r}"
+    mutant = tmp_path / "index.html"
+    mutant.write_text(src.replace(marker, replacement), encoding="utf-8")
+    return mutant
+
+
+def test_mutation_the_landing_leak_restored_kills_a_named_test(tmp_path):
+    """R15 direction 1: the 2026-08-17 finding itself, put back -- the curated grid stops
+    obeying the view. Proven to fire: run against the pre-fix page this raises with all
+    six cards named."""
+    mutant = _mutate(tmp_path, '    if(!wallViewShows(side))return "";',
+                     '    if(false)return "";')
+    with pytest.raises(AssertionError, match="not customer-observable"):
+        _check_no_behind_the_wall_case_in_the_customer_view(_landing(mutant))
+
+
+def test_mutation_treating_an_undeclared_case_as_customer_observable_kills_a_named_test(tmp_path):
+    """R15 direction 2: the fail-OPEN version of the same control -- a card with no
+    declared side defaults to the customer's side instead of being withheld. This is the
+    state the page was actually in (no card declared anything), so the mutation is the
+    defect, not a hypothetical."""
+    mutant = _mutate(
+        tmp_path,
+        '    if(!side||!WALL_SIDES[side]){dropped.push(String((c&&c.category)||"?"));return "";}',
+        '    if(!side||!WALL_SIDES[side]){side="customer";}',
+    )
+    probes = _landing(mutant)["probes"]
+    assert "cs-card" in probes["undeclared_case_html"], (
+        "the mutation did not reach the page -- this test would be vacuous"
+    )
+    with pytest.raises(AssertionError, match="published anyway"):
+        assert "cs-card" not in probes["undeclared_case_html"], (
+            "cards with no declared side were published anyway"
+        )
+
+
+def test_mutation_restoring_the_unconditional_household_render_kills_a_named_test(tmp_path):
+    """R15 for the second finding: setWallView calling renderHousehold() with no household
+    open -- the exact line, reverted -- must kill a named test. Before this section
+    shipped it did not, because no fixture had ever occupied the boot state."""
+    mutant = _mutate(
+        tmp_path,
+        "  if(hasHousehold())renderHousehold();else renderCaseStudies();",
+        "  renderHousehold();",
+    )
+    threw = {v: m for v, m in _landing(mutant)["threw"].items() if m}
+    assert threw, "the mutation did not reach the page -- this test would be vacuous"
+    assert all("segment" in m for m in threw.values()), threw
+
+
+def test_mutation_letting_an_undeclared_block_through_kills_a_named_test(tmp_path):
+    """R15 for the class guard itself: drop the fail-closed branch and the bolted-on block
+    -- the shape the case-study grid had -- survives into the customer's view."""
+    mutant = _mutate(tmp_path, "    if(!side&&!chromeFlag){", "    if(false){")
+    probes = _landing(mutant)["probes"]
+    assert not probes["undeclared_block_withheld"], (
+        "the mutation did not reach the page -- this test would be vacuous"
+    )

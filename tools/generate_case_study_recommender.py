@@ -185,6 +185,40 @@ def _fmt_points(v):
     return "{:.1f} percentage points".format(abs(float(v)))
 
 
+WALL_SIDES = ("customer", "company", "sim")
+
+
+def _side(side):
+    """Every curated card is a PUBLISHED block on the wall exhibit, so it must
+    declare which side of the wall it sits on -- cold-eyes 2026-08-17
+    (coldwalk:site2_case_study_cards_render_sim_truth_in_the_customer_view):
+    the grid was appended to #app carrying "sim 3.2% vs company 95.0%" and
+    "True satisfaction fell 12.2 percentage points", and it rendered unchanged
+    under the customer view's own sentence "No company estimate and no
+    simulation ground truth is in this view; if one appears, the page is
+    broken".
+
+    THE RULE, and it is not the obvious one: the declared side is the most
+    privileged layer any fact in the PUBLISHED HEADLINE reveals -- not the
+    layer the DETECTOR read. Every slot here is detected off the reaction
+    chain (SIM-only), so a detector-based rule would mark all six sim and
+    would be answering a question nobody asked; what ships is the headline.
+    A retention offer and a debt write-off are the supplier's own acts, so
+    those two headlines are company-only; the four that print a reaction-chain
+    count, a sim probability, a sim-measured life-event effect or a true
+    satisfaction score are sim-only.
+
+    There is deliberately NO default: an undeclared or unknown side raises
+    here, and the page drops the card rather than rendering it (fail closed
+    at both ends). Guarded by tests/tools/test_case_study_recommender.py.
+    """
+    if side not in WALL_SIDES:
+        raise ValueError(
+            "a case study must declare a wall side (%s), got %r" % ("|".join(WALL_SIDES), side)
+        )
+    return side
+
+
 def build(by_base, sample_customers):
     scored = _score_households(by_base, sample_customers)
     used = set()
@@ -193,7 +227,8 @@ def build(by_base, sample_customers):
     c = _pick(scored, used, lambda c: c["event_density"])
     if c:
         headline = str(c["event_density"]) + " timeline + reaction-chain entries on record"
-        cases.append(dict(category="Most eventful journey", headline=headline, c=c, year=None))
+        cases.append(dict(category="Most eventful journey", headline=headline, c=c, year=None,
+                          wall_side=_side("sim")))
 
     c = _pick(
         scored, used, lambda c: _gap_points(c["divergence"]),
@@ -208,7 +243,7 @@ def build(by_base, sample_customers):
         )
         cases.append(dict(
             category="Largest company-vs-SIM churn divergence", headline=headline,
-            c=c, year=int(d["term_start"][:4]),
+            c=c, year=int(d["term_start"][:4]), wall_side=_side("sim"),
         ))
 
     c = _pick(scored, used, lambda c: c["event_density"], filt=lambda c: c["retention_then_churn"])
@@ -217,7 +252,7 @@ def build(by_base, sample_customers):
         headline = "The company offered retention and won, then lost the account regardless"
         cases.append(dict(
             category="Retention save, then churned anyway", headline=headline,
-            c=c, year=int(churned["date"][:4]),
+            c=c, year=int(churned["date"][:4]), wall_side=_side("company"),
         ))
 
     c = _pick(scored, used, lambda c: len(c["writeoffs"]), filt=lambda c: c["writeoffs"])
@@ -226,7 +261,7 @@ def build(by_base, sample_customers):
         headline = str(len(c["writeoffs"])) + " debt write-off event(s) in the arrears cascade"
         cases.append(dict(
             category="Heaviest arrears cascade", headline=headline,
-            c=c, year=int(wo["date"][:4]),
+            c=c, year=int(wo["date"][:4]), wall_side=_side("company"),
         ))
 
     c = _pick(scored, used, lambda c: len(c["life_events"]), filt=lambda c: c["life_events"])
@@ -235,7 +270,7 @@ def build(by_base, sample_customers):
         headline = str(le.get("detail", "Life event")) + " (" + le["date"][:4] + ") -- " + le["effect"]
         cases.append(dict(
             category="Notable life event", headline=headline,
-            c=c, year=int(le["date"][:4]),
+            c=c, year=int(le["date"][:4]), wall_side=_side("sim"),
         ))
 
     c = _pick(
@@ -259,7 +294,7 @@ def build(by_base, sample_customers):
         )
         cases.append(dict(
             category="Silent-middle churn risk", headline=headline,
-            c=c, year=int(sm["last"]["term_start"][:4]),
+            c=c, year=int(sm["last"]["term_start"][:4]), wall_side=_side("sim"),
         ))
 
     out = []
@@ -272,6 +307,7 @@ def build(by_base, sample_customers):
         out.append(dict(
             category=case["category"],
             headline=case["headline"],
+            wall_side=_side(case.get("wall_side")),
             account_id=c["cid"],
             base_account_id=c["base"],
             segment=obj.get("segment"),

@@ -308,6 +308,13 @@
     "finding_key": "coldwalk:payment_channel_dd_fail_contradiction",
     "state": "adjudicated-real"
   },
+  "coldwalk:site2_arrears_counters_contradict_the_accounts_own_timeline": {
+    "adjudicated_at": "2026-08-17T22:18:06.467603+00:00",
+    "adjudicated_by": "claude (cold-eyes walk re-run, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-17; three blindfolded personas against 28 live-host headless-Chromium captures, blindness audited at 0 repo/git tool calls in 52)",
+    "evidence": "MAJOR, all three personas. The money panel publishes 'FAILED PAYMENTS 0 - direct-debit returns' and 'No arrears cases on this account's electricity record' while the same account's Timeline renders two complete four-step arrears cascades (2016-11-15 and 2018-09-15, eight events). Compounded by 'PAYS BY direct debit' against arrears rows reading 'Standard credit payment not received', and by arrears amounts (GBP43.66, GBP26.84) that reconcile to no invoice in the 72-bill ledger. OBSERVED: the counters render h.failed_payment_count / the cust-arrears note off company.json's household block (index.html:373, 446) while the cascade rows come from the per-customer timeline -- two producers, published side by side, never reconciled. The 2026-08-13 repair that moved arrears onto the customer's side of the wall left the 'clean' claim in the money panel, which the page's own footnote boasts about having fixed. Owner split is the next tick's disposition: the RENDER half (a page that publishes two sources of one fact without reconciling them) is SITE2's.",
+    "finding_key": "coldwalk:site2_arrears_counters_contradict_the_accounts_own_timeline",
+    "state": "adjudicated-real"
+  },
   "coldwalk:site2_arrears_history_visible_only_behind_the_wall": {
     "adjudicated_at": "2026-08-12T12:03:02.029003+00:00",
     "adjudicated_by": "claude (cold-eyes walk, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-12)",
@@ -327,6 +334,28 @@
     "fixed_at": "2026-08-14T00:00:00+00:00",
     "fixed_by": "claude (SITE2_two_sided_wall_exhibit worker tick, 2026-08-14)",
     "state": "fixed"
+  },
+  "coldwalk:site2_c1_pinned_exhibit_reads_as_the_open_households": {
+    "adjudicated_at": "2026-08-17T22:18:06.467603+00:00",
+    "adjudicated_by": "claude (cold-eyes walk re-run, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-17; three blindfolded personas against 28 live-host headless-Chromium captures, blindness audited at 0 repo/git tool calls in 52)",
+    "evidence": "MAJOR, and the evidence IS the misread rate: 3 of 3 blind readers attributed C1's GBP6,560.17 and 'two person / urban flat' to C6 (SME, no gas) and to C_IC1 (I&C, GBP257k of term margin at risk). The static #op-state exhibit is pinned to C1 under the heading 'ONE HOUSEHOLD - END TO END as of account C1' and re-renders above EVERY household's drill-down (~2,000px of it on each of six tabs), with nothing separating the two. The data is not wrong and the heading does name C1; the defect is that the page puts one household's P&L directly above another household's account with no boundary. SITE2's own, inside file_scope, and it is a layout decision rather than a data repair.",
+    "finding_key": "coldwalk:site2_c1_pinned_exhibit_reads_as_the_open_households",
+    "state": "adjudicated-real"
+  },
+  "coldwalk:site2_case_study_cards_render_sim_truth_in_the_customer_view": {
+    "adjudicated_at": "2026-08-17T22:18:06.467603+00:00",
+    "adjudicated_by": "claude (cold-eyes walk re-run, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-17; three blindfolded personas against 28 live-host headless-Chromium captures, blindness audited at 0 repo/git tool calls in 52)",
+    "evidence": "BLOCKING, and all three personas led with it independently. With SHOW set to 'The customer's side' the landing document still rendered the curated grid verbatim: 'sim 3.2% vs company 95.0%', 'True satisfaction fell 12.2 percentage points (63.8% in 2019 to 51.7% in 2024)' and 'Real downstream drift: income stress low -> high' -- under the view's OWN sentence 'No company estimate and no simulation ground truth is in this view; if one appears, the page is broken'. ROOT CAUSE, verified in code not inferred: renderCaseStudies() appends .cs-card nodes to #app with no data-wall-side, and applyWallViewToOpState() walks #op-state's children only, so no wall control's subject contained the grid. Related fail-open in the same function: 'if(!side||wallViewShows(side))' showed any UNDECLARED block in every view. This is the 2026-08-12 lesson repeating in the same module -- a new component above a control does not inherit its subject -- and it is exit criteria (2) and (3) of this atom RED again.",
+    "finding_key": "coldwalk:site2_case_study_cards_render_sim_truth_in_the_customer_view",
+    "fix_evidence": "2026-08-17. Fixed as a CLASS, not as the instance. (a) PRODUCER: tools/generate_case_study_recommender.py declares wall_side per slot via _side(), which RAISES on a missing or unknown value -- there is deliberately no default. The rule is stated and is not the obvious one: the side is the most privileged layer the PUBLISHED HEADLINE reveals, not the layer the detector read (all six slots are detected off the reaction chain, so a detector rule would mark all six sim and answer a question nobody asked). Result: 4 sim, 2 company, 0 customer. (b) PAGE: each card carries data-wall-side and a side chip and is filtered by the page's own wallViewShows(); a card with no known side is WITHHELD and recorded, not shown. (c) CLASS GUARD: applyWallViewToApp() makes the DOCUMENT the subject -- every top-level child of #app must declare a side or declare itself chrome, and an undeclared one is removed from the document and pushed to WALL_VIOLATIONS, so the next component bolted on by a third path fails by construction rather than by someone remembering. (d) The customer view now renders an explicit note saying the curation itself sits behind the wall, so the empty grid reads as the exhibit working rather than a missing panel. CONTROL: site/customers/_landing_harness.mjs (new; its subject is the rendered #app document in the BOOT state, HH left at its declared initial value) + test_wall_exhibit.py section 17. PROVEN ON THE UNFIXED PAGE: run against `git show HEAD:site/customers/index.html` the leak check FIRES and names all six cards. R15 both ways: test_mutation_the_landing_leak_restored_kills_a_named_test and test_mutation_treating_an_undeclared_case_as_customer_observable_kills_a_named_test (the fail-open shape the page was actually in). R11 on a real browser boot: chromium against the built page, 0 console errors, 0 leaked headlines in the customer view, 6/6 cards still published behind the wall.",
+    "state": "fixed"
+  },
+  "coldwalk:site2_churn_belief_published_as_23_and_5_for_one_decision": {
+    "adjudicated_at": "2026-08-17T22:18:06.467603+00:00",
+    "adjudicated_by": "claude (cold-eyes walk re-run, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-17; three blindfolded personas against 28 live-host headless-Chromium captures, blindness audited at 0 repo/git tool calls in 52)",
+    "evidence": "MAJOR, all three personas caught it independently. company.json household.latest_churn_probability = 0.23 renders as 'CHURN RISK 23% - company estimate, not a fact - belief at last renewal decision' (index.html:398) and as 'CHURN PROBABILITY (AT CLOSURE) 23% - Low risk', while C1's timeline for that SAME 2021-12-30 decision says 'company believed 5% churn risk at decision time'. 23% matches none of the six beliefs the chain records (11, 9, 14, 9, 8, 5). OBSERVED: site/data/customers/C1.json carries churn_probability=0.23 and company.json carries latest_churn_probability=0.23, so the two published numbers come from two different producers. INFERRED (R9), not yet checked: which of the two is the belief at the last renewal decision, i.e. whether this is a wrong FIELD behind a correct label (SITE2's) or a wrong VALUE in the producer. C7 reconciles ('company estimated 30%' = 'company believed 30%', both 2018-12-31), which makes C1 a defect rather than a definitional difference. Also flagged: '23% - Low risk' badges a household that then churned.",
+    "finding_key": "coldwalk:site2_churn_belief_published_as_23_and_5_for_one_decision",
+    "state": "adjudicated-real"
   },
   "coldwalk:site2_churn_probability_carries_a_settlement_clock": {
     "adjudicated_at": "2026-08-12T12:03:02.029525+00:00",
@@ -363,6 +392,13 @@
       "what": "The RENDER half named in diagnosis_note is BUILT. site/customers/index.html gains householdClosureDate() (reads the same real `churned` timeline event closedAccountNotice() fires off -- no new plumbing, per the atom's constraint), fwdLabel() as the SOLE writer of the qualifier on a forward-looking label, and frozenHint(). On a household that has closed, Churn Probability, Expected Lifetime, Pricing Action (per fuel), Customer Lifetime Value and Forecast Annual Profit render as '<label> (at closure)' with a panel note naming the closure date; the forecast-cashflow projection carries the same note. The scope was WIDER than the walk recorded: it found C1, but five of the nine domestic households published to this page (C1, C3, C4, C5, C6) carry a real churned event and every one of them was rendering live forward-looking figures."
     },
     "state": "fixed"
+  },
+  "coldwalk:site2_closed_account_settled_to_zero_and_in_credit": {
+    "adjudicated_at": "2026-08-17T22:18:06.467603+00:00",
+    "adjudicated_by": "claude (cold-eyes walk re-run, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-17; three blindfolded personas against 28 live-host headless-Chromium captures, blindness audited at 0 repo/git tool calls in 52)",
+    "evidence": "MAJOR, all three personas, and it survives the 2026-08-15 present-tense repair. The Billing tab says 'Account closed 2021-12-30 - final bill C1-INV72. Account settled to zero.' while the overview publishes 'You are CURRENTLY GBP24.37 in credit - your money, held by us' and the Risk tab calls it the 'LIVE ledger position', under a header stamped 'data 2026-08-17'. The arithmetic is internally consistent (6,560.17 - 6,584.54 = -24.37, the credit entirely on the gas leg), so this is a STATEMENT contradiction, not an arithmetic one -- and the regulatory reading a blind COO reached for first is that the supplier has held a departed customer's credit balance for four and a half years. Either the closed account settled to zero or it did not; the page publishes both.",
+    "finding_key": "coldwalk:site2_closed_account_settled_to_zero_and_in_credit",
+    "state": "adjudicated-real"
   },
   "coldwalk:site2_consumption_has_no_winter_peak_under_a_seasonality_panel": {
     "adjudicated_at": "2026-08-12T12:03:02.030048+00:00",
@@ -437,6 +473,18 @@
     "fixed_by": "claude (SITE2 worker tick, scheduled draw, 2026-08-17)",
     "state": "fixed"
   },
+  "coldwalk:site2_renewal_effect_lags_its_cause_by_one_period": {
+    "adjudicated_at": "2026-08-17T22:18:06.467603+00:00",
+    "adjudicated_by": "claude (cold-eyes walk re-run, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-17; three blindfolded personas against 28 live-host headless-Chromium captures, blindness audited at 0 repo/git tool calls in 52)",
+    "evidence": "MAJOR and the sharpest reconciliation of the walk: two personas independently found the same shift. The flagship SIM-only panel pairs each renewal with a unit-rate step; as published, C7's rows pair 'Tariff renewed at 334.0 GBP/MWh' with 'Unit rate stepped 21.14p -> 22.04p', and 5 of 8 transitions point the WRONG WAY. Shift the effect column down one row and 8/8 reconcile within 6%, with 334.0 GBP/MWh -> 33.34p an exact match. Reproduces on C1 (3 of 4 checkable rows) and on C_IC1. OBSERVED in the DATA, not the render: C1's published events literally pair 'Tariff renewed at 128.0 GBP/MWh' with 'Unit rate stepped 11.31p -> 11.36p'. The VC persona's closing question is the one that matters and is not answered by the page: display join, or a billing engine applying last year's price vintage through the 2022 spike.",
+    "finding_key": "coldwalk:site2_renewal_effect_lags_its_cause_by_one_period",
+    "rehomed": {
+      "at": "2026-08-17",
+      "owner": "generator/sim lane -- the customer reaction-chain producer, NOT site/customers/**",
+      "staged_as": "docs/staging/WORKER_FINDING_THE_WALL_EXHIBITS_CAUSAL_PANEL_IS_ONE_PERIOD_LATE_2026-08-17.md"
+    },
+    "state": "adjudicated-real"
+  },
   "coldwalk:site2_tariff_range_pounds_per_mwh_labelled_pence_per_mwh": {
     "adjudicated_at": "2026-08-12T12:03:02.027916+00:00",
     "adjudicated_by": "claude (cold-eyes walk, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-12)",
@@ -455,6 +503,14 @@
     "fix_evidence": "VERIFIED IN HEAD 2026-08-17. The missing subject exists: whole_document(rendered, view) returns the surviving op-state region PLUS every drill-down tab, and the view-filtering assertions now take it -- test_the_customer_view_of_the_whole_page_contains_no_company_or_sim_panel, test_the_behind_view_of_the_whole_page_contains_no_customer_panel, test_the_control_sees_every_sub_view_the_page_renders. The lesson held on its own terms TODAY: section 16 (the cost-to-serve caption class, fixed this tick) was scoped to that same union subject from the start, and two of its six defective renders live in the region the old subject excluded -- a drill-down-only control would have missed them.",
     "fixed_at": "2026-08-12",
     "fixed_by": "claude (SITE2 worker tick, scheduled draw, 2026-08-17)",
+    "state": "fixed"
+  },
+  "coldwalk:site2_wall_view_selector_throws_in_its_own_landing_state": {
+    "adjudicated_at": "2026-08-17T22:18:06.467603+00:00",
+    "adjudicated_by": "claude (cold-eyes walk re-run, SITE2_two_sided_wall_exhibit HARDEN Expert Hour, 2026-08-17; three blindfolded personas against 28 live-host headless-Chromium captures, blindness audited at 0 repo/git tool calls in 52)",
+    "evidence": "MAJOR. Every click of the three view buttons ON THE LANDING PAGE -- the page's own home state -- raised TypeError: Cannot read properties of null (reading 'segment') at index.html:877 ((HH.elec||HH.gas).segment, with HH={elec:null,gas:null,base:null} at boot). Silent to a reader because the throw is AFTER applyWallViewToOpState(), so filtering still applied; invisible to a 97-green suite because _wall_harness.mjs assigns a full household to sandbox.HH BEFORE it ever calls setWallView, i.e. no fixture in the module had ever occupied the state the page boots in. Reproduced in the harness's own shape with a one-line diff before any repair.",
+    "finding_key": "coldwalk:site2_wall_view_selector_throws_in_its_own_landing_state",
+    "fix_evidence": "2026-08-17. setWallView() renders the household only when one is open (hasHousehold()) and re-renders the curated grid otherwise, then runs the document-level guard. R15: test_mutation_restoring_the_unconditional_household_render_kills_a_named_test reverts the exact line and the named test goes red with the original 'segment' message. Proven on the unfixed page: the same harness against HEAD's index.html reports the throw on 3 of 3 views. R11: real chromium boot on the built page, 0 console errors across all three views.",
     "state": "fixed"
   },
   "coldwalk:supplier_failure_count_inconsistent_2021_22": {

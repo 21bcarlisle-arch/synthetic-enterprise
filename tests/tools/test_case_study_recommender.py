@@ -364,3 +364,70 @@ def test_generate_end_to_end_writes_case_studies_json(tmp_path, monkeypatch):
     assert out["meta"]["household_count"] == 1
     assert out["meta"]["git_commit"] == "abc123"
     assert out["cases"][0]["category"] == "Most eventful journey"
+
+
+# ---------------------------------------------------------------------------
+# EVERY CURATED CARD DECLARES A SIDE OF THE WALL
+# (cold-eyes 2026-08-17, coldwalk:site2_case_study_cards_render_sim_truth_in_the_customer_view)
+#
+# This module's output is APPENDED to the wall exhibit's landing page, by a path neither
+# layoutPanels() nor applyWallViewToOpState() could see -- so "sim 3.2% vs company 95.0%"
+# and "True satisfaction fell 12.2 percentage points" rendered inside the view whose own
+# caption says "No company estimate and no simulation ground truth is in this view; if one
+# appears, the page is broken". The producer is where the side is KNOWN, so the producer
+# declares it; the page fails closed on anything that arrives without one.
+# ---------------------------------------------------------------------------
+def test_every_emitted_case_declares_a_known_wall_side():
+    from tools.generate_case_study_recommender import WALL_SIDES
+    cases = json.loads(
+        (_P(__file__).resolve().parents[2] / "site" / "data" / "case_studies.json").read_text()
+    )["cases"]
+    assert cases, "no cases on disk -- this assertion would be vacuous"
+    assert all(c.get("wall_side") in WALL_SIDES for c in cases), (
+        "curated cards reach the published page with no side of the wall declared: "
+        + repr([c["category"] for c in cases if c.get("wall_side") not in WALL_SIDES])
+    )
+
+
+def test_no_case_claims_to_be_customer_observable():
+    """Not a style rule -- a REPRODUCIBLE property of what this module curates. Every slot
+    ranks households by comparing what the company believed against what the simulation
+    rolled, or by counting reaction-chain outcomes; none of those is a fact an account
+    holder could read off their own bill. If a future slot legitimately IS customer
+    observable this test is the place to argue it, rather than a card quietly appearing in
+    the customer's view."""
+    cases = json.loads(
+        (_P(__file__).resolve().parents[2] / "site" / "data" / "case_studies.json").read_text()
+    )["cases"]
+    assert not [c["category"] for c in cases if c.get("wall_side") == "customer"]
+
+
+def test_the_side_is_refused_rather_than_defaulted():
+    """R15: the mechanism must FAIL on its own defect. There is deliberately no default --
+    the state the page was actually in was every card declaring nothing at all."""
+    import pytest
+
+    from tools.generate_case_study_recommender import _side
+
+    for bad in (None, "", "marketing", "CUSTOMER"):
+        with pytest.raises(ValueError, match="must declare a wall side"):
+            _side(bad)
+    assert _side("sim") == "sim"
+
+
+def test_the_declared_sides_are_reproducible_from_the_headline_they_ship():
+    """ANTI-PIN and the honesty check in one: a card declared company-only must not print
+    a quantity only the simulation can read. Keyed to the sim-only vocabulary the exhibit
+    page itself names (satisfaction, the sim's own probability, the causal reaction
+    chain), read out of the produced file rather than pinned here."""
+    cases = json.loads(
+        (_P(__file__).resolve().parents[2] / "site" / "data" / "case_studies.json").read_text()
+    )["cases"]
+    sim_words = ("true satisfaction", "sim ", "reaction-chain", "real downstream")
+    mislabelled = [
+        c["category"] for c in cases
+        if c.get("wall_side") != "sim" and any(w in c["headline"].lower() for w in sim_words)
+    ]
+    assert not mislabelled, (
+        f"cards print simulation ground truth under a non-sim side: {mislabelled}"
+    )
