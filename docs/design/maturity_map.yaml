@@ -576,7 +576,7 @@
   loop_stage: verify
   dial_inherited: 3
   records_rehomed: [evidence]
-  file_scope: ["simulation/demand_model.py", "saas/property_model.py"]
+  file_scope: ["simulation/demand_model.py", "simulation/dwelling_records.py"]
   simplifications_count: 4
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real household's demand: more people at home means more kWh and a different half-hourly shape (hours-at-home, cooking, overnight device load), not just more phone calls"
