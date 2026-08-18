@@ -792,21 +792,177 @@ simplifications:
   NOT CLAIMED: this pass moves no figure this instrument computes (R12), and it is
 
   not the fresh Hour the 2->3 needs.'
+- 'THIRTY-EIGHTH HOUR (2026-08-18, worker tick, self-refill 2->3 HARDEN draw).
+
+
+  THE LEVEL DOES NOT MOVE. `level_current` stays 2. This pass ends with a BLOCKING
+
+  finding, so #31''s pre-committed promotion condition is not met, and it is not the
+
+  fresh cold-eyes Hour that condition asks for either: it is a LANDING pass that
+
+  found the thing it was landing had never been landed.
+
+
+  THE DEFECT, and it is this atom''s own record. Hour #37''s entire deliverable was
+
+  in NO COMMIT while three separate records said it was built. Measured by
+
+  `git show HEAD:` at d12b6ab79 -- `door_only` 0, `required_missing` 0, `_abbrev`
+
+  0, the derived-subject loop absent, the 11 new tests absent (271 added lines,
+
+  none committed) -- against a store note COMMITTED at 65b26e4e4 asserting "BUILT
+
+  (this atom''s own file_scope) ... R15 BOTH WAYS AGAINST REAL HISTORY", the
+
+  hold-note owed list moved to item (A) on the strength of it, and the finding doc
+
+  which says "archived in the landing commit". The doc WAS archived and committed
+
+  -- at 96c665098, an unrelated auto-process publish run six hours later, by a
+
+  process that cannot know whether the code landed. Nothing was falsified by a
+
+  lie; three honest records were written by a tick that then failed to commit.
+
+
+  THE LIVE COST, over 20 hours: at HEAD the shipped control compares its ten
+
+  DECLARED fields and returns ZERO violations on a pair that disagrees on 2 of 19
+
+  SHARED fields. Re-measured this tick from one ref on both sides, not taken from
+
+  #37''s note: door `recon_saturation_band_days` [-6, 483] vs ledger [-6, 82], and
+
+  `recon_saturation_caveat` 2,625 chars vs 821 (the ledger still carrying the
+
+  pre-D28 sentence). The public door''s generated_at is 2026-08-18T20:59:15Z; the
+
+  ledger of record at HEAD was measured 2026-08-18T00:46:01Z.
+
+
+  WHY #36''s CONTROL COULD NOT SEE IT, which is the generalising half. #36 built
+
+  `tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py`
+
+  for exactly this shape and the rung-1c repair made the CITATION its subject
+
+  against the INDEX. Both are right and neither can fire here, because the
+
+  population is one markdown marker (`^\*\*Discharged:\*\*`). Measured over the real
+
+  corpus: 1,598 archived finding docs in `docs/staging/done/`, of which 74 carry
+
+  that line and 1,524 do not; 178 atom store files cite a `tests/**.py` path with
+
+  349 distinct citations, and ZERO carry the marker. The register in which levels
+
+  are argued is entirely outside the population. Filed as BLOCKING:
+
+  docs/staging/WORKER_FINDING_THE_DISCHARGE_CONTROL_READS_MARKDOWN_ONLY_SO_THE_REGISTER_LEVELS_ARE_ARGUED_IN_IS_INVISIBLE_2026-08-18.md
+
+  -- QUEUED, not fixed on sight, because widening the population naively is born
+
+  red on prose (8 store files cite an unindexed test path and at least one,
+
+  H28''s `tests/background/test_x.py`, is illustrative prose; H27''s two are
+
+  quotations of #36''s own declared ratchet). The cheap control that needs no
+
+  grammar is recorded there: an atom declares its `file_scope`, so a note claiming
+
+  BUILT can be asked whether `git show HEAD:<file_scope>` contains the symbol it
+
+  names.
+
+
+  WHAT THIS COMMIT LANDS, verified before landing rather than asserted after.
+
+  (1) #37''s widened door-vs-ledger subject and its 11 tests. (2) The ledger
+
+  regeneration that makes it green -- and the pair was checked in BOTH directions
+
+  from real state: 2 violations with door=HEAD and ledger=HEAD (subject 19,
+
+  naming both fields), 0 violations with door=HEAD and ledger=this commit''s
+
+  (subject 23, `door_only` empty, `required_missing` empty). R12 holds: exactly
+
+  ONE of the fourteen ledger entries moves, this atom''s own, and its headline gap
+
+  is BYTE-IDENTICAL at 0.0833907649896623 -- what moved is the caveat and band the
+
+  ledger never carried. The other thirteen entries are untouched, so no other
+
+  lane''s figure is swept. `site/data/proof.json` is deliberately NOT taken: it
+
+  carries another lane''s staged publishing update, and the pair left behind is
+
+  green whether or not that lands.
+
+  (3) A SECOND LANE''S UNCOMMITTED REPAIR IN THE SAME FILE, named because one file
+
+  carrying two lanes is why this was hard: the belief-axis derived floor
+
+  (`measure_belief_axis_null_control_floor` / `check_belief_axis_floor_is_derived`,
+
+  n_customers floor 24 -> 17 derived from the constants-side span predictor,
+
+  above_edge_range widened -328 -> -333 by the floor move and never the other way
+
+  round, `floor_probe_range` (10, 30) with a truncated-search rule so the range
+
+  cannot become the new free literal). It is wired into `main()` on the default
+
+  path -- checked, because a no-caller control is this atom''s own recurring class.
+
+  Its own finding, the sibling DETECTION axis whose floor of 150 is still free, is
+
+  landed with it as `docs/staging/WORKER_FINDING_THE_SIBLING_AXIS_FLOOR_IS_A_FREE_LITERAL_AND_ITS_CONTROL_CANNOT_FAIL_ON_IT_2026-08-18.md`
+
+  -- QUEUED. Separating the two lanes needs a worktree swap of a 13,000-line file
+
+  while a gate suite is in flight; the honest move is one commit that says so.
+
+
+  EVIDENCE THIS PASS RAN, not cited from another tick: 45 passed in 219s on the
+
+  new and neighbouring tests in `tests/tools/test_couple_w2_11_d5.py` (both
+
+  lanes''), 2 passed in `site/proof/test_the_published_door_reproduces_its_ledger.py`,
+
+  and the two-direction door/ledger measurement above.
+
+
+  ALSO LANDED, and it is an instance of this pass''s own finding rather than a
+
+  favour: `docs/staging/WORKER_FINDING_A_LANDING_STEP_CAN_ONLY_BE_CAUGHT_BY_A_TREE_IT_DOES_NOT_CONTROL_2026-08-18.md`
+
+  was untracked -- a KNIFE3 lane''s finding that four consecutive steps each wrote
+
+  a complete piece of work and committed none of it, three of them writing the
+
+  rule they were breaking in text that was itself in no commit. Two lanes, one
+
+  day, one shape. A finding in no commit is a lead no clone can draw.
+
+  '
 map_notes:
   harden_note: 'HARDEN PASS RAN 2026-08-08 (commit 72ecfff7d); recorded here 2026-08-08 because the pass fixed code and tests but left the map cell silent -- the work was invisible to the map, and a silent cell is why the self-refill kept re-drawing this atom for a level move it cannot make. Delivered, both mutation-proven: (1) the DD-channel LEAK WITNESS was VACUOUS -- `n_flagged_non_dd_failures == 0` passes identically when the channel observes nothing at all as when it observes cleanly, so a vacuity guard now carries it (test_leak_witness_is_vacuous_without_its_channel_guard pins the defect the guard closes); (2) three silent `.get()` JOIN DROPS had no witness -- `value_date`/`invoice_ref`/`reference` key drift would have pushed the measured gap toward the no-skill baseline with nothing firing, so n_unjoined_dd_failures / n_unjoined_collection_misses / n_ageing_refs_matched are now asserted against a deliberate key drift. 24/24 green. NEW FINDING from the pass, reported not tuned (R12): the headline DETECTION gap is INSENSITIVE TO THE ENTIRE DD-OBSERVATION CHANNEL -- `flagged_set` is a UNION, `n_flagged_via_dd_channel_only == 0` across seeds 7/11/23, so killing the DD channel outright leaves the published number bit-identical. Structurally reasonable (a rail failure means the cash did not arrive, which reconciliation also sees) but it means set-membership detection is blind to the only thing that channel buys: EARLIER detection. That test is labelled CHARACTERIZATION deliberately -- it pins a measured limit, not a contract, and is expected to fire if the channel ever starts contributing.'
-  level_hold_note: 'HELD AT L2 (level_current 2, level_target 3). THIS NOTE WAS COMPACTED ON 2026-08-17 BY EXPERT HOUR #33 AND THAT COMPACTION IS ITSELF A FINDING. It had reached 54,930 chars -- 81% of this atom''s store file, which the append pushed to 67,812 B against the 65,536 B ROLL_WATERMARK, and `roll_for_atom` returned 0 because the roll chunks LIST entries and this is one string field the roll cannot split. The record of the atom had become unwritable: the wedge `test_the_live_store_has_roll_headroom` exists to catch, caught. Thirty-three Hours appending to one field is the cause; Hour #33 only tipped it. The store''s own contract is the authority for the fix (`set_note_for_atom`: a note is a CURRENT statement, revision is the correct semantics, and the durable history of what changed lives in git) -- so the full 54,930-char note is in this file''s git history and in the commit that landed Hour #33, nothing is deleted, and what follows is what is CURRENTLY TRUE. Hours #3-#32''s individual narratives are there, not here.
+  level_hold_note: 'HELD AT L2 (level_current 2, level_target 3). COMPACTED AS WRITTEN (Hour #38, 2026-08-18) -- the store''s contract is the authority: a note is a CURRENT statement, revision is correct semantics, and every Hour''s full narrative lives in git and in the commit that landed it. Hours #3-#37''s individual narratives are there, not here. THE NOTE-FIELD ROLL REMAINS THE STANDING CONSTRAINT: the roll chunks LIST entries and cannot split one string field, so every Hour must compact as it writes until notes get an archive path of their own (a store change outside this atom).
 
 
-    WHY THE LEVEL IS HELD, which is EVIDENCE and not caution. L3 means ''Expert Hour says this is real''. Hour #31 pre-committed the promotion condition BEFORE #32 ran, so the bar could not be moved once results were known: ONE Hour against the corrected instrument that ends with NO BLOCKING finding takes the 2->3. Since then the per-Hour defect rate on this instrument has been 1.0 -- #28 (a mechanism asserted into this very note while HEAD carried none of it), #29 (the citation control, repo-wide refusal on its default path and no test), #30 (a grader with ten importers, all its own tests, that had never graded the live ledger), #31 (a published claim in `components["drift_resolution_caveat"]` that was measurably false), #32 (three BLOCKING: the corrected sentence on no published surface, an R15 fail-open comparing bands by CONTAINMENT, and a third no-caller control), #33 (the door-vs-ledger relation), #35 (a green control in no commit, with two committed records resting on it), #36 (below). EIGHT consecutive Hours each finding a real flaw is the strongest available evidence that the next one will too. An Hour cannot be its own confirmation: the Hour that corrects the instrument is not the Hour that clears it.
+    WHY THE LEVEL IS HELD, which is EVIDENCE and not caution. L3 means ''Expert Hour says this is real''. Hour #31 pre-committed the promotion condition BEFORE #32 ran, so the bar could not be moved once results were known: ONE Hour against the corrected instrument that ends with NO BLOCKING finding takes the 2->3. The per-Hour defect rate on this instrument is now 1.0 ACROSS TEN CONSECUTIVE HOURS -- #28 (a mechanism asserted into this very note while HEAD carried none of it), #29 (the citation control, repo-wide refusal on its default path and no test), #30 (a grader with ten importers that had never graded the live ledger), #31 (a published claim in components[''drift_resolution_caveat''] that was measurably false), #32 (three BLOCKING: the corrected sentence on no published surface, an R15 fail-open comparing bands by CONTAINMENT, a third no-caller control), #33 (the door-vs-ledger relation), #35 (a green control in no commit, with two committed records resting on it), #36 (the tests/ half of #35''s class), #37 (the tripwire compared 10 of 19 shared fields), #38 (below). TEN consecutive Hours each finding a real flaw is the strongest available evidence that the next one will too. An Hour cannot be its own confirmation: the Hour that corrects the instrument is not the Hour that clears it.
 
 
-    EXPERT HOUR #33 (2026-08-17, worker tick, self-refill 2->3 HARDEN draw). THE DEFECT: `site/data/proof.json` was regenerated in the working tree at 15:54:44Z and EXACTLY ONE of its fourteen `coupled_gaps` pairs moved -- this atom''s own, 0.0833907649896623 -> 0.0311284046692607, with the whole book under it (caught 31->4, flagged_size 391->35, n_negatives 1451->257, n_excluded 118->15, n_false_flags 242->16, universe_size 1600->276, false_flag_rate 0.166782->0.062257): a 2.68x understatement of the company''s own payment belief-vs-truth gap. WHY THIS PAIR AND NO OTHER -- a mechanism, not an incident: this pair''s ledger entry is the only one of the fourteen written as a SIDE EFFECT of running the simulation (`simulation/run_phase2b.py:2448` -> `LivePaymentTriad.measure_and_write`, `ledger_path` defaulted to the real file), while every other pair is written by its own `tools/couple_*.py --write-ledger` invocation that no test runs -- and ten-plus test modules invoke run_phase2b. Observed twice in this tick rather than inferred: `pytest tests/tools/test_couple_w2_11_d5.py` moved the live ledger''s measured_at 16:34:19 -> 16:42:56 mid-run (md5 825330de9 -> e56aa515c), harmless to the figures because this module measures the full 1600-invoice book, but the same write path from a test process into the supplier of a public door. IT WAS INVISIBLE BECAUSE THE DEFECT IS ONLY IN THE RELATION: the door agrees with itself, the ledger agrees with itself, the generator did what it was asked, and the scorer is not involved at all -- every control here reads ONE side, including the SITE-lane control #32 built, which excludes the ledger as a subject on purpose. BUILT (this atom''s own file_scope): `measure_published_door_against_the_ledger` + `check_published_door_reproduces_the_ledger`, wired into `main()` on the default path with its verdict rendered, and 11 tests. The check-call census now reads 17 defined / 15 default-path / 2 declared-flag / 0 unreachable. R15 BOTH WAYS AGAINST REAL HISTORY, not a fixture: RED on the poisoned door as found (9 violations, the headline and 8 components), GREEN once restored, and four source mutations proven to fire -- unreadable-file-caught-into-{} (fail-silent), headline-only comparison (wrong subject), no vacuity guard (tautology), absent-door-pair-as-skip (fail-open). 500 passed (was 489). R12: nothing this instrument computes moved; the only figure that moved is the door''s and it moved BACK (`git checkout HEAD -- site/data/proof.json`, restoring the value the deployed site and the current ledger both carry; corrupted payload preserved at /tmp/h33_proof_poisoned.json). AND THE NEW CONTROL''S FIRST INDEPENDENT MEASUREMENT ANSWERED RECORDED 7, which had only ever been narrative: run against `git show HEAD:` on both files, THE COMMITTED PAIR HAS NEVER AGREED EITHER -- door 0.0833907649896623 vs ledger 0.0859375, n_negatives 1451 vs 1408, universe_size 1600 vs 1557, false_flag_rate 0.166782 vs 0.171875. The file the public door nominally derives from is not the file it was generated from, and has not been for five days. Filed: docs/staging/WORKER_FINDING_THE_ONLY_DOOR_PAIR_A_TEST_RUN_CAN_REPUBLISH_IS_THE_ONE_NOTHING_COMPARED_TO_ITS_LEDGER_2026-08-17.md.
+    EXPERT HOUR #38 (2026-08-18) IS ALSO THE ANSWER TO ''WHY DOES THIS KEEP HAPPENING''. #37''s whole deliverable -- the widened subject, its 11 tests, the ledger regeneration -- was in NO COMMIT at d12b6ab79 while three records said it was built: the store note committed at 65b26e4e4, this note''s own owed list, and the finding doc, which was genuinely archived to done/ but by an unrelated auto-process publish (96c665098) that cannot know whether code landed. #36''s control was built for exactly this shape and could not fire, because its population is one markdown marker: 1,598 docs in done/ carry it 74 times, and of 178 atom stores citing 349 test paths, ZERO carry it. #38 landed #37''s work (both directions measured on real state: 2 violations door=HEAD/ledger=HEAD, 0 on the pair this commit creates; R12 clean, the headline gap byte-identical) and filed the population gap as BLOCKING.
 
 
-    THE OWED WORK, ranked and CURRENT as of Hour #36 (2026-08-18), so the next promoter does not re-derive it. #33''s items (1) STOP THE WRITE and (2) THE DOOR-VS-LEDGER TRIPWIRE are DISCHARGED -- (1) by Hour #34''s empirical verification of `background/live_ledger_guard.py` (513 tests, live ledger md5 unchanged across the run) and (2) by `site/proof/test_the_published_door_reproduces_its_ledger.py` (c7a1fdab0), born green on the production ledger landed at e7a554d03. #35''s item (A), THE `tests/` HALF OF ITS CLASS, is DISCHARGED by Hour #36: `tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py`, subject ''a path a COMMITTED record cites on its `**Discharged:**` line that the index does not carry'', read from git on both sides, R15 both ways against real history (RED with the ratchet emptied, naming three; GREEN with the debt declared) and four mutations proven -- filesystem-resolution (TAUTOLOGY, the same shape as the 77 dead evidence paths), empty population (FAIL-OPEN), git-absent and git-non-zero (FAIL-SILENT). WHAT IT FOUND FALSIFIES #35''s OWN REASONING and is why the shape is a ratchet: #35 chose ''cited by a committed record'' precisely to escape the sequencing problem, and the population turned out to be MADE of it -- all three violations (`tests/saas/test_clv_margin_basis.py`, `tests/tools/test_derived_basis_parentage_gate.py`, `tests/simulation/test_the_worlds_dwelling_is_drawn_not_believed.py`) fail to IMPORT at HEAD, because the repair each certifies is uncommitted too (CLV_MARGIN_BASIS, UNKNOWN_COST_BASIS/_check_derived_basis_parentage, BASIS_SAAS_APPROXIMATION: HEAD 0, worktree 5/3/3/2). They are DECLARED in `_KNOWN_UNLANDED`, not fixed -- greening them means sweeping another lane''s live B12/CLV work into this commit. Corrected in passing, against this pass''s own first guess: HEAD is NOT broken; nothing at HEAD references the untracked `simulation/dwelling_records.py`. WHAT REMAINS: (B) THE NOTE-FIELD ROLL -- the roll chunks LIST entries and cannot split one string field, so this note wedges again if Hours resume appending; every Hour must compact as it writes (this one did) until notes get a size bound and an archive path of their own, a store change outside this atom. (C) #28''s surviving leads: the 14 undeclared live entries nothing re-measures on a schedule; #27''s clamp and six-unwalked-rows; D35''s scoped build; #21''s vacuous-in-isolation sibling control.
+    THE OWED WORK, ranked and CURRENT as of Hour #38. (A) THE DISCHARGE POPULATION -- docs/staging/WORKER_FINDING_THE_DISCHARGE_CONTROL_READS_MARKDOWN_ONLY_SO_THE_REGISTER_LEVELS_ARE_ARGUED_IN_IS_INVISIBLE_2026-08-18.md, BLOCKING, with the cheap no-grammar control named in it (an atom declares its file_scope, so a note claiming BUILT can be asked whether git show HEAD:<file_scope> contains the symbol it names). This is now the top item: while it stands, no record this atom writes can be trusted to mean the code exists. (B) THE `door_only` FOUR -- the door publishes `dimension_caveats`, `recon_collapsed_runs`, `recon_collapsed_runs_measured_on`, `recon_saturation_band_measured_on`, which the ledger has no record of; #37 measures them into `door_only` and deliberately does not judge them (firing needs a ledger schema change outside this file_scope), and a test pins that they stay recorded-not-judged so the lead can be neither quietly dropped nor quietly promoted. NOTE: `door_only` is EMPTY on the pair this commit creates -- the regenerated ledger carries all four -- so the lead is now about the SCHEMA guarantee, not a live divergence. (C) THE SIBLING DETECTION AXIS FLOOR -- docs/staging/WORKER_FINDING_THE_SIBLING_AXIS_FLOOR_IS_A_FREE_LITERAL_AND_ITS_CONTROL_CANNOT_FAIL_ON_IT_2026-08-18.md, LATENT: the belief floor is derived and the detection axis keeps 150 as a free literal, the fourth consecutive time this class was found one register over from where it was last fixed. R10 reading: make the checker''s population every register entry declaring a draw-size axis, not an enumerated pair. (D) THE NOTE-FIELD ROLL (first paragraph). (E) #28''s surviving leads: the 14 undeclared live entries nothing re-measures on a schedule; #27''s clamp and six-unwalked-rows; D35''s scoped build; #21''s vacuous-in-isolation sibling control.
 
 
-    WHAT DOES NOT BLOCK THE PROMOTION, stated so it is not re-litigated: the two open D28 residuals (the `S`-side exit-threshold predictor, unidentified; the reshape, unbuilt). Those are DISCLOSED limits, declared in the register and published in the sentence the reader meets -- an instrument that states its own limits accurately is what L3 epistemic cleanliness asks for, not an instrument with none. NOT a wall, and NOT a reason to tune any number (R12).'
+    WHAT DOES NOT BLOCK THE PROMOTION, stated so it is not re-litigated: the two open D28 residuals (the S-side exit-threshold predictor, unidentified; the reshape, unbuilt). Those are DISCLOSED limits, declared in the register and published in the sentence the reader meets -- an instrument that states its own limits accurately is what L3 epistemic cleanliness asks for, not an instrument with none. NOT a wall, and NOT a reason to tune any number (R12).'
   name: 'Payment belief-vs-truth gap (coupled-triad HARNESS of the D5 decomposition): the harness measures the company''s payment BELIEF (its allocation/ageing/cash-position inference from observed payments, D5) vs the world''s payment TRUTH (the W2_11 generator''s actual behaviour). No world payment-source reaches L3 until this gap is measured against the company''s consumption (COUPLED_TRIAD binding rule).'
 map_records:
   evidence:
