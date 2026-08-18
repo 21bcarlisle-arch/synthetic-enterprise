@@ -9,3 +9,11 @@ map_records:
   - 'docs/design/EP5_SETTLEMENT_TRUE_UPS_DISCOVER_FRAME.md (2026-08-17 DISCOVER/FRAME, level held
     at 0: three unsourced settlement timetables disagreeing by up to 11 months; the ledger carries
     transaction_time and never queries it; the published `settled` clock has never met a run)'
+  - 'docs/design/EP5_SETTLEMENT_TRUE_UPS_DISCOVER_PASS2_2026-08-18.md (2026-08-18 DISCOVER pass 2,
+    level held at 0: MHHS-DEL1590 v2.3 (Elexon/MHHS Programme, 14 March 2025, fetched direct, [H])
+    sources RF at 14 months, matching the atom''s own name and THE_VALUE_CYCLE_FRAMING exactly --
+    both shipped implementations (world RF_MONTHS=28, company RF=28) have folded a DIFFERENT,
+    LATER run (DF, Post Final Settlement, genuinely 28mo per the same source) into what they call
+    RF. Open question 1 closed: not three independent guesses, two implementations making the same
+    category error against one correctly-named director framing. Open question 2 closed: the
+    correction is owed to the code, not to the framing doc.'
