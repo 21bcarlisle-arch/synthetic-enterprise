@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-18T13:01:03Z",
+  "generated_at": "2026-08-18T13:13:10Z",
   "source": "site/data/knowledge_wholesale.json",
   "rule": "site/knowledge/review_state.py",
   "policy": {
@@ -27,11 +27,12 @@
       "rate_of_change": "medium",
       "state": "never",
       "last_verified": null,
+      "written": null,
       "days_allowed": 183,
       "age_days": null,
       "overdue_by": null,
-      "label": "Never reviewed",
-      "detail": "No one has recorded checking this page against the world."
+      "label": "Never checked against the source",
+      "detail": "Nobody has recorded checking it against the published source since."
     },
     {
       "id": "gas-wholesale",
@@ -39,11 +40,12 @@
       "rate_of_change": "medium",
       "state": "never",
       "last_verified": null,
+      "written": null,
       "days_allowed": 183,
       "age_days": null,
       "overdue_by": null,
-      "label": "Never reviewed",
-      "detail": "No one has recorded checking this page against the world."
+      "label": "Never checked against the source",
+      "detail": "Nobody has recorded checking it against the published source since."
     },
     {
       "id": "gb-electricity-market",
@@ -51,11 +53,12 @@
       "rate_of_change": "slow",
       "state": "never",
       "last_verified": null,
+      "written": null,
       "days_allowed": 365,
       "age_days": null,
       "overdue_by": null,
-      "label": "Never reviewed",
-      "detail": "No one has recorded checking this page against the world."
+      "label": "Never checked against the source",
+      "detail": "Nobody has recorded checking it against the published source since."
     },
     {
       "id": "hedging-forward-market",
@@ -63,11 +66,12 @@
       "rate_of_change": "slow",
       "state": "never",
       "last_verified": null,
+      "written": null,
       "days_allowed": 365,
       "age_days": null,
       "overdue_by": null,
-      "label": "Never reviewed",
-      "detail": "No one has recorded checking this page against the world."
+      "label": "Never checked against the source",
+      "detail": "Nobody has recorded checking it against the published source since."
     },
     {
       "id": "imbalance-cashout-settlement",
@@ -75,11 +79,12 @@
       "rate_of_change": "medium",
       "state": "never",
       "last_verified": null,
+      "written": null,
       "days_allowed": 183,
       "age_days": null,
       "overdue_by": null,
-      "label": "Never reviewed",
-      "detail": "No one has recorded checking this page against the world."
+      "label": "Never checked against the source",
+      "detail": "Nobody has recorded checking it against the published source since."
     },
     {
       "id": "merit-order-residual-demand",
@@ -87,11 +92,12 @@
       "rate_of_change": "slow",
       "state": "never",
       "last_verified": null,
+      "written": null,
       "days_allowed": 365,
       "age_days": null,
       "overdue_by": null,
-      "label": "Never reviewed",
-      "detail": "No one has recorded checking this page against the world."
+      "label": "Never checked against the source",
+      "detail": "Nobody has recorded checking it against the published source since."
     },
     {
       "id": "price-cap",
@@ -99,11 +105,12 @@
       "rate_of_change": "fast",
       "state": "never",
       "last_verified": null,
+      "written": "2026-08-18",
       "days_allowed": 92,
       "age_days": null,
       "overdue_by": null,
-      "label": "Never reviewed",
-      "detail": "No one has recorded checking this page against the world."
+      "label": "Never checked against the source",
+      "detail": "Written 2026-08-18. Nobody has recorded checking it against the published source since."
     },
     {
       "id": "electricity-wholesale",

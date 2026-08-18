@@ -212,15 +212,22 @@ def _prereq_has_cycle(edges) -> bool:
     return any(colour.get(n, WHITE) == WHITE and visit(n) for n in list(graph))
 
 
-def test_exactly_one_canonical_page():
+def test_no_topic_is_declared_a_page_twice():
+    """SITE5 (2026-08-18): this asserted there was exactly ONE written page, which was true
+    while `electricity-wholesale` was the only one. Knowledge is now being written out, so
+    the count is no longer the invariant -- the invariant it was really protecting is that
+    no topic is declared a canonical page more than once, which is what the mutation below
+    always tested. A second WRITTEN page is the point of the work; a second declaration of
+    the SAME page is a duplicate record."""
     d = _live()
-    pages = [t for t in d["topics"] if t.get("kind") == "page"]
-    assert len(pages) == 1, "exactly one canonical page per topic"
+    pages = [t["id"] for t in d["topics"] if t.get("kind") == "page"]
+    assert pages, "no topic is a written page -- the section has regressed to all stubs"
+    assert len(pages) == len(set(pages)), f"a topic is declared a page twice: {pages}"
     # mutation: a duplicate canonical page must red this check
     mut = copy.deepcopy(d)
     mut["topics"].append({"id": "electricity-wholesale", "title": "dup", "kind": "page"})
-    dup_pages = [t for t in mut["topics"] if t.get("kind") == "page"]
-    assert len(dup_pages) != 1
+    dup = [t["id"] for t in mut["topics"] if t.get("kind") == "page"]
+    assert len(dup) != len(set(dup))
 
 
 def test_no_orphan_edge_targets():

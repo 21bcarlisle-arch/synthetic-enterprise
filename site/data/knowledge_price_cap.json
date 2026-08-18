@@ -1,0 +1,46 @@
+{
+  "meta": {
+    "topic_id": "price-cap",
+    "title": "The retail price cap",
+    "subtitle": "Why a fall in the wholesale price does not show up on a household bill for months — and why the cap is not a cap on your bill.",
+    "one_line": "Ofgem sets a maximum unit rate and standing charge for households on a default tariff. It caps the RATES, not the bill, and it is built from a cost stack whose wholesale part is measured months before it takes effect.",
+    "wall_placement": "Public-reality commons only. Everything on this page is a published feature of GB retail regulation. No figure produced by this project's simulation appears here.",
+    "rate_of_change_class": "fast",
+    "no_current_level": "This page deliberately carries NO current cap level. Ofgem resets it every quarter, so any figure written here would be wrong within weeks and would look authoritative while being so. The mechanism below does not change quarterly; the number does. For the number, go to Ofgem.",
+    "claim_freshness": {
+      "last_verified": null,
+      "written": "2026-08-18",
+      "note": "Written from established regulatory mechanism, NOT checked line by line against Ofgem's current published methodology. The two Ofgem pages that would confirm it render their content with JavaScript and could not be read by the tooling available when this was written. That is why the badge above says never checked, and it is accurate."
+    }
+  },
+  "rungs": {
+    "headline": {
+      "heading": "The claim, in one sentence",
+      "body": "The price cap is a ceiling on what a supplier may charge per unit of energy and per day for standing charge, for households who have never switched or whose fixed deal has ended — and because the wholesale part of that ceiling is measured over a window that closes before the cap period begins, the cap moves months after the market it is following."
+    },
+    "plain": {
+      "heading": "In plain terms",
+      "body": "Two things are widely believed about the cap and both are wrong. The first is that it caps your bill. It does not: it caps the PRICE of each unit and the daily standing charge. Use twice as much energy and you pay roughly twice as much, capped or not. The figure quoted in the news is what a household with typical consumption would pay over a year at the capped rates — an illustration, not a limit. A household that uses more than typical will pay more than the headline, and has not been overcharged.\n\nThe second is that the cap tracks the market. It follows it, at a distance. Ofgem looks at wholesale prices over an observation window, then sets a cap for a period that starts after that window has closed. So when gas prices collapse, capped bills stay high for months; when they spike, capped bills stay low for months, and suppliers absorb the difference. The lag runs in both directions, and it is a deliberate feature — a cap that moved daily would be no more predictable for a household than no cap at all."
+    },
+    "theory": {
+      "heading": "How it works",
+      "body": "The cap is built up, not handed down. Ofgem constructs an allowance for each cost a supplier genuinely faces, and the cap is their sum:\n\n• The WHOLESALE allowance — the cost of buying the energy itself. This is the largest and most volatile part, and it is derived from observed forward market prices over a defined window, on the assumption that a prudent supplier hedges ahead rather than buying on the day.\n\n• NETWORK costs — the regulated charges for using the wires and pipes, which are set through a separate price-control process and vary by region. This is why the cap is not one number nationally.\n\n• POLICY costs — the environmental and social obligations that are recovered through bills rather than taxation: renewables support, the obligation to insulate homes, the warm home discount.\n\n• OPERATING costs — running a supply business: billing, metering, the contact centre, bad debt.\n\n• An EBIT allowance — a margin for the supplier, historically in the low single digits of revenue. This is the number most often misread. A supply business operating exactly at the cap is not a high-margin business.\n\nEach allowance is set for a TYPICAL household's consumption, then expressed as a unit rate and a standing charge. The standing charge carries the costs that do not vary with how much you use — and that is why using less energy does not reduce your bill proportionally, and why the standing charge is the most contested part of the design.\n\nThe cap is a MAXIMUM, not a target and not a price. A supplier may charge less, and in a competitive market some do. When wholesale costs sit far below the cap, the gap is where competition reappears; when they sit near it, the market converges on the cap and switching offers dry up."
+    },
+    "expected_shape": {
+      "heading": "What the data should look like",
+      "body": "If the mechanism above is real, three things follow, and each is checkable against published data rather than taken on trust.\n\nFIRST, capped rates should look like a lagged, smoothed version of the wholesale curve — the same shape, later and flatter. Sharp wholesale spikes should appear in the cap as broader, lower humps, arriving after the spike itself has passed.\n\nSECOND, the gap between capped rates and current wholesale cost should swing through zero rather than sitting on one side. In a falling market the cap is above cost and suppliers earn more than the allowance; in a rising market it is below and they lose money. A cap that were consistently generous or consistently punitive would mean the observation window was mis-specified, not that the market was unusual.\n\nTHIRD, the number of fixed tariffs available below the cap should rise as the gap between wholesale cost and the cap widens, and collapse to nothing as it closes. The availability of a better deal is a direct read-out of that gap."
+    },
+    "live_evidence": {
+      "heading": "Live evidence",
+      "body": "NOT ON THIS PAGE YET, and stated rather than quietly omitted. The wholesale series that would let a reader see the lag with their own eyes already exists on this site, on the wholesale price page, drawn from nearly ten years of real settlement data. What does not exist yet is the capped-rate series to plot against it, which needs Ofgem's published cap levels ingested as the files they are published as. Until that lands, the claims above are argued from mechanism, not shown from data — a weaker thing, and it should be read as weaker."
+    },
+    "residuals": {
+      "heading": "Where our picture is still weak",
+      "body": "The wholesale allowance's exact construction — the length and placement of the observation window, and the hedging profile it assumes — is the part of the methodology that most affects the lag, and this page describes it in general terms rather than reproducing it. Anyone reasoning about the precise timing of pass-through needs Ofgem's own methodology document, not this page.\n\nPrepayment and Economy 7 households sit under related but distinct arrangements that this page does not cover. Nor does it cover the temporary adjustments and recovery mechanisms introduced after the 2021–22 supplier failures, which materially changed the cap's level for several periods and are a significant part of why bills behaved as they did."
+    },
+    "scope_delta": {
+      "heading": "What this page does not yet establish",
+      "body": "It does not carry a current cap level, deliberately — see the note above; the level changes quarterly and the mechanism does not. It does not plot capped rates against wholesale cost, which is the single thing that would turn the lag from an assertion into a demonstration. And it has not been checked line by line against Ofgem's current published methodology, which is why it is marked as never checked against the source rather than as reviewed."
+    }
+  }
+}

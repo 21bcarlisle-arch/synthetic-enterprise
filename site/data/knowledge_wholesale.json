@@ -933,14 +933,15 @@
     {
       "id": "price-cap",
       "title": "The retail price cap",
-      "kind": "stub",
+      "kind": "page",
       "class": "slow",
       "blurb": "How the wholesale price reaches the household through Ofgem's cap -- a retail boundary of the wholesale domain.",
       "scope": "A complete treatment covers how the wholesale price reaches a household: Ofgem's cap methodology, its wholesale-cost allowance, and the lag with which wholesale moves pass through to the capped tariff. This node is retail, not wholesale -- it sits at the domain boundary and is kept in the map to make the wholesale-to-retail seam visible and honest, not as a peer wholesale topic.",
       "rate_of_change": "fast",
       "reviewed": {
         "last_verified": null,
-        "source": null
+        "source": null,
+        "written": "2026-08-18"
       }
     }
   ],

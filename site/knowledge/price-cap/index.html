@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Poesys -- Knowledge (stub)</title>
-<meta name="robots" content="noindex, nofollow">
+<title>Poesys -- The retail price cap</title>
 <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="stylesheet" href="../../brand/brand.css">
 <style>
@@ -16,33 +15,28 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
 .nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
 .nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
-/* Nav sits on the RIGHT on every section (2026-08-12, DIRECTOR_OBSERVATION_PUBLISHED_SURFACE_NAV_AND_STAMPS item 3: "The nav sits on different sides depending on which section
-   you are in. The director's preference is consistent right-hand alignment."). The doors
-   here are loose flex children rather than the front door's grouped nav.doors, so the group
-   is pushed right by giving the first link the free space -- no markup change, and the
-   wordmark stays left as it does on every other surface. Shared cause with item 1: these are
-   the pages built from the older left-aligned template. */
 .site-nav .nav-link:first-of-type { margin-left: auto; }
 .wrap { max-width: 1060px; margin: 0 auto; padding: 40px 20px; display: grid; grid-template-columns: 1fr 260px; gap: 32px; }
 @media (max-width: 820px) { .wrap { grid-template-columns: 1fr; } }
-.hero-h { font-size: 27px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 8px; }
-.hero-sub { font-size: 14px; color: var(--muted); max-width: 720px; margin-bottom: 16px; }
-.stubline { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--amber);
-  border-radius: 10px; padding: 16px 18px; font-size: 14px; line-height: 1.65; margin-bottom: 10px; }
-.stubline b { color: var(--amber); }
+h1.hero-h { font-size: 27px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 8px; }
+.hero-sub { font-size: 14px; color: var(--muted); max-width: 720px; margin-bottom: 14px; }
+.reviewline { font-size: 12px; margin-bottom: 16px; }
 .badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .03em; border-radius: 4px; padding: 2px 6px; vertical-align: middle; }
-.badge.stub { color: var(--amber); border: 1px solid var(--amber); }
-/* Staleness must be visible ON THE PAGE, not discovered by a reader (brief section 4). */
-.reviewline { font-size: 12px; margin-bottom: 12px; }
 .badge.rev-fresh { color: var(--green); border: 1px solid var(--green); }
 .badge.rev-due { color: var(--amber); border: 1px solid var(--amber); }
 .badge.rev-never { color: var(--red); border: 1px solid var(--red); }
 .reviewline .rd { color: var(--muted); margin-left: 6px; }
-.sec { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em;
-  color: var(--muted); margin-bottom: 12px; margin-top: 40px; }
+.claim { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--teal);
+  border-radius: 10px; padding: 18px 20px; font-size: 15px; line-height: 1.65; margin-bottom: 18px; }
+.nolevel { background: var(--surface); border: 1px solid var(--amber); border-radius: 10px;
+  padding: 14px 16px; font-size: 13px; color: var(--muted); margin-bottom: 22px; }
+.nolevel b { color: var(--amber); }
+h2.sec { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--muted); margin-bottom: 10px; margin-top: 34px; }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 14px; }
 .card p { margin-bottom: 12px; }
 .card p:last-child { margin-bottom: 0; }
+.card p.bullet { padding-left: 14px; }
 .muted { color: var(--muted); font-size: 12px; }
 .side .card { padding: 14px 16px; }
 .side h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 10px; }
@@ -52,6 +46,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .topiclink .e { display: block; font-size: 11px; color: var(--muted); }
 .edgetype { font-size: 10px; color: var(--teal); font-family: ui-monospace, monospace; }
 .fic { font-size: 11px; color: var(--muted); margin-top: 28px; border-top: 1px solid var(--border); padding-top: 12px; }
+.weak { border-left: 3px solid var(--amber); }
 </style>
 </head>
 <body>
@@ -65,13 +60,30 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 </nav>
 <div class="wrap">
   <main>
-    <div id="hero-h" class="hero-h">&nbsp;</div>
-    <div id="hero-sub" class="hero-sub"></div>
+    <h1 id="hero-h" class="hero-h">The retail price cap</h1>
+    <p id="hero-sub" class="hero-sub"></p>
     <div id="review-state" class="reviewline"></div>
-    <div id="stub-note" class="stubline"></div>
 
-    <div class="sec" id="s-scope-h">What this page will cover</div>
-    <div id="r-scope" class="card"></div>
+    <div id="r-headline" class="claim"></div>
+    <div id="r-nolevel" class="nolevel"></div>
+
+    <h2 class="sec" id="h-plain"></h2>
+    <div id="r-plain" class="card"></div>
+
+    <h2 class="sec" id="h-theory"></h2>
+    <div id="r-theory" class="card"></div>
+
+    <h2 class="sec" id="h-shape"></h2>
+    <div id="r-shape" class="card"></div>
+
+    <h2 class="sec" id="h-evidence"></h2>
+    <div id="r-evidence" class="card weak"></div>
+
+    <h2 class="sec" id="h-residuals"></h2>
+    <div id="r-residuals" class="card weak"></div>
+
+    <h2 class="sec" id="h-scope"></h2>
+    <div id="r-scope" class="card weak"></div>
 
     <div id="wall-note" class="fic"></div>
   </main>
@@ -82,26 +94,48 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
     </div>
     <div class="card">
       <h3>This page</h3>
-      <div class="muted">A <b>stub</b>: it names the topic and its place in the domain graph, and says
-        honestly that the full explanation is not yet written. It is not a to-do list in costume.</div>
+      <div class="muted" id="page-note"></div>
     </div>
   </aside>
 </div>
 <script>
-function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function esc(s){ return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 function set(id,html){ var e=document.getElementById(id); if(e) e.innerHTML=html; }
-
-// The topic id is the node's own directory name -- so this one template serves every stub node,
-// and the sidebar cross-links stay generated from the shared typed-edge graph (never hand-authored).
-function stubTopicId(){
-  if (typeof __STUB_TOPIC_ID__ !== "undefined" && __STUB_TOPIC_ID__) return __STUB_TOPIC_ID__;
-  try {
-    var parts = location.pathname.split("/").filter(function(p){ return p && p !== "index.html"; });
-    return parts.length ? parts[parts.length - 1] : "";
-  } catch(e){ return ""; }
+// Paragraphs come from the record as newline-separated prose. A line opening with a bullet
+// keeps its indent; nothing else is interpreted, so the record cannot smuggle markup onto
+// the page.
+function paras(text){
+  return String(text || "").split("\n").filter(function(p){ return p.trim(); })
+    .map(function(p){
+      var b = /^[•]/.test(p.trim());
+      return '<p class="' + (b ? "bullet" : "") + '">' + esc(p.trim()) + "</p>";
+    }).join("");
 }
 
-// Sidebar is GENERATED from the typed edges, never hand-authored (same rule as the deep node).
+// THE REVIEW RULE, mirrored from site/knowledge/review_state.py -- identical to the stub
+// template's copy, and held to it by site/knowledge/test_review_state.py, which drives every
+// implementation and requires the same verdict. FAIL-CLOSED: no recorded check reads NEVER.
+function reviewState(topic, policy, today){
+  var days = (policy && policy.threshold_days && policy.threshold_days[topic && topic.rate_of_change]) || 92;
+  var rec = (topic && topic.reviewed) || {};
+  var raw = rec.last_verified;
+  var when = (typeof raw === "string") ? new Date(raw.slice(0,10) + "T00:00:00Z") : null;
+  if (!when || isNaN(when.getTime())) {
+    return { state:"never", label:"Never checked against the source", days_allowed:days,
+             written: rec.written || null,
+             detail:(rec.written ? "Written " + rec.written + ". " : "") +
+                    "Nobody has recorded checking it against the published source since." };
+  }
+  var age = Math.floor((today - when) / 86400000);
+  if (age - days > 0) {
+    return { state:"due", label:"Review due", days_allowed:days, age_days:age,
+             detail:"Last checked " + age + " days ago; this subject is meant to be re-checked every " + days + " days." };
+  }
+  return { state:"fresh", label:"Reviewed " + raw, days_allowed:days, age_days:age,
+           detail:"Checked " + age + " days ago against a " + days + "-day threshold." +
+                  (rec.source ? " Source: " + rec.source + "." : "") };
+}
+
 function neighboursFromEdges(d, topic){
   var byId={}; d.topics.forEach(function(t){ byId[t.id]=t; });
   var seen={}, out=[];
@@ -114,72 +148,47 @@ function neighboursFromEdges(d, topic){
   return out;
 }
 
-// THE REVIEW RULE, mirrored from site/knowledge/review_state.py. Two implementations of one
-// rule is a drift risk, and it is taken deliberately: this page has no build step, so the
-// alternative is a reader seeing nothing until a generator runs. site/knowledge/
-// test_review_state.py drives BOTH and asserts they agree on every topic and on the boundary
-// days either side of each threshold -- so the mirror cannot silently diverge.
-// FAIL-CLOSED, exactly as the Python does: no date, an unparseable date or an unknown rate
-// class all read DUE. A page nobody has checked must never render as fine.
-function reviewState(topic, policy, today){
-  var days = (policy && policy.threshold_days && policy.threshold_days[topic && topic.rate_of_change]) || 92;
-  var rec = (topic && topic.reviewed) || {};
-  var raw = rec.last_verified;
-  var when = (typeof raw === "string") ? new Date(raw.slice(0,10) + "T00:00:00Z") : null;
-  if (!when || isNaN(when.getTime())) {
-    return { state:"never", label:"Never reviewed", days_allowed:days,
-             detail:"No one has recorded checking this page against the world." };
+function render(page, graph){
+  var m = page.meta, r = page.rungs;
+  set("hero-sub", esc(m.subtitle));
+  set("r-headline", "<b>" + esc(r.headline.heading) + ".</b> " + esc(r.headline.body));
+  set("r-nolevel", "<b>No current figure on this page.</b> " + esc(m.no_current_level));
+
+  var pairs = [["plain","h-plain","r-plain"],["theory","h-theory","r-theory"],
+               ["expected_shape","h-shape","r-shape"],["live_evidence","h-evidence","r-evidence"],
+               ["residuals","h-residuals","r-residuals"],["scope_delta","h-scope","r-scope"]];
+  pairs.forEach(function(p){
+    set(p[1], esc(r[p[0]].heading));
+    set(p[2], paras(r[p[0]].body));
+  });
+
+  set("wall-note", esc(m.wall_placement));
+  set("page-note", "A written page, not a stub. It explains the mechanism and deliberately "
+    + "carries no current cap level, because that changes every quarter and the mechanism does not.");
+
+  var me = null;
+  graph.topics.forEach(function(t){ if(t.id === m.topic_id) me = t; });
+  if (me) {
+    var rv = reviewState(me, graph.review_policy, new Date());
+    set("review-state", '<span class="badge rev-' + esc(rv.state) + '">' + esc(rv.label) +
+      '</span><span class="rd">' + esc(rv.detail) + "</span>");
   }
-  var age = Math.floor((today - when) / 86400000);
-  if (age - days > 0) {
-    return { state:"due", label:"Review due", days_allowed:days, age_days:age,
-             detail:"Last checked " + age + " days ago; this subject is meant to be re-checked every " + days + " days." };
-  }
-  return { state:"fresh", label:"Reviewed " + raw, days_allowed:days, age_days:age,
-           detail:"Checked " + age + " days ago against a " + days + "-day threshold." +
-                  (rec.source ? " Source: " + rec.source + "." : "") };
-}
-
-function renderReview(d, me){
-  var r = reviewState(me, d.review_policy, new Date());
-  set("review-state",
-    '<span class="badge rev-' + esc(r.state) + '">' + esc(r.label) + '</span>' +
-    '<span class="rd">' + esc(r.detail) + '</span>');
-}
-
-function renderStub(d, topicId){
-  var byId={}; d.topics.forEach(function(t){ byId[t.id]=t; });
-  var me = byId[topicId] || {id:topicId, title:topicId, blurb:"", scope:""};
-  set("hero-h", esc(me.title || topicId));
-  set("hero-sub", esc(me.blurb || ""));
-  renderReview(d, me);
-  set("stub-note",
-    '<span class="badge stub">Stub</span> &nbsp;<b>Not yet written.</b> This node exists to hold its '+
-    'place in the GB wholesale-energy domain graph. It states what a complete treatment will cover '+
-    '(below) and how it connects to the topics around it (right) -- the full explanation, with figures '+
-    'and charts, is not yet written.');
-  var scope = me.scope
-    ? "<p>"+esc(me.scope)+"</p>"
-    : '<p class="muted">Scope not yet stated.</p>';
-  set("r-scope", scope);
-  set("wall-note", 'Public-reality commons only -- no simulation-internal value appears on this page. '+
-    '&nbsp;&middot;&nbsp; A simulated GB energy supplier, shown working against real market history.');
-
-  var ns = neighboursFromEdges(d, topicId);
+  var ns = neighboursFromEdges(graph, m.topic_id);
   set("sidebar", ns.length ? ns.map(function(n){
-    var t=n.topic||{title:n.id, blurb:""};
-    var href = (n.id==="electricity-wholesale") ? "../electricity-wholesale/" : "../"+esc(n.id)+"/";
-    return '<a class="topiclink" href="'+href+'"><span class="edgetype">'+esc(n.rel)+
-      '</span><span class="t">'+esc(t.title)+'</span><span class="e">'+esc(t.blurb||"")+'</span></a>';
+    var t = n.topic || {title:n.id, blurb:""};
+    return '<a class="topiclink" href="../' + esc(n.id) + '/"><span class="edgetype">' + esc(n.rel) +
+      '</span><span class="t">' + esc(t.title) + '</span><span class="e">' + esc(t.blurb || "") + "</span></a>";
   }).join("") : '<div class="muted">No linked topics.</div>');
 }
 
-if (typeof window !== "undefined" && window.document && document.getElementById("hero-h")) {
-  var __tid = stubTopicId();
-  fetch("../../data/knowledge_wholesale.json?t=" + Date.now())
-    .then(function(r){ return r.json(); })
-    .then(function(d){ renderStub(d, __tid); })
-    .catch(function(e){ set("hero-h", "Knowledge topic"); set("stub-note", "This page is a stub."); });
+if (typeof window !== "undefined" && window.document && document.getElementById("r-headline")) {
+  Promise.all([
+    fetch("../../data/knowledge_price_cap.json?t=" + Date.now()).then(function(r){ return r.json(); }),
+    fetch("../../data/knowledge_wholesale.json?t=" + Date.now()).then(function(r){ return r.json(); })
+  ]).then(function(both){ render(both[0], both[1]); })
+   .catch(function(e){
+     set("r-headline", "This page could not load its content (" + esc(e) + "). Nothing is shown rather than a partial explanation.");
+   });
 }
 </script>
 </body>

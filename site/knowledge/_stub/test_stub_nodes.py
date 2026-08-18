@@ -78,11 +78,24 @@ def test_every_stub_has_scope_dir_and_states_coverage_not_a_gaplist():
         assert (KNOWLEDGE / tid / "index.html").exists(), f"{tid} stub page missing at its URL"
 
 
-def test_deep_node_is_the_only_page_and_is_not_a_stub():
+def test_every_written_page_has_its_own_page_and_is_not_a_stub():
+    """SITE5 (2026-08-18): was `test_deep_node_is_the_only_page_and_is_not_a_stub`, pinning
+    the written set to exactly ["electricity-wholesale"]. Knowledge is now being written out
+    one page at a time, so the LIST is not the invariant. The invariant is that a topic
+    calling itself a written page really has one: its own index.html, and NOT a copy of the
+    stub template. That is the defect worth catching -- a topic promoted in the record while
+    its page still says "not yet written" would tell a reader the opposite of the truth."""
     d = _live()
+    canon = TEMPLATE.read_text()
     pages = [t["id"] for t in d["topics"] if t.get("kind") == "page"]
-    assert pages == ["electricity-wholesale"], pages
-    assert "electricity-wholesale" not in _stub_ids(d)
+    assert pages, "no topic is a written page"
+    for tid in pages:
+        assert tid not in _stub_ids(d), f"{tid} is both a written page and a stub"
+        index = KNOWLEDGE / tid / "index.html"
+        assert index.is_file(), f"{tid} claims to be written but has no page"
+        assert index.read_text() != canon, (
+            f"{tid} is declared a written page while still serving the stub template"
+        )
 
 
 def test_no_stub_page_drifts_from_the_canonical_template():

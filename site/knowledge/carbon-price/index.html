@@ -127,8 +127,13 @@ function reviewState(topic, policy, today){
   var raw = rec.last_verified;
   var when = (typeof raw === "string") ? new Date(raw.slice(0,10) + "T00:00:00Z") : null;
   if (!when || isNaN(when.getTime())) {
-    return { state:"never", label:"Never reviewed", days_allowed:days,
-             detail:"No one has recorded checking this page against the world." };
+    // WRITTEN is not REVIEWED. A page written this morning has still never been checked
+    // against the published source, and saying so plainly beats letting a red badge read
+    // as a bug. Only the CHECK moves the state.
+    return { state:"never", label:"Never checked against the source", days_allowed:days,
+             written: rec.written || null,
+             detail:(rec.written ? "Written " + rec.written + ". " : "") +
+                    "Nobody has recorded checking it against the published source since." };
   }
   var age = Math.floor((today - when) / 86400000);
   if (age - days > 0) {

@@ -65,11 +65,20 @@ def review_state(topic: dict, policy: dict | None = None, today: date | None = N
     days_allowed = threshold_days((topic or {}).get("rate_of_change"), policy)
 
     if last is None:
+        # WRITTEN is not REVIEWED, and the difference is the whole point. A page can be
+        # written today from what its author already knew and still never have been checked
+        # against the published source. Saying "never reviewed" on a page finished this
+        # morning looks like a bug unless the page also says when it was written -- so both
+        # are carried, and only the CHECK moves the state.
+        written = reviewed.get("written")
         return {
-            "state": NEVER, "last_verified": None, "days_allowed": days_allowed,
-            "age_days": None, "overdue_by": None,
-            "label": "Never reviewed",
-            "detail": "No one has recorded checking this page against the world.",
+            "state": NEVER, "last_verified": None, "written": written,
+            "days_allowed": days_allowed, "age_days": None, "overdue_by": None,
+            "label": "Never checked against the source",
+            "detail": (
+                (f"Written {written}. " if written else "")
+                + "Nobody has recorded checking it against the published source since."
+            ),
         }
 
     age = (today - last).days
