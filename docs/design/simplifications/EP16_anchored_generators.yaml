@@ -161,17 +161,108 @@ simplifications:
   frequency stays the director''s. QUEUED NOT FIXED (self-interrupt discipline): the false coupling comments
   and the aseasonal schedule are outside this atom''s empty file_scope and belong to the scenario-generator
   path with W1_2.'
+- '2026-08-18 DISCOVER PASS 3, level stays 0, loop_stage stays idle (worker tick, LANE 3 idle draw). No
+  BUILD code written, `file_scope` untouched (empty). Measured at HEAD 1f37fe393 with the map, this store
+  file and docs/design/frame/ clean in the shared tree at draw time. Full pass appended to `docs/design/frame/EP16_ANCHORED_GENERATORS_FRAME.md`
+  (§9-§11). Passes 1-2 took the SCHEDULING of price events (aseasonal, elec/gas at chance); this pass
+  takes the NEGATIVE-PRICE overlay, because it is the one ScenarioParams field whose real counterpart
+  is measurable to the half-hour from a dataset already in the tree (`sim/cache/elexon_ssp_full.json`,
+  2016-2024, n=3,287 complete days / 157,759 half-hours) and it lands on `baseline_2025`, the single preset
+  pass 1 §5 showed the fidelity check CAN judge. Generated side measured through the shipped path (generate_scenario_prices
+  -> intraday_shape.shape_day), 2026-2029 x 3 seeds.
+
+
+  FINDING 9 -- THE NEGATIVE-PRICE CALIBRATION MATCHES THE ONE MOMENT IT WAS FITTED TO AND INVERTS EVERY
+  STRUCTURAL PROPERTY UNDER IT. baseline_2025 vs real: negative HOURS/yr 168.8 vs 176.4 (0.96x -- the
+  calibration target, matched); days carrying any negative half-hour 12.5 vs 58.4 (0.21x); median negative
+  periods on such a day 45 (22.5h) vs 4 (2h), 11x; most negative periods in one day 48/48 generated vs
+  a real maximum EVER OBSERVED of 31/48; days with a negative DAILY MEAN 6.4/yr vs 0.67/yr (6 in 9 years),
+  9.6x; and the generated negative day is drawn N(-20,15) when the deepest daily mean GB has ever recorded
+  is -16.91, so the MEAN generated negative day is deeper than the deepest real one. The mechanism is
+  in the generator''s own docstring -- "165 negative hours/year = ~7 days/year (at ~24h/day x occurrence
+  fraction)": the model''s unit is a DAILY MEAN, so the only way it can express a negative hour is to
+  make the whole day negative, and the year''s hour budget gets packed into a fifth as many days at eleven
+  times the duration. Real negatives are a ~2-hour midday event on 58 separate days; all six real negative-mean
+  days are low-demand high-output spring/early-summer days, shallow (-1.12 to -16.91) with 19-30 of 48
+  periods negative, never all 48. Two riders: (a) the upper anchor is ARITHMETICALLY UNREACHABLE -- the
+  same docstring maps "1000 negative hours" to "28 days/year" and 28 days hold 672 hours, so the top of
+  the cited band is bounded by the representation, not the research; (b) the component that COULD produce
+  the real shape has no scenario dial -- intraday_shape.py''s single deep-negative half-hour is `trough_base_rate:
+  0.02` and that module states by design it "adds NO new per-scenario dial", so the frequency of the event
+  that actually happens is a fixed constant no preset can move while `negative_days_per_year` moves an
+  event that does not occur. A COMPENSATING-ERROR finding, and pass 1 §5''s open question made concrete:
+  a six-moment check on daily price RETURNS cannot see any row of that table except the first.
+
+
+  FINDING 10 -- IN THREE OF FIVE PRESETS THE DIAL NAMED FOR NEGATIVE PRICES IS NOT WHAT PRODUCES THEM.
+  The regime draws are unbounded Gaussians, so a low mean with a wide std emits negative daily prices
+  with NO overlay involved. Dial vs analytic regime leak vs realised measured count: battery_saturation_2029
+  10.0 / 46.4 / 51.8 (dial''s share 18%); stress_dunkelflaute_2027 28.0 / 27.1 / 49.4 (51%); central_2027
+  20.0 / 5.8 / 23.0 (78%); baseline_2025 7.0 / 0.0 / 6.4 (100%); low_renewables_2027 5.0 / 0.0 / 4.7 (100%).
+  battery_saturation_2029 is the clean case because its comment records the intent -- `negative_days_per_year=10.0,  #
+  batteries absorb most surpluses; fewer sustained negatives` -- reasoning that set it to the second-LOWEST
+  dial of the five, while the preset delivers the HIGHEST realised negative-day count of all five, 5.2x
+  its own dial, because lower_mode_std=25 against lower_mode_mean=20 puts a fifth of its lower-regime
+  days below zero. The governing parameter is `lower_mode_std`, which is not named for negatives, is not
+  documented as a negative-price lever, and cannot be read off the preset table without evaluating a normal
+  CDF. Distinct from finding 9 and distinct from the pass-2 provenance item: a parameter-provenance control
+  would PASS this preset (the dial is sourced and reasoned) and still miss that it controls 18% of the
+  outcome it names. LATENT, NOT LIVE, and stated as such: `negative_price_floor` is applied only on the
+  overlay branch and never to the regime draw, but observed minima over 3 seeds were -66.22 and -69.67,
+  both inside the -75 floor -- an asymmetry recorded, not a defect claimed.
+
+
+  FINDING 11 -- THE NEGATIVE OVERLAY SILENTLY OVERWRITES THE DUNKELFLAUTE OVERLAY, REPLACING A SCARCITY
+  EVENT WITH ITS PHYSICAL OPPOSITE. The two overlays are applied in sequence onto independently drawn
+  index sets, last-write-wins, so a day scheduled as both becomes a deep negative. Measured by re-deriving
+  both index sets exactly as the generator does, 5 presets x 3 seeds: 42 of 777 scheduled dunkelflaute
+  days overwritten (5.4%), and 8.1% inside stress_dunkelflaute_2027 (10.0 days per draw) and 8.3% in central_2027.
+  A dunkelflaute is a still, dark spell -- precisely the state in which negative prices CANNOT form, since
+  negative prices are a renewable-SURPLUS phenomenon, confirmed on the real side by finding 9 where all
+  six negative-mean days are low-demand high-output days. The generator takes its highest-price event
+  and on 8% of those days replaces it with the one event the same weather excludes: R10 ABSURDITY CLASS,
+  not a tuning error. Second consequence for the record: `dunkelflaute_events_per_year` silently under-delivers
+  by that fraction, and PASS 2''S §7 SHARED-DAY COUNTS WERE COMPUTED ON THE SCHEDULED INDEX SETS -- the
+  realised elec/gas coupling is very slightly lower still than the at-chance figure reported there. §7''s
+  conclusion is unchanged (already at chance); its numbers should be read as scheduled-set numbers.
+
+
+  CORRECTION TO THE RECORD: passes 1 and 2 both cited `docs/reports/run_history.json` as the evidence
+  that no forward-scenario run has ever been published. That file does not exist at this HEAD. The conclusion
+  is unchanged and now rests on a stronger check -- `scenario_name` appears in ZERO of the 5,281 JSON
+  files under docs/reports/, and run_output_latest.json has no such key.
+
+
+  WHAT PASS 3 ADDS TO THE ITEM LIST: item 4 ("define what anchored means for a world that never happened")
+  splits into 4a PARAMETER PROVENANCE (pass 2 §8 -- every generating parameter carries its source), 4b
+  DIAL AUTHORITY (finding 10, new -- every parameter named for a quantity must be shown to be the dominant
+  lever on it; provenance passes battery_saturation_2029 and still misses it), and 4c PHENOMENON SHAPE
+  NOT PARAMETER VALUE (finding 9, new -- daily-mean granularity cannot express a 2-hour midday event,
+  so no value of any parameter fixes it; the first item on EP16''s list that is neither a number nor a
+  wiring job, and the one the six-moment check is structurally blind to). Plus a sixth top-level item:
+  FIX THE OVERLAY PRECEDENCE (finding 11), smallest on the list, and the third live-code defect this FRAME
+  has found alongside intraday_shape.py''s false "already director-owned" guarantee and the false gas-coupling
+  comments.
+
+
+  R12: no published number tuned; latent on the check above. R13: no curriculum value authored, proposed
+  or changed -- findings 9 and 11 are BASELINE FIDELITY (the shape and physics of negative prices are
+  properties of the real world, measured blind to company P&L) and finding 10 names a dial as non-authoritative
+  over its own quantity without proposing a value for it; per-preset severity stays the director''s. QUEUED
+  NOT FIXED (self-interrupt discipline): the overlay precedence, the unfloored regime leak and the whole-day
+  negative representation all live in sim/scenario/bimodal_generator.py, outside this atom''s empty file_scope,
+  and belong to the scenario-generator path with W1_2.'
 map_notes:
+  name: 'Anchored generators: synthetic but externally-calibrated worlds (weather, price, demand, population)
+    whose generating parameters stay tethered to real observed distributions, so a generated 2031 is a
+    plausible world rather than an invented one. Named in the ruling §1 as an Epoch-4 floor item. W1_2_generate_futures
+    (SATURATED) generates forward CURVES; this is the whole-world generator with its anchoring discipline.'
   origin_note: 'R13 is the entire design constraint, not a side note: the BASELINE world may change only
     for fidelity-to-reality reasons decided BLIND to company P&L, and the CURRICULUM (which generated
     worlds the company actually lives through) is the director''s, named and versioned. This atom builds
     the generator; it may never choose the worlds. A generator whose parameters drift in response to company
     results is the goal-seek failure the whole rule exists to prevent, and the agent controls both sides
     of that wall.'
-  name: 'Anchored generators: synthetic but externally-calibrated worlds (weather, price, demand, population)
-    whose generating parameters stay tethered to real observed distributions, so a generated 2031 is a
-    plausible world rather than an invented one. Named in the ruling §1 as an Epoch-4 floor item. W1_2_generate_futures
-    (SATURATED) generates forward CURVES; this is the whole-world generator with its anchoring discipline.'
 map_records:
   evidence:
   - docs/staging/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md

@@ -332,3 +332,157 @@ the seasonality fix as baseline-fidelity and leaves per-preset event frequency w
 taken** (SELF-INTERRUPT DISCIPLINE): the false coupling comments in `sim/scenario/gas_scenario_generator.py` and the
 aseasonal schedule in both generators are outside this atom's empty `file_scope` and belong to the scenario-generator
 path with W1_2.
+
+---
+
+# PASS 3 (worker tick 2026-08-18, HEAD `1f37fe393`) — the one preset the fidelity check can judge matches its calibration target and inverts the phenomenon underneath it
+
+DISCOVER/FRAME only, LANE 3 idle draw. **No BUILD code written**; `file_scope` is `[]`. `docs/design/maturity_map.yaml`,
+the atom's store file and `docs/design/frame/` were all clean in the shared tree at draw time.
+
+Passes 1-2 established that the forward world is prices only, and that the *scheduling* of price events is unanchored
+(§8, aseasonal) and uncoupled (§7, elec/gas at chance). This pass turns to the other overlay — **negative prices** —
+because it is the one generating parameter in `ScenarioParams` whose real counterpart is measurable to the half-hour
+from a dataset already in the tree, and because it lands on `baseline_2025`, the single preset §5 showed the existing
+fidelity check *can* judge. Source: `sim/cache/elexon_ssp_full.json`, real Elexon SSP, restricted to 2016-2024
+complete days (≥46 of 48 periods present) — **n = 3,287 days, 157,759 half-hours**. Generated side measured through
+the shipped path (`generate_scenario_prices` → `intraday_shape.shape_day`), 2026-2029 × 3 seeds.
+
+## 9. FINDING 9 — the negative-price calibration matches the one moment it was fitted to and gets every structural property of the event wrong
+
+`baseline_2025` is the preset expected to agree with history. On negative prices it agrees on exactly one number:
+
+| property of the negative-price phenomenon | real 2016-2024 | `baseline_2025` generated | |
+|---|---|---|---|
+| negative **hours** per year | 176.4 | 168.8 | **0.96× — the calibration target, matched** |
+| days carrying ≥1 negative half-hour, per year | 58.4 | 12.5 | 0.21× |
+| median negative periods on such a day | **4** (2 h) | **45** (22.5 h) | 11× |
+| most negative periods in a single day, ever observed | **31 / 48** | **48 / 48** | GB has never had a wholly-negative day |
+| days with a negative **daily mean**, per year | **0.67** (6 in 9 years) | **6.4** | 9.6× |
+| deepest daily mean ever recorded | **−£16.91** | draws N(−20, 15), floor −75 | the *mean* generated negative day is deeper than the deepest real one |
+
+The mechanism is written in the generator's own docstring:
+
+> `# Negative price days: ~7-28 days/year (calibrated to 165-1000 negative hours/year at ~6h/event).`
+> `# 165 negative hours/year ≈ 7 days/year (at ~24h/day × occurrence fraction).`
+
+The model's unit is a **daily mean**, so the only way it can express a negative hour is to make the whole day
+negative. The year's negative-hour budget is therefore correct and is packed into a fifth as many days at eleven times
+the duration and a depth GB has never reached. Real negative prices are a **~2-hour midday event on 58 separate
+days**; all six real negative-mean days are low-demand high-output spring/early-summer days (2019-05-26, 2019-12-08,
+2020-05-22, 2020-06-28, 2023-04-10, 2024-04-13), and even those are shallow (−£1.12 to −£16.91) with 19-30 of 48
+periods negative, never all 48.
+
+Two riders. **(a) The upper anchor is arithmetically unreachable**: the same docstring maps "1000 negative hours" to
+"28 days/year", but 28 days hold 672 hours. The top of the cited calibration band cannot be represented by a whole-day
+model at all, so the preset range is bounded by the representation rather than by the research. **(b) The component
+that *could* produce the real shape has no scenario dial.** `intraday_shape.py`'s oversupply trough — a single deep
+negative half-hour, which is exactly the real event — is governed by `trough_base_rate: 0.02`, and that module states
+by design that it "adds NO new per-scenario dial; it ships one baseline-calibrated relationship." So the frequency of
+the negative-price event that actually happens is a fixed constant no preset can move, while the dial named
+`negative_days_per_year` moves an event that does not occur.
+
+This is a **compensating-error** finding, and it is squarely §5's open question made concrete: a six-moment check on
+daily price *returns* cannot see any row of that table except the first. The moment that was fitted is green; the
+phenomenon is inverted.
+
+## 10. FINDING 10 — in three of five presets, the dial named for negative prices is not what produces them
+
+The regime draws are unbounded Gaussians (`rng.gauss(lower_mode_mean, lower_mode_std)`), so a preset with a low mean
+and a wide std emits negative daily prices with **no overlay involved**. Analytic leak (Φ(0; μ, σ) × `lower_mode_fraction`
+× 365.25), against the measured realised count:
+
+| preset | `negative_days_per_year` (the dial) | P(lower draw < 0) | leak from the regime, /yr | **realised, measured** | dial's share |
+|---|---|---|---|---|---|
+| `battery_saturation_2029` | 10.0 | 0.212 — N(20, 25) | 46.4 | **51.8** | **18%** |
+| `stress_dunkelflaute_2027` | 28.0 | 0.128 — N(25, 22) | 27.1 | **49.4** | 51% |
+| `central_2027` | 20.0 | 0.029 — N(38, 20) | 5.8 | **23.0** | 78% |
+| `baseline_2025` | 7.0 | 0.000 | 0.0 | 6.4 | 100% |
+| `low_renewables_2027` | 5.0 | 0.000 | 0.0 | 4.7 | 100% |
+
+`battery_saturation_2029` is the clean case, because its comment records the intent: `negative_days_per_year=10.0,
+# batteries absorb most surpluses; fewer sustained negatives`. That reasoning set it to the second-lowest dial of the
+five — and the preset delivers **the highest realised negative-day count of all five, 5.2× its own dial**, because
+`lower_mode_std=25` against `lower_mode_mean=20` puts a fifth of its lower-regime days below zero. The parameter that
+governs the outcome is `lower_mode_std`, which is not named for negatives, is not documented as a negative-price
+lever, and cannot be read off the preset table without evaluating a normal CDF.
+
+This is EP16's subject in its own right, distinct from §9: **a generating parameter that does not govern the quantity
+it is named for**, because a second parameter leaks into the same outcome. A parameter-provenance control (§5 item 4)
+would catch the *unsourced* value; it would not catch this. What catches it is checking that each named dial actually
+moves the quantity it names — a different control, and the second one this atom now owes.
+
+*Latent, not live, and stated as such:* `negative_price_floor` is applied only on the overlay branch, never to the
+regime draw, so a leaked negative day is unfloored. At these parameters it does not bite — observed minima over 3
+seeds were −£66.22 (`battery_saturation_2029`) and −£69.67 (`stress_dunkelflaute_2027`), both inside the −75 floor.
+An asymmetry worth recording, not a defect to claim.
+
+## 11. FINDING 11 — the negative overlay silently overwrites the dunkelflaute overlay, replacing a scarcity event with its physical opposite
+
+In the day loop the two overlays are applied in sequence onto independently drawn index sets, last-write-wins:
+
+```python
+if day_idx in dunkelflaute_day_indices:      # price = upper mode × multiplier  (scarcity)
+    ...
+if day_idx in negative_day_indices:          # price = N(negative_mean, std)    (surplus) — overwrites
+    ...
+```
+
+Measured by re-deriving both index sets exactly as the generator does, 5 presets × 3 seeds, 2026-2029:
+
+| preset | scheduled dunkelflaute days | overwritten by the negative overlay | |
+|---|---|---|---|
+| `stress_dunkelflaute_2027` | 123.7 | **10.0** | 8.1% |
+| `central_2027` | 40.0 | 3.3 | 8.3% |
+| `battery_saturation_2029` | 41.0 | 0.7 | 1.6% |
+| `baseline_2025` | 34.0 | 0.0 | 0% |
+| `low_renewables_2027` | 20.3 | 0.0 | 0% |
+| **total across 15 draws** | **777** | **42** | **5.4%** |
+
+A dunkelflaute is a still, dark spell: it is precisely the state in which negative prices **cannot** form, because
+negative prices are a renewable-*surplus* phenomenon — confirmed on the real side by §9, where all six negative-mean
+days are low-demand high-output days. The generator takes its highest-price event and, on 8% of those days in the
+preset named for it, replaces it with the one event the same weather excludes. That is an **R10 absurdity class**
+defect, not a tuning error: a −£30/MWh dunkelflaute day is not a member of any plausible world.
+
+It has a second consequence for the record: `dunkelflaute_events_per_year` silently under-delivers by that fraction,
+and **pass 2's §7 shared-day counts were computed on the *scheduled* index sets**. The realised elec/gas coupling is
+therefore very slightly lower still than the at-chance figure reported there. That does not change §7's conclusion —
+it was already at chance — but the numbers in §7 are scheduled-set numbers and should be read as such.
+
+## Correction to the record (passes 1 and 2)
+
+Both earlier passes cited `docs/reports/run_history.json` as evidence that no forward-scenario run has ever been
+published. **That file does not exist at this HEAD.** The conclusion is unchanged and now rests on a stronger check:
+`scenario_name` appears in **zero of the 5,281 JSON files** under `docs/reports/`, and `run_output_latest.json` has no
+such key. Everything in §§1-11 remains **latent** — no published artefact carries any of it.
+
+## What pass 3 adds to EP16's item list
+
+Item 4 ("define what *anchored* means for a world that never happened") gains its sharpest instance and then splits:
+
+- **4a — parameter provenance** (pass 2, §8): every generating parameter carries its source; the check fires when one
+  has none. Would have caught the aseasonal schedule.
+- **4b — dial authority** (§10, new): every parameter *named* for a quantity must be shown to be the dominant lever on
+  it. Provenance would pass `battery_saturation_2029` — the dial is sourced and reasoned — and still miss that it
+  controls 18% of the outcome it names.
+- **4c — phenomenon shape, not parameter value** (§9, new): the negative-price event is mis-specified at the level of
+  *representation* — daily-mean granularity cannot express a 2-hour midday event — so no value of any parameter fixes
+  it. This is the first item on EP16's list that is not a number and not a wiring job, and it is the one the existing
+  six-moment fidelity check is structurally blind to.
+
+And a sixth top-level item joins §§1-5: **6 — fix the overlay precedence** (§11), smallest on the list, an R10-class
+absurdity, and the third live-code defect this FRAME has found alongside §4's false `intraday_shape.py` guarantee and
+§7's false gas-coupling comments.
+
+**Pass 3 close.** `level_current` stays **0** and `loop_stage` stays **idle**: the deliverable of this atom is a
+mechanism, not this document. **R12:** no published number tuned — and latent on the check above, no forward-scenario
+run has ever been published. **R13:** no curriculum value authored, proposed or changed. §9 and §11 are
+**baseline-fidelity** findings (the shape and the physics of negative prices are properties of the real world,
+measured blind to company P&L); §10 names a dial as non-authoritative over its own quantity without proposing a value
+for it — per-preset severity stays the director's. **Queued, not taken** (SELF-INTERRUPT DISCIPLINE): the overlay
+precedence, the unfloored regime leak and the whole-day negative representation all live in
+`sim/scenario/bimodal_generator.py`, outside this atom's empty `file_scope`, and belong to the scenario-generator path
+with W1_2.
+
+— FRAME pass 3, worker tick 2026-08-18, at HEAD `1f37fe393`.
