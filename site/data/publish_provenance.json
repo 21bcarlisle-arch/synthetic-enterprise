@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-08-18T10:11:04Z",
+    "checked_at": "2026-08-18T10:53:30Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
@@ -15,20 +15,20 @@
     "open_findings": 96
   },
   "last_verified": {
-    "generated_at": "2026-08-18T10:47:10Z",
-    "git_commit": "19b56a53e",
-    "run_id": "run_output_19b56a53e_20260818T101205Z.json",
-    "verified_at": "2026-08-18T10:47:10Z"
+    "generated_at": "2026-08-18T13:30:41Z",
+    "git_commit": "89ca7f5f9",
+    "run_id": "run_output_89ca7f5f9_20260818T125852Z.json",
+    "verified_at": "2026-08-18T13:30:41Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=2fd970d3f; blocking tests: see sim-runner-log",
+  "paused_reason": "scoped publish-path suite red at git=febf7e51f; blocking tests: see sim-runner-log",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-18T10:47:10Z",
-    "git_commit": "19b56a53e",
-    "run_id": "run_output_19b56a53e_20260818T101205Z.json",
-    "verified_at": "2026-08-18T10:47:10Z"
+    "generated_at": "2026-08-18T13:30:41Z",
+    "git_commit": "89ca7f5f9",
+    "run_id": "run_output_89ca7f5f9_20260818T125852Z.json",
+    "verified_at": "2026-08-18T13:30:41Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-18T10:47:10Z"
+  "written_at": "2026-08-18T13:30:41Z"
 }
