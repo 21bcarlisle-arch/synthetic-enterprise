@@ -29,9 +29,23 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-DUE = "due"
-FRESH = "fresh"
-NEVER = "never"
+# FOUR states, not three (director, 2026-08-18: "distinguish 'written, awaiting check' from
+# 'stub, never touched', now rather than after eight repetitions").
+#
+# The three-state version collapsed two different things into NEVER, and they mislead a
+# reader in opposite directions. A STUB declares itself unwritten on its own face -- it makes
+# no claim, so there is nothing to distrust. An UNCHECKED page makes a full argument that
+# nobody has verified against the published source, which is the one a reader could be
+# misled by. Reporting them as one number meant the section's honest half and its risky half
+# moved together.
+STUB = "stub"            # not written; the page says so itself
+UNCHECKED = "unchecked"  # written, never checked against the source
+DUE = "due"              # checked once, now past its threshold
+FRESH = "fresh"          # checked within its threshold
+
+#: Kept as an alias so nothing that imported the old name breaks silently while the two
+#: unwritten states are being separated. It means STUB.
+NEVER = STUB
 
 #: Used only when the record carries no policy at all. The tightest class, because guessing
 #: generously is how a fail-open gets introduced by accident.
@@ -65,19 +79,26 @@ def review_state(topic: dict, policy: dict | None = None, today: date | None = N
     days_allowed = threshold_days((topic or {}).get("rate_of_change"), policy)
 
     if last is None:
-        # WRITTEN is not REVIEWED, and the difference is the whole point. A page can be
-        # written today from what its author already knew and still never have been checked
-        # against the published source. Saying "never reviewed" on a page finished this
-        # morning looks like a bug unless the page also says when it was written -- so both
-        # are carried, and only the CHECK moves the state.
+        # WRITTEN is not CHECKED, and neither is the same as UNWRITTEN. Only a check against
+        # the published source moves the state -- writing a page does not, which is why the
+        # section's review debt does not fall as pages are written.
         written = reviewed.get("written")
+        is_written = (topic or {}).get("kind") == "page"
+        if not is_written:
+            return {
+                "state": STUB, "last_verified": None, "written": None,
+                "days_allowed": days_allowed, "age_days": None, "overdue_by": None,
+                "label": "Not written yet",
+                "detail": ("This page names its topic and says it is not written. It makes no "
+                           "claim to check."),
+            }
         return {
-            "state": NEVER, "last_verified": None, "written": written,
+            "state": UNCHECKED, "last_verified": None, "written": written,
             "days_allowed": days_allowed, "age_days": None, "overdue_by": None,
-            "label": "Never checked against the source",
+            "label": "Written, awaiting check",
             "detail": (
                 (f"Written {written}. " if written else "")
-                + "Nobody has recorded checking it against the published source since."
+                + "The explanation below has not been checked against the published source."
             ),
         }
 

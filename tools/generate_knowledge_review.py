@@ -39,7 +39,7 @@ KNOWLEDGE = SITE / "knowledge"
 if str(KNOWLEDGE) not in sys.path:
     sys.path.insert(0, str(KNOWLEDGE))
 
-from review_state import DUE, FRESH, NEVER, states_for  # noqa: E402
+from review_state import DUE, FRESH, STUB, UNCHECKED, states_for  # noqa: E402
 
 FEED = SITE / "data" / "knowledge_wholesale.json"
 OUT = SITE / "data" / "knowledge_review.json"
@@ -72,13 +72,16 @@ def build(feed_path: Path = FEED) -> dict:
          "rate_of_change": by_id[tid].get("rate_of_change"), **state}
         for tid, state in states.items()
     ]
-    rows.sort(key=lambda r: ({NEVER: 0, DUE: 1, FRESH: 2}.get(r["state"], 3), r["id"]))
+    # Worst first, and "worst" is DUE rather than STUB: a page past its threshold makes a
+    # claim that has gone unchecked, while a stub makes no claim at all.
+    rows.sort(key=lambda r: ({DUE: 0, UNCHECKED: 1, STUB: 2, FRESH: 3}.get(r["state"], 4), r["id"]))
     return {
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "source": "site/data/knowledge_wholesale.json",
         "rule": "site/knowledge/review_state.py",
         "policy": feed.get("review_policy"),
-        "tally": {s: sum(1 for r in rows if r["state"] == s) for s in (NEVER, DUE, FRESH)},
+        "tally": {s: sum(1 for r in rows if r["state"] == s)
+                  for s in (DUE, UNCHECKED, STUB, FRESH)},
         "topics": rows,
     }
 
@@ -91,11 +94,24 @@ def generate(out: Path = OUT, feed_path: Path = FEED) -> dict:
 
 
 def needs_attention(payload: dict) -> int:
-    """Pages a reader would be misled by: never reviewed, or past their threshold."""
-    return payload["tally"].get(NEVER, 0) + payload["tally"].get(DUE, 0)
+    """Pages a reader could be MISLED by: they make a full argument that nobody has checked,
+    or checked too long ago.
+
+    A stub is deliberately excluded. It declares on its own face that it is not written, so
+    it makes no claim to distrust -- counting it here would mix the section's honest half in
+    with its risky half and move both together.
+    """
+    return payload["tally"].get(UNCHECKED, 0) + payload["tally"].get(DUE, 0)
+
+
+def unwritten(payload: dict) -> int:
+    """Topics with no page yet. This is the section's WORK list, and it is a different number
+    from the one above -- which is the point. Writing a page moves a topic out of this count
+    and into `unchecked`; only a check against the source moves it any further."""
+    return payload["tally"].get(STUB, 0)
 
 
 if __name__ == "__main__":  # pragma: no cover - operator convenience
     p = generate()
-    print(f"wrote {OUT.relative_to(PROJECT)}: {p['tally']} "
-          f"({needs_attention(p)} of {len(p['topics'])} need attention)")
+    print(f"wrote {OUT.relative_to(PROJECT)}: {p['tally']} — "
+          f"{needs_attention(p)} could mislead a reader, {unwritten(p)} not written yet")

@@ -855,78 +855,84 @@
     {
       "id": "gas-wholesale",
       "title": "GB gas wholesale",
-      "kind": "stub",
+      "kind": "page",
       "class": "fast",
       "blurb": "The GB gas market whose price sets the marginal plant's bid for most hours -- a market in its own right, not a driver-stub of electricity.",
       "scope": "A complete treatment covers the GB gas market as a market in its own right: how the National Balancing Point price is set by the balance of supply (Norwegian pipeline imports, LNG send-out, UKCS production, storage withdrawal, interconnector flows) against demand (heat, power-station burn, industry); the contract curve from within-day through month and season to annual; the role of seasonal storage arbitrage and LNG-cargo optionality; and why GB, as a price-taker on a globally traded fuel, tracks TTF and Asian LNG rather than any domestic cost stack. It drives the electricity price because a gas plant is marginal for most GB hours -- that coupling is one typed edge, never a shared page.",
       "rate_of_change": "medium",
       "reviewed": {
         "last_verified": null,
+        "written": "2026-08-18",
         "source": null
       }
     },
     {
       "id": "gb-electricity-market",
       "title": "The GB electricity market (structure & settlement)",
-      "kind": "stub",
+      "kind": "page",
       "class": "settled",
       "blurb": "The half-hourly settled market these prices live in.",
       "scope": "A complete treatment covers the market these prices live in: half-hourly settlement periods; the roles of generators, suppliers, the ESO and Elexon; the trading timeline from forward contracting to gate closure to imbalance; and how BSC settlement reconciles metered volumes against contracted positions. It is the parent context node for the electricity price at the margin.",
       "rate_of_change": "slow",
       "reviewed": {
         "last_verified": null,
+        "written": "2026-08-18",
         "source": null
       }
     },
     {
       "id": "merit-order-residual-demand",
       "title": "Merit order & residual demand",
-      "kind": "stub",
+      "kind": "page",
       "class": "slow",
       "blurb": "The cheapest-first dispatch queue and the demand left after renewables.",
       "scope": "A complete treatment covers the cheapest-first dispatch queue and residual demand (demand less wind, solar and must-run generation): how the intersection of residual demand with the stack picks the marginal unit whose short-run marginal cost becomes the price, and how a growing renewable fleet shifts the stack -- more hours on cheap or zero-marginal-cost plant, more negative-price hours, and sharper peaks when the wind drops. It is the central price-setting mechanism of electricity wholesale.",
       "rate_of_change": "slow",
       "reviewed": {
         "last_verified": null,
+        "written": "2026-08-18",
         "source": null
       }
     },
     {
       "id": "carbon-price",
       "title": "The UK carbon price (UK ETS + CPS)",
-      "kind": "stub",
+      "kind": "page",
       "class": "slow",
       "blurb": "Carbon Price Support plus the traded ETS price, added to every tonne burned.",
       "scope": "A complete treatment covers the price of emitting a tonne of CO2 in GB power: the traded UK ETS allowance price set by a capped auction market, plus the fixed Carbon Price Support top-up; how the cap trajectory, industrial demand and policy set the allowance price; and how that per-tonne cost enters every fossil plant's marginal bid and therefore the electricity price. Its market and drivers are distinct from both gas and electricity, so it is a separate topic joined by a drives edge.",
       "rate_of_change": "medium",
       "reviewed": {
         "last_verified": null,
+        "written": "2026-08-18",
         "source": null
       }
     },
     {
       "id": "imbalance-cashout-settlement",
       "title": "Imbalance & cash-out",
-      "kind": "stub",
+      "kind": "page",
       "class": "slow",
       "blurb": "How the system prices being short or long, up to the £6,000/MWh ceiling.",
       "scope": "A complete treatment covers how being short or long against your contracted position is priced: the single imbalance price, the balancing actions that set it, and the cash-out ceiling (£6,000/MWh) that caps a shortfall; and why this is the price that ultimately disciplines a supplier's hedging. It is a settlement mechanism of electricity wholesale.",
       "rate_of_change": "medium",
       "reviewed": {
         "last_verified": null,
+        "written": "2026-08-18",
         "source": null
       }
     },
     {
       "id": "hedging-forward-market",
       "title": "Hedging & the forward market",
-      "kind": "stub",
+      "kind": "page",
       "class": "slow",
       "blurb": "How a supplier buys ahead to blunt the price it would otherwise face.",
       "scope": "A complete treatment covers how a supplier buys ahead: the forward curve, the blocks and shapes it trades, and how a hedge programme blunts the delivered price it would otherwise face at spot. It is a product layer over both electricity and gas procurement, so it is a downstream cross-cutting node reached from each fuel's spot topic rather than buried inside either.",
       "rate_of_change": "slow",
       "reviewed": {
         "last_verified": null,
+        "written": "2026-08-18",
         "source": null
       }
     },
@@ -939,9 +945,16 @@
       "scope": "A complete treatment covers how the wholesale price reaches a household: Ofgem's cap methodology, its wholesale-cost allowance, and the lag with which wholesale moves pass through to the capped tariff. This node is retail, not wholesale -- it sits at the domain boundary and is kept in the map to make the wholesale-to-retail seam visible and honest, not as a peer wholesale topic.",
       "rate_of_change": "fast",
       "reviewed": {
-        "last_verified": null,
-        "source": null,
-        "written": "2026-08-18"
+        "last_verified": "2026-08-18",
+        "written": "2026-08-18",
+        "source": "Ofgem's published cap guidance and its 2022 quarterly-update decision",
+        "checked_by": "director",
+        "route": "Read in a browser by a person. Ofgem's cap pages render their content with JavaScript and return only navigation to this project's fetch tooling, so an automated check of them is not currently possible and a human read is the route that works.",
+        "claims_checked": [
+          "The cap is not a cap on the maximum bill -- Ofgem states this plainly.",
+          "The headline level represents a typical dual-fuel customer at TDCV.",
+          "The lag is real: Ofgem moved to quarterly updates in 2022 expressly 'so prices don't lag behind changes in the market'."
+        ]
       }
     }
   ],

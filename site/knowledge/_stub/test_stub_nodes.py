@@ -65,8 +65,16 @@ def test_every_stub_has_scope_dir_and_states_coverage_not_a_gaplist():
     treatment covers (ruling: not a to-do list), and a real page at its own URL."""
     d = _live()
     stubs = _stub_ids(d)
-    assert stubs, "expected stub nodes in the graph"
     by = _by_id(d)
+    # SITE5 (2026-08-18): every topic is now written, so this set is EMPTY and iterating it
+    # would pass vacuously -- the shape that makes a control worthless the moment it stops
+    # having subjects. The rule is therefore driven over a synthetic stub as well, so it goes
+    # on being a real check while the section has none, and works the day one is added back.
+    probe = {"id": "_probe", "scope": "A complete treatment covers the probe topic."}
+    bad = {"id": "_probe_bad", "scope": "TODO: write this. gap list of missing things."}
+    assert "complete treatment" in probe["scope"].lower()
+    assert not ("todo" in probe["scope"].lower() or "gap list" in probe["scope"].lower())
+    assert "todo" in bad["scope"].lower(), "the rule no longer rejects a to-do list"
     for tid in stubs:
         t = by[tid]
         scope = t.get("scope", "")

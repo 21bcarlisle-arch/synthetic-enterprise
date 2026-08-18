@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-18T13:13:10Z",
+  "generated_at": "2026-08-18T14:12:26Z",
   "source": "site/data/knowledge_wholesale.json",
   "rule": "site/knowledge/review_state.py",
   "policy": {
@@ -16,101 +16,89 @@
     }
   },
   "tally": {
-    "never": 7,
     "due": 0,
-    "fresh": 1
+    "unchecked": 6,
+    "stub": 0,
+    "fresh": 2
   },
   "topics": [
     {
       "id": "carbon-price",
       "title": "The UK carbon price (UK ETS + CPS)",
       "rate_of_change": "medium",
-      "state": "never",
+      "state": "unchecked",
       "last_verified": null,
-      "written": null,
+      "written": "2026-08-18",
       "days_allowed": 183,
       "age_days": null,
       "overdue_by": null,
-      "label": "Never checked against the source",
-      "detail": "Nobody has recorded checking it against the published source since."
+      "label": "Written, awaiting check",
+      "detail": "Written 2026-08-18. The explanation below has not been checked against the published source."
     },
     {
       "id": "gas-wholesale",
       "title": "GB gas wholesale",
       "rate_of_change": "medium",
-      "state": "never",
+      "state": "unchecked",
       "last_verified": null,
-      "written": null,
+      "written": "2026-08-18",
       "days_allowed": 183,
       "age_days": null,
       "overdue_by": null,
-      "label": "Never checked against the source",
-      "detail": "Nobody has recorded checking it against the published source since."
+      "label": "Written, awaiting check",
+      "detail": "Written 2026-08-18. The explanation below has not been checked against the published source."
     },
     {
       "id": "gb-electricity-market",
       "title": "The GB electricity market (structure & settlement)",
       "rate_of_change": "slow",
-      "state": "never",
+      "state": "unchecked",
       "last_verified": null,
-      "written": null,
+      "written": "2026-08-18",
       "days_allowed": 365,
       "age_days": null,
       "overdue_by": null,
-      "label": "Never checked against the source",
-      "detail": "Nobody has recorded checking it against the published source since."
+      "label": "Written, awaiting check",
+      "detail": "Written 2026-08-18. The explanation below has not been checked against the published source."
     },
     {
       "id": "hedging-forward-market",
       "title": "Hedging & the forward market",
       "rate_of_change": "slow",
-      "state": "never",
+      "state": "unchecked",
       "last_verified": null,
-      "written": null,
+      "written": "2026-08-18",
       "days_allowed": 365,
       "age_days": null,
       "overdue_by": null,
-      "label": "Never checked against the source",
-      "detail": "Nobody has recorded checking it against the published source since."
+      "label": "Written, awaiting check",
+      "detail": "Written 2026-08-18. The explanation below has not been checked against the published source."
     },
     {
       "id": "imbalance-cashout-settlement",
       "title": "Imbalance & cash-out",
       "rate_of_change": "medium",
-      "state": "never",
+      "state": "unchecked",
       "last_verified": null,
-      "written": null,
+      "written": "2026-08-18",
       "days_allowed": 183,
       "age_days": null,
       "overdue_by": null,
-      "label": "Never checked against the source",
-      "detail": "Nobody has recorded checking it against the published source since."
+      "label": "Written, awaiting check",
+      "detail": "Written 2026-08-18. The explanation below has not been checked against the published source."
     },
     {
       "id": "merit-order-residual-demand",
       "title": "Merit order & residual demand",
       "rate_of_change": "slow",
-      "state": "never",
+      "state": "unchecked",
       "last_verified": null,
-      "written": null,
+      "written": "2026-08-18",
       "days_allowed": 365,
       "age_days": null,
       "overdue_by": null,
-      "label": "Never checked against the source",
-      "detail": "Nobody has recorded checking it against the published source since."
-    },
-    {
-      "id": "price-cap",
-      "title": "The retail price cap",
-      "rate_of_change": "fast",
-      "state": "never",
-      "last_verified": null,
-      "written": "2026-08-18",
-      "days_allowed": 92,
-      "age_days": null,
-      "overdue_by": null,
-      "label": "Never checked against the source",
-      "detail": "Written 2026-08-18. Nobody has recorded checking it against the published source since."
+      "label": "Written, awaiting check",
+      "detail": "Written 2026-08-18. The explanation below has not been checked against the published source."
     },
     {
       "id": "electricity-wholesale",
@@ -123,6 +111,18 @@
       "overdue_by": null,
       "label": "Reviewed 2026-07-25",
       "detail": "Checked 24 days ago against a 183-day threshold. Source: GB multi-plant SRMC dispatch stack DISCOVER."
+    },
+    {
+      "id": "price-cap",
+      "title": "The retail price cap",
+      "rate_of_change": "fast",
+      "state": "fresh",
+      "last_verified": "2026-08-18",
+      "days_allowed": 92,
+      "age_days": 0,
+      "overdue_by": null,
+      "label": "Reviewed 2026-08-18",
+      "detail": "Checked 0 days ago against a 92-day threshold. Source: Ofgem's published cap guidance and its 2022 quarterly-update decision."
     }
   ]
 }

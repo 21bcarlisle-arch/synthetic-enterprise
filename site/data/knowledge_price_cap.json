@@ -8,9 +8,17 @@
     "rate_of_change_class": "fast",
     "no_current_level": "This page deliberately carries NO current cap level. Ofgem resets it every quarter, so any figure written here would be wrong within weeks and would look authoritative while being so. The mechanism below does not change quarterly; the number does. For the number, go to Ofgem.",
     "claim_freshness": {
-      "last_verified": null,
+      "last_verified": "2026-08-18",
       "written": "2026-08-18",
-      "note": "Written from established regulatory mechanism, NOT checked line by line against Ofgem's current published methodology. The two Ofgem pages that would confirm it render their content with JavaScript and could not be read by the tooling available when this was written. That is why the badge above says never checked, and it is accurate."
+      "checked_by": "director",
+      "source": "Ofgem's published cap guidance and its 2022 decision to move to quarterly updates",
+      "route": "Read in a browser by a person. Ofgem's cap pages render their content with JavaScript and return only navigation to this project's fetch tooling, so an automated check is not currently possible and a human read is the route that works.",
+      "claims_checked": [
+        "The cap is not a cap on the maximum bill -- Ofgem states this plainly.",
+        "The headline level represents a typical dual-fuel customer at typical consumption (TDCV).",
+        "The lag is real: Ofgem moved to quarterly updates in 2022 expressly 'so prices don't lag behind changes in the market'."
+      ],
+      "note": "Written 2026-08-18 from established regulatory mechanism; the two core claims above were then checked against Ofgem's own published material and hold."
     }
   },
   "rungs": {
@@ -20,7 +28,7 @@
     },
     "plain": {
       "heading": "In plain terms",
-      "body": "Two things are widely believed about the cap and both are wrong. The first is that it caps your bill. It does not: it caps the PRICE of each unit and the daily standing charge. Use twice as much energy and you pay roughly twice as much, capped or not. The figure quoted in the news is what a household with typical consumption would pay over a year at the capped rates — an illustration, not a limit. A household that uses more than typical will pay more than the headline, and has not been overcharged.\n\nThe second is that the cap tracks the market. It follows it, at a distance. Ofgem looks at wholesale prices over an observation window, then sets a cap for a period that starts after that window has closed. So when gas prices collapse, capped bills stay high for months; when they spike, capped bills stay low for months, and suppliers absorb the difference. The lag runs in both directions, and it is a deliberate feature — a cap that moved daily would be no more predictable for a household than no cap at all."
+      "body": "Two things are widely believed about the cap and both are wrong. The first is that it caps your bill. It does not: it caps the PRICE of each unit and the daily standing charge. Use twice as much energy and you pay roughly twice as much, capped or not. The figure quoted in the news is what a household with typical consumption would pay over a year at the capped rates — an illustration, not a limit. A household that uses more than typical will pay more than the headline, and has not been overcharged.\n\nThe second is that the cap tracks the market. It follows it, at a distance. Ofgem looks at wholesale prices over an observation window, then sets a cap for a period that starts after that window has closed. So when gas prices collapse, capped bills stay high for months; when they spike, capped bills stay low for months, and suppliers absorb the difference. The lag runs in both directions, and it is a deliberate feature — a cap that moved daily would be no more predictable for a household than no cap at all. It is also acknowledged by the regulator: when Ofgem moved the cap from six-monthly to quarterly updates in 2022, it gave the reason plainly — so that prices “don't lag behind changes in the market”. Shortening the cadence reduced the lag; it did not remove it, because the wholesale allowance is still measured over a window that closes before the period it sets."
     },
     "theory": {
       "heading": "How it works",
@@ -32,7 +40,7 @@
     },
     "live_evidence": {
       "heading": "Live evidence",
-      "body": "NOT ON THIS PAGE YET, and stated rather than quietly omitted. The wholesale series that would let a reader see the lag with their own eyes already exists on this site, on the wholesale price page, drawn from nearly ten years of real settlement data. What does not exist yet is the capped-rate series to plot against it, which needs Ofgem's published cap levels ingested as the files they are published as. Until that lands, the claims above are argued from mechanism, not shown from data — a weaker thing, and it should be read as weaker."
+      "body": "NOT SHOWN ON THIS PAGE YET, and stated rather than quietly omitted. Two of the page's core claims have been CHECKED against Ofgem's own published material -- that the cap is not a cap on the bill, and that the headline level describes a typical household at typical consumption -- and the lag has the regulator's own stated reason behind it. Checked is not the same as shown: what does not exist yet is the capped-rate series to plot against the wholesale series this site already carries, which needs Ofgem's published cap levels ingested as the files they are published as. Until that lands, the shape argued above is argued, not demonstrated."
     },
     "residuals": {
       "heading": "Where our picture is still weak",
@@ -40,7 +48,7 @@
     },
     "scope_delta": {
       "heading": "What this page does not yet establish",
-      "body": "It does not carry a current cap level, deliberately — see the note above; the level changes quarterly and the mechanism does not. It does not plot capped rates against wholesale cost, which is the single thing that would turn the lag from an assertion into a demonstration. And it has not been checked line by line against Ofgem's current published methodology, which is why it is marked as never checked against the source rather than as reviewed."
+      "body": "It does not carry a current cap level, deliberately — see the note above; the level changes quarterly and the mechanism does not. It does not plot capped rates against wholesale cost, which is the single thing that would turn the lag from an assertion into a demonstration. Its two core claims have been checked against Ofgem's published material, but the METHODOLOGY -- the exact construction of the wholesale allowance -- has not been read line by line, so the precise timing of pass-through should be taken from Ofgem's own document rather than from here."
     }
   }
 }

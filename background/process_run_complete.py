@@ -2823,10 +2823,16 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
         # this module's first landing for). The log line is the operator signal -- staleness
         # surfaces without anyone opening the site -- and the artefact is what the Knowledge
         # index will render so a reader sees which pages are stale BEFORE clicking in.
-        from tools.generate_knowledge_review import generate as gen_k_review, needs_attention
+        from tools.generate_knowledge_review import (
+            generate as gen_k_review, needs_attention, unwritten)
         _kr = gen_k_review()
-        log("Generated site/data/knowledge_review.json -- {} of {} Knowledge pages need "
-            "attention {}".format(needs_attention(_kr), len(_kr["topics"]), _kr["tally"]))
+        # TWO numbers, deliberately. The first counts pages a reader could be MISLED by --
+        # written but unchecked, or checked too long ago. The second counts topics with no
+        # page yet. Writing a page moves it from the second to the first and reduces neither
+        # risk; only a check against the published source does that.
+        log("Generated site/data/knowledge_review.json -- {} Knowledge page(s) could mislead "
+            "a reader, {} not written yet {}".format(
+                needs_attention(_kr), unwritten(_kr), _kr["tally"]))
     except Exception as exc:
         log("Knowledge review generation failed: {}".format(exc))
     try:

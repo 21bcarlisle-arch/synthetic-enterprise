@@ -31,11 +31,12 @@ import pytest
 HERE = Path(__file__).resolve().parent
 SITE = HERE.parent
 FEED = SITE / "data" / "knowledge_wholesale.json"
-STUB = HERE / "_stub" / "index.html"
+STUB_TEMPLATE = HERE / "_stub" / "index.html"
 
 sys.path.insert(0, str(HERE))
 
-from review_state import DUE, FRESH, NEVER, review_state, states_for, threshold_days  # noqa: E402
+from review_state import (  # noqa: E402
+    DUE, FRESH, STUB, UNCHECKED, review_state, states_for, threshold_days)
 
 
 @pytest.fixture(scope="module")
@@ -78,22 +79,34 @@ def test_the_thresholds_differ_by_how_fast_the_subject_moves(feed):
 # ---------------------------------------------------------------------------
 # The state itself
 # ---------------------------------------------------------------------------
-def test_an_unreviewed_page_is_never_fresh(feed):
-    """THE fail-open. Seven of eight topics have never been reviewed; if 'no date' read as
-    'fine', this control would have been decorative on the day it shipped, and the section
-    would look maintained precisely because nobody had maintained it."""
+def test_an_unchecked_page_is_never_fresh(feed):
+    """THE fail-open. If 'no recorded check' read as 'fine', this control would be decorative
+    and the section would look maintained precisely because nobody had maintained it. The
+    unchecked state now splits in two -- STUB for a page that makes no claim, UNCHECKED for a
+    written one nobody has verified -- and NEITHER may read fresh."""
     for topic in feed["topics"]:
         state = review_state(topic, feed["review_policy"])
         if not topic["reviewed"]["last_verified"]:
-            assert state["state"] == NEVER, topic["id"]
-            assert state["state"] != FRESH
+            assert state["state"] in (STUB, UNCHECKED), (topic["id"], state["state"])
+            assert state["state"] != FRESH, topic["id"]
+
+
+def test_a_written_page_with_no_check_is_unchecked_not_a_stub(feed):
+    """The distinction the director asked for, driven on the real record: a written page that
+    nobody has checked must not hide among the stubs, because it makes a full argument."""
+    written_unchecked = [t["id"] for t in feed["topics"]
+                         if t.get("kind") == "page" and not t["reviewed"]["last_verified"]]
+    for tid in written_unchecked:
+        topic = next(t for t in feed["topics"] if t["id"] == tid)
+        assert review_state(topic, feed["review_policy"])["state"] == UNCHECKED, tid
 
 
 @pytest.mark.parametrize("bad", [None, "", "not-a-date", "2026-13-45", 20260725, {}, []])
 def test_MUTATION_FAIL_OPEN_an_unparseable_date_is_never_fresh(bad):
     state = review_state({"rate_of_change": "slow", "reviewed": {"last_verified": bad}},
                          {"threshold_days": {"slow": 365}})
-    assert state["state"] == NEVER, f"{bad!r} read as {state['state']}"
+    assert state["state"] in (STUB, UNCHECKED), f"{bad!r} read as {state['state']}"
+    assert state["state"] != FRESH
 
 
 def test_MUTATION_FAIL_OPEN_a_missing_policy_uses_the_tightest_threshold():
@@ -125,15 +138,48 @@ def test_the_boundary_is_exact_and_does_not_fire_a_day_early(feed):
         assert review_state(topic, policy, today=on_the_day + timedelta(days=1))["state"] == DUE, cls
 
 
-def test_the_one_real_review_date_is_the_one_already_recorded(feed):
-    """The deep page's own claim_freshness. Review dates are not invented for pages nobody
-    has reviewed -- that would make every figure here fiction."""
+def test_no_review_date_exists_without_evidence_of_the_check(feed):
+    """SITE5 (2026-08-18): this pinned the review-date set to exactly
+    ["electricity-wholesale"], which was right while that was the only checked page and wrong
+    the moment a second page was genuinely checked -- the director checked the price cap
+    against Ofgem the same day. The count was never the invariant. The invariant is that a
+    date cannot be typed in without saying WHAT was checked against, which is what stops the
+    section being made to look reviewed by editing a field.
+    """
     by_id = {t["id"]: t for t in feed["topics"]}
     assert by_id["electricity-wholesale"]["reviewed"]["last_verified"] == \
-        feed["meta"]["claim_freshness"]["last_verified"]
-    invented = [t["id"] for t in feed["topics"]
-                if t["reviewed"]["last_verified"] and t["id"] != "electricity-wholesale"]
-    assert not invented, f"review dates appeared for pages with no recorded review: {invented}"
+        feed["meta"]["claim_freshness"]["last_verified"], "the deep page's own record moved"
+
+    for topic in feed["topics"]:
+        rec = topic["reviewed"]
+        if not rec.get("last_verified"):
+            continue
+        assert rec.get("source"), (
+            f"{topic['id']} carries a review date with no source -- a date nobody can trace "
+            "is not evidence of a check"
+        )
+
+
+def test_a_check_records_how_it_was_done_where_the_route_is_not_obvious(feed):
+    """The price cap could not be checked by this project's own tooling: Ofgem's pages render
+    with JavaScript and return only navigation to an automated fetch. The route that DID work
+    -- a person reading it in a browser -- is recorded, because the next person to re-check it
+    in 92 days will otherwise repeat the dead end."""
+    by_id = {t["id"]: t for t in feed["topics"]}
+    rec = by_id["price-cap"]["reviewed"]
+    assert rec["last_verified"], "the price cap check is not recorded"
+    assert rec.get("route"), "the checking route is not recorded"
+    assert rec.get("claims_checked"), "no claim is named as checked -- 'verified' means what?"
+    assert len(rec["claims_checked"]) >= 2
+
+
+def test_MUTATION_a_review_date_with_no_source_fires(feed):
+    """The defect the control exists for: making the section look reviewed by typing a date."""
+    doctored = [dict(t) for t in feed["topics"]]
+    doctored[0] = dict(doctored[0], reviewed={"last_verified": "2026-08-18"})
+    offenders = [t["id"] for t in doctored
+                 if t["reviewed"].get("last_verified") and not t["reviewed"].get("source")]
+    assert offenders, "a bare date passed the check"
 
 
 # ---------------------------------------------------------------------------
@@ -141,7 +187,7 @@ def test_the_one_real_review_date_is_the_one_already_recorded(feed):
 # ---------------------------------------------------------------------------
 def _js_state(topic_id: str, feed: dict, today_iso: str) -> dict:
     """Drive the PAGE's own JavaScript rule, not a re-implementation of it."""
-    js = STUB.read_text(encoding="utf-8")
+    js = STUB_TEMPLATE.read_text(encoding="utf-8")
     start = js.index("function reviewState(")
     end = js.index("function renderReview(")
     script = js[start:end]
@@ -158,7 +204,7 @@ console.log(JSON.stringify(out));
 
 
 def test_the_page_renders_a_review_state_element():
-    html = STUB.read_text(encoding="utf-8")
+    html = STUB_TEMPLATE.read_text(encoding="utf-8")
     assert 'id="review-state"' in html, "the page has nowhere to show staleness"
     assert "renderReview(" in html, "the review state is never rendered"
 
@@ -196,4 +242,4 @@ def test_MUTATION_the_javascript_fail_open_is_closed_too(feed):
              "reviewed": {"last_verified": None}}
     doctored = dict(feed, topics=[probe])
     js = _js_state("probe", doctored, date.today().isoformat())
-    assert js["state"] == NEVER, js
+    assert js["state"] in ("stub", "unchecked"), js

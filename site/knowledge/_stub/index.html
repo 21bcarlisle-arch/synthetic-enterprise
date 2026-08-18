@@ -36,7 +36,8 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .reviewline { font-size: 12px; margin-bottom: 12px; }
 .badge.rev-fresh { color: var(--green); border: 1px solid var(--green); }
 .badge.rev-due { color: var(--amber); border: 1px solid var(--amber); }
-.badge.rev-never { color: var(--red); border: 1px solid var(--red); }
+.badge.rev-stub { color: var(--muted); border: 1px solid var(--border); }
+.badge.rev-unchecked { color: var(--amber); border: 1px solid var(--amber); }
 .reviewline .rd { color: var(--muted); margin-left: 6px; }
 .sec { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em;
   color: var(--muted); margin-bottom: 12px; margin-top: 40px; }
@@ -127,13 +128,16 @@ function reviewState(topic, policy, today){
   var raw = rec.last_verified;
   var when = (typeof raw === "string") ? new Date(raw.slice(0,10) + "T00:00:00Z") : null;
   if (!when || isNaN(when.getTime())) {
-    // WRITTEN is not REVIEWED. A page written this morning has still never been checked
-    // against the published source, and saying so plainly beats letting a red badge read
-    // as a bug. Only the CHECK moves the state.
-    return { state:"never", label:"Never checked against the source", days_allowed:days,
+    // FOUR states. A STUB declares itself unwritten and makes no claim to distrust; an
+    // UNCHECKED page makes a full argument nobody has verified. Only a CHECK moves either.
+    if (!topic || topic.kind !== "page") {
+      return { state:"stub", label:"Not written yet", days_allowed:days, written:null,
+               detail:"This page names its topic and says it is not written. It makes no claim to check." };
+    }
+    return { state:"unchecked", label:"Written, awaiting check", days_allowed:days,
              written: rec.written || null,
              detail:(rec.written ? "Written " + rec.written + ". " : "") +
-                    "Nobody has recorded checking it against the published source since." };
+                    "The explanation below has not been checked against the published source." };
   }
   var age = Math.floor((today - when) / 86400000);
   if (age - days > 0) {

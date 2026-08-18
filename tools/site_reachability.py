@@ -105,6 +105,13 @@ STRUCTURAL_EXCLUSIONS: dict[str, str] = {
         "a page TEMPLATE for authoring new knowledge pages, not reader content; it is the "
         "shape a knowledge page copies, and publishing it would publish a stub"
     ),
+    "knowledge/_page/index.html": (
+        "the sibling TEMPLATE for a WRITTEN knowledge page (SITE5, 2026-08-18), not reader "
+        "content: it renders whichever topic its directory name resolves to, so at its own "
+        "URL it resolves to nothing. Same status as _stub/index.html above, and it exists "
+        "for the same reason -- one template serving every written topic beats six "
+        "near-identical files drifting apart"
+    ),
     "brand/exemplar.html": (
         "an internal brand-token visualisation used when changing brand.css, not a reader "
         "surface"
