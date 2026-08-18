@@ -1,6 +1,126 @@
 atom_id: H27_payment_belief_gap
 simplifications:
 - "THIRTY-SECOND HOUR (2026-08-15 UTC, worker tick, LANE 1 BUILD draw on this atom).\nTHE LEVEL DOES NOT MOVE. `level_current` stays 2. The Hour ran, it was the Hour\nthis atom's own record specified, and it ends with three BLOCKING findings, so\nthe promotion condition #31 wrote down is not met.\n\nWHY THIS HOUR EXISTED, AND WHY ITS ANSWER COUNTS. Hour #31 corrected a false\nCLAIM shipping on every surface the detection figure feeds, then refused its own\n2->3 on the reasoning that \"an Hour cannot be its own confirmation\", and wrote\nthe honest promotion condition BEFORE the next Hour ran: \"an Hour that ends with\nno BLOCKING finding against the corrected instrument\". That ordering is what\nmakes this outcome a measurement rather than a negotiation -- the bar could not\nbe moved after the result was known. It is also the reason this record does not\nargue the findings down: #31 pre-committed, and #32 is bound by it.\n\nRun as a FRESH read-only instance with no memory of the build (`Write`/`Edit`\nabsent, not merely unused), which is what a cold-eyes pass on one's own lane\nrequires. Measured at HEAD f4144b4f0.\n\nWHAT THE HOUR CONFIRMED, so a later Hour need not re-buy it. The instrument's\nNUMBERS are sound. Every headline #31 asserted was re-derived INDEPENDENTLY --\nswept from `build_scenario` / `dense_drift_grid` / `score_triad` without calling\nthe measurement under test -- and reproduces exactly: interior pairs 86/86/86;\ncounted change points 38/34/32; excluded 62/63/61; silent-set moves 34/40/37;\nthe move-iff-it-touches-`S u N` predicate 258/258 with zero disagreements;\nexcluded band 212/209/213 of 900. The correction is in HEAD (2a9ea1c76, gate\nreceipt rc 0), the suite is 471 green, the caveat's numbers really are\ninterpolated (forcing the register to (5,5) moves the rendered sentence), R12\nholds (no scorer arithmetic touched), and the R13 premise holds (truth-side sets\ninvariant across the drift on all three seeds). The two D28 residuals #31 ruled\nnon-blocking are NOT among the findings below; every one of them is something\nelse.\n\nTHE THREE BLOCKING FINDINGS, filed as\n`docs/staging/WORKER_FINDING_THE_CORRECTED_SENTENCE_NEVER_REACHED_THE_READER_AND_ITS_CONTROL_HAS_NO_CALLER_2026-08-15.md`\n(severity BLOCKING, lane H_harness, class `no_caller_and_never_runs` -- whose\nclass lane is H_harness too, so it consolidates as a MEMBER rather than being\nrefused out of lane).\n\n1. THE CORRECTED SENTENCE IS ON NO PUBLISHED SURFACE. Live fetch of\n   `https://poesys.net/data/proof.json` (HTTP 200, 747,008 bytes, generated_at\n   2026-08-14T06:04:08Z) serves the UNCORRECTED clause verbatim at\n   `coupled_gaps.pairs[5].components.drift_resolution_caveat`; the corrected\n   phrases score zero on the live payload. The corrected string exists only in\n   the git INDEX and working tree -- `git show :site/data/proof.json` finds it,\n   `git show HEAD:site/data/proof.json` does not. Staged, uncommitted,\n   unpublished: the consumer landed and the supplier did not, one day after this\n   atom's own record logged that exact shape as a defect. The test cited as\n   \"R11's shape on a sentence\" asserts against an in-process object, which is\n   why it could not catch this -- R11 wants the fetched surface.\n\n2. R15 FAIL-OPEN, and the control's own error message names the move it cannot\n   see. `tools/couple_w2_11_d5.py:8777` compares by CONTAINMENT\n   (`declared[0] <= got[0] and got[1] <= declared[1]`) while its docstring says\n   it \"requires that the DECLARATION match the BOOK\". Declaring all three bands\n   (0, 86) returns no violation, and the caveat then publishes the widened band\n   as its own cause -- \"steps at 0-86 ... and at only 0-86\" -- destroying the\n   entire contrast the sentence exists to draw. The string it cannot emit ends\n   \"never widen the band to fit\". All four band mutation cases narrow or shift;\n   NONE widens, so \"R15 both ways\" was proven only in the direction that cannot\n   hide a defect. Second fail-open on the same loop: `if declared is None:\n   continue` -- an omitted band is not a violation.\n\n3. NO CALLER ON ANY RUN THAT PUBLISHES THE SENTENCE, and R10 makes it a class\n   fix. Repo-wide, outside `tests/`, `check_detection_interior_change_points`\n   has TWO mentions and both are comments. AST census: 15 `check_*` defined, 10\n   called in `main()`, this one among the 5 that are not -- while its three\n   resolution siblings are all called, and print their verdicts BEFORE the\n   `if args.write_ledger:` branch that publishes the caveat. Two shipped\n   comments (:4120, :8864) assert it is \"re-derived every run\" / \"on trial every\n   run\"; both are false as shipped. The decay path is concrete: the pre-commit\n   gate selects by NAME STEM, so these tests run only when this module changes,\n   yet the bands are properties of a book built from\n   `simulation/payment_behaviour_source.py` and\n   `company/billing/payment_observation_consumer.py`.\n\nTHE R10 POINT, stated plainly because it is the reason this is not just wiring.\nHour #30's note in this very record calls a no-caller control on this instrument\n\"the SECOND ... a rate, not an incident\", and records the class CLOSED because\n\"the grader has a caller on every publish\". This is the THIRD, shipped one Hour\nafter that closure. R10 forbids closing an absurdity-class defect with an\ninstance fix, and the receipt for why is now on disk. The discharge is therefore\ntwo-part: wire the call AND add the automated census that every `check_*` in this\nmodule is reachable from `main()`. The 5-of-15 gap measured here is that\ncensus's first population, and the other four uncalled checks\n(`check_door_row_surfaces`, `check_published_figure_caveat_coverage`,\n`check_published_resolution_floor`, `check_scenario_constant_census`) must be\ndispositioned by it rather than left unnamed.\n\nALSO FOUND, not blocking. LATENT: `DIMENSION_DRIFT_RESOLUTION[\"detection\"][\"why\"]`\nstill hard-types \"61-63\"/\"86\"/\"32-38\"/\"34-40\" as literal prose beside the band\nfields it could interpolate from -- so of the \"two sentences now interpolated\nrather than typed\", only one is; LATENT rather than BLOCKING because `why`\nreaches no reader (zero hits in the live payload and under `docs/observability/`\nand `site/data/`). LATENT: half of \"258/258\" is arithmetic rather than evidence\n(a step wholly inside the excluded band cannot move either rate by\nconstruction) -- no action, the docstring already says so, recorded only so a\nlater Hour does not read it as stronger than it is. RECORDED: \"63 distinct\ndistances\" does not reproduce -- 212 past grace confirmed, but the distinct\ncount is 73 (70-73 under every reasonable restriction); 63 is the seed-11\nEXCLUDED CHANGE-POINT count, so the prose conflates two quantities. Narrative\nonly, nothing published moves.\n\nONE DISCLOSURE ABOUT THE HOUR'S OWN FOOTPRINT. A bare\n`pytest tests/tools/test_couple_w2_11_d5.py` rewrites\n`docs/observability/coupled_gap_ledger.json` -- a test run silently\nre-publishing into the supplier of a public door, a lead Hour #30 left open and\nwhich lives in this atom's own file_scope. The Hour's run did that. It was NOT\nrestored, deliberately: by the time the Hour reported, a concurrent lane had\nrewritten the file again (md5 ac003306d, matching neither the pre-run snapshot\ne50a5bf26, nor the post-run 10405d458, nor HEAD 29195a5e0), so restoring the\nsnapshot would have clobbered another lane's live write on the shared tree --\nthe worse defect. Snapshot preserved at `/tmp/ledger_before_expert_hour.json`\nfor whoever takes the isolation fix; the file should not be swept into a commit\nas-is.\n\nWHAT WOULD MAKE IT AN HONEST 3, unchanged from what #31 wrote and now with three\nnamed obstacles instead of none: an Hour that ends with no BLOCKING finding\nagainst the corrected instrument. Take finding 1 first and alone -- it is a\nregenerate-commit-publish-refetch with no design in it, it is the only one a\nreader is currently harmed by, and it discharges against a live fetch rather\nthan a test.\n"
+- 'THIRTY-FOURTH HOUR (2026-08-18, worker tick, self-refill 2->3 HARDEN draw).
+
+  THE LEVEL DOES NOT MOVE. `level_current` stays 2, and this pass is NOT evidence
+
+  for the promotion condition #31 pre-committed: that condition asks for a fresh
+
+  cold-eyes Expert Hour that ends with no BLOCKING finding, and this was a targeted
+
+  HARDEN pass discharging #33''s ranked owed list. An Hour that works from the
+
+  build''s own memory is not the Hour that clears the instrument.
+
+
+  OWED ITEM (1), STOP THE WRITE -- DISCHARGED AND VERIFIED, not re-derived.
+
+  `background/live_ledger_guard.py` was already at HEAD with three writers calling
+
+  it (`gap_metric.write_gap_entry`, `conversation_gap_ledger.record_gap`,
+
+  `dd_h_solvency_gap.record_gap`) and its subject DERIVED (any path resolving
+
+  inside `docs/observability/`), so a ledger nobody enumerated is covered. The
+
+  verification is the one #33''s own observation demands rather than a unit test:
+
+  `pytest tests/tools/test_couple_w2_11_d5.py` -- the module measured moving the
+
+  live ledger mid-run on 2026-08-17 (md5 825330de9 -> e56aa515c) -- ran 513 passed
+
+  in 537s with `coupled_gap_ledger.json` md5 b3740434b UNCHANGED across the whole
+
+  run. 15 guard tests green.
+
+
+  OWED ITEM (2)''s BLOCKER WAS NOT A BAD DOOR, and this is the finding of the pass.
+
+  #33 declined to ship the door-vs-ledger tripwire because it "would be BORN RED on
+
+  the HEAD divergence" -- and it would have been: reading BOTH sides from the one
+
+  ref 079931c16 gives 4 violations (door 0.0833907649896623 vs ledger 0.0859375,
+
+  universe_size 1600 vs 1557, n_negatives 1451 vs 1408, false_flag_rate 0.166782 vs
+
+  0.171875). But the door at that ref was CURRENT (generated 2026-08-18T00:52:34Z)
+
+  and the LEDGER was six days STALE (measured 2026-08-12T06:10:09Z), while the
+
+  working tree carried the real measurement the door was generated from (measured
+
+  2026-08-18T00:46:01Z, six minutes before it) UNCOMMITTED. The published artefact
+
+  had been committed and its source record had not -- so #33''s "the committed pair
+
+  has never agreed" was true, and its cause was an unlanded record, not a wrong
+
+  figure. Landed as e7a554d03: universe_size 1600 is the production book (the
+
+  2026-08-17 fixture substitution was 276), and exactly ONE of the fourteen pairs
+
+  moves -- this atom''s own -- the other thirteen byte-identical.
+
+
+  OWED ITEM (2), SHIPPED: `site/proof/test_the_published_door_reproduces_its_ledger.py`
+
+  (c7a1fdab0), the AUTOMATED CALLER `check_published_door_reproduces_the_ledger`
+
+  had never had -- zero callers outside its own module, Hour #32''s no-caller class
+
+  in its third instance. Site lane because that step fires on site/**, on any
+
+  `generate_*_data` producer, and on a site-consumed ledger, i.e. on either
+
+  subject; the tests/ gate selects by NAME STEM and would never run it. Landed in
+
+  its OWN commit, after the repair that greens it. R15 both ways against real
+
+  history: RED at 079931c16 (4 violations), GREEN at e7a554d03 (0 violations,
+
+  10/10 declared components compared), plus three mutations proven to fire --
+
+  ledger absent (fail-silent), this atom''s entry removed, and the partial drop
+
+  below. 133 passed in site/proof (was 131).
+
+
+  A FAIL-OPEN FOUND BY RUNNING THE MUTATION RATHER THAN READING THE CODE, and my
+
+  own first draft asserted the opposite. That draft justified its vacuity guard by
+
+  claiming an all-components-dropped ledger returns zero violations. FALSE: #33
+
+  already guards the empty case. What nothing guarded is the APPROACH to it --
+
+  drop nine of ten components and leave `caught`, and the existing check returns
+
+  ZERO violations while the headline assertion PASSES, because a non-empty
+
+  `compared` satisfies the emptiness guard and `measure_published_door_against_the_ledger`
+
+  `continue`s past any name absent from either side. Nine published figures sit
+
+  outside the comparison with nothing firing. Erosion only looks like vacuity on
+
+  its last step. The shipped guard asserts the compared population is the DECLARED
+
+  one, not merely non-empty.
+
+
+  STILL OWED, unchanged in rank: (3) the note-field roll (this file is 19,856 B
+
+  against the 65,536 B watermark after #33''s compaction, so it did not bite here,
+
+  and the underlying "the roll cannot chunk a string" remains). (4) #28''s surviving
+
+  leads: the 14 undeclared live entries nothing re-measures on a schedule; #27''s
+
+  clamp and six-unwalked-rows; D35''s scoped build; #21''s vacuous-in-isolation
+
+  sibling control. R12: no figure this instrument computes was touched.'
 map_notes:
   harden_note: 'HARDEN PASS RAN 2026-08-08 (commit 72ecfff7d); recorded here 2026-08-08 because the pass fixed code and tests but left the map cell silent -- the work was invisible to the map, and a silent cell is why the self-refill kept re-drawing this atom for a level move it cannot make. Delivered, both mutation-proven: (1) the DD-channel LEAK WITNESS was VACUOUS -- `n_flagged_non_dd_failures == 0` passes identically when the channel observes nothing at all as when it observes cleanly, so a vacuity guard now carries it (test_leak_witness_is_vacuous_without_its_channel_guard pins the defect the guard closes); (2) three silent `.get()` JOIN DROPS had no witness -- `value_date`/`invoice_ref`/`reference` key drift would have pushed the measured gap toward the no-skill baseline with nothing firing, so n_unjoined_dd_failures / n_unjoined_collection_misses / n_ageing_refs_matched are now asserted against a deliberate key drift. 24/24 green. NEW FINDING from the pass, reported not tuned (R12): the headline DETECTION gap is INSENSITIVE TO THE ENTIRE DD-OBSERVATION CHANNEL -- `flagged_set` is a UNION, `n_flagged_via_dd_channel_only == 0` across seeds 7/11/23, so killing the DD channel outright leaves the published number bit-identical. Structurally reasonable (a rail failure means the cash did not arrive, which reconciliation also sees) but it means set-membership detection is blind to the only thing that channel buys: EARLIER detection. That test is labelled CHARACTERIZATION deliberately -- it pins a measured limit, not a contract, and is expected to fire if the channel ever starts contributing.'
   level_hold_note: 'HELD AT L2 (level_current 2, level_target 3). THIS NOTE WAS COMPACTED ON 2026-08-17 BY EXPERT HOUR #33 AND THAT COMPACTION IS ITSELF A FINDING. It had reached 54,930 chars -- 81% of this atom''s store file, which the append pushed to 67,812 B against the 65,536 B ROLL_WATERMARK, and `roll_for_atom` returned 0 because the roll chunks LIST entries and this is one string field the roll cannot split. The record of the atom had become unwritable: the wedge `test_the_live_store_has_roll_headroom` exists to catch, caught. Thirty-three Hours appending to one field is the cause; Hour #33 only tipped it. The store''s own contract is the authority for the fix (`set_note_for_atom`: a note is a CURRENT statement, revision is the correct semantics, and the durable history of what changed lives in git) -- so the full 54,930-char note is in this file''s git history and in the commit that landed Hour #33, nothing is deleted, and what follows is what is CURRENTLY TRUE. Hours #3-#32''s individual narratives are there, not here.
