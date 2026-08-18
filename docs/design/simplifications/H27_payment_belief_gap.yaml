@@ -469,18 +469,160 @@ simplifications:
   check, not a default-path one.
 
   '
+- 'THIRTY-SIXTH HOUR (2026-08-18, worker tick, self-refill 2->3 HARDEN draw).
+
+  THE LEVEL DOES NOT MOVE. `level_current` stays 2. Like #34 and #35 this was a targeted
+
+  HARDEN pass working from this atom''s own ranked owed list, not the fresh cold-eyes Expert
+
+  Hour #31 pre-committed as the promotion condition -- and it ends with a real finding either
+
+  way, so the per-Hour defect rate on this instrument is 1.0 across EIGHT consecutive Hours.
+
+
+  BUILT, and it is #35''s owed item (A) verbatim rather than a re-scoped substitute:
+
+  `tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py`, the
+
+  `tests/` half of the class #35 built the SITE half of. SUBJECT, as #35 specified it: a path
+
+  a COMMITTED record cites on its `**Discharged:**` line that the index does not carry. Both
+
+  sides read from git and neither derived from the other -- the CLAIM from `git grep --cached`
+
+  over every committed `*.md` (72 records, 88 distinct cited paths), the HAVE from
+
+  `git ls-files`; the filesystem is read only to CLASSIFY a violation (on disk here only vs in
+
+  no tree at all), never to decide one. The index and not HEAD on both sides, for #35''s
+
+  reason: at pre-commit time the honest question is what the commit being made will contain,
+
+  and a record landed together with its falsifier is legitimately present.
+
+
+  THE FINDING, and it falsifies #35''s own reasoning rather than merely extending it. #35 chose
+
+  this subject SPECIFICALLY to escape the sequencing problem -- a discharge is a closed claim,
+
+  so it cannot be racing another lane''s editor. The first half holds. The second does not: the
+
+  population of committed discharge claims is ITSELF MADE OF UNCOMMITTED WORK. Three
+
+  violations, all on disk, none ignored, `git log --all` empty on each, all three GREEN in the
+
+  working tree (28 passed): `tests/saas/test_clv_margin_basis.py` and
+
+  `tests/tools/test_derived_basis_parentage_gate.py` (both cited by
+
+  WORKER_FINDING_THE_BOOK_IS_VALUED_ON_A_MARGIN_THAT_EXCLUDES_THREE_QUARTERS_OF_THE_COST_STACK_2026-08-17)
+
+  and `tests/simulation/test_the_worlds_dwelling_is_drawn_not_believed.py` (cited by
+
+  WORKER_FINDING_THE_WORLDS_DWELLING_FOR_A_DRAWN_HOME_IS_THE_COMPANYS_OWN_ESTIMATE_2026-08-17).
+
+  WORSE IN KIND than the site instance, which was one untracked test whose SUBJECT was
+
+  committed and whose repair was a one-line `git add`: all three of these fail to IMPORT in a
+
+  detached worktree at HEAD, because the mechanism each certifies as repaired is uncommitted
+
+  too -- CLV_MARGIN_BASIS, UNKNOWN_COST_BASIS/_check_derived_basis_parentage,
+
+  BASIS_SAAS_APPROXIMATION, all HEAD 0 against worktree 3/5+3/2 by `git show HEAD:<file>`. A
+
+  committed document declares a mechanism closed and the mechanism exists on one machine.
+
+
+  CORRECTED IN PASSING, against this pass''s own first guess (R9 -- the direct check was run
+
+  before the conclusion was asserted). Eight tracked modules in the working tree import the
+
+  untracked `simulation/dwelling_records.py`, including `simulation/run_phase2b.py`, which
+
+  looked like "HEAD cannot import its own runner". It is not: `git grep -l dwelling_records
+
+  HEAD -- ''*.py''` is EMPTY, and a detached worktree at HEAD imports run_phase2b, property_model
+
+  and generate_hh_data cleanly. The whole KNIFE3 B12 split -- the module and all five importer
+
+  edits -- is one lane''s in-flight change set. A clone is internally consistent; it just does
+
+  not have the repair.
+
+
+  A RATCHET, NOT AN ASSERTION, and that choice is forced. The three cannot be greened from
+
+  this lane without sweeping another lane''s live uncommitted work into this commit, and
+
+  deleting the falsifiers is worse. They are DECLARED in `_KNOWN_UNLANDED` with the date and
+
+  the change set each waits on. The list is checked in BOTH directions -- an entry that stops
+
+  being a violation must be deleted (`test_every_declared_exemption_is_still_a_real_violation`,
+
+  proven to fire on a probe entry) -- so it cannot rot into a permanent exemption.
+
+
+  R15 BOTH WAYS AGAINST REAL HISTORY, not a fixture. RED with `_KNOWN_UNLANDED` emptied on the
+
+  tree exactly as found: 1 failed / 7 passed, naming all three with their citing records.
+
+  GREEN with the debt declared: 8 passed. Four mutations, each performing a named killer
+
+  pattern and asserted to PASS on it: filesystem resolution via `Path.exists()` instead of the
+
+  index (TAUTOLOGY -- all three violations are on disk, so that checker is green on the shipped
+
+  defect; it is the same shape that let 77 dead evidence paths sit across 84 atoms), a marker
+
+  matching nothing with the vacuity floor removed (FAIL-OPEN), git absent from PATH and git
+
+  exiting non-zero (FAIL-SILENT, both raise -- an unavailable check is a FAILED check), and
+
+  `git ls-files` succeeding with empty output. Floors measured not guessed: 72 records / 88
+
+  paths, floors 30 / 40.
+
+
+  SCOPE, stated so it is not read as wider than it is. Two neighbouring citation surfaces were
+
+  measured and deliberately EXCLUDED. The map''s `file_scope` is forward-looking by design -- 24
+
+  of its paths name files not yet built -- so it cannot carry a landed/unlanded verdict (two of
+
+  its entries are on disk and untracked: `simulation/dwelling_records.py` and
+
+  `tests/architecture/test_live_payment_triad_is_the_only_bridge.py`). The `evidence` fields on
+
+  the map and the 297 committed stores are narrative prose, not path-structured; measured
+
+  anyway at 0 cited-and-untracked, and their 75 absent paths are the already-filed ARCHIVING
+
+  class (a path that MOVED), a different defect. The bare untracked-`tests/**` census #35
+
+  refused is still refused for #35''s reason, re-measured here: 13 untracked `.py`/`.mjs` on
+
+  disk, most of them the one lane''s live B12 work.
+
+
+  R12: nothing this instrument computes moved; no published figure was touched. Filed:
+
+  docs/staging/done/WORKER_FINDING_THREE_COMMITTED_DISCHARGES_NAME_FALSIFIERS_THAT_ARE_IN_NO_COMMIT_AND_CANNOT_LAND_2026-08-18.md
+
+  (class `uncommitted_and_orphaned_work`, instance 11, rendered then archived; --check PASS).'
 map_notes:
   harden_note: 'HARDEN PASS RAN 2026-08-08 (commit 72ecfff7d); recorded here 2026-08-08 because the pass fixed code and tests but left the map cell silent -- the work was invisible to the map, and a silent cell is why the self-refill kept re-drawing this atom for a level move it cannot make. Delivered, both mutation-proven: (1) the DD-channel LEAK WITNESS was VACUOUS -- `n_flagged_non_dd_failures == 0` passes identically when the channel observes nothing at all as when it observes cleanly, so a vacuity guard now carries it (test_leak_witness_is_vacuous_without_its_channel_guard pins the defect the guard closes); (2) three silent `.get()` JOIN DROPS had no witness -- `value_date`/`invoice_ref`/`reference` key drift would have pushed the measured gap toward the no-skill baseline with nothing firing, so n_unjoined_dd_failures / n_unjoined_collection_misses / n_ageing_refs_matched are now asserted against a deliberate key drift. 24/24 green. NEW FINDING from the pass, reported not tuned (R12): the headline DETECTION gap is INSENSITIVE TO THE ENTIRE DD-OBSERVATION CHANNEL -- `flagged_set` is a UNION, `n_flagged_via_dd_channel_only == 0` across seeds 7/11/23, so killing the DD channel outright leaves the published number bit-identical. Structurally reasonable (a rail failure means the cash did not arrive, which reconciliation also sees) but it means set-membership detection is blind to the only thing that channel buys: EARLIER detection. That test is labelled CHARACTERIZATION deliberately -- it pins a measured limit, not a contract, and is expected to fire if the channel ever starts contributing.'
   level_hold_note: 'HELD AT L2 (level_current 2, level_target 3). THIS NOTE WAS COMPACTED ON 2026-08-17 BY EXPERT HOUR #33 AND THAT COMPACTION IS ITSELF A FINDING. It had reached 54,930 chars -- 81% of this atom''s store file, which the append pushed to 67,812 B against the 65,536 B ROLL_WATERMARK, and `roll_for_atom` returned 0 because the roll chunks LIST entries and this is one string field the roll cannot split. The record of the atom had become unwritable: the wedge `test_the_live_store_has_roll_headroom` exists to catch, caught. Thirty-three Hours appending to one field is the cause; Hour #33 only tipped it. The store''s own contract is the authority for the fix (`set_note_for_atom`: a note is a CURRENT statement, revision is the correct semantics, and the durable history of what changed lives in git) -- so the full 54,930-char note is in this file''s git history and in the commit that landed Hour #33, nothing is deleted, and what follows is what is CURRENTLY TRUE. Hours #3-#32''s individual narratives are there, not here.
 
 
-    WHY THE LEVEL IS HELD, which is EVIDENCE and not caution. L3 means ''Expert Hour says this is real''. Hour #31 pre-committed the promotion condition BEFORE #32 ran, so the bar could not be moved once results were known: ONE Hour against the corrected instrument that ends with NO BLOCKING finding takes the 2->3. Since then the per-Hour defect rate on this instrument has been 1.0 -- #28 (a mechanism asserted into this very note while HEAD carried none of it), #29 (the citation control, repo-wide refusal on its default path and no test), #30 (a grader with ten importers, all its own tests, that had never graded the live ledger), #31 (a published claim in `components["drift_resolution_caveat"]` that was measurably false), #32 (three BLOCKING: the corrected sentence on no published surface, an R15 fail-open comparing bands by CONTAINMENT, and a third no-caller control), #33 (below). Five... now six consecutive Hours each finding a real flaw is the strongest available evidence that the next one will too. An Hour cannot be its own confirmation: the Hour that corrects the instrument is not the Hour that clears it.
+    WHY THE LEVEL IS HELD, which is EVIDENCE and not caution. L3 means ''Expert Hour says this is real''. Hour #31 pre-committed the promotion condition BEFORE #32 ran, so the bar could not be moved once results were known: ONE Hour against the corrected instrument that ends with NO BLOCKING finding takes the 2->3. Since then the per-Hour defect rate on this instrument has been 1.0 -- #28 (a mechanism asserted into this very note while HEAD carried none of it), #29 (the citation control, repo-wide refusal on its default path and no test), #30 (a grader with ten importers, all its own tests, that had never graded the live ledger), #31 (a published claim in `components["drift_resolution_caveat"]` that was measurably false), #32 (three BLOCKING: the corrected sentence on no published surface, an R15 fail-open comparing bands by CONTAINMENT, and a third no-caller control), #33 (the door-vs-ledger relation), #35 (a green control in no commit, with two committed records resting on it), #36 (below). EIGHT consecutive Hours each finding a real flaw is the strongest available evidence that the next one will too. An Hour cannot be its own confirmation: the Hour that corrects the instrument is not the Hour that clears it.
 
 
     EXPERT HOUR #33 (2026-08-17, worker tick, self-refill 2->3 HARDEN draw). THE DEFECT: `site/data/proof.json` was regenerated in the working tree at 15:54:44Z and EXACTLY ONE of its fourteen `coupled_gaps` pairs moved -- this atom''s own, 0.0833907649896623 -> 0.0311284046692607, with the whole book under it (caught 31->4, flagged_size 391->35, n_negatives 1451->257, n_excluded 118->15, n_false_flags 242->16, universe_size 1600->276, false_flag_rate 0.166782->0.062257): a 2.68x understatement of the company''s own payment belief-vs-truth gap. WHY THIS PAIR AND NO OTHER -- a mechanism, not an incident: this pair''s ledger entry is the only one of the fourteen written as a SIDE EFFECT of running the simulation (`simulation/run_phase2b.py:2448` -> `LivePaymentTriad.measure_and_write`, `ledger_path` defaulted to the real file), while every other pair is written by its own `tools/couple_*.py --write-ledger` invocation that no test runs -- and ten-plus test modules invoke run_phase2b. Observed twice in this tick rather than inferred: `pytest tests/tools/test_couple_w2_11_d5.py` moved the live ledger''s measured_at 16:34:19 -> 16:42:56 mid-run (md5 825330de9 -> e56aa515c), harmless to the figures because this module measures the full 1600-invoice book, but the same write path from a test process into the supplier of a public door. IT WAS INVISIBLE BECAUSE THE DEFECT IS ONLY IN THE RELATION: the door agrees with itself, the ledger agrees with itself, the generator did what it was asked, and the scorer is not involved at all -- every control here reads ONE side, including the SITE-lane control #32 built, which excludes the ledger as a subject on purpose. BUILT (this atom''s own file_scope): `measure_published_door_against_the_ledger` + `check_published_door_reproduces_the_ledger`, wired into `main()` on the default path with its verdict rendered, and 11 tests. The check-call census now reads 17 defined / 15 default-path / 2 declared-flag / 0 unreachable. R15 BOTH WAYS AGAINST REAL HISTORY, not a fixture: RED on the poisoned door as found (9 violations, the headline and 8 components), GREEN once restored, and four source mutations proven to fire -- unreadable-file-caught-into-{} (fail-silent), headline-only comparison (wrong subject), no vacuity guard (tautology), absent-door-pair-as-skip (fail-open). 500 passed (was 489). R12: nothing this instrument computes moved; the only figure that moved is the door''s and it moved BACK (`git checkout HEAD -- site/data/proof.json`, restoring the value the deployed site and the current ledger both carry; corrupted payload preserved at /tmp/h33_proof_poisoned.json). AND THE NEW CONTROL''S FIRST INDEPENDENT MEASUREMENT ANSWERED RECORDED 7, which had only ever been narrative: run against `git show HEAD:` on both files, THE COMMITTED PAIR HAS NEVER AGREED EITHER -- door 0.0833907649896623 vs ledger 0.0859375, n_negatives 1451 vs 1408, universe_size 1600 vs 1557, false_flag_rate 0.166782 vs 0.171875. The file the public door nominally derives from is not the file it was generated from, and has not been for five days. Filed: docs/staging/WORKER_FINDING_THE_ONLY_DOOR_PAIR_A_TEST_RUN_CAN_REPUBLISH_IS_THE_ONE_NOTHING_COMPARED_TO_ITS_LEDGER_2026-08-17.md.
 
 
-    THE OWED WORK, ranked and CURRENT as of Hour #35 (2026-08-18), so the next promoter does not re-derive it. #33''s items (1) STOP THE WRITE and (2) THE DOOR-VS-LEDGER TRIPWIRE are BOTH DISCHARGED -- (1) by Hour #34''s empirical verification of `background/live_ledger_guard.py` (513 tests, live ledger md5 unchanged across the run) and (2) by `site/proof/test_the_published_door_reproduces_its_ledger.py` (c7a1fdab0), born green on the production ledger landed at e7a554d03. What remains: (A) THE `tests/` HALF OF HOUR #35''s CLASS -- the publish gate collects from the WORKING TREE exactly as the site lane did, so an untracked control counts toward its green there too; NOT built as a bare untracked census because it would be born red on other lanes'' live in-flight work, and the honest subject is ''untracked AND cited by a committed record as a discharge or as covered scope''. (B) THE NOTE-FIELD ROLL: the roll chunks LIST entries and cannot split one string field, so this note will wedge again if Hours resume appending to it; every Hour must compact as it writes until notes get a size bound and an archive path of their own (a store change outside this atom). (C) #28''s surviving leads: the 14 undeclared live entries nothing re-measures on a schedule; #27''s clamp and six-unwalked-rows; D35''s scoped build; #21''s vacuous-in-isolation sibling control.
+    THE OWED WORK, ranked and CURRENT as of Hour #36 (2026-08-18), so the next promoter does not re-derive it. #33''s items (1) STOP THE WRITE and (2) THE DOOR-VS-LEDGER TRIPWIRE are DISCHARGED -- (1) by Hour #34''s empirical verification of `background/live_ledger_guard.py` (513 tests, live ledger md5 unchanged across the run) and (2) by `site/proof/test_the_published_door_reproduces_its_ledger.py` (c7a1fdab0), born green on the production ledger landed at e7a554d03. #35''s item (A), THE `tests/` HALF OF ITS CLASS, is DISCHARGED by Hour #36: `tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py`, subject ''a path a COMMITTED record cites on its `**Discharged:**` line that the index does not carry'', read from git on both sides, R15 both ways against real history (RED with the ratchet emptied, naming three; GREEN with the debt declared) and four mutations proven -- filesystem-resolution (TAUTOLOGY, the same shape as the 77 dead evidence paths), empty population (FAIL-OPEN), git-absent and git-non-zero (FAIL-SILENT). WHAT IT FOUND FALSIFIES #35''s OWN REASONING and is why the shape is a ratchet: #35 chose ''cited by a committed record'' precisely to escape the sequencing problem, and the population turned out to be MADE of it -- all three violations (`tests/saas/test_clv_margin_basis.py`, `tests/tools/test_derived_basis_parentage_gate.py`, `tests/simulation/test_the_worlds_dwelling_is_drawn_not_believed.py`) fail to IMPORT at HEAD, because the repair each certifies is uncommitted too (CLV_MARGIN_BASIS, UNKNOWN_COST_BASIS/_check_derived_basis_parentage, BASIS_SAAS_APPROXIMATION: HEAD 0, worktree 5/3/3/2). They are DECLARED in `_KNOWN_UNLANDED`, not fixed -- greening them means sweeping another lane''s live B12/CLV work into this commit. Corrected in passing, against this pass''s own first guess: HEAD is NOT broken; nothing at HEAD references the untracked `simulation/dwelling_records.py`. WHAT REMAINS: (B) THE NOTE-FIELD ROLL -- the roll chunks LIST entries and cannot split one string field, so this note wedges again if Hours resume appending; every Hour must compact as it writes (this one did) until notes get a size bound and an archive path of their own, a store change outside this atom. (C) #28''s surviving leads: the 14 undeclared live entries nothing re-measures on a schedule; #27''s clamp and six-unwalked-rows; D35''s scoped build; #21''s vacuous-in-isolation sibling control.
 
 
     WHAT DOES NOT BLOCK THE PROMOTION, stated so it is not re-litigated: the two open D28 residuals (the `S`-side exit-threshold predictor, unidentified; the reshape, unbuilt). Those are DISCLOSED limits, declared in the register and published in the sentence the reader meets -- an instrument that states its own limits accurately is what L3 epistemic cleanliness asks for, not an instrument with none. NOT a wall, and NOT a reason to tune any number (R12).'
