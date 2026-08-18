@@ -43,6 +43,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
 
+- `WORKER_FINDING_THE_BELIEF_AXIS_NULL_CONTROL_CANNOT_FAIL_BECAUSE_ITS_FLOOR_SITS_ABOVE_WHERE_IT_BREAKS_2026-08-18.md` — lane `D_billing_metering`
 - `WORKER_FINDING_THE_INERTNESS_FLAG_IS_BLIND_TO_THE_POPULATION_ITS_OWN_FUNCTION_NAMES_AS_THE_EDGE_SETTER_2026-08-18.md` — lane `D_billing_metering`
 
 ---
