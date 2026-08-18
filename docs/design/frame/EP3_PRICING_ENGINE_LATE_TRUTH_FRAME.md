@@ -1,4 +1,8 @@
-# EP3_pricing_engine_late_truth — DISCOVER pass 1
+# EP3_pricing_engine_late_truth — DISCOVER passes 1–2
+
+*Pass 1 (2026-08-17) is the body below. Pass 2 (2026-08-18) is appended at the end and **corrects pass
+1's live-path census**: the census seeded from one door and missed the other, so pass 1's headline
+"the decided margin is 1.0%" measured one of two live legs. Read pass 2's F5 before citing pass 1's F1.*
 
 **DISCOVER/FRAME ONLY.** `level_current` stays 0, `loop_stage` stays `idle`, no BUILD code written,
 nothing in `file_scope` touched (it is empty). EPOCH_GATING_AND_ATOM_AUTHORSHIP rule 1 makes
@@ -188,3 +192,178 @@ for the harness queue.
    Its honest limit, stated rather than discovered later: it is necessary, not sufficient — it would go green
    on *any* size-sensitive term, including a wrong one, so it must be paired with F1b's constraint (no
    double-recovery against the standing charge) or it will reward the exact defect F1b refutes.
+
+---
+---
+
+# DISCOVER pass 2 — 2026-08-18
+
+**DISCOVER/FRAME ONLY.** `level_current` stays 0, `loop_stage` stays `idle`, no BUILD code written,
+nothing in `file_scope` touched (it is empty). Measured at HEAD `7c933dbcf`, with
+`docs/design/maturity_map.yaml`, this atom's simplifications store and `docs/design/frame/` all clean
+in the shared tree at draw time. R9 labels throughout.
+
+Pass 1 closed by naming three things for the next pass: adjudicate the ten dark modules, restate the
+target per F1c, and note that the falsifier was already run. This pass started on the adjudication and
+found that **the thing being adjudicated was measured against the wrong live baseline**, so the
+adjudication's premise had to be re-established first. Everything below is that re-establishment.
+
+## F5 — Pass 1's live-path census was too narrow. There are TWO live pricing legs, not one, and pass 1 measured the smaller.
+
+`observed-with-evidence.` Pass 1 recorded *"the live path is four modules: `interfaces/renewal_offer`
+-> `pricing/renewal_desk` -> `saas/tariff_pricing` (+ `tou_offer` -> `tou_desk`)"*. Re-running the
+closure from those seeds reproduces exactly that. But the seeds were the wrong set: an AST import
+census over 4,546 `.py` files (`.claude/worktrees/` excluded) shows
+`simulation/run_phase2b.py` — the published-run entry point — imports **two** company pricing doors at
+`run_phase2b.py:61` and `run_phase2b.py:65`:
+
+  * `company.interfaces.renewal_offer` — the STRIKE, which is what pass 1 measured; and
+  * `company.interfaces.renewal_rate_chain` — **five further writers that move that struck rate**,
+    which pass 1 did not see at all.
+
+`observed-with-evidence.` The second door reaches the published artefacts:
+`company/interfaces/renewal_rate_chain.py` <- `simulation/run_phase2b.py` <-
+`simulation/run_phase4c_on_phase2b.py` <- `tools/run_annual_report.py` and `tools/run_frozen_baseline.py`
+<- `background/process_run_complete.py`. This is not a dark module: it is on the path that writes the
+annual report and the frozen baseline.
+
+`observed-with-evidence.` The chain's own docstring
+(`company/pricing/renewal_rate_chain.py:20-31`) names its five writers and their order: *"The term is
+struck at one rate; the premium multiplies it; the surcharge multiplies that; the profitability uplift
+adds to that; the cap clamps the result."*
+
+**Consequence for the atom's record.** Pass 1's F1 conclusion — *"56.9% is pass-through the company
+does not decide; the decided margin is 1.0%"* — is arithmetic about the STRIKE only. It stands as a
+statement about `saas/tariff_pricing.price_fixed_tariff`, and it is not a statement about what the
+company decides, because four more company-side writers fire afterwards. Measured spans in F6.
+
+## F6 — Measured on the published run: the company's decided writers move the rate by −59.9% to +38.0%, and a third of their firings are set by a hard-coded bound rather than by any input.
+
+`observed-with-evidence.` `docs/reports/run_output_latest.json` carries `rate_decomposition_log`
+(n=118), `dynamic_pricing_log` (n=118) and `margin_feedback_log` (n=31) — the audit trail EP3's gain
+line asks for **already exists and is already published**. Decomposing all 118:
+
+| writer | firings | at a hard-coded bound |
+|---|---|---|
+| `portfolio_premium` | 118 / 118 | **33** (19 at `PORTFOLIO_PREMIUM_MIN` −5.00%, 14 at `PORTFOLIO_PREMIUM_MAX` +15.00%) |
+| `margin_surcharge` | 31 / 118 | **18** (all at `FEEDBACK_MAX_SURCHARGE` = 20.00%) |
+| `price_cap` | 18 / 118 | n/a (the clamp *is* the bound) |
+| `profitability_uplift` | **0 / 118** | — see F7 |
+
+Total move against the struck rate: min −59.90%, median −1.44%, max +38.00%; no renewal is left
+unmoved (0 of 118 has zero move). **51 of the 167 premium/surcharge firings (30.5%) land exactly on a
+free literal**, so for roughly a third of the decisions the clamp, not the model, is the price.
+
+`observed-with-evidence.` The premium is a proportional controller on the company's OWN realised
+margin: `compute_portfolio_premium(recent_margin_rates, target=PORTFOLIO_TARGET_MARGIN_RATE)`,
+constants at `company/pricing/tariff_engine.py:72-76` — target `0.08`, half-life `0.50`, bounds
+`−0.05`/`+0.15`. Driving the live door with a struck rate of £196.761/MWh and a flat portfolio outturn:
+
+```
+portfolio_margin=-0.20 -> 224.3075     +0.08 -> 196.7610 (no move; setpoint)
+portfolio_margin=+0.00 -> 204.6314     +0.20 -> 186.9229 (saturated)
+portfolio_margin=+0.05 -> 199.7124     +0.40 -> 186.9229 (same; saturated)
+```
+
+**This is the mechanism form of the director's Q1 suspicion, and it is sharper than the prose version.**
+The price is not merely correlated with outturn margin — it is a feedback term whose setpoint is a
+margin number, closing half the gap per cycle. Whether that is a defect is a judgement EP3 has to make
+rather than inherit: a real supplier does reprice after under-earning. What is *not* a judgement call
+is that `PORTFOLIO_TARGET_MARGIN_RATE = 0.08` is a free literal with a comment and no cited source, on
+a quantity Ofgem sets an EBIT allowance for; and that it is the only explicit margin decision on the
+live path, which means EP3's "plus an explicit margin decision" is **already built, as a controller**.
+
+`observed-with-evidence.` The per-account writer is one-sided: sweeping `prior_term_margin_gbp` at
+`prior_term_revenue_gbp=1000`, losses above the 5%-of-revenue threshold add a surcharge (−£200 →
+£226.28, −£500 → £236.11) while every non-negative value leaves the rate untouched. Profits never
+reduce a customer's rate; losses always raise it.
+
+`observed-with-evidence.` At `term_index=0` **no writer in the chain fires at all** (verified across
+the sweep). A first-term customer's contracted rate is therefore exactly pass 1's strike — one distinct
+rate across a 100× EAC range. Pass 1's F1 and this pass's F6 compose: the rate is size-blind for the
+acquisition term and outturn-driven thereafter.
+
+## F7 — Writer 3 of the five is structurally dead in production, and it fails open through three layers. Mutation-proved.
+
+`observed-with-evidence.` `profitability_uplift` fires **0 times in 118 published renewals**, while the
+writer beside it answering a near-identical question (was this account's prior term a loss?) fires 31
+times. The cause is a field that does not exist:
+
+  * `company/crm/customer_profitability.py:165` — `estimate_prior_term_net_margin` groups the
+    supplier's settled records by `r.get("term_start")` and returns `None` when that set is empty.
+  * The production settlement records carry no such key. `simulation/hedged_settlement.py:195-217`
+    (and the deemed/flex/gas producers beside it) emit `customer_id`, `settlement_date`,
+    `settlement_period`, `consumption_kwh`, `revenue_gbp`, `margin_gbp`, `net_margin_gbp`,
+    `capital_cost_gbp` … and **no `term_start`**. `grep -n '"term_start"' simulation/hedged_settlement.py
+    simulation/gas_settlement.py` returns nothing.
+  * So `prior_term_starts` is empty for every account in every year → `None` → `compute_profitability_uplift`
+    maps `None` to `0.0` → `renewal_unit_rate_uplift` returns `0.0` → the chain's `if pnl_uplift > 0`
+    never fires.
+
+`observed-with-evidence.` **Mutation proof**, one call, one key of difference:
+
+```
+production-shaped records (net_margin_gbp = -20 × 4, no term_start key): uplift = 0.0
+same records + "term_start": "2018-04-01":                              uplift = 5.0
+```
+
+`observed-with-evidence.` The tests are green because the fixtures supply the missing key:
+`tests/company/test_customer_profitability.py:23` builds records with `"term_start": term_start`, and
+`tests/company/interfaces/test_customer_profitability_seam.py:71,78,170` hard-code
+`"term_start": "2018-04-01"`. **The graded record shape is not the shipped record shape.**
+
+`inferred (chain stated).` R15 class: FAIL-OPEN, and it is fail-open at three levels rather than one.
+Each layer's docstring documents its zero as legitimate — *"Returns None if: no matching records
+exist"*, *"Returns 0.0 — not an error, and not a raised exception — for every renewal the policy does
+not apply to"* — so a silently-absent input is indistinguishable from a correctly-declined one at every
+boundary. No control anywhere asserts that this writer ever fires. The honest limit on this finding: it
+proves the writer cannot fire, not that firing it would improve the run; the P&L effect of a
+£5.00/MWh uplift on the ~31 loss-making prior terms is unmeasured here and is BUILD work.
+
+## F8 — The atom's own named falsifier is satisfiable by the back-calculation EP3 exists to remove.
+
+`inferred (chain stated, from F6's measurements).` Pass 1 named and ran the exit test *"the struck rate
+must respond to a change in a per-account cost input"*, RED at the strike. Applied to the **live chain**
+instead of the pure strike function, it goes GREEN at `term_index >= 1` — F6 shows a per-account number
+(`prior_term_margin_gbp`) moving the contracted rate by up to +20%. But that number is realised outturn
+margin, not a forward cost. So the falsifier as worded would be discharged by precisely the mechanism
+the atom's gain line says it wants removed.
+
+**Restatement for whoever opens EP3 for BUILD** — the criterion needs both halves, or it grades the
+defect as the fix:
+
+  1. run it at `term_index = 0`, where F6 shows no chain writer fires, so only the strike is under test; and
+  2. name a FORWARD cost input (a per-account cost-to-serve or loss factor), not any quantity derived
+     from a completed term — otherwise outturn feedback discharges it.
+
+Pass 1's own pairing constraint still applies on top: any size-sensitive term must not double-recover
+the standing charge (pass 1 F1b).
+
+---
+
+## What pass 3 should do
+
+1. **The ten-module adjudication is still owed** — pass 2 spent itself re-establishing the baseline it
+   was to be measured against. Re-confirmed at HEAD `7c933dbcf`: all ten still have zero non-test
+   importers (`renewal_pricing_engine` 192 lines, `price_elasticity` 217, `price_transparency_register`
+   181, `portfolio_repricing` 181, `llf_register` 172, `finance/segment_profitability` 154,
+   `pricing/segment_profitability` 153, `cost_to_serve` 138, `tariff_change_log` 101,
+   `tariff_smoothing` 86). The adjudication is now a THREE-way question per module, not two: wire /
+   fold / delete **against a live chain that already does more than pass 1 credited**.
+2. **F7 is the cheapest real thing in this atom** — one absent key, mutation-proved, in company code on
+   the published path. It is recorded here rather than minted as a separate staged finding
+   (SELF-INTERRUPT DISCIPLINE: queue, and the atom's own record is where an EP3-subject finding
+   belongs) — but it does not need EP3 to be opened, and whoever touches `renewal_rate_chain` next
+   should take it.
+3. **F1c's restatement is still owed and is now cheaper to state**: the company decides a £2.00/MWh
+   margin term plus a controller bounded at ±5/15%, and inherits a £222.65/yr standing charge set by a
+   world table. Both halves are now measured.
+4. **Pass 1's queued FINDING 2 is half-wrong as worded, and this pass can say which half.** It offered
+   "EP3 should carry EP5 in `depends_on`, **or** the two should be a `couples_with` pair". The second
+   option is not available: `couples_with` in this map is a **world↔company** topology, validated by
+   `tests/design/test_maturity_map_facets.py` against a hard-coded `EXPECTED_PAIRS` authority
+   (§ "(b) couples_with topology (C5) … present and SYMMETRIC"), and EP3 and EP5 are both company-side
+   atoms. So the only available form is `depends_on`. Still not taken here, for a reason pass 1 did not
+   have: `EP5_settlement_true_ups` is itself level 0 / idle, so `EP3 depends_on EP5` is a *sequencing
+   claim* — it would say EP3 cannot build until EP5 does — and that is a BUILD-order decision, not a
+   DISCOVER one. Whoever opens either atom takes it with that consequence stated.

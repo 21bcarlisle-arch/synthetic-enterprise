@@ -79,3 +79,73 @@ simplifications:
   `company/pricing/*.py` glob alone resolves ~10 files, so NO individually named path can make it fire by
   vanishing. R15 class: a per-item FAIL-OPEN behind a population-level count. Not a live coverage hole --
   the glob still covers the module -- a control-integrity defect.
+- |-
+  2026-08-18 DISCOVER pass 2, DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw). No
+  BUILD code and nothing in `file_scope` touched (it is empty). Full pass appended to
+  `docs/design/frame/EP3_PRICING_ENGINE_LATE_TRUTH_FRAME.md`. Measured at HEAD 7c933dbcf with the map,
+  this store file and docs/design/frame/ all clean in the shared tree at draw time.
+
+  PASS 2 CORRECTS PASS 1'S LIVE BASELINE, WHICH IS WHY THE TEN-MODULE ADJUDICATION IS STILL OWED.
+  Pass 1 recorded "the live path is four modules" and concluded "the decided margin is 1.0%". That
+  census seeded from ONE door. `simulation/run_phase2b.py` -- the published-run entry point -- imports
+  TWO company pricing doors: `interfaces/renewal_offer` (line 61, the strike pass 1 measured) and
+  `interfaces/renewal_rate_chain` (line 65), the latter carrying FIVE further writers that move the
+  struck rate, and reaching the annual report and frozen baseline via run_phase4c_on_phase2b ->
+  run_annual_report / run_frozen_baseline -> process_run_complete. Pass 1's F1 is sound arithmetic about
+  `price_fixed_tariff` and is NOT a statement about what the company decides.
+
+  FINDING 6 -- MEASURED ON THE PUBLISHED RUN (`docs/reports/run_output_latest.json`,
+  `rate_decomposition_log` n=118): portfolio_premium fires 118/118, margin_surcharge 31/118, price_cap
+  18/118, profitability_uplift 0/118. Total move against the struck rate: min -59.90%, median -1.44%,
+  max +38.00%, and NO renewal is left unmoved. 51 of the 167 premium/surcharge firings (30.5%) land
+  EXACTLY on a free literal -- 33 premiums at PORTFOLIO_PREMIUM_MIN/-MAX (-5.00%/+15.00%) and 18 of 31
+  surcharges at FEEDBACK_MAX_SURCHARGE (20.00%). For a third of the decisions the clamp, not the model,
+  is the price. The premium is a proportional controller on the company's OWN realised margin, setpoint
+  PORTFOLIO_TARGET_MARGIN_RATE = 0.08 (tariff_engine.py:72-76, a free literal with a comment and no
+  cited source), closing half the gap per cycle: driven live at a £196.761/MWh strike, outturn -0.20 ->
+  £224.31, +0.08 -> no move, +0.20 and +0.40 -> £186.92 (saturated). That is the MECHANISM form of the
+  director's Q1 suspicion, sharper than the prose version -- and it means EP3's "plus an explicit margin
+  decision" is ALREADY BUILT, as a controller. The per-account writer is one-sided (losses above 5% of
+  revenue raise the rate; profits never lower it), and at term_index=0 NO chain writer fires at all, so
+  a first-term rate is exactly pass 1's size-blind strike. The audit trail EP3's gain line asks for also
+  already exists and is already published (rate_decomposition_log).
+
+  FINDING 7 -- WRITER 3 OF FIVE IS STRUCTURALLY DEAD IN PRODUCTION, FAIL-OPEN THROUGH THREE LAYERS,
+  MUTATION-PROVED. `profitability_uplift` fires 0/118 while the writer beside it answering a near-
+  identical question fires 31 times. Cause: `estimate_prior_term_net_margin`
+  (company/crm/customer_profitability.py:165) groups the supplier's settled records by
+  `r.get("term_start")` and returns None when that set is empty -- and the production settlement records
+  have no such key (`simulation/hedged_settlement.py:195-217` and the deemed/flex/gas producers emit
+  customer_id, settlement_date, settlement_period, consumption_kwh, revenue_gbp, margin_gbp,
+  net_margin_gbp, capital_cost_gbp and no term_start; grep for '"term_start"' in hedged_settlement.py and
+  gas_settlement.py returns nothing). None -> 0.0 -> 0.0 -> `if pnl_uplift > 0` never fires. MUTATION
+  PROOF, one key of difference on one call: production-shaped net-negative records -> uplift 0.0; the
+  same records plus "term_start": "2018-04-01" -> 5.0. The tests are green because the FIXTURES supply
+  the missing key (tests/company/test_customer_profitability.py:23,
+  tests/company/interfaces/test_customer_profitability_seam.py:71,78,170) -- the graded record shape is
+  not the shipped record shape. R15 FAIL-OPEN at three levels: each layer's docstring documents its zero
+  as legitimate, so a silently-absent input is indistinguishable from a correctly-declined one at every
+  boundary, and no control asserts the writer ever fires. Honest limit: this proves the writer CANNOT
+  fire, not that firing it would improve the run -- the P&L effect is unmeasured and is BUILD work.
+  Recorded here rather than minted as a separate staged finding (SELF-INTERRUPT DISCIPLINE; an
+  EP3-subject finding belongs in the atom's own record), but it does not need EP3 opened.
+
+  FINDING 8 -- THE ATOM'S OWN NAMED FALSIFIER IS SATISFIABLE BY THE BACK-CALCULATION EP3 EXISTS TO
+  REMOVE. Pass 1's exit test ("the struck rate must respond to a change in a per-account cost input") is
+  RED at the strike but GREEN through the LIVE chain at term_index >= 1, because a per-account number
+  moves the rate there -- realised outturn margin, not a forward cost. Restated for BUILD, both halves
+  required or it grades the defect as the fix: (1) run it at term_index = 0, where no chain writer fires;
+  (2) name a FORWARD cost input, never a quantity derived from a completed term. Pass 1's F1b pairing
+  constraint (no double-recovery against the standing charge) still applies on top.
+
+  STILL OWED, unchanged and re-confirmed at HEAD 7c933dbcf: all ten pricing-lane modules still have ZERO
+  non-test importers (renewal_pricing_engine 192 lines, price_elasticity 217, price_transparency_register
+  181, portfolio_repricing 181, llf_register 172, finance/segment_profitability 154,
+  pricing/segment_profitability 153, cost_to_serve 138, tariff_change_log 101, tariff_smoothing 86). The
+  adjudication is now a THREE-way question per module -- wire / fold / delete against a live chain that
+  already does more than pass 1 credited. Pass 1's FINDING 2 and FINDING 3 (the carbon-guard named path)
+  remain QUEUED, untaken -- but FINDING 2 is half-wrong as worded and this pass can say which half: the
+  couples_with option is NOT available, because couples_with in this map is a world<->company topology
+  validated against a hard-coded EXPECTED_PAIRS authority in tests/design/test_maturity_map_facets.py and
+  both EP3 and EP5 are company-side. depends_on is the only available form, and it is a SEQUENCING claim
+  (EP5 is itself level 0 / idle), so it is a BUILD-order decision rather than a DISCOVER one.
