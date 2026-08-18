@@ -542,6 +542,63 @@ NOTE_FIELDS = (
 # The map-side declaration naming which note fields an atom keeps in the store.
 NOTES_DECLARATION_FIELD = "notes_rehomed"
 
+# --------------------------------------------------------------------------
+# THE NOTE RATCHET: the one tenant the roll cannot drain
+# --------------------------------------------------------------------------
+# WHY (2026-08-18, H27_payment_belief_gap's owed item (B)). The roll above bounds
+# every LIST tenant, and that is genuinely every tenant it CAN bound: it moves whole
+# entries into ordered chunks, and `map_notes` holds single strings. Chopping a
+# string into archived pieces is the coercion `_roll` already refuses for a prose
+# record (test_a_roll_never_empties_a_tenant_and_prose_records_are_never_rolled).
+# So the note tenant is the one place the wedge this module exists to close can
+# still happen -- and on 2026-08-17 it DID: H27's `level_hold_note` reached 54,930 B,
+# 81% of its file, the write crossed ROLL_WATERMARK, and `roll_for_atom` returned 0
+# because there was no list left to take from. The record of the atom had become
+# unwritable, and the only surviving remedy was a convention -- "every Hour must
+# compact as it writes" -- i.e. exactly the prose-only rule this project has
+# repeatedly measured as evaporating.
+#
+# IT IS NOT A HYPOTHETICAL AND NOT H27's ALONE. Measured over the live store the day
+# this landed, 297 atoms carry notes (mean tenant 1,595 B, p90 4,233 B) and ONE is
+# already past the point of rescue: `OPS2_publish_gate_head_worktree` is 62,301 B, of
+# which 60,906 B (98%) is its note tenant and 56,846 B is a single `build_note`, with
+# ZERO live list entries. It sits 3,235 B under the watermark, so the next paragraph
+# appended to that note wedges it -- and the roll has literally nothing to drain.
+#
+# THE MECHANISM IS A RATCHET, NOT A CAP, and the distinction is what stops this fix
+# from becoming the defect it fixes. A flat cap enforced in `_write_tenants` would
+# refuse EVERY write to an already-over atom -- including appending a simplification
+# entry, which is the record-keeping this store exists for -- so it would wedge the
+# lane in the name of unwedging it. Instead the bound is checked only on a NOTE write
+# and only in the direction that makes things worse: a note write that leaves the
+# tenant over budget is refused IF it is bigger than what it replaces. Therefore
+#   * growing an over-budget note is impossible (the flow stops, everywhere, at once);
+#   * COMPACTING one is always available, however far over it already is (the remedy
+#     can never be locked behind the bound);
+#   * every other tenant of an over-budget atom writes exactly as before.
+# The existing stock is thus monotonically non-increasing without anyone editing
+# another lane's narrative, which is why no exemption list is needed here.
+#
+# THE NUMBER IS DERIVED, not fitted. `_roll` guarantees it can reach the watermark
+# only by draining lists down to one live entry each, so the irreducible live body is
+# the note tenant plus one entry per list tenant. Three list tenants at this store's
+# 5.4 KB mean entry is ~16 KB, so half the watermark leaves the roll 2x the room it
+# can ever need. Checked against reality afterwards rather than before: 296 of the
+# 297 live note tenants are already inside it, the sole exception being the OPS2
+# file above, and it is ~8x the p90 -- so it bounds accretion without touching
+# normal use. `test_the_note_bound_leaves_the_roll_room_to_reach_the_watermark`
+# holds the derivation, so raising the number cannot silently break the roll.
+NOTE_TENANT_MAX_BYTES = 32 * 1024
+
+
+def note_tenant_bytes(notes: dict) -> int:
+    """Bytes of one atom's whole note tenant -- the subject the bound is about.
+
+    THE TENANT, NOT THE FIELD, deliberately. An atom carries up to eight note fields;
+    bounding each one individually would let eight compliant notes sum to a file no
+    roll can drain, which is the same wedge wearing a smaller number."""
+    return sum(len(str(v).encode("utf-8")) for v in notes.values())
+
 
 def is_note_field(field: str) -> bool:
     """Membership in the rehomed-note CLASS: the named fields, plus anything that
@@ -602,6 +659,33 @@ def set_note_for_atom(
     if not isinstance(text, str) or not text.strip():
         raise ValueError(f"note {field!r} for {atom_id!r} must be a non-empty string")
     merged = notes_for_atom(atom_id, store_dir)
+
+    # THE NOTE RATCHET (see NOTE_TENANT_MAX_BYTES). Refuse only a write that leaves
+    # the tenant over budget AND bigger than it found it, so the flow stops while the
+    # compaction that clears it stays available. Checked here rather than in
+    # `_write_tenants` on purpose: this is the only writer that can grow the tenant,
+    # and a check upstream would refuse an over-budget atom's unrelated writes too.
+    before = note_tenant_bytes(merged)
+    after = note_tenant_bytes({**merged, field: text})
+    if after > NOTE_TENANT_MAX_BYTES and after > before:
+        biggest, biggest_n = max(
+            (
+                (k, len(str(v).encode("utf-8")))
+                for k, v in {**merged, field: text}.items()
+            ),
+            key=lambda kv: kv[1],
+        )
+        raise ValueError(
+            f"note write to {field!r} would take {atom_id!r}'s note tenant to {after} "
+            f"bytes (from {before}), over the {NOTE_TENANT_MAX_BYTES}-byte note "
+            f"budget. The roll cannot drain a note -- it moves whole list entries and "
+            f"a note is one string -- so an unbounded note tenant is the one way this "
+            f"store still becomes unwritable. Largest note is {biggest!r} at "
+            f"{biggest_n} bytes: COMPACT IT. A note is a CURRENT statement and its "
+            f"history lives in git, so a smaller replacement is always accepted, "
+            f"however far over budget the tenant already is."
+        )
+
     merged[field] = text
     _write_tenants(atom_id, store_dir, map_notes=merged)
     return merged

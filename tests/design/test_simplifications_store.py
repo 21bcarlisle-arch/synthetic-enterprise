@@ -167,6 +167,62 @@ def check_file_sizes(store_dir: Path, ceiling: int = PER_FILE_CEILING) -> list[s
             for p in files if p.stat().st_size > ceiling]
 
 
+# The note tenants that were ALREADY over budget when the ratchet landed (2026-08-18),
+# each pinned at the size it was measured at. Declared, not exempted: the write-path
+# ratchet in `set_note_for_atom` makes these monotonically non-increasing, so an entry
+# here can only ever shrink -- and `check_note_tenant_budget` reds if one grows.
+#
+# The alternative was to compact OPS2's 56,846-byte `build_note` in this commit, which
+# is another lane's narrative record. Rewriting someone else's evidence trail to green
+# my own control is the laundering move this store was built to refuse, so the debt is
+# declared in the open and the mechanism guarantees it cannot get worse.
+_KNOWN_OVER_BUDGET_NOTE_TENANTS = {
+    "OPS2_publish_gate_head_worktree": 60906,
+}
+
+
+def check_note_tenant_budget(
+    store_dir: Path, declared: dict[str, int] | None = None
+) -> list[str]:
+    """No atom's note tenant may exceed the budget the roll needs to do its job.
+
+    THE ONE TENANT THE ROLL CANNOT DRAIN. `_roll` moves whole list entries into ordered
+    chunks; `map_notes` holds single strings, and chopping a string into pieces is the
+    coercion the record tenant already refuses. So a note tenant over the watermark is
+    a file no mechanism can rescue -- observed on H27 (2026-08-17) and standing on OPS2.
+
+    Reads each file with a plain yaml load rather than through the store's own readers:
+    a control that measures its subject through the code under test is a TAUTOLOGY, and
+    this one exists precisely to catch a writer that got round the write-path bound."""
+    declared = _KNOWN_OVER_BUDGET_NOTE_TENANTS if declared is None else declared
+    out: list[str] = []
+    for p in sorted(store_dir.glob("*.yaml")):
+        doc = yaml.safe_load(p.read_text(encoding="utf-8"))
+        if not isinstance(doc, dict):
+            continue
+        notes = doc.get("map_notes")
+        if not isinstance(notes, dict) or not notes:
+            continue
+        aid = str(doc.get("atom_id") or p.stem)
+        total = sum(len(str(v).encode("utf-8")) for v in notes.values())
+        ceiling = declared.get(aid)
+        if ceiling is not None:
+            if total > ceiling:
+                out.append(
+                    f"{aid}: note tenant grew {ceiling} -> {total} bytes; declared "
+                    "debt may only shrink"
+                )
+            continue
+        if total > store.NOTE_TENANT_MAX_BYTES:
+            biggest = max(notes.items(), key=lambda kv: len(str(kv[1]).encode("utf-8")))
+            out.append(
+                f"{aid}: note tenant {total} bytes > {store.NOTE_TENANT_MAX_BYTES} "
+                f"(largest: {biggest[0]} at {len(str(biggest[1]).encode('utf-8'))} B) "
+                "-- the roll cannot drain a note; compact it"
+            )
+    return out
+
+
 def check_no_duplicate_entries(store_dir: Path) -> list[str]:
     """No entry may be in BOTH an atom's archive and its live file.
 
@@ -623,6 +679,175 @@ def test_the_watermark_leaves_real_headroom_below_the_cap():
     several of them."""
     assert store.ROLL_WATERMARK < store.MAX_FILE_BYTES
     assert store.MAX_FILE_BYTES - store.ROLL_WATERMARK >= 5 * 5400
+
+
+# --------------------------------------------------------------------------
+# THE NOTE RATCHET (2026-08-18) -- the one tenant the roll cannot drain
+# --------------------------------------------------------------------------
+# The named defect: a note field grows past ROLL_WATERMARK, `roll_for_atom` returns 0
+# because the roll moves whole LIST entries and a note is one string, and the atom's
+# record becomes unwritable. Observed on H27 (level_hold_note at 54,930 B, 2026-08-17)
+# and standing live on OPS2_publish_gate_head_worktree the day this landed.
+#
+# Every test below is R15-shaped: each states which of the three killer patterns it
+# would catch, because a bound whose only test is "a compliant write succeeds" is
+# the tautology this project keeps finding in its own controls.
+
+
+def test_the_roll_cannot_drain_a_note_which_is_why_the_ratchet_exists(tmp_path):
+    """THE PREMISE, proven rather than asserted -- and it is the whole reason a
+    write-time bound is the right shape. If the roll COULD drain a note tenant, this
+    ratchet would be unnecessary machinery; the test therefore fails loudly if a
+    future roll gains that ability, rather than leaving a dead control in place.
+
+    Written through `_write_tenants` because `set_note_for_atom` now refuses exactly
+    this -- which is the point. It is how the live OPS2 file was built, before the
+    bound existed."""
+    sd = tmp_path / "simplifications"
+    store.append_for_atom("N0", ["an entry " + "y" * 3000], sd)
+    store._write_tenants("N0", sd, map_notes={"build_note": "N" * 70000})
+    p = sd / "N0.yaml"
+    assert p.stat().st_size > store.ROLL_WATERMARK
+    assert store.roll_for_atom("N0", sd) == 0, "the roll drained a note -- ratchet moot"
+    assert p.stat().st_size > store.ROLL_WATERMARK, "the file is still wedged"
+
+
+def test_a_note_write_over_the_budget_is_refused_and_damages_nothing(tmp_path):
+    """FIRES ON ITS OWN NAMED DEFECT: the write that grows a note past the budget.
+
+    Also asserts the refusal is clean -- the prior note and the atom's register are
+    intact afterwards. A bound that half-writes would be a worse wedge than none."""
+    sd = tmp_path / "simplifications"
+    store.append_for_atom("N1", ["register entry"], sd)
+    store.set_note_for_atom("N1", "build_note", "v1 " + "a" * 500, sd)
+    with pytest.raises(ValueError, match="note budget"):
+        store.set_note_for_atom(
+            "N1", "build_note", "b" * (store.NOTE_TENANT_MAX_BYTES + 1), sd
+        )
+    assert store.notes_for_atom("N1", sd)["build_note"].startswith("v1 ")
+    assert store.for_atom("N1", sd) == ["register entry"]
+
+
+def test_compacting_an_over_budget_note_is_always_permitted(tmp_path):
+    """FAIL-CLOSED IN THE WRONG DIRECTION is the failure mode this guards. A flat cap
+    would lock the remedy behind the bound: the only way out of an over-budget note is
+    to write a smaller one, so if that write is refused the atom is wedged forever.
+
+    The replacement here is still far over budget and must STILL be accepted, because
+    the ratchet's subject is the direction of travel, not the absolute size."""
+    sd = tmp_path / "simplifications"
+    over = "N" * (store.NOTE_TENANT_MAX_BYTES * 2)
+    store._write_tenants("N2", sd, map_notes={"build_note": over})
+    smaller = "N" * (store.NOTE_TENANT_MAX_BYTES + 5000)
+    store.set_note_for_atom("N2", "build_note", smaller, sd)
+    assert store.notes_for_atom("N2", sd)["build_note"] == smaller
+    # ...and the ratchet still bites on the way back up.
+    with pytest.raises(ValueError, match="note budget"):
+        store.set_note_for_atom("N2", "build_note", over, sd)
+
+
+def test_the_budget_does_not_wedge_an_over_budget_atoms_OTHER_tenants(tmp_path):
+    """THE DEFECT THIS FIX COULD ITSELF HAVE BEEN. Enforcing the bound in the sole
+    write path would refuse every write to an already-over atom -- including appending
+    to the register, which is the record-keeping the store exists for. OPS2 is live and
+    over budget today, so this is not a hypothetical about a fixture."""
+    sd = tmp_path / "simplifications"
+    store._write_tenants(
+        "N3", sd, map_notes={"build_note": "N" * (store.NOTE_TENANT_MAX_BYTES * 2)}
+    )
+    assert store.append_for_atom("N3", ["the record goes on"], sd) == 1
+    store.append_to_record_for_atom("N3", "evidence", ["evidence too"], sd)
+    assert store.for_atom("N3", sd) == ["the record goes on"]
+    assert store.records_for_atom("N3", sd)["evidence"] == ["evidence too"]
+
+
+def test_the_budget_is_on_the_TENANT_not_on_the_single_field(tmp_path):
+    """MUTATION KILL for the wrong-subject variant: measuring only the field being
+    written instead of the whole tenant. Under that mutation every write below is
+    individually compliant and the atom still reaches a size no roll can drain.
+
+    Eight note fields are the class's real width (NOTE_FIELDS), so this is the
+    arithmetic that variant actually permits, not a contrived one."""
+    sd = tmp_path / "simplifications"
+    chunk = store.NOTE_TENANT_MAX_BYTES // 4
+    for field in ("build_note", "origin_note", "harden_note"):
+        store.set_note_for_atom("N4", field, "x" * chunk, sd)
+    assert store.note_tenant_bytes(store.notes_for_atom("N4", sd)) <= store.NOTE_TENANT_MAX_BYTES
+    # Individually compliant (a quarter of the budget), collectively over it.
+    with pytest.raises(ValueError, match="note budget"):
+        store.set_note_for_atom("N4", "level_hold_note", "x" * (chunk + 1000), sd)
+
+
+def test_the_note_bound_leaves_the_roll_room_to_reach_the_watermark(tmp_path):
+    """THE DERIVATION, held as a test so the number cannot be raised without the
+    reasoning being re-checked. `_roll` reaches the watermark only by draining lists
+    to one live entry each, so the irreducible body is the note tenant plus one entry
+    per list tenant -- the bound must leave room for that with margin.
+
+    Then it is DEMONSTRATED, not just asserted: an atom at the budget with all three
+    list tenants loaded still rolls under the watermark."""
+    assert store.NOTE_TENANT_MAX_BYTES <= store.ROLL_WATERMARK // 2
+
+    sd = tmp_path / "simplifications"
+    store.set_note_for_atom("N5", "build_note", "N" * (store.NOTE_TENANT_MAX_BYTES - 200), sd)
+    for i in range(8):
+        store.append_for_atom("N5", [f"entry-{i} " + "y" * 5400], sd)
+        store.append_to_record_for_atom("N5", "evidence", [f"ev-{i} " + "y" * 5400], sd)
+    assert (sd / "N5.yaml").stat().st_size <= store.ROLL_WATERMARK, (
+        "an atom at the note budget cannot be rolled under the watermark"
+    )
+    assert store.for_atom("N5", sd) == [f"entry-{i} " + "y" * 5400 for i in range(8)]
+
+
+def test_no_live_atom_carries_a_note_tenant_the_roll_cannot_rescue():
+    """THE STANDING CONTROL over the real store, and the reason it has a declaration
+    rather than a clean assert: OPS2_publish_gate_head_worktree was ALREADY 60,906 B
+    of notes when the bound landed, and compacting another lane's narrative to green
+    a control is the laundering this store refuses.
+
+    It is a RATCHET, not an exemption. Each declared atom carries the byte size it was
+    measured at, so it may shrink and can never grow -- which the write-path ratchet
+    independently enforces. A new offender, or a declared one that grew, is red.
+
+    Read with an independent yaml load rather than through the store's own reader, so
+    the control is not a TAUTOLOGY over the code it is checking."""
+    if not _store_is_populated():
+        pytest.skip("store empty")
+    violations = check_note_tenant_budget(STORE_DIR)
+    assert not violations, "note tenants the roll cannot drain:\n  " + "\n  ".join(violations)
+
+
+def test_the_note_tenant_control_fires_on_a_new_offender_and_on_growth(tmp_path):
+    """R15 BOTH WAYS for the standing control above.
+
+    FAIL-OPEN (an undeclared atom passes) and the ratchet direction (a declared atom
+    that GREW passes) are the two ways a declaration-backed control rots into a
+    permanent exemption list."""
+    sd = tmp_path / "simplifications"
+    fat = "N" * (store.NOTE_TENANT_MAX_BYTES + 1000)
+    store._write_tenants("UNDECLARED", sd, map_notes={"build_note": fat})
+    assert any("UNDECLARED" in v for v in check_note_tenant_budget(sd)), "fail-open"
+
+    declared = {"UNDECLARED": store.NOTE_TENANT_MAX_BYTES + 1000}
+    assert not check_note_tenant_budget(sd, declared), "a declared atom at its ceiling is debt, not a defect"
+
+    shrunk = {"UNDECLARED": store.NOTE_TENANT_MAX_BYTES + 5000}
+    assert not check_note_tenant_budget(sd, shrunk), "an atom under its ceiling must pass"
+
+    grown = {"UNDECLARED": store.NOTE_TENANT_MAX_BYTES + 100}
+    assert any("grew" in v for v in check_note_tenant_budget(sd, grown)), "ratchet did not bite"
+
+
+def test_the_note_tenant_control_is_not_vacuous_on_the_live_store():
+    """FAIL-SILENT / vacuity guard. The control above passes on the live store, and a
+    check that passes because it looked at nothing is the pattern this project has
+    caught most often. Emptying the declaration must turn it RED and name OPS2 -- i.e.
+    the pass is bought by the declaration, not by the reader finding no data."""
+    if not _store_is_populated():
+        pytest.skip("store empty")
+    with_none = check_note_tenant_budget(STORE_DIR, {})
+    assert with_none, "the control saw no over-budget atom at all -- it is measuring nothing"
+    assert any("OPS2_publish_gate_head_worktree" in v for v in with_none)
 
 
 def test_writer_round_trips_and_enforces_the_bound(tmp_path):

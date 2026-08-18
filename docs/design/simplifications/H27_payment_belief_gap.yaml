@@ -611,6 +611,187 @@ simplifications:
   docs/staging/done/WORKER_FINDING_THREE_COMMITTED_DISCHARGES_NAME_FALSIFIERS_THAT_ARE_IN_NO_COMMIT_AND_CANNOT_LAND_2026-08-18.md
 
   (class `uncommitted_and_orphaned_work`, instance 11, rendered then archived; --check PASS).'
+- 'THIRTY-SEVENTH HOUR (2026-08-18, worker tick, self-refill 2->3 HARDEN draw). THE
+
+  LEVEL DOES NOT MOVE. `level_current` stays 2, and like #34-#36 this pass is NOT
+
+  evidence for the promotion condition #31 pre-committed: that asks for a FRESH
+
+  COLD-EYES Expert Hour ending with no BLOCKING finding, and this was a targeted
+
+  HARDEN build worked from this atom''s own ranked owed list with full memory of the
+
+  build. An Hour cannot be its own confirmation, and neither can a build pass.
+
+
+  WHAT WAS DRAWN: owed item (B), the last undischarged item on this atom''s ranked
+
+  list -- "THE NOTE-FIELD ROLL: the roll chunks LIST entries and cannot split one
+
+  string field, so this note wedges again if Hours resume appending; every Hour must
+
+  compact as it writes until notes get a size bound and an archive path of their own,
+
+  a store change outside this atom." It was the only item left that was a MECHANISM
+
+  gap rather than a lead, and it was being held off by a convention -- which is the
+
+  class of rule this project has measured as evaporating every time.
+
+
+  THE PREMISE WAS RE-MEASURED RATHER THAN INHERITED, and it holds exactly as #33
+
+  recorded it. On a fixture with three list entries and one 70,000-byte note the live
+
+  file lands 73,071 B (7,535 B over ROLL_WATERMARK), `roll_for_atom` returns 0, and
+
+  the file does not shrink -- the roll drains the list tenant, then finds no
+
+  candidate, because `_roll` moves whole entries and a note is one string. Past
+
+  MAX_FILE_BYTES the write RAISES, so the atom''s record becomes literally unwritable,
+
+  and the message names the FILE bound rather than the note, handing the writer no
+
+  route out.
+
+
+  AND THE WEDGE IS NOT LATENT, WHICH IS THE FINDING THIS PASS ADDS. Measured across
+
+  the live store: 297 atoms carry notes, mean tenant 1,595 B, p90 4,233 B -- and
+
+  `OPS2_publish_gate_head_worktree` is at 62,301 B, of which 60,906 B (98%) is its
+
+  note tenant and 56,846 B a single `build_note`. It sits 3,235 B under the watermark
+
+  with ZERO live list entries, so the next paragraph appended to that note wedges it
+
+  and the roll has nothing whatever to drain. H27''s owed item was filed as this
+
+  atom''s risk; the class had a second and LARGER member already one append from the
+
+  wedge, and no control was looking at it. That is the R10 shape -- the instance fix
+
+  was never the closure.
+
+
+  BUILT (`tools/simplifications_store.py`, `tests/design/test_simplifications_store.py`
+
+  -- outside this atom''s declared file_scope, as owed item (B) itself stated it would
+
+  be). `NOTE_TENANT_MAX_BYTES` = 32 KiB plus `note_tenant_bytes`, enforced in
+
+  `set_note_for_atom` as a RATCHET rather than a cap: a note write is refused only if
+
+  it leaves the tenant over budget AND LARGER THAN IT FOUND IT. That direction is the
+
+  whole design. A flat cap in `_write_tenants` would have refused every write to an
+
+  already-over atom -- including appending to its register, which is the
+
+  record-keeping the store exists for -- so it would have wedged the lane in the name
+
+  of unwedging it, and it would have locked the only remedy (writing a smaller note)
+
+  behind the bound that demands it. Under the ratchet: growth is impossible
+
+  everywhere at once, compaction is always available however far over budget an atom
+
+  already is, and every other tenant of an over-budget atom writes exactly as before.
+
+  The existing stock is therefore monotonically non-increasing WITHOUT anyone editing
+
+  another lane''s narrative record, which is why this needed no exemption list.
+
+
+  THE NUMBER IS DERIVED, NOT FITTED, and the derivation is held as a test so it
+
+  cannot be raised without being re-checked: `_roll` reaches the watermark only by
+
+  draining lists to one live entry each, so the irreducible body is the note tenant
+
+  plus one entry per list tenant -- three tenants at this store''s 5.4 KB mean is
+
+  ~16 KB, and half the watermark leaves 2x that. Checked against reality AFTERWARDS:
+
+  296 of 297 live note tenants are already inside it and it is ~8x the p90, the sole
+
+  exception being the OPS2 file above.
+
+
+  R15 BOTH WAYS, BY SOURCE MUTATION ON AN ISOLATED COPY (the live module is imported
+
+  by running daemons, so mutating it in the shared tree is the hazard this project
+
+  already has a rule about). Unmutated: green. Five mutations, all CAUGHT -- control
+
+  deleted; WRONG SUBJECT (measuring the field written instead of the whole tenant,
+
+  which lets eight individually-compliant notes sum to a file no roll can drain);
+
+  FAIL-OPEN (bound loosened to the file cap); FAIL-SILENT (the measurement swallowed
+
+  to 0); and RATCHET INVERTED (compaction refused instead of growth), which is the
+
+  mutation that proves the direction is load-bearing rather than incidental. The
+
+  standing control `check_note_tenant_budget` is R15''d in-test both ways -- fires on
+
+  an undeclared offender and on a declared one that GREW -- and its vacuity guard
+
+  asserts that emptying the declaration turns it RED naming OPS2, so its pass on the
+
+  live store is bought by the declaration and not by the reader finding no data. It
+
+  reads each file with a plain yaml load rather than through the store''s own readers,
+
+  because a control that measures its subject through the code under test is the
+
+  tautology pattern. 41 passed in the store module, 110 across tests/design/.
+
+
+  VERIFIED AGAINST THE REAL RECORD, not only fixtures: on a copy of the live OPS2
+
+  file, appending one sentence to its `build_note` is REFUSED (60,906 -> 60,935 B)
+
+  and a compaction to 24,060 B is ACCEPTED, with the live store file untouched at
+
+  62,301 B.
+
+
+  WHAT REMAINS. Owed item (B) is DISCHARGED as a mechanism, with one deliberate
+
+  REFUSAL recorded so it is not mistaken for an oversight: (B) asked for a size bound
+
+  AND "an archive path of their own", and the archive half was NOT built. A note is a
+
+  CURRENT statement whose history lives in git -- the store''s own contract, and the
+
+  thing Hour #33 relied on when it compacted this note -- so a per-revision note
+
+  archive would be a new monotonic append-only flow, growing once per Hour forever.
+
+  That is precisely the class this store exists to bound, and building it would have
+
+  made this the fourth drain that leaves a fifth flow running. The bound alone closes
+
+  the wedge; the archive would have re-opened it one level down. Reversible: the
+
+  declaration and the constant are two named symbols.
+
+  (C) #28''s surviving leads are untouched and remain the ranked remainder: the 14
+
+  undeclared live entries nothing re-measures on a schedule; #27''s clamp and
+
+  six-unwalked-rows; D35''s scoped build; #21''s vacuous-in-isolation sibling control.
+
+  FILED, because it belongs to a lane that is not this atom''s:
+
+  docs/staging/WORKER_FINDING_A_NOTE_TENANT_THE_ROLL_CANNOT_DRAIN_IS_ONE_APPEND_FROM_WEDGING_ANOTHER_ATOM_2026-08-18.md.
+
+  NOT CLAIMED: this pass moves no figure this instrument computes (R12), and it is
+
+  not the fresh Hour the 2->3 needs.'
 map_notes:
   harden_note: 'HARDEN PASS RAN 2026-08-08 (commit 72ecfff7d); recorded here 2026-08-08 because the pass fixed code and tests but left the map cell silent -- the work was invisible to the map, and a silent cell is why the self-refill kept re-drawing this atom for a level move it cannot make. Delivered, both mutation-proven: (1) the DD-channel LEAK WITNESS was VACUOUS -- `n_flagged_non_dd_failures == 0` passes identically when the channel observes nothing at all as when it observes cleanly, so a vacuity guard now carries it (test_leak_witness_is_vacuous_without_its_channel_guard pins the defect the guard closes); (2) three silent `.get()` JOIN DROPS had no witness -- `value_date`/`invoice_ref`/`reference` key drift would have pushed the measured gap toward the no-skill baseline with nothing firing, so n_unjoined_dd_failures / n_unjoined_collection_misses / n_ageing_refs_matched are now asserted against a deliberate key drift. 24/24 green. NEW FINDING from the pass, reported not tuned (R12): the headline DETECTION gap is INSENSITIVE TO THE ENTIRE DD-OBSERVATION CHANNEL -- `flagged_set` is a UNION, `n_flagged_via_dd_channel_only == 0` across seeds 7/11/23, so killing the DD channel outright leaves the published number bit-identical. Structurally reasonable (a rail failure means the cash did not arrive, which reconciliation also sees) but it means set-membership detection is blind to the only thing that channel buys: EARLIER detection. That test is labelled CHARACTERIZATION deliberately -- it pins a measured limit, not a contract, and is expected to fire if the channel ever starts contributing.'
   level_hold_note: 'HELD AT L2 (level_current 2, level_target 3). THIS NOTE WAS COMPACTED ON 2026-08-17 BY EXPERT HOUR #33 AND THAT COMPACTION IS ITSELF A FINDING. It had reached 54,930 chars -- 81% of this atom''s store file, which the append pushed to 67,812 B against the 65,536 B ROLL_WATERMARK, and `roll_for_atom` returned 0 because the roll chunks LIST entries and this is one string field the roll cannot split. The record of the atom had become unwritable: the wedge `test_the_live_store_has_roll_headroom` exists to catch, caught. Thirty-three Hours appending to one field is the cause; Hour #33 only tipped it. The store''s own contract is the authority for the fix (`set_note_for_atom`: a note is a CURRENT statement, revision is the correct semantics, and the durable history of what changed lives in git) -- so the full 54,930-char note is in this file''s git history and in the commit that landed Hour #33, nothing is deleted, and what follows is what is CURRENTLY TRUE. Hours #3-#32''s individual narratives are there, not here.
