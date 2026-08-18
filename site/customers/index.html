@@ -201,7 +201,16 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
      figure and therefore no side, which is why it sits outside #op-state (a block inside would
      have to declare one, and would then be filtered by the very selector it operates). -->
 <div id="door-wall-view" style="max-width:900px;margin:0 auto;padding:14px 20px 0"></div>
-<div id="op-state" style="max-width:900px;margin:0 auto;padding:14px 20px 0">
+<!-- Cold-eyes 2026-08-17 (coldwalk:site2_c1_pinned_exhibit_reads_as_the_open_households):
+     3 of 3 blind readers attributed THIS exhibit's figures to whichever household they had
+     opened below it. The exhibit is pinned to one account (company.json's household.id) and
+     re-rendered ~2,000px above every drill-down on all six tabs, with nothing separating the
+     two. The data was never wrong and the heading does name the account; the defect is that
+     one household's P&L sits directly above another household's account.
+     `data-account-subject` is empty until renderCustomerState() learns the id from
+     company.json -- an EMPTY subject is treated as unknown, not as "matches", so the exhibit
+     is withheld rather than gambled with (see opStateSuppressedReason). -->
+<div id="op-state" data-account-subject="" style="max-width:900px;margin:0 auto;padding:14px 20px 0">
   <div class="sec-title" style="margin-top:0">One household &mdash; end to end <span id="cust-stamp" class="muted" style="text-transform:none;letter-spacing:0;font-weight:400"></span></div>
   <section class="wall-panel" data-wall-side="customer">
     <div class="sec-title">Who they are, in their own account <span class="wall-side-chip ws-customer">Customer-observable</span></div>
@@ -249,6 +258,11 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
   </section>
   <div style="text-align:center;margin:6px 0 8px"><a href="./?acc=C1" id="cust-drill" class="blue" style="font-size:12px;text-decoration:none">Open the full two-sided drill-down for this household (bills, statements, timeline, risk) &rarr;</a></div>
 </div>
+<!-- Where the exhibit was. Filled by renderSubjectBoundary() ONLY when the pinned exhibit has
+     been withheld, so that its disappearance is stated rather than silent -- a reader who saw
+     it on the landing page must be told where it went, not left to wonder. It carries no
+     figure and therefore no wall side, like #door-wall-view above it. -->
+<div id="subject-boundary" style="max-width:900px;margin:0 auto;padding:0 20px"></div>
 <script>
 // The director's operational window: what it is like for ONE real household, end to end.
 // Self-contained (own helpers) so it renders independently of the drill-down portal below.
@@ -606,6 +620,16 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
     if(company.dashboard_generated_at)stamp.push("data "+String(company.dashboard_generated_at).slice(0,10));
     else if(company.generated_at)stamp.push("rendered "+String(company.generated_at).slice(0,10));
     el("cust-stamp").textContent=stamp.length?("as of "+stamp.join(" · ")):"";
+    /* coldwalk:site2_c1_pinned_exhibit_reads_as_the_open_households. The heading has always
+       named the account, and that is exactly what failed: a phrase inside a heading is not
+       something the rest of the page can read. Publish WHOSE account this region is as a
+       machine-readable property of the region itself, at the one moment it is learned, so
+       the separation below can be a mechanism rather than another sentence. Written straight
+       to the host (not through el(), which resolves detached nodes) because the subject is
+       the region, and it must be declared even while the region is withheld. */
+    var opHost=document.getElementById("op-state");
+    if(opHost&&opHost.setAttribute)opHost.setAttribute("data-account-subject",String(h.id||""));
+    if(window.applyWallViewToOpState)window.applyWallViewToOpState();
 
     el("cust-intro").innerHTML=
       "This is <strong>"+esc(h.id)+"</strong>, one real household in the book &mdash; not a persona, an actual "+
@@ -987,20 +1011,99 @@ function opStateBlocks(){
   }
   return OP_STATE_BLOCKS;
 }
+/* ===================== WHOSE ACCOUNT IS THIS? =============================
+   coldwalk:site2_c1_pinned_exhibit_reads_as_the_open_households (MAJOR, 3 of 3 blind
+   readers). The wall controls above answer "which SIDE is this figure on". They cannot
+   answer "which ACCOUNT is this figure about", and the exhibit's misread was entirely
+   the second question: C1's GBP6,560.17 and "two person / urban flat" were read as C6's
+   (an SME with no gas) and as C_IC1's (I&C, GBP257k of term margin at risk), because the
+   pinned exhibit re-renders above every household's drill-down with no boundary.
+
+   So SUBJECT is now declared the same way SIDE is -- as an attribute of the region, read
+   off the rendered document -- and one writer decides what the document does when two
+   subjects would be present at once. The rule is the page's existing fail-closed one: the
+   second subject is REMOVED from the document rather than hidden, because "the reader
+   cannot confuse these two households" has to be true of the DOM, not of the stylesheet.
+
+   Deliberately NOT a second membership writer. applyWallViewToOpState already owns which
+   op-state blocks are in the document; a sibling writer touching the same children is how
+   four sentences about one balance drifted apart in
+   coldwalk:site2_closed_account_settled_to_zero_and_in_credit. One writer, two reasons. */
+function opStateSubject(){
+  var host=document.getElementById("op-state");
+  var s=(host&&host.getAttribute)?host.getAttribute("data-account-subject"):null;
+  return (s===null||s===undefined||s==="")?null:String(s);
+}
+/* Read off the RENDERED markup (R11), not off HH: the question is what a reader is being
+   served, and #app is written as html by renderHousehold/showLogin. In a browser innerHTML
+   is the serialised DOM, so this is the same string in both places -- no second code path
+   whose behaviour could differ from the one readers get. */
+function openSubject(){
+  var app=document.getElementById("app");
+  if(!app)return null;
+  var m=/data-account-subject="([^"]*)"/.exec(String(app.innerHTML||""));
+  return (m&&m[1])?m[1]:null;
+}
+/* The reason the pinned exhibit must NOT render, or null if it may.
+   Fails closed on an UNKNOWN exhibit subject: if the page cannot name whose account the
+   exhibit is, it cannot prove the two regions are the same household, and an unprovable
+   sameness is exactly the state the misread came out of. */
+function opStateSuppressedReason(){
+  var open=openSubject();
+  if(!open)return null;
+  var ex=opStateSubject();
+  if(!ex)return "the pinned exhibit has not declared whose account it is, so this page "+
+    "cannot show it is the same household as the one open below";
+  if(ex===open)return null;
+  return "it is account "+ex+" and the household open below is "+open;
+}
+function renderSubjectBoundary(reason){
+  var host=document.getElementById("subject-boundary");
+  if(!host)return;
+  if(!reason){host.innerHTML="";return;}
+  host.innerHTML="<div class=\"wall-note\"><strong>One household at a time.</strong> The "+
+    "pinned &ldquo;one household &mdash; end to end&rdquo; exhibit has been removed from this "+
+    "page because "+esc(reason)+". Every figure below this line belongs to the open "+
+    "household. Close the household to bring the exhibit back.</div>";
+}
 function applyWallViewToOpState(){
   var host=document.getElementById("op-state");
   if(!host)return;
-  opStateBlocks().forEach(function(el){
+  // Cached before anything is removed -- opStateBlocks() reads the live children on its
+  // first call, so the subject gate must not run before it.
+  var blocks=opStateBlocks();
+  var suppressed=opStateSuppressedReason();
+  blocks.forEach(function(el){
     var side=el.getAttribute?el.getAttribute("data-wall-side"):null;
     // Fail closed, exactly as panel() does: a block that declares a side the
     // wall does not know cannot be filtered, so it must not ship at all.
     if(side&&!WALL_SIDES[side])throw new Error(
       "an op-state block declares an unknown wall-side ("+String(side)+") -- "+
       "the view selector cannot filter it");
-    if(!side||wallViewShows(side))host.appendChild(el);
+    if(!suppressed&&(!side||wallViewShows(side)))host.appendChild(el);
     else if(el.parentNode===host)host.removeChild(el);
   });
+  renderSubjectBoundary(suppressed);
 }
+/* THE CONTROL, and it is deliberately NOT derived from opStateSuppressedReason() -- a
+   checker that asks the fix whether the fix worked is the TAUTOLOGY pattern R15 names.
+   This reads the rendered document: what subjects are declared, and what is actually in it.
+   The missing-subject arm is about the DECLARATION rather than the rendering, so that
+   stripping data-account-subject fires it EVEN THOUGH the suppression would then also hide
+   the exhibit -- otherwise the fix would mask its own control's evidence. */
+var SUBJECT_VIOLATIONS=[];
+window.__subjectViolations=function(){
+  var host=document.getElementById("op-state");
+  var present=!!(host&&host.children&&host.children.length);
+  var ex=opStateSubject(),open=openSubject(),v=[];
+  if(open&&!ex)v.push(
+    "a household is open ("+open+") and the pinned exhibit region declares no account "+
+    "subject -- two subjects that cannot be named cannot be told apart");
+  if(open&&ex&&present&&ex!==open)v.push(
+    "two accounts render at once -- pinned exhibit "+ex+", open household "+open);
+  SUBJECT_VIOLATIONS=v.slice();
+  return v.slice();
+};
 /* A detached node is unreachable via document.getElementById, and the exhibit's own
    script fills its placeholders asynchronously (company.json arrives after the page
    boots). Without this, switching view before that fetch resolved would throw inside
@@ -1143,6 +1246,10 @@ function showLogin(err){
   if(inp){inp.focus();inp.onkeydown=function(e){if(e.key==="Enter")doLogin();};}
   CS_WRAP=null;
   applyWallViewToApp();
+  // No household is open now, so the exhibit's account is the only subject on the page
+  // again and it comes back. R11's "no orphan transitions": the removal has a tested
+  // release, and this is it.
+  applyWallViewToOpState();
   loadCaseStudies();
 }
 var CASE_STUDIES=null;
@@ -1326,7 +1433,10 @@ function renderHousehold(){
     return "<button class=\"tab-btn"+(ACTIVE_TAB===t[0]?" active":"")+"\" onclick=\"switchTab('"+t[0]+"')\">"+t[1]+"</button>";
   }).join("");
   document.getElementById("app").innerHTML=
-    "<div class=\"account-wrap\" data-wall-chrome=\"1\">"+
+    // data-account-subject: the drill-down declares WHOSE account it is, so the pinned
+    // exhibit above can be told apart from it (coldwalk:site2_c1_pinned_exhibit_reads_as
+    // _the_open_households). data-wall-chrome already says "this block has no single side".
+    "<div class=\"account-wrap\" data-wall-chrome=\"1\" data-account-subject=\""+esc(HH.base)+"\">"+
     "<div class=\"account-header\">"+
     // Director page comment (2026-07-10): "Can you move the scroll to left
     // hand side?" -- prev/next customer arrows moved from the right
@@ -1344,6 +1454,11 @@ function renderHousehold(){
     "<div id=\"tab-body\"></div>"+
     "</div>";
   renderTab();
+  // The subject of the page has just changed. Re-running the sole op-state membership
+  // writer is what withdraws the pinned exhibit (or restores it, when the household opened
+  // IS the exhibit's own account) -- switching tabs re-enters here, which is why the
+  // exhibit stayed above all six of them before.
+  applyWallViewToOpState();
 }
 function switchTab(name){ACTIVE_TAB=name;renderHousehold();}
 /* Every tab returns a LIST of declared panels; layoutPanels is the sole writer

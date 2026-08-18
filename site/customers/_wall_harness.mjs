@@ -65,7 +65,22 @@ function opStateNode(spec) {
 }
 const opStateHost = opStateSpec
   ? (() => {
-      const host = { children: opStateSpec.map(opStateNode) };
+      // The host's OWN attributes, read off the page rather than invented here. Since
+      // coldwalk:site2_c1_pinned_exhibit_reads_as_the_open_households the region declares
+      // data-account-subject, and a host modelled without attributes reports "no subject
+      // declared" -- which the page correctly treats as unprovable sameness and withholds.
+      // Modelling only `children` made this harness structurally unable to say which
+      // household the exhibit is.
+      const hostAttrs = {};
+      const head = html.slice(html.indexOf('<div id="op-state"'));
+      for (const a of head.slice(0, head.indexOf(">")).matchAll(/([a-z-]+)="([^"]*)"/g)) hostAttrs[a[1]] = a[2];
+      const host = {
+        children: opStateSpec.map(opStateNode),
+        getAttribute(name) {
+          return Object.prototype.hasOwnProperty.call(hostAttrs, name) ? hostAttrs[name] : null;
+        },
+        setAttribute(name, v) { hostAttrs[name] = String(v); },
+      };
       host.children.forEach((c) => { c.parentNode = host; });
       host.appendChild = (el) => {
         const i = host.children.indexOf(el);
@@ -199,6 +214,16 @@ const opStateProbes = {};
 // out of the page's own setWallView(), not a string grep of the file.
 const doorWallView = {};
 if (opStateHost) {
+  // THE DOOR STATE, deliberately. This pass's subject is whether the view selector filters
+  // the exhibit by SIDE, and the exhibit only renders where it exists: with no household
+  // open. Since coldwalk:site2_c1_pinned_exhibit_reads_as_the_open_households the page
+  // withdraws the pinned exhibit whenever a DIFFERENT household is open below it, so
+  // leaving this harness's fully-populated HH in place would have driven the side pass
+  // through a state in which the region is legitimately empty -- and the union guards would
+  // have failed for a reason that has nothing to do with sides. Subject separation has its
+  // own harness (_subject_harness.mjs); this one keeps its own question.
+  const HH_SAVED = sandbox.HH;
+  sandbox.HH = { elec: null, gas: null, base: null };
   for (const view of ["both", "customer", "behind"]) {
     sandbox.setWallView(view);
     opState[view] = opStateHost.children.map((c) => c._html).join("");
@@ -220,6 +245,7 @@ if (opStateHost) {
   opStateHost.removeChild(rogue);
   sandbox.OP_STATE_BLOCKS = null;
   sandbox.setWallView("both");
+  sandbox.HH = HH_SAVED;
 }
 
 process.stdout.write(JSON.stringify({ views, injected, billsByFuel, probes, opState, opStateProbes, doorWallView }));

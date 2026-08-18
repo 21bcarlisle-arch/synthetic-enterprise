@@ -5126,7 +5126,7 @@
   provenance: director_ruling
   depends_on: []
   couples_with: [D36_bill_render_footing_and_pence, SITE3_wall_exhibit_url_rename]
-  file_scope: ['site/customers/index.html', 'site/customers/test_wall_exhibit.py', 'site/customers/_wall_harness.mjs', 'site/customers/_landing_harness.mjs', 'site/customers/test_customers_door.py', 'site/customers/_render_harness.mjs', 'site/_redirects', 'site/test_no_links_to_redirected_urls.py', 'docs/design/SITE_CONSTITUTION.md', 'tools/generate_case_study_recommender.py', 'tests/tools/test_case_study_recommender.py']
+  file_scope: ['site/customers/index.html', 'site/customers/test_wall_exhibit.py', 'site/customers/_wall_harness.mjs', 'site/customers/_landing_harness.mjs', 'site/customers/_subject_harness.mjs', 'site/customers/test_customers_door.py', 'site/customers/_render_harness.mjs', 'site/_redirects', 'site/test_no_links_to_redirected_urls.py', 'docs/design/SITE_CONSTITUTION.md', 'tools/generate_case_study_recommender.py', 'tests/tools/test_case_study_recommender.py']
   simplifications_count: 12
   expert_hour:
     # 2026-08-17: every finding the 08-12 Hour raised is now dispositioned -- 11 fixed with
@@ -5211,6 +5211,8 @@
     # RENDER half, and the ownership call the ledger row deferred is now measured: all of
     # it was SITE2's. Sole-producer __householdCollections(); /now/ re-homed (LATENT).
     - coldwalk:site2_arrears_counters_contradict_the_accounts_own_timeline
+    - coldwalk:site2_closed_account_settled_to_zero_and_in_credit
+    - coldwalk:site2_c1_pinned_exhibit_reads_as_the_open_households
     findings_rehomed:   # real, NOT SITE2's, and not closable inside its file_scope
     # Staged for the owning lanes as
     # docs/staging/WORKER_FINDING_TWO_DEFECTS_THE_WALL_EXHIBIT_SURFACED_ARE_NOT_THE_EXHIBITS_2026-08-17.md
@@ -5240,11 +5242,9 @@
       # exhibit cannot answer is which of the two it is: a display join, or a billing engine
       # applying last year's price vintage straight through the 2022 spike.
     findings:   # OPEN; reconciled vs the ledger by tests/controls/test_map_reconciliation.py
-    # THE RE-RUN WALK's four. Two are FIXED 2026-08-18 and sit above. Of the two left, one
-    # is a layout decision and one a same-page contradiction whose resolution needs a fact
-    # the page does not carry -- whether the closed account's GBP24.37 credit was refunded.
-    - coldwalk:site2_c1_pinned_exhibit_reads_as_the_open_households
-    - coldwalk:site2_closed_account_settled_to_zero_and_in_credit
+    # THE RE-RUN WALK's four are ALL answered, under fixed_2026_08_18. The one left is an
+    # adjudicated FALSE POSITIVE. Verdict STAYS "NO": it is a property of a WALK, not of a
+    # list going empty, so the next Expert Hour re-walks and says what it finds.
     # NOTE the two entries that used to sit here are now under findings_rehomed above, each
     # with its owning lane. One residual this atom still cannot discharge and which travels
     # with the data half: the #op-state exhibit's own churn tile reads company.json's

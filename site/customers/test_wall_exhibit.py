@@ -3283,6 +3283,276 @@ def test_every_standing_check_fires_on_the_page_as_it_shipped(tmp_path):
         _check_a_closing_credit_says_the_refund_is_unrecorded(doc)
 
 
+# ===========================================================================
+# 20. WHICH ACCOUNT AM I LOOKING AT?
+#     (coldwalk:site2_c1_pinned_exhibit_reads_as_the_open_households)
+#
+# MAJOR, and the evidence IS the misread rate: 3 of 3 blindfolded personas attributed the
+# pinned exhibit's GBP6,560.17 and "two person / urban flat" to C6 (an SME with no gas) and
+# to C_IC1 (I&C, GBP257k of term margin at risk). The static #op-state exhibit is pinned to
+# ONE account -- company.json's household.id -- and re-renders ~2,000px above EVERY
+# household's drill-down on all six tabs, with nothing separating the two.
+#
+# WHY EVERY EXISTING CONTROL IN THIS MODULE WAS BLIND TO IT. Nineteen sections of guards all
+# answer one question: which SIDE of the wall is this figure on. Not one of them can answer
+# which ACCOUNT it is about, and the misread was entirely the second question. The heading
+# does say "as of account C1" -- a phrase inside a heading, which is the prose form the
+# ruling's own non-negotiable rejects ("if a new panel can be added without declaring which
+# side, nothing has been built -- only written down"). The same is true of subject.
+#
+# THE MECHANISM. Subject is declared the way side is: `data-account-subject` on the region,
+# written by renderCustomerState() the moment company.json names the account, and by
+# renderHousehold() from HH.base. One writer -- applyWallViewToOpState, which already owned
+# op-state membership -- decides what the document does, and it REMOVES the second subject
+# rather than hiding it, because "the reader cannot confuse these two households" is a claim
+# about the DOM. It fails CLOSED on an unknown exhibit subject: unprovable sameness is the
+# state the misread came out of.
+#
+# INDEPENDENCE (R15's TAUTOLOGY pattern). `window.__subjectViolations()` does not ask
+# opStateSuppressedReason() whether the suppression worked. It reads the rendered document.
+# Its missing-subject arm is about the DECLARATION, not the rendering, precisely so that
+# stripping the attribute fires it even though the suppression would ALSO then hide the
+# exhibit -- otherwise the fix would mask its own control's evidence.
+#
+# ANTI-PIN: nothing here pins a figure or a count from the run. The account ids come off
+# company.json and the per-customer JSON, and the child count comes off the page's own
+# markup, so regenerating the book changes what is compared rather than making these cry
+# wolf. Only genuinely rendering two households at once can fail them.
+SUBJECT_HARNESS = HERE / "_subject_harness.mjs"
+COMPANY_JSON = HERE.parent / "data" / "company.json"
+
+
+def _subject_fixture() -> tuple[Path, Path, Path]:
+    """The exhibit's own household, its gas leg, and a DIFFERENT household -- all read off
+    disk. Chosen by identity (company.json says whose the exhibit is), never hard-coded:
+    re-point the exhibit at another account and this fixture follows it."""
+    exhibit_id = (json.loads(COMPANY_JSON.read_text(encoding="utf-8")).get("household") or {}).get("id")
+    assert exhibit_id, "company.json publishes no household -- the exhibit has no subject"
+    elec = CUSTOMER_DATA / f"{exhibit_id}.json"
+    assert elec.exists(), f"the exhibit's account {exhibit_id} has no per-customer record"
+    gas_id = (json.loads(elec.read_text(encoding="utf-8")).get("dual_fuel_combined") or {}).get("gas_account_id")
+    gas = CUSTOMER_DATA / f"{gas_id}.json" if gas_id else None
+    others = sorted(
+        p for p in CUSTOMER_DATA.glob("*.json")
+        if p.stem not in {"_index", exhibit_id} and not p.stem.endswith("g")
+        and json.loads(p.read_text(encoding="utf-8")).get("commodity") != "gas"
+    )
+    assert others, "no second household on disk -- this section would be vacuous"
+    return elec, (gas if gas and gas.exists() else elec), others[0]
+
+
+def _subject(index: Path = INDEX) -> dict:
+    elec, gas, other = _subject_fixture()
+    proc = subprocess.run(
+        [NODE, str(SUBJECT_HARNESS), str(index), str(COMPANY_JSON), str(elec), str(other), str(gas)],
+        capture_output=True, text=True, timeout=120,
+    )
+    assert proc.returncode == 0, f"subject harness failed: {proc.stderr}"
+    return json.loads(proc.stdout)
+
+
+def _check_one_subject_in_the_document(doc: dict) -> None:
+    """The law, stated once so the mutations below can all be judged by the same sentence."""
+    state = doc["states"]["other_household_open"]
+    assert state["threw"] is None, state["threw"]
+    assert doc["exhibitAccount"] != doc["otherAccount"], (
+        "the fixture opened the exhibit's own household -- this check would be vacuous"
+    )
+    assert state["op_state_children"] == 0, (
+        f"the exhibit pinned to {doc['exhibitAccount']} is still in the rendered document "
+        f"with household {doc['otherAccount']} open below it -- "
+        f"{state['op_state_children']} of {state['op_state_children_expected']} blocks "
+        "survive, which is the state 3 of 3 blind readers misattributed"
+    )
+    assert not state["violations"], state["violations"]
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_the_pinned_exhibit_leaves_the_document_when_another_household_is_open():
+    """THE FINDING. Two accounts must not render at once."""
+    _check_one_subject_in_the_document(_subject())
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_the_exhibit_stays_gone_on_every_tab():
+    """The walk measured the exhibit above SIX tabs, so one tab is not the population.
+    switchTab() re-enters renderHousehold(), which is exactly why it persisted before."""
+    per_tab = _subject()["states"]["other_household_open_per_tab"]
+    assert len(per_tab) >= 6, f"only {len(per_tab)} tabs driven -- the page has six"
+    still_there = {t: s["op_state_children"] for t, s in per_tab.items() if s["op_state_children"]}
+    assert not still_there, f"the pinned exhibit survives on these tabs: {still_there}"
+    threw = {t: s["threw"] for t, s in per_tab.items() if s["threw"]}
+    assert not threw, threw
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_the_removal_is_stated_and_not_silent():
+    """A block that vanishes without explanation is a different defect from the one being
+    fixed. The boundary names BOTH accounts, so a reader who saw the exhibit at the door
+    knows which household it belonged to and which one they are now reading."""
+    doc = _subject()
+    boundary = doc["states"]["other_household_open"]["boundary_html"]
+    assert doc["exhibitAccount"] in boundary and doc["otherAccount"] in boundary, (
+        f"the boundary names neither account: {boundary!r}"
+    )
+    assert doc["states"]["landing"]["boundary_html"] == "", (
+        "the boundary renders at the door, where there is no second subject to separate"
+    )
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_closing_the_household_brings_the_exhibit_back():
+    """R11 forbids an ORPHAN TRANSITION: a hold whose release does nothing, or is untested,
+    is half a mechanism. This is the release."""
+    doc = _subject()
+    closed = doc["states"]["closed_again"]
+    assert closed["threw"] is None, closed["threw"]
+    assert closed["op_state_children"] == closed["op_state_children_expected"], (
+        f"the exhibit did not come back after doLogout(): {closed['op_state_children']} of "
+        f"{closed['op_state_children_expected']} blocks"
+    )
+    assert closed["boundary_html"] == "", "the boundary outlived the separation it explained"
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_null_control_the_exhibits_own_household_does_not_remove_it():
+    """THE NULL CONTROL, and this section is worth little without it. Opening the exhibit's
+    OWN account moves the SAMPLE (which household is open) without moving the LAW (two
+    subjects must not co-render). If the exhibit vanished here too, the mechanism would be
+    "hide it whenever anything is open" wearing a subject rule's clothes -- and every test
+    above would pass on it."""
+    doc = _subject()
+    same = doc["states"]["exhibit_household_open"]
+    assert same["threw"] is None, same["threw"]
+    assert same["op_state_children"] == same["op_state_children_expected"], (
+        f"the exhibit for {doc['exhibitAccount']} was removed with its OWN household open "
+        "-- the rule being enforced is not about subject at all"
+    )
+    assert same["boundary_html"] == "", (
+        "a separation was announced between an account and itself"
+    )
+    assert not same["violations"], same["violations"]
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_the_view_selector_still_governs_the_exhibit():
+    """This change adds a SECOND reason to withhold an op-state block to the writer that
+    already owned the first. The first must still work -- a customer-side view may not
+    carry a company-only or SIM-only block."""
+    per_view = _subject()["states"]["landing_per_view"]
+    assert per_view["customer"]["op_state_children"] < per_view["both"]["op_state_children"], (
+        "the customer view no longer filters the exhibit -- the subject gate ate the side gate"
+    )
+    leaked = [s for s in per_view["customer"]["sides"] if s not in (None, "customer")]
+    assert not leaked, f"behind-the-wall blocks in the customer view: {leaked}"
+    assert "customer" not in per_view["behind"]["sides"], per_view["behind"]["sides"]
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_mutation_leaving_the_exhibit_pinned_kills_a_named_test(tmp_path):
+    """R15 direction 1: the defect itself, restored. Neuter the suppression and the exhibit
+    goes back above the other household -- which is the page cold-eyes actually read."""
+    mutant = _mutate(
+        tmp_path,
+        "function opStateSuppressedReason(){\n  var open=openSubject();\n  if(!open)return null;",
+        "function opStateSuppressedReason(){\n  var open=openSubject();\n  if(open)return null;",
+    )
+    doc = _subject(mutant)
+    assert doc["states"]["other_household_open"]["op_state_children"] > 0, (
+        "the mutation did not reach the page -- this test would be vacuous"
+    )
+    with pytest.raises(AssertionError, match="still in the rendered document"):
+        _check_one_subject_in_the_document(doc)
+    assert doc["states"]["other_household_open"]["violations"], (
+        "the exhibit renders above another household and the CONTROL stayed silent -- it "
+        "is reporting the fix's opinion of itself, not the document"
+    )
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_mutation_never_declaring_the_exhibits_subject_kills_a_named_test(tmp_path):
+    """R15 direction 2, the FAIL-OPEN shape: the region stops declaring whose account it is.
+    Two things must happen, and the second is the one that makes the control independent --
+    the page must withhold the exhibit (it cannot prove sameness), AND the control must
+    still report the missing declaration even though nothing visibly leaked. A control that
+    only speaks when the fix has already failed is the fix grading itself."""
+    mutant = _mutate(
+        tmp_path,
+        'if(opHost&&opHost.setAttribute)opHost.setAttribute("data-account-subject",String(h.id||""));',
+        "if(false){}",
+    )
+    doc = _subject(mutant)
+    landing = doc["states"]["landing"]
+    assert not landing["op_state_subject"], (
+        "the mutation did not reach the page -- this test would be vacuous"
+    )
+    same = doc["states"]["exhibit_household_open"]
+    assert same["op_state_children"] == 0, (
+        "an exhibit that cannot name its account was rendered above a household anyway -- "
+        "the suppression fails OPEN on an unknown subject"
+    )
+    assert any("declares no account subject" in v for v in same["violations"]), same["violations"]
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_mutation_the_drill_down_stops_declaring_its_subject_kills_a_named_test(tmp_path):
+    """R15 direction 3: the OTHER side of the same declaration. If the drill-down stops
+    saying whose account it is, the page reads as though nothing is open -- and the exhibit
+    is pinned back over it. Both regions have to declare, or neither declaration matters."""
+    mutant = _mutate(
+        tmp_path,
+        '"<div class=\\"account-wrap\\" data-wall-chrome=\\"1\\" data-account-subject=\\""+esc(HH.base)+"\\">"+',
+        '"<div class=\\"account-wrap\\" data-wall-chrome=\\"1\\">"+',
+    )
+    doc = _subject(mutant)
+    assert doc["states"]["other_household_open"]["op_state_children"] > 0, (
+        "the mutation did not reach the page -- this test would be vacuous"
+    )
+    with pytest.raises(AssertionError, match="still in the rendered document"):
+        _check_one_subject_in_the_document(doc)
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_mutation_hiding_instead_of_removing_kills_a_named_test(tmp_path):
+    """R15 direction 4: the CSS answer. Leave the blocks in the document and merely stop
+    re-appending them. This is the plausible cheap fix, it looks right in a screenshot, and
+    the whole page's doctrine is that removal must be true of the DOM -- because the claim
+    being made is about what a reader can read, not about what is painted."""
+    mutant = _mutate(
+        tmp_path,
+        "    else if(el.parentNode===host)host.removeChild(el);\n  });\n  renderSubjectBoundary(suppressed);",
+        "    else if(el.parentNode===host&&!suppressed)host.removeChild(el);\n  });\n  renderSubjectBoundary(suppressed);",
+    )
+    doc = _subject(mutant)
+    assert doc["states"]["other_household_open"]["op_state_children"] > 0, (
+        "the mutation did not reach the page -- this test would be vacuous"
+    )
+    with pytest.raises(AssertionError, match="still in the rendered document"):
+        _check_one_subject_in_the_document(doc)
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_the_membership_writer_is_still_the_only_one():
+    """The page has paid twice for a second writer of one fact (four sentences about one
+    balance; a case-study grid appended by a third path). This adds a REASON to the existing
+    op-state membership writer rather than a sibling writer, and that is a property worth
+    holding: only applyWallViewToOpState may append to or remove from #op-state."""
+    src = INDEX.read_text(encoding="utf-8")
+    body = src[src.index("function applyWallViewToOpState(){"):]
+    body = body[: body.index("\n}\n") + 3]
+    for call in ("host.appendChild(", "host.removeChild("):
+        assert src.count(call) == body.count(call) == 1, (
+            f"{call} appears {src.count(call)} times in the page and {body.count(call)} "
+            "times inside applyWallViewToOpState -- #op-state membership has a second writer"
+        )
+    for entry in ("  renderTab();\n  // The subject of the page has just changed.",
+                  "  applyWallViewToOpState();\n  loadCaseStudies();"):
+        assert entry in src, (
+            f"an entry point no longer re-runs the membership writer: {entry!r} -- the "
+            "exhibit will outlive, or fail to survive, a change of subject"
+        )
+
+
 def test_no_definition_in_this_module_shadows_another():
     """A CONTROL ON THE CONTROLS, and it is here because this section's own first draft
     tripped it.
