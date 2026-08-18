@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-08-18T07:39:47Z",
+    "checked_at": "2026-08-18T08:21:46Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
@@ -12,7 +12,7 @@
       "FAILED tests/simulation/test_policy_cost_coverage.py::test_the_note_is_silent_when_there_is_nothing_to_say"
     ],
     "nonblocking_reds_total": 37,
-    "open_findings": 95
+    "open_findings": 97
   },
   "last_verified": {
     "generated_at": "2026-08-18T08:14:28Z",
@@ -20,8 +20,8 @@
     "run_id": "run_output_6ed24044d_20260818T074048Z.json",
     "verified_at": "2026-08-18T08:14:28Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=2260965f3; blocking tests: FAILED tests/background/test_publish_gate_subject_is_head.py::test_the_exit_criterion_agrees_with_the_checkout_mechanism_that_ships",
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=2fd970d3f; blocking tests: see sim-runner-log",
+  "paused_since": "2026-08-18T08:58:04Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-08-18T08:14:28Z",
@@ -29,6 +29,6 @@
     "run_id": "run_output_6ed24044d_20260818T074048Z.json",
     "verified_at": "2026-08-18T08:14:28Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-08-18T08:14:28Z"
+  "verification_state": "paused",
+  "written_at": "2026-08-18T08:58:04Z"
 }
