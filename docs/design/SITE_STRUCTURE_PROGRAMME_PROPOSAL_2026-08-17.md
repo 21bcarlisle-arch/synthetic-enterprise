@@ -55,6 +55,34 @@ Corrected upward from the brief:
 
 ## 2. Knowledge is not a stub. It is nine copies of one stub.
 
+> **RETRACTED IN PART, 2026-08-18 — the central claim of this section is wrong.**
+>
+> This section said eight Knowledge pages "render byte-identical visible text" and that "a reader who
+> clicks 'Price cap' arrives at a page whose every visible word is identical to the one behind 'Carbon
+> price', and neither says which is which." **That is false.** The MD5 `2ad82c7405` was measured on the
+> **tag-stripped static source**, which is identical because all nine topics share one template that
+> fetches its content from `site/data/knowledge_wholesale.json`, keyed on the directory name taken from
+> `location.pathname`. Rendered, they differ: `/price-cap/` is "The retail price cap"; `/carbon-price/`
+> is "The UK carbon price (UK ETS + CPS)"; each carries its own blurb, scope and typed neighbours.
+>
+> The error is exactly the one this project's own R11 exists to prevent — judging a JavaScript-rendered
+> surface by its source — committed in a document arguing for measurement. It was repeated to the
+> director four times before anyone checked the render, and the first re-check was *also* wrong in the
+> opposite direction, because the shared live harness stubs `location.pathname` as `/`, making every
+> topic render empty and appear to confirm the original claim.
+>
+> **What survives, re-measured 2026-08-18:** the nine topics are genuine STUBS — they state what a
+> complete treatment will cover and say plainly that it is not written, which is honest rather than
+> defective, and writing them is Step 1's real work. `wholesale-price-formation` has a directory but
+> **no entry in the data**, so it renders its own raw slug as the title with no blurb, no scope and no
+> links — a genuinely broken published page, unlinked from the Knowledge index. `electricity-wholesale`,
+> the one topic linked from `/world/`, has an empty `scope`, so its own "What this page will cover"
+> reads "Scope not yet stated." And no page carries a last-reviewed date in any form.
+>
+> The paragraphs below are left as written rather than edited, so the correction is legible against
+> what it corrects.
+
+
 This is the finding that changes the sequence, and it is worse than the brief's "`knowledge` is a
 5.7KB stub."
 
