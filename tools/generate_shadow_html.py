@@ -572,7 +572,23 @@ def build_customers(dash, sample, ts, ledger=None, journey_log=None):
     for cid in sorted(lifetime):
         c = lifetime[cid]
         s = sample_custs.get(cid, {})
-        clv = s.get("clv_gbp", 0)
+        # `.get("clv_gbp", 0)` here until 2026-08-18 — the same structural-blank class as the
+        # annual report's strategic-value matrix, on the same field, one line above a line that
+        # already got it right.
+        #
+        # LATENT, NOT LIVE, and the difference is worth stating because it is the difference
+        # between the two spellings of this defect. `d.get(k, 0)` substitutes only when the KEY
+        # IS ABSENT; a key present with the value `None` comes back as `None`. All 11 of the 19
+        # sampled customers that carry `clv_gbp: null` (the ceased book and the gas legs) HAVE
+        # the key, so they already reached `_gbp(None)` and already rendered `—`. Measured on
+        # site/data/customer_sample.json: 19 of 19 lifetime accounts present in the sample, 0
+        # missing. This change moved no published pixel and is not claimed to have.
+        #
+        # It is still the defect. `s` is `sample_custs.get(cid, {})` — an account in `lifetime`
+        # but not in the sample yields `{}`, and `{}.get("clv_gbp", 0)` is 0, which renders as
+        # £0: a figure the company does not hold, published as one it does. The population that
+        # triggers it is empty today and is not structurally prevented from being non-empty.
+        clv = s.get("clv_gbp")
         churn = s.get("latest_churn_probability")
         ev_list = events_by_cid.get(cid, [])
         last_ev = ev_list[-1] if ev_list else {}
@@ -585,7 +601,7 @@ def build_customers(dash, sample, ts, ledger=None, journey_log=None):
             c.get("acquisition_date", ""),
             '<span class="' + _cls(net_lt) + '">' + _gbp(net_lt) + "</span>",
             _gbp(gross_lt),
-            _gbp(clv),
+            _gbp(clv) if clv is not None else "&#8212;",
             _pct(churn) if churn is not None else "&#8212;",
             last_ev.get("type", ""),
             last_ev.get("date", ""),

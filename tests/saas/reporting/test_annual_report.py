@@ -1,7 +1,10 @@
 from pathlib import Path
 
+import pytest
+
 from saas.reporting.annual_report import (
     NOT_AVAILABLE,
+    _section_customer_strategic_value,
     _append_pricing_actions_summary,
     _build_clv_snapshots,
     _build_ledger_headline,
@@ -2916,6 +2919,10 @@ def _settled_days(customer_id: str, start: str, end: str) -> list[dict]:
             "settlement_date": day.isoformat(),
             "revenue_gbp": 2.0,
             "margin_gbp": 1.0,
+            # Below the gross margin, as in the real book: the snapshots these
+            # records feed are valued on this line, not the one above
+            # (2026-08-17 margin-basis finding).
+            "net_margin_gbp": 0.24,
         })
         day += _timedelta(days=1)
     return out
@@ -3016,3 +3023,174 @@ def test_an_account_that_never_settled_is_not_reported_as_supplied():
     assert never_settled, "fixture has no never-settled account to exercise this"
     for account_id in never_settled:
         assert data["by_billing_account"][account_id]["still_supplied"] is False
+
+
+# ==============================================================================================
+# Customer Strategic Value Matrix -- a structural blank is EXCLUDED, never counted as worth zero.
+#
+# Discharges `docs/staging/WORKER_FINDING_A_NULL_CLV_ENTERS_THE_PUBLISHED_MEDIAN_AS_THE_NUMBER_
+# ZERO_2026-08-17.md` (BLOCKING, lane D_billing_metering). The class closure is
+# `tools/structural_blank_guard.py`; these are the INSTANCE assertions -- that this section's
+# published board line actually moves, which is what a reader acts on.
+# ==============================================================================================
+
+def _svm_book():
+    """The book of 2026-08-17, reduced to the fields the matrix reads.
+
+    5 of 13 electricity accounts carry `clv_gbp: null` (the ceased book) -- the exact population
+    the finding measured. Values are the real ones so the numbers below are the published ones.
+    """
+    valued = {
+        "C2": (791.9849535403107, 0.41, 11.127618809847226),
+        "C7": (-289.9486858312565, 0.37999999999999995, 10.95552599414269),
+        "C8": (1163.6929768256157, 0.35, 11.127618809847226),
+        "C9": (1464.4826463344248, 0.14, 11.127618809847226),
+        "C_IC1": (658788.7318815747, 0.29, 10.129852262166567),
+        "C_IC2": (387872.05954043823, 0.29, 10.13981381526698),
+        "C_IC3": (195606.03881818932, 0.41, 10.659296580510661),
+        "C_IC4": (38255.60595319814, 0.2, 10.967110667288315),
+    }
+    ceased = {"C1": 0.22999999999999998, "C3": 0.16999999999999998,
+              "C4": 0.16999999999999998, "C5": 0.37999999999999995, "C6": 0.29}
+    bba = {}
+    for cid, (clv, churn, periods) in valued.items():
+        bba[cid] = {"clv_gbp": clv, "latest_churn_probability": churn,
+                    "expected_lifetime_periods": periods}
+    for cid, churn in ceased.items():
+        bba[cid] = {"clv_gbp": None, "latest_churn_probability": churn,
+                    "expected_lifetime_periods": None}
+    return {"by_billing_account": bba}
+
+
+def test_strategic_value_matrix_excludes_null_clv_from_the_boundary():
+    """The quadrant boundary is a median over the VALUED book, not over the book.
+
+    Zeroing the five nulls put the boundary at GBP 791.98 -- low enough that two accounts
+    cleared "High CLV" on the strength of manufactured zeros beneath them, one of them by being
+    exactly equal to the boundary.
+    """
+    out = _section_customer_strategic_value(_svm_book())
+    assert "Median CLV: £19,860.04" in out
+    assert "£791.98 | Median churn" not in out
+    assert "**Population: 8 of 13 electricity account(s).**" in out
+
+
+def test_strategic_value_matrix_board_line_counts_only_placed_accounts():
+    """The line a reader acts on. It said 5; the honest count is 1."""
+    out = _section_customer_strategic_value(_svm_book())
+    assert "**Board action: CRITICAL quadrant has 1 account(s)." in out
+    assert "CRITICAL quadrant has 5 account(s)" not in out
+
+
+def test_strategic_value_matrix_moves_the_two_accounts_the_zeros_promoted():
+    """C2 and C8 were published under "priority intervention" and are not priority accounts.
+
+    Asserted by SECTION membership rather than by the whole string, because "C2 appears in the
+    output" stays true -- it moved to EXIT, it did not vanish.
+    """
+    out = _section_customer_strategic_value(_svm_book())
+    critical = out.split("### CRITICAL")[1].split("###")[0]
+    assert "C_IC3" in critical
+    for promoted in ("| C2 |", "| C8 |"):
+        assert promoted not in critical, f"{promoted} is still in CRITICAL"
+    exit_block = out.split("### EXIT")[1].split("###")[0]
+    assert "| C2 |" in exit_block and "| C8 |" in exit_block
+
+
+def test_strategic_value_matrix_publishes_the_excluded_accounts_and_their_count():
+    """Silently DROPPING a blank is the mirror defect of silently zeroing it.
+
+    The five ceased accounts are still shown, with an em dash rather than GBP 0.00, so the
+    reader can see the book is bigger than the matrix.
+    """
+    out = _section_customer_strategic_value(_svm_book())
+    assert "### Not placed (excluded from the boundaries above)" in out
+    not_placed = out.split("### Not placed")[1]
+    for cid in ("C1", "C3", "C4", "C5", "C6"):
+        assert f"| {cid} | — |" in not_placed, f"{cid} is not listed as unvalued"
+    assert "£0.00" not in not_placed
+
+
+def test_strategic_value_matrix_never_renders_a_fabricated_zero_life():
+    """`expected_lifetime_periods` is null on the same five accounts and rendered "0.0 periods".
+
+    An account with no expected life is not an account expected to last no time.
+    """
+    out = _section_customer_strategic_value(_svm_book())
+    assert "0.0 periods" not in out
+
+
+def test_strategic_value_matrix_r15_the_null_zero_distinction_survives_to_the_render():
+    """THE FALSIFIER THE FINDING ITSELF PROPOSED, and which failed on the shipped code.
+
+    "swap one account's `clv_gbp` between null and 0.0 and the published median must MOVE. If it
+    does not, the control is measuring nothing." On the shipped builder the two renders were
+    byte-identical (sha256[:12] d997858d414a both ways) -- the distinction `build_clv` and
+    `_round_or_none` exist to preserve did not reach the aggregation site at all.
+
+    A genuinely worth-nothing account and a not-applicable one must now be distinguishable.
+    """
+    as_published = _section_customer_strategic_value(_svm_book())
+
+    zeroed = _svm_book()
+    for row in zeroed["by_billing_account"].values():
+        if row["clv_gbp"] is None:
+            row["clv_gbp"] = 0.0
+            row["expected_lifetime_periods"] = 0.0
+    as_zeros = _section_customer_strategic_value(zeroed)
+
+    assert as_published != as_zeros, (
+        "null and 0.0 render identically -- the control is measuring nothing"
+    )
+    # And specifically: an account genuinely worth zero IS in the population.
+    assert "**Population: 13 of 13 electricity account(s).**" in as_zeros
+
+
+def test_strategic_value_matrix_total_is_the_one_figure_that_does_not_move():
+    """Sized honestly and no larger: an absent CLV contributes nothing to a sum either way.
+
+    The finding said the total was the harmless case; this pins that it stayed harmless, so the
+    repair cannot be read as having revalued the portfolio.
+    """
+    out = _section_customer_strategic_value(_svm_book())
+    assert "Total portfolio CLV: £1,283,652.65" in out
+
+
+def test_strategic_value_matrix_publishes_nothing_when_no_account_is_placeable():
+    """FAIL-CLOSED on its own subject: an all-blank book yields a stated absence, not a matrix
+    with fabricated boundaries. A section that renders an empty 2x2 over zeros would be the same
+    defect in a different shape."""
+    blank = {"by_billing_account": {
+        "C1": {"clv_gbp": None, "latest_churn_probability": None},
+        "C2": {"clv_gbp": None, "latest_churn_probability": None},
+    }}
+    out = _section_customer_strategic_value(blank)
+    assert "Not published this run" in out
+    assert "Median CLV" not in out
+
+
+def test_strategic_value_matrix_excludes_an_account_missing_only_a_churn_probability():
+    """The class does not care which axis the blank arrived on.
+
+    A CLV with no churn probability has no position in a 2x2 on CLV and churn either -- it is
+    off the chart, not at the origin -- but its value still counts toward the portfolio total.
+    """
+    book = _svm_book()
+    book["by_billing_account"]["C9"]["latest_churn_probability"] = None
+    out = _section_customer_strategic_value(book)
+    assert "**Population: 7 of 13 electricity account(s).**" in out
+    assert "| C9 | £1,464.48 | — | no churn probability |" in out
+    assert "Total portfolio CLV: £1,283,652.65" in out
+
+
+def test_median_averages_the_two_middle_values_for_even_n():
+    """`sorted(xs)[n // 2]` is the UPPER middle value, not the median.
+
+    Recorded-not-escalated by the finding, and fixed in the same pass so the null repair did not
+    silently inherit it: on the 8-account valued book the two differ by GBP 18,395.57, and this
+    figure is a quadrant BOUNDARY.
+    """
+    from saas.reporting.annual_report import _median
+    assert _median([1, 2, 3, 4]) == 2.5
+    assert _median([3, 1, 2]) == 2
+    assert _median([1464.4826463344248, 38255.60595319814]) == pytest.approx(19860.044299741142)

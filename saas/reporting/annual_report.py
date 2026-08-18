@@ -844,6 +844,18 @@ def extract_report_data(run_output: dict) -> dict:
         "fabric_eligibility": phase2b.get("fabric_eligibility", []),
         "enterprise_value_gbp": enterprise_value.get("portfolio", {}).get("enterprise_value_gbp"),
         "enterprise_value_account_count": enterprise_value.get("portfolio", {}).get("account_count"),
+        # THE COST BASIS TRAVELS WITH THE FIGURE (2026-08-17,
+        # `WORKER_FINDING_THE_BOOK_IS_VALUED_ON_A_MARGIN_THAT_EXCLUDES_THREE_
+        # QUARTERS_OF_THE_COST_STACK`). Not a caption written here: it is
+        # `saas.clv_model.CLV_MARGIN_BASIS`, the same symbol the valuation
+        # indexed `cost_to_serve` with, carried out of
+        # `build_enterprise_value`'s portfolio dict. The site's basis line
+        # renders THIS, and `tools/generate_dashboard_data.py` fails the
+        # publish if it disagrees with the basis its declared parent is on --
+        # so the published parentage cannot be restated independently of the
+        # code that computed the figure, which is exactly how the old line
+        # ("Derived from the settled-clock net margin above") stayed false.
+        "enterprise_value_margin_basis": enterprise_value.get("portfolio", {}).get("margin_basis"),
         "by_billing_account": by_billing_account,
         "highest_clv": (
             {"customer_id": highest_clv[0], "clv_gbp": highest_clv[1]["clv_gbp"]} if highest_clv else None
@@ -8219,7 +8231,53 @@ def _section_risk_committee_activity(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _median(values: list) -> float:
+    """The median of a NON-EMPTY sequence, averaging the two middle values for even n.
+
+    `sorted(xs)[n // 2]` — what this section used until 2026-08-18 — is the UPPER of the two
+    middle values, not the median. On the book that surfaced it (8 valued accounts) that is the
+    5th of 8, and the difference is not cosmetic here because this figure is a quadrant BOUNDARY:
+    every account between the true median and the upper-middle value is placed one quadrant too
+    low. Named as its own defect in the finding that repaired the nulls, so that repairing one
+    did not silently inherit the other.
+    """
+    ordered = sorted(values)
+    n = len(ordered)
+    mid = n // 2
+    return ordered[mid] if n % 2 else (ordered[mid - 1] + ordered[mid]) / 2.0
+
+
 def _section_customer_strategic_value(data: dict) -> str:
+    """The 2x2 CLV/churn matrix, over the accounts that HAVE a CLV and a churn probability.
+
+    THE POPULATION IS THE VALUED BOOK, NOT THE BOOK (2026-08-18, discharging
+    `docs/staging/WORKER_FINDING_A_NULL_CLV_ENTERS_THE_PUBLISHED_MEDIAN_AS_THE_NUMBER_ZERO_
+    2026-08-17.md`, BLOCKING, lane `D_billing_metering`).
+
+    `build_clv` publishes `clv_gbp: null` for an account that is no longer supplied — deliberate,
+    and the whole point of `tools.generate_customer_data._round_or_none`: an account that has left
+    has no lifetime value, and 0 is a value a reader takes as the company's belief. This section
+    used to write `v.get("clv_gbp") or 0.0` at seven sites, which turned every one of those blanks
+    back into the number 0 before aggregating.
+
+    What that cost, measured on the book of 2026-08-17 and not inferred: 5 of 13 electricity
+    accounts carried a null CLV, so five manufactured zeros sat at the bottom of the sorted list
+    and dragged the median — the QUADRANT BOUNDARY, not a reported statistic — down to £791.98.
+    Two accounts (C2 at £791.98, C8 at £1,163.69) cleared "High CLV" only because of that, C2 by
+    being exactly equal to it, and both were published to the board under
+    "CRITICAL (High CLV, High Churn — priority intervention)" inside a recommendation for
+    immediate retention offers. No honest treatment of a structural blank reproduces £791.98.
+
+    So a blank is EXCLUDED from the population and the exclusion is PUBLISHED beside the figure —
+    silently dropping them is the mirror defect of silently zeroing them. An unvalued account is
+    still listed, in its own section, showing `—` rather than a fabricated £0.00, because the
+    reader needs to know the book is bigger than the matrix.
+
+    The rule is applied to CHURN as well as to CLV, and to `expected_lifetime_periods` in the
+    render, because the class — a structural blank folded into an aggregate as a value — does not
+    care which field it arrived on. `tools/structural_blank_guard.py` is the R10 closure that
+    keeps the shape from coming back anywhere in the tree.
+    """
     bba = data.get("by_billing_account", {})
     if not bba:
         return ""
@@ -8227,23 +8285,46 @@ def _section_customer_strategic_value(data: dict) -> str:
     elec_accounts = {cid: v for cid, v in bba.items() if not cid.endswith("g")}
     if not elec_accounts:
         return ""
-    # Compute median CLV for quadrant boundary
-    clvs = sorted((v.get("clv_gbp") or 0.0) for v in elec_accounts.values())
-    n = len(clvs)
-    med_clv = clvs[n // 2]
-    # Churn boundary: median churn probability
-    churns = sorted((v.get("latest_churn_probability") or 0.0) for v in elec_accounts.values())
-    med_churn = churns[n // 2]
-    quadrants = {
+
+    # An account is PLACEABLE when both axes exist for it. Anything else has no position in a
+    # 2x2 on CLV and churn — it is not at the origin, it is off the chart.
+    placeable: dict = {}
+    unplaced: list = []
+    for cid, v in elec_accounts.items():
+        clv = v.get("clv_gbp")
+        churn = v.get("latest_churn_probability")
+        if clv is None and churn is None:
+            unplaced.append((cid, clv, churn, "no CLV and no churn probability"))
+        elif clv is None:
+            unplaced.append((cid, clv, churn, "no CLV (account no longer supplied)"))
+        elif churn is None:
+            unplaced.append((cid, clv, churn, "no churn probability"))
+        else:
+            placeable[cid] = v
+    if not placeable:
+        # Every account is a blank. Publishing an empty matrix with fabricated boundaries would
+        # be the same defect in a different shape, so publish nothing but the reason.
+        return "\n".join([
+            "## Customer Strategic Value Matrix",
+            "",
+            "**Not published this run: none of the %d electricity account(s) carries both a CLV "
+            "and a churn probability, so the matrix has no population and its boundaries would "
+            "be fabricated.**" % len(elec_accounts),
+            "",
+        ])
+
+    med_clv = _median([v["clv_gbp"] for v in placeable.values()])
+    med_churn = _median([v["latest_churn_probability"] for v in placeable.values()])
+    quadrants: dict = {
         "PROTECT": [],   # High CLV, Low Churn
         "CRITICAL": [],  # High CLV, High Churn
         "MONITOR": [],   # Low CLV, Low Churn
         "EXIT": [],      # Low CLV, High Churn
     }
-    for cid, v in sorted(elec_accounts.items(), key=lambda x: -(x[1].get("clv_gbp") or 0)):
-        clv = v.get("clv_gbp") or 0.0
-        churn = v.get("latest_churn_probability") or 0.0
-        periods = v.get("expected_lifetime_periods") or 0.0
+    for cid, v in sorted(placeable.items(), key=lambda x: -x[1]["clv_gbp"]):
+        clv = v["clv_gbp"]
+        churn = v["latest_churn_probability"]
+        periods = v.get("expected_lifetime_periods")  # may be null; rendered, never aggregated
         if clv >= med_clv and churn < med_churn:
             q = "PROTECT"
         elif clv >= med_clv and churn >= med_churn:
@@ -8253,12 +8334,25 @@ def _section_customer_strategic_value(data: dict) -> str:
         else:
             q = "EXIT"
         quadrants[q].append((cid, clv, churn, periods))
-    total_clv = sum((v.get("clv_gbp") or 0) for v in elec_accounts.values())
+
+    # The portfolio total sums the accounts that HAVE a CLV — including any excluded from the
+    # matrix for want of a churn probability, since their value is real even where their position
+    # is not. An absent CLV contributes nothing either way; it is skipped rather than added as 0
+    # so that the sum's population is stated and not merely arithmetically convenient.
+    valued = [v["clv_gbp"] for v in elec_accounts.values() if v.get("clv_gbp") is not None]
+    total_clv = sum(valued)
     lines = [
         "## Customer Strategic Value Matrix",
         "",
         "2x2 matrix: CLV (above/below median) × Churn probability (above/below median).",
-        "Median CLV: " + _fmt_gbp(med_clv) + " | Median churn: " + ("%.0f%%" % (med_churn * 100)) + " | Total portfolio CLV: " + _fmt_gbp(total_clv),
+        "Median CLV: " + _fmt_gbp(med_clv) + " | Median churn: " + ("%.0f%%" % (med_churn * 100))
+        + " | Total portfolio CLV: " + _fmt_gbp(total_clv),
+        "",
+        "**Population: %d of %d electricity account(s).** Boundaries are medians over the %d "
+        "account(s) that carry both a CLV and a churn probability. An account with neither is "
+        "NOT counted as worth zero — see \"Not placed\" below. Total portfolio CLV is over the "
+        "%d account(s) that carry a CLV."
+        % (len(placeable), len(elec_accounts), len(placeable), len(valued)),
         "",
     ]
     for q_name, q_label in [("PROTECT", "PROTECT (High CLV, Low Churn)"),
@@ -8273,10 +8367,25 @@ def _section_customer_strategic_value(data: dict) -> str:
         lines.append("| Account | CLV | Churn Prob | Expected Life |")
         lines.append("|---------|-----|------------|--------------|")
         for cid, clv, churn, periods in members:
-            lines.append("| " + cid + " | " + _fmt_gbp(clv) + " | " + ("%.0f%%" % (churn * 100)) + " | " + ("%.1f" % periods) + " periods |")
+            life = "—" if periods is None else ("%.1f" % periods) + " periods"
+            lines.append("| " + cid + " | " + _fmt_gbp(clv) + " | "
+                         + ("%.0f%%" % (churn * 100)) + " | " + life + " |")
         q_clv = sum(c for _, c, _, _ in members)
         lines.append("")
         lines.append("Quadrant CLV: " + _fmt_gbp(q_clv) + " (" + ("%.0f%%" % (q_clv / total_clv * 100 if total_clv else 0)) + " of portfolio)")
+        lines.append("")
+    if unplaced:
+        lines.append("### Not placed (excluded from the boundaries above)")
+        lines.append("")
+        lines.append("| Account | CLV | Churn Prob | Why not placed |")
+        lines.append("|---------|-----|------------|----------------|")
+        for cid, clv, churn, why in sorted(unplaced):
+            lines.append("| " + cid + " | " + ("—" if clv is None else _fmt_gbp(clv)) + " | "
+                         + ("—" if churn is None else "%.0f%%" % (churn * 100)) + " | " + why + " |")
+        lines.append("")
+        lines.append("> These accounts are shown so the book is not understated, and excluded so "
+                     "the medians are not. `—` means the company holds no figure, which is not "
+                     "the same as a figure of zero.")
         lines.append("")
     if quadrants["CRITICAL"]:
         lines.append("**Board action: CRITICAL quadrant has " + str(len(quadrants["CRITICAL"])) +

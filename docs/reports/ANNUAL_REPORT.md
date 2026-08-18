@@ -1700,7 +1700,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-08-18T07:39:24Z
+Generated: 2026-08-18T08:32:40Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -2191,50 +2191,59 @@ Scope 1 emissions from gas supply (183g CO2/kWh). Source: DESNZ/National Grid an
 ## Customer Strategic Value Matrix
 
 2x2 matrix: CLV (above/below median) × Churn probability (above/below median).
-Median CLV: £791.98 | Median churn: 29% | Total portfolio CLV: £1,283,652.65
+Median CLV: £19,860.04 | Median churn: 32% | Total portfolio CLV: £1,283,652.65
+
+**Population: 8 of 13 electricity account(s).** Boundaries are medians over the 8 account(s) that carry both a CLV and a churn probability. An account with neither is NOT counted as worth zero — see "Not placed" below. Total portfolio CLV is over the 8 account(s) that carry a CLV.
 
 ### PROTECT (High CLV, Low Churn)
 
 | Account | CLV | Churn Prob | Expected Life |
 |---------|-----|------------|--------------|
+| C_IC1 | £658,788.73 | 29% | 10.1 periods |
+| C_IC2 | £387,872.06 | 29% | 10.1 periods |
 | C_IC4 | £38,255.61 | 20% | 11.0 periods |
-| C9 | £1,464.48 | 14% | 11.1 periods |
 
-Quadrant CLV: £39,720.09 (3% of portfolio)
+Quadrant CLV: £1,084,916.40 (85% of portfolio)
 
 ### CRITICAL (High CLV, High Churn — priority intervention)
 
 | Account | CLV | Churn Prob | Expected Life |
 |---------|-----|------------|--------------|
-| C_IC1 | £658,788.73 | 29% | 10.1 periods |
-| C_IC2 | £387,872.06 | 29% | 10.1 periods |
 | C_IC3 | £195,606.04 | 41% | 10.7 periods |
-| C8 | £1,163.69 | 35% | 11.1 periods |
-| C2 | £791.98 | 41% | 11.1 periods |
 
-Quadrant CLV: £1,244,222.51 (97% of portfolio)
+Quadrant CLV: £195,606.04 (15% of portfolio)
 
 ### MONITOR (Low CLV, Low Churn)
 
 | Account | CLV | Churn Prob | Expected Life |
 |---------|-----|------------|--------------|
-| C1 | £0.00 | 23% | 0.0 periods |
-| C3 | £0.00 | 17% | 0.0 periods |
-| C4 | £0.00 | 17% | 0.0 periods |
+| C9 | £1,464.48 | 14% | 11.1 periods |
 
-Quadrant CLV: £0.00 (0% of portfolio)
+Quadrant CLV: £1,464.48 (0% of portfolio)
 
 ### EXIT (Low CLV, High Churn)
 
 | Account | CLV | Churn Prob | Expected Life |
 |---------|-----|------------|--------------|
-| C5 | £0.00 | 38% | 0.0 periods |
-| C6 | £0.00 | 29% | 0.0 periods |
+| C8 | £1,163.69 | 35% | 11.1 periods |
+| C2 | £791.98 | 41% | 11.1 periods |
 | C7 | £-289.95 | 38% | 11.0 periods |
 
-Quadrant CLV: £-289.95 (-0% of portfolio)
+Quadrant CLV: £1,665.73 (0% of portfolio)
 
-**Board action: CRITICAL quadrant has 5 account(s). High CLV at risk from elevated churn probability. Immediate retention offers recommended.**
+### Not placed (excluded from the boundaries above)
+
+| Account | CLV | Churn Prob | Why not placed |
+|---------|-----|------------|----------------|
+| C1 | — | 23% | no CLV (account no longer supplied) |
+| C3 | — | 17% | no CLV (account no longer supplied) |
+| C4 | — | 17% | no CLV (account no longer supplied) |
+| C5 | — | 38% | no CLV (account no longer supplied) |
+| C6 | — | 29% | no CLV (account no longer supplied) |
+
+> These accounts are shown so the book is not understated, and excluded so the medians are not. `—` means the company holds no figure, which is not the same as a figure of zero.
+
+**Board action: CRITICAL quadrant has 1 account(s). High CLV at risk from elevated churn probability. Immediate retention offers recommended.**
 
 ## Customer Experience & Service Quality
 

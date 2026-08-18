@@ -67,6 +67,24 @@ CONTROL_TESTS = [
     # live series by up to 55.6% for an unknown length of time, with nothing able to see it.
     # ~0.6s.
     "tests/tools/test_grid_intensity_guard.py",
+    # R10 class closure for WORKER_FINDING_A_NULL_CLV_ENTERS_THE_PUBLISHED_MEDIAN_AS_THE_NUMBER_
+    # ZERO (2026-08-18, BLOCKING). Fourth class, same reasoning as the three guards above:
+    # `test_the_real_tree_is_clean` AST-walks EVERY file under company/, saas/, sim/, simulation/,
+    # tools/, background/ and interface/ for a deliberately-null field given a numeric fallback at
+    # its read site. Per-file selection would fire it when `tools/structural_blank_guard.py` is
+    # edited -- the case that needs it least -- and stay silent when a brand-new reporting module
+    # writes `v.get("clv_gbp") or 0.0`, which is the only case it exists for. Measured, not
+    # asserted: BOTH shipped instances were in modules (`saas/reporting/annual_report.py` --
+    # live and wrong; `tools/generate_shadow_html.py` -- latent, empty triggering population)
+    # whose own stem-selected tests do not run this guard.
+    #
+    # What the silence cost: 5 of 13 accounts entered a published MEDIAN as manufactured zeros,
+    # that median is a quadrant BOUNDARY, and two accounts reached a board recommendation for
+    # "immediate retention offers" purely because of it. The repair moved the published line from
+    # 5 CRITICAL accounts to 1. The shape never raises, so nothing else in the tree could see it.
+    # ~3.8s, the second most expensive entry here and stated rather than glossed: it is an AST
+    # walk of seven packages.
+    "tests/tools/test_structural_blank_guard.py",
     # AO8 (2026-08-08). A mechanised battery line rots when work ELSEWHERE
     # renames or deletes the check it names. Per-file selection would fire this
     # when the register is edited (needs it least) and stay silent then (the
