@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -163,10 +164,136 @@ _DENIAL_RE = re.compile(
 #:     release that silently released would be strictly worse than no release at all.
 #:
 #: WHAT IT DOES NOT PROVE, stated because an overclaimed control is the class above: it
-#: proves a named falsifier EXISTS and is addressable, never that the falsifier is a good
-#: one or that running it passes. Reviewing the cited test is still a human act.
+#: proves a named falsifier EXISTS IN THE INDEX and is addressable, never that the
+#: falsifier is a good one or that running it passes. Reviewing the cited test is still a
+#: human act.
+#:
+#: WHICH TREE THE EVIDENCE IS READ FROM, 2026-08-18, and it is the whole point of
+#: `_index_files`/`_index_blob` below
+#: (`WORKER_FINDING_THE_DISCHARGE_RELEASE_READS_THE_NODE_FROM_THE_WORKING_TREE_AND_ITS_CONTROL_READS_ONLY_THE_FILE_2026-08-18`):
+#: this check used to resolve both the file and the node against `repo_root` on disk. That
+#: is R15 killer pattern 1, TAUTOLOGY — the author's working tree is the ONE tree
+#: guaranteed to contain the work whose absence the check is about, so a discharge citing
+#: a long-committed test file and a node that exists only in the author's editor was
+#: validated, released to RECORDED, and passed clean by the `tests/architecture/` control
+#: built to catch exactly this. Measured then: 195 node-bearing citations across 82
+#: committed records, 15 absent from the index, 10 of them invisible to every control
+#: because the FILE was committed and only the NODE was not.
+#:
+#: THE INDEX, not HEAD and not the disk. At pre-commit time the honest question is "will
+#: the commit about to be made contain this", and that is the index — a record and its
+#: falsifier `git add`ed together are legitimately present. Post-commit the index matches
+#: HEAD and the two readings coincide. The cost is real and intended: a discharge does not
+#: release until its falsifier is STAGED, which is the same instant the claim becomes true
+#: for anyone else.
 _DISCHARGED_RE = re.compile(r"\*\*Discharged:?\*\*:?\s*(?P<value>[^\n]+)")
 _ARTEFACT_RE = re.compile(r"`([^`]+)`")
+
+#: THE CONTINUATION RULE, 2026-08-18 (§4 of the same finding). `_DISCHARGED_RE` matches one
+#: line. A real discharge naming six falsifiers across six lines was therefore parsed as
+#: naming ONE: the release still fired on the first, and five sixths of the claim — including
+#: any artefact that did not exist — was outside the checked claim entirely. Silently reading
+#: one of six is strictly worse than either parsing all six or refusing the shape.
+#:
+#: The rule is deliberately narrow, because the alternative (swallow following lines until a
+#: blank) would pull the author's prose reason into the artefact list and turn every
+#: backticked symbol in it into a claimed path: A LINE THAT ENDS IN A COMMA IS CONTINUED BY
+#: THE NEXT ONE. That is the shape a list of artefacts actually has, it is what both
+#: multi-line discharges in the corpus use, and a reason line (which ends in a word, a stop
+#: or a dash) terminates the value without special-casing.
+_CONTINUES = ","
+
+
+def _discharge_claim(block: str) -> str | None:
+    """The document's whole `**Discharged:**` value, continuation lines included."""
+    match = _DISCHARGED_RE.search(block)
+    if match is None:
+        return None
+    lines = block[match.start("value"):].splitlines()
+    value = [lines[0]]
+    for line in lines[1:]:
+        if not value[-1].rstrip().endswith(_CONTINUES):
+            break
+        value.append(line)
+    return "\n".join(value)
+
+
+#: Cached per (root, index stamp): the stamp changes on every `git add`, so a long-lived
+#: supervisor process cannot answer from a stale index, and a tick that classifies ~120
+#: documents still pays one subprocess rather than one per citation.
+_INDEX_FILES_CACHE: dict[tuple[str, int, int], frozenset[str]] = {}
+_INDEX_BLOB_CACHE: dict[tuple[str, int, int, str], str | None] = {}
+
+
+def _index_stamp(root: Path) -> tuple[int, int] | None:
+    """(mtime_ns, size) of the index backing `root`, or None when there is no readable one.
+
+    Handles the linked-worktree case (`.git` is a FILE naming the real git dir) because the
+    pre-commit gate builds the would-be tree in exactly one of those.
+    """
+    dot = root / ".git"
+    index = dot / "index"
+    if dot.is_file():
+        try:
+            pointer = dot.read_text(encoding="utf-8", errors="replace").strip()
+        except OSError:
+            return None
+        if not pointer.startswith("gitdir:"):
+            return None
+        gitdir = Path(pointer.split(":", 1)[1].strip())
+        index = (gitdir if gitdir.is_absolute() else (root / gitdir)) / "index"
+    try:
+        st = index.stat()
+    except OSError:
+        return None
+    return (st.st_mtime_ns, st.st_size)
+
+
+def _git(root: Path, *args: str) -> str | None:
+    """git stdout, or None for EVERY failure mode. None means "cannot answer", never "no"."""
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), *args],
+            capture_output=True, text=True, timeout=120,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return result.stdout if result.returncode == 0 else None
+
+
+def _index_files(root: Path) -> frozenset[str] | None:
+    """Every path the index carries, or None when the index cannot be read.
+
+    R15 killer pattern 3, FAIL-SILENT: git missing, `root` not a work tree, or an index that
+    lists NOTHING all return None and the caller REFUSES the discharge. An empty set would
+    read as "the repository contains nothing", which is a verdict this function has no
+    evidence for.
+    """
+    stamp = _index_stamp(root)
+    key = (str(root), *stamp) if stamp else None
+    if key is not None and key in _INDEX_FILES_CACHE:
+        return _INDEX_FILES_CACHE[key]
+    out = _git(root, "ls-files", "-z")
+    if out is None:
+        return None
+    files = frozenset(p for p in out.split("\0") if p)
+    if not files:
+        return None
+    if key is not None:
+        _INDEX_FILES_CACHE[key] = files
+    return files
+
+
+def _index_blob(root: Path, relative: str) -> str | None:
+    """The file's text AS THE INDEX HAS IT, or None when it cannot be read."""
+    stamp = _index_stamp(root)
+    key = (str(root), *stamp, relative) if stamp else None
+    if key is not None and key in _INDEX_BLOB_CACHE:
+        return _INDEX_BLOB_CACHE[key]
+    blob = _git(root, "show", f":{relative}")
+    if key is not None:
+        _INDEX_BLOB_CACHE[key] = blob
+    return blob
 
 #: THE EXONERATION FIELD, 2026-08-12. Full rationale on `parse_exoneration` below. Note it is
 #: NOT a second discharge: a discharge releases a SEVERITY (the defect can no longer recur);
@@ -255,41 +382,56 @@ def parse_severity_text(text: str, path: Path | None = None) -> FindingSeverity:
 def parse_discharge(text: str, repo_root: Path | str = REPO_ROOT) -> Discharge | None:
     """The document's `**Discharged:**` claim, CHECKED — or None when it makes no claim.
 
-    Never raises and never guesses: an unreadable artefact, a node name its file does not
-    define, or a claim with no test node at all all return `released=False` WITH the reason,
-    so the refusal is reportable rather than a silent non-event.
+    Never raises and never guesses: an artefact the index does not carry, a node name the
+    index's copy of its file does not define, or a claim with no test node at all all return
+    `released=False` WITH the reason, so the refusal is reportable rather than a silent
+    non-event. The evidence is read from the INDEX — see `_DISCHARGED_RE` above for why the
+    working tree is the one tree that cannot be asked.
     """
-    match = _DISCHARGED_RE.search(header_block(text))
-    if match is None:
+    claim = _discharge_claim(header_block(text))
+    if claim is None:
         return None
 
     root = Path(repo_root)
-    artefacts = tuple(a.strip() for a in _ARTEFACT_RE.findall(match.group("value")) if a.strip())
+    artefacts = tuple(a.strip() for a in _ARTEFACT_RE.findall(claim) if a.strip())
     if not artefacts:
         return Discharge((), False, "discharge names no artefact in backticks")
 
+    tracked = _index_files(root)
+    if tracked is None:
+        return Discharge(
+            artefacts, False,
+            "the index cannot be read, so this claim cannot be checked — an unavailable "
+            "check is a FAILED check (R15), never a release",
+        )
+
     missing: list[str] = []
+    unstaged: list[str] = []
     nodes_ok: list[str] = []
     nodes_bad: list[str] = []
     for artefact in artefacts:
         file_part, _, node = artefact.partition("::")
-        target = root / file_part
-        if not target.is_file():
-            missing.append(artefact)
+        if file_part not in tracked:
+            (unstaged if (root / file_part).exists() else missing).append(artefact)
             continue
         if not node:
             continue
-        try:
-            defines = node in target.read_text(encoding="utf-8", errors="replace")
-        except OSError:  # readable-as-a-file but not as text: an unavailable check FAILS
-            defines = False
-        (nodes_ok if defines else nodes_bad).append(artefact)
+        blob = _index_blob(root, file_part)
+        (nodes_ok if (blob is not None and node in blob) else nodes_bad).append(artefact)
 
     if missing:
         return Discharge(artefacts, False, f"artefact does not exist: {', '.join(missing)}")
+    if unstaged:
+        return Discharge(
+            artefacts, False,
+            "artefact does not exist in the index — it is on this disk only, so no clone "
+            f"can run it; `git add` it in the commit that carries this claim: {', '.join(unstaged)}",
+        )
     if nodes_bad:
         return Discharge(
-            artefacts, False, f"file exists but does not define the node: {', '.join(nodes_bad)}"
+            artefacts, False,
+            "the index's copy of the file does not define the node (a node that exists only "
+            f"in the working tree is not a landed falsifier): {', '.join(nodes_bad)}",
         )
     if not nodes_ok:
         return Discharge(

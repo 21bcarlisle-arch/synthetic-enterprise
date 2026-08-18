@@ -71,6 +71,33 @@ WHY THE INDEX AND NOT `HEAD`, on both sides. At pre-commit time the honest quest
 "will the commit about to be made contain this", and that is the index. A record and its
 falsifier added together in one commit are legitimately present. Post-commit the index
 matches HEAD and the two readings coincide.
+
+── THE SUBJECT IS THE CITATION, NOT THE FILE (2026-08-18, rung-1c BLOCKING draw) ──
+
+`WORKER_FINDING_THE_DISCHARGE_RELEASE_READS_THE_NODE_FROM_THE_WORKING_TREE_AND_ITS_CONTROL_
+READS_ONLY_THE_FILE_2026-08-18` measured what fell between this control and the parser it
+keeps honest. Each checked the half the other did not: `parse_discharge` checked the NODE
+against the WORKING TREE, this file checked the FILE against the index. Nothing checked the
+node against the index, so a discharge citing a long-committed test file and a node that
+existed only in its author's editor was released to RECORDED by the parser and passed clean
+here. Measured over every committed record: 195 node-bearing citations, 15 absent at HEAD,
+5 of them file-level (this control's original subject) and **10 node-level and invisible to
+everything**.
+
+Three changes, and each closes one of the ways the pair stayed blind:
+  * the citation, `<file>` or `<file>::<node>`, is the unit — a node is looked up in the
+    index's copy of its file, never on disk (`_index_blob`);
+  * the record is read WHOLE from the index rather than through `git grep`'s matched line,
+    because a discharge is a comma-continued list and six of these citations sat on
+    continuation lines the line-based read never saw (§4 of the same finding);
+  * `_KNOWN_UNLANDED` may declare a citation that is WAITING TO LAND; it may not absorb one
+    that is in no tree at all (`test_no_exemption_absorbs_a_citation_that_is_in_no_tree`).
+
+WHY THE CONTINUATION PARSE IS DUPLICATED HERE rather than imported from
+`background.finding_severity`: this control's whole purpose is to disagree with that parser
+when the parser is wrong. Sharing the extraction would make the two agree by construction
+about what the claim even is, which is the independence half of R15's TAUTOLOGY pattern —
+the same reason the token filter below is not the module's `_ARTEFACT_RE`.
 """
 from __future__ import annotations
 
@@ -97,17 +124,39 @@ _PATH_EXT = (
     ".json", ".yaml", ".yml", ".md", ".html", ".sh",
 )
 
-# Vacuity floors. Measured 2026-08-18: 72 records carrying a discharge line, 88 distinct
-# cited paths. A broken marker, a moved root or a stricter token filter would empty the
-# population and this control would then pass forever with nothing in it. Floors are set
-# well below the measurement so ordinary archiving does not trip them -- they catch the
-# mechanism breaking, not the corpus shrinking.
+# Vacuity floors. Re-measured 2026-08-18 after the subject became the CITATION: 75 records
+# carrying a discharge, 244 distinct citations (it was 88 when node ids were discarded). A
+# broken marker, a moved root or a stricter token filter would empty the population and this
+# control would then pass forever with nothing in it. Floors sit well below the measurement
+# so ordinary archiving does not trip them -- they catch the mechanism breaking, not the
+# corpus shrinking.
+#
+# THE CITATION FLOOR IS SET ABOVE 88 ON PURPOSE. That is what this population collapses to
+# if the node id is ever dropped again, and a floor of 40 would have sat green through
+# exactly the regression this control was just repaired for -- a floor that cannot fail on
+# its own named defect is decoration (R15).
 _MIN_RECORDS = 30
-_MIN_CITED_PATHS = 40
+_MIN_CITED_PATHS = 120
 
 # THE RATCHET. Declared violations, each with the date it was measured and the uncommitted
 # change set it waits on. Adding a line here is a deliberate, reviewable act; the stale-entry
 # test below deletes the incentive to leave one behind.
+#
+# A key is either a PATH (covering every citation of a file the index does not carry at all —
+# one file, one debt) or a full `file::node` CITATION (for a file the index HAS and a node it
+# does not). A path key deliberately cannot cover a node violation: that is the exact hole
+# this control was blind to, and letting one line re-open it would be the ratchet absorbing
+# its own subject.
+_WEDGE_DRAW_REPAIR = (
+    "2026-08-18, H27 rung-1c. Waits on the uncommitted wedge-draw repair "
+    "(`background/publish_gate_wedge.py`); the file is committed and carries 20 nodes at "
+    "HEAD, the working tree 29. Node present on disk here, in no commit."
+)
+_BELIEF_AXIS_REPAIR = (
+    "2026-08-18, H27 rung-1c. Waits on the uncommitted D30 belief-axis floor repair "
+    "(`tools/couple_w2_11_d5.py::measure_belief_axis_null_control_floor`, absent at HEAD). "
+    "Node present on disk here, in no commit."
+)
 _KNOWN_UNLANDED: dict[str, str] = {
     "tests/saas/test_clv_margin_basis.py": (
         "2026-08-18, H27 Hour #36. Waits on the uncommitted CLV margin-basis repair "
@@ -119,11 +168,41 @@ _KNOWN_UNLANDED: dict[str, str] = {
         "(`tools/generate_dashboard_data.py::_check_derived_basis_parentage` and "
         "`UNKNOWN_COST_BASIS`, both absent at HEAD)."
     ),
-    "tests/simulation/test_the_worlds_dwelling_is_drawn_not_believed.py": (
-        "2026-08-18, H27 Hour #36. Waits on the uncommitted KNIFE3 B12 dwelling split -- "
-        "`simulation/dwelling_records.py` is in no commit on any ref and "
-        "`saas/property_model.py::BASIS_SAAS_APPROXIMATION` is absent at HEAD."
-    ),
+    **{
+        f"tests/background/test_publish_gate_wedge_draw.py::{node}": _WEDGE_DRAW_REPAIR
+        for node in (
+            "test_superseded_clause_fires_when_every_failure_predates_head",
+            "test_superseded_clause_is_silent_when_failures_are_at_head",
+            "test_superseded_clause_is_silent_on_a_mixed_hash_set",
+            "test_superseded_clause_is_silent_without_a_usable_hash",
+            "test_superseded_clause_is_silent_when_git_cannot_answer",
+            "test_in_flight_clause_fires_and_suspends_the_enumerate_instruction",
+            "test_in_flight_clause_is_silent_when_no_gate_is_running",
+            "test_live_gate_runs_parses_ps_and_ignores_grep_and_junk",
+            "test_live_gate_runs_is_empty_when_ps_is_unavailable",
+        )
+    },
+    **{
+        f"tests/tools/test_couple_w2_11_d5.py::{node}": _BELIEF_AXIS_REPAIR
+        for node in (
+            "test_the_axis_floor_is_derived_and_not_declared",
+            "test_the_floor_control_fires_on_a_floor_that_was_chosen",
+            "test_the_floor_derivation_cannot_pass_by_being_unavailable",
+            "test_the_floor_derivation_reads_no_declaration_it_grades",
+            "test_widening_the_axis_below_its_floor_turns_the_verdict_red",
+            "test_the_band_shipped_before_this_repair_is_false_at_the_derived_floor",
+        )
+    },
+    # LANDED 2026-08-18 by KNIFE3 step 38 (register §3ag), entry deleted the same
+    # day by step 39. It read: "Waits on the uncommitted KNIFE3 B12 dwelling
+    # split -- `simulation/dwelling_records.py` is in no commit on any ref and
+    # `saas/property_model.py::BASIS_SAAS_APPROXIMATION` is absent at HEAD."
+    # Step 38 committed the split, so the falsifier and its repair are both at
+    # HEAD and the exemption stopped describing a violation. This control went
+    # red at HEAD the moment that landing succeeded -- which is the list working
+    # as designed ("the list only ever shrinks"), not a regression: it refuses to
+    # let a waiver outlive the wait. Step 39 was the next commit to run the gate
+    # and so was the one that had to clear it.
 }
 
 
@@ -163,31 +242,73 @@ def _paths_the_repository_has() -> set[str]:
     return tracked
 
 
+def _claim_text(record_text: str, marker: str) -> str:
+    """The whole `**Discharged:**` value of one record, continuation lines included.
+
+    A line that ends in a comma is continued by the next one — the shape a list of artefacts
+    has, and the shape six of the ten node-level violations were hiding behind when this
+    control read only `git grep`'s matched line.
+    """
+    lines = record_text.splitlines()
+    pattern = re.compile(marker)
+    for i, line in enumerate(lines):
+        if not pattern.search(line):
+            continue
+        claim = [line]
+        for nxt in lines[i + 1:]:
+            if not claim[-1].rstrip().endswith(","):
+                break
+            claim.append(nxt)
+        return "\n".join(claim)
+    return ""
+
+
+def _citations_in(text: str) -> set[str]:
+    """Every backticked token in a claim that this repository would store as a path.
+
+    The node id is KEPT (`file::name`): a discharge names a falsifier, and a falsifier is a
+    node. Dropping it here is what made 10 violations unseeable.
+    """
+    out: set[str] = set()
+    for token in _BACKTICKED.findall(text):
+        token = token.strip()
+        path = token.split("::")[0].strip()
+        if "/" not in path or not path.endswith(_PATH_EXT):
+            continue
+        if path.startswith(("http", "/", "~", ".")):
+            continue
+        out.add(token)
+    return out
+
+
 def _discharge_citations(marker: str = _DISCHARGE_MARKER) -> tuple[dict[str, set[str]], int]:
     """Subject A: what committed records CLAIM. Read from the index, not the working tree.
 
-    Returns (cited path -> set of citing records, number of discharge lines seen). The
+    Returns (citation -> set of citing records, number of discharging records seen). The
     records are read from git rather than from disk on purpose: the claim's authority comes
     from being committed, and a working-tree read would both admit an uncommitted record's
     claim and miss a committed record whose working copy has been moved or archived.
     """
-    out = _git("grep", "--cached", "-n", "-e", marker, "--", "*.md")
+    listed = _git("grep", "-l", "--cached", "-e", marker, "--", "*.md")
     cited: dict[str, set[str]] = {}
-    lines = 0
-    for raw in out.splitlines():
-        record, _, rest = raw.partition(":")
-        _, _, text = rest.partition(":")
+    records = 0
+    for record in (ln.strip() for ln in listed.splitlines()):
         if not record:
             continue
-        lines += 1
-        for token in _BACKTICKED.findall(text):
-            token = token.strip().split("::")[0].strip()  # drop pytest node ids
-            if "/" not in token or not token.endswith(_PATH_EXT):
-                continue
-            if token.startswith(("http", "/", "~", ".")):
-                continue
-            cited.setdefault(token, set()).add(record)
-    return cited, lines
+        records += 1
+        for citation in _citations_in(_claim_text(_git("show", f":{record}"), marker)):
+            cited.setdefault(citation, set()).add(record)
+    return cited, records
+
+
+def _index_defines(citation: str, have: set[str]) -> bool:
+    """Does the INDEX carry this citation — the file, and the node inside the file?"""
+    path, _, node = citation.partition("::")
+    if path not in have:
+        return False
+    if not node:
+        return True
+    return node in _git("show", f":{path}")
 
 
 def _violations(
@@ -198,12 +319,32 @@ def _violations(
         cited, _ = _discharge_citations()
     if have is None:
         have = _paths_the_repository_has()
-    return {p: srcs for p, srcs in cited.items() if p not in have}
+    return {c: srcs for c, srcs in cited.items() if not _index_defines(c, have)}
 
 
-def _describe(path: str, srcs: set[str]) -> str:
-    where = "on disk here only" if (PROJECT / path).exists() else "in no tree at all"
-    return f"{path}  ({where})\n" + "".join(
+def _exemption_key(citation: str, have: set[str]) -> str | None:
+    """The `_KNOWN_UNLANDED` KEY that declares this citation, or None.
+
+    A PATH entry covers a citation only when the index has no such file at all: one missing
+    file is one debt. When the file IS in the index and only the node is missing, the debt is
+    node-level and must be declared as one — a path entry that covered it would re-open
+    precisely the hole this control was blind to.
+    """
+    if citation in _KNOWN_UNLANDED:
+        return citation
+    path = citation.partition("::")[0]
+    if path not in have and path in _KNOWN_UNLANDED:
+        return path
+    return None
+
+
+def _describe(citation: str, srcs: set[str]) -> str:
+    path, _, node = citation.partition("::")
+    on_disk = (PROJECT / path).exists()
+    if node and on_disk:
+        on_disk = node in (PROJECT / path).read_text(encoding="utf-8", errors="replace")
+    where = "on disk here only" if on_disk else "in no tree at all"
+    return f"{citation}  ({where})\n" + "".join(
         f"        cited as DISCHARGED by: {s}\n" for s in sorted(srcs)
     )
 
@@ -217,12 +358,12 @@ def test_the_citation_population_is_not_vacuous():
     cited, records = _discharge_citations()
     assert records >= _MIN_RECORDS, (
         f"only {records} committed records carry a `**Discharged:**` line (floor "
-        f"{_MIN_RECORDS}); 72 were measured on 2026-08-18. The marker, the pathspec or the "
+        f"{_MIN_RECORDS}); 75 were measured on 2026-08-18. The marker, the pathspec or the "
         "index read is what changed -- fix the mechanism, do not lower the floor"
     )
     assert len(cited) >= _MIN_CITED_PATHS, (
-        f"only {len(cited)} distinct paths are cited across those lines (floor "
-        f"{_MIN_CITED_PATHS}); 88 were measured on 2026-08-18. The token filter is what "
+        f"only {len(cited)} distinct citations are made across those records (floor "
+        f"{_MIN_CITED_PATHS}); 244 were measured on 2026-08-18. The token filter is what "
         "changed -- fix it, do not lower the floor"
     )
 
@@ -238,8 +379,10 @@ def test_no_committed_discharge_cites_a_falsifier_the_repository_does_not_have()
     so such a falsifier is collected, passes, and is counted in the green -- while the
     assurance the committed record advertises exists on exactly one machine.
     """
+    have = _paths_the_repository_has()
     unexpected = {
-        p: s for p, s in _violations().items() if p not in _KNOWN_UNLANDED
+        c: s for c, s in _violations(have=have).items()
+        if _exemption_key(c, have) is None
     }
     assert not unexpected, (
         "a COMMITTED record says DISCHARGED and names a falsifier that is in no commit:\n"
@@ -259,8 +402,12 @@ def test_every_declared_exemption_is_still_a_real_violation():
     silently re-exempt the same path if it were ever un-landed again, which is precisely how
     a ratchet stops being one.
     """
-    live = _violations()
-    stale = sorted(p for p in _KNOWN_UNLANDED if p not in live)
+    have = _paths_the_repository_has()
+    used = {
+        key for key in (_exemption_key(c, have) for c in _violations(have=have))
+        if key is not None
+    }
+    stale = sorted(set(_KNOWN_UNLANDED) - used)
     assert not stale, (
         "these paths are declared in _KNOWN_UNLANDED but are no longer violations -- they "
         "have been landed, which is the good outcome:\n  - " + "\n  - ".join(stale)
@@ -268,10 +415,126 @@ def test_every_declared_exemption_is_still_a_real_violation():
     )
 
 
+#: Named once so the arm-1 citation below cannot drift away from the test it names.
+_THIS_TEST = "test_no_exemption_absorbs_a_citation_that_is_in_no_tree"
+
+
+def _on_disk_here(citation: str) -> bool:
+    """Is this citation present in THIS working tree — file, and node inside it?"""
+    path, _, node = citation.partition("::")
+    target = PROJECT / path
+    if not target.is_file():
+        return False
+    if not node:
+        return True
+    return node in target.read_text(encoding="utf-8", errors="replace")
+
+
+def test_no_exemption_absorbs_a_citation_that_is_in_no_tree():
+    """THE RATCHET'S BOUND. A declared exemption says "this is written and waiting to land".
+    An exemption for something that exists NOWHERE is not a wait, it is an amnesty, and it
+    would let a typo'd node id be declared instead of corrected.
+
+    TWO ARMS, and the split is forced by the same thing that forced it on the mutation test
+    below: "waiting to land" is by definition a fact about an UNCOMMITTED tree, and the
+    pre-commit gate runs this in an isolated worktree built from the index, where no
+    uncommitted work exists. So:
+      ARM 1 (structural, runs everywhere) proves the guard REFUSES such a citation.
+      ARM 2 (real history) checks the live list wherever this tree can see the evidence, and
+            says plainly when it cannot rather than reporting a pass it did not earn.
+    """
+    # ARM 1: the guard DISCRIMINATES, and both directions are asserted -- a guard that said
+    # False to everything would pass the first half alone and forbid every honest exemption.
+    fiction = "tests/architecture/test_nothing_defines_this.py::test_typo"
+    real = f"{Path(__file__).relative_to(PROJECT).as_posix()}::{_THIS_TEST}"
+    assert not _on_disk_here(fiction), (
+        "the guard must REFUSE a citation no tree contains -- that is the amnesty it exists "
+        "to stop"
+    )
+    assert _on_disk_here(real), (
+        "and it must ADMIT one this tree really carries, or it forbids the declared waits "
+        "the ratchet is for"
+    )
+
+    # ARM 2: every declared entry, against this tree.
+    #
+    # THE PRECONDITION IS `git diff`, NOT `git status`, and the difference is what refused a
+    # first draft of this test at the gate. `surgical_land` materialises the tree the commit
+    # WOULD create and reads its index from the parent, so its checkout has untracked
+    # leftovers (which `status` reports) but no tracked file that differs from its index. In
+    # that tree "written and waiting to land" cannot exist by construction, so the question
+    # has no answer there and a verdict would be invented rather than measured.
+    if not _git("diff", "--name-only").strip():
+        pytest.skip(
+            "this tree's tracked files all match its index (a clean clone, or the gate's "
+            "materialised would-be tree), so 'written and waiting to land' is unobservable "
+            "here -- arm 1 is the proof, and it ran"
+        )
+    nowhere = sorted(key for key in _KNOWN_UNLANDED if not _on_disk_here(key))
+    assert not nowhere, (
+        "these _KNOWN_UNLANDED entries name something that is in NO tree -- not the index, "
+        "and not this working tree either:\n  - " + "\n  - ".join(nowhere)
+        + "\nAn exemption is a declared WAIT, not an amnesty. If the citation is a typo, fix "
+        "the record that made it; if the work truly exists elsewhere, it is not this tree's "
+        "to declare."
+    )
+
+
+def test_every_exemption_is_dated_and_names_what_it_waits_on():
+    """Shape, checkable in every tree: an undated exemption cannot be reviewed, and one that
+    does not name its change set cannot be discharged by anyone but its author."""
+    bad = sorted(
+        key for key, why in _KNOWN_UNLANDED.items()
+        if not re.match(r"^\d{4}-\d{2}-\d{2},", why) or "`" not in why
+    )
+    assert not bad, (
+        "every _KNOWN_UNLANDED entry must start `YYYY-MM-DD,` and name the change set it "
+        "waits on in backticks:\n  - " + "\n  - ".join(bad)
+    )
+
+
 # --------------------------------------------------------------------------------------
 # R15 -- each mutation performs a named defect and is asserted to PASS on it, which is what
 # makes the control above evidence rather than decoration.
 # --------------------------------------------------------------------------------------
+
+
+def test_MUTATION_taking_the_file_as_the_subject_goes_blind_to_the_node():
+    """WRONG-SUBJECT, and it is this control's own shipped defect (2026-08-18).
+
+    The file-level checker is green on a citation whose file is committed and whose NODE is
+    not -- 10 live citations were in exactly that state when this was written.
+    """
+    have = _paths_the_repository_has()
+    tracked_file = next(iter(sorted(p for p in have if p.startswith("tests/"))))
+    citation = f"{tracked_file}::test_a_node_no_file_defines_ffffff"
+    cited = {citation: {"docs/staging/done/EXAMPLE.md"}}
+
+    control_sees = _violations(cited=cited, have=have)
+    mutant_sees = {c for c in cited if c.partition("::")[0] not in have}
+
+    assert control_sees, "the node-level control must see a node the index's copy lacks"
+    assert not mutant_sees, (
+        "the file-level mutant was expected to be BLIND to it -- if it is not, this control "
+        "is not distinguishable from the one that passed clean on 10 live violations"
+    )
+
+
+def test_MUTATION_reading_only_the_matched_line_loses_continuation_citations():
+    """The multi-line half (§4). A discharge is a comma-continued list, and `git grep`'s
+    matched line is one line of it -- six of the ten violations were on continuation lines.
+    """
+    record = (
+        "**Discharged:** `tests/a/test_one.py::test_x`,\n"
+        "`tests/a/test_two.py::test_y`\n"
+        "— a reason.\n"
+    )
+    whole = _citations_in(_claim_text(record, _DISCHARGE_MARKER))
+    first_line_only = _citations_in(record.splitlines()[0])
+    assert len(whole) == 2, whole
+    assert first_line_only == {"tests/a/test_one.py::test_x"}, (
+        "the line-based mutant was expected to MISS the continuation citation"
+    )
 
 def test_MUTATION_resolving_citations_against_the_filesystem_goes_blind():
     """TAUTOLOGY/wrong-subject: `Path.exists()` instead of the index passes on the defect.
@@ -306,13 +569,13 @@ def test_MUTATION_resolving_citations_against_the_filesystem_goes_blind():
 
     # ARM 2, the same claim against real history wherever the tree actually carries it.
     real = _violations()
-    on_disk = {p for p in real if (PROJECT / p).exists()}
+    on_disk = {c for c in real if _on_disk_here(c)}
     if not on_disk:
         pytest.skip(
             "no live violation is present on disk here (expected in a clean tree or the "
             "gate's isolated worktree) -- arm 1 above is the proof, and it ran"
         )
-    mutant_on_real = {p for p in _discharge_citations()[0] if not (PROJECT / p).exists()}
+    mutant_on_real = {c for c in _discharge_citations()[0] if not _on_disk_here(c)}
     assert not (on_disk & mutant_on_real), (
         "the filesystem-resolving mutant was expected to be BLIND to the on-disk violations "
         f"{sorted(on_disk)} and it saw some of them"

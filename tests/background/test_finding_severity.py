@@ -22,6 +22,7 @@ filed findings in this project). A copy under a fresh name has neither failure m
 from __future__ import annotations
 
 import importlib.util
+import subprocess
 import sys
 from pathlib import Path
 
@@ -386,18 +387,40 @@ Text.
 
 
 def _repo_with(
-    tmp_path: Path, artefacts: str, files: dict[str, str] | None = None
+    tmp_path: Path,
+    artefacts: str,
+    files: dict[str, str] | None = None,
+    *,
+    staged: bool = True,
 ) -> tuple[Path, Path]:
-    """A tmp repo root + staging root holding one document that claims `artefacts`."""
+    """A tmp GIT repo root + staging root holding one document that claims `artefacts`.
+
+    A REAL repository, not a bare directory: since 2026-08-18 the discharge's evidence is
+    read from the INDEX, so a fixture that is not a work tree can only ever exercise the
+    unavailable-index refusal. `staged=False` writes the artefacts to disk and leaves them
+    OUT of the index — the shipped defect's own shape, and the reason `README.md` is always
+    staged (an empty index is "cannot answer", which is a different refusal).
+    """
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    _git(tmp_path, "init", "-q")
+    (tmp_path / "README.md").write_text("a repository\n", encoding="utf-8")
+    _git(tmp_path, "add", "README.md")
+
     staging = tmp_path / "docs" / "staging"
     staging.mkdir(parents=True)
     for relative, content in (files or {}).items():
         target = tmp_path / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(content, encoding="utf-8")
+        if staged:
+            _git(tmp_path, "add", relative)
     doc = staging / "WORKER_FINDING_X.md"
     doc.write_text(_DISCHARGE_DOC.format(artefacts=artefacts), encoding="utf-8")
     return tmp_path, doc
+
+
+def _git(root: Path, *args: str) -> None:
+    subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True)
 
 
 def _assert_no_test_node_does_not_release(module, tmp_path: Path) -> None:
@@ -512,8 +535,10 @@ def test_mutation_c_releasing_without_a_falsifier_kills_a_named_test(tmp_path):
 def test_mutation_d_dropping_the_existence_check_kills_a_named_test(tmp_path):
     mutant = _load_mutant(
         tmp_path,
-        "        if not target.is_file():\n            missing.append(artefact)\n            continue",
-        "        if not target.is_file():\n            continue",
+        "        if file_part not in tracked:\n"
+        "            (unstaged if (root / file_part).exists() else missing).append(artefact)\n"
+        "            continue",
+        "        if file_part not in tracked:\n            continue",
         "finding_severity_mutant_no_existence",
     )
     with pytest.raises(AssertionError):
@@ -530,6 +555,186 @@ def test_mutation_e_letting_an_invalid_discharge_release_kills_a_named_test(tmp_
     _assert_a_real_falsifier_does_release(mutant, tmp_path / "e_ok")  # the valid path still works
     repo, doc = _repo_with(tmp_path / "e_mut", "tools/real.py", {"tools/real.py": "x = 1\n"})
     assert mutant.parse_severity_file(doc, repo).severity == mutant.RECORDED  # the defect
+
+
+# ── WHICH TREE THE EVIDENCE IS READ FROM (2026-08-18, rung-1c BLOCKING draw, H_harness) ──
+#
+# WORKER_FINDING_THE_DISCHARGE_RELEASE_READS_THE_NODE_FROM_THE_WORKING_TREE_AND_ITS_CONTROL_
+# READS_ONLY_THE_FILE_2026-08-18 measured the hole: the release resolved the cited NODE
+# against `repo_root` on disk, and the `tests/architecture/` control that was supposed to
+# keep it honest checked only the FILE, against the index. Nothing checked the node against
+# the index, so a discharge citing a long-committed test file and a node that existed only
+# in the author's editor released the document AND passed the control — 10 such citations,
+# in 2 committed records, both already archived.
+#
+# The three tests below are the falsifiers for that repair, and MUTATION H is the R15 proof:
+# it puts the working-tree read back and the first of them must die.
+
+
+def test_a_node_that_exists_only_in_the_working_tree_does_not_release(tmp_path):
+    """THE SHIPPED DEFECT, reproduced: file committed, node not.
+
+    This is the shape a whole-file check cannot see and a working-tree read cannot refuse —
+    the file is in the index, so "does the repository have the falsifier" says yes, while
+    the falsifier itself is on exactly one machine.
+    """
+    repo, doc = _repo_with(
+        tmp_path,
+        "tests/test_real.py::test_added_but_not_staged",
+        {"tests/test_real.py": "def test_it():\n    pass\n"},
+    )
+    (repo / "tests" / "test_real.py").write_text(
+        "def test_it():\n    pass\n\n\ndef test_added_but_not_staged():\n    pass\n",
+        encoding="utf-8",
+    )
+    discharge = fs.parse_discharge(doc.read_text(), repo)
+    assert discharge.released is False, (
+        "a node present only in the working tree released the finding — that is the defect"
+    )
+    assert "does not define the node" in discharge.reason
+
+
+def test_an_artefact_on_disk_but_not_in_the_index_does_not_release(tmp_path):
+    """The file half, at the same standard: on this disk only is not a landed falsifier."""
+    repo, doc = _repo_with(
+        tmp_path,
+        "tests/test_real.py::test_it",
+        {"tests/test_real.py": "def test_it():\n    pass\n"},
+        staged=False,
+    )
+    discharge = fs.parse_discharge(doc.read_text(), repo)
+    assert discharge.released is False
+    assert "does not exist in the index" in discharge.reason
+
+
+def test_an_unreadable_index_refuses_rather_than_releasing(tmp_path, monkeypatch):
+    """R15 FAIL-SILENT: git missing or the root not a work tree is a FAILED check.
+
+    Both doors, because they fail through different code: a root with no repository at all,
+    and `git` itself unavailable on a root that has one.
+    """
+    bare = tmp_path / "not_a_repo"
+    (bare / "docs" / "staging").mkdir(parents=True)
+    (bare / "tests").mkdir()
+    (bare / "tests" / "test_real.py").write_text("def test_it():\n    pass\n", encoding="utf-8")
+    doc = bare / "docs" / "staging" / "WORKER_FINDING_X.md"
+    doc.write_text(
+        _DISCHARGE_DOC.format(artefacts="tests/test_real.py::test_it"), encoding="utf-8")
+    refused = fs.parse_discharge(doc.read_text(), bare)
+    assert refused.released is False
+    assert "unavailable check is a FAILED check" in refused.reason
+
+    repo, real_doc = _repo_with(
+        tmp_path / "real", "tests/test_real.py::test_it",
+        {"tests/test_real.py": "def test_it():\n    pass\n"},
+    )
+    assert fs.parse_discharge(real_doc.read_text(), repo).released is True  # precondition
+
+    def _boom(*_a, **_k):
+        raise OSError("git not on PATH")
+
+    monkeypatch.setattr(fs.subprocess, "run", _boom)
+    fs._INDEX_FILES_CACHE.clear()
+    fs._INDEX_BLOB_CACHE.clear()
+    blinded = fs.parse_discharge(real_doc.read_text(), repo)
+    assert blinded.released is False, "an unavailable check must never read as a release"
+    assert "unavailable check is a FAILED check" in blinded.reason
+
+
+def test_mutation_h_reading_the_node_from_the_working_tree_kills_a_named_test(tmp_path):
+    """MUTATION H — the shipped defect, put back. R15 TAUTOLOGY: the check asks the one
+    tree guaranteed to contain the work whose absence it is about."""
+    mutant = _load_mutant(
+        tmp_path,
+        "        blob = _index_blob(root, file_part)",
+        "        blob = (root / file_part).read_text(encoding='utf-8', errors='replace')",
+        "finding_severity_mutant_worktree_node",
+    )
+    _assert_a_real_falsifier_does_release(mutant, tmp_path / "h_ok")  # untouched property
+
+    repo, doc = _repo_with(
+        tmp_path / "h_mut",
+        "tests/test_real.py::test_added_but_not_staged",
+        {"tests/test_real.py": "def test_it():\n    pass\n"},
+    )
+    (repo / "tests" / "test_real.py").write_text(
+        "def test_it():\n    pass\n\n\ndef test_added_but_not_staged():\n    pass\n",
+        encoding="utf-8",
+    )
+    assert mutant.parse_discharge(doc.read_text(), repo).released is True  # the defect
+
+
+# ── THE MULTI-LINE CLAIM (§4 of the same finding) ──
+
+
+_SIX_LINE_DISCHARGE = """# A finding whose repair landed
+
+**Severity:** BLOCKING · **Lane:** H_harness
+**Discharged:** `tests/test_real.py::test_one`,
+`tests/test_real.py::test_two`,
+`{third}`
+— 2026-08-18 worker tick, all three taken.
+
+## Body
+Text.
+"""
+
+
+def _six_line_repo(tmp_path: Path, third: str) -> tuple[Path, Path]:
+    repo, doc = _repo_with(
+        tmp_path,
+        "unused",
+        {"tests/test_real.py": "def test_one():\n    pass\n\n\ndef test_two():\n    pass\n"},
+    )
+    doc.write_text(_SIX_LINE_DISCHARGE.format(third=third), encoding="utf-8")
+    return repo, doc
+
+
+def test_a_discharge_spread_over_several_lines_claims_every_artefact_on_them(tmp_path):
+    """A list continued across lines is ONE claim. Reading its first line only meant five
+    sixths of a real discharge — including any artefact that did not exist — sat outside the
+    checked claim while the release fired on the first."""
+    repo, doc = _six_line_repo(tmp_path, "tests/test_real.py::test_one")
+    discharge = fs.parse_discharge(doc.read_text(), repo)
+    assert len(discharge.artefacts) == 3, discharge.artefacts
+    assert discharge.released is True
+
+
+def test_a_bad_artefact_on_a_continuation_line_voids_the_whole_discharge(tmp_path):
+    """The property that makes the line above worth having: the third line is checked."""
+    repo, doc = _six_line_repo(tmp_path, "tests/test_ghost.py::test_three")
+    discharge = fs.parse_discharge(doc.read_text(), repo)
+    assert discharge.released is False
+    assert "does not exist" in discharge.reason
+
+
+def test_the_authors_reason_line_is_not_read_as_artefacts(tmp_path):
+    """The continuation rule is 'the line so far ends in a comma', not 'swallow to the
+    blank line' — otherwise every backticked symbol in the reason becomes a claimed path."""
+    repo, doc = _six_line_repo(tmp_path, "tests/test_real.py::test_two")
+    doc.write_text(
+        doc.read_text().replace(
+            "— 2026-08-18 worker tick, all three taken.",
+            "— 2026-08-18 worker tick; `tools/ghost.py` is discussed, not claimed.",
+        ),
+        encoding="utf-8",
+    )
+    discharge = fs.parse_discharge(doc.read_text(), repo)
+    assert "tools/ghost.py" not in discharge.artefacts
+    assert discharge.released is True
+
+
+def test_mutation_i_reading_only_the_first_line_kills_a_named_test(tmp_path):
+    """MUTATION I — the one-line regex, put back: the third artefact stops being claimed."""
+    mutant = _load_mutant(
+        tmp_path,
+        "        if not value[-1].rstrip().endswith(_CONTINUES):\n            break",
+        "        if True:\n            break",
+        "finding_severity_mutant_one_line_discharge",
+    )
+    repo, doc = _six_line_repo(tmp_path, "tests/test_ghost.py::test_three")
+    assert fs.parse_discharge(doc.read_text(), repo).released is False  # the control
+    assert mutant.parse_discharge(doc.read_text(), repo).released is True  # the defect
 
 
 def test_the_staging_root_has_no_false_discharges():
