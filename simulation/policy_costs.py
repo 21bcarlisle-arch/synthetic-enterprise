@@ -41,6 +41,11 @@ _RO_COST_BY_OY_START: dict[int, float] = {
     2022: 26.0,   # OY 2022-23: 0.491 × £52.88
     2023: 27.7,   # OY 2023-24: 0.469 × £59.01
     2024: 31.8,   # OY 2024-25: 0.491 × £64.73
+    # 2025/26 landed 2026-08-18 (director decision doc 2026-08-14, three-rate rebaseline).
+    # 0.493 ROCs/MWh × £67.06 buy-out = £33.0606. Buy-out published 18 Feb 2025 (Ofgem, RO
+    # buy-out price and mutualisation threshold 2025 to 2026); obligation level published
+    # 30 Sep 2024 (DESNZ). +4.0% on 2024 -- the only one of the three rates that MOVES.
+    2025: 33.06,  # OY 2025-26: 0.493 × £67.06
 }
 
 # CfD Interim Levy Rate annual average (£/MWh) by calendar year.
@@ -137,6 +142,10 @@ _CCL_ELECTRICITY_RATE_BY_YEAR: dict[int, float] = {
     2022: 7.75,    # bracketed by two primary 0.00775 years; CCL rates move only on 1 April
     2023: 7.75,    # gov.uk CCL rates
     2024: 7.75,    # gov.uk CCL rates — gas reaches parity with electricity here
+    # 2025/26 landed 2026-08-18. FLAT on 2024, not the +5.4% the decision doc states: that
+    # step was the 2024 repair, already taken on 2026-08-17. Statutory commons
+    # (ccl_main_rates.json) carries 2025-04-01 electricity at 0.775 p/kWh, `primary`.
+    2025: 7.75,    # gov.uk CCL rates, 1 Apr 2025 to 31 Mar 2026
 }
 
 
@@ -375,6 +384,9 @@ _GAS_CCL_RATE_BY_YEAR: dict[int, float] = {
     2022: 5.68,   # 0.568 p/kWh
     2023: 6.72,   # 0.672 p/kWh
     2024: 7.75,   # 0.775 p/kWh — parity with electricity CCL from April 2024
+    # 2025/26 landed 2026-08-18: UNCHANGED at parity, as the decision doc states and the
+    # statutory commons confirms (2025-04-01 gas, 0.775 p/kWh, `primary`).
+    2025: 7.75,   # 0.775 p/kWh — 1 Apr 2025 to 31 Mar 2026
 }
 
 

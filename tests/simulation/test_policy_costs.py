@@ -29,8 +29,22 @@ class TestROCost:
         assert abs(get_ro_cost_per_mwh("2010-06-01") - 15.6) < 1e-9
 
     def test_clamp_above_range(self):
-        # After 2024: clamp to 2024 value.
-        assert abs(get_ro_cost_per_mwh("2030-01-01") - 31.8) < 1e-9
+        """A date past the table clamps to the LAST year in it.
+
+        CORRECTED 2026-08-18: this pinned the literal 31.8 -- the 2024 value -- so landing
+        the published 2025/26 rate (33.06) reddened a test about CLAMP BEHAVIOUR for the
+        wrong reason. A test that hard-codes the last year's number has to be edited every
+        time the world moves on, and editing it is indistinguishable from breaking it. The
+        expected value is now derived from the table, so the behaviour is asserted and the
+        figure is free to move."""
+        from simulation.policy_costs import _RO_COST_BY_OY_START
+
+        last_year = max(_RO_COST_BY_OY_START)
+        expected = _RO_COST_BY_OY_START[last_year]
+        assert abs(get_ro_cost_per_mwh(f"{last_year + 5}-01-01") - expected) < 1e-9
+        # and it really is a clamp, not a coincidence: two dates past the end agree
+        assert abs(get_ro_cost_per_mwh(f"{last_year + 1}-06-01")
+                   - get_ro_cost_per_mwh(f"{last_year + 9}-06-01")) < 1e-9
 
 
 class TestCFDLevy:
