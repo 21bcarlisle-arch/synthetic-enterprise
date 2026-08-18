@@ -1,0 +1,121 @@
+{
+  "generated_at": "2026-08-18T13:01:03Z",
+  "source": "site/data/knowledge_wholesale.json",
+  "rule": "site/knowledge/review_state.py",
+  "policy": {
+    "note": "How long a page may go unchecked before it is shown as due for review. Set by how fast the real subject moves, not by how much work the page was. A page with no recorded review is DUE, never fresh -- an unrecorded review is not a review.",
+    "threshold_days": {
+      "fast": 92,
+      "medium": 183,
+      "slow": 365
+    },
+    "why": {
+      "fast": "reset quarterly by the regulator, so a year-old page is simply wrong",
+      "medium": "moves with policy and market structure over a season or two",
+      "slow": "structural; the mechanism does not change from year to year"
+    }
+  },
+  "tally": {
+    "never": 7,
+    "due": 0,
+    "fresh": 1
+  },
+  "topics": [
+    {
+      "id": "carbon-price",
+      "title": "The UK carbon price (UK ETS + CPS)",
+      "rate_of_change": "medium",
+      "state": "never",
+      "last_verified": null,
+      "days_allowed": 183,
+      "age_days": null,
+      "overdue_by": null,
+      "label": "Never reviewed",
+      "detail": "No one has recorded checking this page against the world."
+    },
+    {
+      "id": "gas-wholesale",
+      "title": "GB gas wholesale",
+      "rate_of_change": "medium",
+      "state": "never",
+      "last_verified": null,
+      "days_allowed": 183,
+      "age_days": null,
+      "overdue_by": null,
+      "label": "Never reviewed",
+      "detail": "No one has recorded checking this page against the world."
+    },
+    {
+      "id": "gb-electricity-market",
+      "title": "The GB electricity market (structure & settlement)",
+      "rate_of_change": "slow",
+      "state": "never",
+      "last_verified": null,
+      "days_allowed": 365,
+      "age_days": null,
+      "overdue_by": null,
+      "label": "Never reviewed",
+      "detail": "No one has recorded checking this page against the world."
+    },
+    {
+      "id": "hedging-forward-market",
+      "title": "Hedging & the forward market",
+      "rate_of_change": "slow",
+      "state": "never",
+      "last_verified": null,
+      "days_allowed": 365,
+      "age_days": null,
+      "overdue_by": null,
+      "label": "Never reviewed",
+      "detail": "No one has recorded checking this page against the world."
+    },
+    {
+      "id": "imbalance-cashout-settlement",
+      "title": "Imbalance & cash-out",
+      "rate_of_change": "medium",
+      "state": "never",
+      "last_verified": null,
+      "days_allowed": 183,
+      "age_days": null,
+      "overdue_by": null,
+      "label": "Never reviewed",
+      "detail": "No one has recorded checking this page against the world."
+    },
+    {
+      "id": "merit-order-residual-demand",
+      "title": "Merit order & residual demand",
+      "rate_of_change": "slow",
+      "state": "never",
+      "last_verified": null,
+      "days_allowed": 365,
+      "age_days": null,
+      "overdue_by": null,
+      "label": "Never reviewed",
+      "detail": "No one has recorded checking this page against the world."
+    },
+    {
+      "id": "price-cap",
+      "title": "The retail price cap",
+      "rate_of_change": "fast",
+      "state": "never",
+      "last_verified": null,
+      "days_allowed": 92,
+      "age_days": null,
+      "overdue_by": null,
+      "label": "Never reviewed",
+      "detail": "No one has recorded checking this page against the world."
+    },
+    {
+      "id": "electricity-wholesale",
+      "title": "GB electricity wholesale",
+      "rate_of_change": "medium",
+      "state": "fresh",
+      "last_verified": "2026-07-25",
+      "days_allowed": 183,
+      "age_days": 24,
+      "overdue_by": null,
+      "label": "Reviewed 2026-07-25",
+      "detail": "Checked 24 days ago against a 183-day threshold. Source: GB multi-plant SRMC dispatch stack DISCOVER."
+    }
+  ]
+}

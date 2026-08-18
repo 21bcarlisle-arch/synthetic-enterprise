@@ -38,3 +38,19 @@ https://www.poesys.net/* https://poesys.net/:splat 301
 /platform/* /proof/ 301
 /method-casebook /proof/ 301
 /method-casebook/* /proof/ 301
+
+# SITE5 (2026-08-18): /knowledge/wholesale-price-formation/ had a DIRECTORY and no entry in
+# site/data/knowledge_wholesale.json, so the shared topic template rendered its own raw slug
+# as the page title, with no blurb, no scope and no linked topics -- a published page that
+# said nothing and named nothing. Nothing in the site linked to it and the Knowledge index
+# never listed it, so it was reachable only by a crawler or a guessed URL.
+#
+# It is not written, because it is a DUPLICATE: its subject is exactly
+# /knowledge/electricity-wholesale/, whose own title is "How Great Britain's wholesale
+# electricity price is formed". Writing it would have produced two pages competing to explain
+# one mechanism -- the warehousing mistake the brief objects to, in miniature.
+#
+# Redirected rather than deleted, per this file's own standing convention: the directory
+# stays in-repo (noindex, unreachable canonically) for reference.
+/knowledge/wholesale-price-formation /knowledge/electricity-wholesale/ 301
+/knowledge/wholesale-price-formation/* /knowledge/electricity-wholesale/ 301

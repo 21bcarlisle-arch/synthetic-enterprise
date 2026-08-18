@@ -32,6 +32,12 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 .stubline b { color: var(--amber); }
 .badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .03em; border-radius: 4px; padding: 2px 6px; vertical-align: middle; }
 .badge.stub { color: var(--amber); border: 1px solid var(--amber); }
+/* Staleness must be visible ON THE PAGE, not discovered by a reader (brief section 4). */
+.reviewline { font-size: 12px; margin-bottom: 12px; }
+.badge.rev-fresh { color: var(--green); border: 1px solid var(--green); }
+.badge.rev-due { color: var(--amber); border: 1px solid var(--amber); }
+.badge.rev-never { color: var(--red); border: 1px solid var(--red); }
+.reviewline .rd { color: var(--muted); margin-left: 6px; }
 .sec { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em;
   color: var(--muted); margin-bottom: 12px; margin-top: 40px; }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 14px; }
@@ -61,6 +67,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
   <main>
     <div id="hero-h" class="hero-h">&nbsp;</div>
     <div id="hero-sub" class="hero-sub"></div>
+    <div id="review-state" class="reviewline"></div>
     <div id="stub-note" class="stubline"></div>
 
     <div class="sec" id="s-scope-h">What this page will cover</div>
@@ -107,11 +114,45 @@ function neighboursFromEdges(d, topic){
   return out;
 }
 
+// THE REVIEW RULE, mirrored from site/knowledge/review_state.py. Two implementations of one
+// rule is a drift risk, and it is taken deliberately: this page has no build step, so the
+// alternative is a reader seeing nothing until a generator runs. site/knowledge/
+// test_review_state.py drives BOTH and asserts they agree on every topic and on the boundary
+// days either side of each threshold -- so the mirror cannot silently diverge.
+// FAIL-CLOSED, exactly as the Python does: no date, an unparseable date or an unknown rate
+// class all read DUE. A page nobody has checked must never render as fine.
+function reviewState(topic, policy, today){
+  var days = (policy && policy.threshold_days && policy.threshold_days[topic && topic.rate_of_change]) || 92;
+  var rec = (topic && topic.reviewed) || {};
+  var raw = rec.last_verified;
+  var when = (typeof raw === "string") ? new Date(raw.slice(0,10) + "T00:00:00Z") : null;
+  if (!when || isNaN(when.getTime())) {
+    return { state:"never", label:"Never reviewed", days_allowed:days,
+             detail:"No one has recorded checking this page against the world." };
+  }
+  var age = Math.floor((today - when) / 86400000);
+  if (age - days > 0) {
+    return { state:"due", label:"Review due", days_allowed:days, age_days:age,
+             detail:"Last checked " + age + " days ago; this subject is meant to be re-checked every " + days + " days." };
+  }
+  return { state:"fresh", label:"Reviewed " + raw, days_allowed:days, age_days:age,
+           detail:"Checked " + age + " days ago against a " + days + "-day threshold." +
+                  (rec.source ? " Source: " + rec.source + "." : "") };
+}
+
+function renderReview(d, me){
+  var r = reviewState(me, d.review_policy, new Date());
+  set("review-state",
+    '<span class="badge rev-' + esc(r.state) + '">' + esc(r.label) + '</span>' +
+    '<span class="rd">' + esc(r.detail) + '</span>');
+}
+
 function renderStub(d, topicId){
   var byId={}; d.topics.forEach(function(t){ byId[t.id]=t; });
   var me = byId[topicId] || {id:topicId, title:topicId, blurb:"", scope:""};
   set("hero-h", esc(me.title || topicId));
   set("hero-sub", esc(me.blurb || ""));
+  renderReview(d, me);
   set("stub-note",
     '<span class="badge stub">Stub</span> &nbsp;<b>Not yet written.</b> This node exists to hold its '+
     'place in the GB wholesale-energy domain graph. It states what a complete treatment will cover '+

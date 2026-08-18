@@ -2817,6 +2817,19 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("Capabilities door generation failed: {}".format(exc))
     try:
+        # SITE5: which Knowledge pages are due for review. The rule itself is
+        # site/knowledge/review_state.py; running it here is what stops it being a rule
+        # exercised only by its own test (the no-caller class the orphan ratchet refused
+        # this module's first landing for). The log line is the operator signal -- staleness
+        # surfaces without anyone opening the site -- and the artefact is what the Knowledge
+        # index will render so a reader sees which pages are stale BEFORE clicking in.
+        from tools.generate_knowledge_review import generate as gen_k_review, needs_attention
+        _kr = gen_k_review()
+        log("Generated site/data/knowledge_review.json -- {} of {} Knowledge pages need "
+            "attention {}".format(needs_attention(_kr), len(_kr["topics"]), _kr["tally"]))
+    except Exception as exc:
+        log("Knowledge review generation failed: {}".format(exc))
+    try:
         # Must run after generate_customer_reaction_chain (timeline/reaction_chain
         # patched) and generate_customer_sample (churn_accuracy_by_renewal source).
         # WEBSITE_AS_SHOWCASE.md tab 4: case-study recommender.
