@@ -635,7 +635,7 @@ def test_mutation_an_undeclared_panel_in_the_file_kills_the_guard(tmp_path):
     """Direction 1c: the same mutation applied to the FILE, not to a rendered string --
     a new card appended to the op-state region without declaring a side."""
     src = INDEX.read_text(encoding="utf-8")
-    marker = '<div style="text-align:center;margin:6px 0 8px"><a href="./?acc=C1"'
+    marker = '<div data-wall-chrome="1" style="text-align:center;margin:6px 0 8px"><a href="./?acc=C1"'
     assert marker in src, "fixture precondition: the op-state drill-down link is where expected"
     mutated_file = tmp_path / "index.html"
     mutated_file.write_text(
@@ -3540,8 +3540,13 @@ def test_the_membership_writer_is_still_the_only_one():
     src = INDEX.read_text(encoding="utf-8")
     body = src[src.index("function applyWallViewToOpState(){"):]
     body = body[: body.index("\n}\n") + 3]
+    # The property is SOLE WRITER, not single call site: section 21 added a second removal
+    # BRANCH (the undeclared block, withheld) inside this same function. What must stay
+    # true is that every #op-state membership call in the page lives inside it -- so the
+    # two counts must be EQUAL, and non-zero so a page that stopped governing the region
+    # at all cannot pass by making both sides zero.
     for call in ("host.appendChild(", "host.removeChild("):
-        assert src.count(call) == body.count(call) == 1, (
+        assert src.count(call) == body.count(call) >= 1, (
             f"{call} appears {src.count(call)} times in the page and {body.count(call)} "
             "times inside applyWallViewToOpState -- #op-state membership has a second writer"
         )
@@ -3579,4 +3584,240 @@ def test_no_definition_in_this_module_shadows_another():
     assert not dupes, (
         "these top-level names are defined more than once in this module, so the earlier "
         f"definition is shadowed and never runs: {dupes} -- rename the later one"
+    )
+
+
+# ===========================================================================
+# 21. THE OTHER GOVERNOR'S FAIL-OPEN HALF
+#     (the second half of coldwalk:site2_case_study_cards_render_sim_truth_in_the_
+#      customer_view -- named by the 2026-08-17 re-run walk, fixed then on #app only)
+# ===========================================================================
+#
+# The page has TWO membership governors, one per region, and until this section only one of
+# them was fail-closed:
+#
+#   #app        applyWallViewToApp()      every top-level child must carry data-wall-side
+#                                         or data-wall-chrome; an undeclared one is REMOVED
+#                                         and recorded.  (built 2026-08-17)
+#   #op-state   applyWallViewToOpState()  `if(!suppressed&&(!side||wallViewShows(side)))
+#                                         host.appendChild(el)` -- an undeclared block was
+#                                         APPENDED, in every view, including the customer's.
+#
+# The walk's own words for the second one were "a second, quieter defect in the same
+# function: `if(!side||wallViewShows(side))` showed any UNDECLARED block in every view --
+# the fail-open half". The tick that found it fixed the #app half and left this one. Two
+# blocks were living on that branch when this section was written -- the region heading and
+# the drill-down link -- both genuinely chrome, which is why nothing had leaked YET and why
+# the module stayed green: R15's FAIL-OPEN pattern exactly, a control that passes because
+# its subject happens to be innocent.
+#
+# AND IT WAS TWO DEFECTS, NOT ONE. Driving a block that DECLARED data-wall-side="company"
+# into the live region on the shipped page put it in the CUSTOMER's view as well --
+# because opStateBlocks() cached #op-state's children on its first call, so a block
+# appended after boot was never in any governor's subject at all, whatever it declared.
+# That is the third time this page has paid for the same class: "a new layer above a
+# control does not inherit its subject" (2026-08-12 the op-state exhibit, 2026-08-17 the
+# case-study grid, here the region's own child list). The cache is now a UNION -- it still
+# holds document order for the restore, and any live child not in it joins on the next pass.
+#
+# WHY THE EXISTING STATIC CONTROL COULD NOT SEE EITHER. `test_the_op_state_region_declares_
+# a_side_for_every_block` scans the SOURCE FILE and its subject is CONTENT_CLASSES, a
+# hand-kept set of six class names. A block using none of them is invisible to it, and a
+# block that never appears in the file at all -- appended at runtime -- cannot be in its
+# subject by construction. The governor's subject is every child of the region, with no
+# vocabulary to keep, which is why the fix belongs at the governor and not in the list.
+#
+# PROVEN ON THE PAGE AS IT SHIPPED (`git show HEAD:site/customers/index.html`, run through
+# this section's own probes): an undeclared block carrying "True satisfaction fell 12.2
+# percentage points" -- the exact SIM-only string the customer view's own note forbids --
+# rendered in the customer view, and nothing was recorded.
+#
+# ANTI-VACUITY, both null controls in the harness rather than in prose. (b) the same block
+# DECLARED chrome must SURVIVE, or the "fix" is "hide anything appended late" wearing a
+# declaration rule's clothes. (c) the same block DECLARED company must be governed by the
+# VIEW -- behind the wall yes, customer's side no -- or the fix is "withhold everything
+# appended late", which would pass (a) for the wrong reason.
+#
+# ANTI-PIN: no figure, count or stamp from the run appears here. The sentinel strings are
+# written by the harness, and the leak string is the one the page's own WALL_VIEW_NOTE
+# declares broken. Regenerating the book cannot make any of these cry wolf.
+
+_OP_STATE_LEAK = "True satisfaction fell"
+
+
+def _op_state_probes(index: Path = INDEX) -> dict:
+    return _subject(index)["states"]["op_state_declaration_probes"]
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_an_undeclared_block_in_the_exhibit_is_withheld_in_every_view():
+    """THE FINDING. A block appended to #op-state declaring neither a side nor chrome must
+    not reach a reader -- in ANY view. Checking only the customer's would pass a mutant
+    that defaults a missing side to `customer`, which is the fail-open shape itself."""
+    p = _op_state_probes()
+    assert p["undeclared_op_state_threw"] is None, p["undeclared_op_state_threw"]
+    assert _OP_STATE_LEAK not in p["undeclared_op_state_html"], (
+        "an undeclared block carrying SIM-only ground truth rendered in the pinned exhibit "
+        "-- the customer view's own note says that means the page is broken"
+    )
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_the_withholding_is_recorded_and_not_silent():
+    """A fail-closed control that hides the evidence of its own firing is how the #app half
+    of this defect went unnoticed for a week. The block is withheld AND named."""
+    recorded = _op_state_probes()["undeclared_op_state_recorded"]
+    assert recorded, (
+        "the undeclared block was withheld silently -- nothing tells an author why their "
+        "new panel vanished, so the next one is added the same way"
+    )
+    assert any("op-state" in str(v) for v in recorded), recorded
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_null_control_a_block_declared_chrome_survives():
+    """NULL CONTROL (b). Moves the DECLARATION, not the law. If a chrome-declared block
+    were withheld too, the mechanism would be "hide anything appended after boot" and every
+    test above would pass on it."""
+    p = _op_state_probes()
+    assert "CHROME-SENTINEL" in p["chrome_op_state_html"], (
+        "a block that declared itself chrome was withheld -- the rule being enforced is "
+        "not about declaration at all"
+    )
+    assert not p["chrome_op_state_recorded"], p["chrome_op_state_recorded"]
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_null_control_a_block_declared_company_is_governed_by_the_view():
+    """NULL CONTROL (c), and it is the one that catches the OTHER cheap fix. A block that
+    DOES declare a side must be filtered by the view selector like every static panel --
+    present behind the wall, absent from the customer's side. "Withhold everything appended
+    late" would satisfy the finding test and destroy the region."""
+    per_view = _op_state_probes()["sided_op_state_per_view"]
+    assert per_view["behind"] and per_view["both"], (
+        "a correctly-declared company block never reached the behind-the-wall view -- the "
+        "governor is refusing declarations rather than reading them"
+    )
+    assert not per_view["customer"], (
+        "a block declaring data-wall-side=company rendered in the customer's view"
+    )
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_every_static_block_in_the_exhibit_declares_a_side_or_chrome():
+    """The region as it SHIPS, not as a probe drives it. Every child either carries a wall
+    side or says it is chrome -- so no block is relying on a fail-open branch that no
+    longer exists."""
+    per_view = _subject()["states"]["landing_per_view"]["both"]
+    sides, chrome = per_view["sides"], per_view["chrome"]
+    assert len(sides) == len(chrome) >= 2, (sides, chrome)
+    undeclared = [i for i, s in enumerate(sides) if not s and not chrome[i]]
+    assert not undeclared, (
+        f"#op-state children at these positions declare neither a side nor chrome: "
+        f"{undeclared} -- they render in every view by default"
+    )
+    assert any(sides), "the exhibit declares no wall side at all -- this check is vacuous"
+    assert any(chrome), "no block declares chrome -- the chrome arm is untested here"
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_mutation_the_fail_open_branch_restored_kills_a_named_test(tmp_path):
+    """R15 direction 1: the defect itself, exactly as it shipped. Remove the fail-closed
+    branch and an undeclared block is appended in every view again."""
+    mutant = _mutate(tmp_path, "    if(!side&&!chromeFlag){", "    if(false){")
+    p = _op_state_probes(mutant)
+    assert _OP_STATE_LEAK in p["undeclared_op_state_html"], (
+        "MUTATION SURVIVED: the fail-open branch is back and the undeclared block was "
+        "still withheld -- this test is not measuring the branch it names"
+    )
+    assert not p["undeclared_op_state_recorded"], p["undeclared_op_state_recorded"]
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_mutation_the_cached_subject_restored_kills_a_named_test(tmp_path):
+    """R15 direction 2, the SECOND defect and the more interesting one. Put the once-only
+    snapshot back: a block appended after boot is then in no governor's subject at all, so
+    it renders in every view EVEN THOUGH it correctly declares a company side."""
+    mutant = _mutate(
+        tmp_path,
+        "  if(OP_STATE_BLOCKS===null)OP_STATE_BLOCKS=[];\n  var host=document.getElementById(\"op-state\");",
+        "  if(OP_STATE_BLOCKS!==null)return OP_STATE_BLOCKS;\n  OP_STATE_BLOCKS=[];\n"
+        "  var host=document.getElementById(\"op-state\");",
+    )
+    per_view = _op_state_probes(mutant)["sided_op_state_per_view"]
+    assert per_view["customer"], (
+        "MUTATION SURVIVED: with the subject snapshotted once, a block appended later is "
+        "still being filtered -- this test is not measuring the cache it names"
+    )
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_mutation_hiding_the_record_kills_a_named_test(tmp_path):
+    """R15 direction 3, FAIL-SILENT: withhold the block but stop recording it. The page
+    looks identical to a reader and the author of the next undeclared panel learns nothing.
+    The leak test above stays green on this mutant, which is why it needs its own."""
+    mutant = _mutate(tmp_path, "  WALL_VIOLATIONS.push(what);", "  if(false)WALL_VIOLATIONS.push(what);")
+    p = _op_state_probes(mutant)
+    assert _OP_STATE_LEAK not in p["undeclared_op_state_html"], (
+        "the mutation changed the withholding too -- it is not isolating the record"
+    )
+    assert not p["undeclared_op_state_recorded"], (
+        "MUTATION SURVIVED: the record was silenced and something still reported it"
+    )
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_mutation_treating_chrome_as_a_side_kills_a_named_test(tmp_path):
+    """R15 direction 4, the OVER-BROAD failure. Accept `data-wall-chrome` as though it were
+    a declared side and a chrome block stops being shown in every view -- the region's
+    heading and its drill-down link would disappear from the customer's side. This is the
+    mutation that proves the two arms are genuinely different arms."""
+    mutant = _mutate(
+        tmp_path,
+        "    if(!suppressed&&(!side||wallViewShows(side)))host.appendChild(el);",
+        "    if(!suppressed&&side&&wallViewShows(side))host.appendChild(el);",
+    )
+    per_view = _subject(mutant)["states"]["landing_per_view"]["customer"]
+    assert not any(per_view["chrome"]), (
+        "MUTATION SURVIVED: chrome blocks are still in the customer view after the arm "
+        "that shows them was removed"
+    )
+
+
+def _pre_governor_index() -> str | None:
+    """The most recent committed index.html that predates THIS repair, found by the absence
+    of its own symbol rather than by a pinned SHA -- so the check keeps working once this
+    change is itself committed, which a `HEAD:` literal would not."""
+    for n in range(0, 9):
+        rev = "HEAD" if n == 0 else f"HEAD~{n}"
+        proc = subprocess.run(
+            ["git", "-C", str(HERE), "show", f"{rev}:site/customers/index.html"],
+            capture_output=True, text=True, timeout=60,
+        )
+        if proc.returncode == 0 and "recordOpStateViolation" not in proc.stdout:
+            return proc.stdout
+    return None
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_both_checks_in_this_section_fire_on_the_page_as_it_SHIPPED(tmp_path):
+    """R15's real subject: the page as PUBLISHED, not a synthetic mutation of the repair.
+    Both defects must fire on it, or this section is describing a problem the page never
+    had. A synthetic mutation can be wrong about what shipped; this cannot."""
+    src = _pre_governor_index()
+    if src is None:
+        pytest.skip("no committed index.html without this repair within the search window")
+    shipped = tmp_path / "index.html"
+    shipped.write_text(src, encoding="utf-8")
+    p = _op_state_probes(shipped)
+    assert _OP_STATE_LEAK in p["undeclared_op_state_html"], (
+        "the shipped page did NOT leak an undeclared block into the exhibit -- this "
+        "section is fixing something that was not broken"
+    )
+    assert not p["undeclared_op_state_recorded"], (
+        "the shipped page already recorded the undeclared block -- the record is not new"
+    )
+    assert p["sided_op_state_per_view"]["customer"], (
+        "the shipped page already filtered a late-appended company block out of the "
+        "customer view -- the cached-subject half of this section is not real"
     )

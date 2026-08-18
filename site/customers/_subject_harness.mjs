@@ -269,10 +269,80 @@ for (const view of ["both", "customer", "behind"]) {
     threw,
     op_state_children: opStateHost.children.length,
     sides: opStateHost.children.map((c) => c.getAttribute("data-wall-side")),
+    chrome: opStateHost.children.map((c) => c.getAttribute("data-wall-chrome")),
   };
 }
 sandbox.setWallView("both");
 states.landing_per_view = perView;
+
+// ---------------------------------------------------------------------------
+// 7. THE FAIL-OPEN HALF of this region's governor, which is the one the 2026-08-17 walk
+//    named and the 08-17 fix closed only on #app. applyWallViewToOpState kept
+//    `!side||wallViewShows(side)`, so an #op-state block declaring NOTHING was appended in
+//    every view -- the customer's included. These probes bolt a block onto the LIVE region
+//    (the same path a new panel would arrive by) and report what the document then holds.
+//
+//    Read defensively and driven through the page's own setWallView, so this file runs
+//    unchanged against a page with none of the mechanism -- which is what makes the
+//    mutations experiments rather than harness edits.
+// ---------------------------------------------------------------------------
+const wallViol = () => (sandbox.WALL_VIOLATIONS || []).slice();
+const clearWallViol = () => { if (sandbox.WALL_VIOLATIONS) sandbox.WALL_VIOLATIONS.length = 0; };
+function bolt(attrs, inner) {
+  const n = node(`<div class="card"${Object.keys(attrs).map((k) => ` ${k}="${attrs[k]}"`).join("")}>${inner}</div>`);
+  opStateHost.appendChild(n);
+  return n;
+}
+// Bolting a block on makes it a member of the page's own subject list, which is the point.
+// Each probe must therefore take its own block back OUT of that list, or probe (b) would be
+// measuring the block probe (a) left behind.
+function unbolt(n) {
+  if (n.parentNode === opStateHost) opStateHost.removeChild(n);
+  const cache = sandbox.OP_STATE_BLOCKS;
+  if (Array.isArray(cache)) { const i = cache.indexOf(n); if (i >= 0) cache.splice(i, 1); }
+}
+function driveAllViews() {
+  const seen = { html: "", threw: null };
+  for (const view of ["both", "customer", "behind"]) {
+    try { sandbox.showLogin(null); sandbox.setWallView(view); }
+    catch (e) { seen.threw = String((e && e.message) || e); }
+    seen.html += opStateHost.children.map((c) => c.outerHTML).join("");
+  }
+  return seen;
+}
+const opProbes = {};
+// (a) THE DEFECT'S OWN SHAPE: undeclared, carrying a SIM-only headline. Driven in all three
+//     views because a probe that only checks "behind" passes a mutant defaulting the
+//     missing side to the customer's -- precisely the fail-open being guarded.
+clearWallViol();
+const rogue = bolt({}, "True satisfaction fell 12.2 percentage points");
+let seen = driveAllViews();
+opProbes.undeclared_op_state_html = seen.html;
+opProbes.undeclared_op_state_threw = seen.threw;
+opProbes.undeclared_op_state_recorded = wallViol();
+unbolt(rogue);
+// (b) NULL CONTROL A -- same block, DECLARED chrome. Moves the declaration, not the law:
+//     if this one also vanished, the "fix" would be "hide anything appended late".
+clearWallViol();
+const chromeBlock = bolt({ "data-wall-chrome": "1" }, "CHROME-SENTINEL");
+seen = driveAllViews();
+opProbes.chrome_op_state_html = seen.html;
+opProbes.chrome_op_state_recorded = wallViol();
+unbolt(chromeBlock);
+// (c) NULL CONTROL B -- same block, DECLARED company. Must be governed by the VIEW, not
+//     withheld outright: present behind the wall, absent from the customer's side.
+clearWallViol();
+const sided = bolt({ "data-wall-side": "company" }, "SIDED-SENTINEL");
+const sidedPerView = {};
+for (const view of ["both", "customer", "behind"]) {
+  try { sandbox.showLogin(null); sandbox.setWallView(view); } catch (e) { /* pre-fix */ }
+  sidedPerView[view] = opStateHost.children.map((c) => c.outerHTML).join("").indexOf("SIDED-SENTINEL") !== -1;
+}
+opProbes.sided_op_state_per_view = sidedPerView;
+opProbes.sided_op_state_recorded = wallViol();
+unbolt(sided);
+sandbox.setWallView("both");
+states.op_state_declaration_probes = opProbes;
 
 process.stdout.write(JSON.stringify({
   states, exhibitAccount, otherAccount, consoleErrs,
