@@ -5127,7 +5127,7 @@
   depends_on: []
   couples_with: [D36_bill_render_footing_and_pence, SITE3_wall_exhibit_url_rename]
   file_scope: ['site/customers/index.html', 'site/customers/test_wall_exhibit.py', 'site/customers/_wall_harness.mjs', 'site/customers/_landing_harness.mjs', 'site/customers/test_customers_door.py', 'site/customers/_render_harness.mjs', 'site/_redirects', 'site/test_no_links_to_redirected_urls.py', 'docs/design/SITE_CONSTITUTION.md', 'tools/generate_case_study_recommender.py', 'tests/tools/test_case_study_recommender.py']
-  simplifications_count: 11
+  simplifications_count: 12
   expert_hour:
     # 2026-08-17: every finding the 08-12 Hour raised is now dispositioned -- 11 fixed with
     # evidence in the ledger, 1 refuted (its kept half built), 2 re-homed to the lanes that
@@ -5442,3 +5442,142 @@
   file_scope: ['tools/map_assertion_provenance.py', 'tests/tools/test_map_assertion_provenance.py']
   real_world_twin: "a standards document citing clause numbers that were renumbered in the edition it claims to follow, and which no reader has ever tried to look up"
   expert_hour: {status: not_attempted, last: null, findings: []}
+# ── SITE4..SITE11 — the website structure programme ───────────────────────────
+# MINTED 2026-08-18 (director console) as the commitment set §8 of
+# docs/staging/in_progress/DIRECTOR_BRIEF_WEBSITE_STRUCTURE_2026-08-17.md called for
+# and §5 of docs/design/SITE_STRUCTURE_PROGRAMME_PROPOSAL_2026-08-17.md deferred until
+# capacity existed. One atom per proposed Step 0-7. The director accepted all four of
+# the proposal's §6 recommendations and ruled the sequence: see
+# docs/staging/done/DIRECTOR_RULING_SITE_STRUCTURE_PROGRAMME_ACCEPTED_2026-08-18.md.
+#
+# THE depends_on CHAIN IS THE RULED ORDER, NOT A TECHNICAL COUPLING. Only two edges
+# are load-bearing in code: SITE6 genuinely cannot precede SITE5 (deleting the glossary
+# while Knowledge is nine identical stubs replaces one hole with three -- the brief's
+# one non-negotiable sequencing constraint), and SITE11 genuinely must be last (it
+# re-points five live 301s at homes that must already exist). The rest is the
+# director's editorial order, encoded here so the draw follows it. Re-ranking is his
+# word away and breaks nothing.
+- id: SITE4_ia_register_and_nav
+  title: "One IA register in three states, and every page's nav renders from it"
+  gain: "The brief reads 'five tabs, in a ruled order' as one edit. It is sixteen hand edits against twelve distinct nav shapes -- and `site/evidence/index.html`, the largest content page after the wall exhibit, carries no `<nav>` element at all. Worse, the public surface is in THREE states, not two: 10 ADVERTISED (in sitemap.xml), 2 INTERNAL (served 200, deliberately absent from it, named in INTERNAL_DOORS), 5 RETIRED (301 to /proof/, kept in-repo per the retirement convention). The brief's §7 control #1 has no slot for the third state and so is red on twelve of sixteen areas, with deleting pages we chose to keep as its only green. This atom extends the sitemap-derived register in `site/live_pixel_verify.py` to all three states, derives every nav from it, and lands the failable form of that control -- red-listing the six real orphans (customers, now, glossary, evidence, knowledge, privacy) without yet fixing them. No reader-visible change; it is what makes every later step one edit instead of sixteen."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [SITE1_expert_doors]
+  file_scope: ['site/live_pixel_verify.py', 'site/test_ia_register.py', 'site/ia_register.py', 'site/sitemap.xml', 'site/_redirects']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a utility whose site map lives in sixteen hand-maintained page footers, so every reorganisation is sixteen chances to strand a page"
+- id: SITE5_knowledge_written
+  title: "Knowledge stops being nine byte-identical stubs and carries real domain content with review dates"
+  gain: "`site/knowledge/` is not a 5.7KB stub as the brief has it -- it is 324KB across eleven pages, EIGHT of which render byte-identical visible text (MD5 of the tag-stripped text `2ad82c7405`, 292 chars each). The page's own promise is false in the render: it does not name its topic, so a reader clicking 'Price cap' arrives at prose identical to 'Carbon price' and neither says which is which. `wholesale-price-formation` is 14 words and is not linked from the Knowledge index -- an orphan inside an orphan. No Knowledge page carries a last-reviewed date in any form, so the brief's review-due control starts from zero, not from a threshold change. This is the largest content piece in the programme after Explore, and it is a LIVE public defect today: an advertised area serving nine pages of identical boilerplate to a crawler and a reader. Knowledge is NOT put in the nav here."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: [SITE4_ia_register_and_nav]
+  file_scope: ['site/knowledge/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a regulator's guidance library where every topic page is the same 'content coming soon' notice under a different title"
+- id: SITE6_knowledge_in_nav_glossary_dissolved
+  title: "Knowledge enters the nav and the glossary PAGE dies -- while the glossary LAYER lives"
+  gain: "The brief's one non-negotiable sequencing constraint binds here: only once Knowledge carries real content does the glossary warehouse go, 301'd to Knowledge with its 26 definitions moved into the prose that needs them. The trap the brief does not name: `site/data/glossary.json` has a live consumer in the glossary LAYER (`site/test_glossary_layer.py`, 13 tests, L1 'definitions stay in ONE place'), which is a term-inspection mechanism separate from the page. The director ruled §6 Q4 explicitly -- the layer SURVIVES. §3's argument is against a warehouse a reader must already know the term to search; inline term inspection is the opposite of that and serves §6.7 directly. Killing the page must not kill the layer, and that must be decided rather than discovered."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: [SITE5_knowledge_written]
+  file_scope: ['site/glossary/', 'site/knowledge/', 'site/data/glossary.json', 'site/test_glossary_layer.py', 'site/_redirects', 'site/sitemap.xml']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "retiring a plant glossary into the operating manual, and accidentally decommissioning the tooltip system that quoted it"
+- id: SITE7_capabilities_tab
+  title: "Capabilities: SIM and Company, now and next, side by side, honest about absence"
+  gain: "The cheapest step in the programme and the one that most improves a first-time reader's path: a new area with no deletion, no redirect and no existing consumer -- purely additive on top of SITE4's register. It doubles as the roadmap and should make a separate pitch document unnecessary. `tools/generate_capabilities_json.py` already exists and writes capability data; whether it feeds this or something else is the first thing to check, not to assume. This step has NO ordering argument attached -- the proposal said so rather than pretending otherwise, and it is the one atom in the chain the director can pull forward at zero cost if he wants visible progress sooner."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: [SITE6_knowledge_in_nav_glossary_dissolved]
+  file_scope: ['site/capabilities/', 'tools/generate_capabilities_json.py', 'site/sitemap.xml']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a product roadmap that states what does not exist yet, and is believed because of it"
+- id: SITE8_home_reordered_and_link_labels
+  title: "Home opens with the claim, the diagram moves to the foot, and no link label repeats six times"
+  gain: "Six identical `Evidence behind this stage ->` labels on the homepage -- exactly six, word for word, confirmed against the committed source. No label tells a reader where it goes. The brief's §7 control #3 (a label used more than twice on a page fails) lands with this step, per §9.3's rule that controls arrive with the thing they govern. The model-on-one-page diagram is a good artefact in the wrong position: it moves to the foot as the payoff, not the greeting. Watch `site/test_home_door.py` (6 tests) -- it asserts the home nav and evidence links structurally and encodes prior migration decisions, so it is read before it is edited."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: [SITE7_capabilities_tab]
+  file_scope: ['site/index.html', 'site/test_home_door.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an annual report whose contents page lists the same chapter title six times"
+- id: SITE9_harness_tab_and_director_record
+  title: "Harness carries the methodology account -- and the director record is not advertised until a stranger's view of it has been read"
+  gain: "The tab that carries the two-seat model, the named failure classes, the honest count of what broke and why, and the known-limitations section re-homed from Proof. Hidden inside the brief's §4 is a publication act it does not name: `/director/` is currently INTERNAL -- deployed, noindex, off-nav BY CHOICE, named in `INTERNAL_DOORS`. Folding it into an advertised tab publishes the director record to crawlers for the first time. The director accepted publishing it (proposal §6 Q3) AND attached the programme's single condition."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: [SITE8_home_reordered_and_link_labels]
+  blocked_on: null   # NOT an atom edge: nothing in the map unblocks this. The release is the director's word after he has read the render, and it is mechanised in site/ia_register.py::director_record_release rather than left as the prose below -- a prose-only block is the shape MAKE IT STICK says will evaporate.
+  block_reason: "PARTIAL BLOCK, reserved class 3 (an irretractable public claim under Poesys's name), ruled 2026-08-18: the Harness tab itself is NOT blocked and neither is the director-record SECTION SHELL. What is blocked is the advertisement -- no commit may remove /director/ from INTERNAL_DOORS, add it to sitemap.xml, or drop its noindex until the director has read the page's RENDERED content (driven by its live feeds, the visible text a stranger meets -- not the markup, not a summary). His reason, verbatim: 'it was written internally and I want to read it as a stranger would first.' SILENCE DOES NOT RELEASE THIS ONE -- a deliberate carve-out from THE_STANDARD's silence-is-validation, made by the director in the same breath as accepting the recommendation, and legitimate because a later noindex does not retract a page from an index. Release: his word after the render is shown. Registered in action_needed under reserved class 3; NO new gate, seam, channel or ceremony was created for it."
+  file_scope: ['site/harness/', 'site/director/', 'site/live_pixel_verify.py', 'tests/tools/test_site1_proof_crawlability.py', 'site/sitemap.xml']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a board minute book that was always technically available on request, being moved to the front of the public shelf"
+- id: SITE10_explore_traversal
+  title: "Explore: one real customer, six stages, the wall visible at every one"
+  gain: "The largest piece in the programme and the strongest available demonstration of the epistemic wall: a reader picks one customer and follows PRICED -> CHOSEN -> USED -> BILLED -> PAID -> JUDGED, seeing at every stage what the world knew against what the company believed, with the change of clock between stages made explicit on screen because that change IS the industry education. The brief sets a real presentation bar -- an operator's working screen, not a six-part essay, with real artefacts (a rendered bill, a meter read history, a direct debit schedule). `site/customers/` (152KB, the existing wall exhibit) is the substrate: the brief's own 'the earlier CRM-style view set the standard' is describing a page that still exists, so the two are reconciled rather than built beside each other. Draws as its own commitment set. The wall's treatment here is the one thing in the brief exempt from see-and-correct."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: [SITE9_harness_tab_and_director_record]
+  couples_with: [SITE2_two_sided_wall_exhibit, SITE3_wall_exhibit_url_rename]
+  file_scope: ['site/explore/', 'site/customers/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier's own account-management screen, opened to a stranger with the belief column left in"
+- id: SITE11_proof_dissolved
+  title: "/proof/ is DISSOLVED, not deleted -- and the five redirects it answers move with it"
+  gain: "The dangerous one, and the correction the director accepted back up the chain in his own words ('my instruction would have broken five live redirects'). The brief's §3 says proof is 'deleted, not moved'. /proof/ is where method, project, simplified, tours and wip-flow were re-homed by two prior IA migrations (Campaign A 2026-07-18, SITE_V5 2026-07-23), and it renders their absorbed content at #method-anchor, #project-anchor, #simplified-anchor, #economics-anchor, #timeline-anchor. Deleting it points five live 301s at a 404 and destroys the only rendered copy of five retired areas' content. Instead: /proof/ becomes a redirect SOURCE like the five before it (/proof -> /harness/ 301), the five existing 301s are re-pointed to their new homes IN THE SAME COMMIT, the anchor content moves BEFORE the redirect lands, and nothing leaves the tree -- which is the convention site/_redirects already states in its own comments, and satisfies §9.1 ('nothing is deleted until its replacement is live') more literally than deletion does. Must be last: it re-points at homes that have to already exist. Six pages carry in-page links to /proof/#*-anchor today."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: [SITE10_explore_traversal]
+  file_scope: ['site/_redirects', 'site/proof/', 'site/sitemap.xml', 'site/test_no_links_to_redirected_urls.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "closing a records office whose address is printed on five statutory notices, and forwarding the post before you turn off the lights"

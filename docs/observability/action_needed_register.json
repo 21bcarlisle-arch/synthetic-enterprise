@@ -8,6 +8,17 @@
     "what": "Sign the harm:loss weighting ratio (R13 curriculum) that turns the belief-vs-truth gap into a score",
     "why": "The gap SCORE depends on these weights; the agent framed the decision (R~8:1, flip-point R*=1 at p=0.5) but must NEVER tune them toward a gap number (R13). Placeholders ship until you sign."
   },
+  "SITE9_director_record_publication": {
+    "first_asked_at": "2026-08-18T06:36:59.860718+00:00",
+    "how": "Worker renders /director/ as it will be SERVED -- driven by its live feeds, the visible text a stranger meets, not the markup and not a summary -- and puts that in front of the director. His word then goes into docs/observability/director_record_publication_release.json {released:true, director_words:..., render_shown:...}, which is what site/ia_register.py::director_record_publication_violations reads. Until then the three publication acts (sitemap entry, INTERNAL_DOORS removal, noindex drop) are refused by site/test_ia_register.py. No new gate, seam or channel is on the director's path.",
+    "item_id": "SITE9_director_record_publication",
+    "last_pinged_at": "2026-08-18T06:36:59.860718+00:00",
+    "last_sent_at": "2026-08-18T06:40:24.163484+00:00",
+    "pre_classified_door": null,
+    "resolved": false,
+    "what": "Publish the director record at /director/ to crawlers -- an irretractable public claim under Poesys's name: move a deliberately unadvertised surface into the crawlable set (sitemap entry + noindex removed). Director's condition, ruled 2026-08-18: he reads the page's RENDERED content as a stranger would, first.",
+    "why": "His words: 'show me its rendered content before it becomes crawlable -- it was written internally and I want to read it as a stranger would first.' Silence does NOT release this one; that carve-out from THE_STANDARD is his, made in the same breath as accepting the recommendation. A later noindex does not retract a page from an index."
+  },
   "W2_2_population_draw": {
     "answer": "Profile B \u2014 trickle continuation at ~1 synthetic customer/yr from 2021, matching the 2017-2020 acquisition pace (near-flat, steady-state supplier). Director-decided in-console 2026-07-14 (re-affirmed; first decided 2026-07-13, answer evaporated with no channel record).",
     "first_asked_at": "2026-07-13T11:08:04.111016+00:00",
@@ -106,15 +117,16 @@
     "why": "Honesty (R9/no-orphan): I paged you 'triad closed, ratify L3' -- that was premature and it wedged your window. The measurement is real + preserved; only its shared-ledger registration + the map coupling are outstanding. Correcting the pending decision so you don't ratify on a premature claim."
   },
   "publish_gate_wedged": {
-    "answer": "Auto-resolved: the publish gate recovered and a run published cleanly at 2026-08-03T03:08:37.032784+00:00.",
+    "answer": "Auto-resolved: the publish gate recovered and a run published cleanly at 2026-08-18T07:15:29.985532+00:00.",
     "first_asked_at": "2026-07-18T15:21:58.968619+00:00",
-    "how": "Check docs/observability/sim-runner-log.md for the 'Tests FAILED' / failure lines. rc=-9 is almost certainly OOM (free memory or cut test parallelism), NOT a code bug; rc>0 means run the fast suite locally to find the regression. The alarm clears automatically on the next clean publish.",
+    "how": "BLOCKING TEST: UNRECORDED -- the gate's failing node id was not captured (no red gate has run since this record was last cleared, or the record went stale). Read docs/observability/sim-runner-log.md for the last 'Publish gate RED' line; do NOT infer a cause from the backlog list below. rc=-9 is almost certainly OOM (free memory or cut test parallelism), NOT a code bug; rc>0 means run that test at HEAD to find the regression. Full output: docs/observability/sim-runner-log.md, 'Publish gate RED output tail'. The alarm clears automatically on the next clean publish. SUSPECT HIT RATE: not yet measured (20 closed episode(s) emitted no suspect list because the blocking test was unrecorded).",
     "item_id": "publish_gate_wedged",
-    "last_pinged_at": "2026-08-03T03:05:57.301838+00:00",
-    "last_sent_at": "2026-08-03T03:05:57.303308+00:00",
+    "last_pinged_at": "2026-08-18T07:00:33.015022+00:00",
+    "last_sent_at": "2026-08-18T07:00:33.015363+00:00",
+    "pre_classified_door": null,
     "resolved": true,
-    "resolved_at": "2026-08-03T03:08:37.032892+00:00",
-    "what": "The run-complete PUBLISH GATE has failed 6 time(s) in a row within the last 60 min -- the site/report pipeline is WEDGED and run_complete markers are piling up unpublished. Latest cause: test failure or processing error (rc>0 -- a real regression is possible) (rc=1, git=5b9453f65).",
+    "resolved_at": "2026-08-18T07:15:29.985598+00:00",
+    "what": "The run-complete PUBLISH GATE has failed 3 time(s) in a row within the last 60 min -- the site/report pipeline is WEDGED and run_complete markers are piling up unpublished. Latest cause: test failure or processing error (rc>0 -- a real regression is possible) (rc=137, git=unknown). EPISODE: wedged since 2026-08-18T07:00 UTC -- 0h00m and 3 consecutive failures in THIS episode (not a fresh hour). Markers pending: 0.",
     "why": "A silently-wedged publish gate stops the live site and report updating with NO other signal -- this is the exact ~45-min silent stall of 2026-07-14 (H15)."
   },
   "routines-cloud-environment-id": {
@@ -125,16 +137,6 @@
     "resolved": true,
     "what": "Create the Claude Code cloud environment for this repo and send me its identifier.",
     "why": "RemoteTrigger's create call (for scheduling autonomous Routines) requires either environment_id or self_hosted_runner_pool_id in job_config.ccr -- I can't fabricate or discover one myself. This is the last open item on HARNESS_BEST_PRACTICE_ADOPTION.md (everything else in that sprint -- hooks, evaluator, resilience -- is already built)."
-  },
-  "staged:ADVISOR_DISCOVERY_PREMISE_FABRIC_PHYSICS_2026-08-03.md": {
-    "first_asked_at": "2026-08-03T06:24:43.565604+00:00",
-    "how": "Action it (staging = approval), then archive to done/.",
-    "item_id": "staged:ADVISOR_DISCOVERY_PREMISE_FABRIC_PHYSICS_2026-08-03.md",
-    "last_pinged_at": "2026-08-03T06:24:43.565604+00:00",
-    "last_sent_at": "2026-08-03T06:24:47.463640+00:00",
-    "resolved": false,
-    "what": "New staged instruction: ADVISOR_DISCOVERY_PREMISE_FABRIC_PHYSICS_2026-08-03.md",
-    "why": "A staged director/advisor instruction is awaiting processing."
   },
   "walled-interfaces-priority-rank": {
     "first_asked_at": "2026-07-11T05:21:26.663659+00:00",

@@ -525,6 +525,28 @@ REVIEWED_CLOSE_TO_LEARN = {
     # It prices nothing, bills nothing and settles nothing; what it protects is whether the
     # site's own published links land where they claim, the same close_to_learn class as SITE2.
     "SITE3_wall_exhibit_url_rename",
+    # 2026-08-18 reviewed (director console, the website structure programme's commitment set --
+    # DIRECTOR_RULING_SITE_STRUCTURE_PROGRAMME_ACCEPTED_2026-08-18.md). Eight atoms, one per Step
+    # 0-7 of SITE_STRUCTURE_PROGRAMME_PROPOSAL_2026-08-17.md. Classified as one set because they
+    # share one subject: what the PUBLISHED SURFACE says and whether a reader can reach it. Not one
+    # of them prices, bills, settles or collects anything -- SITE4 derives navs from a register,
+    # SITE5 writes domain prose, SITE6 moves definitions, SITE7 states what does not exist yet,
+    # SITE8 reorders a page, SITE9 re-homes the methodology account, SITE10 renders an existing
+    # book's existing life through an existing wall, SITE11 re-points redirects. The alternative
+    # streams were each considered and each fails on the same fact: meter_to_cash, price_to_bill
+    # and wholesale_to_price all name a money flow these atoms deliberately do not touch. SITE10
+    # (Explore) is the one worth stating explicitly, because it LOOKS commercial: it displays the
+    # priced/billed/paid chain end to end, but it is a rendering of figures the D- and W-lane atoms
+    # already produce -- if it ever COMPUTES one of them, that is a second source of truth and this
+    # entry is wrong. Same close_to_learn class as SITE1_expert_doors and the three SITE_EH atoms.
+    "SITE4_ia_register_and_nav",
+    "SITE5_knowledge_written",
+    "SITE6_knowledge_in_nav_glossary_dissolved",
+    "SITE7_capabilities_tab",
+    "SITE8_home_reordered_and_link_labels",
+    "SITE9_harness_tab_and_director_record",
+    "SITE10_explore_traversal",
+    "SITE11_proof_dissolved",
 }
 
 # The coupled topology landed in the yaml (C5). Each pair is world<->company as

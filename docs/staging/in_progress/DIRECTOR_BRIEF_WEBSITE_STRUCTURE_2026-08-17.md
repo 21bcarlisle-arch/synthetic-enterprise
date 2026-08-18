@@ -1,17 +1,28 @@
-> **[IN PROGRESS — §9.5 proposal DELIVERED 2026-08-17, build NOT started]**
+> **[IN PROGRESS — ruled and minted 2026-08-18; Step 0 of 8 BUILT]**
 >
-> **Open sub-item:** the eight-item WORK THIS CREATES list. None of it is built.
+> **Open sub-item:** WORK THIS CREATES items 1–6 and 8, plus the four remaining §7 controls.
 >
-> **Done:** §9.5 ("proposal before build") — `docs/design/SITE_STRUCTURE_PROGRAMME_PROPOSAL_2026-08-17.md`
-> returns the proposed sequence (Steps 0-7), a blast-radius assessment per step, six evidence-backed
-> corrections to this brief, and four open questions with recommendations attached.
+> **Done:**
+> - §9.5 ("proposal before build") — `docs/design/SITE_STRUCTURE_PROGRAMME_PROPOSAL_2026-08-17.md`:
+>   the sequence (Steps 0–7), a blast-radius assessment per step, six evidence-backed corrections to
+>   this brief, and four open questions with recommendations attached.
+> - **The director ruled all four, 2026-08-18** —
+>   `docs/staging/done/DIRECTOR_RULING_SITE_STRUCTURE_PROGRAMME_ACCEPTED_2026-08-18.md`. All four
+>   recommendations accepted; **§3's "`proof` is deleted, not moved" is overturned by his own word**
+>   (deletion would have pointed five live 301s at a 404); one condition attached to publishing the
+>   director record.
+> - **The commitment set is minted:** `SITE4`–`SITE11` in `docs/design/maturity_map.yaml`, one atom
+>   per Step 0–7, chained in the ruled order.
+> - **Step 0 (`SITE4`) is built:** `site/ia_register.py` — the three-state IA register (ADVERTISED /
+>   INTERNAL / RETIRED), every page's nav rendered from it (`tools/render_site_nav.py`), §7 control
+>   #1 landed in its failable C3 form, and the six real orphans red-listed as shrink-only debt.
+>   Controls + R15 mutations: `site/test_ia_register.py`.
 >
-> **What unblocks the rest:** capacity. §9.4 of this brief rules that it does not jump the queue —
-> the publish-gate wiring and the PB3 ADD path outrank it. The commitment set gets minted when those
-> clear; Step 0 (one IA register, nav derives from it) is its first drawable item.
+> **The one thing waiting on the director:** the rendered `/director/` page, before Step 5 makes it
+> crawlable. Registered under reserved class 3; **silence does not release this one**, by his word.
 >
 > **Do not bulk-archive this file.** It is the canonical spec for a multi-draw programme that has
-> delivered one draw of eight.
+> delivered two draws of eight.
 
 ---
 

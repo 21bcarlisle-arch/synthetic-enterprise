@@ -115,14 +115,53 @@ STRUCTURAL_EXCLUSIONS: dict[str, str] = {
     ),
 }
 
-#: Directory prefixes excluded by `site/sitemap.xml`'s own comment, quoted here with the
-#: reason it gives. NOT a decision made by this module — a decision read from the site.
-SITEMAP_DECLARED_EXCLUSIONS: dict[str, str] = {
+#: The reasons the site gives for its two deliberately-unadvertised doors, quoted from
+#: `site/sitemap.xml`'s own comment. NOT a decision made by this module — a decision read
+#: from the site. The MEMBERSHIP is not typed here; see below.
+_INTERNAL_DOOR_REASONS: dict[str, str] = {
     "director/": (
         "sitemap.xml: 'explicitly off-nav and noindex by design, an auth-adjacent surface, "
         "not a public door'"
     ),
     "shadow/": "sitemap.xml: 'the internal advisor mirror, not a public surface'",
+}
+
+
+def _internal_door_exclusions() -> dict[str, str]:
+    """The INTERNAL door set, taken from `site/ia_register.py` — not re-typed here.
+
+    SITE4 (2026-08-18): this module used to carry its own hand-written copy of
+    {director, shadow}, and so did `site/live_pixel_verify.py`. Three lists that must
+    agree are three lists that will not: an internal door added or published in one place
+    would have gone on being excluded here, silently, which on a REACHABILITY control means
+    a newly-public page that nothing checks a route to. The register is the one definition
+    of that set; this module keeps ownership of its own REASONS (the wording is the
+    sitemap's, and its audience is this control's diagnostic).
+
+    Fail-closed: a member the register declares and this module has no reason for still
+    excludes, carrying a reason that says so, rather than being quietly dropped from the
+    exclusion set and reported as an orphan.
+    """
+    site_dir = REPO_ROOT / "site"
+    if str(site_dir) not in sys.path:
+        sys.path.insert(0, str(site_dir))
+    from ia_register import INTERNAL_DOORS
+
+    out = {}
+    for door in INTERNAL_DOORS:
+        key = door.strip("/") + "/"
+        out[key] = _INTERNAL_DOOR_REASONS.get(
+            key,
+            f"site/ia_register.py declares {door} INTERNAL (deployed, deliberately absent "
+            f"from sitemap.xml); no reason recorded in this module yet",
+        )
+    return out
+
+
+#: Directory prefixes excluded by the site's own declarations. The two internal doors come
+#: from the register; `snapshots/` is this module's own structural call and stays here.
+SITEMAP_DECLARED_EXCLUSIONS: dict[str, str] = {
+    **_internal_door_exclusions(),
     "snapshots/": (
         "dated archive snapshots of a past dashboard render; each is a frozen artefact, not "
         "a live door (the live surface is /now/)"

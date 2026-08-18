@@ -323,12 +323,20 @@ def test_build_note_renders_freshness_stamp():
         assert c["generated_at"] in note, note
 
 
-def test_canonical_nav_present_with_now_first():
+def test_canonical_nav_present_with_now_active_after_the_canonical_doors():
+    # SITE4 (2026-08-18): the nav is rendered from site/ia_register.py, so the ORDER
+    # is the register's ruled order -- the canonical doors first, then this page's
+    # legacy tail. Now used to be hand-placed FIRST; it is not a canonical door in the
+    # ruled IA (it is absorbed by SITE8, Home's dated "latest" strip), so it now sits
+    # in the tail. What this test protects is unchanged: Now is present, it is the
+    # ACTIVE entry, and every route this page used to offer still exists.
     nav = INDEX.read_text()
     m = re.search(r'<nav class="site-nav">(.*?)</nav>', nav, re.S)
     assert m, "site-nav block not found"
     block = m.group(1)
-    # Now is the current door (active) and the first nav item.
     assert 'href="./" class="nav-link active">Now</a>' in block, block
-    for label in ("Home", "Company", "World", "Customers", "Proof", "Method"):
+    for label in ("Home", "The World", "The Company", "Customers", "Proof", "Method"):
         assert f">{label}</a>" in block, f"nav missing {label!r}"
+    # The canonical doors lead; the tail follows. A tail entry that outranked a
+    # canonical door would mean the register was bypassed by a hand edit.
+    assert block.index(">Home</a>") < block.index(">Now</a>"), block

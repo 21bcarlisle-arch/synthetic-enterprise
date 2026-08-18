@@ -158,14 +158,16 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
 <body>
 <nav class="site-nav">
   <a href="../" class="nav-logo">&#9889; Poesys</a>
-  <a href="../now/" class="nav-link">Now</a>
+  <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
   <a href="../" class="nav-link">Home</a>
-  <a href="../company/" class="nav-link">Company</a>
-  <a href="../world/" class="nav-link">World</a>
+  <a href="../world/" class="nav-link">The World</a>
+  <a href="../company/" class="nav-link">The Company</a>
   <a href="../proof/" class="nav-link">Proof</a>
+  <a href="../now/" class="nav-link">Now</a>
   <a href="../proof/#method-anchor" class="nav-link">Method</a>
   <a href="../proof/#project-anchor" class="nav-link">Journey</a>
   <a href="../proof/#simplified-anchor" class="nav-link">Simplified</a>
+  <!-- IA-NAV:END -->
 </nav>
 <!-- THE WALL EXHIBIT (SITE2, DIRECTOR_RULING_THE_PORTAL_IS_A_WALL_EXHIBIT_2026-08-12 Part 2).
      This page is NOT a customer portal. It is a side-by-side comparison of the two sides of
@@ -474,6 +476,127 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
       ' on the '+esc(fuel)+' leg, while that same leg&rsquo;s own reaction chain &mdash; the record the '+
       'Timeline tab renders &mdash; carries '+leg.cases+'. Neither is silently preferred here.</div>';
   }
+  /* ACCOUNT STANDING -- THE SOLE WRITER OF EVERY SENTENCE THIS PAGE MAKES ABOUT WHERE AN
+     ACCOUNT'S MONEY STANDS, AND THE ONLY PLACE ITS TENSE IS DECIDED.
+     --------------------------------------------------------------------------------
+     Cold-eyes 2026-08-17, coldwalk:site2_closed_account_settled_to_zero_and_in_credit.
+     All three blind personas read the same page saying both of these about ONE household
+     that closed its account on 2021-12-30:
+
+       Billing tab   "Account closed 2021-12-30 -- final bill C1-INV72. Account settled to zero."
+       Overview      "You are currently £24.37 in credit -- that is your money, held by us"
+       Risk tab      "the household combined (both fuels) LIVE ledger position"
+
+     The arithmetic was never wrong (6,560.17 - 6,584.54 = -24.37, the credit sitting
+     entirely on the gas leg). What was wrong is that FOUR INDEPENDENT SENTENCE SITES each
+     decided, privately, what to claim about the same money -- so the page could publish a
+     settlement claim and a live-credit claim at once. The regulatory reading a blind COO
+     reached for first is a supplier sitting on a departed customer's credit for four and a
+     half years; the page had no way to say which reading was true.
+
+     Two defects, one class:
+       1. TENSE. Three of the four sites were hard-wired present tense ("You are
+          CURRENTLY", "LIVE ledger position") on a household the page's own timeline knows
+          has gone. The closure date is already on screen elsewhere -- fwdLabel() has
+          frozen every forward-looking LABEL since 2026-08-12 -- but the money sentences
+          were never brought under it.
+       2. A MISSING BRANCH. closedAccountNotice()'s settlement claim tested
+          `current_balance_gbp > 0.005` and, failing that, printed "Account settled to
+          zero" -- so a CREDIT balance, which is a negative number, fell through to the
+          zero branch. On C1's gas tab that is a literal falsehood over a -£24.37 ledger,
+          not merely a tense problem.
+
+     So this is the writer, and there is exactly one. It decides three things from the same
+     inputs -- the state (credit / outstanding / square / unknown), the tense (closed or
+     live) and the words -- and every site below asks it rather than deciding again. A new
+     panel that wants to say where the money stands has to come through here.
+
+     FAIL-CLOSED on a balance it cannot read: `unknown` never claims settlement. The
+     defect being fixed is a page CLAIMING a household settled to zero when it had not, so
+     the missing-data branch must not be able to produce that claim either -- a null
+     balance reads "not published", never "£0.00, settled".
+
+     NO NEW PLUMBING (this atom's own constraint): `closedOn` is the churned timeline event
+     the legs already carry -- the same event closedAccountNotice() has always fired off,
+     and the same one householdClosureDate() reads in the drill-down script below. The
+     exhibit's legs arrive on the boot path that already fetches them for the household
+     money, so the op-state region can now answer a question the 2026-08-12 note recorded
+     as unanswerable from company.json's household block alone.
+
+     WHAT THE PAGE CANNOT KNOW, AND THEREFORE SAYS. Nothing published to this page records
+     whether a closing credit was refunded to the customer. The honest render is not to
+     pick a side: it states the closing position and states that the refund is not in the
+     record. An exhibit about an epistemic wall may not quietly infer across it. */
+  window.__CLOSED_CREDIT_NO_REFUND_RECORD=
+    "Nothing published on this page records whether that credit was refunded, so it is "+
+    "shown as the position at closure &mdash; not as money still being held today.";
+  window.__accountStanding=function(o){
+    o=o||{};
+    var raw=o.balance;
+    var v=(raw==null||raw==="")?null:Number(raw);
+    if(v!=null&&!isFinite(v))v=null;
+    var closed=(o.closedOn==null||o.closedOn==="")?null:String(o.closedOn);
+    var wo=Number(o.writtenOff||0);
+    var st={
+      balance:v,
+      closedOn:closed,
+      isClosed:!!closed,
+      state:(v==null)?"unknown":(v<-0.005?"credit":(v>0.005?"outstanding":"square"))
+    };
+    var amt=(v==null)?"--":gbp(Math.abs(v));
+    var woTxt=(isFinite(wo)&&wo>0.005)?(" (net of "+gbp(wo)+" written off)"):"";
+
+    // 1. The Balance tile's sub-caption. On a closed account it leads with the clock the
+    //    figure is actually on, so the number is never read as today's position.
+    //    PLAIN TEXT, not entities: the op-state tile() helper escapes its sub-caption, so
+    //    an &middot; here reaches the reader as the literal string "&middot;".
+    var words={credit:"in credit · the customer’s money, held by us",
+               outstanding:"outstanding",square:"square — nothing owed either way",
+               unknown:"balance not published for this account"}[st.state];
+    st.caption=(closed?("at closure "+closed+" · "):"")+words;
+
+    // 2. The customer-facing paragraph.
+    if(st.state==="unknown"){
+      st.sentence="This account&rsquo;s balance is not published on this page, so nothing is claimed about it.";
+    }else if(closed){
+      st.sentence=(st.state==="credit")
+        ? "This account <strong>closed on "+closed+"</strong> holding <strong>"+amt+" of the customer&rsquo;s money</strong> &mdash; a credit balance, our liability and not our profit. "+window.__CLOSED_CREDIT_NO_REFUND_RECORD
+        : (st.state==="outstanding")
+          ? "This account <strong>closed on "+closed+"</strong> with <strong>"+amt+" still outstanding</strong>"+woTxt+" &mdash; the balance as it stood on the final bill, not a live debt being pursued today."
+          : "This account <strong>closed on "+closed+"</strong> <strong>settled to zero</strong>"+woTxt+" &mdash; nothing owed in either direction at the final bill.";
+    }else{
+      st.sentence=(st.state==="credit")
+        ? "You are currently <strong>"+amt+" in credit</strong> &mdash; that is <strong>your money, held by us</strong>. On our balance sheet it is a liability, not our profit; a supplier holding customer credit can look cash-rich and still be insolvent."
+        : (st.state==="outstanding")
+          ? "Your account is currently <strong>"+amt+" outstanding</strong> &mdash; you have consumed more than you have paid so far."
+          : "Your account is currently <strong>square</strong> &mdash; paid up to date.";
+    }
+
+    // 3. The closed-account notice's settlement clause. THE MISSING BRANCH LIVES HERE.
+    st.settlement=(!closed)?""
+      :(st.state==="unknown")?" Final balance not published for this account."
+      :(st.state==="outstanding")?(" Final balance: "+amt+" outstanding"+woTxt+".")
+      :(st.state==="credit")?(" Closing balance: "+amt+" in credit &mdash; the customer&rsquo;s money, recorded here as held by us. "+window.__CLOSED_CREDIT_NO_REFUND_RECORD)
+      :(" Account settled to zero"+woTxt+".");
+
+    // 4. What to call the ledger position itself, wherever it is described rather than shown.
+    st.positionLabel=closed?("ledger position at closure ("+closed+")"):"live ledger position";
+    return st;
+  };
+  /* The household's closure date, off the legs the boot path already fetched. Mirrors
+     householdClosureDate() in the drill-down script -- same timeline event, same rule
+     (the LATEST churned event across the legs) -- because the two regions must not be
+     able to disagree about whether the household has gone. */
+  window.__householdClosedOn=function(legs){
+    var acc=((legs&&legs.accounts)||[]).filter(Boolean),best=null;
+    for(var i=0;i<acc.length;i++){
+      var tl=acc[i].timeline||[];
+      for(var k=0;k<tl.length;k++){
+        if(tl[k].type==="churned"&&tl[k].date&&(best===null||tl[k].date>best))best=tl[k].date;
+      }
+    }
+    return best;
+  };
   window.renderCustomerState=function(company,legs){
     var h=(company&&company.household)||{};
     if(!h.available){el("cust-intro").innerHTML='<span class="red">No household snapshot available in company.json.</span>';return;}
@@ -552,10 +675,16 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
       : (dual?(String(h.commodity||"electricity")+" leg only"):"household · "+String(h.commodity||""));
     var bal=Number(whole?m.balance:h.balance_gbp);
     var invCount=whole?m.invoices:h.invoice_count;
+    // ONE standing claim for this region, formed once and reused by every sentence below.
+    var stand=window.__accountStanding({balance:bal,closedOn:window.__householdClosedOn(legs)});
     el("cust-money").innerHTML=[
       tile("Billed (lifetime)", gbp(whole?m.billed:h.billed_gbp), "billed clock · "+scope+(invCount!=null?" · "+invCount+" invoices":""), ""),
       tile("Collected", gbp(whole?m.collected:h.banked_gbp), "banked clock · "+scope, ""),
-      tile("Balance", gbp(bal), (bal<0?"in credit · your money, held by us":"outstanding")+" · billed − banked · "+scope, (bal<0?"green":(bal>0?"amber":""))),
+      // The caption comes from __accountStanding, the page's sole writer of standing
+      // claims -- so this tile cannot say "in credit" in the present tense over a
+      // household its own legs record as closed (coldwalk:site2_closed_account_settled_
+      // to_zero_and_in_credit).
+      tile("Balance", gbp(bal), stand.caption+" · billed − banked · "+scope, (bal<0?"green":(bal>0?"amber":""))),
       // "Failed payments 0 - direct-debit returns" was TRUE as a direct-debit-return count
       // and false as everything a reader takes it for: this household's misses are
       // standard-credit non-payments on the gas leg, and there are two of them. The tile
@@ -614,11 +743,10 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
     // winter-drawdown trajectory, DD2-DD4) and the annual-DD-review event are DESIGNED, NOT
     // INSTRUMENTED (the DD1 staggered-payment-day mechanic itself landed 2026-07-27, stated
     // below as instrumented). NEVER render a fabricated per-month balance trajectory here.
-    var ddPos=(bal<0)
-      ? "You are currently <strong>"+gbp(Math.abs(bal))+" in credit</strong> &mdash; that is <strong>your money, held by us</strong>. On our balance sheet it is a liability, not our profit; a supplier holding customer credit can look cash-rich and still be insolvent."
-      : (bal>0
-          ? "Your account is currently <strong>"+gbp(bal)+" outstanding</strong> &mdash; you have consumed more than you have paid so far."
-          : "Your account is currently square &mdash; paid up to date.");
+    // The standing sentence is the sole writer's (see __accountStanding). This site used
+    // to hard-wire "You are currently ..." and so told a reader that a household which
+    // left on 2021-12-30 was holding a live credit balance today.
+    var ddPos=stand.sentence;
     el("cust-dd-cycle").innerHTML=
       '<p class="kpi-sub" style="margin:0 0 8px">'+ddPos+'</p>'+
       '<p class="kpi-sub" style="margin:0 0 8px">Under a conventional UK <strong>level Direct Debit</strong> you pay the same amount every month &mdash; your estimated annual cost split into twelve &mdash; against energy use that is heavily seasonal. Through <strong>summer</strong> you use little and your balance builds <strong>credit</strong>; through <strong>winter</strong> you use far more than you pay and that credit is <strong>drawn back down</strong>. Once a year the <strong>annual DD review</strong> checks the estimate against reality and resets your monthly amount &mdash; where a bad forecast becomes a bill shock.</p>'+
@@ -1651,6 +1779,21 @@ function householdClosureDate(){
 }
 var FROZEN_SUFFIX=" (at closure)";
 function fwdLabel(label){return householdClosureDate()?label+FROZEN_SUFFIX:label;}
+/* The drill-down's doorway to the page's SOLE writer of standing claims
+   (window.__accountStanding, defined in the first script -- its comment block carries the
+   finding). Deliberately NO local fallback: a second implementation of "what do we say
+   about this money" here is precisely how the page came to publish "Account settled to
+   zero" and "You are currently £24.37 in credit" about the same closed household. A
+   missing writer must fail loudly rather than let this region quietly re-derive the claim
+   -- an unavailable control is a FAILED control (R15). */
+function standing(bal,opts){
+  if(!window.__accountStanding)throw new Error(
+    "the account-standing writer is missing -- this page may not compose its own "+
+    "settlement or balance wording (see __accountStanding in the first script)");
+  opts=opts||{};
+  return window.__accountStanding({balance:bal,closedOn:householdClosureDate(),
+                                   writtenOff:opts.writtenOff});
+}
 function frozenHint(what){
   var c=householdClosureDate();
   if(!c)return "";
@@ -1666,6 +1809,7 @@ function riskPanels(){
   var cc=(churnP==null)?"muted":churnColour(churnP);
   var lt=combinedLedgerTotals();
   var balColor=lt.balance>0.005?"red":"green";
+  var stand=standing(lt.balance,{writtenOff:lt.written_off});
   // Pricing Action is computed independently per fuel-leg (unlike churn/CLV,
   // which is genuinely household-level) -- showing only HH.elec's here
   // silently hid a dual-fuel household's gas-side repricing flag whenever it
@@ -1687,11 +1831,19 @@ function riskPanels(){
   return [
     panel("customer","Your balance",
       "<div class=\"card\"><div class=\"kpi-grid\">"+
-      "<div class=\"kpi\"><div class=\"kpi-label\">Outstanding Balance</div>"+
+      // Label and caption from the sole standing writer: this tile said "Outstanding
+      // Balance ... LIVE ledger position" over a household closed on 2021-12-30, while
+      // the Billing tab said the same account had settled to zero.
+      "<div class=\"kpi\"><div class=\"kpi-label\">"+(stand.isClosed?"Balance at closure":"Outstanding Balance")+"</div>"+
       "<div class=\"kpi-value "+balColor+"\">"+gbp(lt.balance)+"</div>"+
+      "<div class=\"kpi-sub\">"+stand.caption+"</div>"+
       (lt.written_off>0.005?"<div class=\"kpi-sub\">"+gbp(lt.written_off)+" written off lifetime"+(lt.recovered>0.005?", "+gbp(lt.recovered)+" recovered":"")+"</div>":"")+
       "</div></div>"+
-      "<div class=\"usage-hint\">Outstanding Balance is the household combined (both fuels) live ledger position -- see Billing &amp; Payments &rarr; Statement for the per-account detail.</div></div>"),
+      "<div class=\"usage-hint\">This is the household combined (both fuels) "+stand.positionLabel+
+      " -- see Billing &amp; Payments &rarr; Statement for the per-account detail.</div>"+
+      (stand.isClosed&&stand.state==="credit"
+        ? "<div class=\"usage-hint\">"+window.__CLOSED_CREDIT_NO_REFUND_RECORD+"</div>":"")+
+      "</div>"),
     panel("company","Retention &amp; Risk &mdash; the supplier's estimates",
       "<div class=\"card\"><div class=\"kpi-grid\">"+
       "<div class=\"kpi\"><div class=\"kpi-label\">"+fwdLabel("Churn Probability")+"</div>"+
@@ -2104,13 +2256,29 @@ function closedAccountNotice(d, invoices){
   for(var k=0;k<tl.length;k++){if(tl[k].type==="churned")churned=tl[k];}
   if(!churned||!invoices.length)return "";
   var last=invoices[invoices.length-1];
-  var settleTxt="";
-  if(d.ledger){
-    if(d.ledger.current_balance_gbp>0.005)settleTxt=" Final balance: "+gbp(d.ledger.current_balance_gbp)+" outstanding.";
-    else if(d.ledger.total_written_off_gross_gbp>0.005)settleTxt=" Account settled to zero (net of "+gbp(d.ledger.total_written_off_gross_gbp)+" written off).";
-    else settleTxt=" Account settled to zero.";
-  }
-  return "<div class=\"closed-notice\">Account closed "+churned.date+" — final bill "+last.id+"."+settleTxt+"</div>";
+  /* THE MISSING BRANCH (coldwalk:site2_closed_account_settled_to_zero_and_in_credit).
+     This read `current_balance_gbp > 0.005` and otherwise printed "Account settled to
+     zero" -- so a CREDIT balance, being negative, fell through to the zero branch. On
+     C1's gas tab that published "Account settled to zero." over a ledger reading -£24.37,
+     while the overview two clicks away published the same £24.37 as a live credit. The
+     settlement clause is now written by __accountStanding, the page's sole writer of
+     standing claims, which has a credit branch and fails closed on a balance it cannot
+     read. See its comment block in the first script for the full finding. */
+  var settleTxt=d.ledger
+    ? standing(d.ledger.current_balance_gbp,{writtenOff:d.ledger.total_written_off_gross_gbp}).settlement
+    : "";
+  /* SCOPE, the second half of the same finding. This notice is rendered from ONE FUEL
+     LEG's ledger, and on C1 the electricity leg really did settle to zero while the gas
+     leg closed £24.37 in credit. So the true sentence "Account settled to zero" was still
+     read as the household's -- and contradicted the household balance on the overview.
+     A leg-scoped claim on a household with more than one leg names its leg, exactly as
+     the money captions have since coldwalk:site2_dual_fuel_household_shows_electricity_
+     only_money. */
+  var legs=(HH.elec?1:0)+(HH.gas?1:0);
+  var who=(legs>1&&d.commodity)?("This "+esc(String(d.commodity))+" account"):"Account";
+  return "<div class=\"closed-notice\">"+who+" closed "+churned.date+" — final bill "+last.id+"."+settleTxt+
+    (legs>1?" This is the "+esc(String(d.commodity||"this"))+" leg's own ledger; the household's combined position is on the Risk tab.":"")+
+    "</div>";
 }
 function renderBills(d){
   var section=document.getElementById("bills-section");

@@ -88,6 +88,14 @@ if str(PROJECT) not in sys.path:
 
 from tools import simplifications_store as store  # noqa: E402 (H41 record tenant)
 
+# SITE4: /evidence/ is the one advertised area with NO `<nav>` element at all, and the
+# only one whose page is GENERATED (here, every ~30 minutes on the publish path) --
+# hand-editing the file is overwritten within the hour, so its nav has to be rendered
+# from the register on this side. Same register as the other fifteen pages, imported
+# rather than re-implemented: a second nav definition is the drift this step exists to
+# end. site/ is already on sys.path above.
+import ia_register as _ia  # noqa: E402
+
 MAP_PATH = PROJECT / "docs" / "design" / "maturity_map.yaml"
 STORE_DIR = PROJECT / "docs" / "design" / "simplifications"
 MAPPING_PATH = SITE / "data" / "moap_node_atoms.json"
@@ -774,6 +782,7 @@ def _node_html(node: dict) -> str:
 
 def render_html(payload: dict) -> str:
     t = payload["totals"]
+    site_nav = _ia.render_nav("/evidence/", indent="")
     nav = "".join(
         f'<a href="#{_E(n["id"])}">{_E(n["name"])} '
         f'<span class="nav-n">{n["atoms_with_missing"]}/{len(n["atoms"])}</span></a>'
@@ -851,9 +860,22 @@ h1 {{ font-size: 26px; letter-spacing: -0.02em; margin: 0 0 8px; }}
   border: 1px solid var(--blue); border-radius: 3px; padding: 0 4px; }}
 .led-ts, .led-who {{ font-size: 11px; color: var(--muted); margin-left: 6px; }}
 .led-prov {{ font-size: 12px; line-height: 1.6; margin: 6px 0 0; }}
+/* SITE4: the site nav, rendered from site/ia_register.py. Same declarations the other
+   fifteen pages carry inline -- this page links brand.css, which styles only
+   `.nav-logo.wordmark`, so the layout rules have to live here as they do everywhere else.
+   `.nav` above is this page's own node jump-list and is a different thing. */
+.site-nav {{ background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }}
+.nav-logo {{ font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }}
+.nav-link {{ color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }}
+.nav-link:hover, .nav-link.active {{ color: var(--text); background: var(--surface2); }}
 </style>
 </head>
 <body>
+<nav class="site-nav">
+<a href="../" class="nav-logo wordmark">poesys.</a>
+{site_nav}
+</nav>
 <div class="wrap">
 <h1>Evidence behind the diagram</h1>
 <p class="lede">Each node on the <a href="../#model">model-on-a-page diagram</a> claims a

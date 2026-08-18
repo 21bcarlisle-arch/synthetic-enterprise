@@ -199,7 +199,11 @@ def canonical_doors(sitemap: Path = SITEMAP) -> list[str]:
 # only ever be checked by someone remembering `--door /director/` by hand, so the
 # R11 evidence for /director/ rested on a manual invocation that nothing repeated.
 # A default run now covers every deployed door, advertised or not.
-INTERNAL_DOORS = ("/director/", "/shadow/")
+#
+# SITE4 (2026-08-18): this list is now the register's, IMPORTED not copied. It is the
+# second of the three IA states and the C3 control reads it too; two lists that must
+# agree are two lists that will not. `site/ia_register.py` is the one definition.
+from ia_register import INTERNAL_DOORS  # noqa: E402
 
 
 def all_doors(sitemap: Path = SITEMAP) -> list[str]:

@@ -225,7 +225,21 @@ not a reason to interrupt the queue.
 
 ---
 
-## 6. Open questions for the director
+## 6. Open questions for the director — **ALL FOUR RULED 2026-08-18**
+
+> **RULED, director console, 2026-08-18.** *"All four recommendations accepted, with one condition on
+> the director record: show me its rendered content before it becomes crawlable — it was written
+> internally and I want to read it as a stranger would first. Everything else proceed on your
+> sequence, Step 0 first. Good catch on /proof/; my instruction would have broken five live
+> redirects."*
+>
+> Full record: `docs/staging/done/DIRECTOR_RULING_SITE_STRUCTURE_PROGRAMME_ACCEPTED_2026-08-18.md`.
+> The commitment set is minted as `SITE4`–`SITE11`; **Step 0 is built** (`site/ia_register.py`,
+> `tools/render_site_nav.py`, `site/test_ia_register.py`). Q3's condition is binding and **silence
+> does not release it** — a deliberate carve-out from THE_STANDARD, his, made in the same breath as
+> accepting the recommendation; it is mechanised in
+> `site/ia_register.py::director_record_publication_violations`, not left as prose.
+
 
 Recommendations attached to each, per NEVER_ASK_WITHOUT_RECOMMENDING. **Silence is validation —
 absent an objection I will proceed on the recommendation.**

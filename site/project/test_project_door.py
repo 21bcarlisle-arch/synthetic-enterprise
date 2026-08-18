@@ -389,8 +389,12 @@ def test_canonical_nav_present_and_director_absent():
     # KILLED door -- it folds into /proof. Its nav must now reflect the canonical
     # door set ONLY (Home/Company/World/Proof), with no ghost entries for the
     # retired Method/Journey/Simplified doors (ruling condition 4).
+    # SITE4 (2026-08-18): rendered from site/ia_register.py, which carries ONE label
+    # per door -- "The World" / "The Company", the form the home, proof and company
+    # doors already used. The short forms were one of the twelve hand-authored nav
+    # shapes this step collapsed.
     nav = _site_nav(INDEX.read_text())
-    for label in ("Home", "Company", "World", "Proof"):
+    for label in ("Home", "The Company", "The World", "Proof"):
         assert f">{label}</a>" in nav, f"nav missing canonical door {label!r}"
     # Killed doors must not survive as ghost nav entries.
     for ghost in ("Method", "Journey", "Simplified"):

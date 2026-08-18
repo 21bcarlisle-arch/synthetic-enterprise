@@ -147,7 +147,9 @@ def test_canonical_nav_is_five_surface_ia():
     nav = _site_nav(INDEX.read_text())
     for label in ("Home", "The World", "The Company", "Proof"):
         assert f">{label}</a>" in nav, f"nav missing five-surface door {label!r}"
-    assert 'href="../proof/" class="nav-link active">Proof</a>' in nav
+    # SITE4 (2026-08-18): the register renders a page's OWN entry as "./" -- the
+    # convention every hand-written nav on this site already used for its own door.
+    assert 'href="./" class="nav-link active">Proof</a>' in nav
     # killed doors are gone from the nav...
     for killed in ("../method/", "../simplified/", "../project/", "../tours/"):
         assert killed not in nav, f"killed door {killed!r} still linked in nav"

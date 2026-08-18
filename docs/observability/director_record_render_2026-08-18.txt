@@ -1,0 +1,213 @@
+DIRECTOR RECORD — RENDERED AS A READER MEETS IT
+===============================================
+Door:      https://poesys.net/director/  (fetched live, HTTP 200, 39,055 bytes)
+Rendered:  2026-08-18, driven by the page's OWN boot path with its OWN live feeds
+           (site/_live_harness.mjs, the same harness site/live_pixel_verify.py uses),
+           then stripped to visible text in document order. 30 elements rendered;
+           zero unresolved feeds; no script errors.
+Why:       The director's condition on Step 5 (SITE9), ruled 2026-08-18 — "show me its
+           rendered content before it becomes crawlable — it was written internally and
+           I want to read it as a stranger would first."
+Status:    /director/ is INTERNAL — served 200, deliberately absent from sitemap.xml,
+           noindex, off-nav. NOTHING about that has changed. This is a read, not a
+           publication.
+
+--- BEGIN RENDERED TEXT ------------------------------------------------------
+
+Poesys -- Director window
+⚡ Poesys
+Home
+The World
+The Company
+Proof
+The Director's Window
+The authenticated ops pane. It does two jobs and no more this pass: the
+reserved queue — the decisions the machine has parked for your own
+hand and cannot take itself — and machine health — the live
+daemon set, honest about what is stale. Every figure is generated from repo data
+only. The decision battery and the stop control remain deliberately deferred
+(Spec-005 §3) — an ops pane that cannot act is honest, one that fakes a
+write control would not be. A third, read-only job is live below: a
+delta view — what changed since you last looked. It has two
+halves: a durable last-look stamp committed to the repo (it survives
+a publish, a new device and a cleared browser) which leads the page, and a
+per-device marker saved in your own browser only, kept further down. Neither
+is a server-side read receipt of your browsing.
+How this pane is gated. It is off-nav and noindex —
+unlisted, reachable only by knowing the URL. The view itself is not
+behind a lock : it renders read-only repo state, and a client-side PIN
+that opened with any key would be theatre, not a control. This pane carries
+no write affordance at all . The PIN-authenticated page-comment box was
+retired as a director-authority path on 2026-07-24 (director ruling):
+a web form staging content as the director's voice was the weakest link in
+the authority model, so it was decommissioned rather than redesigned. All
+director input now arrives via the advisor bridge or a signed director
+channel. Real director writes (repo/keys/curriculum/fitness) stay
+console-only (one-way-door categories 5/6/8); the decision battery and stop
+control that would need genuine write-auth are deferred this pass, so there
+is nothing to fake-gate.
+What changed since you last looked
+Diagnostic, never a target (R12). This panel compares the window above against a recorded last look — a stamp committed to the repo, so it survives a publish, a new device and a cleared browser. The stamp advances ONLY when a look is explicitly recorded, never on a regeneration. It can fail honestly: a lost or unreadable stamp renders a visible red failure, NOT "nothing has changed" and NOT "everything is new".
+Derived from the same feeds rendered below — decisions.json, director_reserved.json, agent_status.json, director_twin.json and provisional_plan.json — so you do not have to diff a full-state page by eye.
+New decisions
+0
+logged since 2026-08-03 10:53
+Reserved queue changed
+1
+1 added, 0 cleared
+Daemons flipped
+1
+1 newly stale, 0 recovered
+Headline figures moved
+1
+twin counters, open atoms
+This delta is out of date with the feeds on this page (health_last_updated). It was computed against older source data, so it may be missing the most recent movement. Regenerate: python3 tools/generate_director_data.py .
+Since your last recorded look (2026-08-03 10:53):
+• reserved queue: 1 added (executor-wall_escalated-f13e76f1)
+• 1 daemon(s) went stale: discovery-daemon
+• total_open_atoms: 55 -> 105
+Passport. Baseline: director_last_look.json ; delta: director_delta.json . Look recorded 2026-08-03 10:53 by bootstrap-at-build-time (not a director read receipt); delta computed 2026-08-18 03:17. The last-look stamp advances ONLY on an explicit `--mark-seen` run (tools/generate_director_data.py --mark-seen). Regenerating this feed never moves it -- a baseline that re-bases on every regeneration would make the panel permanently say 'nothing changed'.
+Reserved queue — what only you can action
+Falsifiable claim. Every item here is a decision the machine classified as one it may NOT take itself (a one-way door, a values call, a level-up) and parked for you. If this panel is empty it says so plainly — an empty render would be a failure, not an empty queue.
+The durable register of things waiting on you specifically (docs/observability/action_needed_register.json). Open items only; a resolved item leaves the queue. The objective (MAKE_IT_STICK) is to keep this SHORT — your attention is the only genuinely scarce resource.
+Open reserved items
+1
+decisions parked for you
+Oldest waiting
+4.2h
+since first asked
+Staging files
+106
+awaiting agent action
+Director-hours / day
+68.22
+estimated (anchored)
+executor-wall_escalated-f13e76f1 RESERVED
+What: Headless executor hit a one-way door (WALL) — NTFY'd, loop CONTINUING other atoms.
+How: Decide this one-way door at your cadence (reply via NTFY/PIN); the loop is NOT blocked — it is drawing other work meanwhile and will act on your answer at the next boundary. Details: the escalated item + docs/observability/build-executor-log.md. ESCALATION IS NTFY, NEVER THE WINDOW: nothing is waiting in the interactive pane.
+Reply to CLOSE: start your NTFY with PIN 8883 (e.g. 'PIN 8883 PROCEED').
+Why: Unattended loop self-stopped and is awaiting a director decision. Draw: DOOR A: spend real money on X
+first asked 2026-08-18 02:55 · waiting 4.2h
+Passport. Feed generated 2026-08-18 02:55. This window (2026-07-10 to present) is CLAUDE.md's own time-boxed SPIKE_WEEKEND override -- an explicitly unusual high-throughput period, not necessarily the sustained steady-state rate once it reverts at the weekly reset. Sources: director_reserved.json ; system_status.json ; provisional_plan.json .
+Machine health — is the machine alive
+Falsifiable claim. Every non-retired daemon reports a heartbeat within 6h. A daemon past that window renders STALE in red — this panel can fail, and does when a process dies.
+The live daemon set from docs/observability/agent_status.json (each daemon writes its own heartbeat). STALE and RETIRED are shown, not hidden — a health pane that only shows green is theatre.
+Daemons tracked
+14
+in the process set
+Live
+8
+heartbeat < 6h
+Stale
+5
+past freshness window
+Retired
+1
+decommissioned, not stale
+Anomalies
+1
+self-reported faults
+Table freshness
+3.4h
+agent_status.json age
+session-watchdog STALE 31.8d
+staging-watcher LIVE 3.4h
+discovery-daemon STALE 7.6d
+sim-runner LIVE 3.9h
+dispatcher LIVE 4.2h
+ntfy-responder LIVE 4.2h
+autonomous-runner RETIRED 40.9d
+background-worker LIVE 3.7h
+epistemic-verifier LIVE 6.0h
+discovery-agent STALE 20.0d
+supervisor LIVE 3.4h
+sanity-daemon LIVE 3.5h
+director-comments STALE 24.6d
+build-executor STALE 19.5d ⚠ map_unreconciled
+Passport. Table generated 2026-08-18 03:39. Source: agent_status.json .
+Deeper context — read-only governance rendering
+This browser's last visit — a per-device marker
+Diagnostic, never a target (R12). This panel compares the feeds above against a marker saved in THIS BROWSER the last time you opened this page. It is not a server-tracked read receipt — clearing browser storage, or opening on another device, resets it to a first visit. It can fail honestly: a genuinely quiet interval renders "nothing changed", not a blank or an error.
+Compares decisions.json, director_reserved.json and agent_status.json against what this browser last saw, so you don't have to re-read everything above to know what moved.
+First visit recorded on this browser — nothing to compare yet. Come back after the machine has moved and this panel will show what changed.
+Passport. Compared against a client-local marker only; no server read-receipt exists. Sources: decisions.json , director_reserved.json , agent_status.json .
+Director-Twin fidelity — the voice, measured
+The builder-facing twin answers the agent's sequencing/scope/design questions from a fixed director-authored canon (Law B: it must NOT learn from outcomes). One-way-door questions are never answered — they route to you. These counters are the fidelity record.
+Answered
+5
+Routed to director
+3
+one-way doors, not answered
+Overturned
+0
+director reversals
+Overturn rate
+0.0%
+Canon version
+v3
+director-versioned
+Median answer latency
+27.2s
+across 5 answered
+Passport. Builder-facing twin only (DIRECTOR_TWIN.md) -- answers the agent's sequencing/scope/design questions from a fixed canon (docs/design/DIRECTOR_CANON.md), cold-eyes (separate context), never learning from outcomes (Law B). One-way-door questions (above all: the Epoch-4 fitness function) always route here as 'routed_to_director', never answered by the twin. Source: director_twin.json .
+What the twin was asked
+The actual questions the twin fielded, verbatim, with latency and whether they were answered or routed to you. Empty answers are kept — not hidden.
+Approve BUILD-open for atom H23_frame_saturation_draw_marker. This is a build within the current, already-open epoch (not the launch of any later epoch). It is a size-S harness and supervisor change: a frame_saturated marker plus a draw-skip guard in background/supervisor.py and a 3-way R15 mutation test, so the idle DISCOVER/FRAME self-refill stops re-handing already-framed BUILD-gated atoms. Fully reversible by git revert -- the draw falls back to current behaviour. It changes only the harness draw logic and touches the world model and company decision path not at all. ANSWERED
+**APPROVE — BUILD-open for H23_frame_saturation_draw_marker.**
+This sits squarely in the twin's delegated zone: §3a expressly gives the twin "BUILD authorization within an open epoch," and Epoch 2 is open. Applying the §3a default-APPROVE test, none of the four blockers fire: (a) the atom is FRAME-complete and genuinely BUILD-ready per the context; (b) no §1 architectural law — it touches the world model and company decision path "not at all," so the SIM/company seam and epistemic-honesty wall are untouched; (c) no §4 exit-test sequence breach — it's harness infrastructure, not an M1–M4 movement; (d) no §5 maturity-map violation — this is the approver seat gating a routed atom, which is precisely the mechanism §5 requires, not the agent self-promoting a proposal.
+The fix is also correctly a class-level remedy (a `frame_saturated` marker plus draw-skip guard) for a recurring absurdity-class draw defect, consistent with R10, and it is a harness draw-dedup mechanism fix, not curriculum authorship — so R13 (director owns the curriculum) is not implicated. Fully reversible by `git revert`, and it is not a §3 one-way door nor the Epoch-4 fitness function. Nothing here is director-reserved.
+DEFERS_TO_DIRECTOR: no
+CONFIDENCE: high
+2026-07-16 17:57 · 28.10s
+Approve BUILD-open for atom H23_frame_saturation_draw_marker in the currently-open epoch 2. It is a size-S harness/supervisor infrastructure change: a frame_saturated marker plus a draw-skip guard in background/supervisor.py and a 3-way R15 mutation test, so the idle DISCOVER/FRAME self-refill stops re-handing already-framed BUILD-gated atoms. Fully reversible by git revert -- the draw falls back to current behaviour. It changes only the harness draw logic, touches no world/SIM model and no company decision path. BUILD-within-the-open-epoch. ROUTED
+(empty answer — kept for honesty)
+2026-07-16 17:56
+May I BUILD-open H23_frame_saturation_draw_marker, a size-S harness/supervisor infrastructure atom in the currently-open epoch (epoch 2)? It adds a frame_saturated marker plus a draw-skip guard in background/supervisor.py and a 3-way R15 mutation test, so the idle-DISCOVER/FRAME self-refill stops re-handing FRAME-saturated BUILD-gated atoms. The BUILD-unblock gate is explicitly reversible: git reverts the supervisor change and the draw falls back to current behaviour. No world/SIM change, no curriculum or difficulty change, no values decision, no secrets/safety-control change, no public claim, no real money or real customer/market. Reversible BUILD-within-the-open-epoch only. ROUTED
+(empty answer — kept for honesty)
+2026-07-16 17:55
+Do you approve opening BUILD on these six Epoch-2 atoms -- flipping their loop_stage from idle to build so the builder may begin writing their code? Canon section 3a delegates BUILD-within-the-open-epoch to you. All six are already through DISCOVER and FRAME, and building them advances Epoch 2's own movements. ANSWERED
+**APPROVED — all six.** Under §3a, BUILD-within-the-open-epoch is delegated to me with a default of APPROVE, and none of the disqualifiers apply: all six are asserted DISCOVER/FRAME-ready (W1 with expert_hour PASSED, the rest FRAME'd with evidence-anchored plans), none is a §3 one-way door or the Epoch-4 fitness function, and building them advances Epoch 2's live movements. On §4: the set spans M1 (W1), M3 (C2, W2_2), and governance/settlement work built on the existing bitemporal spine — none is M4, so the "M4 strictly last" constraint is respected, and only M4 is sequenced strictly. On §5: these are BUILD authorizations at phase-work stage, which is exactly what epoch-gating gates and I may open. On §1: each stays sim/company-seam-clean per the pack (C2's belief layer with confidence/source is the correct epistemic-honesty pattern, not a ground-truth read).
+One to watch, not a blocker: A3_approval_interface builds the sim twin of this very approver seat. It is a company-side DecisionEvent state change, not a change to my own governance or the real safety-control (§3.5), so it stays inside my seat — but it's the closest to a reserved edge, so it's the first thing the director should sanity-check in the log.
+CONFIDENCE: high
+2026-07-13 07:33 · 31.37s
+Do you approve OPENING BUILD (flip loop_stage idle->build) on these six epoch-2 atoms so the builder can start writing BUILD code for them? This is BUILD authorization within the open epoch (Epoch 2), which canon section 3a explicitly delegates to you. None is a one-way door; none is the Epoch-4 fitness function. ROUTED
+(empty answer — kept for honesty)
+2026-07-13 07:32
+In one sentence, what is Law B? ANSWERED
+Law B: the twin's policy is director-authored curriculum, so it must not learn from outcomes and must not optimise toward unblocking the agent — only the director's explicit overturn changes this canon (Canon §2, R13; also the header note above §1).
+2026-07-12 19:00 · 4.75s
+In one sentence, what is Law B? ANSWERED
+(empty answer — kept for honesty)
+2026-07-12 18:58 · 1.50s
+Should the DISCOVER work on F5_ofgem_licence_readiness proceed before or after A5_tournament_fitness_mortality FRAME work, given both are currently open? ANSWERED
+**Order doesn't matter, and neither needs escalation — proceed with both.**
+Neither F5-DISCOVER nor A5-FRAME is a BUILD-stage action, and canon §5 is explicit: "Epoch gating gates BUILD, never DISCOVER/FRAME." So A5's unbuilt A2→A4 dependency chain is irrelevant here — it would only block A5 reaching BUILD, not FRAME work on it now. Both atoms are equally unblocked.
+This is also not a one-way-door question. A5's eventual fitness/mortality *decision* is reserved to the director (§3 item 6), but FRAME work only produces options for the director to choose from (§6, "Open" register already reflects this: "A5... FRAMED as options only... awaiting the director's choice") — producing options isn't making the values call.
+Since sequencing between two already-accepted, unblocked proposal atoms is ordinary reversible work, §6 "Decided" applies: the tiered approval model is retired in favor of the reversibility test — proceed rather than wait for a ranking. If you need a single default rather than true parallelism, no canon section prefers one over the other; that's a plan-ordering call for PRIORITIES.md, not something this canon adjudicates.
+2026-07-12 18:46 · 27.23s
+The provisional plan — a diagnostic, never a target (Law A)
+Dates are forecasts; exit tests remain the ONLY gate. No capability is promoted, and no verification shortened, to hit a forecast. Re-forecast cadence: Every epoch boundary, and after every ~10 level transitions..
+Observed transitions
+294
+level moves measured
+Median cycle
+0.108d
+per level transition
+Open atoms
+105
+across all epochs
+Real file_scope atoms
+71
+BUILD-contended
+Epoch 1 HIGH
+Epoch 2 HIGH
+Epoch 3 MEDIUM
+Epoch 4 COARSE
+Epoch 5 COARSE
+The plan is a diagnostic and a tie-breaker, NEVER a target. Dates are forecasts; exit tests remain the ONLY gate. No atom may be promoted, and no verification shortened, to hit a forecast. Deviation from the plan is ALLOWED and expected -- re-rank on evidence -- but must be logged with a reason. See CLAUDE.md. provisional_plan.json
+Curriculum rack & dials
+The curriculum (which worlds the company lives through) and the difficulty dials are yours by right (R13; one-way-door category 6). Difficulty changes are named, versioned, director-authored artefacts — never silent parameter drift, and never adjusted by the agent in response to company outcomes. DIRECTOR-RESERVED
+This door does not render a write UI for the rack: a static rendering cannot authenticate you, and category-8 platform administration is console-only. Building a fake-auth dials panel here would be theatre. Honest partial > false complete.
+© 2026 Poesys Platforms. All rights reserved.
+
+--- END RENDERED TEXT --------------------------------------------------------
