@@ -1,118 +1,17 @@
 atom_id: D28_the_detection_gap_is_quantised_by_this_books_placement
 simplifications:
-- "2026-08-13 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw). No BUILD\n\
-  code written and nothing in `file_scope` touched: this atom is `loop_stage: idle`, and\n\
-  EPOCH_GATING_AND_ATOM_AUTHORSHIP rule 7 makes DISCOVER/FRAME available on a parked atom\n\
-  while BUILD is not. Output is this record. Everything below is\n`observed-with-evidence`\
-  \ unless labelled otherwise (R9).\n\nWHAT IS ALREADY SHIPPED, READ OFF HEAD RATHER THAN\
-  \ OFF THE ATOM'S PROSE. The atom's\n`name` ends with a list headed \"ALREADY LANDED UNDER\
-  \ H27's HOUR\". Checked against\n`git show HEAD:tools/couple_w2_11_d5.py`: `dense_drift_grid`\
-  \ (4 hits),\n`_check_saturation_and_collapse` (10), `detection_resolution_caveat` (3) and\n\
-  `COUNTERFACTUAL_KNOB_ROUTE` (9) are all present, and the caveat is stamped into BOTH the\n\
-  detection result's `.note` and `components[\"drift_resolution_caveat\"]` at the two call\n\
-  sites the atom claims. So the INSTRUMENT half of Hour #10 is landed and this atom's own\n\
-  residue is what the two findings below now re-scope.\n\nFINDING 1 -- THE PREDICTOR THIS\
-  \ ATOM DECLARES MISSING IS ONE LINE OF ARITHMETIC OVER A\nFIELD THE RECORD ALREADY CARRIES,\
-  \ AND IT IS EXACT ON THE LOWER EDGE.\n`detection_resolution_caveat`'s docstring says in\
-  \ as many words: \"no population-side\npredictor of those edges has been built ... that\
-  \ predictor is the declared residual of\natom D28\". True of the code; it reads as a hard\
-  \ problem and it is not one.\n\nThe detection headline is SET membership. The organ is handed\n\
-  `payment_terms_days = PAYMENT_TERMS_DAYS + organ_terms_drift_days` and\n`reconciliation_grace_days\
-  \ = DEFAULT_RECONCILIATION_GRACE_DAYS`, and every invoice in\nthis book has `issue = due\
-  \ - PAYMENT_TERMS_DAYS` from ONE expression in `build_scenario`\nwith no per-customer term\
-  \ -- so a company drifted by `k` puts its grace line exactly `k`\ndays later than the harness's,\
-  \ and an invoice settling `days_late` after due sits on the\nflagged side of it iff `days_late\
-  \ > k + grace`. `days_late` is already on\n`PeriodRecord`, carried since D11 for the false-flag\
-  \ denominator. So the SET's change\npoints are `{d - grace : d in days_late}` and its edges\
-  \ are\n\n    saturates_below = min(days_late) - grace - 1\n    saturates_above = max(days_late)\
-  \ - grace          (an UPPER BOUND, see below)\n\nread off the drawn book with NO re-scoring\
-  \ -- the D25/D30/D31 population-side-predictor\nshape, on the one knob that has none.\n\n\
-  MEASURED (n=300, seeds 7/11/23, `build_scenario` + `score_triad`, this tick):\n`min(days_late)\
-  \ = 0` on all three seeds, so the predictor gives `-6` on all three, and\n`-6` is exactly\
-  \ the register's declared `saturates_below`. It is confirmed twice over by\nscoring: at\
-  \ `k = -6` the flagged set is the WHOLE BOOK (`flagged_size = 900`,\n`false_flag_rate =\
-  \ 1.0`, gap `0.5` -- the no-skill baseline, the same signature D31 found\nat the recon knob's\
-  \ own floor), and at `k = -5` it is `344` and the gap `0.0256`. The\npredicted lower collapsed\
-  \ run `(-21 ... -6)` reproduces the declared one integer for\ninteger on all three seeds.\
-  \ The lower edge is therefore no longer a sweep reading: it is\n`-(DEFAULT_RECONCILIATION_GRACE_DAYS\
-  \ + 1)` whenever the book contains one on-time\npayment, and that is a claim about an unswept\
-  \ live book.\n\nFINDING 2 -- `saturates_above: 17` IS NOT A SATURATION EDGE. IT IS THE GRID'S\
-  \ OWN\nRIGHT-HAND END, AND THE PUBLISHED CAVEAT SENTENCE BUILT ON IT IS FALSE.\n`dense_drift_grid`\
-  \ spans `+/- DRIFT_GRID_SPAN_DAYS`, which is `BILLING_CYCLE_SPREAD_DAYS`\n= `PERIOD_SPACING_DAYS`\
-  \ = 21. Its docstring defends that width: \"a drift larger than one\ncycle moves every invoice\
-  \ past the next account's place in the book, so nothing about the\npopulation is left to\
-  \ resolve.\" Measured against the shipped scorer, that argument is\nfalse for THIS dimension.\
-  \ Seed 7, `n=300`:\n\n    k     gap                    flagged_size\n    +17   0.029629257846483303\
-  \   254      <- declared saturates_above\n    +21   0.029629257846483303   240      <- the\
-  \ grid's last point\n    +22   0.029629257846483303   237\n    +30   0.048383858662919096\
-  \   197\n    +60   0.13725490196078433     89\n    +83   0.16176470588235295     69\n  \
-  \  +84   0.16176470588235295     69\n    +104  0.16176470588235295     69\n\nThe figure\
-  \ moves at +30, +60 and +83; the flagged SET moves at every step from +17\nonward. Seeds\
-  \ 11 and 23 agree (+21 -> +30 -> +84 gaps 0.069897 -> 0.081320 -> 0.182292\nand 0.013205\
-  \ -> 0.011463 -> 0.132743). The real edge is at or below\n`max(days_late) - grace` = 84/85/85\
-  \ on seeds 7/11/23, and the reading is constant from\n+83 (seed 7) / +84 (seeds 11, 23)\
-  \ to +104 -- so the predictor above is a genuine\nONE-DIRECTIONAL BOUND, the same form `_check_book_predicts_both_edges`\
-  \ already requires\nof the belief edges, and not an equality.\n\nThe declared `(17, 18,\
-  \ 19, 20, 21)` run is real INSIDE the grid, but its right end IS the\ngrid's end, so it\
-  \ is not evidence of saturation -- exactly the class D31 named (\"an edge\nthat is a property\
-  \ of where the sweep happened to stop\"), recurring on the register D28\nitself re-derived.\
-  \ D28 fixed this grid's DENSITY provenance (book-derived, one integer\nper day) and left\
-  \ its EXTENT a harness constant. The two sibling knobs do not have this:\n`book_recon_drift_grid`\
-  \ derives `lo` AND `hi` from the records, and `book_memory_grid` is\ncomplete rather than\
-  \ merely dense. `dense_drift_grid` is the only counterfactual-company\ngrid in this module\
-  \ whose width is a declaration.\n\nAND IT SHIPS. `detection_resolution_caveat` interpolates\
-  \ `saturates_above` into the\nsentence \"the reading SATURATES below -6d and above +17d\
-  \ -- every supplier whose terms\nare more wrong than that publishes ONE figure, so a supplier\
-  \ a week short on its terms\n... is indistinguishable here from one three weeks short\"\
-  , and that string is stamped\ninto `det.note` AND `det.components[\"drift_resolution_caveat\"\
-  ]` -- which is what the\nledger writer, the live wiring and the dashboard read (the D34/D35\
-  \ finding: consumers\nread `components`, never the prose). The BELOW half of that sentence\
-  \ is now\nindependently confirmed. The ABOVE half is false as written: suppliers at +30\
-  \ and +60\npublish different figures from each other and from +17. The caveat is more wrong\
-  \ than the\nuncaveated number would have been, because it tells the reader a movement cannot\
-  \ be read\nas days of company error in a region where it can.\n\nWHAT THIS RE-SCOPES, AND\
-  \ WHAT IS NOT DONE HERE. The atom's residual as minted is \"the\nreshape\" plus \"the predictor\
-  \ nobody has built\". After this tick the residual is\nTHREE items, and the middle one is\
-  \ a DEFECT rather than a debt:\n\n  1. THE PREDICTOR (shrunk, and now specified): `min/max(days_late)\
-  \ -+ grace`, exact\n     below and a one-directional bound above, cross-checkable against\
-  \ the sweep on every\n     seed without re-scoring. Both directions measured here.\n  2.\
-  \ THE UPPER EDGE IS WRONG IN A SHIPPED REGISTER AND A SHIPPED CAVEAT (new). Fixing it\n\
-  \     means either extending the terms grid's EXTENT to the book (`max(days_late) - grace`\n\
-  \     is the natural `hi`, mirroring `book_recon_drift_grid`) or declaring the sweep's\n\
-  \     span in the caveat so a run ending at the grid edge cannot be read as saturation.\n\
-  \     Either is a change to `tools/couple_w2_11_d5.py`, i.e. this atom's `file_scope`, and\n\
-  \     the atom is `loop_stage: idle`. QUEUED, not fixed on sight (SELF-INTERRUPT\n     DISCIPLINE),\
-  \ and staged as\n     `docs/staging/WORKER_FINDING_A_SATURATION_EDGE_WAS_THE_GRIDS_OWN_END_2026-08-13.md`\n\
-  \     so it is visible outside this record.\n  3. THE RESHAPE (unchanged): a scored population\
-  \ whose invoices sit BESIDE the grace\n     line at a contiguous span of distances. Note\
-  \ what findings 1 and 2 say about it --\n     the interior quantisation the atom was minted\
-  \ over is the gaps in this book's\n     `days_late` multiset, so the reshape's acceptance\
-  \ test is stateable in advance: the\n     change points are `{d - grace}`, and a book that\
-  \ fills those gaps is one whose\n     settle-delay distribution has no gaps across the swept\
-  \ span.\n\nNOT ESTABLISHED, and flagged rather than asserted (R9): the interior collapsed\
-  \ runs\n`(-4,-3)`, `(0,1)`, `(6,7)`, `(9,10)`, `(11,12,13)` were NOT re-derived here against\
-  \ the\n`{d - grace}` prediction. The naive set-side prediction run this tick reproduces\
-  \ the\nlower run exactly and does NOT reproduce those five, which is expected -- they are\n\
-  collapses in the SCORED FIGURE, not in the flagged set (`flagged_size` moves at +18,\n+21,\
-  \ +22 where the gap does not), and a figure-side predictor needs the score's own\ndenominators.\
-  \ Whoever builds item 1 must not assume the set-side arithmetic covers them.\n\nR12: no\
-  \ published number was moved, read or tuned by this tick. The five figures were\nscored\
-  \ only as counterfactual companies (`organ_terms_drift_days != 0`) plus the k=0\nbaseline,\
-  \ which is the register's own probe; nothing was written to any artefact."
+- "2026-08-13 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw). No BUILD\ncode written and nothing in `file_scope` touched: this atom is `loop_stage: idle`, and\nEPOCH_GATING_AND_ATOM_AUTHORSHIP rule 7 makes DISCOVER/FRAME available on a parked atom\nwhile BUILD is not. Output is this record. Everything below is\n`observed-with-evidence` unless labelled otherwise (R9).\n\nWHAT IS ALREADY SHIPPED, READ OFF HEAD RATHER THAN OFF THE ATOM'S PROSE. The atom's\n`name` ends with a list headed \"ALREADY LANDED UNDER H27's HOUR\". Checked against\n`git show HEAD:tools/couple_w2_11_d5.py`: `dense_drift_grid` (4 hits),\n`_check_saturation_and_collapse` (10), `detection_resolution_caveat` (3) and\n`COUNTERFACTUAL_KNOB_ROUTE` (9) are all present, and the caveat is stamped into BOTH the\ndetection result's `.note` and `components[\"drift_resolution_caveat\"]` at the two call\nsites the atom claims. So the INSTRUMENT half of Hour #10 is landed and this atom's own\nresidue is what the two findings below now re-scope.\n\nFINDING 1 -- THE PREDICTOR THIS ATOM DECLARES MISSING IS ONE LINE OF ARITHMETIC OVER A\nFIELD THE RECORD ALREADY CARRIES, AND IT IS EXACT ON THE LOWER EDGE.\n`detection_resolution_caveat`'s docstring says in as many words: \"no population-side\npredictor of those edges has been built ... that predictor is the declared residual of\natom D28\". True of the code; it reads as a hard problem and it is not one.\n\nThe detection headline is SET membership. The organ is handed\n`payment_terms_days = PAYMENT_TERMS_DAYS + organ_terms_drift_days` and\n`reconciliation_grace_days = DEFAULT_RECONCILIATION_GRACE_DAYS`, and every invoice in\nthis book has `issue = due - PAYMENT_TERMS_DAYS` from ONE expression in `build_scenario`\nwith no per-customer term -- so a company drifted by `k` puts its grace line exactly `k`\ndays later than the harness's, and an invoice settling `days_late` after due sits on the\nflagged side of it iff `days_late > k + grace`. `days_late` is already on\n`PeriodRecord`, carried since D11 for the false-flag denominator. So the SET's change\npoints are `{d - grace : d in days_late}` and its edges are\n\n    saturates_below = min(days_late) - grace - 1\n    saturates_above = max(days_late) - grace          (an UPPER BOUND, see below)\n\nread off the drawn book with NO re-scoring -- the D25/D30/D31 population-side-predictor\nshape, on the one knob that has none.\n\nMEASURED (n=300, seeds 7/11/23, `build_scenario` + `score_triad`, this tick):\n`min(days_late) = 0` on all three seeds, so the predictor gives `-6` on all three, and\n`-6` is exactly the register's declared `saturates_below`. It is confirmed twice over by\nscoring: at `k = -6` the flagged set is the WHOLE BOOK (`flagged_size = 900`,\n`false_flag_rate = 1.0`, gap `0.5` -- the no-skill baseline, the same signature D31 found\nat the recon knob's own floor), and at `k = -5` it is `344` and the gap `0.0256`. The\npredicted lower collapsed run `(-21 ... -6)` reproduces the declared one integer for\ninteger on all three seeds. The lower edge is therefore no longer a sweep reading: it is\n`-(DEFAULT_RECONCILIATION_GRACE_DAYS + 1)` whenever the book contains one on-time\npayment, and that is a claim about an unswept live book.\n\nFINDING 2 -- `saturates_above: 17` IS NOT A SATURATION EDGE. IT IS THE GRID'S OWN\nRIGHT-HAND END, AND THE PUBLISHED CAVEAT SENTENCE BUILT ON IT IS FALSE.\n`dense_drift_grid` spans `+/- DRIFT_GRID_SPAN_DAYS`, which is `BILLING_CYCLE_SPREAD_DAYS`\n= `PERIOD_SPACING_DAYS` = 21. Its docstring defends that width: \"a drift larger than one\ncycle moves every invoice past the next account's place in the book, so nothing about the\npopulation is left to resolve.\" Measured against the shipped scorer, that argument is\nfalse for THIS dimension. Seed 7, `n=300`:\n\n    k     gap                    flagged_size\n    +17   0.029629257846483303   254      <- declared saturates_above\n    +21   0.029629257846483303   240      <- the grid's last point\n    +22   0.029629257846483303   237\n    +30   0.048383858662919096   197\n    +60   0.13725490196078433     89\n    +83   0.16176470588235295     69\n    +84   0.16176470588235295     69\n    +104  0.16176470588235295     69\n\nThe figure moves at +30, +60 and +83; the flagged SET moves at every step from +17\nonward. Seeds 11 and 23 agree (+21 -> +30 -> +84 gaps 0.069897 -> 0.081320 -> 0.182292\nand 0.013205 -> 0.011463 -> 0.132743). The real edge is at or below\n`max(days_late) - grace` = 84/85/85 on seeds 7/11/23, and the reading is constant from\n+83 (seed 7) / +84 (seeds 11, 23) to +104 -- so the predictor above is a genuine\nONE-DIRECTIONAL BOUND, the same form `_check_book_predicts_both_edges` already requires\nof the belief edges, and not an equality.\n\nThe declared `(17, 18, 19, 20, 21)` run is real INSIDE the grid, but its right end IS the\ngrid's end, so it is not evidence of saturation -- exactly the class D31 named (\"an edge\nthat is a property of where the sweep happened to stop\"), recurring on the register D28\nitself re-derived. D28 fixed this grid's DENSITY provenance (book-derived, one integer\nper day) and left its EXTENT a harness constant. The two sibling knobs do not have this:\n`book_recon_drift_grid` derives `lo` AND `hi` from the records, and `book_memory_grid` is\ncomplete rather than merely dense. `dense_drift_grid` is the only counterfactual-company\ngrid in this module whose width is a declaration.\n\nAND IT SHIPS. `detection_resolution_caveat` interpolates `saturates_above` into the\nsentence \"the reading SATURATES below -6d and above +17d -- every supplier whose terms\nare more wrong than that publishes ONE figure, so a supplier a week short on its terms\n... is indistinguishable here from one three weeks short\", and that string is stamped\ninto `det.note` AND `det.components[\"drift_resolution_caveat\"]` -- which is what the\nledger writer, the live wiring and the dashboard read (the D34/D35 finding: consumers\nread `components`, never the prose). The BELOW half of that sentence is now\nindependently confirmed. The ABOVE half is false as written: suppliers at +30 and +60\npublish different figures from each other and from +17. The caveat is more wrong than the\nuncaveated number would have been, because it tells the reader a movement cannot be read\nas days of company error in a region where it can.\n\nWHAT THIS RE-SCOPES, AND WHAT IS NOT DONE HERE. The atom's residual as minted is \"the\nreshape\" plus \"the predictor nobody has built\". After this tick the residual is\nTHREE items, and the middle one is a DEFECT rather than a debt:\n\n  1. THE PREDICTOR (shrunk, and now specified): `min/max(days_late) -+ grace`, exact\n     below and a one-directional bound above, cross-checkable against the sweep on every\n     seed without re-scoring. Both directions measured here.\n  2. THE UPPER EDGE IS WRONG IN A SHIPPED REGISTER AND A SHIPPED CAVEAT (new). Fixing it\n     means either extending the terms grid's EXTENT to the book (`max(days_late) - grace`\n     is the natural `hi`, mirroring `book_recon_drift_grid`) or declaring the sweep's\n     span in the caveat so a run ending at the grid edge cannot be read as saturation.\n     Either is a change to `tools/couple_w2_11_d5.py`, i.e. this atom's `file_scope`, and\n     the atom is `loop_stage: idle`. QUEUED, not fixed on sight (SELF-INTERRUPT\n     DISCIPLINE), and staged as\n     `docs/staging/WORKER_FINDING_A_SATURATION_EDGE_WAS_THE_GRIDS_OWN_END_2026-08-13.md`\n     so it is visible outside this record.\n  3. THE RESHAPE (unchanged): a scored population whose invoices sit BESIDE the grace\n     line at a contiguous span of distances. Note what findings 1 and 2 say about it --\n     the interior quantisation the atom was minted over is the gaps in this book's\n     `days_late` multiset, so the reshape's acceptance test is stateable in advance: the\n     change points are `{d - grace}`, and a book that fills those gaps is one whose\n     settle-delay distribution has no gaps across the swept span.\n\nNOT ESTABLISHED, and flagged rather than asserted (R9): the interior collapsed runs\n`(-4,-3)`, `(0,1)`, `(6,7)`, `(9,10)`, `(11,12,13)` were NOT re-derived here against the\n`{d - grace}` prediction. The naive set-side prediction run this tick reproduces the\nlower run exactly and does NOT reproduce those five, which is expected -- they are\ncollapses in the SCORED FIGURE, not in the flagged set (`flagged_size` moves at +18,\n+21, +22 where the gap does not), and a figure-side predictor needs the score's own\ndenominators. Whoever builds item 1 must not assume the set-side arithmetic covers them.\n\nR12: no published number was moved, read or tuned by this tick. The five figures were\nscored only as counterfactual companies (`organ_terms_drift_days != 0`) plus the k=0\nbaseline, which is the register's own probe; nothing was written to any artefact."
 - '2026-08-13 FINDING 2 IS CLOSED, BUILD, by the RUNG-1c blocking draw on
 
   `WORKER_FINDING_A_SATURATION_EDGE_WAS_THE_GRIDS_OWN_END_2026-08-13.md` (this record''s own
 
-  note 1 is where it was derived). The EXTENT of `dense_drift_grid` is now the book''s, not
-  a
+  note 1 is where it was derived). The EXTENT of `dense_drift_grid` is now the book''s, not a
 
   harness constant: it takes `records` and `as_of` and delegates to `book_recon_drift_grid`,
 
-  because the two counterfactual knobs are one identity -- the reconciliation drift moves
-  the
+  because the two counterfactual knobs are one identity -- the reconciliation drift moves the
 
-  detector''s fire date to `due + grace + k`, the terms drift moves the believed due date
-  by
+  detector''s fire date to `due + grace + k`, the terms drift moves the believed due date by
 
   `k` and so puts it at `due + k + grace`. `DRIFT_GRID_SPAN_DAYS` is deleted.
 
@@ -121,27 +20,22 @@ simplifications:
 
   edge predictor stated there (`min(days_late) - grace - 1`) is `-6` on all three seeds, and
 
-  adopting it as the grid''s `lo` would have deleted the whole negative sweep -- taking with
-  it
+  adopting it as the grid''s `lo` would have deleted the whole negative sweep -- taking with it
 
-  `detection`''s real `-6` edge and `detection_latency`''s `-19` floor. `days_late` bounds
-  where
+  `detection`''s real `-6` edge and `detection_latency`''s `-19` floor. `days_late` bounds where
 
   the SET changes; it does not bound where the ORGAN IS ASKED. The lower end is
 
-  `min(issue_date - due_date) - grace - 1 = -20`, the earliest candidate the detector has.
-  The
+  `min(issue_date - due_date) - grace - 1 = -20`, the earliest candidate the detector has. The
 
   upper half of note 1 stands and was confirmed as a one-directional bound.
 
 
   MEASURED on the resulting grid (-20..+88), n=300, seeds 7/11/23, all-seed agreement:
 
-  `detection` saturates_above 82 (was a declared 17, which was the grid''s own right-hand
-  end)
+  `detection` saturates_above 82 (was a declared 17, which was the grid''s own right-hand end)
 
-  across 16 collapsed runs; `detection` saturates_below -6 confirmed; `ageing`, which note
-  1
+  across 16 collapsed runs; `detection` saturates_below -6 confirmed; `ageing`, which note 1
 
   flagged as un-swept past +21 and NOT ESTABLISHED, saturates_above 63 across one run;
 
@@ -165,8 +59,7 @@ simplifications:
   blind) and exactly what D29 built the per-edge field for.
 
 
-  WHAT IT COST, recorded rather than absorbed: `_check_register_is_differential` demanded
-  an
+  WHAT IT COST, recorded rather than absorbed: `_check_register_is_differential` demanded an
 
   on-path dimension collapsing NOWHERE and `ageing` supplied it only because the grid stopped
 
@@ -204,215 +97,26 @@ simplifications:
 
   hole, an undeclared undefined region, and an all-quantised register (which now requires
 
-  BOTH interior witnesses to be broken, because one surviving witness is enough and there
-  are
+  BOTH interior witnesses to be broken, because one surviving witness is enough and there are
 
   two). R12: no published figure was tuned -- the five gap values are unchanged at k=0; what
 
   moved is what the instrument admits about itself.
 
 
-  NOT DONE, and flagged rather than left implied: no atom was minted. `D37` was the obvious
-  id
+  NOT DONE, and flagged rather than left implied: no atom was minted. `D37` was the obvious id
 
   and is ALREADY IN USE in this module for the Proof-door work while the maturity map has
 
   never carried it -- a live instance of
 
-  `WORKER_FINDING_A_MODULES_HOURS_CITE_ATOM_IDS_THE_MAP_HAS_NEVER_CARRIED_2026-08-12.md`,
-  left
+  `WORKER_FINDING_A_MODULES_HOURS_CITE_ATOM_IDS_THE_MAP_HAS_NEVER_CARRIED_2026-08-12.md`, left
 
-  as found rather than compounded with a second meaning for the same id. The reshape both
-  new
+  as found rather than compounded with a second meaning for the same id. The reshape both new
 
   edges owe is D31''s, which exists and is `loop_stage: idle`.'
-- "2026-08-14 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw). No BUILD\n\
-  code written and nothing in `file_scope` touched. This tick took the ONE item note 1 left\n\
-  labelled NOT ESTABLISHED -- whether the interior collapsed runs are predicted by the book's\n\
-  `days_late` multiset -- and measured it. They are not, and the population that does predict\n\
-  them is one neither this atom's brief, the register's `why`, nor the shipped caveat\nmentions.\
-  \ Everything below is `observed-with-evidence` unless labelled otherwise (R9).\n\nMETHOD.\
-  \ `build_scenario` + `score_triad`, n=300, seeds 7/11/23, over the whole book-derived\n\
-  grid `dense_drift_grid` = -20..+88 (109 points, 108 adjacent pairs -- the honest extent\
-  \ note\n2 landed). At every drift `k` the flagged set `D`, the truth set `S`, the never-flaggable\
-  \ set\n`N` and the published `detection` gap were captured; `S` and `N` were asserted invariant\
-  \ in\n`k` at every point.\n\nFINDING 1 -- THE FLAGGED FAMILY IS NESTED, SO THE WHOLE REGISTER\
-  \ IS ONE MULTISET OF EXIT\nTHRESHOLDS. `|D|` is monotone non-increasing across the grid\
-  \ (900 -> 69/61/83) and every case\nthat ever leaves `D` leaves EXACTLY ONCE and never re-enters\
-  \ -- 831/839/817 cases, zero\nre-entries on any seed. So each invoice has a single exit\
-  \ threshold `k*`, and\n\n    missed_failure_rate = |{s in S : k*(s) <= k}| / |S|\n    false_flag_rate\
-  \     = |{n in N : k*(n) >  k}| / |N|\n\nEvery reading this register makes is a two-sided\
-  \ CDF read-off, and its entire content is the\nmultiset of exit thresholds RESTRICTED TO\
-  \ `S | N`. That is what makes the rest of this note\nstatable as an acceptance test rather\
-  \ than a description.\n\nFINDING 2 -- THE FIGURE MOVES IFF THE SET MOVEMENT TOUCHES `S |\
-  \ N`, 324/324 PAIRS, NO\nEXCEPTIONS. Per seed, of 108 adjacent pairs: the flagged SET moves\
-  \ at 74/76/70, the FIGURE\nmoves at 39/36/33, and the set moves with the figure still at\
-  \ 35/40/37. The predicate\n`gap moves <=> (D_k ^ D_k+1) & (S | N) != {}` agrees on 108/108\
-  \ pairs on ALL THREE SEEDS with\nzero disagreements, and no pair anywhere moved the figure\
-  \ on an empty delta.\n\nFINDING 3 -- EVERY ONE OF THOSE 112 SILENT MOVEMENTS LANDS 100%\
-  \ IN THE EXCLUDED BAND. For all\n35+40+37 set-moves-figure-still pairs the symmetric difference\
-  \ is ENTIRELY inside `U - S - N`:\n0 cases in `S`, 0 in `N`, on every pair, on every seed.\
-  \ That band is the D10/D11 exclusion --\nan invoice paid late but past its grace date, which\
-  \ the company was RIGHT to chase -- and it\nis 212/209/213 invoices, 23.6%/23.2%/23.7% of\
-  \ the book. It is also the DENSEST population in\nthe interior: it supplies a crossing at\
-  \ 63/63/61 distinct `k` spanning +1..+82/+79/+75.\n\nFINDING 4 -- SO THE STATED CAUSE IS\
-  \ FALSE, AND IT SHIPS IN A COMPONENT.\n`DIMENSION_DRIFT_RESOLUTION[\"detection\"][\"why\"\
-  ]` says the reading is quantised \"because the\nnumber of invoices sitting BESIDE the grace\
-  \ line at any one distance is small\". Measured\nfalse: 212 invoices sit past the line at\
-  \ 63 distinct distances covering nearly every integer\nof the interior. What is small is\
-  \ not the invoices beside the line but the invoices beside\nthe line THAT THIS HEADLINE'S\
-  \ DENOMINATORS COUNT. And `detection_resolution_caveat`'s head --\nstamped into `det.note`\
-  \ AND `det.components[\"drift_resolution_caveat\"]`, which is what the\nledger writer, the\
-  \ live wiring and the dashboard read -- tells the reader the terms error\n\"moves it only\
-  \ where that error carries an invoice across the grace line\". An invoice crosses\nthe line\
-  \ at 74/76/70 of the 108 steps and the number moves at 39/36/33: crossing is NECESSARY\n\
-  AND NOT SUFFICIENT, and a reader running that sentence backwards (\"it did not move, so\n\
-  nothing crossed\") is wrong at 35/40/37 steps. QUEUED, not fixed on sight (SELF-INTERRUPT\n\
-  DISCIPLINE -- the fix is in this atom's `file_scope` and the atom is `loop_stage: idle`),\n\
-  staged as `docs/staging/WORKER_FINDING_THE_CAVEAT_BLAMES_PLACEMENT_AND_THE_MEASUREMENT_SAYS_DENOMINATORS_2026-08-14.md`\n\
-  at BLOCKING/D_billing_metering with the two options and the recommendation.\n\nFINDING 5\
-  \ -- THE RESHAPE'S ACCEPTANCE TEST, AS NOTE 1 STATED IT, IS SATISFIABLE WITHOUT\nMOVING\
-  \ THE FIGURE. Note 1 wrote it as \"a book whose settle-delay distribution has no gaps\n\
-  across the swept span\". Findings 2-3 make that test passable by filling the gaps with\n\
-  EXCLUDED cases -- which is exactly what this book already does, at 63 distinct distances.\n\
-  The corrected test, which follows from finding 1:\n\n    the reshape must make the exit-threshold\
-  \ multiset RESTRICTED TO `S | N` contiguous\n    across the swept interior -- not the book's\
-  \ settle-delay distribution, and not the\n    flagged set's change points.\n\nThat is a\
-  \ materially different build, and the two counted populations show why it is a build\nrather\
-  \ than a tweak. Over the interior between the tails (-5..+81, 87 integers) `S | N`\nsupplies\
-  \ a change point at only 39/35/33 of them -- 48/52/54 barren. `N` is a STEP FUNCTION:\n\
-  556/548/551 negatives (94.9%/92.1%/96.0%) exit at `k = -5` exactly and only 17/26/11\n(2.9%/4.4%/1.9%)\
-  \ exit anywhere above 0. `S` mostly NEVER EXITS: only 33/35/30 failures leave\nthe flagged\
-  \ set anywhere in the grid, so 69/61/83 of them (68%/64%/73%) stay flagged at every\ndrift\
-  \ the book can be asked about. The interior resolution of a published headline therefore\n\
-  rests on ~33 case-exits out of a 900-invoice book -- 3.7%/3.9%/2.7%. The reshape needs\n\
-  failures whose ages relative to `as_of` span the interior and negatives spread across their\n\
-  grace distance; MORE INVOICES BESIDE THE LINE WOULD NOT DO IT.\n\nTHE PREDICTOR (residual\
-  \ item 1) IS NOW HALF-SOLVED AND HALF-OPEN, and the open half must not\nbe read as done.\
-  \ `N` side: `k* = days_late - grace` is EXACT on 568/586, 566/595, 563/574\nnegatives (96.9%/95.1%/98.1%)\
-  \ -- note 1's arithmetic, confirmed on the honest grid, and it is\nalso why the below-tail\
-  \ sits at -6. `S` side: NOT SOLVED. `k* = (as_of - due) - grace + 1` is\nexact on only 22/33,\
-  \ 18/35, 18/30; the mismatches all exit far EARLIER than predicted (16\nagainst a predicted\
-  \ 67) and all sit in 3-period accounts, which suggests an account-level\nattribution effect.\
-  \ An account-newest-due cap was tried this tick and made it WORSE (30%), so\nthe mechanism\
-  \ is UNIDENTIFIED and flagged rather than asserted (R9). Whoever builds the\npredictor must\
-  \ derive the failure side, not adopt either candidate.\n\nWHAT THE RESIDUAL IS AFTER THIS\
-  \ TICK. Item 1 THE PREDICTOR: negative side measured and exact,\nfailure side open and its\
-  \ two obvious candidates refuted here. Item 2 (the upper edge) stayed\nCLOSED by note 2.\
-  \ Item 3 THE RESHAPE: unchanged in kind, re-specified in target -- contiguity\nis owed in\
-  \ `S | N`'s exit thresholds, not in the book's settle delays, and the test is now\ncheckable\
-  \ before the reshape is built rather than after. NEW: the shipped `why` and caveat\nname\
-  \ the wrong cause (finding 4), queued at BLOCKING.\n\nR12: no published number was moved,\
-  \ read or tuned by this tick. The sweep scored\ncounterfactual companies (`organ_terms_drift_days\
-  \ != 0`) plus the `k = 0` baseline, which is\nthe register's own probe; nothing was written\
-  \ to any artefact."
-- "2026-08-14 FINDING 4 IS CLOSED, BUILD, by the RUNG-1c blocking draw on\n`WORKER_FINDING_THE_CAVEAT_BLAMES_PLACEMENT_AND_THE_MEASUREMENT_SAYS_DENOMINATORS_2026-08-14.md`\n\
-  -- note 3 above is where it was derived. THE BLOCK NOTE 3 RECORDED DOES NOT APPLY TO THE\
-  \ FIX,\nand that is worth stating because note 3 got it right for the wrong reason. Note\
-  \ 3 queued\nrather than fixed on the ground that `tools/couple_w2_11_d5.py` is this atom's\
-  \ `file_scope`\nand this atom is `loop_stage: idle`. True. But that file is ALSO the entire\
-  \ `file_scope` of\n`H27_payment_belief_gap`, which is `loop_stage: harden` and was drawn\
-  \ for BUILD in the same\ntick that drew this blocker -- so the fix was never gated on this\
-  \ atom opening at all. A\n`file_scope` shared by 30 atoms is idle only if EVERY owner is;\
-  \ checking one owner and\nstopping is how a fix waits on a door that was never shut.\n\n\
-  WHAT LANDED (both options in the finding's recommendation, in its order).\n\n1. THE TWO\
-  \ FALSE SENTENCES ARE CORRECTED. `DIMENSION_DRIFT_RESOLUTION[\"detection\"][\"why\"]` no\n\
-  \   longer says the interior collapses \"because the number of invoices sitting BESIDE the\n\
-  \   grace line at any one distance is small\"; it names the exclusion as the cause and carries\n\
-  \   the measured bands. `detection_resolution_caveat`'s head no longer licenses the backwards\n\
-  \   inference: it now says this headline is set membership over TWO COUNTED POPULATIONS\
-  \ (`S`\n   the true failures, `N` the never-flaggable negatives), that crossing the grace\
-  \ line is\n   NECESSARY AND NOT SUFFICIENT, and in as many words DO NOT RUN THAT BACKWARDS\
-  \ -- an unmoved\n   number does not mean nothing crossed.\n\n2. THE CAUSE IS NOW A NUMBER,\
-  \ RE-DERIVED PER BOOK. `measure_detection_interior_change_points`\n   sweeps the readable\
-  \ interior and returns, per seed, the pairs at which the flagged set\n   steps on `S u N`,\
-  \ on the EXCLUDED band, and the pairs where the set moves and the figure\n   does not. `check_detection_interior_change_points`\
-  \ puts the register's declaration on trial\n   against it. `_detection_interior_cause_sentence`\
-  \ interpolates the bands into the caveat, so\n   the sentence moves when the register moves\
-  \ -- the D19/D20/D22/D23/D25 rule, applied to the\n   clause that decayed for want of it.\n\
-  \nRE-MEASURED THIS TICK rather than copied from the finding (n=300, seeds 7/11/23, the same\n\
-  book-derived grid). ONE DEFINITION CHANGED and the numbers move with it, so both are stated:\n\
-  the finding counted distinct `k` in the interior at which a crossing occurs (39/36/33 of\
-  \ 87);\nthe control counts ADJACENT PAIRS strictly inside the declared edges, 86 of them,\
-  \ which is the\nunit the collapsed runs and the \"figure moves\" predicate are already expressed\
-  \ in. On that\nunit: the counted populations step at 38/34/32, the EXCLUDED band at 62/63/61,\
-  \ and the set\nmoves with the figure still at 34/40/37. Declared as bands across seeds --\
-  \ (32, 38), (61, 63),\n(34, 40) -- and re-derived every run.\n\nTHE FINDING'S TWO PREMISES\
-  \ ARE NOW ASSERTED IN THE CONTROL, not assumed. `S`, `N` and the\nuniverse must be invariant\
-  \ in the drift (a counterfactual COMPANY over one world, R13) --\nmeasured true at every\
-  \ point on every seed, and a violation now names the drifts where it\nbroke. And the published\
-  \ figure must move IFF the step touches `S u N` -- 258/258 pairs, zero\ndisagreements, checked\
-  \ against the SHIPPED scorer's gap rather than a re-derivation of it,\nbecause that predicate\
-  \ IS the corrected caveat's inference licence and a caveat whose licence\nnobody checks\
-  \ is the thing this note is about. WHAT THAT PREDICATE CHECK IS NOT, stated in the\ncontrol's\
-  \ own docstring rather than left for the next Hour to catch: it is NOT an independence\n\
-  check. The gap and the sets come out of ONE `score_triad` call and the gap is computed BY\
-  \ that\nscorer FROM those sets, so both sides share a source -- R15's first pattern is precisely\
-  \ this\noverclaim. It is not a tautology either, because the implication is not an identity:\
-  \ the gap is\n`mean(missed_failure_rate, false_flag_rate)` and a step touching `S u N` could\
-  \ leave it unmoved\nby CANCELLING between the two rates. Catching that cancellation is all\
-  \ this sweep proves, and\nan independent re-derivation of the gap would be a different control\
-  \ this module does not have.\n\nFINDING 5's CORRECTED ACCEPTANCE TEST IS NOW IN THE CODE,\
-  \ which is the half that stops this\ndecaying again. The caveat states outright that a reshape\
-  \ merely putting more invoices beside\nthe grace line would not move the resolution at all.\
-  \ Note 1's original test -- \"a book whose\nsettle-delay distribution has no gaps across\
-  \ the swept span\" -- was satisfiable by filling\nthe gaps with EXCLUDED cases, which is\
-  \ what this book already does at 63 distinct distances.\nA future builder now meets the\
-  \ corrected target in the published sentence, not only in this\nrecord.\n\nR15, BOTH WAYS.\
-  \ Ten mutation cases ship with it. Four move a declared band and prove the\ncontrol names\
-  \ it; six are the fail-open shapes -- an empty sweep, an interior with no adjacent\npair,\
-  \ truth-side sets that drifted, a broken move-iff predicate, an empty `S`, an empty `N`\
-  \ --\neach of which reads EXACTLY like a clean sheet unless named. Plus the R11-shaped one:\
-  \ the\nfalse clause is asserted ABSENT from `components[\"drift_resolution_caveat\"]` and\
-  \ from the\nresult's note, i.e. from the artefact a reader is handed, not merely from the\
-  \ source line that\nwas edited. And the honest-degradation one: strip the declared bands\
-  \ and the sentence says the\ncause is NOT MEASURED rather than falling back to the placement\
-  \ story or to silence.\n\nWHAT THIS CONTROL DELIBERATELY DOES NOT ASSERT, because getting\
-  \ it wrong would be worse than\nthe defect. It does NOT require the excluded band to keep\
-  \ out-crossing the counted\npopulations. That inequality is today's reading, not a contract:\
-  \ this atom's whole residual is\na reshape that makes `S u N` dense across the interior,\
-  \ and a control forbidding the fix it\nexists to motivate would be a rule whose only satisfying\
-  \ state is the broken one. The\ninequality is pinned in a test labelled CHARACTERIZATION\
-  \ and expected to fire when the reshape\nlands; the CONTROL asks only that the declaration\
-  \ match the book.\n\nWHAT IS NOT DONE, flagged rather than left implied (R9). Residual item\
-  \ 1, THE PREDICTOR: the\n`N` side stays measured and exact (`k* = days_late - grace`, 95-98%);\
-  \ the `S` side stays\nUNIDENTIFIED -- note 3 refuted both obvious candidates and this tick\
-  \ added nothing to it.\nResidual item 3, THE RESHAPE: unbuilt, and unchanged in kind. What\
-  \ changed is that its target\nis now stated where a builder will meet it. R12: no published\
-  \ number was moved, read or tuned\n-- the sweep scores counterfactual companies plus the\
-  \ k=0 baseline, which is the register's\nown probe, and the five published gap values at\
-  \ k=0 are untouched."
+- "2026-08-14 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw). No BUILD\ncode written and nothing in `file_scope` touched. This tick took the ONE item note 1 left\nlabelled NOT ESTABLISHED -- whether the interior collapsed runs are predicted by the book's\n`days_late` multiset -- and measured it. They are not, and the population that does predict\nthem is one neither this atom's brief, the register's `why`, nor the shipped caveat\nmentions. Everything below is `observed-with-evidence` unless labelled otherwise (R9).\n\nMETHOD. `build_scenario` + `score_triad`, n=300, seeds 7/11/23, over the whole book-derived\ngrid `dense_drift_grid` = -20..+88 (109 points, 108 adjacent pairs -- the honest extent note\n2 landed). At every drift `k` the flagged set `D`, the truth set `S`, the never-flaggable set\n`N` and the published `detection` gap were captured; `S` and `N` were asserted invariant in\n`k` at every point.\n\nFINDING 1 -- THE FLAGGED FAMILY IS NESTED, SO THE WHOLE REGISTER IS ONE MULTISET OF EXIT\nTHRESHOLDS. `|D|` is monotone non-increasing across the grid (900 -> 69/61/83) and every case\nthat ever leaves `D` leaves EXACTLY ONCE and never re-enters -- 831/839/817 cases, zero\nre-entries on any seed. So each invoice has a single exit threshold `k*`, and\n\n    missed_failure_rate = |{s in S : k*(s) <= k}| / |S|\n    false_flag_rate     = |{n in N : k*(n) >  k}| / |N|\n\nEvery reading this register makes is a two-sided CDF read-off, and its entire content is the\nmultiset of exit thresholds RESTRICTED TO `S | N`. That is what makes the rest of this note\nstatable as an acceptance test rather than a description.\n\nFINDING 2 -- THE FIGURE MOVES IFF THE SET MOVEMENT TOUCHES `S | N`, 324/324 PAIRS, NO\nEXCEPTIONS. Per seed, of 108 adjacent pairs: the flagged SET moves at 74/76/70, the FIGURE\nmoves at 39/36/33, and the set moves with the figure still at 35/40/37. The predicate\n`gap moves <=> (D_k ^ D_k+1) & (S | N) != {}` agrees on 108/108 pairs on ALL THREE SEEDS with\nzero disagreements, and no pair anywhere moved the figure on an empty delta.\n\nFINDING 3 -- EVERY ONE OF THOSE 112 SILENT MOVEMENTS LANDS 100% IN THE EXCLUDED BAND. For all\n35+40+37 set-moves-figure-still pairs the symmetric difference is ENTIRELY inside `U - S - N`:\n0 cases in `S`, 0 in `N`, on every pair, on every seed. That band is the D10/D11 exclusion --\nan invoice paid late but past its grace date, which the company was RIGHT to chase -- and it\nis 212/209/213 invoices, 23.6%/23.2%/23.7% of the book. It is also the DENSEST population in\nthe interior: it supplies a crossing at 63/63/61 distinct `k` spanning +1..+82/+79/+75.\n\nFINDING 4 -- SO THE STATED CAUSE IS FALSE, AND IT SHIPS IN A COMPONENT.\n`DIMENSION_DRIFT_RESOLUTION[\"detection\"][\"why\"]` says the reading is quantised \"because the\nnumber of invoices sitting BESIDE the grace line at any one distance is small\". Measured\nfalse: 212 invoices sit past the line at 63 distinct distances covering nearly every integer\nof the interior. What is small is not the invoices beside the line but the invoices beside\nthe line THAT THIS HEADLINE'S DENOMINATORS COUNT. And `detection_resolution_caveat`'s head --\nstamped into `det.note` AND `det.components[\"drift_resolution_caveat\"]`, which is what the\nledger writer, the live wiring and the dashboard read -- tells the reader the terms error\n\"moves it only where that error carries an invoice across the grace line\". An invoice crosses\nthe line at 74/76/70 of the 108 steps and the number moves at 39/36/33: crossing is NECESSARY\nAND NOT SUFFICIENT, and a reader running that sentence backwards (\"it did not move, so\nnothing crossed\") is wrong at 35/40/37 steps. QUEUED, not fixed on sight (SELF-INTERRUPT\nDISCIPLINE -- the fix is in this atom's `file_scope` and the atom is `loop_stage: idle`),\nstaged as `docs/staging/WORKER_FINDING_THE_CAVEAT_BLAMES_PLACEMENT_AND_THE_MEASUREMENT_SAYS_DENOMINATORS_2026-08-14.md`\nat BLOCKING/D_billing_metering with the two options and the recommendation.\n\nFINDING 5 -- THE RESHAPE'S ACCEPTANCE TEST, AS NOTE 1 STATED IT, IS SATISFIABLE WITHOUT\nMOVING THE FIGURE. Note 1 wrote it as \"a book whose settle-delay distribution has no gaps\nacross the swept span\". Findings 2-3 make that test passable by filling the gaps with\nEXCLUDED cases -- which is exactly what this book already does, at 63 distinct distances.\nThe corrected test, which follows from finding 1:\n\n    the reshape must make the exit-threshold multiset RESTRICTED TO `S | N` contiguous\n    across the swept interior -- not the book's settle-delay distribution, and not the\n    flagged set's change points.\n\nThat is a materially different build, and the two counted populations show why it is a build\nrather than a tweak. Over the interior between the tails (-5..+81, 87 integers) `S | N`\nsupplies a change point at only 39/35/33 of them -- 48/52/54 barren. `N` is a STEP FUNCTION:\n556/548/551 negatives (94.9%/92.1%/96.0%) exit at `k = -5` exactly and only 17/26/11\n(2.9%/4.4%/1.9%) exit anywhere above 0. `S` mostly NEVER EXITS: only 33/35/30 failures leave\nthe flagged set anywhere in the grid, so 69/61/83 of them (68%/64%/73%) stay flagged at every\ndrift the book can be asked about. The interior resolution of a published headline therefore\nrests on ~33 case-exits out of a 900-invoice book -- 3.7%/3.9%/2.7%. The reshape needs\nfailures whose ages relative to `as_of` span the interior and negatives spread across their\ngrace distance; MORE INVOICES BESIDE THE LINE WOULD NOT DO IT.\n\nTHE PREDICTOR (residual item 1) IS NOW HALF-SOLVED AND HALF-OPEN, and the open half must not\nbe read as done. `N` side: `k* = days_late - grace` is EXACT on 568/586, 566/595, 563/574\nnegatives (96.9%/95.1%/98.1%) -- note 1's arithmetic, confirmed on the honest grid, and it is\nalso why the below-tail sits at -6. `S` side: NOT SOLVED. `k* = (as_of - due) - grace + 1` is\nexact on only 22/33, 18/35, 18/30; the mismatches all exit far EARLIER than predicted (16\nagainst a predicted 67) and all sit in 3-period accounts, which suggests an account-level\nattribution effect. An account-newest-due cap was tried this tick and made it WORSE (30%), so\nthe mechanism is UNIDENTIFIED and flagged rather than asserted (R9). Whoever builds the\npredictor must derive the failure side, not adopt either candidate.\n\nWHAT THE RESIDUAL IS AFTER THIS TICK. Item 1 THE PREDICTOR: negative side measured and exact,\nfailure side open and its two obvious candidates refuted here. Item 2 (the upper edge) stayed\nCLOSED by note 2. Item 3 THE RESHAPE: unchanged in kind, re-specified in target -- contiguity\nis owed in `S | N`'s exit thresholds, not in the book's settle delays, and the test is now\ncheckable before the reshape is built rather than after. NEW: the shipped `why` and caveat\nname the wrong cause (finding 4), queued at BLOCKING.\n\nR12: no published number was moved, read or tuned by this tick. The sweep scored\ncounterfactual companies (`organ_terms_drift_days != 0`) plus the `k = 0` baseline, which is\nthe register's own probe; nothing was written to any artefact."
+- "2026-08-14 FINDING 4 IS CLOSED, BUILD, by the RUNG-1c blocking draw on\n`WORKER_FINDING_THE_CAVEAT_BLAMES_PLACEMENT_AND_THE_MEASUREMENT_SAYS_DENOMINATORS_2026-08-14.md`\n-- note 3 above is where it was derived. THE BLOCK NOTE 3 RECORDED DOES NOT APPLY TO THE FIX,\nand that is worth stating because note 3 got it right for the wrong reason. Note 3 queued\nrather than fixed on the ground that `tools/couple_w2_11_d5.py` is this atom's `file_scope`\nand this atom is `loop_stage: idle`. True. But that file is ALSO the entire `file_scope` of\n`H27_payment_belief_gap`, which is `loop_stage: harden` and was drawn for BUILD in the same\ntick that drew this blocker -- so the fix was never gated on this atom opening at all. A\n`file_scope` shared by 30 atoms is idle only if EVERY owner is; checking one owner and\nstopping is how a fix waits on a door that was never shut.\n\nWHAT LANDED (both options in the finding's recommendation, in its order).\n\n1. THE TWO FALSE SENTENCES ARE CORRECTED. `DIMENSION_DRIFT_RESOLUTION[\"detection\"][\"why\"]` no\n   longer says the interior collapses \"because the number of invoices sitting BESIDE the\n   grace line at any one distance is small\"; it names the exclusion as the cause and carries\n   the measured bands. `detection_resolution_caveat`'s head no longer licenses the backwards\n   inference: it now says this headline is set membership over TWO COUNTED POPULATIONS (`S`\n   the true failures, `N` the never-flaggable negatives), that crossing the grace line is\n   NECESSARY AND NOT SUFFICIENT, and in as many words DO NOT RUN THAT BACKWARDS -- an unmoved\n   number does not mean nothing crossed.\n\n2. THE CAUSE IS NOW A NUMBER, RE-DERIVED PER BOOK. `measure_detection_interior_change_points`\n   sweeps the readable interior and returns, per seed, the pairs at which the flagged set\n   steps on `S u N`, on the EXCLUDED band, and the pairs where the set moves and the figure\n   does not. `check_detection_interior_change_points` puts the register's declaration on trial\n   against it. `_detection_interior_cause_sentence` interpolates the bands into the caveat, so\n   the sentence moves when the register moves -- the D19/D20/D22/D23/D25 rule, applied to the\n   clause that decayed for want of it.\n\nRE-MEASURED THIS TICK rather than copied from the finding (n=300, seeds 7/11/23, the same\nbook-derived grid). ONE DEFINITION CHANGED and the numbers move with it, so both are stated:\nthe finding counted distinct `k` in the interior at which a crossing occurs (39/36/33 of 87);\nthe control counts ADJACENT PAIRS strictly inside the declared edges, 86 of them, which is the\nunit the collapsed runs and the \"figure moves\" predicate are already expressed in. On that\nunit: the counted populations step at 38/34/32, the EXCLUDED band at 62/63/61, and the set\nmoves with the figure still at 34/40/37. Declared as bands across seeds -- (32, 38), (61, 63),\n(34, 40) -- and re-derived every run.\n\nTHE FINDING'S TWO PREMISES ARE NOW ASSERTED IN THE CONTROL, not assumed. `S`, `N` and the\nuniverse must be invariant in the drift (a counterfactual COMPANY over one world, R13) --\nmeasured true at every point on every seed, and a violation now names the drifts where it\nbroke. And the published figure must move IFF the step touches `S u N` -- 258/258 pairs, zero\ndisagreements, checked against the SHIPPED scorer's gap rather than a re-derivation of it,\nbecause that predicate IS the corrected caveat's inference licence and a caveat whose licence\nnobody checks is the thing this note is about. WHAT THAT PREDICATE CHECK IS NOT, stated in the\ncontrol's own docstring rather than left for the next Hour to catch: it is NOT an independence\ncheck. The gap and the sets come out of ONE `score_triad` call and the gap is computed BY that\nscorer FROM those sets, so both sides share a source -- R15's first pattern is precisely this\noverclaim. It is not a tautology either, because the implication is not an identity: the gap is\n`mean(missed_failure_rate, false_flag_rate)` and a step touching `S u N` could leave it unmoved\nby CANCELLING between the two rates. Catching that cancellation is all this sweep proves, and\nan independent re-derivation of the gap would be a different control this module does not have.\n\nFINDING 5's CORRECTED ACCEPTANCE TEST IS NOW IN THE CODE, which is the half that stops this\ndecaying again. The caveat states outright that a reshape merely putting more invoices beside\nthe grace line would not move the resolution at all. Note 1's original test -- \"a book whose\nsettle-delay distribution has no gaps across the swept span\" -- was satisfiable by filling\nthe gaps with EXCLUDED cases, which is what this book already does at 63 distinct distances.\nA future builder now meets the corrected target in the published sentence, not only in this\nrecord.\n\nR15, BOTH WAYS. Ten mutation cases ship with it. Four move a declared band and prove the\ncontrol names it; six are the fail-open shapes -- an empty sweep, an interior with no adjacent\npair, truth-side sets that drifted, a broken move-iff predicate, an empty `S`, an empty `N` --\neach of which reads EXACTLY like a clean sheet unless named. Plus the R11-shaped one: the\nfalse clause is asserted ABSENT from `components[\"drift_resolution_caveat\"]` and from the\nresult's note, i.e. from the artefact a reader is handed, not merely from the source line that\nwas edited. And the honest-degradation one: strip the declared bands and the sentence says the\ncause is NOT MEASURED rather than falling back to the placement story or to silence.\n\nWHAT THIS CONTROL DELIBERATELY DOES NOT ASSERT, because getting it wrong would be worse than\nthe defect. It does NOT require the excluded band to keep out-crossing the counted\npopulations. That inequality is today's reading, not a contract: this atom's whole residual is\na reshape that makes `S u N` dense across the interior, and a control forbidding the fix it\nexists to motivate would be a rule whose only satisfying state is the broken one. The\ninequality is pinned in a test labelled CHARACTERIZATION and expected to fire when the reshape\nlands; the CONTROL asks only that the declaration match the book.\n\nWHAT IS NOT DONE, flagged rather than left implied (R9). Residual item 1, THE PREDICTOR: the\n`N` side stays measured and exact (`k* = days_late - grace`, 95-98%); the `S` side stays\nUNIDENTIFIED -- note 3 refuted both obvious candidates and this tick added nothing to it.\nResidual item 3, THE RESHAPE: unbuilt, and unchanged in kind. What changed is that its target\nis now stated where a builder will meet it. R12: no published number was moved, read or tuned\n-- the sweep scores counterfactual companies plus the k=0 baseline, which is the register's\nown probe, and the five published gap values at k=0 are untouched."
+- "2026-08-18 DISCOVER/FRAME ONLY, level stays 0 (worker tick, LANE 3 idle draw). No BUILD\ncode written and nothing in `file_scope` touched. THIS TICK CLOSES RESIDUAL ITEM 1 AS A\nMEASUREMENT -- the population-side PREDICTOR this atom has owed since its mint, and which\nnote 3 left labelled UNIDENTIFIED on the failure side with the instruction that whoever\nbuilds it must DERIVE that side rather than adopt either refuted candidate. Full derivation,\ntables and cost: `docs/design/D28_DETECTION_EXIT_THRESHOLD_PREDICTOR.md`. Everything below is\n`observed-with-evidence` unless labelled otherwise (R9).\n\nTHE PREDICTOR, AND THE TWO SIDES TURN OUT TO BE ONE FORMULA.\n\n    k*(c) = min( as_of - due(c), cover(c) - due(c) - 1 ) - grace + 1\n    flagged(c, k) = dd(c) or k < k*(c)\n\n`cover(c)` is the first date the ledger's OWN allocation (`AccountLedger.allocate(as_of=d)`,\nremittance-else-oldest-first) reports the invoice settled; `dd(c)` is the DD channel, measured\nINVARIANT in `k` at all 109 drifts on all three seeds. Note 1 modelled only the grace-line\ncondition and missed the second one `expected_collection_misses` actually applies -- the\ninvoice must still be OPEN at the candidate date, the detector's own fail-open guard. That is\nthe entire failure side: on a non-DD account a later period's payment allocates OLDEST-FIRST\nonto the failed invoice (Clayton's Case, atom D8) and closes it before the drifted company's\nwindow opens, which is why note 3 saw a failure exit at 16 against a predicted 67 -- its cover\ndate is the next period's payment, `21 - 1 - 5 + 1 = 16`. The negative side is the SAME\nformula specialised: an uncovered on-time payment has `cover = due + days_late`, giving\n`days_late - grace`, note 1's arithmetic recovered rather than replaced.\n\nMEASURED (n=300, seeds 7/11/23, the register's own population; 0 re-entries in 2,700 case\nsweeps, so the nested-family premise is re-asserted rather than carried). The reconciliation\nchannel's exit threshold is predicted EXACTLY on 900/900 cases on EVERY seed -- 2,700/2,700\n-- and the union channel's on 831/839/817 of the exiting cases, with the 69/61/83 that never\nexit being EXACTLY the DD-flagged set. That last identity is the mechanism note 3 could only\nreport as a proportion: two thirds of `S` is not held by the reconciliation rule at all.\nBoth refuted candidates reproduce at their published accuracy (note 3's at 22/33, 18/35,\n18/30; note 1's at 568/586, 566/595, 563/574), so passes 1 and 3 are re-verified unrepaired.\n\nAND IT PREDICTS THE WHOLE PUBLISHED CURVE, NOT ONLY THE EDGES. With no `score_triad` call\nanywhere in the predictor, the gap (float-equal) and BOTH components (to the published 6dp)\nreproduce at 109/109 grid points on all three register seeds AND on two books no prior pass\never swept (n=600, seeds 3 and 41), with an identical collapsed-run partition on both. Applying\nthe register's own across-seed rule to the predicted curves reproduces the shipped\n`_DETECTION_COLLAPSED_RUNS` tuple BIT FOR BIT, all sixteen runs. Cost 0.2s against the sweep's\n62s on the same book, ~250x -- the 109-point re-scoring the register runs to declare its edges\nis arithmetic over one book.\n\nTHE NEW FINDING, AND IT IS THIS ATOM'S OWN CLASS ON AN AXIS NOBODY HAD SWEPT.\n`saturates_below = -6` is `-(grace + 1)` and holds on all 25 books tried (n in\n{150,300,600,1200,2400} x seeds {7,11,23,3,41}) -- a closed-form bound and a genuine claim\nabout an unswept live book, which is what this atom asked for. `saturates_above` is NOT the\nsame kind of object: with the book's SHAPE held fixed (one-cycle spread, one `as_of`, same\ngrace line, same terms) it moves 70..87 with the DRAW SIZE and at n=2400 does not exist at all\non 3 of 5 seeds, the reading still moving at the grid's last point. Across-seed intersected\nruns fall 20 -> 16 -> 13 -> 9 -> 4 over that same axis. The mechanism follows from the\npredictor: the lower edge is attained by ANY on-time payment (hundreds per book), the upper by\nthe single uncovered non-DD failure at the smallest cycle offset (a draw). And it SHIPS:\n`recon_saturation_band_days` is a literal pair read off `ORGAN_QUERY_GRID`, stamped on every\ndetection result and sitting in the published `coupled_gap_ledger.json` as `[-6, 82]`, while\n`measure()`'s own default book (n=4000, SHIPPED scorer) publishes SEVEN distinct figures\nbetween +82 and +88. R15: `measure_organ_query_grid_saturation` defaults to `n_customers=300`,\nthe draw size the declaration was authored at, so the register is re-derived exactly where it\nhad already answered -- D28's founding sentence, on the population-size axis instead of the\ngrid axis, on the register D28 itself re-derived. QUEUED, not fixed on sight (SELF-INTERRUPT\nDISCIPLINE), staged as\n`docs/staging/WORKER_FINDING_THE_SATURATION_EDGE_IS_A_PROPERTY_OF_THE_DRAW_SIZE_2026-08-18.md`\nat BLOCKING/D_billing_metering with three options, a recommendation, and its falsifier plus\nNULL CONTROL both already run (positive RED, null GREEN 25/25).\n\nWHAT THE RESIDUAL IS AFTER THIS TICK. Item 1 THE PREDICTOR: CLOSED as a measurement, OPEN as\ncode -- nothing in the repo computes it, and what it buys is stated in the design doc so the\nnext tick weighs it rather than re-deriving it. Item 2 (the upper edge) stays CLOSED by note 2\nas a GRID fact and is REOPENED as a POPULATION fact by the finding above -- a different axis,\nfiled separately rather than reopening the note. Item 3 THE RESHAPE: unbuilt, unchanged in\nkind, but its target is now checkable BEFORE it is built, because note 3's corrected\nacceptance test (contiguity of the exit-threshold multiset restricted to `S u N`) is now a\nclosed-form function of the book. Three constraints fall out and two are not in the atom's\nbrief: a DD-flagged failure contributes no threshold at all (68%/64%/73% of `S` is unreachable\nby any terms reshape); every uncovered on-time negative lands on the single threshold `-grace`,\nso spreading `N` needs cover-date spread and not more invoices beside the line; and 12 of the\n16 declared collapsed runs disappear between n=300 and n=2400 with the shape untouched, so a\nreshape evaluated at n=300 against a declaration measured at n=300 would credit itself with an\neffect the draw size already had (inferred, R9 -- a claim about what its evidence must control\nfor, not that the reshape is unnecessary).\n\nNOT ATTEMPTED, flagged rather than left implied (R9): the LIVE book (`LivePaymentTriad`, 114\nmonthly periods) was not measured, so the draw-size table is about the offline scenario only.\nThe predictor should hold there by construction -- nothing in it assumes three periods -- but\nthat is `inferred`, not observed. R12: no published number was moved, read or tuned; the\nsweeps score counterfactual companies plus the k=0 baseline, which is the register's own probe.\n"
 map_notes:
-  name: 'SPUN OUT OF H27 EXPERT HOUR #10 (2026-08-11, worker tick, not fixed on sight -- SELF-INTERRUPT
-    DISCIPLINE). `DIMENSION_DRIFT_RESOLUTION` derived its KEYSET from what `score_triad` publishes
-    but built its GRID from its own declarations (drifts = {0} | declared invisible | declared
-    visible), so the exactness rule was only ever applied at the points the band had already
-    named -- the register was asked exactly where it had already answered, which is D23''s
-    ORGAN_QUERY_GRID class escaped into the register built to close a resolution hole. MEASURED
-    2026-08-11 on a grid derived from the BOOK instead (every integer terms drift across one
-    billing cycle either way, 43 counterfactual companies, n=300, seeds 7/11/23, every run
-    identical on all three): the DETECTION dimension -- declared blind to {+1}, sighted at
-    {-1}, collapsing nowhere -- has SEVEN groups of companies publishing one bit-identical
-    figure and BOTH TAILS SATURATED. Every supplier holding terms 6 to 21 days SHORTER than
-    the world publishes ONE number (sixteen companies, one figure, every seed) and every supplier
-    17 to 21 days LONGER publishes another; five further interior collapses ({-4,-3}, {0,+1},
-    {+6,+7}, {+9,+10}, {+11,+12,+13}) show the reading is quantised throughout rather than
-    continuous. The -8d the old grid swept (it was in the AGEING band) and read as MOVED --
-    as evidence of resolution -- sits inside the saturated tail, indistinguishable from -21d.
-    So a movement in the detection headline is not readable as days of company error, and
-    a supplier flagging paying customers as in arrears cannot be told from one three weeks
-    out. THIS ATOM IS THE RESHAPE: a scored population whose invoices sit BESIDE the company''s
-    grace line at a contiguous span of distances (a book spread over more than one cycle,
-    several `as_of` readings, and/or a grace line the book straddles), which moves every published
-    detection figure on this pair and is therefore a mint rather than a fix on sight. It also
-    owes the population-side PREDICTOR of these edges that D25 has for ageing and D27 has
-    for the belief window -- the detection caveat says in as many words that no such predictor
-    exists yet, and until it does the edges are a sweep reading rather than a claim about
-    an unswept live book. ALREADY LANDED UNDER H27''s HOUR: the book-derived grid (`dense_drift_grid`,
-    asserted against its own AST never to reach the register), the collapse/saturation measurement
-    derived from the readings, the shared `_check_saturation_and_collapse` that BOTH checkers
-    call -- so the saturation rule D27 built can no longer exist on one side of `in_causal_path`
-    and not the other -- the undefined-reading fail-open (an absent reading compares unequal
-    to the baseline and was counted as resolution), the differential (ageing publishes 43
-    distinct readings and collapses nowhere), and `detection_resolution_caveat` stamped into
-    the detection result''s note AND components with its edges interpolated from the register.'
+  name: 'SPUN OUT OF H27 EXPERT HOUR #10 (2026-08-11, worker tick, not fixed on sight -- SELF-INTERRUPT DISCIPLINE). `DIMENSION_DRIFT_RESOLUTION` derived its KEYSET from what `score_triad` publishes but built its GRID from its own declarations (drifts = {0} | declared invisible | declared visible), so the exactness rule was only ever applied at the points the band had already named -- the register was asked exactly where it had already answered, which is D23''s ORGAN_QUERY_GRID class escaped into the register built to close a resolution hole. MEASURED 2026-08-11 on a grid derived from the BOOK instead (every integer terms drift across one billing cycle either way, 43 counterfactual companies, n=300, seeds 7/11/23, every run identical on all three): the DETECTION dimension -- declared blind to {+1}, sighted at {-1}, collapsing nowhere -- has SEVEN groups of companies publishing one bit-identical figure and BOTH TAILS SATURATED. Every supplier holding terms 6 to 21 days SHORTER than the world publishes ONE number (sixteen companies, one figure, every seed) and every supplier 17 to 21 days LONGER publishes another; five further interior collapses ({-4,-3}, {0,+1}, {+6,+7}, {+9,+10}, {+11,+12,+13}) show the reading is quantised throughout rather than continuous. The -8d the old grid swept (it was in the AGEING band) and read as MOVED -- as evidence of resolution -- sits inside the saturated tail, indistinguishable from -21d. So a movement in the detection headline is not readable as days of company error, and a supplier flagging paying customers as in arrears cannot be told from one three weeks out. THIS ATOM IS THE RESHAPE: a scored population whose invoices sit BESIDE the company''s grace line at a contiguous span of distances (a book spread over more than one cycle, several `as_of` readings, and/or a grace line the book straddles), which moves every published detection figure on this pair and is therefore a mint rather than a fix on sight. It also owes the population-side PREDICTOR of these edges that D25 has for ageing and D27 has for the belief window -- the detection caveat says in as many words that no such predictor exists yet, and until it does the edges are a sweep reading rather than a claim about an unswept live book. ALREADY LANDED UNDER H27''s HOUR: the book-derived grid (`dense_drift_grid`, asserted against its own AST never to reach the register), the collapse/saturation measurement derived from the readings, the shared `_check_saturation_and_collapse` that BOTH checkers call -- so the saturation rule D27 built can no longer exist on one side of `in_causal_path` and not the other -- the undefined-reading fail-open (an absent reading compares unequal to the baseline and was counted as resolution), the differential (ageing publishes 43 distinct readings and collapses nowhere), and `detection_resolution_caveat` stamped into the detection result''s note AND components with its edges interpolated from the register.'
