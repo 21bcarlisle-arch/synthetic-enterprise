@@ -108,6 +108,11 @@ CANONICAL_NAV: tuple[NavItem, ...] = (
     NavItem("Home", "/"),
     NavItem("The World", "/world/"),
     NavItem("The Company", "/company/"),
+    # SITE7, 2026-08-18 (director pulled it forward ahead of Knowledge: "I want to see a
+    # real new tab to judge whether the structure works before four more steps are built
+    # on it"). THIS LINE plus a sitemap entry is the whole nav change -- sixteen pages
+    # pick it up from `tools/render_site_nav.py --write`. That is what Step 0 bought.
+    NavItem("Capabilities", "/capabilities/"),
     NavItem("Proof", "/proof/"),
 )
 

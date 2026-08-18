@@ -46,6 +46,7 @@ wolf -- only genuinely mixing the two sides of the wall can.
 """
 from __future__ import annotations
 
+import ast
 import json
 import re
 import shutil
@@ -2973,3 +2974,339 @@ def _pre_fix_index() -> str | None:
         if proc.returncode == 0 and "__householdCollections" not in proc.stdout:
             return proc.stdout
     return None
+
+
+# ===========================================================================
+# 19. ONE ACCOUNT, ONE STANDING CLAIM
+#     (coldwalk:site2_closed_account_settled_to_zero_and_in_credit)
+# ===========================================================================
+#
+# THE FINDING, all three blind personas, and it survived the 2026-08-15 present-tense
+# repair. One household -- C1, closed 2021-12-30 -- and the page published, at once:
+#
+#   Billing tab   "Account closed 2021-12-30 -- final bill C1-INV72. Account settled to zero."
+#   Overview      "You are currently £24.37 in credit -- that is your money, held by us"
+#   Risk tab      "the household combined (both fuels) LIVE ledger position", under a
+#                 header stamped "data 2026-08-17"
+#
+# The arithmetic was never wrong: 6,560.17 - 6,584.54 = -24.37, the credit sitting entirely
+# on the gas leg. It is a STATEMENT contradiction, and the reading a blind COO reached for
+# first is a supplier holding a departed customer's credit balance for four and a half
+# years. Either the closed account settled to zero or it did not; the page published both.
+#
+# TWO DEFECTS, ONE CLASS -- four sentence sites each deciding privately what to claim
+# about the same money:
+#   1. TENSE. Three sites were hard-wired present tense on a household the page's own
+#      timeline knows has gone. fwdLabel() had frozen every forward-looking LABEL since
+#      2026-08-12; the MONEY sentences were never brought under it.
+#   2. A MISSING BRANCH, and this one is a literal falsehood rather than a tense problem.
+#      closedAccountNotice() tested `current_balance_gbp > 0.005` and otherwise printed
+#      "Account settled to zero" -- so a CREDIT balance, being negative, fell through to
+#      the zero branch. On C1's GAS tab that claim sat over a ledger reading -£24.37.
+#      No fixture in this module could see it: every one drove the electricity leg.
+#
+# THE FIX IS A SOLE WRITER, not four repaired sentences (R10). window.__accountStanding
+# decides state, tense and words from one input, and all four sites ask it -- including
+# across the two inline scripts, which is why both harnesses now run both scripts.
+#
+# WHAT THE PAGE STILL CANNOT KNOW. Nothing published here records whether that closing
+# credit was refunded. The finding's own note says its resolution needs a fact the page
+# does not carry, and inventing it -- either way -- is exactly the inference-printed-as-
+# fact this exhibit exists to make visible. So the page states the closing position and
+# states that the refund is not in the record, and the control below REQUIRES that
+# statement rather than allowing silence.
+#
+# R15 five ways: the credit branch removed, the writer made closure-blind, the writer made
+# always-closed (the tautology that would satisfy the closed-account direction by telling
+# every live customer they had left), the writer silenced entirely (fail-open), and the
+# page exactly as it shipped.
+# ---------------------------------------------------------------------------
+
+# Present-tense standing claims. Each is a live-account assertion about where money stands.
+_LIVE_STANDING_PHRASES = (
+    "You are currently",
+    "Your account is currently",
+    "live ledger position",
+)
+_SETTLED_CLAIM = "settled to zero"
+_NO_REFUND_RECORD = "records whether that credit was refunded"
+
+
+def _leg_balance(leg: Path) -> float:
+    return float((json.loads(leg.read_text(encoding="utf-8")).get("ledger") or {})
+                 .get("current_balance_gbp") or 0.0)
+
+
+def _bills_by_fuel(index: Path, tmp: Path, legs: tuple[Path, Path]) -> dict[str, str]:
+    """The Billing tab as rendered for EACH fuel leg -- the region the settlement claim
+    lives in, and the one every fixture in this module was blind to before this section."""
+    proc = _run(index, legs[0], legs[1], tmp)
+    assert proc.returncode == 0, f"harness failed on {legs[0].name}: {proc.stderr}"
+    out = json.loads(proc.stdout)
+    bills = {k: v for k, v in (out.get("billsByFuel") or {}).items() if v}
+    assert bills, "the harness rendered no billing tab at all -- these checks would be vacuous"
+    return bills
+
+
+def _standing_document(index: Path, tmp: Path, legs: tuple[Path, Path]) -> str:
+    """Every region that makes a claim about where this household's money stands: the
+    drill-down's own tabs, the per-fuel billing tabs, and the static op-state exhibit's
+    money and Direct-Debit panels. A subject smaller than this is how the contradiction
+    survived -- the two halves of it were rendered by two different scripts."""
+    proc = _run(index, legs[0], legs[1], tmp)
+    assert proc.returncode == 0, f"harness failed on {legs[0].name}: {proc.stderr}"
+    out = json.loads(proc.stdout)
+    doc = "".join(out["views"]["both"].values())
+    doc += "".join(v or "" for v in (out.get("billsByFuel") or {}).values())
+    op = _op_state_render(index, legs=legs)
+    doc += "".join(op.get(k, "") for k in ("cust-money", "cust-dd-cycle"))
+    assert doc.strip(), "nothing rendered -- every assertion below would be vacuous"
+    return doc
+
+
+# The predicates, extracted so each R15 mutation kills the checker a NAMED test runs.
+def _check_no_settlement_claim_over_a_non_zero_ledger(bills: dict[str, str],
+                                                      balances: dict[str, float]) -> None:
+    bad = {f: balances[f] for f, html in bills.items()
+           if _SETTLED_CLAIM in html and abs(balances.get(f, 0.0)) > 0.005}
+    assert not bad, (
+        "the page claims the account 'settled to zero' on a leg whose own published ledger "
+        f"is not zero: {bad} -- either the closed account settled or it did not, and this "
+        "publishes both"
+    )
+
+
+def _check_no_live_standing_claim_on_a_closed_household(doc: str) -> None:
+    found = sorted({p for p in _LIVE_STANDING_PHRASES if p in doc})
+    assert not found, (
+        "this household has closed its account, and the page still states where its money "
+        f"stands in the present tense: {found} -- a departed customer's closing balance is "
+        "not a live position, and reading it as one is a supplier holding their money today"
+    )
+
+
+def _check_the_live_standing_claim_is_made_on_a_live_household(doc: str) -> None:
+    assert any(p in doc for p in _LIVE_STANDING_PHRASES), (
+        "this household has NOT closed its account, yet the page makes no present-tense "
+        "statement about where its money stands -- a writer that says 'at closure' about "
+        "everything would satisfy the closed-account control while telling every live "
+        "account holder they had left"
+    )
+    assert "closed on" not in doc and "at closure" not in doc, (
+        "this household has NOT closed its account, yet the page describes its balance as "
+        "a position at closure"
+    )
+
+
+def _check_a_closing_credit_says_the_refund_is_unrecorded(doc: str) -> None:
+    assert _NO_REFUND_RECORD in doc, (
+        "this household closed while in credit and the page does not say whether that "
+        "money was refunded -- the record does not carry the answer, so staying silent "
+        "lets the reader supply it (both readings are damaging, and one is a four-year "
+        "held credit balance)"
+    )
+
+
+def test_the_closed_fixture_household_really_closed_holding_a_credit():
+    """VACUITY FLOOR, and it is the whole finding in two numbers. If the fixture household
+    had not closed, or had closed square, every check in this section would pass over a
+    page that had never been repaired."""
+    elec, gas = _closed_household()
+    assert _closure_dates((elec, gas)), "the 'closed' fixture carries no churned event"
+    be, bg = _leg_balance(elec), _leg_balance(gas)
+    assert abs(be) <= 0.005, (
+        f"the electricity leg no longer settles to zero ({be}) -- the contradiction this "
+        "section pins is 'one leg square, the other in credit, one claim covering both'"
+    )
+    assert bg < -0.005, (
+        f"the gas leg no longer closes in credit ({bg}) -- there would be no non-zero "
+        "ledger for a 'settled to zero' claim to contradict"
+    )
+
+
+def test_no_settlement_claim_is_published_over_a_non_zero_ledger(tmp_path):
+    """THE control for defect 2. Driven PER FUEL LEG, because the claim is rendered from
+    the leg's own ledger and C1's credit sits entirely on the gas leg."""
+    elec, gas = _closed_household()
+    bills = _bills_by_fuel(INDEX, tmp_path, (elec, gas))
+    _check_no_settlement_claim_over_a_non_zero_ledger(
+        bills, {"elec": _leg_balance(elec), "gas": _leg_balance(gas)})
+
+
+def test_a_leg_scoped_settlement_claim_names_its_leg(tmp_path):
+    """The true half of the contradiction. 'Account settled to zero' was CORRECT about
+    C1's electricity ledger and was still read as the household's, because nothing on the
+    notice said which of the two accounts it was about."""
+    elec, gas = _closed_household()
+    bills = _bills_by_fuel(INDEX, tmp_path, (elec, gas))
+    for fuel, want in (("elec", "electricity"), ("gas", "gas")):
+        html = bills.get(fuel) or ""
+        notice = re.search(r'<div class="closed-notice">(.*?)</div>', html, re.S)
+        assert notice, f"no closed-account notice rendered on the {fuel} leg"
+        assert want in notice.group(1), (
+            f"the {fuel} leg's closed-account notice never names the leg it is about: "
+            f"{notice.group(1)!r} -- on a dual-fuel household that reads as the account's"
+        )
+
+
+def test_a_closed_household_makes_no_present_tense_claim_about_its_money(tmp_path):
+    """THE control for defect 1, over every region that makes a standing claim."""
+    _check_no_live_standing_claim_on_a_closed_household(
+        _standing_document(INDEX, tmp_path, _closed_household()))
+
+
+def test_a_closed_household_in_credit_says_the_refund_is_not_in_the_record(tmp_path):
+    """The honest half. The page cannot know whether the credit was refunded, so it says
+    so -- rather than implying either answer by choice of tense."""
+    _check_a_closing_credit_says_the_refund_is_unrecorded(
+        _standing_document(INDEX, tmp_path, _closed_household()))
+
+
+def test_a_live_household_still_states_its_position_in_the_present_tense(tmp_path):
+    """The other direction. This is what stops the control above being satisfied by a
+    writer that stamps every household 'at closure'."""
+    _check_the_live_standing_claim_is_made_on_a_live_household(
+        _standing_document(INDEX, tmp_path, _live_household()))
+
+
+def test_the_drill_down_has_no_second_copy_of_the_standing_writer():
+    """The class, not the instances. Four sites each deciding privately what to claim IS
+    the defect; a local fallback in the second script would let them drift apart again, so
+    the drill-down's doorway refuses rather than re-derives."""
+    src = INDEX.read_text(encoding="utf-8")
+    assert src.count("window.__accountStanding=function") == 1, (
+        "the account-standing writer is defined more than once -- there is no sole writer"
+    )
+    m = re.search(r"function standing\(bal,opts\)\{(.*?)\n\}", src, re.S)
+    assert m, "the drill-down no longer has a standing() doorway to the sole writer"
+    assert "throw new Error" in m.group(1), (
+        "standing() no longer refuses when the writer is missing -- an unavailable control "
+        "is a FAILED control (R15), and a silent fallback here is the second implementation "
+        "this repair exists to remove"
+    )
+
+
+def test_mutation_removing_the_credit_branch_kills_a_named_test(tmp_path):
+    """R15 direction 1: THE ORIGINAL DEFECT. Send a credit balance back down the zero
+    branch and the gas leg publishes 'Account settled to zero' over its own -£24.37."""
+    mutant = _mutate(tmp_path, ':(st.state==="credit")?(" Closing balance: "',
+                     ':(false)?(" Closing balance: "')
+    elec, gas = _closed_household()
+    bills = _bills_by_fuel(mutant, tmp_path, (elec, gas))
+    with pytest.raises(AssertionError, match="is not zero"):
+        _check_no_settlement_claim_over_a_non_zero_ledger(
+            bills, {"elec": _leg_balance(elec), "gas": _leg_balance(gas)})
+
+
+def test_mutation_a_closure_blind_writer_kills_a_named_test(tmp_path):
+    """R15 direction 2: the tense half restored. A writer that cannot see the closure date
+    returns every sentence in the present tense -- the page as cold-eyes found it."""
+    mutant = _mutate(
+        tmp_path,
+        'var closed=(o.closedOn==null||o.closedOn==="")?null:String(o.closedOn);',
+        "var closed=null;")
+    with pytest.raises(AssertionError, match="in the present tense"):
+        _check_no_live_standing_claim_on_a_closed_household(
+            _standing_document(mutant, tmp_path, _closed_household()))
+
+
+def test_mutation_an_always_closed_writer_kills_a_named_test(tmp_path):
+    """R15 direction 3: the TAUTOLOGY. A writer that answers 'closed' for everything passes
+    the closed-account control on any page at all -- and tells a live account holder that
+    their own account has closed. The inverse direction is required to kill it."""
+    mutant = _mutate(
+        tmp_path,
+        'var closed=(o.closedOn==null||o.closedOn==="")?null:String(o.closedOn);',
+        'var closed="2021-12-30";')
+    with pytest.raises(AssertionError, match="has NOT closed"):
+        _check_the_live_standing_claim_is_made_on_a_live_household(
+            _standing_document(mutant, tmp_path, _live_household()))
+
+
+def test_mutation_a_silent_writer_kills_a_named_test(tmp_path):
+    """R15 direction 4: FAIL-OPEN. Silence passes both tense checks trivially -- no
+    present-tense phrase is present if no sentence is written at all. The refund statement
+    and the live-household check are what make silence fail."""
+    mutant = _mutate(
+        tmp_path, "    return st;\n  };",
+        '    return {balance:st.balance,closedOn:null,isClosed:false,state:st.state,'
+        'caption:"",sentence:"",settlement:"",positionLabel:""};\n  };')
+    with pytest.raises(AssertionError, match="does not say whether that"):
+        _check_a_closing_credit_says_the_refund_is_unrecorded(
+            _standing_document(mutant, tmp_path, _closed_household()))
+    with pytest.raises(AssertionError, match="makes no present-tense"):
+        _check_the_live_standing_claim_is_made_on_a_live_household(
+            _standing_document(mutant, tmp_path, _live_household()))
+
+
+def _pre_standing_index() -> str | None:
+    """The most recent committed index.html without the standing writer, or None."""
+    for rev in ("HEAD", "HEAD~1", "HEAD~2", "HEAD~3"):
+        proc = subprocess.run(
+            ["git", "-C", str(HERE), "show", f"{rev}:site/customers/index.html"],
+            capture_output=True, text=True, timeout=60,
+        )
+        if proc.returncode == 0 and "__accountStanding" not in proc.stdout:
+            return proc.stdout
+    return None
+
+
+def test_every_standing_check_fires_on_the_page_as_it_shipped(tmp_path):
+    """R15 direction 5, and the only one whose subject is the REAL defect rather than a
+    synthetic reversal of the repair: the page exactly as cold-eyes read it.
+
+    NAMED for this section on purpose. The first draft reused section 18's test name and
+    Python silently SHADOWED it -- one module, one namespace, so the earlier proof stopped
+    being collected at all and the suite went from 1 skipped to 0 with no failure to show
+    for it. A duplicate-definition census is now part of this module's own checks below.
+
+    Skips rather than passes when no pre-fix revision is reachable, and says so -- a
+    control that silently passes when its subject is unavailable is a FAILED control.
+    """
+    src = _pre_standing_index()
+    if src is None:
+        pytest.skip("no committed revision of index.html without __accountStanding is "
+                    "reachable -- the shipped-defect proof did NOT run")
+    shipped = tmp_path / "shipped.html"
+    shipped.write_text(src, encoding="utf-8")
+    elec, gas = _closed_household()
+
+    bills = _bills_by_fuel(shipped, tmp_path, (elec, gas))
+    with pytest.raises(AssertionError, match="is not zero"):
+        _check_no_settlement_claim_over_a_non_zero_ledger(
+            bills, {"elec": _leg_balance(elec), "gas": _leg_balance(gas)})
+
+    doc = _standing_document(shipped, tmp_path, (elec, gas))
+    with pytest.raises(AssertionError, match="in the present tense"):
+        _check_no_live_standing_claim_on_a_closed_household(doc)
+    with pytest.raises(AssertionError, match="does not say whether that"):
+        _check_a_closing_credit_says_the_refund_is_unrecorded(doc)
+
+
+def test_no_definition_in_this_module_shadows_another():
+    """A CONTROL ON THE CONTROLS, and it is here because this section's own first draft
+    tripped it.
+
+    This module is one namespace and 3,200 lines across nineteen sections, each written in
+    its own tick. Reusing a test name does not collide -- Python rebinds, the earlier
+    function is never collected, and the suite reports one FEWER test with no failure to
+    show for it. That is a silently deleted R15 proof: exactly the FAIL-SILENT pattern R15
+    names, applied to the proofs themselves. Section 19's draft shadowed section 18's
+    shipped-defect test and the only visible symptom was a skip count dropping from 1 to 0.
+
+    Helpers count too: a redefined `_mutate` retroactively changes what four earlier
+    mutation tests actually run.
+    """
+    tree = ast.parse(Path(__file__).read_text(encoding="utf-8"))
+    seen: dict[str, int] = {}
+    dupes: dict[str, list[int]] = {}
+    for node in tree.body:
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            continue
+        if node.name in seen:
+            dupes.setdefault(node.name, [seen[node.name]]).append(node.lineno)
+        seen[node.name] = node.lineno
+    assert not dupes, (
+        "these top-level names are defined more than once in this module, so the earlier "
+        f"definition is shadowed and never runs: {dupes} -- rename the later one"
+    )

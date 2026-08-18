@@ -30,7 +30,10 @@ const [, , htmlPath, casesPath] = process.argv;
 const html = fs.readFileSync(htmlPath, "utf8");
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
 if (scripts.length < 2) { console.error("expected two inline <script> blocks"); process.exit(2); }
-const code = scripts[1];
+// Both scripts, document order -- see the same note in _wall_harness.mjs. The drill-down
+// calls window.__accountStanding, which the first script defines.
+const code = scripts[0];
+const drillCode = scripts[1];
 
 // A minimal element with REAL attributes, REAL children and a REAL innerHTML, so that
 // removal from the document is observable rather than mocked away.
@@ -104,6 +107,7 @@ const sandbox = {
 sandbox.window = sandbox;
 vm.createContext(sandbox);
 vm.runInContext(code, sandbox);
+vm.runInContext(drillCode, sandbox);
 
 // HH is NOT assigned. The page's own `var HH={elec:null,gas:null,base:null}` is the state
 // under test; assigning a household here would reproduce the blindness this file exists

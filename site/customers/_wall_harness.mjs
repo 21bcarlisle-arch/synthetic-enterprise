@@ -27,7 +27,15 @@ const [, , htmlPath, elecPath, gasPath, opStatePath] = process.argv;
 const html = fs.readFileSync(htmlPath, "utf8");
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
 if (scripts.length < 2) { console.error("expected two inline <script> blocks"); process.exit(2); }
-const code = scripts[1];
+// BOTH inline scripts, in document order -- the browser runs both, and since
+// coldwalk:site2_closed_account_settled_to_zero_and_in_credit the drill-down deliberately
+// has NO local copy of the account-standing writer: it calls window.__accountStanding,
+// which the first script defines. A harness that ran only the second script would be
+// asserting against a page shape no reader is served, and would make the "one writer, not
+// four" property untestable -- the same wrong-subject class this module has paid for
+// twice (sections 9 and 17).
+const code = scripts[0];
+const drillCode = scripts[1];
 
 const elements = {};
 function stub(id) {
@@ -100,6 +108,7 @@ const sandbox = {
 sandbox.window = sandbox;
 vm.createContext(sandbox);
 vm.runInContext(code, sandbox);
+vm.runInContext(drillCode, sandbox);
 
 sandbox.HH = {
   elec: JSON.parse(fs.readFileSync(elecPath, "utf8")),
@@ -144,6 +153,26 @@ const injected = {};
 for (const id of ["bills-section", "usage-section", "cashflow-kpis", "cashflow-kpis-company", "forecast-cashflow-body"]) {
   injected[id] = elements[id] ? elements[id]._inner : null;
 }
+
+// THE BILLING TAB, PER FUEL LEG. `injected` above captures the electricity leg only,
+// because that is the tab's default. The closed-account settlement claim is rendered from
+// the LEG's own ledger (closedAccountNotice(d, invoices)), and C1's credit balance sits
+// entirely on the GAS leg -- so a fixture that only ever drives electricity structurally
+// cannot see "Account settled to zero" published over a -£24.37 ledger, which is the
+// defect coldwalk:site2_closed_account_settled_to_zero_and_in_credit names. Captured as
+// its own key rather than folded into `injected`, whose every entry is required non-empty
+// by a named test and which single-fuel households would otherwise fail.
+const billsByFuel = {};
+for (const [fuel, rec] of [["elec", sandbox.HH.elec], ["gas", sandbox.HH.gas]]) {
+  if (!rec) { billsByFuel[fuel] = null; continue; }
+  sandbox.ACTIVE_TAB = "billing";
+  sandbox.BILL_VIEW = "bills";
+  sandbox.BILL_FUEL = fuel;
+  sandbox.layoutPanels(sandbox.tabPanels());
+  sandbox.renderBills(rec);
+  billsByFuel[fuel] = elements["bills-section"] ? elements["bills-section"]._inner : null;
+}
+sandbox.BILL_FUEL = "elec";
 
 // R15 probes: the mechanism must REFUSE an undeclared side, both at panel() and at the
 // layout boundary (a block hand-built around the helper).
@@ -193,4 +222,4 @@ if (opStateHost) {
   sandbox.setWallView("both");
 }
 
-process.stdout.write(JSON.stringify({ views, injected, probes, opState, opStateProbes, doorWallView }));
+process.stdout.write(JSON.stringify({ views, injected, billsByFuel, probes, opState, opStateProbes, doorWallView }));

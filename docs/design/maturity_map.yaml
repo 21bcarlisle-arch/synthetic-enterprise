@@ -5484,7 +5484,7 @@
   loop_stage: idle
   dial_inherited: 1
   provenance: director_ruling
-  depends_on: [SITE4_ia_register_and_nav]
+  depends_on: [SITE7_capabilities_tab]   # RE-RANKED 2026-08-18: Knowledge follows Capabilities by the director's word ("Knowledge follows straight after"). Its own hard constraint is unchanged and unaffected -- Knowledge must still carry real content before SITE6 deletes the glossary.
   file_scope: ['site/knowledge/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a regulator's guidance library where every topic page is the same 'content coming soon' notice under a different title"
@@ -5511,10 +5511,10 @@
   epoch: 3
   level_current: 0
   level_target: 2
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 1
   provenance: director_ruling
-  depends_on: [SITE6_knowledge_in_nav_glossary_dissolved]
+  depends_on: [SITE4_ia_register_and_nav]   # RE-RANKED 2026-08-18 by the director, ahead of Knowledge: "I want to see a real new tab to judge whether the structure works before four more steps are built on it." LAW A: deviation is allowed and expected, logged with its reason. The proposal itself named SITE7 as the one step with no ordering argument attached.
   file_scope: ['site/capabilities/', 'tools/generate_capabilities_json.py', 'site/sitemap.xml']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a product roadmap that states what does not exist yet, and is believed because of it"
@@ -5529,7 +5529,7 @@
   loop_stage: idle
   dial_inherited: 1
   provenance: director_ruling
-  depends_on: [SITE7_capabilities_tab]
+  depends_on: [SITE6_knowledge_in_nav_glossary_dissolved]   # RE-RANKED 2026-08-18: Capabilities was pulled ahead of Knowledge, and pointing SITE8 at SITE7 would have left Home racing Knowledge for the next draw. The director's order is Capabilities, THEN Knowledge, then the rest -- so Home sits behind the Knowledge pair as it always did.
   file_scope: ['site/index.html', 'site/test_home_door.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an annual report whose contents page lists the same chapter title six times"

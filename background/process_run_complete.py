@@ -2804,6 +2804,19 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("Evidence page generation failed: {}".format(exc))
     try:
+        # SITE7: the Capabilities door. Every status on it is DERIVED from the work record
+        # and the boundary walker, so a feed not regenerated here is a page that silently
+        # freezes at whatever was true the day it was built -- the same orphan-transition
+        # defect the evidence page directly above was wired in to close. Fail-closed by
+        # construction: generate() raises CapabilitySourceUnavailable BEFORE writing on a
+        # missing source or a phantom citation, so a bad source leaves the PREVIOUS feed
+        # live rather than replacing it with a plausible blank.
+        from tools.generate_capabilities_door import generate as gen_capabilities_door
+        gen_capabilities_door()
+        log("Generated site/data/capabilities_door.json (SITE7 Capabilities door)")
+    except Exception as exc:
+        log("Capabilities door generation failed: {}".format(exc))
+    try:
         # Must run after generate_customer_reaction_chain (timeline/reaction_chain
         # patched) and generate_customer_sample (churn_accuracy_by_renewal source).
         # WEBSITE_AS_SHOWCASE.md tab 4: case-study recommender.

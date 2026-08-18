@@ -1,0 +1,440 @@
+{
+ "generated_at": "2026-08-18T09:42:42Z",
+ "git_commit": "b212c47edcd9c1637942944e636feec95868b098",
+ "sources": {
+  "record": "site/data/maturity_map.json",
+  "status_rule": "site/moap_stage.py (Live / Building / Planned)",
+  "seams": "company/interfaces/*.py docstrings",
+  "wall": "tools/wall_crossing_dispositions.py"
+ },
+ "world": {
+  "entries": [
+   {
+    "name": "Weather that behaves like weather",
+    "what": "A joint temperature, wind and solar signal that persists the way real weather does \u2014 cold snaps last for days rather than flickering \u2014 with regional variation that still adds up to the national picture.",
+    "status": "Live",
+    "rests_on": [
+     "W1_3_national_weather_signal",
+     "W1_4_regional_weather_field"
+    ]
+   },
+   {
+    "name": "Prices that come out of physics, not out of a distribution",
+    "what": "Demand is built from weather and buildings; supply is stacked in merit order; the price is what falls out. Nothing samples a price curve directly.",
+    "status": "Live",
+    "rests_on": [
+     "W1_6_physics_price_signal"
+    ]
+   },
+   {
+    "name": "Ten years of real settlement data, revealed in order",
+    "what": "Nearly a decade of actual half-hourly GB settlement records, released to the simulation in the order they happened, so nothing inside can see a day that has not arrived.",
+    "status": "Live",
+    "rests_on": [
+     "W1_reveal_over_time"
+    ]
+   },
+   {
+    "name": "Buildings with real thermal behaviour",
+    "what": "Each home is modelled as a physical fabric with heat loss and thermal mass, which is why a cold week shows up differently in a well-insulated flat and a draughty semi.",
+    "status": "Live",
+    "rests_on": [
+     "W1_11_fabric_physics_core",
+     "W1_12_premise_trace_generator"
+    ]
+   },
+   {
+    "name": "Households with hidden lives",
+    "what": "Income, essential costs, life events \u2014 job loss, illness, a new child \u2014 and the choice between paying and heating. All of it hidden from the supplier, as it is in reality.",
+    "status": "Live",
+    "rests_on": [
+     "W2_4_household_budget",
+     "W2_5_life_event_stream",
+     "W2_7_willingness_classification",
+     "W2_8_self_rationing"
+    ]
+   },
+   {
+    "name": "Business customers that fail like businesses",
+    "what": "Sector shocks, insolvency and late payment behaviour that differ from a household's, because a struggling company does not miss a bill the way a struggling family does.",
+    "status": "Live",
+    "rests_on": [
+     "W2_6_sme_distress_twin"
+    ]
+   },
+   {
+    "name": "The price cap as a real constraint",
+    "what": "Ofgem's cap binds what can be charged rather than sitting in a lookup table, and it changes within the year the way the real one does.",
+    "status": "Building",
+    "rests_on": [
+     "W3_1_price_cap_binding",
+     "W3_1b_intra_year_price_cap_granularity"
+    ]
+   },
+   {
+    "name": "The industry's own settlement timetable",
+    "what": "Volumes are not final on the day. They are trued up over months, on the real schedule.",
+    "status": "Live",
+    "rests_on": [
+     "W3_2_settlement_timetable"
+    ]
+   },
+   {
+    "name": "Banking and payment rails",
+    "what": "Direct Debit collection modelled end to end \u2014 the bank, the acquirer, and the ways a collection actually fails.",
+    "status": "Live",
+    "rests_on": [
+     "W5_1_banking_payment_rails"
+    ]
+   },
+   {
+    "name": "Futures beyond the real record",
+    "what": "Worlds that run past the end of the real data, so the supplier can be tested against conditions that have not happened yet.",
+    "status": "Live",
+    "rests_on": [
+     "W1_2_generate_futures"
+    ]
+   }
+  ],
+  "tally": {
+   "Live": 9,
+   "Building": 1,
+   "Planned": 0
+  }
+ },
+ "supplier": {
+  "entries": [
+   {
+    "name": "Bills that add up",
+    "what": "Every line \u2014 unit rate, standing charge, VAT, the non-commodity costs \u2014 computed and checked to foot, with the arithmetic itself under a control that can fail.",
+    "status": "Live",
+    "rests_on": [
+     "D1_bill_correctness",
+     "F6_bill_integrity_structural"
+    ]
+   },
+   {
+    "name": "Estimated bills, and the correction when the read arrives",
+    "what": "Bills built on an estimate when no meter read exists, then rebilled against the truth when it turns up \u2014 including when a customer leaves mid-cycle.",
+    "status": "Live",
+    "rests_on": [
+     "D3_catchup_rebilling"
+    ]
+   },
+   {
+    "name": "Three clocks kept straight",
+    "what": "What happened physically, what was billed, and what was settled are three different dates, and the supplier reconciles all three per bill rather than pretending they agree.",
+    "status": "Live",
+    "rests_on": [
+     "D2_three_clocks"
+    ]
+   },
+   {
+    "name": "Money matched to the right account",
+    "what": "A payment arrives against a party, an account and an agreement. Allocating it correctly \u2014 including when the amount is ambiguous \u2014 is its own machinery.",
+    "status": "Live",
+    "rests_on": [
+     "D5_account_hierarchy_payments"
+    ]
+   },
+   {
+    "name": "Telling can't-pay from won't-pay",
+    "what": "The supplier infers, from payment behaviour alone, whether an arrears case is hardship or choice \u2014 and it is allowed to get this wrong, which is the point.",
+    "status": "Live",
+    "rests_on": [
+     "C9_cantpay_wontpay_classifier",
+     "C7_life_event_detection"
+    ]
+   },
+   {
+    "name": "Noticing a customer who has stopped heating their home",
+    "what": "A perfect payment record with collapsing consumption is a warning sign, not a good customer. The supplier detects it from the data it can actually see.",
+    "status": "Live",
+    "rests_on": [
+     "C10_self_rationing_detection"
+    ]
+   },
+   {
+    "name": "Weather-normalised demand",
+    "what": "Working out how much of a change in consumption was the weather and how much was the customer \u2014 an inference, from observations, that can be wrong.",
+    "status": "Live",
+    "rests_on": [
+     "C13_weather_normalisation"
+    ]
+   },
+   {
+    "name": "A real set of books",
+    "what": "Double-entry ledger, management accounts, and one reconciled definition of revenue used on every surface that reports it.",
+    "status": "Live",
+    "rests_on": [
+     "E1_ledger_double_entry",
+     "E2_revenue_reconciliation",
+     "E4_supplier_reporting_standard"
+    ]
+   },
+   {
+    "name": "Hedging, and the margin it explains",
+    "what": "Forward cover bought against the book, and a year-over-year bridge that accounts for where the margin actually went.",
+    "status": "Live",
+    "rests_on": [
+     "B1_margin_bridge",
+     "B3_hedge_tariff_alignment"
+    ]
+   },
+   {
+    "name": "Its own regulatory obligations, tracked",
+    "what": "A register of what the licence requires, checked against what the supplier is doing, with the physical-harm duties treated as the serious ones.",
+    "status": "Live",
+    "rests_on": [
+     "F3_obligations_register",
+     "F7_obligations_register_coverage"
+    ]
+   },
+   {
+    "name": "Carbon measured on three ledgers",
+    "what": "Customer, portfolio and grid carbon accounted separately \u2014 the measurement the whole premise rests on.",
+    "status": "Planned",
+    "rests_on": [
+     "E5_carbon_three_ledger"
+    ]
+   },
+   {
+    "name": "A pricing engine",
+    "what": "Building a tariff forward from the cost stack \u2014 wholesale, losses, network, policy \u2014 rather than inheriting a price.",
+    "status": "Planned",
+    "rests_on": [
+     "EP3_pricing_engine_late_truth"
+    ]
+   },
+   {
+    "name": "The collections journey, end to end",
+    "what": "Missed payment, reminder, dunning ladder, arrangement, and the point where a debt is handed on.",
+    "status": "Planned",
+    "rests_on": [
+     "EP4_collections_journey"
+    ]
+   },
+   {
+    "name": "Settlement true-ups on the real timetable",
+    "what": "Following a volume from initial settlement through each reconciliation run, and taking the financial consequence each time it moves.",
+    "status": "Planned",
+    "rests_on": [
+     "EP5_settlement_true_ups"
+    ]
+   }
+  ],
+  "tally": {
+   "Live": 10,
+   "Building": 0,
+   "Planned": 4
+  }
+ },
+ "go_live": {
+  "seams": [
+   {
+    "area": "Settlement and market data",
+    "counterparty": "Elexon Insights (BMRS)",
+    "what": "Half-hourly settlement, system prices and the balancing mechanism.",
+    "status": "Planned",
+    "rests_on": [
+     "EP7_adapter_elexon_insights"
+    ]
+   },
+   {
+    "area": "Smart metering",
+    "counterparty": "DCC (DUIS service requests)",
+    "what": "Reading a meter, changing a tariff, operating the supply switch remotely.",
+    "status": "Planned",
+    "rests_on": [
+     "EP8_adapter_dcc_duis"
+    ]
+   },
+   {
+    "area": "Consented meter access",
+    "counterparty": "n3rgy / DCC Other User",
+    "what": "Half-hourly consumption for a customer who has given consent.",
+    "status": "Planned",
+    "rests_on": [
+     "EP9_adapter_n3rgy_consented_metering"
+    ]
+   },
+   {
+    "area": "Gas industry systems",
+    "counterparty": "Xoserve / UK Link (CDSP)",
+    "what": "Gas registration, meter points and the reconciliation the UNC requires.",
+    "status": "Planned",
+    "rests_on": [
+     "EP10_adapter_uk_link_xoserve"
+    ]
+   },
+   {
+    "area": "Payment collection",
+    "counterparty": "GoCardless (Bacs bureau)",
+    "what": "Presenting Direct Debits and receiving the failures back.",
+    "status": "Planned",
+    "rests_on": [
+     "EP11_adapter_gocardless_bacs"
+    ]
+   },
+   {
+    "area": "Switching",
+    "counterparty": "CSS (electricity) and RGMA/SPAA (gas)",
+    "what": "Gaining and losing customers to other suppliers.",
+    "status": "Planned",
+    "rests_on": [
+     "EP12_adapter_css_rec_switching"
+    ]
+   },
+   {
+    "area": "Carbon intensity",
+    "counterparty": "NESO Carbon Intensity API",
+    "what": "The grid's actual carbon content, half-hour by half-hour.",
+    "status": "Planned",
+    "rests_on": [
+     "EP13_adapter_carbon_intensity"
+    ]
+   },
+   {
+    "area": "Published cost stack",
+    "counterparty": "Ofgem and network operator files",
+    "what": "Cap levels, network charges and policy costs, ingested as the published files they are.",
+    "status": "Planned",
+    "rests_on": [
+     "EP14_adapter_published_cost_stack"
+    ]
+   }
+  ],
+  "tally": {
+   "Live": 0,
+   "Building": 0,
+   "Planned": 8
+  }
+ },
+ "typed_seams": [
+  {
+   "module": "accounting_close",
+   "describes": "Seam: the world hands over settled records and takes back closed books."
+  },
+  {
+   "module": "bill_assembly",
+   "describes": "Seam: the world asks the company to run its billing."
+  },
+  {
+   "module": "billing_experience",
+   "describes": "Seam: the world hands over the bills and takes back what the supplier expects of them."
+  },
+  {
+   "module": "bitemporal_event_log",
+   "describes": "Bitemporal event log \u2014 the ordering-invariant foundation for the reveal- over-time spine (Epoch-2 core, W1_reveal_over_time / D2_three_clocks, one architecture per the closed POINT_IN_TIME_SNAPSHOT_TIER1.md gate)."
+  },
+  {
+   "module": "churn_estimation",
+   "describes": "Seam: the world hands over one renewal's observables and takes back a belief."
+  },
+  {
+   "module": "collections_communication",
+   "describes": "The company's COLLECTIONS-COMMUNICATION surface \u2014 the one place the world may learn the tone of a dunning letter it received."
+  },
+  {
+   "module": "counterparty_collateral",
+   "describes": "Seam: the world hands over the book and the public prices, and takes back a position."
+  },
+  {
+   "module": "credit_refund_requests",
+   "describes": "The company's CREDIT-REFUND surface \u2014 the one place the world may report a closing credit balance and learn what happened to the refund."
+  },
+  {
+   "module": "customer_experience",
+   "describes": "Seam: the world reports what happened to a customer; the company keeps the book."
+  },
+  {
+   "module": "customer_profitability",
+   "describes": "Seam: the world reports the renewal; the supplier decides whether to reprice it."
+  },
+  {
+   "module": "customer_value",
+   "describes": "Seam: the world hands over settled records and takes back the supplier's view of its book."
+  },
+  {
+   "module": "dd_collection_instructions",
+   "describes": "The company's DD-COLLECTIONS surface \u2014 the one place the world may receive the supplier's collection instructions and report back what happened to the money."
+  },
+  {
+   "module": "dd_review",
+   "describes": "Seam: the world hands over the bills and takes back the supplier's ANNUAL DD REVIEW."
+  },
+  {
+   "module": "dd_review_outcome",
+   "describes": "The company's DD-REVIEW surface \u2014 the one place the world may learn what the supplier SET a customer's monthly Direct Debit to."
+  },
+  {
+   "module": "fixed_overhead",
+   "describes": "Seam: the supplier's monthly operating overhead is its own accrual."
+  },
+  {
+   "module": "flexibility_revenue",
+   "describes": "Seam: the world hands over its asset snapshot and takes back the flex book."
+  },
+  {
+   "module": "growth_desk",
+   "describes": "Seam: the world reports the loss; the supplier decides whether to replace it."
+  },
+  {
+   "module": "hedge_desk",
+   "describes": "Seam: the world asks the desk how much of a term is bought forward, and books it."
+  },
+  {
+   "module": "internal_seams",
+   "describes": "Typed internal seams between the company's core financial domains (ARCH1)."
+  },
+  {
+   "module": "market_feed_publication",
+   "describes": "The company's MARKET-FEED INTAKE surface \u2014 the one place the world may publish prices to."
+  },
+  {
+   "module": "point_in_time_view",
+   "describes": "PointInTimeView \u2014 the as-of snapshot object (Epoch-2 core, W1_reveal_over_ time / D2_three_clocks, director-approved bounded start 2026-07-10, per the closed POINT_IN_TIME_SNAPSHOT_TIER1.md gate's Option A scope)."
+  },
+  {
+   "module": "recorded_sim_interface",
+   "describes": "RecordedSimInterface \u2014 the typed mock at the OUTER sim/company seam."
+  },
+  {
+   "module": "renewal_offer",
+   "describes": "The company's RENEWAL-OFFER surface \u2014 the one place the world may ask what the company is quoting a customer for their next term."
+  },
+  {
+   "module": "renewal_rate_chain",
+   "describes": "Seam: the world reports the renewal; the supplier decides what it costs."
+  },
+  {
+   "module": "sim_interface",
+   "describes": "Company Layer \u2014 SIM/Company Interface Seam."
+  },
+  {
+   "module": "statutory_obligations",
+   "describes": "Seam: the world hands over settled volumes and takes back the statutory position."
+  },
+  {
+   "module": "supply_book",
+   "describes": "Company/SIM seam \u2014 THE SUPPLY BOOK (which meter points this supplier has registered)."
+  },
+  {
+   "module": "tou_offer",
+   "describes": "The company's TIME-OF-USE OFFER surface \u2014 the one place the world may ask whether this customer is being offered a ToU tariff this term, and at what pair."
+  },
+  {
+   "module": "tpi_commission",
+   "describes": "Seam: the world hands over settled volume and its I&C roster; the supplier books the commission."
+  }
+ ],
+ "wall": {
+  "live_crossings": 6,
+  "direct": 4,
+  "indirect": 2,
+  "examined": 91,
+  "cut": 85,
+  "owed": 6,
+  "unexamined": 0
+ }
+}

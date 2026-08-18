@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys -- Capabilities</title>
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="stylesheet" href="../brand/brand.css">
+<style>
+/* Brand palette consumed from ../brand/brand.css (BRAG tokens, no raw hex). */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
+.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
+.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
+.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+/* Nav sits on the RIGHT on every section (2026-08-12 director observation, item 3). */
+.site-nav .nav-link:first-of-type { margin-left: auto; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 40px 20px; }
+.hero-h { font-size: 27px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 8px; }
+.hero-sub { font-size: 14px; color: var(--muted); max-width: 760px; margin-bottom: 10px; }
+.stamp { font-size: 11px; color: var(--muted); margin-bottom: 30px; }
+.stamp code { font-size: 10px; }
+h2.sec { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--muted); margin: 38px 0 6px; }
+h3 { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+.sec-lede { font-size: 13px; color: var(--muted); max-width: 760px; margin-bottom: 16px; }
+.sides { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 760px) { .sides { grid-template-columns: 1fr; } }
+.side { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+.side-h { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+.side-p { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+h4.col-h { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); margin: 16px 0 8px; padding-top: 12px; border-top: 1px solid var(--border); }
+.side h4.col-h:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
+.item { margin-bottom: 12px; }
+.item-h { font-size: 13px; font-weight: 600; }
+.item-p { font-size: 12px; color: var(--muted); }
+.pill { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .04em;
+  border-radius: 4px; padding: 1px 5px; margin-left: 6px; vertical-align: middle; text-transform: uppercase; }
+.pill-live { color: var(--green); border: 1px solid var(--green); }
+.pill-building { color: var(--amber); border: 1px solid var(--amber); }
+.pill-planned { color: var(--muted); border: 1px solid var(--border); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; }
+td.who { font-weight: 600; white-space: nowrap; }
+.figs { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 6px; }
+.fig { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; min-width: 120px; }
+.fig-v { font-size: 20px; font-weight: 800; }
+.fig-k { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.note { font-size: 12px; color: var(--muted); max-width: 760px; margin-top: 10px; }
+.inline-link { color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--border); }
+.inline-link:hover { border-bottom-color: var(--blue); }
+footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 11px; color: var(--muted); border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-logo" href="../">Poesys</a>
+  <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
+  <a href="../" class="nav-link">Home</a>
+  <a href="../world/" class="nav-link">The World</a>
+  <a href="../company/" class="nav-link">The Company</a>
+  <a href="./" class="nav-link active">Capabilities</a>
+  <a href="../proof/" class="nav-link">Proof</a>
+  <!-- IA-NAV:END -->
+</nav>
+<div class="wrap">
+  <h1 class="hero-h">Capabilities</h1>
+  <p class="hero-sub">This page answers one question — how far along is this, really? — for both
+  halves of the project: the simulated energy world, and the supplier living inside it. Everything
+  marked <em>planned</em> below does not exist yet.</p>
+  <p class="stamp" id="stamp">Loading&hellip;</p>
+
+  <h2 class="sec">Where it stands</h2>
+  <p class="sec-lede">Each item is written in plain English; its state is not written at all. It is
+  computed from the recorded maturity of the underlying work, using the same rule the architecture
+  diagram uses, so this page cannot claim more than the record carries.</p>
+  <div class="sides">
+    <section class="side">
+      <h3 class="side-h">The world</h3>
+      <p class="side-p">A synthetic Great Britain energy market, built on nearly ten years of real
+      half-hourly settlement data.</p>
+      <div id="world"></div>
+    </section>
+    <section class="side">
+      <h3 class="side-h">The supplier</h3>
+      <p class="side-p">An energy retailer operating inside that world, which can only see what a
+      real supplier could see.</p>
+      <div id="supplier"></div>
+    </section>
+  </div>
+
+  <h2 class="sec">What is not there yet</h2>
+  <p class="sec-lede">Stated plainly, because a capability list with no gaps in it is not a
+  capability list. This includes one gap worth naming directly: the carbon measurement the whole
+  premise rests on is not built.</p>
+  <div id="absent"></div>
+
+  <h2 class="sec">The seams &mdash; where the curtain is</h2>
+  <p class="sec-lede">The supplier never reaches into the world; it reads and writes through named
+  doorways, the same way a real supplier reaches the industry. That boundary is the point of the
+  design: going live means swapping a simulated counterparty for a real one behind an unchanged
+  doorway, not rewriting the supplier. None of these connections is built &mdash; what exists is
+  the boundary they would plug into.</p>
+  <table>
+    <thead><tr><th>Where the world ends</th><th>Who it becomes</th><th>What crosses</th><th>State</th></tr></thead>
+    <tbody id="golive"></tbody>
+  </table>
+
+  <h2 class="sec">How solid the boundary is</h2>
+  <p class="sec-lede">The boundary is not a promise; it is measured, and the measurement is allowed
+  to be unflattering. Every place the supplier's code and the world's code still touch directly is
+  found by a walker, listed, and given a ruling &mdash; cut, or kept for a stated reason.</p>
+  <div class="figs" id="wall"></div>
+  <p class="note" id="wallnote"></p>
+
+  <p class="note">Every figure on this page is generated from the project's own records at the
+  commit shown at the top. Nothing here is typed in by hand except the descriptions, which say what
+  the code does rather than what any run produced.</p>
+</div>
+<footer>
+  &copy; 2026 Poesys Platforms. A proof of concept, not a product.
+</footer>
+<script>
+(function () {
+  var E = function (s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  };
+  var pill = function (s) {
+    var cls = s === "Live" ? "pill-live" : (s === "Building" ? "pill-building" : "pill-planned");
+    return '<span class="pill ' + cls + '">' + E(s) + "</span>";
+  };
+  var item = function (e) {
+    return '<div class="item"><div class="item-h">' + E(e.name) + pill(e.status) +
+      '</div><div class="item-p">' + E(e.what) + "</div></div>";
+  };
+  var column = function (entries, status, heading) {
+    var rows = entries.filter(function (e) { return status.indexOf(e.status) >= 0; });
+    if (!rows.length) { return ""; }
+    return '<h4 class="col-h">' + E(heading) + " &middot; " + rows.length + "</h4>" +
+      rows.map(item).join("");
+  };
+  var side = function (id, data) {
+    document.getElementById(id).innerHTML =
+      column(data.entries, ["Live"], "Now") +
+      column(data.entries, ["Building", "Planned"], "Next");
+  };
+
+  fetch("../data/capabilities_door.json?t=" + Date.now())
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      document.getElementById("stamp").innerHTML =
+        "Generated " + E(d.generated_at) + " at commit <code>" + E((d.git_commit || "").slice(0, 9)) +
+        "</code>, from the project's own work record and the boundary walker.";
+      side("world", d.world);
+      side("supplier", d.supplier);
+
+      var absent = d.world.entries.concat(d.supplier.entries)
+        .filter(function (e) { return e.status === "Planned"; });
+      document.getElementById("absent").innerHTML = absent.length
+        ? absent.map(item).join("")
+        : '<div class="item-p">Nothing on this page is unbuilt, which would be a surprising thing for this page to say &mdash; check the record before believing it.</div>';
+
+      document.getElementById("golive").innerHTML = d.go_live.seams.map(function (s) {
+        return "<tr><td>" + E(s.area) + '</td><td class="who">' + E(s.counterparty) +
+          "</td><td>" + E(s.what) + "</td><td>" + pill(s.status) + "</td></tr>";
+      }).join("");
+
+      var w = d.wall;
+      var figs = [
+        [w.live_crossings, "places they still touch"],
+        [d.typed_seams.length, "doorways built"],
+        [w.examined, "crossings examined"],
+        [w.unexamined, "left unexamined"]
+      ];
+      document.getElementById("wall").innerHTML = figs.map(function (f) {
+        return '<div class="fig"><div class="fig-v">' + E(f[0]) + '</div><div class="fig-k">' +
+          E(f[1]) + "</div></div>";
+      }).join("");
+      document.getElementById("wallnote").innerHTML =
+        "Of " + E(w.examined) + " boundary crossings found and ruled on, " + E(w.cut) +
+        " have been removed and " + E(w.owed) + " are still owed a fix. " +
+        (w.unexamined === 0
+          ? "None is unexamined, which is the property that matters: an unexamined crossing is one nobody has had to defend."
+          : E(w.unexamined) + " have no ruling yet, which is a defect on this page's own terms.") +
+        " The " + E(w.live_crossings) + " remaining are " + E(w.direct) + " direct and " +
+        E(w.indirect) + " reached through another module.";
+    })
+    .catch(function (err) {
+      document.getElementById("stamp").textContent =
+        "This page could not load its data (" + err + "). Nothing below is trustworthy; the figures are absent, not zero.";
+    });
+})();
+</script>
+</body>
+</html>
