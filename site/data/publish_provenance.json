@@ -1,34 +1,34 @@
 {
   "annotation": {
-    "checked_at": "2026-08-18T14:50:17Z",
+    "checked_at": "2026-08-18T17:54:30Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
+      "FAILED tests/background/test_derived_artefact_register.py::TestStaleness::test_every_registered_artefact_is_currently_fresh",
+      "FAILED tests/background/test_finding_classes.py::test_the_live_staging_root_consolidation_holds",
+      "FAILED tests/background/test_forward_attachment_register.py::test_live_tree_has_no_violations",
+      "FAILED tests/background/test_forward_attachment_register.py::test_live_rendering_is_current",
       "FAILED tests/simulation/test_policy_cost_coverage.py::test_the_note_reaches_the_published_report",
-      "FAILED tests/simulation/test_policy_cost_coverage.py::test_the_note_is_derived_from_the_tables_not_narrated",
-      "FAILED tests/simulation/test_policy_cost_coverage.py::test_the_note_is_silent_when_there_is_nothing_to_say",
-      "FAILED tests/simulation/test_policy_cost_coverage.py::test_the_renderer_cannot_reach_across_the_wall_to_compute_this",
-      "FAILED tests/tools/test_capability_index.py::test_the_live_register_rules_on_every_live_orphan",
-      "FAILED tests/tools/test_map_assertion_provenance.py::test_the_live_store_carries_no_stale_hold_record"
+      "FAILED tests/simulation/test_policy_cost_coverage.py::test_the_note_is_derived_from_the_tables_not_narrated"
     ],
-    "nonblocking_reds_total": 13,
-    "open_findings": 98
+    "nonblocking_reds_total": 26,
+    "open_findings": 77
   },
   "last_verified": {
-    "generated_at": "2026-08-18T15:25:47Z",
-    "git_commit": "e4b1653b9",
-    "run_id": "run_output_e4b1653b9_20260818T145117Z.json",
-    "verified_at": "2026-08-18T15:25:47Z"
+    "generated_at": "2026-08-18T18:35:01Z",
+    "git_commit": "cbfe91494",
+    "run_id": "run_output_cbfe91494_20260818T175531Z.json",
+    "verified_at": "2026-08-18T18:35:01Z"
   },
   "paused_reason": "scoped publish-path suite red at git=febf7e51f; blocking tests: see sim-runner-log",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-18T15:25:47Z",
-    "git_commit": "e4b1653b9",
-    "run_id": "run_output_e4b1653b9_20260818T145117Z.json",
-    "verified_at": "2026-08-18T15:25:47Z"
+    "generated_at": "2026-08-18T18:35:01Z",
+    "git_commit": "cbfe91494",
+    "run_id": "run_output_cbfe91494_20260818T175531Z.json",
+    "verified_at": "2026-08-18T18:35:01Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-18T15:25:47Z"
+  "written_at": "2026-08-18T18:35:01Z"
 }
