@@ -230,7 +230,25 @@ def test_the_four_documents_that_motivated_clause_5_are_flagged_aged():
         "ADVISOR_RETRO_FAILURE_MODES_AND_BIRTH_CERTIFICATE_LAW_2026-08-05.md",
     ]
     still_staged = [f for f in motivating if (sanity_daemon.STAGING_ROOT / f).is_file()]
-    assert still_staged, "all four motivating documents have been dispositioned -- nothing left to check"
+    if not still_staged:
+        # CORRECTED 2026-08-18: this asserted `still_staged` was non-empty, so the control
+        # went RED the moment its work was finished -- and it blocked every commit that
+        # selects it, tree-wide, the day the staging triage (cbfe91494) dispositioned the
+        # last of the four. That contradicts this test's OWN docstring, which calls
+        # dispositioning "the intended exit from this mechanism's own visibility, not a
+        # defect in it". A control whose success condition is that its subject still exists
+        # is a control that punishes the work it was built to prompt.
+        #
+        # Skipping is safe here and nowhere near vacuous: the mechanism itself is driven by
+        # SIX synthetic tests above (threshold boundary either side of 72h, fresh documents
+        # never flagged, subdirectories excluded, digest carriage). This test adds only one
+        # thing -- that it works against the REAL staging root -- and when the real root has
+        # none of its named subjects, there is genuinely nothing for it to say.
+        import pytest as _pytest
+        _pytest.skip(
+            "all four motivating documents have been dispositioned out of the staging root "
+            "-- the intended exit; the mechanism is covered by the synthetic tests above"
+        )
 
     aged_names = {e["filename"] for e in sanity_daemon._aged_staging_entries()}
     for f in still_staged:
