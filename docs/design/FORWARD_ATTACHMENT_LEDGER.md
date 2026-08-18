@@ -77,7 +77,7 @@ _epoch 3 · lane D_billing_metering · L2→L2 · harden_
 **The W2_11<->D5 triad's DETECTION_LATENCY dimension -- the one whose whole subject is HOW LATE the co**  
 _epoch 3 · lane D_billing_metering · L2→L2 · harden_
 
-- `2026-08-10` · `docs/staging/WORKER_FINDING_THE_INSTRUMENT_CANNOT_RESOLVE_ITS_OWN_LATENCY_2026-08-10.md` (finding) — minted here, **not** built here)
+- `2026-08-10` · `docs/staging/done/WORKER_FINDING_THE_INSTRUMENT_CANNOT_RESOLVE_ITS_OWN_LATENCY_2026-08-10.md` (finding) — minted here, **not** built here)
 
 ## D8_ambiguous_remittance_misdating
 **Report the Clayton's-Case date displacement as a company failure finding in its own right: unreferen**  
