@@ -1,5 +1,14 @@
 # [DIRECTOR-DECISION] Three verified 2025/26 rates are ready and NOT landed; test-file split is APPROVED (2026-08-14)
 
+**PARKED (2026-08-18, worker triage):** blocking sub-item is §2 — the director's explicit go on the
+three verified rates — and §3 (Low Carbon reconciliation, source found, not transcribed). §1 (test-file
+split) is approved and left to its owning lane. A reminder/recommendation NTFY was sent 2026-08-18
+(id `ji855H4LbP4z`) restating §2 with a recommendation and flagging the two items found on the way
+(CCL 2023/24 possible mis-transcription; Low Carbon reconciliation). Re-park here, not the root, so this
+doesn't re-ring the doorbell every cycle while genuinely waiting on the director's own stated condition
+("a published figure may not move without him being told first") — not silence-is-validation territory,
+his word overrides the default. Unblocks on his explicit reply.
+
 **Severity:** LATENT · **Lane:** W4_the_wall
 
 Two separate things, filed together because they came from one director message.

@@ -556,6 +556,13 @@ REVIEWED_CLOSE_TO_LEARN = {
     # and SITE_evidence_pages_behind_nodes, which owns the page it rewrites. The alternative
     # streams each name a money flow this atom does not touch.
     "SITE12_evidence_a_reader_can_use",
+    # 2026-08-18 reviewed (worker tick, staging triage minting the advisor retro's residual
+    # scope). H43 is a GOVERNANCE-DATA CONTRACT atom -- a schema validator for maturity_map.yaml,
+    # organ output budgets, reconciliation-must-fail extension and a migration ledger. It moves no
+    # money and touches no revenue flow; what it produces is whether the machine's own registers
+    # can be trusted to declare their reader/writer/bound/death, the same close_to_learn class as
+    # its H_harness siblings H29-H35 (test-isolation, diagnosability, control-integrity).
+    "H43_birth_certificate_law_remaining_instantiations",
 }
 
 # The coupled topology landed in the yaml (C5). Each pair is world<->company as

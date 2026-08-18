@@ -916,7 +916,7 @@
   dial_inherited: 1
   records_rehomed: [evidence]
   file_scope: []
-  simplifications_count: 2
+  simplifications_count: 3
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real ops team's disaster-recovery runbook and its own tested RTO, not just an offsite database backup"
   depends_on: [H4_go_live_nfr_register]
@@ -5485,3 +5485,19 @@
   file_scope: ['site/evidence/', 'tools/generate_evidence_data.py', 'site/data/capabilities_door.json', 'tools/generate_capabilities_door.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an auditor's working papers published verbatim as the annual report's evidence section -- every figure traceable and not one sentence written for the person reading it"
+- id: H43_birth_certificate_law_remaining_instantiations
+  title: "The Birth Certificate law's four unbuilt instantiations: a governance-data schema validator, organ output budgets, reconciliation-must-fail, and a migration ledger"
+  gain: "The 2026-08-05 advisor retro (ADVISOR_RETRO_FAILURE_MODES_AND_BIRTH_CERTIFICATE_LAW_2026-08-05) named one law -- anything that persists declares its reader/writer/bound/death, and checks additionally declare a proven failure -- as the lateral fix for five clustered failure modes (write-time blindness, stores born without lifecycles, fields without contracts, checks that pass emptily, migrations without a finish line). Instantiation 1 (lifecycle certificates for the five known rotters) is done and self-applied: the simplifications store this atom's own note lives in (docs/design/simplifications/README.md) carries a Birth Certificate section for itself. The system-level 'bound' amendment graduated separately and was ratified (DIRECTOR_RULING_TRAFFIC_FORECAST_AND_DEEPENING_REGISTER_2026-08-07, in_progress/). Confirmed by search on this tick (no matching module found for any of the four): instantiation 2 (a schema + validating test for maturity_map.yaml and sibling governance YAMLs -- type, id-grammar, edge-must-be-id, dated provenance), instantiation 3 (a dedup key + daily byte/item budget in every writing organ's certificate, naive organ first), instantiation 4 (extend the mutation-test discipline to reconciliation-class checks -- the credit-balance -GBP202-unreleased-for-3.5-years case is the retro's own specified first planted defect), and instantiation 5 (a migration ledger recording each cutover's retirement criterion at start, so 'started, not finished' becomes a standing reportable class) remain unbuilt."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: idle
+  dial_inherited: 1
+  provenance: advisor_retro
+  depends_on: []
+  couples_with: []
+  file_scope: ['docs/design/maturity_map.yaml', 'tools/simplifications_store.py', 'background/naive_organ.py', 'tests/design/test_maturity_map_schema.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a regulator's data-quality rulebook -- every register declares who reads it, who may write it, how it is bounded, and how a check on it was proven to catch a planted error, rather than trusting each new register to reinvent the same disciplines"

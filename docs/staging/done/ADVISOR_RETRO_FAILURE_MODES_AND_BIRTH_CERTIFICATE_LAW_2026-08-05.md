@@ -1,5 +1,17 @@
 # [ADVISOR-RETRO] — Failure modes of the last few days, and one law that prevents the class (2026-08-05)
 
+**DISPOSITION (2026-08-18, worker triage): ADOPT.** The Birth Certificate law is live and
+self-applied (`docs/design/simplifications/README.md`'s own "Birth certificate" section, on the
+store this very note's provenance lives in). Instantiation 1 (lifecycle certificates for the five
+known rotters) is done for the simplifications store; the system-level "bound" amendment graduated
+separately and was ratified (`DIRECTOR_RULING_TRAFFIC_FORECAST_AND_DEEPENING_REGISTER_2026-08-07`,
+`in_progress/`). Instantiations 2-5 (governance-data schema validator, organ output budgets,
+reconciliation-must-fail, migration ledger) were confirmed unbuilt on this tick (no matching module
+found for any of the four) and registered as atom `H43_birth_certificate_law_remaining_instantiations`
+(lane H_harness, epoch 3, level 0, loop_stage idle — QUEUE, not built here). Archived rather than
+re-parked: the retro's own ask ("adopt/adapt/reject with evidence") is answered and its residual
+scope now lives on the map, not only in this document.
+
 **Severity:** LATENT · **Lane:** H_harness
 
 **Type:** [RETRO — findings, patterns, candidate laws]. Director-commissioned: "these all feel like quite basic errors — prevent the same failure modes and think laterally." Evidence base: the structural audit, missing-test-tier review, credit-balance research, data-architecture review, taxonomy audit, and the harness's own July record. Candidate laws are for CC to **adopt / adapt / reject with evidence**, the established pattern. Nothing here duplicates fixes already in flight — those are credited and pointed at.
