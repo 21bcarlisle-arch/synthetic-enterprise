@@ -48,6 +48,8 @@ h4.col-h { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-
 .spec-read { color: var(--green); font-weight: 700; }
 .spec-unread { color: var(--muted); }
 .noproof { color: var(--amber); font-size: 12px; }
+.checks { color: var(--muted); font-size: 12px; }
+.planline { font-size: 12px; color: var(--muted); margin-top: 6px; }
 .proof-link { font-size: 12px; }
 table { border-collapse: collapse; width: 100%; font-size: 13px; }
 th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
@@ -71,6 +73,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <a href="../world/" class="nav-link">The World</a>
   <a href="../company/" class="nav-link">The Company</a>
   <a href="./" class="nav-link active">Capabilities</a>
+  <a href="../knowledge/" class="nav-link">Knowledge</a>
   <a href="../proof/" class="nav-link">Proof</a>
   <!-- IA-NAV:END -->
 </nav>
@@ -102,7 +105,10 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
 
   <h2 class="sec">What the lists above cannot tell you</h2>
   <p class="sec-lede">Not a summary of the columns &mdash; the gaps no single capability can
-  express. Anything already visible above as coming next is deliberately not repeated here.</p>
+  express. Each one names the work that closes it and where that work stands, because a gap
+  with no plan beside it is a confession rather than a plan. No dates: this project treats
+  dates as forecasts and the test as the gate, so what is stated is what the work is waiting
+  on.</p>
   <div id="gaps"></div>
 
   <h2 class="sec">The seams &mdash; where the curtain is</h2>
@@ -146,12 +152,23 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   // A built capability carries a link to the record that makes it built. Where no such
   // record is published, it says so in words rather than linking somewhere plausible --
   // a citation styled as a live link that proves nothing is worse than no citation.
+  // A built claim answers "how do you know?" in words, not with a link into the machine's
+  // own notes. Where nothing is published, it says that rather than pointing somewhere
+  // plausible. Links return when there is a record written for a reader to land on.
   var item = function (e) {
     var proof = "";
     if (e.status === "Live") {
-      proof = e.evidence
-        ? ' <a class="inline-link proof-link" href="' + E(e.evidence) + '">see the record</a>'
-        : ' <span class="noproof">no published record</span>';
+      if (e.checks) {
+        proof = ' <span class="checks">Checked by ' + E(e.checks.checks) +
+          ' automated tests that run on every change' +
+          (e.checks.last_run ? ', last run ' + E(String(e.checks.last_run).slice(0, 10)) : '') +
+          '.</span>';
+      } else {
+        proof = ' <span class="noproof">Nothing published yet shows how this is checked.</span>';
+      }
+      if (e.evidence) {
+        proof += ' <a class="inline-link proof-link" href="' + E(e.evidence) + '">see the record</a>';
+      }
     }
     return '<div class="item"><div class="item-h">' + E(e.name) + pill(e.status) +
       '</div><div class="item-p">' + E(e.what) + proof + "</div></div>";
@@ -177,9 +194,19 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       side("world", d.world);
       side("supplier", d.supplier);
 
+      // Every gap carries what closes it. A gap with no plan beside it is a confession;
+      // a gap with one is a roadmap.
       document.getElementById("gaps").innerHTML = (d.gaps || []).map(function (g) {
+        var p = g.plan, plan = "";
+        if (p) {
+          plan = '<div class="planline"><span class="pill pill-' +
+            (p.drawable_now ? "building" : "planned") + '">' +
+            (p.drawable_now ? "In progress" : "Planned") + "</span> " +
+            E(p.when) + " &middot; " + E(p.items) + " piece(s) of work, " +
+            E(p.started) + " started</div>";
+        }
         return '<div class="item"><div class="item-h">' + E(g.title) + '</div>' +
-          '<div class="item-p">' + E(g.what) + "</div></div>";
+          '<div class="item-p">' + E(g.what) + "</div>" + plan + "</div>";
       }).join("");
 
       var at = d.go_live.access_tally || {};

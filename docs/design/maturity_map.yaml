@@ -5467,3 +5467,19 @@
   file_scope: ['site/_redirects', 'site/proof/', 'site/sitemap.xml', 'site/test_no_links_to_redirected_urls.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "closing a records office whose address is printed on five statutory notices, and forwarding the post before you turn off the lights"
+- id: SITE12_evidence_a_reader_can_use
+  title: "The evidence surface answers a sceptic, not a maintainer"
+  gain: "Director, 2026-08-18, on the Capabilities door's evidence links: 'the evidence links land a reader in the machine's own vocabulary -- atom ids, levels, lane names, file paths ... the outcome I want: a sceptic can get from a claim to the thing that justifies it and understand what they're looking at, without knowing any of our internal language.' MEASURED: /evidence/ renders, per architecture node, a block per work item consisting of a raw id (`D1_bill_correctness`), a level pair (`L3/3`), a lane name (`D_billing_metering`), a loop stage, repo file paths and a ledger entry. Every one of those is on section 6.2's forbidden list, on a page a reader is now sent to FROM a public tab -- so the link satisfies the letter of 'route to evidence' and breaks the rule the whole brief rests on. It also covers only 46 of the record's 314 work items, which is why six built capabilities have no route at all. THIS ATOM IS THE OTHER HALF of a decision already taken on the Capabilities door: the machine links are NOT shipping until this exists, and the page states in plain words what checks a claim instead. What replaces them: a reader-facing answer to 'how do you know?' -- what was checked, how many independent checks, when they last ran, and what would have to be true for the claim to be wrong -- with the machine record behind a 'show the underlying record' control, which is exactly where the brief section 4 puts it. Not a rename of the existing page: its subject is the architecture diagram's nodes, and a sceptic arrives from a CLAIM."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [SITE7_capabilities_tab, SITE_evidence_pages_behind_nodes, SITE9_harness_tab_and_director_record]
+  file_scope: ['site/evidence/', 'tools/generate_evidence_data.py', 'site/data/capabilities_door.json', 'tools/generate_capabilities_door.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an auditor's working papers published verbatim as the annual report's evidence section -- every figure traceable and not one sentence written for the person reading it"

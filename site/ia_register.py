@@ -113,6 +113,12 @@ CANONICAL_NAV: tuple[NavItem, ...] = (
     # on it"). THIS LINE plus a sitemap entry is the whole nav change -- sixteen pages
     # pick it up from `tools/render_site_nav.py --write`. That is what Step 0 bought.
     NavItem("Capabilities", "/capabilities/"),
+    # SITE6 first half, 2026-08-18. The brief ranks Knowledge SECOND, before Capabilities --
+    # domain competence is the credibility signal for the primary audience. It is placed here
+    # rather than there only because the ruled order is a destination and this is a
+    # migration: Home, World and Company are the doors a returning reader already knows, and
+    # re-ordering them is SITE8's job with its own tests. Knowledge joins the nav now.
+    NavItem("Knowledge", "/knowledge/"),
     NavItem("Proof", "/proof/"),
 )
 
@@ -166,15 +172,11 @@ LEGACY_TAIL: dict[str, tuple[tuple[str, str], ...]] = {
         ("Customers", "/customers/"),
         ("Method", "/proof/#method-anchor"),
     ),
-    # absorbed by SITE6 -- Knowledge becomes a canonical tab and this stops being a
-    # deep link into one arbitrary topic page
-    "/world/": (("Knowledge", "/knowledge/electricity-wholesale/"),),
     # absorbed by SITE6 -- the glossary PAGE dies (the glossary LAYER survives)
     "/glossary/": (("Glossary", "/glossary/"),),
-    "/knowledge/": (
-        ("Knowledge", "/knowledge/"),
-        ("Glossary", "/glossary/"),
-    ),
+    # Knowledge's own entry is gone -- it is a canonical tab now. Glossary stays until
+    # SITE6's second half dissolves that page.
+    "/knowledge/": (("Glossary", "/glossary/"),),
     # the three RETIRED pages that render /proof/'s absorbed anchors; absorbed by
     # SITE11 when /proof/ is dissolved and its anchors re-home
     "/method/": (
@@ -204,7 +206,6 @@ LEGACY_TAIL: dict[str, tuple[tuple[str, str], ...]] = {
 # SHRINK-ONLY: `test_ia_register.py` fails if an entry here is no longer an orphan
 # (stale debt claiming credit) and fails on any orphan NOT here (new debt sneaking in).
 ORPHAN_DEBT: dict[str, str] = {
-    "/knowledge/": "SITE6 -- Knowledge becomes a canonical tab",
     "/glossary/": "SITE6 -- the glossary page is 301'd to Knowledge and leaves the sitemap",
     "/customers/": "SITE10 -- reconciled into Explore, which is a canonical tab",
     "/evidence/": "SITE9 -- the machine record folds into Harness behind a drill-down",

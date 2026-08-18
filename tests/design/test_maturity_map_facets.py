@@ -547,6 +547,15 @@ REVIEWED_CLOSE_TO_LEARN = {
     "SITE9_harness_tab_and_director_record",
     "SITE10_explore_traversal",
     "SITE11_proof_dissolved",
+    # 2026-08-18 reviewed (director console). SITE12 is the readable-evidence atom, minted
+    # because the director named the gap and the rule is that a gap with no plan goes ON the
+    # plan. Its subject is what the EVIDENCE SURFACE says and to whom -- it rewrites a
+    # published page for a reader instead of a maintainer. It prices nothing, bills nothing
+    # and settles nothing; it does not even change what is measured, only who can read the
+    # measurement. Same close_to_learn class as SITE1_expert_doors, the three SITE_EH atoms
+    # and SITE_evidence_pages_behind_nodes, which owns the page it rewrites. The alternative
+    # streams each name a money flow this atom does not touch.
+    "SITE12_evidence_a_reader_can_use",
 }
 
 # The coupled topology landed in the yaml (C5). Each pair is world<->company as

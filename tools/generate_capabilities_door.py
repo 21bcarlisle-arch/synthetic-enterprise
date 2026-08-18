@@ -258,13 +258,15 @@ def _status_for(ids: list[str], levels: dict[str, dict]) -> str:
     ])
 
 
-def _entries(register, levels, index: dict[str, str] | None = None) -> list[dict]:
-    index = index or {}
+def _entries(register, levels, index: dict[str, str] | None = None,
+             evidence: dict | None = None) -> list[dict]:
+    index, evidence = index or {}, evidence or {}
     out = []
     for name, blurb, ids in register:
         out.append({
             "name": name, "what": blurb, "status": _status_for(ids, levels), "rests_on": ids,
             "evidence": _evidence_for(ids, index),
+            "checks": _checks_for(ids, evidence),
         })
     return out
 
@@ -345,20 +347,62 @@ def evidence_index(mapping: Path = SITE / "data" / "moap_node_atoms.json") -> di
     return out
 
 
-def _evidence_for(ids: list[str], index: dict[str, str]) -> str | None:
-    """The per-work-item anchor on the evidence page, or None.
+# THE LINKS ARE OFF, AND THIS IS THE DECISION (director, 2026-08-18: "the evidence links land
+# a reader in the machine's own vocabulary ... how and when is yours, including deciding this
+# shouldn't ship until Evidence is rewritten"). They are off.
+#
+# The destination renders a raw work-item id, a maturity level, a lane name, a loop stage and
+# repo file paths -- every one of them on section 6.2's forbidden list, reached FROM a public
+# tab. The link satisfied the letter of "route to evidence" and broke the rule the brief rests
+# on, and it did something worse than fail: it told a reader, in one click, that they are not
+# the audience. A dead link teaches distrust; this taught exclusion.
+#
+# What ships instead is JUSTIFICATION IN PLAIN WORDS, on the claim itself: how many
+# independent automated checks stand behind it and when they last ran. That is what a sceptic
+# actually asks -- "how do you know?" -- answered without teaching anyone a vocabulary. The
+# readable record is minted as SITE12_evidence_a_reader_can_use and the links come back when
+# it lands, pointing at something written for the person reading it.
+_EVIDENCE_LINKS_SHIP = False
 
-    None is a real answer and is rendered as one. The evidence page derives from the
-    architecture diagram's node mapping, which covers 46 of the record's 314 work items, so
-    a capability resting on work that is on no node has NOTHING PUBLISHED that proves it.
-    Linking such a capability to the evidence page's front would be a link that looks like
-    proof and is not, which is the defect a prior review already found on this site (ten
-    citations styled as live links, pointing at a 404).
+
+def _evidence_for(ids: list[str], index: dict[str, str]) -> str | None:
+    """Deliberately None until the evidence surface is written for a reader (SITE12).
+
+    Kept as a function rather than deleted so the decision is one flag with its reasoning
+    beside it, and so the control that asserts every emitted link resolves stays live for the
+    day they return.
     """
+    if not _EVIDENCE_LINKS_SHIP:
+        return None
     for wid in ids:
         if wid in index:
             return f"../evidence/#w-{wid}"
     return None
+
+
+def _checks_for(ids: list[str], evidence: dict) -> dict | None:
+    """How many independent automated checks stand behind a claim, and when they last ran.
+
+    Derived from the published evidence data -- the same source the machine-facing page uses,
+    read for the one number a reader wants rather than rendered as a record. None where the
+    work is not covered by that data at all, which is itself said on the page.
+    """
+    # `test_files` and `test_functions` are COUNTS in this feed, not lists. Summing them over
+    # the cited work items is right for functions and an over-count for files where two items
+    # share a file, so only the function count is published -- an inflated file count on a page
+    # about honesty would be a poor place to be sloppy.
+    seen, funcs = set(), 0
+    for node in evidence.get("nodes") or []:
+        for atom in node.get("atoms") or []:
+            aid = atom.get("id")
+            if aid in ids and aid not in seen:
+                seen.add(aid)
+                value = atom.get("test_functions")
+                funcs += value if isinstance(value, int) else 0
+    if not seen or not funcs:
+        return None
+    return {"checks": funcs, "covered": len(seen), "of": len(ids),
+            "last_run": (evidence.get("suite") or {}).get("timestamp")}
 
 
 def scale(customers: Path = SITE / "data" / "customers.json",
@@ -413,7 +457,58 @@ def _git_commit() -> str:
         return "unknown"
 
 
-def gaps(world: list[dict], supplier: list[dict], seams: list[dict], book: dict) -> list[dict]:
+# EVERY GAP NAMES THE WORK THAT CLOSES IT (director, 2026-08-18: "a gap with no plan beside
+# it is a confession; a gap with a plan is a roadmap ... if something is missing and genuinely
+# isn't on the plan, that's the finding -- put it on the plan").
+#
+# The plan status is DERIVED from those items' own records, never written here: whether work
+# exists, whether it is drawable now or waiting, and what it is waiting on. What is NOT
+# derived is a date, and that is deliberate rather than lazy -- this project's own law says
+# dates are forecasts and the exit test is the only gate, so a date on this page would be the
+# one number a reader would take as a promise. "What it is waiting on" is the honest answer to
+# "when", and it is checkable.
+GAP_PLAN: dict[str, list[str]] = {
+    "book": ["PB3_book_growth_as_earned_outcome"],
+    "counterparties": ["EP19_counterparty_qualification_paths", "EP20_go_live_cutover_analysis"],
+    "unproven": ["SITE12_evidence_a_reader_can_use"],
+    "fidelity": ["G1_fidelity_grid_scorer", "G2_fidelity_evidence_ledger",
+                 "G3_fidelity_inspection_chain"],
+}
+
+
+def plan_for(ids: list[str], levels: dict[str, dict]) -> dict:
+    """What the record says about the work that closes a gap: is it planned, is it drawable,
+    what is it waiting on. Fail-closed -- an id that resolves to nothing raises, because a gap
+    claiming a plan that does not exist is worse than a gap admitting it has none."""
+    missing = [i for i in ids if i not in levels]
+    if missing:
+        raise CapabilitySourceUnavailable(
+            f"a gap cites work that is not in the record: {missing} -- put it on the plan or "
+            "stop claiming it is planned"
+        )
+    items = [levels[i] for i in ids]
+    started = [i for i in items if i["level_current"] > 0]
+    drawable = [i for i in items if i.get("loop_stage") in ("build", "harden")]
+    waiting_on: list[str] = []
+    for item in items:
+        for dep in item.get("depends_on") or []:
+            if dep in levels and levels[dep]["level_current"] < levels[dep]["level_target"]:
+                waiting_on.append(dep)
+    if drawable:
+        when = "being worked on now"
+    elif waiting_on:
+        when = "waiting on earlier work to finish first"
+    else:
+        when = "planned and queued, not started"
+    return {
+        "planned": True, "items": len(items), "started": len(started),
+        "drawable_now": bool(drawable), "when": when,
+        "waiting_on_count": len(set(waiting_on)),
+    }
+
+
+def gaps(world: list[dict], supplier: list[dict], seams: list[dict], book: dict,
+         levels: dict[str, dict]) -> list[dict]:
     """The gaps the two columns above CANNOT show — never a re-list of what they already do.
 
     Director, 2026-08-18: the section "is a verbatim re-list of the supplier's four Next
@@ -431,6 +526,7 @@ def gaps(world: list[dict], supplier: list[dict], seams: list[dict], book: dict)
 
     size = f"{book['low']}" if book["agree"] else f"{book['low']}–{book['high']}"
     out.append({
+        "plan": plan_for(GAP_PLAN["book"], levels),
         "title": f"The book is {size} customers",
         "what": (
             f"Everything on this page is true of a supplier with {size} accounts. "
@@ -448,6 +544,10 @@ def gaps(world: list[dict], supplier: list[dict], seams: list[dict], book: dict)
     part_built = [e for e in world + supplier if e["status"] == BUILDING]
     if part_built:
         out.append({
+            # The plan for a part-built capability is the capability itself: it is on the map,
+            # it has a target above where it sits, and that is what "next" in the column means.
+            "plan": {"planned": True, "items": len(part_built), "started": len(part_built),
+                     "drawable_now": True, "when": "being worked on now", "waiting_on_count": 0},
             "title": "Half-built, not absent",
             "what": ("Listed above as coming next, which understates it: these exist and work "
                      "in part, and are not finished. " +
@@ -457,6 +557,7 @@ def gaps(world: list[dict], supplier: list[dict], seams: list[dict], book: dict)
     if not any(s["status"] == LIVE for s in seams):
         read = [s for s in seams if s.get("spec")]
         out.append({
+            "plan": plan_for(GAP_PLAN["counterparties"], levels),
             "title": "Nothing here has ever spoken to a real counterparty",
             "what": (
                 f"All {len(seams)} connections to the real industry are unbuilt, so every figure "
@@ -471,22 +572,29 @@ def gaps(world: list[dict], supplier: list[dict], seams: list[dict], book: dict)
     if unproven:
         built = [e for e in world + supplier if e["status"] == LIVE]
         out.append({
-            "title": f"{len(unproven)} of {len(built)} built capabilities have nothing published that proves them",
+            "plan": plan_for(GAP_PLAN["unproven"], levels),
+            "title": "No claim on this page yet links to a record a reader could use",
             "what": (
-                "Every item marked as built above should link to the record that makes it so. "
-                f"{len(unproven)} do not, because the evidence pages are generated from the "
-                "architecture diagram, and the diagram covers a fraction of the work: "
-                + ", ".join(e["name"] for e in unproven)
-                + ". Their records exist in the project's own files; they are not published. "
-                "Said here rather than hidden by pointing the links somewhere plausible."
+                "Every item marked as built should be traceable to what makes it so. The "
+                "records exist, and they are written for whoever maintains this project -- "
+                "internal identifiers, maturity levels, file paths -- so sending a reader to "
+                f"them would satisfy the letter of the request and teach nothing. {len(unproven)} "
+                f"of {len(built)} built capabilities have no published record at all, because "
+                "the evidence pages are generated from the architecture diagram and it covers a "
+                "fraction of the work. Rather than link to the machine's own notes, each claim "
+                "below states in plain words what checks it. A record written for a reader is "
+                "on the plan and is the next thing built here."
             ),
         })
 
     out.append({
+        "plan": plan_for(GAP_PLAN["fidelity"], levels),
         "title": "This page cannot tell you whether the simulation is right",
         "what": ("It reports what has been built and how far, not whether the world it models "
-                 "behaves like the real one. That is a different question with its own evidence, "
-                 "and a capability list is the wrong place to answer it."),
+                 "behaves like the real one. That is a different question, it is measured "
+                 "elsewhere in this project against real market history, and the measurement "
+                 "publishes its own worst failures. A capability list is the wrong place to "
+                 "answer it -- but it is answered."),
     })
     return out
 
@@ -494,7 +602,12 @@ def gaps(world: list[dict], supplier: list[dict], seams: list[dict], book: dict)
 def build(feed: Path = MAP_FEED) -> dict:
     levels = _levels(feed)
     index = evidence_index()
-    world, supplier = _entries(WORLD, levels, index), _entries(SUPPLIER, levels, index)
+    try:
+        evidence = json.loads((SITE / "data" / "evidence.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        raise CapabilitySourceUnavailable(f"evidence data unreadable: {e}") from e
+    world = _entries(WORLD, levels, index, evidence)
+    supplier = _entries(SUPPLIER, levels, index, evidence)
     seams = [
         {"area": s["area"], "counterparty": s["who"], "what": s["what"],
          "access": s["access"], "gate": s["gate"], "spec": s["spec"],
@@ -527,7 +640,7 @@ def build(feed: Path = MAP_FEED) -> dict:
         "typed_seams": typed_seams(),
         "wall": wall_position(),
         "scale": book,
-        "gaps": gaps(world, supplier, seams, book),
+        "gaps": gaps(world, supplier, seams, book, levels),
     }
 
 

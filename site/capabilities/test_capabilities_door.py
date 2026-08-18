@@ -251,18 +251,45 @@ def test_a_disagreement_about_the_book_size_is_published_not_resolved_silently(f
             )
 
 
-def test_every_built_capability_either_links_to_a_record_or_is_named_as_unproven(feed):
-    """#3. 'A sceptic should be able to get from Bills that add up to the thing that proves
-    it in one click.' Where no record is published the page must SAY so — never link
-    somewhere plausible, which is the dead-citation defect."""
+def test_every_built_capability_answers_how_do_you_know(feed):
+    """#3, restated after the director's second pass. The first version demanded a LINK, and
+    the link landed a reader in internal vocabulary -- work-item ids, maturity levels, lane
+    names, file paths -- which satisfied the letter of the request while teaching the reader
+    they were not the audience. The outcome asked for is that a sceptic can get from a claim
+    to what justifies it AND understand it. So every built claim must answer in plain words:
+    either how many independent checks stand behind it, or that nothing is published yet.
+    Silence is the failure."""
     live = [e for e in feed["world"]["entries"] + feed["supplier"]["entries"]
             if e["status"] == "Live"]
-    unlinked = [e for e in live if not e["evidence"]]
-    blob = " ".join(g["title"] + " " + g["what"] for g in feed["gaps"])
-    for entry in unlinked:
-        assert entry["name"] in blob, (
-            f"{entry['name']!r} is built, links to nothing, and is not declared unproven"
-        )
+    assert live, "no built capabilities -- this control would be vacuous"
+    for entry in live:
+        assert "checks" in entry, f"{entry['name']!r} does not answer how it is known"
+        checks = entry["checks"]
+        if checks is not None:
+            assert isinstance(checks.get("checks"), int) and checks["checks"] > 0, entry["name"]
+
+
+def test_no_machine_facing_link_ships_while_the_record_is_unreadable(feed):
+    """The decision, enforced rather than commented. The evidence page is written for whoever
+    maintains this project; until a reader-facing record exists (SITE12), NO capability may
+    emit a link into it. If this fires, someone flipped the flag without rewriting the
+    destination."""
+    from tools import generate_capabilities_door as g
+    everything = (feed["world"]["entries"] + feed["supplier"]["entries"]
+                  + feed["go_live"]["seams"])
+    if not g._EVIDENCE_LINKS_SHIP:
+        emitted = [e.get("name") or e.get("area") for e in everything if e.get("evidence")]
+        assert not emitted, f"machine-facing links shipped while switched off: {emitted}"
+
+
+def test_the_unreadable_evidence_gap_is_on_the_plan(feed):
+    """'If something is missing and genuinely isn't on the plan, that's the finding -- put it
+    on the plan.' The readable record was missing and unplanned; it is now an atom, and this
+    fails if that gap ever appears without one."""
+    unreadable = [g for g in feed["gaps"] if "record a reader could use" in g["title"]]
+    assert unreadable, "the missing readable-evidence gap is no longer stated"
+    plan = unreadable[0].get("plan")
+    assert plan and plan["planned"] and plan["items"] >= 1, plan
 
 
 def test_every_evidence_link_resolves_to_an_anchor_that_exists(feed):
