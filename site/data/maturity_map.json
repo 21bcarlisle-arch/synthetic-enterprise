@@ -2448,7 +2448,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 101,
+      "stall_consecutive_unchanged": 102,
       "forward_attachments": []
     },
     {
@@ -2820,7 +2820,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 86,
+      "stall_consecutive_unchanged": 90,
       "forward_attachments": []
     },
     {
@@ -3163,7 +3163,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 16,
+      "stall_consecutive_unchanged": 17,
       "forward_attachments": []
     },
     {
@@ -3215,7 +3215,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3,
+      "stall_consecutive_unchanged": 4,
       "forward_attachments": []
     },
     {
@@ -3293,7 +3293,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 71,
+      "stall_consecutive_unchanged": 72,
       "forward_attachments": []
     },
     {
@@ -5078,7 +5078,7 @@
     },
     {
       "id": "KNIFE3_wall_crossing_paydown",
-      "name": "KNIFE pass 3 of 4 (AO5), LAST of the three wall passes. Cut the crossings that survive passes 1 and 2. STALE-DOORBELL NOTICE (RE-STATED 2026-08-18, step 40; it went stale by two steps once, the class it exists to stop -- REFRESH THESE NUMBERS every step, here and in the yaml. Held under the spine ratchet by compression, never by raising it): the FIRST STEP described below is DONE -- build_edges/company_reads_sim/sim_reads_company live in tools/epistemic_wall.py as the one shared definition, and tests/architecture/test_epistemic_wall_single_source.py enforces it. PARTIALLY BUILT: 40 steps, ALL LANDED AT HEAD as of 2026-08-18 by step 40 -- AND THIS FIELD CLAIMED EXACTLY THAT AT STEPS 37 AND 39 AND WAS FALSE BOTH TIMES (step 39 wrote the entire A_composition_lift cut, its ratchet entry and its own falsifier -- the falsifier UNTRACKED -- and committed none of it; step 40 landed it, 3ai), so confirm it with `git cat-file`, never by reading here. THE FIELD IS WRITTEN BY THE STEP ABOUT TO FAIL THE CHECK IT DESCRIBES, so it cannot catch itself -- three strikes (36, 37, 39) spend it as the primary mechanism. DO NOT REDRAW AS IF FROM ZERO. NEVER TRUST THIS FIELD'S COUNTS OVER THE TOOL, AND RUN THE TOOL BOTH WAYS: `python3 -m tools.wall_crossing_dispositions` measures the WORKING TREE, `--at-head` the COMMITTED one. RUN --at-head BEFORE PLANNING AND BEFORE CLOSING -- it is the ONLY thing that has ever caught this, at steps 38 and 40, because every working-tree instrument agrees with the false claim (all read the one tree). BUILT is not LANDED, and a step whose whole deliverable is a landing has not STARTED until `git cat-file` finds it. A pathspec built from a diff lists what you CHANGED, never what your change NEEDS (step 37's missed 3 files) -- BUILD THE COMMIT'S TREE AND TEST IN IT, never in the working tree. LIVE STATE per docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md 3ah (landed by 3ai): 91 ruled, 86 cut, 5 owed -- 3 to B2_company_brain_decides_the_world, 2 to B14_the_run_does_not_measure_itself (COUNTED FROM THE REGISTER'S OWN OWED ROWS, never by subtraction), matching knife_hotspot_measure.py's live 5 (3 direct + 2 indirect). A_composition_lift IS PAID (step 39, 3ah) and B12 IS CUT (step 35, 3ad); BOTH design blocks have MOVED TO 3a (executed) -- do not plan against either. ONLY TWO DESIGNS REMAIN AND NEITHER IS MECHANICAL. B2 is the coupled-triad build: simulation.customer_events imports the company's churn model, churn-risk model and home-move win rates to decide WHO ACTUALLY CHURNS, so the company's belief cannot be wrong about churn because it IS churn -- its block says in as many words it must NOT be attempted as a mechanical move, and twice now an edge parked here turned out to be B3's cheap constant instead, so CHECK IT ACTUALLY DECIDES WHO CHURNS before treating it as B2. B14's cut is written in 3 with its one measured cost stated up front: scoring outside the run means PERSISTING the hidden payment truth, so a step taking it must say where that artefact lives and why the company cannot read it; note its 2 rows are INDIRECT, and an indirect row prints `hops=` (the SHORTEST bridge chain) while `entries` names EVERY first-hop bridge -- QUOTE `entries`, NEVER `hops` (step 32 named a cut off hops alone; step 33 measured it and it cut NOTHING). level_current is DELIBERATELY still 0 at 5/91 remaining -- booking the target at ninety-five-percent-paid is the false-completion class this project names explicitly; do not bump level_target progress until owed=0. Original text preserved below for provenance. || ORIGINAL: FIRST STEP, BEFORE ANY CUT: lift build_edges / company_reads_sim / sim_reads_company out of tests/architecture/test_epistemic_wall_ratchet.py into a shared module so the ratchet, the KNIFE ledger and this pass read ONE definition of 'a crossing'. That extraction is deliberately deferred to here rather than done while planning, because moving the net while planning the cuts is the error the MAP->NET->KNIFE sequence exists to prevent. EXIT: stated when the pass is drawn, against the count that survives passes 1 and 2 -- NOT against today's 107, which will be stale.",
+      "name": "KNIFE pass 3 of 4 (AO5), LAST of the three wall passes. Cut the crossings that survive passes 1 and 2. STALE-DOORBELL NOTICE (RE-STATED 2026-08-18, step 41; it went stale by two steps once, the class it exists to stop -- REFRESH THESE NUMBERS every step, here and in the yaml. Held under the spine ratchet by compression, never by raising it): the FIRST STEP described below is DONE -- build_edges/company_reads_sim/sim_reads_company live in tools/epistemic_wall.py as the one shared definition, and tests/architecture/test_epistemic_wall_single_source.py enforces it. PARTIALLY BUILT: 41 steps, all landed at HEAD as of 2026-08-18 by step 41 -- AND THIS FIELD CLAIMED EXACTLY THAT AT STEPS 37, 39 AND 40 AND WAS FALSE ALL THREE TIMES, so confirm it with `git cat-file`, never by reading here. Step 39 wrote the whole A_composition_lift cut and committed none of it; step 40 then wrote 3ai, TITLED `the landing of 3ah, performed`, closing with a verification sentence -- and committed none of THAT either; step 41 landed both (3aj). THE FIELD IS WRITTEN BY THE STEP ABOUT TO FAIL THE CHECK IT DESCRIBES, so it cannot catch itself -- FOUR strikes (36, 37, 39, 40) spend it entirely as a mechanism. IT IS NO LONGER THE CONTROL: the replacement is a supervisor DRAW RUNG comparing the walker at HEAD against the working tree, registered as WORKER_FINDING_A_LANDING_STEP_CAN_ONLY_BE_CAUGHT_BY_A_TREE_IT_DOES_NOT_CONTROL_2026-08-18, and 3aj states why NO in-tree test can be that control (at steps 39 and 40 the working tree was self-consistent at 5/86/5 -- every in-tree instrument, the gate's would-be tree included, was green while the claim was false). DO NOT REDRAW AS IF FROM ZERO. NEVER TRUST THIS FIELD'S COUNTS OVER THE TOOL, AND RUN THE TOOL BOTH WAYS: `python3 -m tools.wall_crossing_dispositions` measures the WORKING TREE, `--at-head` the COMMITTED one. RUN --at-head BEFORE PLANNING AND BEFORE CLOSING -- it is the ONLY thing that has ever caught this, at steps 38, 40 and 41. BUILT is not LANDED, and a step whose whole deliverable is a landing has not STARTED until `git cat-file` finds it. A pathspec built from a diff lists what you CHANGED, never what your change NEEDS (step 37's missed 3 files) -- BUILD THE COMMIT'S TREE AND TEST IN IT, never in the working tree; and a DIRTY SHARED TREE IS NOT A CHANGE SET (step 41 dropped tests/simulation/test_policy_cost_coverage.py, another lane's untracked falsifier whose producer exists in no tree, which would have put 4 red tests in HEAD). LIVE STATE per docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md 3ah (landed by 3aj): 91 ruled, 86 cut, 5 owed -- 3 to B2_company_brain_decides_the_world, 2 to B14_the_run_does_not_measure_itself (COUNTED FROM THE REGISTER'S OWN OWED ROWS, never by subtraction), matching knife_hotspot_measure.py's live 5 (3 direct + 2 indirect). A_composition_lift IS PAID (step 39, 3ah) and B12 IS CUT (step 35, 3ad); BOTH design blocks have MOVED TO 3a (executed) -- do not plan against either. ONLY TWO DESIGNS REMAIN AND NEITHER IS MECHANICAL. B2 is the coupled-triad build: simulation.customer_events imports the company's churn model, churn-risk model and home-move win rates to decide WHO ACTUALLY CHURNS, so the company's belief cannot be wrong about churn because it IS churn -- its block says in as many words it must NOT be attempted as a mechanical move, and twice now an edge parked here turned out to be B3's cheap constant instead, so CHECK IT ACTUALLY DECIDES WHO CHURNS before treating it as B2. B14's cut is written in 3 with its one measured cost stated up front: scoring outside the run means PERSISTING the hidden payment truth, so a step taking it must say where that artefact lives and why the company cannot read it; note its 2 rows are INDIRECT, and an indirect row prints `hops=` (the SHORTEST bridge chain) while `entries` names EVERY first-hop bridge -- QUOTE `entries`, NEVER `hops` (step 32 named a cut off hops alone; step 33 measured it and it cut NOTHING). level_current is DELIBERATELY still 0 at 5/91 remaining -- booking the target at ninety-five-percent-paid is the false-completion class this project names explicitly; do not bump level_target progress until owed=0. Original text preserved below for provenance. || ORIGINAL: FIRST STEP, BEFORE ANY CUT: lift build_edges / company_reads_sim / sim_reads_company out of tests/architecture/test_epistemic_wall_ratchet.py into a shared module so the ratchet, the KNIFE ledger and this pass read ONE definition of 'a crossing'. That extraction is deliberately deferred to here rather than done while planning, because moving the net while planning the cuts is the error the MAP->NET->KNIFE sequence exists to prevent. EXIT: stated when the pass is drawn, against the count that survives passes 1 and 2 -- NOT against today's 107, which will be stale.",
       "lane": "H_harness",
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
@@ -5097,7 +5097,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 764,
+      "stall_consecutive_unchanged": 772,
       "forward_attachments": []
     },
     {
@@ -5384,7 +5384,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 79,
+      "stall_consecutive_unchanged": 80,
       "forward_attachments": []
     },
     {
@@ -5406,7 +5406,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 61,
+      "stall_consecutive_unchanged": 62,
       "forward_attachments": []
     },
     {
@@ -5472,7 +5472,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 43,
+      "stall_consecutive_unchanged": 44,
       "forward_attachments": []
     },
     {
@@ -5516,7 +5516,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 54,
+      "stall_consecutive_unchanged": 55,
       "forward_attachments": []
     },
     {
@@ -5538,7 +5538,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 52,
+      "stall_consecutive_unchanged": 53,
       "forward_attachments": []
     },
     {
@@ -5584,7 +5584,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 69,
+      "stall_consecutive_unchanged": 71,
       "forward_attachments": []
     },
     {
@@ -5650,7 +5650,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 63,
+      "stall_consecutive_unchanged": 64,
       "forward_attachments": []
     },
     {
@@ -5733,7 +5733,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 12,
+      "stall_consecutive_unchanged": 13,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -6044,7 +6044,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 204,
+      "stall_consecutive_unchanged": 206,
       "forward_attachments": []
     },
     {
@@ -6574,7 +6574,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 6,
+      "stall_consecutive_unchanged": 10,
       "forward_attachments": []
     },
     {
@@ -6860,7 +6860,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 167,
+      "stall_consecutive_unchanged": 172,
       "forward_attachments": []
     },
     {
@@ -6882,7 +6882,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 5,
+      "stall_consecutive_unchanged": 6,
       "forward_attachments": []
     },
     {
@@ -6926,7 +6926,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 4,
+      "stall_consecutive_unchanged": 5,
       "forward_attachments": []
     },
     {
@@ -6973,7 +6973,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 149,
+      "stall_consecutive_unchanged": 155,
       "forward_attachments": []
     },
     {
@@ -6995,7 +6995,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 6,
+      "stall_consecutive_unchanged": 7,
       "forward_attachments": []
     },
     {
