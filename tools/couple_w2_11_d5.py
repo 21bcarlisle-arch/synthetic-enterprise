@@ -156,7 +156,7 @@ import textwrap
 from datetime import date, datetime, time, timedelta, timezone
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import Callable, Dict, List, Optional, Sequence, Tuple
+from typing import Callable, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from simulation.payment_behaviour_source import (
     DIRECT_DEBIT,
@@ -478,6 +478,7 @@ def build_scenario(
     force_payment_method: Optional[str] = None,
     cycle_spread_days: Optional[int] = None,
     organ_failure_window_drift_days: int = 0,
+    force_income_stress: Optional[str] = None,
 ) -> Tuple[List[PeriodRecord], PaymentObservationConsumer, LedgerBook, date]:
     """Run the coupled loop over `n_customers` resi households x `N_PERIODS`
     billing periods each. Returns (truth_records, consumer, ledger_book,
@@ -504,6 +505,22 @@ def build_scenario(
     resolution claim is differential rather than a bare assertion about the
     shipped book. Declared here rather than monkeypatched for the same D20
     reason as `force_payment_method`. Never used by the scored population.
+
+    `force_income_stress` pins every customer to ONE stress tier instead of
+    drawing from `_STRESS_MIX`. It is the FOURTH declared counterfactual
+    population and it exists for one named purpose (atom D28, 2026-08-18): the
+    stress mix is the axis the detection reading's QUANTISATION lives on, and
+    until this parameter existed the only book in the repo that varied it was
+    `_publish_one_book`'s -- built by hand, all-high, and never swept. On an
+    all-high book `days_late` takes no value below 30, so nobody pays mildly
+    late, so the scored `k*` multiset has a hole and the reading has a hole in
+    its resolution: 6 of the 7 runs `ORGAN_QUERY_GRID` declares inside
+    [-10, +40] are read APART there. `measure_recon_collapsed_runs_stress_axis`
+    is the sweep that puts the declaration on trial along it. The draw-size
+    axis built earlier the same day cannot reach this: it varies `n_customers`
+    and the seed, which is exactly the axis this defect is INVARIANT along.
+    R13: it does not touch the baseline world -- it builds a second, explicitly
+    labelled one, used only by that axis. Never used by the scored population.
 
     `organ_failure_window_drift_days` is the THIRD declared counterfactual
     company (atom D27, Expert Hour #9): the supplier holds the wrong DD/rail
@@ -556,7 +573,8 @@ def build_scenario(
 
     for i in range(n_customers):
         cid = f"{namespace}C{i:06d}"
-        stress = _pick_stress(cid)
+        stress = (force_income_stress if force_income_stress is not None
+                  else _pick_stress(cid))
         method = (force_payment_method if force_payment_method is not None
                   else generate_payment_method(cid, fuel="electricity"))
         account_id = f"ACC-{cid}"
@@ -2284,6 +2302,59 @@ ORGAN_QUERY_GRID: Dict[str, Dict[str, object]] = {
         # The interior runs are the quantisation: this reading is not
         # continuous in days anywhere.
         "collapsed_runs": _RECON_SET_COLLAPSED_RUNS,
+        # AND THE INTERIOR CARRIES ITS SCOPE TOO (atom D28, 2026-08-18). The
+        # edges got a scope, an axis, a sweep, a control and a per-run
+        # derivation that morning; this literal sat in the same dict and got
+        # none of them, while being the thing the stamped sentence sends the
+        # reader to. `n_customers`/`seeds` are the sibling's; `stress_mix` is
+        # the axis the draw-size sweep is INVARIANT along and therefore could
+        # never have found. The three measured figures are the counterexample
+        # itself, held here so `check_recon_collapsed_runs_stress_axis` can put
+        # the declaration on trial against a re-measurement rather than against
+        # a copy of itself.
+        "collapsed_runs_scope": {
+            "atom": "D28_the_detection_gap_is_quantised_by_this_books_placement",
+            "n_customers": 300,
+            "seeds": (7, 11, 23),
+            "stress_mix": "build_scenario's own `_STRESS_MIX`",
+            "window": (-10, 40),
+            "declared_in_window": 7,
+            # The worst tier on the axis and what it does to the declaration --
+            # RE-DERIVED by the control, never read back from here (a count
+            # nobody re-measures is the D22/D25 decay this register keeps
+            # catching). `moderate` reads 6 of the 7 declared runs APART and
+            # leaves the baseline company in no run at all.
+            "worst_tier": "moderate",
+            "read_apart_on_worst_tier": 6,
+        },
+        # THE AXIS THE DECLARATION IS FALSE ALONG, declared so the control has
+        # something to fail against. `force_income_stress` builds each book;
+        # "mix" is the shipped `_STRESS_MIX` and is the null control -- it must
+        # REPRODUCE the run at the origin, or the all-high result below is
+        # reading noise rather than a scope error.
+        "stress_mix_axis": {
+            "atom": "D28_the_detection_gap_is_quantised_by_this_books_placement",
+            "tiers": ("mix", "low", "moderate", "high"),
+            "n_customers": 300,
+            "seeds": (7, 11, 23),
+            "null_control_tier": "mix",
+            # THE NULL CONTROL'S OWN FIGURE. On `build_scenario`'s shipped mix
+            # the declaration reproduces EXACTLY inside the window, both
+            # directions, and the baseline company sits in the declared `(0, 1)`
+            # -- so what the three pinned tiers below show is a scope error and
+            # not draw noise.
+            "run_at_origin_on_mix": (0, 1),
+            # ALL THREE PINNED TIERS FALSIFY IT, in both directions and for one
+            # reason: pinning the tier puts a hole in `days_late`, and `k*` on a
+            # negative is `days_late - grace`, so a hole in `days_late` is a hole
+            # in the resolution. `low` collapses 16 boundaries the register says
+            # resolve two companies (the run at the origin is 16 days wide
+            # against a declared 2); `high` collapses 13 and splits 2; `moderate`
+            # splits 8, reading 6 of the 7 declared runs apart and leaving the
+            # baseline in no run at all. Measured 2026-08-18.
+            "tiers_disagreeing_with_the_declaration": ("low", "moderate",
+                                                       "high"),
+        },
         "saturates_below": -6,
         "saturates_above": 82,
         "saturation_atom": "BOUND:the flag-everything set",
@@ -3671,6 +3742,259 @@ def check_recon_band_population_axis(
     return violations
 
 
+def measure_recon_collapsed_runs_stress_axis(
+    *,
+    tiers: Optional[Sequence[str]] = None,
+    n_customers: Optional[int] = None,
+    seeds: Optional[Sequence[int]] = None,
+    builder: Optional[Callable[[int, int, Optional[str]], tuple]] = None,
+) -> Dict[str, object]:
+    """SWEEP THE INTERIOR ACROSS THE STRESS MIX (atom D28, 2026-08-18), the axis
+    neither sibling control can reach.
+
+    `measure_organ_query_grid_saturation` sweeps the GRID and takes one
+    population; `measure_recon_band_population_axis` sweeps the DRAW SIZE and
+    takes `build_scenario`'s stress mix. `collapsed_runs` is invariant along the
+    second and false along a third nobody had built -- which is the R15 shape
+    here: not tautology, not fail-open, a HARNESS CONVENIENCE choosing the
+    subject, one field over from where the same shape was caught that morning.
+
+    SEED SEMANTICS ARE THE REGISTER'S, not one book's. A declared run is a group
+    reading bit-identical on EVERY seed, so the exits are UNIONED across seeds
+    before the runs are derived: a case exiting at `k+1` on any seed splits the
+    run there. That makes this measurement and the declaration the same kind of
+    object, which is the only way one can fail against the other.
+
+    Predictor-only -- no `score_triad` call anywhere, so the whole axis costs
+    what one drift of the sibling sweep costs.
+    """
+    entry = ORGAN_QUERY_GRID["flagged_via_reconciliation"]
+    axis = entry["stress_mix_axis"]
+    ts = tuple(axis["tiers"]) if tiers is None else tuple(tiers)
+    n = int(axis["n_customers"]) if n_customers is None else int(n_customers)
+    ss = tuple(axis["seeds"]) if seeds is None else tuple(seeds)
+    null_tier = str(axis["null_control_tier"])
+    build = builder if builder is not None else (
+        lambda nn, s, tier: build_scenario(
+            nn, seed=s,
+            force_income_stress=(None if tier == null_tier else tier)))
+
+    declared = tuple(tuple(r) for r in entry["collapsed_runs"])
+    lo_w, hi_w = tuple(entry["collapsed_runs_scope"]["window"])
+    in_window = tuple(r for r in declared
+                      if all(lo_w <= k <= hi_w for k in r))
+    # THE COMPARISON IS OVER BOUNDARIES, NOT OVER RUN TUPLES, and the register's
+    # own first run is why. `_RECON_SET_COLLAPSED_RUNS[0]` is
+    # `(-30, -20, -19, ... -6)` -- NON-CONTIGUOUS, because `-30` is a declared
+    # `collapsed_pairs` member unioned into the sweep's grid from outside the
+    # book's own range. A tuple-equality test calls that run undeclared on every
+    # tier including the null control, which is a red null control for a reason
+    # that has nothing to do with the stress mix.
+    #
+    # A run list read as an EXHAUSTIVE claim (which is the rule
+    # `_check_saturation_and_collapse` holds it to) says exactly which
+    # boundaries are non-exits: `k` is a non-exit iff `k` and `k-1` sit in one
+    # declared run. Everything else in the window the register is claiming IS an
+    # exit. So the two structures are compared as sets of boundaries, and the
+    # disagreement splits cleanly into the two directions.
+    boundaries = tuple(range(lo_w + 1, hi_w + 1))
+    declared_non_exits = {k for r in declared for k in r[1:] if k - 1 in r}
+    declared_non_exits &= set(boundaries)
+
+    by_tier: Dict[str, Dict[str, object]] = {}
+    for tier in ts:
+        exits: set = set()
+        grid: set = set()
+        for s in ss:
+            records, consumer, _ledger_book, as_of = build(n, s, tier)
+            thresholds = predict_recon_exit_thresholds(records, consumer, as_of)
+            scored = ((set(never_flaggable_band(
+                records, DEFAULT_RECONCILIATION_GRACE_DAYS))
+                | {(r.customer_id, r.period_index)
+                   for r in records if r.result == "failed"})
+                & set(thresholds))
+            dd = observed_dd_flagged_set(records, consumer, as_of)
+            exits |= {thresholds[c] for c in scored if c not in dd}
+            grid |= set(book_recon_drift_grid(records, as_of))
+        runs = collapsed_runs_from_thresholds(sorted(grid), exits)
+        # EXACTNESS BOTH WAYS, which is the rule `_check_saturation_and_collapse`
+        # already holds these runs to, and the reason this is two figures and
+        # not one:
+        #
+        #   * SPLIT -- a declared run read APART here, iff some case exits at
+        #     one of its own interior boundaries. Derived from the exits
+        #     directly, so the answer never depends on where this sweep's grid
+        #     stops.
+        #   * JOIN -- a run here that the register does not declare. This is
+        #     the direction the finding's own headline is in: `(0, 1)` is
+        #     declared as a MAXIMAL collapse of two companies, and on a book
+        #     with a hole in `days_late` the baseline sits in a run 7 days
+        #     wide. A split predicate alone reads that as agreement, because
+        #     the declared pair is still inside one run -- so a predicate that
+        #     only splits would have passed on the very book that produced the
+        #     finding. Both directions or neither.
+        split_at = tuple(sorted(declared_non_exits & exits))
+        joined_at = tuple(sorted(
+            k for k in boundaries
+            if k not in declared_non_exits and k not in exits))
+        apart = tuple(r for r in in_window
+                      if any(k in exits for k in r[1:]))
+        by_tier[tier] = {
+            "collapsed_runs": runs,
+            "n_collapsed_runs": len(runs),
+            "run_at_origin": next((r for r in runs if 0 in r), None),
+            # The declared runs this tier reads APART, and where.
+            "declared_read_apart": apart,
+            "n_declared_read_apart": len(apart),
+            "split_boundaries": split_at,
+            # The boundaries the register claims resolve two companies and this
+            # tier collapses -- the JOIN direction, the finding's own headline.
+            "joined_boundaries": joined_at,
+            "n_joined_boundaries": len(joined_at),
+            "reproduces_declaration_in_window": not split_at and not joined_at,
+        }
+    return {
+        "tiers": ts,
+        "n_customers": n,
+        "seeds": ss,
+        "null_control_tier": null_tier,
+        "by_tier": by_tier,
+        "declared_in_window": in_window,
+        "n_declared_in_window": len(in_window),
+        "window": (lo_w, hi_w),
+        "disagreeing_tiers": tuple(
+            t for t in ts
+            if not by_tier[t]["reproduces_declaration_in_window"]),
+    }
+
+
+def check_recon_collapsed_runs_stress_axis(
+    measured: Dict[str, object],
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+) -> List[str]:
+    """Put the INTERIOR declaration on trial, both ways (R15).
+
+    Five violations, each naming a way this class comes back:
+
+      * the literal must carry a SCOPE at all. Its two siblings in the same
+        dict got one on 2026-08-18 and it did not, which is the shipped defect.
+      * the NULL CONTROL must stay green: on `build_scenario`'s own stress mix
+        the declaration must reproduce. If the run at the origin moved on the
+        mix book too, this axis would be reading draw noise rather than a scope
+        error and the finding it came from would be wrong.
+      * some tier must actually DISAGREE. A declaration that the runs are
+        mix-dependent is as much a claim as one that they are not; if every
+        tier reproduced, the register should go back to declaring them
+        unscoped.
+      * the declared disagreeing set must be EXACT, both ways -- a tier
+        declared to disagree that reproduces is a debt outliving its debt, and
+        one that disagrees undeclared is a blindness. Same rule the runs
+        themselves are held to.
+      * the scope's own COUNTS must survive re-measurement. `6 of 7` is a
+        measurement, and a measurement nobody re-derives decays into a claim
+        (the D22/D25 rule that put the caveat here in the first place).
+    """
+    register = ORGAN_QUERY_GRID if register is None else register
+    entry = register["flagged_via_reconciliation"]
+    out: List[str] = []
+    scope = entry.get("collapsed_runs_scope")
+    if not scope:
+        out.append(
+            "flagged_via_reconciliation: declares `collapsed_runs` and no "
+            "scope -- the stress mix it was measured on IS part of the claim "
+            "(this is the shipped defect: the runs rode every book the scorer "
+            "was run over, including one this module builds where 6 of the 7 "
+            "declared runs in the window are read apart)"
+        )
+        return out
+
+    by_tier = measured["by_tier"]
+    null_tier = str(measured["null_control_tier"])
+    null_row = by_tier.get(null_tier)
+    if null_row is None:
+        out.append(
+            f"flagged_via_reconciliation: the null control tier `{null_tier}` "
+            "was never measured -- an axis without its null control cannot "
+            "tell a scope error from draw noise"
+        )
+    elif not null_row["reproduces_declaration_in_window"]:
+        out.append(
+            f"flagged_via_reconciliation: THE NULL CONTROL IS RED -- on "
+            f"`{null_tier}`, the population the declaration was authored on, "
+            f"{null_row['n_declared_read_apart']} declared run(s) are read "
+            f"apart and {null_row['n_joined_boundaries']} boundary(ies) it "
+            "says resolve two companies are collapsed. Either the declaration "
+            "is wrong on its own book or this axis is measuring noise; both "
+            "make the stress-mix finding unreadable until diagnosed"
+        )
+    if null_row is not None:
+        dec_origin = (entry.get("stress_mix_axis") or {}).get(
+            "run_at_origin_on_mix")
+        got_origin = null_row["run_at_origin"]
+        if (dec_origin is not None
+                and tuple(dec_origin) != tuple(got_origin or ())):
+            out.append(
+                f"flagged_via_reconciliation: declares the baseline company "
+                f"sits in run {tuple(dec_origin)} on `{null_tier}` and this "
+                f"sweep measures {got_origin} -- the run a reader moving the "
+                "published figure by a day is STANDING IN, re-derived and "
+                "disagreeing"
+            )
+
+    disagreeing = tuple(measured["disagreeing_tiers"])
+    if not disagreeing:
+        out.append(
+            "flagged_via_reconciliation: `collapsed_runs` scoped to a stress "
+            "mix, and no tier on this axis disagrees with it -- a scope nobody "
+            "can fail on is a label, not a claim; drop the scope or widen the "
+            "axis"
+        )
+    axis = entry.get("stress_mix_axis") or {}
+    dec_dis = tuple(axis.get("tiers_disagreeing_with_the_declaration") or ())
+    if set(dec_dis) - set(disagreeing):
+        out.append(
+            f"flagged_via_reconciliation: declares tier(s) "
+            f"{sorted(set(dec_dis) - set(disagreeing))} disagree with "
+            "`collapsed_runs` and this sweep reads them as REPRODUCING it -- a "
+            "debt entry outliving its debt"
+        )
+    if set(disagreeing) - set(dec_dis):
+        out.append(
+            f"flagged_via_reconciliation: tier(s) "
+            f"{sorted(set(disagreeing) - set(dec_dis))} are read apart from "
+            "`collapsed_runs` and the register does not name them -- an "
+            "undeclared disagreement is the blindness this axis exists to find"
+        )
+
+    if int(scope.get("declared_in_window") or 0) != int(
+            measured["n_declared_in_window"]):
+        out.append(
+            f"flagged_via_reconciliation: scope says "
+            f"{scope.get('declared_in_window')} declared run(s) inside "
+            f"{list(measured['window'])} and the register holds "
+            f"{measured['n_declared_in_window']} -- a count nobody re-derives"
+        )
+    worst_tier = max(by_tier, key=lambda t: by_tier[t]["n_declared_read_apart"],
+                     default=None)
+    worst = (by_tier[worst_tier]["n_declared_read_apart"]
+             if worst_tier is not None else 0)
+    if scope.get("worst_tier") != worst_tier:
+        out.append(
+            f"flagged_via_reconciliation: scope names `{scope.get('worst_tier')}"
+            f"` as the tier that reads most of the declaration apart and this "
+            f"sweep measures `{worst_tier}` -- the caveat quotes this tier by "
+            "name, so a stale one sends the reader to the wrong book"
+        )
+    if int(scope.get("read_apart_on_worst_tier") or 0) != worst:
+        out.append(
+            f"flagged_via_reconciliation: scope says "
+            f"{scope.get('read_apart_on_worst_tier')} declared run(s) are read "
+            f"apart on the worst tier and this sweep measures {worst} -- the "
+            "figure the published caveat quotes must be the measured one"
+        )
+    return out
+
+
 def organ_query_grid_saturation_caveat(
     measured: Optional[Dict[str, Dict[str, object]]] = None,
     book_band: Optional[Dict[str, object]] = None,
@@ -3729,6 +4053,41 @@ def organ_query_grid_saturation_caveat(
             f"{book_band.get('n_held_by_dd_channel')} scored cases the DD "
             "channel holds flagged at every drift set no edge at all."
         )
+        # AND THE INTERIOR, which is what the sentence above actually defers to
+        # (atom D28). Appended rather than substituted for the same reason the
+        # edges were: the register's runs and this book's runs are two claims
+        # about two populations, and printing one number for both is the defect.
+        runs = tuple(book_band.get("collapsed_runs") or ())
+        origin = book_band.get("run_at_origin")
+        grid = book_band.get("drift_grid")
+        scope_runs = entry["collapsed_runs_scope"]
+        book_note += (
+            " AND THE RUNS THE SENTENCE ABOVE DEFERS TO ARE THIS BOOK'S OWN, "
+            f"NOT THE REGISTER'S (atom D28). The {len(entry['collapsed_runs'])} "
+            "runs declared there were measured at "
+            f"n={scope_runs['n_customers']}, seeds {list(scope_runs['seeds'])} "
+            f"and on {scope_runs['stress_mix']} -- and the STRESS MIX is the "
+            "axis this quantisation lives on, which is why neither the grid "
+            "sweep nor the draw-size axis could ever have found it. A book "
+            "pinning every customer to one stress tier has a hole in "
+            "`days_late`, and since `k*` on a negative is `days_late - grace`, "
+            "a hole in `days_late` is a hole in the resolution: on the "
+            f"`{scope_runs['worst_tier']}`-pinned book "
+            f"{scope_runs['read_apart_on_worst_tier']} of the "
+            f"{scope_runs['declared_in_window']} runs declared inside "
+            f"{list(scope_runs['window'])} are read APART, and on the all-high "
+            "book this module itself builds the baseline company sits in a run "
+            "7 days wide against a declared 2. THIS BOOK publishes "
+            f"{len(runs)} run(s) over its own grid"
+            f"{'' if not grid else f' ({grid[0]:+d}..{grid[1]:+d})'}, and the "
+            "baseline company sits in "
+            + ("NO run at all -- its reading is distinct from both neighbours"
+               if not origin
+               else f"the run {origin[0]:+d}..{origin[-1]:+d}, "
+                    f"{len(origin)} days wide")
+            + ". Movement in this headline is not readable as days of company "
+            "error inside that run."
+        )
     return (
         "SATURATION (atom D31, measured on a grid derived from the BOOK, "
         f"n=300, seeds {list(RESOLUTION_SEEDS)}): resolution is not the whole "
@@ -3742,7 +4101,14 @@ def organ_query_grid_saturation_caveat(
         f"0.5, and ABOVE {set_hi}d, where nothing further is detected "
         "before `as_of`. Between them it is quantised, not continuous: "
         "movement in these headlines is not readable as days of company error "
-        "outside the declared runs. R12: a diagnostic, never a target."
+        # WHICH RUNS THE READER IS SENT TO (atom D28). Left as "the declared
+        # runs" when no book is in hand -- that is genuinely what this sentence
+        # can defer to then -- and pointed at the stamped, per-book list the
+        # moment there is one, because "the declared runs" was measured on ONE
+        # stress mix and is false on books this module builds.
+        + ("outside the declared runs. " if book_band is None else
+           "outside the runs stamped beside it. ")
+        + "R12: a diagnostic, never a target."
         + book_note
     )
 
@@ -9635,6 +10001,55 @@ def predict_recon_exit_thresholds(
     return thresholds
 
 
+def collapsed_runs_from_thresholds(
+    drifts: Sequence[int],
+    movable: Iterable[int],
+) -> Tuple[Tuple[int, ...], ...]:
+    """WHICH COUNTERFACTUAL COMPANIES PUBLISH ONE READING, derived from the exit
+    thresholds instead of from re-scoring the book once per drift (atom D28).
+
+    A COLLAPSED RUN is a maximal group of two or more consecutive drifts on the
+    grid whose readings are bit-identical. The reading changes between `k` and
+    `k+1` iff some scored MOVABLE case exits at `k+1` -- that is the whole
+    content of `predict_recon_exit_thresholds` -- so the runs are exactly the
+    GAPS in the scored movable `k*` multiset, and the same object that gives the
+    two saturation edges gives the interior between them for free.
+
+    `movable` is the `k*` of the scored cases the reconciliation detector can
+    still move: a DD-held case is flagged at every drift and so bounds no run,
+    an EXCLUDED case is in neither direction's population and moves no
+    published figure. Both exclusions are the band predictor's, re-used rather
+    than restated (the sibling-half class this module has been bitten by).
+
+    THE ONE DIFFERENCE FROM `_measure_collapse_runs`, stated rather than
+    papered over: that function groups by READING VALUE, so two NON-adjacent
+    drifts whose gaps collide numerically land in one group. This derivation is
+    structural and only ever yields contiguous runs. A numeric collision across
+    a real distinction would therefore show up as a run the sweep reads joined
+    and this predicts apart -- measured absent on both books checked on
+    2026-08-18 (exact match over each book's own full grid), and the honest
+    reading of a future disagreement is a coincidence in the sweep, not a miss
+    here. The predictor is also SINGLE-BOOK by construction, where the register
+    declares the intersection over seeds 7/11/23; a run declared there may
+    legitimately read apart on one book, which is the point of publishing the
+    scored book's own.
+    """
+    ks = sorted(int(k) for k in drifts)
+    if not ks:
+        return ()
+    exits = {int(k) for k in movable}
+    runs: List[Tuple[int, ...]] = []
+    cur: List[int] = [ks[0]]
+    for k in ks[1:]:
+        if k == cur[-1] + 1 and k not in exits:
+            cur.append(k)
+        else:
+            runs.append(tuple(cur))
+            cur = [k]
+    runs.append(tuple(cur))
+    return tuple(sorted(r for r in runs if len(r) > 1))
+
+
 def predict_recon_saturation_band(
     records: List[PeriodRecord],
     consumer: PaymentObservationConsumer,
@@ -9672,6 +10087,15 @@ def predict_recon_saturation_band(
     `above` is `None` when no scored case can leave the flagged set -- an edge
     that does not exist, published as absent rather than as a number.
 
+    AND THE INTERIOR BETWEEN THEM (`collapsed_runs`, 2026-08-18). The edges are
+    the ENDS of the scored movable `k*` multiset and the collapsed runs are its
+    GAPS, so this function already held the interior and published only the two
+    ends of it. It is derived over the book's own `book_recon_drift_grid` by
+    `collapsed_runs_from_thresholds` and reproduces the shipped sweep's run
+    structure EXACTLY on both books measured -- `_publish_one_book`'s all-high
+    book and `build_scenario(300, seed=7)` -- at ~1,000x, which is what makes
+    the stress-mix axis askable at all.
+
     Pass the three sets in when the caller already has them (`score_triad`
     does); they are derived from the same public surfaces otherwise. Cost is
     ~2% of one `score_triad` call on the n=4000 book."""
@@ -9694,10 +10118,27 @@ def predict_recon_saturation_band(
         )
     scored = (set(truth_set) | set(never_flaggable)) & set(thresholds)
     movable = [thresholds[c] for c in scored if c not in dd_flagged_set]
+    # THE INTERIOR, ON THE BOOK'S OWN GRID (atom D28, 2026-08-18). The two edges
+    # are the ends of this multiset and the collapsed runs are its GAPS, so the
+    # object that gives one gives the other -- and the sentence stamped beside
+    # this band, which sends the reader to "the declared runs", can defer to the
+    # scored book's own instead of to a register literal authored on a different
+    # population. The grid is `book_recon_drift_grid`'s, the same one
+    # `measure_organ_query_grid_saturation` sweeps, so a run here and a run
+    # there are the same claim about the same companies.
+    grid = book_recon_drift_grid(records, as_of, reconciliation_grace_days)
+    runs = collapsed_runs_from_thresholds(grid, movable)
     return {
         "saturates_below": (min(thresholds[c] for c in scored) - 1
                             if scored else None),
         "saturates_above": max(movable) if movable else None,
+        "collapsed_runs": runs,
+        "n_collapsed_runs": len(runs),
+        # The run the BASELINE company sits in -- the one a reader moving the
+        # published figure by a day is standing in, and the one the all-high
+        # book reads 7 days wide against the register's declared 2.
+        "run_at_origin": next((r for r in runs if 0 in r), None),
+        "drift_grid": ((grid[0], grid[-1]) if grid else None),
         # The closed form the lower edge is an instance of, stated beside the
         # measurement rather than instead of it: a reader can see that one edge
         # is arithmetic and the other is the draw.
@@ -10172,6 +10613,21 @@ def score_triad(
         k: recon_band[k] for k in (
             "source", "n_cases", "n_scored", "n_accounts",
             "n_held_by_dd_channel", "below_closed_form")
+    }
+    # AND SO IS THE INTERIOR (atom D28, 2026-08-18, closing WORKER_FINDING_THE_
+    # DECLARED_QUANTISATION_IS_FALSE_ON_THE_MODULES_OWN_LIVE_BOOK). The band
+    # above got a scope, an axis, a sweep, a control and a per-run derivation
+    # on the morning of 2026-08-18; `collapsed_runs` sat in the same dict
+    # literal and got none of the five -- while it, not the edges, is what the
+    # stamped sentence sends the reader to ("not readable as days of company
+    # error outside the declared runs"). The runs are the GAPS in the same
+    # multiset whose ENDS are the band, so publishing one and not the other was
+    # never a cost question. Derived here per run, on this book's own grid.
+    det.components["recon_collapsed_runs"] = recon_band["collapsed_runs"]
+    det.components["recon_collapsed_runs_measured_on"] = {
+        k: recon_band[k] for k in (
+            "source", "n_collapsed_runs", "run_at_origin", "drift_grid",
+            "n_scored", "n_held_by_dd_channel")
     }
 
     lat = detection_latency_gap(
@@ -11541,6 +11997,33 @@ def main() -> None:
           + ("every declaration held" if not _rba_violations
              else f"{len(_rba_violations)} VIOLATION(S)"))
     for v in _rba_violations:
+        print(f"           !! {v}")
+
+    # AND THE AXIS NEITHER OF THE TWO ABOVE CAN REACH (atom D28, 2026-08-18).
+    # The sweep takes one population and the draw-size axis varies `n_customers`
+    # and the seed -- which is exactly the axis `collapsed_runs` is INVARIANT
+    # along. It is false along the STRESS MIX instead: pinning the tier puts a
+    # hole in `days_late`, and `k*` on a negative is `days_late - grace`, so a
+    # hole there is a hole in the resolution. Predictor-only and therefore
+    # affordable on the default path: 12 books against the ~100s one sweep
+    # costs.
+    _crs = measure_recon_collapsed_runs_stress_axis()
+    print(f"  [stress-mix axis control] the collapsed runs over "
+          f"{len(_crs['tiers'])} stress tiers x {len(_crs['seeds'])} seeds at "
+          f"n={_crs['n_customers']}, predicted from each book:")
+    for _tier in _crs["tiers"]:
+        _row = _crs["by_tier"][_tier]
+        print(f"           {_tier:9s} {_row['n_collapsed_runs']:3d} run(s), "
+              f"baseline sits in {_row['run_at_origin']}, "
+              f"{len(_row['split_boundaries'])} boundary(ies) split / "
+              f"{_row['n_joined_boundaries']} joined vs the declaration"
+              + ("  <- NULL CONTROL"
+                 if _tier == _crs["null_control_tier"] else ""))
+    _crs_violations = check_recon_collapsed_runs_stress_axis(_crs)
+    print("           verdict: "
+          + ("every declaration held" if not _crs_violations
+             else f"{len(_crs_violations)} VIOLATION(S)"))
+    for v in _crs_violations:
         print(f"           !! {v}")
 
     # THE DIMENSION RESOLUTION CONTROL (atom D25). Printed for the same reason

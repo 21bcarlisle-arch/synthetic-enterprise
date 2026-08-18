@@ -5738,8 +5738,248 @@ def test_the_predictor_never_calls_the_scorer():
     for fn in (pair.predict_recon_exit_thresholds,
                pair.predict_recon_saturation_band,
                pair.recon_cover_dates,
-               pair.measure_recon_band_population_axis):
+               pair.measure_recon_band_population_axis,
+               pair.measure_recon_collapsed_runs_stress_axis,
+               pair.collapsed_runs_from_thresholds):
         assert "score_triad" not in pair._names_in(fn), fn.__name__
+
+
+# ---------------------------------------------------------------------------
+# THE INTERIOR AND THE STRESS-MIX AXIS -- atom D28, 2026-08-18, closing
+# WORKER_FINDING_THE_DECLARED_QUANTISATION_IS_FALSE_ON_THE_MODULES_OWN_LIVE_BOOK
+#
+# The two EDGES of `ORGAN_QUERY_GRID["flagged_via_reconciliation"]` got five
+# things that morning: a scope, a population axis, a sweep, a control that puts
+# the declaration on trial, and a per-run derivation. `collapsed_runs` sat in
+# the same dict literal and got none of them -- while it, not the edges, is
+# what the stamped sentence sends the reader to ("not readable as days of
+# company error outside the declared runs").
+#
+# Same class as the edges, one field over, and the axis it is false along is
+# not the one the draw-size sweep walks: `collapsed_runs` is INVARIANT in
+# `n_customers` and false in the STRESS MIX. A book pinning every customer to
+# one tier has a hole in `days_late`, and `k*` on a negative is
+# `days_late - grace`, so a hole in `days_late` is a hole in the resolution.
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def stress_axis():
+    """The interior on 12 books: 4 stress tiers x 3 seeds, predictor-only."""
+    return pair.measure_recon_collapsed_runs_stress_axis()
+
+
+def _score_book(n, seed, stress=None):
+    """Score one book through the SHIPPED scorer, optionally pinning the stress
+    tier. `measure` is not used because it is the entry point for the SCORED
+    population and must not grow a counterfactual knob -- the same reason
+    `force_payment_method` and `cycle_spread_days` live on `build_scenario`."""
+    records, consumer, _ledger, as_of = pair.build_scenario(
+        n, seed=seed, force_income_stress=stress)
+    return pair.score_triad(records, consumer, as_of)
+
+
+def test_the_predicted_runs_are_the_shipped_sweeps_runs():
+    """R15 INDEPENDENCE, and the control this whole half rests on: the runs are
+    claimed to be the GAPS in the scored movable `k*` multiset, so they are
+    scored against the SHIPPED scorer over the book's own full grid, drift by
+    drift, with the grouping done exactly as `_measure_collapse_runs` does it.
+
+    An independent implementation is worth nothing until it has been put
+    against the shipped one point for point -- and this is the assertion that
+    would fail if the derivation were merely plausible."""
+    records, consumer, _ledger, as_of = pair.build_scenario(120, seed=7)
+    grid = pair.book_recon_drift_grid(records, as_of)
+
+    groups = {}
+    for k in grid:
+        scored = pair.score_triad(records, consumer, as_of,
+                                  organ_reconciliation_drift_days=k)
+        groups.setdefault(
+            pair._reading_key(scored["detection"].gap), []).append(k)
+    swept = tuple(sorted(tuple(v) for v in groups.values() if len(v) > 1))
+
+    predicted = pair.predict_recon_saturation_band(
+        records, consumer, as_of)["collapsed_runs"]
+    assert predicted == swept, (
+        "the predictor's runs and the shipped scorer's runs must be the SAME "
+        "object -- anything else and the published component is a second "
+        "implementation quietly disagreeing with the number beside it")
+    assert len(swept) > 1, "a book with one run cannot witness this"
+
+
+def test_the_published_runs_are_this_books_and_not_the_registers_literal():
+    """THE SHIPPED DEFECT, both halves -- the same pair the band's own test
+    makes, one field over.
+
+    (a) Two books whose stress mix differs must publish DIFFERENT runs through
+        the shipped scorer. Until this tick every book published the register's
+        sixteen, whatever it was.
+    (b) The register's literal must not be reachable from the stamp at all: a
+        per-run derivation that happened to coincide on the register's own book
+        would leave the class alive everywhere else."""
+    mixed = _score_book(300, 7)["detection"]
+    pinned = _score_book(300, 7, stress="high")["detection"]
+    mixed_runs = mixed.components["recon_collapsed_runs"]
+    pinned_runs = pinned.components["recon_collapsed_runs"]
+    assert mixed_runs != pinned_runs, (
+        "the same book at two stress mixes published one run list -- which is "
+        "the defect, not the fix")
+    declared = pair.ORGAN_QUERY_GRID["flagged_via_reconciliation"][
+        "collapsed_runs"]
+    assert pinned_runs != declared and mixed_runs != declared
+    for det in (mixed, pinned):
+        assert det.components["recon_collapsed_runs_measured_on"][
+            "source"] == "predicted_from_this_book"
+    # AND THE READER IS SENT TO THE STAMPED LIST, not to the declaration.
+    assert "outside the runs stamped beside it" in mixed.components[
+        "recon_saturation_caveat"]
+    assert "outside the declared runs" in (
+        pair.organ_query_grid_saturation_caveat())
+
+
+def test_the_run_at_the_origin_is_the_one_a_reader_is_standing_in():
+    """The published component must name the run the BASELINE company sits in.
+    That is the whole reader-facing content of the claim: someone moving this
+    headline by a day needs to know whether a day is visible AT ALL from where
+    they are standing, and on an all-high book it is not -- the register says
+    the run at the origin is 2 days wide and this module builds books where it
+    is 7 and 14."""
+    det = _score_book(300, 7)["detection"]
+    meta = det.components["recon_collapsed_runs_measured_on"]
+    assert meta["source"] == "predicted_from_this_book"
+    assert meta["run_at_origin"] == (0, 1)
+    assert meta["n_collapsed_runs"] == len(
+        det.components["recon_collapsed_runs"])
+    pinned = _score_book(300, 7, stress="high")["detection"]
+    pinned_origin = pinned.components[
+        "recon_collapsed_runs_measured_on"]["run_at_origin"]
+    assert pinned_origin is not None and len(pinned_origin) > 2, (
+        "the all-high book's baseline sits in a run WIDER than the declared "
+        "pair -- the finding's own headline, asserted on the shipped stamp")
+
+
+def test_the_stress_axis_null_control_reproduces_the_declaration(stress_axis):
+    """THE NULL CONTROL, and it must stay GREEN or everything above is reading
+    draw noise rather than a scope error: on `build_scenario`'s own shipped mix
+    -- the population the declaration was authored on -- the register's runs
+    must reproduce EXACTLY inside the window, in BOTH directions, and the
+    baseline company must sit in the declared `(0, 1)`.
+
+    What moved in the three pinned tiers is the SAMPLE, not the law."""
+    null_tier = stress_axis["null_control_tier"]
+    row = stress_axis["by_tier"][null_tier]
+    assert row["split_boundaries"] == ()
+    assert row["joined_boundaries"] == ()
+    assert row["reproduces_declaration_in_window"] is True
+    assert row["run_at_origin"] == (0, 1)
+    assert pair.check_recon_collapsed_runs_stress_axis(stress_axis) == []
+
+
+def test_every_pinned_stress_tier_falsifies_the_declaration(stress_axis):
+    """AND THE AXIS MUST ACTUALLY BITE. A scope nobody can fail on is a label,
+    so the claim `collapsed_runs` is mix-dependent has to be witnessed -- and
+    it is, in both directions and on all three pinned tiers:
+
+      * `moderate` SPLITS, reading 6 of the 7 declared runs apart and leaving
+        the baseline company in no run at all;
+      * `low` and `high` JOIN, collapsing boundaries the register says resolve
+        two companies -- which is the direction the finding's headline is in
+        and the one a split-only predicate would have passed on.
+    """
+    assert set(stress_axis["disagreeing_tiers"]) == {"low", "moderate", "high"}
+    moderate = stress_axis["by_tier"]["moderate"]
+    assert moderate["n_declared_read_apart"] == 6
+    assert moderate["run_at_origin"] is None
+    for tier in ("low", "high"):
+        assert stress_axis["by_tier"][tier]["joined_boundaries"], (
+            f"`{tier}` must witness the JOIN direction -- a run wider than the "
+            "register declares is as much a falsification as one split apart")
+    assert stress_axis["by_tier"]["low"]["split_boundaries"] == (), (
+        "and it must witness it CLEANLY: `low` splits nothing, so a split-only "
+        "predicate reads it as agreement")
+
+
+@pytest.mark.parametrize("mutate,expected", [
+    (lambda e: e.pop("collapsed_runs_scope"),
+     "declares `collapsed_runs` and no scope"),
+    (lambda e: e["stress_mix_axis"].__setitem__(
+        "tiers_disagreeing_with_the_declaration",
+        ("low", "moderate", "high", "mix")),
+     "outliving its debt"),
+    (lambda e: e["stress_mix_axis"].__setitem__(
+        "tiers_disagreeing_with_the_declaration", ("moderate",)),
+     "undeclared disagreement is the blindness"),
+    (lambda e: e["stress_mix_axis"].__setitem__(
+        "run_at_origin_on_mix", (0, 1, 2)),
+     "STANDING IN"),
+    (lambda e: e["collapsed_runs_scope"].__setitem__("worst_tier", "high"),
+     "the wrong book"),
+    (lambda e: e["collapsed_runs_scope"].__setitem__(
+        "read_apart_on_worst_tier", 2),
+     "must be the measured one"),
+    (lambda e: e["collapsed_runs_scope"].__setitem__("declared_in_window", 99),
+     "a count nobody re-derives"),
+])
+def test_the_stress_axis_control_fires_on_its_own_named_defects(
+        stress_axis, mutate, expected):
+    """R15: a control counts as evidence only once a mutation proves it fires.
+    The first case is the SHIPPED defect itself -- a run list declared with no
+    scope."""
+    register = copy.deepcopy(pair.ORGAN_QUERY_GRID)
+    mutate(register["flagged_via_reconciliation"])
+    violations = pair.check_recon_collapsed_runs_stress_axis(
+        stress_axis, register=register)
+    assert any(expected in v for v in violations), violations
+
+
+@pytest.mark.parametrize("mutate,expected", [
+    (lambda m: m["by_tier"]["mix"].update(
+        reproduces_declaration_in_window=False, n_declared_read_apart=3,
+        n_joined_boundaries=2),
+     "THE NULL CONTROL IS RED"),
+    (lambda m: ([m["by_tier"][t].__setitem__(
+        "reproduces_declaration_in_window", True) for t in m["by_tier"]],
+        m.__setitem__("disagreeing_tiers", ())),
+     "is a label, not a claim"),
+])
+def test_the_stress_axis_control_fires_on_a_bad_measurement(
+        stress_axis, mutate, expected):
+    """The other half of R15 on this control: it must fire on what the SWEEP
+    returns, not only on what the register declares. A red null control and an
+    axis where nothing disagrees are both silent failures otherwise."""
+    measured = copy.deepcopy(stress_axis)
+    mutate(measured)
+    violations = pair.check_recon_collapsed_runs_stress_axis(measured)
+    assert any(expected in v for v in violations), violations
+
+
+def test_pinning_the_axis_to_one_stress_tier_hides_the_defect():
+    """THE MUTATION THAT NAMES THE CLASS, and the exact shape its sibling has:
+    ask the axis at ONE stress tier -- the shipped mix, which is what every
+    other sweep in this module does by default -- and nothing disagrees, so
+    the control goes green with the defect untouched.
+
+    Nothing about the register or the book changed between these two calls,
+    only which populations the control was allowed to look at."""
+    pinned = pair.measure_recon_collapsed_runs_stress_axis(tiers=("mix",))
+    assert pinned["disagreeing_tiers"] == ()
+    violations = pair.check_recon_collapsed_runs_stress_axis(pinned)
+    assert any("is a label, not a claim" in v for v in violations), (
+        "a pinned axis is an unasked question, not a green one")
+
+
+def test_the_collapsed_runs_derivation_is_the_gaps_in_the_threshold_multiset():
+    """The derivation stated as arithmetic, on a hand-built multiset, so the
+    rule is legible without a 300-account book: a boundary `k` splits a run iff
+    some scored movable case exits at `k`."""
+    runs = pair.collapsed_runs_from_thresholds(range(0, 10), {3, 4, 8})
+    assert runs == ((0, 1, 2), (4, 5, 6, 7), (8, 9))
+    assert pair.collapsed_runs_from_thresholds(range(0, 4), set()) == (
+        (0, 1, 2, 3),), "no exits at all is ONE run, not four"
+    assert pair.collapsed_runs_from_thresholds(
+        range(0, 4), {1, 2, 3}) == (), "an exit at every boundary is NO runs"
+    assert pair.collapsed_runs_from_thresholds((), {1}) == ()
 
 
 # ---------------------------------------------------------------------------

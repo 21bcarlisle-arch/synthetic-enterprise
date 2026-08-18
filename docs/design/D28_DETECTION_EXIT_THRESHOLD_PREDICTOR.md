@@ -262,3 +262,158 @@ case" of §3 stops being a lottery. §3's table is therefore about how the edge 
 book is short relative to the drift range being swept, which is exactly the regime the
 register's own n=300, three-period declaration sits in. The `lower` edge is `−6` on the live
 book too, as the closed form requires.
+
+---
+
+## 7. The interior, measured 2026-08-18 (DISCOVER pass 6)
+
+§3–§6 are about the two EDGES of `ORGAN_QUERY_GRID["flagged_via_reconciliation"]`. This
+section is about the third claim in the same dict literal — `collapsed_runs`, sixteen groups
+of counterfactual companies declared to publish one bit-identical figure — and it is the one
+the published sentence actually defers to: *"movement in these headlines is not readable as
+days of company error outside the declared runs."*
+
+**The edges got five things on 2026-08-18 and the interior got none of them:** a scope
+(`saturates_above_scope`), a population axis (`draw_size_axis`, 25 books), a sweep
+(`measure_recon_band_population_axis`), a control that puts the declaration on trial
+(`check_recon_band_population_axis`), and a per-run derivation so the published component is
+the scored book's own. `collapsed_runs` has no scope, no axis, no per-run derivation, and
+`check_recon_band_population_axis` does not read it. The only check on it is
+`_check_saturation_and_collapse`, against a sweep of the population the declaration was
+authored on.
+
+### 7.1 The predictor predicts the runs, not only the edges
+
+The reading changes between `k` and `k+1` iff some scored movable case has `k* = k+1`. So the
+collapsed runs are the **gaps in the scored movable `k*` multiset** — the same object §1's
+formula already produces, with no `score_triad` call. Measured against the shipped scorer over
+`k` in [−10, +40] (51 counterfactual companies):
+
+| book | predictor | sweep | run structure |
+|---|---|---|---|
+| `_publish_one_book`'s (300 × 3 monthly, all-high) | 0.02 s | 17.5 s | **exact match** |
+| `build_scenario(300, seed=7)` | 0.02 s | 16.5 s | **exact match** |
+
+≈950×, and it makes `collapsed_runs` derivable per run exactly as
+`recon_saturation_band_days` now is.
+
+### 7.2 Where the declaration is false, and it is a book in this file
+
+`_publish_one_book` (`tools/couple_w2_11_d5.py:7091`) is this module's own harness for the
+shipped live composer — it drives `LivePaymentTriad.measure_and_write` and reads back what it
+published — and it builds every customer at `income_stress_value="high"`
+(`tools/couple_w2_11_d5.py:7110`). Those two words appear exactly twice in the repo, there and
+at `tests/background/test_live_payment_triad.py:46`: every book built for a
+`LivePaymentTriad` outside `run_phase2b` pins every customer to the same stress tier. On that
+book `days_late` takes no value below 30 — nobody pays
+mildly late — and since `k*` on a negative is `days_late − grace`, a hole in `days_late` is a
+hole in the resolution. Swept through the shipped scorer:
+
+* **6 of the 7 declared runs inside [−10, +40] are read APART** — `(−4, −3)`, `(0, 1)`,
+  `(6, 7)`, `(11, 12, 13)`, `(17…24)`, `(28, 29)`.
+* **8 collapses the register does not name** appear, the widest `(26…40)` at 15 days.
+* The run containing `k = 0` measures `(−5 … +1)` — 7 days against the declared 2.
+* `(17…24)` splits into `(17…21)`, `(22, 23)`, `(24, 25)`.
+
+### 7.3 Null control — what moved is the sample, not the law
+
+* **The register's own book.** `build_scenario(300, seed=7)`, same sweep, same range: 24
+  distinct readings; `(−4, −3)`, `(0, 1)`, `(28, 29)` reproduce exactly and the run containing
+  `k = 0` is `(0, 1)`. (Seed 7 alone joins several declared runs, consistent with the
+  declaration being the intersection over seeds 7/11/23.)
+* **The producer is not the variable.** The LIVE producer fed stress drawn per customer from
+  the offline book's own `_STRESS_MIX`, 300 × 3, due dates staggered over 21 days: 16 distinct
+  readings and the run containing `k = 0` is `(0, +1)`. The declaration survives a change of
+  producer and dies on a change of stress mix.
+* Discarded as explanations, each measured: denominator size (run at the origin invariant at
+  120 / 360 / 720 cases), book length (invariant at 3 and 18 monthly periods), due-date spread
+  (1 / 7 / 21 days moves total resolution 5 → 9 → 10 readings and does not move the run at the
+  origin). The first live book tried here read a 31-day run at the origin and that WAS a
+  small-denominator artefact — recorded because it is why the decomposition was run.
+
+### 7.4 Not established (R9)
+
+Whether the live `coupled_gap_ledger.json` entry currently carries a false run list is
+`inferred`, not observed: `run_phase2b` builds its book with real per-customer stress values,
+and with a real mix the declaration reproduces. The defect is that the declaration is unscoped
+and uncontrolled across populations, demonstrated false on a book this module builds.
+
+Staged as `docs/staging/WORKER_FINDING_THE_DECLARED_QUANTISATION_IS_FALSE_ON_THE_MODULES_OWN_LIVE_BOOK_2026-08-18.md`.
+
+---
+
+## 8. The interior, BUILT — 2026-08-18, RUNG-1c blocking draw
+
+§7 filed the defect and recommended "1, then 2". Both are code. Everything in this section is
+`observed-with-evidence`; the two places it CORRECTS §7 are marked.
+
+### 8.1 What landed
+
+| | |
+|---|---|
+| `collapsed_runs_from_thresholds` | the derivation — runs are the GAPS in the scored movable `k*` multiset |
+| `predict_recon_saturation_band` | now returns `collapsed_runs`, `n_collapsed_runs`, `run_at_origin`, `drift_grid` over the book's own `book_recon_drift_grid` |
+| `score_triad` | stamps `recon_collapsed_runs` + `recon_collapsed_runs_measured_on` |
+| `organ_query_grid_saturation_caveat` | says *"outside the runs stamped beside it"* with a book in hand, and keeps *"the declared runs"* without one |
+| `build_scenario(force_income_stress=…)` | the FOURTH declared counterfactual population (R13: a second labelled world, never the baseline) |
+| `collapsed_runs_scope` / `stress_mix_axis` | the scope and axis the literal never had |
+| `measure_recon_collapsed_runs_stress_axis` | 4 tiers × 3 seeds, predictor-only, no `score_triad` anywhere |
+| `check_recon_collapsed_runs_stress_axis` | the declaration on trial, 9 mutation-proven arms |
+
+### 8.2 The falsifier, run before the code was written and again as a test
+
+Predicted runs against the SHIPPED scorer over each book's **own full grid** — not §7's
+[−10, +40] window, which is what will actually be published:
+
+| book | grid | predictor | sweep | |
+|---|---|---|---|---|
+| `build_scenario(300, seed=7)` | −20..+88 (109) | 0.02 s | 34.1 s | **EXACT MATCH**, 1,903× |
+| `_publish_one_book`'s (300 × 3, all-high) | −20..+86 (107) | 0.02 s | 34.9 s | **EXACT MATCH**, 2,144× |
+
+### 8.3 The axis, measured — stronger than §7 claimed
+
+All three pinned tiers falsify the declaration, in **both** directions, and the null control is
+green. n=300, seeds 7/11/23, exits unioned across seeds so the measurement and the declaration are
+the same kind of object.
+
+| tier | split boundaries | joined boundaries | run at origin | reproduces |
+|---|---|---|---|---|
+| `mix` (**null control**) | 0 | 0 | `(0, 1)` — as declared | **yes** |
+| `low` | 0 | 16 | `(0…15)` — 16 days vs a declared 2 | no |
+| `moderate` | 8 (6 of 7 declared runs read apart) | 1 | **none at all** | no |
+| `high` | 2 | 13 | `(−5…+8)` — 14 days | no |
+
+One mechanism: pinning the tier puts a hole in `days_late`, and `k*` on a negative is
+`days_late − grace`, so a hole in `days_late` is a hole in the resolution.
+
+### 8.4 Two things §7 got wrong, found by running the measurement rather than adopting it
+
+* **A split-only predicate passes on §7's own headline.** *"The run containing `k = 0` measures
+  `(−5 … +1)` against a declared 2"* is a **JOIN** — the declared pair is still inside one run, so
+  a predicate asking only *"is a declared run broken up here"* reads that book as AGREEING. The
+  first version of this control did exactly that and scored the all-high book at 1 of 7. Exactness
+  is enforced in both directions or it is not enforced.
+* **Run-tuple equality makes the null control red for the wrong reason.**
+  `_RECON_SET_COLLAPSED_RUNS[0]` is `(−30, −20, −19, … −6)` — **non-contiguous**, `−30` being a
+  `collapsed_pairs` member unioned in from outside the book's range — so comparing run tuples calls
+  it undeclared on every tier including the mix. The comparison is over **boundaries**: a run list
+  read as an exhaustive claim states exactly which boundaries are non-exits, and the disagreement
+  then splits cleanly into split-vs-join.
+
+### 8.5 R15
+
+Nine mutations, each proven to fire, and the pair silent at HEAD: no scope at all (the shipped
+defect); null control red; no tier disagrees; a declared disagreement that reproduces; an
+undeclared disagreement; stale `run_at_origin_on_mix`; stale `worst_tier`; stale read-apart count;
+stale `declared_in_window`. Plus the class-naming mutation — **pin the axis to the shipped mix
+alone**, which is what every other sweep in this module does by default, and the control goes GREEN
+with the defect untouched. That is the same shape as the sibling finding: not tautology, not
+fail-open, a harness convenience choosing the subject.
+
+### 8.6 Still not established (R9)
+
+§7.4 stands unchanged and is now supported rather than merely asserted: the null control shows the
+declaration reproduces on `build_scenario`'s real mix, and `run_phase2b` builds its book with real
+per-customer stress values. **The live `coupled_gap_ledger.json` entry is not claimed to have been
+wrong.** What shipped was a run list unscoped and uncontrolled across populations, false on books
+this module itself builds, and stamped onto every book the scorer ran over.
