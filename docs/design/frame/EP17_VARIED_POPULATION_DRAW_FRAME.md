@@ -540,3 +540,125 @@ read, and nothing was written to any published artefact. R13: no curriculum valu
 or changed; the §9.3 probe lived in one process's memory and no curriculum file was modified.
 
 — FRAME pass 4, worker tick 2026-08-17, at HEAD `5b882a279`.
+
+---
+
+# PASS 5 — 2026-08-18, DISCOVER/FRAME only, level stays 0
+
+Pass 4 closed by ranking the atom's three named properties and left item 3 (vulnerability as world
+truth) as "the only one of the three whose build is unambiguously EP17's own and unambiguously
+unblocked". Four passes have named item 3 and none has looked at it. This pass ran that check. It is
+not unblocked, and the reason is on the BELIEF side, which no pass had examined at all.
+
+## 10.1 The measurement — the live vulnerability register
+
+`company/data/service_log.db`, read at this HEAD:
+
+| quantity | value |
+|---|---|
+| `vulnerability_flags` rows, all active | 4,557 |
+| distinct customers holding one | **1** (`C1`) |
+| distinct `flag_type` values | **1** (`financial_difficulty`) |
+| distinct `flagged_date` values | **1** (`2026-06-26`) |
+| `service_events` rows | 74,959, spanning 2026-06-26 → **2026-08-18** (112 today) |
+| distinct customers in `service_events` | **3** of the live book's 20 (`C1`, `C2`, `C3`) |
+| rows for the DRAWN cast (`SYN-%`) | **0** |
+
+So the contact channel is live and growing daily, and the vulnerability register on top of it has not
+moved in 53 days.
+
+## 10.2 Why it is frozen — no production path can write it
+
+The sole writer is `ServiceLog.record_contact`, which inserts a `vulnerability_flags` row only when
+`event.vulnerability_flag` is truthy (`service_log.py:139-144`), with `flag_type` a **hardcoded string
+literal** `"financial_difficulty"`. There are exactly **two** production constructions of
+`ServiceEvent` in the repository, both in `company/portal/app.py`: `:585` omits the field (dataclass
+default `False`) and `:673` passes `vulnerability_flag=False` explicitly. Neither can ever be True.
+The 53-day freeze is not quiet weather; it is the only reachable state.
+
+## 10.3 Two registers wear one name, and the taxonomy one is test-only
+
+`company/crm/vulnerability_register.VulnerabilityFlag` is a 12-value `Enum`; `company/crm/service_log`
+defines its **own** `VulnerabilityFlag` — a dataclass with a free-text `flag_type`. The live value
+`financial_difficulty` is **not** one of the 12 (nearest is `payment_difficulty`). `VulnerabilityRegister()`
+has **zero** production constructions — all 24 in the repo are under `tests/`. So `severity_score`,
+`psr_required`, `no_disconnect_customers()`, `psr_customers()` and `annual_summary()` never evaluate
+outside a test, and both detectors' `apply_to_register` (`life_event_detector.py:241`,
+`self_rationing_detector.py:458`) can only be handed a register by a test.
+
+QUEUED, NOT FIXED (SELF_INTERRUPT_DISCIPLINE), and outside this atom's `file_scope` — but named
+because it is what item 3 would have to land in: the obligations register carries
+`psr_vulnerability_duties` as **Tier 1 physical-harm**, `existing_tracker="company/crm
+(vulnerability_register)"`, `testing_frequency=CONTINUOUS` (`obligations_register.py:383`), and that
+claim is published — "Tracked by company/crm (vulnerability_register)" appears in `site/data/dashboard.json`
+and `site/data/company.json`. On the money side, `whd_eligible_customers` (`warm_home_discount.py:111`)
+is `{f.customer_id for f in service_log.vulnerability_register()}` — every active flag of any
+`flag_type` confers Warm Home Discount candidacy, so today it returns exactly one customer, on an
+off-taxonomy flag, and drives the portal's per-account `whd_eligible` badge and `whd_summary`.
+
+## 10.4 The EP17 consequence — item 3 is blocked on its belief side
+
+A gap needs two lines. Pass 1 finding 6 established there is no world-side vulnerability truth
+(`SyntheticCustomer` still has no vulnerability field at this HEAD) and called the company's picture
+"a belief with nothing to be wrong about". The complement is worse and is what pass 4's ranking
+missed. **The belief is not on any measurement path.** There is exactly one production construction of
+a persistent service log in the repository — `_SERVICE_LOG = ServiceLog(db_path=_SL_DB_PATH)`,
+`company/portal/app.py:59`. No run, no `tools/couple_*.py`, no report and no dashboard generator opens
+it. It is written by one long-running portal process on wall-clock `date.today()`, and its store is
+gitignored (`.gitignore:23`, `company/data/`) — untracked, so also outside OPS1's
+reconstruct-from-repo-alone test.
+
+Three separate things therefore block item 3, and only the first was known:
+
+1. no world-side truth to draw (pass 1 finding 6 — still true, still EP17's own build);
+2. the belief is unreachable for the drawn cast — zero service events for any `SYN-%` customer, so
+   the part of the book EP17 varies can never acquire a flag at any seed;
+3. the belief is incommensurable and off-path — one hardcoded off-taxonomy string, held only in a
+   live process's untracked file that no run reads, writes or resets.
+
+(3) is the binding one, and it is EP17's own concern rather than a neighbour's. The atom's own
+`origin_note` already names this exact hazard in a different medium: *"if the population draw shares
+a stream with anything else … cross-run comparison becomes meaningless — which would silently destroy
+the tournament this atom exists to enable … that must be tested, not assumed."* The origin_note
+guarded the RNG. The company's belief state has the same property and no guard: it is not a function
+of (repo, cell) at all. Stated precisely, and NOT overclaimed — because no run reads the store, it
+contaminates no score **today**; what it does is make item 3 unbuildable, since item 3's whole purpose
+is to put a score there.
+
+## 10.5 What pass 5 changes about EP17
+
+- **Item 3 moves from "unblocked" to blocked on its belief side.** Drawing vulnerability as world
+  truth remains EP17's own build and remains correct, but sequenced first it buys a truth line with
+  nothing to be scored against — the same defect pass 2 found in item 1a, one layer further in.
+- **NEW ITEM 4, and it is the first buildable, EP17-owned, director-free step any of the five passes
+  has found:** give the company's vulnerability belief a run-visible home — a belief store a run
+  writes, reads and resets, so that a drawn customer can acquire a flag and a gap can be computed.
+  This is a precondition for item 3, not a substitute.
+- **The falsifier for item 4, with pass 4's lesson applied.** Positive: run the same rotation cell
+  twice from a clean tree; the company's post-run vulnerability state must be byte-identical.
+  Mutation: leave one store un-reset → red. **Null control** (the leg pass 3 omitted, which is why its
+  test passed on noise): the test must be run against a store a run actually populates, or it goes
+  green on two empty databases and certifies nothing — the FAIL-OPEN pattern named in R15.
+- Items 1a/1b (seam wiring, measurement consumer) and item 2 (the additive ceiling, the director's
+  under R13) are unchanged. Pass 4's finding that mix and skew cannot vary under a fixed curriculum
+  stands and still ranks above all of this.
+
+## 10.6 Passes 1–4 re-verified at this HEAD (`84ae6bbeb`), all surviving unrepaired
+
+`run_rotation_cursor.json` still `{"index": 0}` with still exactly one commit in its history
+(`f52a94133`); `enumerate_cells(grid, *, draw_population_enabled)` still caller-supplied
+(`run_rotation.py:121`); a grep for `live_population(` carrying a `base_seed` argument still returns
+one line in the whole repository and it is the `def`; all 12 `tools/couple_*.py` still have zero
+`live_population` references; `SyntheticCustomer` still has no vulnerability field. Live seam
+re-verified: `enabled=True`, book=20, drawn `SYN-2021-001` + `SYN-2025-001`.
+
+CORRECTION to my own first reading, recorded because it went the atom's way: the drawn customers'
+absence from the service log initially looked like an id-namespace mismatch (which would have made
+item 3 impossible outright). It is not — `C1`/`C2`/`C3` are genuine live-book members, so the join
+exists and item 4 is buildable. The defect is coverage and reachability, not naming.
+
+R12: no published number tuned — every figure above is a read, and nothing was written to any
+published artefact. R13: no curriculum value authored, proposed or changed. QUEUED NOT FIXED:
+`file_scope` is empty; nothing was repaired on sight.
+
+— FRAME pass 5, worker tick 2026-08-18, at HEAD `84ae6bbeb`.
