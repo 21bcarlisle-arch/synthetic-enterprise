@@ -2543,6 +2543,7 @@
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
   depends_on: [D31_the_recon_grid_saturates_beyond_this_books_window]
+  simplifications_count: 1
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
   real_world_twin: "a collections MI pack reporting 'we spot a failed collection 2.3 days after it fails', where the number moves a third of a day when the reconciliation run slips a full day -- and moves exactly the same amount when nobody touched reconciliation and the billing team loaded the wrong payment terms"
 - id: D26_detection_grace_line_has_no_book_beside_it
