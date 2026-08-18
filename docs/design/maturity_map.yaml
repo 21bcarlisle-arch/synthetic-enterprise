@@ -4087,7 +4087,7 @@
   couples_with: []
   records_rehomed: [evidence]
   file_scope: []
-  simplifications_count: 6   # 2026-08-18 pass 6: ran the check the null-CLV finding declined to run -- 5 of 13 accounts publish clv_gbp null, the annual report's quadrant boundary counts them as GBP 0, and the board instruction at ANNUAL_REPORT.md:2237 names two accounts (C2, C8) as priority retention targets that a manufactured zero put there; finding escalated LATENT -> BLOCKING
+  simplifications_count: 7   # 2026-08-19 pass 7: read the THIRD horizon (clv_cohort_book, built and unwired, cited by six passes and read by none) -- its record type has no field for whether a customer is still supplied and cannot hold a null CLV, so the population fact both sibling horizons were repaired for has nowhere to live; and both discriminating cells of the (supplied x null) 2x2 are EMPTY on the live book, so drop-nulls and keep-supplied are bit-identical and a wiring with no supply check passes by coincidence
 - id: EP2_variance_learning_loop
   title: "Expected minus realised, fed back into belief"
   gain: "Margin volatility becomes explained variance or a named defect, instead of a shrug."
