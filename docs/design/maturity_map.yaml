@@ -4087,7 +4087,7 @@
   couples_with: []
   records_rehomed: [evidence]
   file_scope: []
-  simplifications_count: 7   # 2026-08-19 pass 7: read the THIRD horizon (clv_cohort_book, built and unwired, cited by six passes and read by none) -- its record type has no field for whether a customer is still supplied and cannot hold a null CLV, so the population fact both sibling horizons were repaired for has nowhere to live; and both discriminating cells of the (supplied x null) 2x2 are EMPTY on the live book, so drop-nulls and keep-supplied are bit-identical and a wiring with no supply check passes by coincidence
+  simplifications_count: 8   # 2026-08-19 pass 8: read the live tenure horizon as a MODEL -- its conjugate soft-count update is exchangeable in the renewal order, so a deteriorating and a recovering customer get a bit-identical lifetime and CLV, the published churn/lifetime pair correlates -0.0169 (three accounts spanning 0.14-0.41 share a 17-figure-identical lifetime), substituting only the horizon moves the book -45.2%, and the mutation test written for this exact estimator has a fixture in which no account can have a trajectory; plus the demand-side census -- five dark decision modules, six CLV formulas, three tenures for one customer
 - id: EP2_variance_learning_loop
   title: "Expected minus realised, fed back into belief"
   gain: "Margin volatility becomes explained variance or a named defect, instead of a shrug."
