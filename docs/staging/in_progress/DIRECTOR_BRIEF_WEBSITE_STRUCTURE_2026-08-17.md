@@ -1,23 +1,8 @@
-> **[IN PROGRESS — §9.5 proposal DELIVERED 2026-08-17, build NOT started]**
->
-> **Open sub-item:** the eight-item WORK THIS CREATES list. None of it is built.
->
-> **Done:** §9.5 ("proposal before build") — `docs/design/SITE_STRUCTURE_PROGRAMME_PROPOSAL_2026-08-17.md`
-> returns the proposed sequence (Steps 0-7), a blast-radius assessment per step, six evidence-backed
-> corrections to this brief, and four open questions with recommendations attached.
->
-> **What unblocks the rest:** capacity. §9.4 of this brief rules that it does not jump the queue —
-> the publish-gate wiring and the PB3 ADD path outrank it. The commitment set gets minted when those
-> clear; Step 0 (one IA register, nav derives from it) is its first drawable item.
->
-> **Do not bulk-archive this file.** It is the canonical spec for a multi-draw programme that has
-> delivered one draw of eight.
-
----
-
 # [DIRECTOR-BRIEF] — The website: structure, content, and the end-to-end customer traversal (2026-08-17)
 
 **Type:** [BRIEF — problem, requirements and non-negotiables. Design, mechanism, sequencing and implementation are the worker's. Nothing here prescribes markup, framework, file layout, or component structure.]
+
+**REVISED 2026-08-18 after this document entered in_progress.** Changes: Home reframed around the project's own claim (autopoiesis — self-production and self-maintained boundary; the wall/boundary correspondence is structural, not analogical); Capabilities gains the interface/curtain inventory and the go-live seam; Harness gains the method, lanes and levels, the discovery-to-knowledge loop, observability including its own blind spots, and separate SIM/Company codebase tracking; the no-jargon rule gains its single Harness exception. If work has already begun from the earlier version, nothing built is invalidated — these are additions and one reframing, not reversals.
 
 **Status of this document:** director-reviewed before staging. Supersedes no prior site instruction; the SITE2 door-renaming work and the unblocked `one_node_to_depth_with_charts` mint both sit inside this brief rather than beside it.
 
@@ -71,6 +56,21 @@ Non-audience: the machine, and us. Internal state belongs in the repo, not on th
 
 ### Home — *what is this, and why should I care?*
 The tab stays named Home (the convention a reader expects); the page opens with the claim, not a welcome.
+
+**The claim must be the PROJECT's, not the simulated company's.** The current headline states the simulated supplier's mission ("an energy company built and run by AI, to find the cheapest tonne of carbon left"). That is the mission of the thing being grown, not the experiment being run, and a reader currently meets the exhibit without being told what it is an exhibit of. Required framing, in this order:
+
+- **The question:** to what extent can software be *grown* rather than written — and more precisely, can a software system produce and maintain itself?
+- **The name, and it is the thesis:** *autopoiesis* (Maturana and Varela) — a system that continuously produces and maintains its own components and thereby its own organisation. Contrast with allopoiesis: ordinary code generation makes a thing other than itself. The claim under test is whether this harness is doing something closer to the former.
+- **The experiment:** an autonomous harness; a synthetic GB energy world built on nearly ten years of real settlement data; a simulated supplier inside it; a human whose role is to decide, not to build.
+- **Why energy:** the fitness function is the cheapest tonne of carbon abated, and the domain is complex enough that faking it is immediately visible to anyone who knows it.
+- **What is being measured:** features, value, code, data — or, honestly, at minimum the learnings.
+- **The honest frame, stated plainly:** a proof of concept for learning, not a product and not a pitch.
+
+**Two structural claims that belong on Home because they are the evidence, not decoration:**
+- **Self-production:** the system builds the controls that judge its own work, finds them unable to fail, rebuilds them, and mints the law that prevents the next instance. That is the autopoietic claim in operational terms, and the Harness tab is where it is evidenced.
+- **Self-maintained boundary:** in the theory, an autopoietic system defines and maintains its own boundary. Here that is the epistemic wall — enforced by the system on itself, with crossings measured and driven down by its own hand. This is a structural correspondence, not an analogy, and should be stated as such once, on Home, then demonstrated in Explore.
+
+Home should also carry, as now: three live figures with date and provenance, a route into Knowledge as the next step for a patient reader, a short dated "latest" strip, and the model diagram at the foot as the whole-thing-on-one-page payoff.
 - The claim in plain English, first screen, no diagram before the idea lands.
 - Three live figures with their date and provenance: book size, margin, carbon.
 - One hero route into **Explore** — a named household, not an abstraction.
@@ -86,6 +86,7 @@ The tab stays named Home (the convention a reader expects); the page opens with 
 - SIM and Company **side by side**, each in two columns: **now** and **next**.
 - Honest about what does not exist yet. Absence stated plainly is credibility, not weakness.
 - This page doubles as the roadmap; it should make a separate pitch document unnecessary.
+- **The interface inventory — where the curtain lives.** A named section listing every seam between the world and the company: which are typed doorways today, which are still the world handing data over directly, and which real counterparty each would swap to at go-live (settlement and metering data, the smart-meter network, gas industry systems, payment collection). State the wall's own measured position — crossings remaining, and the trend. This is the strongest architectural claim the project has, because **the wall is the go-live seam**: switching from simulated endpoint to real endpoint is the launch, not a rewrite. The *inventory* belongs here; the *experience* of the boundary belongs in Explore (§5).
 
 ### Explore — *follow one customer, end to end*
 The interactive centre of the site, and the strongest available demonstration of the epistemic wall. Specified in full in §5.
@@ -94,6 +95,10 @@ The interactive centre of the site, and the strongest available demonstration of
 
 ### Harness — *how it runs itself, and what we are learning*
 - The two-seat model, bounded work sessions, the rules and gates, in plain English.
+- **The method itself**: how work is chosen and sequenced, what the lanes and the work-item map are, how levels of maturity are claimed and proven, and how a claim is refused when its evidence is missing. This is the operating system of the experiment and it should be legible to an outsider.
+- **How discovery feeds knowledge**: the loop by which the machine's own investigations become domain understanding — a finding, a measurement, a repair, and where that lands as a Knowledge page. The link between the two tabs should be visible, because a self-producing system that also produces its own domain knowledge is a stronger claim than either alone.
+- **Observability**: what the system can see about itself, what it alarms on, and — honestly — the classes of blindness it has discovered in its own instruments.
+- **Codebase tracking, for SIM and Company separately**: modules, tests, coverage of what ships, wall crossings over time, orphaned work, and the split between what was built new and what was repaired. This is not housekeeping on a public page: it is the direct measurement of the growth being claimed. "Here is what was grown, and here is the shape of the growth" is the evidence a serious reader will want, and its absence would be conspicuous.
 - **What the process is teaching us**: the named failure classes, the laws minted, the honest count of what broke and why. This is the methodology casebook and it is the part with the most outside value.
 - **The director window, folded in as a section**: the record of what a human actually decided. "Here are the decisions a human made in a fortnight; everything else was autonomous" is a striking exhibit and it belongs here.
 - A running progress log: what changed this week, what is being worked on, what is known broken.
@@ -152,6 +157,7 @@ Wall: what the company believed this customer was worth, against what they turne
 
 1. **Every page states its purpose in its first sentence.**
 2. **No internal vocabulary on public pages** — no atoms, levels, doors, stages, R16, lane names, rung names. If a concept genuinely needs a name, name it in the reader's language.
+   **Single exception: Harness.** There, the method *is* the subject, so its vocabulary is legitimate — but every term is defined in plain English at first use on the page, and none of it is permitted to leak onto Home, Knowledge, Capabilities or Explore. This exception is what replaces the deleted glossary for method terms, exactly as Knowledge replaces it for domain terms.
 3. **Every link says where it leads.** No label used more than twice across a page.
 4. **Depth by drilling, not by dumping.** Summary first; detail on request.
 5. **Every published figure carries its date and provenance** where it is shown, not only on Proof.
@@ -167,7 +173,7 @@ These exist so the structure cannot silently rot back:
 - A published page with **no heading structure** fails.
 - A link label used **more than twice on a page** fails.
 - A knowledge page **past its review threshold** renders as review-due rather than silently stale.
-- Internal-vocabulary terms appearing on a public page fail, against a named list.
+- Internal-vocabulary terms appearing on a public page fail, against a named list — **scoped to exclude Harness**, per the §6.2 exception, and to require first-use definition within Harness itself.
 
 Each must be provably failable and fail closed, consistent with the publish-surface gate landed today.
 
@@ -189,7 +195,9 @@ Markup, framework, component structure, file layout, build pipeline, chart libra
 5. Harness: the methodology account, the learning, and the director record.
 6. Proof dissolved: claims-and-checks inline at every published figure; limitations re-homed to Harness as a named section.
 7. The five structural controls in §7.
-8. Home reordered, with the diagram retained and re-positioned.
+8. Home reordered and reframed around the project's own claim — autopoiesis, the experiment, the honest proof-of-concept framing — with the diagram retained and re-positioned.
+9. The interface/curtain inventory as a named section of Capabilities, with the wall's measured position and the go-live seam stated.
+10. Harness extended to carry the method, the discovery-to-knowledge loop, observability including its own blind spots, and separate codebase tracking for SIM and Company as the measurement of growth.
 
 — Director brief, 2026-08-17. Reviewed by the director before staging. See-and-correct applies to everything except the epistemic wall's treatment in §5, which is the exhibit's whole purpose.
 
