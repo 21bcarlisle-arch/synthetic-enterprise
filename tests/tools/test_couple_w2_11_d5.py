@@ -2008,12 +2008,25 @@ def test_the_two_dimensions_read_ONE_exclusion_set_not_two_copies():
     again, one file over -- so the set is built once and both read it.
 
     Asserted structurally as well as numerically: the module must construct
-    `never_flaggable` exactly once."""
+    `never_flaggable` exactly once.
+
+    THE SUBJECT MOVED 2026-08-18 AND THE ASSERTION HAD TO MOVE WITH IT. This
+    counted the string `    never_flaggable = {` -- the assignment inside
+    `score_triad`. The band was then lifted into `never_flaggable_band` so the
+    population-side predictor could read the SAME rule instead of writing a
+    second copy of it, which is this test's own subject; counting the old
+    assignment would have read 0 and failed the extraction that satisfies it.
+    So it counts the RULE now rather than one site's assignment statement,
+    which is what it was always about and is the stronger check: a second copy
+    anywhere in the module trips it, including one that never binds the name."""
     src = Path(pair.__file__).read_text()
-    assert src.count("    never_flaggable = {") == 1, (
+    assert src.count("r.days_late <= reconciliation_grace_days") == 1, (
         "the never-flaggable band is constructed more than once in this module; "
         "two copies of one rule is how the detection and ageing dimensions came "
         "to disagree about the same cases"
+    )
+    assert "never_flaggable_band" in pair._names_in(pair.score_triad), (
+        "`score_triad` must READ the shared band, not rebuild it"
     )
     result = _scored()
     sets = result["sets"]
@@ -5530,13 +5543,203 @@ def test_the_recon_saturation_caveat_travels_with_both_numbers():
     det = result["detection"]
     assert det.components["recon_saturation_caveat"] in det.note
     assert "atom D31" in det.components["recon_saturation_caveat"]
-    assert det.components["recon_saturation_band_days"] == (-6, 82)
+    # THE BAND IS THIS BOOK'S, NOT THE REGISTER'S LITERAL (atom D28). This
+    # assertion read `== (-6, 82)` -- the register's n=300 pair -- until
+    # 2026-08-18, and it passed on a 120-account book whose own upper edge is
+    # +70. That is the shipped defect in one line: the assertion could not tell
+    # the two populations apart because neither could the component.
+    band = det.components["recon_saturation_band_days"]
+    assert band[0] == -pair.DEFAULT_RECONCILIATION_GRACE_DAYS - 1
+    assert band == (-6, 70), (
+        "the 120-account book's own band, and NOT the register's (-6, 82)")
+    scope = det.components["recon_saturation_band_measured_on"]
+    assert scope["source"] == "predicted_from_this_book"
+    assert scope["n_accounts"] == 120 and scope["n_scored"] > 0
+    assert "+70d" in det.components["recon_saturation_caveat"], (
+        "the prose half must state the same band the machine-readable half "
+        "does -- two numbers claiming one label is what this was")
     lat = result["detection_latency"]
     assert lat.components["organ_query_floor_drift_days"] == -19
     assert set(lat.components["organ_query_floor_constants"]) == {
         "PAYMENT_TERMS_DAYS", "DEFAULT_RECONCILIATION_GRACE_DAYS"}
     assert "-19d and no further" in lat.components[
         "organ_query_saturation_caveat"]
+
+
+# ---------------------------------------------------------------------------
+# THE POPULATION-SIDE PREDICTOR AND THE DRAW-SIZE AXIS -- atom D28, 2026-08-18,
+# closing WORKER_FINDING_THE_SATURATION_EDGE_IS_A_PROPERTY_OF_THE_DRAW_SIZE.
+#
+# The register declared `saturates_above: 82`, `score_triad` stamped it onto
+# EVERY book it ever scored, and `measure_organ_query_grid_saturation` -- the
+# control over that declaration -- defaults to `n_customers=300`, the draw size
+# the declaration was authored at. Not a tautology and not fail-open: the
+# control genuinely measures, and would genuinely fire, AT n=300. Its subject
+# was chosen by a harness convenience, so the only population it could fail on
+# was the one that produced the declaration.
+#
+# The predictor is what makes the other populations askable: arithmetic over
+# one book instead of 109 re-scorings, so 25 books cost ~3s against ~100s for
+# one. Its own honesty rests on the first test below -- an independent
+# implementation is worth nothing until it has been put against the shipped one
+# point for point.
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def band_population_axis():
+    """The band on 25 books: 5 draw sizes x 5 seeds, predictor-only."""
+    return pair.measure_recon_band_population_axis()
+
+
+def test_the_predictor_reproduces_the_published_curve_with_no_scorer_call():
+    """R15 INDEPENDENCE, and the control the whole atom rests on. The predictor
+    reads the LEDGER's own cover dates and the consumer's own snapshot; it does
+    not call `score_triad` and is not a copy of `expected_collection_misses`.
+    So it is scored against the shipped scorer at every point of the book's own
+    grid -- `gap` to float equality and both components to the published 6 d.p.
+
+    A predictor agreeing on the interior and not at the edges would be the
+    worst possible outcome here (the edges are the published claim), which is
+    why the grid spans both tails rather than sampling the middle."""
+    n, seed = 60, 7
+    records, consumer, _lb, as_of = pair.build_scenario(n, seed=seed)
+    thresholds = pair.predict_recon_exit_thresholds(records, consumer, as_of)
+    dd_held = pair.observed_dd_flagged_set(records, consumer, as_of)
+    truth = {(r.customer_id, r.period_index)
+             for r in records if r.result == "failed"}
+    never = pair.never_flaggable_band(records)
+    scored = truth | never
+    assert truth and never, "a book with an empty direction proves nothing"
+
+    disagreements = []
+    for k in range(-20, 89):
+        det = pair.score_triad(
+            records, consumer, as_of, organ_reconciliation_drift_days=k,
+        )["detection"]
+        flagged = {c for c in scored if c in dd_held or k < thresholds[c]}
+        missed = len(truth - flagged) / len(truth)
+        false_flag = len(flagged & never) / len(never)
+        predicted_gap = (missed + false_flag) / 2
+        if (predicted_gap != det.gap
+                or round(missed, 6) != round(
+                    det.components["missed_failure_rate"], 6)
+                or round(false_flag, 6) != round(
+                    det.components["false_flag_rate"], 6)):
+            disagreements.append((k, predicted_gap, det.gap))
+    assert disagreements == [], (
+        "the predictor and the shipped scorer part company at these drifts -- "
+        "every declaration the predictor is now trusted for is void until they "
+        "agree again")
+
+
+def test_the_standalone_dd_read_is_the_scorers_own_dd_set():
+    """`observed_dd_flagged_set` is a SECOND read of the surface `score_triad`
+    reads, and two reads of one surface drifting apart is the sibling-half
+    class this module has already been bitten by twice. It is not left to
+    inspection."""
+    records, consumer, _lb, as_of = pair.build_scenario(120, seed=11)
+    standalone = pair.observed_dd_flagged_set(records, consumer, as_of)
+    scorer = pair.score_triad(records, consumer, as_of)[
+        "sets"]["flagged_via_dd_channel"]
+    assert standalone == scorer and standalone, (
+        "an empty set would make this assertion vacuous, so it must also be "
+        "non-empty")
+
+
+def test_the_published_band_is_the_scored_books_and_not_a_literal(
+        band_population_axis):
+    """THE SHIPPED DEFECT, both halves.
+
+    (a) Two books of different draw size must publish DIFFERENT upper edges
+        through the shipped scorer. Until 2026-08-18 they published the
+        register's `82` whatever they were.
+    (b) The register's literal must no longer be reachable from the stamp at
+        all -- a per-run derivation that happened to coincide on the register's
+        own book would leave the class alive everywhere else."""
+    small = pair.measure(n_customers=120, seed=7)["detection"]
+    large = pair.measure(n_customers=600, seed=7)["detection"]
+    small_band = small.components["recon_saturation_band_days"]
+    large_band = large.components["recon_saturation_band_days"]
+    assert small_band[1] != large_band[1], (
+        "the same book shape at two draw sizes published one upper edge -- "
+        "which is the defect, not the fix")
+    declared = pair.ORGAN_QUERY_GRID["flagged_via_reconciliation"][
+        "saturates_above"]
+    assert {small_band[1], large_band[1]} != {declared}
+    assert "recon_saturation_band_days" not in pair._names_in(
+        pair.organ_query_grid_saturation_caveat)
+    # And the axis says the same thing over 25 books rather than 2.
+    assert band_population_axis["upper_edge_range"][0] < declared
+
+
+def test_the_lower_edge_is_the_grace_closed_form_on_every_book(
+        band_population_axis):
+    """THE NULL CONTROL the finding owed, and it must stay GREEN or the
+    measurement above is reading draw noise rather than a scope error: the
+    LOWER edge is `-(grace + 1)`, attained by any invoice paid on its due date,
+    and it does not move with the draw size on any of the 25 books."""
+    closed_form = -(pair.DEFAULT_RECONCILIATION_GRACE_DAYS + 1)
+    assert band_population_axis["lower_edges"] == (closed_form,), (
+        "if the lower edge moved with the draw size too, the upper edge's "
+        "movement would be evidence of nothing")
+    assert all(b["below_closed_form"] == closed_form
+               for b in band_population_axis["by_book"].values())
+    assert pair.check_recon_band_population_axis(band_population_axis) == []
+
+
+@pytest.mark.parametrize("mutate,expected", [
+    (lambda e: e["draw_size_axis"].__setitem__("lower_edge_invariant", -12),
+     "not a bound"),
+    (lambda e: e["draw_size_axis"].__setitem__("upper_edge_range", (70, 80)),
+     "declares its upper edge inside [70, 80]"),
+    (lambda e: e.__setitem__("saturates_above_scope", {}),
+     "declares `saturates_above` and no scope"),
+    (lambda e: e.__setitem__("saturates_above_scope",
+                             {"n_customers": 999, "seeds": (7,)}),
+     "which this axis never visits"),
+])
+def test_the_draw_size_control_fires_on_its_own_named_defects(
+        band_population_axis, mutate, expected):
+    """R15: a control counts as evidence only once a mutation proves it fires.
+    The fourth case is the SHIPPED defect itself -- an upper edge declared with
+    no scope."""
+    register = copy.deepcopy(pair.ORGAN_QUERY_GRID)
+    mutate(register["flagged_via_reconciliation"])
+    violations = pair.check_recon_band_population_axis(
+        band_population_axis, register=register)
+    assert any(expected in v for v in violations), violations
+
+
+def test_pinning_the_population_hides_the_draw_size_defect():
+    """THE MUTATION THE FINDING SPECIFIED, and the one that names the class:
+    pin the sweep to a single `n_customers` -- exactly what
+    `measure_organ_query_grid_saturation` does by default -- and the control
+    goes GREEN with the defect untouched.
+
+    That is why this is filed as a CONTROL finding and not only a number
+    finding: nothing about the register or the book changed between these two
+    calls, only which populations the control was allowed to look at."""
+    pinned = pair.measure_recon_band_population_axis(n_customers=(300,))
+    assert set(pinned["upper_spread_by_seed"].values()) == {0}, (
+        "at one draw size there is no spread to see -- the harness default "
+        "chose the subject")
+    violations = pair.check_recon_band_population_axis(pinned)
+    assert any("no seed's edge moved" in v for v in violations), (
+        "and the control must SAY it was asked at one draw size rather than "
+        "passing quietly -- a pinned axis is an unasked question, not a green "
+        "one")
+
+
+def test_the_predictor_never_calls_the_scorer():
+    """The 250x is only worth having if it is real: a predictor that reached
+    `score_triad` would be the sweep with extra steps, and the population axis
+    would cost ~40 minutes instead of 3 seconds."""
+    for fn in (pair.predict_recon_exit_thresholds,
+               pair.predict_recon_saturation_band,
+               pair.recon_cover_dates,
+               pair.measure_recon_band_population_axis):
+        assert "score_triad" not in pair._names_in(fn), fn.__name__
 
 
 # ---------------------------------------------------------------------------

@@ -2290,6 +2290,36 @@ ORGAN_QUERY_GRID: Dict[str, Dict[str, object]] = {
         "saturation_atom_below": "BOUND:the flag-everything set",
         "saturation_atom_above": (
             "D31_the_recon_grid_saturates_beyond_this_books_window"),
+        # THE TWO EDGES ARE DIFFERENT KINDS OF OBJECT (atom D28, 2026-08-18).
+        # Both were declared as bare integers and the pair was stamped onto
+        # every scored book, which read as though each were a property of the
+        # instrument. Only the lower one is:
+        #
+        #   * BELOW is arithmetic -- `-(grace + 1)`, attained by any invoice
+        #     paid on its due date (`cover = due` gives `k* = -grace`), so every
+        #     book has hundreds of witnesses. Invariant on 25 books.
+        #   * ABOVE is a DRAW. It is `max(k*)` over the scored non-DD cases and
+        #     is attained by the single luckiest one -- a failure never covered
+        #     inside the book at the smallest cycle offset -- so whether it
+        #     exists at all depends on HOW MANY CUSTOMERS WERE DRAWN. Measured
+        #     70..88 across 25 books with the book's SHAPE held fixed, and still
+        #     moving at the swept grid's last point on 3 of 5 seeds at n=2400.
+        #
+        # `saturates_above` therefore carries its SCOPE. It is still a real
+        # measurement -- of the n=300 book the register was authored on -- and
+        # `measure_recon_band_population_axis` puts the scope itself on trial.
+        # The published component no longer reads this literal at all: it is
+        # derived per run by `predict_recon_saturation_band`.
+        "saturates_below_closed_form": (
+            "-(DEFAULT_RECONCILIATION_GRACE_DAYS + 1)"),
+        "saturates_above_scope": {"n_customers": 300, "seeds": (7, 11, 23)},
+        "draw_size_axis": {
+            "atom": "D28_the_detection_gap_is_quantised_by_this_books_placement",
+            "n_customers": (150, 300, 600, 1200, 2400),
+            "seeds": (7, 11, 23, 3, 41),
+            "upper_edge_range": (70, 88),
+            "lower_edge_invariant": -6,
+        },
         "undefined_drifts": (),
         "debt_atom": None,
         "residual_ownership": {
@@ -3510,12 +3540,151 @@ def check_organ_query_grid_saturation(
     return violations
 
 
+def measure_recon_band_population_axis(
+    *,
+    n_customers: Optional[Sequence[int]] = None,
+    seeds: Optional[Sequence[int]] = None,
+    builder: Optional[Callable[[int, int], tuple]] = None,
+) -> Dict[str, object]:
+    """SWEEP THE SATURATION BAND ACROSS THE POPULATION AXIS (atom D28), the axis
+    `measure_organ_query_grid_saturation` cannot reach because it takes one
+    `n_customers` and defaults it to the draw size the declaration was authored
+    at.
+
+    THE R15 PATTERN THIS EXISTS FOR is not tautology and not fail-open. The
+    sibling control genuinely measures and would genuinely fire if the
+    declaration were wrong AT n=300 -- its defect is that a HARNESS CONVENIENCE
+    chose its subject, so the only population it can fail on is the one that
+    produced the declaration. Widening the grid (D31) and densifying it (D28)
+    both moved the GRID and neither moved the BOOK.
+
+    Predictor-only: no `score_triad` call anywhere, so the 25 books cost ~3s
+    against the ~100s the sibling spends on one. That is the whole reason this
+    axis is now askable at all -- it was not affordable as a re-scoring.
+
+    Returns per (n, seed) the band `predict_recon_saturation_band` derives,
+    plus the two axis summaries `check_recon_band_population_axis` puts the
+    register's `draw_size_axis` declaration on trial against."""
+    entry = ORGAN_QUERY_GRID["flagged_via_reconciliation"]
+    axis = entry["draw_size_axis"]
+    ns = tuple(axis["n_customers"]) if n_customers is None else tuple(n_customers)
+    ss = tuple(axis["seeds"]) if seeds is None else tuple(seeds)
+    build = builder if builder is not None else (
+        lambda n, s: build_scenario(n, seed=s))
+    by_book: Dict[tuple, Dict[str, object]] = {}
+    for n in ns:
+        for s in ss:
+            records, consumer, _ledger_book, as_of = build(n, s)
+            by_book[(n, s)] = predict_recon_saturation_band(
+                records, consumer, as_of)
+    uppers = [b["saturates_above"] for b in by_book.values()]
+    lowers = [b["saturates_below"] for b in by_book.values()]
+    present = [u for u in uppers if u is not None]
+    return {
+        "n_customers": ns,
+        "seeds": ss,
+        "by_book": by_book,
+        "n_books": len(by_book),
+        "lower_edges": tuple(sorted(set(lowers))),
+        "upper_edges": tuple(sorted(set(present))),
+        "upper_edge_range": ((min(present), max(present)) if present else None),
+        # PER-SEED SPREAD ALONG THE POPULATION AXIS ALONE. This is the figure
+        # that makes the finding: the same seed, the same book shape, only the
+        # draw size moving. A spread of 0 on every seed would mean the upper
+        # edge really were a property of the instrument.
+        "upper_spread_by_seed": {
+            s: (max(v) - min(v) if (v := [by_book[(n, s)]["saturates_above"]
+                                          for n in ns
+                                          if by_book[(n, s)]["saturates_above"]
+                                          is not None]) else None)
+            for s in ss
+        },
+    }
+
+
+def check_recon_band_population_axis(
+    measured: Dict[str, object],
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+) -> List[str]:
+    """Put the DRAW-SIZE declaration on trial, both ways (R15).
+
+    Four violations, and each one names a way this class comes back:
+
+      * the LOWER edge is declared a bound with a closed form, so it must be
+        that closed form on EVERY book swept -- the null control. If it moved
+        with the draw size too, this measurement would be reading draw noise
+        rather than a scope error, and the finding it came from would be wrong.
+      * the UPPER edge must actually MOVE along this axis. A declaration that
+        the edge is draw-dependent is as much a claim as one that it is not,
+        and if the spread collapsed to zero the register should go back to
+        declaring a bare number.
+      * the declared `upper_edge_range` must contain what the sweep measured --
+        the same rule every other declaration in this register lives under.
+      * `saturates_above` must carry its SCOPE, and that scope must be a draw
+        size this sweep actually visited. An unscoped literal here is the
+        shipped defect returning."""
+    register = ORGAN_QUERY_GRID if register is None else register
+    entry = register["flagged_via_reconciliation"]
+    axis = entry.get("draw_size_axis") or {}
+    violations: List[str] = []
+
+    declared_lo = axis.get("lower_edge_invariant")
+    off = sorted(v for v in measured["lower_edges"] if v != declared_lo)
+    if off:
+        violations.append(
+            f"flagged_via_reconciliation: declares its lower edge the "
+            f"invariant {declared_lo!r} and the population sweep read {off} as "
+            "well -- an edge that moves with the draw size is not a bound, and "
+            "the upper edge's scope finding rests on this one holding"
+        )
+    spread = {s: v for s, v in measured["upper_spread_by_seed"].items() if v}
+    if not spread:
+        violations.append(
+            "flagged_via_reconciliation: declares its upper edge draw-size "
+            "dependent and no seed's edge moved across "
+            f"{list(measured['n_customers'])} -- a scoped declaration whose "
+            "scope turns out not to matter should go back to a bare number"
+        )
+    declared_range = tuple(axis.get("upper_edge_range") or ())
+    seen = measured["upper_edge_range"]
+    if declared_range and seen and (seen[0] < declared_range[0]
+                                    or seen[1] > declared_range[1]):
+        violations.append(
+            f"flagged_via_reconciliation: declares its upper edge inside "
+            f"{list(declared_range)} across this axis and the sweep read "
+            f"{list(seen)}"
+        )
+    scope = entry.get("saturates_above_scope") or {}
+    if entry.get("saturates_above") is not None and not scope:
+        violations.append(
+            "flagged_via_reconciliation: declares `saturates_above` and no "
+            "scope -- the draw size it was measured at IS part of the claim "
+            "(this is the shipped defect: the pair rode every book the scorer "
+            "was run over, including one publishing seven figures inside it)"
+        )
+    elif scope and scope.get("n_customers") not in measured["n_customers"]:
+        violations.append(
+            f"flagged_via_reconciliation: scopes its upper edge to "
+            f"n={scope.get('n_customers')}, which this axis never visits -- a "
+            "scope nobody measures at is a label, not a claim"
+        )
+    return violations
+
+
 def organ_query_grid_saturation_caveat(
     measured: Optional[Dict[str, Dict[str, object]]] = None,
+    book_band: Optional[Dict[str, object]] = None,
 ) -> str:
     """The saturation caveat that travels WITH the latency and detection
     numbers, interpolated from the register (atom D31, the D22/D25 rule: a
-    caveat nobody re-derives decays into a claim)."""
+    caveat nobody re-derives decays into a claim).
+
+    `book_band` is the band `predict_recon_saturation_band` derived from the
+    book actually being scored (atom D28). Given it, the sentence stops being
+    solely about the register's n=300 declaration and states THIS book's upper
+    edge and the fact that that edge moves with the draw size -- because two
+    numbers claiming one label is how this caveat would otherwise read once the
+    component beside it became per-run."""
     src = (ORGAN_QUERY_GRID if measured is None
            else {k: dict(ORGAN_QUERY_GRID[k], **{
                "saturates_below": v.get("saturates_below"),
@@ -3529,6 +3698,37 @@ def organ_query_grid_saturation_caveat(
     date_lo = _d(src["recon_lag_days"]["saturates_below"])
     set_lo = _d(src["flagged_via_reconciliation"]["saturates_below"])
     set_hi = _d(src["flagged_via_reconciliation"]["saturates_above"])
+    # THIS BOOK'S OWN UPPER EDGE (atom D28), appended rather than substituted:
+    # the register's declaration and the scored book's band are two different
+    # claims about two different populations, and collapsing them into one
+    # number is the defect the sentence is being extended to report.
+    book_note = ""
+    if book_band is not None:
+        entry = ORGAN_QUERY_GRID["flagged_via_reconciliation"]
+        scope = entry["saturates_above_scope"]
+        axis = entry["draw_size_axis"]
+        lo_edge, hi_edge = axis["upper_edge_range"]
+        n_books = len(axis["n_customers"]) * len(axis["seeds"])
+        book_note = (
+            " AND THE UPPER EDGE IS A PROPERTY OF THE DRAW, NOT OF THE BOOK'S "
+            f"SHAPE (atom D28). The {set_hi}d above was measured on ONE draw "
+            f"size (n={scope['n_customers']}, seeds {list(scope['seeds'])}); "
+            f"across {n_books} books -- same one-cycle spread, same `as_of`, "
+            "same grace line, same terms, only how many customers were drawn "
+            f"-- it moves {lo_edge:+d}..{hi_edge:+d}, and on the largest draws "
+            "there is no upper saturation inside the swept grid at all. THE "
+            "BAND STAMPED BESIDE THIS NUMBER IS THIS BOOK'S OWN, derived from "
+            f"its {book_band.get('n_scored')} scored cases: "
+            f"{_d(book_band.get('saturates_below'))}d to "
+            f"{_d(book_band.get('saturates_above'))}d. Only the LOWER edge is "
+            f"a bound -- {book_band.get('below_closed_form'):+d} is the closed "
+            f"form `{entry['saturates_below_closed_form']}`, attained by any "
+            f"invoice paid on its due date and invariant on all {n_books}. The "
+            "upper edge is attained by the single luckiest case, a non-DD "
+            "failure never covered inside the book; the "
+            f"{book_band.get('n_held_by_dd_channel')} scored cases the DD "
+            "channel holds flagged at every drift set no edge at all."
+        )
     return (
         "SATURATION (atom D31, measured on a grid derived from the BOOK, "
         f"n=300, seeds {list(RESOLUTION_SEEDS)}): resolution is not the whole "
@@ -3543,6 +3743,7 @@ def organ_query_grid_saturation_caveat(
         "before `as_of`. Between them it is quantised, not continuous: "
         "movement in these headlines is not readable as days of company error "
         "outside the declared runs. R12: a diagnostic, never a target."
+        + book_note
     )
 
 
@@ -9252,6 +9453,263 @@ def organ_query_dates(
     return [start + timedelta(days=i) for i in range((as_of - start).days + 1)]
 
 
+# ---------------------------------------------------------------------------
+# THE POPULATION-SIDE PREDICTOR OF THE RECONCILIATION EXIT THRESHOLDS
+# (atom D28; derivation and evidence `docs/design/D28_DETECTION_EXIT_THRESHOLD_
+# PREDICTOR.md`, built 2026-08-18 to close
+# `WORKER_FINDING_THE_SATURATION_EDGE_IS_A_PROPERTY_OF_THE_DRAW_SIZE`).
+#
+# WHAT IT IS FOR. `ORGAN_QUERY_GRID["flagged_via_reconciliation"]` declares
+# where the published detection gap stops resolving the company, and until this
+# tick the ONLY way to know those edges was to re-score the book at 109 drifts
+# (~100s). The consequence was not the cost: it was that the declaration could
+# only ever be checked on the book it was authored on, and
+# `measure_organ_query_grid_saturation` defaults to `n_customers=300` -- the
+# draw size the declaration was authored at. The register was being asked
+# exactly where it had already answered, which is this atom's own founding
+# observation recurring on the POPULATION-SIZE axis.
+#
+# The predictor is arithmetic over ONE book, so the same question can be asked
+# of a book nobody swept -- which is how the upper edge was found to be a
+# property of the DRAW SIZE (70..87 across 25 books, absent at n=2400) while the
+# published component carried it as a book-independent literal.
+#
+# INDEPENDENCE (R15). Nothing below calls `score_triad`, and nothing below is a
+# copy of `expected_collection_misses`: the cover date comes from the LEDGER's
+# own allocation and the DD disjunct from the consumer's own snapshot. The
+# control that keeps them honest is `test_the_predictor_reproduces_the_
+# published_curve_with_no_scorer_call`, which puts the whole predicted curve on
+# trial against the shipped scorer point for point.
+# ---------------------------------------------------------------------------
+
+_RECON_CREDIT_EVENT_TYPES = (
+    LedgerEventType.PAYMENT_CREDIT,
+    LedgerEventType.ADJUSTMENT_CREDIT,
+    LedgerEventType.WRITE_OFF_CREDIT,
+)
+
+
+def never_flaggable_band(
+    records: List[PeriodRecord],
+    reconciliation_grace_days: int = DEFAULT_RECONCILIATION_GRACE_DAYS,
+) -> set:
+    """The FALSE-FLAG denominator: cases a belief can be wrong about at all.
+
+    A payment that eventually succeeded but arrived more than the reconciliation
+    grace after its due date really WAS unpaid past grace, so flagging it was
+    correct; and a record with no `days_late` truth is UNKNOWN, never assumed
+    paid on time. Both are excluded (atom D11 -- getting this wrong inflated the
+    measured false-flag rate from 0.0009 to 0.2834).
+
+    ONE CONSTRUCTION, called by both `score_triad` and the population-side
+    predictor. It was inline in `score_triad` until 2026-08-18; the predictor
+    needs the same band, and a second copy of this rule is precisely the
+    sibling-half class that produced the D16 defect (one named quantity
+    published as two numbers 3.5x apart)."""
+    return {
+        (r.customer_id, r.period_index) for r in records
+        if r.result == "success" and r.days_late is not None
+        and r.days_late <= reconciliation_grace_days
+    }
+
+
+def recon_cover_dates(ledger, as_of: date) -> Dict[str, date]:
+    """THE OBSERVABLE COVER DATE per invoice ref: the first date at which the
+    account's OWN ledger allocation reports that invoice settled.
+
+    Read off `AccountLedger.allocate(as_of=d)` -- the company's own
+    remittance-else-oldest-first rule -- at every date a credit lands, never
+    re-implemented here. That matters twice: it is the company's rule rather
+    than a harness copy of it (R15 independence), and it is the mechanism the
+    failure side of the predictor turns on. On a non-DD account the correlation
+    id joins no invoice, so a LATER period's payment allocates oldest-first onto
+    the failed invoice (Clayton's Case, atom D8) and closes it before the
+    drifted company's detection window ever opens.
+
+    A ref absent from the result was never covered inside the book, which is a
+    real state and not a missing measurement -- the caller's `min` then has one
+    term rather than defaulting to anything.
+
+    Allocation is recomputed per candidate date rather than accumulated: an
+    invoice issued after a payment still enters that payment's oldest-first pool
+    once both are inside the `as_of` window, so an incremental replay would not
+    be the same function."""
+    candidates = sorted({
+        e.valid_time for e in ledger.events()
+        if e.event_type in _RECON_CREDIT_EVENT_TYPES and e.valid_time <= as_of
+    })
+    cover: Dict[str, date] = {}
+    for d in candidates:
+        for oi in ledger.allocate(as_of=d).open_items:
+            if oi.is_settled and oi.invoice_ref not in cover:
+                cover[oi.invoice_ref] = d
+    return cover
+
+
+def observed_dd_flagged_set(
+    records: List[PeriodRecord],
+    consumer: PaymentObservationConsumer,
+    as_of: date,
+    payment_terms_days: int = PAYMENT_TERMS_DAYS,
+    reconciliation_grace_days: int = DEFAULT_RECONCILIATION_GRACE_DAYS,
+) -> set:
+    """The DD/rail channel's flagged cases, read off the consumer's own
+    snapshot: an observed failure whose `value_date` joins a period of this
+    account and whose bank-feed REPORT date is on or before `as_of` (a report
+    landing later is not yet knowledge -- the D11 point-in-time fix).
+
+    MEASURED INVARIANT IN THE RECONCILIATION DRIFT at all 109 drifts on all
+    three register seeds, which is why the predictor carries it as a flat
+    disjunct and not as a second threshold: a DD-flagged case never exits the
+    union, whatever the company's reconciliation detector does.
+
+    This is a SECOND read of the same observable surface `score_triad` reads,
+    and two reads of one surface drifting apart is a real failure mode here --
+    so it is not left to inspection: `test_the_standalone_dd_read_is_the_
+    scorers_own_dd_set` asserts this set equals the `flagged_via_dd_channel`
+    the shipped scorer publishes, on the same book."""
+    by_customer: Dict[str, List[PeriodRecord]] = {}
+    for r in records:
+        by_customer.setdefault(r.customer_id, []).append(r)
+    flagged: set = set()
+    for cid, periods in by_customer.items():
+        snapshot = consumer.snapshot(
+            periods[0].account_id, as_of=as_of,
+            payment_terms_days=payment_terms_days,
+            reconciliation_grace_days=reconciliation_grace_days,
+        )
+        due_to_period = {r.due_date: r.period_index for r in periods}
+        for dd_fail in snapshot.recent_dd_failures:
+            p = due_to_period.get(dd_fail.value_date)
+            if p is None or dd_fail.observed_at.date() > as_of:
+                continue
+            flagged.add((cid, p))
+    return flagged
+
+
+def predict_recon_exit_thresholds(
+    records: List[PeriodRecord],
+    consumer: PaymentObservationConsumer,
+    as_of: date,
+    payment_terms_days: int = PAYMENT_TERMS_DAYS,
+    reconciliation_grace_days: int = DEFAULT_RECONCILIATION_GRACE_DAYS,
+) -> Dict[Tuple[str, int], int]:
+    """`k*` per case: the reconciliation drift at which this case LEAVES the
+    company's flagged set. `flagged(c, k)` is `dd(c) or k < k*(c)`.
+
+        k*(c) = min( as_of - due(c),  cover(c) - due(c) - 1 ) - grace + 1
+
+    WHY THAT EXPRESSION. `age_open_items` dates an invoice at
+    `issue + payment_terms_days` and `build_scenario` issues every invoice at
+    `due - PAYMENT_TERMS_DAYS`, so a company drifted by `k` puts its grace line
+    exactly `k` days later than the harness's, and
+    `expected_collection_misses` fires at a candidate date `d` iff
+    `d >= due + k + grace` AND THE INVOICE IS STILL OPEN AT `d`. The second
+    condition is the whole failure side and is what note 1 of this atom missed:
+    a case can exit at `k = 16` against a predicted 67 because its cover date is
+    the next period's payment, 21 days on (`21 - 1 - 5 + 1 = 16`).
+
+    The negative side is the same formula specialised, not a separate rule: an
+    on-time payment that is not cross-allocated has `cover = due + days_late`,
+    giving `k* = days_late - grace`.
+
+    Exact on 900/900 reconciliation-channel exits on each of seeds 7/11/23, and
+    the predicted curve reproduces the published `gap` and both components at
+    every point of the book's grid with no `score_triad` call anywhere
+    (`docs/design/D28_DETECTION_EXIT_THRESHOLD_PREDICTOR.md` §2)."""
+    by_account: Dict[str, List[PeriodRecord]] = {}
+    for r in records:
+        by_account.setdefault(r.account_id, []).append(r)
+    thresholds: Dict[Tuple[str, int], int] = {}
+    for account_id, periods in by_account.items():
+        cover = recon_cover_dates(
+            consumer.ledger_book.ledger(account_id), as_of)
+        for r in periods:
+            due = r.issue_date + timedelta(days=payment_terms_days)
+            last_open_day = (as_of - due).days
+            covered_on = cover.get(r.invoice_ref)
+            if covered_on is not None:
+                last_open_day = min(last_open_day, (covered_on - due).days - 1)
+            thresholds[(r.customer_id, r.period_index)] = (
+                last_open_day - reconciliation_grace_days + 1)
+    return thresholds
+
+
+def predict_recon_saturation_band(
+    records: List[PeriodRecord],
+    consumer: PaymentObservationConsumer,
+    as_of: date,
+    payment_terms_days: int = PAYMENT_TERMS_DAYS,
+    reconciliation_grace_days: int = DEFAULT_RECONCILIATION_GRACE_DAYS,
+    truth_set: Optional[set] = None,
+    never_flaggable: Optional[set] = None,
+    dd_flagged_set: Optional[set] = None,
+) -> Dict[str, object]:
+    """WHERE THE PUBLISHED DETECTION GAP STOPS MOVING **ON THIS BOOK**, derived
+    from the book that was actually scored rather than read off a literal.
+
+    The reading changes between drift `k` and `k+1` iff some scored case has
+    `k* == k+1`, so the two edges are the ends of the scored `k*` multiset:
+    `below = min(k*) - 1` and `above = max(k*)` over cases the reconciliation
+    detector can still move (a DD-held case never exits, so it sets no edge).
+    Only `truth_set | never_flaggable` counts -- an EXCLUDED case is in neither
+    direction's population and moves no published figure.
+
+    THE TWO EDGES ARE DIFFERENT KINDS OF OBJECT, and that is the finding this
+    function exists to publish:
+
+      * `below` is a BOUND with a closed form, `-(grace + 1)`. It is attained by
+        any invoice paid on its due date (`cover = due` gives `k* = -grace`) and
+        every book has hundreds; measured invariant on 25 books.
+      * `above` is a DRAW. It is attained by the single luckiest case -- a
+        non-DD failure never covered inside the book, sitting at the smallest
+        cycle offset -- and whether such a customer exists is a property of HOW
+        MANY WERE DRAWN, not of the book's shape. Measured 70..87 across the
+        same 25 books with the shape held fixed, and still moving at +88 (i.e.
+        no upper saturation at all inside the swept grid) on 3 of 5 seeds at
+        n=2400.
+
+    `above` is `None` when no scored case can leave the flagged set -- an edge
+    that does not exist, published as absent rather than as a number.
+
+    Pass the three sets in when the caller already has them (`score_triad`
+    does); they are derived from the same public surfaces otherwise. Cost is
+    ~2% of one `score_triad` call on the n=4000 book."""
+    thresholds = predict_recon_exit_thresholds(
+        records, consumer, as_of,
+        payment_terms_days=payment_terms_days,
+        reconciliation_grace_days=reconciliation_grace_days,
+    )
+    if truth_set is None:
+        truth_set = {(r.customer_id, r.period_index)
+                     for r in records if r.result == "failed"}
+    if never_flaggable is None:
+        never_flaggable = never_flaggable_band(
+            records, reconciliation_grace_days)
+    if dd_flagged_set is None:
+        dd_flagged_set = observed_dd_flagged_set(
+            records, consumer, as_of,
+            payment_terms_days=payment_terms_days,
+            reconciliation_grace_days=reconciliation_grace_days,
+        )
+    scored = (set(truth_set) | set(never_flaggable)) & set(thresholds)
+    movable = [thresholds[c] for c in scored if c not in dd_flagged_set]
+    return {
+        "saturates_below": (min(thresholds[c] for c in scored) - 1
+                            if scored else None),
+        "saturates_above": max(movable) if movable else None,
+        # The closed form the lower edge is an instance of, stated beside the
+        # measurement rather than instead of it: a reader can see that one edge
+        # is arithmetic and the other is the draw.
+        "below_closed_form": -(reconciliation_grace_days + 1),
+        "n_scored": len(scored),
+        "n_held_by_dd_channel": len(scored & set(dd_flagged_set)),
+        "n_cases": len(thresholds),
+        "n_accounts": len({r.account_id for r in records}),
+        "source": "predicted_from_this_book",
+    }
+
+
 def score_triad(
     records: List[PeriodRecord],
     consumer: PaymentObservationConsumer,
@@ -9329,11 +9787,12 @@ def score_triad(
     # `days_late` truth is UNKNOWN (never assumed paid on time) -- is EXCLUDED,
     # counted, and the reason travels in the components (D10's rule: published,
     # not silent).
-    never_flaggable = {
-        (r.customer_id, r.period_index) for r in records
-        if r.result == "success" and r.days_late is not None
-        and r.days_late <= reconciliation_grace_days
-    }
+    #
+    # LIFTED TO `never_flaggable_band` 2026-08-18: the population-side predictor
+    # needs this same band to say which cases can move a published figure, and
+    # writing it out a second time there would have been this comment's own
+    # sibling-half class one function over.
+    never_flaggable = never_flaggable_band(records, reconciliation_grace_days)
     flagged_set: set = set()
     # Two INDEPENDENT detection paths, kept apart so their witnesses stay clean
     # (director ruling 2026-07-25 §2, R15 both-ways):
@@ -9679,13 +10138,41 @@ def score_triad(
     # same published number, found only once the register was swept on a grid
     # it did not choose. Interpolated from the register so a reshape that moved
     # the edges could not leave this sentence standing.
-    det.note += " " + organ_query_grid_saturation_caveat()
-    det.components["recon_saturation_caveat"] = (
-        organ_query_grid_saturation_caveat())
-    det.components["recon_saturation_band_days"] = (
-        ORGAN_QUERY_GRID["flagged_via_reconciliation"]["saturates_below"],
-        ORGAN_QUERY_GRID["flagged_via_reconciliation"]["saturates_above"],
+    # AND THE BAND IS NOW THIS BOOK'S, NOT THE REGISTER'S LITERAL (atom D28,
+    # 2026-08-18, closing WORKER_FINDING_THE_SATURATION_EDGE_IS_A_PROPERTY_OF_
+    # THE_DRAW_SIZE). Until this tick these two components were the pair
+    # `(ORGAN_QUERY_GRID[...]["saturates_below"], [...]["saturates_above"])` --
+    # two literals measured on ONE book at n=300 and stamped onto every book the
+    # scorer is ever run over, including `measure()`'s own n=4000 default, where
+    # the shipped scorer publishes SEVEN distinct figures across the region the
+    # component called one, and including the live triad. The prose sibling
+    # named its scope; the machine-readable tuple did not, and the ledger
+    # writer, the live wiring and the dashboard read `components` and never the
+    # prose (D22). It is derived per run now -- the D19/D20/D22/D23/D25 rule (a
+    # published sentence moves when its subject moves) applied to the one field
+    # on this result that was still a literal.
+    recon_band = predict_recon_saturation_band(
+        records, consumer, as_of,
+        payment_terms_days=payment_terms_days,
+        reconciliation_grace_days=reconciliation_grace_days,
+        truth_set=truth_set,
+        never_flaggable=never_flaggable,
+        dd_flagged_set=flagged_via_dd_channel,
     )
+    det.note += " " + organ_query_grid_saturation_caveat(book_band=recon_band)
+    det.components["recon_saturation_caveat"] = (
+        organ_query_grid_saturation_caveat(book_band=recon_band))
+    det.components["recon_saturation_band_days"] = (
+        recon_band["saturates_below"], recon_band["saturates_above"])
+    # THE SCOPE TRAVELS WITH THE PAIR, in the machine-readable half. A consumer
+    # holding this reading can now see WHICH book the band is of, that the
+    # lower edge is the closed form `-(grace + 1)` and the upper one a draw, and
+    # how many of the scored cases the DD channel holds (those set no edge).
+    det.components["recon_saturation_band_measured_on"] = {
+        k: recon_band[k] for k in (
+            "source", "n_cases", "n_scored", "n_accounts",
+            "n_held_by_dd_channel", "below_closed_form")
+    }
 
     lat = detection_latency_gap(
         dd_lag_days, recon_lag_days,
@@ -10201,6 +10688,14 @@ def _detection_sets_by_partition(
     flagged_by_part: Dict[str, set] = {}
     universe_by_part: Dict[str, set] = {}
     negative_by_part: Dict[str, set] = {}
+    # ACTUALLY THE SAME SET NOW, not a second statement of the same rule
+    # (2026-08-18). The docstring above has said "that cell's slice of the SAME
+    # `never_flaggable` set" since D12 and the loop below re-derived the rule
+    # instead -- and the structural half of
+    # `test_the_two_dimensions_read_ONE_exclusion_set_not_two_copies` could not
+    # see it, because it counted the ASSIGNMENT `never_flaggable = {` and this
+    # copy never bound that name. The band is built once and sliced.
+    never_flaggable = never_flaggable_band(records, reconciliation_grace_days)
     for cid, periods in by_customer.items():
         account_id = periods[0].account_id
         snapshot = consumer.snapshot(
@@ -10214,8 +10709,7 @@ def _detection_sets_by_partition(
             universe_by_part.setdefault(key, set()).add((cid, r.period_index))
             if r.result == "failed":
                 truth_by_part.setdefault(key, set()).add((cid, r.period_index))
-            elif (r.result == "success" and r.days_late is not None
-                    and r.days_late <= reconciliation_grace_days):
+            elif (cid, r.period_index) in never_flaggable:
                 # The ONLY cases a flag is wrong on, sliced per cell. Everything
                 # else -- late-past-grace successes, disputes, and any record
                 # whose `days_late` truth is unknown -- falls in NEITHER
@@ -11024,6 +11518,29 @@ def main() -> None:
           + ("every declaration held" if not _oqs_violations
              else f"{len(_oqs_violations)} VIOLATION(S)"))
     for v in _oqs_violations:
+        print(f"           !! {v}")
+
+    # AND THE AXIS THE SWEEP ABOVE CANNOT REACH (atom D28). It takes ONE
+    # `n_customers` and defaults it to 300 -- the draw size the declaration was
+    # authored at -- so the only population it can fail on is the one that
+    # produced the declaration. This one is predictor-only (no `score_triad`
+    # call) and therefore affordable on the default path: 25 books in ~3s
+    # against the ~100s the sweep above spends on one.
+    _rba = measure_recon_band_population_axis()
+    print(f"  [draw-size axis control] the saturation band over "
+          f"{_rba['n_books']} books, draw sizes {list(_rba['n_customers'])} x "
+          f"seeds {list(_rba['seeds'])}, predicted from each book:")
+    print(f"           lower edge {list(_rba['lower_edges'])} "
+          "(the closed form -(grace + 1) -- a bound, and the null control) / "
+          f"upper edge {list(_rba['upper_edges'])} "
+          f"across {_rba['upper_edge_range']} -- a DRAW, moving "
+          f"{ {s: v for s, v in _rba['upper_spread_by_seed'].items()} } days "
+          "per seed on the draw size alone")
+    _rba_violations = check_recon_band_population_axis(_rba)
+    print("           verdict: "
+          + ("every declaration held" if not _rba_violations
+             else f"{len(_rba_violations)} VIOLATION(S)"))
+    for v in _rba_violations:
         print(f"           !! {v}")
 
     # THE DIMENSION RESOLUTION CONTROL (atom D25). Printed for the same reason

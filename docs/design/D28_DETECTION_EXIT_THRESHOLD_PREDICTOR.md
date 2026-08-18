@@ -176,6 +176,12 @@ figures** between +82 and +88:
 
 The component says everything above +82 is one figure.
 
+**CLOSED 2026-08-18** by the RUNG-1c blocking draw, recommendation 2 then 3 (see §5 item 1).
+The component is derived per run and carries its scope; the register scopes its own literal;
+`measure_recon_band_population_axis` sweeps the axis the sibling control cannot reach. The
+paragraph below is left as written because it is the diagnosis, and the control that now
+exists is shaped by it.
+
 `measure_organ_query_grid_saturation` defaults to `n_customers = 300` — the draw size the
 declaration was authored at — so the control re-derives the edge exactly where the register
 already answered. That is **this atom's own founding observation** (*"the register was asked
@@ -188,11 +194,20 @@ BLOCKING in `D_billing_metering`. **QUEUED, not fixed on sight** (SELF-INTERRUPT
 
 ## 5. What this leaves for the builder
 
-**Item 1, the predictor — CLOSED as a measurement, OPEN as code.** Nothing in the repo
-computes it. What it is worth is stated so the next tick weighs it rather than re-deriving it:
-it turns the register's declarations from a 109-point re-scoring into arithmetic over one book
-(250× cheaper), and it is the only form in which those declarations can be checked on a book
-that was **not** the one they were authored on — which is the whole of §3.
+**Item 1, the predictor — CLOSED as a measurement 2026-08-18 and CLOSED as code the same
+day.** It was OPEN as code for one tick; the RUNG-1c blocking draw on §4's finding built it,
+because the finding's recommended option 2 *is* the predictor. Shipped as
+`predict_recon_exit_thresholds` / `predict_recon_saturation_band` /
+`recon_cover_dates` / `observed_dd_flagged_set` in `tools/couple_w2_11_d5.py`. §2's exactness
+claim is now a control rather than a record of one run:
+`test_the_predictor_reproduces_the_published_curve_with_no_scorer_call` re-derives the whole
+curve against the shipped scorer at every point of the book's grid, and
+`test_the_predictor_never_calls_the_scorer` holds the independence the 250× rests on.
+What it bought, in the order the finding asked for it: the published
+`recon_saturation_band_days` is now derived per run from the book actually scored; the
+population axis is swept by `measure_recon_band_population_axis` (25 books, ~3 s, no
+`score_triad` call) and put on trial by `check_recon_band_population_axis`; and the register
+declares the upper edge's SCOPE rather than a bare integer.
 
 **Item 3, the reshape — its target is now checkable before it is built.** Note 3 restated the
 acceptance test as *"the exit-threshold multiset restricted to `S ∪ N` must be contiguous
@@ -217,3 +232,33 @@ constraints fall straight out, and the first two are not in the atom's brief:
 measured, so §3's table is a statement about the offline scenario's shape only. The predictor
 should hold there by construction — nothing in it assumes three periods — but that is
 `inferred`, not observed.
+
+---
+
+## 6. The live book, measured 2026-08-18 (closing §5's `inferred`)
+
+Measured on a live-shaped book — 114 monthly periods, the shape `LivePaymentTriad` scores —
+at two draw sizes:
+
+| accounts | cases | band | predictor cost | `measure()` cost |
+|---|---|---|---|---|
+| 24 | 2,736 | **(−6, +1406)** | 0.51 s | 48.26 s |
+| 60 | 6,840 | **(−6, +1406)** | 1.16 s | 113.79 s |
+
+Two things follow, and the second sharpens §3 rather than repeating it.
+
+**The literal was wrong on the live book by a factor of seventeen.** `82` was being stamped
+onto a book whose own upper edge is `1406`, and it is that stamp — not the offline
+`measure()` — that reaches `docs/observability/coupled_gap_ledger.json`, because this pair's
+ledger entry is written as a side effect of `run_phase2b`
+(`LivePaymentTriad.measure_and_write`) rather than by a `--write-ledger` invocation. The
+artefact still reads `[-6, 82]` at the time of writing and will carry the live book's own
+band the next time a run rewrites it.
+
+**The draw-size sensitivity of §3 is a SMALL-BOOK property.** The edge is unchanged between 24
+and 60 accounts because on a 114-period book the maximum `k*` is set by the book's LENGTH —
+the oldest invoice's `as_of − due` — and is attained many times over, so the "single luckiest
+case" of §3 stops being a lottery. §3's table is therefore about how the edge behaves when the
+book is short relative to the drift range being swept, which is exactly the regime the
+register's own n=300, three-period declaration sits in. The `lower` edge is `−6` on the live
+book too, as the closed form requires.

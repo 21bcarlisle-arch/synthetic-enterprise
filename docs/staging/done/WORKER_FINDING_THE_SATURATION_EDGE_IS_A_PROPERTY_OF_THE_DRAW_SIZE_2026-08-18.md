@@ -2,6 +2,12 @@
 
 **Severity:** BLOCKING · **Lane:** D_billing_metering
 
+**Discharged:** `tests/tools/test_couple_w2_11_d5.py::test_the_published_band_is_the_scored_books_and_not_a_literal`, `tests/tools/test_couple_w2_11_d5.py::test_the_lower_edge_is_the_grace_closed_form_on_every_book`, `tests/tools/test_couple_w2_11_d5.py::test_pinning_the_population_hides_the_draw_size_defect`, `tests/tools/test_couple_w2_11_d5.py::test_the_draw_size_control_fires_on_its_own_named_defects`, `tests/tools/test_couple_w2_11_d5.py::test_the_predictor_reproduces_the_published_curve_with_no_scorer_call`, `tools/couple_w2_11_d5.py` — landed 2026-08-18 by the RUNG-1c blocking draw, taking recommendation 2 then 3 with 1 folded into 2. The published component is derived per run from the book actually scored and carries its scope in the machine-readable half; the register keeps its literal WITH the draw size it was measured at; and the population axis the sibling control cannot reach is swept over 25 books in about 3 seconds with no scorer call. The predictor recommendation 2 needed is now code, and its own exactness is a control rather than a record of one run. (Every backtick on this line is read as a PATH, so the prose carries none.)
+
+**What the fix found that the finding did not:** the finding measured the offline axis and the design doc flagged the LIVE book as inferred rather than observed. Measured on the live shape — 114 monthly periods, 24 accounts — the band is minus-6 to plus-1406. The literal being stamped onto it was seventeen times too small, and it is the LIVE path, not the offline measure, that writes this pair's ledger entry. The draw-size sensitivity in the table below is therefore a small-book property: on a long book the upper edge is set by the book's length and is attained many times over. Recorded in section 6 of the design doc.
+
+**Still owed, flagged rather than left implied:** `docs/observability/coupled_gap_ledger.json` carries the old pair for this atom until a run rewrites it. That entry is written as a side effect of run_phase2b, not by a write-ledger invocation, so no honest single command in this tick refreshes it.
+
 **Raised:** 2026-08-18, worker tick, D28 DISCOVER pass 5 (LANE 3 idle draw). Derivation and
 full evidence: `docs/design/D28_DETECTION_EXIT_THRESHOLD_PREDICTOR.md` §3–§4.
 **Owner:** `tools/couple_w2_11_d5.py` — the `file_scope` of `H27_payment_belief_gap`
