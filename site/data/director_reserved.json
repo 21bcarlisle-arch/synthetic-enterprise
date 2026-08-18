@@ -1,13 +1,5 @@
 {
-  "generated_at": "2026-08-18T20:48:39.700253+00:00",
-  "open_count": 1,
-  "items": [
-    {
-      "item_id": "SITE9_director_record_publication",
-      "what": "Publish the director record at /director/ to crawlers -- an irretractable public claim under Poesys's name: move a deliberately unadvertised surface into the crawlable set (sitemap entry + noindex removed). Director's condition, ruled 2026-08-18: he reads the page's RENDERED content as a stranger would, first.",
-      "how": "Worker renders /director/ as it will be SERVED -- driven by its live feeds, the visible text a stranger meets, not the markup and not a summary -- and puts that in front of the director. His word then goes into docs/observability/director_record_publication_release.json {released:true, director_words:..., render_shown:...}, which is what site/ia_register.py::director_record_publication_violations reads. Until then the three publication acts (sitemap entry, INTERNAL_DOORS removal, noindex drop) are refused by site/test_ia_register.py. No new gate, seam or channel is on the director's path.",
-      "why": "His words: 'show me its rendered content before it becomes crawlable -- it was written internally and I want to read it as a stranger would first.' Silence does NOT release this one; that carve-out from THE_STANDARD is his, made in the same breath as accepting the recommendation. A later noindex does not retract a page from an index.",
-      "first_asked_at": "2026-08-18T06:36:59.860718+00:00"
-    }
-  ]
+  "generated_at": "2026-08-18T21:35:28.019473+00:00",
+  "open_count": 0,
+  "items": []
 }
