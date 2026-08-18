@@ -25,16 +25,16 @@ import csv
 import os
 from datetime import date, timedelta
 
-from saas.property_model import (
+from sim.profile_class_1 import load_pc1_shape
+from simulation.demand_model import build_demand_shape
+from simulation.dwelling_records import (
     DEFAULT_ASSETS,
     DEFAULT_HEATING_SYSTEM,
     DEFAULT_OCCUPANCY_PATTERN,
     build_properties,
 )
-from sim.profile_class_1 import load_pc1_shape
-from simulation.demand_model import build_demand_shape
 from simulation.hh_consumption import HH_DATA_DIR, is_hh_customer
-from simulation.live_population import live_population
+from simulation.live_population import live_dwellings, live_population
 from simulation.weather_inputs import weather_means_for_customer
 
 # Matches simulation.run_phase2b.REPORT_START/REPORT_END (and
@@ -105,7 +105,9 @@ def main(population=None):
     """
     book = live_population() if population is None else population
     hh_customers = [c for c in book if is_hh_customer(c)]
-    properties = build_properties(book)
+    # B12: the world's own dwelling for each drawn home, never the supplier's
+    # approximation standing in as ground truth.
+    properties = build_properties(book, dwellings=live_dwellings())
     for c in hh_customers:
         generate_for_customer(c, properties)
     return {"book": book, "hh_customers": hh_customers, "properties": properties}

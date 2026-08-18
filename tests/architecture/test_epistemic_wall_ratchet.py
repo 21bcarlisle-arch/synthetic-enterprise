@@ -393,9 +393,20 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     # group test says NO here: the budget, the gate and the retention credit are
     # one number seen from three sides (`company.interfaces.growth_desk`), while
     # the monthly overhead accrues on the calendar against no supply point at all
-    # (`company.interfaces.fixed_overhead`). `saas.property_model` below did NOT
-    # fall with them and is still owed.
-    ("simulation.run_phase2b", "saas.property_model"),
+    # (`company.interfaces.fixed_overhead`). `saas.property_model` did NOT fall
+    # with them and stayed owed for a further eight steps.
+    #
+    # ("simulation.run_phase2b", "saas.property_model") -- DELETED 2026-08-18 by
+    # `B12_the_dwelling_is_the_worlds_and_the_company_only_discovers_it` step 35
+    # (register §3ad). What a dwelling physically IS -- type, EPC band, bedrooms,
+    # occupancy, headcount, heating, EV/solar/smart meter -- is the world's, and the
+    # world was importing it from the supplier. A SPLIT, not a module move: the file
+    # has four company-side importers so it could not move, but not one of them reads
+    # any of the four names that crossed. `build_properties` and the physical facts
+    # it assembles are now `simulation/dwelling_records.py`; the supplier keeps its
+    # `consumption_band` approximation, which the world no longer calls -- it raises
+    # `DwellingNotDrawn` instead, reversing step 31's deliberate silent-but-labelled
+    # fallback now that the two behaviours belong to two different owners.
     # ("simulation.run_phase2b", "saas.{smart_meter_rollout,tariff_pricing}") --
     # 2 tuples DELETED 2026-08-13 by `A_composition_lift` step 25 (register §3t).
     # The world composed the supplier's ToU offer -- eligibility rule AND the
@@ -405,7 +416,19 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     # on the EXISTING `company/interfaces/renewal_offer.py` for the strike, because
     # the gas schedule builds its own term and does not use an offer object. The
     # METER stays the world's: it arrives on the customer record the door reads.
-    ("simulation.run_phase4c_on_phase2b", "company.billing.dd_review_runner"),
+    # ("simulation.run_phase4c_on_phase2b", "company.billing.dd_review_runner")
+    # -- DELETED 2026-08-17 by KNIFE step 32, `B13_the_annual_dd_review_is_the_
+    # suppliers_own_desk` (register §3aa). This was the module's LAST crossing and
+    # for seven steps it was ruled `owed` to `A_composition_lift` while two
+    # docstrings said in plain words that the design could never reach it ("no
+    # further composition lift removes it"; "it is the one this design was never
+    # going to cut"). §3aa re-ruled it: there being no process to lift does not
+    # make an edge uncuttable, it makes the remedy a DOOR rather than a lift.
+    # `company/interfaces/dd_review.py` takes the bills and returns the SERIALISED
+    # review, so no company type crosses at all -- a stronger cut than the four
+    # sibling doors on this module, and free here because the one call site
+    # already serialised immediately. `simulation/run_phase4c_on_phase2b.py` now
+    # has ZERO live wall crossings.
     # ("simulation.run_phase4c_on_phase2b", "company.billing.pre_bill_validation")
     # and ("…", "company.compliance.domain_invariants") -- 2 tuples DELETED
     # 2026-08-11 by `A_composition_lift` step 14, with `saas.ledger` below. The
@@ -424,8 +447,9 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     # step 14 explicitly recorded as NOT falling with `saas.ledger`, because
     # `build_payment_behaviour(bills)` was still called world-side for this output;
     # step 16 is the group that was named there, so the debt is now paid rather than
-    # restated. `company.billing.dd_review_runner` above is the module's last, and
-    # §3h rules it a ROUTING residual rather than a cut still owed.
+    # restated. `company.billing.dd_review_runner` was the module's last and is gone
+    # too -- see the step-32 note above, which also records why §3h's "ROUTING
+    # residual" ruling was right about the diagnosis and wrong about the remedy.
     # ("simulation.run_segments", "saas.{growth_mandate,ledger,property_model,tariff_pricing}")
     # -- 4 tuples DELETED 2026-08-10 by `A_composition_lift` PART 2. The file moved to
     # `tools/run_segments.py`, where entry points live, having passed the four conditions §3c of

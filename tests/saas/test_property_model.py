@@ -1,125 +1,28 @@
+"""The SUPPLIER's dwelling derivations — `saas.property_model`.
+
+Everything about `build_properties` moved to `tests/simulation/
+test_dwelling_records.py` with the builder itself in the 2026-08-18 B12 split
+(KNIFE3 step 35). What is left here is the supplier's own reading of a dwelling it
+has not observed: the `consumption_band` derivation, the two accessors that must
+agree with it, and the meter-fleet record.
+
+These are ALLOWED TO BE WRONG about the world. Nothing in this file compares them
+to `simulation.dwelling_records` — that comparison is the coupled triad's score, not
+a test's assertion, and a test pinning the two equal is the move B3 and B7 refused.
+"""
 from saas.customers import CUSTOMERS
-from saas.property_model import build_properties
+from saas.property_model import (
+    _SYN_HOME_TYPE_BY_BAND,
+    _SYN_PROPERTY_TYPE_BY_BAND,
+    _derive_syn_property_fields,
+    _epc_rating_of,
+    _home_type_of,
+)
 
-
-def test_build_properties_covers_all_resi_electricity_customers():
-    properties = build_properties(CUSTOMERS)
-    # C7-C9 are Phase 6a HH (smart meter) resi electricity customers.
-    assert set(properties) == {"C1", "C2", "C3", "C4", "C7", "C8", "C9"}
-
-
-def test_excludes_sme_and_gas_records():
-    properties = build_properties(CUSTOMERS)
-    assert "C5" not in properties
-    assert "C6" not in properties
-    assert "C1g" not in properties
-
-
-def test_property_type_mapped_from_home_type():
-    properties = build_properties(CUSTOMERS)
-    assert properties["C1"]["property_type"] == "flat"  # urban_flat
-    assert properties["C2"]["property_type"] == "semi"  # suburban_semi
-    assert properties["C3"]["property_type"] == "flat"  # tenement_flat
-    assert properties["C4"]["property_type"] == "detached"  # rural_detached
-
-
-def test_unknown_home_type_maps_to_default():
-    customers = [
-        {
-            "customer_id": "CX",
-            "segment": "resi",
-            "commodity": "electricity",
-            "home_type": "houseboat",
-            "epc_rating": "D",
-            "bedrooms": 1,
-        }
-    ]
-    properties = build_properties(customers)
-    assert properties["CX"]["property_type"] == "other"
-
-
-def test_dual_fuel_customers_get_gas_boiler():
-    properties = build_properties(CUSTOMERS)
-    for cid in ("C1", "C2", "C3", "C4"):
-        assert properties[cid]["heating_system"] == "gas_boiler"
-
-
-def test_electric_only_customer_gets_default_heating():
-    customers = [
-        {
-            "customer_id": "CX",
-            "segment": "resi",
-            "commodity": "electricity",
-            "home_type": "urban_flat",
-            "epc_rating": "D",
-            "bedrooms": 1,
-        }
-    ]
-    properties = build_properties(customers)
-    assert properties["CX"]["heating_system"] == "electric_storage"
-
-
-def test_epc_rating_and_bedrooms_passed_through():
-    properties = build_properties(CUSTOMERS)
-    assert properties["C2"]["epc_rating"] == "D"
-    assert properties["C2"]["bedrooms"] == 3
-
-
-def test_occupancy_pattern_and_assets_present_for_known_customers():
-    properties = build_properties(CUSTOMERS)
-    assert properties["C1"]["occupancy_pattern"] == "single"
-    assert properties["C4"]["occupancy_pattern"] == "family"
-    assert properties["C4"]["assets"] == {"ev": True, "solar": True, "smart_meter": True}
-
-
-def test_unknown_customer_gets_default_occupancy_and_assets():
-    customers = [
-        {
-            "customer_id": "CX",
-            "segment": "resi",
-            "commodity": "electricity",
-            "home_type": "urban_flat",
-            "epc_rating": "D",
-            "bedrooms": 1,
-        }
-    ]
-    properties = build_properties(customers)
-    assert properties["CX"]["occupancy_pattern"] == "single"
-    assert properties["CX"]["assets"] == {"ev": False, "solar": False, "smart_meter": False}
-
-
-def test_assets_dict_is_a_copy_not_shared_with_constant():
-    from saas.property_model import ASSET_PROFILE_BY_CUSTOMER
-
-    properties = build_properties(CUSTOMERS)
-    properties["C1"]["assets"]["ev"] = True
-    assert ASSET_PROFILE_BY_CUSTOMER["C1"]["ev"] is False
-
-
-def test_all_properties_have_customer_id_key():
-    properties = build_properties(CUSTOMERS)
-    for cid, prop in properties.items():
-        assert prop["customer_id"] == cid
-
-
-def test_epc_c9_is_a_class():
-    properties = build_properties(CUSTOMERS)
-    assert properties["C9"]["epc_rating"] in list("ABCDEFG")
-
-
-def test_build_properties_empty_input_returns_empty():
-    properties = build_properties([])
-    assert properties == {}
-
-
-# --- SYN-shape property derivation (generator_draw_wiring remaining build #1) ---
-# R15 BOTH WAYS: the derivation must FIRE on a SYN dict (no `home_type`) AND the
-# static roster must stay byte-identical (the derivation branch is load-bearing,
-# not decorative).
 
 def _syn_customer(band, cid="SYN-0001"):
-    """A saas-shaped SYN acquisition dict (as `to_customer_dict()` renders it):
-    carries `consumption_band`, NOT the static `home_type`/`epc_rating`/`bedrooms`."""
+    """A SYN acquisition dict (as `to_customer_dict()` renders it): carries
+    `consumption_band`, NOT the static `home_type`/`epc_rating`/`bedrooms`."""
     return {
         "customer_id": cid,
         "acquisition_date": "2023-05-01",
@@ -135,49 +38,80 @@ def _syn_customer(band, cid="SYN-0001"):
     }
 
 
-def test_syn_dict_gets_a_property_record_without_keyerror():
-    # DIRECTION 1 (wiring present): a SYN dict lacking home_type/epc/bedrooms must
-    # still yield a record. A mutant that reverts to `c["home_type"]`/`c["epc_rating"]`
-    # /`c["bedrooms"]` raises KeyError here — proving the derivation branch is
-    # load-bearing.
-    properties = build_properties([_syn_customer("MEDIUM")])
-    assert "SYN-0001" in properties
-    rec = properties["SYN-0001"]
-    assert rec["property_type"] == "semi"      # MEDIUM band
-    assert rec["bedrooms"] == 3                 # MEDIUM band
-    assert rec["epc_rating"] == "D"            # modal-band fallback
-    # shared fields still resolve via the existing `.get()` defaults
-    assert rec["occupancy_pattern"] == "single"
-    assert rec["assets"] == {"ev": False, "solar": False, "smart_meter": False}
-    assert rec["heating_system"] == "electric_storage"
-
-
 def test_syn_bedrooms_and_type_track_consumption_band():
-    props = build_properties([
-        _syn_customer("LOW", "SYN-L"),
-        _syn_customer("MEDIUM", "SYN-M"),
-        _syn_customer("HIGH", "SYN-H"),
-    ])
-    assert (props["SYN-L"]["bedrooms"], props["SYN-L"]["property_type"]) == (2, "flat")
-    assert (props["SYN-M"]["bedrooms"], props["SYN-M"]["property_type"]) == (3, "semi")
-    assert (props["SYN-H"]["bedrooms"], props["SYN-H"]["property_type"]) == (4, "detached")
+    for band, expected in (("LOW", (2, "flat")), ("MEDIUM", (3, "semi")), ("HIGH", (4, "detached"))):
+        phys = _derive_syn_property_fields(_syn_customer(band))
+        assert (phys["bedrooms"], phys["property_type"]) == expected
+
+
+def test_syn_epc_falls_to_the_modal_band():
+    # There is no per-property EPC observable for a drawn customer, so the supplier
+    # answers with the UK domestic modal band and labels it an approximation.
+    assert _derive_syn_property_fields(_syn_customer("HIGH"))["epc_rating"] == "D"
 
 
 def test_syn_dict_missing_band_falls_to_honest_defaults():
     c = _syn_customer("MEDIUM", "SYN-NB")
     del c["consumption_band"]
-    rec = build_properties([c])["SYN-NB"]
-    assert rec["property_type"] == "semi"
-    assert rec["bedrooms"] == 3
-    assert rec["epc_rating"] == "D"
+    phys = _derive_syn_property_fields(c)
+    assert phys["property_type"] == "semi"
+    assert phys["bedrooms"] == 3
+    assert phys["epc_rating"] == "D"
 
 
-def test_static_roster_byte_identical_after_syn_branch():
-    # DIRECTION 2 (mutation guard): adding the SYN branch must NOT perturb the static
-    # path. A mutant that routed static dicts through the SYN derivation would flip
-    # these authored values (C4 detached/E/4-bed derives to whatever its band implies).
-    props = build_properties(CUSTOMERS)
-    assert props["C1"]["property_type"] == "flat" and props["C1"]["bedrooms"] == 2
-    assert props["C4"]["property_type"] == "detached"
-    assert props["C3"]["epc_rating"] == "E"    # authored, NOT the modal "D" default
-    assert props["C4"]["epc_rating"] == "E"
+def test_the_derivation_is_pure_and_deterministic():
+    """C-S2 replay-safety: no RNG, so two calls on equal inputs agree."""
+    c = _syn_customer("HIGH", "SYN-DET")
+    assert _derive_syn_property_fields(c) == _derive_syn_property_fields(dict(c))
+
+
+def test_the_two_vocabularies_of_one_derivation_agree():
+    """`_home_type_of` answers in the roster's vocabulary and
+    `_derive_syn_property_fields` in the property vocabulary. If they drift, a drawn
+    customer and its home-move successor describe different dwellings.
+
+    The join runs through the WORLD's home-type map, which is the vocabulary the
+    roster is authored in. A TEST may read both sides of the wall; neither module
+    may, which is why this assertion lives here and not in either of them.
+    """
+    from simulation.dwelling_records import PROPERTY_TYPE_BY_HOME_TYPE
+
+    for band in _SYN_PROPERTY_TYPE_BY_BAND:
+        assert PROPERTY_TYPE_BY_HOME_TYPE[_SYN_HOME_TYPE_BY_BAND[band]] == \
+            _SYN_PROPERTY_TYPE_BY_BAND[band], f"{band}: the two derivations disagree"
+
+
+def test_the_accessors_are_byte_identical_on_the_static_roster():
+    """The authored roster answers for itself; the derivation is for drawn records
+    only. A mutant routing static customers through the derivation flips these."""
+    for c in CUSTOMERS:
+        if "home_type" in c:
+            assert _home_type_of(c) == c["home_type"]
+        if "epc_rating" in c:
+            assert _epc_rating_of(c) == c["epc_rating"]
+
+
+def test_the_accessors_answer_for_a_drawn_record_too():
+    """The vacuity guard for the test above: the accessors must actually have a
+    drawn branch, or the byte-identical assertion is about an empty population."""
+    c = _syn_customer("LOW", "SYN-ACC")
+    assert _home_type_of(c) == "urban_flat"
+    assert _epc_rating_of(c) == "D"
+
+
+def test_the_world_is_not_imported_here():
+    """The supplier must not check its own guess against the world's dwelling: that
+    would make it right by construction, which is the defect B12 repairs. Parsed,
+    not grepped, so a docstring naming the module cannot trip or mute it."""
+    import ast
+    import pathlib
+
+    src = pathlib.Path("saas/property_model.py").read_text()
+    for node in ast.walk(ast.parse(src)):
+        if isinstance(node, ast.ImportFrom) and node.module:
+            root = node.module.split(".")[0]
+            assert root not in ("sim", "simulation"), f"saas/property_model.py imports {node.module}"
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                root = alias.name.split(".")[0]
+                assert root not in ("sim", "simulation"), f"saas/property_model.py imports {alias.name}"

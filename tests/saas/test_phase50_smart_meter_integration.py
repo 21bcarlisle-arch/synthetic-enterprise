@@ -1,17 +1,18 @@
 """Phase 50: Smart meter rollout wired into property model and acquisition — integration tests."""
 import pytest
-from saas.property_model import get_smart_meter_status, ASSET_PROFILE_BY_CUSTOMER
+
 from saas.customers import make_acquired_customer
+from saas.property_model import KNOWN_SMART_METER_BY_CUSTOMER, get_smart_meter_status
 
 
 class TestGetSmartMeterStatus:
     def test_known_static_customer_uses_profile(self):
-        # C1 has smart_meter=True in ASSET_PROFILE_BY_CUSTOMER
+        # C1 is True in the supplier's own meter-fleet record
         assert get_smart_meter_status("C1", 2016, "resi") is True
         assert get_smart_meter_status("C1", 2020, "resi") is True  # unchanged by year
 
     def test_c3_no_smart_meter_is_static(self):
-        # C3 has smart_meter=False in profile — year doesn't change it
+        # C3 is False in the fleet record — year doesn't change it
         assert get_smart_meter_status("C3", 2016, "resi") is False
         assert get_smart_meter_status("C3", 2024, "resi") is False
 
@@ -97,8 +98,8 @@ class TestMakeAcquiredCustomerSmartMeter:
 
 
 class TestSmartMeterConstants:
-    def test_asset_profile_has_c1(self):
-        assert "C1" in ASSET_PROFILE_BY_CUSTOMER
+    def test_fleet_record_has_c1(self):
+        assert "C1" in KNOWN_SMART_METER_BY_CUSTOMER
 
     def test_get_smart_meter_status_returns_bool(self):
         result = get_smart_meter_status("C1", 2020, "resi")

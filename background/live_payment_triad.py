@@ -109,6 +109,7 @@ from tools.couple_w2_11_d5 import (
     PeriodRecord,
     TWIN_ATOM_ID,
     WORLD_ATOM_ID,
+    detection_cell_measurements,
     format_detection_latency_summary,
     score_triad,
 )
@@ -117,7 +118,6 @@ from tools.couple_w2_11_d5 import (
 # run covers ~2016-2025 (~3650 days); a comfortable ceiling keeps the belief
 # severity count on the same all-time basis as the truth count.
 _RUN_SPANNING_WINDOW_DAYS = 6000
-
 
 # ---------------------------------------------------------------------------
 # CAVEATS TRAVEL WITH THE ENTRY THAT IS WRITTEN, NOT WITH THE DIMENSION THEY
@@ -664,12 +664,29 @@ class LivePaymentTriad:
         self._method_cache: dict = {}
 
     @property
-    def consumer(self) -> PaymentObservationConsumer:
-        return self._consumer
-
-    @property
     def records(self) -> List[PeriodRecord]:
         return self._records
+
+    def detection_cells(self, as_of: date) -> dict:
+        """The per-cell DETECTION measurements for the fidelity grid.
+
+        THIS METHOD IS THE DOOR, and it exists because of what it REPLACED
+        (KNIFE pass 3 step 33, disposition register §3ab). `run_phase2b` used
+        to compute these itself: `detection_cell_measurements(triad.records,
+        triad.consumer, as_of)`, importing the scorer from
+        `tools.couple_w2_11_d5` and reading a public `consumer` property to get
+        its second argument. That property was this class's ONLY route by which
+        a caller could obtain a live company object, and `run_phase2b` was its
+        only reader in the repo -- so it is gone, and asking for a company
+        object here is now a hard `AttributeError` rather than a convention.
+
+        No number moves: the body is the identical call on the identical
+        arguments, which is also why the R15 suite does not compare before to
+        after (that comparison is R15's TAUTOLOGY pattern -- it would pass
+        whatever this returned). What it asserts instead is REACHABILITY: that
+        the world can no longer get the consumer, and that the second bridge
+        entry is gone from `run_phase2b`."""
+        return detection_cell_measurements(self._records, self._consumer, as_of)
 
     def _method_for(self, customer_id: str) -> str:
         m = self._method_cache.get(customer_id)

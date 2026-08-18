@@ -9,13 +9,13 @@ from __future__ import annotations
 from calendar import monthrange
 
 import pytest
-from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd
-from simulation.run_phase2b import _weather_adjusted_shape_fn
-from saas.customers import CUSTOMERS
-from saas.property_model import build_properties
-from simulation.weather_inputs import load_weather_means
-from sim.profile_class_1 import load_pc1_shape
 
+from saas.customers import CUSTOMERS
+from sim.profile_class_1 import load_pc1_shape
+from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd
+from simulation.dwelling_records import build_properties
+from simulation.run_phase2b import _weather_adjusted_shape_fn
+from simulation.weather_inputs import load_weather_means
 
 ASHP_ANNUAL_KWH = 5_500.0
 HDD_ANNUAL_REF = sum(REFERENCE_MONTHLY_HDD.values())
@@ -27,8 +27,8 @@ _c1_prop = _props["C1"]
 
 def _make_ashp_register(cid="C1", epc="C"):
     """EPC C (multiplier=1.0) isolates ASHP uplift from EPC effects in shape comparisons."""
+    from simulation.household import BoilerAge, HeatingSystem, Household, InsulationLevel
     from simulation.household_demand import HouseholdDemandRegister
-    from simulation.household import BoilerAge, Household, HeatingSystem, InsulationLevel
     cust = [next(c for c in CUSTOMERS if c["customer_id"] == cid)]
     reg = HouseholdDemandRegister(cust, seed=42)
     bh = reg._households[cid]
@@ -88,8 +88,8 @@ class TestASHPSeasonalShape:
 
     def test_non_ashp_customer_unchanged(self):
         """Gas-boiler customer (EPC C, mult=1.0) gets zero ASHP uplift from Phase I."""
+        from simulation.household import BoilerAge, HeatingSystem, Household, InsulationLevel
         from simulation.household_demand import HouseholdDemandRegister
-        from simulation.household import BoilerAge, Household, HeatingSystem, InsulationLevel
         cust = [next(c for c in CUSTOMERS if c["customer_id"] == "C1")]
         reg = HouseholdDemandRegister(cust, seed=42)
         bh = reg._households["C1"]

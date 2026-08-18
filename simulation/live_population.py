@@ -175,3 +175,53 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
     # and must not double the book.
     register_drawn_points(drawn)
     return list(CUSTOMERS) + drawn
+
+
+# ---------------------------------------------------------------------------
+# THE WORLD'S DWELLING FOR A DRAWN HOME (B12) — SIM TRUTH, NOT A SEAM OUTPUT
+# ---------------------------------------------------------------------------
+# `live_population()` above returns OBSERVABLES: it is what the company is handed.
+# The three accessors below return the world's GROUND TRUTH about the drawn homes —
+# property type, build era, EPC band, bedrooms, heating — and they are therefore NOT
+# part of that seam. They exist for WORLD consumers only (`simulation.run_phase2b`'s
+# property records and household register), and no `company/**` or `saas/**` module
+# may call them; `test_the_worlds_dwelling_never_crosses_the_wall` enumerates the
+# importers and fails if one appears.
+#
+# Why the world needs them at all: before B12 the world had no dwelling of its own
+# for a drawn home, so `saas.property_model` filled the record from the SUPPLIER's
+# modal-band approximation and the company's confidence-0.10 guess scored 100% on
+# the drawn cohort — the half of the book that grows.
+def live_premises(base_seed: Optional[int] = None) -> dict:
+    """{customer_id: DrawnPremise} for the drawn DOMESTIC cohort; {} when off.
+
+    Deterministic in the seed, so this is the SAME cohort `live_population()` returns
+    — it re-draws rather than caching, exactly as `live_population()` does.
+    """
+    if not draw_population_enabled():
+        return {}
+    from simulation.population_draw import draw_population
+
+    seed = _DEFAULT_BASE_SEED if base_seed is None else base_seed
+    return {
+        sc.customer_id: sc.premise
+        for sc in draw_population(seed, draw_region=True, assign_cohorts=True)
+        if sc.premise is not None
+    }
+
+
+def live_dwellings(base_seed: Optional[int] = None) -> dict:
+    """{customer_id: dwelling record} for the drawn cohort, in the property record's
+    plain-dict vocabulary — what `saas.property_model.build_properties()` takes."""
+    from simulation.premise_population import dwelling_record
+
+    return {
+        cid: dwelling_record(premise)
+        for cid, premise in live_premises(base_seed).items()
+    }
+
+
+def live_drawn_households(base_seed: Optional[int] = None) -> dict:
+    """{customer_id: Household} for the drawn cohort — what
+    `simulation.household.build_household_register()` takes."""
+    return {cid: premise.household for cid, premise in live_premises(base_seed).items()}

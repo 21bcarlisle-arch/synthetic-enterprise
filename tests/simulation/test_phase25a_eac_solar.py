@@ -38,14 +38,14 @@ def test_derive_eac_from_settlement_returns_mean_annual_kwh():
 
 def test_derive_eac_from_settlement_falls_back_when_no_records():
     """Falls back to EFFECTIVE_EAC_KWH when no records for this customer."""
-    from simulation.run_phase2b import _derive_eac_from_settlement, EFFECTIVE_EAC_KWH
+    from simulation.run_phase2b import EFFECTIVE_EAC_KWH, _derive_eac_from_settlement
     result = _derive_eac_from_settlement("C2", [])
     assert result == EFFECTIVE_EAC_KWH["C2"]
 
 
 def test_derive_eac_from_settlement_falls_back_when_too_few_records():
     """Falls back when records span less than 180 days (seasonal noise too high)."""
-    from simulation.run_phase2b import _derive_eac_from_settlement, EFFECTIVE_EAC_KWH
+    from simulation.run_phase2b import EFFECTIVE_EAC_KWH, _derive_eac_from_settlement
     records = _make_records("C2", "2017-01-01", 100, 20.0)  # only 100 days
     result = _derive_eac_from_settlement("C2", records)
     assert result == EFFECTIVE_EAC_KWH["C2"]
@@ -79,8 +79,8 @@ def test_load_weather_cloud_cover_returns_dict():
 
 def test_cloud_cover_for_customer_resolves_shared_locations():
     """C5 (London, shares C1 location) resolves to C1's cloud cover data."""
-    from simulation.weather_inputs import cloud_cover_for_customer, load_weather_cloud_cover
     from saas.customers import CUSTOMERS
+    from simulation.weather_inputs import cloud_cover_for_customer, load_weather_cloud_cover
     c1 = next(c for c in CUSTOMERS if c["customer_id"] == "C1")
     c5 = next(c for c in CUSTOMERS if c["customer_id"] == "C5")
     c1_data = load_weather_cloud_cover("C1")
@@ -94,11 +94,11 @@ def test_solar_wiring_reduces_daytime_consumption_for_c4():
 
     Uses _weather_adjusted_shape_fn directly to compare a clear summer day.
     """
-    from simulation.run_phase2b import _weather_adjusted_shape_fn
     from saas.customers import CUSTOMERS
-    from saas.property_model import build_properties
-    from simulation.weather_inputs import load_weather_means, load_weather_cloud_cover
     from sim.profile_class_1 import load_pc1_shape
+    from simulation.dwelling_records import build_properties
+    from simulation.run_phase2b import _weather_adjusted_shape_fn
+    from simulation.weather_inputs import load_weather_cloud_cover, load_weather_means
 
     props = build_properties(CUSTOMERS)
     c4 = next(c for c in CUSTOMERS if c["customer_id"] == "C4")
@@ -134,11 +134,11 @@ def test_solar_wiring_reduces_daytime_consumption_for_c4():
 
 def test_non_solar_customer_unaffected_by_cloud_cover():
     """C1 (no solar asset) shape is unchanged when cloud_cover_means provided."""
-    from simulation.run_phase2b import _weather_adjusted_shape_fn
     from saas.customers import CUSTOMERS
-    from saas.property_model import build_properties
-    from simulation.weather_inputs import load_weather_means, load_weather_cloud_cover
     from sim.profile_class_1 import load_pc1_shape
+    from simulation.dwelling_records import build_properties
+    from simulation.run_phase2b import _weather_adjusted_shape_fn
+    from simulation.weather_inputs import load_weather_cloud_cover, load_weather_means
 
     props = build_properties(CUSTOMERS)
     c1 = next(c for c in CUSTOMERS if c["customer_id"] == "C1")

@@ -64,8 +64,15 @@ def test_the_premise_holds_drawn_records_really_do_lack_those_fields(drawn_only)
 
 
 def test_property_model_builds_properties_for_the_activated_book(activated_book):
-    from saas.property_model import build_properties
-    props = build_properties(activated_book)
+    # B12/KNIFE3 step 35 (2026-08-18): the builder moved world-side and no longer
+    # guesses a drawn dwelling from `consumption_band`. The world's dwellings are
+    # now a REQUIRED input, exactly as `run_phase2b` passes them, so this drives the
+    # consumer the way the real caller does. The class this file guards is unchanged
+    # -- no consumer may KeyError on a DRAWN customer's missing static fields -- and
+    # the assertions below still fail if the builder reaches for one of them.
+    from simulation.dwelling_records import build_properties
+    from simulation.live_population import live_dwellings
+    props = build_properties(activated_book, dwellings=live_dwellings())
     resi_elec = [c for c in activated_book
                  if c["segment"] == "resi" and c.get("commodity") == "electricity"]
     for c in resi_elec:
@@ -129,11 +136,11 @@ def test_the_shared_accessors_agree_with_the_property_derivation(drawn_only):
     successor describe different dwellings.
     """
     from saas.property_model import (
-        PROPERTY_TYPE_BY_HOME_TYPE,
         _derive_syn_property_fields,
         _epc_rating_of,
         _home_type_of,
     )
+    from simulation.dwelling_records import PROPERTY_TYPE_BY_HOME_TYPE
     for c in drawn_only:
         phys = _derive_syn_property_fields(c)
         assert PROPERTY_TYPE_BY_HOME_TYPE[_home_type_of(c)] == phys["property_type"], (
@@ -178,7 +185,7 @@ def test_cost_to_serve_resolves_a_drawn_customers_settlement_records(activated_b
     from saas.cost_to_serve import build_cost_to_serve
     records = [
         {"customer_id": c["customer_id"], "revenue_gbp": 100.0,
-         "margin_gbp": 10.0, "commodity": "electricity"}
+         "margin_gbp": 10.0, "net_margin_gbp": 2.4, "commodity": "electricity"}
         for c in drawn_only
     ]
     out = build_cost_to_serve(records, activated_book)

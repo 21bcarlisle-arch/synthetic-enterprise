@@ -8,17 +8,17 @@ against the published ONS Census 2021 TS017 distribution, not against anything
 import pytest
 
 from saas.customers import CUSTOMERS
-from saas.property_model import (
+from simulation.demand_model import (
+    HOUSEHOLD_SIZE_POPULATION_SHARE,
+    population_mean_volume_factor,
+    volume_factor_is_unbiased,
+)
+from simulation.dwelling_records import (
     HOUSEHOLD_SIZE_SHARE_ONS_TS017,
     OCCUPANCY_PATTERN_BY_CUSTOMER,
     PEOPLE_COUNT_BY_CUSTOMER,
     _derive_people_count,
     build_properties,
-)
-from simulation.demand_model import (
-    HOUSEHOLD_SIZE_POPULATION_SHARE,
-    population_mean_volume_factor,
-    volume_factor_is_unbiased,
 )
 
 

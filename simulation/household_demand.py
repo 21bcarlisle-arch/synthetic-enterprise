@@ -64,11 +64,24 @@ def _cid_hash(cid: str) -> int:
 class HouseholdDemandRegister:
     """Manages time-varying household physical state for all simulation customers."""
 
-    def __init__(self, customers: list[dict], seed: int = 42) -> None:
+    def __init__(
+        self,
+        customers: list[dict],
+        seed: int = 42,
+        drawn_households: "dict[str, Household] | None" = None,
+    ) -> None:
+        """`drawn_households` (B12): the world's stock-representative dwelling for
+        each DRAWN home, from `simulation.live_population.live_drawn_households()`.
+        Omit it and every drawn home falls back to the authored-roster archetype
+        default (`suburban_semi`/`"D"`), which is the mirror B12 repairs — so the
+        live callers pass it and `test_the_run_gives_the_world_its_own_dwelling`
+        pins that they do."""
         self._base_eac: dict[str, float] = {
             c["customer_id"]: _base_eac_for_customer(c) for c in customers
         }
-        self._households: dict[str, Household] = build_household_register(customers)
+        self._households: dict[str, Household] = build_household_register(
+            customers, drawn_households
+        )
         self._events: dict[str, list] = {}
         for cid, hh in self._households.items():
             cid_seed = seed ^ (_cid_hash(cid) & 0xFFFF)

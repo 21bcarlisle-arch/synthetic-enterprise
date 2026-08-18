@@ -75,9 +75,12 @@ import math
 import random
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Iterator, List, Mapping, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, Iterator, List, Mapping, Optional, Tuple
 
 from simulation.household_segments import TenureType, tenure_for_customer
+
+if TYPE_CHECKING:  # the dwelling type only — `premise_population` is imported lazily
+    from simulation.premise_population import DrawnPremise
 
 # ---------------------------------------------------------------------------
 # DUPLICATED ANCHORED CONSTANTS -- see WALL DISCIPLINE above. Keep numerically
@@ -212,6 +215,19 @@ class SyntheticCustomer:
     # RECONCILIATION_FRAME.md §0 canonical wall ruling) -- `to_customer_dict()`
     # deliberately does NOT include it.
     cohort: Optional["Cohort"] = None
+    # B12: the world's DWELLING for this drawn home -- property type, build era, EPC
+    # band, bedrooms, heating -- drawn from the published England housing-stock joint
+    # (`simulation.premise_population`, EHS 2022-23 marginals + the ONS pre-1930
+    # conditional). Domestic draws only; a drawn SME/I&C point carries None.
+    #
+    # HIDDEN SIM TRUTH, exactly like `cohort`: `to_customer_dict()` deliberately does
+    # NOT include it. That is the whole repair -- while the world had no dwelling of
+    # its own for a drawn home, `saas.property_model` filled one in from the
+    # SUPPLIER's modal-band approximation, so the company's confidence-0.10 guess was
+    # right by construction on the only cohort that grows. The company still
+    # discovers a home through `company.crm.property_discovery`, and is now free to
+    # be wrong about it.
+    premise: Optional["DrawnPremise"] = None
 
     def to_customer_dict(self) -> dict:
         """Render a saas-shaped customer dict (for the L2 integration layer)."""
@@ -230,6 +246,31 @@ class SyntheticCustomer:
         }
 
 
+def _draw_dwelling(
+    customer_id: str,
+    *,
+    segment: str,
+    acquisition_date: dt.date,
+    base_seed: int,
+    joint: Optional[Mapping] = None,
+):
+    """The world's dwelling for one drawn home, or None for a non-domestic point.
+
+    C-S2: `premise_population.draw_premise` draws from ITS OWN named substream keyed
+    on the premise id, never from this module's `rng`, so calling it here cannot
+    perturb the acquisition sequence in either direction (the same isolation
+    `assign_cohort` relies on). Keyed on `customer_id`, so a drawn home is identical
+    whatever else is in the book and whatever order the book is built in.
+    """
+    if segment != "resi":
+        return None
+    from simulation.premise_population import draw_premise
+
+    return draw_premise(
+        customer_id, base_seed=base_seed, as_of=acquisition_date, joint=joint
+    )
+
+
 def _draw_one(
     rng: random.Random,
     customer_id: str,
@@ -240,6 +281,7 @@ def _draw_one(
     region: str,
     base_seed: int,
     assign_cohorts: bool = False,
+    premise_joint: Optional[Mapping] = None,
 ) -> SyntheticCustomer:
     segment = _weighted_choice(rng, segment_weights)
     commodity = _weighted_choice(rng, commodity_weights)
@@ -254,6 +296,19 @@ def _draw_one(
     # (keyed on customer_id, never `rng`), so calling it here can never perturb
     # this function's own draw sequence either way (C-S2 isolation).
     cohort = assign_cohort(customer_id, base_seed, region=region) if assign_cohorts else None
+    # B12: the world's dwelling, drawn from the published stock joint. Not optional
+    # and not flagged -- a drawn home HAS a home, and the alternative (no dwelling of
+    # the world's own) is what let the supplier's approximation stand in as the
+    # world's ground truth. Its substream is isolated, so the acquisition draw above
+    # is byte-identical to before this field existed
+    # (`test_the_dwelling_draw_does_not_perturb_the_acquisition_stream`).
+    premise = _draw_dwelling(
+        customer_id,
+        segment=segment,
+        acquisition_date=acquisition_date,
+        base_seed=base_seed,
+        joint=premise_joint,
+    )
     return SyntheticCustomer(
         customer_id=customer_id,
         acquisition_date=acquisition_date.isoformat(),
@@ -264,6 +319,7 @@ def _draw_one(
         eac_kwh=eac,
         region=region,
         cohort=cohort,
+        premise=premise,
     )
 
 
@@ -309,6 +365,13 @@ def iter_acquisition_events(
     band_weights = band_weights or DEFAULT_BAND_WEIGHTS
     # Load the curriculum ONCE (not per customer) when drawing regions.
     region_curriculum = _load_cohort_curriculum() if draw_region else None
+    # Fit the published stock joint ONCE per stream, not per customer: the raking is
+    # 168 cells of iterative proportional fitting and it is identical for every
+    # premise. Passed down to `_draw_dwelling`, which is why `draw_premise` takes a
+    # `joint` at all.
+    from simulation.premise_population import raked_joint
+
+    premise_joint = raked_joint()
 
     rng = _substream(base_seed)
     for year in range(start_year, end_year + 1):
@@ -335,6 +398,7 @@ def iter_acquisition_events(
                 region=cust_region,
                 base_seed=base_seed,
                 assign_cohorts=assign_cohorts,
+                premise_joint=premise_joint,
             )
 
 

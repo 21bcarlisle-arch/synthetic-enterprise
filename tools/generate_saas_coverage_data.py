@@ -57,7 +57,7 @@ CATEGORIES = [
          modules=["company/sustainability", "company/billing/carbon_footprint.py"], bucket="B", note=""),
     dict(category="Demand response / flexibility",
          market_leaders="Kaluza Flex, Limejump",
-         modules=["saas/demand_response.py"], bucket="B", note=""),
+         modules=["simulation/demand_response.py"], bucket="B", note=""),
     dict(category="Nudge / behavioural engagement physics",
          market_leaders="Opower (social norms), in-house",
          modules=["simulation/nudge_physics.py", "company/analytics/nudge_discovery.py"], bucket="B",

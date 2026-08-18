@@ -155,10 +155,12 @@ def test_baseline_census_is_exactly_as_frozen():
 def test_every_route_is_reported_not_just_the_shortest():
     """A single printed chain is a redundant-channel trap.
 
-    All three live crossings are carried by BOTH declared bridges. A reader
-    given only `hops` would cut `background.live_payment_triad`, re-run the
-    checker, and find the edge still there — with no hint why. `entries` names
-    every first hop, so "cut it" is a complete instruction.
+    When this was written every live crossing was carried by BOTH declared
+    bridges. A reader given only `hops` would cut `background.live_payment_triad`,
+    re-run the checker, and find the edge still there — with no hint why.
+    `entries` names every first hop, so "cut it" is a complete instruction.
+    (That is not hypothetical: KNIFE pass 3 step 33 found the register's own row
+    printing one bridge where the tree had two, and `entries` is what caught it.)
 
     The assertion is on the PROPERTY, not on today's pair of names: `entries`
     must always contain the shortest chain's own first hop, and must never be
@@ -176,14 +178,35 @@ def test_every_route_is_reported_not_just_the_shortest():
         )
 
 
-def test_the_known_redundancy_is_visible():
-    """Today's concrete fact, recorded so its disappearance is a visible event:
-    every live indirect crossing is carried by two independent bridges."""
-    for key, edge in _live().items():
-        assert len(edge.entries) > 1, (
-            f"{key} is now single-routed via {edge.entries} — if a bridge was "
-            "cut, say so in the register; if the checker stopped seeing one, "
-            "that is the defect this test exists for"
+def test_the_redundancy_is_gone_and_that_was_a_deliberate_act():
+    """The redundancy this test used to pin has been CUT — KNIFE pass 3 step 33,
+    disposition register §3ab.
+
+    It read `len(edge.entries) > 1` and its own failure message said: *"if a
+    bridge was cut, say so in the register"*. That happened. `run_phase2b` no
+    longer imports `tools.couple_w2_11_d5` — the fidelity cells are asked of
+    `LivePaymentTriad.detection_cells()` instead of computed from its innards,
+    which also removed the `consumer` property that handed the world a live
+    company object.
+
+    The fact is re-pinned in the OTHER direction rather than deleted, because
+    both directions matter and for different reasons: a NEW second entry would
+    be a redundant channel re-appearing (the trap the sibling test describes),
+    and the checker silently losing sight of one would be the measurement
+    defect this module exists for. The named bridge is asserted, so "single-
+    routed via something else" is not a pass either.
+
+    R15 independence: the value under test comes from the walker, and the
+    expectation is a literal written here from the register — not re-derived
+    from the tree it is checking.
+    """
+    live = _live()
+    assert live, "vacuity: nothing measured, so nothing was proven"
+    for key, edge in live.items():
+        assert edge.entries == ("background.live_payment_triad",), (
+            f"{key} is routed via {edge.entries}. The register (§3ab) records ONE "
+            "entry, the harness bridge. A second entry here is a redundant channel "
+            "returning; a different single entry is a route nobody ruled on."
         )
 
 

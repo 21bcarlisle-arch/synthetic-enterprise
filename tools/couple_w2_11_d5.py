@@ -4921,6 +4921,33 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         ),
         "own_saturates_below": -371,
         "own_saturates_above": -308,
+        # AND BOTH EDGES CARRY THEIR DRAW SIZE (atom D30, 2026-08-18), which is
+        # the same repair D28 landed on the detection register that morning,
+        # one register over. The pair above is not a property of this
+        # instrument: it is the LARGE-n ASYMPTOTE of a quantity that moves 20
+        # days (above) and 29 days (below) on the DRAW SIZE alone, because both
+        # are read off the OBSERVED-FAILURE span and a failure has to LAND on
+        # the extreme invoice for the span to reach it. `own_draw_size_axis` is
+        # the counterexample held beside the declaration so
+        # `check_belief_band_population_axis` can put it on trial against a
+        # re-measurement rather than against a copy of itself.
+        "own_saturation_scope": {
+            "atom": "D30_the_belief_band_is_this_books_length",
+            "n_customers": 300,
+            "seeds": (7, 11, 23),
+        },
+        "own_draw_size_axis": {
+            "atom": "D30_the_belief_band_is_this_books_length",
+            "n_customers": (24, 40, 60, 120, 300, 600, 1200),
+            "seeds": (7, 11, 23),
+            "above_edge_range": (-328, -308),
+            "below_edge_range": (-371, -342),
+            # THE NULL CONTROL, declared rather than left to the test: the
+            # INVOICE-side span must NOT move along this axis. If it did, the
+            # sweep would be moving the law rather than the sample and the
+            # failure-side movement would be evidence of nothing.
+            "invoice_span_invariant": (30, 92),
+        },
         "own_saturation_atom": "D27_belief_window_saturates_on_this_book",
         # TWO TAILS, TWO CAUSES, TWO OWNERS (atom D29). Below: `as_of` sits
         # AS_OF_BUFFER_DAYS past the last event, so nothing is young enough to
@@ -5039,6 +5066,25 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         ),
         "own_saturates_below": -371,
         "own_saturates_above": -309,
+        # SCOPED FOR THE SAME REASON AS ITS SIBLING (atom D30, 2026-08-18), and
+        # this entry is why the scope has to be per-entry rather than shared:
+        # the -309 is this dimension's own bluntness on the n=300 book, so the
+        # number and the draw size that produced it are one claim. The AXIS is
+        # shared, because both dimensions read the same observed-failure span
+        # and it is the span, not the dimension, that the draw size moves.
+        "own_saturation_scope": {
+            "atom": "D30_the_belief_band_is_this_books_length",
+            "n_customers": 300,
+            "seeds": (7, 11, 23),
+        },
+        "own_draw_size_axis": {
+            "atom": "D30_the_belief_band_is_this_books_length",
+            "n_customers": (24, 40, 60, 120, 300, 600, 1200),
+            "seeds": (7, 11, 23),
+            "above_edge_range": (-328, -308),
+            "below_edge_range": (-371, -342),
+            "invoice_span_invariant": (30, 92),
+        },
         "own_saturation_atom": "D27_belief_window_saturates_on_this_book",
         # UPPER OWNER D27 -> D30 for the same reason as `belief` (Expert Hour
         # #12): this edge is set by N_PERIODS/PERIOD_SPACING_DAYS/
@@ -6295,6 +6341,183 @@ def measure_belief_window_resolution(
     }
 
 
+def measure_belief_band_population_axis(
+    *,
+    n_customers: Optional[Sequence[int]] = None,
+    seeds: Optional[Sequence[int]] = None,
+    builder: Optional[Callable[[int, int], tuple]] = None,
+) -> Dict[str, object]:
+    """SWEEP THE BELIEF EDGES ACROSS THE POPULATION AXIS (atom D30,
+    2026-08-18), the axis neither control over them can reach.
+
+    THE R15 PATTERN, and it is the sibling half of what D28 repaired on the
+    detection register that morning. `measure_own_drift_resolution` and
+    `measure_dimension_drift_resolution` genuinely measure and would genuinely
+    fire if the declared edges were wrong AT n=300 -- but both are called with
+    a HARD LITERAL 300 at their sole call site in `main()`, whose own
+    `--customers` defaults to 4000. The only population those declarations can
+    fail on is the one that produced them.
+
+    Predictor-only: `measure_belief_window_resolution` reads the book's own
+    event dates and no organ, so 21 books cost ~2s against the ~100s a single
+    `measure_own_drift_resolution` grid spends re-scoring. That is the whole
+    reason this axis is askable -- as a re-scoring it would not be affordable.
+
+    Returns per (n, seed) the two edges the register declares, plus the
+    INVOICE-side span that is the null control: it must NOT move along this
+    axis, or the sweep is moving the law rather than the sample."""
+    entry = DIMENSION_DRIFT_RESOLUTION["belief"]
+    axis = entry["own_draw_size_axis"]
+    ns = tuple(axis["n_customers"]) if n_customers is None else tuple(n_customers)
+    ss = tuple(axis["seeds"]) if seeds is None else tuple(seeds)
+    build = builder if builder is not None else (
+        lambda n, s: build_scenario(n, seed=s))
+    by_book: Dict[tuple, Dict[str, object]] = {}
+    for n in ns:
+        for s in ss:
+            records, _consumer, _ledger_book, as_of = build(n, s)
+            res = measure_belief_window_resolution(records, as_of)
+            invoice_ages = sorted((as_of - r.due_date).days for r in records)
+            by_book[(n, s)] = {
+                "saturates_below": res["predicted_saturates_below_drift"],
+                "saturates_above": res["predicted_saturates_above_drift"],
+                "n_events": res["n_events"],
+                "oldest_failure_age_days": res["oldest_event_age_days"],
+                "newest_failure_age_days": res["newest_event_age_days"],
+                # THE NULL CONTROL'S OWN READING, per book. The invoice span is
+                # dense by construction -- every account draws every period --
+                # so it reaches the constants' band at every draw size while
+                # the failure span, which needs a failure to LAND on the extreme
+                # invoice, does not. That difference IS the finding.
+                "invoice_span": (invoice_ages[0], invoice_ages[-1])
+                if invoice_ages else None,
+            }
+    aboves = [b["saturates_above"] for b in by_book.values() if
+              b["saturates_above"] is not None]
+    belows = [b["saturates_below"] for b in by_book.values() if
+              b["saturates_below"] is not None]
+    spans = {b["invoice_span"] for b in by_book.values()}
+    return {
+        "n_customers": ns,
+        "seeds": ss,
+        "by_book": by_book,
+        "n_books": len(by_book),
+        "above_edges": tuple(sorted(set(aboves))),
+        "below_edges": tuple(sorted(set(belows))),
+        "above_edge_range": ((min(aboves), max(aboves)) if aboves else None),
+        "below_edge_range": ((min(belows), max(belows)) if belows else None),
+        "invoice_spans": tuple(sorted(s for s in spans if s is not None)),
+        # PER-SEED SPREAD ALONG THE DRAW SIZE ALONE -- the same seed, the same
+        # book shape, only the population size moving. A spread of 0 on every
+        # seed would mean the edges really were properties of the instrument.
+        "above_spread_by_seed": {
+            s: (max(v) - min(v) if (v := [by_book[(n, s)]["saturates_above"]
+                                          for n in ns
+                                          if by_book[(n, s)]["saturates_above"]
+                                          is not None]) else None)
+            for s in ss
+        },
+        "below_spread_by_seed": {
+            s: (max(v) - min(v) if (v := [by_book[(n, s)]["saturates_below"]
+                                          for n in ns
+                                          if by_book[(n, s)]["saturates_below"]
+                                          is not None]) else None)
+            for s in ss
+        },
+    }
+
+
+def check_belief_band_population_axis(
+    measured: Dict[str, object],
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+) -> List[str]:
+    """Put the two belief entries' DRAW-SIZE declarations on trial, both ways
+    (atom D30, R15). Returns violations; empty means the declarations hold.
+
+    Six rules, and each one names a way this class comes back:
+
+      * an edge declared with NO SCOPE -- the shipped defect, the thing D28
+        repaired one register over on the same morning;
+      * a scope naming a draw size this sweep never visits: a scope nobody
+        measures at is a label, not a claim;
+      * the declared edge ranges must CONTAIN what the sweep read;
+      * the declared literal must itself lie inside the measured range -- an
+        asymptote no book on the axis produces is a number from nowhere;
+      * the edges must actually MOVE. A scoped declaration whose scope turns
+        out not to matter should go back to being a bare number;
+      * the NULL CONTROL: the invoice-side span must NOT move. If it did, this
+        sweep would be perturbing the law rather than the sample and every
+        reading above would be draw noise."""
+    register = DIMENSION_DRIFT_RESOLUTION if register is None else register
+    violations: List[str] = []
+
+    for dim in ("belief", "belief_population_mix"):
+        entry = register[dim]
+        scope = entry.get("own_saturation_scope") or {}
+        axis = entry.get("own_draw_size_axis") or {}
+        declares = (entry.get("own_saturates_above") is not None
+                    or entry.get("own_saturates_below") is not None)
+        if declares and not scope:
+            violations.append(
+                f"{dim}: declares its saturation edges and no "
+                "`own_saturation_scope` -- the draw size they were measured at "
+                "IS part of the claim (this is the shipped defect: four "
+                "literals rode every book the scorer was run over, while both "
+                "edges move on the draw size alone)"
+            )
+        elif scope and scope.get("n_customers") not in measured["n_customers"]:
+            violations.append(
+                f"{dim}: scopes its edges to n={scope.get('n_customers')}, "
+                "which this axis never visits -- a scope nobody measures at is "
+                "a label, not a claim"
+            )
+        for side, key, seen in (
+            ("above", "above_edge_range", measured["above_edge_range"]),
+            ("below", "below_edge_range", measured["below_edge_range"]),
+        ):
+            declared_range = tuple(axis.get(key) or ())
+            if declared_range and seen and (seen[0] < declared_range[0]
+                                            or seen[1] > declared_range[1]):
+                violations.append(
+                    f"{dim}: declares its {side} edge inside "
+                    f"{list(declared_range)} across this axis and the sweep "
+                    f"read {list(seen)}"
+                )
+            literal = entry.get(f"own_saturates_{side}")
+            if literal is not None and seen and not (
+                    seen[0] <= literal <= seen[1]):
+                violations.append(
+                    f"{dim}: declares `own_saturates_{side}` = {literal} and "
+                    f"no book on this axis produced an edge in "
+                    f"{list(seen)} that reaches it -- a declaration outside "
+                    "every measurement is a number from nowhere"
+                )
+
+    for side, key in (("above", "above_spread_by_seed"),
+                      ("below", "below_spread_by_seed")):
+        if not {s: v for s, v in measured[key].items() if v}:
+            violations.append(
+                f"the {side} edge is declared draw-size dependent and no "
+                f"seed's edge moved across {list(measured['n_customers'])} -- "
+                "a scoped declaration whose scope turns out not to matter "
+                "should go back to a bare number"
+            )
+
+    axis = register["belief"].get("own_draw_size_axis") or {}
+    invariant = tuple(axis.get("invoice_span_invariant") or ())
+    spans = measured["invoice_spans"]
+    if invariant and sorted(set(spans)) != [invariant]:
+        violations.append(
+            "NULL CONTROL: the INVOICE-side span is declared invariant at "
+            f"{list(invariant)} along this axis and the sweep read "
+            f"{[list(s) for s in spans]} -- if the population the edges are "
+            "NOT read from moves too, this sweep is perturbing the law rather "
+            "than the sample and the failure-side movement is evidence of "
+            "nothing"
+        )
+    return violations
+
+
 # ---------------------------------------------------------------------------
 # THE CENSUS OF CONFOUNDER-REMOVING CONSTANTS
 # (atom D30_the_belief_band_is_this_books_length, H27 Expert Hour #12)
@@ -6548,6 +6771,20 @@ def measure_scenario_constant_census(
         bumped = predict_event_age_span_from_constants(**{knob: _current(name) + 1})
         moved[name] = tuple(e for e in _SPAN_EDGES if bumped[e] != base[e])
     ages = sorted((as_of - r.due_date).days for r in records)
+    # AND THE POPULATION THAT ACTUALLY SETS THE EDGE (atom D30, 2026-08-18).
+    # The line above ages EVERY record; the belief edges are read off OBSERVED
+    # FAILURES only (`measure_belief_window_resolution`), and those are two
+    # different books. The invoice side is dense by construction -- every
+    # account draws every period -- so it reaches the constants' band at every
+    # draw size from n=24 up, while a failure has to LAND on the extreme
+    # invoice, which is a draw. Measuring only the dense one made
+    # `describes_this_book` answer True, with zero violations, on books where
+    # the failure-side edge was twenty days off the register's declaration:
+    # R15's FAIL-OPEN pattern, in the control that exists to stop an edge
+    # rotting unnoticed. Both spans are measured now, and the verdict and the
+    # caveat both say WHICH of them they are talking about.
+    failure_ages = sorted((as_of - r.due_date).days
+                          for r in records if r.result == "failed")
     # THE SCORED COMPANY'S WINDOW, OFF THE SCORED COMPANY (2026-08-18).
     # This line read the module constant until that date, so the three
     # `scored_company_*` fields below reported the HARNESS's 400d for every
@@ -6561,6 +6798,8 @@ def measure_scenario_constant_census(
     window = DD_FAILURE_WINDOW_DAYS if window_days is None else int(window_days)
     youngest = ages[0] if ages else None
     oldest = ages[-1] if ages else None
+    f_youngest = failure_ages[0] if failure_ages else None
+    f_oldest = failure_ages[-1] if failure_ages else None
     # THE SCORED COMPANY'S PLACE IN THE BAND IS READ OFF THE BOOK, NOT OFF THE
     # CONSTANTS. `score_triad` also scores live `run_phase2b` populations, whose
     # book these constants do not describe -- and a caveat that quoted the
@@ -6570,12 +6809,28 @@ def measure_scenario_constant_census(
     # the caveat says so out loud when it is False.
     describes = (youngest == base["youngest_age_days"]
                  and oldest == base["oldest_age_days"])
+    # THE SAME QUESTION, ASKED OF THE EDGE-SETTING POPULATION. Kept SEPARATE
+    # from `describes_this_book` rather than folded into it: the constants
+    # genuinely do place the invoices, so the attribution above is sound and
+    # must not be made to read red by a question it was never about. What was
+    # never honest is a green verdict that reads as though it had covered the
+    # edge -- so the second switch exists, and both are published.
+    describes_failures = (f_youngest == base["youngest_age_days"]
+                          and f_oldest == base["oldest_age_days"])
     return {
         "predicted": base,
         "measured_youngest_age_days": youngest,
         "measured_oldest_age_days": oldest,
         "measured_span_days": None if oldest is None else oldest - youngest,
         "describes_this_book": describes,
+        # WHAT THE BELIEF EDGES ARE ACTUALLY READ FROM (atom D30, 2026-08-18).
+        "edge_setting_population": "observed failures",
+        "n_failure_events": len(failure_ages),
+        "measured_failure_youngest_age_days": f_youngest,
+        "measured_failure_oldest_age_days": f_oldest,
+        "measured_failure_span_days": (
+            None if f_oldest is None else f_oldest - f_youngest),
+        "describes_this_books_failure_span": describes_failures,
         "moved_edges": moved,
         "subject": scenario_constants(),
         # R12: REPORTED, not tuned. The scored company's own memory against the
@@ -6612,7 +6867,38 @@ def check_scenario_constant_census(
     out += _check_census_edges_are_measured(measured, census)
     out += _check_predictor_matches_the_book(measured)
     out += _check_edge_owners_are_censused(census, register)
+    out += _check_census_measured_the_edge_setting_population(measured)
     return out
+
+
+def _check_census_measured_the_edge_setting_population(
+        measured: Dict[str, object]) -> List[str]:
+    """FAIL-CLOSED ON THE SUBJECT (atom D30, 2026-08-18).
+
+    The shipped census aged EVERY record and cross-checked that span against
+    the constants. The belief edges are read off OBSERVED FAILURES. A census
+    that measures only the dense population returns a green verdict about a
+    band it did not measure -- so a measurement missing the failure-side keys
+    RAISES here rather than passing quietly, which is the R15 FAIL-OPEN rule
+    ("passes on missing/zero/empty") applied to the census's own subject."""
+    required = ("n_failure_events", "measured_failure_oldest_age_days",
+                "describes_this_books_failure_span")
+    missing = [k for k in required if k not in measured]
+    if missing:
+        return [
+            f"the census does not measure {sorted(missing)} -- it aged every "
+            "record and the belief edges are read off observed FAILURES only, "
+            "so a verdict without the edge-setting population is green about a "
+            "band it never looked at (the shipped fail-open)"
+        ]
+    if measured["n_failure_events"] == 0 and measured.get("measured_oldest_age_days") is not None:
+        return [
+            "this book presents invoices and NO observed failure, so it sets "
+            "no belief edge at all -- a census that cross-checked only the "
+            "invoice span here would report agreement about a band that does "
+            "not exist"
+        ]
+    return []
 
 
 def _check_census_is_complete(measured: Dict[str, object],
@@ -6749,12 +7035,39 @@ def scenario_constant_census_caveat(measured: Dict[str, object]) -> str:
             "off it."
         )
     body = (
-        "Both belief dimensions resolve a company memory error only between "
+        "This book's INVOICES span ages between "
         f"{measured['measured_youngest_age_days']}d and "
         f"{measured['measured_oldest_age_days']}d -- a band "
         f"{measured['measured_span_days']}d wide, and a band is a property of "
         "how long the book is, never a sensitivity of the instrument. "
     )
+    # AND WHICH POPULATION THE BELIEF EDGES ARE ACTUALLY READ FROM (atom D30,
+    # 2026-08-18). Until this sentence existed the invoice span above WAS the
+    # sentence, and it was published as the belief dimensions' resolution --
+    # while both edges are read off observed failures, a strictly smaller book
+    # that need not reach either end of the invoice span.
+    if not measured.get("n_failure_events"):
+        body += (
+            "AND THIS BOOK PRESENTS NO OBSERVED FAILURE AT ALL, so neither "
+            "belief dimension resolves any memory error here: the invoice span "
+            "above is not their band and nothing about their resolution can be "
+            "read off it. "
+        )
+    else:
+        body += (
+            "THE BELIEF DIMENSIONS' OWN BAND IS SMALLER, and is the one that "
+            "sets their edges: they read OBSERVED FAILURES only, which here "
+            f"span {measured['measured_failure_youngest_age_days']}d to "
+            f"{measured['measured_failure_oldest_age_days']}d over "
+            f"{measured['n_failure_events']} events. "
+        )
+        if not measured.get("describes_this_books_failure_span"):
+            body += (
+                "THAT IS NOT THE INVOICE SPAN: a failure has to LAND on the "
+                "extreme invoice for the two to coincide, and on this book it "
+                "did not -- so the constants below attribute the INVOICE band "
+                "and the belief band above is measured here, not attributed. "
+            )
     if measured.get("describes_this_book"):
         body += (
             f"On THIS book those edges are arithmetic over {band_owners}: "
@@ -12240,6 +12553,36 @@ def main() -> None:
           + ("every constant's declared role held" if not _cen_violations
              else f"{len(_cen_violations)} VIOLATION(S)"))
     for v in _cen_violations:
+        print(f"           !! {v}")
+    print("           edge-setting population: "
+          f"{_cen['n_failure_events']} observed failure(s) spanning "
+          f"{_cen['measured_failure_youngest_age_days']}-"
+          f"{_cen['measured_failure_oldest_age_days']}d -- the band the belief "
+          "edges are read from (describes this book: "
+          f"{_cen['describes_this_books_failure_span']}); the invoice span "
+          "above is a DIFFERENT and denser population")
+
+    # THE BELIEF EDGES' OWN POPULATION AXIS (atom D30, 2026-08-18). The two
+    # resolution controls above are called with a hard `n_customers=300` at
+    # their sole call site, so the only population the declared edges can fail
+    # on is the one that produced them. This is the axis they cannot reach, and
+    # it is affordable only because it calls no scorer.
+    _bba = measure_belief_band_population_axis()
+    print(f"  [belief-band population axis] {_bba['n_books']} books, "
+          f"n={list(_bba['n_customers'])} x seeds {list(_bba['seeds'])}, "
+          "predictor-only:")
+    print(f"           above edge {list(_bba['above_edge_range'])} over "
+          f"{len(_bba['above_edges'])} distinct value(s); below edge "
+          f"{list(_bba['below_edge_range'])} over "
+          f"{len(_bba['below_edges'])} distinct value(s)")
+    print("           NULL CONTROL: invoice span "
+          f"{[list(s) for s in _bba['invoice_spans']]} -- unmoved, so the "
+          "sweep moves the sample and not the law")
+    _bba_violations = check_belief_band_population_axis(_bba)
+    print("           verdict: "
+          + ("every declaration held" if not _bba_violations
+             else f"{len(_bba_violations)} VIOLATION(S)"))
+    for v in _bba_violations:
         print(f"           !! {v}")
 
     # OPT-IN: the caveat-coverage contract (atom D32). Declared in

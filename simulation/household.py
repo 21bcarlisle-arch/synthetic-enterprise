@@ -302,14 +302,31 @@ _EPC_TO_INSULATION: dict[str, InsulationLevel] = {
 }
 
 
-def make_household(customer: dict) -> Household:
+def make_household(customer: dict, drawn: Household | None = None) -> Household:
     """Build a Household for a customer record from simulation/run_phase2b.py.
 
     Assigns representative attributes based on home_type, epc_rating, and
     segment. Solar, battery, and EV defaulted to False at 2016 baseline
     — upgrade events (solar install, EV acquisition) layer in over time
     via the life events engine (Phase B).
+
+    `drawn` (B12) is the world's own stock-representative household for a DRAWN
+    (SYN-*) home — `simulation.premise_population.draw_premise().household`, fitted
+    to the published EHS marginals. When supplied it IS the household: there is
+    nothing here to derive, because the archetype maps below key on the authored
+    roster's `home_type`, which a drawn record does not have. Without it every drawn
+    home collapsed to `suburban_semi`/`"D"` (the defaults on the two lines below) —
+    a population of clones whose EPC band happened to equal the company's own
+    zero-knowledge guess, which is the belief-is-truth inversion B12 repairs.
+    A mismatched id RAISES rather than silently building the wrong home.
     """
+    if drawn is not None:
+        if drawn.customer_id != customer["customer_id"]:
+            raise ValueError(
+                f"drawn household {drawn.customer_id!r} handed to customer "
+                f"{customer['customer_id']!r} — one home, one id"
+            )
+        return drawn
     home_type = customer.get("home_type", "suburban_semi")
     epc = customer.get("epc_rating", "D")
     segment = customer.get("segment", "resi")
@@ -387,9 +404,21 @@ def make_household(customer: dict) -> Household:
     )
 
 
-def build_household_register(customers: list[dict]) -> dict[str, Household]:
-    """Build a {customer_id: Household} lookup for all customers."""
-    return {c["customer_id"]: make_household(c) for c in customers}
+def build_household_register(
+    customers: list[dict],
+    drawn_households: "dict[str, Household] | None" = None,
+) -> dict[str, Household]:
+    """Build a {customer_id: Household} lookup for all customers.
+
+    `drawn_households` (B12) carries the world's drawn dwelling for each SYN-* home
+    (`simulation.live_population.live_drawn_households()`); a customer absent from it
+    is served by the authored-roster path exactly as before.
+    """
+    drawn = drawn_households or {}
+    return {
+        c["customer_id"]: make_household(c, drawn.get(c["customer_id"]))
+        for c in customers
+    }
 
 
 # --- WHICH SUPPLY POINTS ARE ONE HOUSEHOLD (KNIFE step 28, register §3w) ------

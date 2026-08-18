@@ -643,6 +643,51 @@ def draw_premise(
     )
 
 
+# --- The dwelling RECORD projection (B12) ----------------------------------
+# `saas.property_model.build_properties()` builds the world's dwelling record for
+# each resi electricity customer, and its contract is plain dicts in / plain dicts
+# out ("no imports from sim/"), so a drawn premise reaches it through THIS
+# projection rather than as a `DrawnPremise`. The vocabulary is the record's, which
+# is the roster's -- the value set of `saas.property_model.
+# PROPERTY_TYPE_BY_HOME_TYPE`, with `terraced` added because the four-home authored
+# roster never had a terraced home and the published stock is 26% terraced.
+#
+# WHY THIS EXISTS AT ALL, stated so it is not mistaken for plumbing: before B12 a
+# DRAWN home's dwelling record was `_derive_syn_property_fields()`, i.e. the
+# SUPPLIER's own approximation of the home -- so the company's zero-knowledge modal
+# guess ("D") scored 100% on the drawn cohort and 43% on the authored one, and the
+# drawn cohort is the half that grows (WORKER_FINDING_THE_WORLDS_DWELLING_FOR_A_
+# DRAWN_HOME_IS_THE_COMPANYS_OWN_ESTIMATE_2026-08-17). The world now draws the
+# dwelling from the published EHS/ONS joint above, so the supplier's belief can be
+# wrong, which is the point of the wall.
+PROPERTY_TYPE_RECORD_NAME: dict[PropertyType, str] = {
+    PropertyType.FLAT: "flat",
+    PropertyType.TERRACED: "terraced",
+    PropertyType.SEMI_DETACHED: "semi",
+    PropertyType.DETACHED: "detached",
+}
+
+
+def dwelling_record(premise: DrawnPremise) -> dict:
+    """The world's dwelling for ONE drawn home, in the property record's vocabulary.
+
+    RAISES (never defaults) on a non-domestic property type: this draw is domestic
+    and a commercial premise reaching here is a wiring defect, not a home to
+    approximate.
+    """
+    household = premise.household
+    if household.property_type not in PROPERTY_TYPE_RECORD_NAME:
+        raise ValueError(
+            f"{premise.premise_id}: {household.property_type} is not a domestic "
+            "dwelling; the premise draw is domestic-only"
+        )
+    return {
+        "property_type": PROPERTY_TYPE_RECORD_NAME[household.property_type],
+        "epc_rating": household.epc_rating,
+        "bedrooms": household.bedrooms,
+    }
+
+
 def draw_premise_population(
     n: int, *, base_seed: int, as_of: dt.date
 ) -> tuple[DrawnPremise, ...]:

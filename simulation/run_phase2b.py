@@ -21,20 +21,30 @@ from collections import defaultdict
 from datetime import date, datetime, time, timedelta
 
 import sim.risk_committee_agent as risk_committee_agent
-from company.interfaces.point_in_time_view import PointInTimeView, build_price_bitemporal_log
-from company.interfaces.renewal_offer import (
-    request_company_forward_estimate,
-    request_fixed_unit_rate,
+from background.gap_metric import format_ageing_summary as _format_ageing_summary
+from background.gap_metric import format_belief_summary as _format_belief_summary
+from background.gap_metric import format_detection_summary as _format_detection_summary
+from background.live_fidelity_evidence import emit_live_fidelity_evidence
+from background.live_payment_triad import LivePaymentTriad
+from company.interfaces.churn_estimation import (
+    RenewalObservation,
+    crisis_hangover_periods,
+    estimate_churn_without_rate_history,
+    estimate_renewal_churn,
+    estimate_secondary_fuel_churn,
+    score_churn_estimates,
 )
-from company.interfaces.tou_offer import request_tou_offer
-from company.interfaces.statutory_obligations import build_statutory_obligations
-from company.interfaces.renewal_rate_chain import decide_renewal_rate
-from company.interfaces.supply_book import (
-    acquired_supply_points,
-    register_acquired_point as make_acquired_customer,
-    registered_point as get_customer,
-    successor_supply_points,
+from company.interfaces.counterparty_collateral import build_counterparty_collateral
+from company.interfaces.customer_experience import (
+    CustomerContact,
+    CustomerExperienceDesk,
+    PaymentOutcome,
+    RenewalReached,
+    SurveyInstrument,
+    SurveyResponse,
 )
+from company.interfaces.fixed_overhead import book_monthly_overhead
+from company.interfaces.flexibility_revenue import build_flexibility_revenue
 from company.interfaces.growth_desk import (
     book_acquisition_gate,
     book_acquisition_spend,
@@ -44,14 +54,32 @@ from company.interfaces.growth_desk import (
     mandate_permits_replacement,
     replacement_cost_avoided_gbp,
 )
-from company.interfaces.fixed_overhead import book_monthly_overhead
-from saas.property_model import (
-    DEFAULT_ASSETS,
-    DEFAULT_HEATING_SYSTEM,
-    DEFAULT_OCCUPANCY_PATTERN,
-    build_properties,
+from company.interfaces.hedge_desk import build_hedge_desk, hedge_mandate
+from company.interfaces.point_in_time_view import PointInTimeView, build_price_bitemporal_log
+from company.interfaces.renewal_offer import (
+    request_company_forward_estimate,
+    request_fixed_unit_rate,
 )
-from simulation.demand_response import compute_shift_fraction, make_shifted_shape_fn
+from company.interfaces.renewal_rate_chain import decide_renewal_rate
+from company.interfaces.statutory_obligations import build_statutory_obligations
+from company.interfaces.supply_book import (
+    acquired_supply_points,
+    successor_supply_points,
+)
+from company.interfaces.supply_book import (
+    register_acquired_point as make_acquired_customer,
+)
+from company.interfaces.supply_book import (
+    registered_point as get_customer,
+)
+from company.interfaces.tou_offer import request_tou_offer
+from company.interfaces.tpi_commission import build_tpi_commission
+from company.policy.decision_policy import (
+    CURRENT_POLICY,
+    DecisionPolicy,
+    active_policy,
+    framing_type_for,
+)
 from sim.cache_store import get_cached_prices, log_cache_access
 from sim.forward_curve import (
     BASE_TERM_PREMIUM,
@@ -66,75 +94,29 @@ from sim.forward_curve import (
     generate_forward_price,
 )
 from sim.gas_prices_history import load_nbp_history
-from company.interfaces.hedge_desk import build_hedge_desk, hedge_mandate
 from sim.profile_class_1 import load_pc1_shape
 from sim.profile_class_3 import load_pc3_shape
 from sim.risk_committee import RiskCommitteeMonitor
 from sim.risk_engine import assess_term_risk, is_administration_triggered
 from sim.system_prices_history import get_system_prices_range
+from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd
 from sim.weather_price_sensitivity import weather_sensitivity_multiplier
+from simulation.acquisition_funnel import run_acquisition_funnel
+from simulation.bad_debt_incidence import world_bad_debt_incidence
+from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
+from simulation.churn_journey import ChurnJourneyRegister
 from simulation.customer_events import (
     HOME_MOVE_ACTIVATE_SUCCESSOR,
     home_move_disposition,
     roll_lifecycle_event,
 )
-from simulation.churn_journey import ChurnJourneyRegister
-from simulation.acquisition_funnel import run_acquisition_funnel
-from tools.acquisition_funnel_port import AcquisitionFunnelMessage
-from tools.credit_adapters import get_credit_bureau_adapter
-from simulation.resentment_ledger import FrictionEventType
-from simulation.bad_debt_incidence import world_bad_debt_incidence
-from simulation.payment_timing import stress_bad_debt_multiplier, generate_payment_record
-from background.gap_metric import format_ageing_summary as _format_ageing_summary
-from background.gap_metric import format_belief_summary as _format_belief_summary
-from background.gap_metric import format_detection_summary as _format_detection_summary
-from background.live_payment_triad import LivePaymentTriad
-from background.live_fidelity_evidence import emit_live_fidelity_evidence
 from simulation.demand_model import build_demand_shape, solar_generation_shape
-from simulation.gas_settlement import run_gas_term
-from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
-from company.interfaces.counterparty_collateral import build_counterparty_collateral
-from company.policy.decision_policy import DecisionPolicy, CURRENT_POLICY, active_policy, framing_type_for
-from simulation.nudge_physics import susceptibility_for, framing_effectiveness_multiplier
-from company.interfaces.churn_estimation import (
-    RenewalObservation,
-    crisis_hangover_periods,
-    estimate_churn_without_rate_history,
-    estimate_renewal_churn,
-    estimate_secondary_fuel_churn,
-    score_churn_estimates,
-)
-from simulation.renewal_engagement import passive_churn_cap_for, rolls_active_renewal
-from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
-from simulation.sim_satisfaction import sim_satisfaction_score as _sim_satisfaction_score
-from simulation.feedback_survey import (
-    dispatch_csat_survey,
-    dispatch_nps_survey,
-    dispatch_complaint_and_resolution,
-)
-from company.interfaces.customer_experience import (
-    CustomerContact,
-    CustomerExperienceDesk,
-    PaymentOutcome,
-    RenewalReached,
-    SurveyInstrument,
-    SurveyResponse,
-)
-from simulation.reputation_index import ReputationEventType
-from company.interfaces.flexibility_revenue import build_flexibility_revenue
-from company.interfaces.tpi_commission import build_tpi_commission
-from simulation.policy_costs import (
-    get_gas_ccl_per_mwh,
-    get_gas_network_cost_per_mwh,
-    get_ggl_per_mwh,
-)
-from simulation.volume_tolerance import compute_term_volume_tolerance
-from simulation.triad import identify_triad_candidates, compute_triad_exposure, _triad_year, build_triad_alert_set, make_triad_aware_shape_fn
-from simulation.hh_consumption import (
-    estimate_annual_kwh,
-    hh_shape_fn,
-    is_hh_customer,
-    load_hh_consumption,
+from simulation.demand_response import compute_shift_fraction, make_shifted_shape_fn
+from simulation.dwelling_records import (
+    DEFAULT_ASSETS,
+    DEFAULT_HEATING_SYSTEM,
+    DEFAULT_OCCUPANCY_PATTERN,
+    build_properties,
 )
 from simulation.fabric_demand_path import (
     FABRIC_PROVIDER,
@@ -147,20 +129,53 @@ from simulation.fabric_demand_path import (
     settlement_providers_match_eligibility,
     the_switch_moves_the_settled_volume,
 )
+from simulation.fabric_physics import DEFAULT_LATITUDE_DEG
+from simulation.feedback_survey import (
+    dispatch_complaint_and_resolution,
+    dispatch_csat_survey,
+    dispatch_nps_survey,
+)
+from simulation.gas_settlement import run_gas_term
+from simulation.hedged_settlement import run_deemed_term, run_flex_term, run_hedged_term
+from simulation.hh_consumption import (
+    estimate_annual_kwh,
+    hh_shape_fn,
+    is_hh_customer,
+    load_hh_consumption,
+)
+from simulation.household import household_of
+from simulation.household_demand import HouseholdDemandRegister
+from simulation.live_population import live_drawn_households, live_dwellings, live_population
+from simulation.nudge_physics import framing_effectiveness_multiplier, susceptibility_for
+from simulation.payment_timing import generate_payment_record, stress_bad_debt_multiplier
+from simulation.policy_costs import (
+    get_gas_ccl_per_mwh,
+    get_gas_network_cost_per_mwh,
+    get_ggl_per_mwh,
+)
+from simulation.premise_trace import WEATHER_DATA_DIR as WEATHER_DATA_DIR_PATH
+from simulation.renewal_engagement import passive_churn_cap_for, rolls_active_renewal
 from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
+from simulation.reputation_index import ReputationEventType
+from simulation.resentment_ledger import FrictionEventType
 from simulation.settlement import CONTRACT_LENGTH_DAYS
+from simulation.sim_satisfaction import sim_satisfaction_score as _sim_satisfaction_score
+from simulation.triad import (
+    _triad_year,
+    build_triad_alert_set,
+    compute_triad_exposure,
+    identify_triad_candidates,
+    make_triad_aware_shape_fn,
+)
+from simulation.volume_tolerance import compute_term_volume_tolerance
 from simulation.weather_inputs import (
     _weather_source_customer_id,
     cloud_cover_for_customer,
     lookback_mean_temps,
     weather_means_for_customer,
 )
-from simulation.fabric_physics import DEFAULT_LATITUDE_DEG
-from simulation.premise_trace import WEATHER_DATA_DIR as WEATHER_DATA_DIR_PATH
-from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd
-from simulation.household import household_of
-from simulation.household_demand import HouseholdDemandRegister
-from simulation.live_population import live_population
+from tools.acquisition_funnel_port import AcquisitionFunnelMessage
+from tools.credit_adapters import get_credit_bureau_adapter
 
 # The supply book, bound once at import: the seam hands back the LIVE roster
 # objects (see company/interfaces/supply_book.py, IDENTITY), so a runtime append
@@ -337,6 +352,7 @@ def _weather_adjusted_shape_fn(
     multiplier and time-varying EV ownership.
     """
     from datetime import date as _date
+
     from sim.weather_engine import half_hourly_solar_irradiance
 
     def shape_fn(date_str):
@@ -834,9 +850,16 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     _ic_triad_alert_set = build_triad_alert_set(elec_records)
 
     # ---- Phase 4c-1/4c-2/4c-3 inputs: per-customer weather + property records ----
-    properties = build_properties(CUSTOMERS)
+    # B12: the DWELLING is the world's. Both of these take the world's own drawn
+    # dwelling for every SYN-* home; omit them and each drawn home reverts to the
+    # supplier's modal-band approximation ("D"), which the company then scores itself
+    # right against by construction.
+    _drawn_dwellings = live_dwellings()
+    properties = build_properties(CUSTOMERS, dwellings=_drawn_dwellings)
     # Phase C: household physical model (EPC multipliers, time-varying EV/solar)
-    household_demand_register = HouseholdDemandRegister(CUSTOMERS)
+    household_demand_register = HouseholdDemandRegister(
+        CUSTOMERS, drawn_households=live_drawn_households()
+    )
     weather_by_customer = {
         c["customer_id"]: weather_means_for_customer(c)
         for c in ELEC_CUSTOMERS + GAS_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS
@@ -2486,11 +2509,16 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 # A run spanning calm + crisis lights >1 cell; a single-regime
                 # run lights one. Belief/ageing stay regime-mixed (named
                 # simplification on each per-cell record).
-                from tools.couple_w2_11_d5 import detection_cell_measurements
+                # KNIFE pass 3 step 33 (disposition register §3ab): the cells
+                # are asked of the TRIAD, not computed here from its innards.
+                # This block used to import `detection_cell_measurements` and
+                # hand it `_payment_triad.consumer` -- a live company object,
+                # held by the world's composition, obtained through a SECOND
+                # bridge (`tools.couple_w2_11_d5`) that reaches the same two
+                # company modules as `background.live_payment_triad` does. The
+                # measurement is unchanged; who holds the consumer is not.
                 from background.live_fidelity_evidence import emit_live_fidelity_cells
-                _cell_gaps = detection_cell_measurements(
-                    _payment_triad.records, _payment_triad.consumer, _fid_as_of_date,
-                )
+                _cell_gaps = _payment_triad.detection_cells(_fid_as_of_date)
                 if len(_cell_gaps) >= 2:
                     _mc = emit_live_fidelity_cells(cell_gaps=_cell_gaps, as_of=_fid_as_of)
                     _lit = ", ".join(

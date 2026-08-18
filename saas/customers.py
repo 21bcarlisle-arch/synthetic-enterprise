@@ -298,32 +298,38 @@ CUSTOMERS = [
 
 
 def _stamp_known_smart_meter_status(customers: list[dict]) -> None:
-    """Stamp `smart_meter` from saas.property_model.ASSET_PROFILE_BY_CUSTOMER
-    onto any record that doesn't already carry its own smart_meter/metering
-    flag. Gas dual-fuel twins (e.g. "C1g") inherit their electricity
-    sibling's status -- same physical property, one meter-fleet decision
-    (property_model.py's own docstring: gas records represent "the same
-    physical property's gas supply").
+    """Stamp `smart_meter` from the supplier's own meter-fleet record
+    (saas.property_model.KNOWN_SMART_METER_BY_CUSTOMER) onto any record that
+    doesn't already carry its own smart_meter/metering flag. Gas dual-fuel
+    twins (e.g. "C1g") inherit their electricity sibling's status -- same
+    physical property, one meter-fleet decision (property_model.py's own
+    docstring: gas records represent "the same physical property's gas
+    supply").
 
     Fixes a real cross-module drift (Rich-flagged 2026-07-09): C1-C4's
     literal entries above carried no smart_meter key at all, so
     simulation.meter_reads.meter_type_for_customer() silently defaulted
     every one of them to "traditional" (no smart-meter read behaviour
-    anywhere downstream -- meter-read log, bills, portal) even though
-    property_model.py's asset profile -- already used elsewhere for
-    EV/solar/smart-meter household physics -- said C1 was smart. One
-    customer_id, one physical property: this stamps every known customer at
-    once rather than patching C1 alone.
+    anywhere downstream -- meter-read log, bills, portal) even though the
+    fleet record said C1 was smart. One customer_id, one physical property:
+    this stamps every known customer at once rather than patching C1 alone.
+
+    B12 (2026-08-18, KNIFE3 step 35): the source used to be
+    ASSET_PROFILE_BY_CUSTOMER, which is now the WORLD's physical asset truth
+    at `simulation.dwelling_records`. This function reads the SUPPLIER's fleet
+    record instead -- it stamps the supplier's customer book, so it must read
+    what the supplier knows, not what is true. The two are separately authored
+    and are allowed to disagree.
     """
-    from saas.property_model import ASSET_PROFILE_BY_CUSTOMER
+    from saas.property_model import KNOWN_SMART_METER_BY_CUSTOMER
     for customer in customers:
         if "smart_meter" in customer or "metering" in customer:
             continue
         cid = customer["customer_id"]
         base_id = cid[:-1] if cid.endswith("g") else cid
-        profile = ASSET_PROFILE_BY_CUSTOMER.get(base_id)
-        if profile is not None:
-            customer["smart_meter"] = profile["smart_meter"]
+        has_smart_meter = KNOWN_SMART_METER_BY_CUSTOMER.get(base_id)
+        if has_smart_meter is not None:
+            customer["smart_meter"] = has_smart_meter
 
 
 _stamp_known_smart_meter_status(CUSTOMERS)
@@ -487,8 +493,8 @@ def make_acquired_customer(
 
     Phase 50: stamps smart_meter based on rollout penetration at acquisition year.
     """
+
     from saas.property_model import get_smart_meter_status
-    import random as _random
     acq_year = int(acquisition_date[:4])
     segment = predecessor.get("segment", "resi")
     has_smart_meter = get_smart_meter_status(customer_id, acq_year, segment)

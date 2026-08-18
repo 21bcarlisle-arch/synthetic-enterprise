@@ -44,6 +44,7 @@ from company.compliance.domain_invariants import (
 )
 from simulation import fabric_demand_path as fdp
 from simulation.household_demand import HouseholdDemandRegister
+from simulation.live_population import live_drawn_households
 from simulation.run_phase2b import (
     CUSTOMERS,
     ELEC_CUSTOMERS,
@@ -91,7 +92,10 @@ def envelope_breaches(rows: list[dict]) -> list[str]:
 
 
 def measure(seed: int = fdp.DEFAULT_TRACE_SEED) -> dict:
-    register = HouseholdDemandRegister(CUSTOMERS)
+    # B12: the same world the runner settles — a drawn home's dwelling is the world's
+    # published draw here too, or this tool would measure a fabric gap against a
+    # population of `suburban_semi` clones.
+    register = HouseholdDemandRegister(CUSTOMERS, drawn_households=live_drawn_households())
     start, end = dt.date.fromisoformat(REPORT_START), dt.date.fromisoformat(REPORT_END)
     # The SAME eligibility pass and the SAME trace generation `run_phase2b` settles
     # on (`fabric_providers_for_book`). Measuring a population the runner does not

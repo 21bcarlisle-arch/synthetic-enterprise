@@ -5283,6 +5283,210 @@ def test_the_caveat_refuses_to_attribute_a_book_the_constants_do_not_describe():
 
 
 # ---------------------------------------------------------------------------
+# THE BELIEF EDGES' POPULATION AXIS, and the census's own subject -- atom D30,
+# 2026-08-18, closing
+# WORKER_FINDING_THE_BELIEF_BAND_CENSUS_IS_BLIND_TO_THE_POPULATION_THAT_SETS_THE_EDGE
+#
+# THE SIBLING HALF OF WHAT D28 REPAIRED THAT MORNING. The detection register's
+# edges got a scope, an axis, a sweep, a control and a per-run derivation on
+# 2026-08-18; the two BELIEF entries sat one register over with four unscoped
+# literals and got none of them -- while both their edges move 20d (above) and
+# 29d (below) on the DRAW SIZE alone.
+#
+# And the control that was meant to stop exactly that rot was FAIL-OPEN: the
+# census ages EVERY record while the edges are read off OBSERVED FAILURES only,
+# so `describes_this_book` answered True with zero violations on books whose
+# failure-side edge was twenty days off the declaration. Three legs, three
+# repairs, each with its own mutation below.
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def belief_band_axis():
+    """The two belief edges on 21 books: 7 draw sizes x 3 seeds,
+    predictor-only."""
+    return pair.measure_belief_band_population_axis()
+
+
+def test_the_belief_edges_move_on_the_draw_size_alone(belief_band_axis):
+    """THE FINDING ITSELF, reproduced as a control rather than a table in a
+    document. Until 2026-08-18 the register declared one pair of numbers for
+    both edges and named no population -- and the pair is the LARGE-n
+    asymptote of a quantity the draw size moves by three weeks."""
+    assert len(belief_band_axis["above_edges"]) > 1, (
+        "a single distinct upper edge would mean the finding was wrong and the "
+        "literal was a property of the instrument after all")
+    assert len(belief_band_axis["below_edges"]) > 1
+    above_spread = max(v for v in belief_band_axis["above_spread_by_seed"].values())
+    below_spread = max(v for v in belief_band_axis["below_spread_by_seed"].values())
+    assert above_spread >= 20, above_spread
+    assert below_spread >= 29, below_spread
+    # And the declared asymptote is at the EDGE of what the axis reads, never
+    # in the middle of it -- which is what "asymptote" has to mean here.
+    declared = pair.DIMENSION_DRIFT_RESOLUTION["belief"]["own_saturates_above"]
+    assert declared == belief_band_axis["above_edge_range"][1]
+
+
+def test_the_invoice_span_is_the_null_control_and_does_not_move(belief_band_axis):
+    """THE NULL CONTROL the finding owed, and it must stay GREEN or every
+    reading above is draw noise: the sweep moves the SAMPLE, not the LAW. The
+    invoice-side span is dense by construction -- every account draws every
+    period -- so it reaches the constants' band at every draw size on this axis
+    while the failure span, which needs a failure to LAND on the extreme
+    invoice, does not."""
+    assert belief_band_axis["invoice_spans"] == ((30, 92),), (
+        "if the population the edges are NOT read from moved too, this sweep "
+        "would be perturbing the law and the failure-side movement would be "
+        "evidence of nothing")
+    predicted = pair.predict_event_age_span_from_constants()
+    assert (predicted["youngest_age_days"],
+            predicted["oldest_age_days"]) == (30, 92)
+    assert pair.check_belief_band_population_axis(belief_band_axis) == []
+
+
+@pytest.mark.parametrize("mutate,expected", [
+    (lambda r: r["belief"].pop("own_saturation_scope"),
+     "declares its saturation edges and no `own_saturation_scope`"),
+    (lambda r: r["belief_population_mix"].pop("own_saturation_scope"),
+     "belief_population_mix: declares its saturation edges and no"),
+    (lambda r: r["belief"]["own_saturation_scope"].__setitem__(
+        "n_customers", 999),
+     "which this axis never visits"),
+    (lambda r: r["belief"]["own_draw_size_axis"].__setitem__(
+        "above_edge_range", (-320, -308)),
+     "declares its above edge inside [-320, -308]"),
+    (lambda r: r["belief"]["own_draw_size_axis"].__setitem__(
+        "below_edge_range", (-371, -360)),
+     "declares its below edge inside [-371, -360]"),
+    (lambda r: r["belief"].__setitem__("own_saturates_above", -200),
+     "a declaration outside every measurement is a number from nowhere"),
+    (lambda r: r["belief"]["own_draw_size_axis"].__setitem__(
+        "invoice_span_invariant", (30, 88)),
+     "NULL CONTROL"),
+])
+def test_the_belief_axis_control_fires_on_its_own_named_defects(
+        belief_band_axis, mutate, expected):
+    """R15: a control counts as evidence only once a mutation proves it fires.
+    The first case is the SHIPPED DEFECT itself -- edges declared with no
+    scope -- and the second proves the rule reaches the SIBLING entry, which is
+    the half D28's repair left behind one register over."""
+    register = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
+    mutate(register)
+    violations = pair.check_belief_band_population_axis(
+        belief_band_axis, register=register)
+    assert any(expected in v for v in violations), violations
+
+
+def test_pinning_the_population_hides_the_belief_draw_size_defect():
+    """THE MUTATION THE FINDING SPECIFIED, and the one that names the class:
+    pin the sweep to a single `n_customers` -- exactly what
+    `measure_own_drift_resolution(n_customers=300)` does at its sole call site
+    in `main()`, whose own `--customers` defaults to 4000 -- and the spread
+    the finding rests on vanishes with the defect untouched.
+
+    Nothing about the register or the book changed between these two calls;
+    only which populations the control was allowed to look at. That is why this
+    is filed as a CONTROL finding and not merely a number finding."""
+    pinned = pair.measure_belief_band_population_axis(n_customers=(300,))
+    assert set(pinned["above_spread_by_seed"].values()) == {0}
+    assert set(pinned["below_spread_by_seed"].values()) == {0}, (
+        "at one draw size there is no spread to see -- the harness default "
+        "chose the subject")
+    violations = pair.check_belief_band_population_axis(pinned)
+    assert any("no seed's edge moved" in v for v in violations), (
+        "and the control must SAY it was asked at one draw size rather than "
+        "passing quietly -- a pinned axis is an unasked question, not a green "
+        "one")
+
+
+def test_the_belief_axis_predictor_never_calls_the_scorer():
+    """The axis is affordable ONLY because it predicts. A sweep that reached
+    `score_triad` would cost ~35 minutes instead of ~2 seconds, which is
+    exactly why this question had never been asked of these two entries."""
+    assert "score_triad" not in pair._names_in(
+        pair.measure_belief_band_population_axis)
+    assert "score_triad" not in pair._names_in(
+        pair.measure_belief_window_resolution)
+
+
+def test_the_census_measures_the_population_that_sets_the_edge():
+    """LEG 3, THE FAIL-OPEN, pinned at a book that exhibits it. The census ages
+    every record; the belief edges are read off observed FAILURES. At n=300
+    seed 7 the two disagree -- invoices reach 92d, failures only 91d -- and
+    before this repair the census reported `describes_this_book` True with ZERO
+    violations, a green verdict about a band it had never looked at."""
+    records, _c, _l, as_of = pair.build_scenario(300, seed=7)
+    measured = pair.measure_scenario_constant_census(records, as_of)
+    assert measured["describes_this_book"] is True
+    assert measured["measured_oldest_age_days"] == 92
+    assert measured["measured_failure_oldest_age_days"] == 91, (
+        "this test is worthless on a book where the two spans coincide -- it "
+        "must be pinned to one that exhibits the divergence")
+    assert measured["describes_this_books_failure_span"] is False
+    # The edge-setting population is the one `measure_belief_window_resolution`
+    # reads, not a second implementation of it (the sibling-half class).
+    resolution = pair.measure_belief_window_resolution(records, as_of)
+    assert (measured["measured_failure_oldest_age_days"]
+            == resolution["oldest_event_age_days"])
+    assert measured["n_failure_events"] == resolution["n_events"]
+
+
+def test_a_census_that_measures_only_the_invoice_span_fires():
+    """R15 FAIL-OPEN ("passes on missing/zero/empty"), against the census's own
+    subject: the SHIPPED measurement is the mutation here -- strip the
+    failure-side keys and you have exactly what this module published until
+    2026-08-18. It must raise rather than pass quietly."""
+    records, _c, _l, as_of = pair.build_scenario(300, seed=7)
+    measured = pair.measure_scenario_constant_census(records, as_of)
+    assert pair.check_scenario_constant_census(measured) == []
+    shipped = {k: v for k, v in measured.items()
+               if not k.startswith(("n_failure", "measured_failure",
+                                    "describes_this_books_failure"))}
+    violations = pair.check_scenario_constant_census(shipped)
+    assert any("green about a band it never looked at" in v
+               for v in violations), violations
+
+
+def test_a_book_with_invoices_and_no_failure_cannot_read_as_an_agreeing_one():
+    """VACUITY, on the edge-setting side. A book presenting invoices and no
+    observed failure sets NO belief edge at all -- and its invoice span still
+    matches the constants perfectly, so the invoice-side cross-check would
+    report agreement about a band that does not exist."""
+    records, _c, _l, as_of = pair.build_scenario(300, seed=7)
+    clean = [r for r in records if r.result != "failed"]
+    assert clean, "a book with no records at all proves something else"
+    measured = pair.measure_scenario_constant_census(clean, as_of)
+    assert measured["n_failure_events"] == 0
+    assert measured["measured_oldest_age_days"] is not None
+    violations = pair.check_scenario_constant_census(measured)
+    assert any("sets no belief edge at all" in v for v in violations), violations
+
+
+def test_the_census_caveat_names_the_edge_setting_population():
+    """R11-shaped: the repair has to reach the SENTENCE the reader meets, not
+    only the measurement. The caveat published the INVOICE span as the band
+    'both belief dimensions resolve a company memory error only between' --
+    which is false on every book where a failure misses the extreme invoice."""
+    records, _c, _l, as_of = pair.build_scenario(300, seed=7)
+    measured = pair.measure_scenario_constant_census(records, as_of)
+    caveat = pair.scenario_constant_census_caveat(measured)
+    assert "OBSERVED FAILURES only" in caveat
+    assert "30d to 91d" in caveat
+    assert "THAT IS NOT THE INVOICE SPAN" in caveat
+    # And the invoice band is still reported -- as the INVOICES', not as the
+    # belief dimensions' resolution.
+    assert "This book's INVOICES span ages between 30d and 92d" in caveat
+
+    # On the book the module actually publishes from, the two coincide, so the
+    # divergence clause must NOT fire (R12: no published figure moved here).
+    big, _c2, _l2, big_as_of = pair.build_scenario(4000, seed=7)
+    big_measured = pair.measure_scenario_constant_census(big, big_as_of)
+    assert big_measured["describes_this_books_failure_span"] is True
+    assert "THAT IS NOT THE INVOICE SPAN" not in (
+        pair.scenario_constant_census_caveat(big_measured))
+
+
+# ---------------------------------------------------------------------------
 # atom D31_the_recon_grid_saturates_beyond_this_books_window (H27 Expert Hour
 # #13, 2026-08-11): the register that FOUND the grid class was the last one
 # still swept on its own declarations, and the shared saturation rule D29 built
@@ -8275,8 +8479,6 @@ def test_the_shared_predicate_still_reads_ordinary_numbers_as_before():
         assert pair._same_reading(left, right) is (left == right), (
             f"the shared predicate disagrees with `==` on a defined pair "
             f"({left!r}, {right!r}) -- that is a moved edge, not a repair")
-
-
 
 
 # ---------------------------------------------------------------------------

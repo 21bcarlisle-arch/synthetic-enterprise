@@ -42,29 +42,31 @@ removed the ONE `saas.reporting` edge, which is the edge that closed the
 reporting import CYCLE. Do NOT read "pure library" as "wall-clean": it is
 cycle-free and composition-free, nothing more.
 
-WHAT IS LEFT OF THE CROSSINGS, as of step 16 (2026-08-11). Pass 1 left 14
+WHAT IS LEFT OF THE CROSSINGS, as of step 32 (2026-08-17). Pass 1 left 14
 company-side packages imported directly. KNIFE pass 3 has since taken bill
 assembly (step 11, §3f of the disposition register), the month-end accounting
-close (step 14, §3i), the customer-value layer (step 15, §3j) and the
-billing-experience layer (step 16, §3k), leaving ONE:
+close (step 14, §3i), the customer-value layer (step 15, §3j), the
+billing-experience layer (step 16, §3k) and the annual DD review (step 32, §3aa).
+**NONE remain: this module has zero live wall crossings.**
 
-  * `company.billing.dd_review_runner`, which §3h records as a ROUTING residual
-    (the world threads the desk's own register into the report) rather than a
-    decision the world takes.
-
-That last one is a residual by RULING, not a cut still owed on this module, and
-the difference matters: no further composition lift removes it, because there is
-no company process here left to lift — only a value being carried from a company
-organ into the run's output dict. The live count is never maintained by hand
-here — `tools/wall_crossing_dispositions.py` prints it from the walker, and this
-docstring disagreeing with it is a defect in this docstring.
+The last one is worth recording because the paragraph that stood here for seven
+steps was WRONG in a specific and instructive way. It said `dd_review_runner` was
+a residual by RULING — "no further composition lift removes it, because there is
+no company process here left to lift" — and that half was correct. What it then
+did with that fact was not: the edge stayed `owed` to `A_composition_lift`, a
+design that had just been shown could never cut it. §3aa re-ruled it out of that
+design. There IS no process to lift, so the remedy was never a lift; it is a DOOR
+(`company/interfaces/dd_review.py`), and a door is a complete remedy for a routing
+residual rather than a consolation for one. The live count is never maintained by
+hand here — `tools/wall_crossing_dispositions.py` prints it from the walker, and
+this docstring disagreeing with it is a defect in this docstring.
 """
 
 from simulation.dd_collection_book import build_dd_collection_book
 from simulation.dd_balance_book import build_dd_balance_book
 from simulation.dd_level_collection_book import build_dd_level_collection_book
-from company.billing.dd_review_runner import run_annual_reviews
 from company.interfaces.accounting_close import close_the_books
+from company.interfaces.dd_review import annual_dd_review_view
 from company.interfaces.bill_assembly import assemble_monthly_bills
 from company.interfaces.billing_experience import build_billing_experience_view
 from company.interfaces.customer_value import build_customer_value_view
@@ -207,7 +209,13 @@ def main(report_end: str | None = None, policy=None):
     # emits are the seam DD4b will route into the churn/resentment engine (the
     # registered next gated step -- deliberately not wired here, as that shifts
     # ground-truth churn and needs population-level verification).
-    annual_dd_review = run_annual_reviews(bills)
+    #
+    # KNIFE pass 3 step 32 (§3aa, B13): this used to call the desk module
+    # directly, which handed the world the SLC 27B variance rule, the 15%
+    # bill-shock threshold and the review book type. It now goes through
+    # `company.interfaces.dd_review`, which takes the bills and returns the
+    # SERIALISED review -- no company type crosses at all.
+    annual_dd_review = annual_dd_review_view(bills)
 
     # DD2 (atom DD_seasonal_cashflow_physics): the per-customer level-DD seasonal
     # credit/debit balance carried tick-by-tick, and the portfolio HELD-CREDIT
@@ -461,7 +469,7 @@ def main(report_end: str | None = None, policy=None):
         "policy_cost_coverage": policy_cost_coverage,
         "bills": bills,
         "dd_collection_book": _serialize_dd_collection_book(dd_collection_book),
-        "annual_dd_review": annual_dd_review.serialise(),
+        "annual_dd_review": annual_dd_review,
         "dd_balance_book": dd_balance_book.serialise(),
         "dd_level_collection_book": dd_level_collection_book.serialise(),
         "meter_read_log": meter_read_log,

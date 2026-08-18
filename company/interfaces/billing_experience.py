@@ -21,10 +21,21 @@ repaired by it — `company/analytics/billing_experience_view.py`'s docstring
 records it in full and §3k files it. A reader must not take this seam as
 evidence that question was settled.
 
-WHAT IS LEFT. `company.billing.dd_review_runner` remains a live crossing of the
-run module — §3h ruled it a ROUTING residual (the world threads the desk's own
-register into the report) rather than a decision the world takes. It is the last
-one on that module, and it is the one this design was never going to cut.
+WHAT WAS LEFT, AND HOW IT FELL. This docstring used to end: *"`company.billing.
+dd_review_runner` remains a live crossing of the run module … it is the last one
+on that module, and it is the one this design was never going to cut."* Both
+halves were true, and together they were a defect: the edge stayed `owed` to
+`A_composition_lift` for seven more steps while two docstrings — this one and the
+run module's — said in plain words that the named design would never reach it. An
+`owed` row parked behind a design that has excused itself is a decorative
+nomination the disposition checker cannot see, because the `design=` field names a
+block that really exists.
+
+KNIFE step 32 (§3aa, 2026-08-17) re-ruled it to
+`B13_the_annual_dd_review_is_the_suppliers_own_desk` and cut it in the same step:
+`company/interfaces/dd_review.py` takes the bills and returns the SERIALISED
+review, so no company type crosses at all. `simulation/run_phase4c_on_phase2b.py`
+now has ZERO live wall crossings.
 """
 
 from __future__ import annotations

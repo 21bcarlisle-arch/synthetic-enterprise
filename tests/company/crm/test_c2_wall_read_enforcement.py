@@ -93,6 +93,14 @@ _FORBIDDEN_IMPORT_PREFIXES = (
 )
 # Bare ground-truth constructor -- flagged even if reached via an aliased or
 # indirect import (e.g. `from saas import property_model as pm; pm.build_properties`).
+#
+# 2026-08-18 (KNIFE3 step 35, B12): `build_properties` no longer LIVES in
+# `saas.property_model` -- it moved to `simulation/dwelling_records.py`. This guard is
+# strictly stronger as a result and needed no edit: the name is still forbidden here,
+# and its new home is under the `simulation` prefix above, so both the module path and
+# the bare name catch a company-side read of it. The prose in this file's docstring
+# describing the original 2026-07-22 mutation is kept as written because it records
+# what was red-teamed then, not where the symbol lives now.
 _FORBIDDEN_NAMES = ("build_properties",)
 
 
@@ -147,9 +155,9 @@ def test_belief_layer_file_never_reads_ground_truth_property_record(relpath):
     files that previously had no wall guard at all -- as well as the three
     already-scanned modules, under one CLASS-level check.
     """
-    import company  # noqa: F401 -- anchor to locate the repo root
-
     from pathlib import Path
+
+    import company  # noqa: F401 -- anchor to locate the repo root
 
     repo_root = Path(company.__file__).resolve().parent.parent
     path = repo_root / relpath

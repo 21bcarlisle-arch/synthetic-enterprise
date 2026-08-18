@@ -26,7 +26,6 @@ import sim.risk_committee_agent as risk_committee_agent
 from company.risk.hedge_policy import COMPANY_MIN_HEDGE_FLOOR
 from saas.growth_mandate import FIXED_COST_MONTHLY, MANDATE
 from saas.ledger import make_fixed_cost_event
-from saas.property_model import DEFAULT_ASSETS, DEFAULT_HEATING_SYSTEM, DEFAULT_OCCUPANCY_PATTERN
 from saas.tariff_pricing import price_fixed_tariff
 from sim.cache_store import get_cached_prices, log_cache_access
 from sim.forward_curve import (
@@ -50,6 +49,11 @@ from sim.risk_engine import assess_term_risk, is_administration_triggered
 from sim.system_prices_history import get_system_prices_range
 from sim.weather_price_sensitivity import weather_sensitivity_multiplier
 from simulation.demand_model import build_demand_shape
+from simulation.dwelling_records import (
+    DEFAULT_ASSETS,
+    DEFAULT_HEATING_SYSTEM,
+    DEFAULT_OCCUPANCY_PATTERN,
+)
 from simulation.gas_settlement import run_gas_term
 from simulation.hedged_settlement import run_hedged_term
 from simulation.segments import (
