@@ -2,6 +2,10 @@
 
 **Severity:** BLOCKING · **Lane:** D_billing_metering
 
+**Discharged:** `tests/tools/test_couple_w2_11_d5.py::test_the_belief_edges_move_on_the_draw_size_alone`, `tests/tools/test_couple_w2_11_d5.py::test_the_invoice_span_is_the_null_control_and_does_not_move`, `tests/tools/test_couple_w2_11_d5.py::test_the_belief_axis_control_fires_on_its_own_named_defects`, `tests/tools/test_couple_w2_11_d5.py::test_pinning_the_population_hides_the_belief_draw_size_defect`, `tests/tools/test_couple_w2_11_d5.py::test_the_census_measures_the_population_that_sets_the_edge`, `tests/tools/test_couple_w2_11_d5.py::test_a_census_that_measures_only_the_invoice_span_fires`, `tests/tools/test_couple_w2_11_d5.py::test_a_book_with_invoices_and_no_failure_cannot_read_as_an_agreeing_one`, `tests/tools/test_couple_w2_11_d5.py::test_the_census_caveat_names_the_edge_setting_population`, `tools/couple_w2_11_d5.py` — landed 2026-08-18 by the RUNG-1c blocking draw on H27, all four repair conditions met: both belief entries carry a per-entry scope and a shared draw-size axis, the axis is swept over 21 books in about 2 seconds with no scorer call and its verdict plus its null control print on the default path, the census measures the failure-side population and both switches are published, and the caveat the reader meets now names which population each band belongs to. 15 new test cases across 9 functions, seven of them the parametrised mutation matrix, including the pinned-population case this document asked for by name. (Every backtick on this line is read as a PATH, so the prose carries none.)
+
+**Left open, stated rather than implied:** the two resolution controls are still called with a hard n_customers=300 at their sole call site in main. That is the same disposition D28 took one register over — unpinning them buys a ~35-minute default run for a question the 2-second predictor axis now answers on 21 books instead of one.
+
 **Raised:** 2026-08-18, worker tick, D30 DISCOVER pass 3 (LANE 3 idle draw). Full evidence and
 the sweep tables: `docs/design/simplifications/D30_the_belief_band_is_this_books_length.yaml`,
 note 3.
