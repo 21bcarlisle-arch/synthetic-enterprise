@@ -662,3 +662,119 @@ published artefact. R13: no curriculum value authored, proposed or changed. QUEU
 `file_scope` is empty; nothing was repaired on sight.
 
 — FRAME pass 5, worker tick 2026-08-18, at HEAD `84ae6bbeb`.
+
+---
+
+# Pass 6 — the atom's own one-line brief asserts a level its parent has never held
+
+DISCOVER/FRAME only, level stays 0. No BUILD code written; `file_scope` is empty and nothing in it
+was touched. Measured at HEAD `e9965940a`.
+
+Five passes have read the mechanism. None read the atom's own RECORD. This pass does, because the
+record is what the draw doorbell publishes to every tick that considers this atom, and it is
+wrong in a way that changes what the atom is for.
+
+## 11.1 The sentence, and where it is served from
+
+EP17's `name` field — the atom's brief, rehomed into
+`docs/design/simplifications/EP17_varied_population_draw.yaml` under `map_notes` — ends:
+
+> *"W2_2_population_draw is the Epoch-2 mechanism **at L3**; this is its Epoch-4 variation across
+> runs."*
+
+That is not decorative prose. It is the text the supervisor renders into the LANE 3 draw doorbell
+verbatim, so every tick that has drawn this atom has been handed, as the atom's rationale, the
+claim that its Epoch-2 parent is finished at L3 and only the Epoch-4 variation remains.
+
+## 11.2 The map has never carried it — measured over the whole file history
+
+Sweeping every commit that touches `docs/design/maturity_map.yaml` (900 commits) and reading
+`W2_2_population_draw`'s own levels out of each:
+
+```
+157 commits   level_current: 0   level_target: 2
+ 35 commits   level_current: 1   level_target: 2
+708 commits   level_current: 2   level_target: 2
+```
+
+`level_current: 3` appears **zero** times, and `level_target` is 2 in every one of the 900. So the
+claim is not stale-but-once-true: there is no tree in this repository's history in which it holds.
+And because `level_current == level_target == 2`, nothing in the machine is looking for the move —
+the atom reads as complete-to-target, which is the state no draw predicate re-examines.
+
+## 11.3 Both records are wrong, and they are wrong in opposite directions
+
+The interesting part is that fixing the sentence to "at L2" would also be false.
+
+W2_2's own history states what L3 means for it, in as many words: *"the earlier L2-director-reserved
+hold now applies to **L3 (live-run wiring + C6 book-mix coupling)**, still unbuilt"* (2026-07-13).
+Then on 2026-08-13 the director authorised exactly that first half —
+`docs/design/curriculum/population_draw_activation.json`, verbatim: *"Authorised: activate the
+population draw (SE_DRAW_POPULATION) and wire the entrypoints."* The seam is live at this HEAD
+(`enabled=True`, book=20).
+
+So:
+
+* **the brief OVERSTATES the record** — it asserts L3, which the map has never held;
+* **the map UNDERSTATES the capability** — the live-run wiring half of L3 was authorised and
+  activated five days ago and `level_current` did not move, because with `level_target: 2` there is
+  no open move for anything to notice;
+* **and the brief also overstates the CAPABILITY**, which is the half that matters to EP17. L3 is
+  live-run wiring *so that the book varies*. Re-verified at this HEAD: every production call site is
+  `live_population()` with no argument — a grep for `live_population(` carrying a `base_seed` still
+  returns one line in the whole repository and it is the `def`. The flag is on, the book is drawn,
+  and the seed is pinned at `_DEFAULT_BASE_SEED = 20260724`, so the drawn cast is byte-identical
+  every run. Activation delivered the wiring and not the variation.
+
+That third point is pass 1's finding 1 seen from the other end. Pass 1 measured a pinned seam and
+read it as EP17's problem to solve. It is not: it is the unfinished half of **W2_2's own L3**, and
+the brief that says W2_2 is at L3 is precisely what stopped anyone filing it there.
+
+## 11.4 What this changes about EP17
+
+EP17 is defined, in its own brief, as *"its Epoch-4 variation across runs"* — the variation of a
+per-run draw that already varies. Measured, the Epoch-2 mechanism does not vary run to run at all.
+So EP17 as written is the second storey of a building whose first storey is a picture of a first
+storey, and the atom's Epoch-4 scope has been sized against a floor that is not there.
+
+This does not make EP17 wrong; it makes its FIRST step different from all five previously proposed.
+Passes 1–5 ranked items 1a/1b (seam wiring), 2 (the additive ceiling, the director's under R13), 3
+(vulnerability as world truth) and 4 (a run-visible home for the vulnerability belief). Every one of
+those is an EP17 build. **Item 5, and it outranks them: the unfinished half of W2_2's L3 is W2_2's
+work, not EP17's, and it has to be filed there before EP17 can be sized honestly.** Filing it there
+is a `level_target` change on W2_2 (2 → 3) plus a `level_current` reconciliation for the activation
+that already happened — a record act, not a build, and outside this atom's `file_scope`.
+
+**Not proposed here, and deliberately.** Moving another atom's `level_target` is a re-scope of a
+different lane's atom, and `level_current` moves are self-certified with evidence into the ledger by
+whoever holds that atom. QUEUED NOT FIXED per SELF_INTERRUPT_DISCIPLINE: this pass names it, checks
+it, and leaves both records untouched. What this pass *does* own is EP17's own brief — and the
+honest correction there is not a level number at all, since two of the three readings are wrong. It
+is to stop asserting a parent level in a child's brief, because the map already holds that fact and
+a prose copy of a level can only ever drift away from it. **That is the class**: a level asserted in
+narrative, in a field no level-move mechanism reads or maintains.
+
+## 11.5 Whether the class has other members
+
+Not swept this pass — named as the next DISCOVER draw's first job, with the query stated so it is
+not re-derived: any `name`/`origin_note`/`level_note` in the store that contains an atom id other
+than its own together with a level token (`L0`–`L3`, "level N"). The `name` field alone was measured
+at 37% of the map spine and a mean 860 B on the newest 50 atoms — cross-atom level assertions in
+prose at that volume is a population, not an anecdote, and every member has the same property this
+one does: nothing reads it, so nothing can notice it going false.
+
+## 11.6 Passes 1–5 re-verified at this HEAD (`e9965940a`)
+
+`live_population(` with a `base_seed` argument: still one hit, still the `def`. Live seam:
+`enabled=True`, book 20, drawn `SYN-2021-001` + `SYN-2025-001`. `W2_2` and `C6` both present in
+`docs/observability/coupled_gap_ledger.json`. EP17 `depends_on: [EP16_anchored_generators]`, and
+EP16 is itself `level_current: 0`, `loop_stage: idle`, under the same R13 curriculum block — a
+second, independent gate on EP17's build that no pass 1–5 named, recorded here for completeness
+rather than as a new argument.
+
+R12: no published number tuned — every figure above is a read, and nothing was written to any
+published artefact. R13: no curriculum value authored, proposed or changed. R16: no level moved,
+no ledger row written; `level_current`, `level_target` and `loop_stage` are untouched on both
+EP17 and W2_2.
+
+— FRAME pass 6, worker tick 2026-08-18, at HEAD `e9965940a`.
