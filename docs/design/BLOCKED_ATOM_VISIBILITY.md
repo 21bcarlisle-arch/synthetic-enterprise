@@ -8,9 +8,9 @@
 
 | Property | Source | Result |
 |---|---|---|
-| Invisible to the BUILD draw | `supervisor._maturity_map_draw_concurrent` (the real draw) | 102/102 parked atoms not offered — 79 proven excluded BY THE PARK (lifting the park alone makes them drawable), 23 excluded for another reason |
-| Visible to the staleness clocks | `tools/map_assertion_provenance.build_rows` (AO11) | 102/102 parked atoms carry a row |
-| Visible to the composition dial | this module, over all 314 atoms | 102 parked (21 with a gate stated in `block_reason`) |
+| Invisible to the BUILD draw | `supervisor._maturity_map_draw_concurrent` (the real draw) | 101/101 parked atoms not offered — 78 proven excluded BY THE PARK (lifting the park alone makes them drawable), 23 excluded for another reason |
+| Visible to the staleness clocks | `tools/map_assertion_provenance.build_rows` (AO11) | 101/101 parked atoms carry a row |
+| Visible to the composition dial | this module, over all 314 atoms | 101 parked (21 with a gate stated in `block_reason`) |
 
 ## The dial
 
@@ -18,7 +18,7 @@ At mint (2026-08-08) the ruling measured **82 harness vs 7 commercial across 206
 
 | Lane | All atoms | Excluding parked | Hidden by a park-filtering reader |
 |---|---:|---:|---:|
-| `H_harness` | 133 | 99 | 34 |
+| `H_harness` | 133 | 100 | 33 |
 | `D_billing_metering` | 46 | 34 | 12 |
 | `W2_customer_generator` | 31 | 25 | 6 |
 | `W1_market_weather` | 20 | 12 | 8 |
