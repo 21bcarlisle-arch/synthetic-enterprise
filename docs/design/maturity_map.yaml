@@ -2407,7 +2407,8 @@
 
 - id: D27_belief_window_saturates_on_this_book
   notes_rehomed: [name, frame_note, discover_note, scoring_side_discover_note,
-                  render_site_population_discover_note, published_book_span_discover_note]
+                  render_site_population_discover_note, published_book_span_discover_note,
+                  saturation_edge_mechanism_discover_note]
   lane: D_billing_metering
   value_stream: meter_to_cash
   epoch: 3
