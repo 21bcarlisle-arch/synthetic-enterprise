@@ -8275,3 +8275,167 @@ def test_the_shared_predicate_still_reads_ordinary_numbers_as_before():
         assert pair._same_reading(left, right) is (left == right), (
             f"the shared predicate disagrees with `==` on a defined pair "
             f"({left!r}, {right!r}) -- that is a moved edge, not a repair")
+
+
+
+
+# ---------------------------------------------------------------------------
+# THE CENSUS'S `scored_company_*` FIELDS READ THE SCORED COMPANY
+# (WORKER_FINDING_THE_SCORED_COMPANY_CLAUSE_IS_BLIND_TO_THE_COMPANY_IT_NAMES,
+# leg 1, 2026-08-18)
+#
+# Three published fields -- `scored_company_window_days`,
+# `scored_company_headroom_days`, `scored_company_is_inert` -- were read off
+# `DD_FAILURE_WINDOW_DAYS`, a module constant, inside a function whose signature
+# never received the consumer. `score_triad` has held that consumer as its
+# second positional argument all along. Measured (n=300, seed 7) through the
+# DECLARED `organ_failure_window_drift_days` counterfactual, never a
+# monkeypatch: the company's memory moved over a 120x range and all three fields
+# were bit-identical on every row, while the belief headline moved up to 3.0x.
+#
+# The caveat those fields render says "the one company parameter these
+# dimensions depend on is inert by construction" -- i.e. "you may ignore this
+# parameter" -- and it was published byte-identically for a company 42 days
+# INSIDE the band. The repo really runs three different companies here: the
+# shipped default is 90 (`payment_observation_consumer.py`), the offline fixture
+# 400, the live publisher 6000.
+# ---------------------------------------------------------------------------
+
+_MEMORY_DRIFTS = (0, -320, -350, +200, +5600)
+
+
+def test_the_census_reads_the_window_off_the_scored_company_not_the_constant():
+    """THE AXIS THE DEFECT WAS INVARIANT ALONG. One book, five companies: the
+    three `scored_company_*` fields must MOVE with the company, and only with
+    the company."""
+    seen = {}
+    for drift in _MEMORY_DRIFTS:
+        records, consumer, _l, as_of = pair.build_scenario(
+            300, seed=7, organ_failure_window_drift_days=drift)
+        measured = pair.measure_scenario_constant_census(
+            records, as_of, window_days=consumer.dd_failure_window_days)
+        seen[drift] = measured
+        assert measured["scored_company_window_days"] == (
+            pair.DD_FAILURE_WINDOW_DAYS + drift), drift
+        assert measured["scored_company_window_source"] == "scored_consumer"
+        assert measured["scored_company_headroom_days"] == (
+            measured["scored_company_window_days"]
+            - measured["measured_oldest_age_days"]), drift
+
+    # NULL CONTROL: the perturbation moved the COMPANY, not the population --
+    # so a field that failed to move was blind to its named subject, not
+    # correctly reporting an unchanged book.
+    oldest = {d: m["measured_oldest_age_days"] for d, m in seen.items()}
+    assert len(set(oldest.values())) == 1, oldest
+    assert len({m["scored_company_window_days"] for m in seen.values()}) == len(
+        _MEMORY_DRIFTS), "the fields are still bit-identical across a 120x sweep"
+
+
+def test_the_inert_verdict_is_falsifiable_in_both_directions():
+    """`is_inert` is a SWITCH, and a switch that only ever reads True is not
+    one. Both directions on the same book."""
+    inside, _ci, _l, as_of_in = pair.build_scenario(
+        300, seed=7, organ_failure_window_drift_days=-320)   # window 80
+    cen_in = pair.measure_scenario_constant_census(
+        inside, as_of_in, window_days=_ci.dd_failure_window_days)
+    assert cen_in["scored_company_is_inert"] is False
+    assert cen_in["scored_company_headroom_days"] < 0
+
+    outside, _co, _l2, as_of_out = pair.build_scenario(
+        300, seed=7, organ_failure_window_drift_days=+200)   # window 600
+    cen_out = pair.measure_scenario_constant_census(
+        outside, as_of_out, window_days=_co.dd_failure_window_days)
+    assert cen_out["scored_company_is_inert"] is True
+
+    # AND THE PROSE SWITCHES WITH IT. The rendered caveat carried one sentence
+    # and no other, so a company inside the band was published as outside it.
+    caveat_in = pair.scenario_constant_census_caveat(cen_in)
+    caveat_out = pair.scenario_constant_census_caveat(cen_out)
+    assert "SITS INSIDE IT" in caveat_in and "SITS OUTSIDE IT" not in caveat_in
+    assert "SITS OUTSIDE IT" in caveat_out and "SITS INSIDE IT" not in caveat_out
+    assert "MOVE with that parameter" in caveat_in, (
+        "the caveat for a company whose memory is doing work on the figure "
+        "still says nothing about it")
+    assert f"{cen_in['scored_company_window_days']}d of memory" in caveat_in
+
+
+def test_the_shipped_default_company_is_inside_this_books_band():
+    """NOT A HYPOTHETICAL. The consumer's own shipped default is 90 days and
+    this book's top is 92 -- so the company the repo ships was being published
+    as inert-by-construction with 308 days of headroom it does not have."""
+    import inspect as _inspect
+
+    from company.billing.payment_observation_consumer import (
+        PaymentObservationConsumer,
+    )
+    shipped = _inspect.signature(
+        PaymentObservationConsumer.__init__
+    ).parameters["dd_failure_window_days"].default
+    records, _c, _l, as_of = pair.build_scenario(300, seed=7)
+    measured = pair.measure_scenario_constant_census(
+        records, as_of, window_days=shipped)
+    assert measured["measured_oldest_age_days"] > shipped, (
+        "the premise moved: this book no longer outruns the shipped window")
+    assert measured["scored_company_is_inert"] is False
+    assert measured["scored_company_headroom_days"] == (
+        shipped - measured["measured_oldest_age_days"])
+
+
+def test_the_live_publishers_company_is_reported_at_its_own_window():
+    """The live path constructs at 6000 days and was published at 400 -- 5,600
+    days understated, on the only entry with a public reader."""
+    from background.live_payment_triad import _RUN_SPANNING_WINDOW_DAYS
+
+    records, _c, _l, as_of = pair.build_scenario(300, seed=7)
+    measured = pair.measure_scenario_constant_census(
+        records, as_of, window_days=_RUN_SPANNING_WINDOW_DAYS)
+    assert measured["scored_company_window_days"] == _RUN_SPANNING_WINDOW_DAYS
+    assert measured["scored_company_window_days"] != pair.DD_FAILURE_WINDOW_DAYS
+    assert measured["scored_company_is_inert"] is True
+
+
+def test_R15_the_census_goes_green_on_the_constant_with_the_defect_untouched():
+    """THE OTHER HALF OF R15. Called WITHOUT a company -- the shape every
+    caller had until 2026-08-18 -- the census must still answer, still pass its
+    own rules, and must SAY that no company was read. Silence there is what made
+    a defaulted 400 indistinguishable from a real 400 on the artefact."""
+    records, _c, _l, as_of = pair.build_scenario(300, seed=7)
+    defaulted = pair.measure_scenario_constant_census(records, as_of)
+    assert defaulted["scored_company_window_days"] == pair.DD_FAILURE_WINDOW_DAYS
+    assert defaulted["scored_company_window_source"] == "harness_constant"
+    assert pair.check_scenario_constant_census(defaulted) == [], (
+        "the repair made the census's own rules fail on the shipped scenario")
+
+    # A REAL 400d company and a DEFAULTED one agree on every number and differ
+    # only in the field that says which they are -- so the provenance field is
+    # the whole of the distinction, and it is published.
+    real = pair.measure_scenario_constant_census(
+        records, as_of, window_days=_c.dd_failure_window_days)
+    assert _c.dd_failure_window_days == pair.DD_FAILURE_WINDOW_DAYS
+    differing = {k for k in real if real[k] != defaulted[k]}
+    assert differing == {"scored_company_window_source"}, differing
+
+
+def test_score_triad_threads_the_scored_company_into_both_predictors():
+    """AT THE CALL SITE, on the shipped scorer. Two companies over ONE book:
+    the census's window and the belief-resolution caveat must differ, which they
+    could not while both predictors defaulted to the module constant."""
+    records, consumer, _l, as_of = pair.build_scenario(
+        300, seed=7, organ_failure_window_drift_days=-320)
+    result = pair.score_triad(records, consumer, as_of)
+    bel = result["belief"]
+    assert bel.components["scored_company_window_days"] == 80
+    assert bel.components["scored_company_is_inert"] is False
+    assert result["belief_population_mix"].components[
+        "scored_company_window_days"] == 80
+    assert "SITS INSIDE IT" in bel.components["scenario_constant_census_caveat"]
+    # The memory-resolution predicate is the sibling half of the same call site
+    # and was blind in the same way.
+    assert bel.components["belief_window_resolution"]["window_days"] == 80
+
+    # THE UNDRIFTED COMPANY over the same seed, so the assertion above is a
+    # DIFFERENCE between two companies and not a property of the book.
+    base_recs, base_consumer, _bl, base_as_of = pair.build_scenario(300, seed=7)
+    baseline = pair.score_triad(base_recs, base_consumer, base_as_of)
+    assert baseline["belief"].components["scored_company_window_days"] == 400
+    assert baseline["belief"].components["scored_company_is_inert"] is True

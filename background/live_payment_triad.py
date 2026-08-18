@@ -119,6 +119,123 @@ from tools.couple_w2_11_d5 import (
 _RUN_SPANNING_WINDOW_DAYS = 6000
 
 
+# ---------------------------------------------------------------------------
+# CAVEATS TRAVEL WITH THE ENTRY THAT IS WRITTEN, NOT WITH THE DIMENSION THEY
+# WERE ATTACHED TO (2026-08-18, WORKER_FINDING_THE_SCORED_COMPANY_CLAUSE_IS_
+# BLIND_TO_THE_COMPANY_IT_NAMES, leg 2)
+#
+# `score_triad` attaches `belief_resolution_caveat` and
+# `scenario_constant_census_caveat` to the BELIEF dimension's `components`,
+# under a comment stating the D22 rationale out loud: the ledger writer, the
+# live wiring and the dashboard read `components` and never read `note`, so a
+# limit only the prose carries is one the machine strips off.
+#
+# They were attached to an object this file never writes. `measure_and_write`
+# writes the DETECTION dimension alone and splices the belief NUMBER in as a
+# formatted string, so on the live path -- the only path with a public reader --
+# the belief figure reached `coupled_gap_ledger.json` with none of the
+# resolution apparatus two atoms were built to attach to it. Measured on the
+# published artefact at 0a3113dfe: 19 component keys, neither caveat among
+# them, while the detection-side caveats (`recon_saturation_caveat`,
+# `drift_resolution_caveat`) were all present. The ledger was not dropping
+# caveats; it was publishing the ones fastened to the written object.
+#
+# The lift below is deliberately GENERIC rather than a two-key copy: the defect
+# class is "a caveat attached to a dimension nobody writes", and naming the two
+# known instances would leave the next one to be found by an Expert Hour
+# reading the JSON. `check_every_caveat_is_published` is the control, and it
+# fails on exactly that.
+CAVEAT_COMPONENT_SUFFIX = "_caveat"
+_PUBLISHED_CAVEAT_KEY = "dimension_caveats"
+
+# WHICH DIMENSIONS' CAVEATS ARE LIFTED, AND WHY THIS IS NOT "ALL OF THEM"
+# (2026-08-18, measured, not preferred).
+#
+# The first build of this lift was generic over EVERY dimension, on the good
+# argument that a hand-typed list cannot see tomorrow's caveat. The gate caught
+# what that costs, and it is exactly the defect atom D36 exists to have fixed:
+# `ageing.ordinal_direction_caveat` renders the ageing figure at SIX decimals.
+# While nobody published it, D36's ruling was that a 6dp site nobody is handed
+# does not set that figure's reading precision, so the register declares 3dp
+# and every resolution floor derived from it is a 3dp floor. Publishing that
+# caveat HANDS the reader the 6dp render, which would move `ageing`'s declared
+# precision and cascade into floors this finding never measured -- a published
+# resolution claim changed as a side effect of a caveat repair.
+#
+# So the set is DECLARED, in one place, with that reason beside it. Inside a
+# declared dimension the lift stays generic by suffix, which is the half of the
+# genericity the finding's class actually needs (both instances were belief
+# caveats, and the next belief caveat is caught without anyone naming it).
+# Adding a dimension here is a conscious act that must also re-measure
+# `PUBLISHED_GAP_CONSUMERS` -- which is the point, not an oversight.
+CAVEAT_LIFT_DIMENSIONS = ("belief", "belief_population_mix")
+
+
+def caveats_by_dimension(result: dict) -> dict:
+    """Every `*_caveat` component carried by each dimension in
+    `CAVEAT_LIFT_DIMENSIONS`, keyed by dimension name.
+
+    Derived by SUFFIX within each declared dimension, never from a list of the
+    caveats this file happens to know about -- a hand-typed caveat list is the
+    thing that cannot see the caveat added tomorrow."""
+    out: dict = {}
+    for name, dim in sorted(result.items()):
+        if name not in CAVEAT_LIFT_DIMENSIONS:
+            continue
+        components = getattr(dim, "components", None)
+        if not isinstance(components, dict):
+            continue
+        found = {k: v for k, v in sorted(components.items())
+                 if k.endswith(CAVEAT_COMPONENT_SUFFIX)}
+        if found:
+            out[name] = found
+    return out
+
+
+def check_every_caveat_is_published(result: dict,
+                                    published: "GapResult") -> List[str]:
+    """R15: violations, empty means every caveat a lifted dimension carries
+    reaches the object that is actually written.
+
+    NOT a tautology -- the expectation is read off the SCORED dimensions and
+    the subject is the WRITTEN one, which are two different objects; deleting
+    the lift in `measure_and_write`, or lifting only the caveats someone
+    remembered, makes this fire. FAIL-CLOSED on a missing map: an absent
+    `dimension_caveats` is every caveat unpublished, not a clean pass.
+
+    THE EXPECTATION IS DERIVED HERE, NOT BY CALLING `caveats_by_dimension`.
+    Written the obvious way -- checker and publisher sharing the one helper --
+    this control passed a mutation that neutered the publisher, because the
+    mutation moved the expectation too. That is R15's TAUTOLOGY pattern exactly,
+    caught by its own mutation test on 2026-08-18; the duplicated lines below
+    are the independence, and are the point. The DIMENSION set is shared
+    deliberately: it is a declared scope with a measured reason (see
+    `CAVEAT_LIFT_DIMENSIONS`), not something a publisher may quietly narrow."""
+    expected: dict = {}
+    for name, dim in sorted(result.items()):
+        if name not in CAVEAT_LIFT_DIMENSIONS:
+            continue
+        components = getattr(dim, "components", None)
+        if not isinstance(components, dict):
+            continue
+        found = {k: v for k, v in sorted(components.items())
+                 if k.endswith(CAVEAT_COMPONENT_SUFFIX)}
+        if found:
+            expected[name] = found
+    got = (published.components or {}).get(_PUBLISHED_CAVEAT_KEY) or {}
+    out: List[str] = []
+    for dim, caveats in expected.items():
+        for key, value in caveats.items():
+            if got.get(dim, {}).get(key) != value:
+                out.append(
+                    f"{dim}.components[{key!r}] is attached to a dimension "
+                    f"this writer does not publish and does not reach the "
+                    f"written entry ({published.metric!r}) -- a limit only the "
+                    "scorer's result dict carries is one no reader of the "
+                    "ledger ever sees")
+    return out
+
+
 def _period_index_for(due_date: date) -> int:
     """Deterministic, iteration-order-independent period index for a billing
     month (C-S2). Unique per calendar month, stable run-to-run -- the only
@@ -799,6 +916,19 @@ class LivePaymentTriad:
         # live callers do exactly that) and carry through to_ledger_entry ->
         # coupled_gap_ledger.json -> the Proof door.
         headline.components["remittance_attribution"] = result["remittance_attribution"]
+        # AND SO DO THE OTHER DIMENSIONS' CAVEATS (2026-08-18). Everything this
+        # writer publishes about `belief` -- the number, the mix, the reshape
+        # history -- travelled without the two limits `score_triad` built for
+        # it, because those were fastened to `result["belief"]` and this entry
+        # is `result["detection"]`. Lifted generically and CHECKED, so the next
+        # caveat attached to an unwritten dimension fails here at the seam.
+        headline.components[_PUBLISHED_CAVEAT_KEY] = caveats_by_dimension(result)
+        unpublished = check_every_caveat_is_published(result, headline)
+        if unpublished:
+            raise RuntimeError(
+                "live payment triad: refusing to publish a gap entry that "
+                "drops a caveat the scorer attached -- "
+                + "; ".join(unpublished))
         measured_at = datetime.now(timezone.utc).isoformat()
         write_gap_entry(
             WORLD_ATOM_ID, TWIN_ATOM_ID, headline,

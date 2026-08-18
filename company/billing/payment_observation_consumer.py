@@ -393,6 +393,22 @@ class PaymentObservationConsumer:
         self._processed_correlation_ids: Set[str] = set()
         self._dd_failure_window_days = dd_failure_window_days
 
+    @property
+    def dd_failure_window_days(self) -> int:
+        """How far back this company still counts an observed collection
+        failure -- the ONE company parameter the belief dimensions depend on.
+
+        Read-only, and public since 2026-08-18 for one measured reason: every
+        instrument that published this company's place in the belief band read
+        the HARNESS's module constant instead, because the private attribute
+        was the only route to the real value. The census then reported 400d of
+        memory for the shipped 90d company and for the live 6000d one alike --
+        bit-identical across a 120x sweep of the very parameter it named. A
+        company knows its own configured lookback; nothing about exposing it
+        crosses the wall (it is not a read of the world), and leaving it
+        private is what forced the readers to guess."""
+        return self._dd_failure_window_days
+
     # -----------------------------------------------------------------
     # Ingest -- idempotent (C-S2), order-independent (C-S1/C-S3)
     # -----------------------------------------------------------------

@@ -6523,6 +6523,7 @@ def measure_scenario_constant_census(
     records: Sequence["PeriodRecord"],
     as_of: date,
     census: Optional[Dict[str, Dict[str, object]]] = None,
+    window_days: Optional[int] = None,
 ) -> Dict[str, object]:
     """MEASURE the census rather than trust it (atom D30).
 
@@ -6547,7 +6548,17 @@ def measure_scenario_constant_census(
         bumped = predict_event_age_span_from_constants(**{knob: _current(name) + 1})
         moved[name] = tuple(e for e in _SPAN_EDGES if bumped[e] != base[e])
     ages = sorted((as_of - r.due_date).days for r in records)
-    window = DD_FAILURE_WINDOW_DAYS
+    # THE SCORED COMPANY'S WINDOW, OFF THE SCORED COMPANY (2026-08-18).
+    # This line read the module constant until that date, so the three
+    # `scored_company_*` fields below reported the HARNESS's 400d for every
+    # company ever scored: the shipped 90d default, the offline 400d fixture
+    # and the live publisher's 6000d company alike, bit-identical while the
+    # declared `organ_failure_window_drift_days` moved the real window over a
+    # 120x range and moved the belief headline up to three-fold. `window_days`
+    # is threaded from `score_triad`, which has held the consumer as its second
+    # positional argument all along; None keeps the constant, which is what a
+    # caller measuring the SCENARIO rather than a company wants.
+    window = DD_FAILURE_WINDOW_DAYS if window_days is None else int(window_days)
     youngest = ages[0] if ages else None
     oldest = ages[-1] if ages else None
     # THE SCORED COMPANY'S PLACE IN THE BAND IS READ OFF THE BOOK, NOT OFF THE
@@ -6572,6 +6583,12 @@ def measure_scenario_constant_census(
         "scored_company_window_days": window,
         "scored_company_headroom_days": None if oldest is None else window - oldest,
         "scored_company_is_inert": None if oldest is None else window >= oldest,
+        # WHERE THAT NUMBER CAME FROM. A reader cannot otherwise tell a company
+        # that genuinely holds 400d from a caller that supplied no company at
+        # all -- and those were indistinguishable, on the published artefact,
+        # for as long as the defect above lived.
+        "scored_company_window_source": (
+            "harness_constant" if window_days is None else "scored_consumer"),
     }
 
 
@@ -6759,6 +6776,24 @@ def scenario_constant_census_caveat(measured: Dict[str, object]) -> str:
             "band, so every belief figure here is read at a point where the "
             "one company parameter these dimensions depend on is inert by "
             "construction (reported, never tuned -- R12)."
+        )
+    elif measured.get("scored_company_is_inert") is False:
+        # THE OTHER DIRECTION, WHICH HAD NO SENTENCE AT ALL UNTIL 2026-08-18.
+        # While the window above was read off the harness constant this branch
+        # was unreachable on every book the constant cleared, so the caveat
+        # could only ever say "ignore this parameter" -- the single direction a
+        # reader must not be told wrongly. A company INSIDE the band is one
+        # whose memory is doing work on the figure beside it, and the shipped
+        # 90d default is exactly such a company on this book.
+        body += (
+            "AND THE SCORED COMPANY SITS INSIDE IT: it holds only "
+            f"{measured['scored_company_window_days']}d of memory against a "
+            f"top of {measured['measured_oldest_age_days']}d, i.e. "
+            f"{-int(measured['scored_company_headroom_days'])}d SHORT of it, "
+            "so events this book carries fall outside the company's memory and "
+            "the belief figures here MOVE with that parameter -- they are not "
+            "read at an inert point and must not be compared with figures that "
+            "were (reported, never tuned -- R12)."
         )
     return head + body
 
@@ -10682,13 +10717,21 @@ def score_triad(
     # population's own event span before the figure is published -- so the
     # caveat travelling with the number describes the book the number came
     # from, including live populations no drift sweep has visited.
-    belief_resolution = measure_belief_window_resolution(records, as_of)
+    # ...AND OF THE COMPANY BEING SCORED. Both predictors below take the window
+    # off the consumer this call already holds, not off the module constant
+    # (2026-08-18). They defaulted to `DD_FAILURE_WINDOW_DAYS` here, so every
+    # published memory-resolution and band figure described a hypothetical 400d
+    # company; the live publisher's is 6000d and the shipped default is 90d.
+    scored_window = consumer.dd_failure_window_days
+    belief_resolution = measure_belief_window_resolution(
+        records, as_of, window_days=scored_window)
     # AND WHAT SETS THAT BAND (atom D30). D27/D29 said where the two edges are;
     # this says WHICH HARNESS CONSTANTS PUT THEM THERE, and that the scored
     # company's own memory sits outside the band entirely. It travels with the
     # figure for the D22 reason -- a limit only an Expert-Hour register carries
     # is one no reader of the number ever sees.
-    constant_census = measure_scenario_constant_census(records, as_of)
+    constant_census = measure_scenario_constant_census(
+        records, as_of, window_days=scored_window)
     census_caveat = scenario_constant_census_caveat(constant_census)
     bel.note += " " + belief_resolution_caveat(belief_resolution, "belief")
     bel.note += " " + census_caveat
@@ -10711,6 +10754,10 @@ def score_triad(
                if e.get("bounds_resolution")))
     bel.components["scored_company_is_inert"] = constant_census[
         "scored_company_is_inert"]
+    # WHICH company that verdict is about (2026-08-18) -- it was the harness's
+    # 400d for every caller until this date, so the flag alone did not say.
+    bel.components["scored_company_window_days"] = constant_census[
+        "scored_company_window_days"]
     bel.components["memory_blind_band_days"] = tuple(
         DIMENSION_DRIFT_RESOLUTION["belief"]["own_invisible_drifts"])
 
@@ -10756,6 +10803,8 @@ def score_triad(
                if e.get("bounds_resolution")))
     mix.components["scored_company_is_inert"] = constant_census[
         "scored_company_is_inert"]
+    mix.components["scored_company_window_days"] = constant_census[
+        "scored_company_window_days"]
     mix.components["memory_blind_band_days"] = tuple(
         DIMENSION_DRIFT_RESOLUTION["belief_population_mix"][
             "own_invisible_drifts"])
@@ -12172,7 +12221,11 @@ def main() -> None:
     # reader being told the resolution of a scenario nobody is running.
     _cen_recs, _cen_c, _cen_l, _cen_as_of = build_scenario(
         min(args.customers, 300), seed=args.seed)
-    _cen = measure_scenario_constant_census(_cen_recs, _cen_as_of)
+    # The CONSUMER is passed, not dropped: `_cen_c` is the company this run
+    # scored, and printing the harness constant in the sentence that says "the
+    # scored company's Nd memory" is the very defect repaired 2026-08-18.
+    _cen = measure_scenario_constant_census(
+        _cen_recs, _cen_as_of, window_days=_cen_c.dd_failure_window_days)
     print("  [scenario-constant census] the book these resolutions are "
           "properties of:")
     print(f"           {len(_cen['subject'])} constant(s) in the census "

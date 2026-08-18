@@ -842,3 +842,128 @@ def test_d17_the_published_discrimination_pointer_resolves_to_a_live_guard():
         f"{path} -- the published discrimination claim points at nothing"
     )
     assert callable(globals()[func])
+
+
+# ---------------------------------------------------------------------------
+# LEG 2 of WORKER_FINDING_THE_SCORED_COMPANY_CLAUSE_IS_BLIND_TO_THE_COMPANY_IT
+# _NAMES (2026-08-18): the two belief caveats reach the WRITTEN artefact.
+#
+# `score_triad` fastens `belief_resolution_caveat` and
+# `scenario_constant_census_caveat` to the BELIEF dimension's components, under
+# a comment saying out loud why prose alone is not enough (D22: the machine
+# strips `note`). This writer publishes the DETECTION dimension and splices the
+# belief NUMBER in as a formatted string -- so on the only path with a public
+# reader, the belief figure arrived with none of the resolution apparatus two
+# atoms exist to attach to it. Measured on the published ledger at 0a3113dfe:
+# 19 component keys, neither caveat among them, while every detection-side
+# caveat was present. Asserted below against the WRITTEN JSON, never against
+# the result dict -- the result dict is where they already were.
+# ---------------------------------------------------------------------------
+
+
+def test_the_belief_caveats_reach_the_written_ledger_not_only_the_result(tmp_path):
+    """R11-shaped, and against the artefact. The two caveats a reader needs in
+    order to know whether the published belief figure can be trusted must be IN
+    the file the Proof door reads."""
+    import json
+
+    triad = _build_triad()
+    ledger = tmp_path / "coupled_gap_ledger.json"
+    result = triad.measure_and_write(run_git_commit="0" * 40, ledger_path=ledger)
+    assert result is not None
+
+    written = json.loads(ledger.read_text())
+    entries = written["entries"] if isinstance(written, dict) and "entries" in written else written
+    entry = None
+    for candidate in (entries.values() if isinstance(entries, dict) else entries):
+        if isinstance(candidate, dict) and "components" in candidate:
+            entry = candidate
+            break
+    assert entry is not None, f"no entry with components in {ledger}"
+
+    caveats = entry["components"]["dimension_caveats"]
+    for dim in ("belief", "belief_population_mix"):
+        assert "belief_resolution_caveat" in caveats[dim], (
+            f"{dim}'s resolution caveat is attached to a dimension this writer "
+            "does not publish and never reaches the ledger"
+        )
+        assert "scenario_constant_census_caveat" in caveats[dim], (
+            f"{dim}'s census caveat did not reach the ledger"
+        )
+    # NOT EMPTY PROSE either -- a caveat key holding "" would satisfy a
+    # presence check and tell a reader nothing.
+    assert "band" in caveats["belief"]["scenario_constant_census_caveat"]
+    assert len(caveats["belief"]["belief_resolution_caveat"]) > 80
+
+    # POSITIVE CONTROL, same entry, same writer: the DETECTION-side caveats
+    # were ALWAYS arriving, fastened to `headline` itself. The defect was never
+    # a ledger that drops caveats, and they are still there beside the lift.
+    assert any(k.endswith("_caveat") for k in entry["components"]), (
+        "the detection dimension's own caveats vanished -- this test's own "
+        "premise (the writer publishes what is fastened to `headline`) is gone"
+    )
+
+
+def test_R15_MUTANT_a_caveat_on_an_unwritten_dimension_is_caught_at_the_seam():
+    """The control must fire on its OWN named defect: a caveat attached to a
+    dimension that is not the one being written. Its expectation is read off
+    the scored dimensions and its subject is the written object, so this is not
+    the tautology pattern -- it is two objects being compared."""
+    triad = _build_triad()
+    result = triad.measure()
+    assert result is not None
+    headline = result["detection"]
+
+    # The shipped lift, done here as `measure_and_write` does it: clean.
+    headline.components["dimension_caveats"] = lpt.caveats_by_dimension(result)
+    assert lpt.check_every_caveat_is_published(result, headline) == []
+
+    # MUTATION 1 -- a NEW caveat fastened to a dimension the writer does not
+    # publish, exactly as the two belief caveats were. Nobody has to remember
+    # its name for the control to see it.
+    result["belief"].components["a_brand_new_caveat"] = "a limit nobody lifted"
+    violations = lpt.check_every_caveat_is_published(result, headline)
+    assert violations and "a_brand_new_caveat" in violations[0], violations
+
+    # MUTATION 2 -- FAIL-CLOSED on the map going missing entirely (the shape
+    # the live path was in until 2026-08-18: no map, every caveat unpublished).
+    del headline.components["dimension_caveats"]
+    assert len(lpt.check_every_caveat_is_published(result, headline)) >= len(
+        violations), "an absent caveat map read as a clean pass -- fail-open"
+
+
+def test_the_lift_is_scoped_to_the_belief_dimensions_for_the_D36_reason():
+    """THE SCOPE IS DECLARED, AND THE REASON IS MEASURED. The first build of
+    this lift was generic over EVERY dimension and the gate refused it: it
+    publishes `ageing.ordinal_direction_caveat`, which renders the ageing
+    figure at SIX decimals, and D36's whole ruling is that a 6dp site nobody is
+    handed does not set that figure's declared 3dp precision. Handing it to the
+    reader would move a published resolution claim as a side effect of a caveat
+    repair. So `ageing` is OUT, on purpose, and this pins the reason."""
+    assert "ageing" not in lpt.CAVEAT_LIFT_DIMENSIONS
+    assert set(lpt.CAVEAT_LIFT_DIMENSIONS) == {"belief", "belief_population_mix"}
+
+    triad = _build_triad()
+    result = triad.measure()
+    assert result is not None
+    lifted = lpt.caveats_by_dimension(result)
+    assert set(lifted) == set(lpt.CAVEAT_LIFT_DIMENSIONS), lifted
+    # The excluded dimension really does carry the 6dp caveat -- so the
+    # exclusion is load-bearing, not a scope that happens to cost nothing.
+    assert any(k.endswith("_caveat")
+               for k in result["ageing"].components), (
+        "ageing carries no caveat at all, so this exclusion protects nothing "
+        "and the scope should be widened rather than explained")
+
+
+def test_R15_MUTANT_deleting_the_lift_makes_measure_and_write_refuse(
+        tmp_path, monkeypatch):
+    """The seam REFUSES rather than publishes a stripped entry. Mutated by
+    neutering the lift itself, so the guard is proven on the shipped call path
+    and not only on a hand-built GapResult."""
+    monkeypatch.setattr(lpt, "caveats_by_dimension", lambda result: {})
+    triad = _build_triad()
+    with pytest.raises(RuntimeError, match="drops a caveat"):
+        triad.measure_and_write(
+            run_git_commit="0" * 40,
+            ledger_path=tmp_path / "coupled_gap_ledger.json")
