@@ -5127,137 +5127,23 @@
   depends_on: []
   couples_with: [D36_bill_render_footing_and_pence, SITE3_wall_exhibit_url_rename]
   file_scope: ['site/customers/index.html', 'site/customers/test_wall_exhibit.py', 'site/customers/_wall_harness.mjs', 'site/customers/_landing_harness.mjs', 'site/customers/_subject_harness.mjs', 'site/customers/test_customers_door.py', 'site/customers/_render_harness.mjs', 'site/_redirects', 'site/test_no_links_to_redirected_urls.py', 'docs/design/SITE_CONSTITUTION.md', 'tools/generate_case_study_recommender.py', 'tests/tools/test_case_study_recommender.py']
-  simplifications_count: 12
+  simplifications_count: 13
   expert_hour:
-    # 2026-08-17: every finding the 08-12 Hour raised is now dispositioned -- 11 fixed with
-    # evidence in the ledger, 1 refuted (its kept half built), 2 re-homed to the lanes that
-    # own them. Status moves to the map's existing `passed_execute_after_fix` word (A2's
-    # precedent: the Hour found defects, the defects were executed) and NOT to `passed` --
-    # the 08-12 verdict of NO was returned against a page that has since been rebuilt, so
-    # it is stale rather than discharged, and only a fresh Hour can replace it. LEVEL HELD
-    # AT 2 for exactly that reason: this tick reconciled records it also wrote, which is
-    # not evidence for a level move. The remaining gate for L3 is a re-run cold-eyes walk.
-    # 2026-08-17, SECOND ENTRY: the re-run walk the note above named as the L3 gate RAN,
-    # and returned NO. Three blindfolded personas against 28 headless-Chromium captures of
-    # the LIVE host; blindness audited, not asserted (0 repo/git/map tool calls in 52).
-    # Two of its findings were this atom's own exit criteria (2) and (3) RED again, in the
-    # one region every control in the module structurally excluded -- the page as it BOOTS
-    # -- and both were fixed in this tick with the document as the new subject. Five more
-    # are real and open; one of those is re-homed. LEVEL STAYS 2: fixing two findings from
-    # a walk that returned NO is not the walk passing.
     status: findings_open
     last: '2026-08-17'
     verdict: 'NO'   # the RE-RUN's own verdict, against the current page -- not stale
     independence: false   # same model family as the builder -- blindness, not independence
     ledger: docs/observability/sanity_adjudication_ledger.json  # 20 keys, prefix coldwalk:site2_
-    fixed_2026_08_12:
-    # Both repaired 2026-08-12 and recorded ONLY here; their ledger rows still read
-    # adjudicated-real until 2026-08-17, so the ledger said unfixed while the map said fixed
-    # for five days. Verified in HEAD before the rows were moved (applyWallViewToOpState()
-    # called from setWallView; whole_document() as the union subject), not inherited.
-    - coldwalk:site2_customer_view_does_not_filter_the_op_state_exhibit
-    - coldwalk:site2_wall_control_subject_excludes_the_union_of_the_page
-    fixed_2026_08_13:   # render defects in file_scope; see the store record
-    - coldwalk:site2_arrears_history_visible_only_behind_the_wall
-    - coldwalk:site2_tariff_range_pounds_per_mwh_labelled_pence_per_mwh
-    - coldwalk:site2_churn_probability_carries_a_settlement_clock
-    - coldwalk:site2_landing_promises_a_view_switch_that_is_not_on_the_landing_page
-    fixed_2026_08_14:   # the exhibit's own thesis: no tab is blank on either side
-    - coldwalk:site2_behind_the_wall_view_is_empty_on_two_of_six_tabs
-    fixed_2026_08_15:   # the household's money is the household's, not one fuel leg's
-    - coldwalk:site2_dual_fuel_household_shows_electricity_only_money
-    fixed_2026_08_17:   # a level, a ratio and a difference are three quantities
-    # Adjudicated a false positive on its ARITHMETIC (the ratio does tie unrounded) with its
-    # FRAMING half kept as a minor -- and the framing half was the real one. Fixed as a CLASS:
-    # the generator used one formatter for a probability level, a ratio and a difference, so a
-    # second live headline had the mirror-image defect ('fell 12%' for a 12.2-point drop) and
-    # the divergence slot RANKED by the ratio, moving 6 of 13 households' within-household
-    # pick. Formatters now split by quantity kind and ranking by percentage points. R15 five
-    # mutations, incl. the delete-the-numbers fail-open. Full evidence in the ledger + store.
-    - coldwalk:site2_coo_2841_percent_error_arithmetic_doubt
-    # The 08-12 repair fixed the INSTANCE at two of the page's five lifetime-net render
-    # sites and shipped with NO test, so the caption could be flipped straight back and
-    # nothing went red -- it was listed under fixed_2026_08_12 on that basis. Closed here as
-    # a CLASS (R10): ctsSide() is the sole writer of the before/after-cost-to-serve
-    # qualifier, all five sites route through it, and the household ROLL-UP -- the figure
-    # this finding's own arithmetic was about (25.8% shown vs 12.1% actual) -- now renders
-    # the after-cost-to-serve total that combinedTotals() had been computing and discarding.
-    # The control's subject is the whole page in the both-sides view, because two of the six
-    # defective renders live in the region section 9's old subject excluded. Proven by
-    # running it against `git show HEAD:site/customers/index.html`: it FIRES, naming all six.
-    fixed_2026_08_17_class:
-    - coldwalk:site2_lifetime_net_captioned_after_cost_to_serve_is_before_it
-    fixed_2026_08_17_walk:   # the re-run walk's two structural findings, fixed same tick
-    # Both live in the LANDING state. Every fixture in the 97-test module assigned a full
-    # household before driving anything (_wall_harness.mjs sets sandbox.HH, then calls
-    # setWallView), so no subject in the module could contain either defect -- the same
-    # "a new layer above a control must inherit its subject" class this atom has now paid
-    # for twice. site/customers/_landing_harness.mjs is the missing fixture: its subject is
-    # the rendered #app document at boot, HH left at its own declared initial value.
-    # Fixed as a CLASS, not as instances: every top-level child of #app must declare a side
-    # or declare itself chrome, and an undeclared one is REMOVED and recorded, so the next
-    # component appended by a third path fails by construction. Proven on the unfixed page
-    # (`git show HEAD:site/customers/index.html`): the leak check fires naming all six cards
-    # and the throw check fires on 3 of 3 views. R11 on a real chromium boot of the built
-    # page: 0 console errors, 0 leaked headlines in the customer view, 6/6 cards behind it.
-    - coldwalk:site2_case_study_cards_render_sim_truth_in_the_customer_view
-    - coldwalk:site2_wall_view_selector_throws_in_its_own_landing_state
-    fixed_2026_08_18:   # RENDER half. Full evidence: the ledger row's own fix_evidence.
-    # Two company estimators, not one quantity twice: latest_churn_probability (bill-shock
-    # model -> CLV) vs company_est (-> retention_discount_for_risk). Disagree on 54/58
-    # decisions. The caption was the defect, not the figure; both now name their producer.
-    # DATA half re-homed, B_commercial: WORKER_FINDING_TWO_CHURN_ESTIMATORS_DISAGREE_*.md.
-    - coldwalk:site2_churn_belief_published_as_23_and_5_for_one_decision
-    # RENDER half, and the ownership call the ledger row deferred is now measured: all of
-    # it was SITE2's. Sole-producer __householdCollections(); /now/ re-homed (LATENT).
-    - coldwalk:site2_arrears_counters_contradict_the_accounts_own_timeline
-    - coldwalk:site2_closed_account_settled_to_zero_and_in_credit
-    - coldwalk:site2_c1_pinned_exhibit_reads_as_the_open_households
-    findings_rehomed:   # real, NOT SITE2's, and not closable inside its file_scope
-    # Staged for the owning lanes as
-    # docs/staging/WORKER_FINDING_TWO_DEFECTS_THE_WALL_EXHIBIT_SURFACED_ARE_NOT_THE_EXHIBITS_2026-08-17.md
-    # Both sat on the OPEN list below for five days, holding this atom's verdict on work no
-    # edit inside site/customers/** could do. Re-homed with owner + why recorded on each
-    # ledger row, never dropped.
-    - key: coldwalk:site2_churned_account_presented_in_the_present_tense
-      half: data   # the RENDER half is this atom's and was built 2026-08-15 (see the ledger)
-      owner: generator lane -- tools/generate_customer_data.py
-      # SCOPE CORRECTED against the tree 2026-08-17: the 08-14 note named four divergent
-      # fields; three now publish null on C1 too, repaired by another lane. What remains is
-      # one -- C1 churn_probability 0.23 vs C1g null, same household, same 2021-12-30 closure.
-    - key: coldwalk:site2_consumption_has_no_winter_peak_under_a_seasonality_panel
-      owner: sim/world lane -- the consumption generator
-      # The walk's OWN entry already said this was a WORLD/SIM fidelity finding needing its
-      # own sim-lane atom under R12, and it was filed against SITE2 regardless.
-      # RE-RUN 2026-08-17 reproduced it STRONGER, independently: August beats December on
-      # 3/3 checkable years, Dec 2021 sits 4.9% BELOW Nov, six-year volume CV is 0.55%, and
-      # lockdown 2020 is invisible. Same owner, more evidence.
-    - key: coldwalk:site2_renewal_effect_lags_its_cause_by_one_period
-      owner: generator/sim lane -- the customer reaction-chain producer, NOT site/customers/**
-      # Staged as docs/staging/WORKER_FINDING_THE_WALL_EXHIBITS_CAUSAL_PANEL_IS_ONE_PERIOD_LATE_2026-08-17.md
-      # Two personas reconciled it independently by shifting one row: 8/8 within 6%, with
-      # 334.0 GBP/MWh -> 33.34p exact. OBSERVED IN THE DATA, not the render -- C1's published
-      # events pair 'Tariff renewed at 128.0 GBP/MWh' with 'Unit rate stepped 11.31p ->
-      # 11.36p' -- so no edit inside site/customers/** can close it. The open question the
-      # exhibit cannot answer is which of the two it is: a display join, or a billing engine
-      # applying last year's price vintage straight through the 2022 spike.
-    findings:   # OPEN; reconciled vs the ledger by tests/controls/test_map_reconciliation.py
-    # THE RE-RUN WALK's four are ALL answered, under fixed_2026_08_18. The one left is an
-    # adjudicated FALSE POSITIVE. Verdict STAYS "NO": it is a property of a WALK, not of a
-    # list going empty, so the next Expert Hour re-walks and says what it finds.
-    # NOTE the two entries that used to sit here are now under findings_rehomed above, each
-    # with its owning lane. One residual this atom still cannot discharge and which travels
-    # with the data half: the #op-state exhibit's own churn tile reads company.json's
-    # `household` block, which carries no closure field at all -- so it can only know the
-    # account closed via new plumbing (forbidden by this atom's constraint) or by inferring
-    # closure from annual_pnl's last year, which would print an inference as a fact.
-    # Adjudicated REFUTED and kept here as narrative per the reconciliation control's own
-    # convention. Not carryable debt: the doubt was the identical GBP330 cost-to-serve on both
-    # fuel legs, which is the FIXED state of coldwalk:cost_to_serve_cross_fuel_mismatch_same_
-    # household (~GBP55/yr overhead per account, GBP110/household -- inside the persona's own
-    # prior), and its presentational half closed 2026-08-15 with the dual-fuel money fix above.
-    - coldwalk:site2_coo_cost_to_serve_double_count_doubt          # adjudicated REFUTED
-  records_rehomed: [evidence]
+    # NARRATIVE REHOMED 2026-08-18 (the per-atom map budget named this atom: 12,221 B
+    # against a 12,288 B cap, 67 B of headroom, so the next Hour's own record could not
+    # be written). The dated fixed_* lists, findings_rehomed and the open findings list
+    # now live in docs/design/simplifications/SITE2_two_sided_wall_exhibit.yaml under
+    # `expert_hour_findings` (OPEN, what the reconciliation control and /proof/ read)
+    # and `expert_hour_history_findings` (the dispositioned record). Structured members
+    # stay inline. Nothing was rewritten -- the move is line-for-line, proven by a line
+    # census in the migration, and the store is the ONLY home now (inline wins, so a
+    # duplicate here would make the two-sources contract unfalsifiable).
+  records_rehomed: [evidence, expert_hour_findings, expert_hour_history_findings]
   real_world_twin: "a regulator's comparison exhibit that puts a customer's own bill next to the supplier's internal cost-to-serve view, labelled so neither can be mistaken for the other"
 - id: SITE3_wall_exhibit_url_rename
   title: "The wall exhibit's URL stops saying 'customers', and every link to the old one is repointed"

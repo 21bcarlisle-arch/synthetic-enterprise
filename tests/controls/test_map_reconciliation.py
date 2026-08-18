@@ -143,11 +143,46 @@ REAL_LEDGER = REPO_ROOT / "docs" / "observability" / "sanity_adjudication_ledger
 CLOSED_LEDGER_STATES = {"fixed", "superseded"}
 
 
-def _map_findings_vs_ledger(atoms, ledger):
+def _open_findings(atom, store_dir=None):
+    """One atom's OPEN Expert-Hour findings, wherever they now live.
+
+    THE REHOME FOLLOWED THIS CONTROL'S SUBJECT (2026-08-18). `expert_hour.findings` is
+    drained into the sibling record store one atom at a time as the per-atom map budget
+    names each one, and on 2026-08-18 it named SITE2_two_sided_wall_exhibit — whose single
+    open key was, measured, the ENTIRE population this comparison had. A reader left on the
+    inline field would not have drifted quietly: `test_the_findings_ledger_comparison_is_not
+    _vacuous` fired the moment the keys moved, which is the fail-open guard doing exactly
+    what its docstring promised. This function is the repair, not the workaround.
+
+    Inline WINS over stored, matching `simplifications_store.hydrate`, `atom_name` and
+    `generate_proof_data._expert_hour_findings` — one rule across every reader of a
+    partially-migrated field. The inline value is what the spine is actually showing, so a
+    silently-preferred store copy would make the two-sources-of-truth contract
+    unfalsifiable.
+
+    Only `expert_hour_findings` (the OPEN list) is read. Its sibling tenant
+    `expert_hour_history_findings` holds the dated `fixed_*` record and is deliberately NOT
+    consulted: those keys ARE closed in the ledger, so folding them in here would
+    manufacture a contradiction per fixed finding and turn the guard into noise.
+    """
+    inline = (atom.get("expert_hour") or {}).get("findings")
+    if inline:
+        return inline
+    aid = atom.get("id")
+    if not aid:
+        return []
+    from tools import simplifications_store as store
+
+    stored = store.records_for_atom(str(aid), store_dir).get("expert_hour_findings")
+    return stored if isinstance(stored, list) else []
+
+
+def _map_findings_vs_ledger(atoms, ledger, store_dir=None):
     """Returns (contradictions, resolvable_count).
 
     `contradictions` — (atom_id, finding_key, ledger_state) for every key listed under an
-    atom's `expert_hour.findings` whose ledger state says the defect is closed.
+    atom's open findings (see `_open_findings` for where those live) whose ledger state says
+    the defect is closed.
     `resolvable_count` — how many listed findings resolve into the ledger AT ALL. That
     second number is what stops this being a fail-open control: most atoms' findings are
     prose narrative, so an empty contradiction set is only meaningful if SOMETHING was
@@ -157,7 +192,7 @@ def _map_findings_vs_ledger(atoms, ledger):
     for atom in atoms:
         if not isinstance(atom, dict):
             continue
-        for key in (atom.get("expert_hour") or {}).get("findings") or []:
+        for key in _open_findings(atom, store_dir) or []:
             if not isinstance(key, str) or key not in ledger:
                 continue
             resolvable += 1
@@ -234,3 +269,73 @@ def test_findings_guard_counts_nothing_when_the_keys_do_not_resolve():
     contradictions, resolvable = _map_findings_vs_ledger(atoms, {"coldwalk:x_real": {"state": "fixed"}})
     assert contradictions == []
     assert resolvable == 0, "unresolvable findings must not be counted as compared"
+
+
+# ───────────── the guard must follow a REHOMED atom out of the map ─────────────
+# 2026-08-18: SITE2's open findings moved to the record store when the per-atom map budget
+# named it. Measured before the move: SITE2's single key was 1 of 1 resolvable findings in
+# the whole 314-atom map, so a reader left inline would have taken this comparison's entire
+# population with it. These four are the R15 proof that the follow is real, in both
+# directions -- the store is READ, the history tenant is NOT, and inline still wins.
+def _store_with(tmp_path, atom_id, **fields):
+    from tools import simplifications_store as store
+
+    for field, value in fields.items():
+        store.set_record_for_atom(atom_id, field, value, tmp_path)
+    return tmp_path
+
+
+def test_findings_guard_FIRES_on_a_fixed_finding_left_open_IN_THE_STORE(tmp_path):
+    """THE rehome proof: the defect this control exists to catch must still be caught once
+    the atom's findings live in the store. Same defect as the inline case above, same
+    verdict -- otherwise rehoming an atom is a way to launder an open-vs-fixed divergence."""
+    sd = _store_with(tmp_path, "A1", expert_hour_findings=["coldwalk:x_repaired"])
+    atoms = [{"id": "A1", "expert_hour": {"status": "findings_open"}}]
+    ledger = {"coldwalk:x_repaired": {"state": "fixed", "fix_evidence": "..."}}
+    contradictions, resolvable = _map_findings_vs_ledger(atoms, ledger, sd)
+    assert contradictions == [("A1", "coldwalk:x_repaired", "fixed")]
+    assert resolvable == 1, "a rehomed atom must still COUNT toward the anti-vacuity check"
+
+
+def test_the_history_tenant_is_not_read_as_open_work(tmp_path):
+    """The dated `fixed_*` record moved to `expert_hour_history_findings`, and every key in
+    it is closed BY CONSTRUCTION. Reading it here would manufacture one contradiction per
+    fixed finding -- a control that fires on correctly-recorded history is noise that trains
+    you to ignore it, which is the failure mode `test_findings_guard_is_SILENT_on_a_
+    genuinely_open_finding` already guards on the other side."""
+    sd = _store_with(
+        tmp_path, "A1",
+        expert_hour_findings=["coldwalk:x_open"],
+        expert_hour_history_findings=["    fixed_2026_08_18:\n    - coldwalk:x_repaired"],
+    )
+    atoms = [{"id": "A1", "expert_hour": {"status": "findings_open"}}]
+    ledger = {"coldwalk:x_open": {"state": "adjudicated-real"},
+              "coldwalk:x_repaired": {"state": "fixed"}}
+    contradictions, resolvable = _map_findings_vs_ledger(atoms, ledger, sd)
+    assert contradictions == [], "the history tenant must not be read as open work"
+    assert resolvable == 1, "only the OPEN tenant is the comparison's population"
+
+
+def test_inline_findings_win_over_the_store(tmp_path):
+    """One rule across every reader of a partially-migrated field (`hydrate`, `atom_name`,
+    `_expert_hour_findings`): inline wins. A silently-preferred store copy would make the
+    two-sources-of-truth contract unfalsifiable -- so a stale store copy must NOT be able to
+    hide a divergence that is sitting inline in the map."""
+    sd = _store_with(tmp_path, "A1", expert_hour_findings=["coldwalk:x_stale"])
+    atoms = [{"id": "A1", "expert_hour": {"findings": ["coldwalk:x_repaired"]}}]
+    ledger = {"coldwalk:x_repaired": {"state": "fixed"},
+              "coldwalk:x_stale": {"state": "adjudicated-real"}}
+    contradictions, _ = _map_findings_vs_ledger(atoms, ledger, sd)
+    assert contradictions == [("A1", "coldwalk:x_repaired", "fixed")]
+
+
+def test_the_REAL_map_still_has_a_population_after_the_rehome():
+    """ANTI-VACUITY, anchored to the live tree rather than to fixtures. This is the test
+    that went RED when SITE2's keys left the map and is the reason `_open_findings` exists;
+    it names the atom so a future rehome that forgets the reader says which one."""
+    _, resolvable = _map_findings_vs_ledger(*_real_map_and_ledger())
+    assert resolvable > 0, (
+        "no open Expert-Hour finding in the real map OR its record store resolves into the "
+        "adjudication ledger -- if an atom was just rehomed, `_open_findings` is the reader "
+        "that must follow it"
+    )
