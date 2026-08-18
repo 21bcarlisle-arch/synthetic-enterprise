@@ -41,12 +41,38 @@ _CCL_ELECTRICITY_P_KWH: Dict[int, float] = {
     2020: 0.811, 2021: 0.775, 2022: 0.775, 2023: 0.775, 2024: 0.775, 2025: 0.775,
 }
 
+# CORRECTED 2026-08-18 against the statutory commons
+# (docs/domain_artefact_library/regulatory/ccl_main_rates.json), which is THE LAW rather
+# than a reading of it. This table had gas flat at 0.465 from 2021 through 2025 and missed
+# the rebalancing entirely: gas CCL rose each April toward PARITY with electricity, reaching
+# it in April 2024. The sim's own table (simulation/policy_costs.py) had the trajectory
+# right the whole time -- two modules published the same statutory quantity and disagreed by
+# up to 67%.
+#
+# 2023, 2024 and 2025 are corrected: the commons carries them at `primary` provenance,
+# sourced to gov.uk's published CCL rates, so the source settles it.
+# 2022 is NOT corrected: the commons itself records that year as `recalled -- not fetched;
+# neighbours differ so it cannot be bracketed`, so nothing here is authoritative enough to
+# overwrite it with. It is caveated below instead of being quietly changed to look tidy.
 _CCL_GAS_P_KWH: Dict[int, float] = {
     2001: 0.150, 2007: 0.154, 2008: 0.159, 2009: 0.164, 2010: 0.164,
     2011: 0.169, 2012: 0.178, 2013: 0.183, 2014: 0.189, 2015: 0.195,
     2016: 0.195, 2017: 0.198, 2018: 0.203,
     2019: 0.339,
-    2020: 0.406, 2021: 0.465, 2022: 0.465, 2023: 0.465, 2024: 0.465, 2025: 0.465,
+    2020: 0.406, 2021: 0.465,
+    2022: 0.465,   # DISPUTED: the commons says 0.568 at `recalled` provenance, unfetched.
+    2023: 0.672,   # was 0.465 -- gov.uk, 1 Apr 2023 to 31 Mar 2024
+    2024: 0.775,   # was 0.465 -- gov.uk, 1 Apr 2024: gas reaches parity with electricity
+    2025: 0.775,   # was 0.465 -- gov.uk, 1 Apr 2025 to 31 Mar 2026
+}
+
+#: Years where this table and the statutory commons disagree and NEITHER side is
+#: authoritative -- the commons records them as recalled rather than fetched. Published with
+#: both positions rather than silently reconciled; a figure that disagrees with itself and
+#: says so is worth more than one that agrees by fiat.
+CCL_DISPUTED_YEARS: Dict[tuple, str] = {
+    (2016, "electricity"): "this table 0.554, statutory commons 0.559 (commons: recalled, not fetched)",
+    (2022, "gas"): "this table 0.465, statutory commons 0.568 (commons: recalled, not fetched)",
 }
 
 

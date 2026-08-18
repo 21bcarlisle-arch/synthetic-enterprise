@@ -27,9 +27,74 @@ class TestCCLRateHistory:
         for yr in [2021, 2022, 2023, 2024, 2025]:
             assert _CCL_ELECTRICITY_P_KWH[yr] == pytest.approx(0.775)
 
-    def test_2021_to_2025_gas_stable(self):
-        for yr in [2021, 2022, 2023, 2024, 2025]:
-            assert _CCL_GAS_P_KWH[yr] == pytest.approx(0.465)
+    def test_gas_rises_to_parity_with_electricity(self):
+        """CORRECTED 2026-08-18. This asserted gas was STABLE at 0.465 from 2021 to 2025,
+        which pinned the defect: gas CCL rose each April toward parity with electricity and
+        reached it in April 2024. A test that asserts a table equals itself cannot notice the
+        table is wrong -- and this one made the wrong value look deliberate for months."""
+        assert _CCL_GAS_P_KWH[2021] == pytest.approx(0.465)
+        assert _CCL_GAS_P_KWH[2023] == pytest.approx(0.672)
+        assert _CCL_GAS_P_KWH[2024] == pytest.approx(0.775)
+        assert _CCL_GAS_P_KWH[2025] == pytest.approx(0.775)
+        assert _CCL_GAS_P_KWH[2024] == _CCL_ELECTRICITY_P_KWH[2024], "parity from April 2024"
+
+
+class TestCCLMatchesTheStatute:
+    """The class fix. The instance repair alone would breach R10: the same
+    mis-transcription can recur on any year, and nothing would notice. This asserts the
+    shipped table against the statutory commons -- THE LAW, in the statute's own unit --
+    on every year the commons carries at PRIMARY provenance.
+
+    Deliberately scoped to primary years. Where the commons itself records a rate as
+    `recalled` rather than fetched, it is not authoritative enough to assert against, and
+    forcing agreement there would manufacture a false precision in the direction of
+    whichever side was written last. Those years are published as disputed instead.
+    """
+
+    @staticmethod
+    def _commons():
+        import json
+        from pathlib import Path as _P
+        root = _P(__file__).resolve().parents[2]
+        return json.loads(
+            (root / "docs/domain_artefact_library/regulatory/ccl_main_rates.json").read_text()
+        )
+
+    def test_every_primary_year_matches_the_statute(self):
+        from company.regulatory.ccl_ledger import CCL_DISPUTED_YEARS
+        tables = {"electricity": _CCL_ELECTRICITY_P_KWH, "gas": _CCL_GAS_P_KWH}
+        checked = 0
+        for row in self._commons()["rates"]:
+            if row["provenance"] != "primary":
+                continue
+            year, commodity = int(row["from"][:4]), row["commodity"]
+            table = tables[commodity]
+            if year not in table or (year, commodity) in CCL_DISPUTED_YEARS:
+                continue
+            checked += 1
+            assert table[year] == pytest.approx(row["gbp_per_kwh"] * 100), (
+                f"{year} {commodity}: shipped {table[year]} vs statute "
+                f"{row['gbp_per_kwh'] * 100:.3f} p/kWh ({row.get('source_label')})"
+            )
+        assert checked >= 8, f"only {checked} primary years checked -- the commons is not being read"
+
+    def test_every_disputed_year_really_does_disagree(self):
+        """Shrink-only: a year listed as disputed that no longer disagrees is stale credit,
+        and would let the list become a place to park inconvenient figures."""
+        from company.regulatory.ccl_ledger import CCL_DISPUTED_YEARS
+        tables = {"electricity": _CCL_ELECTRICITY_P_KWH, "gas": _CCL_GAS_P_KWH}
+        commons = {(int(r["from"][:4]), r["commodity"]): r for r in self._commons()["rates"]}
+        for key, note in CCL_DISPUTED_YEARS.items():
+            row = commons.get(key)
+            assert row is not None, f"{key} is disputed against a commons row that does not exist"
+            assert tables[key[1]][key[0]] != pytest.approx(row["gbp_per_kwh"] * 100), (
+                f"{key} is listed as disputed but the two now agree -- remove the entry"
+            )
+            assert row["provenance"] != "primary", (
+                f"{key} is listed as disputed while the commons carries it at PRIMARY "
+                f"provenance -- the source settles it, so correct the table instead"
+            )
+            assert note
 
 
 class TestCCLLedgerRateForYear:
