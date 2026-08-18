@@ -164,6 +164,131 @@ simplifications:
 
   control.'
 - "2026-08-18 DISCOVER ONLY, level stays 0, loop_stage stays idle (worker tick, LANE 3 idle draw).\nNo BUILD code, no protocol designed, no adapter started -- epoch-3 BUILD-gated on director-reserved\ncurriculum sequencing (R13); EPOCH_GATING_AND_ATOM_AUTHORSHIP Rule 1 permits DISCOVER/FRAME while\nBUILD is not. `docs/design/maturity_map.yaml` is touched for EXACTLY ONE bookkeeping line:\n`simplifications_count: 4 -> 5` on this atom -- not a level move, not a stage move, not a\nblock-reason edit. That count and this append are ONE ATOMIC WRITE (appending without the bump reds\ntests/design/test_simplifications_store.py::test_counts_match_file_contents). Checked before\nediting: the map carried no staged and no unstaged hunk from any other lane, so this commit strands\nno half of anyone else's atomic write. Deliverable:\ndocs/design/EP6_DEPENDENT_ATOM_PROPERTY_AUDIT_DISCOVER.md -- a THIRD document beside the 2026-08-15\nconformance census and the 2026-08-17 protocol-typing pass, not a replacement. Everything is\nobserved-with-evidence unless labelled inferred (R9).\n\nMEASURED AT: HEAD 65b26e4e4. Live artefact docs/reports/run_output_latest.json (mtime 2026-08-18\n15:56, 4,154,361 bytes, 93 top-level keys) parsed in FULL; shipped modules read as they sit on disk;\nno network, nothing monkeypatched.\n\nTHIS PASS ANSWERED OPEN QUESTION 1 OF THE 2026-08-17 PASS -- and the answer REFUTES that pass's own\nrecommendation. The question: \"whether channel D's async gap is load-bearing for all nine EP7-EP15\natoms or only some, resolved by reading each atom's own real-world-analogue claim, not done here.\"\nThe 2026-08-17 recommendation resting on it, verbatim: channel D is \"the one place the guard does NOT\ncounsel restraint ... building the protocol there is the one thing nine dependent atoms actually\nneed.\"\n\nFINDING 1 -- \"ASYNCHRONY\" WAS THREE PROPERTIES WEARING ONE WORD, AND THE ONE THAT IS UNANIMOUS IS\nNOT THE ONE THAT WAS RECOMMENDED. Separated: P1 time separation (a response that is its own event),\nP2 vintage stamp (as-of / valid-time / schema-version ON the message), P3 unsolicited inbound (a\nmessage with no request). P1 is narrower than it reads -- \"the answer isn't available for 15 minutes\"\nis a synchronous NOT_KNOWABLE_YET plus a re-poll, NOT P1. Judging each of the nine against its OWN\nmap_notes text (the director-ruling curriculum prose, hydrated from each atom's store file):\n\n  P2  9 of 9   EP7 D+1 refresh | EP8 SEC schema releases | EP9 which days are held | EP10 \"schema-\n                drift tolerance is a requirement\" | EP11 report vintages | EP12 REC flow versions |\n                EP13 forecast-vs-actual for one half-hour | EP14 \"columns move between periods\" |\n                EP15 \"a forecast is a POINT-IN-TIME ARTEFACT ... as of when\" -- this atom IS P2\n  P1  4 of 9   EP8, EP10, EP12 (all three INFERRED from domain shape, absent from both the atom text\n                and the advisor research), EP11 (stated: \"~4-5 working days after charge creation\")\n  P3  2 of 9   EP7 \"IRIS real-time push\", EP11 \"webhook events\" (EP12 inferred, not stated)\n\nBOTH HALVES OF THE PRIOR CLAIM FAIL: async is not the binding requirement, and it does not bind all\nnine -- for EP13/EP14/EP15 it is not implicated at all. Nine atoms ask for the vintage stamp in nine\nvocabularies (refresh, coverage, drift, forecast-vs-actual, as-of); nobody had put those words in one\ncolumn, which is why the unanimous requirement stayed invisible across four passes.\n\nFINDING 2 -- THE 9-OF-9 PROPERTY EXISTS IN THE TYPE AND IS ABSENT FROM EVERYTHING PUBLISHED. WallRequest\ncarries schema_version/as_of/emitted_at and WallResponse carries schema_version/observed_at/valid_time\n(interface/contracts/wall_envelope.py:86-127). On today's artefact, schema_version, correlation_id,\nobserved_at, as_of, valid_time and _cache_meta each occur ZERO times across all 93 top-level keys.\n\nCORRECTION TO THE 2026-08-17 PASS'S PORT COUNT (measured, not inherited): it recorded five W4_1 ports\ncarrying schema_version. Three of five do -- meter_read_port, contact_centre_port,\nacquisition_funnel_port (8 refs each); credit_bureau_port.py and market_data_port.py have NONE, not\neven a present-but-unpopulated field. Channel D is weaker on the unanimous property than credited.\n\nFINDING 3 -- CHANNEL C ALREADY HAS P1 AND P3 BY CONSTRUCTION, SO EP11 IS THE NEAREST-DONE OF THE NINE,\nNOT THE HARDEST. WallResponse's docstring states the response is \"a SEPARATE event in time\", matched\n\"ONLY by correlation_id\", \"so a consumer that has never seen ... the original request can still\nprocess this response correctly on arrival\". Verified at the consumer, not just the docstring:\nPaymentObservationConsumer.observe() (company/billing/payment_observation_consumer.py:416-431) keeps\nNO request registry -- it dedups by correlation_id and never checks a request was made, so an\nunsolicited counterparty message is already representable. And EP11's named unhappy-path payloads are\nSHIPPED: AddacsAdvice, AuddisReport, BacsArruddOutcome (interface/contracts/payment_observable_seam.py\n:182-222), ADDACS/ARUDD/AUDDIS at 17/42/23 non-test references across interface/ company/ simulation/\nsim/. No prior EP6 pass noticed that the seam whose payload family IS EP11's named report set had\nalready been built under W4_4/W5_1.\n\nFINDING 4 -- AND THAT SURFACES THE ONE REAL HOLE. Of EP11's four named Bacs reports (ADDACS, ARUDD,\nAUDDIS, AWACS), AWACS has ZERO occurrences in any Python file in the repository, case-insensitive,\nwhole tree. It exists only in prose: this atom's own name field, the advisor research, and\nEP19_COUNTERPARTY_QUALIFICATION_REGISTER.md. AWACS is the report saying the customer's bank account\nhas moved -- exactly the \"cancelled mandate the company has not yet heard about is an arrears record\nthat is FALSE AT SOURCE\" mechanism EP11's origin_note names as the reason the atom outranks a\nhappy-path payments adapter. Three quarters of the unhappy path is built; the missing quarter is the\none the atom was justified by.\n\nRECOMMENDATIONS, recorded not asked (NEVER_ASK_WITHOUT_RECOMMENDING): (1) retire \"channel D async\nmigration\" as EP6's first BUILD move -- it was justified by a 9-of-9 claim that measures 4-of-9, three\nby inference; channel D is not wrong, it is a MINORITY requirement that cannot carry the atom. (2)\nEP6's first BUILD move is the vintage stamp reaching the wire: the only unanimous requirement, already\npresent as fields on both envelope shapes, absent from every published key -- populate-and-prove, not\ndesign, consistent with all four prior passes concluding EP6's honest first move is conformance. (3)\nre-scope EP11 from \"build an adapter\" to \"conform an existing seam + build AWACS\" (recorded for when\nthe director opens epoch 3; doing it now would be BUILD). (4) do NOT build P3 machinery -- it exists\nand both atoms that need it reach it through channel C; a separate notification shape would be\nadapters-for-future-adapters (SIMPLICITY GUARD). (5) resolve the three INFERRED P1 verdicts (EP8,\nEP10, EP12) before relying on them -- they rest on the same evidence class this pass just refuted a\nrecommendation for.\n\nOPEN QUESTIONS. Carried OQ6 (identity of the 93rd published key) stays open, now with its reason: the\n2026-08-15 census recorded the DENOMINATOR (92) but not its MEMBERS, and the artefact has not been\ncommitted since 2026-07-29, so there is no vintage to diff -- a census that records a count without\nits key set cannot be re-diffed, worth fixing in the census. NEW: whether AWACS's absence is a\nrecorded scope cut or an omission (resolved by reading W4_4/W5_1's own records); whether the vintage\nstamp's absence from the artefact is a SERIALISATION gap (channel C messages are in-process objects\nthat never reach the report) or a POPULATION gap (fields left at defaults) -- that distinction decides\nwhether recommendation 2 is plumbing or correctness, and this pass did not separate them. OQ2-OQ5 of\nthe 2026-08-17 pass carried unchanged.\n\nNo new WORKER_FINDING filed (SELF_INTERRUPT_DISCIPLINE): findings 1-3 are framing and re-measurement\nagainst this atom's own prior passes, and finding 4 (AWACS) is a scope observation about a\nBUILD-gated epoch-3 atom, not a defect against a live control."
+- '2026-08-18 (second pass of the day) DISCOVER ONLY, level stays 0, loop_stage stays idle (worker
+
+  tick, LANE 3 idle draw). No BUILD code, no protocol designed, no adapter started -- epoch-3 BUILD-gated
+
+  on director-reserved curriculum sequencing (R13); EPOCH_GATING_AND_ATOM_AUTHORSHIP Rule 1 permits
+
+  DISCOVER/FRAME while BUILD is not. `docs/design/maturity_map.yaml` is touched for EXACTLY ONE
+
+  bookkeeping line: `simplifications_count: 5 -> 6` on this atom -- not a level move, not a stage move,
+
+  not a block-reason edit. Checked before editing: the map carried no staged and no unstaged hunk from
+
+  any other lane at draw time (`git diff --cached --stat` and `git diff --stat` on the map file both
+
+  empty), so this commit strands no half of anyone else''s atomic write. Deliverable:
+
+  docs/design/EP6_AWACS_SCOPE_AUDIT_DISCOVER.md -- a FOURTH document beside the 2026-08-15 conformance
+
+  census, the 2026-08-17 protocol-typing pass, and the 2026-08-18 (first pass) dependent-atom audit, not a
+
+  replacement. Everything is observed-with-evidence unless labelled inferred (R9).
+
+
+  MEASURED AT: HEAD 171439629 (full 1714396299d764df5d419c4da1f164e2b959df8b). Shipped modules, yaml
+
+  build records, commit messages and design docs read as they sit on disk; nothing monkeypatched, no
+
+  network.
+
+
+  THIS PASS ANSWERED ONE OF THE TWO OPEN QUESTIONS THE FIRST 2026-08-18 PASS LEFT NAMED: "whether AWACS''s
+
+  absence is a deliberate scope cut recorded somewhere, or an omission... resolved by reading W4_4/W5_1''s
+
+  own records." Read done; verdict is OMISSION, not a recorded cut.
+
+
+  Three director-curriculum documents (EP11_adapter_gocardless_bacs.yaml''s own map_notes, the
+
+  2026-08-05 advisor research doc, EP19_COUNTERPARTY_QUALIFICATION_REGISTER.md) independently name the
+
+  same four-report Bacs spec -- ADDACS, ARUDD, AUDDIS, AWACS. The seam that ships three of the four
+
+  (interface/contracts/payment_observable_seam.py, atom W4_4, wrapped by atom W2_11''s generator adapter)
+
+  was landed across three 2026-07-18 entries. Two of the three carry an explicit disclosure section under
+
+  the exact heading this project uses to register a simplification openly ("HONEST simplifications (R10,
+
+  disclosed not hidden)" in W4_4''s BUILD LANDED entry; "Honest R10:" in W2_11''s ADAPTER LANDED entry) --
+
+  five disclosed items between them, none of them AWACS. The landing commit messages (0b17f7d114,
+
+  e6ce3882f) enumerate "Bacs ARUDD/ADDACS/AUDDIS" with no bracketed exclusion. The shipped
+
+  OBSERVABLE_RESPONSE_PAYLOAD_TYPES tuple (payment_observable_seam.py:269-276) is a closed six-member
+
+  enumeration with a docstring about what it is FOR, not what it excludes. WALLED_INTERFACES_SKETCH.md
+
+  and GO_LIVE_SEAM_AND_INTERNAL_SEAMS_DESIGN.md have zero hits for "AWACS". Repo-wide case-insensitive
+
+  git grep for "awacs": four hits, all prose, zero in any Python module -- reconfirms the first 2026-08-18
+
+  pass''s own zero-occurrence measurement rather than repeating it blind.
+
+
+  The convention this project actually follows for a genuinely disclosed cut is visible right beside the
+
+  gap: the same W4_4 entry discloses ARUDD reason-code coarseness in the same sentence as the payload it
+
+  belongs to; W5_1_banking_payment_rails.yaml entry 10 names its deliberately-unmodelled UK-bank-holiday
+
+  calendar in the same sentence as the fix it sits beside. AWACS got none of that treatment anywhere.
+
+
+  Does NOT indict the actual build: what W4_4/W2_11 built matches what their own disclosure sections say
+
+  they built, field for field -- checked, not assumed. The gap is between what got disclosed and what the
+
+  spec asked for, not between what got disclosed and what got built.
+
+
+  RECOMMENDATIONS, recorded not asked (NEVER_ASK_WITHOUT_RECOMMENDING): (1) do not build AWACS from this
+
+  atom -- its home is EP11, matching the first 2026-08-18 pass''s own recommendation 3, narrowed now with
+
+  the evidence that the gap is undisclosed-undone rather than merely undone; (2) when EP11 opens, its
+
+  AWACS work should also close this disclosure gap in a NEW entry (the two 2026-07-18 entries stay
+
+  untouched -- append-only per this store''s own convention); (3) a spec-vs-shipped diff is a check
+
+  distinct from "did the build pass disclose its own simplifications honestly" -- a self-disclosure
+
+  written from inside the build that made the omission cannot see what it did not build, which is exactly
+
+  why this took a fresh read against the spec, not a re-read of the disclosure sections themselves, to
+
+  surface.
+
+
+  ONE WORKER_FINDING FILED (SELF_INTERRUPT_DISCIPLINE, QUEUED not fixed):
+
+  docs/staging/WORKER_FINDING_TWO_HONEST_R10_SECTIONS_NAME_THREE_OF_FOUR_SPECIFIED_REPORTS_2026-08-18.md.
+
+  Distinct from every finding already referenced in this atom''s yaml (those concern the wall''s
+
+  conformance CONTROL; this one concerns the DISCLOSURE convention itself failing on its own terms inside
+
+  two PASS-graded, HARDENED build entries).
+
+
+  OPEN QUESTIONS AFTER THIS PASS. OQ6 (identity of the 93rd published key) unchanged, untouched by this
+
+  pass. NEW-2 (2026-08-18 first pass) -- whether the vintage stamp''s absence from the published artefact
+
+  is a serialisation gap or a population gap -- STILL OPEN, not addressed this pass (this pass took NEW-1
+
+  instead); named explicitly here with its resolution method (a live call-path trace from a
+
+  WallRequest/WallResponse construction site through to whatever, if anything, writes envelope fields
+
+  into run_output_latest.json) so the next draw does not have to re-read five prior passes to find it.
+
+  OQ2-OQ5 of the 2026-08-17 pass carried unchanged.'
 map_notes:
   origin_note: 'C-S3 (asynchronous wall contracts: request and response are separate events in time, never same-step) is the whole point and the thing most likely to be quietly dropped, because same-step is easier and works until it doesn''t. The SIMPLICITY GUARD binds equally hard: no adapters-for-future-adapters, no protocol cathedral -- the wall already provides the seam. Gates every named adapter below.'
   name: 'Protocol typing of the wall: every SIM/company boundary crossing becomes a typed, versioned message with an explicit request/response separation in time, so a mock counterparty and a real one are indistinguishable to the company. The wall IS the go-live seam. Named in the ruling §1 as an Epoch-3 floor item. W4_1_typed_adapters (SATURATED) built the adapter PATTERN; this is the protocol layer every named adapter below plugs into.'
