@@ -14,75 +14,75 @@
   "mprn": null,
   "lifetime_revenue_gbp": 22291.63,
   "lifetime_gross_gbp": 11328.01,
-  "lifetime_net_gbp": 116.4,
-  "lifetime_net_after_cts_gbp": -402.74,
+  "lifetime_net_gbp": 114.28,
+  "lifetime_net_after_cts_gbp": -404.86,
   "cost_to_serve_gbp": 519.13,
   "pricing_action": {
     "flag": "NET_NEGATIVE",
     "recommended_uplift_pct": 1.8
   },
   "avg_hedge_fraction": 0.9152,
-  "clv_gbp": -289.95,
+  "clv_gbp": -291.47,
   "churn_probability": 0.38,
   "expected_lifetime_periods": 10.96,
-  "forecast_annual_profit_gbp": -44.75,
+  "forecast_annual_profit_gbp": -44.98,
   "forecast_cashflow": [
     {
       "year_offset": 1,
-      "undiscounted_gbp": -44.75,
-      "discounted_gbp": -40.68
+      "undiscounted_gbp": -44.98,
+      "discounted_gbp": -40.89
     },
     {
       "year_offset": 2,
-      "undiscounted_gbp": -44.75,
-      "discounted_gbp": -36.98
+      "undiscounted_gbp": -44.98,
+      "discounted_gbp": -37.18
     },
     {
       "year_offset": 3,
-      "undiscounted_gbp": -44.75,
-      "discounted_gbp": -33.62
+      "undiscounted_gbp": -44.98,
+      "discounted_gbp": -33.8
     },
     {
       "year_offset": 4,
-      "undiscounted_gbp": -44.75,
-      "discounted_gbp": -30.56
+      "undiscounted_gbp": -44.98,
+      "discounted_gbp": -30.72
     },
     {
       "year_offset": 5,
-      "undiscounted_gbp": -44.75,
-      "discounted_gbp": -27.79
+      "undiscounted_gbp": -44.98,
+      "discounted_gbp": -27.93
     },
     {
       "year_offset": 6,
-      "undiscounted_gbp": -44.75,
-      "discounted_gbp": -25.26
+      "undiscounted_gbp": -44.98,
+      "discounted_gbp": -25.39
     },
     {
       "year_offset": 7,
-      "undiscounted_gbp": -44.75,
-      "discounted_gbp": -22.96
+      "undiscounted_gbp": -44.98,
+      "discounted_gbp": -23.08
     },
     {
       "year_offset": 8,
-      "undiscounted_gbp": -44.75,
-      "discounted_gbp": -20.88
+      "undiscounted_gbp": -44.98,
+      "discounted_gbp": -20.99
     },
     {
       "year_offset": 9,
-      "undiscounted_gbp": -44.75,
-      "discounted_gbp": -18.98
+      "undiscounted_gbp": -44.98,
+      "discounted_gbp": -19.08
     },
     {
       "year_offset": 10,
-      "undiscounted_gbp": -44.75,
-      "discounted_gbp": -17.25
+      "undiscounted_gbp": -44.98,
+      "discounted_gbp": -17.34
     }
   ],
   "forward_looking_basis": "account",
   "forward_looking_account_id": "C7",
   "commodity_split": {
     "electricity": {
-      "net_gbp": 116.4,
+      "net_gbp": 114.28,
       "revenue_gbp": 22291.63
     },
     "gas": null
@@ -165,7 +165,7 @@
       "year": 2025,
       "revenue_gbp": 0,
       "gross_gbp": 990.59,
-      "net_gbp": 157.51,
+      "net_gbp": 155.39,
       "tariff_min": 181.97,
       "tariff_max": 347.4
     }

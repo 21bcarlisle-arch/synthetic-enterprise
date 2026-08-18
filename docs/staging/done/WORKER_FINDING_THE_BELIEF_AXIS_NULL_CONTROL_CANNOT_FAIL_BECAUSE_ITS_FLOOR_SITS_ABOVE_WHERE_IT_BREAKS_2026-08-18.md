@@ -2,6 +2,49 @@
 
 **Severity:** BLOCKING · **Lane:** D_billing_metering
 
+**Discharged:** `tests/tools/test_couple_w2_11_d5.py::test_the_axis_floor_is_derived_and_not_declared`,
+`tests/tools/test_couple_w2_11_d5.py::test_the_floor_control_fires_on_a_floor_that_was_chosen`,
+`tests/tools/test_couple_w2_11_d5.py::test_the_floor_derivation_cannot_pass_by_being_unavailable`,
+`tests/tools/test_couple_w2_11_d5.py::test_the_floor_derivation_reads_no_declaration_it_grades`,
+`tests/tools/test_couple_w2_11_d5.py::test_widening_the_axis_below_its_floor_turns_the_verdict_red`,
+`tests/tools/test_couple_w2_11_d5.py::test_the_band_shipped_before_this_repair_is_false_at_the_derived_floor`
+— 2026-08-18 worker tick, BUILD on `tools/couple_w2_11_d5.py`, all three repair items taken.
+Re-measured before building rather than trusted: the null control first holds on all three seeds
+at n = 17, the declared band first holds at n = 19, and the shipped floor was 24 — three numbers,
+none derived from another, exactly as filed.
+
+**(1) The floor is DERIVED.** `measure_belief_axis_null_control_floor` returns the smallest n from
+which every seed's drawn invoice span equals `predict_event_age_span_from_constants`'s (30, 92)
+*and keeps equalling it above* — the start of the green tail, not the first green point.
+Independence is the point and is tested: the derivation reads the four scenario constants and no
+declared band, invariant or floor, so `check_belief_axis_floor_is_derived` is a trial and not the
+register agreeing with itself. It runs on `main()`'s default path (~60 predictor books, no
+scorer), because a control over the axis that lives only in the test suite is a control the
+publishing run never meets.
+
+**(2) The missing mutation is in**, both directions and both entries:
+a floor above the derivation (24 — the shipped one) fires naming the excluded window
+`n = [17..23]`; a floor below it (14) fires for admitting books where the sweep moves the law;
+mutating only `belief_population_mix` fires on the sibling, which is how this class survived D28.
+`test_widening_the_axis_below_its_floor_turns_the_verdict_red` is leg 3 itself — the axis, not
+the register, is what moves. Two fail-shapes of the derivation are pinned too: a probe range whose
+own bottom is already green (a search starting above the break, returning its own first element)
+and a probe range where nothing is green (an unavailable derivation is a FAILED one, never a quiet
+pass on the declared literal).
+
+**(3) The band follows the floor**, not the reverse: `above_edge_range` widened (-328, -308) →
+(-333, -308) on both entries, which is what the derived floor admits. `own_saturates_above` is
+unchanged at -308 and still the edge of the read range, so
+`test_the_belief_edges_move_on_the_draw_size_alone`'s asymptote assertion holds unchanged.
+`below_edge_range` is unmoved at (-371, -342) — measured, not assumed. Both floor literals now
+carry their derivation beside them at the declaration site, which is what leg 2 said was missing.
+
+22 targeted tests green. R12: no published number moved or was tuned — the caveat a reader meets
+is still re-derived from the scored book on every call. **STILL OPEN**, filed as this document's
+own lead and NOT discharged here: D31 lead (b), the sibling detection axis
+(`draw_size_axis`, floor 150, `lower_edge_invariant: -6`) has never had its own null-control floor
+measured, and every member of this class so far has turned up one register over.
+
 **Raised:** 2026-08-18, worker tick, D31 DISCOVER pass 3 (LANE 3 idle draw). Full evidence and
 the sweep tables: `docs/design/simplifications/D31_the_recon_grid_saturates_beyond_this_books_window.yaml`,
 note 3.

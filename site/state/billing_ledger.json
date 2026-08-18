@@ -1,6 +1,6 @@
 {
   "meta": {
-    "source_json": "/home/rich/synthetic-enterprise/docs/reports/run_output_cbfe91494_20260818T175531Z.json",
+    "source_json": "/home/rich/synthetic-enterprise/docs/reports/run_output_7c933dbcf_20260818T204939Z.json",
     "invoice_count": 1600,
     "customer_count": 19,
     "held_bill_count": 0,
@@ -62113,8 +62113,8 @@
     "C_IC3": {
       "segment": "I&C",
       "invoice_count": 78,
-      "total_billed_gbp": 7594448.95,
-      "total_paid_gbp": 7531451.9,
+      "total_billed_gbp": 7595558.29,
+      "total_paid_gbp": 7532561.24,
       "balance_gbp": -62997.05,
       "failed_payment_count": 1,
       "arrears_case_count": 1,
@@ -64874,14 +64874,14 @@
           "period_end": "2025-04-30",
           "commodity": "electricity",
           "consumption_kwh": 324612.5,
-          "commodity_amount_gbp": 60308.16,
-          "unit_rate_p_per_kwh": 18.578508,
+          "commodity_amount_gbp": 60717.17,
+          "unit_rate_p_per_kwh": 18.704508,
           "non_commodity_amount_gbp": 17853.69,
           "standing_charge_gbp": 0.0,
           "days_in_period": 30,
           "standing_charge_gbp_per_day": 0.0,
-          "vat_gbp": 15632.37,
-          "total_amount_gbp": 93794.22,
+          "vat_gbp": 15714.17,
+          "total_amount_gbp": 94285.03,
           "issue_date": "2025-05-02",
           "generation_delay_days": 2,
           "due_date": "2025-05-16",
@@ -64898,8 +64898,8 @@
               "register_id": "1",
               "label": "Anytime",
               "consumption_kwh": 324612.5,
-              "amount_gbp": 60308.16,
-              "unit_rate_p_per_kwh": 18.578508
+              "amount_gbp": 60717.17,
+              "unit_rate_p_per_kwh": 18.704508
             }
           ]
         },
@@ -64910,14 +64910,14 @@
           "period_end": "2025-05-31",
           "commodity": "electricity",
           "consumption_kwh": 334866.6,
-          "commodity_amount_gbp": 62006.98,
-          "unit_rate_p_per_kwh": 18.51692,
+          "commodity_amount_gbp": 62428.91,
+          "unit_rate_p_per_kwh": 18.64292,
           "non_commodity_amount_gbp": 18417.66,
           "standing_charge_gbp": 0.0,
           "days_in_period": 31,
           "standing_charge_gbp_per_day": 0.0,
-          "vat_gbp": 16084.93,
-          "total_amount_gbp": 96509.57,
+          "vat_gbp": 16169.31,
+          "total_amount_gbp": 97015.88,
           "issue_date": "2025-06-06",
           "generation_delay_days": 6,
           "due_date": "2025-06-20",
@@ -64934,8 +64934,8 @@
               "register_id": "1",
               "label": "Anytime",
               "consumption_kwh": 334866.6,
-              "amount_gbp": 62006.98,
-              "unit_rate_p_per_kwh": 18.51692
+              "amount_gbp": 62428.91,
+              "unit_rate_p_per_kwh": 18.64292
             }
           ]
         },
@@ -64946,14 +64946,14 @@
           "period_end": "2025-06-07",
           "commodity": "electricity",
           "consumption_kwh": 74221.6,
-          "commodity_amount_gbp": 13756.7,
-          "unit_rate_p_per_kwh": 18.53463,
+          "commodity_amount_gbp": 13850.22,
+          "unit_rate_p_per_kwh": 18.66063,
           "non_commodity_amount_gbp": 4082.19,
           "standing_charge_gbp": 0.0,
           "days_in_period": 7,
           "standing_charge_gbp_per_day": 0.0,
-          "vat_gbp": 3567.78,
-          "total_amount_gbp": 21406.67,
+          "vat_gbp": 3586.48,
+          "total_amount_gbp": 21518.89,
           "issue_date": "2025-06-07",
           "generation_delay_days": 0,
           "due_date": "2025-06-21",
@@ -64970,8 +64970,8 @@
               "register_id": "1",
               "label": "Anytime",
               "consumption_kwh": 74221.6,
-              "amount_gbp": 13756.7,
-              "unit_rate_p_per_kwh": 18.53463
+              "amount_gbp": 13850.22,
+              "unit_rate_p_per_kwh": 18.66063
             }
           ]
         }
@@ -65655,7 +65655,7 @@
         {
           "invoice_number": 1411,
           "payment_date": "2025-05-16",
-          "amount_gbp": 93794.22,
+          "amount_gbp": 94285.03,
           "method": "chaps",
           "outcome": "success",
           "income_stress_at_time": "LOW",
@@ -65664,7 +65664,7 @@
         {
           "invoice_number": 1412,
           "payment_date": "2025-06-20",
-          "amount_gbp": 96509.57,
+          "amount_gbp": 97015.88,
           "method": "chaps",
           "outcome": "success",
           "income_stress_at_time": "LOW",
@@ -65673,7 +65673,7 @@
         {
           "invoice_number": 1413,
           "payment_date": "2025-06-21",
-          "amount_gbp": 21406.67,
+          "amount_gbp": 21518.89,
           "method": "chaps",
           "outcome": "success",
           "income_stress_at_time": "LOW",
@@ -69305,8 +69305,8 @@
     "C_IC4": {
       "segment": "I&C",
       "invoice_count": 66,
-      "total_billed_gbp": 4663062.13,
-      "total_paid_gbp": 4475086.36,
+      "total_billed_gbp": 4664165.48,
+      "total_paid_gbp": 4476189.71,
       "balance_gbp": -187975.77,
       "failed_payment_count": 3,
       "arrears_case_count": 3,
@@ -71618,14 +71618,14 @@
           "period_end": "2025-04-30",
           "commodity": "electricity",
           "consumption_kwh": 238064.2,
-          "commodity_amount_gbp": 36772.1,
-          "unit_rate_p_per_kwh": 15.446296,
+          "commodity_amount_gbp": 37072.06,
+          "unit_rate_p_per_kwh": 15.572295,
           "non_commodity_amount_gbp": 13093.53,
           "standing_charge_gbp": 0.0,
           "days_in_period": 30,
           "standing_charge_gbp_per_day": 0.0,
-          "vat_gbp": 9973.13,
-          "total_amount_gbp": 59838.76,
+          "vat_gbp": 10033.12,
+          "total_amount_gbp": 60198.71,
           "issue_date": "2025-05-03",
           "generation_delay_days": 3,
           "due_date": "2025-05-17",
@@ -71642,8 +71642,8 @@
               "register_id": "1",
               "label": "Anytime",
               "consumption_kwh": 238064.2,
-              "amount_gbp": 36772.1,
-              "unit_rate_p_per_kwh": 15.446296
+              "amount_gbp": 37072.06,
+              "unit_rate_p_per_kwh": 15.572295
             }
           ]
         },
@@ -71654,14 +71654,14 @@
           "period_end": "2025-05-31",
           "commodity": "electricity",
           "consumption_kwh": 248443.6,
-          "commodity_amount_gbp": 38433.35,
-          "unit_rate_p_per_kwh": 15.469648,
+          "commodity_amount_gbp": 38746.39,
+          "unit_rate_p_per_kwh": 15.59565,
           "non_commodity_amount_gbp": 13664.4,
           "standing_charge_gbp": 0.0,
           "days_in_period": 31,
           "standing_charge_gbp_per_day": 0.0,
-          "vat_gbp": 10419.55,
-          "total_amount_gbp": 62517.3,
+          "vat_gbp": 10482.16,
+          "total_amount_gbp": 62892.95,
           "issue_date": "2025-06-02",
           "generation_delay_days": 2,
           "due_date": "2025-06-16",
@@ -71678,8 +71678,8 @@
               "register_id": "1",
               "label": "Anytime",
               "consumption_kwh": 248443.6,
-              "amount_gbp": 38433.35,
-              "unit_rate_p_per_kwh": 15.469648
+              "amount_gbp": 38746.39,
+              "unit_rate_p_per_kwh": 15.59565
             }
           ]
         },
@@ -71690,14 +71690,14 @@
           "period_end": "2025-06-07",
           "commodity": "electricity",
           "consumption_kwh": 243224.6,
-          "commodity_amount_gbp": 32427.6,
-          "unit_rate_p_per_kwh": 13.33237,
+          "commodity_amount_gbp": 32734.06,
+          "unit_rate_p_per_kwh": 13.458367,
           "non_commodity_amount_gbp": 13377.35,
           "standing_charge_gbp": 0.0,
           "days_in_period": 7,
           "standing_charge_gbp_per_day": 0.0,
-          "vat_gbp": 9160.99,
-          "total_amount_gbp": 54965.94,
+          "vat_gbp": 9222.28,
+          "total_amount_gbp": 55333.69,
           "issue_date": "2025-06-09",
           "generation_delay_days": 2,
           "due_date": "2025-06-23",
@@ -71714,8 +71714,8 @@
               "register_id": "1",
               "label": "Anytime",
               "consumption_kwh": 243224.6,
-              "amount_gbp": 32427.6,
-              "unit_rate_p_per_kwh": 13.33237
+              "amount_gbp": 32734.06,
+              "unit_rate_p_per_kwh": 13.458367
             }
           ]
         }
@@ -72291,7 +72291,7 @@
         {
           "invoice_number": 1555,
           "payment_date": "2025-05-17",
-          "amount_gbp": 59838.76,
+          "amount_gbp": 60198.71,
           "method": "chaps",
           "outcome": "success",
           "income_stress_at_time": "LOW",
@@ -72300,7 +72300,7 @@
         {
           "invoice_number": 1556,
           "payment_date": "2025-07-20",
-          "amount_gbp": 62517.3,
+          "amount_gbp": 62892.95,
           "method": "chaps",
           "outcome": "success",
           "income_stress_at_time": "LOW",
@@ -72309,7 +72309,7 @@
         {
           "invoice_number": 1557,
           "payment_date": "2025-06-23",
-          "amount_gbp": 54965.94,
+          "amount_gbp": 55333.69,
           "method": "chaps",
           "outcome": "success",
           "income_stress_at_time": "LOW",
@@ -72391,8 +72391,8 @@
     "SYN-2021-001": {
       "segment": "resi",
       "invoice_count": 43,
-      "total_billed_gbp": 5799.33,
-      "total_paid_gbp": 5801.77,
+      "total_billed_gbp": 5799.53,
+      "total_paid_gbp": 5801.97,
       "balance_gbp": 2.44,
       "failed_payment_count": 1,
       "arrears_case_count": 1,
@@ -73724,14 +73724,14 @@
           "period_end": "2024-12-31",
           "commodity": "electricity",
           "consumption_kwh": 334.0,
-          "commodity_amount_gbp": 83.17,
-          "unit_rate_p_per_kwh": 24.9,
+          "commodity_amount_gbp": 83.18,
+          "unit_rate_p_per_kwh": 24.904,
           "non_commodity_amount_gbp": 24.72,
           "standing_charge_gbp": 18.91,
           "days_in_period": 31,
           "standing_charge_gbp_per_day": 0.61,
           "vat_gbp": 6.34,
-          "total_amount_gbp": 133.14,
+          "total_amount_gbp": 133.15,
           "issue_date": "2025-01-01",
           "generation_delay_days": 1,
           "due_date": "2025-01-15",
@@ -73748,8 +73748,8 @@
               "register_id": "1",
               "label": "Anytime",
               "consumption_kwh": 334.0,
-              "amount_gbp": 83.17,
-              "unit_rate_p_per_kwh": 24.9
+              "amount_gbp": 83.18,
+              "unit_rate_p_per_kwh": 24.904
             }
           ]
         },
@@ -73760,14 +73760,14 @@
           "period_end": "2025-01-31",
           "commodity": "electricity",
           "consumption_kwh": 334.0,
-          "commodity_amount_gbp": 82.49,
-          "unit_rate_p_per_kwh": 24.698,
+          "commodity_amount_gbp": 82.52,
+          "unit_rate_p_per_kwh": 24.707,
           "non_commodity_amount_gbp": 18.37,
           "standing_charge_gbp": 18.91,
           "days_in_period": 31,
           "standing_charge_gbp_per_day": 0.61,
           "vat_gbp": 5.99,
-          "total_amount_gbp": 125.76,
+          "total_amount_gbp": 125.79,
           "issue_date": "2025-02-07",
           "generation_delay_days": 7,
           "due_date": "2025-02-21",
@@ -73784,8 +73784,8 @@
               "register_id": "1",
               "label": "Anytime",
               "consumption_kwh": 334.0,
-              "amount_gbp": 82.49,
-              "unit_rate_p_per_kwh": 24.698
+              "amount_gbp": 82.52,
+              "unit_rate_p_per_kwh": 24.707
             }
           ]
         },
@@ -73796,14 +73796,14 @@
           "period_end": "2025-02-28",
           "commodity": "electricity",
           "consumption_kwh": 334.0,
-          "commodity_amount_gbp": 82.49,
-          "unit_rate_p_per_kwh": 24.698,
+          "commodity_amount_gbp": 82.52,
+          "unit_rate_p_per_kwh": 24.707,
           "non_commodity_amount_gbp": 18.37,
           "standing_charge_gbp": 17.08,
           "days_in_period": 28,
           "standing_charge_gbp_per_day": 0.61,
           "vat_gbp": 5.9,
-          "total_amount_gbp": 123.84,
+          "total_amount_gbp": 123.87,
           "issue_date": "2025-03-01",
           "generation_delay_days": 1,
           "due_date": "2025-03-15",
@@ -73820,8 +73820,8 @@
               "register_id": "1",
               "label": "Anytime",
               "consumption_kwh": 334.0,
-              "amount_gbp": 82.49,
-              "unit_rate_p_per_kwh": 24.698
+              "amount_gbp": 82.52,
+              "unit_rate_p_per_kwh": 24.707
             }
           ]
         },
@@ -73832,14 +73832,14 @@
           "period_end": "2025-03-31",
           "commodity": "electricity",
           "consumption_kwh": 382.4,
-          "commodity_amount_gbp": 94.44,
-          "unit_rate_p_per_kwh": 24.697,
+          "commodity_amount_gbp": 94.47,
+          "unit_rate_p_per_kwh": 24.704,
           "non_commodity_amount_gbp": 21.03,
           "standing_charge_gbp": 18.88,
           "days_in_period": 31,
           "standing_charge_gbp_per_day": 0.609,
           "vat_gbp": 6.72,
-          "total_amount_gbp": 109.93,
+          "total_amount_gbp": 109.97,
           "issue_date": "2025-04-05",
           "generation_delay_days": 5,
           "due_date": "2025-04-19",
@@ -73855,8 +73855,8 @@
           "catchup_period_end": "2025-02-28",
           "catchup_periods_covered": 12,
           "catchup_direction": "overcharge",
-          "catchup_raw_delta_gbp": -31.14,
-          "catchup_adjustment_gbp": -31.14,
+          "catchup_raw_delta_gbp": -31.13,
+          "catchup_adjustment_gbp": -31.13,
           "catchup_written_off_gbp": 0.0,
           "catchup_back_billing_cap_applied": false,
           "registers": [
@@ -73864,8 +73864,8 @@
               "register_id": "1",
               "label": "Anytime",
               "consumption_kwh": 382.4,
-              "amount_gbp": 94.44,
-              "unit_rate_p_per_kwh": 24.697
+              "amount_gbp": 94.47,
+              "unit_rate_p_per_kwh": 24.704
             }
           ]
         },
@@ -73876,14 +73876,14 @@
           "period_end": "2025-04-30",
           "commodity": "electricity",
           "consumption_kwh": 344.9,
-          "commodity_amount_gbp": 85.17,
-          "unit_rate_p_per_kwh": 24.694,
+          "commodity_amount_gbp": 85.2,
+          "unit_rate_p_per_kwh": 24.703,
           "non_commodity_amount_gbp": 18.97,
           "standing_charge_gbp": 18.3,
           "days_in_period": 30,
           "standing_charge_gbp_per_day": 0.61,
           "vat_gbp": 6.12,
-          "total_amount_gbp": 128.56,
+          "total_amount_gbp": 128.59,
           "issue_date": "2025-05-01",
           "generation_delay_days": 1,
           "due_date": "2025-05-15",
@@ -73900,8 +73900,8 @@
               "register_id": "1",
               "label": "Anytime",
               "consumption_kwh": 344.9,
-              "amount_gbp": 85.17,
-              "unit_rate_p_per_kwh": 24.694
+              "amount_gbp": 85.2,
+              "unit_rate_p_per_kwh": 24.703
             }
           ]
         },
@@ -73912,14 +73912,14 @@
           "period_end": "2025-05-31",
           "commodity": "electricity",
           "consumption_kwh": 344.9,
-          "commodity_amount_gbp": 85.17,
-          "unit_rate_p_per_kwh": 24.694,
+          "commodity_amount_gbp": 85.2,
+          "unit_rate_p_per_kwh": 24.703,
           "non_commodity_amount_gbp": 18.97,
           "standing_charge_gbp": 18.91,
           "days_in_period": 31,
           "standing_charge_gbp_per_day": 0.61,
           "vat_gbp": 6.15,
-          "total_amount_gbp": 129.2,
+          "total_amount_gbp": 129.23,
           "issue_date": "2025-06-01",
           "generation_delay_days": 1,
           "due_date": "2025-06-15",
@@ -73936,8 +73936,8 @@
               "register_id": "1",
               "label": "Anytime",
               "consumption_kwh": 344.9,
-              "amount_gbp": 85.17,
-              "unit_rate_p_per_kwh": 24.694
+              "amount_gbp": 85.2,
+              "unit_rate_p_per_kwh": 24.703
             }
           ]
         },
@@ -73948,14 +73948,14 @@
           "period_end": "2025-06-07",
           "commodity": "electricity",
           "consumption_kwh": 344.8,
-          "commodity_amount_gbp": 85.17,
-          "unit_rate_p_per_kwh": 24.7,
+          "commodity_amount_gbp": 85.2,
+          "unit_rate_p_per_kwh": 24.71,
           "non_commodity_amount_gbp": 18.97,
           "standing_charge_gbp": 4.27,
           "days_in_period": 7,
           "standing_charge_gbp_per_day": 0.61,
           "vat_gbp": 5.42,
-          "total_amount_gbp": 113.83,
+          "total_amount_gbp": 113.86,
           "issue_date": "2025-06-08",
           "generation_delay_days": 1,
           "due_date": "2025-06-22",
@@ -73972,8 +73972,8 @@
               "register_id": "1",
               "label": "Anytime",
               "consumption_kwh": 344.8,
-              "amount_gbp": 85.17,
-              "unit_rate_p_per_kwh": 24.7
+              "amount_gbp": 85.2,
+              "unit_rate_p_per_kwh": 24.71
             }
           ]
         }
@@ -74297,7 +74297,7 @@
         {
           "invoice_number": 1594,
           "payment_date": "2025-01-15",
-          "amount_gbp": 133.14,
+          "amount_gbp": 133.15,
           "method": "standard_credit",
           "outcome": "success",
           "income_stress_at_time": "LOW",
@@ -74306,7 +74306,7 @@
         {
           "invoice_number": 1595,
           "payment_date": "2025-02-21",
-          "amount_gbp": 125.76,
+          "amount_gbp": 125.79,
           "method": "standard_credit",
           "outcome": "success",
           "income_stress_at_time": "LOW",
@@ -74315,7 +74315,7 @@
         {
           "invoice_number": 1596,
           "payment_date": "2025-03-15",
-          "amount_gbp": 123.84,
+          "amount_gbp": 123.87,
           "method": "standard_credit",
           "outcome": "success",
           "income_stress_at_time": "LOW",
@@ -74324,7 +74324,7 @@
         {
           "invoice_number": 1597,
           "payment_date": "2025-04-19",
-          "amount_gbp": 109.93,
+          "amount_gbp": 109.97,
           "method": "standard_credit",
           "outcome": "success",
           "income_stress_at_time": "LOW",
@@ -74333,7 +74333,7 @@
         {
           "invoice_number": 1598,
           "payment_date": "2025-05-15",
-          "amount_gbp": 128.56,
+          "amount_gbp": 128.59,
           "method": "standard_credit",
           "outcome": "success",
           "income_stress_at_time": "LOW",
@@ -74342,7 +74342,7 @@
         {
           "invoice_number": 1599,
           "payment_date": "2025-06-29",
-          "amount_gbp": 129.2,
+          "amount_gbp": 129.23,
           "method": "standard_credit",
           "outcome": "success",
           "income_stress_at_time": "LOW",
@@ -74351,7 +74351,7 @@
         {
           "invoice_number": 1600,
           "payment_date": "2025-06-22",
-          "amount_gbp": 113.83,
+          "amount_gbp": 113.86,
           "method": "standard_credit",
           "outcome": "success",
           "income_stress_at_time": "LOW",
