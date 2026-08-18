@@ -4085,7 +4085,7 @@
   couples_with: []
   records_rehomed: [evidence]
   file_scope: []
-  simplifications_count: 5   # 2026-08-17 pass 5: the margin-basis repair that produced the live GBP 1,288,252.96 valuation is in NO commit -- 3 of its discharge's 4 falsifiers are untracked files, and HEAD publishes a basis sentence no code at HEAD can write
+  simplifications_count: 6   # 2026-08-18 pass 6: ran the check the null-CLV finding declined to run -- 5 of 13 accounts publish clv_gbp null, the annual report's quadrant boundary counts them as GBP 0, and the board instruction at ANNUAL_REPORT.md:2237 names two accounts (C2, C8) as priority retention targets that a manufactured zero put there; finding escalated LATENT -> BLOCKING
 - id: EP2_variance_learning_loop
   title: "Expected minus realised, fed back into belief"
   gain: "Margin volatility becomes explained variance or a named defect, instead of a shrug."

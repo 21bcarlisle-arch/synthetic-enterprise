@@ -253,6 +253,222 @@ simplifications:
   both H_harness so it consolidates either way; --check PASS).
 
   '
+- 'RUNG-1c BLOCKING REPAIR (2026-08-18, worker tick, LANE 1 BUILD draw on this atom;
+
+  the blocking finding drew ahead of the general disposition queue under OPS12
+
+  clause 3). THE LEVEL DOES NOT MOVE: `level_current` stays 2. This is a targeted
+
+  repair of a BLOCKING finding raised the same day, not the fresh cold-eyes Hour
+
+  #31''s promotion condition asks for, and an Hour that works from the build''s own
+
+  memory is not the Hour that clears the instrument.
+
+
+  THE FINDING, discharged:
+
+  `docs/staging/done/WORKER_FINDING_THE_BELIEF_BAND_CENSUS_IS_BLIND_TO_THE_POPULATION_THAT_SETS_THE_EDGE_2026-08-18.md`
+
+  (class `controls_that_cannot_fail`, lane D_billing_metering -- refused
+
+  consolidation out of lane, so it stays its own document and the class doc drops
+
+  it on archive). It is the SIBLING HALF of what D28 repaired on the detection
+
+  register that same morning, one register over, and its three legs were verified
+
+  against the live module before any of this was written rather than taken from
+
+  the document.
+
+
+  LEG 1 REPRODUCED, not assumed. Swept through the shipped
+
+  `measure_belief_window_resolution` over n_customers {12,24,40,60,120,200,300,
+
+  600,1200} x seeds {7,11,23}: `own_saturates_above` takes SIX distinct values
+
+  (-333,-328,-320,-313,-309,-308) and `own_saturates_below` FIVE
+
+  (-371,-370,-367,-355,-342). The declared pair is the large-n ASYMPTOTE of a
+
+  quantity the DRAW SIZE moves by 20d (above, seed 7) and 29d (below, seed 11).
+
+  Cause, and it is the same sentence as leg 3: both edges are read off OBSERVED
+
+  FAILURES, and a failure has to LAND on the extreme invoice for the span to
+
+  reach it, which is a draw.
+
+
+  BUILT (1) -- SCOPE AND AXIS, the shape D28 landed next door.
+
+  `own_saturation_scope` (n=300, seeds 7/11/23) and `own_draw_size_axis` now sit
+
+  on BOTH belief entries: the four literals rode every book the scorer was ever
+
+  run over. The scope is per-entry deliberately -- `belief_population_mix` declares
+
+  -309 against `belief`''s -308 and that one-day difference is its own bluntness on
+
+  the n=300 book, so the number and the draw size that produced it are one claim.
+
+  The axis is shared, because both dimensions read the same failure span and it is
+
+  the span, not the dimension, the draw size moves.
+
+
+  BUILT (2) -- THE AXIS THOSE CONTROLS CANNOT REACH.
+
+  `measure_belief_band_population_axis` + `check_belief_band_population_axis`,
+
+  21 books (7 draw sizes x 3 seeds), wired into `main()` on the DEFAULT path with
+
+  its verdict and its null control rendered. This is leg 2''s answer:
+
+  `measure_dimension_drift_resolution` and `measure_own_drift_resolution` are
+
+  genuine measurements that would genuinely fire at n=300, but both are called
+
+  with a HARD LITERAL 300 at their sole call site in `main()`, whose own
+
+  `--customers` defaults to 4000 -- so the only population the declarations could
+
+  fail on was the one that produced them. Affordable ONLY because it predicts:
+
+  predictor-only, no `score_triad` call, 21 books in ~2s against the ~35 minutes
+
+  the same sweep would cost as a re-scoring. That is why the question had never
+
+  been asked of these two entries.
+
+
+  BUILT (3) -- THE FAIL-OPEN, closed. `measure_scenario_constant_census` aged
+
+  EVERY record (`ages = sorted((as_of - r.due_date).days for r in records)`) while
+
+  the edges it guards are read off failures only. The invoice side is dense by
+
+  construction -- every account draws every period -- so it hits the constants''
+
+  band [30,92] at every n from 24 up, and `describes_this_book` therefore answered
+
+  True with ZERO census violations on books whose failure-side edge was twenty
+
+  days off the declaration (measured: n=24/40/60/120/300 seed 7, edges
+
+  -328/-313/-309/-309/-309 against a declared -308). R15''s FAIL-OPEN pattern, in
+
+  the control this atom''s own map note cites under "ALREADY LANDED" as the rule
+
+  that stops an edge rotting unnoticed. The census now measures BOTH populations
+
+  and publishes both switches; `_check_census_measured_the_edge_setting_population`
+
+  fails closed on a measurement missing the failure-side keys, and on a book that
+
+  presents invoices and no failure at all.
+
+
+  AND IT REACHES THE READER, which is the half a register-only repair would have
+
+  missed. `scenario_constant_census_caveat` published the INVOICE span as the
+
+  sentence "Both belief dimensions resolve a company memory error only between Xd
+
+  and Yd" -- false on every book where a failure misses the extreme invoice. It
+
+  now reports the invoice span AS THE INVOICES'', states the belief dimensions'' own
+
+  (failure-side) band beside it, and says out loud when the two differ.
+
+
+  WHY `describes_this_book` WAS NOT SIMPLY REPOINTED. The constants genuinely do
+
+  place the invoices, so that attribution is sound and must not be made to read
+
+  red by a question it was never about. The dishonest part was a green verdict
+
+  that READ as though it had covered the edge. Hence two switches, both published,
+
+  rather than one switch with a moved subject.
+
+
+  R15 BOTH WAYS, 15 new test CASES across 9 functions (7 of them the parametrised
+
+  mutation matrix; counted by collection, not by hand -- the note first said 14).
+
+  GREEN on the shipped register; RED on seven named
+
+  mutations -- the shipped defect itself (scope removed, `belief`), the same rule
+
+  reaching the SIBLING entry (the half D28''s repair left behind), a scope naming a
+
+  draw size the axis never visits, each declared edge range narrowed, a literal
+
+  outside every measurement, and the NULL CONTROL falsified. Plus the fail-open
+
+  mutation whose input IS the shipped measurement (strip the failure-side keys ->
+
+  "green about a band it never looked at"), the vacuity case (invoices, no
+
+  failure), and the pinned-population case the finding specified by name: pin the
+
+  sweep to n=(300,) -- exactly what the two resolution controls do -- and every
+
+  seed''s spread collapses to 0 with the defect untouched, which the control now
+
+  SAYS rather than passing quietly.
+
+
+  THE NULL CONTROL, and the finding owed it. Over the identical sweep the two
+
+  quantities that must NOT move do not: `predict_event_age_span_from_constants`
+
+  returns (30,92) at every point (it reads no draw) and the census''s invoice-side
+
+  span is (30,92) on all 21 books. The sweep moves the SAMPLE, not the LAW -- so
+
+  the failure-side movement is a property of the realisation and not an artefact
+
+  of the perturbation. It is declared in the register (`invoice_span_invariant`)
+
+  rather than left in a test, and falsifying it is one of the seven mutations.
+
+
+  R12: NO PUBLISHED FIGURE MOVED. Nothing this instrument computes was touched --
+
+  only a register''s scope fields, a new axis, the census''s subject and the wording
+
+  of a caveat. Checked at the draw the module actually publishes from (n=4000,
+
+  seed 7): there the failure span and the invoice span COINCIDE at [30,92], so the
+
+  divergence clause does not fire and the shipped sentence''s substance is
+
+  unchanged. That is pinned in `test_the_census_caveat_names_the_edge_setting_population`,
+
+  which asserts the clause fires at n=300 seed 7 (failures reach 91d, invoices
+
+  92d) and does NOT at n=4000.
+
+
+  LEFT OPEN, stated rather than implied. The two resolution controls are still
+
+  called with `n_customers=300` hard-coded in `main()`. That literal was NOT
+
+  removed: the axis is the answer to leg 2 (the same disposition D28 took on its
+
+  sibling), because unpinning those two would buy a ~35-minute default run for a
+
+  question the 2-second predictor axis now answers on 21 books instead of one. If
+
+  a later Hour wants the scorer''s own opinion across the axis it is a declared-flag
+
+  check, not a default-path one.
+
+  '
 map_notes:
   harden_note: 'HARDEN PASS RAN 2026-08-08 (commit 72ecfff7d); recorded here 2026-08-08 because the pass fixed code and tests but left the map cell silent -- the work was invisible to the map, and a silent cell is why the self-refill kept re-drawing this atom for a level move it cannot make. Delivered, both mutation-proven: (1) the DD-channel LEAK WITNESS was VACUOUS -- `n_flagged_non_dd_failures == 0` passes identically when the channel observes nothing at all as when it observes cleanly, so a vacuity guard now carries it (test_leak_witness_is_vacuous_without_its_channel_guard pins the defect the guard closes); (2) three silent `.get()` JOIN DROPS had no witness -- `value_date`/`invoice_ref`/`reference` key drift would have pushed the measured gap toward the no-skill baseline with nothing firing, so n_unjoined_dd_failures / n_unjoined_collection_misses / n_ageing_refs_matched are now asserted against a deliberate key drift. 24/24 green. NEW FINDING from the pass, reported not tuned (R12): the headline DETECTION gap is INSENSITIVE TO THE ENTIRE DD-OBSERVATION CHANNEL -- `flagged_set` is a UNION, `n_flagged_via_dd_channel_only == 0` across seeds 7/11/23, so killing the DD channel outright leaves the published number bit-identical. Structurally reasonable (a rail failure means the cash did not arrive, which reconciliation also sees) but it means set-membership detection is blind to the only thing that channel buys: EARLIER detection. That test is labelled CHARACTERIZATION deliberately -- it pins a measured limit, not a contract, and is expected to fire if the channel ever starts contributing.'
   level_hold_note: 'HELD AT L2 (level_current 2, level_target 3). THIS NOTE WAS COMPACTED ON 2026-08-17 BY EXPERT HOUR #33 AND THAT COMPACTION IS ITSELF A FINDING. It had reached 54,930 chars -- 81% of this atom''s store file, which the append pushed to 67,812 B against the 65,536 B ROLL_WATERMARK, and `roll_for_atom` returned 0 because the roll chunks LIST entries and this is one string field the roll cannot split. The record of the atom had become unwritable: the wedge `test_the_live_store_has_roll_headroom` exists to catch, caught. Thirty-three Hours appending to one field is the cause; Hour #33 only tipped it. The store''s own contract is the authority for the fix (`set_note_for_atom`: a note is a CURRENT statement, revision is the correct semantics, and the durable history of what changed lives in git) -- so the full 54,930-char note is in this file''s git history and in the commit that landed Hour #33, nothing is deleted, and what follows is what is CURRENTLY TRUE. Hours #3-#32''s individual narratives are there, not here.

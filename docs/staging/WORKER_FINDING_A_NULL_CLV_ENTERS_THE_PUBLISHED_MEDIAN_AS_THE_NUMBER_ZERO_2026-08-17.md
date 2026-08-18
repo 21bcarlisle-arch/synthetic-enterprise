@@ -1,6 +1,13 @@
 # WORKER FINDING — a null CLV enters the published median, percentile and sum as the number zero
 
-**Severity:** LATENT · **Lane:** D_billing_metering · **Disposition:** QUEUED (not fixed on sight)
+**Severity:** BLOCKING · **Lane:** D_billing_metering · **Disposition:** QUEUED (not fixed on sight)
+
+**Severity ESCALATED LATENT → BLOCKING 2026-08-18** (worker tick, LANE 3 DISCOVER draw on
+`EP1_clv_three_horizon`, pass 6) by running the one check this document said it had not run —
+see "The check this finding declined to run" at the foot. A published figure is not merely at
+risk; `docs/reports/ANNUAL_REPORT.md:2237` at HEAD `9718066ce` names five accounts to the board
+as priority retention targets, and two of them are on that list only because five manufactured
+zeros sat beneath them in the sort. That is the BLOCKING trigger verbatim.
 
 **Found:** 2026-08-17 worker tick, during the repo-wide sweep closure item 3 of
 `WORKER_FINDING_THE_PUBLISH_PATH_SWALLOWED_199_GENERATOR_CRASHES_2026-08-17.md` asked for
@@ -77,3 +84,88 @@ or report alongside a coverage count) is a design question, not a patch.
 3. R15 — the control must be able to fail: swap one account's `clv_gbp` between null and 0.0
    and the published median must MOVE. If it does not, the control is measuring nothing
    (cf. the swap-the-belief-between-two-units technique).
+
+---
+
+## The check this finding declined to run (2026-08-18, worker tick, EP1 LANE 3 pass 6)
+
+This document stopped, deliberately and correctly, at "it is not currently known to have moved
+a headline the director has read: this finding measures the mechanism and the exposed
+population, and deliberately stops short of claiming a specific published figure is wrong,
+because that check has not been run." The check has now been run. Everything below is
+`observed-with-evidence` (R9), measured at HEAD `9718066ce` against
+`docs/reports/run_output_latest.json` and the committed `docs/reports/ANNUAL_REPORT.md`.
+
+**The site the finding did not name is the one that publishes a board instruction.**
+`saas/reporting/annual_report.py::_section_customer_strategic_value` is where `clvs[n // 2]`
+lands: the median is not a reported statistic there, it is the **quadrant boundary** of the
+Customer Strategic Value Matrix, and the section ends in
+
+    **Board action: CRITICAL quadrant has 5 account(s). High CLV at risk from elevated churn
+    probability. Immediate retention offers recommended.**
+
+— `docs/reports/ANNUAL_REPORT.md:2237`, committed, present at HEAD (`git grep` on HEAD, not on
+the working tree). The median itself renders at `:2194` as `Median CLV: £791.98`.
+
+**Population, re-measured this tick:** 13 electricity billing accounts, 5 with `clv_gbp: null`
+(C1, C3, C4, C5, C6 — the ceased book; each also `expected_lifetime_periods: null`), 8 valued.
+Same 5-of-13 the finding recorded.
+
+**R15, the mutation this document itself proposed, executed on the shipped section builder.**
+The proposal was: "swap one account's `clv_gbp` between null and 0.0 and the published median
+must MOVE. If it does not, the control is measuring nothing." Calling
+`_section_customer_strategic_value` on the real run output, then again with all five nulls
+replaced by explicit `0.0`:
+
+    as published    sha256[:12] d997858d414a
+    nulls -> 0.0    sha256[:12] d997858d414a   IDENTICAL
+
+Byte-identical. The distinction `build_clv` and `_round_or_none` are built to preserve — a
+`null` is *not applicable*, a `0.0` is *worth nothing* — does not survive to the aggregation
+site at all. The control measures nothing, as predicted.
+
+**What the substitution actually moves, decomposed so the two effects are not conflated.**
+
+*Effect A — the mechanism this finding names, in isolation.* Hold the population at 13 and the
+churn boundary at its published 0.29; change only whether the five nulls enter the CLV order:
+
+    med_clv  £791.98 (as shipped)  ->  £38,255.61   (48x)
+    CRITICAL {C2, C8, C_IC1, C_IC2, C_IC3}  ->  {C_IC1, C_IC2, C_IC3}
+
+**C2 (£791.98) and C8 (£1,163.69) are published under the heading "High CLV, High Churn —
+priority intervention" and inside a board recommendation for immediate retention offers.**
+They are the 7th and 6th largest of the 8 accounts that have a CLV at all. They clear a "High
+CLV" boundary of £791.98 that exists only because five accounts with no CLV were counted as
+worth zero. C2 clears it by being *equal to* it.
+
+*Effect B — the population question, for completeness.* Removing the five unvalued accounts
+outright (the finding's own preferred repair, "exclude from the population and publish the
+excluded count beside the figure") also moves the churn boundary 0.29 -> 0.35, because those
+five carry real churn probabilities. Executed on the shipped builder:
+
+    Median CLV: £38,255.61 | Median churn: 35%
+    **Board action: CRITICAL quadrant has 1 account(s). ...**
+
+**The conclusion is robust to which repair is chosen**, which is why it is stated as a defect
+rather than as a preference: the median is £38,255.61 under exclusion and £38,255.61 under
+Effect A alone. Only the current silent zero yields £791.98. No honest treatment of a
+structural blank reproduces the published figure.
+
+**Sized honestly, and no larger.** The wrong figure is in the committed annual report, not on
+the live site: `grep -rl "Strategic Value Matrix\|CRITICAL quadrant" site/` returns nothing, and
+the live `https://poesys.net/data/company.json` publishes `enterprise_value_gbp` and a null
+`household.clv_gbp`, not the matrix. `total_clv` is unaffected (£1,283,652.65 either way) — the
+sum was always the harmless case, exactly as this document said. What is wrong is the boundary,
+the quadrant memberships it decides, and the board instruction that counts them.
+
+**One further defect at the same line, recorded not escalated.** `clvs[n // 2]` is not a median
+for even *n* — it is the upper of the two middle values. With the nulls excluded the population
+is 8, so the published boundary would be the 5th of 8. It happens not to change any conclusion
+above, and it is named here so that whoever repairs the null handling does not inherit it
+silently.
+
+**What this adds to "what would close it".** Item 1 (decide what the aggregates do with a null)
+and item 2 (close the class, R10) stand unchanged. Item 3's mutation is now **executed and
+failing** on today's code, so it is available as the falsifier a repair discharges against
+rather than as a proposal — and the repair must move `_section_customer_strategic_value`'s
+rendered board line, not merely a median, because that line is what a reader acts on.
