@@ -1,3 +1,18 @@
+<!-- MOVED TO in_progress/ 2026-08-18 (worker tick) -- re-verified against real disk state rather
+     than left to re-doorbell every scan. Step 1 (ollama/llama-server) is now FULLY discharged and
+     durable: `systemctl --user status ollama` returns "Unit ollama.service could not be found" and
+     no `llama-server` process exists -- the "STILL OPEN -- operator only" root-disable this doc's own
+     receipt named has since happened (by the director or another seat; not this tick). Step 2
+     (headroom governor) is BUILT but NOT WIRED: `background/resource_headroom.py` (561 lines) +
+     `tests/background/test_resource_headroom.py` exist, but `grep -rl resource_headroom --include=*.py .`
+     finds no caller anywhere outside its own module/test -- it is a `no_caller_and_never_runs` class
+     instance, not a governing mechanism; nothing declares/defers against it yet. Step 3 (tmpfs-aware
+     preflight + OOM classification) reads as substantially built: `background/process_run_complete.py`
+     measures real RAM/disk rather than filesystem free-space (extensive tmpfs-aware logic, multiple
+     hardening passes referenced in its own comments). BLOCKING SUB-ITEM: step 2's wiring gap --
+     nothing in `sim_runner.py`/`background_worker.py`/the publish path currently calls
+     `resource_headroom.observe()`/`admit()`, so the governor cannot yet defer anything. Not fixed on
+     sight (SELF_INTERRUPT_DISCIPLINE: real but non-blocking, queued for a future BUILD draw). -->
 # [DIRECTOR-PRIORITY] — Memory cleanse: reclaim the 6GB tonight, govern the rest (2026-08-10)
 
 **Severity:** LATENT · **Lane:** H_harness
