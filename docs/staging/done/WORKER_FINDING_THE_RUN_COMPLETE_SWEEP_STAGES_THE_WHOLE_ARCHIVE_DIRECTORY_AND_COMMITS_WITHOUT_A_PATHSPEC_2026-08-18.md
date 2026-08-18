@@ -2,6 +2,12 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
+**Discharged:** `background/process_run_complete.py`,
+`tests/background/test_the_publish_commit_carries_only_its_own_work.py::test_the_publish_does_not_stage_the_whole_archive_directory`,
+`tests/background/test_the_publish_commit_carries_only_its_own_work.py::test_the_publish_commit_names_its_paths_rather_than_committing_the_index`,
+`tests/background/test_the_publish_commit_carries_only_its_own_work.py::test_the_runs_own_marker_is_still_committed`
+— (A) and (B) only; (C)/(D)/(E) are carried forward, see §4.
+
 **Found:** 2026-08-18, worker tick, while building the class fix owed by
 `WORKER_FINDING_THE_DISCHARGE_RELEASE_READS_THE_NODE_FROM_THE_WORKING_TREE_AND_ITS_CONTROL_READS_ONLY_THE_FILE_2026-08-18.md`
 §6(C). That finding put this as a QUESTION ("should `process_run_complete.py` commit
@@ -63,10 +69,43 @@ no ability to check the thing that move asserts.
 
 ## 3. Disposition and what is owed
 
-* **Not repaired in this tick, deliberately.** The tick that found it was drawn on a different
-  BLOCKING finding in the same lane and landed that one; fixing this on sight is the treadmill
-  SELF_INTERRUPT_DISCIPLINE names. It is registered here so it is drawable, which is precisely what
-  the defect denies its own victims.
+**(A) and (B) landed, 2026-08-18** (this tick, drawn on this finding as the lane's live BLOCKING
+item). **(C), (D) and (E) are NOT landed and are carried forward in a root-level staging document**
+— see §4 — because archiving this page to `done/` is the very move that would end their
+drawability, which is the defect this document is about.
+
+### What landed
+
+* **(A) The pathspec — done.** `git commit -m msg -- <paths>` on the publish path, built by a new
+  `_commit_pathspec(files, extra_relative)`. It carries two properties the bare list did not: it
+  DROPS a candidate git cannot match (an unmatched pathspec makes git reject the *whole* commit, so
+  the naive fix would have traded a scoping defect for an availability one), and it KEEPS a path
+  staged as a deletion but absent from the worktree (`HEAD:<rel>` resolves), or the `-A` fold of
+  `docs/design/atom_status` would sit staged forever and be committed by the next writer —
+  reintroducing the same defect one file at a time. An empty pathspec is a REFUSAL, not a
+  `git commit -m msg --`, which is a bare index commit reached by degradation; and the refusal is
+  classified `COMMIT_REFUSED`, deliberately not `NOTHING_TO_COMMIT`, because the latter is in
+  `RETRYABLE_PUBLISH_OUTCOMES` and would fingerprint the cycle as a genuine no-op — the run would
+  then never publish again.
+* **(B) The directory add — done.** `_MARKERS_ARCHIVED_BY_THIS_RUN` records what THIS process moved
+  into `done/`, at both archive sites (`_archive_marker` and the inline move in `_process`), and
+  the commit list is built from that record. A path this process did not move cannot appear in it,
+  whatever else is sitting in `done/`. The capability the directory add existed for — a
+  `run_complete_*.md` moved to `done/` and never committed sits untracked forever, observed 7+
+  times — is preserved and has its own differential test.
+* **The lock comment.** It claimed a protection the lock does not provide, which §1 names as why
+  nobody looked again for three weeks. It now says what actually stops the sweep.
+
+**R15, all eight mutations killed** (`background/process_run_complete.py` restored byte-identical
+after the battery): restore the `DONE_DIR` directory add; stop recording archived markers (the
+DIFFERENTIAL — proves the scoping did not simply delete the capability); revert to a bare
+`git commit`; drop the `extra_relative` fold paths; pass the pathspec through unfiltered; filter on
+`exists()` alone; delete the empty-pathspec guard; classify the refusal as `NOTHING_TO_COMMIT`.
+Regression: 151 passed across `test_process_run_complete`, `test_published_provenance_is_real`,
+`test_publish_scope`, `test_publish_provenance`, `test_a_duplicate_marker_is_not_a_publish`.
+
+### What was owed, as originally written
+
 * **(A) The pathspec.** `git commit -m msg -- <files>` on the publish path, using the list the
   function already built. Reversible, mechanical, and the same module already does it 400 lines
   later. *Inferred:* this alone removes the swept-index half.
@@ -89,3 +128,22 @@ no ability to check the thing that move asserts.
   archived page.** The uncommitted D30 repair in the working tree moves that atom's declared band
   (`above_edge_range` `(-328, -308)` → `(-333, -308)`) and its axis floor (`n_customers` 24 → 17)
   without writing D30's store record. *Inferred:* that belongs on D30's next draw.
+
+## 4. The residue, and why it is not in this file
+
+(C), (D) and (E) above are unlanded. They are restated in
+`docs/staging/WORKER_FINDING_THE_ARCHIVE_HAS_NO_CHOKEPOINT_SO_NOTHING_CAN_REFUSE_A_PREMATURE_DONE_2026-08-18.md`,
+a root-level document the staging scanners read.
+
+This is not duplication for its own sake. §2 of this page states the mechanism: `done/` is not
+read by any scanner, so moving a document there ENDS its drawability. Archiving this page with
+three unlanded items inside it would perform, on its own residue, precisely the irreversible
+bookkeeping move it was written to stop. The residue moves to a page that is still drawn; this one
+is archived because the work it names is done.
+
+One thing (C) turned out to need that the original text assumed away: there is **no archiver** to
+put the check in. Finding documents are moved into `done/` by hand, by whichever tick closes them
+— `_archive_marker` handles only `run_complete_*` markers. So (C) is not a one-call addition to an
+existing function; it is a pre-commit gate on the class of commit that ADDS a path under
+`docs/staging/done/`. That is a build, not a follow-on edit, and it is scoped as one on the new
+page.

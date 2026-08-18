@@ -762,19 +762,50 @@ def _write_last_fingerprint(fp):
     LAST_FINGERPRINT_FILE.write_text(json.dumps(fp, sort_keys=True))
 
 
+# THE PUBLISH COMMIT MUST NOT ARCHIVE WHAT IT DID NOT AUTHOR (2026-08-18, BLOCKING finding
+# WORKER_FINDING_THE_RUN_COMPLETE_SWEEP_STAGES_THE_WHOLE_ARCHIVE_DIRECTORY_AND_COMMITS_WITHOUT_A_PATHSPEC).
+#
+# `git_commit_push` used to stage `docs/staging/done` as a DIRECTORY, so `git add` swept every
+# file underneath it -- including a finding document another lane had moved into `done/` seconds
+# earlier and had not committed. Commit `96c665098` did exactly that to two BLOCKING findings
+# from two other lanes and carried NEITHER of their repairs.
+#
+# Moving a document into `done/` is not filing, it is the step that ENDS its drawability: the
+# staging scanners read the root, not `done/`. So the sweep performed the one irreversible
+# bookkeeping move in this system on documents it did not author and could not check.
+#
+# The fix is to make the publish structurally incapable of it rather than careful about it: this
+# process records the markers IT archived, by name, and the commit list is built from that record.
+# A path this process did not move cannot appear in it, whatever else is sitting in `done/`.
+_MARKERS_ARCHIVED_BY_THIS_RUN: list[str] = []
+
+
+def _record_archived_marker(dest):
+    """Note that THIS process moved `dest` into done/, so the publish may commit it."""
+    path = str(dest)
+    if path not in _MARKERS_ARCHIVED_BY_THIS_RUN:
+        _MARKERS_ARCHIVED_BY_THIS_RUN.append(path)
+
+
 def _archive_marker(marker):
     """Move a processed/skipped marker into done/ so markers don't accumulate."""
     DONE_DIR.mkdir(parents=True, exist_ok=True)
+    dest = DONE_DIR / marker.name
     try:
-        marker.rename(DONE_DIR / marker.name)
+        marker.rename(dest)
+        _record_archived_marker(dest)
         return True
     except FileNotFoundError:
-        return (DONE_DIR / marker.name).exists()
+        if dest.exists():
+            _record_archived_marker(dest)
+            return True
+        return False
     except OSError:
         # Cross-device or similar — fall back to copy + unlink.
         import shutil
-        shutil.copy2(str(marker), str(DONE_DIR / marker.name))
+        shutil.copy2(str(marker), str(dest))
         marker.unlink(missing_ok=True)
+        _record_archived_marker(dest)
         return True
 
 
@@ -3113,6 +3144,54 @@ PROVENANCE_REFUSED = "provenance_refused"     # fail-closed: we would have publi
 RETRYABLE_PUBLISH_OUTCOMES = frozenset({PUBLISHED, NOTHING_TO_COMMIT, COMMITTED_PUSH_THROTTLED})
 
 
+def _git_knows_path(path) -> bool:
+    """Is `path` legal as a commit pathspec even though it is not on disk?
+
+    A path staged as a DELETION is gone from the worktree but must stay in the pathspec, or the
+    deletion stays staged forever and the next writer commits it. `HEAD:<rel>` resolves for a
+    blob or a tree, which is exactly the "git has heard of this" question.
+    """
+    try:
+        rel = os.path.relpath(str(path), str(PROJECT_DIR))
+        return subprocess.run(
+            ["git", "rev-parse", "--verify", "--quiet", "HEAD:{}".format(rel)],
+            cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=30,
+        ).returncode == 0
+    except Exception:  # noqa: BLE001 -- an unanswerable question is not a licence to include
+        return False
+
+
+def _commit_pathspec(files, extra_relative=()):
+    """The paths the publish commit may touch, and nothing else.
+
+    `git commit -m msg` commits the whole INDEX, so anything any other writer had staged --
+    before this process took the tree lock, which is why the lock never protected against it --
+    went out under the publish's own message. The fix is the shape this module already uses 400
+    lines below: `git commit -m msg -- <paths>`.
+
+    Two properties this function owes the caller:
+
+      * DROP WHAT GIT CANNOT MATCH. An unmatched pathspec makes git reject the WHOLE commit
+        ("did not match any file(s) known to git"), so one absent optional artefact would take
+        the entire publish down -- trading a scoping defect for an availability one.
+      * NEVER RETURN EMPTY. `git commit -m msg --` with no paths is a bare index commit again,
+        i.e. the exact defect, arrived at by degradation. The caller refuses instead.
+
+    Note the deliberate cost: a partial commit takes the WORKTREE copy of each named path, not
+    the index copy. For this surface they are the same file (everything here was just `git
+    add`ed from the worktree two lines earlier), and taking the worktree copy of OUR OWN
+    artefacts is strictly better than taking the index copy of EVERYONE'S.
+    """
+    spec, seen = [], set()
+    for candidate in list(files) + [str(PROJECT_DIR / rel) for rel in extra_relative]:
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        if Path(candidate).exists() or _git_knows_path(candidate):
+            spec.append(candidate)
+    return spec
+
+
 def _git_said_nothing_to_commit(tail) -> bool:
     """Did git refuse because the index was EMPTY, rather than because a hook said no?
 
@@ -3309,8 +3388,14 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     docs_state = PROJECT_DIR / "docs" / "state"
     if docs_state.exists():
         files.append(str(docs_state))
-    if DONE_DIR.exists():
-        files.append(str(DONE_DIR))
+    # THIS RUN'S OWN MARKERS, BY NAME -- never `DONE_DIR` wholesale. See
+    # `_MARKERS_ARCHIVED_BY_THIS_RUN` for what the directory add did to two other lanes'
+    # BLOCKING findings. The reason for staging anything here at all is unchanged (a
+    # `run_complete_*.md` moved to done/ and never committed sits untracked forever, observed
+    # 7+ times); what changes is that the set is now exactly what this process moved.
+    for _archived_marker_path in _MARKERS_ARCHIVED_BY_THIS_RUN:
+        if Path(_archived_marker_path).exists():
+            files.append(_archived_marker_path)
     # The derived-artefact repair (_repair_derived_artefacts_in) re-renders stale docs/design
     # projections in the working tree; without this they would be repaired every cycle and
     # committed by none, so the wedge would return on the next run. Driven off the REGISTER
@@ -3375,7 +3460,23 @@ def git_commit_push(git_hash, net_margin, outcome=None):
             # UNBUFFERED (2026-08-13): see GIT_COMMIT_HOOK_ENV_UNBUFFERED. Without it the
             # TimeoutExpired branch below prints "nothing captured before the kill" every
             # time, because each hook's progress is still in its own userspace buffer.
-            result = subprocess.run(["git", "commit", "-m", msg], cwd=str(PROJECT_DIR),
+            # PATHSPEC, NOT THE INDEX (2026-08-18) -- see `_commit_pathspec`. The two
+            # `docs/design` paths are the ones the `-A` add above stages, including the
+            # atom_status inbox DELETIONS, so they must be named here or the fold never lands.
+            pathspec = _commit_pathspec(
+                files, ("docs/design/maturity_map.yaml", "docs/design/atom_status"))
+            if not pathspec:
+                log("Publish commit REFUSED: nothing in the publish surface is known to git, "
+                    "so there is no pathspec to commit. Committing the bare index here would "
+                    "carry whatever another lane had staged -- refusing instead; the site keeps "
+                    "serving its last honest state and the next cycle retries.")
+                # COMMIT_REFUSED, deliberately not NOTHING_TO_COMMIT: the latter is in
+                # RETRYABLE_PUBLISH_OUTCOMES and would fingerprint this cycle as a genuine
+                # no-op, so the run would never be published again. An empty pathspec is a
+                # broken state, and the next cycle must really retry it.
+                return _outcome(COMMIT_REFUSED, False)
+            result = subprocess.run(["git", "commit", "-m", msg, "--"] + pathspec,
+                                    cwd=str(PROJECT_DIR),
                                     timeout=GIT_COMMIT_HOOK_TIMEOUT_SECONDS,
                                     env=_commit_hook_env(),
                                     capture_output=True, text=True)
@@ -4953,9 +5054,13 @@ def _process(marker_path_str):
     DONE_DIR.mkdir(parents=True, exist_ok=True)
     try:
         marker.rename(DONE_DIR / marker.name)
+        _record_archived_marker(DONE_DIR / marker.name)
         log("Moved {} to done/".format(marker.name))
     except FileNotFoundError:
         if (DONE_DIR / marker.name).exists():
+            # Recorded even on the concurrent-processing branch: the marker IS in done/ and
+            # uncommitted, and whichever process notices it should be the one that lands it.
+            _record_archived_marker(DONE_DIR / marker.name)
             log("{} already in done/ (processed concurrently)".format(marker.name))
         else:
             log("WARNING: {} vanished from staging and not in done/".format(marker.name))
