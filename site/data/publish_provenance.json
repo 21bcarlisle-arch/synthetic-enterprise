@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-08-18T00:41:16Z",
+    "checked_at": "2026-08-18T01:21:02Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
@@ -12,23 +12,23 @@
       "FAILED tests/tools/test_capability_index.py::test_cli_exit_codes_distinguish_clean_from_could_not_run"
     ],
     "nonblocking_reds_total": 19,
-    "open_findings": 93
+    "open_findings": 94
   },
   "last_verified": {
-    "generated_at": "2026-08-18T01:13:57Z",
-    "git_commit": "0a3113dfe",
-    "run_id": "run_output_0a3113dfe_20260818T004223Z.json",
-    "verified_at": "2026-08-18T01:13:57Z"
+    "generated_at": "2026-08-18T01:53:28Z",
+    "git_commit": "62e611d0f",
+    "run_id": "run_output_62e611d0f_20260818T012203Z.json",
+    "verified_at": "2026-08-18T01:53:28Z"
   },
   "paused_reason": "scoped publish-path suite red at git=2260965f3; blocking tests: FAILED tests/background/test_publish_gate_subject_is_head.py::test_the_exit_criterion_agrees_with_the_checkout_mechanism_that_ships",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-18T01:13:57Z",
-    "git_commit": "0a3113dfe",
-    "run_id": "run_output_0a3113dfe_20260818T004223Z.json",
-    "verified_at": "2026-08-18T01:13:57Z"
+    "generated_at": "2026-08-18T01:53:28Z",
+    "git_commit": "62e611d0f",
+    "run_id": "run_output_62e611d0f_20260818T012203Z.json",
+    "verified_at": "2026-08-18T01:53:28Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-18T01:13:57Z"
+  "written_at": "2026-08-18T01:53:28Z"
 }
