@@ -486,3 +486,151 @@ precedence, the unfloored regime leak and the whole-day negative representation 
 with W1_2.
 
 — FRAME pass 3, worker tick 2026-08-18, at HEAD `1f37fe393`.
+
+---
+
+# PASS 4 (worker tick 2026-08-18, HEAD `0a3113dfe`) — the ordinary half-hour: one hand-authored curve carries 90% of the shape cost, and it is the only curve there is
+
+DISCOVER/FRAME only, LANE 3 idle draw. **No BUILD code written**; `file_scope` is `[]`. `docs/design/maturity_map.yaml`,
+the atom's store file and `docs/design/frame/` were all clean in the shared tree at draw time.
+
+Passes 2 and 3 took the *events* — dunkelflaute scheduling (§7, §8) and the negative-price overlay (§9-§11). Those are
+the rare days. This pass takes the **ordinary** half-hour: the deterministic diurnal profile in
+`sim/scenario/intraday_shape.py` that shapes **every** day of **every** generated world. It is the right EP16 subject
+for the same reason §9 was — its real counterpart is measurable to the settlement period from a dataset already in the
+tree, and this time from *the very file the module's sibling parameter was extracted from*.
+
+**Sources, both sides.** REAL: `sim/cache/elexon_ssp_full.json` (real Elexon SSP), restricted to **complete** days
+(all 48 periods present) in 2016-2024 — **3,265 days**; the shape-cost statistics further exclude days whose daily
+mean is ≤ £5 (the premium ratio is undefined near zero), leaving **n = 3,252**. GENERATED: the shipped path
+`generate_scenario_prices` → `intraday_shape.shape_day`, 2026-2029 × seeds 1/2/3, same ≤ £5 exclusion applied to the
+daily price — so the whole-day-negative representation of §9 is dropped from **both** sides and none of what follows
+is an artefact of it. Demand weighting for the shape-cost metric is the real Elexon **PC1** profile
+(`sim.profile_class_1.load_pc1_shape`) for the day's own calendar month, identically on both sides.
+
+## 12. FINDING 12 — the intraday profile is a hand-authored constant whose own comment says it is not load-bearing, and it carries +6.45pp of the +7.13% shape cost
+
+`intraday_shape.py` has two calibrated components and one invented one, side by side.
+
+- The **spike/trough tail** is extracted: `docs/design/spike_tail_real_target.json` names its source in the file
+  (`sim/cache/elexon_ssp_full.json ... via sim.cache_store.get_cached_prices`, window 2016-03-01→2025-06-07,
+  n = 162,507 half-hours) and `sim/ssp_tail_target.py` is the extractor. `tests/sim/test_forward_intraday_shape.py`
+  holds the generated exceedance curve to it within a stated tolerance band.
+- The **diurnal profile** is `_raw_diurnal()`: twenty lines of `if hour < 5.0: v = 0.72` literals, no source, no
+  extractor, no target file. Its own comment states the position: *"Values are a plausible GB half-hourly
+  demand/price shape; the exact curve is not load-bearing (the tail is set by the spike overlay), but a real diurnal
+  shape is itself fidelity."*
+
+That claim is testable on the module's own terms, and it is false. Priced through PC1, the mean shape premium a
+customer pays over baseload in `baseline_2025` is **+7.13%**; the no-overlay diurnal constant alone accounts for
+**+6.45pp** of it and the spike/trough overlays the sentence credits for **+0.68pp**. The invented component carries
+**90%** of the quantity; the extracted one carries a tenth of the body and (correctly) the whole tail.
+
+The curve is *not* a bad average, and this pass says so before saying anything else. Mean-normalised, generated vs
+real pooled 2016-2024, RMSE **0.0866**; against single years it is closest to the two most recent complete ones —
+2023 **0.0656**, 2024 **0.0673** (worst: 2018 0.1250). The evening peak block is good: SP34-38 **1.300** generated
+vs **1.283** real. Two systematic per-period errors:
+
+| block | generated | real pooled | real 2024 |
+|---|---|---|---|
+| overnight SP1-10 | 0.764 | 0.813 | 0.793 |
+| midday SP21-30 | 0.934 | 0.995 | 0.961 |
+| evening peak SP34-38 | 1.300 | 1.283 | 1.277 |
+| late evening SP40-46 | **1.181** | **1.056** | 1.105 |
+
+The overnight trough is a single flat literal (0.72 raw → 0.764 normalised for **all** of SP1-11) where the real
+overnight is neither flat nor that deep, and the evening decline lags real by roughly an hour and a half — the largest
+single-period error in the profile is **+0.226 at SP42 (20:30-21:00)**.
+
+## 13. FINDING 13 — the generated shape cost is a twelve-point comb that has never once been negative; the real one is negative on 18.7% of days
+
+The module exists to restore the block-vs-shape mismatch ("a flat block hedge meeting a spiky half-hourly SSP", its
+docstring, §1). Measured as the quantity that mismatch actually *is* — the PC1-weighted premium of the day's shaped
+price over its own baseload:
+
+| | REAL 2016-2024 (n=3,252) | GEN `baseline_2025` (n=4,302) |
+|---|---|---|
+| mean | +5.51% | **+7.13%** (1.29×) |
+| median | +4.08% | +6.42% |
+| sd | **9.58pp** | **4.86pp** |
+| p5 | −3.78% | +4.47% |
+| p95 | +19.42% | **+7.966%** |
+| min / max | −80.22% / +179.28% | +3.31% / +93.32% |
+| days with a **negative** premium | **18.7%** | **0.00%** |
+
+Two structural readings, neither of which is a tuning error.
+
+1. **The p95 of the generated distribution is exactly the no-overlay constant** (+7.966%). Below it the distribution is
+   not a distribution at all: it is a **twelve-point comb**, one value per calendar month
+   (Jan/Feb/Mar/Nov 7.97, Jun 4.47, Aug 4.98, May/Jul 5.42, Sep 5.67, Apr 6.06, Dec 6.42, Oct 7.15) — and every one of
+   those twelve numbers comes from the PC1 **demand** shape. The **price** side contributes exactly one number to the
+   entire body. ~30% of generated days sit precisely on the modal value.
+2. **44.0% of real days fall below the generated minimum.** A generated world has never once produced a day on which a
+   PC1 customer's shape was cheaper than baseload; reality produces one on nearly a fifth of days, in every price
+   quintile (frac negative by daily-mean quintile: 22.5% / 20.5% / 16.2% / 17.1% / 17.5%).
+
+So the mean of the mismatch is restored 1.29× too high and its **risk** — the dispersion, which is the thing an
+unshaped hedge actually loses money on — is halved and re-sourced to the demand calendar. Same shape of conclusion as
+§9 (a moment approximately matched, the structure underneath it wrong) on a completely different quantity: not the
+rare day, the ordinary one.
+
+Level-dependence is real but **mild** under this weighting and is recorded as such, not as a headline: by daily-mean
+quintile the real premium runs +7.17% / +5.09% / +5.45% / +4.82% / +5.00%, against a generated model that is
+multiplicative and therefore level-invariant by construction. (Under a flat 07:00-19:00 block instead of PC1 the same
+data inverts — peak block 0.919× baseload in the cheapest quintile against 1.083× in the dearest — so the *direction*
+of the level effect is weighting-dependent and only the *existence* of one is claimed here.)
+
+## 14. FINDING 14 — one curve for nine years of drift, two seasons and five presets
+
+The 48 numbers are a module-level constant. Three populations they do not vary over, each measured:
+
+- **Years.** The real shape cost is not stationary across the fitted window: mean premium **+3.34% in 2018 → +7.22%
+  in 2023 and +7.20% in 2024**, with its sd going **4.62pp → 15.62pp / 12.55pp**. A static curve applied to 2026-2031
+  freezes a trending quantity in exactly the way §2's renewable fleet does. This is the **second** silently frozen
+  trend this FRAME has found, and it is the one that acts on every half-hour rather than every year.
+- **Seasons.** Real DJF **+6.79%** vs JJA **+4.08%** (2.71pp swing); generated DJF +8.21% vs JJA +5.46% (2.75pp).
+  The swing looks right and it is an **accident**: all of it comes from PC1's winter/summer demand shape, none from
+  the price, which applies the same 48 numbers on 1 January and 1 July. The real price shape's own seasonality is
+  large and the generator cannot express any of it — real winter peak/trough **2.107** against summer **1.618**, and
+  in recent summers (2023-24, May-Jul) the solar depression has pulled real midday (SP23-30, **0.879**) down to the
+  real overnight level (SP1-10, **0.866**), a gap of 0.013 where the generated curve still holds 0.934 vs 0.764, a gap
+  of **0.170**.
+- **Presets.** All five worlds get the identical curve — confirmed on the realised draws, modal no-overlay premium
+  **+7.966% in every one of the five**. The intraday spread is precisely what a battery arbitrages and what a
+  battery-saturated world compresses, so `battery_saturation_2029` ships the same intraday spread as
+  `low_renewables_2027`. And no dial can move it: `ScenarioParams`' 15 fields are all **daily** (§3), so this is §9's
+  4c again from the other side — not a parameter with a wrong value, a phenomenon with no parameter.
+
+**No control exists at any level.** `tests/sim/test_forward_intraday_shape.py` asserts that a shape *exists* and
+varies, that the extreme exceedance curve reaches real, that the daily mean is preserved, and that the draw replays;
+`fidelity_check.py` (§5) works on daily returns. Nothing anywhere compares the generated per-settlement-period profile
+to the real one. This is not an R15 fail-open control — it is the absence of a control, on the component that carries
+90% of the cost it governs. The extraction machinery is one function short: `sim/ssp_tail_target.py` has
+`_daily_aggregate` and no per-period aggregate.
+
+## What pass 4 adds to EP16's item list
+
+A **seventh** top-level item joins §§1-6: **7 — anchor the intraday shape**. Concretely: extract per-settlement-period
+profiles from the file the tail target was already extracted from, resolved by year and season (and, if the data
+supports it, by price level), and hold the generated profile to them the way the exceedance curve is already held.
+It is the cheapest remaining item after §2 — one aggregate function beside `_daily_aggregate`, one target JSON beside
+`spike_tail_real_target.json`, one test beside the four that already run — and it is the only item on the list whose
+real counterpart is already open on disk in the module's own calibration source.
+
+It also sharpens **4c** (phenomenon shape, not parameter value) from the opposite direction to §9. §9's negative-price
+event is mis-*represented* — a daily mean cannot hold a two-hour midday event. §14's intraday shape is not represented
+at all: no `ScenarioParams` field addresses it, so a preset cannot be wrong about it, only silent. A parameter-provenance
+control (4a) would pass this module cleanly — every *parameter* in `IntradayShapeParams` is calibrated and sourced —
+and never look at the 48 literals above them that carry most of the money.
+
+**Pass 4 close.** `level_current` stays **0** and `loop_stage` stays **idle**: the deliverable of this atom is a
+mechanism, not this document. **R12:** no published number tuned, and re-verified latent at this HEAD — `scenario_name`
+appears in **0 of 5,281** JSON files under `docs/reports/`, and `run_output_latest.json`'s only scenario-shaped key is
+`scenario_analysis`, an OU hedge-projection block carrying no forward-generator preset. **R13:** no curriculum value
+authored, proposed or changed — §§12-14 are **baseline fidelity** by the module's own docstring, which already places
+the intraday calibration on the fidelity side of the wall and per-scenario severity on the director's; the year,
+season and level structure of the real shape are properties of the real world, measured blind to company P&L.
+**Queued, not taken** (SELF-INTERRUPT DISCIPLINE): the diurnal constant lives in `sim/scenario/intraday_shape.py`,
+outside this atom's empty `file_scope`, and belongs to the scenario-generator path with W1_2.
+
+— FRAME pass 4, worker tick 2026-08-18, at HEAD `0a3113dfe`.
