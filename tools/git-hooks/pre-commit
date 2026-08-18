@@ -109,3 +109,19 @@ python3 tools/size_ratchet_gate.py || exit 1
 # deliberately dormant module, run `python3 tools/orphan_ratchet.py --freeze` in the SAME commit
 # so the decision is on the record. R15-proven both ways in tests/tools/test_orphan_ratchet.py.
 python3 tools/orphan_ratchet.py || exit 1
+
+# THE COMPANY HAS NO ROUTE TO A REAL ENDPOINT (director ruling, 2026-08-18): "the supplier
+# doesn't seek approval -- it's refused by construction. If company-side code has to ask,
+# someone eventually says yes, and the breach arrives as a reasonable decision." The rule is
+# a CAPABILITY, not a host list, because a host list would have to be relaxed at go-live --
+# exactly when it matters most. Company code may not open a socket; at go-live what changes
+# is what sits behind the seam, not the company's capability.
+#
+# RATCHET, not a freeze: the four routes that exist today (the seam's price fallback and the
+# audit module's curl) are frozen in KNOWN_ROUTES and this gate ignores them. It fails on a
+# NEW route, and on a frozen entry that is no longer real, so the debt can only shrink. The
+# repair is the seam's job and is not done yet -- the standing red is reported by the tool's
+# default mode, which is what `python3 -m tools.company_network_isolation` prints.
+# R15-proven both ways in tests/tools/test_company_network_isolation.py (7 tests, synthetic
+# trees with known answers, including one asserting the control can PASS).
+python3 -m tools.company_network_isolation --gate || exit 1
