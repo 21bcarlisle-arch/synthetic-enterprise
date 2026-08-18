@@ -1,11 +1,14 @@
 {
- "generated_at": "2026-08-18T10:20:48Z",
- "git_commit": "19b56a53e9f804b3003dc725654c92eaca9c98a9",
+ "generated_at": "2026-08-18T12:48:31Z",
+ "git_commit": "febf7e51f44ff7a2b702e57968a084e682139db2",
  "sources": {
   "record": "site/data/maturity_map.json",
   "status_rule": "site/moap_stage.py (Live / Building / Planned)",
   "seams": "company/interfaces/*.py docstrings",
-  "wall": "tools/wall_crossing_dispositions.py"
+  "wall": "tools/wall_crossing_dispositions.py",
+  "access_class": "docs/design/EP19_COUNTERPARTY_QUALIFICATION_REGISTER.md",
+  "evidence_map": "site/data/moap_node_atoms.json",
+  "scale": "site/data/customers.json + site/data/dashboard.json"
  },
  "world": {
   "entries": [
@@ -16,7 +19,8 @@
     "rests_on": [
      "W1_3_national_weather_signal",
      "W1_4_regional_weather_field"
-    ]
+    ],
+    "evidence": "../evidence/#w-W1_3_national_weather_signal"
    },
    {
     "name": "Prices that come out of physics, not out of a distribution",
@@ -24,7 +28,8 @@
     "status": "Live",
     "rests_on": [
      "W1_6_physics_price_signal"
-    ]
+    ],
+    "evidence": "../evidence/#w-W1_6_physics_price_signal"
    },
    {
     "name": "Ten years of real settlement data, revealed in order",
@@ -32,7 +37,8 @@
     "status": "Live",
     "rests_on": [
      "W1_reveal_over_time"
-    ]
+    ],
+    "evidence": "../evidence/#w-W1_reveal_over_time"
    },
    {
     "name": "Buildings with real thermal behaviour",
@@ -41,7 +47,8 @@
     "rests_on": [
      "W1_11_fabric_physics_core",
      "W1_12_premise_trace_generator"
-    ]
+    ],
+    "evidence": null
    },
    {
     "name": "Households with hidden lives",
@@ -52,7 +59,8 @@
      "W2_5_life_event_stream",
      "W2_7_willingness_classification",
      "W2_8_self_rationing"
-    ]
+    ],
+    "evidence": "../evidence/#w-W2_4_household_budget"
    },
    {
     "name": "Business customers that fail like businesses",
@@ -60,7 +68,8 @@
     "status": "Live",
     "rests_on": [
      "W2_6_sme_distress_twin"
-    ]
+    ],
+    "evidence": "../evidence/#w-W2_6_sme_distress_twin"
    },
    {
     "name": "The price cap as a real constraint",
@@ -69,7 +78,8 @@
     "rests_on": [
      "W3_1_price_cap_binding",
      "W3_1b_intra_year_price_cap_granularity"
-    ]
+    ],
+    "evidence": "../evidence/#w-W3_1_price_cap_binding"
    },
    {
     "name": "The industry's own settlement timetable",
@@ -77,7 +87,8 @@
     "status": "Live",
     "rests_on": [
      "W3_2_settlement_timetable"
-    ]
+    ],
+    "evidence": "../evidence/#w-W3_2_settlement_timetable"
    },
    {
     "name": "Banking and payment rails",
@@ -85,7 +96,8 @@
     "status": "Live",
     "rests_on": [
      "W5_1_banking_payment_rails"
-    ]
+    ],
+    "evidence": null
    },
    {
     "name": "Futures beyond the real record",
@@ -93,7 +105,8 @@
     "status": "Live",
     "rests_on": [
      "W1_2_generate_futures"
-    ]
+    ],
+    "evidence": null
    }
   ],
   "tally": {
@@ -111,7 +124,8 @@
     "rests_on": [
      "D1_bill_correctness",
      "F6_bill_integrity_structural"
-    ]
+    ],
+    "evidence": "../evidence/#w-D1_bill_correctness"
    },
    {
     "name": "Estimated bills, and the correction when the read arrives",
@@ -119,7 +133,8 @@
     "status": "Live",
     "rests_on": [
      "D3_catchup_rebilling"
-    ]
+    ],
+    "evidence": "../evidence/#w-D3_catchup_rebilling"
    },
    {
     "name": "Three clocks kept straight",
@@ -127,7 +142,8 @@
     "status": "Live",
     "rests_on": [
      "D2_three_clocks"
-    ]
+    ],
+    "evidence": "../evidence/#w-D2_three_clocks"
    },
    {
     "name": "Money matched to the right account",
@@ -135,7 +151,8 @@
     "status": "Live",
     "rests_on": [
      "D5_account_hierarchy_payments"
-    ]
+    ],
+    "evidence": null
    },
    {
     "name": "Telling can't-pay from won't-pay",
@@ -144,7 +161,8 @@
     "rests_on": [
      "C9_cantpay_wontpay_classifier",
      "C7_life_event_detection"
-    ]
+    ],
+    "evidence": "../evidence/#w-C9_cantpay_wontpay_classifier"
    },
    {
     "name": "Noticing a customer who has stopped heating their home",
@@ -152,7 +170,8 @@
     "status": "Live",
     "rests_on": [
      "C10_self_rationing_detection"
-    ]
+    ],
+    "evidence": null
    },
    {
     "name": "Weather-normalised demand",
@@ -160,7 +179,8 @@
     "status": "Live",
     "rests_on": [
      "C13_weather_normalisation"
-    ]
+    ],
+    "evidence": null
    },
    {
     "name": "A real set of books",
@@ -170,7 +190,8 @@
      "E1_ledger_double_entry",
      "E2_revenue_reconciliation",
      "E4_supplier_reporting_standard"
-    ]
+    ],
+    "evidence": "../evidence/#w-E1_ledger_double_entry"
    },
    {
     "name": "Hedging, and the margin it explains",
@@ -179,7 +200,8 @@
     "rests_on": [
      "B1_margin_bridge",
      "B3_hedge_tariff_alignment"
-    ]
+    ],
+    "evidence": "../evidence/#w-B1_margin_bridge"
    },
    {
     "name": "Its own regulatory obligations, tracked",
@@ -188,7 +210,8 @@
     "rests_on": [
      "F3_obligations_register",
      "F7_obligations_register_coverage"
-    ]
+    ],
+    "evidence": "../evidence/#w-F3_obligations_register"
    },
    {
     "name": "Carbon measured on three ledgers",
@@ -196,7 +219,8 @@
     "status": "Planned",
     "rests_on": [
      "E5_carbon_three_ledger"
-    ]
+    ],
+    "evidence": "../evidence/#w-E5_carbon_three_ledger"
    },
    {
     "name": "A pricing engine",
@@ -204,7 +228,8 @@
     "status": "Planned",
     "rests_on": [
      "EP3_pricing_engine_late_truth"
-    ]
+    ],
+    "evidence": null
    },
    {
     "name": "The collections journey, end to end",
@@ -212,7 +237,8 @@
     "status": "Planned",
     "rests_on": [
      "EP4_collections_journey"
-    ]
+    ],
+    "evidence": null
    },
    {
     "name": "Settlement true-ups on the real timetable",
@@ -220,7 +246,8 @@
     "status": "Planned",
     "rests_on": [
      "EP5_settlement_true_ups"
-    ]
+    ],
+    "evidence": null
    }
   ],
   "tally": {
@@ -235,79 +262,119 @@
     "area": "Settlement and market data",
     "counterparty": "Elexon Insights (BMRS)",
     "what": "Half-hourly settlement, system prices and the balancing mechanism.",
+    "access": "OPEN",
+    "gate": "None. Published openly, no qualification of any kind.",
+    "spec": null,
     "status": "Planned",
     "rests_on": [
      "EP7_adapter_elexon_insights"
-    ]
+    ],
+    "evidence": null
    },
    {
     "area": "Smart metering",
     "counterparty": "DCC (DUIS service requests)",
     "what": "Reading a meter, changing a tariff, operating the supply switch remotely.",
+    "access": "GATED",
+    "gate": "Accession to the Smart Energy Code, SMKI certificates, and CIO/UIT testing.",
+    "spec": {
+     "what": "DUIS v5.3 (18 Mar 2025, 543 pages) read at clause level, with its XML schema",
+     "where": "docs/design/simplifications/EP8_adapter_dcc_duis.yaml"
+    },
     "status": "Planned",
     "rests_on": [
      "EP8_adapter_dcc_duis"
-    ]
+    ],
+    "evidence": null
    },
    {
     "area": "Consented meter access",
     "counterparty": "n3rgy / DCC Other User",
     "what": "Half-hourly consumption for a customer who has given consent.",
+    "access": "SANDBOX",
+    "gate": "Exercisable today through a consented-access provider, without qualifying.",
+    "spec": null,
     "status": "Planned",
     "rests_on": [
      "EP9_adapter_n3rgy_consented_metering"
-    ]
+    ],
+    "evidence": null
    },
    {
     "area": "Gas industry systems",
     "counterparty": "Xoserve / UK Link (CDSP)",
     "what": "Gas registration, meter points and the reconciliation the UNC requires.",
+    "access": "GATED",
+    "gate": "A signed Data Services Contract / UK Link User Agreement; parts need shipper status.",
+    "spec": null,
     "status": "Planned",
     "rests_on": [
      "EP10_adapter_uk_link_xoserve"
-    ]
+    ],
+    "evidence": null
    },
    {
     "area": "Payment collection",
     "counterparty": "GoCardless (Bacs bureau)",
     "what": "Presenting Direct Debits and receiving the failures back.",
+    "access": "SANDBOX",
+    "gate": "A bureau route has a free sandbox; direct Bacs needs a sponsoring bank and a Service User Number.",
+    "spec": null,
     "status": "Planned",
     "rests_on": [
      "EP11_adapter_gocardless_bacs"
-    ]
+    ],
+    "evidence": null
    },
    {
     "area": "Switching",
     "counterparty": "CSS (electricity) and RGMA/SPAA (gas)",
     "what": "Gaining and losing customers to other suppliers.",
+    "access": "GATED",
+    "gate": "Eligibility under the Retail Energy Code, confirmed by its Code Manager.",
+    "spec": null,
     "status": "Planned",
     "rests_on": [
      "EP12_adapter_css_rec_switching"
-    ]
+    ],
+    "evidence": null
    },
    {
     "area": "Carbon intensity",
     "counterparty": "NESO Carbon Intensity API",
     "what": "The grid's actual carbon content, half-hour by half-hour.",
+    "access": "OPEN",
+    "gate": "None. Free, no key.",
+    "spec": null,
     "status": "Planned",
     "rests_on": [
      "EP13_adapter_carbon_intensity"
-    ]
+    ],
+    "evidence": null
    },
    {
     "area": "Published cost stack",
     "counterparty": "Ofgem and network operator files",
     "what": "Cap levels, network charges and policy costs, ingested as the published files they are.",
+    "access": "OPEN",
+    "gate": "None. Published as spreadsheets rather than as an interface.",
+    "spec": null,
     "status": "Planned",
     "rests_on": [
      "EP14_adapter_published_cost_stack"
-    ]
+    ],
+    "evidence": null
    }
   ],
   "tally": {
    "Live": 0,
    "Building": 0,
    "Planned": 8
+  },
+  "access_tally": {
+   "OPEN": 3,
+   "SANDBOX": 2,
+   "GATED": 3
   }
  },
  "typed_seams": [
@@ -436,5 +503,47 @@
   "cut": 85,
   "owed": 6,
   "unexamined": 0
- }
+ },
+ "scale": {
+  "figures": [
+   {
+    "value": 14,
+    "basis": "accounts in the live customer feed",
+    "source": "site/data/customers.json",
+    "as_of": "2026-08-18T12:31:04Z"
+   },
+   {
+    "value": 17,
+    "basis": "book size used by the break-even analysis",
+    "source": "site/data/dashboard.json",
+    "as_of": "2016-2025"
+   }
+  ],
+  "agree": false,
+  "low": 14,
+  "high": 17,
+  "real_world": "A real GB supplier serves hundreds of thousands to millions of homes."
+ },
+ "gaps": [
+  {
+   "title": "The book is 14\u201317 customers",
+   "what": "Everything on this page is true of a supplier with 14\u201317 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 14 (accounts in the live customer feed), 17 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
+  },
+  {
+   "title": "Half-built, not absent",
+   "what": "Listed above as coming next, which understates it: these exist and work in part, and are not finished. The price cap as a real constraint \u2014 Ofgem's cap binds what can be charged rather than sitting in a lookup table, and it change."
+  },
+  {
+   "title": "Nothing here has ever spoken to a real counterparty",
+   "what": "All 8 connections to the real industry are unbuilt, so every figure on this site comes from a simulated world. One specification has been read in earnest (DCC (DUIS service requests)); the rest rest on secondary research that says to verify it before building."
+  },
+  {
+   "title": "6 of 19 built capabilities have nothing published that proves them",
+   "what": "Every item marked as built above should link to the record that makes it so. 6 do not, because the evidence pages are generated from the architecture diagram, and the diagram covers a fraction of the work: Buildings with real thermal behaviour, Banking and payment rails, Futures beyond the real record, Money matched to the right account, Noticing a customer who has stopped heating their home, Weather-normalised demand. Their records exist in the project's own files; they are not published. Said here rather than hidden by pointing the links somewhere plausible."
+  },
+  {
+   "title": "This page cannot tell you whether the simulation is right",
+   "what": "It reports what has been built and how far, not whether the world it models behaves like the real one. That is a different question with its own evidence, and a capability list is the wrong place to answer it."
+  }
+ ]
 }

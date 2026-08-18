@@ -42,6 +42,13 @@ h4.col-h { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-
 .pill-live { color: var(--green); border: 1px solid var(--green); }
 .pill-building { color: var(--amber); border: 1px solid var(--amber); }
 .pill-planned { color: var(--muted); border: 1px solid var(--border); }
+.pill-open { color: var(--green); border: 1px solid var(--green); }
+.pill-sandbox { color: var(--blue); border: 1px solid var(--blue); }
+.pill-gated { color: var(--amber); border: 1px solid var(--amber); }
+.spec-read { color: var(--green); font-weight: 700; }
+.spec-unread { color: var(--muted); }
+.noproof { color: var(--amber); font-size: 12px; }
+.proof-link { font-size: 12px; }
 table { border-collapse: collapse; width: 100%; font-size: 13px; }
 th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
 th { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; }
@@ -93,20 +100,21 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     </section>
   </div>
 
-  <h2 class="sec">What is not there yet</h2>
-  <p class="sec-lede">Stated plainly, because a capability list with no gaps in it is not a
-  capability list. This includes one gap worth naming directly: the carbon measurement the whole
-  premise rests on is not built.</p>
-  <div id="absent"></div>
+  <h2 class="sec">What the lists above cannot tell you</h2>
+  <p class="sec-lede">Not a summary of the columns &mdash; the gaps no single capability can
+  express. Anything already visible above as coming next is deliberately not repeated here.</p>
+  <div id="gaps"></div>
 
   <h2 class="sec">The seams &mdash; where the curtain is</h2>
   <p class="sec-lede">The supplier never reaches into the world; it reads and writes through named
   doorways, the same way a real supplier reaches the industry. That boundary is the point of the
   design: going live means swapping a simulated counterparty for a real one behind an unchanged
-  doorway, not rewriting the supplier. None of these connections is built &mdash; what exists is
-  the boundary they would plug into.</p>
+  doorway, not rewriting the supplier. None of these connections is built &mdash; but they are not
+  equally distant, so the table says what it would take to connect and whether the real
+  specification has actually been read.</p>
+  <div class="figs" id="access"></div>
   <table>
-    <thead><tr><th>Where the world ends</th><th>Who it becomes</th><th>What crosses</th><th>State</th></tr></thead>
+    <thead><tr><th>Where the world ends</th><th>Who it becomes</th><th>To connect at all</th><th>Specification</th><th>State</th></tr></thead>
     <tbody id="golive"></tbody>
   </table>
 
@@ -135,9 +143,18 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     var cls = s === "Live" ? "pill-live" : (s === "Building" ? "pill-building" : "pill-planned");
     return '<span class="pill ' + cls + '">' + E(s) + "</span>";
   };
+  // A built capability carries a link to the record that makes it built. Where no such
+  // record is published, it says so in words rather than linking somewhere plausible --
+  // a citation styled as a live link that proves nothing is worse than no citation.
   var item = function (e) {
+    var proof = "";
+    if (e.status === "Live") {
+      proof = e.evidence
+        ? ' <a class="inline-link proof-link" href="' + E(e.evidence) + '">see the record</a>'
+        : ' <span class="noproof">no published record</span>';
+    }
     return '<div class="item"><div class="item-h">' + E(e.name) + pill(e.status) +
-      '</div><div class="item-p">' + E(e.what) + "</div></div>";
+      '</div><div class="item-p">' + E(e.what) + proof + "</div></div>";
   };
   var column = function (entries, status, heading) {
     var rows = entries.filter(function (e) { return status.indexOf(e.status) >= 0; });
@@ -160,15 +177,28 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       side("world", d.world);
       side("supplier", d.supplier);
 
-      var absent = d.world.entries.concat(d.supplier.entries)
-        .filter(function (e) { return e.status === "Planned"; });
-      document.getElementById("absent").innerHTML = absent.length
-        ? absent.map(item).join("")
-        : '<div class="item-p">Nothing on this page is unbuilt, which would be a surprising thing for this page to say &mdash; check the record before believing it.</div>';
+      document.getElementById("gaps").innerHTML = (d.gaps || []).map(function (g) {
+        return '<div class="item"><div class="item-h">' + E(g.title) + '</div>' +
+          '<div class="item-p">' + E(g.what) + "</div></div>";
+      }).join("");
+
+      var at = d.go_live.access_tally || {};
+      document.getElementById("access").innerHTML = [
+        [at.OPEN, "open today"], [at.SANDBOX, "reachable without qualifying"],
+        [at.GATED, "need a qualification we do not hold"]
+      ].map(function (f) {
+        return '<div class="fig"><div class="fig-v">' + E(f[0]) + '</div><div class="fig-k">' +
+          E(f[1]) + "</div></div>";
+      }).join("");
 
       document.getElementById("golive").innerHTML = d.go_live.seams.map(function (s) {
+        var spec = s.spec
+          ? '<span class="spec-read">read</span> ' + E(s.spec.what)
+          : '<span class="spec-unread">not read</span>';
         return "<tr><td>" + E(s.area) + '</td><td class="who">' + E(s.counterparty) +
-          "</td><td>" + E(s.what) + "</td><td>" + pill(s.status) + "</td></tr>";
+          '</td><td><span class="pill pill-' + E(String(s.access).toLowerCase()) + '">' +
+          E(s.access) + "</span> " + E(s.gate) + "</td><td>" + spec + "</td><td>" +
+          pill(s.status) + "</td></tr>";
       }).join("");
 
       var w = d.wall;

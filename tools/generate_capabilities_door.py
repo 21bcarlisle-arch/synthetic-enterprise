@@ -171,32 +171,59 @@ SUPPLIER: list[tuple[str, str, list[str]]] = [
 # The counterparty each seam swaps to at go-live. Every entry cites the work item that
 # holds that adapter, so the claim "we know what this becomes" is checkable rather than
 # aspirational — and every one of them is honestly at the bottom of its scale today.
-GO_LIVE_SEAMS: list[tuple[str, str, str, list[str]]] = [
-    ("Settlement and market data", "Elexon Insights (BMRS)",
-     "Half-hourly settlement, system prices and the balancing mechanism.",
-     ["EP7_adapter_elexon_insights"]),
-    ("Smart metering", "DCC (DUIS service requests)",
-     "Reading a meter, changing a tariff, operating the supply switch remotely.",
-     ["EP8_adapter_dcc_duis"]),
-    ("Consented meter access", "n3rgy / DCC Other User",
-     "Half-hourly consumption for a customer who has given consent.",
-     ["EP9_adapter_n3rgy_consented_metering"]),
-    ("Gas industry systems", "Xoserve / UK Link (CDSP)",
-     "Gas registration, meter points and the reconciliation the UNC requires.",
-     ["EP10_adapter_uk_link_xoserve"]),
-    ("Payment collection", "GoCardless (Bacs bureau)",
-     "Presenting Direct Debits and receiving the failures back.",
-     ["EP11_adapter_gocardless_bacs"]),
-    ("Switching", "CSS (electricity) and RGMA/SPAA (gas)",
-     "Gaining and losing customers to other suppliers.",
-     ["EP12_adapter_css_rec_switching"]),
-    ("Carbon intensity", "NESO Carbon Intensity API",
-     "The grid's actual carbon content, half-hour by half-hour.",
-     ["EP13_adapter_carbon_intensity"]),
-    ("Published cost stack", "Ofgem and network operator files",
-     "Cap levels, network charges and policy costs, ingested as the published files they are.",
-     ["EP14_adapter_published_cost_stack"]),
+# READINESS, not a flat "Planned" (director, 2026-08-18: "the seams are not equally planned
+# -- DUIS has had its real published spec read, the others haven't. Show readiness honestly").
+#
+# Three independent axes, because they answer different questions and one of them can be
+# strong while another is nothing:
+#   ACCESS   what it takes to connect AT ALL -- OPEN / SANDBOX / GATED, quoted from
+#            docs/design/EP19_COUNTERPARTY_QUALIFICATION_REGISTER.md, whose whole point is
+#            that a gated-counterparty list with no denominator cannot say what fraction of
+#            the wall is blocked.
+#   SPEC     whether the REAL published specification has been read, and cited. `None` means
+#            not read, and most of these are None. This is the axis the director noticed.
+#   STATUS   the derived Live/Building/Planned, unchanged, which stays Planned for all eight.
+#
+# `spec` claims are checkable: each names the in-repo record that holds the reading, and
+# test_capabilities_door asserts every cited path exists. A citation that rots fails.
+GO_LIVE_SEAMS: list[dict] = [
+    {"area": "Settlement and market data", "who": "Elexon Insights (BMRS)",
+     "what": "Half-hourly settlement, system prices and the balancing mechanism.",
+     "access": "OPEN", "gate": "None. Published openly, no qualification of any kind.",
+     "spec": None, "ids": ["EP7_adapter_elexon_insights"]},
+    {"area": "Smart metering", "who": "DCC (DUIS service requests)",
+     "what": "Reading a meter, changing a tariff, operating the supply switch remotely.",
+     "access": "GATED", "gate": "Accession to the Smart Energy Code, SMKI certificates, and CIO/UIT testing.",
+     "spec": {"what": "DUIS v5.3 (18 Mar 2025, 543 pages) read at clause level, with its XML schema",
+              "where": "docs/design/simplifications/EP8_adapter_dcc_duis.yaml"},
+     "ids": ["EP8_adapter_dcc_duis"]},
+    {"area": "Consented meter access", "who": "n3rgy / DCC Other User",
+     "what": "Half-hourly consumption for a customer who has given consent.",
+     "access": "SANDBOX", "gate": "Exercisable today through a consented-access provider, without qualifying.",
+     "spec": None, "ids": ["EP9_adapter_n3rgy_consented_metering"]},
+    {"area": "Gas industry systems", "who": "Xoserve / UK Link (CDSP)",
+     "what": "Gas registration, meter points and the reconciliation the UNC requires.",
+     "access": "GATED", "gate": "A signed Data Services Contract / UK Link User Agreement; parts need shipper status.",
+     "spec": None, "ids": ["EP10_adapter_uk_link_xoserve"]},
+    {"area": "Payment collection", "who": "GoCardless (Bacs bureau)",
+     "what": "Presenting Direct Debits and receiving the failures back.",
+     "access": "SANDBOX", "gate": "A bureau route has a free sandbox; direct Bacs needs a sponsoring bank and a Service User Number.",
+     "spec": None, "ids": ["EP11_adapter_gocardless_bacs"]},
+    {"area": "Switching", "who": "CSS (electricity) and RGMA/SPAA (gas)",
+     "what": "Gaining and losing customers to other suppliers.",
+     "access": "GATED", "gate": "Eligibility under the Retail Energy Code, confirmed by its Code Manager.",
+     "spec": None, "ids": ["EP12_adapter_css_rec_switching"]},
+    {"area": "Carbon intensity", "who": "NESO Carbon Intensity API",
+     "what": "The grid's actual carbon content, half-hour by half-hour.",
+     "access": "OPEN", "gate": "None. Free, no key.",
+     "spec": None, "ids": ["EP13_adapter_carbon_intensity"]},
+    {"area": "Published cost stack", "who": "Ofgem and network operator files",
+     "what": "Cap levels, network charges and policy costs, ingested as the published files they are.",
+     "access": "OPEN", "gate": "None. Published as spreadsheets rather than as an interface.",
+     "spec": None, "ids": ["EP14_adapter_published_cost_stack"]},
 ]
+
+QUALIFICATION_REGISTER = PROJECT / "docs" / "design" / "EP19_COUNTERPARTY_QUALIFICATION_REGISTER.md"
 
 
 def _levels(feed: Path = MAP_FEED) -> dict[str, dict]:
@@ -231,11 +258,13 @@ def _status_for(ids: list[str], levels: dict[str, dict]) -> str:
     ])
 
 
-def _entries(register, levels) -> list[dict]:
+def _entries(register, levels, index: dict[str, str] | None = None) -> list[dict]:
+    index = index or {}
     out = []
     for name, blurb, ids in register:
         out.append({
             "name": name, "what": blurb, "status": _status_for(ids, levels), "rests_on": ids,
+            "evidence": _evidence_for(ids, index),
         })
     return out
 
@@ -291,6 +320,90 @@ def wall_position() -> dict:
     }
 
 
+def evidence_index(mapping: Path = SITE / "data" / "moap_node_atoms.json") -> dict[str, str]:
+    """work item id -> the evidence page anchor that carries its record.
+
+    Director, 2026-08-18: "the page says its states are computed, not typed; a sceptic
+    should be able to get from 'Bills that add up' to the thing that proves it in one click."
+    The evidence page already renders, per architecture node, the cited artefacts, the tests
+    and the level record for every work item under it. This reverses that mapping so a
+    capability can link straight to the node that holds its proof. Derived from the same file
+    the diagram uses; a capability whose work is under no node simply gets no link, rather
+    than a link that goes somewhere plausible and wrong.
+    """
+    try:
+        payload = json.loads(mapping.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        raise CapabilitySourceUnavailable(f"node mapping unreadable: {e}") from e
+    nodes = payload.get("nodes") or []
+    if not nodes:
+        raise CapabilitySourceUnavailable("node mapping carries no nodes")
+    out: dict[str, str] = {}
+    for node in nodes:
+        for wid in node.get("atoms") or []:
+            out.setdefault(wid, node["id"])
+    return out
+
+
+def _evidence_for(ids: list[str], index: dict[str, str]) -> str | None:
+    """The per-work-item anchor on the evidence page, or None.
+
+    None is a real answer and is rendered as one. The evidence page derives from the
+    architecture diagram's node mapping, which covers 46 of the record's 314 work items, so
+    a capability resting on work that is on no node has NOTHING PUBLISHED that proves it.
+    Linking such a capability to the evidence page's front would be a link that looks like
+    proof and is not, which is the defect a prior review already found on this site (ten
+    citations styled as live links, pointing at a 404).
+    """
+    for wid in ids:
+        if wid in index:
+            return f"../evidence/#w-{wid}"
+    return None
+
+
+def scale(customers: Path = SITE / "data" / "customers.json",
+          dashboard: Path = SITE / "data" / "dashboard.json") -> dict:
+    """How big the book is — the gap the Live/Planned columns cannot show.
+
+    Director, 2026-08-18: "The book is twenty customers and the page never says so. Nineteen
+    items marked Live read as near-complete while scale — the biggest honest gap — is
+    invisible."
+
+    THIS FUNCTION DOES NOT PICK A NUMBER WHEN ITS SOURCES DISAGREE, and today they do: the
+    live customer feed says one thing and the break-even analysis another. Publishing one and
+    dropping the other would be exactly the figure-reconciliation defect a prior review
+    already found on this site (two bad-debt figures, 129x apart, feeding the same doors with
+    no bridge). Both are published, with their sources, and the disagreement is stated as the
+    open gap it is. Fail-closed: no readable source raises rather than omitting scale, since a
+    page that quietly stops mentioning its size is the failure this section exists to prevent.
+    """
+    figures = []
+    try:
+        c = json.loads(customers.read_text(encoding="utf-8"))
+        if isinstance(c.get("customer_count"), int):
+            figures.append({"value": c["customer_count"], "basis": "accounts in the live customer feed",
+                            "source": "site/data/customers.json", "as_of": c.get("generated")})
+    except (OSError, ValueError):
+        pass
+    try:
+        d = json.loads(dashboard.read_text(encoding="utf-8"))
+        n = ((d.get("b2_taxonomy") or {}).get("break_even_analysis") or {}).get("current_book_size")
+        if isinstance(n, int):
+            figures.append({"value": n, "basis": "book size used by the break-even analysis",
+                            "source": "site/data/dashboard.json", "as_of": (d.get("build") or {}).get("simulation_window")})
+    except (OSError, ValueError):
+        pass
+    if not figures:
+        raise CapabilitySourceUnavailable("no readable source for the size of the book")
+    values = sorted({f["value"] for f in figures})
+    return {
+        "figures": figures,
+        "agree": len(values) == 1,
+        "low": values[0], "high": values[-1],
+        "real_world": "A real GB supplier serves hundreds of thousands to millions of homes.",
+    }
+
+
 def _git_commit() -> str:
     try:
         out = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT),
@@ -300,14 +413,96 @@ def _git_commit() -> str:
         return "unknown"
 
 
+def gaps(world: list[dict], supplier: list[dict], seams: list[dict], book: dict) -> list[dict]:
+    """The gaps the two columns above CANNOT show — never a re-list of what they already do.
+
+    Director, 2026-08-18: the section "is a verbatim re-list of the supplier's four Next
+    items, and it omits the world's own gap (the price cap) — so the section that promises to
+    state gaps plainly is both duplicative and incomplete."
+
+    Both halves of that are fixed by changing what the section is FOR. It no longer filters
+    the entries by status (which is what made it a copy, and what made its filter arbitrary
+    enough to drop a Building item). It carries the things no capability row can express:
+    how small the book is, what is half-built rather than absent, and the fact that nothing
+    here has ever met a real counterparty. Each is derived, so the section cannot go stale
+    while the columns move.
+    """
+    out: list[dict] = []
+
+    size = f"{book['low']}" if book["agree"] else f"{book['low']}–{book['high']}"
+    out.append({
+        "title": f"The book is {size} customers",
+        "what": (
+            f"Everything on this page is true of a supplier with {size} accounts. "
+            + book["real_world"]
+            + " Scale is the largest single gap between this and a real energy retailer, and "
+            "nothing above will tell you that, because every item can be genuinely built at "
+            "this size."
+            + ("" if book["agree"] else
+               " The project's own feeds do not currently agree on the exact figure — "
+               + ", ".join(f"{f['value']} ({f['basis']})" for f in book["figures"])
+               + " — and that disagreement is itself unreconciled.")
+        ),
+    })
+
+    part_built = [e for e in world + supplier if e["status"] == BUILDING]
+    if part_built:
+        out.append({
+            "title": "Half-built, not absent",
+            "what": ("Listed above as coming next, which understates it: these exist and work "
+                     "in part, and are not finished. " +
+                     "; ".join(f"{e['name']} — {e['what'][:90].rstrip('. ')}" for e in part_built) + "."),
+        })
+
+    if not any(s["status"] == LIVE for s in seams):
+        read = [s for s in seams if s.get("spec")]
+        out.append({
+            "title": "Nothing here has ever spoken to a real counterparty",
+            "what": (
+                f"All {len(seams)} connections to the real industry are unbuilt, so every figure "
+                "on this site comes from a simulated world. "
+                + (f"One specification has been read in earnest ({read[0]['counterparty']}); "
+                   f"the rest rest on secondary research that says to verify it before building."
+                   if read else "None of their specifications has been read in earnest yet.")
+            ),
+        })
+
+    unproven = [e for e in world + supplier if e["status"] == LIVE and not e["evidence"]]
+    if unproven:
+        built = [e for e in world + supplier if e["status"] == LIVE]
+        out.append({
+            "title": f"{len(unproven)} of {len(built)} built capabilities have nothing published that proves them",
+            "what": (
+                "Every item marked as built above should link to the record that makes it so. "
+                f"{len(unproven)} do not, because the evidence pages are generated from the "
+                "architecture diagram, and the diagram covers a fraction of the work: "
+                + ", ".join(e["name"] for e in unproven)
+                + ". Their records exist in the project's own files; they are not published. "
+                "Said here rather than hidden by pointing the links somewhere plausible."
+            ),
+        })
+
+    out.append({
+        "title": "This page cannot tell you whether the simulation is right",
+        "what": ("It reports what has been built and how far, not whether the world it models "
+                 "behaves like the real one. That is a different question with its own evidence, "
+                 "and a capability list is the wrong place to answer it."),
+    })
+    return out
+
+
 def build(feed: Path = MAP_FEED) -> dict:
     levels = _levels(feed)
-    world, supplier = _entries(WORLD, levels), _entries(SUPPLIER, levels)
+    index = evidence_index()
+    world, supplier = _entries(WORLD, levels, index), _entries(SUPPLIER, levels, index)
     seams = [
-        {"area": area, "counterparty": who, "what": what,
-         "status": _status_for(ids, levels), "rests_on": ids}
-        for area, who, what, ids in GO_LIVE_SEAMS
+        {"area": s["area"], "counterparty": s["who"], "what": s["what"],
+         "access": s["access"], "gate": s["gate"], "spec": s["spec"],
+         "status": _status_for(s["ids"], levels), "rests_on": s["ids"],
+         "evidence": _evidence_for(s["ids"], index)}
+        for s in GO_LIVE_SEAMS
     ]
+    book = scale()
 
     def tally(rows):
         return {s: sum(1 for r in rows if r["status"] == s) for s in (LIVE, BUILDING, PLANNED)}
@@ -320,12 +515,19 @@ def build(feed: Path = MAP_FEED) -> dict:
             "status_rule": "site/moap_stage.py (Live / Building / Planned)",
             "seams": "company/interfaces/*.py docstrings",
             "wall": "tools/wall_crossing_dispositions.py",
+            "access_class": "docs/design/EP19_COUNTERPARTY_QUALIFICATION_REGISTER.md",
+            "evidence_map": "site/data/moap_node_atoms.json",
+            "scale": "site/data/customers.json + site/data/dashboard.json",
         },
         "world": {"entries": world, "tally": tally(world)},
         "supplier": {"entries": supplier, "tally": tally(supplier)},
-        "go_live": {"seams": seams, "tally": tally(seams)},
+        "go_live": {"seams": seams, "tally": tally(seams),
+                    "access_tally": {a: sum(1 for s in seams if s["access"] == a)
+                                     for a in ("OPEN", "SANDBOX", "GATED")}},
         "typed_seams": typed_seams(),
         "wall": wall_position(),
+        "scale": book,
+        "gaps": gaps(world, supplier, seams, book),
     }
 
 

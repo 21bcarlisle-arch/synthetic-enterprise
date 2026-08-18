@@ -201,6 +201,116 @@ def test_the_page_states_what_is_absent(feed):
     assert planned, "no capability is marked absent — verify against the record before believing it"
 
 
+# ---------------------------------------------------------------------------
+# The four director changes, 2026-08-18 — each with the control that keeps it true
+# ---------------------------------------------------------------------------
+def test_the_gaps_section_does_not_restate_the_columns(feed):
+    """#1. The section was a verbatim re-list of the supplier's Next items. It must carry
+    what the columns CANNOT show; if a gap's title is just a capability's name again, the
+    duplication is back."""
+    names = {e["name"].lower() for e in feed["world"]["entries"] + feed["supplier"]["entries"]}
+    for gap in feed["gaps"]:
+        assert gap["title"].lower() not in names, (
+            f"gap {gap['title']!r} restates a capability already listed above"
+        )
+    assert feed["gaps"], "the section exists to say something; empty is not an answer"
+
+
+def test_the_gaps_cover_partly_built_work_not_only_absent_work(feed):
+    """#1, the other half: filtering on Planned alone dropped the world's own gap (the price
+    cap, which is Building). Anything part-built must be named."""
+    building = [e for e in feed["world"]["entries"] + feed["supplier"]["entries"]
+                if e["status"] == "Building"]
+    if building:
+        blob = " ".join(g["title"] + " " + g["what"] for g in feed["gaps"])
+        for entry in building:
+            assert entry["name"] in blob, (
+                f"{entry['name']!r} is part-built and named nowhere in the gaps section"
+            )
+
+
+def test_the_page_says_how_big_the_book_is(feed):
+    """#2. Nineteen items marked built read as near-complete while scale is invisible."""
+    scale = feed["scale"]
+    assert scale["figures"], "no source for the size of the book"
+    for fig in scale["figures"]:
+        assert isinstance(fig["value"], int) and fig["source"] and fig["basis"], fig
+    blob = " ".join(g["title"] + " " + g["what"] for g in feed["gaps"])
+    assert str(scale["low"]) in blob, "the book size is derived but never said"
+
+
+def test_a_disagreement_about_the_book_size_is_published_not_resolved_silently(feed):
+    """The sources disagree today. Publishing one and dropping the other is the
+    figure-reconciliation defect a prior review already found on this site."""
+    scale = feed["scale"]
+    if not scale["agree"]:
+        blob = " ".join(g["what"] for g in feed["gaps"])
+        for fig in scale["figures"]:
+            assert str(fig["value"]) in blob, (
+                f"sources disagree and {fig['value']} ({fig['basis']}) is not shown"
+            )
+
+
+def test_every_built_capability_either_links_to_a_record_or_is_named_as_unproven(feed):
+    """#3. 'A sceptic should be able to get from Bills that add up to the thing that proves
+    it in one click.' Where no record is published the page must SAY so — never link
+    somewhere plausible, which is the dead-citation defect."""
+    live = [e for e in feed["world"]["entries"] + feed["supplier"]["entries"]
+            if e["status"] == "Live"]
+    unlinked = [e for e in live if not e["evidence"]]
+    blob = " ".join(g["title"] + " " + g["what"] for g in feed["gaps"])
+    for entry in unlinked:
+        assert entry["name"] in blob, (
+            f"{entry['name']!r} is built, links to nothing, and is not declared unproven"
+        )
+
+
+def test_every_evidence_link_resolves_to_an_anchor_that_exists(feed):
+    """A link that 404s or lands on a missing anchor is worse than none: it trains a reader
+    to distrust the real ones. Checked against the GENERATED page, not against intent."""
+    page = (SITE / "evidence" / "index.html").read_text(encoding="utf-8")
+    for entry in feed["world"]["entries"] + feed["supplier"]["entries"] + feed["go_live"]["seams"]:
+        href = entry.get("evidence")
+        if not href:
+            continue
+        anchor = href.split("#", 1)[1]
+        assert f'id="{anchor}"' in page, f"{entry.get('name') or entry.get('area')} -> #{anchor} does not exist"
+
+
+def test_MUTATION_a_link_to_a_missing_anchor_fires():
+    page = '<div id="w-REAL_ID"></div>'
+    assert 'id="w-GHOST"' not in page
+
+
+def test_the_seams_are_not_all_one_flat_state(feed):
+    """#4. 'The seams are not equally planned.' If every access class collapses to one value
+    the table has stopped distinguishing and is back to a flat Planned."""
+    classes = {s["access"] for s in feed["go_live"]["seams"]}
+    assert classes <= {"OPEN", "SANDBOX", "GATED"}, classes
+    assert len(classes) > 1, f"every seam reads {classes} — readiness is not being shown"
+    assert feed["go_live"]["access_tally"]
+
+
+def test_a_seam_claiming_its_spec_was_read_cites_a_record_that_exists(feed):
+    """The claim the director noticed — DUIS has had its real specification read. It is a
+    checkable claim, so it is checked: the cited record must exist and must name the
+    specification. A citation that rots fails here rather than on the page."""
+    read = [s for s in feed["go_live"]["seams"] if s.get("spec")]
+    assert read, "no seam claims a specification has been read — verify before deleting this"
+    for seam in read:
+        where = PROJECT / seam["spec"]["where"]
+        assert where.is_file(), f"{seam['counterparty']} cites {where}, which does not exist"
+        assert "DUIS" in where.read_text(encoding="utf-8") or seam["counterparty"].split()[0] in where.read_text(encoding="utf-8"), (
+            f"{where} does not mention the specification it is cited for"
+        )
+
+
+def test_a_seam_with_no_spec_read_does_not_imply_one(feed):
+    for seam in feed["go_live"]["seams"]:
+        if not seam.get("spec"):
+            assert seam.get("spec") is None, "an unread spec must be None, never an empty shell"
+
+
 def test_the_go_live_seams_do_not_claim_to_exist(feed):
     """Every counterparty connection is at the bottom of its scale today. If one ever reads
     Live, that is a real go-live claim and it must be made deliberately, not by this test

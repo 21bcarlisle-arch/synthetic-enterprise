@@ -699,8 +699,14 @@ def _citation_html(c: dict) -> str:
 def _atom_html(atom: dict) -> str:
     lvl = f'{atom["level_current"]}/{atom["level_target"]}'
     at = "ev-ok" if atom["at_target"] else "ev-below"
+    # SITE7: a per-work-item anchor, so another surface can link to the record that proves
+    # ONE claim rather than to the whole node. The Capabilities door needs exactly this --
+    # "a sceptic should be able to get from 'Bills that add up' to the thing that proves it
+    # in one click" -- and a node anchor drops the reader into a section holding a dozen
+    # unrelated items. Prefixed `w-` because a bare id could collide with a node id.
     head = (
-        f'<div class="atom-head"><code class="atom-id">{_E(atom["id"])}</code>'
+        f'<div class="atom-head" id="w-{_E(atom["id"])}">'
+        f'<code class="atom-id">{_E(atom["id"])}</code>'
         f'<span class="lvl {at}">L{lvl}</span>'
         f'<span class="atom-meta">{_E(atom["lane"])} &middot; {_E(atom["loop_stage"])}</span></div>'
     )
