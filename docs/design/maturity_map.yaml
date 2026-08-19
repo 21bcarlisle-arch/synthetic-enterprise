@@ -1714,7 +1714,7 @@
   epoch: 2
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   records_rehomed: [evidence]
@@ -2112,7 +2112,7 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: idle   # PARKED 2026-07-20: rung 1 (carbon three-ledger data model + CARBON_NOT_A_TARGET grep-guard) built, L0->L1 proposed. Rung 2 is BLOCKED, not effort-gated: SAVED needs the unbuilt per-household cost-and-carbon trajectory (personalisation, a separate build); the SPENT emitter needs the emissions-factor SET which the DISCOVER doc + CARBON_NOT_A_TARGET reserve as a DIRECTOR VALUES-CALL (carbon is the mission, values-adjacent). No in-scope BUILD increment. UNBLOCK: director emissions-factor + counterfactual-method values-calls, OR the trajectory build lands. Parked so the BUILD draw stops re-offering values-call-gated work (Rule 0).
+  loop_stage: build   # PARKED 2026-07-20: rung 1 (carbon three-ledger data model + CARBON_NOT_A_TARGET grep-guard) built, L0->L1 proposed. Rung 2 is BLOCKED, not effort-gated: SAVED needs the unbuilt per-household cost-and-carbon trajectory (personalisation, a separate build); the SPENT emitter needs the emissions-factor SET which the DISCOVER doc + CARBON_NOT_A_TARGET reserve as a DIRECTOR VALUES-CALL (carbon is the mission, values-adjacent). No in-scope BUILD increment. UNBLOCK: director emissions-factor + counterfactual-method values-calls, OR the trajectory build lands. Parked so the BUILD draw stops re-offering values-call-gated work (Rule 0).
   frame_saturated: true   # 2026-07-29 RE-CLOSED by the Lane-3 DISCOVER/FRAME fork that delivered BOTH director-named widened-scope items (observables-only trajectory + the carbon clock/basis triple) in docs/design/E5_CARBON_THREE_LEDGER_FRAME.md. Re-opens automatically when loop_stage flips off idle. PRIOR RE-OPEN NOTE RETAINED:   # 2026-07-29 RE-OPENED (director from_rich_20260729_173731, "put all eleven backlog items into the map as real unfinished work items"). This atom IS BACKLOG.md item B9 (BACKLOG says so explicitly: "B9 IS the existing map atom E5_carbon_three_ledger, NOT a new atom" -- do not mint a duplicate). It was in the map but INVISIBLE to the picker: H23 hard-skips FRAME-saturated atoms, so E5 contributed nothing to the draw. The 2026-07-20 saturation was honest FOR THE SCOPE THEN FRAMED (data model + counterfactual comparison + emissions-factor register) -- B9 WIDENED the scope past it, and the widened part is genuinely un-FRAMEd: how a per-household cost-and-carbon trajectory is derived FROM OBSERVABLES ONLY (the wall), and how the site's £/tCO2e figure carries its clock/basis (R14) plus the plain-language working. Those two are the drawable FRAME work now. UNCHANGED WALL: the emissions-factor SET and the counterfactual METHOD stay director values-calls (carbon is the mission = category 6), and the "not yet instrumented" site disclaimer comes off only when the LIVE rendered figure is asserted (R11).
   dial_inherited: 4
   provenance: proposal
@@ -2415,7 +2415,7 @@
   epoch: 3
   level_current: 0
   level_target: 2
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
@@ -2554,7 +2554,7 @@
   epoch: 3
   level_current: 0
   level_target: 2
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
