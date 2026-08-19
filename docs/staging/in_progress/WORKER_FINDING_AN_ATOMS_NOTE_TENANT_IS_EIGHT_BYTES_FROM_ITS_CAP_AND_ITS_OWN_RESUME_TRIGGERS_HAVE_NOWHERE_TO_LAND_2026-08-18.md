@@ -1,3 +1,18 @@
+> **PARTIALLY DISCHARGED 2026-08-19** (D27 DISCOVER pass 7, commit below). §5 items 1 and 2 are
+> **DONE**: D27's resume trigger fired (D30 edge move `7466402f6`, 36 min after the pause), and the
+> remedy this finding recommended was executed exactly as written -- a new dated DISCOVER doc
+> (`docs/design/D27_COMPONENT_LIFT_SUFFIX_DISCOVER.md`) with a short store note, its bytes bought by
+> compacting `discover_pause_note` alone. No other pass's note was touched, and the compacted text is
+> preserved verbatim in that doc's §8, so the append-only honest-history convention lost nothing.
+> Tenant after: **32,754 of 32,768 B**.
+>
+> **STILL OPEN -- the reason this is parked here and not archived:** §5 item 3, whether a note tenant
+> at the bound should be able to ROLL A WHOLE NOTE FIELD into an archive chunk the way list tenants
+> roll entries. Unbuilt, and now with a second live case: D27 bought 14 bytes of headroom, so its
+> next pass hits this again. **Unblocks when** that question is ranked and either built in
+> `tools/simplifications_store.py::_roll` or explicitly declined -- `OPS2_publish_gate_head_worktree`
+> (98% one note, zero drainable entries) is still the case that would test it.
+
 # WORKER FINDING — D27's note tenant sits 8 bytes under its budget, so the three resume triggers its own pause note declares have nowhere to be written
 
 **Severity:** LATENT · **Lane:** H_harness · **Disposition:** QUEUED (not fixed on sight)
