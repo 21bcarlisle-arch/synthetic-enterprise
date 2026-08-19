@@ -39,11 +39,33 @@ work. This one fails toward SATURATING, because its risk is the indefinite run t
 ruled must become impossible. An unreadable store or ledger RAISES rather than reporting
 nothing saturated — "nothing is stuck" computed from sources nobody could read is precisely
 the reading that would restore the infinite lane.
+
+SINCE, NOT EVER (2026-08-19, the day this shipped, found by the H27 harden draw).
+The first shipped predicate was `passes >= ceiling and level_moves == 0`, and `level_moves`
+counted the atom's WHOLE HISTORY. So ONE level move, at any point in the past, bought
+UNLIMITED further passes — the control could never fire again on that atom however long it
+then sat still. Measured on the live tree the day it landed: `H27_payment_belief_gap` had
+**48 passes and one move (2026-08-08)**, i.e. 43 passes since anything moved and thirteen
+consecutive Hours by its own record, and it read as HEALTHY. It was the single worst case in
+the project and the control built that morning to end exactly this was blind to it. That is
+the FAIL-OPEN pattern of R15 — the predicate passes on the state it exists to catch — and it
+was pinned as an invariant by this module's own R15 test, which asserted `level_moves == 0`
+of every saturated row.
+
+The question is therefore "how many passes SINCE the last thing that moved", never "did this
+atom ever move". Passes are dated from their own text (99.6% of the live store's 1,079
+entries carry a date in their first 400 characters); the level ledger dates the move (R16 —
+the ledger is the record). An entry whose date cannot be read COUNTS TOWARD SATURATION,
+which is the same fail-closed direction as everything else here: an unreadable pass is not
+evidence of productivity. Correcting the reading moves the saturated set from 13 to 23 of
+the 112 atoms below target.
 """
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -66,18 +88,30 @@ LEDGER = PROJECT / "docs" / "observability" / "gate_authorizations.jsonl"
 #: against it.
 DEFAULT_CEILING = 5
 
+#: How far into a store entry to look for its own date. Entries open with their pass header
+#: ("FORTY-FIRST HOUR (2026-08-19, worker tick, ...)"); 400 characters covers every dated
+#: entry in the live store without reaching into a body that may quote OTHER dates.
+ENTRY_DATE_SCAN = 400
+
+_ENTRY_DATE = re.compile(r"\b(\d{4}-\d{2}-\d{2})\b")
+
 
 class CeilingUnavailable(RuntimeError):
     """A source could not be read. NOT an empty saturation list."""
 
 
-def _level_moves() -> dict[str, int]:
-    """atom -> number of recorded level moves. The ledger is the record (R16)."""
+def _level_moves() -> dict[str, dict]:
+    """atom -> {"count": moves, "last_ts": epoch}. The ledger is the record (R16).
+
+    `last_ts` is what the saturation predicate actually needs; `count` is kept because a
+    surveyed row still reports it and a reader comparing the two learns something the count
+    alone hides (48 passes, 1 move, 43 of those passes since it).
+    """
     try:
         lines = LEDGER.read_text(encoding="utf-8").splitlines()
     except OSError as e:
         raise CeilingUnavailable(f"level ledger unreadable: {e}") from e
-    moves: dict[str, int] = {}
+    moves: dict[str, dict] = {}
     for line in lines:
         line = line.strip()
         if not line:
@@ -87,13 +121,46 @@ def _level_moves() -> dict[str, int]:
         except ValueError:
             continue  # one malformed line is not a reason to call the ledger empty
         if "LEVEL_UP" in (rec.get("action") or "") and rec.get("atom"):
-            moves[rec["atom"]] = moves.get(rec["atom"], 0) + 1
+            row = moves.setdefault(rec["atom"], {"count": 0, "last_ts": None})
+            row["count"] += 1
+            ts = rec.get("ts")
+            if isinstance(ts, (int, float)) and (row["last_ts"] is None or ts > row["last_ts"]):
+                row["last_ts"] = float(ts)
     if not moves:
         raise CeilingUnavailable(
             "the level ledger records no level move at all -- that is a broken read, not a "
             "project that has never promoted anything"
         )
     return moves
+
+
+def _entry_date(entry: object) -> dt.date | None:
+    """The date a pass records for itself, or None if it does not carry a readable one."""
+    m = _ENTRY_DATE.search(str(entry)[:ENTRY_DATE_SCAN])
+    if not m:
+        return None
+    try:
+        return dt.date.fromisoformat(m.group(1))
+    except ValueError:
+        return None
+
+
+def _passes_since_move(notes: list, last_move_ts: float | None) -> int:
+    """Passes recorded since the atom last moved a level -- the number the ceiling bounds.
+
+    An atom that has NEVER moved counts every pass (the original reading, unchanged). An
+    UNDATED pass counts toward saturation: fail-closed, because a pass nobody can place in
+    time is not evidence that the atom has been productive since its last move.
+    """
+    if last_move_ts is None:
+        return len(notes)
+    cutoff = dt.datetime.fromtimestamp(last_move_ts, dt.timezone.utc).date()
+    since = 0
+    for note in notes:
+        d = _entry_date(note)
+        if d is None or d >= cutoff:
+            since += 1
+    return since
 
 
 def _atoms() -> list[dict]:
@@ -117,17 +184,19 @@ def survey(ceiling: int = DEFAULT_CEILING) -> list[dict]:
     for atom in _atoms():
         if atom["level_current"] >= atom["level_target"]:
             continue
-        passes = len(records.get(atom["id"]) or [])
-        moved = moves.get(atom["id"], 0)
+        notes = records.get(atom["id"]) or []
+        move = moves.get(atom["id"]) or {}
+        since = _passes_since_move(notes, move.get("last_ts"))
         out.append({
             "atom": atom["id"],
-            "passes": passes,
-            "level_moves": moved,
+            "passes": len(notes),
+            "level_moves": move.get("count", 0),
+            "passes_since_move": since,
             "stage": atom["loop_stage"],
             "level": f"{atom['level_current']}/{atom['level_target']}",
-            "saturated": passes >= ceiling and moved == 0,
+            "saturated": since >= ceiling,
         })
-    out.sort(key=lambda r: (-r["passes"], r["atom"]))
+    out.sort(key=lambda r: (-r["passes_since_move"], -r["passes"], r["atom"]))
     return out
 
 
@@ -169,11 +238,12 @@ def main(argv=None) -> int:
                           "surveyed": len(rows)}, indent=2))
         return 0
     shown = rows if args.all else stuck
-    print(f"{'passes':>7}{'moves':>7}  {'stage':<8}{'level':>6}  atom")
+    print(f"{'since':>7}{'passes':>7}{'moves':>7}  {'stage':<8}{'level':>6}  atom")
     for r in shown:
-        print(f"{r['passes']:>7}{r['level_moves']:>7}  {r['stage']:<8}{r['level']:>6}  {r['atom']}")
+        print(f"{r['passes_since_move']:>7}{r['passes']:>7}{r['level_moves']:>7}  "
+              f"{r['stage']:<8}{r['level']:>6}  {r['atom']}")
     print(f"\n{len(stuck)} of {len(rows)} atoms below target are SATURATED at ceiling "
-          f"{args.ceiling}: {args.ceiling}+ passes, no level move.")
+          f"{args.ceiling}: {args.ceiling}+ passes SINCE the atom last moved a level.")
     if stuck:
         print("They leave the discovery draw. Each is now a decision: promote to build, or "
               "close it.")
