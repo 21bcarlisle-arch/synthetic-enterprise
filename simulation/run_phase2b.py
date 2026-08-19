@@ -1704,7 +1704,9 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                                 for s in _funnel_result.stages
                             ],
                         })
-                        acquisition_funnel_log.append(_funnel_message.to_log_entry())
+                        acquisition_funnel_log.append(
+                            _funnel_message.to_log_entry(include_schema_version=True)
+                        )
 
                         acquisition_spend_events.append(
                             book_acquisition_spend(

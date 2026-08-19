@@ -262,7 +262,10 @@ def main(report_end: str | None = None, policy=None):
         MeterReadMessage.from_log_entry(entry)
         for entry in meter_read_log_from_events(billed_read_events)
     ]
-    meter_read_log = [message.to_log_entry() for message in meter_read_messages]
+    meter_read_log = [
+        message.to_log_entry(include_schema_version=True)
+        for message in meter_read_messages
+    ]
 
     # Phase 3 (CORE_FIDELITY_PHASES.md item 2): SLC 14 credit-refund
     # activation -- company/billing/credit_refund.py already had the real
@@ -349,7 +352,10 @@ def main(report_end: str | None = None, policy=None):
         ContactCentreMessage.from_log_entry(entry)
         for entry in generate_contact_centre_log(bills)
     ]
-    contact_centre_log = [message.to_log_entry() for message in contact_centre_messages]
+    contact_centre_log = [
+        message.to_log_entry(include_schema_version=True)
+        for message in contact_centre_messages
+    ]
 
     all_customers = _get_all_customers()
 
