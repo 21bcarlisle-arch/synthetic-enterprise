@@ -124,6 +124,36 @@ _DISCLAIMS = re.compile(
     re.I,
 )
 
+# THE SAME STATEMENT, SPELLED AS A SYMBOL. `_DISCLAIMS` is a \b-anchored WORD list, and `??` has
+# no word characters, so it could never have been added to it -- the porcelain code for "not in the
+# index" was unreadable to this lexicon by construction, not by omission.
+#
+# WHY THIS EXISTS (2026-08-19, WORKER_FINDING_THE_SAME_TRUE_SENTENCE_IS_HONEST_SPELLED_OUT_AND_A_
+# VIOLATION_ABBREVIATED). EP1's committed store states one true fact four times. Twice spelled
+# `UNTRACKED (`??`)` -- silenced; twice abbreviated to ``still `??` `` -- judged as an over-claim.
+# The record's honesty had become a function of how verbosely its author restated something they
+# had already said correctly. Commit b6148d907 re-worded a note, never touched this control, and
+# left the verdict red for ~24h against an accurate record -- the shape the sibling docstring names
+# as "a control born red is a control someone disables".
+#
+# BACKTICK-QUOTED ONLY, and that narrowness is the point. This project writes porcelain codes as
+# code spans; a bare `??` is ordinary punctuation ("what?? "). Measured over the 354 committed
+# stores this tick: `??` occurs in 4 token-bearing clauses (all EP1's), `!!` in none. `!!` is
+# carried anyway because it is the same statement about the index in the same notation -- and the
+# cost of a vocabulary entry is bounded by _DECLARED_HONEST_ABSENCE below, which no widening can
+# fail open past.
+_DISCLAIMS_SYMBOL = re.compile(r"`(?:\?\?|!!)`")
+
+
+def _disclaims(clause: str) -> bool:
+    """Does this clause locate its artefact outside the index -- in WORDS or in SYMBOLS?
+
+    THE PREDICATE, not the lexicon, is what the control reads. Every call site goes through here
+    so that a spelling reachable by one notation and not the other cannot produce two verdicts for
+    one sentence.
+    """
+    return bool(_DISCLAIMS.search(clause) or _DISCLAIMS_SYMBOL.search(clause))
+
 # A store note is one YAML scalar; `.` and `;` end a clause, and a literal `\n` inside a
 # double-quoted scalar is a wrap, not a boundary.
 #
@@ -287,12 +317,16 @@ def _tokens_in(clause: str) -> set[str]:
     }
 
 
-def _read() -> tuple[dict[str, set[str]], dict[str, set[str]], int]:
+def _read(disclaims=_disclaims) -> tuple[dict[str, set[str]], dict[str, set[str]], int]:
     """(affirmative claims, silenced mentions, store count), read from the INDEX not from disk.
 
     A claim's authority comes from being committed. Reading the working tree would admit an
     uncommitted note's claim and miss a committed note whose working copy has been edited -- the
     precise confusion this class is about.
+
+    `disclaims` is a PARAMETER so a mutation test can re-run the real corpus under a weaker
+    predicate -- the historical one -- instead of monkeypatching a global and hoping the call site
+    reads it late.
     """
     have = _index()
     claims: dict[str, set[str]] = {}
@@ -301,10 +335,24 @@ def _read() -> tuple[dict[str, set[str]], dict[str, set[str]], int]:
     for store in stores:
         stem = store[len(STORE_DIR):-len(".yaml")]
         for clause in _clauses(_git("show", f":{store}")):
-            disclaimed = _DISCLAIMS.search(clause) is not None
+            disclaimed = disclaims(clause)
             for token in _tokens_in(clause):
                 (silenced if disclaimed else claims).setdefault(token, set()).add(stem)
     return claims, silenced, len(stores)
+
+
+def _contradicted_declarations(claims: dict[str, set[str]]) -> list[str]:
+    """Declared-honest citations that the SAME store also claims affirmatively.
+
+    The population of the R10 control below; a helper so the control and its mutation compute it
+    the same way from different predicates.
+    """
+    out = []
+    for key in _DECLARED_HONEST_ABSENCE:
+        stem, _, token = key.partition("::")
+        if stem in claims.get(token, set()):
+            out.append(key)
+    return sorted(out)
 
 
 def _index_defines(citation: str, have: set[str]) -> bool:
@@ -501,6 +549,89 @@ def test_every_honest_absence_declaration_is_dated_and_quotes_the_clause():
         )
 
 
+def test_no_declared_honest_store_also_claims_the_same_citation():
+    """THE R10 CLASS CONTROL: a verdict may not depend on which spelling an author chose.
+
+    R10 forbids closing an absurdity-class defect with an instance fix. Adding `` `??` `` to the
+    lexicon repairs the INSTANCE; this repairs the CLASS, and it is the control that would have
+    fired at b6148d907 the moment the re-wording landed.
+
+    THE SUBJECT IS A CONTRADICTION INSIDE ONE RECORD, and that is what makes it independent of the
+    verdict above rather than a restatement of it. `_DECLARED_HONEST_ABSENCE` is a human
+    certification that store S tells the truth about path P. If S ALSO claims P affirmatively, one
+    of two things is true and both are defects:
+
+        the certification is wrong -- S really does over-claim; or
+        the PREDICATE is wrong -- S said the same thing twice and `_disclaims` only read one
+        spelling.
+
+    The verdict never consults this register (it filters on `_KNOWN_UNLANDED | _STALE_CITATION`),
+    so this is a second, differently-keyed question over the same corpus -- not the same assertion
+    with a new message.
+
+    WHY IT MATTERS MORE THAN THE INSTANCE FIX: the finding's §4 named the pressure a red verdict
+    creates -- widen `_DECLARED_HONEST_ABSENCE` until the red goes away. That move makes THIS test
+    fail, loudly, naming the lexicon as the thing to repair. Papering over a predicate miss with a
+    by-name declaration is exactly what it refuses.
+
+    Measured 2026-08-19 over 354 committed stores: 44 same-store/same-token split verdicts exist,
+    but only 2 involve a path the index does not carry -- both EP1's, both this defect. Keyed on
+    the declaration register the population is the same 2 and the steady state is empty.
+    """
+    claims, _, _ = _read()
+    contradicted = _contradicted_declarations(claims)
+    assert not contradicted, (
+        "A store is DECLARED to be honest about a citation and affirmatively CLAIMS the same "
+        "citation. The record says one true thing in two spellings and `_disclaims` reads only "
+        "one of them:\n"
+        + "".join(f"    {k}\n" for k in contradicted)
+        + "\n    Do NOT resolve this by adding the citation to _KNOWN_UNLANDED -- that register "
+        "is for a claim genuinely waiting on an uncommitted change set, and an entry made here "
+        "would be indistinguishable from one. Read the store's clauses, find the spelling the "
+        "predicate missed, and widen _disclaims by that NOTATION."
+    )
+
+
+def test_MUTATION_the_word_only_predicate_fires_this_contradiction_on_the_real_corpus():
+    """R15: the class control above must fire on its own named defect, measured not asserted.
+
+    This re-runs the REAL committed corpus under the exact predicate that shipped before
+    2026-08-19 -- words only, no symbols. That is the state of the repository at b6148d907, when
+    the verdict sat red for ~24h against an accurate record. If this returns nothing, the class
+    control is decorative: it would not have caught the defect it was written for.
+    """
+    historical = lambda clause: bool(_DISCLAIMS.search(clause))  # noqa: E731
+    claims, _, _ = _read(historical)
+    contradicted = _contradicted_declarations(claims)
+    assert contradicted, (
+        "under the pre-fix word-only predicate the class control found NO contradiction on the "
+        "real corpus -- it cannot fire on the defect it was built for, so it is not evidence "
+        "(R15). Either the EP1 clauses were rewritten, or the control is keyed wrong"
+    )
+    assert "EP1_clv_three_horizon::tests/saas/test_clv_margin_basis.py" in contradicted, (
+        f"the contradiction fired, but not on the EP1 clause this control was written for: "
+        f"{contradicted}"
+    )
+
+
+def test_MUTATION_the_symbol_lexicon_does_not_silence_a_bare_credit():
+    """The widening must not reach past the notation it was added for.
+
+    A code span is not a disclaimer on its own -- if it were, every note that quotes a path in
+    backticks would go quiet and the verdict would empty (the fail-open this class is most
+    exposed to).
+    """
+    for clause in (
+        "proven by `tests/tools/test_never_written_at_all.py`",
+        "the R10 class guard `tests/tools/test_no_orphan_published_customer_artefacts.py`.",
+        "what?? the guard tests/tools/test_never_written_at_all.py covers it",
+    ):
+        assert not _DISCLAIMS_SYMBOL.search(clause), (
+            f"the symbol lexicon silenced a clause that locates nothing outside the index: "
+            f"{clause!r}"
+        )
+
+
 # --------------------------------------------------------------------------------------
 # R15 mutation tests. Each names the defect it must fire on.
 # --------------------------------------------------------------------------------------
@@ -512,7 +643,7 @@ def test_MUTATION_a_bare_credit_with_no_disclaimer_is_a_violation():
         "Fixed at the lifecycle instead: _retire_departed_artefacts() plus the R10 class guard "
         "tests/tools/test_never_written_at_all.py."
     )
-    assert not _DISCLAIMS.search(clause), (
+    assert not _disclaims(clause), (
         "the lexicon covers a bare credit -- it has widened onto exactly the claim shape this "
         "control exists to catch"
     )
@@ -537,8 +668,12 @@ def test_MUTATION_an_absence_report_is_not_a_violation():
         "tests/saas/test_clv_margin_basis.py is UNTRACKED (`??`)",
         "Three violations, all on disk, none ignored, `git log --all` empty on each: "
         "tests/tools/test_derived_basis_parentage_gate.py",
+        # The ABBREVIATED spelling of the first one. Unreadable to the word lexicon; this is the
+        # clause that sat red for ~24h against a record telling the truth.
+        "`tests/saas/test_clv_margin_basis.py` and "
+        "`tests/tools/test_derived_basis_parentage_gate.py` still `??`",
     ):
-        assert _DISCLAIMS.search(clause), (
+        assert _disclaims(clause), (
             f"the lexicon does NOT cover an honest absence report, so this control would be born "
             f"red on a record that is telling the truth: {clause!r}"
         )
@@ -552,14 +687,14 @@ def test_MUTATION_a_whole_note_window_would_silence_the_real_violation():
     if store not in have:  # pragma: no cover - the atom would have to be deleted
         pytest.skip("D36 store not in the index")
     text = _git("show", f":{store}")
-    assert _DISCLAIMS.search(text.replace("\\n", " ")), (
+    assert _disclaims(text.replace("\\n", " ")), (
         "the D36 note as a WHOLE contains no disclaim vocabulary, so this mutation proves "
         "nothing -- pick a note that does"
     )
     landed = "tests/tools/test_no_orphan_published_customer_artefacts.py"
     assert landed in text, "D36 no longer credits the guard; this mutation needs a new subject"
     # Clause-level, the crediting clause is affirmative; note-level, the note disclaims elsewhere.
-    crediting = [c for c in _clauses(text) if landed in c and not _DISCLAIMS.search(c)]
+    crediting = [c for c in _clauses(text) if landed in c and not _disclaims(c)]
     assert crediting, (
         "no affirmative crediting clause survives in D36 -- if the note was rewritten, re-point "
         "this mutation; the claim being tested is that a note-wide window is strictly weaker"
