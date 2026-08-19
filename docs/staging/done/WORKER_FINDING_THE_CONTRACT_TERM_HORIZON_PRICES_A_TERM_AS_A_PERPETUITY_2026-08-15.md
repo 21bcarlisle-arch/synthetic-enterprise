@@ -2,7 +2,7 @@
 
 **Severity:** BLOCKING · **Lane:** B_commercial · **Disposition:** QUEUED (not fixed on sight)
 
-**Discharged:** 2026-08-15, condition 1 (price the term) taken on both horizons — `tests/company/core/test_three_horizon_clv.py::test_h1_clv_rises_strictly_with_the_term`, `tests/company/core/test_three_horizon_clv.py::test_h3_clv_rises_strictly_with_remaining_term`, `tests/company/core/test_three_horizon_clv.py::test_an_expiring_contract_is_not_worth_the_same_as_a_ten_year_one`
+**Discharged:** 2026-08-15, condition 1 (price the term) taken on both horizons — `tests/company/core/test_commitment_actual_forecast.py::test_h1_clv_rises_strictly_with_the_term`, `tests/company/core/test_commitment_actual_forecast.py::test_h3_clv_rises_strictly_with_remaining_term`, `tests/company/core/test_commitment_actual_forecast.py::test_an_expiring_contract_is_not_worth_the_same_as_a_ten_year_one`
 
 The severity line above states what the pass FOUND and is left alone; the field states what it left.
 The three falsifiers are named on ONE line because the field reads a single line and every backtick
@@ -32,7 +32,7 @@ rather than inheriting its severity.
 
 ### 1. The value is invariant to the term, on both horizons
 
-`company/core/three_horizon_clv.py`. `H1Commitment` takes `contract_start`/`contract_end` and
+`company/core/commitment_actual_forecast.py`. `H1Commitment` takes `contract_start`/`contract_end` and
 exposes `contract_years`; `H3Forecast` takes `remaining_contract_years`. Both then price with:
 
 ```python
@@ -93,7 +93,7 @@ is the signature of a perpetuity, not a mispriced annuity.
 
 ### 4. The tests certify it — this is the part that makes it BLOCKING
 
-`tests/company/core/test_three_horizon_clv.py`, **35 passed in 0.06s** at HEAD this tick.
+`tests/company/core/test_commitment_actual_forecast.py`, **35 passed in 0.06s** at HEAD this tick.
 
 - `test_h1_clv_formula` and `test_h3_clv` assert against a hand-written copy of the
   implementation's own expression, `200.0 * retention / (1 + 0.08 - retention)`, with the same
@@ -123,7 +123,7 @@ cheap to repair now and expensive to repair after EP1 wires it.
 ## Why it is BLOCKING rather than LATENT
 
 LATENT is "real defect; does not invalidate anything published **or any control's verdict**".
-The verdict of `tests/company/core/test_three_horizon_clv.py` is "this valuation is correct", and
+The verdict of `tests/company/core/test_commitment_actual_forecast.py` is "this valuation is correct", and
 that verdict is invalid. The exclusion clause fails, so LATENT does not fit. Down-classifying to
 keep `B_commercial` open would be the anti-pattern `background/finding_severity.py` names in its
 own header ("deciding one's own finding is not BLOCKING in order to keep a lane open").
@@ -227,3 +227,14 @@ discharged document from the class population outright. Checked after the repair
 `no_caller_and_never_runs` has `members=[]`. The escalation to BLOCKING was still right — §4's
 tautology is what earned it — but the second-lane cost it volunteered was never real. Predicting a
 derived document's severity is not the same as rendering it.
+
+---
+
+**Path repair, 2026-08-19 (EP1 BUILD draw, first commit).** Both artefacts this document
+cites as its discharge evidence were RENAMED, not changed: `company/core/three_horizon_clv.py`
+-> `company/core/commitment_actual_forecast.py` and its test file likewise. The citations above
+were rewritten to the live paths in the same commit as the rename, so a reader can still reach
+the evidence. **The three named tests are unchanged and still present** -- verified by name in
+the renamed file, not inferred from the rename. The measured figure quoted below ("35 passed")
+is left as it was recorded on 2026-08-15 and is not restated: it is a reading of that tree, and
+the file now holds more tests.

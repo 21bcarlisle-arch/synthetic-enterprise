@@ -8,12 +8,18 @@ Aggregates:
 - Total active customer count by segment
 - Total annual margin (£) and per-customer average
 - Portfolio churn rate and expected revenue at risk
-- Average CLV (H3 forecast) vs H1 commitment
+- Average contract value (H3 re-forecast) vs H1 commitment
 - Net Promoter Score proxy (from complaint resolution rate)
 - Concentration risk (% revenue from top 20% of customers)
 
 This is the integration layer that connects Phase EA (resentment), EB (GRI),
-EC (3-horizon CLV), ED (activation energy) into a coherent management pack.
+EC (commitment/actual/re-forecast), ED (activation energy) into a coherent management pack.
+
+`avg_clv_gbp` below is one of six CLV producers this repository holds, five of them dark;
+reconciling them is `EP1_clv_three_horizon`'s own build work and is not done here. What IS
+done here is removing this file's propagation of the "3-horizon CLV" name, which belongs to
+that atom's triple (contract-term / tenure-expected / portfolio-cohort) and not to
+`company/core/commitment_actual_forecast.py`'s (commitment / actual / re-forecast).
 """
 from __future__ import annotations
 

@@ -1,3 +1,30 @@
+"""Commitment / actual / re-forecast tracking for a customer contract (Phase EC).
+
+THIS MODULE IS NOT ABOUT THREE-HORIZON CLV, AND USED TO BE NAMED AS IF IT WERE.
+It tracks one account across three points in TIME on a single contract:
+
+    H1  what was COMMITTED at signature      (`H1Commitment`)
+    H2  what has ACTUALLY been earned since  (`H2Actuals`)
+    H3  what the LATEST re-forecast says     (`H3Forecast`)
+
+That triple is commitment-vs-actual-vs-reforecast — a variance question about one
+contract already sold. It is NOT the triple named by `EP1_clv_three_horizon`, whose
+horizons are contract-term / tenure-expected / portfolio-cohort — three different
+VALUATION BASES for the same customer, all measured from today forward.
+
+The two are answering different questions and the old module name
+(`company/core/three_horizon_clv.py`, classes `ThreeHorizonCLVTracker`) claimed the
+second while implementing the first. Eight consecutive DISCOVER/FRAME passes on
+`EP1_clv_three_horizon` recorded the collision and none resolved it; passes 6, 7 and 8
+each pre-committed the same repair — rename this module in the FIRST commit of the draw
+that opens EP1, before a line of EP1 code exists — because it had zero non-test
+importers and would only get more expensive. This is that commit.
+
+The name `three-horizon CLV` now belongs unambiguously to `EP1_clv_three_horizon`.
+`tests/company/core/test_commitment_actual_forecast.py::test_the_three_horizon_clv_name_
+does_not_return_to_this_module` is the mechanism that keeps it that way, rather than a
+ninth pass re-copying the recommendation forward (MAKE_IT_STICK).
+"""
 from __future__ import annotations
 
 import datetime as dt
@@ -134,7 +161,13 @@ class H3Forecast:
             self.remaining_contract_years,
         )
 
-class ThreeHorizonCLVTracker:
+class CommitmentActualForecastTracker:
+    """One account's commitment (H1), running actuals (H2) and latest re-forecast (H3).
+
+    Not a CLV tracker: every figure here is scoped to ONE contract's term. See the module
+    docstring for why that distinction is now in the name.
+    """
+
     def __init__(self):
         self._h1: Dict[str, H1Commitment] = {}
         self._h2: Dict[str, H2Actuals] = {}
@@ -200,8 +233,8 @@ class ThreeHorizonCLVTracker:
     def outperforming_accounts(self) -> List[str]:
         return [aid for aid in self._h1 if self.h3_signal(aid) == H3Signal.OUTPERFORMING]
 
-    def clv_summary(self) -> str:
+    def variance_summary(self) -> str:
         n = len(self._h1)
         n_risk = len(self.at_risk_accounts())
         n_out = len(self.outperforming_accounts())
-        return f"3-Horizon CLV Tracker: {n} accounts. AT_RISK: {n_risk}. OUTPERFORMING: {n_out}. H1=commitment; H2=running P&L; H3=live forecast."
+        return f"Commitment/Actual/Forecast Tracker: {n} accounts. AT_RISK: {n_risk}. OUTPERFORMING: {n_out}. H1=commitment; H2=running P&L; H3=live forecast."

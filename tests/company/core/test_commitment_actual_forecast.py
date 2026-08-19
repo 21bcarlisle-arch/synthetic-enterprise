@@ -1,17 +1,22 @@
-"""Tests for Three-Horizon CLV Tracker (Phase EC)."""
+"""Tests for the commitment/actual/re-forecast tracker (Phase EC).
+
+Renamed from `test_three_horizon_clv.py` — see the module docstring of
+`company/core/commitment_actual_forecast.py` for why the "three-horizon CLV" name had to
+leave this module. The last test in this file is the control that keeps it gone.
+"""
 import datetime as dt
 
 import pytest
 
-from company.core.three_horizon_clv import (
+from company.core.commitment_actual_forecast import (
     _H3_AT_RISK_THRESHOLD,
     _H3_DETERIORATE_THRESHOLD,
     _H3_OUTPERFORM_THRESHOLD,
+    CommitmentActualForecastTracker,
     H1Commitment,
     H2Actuals,
     H3Forecast,
     H3Signal,
-    ThreeHorizonCLVTracker,
 )
 
 START = dt.date(2024, 1, 1)
@@ -43,7 +48,7 @@ def make_h3(account="C1", margin=200.0, churn=0.18, date=MID, years=0.5):
 
 @pytest.fixture
 def tracker():
-    return ThreeHorizonCLVTracker()
+    return CommitmentActualForecastTracker()
 
 
 def discounted_sum(margin, churn, discount, whole_years):
@@ -134,7 +139,7 @@ class TestH3Forecast:
         assert make_h3(years=0.0).h3_clv_gbp == pytest.approx(0.0)
 
 
-class TestThreeHorizonCLVTracker:
+class TestCommitmentActualForecastTracker:
     def test_commit_h1(self, tracker):
         tracker.commit_h1(make_h1())
         assert tracker.h1("C1") is not None
@@ -201,10 +206,11 @@ class TestThreeHorizonCLVTracker:
         assert "C1" in tracker.at_risk_accounts()
         assert "C2" not in tracker.at_risk_accounts()
 
-    def test_clv_summary(self, tracker):
+    def test_variance_summary(self, tracker):
         tracker.commit_h1(make_h1())
-        s = tracker.clv_summary()
-        assert "3-Horizon CLV Tracker" in s
+        s = tracker.variance_summary()
+        assert "Commitment/Actual/Forecast Tracker" in s
+        assert "CLV" not in s
 
     def test_constants(self):
         assert _H3_OUTPERFORM_THRESHOLD == pytest.approx(0.10)
@@ -213,7 +219,7 @@ class TestThreeHorizonCLVTracker:
 
 # --- Phase JQ depth tests ---
 
-class TestThreeHorizonCLVTrackerDepth:
+class TestCommitmentActualForecastTrackerDepth:
     def test_outperforming_accounts(self, tracker):
         tracker.commit_h1(make_h1("C1", margin=100.0, churn=0.40))
         tracker.commit_h1(make_h1("C2", margin=200.0, churn=0.18))
@@ -287,7 +293,7 @@ class TestH2ActualsDirect:
         assert h2.h2_margin_gbp() == pytest.approx(125.0)
 
 
-class TestThreeHorizonCLVTrackerDepthJX:
+class TestCommitmentActualForecastTrackerDepthJX:
     def test_h1_vs_h2_variance_negative_underperform(self, tracker):
         tracker.commit_h1(make_h1(margin=200.0))
         # 6 months elapsed; expected = 100; actual = 50 -> variance = -50
@@ -324,10 +330,10 @@ class TestThreeHorizonCLVTrackerDepthJX:
         # no H3 committed -> h3_signal returns None -> not in outperforming
         assert tracker.outperforming_accounts() == []
 
-    def test_clv_summary_shows_account_count(self, tracker):
+    def test_variance_summary_shows_account_count(self, tracker):
         tracker.commit_h1(make_h1('C1'))
         tracker.commit_h1(make_h1('C2'))
-        s = tracker.clv_summary()
+        s = tracker.variance_summary()
         assert '2 accounts' in s
 
     def test_h2_margin_unknown_account_returns_zero(self, tracker):
@@ -377,3 +383,118 @@ class TestTheTermIsPriced:
         assert h1.clv_over_years_gbp(h1.contract_years) == pytest.approx(h1.h1_clv_gbp)
         assert h1.clv_over_years_gbp(1.0) < h1.clv_over_years_gbp(4.0)
         assert h1.clv_over_years_gbp(0.0) == pytest.approx(0.0)
+
+
+# ---------------------------------------------------------------------------------------
+# THE NAME-COLLISION CONTROL
+#
+# Eight consecutive DISCOVER/FRAME passes on `EP1_clv_three_horizon` recorded that this
+# module claimed the name "three-horizon CLV" while answering a different question, and
+# each of passes 6, 7 and 8 re-copied the same recommendation forward. A line re-copied
+# forward is not a mechanism (MAKE_IT_STICK), so the rename ships with the control that
+# refuses its own undo.
+#
+# WHAT THE CORPUS IS, AND WHY: every identifier the repository's Python actually BINDS or
+# REFERENCES -- names, attributes, imports, class and function definitions -- read via
+# `ast`, over the WORKING TREE (the tree a commit would create), with no file excluded and
+# this file included. It is deliberately NOT a text scan: the module docstring of
+# `company/core/commitment_actual_forecast.py` says what this module used to be called,
+# and a docstring recording history is not a symbol claiming a name. That is the same
+# comment-doctrine `background/process_run_complete.py` already applies -- "a comment
+# mentioning a symbol is not the symbol being built".
+#
+# R15: the forbidden tokens are assembled at runtime so this control's own source binds
+# neither of them, which is what lets the corpus be exception-free rather than
+# self-exempting. Its floors are below.
+# ---------------------------------------------------------------------------------------
+
+_SCAN_SKIP_DIRS = {
+    ".git", "__pycache__", "node_modules", ".venv", "venv",
+    ".pytest_cache", ".mypy_cache", ".claude",
+}
+
+# Measured 2026-08-19 over the working tree: 2335 .py files, 0 unparseable. The floor is
+# set well below the measurement so ordinary growth and pruning do not move it, but a scan
+# that finds an empty or collapsed corpus -- the FAIL-OPEN shape R15 names -- is a failure
+# and not a pass.
+_MIN_PY_FILES_SCANNED = 1800
+
+
+def _repo_root():
+    import pathlib
+    return pathlib.Path(__file__).resolve().parents[3]
+
+
+def _bound_identifiers():
+    """(identifiers, files_scanned, unparseable) over every .py in the working tree."""
+    import ast
+    import os
+
+    root = _repo_root()
+    names, scanned, unparseable = set(), 0, []
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in _SCAN_SKIP_DIRS]
+        for fn in filenames:
+            if not fn.endswith(".py"):
+                continue
+            path = os.path.join(dirpath, fn)
+            scanned += 1
+            try:
+                tree = ast.parse(open(path, encoding="utf-8").read())
+            except Exception:
+                # An unavailable check is a FAILED check (R15). Recorded, not skipped.
+                unparseable.append(os.path.relpath(path, root))
+                continue
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Name):
+                    names.add(node.id)
+                elif isinstance(node, ast.Attribute):
+                    names.add(node.attr)
+                elif isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+                    names.add(node.name)
+                elif isinstance(node, ast.alias):
+                    for part in node.name.split("."):
+                        names.add(part)
+                    if node.asname:
+                        names.add(node.asname)
+                elif isinstance(node, ast.ImportFrom) and node.module:
+                    for part in node.module.split("."):
+                        names.add(part)
+    return names, scanned, unparseable
+
+
+def test_the_scan_can_see_this_module_and_is_not_empty():
+    """The anti-fail-open half. A control that greens because it read nothing is worse
+    than none, so the corpus must be large AND must demonstrably contain the very symbol
+    this rename introduced."""
+    names, scanned, unparseable = _bound_identifiers()
+    assert unparseable == [], f"unparseable Python in the scan corpus: {unparseable}"
+    assert scanned >= _MIN_PY_FILES_SCANNED, (
+        f"only {scanned} .py files scanned, floor {_MIN_PY_FILES_SCANNED} -- "
+        "the corpus collapsed, so a green verdict below would mean nothing"
+    )
+    assert "CommitmentActualForecastTracker" in names, (
+        "the scan did not reach this module's own tracker class, so it cannot be "
+        "trusted to have reached anything else"
+    )
+
+
+def test_the_three_horizon_clv_name_does_not_return_to_this_module():
+    """`three-horizon CLV` names `EP1_clv_three_horizon`'s triple -- contract-term,
+    tenure-expected, portfolio-cohort -- and nothing else. This module's triple is
+    commitment / actual / re-forecast. Reintroducing either identifier as a SYMBOL
+    (an import, an alias, a class, a module) re-opens the collision eight passes recorded.
+    """
+    forbidden = {
+        # assembled so this control's own source does not bind what it forbids
+        "three" + "_horizon_" + "clv",
+        "ThreeHorizon" + "CLVTracker",
+    }
+    names, _, _ = _bound_identifiers()
+    offenders = sorted(forbidden & names)
+    assert not offenders, (
+        f"the three-horizon-CLV name is bound again as a symbol: {offenders}. "
+        "That name belongs to EP1_clv_three_horizon (contract-term / tenure-expected / "
+        "portfolio-cohort); this module answers commitment vs actual vs re-forecast. "
+        "See the module docstring of company/core/commitment_actual_forecast.py."
+    )
