@@ -20,13 +20,16 @@
 // child nodes and real attributes (not the no-op stubs the drill-down harness uses),
 // because "a block was REMOVED from the document" is the property being asserted.
 //
-// Usage: node _landing_harness.mjs <index.html> <case_studies.json>
+// Usage: node _landing_harness.mjs <index.html> <case_studies.json> [roster]
+//   roster: a path to a customers.json the page's ../data/customers.json fetch RESOLVES
+//           with; the literal REJECT to model that artefact being unreadable; or omitted,
+//           which keeps the original never-settling fetch (every pre-existing caller).
 // Prints JSON: { views: {view: appHtml}, threw: {view: msg|null}, violations: {view: [...]},
-//                drops: {view: [...]}, probes: {...} }
+//                drops: {view: [...]}, rosterHint: str|null, probes: {...} }
 import fs from "node:fs";
 import vm from "node:vm";
 
-const [, , htmlPath, casesPath] = process.argv;
+const [, , htmlPath, casesPath, rosterArg] = process.argv;
 const html = fs.readFileSync(htmlPath, "utf8");
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
 if (scripts.length < 2) { console.error("expected two inline <script> blocks"); process.exit(2); }
@@ -95,10 +98,25 @@ const document = {
 function Chart() { return { destroy() {} }; }
 const inert = { then() { return inert; }, catch() { return inert; } };
 const consoleErrs = [];
+// The ROSTER the landing card's account list is read from. Default is the original
+// never-settling fetch, so every caller that passes two arguments sees the page in the
+// state it has always been driven in; the two explicit modes are what the roster arms
+// below need, and neither is reachable by accident.
+const rosterBody = rosterArg && rosterArg !== "REJECT"
+  ? JSON.parse(fs.readFileSync(rosterArg, "utf8"))
+  : null;
+function harnessFetch(url) {
+  if (rosterArg && String(url).includes("customers.json")) {
+    return rosterArg === "REJECT"
+      ? Promise.reject(new Error("roster unavailable"))
+      : Promise.resolve({ ok: true, json: () => Promise.resolve(rosterBody) });
+  }
+  return inert;
+}
 const sandbox = {
   document, Chart, Date, Number, String, Object, Math, JSON, Array,
   console: { log() {}, warn() {}, error(m) { consoleErrs.push(String(m)); } },
-  fetch: () => inert, setTimeout() {}, alert() {},
+  fetch: harnessFetch, setTimeout() {}, alert() {},
   location: { search: "" },
   history: { replaceState() {} },
   URLSearchParams: globalThis.URLSearchParams,
@@ -120,16 +138,32 @@ sandbox.CASE_STUDIES = JSON.parse(fs.readFileSync(casesPath, "utf8"));
 const viol = () => (sandbox.WALL_VIOLATIONS || []).slice();
 const clearViol = () => { if (sandbox.WALL_VIOLATIONS) sandbox.WALL_VIOLATIONS.length = 0; };
 
+// The roster fill is a PROMISE chain on the host queue, so the rendered value only exists
+// once the microtask queue has drained. A harness that read the slot synchronously would
+// only ever see the pending text -- and would report a page that never resolves as green.
+const flush = async () => { for (let i = 0; i < 20; i += 1) await Promise.resolve(); };
+
 const views = {}, threw = {}, violations = {}, drops = {};
 for (const view of ["both", "customer", "behind"]) {
   clearViol();
   sandbox.showLogin(null);
+  await flush();
   try { sandbox.setWallView(view); threw[view] = null; }
   catch (e) { threw[view] = String((e && e.message) || e); }
   views[view] = app.innerHTML;
   violations[view] = viol();
   drops[view] = (sandbox.CASE_STUDY_DROPS || []).slice();
 }
+
+// THE RENDERED ACCOUNT LIST. Read off the slot the page filled, from a FRESH element --
+// the stub registry outlives a showLogin(), so a slot left over from the loop above would
+// let a page that never writes the list at all report the previous run's answer.
+delete elements["roster-hint"];
+sandbox.CUSTOMER_GROUPS = null;   // the page caches the roster; each mode must re-fetch
+sandbox.showLogin(null);
+await flush();
+const rosterHint = elements["roster-hint"] ? elements["roster-hint"].innerHTML : null;
+const rosterSlotInDocument = app.innerHTML.includes('id="roster-hint"');
 
 // R15 probes, driven through the same entry points.
 const probes = {};
@@ -166,4 +200,6 @@ for (const view of ["both", "customer", "behind"]) {
 }
 probes.undeclared_case_drops = (sandbox.CASE_STUDY_DROPS || []).slice();
 
-process.stdout.write(JSON.stringify({ views, threw, violations, drops, probes, consoleErrs }));
+process.stdout.write(JSON.stringify({
+  views, threw, violations, drops, probes, consoleErrs, rosterHint, rosterSlotInDocument,
+}));

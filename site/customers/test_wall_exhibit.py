@@ -4457,3 +4457,290 @@ def test_this_section_fires_on_the_module_as_it_SHIPPED():
         "the module as it shipped did NOT trip every arm of this section -- an arm that "
         f"cannot fire on the real defect is not evidence. Fired: {fired}"
     )
+
+
+# ===========================================================================
+# 24. THE PAGE DOES NOT WRITE DOWN WHICH ACCOUNTS EXIST
+#     (worker tick, SITE2 draw 2026-08-19)
+# ===========================================================================
+#
+# THE FINDING, measured on the LIVE surface before any repair existed. The landing card
+# answers "which accounts can I open?" with a list typed into the page on 2026-06-30:
+#
+#     Electricity: C1-C9, C_IC1-C_IC4 / Gas: C1g-C4g, C_IC3g          -- 18 accounts
+#
+# The roster the same page fetches for its own prev/next arrows, and which the site serves
+# at /data/customers.json, carried NINETEEN: SYN-2021-001 entered it on 2026-08-13 and the
+# typed list did not move. So for six days https://poesys.net/customers/ told every visitor
+# that an account it will happily open -- and will CYCLE THEM INTO, one press of the arrow
+# from C_IC4 -- does not exist. Nothing could fail on it: the claim had no subject outside
+# itself, so there was nothing for a control to compare it against.
+#
+# THE CLASS, which is this module's own recurring shape for the fifth time: a private
+# answer to a question an artefact already answers. Four sentence sites deciding what to
+# claim about one household's money (08-18); two governors deciding what a subject is
+# (08-18); seven regions in nobody's subject (08-19); four proofs privately locating a
+# revision (08-19); and now the page's own population.
+#
+# THE REPAIR IS A SOLE SOURCE, not an edited literal. `fetchCustomerGroups()` already
+# fetched the roster for cycling; the landing card's list is now rendered from that SAME
+# fetch by `rosterHintHtml()`, so the two consumers cannot disagree by construction. There
+# is no literal to update, and updating one would not be a repair -- it would reset the
+# clock on the next drift.
+#
+# FAIL-CLOSED, and that is the arm that matters most here: an unreadable or empty roster
+# produces a REFUSAL ("this page will not list the accounts -- it would only be guessing"),
+# never a written-down fallback. A fallback literal is the same defect wearing a
+# contingency label, and it would sit in the one state nobody looks at.
+ROSTER_PATH = HERE.parent / "data" / "customers.json"
+ACCOUNT_FILES_INDEX = HERE.parent / "data" / "customers" / "_index.json"
+_MIN_ROSTER = 10          # anti-vacuity floor: every arm below is green on an empty roster
+_ROSTER_LINES = ("Electricity", "Gas")
+
+
+def _published_accounts(roster: dict) -> set[str]:
+    """The account ids the roster publishes, as the page's own reader assembles them."""
+    out = set()
+    for c in roster.get("customers", []):
+        for leg in (c.get("legs") or {}).values():
+            if leg and leg.get("cid"):
+                out.add(leg["cid"])
+    return out
+
+
+def _rendered_accounts(hint: str | None) -> set[str]:
+    """The ids the rendered card actually NAMES, parsed off the two labelled lines.
+
+    Deliberately not a regex over id-shaped tokens: a shape pattern would have to be
+    taught what an account id looks like, and SYN-2021-001 -- the account this section
+    exists because of -- does not look like the others.
+    """
+    out: set[str] = set()
+    for chunk in (hint or "").split("<br>"):
+        label, _, rest = chunk.partition(": ")
+        if label.strip() in _ROSTER_LINES and rest.strip():
+            out |= {t.strip() for t in rest.split(",") if t.strip()}
+    return out
+
+
+def _landing_with_roster(index: Path, roster: Path | str) -> dict:
+    """The landing harness driven with a roster its ../data/customers.json fetch RESOLVES
+    with (a path) or REJECTS (the literal 'REJECT')."""
+    proc = subprocess.run(
+        [NODE, str(LANDING_HARNESS), str(index), str(CASE_STUDIES_PATH), str(roster)],
+        capture_output=True, text=True, timeout=60,
+    )
+    assert proc.returncode == 0, f"landing harness failed: {proc.stderr}"
+    return json.loads(proc.stdout)
+
+
+def _roster_on_disk() -> dict:
+    return json.loads(ROSTER_PATH.read_text(encoding="utf-8"))
+
+
+# --- the arms, as functions, so a mutant page goes through the SAME checker -------------
+def _check_the_card_names_exactly_the_published_roster(landing: dict, roster: dict,
+                                                       label: str) -> None:
+    published = _published_accounts(roster)
+    assert len(published) >= _MIN_ROSTER, (
+        f"{label}: the roster publishes {len(published)} accounts -- below the floor of "
+        f"{_MIN_ROSTER}, so every check in this section would pass vacuously"
+    )
+    assert landing["rosterSlotInDocument"], (
+        f"{label}: the landing document has no roster slot at all, so the account list is "
+        f"either written down somewhere this control cannot see, or missing"
+    )
+    rendered = _rendered_accounts(landing["rosterHint"])
+    missing = sorted(published - rendered)
+    invented = sorted(rendered - published)
+    assert not missing, (
+        f"{label}: the landing card does not name these published accounts, and the page's "
+        f"own arrows will cycle a reader into them: {missing}"
+    )
+    assert not invented, (
+        f"{label}: the landing card names accounts the published roster does not carry: "
+        f"{invented}"
+    )
+
+
+def _check_the_card_moves_with_the_roster(index: Path, tmp: Path, label: str) -> None:
+    """INDEPENDENCE. A list pinned into the page would satisfy the equality arm above for
+    exactly as long as the roster stands still -- which is what the shipped defect did for
+    six days. Move the roster; the card must move with it."""
+    roster = _roster_on_disk()
+    extra = "C_ROSTER_PROBE_1"
+    assert extra not in _published_accounts(roster), "probe id collides with a real account"
+    roster["customers"] = roster["customers"] + [
+        {"customer_group": extra, "legs": {"electricity": {"cid": extra}}}
+    ]
+    moved = tmp / "roster_moved.json"
+    moved.write_text(json.dumps(roster), encoding="utf-8")
+    rendered = _rendered_accounts(_landing_with_roster(index, moved)["rosterHint"])
+    assert extra in rendered, (
+        f"{label}: an account added to the roster did not appear on the landing card -- the "
+        f"card is not reading the roster, it is repeating a list that happens to match it"
+    )
+
+
+def _check_an_unreadable_roster_is_refused_not_guessed(index: Path, roster: dict,
+                                                       label: str) -> None:
+    """FAIL-CLOSED. With the artefact unreadable the card must name NOTHING and say so."""
+    landing = _landing_with_roster(index, "REJECT")
+    hint = landing["rosterHint"] or ""
+    named = sorted(a for a in _published_accounts(roster) if a in hint)
+    assert not named, (
+        f"{label}: with the roster unreadable the landing card still named accounts "
+        f"{named} -- a fallback literal is the shipped defect wearing a contingency label"
+    )
+    assert not _rendered_accounts(hint), f"{label}: an account list survived an unreadable roster"
+    assert "will not list the accounts" in hint, (
+        f"{label}: an unreadable roster produced neither a list nor a refusal, so a reader "
+        f"cannot tell a short roster from a broken one: {hint[:200]!r}"
+    )
+
+
+def _check_the_two_published_populations_agree(roster: dict, label: str) -> None:
+    """The card can only be as honest as the artefact it reads. If the roster the page
+    fetches and the per-account files the site serves ever disagree, the card under-reports
+    again -- truthfully, from a partial source."""
+    files = set(json.loads(ACCOUNT_FILES_INDEX.read_text(encoding="utf-8")))
+    published = _published_accounts(roster)
+    assert files == published, (
+        f"{label}: /data/customers.json and /data/customers/_index.json publish different "
+        f"populations. Served as files but not in the roster the card reads: "
+        f"{sorted(files - published)}; in the roster with no file to open: "
+        f"{sorted(published - files)}"
+    )
+
+
+# --- the arms, live ---------------------------------------------------------------------
+def test_the_landing_card_names_exactly_the_published_roster():
+    roster = _roster_on_disk()
+    _check_the_card_names_exactly_the_published_roster(
+        _landing_with_roster(INDEX, ROSTER_PATH), roster, "the live page")
+
+
+def test_the_landing_card_moves_when_the_roster_moves(tmp_path):
+    _check_the_card_moves_with_the_roster(INDEX, tmp_path, "the live page")
+
+
+def test_an_unreadable_roster_is_refused_rather_than_guessed():
+    _check_an_unreadable_roster_is_refused_not_guessed(INDEX, _roster_on_disk(), "the live page")
+
+
+def test_the_roster_and_the_served_account_files_publish_one_population():
+    _check_the_two_published_populations_agree(_roster_on_disk(), "the published artefacts")
+
+
+# --- R15: each mutation kills a NAMED arm, and the others are asserted GREEN on it -------
+def _mutant(tmp: Path, old: str, new: str, name: str = "index.html") -> Path:
+    src = INDEX.read_text(encoding="utf-8")
+    assert src.count(old) == 1, f"mutation precondition: {old!r} appears {src.count(old)} times"
+    out = tmp / name
+    out.write_text(src.replace(old, new, 1), encoding="utf-8")
+    return out
+
+
+def test_mutation_a_card_that_drops_an_account_kills_the_equality_arm(tmp_path):
+    """Direction 1: the shipped defect itself -- an account the roster carries and the card
+    does not name."""
+    mutant = _mutant(tmp_path, "(groups||[]).forEach(function(g){",
+                     "(groups||[]).slice(0,-1).forEach(function(g){")
+    roster = _roster_on_disk()
+    with pytest.raises(AssertionError, match="does not name these published accounts"):
+        _check_the_card_names_exactly_the_published_roster(
+            _landing_with_roster(mutant, ROSTER_PATH), roster, "dropped-account mutant")
+    # the fail-closed arm is GREEN on it: proving one arm twice is not proving two arms
+    _check_an_unreadable_roster_is_refused_not_guessed(mutant, roster, "dropped-account mutant")
+
+
+def test_mutation_a_card_that_invents_an_account_kills_the_equality_arm(tmp_path):
+    """The opposite direction. A card may not name an account that cannot be opened."""
+    mutant = _mutant(tmp_path, "var elec=[],gas=[];", 'var elec=["C_NOT_A_REAL_ACCOUNT"],gas=[];')
+    with pytest.raises(AssertionError, match="does not carry"):
+        _check_the_card_names_exactly_the_published_roster(
+            _landing_with_roster(mutant, ROSTER_PATH), _roster_on_disk(), "invented-account mutant")
+
+
+def test_mutation_a_literal_fallback_on_an_unreadable_roster_kills_the_failclosed_arm(tmp_path):
+    """FAIL-OPEN, the direction that would quietly restore the whole defect: the roster is
+    unreachable and the page answers from a list typed into it anyway."""
+    mutant = _mutant(
+        tmp_path,
+        'if(!elec.length&&!gas.length)return "<span class=\\"red\\">"+esc(ROSTER_HINT_UNAVAILABLE)+"</span>";',
+        'if(!elec.length&&!gas.length)return "Electricity: C1, C2<br>Gas: C1g";',
+    )
+    roster = _roster_on_disk()
+    with pytest.raises(AssertionError, match="still named accounts"):
+        _check_an_unreadable_roster_is_refused_not_guessed(mutant, roster, "literal-fallback mutant")
+    # and the equality arm is GREEN on it -- with the roster READABLE this page is correct,
+    # which is exactly why a fail-closed arm has to exist separately.
+    _check_the_card_names_exactly_the_published_roster(
+        _landing_with_roster(mutant, ROSTER_PATH), roster, "literal-fallback mutant")
+
+
+def test_mutation_a_pinned_list_that_happens_to_match_kills_the_independence_arm(tmp_path):
+    """TAUTOLOGY, R15's first killer pattern: a card that returns today's roster as a
+    string. It satisfies the equality arm perfectly -- asserted below -- and is blind to
+    every future change, which is precisely the state the page shipped in."""
+    pinned = _landing_with_roster(INDEX, ROSTER_PATH)["rosterHint"]
+    assert pinned and "SYN-2021-001" in pinned, "precondition: the live card renders the roster"
+    mutant = _mutant(
+        tmp_path, "function rosterHintHtml(groups){",
+        "function rosterHintHtml(groups){return " + json.dumps(pinned) + ";",
+    )
+    with pytest.raises(AssertionError, match="repeating a list that happens to match"):
+        _check_the_card_moves_with_the_roster(mutant, tmp_path, "pinned-list mutant")
+    _check_the_card_names_exactly_the_published_roster(
+        _landing_with_roster(mutant, ROSTER_PATH), _roster_on_disk(), "pinned-list mutant")
+
+
+def test_mutation_an_emptied_roster_refuses_rather_than_passing(tmp_path):
+    """FAIL-OPEN on the SUBJECT rather than the page: an empty roster makes every arm above
+    trivially satisfiable, so the anti-vacuity floor must REFUSE it."""
+    with pytest.raises(AssertionError, match="below the floor"):
+        _check_the_card_names_exactly_the_published_roster(
+            _landing_with_roster(INDEX, ROSTER_PATH), {"customers": []}, "emptied roster")
+
+
+def test_null_control_the_live_page_and_roster_pass_every_arm(tmp_path):
+    """Without this these five checkers could be `assert False` in five costumes."""
+    roster = _roster_on_disk()
+    _check_the_card_names_exactly_the_published_roster(
+        _landing_with_roster(INDEX, ROSTER_PATH), roster, "null control")
+    _check_the_card_moves_with_the_roster(INDEX, tmp_path, "null control")
+    _check_an_unreadable_roster_is_refused_not_guessed(INDEX, roster, "null control")
+    _check_the_two_published_populations_agree(roster, "null control")
+
+
+def test_the_landing_card_as_it_shipped_denied_a_published_account(tmp_path):
+    """R15 direction 5: the page AS IT SHIPPED, located by the module's sole locator.
+
+    The typed list covered C1-C9 as a range, so a substring census over it would report
+    most accounts 'missing' and prove nothing. SYN-2021-001 is the one account no range in
+    that list reaches -- it is the account that entered the roster after the list was
+    written -- so the proof is that the shipped document does not contain it ANYWHERE while
+    the roster it serves alongside does.
+    """
+    src = _pre_repair_source("rosterHintHtml")
+    assert src is not None, (
+        "cannot locate the committed page that predates the roster-driven card -- the "
+        "shipped-defect proof did NOT run, which is not the same as passing"
+    )
+    shipped = tmp_path / "shipped.html"
+    shipped.write_text(src, encoding="utf-8")
+    landing = _landing_with_roster(shipped, ROSTER_PATH)
+    assert not landing["rosterSlotInDocument"], (
+        "the located revision already carries the roster slot -- it is not the pre-repair page"
+    )
+    published = _published_accounts(_roster_on_disk())
+    assert "SYN-2021-001" in published, "precondition: the roster publishes SYN-2021-001"
+    document = "".join(landing["views"].values())
+    assert "SYN-2021-001" not in document, (
+        "the page as it shipped DID name SYN-2021-001 -- this proof no longer describes a "
+        "real defect and must be rewritten rather than left passing"
+    )
+    assert "Electricity: C1" in document, (
+        "the page as it shipped did not render the typed list this section replaced, so "
+        "the located revision is the wrong subject"
+    )

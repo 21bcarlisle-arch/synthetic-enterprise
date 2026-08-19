@@ -915,16 +915,58 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
 var HH={elec:null,gas:null,base:null};
 var ACTIVE_TAB="overview",BILL_FUEL="elec",CONS_FUEL="elec",BILL_YEAR=null,ROLLUP_OPEN=false,DEEPLINK_YEAR=null,EXPANDED_BILL_ID=null,BILL_VIEW="bills",CASH_SCOPE="combined";
 var CUSTOMER_GROUPS=null; // lazy-fetched ordered list of household ids, for prev/next cycling
+/* ONE ROSTER, TWO CONSUMERS (2026-08-19).
+   ------------------------------------------------------------------
+   This fetch used to serve prev/next cycling ONLY, and the landing card answered
+   "which accounts exist?" from a list typed into the page on 2026-06-30. The published
+   roster gained SYN-2021-001 on 2026-08-13 and the typed list did not, so for six days
+   the served exhibit named eighteen accounts while the roster it serves alongside carried
+   nineteen -- and the page's own arrows would cycle a reader INTO the account its landing
+   card said did not exist. Nothing could fail on it, because the claim had no subject
+   outside itself.
+   So the roster is now the SOLE source for both consumers: the cycler and the landing
+   card's account list read the same fetch, and the two cannot disagree by construction.
+   `elec`/`gas` are kept per group for the card; `loginId`/`group` are unchanged and are
+   still what cycleCustomer() steers by. */
 function fetchCustomerGroups(){
   if(CUSTOMER_GROUPS)return Promise.resolve(CUSTOMER_GROUPS);
   return fetch("../data/customers.json").then(function(r){return r.json();}).then(function(d){
     CUSTOMER_GROUPS=(d.customers||[]).map(function(c){
       var legs=c.legs||{};
-      var loginId=(legs.electricity&&legs.electricity.cid)||(legs.gas&&legs.gas.cid)||c.customer_group;
-      return {group:c.customer_group,loginId:loginId};
+      var elec=(legs.electricity&&legs.electricity.cid)||null;
+      var gas=(legs.gas&&legs.gas.cid)||null;
+      var loginId=elec||gas||c.customer_group;
+      return {group:c.customer_group,loginId:loginId,elec:elec,gas:gas};
     });
     return CUSTOMER_GROUPS;
   }).catch(function(){return [];});
+}
+
+/* THE PAGE'S ONLY STATEMENT ABOUT WHICH ACCOUNTS EXIST.
+   FAIL-CLOSED on purpose: an unreadable or empty roster produces a REFUSAL, never a
+   written-down list. A fallback literal here would reintroduce exactly the defect this
+   replaces, and would do it in the state where nobody could see it drift. */
+var ROSTER_HINT_PENDING="Reading the published account roster…";
+var ROSTER_HINT_UNAVAILABLE="The published account roster could not be read, so this page "+
+  "will not list the accounts — it would only be guessing. Reload, or open an account "+
+  "number directly.";
+function rosterHintHtml(groups){
+  var elec=[],gas=[];
+  (groups||[]).forEach(function(g){
+    if(g&&g.elec)elec.push(g.elec);
+    if(g&&g.gas)gas.push(g.gas);
+  });
+  if(!elec.length&&!gas.length)return "<span class=\"red\">"+esc(ROSTER_HINT_UNAVAILABLE)+"</span>";
+  var line=function(label,ids){return ids.length?label+": "+ids.map(esc).join(", ")+"<br>":"";};
+  return line("Electricity",elec)+line("Gas",gas)+
+    "Enter either fuel's number — we'll load the whole household.";
+}
+function fillRosterHint(){
+  return fetchCustomerGroups().then(function(groups){
+    var slot=document.getElementById("roster-hint");
+    if(slot)slot.innerHTML=rosterHintHtml(groups);
+    return groups;
+  });
 }
 function cycleCustomer(dir){
   fetchCustomerGroups().then(function(groups){
@@ -1353,10 +1395,15 @@ function showLogin(err){
     "(<code>company/portal/</code>).</p>"+
     "<label for=\"acc\">Account number</label>"+
     "<input type=\"text\" id=\"acc\" placeholder=\"e.g. C1, C_IC1, C1g\" autocomplete=\"off\" />"+
-    "<div class=\"hint\">Electricity: C1–C9, C_IC1–C_IC4<br>Gas: C1g–C4g, C_IC3g<br>Enter either fuel's number — we'll load the whole household.</div>"+
+    // The account list is NOT written here. rosterHintHtml() fills this slot from the
+    // published roster (see fetchCustomerGroups above); until it resolves the slot says
+    // it is reading, and if the roster cannot be read it says THAT rather than naming a
+    // population it does not have. Both terminal states are tested.
+    "<div class=\"hint\" id=\"roster-hint\">"+esc(ROSTER_HINT_PENDING)+"</div>"+
     (err?"<div class=\"error-msg\">"+esc(err)+"</div>":"")+
     "<button class=\"btn\" onclick=\"doLogin()\">Open household</button>"+
     "</div></div>";
+  fillRosterHint();
   var inp=document.getElementById("acc");
   if(inp){inp.focus();inp.onkeydown=function(e){if(e.key==="Enter")doLogin();};}
   CS_WRAP=null;
