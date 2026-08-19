@@ -1,5 +1,13 @@
 **Severity:** BLOCKING · **Lane:** H_harness
 
+**Discharged:** `tests/background/test_finding_classes.py::test_the_live_finding_that_filed_this_defect_now_reaches_its_class`,
+`tests/background/test_finding_classes.py::test_the_live_staging_root_consolidation_holds`,
+`tests/tools/test_record_landing_claim_check.py::test_a_claim_scoped_to_simulation_is_red_while_the_symbol_only_lives_in_tools`
+
+Discharged by the 2026-08-20 tick, which is the later reader this document asked for: it ran
+the three admissible queries at the bottom of this file against a tree it did not create, and
+only then wrote anything. See the final section for the readings.
+
 # Three consecutive passes recorded a landing that is in no commit, and the failure leaves a tree indistinguishable from success
 
 Filed by the 2026-08-19 EP6 worker tick (SELF_INTERRUPT_DISCIPLINE: QUEUED as a class, not
@@ -402,3 +410,53 @@ run the falsifiers against a tree that already exists. The admissible queries ar
 
 Empty, or a `--check` that passes while this document is live and unlisted again, means item 3
 is a second failure and the honest record is to say so.
+
+---
+
+## The 2026-08-20 tick — the later reader ran the falsifiers, and the finding is DISCHARGED
+
+This tick did not build any part of this document and did not write a word before running the
+three queries the section above named as admissible. That is the only reason it is entitled to
+close a document whose entire subject is passes that claimed their own settlement.
+
+`observed`, at HEAD `10cb3825f`, a tree this tick did not create:
+
+    git grep -c "def declared_class_of" HEAD -- background/finding_classes.py
+      HEAD:background/finding_classes.py:1
+    git grep -c "UNKNOWN DECLARED CLASS" HEAD -- background/finding_classes.py
+      HEAD:background/finding_classes.py:1
+    python3 -m background.finding_classes --check
+      uncommitted_and_orphaned_work    instances=15  ruling~7   refused_out_of_lane=2
+      check: PASS (0 failures)
+
+Item 3 asked for a `--check` that does NOT pass with this document live and unlisted. What the
+run shows is the other half of the same condition and the stronger one: the document is no
+longer live-and-unlisted at all — it is IN the archive and IS listed, one of the 15 the class
+document derives, which is only reachable through the registration channel the previous tick
+built. So the failure mode item 3 predicted cannot be re-run as a hypothetical here; it was
+already discharged into the population.
+
+Item 2 was re-measured rather than inherited, because a settlement recorded once by the pass
+that made it is exactly what this document exists to distrust:
+
+    git grep -c include_schema_version HEAD -- simulation/
+      HEAD:simulation/run_phase2b.py:1
+      HEAD:simulation/run_phase4c_on_phase2b.py:2
+
+Three sites, unchanged across the four commits since `0a242d6fa`. Seventh consecutive reading,
+first one taken by a pass with nothing at stake in it.
+
+### What the discharge releases, stated precisely
+
+The header now carries a checked `**Discharged:**` line naming three landed falsifiers, which
+reads this member down to RECORDED. Its class document inherits the MAXIMUM severity over its
+members, so `--render` re-derives `CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md` from
+BLOCKING to that maximum — and re-rendering is not optional bookkeeping: rule 6 of
+`background.finding_classes.check` exists precisely because a discharged member does not
+release the class document until the printed header is rewritten, and `_blocking_lane_draw`
+freezes lane `H_harness` off that printed header and nothing else.
+
+What it does NOT release: the CLASS. Fourteen other instances stay listed, the class document
+stays the thing holding them, and the redesign this document paid for — a landing sourced from
+the caller's bytes, and a pre-commit control that refuses a record whose landing claim the tree
+cannot answer — is what has to keep the family from growing a sixteenth member.
