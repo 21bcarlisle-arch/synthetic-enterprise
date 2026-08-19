@@ -169,8 +169,14 @@
     padding: 8px 8px 10px;
     gap: 6px;
   }
+  /* The two rows keep the DESKTOP GRAMMAR rather than inventing a second one: wordmark to the
+   * left, doors to the right. The director's third symptom was that the bar "isn't
+   * right-justified" -- centring the doors would have fixed the inconsistency between pages
+   * while leaving that symptom standing, so the doors stay right-aligned at every width and
+   * only their ROW changes. */
+  .site-nav { align-items: stretch; }
   .site-nav .nav-logo,
-  .site-nav .nav-logo.wordmark { margin-right: 0; font-size: 17px; }
-  .site-nav .doors { margin-left: 0; gap: 1px; justify-content: center; width: 100%; }
+  .site-nav .nav-logo.wordmark { margin-right: 0; font-size: 17px; text-align: left; }
+  .site-nav .doors { margin-left: auto; gap: 1px; justify-content: flex-end; width: 100%; }
   .site-nav .nav-link { padding: 5px 6px; font-size: 12px; }
 }
