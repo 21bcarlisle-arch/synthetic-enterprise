@@ -436,6 +436,128 @@ def _open_work(atoms):
     return out
 
 
+#: The coupled-gap fields the store is asked to CONFIRM. Deliberately the FIGURES and
+#: their declared basis, and deliberately NOT `measured_at` / `run_git_commit` /
+#: `components`: those three are provenance stamps that a re-measurement rewrites on
+#: every run. Measured 2026-08-19 — the working-tree ledger and HEAD's ledger differed
+#: on exactly one entry (`W2_11_payment_behaviour_source`) and on exactly those three
+#: keys, with every figure identical. A whole-row equality check would therefore have
+#: gone red once per run for a reason that is not a defect, and an alarm that cries
+#: every run is an alarm nobody reads. The question this control asks is narrower and
+#: answerable: is the NUMBER on the public door in a commit?
+_STORE_CHECKED_FIELDS = (
+    ("metric", "metric"),
+    ("value", "gap"),
+    ("raw_gap", "raw_gap"),
+    ("baseline_g0", "g0"),
+    ("baseline_desc", "baseline"),
+    ("normalisation", "normalisation"),
+    ("raw_gap_is", "raw_gap_is"),
+)
+
+
+def _store_agreement(rows):
+    """Grade the rendered coupled-gap panel against the COMMITTED projection store
+    (atom `G13_projection_consumers`; the store is `G12`'s `tools/build_projections.py`).
+
+    WHY THIS IS A CHECK AND NOT A SOURCE. The obvious build here — and the one this
+    atom's own record prescribed — was to re-source the panel FROM the store instead of
+    from the ledger JSON. Two measurements refuted it before it was written:
+
+      1. FIELD LOSS. The store's `coupled_gaps` table had no column for `normalisation`
+         or `raw_gap_is`, which exactly one of the fourteen live pairs carries. Sourcing
+         the panel from it would have blanked the D44 declaration on the live door —
+         re-introducing the defect D44 was built to prevent. (Fixed in this same change:
+         the store is now lossless and checks its own field coverage.)
+      2. HEAD LAG. The store derives from COMMITTED blobs; this generator runs in the
+         working tree BEFORE the commit that carries the run's new ledger. Re-sourcing
+         would have made the panel render one commit behind the ledger shipping beside
+         it — a published figure that is systematically stale by construction.
+
+    So the store's committed-ness, which makes it a bad source here, is exactly what
+    makes it a good AUDITOR. The door keeps publishing the operational artefact (G12's
+    scope claim that the store feeds no published figure is preserved: nothing here
+    reads a FIGURE out of the store), and the store answers the one question the door
+    could not previously ask about itself — **is what I am publishing in any commit?**
+
+    R15, THE FAILURE THIS CAN ACTUALLY HAVE. An unreadable store reports `available:
+    False` and the door renders that as a FAILED check, never as agreement: an
+    unavailable check is a failed check. `agrees` is False until the comparison has
+    actually run, so no except-branch can leave it True.
+
+    THE ONE RED THAT IS NOT A DEFECT, stated so a reader is not misled. When a run
+    genuinely RE-MEASURES a gap to a new value, the door publishes it before the commit
+    carrying it lands, and this check goes red for that one cycle. That is not a false
+    positive — it is literally true, and it is the exact condition that went unnoticed on
+    2026-08-19 when the publish commit stopped landing for eleven hours while runs kept
+    archiving themselves as complete. It self-clears when the commit lands. A red that
+    does NOT clear on the next publish is the real defect. Measured on the live ledger
+    the same day: working tree and HEAD agreed on every figure and differed only on the
+    three provenance stamps this check excludes, so the steady state is green.
+    """
+    try:
+        from tools.build_projections import query
+    except Exception as exc:
+        return dict(available=False, agrees=False,
+                    reason=f"projection store not importable: {type(exc).__name__}")
+
+    try:
+        cols = [c for _, c in _STORE_CHECKED_FIELDS]
+        store_rows = {
+            r[0]: dict(zip(cols, r[1:]))
+            for r in query("SELECT atom_id, " + ", ".join(cols) + " FROM coupled_gaps")
+        }
+        meta = dict(query("SELECT key, value FROM build_meta"))
+    except Exception as exc:
+        return dict(available=False, agrees=False,
+                    reason=f"projection store unreadable: {type(exc).__name__}: {exc}")
+
+    def _same(door_value, store_value):
+        if door_value is None or store_value is None:
+            return door_value is None and store_value is None
+        if isinstance(door_value, (int, float)) and isinstance(store_value, (int, float)):
+            return abs(float(door_value) - float(store_value)) <= 1e-9
+        return str(door_value) == str(store_value)
+
+    disagreements = []
+    for row in rows:
+        atom_id = row.get("world_atom")
+        stored = store_rows.get(atom_id)
+        if stored is None:
+            continue
+        for door_key, store_key in _STORE_CHECKED_FIELDS:
+            if not _same(row.get(door_key), stored.get(store_key)):
+                disagreements.append(dict(
+                    world_atom=atom_id, field=door_key,
+                    published=row.get(door_key), committed=stored.get(store_key),
+                ))
+
+    rendered = {r.get("world_atom") for r in rows}
+    # A pair on the door that the store has never seen is the sharp case: a figure the
+    # public is reading that no commit carries. Named, not just counted.
+    uncommitted = sorted(rendered - set(store_rows))
+    # The reverse — committed and no longer rendered — is a retirement or a rename, and
+    # is reported rather than dropped, because silently losing a pair is how a coupled
+    # pair stops being measured without anyone deciding that it should.
+    unrendered = sorted(set(store_rows) - rendered)
+
+    return dict(
+        available=True,
+        agrees=not disagreements and not uncommitted and not unrendered,
+        store="docs/observability/projections.sqlite",
+        store_head_sha=meta.get("head_sha"),
+        store_head_committed_at=meta.get("head_committed_at"),
+        schema_version=meta.get("schema_version"),
+        fields_checked=[d for d, _ in _STORE_CHECKED_FIELDS],
+        stamps_not_checked=["measured_at", "run_git_commit", "components"],
+        rendered_pairs=len(rendered),
+        committed_pairs=len(store_rows),
+        disagreements=disagreements,
+        uncommitted_pairs=uncommitted,
+        unrendered_pairs=unrendered,
+    )
+
+
 def _coupled_gaps(atoms):
     """The COUPLED-TRIAD Proof-door panel data (COUPLED_TRIAD_DESIGN.md 5.2):
     "The gap between what the world knows and what the company believes."
@@ -605,6 +727,9 @@ def _coupled_gaps(atoms):
             {k: f.get(k) for k in ("world_atom_id", "metric", "finding", "detail")}
             for f in basis_findings
         ],
+        # IS WHAT THIS PANEL PUBLISHES IN A COMMIT? Graded against the committed
+        # projection store, on the door rather than in a tool nobody runs.
+        store_agreement=_store_agreement(rows),
         pairs=rows,
     )
 

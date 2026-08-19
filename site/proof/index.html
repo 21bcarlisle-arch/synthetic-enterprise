@@ -926,6 +926,44 @@ function renderCoupledGaps(d){
           .sort().join(", "))+'.</div>';
     }
   }
+  // IS WHAT THIS PANEL PUBLISHES IN A COMMIT? (atom G13). The figures above are
+  // generated from the working-tree ledger; the projection store is rebuilt from
+  // COMMITTED blobs only. Grading one against the other answers a question the door
+  // could not previously ask about itself. Provenance stamps are excluded on purpose —
+  // they are rewritten by every re-measurement, and an alarm that fires every run is
+  // an alarm nobody reads. FAILS CLOSED: a store that could not be read renders red,
+  // never as agreement.
+  var sa = cg.store_agreement;
+  if(!sa || sa.available===false){
+    alarmHtml += '<div class="gap-fail"><strong>The committed-store check did not run</strong> — '+
+      'the figures above are UNVERIFIED against any commit'+
+      (sa&&sa.reason?': '+esc(sa.reason):'')+'. An unavailable check is a failed check.</div>';
+  } else if(!sa.agrees){
+    var bits=[];
+    (sa.disagreements||[]).forEach(function(x){
+      bits.push(esc(x.world_atom)+' <span class="wc">'+esc(x.field)+'</span> published '+
+        esc(String(x.published))+' vs committed '+esc(String(x.committed)));
+    });
+    if((sa.uncommitted_pairs||[]).length){
+      bits.push('published but in no commit: '+esc(sa.uncommitted_pairs.join(", ")));
+    }
+    if((sa.unrendered_pairs||[]).length){
+      bits.push('committed but no longer published: '+esc(sa.unrendered_pairs.join(", ")));
+    }
+    alarmHtml += '<div class="gap-fail"><strong>'+bits.length+' coupled-gap figure'+
+      (bits.length>1?'s do':' does')+' not match the committed store</strong> — the door is '+
+      'publishing a number that is not in commit <span class="wc">'+
+      esc(String(sa.store_head_sha||"?").slice(0,9))+'</span>: '+bits.join('; ')+'.</div>';
+  } else {
+    alarmHtml += '<div class="gap-alarm" style="border-left-color:var(--green)">'+
+      '<strong>All '+num(sa.rendered_pairs)+' published gap figures are in the committed store</strong>'+
+      ' — checked field-by-field ('+esc((sa.fields_checked||[]).join(", "))+') against '+
+      '<span class="wc">'+esc(sa.store)+'</span> rebuilt from commit <span class="wc">'+
+      esc(String(sa.store_head_sha||"?").slice(0,9))+'</span>. Provenance stamps ('+
+      esc((sa.stamps_not_checked||[]).join(", "))+') are excluded: they are rewritten by '+
+      'every re-measurement, so checking them would fire on every run.</div>';
+  }
+
   alarms.innerHTML = alarmHtml;
 
   body.innerHTML=pairs.map(function(p){

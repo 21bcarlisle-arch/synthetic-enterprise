@@ -4980,7 +4980,7 @@
   provenance: director_ruling
   depends_on: [G12_queryable_projections]
   couples_with: [G12_queryable_projections]
-  file_scope: ['tools/lab_query.py', 'tests/tools/test_lab_query.py', 'tools/generate_projections_page.py', 'tests/tools/test_generate_projections_page.py', 'site/wip-flow/index.html']
+  file_scope: ['tools/lab_query.py', 'tests/tools/test_lab_query.py', 'tools/generate_projections_page.py', 'tests/tools/test_generate_projections_page.py', 'site/wip-flow/index.html', 'tools/build_projections.py', 'tools/generate_proof_data.py', 'site/proof/index.html', 'tests/tools/test_proof_store_agreement.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the analyst who actually opens the warehouse -- the reason the warehouse is funded"
 

@@ -36,6 +36,17 @@ stays true as written — `tools/generate_dashboard_data.py` still computes ever
 figure directly off the operational model, and nothing here feeds a published figure.
 See `docs/design/simplifications/G12_queryable_projections.yaml` for that reconciliation.
 
+PRECISION ON THAT CLAIM (2026-08-19, atom G13). The Proof door now reads this store, and
+the sentence above still holds exactly as written, because what it reads is not a figure.
+`generate_proof_data.py::_store_agreement` GRADES the coupled-gap figures the door
+publishes from the working-tree ledger against this store's committed rows, and renders
+the verdict. The published number still comes from the operational artefact; the store
+supplies only the answer to "is that number in a commit?". Re-sourcing the panel FROM
+this store was considered and refuted on measurement — it would render one commit behind
+the ledger shipping beside it, because this store is built from HEAD and that generator
+runs pre-commit. The committed-ness that makes this store a bad SOURCE for a live door is
+exactly what makes it a good AUDITOR of one.
+
 THE SCALE ENVELOPE IS READ, NEVER RE-DERIVED
 --------------------------------------------
 `scale_envelope` is copied verbatim out of the AO12 10k probe's own report artefact
@@ -73,7 +84,10 @@ SCALE_PROBE_RELPATH = "docs/design/scale_probe_10k_report.json"
 #: reader can see both the store's envelope and the simulation's.
 STORE_SEAM = "run_output_serialize"
 
-SCHEMA_VERSION = 1
+#: 2 (2026-08-19, G13): `coupled_gaps` grew `normalisation`, `normalisation_reason` and
+#: `raw_gap_is`, and the ledger's field set became a checked invariant rather than a
+#: hand-kept column list. A consumer pinned to schema 1 was reading a lossy table.
+SCHEMA_VERSION = 2
 
 
 class SourceUnreadable(Exception):
@@ -211,9 +225,57 @@ def _runs(doc: Any) -> list[tuple]:
     return rows
 
 
+#: Ledger key -> the `coupled_gaps` column that carries it. THIS MAPPING IS THE
+#: CONTROL, not documentation. A projection that drops a field is not a smaller
+#: projection, it is a WRONG one: the reader sees a complete-looking row and cannot
+#: tell the absent field from an absent value.
+#:
+#: Measured on the live ledger 2026-08-19 (atom G13): of fourteen entries exactly ONE
+#: (`W2_11_payment_behaviour_source`) carries `normalisation` / `normalisation_reason`
+#: / `raw_gap_is` — the D44 fields that stop a reader inferring `gap = raw_gap / g0`
+#: where that relation does not hold. The store had no column for any of the three, so
+#: every consumer of this table saw that pair as UNDECLARED. A one-in-fourteen field is
+#: exactly the one a hand-written column list forgets, which is why the omission is now
+#: checked rather than reviewed.
+COUPLED_GAP_FIELD_COLUMNS: dict[str, str] = {
+    "twin_atom_id": "twin_atom_id",
+    "metric": "metric",
+    "gap": "gap",
+    "raw_gap": "raw_gap",
+    "g0": "g0",
+    "baseline": "baseline",
+    "measured_at": "measured_at",
+    "run_git_commit": "run_git_commit",
+    "note": "note",
+    "components": "components_json",
+    "normalisation": "normalisation",
+    "normalisation_reason": "normalisation_reason",
+    "raw_gap_is": "raw_gap_is",
+}
+
+
 def _coupled_gaps(doc: Any) -> list[tuple]:
     if not isinstance(doc, dict):
         raise SourceUnreadable(f"expected a mapping of atom -> gap, got {type(doc).__name__}")
+
+    # R10 — the CLASS fails, not the instance. Any key the ledger grows that no column
+    # carries stops the build here. Fixing the three known-missing fields alone would
+    # leave the next field to be found the same way these were: by hand, downstream, on
+    # a published door. Fail-CLOSED, consistent with this module's rule 3: an
+    # unprojectable field is an UNKNOWN, never a silent drop.
+    seen: set[str] = set()
+    for entry in doc.values():
+        if isinstance(entry, dict):
+            seen.update(entry)
+    unprojected = sorted(seen - set(COUPLED_GAP_FIELD_COLUMNS))
+    if unprojected:
+        raise SourceUnreadable(
+            "coupled-gap ledger carries field(s) no column projects: "
+            + ", ".join(unprojected)
+            + " — add them to COUPLED_GAP_FIELD_COLUMNS and the table's columns, or the "
+            "store publishes a complete-looking row with the field silently absent"
+        )
+
     rows = []
     for atom_id, entry in sorted(doc.items()):
         if not isinstance(entry, dict):
@@ -231,6 +293,9 @@ def _coupled_gaps(doc: Any) -> list[tuple]:
                 entry.get("run_git_commit"),
                 entry.get("note"),
                 json.dumps(entry.get("components") or {}, sort_keys=True),
+                entry.get("normalisation"),
+                entry.get("normalisation_reason"),
+                entry.get("raw_gap_is"),
             )
         )
     if not rows:
@@ -301,6 +366,9 @@ SOURCES: tuple[Source, ...] = (
             "run_git_commit TEXT",
             "note TEXT",
             "components_json TEXT",
+            "normalisation TEXT",
+            "normalisation_reason TEXT",
+            "raw_gap_is TEXT",
         ),
         extract=_coupled_gaps,
         parse=_parse_json,
