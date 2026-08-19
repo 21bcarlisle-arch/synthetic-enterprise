@@ -45,8 +45,8 @@ carbon trajectory (unbuilt) and is a later rung.
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
-from typing import Dict, Iterable, List, Mapping, Tuple
+from dataclasses import dataclass
+from typing import Dict, Iterable, Mapping, Optional, Tuple
 
 SAVED = "saved"
 SPENT = "spent"
@@ -54,6 +54,11 @@ _LEDGERS: Tuple[str, ...] = (SAVED, SPENT)
 
 # Provenance enum, matching the fidelity ledger's vocabulary (DISCOVER §2).
 _PROVENANCE_KINDS: Tuple[str, ...] = ("estimated_from_data", "assumed", "asserted")
+
+# Row status vocabulary (E5 FRAME control C1 -- "absent feed must never read as 0.0").
+OK = "ok"                    # the row rests on events on every side it needs
+NO_SOURCE = "no_source"      # no events at all -- the row is an ABSENCE, not a measurement of zero
+ONE_SIDED = "one_sided"      # NET only: one ledger is empty, so the net IS the other ledger
 
 
 class CarbonEventMalformed(ValueError):
@@ -120,6 +125,75 @@ class CarbonEvent:
             raise CarbonEventMalformed("as_of (PIT stamp) is required")
 
 
+@dataclass(frozen=True)
+class LedgerRow:
+    """One row of the three-ledger block: a tonnage that CANNOT be obtained without
+    its labels (the R14 analogue for carbon — FRAME §2, the CLOCK x BASIS x
+    PROVENANCE triple).
+
+    WHY THIS TYPE EXISTS. `CarbonEvent.__post_init__` spends four separate
+    fail-closed guards making `basis`, `provenance` and `as_of` MANDATORY on every
+    event — and aggregation then threw all three away, because `three_ledger_view`
+    returned three bare floats. The labels were never missing; they were DESTROYED
+    at the one method whose output is the publishable headline. So a carbon figure
+    could reach a reader with no accounting basis, no provenance mix and no as-of,
+    while every event behind it was fully labelled. Returning the labels costs no
+    new data collection at all — only the refusal to drop them.
+
+    `bases` is a TUPLE, never a single string. Tonnes computed on a grid-marginal
+    basis and tonnes computed on a grid-average basis are not the same unit, so a
+    scalar basis label on a mixed aggregate would be a false claim about a real
+    number. When `len(bases) > 1` the row is mixed and says so, rather than
+    reporting whichever basis happened to arrive first.
+
+    `provenance_mix` is weighted by TONNAGE, not by event count, because the
+    question a reader has is "how much of this number is assumed?" — and one large
+    `assumed` event among many small `estimated_from_data` ones is exactly the case
+    an event-count weighting would hide."""
+
+    tco2e: float
+    status: str                          # ok | no_source | one_sided
+    bases: Tuple[str, ...]
+    provenance_mix: Mapping[str, float]  # provenance -> share of |tonnage|, tonnage-weighted
+    as_of_earliest: Optional[str]
+    as_of_latest: Optional[str]
+    event_count: int
+
+    @property
+    def mixed_basis(self) -> bool:
+        """True when the row aggregates more than one accounting basis — the reader
+        needs this before comparing the number to anything."""
+        return len(self.bases) > 1
+
+
+def _provenance_mix(events: Tuple[CarbonEvent, ...]) -> Mapping[str, float]:
+    """Tonnage-weighted share per provenance kind. Returns {} when total tonnage is
+    zero: with nothing to attribute, ANY mix would be invented, and an invented
+    '100% estimated_from_data' is precisely the flattering label this block exists
+    to prevent."""
+    total = float(sum(e.tco2e for e in events))
+    if total <= 0:
+        return {}
+    mix: Dict[str, float] = {}
+    for e in events:
+        if e.tco2e:
+            mix[e.provenance] = mix.get(e.provenance, 0.0) + e.tco2e / total
+    return mix
+
+
+def _row(tco2e: float, status: str, events: Tuple[CarbonEvent, ...]) -> LedgerRow:
+    stamps = sorted(e.as_of for e in events)
+    return LedgerRow(
+        tco2e=float(tco2e),
+        status=status,
+        bases=tuple(sorted({e.basis for e in events})),
+        provenance_mix=_provenance_mix(events),
+        as_of_earliest=stamps[0] if stamps else None,
+        as_of_latest=stamps[-1] if stamps else None,
+        event_count=len(events),
+    )
+
+
 class CarbonLedger:
     """Append-only carbon-event stream with DERIVED SAVED/SPENT/NET/£-per-tonne
     views. Pure accounting — no sim/company-internal read, no decision hook.
@@ -157,13 +231,50 @@ class CarbonLedger:
         headline; a claim that counts one side is not a claim)."""
         return self.saved() - self.spent()
 
+    def _events_in(self, ledger: str) -> Tuple[CarbonEvent, ...]:
+        return tuple(e for e in self.events() if e.ledger == ledger)
+
+    def net_status(self) -> str:
+        """Whether NET rests on BOTH ledgers, one, or neither.
+
+        THE FAIL-OPEN THIS NAMES (E5 FRAME, control C1). With no SPENT events,
+        `net()` is `saved() - 0.0` == `saved()` — so the mission metric reports its
+        BEST POSSIBLE value exactly WHEN the operational-carbon feed is missing.
+        Nothing about that reads as broken: it is a plausible number, derived by
+        correct arithmetic, from an absence. The FRAME found the SPENT feed is in
+        fact unbuilt (there is no token sensor and no compute-kWh meter), so this
+        is the live state of the ledger, not a hypothetical.
+
+        Arithmetic cannot distinguish "we emitted nothing" from "we did not
+        measure what we emitted", so the STATUS carries what the number cannot."""
+        has = {lg: bool(self._events_in(lg)) for lg in _LEDGERS}
+        if not any(has.values()):
+            return NO_SOURCE
+        if not all(has.values()):
+            return ONE_SIDED
+        return OK
+
     def cost_per_tonne_abated(self, cost_gbp: float) -> float:
         """£/tCO2e = cost / NET abated (the mission metric, a DIAGNOSTIC — R12).
         FAIL-LOUD: raises `CarbonAbatementUnavailable` when net <= 0, because
         there is no defensible cost-per-tonne when nothing (or negative) was
         abated — a 0 or inf would read as 'free'/'great', the fail-open the
         constraint forbids. This method is measurement ONLY; nothing in the
-        machine may call it to steer a decision (CARBON_NOT_A_TARGET)."""
+        machine may call it to steer a decision (CARBON_NOT_A_TARGET).
+
+        ALSO fail-loud on a ONE-SIDED net (2026-08-19): a £/tCO2e whose net counts
+        abatement but no operational emissions is not a conservative estimate, it
+        is an unbounded one — and it is at its most flattering precisely when a
+        feed is absent. "A claim that counts one side is not a claim" is the
+        module's own rule; this is that rule reaching the metric it was written
+        for. An absent SPENT ledger must read as UNAVAILABLE, never as cheap."""
+        status = self.net_status()
+        if status != OK:
+            raise CarbonAbatementUnavailable(
+                f"no defensible £/tCO2e: the carbon ledger is {status!r} -- a net computed "
+                "with an empty SAVED or SPENT ledger reports its most flattering value BECAUSE "
+                "a feed is missing. Report the absence; never price against half a ledger"
+            )
         net = self.net()
         # Defence in depth (2026-07-29): the event guard should make a non-finite net
         # unreachable, but this door is the one the constraint actually rests on, so it does
@@ -190,6 +301,23 @@ class CarbonLedger:
     def events_for(self, source: str) -> Tuple[CarbonEvent, ...]:
         return tuple(e for e in self.events() if e.source == source)
 
-    def three_ledger_view(self) -> Mapping[str, float]:
-        """The honest headline block: all three rows, NET always present."""
-        return {"saved_tco2e": self.saved(), "spent_tco2e": self.spent(), "net_tco2e": self.net()}
+    def three_ledger_view(self) -> Mapping[str, LedgerRow]:
+        """The honest headline block: all three rows, NET always present, each row
+        carrying its own basis / provenance mix / as-of span and status.
+
+        THERE IS DELIBERATELY NO UNLABELLED VARIANT of this method. R14's rule is
+        that a figure cannot be obtained WITHOUT its clock — a second accessor
+        returning bare floats would be the escape hatch a publisher reaches for,
+        and the labels would be back to optional. The numbers are still on the row
+        (`.tco2e`) for anyone who genuinely only needs arithmetic; what is gone is
+        the ability to serialise the block without noticing the labels exist."""
+        saved_events = self._events_in(SAVED)
+        spent_events = self._events_in(SPENT)
+        net_status = self.net_status()
+        return {
+            "saved_tco2e": _row(self.saved(), OK if saved_events else NO_SOURCE, saved_events),
+            "spent_tco2e": _row(self.spent(), OK if spent_events else NO_SOURCE, spent_events),
+            # NET's labels are the UNION of both sides -- it is a claim about both,
+            # so it inherits every basis and the full provenance mix behind it.
+            "net_tco2e": _row(self.net(), net_status, saved_events + spent_events),
+        }

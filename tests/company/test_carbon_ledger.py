@@ -29,12 +29,18 @@ def _ev(eid, ledger, tco2e, source="H1", basis="grid_marginal", prov="estimated_
 
 
 def test_three_ledgers_derived():
+    # NOTE (2026-08-19): this assertion previously read
+    #     assert led.three_ledger_view() == {"saved_tco2e": approx(5.0), ...}
+    # i.e. it SPECIFIED the three-bare-floats shape that was the defect -- the block
+    # was correct by construction because the test described exactly what it did.
+    # Rewritten against the labelled row; the tonnages are unchanged.
     led = CarbonLedger()
     led.extend([_ev("a", SAVED, 3.0), _ev("b", SAVED, 2.0), _ev("c", SPENT, 1.5)])
     assert led.saved() == pytest.approx(5.0)
     assert led.spent() == pytest.approx(1.5)
     assert led.net() == pytest.approx(3.5)
-    assert led.three_ledger_view() == {
+    view = led.three_ledger_view()
+    assert {k: v.tco2e for k, v in view.items()} == {
         "saved_tco2e": pytest.approx(5.0),
         "spent_tco2e": pytest.approx(1.5),
         "net_tco2e": pytest.approx(3.5),
@@ -47,7 +53,7 @@ def test_net_reported_even_when_negative():
     led.extend([_ev("a", SAVED, 1.0), _ev("b", SPENT, 4.0)])
     assert led.net() == pytest.approx(-3.0)
     assert "net_tco2e" in led.three_ledger_view()
-    assert led.three_ledger_view()["net_tco2e"] == pytest.approx(-3.0)
+    assert led.three_ledger_view()["net_tco2e"].tco2e == pytest.approx(-3.0)
 
 
 def test_idempotent_replay():
@@ -92,6 +98,134 @@ def test_empty_ledger_views_zero_but_cost_fails_loud():
     assert led.saved() == 0.0 and led.spent() == 0.0 and led.net() == 0.0
     with pytest.raises(CarbonAbatementUnavailable):
         led.cost_per_tonne_abated(100.0)
+
+
+# --- C1: THE ABSENT-FEED FAIL-OPEN (2026-08-19, E5 FRAME control C1) -----------------
+# NAMED DEFECT: with no SPENT events, net() == saved() - 0.0 == saved(). The mission
+# metric therefore reports its BEST POSSIBLE value exactly WHEN the operational-carbon
+# feed is missing -- and the FRAME established that feed IS unbuilt (no token sensor,
+# no compute-kWh meter exists in the tree), so this was the ledger's live behaviour,
+# not a hypothetical. Arithmetic cannot tell "emitted nothing" from "did not measure".
+# MUTATION (must go RED): delete the `if status != OK: raise` block from
+# cost_per_tonne_abated -- test_one_sided_net_refuses_to_price then returns 160.0.
+
+def test_one_sided_net_reports_a_number_but_refuses_to_price_it():
+    """SAVED-only: NET is still REPORTED (never hidden, per the module's own rule),
+    but it must not be priced -- an unbounded estimate is not a conservative one."""
+    led = CarbonLedger()
+    led.extend([_ev("a", SAVED, 5.0)])
+    view = led.three_ledger_view()
+    assert view["net_tco2e"].tco2e == pytest.approx(5.0)      # reported...
+    assert view["net_tco2e"].status == "one_sided"            # ...and labelled as half a ledger
+    assert view["spent_tco2e"].status == "no_source"          # the absence, not a measured 0.0
+    with pytest.raises(CarbonAbatementUnavailable):
+        led.cost_per_tonne_abated(800.0)
+
+
+def test_one_sided_the_other_way_is_also_refused():
+    """The control is about MISSING A SIDE, not about missing SPENT specifically --
+    a SPENT-only ledger is equally unpriceable (and its net is negative anyway)."""
+    led = CarbonLedger()
+    led.extend([_ev("a", SPENT, 5.0)])
+    assert led.three_ledger_view()["net_tco2e"].status == "one_sided"
+    with pytest.raises(CarbonAbatementUnavailable):
+        led.cost_per_tonne_abated(800.0)
+
+
+def test_empty_ledger_is_no_source_not_a_measured_zero():
+    """C1 proper: 0.0 with no events behind it is an ABSENCE. A row that reports a
+    bare 0.0 invites reading it as 'we emitted nothing', which is a claim."""
+    view = CarbonLedger().three_ledger_view()
+    assert [r.status for r in view.values()] == ["no_source"] * 3
+    assert all(r.event_count == 0 for r in view.values())
+    assert all(r.provenance_mix == {} for r in view.values())
+
+
+def test_two_sided_ledger_still_prices_normally():
+    """FIRES-ON-DEFECT-ONLY: the C1 guard must not refuse an ordinary complete
+    ledger. Without this, 'raise always' would pass every test above."""
+    led = CarbonLedger()
+    led.extend([_ev("a", SAVED, 5.0), _ev("b", SPENT, 1.0)])   # net 4.0
+    assert led.three_ledger_view()["net_tco2e"].status == "ok"
+    assert led.cost_per_tonne_abated(800.0) == pytest.approx(200.0)
+
+
+# --- R14 FOR CARBON: THE LABELS MUST SURVIVE AGGREGATION -----------------------------
+# NAMED DEFECT: CarbonEvent spends four fail-closed guards making basis/provenance/as_of
+# MANDATORY on every event, and three_ledger_view() then returned three bare floats --
+# destroying all three at the one method whose output is the publishable headline. The
+# labels were never missing; aggregation dropped them.
+# MUTATION (must go RED): restore
+#     return {"saved_tco2e": self.saved(), "spent_tco2e": self.spent(), "net_tco2e": self.net()}
+
+def test_basis_and_provenance_survive_aggregation():
+    led = CarbonLedger()
+    led.extend([_ev("a", SAVED, 3.0, basis="grid_marginal", prov="estimated_from_data"),
+                _ev("b", SPENT, 1.0, basis="activity_based", prov="assumed")])
+    saved_row = led.three_ledger_view()["saved_tco2e"]
+    assert saved_row.bases == ("grid_marginal",)
+    assert saved_row.provenance_mix == {"estimated_from_data": pytest.approx(1.0)}
+    assert saved_row.as_of_earliest == _AS_OF and saved_row.as_of_latest == _AS_OF
+
+
+def test_net_inherits_every_basis_behind_it_and_says_it_is_mixed():
+    """A grid-marginal tonne and a grid-average tonne are not the same unit. A scalar
+    basis label on a mixed aggregate would be a false claim about a real number, so
+    the row carries the SET -- not whichever basis happened to arrive first."""
+    led = CarbonLedger()
+    led.extend([_ev("a", SAVED, 3.0, basis="grid_marginal"),
+                _ev("b", SAVED, 1.0, basis="grid_average"),
+                _ev("c", SPENT, 1.0, basis="activity_based")])
+    net_row = led.three_ledger_view()["net_tco2e"]
+    assert net_row.bases == ("activity_based", "grid_average", "grid_marginal")
+    assert net_row.mixed_basis is True
+
+
+def test_provenance_mix_is_weighted_by_tonnage_not_event_count():
+    """NULL CONTROL for the weighting: one LARGE assumed event among many small
+    estimated ones. By event count assumed is 1-of-4 (25%); by tonnage it is 97%.
+    The reader's question is 'how much of this number is assumed?', so tonnage wins.
+    MUTATION (must go RED): weight by len(events) instead of tonnage share."""
+    led = CarbonLedger()
+    led.extend([_ev("a", SAVED, 1.0, prov="estimated_from_data"),
+                _ev("b", SAVED, 1.0, prov="estimated_from_data"),
+                _ev("c", SAVED, 1.0, prov="estimated_from_data"),
+                _ev("d", SAVED, 97.0, prov="assumed")])
+    mix = led.three_ledger_view()["saved_tco2e"].provenance_mix
+    assert mix["assumed"] == pytest.approx(0.97)
+    assert mix["estimated_from_data"] == pytest.approx(0.03)
+    assert sum(mix.values()) == pytest.approx(1.0)
+
+
+def test_all_zero_tonnage_invents_no_provenance_mix():
+    """With no tonnage to attribute, ANY mix is invented -- and an invented
+    '100% estimated_from_data' is exactly the flattering label the block prevents."""
+    led = CarbonLedger()
+    led.extend([_ev("a", SAVED, 0.0, prov="asserted"), _ev("b", SPENT, 0.0, prov="assumed")])
+    view = led.three_ledger_view()
+    assert view["saved_tco2e"].provenance_mix == {}
+    assert view["saved_tco2e"].status == "ok"      # events DO exist -- it is not no_source
+    assert view["saved_tco2e"].event_count == 1
+
+
+def test_as_of_span_is_reported_not_collapsed():
+    """A block aggregating a year-old event with a fresh one must show the SPAN."""
+    led = CarbonLedger()
+    led.add(CarbonEvent("a", SAVED, "H1", 2.0, "grid_marginal", "estimated_from_data", "2024-01-31"))
+    led.add(CarbonEvent("b", SAVED, "H1", 2.0, "grid_marginal", "estimated_from_data", "2025-12-31"))
+    row = led.three_ledger_view()["saved_tco2e"]
+    assert row.as_of_earliest == "2024-01-31" and row.as_of_latest == "2025-12-31"
+
+
+def test_there_is_no_unlabelled_variant_of_the_headline_block():
+    """R14's rule is that the figure cannot be obtained WITHOUT its clock. A second
+    accessor returning bare floats would be the escape hatch a publisher reaches for.
+    Guard the ABSENCE, since absence is what nothing else can test."""
+    led = CarbonLedger()
+    led.extend([_ev("a", SAVED, 3.0), _ev("b", SPENT, 1.0)])
+    for row in led.three_ledger_view().values():
+        assert not isinstance(row, float), "headline row degraded to a bare float"
+        assert row.bases and row.status
 
 
 @pytest.mark.parametrize("bad", [
