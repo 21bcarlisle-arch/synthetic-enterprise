@@ -1,0 +1,25 @@
+atom_id: SITE2_two_sided_wall_exhibit
+chunk: 12
+simplifications:
+- '2026-08-18 BUILD (worker tick, scheduled draw on SITE2 at loop_stage=build). No level move. The atom''s map budget was rehomed: 12,221 B -> 2,641 B, from 67 B of headroom to 9,647 B.
+
+
+  WHAT THE DRAW FOUND. SITE2 was drawn at build with its open findings list holding exactly one entry, and that entry adjudicated a FALSE POSITIVE -- so there was no buildable render defect on it, and the stated L3 gate (a re-run cold-eyes walk) is its own draw, not this one. What WAS live and blocking was the finding this atom''s own previous tick queued rather than fixed on sight, per SELF-INTERRUPT DISCIPLINE: WORKER_FINDING_AN_ATOMS_MAP_BUDGET_CAN_BE_SPENT_BY_THE_TICK_THAT_FIXES_ITS_LAST_FINDING_2026-08-18. Closing a finding is itself a map append (a key changes list, and each dated list costs a header), so SITE2 had spent its narrative allowance and the NEXT Hour''s own record could not have been written. The designed repair already existed and named its own trigger -- generate_proof_data._expert_hour_findings says the migration is partial by design ''as the cap names each one'' -- and the cap had named SITE2.
+
+
+  BUILT, as a MOVE and not an edit. expert_hour''s dated fixed_* lists, findings_rehomed and the open findings list now live in this store file under two tenants: `expert_hour_findings` (the OPEN list -- the field with live consumers) and `expert_hour_history_findings` (the dispositioned record). The structured members every consumer reads (status/last/verdict/independence/ledger) stay inline, per simplifications_store''s own stated rule. Content preservation is PROVEN, not asserted: the migration ran a line census over the moved region and refused unless every non-blank line landed in exactly one tenant. It refused TWICE, and both refusals were real. First, history entries were being joined without a separator, fusing the last line of each block onto the first line of the next -- 10 lines lost. Second, and the one worth recording: the open key carries the trailing YAML comment `# adjudicated REFUTED`, which is load-bearing disclosure in this control''s own words (''the map annotates those in place, which is a disclosure, not a divergence'') and which a dumped store value cannot carry. The findings block is therefore preserved VERBATIM in the history tenant while the live field carries the parsed key -- the annotation survives the move.
+
+
+  THE SUBJECT-FOLLOWS-THE-REHOME DEFECT, which is the half that mattered. tests/controls/test_map_reconciliation.py read `expert_hour.findings` INLINE ONLY. Measured before touching anything, across all 314 atoms: total findings resolving into the adjudication ledger = 1, and it was SITE2''s. So this atom''s single key WAS the entire population of the map-vs-ledger comparison, and a rehome with the reader left inline would have taken the whole control''s subject with it. That is the FAIL-SILENT pattern the queued finding named as check 2. It did NOT fail silently -- test_the_findings_ledger_comparison_is_not_vacuous fired the moment the keys moved, which is the R15 anti-blindness guard doing exactly what its docstring predicted (''an atom record rehomed out of the map would empty the population silently''). Recorded here because a control whose own predicted failure mode is later reproduced by a real event is evidence the control is real.
+
+
+  THE REPAIR. `_open_findings` is the new seam: inline wins, then the store -- one rule across every reader of a partially-migrated field (hydrate, atom_name, _expert_hour_findings). It reads ONLY the open tenant; folding the history tenant in would manufacture one contradiction per correctly-recorded fixed finding and turn a fail-closed control into noise.
+
+
+  R15 BOTH WAYS, 4 new tests (17 passed, was 10). FIRES: a store-resident open finding the ledger calls fixed is still caught, same verdict as the inline case -- so rehoming cannot launder an open-vs-fixed divergence. SILENT: the history tenant is not read as open work. INLINE WINS: a stale store copy cannot hide a divergence sitting inline. ANTI-VACUITY re-anchored to the live tree and now naming the reader a future rehome must follow.
+
+
+  NULL CONTROL, as the finding specified it. Bytes must DROP and the Proof door''s finding history must be UNCHANGED. Both hold: 12,221 -> 2,641 B, and generate_proof_data._verification_stack serialises byte-identical before and after (captured before the first edit, diffed after). _expert_hour_findings returns the same single key for SITE2, now via the store rather than inline. No roll: the append did not chunk into a second file. GREEN: tests/controls 182 passed 1 xfailed; tests/design map/store/maturity 101 passed; store + declaration contracts 52 passed.
+
+
+  NOT CLAIMED. This is bookkeeping capacity. It says nothing about the atom''s eight exit criteria, and the Expert-Hour verdict is still NO -- a verdict is a property of a walk, not of a list going empty. LEVEL STAYS 2.'

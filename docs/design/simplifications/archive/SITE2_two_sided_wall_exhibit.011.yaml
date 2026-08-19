@@ -1,0 +1,48 @@
+atom_id: SITE2_two_sided_wall_exhibit
+chunk: 11
+simplifications:
+- '2026-08-18 BUILD (worker tick, SITE2 draw): a closed account cannot both have settled to zero and be in credit. coldwalk:site2_closed_account_settled_to_zero_and_in_credit CLOSED as a CLASS, with a sole writer of every standing claim on the page.
+
+
+
+  THE FINDING, all three blind personas of the 2026-08-17 re-run walk, and it survived the 2026-08-15 present-tense repair. C1 closed 2021-12-30; the page published, at once: ''Account closed 2021-12-30 -- final bill C1-INV72. Account settled to zero.'' (Billing), ''You are currently GBP24.37 in credit -- that is your money, held by us'' (overview), and ''the household combined (both fuels) LIVE ledger position'' (Risk), under a header stamped ''data 2026-08-17''. The arithmetic was never wrong -- 6,560.17 - 6,584.54 = -24.37, the credit entirely on the gas leg -- so this was filed as a STATEMENT contradiction, and the reading a blind COO reached for first is a supplier holding a departed customer''s money for four and a half years.
+
+
+
+  IT WAS TWO DEFECTS, NOT ONE, AND ONLY ONE OF THEM WAS ABOUT FRAMING. (1) TENSE: three of the four sentence sites were hard-wired present tense on a household the page''s own timeline records as gone. fwdLabel() had frozen every forward-looking LABEL since 2026-08-12; the MONEY sentences were never brought under it. (2) A MISSING BRANCH, and this one is a literal falsehood: closedAccountNotice() tested `current_balance_gbp > 0.005` and otherwise printed ''Account settled to zero'', so a CREDIT balance -- a NEGATIVE number -- fell through to the zero branch. On C1''s GAS tab that claim sat directly over a ledger reading -24.37. Ninety-seven green tests could not see it: EVERY fixture in the module drove the ELECTRICITY leg, whose 0.00 made the claim true. The harness now renders the billing tab PER FUEL LEG (billsByFuel), which is the fixture gap and not a new assertion.
+
+
+
+  ROOT CAUSE, which is why this is a class. FOUR sentence sites each decided, privately, what to claim about the same money: the op-state Balance tile''s caption, the op-state Direct-Debit paragraph, riskPanels()''s ''Outstanding Balance / live ledger position'' hint, and closedAccountNotice()''s settlement clause. Four private decisions is how one page comes to publish a settlement claim and a live-credit claim about one household.
+
+
+
+  THE MECHANISM. window.__accountStanding is the SOLE writer: it decides state (credit/outstanding/square/unknown), tense (closed or live) and words from one input, and all four sites ask it. It spans BOTH inline scripts, so _wall_harness.mjs and _landing_harness.mjs now run both scripts as the browser does -- a harness that ran only the drill-down would be asserting against a page shape no reader is served. The drill-down''s standing() doorway THROWS rather than keeping a local fallback: a second implementation is exactly how the two claims drifted apart, and an unavailable control is a FAILED control. It FAILS CLOSED on a balance it cannot read -- ''not published'', never ''settled''. window.__householdClosedOn mirrors the drill-down''s householdClosureDate() off the legs the boot path already fetches, so no new plumbing was added (this atom''s constraint) and the two regions cannot disagree about whether the household has gone. The 2026-08-12 note recording that the op-state exhibit ''cannot know the account closed without new plumbing'' is now STALE: the dual-fuel money fix made the legs, and therefore the churned timeline event, available to that region.
+
+
+
+  THE LEG-SCOPE HALF, which the finding did not name and which is the other reason the page read as contradicting itself. ''Account settled to zero'' was TRUE of C1''s electricity ledger. It was still read as the HOUSEHOLD''s, because nothing on the notice said which of the two accounts it was about. A leg-scoped notice on a multi-leg household now names its leg, the same discipline the money captions have carried since coldwalk:site2_dual_fuel_household_shows_electricity_only_money.
+
+
+
+  THE FACT THE PAGE DOES NOT CARRY, stated rather than implied. Nothing published here records whether the closing credit was refunded. The finding''s own note said its resolution needs that fact; inventing it in either direction is the inference-printed-as-fact this exhibit exists to make visible. So the page states the closing position AND states that the refund is not in the record, and test_a_closed_household_in_credit_says_the_refund_is_not_in_the_record REQUIRES that sentence -- silence cannot come back.
+
+
+
+  R15 FIVE WAYS, each killing a NAMED test. (1) the credit branch removed -> test_no_settlement_claim_is_published_over_a_non_zero_ledger. (2) the writer made closure-blind -> test_a_closed_household_makes_no_present_tense_claim_about_its_money. (3) the writer made ALWAYS-closed, the tautology that satisfies (2) on any page at all while telling every live account holder they had left -> test_a_live_household_still_states_its_position_in_the_present_tense. (4) the writer silenced, the fail-open, since no present-tense phrase is present if no sentence is written -> the refund and live-household checks. (5) THE PAGE EXACTLY AS IT SHIPPED (git show HEAD), where all three checkers fire -- the only direction whose subject is the real defect rather than a synthetic reversal of the repair.
+
+
+
+  CAUGHT IN PASSING, and it is a control on the controls. This section''s first draft reused section 18''s test name. Python does not collide -- it REBINDS -- so section 18''s shipped-defect proof stopped being collected at all, and the only visible symptom was the skip count dropping from 1 to 0 with no failure to show for it. A silently deleted R15 proof is the FAIL-SILENT pattern applied to the proofs themselves, in a 3,200-line module written across nineteen ticks. test_no_definition_in_this_module_shadows_another now fails on any duplicate top-level name, helpers included -- a redefined _mutate retroactively changes what four earlier mutation tests actually run, and that had happened too.
+
+
+
+  R11 ON A REAL CHROMIUM BOOT of the served page, 0 console errors, 0 page errors. Closed household C1: the elec leg renders ''This electricity account closed 2021-12-30 - final bill C1-INV72. Account settled to zero. This is the electricity leg''s own ledger; the household''s combined position is on the Risk tab.''; the GAS leg renders ''This gas account closed 2021-12-30 - final bill C1g-INV144. Closing balance: GBP24.37 in credit - the customer''s money, recorded here as held by us. Nothing published on this page records whether that credit was refunded...''; the Risk tab renders ''BALANCE AT CLOSURE -GBP24 / at closure 2021-12-30 - in credit'' with ''live ledger position'' GONE; the landing exhibit renders ''This account closed on 2021-12-30 holding GBP24.37 of the customer''s money''. ANTI-TAUTOLOGY on the same live surface: C2 still renders ''OUTSTANDING BALANCE GBP248 / outstanding / live ledger position'' and carries no ''at closure'' anywhere.
+
+
+
+  EVIDENCE. site/ 832 passed 8 skipped before, 845 passed 8 skipped after -- 12 new tests plus the shadowing census. tests/controls/test_map_reconciliation.py 13 passed, so the ledger''s `fixed` state and the map''s move out of expert_hour.findings reconcile.
+
+
+
+  LEVEL STAYS 2, and the reason does not weaken with the count. A walk that returned NO is discharged by a walk that returns YES, never by this lane fixing the things that walk named. ONE of the re-run walk''s findings is left and it is a LAYOUT decision rather than a data or wording repair: coldwalk:site2_c1_pinned_exhibit_reads_as_the_open_households -- the static #op-state exhibit is pinned to C1 and re-renders ~2,000px above EVERY household''s drill-down with nothing separating the two, and 3 of 3 blind readers attributed C1''s GBP6,560.17 and ''two person / urban flat'' to the SME and I&C accounts open below it. Inside file_scope, unbuilt. The gate for L3 is unchanged: a fresh cold-eyes re-run against the page as it now stands, whose independence is still false (same model family as the builder).'

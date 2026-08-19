@@ -66,6 +66,76 @@ pytestmark = pytest.mark.skipif(NODE is None, reason="node not available")
 
 SIDES = ("customer", "company", "sim")
 
+# ---------------------------------------------------------------------------
+# THE SOLE LOCATOR for "the page as it SHIPPED before a named repair".
+#
+# Sections 18, 19, 21 and 22 each need the committed revision that predates their own
+# repair -- R15's only arm whose subject is the REAL defect rather than a synthetic
+# reversal of the fix. Until 2026-08-19 each section had privately written its own, and
+# every one of the four was broken:
+#
+#   * 18, 19 and 21 walked a FIXED ANCESTOR WINDOW (HEAD then HEAD~1..3 / ..8) looking
+#     for the absence of their own symbol. A window is wall-clock in disguise. This repo
+#     commits many times a day, so all three had scrolled past their window and decayed
+#     into SKIPS -- the mutation arms still reported green while the arm that proves the
+#     defect was ever real had silently stopped executing. That is R15's FAIL-SILENT
+#     pattern applied to the proofs themselves.
+#   * 22 was window-free and STILL never ran: it handed `git -C <site/customers>` a
+#     REPO-ROOT-relative pathspec, and git resolves a pathspec relative to -C, so
+#     `git log -S` matched nothing and the locator returned None on every call. It was
+#     green for exactly one tick -- on the uncommitted-case branch below, before its own
+#     symbol was committed -- and turned RED the moment its repair landed.
+#
+# Four private answers to one question is the same root cause this module has now paid
+# for four times (four sentence sites deciding privately what to claim about one
+# household's money; two governors deciding privately what a subject is). So the repair
+# is a SOLE WRITER, not three edits: ask git WHICH COMMIT introduced the symbol and take
+# that commit's parent. No window, no pinned SHA, nothing to decay.
+# ---------------------------------------------------------------------------
+INDEX_PATH = "site/customers/index.html"
+MODULE_PATH = "site/customers/test_wall_exhibit.py"
+
+
+def _repo_root() -> str:
+    """Asked of git rather than assumed from HERE. The pathspec bug above is exactly what
+    happens when a git invocation and its path argument disagree about their origin."""
+    p = subprocess.run(["git", "-C", str(HERE), "rev-parse", "--show-toplevel"],
+                       capture_output=True, text=True, timeout=60)
+    assert p.returncode == 0, f"not a git checkout: {p.stderr.strip()}"
+    return p.stdout.strip()
+
+
+def _pre_repair_source(symbol: str, path: str = INDEX_PATH) -> str | None:
+    """`path` as it SHIPPED before `symbol` was introduced, or None if unfindable.
+
+    Returning None is not a licence to skip: every caller ASSERTS on it, because "the
+    proof did not run" and "the proof passed" must not look the same to a reader of the
+    suite. None is reserved for the genuinely unanswerable case (the introducing commit
+    is a root commit, or the path has no history at all).
+    """
+    root = _repo_root()
+
+    def show(rev: str) -> str | None:
+        p = subprocess.run(["git", "-C", root, "show", f"{rev}:{path}"],
+                           capture_output=True, text=True, timeout=60)
+        return p.stdout if p.returncode == 0 else None
+
+    head = show("HEAD")
+    if head is not None and symbol not in head:
+        return head  # not yet committed: HEAD *is* the pre-repair revision
+
+    p = subprocess.run(
+        ["git", "-C", root, "log", "--format=%H", "-S", symbol, "--", path],
+        capture_output=True, text=True, timeout=120,
+    )
+    shas = [s for s in p.stdout.split() if s]
+    if not shas:
+        return None
+    src = show(f"{shas[-1]}^")  # oldest = the commit that INTRODUCED it; take its parent
+    if src is None or symbol in src:
+        return None  # post-condition: never hand back a page that still carries the repair
+    return src
+
 # Blocks that CARRY CONTENT. Nav chrome (tab-nav, fuel-select-row, year-btns) carries
 # none of these classes, which is why chrome needs no side and content cannot avoid one.
 CONTENT_CLASSES = {"card", "kpi-grid", "accounts-grid", "chart-wrap", "bill-sum", "timeline-list"}
@@ -2936,14 +3006,17 @@ def test_every_check_in_this_section_fires_on_the_page_as_it_shipped(tmp_path):
     REPAIR, so the leak check passed against a page that published "No arrears cases on
     this account's electricity record" above two live cascades.
 
-    Skips rather than fails if no pre-fix revision is reachable, and says so: a control
-    that silently passes when its subject is unavailable is a FAILED control (R15), so the
-    skip names the reason instead of pretending the proof ran.
+    FAILS rather than skips when the pre-repair revision cannot be found (2026-08-19): it
+    used to walk a fixed ancestor window, scrolled past it, and skipped for an unknown
+    number of ticks while its mutation siblings reported green. A control that silently
+    passes when its subject is unavailable is a FAILED control (R15), and a skip reads as
+    a pass to everything that looks at this suite.
     """
-    src = _pre_fix_index()
-    if src is None:
-        pytest.skip("no revision of index.html without __householdCollections is reachable "
-                    "from this checkout -- the shipped-defect proof did NOT run")
+    src = _pre_repair_source("__householdCollections")
+    assert src is not None, (
+        "cannot locate the committed index.html that predates __householdCollections -- "
+        "the shipped-defect proof did NOT run, which is not the same as passing"
+    )
     shipped = tmp_path / "index.html"
     shipped.write_text(src, encoding="utf-8")
 
@@ -2962,18 +3035,6 @@ def test_every_check_in_this_section_fires_on_the_page_as_it_shipped(tmp_path):
             _rendered_value(_op_state_render(shipped, legs=(elec, gas))["cust-who"], "Pays by"), want)
     with pytest.raises(AssertionError, match="household-scoped collections claim"):
         _check_no_household_wide_claim_on_partial_load(_collections_text(shipped, legs=(elec,)))
-
-
-def _pre_fix_index() -> str | None:
-    """The most recent committed index.html that predates this repair, or None."""
-    for rev in ("HEAD", "HEAD~1", "HEAD~2", "HEAD~3"):
-        proc = subprocess.run(
-            ["git", "-C", str(HERE), "show", f"{rev}:site/customers/index.html"],
-            capture_output=True, text=True, timeout=60,
-        )
-        if proc.returncode == 0 and "__householdCollections" not in proc.stdout:
-            return proc.stdout
-    return None
 
 
 # ===========================================================================
@@ -3239,18 +3300,6 @@ def test_mutation_a_silent_writer_kills_a_named_test(tmp_path):
             _standing_document(mutant, tmp_path, _live_household()))
 
 
-def _pre_standing_index() -> str | None:
-    """The most recent committed index.html without the standing writer, or None."""
-    for rev in ("HEAD", "HEAD~1", "HEAD~2", "HEAD~3"):
-        proc = subprocess.run(
-            ["git", "-C", str(HERE), "show", f"{rev}:site/customers/index.html"],
-            capture_output=True, text=True, timeout=60,
-        )
-        if proc.returncode == 0 and "__accountStanding" not in proc.stdout:
-            return proc.stdout
-    return None
-
-
 def test_every_standing_check_fires_on_the_page_as_it_shipped(tmp_path):
     """R15 direction 5, and the only one whose subject is the REAL defect rather than a
     synthetic reversal of the repair: the page exactly as cold-eyes read it.
@@ -3260,13 +3309,15 @@ def test_every_standing_check_fires_on_the_page_as_it_shipped(tmp_path):
     being collected at all and the suite went from 1 skipped to 0 with no failure to show
     for it. A duplicate-definition census is now part of this module's own checks below.
 
-    Skips rather than passes when no pre-fix revision is reachable, and says so -- a
-    control that silently passes when its subject is unavailable is a FAILED control.
+    FAILS rather than skips when no pre-repair revision is reachable (2026-08-19) -- a
+    control that silently passes when its subject is unavailable is a FAILED control, and
+    this one had been skipping.
     """
-    src = _pre_standing_index()
-    if src is None:
-        pytest.skip("no committed revision of index.html without __accountStanding is "
-                    "reachable -- the shipped-defect proof did NOT run")
+    src = _pre_repair_source("__accountStanding")
+    assert src is not None, (
+        "cannot locate the committed index.html that predates __accountStanding -- the "
+        "shipped-defect proof did NOT run, which is not the same as passing"
+    )
     shipped = tmp_path / "shipped.html"
     shipped.write_text(src, encoding="utf-8")
     elec, gas = _closed_household()
@@ -3784,29 +3835,18 @@ def test_mutation_treating_chrome_as_a_side_kills_a_named_test(tmp_path):
     )
 
 
-def _pre_governor_index() -> str | None:
-    """The most recent committed index.html that predates THIS repair, found by the absence
-    of its own symbol rather than by a pinned SHA -- so the check keeps working once this
-    change is itself committed, which a `HEAD:` literal would not."""
-    for n in range(0, 9):
-        rev = "HEAD" if n == 0 else f"HEAD~{n}"
-        proc = subprocess.run(
-            ["git", "-C", str(HERE), "show", f"{rev}:site/customers/index.html"],
-            capture_output=True, text=True, timeout=60,
-        )
-        if proc.returncode == 0 and "recordOpStateViolation" not in proc.stdout:
-            return proc.stdout
-    return None
-
-
 @pytest.mark.skipif(not NODE, reason="node not available")
 def test_both_checks_in_this_section_fire_on_the_page_as_it_SHIPPED(tmp_path):
     """R15's real subject: the page as PUBLISHED, not a synthetic mutation of the repair.
     Both defects must fire on it, or this section is describing a problem the page never
-    had. A synthetic mutation can be wrong about what shipped; this cannot."""
-    src = _pre_governor_index()
-    if src is None:
-        pytest.skip("no committed index.html without this repair within the search window")
+    had. A synthetic mutation can be wrong about what shipped; this cannot.
+
+    FAILS rather than skips when its subject cannot be found (2026-08-19)."""
+    src = _pre_repair_source("recordOpStateViolation")
+    assert src is not None, (
+        "cannot locate the committed index.html that predates recordOpStateViolation -- "
+        "the shipped-defect proof did NOT run, which is not the same as passing"
+    )
     shipped = tmp_path / "index.html"
     shipped.write_text(src, encoding="utf-8")
     p = _op_state_probes(shipped)
@@ -4047,43 +4087,18 @@ def test_mutation_removing_the_guard_from_setwallview_kills_a_named_test(tmp_pat
         _check_no_undeclared_region_survives(_doc_probes(mutant))
 
 
-def _pre_region_guard_index() -> str | None:
-    """The page as it SHIPPED before this repair, located WITHOUT a window and WITHOUT a
-    pinned SHA.
-
-    The three earlier shipped-defect proofs in this module walk `HEAD~0..8` looking for the
-    absence of their own symbol. That was an improvement on a pinned SHA and it still rots:
-    all three now SKIP, because the repairs they prove have scrolled past nine commits, and a
-    proof that quietly stops running is the FAIL-SILENT pattern applied to the proofs. So this
-    one asks git WHICH COMMIT introduced the symbol and takes its parent -- an answer that
-    does not decay. Staged as a finding against the other three rather than fixed here.
-    """
-    def show(rev: str) -> str | None:
-        p = subprocess.run(["git", "-C", str(HERE), "show", f"{rev}:site/customers/index.html"],
-                           capture_output=True, text=True, timeout=60)
-        return p.stdout if p.returncode == 0 else None
-
-    head = show("HEAD")
-    if head is not None and "enforceDocumentRegions" not in head:
-        return head  # not yet committed: HEAD *is* the pre-repair page
-    p = subprocess.run(
-        ["git", "-C", str(HERE), "log", "--format=%H", "-S", "enforceDocumentRegions",
-         "--", "site/customers/index.html"],
-        capture_output=True, text=True, timeout=120,
-    )
-    shas = [s for s in p.stdout.split() if s]
-    if not shas:
-        return None
-    return show(f"{shas[-1]}^")
-
-
 @pytest.mark.skipif(not NODE, reason="node not available")
 def test_this_section_fires_on_the_page_as_it_SHIPPED(tmp_path):
     """R15's real subject: the page as PUBLISHED, not a synthetic reversal of the repair. A
     mutation can be wrong about what shipped; this cannot. If this ever cannot find the
     pre-repair revision it FAILS -- it does not skip -- because 'the proof did not run' and
-    'the proof passed' must not look the same."""
-    src = _pre_region_guard_index()
+    'the proof passed' must not look the same.
+
+    This section wrote the first window-free locator and got its PATHSPEC wrong (a
+    repo-root-relative path handed to `git -C <site/customers>`), so it returned None on
+    every call once its own repair was committed. Section 23 moved the locator to the
+    module's sole writer and fixed the origin; this call site is unchanged in intent."""
+    src = _pre_repair_source("enforceDocumentRegions")
     assert src is not None, (
         "cannot locate the committed index.html that predates enforceDocumentRegions -- "
         "the shipped-defect proof did NOT run, which is not the same as passing"
@@ -4103,4 +4118,342 @@ def test_this_section_fires_on_the_page_as_it_SHIPPED(tmp_path):
     assert len(undeclared) >= 5, (
         "the shipped page already declared its regions -- the structural half of this "
         f"section is not real (undeclared: {undeclared})"
+    )
+
+
+# ===========================================================================
+# 23. THE PROOFS THEMSELVES ARE A POPULATION
+#     (WORKER_FINDING_THREE_SHIPPED_DEFECT_PROOFS_HAVE_QUIETLY_STOPPED_RUNNING_2026-08-19)
+# ===========================================================================
+#
+# THE FINDING. `pytest site/customers/ -q -rs` reported three skips:
+#
+#   test_wall_exhibit.py:2945  no revision of index.html without __householdCollections
+#                              is reachable -- the shipped-defect proof did NOT run
+#   test_wall_exhibit.py:3268  no committed revision without __accountStanding is reachable
+#   test_wall_exhibit.py:3809  no committed index.html without this repair within the window
+#
+# Those are sections 18, 19 and 21's R15 direction-5 arms -- the ONLY arm in each section
+# whose subject is the defect the page actually shipped, rather than a synthetic reversal
+# of the repair. All three had stopped executing. Their mutation siblings stayed green, the
+# suite stayed green, and the only visible symptom was a skip count nobody reads.
+#
+# AND THE FOURTH, which is why this is a class and not three instances. Section 22 was
+# written to fix exactly this and was ITSELF broken, in a different way: it handed
+# `git -C <site/customers>` the repo-root-relative pathspec `site/customers/index.html`.
+# git resolves a pathspec relative to -C, so `git log -S` matched nothing, the locator
+# returned None, and the test FAILED at HEAD -- red, not skipped, because that section had
+# already adopted assert-don't-skip. It had been green for exactly one tick, on the
+# uncommitted-case branch, and turned red the moment its own repair was committed. Four
+# private answers to one question; four different ways of being wrong.
+#
+# THE REPAIR IS A SOLE WRITER (R10: the class, not the instances). `_pre_repair_source` is
+# now the module's only route to a pre-repair revision and its only caller of git. This
+# section is the control that keeps it that way: a fifth section that reinvents a locator,
+# reintroduces a window, or converts a proof back into a skip fails HERE, by construction,
+# whatever it is named.
+#
+# WHAT IS DELIBERATELY NOT THE SUBJECT: a bare `HEAD~` (the parent, no window). Section
+# 18's comment at the top of this module cites `git show HEAD~:...` as diff evidence and is
+# honest. The decaying shape is a NUMBERED or INTERPOLATED ancestor reference.
+
+_SHIPPED_PROOF = "as_it_ship"          # the naming convention for R15's direction-5 arm
+_SOLE_LOCATOR = "_pre_repair_source"
+_GIT_WRITERS = {"_repo_root", "_pre_repair_source"}
+_MIN_SHIPPED_PROOFS = 4
+
+# The subject is a REV STRING HANDED TO GIT, read off the AST -- not the file's text.
+# Keying on the text would make this module's own header, which has to name the defect it
+# repaired, the first thing to fail; a control that forbids describing its own subject is
+# not a control, it is a gag. Both decayed shapes are string constants beginning "HEAD~":
+# the tuple form ("HEAD~1", "HEAD~2", ...) directly, and the interpolated form f"HEAD~{n}"
+# via the constant half of its JoinedStr.
+#
+# STATED LIMIT: a window assembled at runtime ("HEAD" + "~" + str(n)) would slip this arm.
+# Arm 4 is the backstop -- it fires on any NEW function that shells git at all, whatever it
+# names its revisions -- which is why the two arms are proven separately below.
+_WINDOW_RE = re.compile("^HEAD" + "~")
+
+# Tests whose subject IS the locator, and which therefore call it without being
+# shipped-defect proofs. Written out rather than pattern-matched, and CHECKED: a member
+# that looks like a proof would be an exemption used to dodge arm 3, so
+# test_the_locator_probe_exemption_cannot_hide_a_proof refuses one.
+_LOCATOR_PROBES = {"test_the_sole_locator_resolves_a_pre_repair_page_for_every_symbol_it_is_asked"}
+
+
+def _top_level_functions(tree: ast.Module) -> dict[str, ast.FunctionDef]:
+    """Top-level defs only. `ast.walk` over each still reaches nested helpers, so a git call
+    hidden in a closure is attributed to the function that owns it rather than escaping as
+    an anonymous inner name."""
+    return {n.name: n for n in tree.body if isinstance(n, ast.FunctionDef)}
+
+
+def _calls_in(fn: ast.FunctionDef) -> set[str]:
+    out: set[str] = set()
+    for n in ast.walk(fn):
+        if isinstance(n, ast.Call):
+            f = n.func
+            if isinstance(f, ast.Name):
+                out.add(f.id)
+            elif isinstance(f, ast.Attribute):
+                out.add(f.attr)
+    return out
+
+
+def _shipped_proofs(tree: ast.Module, label: str) -> set[str]:
+    """The population, with its own anti-vacuity floor. A census that finds nothing must
+    REFUSE -- every arm below is trivially green on an empty subject, which is the
+    fail-open direction R15 names."""
+    found = {n for n in _top_level_functions(tree) if _SHIPPED_PROOF in n.lower()}
+    assert len(found) >= _MIN_SHIPPED_PROOFS, (
+        f"{label}: found {len(found)} shipped-defect proofs, expected at least "
+        f"{_MIN_SHIPPED_PROOFS} -- this control's own population has gone missing, and "
+        f"every check in this section passes vacuously on an empty one ({sorted(found)})"
+    )
+    return found
+
+
+def _git_invokers(tree: ast.Module) -> set[str]:
+    out: set[str] = set()
+    for name, fn in _top_level_functions(tree).items():
+        for n in ast.walk(fn):
+            if not (isinstance(n, ast.Call) and n.args):
+                continue
+            a = n.args[0]
+            if (isinstance(a, ast.List) and a.elts and isinstance(a.elts[0], ast.Constant)
+                    and a.elts[0].value == "git"):
+                out.add(name)
+    return out
+
+
+def _check_no_shipped_proof_uses_a_window(src: str, label: str) -> None:
+    hits = sorted({n.value for n in ast.walk(ast.parse(src))
+                   if isinstance(n, ast.Constant) and isinstance(n.value, str)
+                   and _WINDOW_RE.match(n.value)})
+    assert not hits, (
+        f"{label}: a pre-repair revision is located by a fixed ancestor window. A window is "
+        f"wall-clock in disguise -- it decays into a skip and the proof stops running with "
+        f"no red to show for it: {hits[:4]}"
+    )
+
+
+def _check_shipped_proofs_fail_rather_than_skip(src: str, label: str) -> None:
+    tree = ast.parse(src)
+    fns = _top_level_functions(tree)
+    skipping = sorted(n for n in _shipped_proofs(tree, label) if "skip" in _calls_in(fns[n]))
+    assert not skipping, (
+        f"{label}: these shipped-defect proofs can skip: {skipping}. 'The proof did not run' "
+        f"and 'the proof passed' must not look the same to a reader of this suite."
+    )
+
+
+def _check_the_locator_is_the_sole_writer(src: str, label: str) -> None:
+    tree = ast.parse(src)
+    proofs = _shipped_proofs(tree, label)
+    callers = {n for n, f in _top_level_functions(tree).items()
+               if _SOLE_LOCATOR in _calls_in(f)}
+    assert proofs == callers - _LOCATOR_PROBES, (
+        f"{label}: the shipped-defect proofs and the callers of {_SOLE_LOCATOR} are not the "
+        f"same set. Proofs locating their subject privately: "
+        f"{sorted(proofs - callers)}; non-proofs calling the locator: "
+        f"{sorted(callers - proofs - _LOCATOR_PROBES)}."
+    )
+
+
+def _check_git_has_one_writer(src: str, label: str) -> None:
+    stray = sorted(_git_invokers(ast.parse(src)) - _GIT_WRITERS)
+    assert not stray, (
+        f"{label}: these functions shell git directly instead of going through "
+        f"{_SOLE_LOCATOR}: {stray}. Four private locators is how three of them decayed "
+        f"into skips and the fourth went red without anyone noticing."
+    )
+
+
+_ARMS = (
+    _check_no_shipped_proof_uses_a_window,
+    _check_shipped_proofs_fail_rather_than_skip,
+    _check_the_locator_is_the_sole_writer,
+    _check_git_has_one_writer,
+)
+
+
+def _this_module() -> str:
+    return Path(__file__).resolve().read_text(encoding="utf-8")
+
+
+def _decoy(*, proofs: int = _MIN_SHIPPED_PROOFS, body: str = "    src = _pre_repair_source('x')\n",
+           extra: str = "") -> str:
+    """A synthetic module written HERE rather than borrowed from the real one.
+
+    A decoy lifted from the module under test can pass a mutation while proving nothing --
+    it carries every other property of the real file, so the arm that fires may not be the
+    arm being exercised. These are the smallest modules that reach each arm.
+    """
+    out = ["import pytest", ""]
+    for i in range(proofs):
+        out.append(f"def test_section_{i}_fires_on_the_page_as_it_shipped():")
+        out.append(body.rstrip("\n") or "    pass")
+        out.append("")
+    out.append(extra)
+    return "\n".join(out)
+
+
+# --- the four arms, against this module as it stands -----------------------------------
+
+def test_no_shipped_defect_proof_locates_its_subject_by_a_window():
+    """ARM 1. The shape that decayed -- an ancestor rev built from a fixed offset. Gone, and
+    the constant that reintroduces it fires here."""
+    _check_no_shipped_proof_uses_a_window(_this_module(), "this module")
+
+
+def test_the_locator_probe_exemption_cannot_hide_a_proof():
+    """Arm 3 carries an exemption, so the exemption needs its own arm -- otherwise the way
+    to defeat the sole-writer rule is to add your section to the exemption set.
+
+    Two conditions, both checkable: an exempt name may not look like a shipped-defect proof
+    (which is what arm 3 would then stop counting), and every exempt name must actually
+    exist in this module, so a rename cannot leave a stale entry silently widening the hole.
+    """
+    fns = _top_level_functions(ast.parse(_this_module()))
+    for name in sorted(_LOCATOR_PROBES):
+        assert name in fns, (
+            f"{name} is exempted from the sole-writer rule but does not exist in this "
+            f"module -- a stale exemption is a hole nothing is watching"
+        )
+        assert _SHIPPED_PROOF not in name.lower(), (
+            f"{name} is exempted from the sole-writer rule while naming itself a "
+            f"shipped-defect proof -- that is the rule being used to dodge itself"
+        )
+
+
+def test_every_shipped_defect_proof_fails_rather_than_skips():
+    """ARM 2. The FAIL-SILENT half. Three of these were skipping when this section was
+    written, and the suite was green throughout."""
+    _check_shipped_proofs_fail_rather_than_skip(_this_module(), "this module")
+
+
+def test_the_pre_repair_locator_is_this_modules_sole_writer():
+    """ARM 3. Set EQUALITY, both directions: a proof may not locate its subject privately,
+    and nothing that is not a proof may call the locator. Keyed on the mechanism, so the
+    naming convention and the actual population cannot drift apart."""
+    _check_the_locator_is_the_sole_writer(_this_module(), "this module")
+
+
+def test_nothing_in_this_module_shells_git_except_the_locator():
+    """ARM 4, and it is the one that does not depend on a naming convention at all. A fifth
+    section could satisfy arms 1-3 and still shell git for a revision under some other
+    name; this fires on the subprocess call itself."""
+    _check_git_has_one_writer(_this_module(), "this module")
+
+
+@pytest.mark.parametrize("symbol", [
+    "__householdCollections",   # section 18
+    "__accountStanding",        # section 19
+    "recordOpStateViolation",   # section 21
+    "enforceDocumentRegions",   # section 22
+])
+def test_the_sole_locator_resolves_a_pre_repair_page_for_every_symbol_it_is_asked(symbol):
+    """The locator answers, for real, for every symbol this module actually asks about --
+    the direct evidence that the three skips and the one red are gone.
+
+    ANTI-VACUITY, and it is not decorative: a MISSPELLED symbol predates every revision, so
+    the locator would cheerfully return HEAD and the check would pass while proving nothing.
+    The symbol must be present in the live page first.
+    """
+    assert symbol in INDEX.read_text(encoding="utf-8"), (
+        f"{symbol} is not in the live index.html -- this parametrisation is asking the "
+        f"locator about a symbol the page does not have, and would pass trivially"
+    )
+    src = _pre_repair_source(symbol)
+    assert src is not None, (
+        f"the sole locator cannot find the revision that predates {symbol} -- the "
+        f"shipped-defect proof that depends on it did NOT run"
+    )
+    assert symbol not in src, (
+        f"the locator returned a page that still carries {symbol} -- its post-condition "
+        f"failed, and the proof would be running against the repaired page"
+    )
+
+
+# --- R15: four mutations, each killing a NAMED test, plus a null control ----------------
+
+def test_mutation_a_windowed_locator_kills_a_named_test():
+    """(1) The original defect: the ancestor window restored."""
+    mutant = _decoy(body='    for rev in ("HEAD", "HEAD' + '~1"):\n        src = _pre_repair_source(rev)\n')
+    with pytest.raises(AssertionError, match="fixed ancestor window"):
+        _check_no_shipped_proof_uses_a_window(mutant, "decoy")
+
+
+def test_mutation_a_proof_that_skips_kills_a_named_test():
+    """(2) FAIL-SILENT: the proof still exists, still reads correctly, and reports nothing
+    when its subject is unavailable. Note arm 1 stays GREEN on this decoy -- the two arms
+    are different arms, which is the point of proving them separately."""
+    mutant = _decoy(body="    src = _pre_repair_source('x')\n    if src is None:\n        pytest.skip('no subject')\n")
+    _check_no_shipped_proof_uses_a_window(mutant, "decoy")  # not this arm's defect
+    with pytest.raises(AssertionError, match="can skip"):
+        _check_shipped_proofs_fail_rather_than_skip(mutant, "decoy")
+
+
+def test_mutation_a_proof_locating_its_subject_privately_kills_a_named_test():
+    """(3) The sole-writer arm: a section that goes back to answering the question itself."""
+    mutant = _decoy(proofs=_MIN_SHIPPED_PROOFS - 1) + (
+        "\ndef test_section_9_fires_on_the_page_as_it_shipped():\n"
+        "    src = _my_own_locator()\n"
+    )
+    with pytest.raises(AssertionError, match="locating their subject privately"):
+        _check_the_locator_is_the_sole_writer(mutant, "decoy")
+
+
+def test_mutation_a_stray_git_call_kills_a_named_test():
+    """(4) OVER-BROAD direction, and the arm that survives a rename: a helper that shells
+    git for a revision under a name no convention covers. Arms 1-3 are green on it."""
+    mutant = _decoy(extra=(
+        "def _quietly_locate():\n"
+        "    return subprocess.run(['git', 'show', 'x:y'], capture_output=True)\n"
+    ))
+    for arm in _ARMS[:3]:
+        arm(mutant, "decoy")  # none of the other three can see it
+    with pytest.raises(AssertionError, match="shell git directly"):
+        _check_git_has_one_writer(mutant, "decoy")
+
+
+def test_mutation_an_empty_population_refuses_rather_than_passing():
+    """(5) FAIL-OPEN, the direction that makes every other arm meaningless: delete the
+    proofs and the census has nothing to object to. It must REFUSE, not pass."""
+    empty = _decoy(proofs=0)
+    for arm in (_check_shipped_proofs_fail_rather_than_skip,
+                _check_the_locator_is_the_sole_writer):
+        with pytest.raises(AssertionError, match="population has gone missing"):
+            arm(empty, "decoy")
+
+
+def test_null_control_a_clean_module_passes_every_arm():
+    """The null control. Without it these checkers could be `assert False` wearing four
+    different messages: a module that does the right thing must come back clean."""
+    for arm in _ARMS:
+        arm(_decoy(), "clean decoy")
+
+
+def test_this_section_fires_on_the_module_as_it_SHIPPED():
+    """R15 direction 5 for THIS section, and its subject is this module's own source.
+
+    Every arm above must fire on the module as it was published -- the version with three
+    windowed locators, three skipping proofs and a fourth locator whose pathspec never
+    matched. Located by the same sole locator, pointed at this file instead of the page, so
+    this section is not exempt from the mechanism it exists to enforce.
+    """
+    src = _pre_repair_source(_SOLE_LOCATOR, MODULE_PATH)
+    assert src is not None, (
+        "cannot locate the committed test module that predates the sole locator -- the "
+        "shipped-defect proof did NOT run, which is not the same as passing"
+    )
+    fired = []
+    for arm in _ARMS:
+        try:
+            arm(src, "the module as it shipped")
+        except AssertionError:
+            fired.append(arm.__name__)
+    assert sorted(fired) == sorted(a.__name__ for a in _ARMS), (
+        "the module as it shipped did NOT trip every arm of this section -- an arm that "
+        f"cannot fire on the real defect is not evidence. Fired: {fired}"
     )
