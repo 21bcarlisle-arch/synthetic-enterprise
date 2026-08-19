@@ -1373,10 +1373,12 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                     # (pre-Phase-15b, margin-only guard) -- policy.include_acq_cost_saved_in_guard.
                     cust_data_ret = get_customer(billing_account)
                     seg_ret = cust_data_ret["segment"] if cust_data_ret else "resi"
-                    acq_cost_saved = replacement_cost_avoided_gbp(
-                        segment=seg_ret,
-                        counted_in_guard=policy.include_acq_cost_saved_in_guard,
-                    )
+                    # KNIFE3 step 39 (§3ah): the door resolves the switch itself,
+                    # from the run's active policy. Equivalent by construction --
+                    # main() refuses above unless `policy is active_policy()` -- so
+                    # this is the same bool arriving by a channel the world no
+                    # longer has to hold a policy object to use.
+                    acq_cost_saved = replacement_cost_avoided_gbp(segment=seg_ret)
                     if expected_margin + acq_cost_saved > ret_cost:
                         # Nudge Physics Layer 1: framing_type is the company's own
                         # comms-cohort choice (observable by construction); the
@@ -1704,7 +1706,13 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                                 for s in _funnel_result.stages
                             ],
                         })
-                        acquisition_funnel_log.append(_funnel_message.to_log_entry())
+                        # EP6 pass 12: version on the wire (see the meter-read site in
+                        # run_phase4c_on_phase2b.py). Note the nested `stages` rows are
+                        # FunnelStageMessage, whose to_log_entry takes no such flag -- the
+                        # version is carried once, by the envelope row, not per stage.
+                        acquisition_funnel_log.append(
+                            _funnel_message.to_log_entry(include_schema_version=True)
+                        )
 
                         acquisition_spend_events.append(
                             book_acquisition_spend(

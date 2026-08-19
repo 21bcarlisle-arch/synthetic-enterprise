@@ -278,7 +278,7 @@ def run_forward_scenario(
     from datetime import date as _date
     import sim.cache_store as _cache
     from sim.gas_prices_history import load_nbp_history as _load_nbp
-    from sim.system_prices import get_system_prices_range
+    from sim.system_prices_history import get_system_prices_range
     from sim.cache_store import get_cached_prices, log_cache_access
     from simulation.run_phase2b import (
         ELEC_CUSTOMERS, GAS_CUSTOMERS, EARLIEST_SSP_DATE, REPORT_START,

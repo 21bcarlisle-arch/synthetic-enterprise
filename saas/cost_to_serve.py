@@ -7,6 +7,11 @@ service systems and smart meter operation. This module adds that layer on
 top of settlement records, producing a "net of cost-to-serve" margin per
 customer and per portfolio.
 
+It publishes TWO margin lines on TWO cost bases, each named for its basis
+(`contribution_margin_gbp`, `net_of_all_costs_margin_gbp`) — see
+`build_cost_to_serve`'s docstring for why the single `net_margin_gbp` line
+they replaced was a defect rather than a naming preference.
+
 Cost-to-serve is fixed overhead only — billing/IT/customer-service plus
 smart-meter operation, an annual £ figure per account divided evenly across
 settlement periods. SME accounts cost more to serve in absolute terms
@@ -123,28 +128,59 @@ def build_cost_to_serve(settlement_records: list[dict], customers: list[dict]) -
 
     Returns:
       {
-        "portfolio": {cost_to_serve_gbp, margin_gbp, net_margin_gbp},
+        "portfolio": {cost_to_serve_gbp, margin_gbp,
+                      contribution_margin_gbp, net_of_all_costs_margin_gbp},
         "by_customer": {
-          "<customer_id>": {cost_to_serve_gbp, margin_gbp, net_margin_gbp},
+          "<customer_id>": {...same four keys...},
           ...  # in first-encountered order
         },
       }
 
-    `margin_gbp` here is the pre-existing revenue-minus-wholesale-cost figure
-    (as in simulation/portfolio_pnl.py); `net_margin_gbp` is `margin_gbp`
-    minus `cost_to_serve_gbp`. An empty input returns zeroed/empty structures
-    rather than raising.
+    THE TWO MARGIN LINES ARE DIFFERENT COST BASES AND BOTH ARE NAMED FOR IT
+    (2026-08-17, `WORKER_FINDING_THE_BOOK_IS_VALUED_ON_A_MARGIN_THAT_EXCLUDES_
+    THREE_QUARTERS_OF_THE_COST_STACK`). Until that repair this function
+    returned ONE margin line called `net_margin_gbp` whose value was
+    `margin_gbp - cost_to_serve_gbp` — a CONTRIBUTION margin wearing the name
+    of a net one, and `saas/clv_model.py` valued the whole customer book on it.
+    Portfolio-wide that line was £6,414,533.34 against a true settled net
+    margin of £1,547,113.39: policy levies (RO/CfD/CM/FiT/CCL/mutualisation),
+    network charges (electricity and gas), capital and bad debt — 75.969% of
+    gross margin — reached the P&L and not the valuation.
+
+      `margin_gbp`                    revenue - wholesale (GROSS, as in
+                                      simulation/portfolio_pnl.py)
+      `contribution_margin_gbp`       margin_gbp - cost_to_serve_gbp
+                                      (the old `net_margin_gbp` VALUE, under
+                                      the name it always should have had)
+      `net_of_all_costs_margin_gbp`   the record's own net margin — net of
+                                      levies, network, capital and bad debt —
+                                      minus cost_to_serve_gbp
+
+    `net_margin_gbp` is DELETED rather than redefined, deliberately. Rebinding
+    the name to the true net would have handed every existing reader a silently
+    different number; deleting it makes an un-migrated reader raise KeyError,
+    which is the fail-closed half of the same choice (R15).
+
+    Requires `net_margin_gbp` on every settlement record. There is no fallback
+    to `margin_gbp` — a cost-to-serve view built from records that cannot say
+    what they netted would reproduce exactly the defect above, silently.
+
+    An empty input returns zeroed/empty structures rather than raising.
 
     Raises KeyError if a settlement record references a customer_id not
-    present in `customers`.
+    present in `customers`, or omits `net_margin_gbp`.
     """
     segment_by_customer = {c["customer_id"]: c["segment"] for c in customers}
 
-    portfolio = {
-        "cost_to_serve_gbp": 0.0,
-        "margin_gbp": 0.0,
-        "net_margin_gbp": 0.0,
-    }
+    def _zeroed() -> dict:
+        return {
+            "cost_to_serve_gbp": 0.0,
+            "margin_gbp": 0.0,
+            "contribution_margin_gbp": 0.0,
+            "net_of_all_costs_margin_gbp": 0.0,
+        }
+
+    portfolio = _zeroed()
     by_customer: dict[str, dict] = {}
 
     for record in settlement_records:
@@ -153,22 +189,16 @@ def build_cost_to_serve(settlement_records: list[dict], customers: list[dict]) -
         commodity = record.get("commodity", "electricity")
         cost = cost_to_serve_for_period(segment, record["revenue_gbp"], commodity)
         margin = record["margin_gbp"]
+        net_of_all_costs = record["net_margin_gbp"]
 
         if customer_id not in by_customer:
-            by_customer[customer_id] = {
-                "cost_to_serve_gbp": 0.0,
-                "margin_gbp": 0.0,
-                "net_margin_gbp": 0.0,
-            }
+            by_customer[customer_id] = _zeroed()
 
-        entry = by_customer[customer_id]
-        entry["cost_to_serve_gbp"] += cost
-        entry["margin_gbp"] += margin
-        entry["net_margin_gbp"] += margin - cost
-
-        portfolio["cost_to_serve_gbp"] += cost
-        portfolio["margin_gbp"] += margin
-        portfolio["net_margin_gbp"] += margin - cost
+        for target in (by_customer[customer_id], portfolio):
+            target["cost_to_serve_gbp"] += cost
+            target["margin_gbp"] += margin
+            target["contribution_margin_gbp"] += margin - cost
+            target["net_of_all_costs_margin_gbp"] += net_of_all_costs - cost
 
     return {"portfolio": portfolio, "by_customer": by_customer}
 

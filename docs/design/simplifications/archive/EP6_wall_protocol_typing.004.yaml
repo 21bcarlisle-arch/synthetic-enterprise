@@ -1,0 +1,163 @@
+atom_id: EP6_wall_protocol_typing
+chunk: 4
+simplifications:
+- '2026-08-17 (second pass of the day) DISCOVER ONLY, level stays 0, loop_stage stays idle
+
+  (worker tick, LANE 3 idle draw). No BUILD code, no protocol designed -- epoch-3 BUILD-gated on
+
+  director-reserved curriculum sequencing (R13); EPOCH_GATING_AND_ATOM_AUTHORSHIP Rule 1 permits
+
+  DISCOVER/FRAME while BUILD is not. Deliverable: docs/design/EP6_WALL_PROTOCOL_TYPING_DISCOVER.md
+
+  -- a SEPARATE document from docs/design/EP6_WALL_CONFORMANCE_CENSUS_DISCOVER.md (2026-08-15), not
+
+  a replacement: this pass re-verifies that census''s numbers at a newer HEAD rather than re-walking
+
+  it, then adds the three sections the dispatcher for this draw asked for that neither prior pass
+
+  produced in this form -- a falsifiable per-channel indistinguishability test, an explicit SIMPLICITY
+
+  GUARD reading, and six named open questions. Everything below is observed-with-evidence unless
+
+  labelled inferred (R9).
+
+
+  MEASURED AT: HEAD 31791a01d. Live artefact docs/reports/run_output_latest.json (mtime 2026-08-17
+
+  18:58, 4,154,361 bytes) parsed in full; tools.epistemic_wall.live_crossings()/
+
+  live_indirect_crossings() and python3 -m tools.wall_crossing_dispositions run directly.
+
+
+  TWO NUMBERS FROM THE 2026-08-15 CENSUS MOVED, NEITHER CHANGES ITS CONCLUSIONS. (1) Channel A
+
+  (direct import edge) is 5 live, not 6: KNIFE3 pass 3 step 32 (same day as this draw) cut
+
+  simulation.run_phase4c_on_phase2b -> company.billing.dd_review_runner via a new door,
+
+  company/interfaces/dd_review.py. Re-verified: live_crossings() returns 5 rows,
+
+  wall_crossing_dispositions reports "7 live crossings (5 direct, 2 indirect); 91 ruled (cut 84,
+
+  owed 7, grandfathered 0)" -- matching KNIFE3''''s own step-32 record exactly. Ordinary census decay
+
+  against a tree under active unrelated construction, not a defect in either register. (2) Channel
+
+  F''''s denominator moved 92 -> 93 top-level published keys; not chased further (identifying the new
+
+  key is a rerun of the conformance census''''s own §6/§7, out of this pass''''s scope). Everything
+
+  else spot-checked (channel D''''s three log types still carry zero schema_version/correlation_id on
+
+  today''''s artefact; _cache_meta still absent) and held.
+
+
+  FINDING (framing, not a new defect) -- THE ATOM HAS TWO DISJOINT TYPED PATTERNS ON DISK AND ONLY
+
+  ONE HAS THE PROPERTY IT IS NAMED FOR. Re-confirms and sharpens the 2026-08-13 finding: the envelope
+
+  (interface/contracts/wall_envelope.py, built under W4_4, 3 crossings) has real request/response
+
+  separation in time by construction; the 5 W4_1 ports (tools/*_port.py) are typed VALUES returned in
+
+  the same call frame, with schema_version fields that are structurally present but, per the artefact
+
+  check above, never populated on the wire.
+
+
+  THE INDISTINGUISHABILITY TEST, stated as one falsifiable criterion and applied per channel:
+
+  swapping a crossing''''s SIM-side adapter for a different implementation that answers the same
+
+  contract -- including one that sometimes returns TIMEOUT/NOT_KNOWABLE_YET/a duplicate response for
+
+  the same correlation_id -- must require ZERO company-side code changes and no company-side branch
+
+  that could only succeed against one specific adapter. Channel C (envelope) PASSES on the
+
+  import-direction half (already proven by test_epistemic_wall_ratchet.py) but has never been forced
+
+  through its own non-OK statuses by a test -- an unproven control on this specific property, R15-
+
+  speaking. Channel D (same-step ports) FAILS BY CONSTRUCTION: a Protocol method returning
+
+  list[MeterReadMessage] has no representable "not yet available" path, so a real D0010/bureau feed
+
+  that answers late cannot be swapped in without a visible shape change. Channel A/B (direct import)
+
+  fails trivially -- no adapter exists to swap; this is KNIFE3''''s subject, not EP6''''s. Channel E
+
+  (structural Protocol) passes for a frozen shape and fails under evolution -- no version field
+
+  exists anywhere in the pattern. Channel F (published report) should not be held to this test at
+
+  all: it exists specifically so the harness can see both the company''''s belief and the SIM''''s truth
+
+  in one row (e.g. customer_events'''' company_churn_estimate beside realized_churn_probability, per
+
+  the 2026-08-15 second pass), which is the opposite goal from indistinguishability.
+
+
+  SIMPLICITY GUARD READING, recorded not asked (NEVER_ASK_WITHOUT_RECOMMENDING): do not rebuild the
+
+  envelope (channel C already has the property, built under a different atom -- EP6''''s honest first
+
+  move is conformance, not design, matching both prior passes'''' conclusion); do not envelope channel
+
+  F (92-93 report keys wrapped in WallResponse is the protocol cathedral the origin_note forbids by
+
+  name -- the defensible target there is provenance, not messages); do not envelope channel E yet
+
+  (cheapest working pattern, no shape divergence has occurred to justify it -- building for a failure
+
+  mode that has not happened is adapters-for-future-adapters); do not scope channel A/B into EP6 while
+
+  KNIFE3 is live (7 edges still owed at this HEAD under a different design vocabulary aimed at
+
+  REMOVING the crossing, not typing it -- typing an edge KNIFE3 is about to cut is waste in the other
+
+  direction). Channel D is the one place the guard does NOT counsel restraint: EP7/EP8/EP9/W5_1''''s own
+
+  real-world analogues (DCC Service Request/Response, Bacs ARUDD returns days later) name genuine
+
+  asynchrony as the fidelity claim, so building the protocol there is the one thing nine dependent
+
+  atoms actually need, not cathedral-building.
+
+
+  SIX OPEN QUESTIONS NAMED, each with what resolves it (full text in the document): (1) whether
+
+  channel D''''s async gap is load-bearing for all nine EP7-EP15 atoms or only some, resolved by reading
+
+  each atom''''s own real-world-analogue claim, not done here; (2) EP6''''s deliverable shape (census vs.
+
+  migration vs. both), resolved by a director/curriculum ruling when Epoch 3 opens -- this pass''''s own
+
+  recommendation is the channel-D migration as higher-leverage, with the census as its accompanying
+
+  control; (3) standing exclusion of KNIFE3-owed edges from EP6 scope, resolved by re-reading
+
+  wall_crossing_dispositions''''s live count at BUILD time, not a one-time check, since the count moved
+
+  during this very draw; (4) whether the 2026-08-15 "two wires wearing one name" split for channel F
+
+  is ratified anywhere -- checked this pass, zero hits for "counterparty wire"/"harness wire" outside
+
+  that one document, so it is STILL an unratified DISCOVER hypothesis, not a settled design; (5)
+
+  whether channel D''''s to_log_entry(include_schema_version=False) fail-open default must flip before
+
+  the first v2.0 schema bump, resolved at that bump, not pre-emptively per the simplicity guard; (6)
+
+  identity of the new 93rd published key and whether it changes channel F''''s 7-ground-truth-field
+
+  count, not resolved here.
+
+
+  Deliverable: docs/design/EP6_WALL_PROTOCOL_TYPING_DISCOVER.md. No new WORKER_FINDING filed
+
+  (SELF_INTERRUPT_DISCIPLINE): the two drift observations are re-measurements of already-tracked
+
+  numbers, the rest is framing/synthesis against existing findings, not a new defect against a
+
+  control.'

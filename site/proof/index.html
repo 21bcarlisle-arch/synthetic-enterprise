@@ -11,11 +11,6 @@
 /* Brand palette from ../brand/brand.css (BRAND_CONSTITUTION §3a light-default); :root deleted on adoption. */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
-.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
-.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
-.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
-.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
 .wrap { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
 .hero-h { font-size: 26px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 10px; }
 .hero-p { font-size: 14px; line-height: 1.7; color: var(--muted); max-width: 720px; }
@@ -211,7 +206,6 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
    the hero, and lets long ids wrap. Desktop (>640px) layout is unchanged. */
 @media (max-width: 640px) {
   .wrap { padding: 28px 16px; }
-  .site-nav { padding: 6px 12px; height: auto; min-height: 48px; }
   .hero-h { font-size: 22px; }
   .sec { margin-top: 32px; }
   .card { padding: 16px; }
@@ -236,11 +230,13 @@ tr.kl-theatre .kl-name { color: var(--red); font-weight: 700; }
 <nav class="site-nav">
   <a href="../" class="nav-logo wordmark">poesys.</a>
   <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
+  <span class="doors">
   <a href="../" class="nav-link">Home</a>
   <a href="../knowledge/" class="nav-link">Knowledge</a>
   <a href="../capabilities/" class="nav-link">Capabilities</a>
   <a href="../explore/" class="nav-link">Explore</a>
   <a href="../harness/" class="nav-link active">Harness</a>
+  </span>
   <!-- IA-NAV:END -->
 </nav>
 <div class="wrap">
