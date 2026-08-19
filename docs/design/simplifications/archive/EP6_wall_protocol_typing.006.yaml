@@ -1,0 +1,128 @@
+atom_id: EP6_wall_protocol_typing
+chunk: 6
+simplifications:
+- '2026-08-18 (second pass of the day) DISCOVER ONLY, level stays 0, loop_stage stays idle (worker
+
+  tick, LANE 3 idle draw). No BUILD code, no protocol designed, no adapter started -- epoch-3 BUILD-gated
+
+  on director-reserved curriculum sequencing (R13); EPOCH_GATING_AND_ATOM_AUTHORSHIP Rule 1 permits
+
+  DISCOVER/FRAME while BUILD is not. `docs/design/maturity_map.yaml` is touched for EXACTLY ONE
+
+  bookkeeping line: `simplifications_count: 5 -> 6` on this atom -- not a level move, not a stage move,
+
+  not a block-reason edit. Checked before editing: the map carried no staged and no unstaged hunk from
+
+  any other lane at draw time (`git diff --cached --stat` and `git diff --stat` on the map file both
+
+  empty), so this commit strands no half of anyone else''s atomic write. Deliverable:
+
+  docs/design/EP6_AWACS_SCOPE_AUDIT_DISCOVER.md -- a FOURTH document beside the 2026-08-15 conformance
+
+  census, the 2026-08-17 protocol-typing pass, and the 2026-08-18 (first pass) dependent-atom audit, not a
+
+  replacement. Everything is observed-with-evidence unless labelled inferred (R9).
+
+
+  MEASURED AT: HEAD 171439629 (full 1714396299d764df5d419c4da1f164e2b959df8b). Shipped modules, yaml
+
+  build records, commit messages and design docs read as they sit on disk; nothing monkeypatched, no
+
+  network.
+
+
+  THIS PASS ANSWERED ONE OF THE TWO OPEN QUESTIONS THE FIRST 2026-08-18 PASS LEFT NAMED: "whether AWACS''s
+
+  absence is a deliberate scope cut recorded somewhere, or an omission... resolved by reading W4_4/W5_1''s
+
+  own records." Read done; verdict is OMISSION, not a recorded cut.
+
+
+  Three director-curriculum documents (EP11_adapter_gocardless_bacs.yaml''s own map_notes, the
+
+  2026-08-05 advisor research doc, EP19_COUNTERPARTY_QUALIFICATION_REGISTER.md) independently name the
+
+  same four-report Bacs spec -- ADDACS, ARUDD, AUDDIS, AWACS. The seam that ships three of the four
+
+  (interface/contracts/payment_observable_seam.py, atom W4_4, wrapped by atom W2_11''s generator adapter)
+
+  was landed across three 2026-07-18 entries. Two of the three carry an explicit disclosure section under
+
+  the exact heading this project uses to register a simplification openly ("HONEST simplifications (R10,
+
+  disclosed not hidden)" in W4_4''s BUILD LANDED entry; "Honest R10:" in W2_11''s ADAPTER LANDED entry) --
+
+  five disclosed items between them, none of them AWACS. The landing commit messages (0b17f7d114,
+
+  e6ce3882f) enumerate "Bacs ARUDD/ADDACS/AUDDIS" with no bracketed exclusion. The shipped
+
+  OBSERVABLE_RESPONSE_PAYLOAD_TYPES tuple (payment_observable_seam.py:269-276) is a closed six-member
+
+  enumeration with a docstring about what it is FOR, not what it excludes. WALLED_INTERFACES_SKETCH.md
+
+  and GO_LIVE_SEAM_AND_INTERNAL_SEAMS_DESIGN.md have zero hits for "AWACS". Repo-wide case-insensitive
+
+  git grep for "awacs": four hits, all prose, zero in any Python module -- reconfirms the first 2026-08-18
+
+  pass''s own zero-occurrence measurement rather than repeating it blind.
+
+
+  The convention this project actually follows for a genuinely disclosed cut is visible right beside the
+
+  gap: the same W4_4 entry discloses ARUDD reason-code coarseness in the same sentence as the payload it
+
+  belongs to; W5_1_banking_payment_rails.yaml entry 10 names its deliberately-unmodelled UK-bank-holiday
+
+  calendar in the same sentence as the fix it sits beside. AWACS got none of that treatment anywhere.
+
+
+  Does NOT indict the actual build: what W4_4/W2_11 built matches what their own disclosure sections say
+
+  they built, field for field -- checked, not assumed. The gap is between what got disclosed and what the
+
+  spec asked for, not between what got disclosed and what got built.
+
+
+  RECOMMENDATIONS, recorded not asked (NEVER_ASK_WITHOUT_RECOMMENDING): (1) do not build AWACS from this
+
+  atom -- its home is EP11, matching the first 2026-08-18 pass''s own recommendation 3, narrowed now with
+
+  the evidence that the gap is undisclosed-undone rather than merely undone; (2) when EP11 opens, its
+
+  AWACS work should also close this disclosure gap in a NEW entry (the two 2026-07-18 entries stay
+
+  untouched -- append-only per this store''s own convention); (3) a spec-vs-shipped diff is a check
+
+  distinct from "did the build pass disclose its own simplifications honestly" -- a self-disclosure
+
+  written from inside the build that made the omission cannot see what it did not build, which is exactly
+
+  why this took a fresh read against the spec, not a re-read of the disclosure sections themselves, to
+
+  surface.
+
+
+  ONE WORKER_FINDING FILED (SELF_INTERRUPT_DISCIPLINE, QUEUED not fixed):
+
+  docs/staging/WORKER_FINDING_TWO_HONEST_R10_SECTIONS_NAME_THREE_OF_FOUR_SPECIFIED_REPORTS_2026-08-18.md.
+
+  Distinct from every finding already referenced in this atom''s yaml (those concern the wall''s
+
+  conformance CONTROL; this one concerns the DISCLOSURE convention itself failing on its own terms inside
+
+  two PASS-graded, HARDENED build entries).
+
+
+  OPEN QUESTIONS AFTER THIS PASS. OQ6 (identity of the 93rd published key) unchanged, untouched by this
+
+  pass. NEW-2 (2026-08-18 first pass) -- whether the vintage stamp''s absence from the published artefact
+
+  is a serialisation gap or a population gap -- STILL OPEN, not addressed this pass (this pass took NEW-1
+
+  instead); named explicitly here with its resolution method (a live call-path trace from a
+
+  WallRequest/WallResponse construction site through to whatever, if anything, writes envelope fields
+
+  into run_output_latest.json) so the next draw does not have to re-read five prior passes to find it.
+
+  OQ2-OQ5 of the 2026-08-17 pass carried unchanged.'

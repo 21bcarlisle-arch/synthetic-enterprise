@@ -248,3 +248,62 @@ Belongs to `uncommitted_and_orphaned_work` (already BLOCKING). This is a distinc
 the ones already in that class doc: those concern a record committed ahead of its code; this
 one concerns the **landing procedure's failure being unobservable**, which is why the class's
 existing instances kept recurring rather than being caught by it.
+
+---
+
+## The 2026-08-19 23:1x tick — pass 15 was a SIXTH failure, and the instance is now SETTLED
+
+`observed`, and measured before this tick wrote anything at all, because that ordering is the
+whole discipline this document exists to enforce:
+
+    git rev-parse HEAD                                        -> 9c0f96666
+    git grep -c include_schema_version HEAD -- simulation/    -> EMPTY
+
+So item 2 above resolves the way it said it might. The landing pass 15 left in its gate did not
+produce a commit, and the honest record is that this was a **sixth** consecutive pass whose
+landing is in no commit. The work was, once again, sitting in the working tree only
+(` M simulation/run_phase2b.py`, ` M simulation/run_phase4c_on_phase2b.py`).
+
+### Item 2 — DISCHARGED, by the tree
+
+    git rev-parse HEAD                                        -> 0a242d6fa
+    git grep -c include_schema_version HEAD -- simulation/
+      HEAD:simulation/run_phase2b.py:1
+      HEAD:simulation/run_phase4c_on_phase2b.py:2
+
+Three sites. That is the finding's own admissible settlement and the only evidence it accepts.
+
+Supporting, none of it substituting for the query above:
+
+- commit `0a242d6fa`, **exactly 2 paths**, gate-rc 0; `--verify` → *"receipt consistent for
+  0a242d6fa: tree 6b2dcd299, 2 path(s), gate-rc 0"*.
+- The diff is the three EP6 hunks and nothing else, so no sibling lane was swept in.
+- `git status --porcelain -- simulation/run_phase2b.py simulation/run_phase4c_on_phase2b.py`
+  is **empty** afterwards: no residue left behind, which is the state the previous five passes
+  never reached.
+
+### The redesign was load-bearing, and it was tested by a real event rather than a fixture
+
+`observed`: while this tick's gate was running, a concurrent KNIFE3 lane ran
+`git checkout -- company/interfaces/growth_desk.py` against the shared worktree. That is the
+same class of event as the 22:49:00 observation above, which took the EP6 work from "in the
+worktree, in no commit" to "in neither". It did not touch this landing, because `--content`
+committed bytes captured into `/tmp` before the gate started and the worktree copy was never
+read. **A shared worktree is not storage** — that sentence, from the section above, is why five
+worktree-sourced passes could not settle this and the sixth content-sourced one could.
+
+Recommendation 3 was also exercised rather than merely recorded: the tool call waiting on the
+gate hit its bound **twice, at ~9.5 minutes each**, while the landing continued and completed.
+A landing driven in the foreground from a bounded tick is killed mid-gate — that is the
+mechanism behind passes 12–14, and it is now survived by construction rather than by luck.
+
+### Still open — this finding stays LIVE at root for item 3 alone
+
+1. Recommendation 1 — **BUILT** (previous tick).
+2. The instance — **DISCHARGED** by this tick, evidence above.
+3. `background.finding_classes --check` still **passes with this finding live and unlisted**:
+   class membership is chosen by TITLE alone and this title carries no `uncommitted`/`orphan`
+   keyword. **Unchanged and still open.** Queued per SELF_INTERRUPT_DISCIPLINE rather than
+   fixed on sight; it is the reason this document is not being archived.
+
+LANDED: `include_schema_version` in `simulation/`
