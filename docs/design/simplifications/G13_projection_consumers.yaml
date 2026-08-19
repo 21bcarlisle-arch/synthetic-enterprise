@@ -1,3 +1,73 @@
 atom_id: G13_projection_consumers
 map_notes:
-  name: 'MINTED FROM deliverable 3 of the WORK THIS CREATES block in DIRECTOR_INSTRUCTION_QUERYABLE_PROJECTIONS_2026-08-10 -- ''at least one site page and one lab query consuming it, as the proof-of-caller''. Split from G12 because the file_scope is disjoint (site/** and the lab, not the builder) and the SITE lane runs parallel to BUILD. EXIT: (1) at least one site page reads the projection store INSTEAD OF a hand-refreshed file, and the file it replaces is named; (2) at least one advisor-lab query answers a real question off the store; (3) R11 -- the LIVE page is fetched and the rendered value asserted, never the code or the deploy log; (4) the staleness subclass the instruction claims this deletes is MEASURED, not asserted: name the derived-artefact-staleness entries that this consumer removes from the register, and show the register short by exactly those.'
+  build_note: "2026-08-19. v3. LEVEL 1 -> 2. Exit (3) is CLOSED on the live surface, and it was\nclosed\
+    \ by a build v2's own record did not prescribe -- because v2's prescription was\nrefuted by measurement\
+    \ before it was written.\n\nWHAT V2 PRESCRIBED, AND WHY IT IS WRONG. v2 named the path to level 2\
+    \ as: widen\nfile_scope to tools/generate_proof_data.py + site/proof/index.html, and \"source the\n\
+    coupled-gap panel from the store's coupled_gaps table instead of the ledger JSON\n(identical population,\
+    \ so no rendered number moves)\". The population claim is true and\nthe FIELD claim is false. Two\
+    \ independent defects, both measured this tick:\n\n  1. FIELD LOSS. The store's coupled_gaps table\
+    \ had columns for ten ledger keys and no\n     column for `normalisation`, `normalisation_reason`\
+    \ or `raw_gap_is`. Exactly ONE of\n     the fourteen live entries (W2_11_payment_behaviour_source)\
+    \ carries them -- they are\n     the D44 fields that stop a reader inferring gap = raw_gap / g0 where\
+    \ that relation\n     does not hold. Sourcing the panel from the store would have blanked that declaration\n\
+    \     on the LIVE door (verified pre-change: the live proof.json rendered `normalisation:\n     reference`\
+    \ on exactly that pair), re-introducing the defect D44 was built to prevent.\n     v2 reasoned about\
+    \ the population and never read the column list. A one-in-fourteen\n     field is precisely the one\
+    \ a hand-kept column list loses.\n  2. HEAD LAG. The store is built from COMMITTED blobs (git cat-file);\
+    \ generate_proof_data\n     runs in the WORKING TREE before the commit that carries the run's new\
+    \ ledger. So the\n     swap would have published a panel systematically one commit behind the ledger\n\
+    \     shipping beside it -- stale by construction, on a public door.\n\nWHAT WAS BUILT INSTEAD. The\
+    \ property that makes the store a bad SOURCE here is exactly\nwhat makes it a good AUDITOR: it cannot\
+    \ see the working tree. So the door keeps publishing\nthe operational artefact and now GRADES it --\
+    \ `_store_agreement` joins the rendered pairs\nagainst the store's committed rows and renders the\
+    \ verdict on /proof/. The question it\nanswers is one the door could not previously ask about itself:\
+    \ is the number I am\npublishing in any commit? This also preserves G12's declared scope (\"nothing\
+    \ here feeds a\npublished figure\") exactly as written -- what the door reads from the store is a\
+    \ VERDICT,\nnever a figure -- and that sentence is now made precise in build_projections.py rather\n\
+    than left to go quietly stale.\n\nTHE STORE IS NOW LOSSLESS, AS A CLASS AND NOT AS THREE COLUMNS (R10).\
+    \ The three missing\ncolumns were added, and COUPLED_GAP_FIELD_COLUMNS became a checked invariant:\
+    \ any key the\nledger grows that no column projects fails the build CLOSED. Fixing the three by hand\
+    \ would\nhave left the fourth to be found the same way these were -- downstream, by hand, on a\npublished\
+    \ door. schema_version 1 -> 2.\n\nWHAT IS DELIBERATELY NOT CHECKED, AND WHY THE OMISSION IS TESTED.\
+    \ `measured_at`,\n`run_git_commit` and `components` are rewritten by every re-measurement. MEASURED:\
+    \ the\nworking-tree ledger and HEAD's ledger differed on exactly one entry and on exactly those\n\
+    three keys, with every figure identical. A whole-row equality check would therefore have\ngone red\
+    \ once per run for a reason that is not a defect, and an alarm that fires every run\nis an alarm nobody\
+    \ reads. `test_a_churning_provenance_stamp_does_not_fire_the_alarm` pins\nthe non-firing, because\
+    \ an exclusion nobody tests is an exclusion that quietly widens.\n\nEXIT (3), ON THE LIVE SURFACE.\
+    \ https://poesys.net/proof/ -> 200; the door's OWN boot path\ndriven with the LIVE feeds through site/live_pixel_verify.py's\
+    \ harness; RENDERED text of\n#gap-alarms asserted: \"All 14 published gap figures are in the committed\
+    \ store -- checked\nfield-by-field (metric, value, raw_gap, baseline_g0, baseline_desc, normalisation,\n\
+    raw_gap_is) against docs/observability/projections.sqlite rebuilt from commit 7879da15a.\"\nNot the\
+    \ code, not the file on origin, not the deploy log. `live_pixel_verify.py --door\n/proof/` also PASS\
+    \ (http=200, feeds=6, rendered_elements=44). Note the two fields named in\nthat rendered sentence,\
+    \ `normalisation` and `raw_gap_is`, could not have been checked at\nall before this change -- the\
+    \ live pixel carries the proof that the store stopped being\nlossy.\n\nR15, MUTATIONS RUN. Each of\
+    \ the six checked fields mutated INDEPENDENTLY (a control tested\nonly on `gap` passes while silently\
+    \ ignoring the five others it claims to check); a\npublished pair in no commit; a committed pair the\
+    \ door silently stopped rendering; an\nunreadable store and a table-less store both landing on available=False\
+    \ AND agrees=False\n(an unavailable check is a FAILED check, and `agrees` is False until the comparison\
+    \ has run,\nso no except-branch can leave it True); independence pinned by mutating the STORE side\
+    \ only\nand requiring the door side unmoved. LIVE-PIPELINE mutation, not just fixtures: a real\nledger\
+    \ figure moved off its commit, regenerated, the door went red naming the pair and both\nvalues, ledger\
+    \ restored byte-identical (cmp clean).\n\nLanded 21e651dc9 (6 files, +491), pushed, deploy 32256336615\
+    \ success. 16 new tests; 71\nexisting green across test_build_projections / test_generate_proof_coupled_gaps\
+    \ /\ntest_lab_query / test_generate_projections_page.\n\nRESIDUALS CARRIED. (a) The four named lab\
+    \ questions `unhardened`, `gap`, `runs`, `envelope`\nare still unexercised by a real reader -- unchanged\
+    \ from v2. (b) THE ONE RED THAT IS NOT A\nDEFECT: when a run genuinely re-measures a gap to a new\
+    \ value, the door publishes it before\nthe commit carrying it lands, and this check goes red for that\
+    \ one cycle. That is literally\ntrue, and it is the exact condition that went unnoticed on 2026-08-19\
+    \ when the publish commit\nstopped landing for eleven hours while runs kept archiving themselves complete.\
+    \ It self-clears\nwhen the commit lands; a red that does NOT clear on the next publish is the real\
+    \ defect.\nStated on the door and in the docstring so a reader is not misled. (c) SAAS_COVERAGE_MAP:71\n\
+    still HELD -- no published financial figure moved this tick."
+  name: 'MINTED FROM deliverable 3 of the WORK THIS CREATES block in DIRECTOR_INSTRUCTION_QUERYABLE_PROJECTIONS_2026-08-10
+    -- ''at least one site page and one lab query consuming it, as the proof-of-caller''. Split from G12
+    because the file_scope is disjoint (site/** and the lab, not the builder) and the SITE lane runs parallel
+    to BUILD. EXIT: (1) at least one site page reads the projection store INSTEAD OF a hand-refreshed
+    file, and the file it replaces is named; (2) at least one advisor-lab query answers a real question
+    off the store; (3) R11 -- the LIVE page is fetched and the rendered value asserted, never the code
+    or the deploy log; (4) the staleness subclass the instruction claims this deletes is MEASURED, not
+    asserted: name the derived-artefact-staleness entries that this consumer removes from the register,
+    and show the register short by exactly those.'
