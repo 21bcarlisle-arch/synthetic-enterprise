@@ -4969,18 +4969,18 @@
 - id: G13_projection_consumers
   title: "The proof-of-caller: a site page and a lab query that read the projections"
   gain: "A store with no reader is the same design-with-no-caller this instruction was written to end; the caller IS the deliverable."
-  notes_rehomed: [name]
+  notes_rehomed: [build_note, name]
   lane: G_data_learning
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 1
   level_target: 2
   loop_stage: build
   dial_inherited: 2
   provenance: director_ruling
   depends_on: [G12_queryable_projections]
   couples_with: [G12_queryable_projections]
-  file_scope: ['tools/lab_query.py', 'tests/tools/test_lab_query.py', 'tools/generate_projections_page.py', 'tests/tools/test_generate_projections_page.py']
+  file_scope: ['tools/lab_query.py', 'tests/tools/test_lab_query.py', 'tools/generate_projections_page.py', 'tests/tools/test_generate_projections_page.py', 'site/wip-flow/index.html']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the analyst who actually opens the warehouse -- the reason the warehouse is funded"
 
