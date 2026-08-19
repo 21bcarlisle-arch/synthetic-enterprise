@@ -768,6 +768,82 @@ def test_maturity_map_draw_concurrent_exclude_stalled_falls_back_when_all_stalle
     assert selected[0]["id"] == "ONLY_ONE"
 
 
+def _stall(atom_id: str, streak: int) -> None:
+    """Put an atom in the tracker at a chosen streak, through the real recorder."""
+    for _ in range(streak):
+        supervisor._record_atom_draw_and_check_stall(atom_id, "unchanging-fingerprint")
+
+
+def test_MUTATION_an_all_stalled_set_draws_the_LEAST_stalled_not_the_whole_set():
+    """The defect this tier exists for, driven through the real draw.
+
+    MEASURED, not hypothesised: on 2026-08-19 at 16:25 UTC the live BUILD lane's pool at the
+    picker was seven atoms and every one was flagged, so the old `if non_stalled:` fallback
+    returned the set unranked and weighted `KNIFE3_wall_crossing_paydown` (1307 consecutive
+    unchanged draws) exactly like `EP6_wall_protocol_typing` (6). The tick that measured it was
+    itself the 44th draw of `H27_payment_belief_gap`, 43 recorded passes since its level moved.
+
+    The mutation is the pre-fix behaviour: revert to returning `candidates` whole and STUCK,
+    with dial 100 against the least-stalled atom's dial 1, wins the weighted pick on every seed.
+    """
+    supervisor.MATURITY_MAP_PATH.write_text(
+        "- id: STUCK\n  lane: L\n  dial_inherited: 100\n"
+        "  level_current: 1\n  level_target: 2\n"
+        "- id: MOVING\n  lane: L\n  dial_inherited: 1\n"
+        "  level_current: 1\n  level_target: 2\n"
+    )
+    _stall("STUCK", 40)
+    _stall("MOVING", 2)
+    assert supervisor._is_atom_stalled("STUCK") and supervisor._is_atom_stalled("MOVING")
+
+    import random as random_module
+
+    for seed in range(8):
+        drawn = supervisor._maturity_map_draw_concurrent(
+            rng=random_module.Random(seed), exclude_stalled=True
+        )
+        assert drawn[0]["id"] == "MOVING", (
+            f"seed {seed} drew {drawn[0]['id']} -- a 40-streak atom must lose the primary pick "
+            "to a 2-streak one however heavily it is dialled"
+        )
+
+
+def test_the_least_stalled_tier_keeps_ties_whole_and_never_zeroes_the_set():
+    """Rule 0 holds STRUCTURALLY: a minimum always exists, so the set can never empty, and
+    equal streaks are all kept -- the tier is an ordering, not a winner."""
+    state = {
+        "A": {"stalled": True, "consecutive_unchanged": 3},
+        "B": {"stalled": True, "consecutive_unchanged": 3},
+        "C": {"stalled": True, "consecutive_unchanged": 9},
+    }
+    cands = [{"id": "A"}, {"id": "B"}, {"id": "C"}]
+    kept = supervisor._prefer_least_stalled(cands, state)
+    assert [a["id"] for a in kept] == ["A", "B"]
+    assert supervisor._prefer_least_stalled([{"id": "C"}], state) == [{"id": "C"}]
+
+
+def test_a_deprioritised_atom_rejoins_once_the_rest_catch_up_to_its_streak():
+    """NOT an exclusion. The stuck atom is drawable again the moment nothing else is moving
+    either -- the one condition under which drawing it again is the honest answer."""
+    state = {
+        "STUCK": {"stalled": True, "consecutive_unchanged": 5},
+        "OTHER": {"stalled": True, "consecutive_unchanged": 2},
+    }
+    cands = [{"id": "STUCK"}, {"id": "OTHER"}]
+    assert [a["id"] for a in supervisor._prefer_least_stalled(cands, state)] == ["OTHER"]
+    state["OTHER"]["consecutive_unchanged"] = 5
+    assert [a["id"] for a in supervisor._prefer_least_stalled(cands, state)] == ["STUCK", "OTHER"]
+
+
+def test_tier_1_is_unchanged_whenever_any_unflagged_candidate_exists():
+    """The old behaviour is preserved byte-for-byte on the path that was working: an un-flagged
+    candidate wins outright, and its streak is never compared against anything."""
+    state = {"FLAGGED": {"stalled": True, "consecutive_unchanged": 900}}
+    cands = [{"id": "FLAGGED"}, {"id": "FRESH"}]
+    assert [a["id"] for a in supervisor._prefer_least_stalled(cands, state)] == ["FRESH"]
+    assert supervisor._prefer_least_stalled(cands, {}) == cands
+
+
 def test_maturity_map_draw_concurrent_default_ignores_stall_state():
     """exclude_stalled defaults False -- byte-for-byte preserves every
     pre-existing test/caller of this function."""

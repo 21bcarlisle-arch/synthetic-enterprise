@@ -815,6 +815,68 @@ def _atom_collides_with_unmerged(atom: dict, unmerged: frozenset) -> bool:
     return False
 
 
+def _prefer_least_stalled(candidates: list, stall_state: dict, lane: str = "BUILD") -> list:
+    """The anti-livelock preference, with the case that had become PERMANENT given an answer.
+
+    TIER 1 (unchanged): prefer candidates the stall tracker has not flagged. Whenever any
+    un-flagged candidate exists this returns exactly what the old two-line filter returned.
+
+    TIER 2 IS THE FIX. When EVERY candidate is flagged, the old code returned the set
+    UNRANKED -- Rule 0's "a guard never zeroes the feasible set", correctly applied and then
+    stopping one step too early. Measured on the live tree, 2026-08-19 16:25, this was not the
+    rare fallback it reads as; it was every cycle. The BUILD lane's pool reaching the picker
+    was SEVEN atoms and all seven were flagged, so an atom with 1307 consecutive unchanged
+    draws (`KNIFE3_wall_crossing_paydown`) was weighted identically to one with 6 (`EP6_wall_
+    protocol_typing`, promoted to build that morning). The guard whose entire job is to rotate
+    away from an atom the draw keeps re-selecting had folded into a no-op, and the tick that
+    found this was itself the 44th draw of `H27_payment_belief_gap` -- 43 recorded passes since
+    that atom's level last moved.
+
+    HOW IT GOT THERE, because the composition is the lesson and neither guard is at fault
+    alone: `_prefer_unmerged_free` (soft, above) had just dropped 22 of the 29 surviving
+    candidates for overlapping unmerged worktree work. What it hands on is, by construction,
+    the atoms this loop has drawn most -- and those are exactly the ones already flagged. Two
+    soft preferences composed into a hard outcome that neither states.
+
+    THE TIER 2 RULE, and it has no dial and no threshold on purpose: draw from the LEAST-
+    stalled candidates -- those whose streak equals the minimum, ties kept whole. A minimum
+    always exists, so this can never zero the set (Rule 0 holds structurally, not by comment);
+    it is an ORDERING, so nothing is permanently excluded -- an atom rejoins the moment every
+    rival has been drawn up to its own streak without moving. That is the director's ruling of
+    2026-08-19 made mechanical: "make it impossible for the system to run indefinitely on work
+    that cannot change its own state." Under tier 2 the only way to reach the stuck atom is for
+    nothing else to be moving either, which is the one condition under which drawing it again
+    is the honest answer.
+
+    Deliberately NOT a probability weight. An inverse-staleness weight would have made the
+    43-pass draw improbable; the ruling asked for impossible, and a weight leaves the tail.
+    """
+    if not candidates:
+        return candidates
+    unflagged = [a for a in candidates if not _is_atom_stalled(a.get("id"), stall_state)]
+    if unflagged:
+        return unflagged
+    streaks = {
+        a.get("id"): (stall_state.get(a.get("id")) or {}).get("consecutive_unchanged", 0)
+        for a in candidates
+    }
+    floor = min(streaks.values())
+    least = [a for a in candidates if streaks.get(a.get("id"), 0) <= floor]
+    if len(least) != len(candidates):
+        dropped = sorted(
+            ((streaks.get(a.get("id"), 0), a.get("id")) for a in candidates if a not in least),
+            reverse=True,
+        )
+        log(
+            f"ANTI-LIVELOCK ({lane}): every candidate is stalled, so the draw goes to the "
+            f"LEAST-stalled ({floor} unchanged draws) rather than to the whole set -- "
+            f"deprioritising {[f'{aid}({n})' for n, aid in dropped]}. Each rejoins when the "
+            "rest have been drawn up to its own streak without moving (Rule 0: an ordering, "
+            "never an exclusion)."
+        )
+    return least
+
+
 def _prefer_unmerged_free(candidates: list, lane: str = "BUILD") -> list:
     """Apply the unmerged-work guard as a SOFT preference to a candidate list.
 
@@ -993,11 +1055,12 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
     # SOFT, per Rule 0: if EVERY candidate collides the full set is kept rather than reporting
     # false exhaustion. Mirrors `exclude_stalled`'s own prefer-then-fall-back shape.
     candidates = _prefer_unmerged_free(candidates, lane="BUILD")
+    # ANTI-LIVELOCK, tiered since 2026-08-19: prefer un-flagged candidates, and when EVERY
+    # candidate is flagged draw from the least-stalled rather than from the whole set. On this
+    # lane the all-flagged case was not a fallback, it was the standing state -- see
+    # `_prefer_least_stalled` for the measurement.
     if exclude_stalled and candidates:
-        stall_state = _load_atom_stall_state()
-        non_stalled = [a for a in candidates if not _is_atom_stalled(a["id"], stall_state)]
-        if non_stalled:
-            candidates = non_stalled
+        candidates = _prefer_least_stalled(candidates, _load_atom_stall_state(), lane="BUILD")
     if not candidates:
         return []
     weights = [max(1, a.get("dial_inherited", 1)) for a in candidates]
@@ -1488,10 +1551,7 @@ def _idle_discover_frame_draw_concurrent(
         )
     candidates = non_saturated
     if exclude_stalled and candidates:
-        stall_state = _load_atom_stall_state()
-        non_stalled = [a for a in candidates if not _is_atom_stalled(a["id"], stall_state)]
-        if non_stalled:
-            candidates = non_stalled
+        candidates = _prefer_least_stalled(candidates, _load_atom_stall_state(), lane="DISCOVERY")
     if not candidates:
         return []
 
@@ -1611,10 +1671,7 @@ def _site_lane_draw_concurrent(
     # worktrees touching site/. Soft preference; an all-colliding set is kept intact (Rule 0).
     candidates = _prefer_unmerged_free(candidates, lane="SITE")
     if exclude_stalled and candidates:
-        stall_state = _load_atom_stall_state()
-        non_stalled = [a for a in candidates if not _is_atom_stalled(a["id"], stall_state)]
-        if non_stalled:
-            candidates = non_stalled
+        candidates = _prefer_least_stalled(candidates, _load_atom_stall_state(), lane="SITE")
     if not candidates:
         return []
 

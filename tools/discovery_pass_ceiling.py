@@ -59,6 +59,16 @@ the ledger is the record). An entry whose date cannot be read COUNTS TOWARD SATU
 which is the same fail-closed direction as everything else here: an unreadable pass is not
 evidence of productivity. Correcting the reading moves the saturated set from 13 to 23 of
 the 112 atoms below target.
+
+THE OTHER TEN, HALF-ANSWERED ELSEWHERE (2026-08-19, later the same day). Ten of those 23 are
+`build` or `harden` stage, so this module's only consumer -- the idle discovery tier -- cannot
+reach them, and H27 was re-drawn by the BUILD rung within the hour. The re-draw half is fixed
+where it belongs rather than by widening this ceiling: `supervisor._prefer_least_stalled` now
+orders an all-stalled candidate set by staleness instead of returning it whole, which was
+measurably every BUILD cycle, and H27 left the drawable pool immediately. What is NOT fixed,
+and is owed rather than absent, is the DECISION half -- nothing yet requires a saturated
+build/harden atom to be promoted, closed or re-targeted, so `decisions()` still reports for
+those ten and no rung enforces it. That is why they stay in this survey.
 """
 from __future__ import annotations
 
