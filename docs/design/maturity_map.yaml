@@ -4228,7 +4228,7 @@
   lane: W4_the_wall
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: build
   dial_inherited: 3
@@ -4237,7 +4237,7 @@
   couples_with: []
   records_rehomed: [evidence]
   file_scope: ['company/interfaces/wall_protocol.py', 'tests/company/interfaces/test_wall_protocol.py']
-  simplifications_count: 7
+  simplifications_count: 8   # 2026-08-19 pass 8, FIRST BUILD pass (the seven above are DISCOVER, taken while the epoch-3 curriculum block stood): THE WIRE EXISTS. Seven passes converged on conformance-not-construction, the 2026-08-18 audit found the one requirement unanimous across all nine dependants (P2, the vintage stamp -- async measures 4 of 9), and the 2026-08-18 trace localised the hole exactly: schema_version is populated at all ten envelope construction sites and has never left the process -- "a wire that was never built". company/interfaces/wall_protocol.py is that wire: four codec functions and one refusal -- ABSENCE IS NEVER AGREEMENT, aimed at the measured `.get("schema_version", SCHEMA_VERSION)` fail-open in the sibling ports, where the first bump to 2.0 silently relabels every archived entry. 36 tests; 5 guards, 5 mutations, all RED, zero unproven; the mutant `.get(default)` decoder is BUILT beside the control and shown mislabelling the same bytes the shipped one refuses; refusal fixtures are hand-authored, and the wire field sets are asserted against dataclasses.fields on the shared contract, so neither control reads its own arithmetic. L1 not L2 on purpose: no production crossing calls it yet -- built and DARK, and schema_version is still absent from every published byte until one crossing is migrated (the named next move)
 - id: EP7_adapter_elexon_insights
   title: "Elexon Insights and IRIS, for real"
   gain: "The settlement and market data the SIM already fakes arrives from the actual platform, on the actual cadence."
