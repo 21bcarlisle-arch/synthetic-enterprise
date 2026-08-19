@@ -43,8 +43,9 @@ from background.child_diagnostics import (  # noqa: E402
 # 2026-08-12 -- a sibling test held the number 0 as a proxy for "a duplicate is not an error"
 # and nobody updated it when the duplicate path was given its own code. The number is not the
 # property; `test_the_runner_mirror_constants_cannot_drift` is what keeps this copy honest.
-EXIT_LOCK_SKIPPED = 75        # process_run_complete.EXIT_LOCK_SKIPPED
-EXIT_NOTHING_PUBLISHED = 76   # process_run_complete.EXIT_NOTHING_PUBLISHED
+EXIT_LOCK_SKIPPED = 75          # process_run_complete.EXIT_LOCK_SKIPPED
+EXIT_NOTHING_PUBLISHED = 76     # process_run_complete.EXIT_NOTHING_PUBLISHED
+EXIT_PUBLISH_DID_NOT_LAND = 77  # process_run_complete.EXIT_PUBLISH_DID_NOT_LAND
 
 
 def log(msg: str) -> None:
@@ -238,6 +239,17 @@ def auto_process_marker(marker):
             # reader opens when diagnosing a wedge.
             log('Auto-process found the marker already archived (duplicate) -- '
                 'nothing published by this cycle')
+        elif rc == EXIT_PUBLISH_DID_NOT_LAND:
+            # NOT "marker left for background_worker", which is what the generic else branch
+            # below would have said and would have been false: the publisher archived this
+            # marker before attempting the commit, so no sweep will ever see it again. The
+            # retry is the NEXT cycle's marker, and it happens because the publisher withheld
+            # this cycle's fingerprint. Said plainly here because the wrong sentence sends a
+            # reader looking for a pending marker that does not exist.
+            log('Auto-process published NOTHING -- the commit did not land (refused, timed '
+                'out, or never reached origin). Marker already archived; the live site keeps '
+                'serving the older snapshot and the next cycle re-attempts. The refusing gate '
+                'is named in the publisher log tail; recorded as a publish-gate FAILURE.')
         elif rc == 0:
             log('Auto-processed run complete marker')
         else:

@@ -64,9 +64,22 @@ _FAKE_HEAD_SHA = "0123456789abcdef0123456789abcdef01234567"
 
 
 def fake_completed(cmd, returncode=0, **kwargs):
-    """A type-correct stand-in for a `subprocess.run` result. See the note above."""
+    """A type-correct stand-in for a `subprocess.run` result. See the note above.
+
+    `git ls-remote` ANSWERS WITH THE SAME SHA (2026-08-19). It used to answer with the empty
+    string, which `_push_reached_origin` reads -- correctly, fail-closed -- as "origin did not
+    advance". So the default fixture in this file modelled a publish whose push never landed,
+    and `test_main_success_flow` was asserting the happy-path return code of a cycle that had
+    NOT published. That was invisible while every failing publish outcome still exited 0
+    (EXIT_PUBLISH_DID_NOT_LAND names the incident); the moment the exit code started carrying
+    the outcome, the fixture's own claim became visible and false. The two tests that are about
+    a push NOT reaching origin set `ls-remote` explicitly on top of this, as they always did.
+    """
     text = bool(kwargs.get("text") or kwargs.get("universal_newlines") or kwargs.get("encoding"))
-    out = _FAKE_HEAD_SHA + "\n" if list(cmd[:2]) == ["git", "rev-parse"] else ""
+    head = list(cmd[:2])
+    out = _FAKE_HEAD_SHA + "\n" if head == ["git", "rev-parse"] else ""
+    if head == ["git", "ls-remote"]:
+        out = "{}\trefs/heads/main\n".format(_FAKE_HEAD_SHA)
     m = MagicMock()
     m.returncode = returncode
     m.stdout = out if text else out.encode()
@@ -1705,7 +1718,12 @@ def test_a_failed_publish_does_not_write_the_fingerprint(tmp_path, monkeypatch):
         return False
     monkeypatch.setattr(prc, "git_commit_push", failed_publish)
 
-    assert prc.main(str(marker)) == 0
+    # AND IT MUST SAY SO IN ITS EXIT CODE (2026-08-19). This assertion read `== 0` until the
+    # publish outcome started reaching the return value, and that pairing is the whole of
+    # EXIT_PUBLISH_DID_NOT_LAND: withholding the fingerprint told the PIPELINE to retry, while
+    # exiting 0 told the wedge DETECTOR the cycle had published. One outcome, two consequences,
+    # and for months only the first of them existed.
+    assert prc.main(str(marker)) == prc.EXIT_PUBLISH_DID_NOT_LAND
     assert not prc.LAST_FINGERPRINT_FILE.exists(), (
         "a publish that FAILED recorded the run as processed -- the next identical cycle will "
         "be skipped by the change-detection gate and the promised retry never happens"

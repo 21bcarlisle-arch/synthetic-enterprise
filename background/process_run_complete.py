@@ -99,10 +99,35 @@ EXIT_LOCK_SKIPPED = 75
 # for 31 hours. The 2026-07-29 fix gave the lock-skip its own code and left this door returning 0
 # (cf. feedback_audit_sibling_half_for_hardened_class).
 EXIT_NOTHING_PUBLISHED = 76
+# THE THIRD DOOR OF THAT SAME FAIL-OPEN, closed 2026-08-19
+# (WORKER_FINDING_THE_PUBLISH_COMMIT_STOPPED_LANDING_WHILE_RUNS_KEPT_ARCHIVING_2026-08-19,
+# BLOCKING). The two codes above cover a publish that never STARTED. This one covers a publish
+# that ran the whole way and whose COMMIT then did not land -- the pre-commit hook chain refused
+# it, it outran the hook deadline, the push never reached origin, or the provenance check
+# fail-closed. `_process` logged the failure and returned 0 anyway, so the ONE input the wedge
+# detector consumes could not tell "published" from "refused".
+#
+# AND IT DID NOT ONLY FAIL TO ALERT -- IT ACTIVELY DISARMED. rc=0 is routed through
+# `_green_is_on_record_for`, whose evidence is `.last_tested_hash`. On this path the scoped suite
+# WAS green (the refusal came later, from the pre-commit gate, on a red the publish did not
+# cause), so that check passed and `record_publish_gate_success()` cleared the streak.
+#
+# OBSERVED, not inferred (docs/observability/sim-runner-log.md, 2026-08-19): FOURTEEN consecutive
+# "Commit/push failed (commit_refused)" between 01:56Z and 11:45Z -- gate output naming
+# "FINDING-CLASS CONSOLIDATION BROKEN -- COMMIT REFUSED", i.e. an unrelated lane's red on the
+# shared tree -- with "Publish gate recovered -- cleared wedge state, re-armed alarm." logged in
+# the middle of it at 07:23Z, `.publish_gate_state.json` reading `failures: []` throughout, and
+# poesys.net serving figures 11.5 hours stale while every run archived itself as done.
+EXIT_PUBLISH_DID_NOT_LAND = 77
 # The register callers switch on. rc=0 asserts ONE thing -- this process retired the marker and
 # the published surfaces are current. Anything that publishes nothing states so with its own
 # code; `tests/background/test_a_duplicate_marker_is_not_a_publish.py` fails by name on a new
 # `return 0` in `_process` so a later no-op path cannot quietly rejoin the class (R10).
+#
+# EXIT_PUBLISH_DID_NOT_LAND IS DELIBERATELY NOT IN HERE. This tuple means "evidence of NOTHING
+# about the gate's health -- record neither a success nor a failure". A refused commit is
+# evidence of a FAILURE and must reach `record_publish_gate_failure`; filing it here would close
+# the alarm door a second time, in the name of the fix that opened it.
 NO_PUBLISH_EXIT_CODES = (EXIT_LOCK_SKIPPED, EXIT_NOTHING_PUBLISHED)
 RUN_INSIGHTS_PATH = PROJECT_DIR / "docs" / "observability" / "run_insights.json"
 RUN_HISTORY_PATH = PROJECT_DIR / "docs" / "observability" / "run_history.json"
@@ -3157,6 +3182,28 @@ PROVENANCE_REFUSED = "provenance_refused"     # fail-closed: we would have publi
 RETRYABLE_PUBLISH_OUTCOMES = frozenset({PUBLISHED, NOTHING_TO_COMMIT, COMMITTED_PUSH_THROTTLED})
 
 
+def publish_exit_code(reason):
+    """The exit code a COMPLETED publish cycle reports, from the outcome `git_commit_push` named.
+
+    THE SAME CLOSED SET DECIDES BOTH ANSWERS. This reads `RETRYABLE_PUBLISH_OUTCOMES` -- the set
+    that already decides whether to fingerprint the cycle -- so "this cycle is unfinished, retry
+    it" and "this cycle did not publish, alarm on it" can never drift apart into two lists that
+    disagree about the same outcome. Before 2026-08-19 only the first of those two consequences
+    existed: the fingerprint was correctly withheld fourteen times running while the exit code
+    said 0 every time, so the pipeline knew it had to retry and the alarm was told it had
+    succeeded. See EXIT_PUBLISH_DID_NOT_LAND for the incident.
+
+    Extracted as a function, not left inline at the return, because it is the whole content of
+    that finding and a test must be able to enumerate it exhaustively over every outcome
+    constant this module declares.
+
+    FAIL-CLOSED: an unrecognised or missing reason is NOT a publish. A future outcome added
+    without being classified therefore reports "did not land" and gets an alarm, rather than
+    inheriting rc=0 and the silence that cost 11.5 hours of stale public figures.
+    """
+    return 0 if reason in RETRYABLE_PUBLISH_OUTCOMES else EXIT_PUBLISH_DID_NOT_LAND
+
+
 def _git_knows_path(path) -> bool:
     """Is `path` legal as a commit pathspec even though it is not on disk?
 
@@ -4000,6 +4047,12 @@ def _gate_failure_label(kind):
         "deadline_kill": ("killed by the CALLER's deadline before the gate returned a verdict -- "
                           "NOT a test failure, and the tests it was running are unjudged"),
         "test_regression": "test failure or processing error (rc>0 -- a real regression is possible)",
+        "commit_did_not_land": ("the publish COMMIT did not land -- the publisher's OWN scoped "
+                                "suite was GREEN, so this is NOT a publish-path regression: the "
+                                "pre-commit hook chain refused the commit (most often another "
+                                "lane's red on the shared tree), outran the hook deadline, or "
+                                "the push never reached origin. Read the 'git/hook output' tail "
+                                "in the log -- it names the refusing gate"),
         "unknown": "unknown cause (return code unavailable)",
     }.get(kind, kind)
 
@@ -4780,6 +4833,18 @@ def record_publish_gate_outcome(marker, rc, *, kind=None):
         # this router ever runs, and reading only the handed path made every green publish
         # "unproven". See _marker_git_hash.
         git_hash = _marker_git_hash(marker)
+        if rc == EXIT_PUBLISH_DID_NOT_LAND:
+            # NAMED, not left to `_classify_gate_failure`, which would read rc=77 as
+            # "test_regression" and send the RUNG-1 draw hunting a red test that is not the
+            # cause. The publisher WATCHED this one: its scoped suite was green and the COMMIT
+            # was refused, so the payload says so and points at the hook chain's output.
+            record_publish_gate_failure(
+                "the publish COMMIT did not land for {} -- the publisher's own scoped suite was "
+                "GREEN and the commit was refused/timed out/never reached origin".format(
+                    Path(marker).name),
+                rc=rc, git_hash=git_hash, kind="commit_did_not_land",
+            )
+            return "failure"
         if rc == 0:
             if not _green_is_on_record_for(git_hash):
                 log("Publish gate: {} exited 0 but no suite PASS is recorded for git={} "
@@ -5144,8 +5209,21 @@ def _process(marker_path_str):
     ntfy_msg = maybe_ntfy(data, net_margin, run_insights)
     if ntfy_msg:
         log(ntfy_msg)
-    log("Done")
-    return 0
+
+    # THE EXIT CODE NOW CARRIES THE OUTCOME (2026-08-19, see EXIT_PUBLISH_DID_NOT_LAND).
+    # `reason` is the same value the fingerprint decision above already acted on -- this is
+    # the second consequence it always should have had. rc=0 keeps asserting exactly one
+    # thing: this process retired the marker AND the published surfaces are current.
+    rc = publish_exit_code(reason)
+    if rc == 0:
+        log("Done")
+        return 0
+    log("Done, but THE PUBLISH DID NOT LAND (outcome: {}) -- the surfaces this process "
+        "regenerated are still local, the marker is archived, and the live site keeps serving "
+        "the older snapshot. Reporting rc={} so the publish-gate wedge detector records a "
+        "FAILURE: a refused commit used to exit 0 and CLEAR the streak.".format(
+            reason or "not recorded", rc))
+    return rc
 
 
 if __name__ == "__main__":

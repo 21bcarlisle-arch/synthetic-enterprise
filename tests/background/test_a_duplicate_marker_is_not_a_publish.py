@@ -306,8 +306,11 @@ DECLARED_RC_ZERO_SITES = sorted([
     # is nothing to publish -- but this process DID retire the marker (`_archive_marker`) and DID
     # refresh published liveness, so the sweep made progress and the surfaces are current.
     'last_fp == fingerprint and (not fingerprint[\'administration_event\']) and (not forced)',
-    # The publish path ran to completion.
-    "<function tail -- the publish path ran to completion>",
+    # The publish path ran to completion AND the commit landed. GUARDED since 2026-08-19: this
+    # was the bare function tail, so a publish whose commit was REFUSED exited 0 too and the
+    # wedge detector recorded it as a success (EXIT_PUBLISH_DID_NOT_LAND names the incident).
+    # If this entry ever reverts to "<function tail ...>", the third door is open again.
+    'rc == 0',
 ])
 
 
