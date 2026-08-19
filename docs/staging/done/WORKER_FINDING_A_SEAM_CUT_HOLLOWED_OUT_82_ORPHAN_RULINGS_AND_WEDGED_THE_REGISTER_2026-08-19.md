@@ -8,8 +8,19 @@ commit would create. The red was not the rename's.
 **Class:** a ruling outliving the fact it rules on. Sibling of
 `feedback_a_no_route_control_red_lists_the_retirements_that_were_deliberate` and of KNIFE's
 adopted-residue findings — but this one is a WEDGE, which is why it is filed BLOCKING.
-**Status:** cause CONFIRMED by measurement against two trees. Nothing repaired. Instance and
-class both owed; the repair is named and explicitly NOT taken by this tick.
+**Discharged:** `tests/tools/test_capability_index.py::test_a_package_losing_its_last_consumer_fires_and_a_render_repairs_it`,
+`tests/tools/test_capability_index.py::test_a_package_gaining_its_first_consumer_fires`,
+`tests/tools/test_capability_index.py::test_a_seam_cut_that_swaps_one_consumer_for_another_is_deliberately_quiet`,
+`tests/tools/test_capability_index.py::test_the_renderer_never_rules_on_a_new_orphan`,
+`tests/tools/test_capability_index.py::test_the_renderer_never_retires_a_ruling_whose_subject_left`,
+`tools/capability_index.py`, `docs/design/ORPHAN_DISPOSITION_REGISTER.md` — the consumer column
+is derived and re-rendered by one command, so a seam cut can no longer hollow out rulings that
+only a fresh judgement per row could repair.
+**Status:** REPAIRED 2026-08-19 in commit 04839e94b, by option 3 below (the recommendation on
+record). The register is landable again — proven by that commit, which touched it and passed the
+gate — and its own test went from 87 disposition findings to 0. What the repair gives up is
+recorded in section 5 of the register rather than glossed. Cause was CONFIRMED by measurement
+against two trees before anything was changed.
 
 Every claim is `observed-with-evidence` unless labelled `inferred` (R9).
 

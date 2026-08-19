@@ -1,6 +1,6 @@
 # [CLASS] The publish gate and the wedge: the control that stops publishing, and what it stops on
 
-**Severity:** BLOCKING · **Lane:** H_harness
+**Severity:** LATENT · **Lane:** H_harness
 
 **Instances:** 35 · **Class:** `publish_gate_and_wedge` · **Ruling's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
 
@@ -18,7 +18,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_A_PROVENANCE_LABEL_IS_STAT_ED_AS_A_REPO_PATH_2026-08-18.md` — LATENT
 - `WORKER_FINDING_A_RED_AT_HEAD_IS_INVISIBLE_TO_EVERY_COMMIT_THAT_DOES_NOT_SELECT_ITS_FILE_2026-08-15.md` — LATENT
 - `WORKER_FINDING_A_REPAIR_DOWNSTREAM_OF_ITS_OWN_GATE_CANNOT_LAND_2026-08-10.md` — RECORDED
-- `WORKER_FINDING_A_SEAM_CUT_HOLLOWED_OUT_82_ORPHAN_RULINGS_AND_WEDGED_THE_REGISTER_2026-08-19.md` — BLOCKING
+- `WORKER_FINDING_A_SEAM_CUT_HOLLOWED_OUT_82_ORPHAN_RULINGS_AND_WEDGED_THE_REGISTER_2026-08-19.md` — RECORDED
 - `WORKER_FINDING_DERIVED_ARTEFACT_STALENESS_IS_A_WEDGE_CLASS_2026-08-09.md` — LATENT
 - `WORKER_FINDING_EPISODE_MEMORY_WIPED_MID_EPISODE_2026-08-09.md` — LATENT
 - `WORKER_FINDING_SECOND_WEDGE_CAUSE_LANDED_AFTER_THE_FIRST_2026-08-09.md` — LATENT
@@ -59,12 +59,6 @@ This document supersedes the individual findings listed below, which are **archi
 - **3 hours** — `WORKER_FINDING_THE_GATES_SCRATCH_SPACE_IS_RAM_AND_NOTHING_DRAINS_IT_2026-08-12.md`: …separately and is why the exhaustion loop still > closes: the drain's 3h age bound is longer than the ~80-minute fill, so restored reach > rec…
 - **3 hours** — `WORKER_FINDING_THE_TMPFS_DRAIN_WAS_POINTED_AT_THE_WRONG_FILESYSTEM_2026-08-12.md`: …**0** were older than the sweep's `STALE_HEAD_CHECKOUT_AGE_SECONDS` = 3h bound, so a live sweep still frees nothing. Measured fill rate over…
 - **2 hours** — `WORKER_FINDING_A_MUTATION_TEST_RAN_THE_OPERATIONAL_SUITE_INSIDE_THE_PUBLISH_GATE_2026-08-12.md`: …ere quiet only by accident of arithmetic — they need `since_commit >= 2h` and the stall tests pin their gap at ~46 min. Latent, not isolated.…
-
-## What is owed
-
-1 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
-
-- `WORKER_FINDING_A_SEAM_CUT_HOLLOWED_OUT_82_ORPHAN_RULINGS_AND_WEDGED_THE_REGISTER_2026-08-19.md`
 
 ---
 
