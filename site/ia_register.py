@@ -194,7 +194,10 @@ PARENT_OF: dict[str, str] = {
 # `.nav-link`. The LOGO is deliberately untouched on every page -- it is not a route,
 # and its inconsistency (`poesys.` / `⚡ Poesys` / `Poesys`) is the declared subject of
 # `site/test_brand_token_adoption.py`'s debt register, which owns it.
-HOME_LINK_CLASS = ""
+# ONE GRAMMAR (2026-08-19). Home used to render bare <a> inside `<nav class="doors">` while
+# every other page used `.nav-link`, so a rule that fixed one could not fix the other -- the
+# structural half of the director's "it renders differently between those pages".
+HOME_LINK_CLASS = "nav-link"
 INNER_LINK_CLASS = "nav-link"
 
 
@@ -547,7 +550,14 @@ def render_nav(area: str, indent: str = "  ", site: Path = SITE) -> str:
     tail, with `active` on the page's own entry (or its fold target, if retired)."""
     link_class = HOME_LINK_CLASS if area == "/" else INNER_LINK_CLASS
     active_area = active_target(area, site)
-    lines = [NAV_START]
+    # THE DOORS ARE ALWAYS WRAPPED (2026-08-19). Home grouped its links in a `.doors` element
+    # and no other page did, so at phone width -- where the bar becomes two rows -- Home laid
+    # its five doors out in one line and every other page stacked them into FIVE, with the last
+    # falling outside the band. Same defect as the two link grammars, one level down: a layout
+    # rule cannot treat "the doors" as a unit on a page where they are not one. Emitting the
+    # wrapper here means every page has it, and it lives INSIDE the rendered region so no page
+    # can hand-edit its way out.
+    lines = [NAV_START, '<span class="doors">']
     entries = [(i.label, i.area) for i in CANONICAL_NAV]
     entries += list(LEGACY_TAIL.get(area, ()))
     seen_active = False
@@ -557,6 +567,7 @@ def render_nav(area: str, indent: str = "  ", site: Path = SITE) -> str:
         classes = " ".join(c for c in (link_class, "active" if active else "") if c)
         attr = f' class="{classes}"' if classes else ""
         lines.append(f'<a href="{_relative(target, area)}"{attr}>{label}</a>')
+    lines.append("</span>")
     lines.append(NAV_END)
     return ("\n" + indent).join(lines)
 

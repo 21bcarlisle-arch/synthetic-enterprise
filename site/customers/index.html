@@ -17,11 +17,6 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; min-height: 100vh; }
-.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; }
-.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
-.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
-.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
 .login-wrap { display: flex; align-items: center; justify-content: center; padding: 40px 20px 8px; }
 .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 40px; width: 400px; max-width: 95vw; }
 .login-card h1 { font-size: 22px; margin-bottom: 8px; }
@@ -159,11 +154,13 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
 <nav class="site-nav" data-wall-chrome="site navigation -- links only, carries no figure">
   <a href="../" class="nav-logo wordmark">poesys.</a>
   <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
+  <span class="doors">
   <a href="../" class="nav-link">Home</a>
   <a href="../knowledge/" class="nav-link">Knowledge</a>
   <a href="../capabilities/" class="nav-link">Capabilities</a>
   <a href="../explore/" class="nav-link">Explore</a>
   <a href="../harness/" class="nav-link">Harness</a>
+  </span>
   <!-- IA-NAV:END -->
 </nav>
 <!-- THE WALL EXHIBIT (SITE2, DIRECTOR_RULING_THE_PORTAL_IS_A_WALL_EXHIBIT_2026-08-12 Part 2).

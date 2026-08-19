@@ -10,13 +10,6 @@
 /* Brand palette consumed from ../brand/brand.css (BRAG tokens, no raw hex). */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
-.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
-.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
-.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
-.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
-/* Nav sits on the RIGHT on every section (2026-08-12 director observation, item 3). */
-.site-nav .nav-link:first-of-type { margin-left: auto; }
 .wrap { max-width: 980px; margin: 0 auto; padding: 40px 20px; }
 .hero-h { font-size: 27px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 8px; }
 .hero-sub { font-size: 14px; color: var(--muted); max-width: 760px; margin-bottom: 10px; }
@@ -69,11 +62,13 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
 <nav class="site-nav">
   <a href="../" class="nav-logo wordmark">poesys.</a>
   <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
+  <span class="doors">
   <a href="../" class="nav-link">Home</a>
   <a href="../knowledge/" class="nav-link">Knowledge</a>
   <a href="./" class="nav-link active">Capabilities</a>
   <a href="../explore/" class="nav-link">Explore</a>
   <a href="../harness/" class="nav-link">Harness</a>
+  </span>
   <!-- IA-NAV:END -->
 </nav>
 <div class="wrap">

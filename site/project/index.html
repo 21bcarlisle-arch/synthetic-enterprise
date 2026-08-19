@@ -12,12 +12,6 @@
 /* brand palette: consumed from ../brand/brand.css (BRAND_CONSTITUTION.md) */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; }
-.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; }
-.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
-.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
-.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
-.nav-link.dim { opacity: 0.4; cursor: default; pointer-events: none; }
 .wrap { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
 .sec { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--muted); margin-bottom: 12px; margin-top: 40px; }
@@ -88,11 +82,13 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
 <nav class="site-nav">
   <a href="../" class="nav-logo wordmark">poesys.</a>
   <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
+  <span class="doors">
   <a href="../" class="nav-link">Home</a>
   <a href="../knowledge/" class="nav-link">Knowledge</a>
   <a href="../capabilities/" class="nav-link">Capabilities</a>
   <a href="../explore/" class="nav-link">Explore</a>
   <a href="../harness/" class="nav-link active">Harness</a>
+  </span>
   <!-- IA-NAV:END -->
 </nav>
 <nav class="tab-nav">

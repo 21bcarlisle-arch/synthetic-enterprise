@@ -96,8 +96,12 @@ def _site_nav(text: str) -> str:
     # header block (BRAND_CONSTITUTION exemplar) -- type-only wordmark + the door
     # links. The canonical door list + Home-active + director-absent invariants are
     # unchanged; only the markup grammar moved (tests move with the doors).
-    m = re.search(r'<header class="site-nav">(.*?)</header>', text, re.S)
-    assert m, "site-nav header block not found"
+    # ONE GRAMMAR (2026-08-19). Home used `<header class="site-nav">` while every other page
+    # used `<nav class="site-nav">`, which is why a layout rule that fixed the others could not
+    # fix Home -- the structural half of "it renders differently between those pages". Home now
+    # uses the same element as everywhere else, so this matches the shared shape.
+    m = re.search(r'<nav class="site-nav">(.*?)</nav>', text, re.S)
+    assert m, "site-nav block not found"
     return m.group(1)
 
 
@@ -119,7 +123,7 @@ def test_canonical_nav_present_and_director_absent():
     for label in tuple(i.label for i in _NAV):
         assert f">{label}</a>" in nav, f"nav missing canonical door {label!r}"
     # Home is the current door -> marked active.
-    assert 'href="./" class="active">Home</a>' in nav
+    assert 'href="./" class="nav-link active">Home</a>' in nav
     # The Director door is auth-gated and must NOT appear in the public nav.
     assert "./director/" not in nav, "Director door must not be in the public nav"
     assert ">Director</a>" not in nav

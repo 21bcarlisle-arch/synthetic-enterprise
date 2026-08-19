@@ -10,12 +10,6 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
-.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
-.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
-.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
-.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
-.nav-spacer { flex: 1; }
 main { max-width: 760px; margin: 0 auto; padding: 48px 24px 80px; }
 .badge { display: inline-block; background: var(--surface2); color: var(--muted);
   border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 12px;
@@ -34,13 +28,14 @@ a { color: var(--teal); }
 <body>
 <nav class="site-nav">
   <a href="../" class="nav-logo wordmark">poesys.</a>
-  <span class="nav-spacer"></span>
   <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
+  <span class="doors">
   <a href="../" class="nav-link">Home</a>
   <a href="../knowledge/" class="nav-link">Knowledge</a>
   <a href="../capabilities/" class="nav-link">Capabilities</a>
   <a href="../explore/" class="nav-link">Explore</a>
   <a href="./" class="nav-link active">Harness</a>
+  </span>
   <!-- IA-NAV:END -->
 </nav>
 <main>

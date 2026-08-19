@@ -30,10 +30,6 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-house)
 .inner { padding: 0 56px; }
 @media (max-width: 640px) { .inner { padding: 0 22px; } }
 
-/* nav -- type-only wordmark (black), no pills, one strong rule under it */
-.site-nav { display: flex; justify-content: space-between; align-items: baseline;
-  padding: 26px 0 22px; border-bottom: 1px solid var(--text); }
-.nav-logo { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); text-decoration: none; }
 nav.doors { display: flex; gap: 26px; font-size: 13px; font-weight: 500; }
 nav.doors a { color: var(--muted); text-decoration: none; }
 nav.doors a:hover { color: var(--text); }
@@ -90,12 +86,9 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
 .thesis-evidence a, .fc a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
 .thesis-evidence a:hover, .fc a:hover { border-bottom-color: var(--text); }
 
-/* three ways in -- square blocks, hairline, > prompt; no decorative colour */
-.doors-in { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 22px; }
 @media (max-width: 720px) { .doors-in { grid-template-columns: 1fr; } }
 .door { display: block; text-decoration: none; color: var(--text); padding: 24px 22px 26px 0;
   border-top: 1px solid var(--border); border-right: 1px solid var(--border); }
-.doors-in .door:last-child { border-right: none; }
 .door:hover { background: var(--surface2); }
 .door .dp { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
 .door .dt { font-size: 17px; font-weight: 700; margin-top: 8px; }
@@ -157,18 +150,18 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
      Simplified fold into Proof/World at their own surfaces. /now stays reachable but
      is no longer the default landing (swap sequenced LAST). Nav canonical list
      mirrored in site/test_home_door.py in lockstep. -->
-<header class="site-nav">
+<nav class="site-nav">
   <a href="./" class="nav-logo wordmark">poesys.</a>
-  <nav class="doors">
-    <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
-    <a href="./" class="active">Home</a>
-    <a href="./knowledge/">Knowledge</a>
-    <a href="./capabilities/">Capabilities</a>
-    <a href="./explore/">Explore</a>
-    <a href="./harness/">Harness</a>
-    <!-- IA-NAV:END -->
+  <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
+  <span class="doors">
+  <a href="./" class="nav-link active">Home</a>
+  <a href="./knowledge/" class="nav-link">Knowledge</a>
+  <a href="./capabilities/" class="nav-link">Capabilities</a>
+  <a href="./explore/" class="nav-link">Explore</a>
+  <a href="./harness/" class="nav-link">Harness</a>
+  </span>
+  <!-- IA-NAV:END -->
 </nav>
-</header>
 
 <section class="hero">
   <h1>An energy company built and run by AI, to find the cheapest tonne of carbon left.</h1>

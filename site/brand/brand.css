@@ -93,22 +93,84 @@
 }
 .basis::before { content: "// "; }
 
-/* ── Mobile is the binding constraint (director, 2026-08-19) ──────────────────────────────
- * "Nine items does not fit a phone. Mobile is where I read this; treat it as the binding
- * constraint." The nav is five items now, but five plus a wordmark still exceeds 360px at the
- * desktop metrics, so it must degrade deliberately rather than by accident.
+/* ══ THE NAVIGATION, DEFINED ONCE ═══════════════════════════════════════════════════════════
+ * Director, 2026-08-19: "the nav renders identically on every page at phone width ... You
+ * already found the cause -- per-page styles after the brand sheet -- so fix that properly
+ * rather than adding specificity battles."
  *
- * SPECIFICITY, NOT !important. Every page carries its own `<style>` AFTER this file's <link>,
- * so a bare `.nav-link` rule here loses on source order -- which is exactly how the nav came to
- * render differently on different pages in the first place. `.site-nav .nav-link` is (0,2,0)
- * against the pages' (0,1,0) and wins wherever it lands, without the escalation that makes the
- * next override impossible.
+ * WHAT WAS ACTUALLY WRONG. Eighteen pages each carried their own `.site-nav` / `.nav-link` /
+ * `.nav-logo` rules in an inline <style> AFTER this sheet's <link>, so every page won on source
+ * order and no two agreed. Home: 24px wordmark, `justify-content: space-between` (nav right).
+ * Everywhere else: 15px wordmark, left-aligned, an active pill Home did not have. There were
+ * also TWO MARKUPS -- Home wrapped its links in `<nav class="doors">` with bare <a>, everyone
+ * else used `.nav-link` as direct children -- which is why Home could not be fixed by a rule
+ * that worked elsewhere. My earlier attempt raised specificity to (0,2,0) to out-rank the pages;
+ * that is a battle, not a fix, and it left the two markups untouched.
  *
- * The nav WRAPS to a second row rather than scrolling or truncating: a reader must be able to
- * see every door at once. `height:auto` is what lets it, and is the one property the pages
- * pinned that would otherwise clip the second row out of sight. */
-@media (max-width: 480px) {
-  .site-nav { height: auto; min-height: 48px; padding: 6px 12px; gap: 2px; }
-  .site-nav .nav-link { padding: 5px 8px; font-size: 12px; }
-  .site-nav .nav-logo { margin-right: 8px; }
+ * THE FIX: the per-page rules are DELETED, the markup is one grammar, and this is the only
+ * definition. A page that wants a different nav now has to add one back, visibly.
+ *
+ * MOBILE IS THE BINDING CONSTRAINT and the small layout is DESIGNED, not a wrap. Five labels
+ * (39 characters) plus their padding come to ~320px, which does not share a 360px row with a
+ * wordmark. So below 560px the bar becomes two deliberate rows -- wordmark centred, doors
+ * centred beneath it, both inside the band -- rather than five items on one line and "Harness"
+ * spilling onto the grey. `flex-wrap: nowrap` on the link row is what guarantees the second row
+ * is the DESIGN and never an overflow. */
+.site-nav {
+  /* LINE-HEIGHT IS PINNED, and this is what made the bar three different heights (78.5 / 81.4 /
+   * 87.4px) after the rules were already identical: the nav was inheriting each page's BODY
+   * typography -- Home 15px/18px, the rest 14px/normal -- so the link line boxes, and therefore
+   * the band, resolved differently per page. A navigation bar must not change height because
+   * the article beneath it chose a different font size. */
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: nowrap;
+}
+.site-nav .nav-logo,
+.site-nav .nav-logo.wordmark {
+  color: var(--text);
+  line-height: 1.2;
+  font-size: 15px;
+  margin-right: 16px;
+  text-decoration: none;
+  flex: 0 0 auto;
+}
+/* The doors sit together and push right on wide screens; the wrapper is optional so both the
+ * old `<nav class="doors">` grammar and a flat list render the same. */
+.site-nav .doors {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  flex-wrap: nowrap;
+}
+.site-nav .nav-link {
+  line-height: 1.2;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.site-nav .nav-link:hover { color: var(--text); background: var(--surface2); }
+.site-nav .nav-link.active { color: var(--text); background: var(--surface2); }
+
+@media (max-width: 560px) {
+  .site-nav {
+    flex-direction: column;
+    height: auto;
+    padding: 8px 8px 10px;
+    gap: 6px;
+  }
+  .site-nav .nav-logo,
+  .site-nav .nav-logo.wordmark { margin-right: 0; font-size: 17px; }
+  .site-nav .doors { margin-left: 0; gap: 1px; justify-content: center; width: 100%; }
+  .site-nav .nav-link { padding: 5px 6px; font-size: 12px; }
 }

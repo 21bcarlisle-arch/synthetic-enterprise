@@ -50,12 +50,25 @@ def test_has_mobile_breakpoint(door):
 
 
 @pytest.mark.parametrize("door", DOORS)
-def test_nav_allowed_to_wrap(door):
-    """The nav bar has ~10 links; on a phone it must wrap, never overflow the body."""
+def test_no_page_defines_its_own_nav(door):
+    """THE property that keeps the bar identical everywhere: brand.css is the only definition.
+
+    REPLACES an assertion that every page carried `.site-nav { flex-wrap: wrap }` in its own
+    <style>. That test was satisfied by exactly the arrangement the director reported as broken:
+    eighteen pages each defining the nav, after the brand sheet, so no two agreed -- Home a 24px
+    wordmark right-aligned, everyone else 15px left-aligned with an active pill, and "Harness"
+    falling out of the band on some and not others. Per-page rules PASSING this test were the
+    defect. Its premise was stale too ("~10 links"; there are five), and `flex-wrap: wrap` is no
+    longer the mechanism: below 560px the bar is a deliberate two-row column, which is what
+    "looks deliberate rather than wrapped" required.
+    """
     html = _html(door)
-    m = re.search(r"\.site-nav\s*\{([^}]*)\}", html)
-    assert m, f"{door}: no .site-nav rule found"
-    assert "flex-wrap: wrap" in m.group(1), f"{door}: .site-nav missing flex-wrap: wrap"
+    style = "\n".join(re.findall(r"<style>(.*?)</style>", html, re.S))
+    own = re.findall(r"(?m)^\s*(\.site-nav|\.nav-link|\.nav-logo|\.doors)[^{}]*\{", style)
+    assert not own, (
+        f"{door} defines its own nav rules {sorted(set(own))} -- brand.css is the single "
+        "definition, and a page-level override is what made the bar render differently per page"
+    )
 
 
 @pytest.mark.parametrize("door", DOORS)
@@ -85,3 +98,13 @@ def test_no_remote_stylesheet_for_chrome(door):
         assert not href.startswith(("http://", "https://", "//")), (
             f"{door}: remote stylesheet {href}"
         )
+
+
+def test_the_brand_sheet_carries_the_phone_layout():
+    """The other half: one definition is only useful if it is the RIGHT one. Below 560px the
+    five doors plus the wordmark cannot share a 360px row, so the bar becomes two deliberate
+    rows rather than overflowing."""
+    css = (SITE / "brand" / "brand.css").read_text(encoding="utf-8")
+    assert "@media (max-width: 560px)" in css, "the phone layout is gone from the brand sheet"
+    tail = css.split("@media (max-width: 560px)", 1)[1]
+    assert "flex-direction: column" in tail, "the phone bar is no longer the two-row design"

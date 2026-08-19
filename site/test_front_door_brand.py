@@ -39,10 +39,12 @@ def _script_block(text: str) -> str:
 def test_wordmark_is_the_black_poesys_type_only_mark():
     text = _text()
     assert 'class="nav-logo wordmark">poesys.</a>' in text, "type-only poesys. wordmark missing"
-    style = _style_block(text)
-    # The wordmark must resolve to structural ink, never a decorative accent colour.
-    m = re.search(r"\.nav-logo\s*\{[^}]*\}", style)
-    assert m, ".nav-logo rule not found"
+    # READ FROM THE BRAND SHEET, not the page's <style>. The per-page nav rules were deleted on
+    # 2026-08-19 -- they were the reason the wordmark rendered at 24px on Home and 15px
+    # everywhere else -- so brand.css is now where the wordmark is defined, once.
+    style = (INDEX.parent / "brand" / "brand.css").read_text(encoding="utf-8")
+    m = re.search(r"\.site-nav \.nav-logo[^{}]*\{[^}]*\}", style)
+    assert m, ".nav-logo rule not found in the brand sheet"
     assert "var(--text)" in m.group(0), ".nav-logo must be structural ink"
     assert "var(--teal)" not in m.group(0), "wordmark still uses the legacy teal accent (RC4)"
 
