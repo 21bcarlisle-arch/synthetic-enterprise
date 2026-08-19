@@ -912,6 +912,61 @@ def _landed_manifest_check(staged: list[str]) -> tuple[bool, str]:
     return True, msg
 
 
+def _record_landing_claim_check(staged: list[str]) -> tuple[bool, str]:
+    """Does an atom's own STORE RECORD claim a symbol landed where the tree has it not?
+
+    THE CLASS THIS CLOSES, and it is R3 territory: FIVE consecutive `EP6_wall_protocol_typing`
+    passes wrote a record asserting three `include_schema_version` call sites had landed, and
+    at `d1d1e1fc5` `git grep -c include_schema_version HEAD -- simulation/` was still empty.
+    Recommendation 1 of
+    `WORKER_FINDING_THREE_CONSECUTIVE_PASSES_RECORDED_A_LANDING_THAT_IS_IN_NO_COMMIT_2026-08-19`,
+    the one left unbuilt when the landing tool itself was redesigned.
+
+    WHY IT IS NEITHER SIBLING. `_symbol_landing_check` resolves references a commit CHANGES,
+    and those passes committed no code at all. `_landed_manifest_check` reads a staging
+    document's prose for PATHS, and every path EP6 named existed at HEAD throughout -- what
+    was missing was a symbol inside one, and the claim lived in the store record, not the
+    staging room.
+
+    WHY THE CLAIM IS SCOPED. `include_schema_version` was present at HEAD the whole time, in
+    three port modules and their tests. "Does the tree carry this symbol?" is GREEN on the
+    real defect; only "does it carry it HERE?" can be red.
+
+    FAIL-CLOSED at every step (R15): unimportable checker, unusable index, raising resolver
+    -> REFUSED with the reason. An unavailable check is a FAILED check.
+    """
+    if not any(p.startswith("docs/design/simplifications/") for p in staged):
+        return True, ""
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    try:
+        from tools.record_landing_claim_check import run_at_tree
+    except Exception as e:  # noqa: BLE001 -- an unavailable check is a FAILED check
+        return False, (
+            f"record-landing-claim checker UNAVAILABLE: {type(e).__name__}: {e}\n"
+            "An unavailable check is a FAILED check (R15 FAIL-SILENT). If the tool is "
+            "genuinely being removed, remove this gate step in the same commit."
+        )
+    try:
+        tree = _index_tree()
+    except Exception as e:  # noqa: BLE001
+        return False, f"could not determine the tree this commit would create: {e}"
+    try:
+        findings, report = run_at_tree(tree, since_tree="HEAD^{tree}")
+    except Exception as e:  # noqa: BLE001
+        return False, (f"record-landing-claim checker RAISED against tree {tree[:9]}: "
+                       f"{type(e).__name__}: {e}")
+    if findings:
+        return False, "\n".join(f"  - {f}" for f in findings)
+    if not report["records_changed"]:
+        return True, ""
+    return True, (
+        f"every landing claim in {report['records_changed']} changed record(s) resolves in "
+        f"the tree this commit creates ({report['claims_checked']} claim(s) checked, "
+        f"{report['records_claiming_a_landing']} record(s) asserting a landing)"
+    )
+
+
 def main() -> int:
     staged = staged_files()
 
@@ -976,6 +1031,25 @@ def main() -> int:
             return 1
         if detail:
             print(f"[test-gate] ✓ {detail}")
+
+    # THE ATOM'S OWN STORE RECORD, checked against the tree this commit creates. Runs before
+    # the pure-docs early return for the branch's standing reason: a commit that touches only
+    # `docs/design/simplifications/**` selects no test targets, and that commit is precisely
+    # the one that records a landing which never happened. Five EP6 passes took exactly it.
+    ok, detail = _record_landing_claim_check(staged)
+    if not ok:
+        sys.stderr.write(
+            "\n[test-gate] ❌ A STORE RECORD CLAIMS A LANDING THIS COMMIT'S TREE DOES NOT "
+            "CARRY -- COMMIT REFUSED.\n"
+            f"{detail}\n"
+            "[test-gate] Five consecutive EP6 passes wrote this claim and no tree ever held "
+            "the code. Land it in this commit, or state what you actually did.\n"
+            "[test-gate] The checkable form is one line:  LANDED: `symbol` in `path/prefix`\n"
+            "[test-gate] Reproduce: `python3 -m tools.record_landing_claim_check`\n"
+        )
+        return 1
+    if detail:
+        print(f"[test-gate] ✓ {detail}")
 
     # THE WALL-CROSSING REGISTER, checked against the tree this commit creates.
     # Like the class checker above, this runs BEFORE the pure-docs early return:
