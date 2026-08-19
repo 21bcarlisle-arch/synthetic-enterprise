@@ -66,10 +66,36 @@ def test_reflects_real_ledger_exactly():
     # 12 of its 20 cells are pinned at exactly 1.0 by construction, so this
     # headline cannot read below the no-skill baseline. Published, not hidden;
     # the finding is queued against the headline's SHAPE, not its arithmetic.
-    # = 14, all measured.
-    assert cg["pair_count"] == 14
-    assert cg["measured"] == 14
-    assert cg["unmeasured"] == 0
+    #
+    # THE COUNT IS DERIVED, NOT PINNED (R10, 2026-08-19). This assertion used to
+    # read `== 14` and the enumeration above was its justification. That literal
+    # wedged the publish gate for a THIRD time when the EP1 CLV backtest wrote a
+    # legitimate 15th entry: a real measurement landing is the SUCCESS case of
+    # this whole panel, and it took the site down for the eleven-hour outage the
+    # director raised. `test_empty_ledger_fails_closed_not_silent` had already
+    # been converted to derived properties for exactly this reason ("wedged the
+    # publish gate TWICE this day"); fixing that one instance and leaving its
+    # three siblings pinned is the instance-fix R10 forbids. The panel's row set
+    # is a FUNCTION of two live sources -- the map's coupling and the ledger's
+    # keys -- so the test reads those two sources and asserts the SET, which is
+    # strictly stronger than a count (it catches a dropped row AND a spurious
+    # one) and moves for free when a new gap is genuinely measured.
+    coupling = ct.build_coupling(atoms)
+    expected_pairs = set(coupling) | {w for w, e in ledger.items() if isinstance(e, dict)}
+    # Fail-open guard: a panel derived from two empty sources would satisfy every
+    # assertion below vacuously.
+    assert len(expected_pairs) >= len(coupling) >= 1
+    assert {r["world_atom"] for r in cg["pairs"]} == expected_pairs
+    assert cg["pair_count"] == len(expected_pairs)
+
+    def _is_measurement(gap):
+        return isinstance(gap, (int, float)) and not isinstance(gap, bool)
+
+    expected_measured = {w for w in expected_pairs
+                         if _is_measurement((ledger.get(w) or {}).get("gap"))}
+    assert expected_measured, "fail-open guard: no measured gap in the live ledger"
+    assert cg["measured"] == len(expected_measured)
+    assert cg["unmeasured"] == len(expected_pairs) - len(expected_measured)
     # Every rendered value is the ledger's value -- read, not recomputed.
     by_world = {r["world_atom"]: r for r in cg["pairs"]}
     for world_id, entry in ledger.items():
@@ -96,6 +122,16 @@ def test_value_tracks_a_mutated_ledger(monkeypatch):
 # ---------------------------------------------------------------------------
 def test_null_gap_fires_untested_and_counts(monkeypatch):
     atoms = _atoms()
+    # The BASELINE is taken from the live ledger before the mutation, so the
+    # assertion below is a DELTA the mutation caused rather than a pinned total
+    # (R10, 2026-08-19 -- see test_reflects_real_ledger_exactly for why).
+    baseline = gpd._coupled_gaps(atoms)
+    baseline_row = next(r for r in baseline["pairs"]
+                        if r["world_atom"] == "W2_7_willingness_classification")
+    # Precondition, not decoration: if W2_7's live gap were already unmeasured the
+    # mutation would move nothing and the delta below would pass vacuously.
+    assert baseline_row["value"] is not None, "fail-open guard: W2_7 is not measured live"
+
     mutated = copy.deepcopy(_real_ledger())
     mutated["W2_7_willingness_classification"]["gap"] = None
     monkeypatch.setattr(ct, "load_gap_ledger", lambda *a, **k: mutated)
@@ -104,23 +140,34 @@ def test_null_gap_fires_untested_and_counts(monkeypatch):
     assert row["value"] is None
     assert row["chip"] == "untested"
     assert row["severity"] == "amber"
-    assert cg["measured"] == 13  # 14 live pairs, W2_7 nulled
-    assert cg["unmeasured"] == 1
+    # Exactly one pair moved from measured to unmeasured, and none was dropped.
+    assert cg["measured"] == baseline["measured"] - 1
+    assert cg["unmeasured"] == baseline["unmeasured"] + 1
+    assert cg["pair_count"] == baseline["pair_count"]
     # W2_7 sits at L3 (>=L2) in the map -> anti-decay list flags it.
     assert "W2_7_willingness_classification" in cg["unmeasured_ge_l2"]
 
 
 def test_missing_entry_still_appears_untested(monkeypatch):
     atoms = _atoms()
+    baseline = gpd._coupled_gaps(atoms)
+    # Precondition: W2_8 must be coupled IN THE MAP, because that is what holds
+    # its row up once the ledger entry is gone. If it were a ledger-only pair,
+    # deleting the entry SHOULD drop the row and this test would be asserting
+    # the opposite of the panel's contract.
+    assert "W2_8_self_rationing" in ct.build_coupling(atoms)
+
     mutated = copy.deepcopy(_real_ledger())
     del mutated["W2_8_self_rationing"]
     monkeypatch.setattr(ct, "load_gap_ledger", lambda *a, **k: mutated)
     cg = gpd._coupled_gaps(atoms)
-    # W2_8 still appears (map coupling), W1_5 appears (map coupling, measured),
-    # W1_6, the re-contracting pair and the cohort pair still appear (live
-    # ledger, defensive branch), and the two fabric pairs appear (map coupling)
-    # -> 11 map pairs + W1_6 + re-contracting + cohort = 14.
-    assert cg["pair_count"] == 14
+    # The property, derived rather than pinned (R10, 2026-08-19): deleting a
+    # map-coupled atom's ledger entry must not remove its ROW -- a pair that
+    # vanishes from the panel is the D1 failure mode hidden instead of shown.
+    # The count is read from the same unmutated panel, so a legitimate new
+    # measurement moves both sides together.
+    assert cg["pair_count"] == baseline["pair_count"]
+    assert {r["world_atom"] for r in cg["pairs"]} == {r["world_atom"] for r in baseline["pairs"]}
     row = next(r for r in cg["pairs"] if r["world_atom"] == "W2_8_self_rationing")
     assert row["value"] is None
     assert row["chip"] == "untested"
