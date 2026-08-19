@@ -5399,6 +5399,124 @@ def test_pinning_the_population_hides_the_belief_draw_size_defect():
         "one")
 
 
+def test_widening_the_axis_below_its_floor_turns_the_verdict_red():
+    """THE MUTATION LEG 3 OWED, and the one the seven-case matrix above cannot
+    contain: those cases all mutate the REGISTER and evaluate against a fixed
+    shipped-axis fixture, so the AXIS -- the input that actually decides the
+    verdict -- was never moved. Widen it downward and the sweep stops being
+    sound: at n = 14 seed 23's invoice span reads (31, 91) and the NULL CONTROL
+    fires, which is the whole reason the floor is where it is."""
+    widened = pair.measure_belief_band_population_axis(
+        n_customers=(14, 17, 24, 40, 60, 120, 300), seeds=(7, 11, 23))
+    violations = pair.check_belief_band_population_axis(widened)
+    assert any("NULL CONTROL" in v for v in violations), (
+        "an axis floor that can be moved with no control noticing is a subject "
+        "chosen rather than derived")
+
+
+def test_the_band_shipped_before_this_repair_is_false_at_the_derived_floor():
+    """LEG 1 OF THE FINDING, kept as a control so it cannot be reintroduced.
+    D30 declared (-328, -308) and floored the axis at 24; at the DERIVED floor
+    of 17 the sweep reads -333 on seed 23 while the null control stays green,
+    so the old band is false over books its own soundness criterion admits. The
+    floor decided the verdict, and nothing else did."""
+    register = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
+    for dim in ("belief", "belief_population_mix"):
+        register[dim]["own_draw_size_axis"]["above_edge_range"] = (-328, -308)
+    measured = pair.measure_belief_band_population_axis()
+    assert measured["above_edge_range"] == (-333, -308)
+    assert measured["invoice_spans"] == ((30, 92),), (
+        "and the null control is GREEN in the red case -- if it were not, the "
+        "reading would be draw noise rather than a false declaration")
+    violations = pair.check_belief_band_population_axis(
+        measured, register=register)
+    assert 2 == len([v for v in violations
+                     if "declares its above edge inside [-328, -308]" in v]), (
+        violations)
+
+
+def test_the_axis_floor_is_derived_and_not_declared():
+    """THE REPAIR ITSELF: the floor is the smallest n at which the null control
+    holds and keeps holding, computed from the constants-side span predictor --
+    which reads no book, no draw and no register entry, so this is a trial and
+    not a comparison of the register with itself."""
+    measured = pair.measure_belief_axis_null_control_floor()
+    assert measured["predicted_span"] == (30, 92)
+    assert measured["floor"] == 17
+    assert measured["green_by_n"][16] is False, (
+        "16 is the last book on which the sweep would be perturbing the law")
+    assert all(measured["green_by_n"][n] for n in measured["candidates"]
+               if n >= 17)
+    assert pair.check_belief_axis_floor_is_derived(measured) == []
+    for dim in ("belief", "belief_population_mix"):
+        axis = pair.DIMENSION_DRIFT_RESOLUTION[dim]["own_draw_size_axis"]
+        assert min(axis["n_customers"]) == measured["floor"], (
+            f"{dim} declares a floor the derivation does not produce")
+
+
+@pytest.mark.parametrize("mutate,expected", [
+    # THE SHIPPED DEFECT: 24 was the floor D30 chose, seven customers above
+    # where its own stated reason runs out.
+    (lambda r: [r[d]["own_draw_size_axis"].__setitem__(
+        "n_customers", (24, 40, 60, 120, 300, 600, 1200))
+        for d in ("belief", "belief_population_mix")],
+     "ABOVE the derivation"),
+    # And the sibling half alone, which is how D28's repair left this class
+    # standing one register over.
+    (lambda r: r["belief_population_mix"]["own_draw_size_axis"].__setitem__(
+        "n_customers", (24, 40, 300)),
+     "belief_population_mix: declares an axis floor of n = 24"),
+    (lambda r: r["belief"]["own_draw_size_axis"].__setitem__(
+        "n_customers", (14, 17, 24, 300)),
+     "BELOW the derivation"),
+])
+def test_the_floor_control_fires_on_a_floor_that_was_chosen(mutate, expected):
+    """R15 on the new rule, both directions. A floor above the derivation hides
+    the books where the declaration is false; a floor below it admits books
+    where the sweep moves the law."""
+    register = copy.deepcopy(pair.DIMENSION_DRIFT_RESOLUTION)
+    mutate(register)
+    measured = pair.measure_belief_axis_null_control_floor()
+    violations = pair.check_belief_axis_floor_is_derived(
+        measured, register=register)
+    assert any(expected in v for v in violations), violations
+
+
+def test_the_floor_derivation_cannot_pass_by_being_unavailable():
+    """R15's FAIL-OPEN and FAIL-SILENT patterns on the derivation itself.
+
+    A probe range that starts ABOVE the break returns its own first element and
+    would certify any floor equal to it; a probe range where the null control is
+    never green returns nothing at all, and 'nothing' must be a violation rather
+    than a quiet pass on the declared literal."""
+    truncated = pair.measure_belief_axis_null_control_floor(probe_range=(20, 30))
+    assert truncated["floor"] == 20 and truncated["lowest_candidate_green"]
+    assert any("TRUNCATED" in v for v in
+               pair.check_belief_axis_floor_is_derived(truncated)), (
+        "a search that starts above the break has not found it")
+
+    dead = pair.measure_belief_axis_null_control_floor(probe_range=(10, 13))
+    assert dead["floor"] is None
+    assert any("could not be DERIVED" in v for v in
+               pair.check_belief_axis_floor_is_derived(dead)), (
+        "an unavailable derivation is a FAILED derivation")
+
+
+def test_the_floor_derivation_reads_no_declaration_it_grades():
+    """INDEPENDENCE (R15's TAUTOLOGY pattern). The derivation may read the
+    probe range and the seeds -- which say where to look -- and must NOT read
+    the declared band, the declared invariant or the declared floor, which are
+    what it is grading. Its target comes from the constants alone."""
+    names = pair._names_in(pair.measure_belief_axis_null_control_floor)
+    assert "predict_event_age_span_from_constants" in names
+    for forbidden in ("invoice_span_invariant", "above_edge_range",
+                      "below_edge_range"):
+        assert forbidden not in names, (
+            f"the derivation reads {forbidden}, so it would agree with the "
+            "register by construction")
+    assert "score_triad" not in names
+
+
 def test_the_belief_axis_predictor_never_calls_the_scorer():
     """The axis is affordable ONLY because it predicts. A sweep that reached
     `score_triad` would cost ~35 minutes instead of ~2 seconds, which is
@@ -7401,6 +7519,49 @@ def test_a_walk_that_swapped_the_renderer_measures_the_swap_not_the_seam(
                    in v for v in got), got
 
 
+def test_the_composer_mutation_control_does_not_depend_on_an_empty_cache(
+        monkeypatch):
+    """R15 STANDING REGRESSION GUARD ON HOUR #21'S OWN FINDING (H27 Expert Hour
+    #38, on owed item (C)/#21's "vacuous-in-isolation sibling control").
+
+    Hour #21 found the PRE-D38 composer control vacuous under exactly one
+    precondition: `_PUBLISHED_BOOKS` was already warm from an earlier test in
+    the file, so the composer's mutation landed after the books it measured
+    had already been composed, and the divergence it exists to prove could
+    not occur. Hour #23 built the fix -- the `_PUBLISHED_BOOKS` reset inside
+    `test_a_composer_that_stops_carrying_a_renderers_string_fires` -- and
+    verified it by running that one node id ALONE.
+
+    THAT VERIFICATION COULD NEVER HAVE CAUGHT A REGRESSION OF ITS OWN FIX,
+    which is why the finding survived unverified in every "STILL OWED" list
+    from Hour #28 through Hour #37 (re-checked at HEAD before this Hour wrote
+    a line of code: both node ids still pass alone today). A fresh process
+    running a single node id starts with an EMPTY `_PUBLISHED_BOOKS`
+    regardless of whether the reset line is present at all -- so "run alone"
+    can never manufacture the one precondition the original defect needed,
+    and a future edit that deletes the reset line would pass every existing
+    check in this file while silently reintroducing Hour #21's defect,
+    discoverable again only by luck of full-suite test order.
+
+    This test manufactures that precondition directly -- it warms the cache
+    itself, standing in for "an earlier test already ran" -- and then calls
+    the SHIPPED control as a plain function rather than re-deriving its
+    steps, so a future edit to that function's own reset is what this test
+    is actually exercising, not a parallel copy of its logic that could drift
+    from it.
+    """
+    import tools.couple_w2_11_d5 as pair_module
+    monkeypatch.setattr(pair_module, "_PUBLISHED_BOOKS", {})
+    warm = pair_module.published_books()
+    assert warm, ("the warm-up itself produced no books to warm the cache "
+                  "with -- this test cannot manufacture the precondition it "
+                  "exists to test")
+    # THE SHIPPED CONTROL, CALLED WITH THE CACHE ALREADY WARM. If its own
+    # `_PUBLISHED_BOOKS` reset is ever removed, this call -- not a fresh
+    # "run alone" -- is what catches it.
+    test_a_composer_that_stops_carrying_a_renderers_string_fires(monkeypatch)
+
+
 def test_a_book_that_records_no_renderer_provenance_fails_closed():
     """R15's third killer pattern, on this Hour's own field. A book carrying no
     record of what the composer held leaves the seam unmeasured -- which must
@@ -8163,15 +8324,22 @@ def _ledger_payload(atom, *, gap, components,
 # The real 2026-08-17 numbers: the production book, and the fixture book that
 # stood in for it on the regenerated door. Used verbatim so these tests are
 # pinned to the incident rather than to invented digits.
+# `missed_failure_rate` carried on both since 2026-08-18 (Expert Hour #37). It
+# is 0.0 on each -- `missed` is 0 in both books, and the live door serves
+# exactly that -- so the pinning is unchanged; what changed is that these
+# fixtures now carry the SAME required floor the real artefacts do, instead of
+# omitting one of the ten and modelling a door that could not exist.
 _PRODUCTION_BOOK = {
     "caught": 31, "flagged_size": 391, "missed": 0, "truth_size": 31,
     "universe_size": 1600, "n_negatives": 1451, "n_excluded": 118,
     "n_false_flags": 242, "false_flag_rate": 0.166782,
+    "missed_failure_rate": 0.0,
 }
 _FIXTURE_BOOK = {
     "caught": 4, "flagged_size": 35, "missed": 0, "truth_size": 4,
     "universe_size": 276, "n_negatives": 257, "n_excluded": 15,
     "n_false_flags": 16, "false_flag_rate": 0.062257,
+    "missed_failure_rate": 0.0,
 }
 _PRODUCTION_GAP = 0.0833907649896623
 _FIXTURE_GAP = 0.0311284046692607
@@ -8334,6 +8502,109 @@ def test_the_component_population_is_not_a_hand_picked_subset(tmp_path):
     assert not uncovered, (
         f"components that really moved in the incident are outside the "
         f"control's population: {sorted(uncovered)}")
+
+
+# --------------------------------------------------------------------------- #
+# THE SUBJECT IS DERIVED, NOT DECLARED (Expert Hour #37, 2026-08-18)
+#
+# THE DEFECT, measured on the committed pair at HEAD f72135409 before any repair:
+# the door and the ledger of record DISAGREED on two published fields --
+# `recon_saturation_band_days` ([-6, 483] vs [-6, 82]) and
+# `recon_saturation_caveat` (2,625 chars vs 821, the ledger still carrying the
+# pre-D28 sentence) -- and `check_published_door_reproduces_the_ledger` returned
+# ZERO violations, because the comparison walked `_DOOR_LEDGER_COMPONENTS` and
+# neither name is in it. 2 of 19 shared fields were divergent; 10 were compared.
+#
+# Neither prior guard could have caught it, and that is the point of the shape
+# change rather than a wider tuple. `test_the_component_population_is_not_a_hand_picked_subset`
+# above measures coverage against the fields that moved in the 2026-08-17
+# incident -- every one numeric -- and the SITE-lane ratchet asserts
+# `declared <= compared`, which wedges when a field LEAVES. Both prove the
+# subject has not SHRUNK. Neither can ask whether it was ever the whole
+# published surface, and the field that went unchecked is the one carrying the
+# instrument's own disclosed limits: the same `*_caveat` family that published a
+# measurably false claim at Hour #31 and a correction reaching no surface at #32.
+
+def test_a_shared_component_outside_the_declared_tuple_is_still_compared(tmp_path):
+    """THE MUTATION THAT PINS #37's DEFECT. A field both artefacts carry, named
+    nowhere in `_DOOR_LEDGER_COMPONENTS`, must be on trial.
+
+    Uses the incident's own divergence rather than invented digits: the real
+    band the committed door and ledger disagreed on at HEAD."""
+    atom = pair.WORLD_ATOM_ID
+    assert "recon_saturation_band_days" not in pair._DOOR_LEDGER_COMPONENTS, (
+        "this test's subject is a field OUTSIDE the declared tuple -- if it has "
+        "been added there, the derivation is no longer what is under test")
+    door = dict(_PRODUCTION_BOOK, recon_saturation_band_days=[-6, 483])
+    led = dict(_PRODUCTION_BOOK, recon_saturation_band_days=[-6, 82])
+    measured, violations = _check(
+        tmp_path,
+        _door_payload(atom, value=_PRODUCTION_GAP, components=door),
+        _ledger_payload(atom, gap=_PRODUCTION_GAP, components=led))
+    assert "recon_saturation_band_days" in measured["compared"]
+    assert any("recon_saturation_band_days" in v for v in violations), (
+        f"a component both sides publish diverged and nothing fired: "
+        f"{violations!r}")
+
+
+def test_the_old_declared_only_subject_is_blind_to_that_divergence(tmp_path):
+    """THE NULL CONTROL for the test above: restore the pre-#37 shape and the
+    SAME pair must come back clean.
+
+    Without this, widening the subject could be a change that fixes nothing --
+    this is what proves the repair is load-bearing rather than decorative."""
+    atom = pair.WORLD_ATOM_ID
+    door = dict(_PRODUCTION_BOOK, recon_saturation_band_days=[-6, 483])
+    led = dict(_PRODUCTION_BOOK, recon_saturation_band_days=[-6, 82])
+    door_p, ledger_p = _write_pair(
+        tmp_path,
+        _door_payload(atom, value=_PRODUCTION_GAP, components=door),
+        _ledger_payload(atom, gap=_PRODUCTION_GAP, components=led))
+    measured = pair.measure_published_door_against_the_ledger(
+        door_path=door_p, ledger_path=ledger_p, world_atom_id=atom)
+    # The old subject, re-derived here rather than imported: the declared tuple.
+    old_compared = [n for n in pair._DOOR_LEDGER_COMPONENTS
+                    if n in door and n in led]
+    old_mismatched = [n for n in old_compared if door[n] != led[n]]
+    assert not old_mismatched, (
+        "the pre-#37 subject would have caught this divergence, so it is not "
+        "the defect Hour #37 measured")
+    assert measured["mismatched"], (
+        "the widened subject must catch what the declared-only one could not")
+
+
+def test_a_required_component_missing_from_the_ledger_fires(tmp_path):
+    """FAIL-OPEN, on this control's own subject. With the population derived
+    from the intersection, dropping a field from one side REMOVES it from the
+    comparison -- so erosion would make the control agree more easily. The floor
+    turns that into a violation instead."""
+    atom = pair.WORLD_ATOM_ID
+    led = {k: v for k, v in _PRODUCTION_BOOK.items() if k != "universe_size"}
+    measured, violations = _check(
+        tmp_path,
+        _door_payload(atom, value=_PRODUCTION_GAP, components=_PRODUCTION_BOOK),
+        _ledger_payload(atom, gap=_PRODUCTION_GAP, components=led))
+    assert "universe_size" not in measured["compared"]
+    assert "universe_size" in measured["required_missing"]
+    assert any("universe_size" in v and "REQUIRED" in v for v in violations), (
+        f"a required component left the comparison silently: {violations!r}")
+
+
+def test_a_door_field_the_ledger_does_not_carry_is_recorded_not_judged(tmp_path):
+    """The queued lead, pinned so it cannot be quietly dropped OR quietly
+    promoted into a violation. A field the door publishes and the ledger has no
+    record of is unfalsifiable -- there is nothing to reproduce it from -- but
+    firing on it needs a ledger schema change outside this atom's file_scope."""
+    atom = pair.WORLD_ATOM_ID
+    door = dict(_PRODUCTION_BOOK, dimension_caveats={"belief": "..."})
+    measured, violations = _check(
+        tmp_path,
+        _door_payload(atom, value=_PRODUCTION_GAP, components=door),
+        _ledger_payload(atom, gap=_PRODUCTION_GAP,
+                        components=_PRODUCTION_BOOK))
+    assert measured["door_only"] == ("dimension_caveats",)
+    assert violations == [], (
+        f"door-only fields are RECORDED, not judged, at #37: {violations!r}")
 
 
 # --------------------------------------------------------------------------- #

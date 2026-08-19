@@ -152,11 +152,6 @@ _WEDGE_DRAW_REPAIR = (
     "(`background/publish_gate_wedge.py`); the file is committed and carries 20 nodes at "
     "HEAD, the working tree 29. Node present on disk here, in no commit."
 )
-_BELIEF_AXIS_REPAIR = (
-    "2026-08-18, H27 rung-1c. Waits on the uncommitted D30 belief-axis floor repair "
-    "(`tools/couple_w2_11_d5.py::measure_belief_axis_null_control_floor`, absent at HEAD). "
-    "Node present on disk here, in no commit."
-)
 _KNOWN_UNLANDED: dict[str, str] = {
     "tests/saas/test_clv_margin_basis.py": (
         "2026-08-18, H27 Hour #36. Waits on the uncommitted CLV margin-basis repair "
@@ -182,17 +177,15 @@ _KNOWN_UNLANDED: dict[str, str] = {
             "test_live_gate_runs_is_empty_when_ps_is_unavailable",
         )
     },
-    **{
-        f"tests/tools/test_couple_w2_11_d5.py::{node}": _BELIEF_AXIS_REPAIR
-        for node in (
-            "test_the_axis_floor_is_derived_and_not_declared",
-            "test_the_floor_control_fires_on_a_floor_that_was_chosen",
-            "test_the_floor_derivation_cannot_pass_by_being_unavailable",
-            "test_the_floor_derivation_reads_no_declaration_it_grades",
-            "test_widening_the_axis_below_its_floor_turns_the_verdict_red",
-            "test_the_band_shipped_before_this_repair_is_false_at_the_derived_floor",
-        )
-    },
+    # LANDED 2026-08-19 by H27 Expert Hour #39, all six entries deleted the same day. They
+    # read: "Waits on the uncommitted D30 belief-axis floor repair
+    # (`tools/couple_w2_11_d5.py::measure_belief_axis_null_control_floor`, absent at HEAD).
+    # Node present on disk here, in no commit." The repair is now at the index (3
+    # occurrences) and all six nodes with it, landed by the SYMBOL half of this class --
+    # `tests/architecture/test_no_committed_store_claims_an_unlanded_symbol.py`, whose first
+    # run named the same uncommitted change set from the other direction: H27's committed
+    # store note credited `door_only` and `dimension_caveats` while the index carried
+    # neither. One landing discharged both, so `_BELIEF_AXIS_REPAIR` went with them.
     # LANDED 2026-08-18 by KNIFE3 step 38 (register §3ag), entry deleted the same
     # day by step 39. It read: "Waits on the uncommitted KNIFE3 B12 dwelling
     # split -- `simulation/dwelling_records.py` is in no commit on any ref and

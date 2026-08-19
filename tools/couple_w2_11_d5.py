@@ -4938,15 +4938,50 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         },
         "own_draw_size_axis": {
             "atom": "D30_the_belief_band_is_this_books_length",
-            "n_customers": (24, 40, 60, 120, 300, 600, 1200),
+            # THE FLOOR IS DERIVED, NOT CHOSEN (2026-08-18, the repair
+            # WORKER_FINDING_THE_BELIEF_AXIS_NULL_CONTROL_CANNOT_FAIL_BECAUSE_
+            # ITS_FLOOR_SITS_ABOVE_WHERE_IT_BREAKS asked for). D30 shipped this
+            # floor at 24 with its reason living only in a discovery note --
+            # "the invoice span reads [30, 92] at every n from 24 up" -- and no
+            # comment beside the literal deriving 24 from anything. The reason
+            # is true and it is not the measurement: the span reaches the
+            # constants-predicted (30, 92) on all three seeds from n = 17. The
+            # seven extra customers are exactly what removed the counterexample,
+            # because at n = 17 and n = 18 the sweep is SOUND BY ITS OWN NULL
+            # CONTROL and seed 23 reads -333, outside the band D30 declared. The
+            # verdict was decided by the floor and by nothing else, and the
+            # floor was the one input no mutation in the battery moved: the
+            # class this axis exists to close -- a declaration certified only on
+            # the population that produced it -- recurring inside the repair,
+            # one level out.
+            #
+            # So 17 is not a literal to be trusted either. It is RE-DERIVED on
+            # every run by `measure_belief_axis_null_control_floor` off the
+            # constants-side span predictor, and `check_belief_axis_floor_is_
+            # derived` fires if this tuple's smallest n is anything other than
+            # what that derivation returns -- above it (a floor that can be
+            # pushed up until the declared band comes true) or below it (a floor
+            # admitting books where the sweep perturbs the law).
+            "n_customers": (17, 24, 40, 60, 120, 300, 600, 1200),
             "seeds": (7, 11, 23),
-            "above_edge_range": (-328, -308),
+            # WIDENED (-328 -> -333) BY THE FLOOR MOVE, which is the order these
+            # two must be settled in: the band is whatever the derived floor
+            # admits, never the floor whatever makes the band true. -333 is seed
+            # 23's reading at n = 17/18; it is in D30's own n=12 table, and the
+            # band written from that table excluded it.
+            "above_edge_range": (-333, -308),
             "below_edge_range": (-371, -342),
             # THE NULL CONTROL, declared rather than left to the test: the
             # INVOICE-side span must NOT move along this axis. If it did, the
             # sweep would be moving the law rather than the sample and the
             # failure-side movement would be evidence of nothing.
             "invoice_span_invariant": (30, 92),
+            # WHERE THE FLOOR IS SEARCHED FOR, inclusive both ends. Not a second
+            # free literal: the checker refuses a probe range whose own bottom
+            # already satisfies the null control, because a search that starts
+            # above the break returns its own starting point and calls it a
+            # derivation.
+            "floor_probe_range": (10, 30),
         },
         "own_saturation_atom": "D27_belief_window_saturates_on_this_book",
         # TWO TAILS, TWO CAUSES, TWO OWNERS (atom D29). Below: `as_of` sits
@@ -5079,11 +5114,18 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         },
         "own_draw_size_axis": {
             "atom": "D30_the_belief_band_is_this_books_length",
-            "n_customers": (24, 40, 60, 120, 300, 600, 1200),
+            # THE SAME DERIVED FLOOR, and it has to be the same one: the axis is
+            # shared because both dimensions read the same observed-failure
+            # span. `check_belief_axis_floor_is_derived` puts BOTH entries on
+            # trial against one derivation, so this entry cannot keep a floor
+            # its sibling has moved off -- which is how D28's repair came to
+            # leave half of this class standing one register over.
+            "n_customers": (17, 24, 40, 60, 120, 300, 600, 1200),
             "seeds": (7, 11, 23),
-            "above_edge_range": (-328, -308),
+            "above_edge_range": (-333, -308),
             "below_edge_range": (-371, -342),
             "invoice_span_invariant": (30, 92),
+            "floor_probe_range": (10, 30),
         },
         "own_saturation_atom": "D27_belief_window_saturates_on_this_book",
         # UPPER OWNER D27 -> D30 for the same reason as `belief` (Expert Hour
@@ -6514,6 +6556,166 @@ def check_belief_band_population_axis(
             "NOT read from moves too, this sweep is perturbing the law rather "
             "than the sample and the failure-side movement is evidence of "
             "nothing"
+        )
+    return violations
+
+
+def measure_belief_axis_null_control_floor(
+    *,
+    probe_range: Optional[Sequence[int]] = None,
+    seeds: Optional[Sequence[int]] = None,
+    builder: Optional[Callable[[int, int], tuple]] = None,
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+) -> Dict[str, object]:
+    """WHERE THE AXIS ABOVE IS ALLOWED TO START, derived rather than declared
+    (2026-08-18, the repair
+    WORKER_FINDING_THE_BELIEF_AXIS_NULL_CONTROL_CANNOT_FAIL_BECAUSE_ITS_FLOOR_SITS_ABOVE_WHERE_IT_BREAKS
+    asked for).
+
+    THE HOLE THIS FILLS. `check_belief_band_population_axis` puts six
+    declarations on trial and fires on all six -- but every one of them is
+    evaluated over whatever books `own_draw_size_axis["n_customers"]` names, and
+    that tuple was itself a free literal. Its smallest entry decides the verdict
+    outright: at the shipped floor of 24 the declared upper band held with zero
+    violations; at 17 and 18 -- books the sweep's own null control passes -- the
+    same register read -333 against a declared (-328, -308) and two entries went
+    red. A subject that can be chosen is not a subject the control tests.
+
+    THE DERIVATION, and it is independent of the register by construction. The
+    null control is "the INVOICE-side span does not move", and what it must not
+    move AWAY FROM is computable without any book at all:
+    `predict_event_age_span_from_constants` reads the four scenario constants
+    and no draw, no seed and no record. So the floor is the smallest n from
+    which every seed's DRAWN invoice span equals that constants-side prediction
+    and keeps equalling it for every larger candidate -- the point above which
+    the sweep is known to be moving the sample rather than the law. Nothing in
+    `DIMENSION_DRIFT_RESOLUTION` is read to obtain it, which is what stops the
+    check that follows being a comparison of the register with itself.
+
+    Predictor-only like the axis it floors: ~60 books, no `score_triad`.
+
+    Returns `{"probe_range", "candidates", "seeds", "predicted_span",
+    "span_by_n", "green_by_n", "floor", "lowest_candidate_green"}`; `floor` is
+    None when no candidate qualifies, which the checker treats as a FAILED
+    derivation and never as permission to keep a declared floor."""
+    reg = DIMENSION_DRIFT_RESOLUTION if register is None else register
+    axis = (reg["belief"].get("own_draw_size_axis") or {})
+    probe = tuple(probe_range if probe_range is not None
+                  else (axis.get("floor_probe_range") or ()))
+    if len(probe) != 2 or probe[0] > probe[1]:
+        raise ValueError(
+            f"floor probe range must be an inclusive (lo, hi), got {probe!r}")
+    ss = tuple(seeds) if seeds is not None else tuple(axis.get("seeds") or ())
+    build = builder if builder is not None else (
+        lambda n, s: build_scenario(n, seed=s))
+    predicted = predict_event_age_span_from_constants()
+    target = (predicted["youngest_age_days"], predicted["oldest_age_days"])
+
+    candidates = tuple(range(int(probe[0]), int(probe[1]) + 1))
+    span_by_n: Dict[int, tuple] = {}
+    green_by_n: Dict[int, bool] = {}
+    for n in candidates:
+        spans = []
+        for s in ss:
+            records, _consumer, _ledger_book, as_of = build(n, s)
+            ages = sorted((as_of - r.due_date).days for r in records)
+            spans.append((ages[0], ages[-1]) if ages else None)
+        span_by_n[n] = tuple(spans)
+        green_by_n[n] = bool(spans) and all(sp == target for sp in spans)
+
+    # THE FLOOR IS THE START OF THE GREEN TAIL, not the first green point. One
+    # lucky n below a red one is a coincidence, not a floor -- and a floor read
+    # off a coincidence is the same free literal with a measurement stapled to
+    # it.
+    floor = None
+    for n in candidates:
+        if all(green_by_n[m] for m in candidates if m >= n):
+            floor = n
+            break
+    return {
+        "probe_range": (int(probe[0]), int(probe[1])),
+        "candidates": candidates,
+        "seeds": ss,
+        "predicted_span": target,
+        "span_by_n": span_by_n,
+        "green_by_n": green_by_n,
+        "floor": floor,
+        # The probe's own soundness: if the SMALLEST candidate already satisfies
+        # the null control, the search never saw the break and returned its own
+        # starting point.
+        "lowest_candidate_green": bool(green_by_n.get(candidates[0]))
+        if candidates else False,
+    }
+
+
+def check_belief_axis_floor_is_derived(
+    measured: Dict[str, object],
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+) -> List[str]:
+    """Put the AXIS ITSELF on trial -- the input the six rules above take as
+    given (R15). Returns violations; empty means the floor was derived.
+
+    Four rules, and each names a way a chosen floor comes back:
+
+      * NO DERIVATION AT ALL: the null control is green nowhere in the probe
+        range. An unavailable derivation is a FAILED one, never a licence to
+        keep whatever floor is written down;
+      * A TRUNCATED SEARCH: the probe's own bottom is already green, so the
+        "derived" floor is the range's first element and the range is the free
+        literal now. The search must be able to see the break it is looking for;
+      * A CHOSEN FLOOR, either direction. Above the derivation, books where the
+        sweep is sound and the declaration is false are excluded -- the shipped
+        defect. Below it, books where the invoice span has not converged are
+        admitted and the edge movement stops being evidence;
+      * and it applies to BOTH belief entries, because the axis is shared.
+        Repairing one and leaving the sibling is how this class survived D28."""
+    reg = DIMENSION_DRIFT_RESOLUTION if register is None else register
+    violations: List[str] = []
+    derived = measured.get("floor")
+    probe = measured.get("probe_range")
+
+    if derived is None:
+        violations.append(
+            "the axis floor could not be DERIVED: no n in the probe range "
+            f"{list(probe or ())} has every seed's invoice span reaching the "
+            f"constants-side prediction {list(measured.get('predicted_span') or ())} "
+            "and holding it above -- an unavailable derivation is a FAILED "
+            "derivation, not permission to keep the declared floor"
+        )
+    if measured.get("lowest_candidate_green"):
+        violations.append(
+            f"the floor probe range {list(probe or ())} is TRUNCATED: its own "
+            "smallest candidate already satisfies the null control, so the "
+            "derivation can only ever return the range's first element -- the "
+            "free literal has moved from the floor to the range, and a search "
+            "that starts above the break has not found it"
+        )
+
+    if derived is None:
+        return violations
+
+    for dim in ("belief", "belief_population_mix"):
+        axis = (reg.get(dim) or {}).get("own_draw_size_axis") or {}
+        ns = tuple(axis.get("n_customers") or ())
+        if not ns:
+            continue
+        declared = min(ns)
+        if declared == derived:
+            continue
+        direction = (
+            "ABOVE the derivation -- it excludes "
+            f"n = {list(range(derived, declared))}, where the sweep is sound by "
+            "its own null control and the declaration is free to be wrong "
+            "unwitnessed (this is the shipped defect: the floor, not the "
+            "measurement, decided the verdict)"
+            if declared > derived else
+            "BELOW the derivation -- it admits books whose invoice span has "
+            "not converged on the constants-side prediction, where the sweep "
+            "perturbs the law and the edge movement is evidence of nothing"
+        )
+        violations.append(
+            f"{dim}: declares an axis floor of n = {declared} and the null "
+            f"control derives n = {derived}. The declared floor is {direction}"
         )
     return violations
 
@@ -11740,11 +11942,42 @@ _LEDGER_OF_RECORD_PATH = (
 # The numeric components BOTH sides carry. Not hand-chosen for convenience:
 # these are exactly the keys the door's own components block reproduces from the
 # ledger entry, and every one of them moved in the 2026-08-17 substitution.
+# THE REQUIRED FLOOR, not the subject (widened 2026-08-18, Expert Hour #37).
+#
+# Until #37 this tuple WAS the subject: the comparison walked it and nothing
+# else, so a field both artefacts carried but this tuple did not name was never
+# compared. Measured at HEAD f72135409, that was not hypothetical -- the
+# committed door and the committed ledger DISAGREED on `recon_saturation_band_days`
+# ([-6, 483] vs [-6, 82]) and on `recon_saturation_caveat` (2,625 chars vs 821,
+# the ledger still carrying the pre-D28 sentence), 2 of 19 shared fields, and
+# this control returned ZERO violations because neither name is in here.
+#
+# Both prior guards pointed the wrong way to catch it: the SITE-lane ratchet
+# asserts `declared <= compared` (it wedges when a field LEAVES) and
+# `test_the_component_population_is_not_a_hand_picked_subset` measures coverage
+# against the fields that moved in the 2026-08-17 incident -- all numeric. Each
+# proves the subject has not SHRUNK; neither could ever ask whether the subject
+# was the whole published surface in the first place.
+#
+# The subject is now DERIVED: every component the door and the ledger both
+# carry. This tuple survives as the floor -- the fields that must be present on
+# BOTH sides, so a door that stops carrying `universe_size` fires instead of
+# silently shrinking its own subject to something it agrees with.
 _DOOR_LEDGER_COMPONENTS = (
     "caught", "flagged_size", "missed", "truth_size", "universe_size",
     "n_negatives", "n_excluded", "n_false_flags",
     "false_flag_rate", "missed_failure_rate",
 )
+
+
+def _abbrev(value: object, limit: int = 160) -> str:
+    """Render a side of a mismatch for a human. The caveat fields run to
+    thousands of characters, and a violation nobody can read is a violation
+    nobody acts on."""
+    text = repr(value)
+    if len(text) <= limit:
+        return text
+    return f"{text[:limit]}... ({len(text)} chars)"
 
 
 _UNREADABLE = object()
@@ -11849,15 +12082,29 @@ def measure_published_door_against_the_ledger(
     )
     compared: List[str] = out["compared"]                 # type: ignore[assignment]
     mismatched: Dict[str, object] = out["mismatched"]     # type: ignore[assignment]
-    for name in _DOOR_LEDGER_COMPONENTS:
-        if name not in door_components or name not in ledger_components:
-            continue
+    # THE SUBJECT IS DERIVED FROM THE TWO ARTEFACTS, never from a hand-kept
+    # list: every component both sides carry is compared, so a field cannot be
+    # published unchecked merely by being absent from a tuple in this file.
+    for name in sorted(set(door_components) & set(ledger_components)):
         compared.append(name)
         if door_components[name] != ledger_components[name]:
             mismatched[name] = {
                 "door": door_components[name],
                 "ledger": ledger_components[name],
             }
+    # The floor, checked separately: a required field missing from either side
+    # is not "nothing to compare", it is the subject eroding.
+    out["required_missing"] = tuple(
+        name for name in _DOOR_LEDGER_COMPONENTS
+        if name not in door_components or name not in ledger_components
+    )
+    # RECORDED, NOT JUDGED (queued as a lead, SELF_INTERRUPT_DISCIPLINE): fields
+    # the door publishes that the ledger of record does not carry at all. They
+    # are unfalsifiable by construction -- there is no record to reproduce them
+    # from -- but firing on them needs a ledger schema change outside this
+    # atom's file_scope, so #37 measures them and does not judge them.
+    out["door_only"] = tuple(
+        sorted(set(door_components) - set(ledger_components)))
     return out
 
 
@@ -11888,8 +12135,20 @@ def check_published_door_reproduces_the_ledger(
             (m.get("mismatched") or {}).items()):          # type: ignore[union-attr]
         violations.append(
             f"`{atom}`.components.{name}: the door serves "
-            f"{sides['door']!r} and the ledger of record carries "
-            f"{sides['ledger']!r}"
+            f"{_abbrev(sides['door'])} and the ledger of record carries "
+            f"{_abbrev(sides['ledger'])}"
+        )
+
+    # THE FLOOR. A required component absent from one side leaves the derived
+    # subject quietly smaller, and a smaller subject agrees more easily -- the
+    # erosion this control must never be able to green itself with.
+    for name in (m.get("required_missing") or ()):         # type: ignore[union-attr]
+        violations.append(
+            f"`{atom}`.components.{name} is REQUIRED on both sides and is "
+            "missing from the door, the ledger, or both -- it is therefore "
+            "outside the comparison rather than agreeing with anything, and a "
+            "subject that shrinks is how this control would come to pass by "
+            "having less to check"
         )
 
     # VACUITY. A door pair and a ledger entry that share NO comparable component
@@ -11897,9 +12156,9 @@ def check_published_door_reproduces_the_ledger(
     # shape this instrument's own leak witness shipped in until 2026-08-08.
     if not m.get("compared"):
         violations.append(
-            f"`{atom}`: the door pair and the ledger entry share NONE of "
-            f"{list(_DOOR_LEDGER_COMPONENTS)!r} -- this control compared "
-            "nothing and must not report agreement on an empty set"
+            f"`{atom}`: the door pair and the ledger entry share NO components "
+            "at all -- this control compared nothing and must not report "
+            "agreement on an empty set"
         )
     return violations
 
@@ -12585,6 +12844,24 @@ def main() -> None:
     for v in _bba_violations:
         print(f"           !! {v}")
 
+    # AND THE AXIS'S OWN FLOOR, derived rather than read (2026-08-18). The six
+    # rules above are all evaluated over the books the floor admits, so the
+    # floor decides the verdict -- and until this ran it was a free literal no
+    # mutation moved. On the default path, and it belongs there: it costs ~60
+    # predictor books and it grades the block immediately above it.
+    _bbf = measure_belief_axis_null_control_floor()
+    _bbf_violations = check_belief_axis_floor_is_derived(_bbf)
+    print(f"  [belief-axis floor] null control (invoice span "
+          f"{list(_bbf['predicted_span'])}, from the constants alone) first "
+          f"holds on every seed from n={_bbf['floor']} and holds above; probed "
+          f"{list(_bbf['probe_range'])}")
+    print("           verdict: "
+          + ("the declared axis floor IS the derived one"
+             if not _bbf_violations
+             else f"{len(_bbf_violations)} VIOLATION(S)"))
+    for v in _bbf_violations:
+        print(f"           !! {v}")
+
     # OPT-IN: the caveat-coverage contract (atom D32). Declared in
     # CHECKS_BEHIND_A_FLAG with its reason -- a third full resolution grid.
     if args.caveat_coverage:
@@ -12646,6 +12923,15 @@ def main() -> None:
           f"(door generated {_dvl['door_generated_at']!r}) vs ledger of record "
           f"gap {_dvl['ledger_gap']!r} (measured {_dvl['ledger_measured_at']!r}); "
           f"{len(_dvl['compared'])} shared component(s) compared")
+    # THE SUBJECT'S OWN EDGE (Hour #37), printed rather than left to the store:
+    # fields the door publishes that the ledger has no record of are outside
+    # this control by construction, and a reader entitled to the verdict is
+    # entitled to what the verdict does not cover.
+    if _dvl.get("door_only"):
+        print(f"           NOT COVERED: the door also publishes "
+              f"{list(_dvl['door_only'])!r}, which the ledger of record does "
+              "not carry -- unfalsifiable here, there is no record to "
+              "reproduce them from (measured, not judged)")
     print("           verdict: "
           + ("the door serves the measurement the ledger carries"
              if not _dvl_violations

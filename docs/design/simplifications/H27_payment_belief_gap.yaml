@@ -948,21 +948,145 @@ simplifications:
   day, one shape. A finding in no commit is a lead no clone can draw.
 
   '
+- 'THIRTY-NINTH HOUR (2026-08-19, worker tick, self-refill 2->3 HARDEN draw).
+
+  THE LEVEL DOES NOT MOVE. `level_current` stays 2, and this pass is NOT evidence for
+
+  the promotion condition #31 pre-committed: it ends with a BLOCKING finding, against
+
+  the Hour immediately before it.
+
+
+  WHAT WAS DRAWN. #38''s owed list ranked (A) THE DISCHARGE POPULATION top, on the
+
+  ground that "while it stands, no record this atom writes can be trusted to mean the
+
+  code exists". Its cheap no-grammar half was registered as its own document,
+
+  docs/staging/WORKER_FINDING_A_STORE_NOTE_CLAIMING_BUILT_IS_NEVER_CHECKED_AGAINST_ITS_OWN_FILE_SCOPE_2026-08-18.md,
+
+  which recommended MEASURE FIRST, BUILD SECOND. Both were done, in that order.
+
+
+  THE MEASUREMENT CHANGED THE DESIGN, which is why it came first. Keyed the way that
+
+  document proposed -- symbols inside a clause carrying the literal word BUILT -- the
+
+  population at HEAD is 34 clauses and SIX symbol mentions across 297 stores, with zero
+
+  violations. That is the parent finding''s own defect at smaller scale: #36''s control
+
+  could not fire because its population was one markdown marker, and a control keyed on
+
+  one prose word here would have been the same control with a different word. The
+
+  subject was widened from the marker to the CLAIM SHAPE, and the discrimination moved
+
+  to the INDEX/WORKTREE SPLIT, which needs no disclaim lexicon at all: a symbol the
+
+  worktree carries and the index does not cannot be a design-future mention (it
+
+  exists) and cannot be a foreign symbol (it is inside the file_scope the atom declared
+
+  for itself). Measured over the index of 459d41aea: 266 stores whose atom declares
+
+  modules (30 more declare only directories, excluded and counted -- `docs/staging/`
+
+  runs to 6,157 files and resolving symbols against a tree that size is dilution, not
+
+  strictness), 423 distinct (store, symbol) pairs, 387 (91.5%) resolving in the atom''s
+
+  own committed file_scope, 34 in neither tree, 2 in the worktree only.
+
+
+  TWO SUB-DECISIONS, EACH MEASURED RATHER THAN GUESSED. Comments are stripped: that
+
+  removes exactly one false positive, D27''s `_caveat`, whose note describes a SUFFIX
+
+  and whose worktree match is a comment saying the same thing -- two pieces of prose
+
+  agreeing is not a landing. Strings are NOT stripped: doing both drops resolution
+
+  387 -> 315 and loses a live violation, because a dict key is code.
+
+
+  WHAT IT FOUND, AND IT IS BLOCKING. On its first run the control named this atom:
+
+  `door_only` (index 0, worktree 4) and `dimension_caveats` (index 0, worktree 2), both
+
+  credited by the committed `level_hold_note`. `required_missing` (0/2) and `_abbrev`
+
+  (0/3) are the same landing. #39 recorded them as outside the tokeniser and confirmed by
+
+  hand; #40 re-measured and the control names all four itself, because backticking a symbol
+
+  in order to report it unbackticked is what ENTERS it into the population.
+
+  #38''s note states "#38 landed #37''s work" and reports the class repaired. It
+
+  did not: the store half landed at 9821a52a5 -- whose own message says "landing the
+
+  orphaned store half, no note authored here" -- and the code stayed on disk. This is
+
+  #38''s OWN BLOCKING finding recurring inside the record that reports it fixed, and it
+
+  is the eleventh consecutive Hour to find a real flaw in this instrument.
+
+
+  R15, BOTH DIRECTIONS ON REAL STATE rather than a fixture. RED against the live index
+
+  with the code unstaged, naming both symbols and the declared file_scope; GREEN once
+
+  the code was staged (18 passed). Twelve mutations carry the rest: the on-disk-only
+
+  shape fires, the absent-from-both shape does NOT (or the control is born red on the
+
+  34), a comment-only mention does not discharge a claim, a string literal does, an
+
+  unparseable file is judged on raw text rather than silently emptied, matching is on
+
+  word boundaries (`cmp` must not match inside `cmp_to_key`, `_abbrev` must match its
+
+  own definition), paths and globs are not read as symbols, the store is read from the
+
+  INDEX and never from disk (reading it from disk makes the pair agree with itself -- a
+
+  tautology), git unavailable FAILS, a non-zero git exit FAILS, an empty map FAILS, a
+
+  map declaring no file_scope FAILS. Three vacuity floors, and the directory exclusion
+
+  gets its own control so it cannot quietly become the population.
+
+
+  LANDED, NOT RATCHETED. The code waited on nothing -- 573 passed in
+
+  tests/tools/test_couple_w2_11_d5.py on the working tree before it was staged -- and
+
+  the store half''s precedent is that a ratchet entry naming no wait is the dishonest
+
+  shape. `_KNOWN_UNLANDED` ships EMPTY.'
+- 'FORTIETH HOUR (2026-08-19, worker tick, self-refill 2->3 HARDEN draw). THE LEVEL DOES NOT MOVE, and this is the TWELFTH consecutive Hour to find a real flaw in the instrument. #39''s control was RED on its first INDEPENDENT run -- not on the case it was built for, but on a false positive it could not see because it was written and read in the same tick.
+
+
+  WHAT WAS DRAWN. #39''s whole deliverable was staged and NEVER COMMITTED: the tick that followed it (e8834cf37) deliberately preserved the hunk in index and worktree and landed something else. So the drawn HARDEN work was #39''s own top finding recurring a third time -- a record outrunning its code -- and the first act of this Hour was to run the control #39 shipped against real state rather than to trust its reported result.
+
+
+  THE DEFECT, which is #39''s stated premise being false in one clause. #39 argued that a worktree-only symbol ''cannot be a foreign symbol, because it is inside the file_scope this atom declared for itself''. file_scope declares what an atom OWNS; it does not declare that those files are CODE. The control fired on OPS3_first_post_ruling_publish `git_hash`, whose file_scope is docs/status/LATEST.md and docs/observability/.publish_gate_state.json -- two artefacts a live background daemon rewrites. `git_hash` had entered the worktree minutes earlier as a JSON key inside a failure record, while the symbol has been committed at background/process_run_complete.py:828 for a long time -- the very module OPS3''s note cites. The verdict said ''the record outran its code'' about code that had landed, and the repair it prescribed (`git add` a churning state file) fixes nothing and is undone by the next daemon write. The verdict was also NON-DETERMINISTIC: which daemon wrote last decided whether the gate was red.
+
+
+  THE OBVIOUS FIX WAS MEASURED AND REJECTED, which is the part worth keeping. ''Before calling a symbol unlanded, check whether the index carries it ANYWHERE'' reads as strictly safer. Measured at HEAD it forgives BOTH of the control''s founding violations -- `door_only` in 6 committed files, `dimension_caveats` in 11 -- because a repo this size resolves almost any identifier somewhere. It would have converted a proven-red control into one that can never fire on the case it exists for: _is_directory_scope''s own dilution argument arriving on a new axis. It is now pinned by a mutation so it cannot return as an improvement.
+
+
+  WHAT LANDED INSTEAD is `_is_code`, and it is the argument the control ALREADY made. Comments are stripped because ''a comment mentioning a symbol is not the symbol being built''; a JSON key and a markdown word are that same shape, and for a non-.py entry _code_of returns RAW TEXT, so the comment doctrine was never even applied there. The VERDICT corpus is now built only from authored source (.py 837, .mjs 60, .html 31 of the 1,010 module file_scope entries; .md 51, extensionless 17, .json 9, .yaml 4, .xml 1 excluded); the LANDED corpus keeps every entry. The asymmetry is the design: forgiving too readily can only REMOVE a violation, never invent one, so the verdict side is strict and the forgiveness side is loose.
+
+
+  R15 BOTH DIRECTIONS ON REAL STATE, not a fixture. GREEN on the live index (22 passed, up from #39''s 18). RED against a throwaway copy of that index with the atom''s two file_scope modules reset to HEAD -- naming `door_only`, `dimension_caveats`, `required_missing` and `_abbrev`, all four, with the real index untouched. Three new mutations carry the repair: the data-artefact false positive fires, the founding violations are NOT swallowed by the fix, and the rejected repo-wide backstop is pinned with a guard that fails if its own dilution premise stops holding. The new exclusion gets its own floor (test_the_code_only_verdict_exclusion_stays_a_minority, 12 of 270 measured) because an exclusion with no floor is how a control dies quietly -- and it would be invisible in every other floor here, since pairs and resolved are computed off the LANDED corpus this guard does not touch.
+
+
+  A SMALLER CORRECTION, made because the record is the deliverable. #39 wrote that `required_missing` and `_abbrev` were ''unbackticked and so outside the tokeniser, confirmed by hand''. Backticking a symbol IN ORDER TO REPORT IT UNBACKTICKED enters it into the population, so that sentence was false of the tree containing it. Both copies corrected rather than left to contradict themselves; the control now names all four by itself.'
 map_notes:
   harden_note: 'HARDEN PASS RAN 2026-08-08 (commit 72ecfff7d); recorded here 2026-08-08 because the pass fixed code and tests but left the map cell silent -- the work was invisible to the map, and a silent cell is why the self-refill kept re-drawing this atom for a level move it cannot make. Delivered, both mutation-proven: (1) the DD-channel LEAK WITNESS was VACUOUS -- `n_flagged_non_dd_failures == 0` passes identically when the channel observes nothing at all as when it observes cleanly, so a vacuity guard now carries it (test_leak_witness_is_vacuous_without_its_channel_guard pins the defect the guard closes); (2) three silent `.get()` JOIN DROPS had no witness -- `value_date`/`invoice_ref`/`reference` key drift would have pushed the measured gap toward the no-skill baseline with nothing firing, so n_unjoined_dd_failures / n_unjoined_collection_misses / n_ageing_refs_matched are now asserted against a deliberate key drift. 24/24 green. NEW FINDING from the pass, reported not tuned (R12): the headline DETECTION gap is INSENSITIVE TO THE ENTIRE DD-OBSERVATION CHANNEL -- `flagged_set` is a UNION, `n_flagged_via_dd_channel_only == 0` across seeds 7/11/23, so killing the DD channel outright leaves the published number bit-identical. Structurally reasonable (a rail failure means the cash did not arrive, which reconciliation also sees) but it means set-membership detection is blind to the only thing that channel buys: EARLIER detection. That test is labelled CHARACTERIZATION deliberately -- it pins a measured limit, not a contract, and is expected to fire if the channel ever starts contributing.'
-  level_hold_note: 'HELD AT L2 (level_current 2, level_target 3). COMPACTED AS WRITTEN (Hour #38, 2026-08-18) -- the store''s contract is the authority: a note is a CURRENT statement, revision is correct semantics, and every Hour''s full narrative lives in git and in the commit that landed it. Hours #3-#37''s individual narratives are there, not here. THE NOTE-FIELD ROLL REMAINS THE STANDING CONSTRAINT: the roll chunks LIST entries and cannot split one string field, so every Hour must compact as it writes until notes get an archive path of their own (a store change outside this atom).
-
-
-    WHY THE LEVEL IS HELD, which is EVIDENCE and not caution. L3 means ''Expert Hour says this is real''. Hour #31 pre-committed the promotion condition BEFORE #32 ran, so the bar could not be moved once results were known: ONE Hour against the corrected instrument that ends with NO BLOCKING finding takes the 2->3. The per-Hour defect rate on this instrument is now 1.0 ACROSS TEN CONSECUTIVE HOURS -- #28 (a mechanism asserted into this very note while HEAD carried none of it), #29 (the citation control, repo-wide refusal on its default path and no test), #30 (a grader with ten importers that had never graded the live ledger), #31 (a published claim in components[''drift_resolution_caveat''] that was measurably false), #32 (three BLOCKING: the corrected sentence on no published surface, an R15 fail-open comparing bands by CONTAINMENT, a third no-caller control), #33 (the door-vs-ledger relation), #35 (a green control in no commit, with two committed records resting on it), #36 (the tests/ half of #35''s class), #37 (the tripwire compared 10 of 19 shared fields), #38 (below). TEN consecutive Hours each finding a real flaw is the strongest available evidence that the next one will too. An Hour cannot be its own confirmation: the Hour that corrects the instrument is not the Hour that clears it.
-
-
-    EXPERT HOUR #38 (2026-08-18) IS ALSO THE ANSWER TO ''WHY DOES THIS KEEP HAPPENING''. #37''s whole deliverable -- the widened subject, its 11 tests, the ledger regeneration -- was in NO COMMIT at d12b6ab79 while three records said it was built: the store note committed at 65b26e4e4, this note''s own owed list, and the finding doc, which was genuinely archived to done/ but by an unrelated auto-process publish (96c665098) that cannot know whether code landed. #36''s control was built for exactly this shape and could not fire, because its population is one markdown marker: 1,598 docs in done/ carry it 74 times, and of 178 atom stores citing 349 test paths, ZERO carry it. #38 landed #37''s work (both directions measured on real state: 2 violations door=HEAD/ledger=HEAD, 0 on the pair this commit creates; R12 clean, the headline gap byte-identical) and filed the population gap as BLOCKING.
-
-
-    THE OWED WORK, ranked and CURRENT as of Hour #38. (A) THE DISCHARGE POPULATION -- docs/staging/WORKER_FINDING_THE_DISCHARGE_CONTROL_READS_MARKDOWN_ONLY_SO_THE_REGISTER_LEVELS_ARE_ARGUED_IN_IS_INVISIBLE_2026-08-18.md, BLOCKING, with the cheap no-grammar control named in it (an atom declares its file_scope, so a note claiming BUILT can be asked whether git show HEAD:<file_scope> contains the symbol it names). This is now the top item: while it stands, no record this atom writes can be trusted to mean the code exists. (B) THE `door_only` FOUR -- the door publishes `dimension_caveats`, `recon_collapsed_runs`, `recon_collapsed_runs_measured_on`, `recon_saturation_band_measured_on`, which the ledger has no record of; #37 measures them into `door_only` and deliberately does not judge them (firing needs a ledger schema change outside this file_scope), and a test pins that they stay recorded-not-judged so the lead can be neither quietly dropped nor quietly promoted. NOTE: `door_only` is EMPTY on the pair this commit creates -- the regenerated ledger carries all four -- so the lead is now about the SCHEMA guarantee, not a live divergence. (C) THE SIBLING DETECTION AXIS FLOOR -- docs/staging/WORKER_FINDING_THE_SIBLING_AXIS_FLOOR_IS_A_FREE_LITERAL_AND_ITS_CONTROL_CANNOT_FAIL_ON_IT_2026-08-18.md, LATENT: the belief floor is derived and the detection axis keeps 150 as a free literal, the fourth consecutive time this class was found one register over from where it was last fixed. R10 reading: make the checker''s population every register entry declaring a draw-size axis, not an enumerated pair. (D) THE NOTE-FIELD ROLL (first paragraph). (E) #28''s surviving leads: the 14 undeclared live entries nothing re-measures on a schedule; #27''s clamp and six-unwalked-rows; D35''s scoped build; #21''s vacuous-in-isolation sibling control.
-
-
-    WHAT DOES NOT BLOCK THE PROMOTION, stated so it is not re-litigated: the two open D28 residuals (the S-side exit-threshold predictor, unidentified; the reshape, unbuilt). Those are DISCLOSED limits, declared in the register and published in the sentence the reader meets -- an instrument that states its own limits accurately is what L3 epistemic cleanliness asks for, not an instrument with none. NOT a wall, and NOT a reason to tune any number (R12).'
+  level_hold_note: "HELD AT L2 (level_current 2, level_target 3). COMPACTED AS WRITTEN (Hour #40, 2026-08-19) -- the store's contract is the authority: a note is a CURRENT statement, revision is correct semantics, and every Hour's full narrative lives in git and in the commit that landed it. Hours #3-#39's individual narratives are there, not here. THE NOTE-FIELD ROLL REMAINS THE STANDING CONSTRAINT: the roll chunks LIST entries and cannot split one string field, so every Hour must compact as it writes until notes get an archive path of their own (a store change outside this atom).\n\nWHY THE LEVEL IS HELD, which is EVIDENCE and not caution. L3 means 'Expert Hour says this is real'. Hour #31 pre-committed the promotion condition BEFORE #32 ran, so the bar could not be moved once results were known: ONE Hour against the corrected instrument that ends with NO BLOCKING finding takes the 2->3. The per-Hour defect rate on this instrument is now 1.0 ACROSS TWELVE CONSECUTIVE HOURS -- #28 (a mechanism asserted into this very note while HEAD carried none of it), #29 (the citation control, repo-wide refusal on its default path and no test), #30 (a grader with ten importers that had never graded the live ledger), #31 (a published claim in components['drift_resolution_caveat'] that was measurably false), #32 (three BLOCKING: the corrected sentence on no published surface, an R15 fail-open comparing bands by CONTAINMENT, a third no-caller control), #33 (the door-vs-ledger relation), #35 (a green control in no commit, with two committed records resting on it), #36 (the tests/ half of #35's class), #37 (the tripwire compared 10 of 19 shared fields), #38 (#37's whole deliverable in NO COMMIT while three records said it was built), #39 (#38's whole deliverable in NO COMMIT while its own note reported the class repaired), #40 (below). TWELVE consecutive Hours each finding a real flaw is the strongest available evidence that the next one will too. An Hour cannot be its own confirmation: the Hour that corrects the instrument is not the Hour that clears it.\n\nEXPERT HOUR #40 (2026-08-19) RAN #39's CONTROL INDEPENDENTLY AND IT WAS RED ON A FALSE POSITIVE. #39's deliverable was staged and never committed -- the next tick (e8834cf37) preserved the hunk and landed something else -- so the drawn HARDEN work was #39's own finding recurring a third time, and the first act was to RUN the shipped control rather than trust its reported result. It fired on OPS3_first_post_ruling_publish `git_hash`, whose file_scope is two artefacts a live daemon rewrites: the key entered the worktree minutes earlier, while the symbol has been committed at background/process_run_complete.py:828 for a long time -- the module OPS3's note actually cites. #39's premise was false in one clause (file_scope declares what an atom OWNS, not that those files are CODE), the verdict was non-deterministic on daemon timing, and the repair it prescribed fixed nothing. THE OBVIOUS FIX WAS MEASURED AND REJECTED: a repo-wide 'is it landed anywhere' backstop forgives BOTH founding violations (`door_only` in 6 committed files at HEAD, `dimension_caveats` in 11) and would have disarmed the control on the only case it has ever caught -- now pinned by a mutation so it cannot return as an improvement. What landed is `_is_code`, narrowing the VERDICT corpus to authored source while the LANDED corpus keeps every entry, because forgiving too readily can only remove a violation and never invent one. R15 both directions on REAL state: GREEN on the live index (22 passed, up from 18), RED against a throwaway copy of that index with this atom's two modules reset to HEAD, naming all four symbols, the real index untouched. The new exclusion carries its own floor (12 of 270), because pairs and resolved are computed off the LANDED corpus and would not have shown it dying.\n\n\n    THE OWED WORK, ranked and CURRENT as of Hour #40. (A) DISCHARGED by #39 and REPAIRED by #40 -- the symbol control above, landed with its `_is_code` guard and its rejected-alternative mutation; its parent, the discharge-population control, landed with #38. (B) THE `door_only` FOUR -- the door publishes `dimension_caveats`, `recon_collapsed_runs`, `recon_collapsed_runs_measured_on`, `recon_saturation_band_measured_on`, which the ledger has no record of; #37 measures them into `door_only` and deliberately does not judge them (firing needs a ledger schema change outside this file_scope), and a test pins that they stay recorded-not-judged so the lead can be neither quietly dropped nor quietly promoted. `door_only` is EMPTY on the landed pair -- the regenerated ledger carries all four -- so the lead is the SCHEMA guarantee, not a live divergence. (C) THE SIBLING DETECTION AXIS FLOOR -- docs/staging/WORKER_FINDING_THE_SIBLING_AXIS_FLOOR_IS_A_FREE_LITERAL_AND_ITS_CONTROL_CANNOT_FAIL_ON_IT_2026-08-18.md, LATENT: the belief floor is derived and the detection axis keeps 150 as a free literal, the fourth consecutive time this class was found one register over from where it was last fixed. R10 reading: make the checker's population every register entry declaring a draw-size axis, not an enumerated pair. (D) THE NOTE-FIELD ROLL (first paragraph). (E) #28's surviving leads: the 14 undeclared live entries nothing re-measures on a schedule; #27's clamp and six-unwalked-rows; D35's scoped build; #21's vacuous-in-isolation sibling control.\n\nWHAT DOES NOT BLOCK THE PROMOTION, stated so it is not re-litigated: the two open D28 residuals (the S-side exit-threshold predictor, unidentified; the reshape, unbuilt). Those are DISCLOSED limits, declared in the register and published in the sentence the reader meets -- an instrument that states its own limits accurately is what L3 epistemic cleanliness asks for, not an instrument with none. NOT a wall, and NOT a reason to tune any number (R12)."
   name: 'Payment belief-vs-truth gap (coupled-triad HARNESS of the D5 decomposition): the harness measures the company''s payment BELIEF (its allocation/ageing/cash-position inference from observed payments, D5) vs the world''s payment TRUTH (the W2_11 generator''s actual behaviour). No world payment-source reaches L3 until this gap is measured against the company''s consumption (COUPLED_TRIAD binding rule).'
 map_records:
   evidence:

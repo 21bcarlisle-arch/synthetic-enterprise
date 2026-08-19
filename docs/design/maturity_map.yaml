@@ -2265,8 +2265,8 @@
   depends_on: []
   records_rehomed: [evidence, expert_hour_findings]
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
-  simplifications_count: 45
-  expert_hour: {last: '2026-08-18', status: attempted_finding_open}
+  simplifications_count: 47
+  expert_hour: {last: '2026-08-19', status: attempted_finding_open}
 - id: D6_payment_ageing_gap_validity
   notes_rehomed: [build_note, discover_note, name, origin_note]
   lane: D_billing_metering
@@ -4081,13 +4081,13 @@
   epoch: 2
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: director_ruling
   depends_on: []
   couples_with: []
   records_rehomed: [evidence]
-  file_scope: []
+  file_scope: ['company/analytics/clv_three_horizon.py', 'tests/company/analytics/test_clv_three_horizon.py', 'company/analytics/customer_value_view.py']
   simplifications_count: 8   # 2026-08-19 pass 8: read the live tenure horizon as a MODEL -- its conjugate soft-count update is exchangeable in the renewal order, so a deteriorating and a recovering customer get a bit-identical lifetime and CLV, the published churn/lifetime pair correlates -0.0169 (three accounts spanning 0.14-0.41 share a 17-figure-identical lifetime), substituting only the horizon moves the book -45.2%, and the mutation test written for this exact estimator has a fixture in which no account can have a trajectory; plus the demand-side census -- five dark decision modules, six CLV formulas, three tenures for one customer
 - id: EP2_variance_learning_loop
   title: "Expected minus realised, fed back into belief"
@@ -4230,14 +4230,17 @@
   epoch: 3
   level_current: 0
   level_target: 3
-  loop_stage: idle
-  block_reason: "director-reserved curriculum sequencing (R13): which epoch the company lives through is the director's to author. Epoch-3 commitment set per DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08 §1; the planner may PROPOSE pull-forward with the accretion ledger as its case (§3), never proceed on silence."
+  loop_stage: build
+  block_reason_discharged: "R13 curriculum sequencing, discharged by the director's
+    instruction of 2026-08-19 naming EP6 for promotion. The old reason required his word
+    and said 'never proceed on silence'; this is not silence, it is the word. Kept as a
+    discharged record rather than deleted, so the epoch-3 pull-forward stays visible."
   dial_inherited: 3
   provenance: director_ruling
   depends_on: []
   couples_with: []
   records_rehomed: [evidence]
-  file_scope: []
+  file_scope: ['company/interfaces/wall_protocol.py', 'tests/company/interfaces/test_wall_protocol.py']
   simplifications_count: 7
 - id: EP7_adapter_elexon_insights
   title: "Elexon Insights and IRIS, for real"

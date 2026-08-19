@@ -69,3 +69,48 @@ count is not asserted here precisely because it has not been.
    (waits on a named uncommitted change set) versus `_STALE_CITATION` (a named commit deliberately
    retired it) — is the disposition vocabulary this class has converged on, and a symbol check will
    meet both shapes for the same reasons.
+
+---
+
+**Discharged:** 2026-08-19, H27 Expert Hour #39, by
+`tests/architecture/test_no_committed_store_claims_an_unlanded_symbol.py`.
+
+§4.1 said MEASURE FIRST, and the measurement changed the design. Keyed as §2 proposed -- symbols
+inside a clause carrying the literal word `BUILT` -- the population at HEAD is 34 clauses and SIX
+symbol mentions across 297 stores, 0 violations: the parent finding's own one-marker defect with a
+different word. The subject was widened from the marker to the CLAIM SHAPE and the discrimination
+moved to the INDEX/WORKTREE SPLIT, which needs no disclaim lexicon at all -- 423 (store, symbol)
+pairs over 266 stores, 387 (91.5%) resolving in the atom's own committed `file_scope`, 34 in
+neither tree (honest: atom ids, SHAs, English inside backticks), 2 in the working tree only.
+
+§4.2 said reuse the two registers. Only `_KNOWN_UNLANDED` was needed and it ships EMPTY; there is
+no `_STALE_CITATION` shape here, because a symbol is checked against the tree that exists rather
+than against a name that may have been renamed.
+
+**Both worktree-only symbols were real, and both were in H27's own store**: `door_only` (index 0,
+worktree 4) and `dimension_caveats` (index 0, worktree 2), credited by a committed
+`level_hold_note` that also states *"#38 landed #37's work"*. It had not -- the store half landed
+at `9821a52a5` and the code stayed on disk. Landed rather than ratcheted (573 passed in
+`tests/tools/test_couple_w2_11_d5.py` before staging), which is what took the control green.
+
+**Evidence:** R15 both directions on REAL state, not a fixture -- RED against the live index with
+the code unstaged (2 violations named), GREEN once staged. 18 passed, of which 12 are mutations.
+
+**Amended 2026-08-19, H27 Expert Hour #40 — the discharge above stood on a control that had never
+been run by anyone but its author, and #39 never committed it.** The tick after #39 (`e8834cf37`)
+preserved the staged hunk and landed other work, so this document sat in `done/` describing a
+control in no commit — the same shape it was written about. Run independently, the control was RED
+on a FALSE POSITIVE: `OPS3_first_post_ruling_publish` `git_hash`, whose declared `file_scope` is two
+artefacts a live daemon rewrites, while the symbol itself has been committed in
+`background/process_run_complete.py` for a long time. #39's premise was false in one clause —
+`file_scope` declares what an atom OWNS, not that those files are CODE — and the verdict was
+decided by which background process wrote last.
+
+Repaired by `_is_code`, which narrows the VERDICT corpus to authored source while the LANDED corpus
+keeps every entry (forgiving too readily can only remove a violation, never invent one). The
+tempting repo-wide "is it landed anywhere" backstop was measured and REJECTED: at HEAD it forgives
+both founding violations (`door_only` in 6 committed files, `dimension_caveats` in 11) and would
+have left the control unable to fire on the only case it has ever caught; a mutation now pins that
+so it cannot return as an obvious improvement. 22 passed, RED still reproducible against a
+throwaway copy of the index with this atom's modules reset to HEAD. **The finding stays discharged;
+the control that discharges it is the repaired one, and it landed in the same commit as this line.**
