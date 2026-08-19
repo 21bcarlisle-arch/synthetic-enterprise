@@ -479,6 +479,22 @@ bseen = driveBodyAllViews();
 docProbes.fake_governor_ids = bseen.ids;
 docProbes.fake_governor_recorded = wallViol();
 unboltBody(bodyFake);
+// (e) THE CLAIM THAT IS CHECKABLE AND STILL FALSE, which is the half (c) does not reach.
+//     (c) asks whether the named governor EXISTS. Both of this page's governors resolve
+//     their host by a hardcoded id -- applyWallViewToApp walks getElementById("app") and
+//     applyWallViewToOpState walks getElementById("op-state") -- so a region naming one of
+//     them passes the existence arm while that function never looks at it. The declaration
+//     is true of the FUNCTION and false of the REGION. Carries the same SIM-only headline
+//     as (a) so a survival here is the identical leak, reached through a real governor's
+//     name instead of through no name at all.
+clearWallViol();
+const bodyBorrowed = boltBody({ "data-wall-governed": "applyWallViewToApp" },
+  "True satisfaction fell 12.2 percentage points");
+bodyBorrowed.className = "bolted-borrowed-governor";
+bseen = driveBodyAllViews();
+docProbes.borrowed_governor_ids = bseen.ids;
+docProbes.borrowed_governor_recorded = wallViol();
+unboltBody(bodyBorrowed);
 // (d) THE RELEASE, and R11 forbids an orphan transition: after all that removal the page's
 //     own seven regions must still be in the document, in every view.
 clearWallViol();

@@ -4070,8 +4070,8 @@ def test_mutation_silencing_the_region_record_kills_a_named_test(tmp_path):
 def test_mutation_accepting_any_governor_string_kills_a_named_test(tmp_path):
     """(3) The OVER-BROAD arm: the declaration is trusted without checking the governor is
     real, which turns data-wall-governed into decoration."""
-    mutant = _mutate(tmp_path, '      if(typeof window[governed]==="function")return;',
-                     "      return;")
+    mutant = _mutate(tmp_path, "      var fn=window[governed];",
+                     "      return;\n      var fn=window[governed];")
     with pytest.raises(AssertionError, match="imaginary governor"):
         _assert_fake_governor_withheld(_doc_probes(mutant))
     # and it must NOT also kill the plain leak check -- if it did, this mutation would be
@@ -4085,6 +4085,88 @@ def test_mutation_removing_the_guard_from_setwallview_kills_a_named_test(tmp_pat
     mutant = _mutate(tmp_path, "  enforceDocumentRegions();\n}", "\n}")
     with pytest.raises(AssertionError, match="survived in these views"):
         _check_no_undeclared_region_survives(_doc_probes(mutant))
+
+
+# --- the governor a region names must govern THAT region --------------------
+# MEASURED 2026-08-19 on the page as it then shipped, before any of this existed: a
+# body-level region declaring data-wall-governed="applyWallViewToApp" -- a function that
+# genuinely exists -- and carrying the SIM-only headline the page's own WALL_VIEW_NOTE
+# calls proof the page is broken SURVIVED the customer's view with WALL_VIOLATIONS empty.
+# The existence arm above passes it because the claim is true of the FUNCTION and false of
+# the REGION: both governors resolve their host by id and neither would ever look at it.
+# Same fail-open class as the four before it, one term further in.
+def _assert_borrowed_governor_withheld(probes: dict) -> None:
+    """The law for the governs-THIS-region arm, shared by the check and its mutations."""
+    survived = {v: ids for v, ids in probes["borrowed_governor_ids"].items()
+                if "bolted-borrowed-governor" in ids}
+    assert not survived, (
+        "a region naming a REAL governor that does not govern it survived in "
+        f"{sorted(survived)}, carrying {_BODY_LEAK!r}"
+    )
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_a_region_naming_a_real_governor_that_governs_something_else_is_withheld():
+    probes = _doc_probes()
+    _assert_borrowed_governor_withheld(probes)
+    assert any("bolted-borrowed-governor" in r for r in probes["borrowed_governor_recorded"]), (
+        "the borrowed-governor region was withheld silently -- FAIL-SILENT is why the "
+        "record needs an arm of its own"
+    )
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_every_governed_region_is_the_region_its_governor_actually_resolves():
+    """ANTI-VACUITY for the arm above: it proves nothing if the page's own governed regions
+    were merely tolerated. Each must be matched by IDENTITY, and read from the page source
+    rather than from the governor's runtime lookup (which is the thing under test)."""
+    src = INDEX.read_text(encoding="utf-8")
+    governed = [r for r in _content_regions(_doc_probes()) if r["governed"]]
+    assert len(governed) >= 2, f"too few governed regions to be meaningful: {governed}"
+    for r in governed:
+        assert re.search(rf'{re.escape(r["governed"])}\.wallHost="{re.escape(r["id"] or "")}"', src), (
+            f'region {r["key"]!r} names governor {r["governed"]!r}, but that governor '
+            f'publishes no wallHost of {r["id"]!r} -- the declaration is not checkable'
+        )
+
+
+def test_mutation_accepting_a_governor_that_governs_another_region_kills_a_named_test(tmp_path):
+    """(5) The arm-specific mutation: existence still checked, identity not. It must NOT
+    also kill the imaginary-governor test, or it would be proving arm (3) a second time."""
+    mutant = _mutate(
+        tmp_path,
+        "      }else if(fn.wallHost&&document.getElementById(fn.wallHost)===el){",
+        "      }else if(true){",
+    )
+    probes = _doc_probes(mutant)
+    with pytest.raises(AssertionError, match="does not govern it"):
+        _assert_borrowed_governor_withheld(probes)
+    _assert_fake_governor_withheld(probes)
+    _check_no_undeclared_region_survives(probes)
+
+
+def test_mutation_a_lying_wallhost_breaks_the_governor_it_belongs_to(tmp_path):
+    """(6) The design claim, tested rather than asserted. wallHost is ONE value used twice --
+    the governor looks its own host up through it -- so it cannot be quietly falsified to
+    satisfy the region check. Point applyWallViewToApp at the other region and #app stops
+    being governed at all: the page's own regions no longer survive intact."""
+    mutant = _mutate(tmp_path, 'applyWallViewToApp.wallHost="app";',
+                     'applyWallViewToApp.wallHost="op-state";')
+    # The expected set comes from the REAL page, never from the mutant. Read from the
+    # mutant it is a tautology and this test passes vacuously: the guard removes #app at
+    # boot, so #app is equally absent from the mutant's own census of what it contains --
+    # measured, not reasoned about, on the first run of this mutation.
+    expected = [r["key"] for r in _content_regions(_doc_probes())]
+    assert "app" in expected, "fixture precondition: the real page ships a governed #app"
+    probes = _doc_probes(mutant)
+    broke = {v: [e for e in expected if e not in ids]
+             for v, ids in probes["surviving_regions"].items()
+             if [e for e in expected if e not in ids]}
+    assert broke, (
+        "a falsified wallHost left every region standing -- the value is NOT load-bearing "
+        "in the governor's own lookup, so the region check is decoration after all"
+    )
+    assert all("app" in missing for missing in broke.values()), broke
 
 
 @pytest.mark.skipif(not NODE, reason="node not available")

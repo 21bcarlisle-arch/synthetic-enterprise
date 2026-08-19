@@ -1134,7 +1134,7 @@ function recordOpStateViolation(idx,el){
     "carry data-wall-side or data-wall-chrome");
 }
 function applyWallViewToOpState(){
-  var host=document.getElementById("op-state");
+  var host=document.getElementById(applyWallViewToOpState.wallHost);
   if(!host)return;
   // Cached before anything is removed -- opStateBlocks() reads the live children on its
   // first call, so the subject gate must not run before it.
@@ -1237,7 +1237,7 @@ function setWallView(v){
    than shown (fail closed), because the failure mode being guarded is a leak. */
 var WALL_VIOLATIONS=[];
 function applyWallViewToApp(){
-  var app=document.getElementById("app");
+  var app=document.getElementById(applyWallViewToApp.wallHost);
   var kids=(app&&app.children)||[];
   for(var i=kids.length-1;i>=0;i--){
     var el=kids[i];
@@ -1256,6 +1256,15 @@ function applyWallViewToApp(){
     }
   }
 }
+/* THE ID EACH GOVERNOR ACTUALLY RESOLVES, published on the function so enforceDocumentRegions
+   can ask the governor which region it governs instead of being told by the region. This is
+   ONE value used TWICE on purpose -- the governor looks its own host up through it, so a
+   wallHost that lies does not merely mis-answer the region check, it points the governor at
+   the wrong element and the #app / #op-state leak tests go red. A separate registry mapping
+   ids to governors would have been the same hand-kept subject this whole section exists to
+   remove, and could drift from the lookup while every test stayed green. */
+applyWallViewToOpState.wallHost="op-state";
+applyWallViewToApp.wallHost="app";
 /* THE SAME LESSON A FOURTH TIME, one level further up, and this is the level the previous
    three were standing on. applyWallViewToApp's own comment above says "the subject is now
    the DOCUMENT" -- it is not, it is #app. applyWallViewToOpState's subject is #op-state.
@@ -1315,9 +1324,25 @@ function enforceDocumentRegions(){
     if(governed){
       // The claim has to be checkable or it is decoration. A region naming a governor that
       // is not a function on window is ungoverned, whatever it says about itself.
-      if(typeof window[governed]==="function")return;
-      recordRegionViolation(idx,el,"declares data-wall-governed=\""+String(governed)+
-        "\" but no such governor exists");
+      var fn=window[governed];
+      if(typeof fn!=="function"){
+        recordRegionViolation(idx,el,"declares data-wall-governed=\""+String(governed)+
+          "\" but no such governor exists");
+      /* AND EXISTENCE IS NOT ENOUGH, which is the half the arm above could not reach.
+         Both governors resolve their host by id, so a region naming a REAL governor passes
+         an existence check while that function never looks at it -- the declaration true of
+         the FUNCTION and false of the REGION. Measured before this arm existed: a body-level
+         block declaring data-wall-governed="applyWallViewToApp" and carrying "True
+         satisfaction fell 12.2 percentage points" survived the customer's view with
+         WALL_VIOLATIONS empty. Checked by IDENTITY rather than by comparing wallHost to
+         el.id, because two elements can carry the same id and a string compare would hand
+         the impostor the same verdict as the real region. */
+      }else if(fn.wallHost&&document.getElementById(fn.wallHost)===el){
+        return;
+      }else{
+        recordRegionViolation(idx,el,"declares data-wall-governed=\""+String(governed)+
+          "\" but that governor governs "+String(fn.wallHost||"no region")+", not this one");
+      }
     }else if(chromeFlag!==null){
       return;
     }else{
