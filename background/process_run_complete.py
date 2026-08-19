@@ -2867,6 +2867,19 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("Knowledge review generation failed: {}".format(exc))
     try:
+        # G13: the proof-of-caller for the projection store. G12 built the store on 2026-08-11
+        # and NOTHING READ IT for eight days -- the "design with no caller" the founding
+        # instruction was written to end, reproduced by the very atom meant to prevent it.
+        # Running the feed generator here is what makes the store a dependency of publishing
+        # rather than a thing that exists. Same shape and same failure posture as the two
+        # generators above: a raise leaves the PREVIOUS feed live rather than replacing it
+        # with a plausible blank.
+        from tools.generate_projections_page import generate as gen_projections
+        _pj = gen_projections()
+        log("Generated site/data/projections.json from the projection store (G13 proof-of-caller)")
+    except Exception as exc:
+        log("Projections page generation failed: {}".format(exc))
+    try:
         # Must run after generate_customer_reaction_chain (timeline/reaction_chain
         # patched) and generate_customer_sample (churn_accuracy_by_renewal source).
         # WEBSITE_AS_SHOWCASE.md tab 4: case-study recommender.
