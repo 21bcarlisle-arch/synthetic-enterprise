@@ -30,16 +30,6 @@ The case (accretion ledger):
 - `2026-08-08` · `docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md` — the anchor that judges a generated home is itself gas-shaped, and the only electrically-heated home in the cast is the one it fails; a heat-pump band needs a real published source (EoH / SERL) before any generator can claim to be tethered.
 - `2026-08-11` · `docs/staging/done/PLANNER_MINTED_population_and_book_growth_2026-08-11.md` — the director ruled the world's population up and the book won by acquisition; a bigger population must still be anchored, its per-run variation is EP17's subject, and a won book is what a CLV number is for.
 
-## EP1_clv_three_horizon — What a customer is worth, on three horizons
-
-- Lane `B_commercial` · epoch 2 · **1 built toward it**
-- Gate: _none stated on the atom_
-- Status: **PENDING the director** — no word on disk
-
-The case (accretion ledger):
-
-- `2026-08-11` · `docs/staging/done/PLANNER_MINTED_population_and_book_growth_2026-08-11.md` — the director ruled the world's population up and the book won by acquisition; a bigger population must still be anchored, its per-run variation is EP17's subject, and a won book is what a CLV number is for.
-
 ## EP4_collections_journey — The whole road from missed payment to resolution
 
 - Lane `C_customer_ops` · epoch 2 · **1 built toward it**

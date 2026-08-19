@@ -279,6 +279,56 @@ PUBLISH_GATE_WEDGE_MIN_FAILURES = 3            # sustained, not a lone flake (mi
 OPERATIONAL_LAYER_SIGNAL_FILE = PROJECT_DIR / "docs" / "observability" / ".operational_layer_signal.json"
 OPERATIONAL_RED_DRAWABLE_THRESHOLD = 3   # director: persistent-RED = >3 consecutive checks -> drawable
 
+# RUNG 1d -- PRODUCER STARVATION (2026-08-17). The SAME ruling as RUNG 1, applied to the other end of
+# the same pipeline, because it has the SAME consequence and had only HALF the mechanism. Rung 1
+# exists because a wedged PUBLISHER means nothing new reaches the live site. A dead PRODUCER means
+# nothing new reaches the live site either -- and on 2026-08-17 the sim runner failed NINE consecutive
+# times over 70 minutes on one KeyError while the tick worked three other lanes, because a failed run
+# wrote a log line, an ntfy and an `agent_status` anomaly, and the draw ladder reads none of those.
+#
+# Rung 1 could not see it, and that is structural rather than an oversight: it keys on publish
+# FAILURES, and a run that dies never attempts a publish, so `failures` stayed EMPTY -- which reads
+# identically to a healthy gate. Rung 1b could not see it either: it keys on `pytest -m operational`,
+# the daemon-lifecycle/IaC suite, and the daemon was ALIVE the whole time (green, consecutive_green=6,
+# at 16:54Z with eight failures behind it). Between them, liveness was watched and OUTPUT was not.
+#
+# TWO LIMBS, because the two failure modes leave different evidence:
+#   * DIAGNOSED -- the runner is alive and its runs fail. Keyed on .sim_producer_state.json (written
+#     by sim_runner.record_run_outcome; the write rule is stated in exactly ONE place,
+#     sim_runner.PRODUCER_STATE_FILE's contract, and this file only READS it).
+#   * UNDIAGNOSED -- the runner is DEAD, wedged, or was never started, so it wrote no counter at all.
+#     Keyed on the AGE OF THE NEWEST RUN ARTEFACT, which is written by the child process and not by
+#     the runner's own bookkeeping. A state-file-only detector would be silent on exactly the outage
+#     it most needs to catch, which is the fail-silent-on-missing shape R15 names.
+# The artefact age is also the INDEPENDENCE cross-check for the diagnosed limb (anti-tautology): a run
+# output newer than the newest recorded failure means a run has since succeeded and the counter is
+# stale, so the rung goes quiet on its own without anyone clearing state by hand.
+#
+# A DIRECTOR HOLD IS NOT STARVATION: `.sim_runner_hold` present -> silent, because the runner is
+# skipping runs on purpose and drawing "go fix the producer" would be a phantom every tick for as
+# long as the hold stands (feedback_control_that_can_only_fail_wedges).
+# Detector: _producer_starved_active(); wired as RUNG 1d of _self_refill_draw and mirrored in
+# _is_drained_and_gated. R15-proven both ways in test_producer_starvation_draw.py.
+SIM_PRODUCER_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".sim_producer_state.json"
+SIM_RUNNER_HOLD_FLAG = PROJECT_DIR / "docs" / "review_gates" / ".sim_runner_hold"
+SIM_RUN_OUTPUT_DIR = PROJECT_DIR / "docs" / "reports"
+SIM_RUN_OUTPUT_GLOB = "run_output_*.json"
+PRODUCER_STARVED_MIN_FAILURES = 3          # sustained, not a lone flake (mirrors rung 1's bar)
+PRODUCER_STARVED_MIN_AGE_SECONDS = 30 * 60  # 5 lost cycles at the p50 cadence, on the DIAGNOSED limb only
+# The UNDIAGNOSED limb's threshold is MEASURED, not guessed. It was first written as 45 min on the
+# reasoning "a cycle is ~6 min, so 45 is seven lost cycles" -- which was wrong because it sized
+# against the RUN and the real cycle is run + publish. Measured over the 2,977 inter-completion gaps
+# in sim-runner-log.md: p50 9 min, p90 20, p95 32, p99 67. A 45-min bar sits between p95 and p99 and
+# would have fired on 2.79% of gaps -- roughly 31 phantom PRIORITY-ZERO draws a week on a healthy
+# pipeline, which is how a rung earns itself a kill flag. 3h is p99.7-ish, and the tail beyond it is
+# dominated by genuine outages (today's was 3.0h) rather than slow publishes.
+# It is also NOT a fresh arbitrary number: it is `publish_freshness.STALE_AFTER_SECONDS`, this
+# project's existing definition of "the live site has gone stale", which is the consequence this
+# rung exists to prevent. The two ends of the pipeline now use one staleness clock.
+# The sharp instrument is the DIAGNOSED limb at 30 min; this limb is the backstop for a runner that
+# writes no counter at all, where hours of latency is the correct trade against phantom draws.
+PRODUCER_ARTEFACT_STALE_SECONDS = 3 * 60 * 60
+
 # RUNG 4b -- STALE PUBLISHED GAP MEASUREMENTS (H_GAP_fabric_belief_truth_gap residual (d), 2026-08-10).
 # The gap-ledger reconcile is report-only and had no consumer that could ACT on it, so five
 # consecutive ticks cleared its drift set by hand. Detector: _stale_gap_row_draw(); wired as RUNG 4b
@@ -1313,6 +1363,47 @@ def _idle_discover_frame_draw(rng: Any = None) -> dict | None:
             "re-handing a saturated atom."
         )
     candidates = non_saturated
+
+
+    # THE PASS CEILING (director ruling, 2026-08-19): "make it impossible for the system to
+    # run indefinitely on work that cannot change its own state." An atom that has taken
+    # CEILING DISCOVER/FRAME passes with no level move since leaves this draw. It is not
+    # punished and discovery is not made expensive -- the ruling forbids that lever -- the
+    # LANE IS MADE FINITE. Its next honest answer is promote-to-build or close, and both
+    # change state; investigating again is the one answer no longer available.
+    #
+    # Measured cause: 98 commits on 2026-08-18 produced ZERO recorded level moves, against 3
+    # commits per move on 08-09. Eighty atoms sit below target and idle, and this tier feeds
+    # on exactly that set, so the lane was inexhaustible BY CONSTRUCTION.
+    #
+    # FAIL-CLOSED TOWARD STOPPING, and deliberately the OPPOSITE direction to
+    # `_is_frame_saturated` above. That one fails toward offering, because its risk is
+    # starving real work. This one fails toward an empty tier, because its risk is the
+    # indefinite run the ruling exists to end -- and it is safe to fail that way: BUILD and
+    # HARDEN work stay drawable, only this tier closes, so the loop is pushed toward the work
+    # that moves state rather than halted.
+    try:
+        from tools.discovery_pass_ceiling import saturated_ids
+
+        over_ceiling = saturated_ids()
+    except Exception as exc:  # noqa: BLE001 - an unreadable ceiling must not silently reopen the lane
+        log(
+            "IDLE DISCOVER/FRAME draw: the pass ceiling could not be computed "
+            f"({exc}) -- returning empty rather than reopening an unbounded discovery lane "
+            "(director ruling 2026-08-19). BUILD and HARDEN work are unaffected."
+        )
+        return None
+    under_ceiling = [a for a in candidates if a.get("id") not in over_ceiling]
+    if candidates and not under_ceiling:
+        log(
+            f"IDLE DISCOVER/FRAME draw: all {len(candidates)} idle atom(s) are OVER THE PASS "
+            "CEILING -- each has been investigated repeatedly without its level moving. This "
+            "is a TRUE empty discovery set, not a spin: every one of them is now a decision "
+            "(promote to build, or close). `python3 -m tools.discovery_pass_ceiling` lists "
+            "them."
+        )
+    candidates = under_ceiling
+
     if not candidates:
         return None
     weights = [max(1, a.get("dial_inherited", 1)) for a in candidates]
@@ -3126,6 +3217,11 @@ def _publish_gate_wedge_active(
     # a state file written before this field existed knew only the fail-fast red.
     depth_clause = _wedge_depth_clause(state.get("red_census"), state.get("total_red"),
                                        len(state.get("blocking_tests") or []))
+    # WHAT THE DRAW COULD NOT SEE UNTIL NOW (2026-08-17): that the world moved after the reading
+    # was taken. Both are TEXT ONLY and neither can return None -- see their docstrings. They come
+    # BEFORE `depth_clause` because the in-flight one countermands that clause's own instruction.
+    superseded_clause = _wedge_superseded_hash_clause(failures, head)
+    in_flight_clause = _wedge_in_flight_clause(_live_publish_gate_runs())
     return (
         "PUBLISH-GATE WEDGE self-refill (RUNG 1, PRIORITY ZERO -- director rulings "
         "UNWEDGE_PUBLISH_PRIORITY_ZERO 2026-07-23 + WEDGE3_AND_RUNG1_MECHANISE 2026-07-24): the "
@@ -3135,7 +3231,8 @@ def _publish_gate_wedge_active(
         "`SIM_FAST_MODE=1 python3 -m pytest tests/ -m 'not operational' <heavy-ignores>` (see "
         "background/process_run_complete.py::publish_gate_pytest_argv), FIX the red test, flush the "
         "run_complete queue, and R11-verify the folded live site. NTFY the director the one-line "
-        f"cause.{depth_clause}{episode_clause}{cure_clause} Last recorded failure: {last_reason}"
+        f"cause.{superseded_clause}{in_flight_clause}{depth_clause}{episode_clause}{cure_clause}"
+        f" Last recorded failure: {last_reason}"
     )
 
 
@@ -3163,6 +3260,115 @@ def _wedge_depth_clause(census, total_red, named) -> str:
     return (" DEPTH UNKNOWN: the gate is fail-fast and no report-only census is on record, so the "
             "test named above may be one red of several. Enumerate before assuming it is the only "
             "one -- run the gate's argv without `-x`.")
+
+
+def _wedge_superseded_hash_clause(failures, head, is_ancestor=None) -> str:
+    """Has HEAD moved past the commit EVERY in-window failure was recorded at?
+
+    WHY THIS IS TEXT AND NOT A `return None` (2026-08-17, the finding that specified this repair,
+    `WORKER_FINDING_THE_WEDGE_DRAW_NEVER_READS_THE_COMMIT_ITS_OWN_FAILURE_RECORDS_NAME`). When the
+    failures name an OLD commit there is still genuinely no green at HEAD, so the draw must keep
+    firing: R15 and Rule 0 both point at failing safe TOWARD drawing, and a repair that suppressed
+    the draw here would blind RUNG 1 to any wedge that survives a commit -- strictly worse than
+    saying nothing. The defect this closes is in what the draw SAYS. "No pass at HEAD" reads as
+    "failing at HEAD", so a worker acting on it at priority zero starts from "find the red" when
+    the true state can be "the fix landed 20 minutes ago and its verification is running now".
+    That misread has now cost two consecutive priority-zero ticks (11:08 and 11:16 UTC on
+    2026-08-17), which is what moved this from QUEUED to built.
+
+    The independence question this does NOT answer: whether a fix landed. It cannot -- a commit
+    between the failure and HEAD may be unrelated. It reports the ORDERING and hands the reader
+    the one command that settles it. That is deliberately weaker than a verdict.
+
+    UNKNOWN PRINTS NOTHING, on the same defensive rule as `cited`/`depth_clause`: a record with no
+    `git_hash`, a MIXED set (some failures at one commit, some at another -- the wedge outlived a
+    commit, which is the case this must never soften), a hash equal to HEAD, or git unable to
+    answer the ancestry all read as unknown and change the message not at all."""
+    is_ancestor = _commit_is_ancestor if is_ancestor is None else is_ancestor
+    if not head or not failures:
+        return ""
+    hashes = set()
+    for f in failures:
+        if not isinstance(f, dict):
+            return ""
+        gh = str(f.get("git_hash") or "").strip()
+        if not gh or gh == "unknown":
+            return ""
+        hashes.add(gh)
+    # A MIXED SET IS THE DANGEROUS ONE, so it reads as unknown: failures at more than one commit
+    # mean the wedge SURVIVED a commit, and that is precisely when the reader must not be told
+    # "HEAD has moved on, maybe it's fixed".
+    if len(hashes) != 1:
+        return ""
+    only = hashes.pop()
+    if only == head:
+        return ""
+    if is_ancestor(only, head) is not True:
+        return ""
+    return (
+        f" HEAD HAS MOVED SINCE EVERY RECORDED FAILURE: all {len(failures)} of them were recorded "
+        f"at `{only}`, which is a STRICT ANCESTOR of HEAD `{head}` -- so a fix may ALREADY have "
+        f"landed and none of these failures has been reproduced at the tree you would be "
+        f"diagnosing. Run `git log --oneline {only}..{head}` FIRST. This does not mean the wedge "
+        "is over (there is still no recorded green at HEAD, which is why this draw fired) -- it "
+        "means the red you are being sent to find may no longer exist."
+    )
+
+
+def _live_publish_gate_runs(ps_fn=None) -> list[dict]:
+    """Live `process_run_complete.py` processes as [{pid, elapsed_s}], newest-agnostic.
+
+    UNAVAILABLE READS AS NONE, and that direction is the safe one here -- unlike a control, this
+    feeds a WARNING that suppresses part of the remedy. Failing to warn leaves the draw exactly as
+    it was before this existed; warning falsely would tell a worker not to run the gate during a
+    real wedge, which is the harmful direction. `ps` missing, erroring, or timing out -> []."""
+    try:
+        if ps_fn is not None:
+            out = ps_fn()
+        else:
+            out = subprocess.run(
+                ["ps", "-eo", "pid,etimes,args"],
+                capture_output=True, text=True, timeout=10,
+            ).stdout
+    except Exception:
+        return []
+    runs = []
+    for line in (out or "").splitlines():
+        if "process_run_complete.py" not in line or "grep" in line:
+            continue
+        parts = line.split()
+        if len(parts) < 2:
+            continue
+        try:
+            runs.append({"pid": int(parts[0]), "elapsed_s": int(parts[1])})
+        except ValueError:
+            continue
+    return runs
+
+
+def _wedge_in_flight_clause(runs) -> str:
+    """Say a gate run is ALREADY RUNNING, and countermand the remedy that would race it.
+
+    The draw's own instruction is "run the gate's argv without `-x`" (see `_wedge_depth_clause`'s
+    UNKNOWN branch). That instruction is correct when nothing is running and ACTIVELY HARMFUL when
+    something is: this box is a 15 GB cgroup, not the 32 GB of physical RAM (cf.
+    `WORKER_FINDING_THE_CEILING_WAS_SIZED_FROM_A_PROCESS_AND_APPLIED_TO_A_CGROUP_2026-08-11`), so a
+    second full suite beside a live one can OOM-kill the real gate -- and that kill is recorded as
+    a `test_regression`, i.e. the next failure in the episode, MANUFACTURED by the instruction
+    meant to diagnose it (`WORKER_FINDING_AN_OOM_KILL_IS_RECORDED_AS_A_TEST_REGRESSION_2026-08-10`).
+    The clause must therefore not merely inform; it must withdraw the instruction in words."""
+    if not runs:
+        return ""
+    r = max(runs, key=lambda x: x.get("elapsed_s", 0))
+    mins = int(r.get("elapsed_s", 0)) // 60
+    return (
+        f" A GATE RUN IS IN FLIGHT RIGHT NOW: process_run_complete.py PID {r.get('pid')}, running "
+        f"~{mins} min. DO NOT run the gate's argv beside it -- a second full suite on this 15GB "
+        "cgroup can OOM the live one, and that kill is recorded as the episode's next failure, so "
+        "the diagnosis would MANUFACTURE the red it went looking for. The 'enumerate without `-x`' "
+        "instruction above is SUSPENDED while this line is present: wait for this run and read its "
+        "outcome instead."
+    )
 
 
 def _operational_red_stale_record_prefix(state: dict, head_time_fn=None, head_hash_fn=None) -> str:
@@ -3272,6 +3478,127 @@ def _operational_red_persistent_draw(
         "restore the capability), confirm the suite GREEN, and NTFY the director the cause. The "
         "signal clears itself on the next hourly check once the suite passes."
     )
+
+
+def _newest_run_artefact_age_seconds(
+    now: float | None = None,
+    reports_dir: Path | None = None,
+) -> float | None:
+    """Age in seconds of the newest simulation run output, or None if there are none
+    (or the directory is unreadable).
+
+    INDEPENDENCE (R15): this is the age of a file the CHILD process writes on a
+    successful run (`tools.run_annual_report --save-json`), never of the runner's own
+    bookkeeping. That is what lets it both cross-check and stand in for
+    `.sim_producer_state.json` -- a detector keyed only on a counter is blind to the
+    process that stopped writing counters.
+    """
+    now = time.time() if now is None else now
+    directory = reports_dir or SIM_RUN_OUTPUT_DIR
+    try:
+        mtimes = [p.stat().st_mtime for p in Path(directory).glob(SIM_RUN_OUTPUT_GLOB)]
+    except OSError:
+        return None
+    if not mtimes:
+        return None
+    return now - max(mtimes)
+
+
+def _producer_starved_active(
+    now: float | None = None,
+    state_path: Path | None = None,
+    reports_dir: Path | None = None,
+    hold_flag: Path | None = None,
+) -> str | None:
+    """RUNG 1d (PRIORITY ZERO) detector: is the SIMULATION PRODUCER down?
+
+    Returns a remediation draw message if so, else None. See the RUNG 1d block beside
+    PRODUCER_STARVED_MIN_FAILURES for why this rung exists, why rungs 1 and 1b were
+    both structurally blind to the 2026-08-17 outage, and why it has two limbs.
+
+    FAIL-SAFE: every read is guarded and a hold silences the rung, so the worst case is
+    one diagnostic turn that finds a healthy producer and rests -- never an exception
+    into the draw ladder, and never a phantom that cannot drain.
+    """
+    now = time.time() if now is None else now
+
+    # A hold is a DELIBERATE stop, not an outage. Checked first: while it stands, no
+    # amount of producer silence is drawable work.
+    flag = hold_flag or SIM_RUNNER_HOLD_FLAG
+    try:
+        if Path(flag).exists():
+            return None
+    except OSError:
+        pass
+
+    artefact_age = _newest_run_artefact_age_seconds(now=now, reports_dir=reports_dir)
+
+    state: dict = {}
+    try:
+        loaded = json.loads(Path(state_path or SIM_PRODUCER_STATE_FILE).read_text())
+        if isinstance(loaded, dict):
+            state = loaded
+    except (OSError, ValueError):
+        state = {}
+
+    # ---- LIMB 1: DIAGNOSED -- the runner is alive and its runs keep failing.
+    if state.get("last_result") == "failed":
+        try:
+            streak = int(state.get("consecutive_failures") or 0)
+        except (TypeError, ValueError):
+            streak = 0
+        first_ts = state.get("first_failure_ts")
+        last_ts = state.get("last_failure_ts")
+        outage = (now - first_ts) if isinstance(first_ts, (int, float)) else 0.0
+        # INDEPENDENCE (anti-tautology): a run artefact NEWER than the newest recorded
+        # failure means a run has since succeeded, so the counter is stale and this
+        # returns None without anyone clearing state by hand. Keyed on the child's
+        # output, never on the same bookkeeping the streak came from.
+        superseded = (
+            artefact_age is not None
+            and isinstance(last_ts, (int, float))
+            and (now - artefact_age) > last_ts
+        )
+        if (streak >= PRODUCER_STARVED_MIN_FAILURES
+                and outage > PRODUCER_STARVED_MIN_AGE_SECONDS
+                and not superseded):
+            detail = str(state.get("detail") or "no diagnostic captured")
+            return (
+                f"PRODUCER STARVATION self-refill (RUNG 1d, PRIORITY ZERO -- the RUNG 1 ruling "
+                f"applied to the other end of the same pipeline): the simulation runner has failed "
+                f"{streak} consecutive runs over {outage / 3600:.1f}h and NOTHING new has reached "
+                f"the live site in that window. Failing with: {detail}. This outranks every "
+                f"product/HARDEN lane for the same reason a wedged publish gate does -- a dead "
+                f"PRODUCER and a wedged PUBLISHER have the identical consequence, and the site goes "
+                f"stale through a door none of the publish alarms watch. DIAGNOSE with evidence "
+                f"(R9): the full child traceback is in docs/observability/sim-runner-log.md, and "
+                f"the failure is REPRODUCIBLE in the foreground (`python3 -m tools.run_annual_report "
+                f"--save-json /tmp/probe.json`) -- never infer the cause from the one-line detail "
+                f"above. NAME the defect one line, FIX it, and close the CLASS rather than the "
+                f"instance (R10) if the break came from a rename or a contract change: the reader "
+                f"that crashed is rarely the only one. The rung clears itself on the next "
+                f"successful run; do NOT edit the counter by hand."
+            )
+
+    # ---- LIMB 2: UNDIAGNOSED -- no artefact for a long time and no failure counter to
+    # explain it. This is the runner DEAD/wedged/never-started case, which the limb above
+    # cannot see precisely because a dead runner writes nothing.
+    if artefact_age is not None and artefact_age > PRODUCER_ARTEFACT_STALE_SECONDS:
+        last_result = state.get("last_result") or "no state recorded"
+        return (
+            f"PRODUCER SILENT self-refill (RUNG 1d, PRIORITY ZERO): no simulation run output has "
+            f"been written for {artefact_age / 3600:.1f}h (newest docs/reports/run_output_*.json), "
+            f"and the producer's own state says '{last_result}' -- so this is not a run failing, it "
+            f"is runs NOT HAPPENING. A dead producer takes the live site stale exactly as a wedged "
+            f"publish gate does, and no publish alarm watches this door. DIAGNOSE with evidence "
+            f"(R9): is the sim_runner process alive (`ps -eo pid,etime,cmd | grep sim_runner`), is "
+            f"its unit up, is `.sim_runner_hold` absent (this rung already checked, but re-check "
+            f"whether it SHOULD be held), and does a foreground run get further than the daemon "
+            f"does? Restart it with the current code (R2: committed is not running) and confirm a "
+            f"run output lands before calling it fixed."
+        )
+
+    return None
 
 
 DIRECTOR_AXES_PATH = PROJECT_DIR / "docs" / "design" / "DIRECTOR_AXES.md"
@@ -4101,6 +4428,19 @@ def _self_refill_draw() -> str | None:
             "paging threshold -> drawing the daemon-lifecycle fix above every product/HARDEN lane "
             "(director console 2026-07-25)")
         return op_red
+    # RUNG 1d -- PRODUCER STARVATION (2026-08-17). Checked beside rungs 1/1b because it is the
+    # SAME consequence: rung 1 catches a publisher that cannot push, this catches a producer with
+    # nothing to push. Its absence was the 70 minutes of 2026-08-17 in which nine identical
+    # KeyError failures fired nine ntfys and drew nothing, while rung 1 read an empty failure list
+    # (a dead run never attempts a publish) and rung 1b read GREEN (the daemon was alive; only its
+    # output was broken). R15: proven to fire on that recorded state and stay silent on a healthy
+    # producer, on a held one, and on a stale counter a later success superseded.
+    producer = _producer_starved_active()
+    if producer:
+        log("PRODUCER STARVATION (RUNG 1d, PRIORITY ZERO): the simulation producer is down -> "
+            "drawing the producer fix above every product/HARDEN lane (the RUNG 1 ruling applied "
+            "to the other end of the same pipeline, 2026-08-17)")
+        return producer
 
     # RUNG 1c -- BLOCKING FINDING LANE PRECEDENCE (OPS12, clause 3). Computed BEFORE the
     # three-lane draw so a live BLOCKING finding can exclude same-lane "new feature work"
@@ -4375,6 +4715,13 @@ def _is_drained_and_gated() -> bool:
         # rung added to `_self_refill_draw`; without it, `_is_drained_and_gated` would green-light the
         # exact overnight rest the draw now refuses (13 consecutive reds, tick resting beside them).
         if _operational_red_persistent_draw():
+            return False
+        # RUNG 1d -- PRODUCER STARVATION (2026-08-17): rest is NEVER legitimate while the
+        # simulation producer is down. Mirror of the rung added to `_self_refill_draw`;
+        # without it, `_is_drained_and_gated` would green-light rest beside a pipeline that
+        # has stopped producing anything to publish -- which is what "the three lanes are
+        # empty" looked like for 70 minutes on 2026-08-17.
+        if _producer_starved_active():
             return False
         # RUNG 1c -- BLOCKING FINDING LANE PRECEDENCE (OPS12, clause 3): rest is never
         # legitimate while a BLOCKING finding sits live in any lane -- it is real, ahead-
