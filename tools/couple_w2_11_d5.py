@@ -4780,6 +4780,22 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         "visible_drifts": (-1,),
         "collapsed_pairs": (),
         "structural": True,
+        # ONE FLAG WAS COVERING TWO PROVENANCES (atom D26, 2026-08-19).
+        # `structural` in this register means "follows from the scenario
+        # calendar", and only the +1 EDGE does: it holds 10/10 seeds and it
+        # moves with the reading date exactly as the calendar says it should.
+        # The band BEHIND it does not -- the smallest visible over-drift at the
+        # shipped date is +2..+8 across those same seeds while the number of
+        # invoices sitting one day past the line varies only 1..7, because what
+        # sets it there is the D8 mis-allocation draw (a case wrongly flagged
+        # crossing BACK), not the calendar. Declared per edge so a reader
+        # cannot take the band for a property of the instrument.
+        "structural_scope": {
+            "+1_edge": "calendar -- holds 10/10 seeds, moves with the reading "
+                       "date (atom D26)",
+            "band_behind_it": "a DRAW -- the D8 mis-allocation channel; "
+                              "+2..+8 over the same ten seeds",
+        },
         # RE-POINTED WHEN D25 LANDED. This entry cited D25 while D25 was the
         # ageing dimension's reshape; a debt entry outliving its debt is the
         # rot this register's own mutation suite fires on, so the residual has
@@ -4799,18 +4815,59 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         # and calling it saturation cost the reader 65 days of readable
         # movement (see the grid-extent block above `dense_drift_grid`).
         "collapsed_runs": _DETECTION_COLLAPSED_RUNS,
+        # THE DIMENSION'S OWN READING DATE (atom D26, 2026-08-19). The +1d
+        # blindness above is a property of WHEN this reading is taken, not of
+        # the book: at `last_due + DEFAULT_RECONCILIATION_GRACE_DAYS` -- the
+        # earliest date every invoice has reached its own grace line -- the
+        # smallest visible over-drift falls from +2..+8 to +1..+2 while all
+        # four as_of-invariant figures come out BIT-IDENTICAL (ten seeds,
+        # n=300). `AS_OF_BUFFER_DAYS` is NOT lowered to get it: that constant is
+        # load-bearing for the ageing dimension (D25), which moves at the
+        # earlier date, so the answer is a per-dimension reading date and the
+        # ageing move is this claim's null control. Re-derived every run by
+        # `measure_detection_resolution`; never read back from here.
+        "own_reading_buffer_days_closed_form": (
+            "DEFAULT_RECONCILIATION_GRACE_DAYS"),
+        "own_smallest_visible_over_drift_band": (1, 2),
+        "shipped_smallest_visible_over_drift_band": (2, 8),
+        "own_reading_scope": {
+            "atom": "D26_detection_grace_line_has_no_book_beside_it",
+            "n_customers": 300,
+            "seeds": (7, 11, 23, 1, 2, 3, 5, 13, 29, 31),
+        },
+        "reshape_atom": "D26_detection_grace_line_has_no_book_beside_it",
         "saturates_below": -6,
         "saturates_above": 82,
         "saturation_atom": "D28_the_detection_gap_is_quantised_by_this_books_placement",
-        # AN OWNER PER EDGE (atom D29), and after the grid-extent finding the
-        # two edges really do have two owners. BELOW is D28's: the book sits nowhere near the grace
-        # line, so a company short on its terms has flagged everything. ABOVE
-        # is D31's, and it is a different KIND of stop -- not the instrument
-        # going blind but the book running out, `as_of` reached with nothing
-        # left to detect. D28 named itself here only because its grid stopped
-        # at +21 and it never saw the real edge; one field naming both was the
-        # shape D29 built this pair to break.
-        "saturation_atom_below": "D28_the_detection_gap_is_quantised_by_this_books_placement",
+        # AN OWNER PER EDGE (atom D29), and the two edges are two KINDS of
+        # object -- the repair its sibling `recon_lag_days` got on 2026-08-18
+        # and this entry did not (atom D26, 2026-08-19). BELOW is ARITHMETIC:
+        # `-(grace + 1)`, attained in any book by any invoice paid on its due
+        # date, so it is a BOUND and not a property of this population --
+        # differentially proven over `grace` in {2,5,10} at both reading dates,
+        # 18/18. It is NOT, as this field said until today, "the book sits
+        # nowhere near the grace line": the book sits AGAINST the line (4/3/3
+        # invoices one day past it on seeds 7/11/23) and the edge would be the
+        # same if it did not. ABOVE is a DRAW, and a different kind of stop --
+        # not the instrument going blind but this book's luckiest case running
+        # out. D28 named itself here only because its grid stopped at +21 and
+        # it never saw the real edge; one field naming both was the shape D29
+        # built this pair to break.
+        "saturation_atom_below": "BOUND:the flag-everything set",
+        "saturates_below_closed_form": (
+            "-(DEFAULT_RECONCILIATION_GRACE_DAYS + 1)"),
+        # THE UPPER EDGE CARRIES ITS SCOPE, and it has no predictor (atom D26).
+        # The obvious book-side candidate -- the last truly-failed invoice
+        # leaving the flagged set at `max{as_of - due : failed} - grace + 1` --
+        # OVER-PREDICTS on 3/3 seeds (+87 vs +80, +88 vs +82, +88 vs +75). At
+        # seed 7's real edge the oldest true failure is still five days inside
+        # its line and the reading has been pinned for two days: the reading
+        # stops resolving BEFORE the book runs out, which is not what the `why`
+        # below used to say. +82 is also the ALL-SEED intersection edge and seed
+        # 11's own, seven days beyond seed 23's -- a live reader holding one
+        # book is being told a limit measured on the intersection of three.
+        "saturates_above_scope": {"n_customers": 300, "seeds": (7, 11, 23),
+                                  "is_the_seed_intersection": True},
         "saturation_atom_above": "D31_the_recon_grid_saturates_beyond_this_books_window",
         # WHY THE INTERIOR IS QUANTISED, MEASURED RATHER THAN BLAMED ON THE
         # BOOK'S PLACEMENT (2026-08-14 BLOCKING finding, atom D28). The
@@ -4834,24 +4891,39 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
             "on-path blindness -- D25 spread the book across the billing "
             "cycle, which fixed the ageing dimension's placement problem and "
             "left this one untouched, because this blindness is the GRACE "
-            "LINE and not the bucket grid. A company holding terms one day "
-            "LONGER still finds every one of these invoices past grace by "
-            "`as_of` (the youngest is AS_OF_BUFFER_DAYS overdue and the grace "
-            "window is far shorter), so the flagged set is identical; one day "
-            "SHORTER pulls extra invoices over the line and the set moves. "
-            "Same shape as the defect D25 closed -- the book has no invoice "
-            "sitting BESIDE the boundary this dimension reads -- one boundary "
-            "further out, which is why it is owned by its own atom (D26) "
-            "rather than closed on sight. A reader must not take the ageing "
+            "LINE and not the bucket grid. WHY, CORRECTED 2026-08-19 (atom "
+            "D26, measured): this entry used to say the book has no invoice "
+            "sitting BESIDE the line this dimension reads. It is checkable and "
+            "it is FALSE -- 4/3/3 invoices on seeds 7/11/23 sit exactly one "
+            "day past the company's line, and the flagged SET moves on them "
+            "(seed 7, 331 -> 327 at +1d). The headline does not move because "
+            "the EXCLUSION boundary and the DETECTOR line are keyed on the "
+            "same quantity: the never-flaggable band is `days_late <= grace` "
+            "and the company's line at drift k is `days_late <= grace + k`, so "
+            "the cases a small over-drift can carry across the line are BY "
+            "CONSTRUCTION the cases this headline declines to score. Crowding "
+            "the book against the line buys nothing; what buys resolution is "
+            "the READING DATE, and it is free -- the youngest true failure "
+            "sits AS_OF_BUFFER_DAYS - grace = 25 days inside the line at the "
+            "shipped `as_of`, and reading the same book at "
+            "`last_due + grace` takes the smallest visible over-drift from "
+            "+2..+8 to +1..+2 with every as_of-invariant figure bit-identical "
+            "(ten seeds; atom D26's reshape, `own_reading_buffer_days_closed_"
+            "form`). The residual D26 still owns is that the PUBLISHED figure "
+            "is read at the shipped date, so this band is what a live reader "
+            "gets. A reader must not take the ageing "
             "headline as covering this direction (the D16 rule -- aligned "
             "denominators are still different questions). AND IT SATURATES IN "
-            "BOTH TAILS (atom D28 below, atom D31 above): below -6d every "
-            "invoice in the book is already past the company's grace line "
-            "however much shorter its terms get, so every counterfactual "
-            "supplier from a week short to the earliest date the organ is "
-            "asked publishes ONE figure; above +82d none of them is past it "
-            "before `as_of`, and the rest publish another. BOTH EDGES ARE NOW "
-            "THE BOOK'S OWN END rather than the sweep's: D28 read this tail as "
+            "BOTH TAILS, AND THEY ARE TWO KINDS OF OBJECT (D26, 2026-08-19): "
+            "below -6d EVERY book flags every invoice, because -(grace+1) puts "
+            "the company's line on `due - 1` -- arithmetic over the grace "
+            "window, proven differentially over grace in {2,5,10}, not a fact "
+            "about this population; above +82d the reading is pinned by THIS "
+            "DRAW's luckiest case, and NOT because the book has run out -- at "
+            "the real edge the oldest true failure is still five days inside "
+            "its line, so the book-side candidate over-predicts by 6-13 days "
+            "on 3/3 seeds and the edge carries a scope instead of a reason. "
+            "The sweep's own end was a third story again: D28 read this tail as "
             "stopping at +17d because +21d was the last company it scored, and "
             "the sixty-five days between +17 and +82 -- where the figure moves "
             "0.0296 -> 0.1618 -- were published as unreadable. In between the "
@@ -6358,6 +6430,339 @@ def check_ageing_resolution(
                 f"{'visible' if did_move else 'invisible'} by re-scoring -- "
                 "the population-side predictor and the drift sweep disagree, "
                 "so one of them is describing an instrument that is not there")
+    return out
+
+
+# ---------------------------------------------------------------------------
+# DETECTION RESOLUTION -- the dimension's OWN READING DATE
+# (atom D26_detection_grace_line_has_no_book_beside_it, 2026-08-19)
+# ---------------------------------------------------------------------------
+# THE ATOM'S OWN NAME IS THE REFUTED CLAIM, and it is left alone on purpose.
+# `D26_detection_grace_line_has_no_book_beside_it` is a LIVE VALUE -- it is what
+# `DIMENSION_DRIFT_RESOLUTION["detection"]["debt_atom"]` points at -- so
+# renaming it to match the finding would break the debt pointer whose rot this
+# register's mutation suite exists to fire on. The correction lives here and in
+# the entry's `why`, never in the id.
+#
+# WHAT WAS MEASURED, AND WHAT IT REFUTES (n=300, ten seeds, shipped
+# `build_scenario`/`score_triad`, nothing monkeypatched). The register said this
+# dimension cannot see a +1d terms error because "the book has no invoice
+# sitting BESIDE the boundary this dimension reads". Checkable, and false: at
+# the shipped reading date 4/3/3 invoices on seeds 7/11/23 sit at exactly one
+# day past the company's line, and the flagged SET moves on them (seed 7,
+# `flagged_size` 331 -> 327 at +1d). The headline still does not move, and the
+# reason is the PARTITION, not the placement:
+#
+#     the exclusion boundary is `days_late <= grace`,
+#     the company's line at drift k is `days_late <= grace + k`,
+#
+# so the cases a small over-drift can carry across the line are BY
+# CONSTRUCTION the cases the headline declines to score (D10/D11's
+# never-flaggable band, which is right). Crowding the book against the line
+# buys nothing; the register's stated cause bought the instrument a compliment
+# it had not earned.
+#
+# WHAT DOES BUY RESOLUTION IS THE READING DATE, and it is free. A truly-failed
+# invoice is `as_of - due` days past due, and the shipped `as_of` is
+# `AS_OF_BUFFER_DAYS` (30) past the last due date the cycle can produce -- so
+# the youngest true failure sits 25 days INSIDE the company's line and no small
+# terms error can carry it out. Read the same book at
+# `last_due + DEFAULT_RECONCILIATION_GRACE_DAYS` instead -- the earliest date at
+# which every invoice in it has reached its own grace line -- and the smallest
+# visible over-drift falls from +2..+8 to +1..+2 on ten seeds, while the figure
+# itself does not move by a digit.
+#
+# WHY A SECOND READING DATE IS LEGAL AT ALL, and it is the whole of the design:
+# `DIMENSION_AS_OF_CONTRACT` DECLARES this dimension's gap invariant under
+# `as_of` (atom D11, and the population is EVER-FLAGGED precisely so). A
+# dimension whose published figure does not depend on when it is asked may be
+# asked EARLIER for free. That is measured here per run, never assumed --
+# `co_read_dimensions_identical` re-scores all four as_of-invariant dimensions
+# at both dates and `check_detection_resolution` fires if any of them moves.
+#
+# AND IT MAY NOT BE A GLOBAL BUFFER CHANGE. `AS_OF_BUFFER_DAYS` is load-bearing
+# for the SIBLING dimension: at the earlier date the whole book sits below the
+# 30-day bucket floor and the ageing headline moves (0.1130 -> 0.0802 on seed 7,
+# same shape on every seed). Lowering the constant would green this atom's
+# criterion by destroying the atom it depends on -- the "exit criterion greened
+# by the move it forbids" shape D29 found one atom over. So the ageing figure
+# MOVING between the two dates is this control's null control: it is what proves
+# the two dates are genuinely different and that every identity above is a
+# measurement rather than a comparison of a number with itself.
+DETECTION_RESOLUTION_TARGET_DAYS = 1
+
+# THE CEILING IS THE WORST READING OVER THE DECLARED SCOPE, NOT A TARGET (R12).
+# The atom's ambition is the 1-day error; measured, the own reading date reaches
+# it on 8 of 10 seeds and reads +2 on the other two (23 and 3, whose newest true
+# failure is a day behind the cycle's last due date). Declaring 1 would red the
+# shipped book; declaring 2 and calling it the target would tune the target to
+# the measurement. So the target stays 1, the ceiling is declared separately as
+# the worst reading the scope admits, and `check_detection_resolution` RE-DERIVES
+# it -- a seed reading +3 fails rather than widening the band.
+DETECTION_RESOLUTION_CEILING_DAYS = 2
+
+# The four dimensions `DIMENSION_AS_OF_CONTRACT` declares as_of-invariant --
+# derived from the contract, never hand-listed, so a fifth dimension declared
+# invariant is co-read without anyone remembering to add it here.
+DETECTION_CO_READ_DIMENSIONS = tuple(
+    d for d, c in DIMENSION_AS_OF_CONTRACT.items()
+    if c.get("gap_is_as_of_invariant"))
+
+
+def predict_detection_saturates_below(
+    reconciliation_grace_days: Optional[int] = None,
+) -> int:
+    """The detection reading's LOWER saturation edge, from the grace window
+    alone -- no book, no draw, no seed (atom D26).
+
+    `-(grace + 1)`. At that drift the company's line falls on `due - 1`, every
+    record in any book has `days_late >= 0` or is unpaid, so every invoice
+    flags and the reading pins at its flag-everything value however much
+    shorter the supplier's terms get.
+
+    This discharges HALF of the residual `detection_resolution_caveat` has
+    carried since D28 -- "no population-side predictor of those edges has been
+    built". The lower edge needs no population at all. The UPPER edge still has
+    none: the obvious book-side candidate (`max{as_of - due : failed} - grace +
+    1`) over-predicts by 6-13 days on 3/3 seeds, because the reading stops
+    resolving before the book runs out.
+
+    Differentially proven over `grace` in {2, 5, 10} at both reading dates,
+    18/18 -- a predictor that only ever answers at the shipped grace window is
+    the D21 tautology in miniature."""
+    grace = (DEFAULT_RECONCILIATION_GRACE_DAYS
+             if reconciliation_grace_days is None else reconciliation_grace_days)
+    return -(grace + 1)
+
+
+def detection_reading_date(
+    records: Sequence[PeriodRecord],
+    reconciliation_grace_days: Optional[int] = None,
+) -> Optional[date]:
+    """The date the DETECTION dimension's own reading is taken at (atom D26).
+
+    `max(due_date) + grace`: the EARLIEST date at which every invoice this book
+    presents has reached its own reconciliation grace line. Earlier than that
+    and the reading is taken before some accounts are chaseable at all, which
+    moves the figure (measured: at `last_due + 4` seed 7 publishes 0.0194
+    against the shipped 0.0145, and its latency moves too) -- so this is a
+    FLOOR, derived, not a buffer somebody liked the size of.
+
+    It is `DEFAULT_RECONCILIATION_GRACE_DAYS` and not a new literal on purpose.
+    A free literal here would be the class this module has now found four times
+    (`draw_size_axis`'s 150, the belief axis's 24): a number in the position
+    that decides the verdict, with nothing beside it deriving the number.
+
+    Returns None on a book with no invoices -- an empty population has no
+    reading date, and a caller reading None as "the shipped date" is the
+    fail-open shape R15 names third."""
+    grace = (DEFAULT_RECONCILIATION_GRACE_DAYS
+             if reconciliation_grace_days is None else reconciliation_grace_days)
+    dues = [r.due_date for r in records]
+    if not dues:
+        return None
+    return max(dues) + timedelta(days=grace)
+
+
+def measure_detection_resolution(
+    records: Sequence[PeriodRecord],
+    consumer: "PaymentObservationConsumer",
+    as_of: date,
+    reconciliation_grace_days: Optional[int] = None,
+    max_drift: int = 8,
+) -> Dict[str, object]:
+    """Re-score this book's detection headline at BOTH reading dates and report
+    what each can resolve (atom D26).
+
+    Measured, never declared: the smallest visible over-drift at the shipped
+    `as_of` and at this dimension's own reading date, the lower saturation edge
+    against its closed-form prediction, the calendar term the book supplies,
+    and -- the leg that makes the second date legal -- whether the four
+    as_of-invariant dimensions publish the same figures at both.
+
+    THE CALENDAR TERM IS REPORTED, NOT BELIEVED. `min(as_of - due : failed) -
+    grace + 1` is the distance from the youngest true failure to the company's
+    line, and it is the only part of the answer that comes off the population.
+    It is NOT the resolution: measured over ten seeds it over-predicts on two
+    (the D8 mis-allocation channel resolves finer than the calendar does) and
+    under-predicts on one (the boundary case was DD-observed, and the DD
+    channel is drift-inert by D10, so the flagged set does not move on it). An
+    exact population-side predictor of this edge does not exist and this
+    measurement does not pretend to be one -- it publishes both numbers and
+    lets `check_detection_resolution` report the disagreement."""
+    grace = (DEFAULT_RECONCILIATION_GRACE_DAYS
+             if reconciliation_grace_days is None else reconciliation_grace_days)
+    own = detection_reading_date(records, grace)
+    failures = [r for r in records if r.result == "failed"]
+
+    def _score(reading: date, k: int) -> Dict[str, object]:
+        return score_triad(records, consumer, reading,
+                           reconciliation_grace_days=grace,
+                           organ_terms_drift_days=k)
+
+    def _smallest_visible(reading: Optional[date]) -> Tuple[
+            Optional[int], Optional[float]]:
+        if reading is None:
+            return None, None
+        base = _score(reading, 0)["detection"].gap
+        for k in range(1, max_drift + 1):
+            if _score(reading, k)["detection"].gap != base:
+                return k, base
+        return None, base
+
+    shipped_edge, shipped_gap = _smallest_visible(as_of)
+    own_edge, own_gap = _smallest_visible(own)
+
+    # THE LOWER EDGE, measured at the OWN reading date against the closed form.
+    predicted_below = predict_detection_saturates_below(grace)
+    measured_below: Optional[int] = None
+    if own is not None:
+        below: Dict[int, float] = {}
+        for k in range(0, predicted_below - 3, -1):
+            below[k] = _score(own, k)["detection"].gap
+        for k in sorted(below, reverse=True):
+            if k - 1 in below and all(v == below[k]
+                                      for j, v in below.items() if j <= k):
+                measured_below = k
+                break
+
+    co_read: Dict[str, bool] = {}
+    ageing_moves: Optional[bool] = None
+    if own is not None:
+        shipped_all = _score(as_of, 0)
+        own_all = _score(own, 0)
+        for dim in DETECTION_CO_READ_DIMENSIONS:
+            if dim in shipped_all and dim in own_all:
+                co_read[dim] = shipped_all[dim].gap == own_all[dim].gap
+        if "ageing" in shipped_all and "ageing" in own_all:
+            ageing_moves = shipped_all["ageing"].gap != own_all["ageing"].gap
+
+    # HOW CLOSE THE BOOK ACTUALLY SITS TO THE LINE -- the refutation of the
+    # atom's own name, carried as a number so it cannot decay back into prose.
+    at_distance_one = sum(1 for r in records
+                          if r.days_late is not None
+                          and r.days_late - grace == 1)
+    return {
+        "shipped_as_of": as_of,
+        "own_as_of": own,
+        "own_reading_buffer_days": (
+            None if own is None else (own - max(r.due_date for r in records)).days),
+        "shipped_reading_buffer_days": (
+            None if not records
+            else (as_of - max(r.due_date for r in records)).days),
+        "shipped_smallest_visible_over_drift": shipped_edge,
+        "own_smallest_visible_over_drift": own_edge,
+        "shipped_detection_gap": shipped_gap,
+        "own_detection_gap": own_gap,
+        "calendar_term_days": (
+            None if not failures or own is None
+            else min((own - r.due_date).days for r in failures) - grace + 1),
+        "shipped_calendar_term_days": (
+            None if not failures
+            else min((as_of - r.due_date).days for r in failures) - grace + 1),
+        "saturates_below_predicted": predicted_below,
+        "saturates_below_measured": measured_below,
+        "co_read_dimensions_identical": co_read,
+        "ageing_moves_between_readings": ageing_moves,
+        "n_true_failures": len(failures),
+        "n_at_distance_one": at_distance_one,
+        "reconciliation_grace_days": grace,
+        "max_drift": max_drift,
+    }
+
+
+def check_detection_resolution(
+    measurement: Dict[str, object],
+    target_days: int = DETECTION_RESOLUTION_TARGET_DAYS,
+    ceiling_days: int = DETECTION_RESOLUTION_CEILING_DAYS,
+) -> List[str]:
+    """Put the detection reading date on trial and return the VIOLATIONS.
+
+    Six rules, and the last two are what stop the first four passing on a
+    comparison of a number with itself:
+
+    1. VACUITY. A book with no true failures, or no reading date, has no
+       resolution to certify -- fail-closed, never a silent pass.
+    2. THE DELIVERABLE. The own reading date must resolve an over-drift no
+       larger than `ceiling_days`, and must never resolve WORSE than the
+       shipped date. A reshape that costs resolution somewhere is not a
+       reshape.
+    3. THE SHIPPED DATE IS REFUSED BY NAME. The atom exists because the shipped
+       reading cannot see a `target_days` error. If it ever can, the register's
+       declared blindness is stale and must be re-derived -- a control that
+       stops firing when its subject changes state is how a debt entry outlives
+       its debt.
+    4. THE CLOSED FORM. The measured lower saturation edge must be the one
+       `predict_detection_saturates_below` computes from the grace window
+       alone. Two independent computations of one quantity, and neither is
+       allowed to be the one that is believed.
+    5. THE as_of CONTRACT, RE-MEASURED. Every dimension `DIMENSION_AS_OF_
+       CONTRACT` declares as_of-invariant must publish the SAME figure at both
+       dates. This is what licenses a second reading date at all; a dimension
+       that moves means the second reading is publishing a different number,
+       not the same number better resolved.
+    6. THE NULL CONTROL. The ageing figure MUST move between the two dates.
+       Without it every identity in rule 5 would be satisfied by the two dates
+       being the same date -- the tautology this module keeps finding, in the
+       one place it would be invisible.
+    """
+    out: List[str] = []
+    own = measurement.get("own_as_of")
+    if not measurement.get("n_true_failures") or own is None:
+        return ["detection resolution measured over a book with no true "
+                "failures or no reading date -- a resolution claim over an "
+                "empty population is vacuous, not satisfied"]
+    shipped_edge = measurement.get("shipped_smallest_visible_over_drift")
+    own_edge = measurement.get("own_smallest_visible_over_drift")
+    if own_edge is None:
+        out.append(
+            "detection resolution: NO over-drift up to "
+            f"{measurement.get('max_drift')}d is visible at the dimension's own "
+            "reading date -- an unresolvable reading is not a resolved one")
+    else:
+        if own_edge > ceiling_days:
+            out.append(
+                f"detection resolution: the own reading date resolves "
+                f"+{own_edge}d, worse than the {ceiling_days}d ceiling this "
+                f"scope was measured at (target {target_days}d) -- re-derive "
+                "the reading date, never widen the ceiling to fit it")
+        if shipped_edge is not None and own_edge > shipped_edge:
+            out.append(
+                f"detection resolution: the own reading date resolves "
+                f"+{own_edge}d and the SHIPPED date +{shipped_edge}d -- the "
+                "reshape costs resolution on this book, which is the opposite "
+                "of the atom")
+    if shipped_edge is not None and shipped_edge <= target_days:
+        out.append(
+            f"detection resolution: the SHIPPED reading date now resolves "
+            f"+{shipped_edge}d, so the blindness "
+            "`DIMENSION_DRIFT_RESOLUTION['detection']` declares at +1d is "
+            "STALE -- re-derive the entry rather than leaving a debt pointing "
+            "at a discharged one")
+    got_below = measurement.get("saturates_below_measured")
+    want_below = measurement.get("saturates_below_predicted")
+    if got_below != want_below:
+        out.append(
+            f"detection resolution: lower saturation edge measured {got_below!r} "
+            f"and the closed form over `reconciliation_grace_days` predicts "
+            f"{want_below!r} -- the population-side predictor and the sweep "
+            "disagree, so one of them is describing an instrument that is not "
+            "there")
+    for dim, same in sorted((measurement.get("co_read_dimensions_identical")
+                             or {}).items()):
+        if not same:
+            out.append(
+                f"detection resolution: `{dim}` is DECLARED as_of-invariant "
+                "and its published figure MOVES between the shipped reading "
+                "date and this dimension's own -- either the contract is "
+                "wrong or the second reading date is publishing a different "
+                "number, and neither may be shipped as a better-resolved one")
+    if not measurement.get("ageing_moves_between_readings"):
+        out.append(
+            "detection resolution: the ageing figure is IDENTICAL at both "
+            "reading dates -- the two dates are not distinguishable on the one "
+            "dimension whose truth side reads the clock, so every identity "
+            "above may be a number compared with itself")
     return out
 
 
@@ -10296,13 +10701,19 @@ def detection_resolution_caveat() -> str:
     declaration that could only be checked where it had already answered had
     decayed into one.
 
-    Unlike `ageing_resolution_caveat` this takes no per-book prediction: what
-    the detection gap can resolve is a property of where the book's invoices
-    sit relative to the COMPANY's grace line, and no population-side predictor
-    of those edges has been built. Saying so is the point -- that predictor is
-    the declared residual of atom
-    `D28_the_detection_gap_is_quantised_by_this_books_placement`, not something
-    this sentence may imply exists.
+    HALF THAT RESIDUAL IS DISCHARGED (atom D26, 2026-08-19). This docstring
+    used to say flatly that "no population-side predictor of those edges has
+    been built". The LOWER edge needs no population at all -- it is
+    `predict_detection_saturates_below`, `-(grace + 1)`, differentially proven
+    over grace in {2, 5, 10} at both reading dates. The UPPER edge still has
+    none, and the obvious book-side candidate over-predicts by 6-13 days on
+    3/3 seeds, so it carries a SCOPE rather than a reason. What remains D28's
+    residual is the upper edge; the lower one is now arithmetic.
+
+    Unlike `ageing_resolution_caveat` this takes no per-book prediction of the
+    interior. What it now states, because D26 measured it, is that the +1d
+    blindness is a property of WHEN the reading is taken and not of where the
+    book sits: `measure_detection_resolution` re-derives both readings per run.
     """
     e = DIMENSION_DRIFT_RESOLUTION["detection"]
     lo, hi = e.get("saturates_below"), e.get("saturates_above")
@@ -10336,20 +10747,62 @@ def detection_resolution_caveat() -> str:
         "direction that flags a paying customer as in arrears and posts the "
         "dunning letter) is indistinguishable here from one "
         f"{abs(min(tail_lo)) if tail_lo else abs(lo)} days short. "
-        "BOTH EDGES ARE THE BOOK'S OWN END, not the sweep's (2026-08-13): past "
-        "them the book has no invoice left for a further day of company error "
-        "to move, which is why they may be relied on. "
+        "THE TWO EDGES ARE TWO KINDS OF OBJECT and only one may be relied on "
+        "(atom D26, 2026-08-19). BELOW is ARITHMETIC over the grace window -- "
+        f"{e.get('saturates_below_closed_form')} -- so it holds in any book, "
+        "differentially proven over grace in {2,5,10}. ABOVE is a DRAW: it is "
+        "this book's luckiest case and NOT the book running out (at the edge "
+        "the oldest true failure is still inside its line), so it is scoped to "
+        + ("/".join(str(s) for s in (e.get("saturates_above_scope") or {})
+                    .get("seeds", ()))
+           or "an unscoped measurement")
+        + " and must not be quoted over another population. "
         f"In between it is quantised, not continuous: {len(interior)} further "
         "groups of companies publish one number each "
         + ", ".join("{" + ",".join(f"{k:+d}" for k in r) + "}"
                     for r in interior)
         + ". "
         + _detection_interior_cause_sentence(e)
+        + _detection_reading_date_sentence(e)
         + " Do not read a movement in this number as days of company error, "
         "and do not read a zero as accurate flagging. Residual owned by "
         f"{e.get('saturation_atom')}."
     )
     return head + body
+
+
+def _detection_reading_date_sentence(e: Dict[str, object]) -> str:
+    """WHAT THE BLINDNESS IS A PROPERTY OF, stamped on the published figure
+    (atom D26, 2026-08-19).
+
+    The band this caveat quotes belongs to the SHIPPED reading date, and until
+    D26 nothing said so -- a reader was left to take +2..+8 for a property of
+    the instrument. It is a property of when the reading is asked for: the same
+    book read at `last_due + grace` resolves +1..+2. Interpolated from the
+    entry so moving the register moves the sentence, and ABSENT rather than
+    guessed where the entry has not declared it (R15's third shape: an
+    unmeasured reshape is not published as a small one)."""
+    own = e.get("own_smallest_visible_over_drift_band")
+    ship = e.get("shipped_smallest_visible_over_drift_band")
+    closed = e.get("own_reading_buffer_days_closed_form")
+    scope = (e.get("own_reading_scope") or {}).get("seeds") or ()
+    if not (own and ship and closed):
+        return (
+            " WHICH READING DATE this band belongs to is NOT DECLARED on this "
+            "entry, so it is not stated -- do not read it as a property of the "
+            "instrument (atom D26)."
+        )
+    return (
+        f" AND THE BAND IS THE READING DATE'S, NOT THE INSTRUMENT'S (atom "
+        f"{e.get('reshape_atom')}): the smallest company terms error this "
+        f"headline resolves is +{ship[0]}..+{ship[1]}d at the SHIPPED `as_of` "
+        f"and +{own[0]}..+{own[1]}d on the same books read at "
+        f"`last_due + {closed}` -- the earliest date every invoice has reached "
+        "its own grace line -- with every as_of-invariant figure "
+        f"bit-identical across {len(scope)} seeds. The published number is "
+        "read at the SHIPPED date, so the wider band is the one that applies "
+        "to it."
+    )
 
 
 def _detection_interior_cause_sentence(e: Dict[str, object]) -> str:
@@ -12446,6 +12899,16 @@ CHECKS_BEHIND_A_FLAG: Dict[str, Dict[str, str]] = {
             "unconditionally in tests/tools/test_couple_w2_11_d5.py."
         ),
     },
+    "check_detection_resolution": {
+        "flag": "detection_reading_date",
+        "reason": (
+            "re-scores the triad ~25 times per book -- both reading dates swept "
+            "for their smallest visible over-drift, plus the lower saturation "
+            "edge -- which is a full drift grid of its own on top of the two "
+            "this run already pays for (atom D26). Opt-in at the CLI, run "
+            "unconditionally in tests/tools/test_couple_w2_11_d5.py."
+        ),
+    },
 }
 
 
@@ -12638,6 +13101,12 @@ def main() -> None:
                           "for its resolution floor and put the declared "
                           "floors on trial (atom D33) -- a per-dimension sweep, "
                           "so it is opt-in"))
+    ap.add_argument("--detection-reading-date", action="store_true",
+                    help=("also score the detection dimension at BOTH reading "
+                          "dates and put its resolution, its lower saturation "
+                          "edge and the as_of contract that licenses the second "
+                          "date on trial (atom D26) -- ~25 re-scores, so it is "
+                          "opt-in"))
     args = ap.parse_args()
 
     result = measure(args.customers, seed=args.seed)
@@ -13149,6 +13618,30 @@ def main() -> None:
               + ("every declared floor held" if not _rf_violations
                  else f"{len(_rf_violations)} VIOLATION(S)"))
         for v in _rf_violations:
+            print(f"           !! {v}")
+
+    # OPT-IN: the detection dimension's own reading date (atom D26). Declared in
+    # CHECKS_BEHIND_A_FLAG with its reason -- ~25 re-scores of one book. Built
+    # at the register's declared n=300 like its two siblings above, because the
+    # bands it puts on trial were measured there and quoting them over the CLI's
+    # `--customers` book would be publishing one population's limit against
+    # another's figure.
+    if args.detection_reading_date:
+        _dr_records, _dr_consumer, _dr_ledger, _dr_as_of = build_scenario(
+            300, seed=RESOLUTION_SEEDS[0])
+        _dr_measured = measure_detection_resolution(
+            _dr_records, _dr_consumer, _dr_as_of)
+        _dr_violations = check_detection_resolution(_dr_measured)
+        print("  [detection-reading-date control] smallest company terms error "
+              f"the detection headline resolves: shipped `as_of` "
+              f"+{_dr_measured['shipped_smallest_visible_over_drift']}d, own "
+              f"reading date "
+              f"+{_dr_measured['own_smallest_visible_over_drift']}d "
+              f"({_dr_measured['own_as_of']}): "
+              + ("the reshape held and no as_of-invariant figure moved"
+                 if not _dr_violations
+                 else f"{len(_dr_violations)} VIOLATION(S)"))
+        for v in _dr_violations:
             print(f"           !! {v}")
 
     # THE CENSUS OF THE CONTROLS THEMSELVES (R10 closure, 2026-08-15). Three

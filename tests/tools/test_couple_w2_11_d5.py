@@ -9086,3 +9086,316 @@ def test_score_triad_threads_the_scored_company_into_both_predictors():
     baseline = pair.score_triad(base_recs, base_consumer, base_as_of)
     assert baseline["belief"].components["scored_company_window_days"] == 400
     assert baseline["belief"].components["scored_company_is_inert"] is True
+
+
+# ---------------------------------------------------------------------------
+# THE DETECTION DIMENSION'S OWN READING DATE -- atom
+# D26_detection_grace_line_has_no_book_beside_it, 2026-08-19
+#
+# THE ATOM'S OWN NAME IS THE CLAIM THIS SECTION REFUTES, and the id is left
+# alone on purpose: it is the live value
+# `DIMENSION_DRIFT_RESOLUTION["detection"]["debt_atom"]` points at, and renaming
+# it would break the debt pointer the register's mutation suite fires on.
+#
+# The register said the +1d blindness was the book having nothing beside the
+# grace line. Measured: the book sits AGAINST the line and the flagged SET moves
+# there; what does not move is the headline, because the exclusion boundary and
+# the detector line are keyed on the same quantity. What buys resolution is the
+# READING DATE, which is free, and the four traps below are the ones the FRAME
+# pass named:
+#   * not "the book has cases beside the line" -- it already does, and a test
+#     asserting it greens on HEAD;
+#   * not "`flagged_size` moves at +1" -- that greens on HEAD too;
+#   * not a change to `AS_OF_BUFFER_DAYS` -- that greens this criterion by
+#     breaking the ageing atom it depends on;
+#   * R15 both ways: the shipped reading date must be REFUSED BY NAME, and a
+#     lying predictor must be caught by the sweep's own readings.
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def detection_resolution():
+    """One book, both readings. Module-scoped: each measurement re-scores the
+    triad ~25 times."""
+    records, consumer, _l, as_of = pair.build_scenario(300, seed=7)
+    return pair.measure_detection_resolution(records, consumer, as_of)
+
+
+def test_the_reading_date_is_derived_from_the_grace_window_not_chosen(
+        detection_resolution):
+    """THE FLOOR IS DERIVED (the class this module has now found four times:
+    `draw_size_axis`'s 150, the belief axis's 24). The reading date is
+    `max(due) + DEFAULT_RECONCILIATION_GRACE_DAYS` -- the earliest date every
+    invoice has reached its own line -- and it moves WITH the constant, so it
+    is not a literal somebody liked the size of."""
+    m = detection_resolution
+    assert m["own_reading_buffer_days"] == pair.DEFAULT_RECONCILIATION_GRACE_DAYS
+    assert m["shipped_reading_buffer_days"] == pair.AS_OF_BUFFER_DAYS
+    records, _c, _l, _a = pair.build_scenario(300, seed=7)
+    last_due = max(r.due_date for r in records)
+    for grace in (2, 5, 10):
+        assert pair.detection_reading_date(records, grace) == (
+            last_due + timedelta(days=grace)), grace
+
+
+def test_the_own_reading_date_resolves_the_error_the_shipped_one_cannot(
+        detection_resolution):
+    """THE DELIVERABLE, on the shipped book. +2d at the shipped `as_of`, +1d at
+    the dimension's own -- and the atom's target is that 1-day terms error."""
+    m = detection_resolution
+    assert m["shipped_smallest_visible_over_drift"] == 2
+    assert m["own_smallest_visible_over_drift"] == 1
+    assert m["own_smallest_visible_over_drift"] <= (
+        pair.DETECTION_RESOLUTION_CEILING_DAYS)
+    assert pair.check_detection_resolution(m) == []
+
+
+def test_the_reshape_moves_no_published_figure(detection_resolution):
+    """R12/R13 IN THE CLEAREST AVAILABLE FORM. Every dimension
+    `DIMENSION_AS_OF_CONTRACT` declares as_of-invariant publishes a
+    BIT-IDENTICAL figure at both dates -- the resolution improves and the
+    numbers do not move. That contract is also what makes a second reading date
+    legal at all, so it is re-measured here rather than assumed."""
+    m = detection_resolution
+    assert set(m["co_read_dimensions_identical"]) == set(
+        pair.DETECTION_CO_READ_DIMENSIONS)
+    assert all(m["co_read_dimensions_identical"].values())
+    assert m["own_detection_gap"] == m["shipped_detection_gap"]
+    for dim in pair.DETECTION_CO_READ_DIMENSIONS:
+        assert pair.DIMENSION_AS_OF_CONTRACT[dim]["gap_is_as_of_invariant"]
+
+
+def test_the_ageing_dimension_forbids_the_global_buffer_change(
+        detection_resolution):
+    """THE EXIT CRITERION GREENABLE BY THE MOVE IT FORBIDS (the D29 shape, one
+    atom over). Lowering `AS_OF_BUFFER_DAYS` would green this atom by breaking
+    D25's: at the earlier date the whole book sits below the 30-day bucket floor
+    and the ageing headline MOVES. So the reshape is a per-dimension reading
+    date -- and this movement is the null control that proves the two dates are
+    genuinely different."""
+    assert detection_resolution["ageing_moves_between_readings"] is True
+    assert pair.DIMENSION_AS_OF_CONTRACT["ageing"][
+        "gap_is_as_of_invariant"] is False
+    records, consumer, _l, as_of = pair.build_scenario(300, seed=7)
+    own = pair.detection_reading_date(records)
+    shipped = pair.score_triad(records, consumer, as_of)["ageing"].gap
+    early = pair.score_triad(records, consumer, own)["ageing"].gap
+    assert shipped != early
+    assert shipped == pytest.approx(0.11296259117981663)
+    assert early == pytest.approx(0.08016507936507936)
+
+
+def test_the_book_does_sit_beside_the_line_and_the_set_moves_there():
+    """THE REFUTATION, MEASURED. The atom's own name says the book has nothing
+    beside the grace line. Four invoices sit one day past it on this seed and
+    the company's flagged SET moves on exactly them -- while the headline does
+    not, because those cases are the ones the headline declines to score. Both
+    halves asserted, because either alone is the mistake that produced the
+    atom."""
+    records, consumer, _l, as_of = pair.build_scenario(300, seed=7)
+    assert sum(1 for r in records if r.days_late is not None
+               and r.days_late - pair.DEFAULT_RECONCILIATION_GRACE_DAYS == 1) == 4
+    base = pair.score_triad(records, consumer, as_of)["detection"]
+    drifted = pair.score_triad(records, consumer, as_of,
+                               organ_terms_drift_days=1)["detection"]
+    assert base.components["flagged_size"] == 331
+    assert drifted.components["flagged_size"] == 327
+    assert drifted.gap == base.gap, (
+        "the SET moves and the HEADLINE does not -- the partition, not the "
+        "placement")
+    # AND THE PARTITION IS THE REASON: every excluded case is flagged, so the
+    # cases a small over-drift can carry across the line are by construction
+    # the ones this headline does not count.
+    c = base.components
+    assert c["caught"] + c["n_false_flags"] + c["n_excluded"] == c["flagged_size"]
+
+
+def test_the_lower_edge_is_arithmetic_over_the_grace_window():
+    """FINDING 3, DIFFERENTIALLY. `-(grace + 1)` is not a property of this book
+    -- it is where the company's line falls on `due - 1` and every invoice in
+    any book flags. Exercised over grace in {2, 5, 10}: a predictor that only
+    ever answers at the shipped window is the D21 tautology in miniature."""
+    records, consumer, _l, _a = pair.build_scenario(300, seed=7)
+    own = pair.detection_reading_date(records)
+    for grace in (2, 5, 10):
+        assert pair.predict_detection_saturates_below(grace) == -(grace + 1)
+        gaps = {k: pair.score_triad(
+            records, consumer, own, reconciliation_grace_days=grace,
+            organ_terms_drift_days=k)["detection"].gap
+            for k in range(-(grace + 3), 1)}
+        edge = -(grace + 1)
+        assert len({v for k, v in gaps.items() if k <= edge}) == 1, grace
+        assert gaps[edge + 1] != gaps[edge], grace
+
+
+def test_the_shipped_reading_date_is_refused_by_name(detection_resolution):
+    """R15 MUST-FIRE 1, and it is the atom's own premise. If the SHIPPED
+    reading ever resolves the 1-day error, the blindness the register declares
+    is stale -- a control that goes quiet when its subject changes state is how
+    a debt entry outlives its debt."""
+    stale = dict(detection_resolution,
+                 shipped_smallest_visible_over_drift=1)
+    violations = pair.check_detection_resolution(stale)
+    assert any("SHIPPED reading date now resolves +1d" in v
+               for v in violations), violations
+
+
+def test_a_reshape_that_costs_resolution_fires(detection_resolution):
+    """R15 MUST-FIRE 2. The own reading date resolving WORSE than the shipped
+    one is the opposite of the atom, and a control that only checks the
+    ceiling would pass it whenever the shipped book happened to be worse
+    still."""
+    worse = dict(detection_resolution,
+                 own_smallest_visible_over_drift=2,
+                 shipped_smallest_visible_over_drift=1)
+    violations = pair.check_detection_resolution(worse)
+    assert any("costs resolution on this book" in v for v in violations)
+    ceiling = dict(detection_resolution, own_smallest_visible_over_drift=3)
+    assert any("worse than the 2d ceiling" in v
+               for v in pair.check_detection_resolution(ceiling))
+
+
+def test_a_lying_lower_edge_predictor_is_caught_by_the_sweep(
+        detection_resolution):
+    """R15 MUST-FIRE 3, the INDEPENDENCE leg. The closed form and the re-scored
+    edge are two computations of one quantity; the control must fire when they
+    disagree, in either direction, rather than believing the declaration."""
+    for patch in ({"saturates_below_predicted": -7},
+                  {"saturates_below_measured": -9}):
+        violations = pair.check_detection_resolution(
+            dict(detection_resolution, **patch))
+        assert any("closed form over `reconciliation_grace_days` predicts" in v
+                   for v in violations), patch
+
+
+def test_a_second_reading_publishing_a_different_number_fires(
+        detection_resolution):
+    """R15 MUST-FIRE 4. A dimension declared as_of-invariant whose figure moves
+    between the two dates means the second reading is publishing a DIFFERENT
+    number, not the same number better resolved -- the whole licence for a
+    per-dimension reading date."""
+    moved = dict(detection_resolution,
+                 co_read_dimensions_identical=dict(
+                     detection_resolution["co_read_dimensions_identical"],
+                     belief=False))
+    violations = pair.check_detection_resolution(moved)
+    assert any("`belief` is DECLARED as_of-invariant" in v
+               for v in violations), violations
+
+
+def test_the_two_dates_being_one_date_fires(detection_resolution):
+    """R15 MUST-FIRE 5, THE NULL CONTROL, and it is the one that stops every
+    identity above being a number compared with itself. If the ageing figure
+    does not move between the two dates they are not distinguishable, and the
+    bit-identity result is vacuous."""
+    same = dict(detection_resolution, ageing_moves_between_readings=False)
+    violations = pair.check_detection_resolution(same)
+    assert any("not distinguishable on the one dimension" in v
+               for v in violations), violations
+
+
+def test_an_empty_book_fails_closed(detection_resolution):
+    """R15's THIRD SHAPE. A book with no true failures, or no reading date, has
+    no resolution to certify -- a resolution claim over an empty population is
+    vacuous, and a silent pass here is exactly how one fail-opens."""
+    for patch in ({"n_true_failures": 0}, {"own_as_of": None}):
+        violations = pair.check_detection_resolution(
+            dict(detection_resolution, **patch))
+        assert any("vacuous, not satisfied" in v for v in violations), patch
+    assert pair.detection_reading_date([]) is None
+
+
+def test_the_register_entry_carries_the_reshape_and_the_caveat_publishes_it():
+    """STAMPED AT SOURCE (D22): the ledger writer, the live wiring and the
+    dashboard read `components`, so a limit only a docstring carries is one the
+    machine strips off. And the sentence is INTERPOLATED -- move the register
+    and it moves."""
+    e = pair.DIMENSION_DRIFT_RESOLUTION["detection"]
+    assert e["own_reading_buffer_days_closed_form"] == (
+        "DEFAULT_RECONCILIATION_GRACE_DAYS")
+    assert e["own_smallest_visible_over_drift_band"] == (1, 2)
+    assert e["shipped_smallest_visible_over_drift_band"] == (2, 8)
+    assert e["saturates_below_closed_form"] == (
+        "-(DEFAULT_RECONCILIATION_GRACE_DAYS + 1)")
+    assert e["saturation_atom_below"] == "BOUND:the flag-everything set"
+    assert e["saturates_above_scope"]["is_the_seed_intersection"] is True
+    assert e["debt_atom"] == "D26_detection_grace_line_has_no_book_beside_it"
+    caveat = pair.detection_resolution_caveat()
+    assert "+2..+8d at the SHIPPED `as_of` and +1..+2d" in caveat
+    assert "BELOW is ARITHMETIC over the grace window" in caveat
+    # THE REFUTED SENTENCES MUST NOT COME BACK.
+    assert "BOTH EDGES ARE THE BOOK'S OWN END" not in caveat
+    assert "the book sits nowhere near the grace line" not in e["why"]
+
+
+def test_the_new_control_is_reachable_from_the_run_that_publishes():
+    """A CONTROL NOBODY RUNS IS NOT ONE, and this module's own check-call census
+    caught this build trying to ship one. `check_detection_resolution` re-scores
+    the triad ~25 times, which is a full drift grid of its own -- so it is
+    declared in `CHECKS_BEHIND_A_FLAG` with that reason and called from `main()`
+    inside its flag's branch, the same shape as the two sweeps beside it."""
+    assert "check_detection_resolution" in pair.CHECKS_BEHIND_A_FLAG
+    entry = pair.CHECKS_BEHIND_A_FLAG["check_detection_resolution"]
+    assert entry["flag"] == "detection_reading_date"
+    assert "~25" in entry["reason"]
+    census = pair.measure_check_call_census()
+    assert "check_detection_resolution" not in census["uncalled"]
+    assert census["behind_a_flag"]["check_detection_resolution"] == (
+        "detection_reading_date",)
+    assert pair.check_check_call_census(census) == []
+
+
+def test_an_undeclared_reshape_is_published_as_undeclared_not_as_a_small_one():
+    """R15's THIRD SHAPE, on the sentence. An entry that drops the reshape
+    fields must SAY the reading date is undeclared -- silently falling back to
+    quoting the shipped band as a property of the instrument is exactly the
+    decay this atom corrected."""
+    entry = pair.DIMENSION_DRIFT_RESOLUTION["detection"]
+    saved = dict(entry)
+    try:
+        for k in ("own_smallest_visible_over_drift_band",
+                  "shipped_smallest_visible_over_drift_band",
+                  "own_reading_buffer_days_closed_form"):
+            entry.pop(k, None)
+        caveat = pair.detection_resolution_caveat()
+        assert "WHICH READING DATE this band belongs to is NOT DECLARED" in caveat
+        assert "at the SHIPPED `as_of`" not in caveat
+    finally:
+        entry.clear()
+        entry.update(saved)
+
+
+def test_the_structural_flag_names_its_provenance_per_edge():
+    """ONE FLAG WAS COVERING TWO PROVENANCES. `structural` means "follows from
+    the scenario calendar" and only the +1 EDGE does -- the band behind it is
+    the D8 mis-allocation draw, varying +2..+8 over the same seeds the edge
+    holds on 10/10."""
+    e = pair.DIMENSION_DRIFT_RESOLUTION["detection"]
+    scope = e["structural_scope"]
+    assert "calendar" in scope["+1_edge"]
+    assert "DRAW" in scope["band_behind_it"]
+    assert e["own_reading_scope"]["seeds"] == (7, 11, 23, 1, 2, 3, 5, 13, 29, 31)
+
+
+def test_the_calendar_term_is_published_as_a_term_not_as_the_answer(
+        detection_resolution):
+    """THE HONEST RESIDUAL, and the FRAME pass's identity corrected on a wider
+    population. `min(as_of - due : failed) - grace + 1` is exact on the three
+    RESOLUTION_SEEDS and is NOT a predictor: over ten seeds it over-predicts on
+    two (the D8 mis-allocation channel resolves finer) and under-predicts on
+    one (the boundary case was DD-observed, and the DD channel is drift-inert
+    by D10). The measurement publishes both numbers rather than one dressed as
+    a prediction."""
+    m = detection_resolution
+    assert m["calendar_term_days"] == 1
+    assert m["shipped_calendar_term_days"] == 26
+    assert m["own_smallest_visible_over_drift"] == m["calendar_term_days"]
+    # THE COUNTEREXAMPLE, on a book outside the three declared seeds: the
+    # calendar says +3 and the reading resolves +1.
+    records, consumer, _l, as_of = pair.build_scenario(300, seed=5)
+    other = pair.measure_detection_resolution(records, consumer, as_of)
+    assert other["calendar_term_days"] == 3
+    assert other["own_smallest_visible_over_drift"] == 1
+    assert pair.check_detection_resolution(other) == [], (
+        "the control must not fire on a book where the calendar term is loose "
+        "-- it reports the disagreement, it does not believe either number")
