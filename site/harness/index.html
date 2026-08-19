@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Harness — Poesys</title>
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="stylesheet" href="../brand/brand.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
+.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
+.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
+.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+.nav-spacer { flex: 1; }
+main { max-width: 760px; margin: 0 auto; padding: 48px 24px 80px; }
+.badge { display: inline-block; background: var(--surface2); color: var(--muted);
+  border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 12px;
+  letter-spacing: .04em; text-transform: uppercase; margin-bottom: 20px; }
+h1 { font-size: 30px; line-height: 1.25; margin-bottom: 16px; }
+.lede { font-size: 16px; color: var(--muted); margin-bottom: 32px; }
+h2 { font-size: 15px; margin: 32px 0 10px; letter-spacing: .02em; }
+p { margin-bottom: 14px; }
+ol, ul { margin: 0 0 14px 20px; }
+li { margin-bottom: 6px; }
+.note { border-left: 3px solid var(--border); padding: 12px 16px; background: var(--surface);
+  color: var(--muted); font-size: 13px; margin: 24px 0; }
+a { color: var(--teal); }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="../" class="nav-logo">Poesys</a>
+  <span class="nav-spacer"></span>
+  <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
+  <a href="../" class="nav-link">Home</a>
+  <a href="../world/" class="nav-link">The World</a>
+  <a href="../company/" class="nav-link">The Company</a>
+  <a href="../capabilities/" class="nav-link">Capabilities</a>
+  <a href="../knowledge/" class="nav-link">Knowledge</a>
+  <a href="../explore/" class="nav-link">Explore</a>
+  <a href="./" class="nav-link active">Harness</a>
+  <a href="../proof/" class="nav-link">Proof</a>
+  <!-- IA-NAV:END -->
+</nav>
+<main>
+  <span class="badge">This page is being built</span>
+  <h1>The harness: how this is run</h1>
+  <p class="lede">The method behind the simulation — who decides what, how work is chosen, and the honest record of what has gone wrong.</p>
+  <h2>What this page will show</h2>
+  <p>How this project is actually run, in terms an outsider can follow.</p>
+  <ul>
+    <li><strong>The two-seat model</strong> — one human director, one AI agent, and what each
+        is actually allowed to decide.</li>
+    <li><strong>How work is chosen</strong> — how the next thing to build gets picked, and what
+        stops that choice being arbitrary.</li>
+    <li><strong>The named failure classes</strong> — the specific ways this project has been
+        wrong before, written down so they can be recognised again.</li>
+    <li><strong>An honest count of what broke</strong> — including the things that were claimed
+        as working and were not.</li>
+    <li><strong>Known limitations</strong> — re-homed here from the Proof page.</li>
+  </ul>
+  <p>
+    The reason this page exists at all is that the method is the part most likely to be
+    genuinely useful to someone else, and the part least visible from any of the results pages.
+    A page of green numbers tells you nothing about whether the process that produced them can
+    catch its own mistakes.
+  </p>
+
+  <h2>Roughly when</h2>
+  <p>
+    Next, alongside Explore. The material is largely written already but lives in internal
+    records rather than in anything a stranger could read, and translating it is the work.
+    Until then, the <a href="../proof/">Proof</a> page carries the evidence and the
+    known-limitations section that will move here.
+  </p>
+
+  <div class="note">
+    <strong>Why you are seeing this rather than nothing.</strong> The structure of this site was
+    put up before every page behind it was written, deliberately. An empty room you can see into
+    is more honest than a door that isn't there, and far more honest than a room furnished with
+    figures we haven't checked. This page is not indexed by search engines while it is in this
+    state.
+  </div>
+</main>
+</body>
+</html>

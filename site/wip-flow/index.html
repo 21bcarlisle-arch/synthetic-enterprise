@@ -120,6 +120,8 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, sans-s
   <a href="../company/" class="nav-link">The Company</a>
   <a href="../capabilities/" class="nav-link">Capabilities</a>
   <a href="../knowledge/" class="nav-link">Knowledge</a>
+  <a href="../explore/" class="nav-link">Explore</a>
+  <a href="../harness/" class="nav-link">Harness</a>
   <a href="../proof/" class="nav-link active">Proof</a>
   <a href="../customers/" class="nav-link">Customers</a>
   <a href="../proof/#method-anchor" class="nav-link">Method</a>
@@ -247,10 +249,36 @@ function renderBuild(d){
   if(d.test_count)parts.push(Number(d.test_count).toLocaleString()+" tests");
   if(d.git_commit)parts.push("git "+String(d.git_commit).slice(0,8));
   if(d.generated_at)parts.push("generated "+d.generated_at);
-  document.getElementById("build-note").textContent=parts.length?parts.join(" · "):"Build stats unavailable.";
+  var note=parts.length?esc(parts.join(" · ")):"Build stats unavailable.";
+  // WIP PROVENANCE (R14: the inventory's clock is a COMMIT, not a wall-clock stamp).
+  // Present  -> the WIP block above came from the projection store, rebuilt from that sha.
+  // Absent   -> the store was unreachable and the numbers are the hand-refreshed file's.
+  //             Said in red, because a silent fallback is how a stale number gets believed.
+  var s=d.projection_store;
+  if(s&&s.head_sha){
+    note+=' · <span id="wip-provenance">WIP from projection store @ '+esc(String(s.head_sha).slice(0,9))+
+      ' ('+esc(String(s.rows_total||""))+' rows, '+esc(String(s.derived_from||""))+')</span>';
+  }else if(d.projection_store_unavailable){
+    note+=' · <span id="wip-provenance" style="color:var(--red)">projection store UNAVAILABLE — '+
+      'WIP shown from the hand-refreshed ../data/wip_flow.json, which no publish path regenerates</span>';
+  }
+  document.getElementById("build-note").innerHTML=note;
 }
 
-fetch("../data/wip_flow.json?t="+Date.now()).then(function(r){return r.json();}).then(function(d){
+function j(u){return fetch(u+"?t="+Date.now()).then(function(r){
+  if(!r.ok)throw new Error(u+" "+r.status); return r.json();});}
+
+j("../data/wip_flow.json").then(function(d){
+  // The WIP block is the projection store's; cycle-time and throughput stay with wip_flow.json
+  // because they are mined from git history and are not in the store — claiming them here
+  // would be a lie about provenance.
+  return j("../data/projections.json").then(function(p){
+    d.wip=p.wip; d.projection_store=p.store; return d;
+  }).catch(function(e){
+    console.error("projections.json load error:",e);
+    d.projection_store_unavailable=true; return d;
+  });
+}).then(function(d){
   DATA=d;
   renderWip(d);
   renderBuild(d);

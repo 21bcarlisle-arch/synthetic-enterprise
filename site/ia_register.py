@@ -91,6 +91,50 @@ class IaRegisterUnavailable(RuntimeError):
 INTERNAL_DOORS = ("/director/", "/shadow/")
 
 
+# ── UNDER CONSTRUCTION: a fourth state, and a legitimate one ──────────────────
+# Director ruling, 2026-08-19: "holes beat wrong or unintelligible content. Put the final
+# structure up now, with honest 'being built' pages where the content isn't written -- what
+# the page will show, roughly when." And: "If your controls refuse a route to an area that
+# isn't ready, change the controls -- under-construction is a legitimate state and the machine
+# should be able to express it."
+#
+# Before this, the register knew three states and a failure state, and a nav route to an
+# unfinished area could only classify as UNCLASSIFIED -- "a page a reader can reach and nothing
+# in the repo says should exist". That is exactly wrong for a door we have deliberately opened
+# early: the repo DOES say it should exist, and says what it will hold.
+#
+# THE TWO OBLIGATIONS THAT MAKE IT LEGITIMATE RATHER THAN AN EXCUSE, both enforced below:
+#   1. NOT IN THE SITEMAP. A reader who follows the nav meets an honest placeholder; a search
+#      engine is not invited to index a hole. This is the same choice already made for
+#      /director/ and is why INTERNAL exists.
+#   2. THE PAGE MUST SAY SO ITSELF, in the reader's words, carrying what it will show and
+#      roughly when. A door that is quietly empty is worse than no door -- it is the
+#      "unintelligible content" the ruling is about, wearing a different hat.
+#
+# SHRINK-ONLY. Every entry names the step that finishes it. An area that has become
+# ADVERTISED must leave this register, or "under construction" becomes somewhere work goes
+# to be forgotten -- the same failure the ORPHAN_DEBT register is written to avoid.
+# The string a placeholder page must carry. Deliberately a visible reader-facing phrase and
+# not an HTML comment: a control that checks for a comment can be satisfied by a page that
+# shows a reader nothing, which is the failure this whole ruling is about.
+UNDER_CONSTRUCTION_MARKER = "This page is being built"
+
+UNDER_CONSTRUCTION_DOORS: dict[str, tuple[str, str, str]] = {
+    "/explore/": (
+        "One real customer followed through six stages -- PRICED, CHOSEN, USED, BILLED, PAID, "
+        "JUDGED -- showing at each stage what the world knew against what the company believed.",
+        "Next: the traversal for a single customer. The stage data it renders already exists.",
+        "SITE10_explore_traversal",
+    ),
+    "/harness/": (
+        "How this project is actually run: the two-seat model, how work is chosen and "
+        "sequenced, the named failure classes, and an honest count of what broke and why.",
+        "Next: the method account. The known-limitations section moves here from Proof.",
+        "SITE9_harness_tab_and_director_record",
+    ),
+}
+
+
 # ── The canonical nav ─────────────────────────────────────────────────────────
 # The ruled order arrives one tab at a time (brief §9.2: no intermediate state in
 # which the nav routes to a page that does not exist). TODAY this is the four
@@ -119,6 +163,20 @@ CANONICAL_NAV: tuple[NavItem, ...] = (
     # migration: Home, World and Company are the doors a returning reader already knows, and
     # re-ordering them is SITE8's job with its own tests. Knowledge joins the nav now.
     NavItem("Knowledge", "/knowledge/"),
+    # SITE9 + SITE10 doors opened EARLY and deliberately empty, per the director's ruling of
+    # 2026-08-19: "holes beat wrong or unintelligible content. Put the final structure up now,
+    # with honest 'being built' pages where the content isn't written." Both are
+    # UNDER_CONSTRUCTION: routed from the nav, absent from the sitemap, and each page says what
+    # it will show and roughly when. See UNDER_CONSTRUCTION_DOORS for the obligations.
+    NavItem("Explore", "/explore/"),
+    NavItem("Harness", "/harness/"),
+    # PROOF STAYS, and this is a judgement rather than an oversight. SITE11 dissolves it into
+    # Harness and the map records that it "genuinely must be last -- it re-points five live 301s
+    # at homes that must already exist". Those homes do not exist yet: Harness is a placeholder.
+    # The ruling says holes beat WRONG content; /proof/'s content is not wrong, it is merely
+    # destined to move, so removing its door now would put a hole where working content is and
+    # strand the five redirects the director specifically told me to protect. It leaves the nav
+    # when Harness can receive what it holds.
     NavItem("Proof", "/proof/"),
 )
 
@@ -305,6 +363,7 @@ def deployed_areas(site: Path = SITE) -> tuple[str, ...]:
 ADVERTISED = "ADVERTISED"
 INTERNAL = "INTERNAL"
 RETIRED = "RETIRED"
+UNDER_CONSTRUCTION = "UNDER_CONSTRUCTION"
 UNCLASSIFIED = "UNCLASSIFIED"
 
 
@@ -319,6 +378,11 @@ def classify(site: Path = SITE) -> dict[str, str]:
     for area in deployed_areas(site):
         if area in advertised:
             states[area] = ADVERTISED
+        elif area in UNDER_CONSTRUCTION_DOORS:
+            # Checked BEFORE internal/retired: a door we opened early is under construction
+            # even if it later also appears elsewhere, and the reader-facing obligation
+            # (the page must say so) follows from THIS state, not from the others.
+            states[area] = UNDER_CONSTRUCTION
         elif area in internal:
             states[area] = INTERNAL
         elif area in retired:
@@ -367,6 +431,42 @@ def register_violations(site: Path = SITE) -> list[str]:
             f"the canonical nav routes to {area}, which is not a deployed area -- "
             f"brief §9.2: no intermediate state where the nav points at a page that does not exist"
         )
+    # ── UNDER CONSTRUCTION: legitimate, but only on its two obligations ──────────
+    # The ruling makes an early door lawful; these keep it honest. Both fail toward
+    # REPORTING: an unreadable placeholder page is treated as not saying so, because a
+    # door we cannot verify speaks for itself is exactly the one that quietly goes blank.
+    advertised_now = set(advertised_areas(site / "sitemap.xml"))
+    for area, (will_show, when, step) in sorted(UNDER_CONSTRUCTION_DOORS.items()):
+        if area in advertised_now:
+            problems.append(
+                f"{area} is UNDER CONSTRUCTION and is also in sitemap.xml -- a hole must not "
+                f"be advertised to crawlers. Take it off the sitemap until {step} finishes it, "
+                f"or finish it and remove the under-construction entry"
+            )
+        if area not in states:
+            problems.append(
+                f"{area} is declared UNDER CONSTRUCTION but is not deployed -- the nav would "
+                f"point at nothing, which is the one intermediate state the brief forbids"
+            )
+            continue
+        page = site / area.strip("/") / "index.html"
+        try:
+            body = page.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            body = ""
+        if UNDER_CONSTRUCTION_MARKER not in body:
+            problems.append(
+                f"{area} is UNDER CONSTRUCTION but its page does not say so -- it must carry "
+                f"the marker {UNDER_CONSTRUCTION_MARKER!r} and tell the reader what it will "
+                f"show and roughly when. A silently empty door is worse than no door"
+            )
+    for area in sorted(set(UNDER_CONSTRUCTION_DOORS) - nav_reachable()):
+        problems.append(
+            f"{area} is declared UNDER CONSTRUCTION but the canonical nav does not route to "
+            f"it -- the whole point of the state is a door a reader can walk through early. "
+            f"Add it to CANONICAL_NAV or drop the entry"
+        )
+
     problems.extend(no_retired_nav_links(site))
     return problems
 

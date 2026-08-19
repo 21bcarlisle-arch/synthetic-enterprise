@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Explore — Poesys</title>
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="stylesheet" href="../brand/brand.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
+.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
+.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
+.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
+.nav-spacer { flex: 1; }
+main { max-width: 760px; margin: 0 auto; padding: 48px 24px 80px; }
+.badge { display: inline-block; background: var(--surface2); color: var(--muted);
+  border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 12px;
+  letter-spacing: .04em; text-transform: uppercase; margin-bottom: 20px; }
+h1 { font-size: 30px; line-height: 1.25; margin-bottom: 16px; }
+.lede { font-size: 16px; color: var(--muted); margin-bottom: 32px; }
+h2 { font-size: 15px; margin: 32px 0 10px; letter-spacing: .02em; }
+p { margin-bottom: 14px; }
+ol, ul { margin: 0 0 14px 20px; }
+li { margin-bottom: 6px; }
+.note { border-left: 3px solid var(--border); padding: 12px 16px; background: var(--surface);
+  color: var(--muted); font-size: 13px; margin: 24px 0; }
+a { color: var(--teal); }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="../" class="nav-logo">Poesys</a>
+  <span class="nav-spacer"></span>
+  <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
+  <a href="../" class="nav-link">Home</a>
+  <a href="../world/" class="nav-link">The World</a>
+  <a href="../company/" class="nav-link">The Company</a>
+  <a href="../capabilities/" class="nav-link">Capabilities</a>
+  <a href="../knowledge/" class="nav-link">Knowledge</a>
+  <a href="./" class="nav-link active">Explore</a>
+  <a href="../harness/" class="nav-link">Harness</a>
+  <a href="../proof/" class="nav-link">Proof</a>
+  <!-- IA-NAV:END -->
+</nav>
+<main>
+  <span class="badge">This page is being built</span>
+  <h1>Explore: one customer, end to end</h1>
+  <p class="lede">Follow a single household through pricing, consumption, billing and payment — and see, at every stage, the difference between what the world knew and what the company believed.</p>
+  <h2>What this page will show</h2>
+  <p>One customer, followed all the way through, with the wall visible at every step.</p>
+  <ol>
+    <li><strong>Priced</strong> — what the supplier offered, and on what evidence.</li>
+    <li><strong>Chosen</strong> — whether the household took it, and what else was available.</li>
+    <li><strong>Used</strong> — what they actually consumed, half-hour by half-hour.</li>
+    <li><strong>Billed</strong> — what the supplier thought they owed, from estimates.</li>
+    <li><strong>Paid</strong> — what arrived, when, and by what method.</li>
+    <li><strong>Judged</strong> — what the supplier believed about the account afterwards.</li>
+  </ol>
+  <p>
+    At every stage it will put two things side by side: what was <em>true</em> in the simulated
+    world, and what the <em>company</em> believed at that moment. Those are different, and the
+    gap between them is the point of the whole project — a real supplier does not know its
+    customers' consumption when it bills them, and neither does this one.
+  </p>
+  <p>
+    It will also make the change of clock explicit. Consumption happens in half-hours,
+    settlement lands months later, and payment sits somewhere between. That lag is most of what
+    makes energy retail hard, and it is invisible on every page that reports a single number.
+  </p>
+
+  <h2>Roughly when</h2>
+  <p>
+    Next. The stage-by-stage data this page renders already exists and is already used
+    elsewhere on the site; what is missing is the traversal itself — picking one customer and
+    telling their story in order. It is the largest single piece of writing left in the site
+    programme, which is why it is not being rushed into a half-version.
+  </p>
+
+  <div class="note">
+    <strong>Why you are seeing this rather than nothing.</strong> The structure of this site was
+    put up before every page behind it was written, deliberately. An empty room you can see into
+    is more honest than a door that isn't there, and far more honest than a room furnished with
+    figures we haven't checked. This page is not indexed by search engines while it is in this
+    state.
+  </div>
+</main>
+</body>
+</html>

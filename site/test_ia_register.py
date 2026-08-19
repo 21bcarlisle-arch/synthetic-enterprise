@@ -69,7 +69,12 @@ def test_the_register_is_green_at_head():
 def test_every_deployed_area_is_in_exactly_one_state():
     states = reg.classify()
     assert states, "the register classified nothing -- that is the fail-open shape"
-    assert set(states.values()) <= {reg.ADVERTISED, reg.INTERNAL, reg.RETIRED}, (
+    # UNDER_CONSTRUCTION joined the states on 2026-08-19 (director ruling: "under-construction
+    # is a legitimate state and the machine should be able to express it"). It is a CLAIMED
+    # state like the other three -- the failure this asserts is UNCLASSIFIED, a page a reader
+    # can reach that nothing in the repo claims, and an early door is claimed loudly.
+    assert set(states.values()) <= {reg.ADVERTISED, reg.INTERNAL, reg.RETIRED,
+                                    reg.UNDER_CONSTRUCTION}, (
         "an UNCLASSIFIED area is deployed and unclaimed: "
         f"{[a for a, s in states.items() if s == reg.UNCLASSIFIED]}"
     )
