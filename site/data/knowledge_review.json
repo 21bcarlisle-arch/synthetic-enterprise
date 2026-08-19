@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-19T00:21:25Z",
+  "generated_at": "2026-08-19T11:02:42Z",
   "source": "site/data/knowledge_wholesale.json",
   "rule": "site/knowledge/review_state.py",
   "policy": {
@@ -17,88 +17,22 @@
   },
   "tally": {
     "due": 0,
-    "unchecked": 6,
+    "unchecked": 0,
     "stub": 0,
-    "fresh": 2
+    "fresh": 8
   },
   "topics": [
     {
       "id": "carbon-price",
       "title": "The UK carbon price (UK ETS + CPS)",
       "rate_of_change": "medium",
-      "state": "unchecked",
-      "last_verified": null,
-      "written": "2026-08-18",
+      "state": "fresh",
+      "last_verified": "2026-08-19",
       "days_allowed": 183,
-      "age_days": null,
+      "age_days": 0,
       "overdue_by": null,
-      "label": "Written, awaiting check",
-      "detail": "Written 2026-08-18. The explanation below has not been checked against the published source."
-    },
-    {
-      "id": "gas-wholesale",
-      "title": "GB gas wholesale",
-      "rate_of_change": "medium",
-      "state": "unchecked",
-      "last_verified": null,
-      "written": "2026-08-18",
-      "days_allowed": 183,
-      "age_days": null,
-      "overdue_by": null,
-      "label": "Written, awaiting check",
-      "detail": "Written 2026-08-18. The explanation below has not been checked against the published source."
-    },
-    {
-      "id": "gb-electricity-market",
-      "title": "The GB electricity market (structure & settlement)",
-      "rate_of_change": "slow",
-      "state": "unchecked",
-      "last_verified": null,
-      "written": "2026-08-18",
-      "days_allowed": 365,
-      "age_days": null,
-      "overdue_by": null,
-      "label": "Written, awaiting check",
-      "detail": "Written 2026-08-18. The explanation below has not been checked against the published source."
-    },
-    {
-      "id": "hedging-forward-market",
-      "title": "Hedging & the forward market",
-      "rate_of_change": "slow",
-      "state": "unchecked",
-      "last_verified": null,
-      "written": "2026-08-18",
-      "days_allowed": 365,
-      "age_days": null,
-      "overdue_by": null,
-      "label": "Written, awaiting check",
-      "detail": "Written 2026-08-18. The explanation below has not been checked against the published source."
-    },
-    {
-      "id": "imbalance-cashout-settlement",
-      "title": "Imbalance & cash-out",
-      "rate_of_change": "medium",
-      "state": "unchecked",
-      "last_verified": null,
-      "written": "2026-08-18",
-      "days_allowed": 183,
-      "age_days": null,
-      "overdue_by": null,
-      "label": "Written, awaiting check",
-      "detail": "Written 2026-08-18. The explanation below has not been checked against the published source."
-    },
-    {
-      "id": "merit-order-residual-demand",
-      "title": "Merit order & residual demand",
-      "rate_of_change": "slow",
-      "state": "unchecked",
-      "last_verified": null,
-      "written": "2026-08-18",
-      "days_allowed": 365,
-      "age_days": null,
-      "overdue_by": null,
-      "label": "Written, awaiting check",
-      "detail": "Written 2026-08-18. The explanation below has not been checked against the published source."
+      "label": "Reviewed 2026-08-19",
+      "detail": "Checked 0 days ago against a 183-day threshold. Source: GOV.UK UK ETS policy overview; HoC Library SN05927; HMRC CCL1/6."
     },
     {
       "id": "electricity-wholesale",
@@ -111,6 +45,66 @@
       "overdue_by": null,
       "label": "Reviewed 2026-07-25",
       "detail": "Checked 25 days ago against a 183-day threshold. Source: GB multi-plant SRMC dispatch stack DISCOVER."
+    },
+    {
+      "id": "gas-wholesale",
+      "title": "GB gas wholesale",
+      "rate_of_change": "medium",
+      "state": "fresh",
+      "last_verified": "2026-08-19",
+      "days_allowed": 183,
+      "age_days": 0,
+      "overdue_by": null,
+      "label": "Reviewed 2026-08-19",
+      "detail": "Checked 0 days ago against a 183-day threshold. Source: National Gas Transmission; DESNZ gas storage & flexibility (2023); HoC Library."
+    },
+    {
+      "id": "gb-electricity-market",
+      "title": "The GB electricity market (structure & settlement)",
+      "rate_of_change": "slow",
+      "state": "fresh",
+      "last_verified": "2026-08-19",
+      "days_allowed": 365,
+      "age_days": 0,
+      "overdue_by": null,
+      "label": "Reviewed 2026-08-19",
+      "detail": "Checked 0 days ago against a 365-day threshold. Source: Ofgem regulatory framework; CMA Energy Market Investigation appendix 2.1."
+    },
+    {
+      "id": "hedging-forward-market",
+      "title": "Hedging & the forward market",
+      "rate_of_change": "slow",
+      "state": "fresh",
+      "last_verified": "2026-08-19",
+      "days_allowed": 365,
+      "age_days": 0,
+      "overdue_by": null,
+      "label": "Reviewed 2026-08-19",
+      "detail": "Checked 0 days ago against a 365-day threshold. Source: Ofgem cap wholesale methodology decisions 2022/2025; Ofgem resilience CfI 2021."
+    },
+    {
+      "id": "imbalance-cashout-settlement",
+      "title": "Imbalance & cash-out",
+      "rate_of_change": "medium",
+      "state": "fresh",
+      "last_verified": "2026-08-19",
+      "days_allowed": 183,
+      "age_days": 0,
+      "overdue_by": null,
+      "label": "Reviewed 2026-08-19",
+      "detail": "Checked 0 days ago against a 183-day threshold. Source: Elexon BSC Imbalance Pricing Guidance + glossary; Ofgem Balancing SCR."
+    },
+    {
+      "id": "merit-order-residual-demand",
+      "title": "Merit order & residual demand",
+      "rate_of_change": "slow",
+      "state": "fresh",
+      "last_verified": "2026-08-19",
+      "days_allowed": 365,
+      "age_days": 0,
+      "overdue_by": null,
+      "label": "Reviewed 2026-08-19",
+      "detail": "Checked 0 days ago against a 365-day threshold. Source: Ofgem/Elexon NETA+BETTA self-dispatch; DESNZ REMA."
     },
     {
       "id": "price-cap",
