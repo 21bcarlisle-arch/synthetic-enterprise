@@ -44,6 +44,24 @@ from pymc_marketing.clv import ShiftedBetaGeoModelIndividual
 from saas.customer_reaction import _billing_account_id
 
 DISCOUNT_RATE_ANNUAL = 0.10  # applied per renewal period (annual contracts)
+
+# THE COST BASIS THE BOOK IS VALUED ON — one symbol, used BOTH to index
+# `cost_to_serve["by_customer"]` below AND as the label every downstream
+# artefact publishes (`enterprise_value.build_enterprise_value` ->
+# `enterprise_value_margin_basis` -> the site's basis line). Declaring the
+# basis and consuming it through the same name is what makes the published
+# label unforgeable: a future edit that values the book on a different line
+# MOVES the label with it, and the parentage gate in
+# `tools/generate_dashboard_data.py` then fails on the mismatch.
+#
+# 2026-08-17, `WORKER_FINDING_THE_BOOK_IS_VALUED_ON_A_MARGIN_THAT_EXCLUDES_
+# THREE_QUARTERS_OF_THE_COST_STACK`: this used to read `net_margin_gbp`, which
+# in `saas/cost_to_serve.py`'s key space meant gross-minus-cost-to-serve. The
+# levies, network charges, capital and bad debt that a UK supplier incurs
+# per-customer, per-kWh — 75.969% of gross margin — were not in the number the
+# customer book was valued on. C7 was published as a £7,771.10 asset on a
+# believed £1,201.15/yr while the same run's P&L gave it -£40.13/yr.
+CLV_MARGIN_BASIS = "net_of_all_costs_margin_gbp"
 MAX_PROJECTION_PERIODS = 50  # cap on summed future renewal periods per account
 
 # Fallback alpha+beta ("pseudo-count") when the spread of per-renewal churn
@@ -257,9 +275,14 @@ def build_clv(
       - `churn_risk` (`churn_model.build_churn_risk()`) for the per-account
         churn-probability history (and renewal-point count `T`).
       - `cost_to_serve` (`cost_to_serve.build_cost_to_serve()`'s
-        `by_customer`) for `net_margin_gbp`, summed across the dual-fuel
-        electricity/gas legs of each billing account
-        (`saas.customer_reaction._billing_account_id`).
+        `by_customer`) for `CLV_MARGIN_BASIS` — the margin left after EVERY
+        cost attributable to that account's own consumption (wholesale,
+        policy levies, network charges, capital, bad debt, cost-to-serve) —
+        summed across the dual-fuel electricity/gas legs of each billing
+        account (`saas.customer_reaction._billing_account_id`). Indexed
+        directly, never `.get`: a cost_to_serve view that cannot supply the
+        basis this valuation declares must raise, not value the book on
+        whatever it does have (R15 fail-open).
 
     Returns `{billing_account_id: {alpha, beta, expected_lifetime_periods,
     avg_annual_net_margin_gbp, clv_gbp}}`. Accounts with no renewal points
@@ -282,7 +305,7 @@ def build_clv(
         for customer_id, entry in cost_to_serve["by_customer"].items():
             account_id = _billing_account_id(customer_id)
             net_margin_by_account[account_id] = (
-                net_margin_by_account.get(account_id, 0.0) + entry["net_margin_gbp"]
+                net_margin_by_account.get(account_id, 0.0) + entry[CLV_MARGIN_BASIS]
             )
         _margin_is_avg = False
 

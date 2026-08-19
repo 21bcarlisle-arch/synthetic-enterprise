@@ -1,6 +1,6 @@
 import pytest
 
-from saas.clv_model import build_clv
+from saas.clv_model import CLV_MARGIN_BASIS, build_clv
 from saas.enterprise_value import (
     adjust_churn_risk_for_home_move,
     build_enterprise_value,
@@ -27,11 +27,26 @@ CHURN_RISK = {
     "C3": [],
 }
 
+# Both cost bases, and deliberately far apart (2026-08-17 margin-basis
+# finding): `contribution_margin_gbp` is gross-minus-cost-to-serve, while
+# `net_of_all_costs_margin_gbp` — the line the book is actually valued on — is
+# additionally net of policy levies, network charges, capital and bad debt.
+# Setting them equal here would leave every assertion below unable to tell
+# which line `build_clv` read.
 COST_TO_SERVE = {
     "by_customer": {
-        "C1": {"cost_to_serve_gbp": 100.0, "margin_gbp": 500.0, "net_margin_gbp": 400.0},
-        "C1g": {"cost_to_serve_gbp": 50.0, "margin_gbp": 200.0, "net_margin_gbp": 150.0},
-        "C2": {"cost_to_serve_gbp": 80.0, "margin_gbp": 300.0, "net_margin_gbp": 220.0},
+        "C1": {
+            "cost_to_serve_gbp": 100.0, "margin_gbp": 500.0,
+            "contribution_margin_gbp": 400.0, "net_of_all_costs_margin_gbp": 20.0,
+        },
+        "C1g": {
+            "cost_to_serve_gbp": 50.0, "margin_gbp": 200.0,
+            "contribution_margin_gbp": 150.0, "net_of_all_costs_margin_gbp": 10.0,
+        },
+        "C2": {
+            "cost_to_serve_gbp": 80.0, "margin_gbp": 300.0,
+            "contribution_margin_gbp": 220.0, "net_of_all_costs_margin_gbp": 16.0,
+        },
     }
 }
 
@@ -99,7 +114,14 @@ def test_higher_price_differential_reduces_enterprise_value():
 def test_build_enterprise_value_empty_churn_risk_returns_empty():
     result = build_enterprise_value({"C1": []}, COST_TO_SERVE, CUSTOMERS, price_differential_pct=0.0, ceased_accounts=set(), n_draws=50)
     assert result["by_customer"] == {}
-    assert result["portfolio"] == {"enterprise_value_gbp": 0.0, "account_count": 0}
+    # The cost basis is declared even when the book is empty: a valuation of
+    # nothing is still a valuation on a basis, and a label that appears only
+    # when there is something to label is one a consumer cannot rely on.
+    assert result["portfolio"] == {
+        "enterprise_value_gbp": 0.0,
+        "account_count": 0,
+        "margin_basis": CLV_MARGIN_BASIS,
+    }
 
 
 def test_effective_churn_probability_monotone_in_churn_rate():
