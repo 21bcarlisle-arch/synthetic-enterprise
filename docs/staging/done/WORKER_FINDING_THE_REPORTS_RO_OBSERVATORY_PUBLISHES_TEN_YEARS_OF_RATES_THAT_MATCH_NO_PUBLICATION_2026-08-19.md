@@ -1,6 +1,9 @@
 # WORKER FINDING — the report's RO observatory publishes ten years of obligation levels and buy-out prices that match no publication, and lands 26.5% below the RO cost the company actually pays
 
 **Severity:** BLOCKING · **Lane:** W4_the_wall
+
+**Discharged:** `tests/architecture/test_year_keyed_rate_table_census.py::test_every_pinned_table_equals_its_publication`, `tests/architecture/test_year_keyed_rate_table_census.py::test_mutation_d_a_table_moved_out_of_simulation_is_still_discovered`, `tests/simulation/test_policy_cost_values_vs_source.py::test_every_table_pinned_elsewhere_is_named_by_the_control_that_pins_it`, `tests/company/test_phase_og_roc_obligations.py::test_the_level_dips_in_2023_because_a_ramp_cannot`, `company/regulatory/ro_commons.py`, `docs/domain_artefact_library/regulatory/ro_obligation_and_buyout.json` — repaired as the class rather than as twenty corrected literals. The two series are pinned in the regulation commons in their own publishers' units, ROCs per MWh and pounds per ROC separately, so the control performs the multiplication; both company tables now load them and the smooth ramp is gone; and a repo-wide AST census over simulation, company and saas replaces the one-module enumerator that made this defect unnameable. The published figure moved on the page: the annual report's RO Cost Observatory total went 1,267,231 to 1,753,688, which is 1.7 percent from the world's own settled RO line where it had been 26.5 percent below it. The population question this finding refused to guess is now measured, not closed — see "What this discharge does not close" at the foot.
+
 **found:** 2026-08-19, source-checking the largest line in the non-commodity stack for
 `EP14_adapter_published_cost_stack` (`docs/design/EP14_PUBLISHED_COST_STACK_RO_SOURCE_CHECK_2026-08-19.md` §2).
 Queued rather than fixed on sight per SELF_INTERRUPT discipline.
@@ -132,6 +135,31 @@ missing register — the loader must raise, because an unavailable check is a fa
 
 Two unregistered tables is an **instance count, not a population**. The sweep in repair step 1 has not
 been run, so the number of year-keyed rate tables outside the register is **unknown and at least two**.
+
+## What the sweep found, and what this discharge does not close (added at discharge, 2026-08-19)
+
+The sweep has now been run and the paragraph above is answered: **61** year-keyed rate tables exist
+across `simulation/`, `company/` and `saas/` — **39 of them in `company/`**, 20 in `simulation/`, 2 in
+`saas/`. The register that declared itself the guard on this defect family could see **13**, all of them
+in one module. So "at least two" was 48, and the two this finding tripped over were not special; they
+were the two that happened to reach a published page. Every one of the 61 is now classified: 5 pinned
+against the commons, 40 published-but-unpinned each with a stated reason and ratcheted downward, 16
+carrying no published counterpart. A table added anywhere in scope with no classification fails.
+
+**Three things this does NOT close, stated so the green is not read as wider than it is:**
+
+1. **40 of the 61 remain unpinned.** They are declared and ratcheted, which makes the gap visible and
+   one-directional; it does not make it checked. Electricity network at £869k is still among them, as
+   this document's own last paragraph says.
+2. **The world-side table is pinned, not sourced.** `simulation/policy_costs._RO_COST_BY_OY_START` is
+   still a literal — a now-verified one, asserted equal to the product of the two commons series to
+   within the 1dp rounding its own reading declares. Repair step 3 asked for both readers to LOAD from
+   the commons; the company side does, the world side does not yet. Drift there is detected rather than
+   made impossible, which is weaker, and the difference is worth keeping in sight.
+3. **The calendar-vs-April keying is untouched**, exactly as the second-order note above says it would
+   be. `_roc_summary` still buckets on `settlement_date[:4]` while the obligation year runs 1 April to
+   31 March. The £486k here is a constants-only counterfactual and does not absorb it; the keying defect
+   is its own finding and is not claimed as repaired by this one.
 Nor is it claimed that any figure in the world-side stack besides those already checked is wrong: this
 pass source-checked RO, and passes 3–4 checked gas CCL, electricity CCL and GGL. Nine of the thirteen
 declared tables remain unchecked, including electricity network at £869k.

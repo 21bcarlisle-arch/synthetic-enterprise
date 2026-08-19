@@ -1,0 +1,189 @@
+{
+  "artefact": "ro_obligation_and_buyout",
+  "version": 1,
+  "published_by": "DECC / BEIS / DESNZ (obligation level notices, made under the Renewables Obligation Order) and Ofgem (buy-out price, mutualisation threshold and ceilings)",
+  "what_this_is": "THE LAW, NOT A READING OF IT. The two separately published Renewables Obligation series, each stated in the unit its own publisher uses: the Great Britain obligation level in ROCs per MWh supplied, and the buy-out price in GBP per ROC. Nothing here interprets them. The GBP/MWh effective cost is the PRODUCT of the two and is NOT in this file; the segment filter, the Apr-Mar bucketing of a supplier's volumes, the treatment of the buy-out fund recycle and the choice to price at buy-out rather than at the ROC market are all READINGS, and each lane owns its own. A lane that misreads them has misread the law, rather than having been handed a different law.",
+  "basis": {
+    "units": "obligation_level: ROCs per MWh supplied. buy_out_price: GBP per ROC. NEITHER is the GBP/MWh figure the models tabulate.",
+    "conversion": "consumers multiply: obligation_level (ROC/MWh) x buy_out_price (GBP/ROC) = GBP/MWh",
+    "year_key": "obligation year beginning 1 April; each entry's key is the year the obligation year COMMENCES, so obligation_year 2023 is OY 2023-24 and runs 2023-04-01 to 2024-03-31. Ofgem and DESNZ both label these '2023 to 2024'.",
+    "territory": "GREAT BRITAIN (England, Wales and Scotland). Northern Ireland has its own obligation level and is NOT in this file.",
+    "eii_adjustment": "levels are stated AS FINALLY SET for the year, including any Energy Intensive Industries exemption revision. Where a year was first set at one level and revised (2018-19: 0.452 -> 0.468; 2024-25: 0.487 -> 0.491), the REVISED level is the one carried, because it is the level suppliers were actually obligated at."
+  },
+  "why_native_units": "The GBP/MWh effective RO cost is a DERIVED product of two series that no single publication states together. That derivation is exactly where the defect of 2026-08-19 lived: `company/regulatory/roc_ledger.py` carried both inputs as smooth annual ramps (+0.006/yr on the level, ~3.4%/yr on the price) through a decade in which the published level plateaus, DIPS to 0.469 in 2023/24 and returns, and the price went 52.88 -> 59.01 -> 64.73 -> 67.06. The published table understated the RO line by GBP486,458.88 (27.74%). If this file carried the GBP/MWh product, a control comparing it to the model's product would be a TAUTOLOGY in the R15 sense -- the checked value derived from the source it checks -- and worse, a wrong level could be cancelled by a wrong price and still land on the right product. Holding the two publishers' own series separately forces the control to perform the multiplication, so the derivation is itself under test. That is why the split here is deliberate and must not be 'tidied' into a single GBP/MWh table.",
+  "provenance_legend": {
+    "primary": "the value was read from THIS entry's own `source` URL -- the publisher's notice for THIS obligation year -- during the pass that wrote the entry. ONLY these entries are asserted as equalities by the control.",
+    "secondary": "the value was read from a publication, but from ANOTHER obligation year's notice quoting it in a comparison table, not from its own notice. Weaker than `primary`: a quoted figure can be a rounded or superseded restatement. Asserted, but labelled, and its `source` names the notice it was quoted inside.",
+    "recalled": "author recall, NEVER fetched. EXCLUDED from the control's equality assertions and counted against a ratchet, so an unverified year is visible rather than silently trusted. There are none in this file and the ratchet is 0."
+  },
+  "fetched_pass": "2026-08-19, EP14 published cost stack RO source check (docs/design/EP14_PUBLISHED_COST_STACK_RO_SOURCE_CHECK_2026-08-19.md)",
+  "obligation_levels": [
+    {
+      "obligation_year": 2016,
+      "roc_per_mwh": 0.348,
+      "provenance": "primary",
+      "source": "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/464685/Renewables_Obligation_Level_Calculations_for_2016-17.pdf",
+      "source_label": "The Renewables Obligation for 2016/17 (DECC)",
+      "quote": "0.348 ROCs per MWh in England, Scotland and Wales"
+    },
+    {
+      "obligation_year": 2017,
+      "roc_per_mwh": 0.409,
+      "provenance": "primary",
+      "source": "https://assets.publishing.service.gov.uk/media/5a80b6cf40f0b62305b8cbc4/RO_setting_2017-18_explanatory_note_-_1_October_2016_-_typos_corrected.pdf",
+      "source_label": "RO setting 2017-18 explanatory note, 1 October 2016 (BEIS)",
+      "quote": "0.409 ROCs per MWh in England, Wales and Scotland"
+    },
+    {
+      "obligation_year": 2018,
+      "roc_per_mwh": 0.468,
+      "provenance": "primary",
+      "source": "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/648424/Renewables_Obligation_2018_19_FINAL.pdf",
+      "source_label": "The Renewables Obligation for 2018/19 (BEIS, September 2017)",
+      "quote": "0.452 ROCs per MWh in Great Britain, adjusted for the EII exemption from 0.452 ROCs/MWh to 0.468 ROCs/MWh"
+    },
+    {
+      "obligation_year": 2019,
+      "roc_per_mwh": 0.484,
+      "provenance": "primary",
+      "source": "https://www.gov.uk/government/publications/renewables-obligation-level-calculations-2019-to-2020/calculating-the-level-of-the-renewables-obligation-for-2019-to-2020",
+      "source_label": "Calculating the level of the RO for 2019 to 2020, GOV.UK",
+      "quote": "0.484 ROCs per MWh in Great Britain"
+    },
+    {
+      "obligation_year": 2020,
+      "roc_per_mwh": 0.471,
+      "provenance": "primary",
+      "source": "https://assets.publishing.service.gov.uk/media/5d8b47a140f0b6098d33fee6/renewable-obligation-calculating-level-2020-2021.pdf",
+      "source_label": "The Renewables Obligation for 2020-21 (BEIS, September 2019)",
+      "quote": "0.471 ROCs per MWh in Great Britain (England, Wales and Scotland)"
+    },
+    {
+      "obligation_year": 2021,
+      "roc_per_mwh": 0.492,
+      "provenance": "secondary",
+      "source": "https://www.gov.uk/government/publications/renewables-obligation-level-calculations-2023-to-2024/calculating-the-level-of-the-renewables-obligation-for-2023-to-2024",
+      "source_label": "quoted in the 2023 to 2024 level notice's comparison table, GOV.UK",
+      "quote": "2021-22: 0.492"
+    },
+    {
+      "obligation_year": 2022,
+      "roc_per_mwh": 0.491,
+      "provenance": "secondary",
+      "source": "https://www.gov.uk/government/publications/renewables-obligation-level-calculations-2024-to-2025/calculating-the-level-of-the-renewables-obligation-for-2024-to-2025",
+      "source_label": "quoted in the 2024 to 2025 level notice's comparison table, GOV.UK",
+      "quote": "2022-23: 0.491"
+    },
+    {
+      "obligation_year": 2023,
+      "roc_per_mwh": 0.469,
+      "provenance": "primary",
+      "source": "https://www.gov.uk/government/publications/renewables-obligation-level-calculations-2023-to-2024/calculating-the-level-of-the-renewables-obligation-for-2023-to-2024",
+      "source_label": "Calculating the level of the RO for 2023 to 2024, GOV.UK",
+      "quote": "0.469 ROCs per MWh in Great Britain"
+    },
+    {
+      "obligation_year": 2024,
+      "roc_per_mwh": 0.491,
+      "provenance": "primary",
+      "source": "https://www.gov.uk/government/publications/renewables-obligation-level-calculations-2024-to-2025/revising-the-level-of-the-renewables-obligation-for-great-britain-for-2024-to-2025-to-implement-an-increased-exemption-for-energy-intensive-industries",
+      "source_label": "Revising the level of the RO for GB for 2024 to 2025 to implement an increased EII exemption (26 March 2024), GOV.UK",
+      "quote": "0.491 ROCs per MWh in Great Britain (England, Wales and Scotland)"
+    },
+    {
+      "obligation_year": 2025,
+      "roc_per_mwh": 0.493,
+      "provenance": "primary",
+      "source": "https://www.gov.uk/government/publications/renewables-obligation-level-calculations-2025-to-2026/calculating-the-level-of-the-renewables-obligation-for-2025-to-2026",
+      "source_label": "Calculating the level of the RO for 2025 to 2026, GOV.UK",
+      "quote": "0.493 ROCs per MWh in Great Britain (England, Wales and Scotland)"
+    }
+  ],
+  "buy_out_prices": [
+    {
+      "obligation_year": 2016,
+      "gbp_per_roc": 44.77,
+      "provenance": "primary",
+      "source": "https://www.ofgem.gov.uk/environmental-and-social-schemes/renewables-obligation-ro/suppliers",
+      "source_label": "Renewables Obligation (RO) - Suppliers, Ofgem (buy-out price table)",
+      "quote": "2016-17: GBP44.77"
+    },
+    {
+      "obligation_year": 2017,
+      "gbp_per_roc": 45.58,
+      "provenance": "primary",
+      "source": "https://www.ofgem.gov.uk/environmental-and-social-schemes/renewables-obligation-ro/suppliers",
+      "source_label": "Renewables Obligation (RO) - Suppliers, Ofgem (buy-out price table)",
+      "quote": "2017-18: GBP45.58"
+    },
+    {
+      "obligation_year": 2018,
+      "gbp_per_roc": 47.22,
+      "provenance": "primary",
+      "source": "https://www.ofgem.gov.uk/environmental-and-social-schemes/renewables-obligation-ro/suppliers",
+      "source_label": "Renewables Obligation (RO) - Suppliers, Ofgem (buy-out price table)",
+      "quote": "2018-19: GBP47.22"
+    },
+    {
+      "obligation_year": 2019,
+      "gbp_per_roc": 48.78,
+      "provenance": "primary",
+      "source": "https://www.ofgem.gov.uk/environmental-and-social-schemes/renewables-obligation-ro/suppliers",
+      "source_label": "Renewables Obligation (RO) - Suppliers, Ofgem (buy-out price table)",
+      "quote": "2019-20: GBP48.78"
+    },
+    {
+      "obligation_year": 2020,
+      "gbp_per_roc": 50.05,
+      "provenance": "primary",
+      "source": "https://www.ofgem.gov.uk/environmental-and-social-schemes/renewables-obligation-ro/suppliers",
+      "source_label": "Renewables Obligation (RO) - Suppliers, Ofgem (buy-out price table)",
+      "quote": "2020-21: GBP50.05"
+    },
+    {
+      "obligation_year": 2021,
+      "gbp_per_roc": 50.80,
+      "provenance": "primary",
+      "source": "https://www.ofgem.gov.uk/environmental-and-social-schemes/renewables-obligation-ro/suppliers",
+      "source_label": "Renewables Obligation (RO) - Suppliers, Ofgem (buy-out price table)",
+      "quote": "2021-22: GBP50.80"
+    },
+    {
+      "obligation_year": 2022,
+      "gbp_per_roc": 52.88,
+      "provenance": "primary",
+      "source": "https://www.ofgem.gov.uk/environmental-and-social-schemes/renewables-obligation-ro/suppliers",
+      "source_label": "Renewables Obligation (RO) - Suppliers, Ofgem (buy-out price table)",
+      "quote": "2022-23: GBP52.88"
+    },
+    {
+      "obligation_year": 2023,
+      "gbp_per_roc": 59.01,
+      "provenance": "primary",
+      "source": "https://www.ofgem.gov.uk/environmental-and-social-schemes/renewables-obligation-ro/suppliers",
+      "source_label": "Renewables Obligation (RO) - Suppliers, Ofgem (buy-out price table)",
+      "quote": "2023-24: GBP59.01"
+    },
+    {
+      "obligation_year": 2024,
+      "gbp_per_roc": 64.73,
+      "provenance": "primary",
+      "source": "https://www.ofgem.gov.uk/publications/renewables-obligation-ro-buy-out-price-mutualisation-threshold-and-mutualisation-ceilings-2024-2025",
+      "source_label": "RO buy-out price, mutualisation threshold and ceilings 2024 to 2025, Ofgem",
+      "quote": "GBP64.73 per Renewables Obligation Certificate (ROC)"
+    },
+    {
+      "obligation_year": 2025,
+      "gbp_per_roc": 67.06,
+      "provenance": "primary",
+      "source": "https://www.ofgem.gov.uk/data/renewables-obligation-buy-out-price-and-mutualisation-threshold-and-ceilings-2026-2027",
+      "source_label": "RO buy-out price and mutualisation threshold and ceilings 2026 to 2027, Ofgem (states 2025-26 alongside 2026-27)",
+      "quote": "2025-26: GBP67.06"
+    }
+  ],
+  "open_items": [
+    "2021-22 and 2022-23 obligation levels are `secondary`: read from the comparison tables inside the 2023-24 and 2024-25 notices rather than from their own notices, which were not located this pass. Promote to `primary` when the own-year notices are fetched.",
+    "Northern Ireland obligation levels are not carried. The company supplies GB only; a NI segment would need its own series, not a reuse of these.",
+    "The buy-out fund recycle (~GBP3.87/ROC in 2020-21) is NOT netted off any figure here. It is a READING -- the recycle is redistributed pro rata to ROCs presented, so both compliance routes arbitrage to obligation x buy-out -- and it belongs in the consumer, not the commons."
+  ]
+}

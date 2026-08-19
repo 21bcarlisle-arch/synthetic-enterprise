@@ -1700,7 +1700,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (11 active customers) under 12-month forward scenarios.
-Generated: 2026-08-18T23:43:27Z
+Generated: 2026-08-19T04:08:18Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -2063,19 +2063,19 @@ ROC buy-out cost is the maximum supplier exposure; ROC market purchases reduce a
 
 | Year | Elec MWh | Obligation Level | ROCs Required | Buy-out Price | Buy-out Cost |
 |------|----------|-----------------|--------------|--------------|-------------|
-| 2016 | 67.4 | 0.317 ROC/MWh | 21.4 | £43.30 | £925 |
-| 2017 | 2,071.0 | 0.334 ROC/MWh | 691.7 | £44.77 | £30,968 |
-| 2018 | 3,075.0 | 0.342 ROC/MWh | 1,051.7 | £46.43 | £48,828 |
-| 2019 | 7,077.0 | 0.351 ROC/MWh | 2,484.0 | £47.22 | £117,296 |
-| 2020 | 10,102.6 | 0.358 ROC/MWh | 3,616.7 | £48.78 | £176,424 |
-| 2021 | 9,976.0 | 0.364 ROC/MWh | 3,631.3 | £50.80 | £184,468 |
-| 2022 | 9,936.2 | 0.370 ROC/MWh | 3,676.4 | £52.88 | £194,408 |
-| 2023 | 9,951.7 | 0.376 ROC/MWh | 3,741.8 | £54.35 | £203,369 |
-| 2024 | 9,981.5 | 0.382 ROC/MWh | 3,812.9 | £56.19 | £214,249 |
-| 2025 | 4,260.7 | 0.389 ROC/MWh | 1,657.4 | £58.10 | £96,296 |
-| **Total** | **66,499.1** | | | | **£1,267,231** |
+| 2016 | 67.4 | 0.348 ROC/MWh | 23.5 | £44.77 | £1,050 |
+| 2017 | 2,071.0 | 0.409 ROC/MWh | 847.0 | £45.58 | £38,608 |
+| 2018 | 3,075.0 | 0.468 ROC/MWh | 1,439.1 | £47.22 | £67,954 |
+| 2019 | 7,077.0 | 0.484 ROC/MWh | 3,425.3 | £48.78 | £167,085 |
+| 2020 | 10,102.6 | 0.471 ROC/MWh | 4,758.3 | £50.05 | £238,154 |
+| 2021 | 9,976.0 | 0.492 ROC/MWh | 4,908.2 | £50.80 | £249,336 |
+| 2022 | 9,936.2 | 0.491 ROC/MWh | 4,878.7 | £52.88 | £257,984 |
+| 2023 | 9,951.7 | 0.469 ROC/MWh | 4,667.3 | £59.01 | £275,420 |
+| 2024 | 9,981.5 | 0.491 ROC/MWh | 4,900.9 | £64.73 | £317,236 |
+| 2025 | 4,260.7 | 0.493 ROC/MWh | 2,100.5 | £67.06 | £140,861 |
+| **Total** | **66,499.1** | | | | **£1,753,688** |
 
-RO cost as % of total revenue (2016-2025): **6.7%** (industry benchmark 5-10%)
+RO cost as % of total revenue (2016-2025): **9.3%** (industry benchmark 5-10%)
 
 > Note: actual RO cost depends on ROC market prices. Buy-out price is the regulatory ceiling.
 ## Feed-in Tariff (FiT) Levelisation Levy

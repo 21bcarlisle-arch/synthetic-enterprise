@@ -141,11 +141,17 @@ def test_is_compliant_true_when_no_shortfall():
 
 
 def test_buyout_price_2022():
-    assert abs(_BUYOUT_PRICE_GBP_PER_ROC[2022] - 54.35) < 0.01
+    # OY 2022-23. Was pinned at GBP54.35 — Ofgem published GBP52.88; GBP54.35 is what the
+    # OTHER RO table in this package carried for 2023-24, itself also wrong. Repaired
+    # 2026-08-19: both tables now load the same published series from the commons.
+    assert abs(_BUYOUT_PRICE_GBP_PER_ROC[2022] - 52.88) < 0.01
 
 
 def test_obligation_level_2022():
-    assert abs(_OBLIGATION_LEVEL_ROC_PER_MWH[2022] - 0.1053) < 0.001
+    # Was pinned at 0.1053 ROC/MWh, roughly a fifth of the published GB level for OY
+    # 2022-23. A supplier obligated at a fifth of the real level is not a permitted
+    # company belief: the level is published law.
+    assert abs(_OBLIGATION_LEVEL_ROC_PER_MWH[2022] - 0.491) < 0.001
 
 
 def test_ro_book_return_for_year_none_initially():

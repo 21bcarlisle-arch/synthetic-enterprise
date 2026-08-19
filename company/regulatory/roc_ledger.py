@@ -16,7 +16,12 @@ The RO closed to new generators from 31 March 2017 but obligation continues
 until 2037 (for grandfathered generators with 20-year ROC accreditations).
 
 Observability: ROC certificates are issued by Ofgem (public register).
-Buy-out prices are published annually. Obligation levels are published.
+Buy-out prices are published annually. Obligation levels are published — and since
+2026-08-19 this module READS them rather than restating them. The two tables below were
+literals for months; both were wrong on every one of ten years, and the resulting "RO Cost
+Observatory" in the annual report understated the RO line by GBP486,458.88 (27.74%). The
+docstring above cited Ofgem for a 2023-24 buy-out price of GBP54.35; Ofgem published
+GBP59.01. See `company/regulatory/ro_commons.py` for the reading and the sources.
 """
 from __future__ import annotations
 
@@ -25,32 +30,14 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional
 
-
-_ROC_OBLIGATION_LEVEL: Dict[int, float] = {
-    2016: 0.317,   # ROC/MWh
-    2017: 0.334,
-    2018: 0.342,
-    2019: 0.351,
-    2020: 0.358,
-    2021: 0.364,
-    2022: 0.370,
-    2023: 0.376,
-    2024: 0.382,
-    2025: 0.389,
-}
-
-_ROC_BUY_OUT_PRICE_GBP: Dict[int, float] = {
-    2016: 43.30,
-    2017: 44.77,
-    2018: 46.43,
-    2019: 47.22,
-    2020: 48.78,
-    2021: 50.80,
-    2022: 52.88,
-    2023: 54.35,
-    2024: 56.19,
-    2025: 58.10,
-}
+# The names are kept so the report chain (`statutory_obligations._roc_summary` ->
+# `run_phase2b` -> `annual_report`) and the existing tests are unchanged; only the VALUES
+# move, from literals here to the regulation commons, keyed by the year the obligation
+# year commences. Re-binding either name to a literal is the defect this repair removed.
+from company.regulatory.ro_commons import (  # noqa: E402
+    BUY_OUT_PRICE_GBP_PER_ROC as _ROC_BUY_OUT_PRICE_GBP,
+    OBLIGATION_LEVEL_ROC_PER_MWH as _ROC_OBLIGATION_LEVEL,
+)
 
 
 class ROCObligationStatus(str, Enum):

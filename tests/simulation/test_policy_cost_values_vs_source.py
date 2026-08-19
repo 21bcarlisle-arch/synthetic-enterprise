@@ -73,13 +73,29 @@ _VERIFIED_TABLES: dict[str, str] = {
     "_GAS_CCL_RATE_BY_YEAR": "gas",
 }
 
+# Tables pinned by a control OUTSIDE this module: table name -> the file that pins it.
+#
+# WHY THIS BUCKET EXISTS (2026-08-19). `_RO_COST_BY_OY_START` is now pinned — against the two
+# separately published RO series, by the repo-wide census in
+# tests/architecture/test_year_keyed_rate_table_census.py — but it cannot go in
+# `_VERIFIED_TABLES` above, whose values are commons COMMODITIES in the CCL artefact and whose
+# equality leg reads that artefact alone. Leaving it in `_UNVERIFIED_TABLES` would have been
+# false; dropping it from both, which is what the pass that pinned it did, left it classified
+# NOWHERE and this file red.
+#
+# THIS BUCKET IS THE MOST DANGEROUS SHAPE IN THE FILE and is fenced accordingly. "Pinned
+# somewhere else" reads exactly like a pin and, unchecked, checks nothing — the fail-open
+# escape hatch by which a table could be quietly un-verified while the ratchet still read
+# green. So the leg below RESOLVES the claim: the named file must exist and must NAME the
+# table. A pointer to a control that does not mention its subject is not a pin.
+_PINNED_ELSEWHERE: dict[str, str] = {
+    "_RO_COST_BY_OY_START": "tests/architecture/test_year_keyed_rate_table_census.py",
+}
+
 # Tables with NO values-vs-source pin yet, each with the reason. Declared rather than omitted:
 # an unchecked table that is merely absent is indistinguishable from a checked one.
 # THE RATCHET BELOW ONLY MOVES DOWN — pin a table, delete its line here.
 _UNVERIFIED_TABLES: dict[str, str] = {
-    "_RO_COST_BY_OY_START": "£1.72M, the largest line. Ofgem publishes the RO buy-out price and "
-                            "obligation level separately; the tabulated £/MWh is a DERIVED product "
-                            "of both, so pinning it needs the two inputs pinned, not one figure.",
     "_CFD_LEVY_BY_YEAR": "LCCC/EMRS publish the interim levy rate per quarter; the table is an "
                          "annual average, so the pin must carry the averaging as a stated reading.",
     "_NETWORK_COST_RESI_SME_BY_YEAR": "£869k. DUoS+TNUoS combined across 14 DNO regions; the "
@@ -108,7 +124,15 @@ _UNVERIFIED_TABLES: dict[str, str] = {
 
 # Ratchets. Both may only be LOWERED. Raising either to make a red test green is the
 # goal-seeking R12 forbids, applied to a control.
-_MAX_UNVERIFIED_TABLES = 11
+# 11 -> 10 on 2026-08-19: `_RO_COST_BY_OY_START` is now pinned, against the two published
+# series in `ro_obligation_and_buyout.json`, by the repo-wide census in
+# `tests/architecture/test_year_keyed_rate_table_census.py`. It moved to that file rather
+# than into `_VERIFIED_TABLES` here because pinning it needs BOTH RO inputs and a
+# multiplication, and because this control's population is one module by construction —
+# which is the blindness the census exists to remove. It is declared in `_PINNED_ELSEWHERE`
+# above, not merely deleted from here: a table that leaves this dict without arriving anywhere
+# is exactly how the ratchet moves down while coverage does not move up.
+_MAX_UNVERIFIED_TABLES = 10
 _MAX_RECALLED_PINS = 3   # elec 2016, gas 2016, gas 2022 — each an open item in the commons
 
 
@@ -211,7 +235,7 @@ def test_every_year_keyed_table_is_classified():
     the ratchet would read green while coverage fell. Same census leg the year-basis control
     runs, for the same reason.
     """
-    classified = set(_VERIFIED_TABLES) | set(_UNVERIFIED_TABLES)
+    classified = set(_VERIFIED_TABLES) | set(_UNVERIFIED_TABLES) | set(_PINNED_ELSEWHERE)
     registered = set(YEAR_KEY_BASIS)
     assert not (registered - classified), (
         f"year-keyed tables classified neither verified nor unverified: "
@@ -221,6 +245,53 @@ def test_every_year_keyed_table_is_classified():
         f"classified here but absent from YEAR_KEY_BASIS (renamed or deleted?): "
         f"{sorted(classified - registered)}"
     )
+
+
+def test_a_table_is_in_exactly_one_bucket():
+    """Three buckets, and the ratchet counts one of them.
+
+    A table in both `_PINNED_ELSEWHERE` and `_UNVERIFIED_TABLES` would be simultaneously pinned
+    and unpinned, and the classified-set union above would hide it: set union is silent about
+    overlap, so the scope leg passes either way.
+    """
+    buckets = {
+        "verified": set(_VERIFIED_TABLES),
+        "pinned_elsewhere": set(_PINNED_ELSEWHERE),
+        "unverified": set(_UNVERIFIED_TABLES),
+    }
+    for left, right in (
+        ("verified", "pinned_elsewhere"),
+        ("verified", "unverified"),
+        ("pinned_elsewhere", "unverified"),
+    ):
+        overlap = buckets[left] & buckets[right]
+        assert not overlap, f"tables in both {left} and {right}: {sorted(overlap)}"
+
+
+def test_every_table_pinned_elsewhere_is_named_by_the_control_that_pins_it():
+    """The leg that stops "pinned elsewhere" from being a way to un-check a table silently.
+
+    A delegation is only worth what the delegate does. This RESOLVES the pointer — the named
+    control must exist and must name the table — so deleting the census, renaming the table
+    out of it, or pointing at a file that never mentions it all fail HERE, in the register
+    that took the credit for the pin.
+
+    NOT FAIL-OPEN (R15): a missing file is a FAILED resolution, never a skip.
+    """
+    assert _PINNED_ELSEWHERE, (
+        "the pinned-elsewhere bucket is empty — if that is real, delete it and this leg "
+        "rather than leaving a control whose subject has vanished"
+    )
+    for name, control in _PINNED_ELSEWHERE.items():
+        path = ROOT / control
+        assert path.exists(), (
+            f"{name} is declared pinned by {control}, which does not exist. An unavailable "
+            "check is a FAILED check, not an absent one."
+        )
+        assert name in path.read_text(), (
+            f"{name} is declared pinned by {control}, and that file never names it. A pointer "
+            "to a control that does not mention its subject pins nothing."
+        )
 
 
 def test_every_unverified_table_states_a_reason():
@@ -310,3 +381,53 @@ def test_mutation_a_missing_register_cannot_read_green(monkeypatch):
     monkeypatch.setattr(Path, "exists", lambda self: False)
     with pytest.raises(FileNotFoundError, match="commons artefact missing"):
         _load_pins()
+
+
+def test_mutation_a_pin_delegated_to_a_control_that_does_not_name_it_is_caught(
+    monkeypatch, tmp_path
+):
+    """THE NAMED DEFECT of the new bucket: a delegation that delegates to nothing.
+
+    Repoint the RO table at a file that exists and never mentions it — the shape a rename, a
+    deleted census, or a hopeful pointer all collapse to — and the resolution leg must fire.
+    Without this, "pinned elsewhere" would be a strictly cheaper way to leave a table
+    unchecked than declaring it unverified, because the unverified bucket is at least counted.
+
+    The decoy is WRITTEN here rather than borrowed from the repo: the first draft pointed at
+    `test_policy_cost_year_basis.py`, which registers every table's year basis and so names
+    this one — the mutation passed while proving nothing. A mutation that depends on another
+    file's contents is not controlled.
+    """
+    decoy = tmp_path / "decoy_control.py"
+    decoy.write_text("# a control that pins something else entirely\n")
+    monkeypatch.setitem(globals(), "ROOT", tmp_path)
+    monkeypatch.setitem(
+        globals(), "_PINNED_ELSEWHERE", {"_RO_COST_BY_OY_START": "decoy_control.py"}
+    )
+    with pytest.raises(AssertionError, match="never names it"):
+        test_every_table_pinned_elsewhere_is_named_by_the_control_that_pins_it()
+
+
+def test_mutation_a_pin_delegated_to_a_missing_control_is_caught(monkeypatch):
+    """An unavailable delegate is a FAILED pin. The fail-open reading — "the file is gone, so
+    there is nothing to check" — is the one this must not take."""
+    monkeypatch.setitem(
+        globals(),
+        "_PINNED_ELSEWHERE",
+        {"_RO_COST_BY_OY_START": "tests/architecture/test_this_control_does_not_exist.py"},
+    )
+    with pytest.raises(AssertionError, match="does not exist"):
+        test_every_table_pinned_elsewhere_is_named_by_the_control_that_pins_it()
+
+
+def test_mutation_a_table_pinned_and_unverified_at_once_is_caught(monkeypatch):
+    """Double-classification: the scope leg's set UNION cannot see it, so the disjointness leg
+    must. This is how a table would be carried as pinned while still counting against — or
+    worse, having been removed from — the ratchet."""
+    monkeypatch.setitem(
+        globals(),
+        "_UNVERIFIED_TABLES",
+        {**_UNVERIFIED_TABLES, "_RO_COST_BY_OY_START": "x" * 41},
+    )
+    with pytest.raises(AssertionError, match="both pinned_elsewhere and unverified"):
+        test_a_table_is_in_exactly_one_bucket()

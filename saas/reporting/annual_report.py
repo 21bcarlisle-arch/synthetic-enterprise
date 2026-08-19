@@ -5757,6 +5757,25 @@ def _section_fit_levy(data: dict) -> str:
 
 
 def _section_roc_obligations(data: dict) -> str:
+    """The RO Cost Observatory, with a self-check against the published law.
+
+    WHY THE SELF-CHECK (2026-08-19). Until today this section rendered `roc_summary` exactly
+    as the run froze it, and the run had frozen ten years of obligation levels and buy-out
+    prices that matched no publication — the table published GBP1,267,231 where the published
+    constants give GBP1,753,689, an understatement of GBP486,458.88 (27.74%). The constants
+    are repaired (`company/regulatory/ro_commons.py`), but `run_output_latest.json` is FROZEN
+    at the run that produced it, so a repair to the law does not reach this page until the
+    next simulation run — and "it will correct itself later" is how a wrong published figure
+    stays up.
+
+    So the section now compares each frozen rate against the regulation commons and, when
+    they disagree, says so ON THE PAGE and states the corrected total, recomputed on the
+    run's OWN volumes. The block disappears by itself once a run lands under the repaired
+    constants; it is not a caveat someone has to remember to delete.
+
+    The two imports below were dead for months — imported and never read. That they were
+    written at all says the original intent was for this section to check itself.
+    """
     from company.regulatory.roc_ledger import _ROC_OBLIGATION_LEVEL, _ROC_BUY_OUT_PRICE_GBP
     roc = data.get("roc_summary", {})
     per_year = roc.get("per_year", {})
@@ -5771,6 +5790,8 @@ def _section_roc_obligations(data: dict) -> str:
     lines.append("|------|----------|-----------------|--------------|--------------|-------------|")
     total_cost = 0.0
     total_mwh = 0.0
+    stale_years: list[str] = []
+    corrected_total = 0.0
     for yr in sorted(per_year.keys()):
         yd = per_year[yr]
         mwh = yd.get("elec_mwh", 0.0)
@@ -5780,6 +5801,17 @@ def _section_roc_obligations(data: dict) -> str:
         cost = yd.get("buy_out_cost_gbp", 0.0)
         total_cost += cost
         total_mwh += mwh
+        # The published law for this obligation year, read at RENDER time. Absent from the
+        # commons (a year outside its window) is not a disagreement — it is silence, and
+        # silence must not be rendered as a correction.
+        pub_level = _ROC_OBLIGATION_LEVEL.get(int(yr))
+        pub_price = _ROC_BUY_OUT_PRICE_GBP.get(int(yr))
+        if pub_level is None or pub_price is None:
+            corrected_total += cost
+            continue
+        corrected_total += round(mwh * pub_level * pub_price, 0)
+        if abs(level - pub_level) > 5e-4 or abs(price - pub_price) > 5e-3:
+            stale_years.append(yr)
         lines.append(
             "| " + yr + " | "
             + f"{mwh:,.1f}" + " | "
@@ -5801,6 +5833,32 @@ def _section_roc_obligations(data: dict) -> str:
     if total_rev > 0:
         pct = 100.0 * total_cost / total_rev
         lines.append(f"RO cost as % of total revenue (2016-2025): **{pct:.1f}%** (industry benchmark 5-10%)")
+        lines.append("")
+    if stale_years and total_cost > 0:
+        delta = corrected_total - total_cost
+        lines.append(
+            "> **THE RATES IN THE TABLE ABOVE ARE THIS RUN'S, AND THEY ARE NOT THE PUBLISHED "
+            "ONES.** "
+            + f"{len(stale_years)} of {len(per_year)} obligation years "
+            + f"({', '.join(stale_years)}) carry an obligation level or buy-out price that "
+            "disagrees with the regulation commons "
+            "(`docs/domain_artefact_library/regulatory/ro_obligation_and_buyout.json` — DESNZ "
+            "level notices and Ofgem buy-out publications). Recomputed on this run's own "
+            "volumes and the published rates, the RO line is **£"
+            + f"{corrected_total:,.0f}" + "**, "
+            + ("understating" if delta > 0 else "overstating")
+            + " the total above by **£" + f"{abs(delta):,.0f}" + "** — "
+            + f"{abs(delta) / corrected_total * 100:.2f}% of the corrected line "
+            + f"({abs(delta) / total_cost * 100:.2f}% of the figure as published). "
+            "R14: both percentages are stated because a single one is ambiguous about "
+            "which figure is its denominator."
+        )
+        lines.append("")
+        lines.append(
+            "> The constants were repaired on 2026-08-19; the run output this page renders was "
+            "frozen before that. This block is emitted by the renderer, not typed, and "
+            "disappears when a run lands under the repaired constants."
+        )
         lines.append("")
     lines.append("> Note: actual RO cost depends on ROC market prices. Buy-out price is the regulatory ceiling.")
     return "\n".join(lines)

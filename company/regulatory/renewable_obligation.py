@@ -3,16 +3,16 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
-_BUYOUT_PRICE_GBP_PER_ROC: dict[int, float] = {
-    2016: 44.33, 2017: 45.58, 2018: 46.94, 2019: 48.78,
-    2020: 50.05, 2021: 50.80, 2022: 54.35, 2023: 55.63,
-    2024: 57.30, 2025: 59.06,
-}
-_OBLIGATION_LEVEL_ROC_PER_MWH: dict[int, float] = {
-    2016: 0.0634, 2017: 0.0748, 2018: 0.0896, 2019: 0.0992,
-    2020: 0.0945, 2021: 0.0965, 2022: 0.1053, 2023: 0.0930,
-    2024: 0.0955, 2025: 0.0980,
-}
+# THE SAME TWO PUBLISHED SERIES `roc_ledger` reads, from the same commons. Until
+# 2026-08-19 this module carried a THIRD set of values for them: buy-out prices that were
+# the published series shifted and perturbed (2022-23 as GBP54.35 against a published
+# GBP52.88), and obligation levels around 0.09 ROC/MWh — roughly a fifth of the published
+# 0.47-0.49, a units-looking error that no control could name because no control
+# enumerated this module. Two tables of law cannot disagree; the readings may.
+from company.regulatory.ro_commons import (  # noqa: E402
+    BUY_OUT_PRICE_GBP_PER_ROC as _BUYOUT_PRICE_GBP_PER_ROC,
+    OBLIGATION_LEVEL_ROC_PER_MWH as _OBLIGATION_LEVEL_ROC_PER_MWH,
+)
 
 
 class ROSettlementMethod(str, Enum):
