@@ -73,9 +73,39 @@ def test_live_data_renders_all_coupled_pairs():
     cg = _live_coupled_gaps()
     assert cg.get("available") is True
     expected = len(cg["pairs"])
-    assert cg["pair_count"] == expected == 14, (
-        "14 coupled pairs (7 affordability + payment + weather demand + "
-        "weather price + 2 fabric + re-contracting + cohort). The cohort pair "
+    # DERIVED, NOT PINNED (R10, 2026-08-19). This read `== 15` -- and before that
+    # `== 14`, which refused every publish commit when the EP1 pair landed and took
+    # the live site down for the second time that day. The comment block above has
+    # claimed "driven by the live coupling+ledger, not a frozen literal" throughout;
+    # the literal is what made that false. The panel's row set IS a function of two
+    # live sources, so the test reads them and asserts the SET -- which catches a
+    # dropped row and a spurious one, where a count catches neither -- and a real
+    # 16th measurement now moves it for free. The prose below stays as the reading
+    # of what the pairs MEAN, which is the part a literal was never carrying.
+    sys.path.insert(0, str(PROJECT))
+    from background.coupled_triad import build_coupling, load_gap_ledger
+    from tools.generate_proof_data import _load_atoms
+
+    _ledger = load_gap_ledger()
+    _expected_pairs = (set(build_coupling(_load_atoms()))
+                       | {w for w, e in _ledger.items() if isinstance(e, dict)})
+    # Fail-open guard: two empty sources would satisfy every assertion vacuously.
+    assert len(_expected_pairs) >= 2
+    assert {p["world_atom"] for p in cg["pairs"]} == _expected_pairs
+    assert cg["pair_count"] == expected == len(_expected_pairs), (
+        "one row per live coupled pair (7 affordability + payment + weather demand + "
+        "weather price + 2 fabric + re-contracting + cohort + EP1 CLV). "
+        "The EP1 pair (EP1_clv_three_horizon, 2026-08-19, tools/couple_clv.py) "
+        "is the first COMPANY-belief-vs-realised-OUTCOME row rather than a "
+        "world-truth-vs-company-belief one, which is why its key is not a W* "
+        "atom and it reaches the panel through the uncoupled-entry branch. It "
+        "renders RED (1.762 > 1): the company's per-customer CLV carries less "
+        "information than assigning every account the portfolio mean. Its "
+        "population is the 5 accounts whose life COMPLETED in the run -- the "
+        "8 still-supplied accounts are right-censored and excluded, which is "
+        "the whole reason the obvious comparison against EP1's live output is "
+        "impossible. See docs/design/simplifications/EP1_clv_three_horizon.yaml "
+        "pass 11. The cohort pair "
         "W2_2_population_draw<->C_cohort_discovery landed 2026-08-10 when RUNG 4b "
         "first drew a never_landed gap tool; tools/couple_cohort.py had carried "
         "--write-ledger and a green test since 2026-07-21 and had never put a "
