@@ -1,34 +1,34 @@
 {
   "annotation": {
-    "checked_at": "2026-08-19T11:45:03Z",
+    "checked_at": "2026-08-19T17:39:00Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_committed_store_credits_a_falsifier_the_repository_does_not_have",
+      "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_silenced_absence_is_undeclared",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
+      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_stale_baseline_entries",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
-      "FAILED tests/background/test_finding_classes.py::test_the_live_staging_root_consolidation_holds",
-      "FAILED tests/background/test_live_ledger_guard.py::test_the_narrowing_to_measurement_ledgers_is_measured_not_assumed",
-      "FAILED tests/background/test_process_run_complete.py::test_pending_inboxes_folded_before_the_gate_runs",
-      "FAILED tests/background/test_process_run_complete.py::test_liveness_is_never_easier_to_publish_than_content",
-      "FAILED tests/background/test_publish_freshness.py::test_only_a_verified_push_may_stamp_the_clock"
+      "FAILED tests/background/test_blocked_atom_visibility.py::test_the_committed_document_agrees_with_the_live_derivation",
+      "FAILED tests/background/test_derived_artefact_register.py::TestStaleness::test_every_registered_artefact_is_currently_fresh",
+      "FAILED tests/background/test_finding_severity.py::test_the_staging_root_has_no_false_discharges"
     ],
-    "nonblocking_reds_total": 34,
-    "open_findings": 90
+    "nonblocking_reds_total": 36,
+    "open_findings": 93
   },
   "last_verified": {
-    "generated_at": "2026-08-19T12:20:45Z",
-    "git_commit": "a8f602bf6",
-    "run_id": "run_output_a8f602bf6_20260819T114605Z.json",
-    "verified_at": "2026-08-19T12:20:45Z"
+    "generated_at": "2026-08-19T18:17:28Z",
+    "git_commit": "d7d36b46a",
+    "run_id": "run_output_d7d36b46a_20260819T174001Z.json",
+    "verified_at": "2026-08-19T18:17:28Z"
   },
   "paused_reason": "scoped publish-path suite red at git=1aa4a3d7a; blocking tests: see sim-runner-log",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-19T12:20:45Z",
-    "git_commit": "a8f602bf6",
-    "run_id": "run_output_a8f602bf6_20260819T114605Z.json",
-    "verified_at": "2026-08-19T12:20:45Z"
+    "generated_at": "2026-08-19T18:17:28Z",
+    "git_commit": "d7d36b46a",
+    "run_id": "run_output_d7d36b46a_20260819T174001Z.json",
+    "verified_at": "2026-08-19T18:17:28Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-19T12:20:45Z"
+  "written_at": "2026-08-19T18:17:28Z"
 }

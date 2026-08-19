@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-19T09:14:53Z",
+  "generated_at": "2026-08-19T12:28:26Z",
   "consumer": "site/wip-flow/index.html",
   "replaces": {
     "file": "site/data/wip_flow.json",
@@ -7,8 +7,8 @@
     "why": "that file's generator is in no publish path, so its WIP block is correct only until the next atom moves"
   },
   "store": {
-    "head_sha": "b98722cb26e5738372dee28035bd56ca9a756466",
-    "head_committed_at": "2026-08-19T10:09:36+01:00",
+    "head_sha": "589dc119bd9a1de466144574db76ebfe19f4cee7",
+    "head_committed_at": "2026-08-19T13:20:46+01:00",
     "schema_version": 1,
     "rows_total": 432,
     "builder": "tools/build_projections.py",

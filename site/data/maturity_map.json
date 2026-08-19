@@ -2135,7 +2135,7 @@
       "epoch": 2,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -2448,7 +2448,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 171,
+      "stall_consecutive_unchanged": 180,
       "forward_attachments": []
     },
     {
@@ -2512,7 +2512,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 67,
+      "stall_consecutive_unchanged": 72,
       "forward_attachments": []
     },
     {
@@ -2602,17 +2602,17 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 4,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 24,
       "forward_attachments": []
     },
     {
@@ -2820,7 +2820,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 5,
+      "stall_consecutive_unchanged": 20,
       "forward_attachments": []
     },
     {
@@ -3071,7 +3071,7 @@
       "epoch": 3,
       "level_current": 0,
       "level_target": 2,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -3085,7 +3085,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 124,
+      "stall_consecutive_unchanged": 21,
       "forward_attachments": []
     },
     {
@@ -3111,7 +3111,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 65,
+      "stall_consecutive_unchanged": 75,
       "forward_attachments": []
     },
     {
@@ -3137,7 +3137,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 93,
+      "stall_consecutive_unchanged": 104,
       "forward_attachments": []
     },
     {
@@ -3163,7 +3163,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 23,
+      "stall_consecutive_unchanged": 29,
       "forward_attachments": []
     },
     {
@@ -3189,7 +3189,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 43,
+      "stall_consecutive_unchanged": 45,
       "forward_attachments": []
     },
     {
@@ -3215,7 +3215,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 36,
+      "stall_consecutive_unchanged": 42,
       "forward_attachments": []
     },
     {
@@ -3241,7 +3241,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 82,
+      "stall_consecutive_unchanged": 84,
       "forward_attachments": []
     },
     {
@@ -3267,7 +3267,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 100,
+      "stall_consecutive_unchanged": 109,
       "forward_attachments": []
     },
     {
@@ -3293,7 +3293,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 28,
+      "stall_consecutive_unchanged": 32,
       "forward_attachments": []
     },
     {
@@ -3303,9 +3303,9 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -3317,9 +3317,9 @@
         "D5_account_hierarchy_payments"
       ],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 142,
+      "stall_consecutive_unchanged": 6,
       "forward_attachments": []
     },
     {
@@ -5097,7 +5097,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1285,
+      "stall_consecutive_unchanged": 1313,
       "forward_attachments": []
     },
     {
@@ -5286,7 +5286,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 26,
+      "stall_consecutive_unchanged": 14,
       "forward_attachments": [
         {
           "source": "docs/staging/done/PLANNER_MINTED_population_and_book_growth_2026-08-11.md",
@@ -5335,7 +5335,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 34,
+      "stall_consecutive_unchanged": 40,
       "forward_attachments": []
     },
     {
@@ -5384,7 +5384,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 131,
+      "stall_consecutive_unchanged": 137,
       "forward_attachments": []
     },
     {
@@ -5406,7 +5406,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 115,
+      "stall_consecutive_unchanged": 122,
       "forward_attachments": []
     },
     {
@@ -5428,7 +5428,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 132,
+      "stall_consecutive_unchanged": 138,
       "forward_attachments": []
     },
     {
@@ -5452,7 +5452,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 120,
+      "stall_consecutive_unchanged": 124,
       "forward_attachments": []
     },
     {
@@ -5462,7 +5462,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 3,
@@ -5472,7 +5472,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 25,
+      "stall_consecutive_unchanged": 14,
       "forward_attachments": []
     },
     {
@@ -5516,7 +5516,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 41,
+      "stall_consecutive_unchanged": 49,
       "forward_attachments": []
     },
     {
@@ -5538,7 +5538,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 57,
+      "stall_consecutive_unchanged": 65,
       "forward_attachments": []
     },
     {
@@ -5584,7 +5584,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 133,
+      "stall_consecutive_unchanged": 140,
       "forward_attachments": []
     },
     {
@@ -5650,7 +5650,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 102,
+      "stall_consecutive_unchanged": 110,
       "forward_attachments": []
     },
     {
@@ -5692,7 +5692,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 6,
+      "stall_consecutive_unchanged": 19,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -5733,7 +5733,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 34,
+      "stall_consecutive_unchanged": 38,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -5789,7 +5789,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 20,
+      "stall_consecutive_unchanged": 21,
       "forward_attachments": []
     },
     {
@@ -5811,7 +5811,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 29,
+      "stall_consecutive_unchanged": 32,
       "forward_attachments": []
     },
     {
@@ -6376,7 +6376,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 2,
@@ -6388,9 +6388,9 @@
         "G12_queryable_projections"
       ],
       "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": 1,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 6,
       "forward_attachments": []
     },
     {
@@ -6574,7 +6574,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 39,
+      "stall_consecutive_unchanged": 74,
       "forward_attachments": []
     },
     {
@@ -6860,7 +6860,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 681,
+      "stall_consecutive_unchanged": 740,
       "forward_attachments": []
     },
     {
@@ -6926,7 +6926,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 19,
+      "stall_consecutive_unchanged": 24,
       "forward_attachments": []
     },
     {
@@ -6948,7 +6948,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 25,
+      "stall_consecutive_unchanged": 27,
       "forward_attachments": []
     },
     {
@@ -6973,7 +6973,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 624,
+      "stall_consecutive_unchanged": 696,
       "forward_attachments": []
     },
     {
@@ -6995,7 +6995,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 21,
+      "stall_consecutive_unchanged": 23,
       "forward_attachments": []
     },
     {

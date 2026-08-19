@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-08-19T16:01:07Z",
-  "git_hash": "068878332",
+  "generated_at": "2026-08-19T17:49:14Z",
+  "git_hash": "d7d36b46a",
   "suite": {
-    "test_count": 26302,
-    "timestamp": "2026-08-19T15:05:56.258598+00:00"
+    "test_count": 26348,
+    "timestamp": "2026-08-19T16:52:59.953140+00:00"
   },
   "sources": {
     "node_mapping": "site/data/moap_node_atoms.json",
@@ -308,11 +308,11 @@
               "resolved_path": "tests/background/test_supervisor.py",
               "raw": "tests/background/test_supervisor.py",
               "is_test": true,
-              "test_functions": 186
+              "test_functions": 190
             }
           ],
           "test_files": 1,
-          "test_functions": 186,
+          "test_functions": 190,
           "ledger": [],
           "missing": [
             "NO_LEDGER_RECORD"
