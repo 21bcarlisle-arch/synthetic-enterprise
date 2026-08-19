@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-18T22:48:22Z",
+  "generated_at": "2026-08-18T23:42:20Z",
   "source": "site/data/knowledge_wholesale.json",
   "rule": "site/knowledge/review_state.py",
   "policy": {
@@ -107,10 +107,10 @@
       "state": "fresh",
       "last_verified": "2026-07-25",
       "days_allowed": 183,
-      "age_days": 24,
+      "age_days": 25,
       "overdue_by": null,
       "label": "Reviewed 2026-07-25",
-      "detail": "Checked 24 days ago against a 183-day threshold. Source: GB multi-plant SRMC dispatch stack DISCOVER."
+      "detail": "Checked 25 days ago against a 183-day threshold. Source: GB multi-plant SRMC dispatch stack DISCOVER."
     },
     {
       "id": "price-cap",
@@ -119,10 +119,10 @@
       "state": "fresh",
       "last_verified": "2026-08-18",
       "days_allowed": 92,
-      "age_days": 0,
+      "age_days": 1,
       "overdue_by": null,
       "label": "Reviewed 2026-08-18",
-      "detail": "Checked 0 days ago against a 92-day threshold. Source: Ofgem's published cap guidance and its 2022 quarterly-update decision."
+      "detail": "Checked 1 days ago against a 92-day threshold. Source: Ofgem's published cap guidance and its 2022 quarterly-update decision."
     }
   ]
 }

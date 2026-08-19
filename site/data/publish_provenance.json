@@ -1,34 +1,27 @@
 {
   "annotation": {
-    "checked_at": "2026-08-18T22:38:46Z",
+    "checked_at": "2026-08-18T23:32:30Z",
     "nonblocking_reds": [
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
-      "FAILED tests/background/test_publish_scope.py::test_no_scoped_path_is_ever_absent_from_the_head_checkout_the_gate_runs_in",
-      "FAILED tests/simulation/test_policy_cost_coverage.py::test_the_2025_clamp_the_finding_measured",
-      "FAILED tests/simulation/test_policy_cost_coverage.py::test_coverage_is_derived_from_the_tables_not_declared_beside_them",
-      "FAILED tests/simulation/test_policy_cost_coverage.py::test_the_note_reaches_the_published_report",
-      "FAILED tests/simulation/test_policy_cost_coverage.py::test_the_note_is_derived_from_the_tables_not_narrated",
-      "FAILED tests/simulation/test_policy_cost_coverage.py::test_the_note_is_silent_when_there_is_nothing_to_say"
+      "UNREADABLE: the remainder run exited rc=-15 but emitted no pytest summary section (truncated transcript -- an OOM kill has this shape); no red could be named"
     ],
-    "nonblocking_reds_total": 14,
+    "nonblocking_reds_total": 1,
     "open_findings": 84
   },
   "last_verified": {
-    "generated_at": "2026-08-18T23:11:27Z",
-    "git_commit": "e844ee864",
-    "run_id": "run_output_e844ee864_20260818T223947Z.json",
-    "verified_at": "2026-08-18T23:11:27Z"
+    "generated_at": "2026-08-19T00:04:52Z",
+    "git_commit": "bc689525a",
+    "run_id": "run_output_bc689525a_20260818T233331Z.json",
+    "verified_at": "2026-08-19T00:04:52Z"
   },
   "paused_reason": "scoped publish-path suite red at git=394bd6322; blocking tests: FAILED tests/background/test_publish_gate_subject_is_head.py::test_a_dirty_working_tree_does_not_change_the_verdict, FAILED tests/background/test_effort_digest.py::test_render_digest_section_no_below_target_atoms, FAILED tests/background/test_effort_digest.py::test_render_digest_section_surfaces_malformed_level_not_crash, FAILED tests",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-18T23:11:27Z",
-    "git_commit": "e844ee864",
-    "run_id": "run_output_e844ee864_20260818T223947Z.json",
-    "verified_at": "2026-08-18T23:11:27Z"
+    "generated_at": "2026-08-19T00:04:52Z",
+    "git_commit": "bc689525a",
+    "run_id": "run_output_bc689525a_20260818T233331Z.json",
+    "verified_at": "2026-08-19T00:04:52Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-18T23:11:27Z"
+  "written_at": "2026-08-19T00:04:52Z"
 }
