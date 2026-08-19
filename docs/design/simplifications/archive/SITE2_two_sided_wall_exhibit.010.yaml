@@ -1,0 +1,36 @@
+atom_id: SITE2_two_sided_wall_exhibit
+chunk: 10
+simplifications:
+- '2026-08-18 HARDEN, THE ARREARS COUNTERS (worker tick, scheduled draw). Level STAYS 2.
+
+
+
+  THE FINDING, and it was the walk''s own MAJOR from all three personas. The money panel published ''FAILED PAYMENTS 0 - direct-debit returns'', ''PAYS BY direct debit'' and ''No arrears cases on this account''s electricity record'' directly above the same account''s Timeline, which renders two complete four-step arrears cascades whose rows read ''Standard credit payment not received''. Three claims, one producer -- company.json''s `household` block, which is commodity=''electricity'' ONLY -- published as the household''s, beside the per-leg record that contradicts them. The 2026-08-13 repair that moved arrears onto the customer''s side of the wall moved the cascades and left the clean claim stranded in the panel whose own footnote boasts about having fixed it.
+
+
+
+  THE OWNERSHIP CALL THE LEDGER ROW DEFERRED, now made and measured rather than argued. The row said ''owner split is the next tick''s disposition''. The answer is that the whole RENDER half is this atom''s and nothing is owed by a producer lane: every contradicting claim is derivable from records the boot path ALREADY fetches. C1g''s reaction_chain carries the two cascades (arrears_payment_missed 2016-11-15 GBP43.66 and 2018-09-15 GBP26.84, each -> first_notice -> second_notice -> resolved); its ledger.entries carry the matching 4 notice + 2 arrears_resolved rows against invoice_number 82 and 104; its 68 payment_received rows are all method=standard_credit while C1''s 72 are all direct_debit. The persona''s separate doubt -- ''arrears amounts that reconcile to no invoice in the 72-bill ledger'' -- resolves as the SAME defect one level down: 82 and 104 are C1g''s own bills (C1g-INV73..INV144), so the reader was reconciling gas arrears against the ELECTRICITY leg''s numbering because the page had told them the household was one leg.
+
+
+
+  BUILT, as a class at the producer end. window.__householdCollections(legs) is the SOLE producer of every collections claim on the panel, derived from the same per-leg chains the Timeline renders, so the two CANNOT disagree by construction. Three design choices that are not the obvious ones. (1) A case is counted by its OPENER (dd_failed / payment_missed / invoice_disputed), never by pairing a ladder start to a ladder end: C4 and C7 publish INTERLEAVED cascades -- a second miss opens before the first resolves -- so run-based grouping would silently merge or split real cases. (2) FAIL-CLOSED on an arrears event type the page cannot classify, and the reason is asymmetric: an undercount here does not render as an undercount, it renders as a CLEAN PAYMENT HISTORY. (3) The company.json block is NOT discarded -- reconcileCollections() compares it LEG TO LEG against that leg''s own chain and PUBLISHES the disagreement naming both producers and both values (the churn-tile precedent from 2026-08-18''s earlier tick), rather than silently preferring either. Leg-to-leg on purpose: comparing a leg-scoped counter to a household total would fire on every dual-fuel household and mean nothing.
+
+
+
+  RENDERED (C1, through the page''s own _render_harness.mjs against the published records): ''Payments missed 2 - 2 standard-credit payments not received - household - from the account''s own arrears record''; ''Pays by direct debit + standard credit - differs by leg - electricity: direct debit - gas: standard credit''; and an Arrears block reading ''2 cases across this household''s 2 fuel accounts / electricity leg - none / gas leg - 2 arrears cases'' with both amounts and opening dates. The clean claim is gone, and the tile that said ''0'' says 2.
+
+
+
+  THE CONTROL, and the one test that earned its keep in its first run. site/customers/test_wall_exhibit.py section 18, 43 tests, driven over EVERY published household rather than the one the walk named. R15 five mutations: read the counter off the single-leg block again; restore the unconditional clean claim (the CLAIM half, which no value check can see); derive from the legs but stop at the first (which for this household is the CLEAN electricity leg, so the page lands straight back on ''no missed payment'' beside two live cascades); fail open on an unclassified event; make the reconciliation note unconditional. Plus test_every_check_in_this_section_fires_on_the_page_as_it_SHIPPED, which drives all four checkers against `git show HEAD:site/customers/index.html` and requires each to fire -- and which immediately caught its own author: the first draft of the leak-string list was read off the REPAIR''s vocabulary and PASSED against a page publishing ''No arrears cases on this account''s electricity record''. A control whose subject is chosen by convenience. The list is now the DEFECT''s vocabulary, and the page''s per-leg line was changed to ''<fuel> leg - none'' so a scoped statement cannot collide with the household claim the control forbids. Anti-vacuity both directions: a household clean on every leg (C3) must STILL be told so in plain words, and the reconciliation note must stay SILENT on the real pairing where the two producers agree.
+
+
+
+  RE-HOMED, not dropped. site/now/index.html:372-376 publishes the identical claim set off the same single-leg block -- ''Payments: 0 failed'', ''Arrears: none'', ''direct debit'' -- for this same household, on a second live public door. Outside this atom''s file_scope, with its own door tests (site/now/test_now_door.py:286 pins the chip) and its own R11 obligation, so it is staged as docs/staging/WORKER_FINDING_THE_NOW_DOOR_PUBLISHES_THE_SAME_SINGLE_LEG_COLLECTIONS_CLAIM_2026-08-18.md with the measurement attached rather than fixed out of scope.
+
+
+
+  EVIDENCE. site/customers/ 153 passed (was 110). tools/verify_printed_bill_render.mjs PASS -- 1600 usage lines, 1600 with a printed rate, 0 arithmetic failures (exit (7), D36 intact). tests/tools/test_case_study_recommender.py, tests/tools/test_billing_and_payments_ledger.py, site/now/test_now_door.py and tests/controls/test_map_reconciliation.py all green (214 together).
+
+
+
+  LEVEL STAYS 2. Two of the re-run walk''s four findings are now fixed; the walk''s verdict was NO and fixing findings from a walk that returned NO is not the walk passing. Two remain, both this atom''s own surface: the C1-pinned exhibit above every other household''s drill-down (a layout decision), and ''Account settled to zero'' beside ''currently GBP24.37 in credit'' (a same-page contradiction whose correct resolution depends on whether that credit was ever refunded -- a fact the page does not carry). The gate for L3 is unchanged: a re-run cold-eyes walk that returns YES.'
