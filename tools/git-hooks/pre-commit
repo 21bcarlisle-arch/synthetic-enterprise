@@ -125,3 +125,26 @@ python3 tools/orphan_ratchet.py || exit 1
 # R15-proven both ways in tests/tools/test_company_network_isolation.py (7 tests, synthetic
 # trees with known answers, including one asserting the control can PASS).
 python3 -m tools.company_network_isolation --gate || exit 1
+
+# ── GATE 11: a file_scope may not name ground a generator rewrites ──────────────────────────
+# THE CLASS FIX (R10) for the eight-day starvation of G13_projection_consumers, 2026-08-19.
+# G13 sat at stage `build`, unblocked, dependency satisfied, and was never drawn -- because its
+# `file_scope` named `site/data/`, the PUBLISHER'S OUTPUT directory. That directory is rewritten
+# every cycle, so it permanently carries uncommitted changes; `supervisor._unmerged_work_paths`
+# reported that correctly and the BUILD draw deprioritised the atom on every single tick, in
+# silence. Measured the same day on the real draw: 22 of 27 buildable atoms deprioritised,
+# leaving FIVE. That is the mechanism behind the level-move collapse of 08-15..08-18.
+#
+# NOT A PURITY RULE ABOUT OUTPUTS, and the refusal message says so. An atom that owns a
+# generator has a real argument for declaring what it writes; the objection is the CONSEQUENCE
+# -- the declaration makes the atom permanently invisible to its own build lane and nothing
+# reports it. The gate names the starvation and the repair, not a convention.
+#
+# The oracle is DERIVED, not declared: an AST pass reads the generators themselves rather than
+# trusting a hand-kept list of directories (116 artefacts found by segment-join; a full-path
+# literal search finds only 17, because generators build paths as PROJECT / "site" / "data" / x).
+# RATCHET both ways -- 11 known declarations frozen, a NEW one fails, a REPAIRED one also fails
+# so the freeze can only shrink. R15-proven in tests/tools/test_file_scope_generated_paths.py
+# (18 tests), including both fail-closed paths: an oracle that finds nothing must RAISE, never
+# report a clean tree.
+python3 -m tools.file_scope_generated_paths || exit 1
