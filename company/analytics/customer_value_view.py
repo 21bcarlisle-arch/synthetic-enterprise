@@ -66,12 +66,27 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from saas.churn_model import build_churn_risk
+from company.analytics.clv_three_horizon import (
+    AccountObservables,
+    BookCLV,
+    RenewalPoint,
+    estimate_book,
+)
+from saas.churn_model import CONTRACT_LENGTH_DAYS, build_churn_risk
 from saas.cost_to_serve import build_cost_to_serve, build_cost_to_serve_ledger_events
 from saas.enterprise_value import build_enterprise_value, ceased_billing_accounts
 from saas.home_move_win_rate import build_home_move_win_rates
 
 __all__ = ["CustomerValueView", "build_customer_value_view"]
+
+#: Contract term in years, by the roster's own `contract_type`. Anything unmapped
+#: takes 365 days — NOT as a silent default but as the assumption
+#: `saas.churn_model` already makes for every account in the book: its renewal
+#: points are annual anniversaries of `acquisition_date` and nothing else. Using a
+#: different term here would value a contract over a horizon the company's own
+#: churn model does not believe it has.
+_CONTRACT_TERM_YEARS = {"fixed_1yr": 1.0, "fixed_2yr": 2.0, "fixed_3yr": 3.0}
+_DEFAULT_TERM_YEARS = CONTRACT_LENGTH_DAYS / 365.0
 
 
 @dataclass(frozen=True)
@@ -89,6 +104,16 @@ class CustomerValueView:
     home_move_win_rates: dict
     enterprise_value: dict
     cost_to_serve_ledger_events: list[dict]
+    #: EP1 — the same book on three valuation bases, each carrying its time model
+    #: and its population. It sits BESIDE `enterprise_value` rather than replacing
+    #: it: `enterprise_value` is the figure the board and the live site are
+    #: published from today, and swapping the number under a published surface is
+    #: a VERIFY-stage act needing evidence on the rendered value (R11), not a
+    #: side effect of building the estimator. What this field buys now is that
+    #: EP1 is EXERCISED on the real book on every run — against the live
+    #: population's blanks and ceased accounts, not only against a fixture —
+    #: which is the difference between built and dark.
+    three_horizon_clv: BookCLV
 
 
 def build_customer_value_view(
@@ -126,10 +151,78 @@ def build_customer_value_view(
     cost_to_serve_ledger_events = build_cost_to_serve_ledger_events(
         settlement_records, customers
     )
+    three_horizon_clv = estimate_book(
+        _clv_observables(churn_risk, enterprise_value, customers, ceased)
+    )
     return CustomerValueView(
         cost_to_serve=cost_to_serve,
         churn_risk=churn_risk,
         home_move_win_rates=home_move_win_rates,
         enterprise_value=enterprise_value,
         cost_to_serve_ledger_events=cost_to_serve_ledger_events,
+        three_horizon_clv=three_horizon_clv,
     )
+
+
+def _clv_observables(
+    churn_risk: dict,
+    enterprise_value: dict,
+    customers: list[dict],
+    ceased: set[str],
+) -> list[AccountObservables]:
+    """Assemble EP1's inputs from beliefs this view has ALREADY formed.
+
+    Nothing new is read and nothing new crosses the wall: the renewal
+    trajectories are the supplier's own churn estimate, the margins are the ones
+    its own valuation already published per account, and the roster is the
+    customer list handed in through the signature. EP1 is a re-reading of what
+    the company already believes, not a new observation of the world.
+
+    THE BLANKS ARE CARRIED, NOT DROPPED, and that is the whole point of routing
+    through this function rather than iterating `enterprise_value["by_customer"]`.
+    That dict excludes ceased accounts and accounts with no renewal history — on
+    the live book, 5 of 13 — so an estimator fed from it would see a population
+    with no blanks in it and every population control over that population would
+    be degenerate. Here an account absent from it arrives with
+    `annual_margin_gbp=None`, which EP1 excludes under a NAMED reason instead of
+    counting as the number zero.
+    """
+    by_account = enterprise_value["by_customer"]
+    roster = {c["customer_id"]: c for c in customers}
+    observables: list[AccountObservables] = []
+    for account_id, renewals in churn_risk.items():
+        # The roster is keyed per commodity ("C1g"), the book per billing account
+        # ("C1"); an account with no roster row is a real possibility and takes
+        # the empty dict, so every field below falls to a stated default rather
+        # than raising inside a run.
+        row = roster.get(account_id, {})
+        margin = by_account.get(account_id, {}).get("avg_annual_net_margin_gbp")
+        acquisition_date = str(row.get("acquisition_date", ""))
+        observables.append(
+            AccountObservables(
+                account_id=account_id,
+                segment=str(row.get("segment", "unsegmented")),
+                # The roster carries no acquisition channel. Naming that absence
+                # is the honest move: inventing a channel here would put a
+                # fabricated observable into a valuation.
+                channel=str(row.get("acquisition_type", "unobserved")),
+                acquisition_year=(
+                    int(acquisition_date[:4]) if acquisition_date[:4].isdigit() else 0
+                ),
+                contract_term_years=_CONTRACT_TERM_YEARS.get(
+                    row.get("contract_type"), _DEFAULT_TERM_YEARS
+                ),
+                renewal_history=tuple(
+                    RenewalPoint(
+                        renewal_period=r["renewal_period"],
+                        churn_probability=r["churn_probability"],
+                    )
+                    for r in renewals
+                ),
+                annual_margin_gbp=(
+                    None if margin is None else float(margin)
+                ),
+                still_supplied=account_id not in ceased,
+            )
+        )
+    return observables

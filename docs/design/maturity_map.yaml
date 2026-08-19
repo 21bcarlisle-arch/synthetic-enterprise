@@ -4079,7 +4079,7 @@
   lane: B_commercial
   value_stream: close_to_learn
   epoch: 2
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: build
   dial_inherited: 3
@@ -4088,7 +4088,7 @@
   couples_with: []
   records_rehomed: [evidence]
   file_scope: ['company/analytics/clv_three_horizon.py', 'tests/company/analytics/test_clv_three_horizon.py', 'company/analytics/customer_value_view.py']
-  simplifications_count: 9   # 2026-08-19 pass 8: read the live tenure horizon as a MODEL -- its conjugate soft-count update is exchangeable in the renewal order, so a deteriorating and a recovering customer get a bit-identical lifetime and CLV, the published churn/lifetime pair correlates -0.0169 (three accounts spanning 0.14-0.41 share a 17-figure-identical lifetime), substituting only the horizon moves the book -45.2%, and the mutation test written for this exact estimator has a fixture in which no account can have a trajectory; plus the demand-side census -- five dark decision modules, six CLV formulas, three tenures for one customer
+  simplifications_count: 10   # 2026-08-19 pass 10: THE ESTIMATOR EXISTS -- three horizons, each carrying its TimeModel and its Population, built and wired into the customer-value view so it runs on every sim run rather than being frozen dark; the reversed-history falsifier pass 8 said was free is now run WITH a null control (H3 must NOT move); 7 R15 mutations each on a named prior defect; and the reconciliation is a RATCHET -- an AST census finds the CLV seam is 18 modules not six, CLV_SEAM_REGISTER dispositions every one, and it went red on this very commit's own wiring before any of the eighteen were touched. First live reading: tenure-expected GBP 280,804.50 over 8 of 13 accounts against a published GBP 1,283,769.58 -- a 4.6x two-implementation gap that is the diagnostic, not a target (R12)
 - id: EP2_variance_learning_loop
   title: "Expected minus realised, fed back into belief"
   gain: "Margin volatility becomes explained variance or a named defect, instead of a shrug."
