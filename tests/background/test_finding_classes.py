@@ -680,3 +680,183 @@ def test_mutation_h_deriving_the_printed_severity_kills_that_test(tmp_path):
     assert any(f.startswith("STALE SEVERITY") for f in fc.check(root).failures)
     assert not any(f.startswith("STALE SEVERITY") for f in mutant.check(root).failures)
     assert mutant.check(root).ok, "a tautological comparison cannot fail"
+
+
+# --- the registration channel: routing was fail-open, and silently so -------------------
+#
+# MUTATION I (the declaration is never read) — kills
+#     `test_a_finding_titled_for_its_mechanism_reaches_its_class_by_registering`.
+#     This is the shipped defect: title-only routing. A finding named for the MECHANISM it
+#     found rather than the FAMILY it belongs to classifies as None, is neither refused nor
+#     flagged, and `check()` PASSES with it live and unlisted.
+# MUTATION J (an unknown declared id is silently dropped) — kills
+#     `test_a_registration_naming_an_unknown_class_is_a_failure_not_a_guess`. The same
+#     fail-open reproduced one level down: a typo reads exactly like no declaration.
+# MUTATION K (the declaration is read from the whole body) — kills
+#     `test_a_class_id_named_outside_the_registration_section_is_a_mention_not_a_claim`.
+#     The opposite failure, and the one the module docstring has always refused: match the
+#     body and every document that MENTIONS a class joins it, and the partition collapses.
+
+#: A title carrying no token from any class's pattern set. Asserted, not assumed, by
+#: `test_the_unregistered_control_is_genuinely_unclassed_by_title` — a fixture that
+#: accidentally matched would make every test below pass for the wrong reason.
+_MECHANISM_TITLED = "WORKER_FINDING_A_TICK_WROTE_ITS_RECORD_BEFORE_ITS_EVIDENCE_2026-08-19.md"
+
+
+def _doc_registering(root: Path, name: str, class_id: str, *, severity: str = "BLOCKING",
+                     lane: str = "H_harness", heading: str = "## Class registration") -> Path:
+    path = _doc(root, name, "The tick wrote first and measured afterwards.", severity, lane)
+    path.write_text(
+        path.read_text(encoding="utf-8")
+        + f"\n{heading}\n\nBelongs to `{class_id}` (already BLOCKING).\n",
+        encoding="utf-8",
+    )
+    return path
+
+
+def test_the_unregistered_control_is_genuinely_unclassed_by_title(tmp_path):
+    """THE NULL CONTROL, and it moves the sample rather than the law: the identical
+    document WITHOUT a registration section stays unclassed. Without this the tests below
+    would pass on a fixture whose title happened to match anyway."""
+    root = _root(tmp_path)
+    path = _doc(root, _MECHANISM_TITLED, "The tick wrote first and measured afterwards.")
+    assert fc.classify_file(path).class_id is None
+    assert fc.declared_class_of(path.read_text(encoding="utf-8")) is None
+
+
+def test_a_finding_titled_for_its_mechanism_reaches_its_class_by_registering(tmp_path):
+    """THE NAMED DEFECT (MUTATION I). Same title as the null control above — the only
+    difference is that the document registers itself, which is an ACT and not a keyword."""
+    root = _root(tmp_path)
+    path = _doc_registering(root, _MECHANISM_TITLED, "uncommitted_and_orphaned_work")
+
+    result = fc.classify_file(path)
+    assert result.class_id == "uncommitted_and_orphaned_work"
+    assert result.declared_class_id == "uncommitted_and_orphaned_work"
+
+    members = [p.name for p in fc.derive_memberships(root)["uncommitted_and_orphaned_work"].members]
+    assert _MECHANISM_TITLED in members, "a registered finding never reached its class"
+
+
+def test_mutation_i_ignoring_the_declaration_kills_that_test(tmp_path):
+    """MUTATION I is the shipped behaviour, so this test asserts the defect is real: the
+    mutant leaves the document unclassed AND `check()` green, which is precisely how the
+    routing failure stayed invisible for six passes of one finding's history."""
+    mutant = _load_mutant(
+        tmp_path, "    declared = declared_class_of(text)", "    declared = None", "fc_mutant_i"
+    )
+    root = _root(tmp_path)
+    _doc_registering(root, _MECHANISM_TITLED, "uncommitted_and_orphaned_work")
+
+    assert fc.classify_file(root / _MECHANISM_TITLED).class_id == "uncommitted_and_orphaned_work"
+    assert mutant.classify_file(root / _MECHANISM_TITLED).class_id is None
+    assert not any(
+        f.startswith("UNCONSOLIDATED") for f in mutant.check(root).failures
+    ), "the mutant reproduces the defect: unrouted, unlisted, and nothing red"
+
+
+def test_a_registration_naming_an_unknown_class_is_a_failure_not_a_guess(tmp_path):
+    """FAIL-CLOSED (MUTATION J). A typo must not be consolidated to the nearest class —
+    consolidation ARCHIVES — and must not read as silence either."""
+    root = _root(tmp_path)
+    path = _doc_registering(root, _MECHANISM_TITLED, "uncomitted_and_orphaned_work")
+
+    result = fc.classify_file(path)
+    assert result.class_id is None, "a misspelt class was guessed into a real one"
+    assert result.declared_class_id == "uncomitted_and_orphaned_work"
+    assert any(f.startswith("UNKNOWN DECLARED CLASS") for f in fc.check(root).failures)
+
+
+def test_mutation_j_dropping_the_unknown_class_rule_kills_that_test(tmp_path):
+    """MUTATION J — the typo goes back to reading as no declaration at all."""
+    mutant = _load_mutant(
+        tmp_path,
+        "        if declared is not None and declared not in CLASSES_BY_ID:",
+        "        if False:",
+        "fc_mutant_j",
+    )
+    root = _root(tmp_path)
+    _doc_registering(root, _MECHANISM_TITLED, "uncomitted_and_orphaned_work")
+
+    assert any(f.startswith("UNKNOWN DECLARED CLASS") for f in fc.check(root).failures)
+    assert not any(f.startswith("UNKNOWN DECLARED CLASS") for f in mutant.check(root).failures)
+
+
+def test_a_class_id_named_outside_the_registration_section_is_a_mention_not_a_claim(tmp_path):
+    """MUTATION K. A document quoting a class id while DISCUSSING it has not joined it —
+    the module docstring's standing refusal, which the registration channel must not undo."""
+    root = _root(tmp_path)
+    path = _doc(
+        root,
+        _MECHANISM_TITLED,
+        "Belongs to `publish_gate_and_wedge` is the line the OTHER document carries; "
+        "this one is quoting it as evidence, not registering.",
+    )
+    assert fc.classify_file(path).class_id is None
+    assert fc.declared_class_of(path.read_text(encoding="utf-8")) is None
+
+
+def test_mutation_k_reading_the_declaration_from_the_whole_body_kills_that_test(tmp_path):
+    """MUTATION K — drop the section scope and the classifier stops partitioning: a
+    quotation becomes a membership."""
+    mutant = _load_mutant(
+        tmp_path,
+        """    heading = _CLASS_REGISTRATION_HEADING_RE.search(text)
+    if heading is None:
+        return None
+    section = text[heading.end() :]
+    following = _ANY_HEADING_RE.search(section)
+    if following is not None:
+        section = section[: following.start()]
+    match = _DECLARATION_RE.search(section)""",
+        "    match = _DECLARATION_RE.search(text)",
+        "fc_mutant_k",
+    )
+    root = _root(tmp_path)
+    path = _doc(root, _MECHANISM_TITLED, "Belongs to `publish_gate_and_wedge` is quoted here.")
+
+    assert fc.classify_file(path).class_id is None
+    assert mutant.classify_file(path).class_id == "publish_gate_and_wedge", (
+        "the mutant must reproduce the defect for this proof to mean anything"
+    )
+
+
+def test_the_registration_loses_to_nothing_but_is_recorded_as_contested(tmp_path):
+    """The declaration BEATS the title, and the title's class is demoted to `also_matched`
+    rather than dropped — a contested document stays visible to `--list`."""
+    root = _root(tmp_path)
+    path = _doc_registering(
+        root,
+        "WORKER_FINDING_THE_WEDGE_ALARM_IS_UNTRACKED_2026-08-19.md",
+        "no_caller_and_never_runs",
+    )
+    result = fc.classify_file(path)
+    assert result.class_id == "no_caller_and_never_runs"
+    assert "publish_gate_and_wedge" in result.also_matched
+    assert result.is_contested
+
+
+def test_the_live_finding_that_filed_this_defect_now_reaches_its_class():
+    """OUTCOME-TESTED ON THE REAL POPULATION, not only on fixtures — the control must fire
+    on its own originating instance, which is the check a fixture cannot make.
+
+    This is the document whose item 3 reads "`background.finding_classes --check` passes
+    with this finding live and unlisted". It is read from whichever room it occupies so
+    that consolidating it (root -> `done/`) does not turn this test red for the right
+    thing happening."""
+    name = "WORKER_FINDING_THREE_CONSECUTIVE_PASSES_RECORDED_A_LANDING_THAT_IS_IN_NO_COMMIT_2026-08-19.md"
+    rooms = [fc.DEFAULT_STAGING_ROOT / name, fc.DEFAULT_STAGING_ROOT / fc.ARCHIVE_DIRNAME / name]
+    present = [p for p in rooms if p.exists()]
+    assert len(present) == 1, f"expected exactly one room to hold {name}, found {present}"
+
+    result = fc.classify_file(present[0])
+    assert result.class_id == "uncommitted_and_orphaned_work"
+    assert result.declared_class_id == "uncommitted_and_orphaned_work", (
+        "it must reach the class by its own REGISTRATION; its title carries no class token"
+    )
+    title_only = fc.classify_subject(
+        fc.subject_of(present[0], present[0].read_text(encoding="utf-8")), present[0]
+    )
+    assert title_only.class_id is None, (
+        "the title started matching, so this test no longer exercises the registration"
+    )

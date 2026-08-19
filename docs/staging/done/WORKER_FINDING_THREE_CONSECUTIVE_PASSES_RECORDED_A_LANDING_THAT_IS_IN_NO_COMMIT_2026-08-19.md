@@ -307,3 +307,98 @@ mechanism behind passes 12–14, and it is now survived by construction rather t
    fixed on sight; it is the reason this document is not being archived.
 
 LANDED: `include_schema_version` in `simulation/`
+
+---
+
+## The 2026-08-19 23:5x tick — item 3, the routing fail-open, is closed
+
+`observed` first, before anything was written, because that ordering is this document's whole
+subject:
+
+    git rev-parse HEAD                                      -> cd5b94de2
+    git grep -c include_schema_version HEAD -- simulation/
+      HEAD:simulation/run_phase2b.py:1
+      HEAD:simulation/run_phase4c_on_phase2b.py:2
+
+Item 2 still holds at HEAD. So this tick took item 3, the last one open.
+
+### The defect, stated as a mechanism rather than as this document's bad luck
+
+`classify_file` classified on `subject_of(path, text)` — **the filename and the H1 title, and
+nothing else.** That is right for the common case and the module docstring defends it well: a
+classifier that reads the whole body puts every document that MENTIONS the publish gate into
+the publish-gate class, and stops partitioning anything.
+
+But it is FAIL-OPEN in the other direction, and silently. A finding titled for the MECHANISM it
+found rather than the FAMILY it belongs to matches no pattern, classifies as `None`, and is
+then neither refused nor flagged — `derive_memberships` does a bare `continue` on it. Nothing
+in `check()`'s six rules has an unclassed document as its subject, so the class document simply
+never learns that its family grew. This document is the worked example: its `## Class
+registration` section has said *"Belongs to `uncommitted_and_orphaned_work`"* since it was
+filed, and that sentence was decorative — the classifier never read it.
+
+Measured, not assumed: across both staging rooms the change reclassifies **exactly one
+document**, this one (`None` -> `uncommitted_and_orphaned_work`). No other member moved, which
+is the evidence that a declaration channel is not a wider net.
+
+### What was built
+
+A **registration channel**: `declared_class_of(text)` reads a *Belongs to `<class_id>`* line
+scoped to the document's own `## Class registration` heading, and that declaration BEATS the
+title regex. Three properties decide whether it is a control or a decoration:
+
+- **Scoped to the section, not the body.** A class id quoted in prose is a mention; a mention
+  is not a claim. This is what stops the fix re-opening the hole the docstring refuses.
+- **Fail-closed on an unknown id.** A misspelt class is NOT guessed into the nearest real one
+  — consolidation *archives*, so a guess would file a document away on a typo — and it is not
+  silence either: `Classification.declared_class_id` carries the bad token out verbatim and
+  `check()` raises `UNKNOWN DECLARED CLASS`. Collapsing "declared nothing" and "declared a name
+  this module does not have" into `class_id is None` would reproduce this very fail-open one
+  level down.
+- **The title's class is demoted to `also_matched`, not dropped**, so a contested document
+  stays visible to `--list`.
+
+### R15 — three mutations, each firing on its own named defect, plus a null control
+
+- **MUTATION I, the declaration is never read.** This is the *shipped* behaviour, so the test
+  asserts the defect is real: the mutant leaves the document unclassed AND `check()` green.
+- **MUTATION J, an unknown declared id is silently dropped** — the typo goes back to reading as
+  no declaration at all.
+- **MUTATION K, the declaration is read from the whole body** — a quotation becomes a
+  membership and the partition collapses.
+- **NULL CONTROL** (`test_the_unregistered_control_is_genuinely_unclassed_by_title`): the
+  byte-identical document *without* the registration section stays unclassed. It moves the
+  sample, not the law — without it every test here could be passing on a fixture whose title
+  happened to match anyway.
+
+**Outcome-tested on the real population, not only on fixtures.** `test_the_live_finding_that_
+filed_this_defect_now_reaches_its_class` reads THIS document from whichever room it occupies
+and asserts both that it classifies and that its *title alone* still does not — so the test
+goes red if it ever stops exercising the registration. On adding the fix, the pre-existing
+live-root test `test_the_live_staging_root_consolidation_holds` went RED with exactly the
+sentence item 3 predicted would never appear:
+
+    UNCONSOLIDATED WORKER_FINDING_THREE_CONSECUTIVE_PASSES_RECORDED_A_LANDING_THAT_IS_IN_NO_COMMIT_2026-08-19.md:
+      belongs to uncommitted_and_orphaned_work, not listed in CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md
+
+The control fires on its own originating instance. That red is then discharged the only way it
+can be — by actually consolidating: `--render` lists the member, the document moves to `done/`,
+and the class document carries the derived BLOCKING for lane `H_harness`. **Archiving releases
+nothing; it moves who is holding**, from this instance to the class document that supersedes it.
+
+LANDED: `declared_class_of` in `background/`
+LANDED: `UNKNOWN DECLARED CLASS` in `background/`
+
+### Why this document is NOT discharged by the tick that fixed it
+
+All three items are now settled, so the obvious move is a `**Discharged:**` header in this same
+commit. That is declined, and the reason is this document's own subject: **a pass claiming its
+own settlement is the defect, six times over.** The discharge belongs to a later reader who can
+run the falsifiers against a tree that already exists. The admissible queries are:
+
+    git grep -c "def declared_class_of" <sha> -- background/finding_classes.py     # -> 1
+    git grep -c "UNKNOWN DECLARED CLASS" <sha> -- background/finding_classes.py    # -> 1
+    python3 -m background.finding_classes --check                                  # -> PASS
+
+Empty, or a `--check` that passes while this document is live and unlisted again, means item 3
+is a second failure and the honest record is to say so.

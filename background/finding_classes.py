@@ -25,6 +25,12 @@ document's subject. Matching the body instead would put every document that mere
 MENTIONS the publish gate into the publish-gate class, which is how a classifier stops
 partitioning anything.
 
+...WITH ONE OVERRIDE: a document may REGISTER itself (`declared_class_of`, see the comment
+block above it). Title-only is fail-open for a finding titled after its mechanism rather
+than its family — it classifies as None, nothing is refused, nothing goes red, and the
+class document never learns the family grew. That is the routing half of the same silence
+this module was built to end, and it was measured on this module's own population.
+
 AT MOST ONE CLASS (exit criterion 3). Families overlap in the real world: a test that is
 unreachable by the gate's selector is both a gate defect and a never-runs defect. The
 CLASSES tuple is therefore a declared PRECEDENCE, first match wins, and every other match
@@ -219,6 +225,11 @@ class Classification:
     class_id: str | None
     matched_phrase: str | None = None
     also_matched: tuple[str, ...] = ()
+    #: The class this document DECLARED for itself, verbatim, whether or not that token is
+    #: a real class id. Carried rather than resolved so that `check()` can tell "declared
+    #: nothing" from "declared a name this module does not have" — collapsing those two into
+    #: `class_id is None` is the same silence the declaration channel exists to break.
+    declared_class_id: str | None = None
 
     @property
     def is_classed(self) -> bool:
@@ -311,15 +322,74 @@ def classify_subject(subject: str, path: Path | None = None) -> Classification:
     return Classification(where, winner_id, phrase, tuple(h[0] for h in hits[1:]))
 
 
+#: THE SELF-DECLARATION CHANNEL, and why the title alone was not enough.
+#:
+#: The module docstring above is right that the BODY is the wrong subject: match it and every
+#: document that merely MENTIONS the publish gate joins the publish-gate class, and the
+#: classifier stops partitioning. But title-only is FAIL-OPEN in the other direction, and the
+#: failure is silent: a finding that genuinely belongs to a class but is titled for its
+#: MECHANISM rather than its FAMILY classifies as None, is not refused and not flagged, and
+#: the class document simply never learns it exists.
+#:
+#: That is not hypothetical. `WORKER_FINDING_THREE_CONSECUTIVE_PASSES_RECORDED_A_LANDING_
+#: THAT_IS_IN_NO_COMMIT_2026-08-19` is a member of `uncommitted_and_orphaned_work` by its own
+#: written registration, and `--check` PASSED with it live and unlisted for the whole of its
+#: six-pass history, because its title names the landing procedure and carries no
+#: `uncommitted`/`orphan`/`untracked` token. It filed that against itself as item 3.
+#:
+#: The fix is a declaration, not a wider net: the document states its class as an ACT, under
+#: its own heading, and that act BEATS the title regex — a document that knows its family is
+#: better evidence than a keyword that happens to be in its filename. Scoping the parse to the
+#: section is what keeps this from re-opening the hole the docstring refuses: a class id
+#: quoted in prose (this comment block included) is a mention, and a mention is not a claim.
+_CLASS_REGISTRATION_HEADING_RE = re.compile(r"^#{1,6}[ \t]+Class registration[ \t]*$", re.M)
+_ANY_HEADING_RE = re.compile(r"^#{1,6}[ \t]", re.M)
+_DECLARATION_RE = re.compile(r"\bBelongs to\s+`([A-Za-z0-9_]+)`")
+
+
+def declared_class_of(text: str) -> str | None:
+    """The class id this document declares for itself under `## Class registration`.
+
+    Returns the token VERBATIM and does not check it against `CLASSES_BY_ID` — resolving it
+    here would let a typo read as "declared nothing", which routes the document nowhere and
+    says nothing about it. `check()` makes an unknown token a failure instead.
+    """
+    heading = _CLASS_REGISTRATION_HEADING_RE.search(text)
+    if heading is None:
+        return None
+    section = text[heading.end() :]
+    following = _ANY_HEADING_RE.search(section)
+    if following is not None:
+        section = section[: following.start()]
+    match = _DECLARATION_RE.search(section)
+    return match.group(1) if match else None
+
+
 def classify_file(path: Path) -> Classification:
-    """Classify one file. An unreadable file is UNCLASSED and says so — an unavailable
-    check is a FAILED check (R15 killer pattern 3), so it must never quietly become a
-    member of anything."""
+    """Classify one file: its own declaration if it makes one, otherwise its title.
+
+    An unreadable file is UNCLASSED and says so — an unavailable check is a FAILED check
+    (R15 killer pattern 3), so it must never quietly become a member of anything.
+    """
     try:
         text = path.read_text(encoding="utf-8", errors="replace")
     except OSError:
         return Classification(path, None)
-    return classify_subject(subject_of(path, text), path)
+    by_title = classify_subject(subject_of(path, text), path)
+    declared = declared_class_of(text)
+    if declared is None:
+        return by_title
+    if declared not in CLASSES_BY_ID:
+        # UNCLASSED, but the bad token is carried out so `check()` can name it. Guessing the
+        # nearest class would consolidate — and archive — a document on a typo.
+        return Classification(path, None, declared_class_id=declared)
+    # The declaration wins, and any class the TITLE matched is demoted to `also_matched`
+    # rather than dropped: a contested document stays visible to `--list`, which is the
+    # at-most-one-class rule's release valve and not a thing to spend on the declaration.
+    contested = tuple(
+        c for c in (by_title.class_id, *by_title.also_matched) if c and c != declared
+    )
+    return Classification(path, declared, f"Belongs to `{declared}`", contested, declared)
 
 
 def classifiable_documents(root: Path | str = DEFAULT_STAGING_ROOT) -> list[Path]:
@@ -673,7 +743,11 @@ def room_collisions(root: Path | str = DEFAULT_STAGING_ROOT) -> list[tuple[str, 
 
 
 def check(root: Path | str = DEFAULT_STAGING_ROOT) -> CheckResult:
-    """Re-derive membership and verify the six things that can silently rot.
+    """Re-derive membership and verify the seven things that can silently rot.
+
+    0. No document registers itself under a class id this module does not have. A typo in
+       the declaration is indistinguishable from no declaration at all unless something
+       asks — the fail-open the registration channel closes, reproduced one level down.
 
     1. Every live finding maps to AT MOST ONE class or to unclassed (exit criterion 3).
     2. Every live finding that belongs to a class is listed in that class's document —
@@ -717,6 +791,15 @@ def check(root: Path | str = DEFAULT_STAGING_ROOT) -> CheckResult:
 
     for path in classifiable_documents(root):
         classification = classify_file(path)
+        declared = classification.declared_class_id
+        if declared is not None and declared not in CLASSES_BY_ID:
+            result.failures.append(
+                f"UNKNOWN DECLARED CLASS {path.name}: registers itself under `{declared}`, "
+                f"which is not one of {', '.join(CLASSES_BY_ID)}. Left unchecked a typo in "
+                "the declaration reads exactly like no declaration at all — the document "
+                "routes nowhere and nothing goes red, which is the fail-open the "
+                "registration channel exists to close, one level down"
+            )
         if classification.is_contested:
             result.notes.append(
                 f"CONTESTED {path.name}: {classification.class_id} "

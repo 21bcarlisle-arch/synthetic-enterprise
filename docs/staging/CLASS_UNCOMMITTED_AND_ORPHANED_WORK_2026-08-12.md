@@ -1,12 +1,12 @@
 # [CLASS] Uncommitted and orphaned work: finished work that never became part of the tree
 
-**Severity:** LATENT · **Lane:** H_harness
+**Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 14 · **Class:** `uncommitted_and_orphaned_work` · **Ruling's own count:** ~7 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "uncommitted/orphaned work")
+**Instances:** 15 · **Class:** `uncommitted_and_orphaned_work` · **Ruling's own count:** ~7 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "uncommitted/orphaned work")
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 14 instances
+## The 15 instances
 
 - `WORKER_FINDING_AN_ATOMS_CITED_EVIDENCE_IS_NEVER_CHECKED_AGAINST_ANY_COMMIT_2026-08-18.md` — LATENT
 - `WORKER_FINDING_ARCHIVED_STAGING_PATHS_ARE_RESURRECTED_ON_THE_SHARED_TREE_2026-08-10.md` — LATENT
@@ -22,15 +22,22 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_REPORTS_EXTRAPOLATION_DISCLOSURE_HAS_AN_UNCOMMITTED_GENERATOR_2026-08-14.md` — LATENT
 - `WORKER_FINDING_THE_SAME_TRUE_SENTENCE_IS_HONEST_SPELLED_OUT_AND_A_VIOLATION_ABBREVIATED_2026-08-19.md` — RECORDED
 - `WORKER_FINDING_THREE_COMMITTED_DISCHARGES_NAME_FALSIFIERS_THAT_ARE_IN_NO_COMMIT_AND_CANNOT_LAND_2026-08-18.md` — LATENT
+- `WORKER_FINDING_THREE_CONSECUTIVE_PASSES_RECORDED_A_LANDING_THAT_IS_IN_NO_COMMIT_2026-08-19.md` — BLOCKING
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**31.0 recorded episode-hours** across 2 of the 14 instances; largest single recorded episode **24h**; 2 instance(s) name a published figure in scope.
+**31.0 recorded episode-hours** across 2 of the 15 instances; largest single recorded episode **24h**; 2 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
 - **24 hours** — `WORKER_FINDING_THE_SAME_TRUE_SENTENCE_IS_HONEST_SPELLED_OUT_AND_A_VIOLATION_ABBREVIATED_2026-08-19.md`: …ontrol born red is a control someone disables."* It has been red for ~24h against a record that is accurate, and the pressure that creates is t…
 - **7 hours** — `WORKER_FINDING_RUFF_BASELINE_IS_CALIBRATED_TO_UNCOMMITTED_WORK_2026-08-09.md`: …which is the most expensive possible way to find it (episode 2 cost ~7 hours and ten markers under a directly analogous mis-attribution). Note th…
+
+## What is owed
+
+1 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+
+- `WORKER_FINDING_THREE_CONSECUTIVE_PASSES_RECORDED_A_LANDING_THAT_IS_IN_NO_COMMIT_2026-08-19.md`
 
 ## Refused consolidation — out of lane, still live
 
