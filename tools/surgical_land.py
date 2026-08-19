@@ -31,7 +31,9 @@ committed. Selection and execution finally share one scope.
 HOW
 ---
 1.  A THROWAWAY INDEX (`GIT_INDEX_FILE`), seeded `read-tree HEAD`, then `git add -A` for the
-    named paths only. The caller's real index is never opened.
+    named paths only. The caller's real index is never opened. A path may instead be given its
+    bytes directly (`--content REPOPATH=SRCFILE`, or `content={path: bytes|None}` in-process),
+    in which case the working tree copy is never read -- see THE CONTENT SOURCE below.
 2.  `git write-tree` on it -> the resulting tree sha. This is the thing being judged.
 3.  A STANDALONE extract of that tree in a tmpdir: `git archive | tar -x`, then `git init` +
     an `objects/info/alternates` line lending the real object store READ-ONLY, `.git/HEAD` set
@@ -51,6 +53,28 @@ HOW
 6.  A RECEIPT in the commit message naming the parent, the tree, the path list and the gate
     command -- checkable afterwards with `--verify`, so a commit CLAIMING a gate run can be
     falsified rather than believed.
+
+THE CONTENT SOURCE (2026-08-19, R3 redesign,
+WORKER_FINDING_THREE_CONSECUTIVE_PASSES_RECORDED_A_LANDING_THAT_IS_IN_NO_COMMIT)
+--------------------------------------------------------------------------------
+Step 1 read the WORKING TREE, so a file carrying two lanes could only be landed by swapping the
+SHARED copy to HEAD-plus-my-hunks and restoring it under a `trap`. That procedure has two exits
+that are BYTE-IDENTICAL on disk -- committed-then-restored, and died-then-restored -- so a
+landing that never happened leaves a tree indistinguishable from one that did. Three
+consecutive passes read that tree, believed their predecessor's record, and each wrote a new
+record asserting a landing that is in no commit; the detector worked every time and was only
+ever pointed backwards. That is R3 (a third false completion claim on one component means
+REDESIGN, not a fourth patch), and this is the redesign.
+
+Pass the bytes instead. There is then no swap, no trap and no restore, so the only evidence of
+a landing is the commit -- which is the property the whole failure turned on. It also closes
+the retry hazard: `land()` re-reads its content source on every `BaseMoved` retry, and a
+mapping does not change under it the way a shared worktree does. `None` commits a deletion
+without removing the file from disk. Overrides must be named in the pathspec, the parent's file
+mode is preserved, and the receipt names the content-sourced paths so a later reader can tell
+"disk differs on purpose" from "the landing failed". R15-proven in
+`tests/tools/test_surgical_land.py` -- ignoring the mapping reds six tests, hardcoding the mode
+reds one, and printing the receipt line unconditionally reds its null control.
 
 FAIL-CLOSED, EVERYWHERE (R15: an unavailable check is a FAILED check)
 ---------------------------------------------------------------------
@@ -93,7 +117,7 @@ import signal
 import subprocess
 import sys
 import tempfile
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -326,9 +350,48 @@ def _install_signal_handlers() -> None:
 # Step 1-2: the resulting tree, built without opening the caller's index.
 # ---------------------------------------------------------------------------------------------
 
-def build_resulting_tree(root: Path, paths: list[str], parent: str) -> str:
+def _mode_at(root: Path, parent: str, path: str) -> str:
+    """The file mode `path` has in `parent`, or the regular-file default when it is new there.
+
+    Read from the PARENT COMMIT and never from the filesystem: a content-sourced landing exists
+    precisely because the working-tree copy is somebody else's, so its permission bits are
+    somebody else's too. Preserving the parent's mode is what keeps a content landing of a
+    committed executable (a hook, a script) from silently de-executing it."""
+    out = _git_text(root, "ls-tree", parent, "--", path)
+    return out.split(" ", 1)[0] if out else "100644"
+
+
+def build_resulting_tree(root: Path, paths: list[str], parent: str,
+                         content: Mapping[str, bytes | None] | None = None) -> str:
     """Return the tree sha `HEAD` would have if exactly `paths` were committed from the working
-    tree. The caller's index is not read, not written, and not locked."""
+    tree. The caller's index is not read, not written, and not locked.
+
+    `content` OVERRIDES THE CONTENT SOURCE for the paths it names: each key is committed with
+    exactly the given bytes (or, for a `None` value, committed as a DELETION), and its working
+    tree copy is never read. Every other path in `paths` still comes from the working tree.
+
+    This parameter is the R3 redesign of 2026-08-19
+    (`WORKER_FINDING_THREE_CONSECUTIVE_PASSES_RECORDED_A_LANDING_THAT_IS_IN_NO_COMMIT`). Before
+    it, a file carrying two lanes could only be landed by swapping the SHARED worktree copy to
+    HEAD-plus-my-hunks and restoring it under a `trap` -- which gave the procedure two exits that
+    are byte-identical on disk (committed-then-restored, and died-then-restored), so a landing
+    that never happened left a tree indistinguishable from one that did. Three consecutive passes
+    read that tree, believed their predecessor, and recorded a landing that is in no commit. With
+    the bytes passed in, there is no swap, no trap, and no restore, so the only evidence of a
+    landing is the commit itself. It also removes the retry hazard: `land()` re-reads its content
+    source on each `BaseMoved` retry, and a mapping does not change under it the way a shared
+    worktree does.
+
+    Keys must be named verbatim in `paths`. A content override outside the pathspec would be a
+    change the receipt does not account for, which is the property the whole tool exists to keep.
+    """
+    content = dict(content or {})
+    stray = sorted(k for k in content if k not in set(paths))
+    if stray:
+        raise LandingRefused(
+            "content given for path(s) not named in the pathspec: {}. A content override is "
+            "still a landed change, so it must be named like every other one.".format(
+                ", ".join(stray)))
     fd, idx = tempfile.mkstemp(prefix="surgical-land-index-")
     os.close(fd)
     os.unlink(idx)  # git wants to create it itself
@@ -342,7 +405,20 @@ def build_resulting_tree(root: Path, paths: list[str], parent: str) -> str:
         # covered removals since git 2.0, and dropping it changes nothing (measured; the
         # deletion test survives the edit). It is written so a later reader narrowing this to
         # `--update` or `--ignore-removal` has to notice they are changing the contract.
-        _git_text(root, "add", "-A", "--", *paths, env=env)
+        from_worktree = [p for p in paths if p not in content]
+        if from_worktree:
+            _git_text(root, "add", "-A", "--", *from_worktree, env=env)
+        for path, blob in content.items():
+            if blob is None:
+                _git_text(root, "update-index", "--force-remove", "--", path, env=env)
+                continue
+            r = _git(root, "hash-object", "-w", "--stdin", "--path", path, env=env, stdin=blob)
+            if r.returncode != 0:
+                raise LandingRefused("hashing the content for {} failed rc={}: {}".format(
+                    path, r.returncode, r.stderr.decode("utf-8", "replace").strip()[-300:]))
+            sha = r.stdout.decode("ascii").strip()
+            _git_text(root, "update-index", "--add", "--cacheinfo",
+                      "{},{},{}".format(_mode_at(root, parent, path), sha, path), env=env)
         return _git_text(root, "write-tree", env=env)
     finally:
         for leftover in (idx, idx + ".lock"):
@@ -473,7 +549,8 @@ def _test_summary(output: str) -> str:
 # ---------------------------------------------------------------------------------------------
 
 def build_receipt(parent: str, result_tree: str, files: list[str], gate_rc: int,
-                  tests: str, hook_rel: str = HOOK_REL) -> str:
+                  tests: str, hook_rel: str = HOOK_REL,
+                  content_sourced: list[str] | None = None) -> str:
     lines = [
         RECEIPT_HEADER,
         "tool: tools/surgical_land.py",
@@ -482,8 +559,14 @@ def build_receipt(parent: str, result_tree: str, files: list[str], gate_rc: int,
         "gate: sh {} (run in a clean extract of tree {})".format(hook_rel, result_tree[:9]),
         "gate-rc: {}".format(gate_rc),
         "tests: {}".format(tests),
-        "paths: {}".format(len(files)),
     ]
+    if content_sourced:
+        # Named because these are exactly the paths whose committed bytes are NOT the working
+        # tree's, so a later reader diffing the tree against disk must not read the difference
+        # as a failed landing. Emitted ABOVE the `paths:` block so it cannot be mistaken for a
+        # path entry by `parse_receipt` (which keys the path set on the "- " prefix).
+        lines.append("content-sourced: {}".format(", ".join(sorted(content_sourced))))
+    lines.append("paths: {}".format(len(files)))
     lines += ["  - {}".format(p) for p in files]
     return "\n".join(lines)
 
@@ -554,8 +637,8 @@ def _commit_and_swap(root: Path, result_tree: str, parent: str, message: str,
 
 
 def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
-         attempts: int = DEFAULT_ATTEMPTS, on_lost: Callable[[int, BaseMoved], None] | None = None
-         ) -> str:
+         attempts: int = DEFAULT_ATTEMPTS, on_lost: Callable[[int, BaseMoved], None] | None = None,
+         content: Mapping[str, bytes | None] | None = None) -> str:
     """Land exactly `paths`, re-gating against the new base when the race is lost.
 
     Returns the new commit sha, or raises LandingRefused. `attempts` bounds the loop; `on_lost`
@@ -571,7 +654,11 @@ def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
 
     Each pass through `_land_once` re-reads HEAD, so the new attempt's parent IS the mover's
     commit and its resulting tree is built by overlaying only `paths` onto that new parent --
-    the mover's work is preserved, not reverted, and the gate runs again in full."""
+    the mover's work is preserved, not reverted, and the gate runs again in full.
+
+    `content` (see `build_resulting_tree`) is passed to every attempt unchanged, which is what
+    makes the retry safe for a two-lane file: a worktree-sourced retry re-reads whatever the
+    other lane has since written, a content-sourced one commits the same bytes it was given."""
     if attempts < 1:
         raise LandingRefused(
             "attempts={} would run no gate at all; a landing with no gate is the bypass this "
@@ -579,7 +666,7 @@ def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
     lost: list[BaseMoved] = []
     for attempt in range(1, attempts + 1):
         try:
-            return _land_once(root, paths, message, hook_rel)
+            return _land_once(root, paths, message, hook_rel, content)
         except BaseMoved as exc:
             lost.append(exc)
             if on_lost is not None:
@@ -595,13 +682,14 @@ def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
                       for i, e in enumerate(lost))))
 
 
-def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL) -> str:
+def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
+               content: Mapping[str, bytes | None] | None = None) -> str:
     """ONE attempt: read HEAD, build the resulting tree, gate it, compare-and-swap."""
     if not paths:
         raise LandingRefused("no paths given -- a surgical landing names its paths explicitly.")
     parent = _git_text(root, "rev-parse", "HEAD")
     parent_tree = _git_text(root, "rev-parse", "HEAD^{tree}")
-    result_tree = build_resulting_tree(root, paths, parent)
+    result_tree = build_resulting_tree(root, paths, parent, content)
     if result_tree == parent_tree:
         raise LandingRefused(
             "the named paths are already at HEAD -- the resulting tree is identical, so there is "
@@ -627,7 +715,8 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
     finally:
         shutil.rmtree(checkout, ignore_errors=True)
         _ACTIVE_CHECKOUTS.discard(checkout)
-    receipt = build_receipt(parent, result_tree, files, rc, tests, hook_rel)
+    receipt = build_receipt(parent, result_tree, files, rc, tests, hook_rel,
+                            content_sourced=sorted(content or ()))
     return _commit_and_swap(root, result_tree, parent, message + "\n\n" + receipt, files)
 
 
@@ -695,6 +784,14 @@ def main(argv: list[str] | None = None) -> int:
                     help="re-gate against the new base up to N times when HEAD moves under the "
                          "gate (default {}). A RED gate is never retried.".format(
                              DEFAULT_ATTEMPTS))
+    ap.add_argument("--content", action="append", default=[], metavar="REPOPATH=SRCFILE",
+                    help="commit REPOPATH with the bytes of SRCFILE instead of its working-tree "
+                         "copy (repeatable). This is how a file carrying two lanes is landed "
+                         "WITHOUT swapping the shared worktree: keep SRCFILE outside the repo. "
+                         "REPOPATH must also appear in the positional paths.")
+    ap.add_argument("--content-remove", action="append", default=[], metavar="REPOPATH",
+                    help="commit REPOPATH as a DELETION without removing it from the working "
+                         "tree (repeatable). The mapping's None case.")
     ap.add_argument("paths", nargs="*", help="the exact paths to land")
     args = ap.parse_args(argv)
     if args.verify:
@@ -703,6 +800,18 @@ def main(argv: list[str] | None = None) -> int:
         return rc
     if not args.message:
         ap.error("-m/--message is required when landing")
+
+    content: dict[str, bytes | None] = {}
+    for spec in args.content:
+        repo_path, sep, src = spec.partition("=")
+        if not sep or not repo_path or not src:
+            ap.error("--content wants REPOPATH=SRCFILE, got {!r}".format(spec))
+        try:
+            content[repo_path] = Path(src).read_bytes()
+        except OSError as exc:
+            ap.error("--content source unreadable: {}".format(exc))
+    for repo_path in args.content_remove:
+        content[repo_path] = None
 
     def report_lost(attempt: int, exc: BaseMoved) -> None:
         # stderr and FLUSHED: this is the diagnostic that had to be reconstructed from `git log`
@@ -713,7 +822,8 @@ def main(argv: list[str] | None = None) -> int:
         sys.stderr.flush()
 
     try:
-        sha = land(ROOT, args.paths, args.message, attempts=args.attempts, on_lost=report_lost)
+        sha = land(ROOT, args.paths, args.message, attempts=args.attempts, on_lost=report_lost,
+                   content=content or None)
     except LandingRefused as exc:
         sys.stderr.write("[surgical-land] REFUSED: {}\n".format(exc))
         return 1

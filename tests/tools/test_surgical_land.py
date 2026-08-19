@@ -366,6 +366,155 @@ def test_a_deletion_lands_as_a_deletion(repo: Path):
 
 
 # --------------------------------------------------------------------------------------------
+# THE CONTENT SOURCE -- the R3 redesign of 2026-08-19
+# (WORKER_FINDING_THREE_CONSECUTIVE_PASSES_RECORDED_A_LANDING_THAT_IS_IN_NO_COMMIT).
+#
+# The defect being designed out: landing a file that carries TWO LANES used to require swapping
+# the SHARED worktree copy to HEAD-plus-my-hunks and restoring it under a `trap`. That gives the
+# procedure two exits that are byte-identical on disk -- committed-then-restored, and
+# died-then-restored -- so a landing that never happened leaves a tree indistinguishable from one
+# that did. Three consecutive passes read that tree, believed their predecessor's record, and
+# recorded a landing that is in no commit.
+#
+# What must therefore be assertable here: the bytes come from the CALLER, the working tree is
+# neither read nor written for those paths, and the retry does not re-read anything that a
+# concurrent lane can move under it. Each test below is written to fire on one of those.
+# --------------------------------------------------------------------------------------------
+
+# Lane A's hunk (the one being landed) and lane B's (the one that must survive, uncommitted, in
+# the shared worktree). Distinct strings so no assertion below can pass on the wrong one.
+LANE_A = b"VALUE = 2  # lane A, the hunk being landed\n"
+LANE_B = "VALUE = 3  # lane B, uncommitted and not mine\n"
+
+
+def test_a_content_sourced_landing_commits_the_callers_bytes_and_leaves_the_worktree_alone(
+        repo: Path):
+    """THE POINT OF THE WHOLE FEATURE, and the mutation that kills it: source the content from
+    the working tree instead of the mapping and the commit carries LANE_B, so the first assert
+    fires; keep the swap-and-restore and the third assert is the one that fires."""
+    (repo / "code.py").write_text(LANE_B)   # the other lane's uncommitted work, on disk
+    before = _head(repo)
+
+    sha = sl.land(repo, ["code.py"], "land lane A only", content={"code.py": LANE_A})
+
+    assert _run(repo, "git", "show", sha + ":code.py").stdout == LANE_A.decode(), \
+        "the commit carries the working tree's bytes, not the ones the caller passed"
+    assert _run(repo, "git", "diff", "--name-only", before, sha).stdout.split() == ["code.py"]
+    assert (repo / "code.py").read_text() == LANE_B, \
+        "the shared working tree was mutated -- the swap this feature exists to delete is back"
+
+
+def test_a_content_sourced_landing_does_not_read_the_working_tree_copy_at_all(repo: Path):
+    """FAIL-OPEN killer, and the independence check the first test cannot make on its own.
+
+    The path is DELETED from disk. A `git add -A` fallback -- the old content source -- would
+    stage that as a removal and land a deletion; a mapping cannot notice the file is gone. So a
+    green here proves the mapping is the sole source rather than merely agreeing with disk."""
+    (repo / "code.py").unlink()
+
+    sha = sl.land(repo, ["code.py"], "land from bytes with nothing on disk",
+                  content={"code.py": LANE_A})
+
+    assert _run(repo, "git", "show", sha + ":code.py").stdout == LANE_A.decode(), \
+        "the landing fell through to the working tree and committed its absence"
+
+
+def test_a_content_sourced_deletion_lands_without_removing_the_file_from_disk(repo: Path):
+    """The mapping's `None` case. Deleting on disk to express a deletion would be a worktree
+    mutation -- the exact thing the feature removes -- so the None value must carry it."""
+    before = _head(repo)
+
+    sha = sl.land(repo, ["other_lane.txt"], "delete in the commit only",
+                  content={"other_lane.txt": None})
+
+    assert _run(repo, "git", "diff", "--name-status", before, sha).stdout.split()[0] == "D"
+    assert (repo / "other_lane.txt").exists(), "the working tree copy was deleted too"
+
+
+def test_a_content_override_outside_the_pathspec_is_refused(repo: Path):
+    """A content key the pathspec does not name would be a landed change the receipt does not
+    account for -- silently, since the receipt's path list is derived from the tree diff."""
+    before = _head(repo)
+    with pytest.raises(sl.LandingRefused, match="not named in the pathspec"):
+        sl.land(repo, ["code.py"], "sneak one in",
+                content={"code.py": LANE_A, "other_lane.txt": b"unnamed\n"})
+    assert _head(repo) == before, "the refusal still committed"
+
+
+def test_a_content_landing_preserves_the_parents_file_mode(repo: Path):
+    """An executable at HEAD must stay executable. The mode cannot come from the filesystem --
+    a content landing exists because the worktree copy is somebody else's -- so it is read from
+    the parent commit, and hardcoding 100644 instead fires this."""
+    script = repo / "runme.sh"
+    script.write_text("#!/bin/sh\necho one\n")
+    script.chmod(0o755)
+    _run(repo, "git", "add", "runme.sh")
+    _run(repo, "git", "commit", "-q", "--no-verify", "-m", "an executable at HEAD")
+    assert _run(repo, "git", "ls-tree", "HEAD", "--", "runme.sh").stdout.startswith("100755"), \
+        "premise broken -- the subject is not +x at HEAD"
+
+    sha = sl.land(repo, ["runme.sh"], "reword the script",
+                  content={"runme.sh": b"#!/bin/sh\necho two\n"})
+
+    assert _run(repo, "git", "ls-tree", sha, "--", "runme.sh").stdout.startswith("100755"), \
+        "the landing de-executed a committed script"
+
+
+def test_a_content_sourced_retry_commits_the_same_bytes_the_caller_gave(
+        repo: Path, monkeypatch: pytest.MonkeyPatch):
+    """THE RETRY HAZARD the finding names as `inferred`, made observable.
+
+    `land()` re-reads its content source on every `BaseMoved` retry. With the worktree as that
+    source, a concurrent lane rewriting the file between attempts silently changes what gets
+    committed -- which is how a certified site can revert. Here the colleague rewrites `code.py`
+    from inside the gate; the landed bytes must still be the caller's."""
+    (repo / "code.py").write_text(LANE_B)
+    calls: list[int] = []
+    racing = _racing_gate(repo, lose_until=1, calls=calls)
+
+    def gate(checkout, hook_rel=sl.HOOK_REL):
+        rc, out = racing(checkout, hook_rel)
+        (repo / "code.py").write_text("VALUE = 99  # the mover rewrote it mid-gate\n")
+        return rc, out
+
+    monkeypatch.setattr(sl, "run_gate", gate)
+
+    sha = sl.land(repo, ["code.py"], "land through a race", attempts=3,
+                  content={"code.py": LANE_A})
+
+    assert len(calls) == 2, "premise broken -- the race was not actually lost once"
+    assert _run(repo, "git", "show", sha + ":code.py").stdout == LANE_A.decode(), \
+        "the retry re-read the working tree and committed the mover's rewrite"
+
+
+def test_the_receipt_names_the_content_sourced_paths_and_still_verifies(repo: Path):
+    """Recommendation 4 of the finding: a later reader diffing the landed tree against disk must
+    be able to tell "content-sourced, so disk differs on purpose" from "the landing failed".
+
+    The second half is the regression guard: `parse_receipt` keys its path set on the `- `
+    prefix, so a new receipt line must not be parseable as a path or `--verify` starts
+    falsifying every content landing."""
+    (repo / "code.py").write_text(LANE_B)
+    sha = sl.land(repo, ["code.py"], "land lane A only", content={"code.py": LANE_A})
+
+    message = _run(repo, "git", "log", "-1", "--format=%B", sha).stdout
+    assert "content-sourced: code.py" in message, \
+        "the receipt does not say the committed bytes are not the working tree's"
+    assert sl.parse_receipt(message)["paths"] == ["code.py"]
+    rc, text = sl.verify(repo, sha)
+    assert rc == 0, text
+
+
+def test_a_worktree_sourced_landing_carries_no_content_sourced_line(repo: Path):
+    """The NULL CONTROL for the line above: if it were printed unconditionally it would carry no
+    information, and the reader it exists for could not use it to tell the two landings apart."""
+    (repo / "code.py").write_text("VALUE = 2\n")
+    sha = sl.land(repo, ["code.py"], "ordinary landing")
+
+    assert "content-sourced" not in _run(repo, "git", "log", "-1", "--format=%B", sha).stdout
+
+
+# --------------------------------------------------------------------------------------------
 # The receipt has to be falsifiable, or it is decoration.
 # --------------------------------------------------------------------------------------------
 
