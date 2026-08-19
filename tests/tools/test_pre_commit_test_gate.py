@@ -221,6 +221,11 @@ def test_pytest_subprocess_env_strips_GIT_star(monkeypatch):
     # fail-closed behaviour being suppressed here -- is proven in
     # tests/tools/test_symbol_landing_check.py, which is where it belongs.
     monkeypatch.setattr(gate, "_symbol_landing_check", lambda staged: (True, ""))
+    # The wall-channel census step (2026-08-19) is the fourth sibling with this property, and is
+    # neutralised for the identical reason: it shells out to `git write-tree` and `git archive`
+    # before the pytest launch. Its own contract, fail-closed branches included, is proven in
+    # tests/tools/test_wall_channel_census.py.
+    monkeypatch.setattr(gate, "_wall_channel_census_check", lambda staged: (True, ""))
     for k in ("GIT_INDEX_FILE", "GIT_DIR", "GIT_WORK_TREE", "GIT_PREFIX"):
         monkeypatch.setenv(k, "/should/not/leak")
     captured = {}

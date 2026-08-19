@@ -631,6 +631,7 @@ def _staging_severity_check(staged: list[str]) -> tuple[bool, str]:
 
 
 WALL_REGISTER_PATH = "docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md"
+WALL_CENSUS_BASELINE = "docs/design/wall_channel_census_baseline.json"
 
 
 def _index_tree(root: Path = ROOT) -> str:
@@ -747,6 +748,57 @@ def _wall_crossing_landed_check(staged: list[str]) -> tuple[bool, str]:
             f"({report['measured_crossings']} live, {report['rows']} ruled)"
         )
     return False, "\n".join(f"  - {f}" for f in findings)
+
+
+def _wall_channel_census_check(staged: list[str]) -> tuple[bool, str]:
+    """Has any of the wall's FOUR WALKER-INVISIBLE channels grown in the tree this commit creates?
+
+    THE CLASS THIS CLOSES. The step above reconciles the disposition register, whose subject is
+    the import edge -- channels A and B of the 2026-08-15 conformance census. That census found
+    SIX mechanisms carrying data across the wall and that the repo could see two of them: the
+    envelope (C), the same-step typed port (D), the structural Protocol (E) and the published
+    artefact (F) were invisible to every automated control in the tree, and the widest of them was
+    91 keys wide with 11 reader modules. A crossing added on any of those four could not be
+    noticed by anything. `tools/wall_channel_census.py` enumerates them; this is the caller that
+    makes it real, for the reason the step above states in full -- a control invoked only by
+    someone typing it is permanently unavailable, therefore permanently passing.
+
+    SAME TREE, SAME REASON. `census_at` is given `git write-tree`, so the readers and the
+    published artefact channel F joins them against both come from the tree the commit WOULD
+    create. HEAD would red the commit that repairs a divergence and pass the one that introduces
+    it, which is the ordering trap this file already learned once.
+
+    SHRINK-ONLY, NOT ZERO. A member disappearing passes and is reported; only growth refuses. The
+    frozen list is `docs/design/wall_channel_census_baseline.json`, and re-freezing is how a new
+    member gets ruled -- which is a decision someone has to write down rather than one this gate
+    can make.
+
+    FAIL-CLOSED at every step (R15 FAIL-SILENT): unimportable module, unusable index, raising
+    checker, unreadable baseline -> the commit is REFUSED with the reason.
+    """
+    if not any(p.endswith(".py") for p in staged) and WALL_CENSUS_BASELINE not in staged:
+        return True, ""
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    try:
+        from tools.wall_channel_census import census_at, check, load_baseline
+    except Exception as e:  # noqa: BLE001 -- an unavailable check is a FAILED check
+        return False, (
+            f"wall-channel census UNAVAILABLE: {type(e).__name__}: {e}\n"
+            "An unavailable check is a FAILED check (R15 FAIL-SILENT). If the tool is "
+            "genuinely being removed, remove this gate step in the same commit."
+        )
+    try:
+        tree = _index_tree()
+    except Exception as e:  # noqa: BLE001
+        return False, f"could not determine the tree this commit would create: {e}"
+    try:
+        verdict = check(census_at(tree, ROOT), load_baseline())
+    except Exception as e:  # noqa: BLE001
+        return False, f"wall-channel census RAISED against tree {tree[:9]}: {type(e).__name__}: {e}"
+    if verdict.ok:
+        return True, "the wall's four walker-invisible channels have not grown"
+    return False, verdict.report()
 
 
 def _symbol_landing_check(staged: list[str]) -> tuple[bool, str]:
@@ -939,6 +991,25 @@ def main() -> int:
             "commit, or correct the row.\n"
             "[test-gate] Reproduce: `python3 -m tools.wall_crossing_dispositions "
             "--at-tree $(git write-tree)`\n"
+        )
+        return 1
+    if detail:
+        print(f"[test-gate] ✓ {detail}")
+
+    # THE FOUR CHANNELS THE REGISTER ABOVE CANNOT SEE. Same tree, same placement, and for
+    # the same reason: a commit that widens the envelope, a port, a structural Protocol or
+    # the published artefact may select no test targets at all.
+    ok, detail = _wall_channel_census_check(staged)
+    if not ok:
+        sys.stderr.write(
+            "\n[test-gate] ❌ A WALKER-INVISIBLE WALL CHANNEL HAS GROWN IN THIS COMMIT'S TREE "
+            "-- COMMIT REFUSED.\n"
+            f"{detail}\n"
+            "[test-gate] The list is shrink-only. If the new crossing is intended, RULE it and "
+            "re-freeze in this commit: `python3 -m tools.wall_channel_census --worktree "
+            "--freeze` -- a freeze without a reason is an amnesty.\n"
+            "[test-gate] Reproduce: `python3 -m tools.wall_channel_census --rev "
+            "$(git write-tree)`\n"
         )
         return 1
     if detail:
