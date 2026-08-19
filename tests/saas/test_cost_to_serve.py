@@ -16,11 +16,35 @@ CUSTOMERS = [
 ]
 
 
-def _record(customer_id, revenue_gbp, margin_gbp, settlement_date="2020-01-01", commodity=None):
+#: What a settlement record's own net margin is as a fraction of its gross,
+#: used as this fixture's default. NOT a tuning constant — it is set to the
+#: shape of the real book (the 2026-08-17 margin-basis finding measured
+#: net/gross at 1,547,113.39/6,437,882.60 ≈ 0.24 portfolio-wide) so that the
+#: two cost bases are FAR apart in every fixture below. A fixture that
+#: defaulted `net_margin_gbp` to `margin_gbp` would make the contribution and
+#: net-of-all-costs lines numerically identical, and every test here would
+#: then pass just as happily on a valuation that read the wrong one.
+_FIXTURE_NET_OVER_GROSS = 0.24
+
+
+def _record(
+    customer_id,
+    revenue_gbp,
+    margin_gbp,
+    settlement_date="2020-01-01",
+    commodity=None,
+    net_margin_gbp=None,
+):
     rec = {
         "customer_id": customer_id,
         "revenue_gbp": revenue_gbp,
         "margin_gbp": margin_gbp,
+        # The record's margin after the levies, network charges, capital and
+        # bad debt attributable to this customer's own consumption — i.e. the
+        # quantity `simulation/run_phase1e.py` sums into `total_net_gbp`.
+        "net_margin_gbp": (
+            margin_gbp * _FIXTURE_NET_OVER_GROSS if net_margin_gbp is None else net_margin_gbp
+        ),
         "settlement_date": settlement_date,
     }
     if commodity is not None:
@@ -46,7 +70,8 @@ def test_empty_input_returns_zeroed_structures():
         "portfolio": {
             "cost_to_serve_gbp": 0.0,
             "margin_gbp": 0.0,
-            "net_margin_gbp": 0.0,
+            "contribution_margin_gbp": 0.0,
+            "net_of_all_costs_margin_gbp": 0.0,
         },
         "by_customer": {},
     }
@@ -66,14 +91,31 @@ def test_aggregates_across_periods_and_customers():
 
     assert result["by_customer"]["C1"]["cost_to_serve_gbp"] == c1_cost
     assert result["by_customer"]["C1"]["margin_gbp"] == 4.0
-    assert result["by_customer"]["C1"]["net_margin_gbp"] == 4.0 - c1_cost
+    assert result["by_customer"]["C1"]["contribution_margin_gbp"] == 4.0 - c1_cost
 
     assert result["by_customer"]["C5"]["cost_to_serve_gbp"] == c5_cost
-    assert result["by_customer"]["C5"]["net_margin_gbp"] == 20.0 - c5_cost
+    assert result["by_customer"]["C5"]["contribution_margin_gbp"] == 20.0 - c5_cost
 
     assert result["portfolio"]["cost_to_serve_gbp"] == c1_cost + c5_cost
     assert result["portfolio"]["margin_gbp"] == 24.0
-    assert result["portfolio"]["net_margin_gbp"] == 24.0 - c1_cost - c5_cost
+    assert result["portfolio"]["contribution_margin_gbp"] == 24.0 - c1_cost - c5_cost
+
+    # The second cost basis, aggregated over the SAME records. Asserted
+    # separately from the contribution line above, and materially different
+    # from it: the two margin lines this module publishes are two different
+    # quantities, and a test suite in which they coincide cannot tell a reader
+    # of one from a reader of the other (2026-08-17 margin-basis finding).
+    c1_net = 4.0 * _FIXTURE_NET_OVER_GROSS
+    c5_net = 20.0 * _FIXTURE_NET_OVER_GROSS
+    assert result["by_customer"]["C1"]["net_of_all_costs_margin_gbp"] == c1_net - c1_cost
+    assert result["by_customer"]["C5"]["net_of_all_costs_margin_gbp"] == c5_net - c5_cost
+    assert result["portfolio"]["net_of_all_costs_margin_gbp"] == (
+        c1_net + c5_net - c1_cost - c5_cost
+    )
+    assert (
+        result["portfolio"]["net_of_all_costs_margin_gbp"]
+        < result["portfolio"]["contribution_margin_gbp"]
+    )
 
 
 def test_unknown_customer_raises_key_error():

@@ -11,11 +11,6 @@
 /* brand palette: consumed from ../brand/brand.css (BRAND_CONSTITUTION.md) */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
-.site-nav { background: var(--surface); border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }
-.nav-logo { font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }
-.nav-link { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }
-.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); }
 .wrap { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
 .sec { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--muted); margin-bottom: 12px; margin-top: 40px; }
@@ -82,7 +77,6 @@ code { overflow-wrap: break-word; }
    (>640px) layout is unchanged. */
 @media (max-width: 640px) {
   .wrap { padding: 28px 16px; }
-  .site-nav { padding: 6px 12px; height: auto; min-height: 48px; }
   .sec { margin-top: 28px; }
   .card { padding: 16px; }
   .loop-row, .tr-row { flex-wrap: wrap; gap: 4px 10px; }
@@ -94,11 +88,13 @@ code { overflow-wrap: break-word; }
 <nav class="site-nav">
   <a href="../" class="nav-logo wordmark">poesys.</a>
   <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
+  <span class="doors">
   <a href="../" class="nav-link">Home</a>
   <a href="../knowledge/" class="nav-link">Knowledge</a>
   <a href="../capabilities/" class="nav-link">Capabilities</a>
   <a href="../explore/" class="nav-link">Explore</a>
   <a href="../harness/" class="nav-link active">Harness</a>
+  </span>
   <!-- IA-NAV:END -->
 </nav>
 <div class="wrap">

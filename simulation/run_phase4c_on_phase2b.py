@@ -399,8 +399,19 @@ def main(report_end: str | None = None, policy=None):
     print(f"Service quality score:            {contact_model['portfolio']['service_quality_score']:>12.3f}")
     print(f"Enterprise value (4b):           £{enterprise_value['portfolio']['enterprise_value_gbp']:>12.2f} "
           f"across {enterprise_value['portfolio']['account_count']} billing accounts")
+    # BOTH cost bases, each under its own name -- the sibling runner
+    # (tools/run_phase4b_on_phase2b.py) already prints them this way, and the
+    # single line these two replace was the 2026-08-17 margin-basis defect
+    # itself: a CONTRIBUTION margin printed under the label "Net margin".
     print(f"Cost to serve (portfolio):       £{cost_to_serve['portfolio']['cost_to_serve_gbp']:>12.2f}")
-    print(f"Net margin after cost to serve:  £{cost_to_serve['portfolio']['net_margin_gbp']:>12.2f}")
+    print(
+        "Contribution (gross - CTS):      "
+        f"£{cost_to_serve['portfolio']['contribution_margin_gbp']:>12.2f}"
+    )
+    print(
+        "Net of ALL attributable costs:   "
+        f"£{cost_to_serve['portfolio']['net_of_all_costs_margin_gbp']:>12.2f}"
+    )
 
     print(f"\n{'Account':<8} {'Bills':>6} {'AvgClarity':>11} {'CreditRisk':>11} {'BadDebt£':>10}")
     for customer in CUSTOMERS:
