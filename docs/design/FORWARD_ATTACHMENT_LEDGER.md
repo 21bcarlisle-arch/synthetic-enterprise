@@ -102,7 +102,7 @@ _epoch 4 · lane W2_customer_generator · L0→L3 · idle_
 
 ## EP1_clv_three_horizon
 **What a customer is worth, on three horizons**  
-_epoch 2 · lane B_commercial · L0→L3 · idle_
+_epoch 2 · lane B_commercial · L1→L3 · build_
 
 - `2026-08-11` · `docs/staging/done/PLANNER_MINTED_population_and_book_growth_2026-08-11.md` (other) — the director ruled the world's population up and the book won by acquisition; a bigger population must still be anchored, its per-run variation is EP17's subject, and a won book is what a CLV number is for.
 
