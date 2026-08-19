@@ -166,8 +166,13 @@ def _serialize_dd_collection_book(book) -> dict:
     }
 
 
-def main(report_end: str | None = None, policy=None):
-    phase2b_result = run_phase2b(report_end=report_end, policy=policy)
+def main(report_end: str | None = None):
+    # KNIFE3 step 39 (§3ah): the `policy` parameter is gone from both this
+    # function and `run_phase2b`. It existed only to forward the supplier's
+    # DecisionPolicy through to the term loop; a counterfactual arm now sets
+    # `company.policy.decision_policy.policy_scope(...)` and the company side
+    # resolves each field behind its own door.
+    phase2b_result = run_phase2b(report_end=report_end)
     all_records = phase2b_result["all_records"]
 
     # D3 step 2 (Expert-Hour finding, 2026-07-12): computed here (moved

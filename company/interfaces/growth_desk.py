@@ -57,7 +57,9 @@ __all__ = [
     "decide_acquisition",
     "growth_mandate_label",
     "mandate_permits_replacement",
+    "offer_framing_for",
     "replacement_cost_avoided_gbp",
+    "retention_discount_for_risk",
 ]
 
 
@@ -138,22 +140,90 @@ def decide_acquisition(
     )
 
 
-def replacement_cost_avoided_gbp(*, segment: str, counted_in_guard: bool) -> float:
+def replacement_cost_avoided_gbp(*, segment: str) -> float:
     """What retaining this customer saves the supplier in replacement spend.
 
-    `counted_in_guard` is the supplier's own policy switch
-    (`policy.include_acq_cost_saved_in_guard`), passed as a plain bool so the
-    world never has to hold a policy object to ask the question. The frozen
-    NAIVE baseline sets it False — the pre-Phase-15b margin-only guard — and
-    this function then returns 0.0 rather than the segment's cost, which is the
-    whole of that policy's effect.
+    THE `counted_in_guard` PARAMETER IS GONE — KNIFE3 step 39 (§3ah), and this
+    reverses a choice this docstring used to record in its own words. It said
+    the switch was "passed as a plain bool so the world never has to hold a
+    policy object to ask the question". That was true and it was the best
+    available shape while `run_phase2b.main()` still took a `policy` argument:
+    the world already held the object, so handing over a bool was strictly
+    better than handing over the object.
+
+    Step 39 removed the argument, so the premise is gone. The world holds no
+    policy at all now and cannot read the switch to pass it. The guard term is
+    resolved HERE, from the run's active policy, on the company side of the
+    seam — the same device `collections_tone_for` uses, for the same reason.
+    A bool the world reads off a company object and hands straight back to a
+    company door was never the world's; it was pass-through, and this is where
+    it always belonged.
+
+    The frozen NAIVE arm sets the switch False — the pre-Phase-15b margin-only
+    guard — and this function then returns 0.0 rather than the segment's cost,
+    which is the whole of that policy's effect. That is unchanged; only the
+    channel it arrives by has moved.
     """
-    if not counted_in_guard:
+    from company.policy.decision_policy import active_policy
+
+    if not active_policy().include_acq_cost_saved_in_guard:
         return 0.0
 
     from saas.growth_mandate import COST_PER_ACQUISITION
 
     return COST_PER_ACQUISITION.get(segment, 150.0)
+
+
+def retention_discount_for_risk(company_est: float) -> float:
+    """How big a discount the supplier offers a customer at this churn estimate.
+
+    KNIFE3 step 39 (§3ah). `run_phase2b` used to call
+    `policy.retention_discount_for_risk(company_est)` off a `DecisionPolicy` it
+    held as a parameter. Sizing a retention discount is a commercial judgement
+    the supplier makes and is allowed to get wrong — it is not physics, and the
+    world's only legitimate interest is the NUMBER, not the tier table that
+    produced it.
+
+    Resolved against the run's active policy, so the frozen baseline's naive arm
+    gets its flat 5% and the live arm gets its tiers, without either arm's
+    identity travelling through the world.
+    """
+    from company.policy.decision_policy import active_policy
+
+    return active_policy().retention_discount_for_risk(company_est)
+
+
+def offer_framing_for(customer_id: str, event_date: str) -> str:
+    """The comms framing the supplier chose for one retention offer —
+    "loss_framed" / "gain_framed".
+
+    KNIFE3 step 39 (§3ah). The exact sibling of
+    `company/interfaces/collections_communication.py::collections_tone_for`,
+    which §3aa named as the live precedent for this half: `framing_type_for` is
+    `tone_for` with the retention channel substituted for the dunning one. The
+    world may learn the FRAMING of the offer that was made — a real customer
+    reads the letter, and their loss-aversion response to it is world physics —
+    but never the `DecisionPolicy` that chose it, its `framing_mode`, or its
+    cohort split.
+
+    THE SAME HONEST LIMIT AS ITS SIBLING: this is a PULL, and B5's design asks
+    for a PUSH — the framing stamped onto a retention offer the company EMITS,
+    with the world reacting to what it receives. That is not built here, and the
+    reason is the one `collections_communication.py` records: the retention
+    offer is not yet a company-emitted event. It is assembled inline in
+    `run_phase2b`'s term loop, which is the composition this design has been
+    unwinding for thirty-nine steps. Stamping it at emission needs an emitter
+    that does not exist. So the push stays owed and is recorded as owed, not
+    simulated — building the shape of a push over a value the world pulled and
+    reads back would be strictly worse than an honest pull through a named door.
+
+    Never reads `simulation/nudge_physics.py`'s hidden loss-aversion
+    susceptibility. That is the customer's private responsiveness; the company
+    discovers it only statistically, via `company/analytics/nudge_discovery.py`.
+    """
+    from company.policy.decision_policy import active_policy, framing_type_for
+
+    return framing_type_for(active_policy(), customer_id, event_date)
 
 
 def book_acquisition_spend(

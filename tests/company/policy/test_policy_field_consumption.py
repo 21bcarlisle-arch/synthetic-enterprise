@@ -50,6 +50,11 @@ from pathlib import Path
 import pytest
 
 from company.interfaces.collections_communication import collections_tone_for
+from company.interfaces.growth_desk import (
+    offer_framing_for,
+    replacement_cost_avoided_gbp,
+    retention_discount_for_risk,
+)
 from company.policy.decision_policy import (
     CURRENT_POLICY,
     NAIVE_POLICY,
@@ -95,31 +100,85 @@ PRODUCTION_DIRS = ("company", "simulation", "saas", "tools", "background")
 # ---------------------------------------------------------------------------
 # `via` records HOW the field reaches the code that acts on it:
 #
-#   "run_argument"  — a consumer is handed the run's policy object and reads the
-#                     field off that parameter. Correct by construction for the
-#                     frozen baseline, which passes `policy=` to the entry point.
-#   "active_scope"  — no consumer can be handed a policy (the collections seam
-#                     must never accept one — B5 wall cut), so the field is
-#                     resolved from `active_policy()`. These are the dangerous
-#                     ones: they need the BEHAVIOURAL probe below, because a pin
-#                     here is invisible to the caller.
+#   "active_scope"  — no consumer can be handed a policy, so the field is
+#                     resolved from `active_policy()` on the company side of a
+#                     door. These need the BEHAVIOURAL probe below, because a
+#                     pin here is invisible to the caller.
 #   "label"         — not consumed as a decision input at all.
 #
 # `probe` (active_scope only) resolves the field the way the world actually
 # reaches it, so the probe fails if the real call path is pinned.
+#
+# THE "run_argument" VIA IS GONE — KNIFE3 step 39 (§3ah), and this is the change
+# that made this file's own doctrine reach every field it declares.
+#
+# Five fields used to be declared `run_argument`: a consumer was handed the run's
+# policy object and read the field off that parameter, which was correct by
+# construction because `tools/run_frozen_baseline.py` passed `policy=` into
+# `run_phase2b.main()`. Step 39 cut that argument — it was the world's last wall
+# crossing into `company.policy.decision_policy` — so those five now resolve from
+# the active scope behind `company.interfaces.growth_desk` and
+# `company.trading.hedge_desk`.
+#
+# THIS FILE HAD TO MOVE WITH THE CODE OR IT WOULD HAVE GONE FAIL-SILENT, which is
+# the R15 pattern this project catalogues and the reason the change is written up
+# here rather than just made. Nothing in this file reads `via` except the
+# `ACTIVE_SCOPE_FIELDS` filter. So had the five been left declared
+# `run_argument`, every test below would have kept passing while the declaration
+# described a mechanism that no longer exists: the completeness check compares
+# field NAMES only, and the behavioural probe would simply have skipped them. The
+# control would have gone on reporting green over five fields it had stopped
+# covering — a counterfactual arm silently failing to switch a field is the exact
+# defect this file was built for.
+#
+# The result is a strictly stronger control than before. `run_argument` was the
+# UNPROBED via — it asserted nothing at runtime and leaned entirely on the static
+# scan. Every consumable field now carries a behavioural probe that resolves it
+# through its real call path and requires the two arms to differ.
 FIELD_CONSUMPTION = {
     "name": {"via": "label"},
-    "retention_discount_mode": {"via": "run_argument"},
-    "retention_tiers": {"via": "run_argument"},
-    "flat_discount_pct": {"via": "run_argument"},
-    "include_acq_cost_saved_in_guard": {"via": "run_argument"},
-    "use_var_hedge_decision": {"via": "run_argument"},
-    # Threaded correctly already: run_phase2b.py calls
-    # framing_type_for(policy, ...) with its own parameter. Declared active_scope
-    # anyway would be a lie; declared run_argument, it is covered by the
-    # no-pinned-resolution scan, which is what would catch a regression to
-    # framing_type_for(CURRENT_POLICY, ...) -- the finding's named sibling risk.
-    "framing_mode": {"via": "run_argument"},
+    # Sizing the retention discount. Reached through the growth desk's door,
+    # which run_phase2b calls with a churn estimate and no policy. 0.55 sits in
+    # CURRENT's medium tier (5%) and gets NAIVE's flat 5% too — so the probe
+    # deliberately uses 0.80, where the tiers pay 8% and the flat rate does not.
+    "retention_discount_mode": {
+        "via": "active_scope",
+        "probe": lambda: retention_discount_for_risk(0.80),
+    },
+    "retention_tiers": {
+        "via": "active_scope",
+        "probe": lambda: retention_discount_for_risk(0.80),
+    },
+    # NOT INDEPENDENTLY PROBEABLE, and declared honestly rather than given a
+    # probe that would pass for the wrong reason. `flat_discount_pct` is the
+    # value CURRENT falls back to in flat mode and NAIVE's actual rate; both
+    # policies set it to 0.05, so no probe can witness a pin on this field —
+    # there is nothing to witness. The two policies AGREEING is the whole
+    # content, and `test_an_active_scope_field_switches_with_the_run` asserts
+    # that a probed field's policies differ precisely so a field like this
+    # cannot be given a fake probe and counted as covered.
+    "flat_discount_pct": {"via": "label"},
+    # The Phase-15b retention guard term. Resolved inside
+    # replacement_cost_avoided_gbp, which lost its `counted_in_guard` parameter
+    # in step 39. NAIVE returns 0.0, CURRENT returns the segment's cost.
+    "include_acq_cost_saved_in_guard": {
+        "via": "active_scope",
+        "probe": lambda: replacement_cost_avoided_gbp(segment="resi"),
+    },
+    # The Phase-43b VaR hedge switch. Resolved inside decide_term_hedge, which
+    # returns None when the layer is off — so the probe reports whether the desk
+    # took a decision at all, which is what the switch actually controls.
+    "use_var_hedge_decision": {
+        "via": "active_scope",
+        "probe": lambda: _var_hedge_decision_taken(),
+    },
+    # Was threaded as run_phase2b's own parameter into framing_type_for(policy,
+    # ...). Step 39 replaced that with the growth desk's offer_framing_for,
+    # the retention-channel sibling of collections_tone_for.
+    "framing_mode": {
+        "via": "active_scope",
+        "probe": lambda: _framings_over_a_sample(),
+    },
     # The finding's subject. Resolved per bill from inside the settlement path,
     # which has no policy argument and must not gain one.
     "tone_mode": {
@@ -127,6 +186,64 @@ FIELD_CONSUMPTION = {
         "probe": lambda: collections_tone_for("C0001", "2023-01-31"),
     },
 }
+
+
+_FRAMING_SAMPLE = [
+    ("C0001", "2023-01-31"), ("C0042", "2023-06-30"), ("C0777", "2024-11-30"),
+    ("C1234", "2022-03-31"), ("C9999", "2025-09-30"), ("C0003", "2021-07-31"),
+]
+
+
+def _framings_over_a_sample() -> frozenset:
+    """The framings the supplier chose across a spread of offers.
+
+    A SET over a sample and not one call, and the reason is a real miss caught
+    while writing this: the obvious probe, `offer_framing_for("C0001",
+    "2023-01-31")`, returns 'gain_framed' under CURRENT_POLICY — that pair
+    happens to land on the gain side of the sha256 cohort split — and
+    'gain_framed' is also NAIVE_POLICY's fixed value. So the two arms agreed,
+    and the probe reported a pin that was not there.
+
+    A probe that can only witness a difference when a hash falls the right way
+    is not a control, it is a coin toss stapled to an assertion. The set makes
+    the property structural: CURRENT's ab_test must COVER BOTH framings and
+    NAIVE's fixed mode must collapse to one, which is what the two modes mean
+    and cannot come out equal by luck. `test_the_sample_covers_both_cohorts`
+    below is the vacuity guard that keeps it that way.
+    """
+    return frozenset(offer_framing_for(cid, d) for cid, d in _FRAMING_SAMPLE)
+
+
+def _var_hedge_decision_taken() -> bool:
+    """Did the desk take a VaR decision for a representative term?
+
+    The probe for `use_var_hedge_decision`. Goes through the real desk with a
+    term that satisfies every other condition `run_phase2b` requires, so the
+    only thing that can vary between the two arms is the policy switch. Returns
+    a bool rather than the TermHedge because the arms must be COMPARED, and two
+    TermHedge objects built from a live price history would differ for reasons
+    that have nothing to do with the policy.
+    """
+    from company.interfaces.hedge_desk import build_hedge_desk
+
+    price_records = [
+        {"date": f"2023-{m:02d}-01", "price_gbp_per_mwh": 80.0 + m}
+        for m in range(1, 13)
+    ]
+    decision = build_hedge_desk().decide_term_hedge(
+        customer_id="C0001",
+        term_start="2023-01-01",
+        term_end="2023-12-31",
+        commodity="electricity",
+        volume_kwh=3000.0,
+        forward_price_gbp_per_mwh=85.0,
+        unit_rate_gbp_per_mwh=110.0,
+        price_records=price_records,
+        term_days=364,
+        current_fraction=0.5,
+        accept_decision=True,
+    )
+    return decision is not None
 
 
 def _production_files() -> list[Path]:
@@ -285,17 +402,40 @@ def test_the_naive_arm_letters_are_uniformly_firm():
     )
 
 
-def test_a_run_argument_resolver_honours_the_policy_it_was_handed():
-    """The `run_argument` counterpart to the probe above, and the assertion that makes
-    this file's claim about `framing_mode` a CHECK rather than a narration.
+def test_the_sample_covers_both_cohorts():
+    """VACUITY GUARD for the framing probe. If every pair in `_FRAMING_SAMPLE`
+    landed on the same side of CURRENT_POLICY's split, the probe would return a
+    one-element set in both arms and prove nothing — which is exactly how the
+    single-pair version of this probe failed. Assert the sample really does
+    straddle the cohort boundary, so the set comparison has something to see."""
+    with policy_scope(CURRENT_POLICY):
+        assert _framings_over_a_sample() == frozenset({"loss_framed", "gain_framed"}), (
+            "the framing sample no longer covers both CURRENT cohorts, so the "
+            "framing_mode probe cannot witness a pin"
+        )
+    with policy_scope(NAIVE_POLICY):
+        assert _framings_over_a_sample() == frozenset({"gain_framed"}), (
+            "the naive arm split its retention offers — NAIVE_POLICY's framing_mode "
+            "is the fixed value 'gain_framed', not an A/B split"
+        )
 
-    The finding named `framing_mode` as "a live candidate for the identical bug, not
-    checked here". It turned out clean — `run_phase2b.py:1353` threads its own
-    parameter — but "clean" resting on a reading of one line is worth one assertion:
-    a resolver that ignored its argument and read the live constant internally would
-    pass the AST scan (no constant is named at the CALL site) and be invisible to the
-    active-scope probe (`framing_mode` is not resolved that way). This is the third
-    angle that covers that gap."""
+
+def test_a_resolver_honours_the_policy_it_was_handed():
+    """`framing_type_for` still takes a policy ARGUMENT, and must still obey it.
+
+    KNIFE3 step 39 note: `framing_mode` is now declared `active_scope` and probed
+    through `offer_framing_for`, because run_phase2b no longer holds a policy to
+    thread. That does NOT make this test redundant — it makes it the other half.
+    The door resolves `active_policy()` and hands it to this resolver, so the
+    probe above proves the door reads the right policy and this proves the
+    resolver then USES what the door handed it. A resolver that ignored its
+    argument and read the live constant internally would pass the AST scan (no
+    constant is named at the call site) and would ALSO defeat the door's probe,
+    since both arms would come back current.
+
+    That is not hypothetical: it is the original finding's defect one layer down.
+    `tone_for` and `framing_type_for` are the two resolvers on this path, and
+    this is the assertion that they are honest about their own parameter."""
     for cid, date in [("C0001", "2023-01-31"), ("C9999", "2025-09-30")]:
         assert framing_type_for(NAIVE_POLICY, cid, date) == "gain_framed", (
             "framing_type_for ignored the policy it was handed — NAIVE_POLICY's "

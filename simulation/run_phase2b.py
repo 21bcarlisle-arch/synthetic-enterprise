@@ -52,7 +52,9 @@ from company.interfaces.growth_desk import (
     decide_acquisition,
     growth_mandate_label,
     mandate_permits_replacement,
+    offer_framing_for,
     replacement_cost_avoided_gbp,
+    retention_discount_for_risk,
 )
 from company.interfaces.hedge_desk import build_hedge_desk, hedge_mandate
 from company.interfaces.point_in_time_view import PointInTimeView, build_price_bitemporal_log
@@ -74,12 +76,6 @@ from company.interfaces.supply_book import (
 )
 from company.interfaces.tou_offer import request_tou_offer
 from company.interfaces.tpi_commission import build_tpi_commission
-from company.policy.decision_policy import (
-    CURRENT_POLICY,
-    DecisionPolicy,
-    active_policy,
-    framing_type_for,
-)
 from sim.cache_store import get_cached_prices, log_cache_access
 from sim.forward_curve import (
     BASE_TERM_PREMIUM,
@@ -768,39 +764,41 @@ def _ic_flex_roster(elec_customers: list[dict], eac_by_cid: dict) -> list[tuple]
     ]
 
 
-def main(report_end: str | None = None, sim_interface=None, policy: DecisionPolicy | None = None):
+def main(report_end: str | None = None, sim_interface=None):
     """Run the full Phase 2b + 4c settlement simulation.
 
     report_end: ISO date string (e.g. "2022-12-31") to truncate the
         simulation window for faster iteration. Defaults to REPORT_END
         (the full 2016-2025 window). Use --end-year on the annual_report
         CLI or pass directly for experiment runs.
-    policy: swappable retention/hedging decision policy (FROZEN_POLICY_BASELINE_DESIGN.md
-        option B). Defaults to CURRENT_POLICY -- every existing caller sees zero
-        behaviour change. tools/run_frozen_baseline.py passes NAIVE_POLICY for the
-        superseded pre-14a/15b/43b comparison run.
+
+    THERE IS NO `policy` PARAMETER — KNIFE3 step 39 (§3ah), and its removal is
+    the point rather than a tidy-up. This function used to take a
+    `DecisionPolicy`, the supplier's own decision object, and read four of its
+    fields inline: the retention discount tiers, the acquisition-cost-aware
+    offer guard, the comms-framing split and the VaR hedge switch. That is the
+    LAST `simulation -> company` crossing on this module and the last row of
+    `A_composition_lift`, the register's oldest design.
+
+    Each of those reads now happens on the company side of a door
+    (`company.interfaces.growth_desk` for the retention three,
+    `company.trading.hedge_desk` for the VaR switch), resolved from the run's
+    ACTIVE POLICY. A counterfactual arm sets that scope; the world never holds,
+    names, defaults or type-annotates a policy.
+
+    WHAT THIS DELETED, AND WHY THAT IS THE ARGUMENT FOR THE CUT. The code here
+    used to refuse a `policy` argument that disagreed with the active scope
+    (2026-08-12, closing WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE):
+    fields the run was HANDED came from the argument, the collections letter
+    tone came from the scope, and a caller that swapped one without the other
+    produced a chimera — naive retention with current dunning letters — whose
+    delta attributed an uncontrolled variable to the policy change. That guard
+    was correct and it is now unnecessary, because the disagreement it caught
+    can no longer be expressed. One channel cannot disagree with itself. A
+    fail-closed check that becomes unconstructible is the strongest way to
+    retire one; it is not being weakened, it is being made moot.
     """
     effective_end = report_end or REPORT_END
-    policy = policy or CURRENT_POLICY
-    # A run's policy identity must be ONE thing (2026-08-12, closing
-    # WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10). Fields this
-    # function is handed come from `policy`; the collections letter tone is
-    # resolved without an argument, from the active scope, deep in the arrears
-    # path. If those two disagree the run is a chimera -- naive retention with
-    # current dunning letters -- and the frozen baseline's delta silently
-    # attributes an uncontrolled variable to the policy change. Refusing here is
-    # fail-CLOSED: the default scope IS CURRENT_POLICY, so every caller that
-    # passes nothing, or passes CURRENT_POLICY, is unaffected; only a caller
-    # that swaps the policy without swapping the scope is stopped, and it is
-    # stopped loudly rather than producing a plausible wrong number.
-    if policy is not active_policy():
-        raise ValueError(
-            "run_phase2b was given policy=%r but the active policy scope is %r. "
-            "Wrap the run in company.policy.decision_policy.policy_scope(policy) "
-            "so argument-less consumers (the collections-communication seam) "
-            "resolve the same policy this run claims to be executing."
-            % (policy.name, active_policy().name)
-        )
     print("=== Phase 2b — Gas Dual Fuel ===")
     print(f"Electricity customers: {[c['customer_id'] for c in ELEC_CUSTOMERS]}")
     print(f"Gas customers:         {[c['customer_id'] for c in GAS_CUSTOMERS]}")
@@ -1361,7 +1359,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                     hangover_remaining[cid] = hangover_periods - 1
                 if company_est_pre > RETENTION_THRESHOLD:
                     eac_for_ret = company_eac  # Phase 23a: use company estimate
-                    discount_pct = policy.retention_discount_for_risk(company_est_pre)
+                    discount_pct = retention_discount_for_risk(company_est_pre)
                     _would_be_discount_pct = discount_pct
                     ret_cost = unit_rate * discount_pct * eac_for_ret / 1000.0
                     expected_margin = (unit_rate - company_fwd) * eac_for_ret / 1000.0
@@ -1369,21 +1367,21 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                     # If the customer churns, the company spends acq_cost on a replacement
                     # attempt (whether it wins or not). So the true value protected by
                     # retaining = expected_margin + acq_cost_saved.
-                    # FROZEN_POLICY_BASELINE_DESIGN.md: NAIVE_POLICY excludes acq_cost_saved
-                    # (pre-Phase-15b, margin-only guard) -- policy.include_acq_cost_saved_in_guard.
+                    # FROZEN_POLICY_BASELINE_DESIGN.md: the naive arm excludes
+                    # acq_cost_saved (pre-Phase-15b, margin-only guard). KNIFE3
+                    # step 39: WHETHER it is counted is the supplier's own guard
+                    # policy and is resolved behind the door -- the world states
+                    # the segment that was lost and takes back a number.
                     cust_data_ret = get_customer(billing_account)
                     seg_ret = cust_data_ret["segment"] if cust_data_ret else "resi"
-                    acq_cost_saved = replacement_cost_avoided_gbp(
-                        segment=seg_ret,
-                        counted_in_guard=policy.include_acq_cost_saved_in_guard,
-                    )
+                    acq_cost_saved = replacement_cost_avoided_gbp(segment=seg_ret)
                     if expected_margin + acq_cost_saved > ret_cost:
                         # Nudge Physics Layer 1: framing_type is the company's own
                         # comms-cohort choice (observable by construction); the
                         # multiplier below is SIM ground truth (hidden loss-aversion
                         # susceptibility) applied to the actual offer effectiveness --
                         # the company never sees this multiplier, only the outcome.
-                        _framing_type = framing_type_for(policy, billing_account, term_start_str)
+                        _framing_type = offer_framing_for(billing_account, term_start_str)
                         _framing_multiplier = framing_effectiveness_multiplier(billing_account, _framing_type)
                         retention_modifier_val = min(0.95, RETENTION_EFFECTIVENESS * _framing_multiplier)
                         retention_cost_events.append(
@@ -1862,7 +1860,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 term_days_count = (
                     date.fromisoformat(term_end_str) - date.fromisoformat(term_start_str)
                 ).days
-                if policy.use_var_hedge_decision and unit_rate and company_fwd and eac_kwh > 0 and term_days_count > 0:
+                if unit_rate and company_fwd and eac_kwh > 0 and term_days_count > 0:
                     _decision_time = datetime.combine(date.fromisoformat(term_start_str), time.min)
                     _piv = PointInTimeView(decision_time=_decision_time, bitemporal_log=_price_bitemporal_log)
                     _elec_price_hist = _piv.get_price_history_as_of("electricity")
@@ -1884,10 +1882,17 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                         current_fraction=hf,
                         accept_decision=(cid not in pending_committee_overrides),
                     )
-                    if _elec_hedge.decision_accepted:
-                        hf = _elec_hedge.hedge_fraction
-                        current_hf[cid] = hf
-                    hedge_var_log.append(_elec_hedge.var_log_entry)
+                    # KNIFE3 step 39 (§3ah): `None` means the desk is not running
+                    # its VaR layer this run -- the supplier's own Phase-43b
+                    # switch, which the world used to read off a policy object
+                    # and gate this whole block on. Same shape as
+                    # `request_tou_offer` below: the company declines, and the
+                    # world's evolved fraction stands untouched.
+                    if _elec_hedge is not None:
+                        if _elec_hedge.decision_accepted:
+                            hf = _elec_hedge.hedge_fraction
+                            current_hf[cid] = hf
+                        hedge_var_log.append(_elec_hedge.var_log_entry)
 
                 naked_kwh = eac_kwh * (1.0 - hf)
                 risk = assess_term_risk(term_start_str, naked_kwh, forward_price, elec_records)
@@ -1993,7 +1998,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             if term_tariff_type == "pass_through":
                 hf = 0.0
                 current_hf[cid] = 0.0
-            elif policy.use_var_hedge_decision and unit_rate and company_fwd and aq_kwh > 0:
+            elif unit_rate and company_fwd and aq_kwh > 0:
                 _gas_term_days = (
                     date.fromisoformat(term_end_str) - date.fromisoformat(term_start_str)
                 ).days
@@ -2017,10 +2022,15 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                         current_fraction=hf,
                         accept_decision=(cid not in pending_committee_overrides),
                     )
-                    if _gas_hedge.decision_accepted:
-                        hf = _gas_hedge.hedge_fraction
-                        current_hf[cid] = hf
-                    hedge_var_log.append(_gas_hedge.var_log_entry)
+                    # KNIFE3 step 39 (§3ah): see the electricity site -- `None`
+                    # is the desk declining to run its VaR layer at all, and the
+                    # pass-through branch above still short-circuits first, so a
+                    # spot-billed gas customer is never hedged either way.
+                    if _gas_hedge is not None:
+                        if _gas_hedge.decision_accepted:
+                            hf = _gas_hedge.hedge_fraction
+                            current_hf[cid] = hf
+                        hedge_var_log.append(_gas_hedge.var_log_entry)
 
             # Phase NE: pass-through gas has no commodity price risk -- customer pays spot
             # directly, so company holds no naked position. Using aq_kwh here was generating

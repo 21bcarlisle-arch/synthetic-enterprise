@@ -27,11 +27,24 @@ signature. Had the composition been moved with a `simulation.*` import intact it
 would have traded class-(b) crossings for class-(a) ones, the strictly forbidden
 direction, which is at zero and stays there.
 
-WHAT THIS DOES NOT DO. `run_phase2b` keeps the pricing/regulatory group
-(`tariff_engine`, `margin_feedback`, `ofgem_price_cap`, `decision_policy`) and
-the `saas.*` set. The two indirect edges are untouched for the tenth
-consecutive step. Stated rather than left to be discovered from a count that
+WHAT THIS DID NOT DO, AS OF STEP 23. `run_phase2b` kept the pricing/regulatory
+group (`tariff_engine`, `margin_feedback`, `ofgem_price_cap`, `decision_policy`)
+and the `saas.*` set. Stated rather than left to be discovered from a count that
 stops at 3.
+
+ALL OF THOSE ARE NOW CUT — updated 2026-08-18, KNIFE3 step 39 (register §3ah).
+The pricing three went at step 24 (§3s) and `decision_policy`, the last of them
+and the last live crossing on that module, went at step 39. `run_phase2b` has
+ZERO live wall crossings and `A_composition_lift` is paid off.
+
+The last one landed HERE as well as in the growth desk, and the piece worth
+knowing when reading `decide_term_hedge` below: the world used to gate both call
+sites on `policy.use_var_hedge_decision`, reading the supplier's Phase-43b switch
+to decide whether to consult the supplier's desk. The desk now decides, resolving
+that switch from the run's active policy and returning `None` when the layer is
+off. So `decide_term_hedge` is typed `TermHedge | None`, and a caller must handle
+the decline — it is not an error path, it is the supplier saying it is not taking
+VaR-constrained decisions this run.
 """
 
 from __future__ import annotations

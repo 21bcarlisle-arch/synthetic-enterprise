@@ -76,21 +76,27 @@ def run_frozen_baseline(report_end: str | None = None) -> dict:
     acquisition roll), so any divergence between the two runs is
     attributable to the policy change alone.
 
-    Each arm runs inside `policy_scope(...)` as well as passing `policy=`
-    (2026-08-12, WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10).
-    The argument covers every field a consumer is handed; the scope covers the
-    one field resolved without an argument -- the collections letter tone,
-    which the arrears path reads per bill through the company's published
-    seam and which therefore used to come out CURRENT in both arms. The
-    sentence above ("attributable to the policy change alone") was false for
-    `tone_mode` until the scope existed, and `run_phase2b.main` now refuses a
-    policy argument that disagrees with the active scope, so a future arm
-    cannot silently reacquire the defect.
+    THE SCOPE IS NOW THE ONLY CHANNEL -- KNIFE3 step 39 (§3ah). Each arm used
+    to do BOTH: enter `policy_scope(...)` and pass `policy=` down through
+    `run_phase4c` into `run_phase2b` (2026-08-12,
+    WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10). The argument
+    covered every field a consumer was handed; the scope covered the one field
+    resolved without an argument -- the collections letter tone, which the
+    arrears path reads per bill through the company's published seam and which
+    therefore used to come out CURRENT in both arms.
+
+    Two channels meant they could disagree, so `run_phase2b.main` grew a
+    fail-closed check that they did not. Step 39 cut the world's last crossing
+    into `company.policy.decision_policy` by deleting the argument entirely:
+    every field is now resolved from the active scope, on the company side of a
+    door. The guard went with it, because a single channel cannot disagree with
+    itself, and the sentence above ("attributable to the policy change alone")
+    is now true by construction rather than by a check.
     """
     with policy_scope(CURRENT_POLICY):
-        current_result = run_phase4c(report_end=report_end, policy=CURRENT_POLICY)
+        current_result = run_phase4c(report_end=report_end)
     with policy_scope(NAIVE_POLICY):
-        naive_result = run_phase4c(report_end=report_end, policy=NAIVE_POLICY)
+        naive_result = run_phase4c(report_end=report_end)
 
     current = _portfolio_metrics(current_result)
     naive = _portfolio_metrics(naive_result)
