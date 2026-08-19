@@ -148,3 +148,24 @@ python3 -m tools.company_network_isolation --gate || exit 1
 # (18 tests), including both fail-closed paths: an oracle that finds nothing must RAISE, never
 # report a clean tree.
 python3 -m tools.file_scope_generated_paths || exit 1
+
+# ── GATE 12: a report is a RENDERING; production code may not import it ─────────────────────
+# Director instruction, 2026-08-19, narrowed on the strength of the measurement: "Fix the one
+# real production violation and make it impossible for new importers to appear. Leave the 77
+# test files reaching into renderer internals alone for now -- that's a rebuild, not a
+# decoupling, and the cost is out of proportion to the harm."
+#
+# The one violation was tools/generate_dashboard_data.py::extract_regulatory importing
+# `populate_compliance_scorecard` from the 9,838-line report. That function's own docstring
+# admitted the coupling in writing, so the renderer had become the HOME of a computation two
+# surfaces needed. It now lives in saas/reporting/compliance_scorecard_population.py and both
+# surfaces import it there, which is why this gate can be frozen at ZERO rather than at one.
+#
+# DELIBERATELY ASYMMETRIC, and the asymmetry IS the instruction: production importers are
+# frozen at zero and a new one FAILS; test importers are counted and published as debt in
+# docs/design/ANNUAL_REPORT_IMPORT_DEBT.md and NEVER enforced. A frozen test count would fail
+# on every legitimate edit to a report test -- a gate that punishes ordinary work and gets
+# disabled within a week, while arguing with the instruction that created it.
+# R15-proven in tests/tools/test_annual_report_import_ratchet.py, including the fail-closed
+# path: a scan that reads nothing must RAISE, never report clean layering it never looked at.
+python3 -m tools.annual_report_import_ratchet || exit 1

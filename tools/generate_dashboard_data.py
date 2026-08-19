@@ -240,6 +240,113 @@ def load_spot_monthly():
 
 
 # ---------------------------------------------------------------------------
+# COST BASIS OF A DERIVED VALUATION
+# (2026-08-17, WORKER_FINDING_THE_BOOK_IS_VALUED_ON_A_MARGIN_THAT_EXCLUDES_
+#  THREE_QUARTERS_OF_THE_COST_STACK, recommendation 3 -- the CLASS, not the row)
+#
+# A published figure carries its clock (R14). A published figure DERIVED from
+# another must also carry the COST BASIS it was built on, because a valuation
+# and its stated parent can share a clock and still be different quantities:
+# £6,304,202.92 of enterprise value was labelled "derived from the settled-clock
+# net margin" while its real parent was a contribution margin totalling 4.15x
+# that line. Same clock, same run, same page -- and the label was false.
+#
+# Which margin line a run's valuation used is the run's own answer
+# (`enterprise_value_margin_basis`, carried out of `saas.clv_model`'s
+# CLV_MARGIN_BASIS), so the label below cannot be restated independently of the
+# code that produced the number. This maps the field NAME to the basis VOCABULARY
+# the parent figures declare, and refuses anything it does not recognise.
+_MARGIN_FIELD_TO_COST_BASIS = {
+    # revenue - wholesale - levies - network - capital - bad debt - cost-to-serve
+    "net_of_all_costs_margin_gbp": "net_of_all_costs",
+    # revenue - wholesale - cost-to-serve ONLY (the pre-2026-08-17 basis)
+    "contribution_margin_gbp": "contribution",
+}
+
+#: Basis reported when the run does not say. NOT "assume it is fine": this
+#: value matches no parent's declared `cost_basis`, so the parentage gate below
+#: FAILS on it. An unavailable check is a failed check (R15 fail-silent), and a
+#: valuation that cannot name its own basis is precisely the state the finding
+#: measured.
+UNKNOWN_COST_BASIS = "unknown"
+
+
+def _cost_basis_of_valuation(data):
+    """The cost basis THIS run's enterprise value was actually computed on.
+
+    Fails closed at every step: a missing key, a null, or a margin field this
+    module has no vocabulary entry for all return `UNKNOWN_COST_BASIS`, which
+    no parent declares and the parentage gate therefore rejects.
+    """
+    field = (data or {}).get("enterprise_value_margin_basis")
+    if not isinstance(field, str):
+        return UNKNOWN_COST_BASIS
+    return _MARGIN_FIELD_TO_COST_BASIS.get(field, UNKNOWN_COST_BASIS)
+
+
+def _check_derived_basis_parentage(portfolio):
+    """R10 CLASS GATE: every basis entry that CLAIMS a parent must name a
+    parent that is published, labelled, and on the SAME cost basis.
+
+    Runs over every `derived_from` in `portfolio["basis"]` -- not over
+    enterprise value specifically -- so a future derived figure inherits the
+    check by declaring a parent, which is the class the finding named.
+
+    INDEPENDENCE (R15 anti-tautology): the child's `cost_basis` comes from the
+    RUN (`enterprise_value_margin_basis`, i.e. the field the valuation code
+    actually indexed); the parent's is declared here against the P&L line. Two
+    sources that can genuinely disagree -- and did, for the whole life of the
+    defect.
+
+    FAIL-CLOSED: an absent parent entry, an unpublished parent figure, a
+    missing `cost_basis` on either side, and the `unknown` sentinel all FAIL.
+    "Nothing to compare" must never read as "parentage fine".
+    """
+    basis = portfolio.get("basis", {}) or {}
+    problems = []
+    for key, entry in sorted(basis.items()):
+        if not isinstance(entry, dict):
+            continue
+        parent_key = entry.get("derived_from")
+        if not parent_key:
+            continue  # not a derived figure; nothing is claimed, nothing to check
+        if portfolio.get(key) is None:
+            continue  # the figure itself is not published this run
+        parent_entry = basis.get(parent_key)
+        if portfolio.get(parent_key) is None or not isinstance(parent_entry, dict):
+            problems.append(
+                "{} claims derived_from '{}', which is not a published, "
+                "basis-labelled figure".format(key, parent_key)
+            )
+            continue
+        child_basis = entry.get("cost_basis")
+        parent_basis = parent_entry.get("cost_basis")
+        if not child_basis or child_basis == UNKNOWN_COST_BASIS:
+            problems.append(
+                "{} does not state the cost basis it was computed on "
+                "(got {!r})".format(key, child_basis)
+            )
+        elif not parent_basis:
+            problems.append(
+                "{}'s declared parent '{}' states no cost basis".format(key, parent_key)
+            )
+        elif child_basis != parent_basis:
+            problems.append(
+                "{} is computed on the '{}' basis but claims to derive from "
+                "'{}', which is on the '{}' basis".format(
+                    key, child_basis, parent_key, parent_basis
+                )
+            )
+    if problems:
+        print(
+            "BASIS-PARENTAGE GATE FAILED: {}".format("; ".join(problems)),
+            file=sys.stderr,
+        )
+        return False
+    return True
+
+
+# ---------------------------------------------------------------------------
 # Extraction functions
 # ---------------------------------------------------------------------------
 
@@ -285,20 +392,39 @@ def extract_portfolio(data):
                 # data is the constitution's rule-1 defect whether or not
                 # anything currently follows it.
                 "bridge_url": "../data/margin_bridge.json",
+                # The COST BASIS, beside the clock. `total_net_gbp` is net of
+                # every cost attributable to consumption -- wholesale, policy
+                # levies (RO/CfD/CM/FiT/CCL/mutualisation), network charges
+                # both fuels, capital and bad debt.
+                "cost_basis": "net_of_all_costs",
                 "note": (
-                    "Settlement-derived (total_net_gbp). Diverges from the "
-                    "bill-derived ledger view (financial.ledger.net_margin_gbp) "
-                    "-- see the reconciliation bridge."
+                    "Settlement-derived (total_net_gbp), net of wholesale, "
+                    "policy levies, network charges, capital and bad debt. "
+                    "Diverges from the bill-derived ledger view "
+                    "(financial.ledger.net_margin_gbp) -- see the "
+                    "reconciliation bridge."
                 ),
             },
             "enterprise_value_gbp": {
                 "clock": "settled",
                 "provisional": True,
                 "derived_from": "net_margin_gbp",
+                # DERIVED FROM THE RUN, NOT ASSERTED HERE (2026-08-17
+                # margin-basis finding). Until that repair this entry said
+                # "Derived from the settled-clock net margin above" while the
+                # figure's actual parent was a contribution margin 4.15x that
+                # line, and nothing could tell: the sentence was hand-written
+                # next to a number computed somewhere else. It now reports
+                # what `saas.clv_model.CLV_MARGIN_BASIS` actually was for THIS
+                # run, and `_check_derived_basis_parentage` below fails the
+                # publish when it stops matching the parent named above.
+                "cost_basis": _cost_basis_of_valuation(data),
                 "note": (
-                    "Derived from the settled-clock net margin above -- "
-                    "inherits its divergence from the bill-derived view until "
-                    "the bridge is applied to recompute it."
+                    "Discounted future margin of the supplied book, valued on "
+                    "the same net-of-all-costs basis as the settled net margin "
+                    "above. Inherits that line's divergence from the "
+                    "bill-derived view until the bridge is applied to "
+                    "recompute it."
                 ),
             },
         },
@@ -1494,7 +1620,12 @@ def extract_regulatory(data):
     """Per-obligation RAG for the Regulatory tab, sourced from the real
     ComplianceScorecard (company/regulatory/compliance_scorecard.py) already
     computed for the annual report -- not from build/phase metadata."""
-    from saas.reporting.annual_report import populate_compliance_scorecard
+    # NOT from saas.reporting.annual_report: a report is a rendering, never a thing
+    # other code reads (director ruling 2026-08-19). The population step it used to
+    # hold now has its own module and this is its only production caller.
+    from saas.reporting.compliance_scorecard_population import (
+        populate_compliance_scorecard,
+    )
     from company.regulatory.compliance_scorecard import ComplianceDomain
     import datetime as dt
 
@@ -1756,12 +1887,16 @@ def generate(run_json_path=None):
     consistency_ok = _check_consistency(portfolio, insights, run_json_path.name)
     population_ok = _check_population_consistency(data, dashboard)
     basis_ok = _check_basis_labels_present(portfolio)
+    # The label being PRESENT and the label being TRUE are two checks; the
+    # margin-basis finding got past the first one for the whole life of the
+    # defect (2026-08-17).
+    parentage_ok = _check_derived_basis_parentage(portfolio)
     bridge_ok = _check_bridge_reconciles()
     bad_debt_ok = _check_bad_debt_reconciliation_present(dashboard["financial"])
     period_ok = _check_period_coverage_present(dashboard["financial"])
     mix_claim_ok = _check_front_door_segment_claim(dashboard)
     consistency_ok = (
-        consistency_ok and population_ok and basis_ok and bridge_ok
+        consistency_ok and population_ok and basis_ok and parentage_ok and bridge_ok
         and bad_debt_ok and period_ok and mix_claim_ok
     )
 
