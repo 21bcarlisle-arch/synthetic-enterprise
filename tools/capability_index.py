@@ -696,6 +696,46 @@ _REGISTER_CLOSE = "ORPHAN-DISPOSITIONS -->"
 #: really has zero external consumers and fires when one appears.
 _NO_CONSUMER = "none:"
 
+#: Referent form for an orphan whose package DOES have an external consumer.
+#: The counterpart of `_NO_CONSUMER`, and the reason the `unhooked` referent is
+#: DERIVED rather than declared (2026-08-19, repairing the 707-commit wedge in
+#: `WORKER_FINDING_A_SEAM_CUT_HOLLOWED_OUT_82_ORPHAN_RULINGS_...`).
+#:
+#: The column used to hand-name one consumer per row. Measured, that was never
+#: a per-module judgement: all 258 rows carried exactly ONE distinct nominee per
+#: package, copied down the file. And the check could only ever verify it at
+#: PACKAGE granularity -- whether the nominee imports *anything* from the
+#: package -- so the row asserted "this module would drive THIS orphan" while
+#: the control tested something much weaker. A seam cut then moved every
+#: crossing behind `company/interfaces/` and hollowed out 82 rows in one stroke,
+#: with no repair short of 82 fresh judgements, which wedged the register shut.
+#:
+#: So the column now states exactly the fact the checker can compute: whether
+#: this package has an external consumer at all. The JUDGEMENT -- the class and
+#: the reason -- stays hand-authored and stays checked. The same seam cut now
+#: shows up as a re-render, not as a wedge found 707 commits later.
+_HAS_CONSUMER = "consumers:"
+
+#: Both derived forms. A row of any other class using one is claiming a
+#: computed answer to a question its class asks a human to answer.
+_DERIVED_REFERENTS: tuple[str, ...] = (_NO_CONSUMER, _HAS_CONSUMER)
+
+#: How many re-rendered rows the CLI names before summarising. The full set is
+#: the diff; this is orientation, not the record.
+_RENDER_REPORT_LIMIT = 20
+
+
+def derive_referent(module: str, consumers: dict[str, set[str]]) -> str:
+    """The `unhooked` referent COMPUTED from the tree, never declared.
+
+    A column the checker can compute is a column the register must not be
+    hand-authoring: a hand-written referent goes stale silently, a rendered one
+    cannot.
+    """
+    pkg = module.rpartition(".")[0]
+    prefix = _HAS_CONSUMER if consumers.get(pkg) else _NO_CONSUMER
+    return prefix + pkg
+
 
 def parse_dispositions(text: str) -> tuple[list[dict], list[str]]:
     """Rows of the register, plus every line that would not parse.
@@ -752,31 +792,71 @@ def _package_consumers(rows: list[dict]) -> dict[str, set[str]]:
 def _referent_findings(mod: str, cls: str, ref: str, where: str,
                        consumers: dict[str, set[str]], known: set[str]) -> list[str]:
     """Whether the referent this class REQUIRES is a claim or decoration."""
-    pkg = mod.rpartition(".")[0]
-    if ref.startswith(_NO_CONSUMER):
-        claimed = ref[len(_NO_CONSUMER):]
-        if cls != "unhooked":
-            return ["REFERENT MISUSE: %s uses `%s...`, which only a class `unhooked` row "
-                    "may claim" % (where, _NO_CONSUMER)]
-        if claimed != pkg:
-            return ["REFERENT MISMATCH: %s claims package %r, but the module lives in %r"
-                    % (where, claimed, pkg)]
-        if consumers.get(claimed):
-            return ["REFUTED REFERENT: %s claims package %s has no external consumer, but "
-                    "%s imports it -- nominate that consumer"
-                    % (where, claimed, sorted(consumers[claimed])[0])]
-        return []
+    if cls == "unhooked":
+        # DERIVED column: the only correct value is the one the tree computes,
+        # so this fires on a register that has not been re-rendered since the
+        # import graph moved -- and the repair is `--render-dispositions`, one
+        # command, rather than one fresh judgement per stale row.
+        want = derive_referent(mod, consumers)
+        if ref == want:
+            return []
+        return ["STALE RENDER: %s carries referent %r, but the tree derives %r -- the "
+                "`unhooked` consumer column is computed, not declared; re-render with "
+                "`python3 tools/capability_index.py --render-dispositions`"
+                % (where, ref, want)]
+    if ref.startswith(_DERIVED_REFERENTS):
+        return ["REFERENT MISUSE: %s is class %r and uses a DERIVED referent (`%s`/`%s`), "
+                "which only a class `unhooked` row carries -- this class must NAME its %s"
+                % (where, cls, _NO_CONSUMER, _HAS_CONSUMER, DISPOSITION_CLASSES[cls])]
     if ref not in known:
         return ["ABSENT REFERENT: %s names %s as its %s, and no such module exists"
                 % (where, ref, DISPOSITION_CLASSES[cls])]
-    if cls == "unhooked" and ref not in consumers.get(pkg, set()):
-        return ["DECORATIVE REFERENT: %s nominates %s as the consumer that would drive it, "
-                "but %s imports nothing from %s -- a nomination that touches the package "
-                "nowhere is decoration" % (where, ref, ref, pkg)]
     if cls == "wired":
         return ["SELF-REFUTING ROW: %s is classed `wired` but the index still calls it an "
                 "orphan -- if %s really imports it the status would say so" % (where, ref)]
     return []
+
+
+def render_dispositions(text: str, consumers: dict[str, set[str]]) -> tuple[str, list[str]]:
+    """Rewrite the DERIVED referent column of every `unhooked` row in place.
+
+    It rewrites that ONE column and nothing else. It never adds a row and never
+    removes one: a new orphan must still be ruled on by a judgement, and a
+    ruling whose subject left the population must still be retired by one.
+    Auto-filling either would leave the count complete while emptying the
+    ruling of content -- the exact fail-open §0 of the register forbids, and the
+    reason there is deliberately no generator.
+
+    It also never silently repairs a malformed row or one of another class:
+    those are the checker's findings to report, and a renderer that tidied them
+    away would be deleting the evidence a human has to see.
+    """
+    out: list[str] = []
+    changes: list[str] = []
+    inside = False
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not inside:
+            out.append(raw)
+            if line.startswith(_REGISTER_OPEN):
+                inside = True
+            continue
+        if line.startswith(_REGISTER_CLOSE):
+            inside = False
+            out.append(raw)
+            continue
+        parts = [p.strip() for p in line.split("|")]
+        if len(parts) != 4 or not all(parts[:3]) or parts[1] != "unhooked":
+            out.append(raw)
+            continue
+        want = derive_referent(parts[0], consumers)
+        if parts[2] != want:
+            changes.append("%s | %s -> %s" % (parts[0], parts[2], want))
+        out.append("%s | %s | %s | %s" % (parts[0], parts[1], want, parts[3]))
+    rendered = "\n".join(out)
+    if text.endswith("\n"):
+        rendered += "\n"
+    return rendered, changes
 
 
 def _row_findings(row: dict, subjects: dict[str, dict], consumers: dict[str, set[str]],
@@ -924,6 +1004,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--orphans", action="store_true", help="modules nothing imports and no command runs")
     ap.add_argument("--dispositions", action="store_true",
                     help="check every company-side orphan carries a ruling in the register")
+    ap.add_argument("--render-dispositions", action="store_true",
+                    dest="render_dispositions",
+                    help="rewrite the DERIVED consumer column of the register's `unhooked` "
+                         "rows from the tree (adds no row, removes no row)")
     ap.add_argument("--unnamed", action="store_true", help="rows with no plain-words description")
     ap.add_argument("--json", action="store_true", help="emit the whole index as JSON")
     ap.add_argument("--out", metavar="PATH", help="write the JSON index to PATH")
@@ -961,6 +1045,22 @@ def main(argv: list[str] | None = None) -> int:
         rest = orphans(rows)
         print("%d orphan row(s): nothing imports them and no command runs them" % len(rest))
         _print_rows(rest, args.limit)
+    elif args.render_dispositions:
+        path = ROOT / DISPOSITION_REGISTER
+        before = path.read_text(encoding="utf-8")
+        after, changes = render_dispositions(before, _package_consumers(rows))
+        if after == before:
+            print("ORPHAN DISPOSITIONS: consumer column already matches the tree -- "
+                  "nothing to render")
+            return 0
+        path.write_text(after, encoding="utf-8")
+        print("ORPHAN DISPOSITIONS: re-rendered %d consumer column(s) in %s"
+              % (len(changes), DISPOSITION_REGISTER))
+        for c in changes[:_RENDER_REPORT_LIMIT]:
+            print("  " + c)
+        if len(changes) > _RENDER_REPORT_LIMIT:
+            print("  ... and %d more" % (len(changes) - _RENDER_REPORT_LIMIT))
+        return 0
     elif args.dispositions:
         try:
             ruling = disposition_findings(rows)

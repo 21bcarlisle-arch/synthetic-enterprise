@@ -448,7 +448,7 @@ def write_register(root, body):
     return path
 
 
-HEALTHY_ROW = ("company.billing.abandoned | unhooked | tools.runner | "
+HEALTHY_ROW = ("company.billing.abandoned | unhooked | consumers:company.billing | "
                "a register nothing imports; no importer")
 
 
@@ -505,29 +505,34 @@ def test_a_ruling_that_outlives_its_subject_fires(tree):
     assert any("no longer in the index" in f for f in fires(findings, "STALE DISPOSITION"))
 
 
-def test_a_consumer_that_touches_the_package_nowhere_fires(tree):
-    """DECORATIVE REFERENT — the guard that stops `unhooked` becoming a label.
-    `company.billing.engine` is a real module, so the referent EXISTS; it just
-    imports nothing from the orphan's package, which makes the nomination
-    scenery rather than a claim."""
+def test_a_hand_written_consumer_column_fires_because_the_column_is_derived(tree):
+    """`company.billing.engine` is a real module and it really is in the
+    package, so under the old hand-authored grammar this row looked arguable.
+    The column is now COMPUTED, so anything that is not the computed value is a
+    register that has not been re-rendered — and says so."""
     write_register(tree, "company.billing.abandoned | unhooked | company.billing.engine | "
-                         "nominates a sibling that drives nothing")
+                         "hand-names a consumer instead of carrying the derived value")
     findings = ci.disposition_findings(ci.build_rows(tree), tree)
-    assert fires(findings, "DECORATIVE REFERENT")
+    assert fires(findings, "STALE RENDER")
+    assert "consumers:company.billing" in findings[0], "the finding must name the repair"
 
 
 def test_a_referent_that_does_not_exist_fires(tree):
-    write_register(tree, "company.billing.abandoned | unhooked | tools.imaginary | "
-                         "nominates a module nobody wrote")
+    """ABSENT REFERENT still guards the classes whose referent IS a judgement:
+    `retired` names a superseder, and naming one that was never written is the
+    decoration this check exists for."""
+    write_register(tree, "company.billing.abandoned | retired | tools.imaginary | "
+                         "names a superseder nobody wrote")
     assert fires(ci.disposition_findings(ci.build_rows(tree), tree), "ABSENT REFERENT")
 
 
-def test_a_no_consumer_claim_is_refuted_when_a_consumer_exists(tree):
-    """REFUTED REFERENT. `none:<package>` is a claim about the tree, not an
-    exemption from making one."""
-    write_register(tree, "company.billing.abandoned | unhooked | none:company.billing | "
-                         "claims the package has no door")
-    assert fires(ci.disposition_findings(ci.build_rows(tree), tree), "REFUTED REFERENT")
+def test_a_derived_referent_on_a_class_that_must_judge_fires(tree):
+    """REFERENT MISUSE. `retired` must NAME the superseder; letting it carry the
+    computed consumer column would let a judgement be answered by a derivation
+    — which is how a class becomes a label."""
+    write_register(tree, "company.billing.abandoned | retired | consumers:company.billing | "
+                         "answers a judgement with a derivation")
+    assert fires(ci.disposition_findings(ci.build_rows(tree), tree), "REFERENT MISUSE")
 
 
 def test_a_no_consumer_claim_holds_when_the_package_really_has_no_door(tree):
@@ -566,6 +571,159 @@ def test_a_malformed_row_is_reported_never_skipped(tree):
     findings = ci.disposition_findings(ci.build_rows(tree), tree)
     assert fires(findings, "MALFORMED DISPOSITION")
     assert fires(findings, "UNDISPOSITIONED")
+
+
+# ---------------------------------------------------------------------------
+# the derived consumer column (2026-08-19) — R15 on the repair itself
+#
+# The column used to be hand-authored. A seam cut moved every direct crossing
+# behind `company/interfaces/`, 82 of 258 rows went hollow in one stroke, and
+# the register was unlandable for 707 commits because the only repair was 82
+# fresh judgements. The column is now COMPUTED. These tests pin both halves of
+# that trade: what the control now fires on, and what it deliberately does not.
+# ---------------------------------------------------------------------------
+
+def add_second_package(tree, runner_imports):
+    """A second consumed package with its own orphan, plus a rewritten runner."""
+    crm = tree / "company" / "crm"
+    crm.mkdir(exist_ok=True)
+    (crm / "__init__.py").write_text("", encoding="utf-8")
+    (crm / "cohort.py").write_text('"""Cohort analysis."""\nVALUE = 1\n', encoding="utf-8")
+    (crm / "stranded.py").write_text(
+        '"""A tested capability whose consumer was never built."""\nVALUE = 1\n',
+        encoding="utf-8")
+    (tree / "tools" / "runner.py").write_text(
+        '"""Command that runs the billing engine."""\n'
+        + "".join("import %s\n" % m for m in runner_imports)
+        + 'if __name__ == "__main__":\n    pass\n', encoding="utf-8")
+    subprocess.run(["git", "add", "-A"], cwd=tree, check=True)
+
+
+CRM_ROW = ("company.crm.stranded | unhooked | %s | tested capability, consumer never built")
+
+
+def test_a_package_losing_its_last_consumer_fires_and_a_render_repairs_it(tree):
+    """The transition the column actually claims. `company.crm` has an external
+    consumer, so the orphan's row says so; when the last one goes away the row
+    is false of the tree and must fire — then be repairable by re-rendering,
+    which is the whole reason this can no longer wedge."""
+    add_second_package(tree, ["company.billing.engine", "company.crm.cohort"])
+    write_register(tree, HEALTHY_ROW + "\n" + CRM_ROW % "consumers:company.crm")
+    assert ci.disposition_findings(ci.build_rows(tree), tree) == []
+
+    # the cut: nothing outside `company.crm` imports it any more
+    add_second_package(tree, ["company.billing.engine"])
+    findings = ci.disposition_findings(ci.build_rows(tree), tree)
+    assert any("company.crm.stranded" in f for f in fires(findings, "STALE RENDER"))
+    assert "none:company.crm" in [f for f in findings if "company.crm.stranded" in f][0]
+
+    path = tree / ci.DISPOSITION_REGISTER
+    rendered, changes = ci.render_dispositions(
+        path.read_text(encoding="utf-8"), ci._package_consumers(ci.build_rows(tree)))
+    path.write_text(rendered, encoding="utf-8")
+    assert changes, "the render must be what closes it, not a no-op"
+    assert not fires(ci.disposition_findings(ci.build_rows(tree), tree), "STALE RENDER")
+
+    # The cut also stranded `cohort` itself, and THAT still needs a human: the
+    # render repairs the computed column and nothing else, so the two halves of
+    # the repair stay visibly separate.
+    assert any("company.crm.cohort" in f
+               for f in fires(ci.disposition_findings(ci.build_rows(tree), tree),
+                              "UNDISPOSITIONED"))
+    write_register(tree, rendered.split("<!-- ORPHAN-DISPOSITIONS\n")[1]
+                   .split("\nORPHAN-DISPOSITIONS -->")[0]
+                   + "\ncompany.crm.cohort | unhooked | none:company.crm | "
+                     "stranded by the same cut; no consumer built")
+    assert ci.disposition_findings(ci.build_rows(tree), tree) == []
+
+
+def test_a_package_gaining_its_first_consumer_fires(tree):
+    """The other direction. `none:` is a claim about the tree, and a package
+    that acquires a door refutes it — this is the live `company.core` case."""
+    add_second_package(tree, ["company.billing.engine"])
+    write_register(tree, HEALTHY_ROW + "\n" + CRM_ROW % "none:company.crm"
+                   + "\ncompany.crm.cohort | unhooked | none:company.crm | no consumer built")
+    assert ci.disposition_findings(ci.build_rows(tree), tree) == []
+
+    (tree / "tools" / "crm_report.py").write_text(
+        '"""A consumer arrives."""\nimport company.crm.cohort\n'
+        'if __name__ == "__main__":\n    pass\n', encoding="utf-8")
+    subprocess.run(["git", "add", "-A"], cwd=tree, check=True)
+    findings = ci.disposition_findings(ci.build_rows(tree), tree)
+    assert any("company.crm.stranded" in f for f in fires(findings, "STALE RENDER"))
+    assert "consumers:company.crm" in [f for f in findings
+                                       if "company.crm.stranded" in f][0]
+
+
+def test_a_seam_cut_that_swaps_one_consumer_for_another_is_deliberately_quiet(tree):
+    """The 82-row wedge itself, and the decision it forced.
+
+    A crossing moves from a direct caller to one behind `company/interfaces/`.
+    The package still HAS an external consumer that could drive the orphan, so
+    the register's claim is unchanged and true — but the old hand-written column
+    named the departed caller and fired on all 82 rows at once, demanding a
+    fresh judgement per row for a fact that had not changed. That false alarm at
+    scale IS what wedged the file shut. The column asserts less now, and what it
+    asserts stays true across the cut."""
+    add_second_package(tree, ["company.billing.engine", "company.crm.cohort"])
+    write_register(tree, HEALTHY_ROW + "\n" + CRM_ROW % "consumers:company.crm")
+    assert ci.disposition_findings(ci.build_rows(tree), tree) == []
+
+    seam = tree / "company" / "interfaces"
+    seam.mkdir()
+    (seam / "__init__.py").write_text("", encoding="utf-8")
+    (seam / "crm_view.py").write_text(
+        '"""The seam the crossing moved behind."""\nimport company.crm.cohort\n',
+        encoding="utf-8")
+    add_second_package(tree, ["company.billing.engine", "company.interfaces.crm_view"])
+    assert ci.disposition_findings(ci.build_rows(tree), tree) == [], (
+        "a consumer being REPLACED is not the register's subject; firing here is "
+        "the false alarm that made the file unlandable for 707 commits"
+    )
+
+
+def test_the_renderer_never_rules_on_a_new_orphan(tree):
+    """The no-generator wall. Rendering fills the column the checker computes —
+    it must never mint the ruling, or the count stays complete while the
+    judgement empties out, which is the fail-open the register exists to stop."""
+    add_second_package(tree, ["company.billing.engine", "company.crm.cohort"])
+    write_register(tree, HEALTHY_ROW)  # `company.crm.stranded` carries NO row
+    path = tree / ci.DISPOSITION_REGISTER
+    rendered, _ = ci.render_dispositions(
+        path.read_text(encoding="utf-8"), ci._package_consumers(ci.build_rows(tree)))
+    path.write_text(rendered, encoding="utf-8")
+    assert "company.crm.stranded" not in rendered
+    assert any("company.crm.stranded" in f
+               for f in fires(ci.disposition_findings(ci.build_rows(tree), tree),
+                              "UNDISPOSITIONED"))
+
+
+def test_the_renderer_never_retires_a_ruling_whose_subject_left(tree):
+    """The same wall on the way out. A module that got WIRED is the outcome the
+    register exists to produce, and dropping its row is a judgement — so the
+    render leaves it and the check keeps asking."""
+    write_register(tree, HEALTHY_ROW + "\ncompany.billing.working_days | unhooked | "
+                                       "consumers:company.billing | already wired")
+    path = tree / ci.DISPOSITION_REGISTER
+    rendered, _ = ci.render_dispositions(
+        path.read_text(encoding="utf-8"), ci._package_consumers(ci.build_rows(tree)))
+    path.write_text(rendered, encoding="utf-8")
+    assert "company.billing.working_days" in rendered
+    assert any("is now wired" in f
+               for f in fires(ci.disposition_findings(ci.build_rows(tree), tree),
+                              "STALE DISPOSITION"))
+
+
+def test_the_renderer_leaves_a_malformed_row_for_the_checker_to_report(tree):
+    """A renderer that tidied an unparseable row would be deleting the evidence
+    a human has to see — the MALFORMED finding must survive a render."""
+    write_register(tree, HEALTHY_ROW + "\ncompany.billing.engine | unhooked | no-reason-column")
+    path = tree / ci.DISPOSITION_REGISTER
+    rendered, _ = ci.render_dispositions(
+        path.read_text(encoding="utf-8"), ci._package_consumers(ci.build_rows(tree)))
+    path.write_text(rendered, encoding="utf-8")
+    assert "company.billing.engine | unhooked | no-reason-column" in rendered
+    assert fires(ci.disposition_findings(ci.build_rows(tree), tree), "MALFORMED DISPOSITION")
 
 
 def test_an_unclosed_block_does_not_swallow_the_rest_of_the_file(tree):
