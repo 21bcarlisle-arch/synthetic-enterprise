@@ -394,13 +394,28 @@ def test_canonical_nav_present_and_director_absent():
     # doors already used. The short forms were one of the twelve hand-authored nav
     # shapes this step collapsed.
     nav = _site_nav(INDEX.read_text())
-    for label in ("Home", "The Company", "The World", "Proof"):
+    # DERIVED FROM THE REGISTER, not listed here (2026-08-19). This assertion used to name the
+    # labels literally, which is why it went red the moment the director folded the nav from
+    # eight tabs to five -- and why eight separate copies of the tab list existed to drift apart
+    # in the first place. That drift IS the defect Step 0 was written to abolish: the director
+    # read six items on Home and nine on Knowledge. A test that re-states the nav is a second
+    # definition of it. There is one definition, and this reads it.
+    import sys as _sys
+    _sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from ia_register import CANONICAL_NAV as _NAV
+    for label in tuple(i.label for i in _NAV):
         assert f">{label}</a>" in nav, f"nav missing canonical door {label!r}"
     # Killed doors must not survive as ghost nav entries.
     for ghost in ("Method", "Journey", "Simplified"):
         assert f">{ghost}</a>" not in nav, f"retired door {ghost!r} still a nav entry"
     # /project folds into /proof -> Proof is the active door.
-    assert 'href="../proof/" class="nav-link active">Proof</a>' in nav
+    # NO SELF-HIGHLIGHT ANY MORE, and its absence is the correct outcome rather than a
+    # regression. The 2026-08-19 fold took this page off the top nav -- Proof, which this page's nav used to mark, is now a child of Harness. A page with no
+    # nav entry has nothing to mark active, and `site/test_ia_register.py::
+    # test_the_pages_that_cannot_highlight_themselves_are_exactly_the_unreached_ones` owns that
+    # property for the whole site, deriving the set rather than listing it here. Asserting a
+    # highlight that cannot exist would pin the page's old status, which is the pinned-literal
+    # defect this suite keeps finding.
     # The Director door is auth-gated and must NOT appear in the public nav.
     assert "../director/" not in nav, "Director door must not be in the public nav"
     assert ">Director</a>" not in nav

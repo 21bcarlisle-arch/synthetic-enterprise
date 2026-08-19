@@ -107,7 +107,16 @@ def test_canonical_nav_present_and_director_absent():
     # Proof (Director window is off-nav, auth-gated). Method/Journey/Simplified
     # folded into Proof/World at their own surfaces; updated in lockstep with the
     # nav rebuild (SITE_V5_STRUCTURE_CONFIRMATION.md §1: tests move with the doors).
-    for label in ("Home", "The World", "The Company", "Proof"):
+    # DERIVED FROM THE REGISTER, not listed here (2026-08-19). This assertion used to name the
+    # labels literally, which is why it went red the moment the director folded the nav from
+    # eight tabs to five -- and why eight separate copies of the tab list existed to drift apart
+    # in the first place. That drift IS the defect Step 0 was written to abolish: the director
+    # read six items on Home and nine on Knowledge. A test that re-states the nav is a second
+    # definition of it. There is one definition, and this reads it.
+    import sys as _sys
+    _sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+    from ia_register import CANONICAL_NAV as _NAV
+    for label in tuple(i.label for i in _NAV):
         assert f">{label}</a>" in nav, f"nav missing canonical door {label!r}"
     # Home is the current door -> marked active.
     assert 'href="./" class="active">Home</a>' in nav

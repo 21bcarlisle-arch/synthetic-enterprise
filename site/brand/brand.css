@@ -92,3 +92,23 @@
   font-size: var(--font-size-micro);
 }
 .basis::before { content: "// "; }
+
+/* ── Mobile is the binding constraint (director, 2026-08-19) ──────────────────────────────
+ * "Nine items does not fit a phone. Mobile is where I read this; treat it as the binding
+ * constraint." The nav is five items now, but five plus a wordmark still exceeds 360px at the
+ * desktop metrics, so it must degrade deliberately rather than by accident.
+ *
+ * SPECIFICITY, NOT !important. Every page carries its own `<style>` AFTER this file's <link>,
+ * so a bare `.nav-link` rule here loses on source order -- which is exactly how the nav came to
+ * render differently on different pages in the first place. `.site-nav .nav-link` is (0,2,0)
+ * against the pages' (0,1,0) and wins wherever it lands, without the escalation that makes the
+ * next override impossible.
+ *
+ * The nav WRAPS to a second row rather than scrolling or truncating: a reader must be able to
+ * see every door at once. `height:auto` is what lets it, and is the one property the pages
+ * pinned that would otherwise clip the second row out of sight. */
+@media (max-width: 480px) {
+  .site-nav { height: auto; min-height: 48px; padding: 6px 12px; gap: 2px; }
+  .site-nav .nav-link { padding: 5px 8px; font-size: 12px; }
+  .site-nav .nav-logo { margin-right: 8px; }
+}

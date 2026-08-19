@@ -145,11 +145,26 @@ def test_canonical_nav_is_five_surface_ia():
     # Journey and Simplified are KILLED doors -- they fold into Proof and must
     # NOT appear in the nav; their old URLs 301 (see site/_redirects).
     nav = _site_nav(INDEX.read_text())
-    for label in ("Home", "The World", "The Company", "Proof"):
+    # DERIVED FROM THE REGISTER, not listed here (2026-08-19). This assertion used to name the
+    # labels literally, which is why it went red the moment the director folded the nav from
+    # eight tabs to five -- and why eight separate copies of the tab list existed to drift apart
+    # in the first place. That drift IS the defect Step 0 was written to abolish: the director
+    # read six items on Home and nine on Knowledge. A test that re-states the nav is a second
+    # definition of it. There is one definition, and this reads it.
+    import sys as _sys
+    _sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from ia_register import CANONICAL_NAV as _NAV
+    for label in tuple(i.label for i in _NAV):
         assert f">{label}</a>" in nav, f"nav missing five-surface door {label!r}"
     # SITE4 (2026-08-18): the register renders a page's OWN entry as "./" -- the
     # convention every hand-written nav on this site already used for its own door.
-    assert 'href="./" class="nav-link active">Proof</a>' in nav
+    # NO SELF-HIGHLIGHT ANY MORE, and its absence is the correct outcome rather than a
+    # regression. The 2026-08-19 fold took this page off the top nav -- Proof is now a child of Harness, reached by one link from it. A page with no
+    # nav entry has nothing to mark active, and `site/test_ia_register.py::
+    # test_the_pages_that_cannot_highlight_themselves_are_exactly_the_unreached_ones` owns that
+    # property for the whole site, deriving the set rather than listing it here. Asserting a
+    # highlight that cannot exist would pin the page's old status, which is the pinned-literal
+    # defect this suite keeps finding.
     # killed doors are gone from the nav...
     for killed in ("../method/", "../simplified/", "../project/", "../tours/"):
         assert killed not in nav, f"killed door {killed!r} still linked in nav"

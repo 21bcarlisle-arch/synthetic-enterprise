@@ -285,9 +285,20 @@ def _nav_block(html: str) -> str:
 # --- mutations (R15) -------------------------------------------------------
 def test_MUTATION_a_hand_edited_nav_fires(tree):
     victim = tree / "company" / "index.html"
-    victim.write_text(
-        victim.read_text().replace('class="nav-link">Proof</a>', 'class="nav-link">Proofff</a>')
+    # THE LABEL IS DERIVED, and the reason is that this control silently stopped working when it
+    # was not. It corrupted the literal string `>Proof</a>`; the 2026-08-19 fold took Proof off
+    # the nav, so the replace matched nothing, the file was rewritten unchanged, and `stale()`
+    # correctly reported no drift -- a MUTATION test that mutates nothing and passes for the
+    # wrong reason, which is the FAIL-SILENT shape R15 names. Taking a label from the register
+    # means the corruption is always real.
+    label = next(i.label for i in reg.CANONICAL_NAV if i.area != "/")
+    before = victim.read_text()
+    after = before.replace(f'class="nav-link">{label}</a>', f'class="nav-link">{label}XX</a>')
+    assert after != before, (
+        f"the mutation changed nothing -- {label!r} is not in the rendered nav, so this test "
+        "would pass without testing anything"
     )
+    victim.write_text(after)
     assert "/company/" in renderer.stale(tree)
 
 

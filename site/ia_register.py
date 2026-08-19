@@ -149,36 +149,41 @@ class NavItem:
 
 
 CANONICAL_NAV: tuple[NavItem, ...] = (
+    # FIVE, and five is the binding number rather than a preference. Director, 2026-08-19:
+    # "Mobile is where I read this; treat it as the binding constraint." Nine items did not fit
+    # a phone; these five do at 360px without wrapping to a second row.
+    #
+    # THE FOLD, in his words: "My brief listed Home, Knowledge, Capabilities, Explore, Harness --
+    # I had folded The World and The Company into Capabilities and Explore, since Capabilities is
+    # SIM and Company side by side and Explore is where the world gets walked. I never said so."
+    # So the two tabs I was holding open were never meant to be tabs.
+    #
+    # NOTHING IS DELETED. /world/, /company/ and /proof/ keep their pages and their content and
+    # are reached by ONE link each from the tab that absorbed them -- see PARENT_OF, which is
+    # enforced: a declared parent that does not actually link to its child is a violation, so a
+    # fold cannot become a quiet orphaning.
     NavItem("Home", "/"),
-    NavItem("The World", "/world/"),
-    NavItem("The Company", "/company/"),
-    # SITE7, 2026-08-18 (director pulled it forward ahead of Knowledge: "I want to see a
-    # real new tab to judge whether the structure works before four more steps are built
-    # on it"). THIS LINE plus a sitemap entry is the whole nav change -- sixteen pages
-    # pick it up from `tools/render_site_nav.py --write`. That is what Step 0 bought.
-    NavItem("Capabilities", "/capabilities/"),
-    # SITE6 first half, 2026-08-18. The brief ranks Knowledge SECOND, before Capabilities --
-    # domain competence is the credibility signal for the primary audience. It is placed here
-    # rather than there only because the ruled order is a destination and this is a
-    # migration: Home, World and Company are the doors a returning reader already knows, and
-    # re-ordering them is SITE8's job with its own tests. Knowledge joins the nav now.
     NavItem("Knowledge", "/knowledge/"),
-    # SITE9 + SITE10 doors opened EARLY and deliberately empty, per the director's ruling of
-    # 2026-08-19: "holes beat wrong or unintelligible content. Put the final structure up now,
-    # with honest 'being built' pages where the content isn't written." Both are
-    # UNDER_CONSTRUCTION: routed from the nav, absent from the sitemap, and each page says what
-    # it will show and roughly when. See UNDER_CONSTRUCTION_DOORS for the obligations.
+    NavItem("Capabilities", "/capabilities/"),
     NavItem("Explore", "/explore/"),
     NavItem("Harness", "/harness/"),
-    # PROOF STAYS, and this is a judgement rather than an oversight. SITE11 dissolves it into
-    # Harness and the map records that it "genuinely must be last -- it re-points five live 301s
-    # at homes that must already exist". Those homes do not exist yet: Harness is a placeholder.
-    # The ruling says holes beat WRONG content; /proof/'s content is not wrong, it is merely
-    # destined to move, so removing its door now would put a hole where working content is and
-    # strand the five redirects the director specifically told me to protect. It leaves the nav
-    # when Harness can receive what it holds.
-    NavItem("Proof", "/proof/"),
 )
+
+
+# ── The fold: which tab absorbed which page ──────────────────────────────────
+# A child is NOT an orphan: it is reachable, deliberately, one click from its parent tab. This
+# replaces the LEGACY_TAIL habit of hanging extra links off every page's nav -- that is what made
+# the nav non-canonical (Home carried eight items, Knowledge nine) and it is exactly the
+# condition Step 0 existed to abolish.
+#
+# ONE LINK EACH, and that is a rule rather than an accident. Director, 2026-08-19: "prefer fewer
+# cross-links: every one is a thing that has to keep being true, and I'd rather have a smaller
+# number that always work than a web that needs constant verification."
+PARENT_OF: dict[str, str] = {
+    "/world/": "/explore/",        # Explore is where the world gets walked
+    "/company/": "/capabilities/",  # Capabilities is SIM and Company side by side
+    "/proof/": "/harness/",         # the SITE11 destination, reached early and safely
+}
 
 
 # ── Per-page render profile ───────────────────────────────────────────────────
@@ -204,55 +209,13 @@ INNER_LINK_CLASS = "nav-link"
 # unnecessary: when Knowledge enters the canonical nav at SITE6, `/world/`'s Knowledge
 # tail link is redundant and goes. `test_ia_register.py` asserts the tail can only
 # shrink, and that no tail entry duplicates a canonical destination.
-LEGACY_TAIL: dict[str, tuple[tuple[str, str], ...]] = {
-    # absorbed by SITE10 (Explore reconciles /customers/) + SITE11 (/proof/ anchors)
-    "/customers/": (
-        ("Now", "/now/"),
-        ("Method", "/proof/#method-anchor"),
-        ("Journey", "/proof/#project-anchor"),
-        ("Simplified", "/proof/#simplified-anchor"),
-    ),
-    # absorbed by SITE8 (Home carries the "latest" strip /now/ duplicates)
-    "/now/": (
-        ("Now", "/now/"),
-        ("Customers", "/customers/"),
-        ("Method", "/proof/#method-anchor"),
-    ),
-    "/privacy/": (("Customers", "/customers/"),),
-    # NO self-entry here, deliberately. /wip-flow/ carried a non-clickable
-    # `<span class="nav-link active">WIP + Flow</span>`; rendering it as a real link
-    # made `site/test_link_walk.py` red on the first pass, correctly -- /wip-flow is a
-    # 301 SOURCE, and DIRECTOR_RULING_CANONICAL_DOOR_A forbids an internal link to one.
-    # A RETIRED page's active door is the door it folded into (see active_target), and
-    # no nav on this site may link to a redirect source; `no_retired_nav_links()`
-    # enforces that for every page, not just this one.
-    "/wip-flow/": (
-        ("Customers", "/customers/"),
-        ("Method", "/proof/#method-anchor"),
-    ),
-    # absorbed by SITE6 -- the glossary PAGE dies (the glossary LAYER survives)
-    "/glossary/": (("Glossary", "/glossary/"),),
-    # Knowledge's own entry is gone -- it is a canonical tab now. Glossary stays until
-    # SITE6's second half dissolves that page.
-    "/knowledge/": (("Glossary", "/glossary/"),),
-    # the three RETIRED pages that render /proof/'s absorbed anchors; absorbed by
-    # SITE11 when /proof/ is dissolved and its anchors re-home
-    "/method/": (
-        ("Method", "/proof/#method-anchor"),
-        ("Journey", "/proof/#project-anchor"),
-        ("Simplified", "/proof/#simplified-anchor"),
-    ),
-    "/simplified/": (
-        ("Method", "/proof/#method-anchor"),
-        ("Journey", "/proof/#project-anchor"),
-        ("Simplified", "/proof/#simplified-anchor"),
-    ),
-    "/tours/": (
-        ("Method", "/proof/#method-anchor"),
-        ("Journey", "/proof/#project-anchor"),
-        ("Simplified", "/proof/#simplified-anchor"),
-    ),
-}
+# LEGACY_TAIL IS EMPTY, 2026-08-19, and that is the point rather than an omission. It held the
+# per-page extra links by which a reader could reach the orphans -- and it is precisely why the
+# nav was never canonical: Home rendered eight items, Knowledge nine, and the director read two
+# different sites on two pages. Every destination it carried is now either a nav tab, a declared
+# child in PARENT_OF, or a 301. The register keeps the name so the shrink-only test still has a
+# subject, and it must stay empty: a new entry means someone is hanging a link off one page again.
+LEGACY_TAIL: dict[str, tuple[tuple[str, str], ...]] = {}
 
 
 # ── The six real orphans ──────────────────────────────────────────────────────
@@ -396,7 +359,12 @@ def nav_reachable() -> set[str]:
     """Areas the CANONICAL nav routes to. Deliberately excludes LEGACY_TAIL: the tail
     is debt being retired, and counting it as a route would let the orphan count read
     green because six pages happen to cross-link each other."""
-    return {item.area for item in CANONICAL_NAV}
+    reachable = {item.area for item in CANONICAL_NAV}
+    # A child of a tab is reachable BY ITS PARENT, not by the top nav. Counting it here is what
+    # lets /world/ stop being a tab without becoming an orphan -- and `fold_violations` below
+    # checks the parent genuinely links to it, so this cannot become an alibi.
+    reachable |= set(PARENT_OF)
+    return reachable
 
 
 def register_violations(site: Path = SITE) -> list[str]:
@@ -467,7 +435,44 @@ def register_violations(site: Path = SITE) -> list[str]:
             f"Add it to CANONICAL_NAV or drop the entry"
         )
 
+    problems.extend(fold_violations(site))
     problems.extend(no_retired_nav_links(site))
+    return problems
+
+
+def fold_violations(site: Path = SITE) -> list[str]:
+    """A declared fold must be a real link. Director ruling, 2026-08-19.
+
+    THE FAILURE THIS EXISTS TO REFUSE: taking a page off the top nav, declaring it a child of
+    some tab, and never adding the link -- which reads as tidy structure and IS an orphaning.
+    `nav_reachable()` counts children as reachable, so without this check that function becomes
+    an alibi: anything could be hidden by naming a parent for it.
+
+    Fails toward REPORTING: an unreadable parent page counts as not linking, because a fold we
+    cannot verify is one we have not made.
+    """
+    problems = []
+    for child, parent in sorted(PARENT_OF.items()):
+        page = site / parent.strip("/") / "index.html" if parent != "/" else site / "index.html"
+        try:
+            body = page.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            body = ""
+        # THE NAV REGION IS STRIPPED FIRST, and the first draft of this check did not do that.
+        # It passed on all three folds while none of the three content links existed -- because
+        # the nav still carried `../world/` from before the fold, so the check was satisfied by
+        # the very links the fold removes. A control that reads the thing it is replacing is not
+        # a control. The link must be in the PAGE, where a reader can find it.
+        body = re.sub(r"<!-- IA-NAV:START.*?IA-NAV:END -->", "", body, flags=re.S)
+        # accept either an absolute or a relative href to the child
+        slug = child.strip("/")
+        if f'href="{child}"' not in body and f'href="../{slug}/"' not in body \
+                and f'href="./{slug}/"' not in body and f'href="{slug}/"' not in body:
+            problems.append(
+                f"{child} is declared a child of {parent} but {parent} does not link to it -- "
+                f"the fold is a claim, not a route, and {child} is orphaned in fact. Add the "
+                f"one link, or give {child} a nav tab back"
+            )
     return problems
 
 
@@ -522,9 +527,19 @@ def active_target(area: str, site: Path = SITE) -> str:
     door that no longer exists in the IA would be a lie the register can avoid telling.
     """
     target = retired_areas(site / "_redirects").get(area)
+    resolved = area
     if target:
-        return target if target.endswith("/") else target + "/"
-    return area
+        resolved = target if target.endswith("/") else target + "/"
+    # WALK UP TO THE NAV ANCESTOR (2026-08-19 fold). A retired page folds into a door, and after
+    # the fold that door may itself be a CHILD -- /method/ 301s to /proof/, and /proof/ is now a
+    # child of /harness/. Highlighting /proof/ would mark an entry the nav no longer has, which
+    # is the same lie in a new place. One hop is enough for today's shape and a loop guard is
+    # cheaper than an argument about whether it always will be.
+    seen = set()
+    while resolved in PARENT_OF and resolved not in seen:
+        seen.add(resolved)
+        resolved = PARENT_OF[resolved]
+    return resolved
 
 
 def render_nav(area: str, indent: str = "  ", site: Path = SITE) -> str:

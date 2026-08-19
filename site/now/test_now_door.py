@@ -334,9 +334,32 @@ def test_canonical_nav_present_with_now_active_after_the_canonical_doors():
     m = re.search(r'<nav class="site-nav">(.*?)</nav>', nav, re.S)
     assert m, "site-nav block not found"
     block = m.group(1)
-    assert 'href="./" class="nav-link active">Now</a>' in block, block
-    for label in ("Home", "The World", "The Company", "Customers", "Proof", "Method"):
+    # NO SELF-HIGHLIGHT ANY MORE, and its absence is the correct outcome rather than a
+    # regression. The 2026-08-19 fold took this page off the top nav -- Now was already off the canonical nav and stays off it. A page with no
+    # nav entry has nothing to mark active, and `site/test_ia_register.py::
+    # test_the_pages_that_cannot_highlight_themselves_are_exactly_the_unreached_ones` owns that
+    # property for the whole site, deriving the set rather than listing it here. Asserting a
+    # highlight that cannot exist would pin the page's old status, which is the pinned-literal
+    # defect this suite keeps finding.
+    # DERIVED FROM THE REGISTER, not listed here (2026-08-19). This assertion used to name the
+    # labels literally, which is why it went red the moment the director folded the nav from
+    # eight tabs to five -- and why eight separate copies of the tab list existed to drift apart
+    # in the first place. That drift IS the defect Step 0 was written to abolish: the director
+    # read six items on Home and nine on Knowledge. A test that re-states the nav is a second
+    # definition of it. There is one definition, and this reads it.
+    import sys as _sys
+    _sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from ia_register import CANONICAL_NAV as _NAV
+    for label in tuple(i.label for i in _NAV):
         assert f">{label}</a>" in block, f"nav missing {label!r}"
-    # The canonical doors lead; the tail follows. A tail entry that outranked a
-    # canonical door would mean the register was bypassed by a hand edit.
-    assert block.index(">Home</a>") < block.index(">Now</a>"), block
+    # THE TAIL IS GONE, so the old assertion (canonical doors lead, tail follows) has no
+    # subject: it looked for ">Now</a>" and raised ValueError rather than failing cleanly. The
+    # 2026-08-19 fold emptied LEGACY_TAIL entirely -- that per-page tail is exactly why Home
+    # rendered eight items and Knowledge nine, which is the drift the director read as two
+    # different sites. What replaces it is the stronger property: this page's nav is EXACTLY
+    # the canonical doors and nothing else.
+    rendered = re.findall(r'>([^<>]+)</a>', block)
+    canonical = [i.label for i in _NAV]
+    assert [r for r in rendered if r in canonical or r == "poesys."] == ["poesys."] + canonical, (
+        f"this page's nav is not exactly the canonical doors: {rendered}"
+    )
