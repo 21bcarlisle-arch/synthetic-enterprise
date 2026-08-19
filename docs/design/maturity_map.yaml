@@ -4088,7 +4088,7 @@
   couples_with: []
   records_rehomed: [evidence]
   file_scope: ['company/analytics/clv_three_horizon.py', 'tests/company/analytics/test_clv_three_horizon.py', 'company/analytics/customer_value_view.py']
-  simplifications_count: 8   # 2026-08-19 pass 8: read the live tenure horizon as a MODEL -- its conjugate soft-count update is exchangeable in the renewal order, so a deteriorating and a recovering customer get a bit-identical lifetime and CLV, the published churn/lifetime pair correlates -0.0169 (three accounts spanning 0.14-0.41 share a 17-figure-identical lifetime), substituting only the horizon moves the book -45.2%, and the mutation test written for this exact estimator has a fixture in which no account can have a trajectory; plus the demand-side census -- five dark decision modules, six CLV formulas, three tenures for one customer
+  simplifications_count: 9   # 2026-08-19 pass 8: read the live tenure horizon as a MODEL -- its conjugate soft-count update is exchangeable in the renewal order, so a deteriorating and a recovering customer get a bit-identical lifetime and CLV, the published churn/lifetime pair correlates -0.0169 (three accounts spanning 0.14-0.41 share a 17-figure-identical lifetime), substituting only the horizon moves the book -45.2%, and the mutation test written for this exact estimator has a fixture in which no account can have a trajectory; plus the demand-side census -- five dark decision modules, six CLV formulas, three tenures for one customer
 - id: EP2_variance_learning_loop
   title: "Expected minus realised, fed back into belief"
   gain: "Margin volatility becomes explained variance or a named defect, instead of a shrug."
@@ -4231,10 +4231,6 @@
   level_current: 0
   level_target: 3
   loop_stage: build
-  block_reason_discharged: "R13 curriculum sequencing, discharged by the director's
-    instruction of 2026-08-19 naming EP6 for promotion. The old reason required his word
-    and said 'never proceed on silence'; this is not silence, it is the word. Kept as a
-    discharged record rather than deleted, so the epoch-3 pull-forward stays visible."
   dial_inherited: 3
   provenance: director_ruling
   depends_on: []
@@ -4984,7 +4980,7 @@
   provenance: director_ruling
   depends_on: [G12_queryable_projections]
   couples_with: [G12_queryable_projections]
-  file_scope: ['site/data/', 'tools/lab_query.py', 'tests/tools/test_lab_query.py']
+  file_scope: ['tools/lab_query.py', 'tests/tools/test_lab_query.py', 'tools/generate_projections_page.py', 'tests/tools/test_generate_projections_page.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the analyst who actually opens the warehouse -- the reason the warehouse is funded"
 
