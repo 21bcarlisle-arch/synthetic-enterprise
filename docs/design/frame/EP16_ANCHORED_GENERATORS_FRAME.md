@@ -634,3 +634,199 @@ season and level structure of the real shape are properties of the real world, m
 outside this atom's empty `file_scope`, and belongs to the scenario-generator path with W1_2.
 
 — FRAME pass 4, worker tick 2026-08-18, at HEAD `0a3113dfe`.
+
+---
+
+# PASS 5 (worker tick 2026-08-19, HEAD `b2c7692f7`) — the join: between the last real day and the first generated one there are 207 days that do not exist
+
+Passes 1-4 all measured **generated data against real data** — the scheduling of rare days (§§7-8), the
+negative-price overlay (§§9-11), the ordinary half-hour (§§12-14). Every one of them took the two halves of a
+generated world as given and asked whether the synthetic half looks like the real one. This pass takes the
+**seam between them** — `build_extended_price_feeds`, the twelve lines that concatenate the real prefix onto the
+generated suffix — because an anchored generator's anchor is not only the distribution it was fitted to. It is
+also the actual historical series the generated world is bolted onto, and that bolt has never been measured.
+
+Measured at HEAD `b2c7692f7`, with the map, this store file and `docs/design/frame/` clean in the shared tree at
+draw time. No BUILD code written, `file_scope` untouched (it is empty).
+
+## 15. FINDING 15 — the splice leaves a 207-day hole in both price feeds, in every forward run, and no argument closes it
+
+`simulation/run_scenario.py:155` decides where the generated half starts:
+
+```python
+scenario_actual_from = max(year_from, latest_hist_date.year + 1)
+```
+
+The rule is **year-granular**. The real electricity cache ends **2025-06-07** (`sim/cache/elexon_ssp_full.json`,
+168,026 rows, min `2015-11-07`, max `2025-06-07`) and the real NBP history ends the same day, so
+`latest_hist_date.year + 1` is 2026 and the generated half starts **2026-01-01**. Nothing generates
+**2025-06-08 … 2025-12-31**.
+
+Measured on the shipped function, real inputs, default arguments (`central_2027`, 2026-2029, seed `s1`):
+
+| feed | span | days present | gaps |
+|---|---|---|---|
+| electricity (HH) | 2015-11-07 → 2029-12-31 | 4,962 | **one: 2025-06-07 → 2026-01-01, 207 days missing** |
+| gas (daily) | 2016-01-01 → 2029-12-31 | 4,907 | **one: 2025-06-07 → 2026-01-01, 207 days missing** |
+
+Both feeds, the same hole, the same 207 days. That is **14.2% of the 1,461-day forward window** the run exists to
+produce, and it sits immediately before it — the run's own approach to the future.
+
+**No argument closes it.** `year_from` is floored by `max(...)`, so asking for `year_from=2025` still yields 2026;
+the parameter that looks like it controls the splice cannot move it. A caller who wants a contiguous world has no
+way to say so. The hole is not a mis-set default — it is unreachable through the API.
+
+**It is silent at every layer.** `build_extended_price_feeds` returns without a warning; the records it does emit
+are correctly tagged `data_regime: "synthetic"` (the epistemic-wall marker is present and right); and
+`simulation/settlement.py`'s docstring states the join rule it will apply — *"periods with no matching price record
+are skipped, not guessed"*. Skipping is the honest response to one missing settlement period. Applied to 207
+consecutive days it silently deletes six and a half months of trading from the middle of the run.
+
+## 16. FINDING 16 — the two controls over the splice are a tautology and a fixture that ends on the one day of the year the rule is right about
+
+`tests/simulation/test_run_scenario.py` has two tests whose subject is exactly this seam. Neither can fail on it,
+for two different reasons, and one of them **certifies the rule that makes the hole**.
+
+**(a) `test_build_extended_no_date_overlap` is a tautology.** Its assertion is
+
+```python
+elec_dates = sorted(set(r["settlementDate"] for r in ext_elec))
+assert elec_dates == sorted(set(elec_dates))   # no duplication
+```
+
+`elec_dates` was already produced by `sorted(set(...))`, so the right-hand side re-sorts and re-dedupes a list that
+is already sorted and deduped. The assertion is **true for every possible input**, duplicated or not — verified
+directly: a list with five copies of one date and three of another satisfies it. The comment says "no duplication";
+the check tests the previous line, not the function (R15 killer pattern 1, INDEPENDENCE — the checked value is
+derived from the same expression that checks it). And its subject was overlap in the first place: even a working
+version of this test guards against the feed saying a day **twice**, and is structurally blind to the feed not
+saying it at all.
+
+**(b) Both tests build a history that ends on 31 December.** Both call `_hh_records("2016-01-01", "2025-12-31")`.
+A year-granular splice rule is exactly correct when history ends on the last day of a year and wrong by up to 364
+days otherwise. The fixture is the **single date in the year at which the defect cannot appear**. So
+`test_build_extended_scenario_dates_start_at_year_from` asserts `scenario_dates[0] == "2026-01-01"` and passes —
+and that assertion is not merely blind to the hole, it is the hole's specification, written down and pinned.
+
+This is not fail-open and not fail-silent. It is the third pattern the register has been collecting: **wrong
+population** — a real control, correctly implemented, run against the one sample on which the rule it certifies is
+true. Same shape as §4's R13 wall enforced over a rotation set of zero, on a completely different mechanism.
+
+## 17. FINDING 17 — the hole's consequence is asymmetric by commodity: electricity raises, gas silently empties the book
+
+The hole (207 days) is wider than the pricing lookback (90 days), so any renewal term whose lookback window
+`[start-90, start-1]` falls entirely inside it has **no price records at all**. That band is term starts in
+**2025-09-06 … 2026-01-01**, and the 365-day renewal cadence walks straight into it.
+
+Measured by calling the shipped renewal builders on the real spliced feed, with two null controls:
+
+| | electricity (`build_renewal_schedule`, 15 customers) | gas (`_build_gas_renewal_schedule`, 5 customers) |
+|---|---|---|
+| **A. spliced feed, run to 2029-12-31** | **10 of 15 raise `ValueError`** | **3 of 5 schedules stop early** (last term starts 2024-09-29 / 2024-12-29 / 2024-12-30) |
+| **B. null control — history only, run to 2025-06-07** | 0 of 15 fail | — |
+| **C. null control — same feed, hole filled with 207 generated days, everything else identical** | **0 of 15 fail** | **0 of 5 truncate** (all reach 2029) |
+
+Control C is the one that matters: same generator, same preset, same seed, same end date, same customers — the
+only change is that the 207 missing days are generated instead of absent. Every failure disappears. The mover is
+the hole, not the forward window, not the generator, not the customers.
+
+**The two commodities fail differently, and the quiet one is worse.**
+
+*Electricity* — `simulation/renewals.py:129` calls `generate_forward_price` bare, no `try`. The function raises by
+design (`"No price records found in the lookback window [2025-09-30, 2025-12-28] for acquisition date
+2025-12-29."`). `run_phase2b.main()` calls `build_renewal_schedule` unconditionally at line 998 with these exact
+arguments — `elec_records` is the spliced feed, `effective_end` is `report_end` = `"2029-12-31"` — and that call
+site has no handler either. Loud, and it stops the run.
+
+*Gas* — `run_phase2b.py:503` wraps the same call: `except ValueError: if not schedule: bootstrap; else: break`.
+The catch was written for the cold start, and the `break` means a schedule that hits the hole **ends there and
+returns successfully**. C_IC3g goes from 12 terms to 7, C1g from 15 to 10, C4g from 14 to 9: **three of five gas
+customers hold no contract at any point in the generated 2026-2029 world**, and the run reports no error, logs
+nothing, and produces a gas book that is 40% smaller than the one the world was asked for. A generated future in
+which the company's gas customers quietly cease to exist is not a curriculum the director chose.
+
+**This closes a caveat passes 1-4 carried and could not explain.** Every prior pass recorded, as an R12 latency
+check, that *no forward-scenario run has ever been published*. Re-verified here from a second and independent
+direction: `docs/observability/token-log.md` holds **10,175** cache-access entries and **zero** carry
+`phase="36a_scenario"`, the tag `run_forward_scenario` stamps on its own historical load. Passes 1-4 established
+that no such run reached an artefact. This pass supplies the reason: on default arguments the runner raises before
+it can produce one.
+
+**Stated as a limit rather than glossed:** `run_forward_scenario` was **not** executed end-to-end here — by §18 that
+costs ~3,500 live HTTP requests, which is the wrong spend for a bounded DISCOVER tick. What is observed is the
+shipped renewal builders raising and truncating on the real spliced feed at the real call-site arguments. The
+production call also passes `EFFECTIVE_EAC_KWH` and a `lookback_temps_fn`; neither can prevent the raise, which
+occurs inside `generate_forward_price` on the empty lookback window before either value is read.
+
+## 18. FINDING 18 — the forward runner asks its own cache for a range no cache of real data can ever hold
+
+`run_scenario.py:298` loads the historical half with
+
+```python
+cached = get_cached_prices(fetch_start, report_end)     # report_end = "2029-12-31"
+```
+
+`get_cached_prices` returns `None` unless the cache covers the **entire** requested range — *"no partial-cache
+serving"*, correct policy. But the range requested ends in the **generated** future, and a cache of real Elexon
+settlement data can never reach it. Measured:
+
+| requested end | result |
+|---|---|
+| 2025-06-07 (the real `REPORT_END`) | **hit**, 168,026 records |
+| 2026-12-31 / 2029-12-31 / 2031-12-31 | **miss** |
+
+So the forward path takes the fallback **every time, by construction**: `get_system_prices_range(fetch_start,
+_REPORT_END)`, which issues **one HTTP request per day** over 3,502 days. Two consequences on EP16's own subject.
+First, the real half of every generated world is **not pinned** — it comes off the live API at run time, not off
+the committed cache, so the anchor of an "anchored" world is whatever Elexon serves that day (and settlement runs
+are revised: II → SF → R1 → R2 → R3 → RF). A run is not reproducible from the repo alone. Second, the fetch is
+**fail-open**: `get_system_prices_range` treats a non-200 as zero records, by documented intent — *"Days that return
+a non-200 response or no data are treated as zero records, not an error"*. An unreachable API therefore yields an
+**empty** historical anchor with no exception, and `build_extended_price_feeds`'s `if historical_elec:` branch then
+takes the no-history path. R15: an unavailable anchor is a failed anchor, and this one reports success.
+
+Worth recording precisely because the fix is nearly free: `run_forward_scenario` already knows the real window —
+it passes `_REPORT_END` to the fallback two lines later. Asking the cache for the range it actually wants turns a
+guaranteed miss and 3,502 network calls into a hit. (Inside `main()` the question does not arise: the loader is
+monkey-patched at line 330 to return the pre-built extended feed.)
+
+## 19. FINDING 19 — every generated day has 48 settlement periods; 23 days in the same real cache do not
+
+Smaller, and recorded because it is the same class as §16 — a control pinning the defect — on the calendar rather
+than the join. `_expand_daily_to_hh` emits `for period in range(1, 49)` unconditionally, and
+`test_expand_daily_to_hh_settlement_periods_1_to_48` pins it. GB settlement days are not all 48 periods: on the
+real cache the histogram is **48 × 3,468, 46 × 14, 50 × 9, 47 × 9, 45 × 1** — the 46s and 50s are the spring and
+autumn clock changes (2016-03-27, 2016-10-30, …), 23 days of genuine 23- and 25-hour days.
+
+A generated world has none. Over 2026-2029 that is 8 clock changes that do not happen, so any company logic keyed
+on the settlement-period count meets them in history and never again forward. The mirror-image defect is already
+live on the real half: `settlement.py` iterates `range(1, 49)` against a 48-entry consumption shape, so on the nine
+real 50-period days periods 49-50 carry a price and no consumption and are dropped. **Size not measured** — this is
+filed as a fidelity gap in the world's calendar, not as a quantified money finding.
+
+## What pass 5 adds to EP16's item list
+
+An **eighth** top-level item, and it goes to the front: **8 — make the splice a join.** Start the generated half on
+the day after real history ends, not on the next 1 January; make the year-granular floor a date; and assert
+contiguity across the seam in a test whose fixture history does **not** end on 31 December. It is the cheapest item
+on the list — one expression and one fixture date — and it is the only one that is currently stopping the runner
+rather than degrading it. Two riders travel with it: ask the cache for the range that exists (§18), and decide
+whether a generated calendar should carry clock changes (§19).
+
+It also gives item **4c** (phenomenon shape, not parameter value) a third face. §9's negative-price event is
+mis-represented; §14's intraday shape is not represented at all; §15's 207 days are **not represented as anything**
+— not a wrong value, not a missing parameter, an absence that every downstream layer reads as "nothing happened"
+because each of them, individually, is right to skip a missing settlement period.
+
+**Pass 5 close.** `level_current` stays **0** and `loop_stage` stays **idle**: the deliverable of this atom is a
+mechanism, not this document, and BUILD is epoch-gated. **R12:** no published number tuned, and re-verified latent
+at this HEAD — `scenario_name` appears in **zero** files under `docs/reports/`, and zero of `token-log.md`'s 10,175
+cache-access entries carry the forward runner's phase tag. **R13:** no curriculum value authored, proposed or
+changed — §§15-19 are **baseline fidelity** throughout: whether a price series has a hole in it, whether a cache
+covers the range it is asked for, and how many settlement periods a GB day has are properties of the real world,
+measured blind to company P&L; per-preset severity stays the director's. **Queued, not taken** (SELF-INTERRUPT
+DISCIPLINE): the splice lives in `simulation/run_scenario.py`, the fallback in `sim/system_prices_history.py` and
+the renewal catch in `simulation/run_phase2b.py` — all outside this atom's empty `file_scope`, and the first
+belongs to the scenario-generator path with W1_2.
+
+— FRAME pass 5, worker tick 2026-08-19, at HEAD `b2c7692f7`.
