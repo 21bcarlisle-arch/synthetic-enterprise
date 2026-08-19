@@ -119,9 +119,10 @@ NAMED SIMPLIFICATIONS (R10):
 from __future__ import annotations
 
 import datetime as dt
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Sequence, Set
+from typing import Any, Dict, List, Optional, Sequence, Set, get_type_hints
 
 from company.billing.account_ledger import (
     AccountLedger,
@@ -136,7 +137,9 @@ from company.billing.arrears_engine import (
     age_open_items,
     ageing_buckets,
 )
+from company.interfaces.wall_protocol import WallProtocolError, decode_response
 from interface.contracts.payment_observable_seam import (
+    OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
     AddacsAdvice,
     AddacsAdviceType,
     AuddisReport,
@@ -149,7 +152,6 @@ from interface.contracts.payment_observable_seam import (
     SettlementConfirmation,
 )
 from interface.contracts.wall_envelope import WallResponse, WallStatus
-
 
 # ---------------------------------------------------------------------------
 # Belief types -- every one of these is the COMPANY'S OWN INFERENCE, built
@@ -366,6 +368,133 @@ def _cash_position_note(bal_summary: dict) -> str:
     return "BELIEF: account appears settled/current"
 
 
+# ---------------------------------------------------------------------------
+# OFF THE WIRE (atom EP6_wall_protocol_typing, 2026-08-19) -- the company's
+# payload decoder for this crossing.
+#
+# `company.interfaces.wall_protocol` decodes the ENVELOPE and treats `payload`
+# as opaque on purpose: its payload codec is a required function argument with
+# no default, so nothing can be deserialised by accident and a new crossing
+# never edits it. This function is THIS crossing's half of that bargain.
+#
+# It is deliberately not the inverse of `simulation.payment_seam_adapter.
+# encode_observable_payload` written by reading that function. Both are written
+# against `interface.contracts.payment_observable_seam` -- the payload
+# dataclasses and their declared field types -- which is what a real supplier
+# has: the published schema, not the counterparty's source. So the field set
+# and types below come from `get_type_hints`, an INDEPENDENT source from
+# anything the sender emitted, and a payload the contract does not define is
+# refused rather than accepted as an untyped dict.
+#
+# ABSENCE IS NEVER AGREEMENT, at payload depth too: the field set must match
+# the contract EXACTLY. A missing field is not defaulted (the company would
+# then post a belief the bank never advised) and an unknown field is not
+# tolerated (a schema that grew is announced by its version, never by a key
+# appearing quietly).
+# ---------------------------------------------------------------------------
+
+_OBSERVABLE_PAYLOAD_TYPES = {t.__name__: t for t in OBSERVABLE_RESPONSE_PAYLOAD_TYPES}
+_OBSERVABLE_PAYLOAD_HINTS = {
+    t.__name__: get_type_hints(t) for t in OBSERVABLE_RESPONSE_PAYLOAD_TYPES
+}
+
+
+def _decode_payload_field(raw: Any, declared: type, where: str) -> Any:
+    """Decode one payload field to the type THE CONTRACT declares for it."""
+    if isinstance(declared, type) and issubclass(declared, Enum):
+        try:
+            return declared(raw)
+        except ValueError as exc:
+            raise WallProtocolError(
+                "MALFORMED_FIELD",
+                f"{where}: {raw!r} is not one of "
+                f"{[m.value for m in declared]}",
+            ) from exc
+    if declared is dt.date:
+        if not isinstance(raw, str):
+            raise WallProtocolError(
+                "MALFORMED_FIELD", f"{where} must be an ISO-8601 date str, got {raw!r}"
+            )
+        try:
+            return dt.date.fromisoformat(raw)
+        except ValueError as exc:
+            raise WallProtocolError(
+                "MALFORMED_FIELD", f"{where} is not an ISO date: {raw!r}"
+            ) from exc
+    if declared is str:
+        if not isinstance(raw, str):
+            raise WallProtocolError(
+                "MALFORMED_FIELD", f"{where} must be a str, got {raw!r}"
+            )
+        return raw
+    if declared is float:
+        # bool is an int subclass; a True amount is malformed, not 1.0.
+        if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+            raise WallProtocolError(
+                "MALFORMED_FIELD", f"{where} must be a number, got {raw!r}"
+            )
+        return float(raw)
+    raise WallProtocolError(
+        "CONTRACT_VIOLATION",
+        f"{where}: this seam has no decoder for declared type {declared!r} -- a "
+        "field type was added to the contract without deciding how it crosses",
+    )
+
+
+def decode_observable_payload(raw: Any) -> Any:
+    """Rebuild one observable payload off the wire, or refuse it."""
+    if not isinstance(raw, Mapping):
+        raise WallProtocolError(
+            "NOT_A_MESSAGE", f"payload must be a mapping, got {type(raw).__name__}"
+        )
+    missing = sorted({"payload_type", "fields"} - set(raw))
+    if missing:
+        raise WallProtocolError(
+            "MISSING_FIELD",
+            f"payload omits {missing} -- an untagged payload cannot be routed to "
+            "one of this seam's six observable types",
+        )
+    unknown_keys = sorted(set(raw) - {"payload_type", "fields"})
+    if unknown_keys:
+        raise WallProtocolError(
+            "UNKNOWN_FIELD", f"payload carries undefined key(s) {unknown_keys}"
+        )
+    tag = raw["payload_type"]
+    if tag not in _OBSERVABLE_PAYLOAD_TYPES:
+        raise WallProtocolError(
+            "UNKNOWN_FIELD",
+            f"payload_type {tag!r} is not one of this seam's observable types "
+            f"{sorted(_OBSERVABLE_PAYLOAD_TYPES)}",
+        )
+    payload_type = _OBSERVABLE_PAYLOAD_TYPES[tag]
+    body = raw["fields"]
+    if not isinstance(body, Mapping):
+        raise WallProtocolError(
+            "NOT_A_MESSAGE", f"{tag}.fields must be a mapping, got {type(body).__name__}"
+        )
+    hints = _OBSERVABLE_PAYLOAD_HINTS[tag]
+    expected = set(hints)
+    absent = sorted(expected - set(body))
+    if absent:
+        raise WallProtocolError(
+            "MISSING_FIELD",
+            f"{tag} omits required field(s) {absent} -- never defaulted; the "
+            "company would otherwise post a belief the bank did not advise",
+        )
+    extra = sorted(set(body) - expected)
+    if extra:
+        raise WallProtocolError(
+            "UNKNOWN_FIELD",
+            f"{tag} carries field(s) {extra} the contract does not define",
+        )
+    return payload_type(
+        **{
+            name: _decode_payload_field(body[name], declared, f"{tag}.{name}")
+            for name, declared in hints.items()
+        }
+    )
+
+
 class PaymentObservationConsumer:
     """Consumes a stream of `WallResponse`-wrapped payment observables one at
     a time (any order, any lateness, possibly never for a given payment) and
@@ -412,6 +541,27 @@ class PaymentObservationConsumer:
     # -----------------------------------------------------------------
     # Ingest -- idempotent (C-S2), order-independent (C-S1/C-S3)
     # -----------------------------------------------------------------
+
+    def observe_wire(self, wire: Any) -> bool:
+        """Process one observation that arrived AS A WIRE MESSAGE -- the entry
+        point a real bank/Bacs feed reaches, and the one the live triad now
+        uses (atom EP6_wall_protocol_typing).
+
+        This is the whole of EP6's claim made concrete for this crossing: a
+        real counterparty hands over bytes and a mock hands over an object, and
+        that is the ONLY place the two observably differ. Coming through here
+        they are the same, because the message has passed the same envelope
+        refusals and the same payload refusals either way.
+
+        Raises `WallProtocolError` on anything malformed -- one exception type
+        at the seam, and never a half-built object reaching the belief code
+        below. A refusal is NOT an observation: nothing is marked processed,
+        because refusing a message the company could not read is not the same
+        as having read it, and a corrected re-delivery of the same
+        `correlation_id` must still be able to land.
+        """
+        response = decode_response(wire, decode_payload=decode_observable_payload)
+        return self.observe(response)
 
     def observe(self, response: WallResponse) -> bool:
         """Process one `WallResponse`. Returns True if newly processed,

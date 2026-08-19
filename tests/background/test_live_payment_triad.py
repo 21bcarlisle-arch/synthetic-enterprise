@@ -18,15 +18,14 @@ import pytest
 
 from background import live_payment_triad as lpt
 from background.live_payment_triad import LivePaymentTriad, _derive_analytics_record
-from simulation.payment_behaviour_source import PaymentEvent
 from interface.contracts.payment_observable_seam import (
+    SCHEMA_VERSION,
     BacsArruddOutcome,
     BacsReasonCategory,
     DDOutcomeStatus,
-    SCHEMA_VERSION,
 )
 from interface.contracts.wall_envelope import WallResponse, WallStatus
-
+from simulation.payment_behaviour_source import PaymentEvent
 
 # A population large + stressed enough to guarantee a real mixture of DD and
 # non-DD failures (the blind spot needs genuine non-DD failures to witness).
@@ -90,9 +89,13 @@ def test_R15_mutation_leaking_the_wall_collapses_the_live_gap(monkeypatch):
     baseline_gap = baseline["detection"].gap
     assert baseline_gap > 0.0
 
-    # Neuter emit_wall_responses INSIDE the live module: for a failed event of
+    # Neuter emit_wire_responses INSIDE the live module: for a failed event of
     # ANY payment method, leak a DD-failure WallResponse (the observable the
-    # blind spot should have withheld). Success/dispute unchanged.
+    # blind spot should have withheld). Success/dispute unchanged. The leaked
+    # response is put ON THE WIRE by the seam's own encoder (EP6 migrated this
+    # crossing 2026-08-19), so the mutation is still about the LEAK and not
+    # about the transport -- a leak that arrived malformed would be refused at
+    # the envelope and this control would pass for the wrong reason.
     def _leaky_emit(event, seam_input=None):
         if event.result == "failed":
             corr = seam_input.correlation_id if seam_input is not None else f"{event.customer_id}::{event.period_index}"
@@ -108,19 +111,21 @@ def test_R15_mutation_leaking_the_wall_collapses_the_live_gap(monkeypatch):
                 value_date=due,
             )
             import datetime as _dt
-            return [WallResponse(
+
+            from simulation.payment_seam_adapter import encode_wall_response
+            return [encode_wall_response(WallResponse(
                 correlation_id=corr,
                 status=WallStatus.OK,
                 schema_version=SCHEMA_VERSION,
                 observed_at=_dt.datetime.combine(due, _dt.time(6, 0)),
                 valid_time=due,
                 payload=payload,
-            )]
+            ))]
         # non-failed: fall through to the real adapter for coherent success/dispute
         return _real_emit(event, seam_input)
 
-    _real_emit = lpt.emit_wall_responses
-    monkeypatch.setattr(lpt, "emit_wall_responses", _leaky_emit)
+    _real_emit = lpt.emit_wire_responses
+    monkeypatch.setattr(lpt, "emit_wire_responses", _leaky_emit)
 
     neutered = _build_triad().measure()
     assert neutered is not None
@@ -600,7 +605,7 @@ def _suppress_every_nth_within_grace_credit(monkeypatch, every: int) -> set:
     Unapplied cash -- a feed gap, a credit sitting in suspense, a payment made
     to the wrong sort code -- leaves a settled invoice looking unpaid, and no
     amount of remittance detail on a credit that never arrived can fix it. It is
-    suppressed at `emit_wall_responses`, which `record_period` calls once for the
+    suppressed at `emit_wire_responses`, which `record_period` calls once for the
     real company and once for the shadow, so BOTH books lose the same cash: the
     portfolio balances stay identical (the money guard is not what fires here)
     and `self._records` -- the harness-held TRUTH -- is untouched, because it is
@@ -616,7 +621,7 @@ def _suppress_every_nth_within_grace_credit(monkeypatch, every: int) -> set:
     this file exists to catch."""
     import zlib
 
-    real_emit = lpt.emit_wall_responses
+    real_emit = lpt.emit_wire_responses
     suppressed: set = set()
 
     def _emit(event, seam_input=None):
@@ -629,7 +634,7 @@ def _suppress_every_nth_within_grace_credit(monkeypatch, every: int) -> set:
             return []
         return real_emit(event, seam_input)
 
-    monkeypatch.setattr(lpt, "emit_wall_responses", _emit)
+    monkeypatch.setattr(lpt, "emit_wire_responses", _emit)
     return suppressed
 
 

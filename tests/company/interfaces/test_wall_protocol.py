@@ -23,7 +23,9 @@ from __future__ import annotations
 
 import dataclasses
 import datetime as dt
+import enum
 import json
+import typing
 
 import pytest
 
@@ -420,3 +422,349 @@ def test_a_non_envelope_is_not_encodable():
     with pytest.raises(WallProtocolError) as caught:
         encode_request({"correlation_id": "corr-1"}, encode_payload=_dictish)  # type: ignore[arg-type]
     assert caught.value.reason == "NOT_A_MESSAGE"
+
+
+# ===========================================================================
+# THE FIRST MIGRATED CROSSING (2026-08-19, EP6 level 1 -> 2)
+#
+# Everything above tests the codec in isolation, which is why the atom stood at
+# L1 "built and DARK": the only callers were its own tests. This section is the
+# codec carrying a REAL crossing -- the live payment triad, which runs inside
+# `simulation/run_phase2b.py` once per run -- and it is what an L2 "genuine
+# artefacts, happy path" claim rests on.
+#
+# THE CLAIM UNDER TEST is the atom's own sentence: "a mock counterparty and a
+# real one are indistinguishable to the company." Made falsifiable, that is
+# `test_the_wire_fed_company_and_the_object_fed_company_believe_the_same_thing`
+# -- two identical companies, one handed objects and one handed JSON bytes,
+# reaching the same belief.
+#
+# INDEPENDENCE, and why it is real here rather than asserted. The encoder lives
+# in `simulation/payment_seam_adapter.py` and the decoder in
+# `company/billing/payment_observation_consumer.py`. Neither imports the other
+# (proven below); the sim side may not import `company.*` at all. They agree
+# only through `interface/contracts/payment_observable_seam.py` -- the way a
+# real supplier agrees with a real bank: via the published schema. So this
+# round-trip is not the decoder checked against its own arithmetic.
+# ===========================================================================
+
+from company.billing.payment_observation_consumer import (  # noqa: E402
+    PaymentObservationConsumer,
+    decode_observable_payload,
+)
+from interface.contracts.payment_observable_seam import (  # noqa: E402
+    OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
+    PaymentRail,
+    RemittanceAdvice,
+)
+from simulation.payment_seam_adapter import (  # noqa: E402
+    SeamEncodeError,
+    encode_observable_payload,
+    encode_wall_response,
+)
+
+_VALUE_DATE = dt.date(2024, 3, 11)
+_ADVICE = RemittanceAdvice(
+    bank_reference="INV-9001",
+    account_id="ACC-9001",
+    amount_gbp=142.75,
+    rail=PaymentRail.BACS_DIRECT_DEBIT,
+    value_date=_VALUE_DATE,
+)
+_OK_RESPONSE = WallResponse(
+    correlation_id="INV-9001",
+    status=WallStatus.OK,
+    schema_version=1,
+    observed_at=dt.datetime(2024, 3, 11, 6, 0),
+    valid_time=_VALUE_DATE,
+    payload=_ADVICE,
+)
+
+
+def _through_real_json(response):
+    """Encode with the counterparty's encoder and put the result through actual
+    JSON, so what the company decodes is bytes it could have received off a
+    socket -- not a dict that merely looks like one."""
+    return json.loads(json.dumps(encode_wall_response(response)))
+
+
+def _decode_from_wire(wire):
+    return decode_response(wire, decode_payload=decode_observable_payload)
+
+
+def test_the_vintage_stamp_survives_real_json_and_is_read_from_the_message():
+    """`schema_version` is populated at ten construction sites and, until this
+    crossing was migrated, had never left a process -- "not a switch that is
+    off, a wire that was never built". This asserts both halves: the stamp is IN
+    the serialised bytes, and the value the company ends up with was READ from
+    those bytes rather than supplied by the reader's own constant."""
+    raw = json.dumps(encode_wall_response(_OK_RESPONSE))
+    assert '"schema_version"' in raw
+    assert _decode_from_wire(json.loads(raw)).schema_version == 1
+
+
+def test_the_round_trip_is_lossless_through_the_two_independent_sides():
+    assert _decode_from_wire(_through_real_json(_OK_RESPONSE)) == _OK_RESPONSE
+
+
+def test_the_honest_non_answers_cross_too():
+    """A `NOT_KNOWABLE_YET` is the answer a real counterparty gives and a mock is
+    tempted to skip; it carries no payload by envelope invariant, and the wire
+    must still state that null rather than omit the key."""
+    unresolved = WallResponse(
+        correlation_id="INV-9002",
+        status=WallStatus.NOT_KNOWABLE_YET,
+        schema_version=1,
+        observed_at=dt.datetime(2024, 3, 11, 6, 0),
+        valid_time=None,
+        payload=None,
+    )
+    wire = _through_real_json(unresolved)
+    assert wire["payload"] is None and wire["valid_time"] is None
+    assert set(wire) == set(RESPONSE_WIRE_FIELDS)
+    assert _decode_from_wire(wire) == unresolved
+
+
+def test_the_wire_fed_company_and_the_object_fed_company_believe_the_same_thing():
+    """THE ATOM'S CLAIM. Two identical consumers see the same observation, one
+    as an in-process object (the mock) and one as JSON bytes (the real
+    counterparty). If the transport were distinguishable to the company, these
+    two snapshots would differ."""
+    object_fed = PaymentObservationConsumer()
+    wire_fed = PaymentObservationConsumer()
+
+    assert object_fed.observe(_OK_RESPONSE) is True
+    assert wire_fed.observe_wire(_through_real_json(_OK_RESPONSE)) is True
+
+    assert wire_fed.snapshot(_ADVICE.account_id) == object_fed.snapshot(_ADVICE.account_id)
+
+
+def test_idempotency_survives_the_transport_swap():
+    """`correlation_id` is the idempotency key, and it has to keep working when
+    the same fact is re-DELIVERED as bytes -- a real feed redelivers."""
+    consumer = PaymentObservationConsumer()
+    wire = _through_real_json(_OK_RESPONSE)
+    assert consumer.observe_wire(wire) is True
+    assert consumer.observe_wire(json.loads(json.dumps(wire))) is False
+
+
+def test_the_two_sides_are_independent_code():
+    """The agreement above must come from the published contract, not from one
+    side importing the other -- otherwise the round-trip is a tautology."""
+    import ast
+    import inspect
+
+    import simulation.payment_seam_adapter as adapter
+
+    imported = set()
+    for node in ast.walk(ast.parse(inspect.getsource(adapter))):
+        if isinstance(node, ast.ImportFrom) and node.module:
+            imported.add(node.module)
+        elif isinstance(node, ast.Import):
+            imported.update(alias.name for alias in node.names)
+    assert not [m for m in imported if m.split(".")[0] in {"company", "saas"}]
+    assert "interface.contracts.payment_observable_seam" in imported
+
+
+def test_every_payload_type_the_contract_defines_can_cross():
+    """A decoder covering the three types this crossing happens to emit today
+    would be a hole the day a fourth is emitted. The subject is the CONTRACT's
+    own enumeration, so adding a payload type to the seam reds this test until
+    it crosses."""
+    assert len(OBSERVABLE_RESPONSE_PAYLOAD_TYPES) == 6
+    for payload_type in OBSERVABLE_RESPONSE_PAYLOAD_TYPES:
+        hints = typing.get_type_hints(payload_type)
+        built = payload_type(**{
+            name: _specimen_for(name, declared) for name, declared in hints.items()
+        })
+        wire = json.loads(json.dumps(encode_observable_payload(built)))
+        assert decode_observable_payload(wire) == built
+
+
+def _specimen_for(name, declared):
+    """A value of the type the CONTRACT declares, resolved from the dataclass
+    rather than hand-listed, so a new field on any payload is covered without
+    editing this file -- and a new field TYPE fails here loudly."""
+    if declared is str:
+        return f"specimen-{name}"
+    if declared is float:
+        return 12.5
+    if declared is dt.date:
+        return _VALUE_DATE
+    if isinstance(declared, type) and issubclass(declared, enum.Enum):
+        return list(declared)[0]
+    raise AssertionError(
+        f"{name}: no specimen for declared type {declared!r} -- a field "
+        "type was added to the seam contract without deciding how it crosses"
+    )
+
+
+# ---------------------------------------------------------------------------
+# R15 -- the payload guards, each killed and the defect shown
+# ---------------------------------------------------------------------------
+
+
+def _good_payload_wire():
+    return json.loads(json.dumps(encode_observable_payload(_ADVICE)))
+
+
+def test_R15_a_payload_missing_its_type_tag_is_refused():
+    wire = _good_payload_wire()
+    del wire["payload_type"]
+    with pytest.raises(WallProtocolError) as caught:
+        decode_observable_payload(wire)
+    assert caught.value.reason == "MISSING_FIELD"
+
+
+def test_R15_null_control_the_same_payload_with_its_tag_decodes():
+    """The refusal above is about the TAG, not about a generally bad fixture:
+    the identical dict with only the deleted key restored decodes."""
+    assert decode_observable_payload(_good_payload_wire()) == _ADVICE
+
+
+def test_R15_a_payload_type_off_this_seam_is_refused_not_guessed():
+    wire = _good_payload_wire()
+    wire["payload_type"] = "MeterRead"
+    with pytest.raises(WallProtocolError) as caught:
+        decode_observable_payload(wire)
+    assert caught.value.reason == "UNKNOWN_FIELD"
+
+
+def test_R15_a_missing_payload_field_is_never_defaulted():
+    """The mirror of the envelope's absence-is-never-agreement rule, at payload
+    depth: a bank advice missing its amount must not become GBP 0.00, which is
+    a number the company would post to a ledger."""
+    wire = _good_payload_wire()
+    del wire["fields"]["amount_gbp"]
+    with pytest.raises(WallProtocolError) as caught:
+        decode_observable_payload(wire)
+    assert caught.value.reason == "MISSING_FIELD"
+    restored = _good_payload_wire()
+    assert decode_observable_payload(restored).amount_gbp == _ADVICE.amount_gbp
+
+
+def test_R15_an_unknown_payload_field_is_refused():
+    wire = _good_payload_wire()
+    wire["fields"]["settlement_hint"] = "pay it"
+    with pytest.raises(WallProtocolError) as caught:
+        decode_observable_payload(wire)
+    assert caught.value.reason == "UNKNOWN_FIELD"
+
+
+def test_R15_an_enum_value_the_contract_does_not_define_is_refused():
+    wire = _good_payload_wire()
+    wire["fields"]["rail"] = "carrier_pigeon"
+    with pytest.raises(WallProtocolError) as caught:
+        decode_observable_payload(wire)
+    assert caught.value.reason == "MALFORMED_FIELD"
+
+
+def test_R15_a_true_is_not_an_amount():
+    """`True == 1` in Python, so a permissive numeric check credits a boolean as
+    GBP 1.00. Separately guarded, separately proven -- as with the envelope's
+    own int check on `schema_version`."""
+    wire = _good_payload_wire()
+    wire["fields"]["amount_gbp"] = True
+    with pytest.raises(WallProtocolError) as caught:
+        decode_observable_payload(wire)
+    assert caught.value.reason == "MALFORMED_FIELD"
+
+
+def test_R15_a_malformed_date_is_refused_not_dropped():
+    wire = _good_payload_wire()
+    wire["fields"]["value_date"] = "11/03/2024"
+    with pytest.raises(WallProtocolError) as caught:
+        decode_observable_payload(wire)
+    assert caught.value.reason == "MALFORMED_FIELD"
+
+
+def test_R15_the_encoder_refuses_a_payload_this_seam_does_not_define():
+    """The encoder's half of the same rule: a counterparty that can serialise
+    anything can leak anything."""
+    with pytest.raises(SeamEncodeError):
+        encode_observable_payload(object())
+
+
+def test_R15_the_encoder_refuses_an_undefined_field_value_rather_than_stringifying():
+    """`str(value)` is how an object's repr silently ships as a field and the
+    receiver silently accepts a string.
+
+    Reached through a GENUINE contract payload: the seam's dataclasses are
+    frozen but not type-enforcing, so a counterparty can put anything in a
+    field, and this is the case the type check exists for. (The look-alike
+    test below is refused earlier, by class identity -- so it does NOT prove
+    this guard, which is why both exist.)"""
+    unshippable = dataclasses.replace(_ADVICE, rail=object())
+    assert isinstance(unshippable, RemittanceAdvice)
+    with pytest.raises(SeamEncodeError):
+        encode_observable_payload(unshippable)
+
+
+def test_R15_the_encoder_refuses_a_payload_class_that_only_looks_like_the_contracts():
+    # A LOOK-ALIKE: same NAME and same field names as the contract's
+    # RemittanceAdvice, but a different class, carrying one field the contract
+    # does not define and has no wire form for. The encoder keys on class
+    # IDENTITY, not on the name, so this is refused before the extra field is
+    # ever reached -- a name check alone would have let it through.
+    @dataclasses.dataclass(frozen=True)
+    class RemittanceAdvice:  # noqa: F811 -- deliberately shadows the contract's
+        bank_reference: str
+        account_id: str
+        amount_gbp: float
+        rail: PaymentRail
+        value_date: dt.date
+        internal_scoring_note: object
+
+    look_alike = RemittanceAdvice(
+        bank_reference="INV-9001", account_id="ACC-9001", amount_gbp=1.0,
+        rail=PaymentRail.CARD, value_date=_VALUE_DATE,
+        internal_scoring_note=object(),
+    )
+    assert type(look_alike).__name__ == "RemittanceAdvice"
+    with pytest.raises(SeamEncodeError):
+        encode_observable_payload(look_alike)
+
+
+def test_R15_MUTANT_a_defaulting_payload_decoder_posts_cash_the_bank_never_advised():
+    """The defect the missing-field guard exists to stop, BUILT and run beside
+    the shipped decoder on identical bytes.
+
+    The mutant does what a tolerant reader does -- fills an absent field from
+    its own idea of a sensible default. The result is not an exception the
+    company can act on; it is a RemittanceAdvice for GBP 0.00 that the bank
+    never sent, indistinguishable at every later read site from a real one."""
+    wire = _good_payload_wire()
+    del wire["fields"]["amount_gbp"]
+
+    def _mutant_decode(raw):
+        body = dict(raw["fields"])
+        body.setdefault("amount_gbp", 0.0)          # <-- the defect
+        return RemittanceAdvice(
+            bank_reference=body["bank_reference"],
+            account_id=body["account_id"],
+            amount_gbp=body["amount_gbp"],
+            rail=PaymentRail(body["rail"]),
+            value_date=dt.date.fromisoformat(body["value_date"]),
+        )
+
+    mutant = _mutant_decode(wire)
+    assert mutant.amount_gbp == 0.0
+    # ...and nothing downstream can tell that from a genuine zero-value advice.
+    assert mutant == dataclasses.replace(_ADVICE, amount_gbp=0.0)
+
+    with pytest.raises(WallProtocolError) as caught:
+        decode_observable_payload(wire)
+    assert caught.value.reason == "MISSING_FIELD"
+
+
+def test_R15_a_refused_message_is_not_marked_processed():
+    """A refusal is not an observation. If a malformed message consumed its
+    `correlation_id`, a corrected re-delivery of the same fact -- which is what
+    a real feed sends after a bad file -- could never land."""
+    consumer = PaymentObservationConsumer()
+    broken = _through_real_json(_OK_RESPONSE)
+    del broken["payload"]["fields"]["amount_gbp"]
+
+    with pytest.raises(WallProtocolError):
+        consumer.observe_wire(broken)
+    assert consumer.observe_wire(_through_real_json(_OK_RESPONSE)) is True

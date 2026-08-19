@@ -79,13 +79,15 @@ from __future__ import annotations
 from datetime import date, datetime, time, timedelta, timezone
 from typing import List, Optional
 
-from simulation.payment_behaviour_source import (
-    DIRECT_DEBIT,
-    generate_payment_event,
-    generate_payment_method,
+from background.gap_metric import (
+    GapResult,
+    format_ageing_summary,
+    format_belief_summary,
+    write_gap_entry,
 )
-from simulation.payment_seam_adapter import SeamAdapterInput, emit_wall_responses
-
+from background.gap_metric import (
+    format_detection_summary as _format_detection_summary,
+)
 from company.billing.account_ledger import (
     LedgerBook,
     LedgerEvent,
@@ -95,20 +97,18 @@ from company.billing.payment_observation_consumer import (
     DEFAULT_RECONCILIATION_GRACE_DAYS,
     PaymentObservationConsumer,
 )
-
-from background.gap_metric import (
-    GapResult,
-    format_ageing_summary,
-    format_belief_summary,
-    format_detection_summary as _format_detection_summary,
-    write_gap_entry,
+from simulation.payment_behaviour_source import (
+    DIRECT_DEBIT,
+    generate_payment_event,
+    generate_payment_method,
 )
+from simulation.payment_seam_adapter import SeamAdapterInput, emit_wire_responses
 from tools.couple_w2_11_d5 import (
     AS_OF_BUFFER_DAYS,
     PAYMENT_TERMS_DAYS,
-    PeriodRecord,
     TWIN_ATOM_ID,
     WORLD_ATOM_ID,
+    PeriodRecord,
     detection_cell_measurements,
     format_detection_latency_summary,
     score_triad,
@@ -758,8 +758,15 @@ class LivePaymentTriad:
             correlation_id = f"{customer_id}::p{period_index}::ambiguous"
         seam_input = SeamAdapterInput(account_id=account_id, correlation_id=correlation_id)
 
-        for response in emit_wall_responses(event, seam_input):
-            self._consumer.observe(response)
+        # THE CROSSING IS WIRE-BORNE (atom EP6_wall_protocol_typing,
+        # 2026-08-19). The seam hands over MESSAGES, not objects, and the
+        # company decodes them through `company.interfaces.wall_protocol` --
+        # so on this crossing the company's only route to a payment
+        # observation is one that a real bank feed could also take. The two
+        # sides are separate code agreeing only via the published contract;
+        # nothing here is a shortcut past the envelope's refusals.
+        for wire in emit_wire_responses(event, seam_input):
+            self._consumer.observe_wire(wire)
 
         # ---- D8 counterfactual: the SAME event, remittance-complete --------
         # `correlation_id` is what the adapter puts in `RemittanceAdvice.
@@ -780,11 +787,15 @@ class LivePaymentTriad:
                 # payment that never arrived costs nothing, and counting it
                 # would inflate the population the finding rests on.
                 self._n_ambiguous_credits += 1
-        for cf_response in emit_wall_responses(
+        # The shadow company crosses the SAME way -- if only one of the two
+        # were migrated, the D8 counterfactual would differ in the transport
+        # as well as in the remittance reference, and would stop isolating
+        # one variable.
+        for cf_wire in emit_wire_responses(
             event,
             SeamAdapterInput(account_id=account_id, correlation_id=cf_correlation_id),
         ):
-            self._cf_consumer.observe(cf_response)
+            self._cf_consumer.observe_wire(cf_wire)
 
         self._records.append(PeriodRecord(
             customer_id=customer_id, period_index=period_index,

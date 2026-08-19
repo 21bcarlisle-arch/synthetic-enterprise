@@ -113,17 +113,19 @@ from __future__ import annotations
 
 import hashlib
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from datetime import date, datetime, time, timedelta
+from enum import Enum
 from typing import List, Optional
 
 from interface.contracts.payment_observable_seam import (
+    OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
+    SCHEMA_VERSION,
     BacsArruddOutcome,
     BacsReasonCategory,
     DDOutcomeStatus,
     PaymentRail,
     RemittanceAdvice,
-    SCHEMA_VERSION,
 )
 from interface.contracts.wall_envelope import WallResponse, WallStatus
 from simulation.bacs_rails import ARUDD_NOTIFICATION_LAG_DAYS
@@ -352,3 +354,127 @@ def emit_wall_responses_batch(
         seam_input = seam_input_for(event) if seam_input_for is not None else None
         responses.extend(emit_wall_responses(event, seam_input))
     return responses
+
+
+# ---------------------------------------------------------------------------
+# THE WIRE (atom EP6_wall_protocol_typing, 2026-08-19) -- the counterparty's
+# OWN encoder.
+#
+# WHY THIS LIVES HERE AND NOT IN THE COMPANY'S CODEC. EP6's claim is that "a
+# mock counterparty and a real one are indistinguishable to the company". That
+# claim is only testable if the mock produces its bytes with its OWN code. If
+# this module called `company.interfaces.wall_protocol.encode_response` and the
+# consumer decoded with the same module, the round-trip would be a TAUTOLOGY in
+# the R15 sense -- the decoder checked against its own arithmetic -- and would
+# stay green through a schema change that no real counterparty would have made.
+# It is also forbidden outright: this module never imports `company.*`/`saas.*`
+# (module docstring), exactly as a real bank never links the supplier's library.
+#
+# WHAT MAKES THE TWO SIDES AGREE, THEN, IS THE CONTRACT AND ONLY THE CONTRACT:
+# both read `interface.contracts.payment_observable_seam` -- the payload
+# dataclasses and `OBSERVABLE_RESPONSE_PAYLOAD_TYPES` -- the way a real
+# counterparty reads a published schema. A field added to a payload therefore
+# reaches both sides at once, and a field one side invents reaches neither.
+#
+# ABSENCE IS NEVER AGREEMENT applies to the encoder too: every field is written
+# including its nulls, `schema_version` is written from the CONTRACT's constant
+# (never from a reader's default), and a payload type or field type this seam
+# does not define is REFUSED rather than stringified. An encoder that can
+# serialise anything is the mirror of a decoder that can accept anything.
+# ---------------------------------------------------------------------------
+
+_ENCODABLE_PAYLOAD_TYPES = {t.__name__: t for t in OBSERVABLE_RESPONSE_PAYLOAD_TYPES}
+
+
+class SeamEncodeError(ValueError):
+    """This seam refused to put a value on the wire. Deliberately NOT
+    `WallProtocolError`: that type is the company's, and a counterparty does
+    not raise the receiver's exceptions."""
+
+
+def _encode_scalar(value, field: str):
+    """Encode one payload field. Refuses an unhandled type rather than
+    coercing -- `str(value)` here is how a rail silently ships an object's
+    repr and the receiver silently accepts a string."""
+    if isinstance(value, Enum):
+        return value.value
+    # datetime is a date subclass; these payloads carry DATES, and a datetime
+    # smuggled into one would decode back as a different type on the far side.
+    if isinstance(value, datetime):
+        raise SeamEncodeError(f"{field}: payload fields are dates, got a datetime")
+    if isinstance(value, date):
+        return value.isoformat()
+    if isinstance(value, bool):
+        raise SeamEncodeError(f"{field}: bool is not a seam payload field type")
+    if isinstance(value, (int, float, str)):
+        return value
+    raise SeamEncodeError(
+        f"{field}: {type(value).__name__} has no defined wire form on this seam"
+    )
+
+
+def encode_observable_payload(payload) -> dict:
+    """Put one observable payload on the wire, TAGGED with its type.
+
+    The tag is required because `WallResponse.payload` is opaque to the
+    envelope codec: six payload types cross this seam, and a receiver that
+    guessed from the field set would silently mis-route the day two payloads
+    happened to share a shape.
+    """
+    payload_type = type(payload)
+    if payload_type.__name__ not in _ENCODABLE_PAYLOAD_TYPES or (
+        _ENCODABLE_PAYLOAD_TYPES[payload_type.__name__] is not payload_type
+    ):
+        raise SeamEncodeError(
+            f"{payload_type.__name__} is not one of this seam's "
+            f"OBSERVABLE_RESPONSE_PAYLOAD_TYPES {sorted(_ENCODABLE_PAYLOAD_TYPES)}"
+        )
+    return {
+        "payload_type": payload_type.__name__,
+        "fields": {
+            f.name: _encode_scalar(getattr(payload, f.name), f"{payload_type.__name__}.{f.name}")
+            for f in fields(payload)
+        },
+    }
+
+
+def encode_wall_response(response: WallResponse) -> dict:
+    """Serialise one `WallResponse` into the wire form this seam publishes.
+
+    Written against the SCHEMA, not against the company's decoder: the key set
+    below is the response schema as this seam documents it, and if the company
+    widens its own expectation without the schema changing, this encoder keeps
+    emitting the old shape and the far side refuses it -- which is the correct
+    outcome and the whole reason the two sides are separate code.
+    """
+    if not isinstance(response, WallResponse):
+        raise SeamEncodeError(f"expected a WallResponse, got {type(response).__name__}")
+    return {
+        "correlation_id": response.correlation_id,
+        "status": response.status.value,
+        "schema_version": SCHEMA_VERSION,
+        "observed_at": response.observed_at.isoformat(),
+        "valid_time": None if response.valid_time is None else response.valid_time.isoformat(),
+        "payload": (
+            None if response.payload is None else encode_observable_payload(response.payload)
+        ),
+        "error": (
+            None
+            if response.error is None
+            else {"code": response.error.code, "message": response.error.message}
+        ),
+    }
+
+
+def emit_wire_responses(
+    event: PaymentEvent,
+    seam_input: Optional[SeamAdapterInput] = None,
+) -> List[dict]:
+    """`emit_wall_responses`, but handing over BYTES-shaped wire messages
+    instead of in-process objects -- what a real bank feed delivers.
+
+    This is the form the live triad crosses on. The object form remains for
+    the offline harness and for constructing the responses in the first place;
+    what changed is that the COMPANY no longer receives one.
+    """
+    return [encode_wall_response(r) for r in emit_wall_responses(event, seam_input)]
