@@ -20,8 +20,17 @@ _WRITER = "tools/couple_x_c1.py"
 _ATOM = "W9_1_example_world"
 
 
+# A writer fixture is now a module with a real WRITE SITE, not one that merely spells the atom id.
+# Before 2026-08-19 `producers_for` attributed by substring, so `WORLD_ATOM_ID = '...'` alone was
+# enough and this fixture could not tell a producer from a file that mentions one. Attribution is
+# an AST resolution from a `write_gap_entry(...)` argument, so the fixture states the write.
+def _writer_source(atom=_ATOM, twin="C1_example"):
+    return (f"--write-ledger\nWORLD_ATOM_ID = '{atom}'\nTWIN_ATOM_ID = '{twin}'\n"
+            "def run():\n    write_gap_entry(WORLD_ATOM_ID, TWIN_ATOM_ID, result)\n")
+
+
 def _writers(text=None):
-    return {_WRITER: text or f"--write-ledger\nWORLD_ATOM_ID = '{_ATOM}'\n"}
+    return {_WRITER: text or _writer_source()}
 
 
 def _row(**over):
@@ -113,10 +122,10 @@ def test_a_module_that_only_READS_the_ledger_is_not_discovered_as_a_producer(tmp
     (tmp_path / "background" / "reader.py").write_text(
         f"GAP_LEDGER_PATH = 'coupled_gap_ledger.json'\nCOUPLING = {{'{_ATOM}': 'C1'}}\n")
     (tmp_path / "tools" / "couple_x_c1.py").write_text(
-        f"ap.add_argument('--write-ledger')\nWORLD_ATOM_ID = '{_ATOM}'\n")
+        f"ap.add_argument('--write-ledger')\n{_writer_source()}")
     writers = glr.discover_writers(tmp_path)
     assert set(writers) == {"tools/couple_x_c1.py"}
-    assert glr.producers_for(_ATOM, writers) == ["tools/couple_x_c1.py"]
+    assert glr.producers_for(_ATOM, writers, project_dir=tmp_path) == ["tools/couple_x_c1.py"]
 
 
 # --- the family-level halves ------------------------------------------------------------------
@@ -191,7 +200,10 @@ def test_every_live_ledger_row_gets_a_verdict_from_the_known_set():
 # draw rung that consumes it: background/supervisor.py::_stale_gap_row_draw).
 
 def _runner_writers():
-    return {_WRITER: f"--write-ledger\nWORLD_ATOM_ID = '{_ATOM}'\nif __name__ == '__main__':\n"}
+    # Valid Python, deliberately: attribution parses the source now, so a fixture that is not a
+    # module was never a stand-in for a writer. The dangling `if` this used to carry raised
+    # SyntaxError and reported `attribution_unresolved` -- the fail-closed branch working.
+    return {_WRITER: _writer_source() + "if __name__ == '__main__':\n    main()\n"}
 
 
 def test_a_stale_row_yields_the_command_that_would_re_take_it():
@@ -223,7 +235,8 @@ def test_a_row_whose_only_producer_cannot_be_RUN_stays_listed_as_no_runner():
     `__main__` -- it is a producer, not a runner. A refreshable row with no runner is a WORSE
     defect (a published number nobody can re-take), so it must stay in the list rather than be the
     one entry that silently disappears (feedback_coverage_derived_from_exclusion_source_is_failopen)."""
-    lib = {"background/fabric_gap_ledger.py": f"write_gap_entry(\nWORLD = '{_ATOM}'\n"}
+    lib = {"background/fabric_gap_ledger.py":
+           f"WORLD = '{_ATOM}'\ndef write():\n    write_gap_entry(WORLD, twin, result)\n"}
     results = _reconcile({_ATOM: _row()}, since=3, writers=lib)
     work = glr.refresh_work(results, writers=lib)
     assert [w["item"] for w in work] == [_ATOM]
@@ -477,8 +490,7 @@ def test_a_git_failure_makes_the_whole_reconcile_report_drift_not_row_verdicts(m
 # --write-ledger` measures 15 AUTHORED ones, and `inference_improvement` moves +0.0227 -> -0.0440
 # -- a SIGN flip on a published claim. The row now declares the args that reproduce it.
 
-_INVOCABLE = (f"--write-ledger\nWORLD_ATOM_ID = '{_ATOM}'\n"
-              "if __name__ == '__main__':\n    main()\n")
+_INVOCABLE = (_writer_source() + "if __name__ == '__main__':\n    main()\n")
 
 def test_a_row_that_declares_its_arguments_is_refreshed_WITH_them():
     """The defect, directly: a declared population must survive into the command."""
@@ -683,3 +695,100 @@ def test_the_live_ledger_says_which_rows_can_answer_the_support_question():
         "the live ledger's support coverage went backwards: only "
         f"{sorted(set(ledger) - answerable)} cannot answer, expected the four known rows "
         "(W1_5, W1_6, W2_4, W2_6) at most")
+
+
+# --- ATTRIBUTION IS A WRITE SITE, NOT A MENTION (2026-08-19) -----------------------------------
+# WORKER_FINDING_A_GAP_ROW_IS_ATTRIBUTED_TO_ANY_WRITER_THAT_MERELY_NAMES_IT (BLOCKING, H_harness).
+# The mutation and its null control, in the finding's own words: "a writer that MENTIONS a key in
+# a comment only must NOT appear in that key's producer set (the mutation, which the old code
+# fails); a writer that WRITES a key it does not spell in prose must still appear (the null
+# control: move the sample, not the law -- otherwise 'match nothing' passes the first test)."
+
+_OTHER = "W9_2_other_world"
+
+
+def test_a_writer_that_only_MENTIONS_another_row_in_a_comment_is_not_its_producer():
+    """THE MUTATION. One comment in `tools/couple_clv.py` citing a naming precedent put it in
+    `WORLD_recontracting_relationship_start`'s producer set -- a row it has never computed -- and
+    that suppressed `never_landed` on the file itself. The mention is the ONLY thing that moves
+    here: the write site is untouched, so a rule that read text would attribute both."""
+    mentioning = _writer_source() + f"# see the `{_OTHER}` precedent for the naming\n"
+    writers = {_WRITER: mentioning}
+    assert glr.producers_for(_ATOM, writers) == [_WRITER], "its own row must survive"
+    assert glr.producers_for(_OTHER, writers) == [], "a comment is evidence of nothing"
+    # and the substring rule -- what shipped until this repair -- really does fail it, so the
+    # assertion above has a subject and is not true of every possible implementation
+    assert _OTHER in mentioning
+
+
+def test_a_writer_that_WRITES_a_key_it_never_SPELLS_is_still_its_producer():
+    """THE NULL CONTROL: move the sample, not the law. `match nothing` would pass the mutation
+    above. `background/live_payment_triad.py` is the live case -- it imports WORLD_ATOM_ID from
+    `tools.couple_w2_11_d5` and its own text never contains `W2_11_payment_behaviour_source`, so
+    the substring rule was blind to a REAL producer while attributing the row to a reader."""
+    writers = glr.discover_writers()
+    triad = "background/live_payment_triad.py"
+    assert _ATOM not in writers[triad] and "W2_11_payment_behaviour_source" not in writers[triad], \
+        "vacuity guard -- this test means nothing unless the id is genuinely absent from the text"
+    assert triad in glr.producers_for("W2_11_payment_behaviour_source", writers)
+
+
+def test_a_row_is_never_attributed_to_a_module_that_merely_READS_or_DOCUMENTS_it():
+    """The population form, over the live ledger. Three modules were attributed by prose alone
+    at HEAD c728642c3: `background/gap_metric.py` -> W2_9 (a worked example in a docstring),
+    `background/fabric_gap_ledger.py` -> W1_5 (a sentence about L3), `background/
+    live_ledger_guard.py` -> W2_11. None of them writes those rows."""
+    writers = glr.discover_writers()
+    landed = glr.landed_ledger(_REAL_LEDGER)
+    assert landed, "vacuity guard -- an unread ledger would pass this loop trivially"
+    index = glr.write_site_attribution(writers)
+    for atom_id, producers in ((a, glr.producers_for(a, writers, index)) for a in landed):
+        assert producers, f"{atom_id} lost every producer -- a row with none reads fresh forever"
+        for path in producers:
+            assert atom_id in index[path], f"{path} attributed to {atom_id} without a write site"
+    assert "background/gap_metric.py" not in glr.producers_for("W2_9_segment_debt_tnc", writers)
+    assert "background/fabric_gap_ledger.py" not in glr.producers_for(
+        "W1_5_premise_demand_shape", writers)
+
+
+def test_a_DELEGATED_write_attributes_the_caller_that_never_names_the_ids():
+    """`tools/couple_fabric.py` calls `fgl.write_fabric_gap_entries(observations, ...)`: the ids
+    are fixed inside the callee and the caller's write site names none of them. Dropping it would
+    be the fail-OPEN direction -- the tool that computes W1_11/W1_12 would stop marking them
+    stale. One level of delegation is resolved on purpose; a second surfaces as unresolved."""
+    writers = glr.discover_writers()
+    for atom_id in ("W1_11_fabric_physics_core", "W1_12_premise_trace_generator"):
+        assert "tools/couple_fabric.py" in glr.producers_for(atom_id, writers), atom_id
+
+
+def test_an_UNRESOLVABLE_write_site_is_reported_and_never_silently_empty():
+    """FAIL-CLOSED, and the direction reversed with this repair: a missed producer no longer
+    manufactures work, it makes a published row read FRESH forever. So a write site whose id this
+    resolver cannot read must be drift, not an empty set. Mutation: the same module with the id
+    computed at runtime instead of bound."""
+    dynamic = {_WRITER: "def run(kind):\n    write_gap_entry('W9_' + kind, twin, result)\n"}
+    assert glr.unresolved_write_sites(dynamic) == {_WRITER: [2]}
+    results = glr.reconcile(ledger={}, writers=dynamic, declared=set(), family=[],
+                            since_fn=lambda s, p: 0)
+    assert _status(results, _WRITER) == glr.ATTRIBUTION_UNRESOLVED
+    # NULL CONTROL: the same shape with the id bound reports nothing, so the alarm is about
+    # resolvability and not about the presence of a write call
+    assert glr.unresolved_write_sites(_writers()) == {}
+
+
+def test_the_live_writer_family_has_no_unresolvable_write_site():
+    """The live reading behind the branch above: empty today, and this is where a writer that
+    starts computing its key at runtime lands instead of quietly losing its staleness signal."""
+    assert glr.unresolved_write_sites(glr.discover_writers()) == {}
+
+
+def test_a_marker_matched_on_PROSE_ALONE_produces_nothing():
+    """`background/gap_metric.py` and `background/live_ledger_guard.py` quote `--write-ledger` in
+    help text and have no write call, so `_WRITE_MARKER` discovers them. Producing nothing is the
+    correct answer for them, not a miss -- and it must not be reported as unresolved either."""
+    writers = glr.discover_writers()
+    index = glr.write_site_attribution(writers)
+    for path in ("background/gap_metric.py", "background/live_ledger_guard.py"):
+        assert path in writers, f"{path} must still be discovered -- else this asserts nothing"
+        assert index[path] == set()
+        assert path not in glr.unresolved_write_sites(writers)

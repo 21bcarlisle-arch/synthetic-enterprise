@@ -38,6 +38,7 @@ WIRING
 """
 from __future__ import annotations
 
+import ast
 import json
 import re
 import subprocess
@@ -64,6 +65,11 @@ _FAMILY_GLOB = "couple_*.py"
 _WRITE_MARKER = re.compile(r"write_gap_entry\s*\(|write_fabric_gap_entries\s*\(|--write-ledger")
 
 CURRENT = "current"
+
+# A writer whose write site names its atom in a form the resolver cannot read. NOT refreshable
+# and given no command: the repair is to bind the id, not to re-run anything. See the attribution
+# block below.
+ATTRIBUTION_UNRESOLVED = "attribution_unresolved"
 
 # A row re-measured on disk and never committed. Drift (the door still shows the old number), but
 # NOT `stale`: the repair is to land the measurement, not to take it again. See `landed_ledger`.
@@ -160,9 +166,214 @@ def family_members(project_dir: Path | None = None) -> list:
     return sorted(str(p.relative_to(root)) for p in (root / "tools").glob(_FAMILY_GLOB))
 
 
-def producers_for(atom_id: str, writers: dict) -> list:
-    """Every ledger-writing module that names this atom. Sorted; possibly empty."""
-    return sorted(path for path, text in writers.items() if atom_id and atom_id in text)
+# ── ATTRIBUTION IS A WRITE SITE, NOT A MENTION ────────────────────────────────────────────────
+# WORKER_FINDING_A_GAP_ROW_IS_ATTRIBUTED_TO_ANY_WRITER_THAT_MERELY_NAMES_IT_2026-08-19
+# (BLOCKING, H_harness). `producers_for` used to return every writer whose WHOLE FILE TEXT
+# contained the atom id, comments and docstrings included. `_WRITE_MARKER` above already holds
+# the correct doctrine -- "a WRITE, not a mention" -- but it only ever decided WHICH FILES are
+# writers at all; inside the writer set, attribution was by substring. Measured harm, both
+# directions, from ONE comment in `tools/couple_clv.py` citing a naming precedent:
+#
+#   * FALSE PRODUCER. The file was attributed to `WORLD_recontracting_relationship_start`, a row
+#     it has never computed, so every future commit to it would mark that row `stale`.
+#   * SUPPRESSED ALARM. `never_landed` ("family gap tool whose output appears in no ledger row")
+#     did not fire on that very file, whose own row was in no commit, because the mention made
+#     it look like a producer of a row that HAD landed. The control was blind to its own subject.
+#
+# The rule now: an atom id is attributed to a writer when it is REACHABLE FROM A WRITE SITE by
+# name resolution -- a literal argument to `write_gap_entry`/`write_fabric_gap_entries`, or a
+# module-level constant that flows into one, resolved through this file's own bindings, through
+# `from M import NAME`, and through `alias.NAME`. Bindings, not text: the same discipline
+# `unregistered_clv_modules` already uses one module away.
+#
+# FAIL-CLOSED, because the dangerous direction reversed. A missed producer makes a row look
+# FRESHER than it is, so a write site whose ids do not resolve may not be silently dropped: it
+# is reported as `attribution_unresolved` work, and an unresolved write site is a FAILED
+# resolution, never an empty one (R15 fail-silent).
+_WRITE_CALLS = ("write_gap_entry", "write_fabric_gap_entries")
+
+
+def _module_constants(tree: ast.Module) -> dict:
+    """Module-level `NAME = "literal"` bindings. Only string literals, only at module scope --
+    a name rebound inside a function is not a constant this resolver may trust."""
+    out = {}
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and isinstance(node.value, ast.Constant) \
+                and isinstance(node.value.value, str):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    out[target.id] = node.value.value
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.value, ast.Constant) \
+                and isinstance(node.value.value, str) and isinstance(node.target, ast.Name):
+            out[node.target.id] = node.value.value
+    return out
+
+
+def _module_path(dotted: str, root: Path):
+    """`background.gap_metric` -> `background/gap_metric.py`, if it exists in this repo."""
+    if not dotted:
+        return None
+    candidate = root.joinpath(*dotted.split(".")).with_suffix(".py")
+    return candidate if candidate.is_file() else None
+
+
+def _source_of(dotted: str, root: Path, cache: dict):
+    """Parsed module body for a dotted in-repo module. `None` for anything outside the repo."""
+    if dotted in cache:
+        return cache[dotted]
+    path = _module_path(dotted, root)
+    tree = None
+    if path is not None:
+        try:
+            tree = ast.parse(path.read_text(errors="ignore"))
+        except (OSError, SyntaxError):
+            tree = None
+    cache[dotted] = tree
+    return tree
+
+
+def _bindings(tree: ast.Module) -> tuple:
+    """Two maps built from this module's imports:
+
+    `imported_names` -- local name -> dotted module it was imported FROM (`from M import NAME`).
+    `module_aliases` -- local alias -> dotted module it names (`import M as a`, `from P import M`).
+
+    Both are needed because atom ids reach write sites by all three routes in this repo:
+    a local constant (`tools/couple_clv.py`), an imported constant
+    (`background/live_payment_triad.py`), and an attribute on an aliased module
+    (`tools/couple_fabric.py`).
+    """
+    imported_names, module_aliases = {}, {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                module_aliases[alias.asname or alias.name.split(".")[0]] = alias.name
+        elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
+            for alias in node.names:
+                local = alias.asname or alias.name
+                imported_names[local] = node.module
+                module_aliases[local] = f"{node.module}.{alias.name}"
+    return imported_names, module_aliases
+
+
+def _resolve(node, consts: dict, imported_names: dict, module_aliases: dict,
+             root: Path, cache: dict):
+    """One argument node -> the string it denotes, or None. Resolution never falls back to text."""
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    if isinstance(node, ast.Name):
+        if node.id in consts:
+            return consts[node.id]
+        tree = _source_of(imported_names.get(node.id, ""), root, cache)
+        if tree is not None:
+            return _module_constants(tree).get(node.id)
+        return None
+    if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
+        tree = _source_of(module_aliases.get(node.value.id, ""), root, cache)
+        if tree is not None:
+            return _module_constants(tree).get(node.attr)
+    return None
+
+
+def _write_call_name(call: ast.Call):
+    func = call.func
+    name = func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", None)
+    return name if name in _WRITE_CALLS else None
+
+
+def _delegate_module(call: ast.Call, imported_names: dict, module_aliases: dict) -> str:
+    """The module a write call was DELEGATED to, when the call itself names no id.
+
+    `tools/couple_fabric.py` calls `fgl.write_fabric_gap_entries(observations, ...)`: the ids are
+    fixed inside the callee, so the caller genuinely produces those rows and a rule that could
+    not see it would drop a real producer -- the fail-open direction. ONE level, deliberately:
+    a second hop is not resolved and surfaces as `attribution_unresolved` rather than as silence.
+    """
+    func = call.func
+    if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name):
+        return module_aliases.get(func.value.id, "")
+    if isinstance(func, ast.Name):
+        return imported_names.get(func.id, "")
+    return ""
+
+
+def _ids_at_write_sites(tree: ast.Module, root: Path, cache: dict, delegate: bool = True) -> tuple:
+    """`(ids, unresolved)` for one module: every string reachable from its write sites, and the
+    write-site line numbers that resolved nothing at all."""
+    consts = _module_constants(tree)
+    imported_names, module_aliases = _bindings(tree)
+    ids, unresolved = set(), []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call) or _write_call_name(node) is None:
+            continue
+        found = set()
+        for arg in list(node.args) + [kw.value for kw in node.keywords]:
+            value = _resolve(arg, consts, imported_names, module_aliases, root, cache)
+            if value is not None:
+                found.add(value)
+        if not found and delegate:
+            callee = _source_of(_delegate_module(node, imported_names, module_aliases), root, cache)
+            if callee is not None:
+                found, _ = _ids_at_write_sites(callee, root, cache, delegate=False)
+        if found:
+            ids |= found
+        else:
+            unresolved.append(node.lineno)
+    return ids, unresolved
+
+
+def write_site_attribution(writers: dict, project_dir: Path | None = None) -> dict:
+    """{writer path: set of strings reachable from its write sites}. The attribution index.
+
+    A writer that matched `_WRITE_MARKER` on prose alone (`background/gap_metric.py` and
+    `background/live_ledger_guard.py` quote `--write-ledger` in help text) has NO write site and
+    so produces nothing -- which is the correct answer, not a miss.
+    """
+    root = Path(project_dir or PROJECT_DIR)
+    cache: dict = {}
+    out = {}
+    for path, text in writers.items():
+        try:
+            tree = ast.parse(text)
+        except SyntaxError:
+            out[path] = set()
+            continue
+        out[path], _ = _ids_at_write_sites(tree, root, cache)
+    return out
+
+
+def unresolved_write_sites(writers: dict, project_dir: Path | None = None) -> dict:
+    """{writer path: [line numbers]} for write sites whose ids this resolver could not read.
+
+    The fail-closed half. Empty today; a writer that starts computing its key at runtime lands
+    here rather than quietly losing its rows' staleness signal.
+    """
+    root = Path(project_dir or PROJECT_DIR)
+    cache: dict = {}
+    out = {}
+    for path, text in writers.items():
+        try:
+            tree = ast.parse(text)
+        except SyntaxError:
+            out[path] = [0]
+            continue
+        _, unresolved = _ids_at_write_sites(tree, root, cache)
+        if unresolved:
+            out[path] = unresolved
+    return out
+
+
+def producers_for(atom_id: str, writers: dict, attribution: dict | None = None,
+                  project_dir: Path | None = None) -> list:
+    """Every ledger-writing module that WRITES this atom's row. Sorted; possibly empty.
+
+    `attribution` is the index from `write_site_attribution`, passed in by `reconcile` so the
+    repo is parsed once rather than once per row. Computed on demand when omitted.
+    """
+    if not atom_id:
+        return []
+    index = write_site_attribution(writers, project_dir) if attribution is None else attribution
+    return sorted(path for path, ids in index.items() if atom_id in ids)
 
 
 def commits_since(sha: str, paths: list, project_dir: Path | None = None):
@@ -329,13 +540,13 @@ def support_change(head_row, disk_row) -> tuple:
         "decide whether the new population IS this row's population")
 
 
-def _row_status(atom_id: str, row, writers: dict, since_fn) -> dict:
+def _row_status(atom_id: str, row, writers: dict, since_fn, attribution=None) -> dict:
     """Reconcile ONE ledger row. Every non-`current` branch is a fact about the row or about
     git, never an inference about intent (R9)."""
     out = {"item": atom_id, "kind": "row", "producers": []}
     if not isinstance(row, dict):
         return {**out, "status": "unattributable", "detail": "row is not an object"}
-    producers = producers_for(atom_id, writers)
+    producers = producers_for(atom_id, writers, attribution)
     out["producers"] = producers
     if not producers:
         return {**out, "status": "no_producer",
@@ -396,7 +607,10 @@ def reconcile(ledger=None, writers=None, declared=None, family=None, since_fn=No
     if declared is None:
         declared = _declared_pairs()
 
-    results = [_row_status(atom_id, row, writers, since_fn)
+    # Parsed ONCE for the whole reconcile: attribution is now an AST resolution, not a substring
+    # test, so re-deriving it per row would parse the repo fourteen times over.
+    attribution = write_site_attribution(writers)
+    results = [_row_status(atom_id, row, writers, since_fn, attribution)
                for atom_id, row in sorted(ledger.items())]
     # A row that is not current AT HEAD may still have been re-measured on disk. That is a
     # different defect with a different repair, so it gets its own status rather than being
@@ -409,7 +623,8 @@ def reconcile(ledger=None, writers=None, declared=None, family=None, since_fn=No
             disk_row = unlanded.get(r["item"])
             if disk_row is None:
                 continue
-            if _row_status(r["item"], disk_row, writers, since_fn).get("status") == CURRENT:
+            if _row_status(r["item"], disk_row, writers, since_fn,
+                           attribution).get("status") == CURRENT:
                 r["status"] = MEASURED_NOT_LANDED
                 r["detail"] = (
                     f"HEAD's row is not current ({r['detail']}), but the working-tree ledger "
@@ -451,6 +666,18 @@ def reconcile(ledger=None, writers=None, declared=None, family=None, since_fn=No
             results.append({"item": path, "kind": "tool", "producers": [path],
                             "status": "never_landed",
                             "detail": "family gap tool whose output appears in no ledger row"})
+    # THE FAIL-CLOSED HALF of the write-site repair. Attribution got STRICTER, so its failure
+    # mode reversed: a missed producer no longer manufactures work, it makes a row look fresher
+    # than it is. A write site this resolver cannot read is therefore reported as drift rather
+    # than resolving to the empty set in silence -- an unavailable check is a failed check (R15).
+    for path, lines in sorted(unresolved_write_sites(writers).items()):
+        results.append({"item": path, "kind": "writer", "producers": [path],
+                        "status": ATTRIBUTION_UNRESOLVED,
+                        "detail": "ledger write site(s) at line(s) "
+                                  + ", ".join(str(n) for n in lines)
+                                  + " name their atom in a form this resolver cannot read, so "
+                                    "any row they write has no producer and would read as fresh "
+                                    "forever -- bind the id to a module-level constant"})
     return results
 
 

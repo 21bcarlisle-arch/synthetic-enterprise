@@ -2,16 +2,17 @@
 
 **Severity:** LATENT · **Lane:** H_harness
 
-**Instances:** 13 · **Class:** `uncommitted_and_orphaned_work` · **Ruling's own count:** ~7 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "uncommitted/orphaned work")
+**Instances:** 14 · **Class:** `uncommitted_and_orphaned_work` · **Ruling's own count:** ~7 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "uncommitted/orphaned work")
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 13 instances
+## The 14 instances
 
 - `WORKER_FINDING_AN_ATOMS_CITED_EVIDENCE_IS_NEVER_CHECKED_AGAINST_ANY_COMMIT_2026-08-18.md` — LATENT
 - `WORKER_FINDING_ARCHIVED_STAGING_PATHS_ARE_RESURRECTED_ON_THE_SHARED_TREE_2026-08-10.md` — LATENT
 - `WORKER_FINDING_A_DERIVED_ARTEFACT_CAN_BE_COMMITTED_AHEAD_OF_ITS_INPUT_2026-08-10.md` — LATENT
 - `WORKER_FINDING_A_FINISHED_CUT_SAT_UNCOMMITTED_WITH_EVERY_CONTROL_GREEN_2026-08-12.md` — LATENT
+- `WORKER_FINDING_A_GAP_ROW_IS_ATTRIBUTED_TO_ANY_WRITER_THAT_MERELY_NAMES_IT_2026-08-19.md` — RECORDED
 - `WORKER_FINDING_A_MEASUREMENT_TOOL_NEVER_LANDS_THE_EVIDENCE_ITS_CONTROL_READS_2026-08-10.md` — LATENT
 - `WORKER_FINDING_RUFF_BASELINE_IS_CALIBRATED_TO_UNCOMMITTED_WORK_2026-08-09.md` — LATENT
 - `WORKER_FINDING_THE_CLOSE_TIME_CHECK_THAT_CATCHES_THIS_HAS_NO_CALLER_2026-08-13.md` — RECORDED
@@ -24,7 +25,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**31.0 recorded episode-hours** across 2 of the 13 instances; largest single recorded episode **24h**; 2 instance(s) name a published figure in scope.
+**31.0 recorded episode-hours** across 2 of the 14 instances; largest single recorded episode **24h**; 2 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
