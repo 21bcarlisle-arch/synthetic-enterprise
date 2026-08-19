@@ -5506,8 +5506,14 @@ def test_the_floor_derivation_reads_no_declaration_it_grades():
     """INDEPENDENCE (R15's TAUTOLOGY pattern). The derivation may read the
     probe range and the seeds -- which say where to look -- and must NOT read
     the declared band, the declared invariant or the declared floor, which are
-    what it is grading. Its target comes from the constants alone."""
-    names = pair._names_in(pair.measure_belief_axis_null_control_floor)
+    what it is grading. Its target comes from the constants alone.
+
+    GRADED WHERE THE WORK IS (2026-08-19). The derivation moved into
+    `measure_axis_null_control_floor`, which takes its axis as an argument
+    instead of naming one; `measure_belief_axis_null_control_floor` is now the
+    thin selector that points it at the belief entry. Both are asserted --
+    grading only the wrapper would let the body read anything it liked."""
+    names = pair._names_in(pair.measure_axis_null_control_floor)
     assert "predict_event_age_span_from_constants" in names
     for forbidden in ("invoice_span_invariant", "above_edge_range",
                       "below_edge_range"):
@@ -5515,6 +5521,174 @@ def test_the_floor_derivation_reads_no_declaration_it_grades():
             f"the derivation reads {forbidden}, so it would agree with the "
             "register by construction")
     assert "score_triad" not in names
+    wrapper = pair._names_in(pair.measure_belief_axis_null_control_floor)
+    assert "measure_axis_null_control_floor" in wrapper
+    for forbidden in ("invoice_span_invariant", "above_edge_range",
+                      "below_edge_range", "score_triad"):
+        assert forbidden not in wrapper
+
+
+# ---------------------------------------------------------------------------
+# THE CLASS CONTROL: WHICH AXES GET GRADED
+# (2026-08-19, the repair
+#  WORKER_FINDING_THE_SIBLING_AXIS_FLOOR_IS_A_FREE_LITERAL_AND_ITS_CONTROL_
+#  CANNOT_FAIL_ON_IT asked for; H27 Expert Hour #41)
+# ---------------------------------------------------------------------------
+# The tests above grade the floors the checker is HANDED. These grade which
+# axes it is handed at all -- the question that let the detection floor keep a
+# free literal through three consecutive repairs of exactly that defect.
+
+
+@pytest.fixture(scope="module")
+def axis_floors():
+    """Every declared axis's floor, derived. ~3s, predictor-only."""
+    return pair.measure_axis_null_control_floors()
+
+
+def test_the_axis_population_is_walked_and_holds_the_sibling(axis_floors):
+    """THE HOLE, named. `check_belief_axis_floor_is_derived` shipped iterating
+    a hand-written `("belief", "belief_population_mix")` while a THIRD entry
+    one register over declared an axis of the same shape with the same failure
+    mode -- and kept the free literal the pair had just had derived away.
+
+    The population is now walked, so the sibling is in it by declaration."""
+    ids = {r["id"] for r in pair.draw_size_axis_population()}
+    assert ids == {
+        "DIMENSION_DRIFT_RESOLUTION[belief].own_draw_size_axis",
+        "DIMENSION_DRIFT_RESOLUTION[belief_population_mix].own_draw_size_axis",
+        "ORGAN_QUERY_GRID[flagged_via_reconciliation].draw_size_axis",
+    }, "the walk must find all three, under BOTH key spellings"
+    assert set(axis_floors) == ids, "and every one of them must be measured"
+    assert pair.check_axis_floors_are_derived(axis_floors) == []
+
+
+def test_the_detection_floor_is_derived_and_the_band_is_what_it_admits(
+        axis_floors):
+    """THE INSTANCE REPAIR, and the ORDER it was done in (R12).
+
+    150 was a free literal: nothing derived it and no note said what it was the
+    smallest n OF. The law-side null control -- the constants-side invoice span,
+    which reads no draw, no seed and no register -- first holds and keeps
+    holding at n = 51 on these five seeds. The declared band is then whatever
+    that floor ADMITS: (70, 88) -> (49, 88), because 49 and 55 sit on books the
+    null control passes and the shipped floor was excluding them.
+
+    Never the other way round. A floor chosen to make a band true is the defect
+    this whole block exists to close."""
+    measured = axis_floors[
+        "ORGAN_QUERY_GRID[flagged_via_reconciliation].draw_size_axis"]
+    assert measured["floor"] == 51
+    assert measured["green_by_n"][50] is False, (
+        "50 is the last book on which the sweep would be perturbing the law")
+    axis = pair.ORGAN_QUERY_GRID["flagged_via_reconciliation"]["draw_size_axis"]
+    assert min(axis["n_customers"]) == measured["floor"]
+    swept = pair.measure_recon_band_population_axis(
+        n_customers=axis["n_customers"])
+    assert swept["upper_edge_range"] == tuple(axis["upper_edge_range"]) == (49, 88)
+    assert swept["lower_edges"] == (axis["lower_edge_invariant"],), (
+        "the soundness null control must stay GREEN over the books the new "
+        "floor admits, or the widened band is draw noise rather than a "
+        "measurement the old floor was hiding")
+    assert pair.check_recon_band_population_axis(swept) == []
+
+
+def test_the_declared_null_control_cannot_derive_the_detection_floor():
+    """THE PART THE FINDING GOT WRONG, pinned so it is not retried.
+
+    The finding proposed deriving the detection floor off `lower_edge_invariant`
+    -- this axis's own declared null control. It cannot: that edge is a BOUND
+    attained by any invoice paid on its due date, so every book has hundreds of
+    witnesses and it is green from n = 4. A control that never breaks inside the
+    probe range has no break for a search to find, and the derivation would have
+    returned its own starting point.
+
+    That is why the law-side span invariant floors this axis instead, and why
+    `lower_edge_invariant` stays what it always was: the soundness control."""
+    closed_form = -(pair.DEFAULT_RECONCILIATION_GRACE_DAYS + 1)
+    for n in (4, 8, 20):
+        for seed in pair.ORGAN_QUERY_GRID[
+                "flagged_via_reconciliation"]["draw_size_axis"]["seeds"]:
+            records, consumer, _lb, as_of = pair.build_scenario(n, seed=seed)
+            band = pair.predict_recon_saturation_band(records, consumer, as_of)
+            assert band["saturates_below"] == closed_form, (
+                f"n={n} seed={seed}: the declared null control is green here, "
+                "which is exactly why it cannot locate a floor")
+    # And a book that far below the derived floor is NOT one the declaration
+    # holds on -- so a floor derived off it would have certified nonsense.
+    tiny = pair.measure_recon_band_population_axis(n_customers=(4, 8))
+    lo, hi = pair.ORGAN_QUERY_GRID[
+        "flagged_via_reconciliation"]["draw_size_axis"]["upper_edge_range"]
+    assert any(not (lo <= u <= hi) for u in tiny["upper_edges"]), (
+        "books below the derived floor read edges outside the declared band -- "
+        "an unbreakable null control would have admitted them")
+
+
+@pytest.mark.parametrize("mutate,drop,expected", [
+    # THE SHIPPED DEFECT: the detection floor as it was actually written.
+    (lambda r: r["ORGAN_QUERY_GRID"]["flagged_via_reconciliation"][
+        "draw_size_axis"].__setitem__(
+            "n_customers", (150, 300, 600, 1200, 2400)),
+     None,
+     "declares an axis floor of n = 150 and the null control derives n = 51"),
+    # THE MUTATION THE FINDING SPECIFIED, and the one no existing test asks:
+    # every other mutation in this battery perturbs an entry the loop already
+    # visits. This one perturbs WHICH ENTRIES THE LOOP VISITS.
+    (lambda r: None, "ORGAN_QUERY_GRID",
+     "declares a draw-size axis with floor n = 51 and NO derivation measured it"),
+    # An axis nobody can floor must be a finding, never a silent skip.
+    (lambda r: r["ORGAN_QUERY_GRID"]["flagged_via_reconciliation"][
+        "draw_size_axis"].pop("floor_probe_range"),
+     None, "and no `floor_probe_range`, so its floor cannot be derived at all"),
+    # A FOURTH AXIS ADDED LATER is covered by construction -- the whole point of
+    # deriving the population rather than extending a tuple.
+    (lambda r: r["DIMENSION_DRIFT_RESOLUTION"]["ageing"].__setitem__(
+        "own_draw_size_axis", {"n_customers": (9, 300), "seeds": (7, 11, 23)}),
+     None, "DIMENSION_DRIFT_RESOLUTION[ageing].own_draw_size_axis"),
+])
+def test_the_class_control_fires_on_its_own_named_defects(
+        axis_floors, mutate, drop, expected):
+    """R15 on the class rule. A control counts as evidence only once a mutation
+    proves it fires on the defect it exists for."""
+    registers = {
+        "DIMENSION_DRIFT_RESOLUTION": copy.deepcopy(
+            pair.DIMENSION_DRIFT_RESOLUTION),
+        "ORGAN_QUERY_GRID": copy.deepcopy(pair.ORGAN_QUERY_GRID),
+    }
+    mutate(registers)
+    measured = ({k: v for k, v in axis_floors.items() if drop not in k}
+                if drop else pair.measure_axis_null_control_floors(registers))
+    violations = pair.check_axis_floors_are_derived(
+        measured, registers=registers)
+    assert any(expected in v for v in violations), violations
+
+
+def test_an_empty_axis_population_is_a_violation_and_not_a_pass():
+    """R15's FAIL-OPEN pattern on the walk itself. A derived population that
+    derives nothing passes every downstream rule vacuously -- the enumerated
+    loop's own failure shape with a walk in front of it, which would be a
+    strictly worse place to leave this class than where it was found."""
+    empty = {"DIMENSION_DRIFT_RESOLUTION": {}, "ORGAN_QUERY_GRID": {}}
+    assert pair.draw_size_axis_population(empty) == ()
+    violations = pair.check_axis_floors_are_derived({}, registers=empty)
+    assert any("population is EMPTY" in v for v in violations)
+
+
+def test_the_axis_walk_reads_both_key_spellings():
+    """`draw_size_axis` and `own_draw_size_axis` diverged for no reason either
+    declaration states. They are deliberately NOT renamed -- nine call sites to
+    buy nothing the walk does not already buy -- so the walk accepting both is
+    what makes the divergence harmless, and it is pinned rather than left to
+    inspection."""
+    assert set(pair._DRAW_SIZE_AXIS_KEYS) == {
+        "draw_size_axis", "own_draw_size_axis"}
+    for key in pair._DRAW_SIZE_AXIS_KEYS:
+        found = pair.draw_size_axis_population(
+            {"R": {"d": {key: {"n_customers": (5, 10), "seeds": (7,)}}}})
+        assert [r["key"] for r in found] == [key]
+    # An entry with the key but no draw sizes declares no axis, and must not
+    # enter the population as a floorless member that can never go green.
+    assert pair.draw_size_axis_population(
+        {"R": {"d": {"draw_size_axis": {"seeds": (7,)}}}}) == ()
 
 
 def test_the_belief_axis_predictor_never_calls_the_scorer():

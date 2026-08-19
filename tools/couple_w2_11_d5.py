@@ -2386,10 +2386,58 @@ ORGAN_QUERY_GRID: Dict[str, Dict[str, object]] = {
         "saturates_above_scope": {"n_customers": 300, "seeds": (7, 11, 23)},
         "draw_size_axis": {
             "atom": "D28_the_detection_gap_is_quantised_by_this_books_placement",
-            "n_customers": (150, 300, 600, 1200, 2400),
+            # THE FLOOR IS DERIVED, NOT CHOSEN (2026-08-19, the repair
+            # WORKER_FINDING_THE_SIBLING_AXIS_FLOOR_IS_A_FREE_LITERAL_AND_ITS_
+            # CONTROL_CANNOT_FAIL_ON_IT asked for). This axis shipped with a
+            # floor of 150 and nothing beside it derived 150 from anything; no
+            # note anywhere stated what 150 was the smallest n OF. It is the
+            # same artefact the belief axis's 24 was, one register over -- the
+            # fourth consecutive time this class was found beside where it was
+            # last fixed -- and it was doing the same work: measured over the
+            # books n >= 4 admits, 126 of 295 upper-edge readings fall OUTSIDE
+            # the (70, 88) this entry declared. The floor decided the verdict.
+            #
+            # AND `lower_edge_invariant` CANNOT DERIVE IT, which is the part
+            # the finding got wrong and is recorded so it is not retried. It
+            # reads as the obvious null control -- it is this axis's declared
+            # one -- but it is a BOUND attained by any invoice paid on its due
+            # date, so every book has hundreds of witnesses and it is green
+            # from n = 4 across all five seeds. A control that never breaks in
+            # the probe range has no break for a search to find, and
+            # `check_axis_floor_is_derived`'s TRUNCATED rule says exactly that
+            # about it. It stays as the soundness null control it always was
+            # (`check_recon_band_population_axis` fires on it); it is not the
+            # floor-finder.
+            #
+            # WHAT DOES BREAK is the LAW-side invariant, and it is the same one
+            # the belief axis floors on: the drawn book must present the invoice
+            # span the four scenario constants predict, which
+            # `predict_event_age_span_from_constants` computes with no draw, no
+            # seed and no register read. Below that the sweep is moving the LAW
+            # (this book is not yet the book the constants describe) rather than
+            # the sample. On these five seeds it first holds and keeps holding
+            # at n = 51 -- per-seed 8/14/17/51/13, seed 3 binding -- against the
+            # belief axis's 17 on its own three. One law-side invariant now
+            # floors every draw-size axis over this builder, which is what makes
+            # a fourth axis covered by construction rather than by memory.
+            "n_customers": (51, 150, 300, 600, 1200, 2400),
             "seeds": (7, 11, 23, 3, 41),
-            "upper_edge_range": (70, 88),
+            # WIDENED (70 -> 49) BY THE FLOOR MOVE, and the order is the whole
+            # point (R12): the band is whatever the derived floor admits, never
+            # the floor whatever makes the band true. 49 is seed 41's reading at
+            # n = 51 and 55 is seed 7's; both sit on books the null control
+            # passes, and both were excluded by the shipped floor. Nothing was
+            # tuned -- this is the measurement the old floor was hiding.
+            "upper_edge_range": (49, 88),
             "lower_edge_invariant": -6,
+            # THE LAW-SIDE NULL CONTROL, declared under the SAME key the belief
+            # axis uses so the derived population can floor both without knowing
+            # which register it is walking.
+            "invoice_span_invariant": (30, 92),
+            # WHERE THE FLOOR IS SEARCHED FOR, inclusive both ends. Its own
+            # bottom must be RED or the derivation returns its starting point;
+            # n = 20 is red on four of five seeds.
+            "floor_probe_range": (20, 90),
         },
         "undefined_drifts": (),
         "debt_atom": None,
@@ -6560,14 +6608,81 @@ def check_belief_band_population_axis(
     return violations
 
 
-def measure_belief_axis_null_control_floor(
+# ---------------------------------------------------------------------------
+# THE DRAW-SIZE AXIS POPULATION, WALKED RATHER THAN ENUMERATED
+# (2026-08-19, the repair
+#  WORKER_FINDING_THE_SIBLING_AXIS_FLOOR_IS_A_FREE_LITERAL_AND_ITS_CONTROL_
+#  CANNOT_FAIL_ON_IT asked for; H27 Expert Hour #41)
+# ---------------------------------------------------------------------------
+# WHY A WALK AND NOT A TUPLE. `check_belief_axis_floor_is_derived` shipped
+# iterating `for dim in ("belief", "belief_population_mix")` -- a hand-written
+# pair, and its docstring said so plainly. The register carried a THIRD entry
+# with a draw-size axis of the same shape and the same failure mode
+# (`ORGAN_QUERY_GRID["flagged_via_reconciliation"]`), it was not in the loop,
+# and it kept the free literal the loop's two had just had derived away.
+#
+# THAT IS THE FOURTH CONSECUTIVE TIME THIS CLASS WAS FOUND ONE REGISTER OVER
+# from where it was last fixed: D28 derived the detection EDGES and left the
+# belief ones; D30 derived the belief edges and left both FLOORS free; the
+# 2026-08-18 repair derived the belief floor and left the detection floor free.
+# Each repair was real and each stopped at the boundary of the dimension in
+# front of it. R10 forbids closing an absurdity-class defect with an instance
+# fix, so the population is now DERIVED: every register entry declaring a
+# draw-size axis, under either key, in either register. A fifth axis added
+# later is covered because it is declared, not because whoever adds it
+# remembers to extend a tuple.
+#
+# BOTH KEY NAMES ARE ACCEPTED and neither is renamed. `draw_size_axis` and
+# `own_draw_size_axis` diverged for no reason either declaration states, and
+# collapsing them would touch nine call sites to buy nothing this walk does not
+# already buy -- the SIMPLICITY GUARD. The divergence is now harmless rather
+# than fixed, and that is recorded here so the next reader does not re-find it
+# as a defect.
+_DRAW_SIZE_AXIS_KEYS: Tuple[str, ...] = ("draw_size_axis", "own_draw_size_axis")
+
+
+def draw_size_axis_population(
+    registers: Optional[Dict[str, Dict[str, Dict[str, object]]]] = None,
+) -> Tuple[Dict[str, object], ...]:
+    """EVERY declared draw-size axis, in declaration order.
+
+    Returns one record per axis: `{"id", "register", "dimension", "key",
+    "axis"}`, where `id` is the stable `REGISTER[dimension].key` string the
+    floor checker reports violations against.
+
+    The emptiness of this walk is itself a violation the checker raises -- an
+    enumerated loop that silently covers nothing is the FAIL-OPEN shape, and a
+    derived one that silently covers nothing is the same shape with a walk in
+    front of it."""
+    regs = ({"DIMENSION_DRIFT_RESOLUTION": DIMENSION_DRIFT_RESOLUTION,
+             "ORGAN_QUERY_GRID": ORGAN_QUERY_GRID}
+            if registers is None else registers)
+    out: List[Dict[str, object]] = []
+    for reg_name, register in regs.items():
+        for dim, entry in (register or {}).items():
+            if not isinstance(entry, dict):
+                continue
+            for key in _DRAW_SIZE_AXIS_KEYS:
+                axis = entry.get(key)
+                if isinstance(axis, dict) and axis.get("n_customers"):
+                    out.append({
+                        "id": f"{reg_name}[{dim}].{key}",
+                        "register": reg_name,
+                        "dimension": dim,
+                        "key": key,
+                        "axis": axis,
+                    })
+    return tuple(out)
+
+
+def measure_axis_null_control_floor(
+    axis: Dict[str, object],
     *,
     probe_range: Optional[Sequence[int]] = None,
     seeds: Optional[Sequence[int]] = None,
     builder: Optional[Callable[[int, int], tuple]] = None,
-    register: Optional[Dict[str, Dict[str, object]]] = None,
 ) -> Dict[str, object]:
-    """WHERE THE AXIS ABOVE IS ALLOWED TO START, derived rather than declared
+    """WHERE A DRAW-SIZE AXIS IS ALLOWED TO START, derived rather than declared
     (2026-08-18, the repair
     WORKER_FINDING_THE_BELIEF_AXIS_NULL_CONTROL_CANNOT_FAIL_BECAUSE_ITS_FLOOR_SITS_ABOVE_WHERE_IT_BREAKS
     asked for).
@@ -6594,12 +6709,19 @@ def measure_belief_axis_null_control_floor(
 
     Predictor-only like the axis it floors: ~60 books, no `score_triad`.
 
+    THE AXIS IS PASSED IN, not looked up (2026-08-19). This function used to
+    read `DIMENSION_DRIFT_RESOLUTION["belief"]` by name, which is why the
+    sibling axis one register over went unfloored for a day: a measurement that
+    names its own subject can only ever have the subject it names. It now takes
+    whatever `draw_size_axis_population` hands it, and the law-side target is
+    still computed from the constants alone, so widening the population did not
+    weaken the independence.
+
     Returns `{"probe_range", "candidates", "seeds", "predicted_span",
     "span_by_n", "green_by_n", "floor", "lowest_candidate_green"}`; `floor` is
     None when no candidate qualifies, which the checker treats as a FAILED
     derivation and never as permission to keep a declared floor."""
-    reg = DIMENSION_DRIFT_RESOLUTION if register is None else register
-    axis = (reg["belief"].get("own_draw_size_axis") or {})
+    axis = axis or {}
     probe = tuple(probe_range if probe_range is not None
                   else (axis.get("floor_probe_range") or ()))
     if len(probe) != 2 or probe[0] > probe[1]:
@@ -6648,6 +6770,111 @@ def measure_belief_axis_null_control_floor(
     }
 
 
+def measure_belief_axis_null_control_floor(
+    *,
+    probe_range: Optional[Sequence[int]] = None,
+    seeds: Optional[Sequence[int]] = None,
+    builder: Optional[Callable[[int, int], tuple]] = None,
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+) -> Dict[str, object]:
+    """The belief axis's floor -- `measure_axis_null_control_floor` pointed at
+    the one axis this module's belief-side rules are all evaluated over.
+
+    Kept as a named entry point because the belief block's comments, the
+    default-path report and the 2026-08-18 discharge all cite it by name, and a
+    cited symbol that stops existing is its own defect class here."""
+    reg = DIMENSION_DRIFT_RESOLUTION if register is None else register
+    return measure_axis_null_control_floor(
+        (reg["belief"].get("own_draw_size_axis") or {}),
+        probe_range=probe_range, seeds=seeds, builder=builder)
+
+
+def measure_axis_null_control_floors(
+    registers: Optional[Dict[str, Dict[str, Dict[str, object]]]] = None,
+    *,
+    builder: Optional[Callable[[int, int], tuple]] = None,
+) -> Dict[str, Dict[str, object]]:
+    """Derive the floor of EVERY axis `draw_size_axis_population` finds.
+
+    Keyed by the population's `id`. An axis declaring no `floor_probe_range`
+    gets a record with `floor: None` and `no_probe_range: True` rather than
+    being skipped -- an axis nobody can floor must reach the checker as a
+    finding, not as an absence."""
+    out: Dict[str, Dict[str, object]] = {}
+    for rec in draw_size_axis_population(registers):
+        axis = rec["axis"]
+        if not axis.get("floor_probe_range"):
+            out[rec["id"]] = {
+                "axis_id": rec["id"], "floor": None, "no_probe_range": True,
+                "probe_range": None, "candidates": (),
+                "seeds": tuple(axis.get("seeds") or ()),
+                "lowest_candidate_green": False,
+            }
+            continue
+        out[rec["id"]] = dict(
+            measure_axis_null_control_floor(axis, builder=builder),
+            axis_id=rec["id"], no_probe_range=False)
+    return out
+
+
+def check_axis_floors_are_derived(
+    measured_by_axis: Dict[str, Dict[str, object]],
+    registers: Optional[Dict[str, Dict[str, Dict[str, object]]]] = None,
+) -> List[str]:
+    """THE CLASS CONTROL (R10), and the one whose population is derived.
+
+    `check_belief_axis_floor_is_derived` grades the axes it is handed. This
+    grades WHICH AXES GET GRADED -- the question that let the detection floor
+    keep a free literal through three consecutive repairs of exactly that
+    defect. Three rules:
+
+      * THE POPULATION MUST BE NON-EMPTY. A walk that finds nothing passes
+        every downstream rule vacuously, which is the FAIL-OPEN shape wearing a
+        derivation;
+      * EVERY DECLARED AXIS MUST HAVE BEEN MEASURED. An entry that declares a
+        draw-size axis and is absent from the measurement is the two-of-three
+        hole itself, and it is the case no existing mutation in this battery
+        asks -- every one of them perturbs an entry the loop already visits;
+      * and each measured axis's floor must survive the four per-axis rules,
+        which are `check_belief_axis_floor_is_derived`'s, applied per axis
+        rather than over a hand-written pair."""
+    population = draw_size_axis_population(registers)
+    violations: List[str] = []
+    if not population:
+        violations.append(
+            "the draw-size axis population is EMPTY: no register entry "
+            f"declares an axis under any of {list(_DRAW_SIZE_AXIS_KEYS)}, so "
+            "every floor rule below passes by having no subject -- a derived "
+            "population that derives nothing is the enumerated loop's "
+            "fail-open shape with a walk in front of it"
+        )
+    for rec in population:
+        measured = (measured_by_axis or {}).get(rec["id"])
+        if measured is None:
+            violations.append(
+                f"{rec['id']}: declares a draw-size axis with floor n = "
+                f"{min(rec['axis']['n_customers'])} and NO derivation measured "
+                "it -- an axis outside the checker's population keeps whatever "
+                "literal it was written with, which is how this class survived "
+                "D28, D30 and the 2026-08-18 belief-floor repair"
+            )
+            continue
+        if measured.get("no_probe_range"):
+            violations.append(
+                f"{rec['id']}: declares a draw-size axis and no "
+                "`floor_probe_range`, so its floor cannot be derived at all. "
+                "An underivable floor is a FAILED derivation, never a licence "
+                "to keep the declared one"
+            )
+            continue
+        per_axis = _axis_probe_violations(measured)
+        one = _axis_declared_floor_violation(measured, rec["axis"])
+        if one:
+            per_axis.append(one)
+        violations.extend(f"{rec['id']}: {v}" for v in per_axis)
+    return violations
+
+
 def check_belief_axis_floor_is_derived(
     measured: Dict[str, object],
     register: Optional[Dict[str, Dict[str, object]]] = None,
@@ -6667,14 +6894,29 @@ def check_belief_axis_floor_is_derived(
         sweep is sound and the declaration is false are excluded -- the shipped
         defect. Below it, books where the invoice span has not converged are
         admitted and the edge movement stops being evidence;
-      * and it applies to BOTH belief entries, because the axis is shared.
-        Repairing one and leaving the sibling is how this class survived D28."""
+      * and it applies to EVERY belief-side entry declaring the shared axis,
+        walked rather than enumerated (2026-08-19). Repairing one and leaving
+        the sibling is how this class survived D28 -- and a hand-written pair
+        is how it then survived one register further out."""
     reg = DIMENSION_DRIFT_RESOLUTION if register is None else register
-    violations: List[str] = []
-    derived = measured.get("floor")
-    probe = measured.get("probe_range")
+    violations = _axis_probe_violations(measured)
+    if measured.get("floor") is None:
+        return violations
+    for rec in draw_size_axis_population({"DIMENSION_DRIFT_RESOLUTION": reg}):
+        if rec["key"] != "own_draw_size_axis":
+            continue
+        one = _axis_declared_floor_violation(measured, rec["axis"])
+        if one:
+            violations.append(f"{rec['dimension']}: {one}")
+    return violations
 
-    if derived is None:
+
+def _axis_probe_violations(measured: Dict[str, object]) -> List[str]:
+    """The two rules about the DERIVATION itself, which are properties of the
+    measurement and not of any one axis declaration."""
+    violations: List[str] = []
+    probe = measured.get("probe_range")
+    if measured.get("floor") is None:
         violations.append(
             "the axis floor could not be DERIVED: no n in the probe range "
             f"{list(probe or ())} has every seed's invoice span reaching the "
@@ -6690,34 +6932,37 @@ def check_belief_axis_floor_is_derived(
             "free literal has moved from the floor to the range, and a search "
             "that starts above the break has not found it"
         )
-
-    if derived is None:
-        return violations
-
-    for dim in ("belief", "belief_population_mix"):
-        axis = (reg.get(dim) or {}).get("own_draw_size_axis") or {}
-        ns = tuple(axis.get("n_customers") or ())
-        if not ns:
-            continue
-        declared = min(ns)
-        if declared == derived:
-            continue
-        direction = (
-            "ABOVE the derivation -- it excludes "
-            f"n = {list(range(derived, declared))}, where the sweep is sound by "
-            "its own null control and the declaration is free to be wrong "
-            "unwitnessed (this is the shipped defect: the floor, not the "
-            "measurement, decided the verdict)"
-            if declared > derived else
-            "BELOW the derivation -- it admits books whose invoice span has "
-            "not converged on the constants-side prediction, where the sweep "
-            "perturbs the law and the edge movement is evidence of nothing"
-        )
-        violations.append(
-            f"{dim}: declares an axis floor of n = {declared} and the null "
-            f"control derives n = {derived}. The declared floor is {direction}"
-        )
     return violations
+
+
+def _axis_declared_floor_violation(
+    measured: Dict[str, object],
+    axis: Dict[str, object],
+) -> Optional[str]:
+    """The rule about ONE declaration: its smallest n must BE the derived
+    floor, in either direction."""
+    derived = measured.get("floor")
+    ns = tuple((axis or {}).get("n_customers") or ())
+    if derived is None or not ns:
+        return None
+    declared = min(ns)
+    if declared == derived:
+        return None
+    direction = (
+        "ABOVE the derivation -- it excludes "
+        f"n = {list(range(derived, declared))}, where the sweep is sound by "
+        "its own null control and the declaration is free to be wrong "
+        "unwitnessed (this is the shipped defect: the floor, not the "
+        "measurement, decided the verdict)"
+        if declared > derived else
+        "BELOW the derivation -- it admits books whose invoice span has "
+        "not converged on the constants-side prediction, where the sweep "
+        "perturbs the law and the edge movement is evidence of nothing"
+    )
+    return (
+        f"declares an axis floor of n = {declared} and the null "
+        f"control derives n = {derived}. The declared floor is {direction}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -12860,6 +13105,25 @@ def main() -> None:
              if not _bbf_violations
              else f"{len(_bbf_violations)} VIOLATION(S)"))
     for v in _bbf_violations:
+        print(f"           !! {v}")
+
+    # AND EVERY OTHER AXIS'S FLOOR (2026-08-19). The block above grades the
+    # floors it is handed; this grades WHICH AXES ARE HANDED TO IT, which is
+    # the question that let the detection floor keep a free literal through
+    # three consecutive repairs of that defect. On the default path for the
+    # same reason the belief floor is: it costs ~2s of predictor books and a
+    # coverage control nobody runs is a coverage control that is not there.
+    _axf = measure_axis_null_control_floors()
+    _axf_violations = check_axis_floors_are_derived(_axf)
+    print(f"  [axis-floor population] {len(_axf)} declared draw-size "
+          "axis(es), walked rather than enumerated: "
+          + ", ".join(f"{k.split('[')[1].split(']')[0]} n>={v['floor']}"
+                      for k, v in _axf.items()))
+    print("           verdict: "
+          + ("every declared axis floor IS its derived one"
+             if not _axf_violations
+             else f"{len(_axf_violations)} VIOLATION(S)"))
+    for v in _axf_violations:
         print(f"           !! {v}")
 
     # OPT-IN: the caveat-coverage contract (atom D32). Declared in
