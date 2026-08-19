@@ -585,17 +585,23 @@ def main():
         # caller at all. That is precisely the blindness that let `resource_headroom` sit
         # unwired since 2026-08-10, and wiring it in a way no tool can see would have
         # reproduced the defect while looking like the fix.
-        from background import disk_headroom, resource_headroom
-        from tools import lane_formation
+        from background import disk_headroom, resource_headroom, staging_two_rooms_repair
+        from tools import console_instruction_record, lane_formation
 
         # The formation measure is a DIAGNOSTIC (R12) and is wired here for one reason: the
         # orphan ratchet refused it as a module nothing runs, and it was right. A shape nobody
         # computes is a shape nobody sees, which is the state the 2026-08-19 ruling describes.
         # It reports and alarms on TRANSITION (R5). It does not weight the draw -- see the
         # module docstring for why a lane quota would be gamed by the thing it measures.
+        # Two of these five LOSE something when they do not run, which is why they are here
+        # rather than in a gate: a gate fires when someone commits, and nobody committing is
+        # exactly when the director's words scroll out of the pane and a duplicate sits
+        # refusing every commit in the tree.
         for _tag, _observer in (("disk-headroom", disk_headroom),
                                 ("memory-headroom", resource_headroom),
-                                ("lane-formation", lane_formation)):
+                                ("lane-formation", lane_formation),
+                                ("console-record", console_instruction_record),
+                                ("two-rooms-repair", staging_two_rooms_repair)):
             try:
                 _reading = _observer.observe()
                 if _reading.get("alarm"):
