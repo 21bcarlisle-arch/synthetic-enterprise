@@ -48,9 +48,19 @@ def main():
     print("=== Phase 4b customer value layer (full portfolio) ===")
     print("=" * 60)
 
+    # Both cost bases are printed, and the one the CLV column below is built on
+    # is named as such (2026-08-17 margin-basis finding). This block previously
+    # printed the contribution line under the label "Net margin", directly above
+    # a CLV table computed from it — the two halves of the defect, adjacent and
+    # reading as consistent.
     print(f"\nCost to serve (portfolio):       £{cost_to_serve['portfolio']['cost_to_serve_gbp']:>12.2f}")
-    print(f"Margin (pre cost-to-serve):       £{cost_to_serve['portfolio']['margin_gbp']:>12.2f}")
-    print(f"Net margin (post cost-to-serve):  £{cost_to_serve['portfolio']['net_margin_gbp']:>12.2f}")
+    print(f"Gross margin (rev - wholesale):   £{cost_to_serve['portfolio']['margin_gbp']:>12.2f}")
+    print(f"Contribution (gross - CTS):       £{cost_to_serve['portfolio']['contribution_margin_gbp']:>12.2f}")
+    print(
+        "Net of ALL attributable costs:    "
+        f"£{cost_to_serve['portfolio']['net_of_all_costs_margin_gbp']:>12.2f}"
+        f"   <- the CLV basis ({enterprise_value['portfolio']['margin_basis']})"
+    )
 
     print(f"\n{'Account':<8} {'Renewals':>9} {'Lifetime':>10} {'AvgNetMargin£':>14} {'CLV£':>12}")
     for account_id, entry in enterprise_value["by_customer"].items():

@@ -24,11 +24,25 @@ CHURN_RISK = {
     "C3": [],
 }
 
+# Both cost bases, deliberately far apart (2026-08-17 margin-basis finding).
+# `contribution_margin_gbp` is gross-minus-cost-to-serve; the line the book is
+# valued on, `net_of_all_costs_margin_gbp`, is additionally net of policy
+# levies, network charges, capital and bad debt. Equal values here would make
+# every assertion below blind to which line `build_clv` read.
 COST_TO_SERVE = {
     "by_customer": {
-        "C1": {"cost_to_serve_gbp": 100.0, "margin_gbp": 500.0, "net_margin_gbp": 400.0},
-        "C1g": {"cost_to_serve_gbp": 50.0, "margin_gbp": 200.0, "net_margin_gbp": 150.0},
-        "C2": {"cost_to_serve_gbp": 80.0, "margin_gbp": 300.0, "net_margin_gbp": 220.0},
+        "C1": {
+            "cost_to_serve_gbp": 100.0, "margin_gbp": 500.0,
+            "contribution_margin_gbp": 400.0, "net_of_all_costs_margin_gbp": 20.0,
+        },
+        "C1g": {
+            "cost_to_serve_gbp": 50.0, "margin_gbp": 200.0,
+            "contribution_margin_gbp": 150.0, "net_of_all_costs_margin_gbp": 10.0,
+        },
+        "C2": {
+            "cost_to_serve_gbp": 80.0, "margin_gbp": 300.0,
+            "contribution_margin_gbp": 220.0, "net_of_all_costs_margin_gbp": 16.0,
+        },
     }
 }
 
@@ -72,7 +86,7 @@ def test_build_clv_excludes_accounts_with_no_renewals():
 def test_build_clv_combines_dual_fuel_net_margin():
     result = build_clv(CHURN_RISK, COST_TO_SERVE, n_draws=50)
     # C1's net margin combines C1 (400.0) and C1g (150.0) over 3 renewal periods
-    assert abs(result["C1"]["avg_annual_net_margin_gbp"] - (400.0 + 150.0) / 3) < 1e-9
+    assert abs(result["C1"]["avg_annual_net_margin_gbp"] - (20.0 + 10.0) / 3) < 1e-9
 
 
 def test_build_clv_positive_lifetime_and_value():
@@ -157,8 +171,14 @@ def _belief(account_churn_probabilities: dict) -> dict:
 
 _EQUAL_MARGIN = {
     "by_customer": {
-        "SAFE": {"cost_to_serve_gbp": 0.0, "margin_gbp": 900.0, "net_margin_gbp": 900.0},
-        "RISKY": {"cost_to_serve_gbp": 0.0, "margin_gbp": 900.0, "net_margin_gbp": 900.0},
+        "SAFE": {
+            "cost_to_serve_gbp": 0.0, "margin_gbp": 900.0,
+            "contribution_margin_gbp": 900.0, "net_of_all_costs_margin_gbp": 216.0,
+        },
+        "RISKY": {
+            "cost_to_serve_gbp": 0.0, "margin_gbp": 900.0,
+            "contribution_margin_gbp": 900.0, "net_of_all_costs_margin_gbp": 216.0,
+        },
     }
 }
 

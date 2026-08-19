@@ -195,3 +195,217 @@ class TestBlindfoldUsesOnlyPreCrisisYears:
         # With no crisis there is no comparison to make; the multiple must not
         # be asserted as if there were.
         assert out["divergence_value"] is None, out["divergence_value"]
+
+
+# ---------------------------------------------------------------------------
+# DEFECT 1, THE CLASS -- every module, not one file (2026-08-17)
+# ---------------------------------------------------------------------------
+#
+# WHY THIS EXISTS. The repair above deleted `net_margin_gbp` from the
+# cost-to-serve view so that an un-migrated reader would raise KeyError rather
+# than print a contribution margin under a net label. The guard written to hold
+# it -- `test_the_reporting_layer_no_longer_reads_cost_to_serve_net_margin_gbp`
+# -- greps ONE file, `saas/reporting/annual_report.py`, for ONE spelling of the
+# read. `simulation/run_phase4c_on_phase2b.py:403` held the same read in a
+# different spelling and was not looked at, so it passed the suite and then
+# failed nine consecutive scheduled runs (2026-08-17 15:59Z-17:17Z) at ~215s,
+# taking the whole publish pipeline down with it.
+#
+# The class is "a reader migrated file-by-file, guarded file-by-file". A census
+# closes it: the key is gone from the view, so NO module may read it off one,
+# and the check does not need to know which modules exist.
+
+_CTS_DELETED_KEY = "net_margin_gbp"
+
+#: Directories holding production readers. `tests/` is excluded on purpose --
+#: fixtures there legitimately CONSTRUCT the pre-repair shape to prove the
+#: migration happened (see `tests/saas/test_clv_margin_basis.py`).
+_CENSUS_ROOTS = (
+    "simulation", "saas", "company", "tools", "site", "background", "sim",
+    "interface", "functions",
+)
+
+
+def _cost_to_serve_view_reads(source: str) -> list[str]:
+    """Return every expression in `source` that reads the deleted key off a
+    cost-to-serve view.
+
+    Matches on the STRUCTURE of the read, not a string, so a rename of the
+    local variable or a switch between `[...]` and `.get(...)` does not evade
+    it. A record-level `record["net_margin_gbp"]` is NOT a hit: settlement
+    records still carry that key and `build_cost_to_serve` requires it.
+
+    WHAT COUNTS AS A VIEW is resolved from BINDINGS, not from the variable's
+    NAME. Naming was tried first and was wrong on the first real file it met:
+    `annual_report.py` reads `_hl_cts["net_margin_gbp"]`, where `_hl_cts` is the
+    LEDGER headline (`data["_ledger_headline"]`) -- which genuinely has that key
+    -- and only the name says cost-to-serve. A census that has to be taught
+    about names like that one by one is the same file-by-file guard this class
+    exists to replace.
+    """
+    import ast
+
+    tree = ast.parse(source)
+    hits: list[str] = []
+
+    #: Local names bound to a cost-to-serve view in THIS file: the builder's
+    #: return, or the customer-value view's `.cost_to_serve` attribute.
+    bound: set[str] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+            continue
+        value = node.value
+        if value is None:
+            continue
+        produces_a_view = (
+            (isinstance(value, ast.Call)
+             and "build_cost_to_serve" in ast.unparse(value.func))
+            or (isinstance(value, ast.Attribute) and value.attr == "cost_to_serve")
+        )
+        if not produces_a_view:
+            continue
+        targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+        for target in targets:
+            if isinstance(target, ast.Name):
+                bound.add(target.id)
+
+    def _root_name(node):
+        while isinstance(node, (ast.Subscript, ast.Attribute)):
+            node = node.value
+        return node.id if isinstance(node, ast.Name) else None
+
+    def _base_matches(node) -> bool:
+        # The literal spelling covers the common case (`cost_to_serve[...]`) and
+        # a parameter this file never assigns; `bound` covers any rename.
+        if "cost_to_serve" in ast.unparse(node):
+            return True
+        return _root_name(node) in bound
+
+    for node in ast.walk(tree):
+        # view["portfolio"]["net_margin_gbp"] / view["by_customer"][cid][...]
+        if isinstance(node, ast.Subscript):
+            key = node.slice
+            if (isinstance(key, ast.Constant) and key.value == _CTS_DELETED_KEY
+                    and _base_matches(node.value)):
+                hits.append(ast.unparse(node))
+        # view["portfolio"].get("net_margin_gbp")
+        elif isinstance(node, ast.Call):
+            func = node.func
+            if (isinstance(func, ast.Attribute) and func.attr == "get"
+                    and node.args
+                    and isinstance(node.args[0], ast.Constant)
+                    and node.args[0].value == _CTS_DELETED_KEY
+                    and _base_matches(func.value)):
+                hits.append(ast.unparse(node))
+
+    return hits
+
+
+class TestNoModuleReadsTheDeletedCostToServeMarginLine:
+    """The census that the one-file grep above should always have been."""
+
+    @staticmethod
+    def _repo_root():
+        from pathlib import Path
+        return Path(__file__).resolve().parents[2]
+
+    def _python_files(self):
+        root = self._repo_root()
+        for name in _CENSUS_ROOTS:
+            directory = root / name
+            if not directory.is_dir():
+                continue
+            for path in sorted(directory.rglob("*.py")):
+                if "node_modules" in path.parts or "__pycache__" in path.parts:
+                    continue
+                yield path
+
+    def test_the_census_actually_reads_files(self):
+        """FAIL-SILENT: a census over an empty file list passes everything. This
+        is the check that the walk found the tree at all."""
+        files = list(self._python_files())
+        assert len(files) > 200, (
+            f"the census walked only {len(files)} files -- it is not looking at "
+            "this repository, so its green means nothing"
+        )
+
+    def test_no_module_reads_net_margin_gbp_off_a_cost_to_serve_view(self):
+        offenders: list[str] = []
+        root = self._repo_root()
+        for path in self._python_files():
+            try:
+                hits = _cost_to_serve_view_reads(path.read_text(encoding="utf-8"))
+            except SyntaxError:
+                continue
+            for hit in hits:
+                offenders.append(f"{path.relative_to(root)}: {hit}")
+
+        assert not offenders, (
+            "`net_margin_gbp` was DELETED from the cost-to-serve view because "
+            "its value was a CONTRIBUTION margin (gross minus CTS), 4.28x the "
+            "true net at portfolio level. These readers will raise KeyError at "
+            "run time -- which is the intended fail-closed behaviour, not a "
+            "reason to restore the key. Read `contribution_margin_gbp` (that "
+            "exact value, correctly named) or `net_of_all_costs_margin_gbp` "
+            "(net of levies, network, capital and bad debt):\n  "
+            + "\n  ".join(offenders)
+        )
+
+    def test_r15_mutation_the_exact_line_that_broke_nine_runs_IS_caught(self):
+        """MUTATION: the real defect, verbatim from
+        `simulation/run_phase4c_on_phase2b.py:403` as it stood at 15:59Z."""
+        shipped = (
+            "print(f\"Net margin after cost to serve:  "
+            "£{cost_to_serve['portfolio']['net_margin_gbp']:>12.2f}\")\n"
+        )
+        assert _cost_to_serve_view_reads(shipped), (
+            "the census does not catch the exact read that failed nine "
+            "consecutive scheduled runs"
+        )
+
+    def test_r15_mutation_the_other_spelling_and_the_get_form_are_caught(self):
+        """MUTATION: the annual_report spelling the one-file grep pinned, plus
+        the `.get()` form that grep would have missed entirely."""
+        for variant in (
+            'x = cost_to_serve.get("portfolio", {}).get("net_margin_gbp")\n',
+            # RENAMED locals -- the reason the check resolves bindings rather
+            # than matching names. Neither of these spells "cost_to_serve" at
+            # the point of the read.
+            'v = build_cost_to_serve(recs, customers)\n'
+            'x = v["by_customer"][cid]["net_margin_gbp"]\n',
+            'w = customer_value.cost_to_serve\n'
+            'x = w["portfolio"].get("net_margin_gbp", 0.0)\n',
+        ):
+            assert _cost_to_serve_view_reads(variant), variant
+
+    def test_r15_the_census_does_not_fire_on_the_ledger_headline(self):
+        """OVER-BROAD guard, caught by this census's own first run: a name-based
+        matcher flagged `annual_report.py`'s `_hl_cts["net_margin_gbp"]`, which
+        is the LEDGER headline and legitimately carries that key. False
+        positives here are not cosmetic -- an unsatisfiable census gets
+        deleted, and then the class is unguarded again."""
+        ledger_headline = (
+            '_hl_cts = data.get("_ledger_headline")\n'
+            '_cts_base = _hl_cts["net_margin_gbp"]\n'
+        )
+        assert _cost_to_serve_view_reads(ledger_headline) == []
+
+    def test_r15_the_census_does_not_fire_on_a_settlement_record(self):
+        """TAUTOLOGY/over-broad guard: settlement records STILL carry
+        `net_margin_gbp` and `build_cost_to_serve` requires it. A census that
+        flagged those would be unsatisfiable, so it would be turned off."""
+        legitimate = (
+            'net_of_all_costs = record["net_margin_gbp"]\n'
+            'total = sum(r["net_margin_gbp"] for r in all_records)\n'
+            'net_line = _fmt_gbp(hl["net_margin_gbp"])\n'
+        )
+        assert _cost_to_serve_view_reads(legitimate) == []
+
+    def test_r15_the_census_does_not_fire_on_the_migrated_names(self):
+        """The fix must PASS: both replacement keys read off the same view."""
+        fixed = (
+            'a = cost_to_serve["portfolio"]["contribution_margin_gbp"]\n'
+            'b = cost_to_serve["portfolio"]["net_of_all_costs_margin_gbp"]\n'
+            'c = cost_to_serve["portfolio"]["cost_to_serve_gbp"]\n'
+        )
+        assert _cost_to_serve_view_reads(fixed) == []
