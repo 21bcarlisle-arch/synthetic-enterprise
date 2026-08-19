@@ -105,6 +105,31 @@ SUITE_LOG_PATH = PROJECT / "docs" / "observability" / "test_execution_log.jsonl"
 OUT_JSON = SITE / "data" / "evidence.json"
 OUT_HTML = SITE / "evidence" / "index.html"
 
+# ── READER-READY: the evidence page is a machine record, and says so until it is not ─────────
+# Director ruling, 2026-08-19: "Any live page showing wrong figures, internal vocabulary, or
+# machine records a reader can't use gets replaced with an honest placeholder until it's right.
+# That includes the evidence dump and the links into atom ids."
+#
+# I judged this page IN SCOPE, and it is the clearest case on the site. Measured on the rendered
+# text rather than on impression: 509 hits of internal vocabulary and 19 raw atom ids. Its own
+# opening paragraph -- the first thing a stranger reads -- says "it is computed from the levels
+# of the named atoms the claim rests on", then cites `docs/design/maturity_map.yaml`,
+# `docs/observability/gate_authorizations.jsonl` and a pytest collection count. Every word of
+# that is TRUE and none of it is usable by the reader it is aimed at. SITE12's own title is the
+# same finding: "The evidence surface answers a sceptic, not a maintainer."
+#
+# WHAT IS NOT SWITCHED OFF: `build_payload()` still runs and `site/data/evidence.json` is still
+# written, checked and published every cycle. The derivation, the missing-artefact detection and
+# the citation-status machinery all keep working -- so this is a rendering decision, not a
+# retreat, and SITE12 rebuilds the reader-facing half from data that never stopped being current.
+# If the payload were switched off too, the page would come back six months stale.
+#
+# Flip to True in the same commit that ships a reader-facing render. The control in
+# tests/tools/test_evidence_reader_ready.py fails if this is True while the page still carries
+# raw atom ids, so it cannot be flipped as a tidy-up.
+EVIDENCE_READER_READY = False
+
+
 # Where the staging protocol parks an actioned/archived directive. Ordered: first hit wins.
 # Same convention as tools/generate_proof_data.py::CITATION_ARCHIVE_DIRS -- this is the ROT
 # class that keeps recurring, so both citation surfaces must look in the same places.
@@ -786,6 +811,96 @@ def _node_html(node: dict) -> str:
     )
 
 
+def render_placeholder(payload: dict) -> str:
+    """The honest hole. Carries the same reader-facing marker as the site's other early doors,
+    so a reader meets one consistent signal rather than three dialects of "not finished"."""
+    site_nav = _ia.render_nav("/evidence/", indent="")
+    t = payload["totals"]
+    nodes = len(payload.get("nodes") or [])
+    return f"""<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Evidence — Poesys</title>
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="stylesheet" href="../brand/brand.css">
+<style>
+* {{ box-sizing: border-box; margin: 0; padding: 0; }}
+body {{ background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.6; }}
+.site-nav {{ background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px; height: 48px; gap: 8px; flex-wrap: wrap; }}
+.nav-logo {{ font-weight: 700; color: var(--teal); text-decoration: none; margin-right: 16px; font-size: 15px; }}
+.nav-link {{ color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; }}
+.nav-link:hover, .nav-link.active {{ color: var(--text); background: var(--surface2); }}
+.nav-spacer {{ flex: 1; }}
+main {{ max-width: 760px; margin: 0 auto; padding: 48px 24px 80px; }}
+.badge {{ display: inline-block; background: var(--surface2); color: var(--muted);
+  border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 12px;
+  letter-spacing: .04em; text-transform: uppercase; margin-bottom: 20px; }}
+h1 {{ font-size: 30px; line-height: 1.25; margin-bottom: 16px; }}
+.lede {{ font-size: 16px; color: var(--muted); margin-bottom: 32px; }}
+h2 {{ font-size: 15px; margin: 32px 0 10px; }}
+p {{ margin-bottom: 14px; }}
+ul {{ margin: 0 0 14px 20px; }} li {{ margin-bottom: 6px; }}
+.note {{ border-left: 3px solid var(--border); padding: 12px 16px; background: var(--surface);
+  color: var(--muted); font-size: 13px; margin: 24px 0; }}
+a {{ color: var(--teal); }}
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="../" class="nav-logo">Poesys</a>
+  <span class="nav-spacer"></span>
+{site_nav}
+</nav>
+<main>
+  <span class="badge">This page is being built</span>
+  <h1>Evidence behind the claims</h1>
+  <p class="lede">
+    This page used to exist, and it was taken down on purpose. It was a correct, complete,
+    automatically generated record — written in the project's own internal vocabulary, and
+    close to unreadable for anyone who does not maintain it.
+  </p>
+
+  <h2>What was wrong with it</h2>
+  <p>
+    It opened by telling you that a claim's status is "computed from the levels of the named
+    atoms the claim rests on", and then cited file paths inside the code repository. Those
+    sentences are accurate. They are also no use to a reader trying to work out whether to
+    believe anything on this site, which is the only reason the page exists.
+  </p>
+
+  <h2>What this page will show</h2>
+  <ul>
+    <li>For each claim the site makes, the specific thing that would have to be true for it to
+        hold — in plain words, not internal identifiers.</li>
+    <li>What was actually checked, when, and by what — including the checks that failed.</li>
+    <li>Where the evidence is thin or missing, said plainly rather than shown as a tidy blank.</li>
+    <li>A route to the underlying record for anyone who does want the machine-level detail.</li>
+  </ul>
+
+  <h2>Roughly when</h2>
+  <p>
+    Next, alongside the other two pages being rebuilt. The underlying data is unaffected and is
+    still generated and checked on every publish — {nodes} claim areas, {t.get("atoms_total", 0)}
+    supporting records — so what is missing is a version of it written for a reader, not the
+    evidence itself.
+  </p>
+
+  <div class="note">
+    <strong>Why a hole rather than the old page.</strong> A page that looks thorough and cannot
+    be read is worse than an absence: it invites you to assume it says something it does not.
+    Meanwhile <a href="../proof/">Proof</a> carries the corrections record and the known
+    limitations in readable form.
+  </div>
+</main>
+</body>
+</html>
+"""
+
+
 def render_html(payload: dict) -> str:
     t = payload["totals"]
     site_nav = _ia.render_nav("/evidence/", indent="")
@@ -947,7 +1062,11 @@ def generate(git_hash: str | None = None) -> dict:
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
     OUT_HTML.parent.mkdir(parents=True, exist_ok=True)
     OUT_JSON.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-    OUT_HTML.write_text(render_html(payload), encoding="utf-8")
+    # The DATA is written unconditionally; only the RENDERING is held back. See
+    # EVIDENCE_READER_READY for why that split is the whole point.
+    OUT_HTML.write_text(
+        render_html(payload) if EVIDENCE_READER_READY else render_placeholder(payload),
+        encoding="utf-8")
     return payload
 
 

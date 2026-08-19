@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-08-19T11:54:40Z",
-  "git_hash": "a8f602bf6",
+  "generated_at": "2026-08-19T16:01:07Z",
+  "git_hash": "068878332",
   "suite": {
-    "test_count": 26149,
-    "timestamp": "2026-08-19T10:52:16.961349+00:00"
+    "test_count": 26302,
+    "timestamp": "2026-08-19T15:05:56.258598+00:00"
   },
   "sources": {
     "node_mapping": "site/data/moap_node_atoms.json",
@@ -2566,7 +2566,7 @@
           "id": "E5_carbon_three_ledger",
           "name": "Carbon three-ledger (the v4 mission's core measurement): customer carbon SAVED / operational carbon SPENT (people, compute, tokens) / NET position, feeding \u00a3 per tonne CO2e = (cost to serve + cost to persuade incl compute) / carbon abated. A DIAGNOSTIC, reported like a P&L, never an optimisation target",
           "lane": "E_finance_treasury",
-          "loop_stage": "idle   # PARKED 2026-07-20: rung 1 (carbon three-ledger data model + CARBON_NOT_A_TARGET grep-guard) built, L0->L1 proposed. Rung 2 is BLOCKED, not effort-gated: SAVED needs the unbuilt per-household cost-and-carbon trajectory (personalisation, a separate build); the SPENT emitter needs the emissions-factor SET which the DISCOVER doc + CARBON_NOT_A_TARGET reserve as a DIRECTOR VALUES-CALL (carbon is the mission, values-adjacent). No in-scope BUILD increment. UNBLOCK: director emissions-factor + counterfactual-method values-calls, OR the trajectory build lands. Parked so the BUILD draw stops re-offering values-call-gated work (Rule 0).",
+          "loop_stage": "build   # 2026-08-19: the 2026-07-20 \"no in-scope BUILD increment\" park reason was STALE and is deleted. It was true of the rungs it considered (SAVED feed, SPENT emitter) but the atom's own 2026-07-29 FRAME had already named a third increment that is factor-agnostic and values-call-free -- the absent-feed fail-open and the R14 labels dropped at aggregation -- and that increment was BUILT this tick without touching a single values-call. REMAINING build IS values-call/trajectory-gated as before: SAVED needs the unbuilt per-household cost-and-carbon trajectory; the SPENT emitter needs the emissions-factor SET, which the DISCOVER doc + CARBON_NOT_A_TARGET reserve as a DIRECTOR VALUES-CALL (carbon is the mission, values-adjacent). Lesson worth keeping: a park reason that names the gated rungs is not the same as proving the atom has no ungated work.",
           "level_current": 0,
           "level_target": 3,
           "at_target": false,
@@ -2624,7 +2624,16 @@
           ],
           "test_files": 0,
           "test_functions": 0,
-          "ledger": [],
+          "ledger": [
+            {
+              "action": "LEVEL_UP_SELF_CERTIFIED",
+              "level": 1,
+              "ts": 1787146842.138348,
+              "iso": "2026-08-19",
+              "authorized_by": "agent_self_certified",
+              "provenance": "L0->L1: carbon three-ledger data model built and hardened. Evidence: 84 tests green in tests/company/test_carbon_ledger.py + tests/company/test_carbon_not_a_target.py; 14,048 company tests green; epistemic verifier PASS (pure accounting, reads no sim). R15 MUTATION PROOF RUN, 3 mutations all RED with the un-mutated null control GREEN: (a) C1 absent-feed guard deleted via net_status always-ok -> the one-sided-net test returns a price instead of raising; (b) three_ledger_view restored to three bare floats -> 12 red; (c) provenance mix re-weighted by event count instead of tonnage. L2 deliberately NOT claimed: every tonnage is still handed in, no live feed exists, so the L2 bar (mechanically real, genuine artefacts) is not met."
+            }
+          ],
           "missing": [
             "NO_TEST_CITED"
           ]
@@ -2688,7 +2697,7 @@
         }
       ],
       "atoms_at_target": 2,
-      "atoms_with_ledger": 2,
+      "atoms_with_ledger": 3,
       "atoms_with_missing": 5
     }
   ],
