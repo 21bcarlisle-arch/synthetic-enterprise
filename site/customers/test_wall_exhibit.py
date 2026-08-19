@@ -3821,3 +3821,286 @@ def test_both_checks_in_this_section_fire_on_the_page_as_it_SHIPPED(tmp_path):
         "the shipped page already filtered a late-appended company block out of the "
         "customer view -- the cached-subject half of this section is not real"
     )
+
+
+# ===========================================================================
+# (22) THE REGION LIST IS THE SUBJECT NOBODY HAD
+#
+# THE FINDING, and it is this atom's own recurring class for the FOURTH time. Three earlier
+# ticks each closed "a new layer above a control does not inherit its subject" one layer at a
+# time: the op-state exhibit (2026-08-12), the case-study grid appended to #app by a third
+# path (2026-08-17), and #op-state's own cached child list (2026-08-18). Each fix widened a
+# governor's subject to the children of one region. Nobody ever widened it to the REGIONS.
+#
+# applyWallViewToApp's own comment says "the subject is now the DOCUMENT". It is not; it is
+# #app. applyWallViewToOpState's is #op-state. The set of governed regions was two
+# getElementById literals -- the same hand-kept-subject shape as CONTENT_CLASSES, which the
+# 2026-08-18 tick had already found structurally blind. The page has SEVEN top-level regions.
+#
+# MEASURED FIRST, on the served page in a real chromium, before a line of the repair existed:
+# a block carrying "True satisfaction fell 12.2 percentage points" -- the exact string this
+# page's own WALL_VIEW_NOTE declares means the page is broken -- appended to document.body and
+# then setWallView("customer") called through the page's own entry point SURVIVED in the
+# customer's view, with WALL_VIOLATIONS empty, __subjectViolations() empty and 0 console
+# errors. It was green because every region that existed happened to be innocent, which is
+# R15's FAIL-OPEN pattern exactly and says nothing about the next region.
+#
+# THE MECHANISM. Every rendering top-level child of <body> declares data-wall-chrome (carries
+# no figure) or data-wall-governed="<fn>" (its contents are governed, by a function that must
+# exist on window); anything else is recorded and REMOVED. Named governor rather than a
+# boolean on purpose: an unfalsifiable claim of governance is decoration, so a region naming a
+# function that is not there is treated exactly as one that declared nothing.
+#
+# WHY NOT data-wall-side ON THE CONTAINERS: #op-state and #app carry no figure of their own,
+# and filtering the container by view would take its customer-observable children with it.
+#
+# NO CACHE, deliberately. opStateBlocks() caches because that governor removes AND restores;
+# taking the snapshot once is what let a post-boot block escape it (2026-08-18). This governor
+# never restores, so a live read costs nothing and closes that hole by construction.
+#
+# ANTI-PIN: no figure, count or stamp from the run appears in this section. The region list
+# comes off the page's own markup and the sentinels are the harness's own strings.
+# ===========================================================================
+_BODY_LEAK = "True satisfaction fell 12.2 percentage points"
+# Written HERE, not read off the page. The governor has an exemption set (DOC_NONRENDERING);
+# if the test took its subject from that set, the page could exempt a region from its own
+# control and stay green -- R15's TAUTOLOGY pattern. These are the tags that render nothing,
+# and test_the_pages_exemption_set_cannot_be_widened pins the page's set inside this one.
+_NON_RENDERING = {"SCRIPT", "STYLE", "LINK", "META", "TEMPLATE", "NOSCRIPT", "TITLE", "BASE"}
+
+
+def _content_regions(probes: dict) -> list[dict]:
+    return [r for r in probes["declared_regions"] if r["tag"] not in _NON_RENDERING]
+
+
+def _doc_probes(index: Path = INDEX) -> dict:
+    return _subject(index)["states"]["document_region_probes"]
+
+
+def _check_no_undeclared_region_survives(probes: dict) -> None:
+    """The law, stated once so every mutation below is judged by the same sentence."""
+    leaked = {v: ids for v, ids in probes["undeclared_region_ids"].items()
+              if "bolted-at-body" in ids}
+    assert not leaked, (
+        "a top-level region declaring neither a side's governor nor chrome, carrying "
+        f"{_BODY_LEAK!r}, survived in these views: {sorted(leaked)} -- the page's own "
+        "customer-view note says that means the page is broken"
+    )
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_every_top_level_region_declares_chrome_or_names_its_governor():
+    """THE STRUCTURAL GUARD, and the one exit criterion (1) actually turns on: a region added
+    without declaring anything must not be publishable. Subject is the page's own body."""
+    probes = _doc_probes()
+    undeclared = [r for r in _content_regions(probes)
+                  if r["chrome"] is None and not r["governed"]]
+    assert not undeclared, (
+        "top-level regions of the page declare neither data-wall-chrome nor "
+        f"data-wall-governed: {undeclared}"
+    )
+    assert len(_content_regions(probes)) >= 5, (
+        f"only {len(_content_regions(probes))} content regions were read off the page -- "
+        "this check would be near-vacuous"
+    )
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_the_pages_exemption_set_cannot_be_widened():
+    """The guard skips tags that render nothing. If the page were free to choose that set,
+    it could exempt a leaking region from its own control and stay green -- so the page's
+    set must sit INSIDE the one written in this module, which the page cannot edit."""
+    page_set = _doc_probes()["page_nonrendering"]
+    assert page_set, "the governor's DOC_NONRENDERING set could not be read off the page"
+    extra = sorted(set(page_set) - _NON_RENDERING)
+    assert not extra, (
+        f"the page exempts tags this control does not accept as non-rendering: {extra}"
+    )
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_every_declared_governor_is_a_function_that_exists():
+    """The half that stops the attribute becoming decoration. A region asserting governance
+    by a name nothing defines is ungoverned, and the page must say so rather than believe it.
+    Checked here against the page's SOURCE so the assertion is independent of the governor's
+    own runtime lookup -- a checker that asks the fix whether the fix worked is a tautology."""
+    src = INDEX.read_text(encoding="utf-8")
+    governed = [r["governed"] for r in _doc_probes()["declared_regions"] if r["governed"]]
+    assert governed, "no region declares a governor -- this check would be vacuous"
+    missing = [g for g in governed if f"function {g}(" not in src]
+    assert not missing, f"regions name governors this page does not define: {missing}"
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_an_undeclared_region_bolted_onto_the_body_is_withheld_in_every_view():
+    """THE FINDING ITSELF, driven through the page's own setWallView in all three views --
+    checking only 'behind' would pass a mutant that defaults the missing declaration to the
+    customer's side, which is the fail-open shape being guarded."""
+    _check_no_undeclared_region_survives(_doc_probes())
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_the_withheld_region_is_recorded_and_not_removed_in_silence():
+    """FAIL-SILENT is its own arm: the leak check above stays green on a governor that
+    removes the block and says nothing, and a control that hides the evidence of its own
+    firing is how a defect stays invisible for days."""
+    recorded = _doc_probes()["undeclared_region_recorded"]
+    assert any("bolted-at-body" in r for r in recorded), (
+        f"the undeclared region was withheld silently -- WALL_VIOLATIONS held {recorded}"
+    )
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_null_control_a_region_declared_chrome_survives_in_every_view():
+    """WITHOUT THIS the mechanism could be 'remove anything appended after boot' wearing a
+    declaration rule's clothes, and the leak test would pass for the wrong reason. Moves the
+    DECLARATION, not the law."""
+    probes = _doc_probes()
+    dropped = {v: ids for v, ids in probes["chrome_region_ids"].items()
+               if "bolted-at-body" not in ids}
+    assert not dropped, (
+        f"a region that DID declare itself chrome was removed anyway in {sorted(dropped)} -- "
+        "the governor is not reading the declaration"
+    )
+    assert not probes["chrome_region_recorded"], (
+        f"a correctly-declared region was recorded as a violation: {probes['chrome_region_recorded']}"
+    )
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_a_region_naming_a_governor_that_does_not_exist_is_treated_as_undeclared():
+    """The OVER-BROAD direction's opposite: proof the two arms are different arms. A region
+    may not buy its way past the guard with a string."""
+    probes = _doc_probes()
+    _assert_fake_governor_withheld(probes)
+    assert any("bolted-at-body" in r for r in probes["fake_governor_recorded"]), (
+        "the imaginary-governor region was withheld silently"
+    )
+
+
+def _assert_fake_governor_withheld(probes: dict) -> None:
+    """The law for the governor-is-real arm, shared by the check and its mutation so a
+    mutant cannot reach the page by a different route than the test it must kill."""
+    survived = {v: ids for v, ids in probes["fake_governor_ids"].items()
+                if "bolted-at-body" in ids}
+    assert not survived, (
+        f"a region claiming an imaginary governor survived in {sorted(survived)}"
+    )
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_the_pages_own_regions_all_survive_after_the_guard_has_run():
+    """R11's no-orphan-transition rule applied to a REMOVAL: a guard whose release is
+    untested is half a mechanism. Every region the page ships with must still be in the
+    document, in every view, once the guard has removed three probes."""
+    probes = _doc_probes()
+    expected = [r["key"] for r in _content_regions(probes)]
+    assert len(expected) >= 5, f"the harness read too few regions to be meaningful: {expected}"
+    for view, ids in probes["surviving_regions"].items():
+        missing = [e for e in expected if e not in ids]
+        assert not missing, f"the guard removed the page's own regions in {view!r}: {missing}"
+    assert not probes["surviving_recorded"], probes["surviving_recorded"]
+    assert probes["undeclared_region_threw"] is None, probes["undeclared_region_threw"]
+
+
+# --- R15, four mutations, each killing a NAMED test -------------------------
+def test_mutation_the_body_level_fail_open_kills_a_named_test(tmp_path):
+    """(1) The defect itself, restored: an undeclared region is left in the document."""
+    mutant = _mutate(
+        tmp_path,
+        '      recordRegionViolation(idx,el,"declares neither data-wall-chrome nor data-wall-governed");',
+        "      return;",
+    )
+    with pytest.raises(AssertionError, match="survived in these views"):
+        _check_no_undeclared_region_survives(_doc_probes(mutant))
+
+
+def test_mutation_silencing_the_region_record_kills_a_named_test(tmp_path):
+    """(2) FAIL-SILENT. The block is still removed, so the leak test stays GREEN -- which is
+    exactly why the record needs a test of its own."""
+    mutant = _mutate(tmp_path, "  WALL_VIOLATIONS.push(what);\n  if(typeof console!==\"undefined\"&&console.error)console.error(\n    \"wall exhibit: an \"+what+\" was withheld -- every top-level region must carry \"+",
+                     "  if(false)WALL_VIOLATIONS.push(what);\n  if(typeof console!==\"undefined\"&&console.error)console.error(\n    \"wall exhibit: an \"+what+\" was withheld -- every top-level region must carry \"+")
+    probes = _doc_probes(mutant)
+    _check_no_undeclared_region_survives(probes)  # still green -- the point of this mutation
+    assert not any("bolted-at-body" in r for r in probes["undeclared_region_recorded"]), (
+        "the mutation did not actually silence the record, so this proves nothing"
+    )
+
+
+def test_mutation_accepting_any_governor_string_kills_a_named_test(tmp_path):
+    """(3) The OVER-BROAD arm: the declaration is trusted without checking the governor is
+    real, which turns data-wall-governed into decoration."""
+    mutant = _mutate(tmp_path, '      if(typeof window[governed]==="function")return;',
+                     "      return;")
+    with pytest.raises(AssertionError, match="imaginary governor"):
+        _assert_fake_governor_withheld(_doc_probes(mutant))
+    # and it must NOT also kill the plain leak check -- if it did, this mutation would be
+    # proving the fail-open arm again rather than the governor-is-real arm.
+    _check_no_undeclared_region_survives(_doc_probes(mutant))
+
+
+def test_mutation_removing_the_guard_from_setwallview_kills_a_named_test(tmp_path):
+    """(4) The mechanism disconnected rather than broken -- the shape in which a control is
+    present in the file, passes its own unit reading, and never runs on the page."""
+    mutant = _mutate(tmp_path, "  enforceDocumentRegions();\n}", "\n}")
+    with pytest.raises(AssertionError, match="survived in these views"):
+        _check_no_undeclared_region_survives(_doc_probes(mutant))
+
+
+def _pre_region_guard_index() -> str | None:
+    """The page as it SHIPPED before this repair, located WITHOUT a window and WITHOUT a
+    pinned SHA.
+
+    The three earlier shipped-defect proofs in this module walk `HEAD~0..8` looking for the
+    absence of their own symbol. That was an improvement on a pinned SHA and it still rots:
+    all three now SKIP, because the repairs they prove have scrolled past nine commits, and a
+    proof that quietly stops running is the FAIL-SILENT pattern applied to the proofs. So this
+    one asks git WHICH COMMIT introduced the symbol and takes its parent -- an answer that
+    does not decay. Staged as a finding against the other three rather than fixed here.
+    """
+    def show(rev: str) -> str | None:
+        p = subprocess.run(["git", "-C", str(HERE), "show", f"{rev}:site/customers/index.html"],
+                           capture_output=True, text=True, timeout=60)
+        return p.stdout if p.returncode == 0 else None
+
+    head = show("HEAD")
+    if head is not None and "enforceDocumentRegions" not in head:
+        return head  # not yet committed: HEAD *is* the pre-repair page
+    p = subprocess.run(
+        ["git", "-C", str(HERE), "log", "--format=%H", "-S", "enforceDocumentRegions",
+         "--", "site/customers/index.html"],
+        capture_output=True, text=True, timeout=120,
+    )
+    shas = [s for s in p.stdout.split() if s]
+    if not shas:
+        return None
+    return show(f"{shas[-1]}^")
+
+
+@pytest.mark.skipif(not NODE, reason="node not available")
+def test_this_section_fires_on_the_page_as_it_SHIPPED(tmp_path):
+    """R15's real subject: the page as PUBLISHED, not a synthetic reversal of the repair. A
+    mutation can be wrong about what shipped; this cannot. If this ever cannot find the
+    pre-repair revision it FAILS -- it does not skip -- because 'the proof did not run' and
+    'the proof passed' must not look the same."""
+    src = _pre_region_guard_index()
+    assert src is not None, (
+        "cannot locate the committed index.html that predates enforceDocumentRegions -- "
+        "the shipped-defect proof did NOT run, which is not the same as passing"
+    )
+    shipped = tmp_path / "index.html"
+    shipped.write_text(src, encoding="utf-8")
+    probes = _doc_probes(shipped)
+    assert any("bolted-at-body" in ids for ids in probes["undeclared_region_ids"].values()), (
+        "the shipped page did NOT leak an undeclared body-level region -- this section is "
+        "fixing something that was never broken"
+    )
+    assert not probes["undeclared_region_recorded"], (
+        f"the shipped page already recorded it: {probes['undeclared_region_recorded']}"
+    )
+    undeclared = [r for r in _content_regions(probes)
+                  if r["chrome"] is None and not r["governed"]]
+    assert len(undeclared) >= 5, (
+        "the shipped page already declared its regions -- the structural half of this "
+        f"section is not real (undeclared: {undeclared})"
+    )

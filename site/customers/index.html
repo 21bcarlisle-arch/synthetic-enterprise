@@ -156,7 +156,7 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
 </style>
 </head>
 <body>
-<nav class="site-nav">
+<nav class="site-nav" data-wall-chrome="site navigation -- links only, carries no figure">
   <a href="../" class="nav-logo">&#9889; Poesys</a>
   <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
   <a href="../" class="nav-link">Home</a>
@@ -175,7 +175,7 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
      This page is NOT a customer portal. It is a side-by-side comparison of the two sides of
      the epistemic wall for ONE real household: what the account holder can see, what the
      company knows, and what only the simulation knows. Every block declares its side. -->
-<header class="wall-head">
+<header class="wall-head" data-wall-chrome="the exhibit's own framing -- explains the three sides, publishes none of them">
   <h1>Two sides of the wall &mdash; one household</h1>
   <p><strong>This is an exhibit, not a customer portal.</strong> It puts one household's own view
   side by side with what the supplier knows about them and what only the simulation knows &mdash;
@@ -201,7 +201,7 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
      landing page, so the control belongs at the door. It is CHROME, not content: it carries no
      figure and therefore no side, which is why it sits outside #op-state (a block inside would
      have to declare one, and would then be filtered by the very selector it operates). -->
-<div id="door-wall-view" style="max-width:900px;margin:0 auto;padding:14px 20px 0"></div>
+<div id="door-wall-view" data-wall-chrome="the view selector itself -- the control, not a figure (see the note above)" style="max-width:900px;margin:0 auto;padding:14px 20px 0"></div>
 <!-- Cold-eyes 2026-08-17 (coldwalk:site2_c1_pinned_exhibit_reads_as_the_open_households):
      3 of 3 blind readers attributed THIS exhibit's figures to whichever household they had
      opened below it. The exhibit is pinned to one account (company.json's household.id) and
@@ -211,7 +211,7 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
      `data-account-subject` is empty until renderCustomerState() learns the id from
      company.json -- an EMPTY subject is treated as unknown, not as "matches", so the exhibit
      is withheld rather than gambled with (see opStateSuppressedReason). -->
-<div id="op-state" data-account-subject="" style="max-width:900px;margin:0 auto;padding:14px 20px 0">
+<div id="op-state" data-wall-governed="applyWallViewToOpState" data-account-subject="" style="max-width:900px;margin:0 auto;padding:14px 20px 0">
   <!-- The region's own heading and its data stamp. It carries no figure, so it has no side --
        and it now SAYS so rather than surviving on applyWallViewToOpState's old fail-open
        branch, which showed anything undeclared in every view. -->
@@ -268,7 +268,7 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
      been withheld, so that its disappearance is stated rather than silent -- a reader who saw
      it on the landing page must be told where it went, not left to wonder. It carries no
      figure and therefore no wall side, like #door-wall-view above it. -->
-<div id="subject-boundary" style="max-width:900px;margin:0 auto;padding:0 20px"></div>
+<div id="subject-boundary" data-wall-chrome="the page's own note that it withheld the pinned exhibit -- about the document, not from the run" style="max-width:900px;margin:0 auto;padding:0 20px"></div>
 <script>
 // The director's operational window: what it is like for ONE real household, end to end.
 // Self-contained (own helpers) so it renders independently of the drill-down portal below.
@@ -910,7 +910,7 @@ tr.deeplink-row td { background: rgba(42,120,214,.10); box-shadow: inset 3px 0 0
   else{document.addEventListener("DOMContentLoaded",window.__bootCustomerState);}
 })();
 </script>
-<div id="app"></div>
+<div id="app" data-wall-governed="applyWallViewToApp"></div>
 <script>
 var HH={elec:null,gas:null,base:null};
 var ACTIVE_TAB="overview",BILL_FUEL="elec",CONS_FUEL="elec",BILL_YEAR=null,ROLLUP_OPEN=false,DEEPLINK_YEAR=null,EXPANDED_BILL_ID=null,BILL_VIEW="bills",CASH_SCOPE="combined";
@@ -1179,6 +1179,9 @@ function setWallView(v){
   WALL_VIEW=v;renderDoorWallView();applyWallViewToOpState();
   if(hasHousehold())renderHousehold();else renderCaseStudies();
   applyWallViewToApp();
+  // LAST, and it has to be: the two governors above rewrite whole regions, and a region
+  // appended at body level by any of that work is only visible to a pass that runs after it.
+  enforceDocumentRegions();
 }
 /* THE SECOND HALF OF THE SAME WALK, and the more important one:
    coldwalk:site2_case_study_cards_render_sim_truth_in_the_customer_view.
@@ -1211,6 +1214,77 @@ function applyWallViewToApp(){
     }
   }
 }
+/* THE SAME LESSON A FOURTH TIME, one level further up, and this is the level the previous
+   three were standing on. applyWallViewToApp's own comment above says "the subject is now
+   the DOCUMENT" -- it is not, it is #app. applyWallViewToOpState's subject is #op-state.
+   Between and around them the page has FIVE more top-level regions (nav, the wall-head,
+   #door-wall-view, #subject-boundary, the footer), and the set of governed regions was a
+   hand-written pair of getElementById literals -- the same hand-kept-subject shape as
+   CONTENT_CLASSES, which the 2026-08-18 tick found structurally blind.
+
+   MEASURED on the served page in a real chromium, before any of this was written: a block
+   carrying "True satisfaction fell 12.2 percentage points" -- the exact string this page's
+   own WALL_VIEW_NOTE declares means the page is broken -- appended to document.body and
+   then setWallView("customer") called through the page's own entry point SURVIVED in the
+   customer's view, with WALL_VIOLATIONS empty, __subjectViolations() empty and 0 console
+   errors. Nothing in the page could see it, because nothing in the page had the region list
+   as its subject.
+
+   So the region list is now read off the document rather than written down. Every rendering
+   top-level child of <body> must declare EITHER data-wall-chrome (it carries no figure) OR
+   data-wall-governed="<fn>" (its contents are governed, by a function that must actually
+   exist on window). Anything else is recorded and REMOVED, the same fail-closed rule the
+   two inner governors already apply to their own children.
+
+   data-wall-governed rather than data-wall-side, deliberately: #op-state and #app carry no
+   figure themselves and must NOT be filtered by view -- filtering the container would take
+   its customer-observable children with it. Naming the governor makes the claim falsifiable:
+   a region asserting governance by a function that is not there is asserting nothing, and is
+   treated exactly as if it had declared nothing at all.
+
+   NO CACHE, and that is a decision rather than an omission. opStateBlocks() caches because
+   that governor REMOVES and RESTORES children, so a live read after the first pass would
+   lose what the pass hid -- and taking the snapshot once is what let a block appended after
+   boot escape every governor (2026-08-18). This governor never restores: a region is chrome
+   or governed or gone. A live read therefore has no cost here and closes that hole by
+   construction. */
+var DOC_NONRENDERING={SCRIPT:1,STYLE:1,LINK:1,META:1,TEMPLATE:1,NOSCRIPT:1,TITLE:1,BASE:1};
+function recordRegionViolation(idx,el,why){
+  var who=String((el&&(el.id||(el.getAttribute&&el.getAttribute("class"))||el.className||el.tagName))||"?");
+  var what="undeclared top-level region ["+idx+"]: "+who+" -- "+why;
+  if(WALL_VIOLATIONS.indexOf(what)!==-1)return;
+  WALL_VIOLATIONS.push(what);
+  if(typeof console!=="undefined"&&console.error)console.error(
+    "wall exhibit: an "+what+" was withheld -- every top-level region must carry "+
+    "data-wall-chrome or data-wall-governed naming a governor that exists");
+}
+function enforceDocumentRegions(){
+  var body=(typeof document!=="undefined")&&document.body;
+  var kids=(body&&body.children)||[];
+  // Snapshot the LIST only (removal mutates a live HTMLCollection under the iterator);
+  // membership is still re-read on every call, which is the point of having no cache.
+  var regions=[];
+  for(var i=0;i<kids.length;i++)regions.push(kids[i]);
+  regions.forEach(function(el,idx){
+    var tag=String((el&&el.tagName)||"").toUpperCase();
+    if(DOC_NONRENDERING[tag])return;
+    var governed=el.getAttribute?el.getAttribute("data-wall-governed"):null;
+    var chromeFlag=el.getAttribute?el.getAttribute("data-wall-chrome"):null;
+    if(governed){
+      // The claim has to be checkable or it is decoration. A region naming a governor that
+      // is not a function on window is ungoverned, whatever it says about itself.
+      if(typeof window[governed]==="function")return;
+      recordRegionViolation(idx,el,"declares data-wall-governed=\""+String(governed)+
+        "\" but no such governor exists");
+    }else if(chromeFlag!==null){
+      return;
+    }else{
+      recordRegionViolation(idx,el,"declares neither data-wall-chrome nor data-wall-governed");
+    }
+    if(el.parentNode&&el.parentNode.removeChild)el.parentNode.removeChild(el);
+  });
+}
+window.enforceDocumentRegions=enforceDocumentRegions;
 function panel(side,title,body){
   if(!WALL_SIDES[side])throw new Error(
     "wall-side undeclared or unknown ("+String(side)+"): every panel on this page must declare "+
@@ -2652,7 +2726,17 @@ function renderUsage(d){
 }
 renderDoorWallView();
 initFromUrl();
+/* Deferred to DOMContentLoaded rather than called here, and the reason is visible three
+   lines below this script tag: the page's footer is emitted AFTER the closing script tag, so
+   at this point it is not in document.body yet. A guard that ran now would report the
+   document as clean while the last region of the page had never been in its subject -- the
+   fail-open shape this whole mechanism exists to remove, reproduced by its own boot order.
+   (Written without the literal closing-script token on purpose: putting it in a comment ends
+   the script element, which is how the first draft of this line silently deleted the whole
+   second inline script and every function in it.) */
+if(document.readyState!=="loading"){enforceDocumentRegions();}
+else{document.addEventListener("DOMContentLoaded",enforceDocumentRegions);}
 </script>
-<footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved. &middot; <a href="../privacy/" style="color:var(--muted);">Privacy</a></footer>
+<footer data-wall-chrome="site footer -- copyright and the privacy link" style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved. &middot; <a href="../privacy/" style="color:var(--muted);">Privacy</a></footer>
 </body>
 </html>

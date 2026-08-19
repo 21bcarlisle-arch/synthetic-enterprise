@@ -146,8 +146,70 @@ const boundary = el("div"); boundary.id = "subject-boundary";
 const doorWallView = el("div"); doorWallView.id = "door-wall-view";
 const elements = { app, "op-state": opStateHost, "subject-boundary": boundary, "door-wall-view": doorWallView };
 
+// ---------------------------------------------------------------------------
+// THE BODY-LEVEL REGION LIST, and it is a SUBJECT this file did not have either.
+//
+// Every harness here -- this one included, until now -- modelled a `document` with no
+// `body` at all. So the page's region list was in nobody's subject: measured in a real
+// chromium on the served page, a block carrying "True satisfaction fell 12.2 percentage
+// points" appended to document.body survived in the CUSTOMER's view with WALL_VIOLATIONS
+// empty and 0 console errors, while 176+ tests were green. #op-state and #app were governed
+// because two getElementById literals named them; the other five regions were governed by
+// nothing, and a sixth added tomorrow would be too.
+//
+// So the region list is read off the page's own markup, in document order, exactly as
+// opStateInner() reads the exhibit's children -- a hand-written list here would be this
+// file's opinion of what the page contains, and what the page contains is the question.
+// ---------------------------------------------------------------------------
+function bodyRegions(src) {
+  // Script and style BODIES are blanked (the element itself is kept, because it is a real
+  // child of body and the governor has to decide about it). Comments go entirely: this page
+  // carries long prose comments between regions, several of which mention tags by name.
+  const flat = src
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<script\b([^>]*)>[\s\S]*?<\/script>/g, "<script$1></script>")
+    .replace(/<style\b([^>]*)>[\s\S]*?<\/style>/g, "<style$1></style>");
+  const open = flat.indexOf("<body");
+  if (open < 0) throw new Error("no <body> in the page");
+  const inner = flat.slice(flat.indexOf(">", open) + 1);
+  const VOID = new Set(["BR", "HR", "IMG", "INPUT", "META", "LINK", "SOURCE", "AREA", "COL", "EMBED", "PARAM", "TRACK", "WBR"]);
+  const out = [];
+  const re = /<(\/?)([a-zA-Z][a-zA-Z0-9]*)\b([^>]*?)(\/?)>/g;
+  let depth = 0, m;
+  while ((m = re.exec(inner))) {
+    const closing = m[1] === "/", tag = m[2].toUpperCase(), attrStr = m[3], selfClose = m[4] === "/";
+    if (tag === "BODY" || tag === "HTML") break;
+    if (VOID.has(tag) || selfClose) { if (depth === 0) out.push({ tag, attrStr }); continue; }
+    if (!closing) { if (depth === 0) out.push({ tag, attrStr }); depth += 1; }
+    else { depth -= 1; if (depth < 0) break; }
+  }
+  return out;
+}
+// One node per region, in document order. The four regions the rest of this harness already
+// drives ARE those nodes -- not copies -- so a governor that removes #app from the body is
+// removing the same object renderHousehold() writes into.
+const body = el("body");
+body.tagName = "BODY";
+const REGION_IDS = [];
+for (const { tag, attrStr } of bodyRegions(html)) {
+  const attrs = {};
+  for (const a of attrStr.matchAll(/([a-zA-Z-]+)="([^"]*)"/g)) attrs[a[1]] = a[2];
+  const known = attrs.id && elements[attrs.id];
+  const n = known || el(tag.toLowerCase());
+  n.tagName = tag;
+  if (attrs.id) n.id = attrs.id;
+  if (attrs.class) n.className = attrs.class;
+  for (const k of Object.keys(attrs)) if (k !== "id" && k !== "style") n.setAttribute(k, attrs[k]);
+  body.appendChild(n);
+  REGION_IDS.push(attrs.id || tag);
+}
+// ANTI-VACUITY, checked here rather than asserted in the test: a harness whose body came out
+// empty would run every probe below against nothing and report them all as passing.
+if (body.children.length < 5) { console.error("read " + body.children.length + " body regions"); process.exit(2); }
+
 const document = {
   readyState: "complete",
+  body,
   getElementById(id) { return (elements[id] ||= el("div")); },
   querySelector() { return null; },
   querySelectorAll() { return []; },
@@ -344,7 +406,89 @@ unbolt(sided);
 sandbox.setWallView("both");
 states.op_state_declaration_probes = opProbes;
 
+// ---------------------------------------------------------------------------
+// 8. THE REGION LIST ITSELF. Same three probes as (7), one level up: the subject is now
+//    document.body's children rather than #op-state's. Driven through the page's own
+//    setWallView, and each probe takes its own block back out so the next one is not
+//    measuring the last one's residue.
+//
+//    Read defensively throughout -- this file must run unchanged against a page with none
+//    of the mechanism, or the mutations in the test module would be proving nothing.
+// ---------------------------------------------------------------------------
+function boltBody(attrs, inner) {
+  const n = el("div");
+  n.className = "bolted-at-body";
+  n._inner = inner;
+  for (const k of Object.keys(attrs)) n.setAttribute(k, attrs[k]);
+  body.appendChild(n);
+  return n;
+}
+function unboltBody(n) { if (n.parentNode === body) body.removeChild(n); }
+function driveBodyAllViews() {
+  const seen = { ids: {}, threw: null };
+  for (const view of ["both", "customer", "behind"]) {
+    try { sandbox.showLogin(null); sandbox.setWallView(view); }
+    catch (e) { seen.threw = String((e && e.message) || e); }
+    seen.ids[view] = body.children.map(regionKey);
+  }
+  return seen;
+}
+// ONE identity for a region, used by the census and by every survival probe. Two different
+// keying rules is how "the guard removed NAV" came out of a run in which nothing was removed.
+function regionKey(c) { return c.id || c.className || c.tagName; }
+const docProbes = {};
+docProbes.declared_regions = body.children.map((c) => ({
+  key: regionKey(c),
+  id: c.id || null,
+  tag: c.tagName,
+  cls: c.className || null,
+  chrome: c.getAttribute("data-wall-chrome"),
+  governed: c.getAttribute("data-wall-governed"),
+}));
+// The page's OWN exclusion set, reported rather than applied here, so the test can check it
+// against a list written independently of the page. A governor that may edit its own
+// exemption list has no subject.
+docProbes.page_nonrendering = (() => {
+  const m = /var DOC_NONRENDERING=\{([^}]*)\}/.exec(html);
+  return m ? m[1].split(",").map((s) => s.split(":")[0].trim()).filter(Boolean) : null;
+})();
+// (a) THE MEASURED DEFECT: undeclared, at body level, carrying the SIM-only headline the
+//     page's own WALL_VIEW_NOTE names as proof the page is broken.
+clearWallViol();
+const bodyRogue = boltBody({}, "True satisfaction fell 12.2 percentage points");
+let bseen = driveBodyAllViews();
+docProbes.undeclared_region_ids = bseen.ids;
+docProbes.undeclared_region_threw = bseen.threw;
+docProbes.undeclared_region_recorded = wallViol();
+unboltBody(bodyRogue);
+// (b) NULL CONTROL A -- the same block, DECLARED chrome, must SURVIVE. Without this the
+//     mechanism could be "remove anything appended after boot" wearing a declaration rule's
+//     clothes, and probe (a) would pass for the wrong reason.
+clearWallViol();
+const bodyChrome = boltBody({ "data-wall-chrome": "BODY-CHROME-SENTINEL" }, "chrome");
+bseen = driveBodyAllViews();
+docProbes.chrome_region_ids = bseen.ids;
+docProbes.chrome_region_recorded = wallViol();
+unboltBody(bodyChrome);
+// (c) THE CLAIM THAT IS NOT CHECKABLE. A region declaring governance by a function that does
+//     not exist is ungoverned however loudly it says otherwise, so it must be treated exactly
+//     as an undeclared one. This is the arm that stops the new attribute becoming decoration.
+clearWallViol();
+const bodyFake = boltBody({ "data-wall-governed": "applyWallViewToNothing" }, "x");
+bseen = driveBodyAllViews();
+docProbes.fake_governor_ids = bseen.ids;
+docProbes.fake_governor_recorded = wallViol();
+unboltBody(bodyFake);
+// (d) THE RELEASE, and R11 forbids an orphan transition: after all that removal the page's
+//     own seven regions must still be in the document, in every view.
+clearWallViol();
+docProbes.surviving_regions = driveBodyAllViews().ids;
+docProbes.surviving_recorded = wallViol();
+sandbox.setWallView("both");
+states.document_region_probes = docProbes;
+
 process.stdout.write(JSON.stringify({
   states, exhibitAccount, otherAccount, consoleErrs,
   op_state_child_count: OP_STATE_CHILD_COUNT,
+  region_ids: REGION_IDS,
 }));
