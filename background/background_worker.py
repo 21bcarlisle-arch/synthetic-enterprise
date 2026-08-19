@@ -586,18 +586,31 @@ def main():
         # unwired since 2026-08-10, and wiring it in a way no tool can see would have
         # reproduced the defect while looking like the fix.
         from background import disk_headroom, resource_headroom
+        from tools import lane_formation
 
-        for _name, _governor in (("disk", disk_headroom), ("memory", resource_headroom)):
+        # The formation measure is a DIAGNOSTIC (R12) and is wired here for one reason: the
+        # orphan ratchet refused it as a module nothing runs, and it was right. A shape nobody
+        # computes is a shape nobody sees, which is the state the 2026-08-19 ruling describes.
+        # It reports and alarms on TRANSITION (R5). It does not weight the draw -- see the
+        # module docstring for why a lane quota would be gamed by the thing it measures.
+        for _tag, _observer in (("disk-headroom", disk_headroom),
+                                ("memory-headroom", resource_headroom),
+                                ("lane-formation", lane_formation)):
             try:
-                _reading = _governor.observe()
+                _reading = _observer.observe()
                 if _reading.get("alarm"):
-                    log(f"[{_name}-headroom] {_reading['alarm']}")
+                    log(f"[{_tag}] {_reading['alarm']}")
                 if _reading.get("shadow_alarm"):
-                    log(f"[{_name}-headroom] {_reading['shadow_alarm']}")
+                    log(f"[{_tag}] {_reading['shadow_alarm']}")
                 elif _reading.get("changed"):
-                    log(f"[{_name}-headroom] recovered to {_reading.get('band', '?')}")
+                    # The two governors recover to a BAND; the formation measure recovers to a
+                    # VERDICT. Naming the tag rather than assuming a shared vocabulary, because
+                    # the first draft logged "[formation-headroom] recovered to ?" -- a message
+                    # that is wrong twice over and would have been read as a broken governor.
+                    _to = _reading.get("band") or _reading.get("verdict") or "?"
+                    log(f"[{_tag}] recovered to {_to}")
             except Exception as exc:  # noqa: BLE001
-                log(f"[{_name}-headroom] governor failed to run: {exc}")
+                log(f"[{_tag}] failed to run: {exc}")
 
         # Always check for leftover run_complete markers first, regardless of peak hours
         try:
