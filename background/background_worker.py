@@ -568,6 +568,37 @@ def main():
     )
 
     while True:
+        # RESOURCE HOUSEKEEPING, EVERY CYCLE, BEFORE ANY WORK (director ruling 2026-08-19:
+        # "bounded lifetimes, alarms before exhaustion rather than after, and no reliance on
+        # anyone noticing"). This is the WIRING, and the wiring is the whole point: the RAM
+        # governor was built on 2026-08-10 after 64 oom-kills and had NEVER RUN -- no caller,
+        # no unit, no state file -- so the machine ran out of memory once and out of disk once
+        # with a governor for each sitting in the tree. Both are called here, in the one loop
+        # that is actually a running daemon, ahead of the work so pressure is known before
+        # anything allocates.
+        #
+        # Never fatal: a governor that can crash the worker is a worse outage than the one it
+        # prevents. It logs and the cycle continues.
+        # STATIC imports, not `__import__(name)`. The first draft used a dynamic import in a
+        # loop, and the orphan ratchet refused the commit -- correctly: a module reached only
+        # by a runtime string is invisible to static caller analysis, so it reads as having no
+        # caller at all. That is precisely the blindness that let `resource_headroom` sit
+        # unwired since 2026-08-10, and wiring it in a way no tool can see would have
+        # reproduced the defect while looking like the fix.
+        from background import disk_headroom, resource_headroom
+
+        for _name, _governor in (("disk", disk_headroom), ("memory", resource_headroom)):
+            try:
+                _reading = _governor.observe()
+                if _reading.get("alarm"):
+                    log(f"[{_name}-headroom] {_reading['alarm']}")
+                if _reading.get("shadow_alarm"):
+                    log(f"[{_name}-headroom] {_reading['shadow_alarm']}")
+                elif _reading.get("changed"):
+                    log(f"[{_name}-headroom] recovered to {_reading.get('band', '?')}")
+            except Exception as exc:  # noqa: BLE001
+                log(f"[{_name}-headroom] governor failed to run: {exc}")
+
         # Always check for leftover run_complete markers first, regardless of peak hours
         try:
             process_leftover_run_markers()
