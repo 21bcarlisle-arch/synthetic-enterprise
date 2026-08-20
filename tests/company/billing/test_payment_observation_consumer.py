@@ -687,3 +687,175 @@ def test_a_clean_payload_still_decodes_so_the_belt_is_not_a_standing_red():
         },
     })
     assert decoded.bank_reference == "R-1"
+
+
+# ---------------------------------------------------------------------------
+# (e) THE PENDING CROSSING -- atom EP6_wall_protocol_typing, pass 36.
+#
+# The finding these tests pin: `NOT_KNOWABLE_YET` was the one answer that made
+# a fact permanently UNHEARABLE. Every response marked its correlation_id
+# processed, and the envelope defines a restatement as "a NEW `WallResponse`
+# with a later `observed_at`" matched "ONLY by `correlation_id`" -- so the
+# resolution of a disputed payment arrived on the id the honest "not yet" had
+# already burned, and was dropped as a duplicate.
+#
+# The handed-forward item said this member "needs only a reader -- the writer
+# exists". The writer does exist; what did not exist was an EXIT from the state
+# the reader would read. A reader for a state that can never end is the same
+# defect as a reader for a message that is never sent, one level up.
+# ---------------------------------------------------------------------------
+
+def _pending_resp(corr, observed_at, status=WallStatus.NOT_KNOWABLE_YET, error=None):
+    return WallResponse(
+        correlation_id=corr, status=status, schema_version=1,
+        observed_at=observed_at, valid_time=None, payload=None, error=error,
+    )
+
+
+def _billed_and_disputed(corr="INV-D1", account_id="ACC-D", amount=120.0):
+    """One billed invoice, one pending answer for its crossing -- the live
+    shape: the DD path sets `correlation_id == invoice_ref`."""
+    lb = LedgerBook()
+    _bill(lb, account_id, corr, amount, dt.date(2026, 1, 1))
+    consumer = PaymentObservationConsumer(ledger_book=lb)
+    pending = _pending_resp(corr, dt.datetime(2026, 1, 10, 9, 0))
+    resolution = _remit_resp(account_id, amount, corr, dt.date(2026, 2, 1), corr)
+    return consumer, pending, resolution
+
+
+def test_a_pending_answer_no_longer_makes_the_fact_UNHEARABLE():
+    """THE DEFECT, with its NULL CONTROL beside it: the same resolution, on a
+    consumer that never heard the pending answer, must reach the same state.
+    Without that control this asserts only that cash posts, not that hearing
+    "not yet" costs nothing."""
+    consumer, pending, resolution = _billed_and_disputed()
+    assert consumer.observe(pending) is True
+    assert consumer.observe(resolution) is True          # was False -- the resolution was dropped
+    told = consumer.snapshot("ACC-D", as_of=dt.date(2026, 3, 1))
+
+    control_lb = LedgerBook()
+    _bill(control_lb, "ACC-D", "INV-D1", 120.0, dt.date(2026, 1, 1))
+    control = PaymentObservationConsumer(ledger_book=control_lb)
+    assert control.observe(resolution) is True
+    never_told = control.snapshot("ACC-D", as_of=dt.date(2026, 3, 1))
+
+    assert told.balance_summary == never_told.balance_summary
+    assert told.balance_summary["balance_gbp"] == 0.0    # the GBP120 actually landed
+    assert told.unresolved_crossings == []               # and the crossing closed
+
+
+def test_MUTATION_a_correlation_only_dedup_LOSES_the_resolution():
+    """R15: the control fires on its own named defect. The mutation is the rule
+    this module shipped with -- one processed-set, any status -- run over the
+    identical stream."""
+    consumer, pending, resolution = _billed_and_disputed()
+
+    processed: set = set()
+
+    def observe_the_old_way(response) -> bool:
+        if response.correlation_id in processed:
+            return False
+        processed.add(response.correlation_id)
+        if response.status != WallStatus.OK:
+            return True
+        return consumer.observe(response)
+
+    assert observe_the_old_way(pending) is True
+    assert observe_the_old_way(resolution) is False      # the defect, reproduced
+    lost = consumer.snapshot("ACC-D", as_of=dt.date(2026, 3, 1))
+    assert lost.balance_summary["balance_gbp"] == 120.0  # cash never posted
+
+
+def test_C_S2_a_redelivered_pending_answer_is_a_no_op():
+    """At-least-once delivery: the SAME answer arriving twice is not new
+    information, and must not multiply in the register."""
+    consumer, pending, _ = _billed_and_disputed()
+    assert consumer.observe(pending) is True
+    assert consumer.observe(pending) is False
+    assert consumer.observe(copy.deepcopy(pending)) is False
+    assert len(consumer.unresolved_crossings()) == 1
+
+
+def test_C_S1_a_later_answer_SUPERSEDES_and_an_older_one_arriving_late_does_not():
+    """Bitemporal restatement, not mutation: the register carries the
+    counterparty's most recent word. An older answer arriving late (C-S1) is
+    not it."""
+    consumer, first, _ = _billed_and_disputed()
+    later = _pending_resp("INV-D1", dt.datetime(2026, 1, 20, 9, 0))
+    stale = _pending_resp("INV-D1", dt.datetime(2026, 1, 5, 9, 0))
+
+    assert consumer.observe(first) is True
+    assert consumer.observe(later) is True
+    assert consumer.observe(stale) is False
+    held = consumer.unresolved_crossings()
+    assert [c.observed_at for c in held] == [dt.datetime(2026, 1, 20, 9, 0)]
+
+
+def test_a_resolved_crossing_is_not_UNRESOLVED_by_a_later_pending_answer():
+    """A response with no payload cannot restate a value, so "not yet" never
+    revokes cash already observed -- the conservative limb, and the one the
+    module behaved as before this change."""
+    consumer, _, resolution = _billed_and_disputed()
+    assert consumer.observe(resolution) is True
+    assert consumer.observe(_pending_resp("INV-D1", dt.datetime(2026, 3, 1, 9, 0))) is False
+    snap = consumer.snapshot("ACC-D", as_of=dt.date(2026, 3, 5))
+    assert snap.balance_summary["balance_gbp"] == 0.0
+    assert snap.unresolved_crossings == []
+
+
+def test_NOT_KNOWABLE_YET_is_the_only_status_the_company_AWAITS():
+    """The distinction the contract charges for. `NOT_KNOWABLE_YET` says the
+    FACT is not resolvable yet -- an answer is still owed. The other two say
+    something about the EXCHANGE and license no such expectation; neither gets
+    a branch of its own, because at HEAD nothing says either and a reader for
+    an unsent message is a dead arm."""
+    consumer = PaymentObservationConsumer()
+    consumer.observe(_pending_resp("c-nky", dt.datetime(2026, 1, 1, 9, 0)))
+    consumer.observe(_pending_resp("c-timeout", dt.datetime(2026, 1, 1, 9, 0), WallStatus.TIMEOUT))
+    consumer.observe(_pending_resp(
+        "c-error", dt.datetime(2026, 1, 1, 9, 0), WallStatus.ERROR, ErrorDetail("E1", "boom")))
+
+    awaited = {c.correlation_id for c in consumer.unresolved_crossings() if c.awaiting_resolution}
+    assert awaited == {"c-nky"}
+    assert {c.correlation_id for c in consumer.unresolved_crossings()} == {
+        "c-nky", "c-timeout", "c-error"}
+
+
+def test_the_register_is_BLINDFOLDED_by_as_of():
+    """The Blindfold applies to the register exactly as to every other snapshot
+    field: an answer that arrived after the decision clock is not knowable."""
+    consumer, pending, _ = _billed_and_disputed()
+    consumer.observe(pending)                                     # observed 2026-01-10
+    assert consumer.unresolved_crossings("ACC-D", as_of=dt.date(2026, 1, 5)) == []
+    assert len(consumer.unresolved_crossings("ACC-D", as_of=dt.date(2026, 1, 10))) == 1
+    assert consumer.snapshot("ACC-D", as_of=dt.date(2026, 1, 5)).unresolved_crossings == []
+
+
+def test_an_unattributable_crossing_reaches_NO_account_and_is_still_VISIBLE():
+    """A non-OK response carries no payload and therefore no account. The join
+    is EXACT (correlation_id == a billed invoice_ref) and fails toward silence:
+    a push payment quoting no invoice reference is attributed to nobody rather
+    than to a guess, and remains readable in the account-less call."""
+    consumer, pending, _ = _billed_and_disputed()
+    ambiguous = _pending_resp("CUST-9::p3::ambiguous", dt.datetime(2026, 1, 12, 9, 0))
+    consumer.observe(pending)
+    consumer.observe(ambiguous)
+
+    on_account = consumer.snapshot("ACC-D", as_of=dt.date(2026, 2, 1)).unresolved_crossings
+    assert [c.correlation_id for c in on_account] == ["INV-D1"]
+    assert len(consumer.unresolved_crossings()) == 2
+
+
+def test_the_register_is_ORDER_INDEPENDENT_like_every_other_belief_here():
+    """C-S1/C-S2: the same set of observations in any order reaches the same
+    register."""
+    corr = "INV-D1"
+    states = []
+    for order in ([0, 1, 2], [2, 1, 0], [1, 2, 0]):
+        consumer, first, resolution = _billed_and_disputed()
+        stream = [first, _pending_resp(corr, dt.datetime(2026, 1, 20, 9, 0)), resolution]
+        for i in order:
+            consumer.observe(stream[i])
+        snap = consumer.snapshot("ACC-D", as_of=dt.date(2026, 3, 1))
+        states.append((snap.unresolved_crossings, snap.balance_summary))
+    assert states[0] == states[1] == states[2]

@@ -301,6 +301,57 @@ class ExpectedCollectionMiss:
     days_latency: int            # detected_as_of - due_date (the observability lag)
 
 
+@dataclass(frozen=True)
+class UnresolvedCrossing:
+    """A crossing this company was EXPLICITLY told is not yet resolved -- the
+    company-side reading of a non-OK `WallResponse`, and the thing that was
+    being thrown away before atom EP6's pass 36.
+
+    WHY IT IS A BELIEF TYPE AND NOT A LOG LINE. `NOT_KNOWABLE_YET` is the one
+    answer the envelope's own docstring is proudest of (`WallStatus`: "a
+    first-class, honest answer") and the company was collapsing it into the
+    same nothing as `TIMEOUT`, `ERROR`, and never hearing at all. Those are
+    four different situations for a real accounts-receivable function -- "the
+    counterparty says this is under review" is not "the line went quiet" -- and
+    a supplier that cannot tell them apart cannot tell an invoice under formal
+    dispute from one nobody has answered for. This type is that distinction
+    made storable.
+
+    STILL A BELIEF, never truth: it records what the seam SAID and when, never
+    why. `status` is the counterparty's word for its own state; nothing here
+    claims the underlying fact is a dispute, a delay, or a failure -- that
+    reading belongs to whoever consumes it, and the seam does not supply it.
+
+    A crossing leaves this register only when an OK response for the same
+    `correlation_id` arrives (see `observe`), which is the envelope's own
+    restatement rule -- never by expiry, never by assumption."""
+
+    correlation_id: str
+    status: WallStatus           # the counterparty's own word: NOT_KNOWABLE_YET / TIMEOUT / ERROR
+    observed_at: dt.datetime     # transaction time of the LATEST non-OK answer for this crossing
+
+    @property
+    def awaiting_resolution(self) -> bool:
+        """True only for `NOT_KNOWABLE_YET` -- THE distinction this type exists
+        to draw, and deliberately the ONLY status branch in this module.
+
+        `NOT_KNOWABLE_YET` is the one non-OK answer that says something about
+        the FACT: the counterparty has it and it is not resolvable yet, so an
+        answer is still owed and the company is right to keep waiting. The
+        others say something about the EXCHANGE (`TIMEOUT`: the answer did not
+        arrive, the fact may be perfectly well resolved; `ERROR`: the exchange
+        itself failed) and license no such expectation.
+
+        NO BRANCH FOR THOSE TWO, on purpose and by measurement: at HEAD nothing
+        in this build SAYS `TIMEOUT` or `ERROR` (`tools.wall_channel_census`
+        `status_liveness_conformance` -- both UNINHABITED), so a reader keyed
+        on either would be a reader for an event this build cannot produce --
+        the dead arm that census question exists to stop being built. They are
+        recorded here undifferentiated, which is honestly what this company can
+        do with them today."""
+        return self.status == WallStatus.NOT_KNOWABLE_YET
+
+
 @dataclass
 class MandateBelief:
     """The company's current inferred state for one mandate, and the single
@@ -341,6 +392,12 @@ class PaymentBeliefSnapshot:
     # through-the-wall detection of missed push payments (all channels), from
     # own bills vs own observed cash. A BELIEF, not truth (may resolve late).
     detected_collection_misses: List[ExpectedCollectionMiss]
+    # Crossings this account was TOLD are unresolved (atom EP6, pass 36), by
+    # `observed_at <= as_of` (the Blindfold applies to the register exactly as
+    # it applies to every other field here). Attributed to an account ONLY by
+    # EXACT equality between a crossing's `correlation_id` and one of this
+    # account's own billed `invoice_ref`s -- see `unresolved_crossings`.
+    unresolved_crossings: List[UnresolvedCrossing]
     cash_position_note: str
 
 
@@ -548,7 +605,15 @@ class PaymentObservationConsumer:
         self._rail_failures: Dict[str, List[RailFailureNote]] = {}
         self._mandate_beliefs: Dict[str, MandateBelief] = {}
         self._recognised_cash_refs: Set[str] = set()
-        self._processed_correlation_ids: Set[str] = set()
+        # SPLIT IN TWO (atom EP6, pass 36), and the split IS the repair: one
+        # set for crossings an OK answer has RESOLVED (a fact is in hand, and
+        # a re-delivery of it must be a no-op -- C-S2), one map for crossings
+        # whose latest answer was non-OK (still open, and a later OK for the
+        # same `correlation_id` must still be able to land). A single
+        # processed-set could not tell those apart, so the honest "not yet"
+        # burned the id and the resolution was silently dropped.
+        self._resolved_correlation_ids: Set[str] = set()
+        self._unresolved: Dict[str, UnresolvedCrossing] = {}
         self._dd_failure_window_days = dd_failure_window_days
 
     @property
@@ -599,17 +664,57 @@ class PaymentObservationConsumer:
         own True/False dedup contract).
 
         A non-OK response (`NOT_KNOWABLE_YET`/`TIMEOUT`/`ERROR`) carries no
-        payload by construction (`WallResponse.__post_init__`) -- this is an
-        honest non-update, never an assumed value, and is still marked
-        processed so a later retry of the SAME correlation_id is not
-        double-counted once it does resolve OK (a resolved response uses a
-        fresh, later `WallResponse` for the same fact per the envelope's own
-        bitemporal-restatement rule, never an in-place mutation of this one)."""
-        if response.correlation_id in self._processed_correlation_ids:
+        payload by construction (`WallResponse.__post_init__`) -- an honest
+        non-update, never an assumed value. It is RECORDED as an
+        `UnresolvedCrossing` (readable via `unresolved_crossings`) and it does
+        NOT close the crossing.
+
+        WHAT THIS USED TO DO AND WHY IT WAS WRONG (measured, atom EP6 pass 36).
+        Every response marked its `correlation_id` processed, whatever its
+        status, and the docstring here claimed that was safe because "a
+        resolved response uses a fresh, later `WallResponse`". Fresh RESPONSE,
+        yes -- fresh CORRELATION ID, no: `WallResponse` is "matched to its
+        request ONLY by `correlation_id`", and a restatement is defined there
+        as "a NEW `WallResponse` with a later `observed_at`" for the same
+        crossing. So the resolution of a disputed payment arrives on the id
+        the "not yet" already burned, and was dropped as a duplicate: an
+        `observe` returning False and GBP of received cash never posted, while
+        the identical response landed normally on a consumer that had never
+        heard the pending answer. The honest answer was the one answer that
+        made a fact permanently unhearable.
+
+        THE RULE NOW, and each limb is a different obligation:
+          * an id an OK has already resolved -> False, unchanged. C-S2: a
+            duplicated delivery of a fact in hand must never post twice.
+          * a non-OK whose `observed_at` is not later than the latest non-OK
+            already held for that id -> False. Same message redelivered (or
+            an older one arriving late, C-S1) is not new information.
+          * a later non-OK -> True, and it SUPERSEDES the held one: the
+            register carries the counterparty's most recent word, never a
+            history (bitemporal restatement, not mutation-in-place of a fact).
+          * an OK -> resolves the crossing, clears any unresolved entry, and
+            posts as normal, whether or not a non-OK preceded it.
+
+        A non-OK NEVER un-resolves a resolved crossing (limb 1 wins over limb
+        3): a response with no payload cannot restate a value, so treating
+        "not yet" as revoking cash already observed would be inventing a
+        reversal the seam never sent. That is also the conservative direction
+        -- it is exactly what this method did before."""
+        cid = response.correlation_id
+        if cid in self._resolved_correlation_ids:
             return False
-        self._processed_correlation_ids.add(response.correlation_id)
         if response.status != WallStatus.OK:
+            held = self._unresolved.get(cid)
+            if held is not None and response.observed_at <= held.observed_at:
+                return False
+            self._unresolved[cid] = UnresolvedCrossing(
+                correlation_id=cid,
+                status=response.status,
+                observed_at=response.observed_at,
+            )
             return True
+        self._unresolved.pop(cid, None)
+        self._resolved_correlation_ids.add(cid)
         payload = response.payload
         if isinstance(payload, RemittanceAdvice):
             self._observe_remittance(payload, response)
@@ -895,6 +1000,43 @@ class PaymentObservationConsumer:
         misses.sort(key=lambda m: (m.due_date, m.invoice_ref))
         return misses
 
+    def unresolved_crossings(
+        self,
+        account_id: Optional[str] = None,
+        as_of: Optional[dt.date] = None,
+    ) -> List[UnresolvedCrossing]:
+        """Crossings whose latest answer was non-OK -- what the company was
+        TOLD it does not yet have, as distinct from what it never heard about.
+
+        `as_of` applies the Blindfold to the register itself: a crossing whose
+        answer arrived after the decision clock is not knowable at `as_of` and
+        is excluded, exactly as `snapshot`'s other fields are filtered.
+
+        ATTRIBUTION, and its limit stated rather than implied. A non-OK
+        response carries NO payload by construction, so it carries no
+        `account_id` -- the correlation id is the whole of what arrived. With
+        `account_id` given, a crossing is attributed by EXACT equality between
+        its `correlation_id` and one of that account's own billed
+        `invoice_ref`s. That join is exact where the caller sets
+        `correlation_id == invoice_ref` (the DD path in the live triad) and
+        matches NOTHING otherwise -- deliberately: a customer-initiated push
+        payment quotes no invoice reference, and inferring the account by
+        parsing the id would be attribution by substring, which is wrong more
+        quietly than it is right. Unattributable crossings are still visible in
+        the account-less call, which is the register's complete reading."""
+        crossings = [
+            c for c in self._unresolved.values()
+            if as_of is None or c.observed_at.date() <= as_of
+        ]
+        if account_id is not None:
+            billed_refs = set(_billed_by_invoice(
+                self.ledger_book.ledger(account_id),
+                as_of if as_of is not None else dt.date.max,
+            ))
+            crossings = [c for c in crossings if c.correlation_id in billed_refs]
+        crossings.sort(key=lambda c: (c.observed_at, c.correlation_id))
+        return crossings
+
     def snapshot(
         self,
         account_id: str,
@@ -948,5 +1090,6 @@ class PaymentObservationConsumer:
             recent_dd_failures=dd_failures,
             recent_rail_failures=rail_failures,
             detected_collection_misses=collection_misses,
+            unresolved_crossings=self.unresolved_crossings(account_id, as_of=as_of),
             cash_position_note=_cash_position_note(bal_summary),
         )

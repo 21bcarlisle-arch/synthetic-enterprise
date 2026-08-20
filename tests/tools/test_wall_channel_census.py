@@ -3813,38 +3813,53 @@ def test_FAIL_CLOSED_an_EMPTY_vocabulary_is_REFUSED_unlike_a_paid_down_seam_chan
         wcc.status_liveness_conformance(str(status_tree))
 
 
-# ── 23b. the live reading -- RED at 1 of 4, and recorded as the L3 blocker it is ───────────────
+# ── 23b. the live reading -- RED at 2 of 4, and recorded as the L3 blocker it is ───────────────
 
 
-def test_the_LIVE_status_vocabulary_is_inhabited_ONE_OF_FOUR(  # noqa: E501
+def test_the_LIVE_status_vocabulary_is_inhabited_TWO_OF_FOUR(  # noqa: E501
 ):
     """THE FINDING, pinned so it cannot decay into narration, and it is not what pass 34 expected.
 
     The blocker pass 34 handed forward was one item: `WallStatus.TIMEOUT` has no reader. The
-    measurement says the wall is worse off than that in one direction and differently off in
+    measurement said the wall is worse off than that in one direction and differently off in
     another:
 
       * TIMEOUT is UNINHABITED, not merely unread -- nothing says it either, so the reader that
         pass 33 and 34 both proposed would have been a dead arm.
       * ERROR is in the SAME bucket and was named by no pass.
-      * NOT_KNOWABLE_YET is UNHEARD -- the world says it and both consumers collapse it into
-        not-OK, so the honest answer the envelope's docstring is proudest of is discarded on
-        arrival.
+      * NOT_KNOWABLE_YET was UNHEARD -- the world said it and both consumers collapsed it into
+        not-OK, so the honest answer the envelope's docstring is proudest of was discarded on
+        arrival. REPAIRED in pass 36: `company.billing.payment_observation_consumer` now records
+        it as an `UnresolvedCrossing` and distinguishes it from the two members that say
+        something about the exchange rather than the fact. The repair was not the reader alone --
+        the state it reads had no EXIT, because a non-OK answer burned the correlation_id the
+        envelope's own restatement rule sends the resolution on.
 
-    SHRINK-ONLY on the red buckets, which is what stops "reported" decaying into "narrated": a
-    repair passes, and a NEW member arriving uninhabited reds here on the day it lands.
+    THE RATCHET TIGHTENED WITH THE REPAIR, which is the point of writing it as a ratchet and not
+    as a count: `live` is now GROW-ONLY (a member that goes live cannot quietly go back), the red
+    buckets stay SHRINK-ONLY, and `unheard` is now asserted EMPTY rather than bounded -- a member
+    the world says and nobody distinguishes reds here on the day it lands.
 
-    WHEN THIS GOES GREEN the assertions below fail, and that is the correct moment to move
-    `statuses.ok` into the CLI's return and this test into `assert verdict.ok`.
+    WHAT KEEPS THIS RED, and it is one piece of work with an ordering inside it: TIMEOUT and ERROR
+    are uninhabited, so each needs a WRITER before a reader. WHEN THIS GOES GREEN the assertions
+    below fail, and that is the correct moment to move `statuses.ok` into the CLI's return and
+    this test into `assert verdict.ok`.
+
+    WHAT THIS DOES NOT SAY, because the control is repo-wide and side-blind by construction:
+    NOT_KNOWABLE_YET reads as live off ONE reader on ONE seam. `company/market/flex_participation`
+    still collapses it, and that seam is UNSOLICITED INBOUND (`seam_conversation_conformance`),
+    so its own repair sits behind the conversation repair, not behind this one.
     """
     verdict = wcc.status_liveness_conformance_at(worktree=True)
 
-    assert verdict.live == ("OK",), verdict.report()
+    assert set(verdict.live) >= {"OK", "NOT_KNOWABLE_YET"}, (
+        "a member that was live is no longer both said and acted on: " + verdict.report()
+    )
     assert set(verdict.uninhabited) <= {"TIMEOUT", "ERROR"}, (
         "a NEW status member is declared that nothing says and nothing acts on: " + verdict.report()
     )
-    assert set(verdict.unheard) <= {"NOT_KNOWABLE_YET"}, (
-        "a NEW status member is said by the world and distinguished by nobody: " + verdict.report()
+    assert not verdict.unheard, (
+        "a status member is said by the world and distinguished by nobody: " + verdict.report()
     )
     assert not verdict.unspoken, (
         "a reader now branches on a member this build cannot produce -- the dead arm this "
