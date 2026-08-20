@@ -62,9 +62,24 @@ import urllib.request
 HOST = "https://poesys.net"
 PROJECT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-#: Pages promotes a new deployment onto the custom domain a moment after wrangler exits.
-#: Poll rather than sleep once; give up loudly rather than quietly (R15 FAIL-SILENT).
-ATTEMPTS = 10
+#: Pages promotes a new deployment onto the custom domain some time after wrangler exits, and
+#: "some time" is the whole difficulty. MEASURED, not assumed:
+#:
+#:   * 2026-08-20 15:47, two `.py` assets: live on the FIRST attempt, under 15s.
+#:   * 2026-08-20 15:50, `/harness/` (a directory URL): NOT live after 2m17s of polling, which
+#:     failed this deploy -- and verified live by hand a few minutes later. The bytes were
+#:     right; the window was wrong.
+#:
+#: So an HTML directory URL can take minutes where a direct file takes seconds, which is the
+#: same asymmetry that ran through the whole 2026-08-20 incident: extensionless paths go
+#: through Pages' path resolution and direct files do not.
+#:
+#: 8 minutes is deliberately generous. The failure this control exists to catch is a deploy
+#: that leaves readers on OLD content indefinitely -- eight pages did exactly that for a day --
+#: and that failure is still caught at eight minutes. What a tight window buys is false reds on
+#: ordinary variance, and a control that cries wolf gets bypassed, which costs more than the
+#: minutes. Widen the clock, never the claim.
+ATTEMPTS = 32
 GAP_SECONDS = 15
 
 #: Served by the platform as configuration, not as assets. Fetching them 404s by design,
@@ -150,6 +165,7 @@ def main() -> int:
         return 0
 
     outstanding = dict(wanted)
+    started = time.monotonic()
     for attempt in range(ATTEMPTS):
         nonce = f"deploy-{os.environ.get('GITHUB_RUN_ID', 'local')}-{attempt}"
         for url, want in list(outstanding.items()):
@@ -159,17 +175,24 @@ def main() -> int:
                 print(f"  attempt {attempt}: {url}: {exc}")
                 continue
             if got == want:
-                print(f"  serving the deployed bytes: {url}")
+                # The elapsed figure is the POINT of printing this, not decoration: the
+                # promotion latency is the number this control's timeout has to be set from,
+                # and it was guessed once already. Every green deploy now contributes an
+                # observation, so the next person adjusting ATTEMPTS has a distribution
+                # instead of an anecdote.
+                print(f"  serving the deployed bytes after "
+                      f"{time.monotonic() - started:.0f}s: {url}")
                 del outstanding[url]
         if not outstanding:
-            print(f"all {len(wanted)} changed asset(s) confirmed live")
+            print(f"all {len(wanted)} changed asset(s) confirmed live "
+                  f"in {time.monotonic() - started:.0f}s")
             return 0
         if attempt < ATTEMPTS - 1:
             time.sleep(GAP_SECONDS)
 
     print(
         f"FAILED: {len(outstanding)} of {len(wanted)} changed asset(s) are still not what\n"
-        f"poesys.net serves after ~{ATTEMPTS * GAP_SECONDS // 60} minutes:\n  "
+        f"poesys.net serves after {ATTEMPTS * GAP_SECONDS // 60} minutes:\n  "
         + "\n  ".join(sorted(outstanding)),
         file=sys.stderr,
     )
