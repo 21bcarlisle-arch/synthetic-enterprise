@@ -719,6 +719,232 @@ def artefact_wire_conformance_at(
         return artefact_wire_conformance(root, artefact_at(rev, repo_root=repo_root))
 
 
+# ── can a cold reader tell a STALE ARTEFACT from a BROKEN WIRE? ──────────────────────────────
+#
+# WHY (2026-08-20, this atom's own named next move -- the Expert Hour on channel D, run as a
+# cold-eyes walk against the REPORT rather than the code). The two halves above print, at HEAD:
+#
+#     channel D: all 3 wire site(s) put the version on the wire.
+#     channel D on the artefact: 3 silent, 0 unresolved, 0 unobservable
+#         ! artefact meter_read_log            0/1600 row(s) carry a version
+#
+# A reader who has never seen this atom cannot read that. The code half is green, the artefact
+# half is zero on every row, and the two facts contradict each other on their face. The `!` says
+# defect. The true state is a migration that has landed and has not been published yet -- and
+# NOTHING IN THE OUTPUT SAYS SO. Pass 17 called the disagreement evidence that the halves are
+# independent, which it is; what it did not notice is that the same disagreement is what a broken
+# wire looks like, so the report cannot tell its success case from its failure case.
+#
+# WHAT CAN HONESTLY BE SAID, given the artefact carries no production stamp
+# (`WORKER_FINDING_THE_PUBLISHED_ARTEFACT_CARRIES_NO_PRODUCTION_STAMP_2026-08-15`, still open).
+# Not "this artefact was produced by this code" -- that is the stamp, and inventing a proxy for it
+# is exactly the fabrication that finding refuses. What IS derivable, from git alone and at the
+# same rev both halves already use, is a BOUND: the commit that last touched the artefact, and the
+# commit that last touched each module whose call sites emit its rows. If the artefact's commit is
+# a strict ancestor of a producer's, the artefact PREDATES the code that would have put the version
+# in it, and silence is unreadable rather than damning. If it is not older than any producer, then
+# staleness-by-commit-order is no longer available as an excuse and a silent log is a real defect.
+#
+# THE ASYMMETRY IS DELIBERATE AND IS THE HONEST HALF. "Older than a producer" is a SUFFICIENT
+# explanation of silence. "Not older than any producer" is NOT a production stamp and must never be
+# printed as one: a publisher process running code from before the migration can commit fresh bytes
+# at any time (R2 -- committed is not running). So this narrows the reading from "unknown" to
+# "unexplained"; it does not close the finding, and the report says which of the two it is saying.
+#
+# THE SUBJECT IS DERIVED, never declared, for pass 17's reason: the producers come from the wire
+# call sites themselves, so a fourth port emitting from a fourth module is dated on the day it
+# lands rather than silently omitted from a hardcoded list of three.
+
+def producer_paths_of(root: str) -> list[str]:
+    """The modules that emit the wire's rows, read out of the wire call sites themselves."""
+    return sorted({site.split(" -> ")[0] for site in wire_publish_keys(root)})
+
+
+def _last_commit_touching(rel: str, rev: str, repo_root: Path) -> str | None:
+    """The commit at or before `rev` that last changed `rel`, or None if git cannot say.
+
+    None is UNDETERMINED, never "unchanged" -- every caller routes it to the undetermined list.
+    """
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(repo_root), "rev-list", "-1", rev, "--", rel],
+            capture_output=True, text=True, check=False,
+        )
+    except OSError:
+        return None
+    if proc.returncode != 0:
+        return None
+    return proc.stdout.strip() or None
+
+
+def _strictly_precedes(earlier: str, later: str, repo_root: Path) -> bool | None:
+    """Is `earlier` a STRICT ancestor of `later`? None when the two cannot be ordered.
+
+    Topology, not timestamps: a commit date is metadata a rebase rewrites, and two commits made a
+    second apart can land in either order. Divergent commits return None rather than False,
+    because "no ancestry either way" is not "the artefact is current".
+    """
+    if earlier == later:
+        return False
+    try:
+        forward = subprocess.run(
+            ["git", "-C", str(repo_root), "merge-base", "--is-ancestor", earlier, later],
+            capture_output=True, text=True, check=False,
+        )
+        backward = subprocess.run(
+            ["git", "-C", str(repo_root), "merge-base", "--is-ancestor", later, earlier],
+            capture_output=True, text=True, check=False,
+        )
+    except OSError:
+        return None
+    if forward.returncode == 0:
+        return True
+    if backward.returncode == 0:
+        return False
+    # rc 1 both ways is a genuine fork; anything else is git failing to answer. Neither is False.
+    return None
+
+
+@dataclass(frozen=True)
+class ArtefactProvenance:
+    """Where the artefact sits in commit order relative to the code that produces its rows."""
+
+    #: the commit that last touched the artefact, or None when git could not say.
+    artefact_commit: str | None
+    #: producer module -> the commit that last touched it, or None when git could not say.
+    producers: dict[str, str | None]
+    #: producers that landed AFTER the artefact -- the artefact cannot contain their output.
+    predates: list[str]
+    #: producers whose order against the artefact could not be established.
+    undetermined: list[str]
+    #: set when nothing could be established at all, and printed instead of a verdict.
+    reason: str | None = None
+
+    @property
+    def staleness_explains_silence(self) -> bool:
+        """Is a silent log above accounted for by the artefact being older than its code?"""
+        return bool(self.predates)
+
+    @property
+    def determined(self) -> bool:
+        """Every producer ordered against a known artefact commit, and at least one producer."""
+        return (
+            self.artefact_commit is not None
+            and bool(self.producers)
+            and not self.undetermined
+        )
+
+    def report(self) -> str:
+        if not self.producers:
+            return (
+                "    channel D has no wire site, so the artefact has no producer to be dated "
+                f"against{f' ({self.reason})' if self.reason else ''}"
+            )
+        lines: list[str] = []
+        if self.predates:
+            named = ", ".join(
+                f"{path}@{(self.producers.get(path) or '?')[:9]}" for path in self.predates
+            )
+            lines.append(
+                f"    the artefact PREDATES {len(self.predates)} of {len(self.producers)} "
+                f"producer(s): {named}"
+            )
+            lines.append(
+                "      -> a silent log above is STALE BYTES, not evidence of a broken wire: "
+                "these bytes were published before that code existed."
+            )
+        if self.undetermined:
+            lines.append(
+                f"    ? provenance UNDETERMINED against {len(self.undetermined)} producer(s): "
+                + ", ".join(self.undetermined)
+            )
+            lines.append(
+                "      -> silence above cannot be read either way"
+                + (f" ({self.reason})" if self.reason else "")
+            )
+        if not lines:
+            lines.append(
+                f"    the artefact is no older than any of its {len(self.producers)} producer(s)"
+            )
+            lines.append(
+                "      -> a silent log above is NOT explained by staleness. This is a "
+                "COMMIT-ORDER bound and NOT a production stamp: a publisher still running "
+                "pre-migration code can commit fresh bytes at any time (R2)."
+            )
+        return "\n".join(lines)
+
+
+def artefact_provenance(
+    producer_paths: list[str], rev: str = "HEAD", repo_root: Path = PROJECT_DIR
+) -> ArtefactProvenance:
+    """Order the artefact against the modules that emit its rows. Never asserts production."""
+    producers: dict[str, str | None] = {
+        path: _last_commit_touching(path, rev, repo_root) for path in producer_paths
+    }
+    if not producers:
+        return ArtefactProvenance(
+            artefact_commit=None, producers={}, predates=[], undetermined=[],
+            reason="no wire call sites in this tree",
+        )
+    artefact_commit = _last_commit_touching(ARTEFACT_REL, rev, repo_root)
+    if artefact_commit is None:
+        return ArtefactProvenance(
+            artefact_commit=None, producers=producers, predates=[],
+            undetermined=sorted(producers),
+            reason=f"no commit at {rev} touches {ARTEFACT_REL}",
+        )
+    predates: list[str] = []
+    undetermined: list[str] = []
+    for path in sorted(producers):
+        commit = producers[path]
+        if commit is None:
+            undetermined.append(path)
+            continue
+        order = _strictly_precedes(artefact_commit, commit, repo_root)
+        if order is None:
+            undetermined.append(path)
+        elif order:
+            predates.append(path)
+    return ArtefactProvenance(
+        artefact_commit=artefact_commit, producers=producers,
+        predates=predates, undetermined=undetermined,
+        reason="a producer's history is unreadable at this rev" if undetermined else None,
+    )
+
+
+def artefact_provenance_at(
+    rev: str = "HEAD", worktree: bool = False, repo_root: Path = PROJECT_DIR
+) -> ArtefactProvenance:
+    """The provenance reading for the same subject the artefact half measured.
+
+    WORKTREE MODE IS UNDETERMINED BY CONSTRUCTION when the artefact is dirty, and says so rather
+    than dating uncommitted bytes against the commit that last touched their path -- that
+    comparison would be a lie in the reassuring direction on every tree with a daemon running.
+    """
+    if worktree:
+        producer_paths = producer_paths_of(str(repo_root))
+        try:
+            dirty = subprocess.run(
+                ["git", "-C", str(repo_root), "status", "--porcelain", "--", ARTEFACT_REL],
+                capture_output=True, text=True, check=False,
+            )
+        except OSError as exc:
+            raise CensusUnavailable(f"could not run git status: {exc}") from exc
+        if dirty.returncode != 0:
+            raise CensusUnavailable(f"git status failed on {ARTEFACT_REL}: {dirty.stderr.strip()}")
+        if dirty.stdout.strip():
+            return ArtefactProvenance(
+                artefact_commit=None,
+                producers={path: None for path in producer_paths},
+                predates=[], undetermined=sorted(producer_paths),
+                reason=f"{ARTEFACT_REL} is uncommitted in the worktree, so it has no commit order",
+            )
+        return artefact_provenance(producer_paths, rev=rev, repo_root=repo_root)
+    with head_export(str(repo_root), CENSUS_DIRS, rev=rev) as root:
+        producer_paths = producer_paths_of(root)
+    return artefact_provenance(producer_paths, rev=rev, repo_root=repo_root)
+
+
 ENUMERATORS = {
     "A_direct_import": enumerate_a,
     "B_indirect_import": enumerate_b,
@@ -910,11 +1136,22 @@ def main(argv: list[str] | None = None) -> int:
     # The `if carrying:` filter this replaces suppressed exactly the state the check exists to
     # find: at HEAD b22698df8, three logs at 0/1,996 printed as an empty section.
     try:
-        print(artefact_wire_conformance_at(rev=args.rev, worktree=args.worktree).report())
+        artefact_wire = artefact_wire_conformance_at(rev=args.rev, worktree=args.worktree)
     except CensusUnavailable as exc:
         print(
             f"ARTEFACT WIRE CHECK UNAVAILABLE (a failed check, not a pass): {exc}", file=sys.stderr
         )
+        return 2
+    print(artefact_wire.report())
+
+    # Silence above is unreadable without this line -- it is what tells a stale artefact from a
+    # broken wire, and the CLI is where a cold reader meets the number, so it prints here and not
+    # in a report nobody runs. Printed on the green case too: "no older than its producers" is the
+    # sentence that makes the next silent log mean something.
+    try:
+        print(artefact_provenance_at(rev=args.rev, worktree=args.worktree).report())
+    except CensusUnavailable as exc:
+        print(f"PROVENANCE UNAVAILABLE (a failed check, not a pass): {exc}", file=sys.stderr)
         return 2
 
     try:

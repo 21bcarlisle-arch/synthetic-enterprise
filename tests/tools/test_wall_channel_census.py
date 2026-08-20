@@ -793,3 +793,204 @@ def test_FAIL_CLOSED_the_GATE_refuses_when_the_wire_check_itself_raises(monkeypa
     monkeypatch.setattr(wcc, "wire_conformance_at", _boom)
     ok, detail = gate._wall_channel_census_check(["simulation/anything.py"])
     assert not ok and "RAISED" in detail and "git is not available" in detail
+
+
+# ── 12. STALE ARTEFACT vs BROKEN WIRE -- the reading the report could not make ────────────────
+#
+# Section 9's two halves disagree at HEAD: the code half green on all three sites, the artefact
+# half zero on all 1,996 rows. Pass 17 read that disagreement as proof of independence, which it
+# is. What it is ALSO the shape of is a broken wire, and the report had no way to say which -- so
+# the atom's own success case and its failure case printed identically. `artefact_provenance`
+# separates them by commit order, and the proofs below are about the two ways that could go wrong:
+# saying "stale" about everything (which excuses every real defect) and saying "current" when git
+# could not actually answer (which convicts on an unread record).
+
+def _git(root: Path, *args: str) -> str:
+    import subprocess
+
+    proc = subprocess.run(
+        ["git", "-C", str(root), *args], capture_output=True, text=True, check=True,
+    )
+    return proc.stdout.strip()
+
+
+@pytest.fixture()
+def git_tree(tmp_path: Path) -> Path:
+    """A real repository, because commit ORDER is the subject and no fake can carry it."""
+    root = tmp_path / "repo"
+    root.mkdir()
+    _git(root, "init", "-q", "-b", "main")
+    _git(root, "config", "user.email", "t@example.invalid")
+    _git(root, "config", "user.name", "t")
+    return root
+
+
+def _commit(root: Path, rel: str, body: str, message: str) -> str:
+    _write(root, rel, body)
+    _git(root, "add", "--", rel)
+    _git(root, "commit", "-q", "-m", message)
+    return _git(root, "rev-parse", "HEAD")
+
+
+PRODUCER = "simulation/run_phase2b.py"
+
+
+def test_an_artefact_committed_BEFORE_its_producer_is_reported_as_PREDATING(git_tree):
+    """The state at HEAD on 2026-08-20, and the whole reason this exists: the migration landed
+    after the last publish, so 0 of 1,996 rows is stale bytes and not a broken wire."""
+    _commit(git_tree, wcc.ARTEFACT_REL, '{"meter_read_log": []}\n', "publish")
+    _commit(git_tree, PRODUCER, "x = 1\n", "the wire lands")
+
+    prov = wcc.artefact_provenance([PRODUCER], rev="HEAD", repo_root=git_tree)
+
+    assert prov.predates == [PRODUCER]
+    assert prov.staleness_explains_silence
+    assert not prov.undetermined
+    assert "STALE BYTES" in prov.report()
+
+
+def test_MUTATION_an_artefact_committed_AFTER_its_producer_is_NOT_excused_as_stale(git_tree):
+    """Move the sample, not the law. A verdict that says "stale" whichever way the commits went
+    would excuse every genuinely broken wire while looking exactly as helpful, so the same two
+    files in the opposite order must produce the opposite reading."""
+    _commit(git_tree, PRODUCER, "x = 1\n", "the wire lands")
+    _commit(git_tree, wcc.ARTEFACT_REL, '{"meter_read_log": []}\n', "publish")
+
+    prov = wcc.artefact_provenance([PRODUCER], rev="HEAD", repo_root=git_tree)
+
+    assert prov.predates == []
+    assert not prov.staleness_explains_silence
+    assert prov.determined
+    assert "NOT explained by staleness" in prov.report()
+
+
+def test_the_BOUNDARY_case_of_one_commit_carrying_both_is_not_staleness(git_tree):
+    """Artefact and producer in the SAME commit is the value the rule is most easily wrong about.
+    There is no commit order between them, so staleness is not available as an excuse -- and
+    `_strictly_precedes` must return False rather than the None it returns for a real fork."""
+    _write(git_tree, wcc.ARTEFACT_REL, '{"meter_read_log": []}\n')
+    _write(git_tree, PRODUCER, "x = 1\n")
+    _git(git_tree, "add", "-A")
+    _git(git_tree, "commit", "-q", "-m", "both at once")
+
+    prov = wcc.artefact_provenance([PRODUCER], rev="HEAD", repo_root=git_tree)
+
+    assert prov.predates == [] and prov.undetermined == []
+    assert prov.determined
+
+
+def test_MUTATION_a_producer_git_cannot_date_is_UNDETERMINED_not_current(git_tree):
+    """FAIL-OPEN, R15's second killer. A producer path with no commit touching it returns None
+    from `_last_commit_touching`; if that were dropped, an empty `predates` would read as the
+    reassuring "no older than any producer" on a question git never answered."""
+    _commit(git_tree, wcc.ARTEFACT_REL, '{"meter_read_log": []}\n', "publish")
+
+    prov = wcc.artefact_provenance([PRODUCER], rev="HEAD", repo_root=git_tree)
+
+    assert prov.undetermined == [PRODUCER]
+    assert not prov.determined
+    assert not prov.staleness_explains_silence
+    assert "UNDETERMINED" in prov.report()
+    assert "NOT explained by staleness" not in prov.report()
+
+
+def test_FAIL_CLOSED_an_artefact_with_no_commit_is_UNDETERMINED_not_current(git_tree):
+    """The artefact side of the same fail-open: producers dated, artefact never committed."""
+    _commit(git_tree, PRODUCER, "x = 1\n", "the wire lands")
+
+    prov = wcc.artefact_provenance([PRODUCER], rev="HEAD", repo_root=git_tree)
+
+    assert prov.artefact_commit is None
+    assert prov.undetermined == [PRODUCER] and not prov.determined
+    assert wcc.ARTEFACT_REL in prov.report() or "UNDETERMINED" in prov.report()
+
+
+def test_NO_WIRE_SITES_reports_no_producer_rather_than_a_clean_bill(git_tree):
+    """Channel D fully paid down is this atom's SUCCESS case, so an empty producer set is not
+    refused -- but it must not print the sentence that convicts a silent log either, because
+    there is no subject to convict."""
+    _commit(git_tree, wcc.ARTEFACT_REL, '{"meter_read_log": []}\n', "publish")
+
+    prov = wcc.artefact_provenance([], rev="HEAD", repo_root=git_tree)
+
+    assert not prov.determined and not prov.staleness_explains_silence
+    assert "no wire site" in prov.report()
+    assert "NOT explained by staleness" not in prov.report()
+
+
+def test_INDEPENDENCE_the_verdict_does_not_move_when_the_artefacts_ROWS_change(git_tree):
+    """TAUTOLOGY, R15's first killer. This reading exists to be checked AGAINST the row counts,
+    so it must not be computed from them: the same commit order with rows that carry the version
+    and rows that do not must give the identical verdict."""
+    _commit(git_tree, wcc.ARTEFACT_REL, '{"meter_read_log": [{"schema_version": 1}]}\n', "publish")
+    _commit(git_tree, PRODUCER, "x = 1\n", "the wire lands")
+    carrying = wcc.artefact_provenance([PRODUCER], rev="HEAD", repo_root=git_tree)
+
+    _commit(git_tree, wcc.ARTEFACT_REL, '{"meter_read_log": [{}]}\n', "republish, silent")
+    silent = wcc.artefact_provenance([PRODUCER], rev="HEAD", repo_root=git_tree)
+
+    # The rows changed from carrying to silent and the PROVENANCE moved for the other reason --
+    # the republish is a later commit than the producer. Contents never entered either verdict.
+    assert carrying.predates == [PRODUCER]
+    assert silent.predates == [] and silent.determined
+
+
+def test_the_report_REFUSES_to_claim_production_on_its_own_green_case(git_tree):
+    """The honest half. "Not older than its producers" is a commit-order bound and is NOT the
+    production stamp WORKER_FINDING_THE_PUBLISHED_ARTEFACT_CARRIES_NO_PRODUCTION_STAMP_2026-08-15
+    says is missing -- a publisher running pre-migration code commits fresh bytes and lands here.
+    If this line is ever dropped the report starts asserting something it cannot know."""
+    _commit(git_tree, PRODUCER, "x = 1\n", "the wire lands")
+    _commit(git_tree, wcc.ARTEFACT_REL, '{"meter_read_log": []}\n', "publish")
+
+    report = wcc.artefact_provenance([PRODUCER], rev="HEAD", repo_root=git_tree).report()
+
+    assert "NOT a production stamp" in report
+    assert "COMMIT-ORDER bound" in report
+
+
+def test_a_DIRTY_worktree_artefact_is_UNDETERMINED_rather_than_dated_by_its_path(git_tree):
+    """Worktree mode meets uncommitted bytes on this shared tree every time a daemon has run.
+    Dating them by the commit that last touched their PATH would compare a file nobody committed
+    against code that may postdate it -- wrong in the reassuring direction, on every such tree."""
+    _commit(git_tree, PRODUCER, "x = 1\n", "the wire lands")
+    _commit(git_tree, wcc.ARTEFACT_REL, '{"meter_read_log": []}\n', "publish")
+    _write(git_tree, wcc.ARTEFACT_REL, '{"meter_read_log": [{}]}\n')  # a daemon republishes
+
+    prov = wcc.artefact_provenance_at(worktree=True, repo_root=git_tree)
+
+    assert not prov.determined and "uncommitted" in (prov.reason or "")
+    assert "NOT explained by staleness" not in prov.report()
+
+
+def test_the_PRODUCERS_are_derived_from_the_wire_sites_not_declared(tmp_path: Path):
+    """A declared list of the three live emitters would leave a FOURTH port's emitter undated and
+    unlisted on the day it lands -- the hardcoded-five this module's own docstring refuses. So the
+    subject is asked of a tree whose emitter shares no name with any live one, and the answer must
+    be that module and not the live three."""
+    root = tmp_path / "repo"
+    _write(root, "tools/meter_read_port.py", PORT_WITH_FLAG)
+    _write(root, "simulation/run_a_fourth_emitter.py", """
+        from tools.meter_read_port import MeterReadMessage
+
+        def run(messages):
+            rows = [m.to_log_entry(include_schema_version=True) for m in messages]
+            return {"a_fourth_log": rows}
+    """)
+
+    assert wcc.producer_paths_of(str(root)) == ["simulation/run_a_fourth_emitter.py"]
+
+
+def test_THE_LIVE_ARTEFACT_IS_DATED_AGAINST_ITS_PRODUCERS():
+    """The live reading, and deliberately not a live assertion of WHICH way it goes.
+
+    Which way it goes is a property of when the last sim run published, so pinning it would red on
+    a tree with nothing wrong with it -- section 10's reason. What must hold on every tree is that
+    the question is ANSWERABLE: producers found, artefact dated, nothing undetermined. That is the
+    part that rots silently, because a producer moving to a new module leaves this undetermined
+    and the report reverts to the unreadable state this section exists to end.
+    """
+    prov = wcc.artefact_provenance_at(rev="HEAD")
+
+    assert prov.producers, "no producers derived from the live wire sites -- the subject has gone"
+    assert prov.determined, prov.report()
