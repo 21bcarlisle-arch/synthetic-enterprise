@@ -67,10 +67,24 @@ defect and is asserted to PASS on it:
   FAIL-SILENT -- `git` unavailable or exiting non-zero, swallowed into an empty set. An
                  unavailable check is a FAILED check, so both raise here.
 
-WHY THE INDEX AND NOT `HEAD`, on both sides. At pre-commit time the honest question is
-"will the commit about to be made contain this", and that is the index. A record and its
-falsifier added together in one commit are legitimately present. Post-commit the index
-matches HEAD and the two readings coincide.
+WHY THE INDEX **OR** `HEAD`, and why the two directions do not share the answer. At
+pre-commit time the honest question is "will the commit about to be made contain this", and
+a record and its falsifier added together in one commit are legitimately present — so the
+index is half the answer. The original of this paragraph claimed the other half away:
+"post-commit the index matches HEAD and the two readings coincide". It does not. CLAUDE.md
+documents three concurrent writers on ONE working tree and ONE index, so the index carries
+every lane's in-flight work, and on 2026-08-20 a site-retirement lane's staged `git rm` of
+72 pages made this control red on EIGHT citations across FOUR committed records, every one
+a `site/` path sitting in HEAD. The same read froze lane `H_harness` through
+`background/finding_severity.parse_discharge`, which is the finding that drew this repair.
+
+  * THE TRIPWIRE asks "will a clone have this" → index OR HEAD. Absent from BOTH is still a
+    violation, which is this file's whole subject and is untouched.
+  * THE STALE-ENTRY DIRECTION asks "has the debt been PAID" → HEAD only. A citation that is
+    merely staged has not paid it; the lane holding it can drop that staging, and an entry
+    deleted on the strength of it would leave a real debt undeclared. Nine of the eleven
+    entries the shared subject reported as "landed" were nodes in another lane's index and
+    in no commit.
 
 ── THE SUBJECT IS THE CITATION, NOT THE FILE (2026-08-18, rung-1c BLOCKING draw) ──
 
@@ -147,36 +161,20 @@ _MIN_CITED_PATHS = 120
 # does not). A path key deliberately cannot cover a node violation: that is the exact hole
 # this control was blind to, and letting one line re-open it would be the ratchet absorbing
 # its own subject.
-_WEDGE_DRAW_REPAIR = (
-    "2026-08-18, H27 rung-1c. Waits on the uncommitted wedge-draw repair "
-    "(`background/publish_gate_wedge.py`); the file is committed and carries 20 nodes at "
-    "HEAD, the working tree 29. Node present on disk here, in no commit."
-)
 _KNOWN_UNLANDED: dict[str, str] = {
-    "tests/saas/test_clv_margin_basis.py": (
-        "2026-08-18, H27 Hour #36. Waits on the uncommitted CLV margin-basis repair "
-        "(`saas/clv_model.py::CLV_MARGIN_BASIS`, absent at HEAD). Owning lane must land "
-        "the repair and this falsifier together."
-    ),
-    "tests/tools/test_derived_basis_parentage_gate.py": (
-        "2026-08-18, H27 Hour #36. Waits on the uncommitted R14 parentage gate "
-        "(`tools/generate_dashboard_data.py::_check_derived_basis_parentage` and "
-        "`UNKNOWN_COST_BASIS`, both absent at HEAD)."
-    ),
-    **{
-        f"tests/background/test_publish_gate_wedge_draw.py::{node}": _WEDGE_DRAW_REPAIR
-        for node in (
-            "test_superseded_clause_fires_when_every_failure_predates_head",
-            "test_superseded_clause_is_silent_when_failures_are_at_head",
-            "test_superseded_clause_is_silent_on_a_mixed_hash_set",
-            "test_superseded_clause_is_silent_without_a_usable_hash",
-            "test_superseded_clause_is_silent_when_git_cannot_answer",
-            "test_in_flight_clause_fires_and_suspends_the_enumerate_instruction",
-            "test_in_flight_clause_is_silent_when_no_gate_is_running",
-            "test_live_gate_runs_parses_ps_and_ignores_grep_and_junk",
-            "test_live_gate_runs_is_empty_when_ps_is_unavailable",
-        )
-    },
+    # LANDED 2026-08-20 at 71c59563a, all NINE entries deleted the same day — the ratchet's
+    # good direction, taken for the second time this week. They read: "2026-08-18, H27
+    # rung-1c. Waits on the uncommitted wedge-draw repair (`background/publish_gate_wedge.py`);
+    # the file is committed and carries 20 nodes at HEAD, the working tree 29. Node present on
+    # disk here, in no commit." The ordering-instrument repair landed the nine nodes with it
+    # (`git show HEAD:tests/background/test_publish_gate_wedge_draw.py` now carries 33), so the
+    # wait is over and the declaration goes rather than sit here re-exempting nodes that no
+    # longer need exempting. THE LIST IS NOW EMPTY, which is the state it is supposed to reach.
+    #
+    # DELETED 2026-08-20 — `tests/saas/test_clv_margin_basis.py` and `tests/tools/
+    # test_derived_basis_parentage_gate.py` were declared here on 2026-08-18 waiting on the CLV
+    # margin-basis repair and the R14 parentage gate. Both landed at b8e4f26be, both are at
+    # HEAD, and the debt is paid. The list only ever shrinks.
     # LANDED 2026-08-19 by H27 Expert Hour #39, all six entries deleted the same day. They
     # read: "Waits on the uncommitted D30 belief-axis floor repair
     # (`tools/couple_w2_11_d5.py::measure_belief_axis_null_control_floor`, absent at HEAD).
@@ -226,13 +224,37 @@ def _git(*args: str) -> str:
 
 
 def _paths_the_repository_has() -> set[str]:
-    """Subject B: the index -- what the commit being made will carry."""
+    """Subject B: the index OR HEAD -- what a clone will have once this commit is made.
+
+    THE INDEX ALONE WAS THE WRONG HALF (2026-08-20, rung-1c BLOCKING draw, H_harness;
+    `WORKER_FINDING_ANOTHER_LANES_STAGED_DELETION_VOIDS_EVERY_DISCHARGE_ON_THE_TREE`).
+    CLAUDE.md documents three concurrent writers on ONE working tree and ONE index, so the
+    index is a shared buffer of every lane's in-flight work rather than a view of the commit
+    in hand. MEASURED the day it bit: a site-retirement lane `git rm`'d 72 pages and this
+    control went red on EIGHT citations across FOUR committed records, every one of them a
+    `site/` path present at HEAD, none of them owned in any part by the records cited. A
+    control that fires on work its subject never did is not a tripwire, it is noise with a
+    stack trace -- and the same read froze lane H_harness through `finding_severity`.
+
+    A path at HEAD is landed: clone this repository today and the falsifier is there. A path
+    staged is landing with this commit. Only a path in NEITHER is on one machine, which is
+    this control's entire subject and is untouched -- see the null control below. What the
+    union does NOT cover, named rather than absorbed: a deletion that actually COMMITS. There
+    is one index and it cannot say which lane staged what, so the debt surfaces on the next
+    run, when HEAD no longer carries the path.
+    """
     tracked = {ln.strip() for ln in _git("ls-files").splitlines() if ln.strip()}
     assert tracked, (
         "`git ls-files` listed NOTHING. Either this is not a git work tree or the index is "
         "empty -- in both cases the comparison below would be vacuous"
     )
-    return tracked
+    committed = {ln.strip() for ln in _git("ls-tree", "-r", "--name-only", "HEAD").splitlines()
+                 if ln.strip()}
+    assert committed, (
+        "`git ls-tree HEAD` listed NOTHING. An unavailable half of the subject is a FAILED "
+        "check (R15 fail-silent), never a narrower one that quietly passes"
+    )
+    return tracked | committed
 
 
 def _claim_text(record_text: str, marker: str) -> str:
@@ -294,25 +316,102 @@ def _discharge_citations(marker: str = _DISCHARGE_MARKER) -> tuple[dict[str, set
     return cited, records
 
 
-def _index_defines(citation: str, have: set[str]) -> bool:
-    """Does the INDEX carry this citation — the file, and the node inside the file?"""
+def _retired_at(path: str) -> str | None:
+    """The commit that DELETED `path`, or None when git names no such commit.
+
+    THE THIRD ANSWER, 2026-08-20 (§5, `WORKER_FINDING_A_FALSIFIER_CAN_BE_RETIRED_WITH_ITS_
+    SUBJECT`). The landed set was *indexed* OR *at HEAD*. A falsifier whose subject was
+    DELIBERATELY DELETED is in neither, so this control read three honest records as lies:
+    commit 03dd8c49e retired eleven site pages and six citations went `in no tree at all`,
+    re-opening findings that owned no part of the retirement and freezing lane `H_harness`.
+
+    This is the same shape as the staged-deletion freeze one door along, and the same tell:
+    a control asking "is the evidence there?" is really asking two questions it cannot tell
+    apart — *was this ever true* and *is it still runnable*. While nothing is ever deleted the
+    two coincide; the first deliberate deletion turns the control into an accusation.
+
+    RETIREMENT IS CHECKABLE, which is why this is not a hand-kept list: a deleted path names
+    its deletion commit, a never-landed path names none. `_KNOWN_UNLANDED` could not have
+    absorbed these and must not be taught to — its own R15 test refuses any entry naming
+    something in no tree, deliberately, and that ratchet is right.
+    """
+    out = _git("log", "-1", "--diff-filter=D", "--format=%H", "--", path)
+    return out.strip() or None
+
+
+def _retirement_accounts_for(citation: str) -> bool:
+    """Was this citation's subject RETIRED, with the node present before the deletion?
+
+    The second clause is what stops a retired file becoming an amnesty for nodes it never
+    defined. NULL CONTROL, and the whole reason the widening is safe: a file never `git add`ed
+    and a node in no tree have no deletion commit and no pre-deletion blob, so both are still
+    refused — see `test_a_falsifier_in_no_tree_and_never_deleted_is_still_refused`.
+    """
+    path, _, node = citation.partition("::")
+    sha = _retired_at(path)
+    if sha is None:
+        return False
+    blob = _blob(f"{sha}^:", path)
+    if not blob:
+        return False
+    return node in blob if node else True
+
+
+def _index_defines(citation: str, have: set[str], specs: tuple[str, ...] = (":", "HEAD:")) -> bool:
+    """Does a LANDED tree carry this citation — the file, and the node inside the file?
+
+    The node half takes the same union as `_paths_the_repository_has` and for the same
+    reason: another lane editing a shared file out of the index does not un-land a node that
+    is sitting in HEAD. The working tree is still never asked, which is the 2026-08-18
+    property this must not give back.
+    """
     path, _, node = citation.partition("::")
     if path not in have:
         return False
     if not node:
         return True
-    return node in _git("show", f":{path}")
+    return any(node in _blob(spec, path) for spec in specs)
+
+
+def _blob(spec: str, path: str) -> str:
+    """One landed copy of `path`, or "" when that tree does not carry it.
+
+    NOT routed through `_git`, deliberately: `git show :p` exits 128 for a path the index
+    has dropped, which `_git` correctly treats as "cannot answer" and raises on. Here the
+    absence IS the answer for this half, and the OTHER half is still consulted -- a missing
+    blob narrows the evidence, it never ends the question. Both halves empty and the
+    citation is a violation, which is the fail-closed direction.
+    """
+    r = subprocess.run(
+        ["git", "show", f"{spec}{path}"], cwd=str(PROJECT),
+        capture_output=True, text=True, timeout=180,
+    )
+    return r.stdout if r.returncode == 0 else ""
 
 
 def _violations(
     cited: dict[str, set[str]] | None = None,
     have: set[str] | None = None,
+    specs: tuple[str, ...] = (":", "HEAD:"),
+    allow_retired: bool = True,
 ) -> dict[str, set[str]]:
+    """`specs` names WHICH landed trees the NODE half may be found in, and must match the
+    tree `have` was built from. The two directions of this ratchet pass different pairs --
+    see `test_every_declared_exemption_is_still_a_real_violation` -- and a file-level union
+    with a node-level HEAD-only read would be a control whose halves read different trees,
+    which is a filed class in this project."""
     if cited is None:
         cited, _ = _discharge_citations()
     if have is None:
         have = _paths_the_repository_has()
-    return {c: srcs for c, srcs in cited.items() if not _index_defines(c, have)}
+    return {
+        c: srcs for c, srcs in cited.items()
+        if not _index_defines(c, have, specs)
+        # RETIRED is the third landed answer (2026-08-20). Asked LAST and only for citations
+        # the landed trees already failed, so it can widen the pass set and never narrow it:
+        # a citation both trees carry is never routed through a deletion lookup.
+        and not (allow_retired and _retirement_accounts_for(c))
+    }
 
 
 def _exemption_key(citation: str, have: set[str]) -> str | None:
@@ -394,16 +493,33 @@ def test_every_declared_exemption_is_still_a_real_violation():
     An entry that has been landed must be DELETED from the list. Left behind, it would
     silently re-exempt the same path if it were ever un-landed again, which is precisely how
     a ratchet stops being one.
+
+    THE TWO DIRECTIONS DO NOT SHARE A SUBJECT (2026-08-20, same draw as the union above).
+    The tripwire asks "will a clone have this once the commit is made", so index-OR-HEAD is
+    right there. This direction asks "has the debt been PAID", and a citation that is merely
+    STAGED has not paid it — the lane holding it can drop the staging at any moment, and the
+    debt this list declares would then be undeclared instead of exempt. Measured when the two
+    were one subject: of the 11 entries this reported as "landed, which is the good outcome",
+    NINE were nodes sitting in another lane's index and in no commit. Deleting them on that
+    message is how the list shrinks past what actually landed. HEAD only, here.
     """
-    have = _paths_the_repository_has()
+    committed = {ln.strip() for ln in _git("ls-tree", "-r", "--name-only", "HEAD").splitlines()
+                 if ln.strip()}
+    assert committed, (
+        "`git ls-tree HEAD` listed NOTHING — an unavailable subject is a FAILED check"
+    )
     used = {
-        key for key in (_exemption_key(c, have) for c in _violations(have=have))
+        key for key in (
+            _exemption_key(c, committed)
+            for c in _violations(have=committed, specs=("HEAD:",))
+        )
         if key is not None
     }
     stale = sorted(set(_KNOWN_UNLANDED) - used)
     assert not stale, (
         "these paths are declared in _KNOWN_UNLANDED but are no longer violations -- they "
-        "have been landed, which is the good outcome:\n  - " + "\n  - ".join(stale)
+        "have LANDED (present at HEAD, not merely staged), which is the good outcome:\n  - "
+        + "\n  - ".join(stale)
         + "\nDelete each from _KNOWN_UNLANDED. The list only ever shrinks."
     )
 
@@ -627,3 +743,108 @@ def test_MUTATION_an_empty_index_listing_is_not_read_as_a_clean_repository(monke
     monkeypatch.setattr(subprocess, "run", lambda *_a, **_k: _Res())
     with pytest.raises(AssertionError, match="listed NOTHING"):
         _paths_the_repository_has()
+
+
+# ── THE TWO SUBJECTS, ASSERTED SEPARATELY (2026-08-20) ──
+
+def test_the_tripwires_subject_is_exactly_the_index_union_head():
+    """Both halves present, neither silently dropped.
+
+    Computed independently of `_paths_the_repository_has` — the union is rebuilt here from
+    two git calls rather than compared against itself, because a control and its check
+    sharing one selector have no subject outside it (a filed class in this project).
+
+    ITS BOUNDARY, stated rather than glossed: on a tree whose index and HEAD hold the same
+    paths this cannot tell a union from either half, so it is the STRUCTURAL guard and the
+    behavioural one is `background.finding_severity`'s mutation battery, which builds real
+    repositories and deletes out of one tree at a time.
+    """
+    index = {ln.strip() for ln in _git("ls-files").splitlines() if ln.strip()}
+    head = {ln.strip() for ln in _git("ls-tree", "-r", "--name-only", "HEAD").splitlines()
+            if ln.strip()}
+    assert index and head, "either half empty makes this comparison vacuous"
+    assert _paths_the_repository_has() == index | head
+
+
+def test_MUTATION_dropping_the_retirement_answer_reads_an_honest_record_as_a_lie():
+    """R15 ON THE THIRD LANDED ANSWER, with its null control (2026-08-20, §5 of the rung-1c
+    BLOCKING draw `WORKER_FINDING_A_FALSIFIER_CAN_BE_RETIRED_WITH_ITS_SUBJECT`).
+
+    THE MUTANT IS THE CONTROL AS SHIPPED YESTERDAY: `allow_retired=False` is exactly the
+    index-OR-HEAD reading, and it is asserted to fire on the honest record — which is what it
+    did, on six citations across three committed records, when commit 03dd8c49e retired eleven
+    site pages and put lane `H_harness` back into BLOCKING over work it owned no part of.
+
+    THE SUBJECT IS REAL, IMMUTABLE HISTORY rather than a built fixture, deliberately: this
+    file's whole method is to ask git about this repository, and 03dd8c49e cannot change. The
+    parser half is proven the other way — `tests/background/test_finding_severity.py` builds
+    throwaway repositories and deletes out of one tree at a time — so between them the pair is
+    proven against both a fixture and the real deletion that caused the finding.
+
+    THE NULL CONTROL IS THE POINT, and it is arm 3 below: a path that NEVER landed has no
+    deletion commit and a retired file does not define a node it never carried, so neither can
+    buy amnesty. Without those two the widening would be indistinguishable from re-opening the
+    hole `test_no_exemption_absorbs_a_citation_that_is_in_no_tree` closed on 2026-08-18.
+    """
+    have = _paths_the_repository_has()
+    retired = "site/customers/test_wall_exhibit.py"
+    node = "test_the_customer_view_of_the_whole_page_contains_no_company_or_sim_panel"
+    ghost = "site/customers/_a_page_no_commit_ever_had.py"
+    assert retired not in have, (
+        f"precondition: {retired} was retired at 03dd8c49e and must be in neither landed "
+        "tree. If it has been restored, this test needs a different retired subject -- do "
+        "not weaken the assertions below to match"
+    )
+    assert ghost not in have, "precondition: the null-control path must be in no tree"
+
+    # ARM 1: retirement is CHECKABLE, and the never-landed path is not retired but absent.
+    assert _retired_at(retired), "git names the commit that deleted a retired path"
+    assert _retired_at(ghost) is None, (
+        "a path that never landed has NO deletion commit -- that asymmetry is the whole "
+        "reason this widening cannot launder the case the 2026-08-18 repair closed"
+    )
+
+    # ARM 2: the widening admits the honest citation, and the mutant (the shipped control,
+    # index-OR-HEAD only) calls it a violation. Driven through `_violations` with a synthetic
+    # citation set so the verdict does not depend on which records happen to be archived.
+    amnesty = f"{retired}::test_a_node_that_page_never_carried_ffffff"
+    cited = {f"{retired}::{node}": {"record.md"}, amnesty: {"record.md"}, ghost: {"record.md"}}
+    widened = _violations(cited=cited, have=have)
+    mutant = _violations(cited=cited, have=have, allow_retired=False)
+
+    # ARM 3, THE NULL CONTROL: exactly the two that retirement cannot account for survive.
+    assert set(widened) == {amnesty, ghost}, (
+        "the retired falsifier must be admitted, and BOTH the invented node and the "
+        f"never-landed path must still be refused; got {sorted(widened)}"
+    )
+    assert set(mutant) == set(cited), (
+        "the pre-widening mutant was expected to call ALL THREE violations, the honest "
+        "retired falsifier included -- if it does not, this control is not distinguishable "
+        "from the one that froze H_harness on six honest citations"
+    )
+
+
+def test_the_stale_entry_direction_does_not_count_a_staged_only_citation_as_paid():
+    """The debt-paid subject is HEAD, and a citation only the index has is still owed.
+
+    Driven through `_violations` with a synthetic citation set so the verdict does not
+    depend on which lanes happen to be mid-flight: one path at HEAD, one path the index
+    could hold and HEAD does not. Under the tripwire's union both are satisfied; under the
+    stale direction's HEAD-only subject the second is still a violation, which is what stops
+    an exemption being deleted while the work it waits on is merely `git add`ed.
+    """
+    at_head = {ln.strip() for ln in _git("ls-tree", "-r", "--name-only", "HEAD").splitlines()
+               if ln.strip()}
+    assert at_head, "an unavailable subject is a FAILED check"
+    landed = sorted(p for p in at_head if p.endswith(".py"))[0]
+    staged_only = "tests/architecture/_a_path_head_does_not_have.py"
+    cited = {landed: {"record.md"}, staged_only: {"record.md"}}
+
+    union = _violations(cited=cited, have=at_head | {staged_only})
+    assert set(union) == set(), "the tripwire refused a path a landed tree carries"
+
+    stale_direction = _violations(cited=cited, have=at_head, specs=("HEAD:",))
+    assert set(stale_direction) == {staged_only}, (
+        "a staged-only citation read as a paid debt — deleting its exemption on that "
+        "reading is how the ratchet shrinks past what actually landed"
+    )

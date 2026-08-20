@@ -195,8 +195,33 @@ _DENIAL_RE = re.compile(
 #: The cost is real and intended and UNCHANGED: a discharge does not release until its
 #: falsifier is STAGED OR COMMITTED, which is the same instant the claim becomes true for
 #: anyone else. The working tree is still the one tree that is never asked.
-_DISCHARGED_RE = re.compile(r"\*\*Discharged:?\*\*:?\s*(?P<value>[^\n]+)")
+#: THE SCOPE IS THE WHOLE DOCUMENT, ANCHORED AT LINE START, 2026-08-20 (§4 of the rung-1c
+#: BLOCKING draw, `WORKER_FINDING_A_FALSIFIER_CAN_BE_RETIRED_WITH_ITS_SUBJECT`). This field
+#: used to be read out of `header_block(text)` — capped at HEADER_BLOCK_MAX_LINES = 40 — while
+#: `tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py` policed
+#: `^**Discharged:**` ANYWHERE in the document. Two copies of one question, disagreeing about
+#: where the answer may live, and neither saying so. The dangerous direction is not a claim
+#: that gets over-policed: it is a GENUINE discharge written on line 41 or later, which the
+#: parser never reads, so the repair lands, the falsifier is cited, and the finding stays
+#: BLOCKING with no refusal reason anywhere. A refusal is reportable; an unread field is not.
+#: That is R15 FAIL-SILENT on the field whose entire job is to be fail-closed. MEASURED over
+#: every record under `docs/staging/`: 16 documents carry a `**Discharged:**` the parser has
+#: never read, one of them BLOCKING and naming falsifiers that are committed.
+#:
+#: THE ANCHOR IS THE HALF THAT MAKES WIDENING SAFE, and it is why the cap could not simply be
+#: lifted. Of those 16, only 5 are field-shaped; the other 11 are the field being TALKED ABOUT
+#: — mid-sentence prose ("a path a record cites on its `**Discharged:**` line"), and a fenced
+#: block quoting gate output whose template names a fictional `tests/x/test_y.py::test_z`.
+#: Unanchored, the parser would have read all 11 as live claims and manufactured refusals — or
+#: a RELEASE, had a quoted example path happened to exist. `(?m)^` admits exactly the 5 and
+#: refuses the 11, which is precisely the discipline the tripwire already had.
+_DISCHARGED_RE = re.compile(r"(?m)^\*\*Discharged:?\*\*:?\s*(?P<value>[^\n]+)")
 _ARTEFACT_RE = re.compile(r"`([^`]+)`")
+
+#: The complete set of values that mean "this finding is NOT discharged". Anchored with
+#: `fullmatch` on the whole claim, so `no` matches and `note: ...` / `none of the three ...`
+#: do not — see the branch in `parse_discharge` for why this must stay this narrow.
+_NEGATIVE_DISCHARGE_RE = re.compile(r"(?:no|none|not yet|not discharged)\s*[.]?", re.IGNORECASE)
 
 #: THE CONTINUATION RULE, 2026-08-18 (§4 of the same finding). `_DISCHARGED_RE` matches one
 #: line. A real discharge naming six falsifiers across six lines was therefore parsed as
@@ -344,6 +369,43 @@ def _head_blob(root: Path, relative: str) -> str | None:
     _HEAD_BLOB_CACHE[key] = blob
     return blob
 
+def _retired_at(root: Path, relative: str) -> str | None:
+    """The commit that DELETED `relative`, or None when git names no such commit.
+
+    THE THIRD ANSWER, 2026-08-20 (§5 of the rung-1c BLOCKING draw,
+    `WORKER_FINDING_A_FALSIFIER_CAN_BE_RETIRED_WITH_ITS_SUBJECT`). The landed set was
+    *indexed* OR *at HEAD*; a falsifier whose subject was DELIBERATELY DELETED is in neither,
+    so a lane retiring pages read as three unrelated records lying. MEASURED the day it bit:
+    commit 03dd8c49e retired eleven site pages, and six citations across three committed
+    records — every one honest, every falsifier having existed and passed when cited — went
+    `in no tree at all`, putting lane `H_harness` back into BLOCKING over work it owned no
+    part of.
+
+    RETIREMENT IS CHECKABLE, which is why it belongs here and not in a hand-kept list. A path
+    deleted by a commit NAMES that commit. A path that never landed has no such commit, so
+    this widening cannot launder the case the 2026-08-18 repair closed — see the null control
+    in `parse_discharge` and `test_a_falsifier_in_no_tree_and_never_deleted_is_still_refused`.
+
+    None for every failure mode, never "" — `_git` already returns None for a dead git, and an
+    empty stdout (no deletion commit) is the honest "no". Both refuse.
+    """
+    out = _git(root, "log", "-1", "--diff-filter=D", "--format=%H", "--", relative)
+    if out is None:
+        return None
+    return out.strip() or None
+
+
+def _pre_retirement_blob(root: Path, sha: str, relative: str) -> str | None:
+    """The file's text as of the commit BEFORE `sha` deleted it, or None when unreadable.
+
+    The second clause of the retirement rule, and the one that stops a retired file becoming
+    an AMNESTY for nodes it never defined: the node must be present in the blob at the
+    deleting commit's parent. A root commit has no parent, `git show <sha>^:<path>` fails, and
+    None refuses — fail-closed on the one shape that cannot be checked.
+    """
+    return _git(root, "show", f"{sha}^:{relative}")
+
+
 #: THE EXONERATION FIELD, 2026-08-12. Full rationale on `parse_exoneration` below. Note it is
 #: NOT a second discharge: a discharge releases a SEVERITY (the defect can no longer recur);
 #: this releases a CITATION (this document is not the cause of THIS red) and leaves the
@@ -438,8 +500,21 @@ def parse_discharge(text: str, repo_root: Path | str = REPO_ROOT) -> Discharge |
     for why the working tree is the one tree that cannot be asked, and the paragraph below
     for why the index alone was the wrong half of that answer.
     """
-    claim = _discharge_claim(header_block(text))
+    # THE WHOLE DOCUMENT, not `header_block(text)` — see `_DISCHARGED_RE` above for the
+    # measurement, and for why the `(?m)^` anchor is what makes the widening safe.
+    claim = _discharge_claim(text)
     if claim is None:
+        return None
+    # AN EXPLICIT NEGATIVE IS NOT A MALFORMED CLAIM, 2026-08-20. Surfaced by the widening
+    # above: two committed records carry `**Discharged:** no.` — an author stating plainly
+    # that the finding is NOT discharged. Under the 40-line cap the parser never saw them; now
+    # it does, and reading them as "names no artefact in backticks" would report two honest
+    # authors as having written broken claims, which is the same class of accusation this
+    # whole draw is repairing. DELIBERATELY NARROW, because this is the one branch that can
+    # make a claim vanish rather than refuse: the WHOLE value must be a negative literal. A
+    # real discharge always names a backticked falsifier, and a half-written one ("not yet,
+    # waiting on `tests/x.py`") still carries a backtick and still refuses.
+    if _NEGATIVE_DISCHARGE_RE.fullmatch(claim.strip()):
         return None
 
     root = Path(repo_root)
@@ -480,10 +555,31 @@ def parse_discharge(text: str, repo_root: Path | str = REPO_ROOT) -> Discharge |
     unstaged: list[str] = []
     nodes_ok: list[str] = []
     nodes_bad: list[str] = []
+    retired_notes: list[str] = []
+    retired_nodes_bad: list[str] = []
     for artefact in artefacts:
         file_part, _, node = artefact.partition("::")
         if file_part not in landed:
-            (unstaged if (root / file_part).exists() else missing).append(artefact)
+            # ORDER MATTERS AND IS THE FAIL-CLOSED ONE. On disk but not landed is the
+            # 2026-08-18 hole ("this desk only") and keeps its own actionable refusal — it is
+            # asked FIRST so that a path deleted and then recreated untracked can never buy
+            # amnesty from a deletion commit that no longer describes what is there.
+            if (root / file_part).exists():
+                unstaged.append(artefact)
+                continue
+            retired = _retired_at(root, file_part)
+            blob = _pre_retirement_blob(root, retired, file_part) if retired else None
+            if blob is None:
+                # THE NULL CONTROL: no deletion commit (never landed), or no readable
+                # pre-deletion blob. Refused exactly as before the widening existed.
+                missing.append(artefact)
+                continue
+            if node and node not in blob:
+                retired_nodes_bad.append(artefact)
+                continue
+            retired_notes.append(f"{artefact} (retired at {retired[:9]})")
+            if node:
+                nodes_ok.append(artefact)
             continue
         if not node:
             continue
@@ -508,13 +604,31 @@ def parse_discharge(text: str, repo_root: Path | str = REPO_ROOT) -> Discharge |
             "both asked (a node that exists only in the working tree is not a landed "
             f"falsifier): {', '.join(nodes_bad)}",
         )
+    if retired_nodes_bad:
+        return Discharge(
+            artefacts, False,
+            "the file was RETIRED but its last committed copy never defined the node, so this "
+            "citation is not a falsifier the retirement can account for: "
+            f"{', '.join(retired_nodes_bad)}",
+        )
     if not nodes_ok:
         return Discharge(
             artefacts,
             False,
             "discharge names no test node (`file::name`) — a release needs a named falsifier",
         )
-    return Discharge(artefacts, True, f"discharged by {', '.join(nodes_ok)}")
+    reason = f"discharged by {', '.join(nodes_ok)}"
+    if retired_notes:
+        # RELEASE, BUT DO NOT PRETEND A RUNNABLE TEST EXISTS (§5). The honest reading is "the
+        # claim was true when made and its subject has since been retired at <sha>", so the
+        # severity releases while the reason records that the evidence is now HISTORICAL. A
+        # discharge that silently reported this as still-proven would be the fail-open twin of
+        # the defect this widening repairs.
+        reason += (
+            " — evidence is HISTORICAL, not runnable: "
+            + "; ".join(retired_notes)
+        )
+    return Discharge(artefacts, True, reason)
 
 
 def _is_test_file(artefact: str) -> bool:

@@ -502,9 +502,8 @@ def test_a_document_with_no_discharge_field_is_untouched(tmp_path):
     assert fs.parse_severity_text(CLEAN).severity == fs.LATENT
 
 
-def test_a_discharge_below_the_header_block_does_not_release(tmp_path):
-    """Same scope rule as every other field here: a release the next reader never meets
-    is not a release."""
+def _doc_with_discharge_below_the_header_block(tmp_path, tail: str):
+    """The CLEAN document with its header discharge removed and `tail` appended after §Body."""
     repo, doc = _repo_with(
         tmp_path,
         "tests/test_real.py::test_it",
@@ -513,10 +512,47 @@ def test_a_discharge_below_the_header_block_does_not_release(tmp_path):
     text = doc.read_text()
     header, _, body = text.partition("## Body")
     doc.write_text(
-        header.replace("**Discharged:**", "Once said, in prose:") + "## Body" + body
-        + "\n**Discharged:** `tests/test_real.py::test_it` — too late to count\n",
+        header.replace("**Discharged:**", "Once said, in prose:") + "## Body" + body + tail,
         encoding="utf-8",
     )
+    return repo, doc
+
+
+def test_a_discharge_below_the_header_block_DOES_release(tmp_path):
+    """§4, 2026-08-20. This test asserted the OPPOSITE until the rung-1c BLOCKING draw
+    measured what the opposite cost: `parse_discharge` read `header_block(text)` (40 lines)
+    while the architecture tripwire policed `^**Discharged:**` anywhere, so a GENUINE
+    discharge written on line 41+ was policed by one control and unread by the other. The
+    repair lands, the falsifier is cited, and the finding stays BLOCKING with no refusal
+    reason anywhere — R15 FAIL-SILENT on the field whose job is to be fail-closed. A refusal
+    is reportable; an unread field is not.
+
+    Narrowing the TRIPWIRE to match instead was the other way to make the two agree, and it is
+    strictly worse: it would stop policing every claim below line 40 and re-open the hole the
+    tripwire exists to close. So the parser widens.
+    """
+    repo, doc = _doc_with_discharge_below_the_header_block(
+        tmp_path, "\n**Discharged:** `tests/test_real.py::test_it` — late, and counted\n"
+    )
+    assert fs.parse_discharge(doc.read_text(), repo).released is True
+    assert fs.parse_severity_file(doc, repo).severity == fs.RECORDED
+
+
+def test_a_discharge_written_mid_SENTENCE_is_prose_and_still_does_not_release(tmp_path):
+    """The `(?m)^` anchor, which is the half that makes the widening above safe.
+
+    MEASURED over `docs/staging/`: 16 documents carry a `**Discharged:**` the 40-line cap hid,
+    and only 5 are field-shaped. The other 11 are the field being TALKED ABOUT — this project
+    writes findings ABOUT its own discharge control, so prose like "a path a record cites on
+    its `**Discharged:**` line" is common, and one document quotes gate output whose template
+    names a fictional `tests/x/test_y.py::test_z`. Unanchored, the parser would have read all
+    11 as live claims — and released on a quoted example path that happened to exist.
+    """
+    repo, doc = _doc_with_discharge_below_the_header_block(
+        tmp_path,
+        "\nThe control reads a record's **Discharged:** `tests/test_real.py::test_it` line.\n",
+    )
+    assert fs.parse_discharge(doc.read_text(), repo) is None
     assert fs.parse_severity_file(doc, repo).severity == fs.BLOCKING
 
 
@@ -535,14 +571,119 @@ def test_mutation_c_releasing_without_a_falsifier_kills_a_named_test(tmp_path):
 def test_mutation_d_dropping_the_existence_check_kills_a_named_test(tmp_path):
     mutant = _load_mutant(
         tmp_path,
-        "        if file_part not in landed:\n"
-        "            (unstaged if (root / file_part).exists() else missing).append(artefact)\n"
-        "            continue",
-        "        if file_part not in landed:\n            continue",
+        "                missing.append(artefact)\n                continue",
+        "                continue",
         "finding_severity_mutant_no_existence",
     )
     with pytest.raises(AssertionError):
         _assert_missing_artefact_does_not_release(mutant, tmp_path / "d_mut")
+
+
+# ── THE RETIRED FALSIFIER (§5 of the 2026-08-20 rung-1c BLOCKING draw) ──
+
+
+def _repo_with_a_retired_falsifier(tmp_path: Path, cited: str) -> tuple[Path, Path]:
+    """A repo where `tests/test_gone.py` was COMMITTED and then DELETED by a later commit.
+
+    The shape that froze lane `H_harness`: commit 03dd8c49e retired eleven site pages, and six
+    citations across three HONEST committed records — every falsifier having existed, run and
+    passed when it was cited — became `in no tree at all`, reverting findings that owned no
+    part of the retirement. The landed set had two answers (indexed, at HEAD) and the subject
+    had been deliberately deleted, so the only expressible readings were "waiting to land"
+    (false) and "the record is lying" (also false).
+    """
+    repo, doc = _repo_with(tmp_path, cited, {"tests/test_gone.py": "def test_it():\n    pass\n"})
+    author = ("-c", "user.email=t@example.com", "-c", "user.name=T")
+    _git(repo, *author, "commit", "-q", "-m", "the falsifier lands")
+    _git(repo, "rm", "-q", "tests/test_gone.py")
+    _git(repo, *author, "commit", "-q", "-m", "the page it tested is retired")
+    return repo, doc
+
+
+def test_a_retired_falsifier_releases_and_records_that_its_evidence_is_HISTORICAL(tmp_path):
+    """Retirement is the THIRD landed answer — and it must not pretend the test is runnable.
+
+    A discharge that reported this as still-proven would be the fail-open twin of the defect
+    being repaired. The honest reading is "the claim was true when made, and its subject has
+    since been retired at <sha>", so the severity releases while the reason says so.
+    """
+    repo, doc = _repo_with_a_retired_falsifier(tmp_path, "tests/test_gone.py::test_it")
+    discharge = fs.parse_discharge(doc.read_text(), repo)
+    assert discharge.released is True
+    assert "HISTORICAL" in discharge.reason
+    assert "retired at" in discharge.reason
+    assert fs.parse_severity_file(doc, repo).severity == fs.RECORDED
+
+
+def test_a_falsifier_in_no_tree_and_never_deleted_is_still_refused(tmp_path):
+    """THE NULL CONTROL, and the whole reason the widening is safe.
+
+    A path that never landed has NO deletion commit, so it cannot buy amnesty from retirement.
+    Without this arm the widening would be indistinguishable from re-opening the hole the
+    2026-08-18 repair closed — the same argument the index-OR-HEAD union makes for itself.
+    """
+    repo, doc = _repo_with_a_retired_falsifier(tmp_path, "tests/test_ghost.py::test_it")
+    discharge = fs.parse_discharge(doc.read_text(), repo)
+    assert discharge.released is False
+    assert "does not exist" in discharge.reason
+
+
+def test_a_retired_file_is_not_an_AMNESTY_for_a_node_it_never_defined(tmp_path):
+    """The second clause: the node must be in the blob at the DELETING COMMIT'S PARENT.
+
+    Without it, retiring one file would discharge any citation naming that file plus an
+    invented node — a control that fires on nothing, which is worse than no control at all.
+    """
+    repo, doc = _repo_with_a_retired_falsifier(tmp_path, "tests/test_gone.py::test_never_written")
+    discharge = fs.parse_discharge(doc.read_text(), repo)
+    assert discharge.released is False
+    assert "never defined the node" in discharge.reason
+
+
+def test_mutation_i_dropping_the_pre_retirement_node_check_kills_a_named_test(tmp_path):
+    """R15: the retirement clause must be able to FAIL on its own named defect."""
+    mutant = _load_mutant(
+        tmp_path,
+        "            if node and node not in blob:",
+        "            if False:",
+        "finding_severity_mutant_retired_amnesty",
+    )
+    # the valid path is untouched: a really-retired falsifier still releases
+    repo, doc = _repo_with_a_retired_falsifier(tmp_path / "i_ok", "tests/test_gone.py::test_it")
+    assert mutant.parse_discharge(doc.read_text(), repo).released is True
+
+    repo, doc = _repo_with_a_retired_falsifier(
+        tmp_path / "i_mut", "tests/test_gone.py::test_never_written"
+    )
+    assert mutant.parse_discharge(doc.read_text(), repo).released is True  # the defect
+
+
+def test_mutation_j_the_null_control_is_LOAD_BEARING_not_decorative(tmp_path):
+    """R15 on the NULL CONTROL itself — stated as what it is, rather than dressed up.
+
+    Deleting the `blob is None` arm does not produce a quiet release: it produces a TypeError,
+    because every line after it (`node not in blob`, `retired[:9]`) is only well-defined once
+    a never-landed citation has been sent away. That is a WEAKER claim than mutation I's
+    silent fail-open and it is reported as one — the arm cannot be dropped without breaking
+    the module, which is the property being proved. The fail-OPEN direction of this widening
+    is covered by mutation I, where an invented node really does release.
+    """
+    mutant = _load_mutant(
+        tmp_path,
+        "            if blob is None:",
+        "            if False:",
+        "finding_severity_mutant_retired_null_control_gone",
+    )
+    # the valid path is untouched: a really-retired falsifier still releases
+    repo, doc = _repo_with_a_retired_falsifier(tmp_path / "j_ok", "tests/test_gone.py::test_it")
+    assert mutant.parse_discharge(doc.read_text(), repo).released is True
+
+    repo, doc = _repo_with_a_retired_falsifier(tmp_path / "j_mut", "tests/test_ghost.py::test_it")
+    with pytest.raises(TypeError):
+        mutant.parse_discharge(doc.read_text(), repo)
+
+    # ...and unmutated, the same citation is refused rather than crashing
+    assert "does not exist" in fs.parse_discharge(doc.read_text(), repo).reason
 
 
 def test_mutation_e_letting_an_invalid_discharge_release_kills_a_named_test(tmp_path):
