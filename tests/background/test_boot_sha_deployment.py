@@ -239,16 +239,46 @@ def test_sim_runner_replayed_against_the_wedge_boot_state_is_RED():
 
 # ── VACUITY: the honest path must evaluate a non-empty set on this box ──────────────────────
 
+#: The states `systemctl --user is-system-running` prints when it REACHED systemd. Anything
+#: outside this set means the answer is about the connection, not about the manager.
+_SYSTEMD_REACHED_STATES = frozenset({
+    "running", "degraded", "starting", "stopping", "maintenance", "initializing", "offline",
+})
+
+
 def _user_systemd_available() -> bool:
+    """True only if a `--user` query actually REACHED systemd.
+
+    The returncode alone cannot answer this, and reading it as though it could produced a
+    misleading red on 2026-08-20. `is-system-running` exits 1 BOTH when the manager is
+    reachable and degraded -- an ordinary, healthy-enough state on this box -- AND when there
+    is no bus to talk to at all:
+
+        no XDG_RUNTIME_DIR -> rc=1, stdout ''        ("Failed to connect to user scope bus")
+        with the bus       -> rc=1, stdout 'degraded'
+
+    So `returncode in (0, 1)` said "available" in a shell with no bus, the skipif did not fire,
+    and the test below ran, found an empty daemon population, and failed with
+    "the drift population must not be empty while daemons run" -- while eight daemons were
+    running. It reported I COULD NOT ASK as THE ANSWER IS EMPTY, which is the FAIL-SILENT
+    pattern R15 names, wearing the costume of a substantive failure.
+
+    stdout is the discriminator, because the bus error goes to stderr and leaves stdout empty.
+    """
     try:
-        return subprocess.run(["systemctl", "--user", "is-system-running"],
-                              capture_output=True).returncode in (0, 1)
+        proc = subprocess.run(["systemctl", "--user", "is-system-running"],
+                              capture_output=True, text=True)
     except Exception:
         return False
+    return (proc.stdout or "").strip() in _SYSTEMD_REACHED_STATES
 
 
 @pytest.mark.real_subprocess   # the WHOLE POINT is the live daemon set, not a stub of it
-@pytest.mark.skipif(not _user_systemd_available(), reason="no --user systemd on this host")
+# "could not REACH", not "does not exist" -- the distinction this guard was fixed to make. A
+# shell without XDG_RUNTIME_DIR is the common case here and systemd is present and fine; saying
+# it is absent would send the next reader looking for a missing daemon.
+@pytest.mark.skipif(not _user_systemd_available(),
+                    reason="could not reach --user systemd (no session bus in this environment)")
 def test_live_evaluation_watches_a_nonempty_daemon_set_and_can_be_green():
     """R15 VACUITY GUARD on the live box: a control whose population is empty cannot fail, so an
     empty answer is a FAILED check, and `evaluate_boot_sha_drift` says so via `vacuous`. It must
