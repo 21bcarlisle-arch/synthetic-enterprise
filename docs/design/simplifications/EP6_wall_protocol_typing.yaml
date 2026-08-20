@@ -1,215 +1,5 @@
 atom_id: EP6_wall_protocol_typing
 simplifications:
-- '2026-08-19 BUILD, level 1 -> 2 (worker tick, self-refill draw; the SECOND BUILD pass). This
-
-  pass does the one thing the previous pass recorded as the next move, verbatim: "migrate ONE crossing
-
-  onto the codec end to end -- `payment_observable_seam` is the candidate". It is done, and the atom is
-
-  no longer dark. Everything is observed-with-evidence unless labelled inferred (R9).
-
-
-  MEASURED AT: HEAD d7d36b46a. Tests run directly; the mutation harness run out-of-tree against the real
-
-  modules and both files restored byte-identical (sha256 compared, printed by the harness).
-
-
-  WHAT L1 ACTUALLY MEANT, AND WHAT CHANGED. The previous pass built the codec and refused L2 in its own
-
-  words: "NO PRODUCTION CROSSING CALLS THIS YET: the only callers are its tests, so the module is BUILT
-
-  AND DARK". The crossing chosen is the LIVE payment triad -- `background/live_payment_triad.py`, which
-
-  `simulation/run_phase2b.py` runs once per run over the real run population -- and it now crosses as
-
-  MESSAGES. `emit_wire_responses` (new, sim side) hands over wire dicts; `PaymentObservationConsumer.
-
-  observe_wire` (new, company side) decodes them through `company.interfaces.wall_protocol.
-
-  decode_response`. The company''s only route to a payment observation on this crossing is now one a real
-
-  bank feed could also take.
-
-
-  WHY THE ENCODER IS NOT IN THE CODEC MODULE, WHICH IS THE LOAD-BEARING DESIGN DECISION HERE.
-
-  `simulation/payment_seam_adapter.py` writes its own encoder and never imports `company.*` -- it may
-
-  not (its own docstring, and the sim-side wall rule). That constraint turned out to be the RIGHT shape
-
-  rather than an obstacle to route around: if the sender called the receiver''s `encode_response` the
-
-  round-trip below would be a TAUTOLOGY in the R15 sense -- the decoder checked against its own
-
-  arithmetic -- and would stay green through a schema change no real counterparty would have made. The
-
-  two sides are separate code agreeing ONLY through `interface/contracts/payment_observable_seam.py`,
-
-  which is exactly the relationship a supplier has with a bank: the published schema, not the
-
-  counterparty''s source. `test_the_two_sides_are_independent_code` asserts the absence of the import by
-
-  AST, so the independence is checkable rather than claimed.
-
-
-  THE VINTAGE STAMP HAS NOW LEFT THE PROCESS. The 2026-08-18 trace localised this atom''s gap as "not a
-
-  switch that is off, a WIRE THAT WAS NEVER BUILT": `schema_version` was populated at all ten envelope
-
-  construction sites and had never been serialised anywhere. On this crossing it now is, and the test
-
-  asserts BOTH halves -- the key is in the JSON bytes, and the value the company holds was READ from
-
-  those bytes rather than supplied by the reader''s own constant. That second half is the whole point;
-
-  the sibling defect this atom named (`tools/*_port.py`''s `entry.get("schema_version", SCHEMA_VERSION)`)
-
-  is a stamp that is present and cannot disagree, which is not a stamp.
-
-
-  POPULATION-LEVEL EVIDENCE, NOT A FIXTURE. Over the live triad''s real event stream -- 200 customers x
-
-  12 periods -- 4,322 responses crossed the wire (3,154 `RemittanceAdvice`, 1,168 `BacsArruddOutcome`)
-
-  and `decode(encode(r)) == r` held for every one: ZERO mismatches. That is also the invariance argument
-
-  for the swap being safe: the consumer receives objects EQUAL to the ones it received before, so no
-
-  measurement downstream of it can have moved. Live gaps after the migration: detection 0.1387, belief
-
-  0.1500, ageing 0.4036. HONEST LIMIT: this population emitted no `dispute`, so `NOT_KNOWABLE_YET` did
-
-  not cross LIVE; it is covered by `test_the_honest_non_answers_cross_too` and not by the population.
-
-
-  THE ONE RULE, EXTENDED DOWN A LEVEL. ABSENCE IS NEVER AGREEMENT was the envelope''s rule; the payload
-
-  had no such rule and is where the money is. A missing `amount_gbp` must not become GBP 0.00 -- that is
-
-  not an exception the company can act on, it is a `RemittanceAdvice` the bank never sent, and every
-
-  later read site would treat it as real. So the payload field set must match the CONTRACT exactly:
-
-  missing is refused, unknown is refused, and the expected set comes from `get_type_hints` on the seam''s
-
-  dataclasses -- an independent source from anything the sender emitted, so a field added to the
-
-  contract cannot silently fail to cross. The payload is also TYPE-TAGGED, because six payload types
-
-  cross this seam and a receiver guessing from the field set would mis-route the day two shapes
-
-  coincided.
-
-
-  R15 -- EIGHT GUARDS, EIGHT MUTATIONS, ALL RED. Each guard was killed in the real module and the real
-
-  suite re-run: payload tag required (1 failed), unknown payload_type refused (1), payload field never
-
-  defaulted (3), unknown payload field refused (3), the bool-is-not-an-amount check (1), the enum-value
-
-  check (1), the encoder''s off-seam payload-type refusal (1), the encoder''s undefined-field-type refusal
-
-  (1). Zero unproven guards; both files restored byte-identical.
-
-
-  ONE OF THE EIGHT WAS UNREACHABLE ON THE FIRST ATTEMPT, AND THAT IS THE PASS''S OWN FINDING. The
-
-  encoder''s "no defined wire form" refusal came back GREEN under mutation -- 55 passed with the guard
-
-  deleted -- because the test aimed at it used a look-alike class, which the class-IDENTITY check
-
-  refuses several lines earlier. The test asserted a refusal that a DIFFERENT guard was producing. Both
-
-  tests now exist and are separate: the identity check is exercised by a look-alike deliberately sharing
-
-  the contract class''s NAME (a name-only check would pass it), and the field-type check by a GENUINE
-
-  contract payload carrying an unshippable value -- the seam''s dataclasses are frozen but not
-
-  type-enforcing, so that is the case the guard is actually for. Generalisable: a mutation that comes
-
-  back green is not always an untested guard, it is sometimes a test standing in front of the wrong one,
-
-  and only killing the guard tells them apart.
-
-
-  NULL CONTROLS. Each refusal is paired with the identical fixture with only the deleted key restored
-
-  (`test_R15_null_control_...`, and the restored-field assertions inside the missing-field tests), so
-
-  each `raises` is about the field and not about a generally bad fixture. And
-
-  `test_R15_a_refused_message_is_not_marked_processed` closes the failure mode a naive wire entry point
-
-  would introduce: a refusal must not consume the `correlation_id`, or a corrected re-delivery -- what a
-
-  real feed sends after a bad file -- could never land.
-
-
-  THE D8 COUNTERFACTUAL CROSSES THE SAME WAY. Both call sites in the triad were migrated, the real
-
-  company''s and the shadow''s. Migrating one would have made the two companies differ in TRANSPORT as
-
-  well as in the remittance reference, and the counterfactual would have stopped isolating one variable.
-
-
-  THREE EXISTING R15 CONTROLS IN `tests/background/test_live_payment_triad.py` WERE RE-POINTED, NOT
-
-  WEAKENED: they monkeypatch the seam emission to inject a leak or suppress a credit, and they now patch
-
-  `emit_wire_responses` and put their injected response through the seam''s own encoder. The mutation
-
-  stays about the LEAK rather than about the transport -- an injected message that arrived malformed
-
-  would be refused at the envelope and the control would have passed for the wrong reason. All three
-
-  still fire.
-
-
-  LEVEL 1 -> 2, AND WHY NOT 3. L2 is "genuine artefacts, happy path" and that is met: a live per-run
-
-  crossing, 4,322 real messages, lossless. L3 is NOT claimed, and the exit criterion is the one the
-
-  2026-08-15 census established -- per-channel conformance -- not a repo-wide claim that pass showed is
-
-  unfalsifiable at HEAD. ONE of that census''s six channels is now conformant. Channels D (5 same-step
-
-  typed ports), E (structurally-satisfied Protocols, still with nowhere to put a version) and F (91
-
-  published report keys) are untouched, and A/B remain in good order under KNIFE3.
-
-
-  NEXT BUILD MOVE, recorded not asked (NEVER_ASK_WITHOUT_RECOMMENDING): migrate the SECOND crossing,
-
-  `interface/contracts/flex_observable_seam.py`, which the 2026-08-15 census lists in channel C beside
-
-  this one and which already borrows this seam''s idiom by its own docstring. Two migrated crossings is
-
-  what makes the payload-codec-per-crossing pattern evidence rather than a sample of one, and it is the
-
-  cheapest remaining step toward the per-channel conformance shape L3 needs.
-
-
-  NO NEW WORKER_FINDING FILED (SELF_INTERRUPT_DISCIPLINE): the unreachable-guard lesson is recorded
-
-  above and is about THIS pass''s own test, not a defect in another lane''s mechanism.
-
-
-  LANDING NOTE. `docs/design/maturity_map.yaml` again carried ANOTHER LANE''S hunk at draw time -- EP1''s
-
-  `file_scope` + `simplifications_count` 10 -> 11 -- and this time it was STAGED in the shared index
-
-  rather than merely unstaged, so `git diff` on the map was EMPTY while `git diff --cached` showed it
-
-  (the index is `git diff`''s baseline). A `git diff`-only check would have concluded the map was clean
-
-  and swept EP1''s pass 11 into this commit. Landed by worktree swap presenting only EP6''s two lines to
-
-  the gate, with EP1''s hunk re-applied and re-staged afterwards -- their work is neither committed nor
-
-  lost. This atom''s two map lines (`level_current` 1 -> 2, `simplifications_count` 8 -> 9) and this
-
-  store append are ONE ATOMIC WRITE.'
 - "2026-08-19 LEVEL LANDING, map level_current 1 -> 2 (worker tick, self-refill draw, which drew this\natom as \"level 1->3, loop_stage build\"). NO NEW PROGRAM: this pass writes no code. What it lands is the\nhalf of pass 9's L2 move that never reached any commit. Everything is observed-with-evidence unless\nlabelled inferred (R9).\n\nMEASURED AT: HEAD 8233f3629, with this atom's entire file_scope clean in the working tree.\n\nTHE STATE PASS 9 LEFT -- four artefacts that should agree, and did not:\n\n  CODE     LANDED        company/interfaces/wall_protocol.py + tests/company/interfaces/test_wall_protocol.py,\n                         committed in fb19bc8e0 and 8233f3629, clean at HEAD.\n  RECORD   LANDED        this store file, pass 9, and the map's simplifications_count: 9 agreeing with it.\n  LEDGER   UNCOMMITTED   the L2 self-certified row existed in the WORKING TREE ONLY.\n                         `git show HEAD:docs/observability/gate_authorizations.jsonl | grep -c EP6_wall_protocol_typing`\n                         returned 1; the same grep on the worktree file returned 2.\n  MAP      NEVER MOVED   `level_current: 1` at HEAD *and* in the worktree.\n\nSo at HEAD this atom's L2 was true in the code, argued in its own record, and invisible to every reader\nthat asks the MAP -- the supervisor's draw, the site, the dashboards. The draw that produced this pass\nstill said \"level 1->3\", which is precisely how the discrepancy surfaced: the atom kept being offered as\nif the first build move had not happened.\n\nTHE L2 CLAIM WAS RE-VERIFIED HERE, NOT INHERITED FROM PASS 9's PROSE. Re-run rather than quoted:\n640 tests pass across tests/background/test_live_payment_triad.py, tests/simulation/test_payment_seam_adapter.py,\ntests/interface/ and tests/company/interfaces/ (56 of them in this atom's own file); `python3 -m\ntools.epistemic_verifier` returns PASS. And the crossing is LIVE in the production path rather than in a\nfixture: background/live_payment_triad.py lines 768-769 and 794-798 call\n`simulation.payment_seam_adapter.emit_wire_responses` -> `PaymentObservationConsumer.observe_wire`, inside\nthe triad that `simulation/run_phase2b.py` runs once per run. That is the L1->L2 bar (\"no longer dark\") and\nit is met by shipped code, independently of what pass 9 wrote about it.\n\nTHIS PASS'S OWN FINDING -- A MAP-ONLY COMMIT WOULD HAVE LOOKED PERFECTLY FINE. `tools/level_promotion_gate.py`\nreads its two inputs FROM TWO DIFFERENT TREES: the map from the INDEX (`_git_show(f\":{MAP_REL}\")` in `main()`)\nand the ledger from the WORKING TREE (`read_ledger()` -> `background.gate_authorization.LEDGER_PATH`, a plain\nfilesystem path). An UNCOMMITTED ledger row therefore authorises a COMMITTED level move. Committing the map\nalone here would have passed the gate and reproduced exactly the defect that commit 8233f3629 was written to\nrepair -- a count whose backing records had never been committed, leaving HEAD red in a way no working tree\ncould show. The two halves are consequently landed in ONE commit by pathspec in this pass. That is a\ncontrol-shape observation about the gate, not a defect in this atom: filed as a finding rather than fixed on\nsight (SELF_INTERRUPT_DISCIPLINE), because the supply of such repairs is infinite and this one is not blocking.\n\nL3 IS STILL NOT CLAIMED, unchanged from pass 9 and for its reason: exactly one of the 2026-08-15 census's six\nchannels is conformant, and the exit criterion stays per-channel conformance."
 - "2026-08-19 pass 11 BUILD, level HELD at 2, loop_stage stays build. THE FOUR MISSING ENUMERATORS\nARE BUILT. Everything below is observed-with-evidence unless labelled inferred (R9).\n\nMEASURED AT: HEAD 84a3bc5f1, worktree, with this atom's file_scope clean before the pass.\n\nWHAT THIS PASS TOOK AND WHY IT IS THE ATOM'S OWN CRITERION AND NOT A NEW PROGRAM. The 2026-08-15\ncensus (docs/design/EP6_WALL_CONFORMANCE_CENSUS_DISCOVER.md) section 8 rejected the obvious exit\ncriterion in as many words -- \"an exit criterion of the form 'every crossing is envelope-borne or\ngrandfathered' is NOT directly testable at HEAD today, and an atom that adopted it would be\nadopting an unfalsifiable criterion\" -- and named the testable one: \"each channel gets its own\nenumerator and its own shrink-only list, and the exit criterion is that every channel HAS an\nenumerator\". Two of six had one. This pass built the other four.\n\n  tools/wall_channel_census.py, 6 enumerators, 159 previously-invisible crossings:\n    A  direct import edge      3 members   DELEGATED to epistemic_wall.crossings_at\n    B  indirect via a bridge   2 members   DELEGATED to epistemic_wall.indirect_crossings\n    C  the envelope           19 members   NEW  (importer module, interface.contracts seam)\n    D  the same-step port      7 members   NEW  (tools/*_port module, importer)\n    E  structural Protocol     2 members   NEW  (business-side file, Protocol class name)\n    F  published artefact    131 members   NEW  (run-output key, business-side reader file)\n\nA AND B ARE REPORTED AND DELIBERATELY NOT FROZEN. WALL_CROSSING_DISPOSITION_REGISTER.md plus\ntools/wall_crossing_dispositions.py already enforce a shrink-only rule on exactly that subject.\nFreezing them a second time here would put two controls on one subject, which does not double the\nsafety: it means an ordinary ruled change reds a gate whose owner is another file, and\nfeedback_control_that_can_only_fail_wedges says such a gate is routed around within a day. So the\ntool REPORTS all six (channels_without_an_enumerator() is the exit criterion as a function, and it\nreturns []) and FREEZES the four that had no owner.\n\nR15 -- 25 tests, and both directions shown for every guard.\n  MUTATIONS THAT MUST FIRE, one per frozen channel plus two shapes that a naive control misses:\n  a new envelope importer; a new port importer; A SIXTH PORT appearing; a new key reader; A SECOND\n  KEY READ BY AN ALREADY-LISTED READER; and a declared channel whose enumerator is removed. All\n  RED without the guard.\n  NULL CONTROLS THAT MUST NOT FIRE (move the sample, not the law): an unrelated module added to\n  the same trees; a WORLD-side module reading the same published key; a business-side literal that\n  is not a published key; a non-Protocol class. All leave the census byte-identical.\n  FAIL-CLOSED, six branches proven: empty artefact (an empty denominator makes channel F vacuously\n  conformant), artefact absent at the rev, bogus rev, missing baseline, baseline missing a frozen\n  channel, baseline with no `frozen` object. An unavailable check is a FAILED check.\n  TAUTOLOGY CHECK: the baseline is a committed FILE and the current reading is computed from a\n  tree. test_the_baseline_is_a_FILE_and_editing_it_changes_the_verdict moves ONLY the baseline\n  against a byte-identical tree and the verdict flips, so the comparison has a subject outside the\n  reading it checks.\n  ZERO IS NOT REFUSED, on purpose. A channel measuring zero members is a channel fully paid down,\n  and a control pinned to a non-zero count reds on its own success case\n  (feedback_a_control_pinned_as_a_count_reds_on_its_own_success_case). What IS refused is an empty\n  DENOMINATOR, which is a different fact wearing the same number.\n\nTHE CONTROL'S CALLER IS THE COMMIT, NOT A PERSON TYPING IT. pre_commit_test_gate now runs\n_wall_channel_census_check against `git write-tree` -- the tree the commit WOULD create -- placed\nbeside the wall-register step and before the pure-docs early return, because a commit that widens\nthe envelope or the artefact may select no test targets at all. HEAD would have been the wrong\nsubject for the reason this file already learned once: it reds the commit that REPAIRS a\ndivergence and passes the one that introduces it. Measuring the would-be tree also puts both sides\nof channel F on ONE ref -- the readers and the artefact their keys come from -- which is the\ndiscipline a two-sided census needs. Cost measured: 5.4s.\n\nTHE FIXTURE FOUND A REAL FAIL-OPEN IN THIS PASS'S OWN FIRST DRAFT. Channel D discovered its ports\nfrom the EDGE LIST (any module named tools.*_port that appeared as an import source). A port that\nimports nothing produces no edge, so the simplest port anyone could write was invisible to the\nchannel built to see ports. test_MUTATION_a_SIXTH_port_appearing built exactly that and got a\nclean bill of health. Ports are now discovered from the FILESYSTEM. Recorded because the shape is\ngeneral: deriving a population from a by-product of that population's behaviour makes the inert\nmembers invisible, and the inert member is usually the new one.\n\nTWO CORRECTIONS TO THE CENSUS ITSELF, both measured here:\n  1. CHANNEL A HAS SHRUNK 6 -> 3 since 2026-08-15 (KNIFE paydown). The three survivors are\n     simulation.customer_events -> {company.crm.churn_model, saas.churn_model,\n     saas.home_move_win_rate}. Reported, not filed as a finding: this is the programme working.\n  2. THE CENSUS'S CHANNEL-D READER LIST WAS PARTLY WRONG. Section 4 names\n     company/trading/credit_limits.py (via CreditCheckResult) and\n     company/interfaces/bitemporal_event_log.py (via MarketDataPort) as reaching the business side.\n     Neither imports a port: both only MENTION one in a docstring or comment. The AST enumerator\n     finds 7 real import edges and neither of those is among them. The census's prose was built\n     from references, not from edges -- the substring-census shape\n     (feedback_a_substring_census_can_be_100_percent_false_positives_from_a_longer_common_word).\n     The enumerator is now the authority and the census is the narrative.\n\nWHAT THIS PASS DOES NOT ESTABLISH, stated here rather than discovered later:\n  * Channel F's 131 is the CHANNEL WIDTH, not the count of SIM-origin crossings. Per-key\n    provenance is unanswerable for 38 of the keys by construction (FINDING 1, the 2026-08-15\n    walk): the orchestrator binds both sides' values into one row in one function scope. A\n    shrink-only width is the honest control that walk leaves available.\n  * Channel E's 2 is a SUPERSET -- every business-side Protocol declaration, not only those a\n    world object satisfies. Deciding satisfaction needs a type checker. Superset is the safe\n    direction for a ratchet: a new Protocol must be LOOKED at.\n  * Channel F's reader side is literal-access only. A computed key is unresolvable statically, so\n    the reader set is a LOWER BOUND rather than a total.\n\nL3 IS NOT CLAIMED, and the reason is sharper than pass 10's. The enumerator criterion is met for\nthe first time -- but (a) it was met by code written in THIS pass, with no HARDEN pass and no\nExpert Hour against it, and the map's own L3 definition is \"passed the full loop incl. HARDEN;\nExpert Hour: this is real\"; and (b) channel D's named substance is still undone. Section 8 said of\nthe ports: \"they already own a version field, and putting it on the wire is the whole of their\nconformance\". Re-measured this pass: `include_schema_version` appears in ZERO call sites across\nsimulation/, company/, saas/ and background/ -- every live call takes the False default, exactly as\nthe census found four days ago. Moving to L3 now would be claiming the criterion's letter while\nits stated content is unbuilt.\n\nNEXT MOVE, named so the next pass does not have to re-derive it: migrate the three live port call\nsites (simulation/run_phase4c_on_phase2b.py:237, :324, simulation/run_phase2b.py:1647) onto\ninclude_schema_version=True, so schema_version leaves the process on channel D for the first time.\nThat is channel D's whole conformance by the census's own definition, it is small, and it is\ncheckable on the published artefact rather than in a fixture."
 - "2026-08-19 pass 12 BUILD, level HELD at 2, loop_stage stays build. THE VERSION IS NOW ON\nTHE WIRE. This pass does the one thing pass 11 recorded as the next move, verbatim: \"migrate the three\nlive port call sites onto include_schema_version=True, so schema_version leaves the process on channel D\nfor the first time\". Everything below is observed-with-evidence unless labelled inferred (R9).\n\nMEASURED AT: HEAD c728642c3, worktree, with this atom's file_scope clean before the pass.\n\nTHE BEFORE-STATE, MEASURED ON THE PUBLISHED ARTEFACT RATHER THAN ASSERTED. Reading\ndocs/reports/run_output_latest.json at HEAD: meter_read_log 1600 rows, contact_centre_log 392 rows,\nacquisition_funnel_log 4 rows -- 1,996 channel-D rows in total, and ZERO carrying a schema_version.\nExactly what the 2026-08-15 census predicted four days ago and what pass 11 re-measured: the field was\nstructurally present on every port message and populated on none of them.\n\nWHAT CHANGED, THREE LINES. The call sites are simulation/run_phase4c_on_phase2b.py (meter reads,\ncontact centre) and simulation/run_phase2b.py (acquisition funnel), all three now\n`to_log_entry(include_schema_version=True)`. Purely additive on the wire: every consumer reads named\nkeys (`company/compliance/population_sanity.py`, `saas/reporting/annual_report.py`,\n`tools/generate_dashboard_data.py`, `tools/population_anchor.py`, `tools/generate_shadow_html.py` all\nchecked), no consumer asserts an exact key set, and there is no run-output schema validator to refuse a\nnew field. `from_log_entry` already defaulted the field, so old artefacts still load.\n\nPASS 11'S OWN LINE NUMBERS HAD DRIFTED -- it named :237, :324 and :1647; the sites were at :270, :357\nand :1705. Recorded because a \"next move\" written as a line number is a pointer that rots: the file\npath plus the expression found them, the number did not.\n\nTHE CONTROL, AND WHY IT IS NOT A BIGGER ENUMERATOR. `enumerate_d` counts IMPORTERS of a port. A port\ncan be counted by it, declare `schema_version`, and emit it nowhere -- which is precisely the state\nthat held for four days without any control noticing. A count of importers is blind to that by\nconstruction, so `wire_conformance()` is a separate function in tools/wall_channel_census.py: it finds\nevery `X.to_log_entry(...)` outside the port modules and asks whether the call sets the flag TRUE.\n\nR15 -- 14 new tests, 39 in the file, both directions shown.\n  THE MUTATION FOR THIS CONTROL IS REAL REPO HISTORY, NOT A FIXTURE. `wire_conformance_at(rev='HEAD')`\n  is RED at c728642c3 and names exactly the three sites this pass repaired; the worktree is GREEN.\n  Separately, reverting ONE shipped call site by hand turned test_THE_LIVE_WIRE_CARRIES_THE_VERSION red\n  naming simulation/run_phase2b.py:1710, and restoring it turned it green.\n  MUTATIONS THAT MUST FIRE: a call site omitting the flag; the flag passed as False (naming the keyword\n  is not carrying the version); a SECOND caller omitting it while the first still carries.\n  FAIL-CLOSED, and the first branch is the one that matters: DELETING THE PARAMETER FROM THE PORT is\n  the cheapest way to make this control pass, so ports-exist-and-none-declares-the-flag RAISES rather\n  than passing. Ports declaring the flag with no caller at all raises too -- an empty denominator makes\n  channel D vacuously conformant, channel F's own doctrine applied to a second channel.\n  ZERO IS NOT REFUSED: no ports at all returns a clean verdict, because channel D fully paid down is\n  this atom's success case and a control pinned to a non-zero count reds on its own success\n  (feedback_a_control_pinned_as_a_count_reds_on_its_own_success_case).\n  NULL CONTROLS THAT MUST NOT FIRE (move the sample, not the law): a port's OWN nested serialisation --\n  acquisition_funnel_port calls to_log_entry() on its FunnelStageMessage rows, whose serialiser takes\n  no flag, and counting it would make the control permanently red for a reason its subject cannot fix;\n  an unrelated module; and simulation/meter_reads.py's free function `read_event_to_log_entry`, which a\n  bare-name match would have swallowed.\n  INDEPENDENCE: the verdict's subject is program text on disk, not a value the module derives from\n  itself -- test_the_wire_check_reads_the_TREE moves only the call site and the verdict moves with it.\n\nTHE CALLER IS THE COMMIT. `_wall_channel_census_check` in pre_commit_test_gate now runs the wire check\nagainst the same `git write-tree` the census step uses, fail-closed on a raise, so a commit that makes\na port message cross silently is refused before it lands rather than found four days later.\n\nTHE ARTEFACT HALF IS REPORTED AND DELIBERATELY NOT GATED. `wire_on_artefact()` counts, per published\nkey, how many rows carry a version -- the R11 half, because only the artefact proves the version\nARRIVED. It is not in the gate, and a test asserts that: the artefact is regenerated by a SIM RUN, so\nflipping a call site cannot move a single row until the next run publishes. A gate on it would red the\nvery commit that repairs the defect and pass the one that introduced it -- the ordering trap this file\nalready learned once for channel F.\n\nTHE SIX CHANNEL COUNTS DID NOT MOVE (3/2/19/7/2/131) and the baseline needed no re-freeze. Channel F\ncounts TOP-LEVEL keys, and schema_version is a key inside a log ROW, so widening the row does not widen\nthe channel. Checked rather than assumed.\n\nWHAT THIS PASS DOES NOT ESTABLISH, stated here rather than discovered later:\n  * THE VERSION HAS NOT YET ARRIVED ANYWHERE. Every published artefact in the repo still reads 0/1,996.\n    The code now asks for the version; only the next sim run can show it on the wire. R11 is half\n    satisfied on purpose and the missing half is named, not glossed.\n  * The nested `stages` rows inside acquisition_funnel_log still carry no version. FunnelStageMessage\n    has no version field to carry; the version is borne once by the envelope row. Not a defect, but it\n    means \"every channel-D row carries a version\" is false at one nesting level down.\n  * `wire_call_sites` matches the method by NAME on an attribute call, so a port message serialised\n    through an alias or a computed getattr is invisible -- a LOWER BOUND, the same limit\n    `_literal_key_reads` already carries for channel F.\n\nL3 IS NOT CLAIMED, and the reason has moved on from pass 11's. Pass 11 held for two reasons: (a) no\nHARDEN pass against freshly-written code, and (b) channel D's named substance undone. (b) IS NOW DONE.\n(a) still stands -- this pass again wrote new code, and the map's L3 definition is \"passed the full loop\nincl. HARDEN; Expert Hour: this is real\". Added to it is the R11 gap above: an atom whose headline is\n\"the wall carries versioned messages\" should not move to L3 while every published artefact still shows\nzero of them.\n\nNEXT MOVE, named so the next pass does not re-derive it: after the next sim run publishes, run\n`wire_on_artefact(artefact_at('HEAD'))` against the committed artefact and confirm the three logs read\n1600/1600, 392/392 and 4/4 rather than 0. That closes R11 on this atom with a fetched value rather than\na fixture, and it is the last thing standing between here and a HARDEN pass toward L3."
@@ -232,6 +22,25 @@ simplifications:
   NEXT MOVE, recorded not asked (NEVER_ASK_WITHOUT_RECOMMENDING): give CHANNEL C its conformance question. C is the largest channel at 19 members and is the envelope channel, so its question is the one D''s answers -- does an envelope crossing carry its version on the wire -- asked of `interface/contracts/wall_envelope.py`''s importers rather than the typed ports. That is the cheapest second channel because the machinery this pass and pass 17 built (`wire_call_sites`, `wire_publish_keys`, the four-population artefact verdict, the provenance bound) is channel-agnostic in everything but the port-module filter, and two conforming channels is what turns a per-channel conformance shape from a sample of one into the L3 claim.
 
   NO NEW WORKER_FINDING FILED (SELF_INTERRUPT_DISCIPLINE): the unreadable-report defect is this atom''s own instrument and was repaired in the same pass that found it, not a defect in another lane''s mechanism.'
+- '2026-08-20 pass 19 BUILD, level HELD at 2, loop_stage stays build. CHANNEL C NOW OWNS A CONFORMANCE QUESTION, and its first answer is that two of the three versioned seams never become messages at all. This pass does the one thing pass 18 recorded as the next move, verbatim: "give CHANNEL C its conformance question ... does an envelope crossing carry its version on the wire -- asked of `interface/contracts/wall_envelope.py`''s importers rather than the typed ports." Everything below is observed-with-evidence unless labelled inferred (R9). MEASURED AT: HEAD 63bf50039, worktree.
+
+  THE QUESTION HAD TO BE RE-DERIVED, AND THE ONE PASS 18 NAMED WOULD HAVE BEEN A TAUTOLOGY. `WallRequest`/`WallResponse` declare `schema_version` as a REQUIRED dataclass field, so "an envelope crossing carries a version" is true by construction on every tree that compiles -- R15 TAUTOLOGY exactly, a checked value guaranteed by the same definition it checks. Worse, the structural presence of the field is PRECISELY what makes the defect invisible: a `WallResponse` handed to the far side as a Python object has a `schema_version` attribute that is never serialised, never decoded and never refused, and it looks identical to a conforming crossing from every angle a field-presence check can see. So channel D''s question -- is the version actually ON THE WIRE -- lands on channel C as: does this seam''s envelope get ENCODED into the declared wire form by one side and DECODED back by the other, or does the object simply cross the call frame.
+
+  BUILT: `envelope_wire_conformance` in `tools/wall_channel_census.py`, reporting four populations rather than a boolean, because "not wire-borne" hides three different repairs. `wire_borne` -- encoded and decoded. `half_wired` -- one side only, which is STRICTLY WORSE than in-process because it looks transported: bytes in the wire form that nothing version-checks, or a decoder with no producer. `in_process` -- neither, the defect the atom exists to close. `unversioned` -- a channel C seam declaring no `SCHEMA_VERSION`, reported rather than scored or dropped, because it has nothing to put on a wire and that is a different fact from staying quiet (the same discipline as `_ports_declaring_the_flag`).
+
+  THE READING AT HEAD, and the first thing this atom has been able to say about the envelope channel: `channel C: 1 of 3 versioned seam(s) cross on a wire`. `payment_observable_seam` is encoded by `simulation.payment_seam_adapter` and decoded by `company.billing.payment_observation_consumer`. `conversation_seam` and `flex_observable_seam` are IN-PROCESS -- 19 channel C members, four seams, and only one of them has ever been a message. `wall_envelope` itself is the honest member of the unversioned bucket: it defines the shape and is not a crossing.
+
+  THE TWO SIDES ARE DETECTED DIFFERENTLY AND THE ASYMMETRY IS THE DESIGN''S, NOT A SHORTCUT. `simulation/payment_seam_adapter.py`''s own comment forbids the counterparty importing the company''s codec -- a mock that encoded with the company''s decoder would make the round-trip a tautology in the R15 sense -- so there is no shared encoder to look for and an ENCODE site is recognised by the SHAPE it emits. The company has exactly one codec, so a DECODE site is recognised by importing `decode_request`/`decode_response` from it. THE SHAPES THEMSELVES ARE READ FROM `wall_protocol`''S OWN `REQUEST_WIRE_FIELDS`/`RESPONSE_WIRE_FIELDS`, never restated in the census, which is what makes this independent rather than self-agreeing: a field added to the envelope moves the contract and moves this control with it, where a copy of the key set would agree with itself for ever. THE SUBJECT IS DERIVED, pass 17 and 18''s discipline held: the seams come from `enumerate_c`''s own output, so a fourth seam owns a wire question on the day it lands rather than the day someone remembers to list it.
+
+  R15: 21 new proofs, 85 passing in `tests/tools/test_wall_channel_census.py`, and the two doctrine mutations were RUN not asserted. (1) EXCUSE-EVERYTHING: relax the encoder match from "a dict literal whose key set IS a declared wire form" to "any dict literal at all" and both in-process seams jump to `half_wired ENCODED` -- the report would then claim `conversation_seam` and `flex_observable_seam` put bytes on a wire when they emit nothing of the kind, which is a verdict that excuses every unwired crossing while looking exactly as diligent. (2) FAIL-OPEN: default a missing `SCHEMA_VERSION` to 1 instead of reporting it and `1 of 3` becomes `2 of 4` with `wall_envelope` -- the module that DEFINES the envelope -- credited as a conforming crossing; the null control is the same wrapper without the default, which leaves the verdict byte-identical, so the move is the default and not the patching. BOUNDARY, the value the rule is most easily wrong about: a dict ONE KEY SHORT of the wire form is not an encode site and neither is a SUPERSET, because `absence is never agreement` is the envelope''s own law -- a message missing a required key is one the far side must refuse, so accepting it would certify as transported exactly the crossing that cannot land. FAIL-CLOSED four ways: an absent codec REFUSES rather than reporting every seam in-process (the reassuring failure -- with no shapes to match, a diligent-looking control finds a lot); a missing or computed wire-field constant refuses; all seams losing their version constant refuses, because deleting `SCHEMA_VERSION` is the cheapest way to make this pass; and ZERO channel C members is NOT refused, because a fully paid-down envelope channel is this atom''s success case and a control pinned to a non-zero count reds on its own success.
+
+  REPORTS, DOES NOT GATE, and the condition for that changing is recorded in the code and asserted by `test_channel_C_is_NOT_wired_into_the_commit_gate_and_the_condition_is_recorded`. Two of three seams are in-process at HEAD, so gating channel C would refuse EVERY commit in the repo including the ones that migrate a seam -- pass 13''s landing-order defect, which this file has already learned once. It becomes a gate in the same commit that makes it satisfiable, which is the only commit in which restoring it is honest.
+
+  L3 IS STILL NOT CLAIMED, AND PASS 18''S CONDITION WAS NECESSARY RATHER THAN SUFFICIENT. Pass 18 named one remaining blocker -- a second channel owning a conformance question of its own -- and that blocker IS discharged: C has one, R15-proven, mutations run. What discharging it REVEALED is a larger condition that was previously unmeasurable and is now a number: this atom''s claim is that every SIM/company boundary crossing becomes a typed, versioned message, and its own new instrument says two of three seams are not messages. Moving to L3 on the pass that first measured the gap would be greening my own verdict with the reading that convicts it. The level moves when channel C''s answer does, not when its question exists.
+
+  NEXT MOVE, recorded not asked (NEVER_ASK_WITHOUT_RECOMMENDING): migrate `conversation_seam` onto the wire -- the counterparty (`simulation/conversation_response.py`) grows its OWN encoder emitting `RESPONSE_WIRE_FIELDS`, exactly as the payment adapter does and for the same anti-tautology reason, and the company side (`company/comms/conversation_generator.py`, `company/comms/susceptibility_estimator.py`) decodes through `company.interfaces.wall_protocol`. Conversation before flex because it is the narrower of the two -- three importers against four -- and because a second migrated seam is what turns channel C''s conformance from a sample of one into a rate the gate can eventually hold.
+
+  NO NEW WORKER_FINDING FILED (SELF_INTERRUPT_DISCIPLINE): the in-process reading is this atom''s own subject and its repair is this atom''s own next move, not a defect in another lane''s mechanism.'
 map_notes:
   origin_note: 'C-S3 (asynchronous wall contracts: request and response are separate events in time, never same-step) is the whole point and the thing most likely to be quietly dropped, because same-step is easier and works until it doesn''t. The SIMPLICITY GUARD binds equally hard: no adapters-for-future-adapters, no protocol cathedral -- the wall already provides the seam. Gates every named adapter below.'
   name: 'Protocol typing of the wall: every SIM/company boundary crossing becomes a typed, versioned message with an explicit request/response separation in time, so a mock counterparty and a real one are indistinguishable to the company. The wall IS the go-live seam. Named in the ruling §1 as an Epoch-3 floor item. W4_1_typed_adapters (SATURATED) built the adapter PATTERN; this is the protocol layer every named adapter below plugs into.'

@@ -945,6 +945,273 @@ def artefact_provenance_at(
     return artefact_provenance(producer_paths, rev=rev, repo_root=repo_root)
 
 
+# ── channel C's conformance: does the envelope crossing GO THROUGH A WIRE? ───────────────────
+# THE SECOND CHANNEL TO OWN A CONFORMANCE QUESTION, and this atom's own named next move: L3 is the
+# per-channel conformance shape, and one channel with a conformance question is a sample of one.
+#
+# WHY THIS QUESTION AND NOT "DOES IT CARRY A VERSION". `WallRequest`/`WallResponse` declare
+# `schema_version` as a REQUIRED field, so "an envelope crossing carries a version" is true by
+# dataclass construction and asking it would be R15 TAUTOLOGY -- a control whose checked value is
+# guaranteed by the same definition it checks. The field being structurally present is PRECISELY
+# what makes an in-process crossing look conformant: a `WallResponse` handed to the far side as a
+# Python object has a `schema_version` attribute that is never serialised, never decoded, never
+# version-checked, and no reader ever had the chance to refuse it. Channel D's question --
+# "is the version actually ON THE WIRE" -- asked of the envelope channel is therefore: does this
+# seam's envelope get ENCODED into the declared wire form by one side and DECODED back by the
+# other, or does the object simply cross the call frame?
+#
+# THE TWO SIDES ARE DETECTED DIFFERENTLY, and the asymmetry is the design's, not a shortcut. The
+# counterparty writes its own bytes on purpose (`simulation/payment_seam_adapter.py`'s own comment:
+# a mock that encoded with the company's codec would make the round-trip a tautology, and it may
+# not import `company.*` at all), so there is no shared encoder to look for -- an ENCODE site is
+# recognised by the SHAPE it emits. The company has exactly one codec, so a DECODE site is
+# recognised by importing it.
+#
+# THE FIELD SETS ARE READ FROM `wall_protocol`'S OWN CONSTANTS, never restated here. That module
+# already declares `REQUEST_WIRE_FIELDS`/`RESPONSE_WIRE_FIELDS` as the exact key set of a message,
+# so a field added to the envelope moves the encoder's target and this control with it. A copy of
+# the key set in this file would agree with itself forever.
+
+#: The company's sole codec -- the module a decode site is recognised by importing.
+CODEC_MODULE = "company.interfaces.wall_protocol"
+
+#: The decoding entry points. Encoders are matched by emitted shape, not by name: see above.
+DECODE_NAMES: frozenset[str] = frozenset({"decode_request", "decode_response"})
+
+#: Where the wire field sets are DECLARED. Read from the tree under measurement, not imported, so
+#: the check reads the same rev everything else in this module does (a two-sided census must read
+#: both sides from one ref).
+CODEC_REL = "company/interfaces/wall_protocol.py"
+WIRE_FIELD_CONSTANTS: tuple[str, ...] = ("REQUEST_WIRE_FIELDS", "RESPONSE_WIRE_FIELDS")
+
+#: The per-seam version constant. A seam that declares none has no version to put on a wire, which
+#: is a different fact from staying quiet -- same discipline as `_ports_declaring_the_flag`.
+SEAM_VERSION_CONSTANT = "SCHEMA_VERSION"
+
+
+def _frozenset_literal_fields(tree: ast.Module, name: str) -> frozenset[str] | None:
+    """The string members of a module-level `NAME: ... = frozenset({...})`, or None."""
+    for node in tree.body:
+        targets = (
+            [node.target] if isinstance(node, ast.AnnAssign)
+            else node.targets if isinstance(node, ast.Assign)
+            else []
+        )
+        if not any(isinstance(t, ast.Name) and t.id == name for t in targets):
+            continue
+        value = node.value
+        if isinstance(value, ast.Call) and value.args:
+            value = value.args[0]
+        if isinstance(value, (ast.Set, ast.List, ast.Tuple)):
+            members = [e.value for e in value.elts if isinstance(e, ast.Constant)]
+            if len(members) == len(value.elts) and all(isinstance(m, str) for m in members):
+                return frozenset(members)
+    return None
+
+
+def wire_field_sets(root: str) -> list[frozenset[str]]:
+    """The declared key set of a request and of a response, read from the codec's own source.
+
+    FAIL-CLOSED (R15 FAIL-SILENT): an unreadable codec, a missing constant or a constant that is
+    not a literal set of strings raises. Every one of those makes the encoder-shape match
+    impossible to compute, and a shape match that can never fire would report every seam
+    in-process -- loud, but for the wrong reason, and it would then be tuned away.
+    """
+    tree = _parse(os.path.join(root, *CODEC_REL.split("/")))
+    if tree is None:
+        raise CensusUnavailable(
+            f"{CODEC_REL} is unreadable, so channel C's wire shapes cannot be read -- an "
+            "unavailable check is a FAILED check"
+        )
+    sets: list[frozenset[str]] = []
+    for name in WIRE_FIELD_CONSTANTS:
+        fields = _frozenset_literal_fields(tree, name)
+        if not fields:
+            raise CensusUnavailable(
+                f"{CODEC_REL} declares no literal `{name}` -- channel C's wire form is undefined, "
+                "which is a failed check, not a pass"
+            )
+        sets.append(fields)
+    return sets
+
+
+def envelope_seams(root: str) -> set[str]:
+    """Channel C's seams -- the DESTINATIONS of its members, derived from the enumerator.
+
+    DERIVED, NOT LISTED, for `_port_modules`' reason: a fourth seam added tomorrow owns a wire
+    question on the day it lands rather than on the day someone remembers to name it here. The
+    subject is the seam and not the importer because the transport is a property of the crossing:
+    six modules importing one in-process seam are one unwired crossing, not six.
+    """
+    return {m.split(" -> ", 1)[1] for m in enumerate_c(root, {})}
+
+
+def _seam_version(root: str, seam: str) -> int | str | None:
+    """The `SCHEMA_VERSION` a seam declares, or None if it declares none."""
+    tree = _parse(os.path.join(root, *seam.split(".")) + ".py")
+    if tree is None:
+        return None
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(
+            isinstance(t, ast.Name) and t.id == SEAM_VERSION_CONSTANT for t in node.targets
+        ):
+            if isinstance(node.value, ast.Constant):
+                return node.value.value
+    return None
+
+
+def _module_imports(root: str) -> dict[str, set[str]]:
+    """{importer -> the modules it imports}, from the census edge list."""
+    imports: dict[str, set[str]] = {}
+    for e in build_edges(root, CENSUS_DIRS):
+        imports.setdefault(e.src, set()).add(e.dst)
+    return imports
+
+
+def _emits_a_wire_shape(tree: ast.Module, shapes: list[frozenset[str]]) -> bool:
+    """Does this module build a dict literal whose key set is EXACTLY a declared wire form?
+
+    EXACTLY, never a superset: `absence is never agreement` is the envelope's own rule, so a dict
+    carrying six of seven keys is a message the far side must refuse, not a lenient pass here. A
+    computed or **-spread key set is invisible to this and the limit is stated rather than hidden
+    -- the same lower-bound caveat `wire_call_sites` carries.
+    """
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Dict):
+            continue
+        keys = [k.value for k in node.keys if isinstance(k, ast.Constant)]
+        if len(keys) != len(node.keys) or not all(isinstance(k, str) for k in keys):
+            continue
+        if frozenset(keys) in shapes:
+            return True
+    return False
+
+
+def envelope_transport(root: str) -> dict[str, tuple[set[str], set[str]]]:
+    """{seam -> (modules that ENCODE its envelopes, modules that DECODE them)}.
+
+    A module counts for a seam only if it IMPORTS that seam, which is what ties a wire form to the
+    crossing it belongs to: the codec module itself encodes and decodes the generic envelope and
+    imports no payload seam, so it is nobody's transport and is never credited as one.
+    """
+    shapes = wire_field_sets(root)
+    seams = envelope_seams(root)
+    imports = _module_imports(root)
+    transport: dict[str, tuple[set[str], set[str]]] = {s: (set(), set()) for s in seams}
+    for path, rel in _census_py_files(root):
+        dotted = rel[: -len(".py")].replace("/", ".")
+        crossed = seams & imports.get(dotted, set())
+        if not crossed:
+            continue
+        tree = _parse(path)
+        if tree is None:
+            continue
+        encodes = _emits_a_wire_shape(tree, shapes)
+        decodes = CODEC_MODULE in imports.get(dotted, set()) and any(
+            isinstance(n, ast.ImportFrom)
+            and n.module == CODEC_MODULE
+            and any(a.name in DECODE_NAMES for a in n.names)
+            for n in ast.walk(tree)
+        )
+        for seam in crossed:
+            if encodes:
+                transport[seam][0].add(dotted)
+            if decodes:
+                transport[seam][1].add(dotted)
+    return transport
+
+
+@dataclass(frozen=True)
+class EnvelopeWireVerdict:
+    """Channel C's conformance, in four populations -- the same shape the artefact half uses.
+
+    FOUR AND NOT TWO, because "not wire-borne" hides three different repairs:
+      * `in_process`  -- neither side. The envelope crosses as a Python object and its version is
+        a field nobody reads. This is the defect the atom exists to close.
+      * `half_wired`  -- one side only. A version put on the wire that nothing version-checks, or
+        a decoder with no producer: strictly worse than in-process, because it LOOKS transported.
+      * `unversioned` -- a channel C seam declaring no `SCHEMA_VERSION`. It has nothing to put on
+        a wire, so it is reported rather than counted as a failure or silently dropped. The
+        envelope module itself is the honest member: it defines the shape, it is not a crossing.
+    """
+
+    wire_borne: list[str]
+    half_wired: list[tuple[str, str]]
+    in_process: list[str]
+    unversioned: list[str]
+
+    @property
+    def ok(self) -> bool:
+        return not self.in_process and not self.half_wired
+
+    def report(self) -> str:
+        lines = [
+            f"channel C: {len(self.wire_borne)} of "
+            f"{len(self.wire_borne) + len(self.half_wired) + len(self.in_process)} "
+            "versioned seam(s) cross on a wire"
+        ]
+        lines += [f"    * {s} -- encoded and decoded" for s in self.wire_borne]
+        lines += [f"    ! {s} -- {half} ONLY: transported on one side" for s, half in self.half_wired]
+        lines += [
+            f"    ! {s} -- IN-PROCESS: the envelope object crosses the call frame, so its "
+            "schema_version is never encoded, never decoded and never refused"
+            for s in self.in_process
+        ]
+        lines += [
+            f"    - {s} -- declares no {SEAM_VERSION_CONSTANT}, so it has no version to carry"
+            for s in self.unversioned
+        ]
+        return "\n".join(lines)
+
+
+def envelope_wire_conformance(root: str) -> EnvelopeWireVerdict:
+    """THE CONTROL. Fails when an envelope crossing never becomes a message.
+
+    FAIL-CLOSED, and each branch is a different way this could go quiet:
+      * the codec's wire field sets unreadable -> raises (`wire_field_sets`).
+      * seams exist and NONE declares a version -> the subject has been removed. Deleting the
+        version constants is the cheapest way to make this pass, so it is the loudest failure.
+      * NO channel C members at all -> NOT refused. A fully paid-down envelope channel is a
+        legitimate reading and a control pinned to a non-zero count reds on its own success case.
+    """
+    seams = envelope_seams(root)
+    if not seams:
+        return EnvelopeWireVerdict(wire_borne=[], half_wired=[], in_process=[], unversioned=[])
+    unversioned = sorted(s for s in seams if _seam_version(root, s) is None)
+    versioned = seams - set(unversioned)
+    if not versioned:
+        raise CensusUnavailable(
+            f"{len(seams)} channel C seam(s) exist and none declares `{SEAM_VERSION_CONSTANT}` -- "
+            "the subject of channel C's wire check has been removed, which is a failed check"
+        )
+    transport = envelope_transport(root)
+    wire_borne, half_wired, in_process = [], [], []
+    for seam in sorted(versioned):
+        encoders, decoders = transport[seam]
+        if encoders and decoders:
+            wire_borne.append(seam)
+        elif encoders:
+            half_wired.append((seam, "ENCODED"))
+        elif decoders:
+            half_wired.append((seam, "DECODED"))
+        else:
+            in_process.append(seam)
+    return EnvelopeWireVerdict(
+        wire_borne=wire_borne, half_wired=half_wired,
+        in_process=in_process, unversioned=unversioned,
+    )
+
+
+def envelope_wire_conformance_at(
+    rev: str = "HEAD", worktree: bool = False, repo_root: Path = PROJECT_DIR
+) -> EnvelopeWireVerdict:
+    """`envelope_wire_conformance` against the worktree, or against the tree at `rev`."""
+    if worktree:
+        return envelope_wire_conformance(str(repo_root))
+    with head_export(str(repo_root), CENSUS_DIRS, rev=rev) as root:
+        return envelope_wire_conformance(root)
+
+
 ENUMERATORS = {
     "A_direct_import": enumerate_a,
     "B_indirect_import": enumerate_b,
@@ -1131,6 +1398,21 @@ def main(argv: list[str] | None = None) -> int:
         print(f"WIRE CHECK UNAVAILABLE (a failed check, not a pass): {exc}", file=sys.stderr)
         return 2
     print(wire.report())
+
+    # CHANNEL C REPORTS AND DOES NOT GATE, and the condition for that changing is stated so the
+    # next pass does not have to re-derive it: two of the three versioned seams are in-process at
+    # HEAD, so gating here would refuse EVERY commit in the repo including the ones that repair it
+    # -- pass 13's landing-order defect, which this file has already learned once. It becomes a
+    # gate in the same commit that makes it satisfiable, which is the only commit in which
+    # restoring it is honest.
+    try:
+        envelope_wire = envelope_wire_conformance_at(rev=args.rev, worktree=args.worktree)
+    except CensusUnavailable as exc:
+        print(
+            f"CHANNEL C WIRE CHECK UNAVAILABLE (a failed check, not a pass): {exc}", file=sys.stderr
+        )
+        return 2
+    print(envelope_wire.report())
 
     # The artefact half prints its SILENT and UNOBSERVABLE keys as loudly as its carrying ones.
     # The `if carrying:` filter this replaces suppressed exactly the state the check exists to

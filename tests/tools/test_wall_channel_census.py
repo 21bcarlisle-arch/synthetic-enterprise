@@ -994,3 +994,403 @@ def test_THE_LIVE_ARTEFACT_IS_DATED_AGAINST_ITS_PRODUCERS():
 
     assert prov.producers, "no producers derived from the live wire sites -- the subject has gone"
     assert prov.determined, prov.report()
+
+
+# ── 13. channel C's conformance -- does the envelope crossing become a MESSAGE? ───────────────
+#
+# THE TAUTOLOGY THIS SECTION EXISTS TO AVOID. `WallRequest`/`WallResponse` declare
+# `schema_version` as a required field, so "an envelope crossing carries a version" is true by
+# dataclass construction and a control asking it would be R15 TAUTOLOGY -- guaranteed by the same
+# definition it checks, green on every tree that ever compiles. The falsifiable question is
+# whether the envelope is ENCODED into the declared wire form by one side and DECODED back by the
+# other, or merely handed across the call frame as a Python object whose version nobody reads.
+# Every test below therefore mutates the TRANSPORT and never the field.
+
+CODEC_SOURCE = """
+    REQUEST_WIRE_FIELDS = frozenset(
+        {"correlation_id", "request_type", "schema_version", "as_of", "emitted_at", "payload"}
+    )
+    RESPONSE_WIRE_FIELDS = frozenset(
+        {"correlation_id", "status", "schema_version", "observed_at", "valid_time",
+         "payload", "error"}
+    )
+
+    def decode_response(message):
+        return message
+
+    def decode_request(message):
+        return message
+"""
+
+#: The counterparty's own encoder: a dict literal whose key set IS `RESPONSE_WIRE_FIELDS`.
+WIRE_ENCODER = """
+    from interface.contracts.payment_observable_seam import SCHEMA_VERSION
+
+    def encode_wall_response(response):
+        return {
+            "correlation_id": response.correlation_id,
+            "status": response.status.value,
+            "schema_version": SCHEMA_VERSION,
+            "observed_at": response.observed_at.isoformat(),
+            "valid_time": None,
+            "payload": None,
+            "error": None,
+        }
+"""
+
+#: The company's decode site: imports the seam AND a decode entry point from the one codec.
+WIRE_DECODER = """
+    from company.interfaces.wall_protocol import decode_response
+    from interface.contracts.payment_observable_seam import PaymentNotification
+
+    def consume(wire):
+        return decode_response(wire)
+"""
+
+
+@pytest.fixture()
+def envelope_tree(tmp_path: Path) -> Path:
+    """One versioned seam that IS wire-borne, and the versionless envelope module beside it.
+
+    One conforming seam on purpose, for the `tree` fixture's reason: with exactly one, "the
+    mutation broke the transport" and "the check never found a transport" cannot be confused.
+    """
+    root = tmp_path / "repo"
+    _write(root, "company/interfaces/wall_protocol.py", CODEC_SOURCE)
+    _write(root, "interface/contracts/wall_envelope.py", '"""the envelope shape."""\n')
+    _write(root, "interface/contracts/payment_observable_seam.py", """
+        from interface.contracts.wall_envelope import WallResponse
+
+        SCHEMA_VERSION = 1
+    """)
+    _write(root, "simulation/payment_seam_adapter.py", WIRE_ENCODER)
+    _write(root, "company/billing/payment_observation_consumer.py", WIRE_DECODER)
+    return root
+
+
+PAYMENT_SEAM = "interface.contracts.payment_observable_seam"
+
+
+def test_a_conforming_envelope_seam_is_reported_wire_borne_and_passes(envelope_tree):
+    verdict = wcc.envelope_wire_conformance(str(envelope_tree))
+
+    assert verdict.wire_borne == [PAYMENT_SEAM]
+    assert verdict.in_process == [] and verdict.half_wired == []
+    assert verdict.ok, verdict.report()
+
+
+def test_the_VERSIONLESS_envelope_module_is_reported_not_scored(envelope_tree):
+    """`wall_envelope` defines the shape; it is not a crossing and has no version of its own.
+
+    Counting it as a failure would make the control permanently red for a reason its subject
+    cannot fix, and dropping it silently would hide a NEW seam that forgot its version -- which is
+    why it lands in a named bucket rather than either.
+    """
+    verdict = wcc.envelope_wire_conformance(str(envelope_tree))
+
+    assert verdict.unversioned == ["interface.contracts.wall_envelope"]
+    assert "interface.contracts.wall_envelope" not in verdict.in_process
+    assert "declares no SCHEMA_VERSION" in verdict.report()
+
+
+def test_MUTATION_an_IN_PROCESS_seam_fails_even_though_its_envelope_declares_a_version(
+    envelope_tree,
+):
+    """THE DOCTRINE MUTATION, run rather than asserted.
+
+    The seam keeps its `SCHEMA_VERSION`, keeps its importers, and keeps every structural property
+    a version-presence check could see. Only the transport is removed. A control asking "does the
+    envelope carry a version" stays green through exactly this edit; this one must go red.
+    """
+    _write(envelope_tree, "simulation/payment_seam_adapter.py", """
+        from interface.contracts.payment_observable_seam import SCHEMA_VERSION
+
+        def emit(response):
+            return [response]
+    """)
+    _write(envelope_tree, "company/billing/payment_observation_consumer.py", """
+        from interface.contracts.payment_observable_seam import PaymentNotification
+
+        def consume(response):
+            return response.payload
+    """)
+    verdict = wcc.envelope_wire_conformance(str(envelope_tree))
+
+    assert verdict.in_process == [PAYMENT_SEAM]
+    assert not verdict.ok
+    assert "IN-PROCESS" in verdict.report()
+    # The version is still declared and still imported -- the field was never the subject.
+    assert wcc._seam_version(str(envelope_tree), PAYMENT_SEAM) == 1
+
+
+def test_MUTATION_an_encoder_with_no_decoder_is_HALF_WIRED_not_conformant(envelope_tree):
+    """Strictly worse than in-process and must not read as better: bytes are produced in the wire
+    form and nothing on the far side ever version-checks them, so the crossing LOOKS transported.
+    """
+    _write(envelope_tree, "company/billing/payment_observation_consumer.py", """
+        from interface.contracts.payment_observable_seam import PaymentNotification
+
+        def consume(response):
+            return response.payload
+    """)
+    verdict = wcc.envelope_wire_conformance(str(envelope_tree))
+
+    assert verdict.half_wired == [(PAYMENT_SEAM, "ENCODED")]
+    assert not verdict.ok
+    assert "ENCODED ONLY" in verdict.report()
+
+
+def test_MUTATION_a_decoder_with_no_encoder_is_HALF_WIRED_the_other_way(envelope_tree):
+    """The opposite half, so the bucket is about which side is missing and not about which edit
+    the fixture happened to make."""
+    _write(envelope_tree, "simulation/payment_seam_adapter.py", """
+        from interface.contracts.payment_observable_seam import SCHEMA_VERSION
+
+        def emit(response):
+            return [response]
+    """)
+    verdict = wcc.envelope_wire_conformance(str(envelope_tree))
+
+    assert verdict.half_wired == [(PAYMENT_SEAM, "DECODED")]
+    assert not verdict.ok
+
+
+def test_MUTATION_a_SECOND_seam_crossing_in_process_fails_while_the_first_stays_wire_borne(
+    envelope_tree,
+):
+    """The live shape at HEAD, in miniature: one migrated seam and one that never was. A verdict
+    that collapsed to a single boolean would report the whole channel green on the first."""
+    _write(envelope_tree, "interface/contracts/conversation_seam.py", """
+        from interface.contracts.wall_envelope import WallRequest
+
+        SCHEMA_VERSION = 1
+    """)
+    _write(envelope_tree, "company/comms/conversation_generator.py", """
+        from interface.contracts.conversation_seam import ConversationRequest
+
+        def ask(req):
+            return req
+    """)
+    verdict = wcc.envelope_wire_conformance(str(envelope_tree))
+
+    assert verdict.wire_borne == [PAYMENT_SEAM]
+    assert verdict.in_process == ["interface.contracts.conversation_seam"]
+    assert not verdict.ok
+
+
+def test_BOUNDARY_a_dict_one_key_short_of_the_wire_form_is_NOT_an_encode_site(envelope_tree):
+    """The value the rule is most easily wrong about. `absence is never agreement` is the
+    envelope's own law: a message missing one required key is one the far side must REFUSE, so
+    accepting it here would certify as transported exactly the crossing that cannot land.
+    """
+    _write(envelope_tree, "simulation/payment_seam_adapter.py", """
+        from interface.contracts.payment_observable_seam import SCHEMA_VERSION
+
+        def encode_wall_response(response):
+            return {
+                "correlation_id": response.correlation_id,
+                "status": response.status.value,
+                "schema_version": SCHEMA_VERSION,
+                "observed_at": response.observed_at.isoformat(),
+                "valid_time": None,
+                "payload": None,
+            }
+    """)
+    verdict = wcc.envelope_wire_conformance(str(envelope_tree))
+
+    assert verdict.half_wired == [(PAYMENT_SEAM, "DECODED")]
+
+
+def test_BOUNDARY_a_dict_with_an_EXTRA_key_is_not_the_wire_form_either(envelope_tree):
+    """The other side of the same boundary -- a superset is a different message, not a lenient
+    pass, and a control that accepted supersets would credit any dict that happened to contain
+    seven familiar names."""
+    _write(envelope_tree, "simulation/payment_seam_adapter.py", WIRE_ENCODER.replace(
+        '"error": None,', '"error": None,\n            "internal_note": "x",',
+    ))
+    verdict = wcc.envelope_wire_conformance(str(envelope_tree))
+
+    assert verdict.half_wired == [(PAYMENT_SEAM, "DECODED")]
+
+
+def test_the_REQUEST_wire_form_counts_as_an_encode_site_too(envelope_tree):
+    """Both declared shapes, not just the response one the live tree happens to use. A seam whose
+    crossing is request-borne would otherwise be reported unwired for ever."""
+    _write(envelope_tree, "simulation/payment_seam_adapter.py", """
+        from interface.contracts.payment_observable_seam import SCHEMA_VERSION
+
+        def encode_wall_request(request):
+            return {
+                "correlation_id": request.correlation_id,
+                "request_type": request.request_type,
+                "schema_version": SCHEMA_VERSION,
+                "as_of": request.as_of.isoformat(),
+                "emitted_at": request.emitted_at.isoformat(),
+                "payload": None,
+            }
+    """)
+    verdict = wcc.envelope_wire_conformance(str(envelope_tree))
+
+    assert verdict.wire_borne == [PAYMENT_SEAM]
+
+
+def test_NULL_CONTROL_a_module_emitting_the_wire_shape_but_importing_NO_seam_credits_nothing(
+    envelope_tree,
+):
+    """Move the sample, not the law. Importing the seam is what ties a wire form to the crossing
+    it belongs to -- without it, any module anywhere could green a seam it has never touched."""
+    _write(envelope_tree, "simulation/payment_seam_adapter.py", """
+        def encode_wall_response(response):
+            return {
+                "correlation_id": 1, "status": "OK", "schema_version": 1,
+                "observed_at": "x", "valid_time": None, "payload": None, "error": None,
+            }
+    """)
+    verdict = wcc.envelope_wire_conformance(str(envelope_tree))
+
+    assert verdict.half_wired == [(PAYMENT_SEAM, "DECODED")]
+
+
+def test_NULL_CONTROL_importing_the_codec_without_a_decode_name_is_not_a_decode_site(
+    envelope_tree,
+):
+    """The codec exports more than its decoders. Crediting the module edge alone would make every
+    importer of the wall protocol a decode site, including one that only reads a constant."""
+    _write(envelope_tree, "company/billing/payment_observation_consumer.py", """
+        from company.interfaces.wall_protocol import RESPONSE_WIRE_FIELDS
+        from interface.contracts.payment_observable_seam import PaymentNotification
+
+        def consume(response):
+            return sorted(RESPONSE_WIRE_FIELDS)
+    """)
+    verdict = wcc.envelope_wire_conformance(str(envelope_tree))
+
+    assert verdict.half_wired == [(PAYMENT_SEAM, "ENCODED")]
+
+
+def test_NULL_CONTROL_an_unrelated_module_does_not_move_the_channel_C_verdict(envelope_tree):
+    before = wcc.envelope_wire_conformance(str(envelope_tree))
+    _write(envelope_tree, "company/crm/renewals_book.py", """
+        def renew(book):
+            return {"a": 1, "b": 2}
+    """)
+    after = wcc.envelope_wire_conformance(str(envelope_tree))
+
+    assert after == before
+
+
+def test_INDEPENDENCE_the_wire_form_comes_from_the_CODEC_not_from_the_encoder(envelope_tree):
+    """R15 TAUTOLOGY. If the shape were derived from the encoder, no edit to the codec could ever
+    move the verdict and the two sides would agree with each other for ever.
+
+    Widening the codec's declared response form ALONE reds the seam -- the encoder is now emitting
+    a message the contract no longer describes. Widening BOTH restores it, which is what proves
+    the reading tracks the contract rather than either module's own text.
+    """
+    widened = CODEC_SOURCE.replace('"payload", "error"}', '"payload", "error", "trace_id"}')
+    _write(envelope_tree, "company/interfaces/wall_protocol.py", widened)
+    assert wcc.envelope_wire_conformance(str(envelope_tree)).half_wired == [
+        (PAYMENT_SEAM, "DECODED")
+    ]
+
+    _write(envelope_tree, "simulation/payment_seam_adapter.py", WIRE_ENCODER.replace(
+        '"error": None,', '"error": None,\n            "trace_id": response.correlation_id,',
+    ))
+    assert wcc.envelope_wire_conformance(str(envelope_tree)).wire_borne == [PAYMENT_SEAM]
+
+
+def test_FAIL_CLOSED_an_absent_codec_refuses_rather_than_reporting_every_seam_in_process(
+    envelope_tree,
+):
+    """The loudest of the three, because it is the reassuring failure: with no shapes to match,
+    every seam reads as in-process and the report looks like a diligent control finding a lot."""
+    (envelope_tree / "company/interfaces/wall_protocol.py").unlink()
+
+    with pytest.raises(wcc.CensusUnavailable, match="unreadable"):
+        wcc.envelope_wire_conformance(str(envelope_tree))
+
+
+def test_FAIL_CLOSED_a_codec_missing_a_wire_field_constant_refuses(envelope_tree):
+    _write(envelope_tree, "company/interfaces/wall_protocol.py", """
+        RESPONSE_WIRE_FIELDS = frozenset({"correlation_id"})
+
+        def decode_response(message):
+            return message
+    """)
+    with pytest.raises(wcc.CensusUnavailable, match="REQUEST_WIRE_FIELDS"):
+        wcc.envelope_wire_conformance(str(envelope_tree))
+
+
+def test_FAIL_CLOSED_a_computed_wire_field_constant_refuses_rather_than_matching_nothing(
+    envelope_tree,
+):
+    """A constant built at runtime is not readable from the AST, and treating that as an empty
+    shape would silently disable the encoder match while the control kept reporting."""
+    _write(envelope_tree, "company/interfaces/wall_protocol.py", CODEC_SOURCE.replace(
+        'REQUEST_WIRE_FIELDS = frozenset(\n        {"correlation_id", "request_type", '
+        '"schema_version", "as_of", "emitted_at", "payload"}\n    )',
+        "REQUEST_WIRE_FIELDS = frozenset(RESPONSE_WIRE_FIELDS)",
+    ))
+    with pytest.raises(wcc.CensusUnavailable, match="REQUEST_WIRE_FIELDS"):
+        wcc.envelope_wire_conformance(str(envelope_tree))
+
+
+def test_FAIL_CLOSED_seams_that_ALL_lose_their_version_constant_refuse(envelope_tree):
+    """Deleting `SCHEMA_VERSION` is the cheapest way to make this check pass -- every seam would
+    fall into the reported-not-scored bucket and the verdict would be vacuously ok."""
+    _write(envelope_tree, "interface/contracts/payment_observable_seam.py", """
+        from interface.contracts.wall_envelope import WallResponse
+    """)
+    with pytest.raises(wcc.CensusUnavailable, match="SCHEMA_VERSION"):
+        wcc.envelope_wire_conformance(str(envelope_tree))
+
+
+def test_ZERO_ENVELOPE_SEAMS_IS_NOT_REFUSED_because_it_is_this_atoms_success_case(tmp_path):
+    """A fully paid-down envelope channel reads as clean, not as broken. A control pinned to a
+    non-zero count reds on its own success case -- the same doctrine channel D's zero-ports branch
+    follows, and the reason neither is written as `assert seams`."""
+    root = tmp_path / "repo"
+    _write(root, "company/billing/monthly_bill_assembly.py", "def bill():\n    return 1\n")
+
+    verdict = wcc.envelope_wire_conformance(str(root))
+
+    assert verdict.ok and not verdict.wire_borne and not verdict.in_process
+
+
+def test_channel_C_is_NOT_wired_into_the_commit_gate_and_the_condition_is_recorded():
+    """A DESIGN decision that could be silently reversed, so it is a test.
+
+    Two of the three live seams are in-process, so gating channel C would refuse EVERY commit in
+    the repo -- including the ones that migrate a seam. That is pass 13's landing-order defect,
+    which this file has already learned once. It becomes a gate in the commit that makes it
+    satisfiable, and this test is what has to be edited to do it.
+    """
+    gate = Path("tools/pre_commit_test_gate.py").read_text(encoding="utf-8")
+    assert "envelope_wire_conformance" not in gate
+
+
+# ── 14. the live tree -- the reading, and deliberately not the answer ─────────────────────────
+
+def test_THE_LIVE_CHANNEL_C_QUESTION_IS_ANSWERABLE():
+    """ANSWERABLE, not GREEN, and the distinction is pass 18's: pinning the live verdict would red
+    a tree with nothing wrong with it the moment a seam is migrated or added. What must hold is
+    that the question can be ASKED of the live wall -- seams derived, versions read, transport
+    resolved without a refusal. The answer itself is reported by the CLI and moves with the build.
+    """
+    verdict = wcc.envelope_wire_conformance_at(worktree=True)
+    scored = verdict.wire_borne + verdict.in_process + [s for s, _ in verdict.half_wired]
+
+    assert scored, "no versioned channel C seam on the live tree -- the subject has gone"
+    assert verdict.wire_borne, (
+        "no live envelope crossing is wire-borne, so the control has never been shown answering "
+        "in its own success direction: " + verdict.report()
+    )
+
+
+def test_THE_LIVE_ENVELOPE_MODULE_IS_THE_ONLY_UNVERSIONED_SEAM():
+    """The bucket that must not quietly fill up. A NEW seam landing without a `SCHEMA_VERSION`
+    would join `wall_envelope` here and be excused from the conformance question entirely, which
+    is the one way this control could go silent while still printing."""
+    verdict = wcc.envelope_wire_conformance_at(worktree=True)
+
+    assert verdict.unversioned == ["interface.contracts.wall_envelope"], verdict.report()
