@@ -102,3 +102,40 @@ file's `_SYNTH_COMPANY_READS_SIM` already does for import edges.
 
 EP6 is epoch-3 BUILD-gated (R13, director-reserved curriculum sequencing), so no code was
 written for this. This document is the queue entry.
+
+---
+
+## Cleared as a publish-gate wedge suspect, 2026-08-20 (archival provenance)
+
+`.publish_gate_state.json` named this document in `cited_findings` for the whole 13-run wedge
+episode of 2026-08-20, so every wedge doorbell for ~7 hours told the drawing seat to dispose of it
+FIRST. It was never the cause.
+
+**Observed-with-evidence (R9):** the episode's single red was
+`tests/controls/test_control_mutation.py::test_dashboard_consistency_gate_fires_on_surface_disagreement`,
+whose subject is `tools/generate_dashboard_data.py::_check_consistency`. This finding's subject is
+`tools/epistemic_wall.py`'s import-edge ratchet and the three `tools/*_port.py` serialisers. The
+red was an `AttributeError` at call time on a function deleted by the 2026-08-20 exec-summary
+retirement (03dd8c49e) — a missed consumer, not a wall-conformance question. This document's own
+"Why LATENT and not BLOCKING" section already stated the condition under which it could block
+anything: *the day someone bumps a port's `SCHEMA_VERSION`*. Nobody has; it is still `1`.
+
+**Why it was cited anyway:** the same defective suspect ranking recorded in commit 159172f5e —
+ranked by AST traversal depth, capped at eight, and this project's test convention puts the
+subject-under-test below that cap. `cited_findings` came from that ranking, not from evidence.
+
+**Disposition confirmed as landed, not merely recommended.** This document recommended folding the
+gap into `EP6_wall_protocol_typing`'s exit criteria as a conformance census with a dated,
+shrink-only allowlist. That fold is now live and enforced, not queued:
+`tools/wall_channel_census.py` is the census, `company/interfaces/wall_protocol.py:91` holds
+`SUPPORTED_SCHEMA_VERSIONS = frozenset({1})` with an out-of-set version raising
+`UNSUPPORTED_VERSION` and an absent one raising `MISSING_FIELD` — the fail-closed answer to the
+`entry.get("schema_version", SCHEMA_VERSION)` fail-open this document named — and EP6's record
+(`docs/design/simplifications/EP6_wall_protocol_typing.yaml`, Q11) cites this exact sibling defect
+as the shape it exists to avoid. `LEG_DECODE_NAME` is now a per-leg enumerated tuple, so a leg
+dropping out of the census reds the gate.
+
+**What is still owed** is the atom's, not this document's: the three live logs
+(`meter_read_log`, `contact_centre_log`, `acquisition_funnel_log`) still cross same-step and
+unversioned, and EP6 holds that as outstanding build work. Archived to `done/` because the queue
+entry has been consumed by the atom that owns it.

@@ -76,3 +76,31 @@ future restart cannot quietly re-arm the same defect:
 That any assumption in `ASSUMPTIONS.md` is actually wrong. Nothing here measured that. The claim is
 only that the daemon's 106 "ok" verdicts are not evidence either way — the instrument could not have
 said anything else.
+
+---
+
+## Cleared as a publish-gate wedge suspect, 2026-08-20 (archival provenance)
+
+`.publish_gate_state.json` named this document in `cited_findings` for the whole 13-run wedge
+episode of 2026-08-20, so every wedge doorbell for ~7 hours told the drawing seat to dispose of
+it FIRST, before any product work. It was never the cause and could not have been.
+
+**Observed-with-evidence (R9):** the episode's single red, recorded in the same state file, was
+`tests/controls/test_control_mutation.py::test_dashboard_consistency_gate_fires_on_surface_disagreement`.
+That test calls `tools/generate_dashboard_data.py::_check_consistency`. This finding's subject is
+`background/discovery_agent.py::_assess_assumption`. No import path, no call path and no shared
+fixture connects them; `background/discovery_agent.py` is not in the gate's argv at all, and the
+daemon has been `state: retired` in `background/process_manifest.yaml` since 2026-08-13 — it does
+not run, so it cannot red anything.
+
+**Why it was cited anyway:** the alert's suspect ranking, not this document. Commit 159172f5e
+records the mechanism — the suspect list is ranked by AST traversal depth with a cap of eight, and
+this project's test convention puts the subject-under-test deeper than that cap can see, so the
+ranker returned eight modules none of which could reach the red. `cited_findings` was populated
+from the same ranking. Generalised as
+`feedback_the_wedge_suspect_block_can_be_entirely_wrong_so_grep_the_failing_nodes_own_symbol_first`.
+
+**Disposition unchanged:** RETIRED (above). The revival price in `process_manifest.yaml`'s `flip:`
+field still stands, and clearing it as a wedge suspect neither revives it nor discharges the real
+gap this document names — that the scheduled re-validation of `ASSUMPTIONS.md` has never worked.
+Archived to `done/` because the disposition is complete, not because the wedge cleared.
