@@ -784,6 +784,7 @@ def _wall_channel_census_check(staged: list[str]) -> tuple[bool, str]:
         from tools.wall_channel_census import (
             census_at,
             check,
+            envelope_wire_conformance_at,
             load_baseline,
             wire_conformance_at,
         )
@@ -805,6 +806,10 @@ def _wall_channel_census_check(staged: list[str]) -> tuple[bool, str]:
         wire = wire_conformance_at(rev=tree, repo_root=ROOT)
     except Exception as e:  # noqa: BLE001
         return False, f"channel-D wire check RAISED against tree {tree[:9]}: {type(e).__name__}: {e}"
+    try:
+        envelope = envelope_wire_conformance_at(rev=tree, repo_root=ROOT)
+    except Exception as e:  # noqa: BLE001
+        return False, f"channel-C wire check RAISED against tree {tree[:9]}: {type(e).__name__}: {e}"
     # CHANNEL D'S WIRE CHECK BLOCKS -- 2026-08-19 pass 13, restored in the same commit that made
     # it satisfiable, which is the only commit in which restoring it is honest.
     #
@@ -817,14 +822,49 @@ def _wall_channel_census_check(staged: list[str]) -> tuple[bool, str]:
     # the fix is to land the sites -- which this commit's own tree does. Measured before restoring
     # rather than hoped: `wire_conformance_at` against the tree this commit creates reports all 3
     # sites carrying, while against HEAD it names exactly those 3 as silent.
+    # CHANNEL C'S WIRE CHECK BLOCKS -- 2026-08-20 pass 23, armed in the first commit in which
+    # arming it is honest, which is the condition pass 19 wrote and pass 22 was the first to meet.
+    #
+    # The condition, and it was MEASURED at HEAD before this line was written rather than hoped:
+    # `envelope_wire_conformance_at(rev="HEAD")` reports `ok=True`, `channel C: 3 of 3`, with an
+    # EMPTY in-process bucket -- the first HEAD at which that has ever been true. Every earlier
+    # tree had at least one seam whose envelope crossed the call frame, so arming there would have
+    # refused every commit in the repo including the publisher's: a landing-order defect, not a
+    # control defect, and the same trap channel D's wire check above fell into for passes 12-14.
+    #
+    # `EnvelopeWireVerdict.ok` is `not in_process and not half_wired`: zero tolerance and no frozen
+    # debt list, matching channel D beside it. HALF-WIRED refuses as hard as IN-PROCESS on purpose
+    # -- one side only LOOKS transported, which is the worse of the two failures, so a migration
+    # that lands its encoder and forgets its decoder is refused rather than credited as progress.
+    #
+    # DORMANT AND UNVERSIONED LEGS ARE NOT SCORED and therefore cannot wedge a lane: a seam
+    # declaring a message this build never sends, and a seam with no version to carry, are facts
+    # about the contract rather than defects in a crossing. Only a leg this build actually
+    # exchanges can refuse a commit.
     if not verdict.ok:
         return False, verdict.report()
     if not wire.ok:
         return False, wire.report()
-    return True, (
+    if not envelope.ok:
+        return False, envelope.report()
+    scored = len(envelope.wire_borne) + len(envelope.half_wired) + len(envelope.in_process)
+    detail = (
         "the wall's four walker-invisible channels have not grown; "
-        f"channel D's {len(wire.carrying)} wire site(s) carry the version"
+        f"channel D's {len(wire.carrying)} wire site(s) carry the version; "
+        f"channel C's {len(envelope.wire_borne)} of {scored} scored seam(s) cross on a wire"
     )
+    if envelope.legless:
+        # NOT a refusal -- the leg-blind fallback is never weaker than the reading it replaced.
+        # But it must not be QUIET, or deleting a seam's `WallRequest[...]` alias becomes the
+        # cheapest way to downgrade this control, and the gate that reported green every time
+        # would be the last place anyone looked. The live test asserts the bucket is empty; this
+        # says so on every commit, which is where a lane would actually see it.
+        detail += (
+            f" (LEG-BLIND FALLBACK on {len(envelope.legless)} seam(s): "
+            f"{', '.join(envelope.legless)} -- specialise neither envelope, so their legs are "
+            "unknown and a half-migrated seam would not be caught)"
+        )
+    return True, detail
 
 
 def _symbol_landing_check(staged: list[str]) -> tuple[bool, str]:

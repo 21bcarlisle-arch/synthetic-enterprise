@@ -736,8 +736,15 @@ def test_THE_LIVE_WIRE_SITES_ALL_RESOLVE_TO_A_PUBLISHED_KEY():
 # gets its own mutation.
 
 def _gate_wire_branch(monkeypatch, *, wire: wcc.WireVerdict):
-    """Run `_wall_channel_census_check` with the census half forced GREEN and the wire half
-    forced to `wire`, so the returned verdict is attributable to the wire half alone."""
+    """Run `_wall_channel_census_check` with the census and channel-C halves forced GREEN and the
+    channel-D wire half forced to `wire`, so the verdict is attributable to that half alone.
+
+    CHANNEL C IS FORCED HERE FOR THE SAME REASON THE CENSUS IS, and it was added when channel C
+    armed (2026-08-20 pass 23). Left real, it would run against the fixture's fake index tree
+    `"0"*40`, raise, and hit its own fail-closed branch -- at which point the NULL CONTROL below
+    would fail while looking like a defect in channel D. Every half of a multi-part step has to be
+    pinned for any one of them to be a subject.
+    """
     from tools import pre_commit_test_gate as gate
 
     monkeypatch.setattr(gate, "_index_tree", lambda: "0" * 40)
@@ -745,6 +752,7 @@ def _gate_wire_branch(monkeypatch, *, wire: wcc.WireVerdict):
     monkeypatch.setattr(wcc, "load_baseline", lambda *a, **k: {})
     monkeypatch.setattr(wcc, "check", lambda *a, **k: _AlwaysOk())
     monkeypatch.setattr(wcc, "wire_conformance_at", lambda **k: wire)
+    monkeypatch.setattr(wcc, "envelope_wire_conformance_at", lambda **k: _conformant_C())
     # The step short-circuits when no Python is staged, so the sample must contain some.
     return gate._wall_channel_census_check(["simulation/anything.py"])
 
@@ -1357,16 +1365,27 @@ def test_ZERO_ENVELOPE_SEAMS_IS_NOT_REFUSED_because_it_is_this_atoms_success_cas
     assert verdict.ok and not verdict.wire_borne and not verdict.in_process
 
 
-def test_channel_C_is_NOT_wired_into_the_commit_gate_and_the_condition_is_recorded():
-    """A DESIGN decision that could be silently reversed, so it is a test.
+def test_channel_C_IS_wired_into_the_commit_gate_and_the_condition_that_allowed_it_is_recorded():
+    """A DESIGN decision that could be silently reversed, so it is a test -- now in the ARMED
+    direction, which is the edit its own previous form named as the way to arm it.
 
-    Two of the three live seams are in-process, so gating channel C would refuse EVERY commit in
-    the repo -- including the ones that migrate a seam. That is pass 13's landing-order defect,
-    which this file has already learned once. It becomes a gate in the commit that makes it
-    satisfiable, and this test is what has to be edited to do it.
+    WHAT THIS TEST USED TO SAY, kept because the reason it flipped is the record. Passes 19-22
+    asserted `"envelope_wire_conformance" not in gate`: two of the three live seams were
+    in-process, so gating channel C would have refused EVERY commit in the repo including the ones
+    that migrate a seam -- pass 13's landing-order defect, which this file had already learned
+    once. The condition was "it becomes a gate in the commit that makes it satisfiable", and pass
+    22 was the first commit at which `envelope_wire_conformance_at(rev="HEAD").ok` was True.
+
+    THIS IS THE STRUCTURAL HALF ONLY. That the symbol appears in the gate is not evidence the
+    verdict is USED -- a caller that computes a verdict and discards it is precisely the failure
+    section 16 exists to close, and it is section 16's mutations, not this assertion, that prove
+    the refusal is real. This one guards the cheaper reversal: deleting the call entirely.
     """
     gate = Path("tools/pre_commit_test_gate.py").read_text(encoding="utf-8")
-    assert "envelope_wire_conformance" not in gate
+    assert "envelope_wire_conformance_at" in gate, (
+        "channel C's conformance check has been unwired from the commit gate -- an un-armed "
+        "control that reports a true verdict nothing acts on is a control that cannot fail"
+    )
 
 
 # ── 14. the live tree -- the reading, and deliberately not the answer ─────────────────────────
@@ -1770,3 +1789,200 @@ def test_THE_LIVE_PER_LEG_QUESTION_IS_ANSWERABLE():
         state == "wire" for _s, _leg, state in verdict.leg_states
     ), "no live leg is wire-borne, so the per-leg control has never answered in its success "
     "direction: " + verdict.report()
+
+
+# ── 16. the CALLER refuses on channel C too -- arming the gate ────────────────────────────────
+#
+# Section 11 made this argument for channel D and it applies here unchanged: a control whose
+# caller discards its verdict is a control that cannot fail. Channel C reported for four passes
+# (19-22) while `_wall_channel_census_check` returned ok on every tree it convicted, and pass 22
+# recorded that as a debt with a name rather than a decision -- "a met condition sitting un-armed
+# is itself a control that cannot fail". These are the proofs that the arming is real.
+#
+# WHY IT COULD ONLY BE ARMED HERE. Pass 19 wrote the condition: channel C "becomes a gate in the
+# same commit that makes it satisfiable, which is the only commit in which restoring it is
+# honest". Before pass 22 at least one seam was IN-PROCESS at HEAD, so arming would have refused
+# every commit in the repo, the publisher's included -- the landing-order defect that cost channel
+# D passes 12-14. Measured at HEAD before this section was written: `ok=True`, `3 of 3`, in-process
+# empty.
+#
+# THE MUTATIONS MOVE THE VERDICT AND NOTHING ELSE. Both other halves of the step (the census, and
+# channel D's wire) are forced green by the fixture, so a refusal is attributable to channel C
+# alone -- otherwise "the gate said no" would be evidence about whichever half happened to fail.
+
+def _gate_envelope_branch(monkeypatch, *, envelope: wcc.EnvelopeWireVerdict):
+    """Run `_wall_channel_census_check` with the census and channel-D halves forced GREEN and
+    channel C forced to `envelope`, so the returned verdict is attributable to channel C alone."""
+    from tools import pre_commit_test_gate as gate
+
+    monkeypatch.setattr(gate, "_index_tree", lambda: "0" * 40)
+    monkeypatch.setattr(wcc, "census_at", lambda tree, root: {})
+    monkeypatch.setattr(wcc, "load_baseline", lambda *a, **k: {})
+    monkeypatch.setattr(wcc, "check", lambda *a, **k: _AlwaysOk())
+    monkeypatch.setattr(
+        wcc, "wire_conformance_at", lambda **k: wcc.WireVerdict(carrying=["a.py -> 10"], silent=[])
+    )
+    monkeypatch.setattr(wcc, "envelope_wire_conformance_at", lambda **k: envelope)
+    # The step short-circuits when no Python is staged, so the sample must contain some.
+    return gate._wall_channel_census_check(["simulation/anything.py"])
+
+
+def _conformant_C(**kw) -> wcc.EnvelopeWireVerdict:
+    """The success case: one seam, both legs on the wire. Every mutation below is this, moved."""
+    return wcc.EnvelopeWireVerdict(
+        wire_borne=["interface.contracts.conversation_seam"],
+        half_wired=[], in_process=[], unversioned=[],
+        leg_states=(
+            ("interface.contracts.conversation_seam", "request", "wire"),
+            ("interface.contracts.conversation_seam", "response", "wire"),
+        ),
+        **kw,
+    )
+
+
+def test_NULL_CONTROL_the_GATE_passes_a_conformant_channel_C(monkeypatch):
+    """Move the sample, not the law. Without this, every mutation below is satisfied by a gate
+    that refuses everything -- which is the failure mode of an over-tightened control, not a
+    control."""
+    ok, detail = _gate_envelope_branch(monkeypatch, envelope=_conformant_C())
+    assert ok, detail
+    assert "channel C's 1 of 1 scored seam(s) cross on a wire" in detail
+
+
+def test_MUTATION_the_GATE_refuses_a_tree_whose_envelope_crossing_is_IN_PROCESS(monkeypatch):
+    """The named defect, and the atom's entire subject: an envelope handed over as a Python
+    object, whose `schema_version` is never encoded, never decoded and never refused.
+
+    This is the verdict the reporting branch of passes 19-22 printed while returning ok.
+    """
+    ok, detail = _gate_envelope_branch(
+        monkeypatch,
+        envelope=wcc.EnvelopeWireVerdict(
+            wire_borne=[], half_wired=[],
+            in_process=["interface.contracts.flex_observable_seam"],
+            unversioned=[],
+            leg_states=(
+                ("interface.contracts.flex_observable_seam", "response", "IN-PROCESS"),
+            ),
+        ),
+    )
+    assert not ok, f"the gate accepted an in-process envelope crossing: {detail}"
+    assert "flex_observable_seam" in detail, "the refusal must carry the payload (R5)"
+    assert "IN-PROCESS" in detail
+
+
+def test_MUTATION_the_GATE_refuses_a_HALF_WIRED_seam_which_only_LOOKS_transported(monkeypatch):
+    """The worse of the two failures, and the one a laxer gate would credit as progress.
+
+    A seam with an encoder and no decoder puts bytes in the declared wire form that nothing
+    version-checks. Scoring it as partial progress -- refusing only `in_process` -- would accept
+    exactly the migration that lands its encoder and forgets its far side, which is indistinguish-
+    able from a working wire until a counterparty changes version.
+    """
+    ok, detail = _gate_envelope_branch(
+        monkeypatch,
+        envelope=wcc.EnvelopeWireVerdict(
+            wire_borne=[], half_wired=[("interface.contracts.conversation_seam", "ENCODED")],
+            in_process=[], unversioned=[],
+            leg_states=(
+                ("interface.contracts.conversation_seam", "request", "ENCODED-only"),
+            ),
+        ),
+    )
+    assert not ok, f"the gate accepted a half-wired seam: {detail}"
+    assert "ENCODED ONLY" in detail and "conversation_seam" in detail
+
+
+def test_FAIL_CLOSED_the_GATE_refuses_when_channel_Cs_check_itself_raises(monkeypatch):
+    """An unavailable check is a FAILED check (R15's third killer pattern).
+
+    `envelope_wire_conformance` raises rather than reporting an empty subject when the codec's
+    wire field sets are unreadable or every seam has lost its version constant -- both of which
+    are exactly what a tree being quietly emptied looks like. Swallowing that raise would turn the
+    loudest failure the enumerator has into the quietest.
+    """
+    from tools import pre_commit_test_gate as gate
+
+    monkeypatch.setattr(gate, "_index_tree", lambda: "0" * 40)
+    monkeypatch.setattr(wcc, "census_at", lambda tree, root: {})
+    monkeypatch.setattr(wcc, "load_baseline", lambda *a, **k: {})
+    monkeypatch.setattr(wcc, "check", lambda *a, **k: _AlwaysOk())
+    monkeypatch.setattr(
+        wcc, "wire_conformance_at", lambda **k: wcc.WireVerdict(carrying=["a.py -> 10"], silent=[])
+    )
+
+    def _boom(**kwargs):
+        raise wcc.CensusUnavailable("every channel C seam has lost its SCHEMA_VERSION")
+
+    monkeypatch.setattr(wcc, "envelope_wire_conformance_at", _boom)
+    ok, detail = gate._wall_channel_census_check(["simulation/anything.py"])
+    assert not ok
+    assert "channel-C wire check RAISED" in detail
+    assert "lost its SCHEMA_VERSION" in detail, "the refusal must name what went unread (R5)"
+
+
+def test_the_UNSCORED_buckets_cannot_wedge_a_lane(monkeypatch):
+    """DORMANT and UNVERSIONED legs are facts about a CONTRACT, never defects in a crossing.
+
+    `payment_observable_seam` declares a request leg this build never sends, and `wall_envelope`
+    declares no version because it defines the shape rather than crossing it. Scoring either would
+    make the gate permanently red for a reason no lane can repair without deleting a contract --
+    which is the shape of a control that gets tuned away, and the reason both are reported instead.
+    """
+    ok, detail = _gate_envelope_branch(
+        monkeypatch,
+        envelope=wcc.EnvelopeWireVerdict(
+            wire_borne=[], half_wired=[], in_process=[],
+            unversioned=["interface.contracts.wall_envelope"],
+            dormant_legs=(("interface.contracts.payment_observable_seam", "request"),),
+            leg_states=(
+                ("interface.contracts.payment_observable_seam", "request", "dormant"),
+            ),
+        ),
+    )
+    assert ok, f"an unscored bucket refused a commit: {detail}"
+    assert "channel C's 0 of 0 scored seam(s)" in detail
+
+
+def test_the_LEG_BLIND_FALLBACK_is_reported_by_the_GATE_and_not_swallowed(monkeypatch):
+    """The quiet-downgrade guard, and it is a REPORT rather than a refusal on purpose.
+
+    Leg ownership is read from a seam's own `WallRequest[...]`/`WallResponse[...]` aliases, so a
+    one-line delete makes the leg-aware rule inapplicable and the verdict silently falls back to
+    the leg-blind rule of section 13. That fallback is never WEAKER than the reading it replaced,
+    so refusing on it would red a tree with nothing wrong with it -- but if the gate says nothing,
+    deleting the alias becomes the cheapest way to downgrade this control, and the one place a
+    lane would actually have seen it is the one place that stayed green and quiet.
+    """
+    ok, detail = _gate_envelope_branch(
+        monkeypatch,
+        envelope=_conformant_C(legless=("interface.contracts.conversation_seam",)),
+    )
+    assert ok, detail
+    assert "LEG-BLIND FALLBACK on 1 seam(s)" in detail
+    assert "conversation_seam" in detail
+
+
+def test_NULL_CONTROL_no_fallback_notice_when_every_seam_owns_its_legs(monkeypatch):
+    """Isolates the notice above from the wrapping: same caller, same green verdict, only the
+    `legless` bucket moves. Without it, a gate that always printed the notice would pass."""
+    ok, detail = _gate_envelope_branch(monkeypatch, envelope=_conformant_C())
+    assert ok, detail
+    assert "LEG-BLIND FALLBACK" not in detail
+
+
+def test_THE_LIVE_TREE_PASSES_THE_ARMED_CHANNEL_C_GATE():
+    """The condition for arming, asserted on the live tree rather than argued in a record.
+
+    Deliberately the ANSWER and not merely the SUBJECT, which is the opposite of section 14's
+    choice and for a reason that only becomes true once the check gates: from this commit on, a
+    tree whose channel C is red cannot be committed at all, so a test asserting it is green can no
+    longer red a tree that is legitimately mid-migration -- there is no such tree. This is the
+    proof that the gate armed above is satisfiable by the repo it was armed in.
+    """
+    verdict = wcc.envelope_wire_conformance_at(worktree=True)
+    assert verdict.ok, verdict.report()
+    assert not verdict.legless, (
+        "a seam has lost its leg aliases and the control has silently fallen back to the "
+        "leg-blind rule: " + verdict.report()
+    )
