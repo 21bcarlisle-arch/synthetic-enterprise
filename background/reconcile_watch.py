@@ -33,6 +33,7 @@ sys.path.insert(0, str(PROJECT_DIR))
 from background import gap_ledger_reconciler as _gap  # noqa: E402
 from background import process_reconciler as _proc  # noqa: E402
 from background import schedule_reconciler as _sched  # noqa: E402
+from background import seat_work_in_hand as _seat  # noqa: E402
 
 # How many gap-drift lines the human summary spells out before counting the rest. The SIGNATURE
 # always carries every item (so no transition can hide behind the cap) and the overflow is stated,
@@ -130,6 +131,22 @@ def run(proc_results: list[dict] | None = None,
         sched_results = _sched.reconcile()
     if gap_results is None:
         gap_results = _gap.reconcile()
+
+    # Claimed-but-not-moving work goes back to the draw. It rides THIS timer rather than one
+    # of its own because it is the same question the rest of this module asks -- what was
+    # declared, versus what is actually true -- applied to work in hand instead of to
+    # processes and units. It is deliberately NOT part of the drift signature and never pages:
+    # a stalled claim is not an emergency, and the correct outcome is that the work moves, not
+    # that a phone buzzes. See background/seat_work_in_hand.py for the 4h23m stall that every
+    # existing watcher, including this one, reported as clean.
+    try:
+        released = _seat.sweep()
+        if released:
+            _log(f"seat claims released back to the draw: {', '.join(released)}")
+    except Exception as exc:                                   # noqa: BLE001
+        # A failure here must never stop the reconcile that this module exists to run.
+        _log(f"seat-claim sweep failed (reconcile continues): {exc!r}")
+
     sig, summary = build_report(proc_results, sched_results, gap_results)
     last = _load_last()
     changed = sig != last
