@@ -137,7 +137,7 @@ from company.billing.arrears_engine import (
     age_open_items,
     ageing_buckets,
 )
-from company.interfaces.wall_protocol import WallProtocolError, decode_response
+from company.interfaces.wall_protocol import WallProtocolError, decode_framed_response
 from interface.contracts.payment_observable_seam import (
     FORBIDDEN_TRUTH_FIELDS,
     OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
@@ -653,8 +653,26 @@ class PaymentObservationConsumer:
         because refusing a message the company could not read is not the same
         as having read it, and a corrected re-delivery of the same
         `correlation_id` must still be able to land.
+
+        WHO SENT IT IS CHECKED FIRST (atom EP6, pass 39). The message arrives
+        inside a transport frame naming its participant, and
+        `decode_framed_response` refuses an unregistered sender, a wrong
+        credential, or a release this counterparty is not on -- before the
+        envelope is read and long before any belief moves. Until pass 39 this
+        line decoded a well-formed envelope from anybody, which is the blind
+        review's Q13: the company could not tell a stand-in from a real
+        counterparty because the identity check was absent from the path, not
+        because the abstraction was good.
+
+        The verified sender is currently DISCARDED here, and that is a stated
+        limit rather than an oversight: this consumer has exactly one
+        counterparty, so a per-sender belief has nothing to distinguish yet.
+        The day a second bank feed exists, the fact is available at this line
+        instead of having to be reconstructed.
         """
-        response = decode_response(wire, decode_payload=decode_observable_payload)
+        _sender, response = decode_framed_response(
+            wire, decode_payload=decode_observable_payload
+        )
         return self.observe(response)
 
     def observe(self, response: WallResponse) -> bool:

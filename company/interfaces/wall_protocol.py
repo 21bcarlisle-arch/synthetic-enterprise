@@ -52,16 +52,71 @@ decoder refuses to conflate them. Unknown keys are refused for the mirror-image
 reason -- if a later schema adds a field, the version number is how a decoder
 finds out, not silent tolerance of bytes it does not understand.
 
-SCOPE, deliberately narrow (SIMPLICITY GUARD; the atom's own origin_note
-forbids a protocol cathedral by name). No registry, no plugin lookup, no
-transport, no retry policy, no new message types. Four functions and a
-refusal. The payload codec is a function ARGUMENT, not a registered type, so
-adding a crossing requires no edit here.
+--------------------------------------------------------------------------
+AND, SINCE PASS 39: A MESSAGE WHOSE SENDER THIS BUILD CANNOT NAME IS REFUSED.
+--------------------------------------------------------------------------
+
+The 2026-08-20 blind review went straight at this atom's headline claim -- "a
+mock counterparty and a real one are indistinguishable to the company" -- and
+answered it with the objection that made it a DISQUALIFYING question (Q13):
+indistinguishability had been achieved by the identity check being ABSENT from
+the path, which is a control gap and not an abstraction. It was true, and
+measured: a repo-wide search for SMKI, DIP signing, DTN participant identity,
+mutual TLS or client certificates found the concept only in
+`background/one_way_door.py`, i.e. modelled solely as a RESERVED REAL-WORLD ACT
+and never as a verified property of a message. Everything above this line would
+decode a perfectly-formed envelope from absolutely anybody.
+
+So the wire gains a TRANSPORT FRAME around the envelope, and the frame states
+WHO IS SPEAKING. Identity is deliberately not an envelope field: in the real
+networks this seam stands in for (DTN, the DIP, Bacstel-IP) the participant is
+established by the CHANNEL -- a certificate, a signed header -- and the business
+document inside knows nothing about it. Putting it in the envelope would also
+have widened `interface/contracts/wall_envelope.py`, which this module is not
+allowed to do and should not want to.
+
+WHAT IS AND IS NOT MODELLED, said plainly so the next reader does not have to
+infer it. What is modelled is the REFUSAL: an unregistered sender, a sender
+presenting the wrong credential, and a sender speaking a schema version it is
+not on, are three distinguishable rejections at the port, below any company
+logic. What is NOT modelled is the cryptography -- there is no certificate
+chain and no signature over the bytes, and a credential presented in the clear
+would be worthless on a real network. The control being built here is the one
+the review said was missing, which is the CHECK, not the cipher.
+
+NOT A TAUTOLOGY (R15). The registry below holds a FINGERPRINT; the credential
+itself lives in the counterparty's own module and never crosses into this one.
+Neither side derives its value from the other at runtime, so a counterparty
+that rotates its credential without telling this company breaks the seam --
+which is the correct outcome, and the reason this is a check rather than a
+handshake with itself.
+
+PER-COUNTERPARTY VERSIONS, which is the other half of what the registry buys
+(the review's Q10). `SUPPORTED_SCHEMA_VERSIONS` says what this BUILD can read;
+a registry entry says what one COUNTERPARTY is currently on. With only the
+first, every market release is a big-bang cutover and two versions of one
+interface cannot run concurrently -- which is not how a DTC/SEC/BSC release
+lands, since the counterparties cut over on their own dates. With both, being
+on v2 with one participant while still on v1 with another is one row of a table
+rather than a redesign. Q10 is NOT thereby answered in full and this module
+does not claim it is: the wire FIELD SETS below are still version-blind, so
+this build understands exactly one dialect and the table can currently only
+express which participants are on it.
+
+SCOPE, still deliberately narrow (SIMPLICITY GUARD; the atom's own origin_note
+forbids a protocol cathedral by name). One frozen table, one wrapper shape, no
+plugin lookup, no transport, no retry policy, no new message types. The payload
+codec is a function ARGUMENT, not a registered type, so adding a crossing
+requires no edit here.
 """
 from __future__ import annotations
 
 import datetime as dt
-from typing import Any, Callable, Mapping, Optional, TypeVar
+import hmac
+from dataclasses import dataclass
+from hashlib import sha256
+from types import MappingProxyType
+from typing import Any, Callable, Mapping, Optional, Tuple, TypeVar
 
 from interface.contracts.wall_envelope import (
     ErrorDetail,
@@ -74,11 +129,16 @@ __all__ = [
     "SUPPORTED_SCHEMA_VERSIONS",
     "REQUEST_WIRE_FIELDS",
     "RESPONSE_WIRE_FIELDS",
+    "FRAME_WIRE_FIELDS",
+    "CounterpartyRecord",
+    "COUNTERPARTY_REGISTRY",
     "WallProtocolError",
     "encode_request",
     "decode_request",
     "encode_response",
     "decode_response",
+    "decode_frame",
+    "decode_framed_response",
 ]
 
 P = TypeVar("P")
@@ -113,6 +173,54 @@ RESPONSE_WIRE_FIELDS: frozenset[str] = frozenset(
 )
 
 
+#: The exact key set of a TRANSPORT FRAME. `envelope` carries the message
+#: above; `sender` and `credential` are what the channel asserts about who is
+#: speaking. Three keys, all required -- an unsigned frame is not a frame, and
+#: absence is never agreement here either.
+FRAME_WIRE_FIELDS: frozenset[str] = frozenset({"sender", "credential", "envelope"})
+
+
+@dataclass(frozen=True)
+class CounterpartyRecord:
+    """What this company build accepts FROM one named counterparty.
+
+    `credential_sha256` is a FINGERPRINT, never the credential: this module is
+    the receiver, and a receiver that stores what it is checking is the R15
+    TAUTOLOGY pattern one layer down. The counterparty holds its own secret in
+    its own code, exactly as a real participant holds its own key.
+
+    `speaks_schema_versions` is this counterparty's CURRENT release, which is a
+    different fact from `SUPPORTED_SCHEMA_VERSIONS` (what this build can read at
+    all). A version in the second but not the first is a message from a
+    participant that has not cut over yet -- readable, and still wrong.
+    """
+
+    credential_sha256: str
+    speaks_schema_versions: frozenset[int]
+
+
+#: The company's counterparty on the payment observable seam -- its bank/Bacs
+#: bureau. One entry, because one crossing is framed today (see the module
+#: docstring): a registry row for a participant that never sends would be a
+#: line nobody maintains and a control nothing exercises.
+PAYMENT_SEAM_SENDER = "BACS-BUREAU-01"
+
+#: Every counterparty this build will accept a message from. A sender absent
+#: from this mapping is REFUSED -- there is deliberately no default record and
+#: no wildcard, because a registry with a fallback is a registry that cannot
+#: say no.
+COUNTERPARTY_REGISTRY: Mapping[str, CounterpartyRecord] = MappingProxyType(
+    {
+        PAYMENT_SEAM_SENDER: CounterpartyRecord(
+            credential_sha256=(
+                "639aca59b3a720c287d0473294933e0bb86c75173c6f0aedaaa5cbd376eda12a"
+            ),
+            speaks_schema_versions=frozenset({1}),
+        ),
+    }
+)
+
+
 class WallProtocolError(ValueError):
     """A message that did not cross. Carries a machine-readable ``reason`` so a
     caller can tell a malformed counterparty apart from an unknown dialect
@@ -129,6 +237,17 @@ class WallProtocolError(ValueError):
                                  invariants reject it (e.g. an OK with no
                                  payload). Raised so a bad message NEVER reaches
                                  company logic as a half-built object.
+      ``UNKNOWN_SENDER``       -- the frame names a participant this build has
+                                 no registry entry for.
+      ``BAD_CREDENTIAL``       -- the participant is known and did not prove it.
+      ``VERSION_NOT_SPOKEN``   -- this build can read the dialect; THIS sender is
+                                 not on that release.
+
+    The last three are separate reasons on purpose. "I have never heard of
+    you", "you are not who you say you are" and "you have not cut over yet"
+    call for three different repairs -- a registry entry, a credential
+    rotation, and a release schedule -- and a single AUTH_FAILED would hide
+    which.
     """
 
     def __init__(self, reason: str, message: str) -> None:
@@ -381,3 +500,87 @@ def decode_response(
         if isinstance(exc, WallProtocolError):
             raise
         raise WallProtocolError("CONTRACT_VIOLATION", str(exc)) from exc
+
+
+# ---------------------------------------------------------------------------
+# the transport frame: who is speaking, checked before anything is believed
+# ---------------------------------------------------------------------------
+
+
+def _verify_frame(
+    wire: Any, registry: Mapping[str, CounterpartyRecord]
+) -> Tuple[str, CounterpartyRecord, Mapping[str, Any]]:
+    """Refuse, or return (sender, that sender's record, the envelope inside).
+
+    The order is the point: nothing about the envelope is read until the frame
+    around it has named a participant this build knows and that participant has
+    proved it. A decoder that parses first and authenticates afterwards has
+    already done the work an unknown sender wanted done."""
+    frame = _require_mapping(wire, "frame")
+    _require_exact_fields(frame, FRAME_WIRE_FIELDS, "frame")
+    sender = _decode_str(frame["sender"], "sender")
+    credential = _decode_str(frame["credential"], "credential")
+
+    record = registry.get(sender)
+    if record is None:
+        raise WallProtocolError(
+            "UNKNOWN_SENDER",
+            f"no registry entry for participant {sender!r} -- a message is not "
+            "accepted because it is well-formed, and there is no default record",
+        )
+    presented = sha256(credential.encode("utf-8")).hexdigest()
+    if not hmac.compare_digest(presented, record.credential_sha256):
+        raise WallProtocolError(
+            "BAD_CREDENTIAL",
+            f"participant {sender!r} did not present the credential this build "
+            "holds a fingerprint for",
+        )
+    envelope = _require_mapping(frame["envelope"], "frame.envelope")
+    return sender, record, envelope
+
+
+def decode_frame(
+    wire: Any, *, registry: Mapping[str, CounterpartyRecord] = COUNTERPARTY_REGISTRY
+) -> Tuple[str, Mapping[str, Any]]:
+    """Verify the transport frame and hand back (sender, envelope-on-the-wire).
+
+    ``registry`` exists so a test can build a two-participant world without
+    mutating a module constant under a live suite; production callers pass
+    nothing and get `COUNTERPARTY_REGISTRY`. It is not a permission dial --
+    there is no value of it that means "skip the check", because an empty
+    registry refuses everything rather than accepting everything.
+    """
+    sender, _record, envelope = _verify_frame(wire, registry)
+    return sender, envelope
+
+
+def decode_framed_response(
+    wire: Any,
+    *,
+    decode_payload: Callable[[Any], R],
+    registry: Mapping[str, CounterpartyRecord] = COUNTERPARTY_REGISTRY,
+) -> Tuple[str, WallResponse[R]]:
+    """Parse a response that arrived inside a transport frame, or refuse it.
+
+    Returns the VERIFIED sender alongside the response, rather than dropping it:
+    a consumer that cannot say which counterparty told it something cannot
+    later tell two counterparties apart, and this is the only point in the path
+    where that fact exists.
+
+    THE PER-SENDER VERSION CHECK RUNS LAST, after the envelope has decoded. It
+    could be done by peeking at the raw `schema_version` key first, and that is
+    exactly the `entry.get(...)` shape this module was built to refuse: the
+    value would not yet have been proven to be an int, in the supported set, or
+    present at all. So the build-wide refusal happens first on a validated
+    field, and the per-sender one on the value that survived it.
+    """
+    sender, record, envelope = _verify_frame(wire, registry)
+    response = decode_response(envelope, decode_payload=decode_payload)
+    if response.schema_version not in record.speaks_schema_versions:
+        raise WallProtocolError(
+            "VERSION_NOT_SPOKEN",
+            f"participant {sender!r} sent schema_version {response.schema_version}, "
+            f"and this build has it on {sorted(record.speaks_schema_versions)} -- "
+            "readable by this build, and not this counterparty's current release",
+        )
+    return sender, response

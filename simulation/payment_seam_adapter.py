@@ -512,6 +512,58 @@ def encode_wall_response(response: WallResponse) -> dict:
     }
 
 
+# ---------------------------------------------------------------------------
+# THE TRANSPORT FRAME (atom EP6_wall_protocol_typing, pass 39, 2026-08-20) --
+# this counterparty saying who it is.
+#
+# The 2026-08-20 blind review's Q13 found that the company would decode a
+# well-formed envelope from anybody, because no participant identity existed
+# anywhere below the port. The repair has two halves and this is the SENDER's:
+# every message this seam publishes now travels inside a frame naming the
+# participant and presenting its credential. The company holds only a
+# FINGERPRINT of that credential, in its own registry, in its own module -- so
+# neither side reads the other's value at runtime and the check is a real one
+# rather than a handshake with itself.
+#
+# ROTATING `PARTICIPANT_CREDENTIAL` here without updating the company's
+# registry BREAKS THIS SEAM, deliberately. That is what a participant changing
+# its key without telling its counterparty does on a real network, and a
+# version of this that kept working would not be checking anything.
+#
+# NOT A SECRET IN THE SECRETS SENSE: this is a stand-in bank's synthetic
+# credential inside a simulation, with no real-world counterparty and (by
+# `tools/company_network_isolation.py`) no route to one. It is a literal here
+# for the same reason the rest of this stand-in's behaviour is: it is world
+# state, not configuration.
+# ---------------------------------------------------------------------------
+
+#: This counterparty's participant identity, as the company's registry knows it.
+PARTICIPANT_ID = "BACS-BUREAU-01"
+
+#: What this participant presents to prove that identity. The company stores
+#: sha256 of this string and never the string itself.
+PARTICIPANT_CREDENTIAL = "bacs-bureau-01::participant-credential::v1"
+
+
+def frame_wire_message(envelope_wire: dict) -> dict:
+    """Wrap one encoded envelope in this participant's transport frame.
+
+    Written against the frame SCHEMA, not against the company's `decode_frame`
+    -- same rule as `encode_wall_response`, and for the same reason: this
+    module may not import `company.*`, and a frame built by reading the
+    receiver's code would make the round-trip a tautology.
+    """
+    if not isinstance(envelope_wire, dict):
+        raise SeamEncodeError(
+            f"expected an encoded envelope dict, got {type(envelope_wire).__name__}"
+        )
+    return {
+        "sender": PARTICIPANT_ID,
+        "credential": PARTICIPANT_CREDENTIAL,
+        "envelope": envelope_wire,
+    }
+
+
 def emit_wire_responses(
     event: PaymentEvent,
     seam_input: Optional[SeamAdapterInput] = None,
@@ -522,5 +574,12 @@ def emit_wire_responses(
     This is the form the live triad crosses on. The object form remains for
     the offline harness and for constructing the responses in the first place;
     what changed is that the COMPANY no longer receives one.
+
+    Since pass 39 each message is FRAMED (see above), so the company's route to
+    a payment observation now runs through a participant check as well as the
+    envelope's refusals.
     """
-    return [encode_wall_response(r) for r in emit_wall_responses(event, seam_input)]
+    return [
+        frame_wire_message(encode_wall_response(r))
+        for r in emit_wall_responses(event, seam_input)
+    ]

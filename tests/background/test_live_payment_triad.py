@@ -112,15 +112,21 @@ def test_R15_mutation_leaking_the_wall_collapses_the_live_gap(monkeypatch):
             )
             import datetime as _dt
 
-            from simulation.payment_seam_adapter import encode_wall_response
-            return [encode_wall_response(WallResponse(
+            # FRAMED like every other message this seam publishes (EP6 pass
+            # 39): an unframed leak would be refused at the participant check
+            # and this control would pass because the mutation never arrived.
+            from simulation.payment_seam_adapter import (
+                encode_wall_response,
+                frame_wire_message,
+            )
+            return [frame_wire_message(encode_wall_response(WallResponse(
                 correlation_id=corr,
                 status=WallStatus.OK,
                 schema_version=SCHEMA_VERSION,
                 observed_at=_dt.datetime.combine(due, _dt.time(6, 0)),
                 valid_time=due,
                 payload=payload,
-            ))]
+            )))]
         # non-failed: fall through to the real adapter for coherent success/dispute
         return _real_emit(event, seam_input)
 

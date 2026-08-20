@@ -1001,10 +1001,20 @@ LEG_WIRE_CONSTANT: dict[str, str] = {
     RESPONSE_LEG: "RESPONSE_WIRE_FIELDS",
 }
 
-#: leg -> the codec entry point that DECODES it.
-LEG_DECODE_NAME: dict[str, str] = {
-    REQUEST_LEG: "decode_request",
-    RESPONSE_LEG: "decode_response",
+#: leg -> the codec entry point(s) that DECODE it.
+#:
+#: A TUPLE, since EP6 pass 39, and the reason is the defect that forced it. The payment crossing
+#: moved from `decode_response` to `decode_framed_response` -- the same decode, now behind a
+#: participant check -- and this census, matching ONE name per leg, reported the response leg as
+#: ENCODED-only and red-listed the seam for having got STRONGER. A control keyed on a single
+#: spelling of the thing it looks for cannot tell "the decoder went away" from "the decoder was
+#: renamed", and the second is what hardening the port looks like from here. Adding an entry point
+#: to `wall_protocol` therefore means adding it here, and the gate reds until someone does --
+#: which is the correct expense, because a leg silently dropping out of the census is exactly what
+#: this instrument exists to prevent.
+LEG_DECODE_NAME: dict[str, tuple[str, ...]] = {
+    REQUEST_LEG: ("decode_request",),
+    RESPONSE_LEG: ("decode_response", "decode_framed_response"),
 }
 
 #: leg -> the codec entry point that ENCODES it. BOTH ends of a leg have two lawful shapes, and
@@ -1013,12 +1023,14 @@ LEG_DECODE_NAME: dict[str, str] = {
 #: and builds the bytes itself. Recognising only the second (the reading this file used to give)
 #: misses every company-side encoder -- `conversation_generator.generate_wire_request` calls
 #: `encode_request` and builds no dict at all -- and reports a wired leg as DECODED-only.
-LEG_ENCODE_NAME: dict[str, str] = {
-    REQUEST_LEG: "encode_request",
-    RESPONSE_LEG: "encode_response",
+LEG_ENCODE_NAME: dict[str, tuple[str, ...]] = {
+    REQUEST_LEG: ("encode_request",),
+    RESPONSE_LEG: ("encode_response",),
 }
 
-DECODE_NAMES: frozenset[str] = frozenset(LEG_DECODE_NAME.values())
+DECODE_NAMES: frozenset[str] = frozenset(
+    name for names in LEG_DECODE_NAME.values() for name in names
+)
 
 #: Where the wire field sets are DECLARED. Read from the tree under measurement, not imported, so
 #: the check reads the same rev everything else in this module does (a two-sided census must read
@@ -1250,9 +1262,17 @@ def _decoded_legs(
 
 
 def _codec_entry_legs(
-    tree: ast.Module, dotted: str, imports: dict[str, set[str]], entry_names: dict[str, str]
+    tree: ast.Module,
+    dotted: str,
+    imports: dict[str, set[str]],
+    entry_names: dict[str, tuple[str, ...]],
 ) -> set[str]:
-    """Which legs this module reaches through the company codec's named entry points."""
+    """Which legs this module reaches through the company codec's named entry points.
+
+    A leg may have MORE THAN ONE lawful entry point (see `LEG_DECODE_NAME`): importing any one of
+    them reaches the leg. What is not lawful is inferring the leg from a name this file has never
+    been told about, which is why the tuple is enumerated rather than matched by prefix.
+    """
     if CODEC_MODULE not in imports.get(dotted, set()):
         return set()
     imported = {
@@ -1261,7 +1281,7 @@ def _codec_entry_legs(
         if isinstance(n, ast.ImportFrom) and n.module == CODEC_MODULE
         for alias in n.names
     }
-    return {leg for leg, name in entry_names.items() if name in imported}
+    return {leg for leg, names in entry_names.items() if imported.intersection(names)}
 
 
 def _encoded_legs(
