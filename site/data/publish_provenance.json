@@ -1,18 +1,18 @@
 {
   "annotation": {
-    "checked_at": "2026-08-20T05:41:13Z",
+    "checked_at": "2026-08-20T06:59:41Z",
     "nonblocking_reds": [
-      "FAILED tests/architecture/test_epistemic_wall_ratchet.py::test_no_new_sim_reads_company",
-      "FAILED tests/architecture/test_epistemic_wall_ratchet.py::test_mutation_injected_company_reads_sim_reds_only_new_crossing",
-      "FAILED tests/architecture/test_epistemic_wall_ratchet.py::test_mutation_injected_sim_reads_company_reds_only_new_crossing",
-      "FAILED tests/architecture/test_epistemic_wall_ratchet.py::test_baseline_census_is_exactly_as_frozen",
-      "FAILED tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py::test_every_declared_exemption_is_still_a_real_violation",
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_committed_store_credits_a_falsifier_the_repository_does_not_have",
-      "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_every_declared_honest_absence_is_still_absent_and_still_silenced",
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline"
+      "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_silenced_absence_is_undeclared",
+      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
+      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_stale_baseline_entries",
+      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
+      "FAILED tests/background/test_finding_severity.py::test_the_staging_root_has_no_false_discharges",
+      "FAILED tests/background/test_live_ledger_guard.py::test_the_narrowing_to_measurement_ledgers_is_measured_not_assumed",
+      "FAILED tests/background/test_publish_provenance.py::test_every_live_data_door_opts_into_the_banner"
     ],
-    "nonblocking_reds_total": 41,
-    "open_findings": 99
+    "nonblocking_reds_total": 68,
+    "open_findings": 100
   },
   "last_verified": {
     "generated_at": "2026-08-20T06:12:11Z",
@@ -20,8 +20,8 @@
     "run_id": "run_output_a5bfec712_20260820T054214Z.json",
     "verified_at": "2026-08-20T06:12:11Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=1aa4a3d7a; blocking tests: see sim-runner-log",
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=810561e4f; blocking tests: FAILED tests/saas/reporting/test_partial_year_clv_headline_guard.py::test_the_final_partial_year_still_values_the_book",
+  "paused_since": "2026-08-20T07:58:15Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-08-20T06:12:11Z",
@@ -29,6 +29,6 @@
     "run_id": "run_output_a5bfec712_20260820T054214Z.json",
     "verified_at": "2026-08-20T06:12:11Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-08-20T06:12:11Z"
+  "verification_state": "paused",
+  "written_at": "2026-08-20T07:58:15Z"
 }
