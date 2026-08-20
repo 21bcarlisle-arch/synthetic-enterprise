@@ -20,8 +20,8 @@
     "run_id": "run_output_a892df011_20260820T180449Z.json",
     "verified_at": "2026-08-20T18:34:35Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=c24e81e07; blocking tests: FAILED tests/saas/reporting/test_partial_year_clv_headline_guard.py::test_the_final_partial_year_still_values_the_book",
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=1318bd146; blocking tests: see sim-runner-log",
+  "paused_since": "2026-08-20T21:10:26Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-08-20T18:34:35Z",
@@ -29,6 +29,6 @@
     "run_id": "run_output_a892df011_20260820T180449Z.json",
     "verified_at": "2026-08-20T18:34:35Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-08-20T18:34:35Z"
+  "verification_state": "paused",
+  "written_at": "2026-08-20T21:10:26Z"
 }
