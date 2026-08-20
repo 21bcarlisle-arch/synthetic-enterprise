@@ -250,3 +250,134 @@ def test_the_daily_self_note_reports_the_headroom():
     note = sm1.render_note("2026-08-10T06:00:00+00:00", _runner=lambda *a: (None, "unavailable"))
     assert "Suite headroom" in note
     assert "publish-gate duration against its own ceiling" in note
+
+
+# ── a test process may not write the live series ──────────────────────────────────────────────
+# BLOCKING finding WORKER_FINDING_THE_HEADROOM_SURFACE_PUBLISHES_A_TEST_FIXTURE_AS_THE_GATES_
+# DURATION_2026-08-20: 3,434 of 5,527 live rows were written by pytest through the production
+# writer, and the daily self-note published one of them as the gate's duration.
+def test_a_test_process_cannot_append_to_the_live_series():
+    """THE SOURCE. This IS a test process, so a path-less `record()` — the exact call
+    `_record_gate_duration` makes in production — must be refused, and the live file must not
+    grow by one byte.
+
+    MUTATION: drop the `guard_live_ledger_write` call from `record()` and this fails on the
+    raises; drop it and the size assertion catches the write even if some other refusal is
+    substituted for it. The size is read from the real `SERIES_PATH` deliberately — a control
+    that checked a fixture path could not tell whether the live file was safe."""
+    from background.live_ledger_guard import LiveLedgerWriteUnderTest
+
+    before = sdw.SERIES_PATH.stat().st_size if sdw.SERIES_PATH.exists() else -1
+    with pytest.raises(LiveLedgerWriteUnderTest) as exc:
+        sdw.record(0.0, 4500, "abc1234", "pass")
+    after = sdw.SERIES_PATH.stat().st_size if sdw.SERIES_PATH.exists() else -1
+    assert before == after, "the live series grew during a test"
+    # Assert the REASON, not merely that something raised: two stacked refusals are otherwise
+    # indistinguishable and the weaker one could be the only survivor.
+    assert "suite_duration_watch.record" in str(exc.value)
+
+
+def test_record_gate_run_swallows_the_refusal_and_writes_nothing():
+    """`record_gate_run` never raises, by contract — so the refusal must arrive as "no measurement
+    this cycle", not as a swallowed exception that wrote anyway.
+
+    MUTATION: make `record_gate_run` re-raise, or make the guard fail open, and this fails."""
+    before = sdw.SERIES_PATH.stat().st_size if sdw.SERIES_PATH.exists() else -1
+    assert sdw.record_gate_run(0.0, 4500, "abc1234", "pass") is None
+    after = sdw.SERIES_PATH.stat().st_size if sdw.SERIES_PATH.exists() else -1
+    assert before == after
+
+
+def test_a_scratch_path_is_still_writable_under_test(tmp_path):
+    """The refusal must be about the LIVE record, not about being a test. If this fails the guard
+    has been widened into "tests cannot record", which would take the module's own R15 proofs with
+    it — a control that cannot be exercised is the fail-silent pattern."""
+    p = tmp_path / "series.jsonl"
+    rec = sdw.record(600.0, 1800, "sha_scratch", "pass", p)
+    assert rec["duration_seconds"] == 600.0
+    assert len(sdw.read_series(p)) == 1
+
+
+def test_the_production_writer_still_reaches_the_live_series_outside_a_test(monkeypatch):
+    """The other direction of the same control, and the one a naive guard breaks: outside a test
+    process the write must proceed. Asserted through `in_test_process()` — the single predicate
+    the guard branches on — with pytest's own two signals removed.
+
+    MUTATION: make `guard_live_ledger_write` refuse unconditionally and this fails, catching a
+    repair that "fixed" the contamination by ending the measurement."""
+    from background import live_ledger_guard as llg
+
+    assert llg.is_live_record_path(sdw.SERIES_PATH), \
+        "the live series must be inside the guarded directory, or the guard never sees it"
+    monkeypatch.setattr(llg, "in_test_process", lambda: False)
+    # Same call production makes; returns the path unchanged rather than raising.
+    assert llg.guard_live_ledger_write(
+        sdw.SERIES_PATH, writer="suite_duration_watch.record") == sdw.SERIES_PATH
+
+
+# ── the rows already written are excluded, not deleted ────────────────────────────────────────
+def test_a_zero_second_row_is_not_a_measurement(tmp_path):
+    """THE RECORD. A 0.0s gate run is unreachable for a real run of ~26k tests and is what every
+    fixture writes. MUTATION: stop excluding in `read_series` and this fails."""
+    p = tmp_path / "series.jsonl"
+    p.write_text("".join(json.dumps(r) + "\n" for r in (
+        _row(0.72, sha="a892df011"),
+        {"timestamp": "t", "git_hash": "abc1234", "duration_seconds": 0.0,
+         "ceiling_seconds": 4500, "headroom_ratio": 1.0, "band": "ok", "outcome": "pass"},
+    )))
+    assert [r["git_hash"] for r in sdw.read_series(p)] == ["a892df011"]
+    # Not deleted: the file is untracked and a truncation is unrecoverable if wrong.
+    assert len(sdw.read_series(p, include_fixture_rows=True)) == 2
+
+
+def test_the_line_reports_the_measurement_the_fixture_displaced(tmp_path):
+    """The live symptom, reproduced: the fixture row is last, so `rows[-1]` published `100%` at
+    `0.0s` while the real run measured 72%. MUTATION: stop excluding and this reports 100%."""
+    p = tmp_path / "series.jsonl"
+    p.write_text("".join(json.dumps(r) + "\n" for r in (
+        _row(0.72, sha="a892df011", ceiling=4500),
+        {"timestamp": "t", "git_hash": "abc1234", "duration_seconds": 0.0,
+         "ceiling_seconds": 4500, "headroom_ratio": 1.0, "band": "ok", "outcome": "pass"},
+    )))
+    line = sdw.note_line(p)
+    assert "72%" in line and "100%" not in line
+    assert "a892df011" in line and "abc1234" not in line
+
+
+def test_the_line_says_what_it_excluded(tmp_path):
+    """A surface that silently drops two thirds of its input is the mirror of the defect it
+    repairs. MUTATION: drop `_exclusion_fragment` from `note_line` and this fails."""
+    p = tmp_path / "series.jsonl"
+    fixture = {"timestamp": "t", "git_hash": "deadbeef", "duration_seconds": 0.0,
+               "ceiling_seconds": 4500, "headroom_ratio": 1.0, "band": "ok", "outcome": "pass"}
+    p.write_text("".join(json.dumps(r) + "\n" for r in (
+        _row(0.72, sha="a892df011", ceiling=4500), fixture, fixture)))
+    line = sdw.note_line(p)
+    assert "2 zero-second row(s) excluded" in line
+    # Silent when there is nothing to say — no permanent footnote about a fixed problem.
+    clean = tmp_path / "clean.jsonl"
+    clean.write_text(json.dumps(_row(0.72, sha="a892df011", ceiling=4500)) + "\n")
+    assert "excluded" not in sdw.note_line(clean)
+
+
+def test_a_fixture_row_cannot_page_a_false_recovery(tmp_path):
+    """§3 of the finding, turned into a control: a genuinely tight run followed by ONE test write
+    paged `[SUITE HEADROOM] Recovered` — a recovery that did not happen, on the director's
+    channel, sourced from a fixture (R5: transitions in the world, not in the file).
+
+    It has never fired only because no real run has ever been tight; it arms itself exactly when
+    the instrument starts to matter. MUTATION: remove the `is_fixture_row(current)` early return
+    from `alarm()` and this fails with `alarms sent: 1`."""
+    spy = _Spy()
+    monkeypatch_free_tight = {"timestamp": "t", "git_hash": "realtight1",
+                              "duration_seconds": 4200.0, "ceiling_seconds": 4500,
+                              "headroom_ratio": 0.0667, "band": "tight", "outcome": "pass"}
+    fixture = {"timestamp": "t", "git_hash": "abc1234", "duration_seconds": 0.0,
+               "ceiling_seconds": 4500, "headroom_ratio": 1.0, "band": "ok", "outcome": "pass"}
+    assert sdw.alarm(fixture, monkeypatch_free_tight, notify_fn=spy) is None
+    assert spy.sent == []
+    # The other leg: a fixture must not become the baseline a REAL crossing is measured against,
+    # or the next genuine tight run reads as ok->tight from the wrong previous.
+    real_tight = dict(monkeypatch_free_tight)
+    assert sdw.alarm(real_tight, fixture, notify_fn=spy) is not None
+    assert len(spy.sent) == 1 and "realtight" in spy.sent[0][0]  # sha rendered at [:9]

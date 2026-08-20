@@ -46,6 +46,29 @@ None and render RED (an unavailable check is a failed check), never a fabricated
 
 NEVER RAISES INTO THE PUBLISH PATH. `record_gate_run` swallows everything: an observer that can
 red the gate it observes is itself a defect.
+
+A TEST PROCESS MAY NOT WRITE THE LIVE SERIES (2026-08-20, BLOCKING finding
+`WORKER_FINDING_THE_HEADROOM_SURFACE_PUBLISHES_A_TEST_FIXTURE_AS_THE_GATES_DURATION_2026-08-20`).
+`process_run_complete._record_gate_duration` is the sole production caller and never passed the
+`path` this module accepts, so every test that exercised the publish path appended a fabricated
+row here through the front door. Measured on 2026-08-20: **3,434 of 5,527 live rows** were
+fixtures (`deadbeef` 1,974, `abc1234` 1,460), and `note_line()` — which the daily self-note
+publishes — was reporting `100% headroom, 0.0s, sha abc1234` while the real run it displaced
+measured 1247.73s = 72%. Two halves, because the source and the record are separate problems:
+
+  * THE SOURCE is closed at the choke point, not the instance (R10). `record()` routes its
+    destination through `live_ledger_guard.guard_live_ledger_write`, the refusal built for the
+    same class on 2026-08-17. Threading a `path` through `_record_gate_duration` — the instance
+    fix — would close one caller and leave the shape open for the next one.
+  * THE ROWS ALREADY WRITTEN cannot be un-written: this file is untracked and a quiet truncation
+    is unrecoverable if wrong. So `read_series()` EXCLUDES them and `note_line()` SAYS how many
+    it dropped — reversible and visible, where a deletion is neither.
+
+A FIXTURE ROW MAY NOT PAGE (§3 of that finding). A 0.0s row carries `headroom_ratio: 1.0`, so a
+genuinely tight run followed by one test write reads as a RECOVERY and pages the director on a
+transition in the file rather than in the world. It has never fired only because no real run has
+ever been tight; it arms itself exactly when the instrument starts to matter. `alarm()` therefore
+treats an unmeasurable current record as `unknown`, which sends nothing.
 """
 from __future__ import annotations
 
@@ -53,6 +76,11 @@ import datetime
 import json
 import math
 from pathlib import Path
+
+# Top level and no `try`, matching that module's own doctrine: if the guard cannot be imported,
+# this module does not import either. An unavailable check is a FAILED check (R15), never a
+# silently skipped one.
+from background.live_ledger_guard import guard_live_ledger_write
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 SERIES_PATH = PROJECT_DIR / "docs" / "observability" / "publish_gate_duration.jsonl"
@@ -113,10 +141,39 @@ def _now_iso() -> str:
     return datetime.datetime.now(datetime.timezone.utc).isoformat()
 
 
-def read_series(path: Path | None = None, limit: int | None = None) -> list[dict]:
+def is_fixture_row(rec) -> bool:
+    """True for a row that records a zero-second gate run — i.e. not a measurement.
+
+    A gate run that compiles, collects and executes ~26k tests cannot take 0.00s; the duration is
+    stored rounded to 2dp, so this is unreachable for any real run and reached by every test one.
+    `bool` is excluded explicitly because `True == 1.0` is False but `False == 0.0` is True in
+    Python, and a `False` in this field is malformed data, not a zero measurement.
+
+    Deliberately NOT a git_hash denylist. `deadbeef`/`abc1234` are today's two fixture shas; a
+    third fixture invents a third sha and a denylist of names would read it as a measurement. The
+    subject is the impossible VALUE, which every present and future fixture shares.
+    """
+    if not isinstance(rec, dict):
+        return False
+    d = rec.get("duration_seconds")
+    return isinstance(d, (int, float)) and not isinstance(d, bool) and d == 0.0
+
+
+def read_series(path: Path | None = None, limit: int | None = None,
+                include_fixture_rows: bool = False) -> list[dict]:
     """Read the duration series oldest-first. Corrupt lines are skipped, never fatal — this is a
     shared append-only surface with concurrent writers (CLAUDE.md), so one bad line must not blind
-    the measure. Missing file → empty list, which upstream renders RED rather than green."""
+    the measure. Missing file → empty list, which upstream renders RED rather than green.
+
+    Fixture rows (§`is_fixture_row`) are dropped by default, so every reader — the reported line,
+    the trend, the band the next record inherits and the alarm's `previous` — sees measurements
+    only. `include_fixture_rows=True` returns the file as written, which is how `note_line()`
+    counts what it excluded and how a future audit can inspect the contamination without
+    re-parsing the file itself.
+
+    `limit` is applied AFTER the exclusion: "the last 5 runs" must mean five measured runs, not
+    five lines two of which are fixtures.
+    """
     p = path or SERIES_PATH
     rows: list[dict] = []
     try:
@@ -132,6 +189,8 @@ def read_series(path: Path | None = None, limit: int | None = None) -> list[dict
         except json.JSONDecodeError:
             continue
         if isinstance(rec, dict):
+            if not include_fixture_rows and is_fixture_row(rec):
+                continue
             rows.append(rec)
     return rows[-limit:] if limit else rows
 
@@ -142,7 +201,14 @@ def record(duration_seconds, ceiling_seconds, git_hash: str, outcome: str,
 
     Stores the raw duration AND the raw ceiling alongside the derived ratio, so the ratio can be
     re-derived by an independent reader and a ceiling change stays visible in the history.
+
+    RAISES `LiveLedgerWriteUnderTest` when a test process aims this at the live series — BEFORE
+    any work, so the refusal cannot be mistaken for a write that half-happened. A test that
+    genuinely needs to exercise this passes `path=tmp_path / "series.jsonl"`, which every existing
+    test in `test_suite_duration_watch.py` already does. `record_gate_run` swallows the refusal,
+    per its own never-raise contract.
     """
+    p = guard_live_ledger_write(path or SERIES_PATH, writer="suite_duration_watch.record")
     h = headroom(duration_seconds, ceiling_seconds)
     prev = read_series(path)
     prev_band = band(prev[-1].get("headroom_ratio"), None) if prev else None
@@ -157,7 +223,6 @@ def record(duration_seconds, ceiling_seconds, git_hash: str, outcome: str,
         "band": band(h, prev_band),
         "outcome": outcome,
     }
-    p = path or SERIES_PATH
     try:
         p.parent.mkdir(parents=True, exist_ok=True)
         with open(p, "a", encoding="utf-8") as f:
@@ -177,9 +242,11 @@ def note_line(path: Path | None = None) -> str:
     RED when the series is missing or the latest run is unmeasurable — an absent measurement is
     reported as absent, never as headroom."""
     rows = read_series(path)
+    excluded = len(read_series(path, include_fixture_rows=True)) - len(rows)
     if not rows:
         return ("🔴 RED — suite headroom unmeasured: no publish-gate duration recorded yet "
-                "(fail-closed, not a green — R15). One appears after the next gate run.")
+                "(fail-closed, not a green — R15). One appears after the next gate run."
+                + _exclusion_fragment(excluded))
     latest = rows[-1]
     h = latest.get("headroom_ratio")
     if h is None:
@@ -192,7 +259,22 @@ def note_line(path: Path | None = None) -> str:
     return (f"{icon} suite headroom: **{_pct(h)}** of the publish gate's ceiling unused "
             f"({latest.get('duration_seconds')}s against a {ceiling}s wall, "
             f"sha {str(latest.get('git_hash'))[:9]}){trend}. "
-            "R12: a DIAGNOSTIC — no test may be deselected or tiered to move it.")
+            "R12: a DIAGNOSTIC — no test may be deselected or tiered to move it."
+            + _exclusion_fragment(excluded))
+
+
+def _exclusion_fragment(excluded: int) -> str:
+    """Say what the line dropped, or say nothing.
+
+    A surface that silently excludes two thirds of its own input is the mirror of the defect this
+    exclusion repairs — the reader cannot tell a clean series from a filtered one. Silent at zero
+    so a healthy series does not carry a permanent footnote about a fixed problem.
+    """
+    if excluded <= 0:
+        return ""
+    return (f" ({excluded} zero-second row(s) excluded as test-process writes, not measurements; "
+            "the source is refused at `record()` since 2026-08-20 — the rows already in the "
+            "file are kept, not truncated.)")
 
 
 def _trend_fragment(rows: list[dict]) -> str:
@@ -220,6 +302,16 @@ def alarm(current: dict, previous: dict | None = None, *, notify_fn=None):
     nothing — no periodic "still fine", no repeated "still tight". Returns the message sent, or
     None. `notify_fn` is injected for tests; the real one is `background.notify.notify`.
     """
+    # A fixture row is not a state of the world, so it cannot be a transition in one. Without
+    # this, a genuinely tight run followed by one test write (headroom_ratio 1.0) pages
+    # "[SUITE HEADROOM] Recovered" on the director's channel — a recovery that did not happen,
+    # sourced from a test. Both sides are checked: as the current record it must not page, and as
+    # the `previous` it must not become the band a real crossing is measured against.
+    if is_fixture_row(current):
+        return None
+    if is_fixture_row(previous):
+        previous = None
+
     prev_band = previous.get("band") if isinstance(previous, dict) else None
     if prev_band not in ("tight", "ok"):
         prev_band = band(previous.get("headroom_ratio"), None) if isinstance(previous, dict) else None

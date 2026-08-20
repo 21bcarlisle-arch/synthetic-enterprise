@@ -31,7 +31,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_GATE_SELECTS_BY_FILENAME_STEM_SO_A_RENAMED_KEYS_CONSUMERS_NEVER_RUN_2026-08-17.md` — LATENT
 - `WORKER_FINDING_THE_GATE_WAS_THE_BRANCHS_OWN_ADMISSION_TICKET_2026-08-12.md` — RECORDED
 - `WORKER_FINDING_THE_GHOST_PUSHER_GUARD_FIRES_ON_A_CONCURRENT_WRITER_2026-08-09.md` — LATENT
-- `WORKER_FINDING_THE_HEADROOM_SURFACE_PUBLISHES_A_TEST_FIXTURE_AS_THE_GATES_DURATION_2026-08-20.md` — BLOCKING
+- `WORKER_FINDING_THE_HEADROOM_SURFACE_PUBLISHES_A_TEST_FIXTURE_AS_THE_GATES_DURATION_2026-08-20.md` — RECORDED
 - `WORKER_FINDING_THE_LANDING_TOOL_EXTRACTS_INTO_THE_TMPFS_THE_GATE_WAS_MOVED_OFF_2026-08-14.md` — RECORDED
 - `WORKER_FINDING_THE_NAMED_BLOCKING_TEST_PASSES_WHEN_YOU_RUN_IT_2026-08-10.md` — LATENT
 - `WORKER_FINDING_THE_PRE_COMMIT_GATE_MAPS_NO_TESTS_TO_A_DATA_FILE_2026-08-09.md` — RECORDED
@@ -68,10 +68,9 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## What is owed
 
-4 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+3 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
 - `WORKER_FINDING_A_GREEN_PUBLISH_CANNOT_CLEAR_THE_WEDGE_UNTIL_A_SECOND_SUITE_THE_DEADLINE_DOES_NOT_KNOW_ABOUT_FINISHES_2026-08-20.md`
-- `WORKER_FINDING_THE_HEADROOM_SURFACE_PUBLISHES_A_TEST_FIXTURE_AS_THE_GATES_DURATION_2026-08-20.md`
 - `WORKER_FINDING_THE_WEDGES_ORDERING_INSTRUMENT_RUNS_BACKWARDS_SINCE_THE_QUEUE_BECAME_A_STACK_2026-08-20.md`
 - `WORKER_FINDING_THE_WEDGE_STATE_LAUNDERS_THE_ALARMS_OWN_I_DONT_KNOW_INTO_A_CONFIDENT_STALE_ANSWER_2026-08-20.md`
 
