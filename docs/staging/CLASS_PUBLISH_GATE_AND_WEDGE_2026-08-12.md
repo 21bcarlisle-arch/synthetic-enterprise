@@ -2,11 +2,11 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 37 · **Class:** `publish_gate_and_wedge` · **Ruling's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
+**Instances:** 38 · **Class:** `publish_gate_and_wedge` · **Ruling's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 37 instances
+## The 38 instances
 
 - `WORKER_FINDING_AN_OOM_KILL_IS_RECORDED_AS_A_TEST_REGRESSION_2026-08-10.md` — LATENT
 - `WORKER_FINDING_ARCHIVED_STAGING_FILES_RESURRECTED_TWICE_DURING_A_LIVE_SURGICAL_LAND_2026-08-18.md` — LATENT
@@ -42,13 +42,14 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_WEDGE_DETECTOR_FED_ITSELF_2026-08-12.md` — RECORDED
 - `WORKER_FINDING_THE_WEDGE_DRAW_NEVER_READS_THE_COMMIT_ITS_OWN_FAILURE_RECORDS_NAME_2026-08-17.md` — LATENT
 - `WORKER_FINDING_THE_WEDGE_RECORD_CITED_A_TEST_THAT_NO_LONGER_EXISTS_2026-08-12.md` — LATENT
+- `WORKER_FINDING_THE_WEDGE_STATE_LAUNDERS_THE_ALARMS_OWN_I_DONT_KNOW_INTO_A_CONFIDENT_STALE_ANSWER_2026-08-20.md` — BLOCKING
 - `WORKER_FINDING_THE_WEDGE_SUSPECTS_ARE_THE_TEST_FILES_IMPORTS_SO_A_REGISTER_FILE_ACCUSES_EVERYONE_2026-08-20.md` — LATENT
 - `WORKER_FINDING_THE_WEDGE_WAS_FIVE_INSTANCES_OF_ONE_CLASS_AND_pytest_x_SERVED_THEM_ONE_AT_A_TIME_2026-08-14.md` — RECORDED
 - `WORKER_REPORT_THE_GATES_OWN_TESTS_WERE_WRITING_THE_ALARMS_EVIDENCE_2026-08-10.md` — LATENT
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**152.0 recorded episode-hours** across 9 of the 37 instances; largest single recorded episode **60h**; 4 instance(s) name a published figure in scope.
+**152.0 recorded episode-hours** across 9 of the 38 instances; largest single recorded episode **60h**; 4 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
@@ -64,9 +65,10 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## What is owed
 
-1 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+2 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
 - `WORKER_FINDING_THE_HEADROOM_SURFACE_PUBLISHES_A_TEST_FIXTURE_AS_THE_GATES_DURATION_2026-08-20.md`
+- `WORKER_FINDING_THE_WEDGE_STATE_LAUNDERS_THE_ALARMS_OWN_I_DONT_KNOW_INTO_A_CONFIDENT_STALE_ANSWER_2026-08-20.md`
 
 ---
 
