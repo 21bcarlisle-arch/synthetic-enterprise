@@ -332,6 +332,393 @@ def enumerate_f(root: str, artefact: dict) -> set[str]:
     return found
 
 
+# ── channel D's conformance: is the version actually ON THE WIRE? ────────────────────────────
+# The enumerators above answer "who crosses on this channel". They cannot answer the question the
+# 2026-08-15 census named as channel D's WHOLE conformance -- "they already own a version field,
+# and putting it on the wire is the whole of their conformance". A port can declare
+# `schema_version`, be counted by `enumerate_d`, and still emit it nowhere: for four days every
+# live call site took the `include_schema_version=False` default and the field was structurally
+# present and never populated. A count of importers is blind to that by construction, which is why
+# this is a separate control and not a bigger enumerator.
+
+#: The serialiser a port message crosses on, and the flag that puts the version in its output.
+WIRE_METHOD = "to_log_entry"
+WIRE_FLAG = "include_schema_version"
+
+
+def _ports_declaring_the_flag(root: str) -> set[str]:
+    """Port modules whose `to_log_entry` ACCEPTS the flag -- the subject this check is about.
+
+    Read from each port's own AST rather than assumed, so a port that never had a version field is
+    not reported as silent: it has nothing to say, which is a different fact from staying quiet.
+    """
+    declaring: set[str] = set()
+    for dotted in _port_modules(root):
+        tree = _parse(os.path.join(root, *dotted.split(".")) + ".py")
+        if tree is None:
+            continue
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef) and node.name == WIRE_METHOD:
+                names = [a.arg for a in node.args.args + node.args.kwonlyargs]
+                if WIRE_FLAG in names:
+                    declaring.add(dotted)
+    return declaring
+
+
+def _census_py_files(root: str):
+    """Every module the wall's own trees hold, as (path, repo-relative dotted-ish label)."""
+    for top in CENSUS_DIRS:
+        for dirpath, _dirnames, filenames in os.walk(os.path.join(root, top)):
+            for fn in sorted(filenames):
+                if fn.endswith(".py"):
+                    path = os.path.join(dirpath, fn)
+                    yield path, os.path.relpath(path, root).replace(os.sep, "/")
+
+
+def _flag_is_true(call: ast.Call) -> bool:
+    for kw in call.keywords:
+        if kw.arg == WIRE_FLAG:
+            return isinstance(kw.value, ast.Constant) and kw.value.value is True
+    return False
+
+
+def wire_call_sites(root: str) -> dict[str, bool]:
+    """Every `<something>.to_log_entry(...)` OUTSIDE the port modules -> does it ask for the version.
+
+    OUTSIDE THE PORTS ON PURPOSE. `tools/acquisition_funnel_port.py` calls `to_log_entry()` on its
+    own nested `FunnelStageMessage` rows, whose serialiser takes no flag at all -- that is one
+    message building itself, not a message leaving the process. Counting it would make the control
+    permanently red for a reason its subject cannot fix.
+
+    A LOWER BOUND, stated rather than hidden, and the same limit `_literal_key_reads` carries: the
+    method is matched by NAME on an attribute call, so a port message serialised through an alias
+    or a computed getattr is invisible here.
+    """
+    ports = _port_modules(root)
+    sites: dict[str, bool] = {}
+    for path, rel in _census_py_files(root):
+        dotted = rel[: -len(".py")].replace("/", ".")
+        if dotted in ports:
+            continue
+        tree = _parse(path)
+        if tree is None:
+            continue
+        for node in ast.walk(tree):
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr == WIRE_METHOD
+            ):
+                sites[_entry(rel, str(node.lineno))] = _flag_is_true(node)
+    return sites
+
+
+@dataclass(frozen=True)
+class WireVerdict:
+    """Channel D's wire conformance. `silent` is the failure -- a crossing that could carry the
+    version and does not."""
+
+    carrying: list[str]
+    silent: list[str]
+
+    @property
+    def ok(self) -> bool:
+        return not self.silent
+
+    def report(self) -> str:
+        if self.silent:
+            return "\n".join(
+                [f"SILENT on channel D ({len(self.silent)}) -- {WIRE_FLAG} not set:"]
+                + [f"    ! {s}" for s in self.silent]
+            )
+        return f"channel D: all {len(self.carrying)} wire site(s) put the version on the wire."
+
+
+def wire_conformance(root: str) -> WireVerdict:
+    """THE CONTROL. Fails when a port message crosses without its version.
+
+    THREE FAIL-CLOSED BRANCHES, because each is a different way this could go quiet:
+      * ports exist but NONE declares the flag -- the subject has been deleted. Removing the
+        parameter is the cheapest way to make this check pass, so it must be the loudest failure.
+      * ports declare the flag and NOTHING calls the serialiser -- an empty denominator, which
+        would make conformance vacuously true. Same doctrine as channel F's empty artefact.
+      * no ports at all -- NOT refused. Channel D fully paid down is this atom's success case, and
+        a control pinned to a non-zero count reds on its own success.
+    """
+    ports = _port_modules(root)
+    if not ports:
+        return WireVerdict(carrying=[], silent=[])
+    declaring = _ports_declaring_the_flag(root)
+    if not declaring:
+        raise CensusUnavailable(
+            f"{len(ports)} port module(s) exist and none declares `{WIRE_FLAG}` -- the subject of "
+            "channel D's wire check has been removed, which is a failed check, not a pass"
+        )
+    sites = wire_call_sites(root)
+    if not sites:
+        raise CensusUnavailable(
+            f"{len(declaring)} port(s) declare `{WIRE_FLAG}` and nothing calls `{WIRE_METHOD}` -- "
+            "refusing to measure an empty denominator, which would make channel D vacuously "
+            "conformant"
+        )
+    return WireVerdict(
+        carrying=sorted(s for s, on in sites.items() if on),
+        silent=sorted(s for s, on in sites.items() if not on),
+    )
+
+
+def wire_conformance_at(
+    rev: str = "HEAD", worktree: bool = False, repo_root: Path = PROJECT_DIR
+) -> WireVerdict:
+    """`wire_conformance` against the worktree, or against the tree at `rev`.
+
+    The worktree is the subject the commit gate uses, for `census_of_worktree`'s reason: a ratchet
+    keyed to HEAD only reds AFTER the silent crossing has landed.
+    """
+    if worktree:
+        return wire_conformance(str(repo_root))
+    with head_export(str(repo_root), CENSUS_DIRS, rev=rev) as root:
+        return wire_conformance(root)
+
+
+def wire_on_artefact(artefact: dict) -> dict[str, tuple[int, int]]:
+    """OBSERVATION, NEVER A GATE: {published key: (rows carrying a version, rows)}.
+
+    This is the R11 half -- the code check above proves the call asks for the version, and only
+    the artefact proves it arrived. It is deliberately NOT wired into the commit gate, because the
+    artefact is regenerated by a SIM RUN: flipping the call sites cannot change a single row until
+    the next run publishes, so a gate on this reds the very commit that repairs it and passes the
+    one that broke it. Derived from the artefact's shape rather than a declared key list, so a
+    fourth port's log is reported the day it appears instead of the day someone remembers it.
+    """
+    coverage: dict[str, tuple[int, int]] = {}
+    for key, value in artefact.items():
+        if isinstance(value, list) and value and all(isinstance(r, dict) for r in value):
+            carrying = sum(1 for r in value if "schema_version" in r)
+            coverage[key] = (carrying, len(value))
+    return coverage
+
+
+# ── the artefact half needs a SUBJECT, or its silence is unreadable ───────────────────────────
+# `wire_on_artefact` above answers "how many rows of every published list carry a version". That
+# is a reading of the whole artefact and it cannot state this atom's claim, because it does not
+# know which of the 131 published keys are supposed to carry one. Both of the two facts it can
+# report about `meter_read_log` -- "0 of 1600" and "not a port log at all" -- are the same number
+# on that reading, and the CLI's own `if carrying:` filter then printed neither. At HEAD b22698df8
+# that is not hypothetical: the three migrated logs carry the version on 0 of 1,996 rows and the
+# report printed nothing, which reads exactly like a clean run
+# (`WORKER_FINDING_THE_ARTEFACT_HIDES_IN_THE_OFF_STATE_2026-08-09`).
+#
+# So the subject is DERIVED, never declared: for each wire call site, the artefact key the rows it
+# emits are published under, read out of the same module that emits them. A declared set of three
+# keys would be the hardcoded-five this file's own docstring refuses -- a fourth port's log would
+# be silent and unlisted on the same day.
+
+
+def _wire_row_sinks(tree: ast.Module) -> dict[int, str]:
+    """{line of a wire call -> the local name its emitted rows land in}.
+
+    Two shapes, because the three live sites use both: `NAME = [... to_log_entry(...) ...]` and
+    `NAME.append(<call>)`. A call landing in neither gets no entry here; `wire_publish_keys` walks
+    the calls rather than these sinks, so such a site is reported UNRESOLVED rather than dropped.
+    """
+    sinks: dict[int, str] = {}
+    for node in ast.walk(tree):
+        calls = [
+            n for n in ast.walk(node)
+            if isinstance(n, ast.Call)
+            and isinstance(n.func, ast.Attribute)
+            and n.func.attr == WIRE_METHOD
+        ]
+        if not calls:
+            continue
+        name: str | None = None
+        if (
+            isinstance(node, ast.Assign)
+            and len(node.targets) == 1
+            and isinstance(node.targets[0], ast.Name)
+        ):
+            name = node.targets[0].id
+        elif (
+            isinstance(node, ast.Expr)
+            and isinstance(node.value, ast.Call)
+            and isinstance(node.value.func, ast.Attribute)
+            and node.value.func.attr == "append"
+            and isinstance(node.value.func.value, ast.Name)
+        ):
+            name = node.value.func.value.id
+        if name is not None:
+            for call in calls:
+                sinks.setdefault(call.lineno, name)
+    return sinks
+
+
+def _published_names(tree: ast.Module) -> dict[str, str]:
+    """{local name -> the string key a dict literal in this module publishes it under}.
+
+    This is the step that makes the mapping a MEASUREMENT rather than an echo of the local name.
+    A list assembled and never placed in a published dict resolves to nothing, which is the honest
+    answer: those rows do not reach the artefact and no artefact reading can speak for them.
+    """
+    published: dict[str, str] = {}
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Dict):
+            continue
+        for key, value in zip(node.keys, node.values):
+            if (
+                isinstance(key, ast.Constant)
+                and isinstance(key.value, str)
+                and isinstance(value, ast.Name)
+            ):
+                published.setdefault(value.id, key.value)
+    return published
+
+
+def wire_publish_keys(root: str) -> dict[str, str | None]:
+    """{wire call site -> the artefact key its rows are published under, or None}.
+
+    Same site identifiers as `wire_call_sites`, so the two halves of channel D's conformance --
+    "the call asks for the version" and "the version arrived in the bytes" -- are joined on one
+    key and not on two independently-drifting notions of a site.
+    """
+    ports = _port_modules(root)
+    resolved: dict[str, str | None] = {}
+    for path, rel in _census_py_files(root):
+        dotted = rel[: -len(".py")].replace("/", ".")
+        if dotted in ports:
+            continue
+        tree = _parse(path)
+        if tree is None:
+            continue
+        sinks = _wire_row_sinks(tree)
+        published = _published_names(tree)
+        # EVERY wire call in the file, not just the ones a sink was found for. Iterating the sinks
+        # would make a site the sink rule does not recognise -- a bare `return [... ]`, the shape
+        # the R15 fixture uses -- vanish from the subject rather than surface as UNRESOLVED, which
+        # is the same exclusion-that-greens-the-verdict this half exists to refuse.
+        for node in ast.walk(tree):
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr == WIRE_METHOD
+            ):
+                name = sinks.get(node.lineno)
+                resolved[_entry(rel, str(node.lineno))] = (
+                    published.get(name) if name is not None else None
+                )
+    return resolved
+
+
+@dataclass(frozen=True)
+class ArtefactWireVerdict:
+    """Did the version reach the BYTES, for the keys the wire sites actually publish.
+
+    `silent` is the failure this exists for: a published log whose emitting call asks for the
+    version and whose rows do not carry it. `unresolved` and `absent` are the two ways the
+    question cannot be answered, kept separate from the answer `0` on purpose.
+    """
+
+    #: key -> (rows carrying a version, rows), every row carrying.
+    carrying: dict[str, tuple[int, int]]
+    #: key -> (rows carrying a version, rows), at least one row not carrying.
+    silent: dict[str, tuple[int, int]]
+    #: wire call sites whose published key could not be resolved from the tree.
+    unresolved: list[str]
+    #: resolved keys absent from the artefact, or present with no rows.
+    absent: list[str]
+
+    @property
+    def ok(self) -> bool:
+        return not self.silent and not self.unresolved and not self.absent
+
+    def report(self) -> str:
+        lines: list[str] = []
+        for key, (carrying, rows) in sorted(self.silent.items()):
+            lines.append(f"    ! artefact {key:<28} {carrying}/{rows} row(s) carry a version")
+        for site in self.unresolved:
+            lines.append(f"    ? {site} -- emits rows this tree does not publish under any key")
+        for key in self.absent:
+            lines.append(f"    ? artefact {key} -- no rows to read, so the wire is unobservable")
+        for key, (carrying, rows) in sorted(self.carrying.items()):
+            lines.append(f"      artefact {key:<28} {carrying}/{rows} row(s) carry a version")
+        head = (
+            f"channel D on the artefact: {len(self.carrying)} log(s) carry the version on every row"
+            if self.ok
+            else f"channel D on the artefact: {len(self.silent)} silent, "
+            f"{len(self.unresolved)} unresolved, {len(self.absent)} unobservable"
+        )
+        return "\n".join([head] + lines)
+
+
+def artefact_wire_conformance(root: str, artefact: dict) -> ArtefactWireVerdict:
+    """THE R11 HALF, with its subject. Reads bytes; the code half reads program text.
+
+    INDEPENDENCE (R15's first killer): the key set comes from the TREE and the row counts come
+    from the ARTEFACT, which is a publisher's output from a past sim run. Neither side is derived
+    from the other, so this cannot agree with `wire_conformance` by construction -- and at HEAD
+    b22698df8 it does not: the code half is green on all three sites and this half is silent on
+    all three logs, which is the true state of a migration that has not been published yet.
+
+    FAIL-CLOSED. Wire sites exist and none resolves to a published key -> `CensusUnavailable`:
+    that is the mapping having been removed, not conformance. No wire sites at all is NOT refused,
+    for `wire_conformance`'s reason -- channel D fully paid down is this atom's success case.
+
+    STILL NOT A GATE, and the reason is narrower than "it is an observation". The artefact is
+    regenerated by a sim run, so the commit that repairs a silent log cannot move a row until the
+    next run publishes; gating would red the repair and pass the breakage. Closing that needs the
+    artefact to say WHICH CODE PRODUCED IT, which it does not
+    (`WORKER_FINDING_THE_PUBLISHED_ARTEFACT_CARRIES_NO_PRODUCTION_STAMP_2026-08-15`). Named here so
+    the condition for promoting this to a gate is on the record rather than rediscovered.
+    """
+    sites = wire_publish_keys(root)
+    if not sites:
+        return ArtefactWireVerdict(carrying={}, silent={}, unresolved=[], absent=[])
+    unresolved = sorted(site for site, key in sites.items() if key is None)
+    keys = {key for key in sites.values() if key is not None}
+    if not keys:
+        raise CensusUnavailable(
+            f"{len(sites)} wire call site(s) exist and none resolves to a published artefact key "
+            "-- refusing to report an empty subject, which would make the artefact half "
+            "vacuously conformant"
+        )
+    coverage = wire_on_artefact(artefact)
+    carrying: dict[str, tuple[int, int]] = {}
+    silent: dict[str, tuple[int, int]] = {}
+    absent: list[str] = []
+    for key in sorted(keys):
+        if key not in coverage:
+            absent.append(key)
+            continue
+        rows_carrying, rows = coverage[key]
+        (carrying if rows_carrying == rows else silent)[key] = (rows_carrying, rows)
+    return ArtefactWireVerdict(
+        carrying=carrying, silent=silent, unresolved=unresolved, absent=absent
+    )
+
+
+def artefact_wire_conformance_at(
+    rev: str = "HEAD", worktree: bool = False, repo_root: Path = PROJECT_DIR
+) -> ArtefactWireVerdict:
+    """ONE REF, BOTH SIDES -- the tree and the artefact are read from the same `rev`.
+
+    Reading the key mapping from the worktree against an artefact committed at HEAD would compare
+    a migration that has landed against bytes published before it and report a difference that is
+    nobody's defect (`feedback_a_two_sided_census_must_read_both_sides_from_one_ref`). The
+    `worktree` branch therefore takes the artefact from the worktree too.
+    """
+    if worktree:
+        artefact_path = repo_root / ARTEFACT_REL
+        try:
+            artefact = json.loads(artefact_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise CensusUnavailable(f"{ARTEFACT_REL} is unreadable in the worktree: {exc}") from exc
+        if not isinstance(artefact, dict):
+            raise CensusUnavailable(f"{ARTEFACT_REL} in the worktree is not an object")
+        return artefact_wire_conformance(str(repo_root), artefact)
+    with head_export(str(repo_root), CENSUS_DIRS, rev=rev) as root:
+        return artefact_wire_conformance(root, artefact_at(rev, repo_root=repo_root))
+
+
 ENUMERATORS = {
     "A_direct_import": enumerate_a,
     "B_indirect_import": enumerate_b,
@@ -513,12 +900,30 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     try:
+        wire = wire_conformance_at(rev=args.rev, worktree=args.worktree)
+    except CensusUnavailable as exc:
+        print(f"WIRE CHECK UNAVAILABLE (a failed check, not a pass): {exc}", file=sys.stderr)
+        return 2
+    print(wire.report())
+
+    # The artefact half prints its SILENT and UNOBSERVABLE keys as loudly as its carrying ones.
+    # The `if carrying:` filter this replaces suppressed exactly the state the check exists to
+    # find: at HEAD b22698df8, three logs at 0/1,996 printed as an empty section.
+    try:
+        print(artefact_wire_conformance_at(rev=args.rev, worktree=args.worktree).report())
+    except CensusUnavailable as exc:
+        print(
+            f"ARTEFACT WIRE CHECK UNAVAILABLE (a failed check, not a pass): {exc}", file=sys.stderr
+        )
+        return 2
+
+    try:
         verdict = check(current, load_baseline())
     except CensusUnavailable as exc:
         print(f"BASELINE UNAVAILABLE (a failed check, not a pass): {exc}", file=sys.stderr)
         return 2
     print(verdict.report())
-    return 0 if verdict.ok else 1
+    return 0 if (verdict.ok and wire.ok) else 1
 
 
 if __name__ == "__main__":  # pragma: no cover

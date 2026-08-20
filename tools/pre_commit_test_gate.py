@@ -781,7 +781,12 @@ def _wall_channel_census_check(staged: list[str]) -> tuple[bool, str]:
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))
     try:
-        from tools.wall_channel_census import census_at, check, load_baseline
+        from tools.wall_channel_census import (
+            census_at,
+            check,
+            load_baseline,
+            wire_conformance_at,
+        )
     except Exception as e:  # noqa: BLE001 -- an unavailable check is a FAILED check
         return False, (
             f"wall-channel census UNAVAILABLE: {type(e).__name__}: {e}\n"
@@ -796,9 +801,30 @@ def _wall_channel_census_check(staged: list[str]) -> tuple[bool, str]:
         verdict = check(census_at(tree, ROOT), load_baseline())
     except Exception as e:  # noqa: BLE001
         return False, f"wall-channel census RAISED against tree {tree[:9]}: {type(e).__name__}: {e}"
-    if verdict.ok:
-        return True, "the wall's four walker-invisible channels have not grown"
-    return False, verdict.report()
+    try:
+        wire = wire_conformance_at(rev=tree, repo_root=ROOT)
+    except Exception as e:  # noqa: BLE001
+        return False, f"channel-D wire check RAISED against tree {tree[:9]}: {type(e).__name__}: {e}"
+    # CHANNEL D'S WIRE CHECK BLOCKS -- 2026-08-19 pass 13, restored in the same commit that made
+    # it satisfiable, which is the only commit in which restoring it is honest.
+    #
+    # `WireVerdict.ok` is `not self.silent`: zero tolerance, no frozen debt list, unlike the
+    # census half beside it which has one. That is deliberate -- channel D's whole conformance is
+    # three call sites, so a debt list here would be a list of the entire subject. The reason the
+    # previous pass downgraded it to reporting was NOT that the rule was wrong: it was that the
+    # three sites it names lived only in an uncommitted tree, so every commit in the repo was
+    # refused, the publisher's included. That is a landing-order defect, not a control defect, and
+    # the fix is to land the sites -- which this commit's own tree does. Measured before restoring
+    # rather than hoped: `wire_conformance_at` against the tree this commit creates reports all 3
+    # sites carrying, while against HEAD it names exactly those 3 as silent.
+    if not verdict.ok:
+        return False, verdict.report()
+    if not wire.ok:
+        return False, wire.report()
+    return True, (
+        "the wall's four walker-invisible channels have not grown; "
+        f"channel D's {len(wire.carrying)} wire site(s) carry the version"
+    )
 
 
 def _symbol_landing_check(staged: list[str]) -> tuple[bool, str]:

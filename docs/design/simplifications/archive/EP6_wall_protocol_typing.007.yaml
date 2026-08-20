@@ -1,0 +1,181 @@
+atom_id: EP6_wall_protocol_typing
+chunk: 7
+simplifications:
+- '2026-08-18 (third pass of the day) DISCOVER ONLY, level stays 0, loop_stage stays idle (worker
+
+  tick, LANE 3 idle draw). No BUILD code, no protocol designed, no adapter started -- epoch-3 BUILD-gated
+
+  on director-reserved curriculum sequencing (R13); EPOCH_GATING_AND_ATOM_AUTHORSHIP Rule 1 permits
+
+  DISCOVER/FRAME while BUILD is not. `docs/design/maturity_map.yaml` is touched for EXACTLY ONE
+
+  bookkeeping line: `simplifications_count: 6 -> 7` on this atom -- not a level move, not a stage move,
+
+  not a block-reason edit. Another lane held an UNSTAGED hunk in the map at draw time (a different
+
+  atom''s own count, 44 -> 45), so this commit was landed with a worktree swap that presents only this
+
+  atom''s line to the gate and restores the other lane''s hunk afterwards -- their work is neither
+
+  committed nor lost. Deliverable: docs/design/EP6_VINTAGE_STAMP_PATH_TRACE_DISCOVER.md -- a FIFTH
+
+  document beside the 2026-08-15 conformance census, the 2026-08-17 protocol-typing pass and the two
+
+  2026-08-18 passes, not a replacement. Everything is observed-with-evidence unless labelled inferred (R9).
+
+
+  MEASURED AT: HEAD 3b153f2f0. Shipped modules read as they sit on disk; live artefact
+
+  docs/reports/run_output_latest.json (4,154,354 bytes, mtime 2026-08-18 23:44:24, 93 top-level keys)
+
+  parsed in full; the round-trip below executed against that artefact''s real entries. No monkeypatching,
+
+  no regeneration, no network.
+
+
+  THIS PASS CLOSED NEW-2, the open question the first 2026-08-18 pass named with its resolution method
+
+  ("a live call-path trace from a WallRequest/WallResponse construction site through to whatever, if
+
+  anything, writes envelope fields into run_output_latest.json"). Trace done end to end.
+
+
+  VERDICT: SERIALISATION, both families, NO POPULATION GAP ANYWHERE -- and the either/or the question
+
+  posed is too coarse to act on, because the two families fail at different points on the path.
+
+
+  POPULATION IS COMPLETE. An AST walk of every production .py (tests, __pycache__ and the stale worktree
+
+  below excluded) finds 10 envelope construction sites across 5 modules and 3 crossings, and ALL 10 pass
+
+  schema_version=SCHEMA_VERSION -- the crossing''s OWN module constant, never a call-site literal, never a
+
+  default. Structurally guaranteed, not merely observed: neither envelope shape gives the field a default,
+
+  so an omitting construction raises TypeError at the call site. On the port side, 3 of the 5 tools/*_port.py
+
+  ports carry SCHEMA_VERSION = "1.0" as a dataclass field default, so every instance is stamped by
+
+  construction.
+
+
+  CORRECTION to the 2026-08-17 pass, in a NEW entry per this store''s append-only convention. That pass
+
+  wrote "the 5 W4_1 ports ... with schema_version fields that are structurally present but ... never
+
+  populated on the wire." At this HEAD it is 3 of 5, not 5 (credit_bureau_port''s CreditCheckResult has no
+
+  version field; market_data_port is a bare Protocol with no message dataclass), and "never populated"
+
+  conflates the two things NEW-2 exists to separate -- the field IS populated; the populated value is
+
+  never EMITTED. Neither correction changes that pass''s conclusions.
+
+
+  THE GAP IS TWO DIFFERENT GAPS. (1) ENVELOPES: zero production reads of .schema_version anywhere -- the
+
+  8 repo hits are 5 tests and 3 unrelated port-class self.schema_version. The code holding an envelope
+
+  longest, company/billing/payment_observation_consumer.py, forwards observed_at and correlation_id into
+
+  ledger events across its six handlers (484-558) and DROPS schema_version and status. No serialiser for
+
+  an envelope exists in the tree. So this is not a switch that is off, it is a WIRE THAT WAS NEVER BUILT;
+
+  there is nothing to plumb into. (2) PORTS: the serialiser EXISTS (to_log_entry, three ports) and CAN
+
+  emit the stamp, and is called on exactly the 3 production paths that build the 3 published log keys
+
+  (run_phase4c_on_phase2b.py:270 meter, :357 contact centre, run_phase2b.py:1705 funnel) -- ALL THREE with
+
+  no argument, i.e. include_schema_version=False. The only three callers in the repo that pass True are
+
+  the three port tests. Disclosed, not a defect: the flag''s own docstring names the migrating caller it
+
+  waits for, and that caller does not exist yet.
+
+
+  ARTEFACT AGREES: 0 occurrences of each of schema_version, correlation_id, observed_at, valid_time,
+
+  NOT_KNOWABLE_YET, WallStatus, wall_ across 4,154,354 bytes.
+
+
+  THE PORTS'' OWN ROUND-TRIP CLAIM TESTED ON THE LIVE POPULATION, not a fixture: all 1,996 published
+
+  entries (meter_read_log 1,600, contact_centre_log 392, acquisition_funnel_log 4) parsed back through
+
+  their own from_log_entry and re-emitted at the default flag -- 0 parse errors, 0 identity mismatches,
+
+  0 already stamped. The lossless-identity docstring claim HOLDS on real data. Flag ON adds exactly one
+
+  key, {"schema_version": "1.0"}, on all three families and changes nothing else -- which is what makes
+
+  the flip a MEASURED blast radius over the whole population rather than an assertion.
+
+
+  WHAT THIS COSTS THE FIRST 2026-08-18 PASS''S RECOMMENDATION 2 ("the vintage stamp reaching the wire ...
+
+  populate-and-prove, not design"). "Absent from every published key" is confirmed independently at a
+
+  newer HEAD. "Populate-and-prove" is WRONG on the population half -- nothing needs populating; it was
+
+  written against the possibility of default-valued fields and that possibility is now excluded. And
+
+  "reaching the wire" is TWO moves, not one: ports are a 3-call-site default flip with a measured blast
+
+  radius (plumbing), envelopes are the question of whether an envelope is ever serialised at all (protocol
+
+  design, the BUILD-gated half, not closeable by a conformance pass).
+
+
+  MEASUREMENT HAZARD NAMED, not re-filed: the census first returned 20 sites, exactly double, because
+
+  .claude/worktrees/agent-a7e53b3f1c77109b1 (in `git worktree list`, branch worktree-agent-a7e53b3f1c77109b1,
+
+  HEAD 2539d3a90) is a live git worktree INSIDE the repo holding a full duplicate of company/, sim/ and
+
+  simulation/. Any repo-wide rglob or grep -r census double-counts through it. Belongs to the class already
+
+  queued as in_progress/WORKER_FINDING_FORK_BRANCH_TRIAGE_2026-08-03.md; recorded here so a future EP6
+
+  census does not rediscover it as a novelty.
+
+
+  RECOMMENDATIONS, recorded not asked (NEVER_ASK_WITHOUT_RECOMMENDING): (1) re-word that recommendation 2
+
+  to the ports/envelopes split -- one recommendation covering both understates the second and overstates
+
+  the first. (2) the port flip should NOT be EP6''s headline first move despite being the cheapest thing on
+
+  the board: this atom''s gain ("go-live becomes a transport swap instead of a redesign") is about the
+
+  ENVELOPE family, so flipping the port flag stamps the artefact for the pattern EP6 is LEAST about while
+
+  the family it is named for still has no wire -- do it as EP6''s cleanup, never as the atom. (3) do not
+
+  unify the two version TYPES speculatively: envelopes use int 1, ports use str "1.0", no shape has
+
+  diverged yet, and reconciling now is adapters-for-future-adapters (SIMPLICITY GUARD, which this atom''s
+
+  origin_note names by name). (4) do not delete include_schema_version as dead -- no production caller, but
+
+  its docstring honestly names the caller it waits for and it is exactly the seam the flip would use.
+
+
+  OPEN QUESTIONS AFTER THIS PASS. NEW-2 CLOSED. NEW-3 opened: which version discipline the protocol layer
+
+  standardises on -- monotone int (envelopes) or semver str (ports); not decided, deciding it is BUILD.
+
+  OQ6 (identity of the 93rd published key) carried unchanged, untouched by this pass. OQ2-OQ5 of the
+
+  2026-08-17 pass carried unchanged.
+
+
+  NO NEW WORKER_FINDING FILED (SELF_INTERRUPT_DISCIPLINE): the port-count correction is a within-atom
+
+  correction to this atom''s own append-only register, which is that register working as designed; the
+
+  include_schema_version flag is disclosed in its own docstring; the worktree belongs to a class already
+
+  queued.'
