@@ -416,3 +416,101 @@ def test_the_real_runner_actually_captures_output(monkeypatch):
     prc.run_operational_layer_signal(now=0, runner=None, force=True)
     assert seen.get("capture_output") is True
     assert seen.get("text") is True
+
+
+# ── THE VACUOUS RED: a collection error is not a daemon regression ───────────
+# Added 2026-08-20 after WORKER_FINDING_A_SALVAGE_PARKED_THE_PRODUCER_HALF_AND_
+# LEFT_THE_CONSUMER_HALF_IN_THE_TREE. PW4 (above) proved a GREEN must have run
+# something. Nothing was asking the same of a RED, and rc!=0 is fail-open in the
+# mirror direction: two unimportable files under tests/company/ interrupted
+# COLLECTION, so the marker expression never selected anything -- and the signal
+# paged 23 times naming a daemon-lifecycle regression that did not exist,
+# against an operational layer it had never actually exercised.
+#
+# Verbatim from the finding's own evidence (the real argv, the real output).
+
+_PYTEST_COLLECTION_BLOCKED_OUTPUT = """\
+==================================== ERRORS ====================================
+E   ImportError: cannot import name 'offer_framing_for' from 'company.interfaces.growth_desk'
+ERROR tests/company/interfaces/test_the_run_holds_no_policy.py
+ERROR tests/company/policy/test_policy_field_consumption.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+26758 deselected, 1 warning, 2 errors in 8.70s
+"""
+
+
+def test_a_collection_error_is_not_paged_as_a_daemon_lifecycle_regression(sent):
+    """THE DEFECT THIS GUARD EXISTS FOR: 23 pages sending the drawn worker to
+    the daemons when the actual defect was two unimportable test files."""
+    _run_with_output(rc=2, now=0, stdout=_PYTEST_COLLECTION_BLOCKED_OUTPUT)
+    _run_with_output(rc=2, now=10, stdout=_PYTEST_COLLECTION_BLOCKED_OUTPUT)
+    assert len(sent) == 1
+    page = sent[0]
+    assert "[OPERATIONAL LAYER BLOCKED]" in page
+    # It says, in terms, that the thing it used to assert is NOT what happened.
+    assert "NOT a daemon-lifecycle regression" in page
+    assert "NO operational test was executed" in page
+    # ... and it NAMES the files to repair (R5: the alert carries its cause).
+    assert "tests/company/policy/test_policy_field_consumption.py" in page
+    assert "tests/company/interfaces/test_the_run_holds_no_policy.py" in page
+
+
+def test_the_blocked_signal_is_still_red_never_silently_green(sent):
+    """FAIL-CLOSED (R15): an unavailable check is a FAILED check. Classifying
+    the red must not excuse it -- the layer really is unmonitored, so the
+    streak still accumulates and it still pages on the same cadence."""
+    r1 = _run_with_output(rc=2, now=0, stdout=_PYTEST_COLLECTION_BLOCKED_OUTPUT)
+    assert r1["green"] is False and r1["paged"] is False      # below threshold, as before
+    r2 = _run_with_output(rc=2, now=10, stdout=_PYTEST_COLLECTION_BLOCKED_OUTPUT)
+    assert r2["green"] is False and r2["paged"] is True
+    assert r2["consecutive_red"] == 2
+    state = json.loads(prc.OPERATIONAL_LAYER_STATE_FILE.read_text())
+    assert state["consecutive_red"] == 2
+    assert state["consecutive_green"] == 0
+    # Recorded as its OWN state: a reader can tell "never ran" from "regressed".
+    assert state["last_result"] == "red_blocked"
+
+
+def test_a_genuine_operational_failure_is_still_reported_as_a_regression(sent):
+    """THE NULL CONTROL -- the mutation in the opposite direction. A real red
+    (tests collected, tests failed) must NOT be excused as 'blocked'; if this
+    passed for both inputs the guard would be a blanket amnesty, not a
+    classifier."""
+    _run_with_output(rc=1, now=0, stdout=_PYTEST_RED_OUTPUT)
+    _run_with_output(rc=1, now=10, stdout=_PYTEST_RED_OUTPUT)
+    assert len(sent) == 1
+    page = sent[0]
+    assert "[OPERATIONAL LAYER RED]" in page
+    assert "[OPERATIONAL LAYER BLOCKED]" not in page
+    assert "daemon-lifecycle" in page
+    state = json.loads(prc.OPERATIONAL_LAYER_STATE_FILE.read_text())
+    assert state["last_result"] == "red"
+
+
+def test_collection_blocked_fails_toward_ordinary_red_when_it_cannot_tell(sent):
+    """FAIL DIRECTION, stated in the predicate's docstring and put on trial
+    here: 'blocked' is the claim that would excuse a real regression, so an
+    unreadable or unparseable run must NOT earn it."""
+    no_output = type("R", (), {"returncode": 2, "stdout": "", "stderr": ""})()
+    assert prc.operational_layer_collection_blocked(no_output, 2) == ()
+    # A crash with no interrupt banner is an ordinary red, not a blocked run.
+    crash = type("R", (), {"returncode": 2, "stdout": "",
+                           "stderr": "Traceback...\nImportError: no module named sim\n"})()
+    assert prc.operational_layer_collection_blocked(crash, 2) == ()
+    # A green is never 'blocked', whatever its output happens to contain.
+    green = type("R", (), {"returncode": 0,
+                           "stdout": _PYTEST_COLLECTION_BLOCKED_OUTPUT, "stderr": ""})()
+    assert prc.operational_layer_collection_blocked(green, 0) == ()
+
+
+def test_collection_blocked_reads_the_run_not_the_state_file(tmp_path):
+    """INDEPENDENCE (R15 anti-tautology): the classification is derived from the
+    subprocess's own output, so it cannot be an echo of the state whose episode
+    it describes. Deleting the state file must not change the verdict."""
+    result = type("R", (), {"returncode": 2,
+                            "stdout": _PYTEST_COLLECTION_BLOCKED_OUTPUT, "stderr": ""})()
+    before = prc.operational_layer_collection_blocked(result, 2)
+    prc.OPERATIONAL_LAYER_STATE_FILE.unlink(missing_ok=True)
+    assert prc.operational_layer_collection_blocked(result, 2) == before
+    assert before == ("tests/company/interfaces/test_the_run_holds_no_policy.py",
+                      "tests/company/policy/test_policy_field_consumption.py")

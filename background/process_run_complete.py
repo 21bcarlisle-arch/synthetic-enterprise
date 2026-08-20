@@ -474,6 +474,74 @@ def operational_layer_episode_closed(result, rc):
     return rc == 0 and (operational_layer_passed_count(result) or 0) >= 1
 
 
+# THE VACUOUS RED -- the exact mirror of the PW4 vacuous-green guard above
+# (2026-08-20, WORKER_FINDING_A_SALVAGE_PARKED_THE_PRODUCER_HALF_AND_LEFT_THE_CONSUMER_HALF_IN_THE_TREE).
+#
+# PW4 asks "did this green actually RUN anything?" because rc==0 is fail-open on an empty
+# run. Nobody was asking the same question of a RED, and rc!=0 is fail-open in the mirror
+# direction: it cannot tell "the operational layer regressed" from "pytest never got as far
+# as selecting the operational layer".
+#
+# THE OBSERVED DEFECT. `operational_layer_pytest_argv()` is the marker COMPLEMENT of the
+# content gate, and that independence is real at SELECTION time -- but it does not survive
+# COLLECTION. Two unimportable files under `tests/company/` (a KNIFE3 salvage that parked a
+# producer and left its consumers in the tree) interrupted collection, so pytest reported
+# `26758 deselected ... 2 errors` and exited non-zero having run NO operational test at all.
+# The signal recorded a red, the red went persistent, and `docs/observability/supervisor-log.md`
+# carries 23 PERSISTENT-RED pages dated 2026-08-20 -- every one of them naming a
+# daemon-lifecycle regression that did not exist, against an operational layer that was never
+# actually exercised. An import error UPSTREAM of selection reports as the selected suite's
+# failure.
+#
+# WHAT THIS CHANGES, AND WHAT IT DELIBERATELY DOES NOT. It does NOT make the run green:
+# an unavailable check is a FAILED check (R15 fail-silent doctrine), the suite is genuinely
+# unmonitored while collection is broken, and that must still escalate on the same cadence.
+# `consecutive_red` therefore keeps incrementing exactly as before. What changes is the
+# DIAGNOSIS the page carries (R5: the alert names its own cause), because the cost here was
+# never the paging -- it was 23 pages pointing the drawn worker at the wrong subsystem, the
+# failure mode `supervisor.py`'s own draw comment already warns about ("the drawn worker
+# reads BLOCKING TEST: x and repairs x").
+#
+# INDEPENDENCE (R15 anti-tautology): read off the subprocess's own output, never off
+# `.operational_layer_signal.json` -- the same construction, and the same reason, as the
+# pass-count above.
+_PYTEST_COLLECTION_INTERRUPT_RE = re.compile(
+    r"Interrupted:\s*\d+\s+errors?\s+during\s+collection", re.I)
+#: pytest names each uncollectable file on its own `ERROR <path>` line.
+_PYTEST_COLLECT_ERROR_FILE_RE = re.compile(r"^ERROR\s+(\S+)", re.M)
+
+
+def _operational_layer_result_text(result):
+    """The run's combined stdout+stderr, or "" when it captured nothing."""
+    chunks = []
+    for attr in ("stdout", "stderr"):
+        val = getattr(result, attr, None)
+        if isinstance(val, bytes):
+            val = val.decode("utf-8", "replace")
+        if isinstance(val, str) and val.strip():
+            chunks.append(val)
+    return "\n".join(chunks)
+
+
+def operational_layer_collection_blocked(result, rc):
+    """The files that stopped this run REACHING the operational layer, or () if it got there.
+
+    Non-empty means the red is VACUOUS: pytest was interrupted during collection, so the
+    marker expression never selected anything and the run is evidence of nothing about the
+    operational layer either way.
+
+    FAIL DIRECTION: toward calling it an ordinary red. A run whose output is unavailable, or
+    whose interrupt banner cannot be parsed, returns () and is reported as a plain
+    operational-layer failure -- under-claiming "the signal was blocked" is the safe error,
+    because that claim is the one that would excuse a real regression."""
+    if rc == 0:
+        return ()
+    text = _operational_layer_result_text(result)
+    if not text or not _PYTEST_COLLECTION_INTERRUPT_RE.search(text):
+        return ()
+    return tuple(dict.fromkeys(_PYTEST_COLLECT_ERROR_FILE_RE.findall(text)))
+
+
 def operational_layer_failure_digest(result, max_lines=OPERATIONAL_LAYER_DIGEST_MAX_LINES):
     """The failing-run payload carried into the log and the RED page.
 
@@ -553,6 +621,10 @@ def _write_operational_layer_state(state, *, episode_closed=False):
         "last_result": state.get("last_result"),
         "consecutive_red": state.get("consecutive_red", 0),
         "consecutive_green": state.get("consecutive_green", 0),
+        # The uncollectable files behind a "red_blocked" (always present, [] when the run
+        # reached the suite) so the RUNG 1b draw can NAME them instead of sending the worker
+        # to the daemons -- R5's payload requirement applied to the DRAW, not just the page.
+        "blocked_by": list(state.get("blocked_by") or ()),
     }
     out = guard_episode(_read_operational_layer_state() if OPERATIONAL_LAYER_STATE_FILE.exists()
                         else None,
@@ -625,6 +697,7 @@ def run_operational_layer_signal(*, now=None, runner=None, notify_fn=None, log_f
         paged = False
         # PW4: a green only CLOSES the red episode if it demonstrably ran something.
         episode_closed = operational_layer_episode_closed(result, rc)
+        blocked_by = operational_layer_collection_blocked(result, rc)
 
         if is_green and not episode_closed:
             # A VACUOUS GREEN (rc=0, nothing passed). The red episode stands: this run is
@@ -667,33 +740,66 @@ def run_operational_layer_signal(*, now=None, runner=None, notify_fn=None, log_f
             consecutive_green = 0
             consecutive_red += 1
             if consecutive_red >= OPERATIONAL_LAYER_PERSISTENT_RED_THRESHOLD:
-                notify_fn(
-                    "[OPERATIONAL LAYER RED] The independent-cadence operational-layer signal "
-                    "(`pytest -m operational`, deselected from the content publish gate so it can "
-                    "never wedge the live site) has been RED for {} consecutive check(s) (rc={}). "
-                    "This does NOT affect the published site/report -- it is a daemon-lifecycle "
-                    "test regression. Failing tests:\n{}"
-                    .format(consecutive_red, rc, digest),
-                    kind="real_alarm", transition_key=OPERATIONAL_LAYER_TRANSITION_KEY, state="RED",
-                    re_escalate_after=OPERATIONAL_LAYER_RE_ESCALATE_SECONDS,
-                )
-                paged = True
-                log_fn("Operational-layer signal: RED, persistent ({} consecutive) -- paged; "
-                       "failing:\n{}".format(consecutive_red, digest))
+                if blocked_by:
+                    notify_fn(
+                        "[OPERATIONAL LAYER BLOCKED] The independent-cadence operational-layer "
+                        "signal could not RUN for {} consecutive check(s) (rc={}): pytest was "
+                        "interrupted during COLLECTION, so the marker expression `{}` never "
+                        "selected anything and NO operational test was executed. This is NOT a "
+                        "daemon-lifecycle regression -- nothing about the operational layer has "
+                        "been shown to be broken, and the published site/report is unaffected. "
+                        "The operational layer is UNMONITORED until these files import cleanly:"
+                        "\n{}\n\nRepair the import error at those paths, not the daemons."
+                        .format(consecutive_red, rc, OPERATIONAL_LAYER_MARKER_EXPR,
+                                "\n".join("  - " + p for p in blocked_by)),
+                        kind="real_alarm", transition_key=OPERATIONAL_LAYER_TRANSITION_KEY,
+                        state="RED", re_escalate_after=OPERATIONAL_LAYER_RE_ESCALATE_SECONDS,
+                    )
+                    paged = True
+                    log_fn("Operational-layer signal: BLOCKED at collection, persistent ({} "
+                           "consecutive) -- paged; the suite never ran. Uncollectable:\n{}"
+                           .format(consecutive_red, "\n".join("  - " + p for p in blocked_by)))
+                else:
+                    notify_fn(
+                        "[OPERATIONAL LAYER RED] The independent-cadence operational-layer signal "
+                        "(`pytest -m operational`, deselected from the content publish gate so it can "
+                        "never wedge the live site) has been RED for {} consecutive check(s) (rc={}). "
+                        "This does NOT affect the published site/report -- it is a daemon-lifecycle "
+                        "test regression. Failing tests:\n{}"
+                        .format(consecutive_red, rc, digest),
+                        kind="real_alarm", transition_key=OPERATIONAL_LAYER_TRANSITION_KEY, state="RED",
+                        re_escalate_after=OPERATIONAL_LAYER_RE_ESCALATE_SECONDS,
+                    )
+                    paged = True
+                    log_fn("Operational-layer signal: RED, persistent ({} consecutive) -- paged; "
+                           "failing:\n{}".format(consecutive_red, digest))
+            elif blocked_by:
+                log_fn(
+                    "Operational-layer signal: BLOCKED at collection (consecutive_red={}, below "
+                    "persistent threshold {}) -- logged, not paged; the suite never ran. "
+                    "Uncollectable:\n{}".format(
+                        consecutive_red, OPERATIONAL_LAYER_PERSISTENT_RED_THRESHOLD,
+                        "\n".join("  - " + p for p in blocked_by)))
             else:
                 log_fn(
                     "Operational-layer signal: red (consecutive_red={}, below persistent threshold "
                     "{}) -- logged, not paged (single flake); failing:\n{}".format(
                         consecutive_red, OPERATIONAL_LAYER_PERSISTENT_RED_THRESHOLD, digest))
 
+        # "red_blocked" is recorded as its own value rather than folded into "red": a reader
+        # of this state file (and the supervisor draw that reads it) must be able to tell
+        # "the operational layer regressed" from "the operational layer was never run",
+        # which is the whole distinction this guard exists to make. It is NOT a green -- the
+        # streak counters above are untouched by the classification.
         _write_operational_layer_state({
             "last_run_ts": now,
-            "last_result": "green" if is_green else "red",
+            "last_result": "green" if is_green else ("red_blocked" if blocked_by else "red"),
             "consecutive_red": consecutive_red,
             "consecutive_green": consecutive_green,
+            "blocked_by": blocked_by,
         }, episode_closed=episode_closed)
         return {"ran": True, "green": is_green, "episode_closed": episode_closed, "rc": rc,
-                "consecutive_red": consecutive_red,
+                "consecutive_red": consecutive_red, "blocked_by": blocked_by,
                 "consecutive_green": consecutive_green, "paged": paged, "digest": digest}
     except Exception as exc:
         log_fn("Operational-layer signal check error (swallowed): {}".format(exc))

@@ -31,7 +31,7 @@ themselves pure/seam-safe) — no imports from `sim/`.
 
 from datetime import date, timedelta
 
-from saas.clv_model import build_clv
+from saas.clv_model import CLV_MARGIN_BASIS, build_clv
 from saas.customer_reaction import _billing_account_id
 from saas.home_move_win_rate import build_home_move_win_rates
 
@@ -207,6 +207,14 @@ def build_enterprise_value(
         "portfolio": {
             "enterprise_value_gbp": sum(entry["clv_gbp"] for entry in by_customer.values()),
             "account_count": len(by_customer),
+            # THE FIGURE CARRIES ITS OWN COST BASIS (2026-08-17, the
+            # margin-basis finding). Read off `build_clv`'s own module
+            # constant, never restated here as a string literal: the label a
+            # reader is shown is then the same symbol the valuation indexed
+            # `cost_to_serve` with, so the two cannot drift apart. R14 is
+            # "no financial figure without its clock"; this is the same
+            # obligation one level down — no valuation without its cost basis.
+            "margin_basis": CLV_MARGIN_BASIS,
         },
         "excluded_ceased_accounts": sorted(ceased_accounts),
     }

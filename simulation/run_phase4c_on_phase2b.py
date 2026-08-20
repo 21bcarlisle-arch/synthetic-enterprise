@@ -406,7 +406,15 @@ def main(report_end: str | None = None, policy=None):
     print(f"Enterprise value (4b):           £{enterprise_value['portfolio']['enterprise_value_gbp']:>12.2f} "
           f"across {enterprise_value['portfolio']['account_count']} billing accounts")
     print(f"Cost to serve (portfolio):       £{cost_to_serve['portfolio']['cost_to_serve_gbp']:>12.2f}")
-    print(f"Net margin after cost to serve:  £{cost_to_serve['portfolio']['net_margin_gbp']:>12.2f}")
+    # BOTH cost bases, each under its own name (2026-08-17 margin-basis
+    # finding). This line used to read `net_margin_gbp` -- a key
+    # `saas/cost_to_serve.py` deleted precisely so an un-migrated reader would
+    # raise instead of silently printing a contribution margin as a net one.
+    # It raised: 28 scheduled producer runs died here across four days, because
+    # the rename's producer half was salvaged off the shared tree while this
+    # reader stayed behind.
+    print(f"Contribution (gross - CTS):      £{cost_to_serve['portfolio']['contribution_margin_gbp']:>12.2f}")
+    print(f"Net of ALL attributable costs:   £{cost_to_serve['portfolio']['net_of_all_costs_margin_gbp']:>12.2f}")
 
     print(f"\n{'Account':<8} {'Bills':>6} {'AvgClarity':>11} {'CreditRisk':>11} {'BadDebt£':>10}")
     for customer in CUSTOMERS:

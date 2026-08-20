@@ -3479,8 +3479,11 @@ def _operational_red_persistent_draw(
 
     Predicate (fail-safe TOWARD drawing -- a false draw only costs one diagnostic turn that finds
     nothing and rests, self-correcting; a false SILENCE is the overnight stall):
-      * last_result == 'red' (the signal's own verdict; a green result never draws even if a stale
-        counter lingers), AND
+      * last_result in ('red', 'red_blocked') -- the signal's own verdict; a green result never
+        draws even if a stale counter lingers. 'red_blocked' (2026-08-20) is a run that never
+        REACHED the suite because collection was interrupted: still unmonitored, so still
+        drawable, but it draws a DIFFERENT message (repair the import, not the daemons) -- see
+        the branch below, AND
       * consecutive_red > OPERATIONAL_RED_DRAWABLE_THRESHOLD (past PAGING, which fires at 2 -- so
         this is the ESCALATION when paging did not get it fixed: >3 consecutive = drawable).
 
@@ -3515,7 +3518,7 @@ def _operational_red_persistent_draw(
         return None
     if not isinstance(state, dict):
         return None
-    if state.get("last_result") != "red":
+    if state.get("last_result") not in ("red", "red_blocked"):
         return None
     try:
         consecutive_red = int(state.get("consecutive_red") or 0)
@@ -3523,6 +3526,31 @@ def _operational_red_persistent_draw(
         return None
     if consecutive_red <= OPERATIONAL_RED_DRAWABLE_THRESHOLD:
         return None
+    # A BLOCKED signal still draws -- it is unmonitored, which is the state this rung exists
+    # for -- but it must not draw the DAEMON diagnosis. `red_blocked` means pytest was
+    # interrupted during COLLECTION, so no operational test ran and nothing about the daemons
+    # has been shown to be wrong; the repair is the import error. Sending the worker to
+    # "regenerate the process-set manifest" is what cost 23 pages on 2026-08-20
+    # (WORKER_FINDING_A_SALVAGE_PARKED_THE_PRODUCER_HALF...). Silence is NOT the alternative:
+    # the stated fail-safe direction here is toward drawing.
+    if state.get("last_result") == "red_blocked":
+        blocked = [str(p) for p in (state.get("blocked_by") or [])]
+        named = ("\n".join("  - " + p for p in blocked) if blocked
+                 else "  (the state file names none -- re-run the signal to list them)")
+        return _operational_red_stale_record_prefix(state, head_time_fn, head_hash_fn) + (
+            "OPERATIONAL-LAYER BLOCKED self-refill (RUNG 1b, PRIORITY ZERO): the operational-layer "
+            f"signal has failed to RUN for {consecutive_red} consecutive hourly checks. pytest was "
+            "interrupted during COLLECTION, so the marker expression never selected anything and "
+            "NO operational test executed. This is NOT a daemon-lifecycle defect -- do NOT "
+            "regenerate the process-set manifest or hunt a capability regression; nothing about "
+            "the daemons has been shown to be broken. The operational layer is UNMONITORED until "
+            f"these files import cleanly:\n{named}\n"
+            "REPAIR THE IMPORT (R4: the nearest working analogue is the same file importing "
+            "cleanly at HEAD -- `git status` these paths first; a half-landed rename or a salvage "
+            "that parked a producer and left its consumers is the usual cause). Then confirm with "
+            "`python3 -m pytest tests/ -q --collect-only` that collection is clean, re-run the "
+            "signal, and NTFY the director the cause."
+        )
     return _operational_red_stale_record_prefix(state, head_time_fn, head_hash_fn) + (
         "OPERATIONAL-LAYER PERSISTENT-RED self-refill (RUNG 1b, PRIORITY ZERO -- director console "
         "2026-07-25): the operational-layer signal (`pytest -m operational`, the daemon-lifecycle / "
