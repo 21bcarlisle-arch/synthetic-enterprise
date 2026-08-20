@@ -2620,6 +2620,24 @@ def red_census_argv(gate_argv):
     return argv
 
 
+def _remaining_path_budget_seconds(*, cap, margin, minimum, now_monotonic=None, started=None):
+    """Seconds a post-gate step may run for, DERIVED from the publish path's own remaining bound.
+
+    ONE definition, because the two steps that need it drifted apart when there were two
+    (2026-08-20): the census derived correctly while the remainder annotation carried
+    `GATE_SUITE_TIMEOUT_SECONDS` -- 5x the entire post-gate allowance it lives in -- and the
+    caller killed a GREEN, PUBLISHED cycle at 5400s, recording it as a gate failure. A second
+    copy of this arithmetic is how that happens; a second CALLER of this function is not.
+
+    The budget is (what the caller allows) - (what we have already spent) - (what the path
+    still needs after us), capped at `cap`, and floored to 0 below `minimum` -- 0 meaning
+    "do not start", never "you have no time, go anyway"."""
+    now = time.monotonic() if now_monotonic is None else float(now_monotonic)
+    start = _PROCESS_STARTED_MONOTONIC if started is None else float(started)
+    budget = min(cap, PUBLISH_PATH_TIMEOUT_SECONDS - (now - start) - margin)
+    return budget if budget >= minimum else 0.0
+
+
 def red_census_budget_seconds(now_monotonic=None, started=None):
     """Seconds the census may run for, DERIVED from the publish path's own remaining bound.
 
@@ -2628,12 +2646,12 @@ def red_census_budget_seconds(now_monotonic=None, started=None):
     mid-write and take the fail-fast record with it, turning a diagnostic improvement into a
     LOST payload. So the budget is (what the caller allows) - (what we have already spent) -
     (what the red path still needs after us), capped, and floored at zero."""
-    now = time.monotonic() if now_monotonic is None else float(now_monotonic)
-    start = _PROCESS_STARTED_MONOTONIC if started is None else float(started)
-    remaining = (PUBLISH_PATH_TIMEOUT_SECONDS - (now - start)
-                 - GATE_RED_CENSUS_PATH_MARGIN_SECONDS)
-    budget = min(GATE_RED_CENSUS_MAX_SECONDS, remaining)
-    return budget if budget >= GATE_RED_CENSUS_MIN_SECONDS else 0.0
+    return _remaining_path_budget_seconds(
+        cap=GATE_RED_CENSUS_MAX_SECONDS,
+        margin=GATE_RED_CENSUS_PATH_MARGIN_SECONDS,
+        minimum=GATE_RED_CENSUS_MIN_SECONDS,
+        now_monotonic=now_monotonic, started=started,
+    )
 
 
 def _default_census_runner(argv, cwd, env, timeout):
@@ -3988,11 +4006,54 @@ def _remainder_argv():
     return publish_scope.remainder_pytest_argv(publish_gate_pytest_argv("tests/"))
 
 
-def _default_remainder_runner(argv):
+# What the publish path still needs after the annotation (the agent_status refresh, the
+# archive, the return through the caller), and the floor below which a suite cannot finish
+# anything worth publishing. Same two knobs as the census, same reasoning.
+REMAINDER_PATH_MARGIN_SECONDS = 120
+REMAINDER_MIN_SECONDS = 90
+
+
+def remainder_budget_seconds(now_monotonic=None, started=None):
+    """Seconds the non-blocking annotation may run for. Capped at the gate's own bound so this
+    step can never become the longest thing in the path, but the BINDING term is what the
+    publish path has left -- which is the term it did not have."""
+    return _remaining_path_budget_seconds(
+        cap=GATE_SUITE_TIMEOUT_SECONDS,
+        margin=REMAINDER_PATH_MARGIN_SECONDS,
+        minimum=REMAINDER_MIN_SECONDS,
+        now_monotonic=now_monotonic, started=started,
+    )
+
+
+def _default_remainder_runner(argv, timeout=None):
+    """Run the non-blocking remainder inside what the publish path has LEFT, never inside a
+    bound of its own.
+
+    THE DEFECT THIS CLOSES (observed 3x on 2026-08-20, first `TIMED OUT processing ... after
+    5400s` at 16:37Z). This step's own docstring says it "must never be able to affect" the
+    publish it follows. It could not red the publish -- it could, and did, KILL IT: bounded at
+    `GATE_SUITE_TIMEOUT_SECONDS` (4500s) while the whole post-gate allowance is
+    `PUBLISH_PATH_ALLOWANCE_SECONDS` (900s), it believed it had budget for 17m32s after its
+    caller's deadline had already killed the process. The kill routes to
+    `record_publish_gate_failure(kind="deadline_kill")`, so a cycle whose gate PASSED and whose
+    commit LANDED was recorded as the episode's next failure, `record_publish_gate_success`
+    never ran, and the wedge could not clear. The observer became the outage.
+
+    Raising when the budget is gone is deliberate: `run_remainder_annotation_step` wraps this
+    whole call and logs it as a non-fatal skip. Returning a clean CompletedProcess instead
+    would put "0 non-blocking reds" on the live page for a suite that never ran, which is the
+    fail-silent its caller explicitly guards against three lines further down."""
+    budget = remainder_budget_seconds() if timeout is None else float(timeout)
+    if budget <= 0:
+        raise RuntimeError(
+            "no budget left in the publish path's own deadline ({}s) for the remainder "
+            "annotation -- skipping it rather than being killed mid-run and recorded as a "
+            "gate failure against a publish that already landed".format(
+                PUBLISH_PATH_TIMEOUT_SECONDS))
     env = dict(os.environ)
     env["SIM_FAST_MODE"] = "1"
     return subprocess.run(argv, cwd=str(PROJECT_DIR), env=env,
-                          timeout=GATE_SUITE_TIMEOUT_SECONDS,
+                          timeout=budget,
                           capture_output=True, text=True, errors="replace")
 
 
