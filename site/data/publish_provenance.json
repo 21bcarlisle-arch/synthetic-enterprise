@@ -1,28 +1,34 @@
 {
   "annotation": {
-    "checked_at": "2026-08-20T01:50:37Z",
+    "checked_at": "2026-08-20T03:09:46Z",
     "nonblocking_reds": [
-      "ERROR tests/company/interfaces/test_the_run_holds_no_policy.py",
-      "ERROR tests/company/policy/test_policy_field_consumption.py"
+      "FAILED tests/architecture/test_epistemic_wall_ratchet.py::test_no_new_sim_reads_company",
+      "FAILED tests/architecture/test_epistemic_wall_ratchet.py::test_mutation_injected_company_reads_sim_reds_only_new_crossing",
+      "FAILED tests/architecture/test_epistemic_wall_ratchet.py::test_mutation_injected_sim_reads_company_reds_only_new_crossing",
+      "FAILED tests/architecture/test_epistemic_wall_ratchet.py::test_baseline_census_is_exactly_as_frozen",
+      "FAILED tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py::test_every_declared_exemption_is_still_a_real_violation",
+      "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_committed_store_credits_a_falsifier_the_repository_does_not_have",
+      "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_every_declared_honest_absence_is_still_absent_and_still_silenced",
+      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline"
     ],
-    "nonblocking_reds_total": 2,
-    "open_findings": 95
+    "nonblocking_reds_total": 42,
+    "open_findings": 96
   },
   "last_verified": {
-    "generated_at": "2026-08-20T02:21:47Z",
-    "git_commit": "e080f77dd",
-    "run_id": "run_output_e080f77dd_20260820T015138Z.json",
-    "verified_at": "2026-08-20T02:21:47Z"
+    "generated_at": "2026-08-20T03:42:15Z",
+    "git_commit": "c37a26fbf",
+    "run_id": "run_output_c37a26fbf_20260820T031046Z.json",
+    "verified_at": "2026-08-20T03:42:15Z"
   },
   "paused_reason": "scoped publish-path suite red at git=1aa4a3d7a; blocking tests: see sim-runner-log",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-20T02:21:47Z",
-    "git_commit": "e080f77dd",
-    "run_id": "run_output_e080f77dd_20260820T015138Z.json",
-    "verified_at": "2026-08-20T02:21:47Z"
+    "generated_at": "2026-08-20T03:42:15Z",
+    "git_commit": "c37a26fbf",
+    "run_id": "run_output_c37a26fbf_20260820T031046Z.json",
+    "verified_at": "2026-08-20T03:42:15Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-20T02:21:47Z"
+  "written_at": "2026-08-20T03:42:15Z"
 }
