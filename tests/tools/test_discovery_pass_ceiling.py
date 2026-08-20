@@ -55,6 +55,13 @@ def _fixture(tmp_path, atoms, records, ledger_actions):
     (obs / "gate_authorizations.jsonl").write_text(
         "\n".join(json.dumps(a) for a in ledger_actions) + "\n"
     )
+    # THE BATTERY'S TWO SOURCES ARE ISOLATED EVEN WHEN A TEST DOES NOT CARE ABOUT THEM.
+    # `exit_criterion` is consulted for EVERY saturated atom, so leaving these at their live
+    # defaults would make every fixture in this file read the real repository's blind-review
+    # ledger -- a fixture that passes because of a file nobody in the test named. Empty is a
+    # legitimate state (no walk recorded), which is what these atoms are.
+    (obs / "blind_review_ledger.jsonl").write_text("")
+    (obs / "cold_eyes_battery_reconciliation.jsonl").write_text("")
     return tmp_path
 
 
@@ -63,6 +70,11 @@ def _point(monkeypatch, root):
     monkeypatch.setattr(ceiling, "STORE_DIR", root / "store")
     monkeypatch.setattr(ceiling, "LEDGER", root / "obs" / "gate_authorizations.jsonl")
     monkeypatch.setattr(ceiling, "MAP_SOURCE", root / "map_source.yaml")
+    monkeypatch.setattr(ceiling, "BATTERY_LEDGER", root / "obs" / "blind_review_ledger.jsonl")
+    monkeypatch.setattr(
+        ceiling, "BATTERY_RECONCILIATION",
+        root / "obs" / "cold_eyes_battery_reconciliation.jsonl",
+    )
 
 
 ATOM = {"id": "X_atom", "level_current": 0, "level_target": 3, "loop_stage": "idle"}
@@ -561,3 +573,154 @@ def test_the_CLI_names_a_stage_appropriate_decision_for_an_unblocked_atom(
     out = capsys.readouterr().out
     assert "BLOCKED ON AN INSTRUMENT" not in out
     assert "land the level move" in out
+
+
+# ── THE FOURTH ANSWER: unreachable target AND payable build work, both at once ────────────
+#
+# `STAGE_DECISIONS` offers a saturated build atom three answers and `EP6_wall_protocol_typing`
+# is in none of them: two of its twelve recorded DISQUALIFYING exit criteria need acts in the
+# RESERVED classes, so the level move is unreachable in this epoch, while seven are ordinary
+# build work. "Land the move" is impossible, "close it" throws real work away, and
+# `infeasible_here` renders as "do not record another pass as if they could" -- which retires
+# the seven. Its pass 37 recorded that in prose and filed the gap rather than fixing the
+# ceiling in the tick where the ceiling refused its own draw. These mutations drive the
+# DISCRIMINATOR: whether anything payable remains beside the unpayable half.
+
+
+def _battery_atom(tmp_path, monkeypatch, rows, questions=(2, 9, 15), stage="build"):
+    """A saturated build atom whose exit criterion is a recorded battery of `questions`."""
+    atom = {"id": "X_atom", "level_current": 2, "level_target": 3, "loop_stage": stage}
+    root = _fixture(tmp_path, [atom], {"X_atom": 6}, [REAL_MOVE])
+    obs = root / "obs"
+    (obs / "blind_review_ledger.jsonl").write_text(json.dumps({
+        "capability": "X_atom",
+        "battery": [{"n": n, "question": f"q{n}", "verdict": "DISQUALIFYING"} for n in questions],
+    }) + "\n")
+    (obs / "cold_eyes_battery_reconciliation.jsonl").write_text(
+        "".join(json.dumps(r) + "\n" for r in rows)
+    )
+    _point(monkeypatch, root)
+    return root
+
+
+def _reconciled(n, verdict="FAIL", **extra):
+    return {"capability": "X_atom", "n": n, "verdict": verdict, "evidence": "e", **extra}
+
+
+def test_MUTATION_an_unreachable_target_beside_payable_work_gets_neither_of_the_three_answers():
+    """THE STATE THE CONTROL EXISTS FOR, asserted on the LIVE tree rather than a fixture.
+
+    EP6 is the atom the finding was written about and it is still in this state today, so the
+    mutation is the real repository: the verdict it receives must name BOTH halves. If this
+    goes red because the split collapsed, the fourth answer has stopped being needed -- which
+    is a fact worth being told rather than a test worth deleting.
+    """
+    crit = ceiling.exit_criterion("EP6_wall_protocol_typing")
+    assert crit is not None, "EP6's recorded battery has gone missing"
+    assert crit["unpayable"] and crit["payable"], crit
+    row = next(r for r in ceiling.decisions(5) if r["atom"] == "EP6_wall_protocol_typing")
+    assert "UNREACHABLE HERE" in row["decision"], row["decision"]
+    assert "BUILD WORK REMAINS" in row["decision"]
+    assert "Do NOT record `infeasible_here`" in row["decision"]
+    for q in crit["unpayable"] + crit["payable"]:
+        assert q in row["decision"], f"{q} is outstanding and the verdict does not name it"
+
+
+def test_the_fourth_answer_names_the_reserved_half_and_the_payable_half(tmp_path, monkeypatch):
+    _battery_atom(tmp_path, monkeypatch, [
+        _reconciled(2),                          # ordinary build work, outstanding
+        _reconciled(9, epoch_gated=True),        # reserved-class act
+        _reconciled(15, epoch_gated=True),       # reserved-class act
+    ])
+    row = next(r for r in ceiling.decisions(5) if r["atom"] == "X_atom")
+    assert row["exit_criterion"] == {
+        "questions": 3, "outstanding": ["Q2", "Q9", "Q15"],
+        "unpayable": ["Q9", "Q15"], "payable": ["Q2"],
+    }
+    assert "UNREACHABLE HERE" in row["decision"]
+    assert "Q2" in row["decision"] and "Q9" in row["decision"]
+
+
+def test_MUTATION_nothing_payable_left_is_the_THIRD_answer_and_must_not_be_masked(
+    tmp_path, monkeypatch
+):
+    """The discriminator, driven from the other side. An atom whose WHOLE outstanding criterion
+    is unpayable here IS `infeasible_here` -- and a control that returned the fourth answer for
+    it would tell a genuinely blocked atom to keep drawing work that does not exist. Recording
+    the third state as the fourth buys an unbounded pass loop; the reverse retires real work.
+    """
+    _battery_atom(tmp_path, monkeypatch, [
+        _reconciled(2, verdict="PASS"),
+        _reconciled(9, epoch_gated=True),
+        _reconciled(15, epoch_gated=True),
+    ])
+    row = next(r for r in ceiling.decisions(5) if r["atom"] == "X_atom")
+    assert row["exit_criterion"]["payable"] == []
+    assert "RECORD `infeasible_here`" in row["decision"]
+    assert "UNREACHABLE HERE" not in row["decision"]
+
+
+def test_NULL_CONTROL_an_entirely_payable_criterion_keeps_the_ordinary_build_decision(
+    tmp_path, monkeypatch
+):
+    """The success case must be reachable. An atom with real outstanding work and NOTHING
+    reserved is exactly what the shipped verdict is right about, and a fourth answer that also
+    fired here would be a verdict that fires on everything."""
+    _battery_atom(tmp_path, monkeypatch, [
+        _reconciled(2), _reconciled(9), _reconciled(15),
+    ])
+    row = next(r for r in ceiling.decisions(5) if r["atom"] == "X_atom")
+    assert "land the level move" in row["decision"]
+    assert "UNREACHABLE HERE" not in row["decision"]
+    # The criterion is still REPORTED -- a reader gets the outstanding set either way.
+    assert row["exit_criterion"]["outstanding"] == ["Q2", "Q9", "Q15"]
+
+
+def test_NULL_CONTROL_an_atom_with_no_recorded_battery_is_untouched(tmp_path, monkeypatch):
+    """Most atoms have no blind review on record. This reads whatever criterion an atom has and
+    invents none, so their verdict must be byte-identical to the one they had before."""
+    _point(monkeypatch, _fixture(tmp_path, [dict(ATOM, loop_stage="build")],
+                                 {"X_atom": 6}, [REAL_MOVE]))
+    assert ceiling.exit_criterion("X_atom") is None
+    row = next(r for r in ceiling.decisions(5) if r["atom"] == "X_atom")
+    assert row["exit_criterion"] is None
+    assert row["decision"] == ceiling.STAGE_DECISIONS["build"]
+
+
+def test_FAIL_SILENT_an_unreadable_battery_RAISES_rather_than_reporting_no_criterion(
+    tmp_path, monkeypatch
+):
+    """`None` means "this atom has no exit criterion on record". An unreadable battery is the
+    same VALUE and the opposite FACT, and reporting it as the first would hand a saturated atom
+    the generic verdict on the strength of a broken read (R15 FAIL-SILENT)."""
+    root = _battery_atom(tmp_path, monkeypatch, [_reconciled(9, epoch_gated=True)])
+    (root / "obs" / "blind_review_ledger.jsonl").write_text("{not json\n")
+    with pytest.raises(ceiling.CeilingUnavailable) as e:
+        ceiling.exit_criterion("X_atom")
+    assert "UNKNOWN" in str(e.value)
+    with pytest.raises(ceiling.CeilingUnavailable):
+        ceiling.decisions(5)
+
+
+def test_FAIL_SILENT_an_unreadable_reconciliation_RAISES(tmp_path, monkeypatch):
+    """The second source, tested separately: a readable battery with an unreadable answer sheet
+    is a criterion whose state is unknown, not a criterion that is met."""
+    root = _battery_atom(tmp_path, monkeypatch, [_reconciled(9, epoch_gated=True)])
+    (root / "obs" / "cold_eyes_battery_reconciliation.jsonl").write_text("{not json\n")
+    with pytest.raises(ceiling.CeilingUnavailable):
+        ceiling.exit_criterion("X_atom")
+
+
+def test_the_CLI_prints_the_split_so_the_operator_sees_which_half_is_drawable(
+    tmp_path, monkeypatch, capsys
+):
+    """R11-shaped: the verdict has to reach the surface the supervisor points operators at.
+    `decisions()` spent a day computing a verdict this CLI did not print (the comment in
+    `main()` records it), so the rendered line is asserted, not the return value."""
+    _battery_atom(tmp_path, monkeypatch, [
+        _reconciled(2), _reconciled(9, epoch_gated=True), _reconciled(15, epoch_gated=True),
+    ])
+    assert ceiling.main(["--ceiling", "5"]) == 0
+    out = capsys.readouterr().out
+    assert "UNREACHABLE HERE" in out
+    assert "exit criterion: 3 disqualifying, 3 outstanding (1 payable here, 2 not)" in out

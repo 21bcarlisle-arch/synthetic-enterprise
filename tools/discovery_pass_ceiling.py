@@ -83,6 +83,7 @@ PROJECT = Path(__file__).resolve().parent.parent
 if str(PROJECT) not in sys.path:
     sys.path.insert(0, str(PROJECT))
 
+from tools import cold_eyes_battery as battery  # noqa: E402
 from tools import simplifications_store as store  # noqa: E402
 
 MAP_FEED = PROJECT / "site" / "data" / "maturity_map.json"
@@ -98,6 +99,14 @@ LEDGER = PROJECT / "docs" / "observability" / "gate_authorizations.jsonl"
 #: module exists to refuse. The join is by atom id, and `_infeasible_records` asserts every id
 #: it returns is one the feed also carries, so the two refs cannot silently drift apart.
 MAP_SOURCE = PROJECT / "docs" / "design" / "maturity_map.yaml"
+
+#: Test seams for the battery's two sources. `None` means "the battery's own defaults", which
+#: is what every real caller wants; a fixture points them at its own files. They live here
+#: rather than as parameters because `decisions()` is called by name from the CLI and from
+#: `main()`, and threading two optional paths through both would put the seam in the calling
+#: convention instead of in the module.
+BATTERY_LEDGER: Path | None = None
+BATTERY_RECONCILIATION: Path | None = None
 
 #: Passes an atom may take without its level moving. Five, not three and not eight, for a
 #: reason that is arguable rather than obvious: at the measured distribution three would
@@ -310,6 +319,61 @@ def live_blocks(record: dict) -> tuple[str, ...]:
         raise CeilingUnavailable(f"`infeasible_here.predicate` {path!r} raised: {e}") from e
 
 
+def exit_criterion(atom_id: str) -> dict | None:
+    """A saturated atom's OWN recorded exit criterion, split by who can pay for it.
+
+    `None` when the atom has no blind-review battery on record, which is the overwhelming
+    majority — this reads whatever criterion the atom actually has and invents none.
+
+    WHY THIS EXISTS: THE STATE THE THREE ANSWERS DO NOT SPAN. `STAGE_DECISIONS` offers a
+    saturated build atom three answers — land the move, record `infeasible_here`, close it —
+    and `EP6_wall_protocol_typing` is in a fourth state that is none of them. Two of its
+    twelve DISQUALIFYING exit criteria (Q9, Q15) need acts in the RESERVED classes (contacting
+    a real counterparty, a real qualification submission), so the level move is unreachable in
+    this epoch no matter how much is built; the other seven are ordinary build work this seat
+    can do today. "Land the move" is impossible, "close it" throws away real unfinished work,
+    and `infeasible_here` — whose rendered verdict is "do not record another pass as if they
+    could [move the level]" — would RETIRE the seven. The atom recorded that in prose in its
+    own store on pass 37 and filed the gap rather than fixing it in the tick that refused its
+    own draw; this is that repair, one tick later.
+
+    THE DISCRIMINATOR IS THE PAYABLE REMAINDER, not a new field anyone has to remember to set.
+    `unpayable_here` is already a strict subset of `battery_outstanding`, so the split is
+    derived from records that exist: unpayable AND payable both non-empty is the fourth state,
+    unpayable with nothing payable is the third (and this says so), and payable-only is the
+    ordinary build decision the stage already carries.
+
+    FAIL-CLOSED, same direction as everything else here. A battery that cannot be read RAISES
+    rather than returning `None`: "this atom has no exit criterion on record" and "its exit
+    criterion is unreadable" are the same value and opposite facts, and reporting the second as
+    the first would hand a saturated atom the generic verdict on the strength of a broken read.
+    """
+    try:
+        questions = battery.disqualifying_questions(atom_id, BATTERY_LEDGER)
+    except Exception as e:  # noqa: BLE001 - an unavailable check is a FAILED check (R15)
+        raise CeilingUnavailable(
+            f"{atom_id}: the recorded cold-eyes battery could not be read, so whether its exit "
+            f"criterion is met is UNKNOWN -- not absent: {e}"
+        ) from e
+    if not questions:
+        return None
+    try:
+        outstanding = battery.battery_outstanding(atom_id, BATTERY_LEDGER, BATTERY_RECONCILIATION)
+        unpayable = battery.unpayable_here(atom_id, BATTERY_LEDGER, BATTERY_RECONCILIATION)
+    except Exception as e:  # noqa: BLE001 - same direction
+        raise CeilingUnavailable(
+            f"{atom_id}: its exit criterion is recorded but its reconciliation could not be "
+            f"read, so the criterion's state is UNKNOWN: {e}"
+        ) from e
+    gated = set(unpayable)
+    return {
+        "questions": len(questions),
+        "outstanding": list(outstanding),
+        "unpayable": list(unpayable),
+        "payable": [q for q in outstanding if q not in gated],
+    }
+
+
 #: The decision a saturated atom faces, BY THE STAGE IT IS ACTUALLY IN. The single verdict
 #: this module shipped with -- "promote to build, or close it" -- is written for the idle
 #: discovery tier that was its only consumer. Rendered unconditionally it tells a `build`-stage
@@ -354,7 +418,31 @@ def decisions(ceiling: int = DEFAULT_CEILING) -> list[dict]:
             continue
         record = blocked.get(r["atom"])
         row = {**r, "decision": STAGE_DECISIONS.get(r["stage"], STAGE_DECISIONS["idle"]),
-               "instrument_blocked": False}
+               "instrument_blocked": False, "exit_criterion": None}
+        crit = exit_criterion(r["atom"])
+        if crit is not None and crit["unpayable"]:
+            row["exit_criterion"] = crit
+            if crit["payable"]:
+                row["decision"] = (
+                    f"THE TARGET IS UNREACHABLE HERE **AND** BUILD WORK REMAINS -- both are "
+                    f"true at once, and none of the three answers above says so. "
+                    f"{len(crit['unpayable'])} of this atom's own recorded exit criteria need "
+                    f"an act in a RESERVED class ({', '.join(crit['unpayable'])}), so the "
+                    f"level cannot move in this epoch however much is built; "
+                    f"{len(crit['payable'])} are ordinary build work "
+                    f"({', '.join(crit['payable'])}) and must keep being drawn. Do NOT record "
+                    f"`infeasible_here`: its verdict retires the payable half. The decision "
+                    f"due is the TARGET, and targets are the director's (R13)."
+                )
+            else:
+                row["decision"] = (
+                    f"RECORD `infeasible_here`: every outstanding exit criterion "
+                    f"({', '.join(crit['unpayable'])}) needs an act in a RESERVED class, and "
+                    f"nothing payable remains. This is the third answer, named by the atom's "
+                    f"own criterion rather than by a lane's reading of it."
+                )
+        elif crit is not None and crit["outstanding"]:
+            row["exit_criterion"] = crit
         if record is not None:
             still = live_blocks(record)
             if still:
@@ -420,6 +508,12 @@ def main(argv=None) -> int:
     for r in stuck:
         if not r["instrument_blocked"]:
             print(f"\n{r['atom']} [{r['stage']}] -- {r['decision']}")
+            crit = r.get("exit_criterion")
+            if crit:
+                print(f"    exit criterion: {crit['questions']} disqualifying, "
+                      f"{len(crit['outstanding'])} outstanding "
+                      f"({len(crit['payable'])} payable here, "
+                      f"{len(crit['unpayable'])} not)")
     return 0
 
 
