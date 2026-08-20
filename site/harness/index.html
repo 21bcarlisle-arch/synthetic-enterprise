@@ -103,11 +103,43 @@ a { color: var(--teal); }
       record below were found that way — a control that looked right, passed, and was measuring
       nothing.
     </p>
+    <p>
+      What actually orders the queue is not a plan. Plans exist and are kept, but a date in one
+      has never been allowed to shorten a check or promote a piece of work: when a date and a
+      test disagree, the date is the thing that is wrong. What wins instead is whichever piece
+      of work most shortens the distance between doing something and finding out whether it was
+      right — because that distance, compounded, is the whole difference between a system that
+      improves and one that merely accumulates.
+    </p>
   </section>
 
   <section>
     <h2>What we know is wrong</h2>
     <p class="sub">Standing weaknesses, stated here rather than discovered by a reader.</p>
+    <p>
+      Two kinds of wrong live in a project like this, and they are not equally interesting. The
+      first is something that does not work yet — a gap, listed below, with no pretence that it
+      is finished. The second is something that works and is believed for the wrong reason. That
+      is the kind that does damage, because nobody goes looking for it.
+    </p>
+    <p>
+      The second kind is only ever caught by a measurement that could have come out the other
+      way. On 20 August this site appeared to be failing between eleven and forty-seven per cent
+      of its page loads. Four explanations were proposed, and each one was tested, and each one
+      was wrong: a caching header, a stale purge, a theory that the failures were only this
+      machine's own checks, and a routing pattern that held across eight hundred observations and
+      broke at fourteen hundred. None of it was real — the hosting provider's analytics were
+      recording every request of one protocol twice, and the second copy read as a timeout. The
+      site had been healthy throughout.
+    </p>
+    <p>
+      Two things were worth more than the answer. An observed pattern is still only a theory
+      about the next observation, however many observations it already survived. And when four
+      explanations about a mechanism die in a row, the next move is not a fifth one — it is to
+      check whether the instrument means what you think it means. The four wrong turns are kept
+      in the record deliberately: a project that publishes only the theories that turned out
+      right is showing you its results, not its method.
+    </p>
     <div id="not-proven"></div>
   </section>
 
@@ -118,6 +150,19 @@ a { color: var(--teal); }
       measured size of the gap between what it believes and what is actually true, which is the
       only number on the site that could not exist outside a simulation.
     </p>
+    <p>
+      The gap is measured, not asserted, and the measurement is deliberately made against
+      something the company has no way to reach. Its picture of the world is assembled only from
+      what a real supplier could observe: prices it was quoted, meter readings it received, bills
+      it issued, payments that arrived or did not. Ground truth sits on the other side of a wall
+      the company has no call into, and the two are compared afterwards, here, by the harness.
+    </p>
+    <p>
+      Where they diverge, the company is left wrong on purpose. A supplier that discovers its own
+      error the instant it makes one is not a supplier — it is a lookup table with a story
+      attached. The interesting question is not whether the company is right; it is how long it
+      takes to notice it was wrong, and what that costs in the meantime.
+    </p>
     <div class="kpis" id="gap-kpis"></div>
     <div id="gap-note"></div>
   </section>
@@ -127,6 +172,16 @@ a { color: var(--teal); }
     <p class="sub">
       Published claims that turned out to be false, with what replaced them. A project that
       never lists any of these is not being checked.
+    </p>
+    <p>
+      One rule shapes this list more than any other, and it was learned the hard way. A check
+      that observes <b>new</b> content is trustworthy; a check that concludes something is
+      <b>absent</b> is not. A cached copy of a page can be old, but it can never be newer than
+      when it was stored — so through a cache, "this is gone" and "I am looking at a stale copy"
+      are the same observation. On 20 August, eight deleted pages went on being served to readers
+      for a day after every published check had confirmed them removed. Every live check this
+      project makes now carries a one-off marker that a cache cannot answer, so the question can
+      only be settled by asking the source.
     </p>
     <div id="corrections"></div>
   </section>
@@ -147,6 +202,20 @@ a { color: var(--teal); }
     <p class="sub">
       Every control in the system, graded on whether it has been proven to fire on its own
       named defect. The ones that have not are counted rather than quietly trusted.
+    </p>
+    <p>
+      There are three ways a check passes while meaning nothing, and this project has shipped all
+      three. It can derive the value it is checking from the same place it checks against, so it
+      can only ever agree with itself. It can pass when its input is missing, empty or malformed.
+      Or it can pass when the checker itself could not run — which is the worst of the three,
+      because an unavailable check and a satisfied one look identical from outside.
+    </p>
+    <p>
+      A live example, removed the same day this was written: the step that cleared this site's
+      cache after every deploy had been misconfigured since the day it was added. It reported its
+      own failure and then exited successfully, so every deploy for months was recorded green
+      while the step did nothing at all. It has been replaced by a check that fetches what was
+      just published and compares it, byte for byte, against what a reader is actually served.
     </p>
     <div class="kpis" id="control-kpis"></div>
   </section>
