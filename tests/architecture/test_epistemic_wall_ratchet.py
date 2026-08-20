@@ -316,7 +316,26 @@ LEGACY_SIM_READS_COMPANY: frozenset[tuple[str, str]] = frozenset({
     # inside the renewal loop and a channel cost booked once at year end do not
     # feed one total, and naming a desk over both would invent an object the
     # business does not have.
-    ("simulation.run_phase2b", "company.policy.decision_policy"),
+    # KNIFE3 step 39, 2026-08-18 (register §3ah): `company.policy.decision_policy`
+    # is CUT — the entry that stood here is removed, and it was the LAST live
+    # crossing on `simulation/run_phase2b.py` and the last owed row of
+    # `A_composition_lift`, the register's oldest and largest design (once 65
+    # direct edges over 10 files).
+    #
+    # `main()` used to take a `DecisionPolicy` — the supplier's own decision
+    # object — as a parameter and read four of its fields inline: the retention
+    # discount tiers, the acquisition-cost-aware offer guard, the comms-framing
+    # cohort split and the VaR hedge switch. The parameter is gone. The retention
+    # three resolve behind `company/interfaces/growth_desk.py`
+    # (`retention_discount_for_risk`, `replacement_cost_avoided_gbp`,
+    # `offer_framing_for`) and the hedge switch inside
+    # `company.trading.hedge_desk.decide_term_hedge`, which now returns None when
+    # the supplier is not running its VaR layer — the same "the company declined"
+    # shape `request_tou_offer` already uses in that loop.
+    #
+    # A counterfactual arm sets `policy_scope(...)` and every field is resolved
+    # from it on the company side. The world holds no policy, names none,
+    # defaults to none and type-annotates none.
     # KNIFE3 step 24, 2026-08-13 (register §3s): the renewal RATE CHAIN is CUT —
     # three entries removed, `company.pricing.margin_feedback`,
     # `company.pricing.ofgem_price_cap` and `company.pricing.tariff_engine`. The

@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from company.policy.decision_policy import active_policy
 from tools import run_frozen_baseline as rfb
 
 
@@ -37,11 +38,23 @@ def test_portfolio_metrics_extracts_headline_fields():
 
 
 def test_run_frozen_baseline_computes_delta_ev(monkeypatch):
+    """KNIFE3 step 39 (§3ah): the fake reads its arm's identity from
+    `active_policy()`, not from a `policy=` argument, because the argument no
+    longer exists — `run_phase2b`/`run_phase4c` stopped taking a DecisionPolicy
+    when A_composition_lift's last wall crossing was cut.
+
+    That makes this a STRONGER assertion than the one it replaces. Before, the
+    fake was handed the arm's identity directly and `calls == ["current",
+    "naive"]` only proved the driver passed two different objects. Now the
+    identity has to arrive the way every real consumer's does — through the
+    scope the driver entered — so this fails if `run_frozen_baseline` forgets to
+    enter `policy_scope`, which is the single channel the whole cut rests on.
+    """
     calls = []
 
-    def fake_run_phase4c(report_end=None, policy=None):
-        calls.append(policy.name)
-        if policy.name == "current":
+    def fake_run_phase4c(report_end=None):
+        calls.append(active_policy().name)
+        if active_policy().name == "current":
             return _fake_phase4c_result(ev_gbp=1200.0, net_gbp=600.0, offers=4, retained=3)
         return _fake_phase4c_result(ev_gbp=1000.0, net_gbp=550.0, offers=2, retained=1)
 

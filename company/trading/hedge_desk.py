@@ -140,7 +140,7 @@ class HedgeDesk:
         term_days: int,
         current_fraction: float,
         accept_decision: bool,
-    ) -> TermHedge:
+    ) -> TermHedge | None:
         """Set the hedge fraction for a term and record the risk actually carried.
 
         `accept_decision` is False when the risk committee has already ruled on
@@ -148,7 +148,33 @@ class HedgeDesk:
         discarded. THE ORDER MATTERS — the realised VaR is computed at the
         fraction that SURVIVES, not at the one the model proposed, so a
         committee-overridden term reports the risk it is really running.
+
+        RETURNS `None` WHEN THE DESK IS NOT RUNNING THE VaR LAYER AT ALL —
+        KNIFE3 step 39 (§3ah). `run_phase2b` used to gate both call sites on
+        `policy.use_var_hedge_decision`, reading the supplier's own Phase-43b
+        switch off a `DecisionPolicy` it held, in order to decide whether to
+        consult the supplier's desk. The world deciding whether to ask the
+        company a question is the company's decision, sited in the world.
+
+        Now the world always asks and the DESK declines, resolving the switch
+        from the run's active policy on this side of the seam. `None` is the
+        established shape for a company door that declines: the same term loop
+        already reads `request_tou_offer(...) is not None` for "the supplier
+        chose not to offer this customer a ToU product".
+
+        WHY NOT `decision_accepted=False`, which already exists and looks free:
+        that field means the RISK COMMITTEE overrode the model, and a term where
+        the committee ruled still carries a `var_log_entry` reporting the risk
+        actually run. A term where the VaR layer is switched off carries no
+        entry at all, because no VaR decision was taken. Collapsing the two
+        would put rows in `hedge_var_log` that no desk ever decided, and the
+        naive arm's risk reporting would silently gain a decade of them.
         """
+        from company.policy.decision_policy import active_policy
+
+        if not active_policy().use_var_hedge_decision:
+            return None
+
         decided = decide_hedge_fraction(
             volume_kwh,
             forward_price_gbp_per_mwh,

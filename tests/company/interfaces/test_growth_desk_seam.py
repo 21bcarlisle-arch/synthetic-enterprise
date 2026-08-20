@@ -41,6 +41,11 @@ from company.interfaces.growth_desk import (
     mandate_permits_replacement,
     replacement_cost_avoided_gbp,
 )
+from company.policy.decision_policy import (
+    CURRENT_POLICY,
+    NAIVE_POLICY,
+    policy_scope,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 RUN_PHASE2B = REPO_ROOT / "simulation" / "run_phase2b.py"
@@ -123,15 +128,28 @@ class TestBehaviour:
         assert decision.gate_reason is None
 
     def test_the_retention_guard_credit_is_the_segments_replacement_cost(self):
-        assert replacement_cost_avoided_gbp(segment="resi", counted_in_guard=True) == 150.0
-        assert replacement_cost_avoided_gbp(segment="SME", counted_in_guard=True) == 400.0
-        assert replacement_cost_avoided_gbp(segment="micro", counted_in_guard=True) == 150.0
+        # KNIFE3 step 39 (§3ah): `counted_in_guard` is no longer a parameter. The
+        # switch is the supplier's own and is resolved from the run's active
+        # policy inside the door, so the world cannot state it. CURRENT_POLICY
+        # counts it, and an ordinary call sits in CURRENT's default scope.
+        with policy_scope(CURRENT_POLICY):
+            assert replacement_cost_avoided_gbp(segment="resi") == 150.0
+            assert replacement_cost_avoided_gbp(segment="SME") == 400.0
+            assert replacement_cost_avoided_gbp(segment="micro") == 150.0
 
     def test_the_frozen_naive_policy_zeroes_that_credit_rather_than_scaling_it(self):
-        # The whole effect of `policy.include_acq_cost_saved_in_guard=False`.
-        # A guard that merely halved the credit would pass a "less than" check.
-        assert replacement_cost_avoided_gbp(segment="SME", counted_in_guard=False) == 0.0
-        assert replacement_cost_avoided_gbp(segment="resi", counted_in_guard=False) == 0.0
+        # The whole effect of `include_acq_cost_saved_in_guard=False`. A guard
+        # that merely halved the credit would pass a "less than" check.
+        #
+        # This assertion got STRONGER at step 39, not weaker. It used to hand the
+        # door a False and check the door honoured it, which proved the branch
+        # worked and said nothing about whether the naive ARM would ever reach
+        # it. Driving it through `policy_scope(NAIVE_POLICY)` exercises the real
+        # channel the frozen baseline uses, so this now fails if the door stops
+        # reading the run's policy — the `tone_mode` defect's exact shape.
+        with policy_scope(NAIVE_POLICY):
+            assert replacement_cost_avoided_gbp(segment="SME") == 0.0
+            assert replacement_cost_avoided_gbp(segment="resi") == 0.0
 
     def test_the_acquisition_spend_row_is_unchanged_including_its_sign(self):
         assert book_acquisition_spend(

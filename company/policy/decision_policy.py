@@ -114,11 +114,23 @@ NAIVE_POLICY = DecisionPolicy(
 #
 # WHY THIS EXISTS (2026-08-12, WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10)
 #
-# Most consumers of a policy field receive the policy as an argument, so a
-# counterfactual replay under NAIVE_POLICY gets the naive answer for free:
-# `run_phase2b.main(policy=...)` reads `policy.retention_discount_for_risk`,
+# When this was written, most consumers received the policy as an ARGUMENT, so a
+# counterfactual replay under NAIVE_POLICY got the naive answer for free:
+# `run_phase2b.main(policy=...)` read `policy.retention_discount_for_risk`,
 # `policy.include_acq_cost_saved_in_guard`, `policy.use_var_hedge_decision` and
-# calls `framing_type_for(policy, ...)`.
+# called `framing_type_for(policy, ...)`.
+#
+# NONE OF THAT IS TRUE ANY MORE, and the scope below stopped being the exception
+# and became the ONLY channel -- KNIFE3 step 39, 2026-08-18, disposition register
+# §3ah. `run_phase2b.main()` was the world's last wall crossing into this module;
+# cutting it meant deleting the `policy` parameter, so those four fields now
+# resolve exactly the way `tone_mode` always did -- from `active_policy()`, on the
+# company side of a door (`company/interfaces/growth_desk.py` for the retention
+# three, `company.trading.hedge_desk.decide_term_hedge` for the VaR switch).
+#
+# The paragraph below is kept in its original tense because it is the REASON this
+# mechanism exists, and that reason is now load-bearing for every field rather
+# than for one. Read "the exception" as "the first case".
 #
 # `tone_mode` was the exception, and it was a real defect rather than a rounding
 # error. The dunning tone is resolved per bill from deep inside the settlement
