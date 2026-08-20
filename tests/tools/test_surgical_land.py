@@ -896,3 +896,152 @@ def test_the_sweeper_still_reclaims_the_legacy_tmpfs_backlog(tmp_path: Path, mon
         "filled the tmpfs in the first place"
     )
     assert removed == 2
+
+
+# --------------------------------------------------------------------------------------------
+# The refusal has to SAY WHY IT FIRED (2026-08-20, WORKER_FINDING_THE_GATES_REFUSAL_TAIL_IS_
+# FOUR_THOUSAND_CHARACTERS_OF_ONE_WARNING).
+#
+# R15 note on the SHAPE of this defect: the control was never fail-open here -- it correctly
+# refused a genuinely red tree. What failed was the control's ACCOUNT OF ITSELF, and the doctrine
+# reason that matters is that a refusal which cannot say why it fired is one an operator learns
+# to bypass. So these tests are written against the excerpt, not against the verdict.
+# --------------------------------------------------------------------------------------------
+
+def _incident_stream() -> str:
+    """The 2026-08-20 incident, reproduced in its load-bearing shape: pytest's verdict on STDOUT,
+    an unbounded import-time SyntaxWarning on STDERR, concatenated stdout-then-stderr exactly as
+    `run_gate` returns them. The verdict therefore sits ~200 lines before the end and every one
+    of the last 4000 characters is noise."""
+    stdout = "\n".join(
+        ["[test-gate] 22 test file(s): tests/tools/test_wall_channel_census.py ..."]
+        + ["FAILED tests/tools/test_wall_channel_census.py::test_channel_{}".format(i)
+           for i in range(5)]
+        + ["5 failed, 2600 passed, 12 warnings in 118.4s"]
+    )
+    noise = "\n".join(
+        'saas/reporting/annual_report.py:7952: SyntaxWarning: "\\_" is an invalid escape '
+        'sequence. Such sequences will not work in the future.\n'
+        '  f"Shadow discount: assumes P(accept) = (1 - churn\\_estimate)",\n'
+        "   ^^^^^^^^^^^^^^^^\n"
+        "  warnings.warn(msg)"
+        for _ in range(60)
+    )
+    return stdout + "\n" + noise
+
+
+def test_the_refusal_names_the_failed_nodes_when_the_tail_is_pure_warning_noise():
+    """THE named defect. This is the mutation the finding asked for, and the fixture is the
+    incident rather than an invention of one."""
+    stream = _incident_stream()
+
+    # The fixture genuinely reproduces the incident, or this test proves nothing: the OLD
+    # selector (a positional slice) must carry zero diagnostic characters on this same stream.
+    old_selector = stream[-4000:]
+    assert "FAILED " not in old_selector, (
+        "fixture no longer reproduces the incident -- the positional tail can still see the "
+        "verdict, so this test would pass without the selection it exists to prove"
+    )
+
+    excerpt = sl._verdict_excerpt(stream)
+
+    for i in range(5):
+        assert "test_channel_{}".format(i) in excerpt, (
+            "the refusal dropped a FAILED node -- reconstructing it is what cost a whole extra "
+            "gate cycle"
+        )
+    assert "5 failed, 2600 passed" in excerpt, "the count decides whether the list is whole"
+    assert "[test-gate] 22 test file(s)" in excerpt, "the selection line says WHAT was run"
+    assert "SyntaxWarning" not in excerpt
+
+
+def test_a_verdict_already_in_the_tail_is_still_printed():
+    """NULL CONTROL, required by the finding: a refusal whose tail DOES contain the verdict must
+    still print it. Without this, a 'fix' that merely stripped warnings would score as a pass
+    while having rewritten the noise rather than selected the signal."""
+    stream = "\n".join(
+        ["some incidental chatter"]
+        + ["FAILED tests/background/test_publish_scope.py::test_the_scope_is_the_publish_path"]
+        + ["1 failed, 40 passed in 3.2s"]
+    )
+    assert "FAILED " in stream[-4000:], "fixture is not a null control -- the tail must hold it"
+
+    excerpt = sl._verdict_excerpt(stream)
+
+    assert "test_the_scope_is_the_publish_path" in excerpt
+    assert "1 failed, 40 passed" in excerpt
+
+
+def test_a_stream_with_no_recognisable_verdict_falls_back_to_the_bounded_tail():
+    """FAIL-CLOSED, not fail-open: an unrecognised stream degrades to the OLD behaviour (a
+    bounded tail), never to an empty excerpt. A selector that printed nothing when it recognised
+    nothing would be strictly worse than the slice it replaced."""
+    stream = "\n".join("a segfault, or some gate that is not pytest at all" for _ in range(50))
+
+    excerpt = sl._verdict_excerpt(stream)
+
+    assert excerpt.strip(), "the refusal went silent on a stream it did not recognise"
+    assert excerpt in stream
+    assert len(excerpt) <= 4000
+
+
+def test_an_empty_gate_stream_says_so_rather_than_refusing_with_nothing():
+    for empty in ("", "   \n\n  "):
+        excerpt = sl._verdict_excerpt(empty)
+        assert excerpt.strip(), "a refusal with a literally empty diagnostic"
+        assert excerpt == sl._NO_OUTPUT
+
+
+def test_the_excerpt_stays_bounded_and_keeps_the_count_when_the_verdict_itself_is_huge():
+    """The signal is bounded in the happy case but not in principle -- 900 red nodes must not
+    blow the budget, and the line that says HOW MANY there were is the one that must survive."""
+    stream = "\n".join(
+        ["FAILED tests/some/very/long/path/test_module_{}.py::test_a_named_case".format(i)
+         for i in range(900)]
+        + ["900 failed, 12 passed in 240.0s"]
+    )
+
+    excerpt = sl._verdict_excerpt(stream)
+
+    assert len(excerpt) <= 4000, "the excerpt is no longer bounded"
+    assert "900 failed, 12 passed" in excerpt, (
+        "truncation dropped the count -- the operator cannot tell a truncated list from a "
+        "complete one"
+    )
+    assert sl._VERDICT_TRUNCATED in excerpt, "truncation happened silently (no silent caps)"
+    assert "test_module_0.py" in excerpt, "the earliest red nodes are the ones you act on first"
+
+
+def test_a_red_landing_refuses_with_the_failed_node_in_the_message(repo: Path):
+    """End-to-end, through the real hook and real streams: the property only holds because
+    `run_gate` concatenates stdout BEFORE stderr, so it is worth proving against a subprocess
+    rather than a hand-built string."""
+    noisy_hook = textwrap.dedent(
+        """\
+        #!/bin/sh
+        echo "FAILED tests/company/test_the_real_red.py::test_the_named_case"
+        echo "1 failed, 9 passed in 2.0s"
+        i=0
+        while [ $i -lt 400 ]; do
+            echo 'x.py:1: SyntaxWarning: "\\_" is an invalid escape sequence' >&2
+            i=$((i+1))
+        done
+        exit 1
+        """
+    )
+    (repo / "tools" / "git-hooks" / "pre-commit").write_text(noisy_hook)
+    _run(repo, "git", "add", "-A")
+    _run(repo, "git", "commit", "-q", "-m", "noisy gate")
+    (repo / "code.py").write_text("VALUE = 99\n")
+    before = _head(repo)
+
+    with pytest.raises(sl.LandingRefused) as excinfo:
+        sl.land(repo, ["code.py"], "msg")
+
+    message = str(excinfo.value)
+    assert "test_the_named_case" in message, (
+        "the refusal still cannot name the node it fired on"
+    )
+    assert "1 failed, 9 passed" in message
+    assert "SyntaxWarning" not in message, "the noise came back into the refusal"
+    assert _head(repo) == before, "a red gate must commit nothing"
