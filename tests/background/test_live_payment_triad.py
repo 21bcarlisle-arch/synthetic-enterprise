@@ -978,3 +978,66 @@ def test_R15_MUTANT_deleting_the_lift_makes_measure_and_write_refuse(
         triad.measure_and_write(
             run_git_commit="0" * 40,
             ledger_path=tmp_path / "coupled_gap_ledger.json")
+
+
+# ---------------------------------------------------------------------------
+# Q5's REMAINING blind spot, PINNED rather than described (atom EP6, pass 41).
+# ---------------------------------------------------------------------------
+
+
+def test_INITIAL_silence_is_produced_by_the_stand_in_and_INVISIBLE_to_the_company():
+    """The stated limit of pass 41's Q5 repair, asserted so it cannot be quietly
+    forgotten or quietly fixed without this test moving.
+
+    The silence ladder can only age a crossing the company was TOLD about --
+    something must have arrived to put a row in the register. A crossing whose
+    FIRST message never arrives leaves no trace at all: the company never
+    recorded that it asked, so there is nothing to hold a clock against.
+
+    That is not a defect in the ladder; it is the missing REQUEST leg (the
+    blind review's Q2, `seam_conversation_conformance`'s `unsolicited` bucket).
+    Recorded here because pass 41 made the stand-in able to produce exactly this
+    silence, so the gap is now REACHABLE rather than hypothetical -- and a
+    reader who sees `TransportFault.SILENCE` exists could otherwise reasonably
+    assume the company can detect it.
+    """
+    from company.billing.payment_observation_consumer import PaymentObservationConsumer
+    from simulation.payment_behaviour_source import DIRECT_DEBIT
+    from simulation.payment_seam_adapter import (
+        SeamAdapterInput,
+        TransportFault,
+        emit_wall_responses,
+    )
+
+    event = PaymentEvent(
+        customer_id="c-silent",
+        period_index=0,
+        due_date="2026-08-17",
+        amount_gbp=42.0,
+        payment_method=DIRECT_DEBIT,
+        result="success",
+        days_late=0,
+        payment_date="2026-08-17",
+        dd_failure_reason=None,
+    )
+
+    # The null control: without the fault this crossing DOES reach the company.
+    delivered = emit_wall_responses(event)
+    assert delivered, "the null control must produce a message to lose"
+
+    consumer = PaymentObservationConsumer()
+    for response in emit_wall_responses(
+        event, SeamAdapterInput(transport_fault=TransportFault.SILENCE)
+    ):  # pragma: no cover -- deliberately empty; the loop body must never run
+        consumer.observe(response)
+
+    from datetime import datetime
+
+    long_after = datetime(2026, 12, 1, 9, 0)
+    assert consumer.unresolved_crossings() == [], (
+        "nothing arrived, so nothing can be in the register"
+    )
+    assert consumer.silence_ladder(as_of=long_after) == [], (
+        "THE GAP: months of silence on a crossing the company raised, and the "
+        "ladder has nothing to age because no request register exists (Q2)"
+    )

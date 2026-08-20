@@ -28,6 +28,7 @@
       "company.comms.conversation_generator -> interface.contracts.conversation_seam",
       "company.comms.conversation_generator -> interface.contracts.wall_envelope",
       "company.comms.susceptibility_estimator -> interface.contracts.conversation_seam",
+      "company.interfaces.crossing_silence -> interface.contracts.wall_envelope",
       "company.interfaces.sim_interface -> interface.contracts.flex_observable_seam",
       "company.interfaces.wall_protocol -> interface.contracts.wall_envelope",
       "company.market.flex_participation -> interface.contracts.flex_observable_seam",

@@ -129,7 +129,7 @@ from interface.contracts.payment_observable_seam import (
     PaymentRail,
     RemittanceAdvice,
 )
-from interface.contracts.wall_envelope import WallResponse, WallStatus
+from interface.contracts.wall_envelope import ErrorDetail, WallResponse, WallStatus
 from simulation.bacs_rails import ARUDD_NOTIFICATION_LAG_DAYS
 from simulation.payment_behaviour_source import (
     CANCELLED_OTHER,
@@ -244,6 +244,130 @@ def _default_mandate_ref(event: PaymentEvent, account_id: str) -> str:
     return f"MANDATE-{account_id}"
 
 
+class TransportFault(Enum):
+    """WHAT THE WIRE DID TO THIS CROSSING, as distinct from what the payment did.
+
+    THE QUESTION THIS ANSWERS. The blind review's Q5 asks whether the stand-in
+    "can produce a response that *never arrives*". Until this enum it could not
+    -- not as a modelled outcome. The one silence it had
+    (`FAILED` + non-DD rail -> `[]`) is a statement about the BANKING WORLD:
+    real supplier systems receive no report for a missed push payment, so the
+    absence is a faithful observable and always occurs. That is the no-remittance
+    blind spot, and it is not a transport failure at all. Nothing here could
+    model the wire itself failing on a crossing that should have been answered.
+
+    WHY IT SITS AFTER THE TRUTH -> OBSERVABLE MAPPING. A transport failure is
+    INDEPENDENT of what the message would have said: a network that drops a
+    packet does not first read it. So these are applied to whatever the mapping
+    produced, never woven into it, and the wall property is untouched -- a
+    dropped `RemittanceAdvice` and a dropped `BacsArruddOutcome` are the same
+    silence, which is exactly the information a real company loses.
+
+    WHY IT IS CALLER-DRIVEN AND NOT DRAWN, which is a deliberate call and the
+    conservative one. Giving this a probability would make it a property of the
+    BASELINE WORLD, and R13 binds: the baseline changes only for
+    fidelity-to-reality reasons, decided blind to company P&L, and a transport
+    failure rate is a number this pass has no external anchor for. Defaulting to
+    `NONE` means no committed run's results move by a penny. What a real rate
+    should be is a curriculum question and therefore the director's, not a
+    constant this module is entitled to invent.
+
+    THE THREE FAULTS ARE THREE DIFFERENT FACTS, and the point of the enum is
+    that a company must tell them apart:
+
+      * `SILENCE` -- nothing arrives, ever. No envelope, no bytes, no handler
+        call. The company can only notice this by holding a clock against a
+        crossing it already knows is open (`company.interfaces.crossing_silence`),
+        because absence is detectable only against an expectation.
+      * `TIMEOUT` -- a `WallResponse(status=TIMEOUT)` DOES arrive. This is the
+        transport's own report that it gave up waiting, which is how a real
+        client library surfaces one; the counterparty itself never sends this.
+        Distinct from `SILENCE` in the only way that matters: the company is
+        TOLD, so it need not infer.
+      * `ERROR` -- the crossing itself failed, carrying a structured
+        `ErrorDetail`. Says nothing about whether the payment happened.
+
+    `TIMEOUT` and `ERROR` were both UNINHABITED in the status vocabulary at pass
+    40 (`tools.wall_channel_census.status_liveness_conformance`) -- no writer
+    anywhere in the build. This is their writer. Both are named here rather than
+    only the one the blocker mentioned, because that census's own commentary
+    records the class: a list assembled by noticing gets the member someone was
+    looking at.
+    """
+
+    NONE = "NONE"
+    SILENCE = "SILENCE"
+    TIMEOUT = "TIMEOUT"
+    ERROR = "ERROR"
+
+
+#: The `ErrorDetail.code` a transport-level failure carries. One code, because
+#: this stand-in models the wire failing and not a counterparty's error taxonomy
+#: -- inventing a rich set of codes here would be fabricating an observable
+#: vocabulary no real feed has agreed to.
+TRANSPORT_ERROR_CODE = "TRANSPORT_FAILURE"
+
+
+def _apply_transport_fault(
+    responses: List[WallResponse],
+    fault: "TransportFault",
+    *,
+    correlation_id: str,
+    observed_at: datetime,
+) -> List[WallResponse]:
+    """Apply `fault` to whatever the truth -> observable mapping produced.
+
+    `NONE` returns `responses` UNCHANGED and is the only path any existing
+    caller takes. `SILENCE` returns `[]` -- the response never arrives, which is
+    the whole of Q5's first clause. The other two REPLACE the responses with a
+    single payload-free envelope: a transport that failed did not deliver the
+    fact, so carrying the payload through would be the stand-in leaking a truth
+    the company never received, and `WallResponse.__post_init__` refuses it
+    anyway.
+
+    `observed_at` is the transport's own clock -- when the failure was noticed,
+    not when the payment was due. `valid_time` is `None` for both: a failed
+    exchange is about no real-world period at all.
+    """
+    if fault == TransportFault.NONE:
+        return responses
+    if fault == TransportFault.SILENCE:
+        return []
+    if fault == TransportFault.TIMEOUT:
+        return [
+            WallResponse(
+                correlation_id=correlation_id,
+                status=WallStatus.TIMEOUT,
+                schema_version=SCHEMA_VERSION,
+                observed_at=observed_at,
+                valid_time=None,
+                payload=None,
+            )
+        ]
+    if fault == TransportFault.ERROR:
+        return [
+            WallResponse(
+                correlation_id=correlation_id,
+                status=WallStatus.ERROR,
+                schema_version=SCHEMA_VERSION,
+                observed_at=observed_at,
+                valid_time=None,
+                payload=None,
+                error=ErrorDetail(
+                    code=TRANSPORT_ERROR_CODE,
+                    message=(
+                        f"the crossing {correlation_id} failed in transport and "
+                        "carries no observation"
+                    ),
+                ),
+            )
+        ]
+    raise ValueError(
+        f"payment_seam_adapter: unrecognised TransportFault {fault!r} -- a fault this "
+        "adapter cannot apply must refuse, never fall through as a clean delivery"
+    )
+
+
 @dataclass(frozen=True)
 class SeamAdapterInput:
     """Optional caller-supplied identifiers a real Bacs/bank feed would
@@ -256,17 +380,24 @@ class SeamAdapterInput:
     account_id: Optional[str] = None
     mandate_ref: Optional[str] = None
     correlation_id: Optional[str] = None
+    #: What the TRANSPORT does to this crossing (atom EP6, Q5). Defaults to
+    #: `NONE`, so every existing caller and every committed run is bit-identical
+    #: -- see `TransportFault` for why this is caller-driven rather than drawn.
+    transport_fault: TransportFault = TransportFault.NONE
 
 
-def emit_wall_responses(
+def _map_event_to_responses(
     event: PaymentEvent,
-    seam_input: Optional[SeamAdapterInput] = None,
+    seam_input: SeamAdapterInput,
 ) -> List[WallResponse]:
-    """THE adapter function: map one generator `PaymentEvent` (truth) to the
-    list of `WallResponse` objects a real bank/Bacs feed would produce
-    (observable) -- zero, one, or (in principle, not currently) more than
-    one response. Never mutates or reads anything beyond the `PaymentEvent`
-    and the optional caller-supplied identifiers.
+    """THE TRUTH -> OBSERVABLE MAPPING, and the whole of the wall property.
+
+    Split out of `emit_wall_responses` at pass 41 so that the mapping and the
+    TRANSPORT are separately testable. The separation is the design point rather
+    than tidiness: the wall's guarantee ("could a real bank/Bacs feed have
+    reported this?") is a property of THIS function alone, and a transport fault
+    applied afterwards cannot weaken it -- dropping or replacing a message can
+    only ever remove information the company would have had.
 
     Returns:
       * SUCCESS  -> [WallResponse[RemittanceAdvice]]
@@ -274,7 +405,6 @@ def emit_wall_responses(
       * FAILED + any other rail -> []  (the no-remittance blind spot, C-S3)
       * DISPUTE -> [WallResponse(status=NOT_KNOWABLE_YET, payload=None)]
     """
-    seam_input = seam_input or SeamAdapterInput()
     account_id = seam_input.account_id or _default_account_id(event)
     mandate_ref = seam_input.mandate_ref or _default_mandate_ref(event, account_id)
     correlation_id = seam_input.correlation_id or _default_correlation_id(event)
@@ -341,6 +471,43 @@ def emit_wall_responses(
             payload=payload,
         )
     ]
+
+
+def emit_wall_responses(
+    event: PaymentEvent,
+    seam_input: Optional[SeamAdapterInput] = None,
+) -> List[WallResponse]:
+    """THE adapter function: map one generator `PaymentEvent` (truth) to the
+    list of `WallResponse` objects a real bank/Bacs feed would produce
+    (observable), then apply whatever the TRANSPORT did to them.
+
+    Two stages, deliberately (pass 41):
+      1. `_map_event_to_responses` -- the wall property, unchanged.
+      2. `_apply_transport_fault` -- what the wire did, independent of what the
+         message said. `TransportFault.NONE` (the default) makes this stage the
+         identity, so every existing caller and every committed run is
+         bit-identical to pass 40.
+
+    The transport's clock is the LATEST `observed_at` among the responses it is
+    replacing, falling back to the due date when the mapping produced none. A
+    failure is noticed no earlier than the message it failed to deliver would
+    have arrived, and inventing a fixed timestamp here would let a fault land
+    before the crossing it belongs to.
+    """
+    seam_input = seam_input or SeamAdapterInput()
+    mapped = _map_event_to_responses(event, seam_input)
+    fault = seam_input.transport_fault
+    if fault == TransportFault.NONE:
+        return mapped
+    correlation_id = seam_input.correlation_id or _default_correlation_id(event)
+    observed_at = (
+        max(r.observed_at for r in mapped)
+        if mapped
+        else _observed_at(date.fromisoformat(event.due_date))
+    )
+    return _apply_transport_fault(
+        mapped, fault, correlation_id=correlation_id, observed_at=observed_at
+    )
 
 
 def emit_wall_responses_batch(

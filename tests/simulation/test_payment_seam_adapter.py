@@ -34,7 +34,11 @@ from simulation.payment_behaviour_source import (
     generate_payment_event,
 )
 from simulation.payment_seam_adapter import (
+    TRANSPORT_ERROR_CODE,
     SeamAdapterInput,
+    TransportFault,
+    _apply_transport_fault,
+    _map_event_to_responses,
     bacs_reason_category_for,
     emit_wall_responses,
     emit_wall_responses_batch,
@@ -612,3 +616,138 @@ def test_the_SIX_REAL_payloads_still_encode_so_the_belt_is_not_a_standing_red(mo
     }
     for payload in samples.values():
         assert psa.encode_observable_payload(payload)["payload_type"] == type(payload).__name__
+
+
+# ---------------------------------------------------------------------------
+# TRANSPORT FAULTS -- the stand-in's half of the blind review's Q5
+# (atom EP6_wall_protocol_typing, pass 41): "can the stand-in produce a
+# response that never arrives?"
+# ---------------------------------------------------------------------------
+
+
+class TestTransportFault:
+    """What the WIRE did, as distinct from what the payment did.
+
+    The load-bearing test in this class is
+    `test_MUTATION_the_default_is_the_identity_on_every_outcome`: the whole
+    justification for adding a fault axis without a director-authored failure
+    rate is that no committed run moves (R13, the baseline/curriculum split).
+    A default that silently dropped or replaced anything would break that
+    promise everywhere at once, so it is asserted over every outcome rather
+    than on one convenient event.
+    """
+
+    ALL_OUTCOMES = [
+        _event(result="success", payment_date="2026-01-15", payment_method=DIRECT_DEBIT),
+        _event(result="failed", payment_method=DIRECT_DEBIT,
+               dd_failure_reason=INSUFFICIENT_FUNDS),
+        _event(result="failed", payment_method=STANDING_ORDER),
+        _event(result="dispute", payment_method=DIRECT_DEBIT),
+    ]
+
+    def test_MUTATION_the_default_is_the_identity_on_every_outcome(self):
+        """NONE must leave the pass-40 mapping bit-identical -- the promise that
+        lets this land without touching the baseline world."""
+        for ev in self.ALL_OUTCOMES:
+            explicit_none = emit_wall_responses(
+                ev, SeamAdapterInput(transport_fault=TransportFault.NONE)
+            )
+            defaulted = emit_wall_responses(ev, SeamAdapterInput())
+            bare = emit_wall_responses(ev)
+            assert explicit_none == defaulted == bare, ev.result
+
+    def test_SILENCE_means_nothing_arrives_at_all(self):
+        """Q5's first clause, literally: no envelope, no bytes, no handler call.
+        The null control is the same event without the fault, which DOES
+        produce a response -- so this is measuring the fault and not an event
+        that was silent anyway."""
+        ev = _event(result="success", payment_date="2026-01-15")
+        assert emit_wall_responses(ev) != []
+        assert emit_wall_responses(
+            ev, SeamAdapterInput(transport_fault=TransportFault.SILENCE)
+        ) == []
+
+    def test_SILENCE_is_indistinguishable_across_outcomes(self):
+        """A network that drops a packet does not first read it. A dropped
+        remittance and a dropped ARUDD are the same silence -- which is exactly
+        the information a real company loses."""
+        dropped = [
+            emit_wall_responses(ev, SeamAdapterInput(transport_fault=TransportFault.SILENCE))
+            for ev in self.ALL_OUTCOMES
+        ]
+        assert dropped == [[], [], [], []]
+
+    def test_TIMEOUT_arrives_as_a_payload_free_envelope(self):
+        """Distinct from SILENCE in the only way that matters: the company is
+        TOLD, so it need not infer. This is the transport's own report that it
+        gave up -- the counterparty never sends one."""
+        ev = _event(result="success", payment_date="2026-01-15")
+        (resp,) = emit_wall_responses(
+            ev, SeamAdapterInput(correlation_id="X-1",
+                                 transport_fault=TransportFault.TIMEOUT)
+        )
+        assert resp.status == WallStatus.TIMEOUT
+        assert resp.correlation_id == "X-1"
+        assert resp.payload is None
+        assert resp.error is None
+        assert resp.valid_time is None
+
+    def test_ERROR_carries_a_structured_ErrorDetail(self):
+        ev = _event(result="success", payment_date="2026-01-15")
+        (resp,) = emit_wall_responses(
+            ev, SeamAdapterInput(correlation_id="X-2",
+                                 transport_fault=TransportFault.ERROR)
+        )
+        assert resp.status == WallStatus.ERROR
+        assert resp.payload is None
+        assert resp.error is not None
+        assert resp.error.code == TRANSPORT_ERROR_CODE
+
+    def test_a_failed_transport_never_carries_the_payload_through(self):
+        """A transport that failed did not deliver the fact. Carrying the
+        payload would be the stand-in leaking a truth the company never
+        received -- and the envelope refuses it anyway."""
+        ev = _event(result="success", payment_date="2026-01-15")
+        for fault in (TransportFault.TIMEOUT, TransportFault.ERROR):
+            for resp in emit_wall_responses(ev, SeamAdapterInput(transport_fault=fault)):
+                assert resp.payload is None, fault
+
+    def test_the_fault_clock_is_not_earlier_than_the_message_it_replaced(self):
+        """A failure is noticed no earlier than the message it failed to deliver
+        would have arrived; a fixed timestamp here would let a fault land before
+        the crossing it belongs to."""
+        ev = _event(result="failed", payment_method=DIRECT_DEBIT,
+                    dd_failure_reason=INSUFFICIENT_FUNDS)
+        delivered = emit_wall_responses(ev)
+        latest = max(r.observed_at for r in delivered)
+        (timed_out,) = emit_wall_responses(
+            ev, SeamAdapterInput(transport_fault=TransportFault.TIMEOUT)
+        )
+        assert timed_out.observed_at >= latest
+
+    def test_a_fault_on_an_already_silent_outcome_still_dates_from_the_due_date(self):
+        """The no-remittance blind spot produces no message, so there is no
+        message clock to borrow -- the fallback must still be a real date rather
+        than a crash or an epoch zero."""
+        ev = _event(result="failed", payment_method=STANDING_ORDER, due_date="2026-01-15")
+        assert emit_wall_responses(ev) == []
+        (resp,) = emit_wall_responses(
+            ev, SeamAdapterInput(transport_fault=TransportFault.TIMEOUT)
+        )
+        assert resp.observed_at.date() == date(2026, 1, 15)
+
+    def test_an_unrecognised_fault_REFUSES_rather_than_delivering_cleanly(self):
+        """Fail-closed: a fault this adapter cannot apply must not fall through
+        as a successful delivery (R15 FAIL-OPEN)."""
+        with pytest.raises(ValueError, match="unrecognised TransportFault"):
+            _apply_transport_fault(
+                [], "NOT_A_FAULT", correlation_id="X", observed_at=datetime(2026, 1, 1)
+            )
+
+    def test_the_wall_property_is_unchanged_by_the_split(self):
+        """The mapping is the whole of the wall guarantee, and a fault applied
+        afterwards can only ever REMOVE information -- never add a field a real
+        feed would not have reported."""
+        for ev in self.ALL_OUTCOMES:
+            mapped = _map_event_to_responses(ev, SeamAdapterInput())
+            assert mapped == emit_wall_responses(ev), ev.result

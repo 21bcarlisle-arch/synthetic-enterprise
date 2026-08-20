@@ -137,6 +137,10 @@ from company.billing.arrears_engine import (
     age_open_items,
     ageing_buckets,
 )
+from company.interfaces.crossing_silence import (
+    SilenceConclusion,
+    conclude_silence,
+)
 from company.interfaces.wall_protocol import (
     DECLARED_POSTURE,
     WallProtocolError,
@@ -347,13 +351,22 @@ class UnresolvedCrossing:
         arrive, the fact may be perfectly well resolved; `ERROR`: the exchange
         itself failed) and license no such expectation.
 
-        NO BRANCH FOR THOSE TWO, on purpose and by measurement: at HEAD nothing
-        in this build SAYS `TIMEOUT` or `ERROR` (`tools.wall_channel_census`
-        `status_liveness_conformance` -- both UNINHABITED), so a reader keyed
-        on either would be a reader for an event this build cannot produce --
-        the dead arm that census question exists to stop being built. They are
-        recorded here undifferentiated, which is honestly what this company can
-        do with them today."""
+        NO BRANCH FOR THOSE TWO *HERE*, and the reason CHANGED at pass 41.
+        Until then the honest answer was that nothing in this build could SAY
+        `TIMEOUT` or `ERROR` (`tools.wall_channel_census`
+        `status_liveness_conformance` reported both UNINHABITED), so a reader
+        keyed on either would have been a dead arm. That is no longer true:
+        `simulation.payment_seam_adapter.TransportFault` writes both and
+        `status_liveness_conformance` now reads 4 of 4.
+
+        The branch still does not belong on THIS property, which is about
+        whether the counterparty owes an answer -- and neither of those two
+        says it does. What they need is a reader that acts on the difference,
+        and it exists: `company.interfaces.crossing_silence.SilenceConclusion`
+        (`next_move`), reached from this class via
+        `PaymentObservationConsumer.silence_ladder`. This property stays
+        deliberately single-branched so the two questions -- "is an answer
+        owed?" and "what do I do about it?" -- do not collapse into one."""
         return self.status == WallStatus.NOT_KNOWABLE_YET
 
 
@@ -1068,6 +1081,64 @@ class PaymentObservationConsumer:
             crossings = [c for c in crossings if c.correlation_id in billed_refs]
         crossings.sort(key=lambda c: (c.observed_at, c.correlation_id))
         return crossings
+
+    def silence_ladder(
+        self,
+        as_of: dt.datetime,
+        account_id: Optional[str] = None,
+    ) -> List[SilenceConclusion]:
+        """Every open crossing, AGED -- how long it has been since the company
+        last heard anything, and what it therefore owes (atom EP6, pass 41, the
+        blind review's Q5).
+
+        THE GAP THIS CLOSES. `unresolved_crossings` answers "what am I waiting
+        for"; nothing answered "how long have I been waiting, and is that too
+        long". A crossing the counterparty said 'not yet' to and then never
+        mentioned again read identically at one minute and at one year, because
+        the register has no clock in it. This method is that clock, and
+        `company.interfaces.crossing_silence` is where the horizons and the
+        obligation at each one are defined -- deliberately not here, because the
+        ladder is a property of the WALL and not of payments.
+
+        NOTHING MOVES. This is a pure read: no crossing is evicted, no status is
+        rewritten, and calling it twice changes nothing. A crossing does not
+        leave the register by expiry (`UnresolvedCrossing`'s own rule, which
+        pass 41 preserves deliberately) -- ageing out is not being answered, and
+        a company that dropped the crossing at five working days would be
+        assuming a resolution the seam never sent.
+
+        THE CONCLUSION IS THE COMPANY'S, NEVER THE COUNTERPARTY'S. At the
+        abandonment horizon a `SilenceConclusion` carries
+        `concluded_status=WallStatus.TIMEOUT` -- manufactured by this company's
+        own clock, because no message will ever bring it. The counterparty's own
+        last word stays in `heard_status`, and the register keeps it unaltered.
+        A real counterparty that has gone quiet cannot send you a TIMEOUT; if
+        the company wrote one into the register it would be inventing a message
+        it never received.
+
+        SENSING ONLY (ruling 2026-07-25 s2). The obligations returned are
+        strings naming what SHOULD happen. Nothing here dunns, flags, prices,
+        provisions, or re-requests -- those remain the director's reserved
+        dunning/debt/provisioning decisions.
+
+        `as_of` is a datetime, not a date, because the first horizon is one
+        MINUTE and a date cannot express it. It applies the Blindfold exactly as
+        `unresolved_crossings` does: a crossing heard after the decision clock
+        is not visible here either.
+        """
+        crossings = self.unresolved_crossings(
+            account_id=account_id, as_of=as_of.date()
+        )
+        return [
+            conclude_silence(
+                correlation_id=c.correlation_id,
+                heard_status=c.status,
+                last_heard_at=c.observed_at,
+                as_of=as_of,
+            )
+            for c in crossings
+            if c.observed_at <= as_of
+        ]
 
     def snapshot(
         self,
