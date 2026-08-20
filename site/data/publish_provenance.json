@@ -1,34 +1,28 @@
 {
   "annotation": {
-    "checked_at": "2026-08-19T17:39:00Z",
+    "checked_at": "2026-08-19T23:34:40Z",
     "nonblocking_reds": [
-      "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_committed_store_credits_a_falsifier_the_repository_does_not_have",
-      "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_silenced_absence_is_undeclared",
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_stale_baseline_entries",
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
-      "FAILED tests/background/test_blocked_atom_visibility.py::test_the_committed_document_agrees_with_the_live_derivation",
-      "FAILED tests/background/test_derived_artefact_register.py::TestStaleness::test_every_registered_artefact_is_currently_fresh",
-      "FAILED tests/background/test_finding_severity.py::test_the_staging_root_has_no_false_discharges"
+      "ERROR tests/company/interfaces/test_the_run_holds_no_policy.py",
+      "ERROR tests/company/policy/test_policy_field_consumption.py"
     ],
-    "nonblocking_reds_total": 36,
-    "open_findings": 93
+    "nonblocking_reds_total": 2,
+    "open_findings": 94
   },
   "last_verified": {
-    "generated_at": "2026-08-19T18:17:28Z",
-    "git_commit": "d7d36b46a",
-    "run_id": "run_output_d7d36b46a_20260819T174001Z.json",
-    "verified_at": "2026-08-19T18:17:28Z"
+    "generated_at": "2026-08-20T01:04:24Z",
+    "git_commit": "a77784f4a",
+    "run_id": "run_output_a77784f4a_20260820T003120Z.json",
+    "verified_at": "2026-08-20T01:04:24Z"
   },
   "paused_reason": "scoped publish-path suite red at git=1aa4a3d7a; blocking tests: see sim-runner-log",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-19T18:17:28Z",
-    "git_commit": "d7d36b46a",
-    "run_id": "run_output_d7d36b46a_20260819T174001Z.json",
-    "verified_at": "2026-08-19T18:17:28Z"
+    "generated_at": "2026-08-20T01:04:24Z",
+    "git_commit": "a77784f4a",
+    "run_id": "run_output_a77784f4a_20260820T003120Z.json",
+    "verified_at": "2026-08-20T01:04:24Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-19T18:17:28Z"
+  "written_at": "2026-08-20T01:04:24Z"
 }
