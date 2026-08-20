@@ -82,21 +82,24 @@ from __future__ import annotations
 
 import datetime as dt
 from dataclasses import dataclass
+from dataclasses import fields as dataclass_fields
 from enum import Enum
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
 from interface.contracts.flex_observable_seam import (
+    FORBIDDEN_TRUTH_FIELDS,
+    OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
+    SCHEMA_VERSION,
     FlexDirection,
     FlexDispatchInstruction,
     FlexDispatchWallResponse,
     FlexSettlementLine,
     FlexSettlementWallResponse,
     FlexVenue,
-    SCHEMA_VERSION,
 )
-from interface.contracts.wall_envelope import WallStatus
+from interface.contracts.wall_envelope import WallResponse, WallStatus
 
 # The true-scarcity threshold: residual demand at/above this percentile is a
 # genuine system-tight period a real NESO would dispatch flex against. A
@@ -390,6 +393,181 @@ def emit_settlement_lines(
             payload=line,
         ))
     return responses
+
+
+# ---------------------------------------------------------------------------
+# THE WIRE -- this counterparty's OWN codec for the flex seam's RESPONSE leg
+# (EP6 pass 22).
+#
+# WHY IT IS HERE AND NOT IMPORTED. The company owns `company.interfaces.
+# wall_protocol` and calls it; `sim/**` may not import `company.*`, so a real
+# counterparty's only lawful move is to read the PUBLISHED contract and build
+# the bytes itself. That asymmetry is the wall's, not a shortcut: two codecs
+# written independently against one schema is what makes the round trip
+# evidence rather than a tautology. If the two ever disagree the messages stop
+# crossing, which is the correct outcome and the whole reason they are
+# separate code (`simulation/conversation_response.py` does the same, for the
+# same reason).
+#
+# ABSENCE IS NEVER AGREEMENT: every key of the declared response form is
+# written including its nulls, `schema_version` comes from the CONTRACT's own
+# constant and never from a writer's default, and a payload type outside the
+# seam's `OBSERVABLE_RESPONSE_PAYLOAD_TYPES` is refused rather than serialised
+# generically -- a codec that can serialise anything is a codec that can leak
+# anything.
+#
+# ONLY THE RESPONSE LEG. `FlexEnrolmentWallRequest` is DORMANT: nothing in the
+# census trees constructs a `FlexEnrolment`, so the contract describes a
+# message this build does not yet exchange. Wiring it would move no crossing
+# onto a wire and `tools.wall_channel_census` is built to say so.
+# ---------------------------------------------------------------------------
+
+#: The observable payload types this seam is permitted to put on a wire, keyed
+#: by tag. Read from the CONTRACT's own tuple, so a future payload type is
+#: encodable the day it is declared observable and not a day before.
+_ENCODABLE_RESPONSE_PAYLOAD_TYPES = {t.__name__: t for t in OBSERVABLE_RESPONSE_PAYLOAD_TYPES}
+
+
+class SeamCodecError(ValueError):
+    """This seam refused to put a value on the wire. Deliberately NOT
+    `WallProtocolError`: that type is the COMPANY's, and a counterparty does
+    not raise the receiver's exceptions -- nor may it import them."""
+
+
+def _encode_scalar(value: Any, field: str) -> Any:
+    """Encode one payload field. Refuses an unhandled type rather than
+    coercing -- `str(value)` here is how a platform silently ships an object's
+    repr and the receiver silently accepts a string."""
+    if value is None:
+        return None
+    if isinstance(value, Enum):
+        return value.value
+    # bool is an int subclass; a True metered delivery is a malformed field,
+    # not a plausible, actionable 1.
+    if isinstance(value, bool):
+        raise SeamCodecError(f"{field}: bool is not a flex payload field type")
+    if isinstance(value, dt.datetime):
+        return value.isoformat()
+    if isinstance(value, (int, float, str)):
+        return value
+    raise SeamCodecError(
+        f"{field}: {type(value).__name__} has no defined wire form on this seam"
+    )
+
+
+def encode_observable_payload(payload: Any) -> dict:
+    """Put one observable flex payload on the wire, TAGGED with its type.
+
+    TAGGED because this seam genuinely carries two response payload types --
+    a `FlexDispatchInstruction` and a `FlexSettlementLine` arrive as SEPARATE
+    responses at different `observed_at` times (C-S3) and share four field
+    names. `WallResponse.payload` is opaque to the envelope codec, so a
+    receiver that guessed the type from the field set would mis-route them.
+    The tag set is read from the contract's own tuple, so it grows with it.
+
+    THE WALL, AT PAYLOAD DEPTH. A payload carrying one of the seam's own
+    `FORBIDDEN_TRUTH_FIELDS` is refused HERE, at the point of emission, not
+    left to the receiver: those names (`true_baseline_mwh`, `system_need_mw`,
+    ...) are exactly the SIM-internal quantities this module holds on
+    `FlexDispatchTruth` and would leak by the most natural edit anyone could
+    make -- adding "one more useful field" to a settlement line. R10: the
+    CLASS is refused by name, so a future L2 field addition fails here rather
+    than passing because nobody thought of that instance.
+    """
+    payload_type = type(payload)
+    if payload_type.__name__ not in _ENCODABLE_RESPONSE_PAYLOAD_TYPES or (
+        _ENCODABLE_RESPONSE_PAYLOAD_TYPES[payload_type.__name__] is not payload_type
+    ):
+        raise SeamCodecError(
+            f"{payload_type.__name__} is not one of this seam's "
+            f"OBSERVABLE_RESPONSE_PAYLOAD_TYPES "
+            f"{sorted(_ENCODABLE_RESPONSE_PAYLOAD_TYPES)}"
+        )
+    names = [f.name for f in dataclass_fields(payload)]
+    leaking = sorted(set(names) & set(FORBIDDEN_TRUTH_FIELDS))
+    if leaking:
+        raise SeamCodecError(
+            f"{payload_type.__name__} declares forbidden truth field(s) {leaking} -- the "
+            "SIM's own hidden quantities may never cross this seam, whatever the envelope says"
+        )
+    return {
+        "payload_type": payload_type.__name__,
+        "fields": {
+            name: _encode_scalar(
+                getattr(payload, name), f"{payload_type.__name__}.{name}"
+            )
+            for name in names
+        },
+    }
+
+
+def encode_wall_response(response: WallResponse) -> dict:
+    """Serialise one flex `WallResponse` into the wire form this seam publishes.
+
+    Written against the SCHEMA, not against the company's decoder: the key set
+    below is the response schema as the contract documents it, and if the
+    company widens its own expectation without the schema changing, this
+    encoder keeps emitting the old shape and the far side refuses it.
+    """
+    if not isinstance(response, WallResponse):
+        raise SeamCodecError(f"expected a WallResponse, got {type(response).__name__}")
+    return {
+        "correlation_id": response.correlation_id,
+        "status": response.status.value,
+        "schema_version": SCHEMA_VERSION,
+        "observed_at": response.observed_at.isoformat(),
+        "valid_time": None if response.valid_time is None else response.valid_time.isoformat(),
+        "payload": (
+            None if response.payload is None else encode_observable_payload(response.payload)
+        ),
+        "error": (
+            None
+            if response.error is None
+            else {"code": response.error.code, "message": response.error.message}
+        ),
+    }
+
+
+def emit_settlement_lines_over_wire(
+    truth: FlexDispatchTruth,
+    *,
+    unit_id: str = "FLEX_UNIT_1",
+    venue: FlexVenue = FlexVenue.BALANCING_MECHANISM,
+    settlement_lag_days: int = _SETTLEMENT_LAG_DAYS,
+) -> List[dict]:
+    """`emit_settlement_lines`, handing over BYTES-shaped wire messages instead
+    of in-process objects -- what a real Elexon settlement feed delivers.
+
+    The object form remains: it is how the response is constructed in the first
+    place and what this module's own tests measure. What changed is that the
+    COMPANY no longer receives one.
+    """
+    return [
+        encode_wall_response(r)
+        for r in emit_settlement_lines(
+            truth,
+            unit_id=unit_id,
+            venue=venue,
+            settlement_lag_days=settlement_lag_days,
+        )
+    ]
+
+
+def emit_dispatch_instructions_over_wire(
+    truth: FlexDispatchTruth,
+    *,
+    unit_id: str = "FLEX_UNIT_1",
+    venue: FlexVenue = FlexVenue.BALANCING_MECHANISM,
+    direction: FlexDirection = FlexDirection.TURN_DOWN,
+) -> List[dict]:
+    """`emit_dispatch_instructions`, on the wire. The instruction feed and the
+    settlement feed are separate events in time (C-S3) and cross separately."""
+    return [
+        encode_wall_response(r)
+        for r in emit_dispatch_instructions(
+            truth, unit_id=unit_id, venue=venue, direction=direction
+        )
+    ]
 
 
 # ===========================================================================
@@ -892,3 +1070,35 @@ def emit_settlement_lines_stacked(
                 payload=line,
             ))
     return responses
+
+
+# -- the L3 feeds on the wire ------------------------------------------------
+# The census asks its question per SEAM and per LEG, so migrating the L1/L2
+# feeds alone would have flipped channel C's reading to `3 of 3` with the
+# stacked feeds still handed over as objects: the same defect, at the one
+# granularity below the instrument's. Both stacked feeds cross as bytes too.
+
+
+def emit_dispatch_instructions_stacked_over_wire(
+    truth: StackedFlexTruth, *, unit_id: str = "FLEX_UNIT_1"
+) -> List[dict]:
+    """`emit_dispatch_instructions_stacked`, on the wire."""
+    return [
+        encode_wall_response(r)
+        for r in emit_dispatch_instructions_stacked(truth, unit_id=unit_id)
+    ]
+
+
+def emit_settlement_lines_stacked_over_wire(
+    truth: StackedFlexTruth,
+    *,
+    unit_id: str = "FLEX_UNIT_1",
+    settlement_lag_days: int = _SETTLEMENT_LAG_DAYS,
+) -> List[dict]:
+    """`emit_settlement_lines_stacked`, on the wire."""
+    return [
+        encode_wall_response(r)
+        for r in emit_settlement_lines_stacked(
+            truth, unit_id=unit_id, settlement_lag_days=settlement_lag_days
+        )
+    ]

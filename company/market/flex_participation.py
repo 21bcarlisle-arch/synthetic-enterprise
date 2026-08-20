@@ -19,12 +19,15 @@ TRUE utilised revenue is driven by residual demand (which the company cannot
 see). The two dispatch sets differ -- the belief-vs-truth GAP is that
 forecast error, scored by `background/flex_dispatch_triad.py`.
 
-EPISTEMIC WALL. This module imports ONLY the typed observable seam
-(`interface.contracts.flex_observable_seam`) and numpy. It imports NOTHING
-from `sim`/`simulation` -- verified by `python3 -m tools.epistemic_verifier`
-and by `tests/company/test_flex_participation.py::test_no_sim_import`. The
-price series is handed in as market data (as a real supplier reads SSP); the
-company never reaches into the SIM to fetch it.
+EPISTEMIC WALL. This module imports the typed observable seam
+(`interface.contracts.flex_observable_seam`), the company's OWN envelope codec
+(`company.interfaces.wall_protocol`) and numpy. It imports NOTHING from
+`sim`/`simulation` -- verified by `python3 -m tools.epistemic_verifier` and by
+`tests/company/test_flex_participation.py::test_no_sim_import`. The price
+series is handed in as market data (as a real supplier reads SSP); the company
+never reaches into the SIM to fetch it, and since EP6 pass 22 it does not
+receive an in-process object from it either -- the settlement statement and the
+dispatch instruction arrive as BYTES it decodes and may refuse.
 
 L1 NAMED SIMPLIFICATIONS (R10): the proxy is a single whole-window price
 percentile (the simplest honest scarcity inference); a point-in-time /
@@ -57,11 +60,29 @@ from __future__ import annotations
 import datetime as dt
 import math
 from dataclasses import dataclass
-from typing import Dict, List, Mapping, Optional, Sequence
+from enum import Enum
+from typing import (
+    Any,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
 
 import numpy as np
 
-from interface.contracts.flex_observable_seam import FlexSettlementLine
+from company.interfaces.wall_protocol import WallProtocolError, decode_response
+from interface.contracts.flex_observable_seam import (
+    FORBIDDEN_TRUTH_FIELDS,
+    OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
+    FlexSettlementLine,
+)
 
 # The company's OWN scarcity-proxy threshold: it expects dispatch in periods
 # whose observed price is at/above this percentile. Its belief parameter (a
@@ -69,6 +90,206 @@ from interface.contracts.flex_observable_seam import FlexSettlementLine
 # so the ONLY thing separating truth from belief is residual-vs-price -- the
 # real form inadequacy, not a threshold mismatch artefact.
 DEFAULT_PRICE_SCARCITY_PERCENTILE: float = 95.0
+
+
+# ---------------------------------------------------------------------------
+# THE WIRE -- the company RECEIVING the flex seam's response leg (EP6 pass 22).
+#
+# WHAT CHANGED. The settlement statement and the dispatch instruction used to
+# reach this module as Python `WallResponse` objects handed across a call
+# frame, which means their `schema_version` was a field nobody encoded, nobody
+# decoded and nobody could refuse. A version that is never checked is not a
+# version. Now the world hands over BYTES and this module parses them, so a
+# mock counterparty and a real endpoint are indistinguishable from here --
+# which is the atom's whole claim (EP6).
+#
+# THE COMPANY OWNS ITS CODEC AND CALLS IT: envelope parsing is
+# `company.interfaces.wall_protocol.decode_response`, one implementation for
+# every seam. The COUNTERPARTY may not import it (`sim/**` cannot see
+# `company.*`), so it restates the contract's key set and builds the bytes
+# itself. Neither side is the other's source of truth -- both read
+# `interface.contracts.flex_observable_seam`, the way a real party reads a
+# published schema.
+#
+# ABSENCE IS NEVER AGREEMENT: a missing payload field is REFUSED, never
+# defaulted. Defaulting is how a company folds a settlement figure into its
+# belief that no counterparty ever sent it, and the belief-vs-truth gap this
+# module exists to be scored on would then be measuring the default.
+# ---------------------------------------------------------------------------
+
+_OBSERVABLE_PAYLOAD_TYPES = {t.__name__: t for t in OBSERVABLE_RESPONSE_PAYLOAD_TYPES}
+_OBSERVABLE_PAYLOAD_HINTS = {
+    t.__name__: get_type_hints(t) for t in OBSERVABLE_RESPONSE_PAYLOAD_TYPES
+}
+
+
+def _declared_base(declared: Any) -> Tuple[Any, bool]:
+    """Split ``Optional[X]`` into ``(X, True)``; anything else into ``(it, False)``."""
+    if get_origin(declared) is Union:
+        args = [a for a in get_args(declared) if a is not type(None)]
+        if len(args) == 1:
+            return args[0], True
+    return declared, False
+
+
+def _decode_payload_field(raw: Any, declared: Any, where: str) -> Any:
+    """Decode one payload field to the type THE CONTRACT declares for it.
+
+    Read from the contract's own `get_type_hints`, never from a list restated
+    here: a field whose declared type changes moves this decoder with it, where
+    a copy would agree with itself for ever.
+    """
+    base, optional = _declared_base(declared)
+    if raw is None:
+        if optional:
+            return None
+        raise WallProtocolError(
+            "MALFORMED_FIELD", f"{where} is null but the contract declares it required"
+        )
+    if isinstance(base, type) and issubclass(base, Enum):
+        try:
+            return base(raw)
+        except ValueError as exc:
+            raise WallProtocolError(
+                "MALFORMED_FIELD",
+                f"{where}: {raw!r} is not one of {[m.value for m in base]}",
+            ) from exc
+    if base is str:
+        if not isinstance(raw, str):
+            raise WallProtocolError("MALFORMED_FIELD", f"{where} must be a str, got {raw!r}")
+        return raw
+    if base is dt.datetime:
+        if not isinstance(raw, str):
+            raise WallProtocolError(
+                "MALFORMED_FIELD", f"{where} must be an ISO-8601 str, got {raw!r}"
+            )
+        try:
+            return dt.datetime.fromisoformat(raw)
+        except ValueError as exc:
+            raise WallProtocolError(
+                "MALFORMED_FIELD", f"{where}: {raw!r} is not an ISO-8601 datetime"
+            ) from exc
+    if base is float:
+        # bool is an int subclass; a True metered delivery would decode to a
+        # plausible, actionable 1.0 and be settled against.
+        if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+            raise WallProtocolError(
+                "MALFORMED_FIELD", f"{where} must be a number, got {raw!r}"
+            )
+        return float(raw)
+    raise WallProtocolError(
+        "CONTRACT_VIOLATION",
+        f"{where}: this seam has no decoder for declared type {declared!r} -- a field "
+        "type was added to the contract without deciding how it crosses",
+    )
+
+
+def decode_observable_payload(raw: Any) -> Any:
+    """Rebuild one observable flex payload off the wire, or refuse it.
+
+    THE WALL IS CHECKED HERE TOO, and not only by the counterparty. A world
+    that started shipping `true_baseline_mwh` alongside the metered delivery
+    would produce a perfectly well-formed ENVELOPE -- only a payload-depth
+    refusal catches it, and it must, because a company that folded that number
+    in would be READING the SIM's counterfactual rather than estimating it,
+    which is the one thing this triad's gap is supposed to measure. Refused BY
+    NAME from the contract's own `FORBIDDEN_TRUTH_FIELDS`, so the class fails
+    rather than the instance somebody remembered (R10).
+    """
+    if not isinstance(raw, Mapping):
+        raise WallProtocolError(
+            "NOT_A_MESSAGE", f"payload must be a mapping, got {type(raw).__name__}"
+        )
+    missing = sorted({"payload_type", "fields"} - set(raw))
+    if missing:
+        raise WallProtocolError(
+            "MISSING_FIELD",
+            f"payload omits {missing} -- an untagged payload cannot be routed to one of "
+            "this seam's observable types, and a dispatch instruction and a settlement "
+            "line share four field names",
+        )
+    unknown_keys = sorted(set(raw) - {"payload_type", "fields"})
+    if unknown_keys:
+        raise WallProtocolError(
+            "UNKNOWN_FIELD", f"payload carries undefined key(s) {unknown_keys}"
+        )
+    tag = raw["payload_type"]
+    if tag not in _OBSERVABLE_PAYLOAD_TYPES:
+        raise WallProtocolError(
+            "UNKNOWN_FIELD",
+            f"payload_type {tag!r} is not one of this seam's observable types "
+            f"{sorted(_OBSERVABLE_PAYLOAD_TYPES)}",
+        )
+    body = raw["fields"]
+    if not isinstance(body, Mapping):
+        raise WallProtocolError(
+            "NOT_A_MESSAGE", f"{tag}.fields must be a mapping, got {type(body).__name__}"
+        )
+    hints = _OBSERVABLE_PAYLOAD_HINTS[tag]
+    leaking = sorted(set(body) & set(FORBIDDEN_TRUTH_FIELDS))
+    if leaking:
+        raise WallProtocolError(
+            "CONTRACT_VIOLATION",
+            f"{tag} carries SIM-internal truth field(s) {leaking} -- this company infers "
+            "its baseline and its system-need from observables and may never be handed them",
+        )
+    absent = sorted(set(hints) - set(body))
+    if absent:
+        raise WallProtocolError(
+            "MISSING_FIELD",
+            f"{tag} omits required field(s) {absent} -- never defaulted; the company would "
+            "otherwise settle against a figure no counterparty sent",
+        )
+    extra = sorted(set(body) - set(hints))
+    if extra:
+        raise WallProtocolError(
+            "UNKNOWN_FIELD", f"{tag} carries field(s) {extra} the contract does not define"
+        )
+    return _OBSERVABLE_PAYLOAD_TYPES[tag](
+        **{
+            name: _decode_payload_field(body[name], declared, f"{tag}.{name}")
+            for name, declared in hints.items()
+        }
+    )
+
+
+def observe_response_wire(wire: Any, *, expect: Optional[type] = None) -> Any:
+    """Take ONE flex response off the wire and return its observable payload.
+
+    Refuses rather than returns half a message: an envelope whose status is not
+    OK carries no payload (the envelope's own invariant), and a company that
+    treated that as "no settlement this period" would silently under-count its
+    own revenue instead of noticing the feed had failed.
+
+    `expect` names which observable type this call site is reading -- the
+    settlement feed and the instruction feed are separate events in time
+    (C-S3), so a caller that asked for one and was handed the other has a
+    mis-routed feed, not a usable message.
+    """
+    response = decode_response(wire, decode_payload=decode_observable_payload)
+    if response.payload is None:
+        raise WallProtocolError(
+            "CONTRACT_VIOLATION",
+            f"flex response {response.correlation_id!r} carries no observable payload "
+            f"(status {response.status.value}) -- an empty message is not an empty period",
+        )
+    if expect is not None and not isinstance(response.payload, expect):
+        raise WallProtocolError(
+            "CONTRACT_VIOLATION",
+            f"flex response {response.correlation_id!r} carries a "
+            f"{type(response.payload).__name__} where this feed reads {expect.__name__}",
+        )
+    return response.payload
+
+
+def observe_settlement_wire(messages: Sequence[Any]) -> List[FlexSettlementLine]:
+    """The company's settlement statement, read off the wire.
+
+    This is the crossing the flex triad now scores through: every metered
+    delivery the company learns its de-rating from has been encoded by the
+    world, decoded here, and version-checked in between.
+    """
+    return [observe_response_wire(m, expect=FlexSettlementLine) for m in messages]
 
 
 @dataclass(frozen=True)
