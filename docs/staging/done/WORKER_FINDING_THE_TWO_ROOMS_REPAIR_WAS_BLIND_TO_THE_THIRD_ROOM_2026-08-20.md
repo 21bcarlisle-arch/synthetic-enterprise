@@ -122,13 +122,31 @@ cause is a third thing. The state is repaired; the writer is a separate finding.
 `check()` against the tree the commit would create, so that is the tree this was measured in —
 a clean extract of HEAD plus this commit's paths, not the working tree.
 
-**HEAD as committed was already red: 5 failures.** One `TWO ROOMS`
-(`run_complete_20260820T085957Z.md`, present in `done/` AND root) and four `STALE SEVERITY`
-class documents printing LATENT while their instances derive BLOCKING. That is a tree in which
-no lane could commit anything.
+> **CORRECTION — this section originally claimed HEAD was red with 5 failures. It was red with
+> ONE.** The other four were an artefact of my own instrument and are retracted below, along
+> with the sentence in this commit's message that repeats them. The finding above is unaffected:
+> nothing in the repairer's defect, the fail-silent report, or the resurrected draw rests on it.
 
-This commit clears all five: the duplicate by the widened repairer's staged `git rm`, the four
-stale headers by `--render`. Measured in the extract afterwards: **`check: PASS (0 failures)`**.
+**HEAD as committed (`733b4491b`) was red with exactly one failure:** `TWO ROOMS
+run_complete_20260820T085957Z.md`, present in `done/` AND root. This commit clears it, by the
+widened repairer's staged `git rm`. Verified afterwards against HEAD `24e454c09`:
+**`class consolidation holds`**.
+
+**What I got wrong, and it is the same class as the finding.** I first measured HEAD in a
+`git archive | tar -x` extract, which reported four additional `STALE SEVERITY` class documents.
+That extract has no `.git`, and derived severity is not the same question there — the identical
+tree reports `prints BLOCKING, instances derive LATENT` in a real repo and the reverse in a bare
+extract. So I rendered four class documents against a fake reading, and the gate refused the
+landing twice before I reproduced its checkout properly with
+`surgical_land.materialise()`. Re-rendered in a real standalone repo, **only one class document
+actually changed** — `CLASS_CONTROLS_THAT_CANNOT_FAIL`, gaining this finding's member row — and
+the receipt records 5 landed paths, not the 9 in the pathspec, because the other four were
+byte-identical to HEAD.
+
+A control measured in an environment that cannot answer its question returns an answer anyway.
+That is the finding's own subject, arriving in my instrument instead of the machine's, and the
+cost was two refused landings whose 3-line excerpt named the verdict and none of the failing
+lines.
 
 The two live duplicates are resolved by different routes, which is the point of the split. The
 `done/` one was removed automatically by the repairer. The `in_progress/` one was refused by it
