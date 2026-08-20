@@ -10,6 +10,18 @@
 /
   Cache-Control: no-cache, must-revalidate
 
+# DIRECTORY URLs, added 2026-08-20. `/*.html` does NOT match `/proof/` -- a reader never
+# requests `/proof/index.html`, they request the directory, and that path fell through to
+# Cloudflare's default `public, s-maxage=604800`. Measured consequence: after the five-tab fold
+# deleted eight pages, the origin returned 404 for every one of them while the edge went on
+# serving the deleted page for hours (`age: 13080`, and it would have run for seven days). A
+# cache-busted request 404'd correctly the whole time, which is how the cause was isolated.
+#
+# Every page on this site is either live data or a document that can be retired, so none of them
+# may be cached for a week.
+/*/
+  Cache-Control: no-cache, must-revalidate
+
 /data/*.json
   Cache-Control: no-cache, must-revalidate
 /state/*
