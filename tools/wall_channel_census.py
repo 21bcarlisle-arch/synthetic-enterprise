@@ -95,6 +95,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import hashlib
 import json
 import os
 import subprocess
@@ -1486,6 +1487,231 @@ def envelope_wire_conformance_at(
         return envelope_wire_conformance(root)
 
 
+# ── channel C, the second question: what does a version MEAN? ────────────────────────────────
+# Channel C above asks whether a seam's version reaches a wire, and at HEAD it answers 3 of 3.
+# That reading is saturated, and a saturated instrument is a reason to move the ORIGIN rather
+# than to stop asking: it cannot put the question that makes its own answer worth having, which
+# is whether that version still DENOTES the surface it denoted when a counterparty agreed to it.
+#
+# `SCHEMA_VERSION` is not decoration here. It is encoded into every envelope and REFUSED on
+# mismatch by each decoder (`schema_version {version} is not the {SCHEMA_VERSION} this seam
+# speaks`). So a version whose meaning moves silently is strictly worse than no version at all:
+# the counterparty's check passes and its assumption is wrong, which is the failure mode a
+# version exists to prevent. Nothing inside a seam can raise this -- the declaration and the
+# version are two literals in ONE file, one keystroke each, and every existing control on them
+# (the mirror test, the AST literal guard, the denylist) is satisfied by editing both.
+#
+# THE PIN THEREFORE LIVES HERE, IN THE INSTRUMENT, AND NOT THERE, IN THE SUBJECT. That
+# separation IS the control (R15 TAUTOLOGY): the seam declares what it observes, the census
+# independently records what each version was pinned to mean, and a surface that moves without
+# its version moving reds. Two files, two edits, two review moments.
+#
+# WHAT THIS DOES NOT DO, stated because the honest limit is the point of the check: it does not
+# stop a leak. An editor who bumps `SCHEMA_VERSION` and re-pins below has widened the observable
+# surface deliberately, and no code can make the observable/hidden judgement on their behalf --
+# that judgement is irreducibly a human one. What it removes is the SILENT widening. After this,
+# the one-line tuple append that went red and then green costs a version bump and a second file,
+# both of which a diff shows and a counterparty can act on.
+
+#: The per-seam declaration of what crosses. Read from the seam's own source, never imported --
+#: same discipline as `wire_field_sets`, and for the same reason: the question is about the text
+#: someone edits, not about the object a already-imported module happens to hold.
+DECLARED_SURFACE_CONSTANT = "OBSERVABLE_PAYLOAD_FIELDS"
+
+
+#: {seam -> (version pinned, digest of the surface that version denotes)}.
+#:
+#: HAND-WRITTEN AND REQUIRED TO STAY SO. A pin computed from the declaration it pins would move
+#: with its subject and could never fire -- `test_the_pins_are_literal_and_not_derived` asserts
+#: this stays a literal, the same guard the contracts' own closed sets carry.
+#:
+#: RE-PIN ONLY IN THE SAME EDIT THAT BUMPS THAT SEAM'S `SCHEMA_VERSION`. A re-pin without a bump
+#: is the defect this table exists to make visible, performed by hand.
+SURFACE_PINS: dict[str, tuple[int, str]] = {
+    "interface.contracts.conversation_seam": (1, "f0f702d4c7af9083"),
+    "interface.contracts.flex_observable_seam": (1, "ea1b70a309a2a3e4"),
+    "interface.contracts.payment_observable_seam": (1, "cee449961c9f268b"),
+}
+
+
+def _dict_of_string_tuples(tree: ast.Module, name: str) -> dict[str, tuple[str, ...]] | None:
+    """A module-level `NAME: ... = {"k": ("a", "b"), ...}` as a dict, or None if it is not that.
+
+    None covers BOTH "absent" and "present but computed". The caller must treat them the same
+    and fail closed: a declaration the census cannot read is a declaration it cannot pin, and a
+    surface nothing pins is exactly the unbounded case this check is about.
+    """
+    for node in tree.body:
+        targets = (
+            [node.target] if isinstance(node, ast.AnnAssign)
+            else node.targets if isinstance(node, ast.Assign)
+            else []
+        )
+        if not any(isinstance(t, ast.Name) and t.id == name for t in targets):
+            continue
+        if not isinstance(node.value, ast.Dict):
+            return None
+        surface: dict[str, tuple[str, ...]] = {}
+        for key, value in zip(node.value.keys, node.value.values):
+            if not (isinstance(key, ast.Constant) and isinstance(key.value, str)):
+                return None
+            if not isinstance(value, (ast.Tuple, ast.List)):
+                return None
+            fields = [
+                e.value for e in value.elts
+                if isinstance(e, ast.Constant) and isinstance(e.value, str)
+            ]
+            if len(fields) != len(value.elts):
+                return None
+            surface[key.value] = tuple(fields)
+        return surface
+    return None
+
+
+def declared_surface(root: str, seam: str) -> dict[str, tuple[str, ...]] | None:
+    """The observable surface a seam declares, read from its own source. None if it declares none.
+
+    FAIL-CLOSED (R15 FAIL-SILENT): an unreadable seam raises rather than returning None, because
+    "I could not parse it" and "it declares nothing" are different facts and only one of them is
+    the seam's own doing.
+    """
+    tree = _parse(os.path.join(root, *seam.split(".")) + ".py")
+    if tree is None:
+        raise CensusUnavailable(
+            f"{seam} is unreadable, so its observable surface cannot be pinned -- an unavailable "
+            "check is a FAILED check"
+        )
+    return _dict_of_string_tuples(tree, DECLARED_SURFACE_CONSTANT)
+
+
+def surface_digest(surface: dict[str, tuple[str, ...]]) -> str:
+    """A stable digest of an observable surface: which payloads, carrying which field NAMES.
+
+    SORTED ON BOTH AXES, deliberately. The wire form is a mapping, so re-ordering a payload's
+    fields is not a schema change and must not red -- a control that fires on a cosmetic edit is
+    one that gets tuned away, and then the real edit passes with it.
+    """
+    canonical = json.dumps(
+        {name: sorted(fields) for name, fields in sorted(surface.items())},
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    return hashlib.sha256(canonical.encode()).hexdigest()[:16]
+
+
+@dataclass(frozen=True)
+class SurfacePinVerdict:
+    """Whether each versioned seam's observable surface still means what its version says.
+
+    FOUR BUCKETS, because "not pinned" hides repairs that are not the same repair:
+      * `pinned`     -- version matches its pin and the surface digest matches. The green case.
+      * `drifted`    -- version UNCHANGED and the surface moved. THE DEFECT: every counterparty
+        that accepted this version is now being sent a different shape under the same number.
+      * `unpinned`   -- the seam declares a version this table has no entry for. Covers a new
+        seam nobody pinned AND a version bumped without a re-pin. Both need the same deliberate
+        act, and both are RED rather than skipped -- an unpinned surface is the unbounded case.
+      * `undeclared` -- declares a `SCHEMA_VERSION` but no readable literal surface. RED: a
+        versioned seam whose surface cannot be read is one nothing can hold to its version.
+    `versionless` is reported and NOT scored -- `wall_envelope` defines the shape and is not a
+    crossing, the same honest member channel C's own verdict carries.
+    """
+
+    pinned: tuple[str, ...] = ()
+    drifted: tuple[tuple[str, int, str, str], ...] = ()
+    unpinned: tuple[tuple[str, object], ...] = ()
+    undeclared: tuple[str, ...] = ()
+    versionless: tuple[str, ...] = ()
+
+    @property
+    def ok(self) -> bool:
+        return not self.drifted and not self.unpinned and not self.undeclared
+
+    def report(self) -> str:
+        scored = len(self.pinned) + len(self.drifted) + len(self.unpinned) + len(self.undeclared)
+        lines = [
+            f"channel C surface pins: {len(self.pinned)} of {scored} versioned seam(s) still "
+            "mean what their version says"
+        ]
+        lines += [
+            f"    * {seam} -- v{SURFACE_PINS[seam][0]} = {SURFACE_PINS[seam][1]}"
+            for seam in self.pinned
+        ]
+        lines += [
+            f"    ! {seam} -- DRIFTED: v{version} was pinned to {want}, the tree now declares "
+            f"{got}. The surface changed and the version did not, so every counterparty that "
+            f"accepted v{version} is being sent a different shape under the same number. Bump "
+            f"{SEAM_VERSION_CONSTANT} and re-pin, or put the field back."
+            for seam, version, want, got in self.drifted
+        ]
+        lines += [
+            f"    ! {seam} -- UNPINNED: declares version {version!r}, which SURFACE_PINS has no "
+            "entry for. A surface nothing pins can widen silently; add the pin in this commit."
+            for seam, version in self.unpinned
+        ]
+        lines += [
+            f"    ! {seam} -- UNDECLARED: carries a {SEAM_VERSION_CONSTANT} but no readable "
+            f"literal `{DECLARED_SURFACE_CONSTANT}`, so nothing can hold it to that version."
+            for seam in self.undeclared
+        ]
+        lines += [
+            f"    - {seam} -- declares no {SEAM_VERSION_CONSTANT}, so it has no version to mean "
+            "anything by"
+            for seam in self.versionless
+        ]
+        return "\n".join(lines)
+
+
+def surface_pin_conformance(root: str) -> SurfacePinVerdict:
+    """Every channel C seam, asked whether its declared surface still matches its pinned version.
+
+    The seam set is DERIVED from `envelope_seams`, not listed, for that function's stated reason:
+    a fourth seam added tomorrow owns this question on the day it lands, and it lands UNPINNED
+    (red) rather than unnoticed (green), which is the fail-closed direction.
+    """
+    pinned: list[str] = []
+    drifted: list[tuple[str, int, str, str]] = []
+    unpinned: list[tuple[str, object]] = []
+    undeclared: list[str] = []
+    versionless: list[str] = []
+
+    for seam in sorted(envelope_seams(root)):
+        version = _seam_version(root, seam)
+        if version is None:
+            versionless.append(seam)
+            continue
+        surface = declared_surface(root, seam)
+        if not surface:
+            undeclared.append(seam)
+            continue
+        pin = SURFACE_PINS.get(seam)
+        if pin is None or pin[0] != version:
+            unpinned.append((seam, version))
+            continue
+        got = surface_digest(surface)
+        if got != pin[1]:
+            drifted.append((seam, version, pin[1], got))
+        else:
+            pinned.append(seam)
+
+    return SurfacePinVerdict(
+        pinned=tuple(pinned),
+        drifted=tuple(drifted),
+        unpinned=tuple(unpinned),
+        undeclared=tuple(undeclared),
+        versionless=tuple(versionless),
+    )
+
+
+def surface_pin_conformance_at(
+    rev: str = "HEAD", worktree: bool = False, repo_root: Path = PROJECT_DIR
+) -> SurfacePinVerdict:
+    """`surface_pin_conformance` against the worktree, or against the tree at `rev`."""
+    if worktree:
+        return surface_pin_conformance(str(repo_root))
+    with head_export(str(repo_root), CENSUS_DIRS, rev=rev) as root:
+        return surface_pin_conformance(root)
+
+
 ENUMERATORS = {
     "A_direct_import": enumerate_a,
     "B_indirect_import": enumerate_b,
@@ -1688,6 +1914,19 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     print(envelope_wire.report())
 
+    # THIS ONE GATES FROM ITS FIRST COMMIT, and the rule it follows is the one stated above: a
+    # check becomes a gate "in the same commit that makes it satisfiable". Channel C's transport
+    # question could not gate on arrival because two seams were genuinely in-process and it would
+    # have refused its own repair. The pin has no such excuse -- all three seams are pinned green
+    # at HEAD, so the only commits it can refuse are commits that move a surface without moving
+    # its version, which is precisely its subject.
+    try:
+        surface_pins = surface_pin_conformance_at(rev=args.rev, worktree=args.worktree)
+    except CensusUnavailable as exc:
+        print(f"SURFACE PIN CHECK UNAVAILABLE (a failed check, not a pass): {exc}", file=sys.stderr)
+        return 2
+    print(surface_pins.report())
+
     # The artefact half prints its SILENT and UNOBSERVABLE keys as loudly as its carrying ones.
     # The `if carrying:` filter this replaces suppressed exactly the state the check exists to
     # find: at HEAD b22698df8, three logs at 0/1,996 printed as an empty section.
@@ -1716,7 +1955,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"BASELINE UNAVAILABLE (a failed check, not a pass): {exc}", file=sys.stderr)
         return 2
     print(verdict.report())
-    return 0 if (verdict.ok and wire.ok) else 1
+    return 0 if (verdict.ok and wire.ok and surface_pins.ok) else 1
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -1986,3 +1986,267 @@ def test_THE_LIVE_TREE_PASSES_THE_ARMED_CHANNEL_C_GATE():
         "a seam has lost its leg aliases and the control has silently fallen back to the "
         "leg-blind rule: " + verdict.report()
     )
+
+
+# ── channel C's second question: does a version still MEAN what it meant? ────────────────────
+# Channel C's transport check reads 3 of 3 at HEAD. These tests are about the question that
+# saturation exposes rather than answers: `SCHEMA_VERSION` is encoded into every envelope and
+# REFUSED on mismatch by each decoder, so a version whose meaning moves silently makes the
+# counterparty's check pass on a wrong assumption. Every mutation below leaves the version
+# EXACTLY where it was -- that is the point, and it is what a version-presence check cannot see.
+
+#: The digest of `pin_tree`'s unmutated surface, WRITTEN OUT rather than computed at fixture
+#: time. A pin derived from the declaration it pins moves with its subject; the null control
+#: below is what proves this literal and that declaration actually correspond.
+PIN_TREE_DIGEST = "b3845700e7bd5b2d"
+
+PIN_SEAM = "interface.contracts.payment_observable_seam"
+
+
+@pytest.fixture()
+def pin_tree(tmp_path: Path) -> Path:
+    """One versioned seam declaring a literal observable surface, plus the versionless envelope.
+
+    One pinned seam on purpose, the `tree` fixture's reason: with exactly one, "the mutation
+    moved the surface" and "the check never found a surface" cannot be confused.
+    """
+    root = tmp_path / "repo"
+    _write(root, "interface/contracts/wall_envelope.py", '"""the envelope shape."""\n')
+    _write(root, "interface/contracts/payment_observable_seam.py", """
+        from interface.contracts.wall_envelope import WallResponse
+
+        SCHEMA_VERSION = 1
+
+        OBSERVABLE_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {
+            "PaymentNotification": (
+                "notification_id",
+                "amount_gbp",
+                "received_on",
+            ),
+        }
+    """)
+    _write(root, "simulation/payment_seam_adapter.py", """
+        from interface.contracts.payment_observable_seam import SCHEMA_VERSION
+
+        def emit(response):
+            return [response]
+    """)
+    _write(root, "company/billing/payment_observation_consumer.py", """
+        from interface.contracts.payment_observable_seam import PaymentNotification
+
+        def consume(response):
+            return response.payload
+    """)
+    return root
+
+
+@pytest.fixture()
+def pinned(monkeypatch) -> None:
+    """Pin `pin_tree`'s seam at v1, so the mutations below face a pin written BEFORE them."""
+    monkeypatch.setattr(wcc, "SURFACE_PINS", {PIN_SEAM: (1, PIN_TREE_DIGEST)})
+
+
+def test_the_written_out_digest_and_the_fixtures_surface_actually_correspond(pin_tree):
+    """THE NULL CONTROL. Without this, every refusal below could be the literal being wrong
+    rather than the mutation being detected, and the whole battery would prove nothing."""
+    surface = wcc.declared_surface(str(pin_tree), PIN_SEAM)
+
+    assert wcc.surface_digest(surface) == PIN_TREE_DIGEST
+
+
+def test_a_surface_matching_its_pinned_version_passes(pin_tree, pinned):
+    verdict = wcc.surface_pin_conformance(str(pin_tree))
+
+    assert verdict.pinned == (PIN_SEAM,)
+    assert verdict.drifted == () and verdict.unpinned == () and verdict.undeclared == ()
+    assert verdict.ok, verdict.report()
+
+
+def test_MUTATION_a_field_ADDED_without_a_version_bump_is_DRIFTED(pin_tree, pinned):
+    """THE DOCTRINE MUTATION -- the exact edit the atom's own record named as the residual risk:
+    "I added a field and the test went red / I added the field name to the tuple and it went
+    green". Here the tuple edit is made and the version is left at 1. The seam's own controls
+    (the mirror against its dataclass, the AST literal guard, the denylist) are all satisfied by
+    this edit. This one must not be."""
+    _write(pin_tree, "interface/contracts/payment_observable_seam.py", """
+        from interface.contracts.wall_envelope import WallResponse
+
+        SCHEMA_VERSION = 1
+
+        OBSERVABLE_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {
+            "PaymentNotification": (
+                "notification_id",
+                "amount_gbp",
+                "received_on",
+                "customer_true_balance_gbp",
+            ),
+        }
+    """)
+    verdict = wcc.surface_pin_conformance(str(pin_tree))
+
+    assert [seam for seam, *_ in verdict.drifted] == [PIN_SEAM]
+    assert not verdict.ok
+    assert "DRIFTED" in verdict.report()
+    # The version is untouched -- a version-PRESENCE check stays green through this edit.
+    assert wcc._seam_version(str(pin_tree), PIN_SEAM) == 1
+
+
+def test_MUTATION_a_field_REMOVED_without_a_version_bump_is_also_DRIFTED(pin_tree, pinned):
+    """NARROWING IS A SCHEMA CHANGE TOO, and it breaks the counterparty rather than the wall --
+    a decoder that requires `amount_gbp` under v1 now gets v1 without it. A ratchet that only
+    fired on growth would call this repair."""
+    _write(pin_tree, "interface/contracts/payment_observable_seam.py", """
+        from interface.contracts.wall_envelope import WallResponse
+
+        SCHEMA_VERSION = 1
+
+        OBSERVABLE_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {
+            "PaymentNotification": (
+                "notification_id",
+                "received_on",
+            ),
+        }
+    """)
+    verdict = wcc.surface_pin_conformance(str(pin_tree))
+
+    assert [seam for seam, *_ in verdict.drifted] == [PIN_SEAM]
+    assert not verdict.ok
+
+
+def test_a_REORDERED_surface_is_NOT_drift_because_the_wire_form_is_a_mapping(pin_tree, pinned):
+    """THE DELIBERATE NON-FIRING CASE. Field order is not a schema fact -- the envelope carries a
+    mapping. A control that reddened on a cosmetic re-order would be tuned away, and the real
+    edit would go with it."""
+    _write(pin_tree, "interface/contracts/payment_observable_seam.py", """
+        from interface.contracts.wall_envelope import WallResponse
+
+        SCHEMA_VERSION = 1
+
+        OBSERVABLE_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {
+            "PaymentNotification": (
+                "received_on",
+                "notification_id",
+                "amount_gbp",
+            ),
+        }
+    """)
+    verdict = wcc.surface_pin_conformance(str(pin_tree))
+
+    assert verdict.pinned == (PIN_SEAM,)
+    assert verdict.ok, verdict.report()
+
+
+def test_MUTATION_bumping_the_version_without_RE_PINNING_is_UNPINNED(pin_tree, pinned):
+    """The other half of the same discipline. A bumped version is a DECLARED schema change and is
+    allowed -- but it must not be allowed to pass unnoticed, or the pin table decays into a record
+    of what someone once thought while the wire says something else."""
+    _write(pin_tree, "interface/contracts/payment_observable_seam.py", """
+        from interface.contracts.wall_envelope import WallResponse
+
+        SCHEMA_VERSION = 2
+
+        OBSERVABLE_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {
+            "PaymentNotification": (
+                "notification_id",
+                "amount_gbp",
+                "received_on",
+            ),
+        }
+    """)
+    verdict = wcc.surface_pin_conformance(str(pin_tree))
+
+    assert verdict.unpinned == ((PIN_SEAM, 2),)
+    assert not verdict.ok
+    assert "UNPINNED" in verdict.report()
+
+
+def test_FAIL_CLOSED_a_seam_absent_from_the_pins_is_UNPINNED_and_not_skipped(
+    pin_tree, monkeypatch
+):
+    """R15 FAIL-OPEN. A `.get()` that returned None and `continue`d would make the check pass
+    vacuously on exactly the seam nobody has pinned -- the unbounded case, reported as green.
+    A fourth seam landing tomorrow must land RED."""
+    monkeypatch.setattr(wcc, "SURFACE_PINS", {})
+
+    verdict = wcc.surface_pin_conformance(str(pin_tree))
+
+    assert verdict.unpinned == ((PIN_SEAM, 1),)
+    assert verdict.pinned == ()
+    assert not verdict.ok
+
+
+def test_FAIL_CLOSED_a_versioned_seam_with_a_COMPUTED_surface_is_UNDECLARED(pin_tree, pinned):
+    """R15 TAUTOLOGY, at the subject's end. A surface derived from the dataclasses it certifies
+    widens whenever they widen. The census cannot pin such a thing, and "cannot read it" must
+    read as a failure, not as absence."""
+    _write(pin_tree, "interface/contracts/payment_observable_seam.py", """
+        from dataclasses import fields
+
+        from interface.contracts.wall_envelope import WallResponse
+
+        SCHEMA_VERSION = 1
+
+        OBSERVABLE_PAYLOAD_FIELDS = {
+            payload.__name__: tuple(f.name for f in fields(payload))
+            for payload in ()
+        }
+    """)
+    verdict = wcc.surface_pin_conformance(str(pin_tree))
+
+    assert verdict.undeclared == (PIN_SEAM,)
+    assert not verdict.ok
+    assert "UNDECLARED" in verdict.report()
+
+
+def test_the_VERSIONLESS_envelope_module_is_reported_and_not_scored(pin_tree, pinned):
+    """`wall_envelope` defines the shape and is not a crossing -- it has no version to mean
+    anything by. Scoring it would keep this red for a reason its subject cannot fix; dropping it
+    silently would hide a new seam that forgot its version."""
+    verdict = wcc.surface_pin_conformance(str(pin_tree))
+
+    assert verdict.versionless == ("interface.contracts.wall_envelope",)
+    assert verdict.ok
+    assert "no version to mean anything by" in verdict.report()
+
+
+def test_FAIL_CLOSED_an_unreadable_seam_RAISES_rather_than_reading_as_undeclared(pin_tree):
+    """R15 FAIL-SILENT. "I could not parse it" and "it declares nothing" are different facts and
+    only one of them is the seam's own doing."""
+    (pin_tree / "interface/contracts/payment_observable_seam.py").write_text(
+        "def broken(:\n", encoding="utf-8"
+    )
+    with pytest.raises(wcc.CensusUnavailable):
+        wcc.declared_surface(str(pin_tree), PIN_SEAM)
+
+
+def test_the_pins_are_LITERAL_and_not_derived_from_the_surfaces_they_pin():
+    """R15 TAUTOLOGY, at the instrument's end -- the same guard each contract carries over its
+    own closed set. A pin computed from the declaration would move with it and could never fire,
+    and the separation between instrument and subject is the whole control."""
+    import ast
+
+    source = (Path(wcc.__file__).parent.parent / "tools" / "wall_channel_census.py").read_text()
+    node = next(
+        n for n in ast.walk(ast.parse(source))
+        if isinstance(n, ast.AnnAssign) and getattr(n.target, "id", None) == "SURFACE_PINS"
+    )
+    assert isinstance(node.value, ast.Dict), "SURFACE_PINS must be a literal declaration"
+    for entry in node.value.values:
+        assert isinstance(entry, ast.Tuple), "each pin must be a literal (version, digest)"
+        version, digest = entry.elts
+        assert isinstance(version, ast.Constant) and isinstance(version.value, int)
+        assert isinstance(digest, ast.Constant) and isinstance(digest.value, str)
+
+
+def test_the_REAL_seams_are_pinned_and_still_mean_what_their_versions_say():
+    """The live reading, against the real tree rather than a fixture. This is what makes the
+    pins above real values rather than decoration -- if a surface moves without its version, this
+    is the test that reds, and the CLI returns 1 with it."""
+    verdict = wcc.surface_pin_conformance(str(wcc.PROJECT_DIR))
+
+    assert verdict.ok, verdict.report()
+    assert len(verdict.pinned) == 3, verdict.report()
+    assert not verdict.unpinned, (
+        "a channel C seam has landed with no pin, so its observable surface can widen "
+        "silently: " + verdict.report()
+    )
