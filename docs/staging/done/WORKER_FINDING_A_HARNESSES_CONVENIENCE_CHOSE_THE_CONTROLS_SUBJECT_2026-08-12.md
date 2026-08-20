@@ -1,6 +1,6 @@
 # WORKER FINDING — the harness picked the easy subject, and that became the control's blind spot
 
-**Severity:** BLOCKING · **Lane:** H_harness
+**Severity:** RECORDED · **Lane:** H_harness
 <!-- Severity normalised 2026-08-12 by a worker tick, not by this document's author: it read
      `high`, which OPS9's parser cannot read, and carried no lane, so it was UNCLASSIFIED and
      reddened the staging-root control. BLOCKING by the ruling's own words -- a control in
@@ -10,6 +10,45 @@
 convenience, and the docstring says so out loud*)
 **Found:** 2026-08-12, HARDEN-stage Expert Hour (cold-eyes walk) on `SITE2_two_sided_wall_exhibit`
 **Status:** instance fixed; the class is what this document is for
+
+**RECORDED AND ACCEPTED, 2026-08-20 — THE SUBJECT THIS FINDING IS ABOUT NO LONGER EXISTS.**
+Taken via clause 2's second route ("or until the limitation is explicitly recorded and
+accepted"), NOT by repair, and deliberately not by building a control. Every reading below
+is of the committed tree.
+
+**Why the discharge went stale without anyone touching this document.** The three falsifier
+nodes it named all lived in `site/customers/test_wall_exhibit.py`. `03dd8c49e` retired eleven
+pages by deleting their directories, `site/customers/` among them, so the falsifiers ceased to
+exist and this document reverted from RECORDED to BLOCKING on its own. Same mechanism, same
+commit, as the sibling blocker in this class — a deletion that COMMITS, which is the case
+`parse_discharge` names in its comment as the one its index-OR-HEAD union cannot absorb.
+
+**Why nothing is rebuilt, and why that is the honest answer rather than the cheap one.** This
+finding is about a leak check whose subject was narrower than its claim. Both the claim and
+its subject are gone:
+- The guarded mechanism is absent from the site — `setWallView`, `applyWallViewToOpState`,
+  `WALL_VIOLATIONS` and `data-wall-governed` appear in no page, only as a residual string in
+  a `site/data/simplified.json` record.
+- The printed sentence the defect contradicted ("No company estimate and no simulation ground
+  truth is in this view; if one appears, the page is broken") is on **no** current page. A
+  sweep of all 14 built pages for that claim and its variants returns nothing.
+- `/explore/` supersedes `/customers/` and is not a successor subject: it shows both sides
+  **deliberately and simultaneously** ("What the world knew" / "What the supplier believed")
+  and carries no view selector at all. There is no side-filtering claim left to violate.
+
+**The control this disposition refuses to build.** The tempting close is a guard asserting no
+page reintroduces a side-filtered view without a whole-document subject. That control would
+have zero subjects on today's site and would pass unconditionally — a vacuous control, which
+is the exact defect `CLASS_CONTROLS_THAT_CANNOT_FAIL` catalogues and this document is filed
+under. Closing a controls-that-cannot-fail finding by adding a control that cannot fail would
+be self-refuting, so the limitation is recorded instead. If a side-filtered view is ever built
+again, the reasoning in "What to do about it" below applies to it from the start, and the guard
+becomes buildable because it would finally have a subject.
+
+**What is NOT accepted away:** the class lesson stands and stays live in
+`docs/staging/CLASS_CONTROLS_THAT_CANNOT_FAIL_2026-08-12.md`. What is accepted is only that
+this INSTANCE has no live subject and so owes no repair — RECORDED, "known limitation,
+accepted, no work owed", not a claim the class is closed.
 
 **Discharged:** `site/customers/test_wall_exhibit.py::test_the_customer_view_of_the_whole_page_contains_no_company_or_sim_panel`, `site/customers/test_wall_exhibit.py::test_mutation_a_view_switch_that_skips_the_op_state_region_kills_a_named_test`, `site/customers/test_wall_exhibit.py::test_the_named_figures_are_visible_to_the_checker_in_the_op_state_exhibit` — the union of op-state and tabs is now the leak checks' subject, the view switch is mutation-proven over the region the old fixtures fell between, and the checker's own sight is pinned. 5 green, 2026-08-12.
 

@@ -2,7 +2,52 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness · **Disposition:** QUEUED (not fixed on sight)
 
-**Discharged:** `site/proof/test_published_caveat_reaches_the_reader.py::test_the_sentence_the_shipped_code_authors_is_the_sentence_the_door_serves`, `site/proof/test_published_caveat_reaches_the_reader.py::test_the_published_detection_caveat_carries_the_hour31_correction`, `site/data/proof.json`, `tools/couple_w2_11_d5.py`, `tests/tools/test_couple_w2_11_d5.py` — all three BLOCKING items are repaired and landed, and the last of them is now verified on the live door rather than on a file.
+**Discharged:** `site/test_published_caveat_reaches_the_reader.py::test_the_sentence_the_shipped_code_authors_is_the_sentence_the_door_serves`, `site/test_published_caveat_reaches_the_reader.py::test_the_published_detection_caveat_carries_the_hour31_correction`, `site/data/proof.json`, `tools/couple_w2_11_d5.py`, `tests/tools/test_couple_w2_11_d5.py` — all three BLOCKING items are repaired and landed, and the last of them is now verified on the live door rather than on a file; the falsifier moved from the deleted site/proof/ directory to the site root, restored and re-proven rather than re-asserted.
+
+**RE-DISCHARGE, 2026-08-20 — THE FALSIFIER WAS DELETED BY A PAGE RETIREMENT AND IS
+RESTORED.** This document had been RECORDED since 2026-08-15 and reverted to BLOCKING
+without anyone touching it. Cause, measured rather than inferred: `03dd8c49e` ("the five
+tabs are the site now") retired eleven pages by deleting their directories, `site/proof/`
+among them, and the two falsifier nodes above went with the directory. Both readings that
+follow are of a tree, never the desk — `git ls-tree HEAD -- site/proof/` is empty and the
+file survived only inside a stale agent worktree.
+
+This is the hole `parse_discharge` names in its own comment and explicitly does NOT cover:
+the 2026-08-20 index-OR-HEAD union was built for a *staged* cross-lane deletion, and says
+so — *"what the union does NOT cover, named rather than absorbed: a deletion that actually
+COMMITS."* It committed. So the class is now observed twice, and the second observation is
+the one the union cannot absorb.
+
+**WHAT THE FIVE DAYS ACTUALLY COST, and why this is a repair and not bookkeeping.** The
+guarded mechanism did not die with the page. `tools.couple_w2_11_d5.detection_resolution_caveat`
+is still shipped, `site/data/proof.json` is still published, and the live door still renders
+it from /harness/. What died was the only thing comparing them: a census of consumers finds
+`detection_resolution_caveat` referenced by its own module and its own unit test and nothing
+else. So BLOCKING 3 of this document — *the control has no caller and never runs* — regressed
+past its own diagnosis into *the control does not exist*, and the code/artefact gap was
+unguarded again for five days.
+
+**THE REPAIR.** The control is restored at `site/test_published_caveat_reaches_the_reader.py`
+— ADOPTED from `03dd8c49e^` rather than rewritten, so the reasoning that earned it survives;
+the only changes are PROJECT depth (site/ is now one level from the root) and a recorded note
+on why it moved. It is filed at the site ROOT, not under a page, because a control filed
+under a page inherits that page's mortality — which is precisely what happened here. The
+placement keeps its trigger: `pytest site/` collects the whole tree, and the site lane's
+broad trigger is site/data/**, the change set that strands a correction.
+
+**R15 BOTH WAYS, re-proven on the restored file rather than carried over from the original.**
+2 passed on the live artefact. Then, with the published payload doctored in-process (the
+shared tree never written to): reverting the door to the superseded opener — the real
+`3e4037c1e` defect — turns both nodes RED; rewording Hour #31's correction on the door turns
+both RED; and emptying the artefact's pairs turns both RED with *the published door carries
+no coupled pairs at all* rather than passing on an empty mapping, so the FAIL-SILENT killer
+pattern is closed. The unmutated payload is the null control and is GREEN, so the reds are
+the mutations and not a broken harness.
+
+**WHAT THIS RE-DISCHARGE DOES NOT COVER, named rather than absorbed:** RECORDED 7 and the
+ledger/door disagreement below are untouched and still open. Neither was ever part of this
+document's BLOCKING set, and closing them means regenerating a measurement that moves
+published figures, which R12 forbids as a way to green a finding.
 
 **DISCHARGE, 2026-08-15 fifth tick — BLOCKING 1 IS CLOSED AGAINST THE LIVE SURFACE, so the
 document releases.** The previous tick's refusal to write this field was right at the time and
