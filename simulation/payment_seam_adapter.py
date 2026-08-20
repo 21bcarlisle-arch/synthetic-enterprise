@@ -113,6 +113,7 @@ from __future__ import annotations
 
 import hashlib
 import random
+from copy import deepcopy
 from dataclasses import dataclass, fields
 from datetime import date, datetime, time, timedelta
 from enum import Enum
@@ -750,3 +751,209 @@ def emit_wire_responses(
         frame_wire_message(encode_wall_response(r))
         for r in emit_wall_responses(event, seam_input)
     ]
+
+
+# ---------------------------------------------------------------------------
+# THE STAND-IN MISBEHAVING ON PURPOSE (atom EP6_wall_protocol_typing, pass 42,
+# 2026-08-20) -- the blind review's Q6.
+#
+# THE QUESTION. "Can it emit spec-violating traffic -- duplicate flow
+# references, readings for MPANs you don't supply, out-of-order revisions, a
+# backlog burst?" The answer needed was "yes, and it's used in regression",
+# with the reviewer's own gloss on why: "if the fake can only be well-behaved,
+# it rehearses nothing worth rehearsing."
+#
+# WHAT WAS ALREADY TRUE AND WHY IT WAS NOT THE ANSWER. Pass 37 recorded that
+# the company REFUSES spec-violating input (`wall_protocol`'s envelope and
+# payload refusals) and that the consumer handles duplicates and out-of-order
+# revisions. Both are tested. Neither is Q6's subject: those tests hand the
+# company a hand-built bad message, which asks whether the RECEIVER copes and
+# never whether the STAND-IN can produce one. A rehearsal partner that can only
+# be well-behaved leaves the receiver's tolerances exercised solely by the
+# imagination of whoever wrote the test.
+#
+# WHY THESE ARE APPLIED AT THE WIRE AND NOT TO THE TYPED OBJECTS. `WallResponse`
+# and the payload dataclasses refuse their own invalid constructions, and
+# rightly: they are the CONTRACT. A misbehaving counterparty is precisely one
+# whose bytes its own encoder would not have produced, so the violation is
+# applied to the encoded wire form -- after `encode_wall_response` has done its
+# honest job. Weakening the encoder to let a violation through would break the
+# well-behaved path to model the badly-behaved one.
+#
+# WHAT IS DELIBERATELY *NOT* HERE: structurally malformed bytes -- a missing
+# field, a bad `schema_version`, a payload type off the contract. Those are the
+# decoder's business and `tests/company/interfaces/test_wall_protocol.py`
+# already exercises them from a hand-built message; a fault mode here would
+# only re-test the refusals. Every violation below is STRUCTURALLY VALID and
+# SEMANTICALLY WRONG, which is the class nothing could produce before.
+#
+# CALLER-DRIVEN, NOT DRAWN -- the same call, for the same reason, as
+# `TransportFault`: a violation RATE would be a property of the baseline world
+# and R13 makes that the director's. Default `NONE`, identity asserted, so no
+# committed run moves by a penny.
+# ---------------------------------------------------------------------------
+
+
+class SpecViolation(Enum):
+    """HOW THIS STAND-IN CAN BREAK THE AGREED SPEC WHILE STAYING WELL-FORMED.
+
+    Each member is a SEQUENCE-level transform (see `apply_spec_violation`),
+    because three of the reviewer's four named violations are not properties of
+    any one message: a duplicate, an ordering and a burst only exist across a
+    hand-over.
+
+      * `DUPLICATE_REFERENCE` -- the same flow reference delivered twice in one
+        hand-over. The real shape is a Bacs bureau re-sending a file, or the
+        same D0018 arriving on two routes.
+      * `FOREIGN_ACCOUNT` -- a message about an account this company does not
+        supply. The payment-seam analogue of the reviewer's "readings for MPANs
+        you don't supply"; on a real bank feed it is a remittance mis-keyed to
+        the wrong supplier's account reference.
+      * `OUT_OF_ORDER_REVISION` -- a restatement handed over BEFORE the message
+        it restates, which is what a rail that fans out across two queues does.
+      * `BACKLOG_BURST` -- a quiet period and then everything at once, every
+        message stale on arrival.
+
+    A REFUSAL, NEVER A NO-OP. Every transform below raises when it cannot
+    actually be applied to the messages it was given. A violation that silently
+    declined to happen would make any regression built on it FAIL-OPEN in the
+    R15 sense -- green because nothing misbehaved, read as green because the
+    company coped.
+    """
+
+    NONE = "NONE"
+    DUPLICATE_REFERENCE = "DUPLICATE_REFERENCE"
+    FOREIGN_ACCOUNT = "FOREIGN_ACCOUNT"
+    OUT_OF_ORDER_REVISION = "OUT_OF_ORDER_REVISION"
+    BACKLOG_BURST = "BACKLOG_BURST"
+
+
+#: The account reference a `FOREIGN_ACCOUNT` violation names. A FIXED synthetic
+#: literal, and that is a wall decision rather than laziness: keying it off some
+#: other customer drawn from the generator would put a real (hidden) identity on
+#: the wire, which is the one thing this module exists to prevent. A company
+#: that does not supply this account cannot learn anything from it beyond the
+#: fact that it does not supply it.
+FOREIGN_ACCOUNT_ID = "ACC-NOT-SUPPLIED-BY-THIS-COMPANY"
+
+
+class SpecViolationNotApplicable(ValueError):
+    """This hand-over could not carry the requested violation. Raised rather
+    than returned-unchanged: see `SpecViolation`'s closing paragraph."""
+
+
+def _envelope_of(message: dict) -> dict:
+    envelope = message.get("envelope") if isinstance(message, dict) else None
+    if not isinstance(envelope, dict):
+        raise SpecViolationNotApplicable(
+            "expected a framed wire message with an 'envelope' dict, got "
+            f"{message!r}"
+        )
+    return envelope
+
+
+def apply_spec_violation(
+    wire_messages: List[dict],
+    violation: "SpecViolation",
+) -> List[dict]:
+    """Return the hand-over this stand-in makes when it is misbehaving.
+
+    Takes and returns FRAMED wire messages (`emit_wire_responses`' output), and
+    never mutates its input -- a caller holding the well-behaved hand-over for
+    comparison must still have it afterwards, which is what makes the null
+    control in every regression below possible.
+    """
+    if violation == SpecViolation.NONE:
+        return list(wire_messages)
+    if not wire_messages:
+        raise SpecViolationNotApplicable(
+            f"{violation.value}: an empty hand-over carries no violation -- a "
+            "stand-in that emitted nothing did not misbehave, it was silent "
+            "(that is TransportFault.SILENCE)"
+        )
+    if violation == SpecViolation.DUPLICATE_REFERENCE:
+        # Each message delivered twice, adjacently: the same flow reference,
+        # the same everything. Deep-copied so a consumer that mutates what it
+        # is handed cannot make the two deliveries differ.
+        out: List[dict] = []
+        for message in wire_messages:
+            out.append(deepcopy(message))
+            out.append(deepcopy(message))
+        return out
+    if violation == SpecViolation.FOREIGN_ACCOUNT:
+        out = []
+        for message in wire_messages:
+            message = deepcopy(message)
+            payload = _envelope_of(message).get("payload")
+            if not isinstance(payload, dict) or "account_id" not in payload.get(
+                "fields", {}
+            ):
+                raise SpecViolationNotApplicable(
+                    "FOREIGN_ACCOUNT: this message carries no account_id to "
+                    "mis-key -- a payload-free envelope (a non-OK status) is "
+                    "about no account at all"
+                )
+            payload["fields"]["account_id"] = FOREIGN_ACCOUNT_ID
+            out.append(message)
+        return out
+    if violation == SpecViolation.OUT_OF_ORDER_REVISION:
+        if len(wire_messages) < 2:
+            raise SpecViolationNotApplicable(
+                "OUT_OF_ORDER_REVISION: one message cannot arrive out of order "
+                "-- an ordering is a property of at least two"
+            )
+        # Handed over newest-first, by the counterparty's OWN clock. Reversal is
+        # the strongest form: no message arrives before anything it precedes.
+        return [
+            deepcopy(m)
+            for m in sorted(
+                wire_messages,
+                key=lambda m: str(_envelope_of(m).get("observed_at")),
+                reverse=True,
+            )
+        ]
+    if violation == SpecViolation.BACKLOG_BURST:
+        if len(wire_messages) < 2:
+            raise SpecViolationNotApplicable(
+                "BACKLOG_BURST: a burst is many messages held back and released "
+                "together; one message is a delivery"
+            )
+        # THE BURST IS THE HAND-OVER ITSELF, and this is the honest modelling
+        # rather than a shortcut. Nothing on this wire records when a message
+        # was HANDED OVER, only when the counterparty says it observed the fact
+        # (`observed_at`). So a burst differs from an ordinary batch in exactly
+        # one respect the company can see -- every message in it is stale -- and
+        # in one it cannot: that they all arrived at once. What this transform
+        # therefore produces is the whole backlog in one list, oldest first,
+        # which is what a rail releases after a queue clears.
+        return [
+            deepcopy(m)
+            for m in sorted(
+                wire_messages, key=lambda m: str(_envelope_of(m).get("observed_at"))
+            )
+        ]
+    raise SpecViolationNotApplicable(
+        f"payment_seam_adapter: unrecognised SpecViolation {violation!r} -- a "
+        "violation this stand-in cannot emit must refuse, never fall through as "
+        "well-behaved traffic"
+    )
+
+
+def emit_wire_responses_batch(
+    events,
+    seam_input_for=None,
+    *,
+    spec_violation: "SpecViolation" = SpecViolation.NONE,
+) -> List[dict]:
+    """The batch hand-over a real bank/Bacs feed makes: `emit_wire_responses`
+    flattened across a sequence of `PaymentEvent`s, then whatever the
+    counterparty did wrong to the batch as a whole.
+
+    `spec_violation=NONE` (the default) makes the second stage the identity, so
+    this is exactly `emit_wire_responses` per event concatenated.
+    """
+    wire: List[dict] = []
+    for event in events:
+        seam_input = seam_input_for(event) if seam_input_for is not None else None
+        wire.extend(emit_wire_responses(event, seam_input))
+    return apply_spec_violation(wire, spec_violation)

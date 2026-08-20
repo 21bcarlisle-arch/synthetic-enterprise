@@ -740,11 +740,21 @@ class LivePaymentTriad:
             invoice_ref=invoice_ref,
         )
         self._ledger_book.post(bill)
+        # BILLING IT IS HOW THIS COMPANY LEARNS IT SUPPLIES IT (atom EP6, pass
+        # 42 -- the blind review's Q6). The roster is stated HERE, at the one
+        # place the company acts on its own knowledge of the account, and never
+        # from anything that arrived on the wire; a payment observation naming
+        # an account this company has never billed now lands in suspense
+        # instead of CREATING a ledger for it. Both companies are told, for the
+        # same reason both are billed: a shadow with a different roster would be
+        # a second company, not a counterfactual.
+        self._consumer.note_supplied_account(account_id)
         # The shadow company is billed IDENTICALLY (D8): the counterfactual is
         # about what the company can attribute the CASH to, never about what it
         # invoiced. Posting a different bill set here would make the two books
         # incomparable in exactly the way the attribution guards look for.
         self._cf_ledger_book.post(bill)
+        self._cf_consumer.note_supplied_account(account_id)
 
         # DD payments carry a period-specific remittance (correlation_id ==
         # invoice_ref -> remittance-directed allocation matches the invoice).

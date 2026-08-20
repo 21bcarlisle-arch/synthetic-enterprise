@@ -1041,3 +1041,285 @@ def test_INITIAL_silence_is_produced_by_the_stand_in_and_INVISIBLE_to_the_compan
         "THE GAP: months of silence on a crossing the company raised, and the "
         "ladder has nothing to age because no request register exists (Q2)"
     )
+
+
+# ---------------------------------------------------------------------------
+# THE MISBEHAVING STAND-IN, USED IN REGRESSION (atom EP6, pass 42 -- the blind
+# review's Q6). The reviewer's answer_needed was "yes, and it's used in
+# regression"; this is the second half. Every test below drives the REAL
+# company path (`observe_wire`, so the frame, the envelope and the payload
+# refusals all run) against traffic the stand-in emitted badly on purpose, and
+# every one holds the well-behaved hand-over beside it as its null control.
+# ---------------------------------------------------------------------------
+
+
+def _misbehaviour_batch():
+    from simulation.payment_behaviour_source import DIRECT_DEBIT
+
+    return [
+        PaymentEvent(
+            customer_id="c-q6",
+            period_index=p,
+            due_date=due,
+            amount_gbp=42.0,
+            payment_method=DIRECT_DEBIT,
+            result="success",
+            days_late=0,
+            payment_date=due,
+            dd_failure_reason=None,
+        )
+        for p, due in enumerate(("2026-06-17", "2026-07-17", "2026-08-17"))
+    ]
+
+
+def _drive(events, violation, *, supplied_accounts=None):
+    """Hand the company one badly-behaved batch and report what it did."""
+    from company.billing.payment_observation_consumer import PaymentObservationConsumer
+    from simulation.payment_seam_adapter import emit_wire_responses_batch
+
+    consumer = PaymentObservationConsumer(supplied_accounts=supplied_accounts)
+    wire = emit_wire_responses_batch(events, spec_violation=violation)
+    accepted = [consumer.observe_wire(m) for m in wire]
+    return consumer, wire, accepted
+
+
+def test_q6_DUPLICATE_REFERENCE_is_emitted_and_the_company_posts_the_cash_once():
+    """A Bacs bureau re-sending its file. The company must recognise the
+    second delivery as the fact it already holds (C-S2) and not post twice."""
+    from simulation.payment_seam_adapter import SpecViolation
+
+    events = _misbehaviour_batch()
+    clean, _, _ = _drive(events, SpecViolation.NONE)
+    dirty, wire, accepted = _drive(events, SpecViolation.DUPLICATE_REFERENCE)
+
+    assert len(wire) == 2 * len(events), "the stand-in really did duplicate"
+    assert accepted.count(True) == len(events)
+    assert accepted.count(False) == len(events), (
+        "every second delivery must be the idempotent no-op"
+    )
+    assert dirty.ledger_book.portfolio_balance_gbp() == (
+        clean.ledger_book.portfolio_balance_gbp()
+    ), "duplicated traffic moved the book"
+
+
+def test_q6_OUT_OF_ORDER_REVISION_is_emitted_and_leaves_the_book_identical():
+    """Newest-first delivery. The consumer is order-independent by design
+    (C-S1) and this is the first test that proves it against traffic the
+    STAND-IN mis-ordered, rather than a hand-built reversal."""
+    from simulation.payment_seam_adapter import SpecViolation
+
+    events = _misbehaviour_batch()
+    clean, clean_wire, _ = _drive(events, SpecViolation.NONE)
+    dirty, dirty_wire, accepted = _drive(events, SpecViolation.OUT_OF_ORDER_REVISION)
+
+    assert [m["envelope"]["observed_at"] for m in dirty_wire] != [
+        m["envelope"]["observed_at"] for m in clean_wire
+    ], "the null control must differ from the violation or this proves nothing"
+    assert all(accepted)
+    assert dirty.ledger_book.portfolio_balance_gbp() == (
+        clean.ledger_book.portfolio_balance_gbp()
+    )
+
+
+def test_q6_BACKLOG_BURST_is_emitted_and_the_company_CANNOT_TELL():
+    """A STATED LIMIT, pinned so it cannot be quietly forgotten (the same
+    treatment pass 41 gave initial silence).
+
+    The stand-in can hold a queue back and release it at once. The company's
+    book comes out identical, and that is correct -- no belief should move on
+    delivery timing. What it cannot do is NOTICE, and the reason is structural:
+    nothing on this wire records when a message was HANDED OVER, only when the
+    counterparty says it observed the fact. A burst and an ordinary batch are
+    the same bytes. Detecting one needs a delivery clock the company does not
+    keep -- the same missing-request-leg family as Q2/Q5."""
+    from simulation.payment_seam_adapter import SpecViolation
+
+    events = _misbehaviour_batch()
+    clean, clean_wire, _ = _drive(events, SpecViolation.NONE)
+    dirty, dirty_wire, accepted = _drive(events, SpecViolation.BACKLOG_BURST)
+
+    assert all(accepted)
+    assert dirty.ledger_book.portfolio_balance_gbp() == (
+        clean.ledger_book.portfolio_balance_gbp()
+    )
+    assert dirty_wire == clean_wire, (
+        "THE GAP: the burst is byte-identical to the ordinary hand-over, so no "
+        "company-side check could distinguish them -- a delivery clock (Q2's "
+        "request leg) is what would make it visible"
+    )
+
+
+def test_q6_FOREIGN_ACCOUNT_WITHOUT_A_ROSTER_CREATES_A_PHANTOM_ACCOUNT():
+    """THE DEFECT THIS PASS FOUND, kept as the mutation that proves the repair.
+
+    A remittance mis-keyed to another supplier's account reference. With no
+    roster the company cannot ask whose account it is, `LedgerBook.ledger()`
+    creates it on first sight, and the cash posts. The tell is the last
+    assertion: the portfolio balance is BIT-IDENTICAL to the well-behaved
+    hand-over, so the company's own headline cash figure could not distinguish
+    its customers' money from a stranger's."""
+    from simulation.payment_seam_adapter import FOREIGN_ACCOUNT_ID, SpecViolation
+
+    events = _misbehaviour_batch()
+    clean, _, _ = _drive(events, SpecViolation.NONE)
+    dirty, _, accepted = _drive(events, SpecViolation.FOREIGN_ACCOUNT)
+
+    assert all(accepted)
+    assert dirty.holds_account_roster is False
+    assert dirty.ledger_book.accounts() == [FOREIGN_ACCOUNT_ID]
+    assert dirty.misdirected_observations() == (), (
+        "with no roster the question is UNASKED -- an empty register here must "
+        "never be read as a clean bill"
+    )
+    assert dirty.ledger_book.portfolio_balance_gbp() == (
+        clean.ledger_book.portfolio_balance_gbp()
+    ), "the defect in one line: the aggregate cannot see it"
+
+
+def test_q6_FOREIGN_ACCOUNT_WITH_A_ROSTER_LANDS_IN_SUSPENSE_AND_NOT_THE_BOOK():
+    """The repair. The company states who it supplies as its OWN fact, and the
+    mis-keyed cash is recorded without touching any customer ledger -- the real
+    receivables answer (suspense), never a refusal, because the message is
+    valid and losing it would be worse."""
+    from simulation.payment_seam_adapter import FOREIGN_ACCOUNT_ID, SpecViolation
+
+    events = _misbehaviour_batch()
+    roster = {"ACC-c-q6"}
+    clean, _, _ = _drive(events, SpecViolation.NONE, supplied_accounts=roster)
+    dirty, _, accepted = _drive(
+        events, SpecViolation.FOREIGN_ACCOUNT, supplied_accounts=roster
+    )
+
+    # The null control: the SAME roster passes the well-behaved traffic
+    # through untouched, so the check discriminates rather than blocking.
+    assert clean.ledger_book.accounts() == ["ACC-c-q6"]
+    assert clean.misdirected_observations() == ()
+    assert clean.ledger_book.portfolio_balance_gbp() == -126.0
+
+    assert all(accepted), "a valid message is recorded, never refused"
+    assert dirty.holds_account_roster is True
+    assert dirty.ledger_book.accounts() == [], "no phantom account was created"
+    assert dirty.ledger_book.portfolio_balance_gbp() == 0.0
+    assert dirty.misdirected_cash_gbp() == 126.0
+    assert [m.account_id for m in dirty.misdirected_observations()] == (
+        [FOREIGN_ACCOUNT_ID] * len(events)
+    )
+
+
+def test_q6_R15_MUTANT_deleting_the_roster_check_puts_the_cash_back_in_the_book(
+    monkeypatch,
+):
+    """The control must be able to FAIL. Neuter `_is_misdirected` -- the one
+    line the repair rests on -- and the phantom account returns, the suspense
+    register empties, and the two tests above red."""
+    from company.billing import payment_observation_consumer as poc
+    from simulation.payment_seam_adapter import FOREIGN_ACCOUNT_ID, SpecViolation
+
+    monkeypatch.setattr(
+        poc.PaymentObservationConsumer, "_is_misdirected", lambda self, payload: False
+    )
+    dirty, _, _ = _drive(
+        _misbehaviour_batch(),
+        SpecViolation.FOREIGN_ACCOUNT,
+        supplied_accounts={"ACC-c-q6"},
+    )
+    assert dirty.ledger_book.accounts() == [FOREIGN_ACCOUNT_ID]
+    assert dirty.misdirected_cash_gbp() == 0.0
+
+
+def test_q6_a_roster_held_REFUSES_a_payload_it_cannot_ask_the_question_about():
+    """FAIL-CLOSED, not fail-open (R15). Every payload type on this seam
+    declares `account_id`; one that does not is not a payload this consumer
+    understands, and answering "not misdirected" for it would let exactly the
+    malformed case through the check built to catch it."""
+    from company.billing.payment_observation_consumer import PaymentObservationConsumer
+
+    class _NoAccount:
+        amount_gbp = 1.0
+
+    consumer = PaymentObservationConsumer(supplied_accounts={"ACC-c-q6"})
+    with pytest.raises(ValueError, match="carries no account_id"):
+        consumer._is_misdirected(_NoAccount())
+
+    # ...and with NO roster the same payload is simply unaskable, not an error:
+    # a company that cannot tell must not pretend it can.
+    assert PaymentObservationConsumer()._is_misdirected(_NoAccount()) is False
+
+
+def test_q6_the_LIVE_triad_states_its_roster_as_it_bills_so_the_check_is_not_an_orphan():
+    """Atom EP6, pass 42. A control whose only consumer is its own test is an
+    orphan, so this asserts the RUNNING triad -- the one `run_phase2b` drives --
+    tells its company which accounts it supplies.
+
+    It also pins the SHAPE of the wiring, which is the part worth defending: the
+    roster GROWS as the company bills, because a running supplier learns of an
+    account when it acquires one and does not know its whole book at startup.
+    Both the company and its D8 shadow are told, since a shadow with a different
+    roster would be a second company rather than a counterfactual."""
+    triad = lpt.LivePaymentTriad()
+
+    # Before it has billed anybody it cannot tell whose account anything is,
+    # and it says so rather than pretending -- the null control for the flip.
+    assert triad._consumer.holds_account_roster is False
+    assert triad._cf_consumer.holds_account_roster is False
+
+    for i in range(3):
+        triad.record_period(
+            customer_id=f"q6c{i}",
+            due_date=date(2026, 6, 17),
+            amount_gbp=42.0,
+            income_stress_value="low",
+            segment="resi",
+        )
+
+    expected = {f"ACC-q6c{i}" for i in range(3)}
+    assert triad._consumer.holds_account_roster is True
+    assert expected <= triad._consumer.supplied_accounts
+    assert expected <= triad._cf_consumer.supplied_accounts, (
+        "the shadow must carry the identical roster or the two books stop "
+        "being comparable"
+    )
+    # Nothing this stand-in sent was misdirected: the well-behaved seam names
+    # only accounts the triad billed.
+    assert triad._consumer.misdirected_observations() == ()
+
+
+def test_q6_R15_MUTANT_a_triad_that_stops_stating_its_roster_suspends_its_own_cash(
+    monkeypatch,
+):
+    """The wiring must be able to FAIL, and this is the direction that matters:
+    a roster the company forgets to state is not a harmless omission once the
+    check exists -- with a roster held but the accounts missing from it, the
+    company would suspend its OWN customers' payments.
+
+    Mutating `note_supplied_account` to record only the FIRST account is what
+    a partial wiring looks like, and the two later accounts' cash leaves the
+    book."""
+    real = lpt.PaymentObservationConsumer.note_supplied_account
+
+    def only_the_first(self, account_id):
+        if self.holds_account_roster:
+            return
+        real(self, account_id)
+
+    monkeypatch.setattr(
+        lpt.PaymentObservationConsumer, "note_supplied_account", only_the_first
+    )
+    triad = lpt.LivePaymentTriad()
+    for i in range(3):
+        triad.record_period(
+            customer_id=f"q6m{i}",
+            due_date=date(2026, 6, 17),
+            amount_gbp=42.0,
+            income_stress_value="low",
+            segment="resi",
+        )
+    assert triad._consumer.supplied_accounts == frozenset({"ACC-q6m0"}), (
+        "the mutant must really have stopped after the first"
+    )
+    suspended = {m.account_id for m in triad._consumer.misdirected_observations()}
+    assert suspended, (
+        "a partially-stated roster must be VISIBLE as this company's own cash "
+        "landing in suspense, not silently absorbed"
+    )
+    assert "ACC-q6m0" not in suspended

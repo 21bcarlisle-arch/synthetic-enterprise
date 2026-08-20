@@ -9,6 +9,7 @@ different true circumstances collapse to the same observable
 `BacsReasonCategory` (many-to-one, non-invertible)."""
 from __future__ import annotations
 
+import copy
 import dataclasses
 from datetime import date, datetime
 
@@ -34,14 +35,20 @@ from simulation.payment_behaviour_source import (
     generate_payment_event,
 )
 from simulation.payment_seam_adapter import (
+    FOREIGN_ACCOUNT_ID,
     TRANSPORT_ERROR_CODE,
     SeamAdapterInput,
+    SpecViolation,
+    SpecViolationNotApplicable,
     TransportFault,
     _apply_transport_fault,
     _map_event_to_responses,
+    apply_spec_violation,
     bacs_reason_category_for,
     emit_wall_responses,
     emit_wall_responses_batch,
+    emit_wire_responses,
+    emit_wire_responses_batch,
     payment_rail_for_method,
 )
 
@@ -751,3 +758,164 @@ class TestTransportFault:
         for ev in self.ALL_OUTCOMES:
             mapped = _map_event_to_responses(ev, SeamAdapterInput())
             assert mapped == emit_wall_responses(ev), ev.result
+
+
+# ---------------------------------------------------------------------------
+# THE STAND-IN MISBEHAVING ON PURPOSE (atom EP6, pass 42 -- the blind review's
+# Q6). These test the EMITTER only: that the stand-in can produce each named
+# violation, that it refuses to pretend when it cannot, and that the
+# well-behaved path is untouched. What the COMPANY then does with the traffic
+# is the regression in `tests/background/test_live_payment_triad.py` -- kept
+# apart deliberately, because a fake that can misbehave and a receiver that
+# copes are two different claims and Q6 is about the first.
+# ---------------------------------------------------------------------------
+
+
+class TestSpecViolation:
+    """`SpecViolation` -- structurally valid, semantically wrong traffic."""
+
+    def _batch(self):
+        return [
+            _event(customer_id="c-1", period_index=p, due_date=due, payment_date=due)
+            for p, due in enumerate(("2026-06-17", "2026-07-17", "2026-08-17"))
+        ]
+
+    def test_NONE_is_the_identity_so_no_committed_run_moves(self):
+        """The default must be bit-identical to the un-violated hand-over --
+        the same guarantee `TransportFault.NONE` carries, for the same reason
+        (R13: a violation RATE would be a baseline change)."""
+        events = self._batch()
+        clean = []
+        for event in events:
+            clean.extend(emit_wire_responses(event))
+        assert emit_wire_responses_batch(events) == clean
+        assert (
+            emit_wire_responses_batch(events, spec_violation=SpecViolation.NONE) == clean
+        )
+
+    def test_DUPLICATE_REFERENCE_delivers_the_same_flow_reference_twice(self):
+        events = self._batch()
+        clean = emit_wire_responses_batch(events)
+        dirty = emit_wire_responses_batch(
+            events, spec_violation=SpecViolation.DUPLICATE_REFERENCE
+        )
+        assert len(dirty) == 2 * len(clean)
+        cids = [m["envelope"]["correlation_id"] for m in dirty]
+        assert len(set(cids)) == len(clean), "every reference must appear twice"
+        for cid in set(cids):
+            assert cids.count(cid) == 2
+
+    def test_FOREIGN_ACCOUNT_names_an_account_no_company_here_supplies(self):
+        events = self._batch()
+        clean = emit_wire_responses_batch(events)
+        dirty = emit_wire_responses_batch(
+            events, spec_violation=SpecViolation.FOREIGN_ACCOUNT
+        )
+        assert len(dirty) == len(clean)
+        for before, after in zip(clean, dirty):
+            assert before["envelope"]["payload"]["fields"]["account_id"] != (
+                FOREIGN_ACCOUNT_ID
+            ), "the null control must name a DIFFERENT account or this proves nothing"
+            assert (
+                after["envelope"]["payload"]["fields"]["account_id"] == FOREIGN_ACCOUNT_ID
+            )
+            # Everything else is untouched: the message is well-formed and
+            # about the right money -- it is simply about somebody else.
+            assert after["envelope"]["correlation_id"] == (
+                before["envelope"]["correlation_id"]
+            )
+            assert after["envelope"]["payload"]["fields"]["amount_gbp"] == (
+                before["envelope"]["payload"]["fields"]["amount_gbp"]
+            )
+
+    def test_FOREIGN_ACCOUNT_carries_no_real_identity_across_the_wall(self):
+        """The mis-keyed reference is a FIXED synthetic literal. Keying it off
+        another drawn customer would put a real hidden identity on the wire --
+        the one thing this module exists to prevent."""
+        events = self._batch()
+        dirty = emit_wire_responses_batch(
+            events, spec_violation=SpecViolation.FOREIGN_ACCOUNT
+        )
+        for message in dirty:
+            assert message["envelope"]["payload"]["fields"]["account_id"] == (
+                FOREIGN_ACCOUNT_ID
+            )
+        for event in events:
+            assert event.customer_id not in FOREIGN_ACCOUNT_ID
+
+    def test_OUT_OF_ORDER_REVISION_hands_over_newest_first(self):
+        events = self._batch()
+        clean = emit_wire_responses_batch(events)
+        stamps = [m["envelope"]["observed_at"] for m in clean]
+        assert stamps == sorted(stamps), "the null control must be in order"
+        dirty = emit_wire_responses_batch(
+            events, spec_violation=SpecViolation.OUT_OF_ORDER_REVISION
+        )
+        dirty_stamps = [m["envelope"]["observed_at"] for m in dirty]
+        assert dirty_stamps == sorted(stamps, reverse=True)
+        assert sorted(dirty_stamps) == sorted(stamps), "no message may be lost"
+
+    def test_BACKLOG_BURST_releases_the_whole_queue_oldest_first(self):
+        events = self._batch()
+        dirty = emit_wire_responses_batch(
+            events, spec_violation=SpecViolation.BACKLOG_BURST
+        )
+        stamps = [m["envelope"]["observed_at"] for m in dirty]
+        assert stamps == sorted(stamps)
+        assert len(dirty) == len(emit_wire_responses_batch(events))
+
+    def test_the_input_hand_over_is_never_mutated(self):
+        """Every regression built on this compares against the clean hand-over
+        it also holds -- so a transform that edited in place would make the
+        null control equal to the violation and every such test fail-open."""
+        events = self._batch()
+        clean = emit_wire_responses_batch(events)
+        held = copy.deepcopy(clean)
+        for violation in SpecViolation:
+            apply_spec_violation(clean, violation)
+        assert clean == held
+
+    # -- the refusals: a violation that cannot happen must SAY SO --
+
+    def test_an_empty_hand_over_REFUSES_every_violation(self):
+        for violation in SpecViolation:
+            if violation == SpecViolation.NONE:
+                assert apply_spec_violation([], violation) == []
+                continue
+            with pytest.raises(SpecViolationNotApplicable, match="empty hand-over"):
+                apply_spec_violation([], violation)
+
+    def test_ORDERING_and_BURST_REFUSE_a_single_message(self):
+        """An ordering and a burst are properties of a sequence. Returning the
+        one message unchanged would be a violation that silently did not
+        happen -- FAIL-OPEN in the R15 sense, and the regression above it would
+        go green on a stand-in that never misbehaved."""
+        one = emit_wire_responses(_event())
+        assert len(one) == 1
+        for violation in (
+            SpecViolation.OUT_OF_ORDER_REVISION,
+            SpecViolation.BACKLOG_BURST,
+        ):
+            with pytest.raises(SpecViolationNotApplicable):
+                apply_spec_violation(one, violation)
+
+    def test_FOREIGN_ACCOUNT_REFUSES_a_payload_free_envelope(self):
+        """A non-OK response is about no account at all, so there is nothing to
+        mis-key. Refusing beats silently emitting a well-behaved message."""
+        dispute = emit_wire_responses(_event(result="dispute"))
+        assert dispute[0]["envelope"]["payload"] is None
+        with pytest.raises(SpecViolationNotApplicable, match="no account_id"):
+            apply_spec_violation(dispute, SpecViolation.FOREIGN_ACCOUNT)
+
+    def test_an_unrecognised_violation_REFUSES_rather_than_emitting_clean_traffic(self):
+        with pytest.raises(SpecViolationNotApplicable, match="unrecognised SpecViolation"):
+            apply_spec_violation(emit_wire_responses(_event()), "NOT_A_VIOLATION")
+
+    def test_an_unframed_message_REFUSES(self):
+        """`apply_spec_violation` takes FRAMED wire messages. Handed the bare
+        envelope it must refuse, not reach into a shape it does not have."""
+        with pytest.raises(SpecViolationNotApplicable, match="envelope"):
+            apply_spec_violation(
+                [{"correlation_id": "X"}, {"correlation_id": "Y"}],
+                SpecViolation.OUT_OF_ORDER_REVISION,
+            )

@@ -122,7 +122,17 @@ import datetime as dt
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Sequence, Set, get_type_hints
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    get_type_hints,
+)
 
 from company.billing.account_ledger import (
     AccountLedger,
@@ -308,6 +318,45 @@ class ExpectedCollectionMiss:
     due_date: dt.date
     detected_as_of: dt.date
     days_latency: int            # detected_as_of - due_date (the observability lag)
+
+
+@dataclass(frozen=True)
+class MisdirectedObservation:
+    """A well-formed observation about an account this company DOES NOT SUPPLY.
+
+    WHAT FOUND THIS (atom EP6, pass 42, the blind review's Q6). Pass 42 gave the
+    stand-in the ability to emit spec-violating traffic on purpose
+    (`simulation.payment_seam_adapter.SpecViolation`). The first thing it emitted
+    -- a remittance mis-keyed to another supplier's account reference, the
+    payment-seam form of the reviewer's "readings for MPANs you don't supply" --
+    went straight through: `LedgerBook.ledger()` creates an account on first
+    sight, so the cash CREATED a phantom account and posted into it. Measured on
+    three well-formed messages, the company's `portfolio_balance_gbp` came out
+    BIT-IDENTICAL to the well-behaved hand-over. The aggregate could not tell
+    its own customers' cash from a stranger's.
+
+    THE REAL-WORLD NAME FOR THIS IS SUSPENSE, and that is what this register is:
+    cash (or an advice) that arrived, is not refused -- it is a perfectly valid
+    message and refusing it would lose the fact -- and may not touch a customer
+    ledger, because the company has no customer to touch. A real supplier's
+    receivables function books it to an unapplied/suspense account and works it
+    off manually.
+
+    SENSING ONLY, same clause as `ExpectedCollectionMiss`: this register
+    RECORDS. It returns nothing to the counterparty, raises no query, writes off
+    nothing -- those are acting organs, RESERVED to the director's
+    dunning/debt/provisioning session (ruling 2026-07-25 §2).
+
+    ONLY POPULATED WHEN THE COMPANY HOLDS A ROSTER. A consumer built without
+    `supplied_accounts` cannot ask the question at all, and this register stays
+    empty -- see `PaymentObservationConsumer.holds_account_roster`, which exists
+    so that "empty" and "unasked" are distinguishable to a reader."""
+
+    correlation_id: str
+    account_id: str              # the account named on the wire -- NOT one of ours
+    payload_type: str
+    amount_gbp: Optional[float]  # None where the payload carries no amount
+    observed_at: dt.datetime
 
 
 @dataclass(frozen=True)
@@ -618,6 +667,7 @@ class PaymentObservationConsumer:
         ledger_book: Optional[LedgerBook] = None,
         dd_failure_window_days: int = 90,
         posture: Any = DECLARED_POSTURE,
+        supplied_accounts: Optional[Iterable[str]] = None,
     ) -> None:
         # THE STARTUP ASSERTION (atom EP6, pass 40 -- the blind review's Q14).
         # This constructor is the startup of the only framed crossing the
@@ -642,6 +692,24 @@ class PaymentObservationConsumer:
         self._resolved_correlation_ids: Set[str] = set()
         self._unresolved: Dict[str, UnresolvedCrossing] = {}
         self._dd_failure_window_days = dd_failure_window_days
+        # THE ACCOUNT ROSTER (atom EP6, pass 42 -- the blind review's Q6).
+        # WHO THIS COMPANY SUPPLIES, held as the company's OWN fact and never
+        # read off the wire: a message naming an account cannot be the evidence
+        # that the account is ours, which is the R15 TAUTOLOGY this check would
+        # otherwise be.
+        #
+        # `None` MEANS UNASKED, NOT EMPTY, and the distinction is the whole of
+        # why this is optional. Every caller that existed before pass 42 gets
+        # bit-identical behaviour, because a company with no roster has no
+        # grounds to reject anything -- but `holds_account_roster` says so, so a
+        # reader of an empty `misdirected_observations()` can tell "nothing was
+        # misdirected" from "nobody could tell". An empty ROSTER (`set()`) is a
+        # different and legitimate statement: a company that supplies nobody,
+        # for which every observation is misdirected.
+        self._supplied_accounts: Optional[frozenset] = (
+            None if supplied_accounts is None else frozenset(supplied_accounts)
+        )
+        self._misdirected: List[MisdirectedObservation] = []
 
     @property
     def dd_failure_window_days(self) -> int:
@@ -761,6 +829,21 @@ class PaymentObservationConsumer:
         self._unresolved.pop(cid, None)
         self._resolved_correlation_ids.add(cid)
         payload = response.payload
+        if self._is_misdirected(payload):
+            # SUSPENSE, not refusal and not a ledger post. The crossing is
+            # marked resolved above and stays so: the message arrived, was read
+            # and was answered, so a re-delivery of it must remain the same
+            # no-op it is for any other observation (C-S2).
+            self._misdirected.append(
+                MisdirectedObservation(
+                    correlation_id=cid,
+                    account_id=payload.account_id,
+                    payload_type=type(payload).__name__,
+                    amount_gbp=getattr(payload, "amount_gbp", None),
+                    observed_at=response.observed_at,
+                )
+            )
+            return True
         if isinstance(payload, RemittanceAdvice):
             self._observe_remittance(payload, response)
         elif isinstance(payload, BacsArruddOutcome):
@@ -780,6 +863,90 @@ class PaymentObservationConsumer:
                 "OBSERVABLE_RESPONSE_PAYLOAD_TYPES"
             )
         return True
+
+    @property
+    def holds_account_roster(self) -> bool:
+        """Whether this company can tell its own accounts from a stranger's.
+
+        Public so that an empty `misdirected_observations()` is readable: False
+        here means the question was never askable, which is a different fact
+        from "nothing arrived for an account we do not supply" and must not be
+        reported as the same clean bill."""
+        return self._supplied_accounts is not None
+
+    @property
+    def supplied_accounts(self) -> Optional[frozenset]:
+        """The roster itself, or None where none is held.
+
+        Public for the reason `dd_failure_window_days` was made public: when the
+        private attribute is the only route to a value, every instrument that
+        needs it reaches for a constant somewhere else and reports the wrong
+        company. A supplier knows its own account list; nothing here crosses the
+        wall, because it is the company's own fact and not a read of the world."""
+        return self._supplied_accounts
+
+    def note_supplied_account(self, account_id: str) -> None:
+        """Record that this company now supplies `account_id`.
+
+        THE ROSTER GROWS, because a real supplier's does. The constructor form
+        suits a harness that knows its whole book up front; a RUNNING company
+        learns of an account when it acquires and bills one, which is what this
+        is called at. It is the company writing down its OWN fact -- never a
+        read of the world, and never derived from anything that arrived on the
+        wire, which is the property that keeps the misdirection check from
+        being a tautology.
+
+        CALLING THIS STARTS A ROSTER on a consumer that held none: the company
+        moves from "cannot tell whose account this is" to "can", and
+        `holds_account_roster` flips with it. That is the intended transition
+        and the reason the method exists rather than the roster being
+        constructor-only."""
+        if not isinstance(account_id, str) or not account_id:
+            raise ValueError(
+                "payment_observation_consumer: an account this company supplies "
+                f"must be a non-empty id, got {account_id!r}"
+            )
+        current = self._supplied_accounts or frozenset()
+        self._supplied_accounts = current | {account_id}
+
+    def misdirected_observations(self) -> Tuple[MisdirectedObservation, ...]:
+        """Everything that arrived, well-formed, about an account this company
+        does not supply -- the suspense register (atom EP6, Q6). Empty and
+        meaningless unless `holds_account_roster`."""
+        return tuple(self._misdirected)
+
+    def misdirected_cash_gbp(self) -> float:
+        """Cash this company was told about that belongs to nobody it supplies,
+        and therefore did NOT post. The figure that was invisible before pass
+        42: it used to land in `portfolio_balance_gbp` under a phantom account
+        and move no headline at all."""
+        return round(
+            sum(m.amount_gbp for m in self._misdirected if m.amount_gbp is not None), 2
+        )
+
+    def _is_misdirected(self, payload: Any) -> bool:
+        """Is this payload about an account we do not supply?
+
+        FAILS CLOSED IN BOTH DIRECTIONS THAT MATTER. With no roster held the
+        answer is False -- the company genuinely cannot tell, and inventing a
+        rejection would be worse than the gap `holds_account_roster` publishes.
+        With a roster held, a payload carrying NO `account_id` RAISES rather
+        than passing: every one of this seam's six response payload types
+        declares `account_id` (`OBSERVABLE_PAYLOAD_FIELDS`), so an object
+        without one is not a payload this consumer understands, and treating it
+        as "not misdirected" would be the FAIL-OPEN-on-malformed pattern R15
+        names."""
+        if self._supplied_accounts is None:
+            return False
+        account_id = getattr(payload, "account_id", None)
+        if not isinstance(account_id, str):
+            raise ValueError(
+                "payment_observation_consumer: an account roster is held but "
+                f"payload {type(payload).__name__!r} carries no account_id -- "
+                "this seam's payload types all declare one, so the roster check "
+                "cannot be skipped for it"
+            )
+        return account_id not in self._supplied_accounts
 
     def _post_cash(
         self,
