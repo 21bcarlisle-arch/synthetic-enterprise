@@ -3488,3 +3488,403 @@ def test_the_conversation_check_is_REPORTED_by_the_CLI_and_deliberately_NOT_in_i
         "fails it, which refuses every commit including its own repair. Arm it in the same "
         "commit that makes it satisfiable -- and delete this assertion then."
     )
+
+
+# ── 23. channel C, per STATUS -- does the vocabulary the wall declares have speakers? ─────────
+#
+# WHY THIS SECTION EXISTS (2026-08-20, pass 35). Passes 33 and 34 both closed carrying the same
+# named L3 blocker in the same words: "give `WallStatus.TIMEOUT` a reader or delete it". Counting
+# the producers instead of imagining them says that framing is one step off, and in exactly the
+# way pass 33's prose was one step off from what pass 34 found in the code.
+#
+# TIMEOUT HAS NO WRITER EITHER, so "give it a reader" is a build item for a message this wall
+# cannot send -- a dead arm on arrival. And `ERROR` is in the identical state and was named by
+# nobody, across three passes looking straight at it: the miss sitting next to the hit, which is
+# this atom's OWN recorded class from pass 29 (`nudge_uplift` named, `tone_uplift` missed, four
+# lines apart). Two instances make it a class worth a control rather than a third careful reading.
+#
+# The green case is REACHABLE on the fixture below, which matters because the live tree is red at
+# 1 of 4: a control that has only ever said no is indistinguishable from one that can only say no.
+
+
+STATUS_ENVELOPE = "interface/contracts/wall_envelope.py"
+
+
+@pytest.fixture()
+def status_tree(tmp_path: Path) -> Path:
+    """A wall whose two-member vocabulary is fully inhabited -- both members said AND acted on.
+
+    TWO members and not four, for the `tree` fixture's reason: with a vocabulary this small,
+    "the mutation killed a member" and "the check never saw that member" cannot be confused. The
+    live enum's other two members arrive in the tests that are ABOUT arriving members.
+    """
+    root = tmp_path / "repo"
+    _write(root, STATUS_ENVELOPE, """
+        from enum import Enum
+
+        class WallStatus(str, Enum):
+            OK = "OK"
+            TIMEOUT = "TIMEOUT"
+
+        class WallResponse:
+            def __post_init__(self):
+                if self.status == WallStatus.OK and self.payload is None:
+                    raise ValueError("OK must carry a payload")
+    """)
+    _write(root, "simulation/payment_seam_adapter.py", """
+        from interface.contracts.wall_envelope import WallResponse, WallStatus
+
+        def emit(fact, deadline_passed):
+            if deadline_passed:
+                return WallResponse(status=WallStatus.TIMEOUT, payload=None)
+            return WallResponse(status=WallStatus.OK, payload=fact)
+    """)
+    _write(root, "company/billing/payment_observation_consumer.py", """
+        from interface.contracts.wall_envelope import WallStatus
+
+        def observe(response):
+            if response.status == WallStatus.TIMEOUT:
+                return "last known value, flagged stale"
+            if response.status == WallStatus.OK:
+                return response.payload
+            return None
+    """)
+    return root
+
+
+def test_a_vocabulary_whose_members_are_all_SAID_and_HEARD_is_live(status_tree):
+    """The success case, and the null control every mutation below is measured against."""
+    verdict = wcc.status_liveness_conformance(str(status_tree))
+
+    assert verdict.live == ("OK", "TIMEOUT"), verdict.report()
+    assert not verdict.unheard and not verdict.unspoken and not verdict.uninhabited
+    assert verdict.ok, verdict.report()
+    assert "2 of 2" in verdict.report()
+
+
+def test_MUTATION_a_member_with_a_READER_and_no_WRITER_is_UNSPOKEN(status_tree):
+    """THE DEFECT PASSES 33 AND 34'S PROPOSED REPAIR WOULD HAVE BUILT, run rather than argued.
+
+    "Give TIMEOUT a reader" applied to the live tree produces exactly this tree: the branch
+    exists, and nothing in the build can take it. R11's orphan transition pointed at the release
+    half -- a hold whose release triggers nothing. It must not read as a repair.
+    """
+    _write(status_tree, "simulation/payment_seam_adapter.py", """
+        from interface.contracts.wall_envelope import WallResponse, WallStatus
+
+        def emit(fact):
+            return WallResponse(status=WallStatus.OK, payload=fact)
+    """)
+    verdict = wcc.status_liveness_conformance(str(status_tree))
+
+    assert verdict.unspoken == ("TIMEOUT",), verdict.report()
+    assert verdict.live == ("OK",)
+    assert not verdict.ok, verdict.report()
+    assert "A reader for an event this build cannot produce" in verdict.report()
+
+
+def test_MUTATION_a_member_with_a_WRITER_and_no_READER_is_UNHEARD_and_does_not_collapse(
+    status_tree,
+):
+    """The mirror, and the assertion that matters is that it does NOT land in `unspoken`.
+
+    These are opposite defects with opposite repairs -- one needs a reader, one needs a writer --
+    and a control that sorted both into one bucket would name the wrong half of the work. This is
+    `NOT_KNOWABLE_YET`'s live bucket, which no pass has named either.
+    """
+    _write(status_tree, "company/billing/payment_observation_consumer.py", """
+        from interface.contracts.wall_envelope import WallStatus
+
+        def observe(response):
+            if response.status == WallStatus.OK:
+                return response.payload
+            return None
+    """)
+    verdict = wcc.status_liveness_conformance(str(status_tree))
+
+    assert verdict.unheard == ("TIMEOUT",), verdict.report()
+    assert "TIMEOUT" not in verdict.unspoken
+    assert not verdict.ok
+    assert "collapses it into every other non-OK member" in verdict.report()
+
+
+def test_MUTATION_a_member_nobody_says_and_nobody_hears_is_UNINHABITED(status_tree):
+    """TIMEOUT's and ERROR's actual bucket on the live tree, reproduced on the fixture."""
+    _write(status_tree, "simulation/payment_seam_adapter.py", """
+        from interface.contracts.wall_envelope import WallResponse, WallStatus
+
+        def emit(fact):
+            return WallResponse(status=WallStatus.OK, payload=fact)
+    """)
+    _write(status_tree, "company/billing/payment_observation_consumer.py", """
+        from interface.contracts.wall_envelope import WallStatus
+
+        def observe(response):
+            if response.status == WallStatus.OK:
+                return response.payload
+            return None
+    """)
+    verdict = wcc.status_liveness_conformance(str(status_tree))
+
+    assert verdict.uninhabited == ("TIMEOUT",), verdict.report()
+    assert not verdict.ok
+    assert "Writer first, then reader -- a reader alone is a dead arm" in verdict.report()
+
+
+def test_R15_TAUTOLOGY_the_declaring_module_cannot_inhabit_its_own_vocabulary(status_tree):
+    """The contract validating its own invariants is NOT the wall using the member.
+
+    `WallResponse.__post_init__` compares against `ERROR` to enforce that an ERROR carries an
+    `ErrorDetail`. Counting that as a reader would derive the checked value from the source it
+    checks, and every member would be born live the moment someone wrote a payload invariant for
+    it -- the vocabulary certifying itself. The fixture's envelope already compares `OK`; adding
+    `ERROR` the same way must move nothing.
+    """
+    _write(status_tree, STATUS_ENVELOPE, """
+        from enum import Enum
+
+        class WallStatus(str, Enum):
+            OK = "OK"
+            TIMEOUT = "TIMEOUT"
+            ERROR = "ERROR"
+
+        class WallResponse:
+            def __post_init__(self):
+                if self.status == WallStatus.OK and self.payload is None:
+                    raise ValueError("OK must carry a payload")
+                if self.status == WallStatus.ERROR and self.error is None:
+                    raise ValueError("ERROR must carry an ErrorDetail")
+                if self.status != WallStatus.ERROR and self.error is not None:
+                    raise ValueError("only ERROR carries an error")
+    """)
+    verdict = wcc.status_liveness_conformance(str(status_tree))
+
+    assert verdict.uninhabited == ("ERROR",), verdict.report()
+    assert "ERROR" not in verdict.unspoken, (
+        "the declaring module's own payload invariant has been counted as a reader, so the "
+        "contract can now certify its own vocabulary live"
+    )
+    assert verdict.live == ("OK", "TIMEOUT")
+
+
+def test_a_MATCH_arm_counts_as_HEARING_the_member_and_not_as_saying_it(status_tree):
+    """A fail-open with a shelf life, closed before it opened.
+
+    `match` is the idiomatic way to branch on an enum, and it puts the member in a position that
+    is not a `Compare`. Read naively, the first consumer rewritten from `if status != OK` to a
+    four-arm `match` would flip every member it reads from HEARD to SAID -- and the verdict would
+    have gone greener as the code got better. A control that misreads the repair it is asking for
+    is not asking for it.
+    """
+    _write(status_tree, "company/billing/payment_observation_consumer.py", """
+        from interface.contracts.wall_envelope import WallStatus
+
+        def observe(response):
+            match response.status:
+                case WallStatus.TIMEOUT:
+                    return "last known value, flagged stale"
+                case WallStatus.OK:
+                    return response.payload
+            return None
+    """)
+    verdict = wcc.status_liveness_conformance(str(status_tree))
+
+    assert verdict.live == ("OK", "TIMEOUT"), verdict.report()
+    spoken = dict(verdict.spoken_in)
+    assert "company.billing.payment_observation_consumer" not in spoken.get("TIMEOUT", ()), (
+        "a match arm has been counted as SAYING the status -- the consumer is now inhabiting the "
+        "member it merely reads, and rewriting an if-chain as a match would score as a repair"
+    )
+
+
+def test_NULL_CONTROL_an_unrelated_enum_with_the_same_member_names_moves_nothing(status_tree):
+    """Moves the sample, not the law: same member names, different vocabulary."""
+    before = wcc.status_liveness_conformance(str(status_tree))
+    _write(status_tree, "company/interfaces/recorded_sim_interface.py", """
+        from enum import Enum
+
+        class ReplayStatus(str, Enum):
+            OK = "OK"
+            TIMEOUT = "TIMEOUT"
+
+        def replay(record):
+            if record.status == ReplayStatus.TIMEOUT:
+                return None
+            return ReplayStatus.OK
+    """)
+    after = wcc.status_liveness_conformance(str(status_tree))
+
+    assert after == before, after.report()
+
+
+def test_a_member_declared_TOMORROW_lands_SCORED_without_editing_this_control(status_tree):
+    """The population is DERIVED, so a fifth member owns this question on the day it lands.
+
+    A listed population would have let a new member arrive unscored and unnoticed, which is the
+    failure the seam questions above are derived to avoid.
+    """
+    _write(status_tree, STATUS_ENVELOPE, """
+        from enum import Enum
+
+        class WallStatus(str, Enum):
+            OK = "OK"
+            TIMEOUT = "TIMEOUT"
+            SUPERSEDED = "SUPERSEDED"
+    """)
+    verdict = wcc.status_liveness_conformance(str(status_tree))
+
+    assert verdict.uninhabited == ("SUPERSEDED",), verdict.report()
+    assert not verdict.ok
+
+
+def test_MUTATION_deleting_TIMEOUT_is_INVISIBLE_here_and_REFUSED_by_the_floor(status_tree):
+    """THE BLIND SPOT, PINNED IN ONE FUNCTION RATHER THAN DESCRIBED IN A DOCSTRING.
+
+    This control derives its population from the declaration it measures, so deleting a member
+    does not move the finding -- it removes the subject and leaves. That is the R15 mutation that
+    deletes the subject instead of mutating it, and here it would score as a full repair: a wall
+    that can no longer say "the answer did not arrive" reports a clean 1 of 1.
+
+    Both halves are asserted together so the pairing cannot rot apart: the liveness question goes
+    GREEN on this tree, and `missing_from_status_floor` refuses it. If the first assertion ever
+    starts failing, this control has grown the ability to see a deletion and the floor may be
+    reconsidered -- until then the floor is the only thing standing between the finding and a
+    one-line edit that makes the architecture worse.
+    """
+    _write(status_tree, STATUS_ENVELOPE, """
+        from enum import Enum
+
+        class WallStatus(str, Enum):
+            OK = "OK"
+    """)
+    _write(status_tree, "simulation/payment_seam_adapter.py", """
+        from interface.contracts.wall_envelope import WallResponse, WallStatus
+
+        def emit(fact):
+            return WallResponse(status=WallStatus.OK, payload=fact)
+    """)
+    _write(status_tree, "company/billing/payment_observation_consumer.py", """
+        from interface.contracts.wall_envelope import WallStatus
+
+        def observe(response):
+            if response.status == WallStatus.OK:
+                return response.payload
+            return None
+    """)
+    verdict = wcc.status_liveness_conformance(str(status_tree))
+
+    assert verdict.ok, (
+        "the liveness question has become able to see a deleted member; if that is real, this "
+        "test's premise is gone and the floor's necessity should be re-argued: " + verdict.report()
+    )
+    assert wcc.missing_from_status_floor(str(status_tree)) == ("TIMEOUT", "ERROR", "NOT_KNOWABLE_YET")
+
+
+def test_FAIL_CLOSED_an_absent_declaring_module_is_a_FAILED_check(status_tree):
+    (status_tree / STATUS_ENVELOPE).unlink()
+
+    with pytest.raises(wcc.CensusUnavailable, match="absent or unparseable"):
+        wcc.status_liveness_conformance(str(status_tree))
+
+
+def test_FAIL_CLOSED_a_missing_enum_is_a_FAILED_check_not_an_empty_vocabulary(status_tree):
+    _write(status_tree, STATUS_ENVELOPE, '"""the envelope shape, and no status vocabulary."""\n')
+
+    with pytest.raises(wcc.CensusUnavailable, match="is not declared"):
+        wcc.status_liveness_conformance(str(status_tree))
+
+
+def test_FAIL_CLOSED_an_EMPTY_vocabulary_is_REFUSED_unlike_a_paid_down_seam_channel(status_tree):
+    """The one place this file's zero-is-fine rule is deliberately inverted, and why.
+
+    `seam_conversation_conformance` returns an empty verdict on zero seams because a fully
+    paid-down envelope channel is a legitimate success case, and a control pinned to a non-zero
+    count reds on its own success. A vocabulary emptied of members is not the same event: nothing
+    was paid down, the wall simply lost the ability to say anything. `0 of 0` would be the
+    cheapest pass available and the worst outcome for the contract.
+    """
+    _write(status_tree, STATUS_ENVELOPE, """
+        from enum import Enum
+
+        class WallStatus(str, Enum):
+            pass
+    """)
+    with pytest.raises(wcc.CensusUnavailable, match="declares no members"):
+        wcc.status_liveness_conformance(str(status_tree))
+
+
+# ── 23b. the live reading -- RED at 1 of 4, and recorded as the L3 blocker it is ───────────────
+
+
+def test_the_LIVE_status_vocabulary_is_inhabited_ONE_OF_FOUR(  # noqa: E501
+):
+    """THE FINDING, pinned so it cannot decay into narration, and it is not what pass 34 expected.
+
+    The blocker pass 34 handed forward was one item: `WallStatus.TIMEOUT` has no reader. The
+    measurement says the wall is worse off than that in one direction and differently off in
+    another:
+
+      * TIMEOUT is UNINHABITED, not merely unread -- nothing says it either, so the reader that
+        pass 33 and 34 both proposed would have been a dead arm.
+      * ERROR is in the SAME bucket and was named by no pass.
+      * NOT_KNOWABLE_YET is UNHEARD -- the world says it and both consumers collapse it into
+        not-OK, so the honest answer the envelope's docstring is proudest of is discarded on
+        arrival.
+
+    SHRINK-ONLY on the red buckets, which is what stops "reported" decaying into "narrated": a
+    repair passes, and a NEW member arriving uninhabited reds here on the day it lands.
+
+    WHEN THIS GOES GREEN the assertions below fail, and that is the correct moment to move
+    `statuses.ok` into the CLI's return and this test into `assert verdict.ok`.
+    """
+    verdict = wcc.status_liveness_conformance_at(worktree=True)
+
+    assert verdict.live == ("OK",), verdict.report()
+    assert set(verdict.uninhabited) <= {"TIMEOUT", "ERROR"}, (
+        "a NEW status member is declared that nothing says and nothing acts on: " + verdict.report()
+    )
+    assert set(verdict.unheard) <= {"NOT_KNOWABLE_YET"}, (
+        "a NEW status member is said by the world and distinguished by nobody: " + verdict.report()
+    )
+    assert not verdict.unspoken, (
+        "a reader now branches on a member this build cannot produce -- the dead arm this "
+        "control exists to stop being built: " + verdict.report()
+    )
+
+
+def test_the_LIVE_status_floor_is_intact_and_this_one_GATES():
+    """The floor is satisfiable at HEAD, which is why it is wired into the CLI's exit code in the
+    same commit that adds it -- this file's own rule for when a check may become a gate."""
+    assert wcc.missing_from_status_floor_at(worktree=True) == ()
+    assert set(wcc.STATUS_VOCABULARY_FLOOR) == {"OK", "TIMEOUT", "ERROR", "NOT_KNOWABLE_YET"}
+
+
+def test_the_status_check_REPORTS_and_the_status_FLOOR_gates_and_both_reach_a_reader():
+    """The two halves land together and are wired DIFFERENTLY on purpose. Read off the source
+    rather than by running the CLI, which takes minutes."""
+    import ast
+
+    source = (Path(wcc.__file__).parent.parent / "tools" / "wall_channel_census.py").read_text()
+    tree = ast.parse(source)
+    printed = [
+        ast.unparse(n)
+        for n in ast.walk(tree)
+        if isinstance(n, ast.Call) and getattr(n.func, "id", "") == "print"
+    ]
+    returns = [
+        ast.unparse(n.value) for n in ast.walk(tree)
+        if isinstance(n, ast.Return) and n.value is not None
+    ]
+
+    assert any("statuses.report()" in p for p in printed), (
+        "the status verdict reaches no reader -- a control nobody sees is not reporting"
+    )
+    assert not any("statuses.ok" in r for r in returns), (
+        "the status liveness check has been wired into the exit code while three of four members "
+        "still fail it, which refuses every commit including its own repair. Arm it in the same "
+        "commit that makes it satisfiable -- and delete this assertion then."
+    )
+    assert any("floor_gaps" in ast.unparse(n) for n in ast.walk(tree) if isinstance(n, ast.If)), (
+        "the status FLOOR no longer gates -- it is satisfiable at HEAD, so reporting-only would "
+        "leave the liveness question's cheapest repair (delete the member) unrefused"
+    )

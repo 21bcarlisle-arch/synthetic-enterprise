@@ -1682,6 +1682,296 @@ def seam_conversation_conformance_at(
         return seam_conversation_conformance(root)
 
 
+# ── channel C, the third question: does the STATUS VOCABULARY have speakers and hearers? ─────
+# Passes 33 and 34 both carried the same named L3 blocker, in the same words: "give
+# `WallStatus.TIMEOUT` a reader or delete it". Enumerating the producers instead of imagining
+# them -- the move pass 29 wrote down as this atom's own lesson -- says that framing is one step
+# off, in exactly the way pass 33's prose was one step off from what pass 34 found in the code.
+#
+# TIMEOUT HAS NO WRITER EITHER. Nothing in the census trees constructs it. So "give it a reader"
+# is a build item for a message this wall cannot send: a reader whose triggering event no code
+# in this repository can produce is R11's orphan transition pointed at the release half, and it
+# would have landed as a satisfied blocker and a dead branch.
+#
+# AND THE MISS SITS NEXT TO A HIT, which this atom has now recorded twice and is therefore a
+# class and not an instance. At pass 29 the belt named `nudge_uplift` and missed `tone_uplift`,
+# its sibling four lines away. Here three passes named TIMEOUT and none named `ERROR` -- its
+# immediate sibling in the same four-member enum, in the identical state (no writer, no hearer),
+# distinguished from it by the very docstring sentence that made TIMEOUT worth naming. A list
+# assembled by noticing gets the member someone was looking at; only enumerating the vocabulary
+# gets the second one.
+#
+# WHY THIS IS THE GO-LIVE QUESTION AND NOT HOUSEKEEPING. The atom's `gain` is that go-live is a
+# transport swap rather than a redesign. `_decode_status` in `company/interfaces/wall_protocol.py`
+# already accepts ALL FOUR members off the wire, because a decoder must -- so the company can
+# RECEIVE a status it cannot SEND and cannot ACT ON. A real transport produces timeouts on day
+# one; both company-side consumers collapse every non-OK member to not-OK
+# (`payment_observation_consumer.py:611`, `flex_participation.py:274`), so TIMEOUT releases
+# exactly what ERROR releases and the distinction the contract charges for is not bought.
+#
+# EVERY ERROR THIS CAN MAKE IS TOWARD GREEN, deliberately, because it arrives RED and a red it
+# manufactures would be worse than a finding it loses. Mention-counting is therefore GENEROUS:
+# any `WallStatus.X` outside a comparison counts as speaking it (a name bound and passed on
+# later still counts), any inside one counts as hearing it, and readers are counted on BOTH
+# sides of the wall rather than company-side only. A member this reports as uninhabited is
+# uninhabited under the loosest reading available.
+
+#: The enum whose members are channel C's status vocabulary, and the module that declares it.
+STATUS_ENUM_NAME = "WallStatus"
+STATUS_ENUM_REL: tuple[str, ...] = ("interface", "contracts", "wall_envelope.py")
+#: The declaring module is excluded from BOTH counts. R15 TAUTOLOGY: `WallResponse.__post_init__`
+#: compares against OK and ERROR to enforce its payload invariants, and letting a contract
+#: validate its own vocabulary into liveness would derive the checked value from the source it
+#: checks. A status is live because something ELSE says it or acts on it, or it is not live.
+STATUS_ENUM_MODULE = ".".join(STATUS_ENUM_REL)[: -len(".py")]
+
+
+def declared_statuses(root: str) -> tuple[str, ...]:
+    """The members `WallStatus` declares, in declaration order, read from the enum itself.
+
+    DERIVED, NOT LISTED, for `envelope_seams`' reason: a fifth member added tomorrow is scored on
+    the day it lands rather than on the day someone remembers to name it here.
+
+    FAIL-CLOSED three ways (R15: an unavailable check is a FAILED check) -- the module missing,
+    the class missing, or the class empty all raise. In particular ZERO MEMBERS IS REFUSED, and
+    that is the opposite of the rule the seam questions above follow: a paid-down seam channel is
+    a success case, but a status vocabulary emptied of members is a deleted contract, not a
+    finished migration.
+    """
+    path = os.path.join(root, *STATUS_ENUM_REL)
+    tree = _parse(path)
+    if tree is None:
+        raise CensusUnavailable(
+            f"the status vocabulary's declaring module ({'/'.join(STATUS_ENUM_REL)}) is absent or "
+            "unparseable, so the subject of this question could not be read -- 'could not look' "
+            "and 'found nothing' are the same number and opposite facts"
+        )
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name == STATUS_ENUM_NAME:
+            members = [
+                t.id
+                for stmt in node.body
+                if isinstance(stmt, ast.Assign)
+                for t in stmt.targets
+                if isinstance(t, ast.Name)
+            ]
+            if not members:
+                raise CensusUnavailable(
+                    f"`{STATUS_ENUM_NAME}` declares no members -- an empty vocabulary would score "
+                    "as a clean 0 of 0, which is the cheapest way to pass this check and the "
+                    "worst thing that can happen to the contract"
+                )
+            return tuple(members)
+    raise CensusUnavailable(
+        f"`{STATUS_ENUM_NAME}` is not declared in {'/'.join(STATUS_ENUM_REL)} -- the subject of "
+        "the status question has been removed, which is a failed check"
+    )
+
+
+#: The status vocabulary this wall must keep the ability to express, and the reason for each.
+#: GROW-ONLY -- the exact opposite direction to the census baseline beside it, and the difference
+#: is what each list is FOR. A channel shrinks as crossings are paid down, so shrink-only is that
+#: baseline's success direction. A vocabulary shrinks when the wall loses the ability to say
+#: something, and at go-live the members it cannot say are the ones a real counterparty will send
+#: anyway. Deleting `TIMEOUT` would be the cheap cut that BANKS the defect behind the wall: the
+#: liveness question above goes green, and the contract stops being able to distinguish "the
+#: answer did not arrive" from "the answer is that this failed" -- which is the one distinction
+#: `WallStatus`'s own docstring exists to draw.
+STATUS_VOCABULARY_FLOOR: dict[str, str] = {
+    "OK": "the answer arrived and is a fact",
+    "TIMEOUT": "the answer did not arrive in time, and that says NOTHING about whether the fact "
+               "exists -- the member a real transport produces on day one of go-live",
+    "ERROR": "the crossing itself failed, carrying a structured ErrorDetail",
+    "NOT_KNOWABLE_YET": "the fact is not yet knowable -- an honest answer, not an absence",
+}
+
+
+def missing_from_status_floor(root: str) -> tuple[str, ...]:
+    """Floor members the vocabulary no longer declares. Empty is the pass.
+
+    THIS GATES FROM ITS FIRST COMMIT, by this file's own rule that a check becomes a gate "in the
+    same commit that makes it satisfiable". All four members are declared at HEAD, so the only
+    commits it can refuse are commits that DELETE one -- which is precisely its subject and not
+    its collateral. It is the companion the liveness question needs and cannot be: that question
+    derives its population from the declaration, so it cannot see a member leave.
+    """
+    return tuple(m for m in STATUS_VOCABULARY_FLOOR if m not in declared_statuses(root))
+
+
+def missing_from_status_floor_at(
+    rev: str = "HEAD", worktree: bool = False, repo_root: Path = PROJECT_DIR
+) -> tuple[str, ...]:
+    """`missing_from_status_floor` against the worktree, or against the tree at `rev`."""
+    if worktree:
+        return missing_from_status_floor(str(repo_root))
+    with head_export(str(repo_root), CENSUS_DIRS, rev=rev) as root:
+        return missing_from_status_floor(root)
+
+
+def status_mentions(root: str) -> tuple[dict[str, set[str]], dict[str, set[str]]]:
+    """`(spoken_in, heard_in)` -- which modules SAY each status, and which ACT ON it.
+
+    THE TWO ARE TOLD APART BY SYNTACTIC POSITION, which is the only distinction available and is
+    the right one: a `WallStatus.X` inside a comparison (an `==`/`!=`/`in`, or a `match` case
+    pattern, which is how one idiomatically branches on an enum and would otherwise have counted
+    as speaking) is a reader DISCRIMINATING that member; anywhere else it is a writer NAMING it.
+
+    `match` is included because leaving it out would have been a fail-open with a shelf life: the
+    first consumer rewritten from `if status != OK` to a four-arm `match` would have flipped every
+    member it reads from heard to spoken, and the verdict would have gone greener as the code got
+    better. A control that misreads the repair it is asking for is not asking for it.
+
+    The declaring module is excluded from both maps -- see `STATUS_ENUM_MODULE`.
+    """
+    spoken: dict[str, set[str]] = {}
+    heard: dict[str, set[str]] = {}
+    for path, rel in _census_py_files(root):
+        dotted = rel[: -len(".py")].replace(os.sep, ".").replace("/", ".")
+        if dotted == STATUS_ENUM_MODULE:
+            continue
+        tree = _parse(path)
+        if tree is None:
+            continue
+        discriminating: set[int] = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Compare):
+                for side in [node.left, *node.comparators]:
+                    discriminating.add(id(side))
+            elif isinstance(node, ast.MatchValue):
+                discriminating.add(id(node.value))
+        for node in ast.walk(tree):
+            if (
+                isinstance(node, ast.Attribute)
+                and isinstance(node.value, ast.Name)
+                and node.value.id == STATUS_ENUM_NAME
+            ):
+                sink = heard if id(node) in discriminating else spoken
+                sink.setdefault(node.attr, set()).add(dotted)
+    return spoken, heard
+
+
+@dataclass(frozen=True)
+class StatusVerdict:
+    """Every member of the wall's status vocabulary, asked whether anybody says it and anybody
+    acts on it. Four scored buckets, because each names a different repair:
+
+      * `live`        -- something says it and something branches on it. The green case, and the
+        only one in which the member is buying the distinction the contract charges for.
+      * `unheard`     -- the world says it and NOTHING distinguishes it. The member is delivered
+        and then collapsed into its siblings, so it releases exactly what they release. Repair:
+        a reader, and the event to trigger it already occurs.
+      * `unspoken`    -- something branches on it and NOTHING ever says it. A dead arm: the
+        reader exists and this build cannot produce its event. Repair: a writer, or delete the
+        arm -- and which one is architectural, not clerical.
+      * `uninhabited` -- neither. The contract declares a distinction nothing makes and nothing
+        acts on. Repair is BOTH halves, and the ordering matters: a reader added first is an
+        `unspoken` dead arm, so the writer comes first or they come together.
+
+    WHAT THIS CANNOT SEE, stated rather than implied, and it is the limit that matters most here.
+    The subject set is DERIVED from the declaration, so DELETING A MEMBER does not move this
+    verdict -- it shrinks the population and the finding leaves with it. That is the R15 mutation
+    that removes the subject instead of moving it, and scope loss would score as green. This
+    control cannot close that on its own and does not pretend to: the floor test beside it names
+    the four members and refuses their deletion, and
+    `test_MUTATION_deleting_TIMEOUT_from_the_vocabulary_is_INVISIBLE_here_and_REFUSED_by_the_floor`
+    asserts both halves in one function so the blind spot is pinned rather than described.
+
+    Liveness is also repo-wide and side-blind, as for `ConversationVerdict`: a member named
+    ANYWHERE in the census trees reads as spoken, so this can prove a member dead and cannot
+    prove one genuinely exercised on the crossing. Both limits lose findings; neither invents one.
+    """
+
+    live: tuple[str, ...] = ()
+    unheard: tuple[str, ...] = ()
+    unspoken: tuple[str, ...] = ()
+    uninhabited: tuple[str, ...] = ()
+    #: Where each member is said / acted on, so a reader can see WHICH side holds the reading.
+    spoken_in: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    heard_in: tuple[tuple[str, tuple[str, ...]], ...] = ()
+
+    @property
+    def ok(self) -> bool:
+        return not self.unheard and not self.unspoken and not self.uninhabited
+
+    def report(self) -> str:
+        scored = len(self.live) + len(self.unheard) + len(self.unspoken) + len(self.uninhabited)
+        where = dict(self.spoken_in)
+        hwhere = dict(self.heard_in)
+        lines = [
+            f"channel C statuses: {len(self.live)} of {scored} member(s) of "
+            f"`{STATUS_ENUM_NAME}` are both SAID by this build and ACTED ON by it"
+        ]
+        lines += [
+            f"    * {m} -- said by {', '.join(where.get(m, ()))}; "
+            f"distinguished by {', '.join(hwhere.get(m, ()))}"
+            for m in self.live
+        ]
+        lines += [
+            f"    ! {m} -- UNHEARD: said by {', '.join(where.get(m, ()))} and distinguished by "
+            "NOTHING. The company receives it and collapses it into every other non-OK member, so "
+            "it releases exactly what they release -- a distinction the contract charges for and "
+            "does not buy."
+            for m in self.unheard
+        ]
+        lines += [
+            f"    ! {m} -- UNSPOKEN: distinguished by {', '.join(hwhere.get(m, ()))} and said by "
+            "NOTHING. A reader for an event this build cannot produce."
+            for m in self.unspoken
+        ]
+        lines += [
+            f"    ! {m} -- UNINHABITED: nothing says it and nothing acts on it. The decoder "
+            "accepts it off the wire, so a real counterparty can deliver one at go-live and this "
+            "build has neither a producer to test against nor a branch to take. Writer first, "
+            "then reader -- a reader alone is a dead arm."
+            for m in self.uninhabited
+        ]
+        return "\n".join(lines)
+
+
+def status_liveness_conformance(root: str) -> StatusVerdict:
+    """The wall's status vocabulary, asked which of its members this build can actually use.
+
+    This is the third channel C question and the one the atom's remaining L3 blocker turns out to
+    be an instance of. See the commentary above for why "give TIMEOUT a reader" was the wrong
+    unit and why `ERROR` was missed by three passes that were looking straight at it.
+    """
+    members = declared_statuses(root)
+    spoken, heard = status_mentions(root)
+    live: list[str] = []
+    unheard: list[str] = []
+    unspoken: list[str] = []
+    uninhabited: list[str] = []
+    for m in members:
+        says = bool(spoken.get(m))
+        acts = bool(heard.get(m))
+        if says and acts:
+            live.append(m)
+        elif says:
+            unheard.append(m)
+        elif acts:
+            unspoken.append(m)
+        else:
+            uninhabited.append(m)
+    return StatusVerdict(
+        live=tuple(live),
+        unheard=tuple(unheard),
+        unspoken=tuple(unspoken),
+        uninhabited=tuple(uninhabited),
+        spoken_in=tuple((m, tuple(sorted(spoken[m]))) for m in members if spoken.get(m)),
+        heard_in=tuple((m, tuple(sorted(heard[m]))) for m in members if heard.get(m)),
+    )
+
+
+def status_liveness_conformance_at(
+    rev: str = "HEAD", worktree: bool = False, repo_root: Path = PROJECT_DIR
+) -> StatusVerdict:
+    """`status_liveness_conformance` against the worktree, or against the tree at `rev`."""
+    if worktree:
+        return status_liveness_conformance(str(repo_root))
+    with head_export(str(repo_root), CENSUS_DIRS, rev=rev) as root:
+        return status_liveness_conformance(root)
+
+
 # ── channel C, the second question: what does a version MEAN? ────────────────────────────────
 # Channel C above asks whether a seam's version reaches a wire, and at HEAD it answers 3 of 3.
 # That reading is saturated, and a saturated instrument is a reason to move the ORIGIN rather
@@ -3075,6 +3365,44 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 2
     print(conversations.report())
+
+    # REPORTS AND DOES NOT GATE, for the reason stated twice above and now a third time because
+    # this check arrives UNSATISFIED too: three of the four status members fail it at HEAD, so
+    # wiring `.ok` into this return would refuse every commit in the repo including the ones that
+    # give TIMEOUT a writer. Pass 13's landing-order defect, which this file has learned enough
+    # times to write down as a rule. It becomes part of this return the day `.ok` is True on HEAD.
+    try:
+        statuses = status_liveness_conformance_at(rev=args.rev, worktree=args.worktree)
+    except CensusUnavailable as exc:
+        print(
+            f"CHANNEL C STATUS CHECK UNAVAILABLE (a failed check, not a pass): {exc}",
+            file=sys.stderr,
+        )
+        return 2
+    print(statuses.report())
+
+    # THE FLOOR GATES, and it is in the same commit as the reporting-only question above on
+    # purpose: that question cannot see a member leave, because it derives its population from the
+    # declaration it is measuring. Landing the liveness check without this one would ship a
+    # control whose cheapest repair is deleting its own subject.
+    try:
+        floor_gaps = missing_from_status_floor_at(rev=args.rev, worktree=args.worktree)
+    except CensusUnavailable as exc:
+        print(
+            f"STATUS FLOOR CHECK UNAVAILABLE (a failed check, not a pass): {exc}", file=sys.stderr
+        )
+        return 2
+    if floor_gaps:
+        print(
+            "STATUS VOCABULARY FLOOR BREACHED -- the wall has lost the ability to say: "
+            + "; ".join(f"{m} ({STATUS_VOCABULARY_FLOOR[m]})" for m in floor_gaps),
+            file=sys.stderr,
+        )
+        return 1
+    print(
+        f"channel C status floor: all {len(STATUS_VOCABULARY_FLOOR)} member(s) the wall must be "
+        "able to express are still declared"
+    )
 
     # THIS ONE GATES FROM ITS FIRST COMMIT, and the rule it follows is the one stated above: a
     # check becomes a gate "in the same commit that makes it satisfiable". Channel C's transport
