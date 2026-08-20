@@ -143,3 +143,27 @@ systemd_units:
       returns. Deliberately NOT per-commit: a 25-minute gate gets bypassed and hook-bypass is a
       wall, so the scoped commit gate stays exactly as it is and this covers its blind spot on a
       cadence instead.
+
+  - name: edge-traffic-capture.service
+    unit_file: background/edge-traffic-capture.service
+    enabled: false           # timer-triggered, not boot-enabled itself (static)
+    active: false            # Type=oneshot — one GraphQL POST and EXITS; inactive(dead) is correct
+    reason: >-
+      Snapshots Cloudflare's edge analytics into docs/observability/edge_traffic.jsonl. The zone
+      is on the Free plan, whose GraphQL API REFUSES any query wider than one day — so the shape
+      of what the edge has been serving exists for 24 hours and then stops existing. Its first
+      use was disproving the claim that created it: a "29% 504 rate" turned out to be a phantom
+      row Cloudflare logs for every HTTP/2 request, which is exactly the kind of thing you can
+      only settle against rows recorded at the time. Not enabled/active itself (the .timer drives
+      it); flagging a oneshot down would be wrong.
+
+  - name: edge-traffic-capture.timer
+    unit_file: background/edge-traffic-capture.timer
+    enabled: true            # boot-start (WantedBy=timers.target)
+    active: true             # must be ARMED — an unscheduled capture of a 24h window is fail-silent (R15)
+    reason: >-
+      Hourly, and the cadence is set by the RETENTION rather than by taste: anything slower loses
+      resolution inside the window the source can still see, and a gap over a day loses the window
+      entirely. Persistent, so a box that was asleep still captures once when it wakes. Declared
+      here 2026-08-20 after being found installed and armed but UNDECLARED — the reconciler was
+      right to call it drift, and this manifest is the reason it could.

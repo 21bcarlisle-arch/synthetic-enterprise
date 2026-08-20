@@ -1,0 +1,20 @@
+[Unit]
+Description=Synthetic Enterprise edge-traffic capture timer — hourly, because the source keeps only 24h
+
+[Timer]
+# HOURLY, and the cadence is set by the retention rather than by taste. The Free plan holds 24
+# hours; anything slower than hourly loses resolution inside the window it can still see, and
+# a gap of more than a day loses the window entirely.
+#
+# Running often is CHEAP and SAFE here: the collector is one GraphQL POST, and it deduplicates
+# by (hour, path, status, colo) so a partial hour captured twice cannot double-count -- the
+# later count replaces the earlier one for the same key. Better to run it often and drop
+# duplicates than to run it rarely and miss an outage.
+OnCalendar=hourly
+RandomizedDelaySec=5min
+# A box that was asleep still captures once when it wakes, which is the difference between a
+# gap in the record and a silent hole nobody notices.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

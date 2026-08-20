@@ -67,6 +67,8 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import itertools
+import os
 import subprocess
 import sys
 import tempfile
@@ -82,6 +84,10 @@ SITEMAP = SITE / "sitemap.xml"
 HARNESS = SITE / "_live_harness.mjs"
 CANONICAL_HOST = "https://poesys.net"
 TIMEOUT = 30
+
+#: Counter behind `cache_bust()`. Not a timestamp: two checks inside the same second must
+#: still get distinct URLs, or the second one reads the first one's cache entry.
+_NONCE = itertools.count()
 
 # Tokens that mean "this door did not actually render". Matched case-insensitively.
 #
@@ -145,9 +151,52 @@ class DoorResult:
     sample: dict[str, str] = field(default_factory=dict)
 
 
+def cache_bust(url: str) -> str:
+    """Add a per-request nonce so the edge cannot answer from a cached copy.
+
+    WHY THIS IS NOT OPTIONAL, and why it lives here rather than at each call site
+    (2026-08-20, measured):
+
+    Eight pages deleted by the five-tab fold went on being served `200` at
+    `https://poesys.net/<page>/` for over eight hours after the deployment that removed
+    them -- `age: 29252` and climbing, `cf-cache-status: DYNAMIC`, immune to
+    `purge_everything` (the API returned `success: true` twice and the `age` never
+    reset). The SAME URL with a nonce returned the true `404` every single time. The
+    ghost is held by Pages' own asset cache for the custom domain, which a zone purge
+    does not reach and a new deployment does not evict -- eight deployments landed
+    while it kept serving.
+
+    The consequence for THIS module is the part that matters. A live check reads
+    whatever the edge hands back. Through a cached copy:
+
+      * a check that OBSERVES NEW CONTENT is still sound -- a copy cached in the past
+        cannot contain something that did not exist yet;
+      * a check that concludes something is ABSENT, REMOVED or UNCHANGED is worthless,
+        because absence and staleness are indistinguishable.
+
+    On 2026-08-20 this module reported the retired URLs as correctly gone. They were
+    not; it had read the ghosts. Deciding per-call-site which checks are "absence
+    shaped" is exactly the remembering that failed -- so every fetch is busted, and the
+    freshness of a live check stops depending on anyone's judgement about it.
+
+    Nonce = pid + counter, not a timestamp: two checks in the same second must not
+    collide onto one cache entry.
+    """
+    parsed = urllib.parse.urlsplit(url)
+    query = urllib.parse.parse_qsl(parsed.query, keep_blank_values=True)
+    query.append(("cb", f"{os.getpid()}-{next(_NONCE)}"))
+    return urllib.parse.urlunsplit(parsed._replace(query=urllib.parse.urlencode(query)))
+
+
 def _http_get(url: str, fetcher=None) -> tuple[int, bytes]:
     """Return (status, body). Redirects are NOT followed -- G1 needs to see a 301 as
-    a 301, not as the 200 of wherever it lands."""
+    a 301, not as the 200 of wherever it lands.
+
+    The URL is cache-busted first -- see `cache_bust` for the incident that makes that
+    mandatory rather than tidy. Injected fetchers get the busted URL too, so a test
+    double sees what the real path sees.
+    """
+    url = cache_bust(url)
     if fetcher is not None:
         return fetcher(url)
 

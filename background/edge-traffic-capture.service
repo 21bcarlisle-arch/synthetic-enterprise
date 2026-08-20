@@ -1,0 +1,19 @@
+[Unit]
+Description=Synthetic Enterprise edge-traffic capture — snapshot Cloudflare analytics before the Free plan forgets
+After=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/rich/synthetic-enterprise
+# Analytics-read token, scoped to poesys.net and nothing else. Lives OUTSIDE the working tree
+# (secrets_location.py, 2026-07-11 ruling) so it can never reach a commit or a diff. The `-`
+# prefix means a missing file does not fail the unit -- the script itself then exits 2 with a
+# readable reason, which is a better failure than systemd's.
+EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.cloudflare
+# WHY THIS EXISTS: the zone is on Cloudflare's Free plan, which REFUSES any analytics query
+# wider than one day. On 2026-08-20, 29% of all requests were returning 504 and the trend
+# (11% -> 47% across the day) was visible only inside that window. Nothing in the repo was
+# watching. This captures the shape hourly so the next incident is a series, not a discovery.
+ExecStart=/usr/bin/python3 -m tools.edge_traffic_capture
+# One GraphQL POST. If it has not answered in two minutes it is not going to.
+TimeoutStartSec=120

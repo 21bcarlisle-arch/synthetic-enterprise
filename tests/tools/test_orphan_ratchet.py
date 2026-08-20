@@ -44,6 +44,83 @@ def _orphans(root: Path) -> set[str]:
     return set(orat.compute(root)["orphans"])
 
 
+def _workflow(root: Path, body: str, name: str = "deploy.yml") -> None:
+    d = root / ".github" / "workflows"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / name).write_text(body)
+
+
+# ------------------------------------------------- CI WORKFLOWS ARE RUNNERS TOO
+# Added 2026-08-20. A deploy-time checker that runs on every push was reported as an
+# orphan, and the only way to clear that was `--freeze` marking it "deliberately
+# dormant" -- recording something untrue to satisfy a control. A false positive whose
+# remedy is a lie corrupts the record the ratchet exists to keep honest.
+
+def test_a_module_a_ci_workflow_runs_is_not_an_orphan(tmp_path):
+    root = _repo(tmp_path, unit="/usr/bin/python3 -m background.runner", modules={
+        "background/runner.py": "def main():\n    return 1\n",
+        "tools/deploy_check.py": "def main():\n    return 2\n",
+    })
+    _workflow(root, """
+name: Deploy
+on: {push: {branches: [main]}}
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: python3 tools/deploy_check.py
+""")
+    assert "tools.deploy_check" not in _orphans(root)
+
+
+def test_the_module_form_in_a_workflow_counts_too(tmp_path):
+    root = _repo(tmp_path, unit="/usr/bin/python3 -m background.runner", modules={
+        "background/runner.py": "def main():\n    return 1\n",
+        "tools/deploy_check.py": "def main():\n    return 2\n",
+    })
+    _workflow(root, """
+name: Deploy
+on: {push: {}}
+jobs:
+  deploy:
+    steps:
+      - run: python3 -m tools.deploy_check
+""")
+    assert "tools.deploy_check" not in _orphans(root)
+
+
+def test_prose_in_a_workflow_is_not_an_entrypoint(tmp_path):
+    """The `Description=` failure, restated for YAML. Workflows are mostly comments and
+    step names; if those counted, a module could be certified as run by being MENTIONED,
+    and the vacuity floor would stop meaning anything."""
+    root = _repo(tmp_path, unit="/usr/bin/python3 -m background.runner", modules={
+        "background/runner.py": "def main():\n    return 1\n",
+        "tools/deploy_check.py": "def main():\n    return 2\n",
+    })
+    _workflow(root, """
+name: Deploy
+on: {push: {}}
+jobs:
+  deploy:
+    steps:
+      # historical note: this step used to call tools/deploy_check.py
+      - name: something about tools/deploy_check.py
+        run: echo hello
+""")
+    assert "tools.deploy_check" in _orphans(root)
+
+
+def test_an_unparseable_workflow_cannot_wedge_every_commit(tmp_path):
+    """It must degrade to "this workflow runs nothing I can see" -- which surfaces as a
+    loud false orphan -- rather than raising and blocking the whole repo."""
+    root = _repo(tmp_path, unit="/usr/bin/python3 -m background.runner", modules={
+        "background/runner.py": "def main():\n    return 1\n",
+    })
+    _workflow(root, "this: is: not: valid: yaml:\n  - [unclosed\n")
+    assert orat._workflow_run_lines(root) == []
+    _orphans(root)      # must not raise
+
+
 # ------------------------------------------------------------------ FIRES
 
 def test_a_module_nothing_runs_is_an_orphan(tmp_path):

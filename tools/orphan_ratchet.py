@@ -62,6 +62,8 @@ import sys
 from collections import deque
 from pathlib import Path
 
+import yaml
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from tools import capability_index as ci  # noqa: E402
@@ -77,6 +79,16 @@ SCHEDULE_GLOBS = (
     "background/*.path",
     "tools/git-hooks/*",
     ".claude/hooks/*.py",
+)
+
+#: CI workflows run committed programs too, and until 2026-08-20 this file could not see them.
+#: `tools/assert_deployed_bytes_are_served.py` runs on every deploy and was reported as an
+#: orphan on the commit that introduced it -- which pushes toward the one wrong answer
+#: available, `--freeze` as "deliberately dormant", recording a falsehood to clear a gate. A
+#: control whose false positive is cleared by lying is worse than the gap it was closing.
+WORKFLOW_GLOBS = (
+    ".github/workflows/*.yml",
+    ".github/workflows/*.yaml",
 )
 
 #: A scheduled unit names its program as `python3 -m background.foo` or `python3 background/foo.py`.
@@ -102,6 +114,38 @@ MIN_ENTRYPOINTS = 5
 LARGE_TREE_MODULES = 100
 #: The index must see at least this fraction of tracked python files, measured against git.
 MIN_COVERAGE_RATIO = 0.80
+
+
+def _workflow_run_lines(base: Path) -> list[str]:
+    """Every shell line a CI workflow executes.
+
+    ONLY `run:` scalars, and via the YAML parser rather than a line scan. A workflow is
+    mostly prose -- step names, `Description`-like fields, and comments explaining why a
+    step exists -- and this module's own docstring makes the point about `Description=`:
+    sweeping prose into the entrypoint set makes the vacuity floor unfalsifiable. This
+    file's deploy workflow contains the words `purge_cache` and several `.py` paths inside
+    comments; none of them is a program being run.
+
+    An unparseable workflow yields nothing rather than raising. It cannot make a real
+    entrypoint disappear (that shows up as a false orphan, which is loud), and a malformed
+    YAML file must not be able to block every commit in the repo.
+    """
+    lines: list[str] = []
+    for glob in WORKFLOW_GLOBS:
+        for path in sorted(base.glob(glob)):
+            try:
+                doc = yaml.safe_load(path.read_text(errors="replace"))
+            except (OSError, yaml.YAMLError):
+                continue
+            if not isinstance(doc, dict):
+                continue
+            for job in (doc.get("jobs") or {}).values():
+                if not isinstance(job, dict):
+                    continue
+                for step in job.get("steps") or []:
+                    if isinstance(step, dict) and isinstance(step.get("run"), str):
+                        lines.extend(step["run"].splitlines())
+    return lines
 
 
 def scheduled_entrypoints(root: Path | None = None) -> set[str]:
@@ -131,6 +175,14 @@ def scheduled_entrypoints(root: Path | None = None) -> set[str]:
                     rel = script.lstrip("./")
                     if (base / rel).exists():
                         found.add(ci.module_name(rel))
+    for line in _workflow_run_lines(base):
+        for mod in _MODULE_RE.findall(line):
+            if mod not in _RUNNERS:
+                found.add(mod)
+        for script in _SCRIPT_RE.findall(line):
+            rel = script.lstrip("./")
+            if (base / rel).exists():
+                found.add(ci.module_name(rel))
     # A name only counts if it is a module this repo actually has -- a typo in a unit must not
     # silently inflate the entrypoint set past its own vacuity floor.
     known = {ci.module_name(rel) for rel in ci.source_files(base)}

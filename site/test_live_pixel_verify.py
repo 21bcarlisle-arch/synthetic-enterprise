@@ -24,6 +24,7 @@ from __future__ import annotations
 import json
 import shutil
 import sys
+import urllib.parse
 from pathlib import Path
 
 import pytest
@@ -56,10 +57,38 @@ GOOD_FEED = {"net": 1234, "coeffs": "b_hdd=0.4"}
 
 
 def make_fetcher(pages):
-    """pages: {url -> (status, bytes)}. Anything not listed 404s, as it would live."""
+    """pages: {url -> (status, bytes)}. Anything not listed 404s, as it would live.
+
+    The double ASSERTS the cache-buster rather than merely tolerating it. Every fetch on
+    the real path must carry a `cb` nonce (see `live_pixel_verify.cache_bust`), so any
+    future fetch that loses it fails every test in this file at once, not just the one
+    someone thought to write. Keying on the exact URL and quietly ignoring the query
+    would have let the nonce be removed without a single test noticing -- and reading a
+    stale edge copy is precisely the failure this module exists to prevent.
+    """
     def fetch(url):
-        return pages.get(url, (404, b""))
+        parsed = urllib.parse.urlsplit(url)
+        query = dict(urllib.parse.parse_qsl(parsed.query, keep_blank_values=True))
+        assert query.pop("cb", None), f"fetch reached the edge with no cache-buster: {url}"
+        bare = urllib.parse.urlunsplit(
+            parsed._replace(query=urllib.parse.urlencode(sorted(query.items())))
+        )
+        return pages.get(bare, (404, b""))
     return fetch
+
+
+def test_two_fetches_of_one_url_never_share_a_cache_key():
+    """R15: the nonce has to be per-REQUEST. A constant, or a whole-second timestamp,
+    would let a second check inside the same second read the first one's cache entry --
+    which is the bug, not a milder version of it."""
+    seen = {V.cache_bust("https://poesys.net/proof/") for _ in range(50)}
+    assert len(seen) == 50, "cache_bust repeated a URL; the nonce is not per-request"
+
+
+def test_cache_bust_keeps_the_existing_query_intact():
+    busted = V.cache_bust("https://poesys.net/x/?a=1&a=2&b=")
+    q = urllib.parse.parse_qsl(urllib.parse.urlsplit(busted).query, keep_blank_values=True)
+    assert [kv for kv in q if kv[0] != "cb"] == [("a", "1"), ("a", "2"), ("b", "")]
 
 
 def door_pages(html=DOOR_HTML, feed=GOOD_FEED, door_status=200, feed_status=200):
