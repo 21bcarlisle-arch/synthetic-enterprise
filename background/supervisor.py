@@ -3338,6 +3338,64 @@ def _recorded_green_clock(
     return float(ts)
 
 
+GATE_BLOCKING_TESTS_FILENAME = ".last_gate_blocking_tests.json"
+
+
+def _live_gate_blocking_record(now=None, record_path=None):
+    """(node_ids, git_hash) from the LIVE gate blocking record, or ([], None) for "I don't know".
+
+    WHY THIS EXISTS (2026-08-20, `WORKER_FINDING_THE_WEDGE_STATE_LAUNDERS_THE_ALARMS_OWN_I_DONT_
+    KNOW_INTO_A_CONFIDENT_STALE_ANSWER`). `process_run_complete.last_blocking_tests` has an
+    explicit four-way honesty contract -- absent, unreadable, malformed and STALE all answer
+    `([], None)`, because all four mean "this alarm does not know". That contract was in force and
+    no reader asked it: `record_publish_gate_failure` copied the ANSWER into
+    `.publish_gate_state.json` and dropped the WARRANT, and that copy carries no `ts` and no age
+    bound of its own. So the one surface the RUNG-1 draw reads could not tell "the last gate's red
+    was X" from "no gate has recorded a red since X was repaired" -- and on 2026-08-20 it spent
+    three consecutive priority-zero ticks dispatching seven findings cited from a red that had
+    been fixed an hour before the pin was taken.
+
+    DELEGATION IS THE POINT, not an implementation convenience. Re-parsing the record here would
+    be a second measurement of the same fact that can drift from the first (the mirror class this
+    repo already catalogues); the honesty contract must live in exactly one place, and this asks
+    it rather than restating it. The import is LAZY so the draw ladder does not pay
+    `process_run_complete`'s import cost on every rung, and an unimportable/raising reader answers
+    "I don't know" -- an unavailable check is a FAILED check (R15 fail-silent), and here failing
+    means WITHHOLDING the citation, which is the safe direction: the draw still fires, it just
+    stops naming suspects it cannot warrant."""
+    try:
+        from background.process_run_complete import last_blocking_tests
+    except Exception:  # pragma: no cover - import-time breakage of the writer's module
+        return [], None
+    try:
+        return last_blocking_tests(now=now, path=record_path)
+    except Exception:  # pragma: no cover - defensive: never an exception into the draw ladder
+        return [], None
+
+
+def _wedge_stale_payload_clause(named: int, cited: int) -> str:
+    """The draw says out loud that it is WITHHOLDING a blocking payload it cannot warrant.
+
+    Absent when there is nothing to withhold -- a clause that always prints cannot fail, and
+    cannot be evidence that the withholding happened."""
+    if named <= 0 and cited <= 0:
+        return ""
+    carried = []
+    if named > 0:
+        carried.append(f"{named} named blocking test(s)")
+    if cited > 0:
+        carried.append(f"{cited} cited finding(s)")
+    return (
+        " THE RECORDED BLOCKING PAYLOAD IS NOT CITABLE AND HAS BEEN WITHHELD: "
+        f".publish_gate_state.json still carries {' and '.join(carried)} from an earlier failure, "
+        f"but the live gate record ({GATE_BLOCKING_TESTS_FILENAME} -- the only copy that carries a "
+        "freshness stamp) answers 'I do not know': absent, unreadable, malformed, or older than "
+        "its age bound. Those names are NOT reproduced here, because a name copied out of a "
+        "record that can no longer warrant it may be a red that has since been repaired. "
+        "ENUMERATE AT HEAD before suspecting anything."
+    )
+
+
 def _publish_gate_wedge_active(
     now: float | None = None,
     head: str | None = None,
@@ -3433,8 +3491,25 @@ def _publish_gate_wedge_active(
     # RUNG 1 is already priority zero, so a finding named here has been lifted out of the staging
     # backlog (where it loses to feature work, as the cure for the 7h episode of 2026-08-08 did)
     # and into the highest rung of the ladder. Bounded and defensive: a malformed list is ignored.
+    #
+    # ...BUT ONLY IF THE RECORD STILL WARRANTS IT (2026-08-20, the laundering finding). The
+    # blocking payload below -- `cited_findings`, `blocking_tests`, `red_census`, `total_red` --
+    # is a CACHE of `last_blocking_tests()`, written once per failure and never re-derived
+    # between them. The cache must AGREE WITH the live record, not substitute for it: when the
+    # record answers "I don't know", its own contract says every reader must hear that, and this
+    # is the reader. The record is looked for BESIDE THE RESOLVED state path, never beside a
+    # module default, so a test that redirects one half redirects both and the two halves of this
+    # control can never read different trees -- the same rule as `_recorded_green_clock`.
+    live_nodes, _live_hash = _live_gate_blocking_record(
+        now=now, record_path=Path(sp).parent / GATE_BLOCKING_TESTS_FILENAME)
+    payload_citable = bool(live_nodes)
     cited = state.get("cited_findings")
     cited = [str(f) for f in cited][:8] if isinstance(cited, list) else []
+    named_blocking = len(state.get("blocking_tests") or [])
+    stale_payload_clause = "" if payload_citable else _wedge_stale_payload_clause(
+        named_blocking, len(cited))
+    if not payload_citable:
+        cited = []
     cure_clause = (
         " FILED FINDINGS ALREADY HOLDING THE SUSPECTS -- draw these FIRST, before any product or "
         "HARDEN work, and dispose of each (fix, or re-freeze with provenance): "
@@ -3451,8 +3526,13 @@ def _publish_gate_wedge_active(
     # is correct, and was correct five times running while the wedge stood. Defensive by the same
     # rule as `cited`: anything but an explicit COMPLETE/PARTIAL reads as unknown depth, because
     # a state file written before this field existed knew only the fail-fast red.
-    depth_clause = _wedge_depth_clause(state.get("red_census"), state.get("total_red"),
-                                       len(state.get("blocking_tests") or []))
+    # DEPTH IS PART OF THE SAME CACHED PAYLOAD, so it falls with it: an uncitable record cannot
+    # substantiate "the census enumerated the WHOLE red set at this HEAD" either, and
+    # `_wedge_depth_clause`'s own default for an unsubstantiated claim is a loud DEPTH UNKNOWN.
+    depth_clause = _wedge_depth_clause(
+        state.get("red_census") if payload_citable else None,
+        state.get("total_red") if payload_citable else None,
+        named_blocking if payload_citable else 0)
     # WHAT THE DRAW COULD NOT SEE UNTIL NOW (2026-08-17): that the world moved after the reading
     # was taken. Both are TEXT ONLY and neither can return None -- see their docstrings. They come
     # BEFORE `depth_clause` because the in-flight one countermands that clause's own instruction.
@@ -3467,7 +3547,8 @@ def _publish_gate_wedge_active(
         "`SIM_FAST_MODE=1 python3 -m pytest tests/ -m 'not operational' <heavy-ignores>` (see "
         "background/process_run_complete.py::publish_gate_pytest_argv), FIX the red test, flush the "
         "run_complete queue, and R11-verify the folded live site. NTFY the director the one-line "
-        f"cause.{superseded_clause}{in_flight_clause}{depth_clause}{episode_clause}{cure_clause}"
+        f"cause.{superseded_clause}{in_flight_clause}{stale_payload_clause}{depth_clause}"
+        f"{episode_clause}{cure_clause}"
         f" Last recorded failure: {last_reason}"
     )
 

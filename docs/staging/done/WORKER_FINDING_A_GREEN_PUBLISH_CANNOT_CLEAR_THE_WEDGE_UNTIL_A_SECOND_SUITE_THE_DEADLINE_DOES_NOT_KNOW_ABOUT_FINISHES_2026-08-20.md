@@ -1,4 +1,14 @@
 **Severity:** BLOCKING · **Lane:** H_harness
+**Discharged:** `tests/background/test_publish_path_step_budgets.py::test_only_the_gate_itself_may_carry_the_gates_own_bound`,
+`tests/background/test_publish_path_step_budgets.py::test_no_publish_path_step_carries_a_static_bound_over_the_allowance`,
+`tests/background/test_publish_path_step_budgets.py::test_deleting_the_step_cannot_pass_as_a_repair`,
+`tests/background/test_publish_path_step_budgets.py::test_the_call_graph_reaches_the_steps_it_claims_to_bound`,
+`tests/background/test_publish_path_step_budgets.py::test_the_walk_excludes_what_is_not_on_the_publish_path`,
+`tests/background/test_publish_path_step_budgets.py::test_the_scan_finds_the_timed_subprocesses`,
+`tests/background/test_publish_path_step_budgets.py::test_the_remainder_budget_never_outlives_the_publisher_itself`,
+`tests/background/test_publish_path_step_budgets.py::test_an_exhausted_budget_skips_the_suite_rather_than_running_it_unbounded`,
+`tests/background/test_publish_path_step_budgets.py::test_the_exhausted_skip_never_publishes_a_false_all_clear`,
+`tests/background/test_publish_path_step_budgets.py::test_the_census_and_the_remainder_share_one_definition` — 2026-08-20 worker tick, commit 6444f2778. Section 3's falsifiable prediction RESOLVED to branch b and is now observed rather than inferred: the log gained its first ever TIMED OUT processing line at 16:37Z against the green, published cycle this document names, then twice more at 18:07Z and 19:39Z. Closure items 2 and 3 are landed — the annotation derives its bound from what the publish path has LEFT, through the one primitive the census already used correctly, and the deadline control now derives its population by walking the call graph from main instead of from a hand-written enumeration that did not contain the largest post-gate step. Mutations run both ways before this record was written. See the LIMITATION section below for closure item 1, which is NOT landed.
 
 # FINDING — the publish gate went green and published 34 minutes ago; the wedge alarm cannot be told so, because the clear is routed through a process that is still running a SECOND full suite the caller's deadline does not know exists
 
@@ -136,6 +146,30 @@ tree**, and `process_run_complete.py` is the file the repair touches. Editing a 
 under a live suite is a filed rule here, and this particular suite writes its reds onto the public
 page banner — so the edit would publish its own breakage. The repair is safe on the next tick,
 after PID 3066953 exits.
+
+## LIMITATION explicitly recorded and accepted (clause 2), 2026-08-20
+
+**Closure item 1 — "record the outcome when the publish LANDS, not when the process EXITS" — is
+NOT built.** The title of this document is therefore still literally true: a green publish is
+recorded only when the publisher process exits, so the annotation still sits between the publish
+and the clear. What changed is that the latency is now BOUNDED BY THE PATH'S OWN DEADLINE
+instead of by a bound five times larger than the allowance it lives in — the process can no
+longer be killed while it still believes it has budget, so the outcome is now always recorded,
+where before it could be recorded as the opposite of what happened, or never.
+
+That is the difference between a delay and a lie, and it is why the observed harm is gone while
+the shape is not. The self-sustaining half is broken with it: a killed publisher left its marker
+pending, and `record_publish_gate_success` deliberately preserves `wedge_since` while any marker
+is pending (correctly — a resumed wedge must be measured from where it really began), so every
+kill re-armed the very episode it belonged to. 11 markers were pending when this was written.
+
+**Why item 1 is not attempted in the same tick, stated rather than quietly skipped.** Its own M2
+null control is the sharpest constraint in this document: a repair that clears the wedge FASTER
+by clearing it on WEAKER evidence is worse than the defect, and that is the 41h fail-open of
+2026-08-11. Moving the clear earlier means touching the one path whose evidence keying —
+last-tested-hash against the marker's own hash — is what makes the clear honest. That deserves
+its own draw with its own mutation pass, not the tail end of a tick whose repair is already
+landed and whose subject file was carrying a live publisher at the time.
 
 ## 6. Second-order, filed here rather than fixed (SELF_INTERRUPT_DISCIPLINE — queue, don't fix on sight)
 

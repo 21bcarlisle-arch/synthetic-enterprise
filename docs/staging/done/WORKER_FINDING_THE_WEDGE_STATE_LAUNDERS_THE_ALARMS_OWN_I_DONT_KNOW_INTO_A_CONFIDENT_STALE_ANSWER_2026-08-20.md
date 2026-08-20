@@ -1,5 +1,51 @@
 **Severity:** BLOCKING · **Lane:** H_harness
 
+**Discharged:** `background/supervisor.py`, `tests/background/test_publish_gate_wedge_draw.py::test_mutation_absent_record_withholds_the_cached_blocking_payload`, `tests/background/test_publish_gate_wedge_draw.py::test_mutation_stale_record_withholds_the_cached_blocking_payload`, `tests/background/test_publish_gate_wedge_draw.py::test_mutation_malformed_record_withholds_the_cached_blocking_payload`, `tests/background/test_publish_gate_wedge_draw.py::test_null_control_a_fresh_record_lets_the_payload_through` — repaired at READ time, which is the closure this document proposed: the RUNG-1 draw now asks the live record itself and lets its "I do not know" win over the persisted copy, so the cache must AGREE WITH the record rather than substitute for it.
+
+## What was built, and why on the read side
+
+The primary proposal, not the cheaper alternative. Stamping a freshness field beside the cached
+list would have meant editing the gate's own writer module while a gate suite was live in this
+working tree — the same hazard that made the finding above withhold its repair, and the reason it
+had to withhold it twice. The reader is a different file, so the repair could land on a tree that
+was busy. It is also the stronger of the two: a stamp is a second copy of the freshness fact and
+can drift from the first, whereas asking the reader keeps the four-way honesty contract in exactly
+one place. The helper deliberately DELEGATES to that reader rather than re-parsing the record.
+
+Three things fall together when the record cannot warrant the payload, because all three were
+copied out of it: the cited findings, the named blocking tests, and the census depth claim. The
+draw still FIRES — a suspect-reader that could blind RUNG 1 to a real wedge would be strictly
+worse than one that says nothing — and it now states out loud that it is withholding names it
+cannot warrant, rather than repeating them as if it could.
+
+## R15 — the three mutations the document specified, plus its null control
+
+Run: `SIM_FAST_MODE=1 python3 -m pytest tests/background/test_publish_gate_wedge_draw.py -q` → 46
+passed. Each leg was then put on trial against the PRE-REPAIR behaviour (the reader never
+consulted, so the cached payload is always citable):
+
+| assertion | repaired | pre-repair mutant |
+| --- | --- | --- |
+| cites the stale finding | False | **True** |
+| withholding clause present | True | **False** |
+| DEPTH UNKNOWN | True | **False** |
+| claims the census enumerated the whole red set | — | **True** |
+
+Every leg flips. The null control is the leg that matters most: a fresh, in-age record naming a
+red node must still let the citation, the named-test count and the census depth through, so the
+cheapest wrong repair — never citing anything at all — cannot pass.
+
+## What this does NOT close
+
+The write side is unchanged: the cached copy still carries no freshness stamp of its own, so any
+FUTURE reader of `.publish_gate_state.json` that does not consult the record inherits the same
+defect. That is a limitation recorded, not repaired. The reader named in this document — the
+RUNG-1 draw, the one that was actually dispatching work — is the only consumer that existed, and
+it is fixed; a stamp on the writer remains the right second belt whenever that module is next
+touched on a quiet tree.
+
+The seven findings this alarm cited are still not exonerated, exactly as the section below says.
+
 # The wedge alarm's blocking-test reader answers "I don't know"; the state file the RUNG-1 draw actually reads answers with a test that is green
 
 `last_blocking_tests()` was built with an explicit four-way honesty contract — its own docstring:

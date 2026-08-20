@@ -80,6 +80,17 @@ def _green(tmp_path, sha, ts):
     (tmp_path / ".last_tested_green.json").write_text(json.dumps({"sha": sha, "ts": ts}))
 
 
+def _blocking_record(tmp_path, now, *, node_ids=("tests/x.py::test_x",), age=0.0,
+                     git_hash="deadbeef"):
+    """Stamp the LIVE gate blocking record, exactly as `process_run_complete` writes it.
+
+    Written to the same `tmp_path` as `_write` and never via a monkeypatched module attribute:
+    the draw derives this path from the RESOLVED state path, so a test that forgot to call this
+    reads NO record -- which is the honest "I don't know" -- rather than the real machine's."""
+    (tmp_path / ".last_gate_blocking_tests.json").write_text(json.dumps(
+        {"ts": now - age, "node_ids": list(node_ids), "git_hash": git_hash}))
+
+
 # ─────────────────────────── MUST FIRE (the wedge is real and old) ──────────────────────────
 
 def test_fires_on_this_mornings_exact_state(tmp_path, monkeypatch):
@@ -197,11 +208,13 @@ def test_draw_names_the_filed_findings_the_alarm_cited(tmp_path, monkeypatch):
         "WORKER_FINDING_RELATIVE_HOOK_PATHS_WEDGE_SESSION_2026-08-08.md",
     ]
     _write(tmp_path, monkeypatch, state)
+    _blocking_record(tmp_path, now)  # the live record warrants the cached payload
     msg = supervisor._publish_gate_wedge_active(now=now)
     assert msg is not None
     assert "FILED FINDINGS ALREADY HOLDING THE SUSPECTS" in msg
     assert "WORKER_FINDING_RUFF_RATCHET_RED_AT_HEAD_2026-08-08.md" in msg
     assert "draw these FIRST" in msg
+    assert "NOT CITABLE" not in msg
 
 
 def test_mutation_no_cited_findings_no_citation_clause(tmp_path, monkeypatch):
@@ -667,3 +680,131 @@ def test_live_gate_runs_is_empty_when_ps_is_unavailable():
     def _boom():
         raise OSError("no ps")
     assert _REAL_LIVE_GATE_RUNS(_boom) == []
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# THE CACHE MUST AGREE WITH THE RECORD, NOT SUBSTITUTE FOR IT
+# (2026-08-20, WORKER_FINDING_THE_WEDGE_STATE_LAUNDERS_THE_ALARMS_OWN_I_DONT_KNOW_
+#  INTO_A_CONFIDENT_STALE_ANSWER, BLOCKING, lane H_harness)
+#
+# `process_run_complete.last_blocking_tests()` fails closed on four distinct unknowns --
+# absent, unreadable, malformed, STALE -- and says so as `([], None)`. That contract was
+# in force and NO READER ASKED IT. `record_publish_gate_failure` copied the ANSWER into
+# `.publish_gate_state.json` and dropped the WARRANT: the cached copy carries no `ts` of
+# its own and no age bound, so the one surface the RUNG-1 draw reads could not tell "the
+# last gate's red was X" from "no gate has recorded a red since X was repaired". On
+# 2026-08-20 the draw dispatched seven findings cited from a red repaired an hour before
+# the pin was taken, and three consecutive priority-zero ticks spent themselves on it.
+#
+# R15 -- three mutations, each on its own named defect, exactly as the finding specified:
+#   * FAIL-OPEN ON ABSENCE   : record gone, cached payload populated -> withhold.
+#   * FAIL-OPEN ON STALENESS : record present but past its age bound -> withhold.
+#   * NULL CONTROL           : fresh, in-age record -> the draw NAMES the payload.
+# Without the null control the cheapest wrong repair -- never citing anything at all --
+# passes both mutation legs and destroys the alarm it was meant to make honest.
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _laundered_state(now):
+    """A wedged state carrying the exact payload shape that was dispatched on 2026-08-20."""
+    state = _wedged_state(now)
+    state["cited_findings"] = ["WORKER_FINDING_STALE_SUSPECT_2026-08-19.md"]
+    state["blocking_tests"] = [
+        "FAILED tests/saas/reporting/test_partial_year_clv_headline_guard.py::"
+        "test_the_final_partial_year_still_values_the_book"
+    ]
+    state["red_census"] = "complete"
+    state["total_red"] = 1
+    return state
+
+
+def test_mutation_absent_record_withholds_the_cached_blocking_payload(tmp_path, monkeypatch):
+    """FAIL-OPEN ON ABSENCE -- the live defect, reproduced. No record on disk, a fully
+    populated cache: the draw must still FIRE (the wedge is real) and must name NOTHING."""
+    now = 1_800_000_000.0
+    _write(tmp_path, monkeypatch, _laundered_state(now))
+    assert not (tmp_path / ".last_gate_blocking_tests.json").exists(), "precondition: no record"
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None and "PUBLISH-GATE WEDGE" in msg, "the wedge draw must still fire"
+    assert "FILED FINDINGS" not in msg
+    assert "WORKER_FINDING_STALE_SUSPECT_2026-08-19.md" not in msg
+    assert "NOT CITABLE AND HAS BEEN WITHHELD" in msg
+    assert "ENUMERATE AT HEAD" in msg
+    # and the depth claim, drawn from the same uncitable cache, falls with it
+    assert "DEPTH UNKNOWN" in msg
+    assert "enumerated the WHOLE red set" not in msg
+
+
+def test_mutation_stale_record_withholds_the_cached_blocking_payload(tmp_path, monkeypatch):
+    """FAIL-OPEN ON STALENESS -- a record that exists but is past its own age bound is one
+    of the four unknowns, and must reach this reader as one."""
+    from background import process_run_complete as prc
+    now = 1_800_000_000.0
+    _write(tmp_path, monkeypatch, _laundered_state(now))
+    _blocking_record(tmp_path, now, age=prc.GATE_BLOCKING_TESTS_MAX_AGE_SECONDS + 60)
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None and "PUBLISH-GATE WEDGE" in msg
+    assert "FILED FINDINGS" not in msg
+    assert "NOT CITABLE AND HAS BEEN WITHHELD" in msg
+
+
+def test_mutation_malformed_record_withholds_the_cached_blocking_payload(tmp_path, monkeypatch):
+    """The third and fourth unknowns share a leg: unreadable/malformed must not read as
+    'a fresh record naming nothing', and must never raise into the draw ladder."""
+    now = 1_800_000_000.0
+    _write(tmp_path, monkeypatch, _laundered_state(now))
+    (tmp_path / ".last_gate_blocking_tests.json").write_text("{not json")
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None and "NOT CITABLE AND HAS BEEN WITHHELD" in msg
+
+
+def test_null_control_a_fresh_record_lets_the_payload_through(tmp_path, monkeypatch):
+    """NULL CONTROL -- the alarm must still work. Same cache, same draw, only the record's
+    freshness moves: the citation, the named test count and the census depth all return.
+
+    This is the leg that kills the cheapest wrong repair (cite nothing, ever)."""
+    now = 1_800_000_000.0
+    _write(tmp_path, monkeypatch, _laundered_state(now))
+    _blocking_record(tmp_path, now, age=60.0)
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None
+    assert "FILED FINDINGS ALREADY HOLDING THE SUSPECTS" in msg
+    assert "WORKER_FINDING_STALE_SUSPECT_2026-08-19.md" in msg
+    assert "NOT CITABLE" not in msg
+    # the census depth claim is warranted again, so the loud default steps aside
+    assert "enumerated the WHOLE red set" in msg
+    assert "DEPTH UNKNOWN" not in msg
+
+
+def test_the_withholding_clause_is_absent_when_there_is_nothing_to_withhold(
+        tmp_path, monkeypatch):
+    """A clause that always prints cannot fail, and cannot be evidence that anything was
+    withheld. An honest empty cache + an absent record must produce NO withholding text."""
+    now = 1_800_000_000.0
+    _write(tmp_path, monkeypatch, _wedged_state(now))  # no cited_findings, no blocking_tests
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None and "PUBLISH-GATE WEDGE" in msg
+    assert "NOT CITABLE" not in msg and "WITHHELD" not in msg
+
+
+def test_a_raising_reader_withholds_rather_than_crashing_the_draw_ladder(tmp_path, monkeypatch):
+    """R15 FAIL-SILENT: an unavailable check is a FAILED check, and here failing means
+    WITHHOLDING. The real helper is on trial -- the delegated reader is what is broken, not
+    the helper -- so this cannot pass by asserting a stub's behaviour.
+
+    Both halves matter: the draw must still FIRE (a broken suspect-reader must never blind
+    RUNG 1 to a real wedge, which would be strictly worse than saying nothing), and it must
+    not raise into the ladder that every lower rung is queued behind."""
+    from background import process_run_complete as prc
+    now = 1_800_000_000.0
+    _write(tmp_path, monkeypatch, _laundered_state(now))
+    _blocking_record(tmp_path, now)  # a record that WOULD warrant the payload
+
+    def _boom(*_a, **_k):
+        raise RuntimeError("reader gone")
+    monkeypatch.setattr(prc, "last_blocking_tests", _boom)
+
+    assert supervisor._live_gate_blocking_record(now=now) == ([], None)
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None and "PUBLISH-GATE WEDGE" in msg, "a broken reader must not blind RUNG 1"
+    assert "FILED FINDINGS" not in msg
+    assert "NOT CITABLE AND HAS BEEN WITHHELD" in msg
