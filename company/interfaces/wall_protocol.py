@@ -114,6 +114,7 @@ from __future__ import annotations
 import datetime as dt
 import hmac
 from dataclasses import dataclass
+from enum import Enum
 from hashlib import sha256
 from types import MappingProxyType
 from typing import Any, Callable, Mapping, Optional, Tuple, TypeVar
@@ -130,8 +131,12 @@ __all__ = [
     "REQUEST_WIRE_FIELDS",
     "RESPONSE_WIRE_FIELDS",
     "FRAME_WIRE_FIELDS",
+    "CounterpartyNature",
     "CounterpartyRecord",
     "COUNTERPARTY_REGISTRY",
+    "DeploymentPosture",
+    "DECLARED_POSTURE",
+    "assert_registry_fit_for_posture",
     "WallProtocolError",
     "encode_request",
     "decode_request",
@@ -180,6 +185,54 @@ RESPONSE_WIRE_FIELDS: frozenset[str] = frozenset(
 FRAME_WIRE_FIELDS: frozenset[str] = frozenset({"sender", "credential", "envelope"})
 
 
+class CounterpartyNature(str, Enum):
+    """Whether a registry row names a REAL market participant or a STAND-IN.
+
+    This is a property of the COUNTERPARTY, not of the deployment: "BACS-BUREAU-01
+    is impersonated by a module in this repository" stays true whatever machine
+    the company is started on. The deployment supplies the other half
+    (`DeploymentPosture`), and only the two together decide whether startup is
+    allowed -- which is the point, because a single value carrying both facts
+    would be the config flag Q14 names as the failing answer.
+    """
+
+    REAL = "real"
+    STAND_IN = "stand_in"
+
+
+class DeploymentPosture(str, Enum):
+    """Where this process believes it is running.
+
+    Deliberately two values and no `TEST`/`STAGING` middle: the question Q14 asks
+    is binary -- may a stand-in speak to this company or may it not -- and every
+    additional name is another value somebody has to remember to exclude.
+    """
+
+    SIMULATION = "simulation"
+    PRODUCTION = "production"
+
+
+#: What THIS checkout is. The whole company runs against a simulated
+#: counterparty, so the honest declaration is SIMULATION and the mechanism below
+#: is the thing that bites on the day it is not.
+#:
+#: THIS CONSTANT IS NOT THE CONTROL, and saying so matters, because a posture
+#: declared in the same shipping unit as the code that reads it is exactly the
+#: "config flag and good intentions" the blind review's Q14 refuses. Two
+#: independent things keep it honest, and neither is this line:
+#:   * SEGREGATION -- the stand-in's credential exists only in `simulation/`, a
+#:     tree `company/` may not import (`tools/epistemic_verifier`,
+#:     `tests/architecture/test_epistemic_wall_ratchet.py`). A production
+#:     artefact that ships `company/` without `simulation/` has no speaker.
+#:   * NON-FORGEABILITY -- segregation removes the speaker and NOT the trust:
+#:     the registry below still ships a fingerprint the stand-in can satisfy.
+#:     `test_the_declared_nature_of_every_row_matches_the_tree` hashes the
+#:     credential literals actually present under `simulation/` and reds if any
+#:     row a stand-in can speak for is labelled REAL. Relabelling a row to slip
+#:     past the assertion below therefore fails the suite instead of the seam.
+DECLARED_POSTURE: "DeploymentPosture" = DeploymentPosture.SIMULATION
+
+
 @dataclass(frozen=True)
 class CounterpartyRecord:
     """What this company build accepts FROM one named counterparty.
@@ -193,10 +246,17 @@ class CounterpartyRecord:
     different fact from `SUPPORTED_SCHEMA_VERSIONS` (what this build can read at
     all). A version in the second but not the first is a message from a
     participant that has not cut over yet -- readable, and still wrong.
+
+    `nature` says whether the participant on the other end is real or a
+    stand-in. REQUIRED, with no default: a row that does not say is a row nobody
+    decided about, and `assert_registry_fit_for_posture` reads any value it does
+    not recognise as STAND_IN rather than waving it through -- absence is never
+    agreement here either.
     """
 
     credential_sha256: str
     speaks_schema_versions: frozenset[int]
+    nature: CounterpartyNature
 
 
 #: The company's counterparty on the payment observable seam -- its bank/Bacs
@@ -216,9 +276,76 @@ COUNTERPARTY_REGISTRY: Mapping[str, CounterpartyRecord] = MappingProxyType(
                 "639aca59b3a720c287d0473294933e0bb86c75173c6f0aedaaa5cbd376eda12a"
             ),
             speaks_schema_versions=frozenset({1}),
+            # A module in this repository holds the credential this fingerprint
+            # is of (`simulation/payment_seam_adapter.py::PARTICIPANT_CREDENTIAL`).
+            # Labelling it anything else reds the cross-check named on
+            # DECLARED_POSTURE above.
+            nature=CounterpartyNature.STAND_IN,
         ),
     }
 )
+
+
+def assert_registry_fit_for_posture(
+    posture: Any,
+    *,
+    registry: Mapping[str, CounterpartyRecord] = COUNTERPARTY_REGISTRY,
+) -> None:
+    """The startup assertion: refuse to run a stand-in counterparty in production.
+
+    THE RESIDUE THIS EXISTS FOR. Environment segregation stops the stand-in
+    SPEAKING (it is not shipped), and does nothing whatever about the company
+    still TRUSTING it: `COUNTERPARTY_REGISTRY` ships inside `company/` and would
+    reach production intact, fingerprint and all. Anyone who then learned one
+    string from a public repository would be a bank. So the check is not "can the
+    stand-in be reached" -- it is "does this build still accept one".
+
+    FAIL-CLOSED, AND THE DIRECTION IS THE WHOLE DESIGN. A posture this function
+    does not recognise -- `None`, `""`, `"prod"`, `"PRODUCTION"`, a typo'd
+    `"simulaton"`, an int, a list -- is read as PRODUCTION, the strictest
+    reading, so no malformed value can ever WEAKEN the check. The R15 FAIL-OPEN
+    pattern here would be an unreadable posture meaning "assume simulation", and
+    that is precisely the reading a stand-in reaches production through: "I could
+    not tell where I am" is not a licence to trust an impersonator. A record
+    whose `nature` is not a `CounterpartyNature` is read the same way, for the
+    same reason.
+
+    NO VALUE MEANS SKIP. `registry` is injectable so a test can build a
+    multi-participant world without mutating a module constant under a live
+    suite -- the same justification `decode_frame` carries -- and it is not a
+    permission dial: an empty registry has no stand-in to refuse because it
+    accepts nobody at all, which is the safe end, not the open one.
+
+    Raises `WallProtocolError("STAND_IN_IN_PRODUCTION", ...)` naming every
+    offending participant, because "one of your counterparties is fake" without
+    saying which is a message that costs an outage to act on.
+    """
+    # IDENTITY, not equality. `DeploymentPosture` is a str-Enum, so `== "simulation"`
+    # would let the bare string through -- and a bare string is what an unvalidated
+    # config read produces. Only the enum member itself relaxes the check.
+    if posture is DeploymentPosture.SIMULATION:
+        return
+    offenders = sorted(
+        sender
+        for sender, record in registry.items()
+        if getattr(record, "nature", None) is not CounterpartyNature.REAL
+    )
+    if not offenders:
+        return
+    named = ", ".join(repr(s) for s in offenders)
+    read_as = (
+        "declared PRODUCTION"
+        if posture is DeploymentPosture.PRODUCTION
+        else f"posture {posture!r}, which this build does not recognise and "
+        f"therefore reads as PRODUCTION"
+    )
+    raise WallProtocolError(
+        "STAND_IN_IN_PRODUCTION",
+        f"refusing to start under {read_as}: the counterparty registry still "
+        f"accepts messages from {named}, which this build does not hold as a "
+        f"real market participant -- remove the row, or do not call this "
+        f"deployment production",
+    )
 
 
 class WallProtocolError(ValueError):
@@ -242,8 +369,11 @@ class WallProtocolError(ValueError):
       ``BAD_CREDENTIAL``       -- the participant is known and did not prove it.
       ``VERSION_NOT_SPOKEN``   -- this build can read the dialect; THIS sender is
                                  not on that release.
+      ``STAND_IN_IN_PRODUCTION`` -- raised at STARTUP, not on a message: this
+                                 build was asked to run in production while its
+                                 registry still accepts a stand-in counterparty.
 
-    The last three are separate reasons on purpose. "I have never heard of
+    The middle three are separate reasons on purpose. "I have never heard of
     you", "you are not who you say you are" and "you have not cut over yet"
     call for three different repairs -- a registry entry, a credential
     rotation, and a release schedule -- and a single AUTH_FAILED would hide

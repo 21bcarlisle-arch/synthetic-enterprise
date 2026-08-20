@@ -799,8 +799,12 @@ def test_R15_a_refused_message_is_not_marked_processed():
 
 from company.interfaces.wall_protocol import (  # noqa: E402
     COUNTERPARTY_REGISTRY,
+    DECLARED_POSTURE,
     FRAME_WIRE_FIELDS,
+    CounterpartyNature,
     CounterpartyRecord,
+    DeploymentPosture,
+    assert_registry_fit_for_posture,
     decode_frame,
     decode_framed_response,
 )
@@ -969,10 +973,12 @@ _STAGGERED_REGISTRY = {
     "EARLY-ADOPTER": CounterpartyRecord(
         credential_sha256=COUNTERPARTY_REGISTRY[PARTICIPANT_ID].credential_sha256,
         speaks_schema_versions=frozenset({1, 2}),
+        nature=CounterpartyNature.STAND_IN,
     ),
     "NOT-CUT-OVER-YET": CounterpartyRecord(
         credential_sha256=COUNTERPARTY_REGISTRY[PARTICIPANT_ID].credential_sha256,
         speaks_schema_versions=frozenset({2}),
+        nature=CounterpartyNature.STAND_IN,
     ),
 }
 
@@ -1071,3 +1077,204 @@ def test_the_framed_and_unframed_crossings_are_exactly_as_declared():
 
     assert framed == _FRAMED_CROSSINGS
     assert unframed == _UNFRAMED_CROSSINGS
+
+
+# ---------------------------------------------------------------------------
+# Q14: "What stops a stand-in configuration reaching production?"  The review's
+# answer_needed is "Environment-level segregation and a startup assertion, not a
+# config flag and good intentions", so all three legs are tested here:
+#   * the ASSERTION refuses, and refuses fail-CLOSED on anything unrecognised;
+#   * the DECLARATION cannot be forged, because it is checked against which
+#     credentials actually exist under `simulation/`;
+#   * the SEGREGATION leg is the epistemic wall and is not re-proven here --
+#     `tests/architecture/test_epistemic_wall_ratchet.py` owns it. Named so the
+#     absence is a decision rather than a gap.
+# ---------------------------------------------------------------------------
+
+
+def _real(**overrides) -> CounterpartyRecord:
+    """A record for a participant NOT impersonated in this repo."""
+    fields = {
+        "credential_sha256": "0" * 64,
+        "speaks_schema_versions": frozenset({1}),
+        "nature": CounterpartyNature.REAL,
+    }
+    fields.update(overrides)
+    return CounterpartyRecord(**fields)
+
+
+def test_this_checkout_declares_itself_a_simulation():
+    """The null control for every refusal below. If this ever flips, the live
+    consumer stops constructing until the stand-in row is removed -- which is
+    the mechanism, not an accident."""
+    assert DECLARED_POSTURE is DeploymentPosture.SIMULATION
+    assert_registry_fit_for_posture(DECLARED_POSTURE)
+
+
+def test_MUTATION_a_production_posture_REFUSES_the_shipped_registry():
+    """The defect this control exists to catch: a build that still accepts a
+    stand-in counterparty being told it is production. Nothing about the
+    registry changes -- only the claim about where it is running."""
+    with pytest.raises(WallProtocolError) as exc:
+        assert_registry_fit_for_posture(DeploymentPosture.PRODUCTION)
+    assert exc.value.reason == "STAND_IN_IN_PRODUCTION"
+    # It names WHICH participant: "one of your counterparties is fake" without
+    # saying which costs an outage to act on.
+    assert PARTICIPANT_ID in str(exc.value)
+
+
+def test_MUTATION_the_live_consumer_REFUSES_TO_CONSTRUCT_under_a_production_posture():
+    """The assertion is only worth anything if it is on the path something
+    actually starts. `PaymentObservationConsumer` is the startup of the only
+    framed crossing the company has, so the refusal must happen there and not
+    merely in a helper nobody calls."""
+    with pytest.raises(WallProtocolError) as exc:
+        PaymentObservationConsumer(posture=DeploymentPosture.PRODUCTION)
+    assert exc.value.reason == "STAND_IN_IN_PRODUCTION"
+    # NULL CONTROL, on the same line: the default posture constructs, so the
+    # test above is measuring the posture and not a broken constructor.
+    assert PaymentObservationConsumer() is not None
+
+
+def test_a_production_build_with_only_REAL_counterparties_starts():
+    """The other direction, which is what makes this a check rather than a
+    blanket refusal of the word "production": the assertion is about the
+    REGISTRY's contents, not about the posture value."""
+    assert_registry_fit_for_posture(
+        DeploymentPosture.PRODUCTION, registry={"REAL-BANK": _real()}
+    )
+
+
+@pytest.mark.parametrize(
+    "posture",
+    [
+        None,
+        "",
+        "simulation",  # the bare string: a str-Enum would compare EQUAL to this
+        "SIMULATION",
+        "simulaton",  # a typo nobody would notice in a config file
+        "prod",
+        0,
+        1,
+        [],
+        {},
+        object(),
+        DeploymentPosture,  # the class, not a member
+    ],
+)
+def test_an_UNRECOGNISED_posture_is_read_as_production_and_never_as_simulation(posture):
+    """R15 FAIL-OPEN, in the exact place it would hurt. "I could not tell where
+    I am" must never be a licence to trust an impersonator, so every value this
+    build does not recognise takes the STRICTEST reading. Note `"simulation"`
+    in the list: `DeploymentPosture` is a str-Enum, so an equality check would
+    have accepted the bare string an unvalidated config read produces."""
+    with pytest.raises(WallProtocolError) as exc:
+        assert_registry_fit_for_posture(posture)
+    assert exc.value.reason == "STAND_IN_IN_PRODUCTION"
+
+
+@pytest.mark.parametrize("nature", [None, "", "real", "REAL", 0, [], object()])
+def test_a_record_that_cannot_say_what_it_is_is_NOT_trusted_in_production(nature):
+    """Same fail-closed direction one level down. A row whose `nature` is not a
+    `CounterpartyNature` is a row nobody decided about, and absence is never
+    agreement in this module. `"real"` is in the list for the str-Enum reason
+    above -- the string that compares equal is still not the decision."""
+    forged = dataclasses.replace(_real(), nature=nature)
+    with pytest.raises(WallProtocolError) as exc:
+        assert_registry_fit_for_posture(
+            DeploymentPosture.PRODUCTION, registry={"UNDECIDED": forged}
+        )
+    assert exc.value.reason == "STAND_IN_IN_PRODUCTION"
+
+
+def test_an_EMPTY_registry_is_not_the_open_end_of_this_check():
+    """There is no value of `registry` meaning "skip". Empty passes the posture
+    assertion because it has no stand-in to refuse -- and it also accepts
+    nobody at all (`test_an_EMPTY_registry_refuses_everything_rather_than_
+    accepting_it`), so the safe end and the vacuous end are the same end."""
+    assert_registry_fit_for_posture(DeploymentPosture.PRODUCTION, registry={})
+    with pytest.raises(WallProtocolError) as exc:
+        decode_frame(_frame(), registry={})
+    assert exc.value.reason == "UNKNOWN_SENDER"
+
+
+# --- the declaration cannot be forged --------------------------------------
+
+
+def _stand_in_credential_fingerprints() -> set[str]:
+    """sha256 of every credential literal that actually exists under
+    `simulation/`, read off the tree.
+
+    This is the STRUCTURAL fact `nature` is checked against. It is derived from
+    a different source than the thing it checks -- the company declares, the
+    sim tree is measured -- so this is not the R15 TAUTOLOGY pattern.
+    """
+    import ast
+    import pathlib
+    from hashlib import sha256
+
+    root = pathlib.Path(__file__).resolve().parents[3]
+    found: set[str] = set()
+    scanned = 0
+    for path in sorted((root / "simulation").rglob("*.py")):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except SyntaxError:
+            continue
+        scanned += 1
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Assign):
+                continue
+            if not isinstance(node.value, ast.Constant) or not isinstance(
+                node.value.value, str
+            ):
+                continue
+            for target in node.targets:
+                if isinstance(target, ast.Name) and "CREDENTIAL" in target.id.upper():
+                    found.add(sha256(node.value.value.encode("utf-8")).hexdigest())
+    # An empty scan reports a clean tree, which is the FAIL-SILENT pattern:
+    # a rename of the sim package would make every row look un-impersonated.
+    assert scanned > 0, "scanned no files under simulation/ -- a failed check, not a pass"
+    assert found, "found no credential literals under simulation/ -- the scan is broken"
+    return found
+
+
+def _misdeclared(registry) -> set[str]:
+    """Participants a module in THIS repository can speak for, which the
+    company nonetheless holds as REAL."""
+    impersonated = _stand_in_credential_fingerprints()
+    return {
+        sender
+        for sender, record in registry.items()
+        if record.credential_sha256 in impersonated
+        and record.nature is CounterpartyNature.REAL
+    }
+
+
+def test_the_declared_nature_of_every_row_matches_the_tree():
+    """What stops the startup assertion being a config flag: relabelling a row
+    to slip past it fails HERE instead of at the seam. The shipped registry's
+    one row is declared STAND_IN and the credential it accepts is a literal in
+    `simulation/payment_seam_adapter.py`, so the label is a measured fact."""
+    assert _misdeclared(COUNTERPARTY_REGISTRY) == set()
+    shipped = COUNTERPARTY_REGISTRY[PARTICIPANT_ID]
+    assert shipped.nature is CounterpartyNature.STAND_IN
+    assert shipped.credential_sha256 in _stand_in_credential_fingerprints()
+
+
+def test_MUTATION_a_stand_in_relabelled_REAL_is_CAUGHT_by_the_cross_check():
+    """The forgery the assertion alone cannot see. Flip the one shipped row to
+    REAL -- the posture assertion is now silent under production, and this is
+    what notices, because the credential is still one this repo holds."""
+    forged = {
+        PARTICIPANT_ID: dataclasses.replace(
+            COUNTERPARTY_REGISTRY[PARTICIPANT_ID], nature=CounterpartyNature.REAL
+        )
+    }
+    # The startup assertion has genuinely been defeated -- stated, not implied.
+    assert_registry_fit_for_posture(DeploymentPosture.PRODUCTION, registry=forged)
+    # And the cross-check catches it.
+    assert _misdeclared(forged) == {PARTICIPANT_ID}
+    # NULL CONTROL: a participant this repo cannot speak for is not flagged by
+    # the same function, so it is measuring the credential and not the label.
+    assert _misdeclared({"REAL-BANK": _real()}) == set()

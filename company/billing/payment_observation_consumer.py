@@ -137,7 +137,12 @@ from company.billing.arrears_engine import (
     age_open_items,
     ageing_buckets,
 )
-from company.interfaces.wall_protocol import WallProtocolError, decode_framed_response
+from company.interfaces.wall_protocol import (
+    DECLARED_POSTURE,
+    WallProtocolError,
+    assert_registry_fit_for_posture,
+    decode_framed_response,
+)
 from interface.contracts.payment_observable_seam import (
     FORBIDDEN_TRUTH_FIELDS,
     OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
@@ -599,7 +604,16 @@ class PaymentObservationConsumer:
         self,
         ledger_book: Optional[LedgerBook] = None,
         dd_failure_window_days: int = 90,
+        posture: Any = DECLARED_POSTURE,
     ) -> None:
+        # THE STARTUP ASSERTION (atom EP6, pass 40 -- the blind review's Q14).
+        # This constructor is the startup of the only framed crossing the
+        # company has, so it is where "may a stand-in speak to this build"
+        # gets asked -- once, before any wire is read, rather than per message.
+        # It refuses under a production posture while the counterparty registry
+        # still carries a stand-in; see `assert_registry_fit_for_posture` for
+        # why an unrecognised posture counts as production.
+        assert_registry_fit_for_posture(posture)
         self.ledger_book: LedgerBook = ledger_book if ledger_book is not None else LedgerBook()
         self._dd_failures: Dict[str, List[DDFailureObservation]] = {}
         self._rail_failures: Dict[str, List[RailFailureNote]] = {}
