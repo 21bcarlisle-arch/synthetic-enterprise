@@ -45,6 +45,10 @@ def _settled_days(customer_id: str, start: str, end: str) -> list[dict]:
             "settlement_date": day.isoformat(),
             "revenue_gbp": 2.0,
             "margin_gbp": 1.0,
+            # Below the gross margin, as in the real book: the CLV these
+            # snapshots carry is valued on this line, not the one above
+            # (2026-08-17 margin-basis finding).
+            "net_margin_gbp": 0.24,
         })
         day += timedelta(days=1)
     return out

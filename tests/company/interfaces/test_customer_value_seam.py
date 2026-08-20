@@ -116,6 +116,12 @@ def _records() -> list[dict]:
                         "revenue_gbp": revenue,
                         "wholesale_cost_gbp": wholesale,
                         "margin_gbp": round(revenue - wholesale, 2),
+                        # Net of the levies, network charges, capital and bad
+                        # debt attributable to this record — the line the book
+                        # is valued on. Materially below the gross margin above,
+                        # as it is in the real book (2026-08-17 margin-basis
+                        # finding), so the view cannot pass by reading either.
+                        "net_margin_gbp": round((revenue - wholesale) * 0.24, 2),
                         "consumption_kwh": 400.0,
                     }
                 )
