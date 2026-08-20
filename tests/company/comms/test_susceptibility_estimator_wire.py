@@ -154,24 +154,188 @@ def test_a_missing_payload_field_is_refused_never_defaulted():
 def test_an_undeclared_payload_field_is_refused_rather_than_tolerated():
     """The mirror-image reason: if a later schema adds a field, the version
     number is how a decoder finds out -- never silent tolerance of bytes it
-    does not understand. This is also the smuggling route a hidden trait would
-    take, so tolerance here would be a hole in the wall as well as in the
-    protocol."""
-    wire = _wire(payload_fields={"tone_susceptibility": 0.8})
+    does not understand.
+
+    NULL CONTROL FOR THE OTHER BELT (EP6 pass 28), and the reason the field
+    here is `segment_score` rather than the `tone_susceptibility` it used to
+    be: that name is ON the denylist, so once the belt landed this test would
+    have gone on passing while measuring the wrong belt entirely. A name the
+    denylist has never heard of is the only input that can tell the closed set
+    apart from the denylist -- without it, "the belt fired" and "anything
+    unusual is refused" are the same observation.
+    """
+    wire = _wire(payload_fields={"segment_score": 0.8})
     with pytest.raises(WallProtocolError) as exc:
         SusceptibilityEstimator().observe_wire("c1", _msg(), wire)
     assert exc.value.reason == "UNKNOWN_FIELD"
+    assert "segment_score" not in FORBIDDEN_TRUTH_FIELDS
 
 
-def test_every_forbidden_truth_field_is_refused_by_name():
-    """R10-shaped: the class fails, not one instance. Every field the contract
-    names as a hidden trait is refused if it appears on the wire, because the
-    permitted field set comes from the contract and nothing else can join it."""
+# ── the SECOND BELT on this leg (EP6 pass 28) ────────────────────────────────
+# WHY THIS BATTERY EXISTS. Until this pass the company's decode leg had NO
+# non-derived check of any kind: its permitted key set is
+# `get_type_hints(ConversationResponse)`, which WIDENS whenever that dataclass
+# widens and is an R15 TAUTOLOGY for the question "could a real supplier know
+# this". The world's encode leg has refused by name since it was built. That
+# asymmetry left the seam carrying a customer's hidden latent traits defended
+# only on the side that gets REPLACED at go-live -- and it was found by the
+# census reporting its enforcer list, not by anything failing.
+
+
+def test_every_forbidden_truth_field_is_refused_BY_NAME_and_not_merely_refused():
+    """R10-shaped: the class fails, not one instance -- and the reason code is
+    the load-bearing assertion, not the raise. Every one of these names was
+    ALREADY refused by the closed set, so a bare `pytest.raises` (what this
+    test asserted before pass 28) passed identically with no belt present at
+    all. Asserting CONTRACT_VIOLATION is what makes the denylist the thing
+    being measured."""
     for forbidden in FORBIDDEN_TRUTH_FIELDS:
-        with pytest.raises(WallProtocolError):
+        with pytest.raises(WallProtocolError) as exc:
             SusceptibilityEstimator().observe_wire(
                 "c1", _msg(), _wire(payload_fields={forbidden: 0.9})
             )
+        assert exc.value.reason == "CONTRACT_VIOLATION", forbidden
+        assert forbidden in str(exc.value), forbidden
+
+
+@pytest.fixture()
+def widened_seam():
+    """A WORLD THAT SHIPS THE ANSWER KEY. The one edit neither the closed set
+    nor the derived hints can see: `framing_susceptibility` added to the
+    response dataclass AND declared observable in the same change, so every
+    check derived FROM the dataclass moves with it and stays green.
+
+    A real dataclass, not a patched dict -- the decoder ends by calling
+    `payload_type(**fields)`, so a hint map widened alone would be refused by
+    the CONSTRUCTOR and every assertion below would be measuring Python rather
+    than the wall. The trait is typed `int` (susceptibility in basis points)
+    because this seam's field decoder declares no `float` branch, and a
+    refusal on THAT would be a third unrelated reason.
+
+    Yields the module, the leaky payload, and a callable that restores.
+    """
+    import dataclasses
+
+    from company.comms import susceptibility_estimator as se
+
+    tag = "ConversationResponse"
+    base = se._OBSERVABLE_PAYLOAD_TYPES[tag]
+
+    @dataclasses.dataclass(frozen=True)
+    class LeakyResponse:
+        response_id: str
+        responds_to: str
+        action: object
+        channel_chosen: object
+        latency: int
+        responded_step: int
+        framing_susceptibility: int
+
+    hints = dict(se._OBSERVABLE_PAYLOAD_HINTS[tag])
+    hints["framing_susceptibility"] = int
+
+    original_type = base
+    original_hints = se._OBSERVABLE_PAYLOAD_HINTS[tag]
+    original_belt = se.FORBIDDEN_TRUTH_FIELDS
+    se._OBSERVABLE_PAYLOAD_TYPES[tag] = LeakyResponse
+    se._OBSERVABLE_PAYLOAD_HINTS[tag] = hints
+    leaky = _wire(payload_fields={"framing_susceptibility": 87})["payload"]
+    try:
+        yield se, leaky, hints
+    finally:
+        se._OBSERVABLE_PAYLOAD_TYPES[tag] = original_type
+        se._OBSERVABLE_PAYLOAD_HINTS[tag] = original_hints
+        se.FORBIDDEN_TRUTH_FIELDS = original_belt
+
+
+def test_MUTATION_a_trait_field_DECLARED_OBSERVABLE_in_the_same_edit_is_still_refused(
+    widened_seam,
+):
+    """THE DOCTRINE MUTATION, and the only case that makes this belt worth
+    having. The body asserts the DERIVED check is genuinely green on this
+    payload first -- without that, the refusal could be the closed set firing
+    and the belt could be absent entirely."""
+    se, leaky, hints = widened_seam
+
+    # THE DERIVED CHECK IS GREEN ON THIS PAYLOAD: no field absent, none extra.
+    assert set(leaky["fields"]) == set(hints)
+
+    with pytest.raises(WallProtocolError) as exc:
+        se.decode_observable_payload(leaky)
+    assert exc.value.reason == "CONTRACT_VIOLATION"
+    assert "framing_susceptibility" in str(exc.value)
+
+
+def test_MUTATION_without_the_belt_the_SAME_payload_is_ACCEPTED(widened_seam):
+    """THE OTHER HALF, and what makes the half above a proof rather than an
+    observation: same widened seam, denylist emptied, and the payload carrying
+    a customer's hidden susceptibility scalar decodes CLEANLY into an object
+    the company would go on to fold into its belief. That is the state this leg
+    was in until pass 28, and it is what the belt -- and only the belt -- now
+    stops."""
+    se, leaky, _hints = widened_seam
+    se.FORBIDDEN_TRUTH_FIELDS = ()
+
+    decoded = se.decode_observable_payload(leaky)
+
+    assert decoded.framing_susceptibility == 87, (
+        "the belt is the only thing refusing this payload -- if it were "
+        "redundant with the closed set, this line would never be reached"
+    )
+
+
+def test_the_belt_never_names_a_field_the_contract_declares_OBSERVABLE():
+    """The list's own null control, and pass 27's `days_late` lesson applied
+    here: a denylist that reds on a legal payload is one that gets RELAXED, and
+    the relaxation takes the real entries with it. Every field of
+    `ConversationResponse` is a DELIBERATE NON-MEMBER with a reason -- each is
+    something a real supplier reads off its own contact-centre systems."""
+    from interface.contracts.conversation_seam import OBSERVABLE_PAYLOAD_FIELDS
+
+    why = {
+        "response_id": "the company's own idempotency key for the inbound event",
+        "responds_to": "the id of a message the company itself sent",
+        "action": "what the customer was OBSERVED to do -- replied, paid, left",
+        "channel_chosen": "which of its own lines the customer answered on",
+        "latency": "how long the company waited before it saw an answer",
+        "responded_step": "when the observed event landed on the company's clock",
+        "message_id": "the company's own outbound id",
+        "situation": "the reason the company chose to make contact",
+        "channel": "the line the company chose to send on",
+        "product": "what the company sells this customer",
+        "tone": "a lever the company PICKED -- never the susceptibility to it",
+        "framing": "the same, on the other lever",
+        "emitted_step": "when the company sent it",
+        "offer": "what the company offered",
+    }
+    for tag, fields in OBSERVABLE_PAYLOAD_FIELDS.items():
+        for name in fields:
+            assert name not in FORBIDDEN_TRUTH_FIELDS, (
+                f"{tag}.{name} is declared observable AND forbidden -- one of "
+                "the two is wrong and the belt will be relaxed to fix it"
+            )
+            assert name in why, f"{tag}.{name} has no stated reason to be observable"
+
+
+def test_the_belt_is_read_from_the_CONTRACT_and_not_respelled_here():
+    """R15 INDEPENDENCE. A decoder carrying its own copy of the denylist would
+    agree with the contract on the day it was written and silently diverge
+    after -- and the divergence is invisible, because both sides still refuse
+    SOMETHING. The seam's tuple is the single source, imported by name."""
+    import ast
+    import pathlib
+
+    source = pathlib.Path("company/comms/susceptibility_estimator.py").read_text()
+    imported_from = {
+        node.module
+        for node in ast.walk(ast.parse(source))
+        if isinstance(node, ast.ImportFrom)
+        and any(a.name == "FORBIDDEN_TRUTH_FIELDS" for a in node.names)
+    }
+    assert imported_from == {"interface.contracts.conversation_seam"}
+    assert "FORBIDDEN_TRUTH_FIELDS: " not in source, (
+        "the decoder declares its own denylist -- it must import the contract's"
+    )
 
 
 def test_a_latency_the_contract_cannot_represent_is_refused_at_the_seam():

@@ -2290,18 +2290,49 @@ _ENFORCING_ADAPTER = """
         return payload
 """
 
+# The COMPANY side of the same crossing. Byte-for-byte a different module on the other side of
+# the wall, not a copy of the adapter renamed: the whole question below is which SIDE a refusal
+# sits on, so the two sides have to be separately removable.
+_ENFORCING_CONSUMER = """
+    from interface.contracts.payment_observable_seam import FORBIDDEN_TRUTH_FIELDS
+
+    def decode(body):
+        leaking = sorted(set(body) & set(FORBIDDEN_TRUTH_FIELDS))
+        if leaking:
+            raise ValueError(leaking)
+        return body
+"""
+
+_ADAPTER_REL = "simulation/payment_seam_adapter.py"
+_CONSUMER_REL = "company/billing/payment_observation_consumer.py"
+
+# A module that refuses on the belt and is on NEITHER side -- `tools` is a BRIDGE package,
+# walked by the census because channel D's ports live there. Used to pin that a bridge refusal
+# does not redeem a bare side.
+_ENFORCING_BRIDGE = """
+    from interface.contracts.payment_observable_seam import FORBIDDEN_TRUTH_FIELDS
+
+    def audit(names):
+        if set(names) & set(FORBIDDEN_TRUTH_FIELDS):
+            raise ValueError(names)
+"""
+
 
 @pytest.fixture()
 def belt_tree(tmp_path: Path) -> Path:
-    """One versioned seam declaring a literal denylist, one module refusing on it.
+    """One versioned seam declaring a literal denylist, refused on by BOTH SIDES of the wall.
 
     One seam on purpose, the `pin_tree` fixture's reason: with exactly one, "the mutation
-    removed the belt" and "the check never found a seam" cannot be confused.
+    removed the belt" and "the check never found a seam" cannot be confused. TWO enforcers on
+    purpose, one per side of the wall -- the green case has to be the state the real tree is
+    actually required to be in, or every mutation below would be measured against a fixture that
+    was already failing.
     """
     root = tmp_path / "repo"
     _write(root, "interface/contracts/wall_envelope.py", '"""the envelope shape."""\n')
     _write(root, "interface/contracts/payment_observable_seam.py", _belt_seam_source())
-    _write(root, "simulation/payment_seam_adapter.py", _ENFORCING_ADAPTER)
+    _write(root, _ADAPTER_REL, _ENFORCING_ADAPTER)
+    _write(root, _CONSUMER_REL, _ENFORCING_CONSUMER)
     return root
 
 
@@ -2309,14 +2340,26 @@ def test_the_fixtures_belt_is_declared_AND_refused_on_so_the_green_case_is_real(
     """THE NULL CONTROL. Without it every refusal below could be the fixture never having had a
     working belt in the first place, and the battery would prove nothing about detection."""
     assert wcc.declared_second_belt(str(belt_tree), BELT_SEAM) == ("result", "ability")
-    assert wcc.belt_enforcers(str(belt_tree), BELT_SEAM) == ("simulation/payment_seam_adapter.py",)
+    assert wcc.belt_enforcers(str(belt_tree), BELT_SEAM) == (_CONSUMER_REL, _ADAPTER_REL)
 
 
-def test_a_seam_with_an_enforced_denylist_passes(belt_tree):
+def test_the_two_SIDES_are_separately_observable_in_the_fixture(belt_tree):
+    """THE SECOND NULL CONTROL, and the one the per-side mutations below rest on. If both
+    enforcers landed in the same bucket, "the company side went missing" and "the world side
+    went missing" would be the same observation and neither mutation would prove anything."""
+    sides = wcc.belt_enforcer_sides(str(belt_tree), BELT_SEAM)
+
+    assert sides.company == (_CONSUMER_REL,)
+    assert sides.world == (_ADAPTER_REL,)
+    assert sides.neither == ()
+    assert sides.both and sides.missing == ""
+
+
+def test_a_seam_with_a_denylist_enforced_on_BOTH_SIDES_passes(belt_tree):
     verdict = wcc.second_belt_conformance(str(belt_tree))
 
-    assert verdict.belted == ((BELT_SEAM, 2, ("simulation/payment_seam_adapter.py",)),)
-    assert verdict.unbelted == () and verdict.unenforced == ()
+    assert verdict.belted == ((BELT_SEAM, 2, (_CONSUMER_REL,), (_ADAPTER_REL,)),)
+    assert verdict.unbelted == () and verdict.unenforced == () and verdict.one_sided == ()
     assert verdict.ok, verdict.report()
 
 
@@ -2368,43 +2411,150 @@ def test_FAIL_CLOSED_a_COMPUTED_denylist_is_UNBELTED(belt_tree):
     assert not verdict.ok
 
 
+_INERT_CODEC = """
+    from interface.contracts.payment_observable_seam import FORBIDDEN_TRUTH_FIELDS
+
+    KNOWN_LEAKS = FORBIDDEN_TRUTH_FIELDS
+
+    def crosses(payload, names):
+        return payload
+"""
+
+
 def test_MUTATION_a_denylist_NOTHING_refuses_on_is_UNENFORCED(belt_tree):
     """THE SECOND FAIL-OPEN, and the one a symbol-presence check cannot see. The declaration is
-    real, non-empty and literal; the codec imports it and never acts on it. A denylist nothing
-    reads is a comment, and the seam's own tests would still pass over it."""
-    _write(belt_tree, "simulation/payment_seam_adapter.py", """
-        from interface.contracts.payment_observable_seam import FORBIDDEN_TRUTH_FIELDS
+    real, non-empty and literal; both codecs import it and neither acts on it. A denylist
+    nothing reads is a comment, and the seam's own tests would still pass over it."""
+    _write(belt_tree, _ADAPTER_REL, _INERT_CODEC)
+    _write(belt_tree, _CONSUMER_REL, _INERT_CODEC)
 
-        KNOWN_LEAKS = FORBIDDEN_TRUTH_FIELDS
-
-        def encode(payload, names):
-            return payload
-    """)
     verdict = wcc.second_belt_conformance(str(belt_tree))
 
-    assert verdict.unenforced == ((BELT_SEAM, 2),)
-    assert verdict.belted == ()
+    assert verdict.unenforced == ((BELT_SEAM, 2, ()),)
+    assert verdict.belted == () and verdict.one_sided == ()
     assert not verdict.ok
     assert "UNENFORCED" in verdict.report()
+
+
+# ── the PER-SIDE question (EP6 pass 28) ────────────────────────────────────────────────────────
+# WHY THIS EXISTS AS ITS OWN BATTERY. The per-seam verdict above is satisfied by ONE enforcer
+# anywhere, and on its first live run it REPORTED -- in its enforcer list, where nothing could
+# fail on it -- that `conversation_seam` was belted by `simulation/conversation_response.py`
+# alone. That is the seam carrying a customer's hidden latent traits, defended on the side the
+# WORLD owns and bare on the side the COMPANY owns. A fact that can only be read off a list is
+# not a control; these are the mutations that make it one.
+#
+# BOTH DIRECTIONS ARE MUTATED ON PURPOSE. With only the company-side removal, "one-sided"
+# would be indistinguishable from "that particular fixture file went missing", and the check
+# could be keyed on the wrong thing entirely while passing.
+#
+# SIDE IS NOT LEG. This file already uses "leg" for the request/response pair a seam owns
+# (`seam_legs`). The axis below is which SIDE OF THE WALL a refusal sits on -- a seam can be
+# wired on both legs and belted on one side, which is precisely the state pass 27 reported.
+
+
+def test_MUTATION_a_belt_refused_on_only_by_the_WORLD_side_is_ONE_SIDED(belt_tree):
+    """THE DOCTRINE MUTATION -- the exact state of the real `conversation_seam` at HEAD before
+    this pass, reproduced in a fixture. The declaration is real, non-empty and literal, and the
+    ENCODE side genuinely refuses on it, so every per-seam question above stays green through
+    this. What is missing is the end that decides whether a leak is BELIEVED, which at go-live
+    is the only end of this crossing the company still owns."""
+    _write(belt_tree, _CONSUMER_REL, _INERT_CODEC)
+
+    verdict = wcc.second_belt_conformance(str(belt_tree))
+
+    assert verdict.one_sided == ((BELT_SEAM, 2, "company", (_ADAPTER_REL,)),)
+    assert verdict.belted == () and verdict.unbelted == () and verdict.unenforced == ()
+    assert not verdict.ok
+    assert "ONE-SIDED" in verdict.report()
+    assert "nothing on the company side" in verdict.report()
+
+
+def test_MUTATION_a_belt_refused_on_only_by_the_COMPANY_side_is_ONE_SIDED(belt_tree):
+    """THE MIRROR, and the reason the test above measures the SIDE rather than the file. A world
+    that can ship an unrefused trait field is a defect in the same class even when the company
+    would catch it, because the encode end is what stops a leak being SENT."""
+    _write(belt_tree, _ADAPTER_REL, _INERT_CODEC)
+
+    verdict = wcc.second_belt_conformance(str(belt_tree))
+
+    assert verdict.one_sided == ((BELT_SEAM, 2, "world", (_CONSUMER_REL,)),)
+    assert verdict.belted == ()
+    assert not verdict.ok
+    assert "nothing on the world side" in verdict.report()
+
+
+def test_FAIL_CLOSED_a_refusal_by_a_BRIDGE_module_is_on_NEITHER_side(belt_tree):
+    """R15 FAIL-OPEN, at the boundary of the new question. `belt_enforcers` walks `CENSUS_DIRS`,
+    which includes `tools` / `background` / `interface` because channel D's ports live there --
+    so a check that counted "two enforcers" rather than "two SIDES" would read this tree as
+    fully belted. The payload does not travel through a bridge module on its way from the world
+    to the company, so its refusal defends neither side, and the bare side stays bare."""
+    _write(belt_tree, _CONSUMER_REL, _INERT_CODEC)
+    _write(belt_tree, "tools/payment_wire_audit.py", _ENFORCING_BRIDGE)
+
+    sides = wcc.belt_enforcer_sides(str(belt_tree), BELT_SEAM)
+    assert sides.neither == ("tools/payment_wire_audit.py",)
+    assert sides.company == ()
+
+    verdict = wcc.second_belt_conformance(str(belt_tree))
+    assert verdict.one_sided == ((BELT_SEAM, 2, "company", (_ADAPTER_REL,)),)
+    assert not verdict.ok
+
+
+def test_a_belt_refused_on_ONLY_off_the_wall_is_UNENFORCED_and_the_report_says_where(belt_tree):
+    """The same fail-closed reading with BOTH SIDES inert. `unenforced` is the honest bucket --
+    nothing on either side refuses -- but the off-wall refusal is a real fact and is reported,
+    so the reader is not sent hunting for a `FORBIDDEN_TRUTH_FIELDS` the grep will find."""
+    _write(belt_tree, _ADAPTER_REL, _INERT_CODEC)
+    _write(belt_tree, _CONSUMER_REL, _INERT_CODEC)
+    _write(belt_tree, "tools/payment_wire_audit.py", _ENFORCING_BRIDGE)
+
+    verdict = wcc.second_belt_conformance(str(belt_tree))
+
+    assert verdict.unenforced == ((BELT_SEAM, 2, ("tools/payment_wire_audit.py",)),)
+    assert not verdict.ok
+    assert "refused only off-wall by tools/payment_wire_audit.py" in verdict.report()
+
+
+def test_the_SIDES_come_from_the_WALLS_OWN_definition_of_its_two_sides():
+    """INDEPENDENCE. The side split is `tools.epistemic_wall`'s `COMPANY_PACKAGES` /
+    `SIM_PACKAGES` -- the constants the wall walker itself is built on -- and not a list this
+    census respells. A package added to a side there is a side here the same day; a census with
+    its own copy would drift, and drift silently toward green (an unrecognised package reads as
+    neither side, which is the fail-closed direction only while the two agree)."""
+    from tools.epistemic_wall import COMPANY_PACKAGES, SIM_PACKAGES
+
+    assert wcc.COMPANY_PACKAGES is COMPANY_PACKAGES
+    assert wcc.SIM_PACKAGES is SIM_PACKAGES
+    for pkg in COMPANY_PACKAGES:
+        assert wcc._enforcer_side(f"{pkg}/whatever/mod.py") == "company"
+    for pkg in SIM_PACKAGES:
+        assert wcc._enforcer_side(f"{pkg}/whatever/mod.py") == "world"
+    for pkg in ("tools", "background", "interface"):
+        assert wcc._enforcer_side(f"{pkg}/whatever/mod.py") is None
 
 
 def test_a_belt_only_the_TESTS_consult_is_UNENFORCED(belt_tree):
     """Tests are out of scope by construction (`CENSUS_DIRS` has no `tests/`), and this pins that
     it is the right scope rather than an oversight: a belt checked only in a test stops nothing
     at the crossing, which is where the payload actually goes past."""
-    # The adapter still IMPORTS the seam -- otherwise the seam leaves channel C altogether and
+    # Both codecs still IMPORT the seam -- otherwise the seam leaves channel C altogether and
     # this would pass for the wrong reason, measuring a crossing that no longer exists.
-    _write(belt_tree, "simulation/payment_seam_adapter.py", """
+    version_only = """
         from interface.contracts.payment_observable_seam import SCHEMA_VERSION
 
-        def encode(payload, names):
+        def crosses(payload, names):
             return payload
-    """)
+    """
+    _write(belt_tree, _ADAPTER_REL, version_only)
+    _write(belt_tree, _CONSUMER_REL, version_only)
     _write(belt_tree, "tests/simulation/test_payment_seam_adapter.py", _ENFORCING_ADAPTER)
+    _write(belt_tree, "tests/company/billing/test_payment_consumer.py", _ENFORCING_CONSUMER)
 
     verdict = wcc.second_belt_conformance(str(belt_tree))
 
-    assert verdict.unenforced == ((BELT_SEAM, 2),)
+    assert verdict.unenforced == ((BELT_SEAM, 2, ()),)
     assert not verdict.ok
 
 
@@ -2420,22 +2570,25 @@ def test_an_enforcer_that_imports_the_belt_from_ANOTHER_seam_does_not_count(belt
 
         FORBIDDEN_TRUTH_FIELDS: tuple[str, ...] = ("truth",)
     """)
-    # The adapter imports BOTH seams -- the payment one so the crossing still exists to be
-    # scored, the other one for the belt it refuses on. That is the confusable shape.
-    _write(belt_tree, "simulation/payment_seam_adapter.py", """
+    # Both codecs import BOTH seams -- the payment one so the crossing still exists to be
+    # scored, the other one for the belt they refuse on. That is the confusable shape, and it is
+    # applied to each side so neither can vouch for the other either.
+    borrowed_belt = """
         from interface.contracts.other_seam import FORBIDDEN_TRUTH_FIELDS
         from interface.contracts.payment_observable_seam import SCHEMA_VERSION
 
-        def encode(payload, names):
+        def crosses(payload, names):
             if set(names) & set(FORBIDDEN_TRUTH_FIELDS):
                 raise ValueError(names)
             return payload
-    """)
+    """
+    _write(belt_tree, _ADAPTER_REL, borrowed_belt)
+    _write(belt_tree, _CONSUMER_REL, borrowed_belt)
     assert wcc.belt_enforcers(str(belt_tree), BELT_SEAM) == ()
 
     verdict = wcc.second_belt_conformance(str(belt_tree))
 
-    assert (BELT_SEAM, 2) in verdict.unenforced
+    assert (BELT_SEAM, 2, ()) in verdict.unenforced
     assert not verdict.ok
 
 
@@ -2458,10 +2611,10 @@ def test_FAIL_CLOSED_an_unreadable_seam_RAISES_rather_than_reading_as_unbelted(b
         wcc.declared_second_belt(str(belt_tree), BELT_SEAM)
 
 
-def test_the_REAL_seams_all_carry_a_belt_something_refuses_on():
+def test_the_REAL_seams_all_carry_a_belt_BOTH_LEGS_refuse_on():
     """The live reading, against the real tree rather than a fixture. This is what makes the
-    check a value rather than decoration -- a fourth seam landing without a belt reds here, and
-    the CLI returns 1 with it."""
+    check a value rather than decoration -- a fourth seam landing without a belt reds here, a
+    third seam losing a SIDE reds here, and the CLI returns 1 with either."""
     verdict = wcc.second_belt_conformance(str(wcc.PROJECT_DIR))
 
     assert verdict.ok, verdict.report()
@@ -2470,6 +2623,17 @@ def test_the_REAL_seams_all_carry_a_belt_something_refuses_on():
         "a channel C seam has landed with no truth-field denylist, so its closed set is its "
         "only belt: " + verdict.report()
     )
+    assert not verdict.one_sided, (
+        "a channel C seam is belted on one side of the wall only -- and if the bare side is the "
+        "company's, it is the end of the crossing that survives go-live: " + verdict.report()
+    )
+    # Named rather than counted: a per-side claim carries a location, and this is the assertion
+    # that would red if a repair moved to a module that merely happens to sit on the right side.
+    sides = {seam: (company, world) for seam, _n, company, world in verdict.belted}
+    assert sides["interface.contracts.conversation_seam"] == (
+        ("company/comms/susceptibility_estimator.py",),
+        ("simulation/conversation_response.py",),
+    ), verdict.report()
 
 
 def test_the_belt_check_is_part_of_the_CLIs_exit_code():

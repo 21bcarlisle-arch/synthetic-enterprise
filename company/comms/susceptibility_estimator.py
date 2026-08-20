@@ -53,6 +53,7 @@ from typing import (
 )
 
 from interface.contracts.conversation_seam import (
+    FORBIDDEN_TRUTH_FIELDS,
     ConversationMessage,
     ConversationResponse,
     OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
@@ -180,7 +181,40 @@ def _decode_payload_field(raw: Any, declared: Any, where: str) -> Any:
 
 
 def decode_observable_payload(raw: Any) -> Any:
-    """Rebuild one observable conversation payload off the wire, or refuse it."""
+    """Rebuild one observable conversation payload off the wire, or refuse it.
+
+    THE WALL IS CHECKED HERE TOO, AND THIS IS THE LEG THAT HAD NOTHING.
+    `_OBSERVABLE_PAYLOAD_HINTS` below is `get_type_hints(ConversationResponse)`
+    -- it WIDENS whenever that dataclass widens, so as an answer to "could a
+    real supplier know this" it is an R15 TAUTOLOGY. The encode leg
+    (`simulation/conversation_response.py`) has a non-derived answer, refusing
+    by name from the contract's own `FORBIDDEN_TRUTH_FIELDS`; until EP6 pass 28
+    this leg had none, which made this seam the one crossing on the wall belted
+    on the side the WORLD owns and bare on the side the COMPANY owns -- the
+    same asymmetry pass 27 closed on payment, on the seam that carries a
+    customer's hidden latent traits.
+
+    That asymmetry is the wrong way round for what this seam is for. The whole
+    F1b/F1c gap exists to score the company's INFERRED susceptibility against
+    the SIM's true hidden scalar. A world that started shipping
+    `framing_susceptibility` alongside the observed action would produce a
+    perfectly well-formed envelope and a perfectly well-typed payload, and a
+    company that folded it in would be reading the answer key rather than
+    estimating it -- scoring itself against a number it was handed. Refused BY
+    NAME from the contract's own denylist, so the CLASS fails rather than the
+    instance somebody remembered (R10).
+
+    DENYLIST FIRST, the same ordering and the same reason as
+    `sim/flex_dispatch.py`, `company/market/flex_participation.py` and
+    `company/billing/payment_observation_consumer.py`: the truth-leak message
+    is the more diagnostic of the two, and the ordering keeps each belt
+    separately observable rather than one masking the other.
+
+    NEVER THE CONTROL. `OBSERVABLE_PAYLOAD_FIELDS` is, and it answers the
+    strictly wider question. This belt fires on the one case the closed set
+    cannot see -- a trait field added to the dataclass AND declared observable
+    in the same edit, which moves the very thing the closed set reads.
+    """
     if not isinstance(raw, Mapping):
         raise WallProtocolError(
             "NOT_A_MESSAGE", f"payload must be a mapping, got {type(raw).__name__}"
@@ -210,6 +244,14 @@ def decode_observable_payload(raw: Any) -> Any:
             "NOT_A_MESSAGE", f"{tag}.fields must be a mapping, got {type(body).__name__}"
         )
     hints = _OBSERVABLE_PAYLOAD_HINTS[tag]
+    leaking = sorted(set(body) & set(FORBIDDEN_TRUTH_FIELDS))
+    if leaking:
+        raise WallProtocolError(
+            "CONTRACT_VIOLATION",
+            f"{tag} carries world-internal latent trait(s) {leaking} -- this company "
+            "INFERS a customer's susceptibility from which past messages landed, and "
+            "may never be handed the scalar that produced the action",
+        )
     absent = sorted(set(hints) - set(body))
     if absent:
         raise WallProtocolError(

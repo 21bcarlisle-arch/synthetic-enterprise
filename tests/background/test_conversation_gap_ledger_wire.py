@@ -239,7 +239,17 @@ def test_R15_MUTATION_a_counterparty_widening_the_payload_is_refused_at_the_wall
     susceptibility scalar alongside the observables. The envelope is perfectly
     well-formed, so only a payload-depth refusal catches it -- and it must,
     because a company that folded that number into its belief would be reading
-    ground truth, not inferring it."""
+    ground truth, not inferring it.
+
+    THE REASON CHANGED AT EP6 PASS 28 AND THE CHANGE IS THE POINT. This used to
+    read `UNKNOWN_FIELD` -- the company's DERIVED key set refusing a name it did
+    not recognise, which was the only check this leg had. It now reads
+    CONTRACT_VIOLATION, because the seam's own `FORBIDDEN_TRUTH_FIELDS` is
+    consulted first and says what was actually wrong: not "I do not know this
+    field" but "you may never send me that". The distinction is load-bearing at
+    go-live, when the counterparty is a real CRM and the derived set is the one
+    thing that widens by itself.
+    """
     wire_request = _company_request()
     message = cr.decode_wire_request(wire_request).payload
     leaky = cr.respond_to_wire_request("c1", wire_request)
@@ -247,4 +257,24 @@ def test_R15_MUTATION_a_counterparty_widening_the_payload_is_refused_at_the_wall
 
     with pytest.raises(WallProtocolError) as exc:
         SusceptibilityEstimator().observe_wire("c1", message, leaky)
+    assert exc.value.reason == "CONTRACT_VIOLATION"
+    assert "tone_susceptibility" in str(exc.value)
+
+
+def test_NULL_CONTROL_a_counterparty_widening_with_an_INNOCENT_name_trips_the_OTHER_belt():
+    """Without this, the test above cannot tell "the denylist fired" from
+    "anything unusual is refused", and the belt could be measuring nothing. A
+    name the contract has never heard of and the denylist has never named is
+    still refused -- by the closed set, with the closed set's own reason. The
+    two belts stay separately observable, each with a case only it can pass."""
+    from interface.contracts.conversation_seam import FORBIDDEN_TRUTH_FIELDS
+
+    wire_request = _company_request()
+    message = cr.decode_wire_request(wire_request).payload
+    odd = cr.respond_to_wire_request("c1", wire_request)
+    odd["payload"]["fields"]["segment_score"] = 0.87
+
+    assert "segment_score" not in FORBIDDEN_TRUTH_FIELDS
+    with pytest.raises(WallProtocolError) as exc:
+        SusceptibilityEstimator().observe_wire("c1", message, odd)
     assert exc.value.reason == "UNKNOWN_FIELD"

@@ -109,6 +109,8 @@ if str(PROJECT_DIR) not in sys.path:
 
 from tools.epistemic_wall import (  # noqa: E402
     BRIDGE_PACKAGES,
+    COMPANY_PACKAGES,
+    SIM_PACKAGES,
     WALL_DIRS,
     build_edges,
     crossings_at,
@@ -1817,6 +1819,85 @@ def belt_enforcers(root: str, seam: str) -> tuple[str, ...]:
     return tuple(sorted(enforcers))
 
 
+def _enforcer_side(label: str) -> str | None:
+    """Which SIDE of the wall an enforcing module sits on. None = neither side.
+
+    SIDE, NOT LEG, and the distinction is this file's own established vocabulary rather than
+    style. A seam has two LEGS (`seam_legs`: request and response); each leg has two ENDS
+    (encode and decode); the two ends sit on opposite SIDES of the wall. The question below is
+    about sides -- `one_sided` and `wire_field_sets_by_leg` must not be readable as the same
+    axis, because a seam can be fully wired on both LEGS and belted on only one SIDE, which is
+    exactly the state this was added to catch.
+
+    `COMPANY_PACKAGES` and `SIM_PACKAGES` are imported from `tools.epistemic_wall` rather than
+    respelled here on purpose: they are the wall's OWN definition of its two sides, so this
+    question cannot drift away from the boundary it is asking about, and a package added to
+    either side is a side here on the same day it is one there.
+
+    NONE IS FAIL-CLOSED AND IS NOT A THIRD SIDE. `belt_enforcers` walks `CENSUS_DIRS`, which
+    includes the BRIDGE packages (`tools`, `background`, `interface`) because channel D's ports
+    live there. A bridge module refusing on a seam's denylist is a real fact and is reported,
+    but it is not a SIDE of the crossing: the payload does not go past it on its way from the
+    world to the company, so its refusal defends neither side.
+    """
+    top = label.split("/", 1)[0]
+    if top in COMPANY_PACKAGES:
+        return "company"
+    if top in SIM_PACKAGES:
+        return "world"
+    return None
+
+
+@dataclass(frozen=True)
+class BeltSides:
+    """One seam's enforcers, split by which side of the wall each sits on."""
+
+    company: tuple[str, ...] = ()
+    world: tuple[str, ...] = ()
+    neither: tuple[str, ...] = ()
+
+    @property
+    def both(self) -> bool:
+        return bool(self.company) and bool(self.world)
+
+    @property
+    def any_side(self) -> bool:
+        return bool(self.company) or bool(self.world)
+
+    @property
+    def missing(self) -> str:
+        """The side with NO enforcer, when exactly one is missing; `""` otherwise."""
+        if self.company and not self.world:
+            return "world"
+        if self.world and not self.company:
+            return "company"
+        return ""
+
+
+def belt_enforcer_sides(root: str, seam: str) -> BeltSides:
+    """`belt_enforcers`, partitioned by which side of the wall each one sits on.
+
+    WHY PER-SIDE AND NOT PER-SEAM (2026-08-20, EP6 pass 28). The per-seam verdict this refines
+    was satisfied by ONE enforcer anywhere, and on its first run it reported -- in its enforcer
+    list, where nothing could fail on it -- that `conversation_seam` was enforced by
+    `simulation/conversation_response.py` alone. That is the seam carrying a customer's hidden
+    latent traits, belted on the side the WORLD owns and bare on the side the COMPANY owns.
+
+    THE TWO SIDES ARE NOT INTERCHANGEABLE. The encode end stops a leak being SENT; the decode
+    end stops it being BELIEVED, and the decode end of a wall->company crossing is the only end
+    of it the company still owns at go-live, when the counterparty is a real bank or a real CRM
+    rather than this simulation. A seam belted on the sending side alone is defended entirely by
+    the party that is about to be replaced.
+    """
+    company: list[str] = []
+    world: list[str] = []
+    neither: list[str] = []
+    for label in belt_enforcers(root, seam):
+        side = _enforcer_side(label)
+        {"company": company, "world": world, None: neither}[side].append(label)
+    return BeltSides(tuple(company), tuple(world), tuple(neither))
+
+
 @dataclass(frozen=True)
 class SecondBeltVerdict:
     """Whether each versioned seam carries a truth-field denylist that something acts on.
@@ -1828,35 +1909,52 @@ class SecondBeltVerdict:
     instance somebody noticed. The question also cannot live in the seams, because a seam that
     declares no belt is exactly the one that would not carry the check.
 
-    THREE SCORED BUCKETS, because "no belt" and "a belt nobody consults" are different repairs:
-      * `belted`     -- declares a non-empty literal denylist AND at least one non-test module
-        refuses on it. The green case, and it names the enforcers: a claim carries a location.
+    FOUR SCORED BUCKETS, because each is a different repair:
+      * `belted`     -- declares a non-empty literal denylist AND a non-test module on EACH
+        SIDE of the wall refuses on it. The green case, and it names the enforcers per side: a
+        claim carries a location.
       * `unbelted`   -- declares no readable non-empty denylist. Absent, computed and empty all
         land here (see `_tuple_of_strings`).
-      * `unenforced` -- declares one that NOTHING outside the seam and the tests acts on. The
-        fail-open case: the declaration is real, the refusal is not.
+      * `unenforced` -- declares one that NOTHING on either side acts on. The fail-open case:
+        the declaration is real, the refusal is not. A bridge module refusing is reported with
+        the entry and does NOT redeem it (see `_enforcer_side`).
+      * `one_sided`  -- declares one that exactly ONE side of the wall refuses on. Added by pass
+        28 after the per-seam verdict reported precisely this state on `conversation_seam` in a
+        list nothing could fail on; see `belt_enforcer_sides` for why the two sides are not
+        interchangeable.
     `versionless` is reported and NOT scored -- `wall_envelope` defines the shape and is not a
     crossing, the same honest member channel C's own verdict and the surface pins carry.
+
+    WHAT THIS STILL CANNOT SEE, stated rather than implied by the word "side": `_refuses_on` is
+    a per-MODULE proxy, so this asks whether each SIDE has a refusing module, never whether the
+    refusal sits on the codec the payload actually travels through. A company-side module that
+    refuses on the denylist in an unrelated helper reads as a belted side here. SIDE is also not
+    LEG: this says nothing about whether the request and response legs are separately belted,
+    which is the finer unit `seam_legs` names and no check has yet been built on.
     """
 
-    belted: tuple[tuple[str, int, tuple[str, ...]], ...] = ()
+    belted: tuple[tuple[str, int, tuple[str, ...], tuple[str, ...]], ...] = ()
     unbelted: tuple[str, ...] = ()
-    unenforced: tuple[tuple[str, int], ...] = ()
+    unenforced: tuple[tuple[str, int, tuple[str, ...]], ...] = ()
+    one_sided: tuple[tuple[str, int, str, tuple[str, ...]], ...] = ()
     versionless: tuple[str, ...] = ()
 
     @property
     def ok(self) -> bool:
-        return not self.unbelted and not self.unenforced
+        return not self.unbelted and not self.unenforced and not self.one_sided
 
     def report(self) -> str:
-        scored = len(self.belted) + len(self.unbelted) + len(self.unenforced)
+        scored = (
+            len(self.belted) + len(self.unbelted) + len(self.unenforced) + len(self.one_sided)
+        )
         lines = [
             f"channel C second belt: {len(self.belted)} of {scored} versioned seam(s) carry a "
-            "truth-field denylist something refuses on"
+            "truth-field denylist BOTH SIDES of the wall refuse on"
         ]
         lines += [
-            f"    * {seam} -- {count} name(s), enforced by {', '.join(where)}"
-            for seam, count, where in self.belted
+            f"    * {seam} -- {count} name(s), company side {', '.join(company)}; "
+            f"world side {', '.join(world)}"
+            for seam, count, company, world in self.belted
         ]
         lines += [
             f"    ! {seam} -- UNBELTED: no readable non-empty `{SECOND_BELT_CONSTANT}`. Its "
@@ -1865,9 +1963,17 @@ class SecondBeltVerdict:
             for seam in self.unbelted
         ]
         lines += [
-            f"    ! {seam} -- UNENFORCED: declares {count} forbidden name(s) and no module "
-            "outside the seam itself refuses on them. A denylist nothing reads is a comment."
-            for seam, count in self.unenforced
+            f"    ! {seam} -- UNENFORCED: declares {count} forbidden name(s) and nothing on "
+            "either side of the wall refuses on them. A denylist nothing reads is a comment."
+            + (f" (refused only off-wall by {', '.join(off)})" if off else "")
+            for seam, count, off in self.unenforced
+        ]
+        lines += [
+            f"    ! {seam} -- ONE-SIDED: declares {count} forbidden name(s) refused on the "
+            f"{'world' if missing == 'company' else 'company'} side ({', '.join(where)}) and "
+            f"on nothing on the {missing} side. The bare side may be the one that decides "
+            "whether a leak is BELIEVED, which at go-live is the only end the company owns."
+            for seam, count, missing, where in self.one_sided
         ]
         lines += [
             f"    - {seam} -- declares no {SEAM_VERSION_CONSTANT}, so it is not a crossing this "
@@ -1884,9 +1990,10 @@ def second_belt_conformance(root: str) -> SecondBeltVerdict:
     seam added tomorrow owns this question on the day it lands, and it lands UNBELTED (red)
     rather than unnoticed (green), which is the fail-closed direction.
     """
-    belted: list[tuple[str, int, tuple[str, ...]]] = []
+    belted: list[tuple[str, int, tuple[str, ...], tuple[str, ...]]] = []
     unbelted: list[str] = []
-    unenforced: list[tuple[str, int]] = []
+    unenforced: list[tuple[str, int, tuple[str, ...]]] = []
+    one_sided: list[tuple[str, int, str, tuple[str, ...]]] = []
     versionless: list[str] = []
 
     for seam in sorted(envelope_seams(root)):
@@ -1897,16 +2004,21 @@ def second_belt_conformance(root: str) -> SecondBeltVerdict:
         if not belt:
             unbelted.append(seam)
             continue
-        enforcers = belt_enforcers(root, seam)
-        if not enforcers:
-            unenforced.append((seam, len(belt)))
+        sides = belt_enforcer_sides(root, seam)
+        if not sides.any_side:
+            unenforced.append((seam, len(belt), sides.neither))
+        elif not sides.both:
+            one_sided.append(
+                (seam, len(belt), sides.missing, sides.company or sides.world)
+            )
         else:
-            belted.append((seam, len(belt), enforcers))
+            belted.append((seam, len(belt), sides.company, sides.world))
 
     return SecondBeltVerdict(
         belted=tuple(belted),
         unbelted=tuple(unbelted),
         unenforced=tuple(unenforced),
+        one_sided=tuple(one_sided),
         versionless=tuple(versionless),
     )
 
