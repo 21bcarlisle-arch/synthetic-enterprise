@@ -15,20 +15,20 @@
     "open_findings": 100
   },
   "last_verified": {
-    "generated_at": "2026-08-20T06:12:11Z",
-    "git_commit": "a5bfec712",
-    "run_id": "run_output_a5bfec712_20260820T054214Z.json",
-    "verified_at": "2026-08-20T06:12:11Z"
+    "generated_at": "2026-08-20T15:34:03Z",
+    "git_commit": "43766e01e",
+    "run_id": "run_output_43766e01e_20260820T090542Z.json",
+    "verified_at": "2026-08-20T15:34:03Z"
   },
   "paused_reason": "scoped publish-path suite red at git=c24e81e07; blocking tests: FAILED tests/saas/reporting/test_partial_year_clv_headline_guard.py::test_the_final_partial_year_still_values_the_book",
-  "paused_since": "2026-08-20T07:58:15Z",
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-20T06:12:11Z",
-    "git_commit": "a5bfec712",
-    "run_id": "run_output_a5bfec712_20260820T054214Z.json",
-    "verified_at": "2026-08-20T06:12:11Z"
+    "generated_at": "2026-08-20T15:34:03Z",
+    "git_commit": "43766e01e",
+    "run_id": "run_output_43766e01e_20260820T090542Z.json",
+    "verified_at": "2026-08-20T15:34:03Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-08-20T15:06:53Z"
+  "verification_state": "verified",
+  "written_at": "2026-08-20T15:34:03Z"
 }
