@@ -288,20 +288,67 @@ OBSERVABLE_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {
 # declared observable in the same edit. The wall test asserts NO payload
 # (message or response) carries any of these. A real supplier never sees the
 # scalar that produced the action.
+#
+# MEASURED, NOT IMAGINED (EP6 pass 29) -- the property this belt lacked for six
+# passes and its payment sibling has had since pass 27. The names below are
+# grouped by whether a producer behind THIS seam actually holds the trait today.
+#
+# WHY THE CITATION IS A SEED AND NOT A DATACLASS FIELD, which is what makes this
+# seam different from its two siblings and is the reason the measured half was
+# skipped three times: nothing behind this seam stores its hidden traits on a
+# record. They are COMPUTED per customer, on demand, by `_stable_fraction` /
+# `_stable_unit` from a named seed string -- so the seed literal IS the trait's
+# name in the world, and it is the thing that changes when the world renames a
+# trait. `tests/interface/test_conversation_seam.py` pins each citation below
+# to its producer and, in the other direction, refuses a hidden-trait draw the
+# belt does not name -- so ADDING a latent trait to the SIM reds this list
+# rather than silently outgrowing it.
 FORBIDDEN_TRUTH_FIELDS: tuple[str, ...] = (
-    "framing_susceptibility",
+    # -- MEASURED: each name below traces to a hidden-trait producer behind this
+    # seam, cited with the module and the exact spelling the world uses.
+    #
+    # `simulation/nudge_physics.py` -- the two latent susceptibilities assigned
+    # once at acquisition, and the matched-lever uplift magnitudes they gate.
+    "framing_susceptibility",          # seed `nudge_susceptibility_`, enum
+                                       # FramingSusceptibility, susceptibility_for()
+    "tone_susceptibility",             # seed `tone_susceptibility_`, enum
+                                       # ToneSusceptibility, tone_susceptibility_for()
+    "nudge_uplift",                    # seed `nudge_uplift_` -- the per-customer
+                                       # framing uplift draw inside the 10-35% band
+    "tone_uplift",                     # seed `tone_uplift_` -- ADDED pass 29. The
+                                       # belt named its sibling `nudge_uplift` and
+                                       # not this one, for six passes: the tone
+                                       # lever's magnitude was the one uplift a
+                                       # payload could have carried unrefused.
+    #
+    # `simulation/conversation_response.py` -- the three per-customer scalars the
+    # company must INFER from observed actions and is scored on being wrong about
+    # (the F1b/F1c gap), plus the two hidden probabilities they feed.
+    "trust",                           # seed `conv_trust`, _trust()
+    "budget_stress",                   # seed `conv_budget_stress`, _budget_stress()
+    "true_intent",                     # seed `conv_true_intent_switch`,
+                                       # _considering_switch()
+    "positive_action_probability",     # ADDED pass 29. This module's own docstring
+                                       # calls it "the load-bearing number the
+                                       # company can never read", and the belt did
+                                       # not name it in any spelling.
+    "adverse_share",                   # ADDED pass 29. _adverse_share() -- the
+                                       # trust- and intent-modulated split between
+                                       # an adverse reaction and silence.
+    #
+    # -- ANTICIPATED: no producer spells it this way today. These are alternative
+    # spellings of the classes above, listed so the obvious rename does not walk
+    # straight past the belt. Weaker than the group above by construction, and
+    # NOT citable -- a name here that later gains a producer moves up.
     "framingsusceptibility",
-    "tone_susceptibility",
     "tonesusceptibility",
     "susceptibility",
-    "true_intent",
     "intent",
-    "trust",
     "trust_true",
-    "budget_stress",
     "engagement_archetype",
     "archetype",
     "true_scalar",
     "latent",
-    "nudge_uplift",
+    "uplift",
+    "probability",
 )

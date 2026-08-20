@@ -177,6 +177,181 @@ def test_response_carries_no_susceptibility_scalar_structurally():
     assert OBSERVABLE_RESPONSE_PAYLOAD_TYPES == (ConversationResponse,)
 
 
+# ── THE MEASURED HALF OF THE BELT (EP6 pass 29) ──────────────────────────────
+# `FORBIDDEN_TRUTH_FIELDS` is not the control -- `OBSERVABLE_PAYLOAD_FIELDS` is, and the
+# tests that prove the belt FIRES live with the two codecs. These tests are about whether
+# the LIST is real: a denylist of invented names is indistinguishable from a good one
+# until the day it is needed.
+#
+# WHY THIS SEAM COULD NOT COPY ITS SIBLING. The payment belt is checked against the
+# `dataclasses.fields` of the producers it cites. Nothing behind THIS seam stores a hidden
+# trait on a record -- every one is computed on demand from a named SEED string. So the
+# seed literal is the citable thing, and these tests read the producers' source rather
+# than importing their state.
+#
+# WRITTEN OUT HERE, IN THE TEST, and never imported from the producers: a list checked
+# against the thing it was generated from could never disagree with it (R15 TAUTOLOGY),
+# and disagreement is the entire signal.
+
+#: The two helpers that draw a hidden per-customer scalar. A trait that is not drawn
+#: through one of these is not a per-customer latent trait behind this seam.
+_HIDDEN_TRAIT_DRAW_HELPERS = ("_stable_fraction", "_stable_unit")
+
+#: Every hidden-trait draw behind this seam, keyed by the producer that owns it, mapping
+#: the SEED the world uses -> the belt name that forbids it crossing. Both directions are
+#: checked: a seed with no belt name is an unnamed leak, and a belt name whose seed has
+#: been renamed is a hollow entry that still looks full.
+_MEASURED_SEEDS = {
+    "simulation/nudge_physics.py": {
+        "nudge_susceptibility_": "framing_susceptibility",
+        "tone_susceptibility_": "tone_susceptibility",
+        "nudge_uplift_": "nudge_uplift",
+        "tone_uplift_": "tone_uplift",
+    },
+    "simulation/conversation_response.py": {
+        "conv_trust": "trust",
+        "conv_budget_stress": "budget_stress",
+        "conv_true_intent_switch": "true_intent",
+    },
+}
+
+#: Hidden scalars that are DERIVED from the seeded traits above rather than drawn, cited
+#: by the function that computes them. These have no seed to rename, so the function name
+#: is the citation.
+_MEASURED_FUNCTIONS = {
+    "simulation/conversation_response.py": {
+        "positive_action_probability": "positive_action_probability",
+        "_adverse_share": "adverse_share",
+    },
+}
+
+#: Named RNG substreams in `conversation_response` that are DELIBERATELY not subjects:
+#: they seed the draw of the OBSERVABLE response, not a latent trait of the customer. If
+#: the belt named these it would be forbidding the seam's own product.
+_NON_SUBJECT_SUBSTREAMS = {
+    "conversation_positive": "draws the observable action, not the hidden propensity",
+    "conversation_adverse": "draws which non-positive outcome was OBSERVED",
+    "conversation_channel": "draws the channel the customer answered on -- observable",
+    "conversation_latency": "draws the observed response lag -- observable",
+}
+
+
+def _producer_source(module_path: str) -> ast.Module:
+    return ast.parse(Path(module_path).read_text(encoding="utf-8"))
+
+
+def _hidden_trait_seeds(module_path: str) -> set[str]:
+    """Every seed literal handed to a hidden-trait draw helper in this module, read from
+    the CALL SITES. Deliberately not a substring scan of the source: the module's own
+    docstrings name most of these traits in prose, and a text search would score the
+    documentation as evidence of the mechanism."""
+    seeds: set[str] = set()
+    for node in ast.walk(_producer_source(module_path)):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        called = func.id if isinstance(func, ast.Name) else getattr(func, "attr", None)
+        if called not in _HIDDEN_TRAIT_DRAW_HELPERS:
+            continue
+        for arg in node.args:
+            # `_stable_unit(customer_id, "conv_trust")`
+            if isinstance(arg, ast.Constant) and isinstance(arg.value, str):
+                seeds.add(arg.value)
+            # `_stable_fraction("nudge_uplift_" + customer_id)`
+            elif (
+                isinstance(arg, ast.BinOp)
+                and isinstance(arg.left, ast.Constant)
+                and isinstance(arg.left.value, str)
+            ):
+                seeds.add(arg.left.value)
+    return seeds
+
+
+def test_the_draw_helpers_the_measurement_rests_on_are_still_defined_where_it_looks():
+    """FAIL-OPEN GUARD, and the first thing to check because everything below inherits
+    it. `_hidden_trait_seeds` finds seeds by matching the helper's NAME at the call site,
+    so renaming the helper would make it return the empty set -- and an empty subject is
+    how a census passes while measuring nothing."""
+    for module_path in _MEASURED_SEEDS:
+        defined = {
+            n.name for n in ast.walk(_producer_source(module_path))
+            if isinstance(n, ast.FunctionDef)
+        }
+        assert defined & set(_HIDDEN_TRAIT_DRAW_HELPERS), (
+            f"{module_path} defines none of {_HIDDEN_TRAIT_DRAW_HELPERS} -- the draw "
+            "helper was renamed and every seed measurement below is now vacuous"
+        )
+
+
+def test_every_hidden_trait_the_world_draws_is_named_by_the_belt():
+    """THE DIRECTION THAT MATTERS, and the one this belt did not have until pass 29.
+    Reading the belt tells you which leaks were thought of; reading the PRODUCERS tells
+    you which exist. This asserts set EQUALITY, so it reds in both directions: a hidden
+    trait added to the SIM with no belt name fails here rather than crossing unrefused,
+    and a seed renamed out from under a belt entry fails rather than hollowing it."""
+    for module_path, cited in _MEASURED_SEEDS.items():
+        found = _hidden_trait_seeds(module_path)
+        assert found == set(cited), (
+            f"{module_path}: the hidden-trait draws in the source and the seeds the belt "
+            f"cites have diverged.\n  drawn but not cited: {sorted(found - set(cited))}\n"
+            f"  cited but no longer drawn: {sorted(set(cited) - found)}"
+        )
+        for seed, belt_name in cited.items():
+            assert belt_name in FORBIDDEN_TRUTH_FIELDS, (
+                f"{module_path} draws the hidden trait {seed!r} and the belt does not "
+                f"name {belt_name!r} -- a payload could carry it across the wall"
+            )
+
+
+def test_the_MEASURED_functions_still_exist_and_the_belt_still_names_them():
+    """The derived hidden scalars have no seed, so the function IS the citation. Reds if
+    a producer renames the function (the belt entry goes hollow) or if the belt entry is
+    dropped (the scalar goes unnamed)."""
+    for module_path, cited in _MEASURED_FUNCTIONS.items():
+        defined = {
+            n.name for n in ast.walk(_producer_source(module_path))
+            if isinstance(n, ast.FunctionDef)
+        }
+        for func_name, belt_name in cited.items():
+            assert func_name in defined, (
+                f"the belt files {belt_name!r} as measured on {module_path}::{func_name}, "
+                "which no longer exists -- either it was renamed (and the belt is now "
+                "hollow) or the citation was never true"
+            )
+            assert belt_name in FORBIDDEN_TRUTH_FIELDS, (
+                f"{module_path}::{func_name} computes hidden truth and the belt does not "
+                f"name {belt_name!r}"
+            )
+
+
+def test_the_observable_substreams_are_NOT_treated_as_hidden_traits():
+    """THE NULL CONTROL ON THE SUBJECT SET. Without this, "the belt names every seed"
+    could be satisfied by a belt that forbids the seam's own observable product -- which
+    is the shape of a control that reds on a legal payload and then gets relaxed. These
+    four seeds draw the OBSERVED response and must stay off the belt."""
+    for seed, why in _NON_SUBJECT_SUBSTREAMS.items():
+        assert seed not in _MEASURED_SEEDS["simulation/conversation_response.py"], (
+            f"{seed} is not a latent trait: {why}"
+        )
+        assert seed not in FORBIDDEN_TRUTH_FIELDS, f"{seed} must stay observable: {why}"
+
+
+def test_the_belt_is_a_LITERAL_and_not_derived_from_the_payloads_it_guards():
+    """R15 TAUTOLOGY, the guard its payment sibling has carried since pass 27. A denylist
+    computed from the dataclasses it guards would move with them and could never fire."""
+    src = Path("interface/contracts/conversation_seam.py").read_text(encoding="utf-8")
+    node = next(
+        n for n in ast.walk(ast.parse(src))
+        if isinstance(n, ast.AnnAssign)
+        and getattr(n.target, "id", None) == "FORBIDDEN_TRUTH_FIELDS"
+    )
+    assert isinstance(node.value, ast.Tuple), "FORBIDDEN_TRUTH_FIELDS must be a literal"
+    assert node.value.elts, "an empty belt refuses nothing"
+    assert all(
+        isinstance(e, ast.Constant) and isinstance(e.value, str) for e in node.value.elts
+    ), "a computed entry would widen with its own subject"
+
+
 def test_no_sim_or_company_import():
     """The contract module is PURE -- it imports nothing from sim/simulation/
     company/saas (only the wall envelope + stdlib)."""
