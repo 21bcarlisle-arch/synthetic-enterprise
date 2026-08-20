@@ -262,6 +262,12 @@ BUILD_IN_PROGRESS_TTL_SECONDS = 3600
 # test_publish_gate_wedge_draw.py.
 PUBLISH_GATE_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".publish_gate_state.json"
 LAST_TESTED_HASH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_tested_hash"
+# THE GREEN'S CLOCK (2026-08-20). `.last_tested_hash` records WHICH commit passed and nothing
+# about WHEN, so the supersession check below borrowed git ancestry as its clock -- and since
+# OPS3 made the publish queue a STACK (`order = list(reversed(pending))`), ancestry runs
+# ANTI-CORRELATED with time across a drain. This sidecar is the clock, written by the same
+# single writer on the same rc=0 (contract: process_run_complete.LAST_TESTED_HASH_CONTRACT).
+LAST_TESTED_GREEN_FILE = PROJECT_DIR / "docs" / "observability" / ".last_tested_green.json"
 PUBLISH_GATE_WEDGE_MIN_AGE_SECONDS = 60 * 60   # director ruling: a wedge older than 60 min is rung-1
 PUBLISH_GATE_WEDGE_MIN_FAILURES = 3            # sustained, not a lone flake (mirrors the H15 alarm threshold)
 
@@ -909,6 +915,82 @@ def _prefer_unmerged_free(candidates: list, lane: str = "BUILD") -> list:
         return candidates
 
 
+def _exclude_saturated_harden(candidates: list[dict]) -> list[dict]:
+    """THE PASS CEILING, APPLIED TO THE HARDEN RUNG OF THE CORE DRAW (director ruling
+    2026-08-19: "make it impossible for the system to run indefinitely on work that cannot
+    change its own state").
+
+    The ceiling landed on 2026-08-19 and reached exactly ONE consumer --
+    `_idle_discover_frame_draw`, which feeds only on `idle` atoms. This lane is the other
+    place the ceiling has to bite, and it is the place the worst case actually lives:
+    `_is_valid_candidate` above excludes only `loop_stage == "idle"`, so this "BUILD lane"
+    in fact hands out every non-idle below-target atom -- `harden` included. That is the
+    rung that drew `H27_payment_belief_gap` for its FORTY-EIGHTH pass, its forty-third since
+    the atom last moved a level, with the ceiling shipped and watching a different lane.
+
+    WHY `harden` AND NOT `build`, which is the whole design decision here. A `build` draw at
+    least ATTEMPTS the level move the ceiling is asking for, and the core BUILD rung has
+    nothing beneath it -- closing it is a Rule-0 hazard in a way closing the discovery tier
+    was not (discovery could close safely precisely because BUILD and HARDEN stayed open
+    below it). Worse, for a saturated `build` atom, drawing it again IS the promote path the
+    ceiling demands, so excluding it would refuse the very answer the ruling asks for. An
+    atom sitting at `harden` on level 2 of 3 for its eighth, thirteenth, forty-third pass is
+    the opposite shape: hardening is not a level move and cannot become one, so the passes
+    cannot terminate on their own. That asymmetry is the control's subject, and
+    `test_a_saturated_BUILD_atom_is_deliberately_NOT_excluded` is its null control -- without
+    that pin this function silently becomes the thing the ruling forbids.
+
+    FAILS OPEN, DELIBERATELY THE OPPOSITE DIRECTION TO `_idle_discover_frame_draw`. That tier
+    fails toward an empty lane because its risk is the unbounded run. This one fails toward
+    OFFERING, because it is a NARROWING of the primary state-moving lane and its risk is a
+    broken ceiling silently starving the core draw. Nothing is lost by failing open here: the
+    ruling's teeth are already in the discovery tier, and the unbounded-harden case is a
+    quality defect, not a wall. RULE 0 backstop on top: if the exclusion would empty the
+    candidate set, the full set is kept -- an empty feasible set is a defect in the dials.
+
+    WHAT THIS DOES NOT COVER, named rather than left for the next reader to discover. LANE 2
+    (SITE, `_site_lane_draw_concurrent`) selects below-target atoms REGARDLESS of loop_stage,
+    so a `site/**`-scoped saturated harden atom would still be drawable there. Checked, not
+    assumed: of the five live saturated harden atoms today (H27_payment_belief_gap,
+    HX2_stall_set_coverage_verdict, W3_1b_intra_year_price_cap_granularity,
+    W2_payment_channel_dd_consistency_invariant, D_money_boundary_reconciliation) NONE has a
+    `site/` path in its file_scope, so the bypass is structural rather than live. Left open
+    deliberately -- SITE is an intentionally ungated parallel lane and narrowing it is a
+    separate decision with its own Rule-0 argument, not a line to slip into this commit."""
+    if not candidates:
+        return candidates
+    try:
+        from tools.discovery_pass_ceiling import saturated_ids
+
+        over_ceiling = saturated_ids()
+    except Exception as exc:  # noqa: BLE001 - see the fail-open paragraph above
+        log(
+            "HARDEN pass-ceiling gate skipped (fail-open, never narrows the core draw on a "
+            f"broken ceiling): {exc}"
+        )
+        return candidates
+    kept = [
+        a for a in candidates
+        if not (a.get("loop_stage") == "harden" and a.get("id") in over_ceiling)
+    ]
+    if not kept:
+        log(
+            f"HARDEN pass-ceiling gate: all {len(candidates)} core candidate(s) are saturated "
+            "harden atoms -- keeping the full set (Rule 0: a guard never zeroes the feasible "
+            "set). Every one of them is now a decision: certify the level, or close it."
+        )
+        return candidates
+    if len(kept) != len(candidates):
+        dropped = [a.get("id") for a in candidates if a not in kept]
+        log(
+            f"HARDEN pass-ceiling gate: excluding {dropped} from the core draw -- each has "
+            "taken 5+ HARDEN passes since its level last moved (director ruling 2026-08-19). "
+            "Hardening again cannot move the level; `python3 -m tools.discovery_pass_ceiling` "
+            "lists the decision each one now is."
+        )
+    return kept
+
+
 def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False) -> list[dict]:
     """MULTI_ATOM_DRAW.md (P0, 2026-07-12, director-prompted, completes R3
     "be wider" as a property of the granting model, not a standing
@@ -1046,6 +1128,19 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
             else:
                 _kept.append(_a)
         candidates = _kept
+    # PASS CEILING on the HARDEN rung (director ruling 2026-08-19). Placed HERE, with the hard
+    # exclusions (coupled-triad above) rather than with the soft preferences below, on the lesson
+    # commit d7d36b46a records: two SOFT guards composed into a no-op and the atom with 1,307
+    # unchanged draws was weighted like the one promoted that morning. A prefer-then-fall-back
+    # shape would have done nothing here for the same reason. Its own Rule-0 backstop lives
+    # inside the helper, so a hard exclusion still cannot zero the lane.
+    # COST, measured rather than assumed: `saturated_ids()` reads the ledger and every atom's
+    # store, 2.1s per call on the live tree, and the discovery tier already pays it once per
+    # cycle -- so this roughly doubles that to ~4s. Left UNCACHED deliberately: a cache keyed
+    # on anything but the current stores is how a record starts outrunning the code it
+    # describes, and 2s against a draw that already shells out to git for the unmerged-work
+    # guard below is not where this loop's time goes.
+    candidates = _exclude_saturated_harden(candidates)
     # UNMERGED-WORK guard (2026-07-30, H10 -- the fix the `.forks_in_flight.json` record itself
     # named after predicting its own decay). Prefer candidates whose file_scope does NOT overlap
     # work already sitting unmerged in a branch/worktree, so the draw cannot hand out an atom a
@@ -3120,7 +3215,8 @@ def _commit_is_ancestor(ancestor: str, descendant: str) -> bool | None:
     return {0: True, 1: False}.get(r.returncode)
 
 
-def _gate_pass_supersedes_failures(last_tested: str, head: str | None, failures: list) -> bool:
+def _gate_pass_supersedes_failures(last_tested: str, head: str | None, failures: list,
+                                   green_ts: float | None = None) -> bool:
     """Has the gate recorded a pass STRICTLY AFTER the newest recorded failure, on HEAD's history?
 
     WHY THIS EXISTS (2026-08-12, observed): the independence cross-check above was exact HEAD
@@ -3144,27 +3240,102 @@ def _gate_pass_supersedes_failures(last_tested: str, head: str | None, failures:
     ancestry supplies the ORDERING neither of them carries. A publisher that publishes nothing
     still cannot manufacture a green here, which is the property the whole contract rests on.
 
-    FAIL-SAFE TOWARD DRAWING in every uncertain direction -- no usable failure SHA, a pass that
-    is NOT on HEAD's history (an abandoned branch proves nothing about what HEAD will publish),
-    a pass at the very same commit as the failure (ambiguous ordering), or ancestry unknowable.
-    The harmless error is drawing unwedge work one cycle too long; the harmful one is silencing
-    the RUNG-1 draw while publishing is genuinely frozen."""
+    ANCESTRY IS NO LONGER THE CLOCK (2026-08-20 -- the defect this paragraph exists to stop
+    coming back). The two paragraphs above describe the shape the check had until the third
+    consecutive RUNG-1 tick asked why the alarm kept firing on a gate that was green and
+    publishing. The answer was the ORDERING INSTRUMENT, not either endpoint: this function asked
+    `_commit_is_ancestor(newest_failure, last_tested)`, i.e. it read git ancestry as a proxy for
+    "later in time". Since OPS3 (2026-08-14) the publish queue is drained NEWEST-MARKER-FIRST
+    (`background_worker.py`: `order = list(reversed(pending))`, because every marker describes the
+    same world-state and the newest dominates), and both SHAs being compared are marker subject
+    commits -- so across one drain ancestry is ANTI-CORRELATED with time: the later a run is
+    processed, the OLDER its commit. Observed live at 16:31Z on 2026-08-20: three failures
+    ascending in `ts` (14:07/14:37/15:07Z) whose SHAs strictly DESCEND through history
+    (81449dcb4 -> 8ba61d802 -> c24e81e07), and a green recorded at 15:34:03Z on 43766e01e, an
+    ANCESTOR of all three. Twenty-seven minutes later by the clock, three commits earlier by
+    ancestry, and the rung stayed armed. Full evidence:
+    docs/staging/done/WORKER_FINDING_THE_WEDGES_ORDERING_INSTRUMENT_RUNS_BACKWARDS_SINCE_THE_
+    QUEUE_BECAME_A_STACK_2026-08-20.md.
+
+    So there are TWO questions and now TWO instruments, each answering the one it can:
+      * ORDER -- `green_ts` (the recorded wall-clock of the gate's rc=0, from
+        `.last_tested_green.json`) strictly greater than the NEWEST failure `ts`. `max()` over the
+        rows, never the last row: the list's order is exactly what turned out not to be
+        trustworthy, so the verdict must not depend on it.
+      * PROVENANCE -- ancestry, kept for its other and still-valid job: the pass must be on
+        HEAD's own history, because publishing happens from HEAD and a green on an abandoned
+        branch says nothing about what HEAD will publish.
+
+    FAIL-SAFE TOWARD DRAWING in every uncertain direction -- no recorded green clock (which is
+    the state of every tree until the next green lands, deliberately), no usable failure `ts`, a
+    green not strictly newer, a pass NOT on HEAD's history, or ancestry unknowable. The harmless
+    error is drawing unwedge work one cycle too long; the harmful one is silencing the RUNG-1
+    draw while publishing is genuinely frozen."""
     if not last_tested or not head:
         return False
-    newest_failure = None
-    for f in reversed(failures):
-        if isinstance(f, dict):
-            gh = str(f.get("git_hash") or "").strip()
-            if gh and gh != "unknown":
-                newest_failure = gh
-                break
-    if newest_failure is None or newest_failure == last_tested:
+    if green_ts is None:
         return False
-    # The pass must be real history for the tree we are about to publish FROM...
-    if _commit_is_ancestor(last_tested, head) is not True:
+    newest_failure_ts = None
+    for f in failures:
+        if not isinstance(f, dict):
+            continue
+        ts = f.get("ts")
+        if isinstance(ts, bool) or not isinstance(ts, (int, float)):
+            continue
+        ts = float(ts)
+        if newest_failure_ts is None or ts > newest_failure_ts:
+            newest_failure_ts = ts
+    if newest_failure_ts is None:
         return False
-    # ...and must come strictly AFTER the failure it claims to supersede.
-    return _commit_is_ancestor(newest_failure, last_tested) is True
+    # ORDER: strictly after, on the clock both sides actually carry.
+    if not float(green_ts) > newest_failure_ts:
+        return False
+    # PROVENANCE: real history for the tree we are about to publish FROM.
+    return _commit_is_ancestor(last_tested, head) is True
+
+
+def _recorded_green_clock(
+    last_tested: str,
+    green_path: Path | None = None,
+    last_tested_path: Path | None = None,
+) -> float | None:
+    """The wall-clock time the gate recorded its last GREEN, or None if there is no usable record.
+
+    Written by exactly one writer, `process_run_complete._run_gate_in`, in the same rc=0 branch
+    that writes `.last_tested_hash` -- so the independence the wedge cross-check rests on is
+    unchanged: the failure rows come from the publish OUTCOME record, this comes from the gate's
+    own return code, and a publisher that publishes nothing still cannot manufacture a green.
+
+    THE TWO HALVES MUST DESCRIBE THE SAME GREEN, both ways round:
+      * `sha` must equal the hash file's, so a sidecar left behind by an earlier green cannot
+        lend its timestamp to a later hash (or the reverse, if either write ever half-lands).
+      * the sidecar is looked for BESIDE the hash file whenever a caller redirects that path.
+        A default that always pointed at the production file would make a redirected test read
+        the real machine's green -- one half of the control reading a different tree from the
+        other, which is the R15 pattern this whole repair is an instance of
+        (`feedback_a_two_part_control_can_have_each_half_read_a_different_tree`).
+
+    Absent, unreadable, malformed, wrong-sha or a non-numeric `ts` all return None, which the
+    caller reads as "no green is claimed" and resolves toward DRAWING. An unavailable check is a
+    FAILED check (R15)."""
+    if not last_tested:
+        return None
+    gp = green_path
+    if gp is None:
+        gp = (Path(last_tested_path).parent / LAST_TESTED_GREEN_FILE.name
+              if last_tested_path is not None else LAST_TESTED_GREEN_FILE)
+    try:
+        rec = json.loads(Path(gp).read_text())
+    except (OSError, ValueError):
+        return None
+    if not isinstance(rec, dict):
+        return None
+    ts = rec.get("ts")
+    if isinstance(ts, bool) or not isinstance(ts, (int, float)):
+        return None
+    if str(rec.get("sha") or "").strip() != last_tested:
+        return None
+    return float(ts)
 
 
 def _publish_gate_wedge_active(
@@ -3172,6 +3343,7 @@ def _publish_gate_wedge_active(
     head: str | None = None,
     state_path: Path | None = None,
     last_tested_path: Path | None = None,
+    green_path: Path | None = None,
 ) -> str | None:
     """RUNG 1 (PRIORITY ZERO) detector: is the publish gate WEDGED and older than 60 minutes?
 
@@ -3193,10 +3365,13 @@ def _publish_gate_wedge_active(
         entries (a sustained wedge fails every ~10min, never a lone flake), AND -- INDEPENDENCE
         (R15, anti-tautology) -- an INDEPENDENT signal confirms it: the gate has recorded NO pass
         that SUPERSEDES those failures. A pass counts as superseding when `.last_tested_hash` is
-        HEAD itself, or (2026-08-12) when it names a commit on HEAD's history that is strictly
-        newer than the newest recorded failure -- because publishing a green result is itself a
-        commit, so exact HEAD equality is unsatisfiable precisely when the gate is healthy and
-        busy. Either way the failures are stale and this returns None.
+        HEAD itself, or (2026-08-12) when it names a commit on HEAD's history whose RECORDED
+        GREEN CLOCK is strictly newer than the newest recorded failure `ts` -- because publishing
+        a green result is itself a commit, so exact HEAD equality is unsatisfiable precisely when
+        the gate is healthy and busy. Either way the failures are stale and this returns None.
+        The clock is `.last_tested_green.json`, NOT git ancestry: ancestry was the clock until
+        2026-08-20 and it runs backwards across a stack-drained publish queue -- see
+        `_gate_pass_supersedes_failures`, which carries the evidence.
       * OLDER THAN 60 MIN (generous, fail-safe TOWARD drawing): age = now - the OLDEST available
         wedge timestamp (wedge_since if the writer stamped it, else alerted_at, else the earliest
         in-window failure ts). MIN() maximises measured age because the harmful failure mode is NOT
@@ -3230,7 +3405,11 @@ def _publish_gate_wedge_active(
     # ...and the same question asked in the form the gate can actually answer: a green is stamped
     # at the SHA the suite ran, but publishing it moves HEAD past that SHA, so equality alone
     # leaves the detector armed forever on a healthy pipeline. See the helper's docstring.
-    if _gate_pass_supersedes_failures(last_tested, head, failures):
+    # The clock is looked for BESIDE the RESOLVED hash path, never beside the module default --
+    # so every caller and every test that redirects one half redirects both, and the two halves
+    # of this control can never read different trees. See `_recorded_green_clock`.
+    green_ts = _recorded_green_clock(last_tested, green_path=green_path, last_tested_path=lp)
+    if _gate_pass_supersedes_failures(last_tested, head, failures, green_ts):
         return None
     # AGE: oldest available wedge signal. Fail-safe toward drawing.
     ts_candidates = [float(f["ts"]) for f in failures

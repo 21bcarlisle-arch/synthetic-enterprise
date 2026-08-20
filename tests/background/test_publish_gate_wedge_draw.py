@@ -45,6 +45,20 @@ def _wedged_state(now, *, n=8, wedge_since_age=2 * HOUR, alerted_age=30 * 60, in
     return state
 
 
+# The REAL parser, captured before the autouse fixture below replaces the module attribute --
+# otherwise the tests that put the parser itself on trial would exercise the stub and pass vacuously.
+_REAL_LIVE_GATE_RUNS = supervisor._live_publish_gate_runs
+
+
+@pytest.fixture(autouse=True)
+def _no_live_gate(monkeypatch):
+    """The draw now asks `ps` whether a gate run is in flight. Without this, EVERY test in this
+    file would take the machine's process table as its subject -- green or red depending on
+    whether a publish happened to be running (R15: a control that must win a race has the weather
+    as its subject). Tests that are ABOUT the in-flight clause override this explicitly."""
+    monkeypatch.setattr(supervisor, "_live_publish_gate_runs", lambda *a, **k: [])
+
+
 def _write(tmp_path, monkeypatch, state, *, head="HEADHASH", last_tested="OLDHASH"):
     sp = tmp_path / ".publish_gate_state.json"
     lp = tmp_path / ".last_tested_hash"
@@ -54,6 +68,16 @@ def _write(tmp_path, monkeypatch, state, *, head="HEADHASH", last_tested="OLDHAS
     monkeypatch.setattr(supervisor, "LAST_TESTED_HASH_FILE", lp)
     monkeypatch.setattr(supervisor, "_current_head_hash", lambda: head)
     return sp, lp
+
+
+def _green(tmp_path, sha, ts):
+    """Stamp the gate's green CLOCK, exactly as `process_run_complete._record_gate_green_clock`
+    does: `{"sha": ..., "ts": ...}` in a file BESIDE `.last_tested_hash`.
+
+    Deliberately written to the same `tmp_path` as `_write` and never via a monkeypatched module
+    attribute -- the production default is reached by the path the code derives, so a test that
+    forgot to call this reads NO green rather than the real machine's."""
+    (tmp_path / ".last_tested_green.json").write_text(json.dumps({"sha": sha, "ts": ts}))
 
 
 # ─────────────────────────── MUST FIRE (the wedge is real and old) ──────────────────────────
@@ -269,7 +293,14 @@ def test_silent_when_the_gate_passed_after_the_failures_even_though_head_moved_o
     landed. `.last_tested_hash != HEAD` forever after, so the RUNG-1 priority-zero doorbell
     fired every tick for ~75h / 201 "failures" while publishing was healthy the whole time --
     and each tick it woke committed its own work, pushing HEAD one further from the pass and
-    arming the next draw harder. The detector was not merely stale; it fed itself."""
+    arming the next draw harder. The detector was not merely stale; it fed itself.
+
+    THE INSTRUMENT CHANGED UNDER THIS TEST ON 2026-08-20, and its subject did not. The clear used
+    to be decided by ancestry (`passed_at` is a descendant of `failed_at`); it is now decided by
+    the RECORDED GREEN CLOCK, and the ancestry here survives only as PROVENANCE (`passed_at` is
+    on `head`'s history). The history below is left ascending on purpose so the two instruments
+    agree in this case -- the test that pulls them apart is
+    `test_the_ordering_mutation_a_green_recorded_later_but_committed_earlier`."""
     commit, _ = _repo(tmp_path, monkeypatch)
     failed_at = commit("the commit the gate was red at")
     passed_at = commit("the commit the gate went GREEN at")
@@ -280,6 +311,7 @@ def test_silent_when_the_gate_passed_after_the_failures_even_though_head_moved_o
     state = _wedged_state(now)
     state["failures"][-1]["git_hash"] = failed_at
     _write(tmp_path, monkeypatch, state, head=head, last_tested=passed_at)
+    _green(tmp_path, passed_at, now + 60)  # recorded AFTER every failure in the window
 
     assert supervisor._publish_gate_wedge_active(now=now) is None, (
         "a gate pass that is newer than every recorded failure, on HEAD's own history, "
@@ -293,7 +325,11 @@ def test_mutation_fires_when_the_recorded_pass_PREDATES_the_failures(tmp_path, m
 
     Same shape as above, same non-equal hashes -- but the green came BEFORE the red. That is a
     genuine wedge: the gate has not passed since it started failing. If this went silent the
-    fix would have bought its quiet by disarming the alarm, which is the harmful direction."""
+    fix would have bought its quiet by disarming the alarm, which is the harmful direction.
+
+    THE NULL CONTROL FOR THE 2026-08-20 CLOCK REPAIR (R15). The green is stamped, and stamped
+    BEFORE the failures. Without this pin the repair degenerates into "any green ever recorded
+    silences the alarm" -- the fail-open shape, strictly worse than the bug it replaced."""
     commit, _ = _repo(tmp_path, monkeypatch)
     passed_at = commit("an OLD green, before the breakage")
     failed_at = commit("the commit that broke the gate")
@@ -303,6 +339,7 @@ def test_mutation_fires_when_the_recorded_pass_PREDATES_the_failures(tmp_path, m
     state = _wedged_state(now)
     state["failures"][-1]["git_hash"] = failed_at
     _write(tmp_path, monkeypatch, state, head=head, last_tested=passed_at)
+    _green(tmp_path, passed_at, now - 3 * HOUR)  # a real green, but it came FIRST
 
     msg = supervisor._publish_gate_wedge_active(now=now)
     assert msg is not None and "PUBLISH-GATE WEDGE" in msg, (
@@ -314,7 +351,13 @@ def test_mutation_fires_when_the_pass_is_on_a_branch_HEAD_never_took(tmp_path, m
     """MUTATION (independence): a green on abandoned history is not a green for HEAD.
 
     Newer by timestamp, descendant of nothing HEAD carries. Publishing happens from HEAD, so a
-    pass HEAD cannot reach says nothing about whether HEAD can publish."""
+    pass HEAD cannot reach says nothing about whether HEAD can publish.
+
+    THE PROVENANCE LEG, PUT ON TRIAL DIRECTLY (R15, 2026-08-20). The clock is stamped AFTER every
+    failure, so the ORDER question is satisfied and the ONLY thing left refusing the clear is
+    ancestry doing its other, still-valid job. Delete the `_commit_is_ancestor` line from
+    `_gate_pass_supersedes_failures` -- i.e. throw the branch out with the clock -- and this test
+    is the one that goes red."""
     commit, git = _repo(tmp_path, monkeypatch)
     failed_at = commit("the commit the gate was red at")
     git("checkout", "-q", "-b", "sidetrack")
@@ -326,6 +369,7 @@ def test_mutation_fires_when_the_pass_is_on_a_branch_HEAD_never_took(tmp_path, m
     state = _wedged_state(now)
     state["failures"][-1]["git_hash"] = failed_at
     _write(tmp_path, monkeypatch, state, head=head, last_tested=passed_at)
+    _green(tmp_path, passed_at, now + 60)  # the ORDER question is satisfied; provenance is not
 
     assert supervisor._publish_gate_wedge_active(now=now) is not None, (
         "a pass off HEAD's history must not silence the draw"
@@ -336,19 +380,26 @@ def test_unknowable_ancestry_still_draws(tmp_path, monkeypatch):
     """FAIL-SAFE: an unavailable check is a FAILED check (R15), never a convenient pass.
 
     Hashes git cannot resolve (pruned, malformed, a state file from another machine) must leave
-    the alarm exactly as armed as it was found."""
+    the alarm exactly as armed as it was found. The clock is stamped and newer, so the ONLY thing
+    unresolved here is the provenance question git cannot answer."""
     commit, _ = _repo(tmp_path, monkeypatch)
     head = commit("only commit")
 
     now = 1_800_000_000.0
     state = _wedged_state(now)  # git_hash "deadbeef" -- no such object
     _write(tmp_path, monkeypatch, state, head=head, last_tested="cafebabe")
+    _green(tmp_path, "cafebabe", now + 60)
 
     assert supervisor._publish_gate_wedge_active(now=now) is not None
 
 
 def test_a_pass_at_the_same_commit_as_the_failure_still_draws(tmp_path, monkeypatch):
-    """Ambiguous ordering resolves toward drawing: same SHA cannot say which came last."""
+    """No recorded clock resolves toward drawing: a SHA alone cannot say which came last.
+
+    This WAS an explicit same-SHA guard in the predicate. Since 2026-08-20 the ordering comes
+    from the recorded green clock instead, so the guard was deleted as redundant -- and this
+    state, which stamps no clock at all, must still draw. It is therefore also the FAIL-SILENT
+    leg at its most ordinary: the sidecar simply is not there yet."""
     commit, _ = _repo(tmp_path, monkeypatch)
     both = commit("green and red both recorded here")
     head = commit("HEAD has moved on")
@@ -359,3 +410,260 @@ def test_a_pass_at_the_same_commit_as_the_failure_still_draws(tmp_path, monkeypa
     _write(tmp_path, monkeypatch, state, head=head, last_tested=both)
 
     assert supervisor._publish_gate_wedge_active(now=now) is not None
+
+
+# ── THE ORDERING INSTRUMENT RAN BACKWARDS (2026-08-20, the third consecutive RUNG-1 tick) ──
+#
+# `_gate_pass_supersedes_failures` asked git ancestry "which came last". Since OPS3 the publish
+# queue drains NEWEST-MARKER-FIRST, and both SHAs compared are marker subject commits -- so
+# across one drain ancestry is ANTI-CORRELATED with time. Live at 16:31Z: three failures
+# ascending in ts (14:07/14:37/15:07Z) whose SHAs strictly DESCEND in history, and a green
+# recorded 27 min later on a commit 3 EARLIER. The alarm stayed armed on a gate that was green
+# and publishing, for three ticks. Evidence: docs/staging/done/WORKER_FINDING_THE_WEDGES_
+# ORDERING_INSTRUMENT_RUNS_BACKWARDS_SINCE_THE_QUEUE_BECAME_A_STACK_2026-08-20.md.
+
+
+def test_the_ordering_mutation_a_green_recorded_later_but_committed_earlier(
+        tmp_path, monkeypatch):
+    """THE SUBJECT MUTATION: this morning's exact recorded shape. MUST CLEAR.
+
+    The failures ascend in `ts` while their SHAs descend through history, and the green sits at a
+    commit that is an ANCESTOR of all three -- so every ancestry answer available points the
+    wrong way and only the clock is right. Under the pre-repair predicate this returned a
+    PRIORITY-ZERO draw; that divergence is this control firing on its own named defect.
+
+    The failure ROWS are also shuffled relative to their timestamps, because the list order is
+    precisely what stopped being trustworthy: the verdict must come from `max(ts)`, never from
+    `failures[-1]`."""
+    commit, _ = _repo(tmp_path, monkeypatch)
+    passed_at = commit("43766e01e -- the marker the drain published LAST and committed FIRST")
+    oldest_in_history = commit("c24e81e07 -- newest failure by the clock, oldest commit")
+    middle = commit("8ba61d802")
+    newest_in_history = commit("81449dcb4 -- oldest failure by the clock, newest commit")
+    head = commit("the publish commit and whatever landed after it")
+
+    now = 1_800_000_000.0
+    state = _wedged_state(now, n=3)
+    # ts ascending 14:07 -> 14:37 -> 15:07; SHAs strictly DESCENDING through history.
+    for f, sha, age in zip(state["failures"],
+                           [newest_in_history, middle, oldest_in_history],
+                           [60 * 60, 30 * 60, 0]):
+        f["git_hash"], f["ts"] = sha, now - age
+    _write(tmp_path, monkeypatch, state, head=head, last_tested=passed_at)
+    _green(tmp_path, passed_at, now + 27 * 60)  # 27 minutes after the newest failure
+
+    assert supervisor._publish_gate_wedge_active(now=now) is None, (
+        "the gate recorded a green AFTER every failure, on HEAD's history -- ancestry disagrees "
+        "only because the queue drains newest-first, and ancestry is no longer the clock"
+    )
+
+
+def test_null_control_ancestry_says_superseded_and_the_clock_says_otherwise(
+        tmp_path, monkeypatch):
+    """THE NULL CONTROL THAT PROVES THE CLOCK REPLACED ANCESTRY RATHER THAN JOINING IT.
+
+    Here ancestry says exactly what it used to say to grant a clear -- the green is a DESCENDANT
+    of the failure commit -- but the recorded green clock is older than the newest failure. The
+    old predicate cleared this; the repaired one must draw. Without this pin, a repair that kept
+    ancestry as an OR-branch alongside the clock would pass every other test in this file while
+    leaving the original defect fully intact."""
+    commit, _ = _repo(tmp_path, monkeypatch)
+    failed_at = commit("the gate went red here")
+    passed_at = commit("a green committed AFTER it -- ancestry's answer is 'superseded'")
+    head = commit("HEAD moved on")
+
+    now = 1_800_000_000.0
+    state = _wedged_state(now)
+    state["failures"][-1]["git_hash"] = failed_at
+    _write(tmp_path, monkeypatch, state, head=head, last_tested=passed_at)
+    _green(tmp_path, passed_at, now - 3 * HOUR)  # ...but it was recorded BEFORE the failures
+
+    assert supervisor._publish_gate_wedge_active(now=now) is not None, (
+        "ancestry must no longer be able to grant a clear on its own -- the clock decides order"
+    )
+
+
+@pytest.mark.parametrize("payload", [
+    None,                                          # never written -- every tree until the next green
+    "{not json at all",                            # truncated / corrupt
+    '{"sha": "SOMEONE_ELSES", "ts": 1800000060}',  # a sidecar left by an EARLIER green
+    '{"sha": "PASSED", "ts": "recently"}',         # a ts that is not a clock
+    '{"sha": "PASSED"}',                           # the half-write
+    '["PASSED", 1800000060]',                      # right values, wrong shape
+])
+def test_fail_silent_an_unusable_green_clock_keeps_the_alarm_armed(
+        tmp_path, monkeypatch, payload):
+    """FAIL-SILENT (R15): an unavailable check is a FAILED check, never a convenient pass.
+
+    Every row here is a state where the ORDER question genuinely cannot be answered. All of them
+    must draw. Note the third: a sidecar naming a DIFFERENT sha must not lend its timestamp to
+    the hash file's -- the two halves are one record or they are nothing."""
+    commit, _ = _repo(tmp_path, monkeypatch)
+    failed_at = commit("the gate went red here")
+    passed_at = commit("a green, on HEAD's history, newer by ancestry")
+    head = commit("HEAD moved on")
+
+    now = 1_800_000_000.0
+    state = _wedged_state(now)
+    state["failures"][-1]["git_hash"] = failed_at
+    _write(tmp_path, monkeypatch, state, head=head, last_tested=passed_at)
+    if payload is not None:
+        (tmp_path / ".last_tested_green.json").write_text(payload.replace("PASSED", passed_at))
+
+    assert supervisor._publish_gate_wedge_active(now=now) is not None, (
+        f"an unusable green record ({payload!r}) must leave RUNG 1 exactly as armed as it was"
+    )
+
+
+def test_the_clock_is_read_beside_the_hash_file_not_beside_the_module_default(
+        tmp_path, monkeypatch):
+    """THE HALF-A-CONTROL MUTATION (R15, `feedback_a_two_part_control_can_have_each_half_read_a_
+    different_tree`) -- which is the class this whole repair belongs to.
+
+    A `_recorded_green_clock` that defaulted to the production `LAST_TESTED_GREEN_FILE` even when
+    the hash path was redirected would make every test in this file read the real machine's green
+    while reading a fixture's hash: the two halves of one record, taken from two trees. Proven by
+    construction rather than asserted -- the clock is written ONLY at the redirected location and
+    the module default is left pointing wherever it points."""
+    commit, _ = _repo(tmp_path, monkeypatch)
+    failed_at = commit("red")
+    passed_at = commit("green")
+    head = commit("head")
+    now = 1_800_000_000.0
+    state = _wedged_state(now)
+    state["failures"][-1]["git_hash"] = failed_at
+    _, lp = _write(tmp_path, monkeypatch, state, head=head, last_tested=passed_at)
+
+    assert supervisor.LAST_TESTED_GREEN_FILE.parent != lp.parent, "fixture premise"
+    assert supervisor._recorded_green_clock(passed_at, last_tested_path=lp) is None
+    _green(tmp_path, passed_at, now + 60)
+    assert supervisor._recorded_green_clock(passed_at, last_tested_path=lp) == now + 60
+    assert supervisor._publish_gate_wedge_active(now=now) is None
+
+
+# ──────────── THE WORLD MOVED AFTER THE READING WAS TAKEN (2026-08-17, both ways) ────────────
+#
+# The draw named its failures' count, ts and reason but never their `git_hash`, so it announced
+# "no pass at HEAD" about failures recorded at a commit whose fix had already landed -- twice in
+# one hour, each time at PRIORITY ZERO. The repair is TEXT ONLY. The direction that matters most
+# here is the SILENT one: a repair that suppressed the draw would blind RUNG 1 to any wedge that
+# survives a commit, so every test below also asserts the draw is still RETURNED.
+
+
+def _at(state, git_hash):
+    for f in state["failures"]:
+        f["git_hash"] = git_hash
+    return state
+
+
+def test_superseded_clause_fires_when_every_failure_predates_head(tmp_path, monkeypatch):
+    """MUST FIRE: all failures at an ancestor of HEAD -> say so, name the log command, keep drawing."""
+    now = 1_000_000.0
+    _write(tmp_path, monkeypatch, _at(_wedged_state(now), "OLDCOMMIT"), head="HEADHASH")
+    monkeypatch.setattr(supervisor.time, "time", lambda: now)
+    monkeypatch.setattr(supervisor, "_commit_is_ancestor",
+                        lambda a, d: True if (a, d) == ("OLDCOMMIT", "HEADHASH") else None)
+    msg = supervisor._publish_gate_wedge_active()
+    assert msg is not None, "the draw must STILL FIRE -- there is no green at HEAD"
+    assert "HEAD HAS MOVED SINCE EVERY RECORDED FAILURE" in msg
+    assert "git log --oneline OLDCOMMIT..HEADHASH" in msg
+    assert "does not mean the wedge is over" in msg
+
+
+def test_superseded_clause_is_silent_when_failures_are_at_head(tmp_path, monkeypatch):
+    """MUST STAY SILENT -- THE REGRESSION-CATCHING DIRECTION. Failures recorded AT HEAD are the
+    real, reproduced-at-this-tree wedge; nothing may soften the draw."""
+    now = 1_000_000.0
+    _write(tmp_path, monkeypatch, _at(_wedged_state(now), "HEADHASH"), head="HEADHASH",
+           last_tested="OLDHASH")
+    monkeypatch.setattr(supervisor.time, "time", lambda: now)
+    msg = supervisor._publish_gate_wedge_active()
+    assert msg is not None
+    assert "HEAD HAS MOVED" not in msg
+
+
+def test_superseded_clause_is_silent_on_a_mixed_hash_set(tmp_path, monkeypatch):
+    """A wedge that OUTLIVED a commit is the case this must never soften -> unknown -> no clause."""
+    now = 1_000_000.0
+    state = _at(_wedged_state(now), "OLDCOMMIT")
+    state["failures"][0]["git_hash"] = "NEWERCOMMIT"
+    _write(tmp_path, monkeypatch, state, head="HEADHASH")
+    monkeypatch.setattr(supervisor.time, "time", lambda: now)
+    # Selective on purpose: a blanket True would ALSO satisfy _gate_pass_supersedes_failures and
+    # return None, so the test would "pass" for the wrong reason.
+    monkeypatch.setattr(
+        supervisor, "_commit_is_ancestor",
+        lambda a, d: True if (a, d) in (("OLDCOMMIT", "HEADHASH"), ("NEWERCOMMIT", "HEADHASH")) else None)
+    msg = supervisor._publish_gate_wedge_active()
+    assert msg is not None
+    assert "HEAD HAS MOVED" not in msg
+
+
+@pytest.mark.parametrize("gh", ["", "unknown", None])
+def test_superseded_clause_is_silent_without_a_usable_hash(tmp_path, monkeypatch, gh):
+    """FAIL-OPEN GUARD (R15): a legacy record with no hash reads as unknown and prints nothing."""
+    now = 1_000_000.0
+    _write(tmp_path, monkeypatch, _at(_wedged_state(now), gh), head="HEADHASH")
+    monkeypatch.setattr(supervisor.time, "time", lambda: now)
+    monkeypatch.setattr(supervisor, "_commit_is_ancestor", lambda a, d: True)
+    msg = supervisor._publish_gate_wedge_active()
+    assert msg is not None
+    assert "HEAD HAS MOVED" not in msg
+
+
+def test_superseded_clause_is_silent_when_git_cannot_answer(tmp_path, monkeypatch):
+    """Ancestry UNKNOWABLE (pruned object, git failure) -> unknown -> unchanged message."""
+    now = 1_000_000.0
+    _write(tmp_path, monkeypatch, _at(_wedged_state(now), "OLDCOMMIT"), head="HEADHASH")
+    monkeypatch.setattr(supervisor.time, "time", lambda: now)
+    monkeypatch.setattr(supervisor, "_commit_is_ancestor", lambda a, d: None)
+    msg = supervisor._publish_gate_wedge_active()
+    assert msg is not None
+    assert "HEAD HAS MOVED" not in msg
+
+
+def test_in_flight_clause_fires_and_suspends_the_enumerate_instruction(tmp_path, monkeypatch):
+    """MUST FIRE: a live gate run -> warn, and WITHDRAW the 'run the argv without -x' remedy that
+    would OOM it on this 15GB cgroup."""
+    now = 1_000_000.0
+    _write(tmp_path, monkeypatch, _wedged_state(now))
+    monkeypatch.setattr(supervisor.time, "time", lambda: now)
+    monkeypatch.setattr(supervisor, "_live_publish_gate_runs",
+                        lambda *a, **k: [{"pid": 126285, "elapsed_s": 1609}])
+    msg = supervisor._publish_gate_wedge_active()
+    assert msg is not None
+    assert "A GATE RUN IS IN FLIGHT RIGHT NOW" in msg
+    assert "PID 126285" in msg
+    assert "~26 min" in msg
+    assert "SUSPENDED" in msg
+
+
+def test_in_flight_clause_is_silent_when_no_gate_is_running(tmp_path, monkeypatch):
+    """MUST STAY SILENT: nothing running -> the enumerate instruction stands unchanged."""
+    now = 1_000_000.0
+    _write(tmp_path, monkeypatch, _wedged_state(now))
+    monkeypatch.setattr(supervisor.time, "time", lambda: now)
+    msg = supervisor._publish_gate_wedge_active()
+    assert msg is not None
+    assert "IN FLIGHT" not in msg
+    assert "run the gate's argv without `-x`" in msg
+
+
+def test_live_gate_runs_parses_ps_and_ignores_grep_and_junk():
+    """The parser, on trial directly: real `ps -eo pid,etimes,args` shape."""
+    out = (
+        "    PID ELAPSED COMMAND\n"
+        " 126285    1609 /usr/bin/python3 /home/rich/synthetic-enterprise/background/"
+        "process_run_complete.py /home/rich/.../run_complete_20260817T104521Z.md\n"
+        " 140778       6 grep process_run_complete.py\n"
+        "  bogus    xxx  /usr/bin/python3 background/process_run_complete.py m.md\n"
+        " 999999      12 /usr/bin/python3 background/other_thing.py\n"
+    )
+    assert _REAL_LIVE_GATE_RUNS(lambda: out) == [{"pid": 126285, "elapsed_s": 1609}]
+
+
+def test_live_gate_runs_is_empty_when_ps_is_unavailable():
+    """UNAVAILABLE -> [] -> no warning -> the draw is exactly what it was before this existed."""
+    def _boom():
+        raise OSError("no ps")
+    assert _REAL_LIVE_GATE_RUNS(_boom) == []

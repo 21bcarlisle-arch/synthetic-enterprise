@@ -50,6 +50,11 @@ DONE_DIR = STAGING_DIR / "done"
 LATEST_MD = PROJECT_DIR / "docs" / "status" / "LATEST.md"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "sim-runner-log.md"
 LAST_TESTED_HASH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_tested_hash"
+# THE GREEN'S CLOCK, written beside it by the same writer in the same rc=0 branch (2026-08-20).
+# `.last_tested_hash` says WHICH commit passed and nothing about WHEN, so its wedge-detector
+# consumer borrowed git ancestry as a clock -- and ancestry runs backwards across a
+# stack-drained publish queue. See LAST_TESTED_HASH_CONTRACT below.
+LAST_TESTED_GREEN_FILE = PROJECT_DIR / "docs" / "observability" / ".last_tested_green.json"
 # THE ONE PLACE THE `.last_tested_hash` CONTRACT IS STATED (OPS2, 2026-08-10). It had two
 # readers inferring the semantics from each other's call sites, which is how a cross-check
 # quietly stops being independent.
@@ -76,6 +81,21 @@ READ by two consumers, for two different questions:
 
 Absent/unreadable means "no green is claimed": the gate runs, and the wedge draw treats the
 cross-check as unavailable rather than as a pass. Both directions are the fail-safe one.
+
+THE CLOCK IS A SECOND FILE, `.last_tested_green.json` = {"sha": <same hash>, "ts": <epoch>}
+(2026-08-20). This file holds a SHA and no time, so the wedge detector had to infer "which came
+last" from git ancestry -- and since OPS3 made the publish queue a STACK (newest marker first),
+ancestry is anti-correlated with time across a drain: on 2026-08-20 a green recorded 27 minutes
+AFTER the newest failure sat 3 commits BEHIND it in history, and the RUNG-1 alarm stayed armed
+for three consecutive ticks on a gate that was green and publishing.
+
+The sidecar is ADDITIVE and the one-line file above is unchanged, so `run_fast_tests`' SKIP
+consumer is untouched. It is written by the SAME writer, in the SAME rc=0 branch, immediately
+after the hash -- so the independence stated above is unchanged: it still comes from the gate's
+own return code and not from the publish outcome record. Its write is best-effort and wrapped:
+a monitoring record must never break the pipeline it monitors. If it is missing, stale or
+mismatched, the wedge draw reads "no green is claimed" and stays ARMED, which is the fail-safe
+direction -- so a failed sidecar write costs a phantom draw, never a silenced alarm.
 """
 LAST_PUSH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_push_time.json"
 RUN_LOCK_FILE = PROJECT_DIR / "docs" / "observability" / ".process_run_complete.lock"
@@ -1978,6 +1998,59 @@ def _overlay_untracked_data(checkout: Path) -> None:
             log("Publish gate: could not overlay {} into the HEAD checkout: {}".format(rel, exc))
 
 
+def _green_clock_path() -> Path:
+    """WHERE the sidecar goes: beside the hash file it describes, DERIVED at call time.
+
+    CAUGHT IN THE ACT, 2026-08-20, before this repair had landed. The first draft wrote
+    `LAST_TESTED_GREEN_FILE` -- the module default -- and the live
+    `docs/observability/.last_tested_green.json` was found holding `{"sha": "deadbeef", ...}`,
+    a fixture value, stamped 17:41:55Z, later than the real green at 17:03:38Z. The writer is
+    `tests/background/test_process_run_complete.py:1325`, which redirects `LAST_TESTED_HASH_FILE`
+    into `tmp_path` and drives the rc=0 branch with `git_hash="deadbeef"`: it isolated the path
+    its author thought of, and the sidecar -- added days after that fixture was written -- was
+    not one of them. That test file is in the publish gate's own scoped list, so it fired on
+    every publish cycle.
+
+    THE FIX IS THE DERIVATION, NOT A REDIRECT IN THAT ONE FIXTURE. `supervisor._recorded_green_clock`
+    already states this rule for the READ side ("the sidecar is looked for BESIDE the hash file
+    whenever a caller redirects that path"), and a writer that ignored the rule its own reader
+    states is the two-halves-read-different-trees pattern this whole repair is an instance of
+    (`feedback_a_two_part_control_can_have_each_half_read_a_different_tree`). Deriving the
+    location means every caller that redirects the hash -- which is every sandbox, because the
+    hash file is the one two other consumers depend on -- redirects the sidecar with it, and
+    cannot fail to think of it. `LAST_TESTED_GREEN_FILE` survives as the production default and
+    as the NAME both halves agree on.
+
+    The damage this class can do here is bounded and worth stating, because it is why this is a
+    defect and not a catastrophe: `_recorded_green_clock` requires `sha` to equal the hash file's,
+    so a fixture-authored sidecar reads as "no green is claimed" and leaves RUNG 1 ARMED. A
+    phantom draw, never a silenced alarm -- the same fail direction as losing the write entirely."""
+    return LAST_TESTED_HASH_FILE.parent / LAST_TESTED_GREEN_FILE.name
+
+
+def _record_gate_green_clock(git_hash: str, now: float | None = None) -> bool:
+    """Stamp WHEN this green was recorded, beside the SHA that says WHICH commit it was.
+
+    Called from exactly one place -- the rc=0 branch of `_run_gate_in`, immediately after
+    `.last_tested_hash` -- so the two files are one record with one writer and one trigger. The
+    full rationale, and why a SHA alone could not answer the question its consumer was asking it,
+    is in LAST_TESTED_HASH_CONTRACT.
+
+    BEST-EFFORT BY DESIGN, and the fail direction is stated rather than left to be discovered:
+    an exception here must never red a publish that the suite already passed, and the consumer
+    (`supervisor._recorded_green_clock`) treats a missing/malformed sidecar as "no green is
+    claimed" and keeps the RUNG-1 alarm ARMED. So the cost of losing this write is a phantom
+    unwedge draw, never a silenced one. Returns whether the stamp landed, so the caller's tests
+    can put both directions on trial instead of inferring them."""
+    try:
+        _green_clock_path().write_text(json.dumps(
+            {"sha": git_hash, "ts": time.time() if now is None else float(now)}))
+        return True
+    except (OSError, TypeError, ValueError) as exc:  # noqa: BLE001 - see the docstring
+        log(f"gate green clock not stamped (publish unaffected, wedge alarm stays armed): {exc}")
+        return False
+
+
 def _run_gate_in(cwd: Path, full_env: dict, git_hash: str):
     """Run the publish-gate argv in `cwd` and record the outcome. Split out so the checkout
     lifecycle above stays readable and the run itself stays testable."""
@@ -2053,6 +2126,7 @@ def _run_gate_in(cwd: Path, full_env: dict, git_hash: str):
                           "pass" if result.returncode == 0 else "fail")
     if result.returncode == 0:
         LAST_TESTED_HASH_FILE.write_text(git_hash)
+        _record_gate_green_clock(git_hash)
         _clear_blocking_tests()
     else:
         # THE VERDICT IS ALREADY DECIDED. `result.returncode` above is the publish verdict and
