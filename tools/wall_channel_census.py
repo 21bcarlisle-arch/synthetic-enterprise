@@ -1489,6 +1489,199 @@ def envelope_wire_conformance_at(
         return envelope_wire_conformance(root)
 
 
+# ── channel C, per CONVERSATION: does the exchange the seam declares actually happen? ─────────
+#
+# WHY THIS QUESTION EXISTS (2026-08-20, pass 34). The cold-eyes walk recorded in pass 33 was given
+# five sentences of plain words and no code, and it named this failure shape BEFORE seeing the
+# build: *"'We model it as a response to a synthetic request' is a fail."* It is exactly what two
+# of the three versioned seams do. `flex_observable_seam` and `payment_observable_seam` each
+# declare a request leg this build NEVER SENDS, and the company receives their observations as
+# responses to nothing. That is unsolicited inbound wearing a response's envelope.
+#
+# THE CENSUS ALREADY SAW IT AND COULD NOT FAIL ON IT. `envelope_wire_conformance` above resolves
+# the dormant request leg correctly, records it in `dormant_legs`, prints it with a neutral `.`
+# marker -- and then credits the seam as `wire_borne` on its response leg alone, because `scored`
+# skips dormant legs and every leg that remains is transported. So the transport question's
+# strongest possible answer, 3 of 3 wire-borne, is returned by a wall on which two of the three
+# conversations do not happen. An outsider with five sentences found what an in-house control
+# reports as a status word, which is the whole argument for the technique and the reason this
+# function is a SEPARATE question rather than a stricter setting on that one.
+#
+# WHY NOT JUST SCORE THE DORMANT LEG IN THE TRANSPORT VERDICT. Because dormancy is not a transport
+# fact and the existing docstring is right to refuse it: a contract describing a message this build
+# does not yet exchange is indistinguishable, on transport evidence alone, from an unmigrated
+# crossing, and reddening it there would make that control permanently red for a reason its subject
+# cannot fix without deleting the contract. The conversation question is answerable because it does
+# not ask about transport at all. It asks which ROLES ARE LIVE, and "nobody ever asks" is a fact
+# about this build that a repair can actually change -- by sending the request, or by giving
+# unsolicited inbound a message shape that does not pretend to be an answer.
+#
+# ROLE LIVENESS, NOT LEG DECLARATION, IS THE UNIT -- and that choice closes a fail-open rather than
+# creating one. A seam could shed the finding by DELETING its `WallRequest[...]` specialisation:
+# with no request leg declared there would be no dormant leg to point at, and a leg-declaration
+# rule would go quiet on the seam that had just made the defect worse. So a role that is not
+# declared and a role that is declared-but-dormant are both NOT LIVE, and land in the same bucket.
+# Deleting the declaration is not available as a repair.
+
+
+@dataclass(frozen=True)
+class ConversationVerdict:
+    """Every versioned seam, asked whether both ends of its exchange are actually live.
+
+    A ROLE IS LIVE when some module in the tree constructs the payload type that role's envelope
+    carries. That is the same liveness `envelope_wire_conformance` uses to decide dormancy, read
+    through `constructed_type_names`, and it is deliberately NOT a transport question: a role can
+    be live and unwired (in-process), or wired and dead. What this asks is whether anybody in this
+    build plays each part.
+
+    FOUR SCORED BUCKETS, because each names a different repair:
+      * `conversant`  -- both roles live. The green case, and the only one in which the
+        request/response envelope is telling the truth about what happens.
+      * `unsolicited` -- the response role is live and the request role is NOT. The company
+        receives messages it never asked for, carried in an envelope whose `correlation_id`
+        correlates to nothing it sent. Two repairs, and the choice between them is architectural:
+        send the request, or give unsolicited inbound its own shape.
+      * `unanswered`  -- the request role is live and the response role is NOT. The mirror: the
+        company asks and this build contains nothing that ever answers.
+      * `silent`      -- neither role is live. The seam describes an exchange this build does not
+        have at either end. `envelope_wire_conformance` drops these before scoring ("no crossing,
+        so nothing to red"); here they are the reason the question is being asked.
+    `versionless` and `legless` are reported and NOT scored, carrying the same honesty the
+    transport verdict carries: `wall_envelope` defines the shape rather than crossing, and a seam
+    that specialises neither envelope has UNKNOWN roles, not absent ones.
+
+    WHAT THIS CANNOT SEE, stated rather than implied. Liveness is repo-wide: a payload constructed
+    ANYWHERE -- including in a module that never reaches the seam -- reads as live, exactly as it
+    does for dormancy above. So this can prove a role dead and cannot prove one genuinely
+    exercised. It is also blind to CARDINALITY: a conversation of three or more legs cannot be
+    expressed by two envelope specialisations at all, so a seam that needs one reads as conversant
+    the moment its two declared roles are live. Both limits are one-directional -- they lose
+    findings, never manufacture them.
+    """
+
+    conversant: tuple[str, ...] = ()
+    unsolicited: tuple[str, ...] = ()
+    unanswered: tuple[str, ...] = ()
+    silent: tuple[str, ...] = ()
+    versionless: tuple[str, ...] = ()
+    legless: tuple[str, ...] = ()
+
+    @property
+    def ok(self) -> bool:
+        return not self.unsolicited and not self.unanswered and not self.silent
+
+    def report(self) -> str:
+        scored = (
+            len(self.conversant) + len(self.unsolicited)
+            + len(self.unanswered) + len(self.silent)
+        )
+        lines = [
+            f"channel C conversations: {len(self.conversant)} of {scored} versioned seam(s) have "
+            "BOTH ends of the exchange they declare live in this build"
+        ]
+        lines += [f"    * {s} -- both roles live" for s in self.conversant]
+        lines += [
+            f"    ! {s} -- UNSOLICITED INBOUND: the response role is live and NOTHING IN THIS "
+            "BUILD EVER ASKS. The company receives these as answers to a request it never sent, "
+            "so the envelope's correlation_id correlates to nothing and the request/response "
+            "split is describing an exchange that does not happen. Either send the request or "
+            "give unsolicited inbound a shape that does not pretend to be an answer."
+            for s in self.unsolicited
+        ]
+        lines += [
+            f"    ! {s} -- UNANSWERED: the request role is live and nothing in this build ever "
+            "answers. The company asks into silence, and the response type is a promise the wall "
+            "does not keep."
+            for s in self.unanswered
+        ]
+        lines += [
+            f"    ! {s} -- SILENT: neither role is live. The seam declares an exchange this "
+            "build has at neither end."
+            for s in self.silent
+        ]
+        lines += [
+            f"    - {s} -- declares no {SEAM_VERSION_CONSTANT}, so it is not a crossing this "
+            "question is about"
+            for s in self.versionless
+        ]
+        lines += [
+            f"    ? {s} -- specialises neither envelope, so its roles are UNKNOWN rather than "
+            "absent and it is not scored"
+            for s in self.legless
+        ]
+        return "\n".join(lines)
+
+
+def seam_conversation_conformance(root: str) -> ConversationVerdict:
+    """Every channel C seam, asked whether the conversation it declares actually happens.
+
+    The seam set is DERIVED from `envelope_seams` for that function's stated reason: a fourth seam
+    landing tomorrow owns this question on the day it lands. It lands scored -- and if it is
+    another observation feed modelled as a reply to a synthetic request, it lands RED rather than
+    unnoticed, which is the fail-closed direction and the entire point.
+
+    FAIL-CLOSED on an unreadable subject, R15 FAIL-SILENT: a tree with versioned seams none of
+    which specialises an envelope means the specialisations that carry every role in this question
+    have been removed, and deleting them is the cheapest way to make this pass. That refuses.
+    """
+    seams = envelope_seams(root)
+    if not seams:
+        # A fully paid-down envelope channel is a legitimate reading, and a control pinned to a
+        # non-zero count reds on its own success case. Same rule as the transport question.
+        return ConversationVerdict()
+    constructed = constructed_type_names(root)
+    conversant: list[str] = []
+    unsolicited: list[str] = []
+    unanswered: list[str] = []
+    silent: list[str] = []
+    versionless: list[str] = []
+    legless: list[str] = []
+
+    for seam in sorted(seams):
+        if _seam_version(root, seam) is None:
+            versionless.append(seam)
+            continue
+        if not seam_legs(root, seam):
+            legless.append(seam)
+            continue
+        payloads = leg_payload_types(root, seam)
+        asks = bool(payloads[REQUEST_LEG] & constructed)
+        answers = bool(payloads[RESPONSE_LEG] & constructed)
+        if asks and answers:
+            conversant.append(seam)
+        elif answers:
+            unsolicited.append(seam)
+        elif asks:
+            unanswered.append(seam)
+        else:
+            silent.append(seam)
+
+    if versionless and not (conversant or unsolicited or unanswered or silent or legless):
+        raise CensusUnavailable(
+            f"{len(versionless)} channel C seam(s) exist and none declares "
+            f"`{SEAM_VERSION_CONSTANT}` -- the subject of the conversation question has been "
+            "removed, which is a failed check"
+        )
+    return ConversationVerdict(
+        conversant=tuple(conversant),
+        unsolicited=tuple(unsolicited),
+        unanswered=tuple(unanswered),
+        silent=tuple(silent),
+        versionless=tuple(versionless),
+        legless=tuple(legless),
+    )
+
+
+def seam_conversation_conformance_at(
+    rev: str = "HEAD", worktree: bool = False, repo_root: Path = PROJECT_DIR
+) -> ConversationVerdict:
+    """`seam_conversation_conformance` against the worktree, or against the tree at `rev`."""
+    if worktree:
+        return seam_conversation_conformance(str(repo_root))
+    with head_export(str(repo_root), CENSUS_DIRS, rev=rev) as root:
+        return seam_conversation_conformance(root)
+
+
 # ── channel C, the second question: what does a version MEAN? ────────────────────────────────
 # Channel C above asks whether a seam's version reaches a wire, and at HEAD it answers 3 of 3.
 # That reading is saturated, and a saturated instrument is a reason to move the ORIGIN rather
@@ -2864,6 +3057,24 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 2
     print(envelope_wire.report())
+
+    # REPORTS AND DOES NOT GATE, by this file's own twice-stated rule -- a check becomes a gate
+    # "in the same commit that makes it satisfiable" -- and this is the first check to arrive
+    # UNSATISFIED. Two of the three live seams are unsolicited inbound at HEAD, so gating here
+    # would refuse EVERY commit in the repo including the ones that repair it: pass 13's
+    # landing-order defect, which this file has already learned twice and will not learn a third
+    # time. The red is the finding, printed; `.ok` is asserted by the tests against fixtures where
+    # the control's own success case is reachable, so it is proven able to fail without being
+    # allowed to wedge the tree. It becomes part of this return the day `.ok` is True on HEAD.
+    try:
+        conversations = seam_conversation_conformance_at(rev=args.rev, worktree=args.worktree)
+    except CensusUnavailable as exc:
+        print(
+            f"CHANNEL C CONVERSATION CHECK UNAVAILABLE (a failed check, not a pass): {exc}",
+            file=sys.stderr,
+        )
+        return 2
+    print(conversations.report())
 
     # THIS ONE GATES FROM ITS FIRST COMMIT, and the rule it follows is the one stated above: a
     # check becomes a gate "in the same commit that makes it satisfiable". Channel C's transport

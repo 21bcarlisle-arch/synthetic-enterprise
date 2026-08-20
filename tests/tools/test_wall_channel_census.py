@@ -3229,3 +3229,262 @@ def test_the_GATE_names_channel_F_in_its_own_source(monkeypatch):
     assert "nested_schema_at" in source and "nested_drift.ok" in source, (
         "channel F's conformance is not wired into the commit gate"
     )
+
+
+# ── 22. channel C, per CONVERSATION -- does the exchange the seam declares happen? ────────────
+#
+# WHY THIS SECTION EXISTS (2026-08-20, pass 34). Section 15's fixture already contains the defect
+# and section 15's own test asserts it passes: `test_a_DORMANT_leg_is_neither_wired_nor_unwired`
+# leaves the request leg dormant and then asserts `TWO_LEG_SEAM in verdict.wire_borne`. That is
+# the transport question being honest about its scope -- and it is also the exact reading the
+# cold-eyes walk of pass 33 called out, having named the failure shape from five sentences of
+# plain words before seeing any code: "'We model it as a response to a synthetic request' is a
+# fail."
+#
+# So every mutation below is measured against the SAME fixture section 15 uses, and the pairing is
+# the point: where section 15 asserts `wire_borne`, this section asserts RED on the same tree. Two
+# controls, one subject, opposite verdicts, because they are asking different questions -- which is
+# the only honest way to add a question to an instrument that is already saturated at 3 of 3.
+
+
+def test_a_seam_whose_BOTH_ROLES_are_live_is_conversant(two_leg_tree):
+    """The success case, and the null control every mutation below is measured against.
+
+    It matters that this is REACHABLE on a fixture: the live tree is red, so without a green case
+    the control would never have been shown answering in its own success direction, and a control
+    that has only ever said no is indistinguishable from one that can only say no.
+    """
+    verdict = wcc.seam_conversation_conformance(str(two_leg_tree))
+
+    assert TWO_LEG_SEAM in verdict.conversant, verdict.report()
+    assert verdict.ok, verdict.report()
+    assert "both roles live" in verdict.report()
+
+
+def test_MUTATION_a_seam_nobody_ever_ASKS_is_UNSOLICITED_INBOUND(two_leg_tree):
+    """THE DEFECT THE COLD-EYES WALK FOUND, on the fixture, one statement away from the green case.
+
+    The company stops constructing the request payload -- exactly the edit section 15 makes in
+    `test_a_DORMANT_leg_is_neither_wired_nor_unwired`, which asserts the transport question still
+    credits this seam as wire-borne. Here the same tree reds, and the assertion below proves the
+    two verdicts genuinely disagree on ONE tree rather than on two differently-built ones.
+    """
+    _write(two_leg_tree, "company/comms/conversation_generator.py", """
+        from company.interfaces.wall_protocol import decode_response
+        from interface.contracts.conversation_seam import InboundReply
+
+        def observe(wire):
+            reply = InboundReply()
+            return decode_response(wire), reply
+    """)
+    verdict = wcc.seam_conversation_conformance(str(two_leg_tree))
+
+    assert verdict.unsolicited == (TWO_LEG_SEAM,), verdict.report()
+    assert TWO_LEG_SEAM not in verdict.conversant
+    assert not verdict.ok, verdict.report()
+    assert "NOTHING IN THIS BUILD EVER ASKS" in verdict.report()
+    # THE DISAGREEMENT, ASSERTED. Same root, same moment: the transport question says this seam is
+    # fully wire-borne and the conversation question says nobody asks. If this ever stops being
+    # true, one of the two controls has silently absorbed the other's question.
+    assert TWO_LEG_SEAM in wcc.envelope_wire_conformance(str(two_leg_tree)).wire_borne
+
+
+def test_MUTATION_deleting_the_REQUEST_DECLARATION_does_not_shed_the_finding(two_leg_tree):
+    """THE CHEAPEST WAY TO MAKE THIS PASS, refused -- and it is one line.
+
+    A rule keyed on "a declared leg that is dormant" would go quiet the moment the seam deleted its
+    `WallRequest[...]` specialisation: no declared leg, no dormant leg, no finding. That edit makes
+    the architecture WORSE (the contract stops even claiming an ask) while scoring as a repair,
+    which is the R15 mutation that deletes the subject instead of moving it. Role LIVENESS is the
+    unit precisely so this lands in the same bucket as leaving it dormant.
+    """
+    _write(two_leg_tree, "interface/contracts/conversation_seam.py", """
+        from interface.contracts.wall_envelope import WallResponse
+
+        SCHEMA_VERSION = 1
+
+        class InboundReply:
+            pass
+
+        ReplyWallResponse = WallResponse[InboundReply]
+    """)
+    verdict = wcc.seam_conversation_conformance(str(two_leg_tree))
+
+    assert verdict.unsolicited == (TWO_LEG_SEAM,), (
+        "deleting the request declaration shed the finding, so the seam that made the defect "
+        "worse scored as having repaired it: " + verdict.report()
+    )
+    assert TWO_LEG_SEAM not in verdict.legless, (
+        "a seam specialising ONE envelope has a known role set, not an unknown one -- excusing it "
+        "as legless would be the same escape by a different door: " + verdict.report()
+    )
+
+
+def test_MUTATION_a_seam_nobody_ever_ANSWERS_is_UNANSWERED_not_unsolicited(two_leg_tree):
+    """The mirror, and it must not collapse into the bucket beside it: asking into silence and
+    being spoken to unasked are opposite defects with opposite repairs, and a verdict that called
+    both "not conversant" would send the reader to the wrong end of the wall."""
+    _write(two_leg_tree, "company/comms/conversation_generator.py", """
+        from company.interfaces.wall_protocol import encode_request
+        from interface.contracts.conversation_seam import OutboundMessage
+
+        def send(body, emitted_at):
+            return encode_request(OutboundMessage(), emitted_at)
+    """)
+    verdict = wcc.seam_conversation_conformance(str(two_leg_tree))
+
+    assert verdict.unanswered == (TWO_LEG_SEAM,), verdict.report()
+    assert verdict.unsolicited == (), verdict.report()
+    assert not verdict.ok
+    assert "asks into silence" in verdict.report()
+
+
+def test_MUTATION_a_seam_live_at_NEITHER_end_is_SILENT_where_the_transport_question_drops_it(
+    two_leg_tree,
+):
+    """The bucket `envelope_wire_conformance` explicitly `continue`s past -- "no crossing, so
+    nothing to red". Here it is scored, which is the whole reason this question is separate."""
+    _write(two_leg_tree, "company/comms/conversation_generator.py", '"""nobody plays either part."""\n')
+    verdict = wcc.seam_conversation_conformance(str(two_leg_tree))
+
+    assert verdict.silent == (TWO_LEG_SEAM,), verdict.report()
+    assert not verdict.ok
+    # The transport question drops it entirely -- present in neither the pass bucket nor a fail one.
+    transport = wcc.envelope_wire_conformance(str(two_leg_tree))
+    assert TWO_LEG_SEAM not in transport.wire_borne
+    assert TWO_LEG_SEAM not in transport.in_process
+    assert TWO_LEG_SEAM not in [s for s, _ in transport.half_wired]
+
+
+def test_NULL_CONTROL_an_unrelated_module_constructing_an_unrelated_type_moves_nothing(
+    two_leg_tree,
+):
+    """The sample moves, the law does not. Without this, every mutation above is consistent with a
+    control that reds on any edit at all."""
+    before = wcc.seam_conversation_conformance(str(two_leg_tree))
+    _write(two_leg_tree, "company/comms/unrelated.py", """
+        class SomethingElse:
+            pass
+
+        def build():
+            return SomethingElse()
+    """)
+
+    assert wcc.seam_conversation_conformance(str(two_leg_tree)) == before
+
+
+def test_NULL_CONTROL_the_UNVERSIONED_envelope_module_is_reported_not_scored(two_leg_tree):
+    """`wall_envelope` defines the shape and is not a crossing. Scoring it would red every tree
+    that has an envelope at all, which is a control reding on the existence of its own subject."""
+    verdict = wcc.seam_conversation_conformance(str(two_leg_tree))
+
+    assert "interface.contracts.wall_envelope" in verdict.versionless, verdict.report()
+    assert "interface.contracts.wall_envelope" not in verdict.silent
+
+
+def test_ZERO_ENVELOPE_SEAMS_IS_NOT_REFUSED_BY_THE_CONVERSATION_QUESTION_EITHER(tmp_path):
+    """A fully paid-down envelope channel is a legitimate reading. A control pinned to a non-zero
+    count reds on its own success case -- the rule the transport question states and this follows.
+
+    NAMED DISTINCTLY FROM SECTION 13'S EQUIVALENT ON PURPOSE. The two started life sharing a name,
+    and a duplicate `def` at module scope does not fail: Python rebinds it and pytest collects only
+    the second, so the transport question's zero-seam branch would have stopped being tested with
+    nothing anywhere reporting a loss. Caught by ruff F811, which is why that ratchet is worth its
+    noise.
+    """
+    root = tmp_path / "empty"
+    (root / "company").mkdir(parents=True)
+
+    verdict = wcc.seam_conversation_conformance(str(root))
+
+    assert verdict.ok and verdict == wcc.ConversationVerdict()
+
+
+def test_FAIL_CLOSED_seams_that_ALL_lose_their_version_refuse_rather_than_reporting_clean(
+    two_leg_tree,
+):
+    """R15 FAIL-SILENT. Deleting `SCHEMA_VERSION` from every seam would empty all four scored
+    buckets and print a tidy "0 of 0" -- the subject removed, reported as a pass."""
+    for rel in [
+        "interface/contracts/conversation_seam.py",
+        "interface/contracts/payment_observable_seam.py",
+    ]:
+        path = two_leg_tree / rel
+        if path.exists():
+            path.write_text(
+                "\n".join(
+                    line for line in path.read_text().splitlines()
+                    if "SCHEMA_VERSION" not in line
+                ) + "\n",
+                encoding="utf-8",
+            )
+
+    with pytest.raises(wcc.CensusUnavailable, match="has been removed"):
+        wcc.seam_conversation_conformance(str(two_leg_tree))
+
+
+# ── 22b. the live reading -- RED, and recorded as the L3 blocker it is ────────────────────────
+
+
+def test_THE_LIVE_WALL_IS_UNSOLICITED_ON_EXACTLY_THE_TWO_SEAMS_THE_WALK_NAMED():
+    """THE FINDING, PINNED. This test is GREEN while the wall is WRONG, and that is deliberate.
+
+    The control cannot gate yet -- two of three live seams carry the defect, so refusing on it
+    would refuse the commits that repair it (this module's own twice-learned landing-order rule).
+    What can be done without wedging the tree is to pin the population, SHRINK-ONLY: a third seam
+    acquiring the shape reds here on the day it lands, and a repair passes. That is the same
+    discipline as the census baseline beside it, and it is what stops "reported" decaying into
+    "narrated".
+
+    WHEN THIS GOES GREEN the assertion below fails, and that is the correct moment to move the
+    check into the CLI's return and this test into `assert verdict.ok`.
+    """
+    verdict = wcc.seam_conversation_conformance_at(worktree=True)
+    known_unsolicited = {
+        "interface.contracts.flex_observable_seam",
+        "interface.contracts.payment_observable_seam",
+    }
+
+    assert set(verdict.unsolicited) <= known_unsolicited, (
+        "a NEW channel C seam models unsolicited inbound as a reply to a request nothing sends -- "
+        "the shape the cold-eyes walk of 2026-08-20 named in advance: " + verdict.report()
+    )
+    assert not verdict.unanswered, (
+        "a live seam now asks into silence, which no live seam did when this was written: "
+        + verdict.report()
+    )
+    assert not verdict.silent, (
+        "a live seam is live at neither end: " + verdict.report()
+    )
+    assert verdict.conversant == ("interface.contracts.conversation_seam",), (
+        "the one genuinely two-way conversation on the wall has changed, which is either the "
+        "repair this control exists to invite or a regression: " + verdict.report()
+    )
+
+
+def test_the_conversation_check_is_REPORTED_by_the_CLI_and_deliberately_NOT_in_its_exit_code():
+    """R11's no-orphan-transitions rule needs its opposite stated too: a check that cannot yet be
+    satisfied must not gate, but it MUST reach a reader, or "reports and does not gate" is just a
+    name for dead code. Read off the source rather than by running the CLI, which takes minutes."""
+    import ast
+
+    source = (Path(wcc.__file__).parent.parent / "tools" / "wall_channel_census.py").read_text()
+    tree = ast.parse(source)
+    printed = [
+        ast.unparse(n)
+        for n in ast.walk(tree)
+        if isinstance(n, ast.Call) and getattr(n.func, "id", "") == "print"
+    ]
+    returns = [
+        ast.unparse(n.value) for n in ast.walk(tree)
+        if isinstance(n, ast.Return) and n.value is not None
+    ]
+
+    assert any("conversations.report()" in p for p in printed), (
+        "the conversation verdict reaches no reader -- a control nobody sees is not reporting"
+    )
+    assert not any("conversations.ok" in r for r in returns), (
+        "the conversation check has been wired into the exit code while the live wall still "
+        "fails it, which refuses every commit including its own repair. Arm it in the same "
+        "commit that makes it satisfiable -- and delete this assertion then."
+    )
