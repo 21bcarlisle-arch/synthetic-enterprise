@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-08-20T03:48:46Z",
+    "checked_at": "2026-08-20T05:41:13Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_epistemic_wall_ratchet.py::test_no_new_sim_reads_company",
       "FAILED tests/architecture/test_epistemic_wall_ratchet.py::test_mutation_injected_company_reads_sim_reds_only_new_crossing",
@@ -11,24 +11,24 @@
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_every_declared_honest_absence_is_still_absent_and_still_silenced",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline"
     ],
-    "nonblocking_reds_total": 42,
-    "open_findings": 97
+    "nonblocking_reds_total": 41,
+    "open_findings": 99
   },
   "last_verified": {
-    "generated_at": "2026-08-20T04:22:08Z",
-    "git_commit": "d7c80d110",
-    "run_id": "run_output_d7c80d110_20260820T034947Z.json",
-    "verified_at": "2026-08-20T04:22:08Z"
+    "generated_at": "2026-08-20T06:12:11Z",
+    "git_commit": "a5bfec712",
+    "run_id": "run_output_a5bfec712_20260820T054214Z.json",
+    "verified_at": "2026-08-20T06:12:11Z"
   },
   "paused_reason": "scoped publish-path suite red at git=1aa4a3d7a; blocking tests: see sim-runner-log",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-20T04:22:08Z",
-    "git_commit": "d7c80d110",
-    "run_id": "run_output_d7c80d110_20260820T034947Z.json",
-    "verified_at": "2026-08-20T04:22:08Z"
+    "generated_at": "2026-08-20T06:12:11Z",
+    "git_commit": "a5bfec712",
+    "run_id": "run_output_a5bfec712_20260820T054214Z.json",
+    "verified_at": "2026-08-20T06:12:11Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-20T04:22:08Z"
+  "written_at": "2026-08-20T06:12:11Z"
 }

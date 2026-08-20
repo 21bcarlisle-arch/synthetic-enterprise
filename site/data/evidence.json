@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-08-20T03:58:40Z",
-  "git_hash": "d7c80d110",
+  "generated_at": "2026-08-20T05:50:55Z",
+  "git_hash": "a5bfec712",
   "suite": {
-    "test_count": 26539,
-    "timestamp": "2026-08-20T03:19:30.974726+00:00"
+    "test_count": 26584,
+    "timestamp": "2026-08-20T05:08:54.662045+00:00"
   },
   "sources": {
     "node_mapping": "site/data/moap_node_atoms.json",
@@ -2183,8 +2183,8 @@
             },
             {
               "path": "site/project/index.html",
-              "status": "RESOLVED",
-              "resolved_path": "site/project/index.html",
+              "status": "MISSING",
+              "resolved_path": null,
               "raw": "site/project/index.html::renderKpis",
               "is_test": false
             },
@@ -2705,9 +2705,9 @@
     "nodes": 6,
     "atoms": 46,
     "citations": 212,
-    "citations_resolved": 209,
+    "citations_resolved": 208,
     "citations_relocated": 1,
-    "citations_missing": 2,
+    "citations_missing": 3,
     "atoms_with_missing": 43,
     "nodes_fully_evidenced": 0
   }
