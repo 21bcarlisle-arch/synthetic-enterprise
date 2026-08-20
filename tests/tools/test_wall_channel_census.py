@@ -1394,3 +1394,379 @@ def test_THE_LIVE_ENVELOPE_MODULE_IS_THE_ONLY_UNVERSIONED_SEAM():
     verdict = wcc.envelope_wire_conformance_at(worktree=True)
 
     assert verdict.unversioned == ["interface.contracts.wall_envelope"], verdict.report()
+
+
+# ── 15. channel C, PER LEG -- the seam is not the unit, the crossing is ───────────────────────
+#
+# WHY THE SEAM WAS THE WRONG UNIT. A seam resolves in two crossings separated in time: the company
+# EMITS a `WallRequest` and later OBSERVES a `WallResponse`. Section 13 credited a seam as
+# wire-borne on any one encoder and any one decoder ANYWHERE among its importers, so a seam with a
+# wired response and a request still crossing the call frame read exactly like a seam with both
+# wired. That is the atom's own defect surviving on the leg the instrument could not see, and it is
+# what every mutation below moves.
+#
+# THE TWO DETECTION SHAPES PER SIDE are the other half of this section, and they are not a
+# convenience. The wall FORBIDS the counterparty to import `company.*`, so it cannot use the
+# company's codec and must mirror the contract's key set instead; the company owns that codec and
+# calls it rather than hand-building bytes. A detector that knows only one shape per side red-lists
+# a leg for being written the way the wall requires -- which is a false alarm on the architecture's
+# own correct answer, and the most expensive kind, because the repair it invites is to break the
+# wall.
+
+TWO_LEG_SEAM = "interface.contracts.conversation_seam"
+
+#: A seam declaring BOTH legs, each carrying a distinct payload type.
+TWO_LEG_SEAM_SOURCE = """
+    from interface.contracts.wall_envelope import WallRequest, WallResponse
+
+    SCHEMA_VERSION = 1
+
+    class OutboundMessage:
+        pass
+
+    class InboundReply:
+        pass
+
+    MessageWallRequest = WallRequest[OutboundMessage]
+    ReplyWallResponse = WallResponse[InboundReply]
+"""
+
+#: The company end. Encodes the REQUEST through its own codec (the only lawful company shape) and
+#: decodes the RESPONSE through the same codec. Constructs both payloads, so neither leg is dormant.
+TWO_LEG_COMPANY = """
+    from company.interfaces.wall_protocol import decode_response, encode_request
+    from interface.contracts.conversation_seam import InboundReply, OutboundMessage
+
+    def send(body, emitted_at):
+        return encode_request(OutboundMessage(), emitted_at)
+
+    def observe(wire):
+        reply = InboundReply()
+        return decode_response(wire), reply
+"""
+
+#: The counterparty end. May not import `company.*`: it mirrors the REQUEST key set to refuse
+#: against, and hand-builds the RESPONSE dict.
+TWO_LEG_WORLD = """
+    from interface.contracts.conversation_seam import SCHEMA_VERSION
+
+    _REQUEST_WIRE_FIELDS = frozenset(
+        {"correlation_id", "request_type", "schema_version", "as_of", "emitted_at", "payload"}
+    )
+
+    def decode_wire_request(wire):
+        if set(wire) != _REQUEST_WIRE_FIELDS:
+            raise ValueError("refused")
+        return wire
+
+    def respond_over_wire(request):
+        return {
+            "correlation_id": request["correlation_id"],
+            "status": "OK",
+            "schema_version": SCHEMA_VERSION,
+            "observed_at": None,
+            "valid_time": None,
+            "payload": None,
+            "error": None,
+        }
+"""
+
+
+@pytest.fixture()
+def two_leg_tree(envelope_tree: Path) -> Path:
+    """A second seam beside the payment one, fully wired on BOTH legs.
+
+    Built as the conforming case on purpose: every mutation below removes exactly one leg's
+    transport, so "the mutation broke this leg" can never be confused with "the check never found
+    a transport at all" -- section 13's fixture reason, applied one level down.
+    """
+    _write(envelope_tree, "interface/contracts/conversation_seam.py", TWO_LEG_SEAM_SOURCE)
+    _write(envelope_tree, "company/comms/conversation_generator.py", TWO_LEG_COMPANY)
+    _write(envelope_tree, "simulation/conversation_response.py", TWO_LEG_WORLD)
+    return envelope_tree
+
+
+def test_a_seam_wired_on_BOTH_legs_is_wire_borne_and_names_each_leg(two_leg_tree):
+    """The success case, and the null control every mutation below is measured against."""
+    verdict = wcc.envelope_wire_conformance(str(two_leg_tree))
+
+    assert TWO_LEG_SEAM in verdict.wire_borne, verdict.report()
+    assert (TWO_LEG_SEAM, "request", "wire") in verdict.leg_states
+    assert (TWO_LEG_SEAM, "response", "wire") in verdict.leg_states
+    assert verdict.ok, verdict.report()
+
+
+def test_MUTATION_THE_ONE_THIS_SECTION_EXISTS_FOR_a_seam_wired_on_ONE_leg_is_not_wire_borne(
+    two_leg_tree,
+):
+    """THE LEG-GRANULARITY MUTATION, run rather than asserted.
+
+    The response leg keeps its encoder and its decoder. Only the REQUEST leg's transport is removed
+    -- the company stops calling `encode_request` and hands the payload over as an object, which is
+    exactly what an unmigrated leg looks like. The seam still has an encoder and a decoder among its
+    importers, so the leg-blind rule this replaced reported it wire-borne and green. This must go
+    red, and must name the request leg as the reason.
+    """
+    _write(two_leg_tree, "company/comms/conversation_generator.py", """
+        from company.interfaces.wall_protocol import decode_response
+        from interface.contracts.conversation_seam import InboundReply, OutboundMessage
+
+        def send(body, emitted_at):
+            return OutboundMessage()
+
+        def observe(wire):
+            reply = InboundReply()
+            return decode_response(wire), reply
+    """)
+    verdict = wcc.envelope_wire_conformance(str(two_leg_tree))
+
+    assert TWO_LEG_SEAM not in verdict.wire_borne, verdict.report()
+    assert (TWO_LEG_SEAM, "request", "DECODED-only") in verdict.leg_states
+    assert (TWO_LEG_SEAM, "response", "wire") in verdict.leg_states
+    assert not verdict.ok
+
+
+def test_MUTATION_removing_the_RESPONSE_legs_transport_reds_the_same_seam(two_leg_tree):
+    """The mirror of the above, so the control is shown answering on either leg and not just the
+    one the fixture happens to make easiest."""
+    _write(two_leg_tree, "simulation/conversation_response.py", """
+        from interface.contracts.conversation_seam import SCHEMA_VERSION
+
+        _REQUEST_WIRE_FIELDS = frozenset(
+            {"correlation_id", "request_type", "schema_version", "as_of", "emitted_at", "payload"}
+        )
+
+        def decode_wire_request(wire):
+            if set(wire) != _REQUEST_WIRE_FIELDS:
+                raise ValueError("refused")
+            return wire
+
+        def respond(request):
+            return {"version": SCHEMA_VERSION}
+    """)
+    verdict = wcc.envelope_wire_conformance(str(two_leg_tree))
+
+    assert TWO_LEG_SEAM not in verdict.wire_borne, verdict.report()
+    assert (TWO_LEG_SEAM, "response", "DECODED-only") in verdict.leg_states
+
+
+def test_MUTATION_wiring_only_a_DORMANT_leg_cannot_flip_a_seam_to_wire_borne(two_leg_tree):
+    """THE MIGRATION THIS CONTROL EXISTS TO SIT IN FRONT OF.
+
+    A seam whose live leg is in-process and whose other leg is declared-but-never-sent. Wiring the
+    DORMANT leg is the cheapest possible edit that a seam-level count would reward: it adds a real
+    encoder and a real decoder for a real declared leg. The verdict must not move, because no
+    crossing was migrated -- the live leg is still on the call frame.
+    """
+    _write(two_leg_tree, "company/comms/conversation_generator.py", """
+        from company.interfaces.wall_protocol import encode_request
+        from interface.contracts.conversation_seam import InboundReply, OutboundMessage
+
+        def send(body, emitted_at):
+            return encode_request(OutboundMessage(), emitted_at)
+
+        def observe(obj):
+            return InboundReply(), obj
+    """)
+    _write(two_leg_tree, "simulation/conversation_response.py", """
+        from interface.contracts.conversation_seam import SCHEMA_VERSION
+
+        _REQUEST_WIRE_FIELDS = frozenset(
+            {"correlation_id", "request_type", "schema_version", "as_of", "emitted_at", "payload"}
+        )
+
+        def decode_wire_request(wire):
+            if set(wire) != _REQUEST_WIRE_FIELDS:
+                raise ValueError("refused")
+            return wire
+    """)
+    verdict = wcc.envelope_wire_conformance(str(two_leg_tree))
+
+    assert TWO_LEG_SEAM not in verdict.wire_borne, verdict.report()
+    assert (TWO_LEG_SEAM, "request", "wire") in verdict.leg_states
+    assert (TWO_LEG_SEAM, "response", "IN-PROCESS") in verdict.leg_states
+
+
+def test_a_DECLARED_leg_this_build_never_sends_is_reported_dormant_and_not_red(two_leg_tree):
+    """DORMANT IS A THIRD ANSWER, and it has to be, for `unversioned`'s reason.
+
+    `payment_observable_seam` declares a `CollectionRequest` no module anywhere constructs: the
+    contract describes a message this build does not yet exchange. Transport evidence alone cannot
+    tell that from an unmigrated crossing -- both are "never encoded, never decoded" -- so scoring
+    it would make the control permanently red for a reason its subject cannot fix without deleting
+    the contract, which is the shape of a control that gets tuned away.
+    """
+    _write(two_leg_tree, "company/comms/conversation_generator.py", """
+        from company.interfaces.wall_protocol import decode_response
+        from interface.contracts.conversation_seam import InboundReply
+
+        def observe(wire):
+            reply = InboundReply()
+            return decode_response(wire), reply
+    """)
+    verdict = wcc.envelope_wire_conformance(str(two_leg_tree))
+
+    assert (TWO_LEG_SEAM, "request") in verdict.dormant_legs, verdict.report()
+    assert (TWO_LEG_SEAM, "request", "dormant") in verdict.leg_states
+    assert TWO_LEG_SEAM in verdict.wire_borne, verdict.report()
+    assert "never sends" in verdict.report()
+
+
+def test_NULL_CONTROL_the_same_leg_becomes_IN_PROCESS_the_moment_its_payload_is_CONSTRUCTED(
+    two_leg_tree,
+):
+    """THE CONTROL THAT ISOLATES DORMANCY FROM THE WRAPPING.
+
+    Identical to the test above in every respect except one statement: somebody builds the request
+    payload. Nothing about the transport changes -- there is still no encoder and no decoder for
+    that leg. If the dormant reading survived this, "dormant" would just be a name for "unwired"
+    and the previous test would be excusing the defect rather than classifying it.
+    """
+    _write(two_leg_tree, "company/comms/conversation_generator.py", """
+        from company.interfaces.wall_protocol import decode_response
+        from interface.contracts.conversation_seam import InboundReply, OutboundMessage
+
+        def send(body):
+            return OutboundMessage()
+
+        def observe(wire):
+            reply = InboundReply()
+            return decode_response(wire), reply
+    """)
+    verdict = wcc.envelope_wire_conformance(str(two_leg_tree))
+
+    assert (TWO_LEG_SEAM, "request") not in verdict.dormant_legs, verdict.report()
+    # SCORED and red. The counterparty's mirror still refuses that leg, so its honest state is
+    # DECODED-only rather than IN-PROCESS -- what the null control isolates is the move OUT of the
+    # unscored bucket, which is the only thing constructing the payload changed.
+    assert (TWO_LEG_SEAM, "request", "DECODED-only") in verdict.leg_states
+    assert TWO_LEG_SEAM not in verdict.wire_borne
+
+
+def test_the_COMPANY_side_encoder_is_recognised_though_it_builds_no_dict(two_leg_tree):
+    """The company calls `encode_request`; matching encoders by emitted SHAPE alone sees nothing.
+
+    This is not a hypothetical: it is how `conversation_generator.generate_wire_request` is written,
+    and a shape-only detector reported that wired leg as DECODED-only. The company end is the one
+    that MUST use the codec, so failing to see it red-lists the correct architecture.
+    """
+    company = (two_leg_tree / "company/comms/conversation_generator.py").read_text()
+    assert "{" not in company.split("def send")[1].split("def observe")[0]
+
+    verdict = wcc.envelope_wire_conformance(str(two_leg_tree))
+
+    assert (TWO_LEG_SEAM, "request", "wire") in verdict.leg_states, verdict.report()
+
+
+def test_the_COUNTERPARTY_side_decoder_is_recognised_though_it_imports_no_codec(two_leg_tree):
+    """The mirror case, and the wall is the reason it exists: `simulation/**` may not import
+    `company.*`, so the counterparty CANNOT decode through the codec. Recognising decoders only by
+    that import would red-list every counterparty refusal for obeying the wall."""
+    world = (two_leg_tree / "simulation/conversation_response.py").read_text()
+    assert "company" not in world
+
+    verdict = wcc.envelope_wire_conformance(str(two_leg_tree))
+
+    assert (TWO_LEG_SEAM, "response", "wire") in verdict.leg_states, verdict.report()
+
+
+def test_MUTATION_a_module_that_encodes_AND_mirrors_cannot_certify_its_OWN_leg(two_leg_tree):
+    """A WIRE HAS TWO ENDS, and the mirror half of the decoder rule is what makes self-certifying
+    reachable: one module emitting the shape and also restating the key set satisfies "an encoder
+    exists" and "a decoder exists" by itself, while nothing ever crosses.
+    """
+    _write(two_leg_tree, "company/comms/conversation_generator.py", """
+        from interface.contracts.conversation_seam import InboundReply, OutboundMessage
+
+        _RESPONSE_WIRE_FIELDS = frozenset(
+            {"correlation_id", "status", "schema_version", "observed_at", "valid_time",
+             "payload", "error"}
+        )
+
+        def roundtrip(reply):
+            OutboundMessage()
+            wire = {
+                "correlation_id": reply.correlation_id,
+                "status": "OK",
+                "schema_version": 1,
+                "observed_at": None,
+                "valid_time": None,
+                "payload": None,
+                "error": None,
+            }
+            assert set(wire) == _RESPONSE_WIRE_FIELDS
+            return InboundReply()
+    """)
+    _write(two_leg_tree, "simulation/conversation_response.py", '"""no transport."""\n')
+    verdict = wcc.envelope_wire_conformance(str(two_leg_tree))
+
+    assert TWO_LEG_SEAM not in verdict.wire_borne, verdict.report()
+    # ONE END, not none: the module really does emit the shape, so the honest state is ENCODED-only.
+    # What the distinctness rule refuses is letting its own mirror count as the far end.
+    assert (TWO_LEG_SEAM, "response", "ENCODED-only") in verdict.leg_states
+
+
+def test_MUTATION_deleting_a_seams_leg_ALIASES_is_reported_rather_than_scored_leniently(
+    two_leg_tree,
+):
+    """THE FAIL-OPEN THIS DESIGN CREATES, named and caught.
+
+    Leg ownership is read from the seam's own `WallRequest[...]` specialisations, so deleting them
+    is a one-line edit that makes the leg-aware rule inapplicable. Falling back to the leg-blind
+    rule is correct -- it is never weaker than the reading this replaced -- but it must not happen
+    QUIETLY, or the cheapest way to silence a red leg becomes deleting the line that declares it.
+    """
+    _write(two_leg_tree, "interface/contracts/conversation_seam.py", """
+        from interface.contracts.wall_envelope import WallRequest, WallResponse
+
+        SCHEMA_VERSION = 1
+
+        class OutboundMessage:
+            pass
+
+        class InboundReply:
+            pass
+    """)
+    verdict = wcc.envelope_wire_conformance(str(two_leg_tree))
+
+    assert TWO_LEG_SEAM in verdict.legless, verdict.report()
+    assert "legs are unknown" in verdict.report()
+    assert not [s for s, _leg, _st in verdict.leg_states if s == TWO_LEG_SEAM]
+
+
+def test_NULL_CONTROL_an_unrelated_module_does_not_move_any_leg_state(two_leg_tree):
+    before = wcc.envelope_wire_conformance(str(two_leg_tree))
+    _write(two_leg_tree, "company/crm/renewals_book.py", """
+        def renew(book):
+            return {"a": 1, "b": 2}
+    """)
+
+    assert wcc.envelope_wire_conformance(str(two_leg_tree)) == before
+
+
+def test_THE_LIVE_SEAMS_ALL_DECLARE_THEIR_LEGS():
+    """The `legless` bucket, on the live tree, and the reason it is a live test rather than only a
+    fixture one: a real seam dropping its specialisations would silently revert THIS ATOM'S OWN
+    control to the leg-blind reading it was built to replace, and every fixture test above would
+    still pass."""
+    verdict = wcc.envelope_wire_conformance_at(worktree=True)
+
+    assert verdict.legless == (), verdict.report()
+
+
+def test_THE_LIVE_PER_LEG_QUESTION_IS_ANSWERABLE():
+    """ANSWERABLE, not GREEN -- section 14's distinction, one level down. Pinning WHICH legs are
+    wired would red the commit that migrates the last one. What must hold is that every scored seam
+    resolves to a per-leg state, because a seam falling out of `leg_states` is the reading going
+    quiet while the report still prints.
+    """
+    verdict = wcc.envelope_wire_conformance_at(worktree=True)
+    scored = set(verdict.wire_borne + verdict.in_process + [s for s, _ in verdict.half_wired])
+    with_legs = {s for s, _leg, _state in verdict.leg_states}
+
+    assert scored, "no versioned channel C seam on the live tree -- the subject has gone"
+    assert scored <= with_legs, verdict.report()
+    assert any(
+        state == "wire" for _s, _leg, state in verdict.leg_states
+    ), "no live leg is wire-borne, so the per-leg control has never answered in its success "
+    "direction: " + verdict.report()

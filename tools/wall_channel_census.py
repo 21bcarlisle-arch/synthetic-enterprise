@@ -960,12 +960,15 @@ def artefact_provenance_at(
 # seam's envelope get ENCODED into the declared wire form by one side and DECODED back by the
 # other, or does the object simply cross the call frame?
 #
-# THE TWO SIDES ARE DETECTED DIFFERENTLY, and the asymmetry is the design's, not a shortcut. The
-# counterparty writes its own bytes on purpose (`simulation/payment_seam_adapter.py`'s own comment:
-# a mock that encoded with the company's codec would make the round-trip a tautology, and it may
-# not import `company.*` at all), so there is no shared encoder to look for -- an ENCODE site is
-# recognised by the SHAPE it emits. The company has exactly one codec, so a DECODE site is
-# recognised by importing it.
+# EACH SIDE HAS TWO LAWFUL SHAPES, and which one a module uses is fixed by the wall rather than by
+# preference. The COMPANY owns exactly one codec and reaches a leg by importing its named entry
+# point (`encode_request`, `decode_response`). The COUNTERPARTY may not import `company.*` at all
+# (`simulation/payment_seam_adapter.py`'s own comment: a mock that encoded with the company's codec
+# would make the round-trip a tautology), so it restates the contract's key set and builds or
+# refuses the bytes itself -- recognised by the SHAPE it emits, or by the exact wire key set it
+# mirrors. Recognising only one shape per side red-lists a leg for the end that is written the way
+# the wall requires: matching encoders by shape alone missed every company-side encoder, and
+# matching decoders by import alone missed every counterparty-side refusal.
 #
 # THE FIELD SETS ARE READ FROM `wall_protocol`'S OWN CONSTANTS, never restated here. That module
 # already declares `REQUEST_WIRE_FIELDS`/`RESPONSE_WIRE_FIELDS` as the exact key set of a message,
@@ -975,14 +978,53 @@ def artefact_provenance_at(
 #: The company's sole codec -- the module a decode site is recognised by importing.
 CODEC_MODULE = "company.interfaces.wall_protocol"
 
-#: The decoding entry points. Encoders are matched by emitted shape, not by name: see above.
-DECODE_NAMES: frozenset[str] = frozenset({"decode_request", "decode_response"})
+#: THE TWO LEGS, and the reason the verdict is per-leg rather than per-seam. A seam resolves in two
+#: separate-in-time crossings: the company EMITS a `WallRequest` and later OBSERVES a `WallResponse`.
+#: Scored as one, a seam is credited wire-borne on any one encoder and any one decoder among its
+#: importers -- so migrating only the observable leg reports the seam DONE while the request still
+#: crosses the call frame carrying a version nobody reads. That is the identical defect, hiding on
+#: the leg the instrument cannot see, and it is the reading this file used to give.
+REQUEST_LEG = "request"
+RESPONSE_LEG = "response"
+
+#: How a seam DECLARES which legs it owns: by specialising the generic envelope. Derived from the
+#: seam's own source rather than listed here for `envelope_seams`' reason -- a seam that grows a
+#: request leg tomorrow owns the question on the day it lands, not the day someone remembers it.
+LEG_ENVELOPE_NAMES: dict[str, str] = {"WallRequest": REQUEST_LEG, "WallResponse": RESPONSE_LEG}
+
+#: leg -> the codec constant declaring that leg's exact wire form.
+LEG_WIRE_CONSTANT: dict[str, str] = {
+    REQUEST_LEG: "REQUEST_WIRE_FIELDS",
+    RESPONSE_LEG: "RESPONSE_WIRE_FIELDS",
+}
+
+#: leg -> the codec entry point that DECODES it.
+LEG_DECODE_NAME: dict[str, str] = {
+    REQUEST_LEG: "decode_request",
+    RESPONSE_LEG: "decode_response",
+}
+
+#: leg -> the codec entry point that ENCODES it. BOTH ends of a leg have two lawful shapes, and
+#: which one a side uses is fixed by the wall rather than by preference: the COMPANY owns the codec
+#: and calls it, the COUNTERPARTY may not import `company.*` and so restates the contract's key set
+#: and builds the bytes itself. Recognising only the second (the reading this file used to give)
+#: misses every company-side encoder -- `conversation_generator.generate_wire_request` calls
+#: `encode_request` and builds no dict at all -- and reports a wired leg as DECODED-only.
+LEG_ENCODE_NAME: dict[str, str] = {
+    REQUEST_LEG: "encode_request",
+    RESPONSE_LEG: "encode_response",
+}
+
+DECODE_NAMES: frozenset[str] = frozenset(LEG_DECODE_NAME.values())
 
 #: Where the wire field sets are DECLARED. Read from the tree under measurement, not imported, so
 #: the check reads the same rev everything else in this module does (a two-sided census must read
 #: both sides from one ref).
 CODEC_REL = "company/interfaces/wall_protocol.py"
-WIRE_FIELD_CONSTANTS: tuple[str, ...] = ("REQUEST_WIRE_FIELDS", "RESPONSE_WIRE_FIELDS")
+WIRE_FIELD_CONSTANTS: tuple[str, ...] = (
+    LEG_WIRE_CONSTANT[REQUEST_LEG],
+    LEG_WIRE_CONSTANT[RESPONSE_LEG],
+)
 
 #: The per-seam version constant. A seam that declares none has no version to put on a wire, which
 #: is a different fact from staying quiet -- same discipline as `_ports_declaring_the_flag`.
@@ -1035,6 +1077,91 @@ def wire_field_sets(root: str) -> list[frozenset[str]]:
     return sets
 
 
+def wire_field_sets_by_leg(root: str) -> dict[str, frozenset[str]]:
+    """`wire_field_sets`, keyed by the leg each form belongs to. Same fail-closed contract."""
+    request_fields, response_fields = wire_field_sets(root)
+    return {REQUEST_LEG: request_fields, RESPONSE_LEG: response_fields}
+
+
+def seam_legs(root: str, seam: str) -> frozenset[str]:
+    """The legs a seam OWNS, read from its own `X = WallRequest[Payload]` specialisations.
+
+    A seam is red-listed only for legs it actually declares: `payment_observable_seam` would
+    otherwise be marked unwired for a request it never makes. Returns empty for a seam that
+    specialises neither envelope -- callers must treat that as UNKNOWN and fall back to the
+    whole-seam rule, never as "owns nothing" (which would pass vacuously; see
+    `envelope_wire_conformance`).
+    """
+    tree = _parse(os.path.join(root, *seam.split(".")) + ".py")
+    if tree is None:
+        return frozenset()
+    return frozenset(
+        leg
+        for node in tree.body
+        if isinstance(node, ast.Assign) and isinstance(node.value, ast.Subscript)
+        for leg in [LEG_ENVELOPE_NAMES.get(_subscript_base_name(node.value))]
+        if leg is not None
+    )
+
+
+def _subscript_base_name(node: ast.Subscript) -> str | None:
+    """`WallRequest` from `WallRequest[Payload]`, whether plain or dotted."""
+    base = node.value
+    if isinstance(base, ast.Name):
+        return base.id
+    if isinstance(base, ast.Attribute):
+        return base.attr
+    return None
+
+
+def leg_payload_types(root: str, seam: str) -> dict[str, set[str]]:
+    """{leg -> the payload type names that leg's envelopes carry}, from the seam's own source."""
+    tree = _parse(os.path.join(root, *seam.split(".")) + ".py")
+    payloads: dict[str, set[str]] = {REQUEST_LEG: set(), RESPONSE_LEG: set()}
+    if tree is None:
+        return payloads
+    for node in tree.body:
+        if not (isinstance(node, ast.Assign) and isinstance(node.value, ast.Subscript)):
+            continue
+        leg = LEG_ENVELOPE_NAMES.get(_subscript_base_name(node.value))
+        if leg is None:
+            continue
+        target = node.value.slice
+        if isinstance(target, ast.Name):
+            payloads[leg].add(target.id)
+        elif isinstance(target, ast.Attribute):
+            payloads[leg].add(target.attr)
+    return payloads
+
+
+def constructed_type_names(root: str) -> set[str]:
+    """Every name CONSTRUCTED anywhere in the census trees -- `Foo(...)` call sites.
+
+    What this distinguishes: a declared leg nobody ever sends (DORMANT -- the contract describes a
+    message this build does not yet exchange) from a declared leg that crosses as an object
+    (IN-PROCESS -- the defect). Transport evidence alone cannot tell them apart, because "never
+    encoded, never decoded" is what both look like, and red-listing the first would make the
+    control permanently red for a reason its subject cannot fix without deleting the contract.
+
+    FAIL-CLOSED toward IN-PROCESS: an unparseable module contributes no constructions, so the only
+    error this can make on a broken tree is to call a live leg dormant -- which is why the caller
+    also requires the SEAM's own module to have parsed before it trusts a dormant reading, and why
+    tests are outside `CENSUS_DIRS`: a payload built only by its own contract test is not traffic.
+    """
+    names: set[str] = set()
+    for path, _rel in _census_py_files(root):
+        tree = _parse(path)
+        if tree is None:
+            continue
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call):
+                if isinstance(node.func, ast.Name):
+                    names.add(node.func.id)
+                elif isinstance(node.func, ast.Attribute):
+                    names.add(node.func.attr)
+    return names
+
+
 def envelope_seams(root: str) -> set[str]:
     """Channel C's seams -- the DESTINATIONS of its members, derived from the enumerator.
 
@@ -1068,23 +1195,99 @@ def _module_imports(root: str) -> dict[str, set[str]]:
     return imports
 
 
-def _emits_a_wire_shape(tree: ast.Module, shapes: list[frozenset[str]]) -> bool:
-    """Does this module build a dict literal whose key set is EXACTLY a declared wire form?
+def _emitted_legs(tree: ast.Module, shapes: dict[str, frozenset[str]]) -> set[str]:
+    """Which legs' wire forms this module builds as a dict literal, keyed EXACTLY.
 
     EXACTLY, never a superset: `absence is never agreement` is the envelope's own rule, so a dict
     carrying six of seven keys is a message the far side must refuse, not a lenient pass here. A
     computed or **-spread key set is invisible to this and the limit is stated rather than hidden
     -- the same lower-bound caveat `wire_call_sites` carries.
     """
+    emitted: set[str] = set()
     for node in ast.walk(tree):
         if not isinstance(node, ast.Dict):
             continue
         keys = [k.value for k in node.keys if isinstance(k, ast.Constant)]
         if len(keys) != len(node.keys) or not all(isinstance(k, str) for k in keys):
             continue
-        if frozenset(keys) in shapes:
-            return True
-    return False
+        for leg, shape in shapes.items():
+            if frozenset(keys) == shape:
+                emitted.add(leg)
+    return emitted
+
+
+def _emits_a_wire_shape(tree: ast.Module, shapes: list[frozenset[str]]) -> bool:
+    """Whether this module emits ANY declared wire form. Retained as the leg-blind predicate."""
+    return bool(_emitted_legs(tree, {str(i): s for i, s in enumerate(shapes)}))
+
+
+def _decoded_legs(
+    tree: ast.Module, dotted: str, imports: dict[str, set[str]], shapes: dict[str, frozenset[str]]
+) -> set[str]:
+    """Which legs this module REFUSES a malformed message on -- the two lawful decoder shapes.
+
+    TWO SHAPES, because the wall itself forbids one. The company has a single codec and its decode
+    sites are recognised by importing the entry point for that leg. The COUNTERPARTY may not import
+    `company.*` at all, so it cannot use that codec and instead mirrors the leg's exact key set from
+    the published contract and refuses against it -- `simulation/conversation_response.py`'s
+    `_REQUEST_WIRE_FIELDS` is precisely that. Recognising only the import would report the
+    conversation request leg as ENCODED-only, red-listing the seam for a decoder that exists and is
+    written the one way the wall permits.
+
+    Mirroring the exact key set is the strong signal here: it is the contract's form restated, which
+    is what a foreign counterparty reading a published schema does. The same lower-bound caveat as
+    the encoder match applies -- a computed key set is invisible.
+    """
+    legs = _codec_entry_legs(tree, dotted, imports, LEG_DECODE_NAME)
+    for leg, shape in shapes.items():
+        for declared in _module_level_string_sets(tree):
+            if declared == shape:
+                legs.add(leg)
+    return legs
+
+
+def _codec_entry_legs(
+    tree: ast.Module, dotted: str, imports: dict[str, set[str]], entry_names: dict[str, str]
+) -> set[str]:
+    """Which legs this module reaches through the company codec's named entry points."""
+    if CODEC_MODULE not in imports.get(dotted, set()):
+        return set()
+    imported = {
+        alias.name
+        for n in ast.walk(tree)
+        if isinstance(n, ast.ImportFrom) and n.module == CODEC_MODULE
+        for alias in n.names
+    }
+    return {leg for leg, name in entry_names.items() if name in imported}
+
+
+def _encoded_legs(
+    tree: ast.Module, dotted: str, imports: dict[str, set[str]], shapes: dict[str, frozenset[str]]
+) -> set[str]:
+    """Which legs this module PRODUCES a message on -- the two lawful encoder shapes.
+
+    Symmetric with `_decoded_legs` and for the same reason: the company calls its own codec's
+    `encode_*`, the counterparty builds the dict itself because it may not import that codec.
+    """
+    return _emitted_legs(tree, shapes) | _codec_entry_legs(tree, dotted, imports, LEG_ENCODE_NAME)
+
+
+def _module_level_string_sets(tree: ast.Module) -> list[frozenset[str]]:
+    """Every module-level `NAME = frozenset({...})`-style literal set of strings in this module."""
+    found: list[frozenset[str]] = []
+    for node in tree.body:
+        if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+            continue
+        value = node.value
+        if isinstance(value, ast.Call) and value.args:
+            value = value.args[0]
+        if isinstance(value, (ast.Set, ast.List, ast.Tuple)):
+            members = [e.value for e in value.elts if isinstance(e, ast.Constant)]
+            if members and len(members) == len(value.elts) and all(
+                isinstance(m, str) for m in members
+            ):
+                found.append(frozenset(members))
+    return found
 
 
 def envelope_transport(root: str) -> dict[str, tuple[set[str], set[str]]]:
@@ -1094,10 +1297,12 @@ def envelope_transport(root: str) -> dict[str, tuple[set[str], set[str]]]:
     crossing it belongs to: the codec module itself encodes and decodes the generic envelope and
     imports no payload seam, so it is nobody's transport and is never credited as one.
     """
-    shapes = wire_field_sets(root)
+    shapes = wire_field_sets_by_leg(root)
     seams = envelope_seams(root)
     imports = _module_imports(root)
-    transport: dict[str, tuple[set[str], set[str]]] = {s: (set(), set()) for s in seams}
+    transport: dict[str, dict[str, tuple[set[str], set[str]]]] = {
+        s: {leg: (set(), set()) for leg in shapes} for s in seams
+    }
     for path, rel in _census_py_files(root):
         dotted = rel[: -len(".py")].replace("/", ".")
         crossed = seams & imports.get(dotted, set())
@@ -1106,19 +1311,24 @@ def envelope_transport(root: str) -> dict[str, tuple[set[str], set[str]]]:
         tree = _parse(path)
         if tree is None:
             continue
-        encodes = _emits_a_wire_shape(tree, shapes)
-        decodes = CODEC_MODULE in imports.get(dotted, set()) and any(
-            isinstance(n, ast.ImportFrom)
-            and n.module == CODEC_MODULE
-            and any(a.name in DECODE_NAMES for a in n.names)
-            for n in ast.walk(tree)
-        )
+        encodes = _encoded_legs(tree, dotted, imports, shapes)
+        decodes = _decoded_legs(tree, dotted, imports, shapes)
         for seam in crossed:
-            if encodes:
-                transport[seam][0].add(dotted)
-            if decodes:
-                transport[seam][1].add(dotted)
+            for leg in encodes:
+                transport[seam][leg][0].add(dotted)
+            for leg in decodes:
+                transport[seam][leg][1].add(dotted)
     return transport
+
+
+def _leg_is_transported(encoders: set[str], decoders: set[str]) -> bool:
+    """Both ends present, and they are NOT the same single module.
+
+    A wire has two ends. Without the distinctness rule a module that emits the shape and also
+    mirrors the leg's key set would certify its own leg -- it would be talking to itself, and the
+    mirror half of `_decoded_legs` is exactly what makes that reachable.
+    """
+    return bool(encoders and decoders and (encoders - decoders or decoders - encoders))
 
 
 @dataclass(frozen=True)
@@ -1139,6 +1349,14 @@ class EnvelopeWireVerdict:
     half_wired: list[tuple[str, str]]
     in_process: list[str]
     unversioned: list[str]
+    #: (seam, leg) that the seam declares and this build never sends -- reported, not scored.
+    dormant_legs: tuple[tuple[str, str], ...] = ()
+    #: (seam, leg, state) for every leg of every scored seam. The detail the seam-level buckets
+    #: above summarise, kept so a partly-migrated seam names WHICH leg is still on the call frame.
+    leg_states: tuple[tuple[str, str, str], ...] = ()
+    #: Seams specialising neither envelope, so their legs are UNKNOWN and they fall back to the
+    #: leg-blind rule. A bucket that must not quietly fill up: see the live test of the same name.
+    legless: tuple[str, ...] = ()
 
     @property
     def ok(self) -> bool:
@@ -1150,16 +1368,37 @@ class EnvelopeWireVerdict:
             f"{len(self.wire_borne) + len(self.half_wired) + len(self.in_process)} "
             "versioned seam(s) cross on a wire"
         ]
-        lines += [f"    * {s} -- encoded and decoded" for s in self.wire_borne]
-        lines += [f"    ! {s} -- {half} ONLY: transported on one side" for s, half in self.half_wired]
+        legs_of = {}
+        for seam, leg, state in self.leg_states:
+            legs_of.setdefault(seam, []).append(f"{leg}={state}")
+        lines += [
+            f"    * {s} -- encoded and decoded"
+            + (f" [{', '.join(legs_of[s])}]" if s in legs_of else "")
+            for s in self.wire_borne
+        ]
+        lines += [
+            f"    ! {s} -- {half} ONLY: transported on one side"
+            + (f" [{', '.join(legs_of[s])}]" if s in legs_of else "")
+            for s, half in self.half_wired
+        ]
         lines += [
             f"    ! {s} -- IN-PROCESS: the envelope object crosses the call frame, so its "
             "schema_version is never encoded, never decoded and never refused"
+            + (f" [{', '.join(legs_of[s])}]" if s in legs_of else "")
             for s in self.in_process
+        ]
+        lines += [
+            f"    . {s} -- declares a {leg} leg this build never sends, so it is not scored"
+            for s, leg in self.dormant_legs
         ]
         lines += [
             f"    - {s} -- declares no {SEAM_VERSION_CONSTANT}, so it has no version to carry"
             for s in self.unversioned
+        ]
+        lines += [
+            f"    ? {s} -- specialises neither envelope, so its legs are unknown and it is scored "
+            "leg-blind"
+            for s in self.legless
         ]
         return "\n".join(lines)
 
@@ -1185,20 +1424,55 @@ def envelope_wire_conformance(root: str) -> EnvelopeWireVerdict:
             "the subject of channel C's wire check has been removed, which is a failed check"
         )
     transport = envelope_transport(root)
+    constructed = constructed_type_names(root)
     wire_borne, half_wired, in_process = [], [], []
+    dormant_legs: list[tuple[str, str]] = []
+    leg_states: list[tuple[str, str, str]] = []
+    legless: list[str] = []
     for seam in sorted(versioned):
-        encoders, decoders = transport[seam]
-        if encoders and decoders:
+        owned = seam_legs(root, seam)
+        payloads = leg_payload_types(root, seam)
+        if not owned:
+            # UNKNOWN legs, not "no legs": scoring a seam that owns nothing would pass vacuously,
+            # so deleting the specialisations would be the cheapest way to silence this control.
+            # Fall back to the leg-blind rule -- never weaker than the reading this replaced -- and
+            # report the fallback so it cannot be taken quietly.
+            legless.append(seam)
+            encoders = set().union(*(e for e, _ in transport[seam].values()))
+            decoders = set().union(*(d for _, d in transport[seam].values()))
+            scored = [(encoders, decoders)]
+        else:
+            scored = []
+            for leg in sorted(owned):
+                encoders, decoders = transport[seam][leg]
+                if not (payloads[leg] & constructed):
+                    dormant_legs.append((seam, leg))
+                    leg_states.append((seam, leg, "dormant"))
+                    continue
+                scored.append((encoders, decoders))
+                leg_states.append((
+                    seam, leg,
+                    "wire" if _leg_is_transported(encoders, decoders)
+                    else "ENCODED-only" if encoders
+                    else "DECODED-only" if decoders
+                    else "IN-PROCESS",
+                ))
+        if not scored:
+            # Every declared leg is dormant: the seam describes messages this build never
+            # exchanges. No crossing, so nothing to red -- reported via `dormant_legs`.
+            continue
+        if all(_leg_is_transported(e, d) for e, d in scored):
             wire_borne.append(seam)
-        elif encoders:
-            half_wired.append((seam, "ENCODED"))
-        elif decoders:
-            half_wired.append((seam, "DECODED"))
+        elif any(e or d for e, d in scored):
+            any_encoder = any(e for e, _ in scored)
+            half_wired.append((seam, "ENCODED" if any_encoder else "DECODED"))
         else:
             in_process.append(seam)
     return EnvelopeWireVerdict(
         wire_borne=wire_borne, half_wired=half_wired,
         in_process=in_process, unversioned=unversioned,
+        dormant_legs=tuple(dormant_legs), leg_states=tuple(leg_states),
+        legless=tuple(legless),
     )
 
 
