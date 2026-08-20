@@ -1,8 +1,8 @@
 **Severity:** LATENT · **Lane:** H_harness
 **Discharged:** `tests/tools/test_discovery_pass_ceiling.py::test_MUTATION_one_old_level_move_does_not_buy_unlimited_further_passes`,
-`::test_the_boundary_is_the_day_of_the_move_and_both_sides_are_asserted`,
-`::test_MUTATION_FAIL_CLOSED_an_undated_pass_counts_toward_saturation`,
-`::test_a_date_deep_in_the_body_is_not_mistaken_for_the_passs_own_date`,
+`tests/tools/test_discovery_pass_ceiling.py::test_the_boundary_is_the_day_of_the_move_and_both_sides_are_asserted`,
+`tests/tools/test_discovery_pass_ceiling.py::test_MUTATION_FAIL_CLOSED_an_undated_pass_counts_toward_saturation`,
+`tests/tools/test_discovery_pass_ceiling.py::test_a_date_deep_in_the_body_is_not_mistaken_for_the_passs_own_date`,
 `tools/discovery_pass_ceiling.py` — the predicate now asks how many passes an atom has taken
 SINCE it last moved a level, so a single historic move no longer buys unlimited further
 passes; 17 passed in 165s. What is NOT discharged is the wiring, recorded in full below.

@@ -98,6 +98,27 @@ CLASS_DOC_PREFIX = "CLASS_"
 #: information but never consolidated or archived by this module — see `derive_memberships`.
 EXTERNALLY_AUTHORED_PREFIXES = ("ADVISOR_", "DIRECTOR_")
 
+#: SELF-CLEARING ALARMS CANNOT BE SUPERSEDED (2026-08-20, rung-1c BLOCKING draw, H_harness).
+#: `background/alarm_repetition.py` escalates a repeating alert into the draw by writing a
+#: document named `WORKER_FINDING_REPEATING_ALARM_<slug>_<date>.md` and SUPPRESSING further
+#: paging for that signature until the underlying state changes. Two contracts collide there.
+#: A class document's is "this supersedes those, which are archived, not deleted"; an alarm's
+#: is "I am the live condition and I clear myself". Consolidating one archives an unconverged
+#: condition into a cost table while its own pager stays muted — the alert is gone from both
+#: channels and nothing converged on anything.
+#:
+#: OBSERVED, and it is why this is a prefix rule and not a judgement: the deadman's-switch
+#: alarm filed TWO documents for ONE signature (`deadman_commit`) minutes apart. The router
+#: reads the title, one title said the session "may be WEDGED", and that adverb alone filed it
+#: under the publish-gate/wedge class — a class about the control that stops publishing, which
+#: this alarm has nothing to do with — while its identical-signature sibling stayed unclassed.
+#: A machine writes these titles, so the router is matching on prose no author chose.
+#:
+#: OUT OF CONSOLIDATION, NOT OUT OF THE POPULATION. These stay in the staging root, keep
+#: their severity, keep their lane and stay drawable; `scan_staging_root` and the blocking
+#: draw see them exactly as before. The only thing refused is being archived under a class.
+SELF_CLEARING_ALARM_PREFIXES = ("WORKER_FINDING_REPEATING_ALARM_",)
+
 #: Severity ordering for the max-over-members rule. UNCLASSIFIED is deliberately absent:
 #: an unreadable member is handled explicitly in `class_severity`, never ranked.
 _SEVERITY_RANK = {RECORDED: 0, LATENT: 1, BLOCKING: 2}
@@ -522,6 +543,12 @@ def derive_memberships(root: Path | str = DEFAULT_STAGING_ROOT) -> dict[str, Cla
             # documents sat unopened for a week; folding one into a class document and
             # archiving it would be that silence with a mechanism behind it. Another
             # party's ask is dispositioned individually, answered to its author.
+            continue
+        if path.name.startswith(SELF_CLEARING_ALARM_PREFIXES):
+            # OUT OF CONSOLIDATION — see `SELF_CLEARING_ALARM_PREFIXES`. Same door as the
+            # one above and for the same reason at a different address: consolidation is a
+            # supersession claim, and neither an absent author's ask nor a live self-clearing
+            # alarm is a thing this module is entitled to supersede.
             continue
         severity = parse_severity_file(path)
         if severity.severity == RECORDED:

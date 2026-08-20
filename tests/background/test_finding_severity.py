@@ -535,10 +535,10 @@ def test_mutation_c_releasing_without_a_falsifier_kills_a_named_test(tmp_path):
 def test_mutation_d_dropping_the_existence_check_kills_a_named_test(tmp_path):
     mutant = _load_mutant(
         tmp_path,
-        "        if file_part not in tracked:\n"
+        "        if file_part not in landed:\n"
         "            (unstaged if (root / file_part).exists() else missing).append(artefact)\n"
         "            continue",
-        "        if file_part not in tracked:\n            continue",
+        "        if file_part not in landed:\n            continue",
         "finding_severity_mutant_no_existence",
     )
     with pytest.raises(AssertionError):
@@ -900,3 +900,162 @@ def test_mutation_i_accepting_a_module_path_kills_a_named_test(tmp_path):
     )
     with pytest.raises(AssertionError):
         _assert_a_non_test_artefact_does_not_exonerate(mutant, tmp_path / "i_mut")
+
+
+# ── THE INDEX IS SHARED, SO IT IS NOT THIS COMMIT (2026-08-20, rung-1c BLOCKING draw) ──
+#
+# WORKER_FINDING_ANOTHER_LANES_STAGED_DELETION_VOIDS_EVERY_DISCHARGE_ON_THE_TREE_2026-08-20.
+# The 2026-08-18 repair above moved the read from the working tree to the INDEX and wrote its
+# premise down: "post-commit the index matches HEAD and the two readings coincide". CLAUDE.md
+# says otherwise in as many words — `process_run_complete.py`, an interactive session and
+# `autonomous_runner.py` are concurrent writers on ONE tree and ONE index — so the index is a
+# shared buffer of every lane's in-flight work, and a lane that stages a deletion un-lands
+# falsifiers belonging to documents it has never read.
+#
+# MEASURED: a site-retirement lane removed 72 pages including `site/customers/
+# test_wall_exhibit.py` and `site/proof/test_published_caveat_reaches_the_reader.py`. Both are
+# in HEAD, with all five cited nodes in HEAD's blobs. Both discharges flipped to void, both
+# class documents re-derived BLOCKING, and `_blocking_lane_draw` froze `H_harness` off a
+# deletion that is in no commit and that neither finding owns any part of.
+#
+# The landed set is now index OR HEAD. The tests below are that repair's falsifiers; the two
+# mutations at the end are its R15 proof, and the null control is the 2026-08-18 property —
+# a falsifier in NEITHER landed tree — asserted on a repo that HAS a HEAD, so the widening
+# cannot be mistaken for a release of the hole it was widened past.
+
+
+def _committed_repo_with(
+    tmp_path: Path,
+    artefacts: str,
+    files: dict[str, str],
+) -> tuple[Path, Path]:
+    """Like `_repo_with`, but the artefacts are COMMITTED — so HEAD and the index agree
+    before the test perturbs one of them. A repo with no commit at all cannot exercise this
+    class: `_head_files` would have nothing to add and every assertion would pass vacuously."""
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    _git(tmp_path, "init", "-q")
+    (tmp_path / "README.md").write_text("a repository\n", encoding="utf-8")
+    _git(tmp_path, "add", "README.md")
+    for relative, content in files.items():
+        target = tmp_path / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content, encoding="utf-8")
+        _git(tmp_path, "add", relative)
+    _git(
+        tmp_path,
+        "-c", "user.name=T", "-c", "user.email=t@t", "-c", "commit.gpgsign=false",
+        "commit", "-q", "-m", "land the falsifier",
+    )
+    staging = tmp_path / "docs" / "staging"
+    staging.mkdir(parents=True)
+    doc = staging / "WORKER_FINDING_X.md"
+    doc.write_text(_DISCHARGE_DOC.format(artefacts=artefacts), encoding="utf-8")
+    return tmp_path, doc
+
+
+_FALSIFIER = "def test_it():\n    pass\n"
+
+
+def test_another_lanes_staged_deletion_does_not_void_a_committed_falsifier(tmp_path):
+    """THE SHIPPED DEFECT, reproduced: the falsifier is in HEAD; someone else `git rm`'d it.
+
+    This is the whole class. The document's claim — "a named falsifier any clone can run" —
+    is TRUE: clone this repo today and the test is there. The only thing that changed is a
+    neighbouring lane's uncommitted intent, which the index cannot distinguish from mine.
+    """
+    repo, doc = _committed_repo_with(
+        tmp_path, "tests/test_real.py::test_it", {"tests/test_real.py": _FALSIFIER}
+    )
+    assert fs.parse_discharge(doc.read_text(), repo).released is True  # precondition
+    _git(repo, "rm", "-q", "tests/test_real.py")
+
+    discharge = fs.parse_discharge(doc.read_text(), repo)
+    assert discharge.released is True, (
+        "a committed falsifier was un-landed by another lane's staged deletion — that is "
+        f"the defect: {discharge.reason}"
+    )
+    assert fs.parse_severity_file(doc, repo).severity == fs.RECORDED
+
+
+def test_a_node_only_head_still_defines_releases_when_the_index_copy_has_lost_it(tmp_path):
+    """The NODE half of the same defect, which the file-level union alone would not reach.
+
+    The file survives in the index (another lane edited it rather than deleting it) and its
+    index copy no longer defines the cited node. HEAD's copy still does, so the claim is
+    still true for every clone.
+    """
+    repo, doc = _committed_repo_with(
+        tmp_path, "tests/test_real.py::test_it", {"tests/test_real.py": _FALSIFIER}
+    )
+    (repo / "tests" / "test_real.py").write_text(
+        "def test_something_else_entirely():\n    pass\n", encoding="utf-8"
+    )
+    _git(repo, "add", "tests/test_real.py")
+
+    discharge = fs.parse_discharge(doc.read_text(), repo)
+    assert discharge.released is True, (
+        f"HEAD still defines the node and the release was refused: {discharge.reason}"
+    )
+
+
+def test_a_falsifier_in_neither_landed_tree_is_still_refused(tmp_path):
+    """THE NULL CONTROL — the 2026-08-18 property, on a repo that HAS a HEAD.
+
+    Without this the widening above is indistinguishable from reopening the hole it was
+    widened past: a file written and never `git add`ed, on a repo with commits, must still
+    refuse. If this ever passes, the union has stopped being a union.
+    """
+    repo, doc = _committed_repo_with(
+        tmp_path, "tests/test_ghost.py::test_it", {"tests/test_real.py": _FALSIFIER}
+    )
+    (repo / "tests" / "test_ghost.py").write_text(_FALSIFIER, encoding="utf-8")
+
+    discharge = fs.parse_discharge(doc.read_text(), repo)
+    assert discharge.released is False, "on this disk only released the finding"
+    assert "does not exist in the index" in discharge.reason
+
+    doc.write_text(
+        _DISCHARGE_DOC.format(artefacts="tests/test_real.py::test_never_written"),
+        encoding="utf-8",
+    )
+    node = fs.parse_discharge(doc.read_text(), repo)
+    assert node.released is False, "a node in NO tree released the finding"
+    assert "does not define the node" in node.reason
+
+
+def test_mutation_j_reading_the_landed_set_from_the_index_alone_kills_a_named_test(tmp_path):
+    """MUTATION J — the shipped defect, put back: the landed set is the index only."""
+    mutant = _load_mutant(
+        tmp_path,
+        "    landed = indexed | _head_files(root)",
+        "    landed = indexed",
+        "finding_severity_mutant_index_only_files",
+    )
+    _assert_a_real_falsifier_does_release(mutant, tmp_path / "j_ok")  # untouched property
+
+    repo, doc = _committed_repo_with(
+        tmp_path / "j_mut", "tests/test_real.py::test_it", {"tests/test_real.py": _FALSIFIER}
+    )
+    _git(repo, "rm", "-q", "tests/test_real.py")
+    assert mutant.parse_discharge(doc.read_text(), repo).released is False  # the defect
+
+
+def test_mutation_k_dropping_the_head_blob_fallback_kills_a_named_test(tmp_path):
+    """MUTATION K — the node half reverts to the index's copy alone."""
+    mutant = _load_mutant(
+        tmp_path,
+        "        if blob is None or node not in blob:\n"
+        "            blob = _head_blob(root, file_part)",
+        "        pass",
+        "finding_severity_mutant_index_only_node",
+    )
+    _assert_a_real_falsifier_does_release(mutant, tmp_path / "k_ok")  # untouched property
+
+    repo, doc = _committed_repo_with(
+        tmp_path / "k_mut", "tests/test_real.py::test_it", {"tests/test_real.py": _FALSIFIER}
+    )
+    (repo / "tests" / "test_real.py").write_text(
+        "def test_something_else_entirely():\n    pass\n", encoding="utf-8"
+    )
+    _git(repo, "add", "tests/test_real.py")
+    assert mutant.parse_discharge(doc.read_text(), repo).released is False  # the defect

@@ -34,6 +34,7 @@ import sys
 from pathlib import Path
 
 from background import finding_classes as fc
+from background import finding_severity as fs
 
 REPO = Path(__file__).resolve().parents[2]
 MODULE_SOURCE = REPO / "background" / "finding_classes.py"
@@ -860,3 +861,97 @@ def test_the_live_finding_that_filed_this_defect_now_reaches_its_class():
     assert title_only.class_id is None, (
         "the title started matching, so this test no longer exercises the registration"
     )
+
+
+# ── A SELF-CLEARING ALARM CANNOT BE SUPERSEDED (2026-08-20, rung-1c BLOCKING draw) ──
+#
+# `background/alarm_repetition.py` escalates a repeating alert into the draw by WRITING a
+# `WORKER_FINDING_REPEATING_ALARM_*` document and muting the pager for that signature until
+# the underlying state changes. Consolidation is a supersession claim; an alarm is a live
+# condition that clears itself. Fold one into a class document and the condition is archived
+# into a cost table with its own pager still off — gone from both channels, converged on by
+# nothing.
+#
+# OBSERVED, and the reason this is a prefix rule rather than a judgement call: the deadman's
+# switch filed TWO documents for ONE signature (`deadman_commit`). A machine wrote both
+# titles. One said the session "may be WEDGED" and that adverb alone filed it under the
+# publish-gate/wedge class — a class about the control that stops publishing, which a
+# dead-man's switch has nothing to do with — while its identical-signature sibling stayed
+# unclassed. Being routed on prose no author chose is what "arbitrary" looks like here.
+
+
+_ALARM_NAME = "WORKER_FINDING_REPEATING_ALARM_DEAD_MAN_S_SWITCH_MIN_2026-08-20.md"
+_ALARM_TITLE = (
+    "# [STALL] Dead-man's switch: 113 min with no git commit and no queued work moving. "
+    "The main session may be wedged even though nothing is queued -- check it directly."
+)
+
+
+def _alarm(root: Path, name: str = _ALARM_NAME, severity: str = "LATENT") -> Path:
+    """An alarm document as `alarm_repetition.py` writes it: machine title, real prose."""
+    root.mkdir(parents=True, exist_ok=True)
+    path = root / name
+    path.write_text(
+        f"{_ALARM_TITLE}\n\n**Severity:** {severity} · **Lane:** H_harness\n\n"
+        "## The alarm, verbatim\n\nFiled automatically, not by a person.\n",
+        encoding="utf-8",
+    )
+    return path
+
+
+def test_the_alarms_title_really_does_route_it_into_a_class(tmp_path):
+    """THE PRECONDITION, asserted rather than assumed. Without it the exclusion below could
+    be passing because the router never wanted this document — a control with no subject."""
+    root = _root(tmp_path)
+    path = _alarm(root)
+    assert fc.classify_file(path).class_id == "publish_gate_and_wedge"
+
+
+def test_a_self_clearing_alarm_is_never_consolidated_into_a_class(tmp_path):
+    """THE SHIPPED DEFECT, reproduced: the router wants it, and consolidation must not."""
+    root = _root(tmp_path)
+    _alarm(root)
+    members = fc.derive_memberships(root)["publish_gate_and_wedge"]
+    assert [p.name for p in members.members] == [], (
+        "a self-clearing alarm was consolidated — archiving it mutes a live condition on "
+        "the only two channels it has"
+    )
+    assert members.refused_out_of_lane == [], (
+        "refused for the wrong reason: this is out of population, not out of lane"
+    )
+
+
+def test_the_excluded_alarm_stays_live_drawable_and_check_clean(tmp_path):
+    """OUT OF CONSOLIDATION IS NOT OUT OF THE POPULATION — R11, no orphan transitions.
+
+    An exclusion that also removed the document from the severity scan would have swapped
+    one silence for another: the class doc would stop naming it and so would the draw.
+    """
+    root = _root(tmp_path)
+    _alarm(root, severity="BLOCKING")
+    assert _ALARM_NAME in [p.name for p in fs.classifiable_documents(root)]
+    blocking = fs.blocking_by_lane(fs.scan_staging_root(root))
+    assert [p.path.name for p in blocking["H_harness"]] == [_ALARM_NAME]
+    assert (root / _ALARM_NAME).exists(), "the alarm was archived out of the live root"
+
+
+def test_mutation_dropping_the_alarm_exclusion_kills_a_named_test(tmp_path, monkeypatch):
+    """R15: with the prefix tuple emptied, the alarm is consolidated again and a NAMED test
+    above dies. The mutation is on the CONSTANT, so it proves the door is what excludes —
+    an exclusion that happened to hold for some other reason would survive this."""
+    monkeypatch.setattr(fc, "SELF_CLEARING_ALARM_PREFIXES", ())
+    root = _root(tmp_path)
+    _alarm(root)
+    members = fc.derive_memberships(root)["publish_gate_and_wedge"]
+    assert [p.name for p in members.members] == [_ALARM_NAME]  # the defect
+
+
+def test_the_alarm_exclusion_does_not_swallow_an_authored_finding(tmp_path):
+    """THE NULL CONTROL. The prefix is exact and long; a hand-written finding about an
+    alarm — the population most likely to be caught by a looser rule — still consolidates."""
+    root = _root(tmp_path)
+    _doc(root, "WORKER_FINDING_THE_WEDGE_ALARM_IS_INERT_2026-08-20.md", "measured")
+    members = fc.derive_memberships(root)["publish_gate_and_wedge"]
+    assert [p.name for p in members.members] == [
+        "WORKER_FINDING_THE_WEDGE_ALARM_IS_INERT_2026-08-20.md"
+    ]

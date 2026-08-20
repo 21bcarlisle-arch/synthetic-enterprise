@@ -180,12 +180,21 @@ _DENIAL_RE = re.compile(
 #: committed records, 15 absent from the index, 10 of them invisible to every control
 #: because the FILE was committed and only the NODE was not.
 #:
-#: THE INDEX, not HEAD and not the disk. At pre-commit time the honest question is "will
+#: THE INDEX **OR HEAD**, never the disk. At pre-commit time the honest question is "will
 #: the commit about to be made contain this", and that is the index — a record and its
-#: falsifier `git add`ed together are legitimately present. Post-commit the index matches
-#: HEAD and the two readings coincide. The cost is real and intended: a discharge does not
-#: release until its falsifier is STAGED, which is the same instant the claim becomes true
-#: for anyone else.
+#: falsifier `git add`ed together are legitimately present.
+#:
+#: The original of this note went on to claim "post-commit the index matches HEAD and the
+#: two readings coincide", and read the index ALONE. That premise is false on this project
+#: and was corrected 2026-08-20: three concurrent writers share one working tree and one
+#: index, so the index carries every lane's in-flight work, and one lane's `git rm` of 72
+#: site pages un-landed two committed falsifiers and froze `H_harness` off findings that
+#: owned no part of it. HEAD is now asked too. See `parse_discharge` for the full argument
+#: and for the one case the union deliberately does not cover.
+#:
+#: The cost is real and intended and UNCHANGED: a discharge does not release until its
+#: falsifier is STAGED OR COMMITTED, which is the same instant the claim becomes true for
+#: anyone else. The working tree is still the one tree that is never asked.
 _DISCHARGED_RE = re.compile(r"\*\*Discharged:?\*\*:?\s*(?P<value>[^\n]+)")
 _ARTEFACT_RE = re.compile(r"`([^`]+)`")
 
@@ -223,6 +232,11 @@ def _discharge_claim(block: str) -> str | None:
 #: documents still pays one subprocess rather than one per citation.
 _INDEX_FILES_CACHE: dict[tuple[str, int, int], frozenset[str]] = {}
 _INDEX_BLOB_CACHE: dict[tuple[str, int, int, str], str | None] = {}
+
+#: Cached per (root, HEAD sha) instead — HEAD's content is immutable for a given sha, so the
+#: index stamp is the wrong key here and would re-shell on every unrelated `git add`.
+_HEAD_FILES_CACHE: dict[tuple[str, str], frozenset[str]] = {}
+_HEAD_BLOB_CACHE: dict[tuple[str, str, str], str | None] = {}
 
 
 def _index_stamp(root: Path) -> tuple[int, int] | None:
@@ -293,6 +307,41 @@ def _index_blob(root: Path, relative: str) -> str | None:
     blob = _git(root, "show", f":{relative}")
     if key is not None:
         _INDEX_BLOB_CACHE[key] = blob
+    return blob
+
+
+def _head_files(root: Path) -> frozenset[str]:
+    """Every path the LAST COMMIT carries — best effort, empty when there is no answer.
+
+    ASYMMETRIC WITH `_index_files` ON PURPOSE, and the asymmetry is the fail-closed argument.
+    The index is the REQUIRED evidence: unreadable means "cannot answer" and the caller
+    refuses. HEAD is ADDITIVE evidence and can only ever widen the landed set, so an empty
+    return (no commits yet, detached nothing, git unavailable) removes no obligation and
+    releases nothing that the index alone would not already have released.
+    """
+    head = _git(root, "rev-parse", "HEAD")
+    if head is None:
+        return frozenset()
+    sha = head.strip()
+    key = (str(root), sha)
+    if key in _HEAD_FILES_CACHE:
+        return _HEAD_FILES_CACHE[key]
+    out = _git(root, "ls-tree", "-r", "--name-only", "-z", sha)
+    files = frozenset(p for p in out.split("\0") if p) if out is not None else frozenset()
+    _HEAD_FILES_CACHE[key] = files
+    return files
+
+
+def _head_blob(root: Path, relative: str) -> str | None:
+    """The file's text AS THE LAST COMMIT HAS IT, or None when it cannot be read."""
+    head = _git(root, "rev-parse", "HEAD")
+    if head is None:
+        return None
+    key = (str(root), head.strip(), relative)
+    if key in _HEAD_BLOB_CACHE:
+        return _HEAD_BLOB_CACHE[key]
+    blob = _git(root, "show", f"{head.strip()}:{relative}")
+    _HEAD_BLOB_CACHE[key] = blob
     return blob
 
 #: THE EXONERATION FIELD, 2026-08-12. Full rationale on `parse_exoneration` below. Note it is
@@ -382,11 +431,12 @@ def parse_severity_text(text: str, path: Path | None = None) -> FindingSeverity:
 def parse_discharge(text: str, repo_root: Path | str = REPO_ROOT) -> Discharge | None:
     """The document's `**Discharged:**` claim, CHECKED — or None when it makes no claim.
 
-    Never raises and never guesses: an artefact the index does not carry, a node name the
-    index's copy of its file does not define, or a claim with no test node at all all return
+    Never raises and never guesses: an artefact neither landed tree carries, a node name
+    neither landed copy of its file defines, or a claim with no test node at all all return
     `released=False` WITH the reason, so the refusal is reportable rather than a silent
-    non-event. The evidence is read from the INDEX — see `_DISCHARGED_RE` above for why the
-    working tree is the one tree that cannot be asked.
+    non-event. The evidence is read from the INDEX **or HEAD** — see `_DISCHARGED_RE` above
+    for why the working tree is the one tree that cannot be asked, and the paragraph below
+    for why the index alone was the wrong half of that answer.
     """
     claim = _discharge_claim(header_block(text))
     if claim is None:
@@ -397,13 +447,34 @@ def parse_discharge(text: str, repo_root: Path | str = REPO_ROOT) -> Discharge |
     if not artefacts:
         return Discharge((), False, "discharge names no artefact in backticks")
 
-    tracked = _index_files(root)
-    if tracked is None:
+    indexed = _index_files(root)
+    if indexed is None:
         return Discharge(
             artefacts, False,
             "the index cannot be read, so this claim cannot be checked — an unavailable "
             "check is a FAILED check (R15), never a release",
         )
+    # THE LANDED SET IS THE INDEX **OR** HEAD, 2026-08-20, rung-1c BLOCKING draw, H_harness
+    # (`WORKER_FINDING_ANOTHER_LANES_STAGED_DELETION_VOIDS_EVERY_DISCHARGE_ON_THE_TREE`).
+    # The 2026-08-18 repair above replaced a working-tree read with an INDEX read and wrote
+    # down its premise: "post-commit the index matches HEAD and the two readings coincide".
+    # On this project that premise is false by construction — CLAUDE.md documents three
+    # concurrent writers on ONE working tree and ONE index, so the index is a shared mutable
+    # buffer holding every lane's in-flight work, not a view of this document's commit.
+    # MEASURED, the day it bit: a site-retirement lane `git rm`'d 72 pages, and two BLOCKING
+    # H_harness findings whose falsifiers are committed AT HEAD — with all five cited nodes
+    # present in HEAD's blobs — reverted from RECORDED to BLOCKING and froze the lane. The
+    # deletion was in no commit and may never be in one. Neither finding owned any part of it.
+    #
+    # The question the field actually asks is "can anyone but me run this falsifier". A path
+    # in HEAD answers yes (a clone has it today); a path staged answers yes (the commit this
+    # claim lands in will carry it). Only a path in NEITHER is on one machine, which is the
+    # entire hole 2026-08-18 closed — and it stays closed, because the working tree is still
+    # never asked. What the union does NOT cover, named rather than absorbed: a deletion that
+    # actually COMMITS. There is one index and it cannot say which lane staged what, so a
+    # falsifier deleted by the commit in flight releases once more and goes red on the next
+    # read, when HEAD no longer has it. A one-read lag against a permanent cross-lane freeze.
+    landed = indexed | _head_files(root)
 
     missing: list[str] = []
     unstaged: list[str] = []
@@ -411,12 +482,14 @@ def parse_discharge(text: str, repo_root: Path | str = REPO_ROOT) -> Discharge |
     nodes_bad: list[str] = []
     for artefact in artefacts:
         file_part, _, node = artefact.partition("::")
-        if file_part not in tracked:
+        if file_part not in landed:
             (unstaged if (root / file_part).exists() else missing).append(artefact)
             continue
         if not node:
             continue
         blob = _index_blob(root, file_part)
+        if blob is None or node not in blob:
+            blob = _head_blob(root, file_part)
         (nodes_ok if (blob is not None and node in blob) else nodes_bad).append(artefact)
 
     if missing:
@@ -424,14 +497,16 @@ def parse_discharge(text: str, repo_root: Path | str = REPO_ROOT) -> Discharge |
     if unstaged:
         return Discharge(
             artefacts, False,
-            "artefact does not exist in the index — it is on this disk only, so no clone "
-            f"can run it; `git add` it in the commit that carries this claim: {', '.join(unstaged)}",
+            "artefact does not exist in the index or at HEAD — it is on this disk only, so "
+            "no clone can run it; `git add` it in the commit that carries this claim: "
+            f"{', '.join(unstaged)}",
         )
     if nodes_bad:
         return Discharge(
             artefacts, False,
-            "the index's copy of the file does not define the node (a node that exists only "
-            f"in the working tree is not a landed falsifier): {', '.join(nodes_bad)}",
+            "the landed copy of the file does not define the node — index and HEAD were "
+            "both asked (a node that exists only in the working tree is not a landed "
+            f"falsifier): {', '.join(nodes_bad)}",
         )
     if not nodes_ok:
         return Discharge(
