@@ -784,10 +784,13 @@ def _wall_channel_census_check(staged: list[str]) -> tuple[bool, str]:
         from tools.wall_channel_census import (
             census_at,
             check,
+            check_nested_schema,
             check_satisfaction,
             envelope_wire_conformance_at,
             load_baseline,
+            load_nested_schema_baseline,
             load_satisfaction_baseline,
+            nested_schema_at,
             structural_satisfaction_at,
             wire_conformance_at,
         )
@@ -867,6 +870,29 @@ def _wall_channel_census_check(staged: list[str]) -> tuple[bool, str]:
     #
     # ZERO TOLERANCE, no frozen debt list, matching channels C and D: the entire subject is two
     # crossings, so a debt list here would be a list of the subject.
+    try:
+        nested = nested_schema_at(rev=tree, repo_root=ROOT)
+        nested_drift = check_nested_schema(nested, load_nested_schema_baseline())
+    except Exception as e:  # noqa: BLE001
+        return False, (
+            f"channel-F nested surface RAISED against tree {tree[:9]}: {type(e).__name__}: {e}"
+        )
+    # CHANNEL F'S CONFORMANCE BLOCKS FROM ITS FIRST COMMIT -- 2026-08-20 pass 31, by the rule the
+    # three steps above state: a check becomes a gate "in the same commit that makes it
+    # satisfiable". The freeze in this commit records the nested surface at HEAD, so the only
+    # commits this can refuse are ones that widen a published blob or hand an unread key its first
+    # business reader.
+    #
+    # WHY IT NEEDS A GATE AT ALL. The width half at the top of this function is channel F's ONLY
+    # other control, and its unit is the TOP-LEVEL key. That blindness was measured, not predicted:
+    # 93 top-level keys hide 693 distinct nested field names, and every ground-truth-shaped field
+    # that actually reaches the business side sits at depth >= 1 where the width cannot see it.
+    # Adding `true_hidden_margin_gbp` to a published bill moves NOTHING in the width -- same keys,
+    # same readers, same count. This is the only control in the repo whose red is that event.
+    #
+    # WIDENING REFUSES AND NARROWING DOES NOT. A blob that stops publishing a field is a paydown;
+    # refusing it would red on this control's own success case. A RENAME still refuses, because
+    # the new name is an addition -- which is what keeps narrowing-tolerance from being a hole.
     if not verdict.ok:
         return False, verdict.report()
     if not wire.ok:
@@ -875,13 +901,17 @@ def _wall_channel_census_check(staged: list[str]) -> tuple[bool, str]:
         return False, envelope.report()
     if not drift.ok:
         return False, drift.report()
+    if not nested_drift.ok:
+        return False, nested_drift.report()
     scored = len(envelope.wire_borne) + len(envelope.half_wired) + len(envelope.in_process)
     detail = (
         "the wall's four walker-invisible channels have not grown; "
         f"channel D's {len(wire.carrying)} wire site(s) carry the version; "
         f"channel C's {len(envelope.wire_borne)} of {scored} scored seam(s) cross on a wire; "
         f"channel E's {len(satisfaction.crossings)} structural crossing(s) are satisfied by the "
-        "world class they were frozen against"
+        "world class they were frozen against; "
+        f"channel F's {len(nested.pins)} read artefact key(s) publish exactly the "
+        f"{sum(len(v) for v in nested.pins.values())} nested field name(s) they were frozen at"
     )
     if envelope.legless:
         # NOT a refusal -- the leg-blind fallback is never weaker than the reading it replaced.

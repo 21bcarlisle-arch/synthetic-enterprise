@@ -2211,6 +2211,282 @@ def structural_satisfaction_at(
         return structural_satisfaction(root)
 
 
+# ── channel F's conformance: does the surface widen under an unchanged key set? ───────────────
+# WHY (2026-08-20, pass 31 -- the last unowned channel). `enumerate_f`'s unit is the (TOP-LEVEL
+# key, business reader) pair, which is a WIDTH and the only control channel F has ever had. The
+# blindness that unit carries was MEASURED before this was written, not predicted: 93 top-level
+# keys hide 693 distinct NESTED field names, and every ground-truth-shaped field that actually
+# reaches the business side sits at depth >= 1 where the width cannot see it --
+# `true_consumption_kwh`, `true_commodity_amount_gbp` and `true_total_amount_gbp` read by
+# `company/billing/monthly_bill_assembly.py`, `true_total_equity_gbp` by
+# `company/finance/double_entry.py`. Adding a nested field to a published blob moves NOTHING in
+# the census: the top-level key set is unchanged, the reader set is unchanged, the width is
+# unchanged. That is channel C's pass-26 disease in worse form -- there the surface could widen
+# under an unchanged VERSION; here it widens under an unchanged KEY, and channel F has no version
+# to pin it to.
+#
+# WHY THIS IS NOT A DENYLIST, which is the trap this atom already fell into once. Pass 25
+# established that `FORBIDDEN_TRUTH_FIELDS` was fail-open on 9 of the 11 fields of the SIM's own
+# truth record, because it "enumerates INSTANCES of a class it does not describe". A `true_*`
+# prefix detector over the artefact would rebuild exactly that defect: it would catch
+# `true_consumption_kwh` and miss the next hidden field somebody names `settled_actual`. So the
+# unit here is the CLOSED SET -- every nested field name under a key the business side reads,
+# whatever it is called. Widening is the event; the name is not the test.
+#
+# WIDENING IS THE SUBJECT AND NARROWING IS NOT, stated rather than left to be inferred from the
+# code. A nested field DISAPPEARING is a paydown -- the artefact stopped publishing something --
+# and a control that reds on that reds on its own success case and gets relaxed
+# (`feedback_a_control_pinned_as_a_count_reds_on_its_own_success_case`). A RENAME still fires,
+# because the new name is an addition; that is what keeps narrowing-tolerance from being a hole.
+#
+# THE ID-MAP DISCRIMINATOR, AND WHY IT IS NOT A GUESS. Several published blobs are dicts keyed by
+# customer id or year (`clv_snapshots`, `dd_balance_book`, `per_cid_pnl`), so a naive walk over
+# nested key names reds every time the population changes -- measured across 8 committed
+# artefacts: `churn_risk: +SYN-2021-001 -C1_2` is population churn and no wall event at all. A
+# dict whose values ALL share one shape is a MAP keyed by an identifier, and its keys are DATA;
+# a dict whose values differ is a RECORD, and its keys are SCHEMA. That reading was validated
+# against the same 8 artefacts: it is silent across four consecutive runs and moves on the real
+# schema changes (`bills` gaining `billing_basis`, `ledger_pnl` gaining
+# `back_billing_write_off_gbp`).
+
+#: How deep the schema walk goes. Bounded because the artefact is arbitrary JSON and an unbounded
+#: walk on a cyclic-by-construction blob is a hang, not a check.
+SCHEMA_MAX_DEPTH = 7
+
+#: NOTHING IS SAMPLED, and this constant records why rather than leaving the absence to be
+#: rediscovered. The first cut of this walk read the first 5 values of a map and the first 80
+#: elements of a list, on the reasoning that `_is_id_map` guarantees homogeneity so any value
+#: would do. R15 mutation 6 falsified that: homogeneity holds at the TOP of a map and not
+#: through the sub-maps beneath it, so removing one customer shifted the sample window and the
+#: reading moved -- `years` gained `2021-12` and `SYN-2021-001` from population churn alone.
+#: A control whose value depends on dict ordering reds on ordinary work and then gets relaxed.
+#: The walk is exhaustive and bounded only by depth; it is a set union over field names, which
+#: is cheap even on the 1,600-row logs.
+SCHEMA_WALK_IS_EXHAUSTIVE = True
+
+
+def _is_id_map(obj: dict) -> bool:
+    """Is this dict keyed by an IDENTIFIER (data) rather than by FIELD NAMES (schema)?
+
+    The test is homogeneity of the VALUES, never a pattern on the keys: matching keys against
+    something that looks like a customer id would be a denylist over identifier spellings, and
+    the next id format would walk straight through it. A single-entry dict is deliberately NOT a
+    map -- one value is homogeneous with itself, so every one-field record would read as data and
+    its field name would stop being pinned. That is the safe direction (it can only pin MORE than
+    necessary), and it is the residual noise source this control has: a map that shrinks to one
+    customer will red once. Stated because it will be seen.
+    """
+    if len(obj) < 2:
+        return False
+    if not all(isinstance(v, (dict, list)) for v in obj.values()):
+        return False
+    shapes = {
+        frozenset(v) if isinstance(v, dict) else ("list",)
+        for v in obj.values()
+    }
+    return len(shapes) == 1
+
+
+def record_schema(obj: object, depth: int = 0) -> set[str]:
+    """The FIELD NAMES beneath `obj` -- schema keys only, identifier keys excluded.
+
+    A MAP contributes the schema of its values and NOT its own keys, which is what keeps
+    population churn out of the reading.
+    """
+    out: set[str] = set()
+    if depth > SCHEMA_MAX_DEPTH:
+        return out
+    if isinstance(obj, dict):
+        if _is_id_map(obj):
+            for value in obj.values():
+                out |= record_schema(value, depth + 1)
+        else:
+            for key, value in obj.items():
+                out.add(key)
+                out |= record_schema(value, depth + 1)
+    elif isinstance(obj, list):
+        for value in obj:
+            out |= record_schema(value, depth + 1)
+    return out
+
+
+def _read_top_level_keys(channel_f: set[str]) -> set[str]:
+    """The top-level keys the business side actually reads, from channel F's own width.
+
+    SAME POPULATION AS `enumerate_f`, on purpose and for the reason channel E's conformance gives
+    for sharing `enumerate_e`'s subject: a conformance question asked of a different population
+    than the width can drift away from it, and then the two halves of one channel disagree about
+    what the channel is.
+    """
+    return {member.split(" -> ", 1)[0] for member in channel_f}
+
+
+@dataclass(frozen=True)
+class NestedSchemaVerdict:
+    """Channel F's nested surface: the field names under every top-level key a reader touches.
+
+    `pins` maps a top-level key to its sorted nested field names. `unread` are artefact keys no
+    business module reads -- reported so the partition is visible, never pinned: pinning them
+    would red on artefact changes that cross no wall, which is how a control acquires a
+    reputation for noise and then gets switched off.
+    """
+
+    pins: dict[str, tuple[str, ...]]
+    unread: tuple[str, ...]
+
+    def report(self) -> str:
+        total = len(self.pins) + len(self.unread)
+        widest = sorted(self.pins.items(), key=lambda kv: (-len(kv[1]), kv[0]))[:3]
+        lines = [
+            f"channel F nested surface: {len(self.pins)} of {total} artefact key(s) are read "
+            f"business-side and pinned at "
+            f"{sum(len(v) for v in self.pins.values())} nested field name(s)"
+        ]
+        for key, fields in widest:
+            lines.append(f"    * {key} -- {len(fields)} nested field name(s)")
+        if self.unread:
+            lines.append(
+                f"    - {len(self.unread)} artefact key(s) no business module reads, so they "
+                "are not crossings and are not pinned"
+            )
+        return "\n".join(lines)
+
+
+def nested_schema(artefact: dict, channel_f: set[str]) -> NestedSchemaVerdict:
+    """THE READING. What nested field names cross channel F today.
+
+    FAIL-CLOSED, three ways (R15: an unavailable check is a FAILED check):
+      * the artefact has NO top-level keys -> `CensusUnavailable`, the same doctrine and the same
+        sentence as `enumerate_f`: an empty denominator makes channel F vacuously conformant.
+      * NO top-level key is read business-side -> `CensusUnavailable`. Zero pins is the reassuring
+        answer -- "no nested field crosses the wall" -- produced by a measurement that looked at
+        nothing, and it is exactly what a broken `enumerate_f` would hand this function.
+      * a pinned key whose value carries NO nested field names at all -> NOT refused. A top-level
+        scalar (`total_net_gbp`) is a legitimate reading and pins the empty set honestly.
+    """
+    if not artefact:
+        raise CensusUnavailable(
+            "the run-output artefact has no top-level keys -- refusing to measure an empty "
+            "denominator, because an empty denominator makes channel F vacuously conformant"
+        )
+    read = _read_top_level_keys(channel_f)
+    if not read:
+        raise CensusUnavailable(
+            "no artefact key is read business-side, so channel F's nested surface has no subject "
+            "-- refusing to report zero crossings from a measurement that looked at nothing"
+        )
+    pins = {
+        key: tuple(sorted(record_schema(artefact[key], 1)))
+        for key in sorted(read)
+        if key in artefact
+    }
+    unread = tuple(sorted(set(artefact) - read))
+    return NestedSchemaVerdict(pins=pins, unread=unread)
+
+
+def nested_schema_at(
+    rev: str = "HEAD", worktree: bool = False, repo_root: Path = PROJECT_DIR
+) -> NestedSchemaVerdict:
+    """`nested_schema` against the worktree, or against the tree at `rev`.
+
+    ONE REF, BOTH SIDES -- the artefact and the readers come from the same rev, for the reason
+    the module docstring gives channel F's width: comparing a live artefact against a committed
+    reader set reports a difference that is nobody's defect.
+    """
+    if worktree:
+        artefact = json.loads((repo_root / ARTEFACT_REL).read_text(encoding="utf-8"))
+        return nested_schema(artefact, enumerate_f(str(repo_root), artefact))
+    artefact = artefact_at(rev, repo_root)
+    with head_export(str(repo_root), CENSUS_DIRS, rev=rev) as root:
+        return nested_schema(artefact, enumerate_f(root, artefact))
+
+
+NESTED_SCHEMA_KEY = "F_nested_schema"
+
+
+def load_nested_schema_baseline(path: Path = BASELINE_PATH) -> dict[str, tuple[str, ...]]:
+    """The frozen (top-level key -> nested field names) map. Missing is a FAILED check."""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            raw = json.load(fh)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise CensusUnavailable(f"baseline {path} is unreadable: {exc}") from exc
+    frozen = raw.get(NESTED_SCHEMA_KEY)
+    if not isinstance(frozen, dict):
+        raise CensusUnavailable(
+            f"baseline {path} has no `{NESTED_SCHEMA_KEY}` object -- channel F's conformance "
+            "question has no frozen answer to compare against, which is a failed check"
+        )
+    return {key: tuple(sorted(fields)) for key, fields in frozen.items()}
+
+
+@dataclass(frozen=True)
+class NestedSchemaDrift:
+    """What changed about the nested surface.
+
+    `widened` is THE FAILURE this control exists for: a new nested field name under a key the
+    business side reads, landing with nothing to look at it. `newly_read` is a top-level key that
+    has acquired its first business reader -- a new crossing, equally unlooked-at. `narrowed` and
+    `paid_down` are the success cases, recorded and tolerated.
+    """
+
+    widened: dict[str, tuple[str, ...]]
+    newly_read: tuple[str, ...]
+    narrowed: dict[str, tuple[str, ...]]
+    paid_down: tuple[str, ...]
+
+    @property
+    def ok(self) -> bool:
+        return not self.widened and not self.newly_read
+
+    def report(self) -> str:
+        lines: list[str] = []
+        for key, gained in sorted(self.widened.items()):
+            lines.append(
+                f"WIDENED on channel F -- `{key}` now publishes {', '.join(gained)} to a business "
+                "reader; the top-level key set did not move, so nothing else catches this"
+            )
+        for key in self.newly_read:
+            lines.append(
+                f"NEW crossing on channel F -- `{key}` has acquired its first business reader, "
+                "which has not been looked at"
+            )
+        for key, lost in sorted(self.narrowed.items()):
+            lines.append(f"narrowed on channel F -- `{key}` dropped {', '.join(lost)}; re-freeze")
+        for key in self.paid_down:
+            lines.append(f"paid down on channel F -- `{key}` is no longer a crossing; re-freeze")
+        return "\n".join(lines) or (
+            "channel F: the nested surface under every read key is exactly what was frozen."
+        )
+
+
+def check_nested_schema(
+    current: NestedSchemaVerdict, baseline: dict[str, tuple[str, ...]]
+) -> NestedSchemaDrift:
+    """Compare the nested surface against its frozen answer."""
+    widened, narrowed = {}, {}
+    newly_read, paid_down = [], []
+    for key, fields in current.pins.items():
+        if key not in baseline:
+            newly_read.append(key)
+            continue
+        gained = tuple(sorted(set(fields) - set(baseline[key])))
+        lost = tuple(sorted(set(baseline[key]) - set(fields)))
+        if gained:
+            widened[key] = gained
+        if lost:
+            narrowed[key] = lost
+    for key in baseline:
+        if key not in current.pins:
+            paid_down.append(key)
+    return NestedSchemaDrift(
+        widened=widened,
+        newly_read=tuple(sorted(newly_read)),
+        narrowed=narrowed,
+        paid_down=tuple(sorted(paid_down)),
+    )
+
+
 ENUMERATORS = {
     "A_direct_import": enumerate_a,
     "B_indirect_import": enumerate_b,
@@ -2429,7 +2705,10 @@ def check_satisfaction(
 
 
 def freeze_payload(
-    current: dict[str, set[str]], rev: str, satisfaction: SatisfactionVerdict | None = None
+    current: dict[str, set[str]],
+    rev: str,
+    satisfaction: SatisfactionVerdict | None = None,
+    nested: NestedSchemaVerdict | None = None,
 ) -> dict:
     payload = {
         "_meta": {
@@ -2453,6 +2732,10 @@ def freeze_payload(
     if satisfaction is not None:
         payload[SATISFACTION_KEY] = {
             entry: list(sats) for entry, sats in sorted(satisfaction.crossings.items())
+        }
+    if nested is not None:
+        payload[NESTED_SCHEMA_KEY] = {
+            key: list(fields) for key, fields in sorted(nested.pins.items())
         }
     return payload
 
@@ -2484,10 +2767,19 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 2
 
+    try:
+        nested = nested_schema_at(rev=args.rev, worktree=args.worktree)
+    except CensusUnavailable as exc:
+        print(
+            f"CHANNEL F NESTED SURFACE UNAVAILABLE (a failed check, not a pass): {exc}",
+            file=sys.stderr,
+        )
+        return 2
+
     if args.freeze:
         rev = "worktree" if args.worktree else args.rev
         BASELINE_PATH.write_text(
-            json.dumps(freeze_payload(current, rev, satisfaction), indent=2) + "\n",
+            json.dumps(freeze_payload(current, rev, satisfaction, nested), indent=2) + "\n",
             encoding="utf-8",
         )
         print(f"froze {BASELINE_PATH.relative_to(PROJECT_DIR)} at {rev}")
@@ -2576,6 +2868,21 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     print(drift.report())
 
+    # GATES FROM ITS FIRST COMMIT, by the rule this file has now stated four times: a check
+    # becomes a gate "in the same commit that makes it satisfiable". The freeze in this commit
+    # records the nested surface as it stands at HEAD, so the only commits this can refuse are
+    # commits that widen a published blob under an unchanged key or hand an unread key its first
+    # business reader -- its subject, not its collateral.
+    print(nested.report())
+    try:
+        nested_drift = check_nested_schema(nested, load_nested_schema_baseline())
+    except CensusUnavailable as exc:
+        print(
+            f"CHANNEL F BASELINE UNAVAILABLE (a failed check, not a pass): {exc}", file=sys.stderr
+        )
+        return 2
+    print(nested_drift.report())
+
     try:
         verdict = check(current, load_baseline())
     except CensusUnavailable as exc:
@@ -2584,7 +2891,14 @@ def main(argv: list[str] | None = None) -> int:
     print(verdict.report())
     return (
         0
-        if (verdict.ok and wire.ok and surface_pins.ok and second_belt.ok and drift.ok)
+        if (
+            verdict.ok
+            and wire.ok
+            and surface_pins.ok
+            and second_belt.ok
+            and drift.ok
+            and nested_drift.ok
+        )
         else 1
     )
 

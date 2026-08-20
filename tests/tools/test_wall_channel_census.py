@@ -742,10 +742,17 @@ def _conformant_E() -> wcc.SatisfactionVerdict:
     )
 
 
+def _conformant_F() -> wcc.NestedSchemaVerdict:
+    """Channel F's success case: one read artefact key, publishing two nested field names."""
+    return wcc.NestedSchemaVerdict(
+        pins={"bills": ("period_end", "total_amount_gbp")}, unread=("private_blob",)
+    )
+
+
 def _pin_the_other_halves(monkeypatch) -> None:
     """Force every half of `_wall_channel_census_check` GREEN except the one under test.
 
-    THE CLASS, stated once rather than re-learned per half: this gate step now runs FOUR checks
+    THE CLASS, stated once rather than re-learned per half: this gate step now runs FIVE checks
     and returns one verdict. Any half left real runs against the fixture's fake index tree
     `"0"*40`, raises, and hits its own fail-closed branch -- so "the gate refused" becomes evidence
     about whichever half happened to fail first, and a NULL CONTROL fails while looking like a
@@ -767,6 +774,10 @@ def _pin_the_other_halves(monkeypatch) -> None:
     monkeypatch.setattr(wcc, "structural_satisfaction_at", lambda **k: _conformant_E())
     monkeypatch.setattr(
         wcc, "load_satisfaction_baseline", lambda *a, **k: dict(_conformant_E().crossings)
+    )
+    monkeypatch.setattr(wcc, "nested_schema_at", lambda **k: _conformant_F())
+    monkeypatch.setattr(
+        wcc, "load_nested_schema_baseline", lambda *a, **k: dict(_conformant_F().pins)
     )
 
 
@@ -2954,4 +2965,267 @@ def test_the_GATE_names_channel_E_in_its_own_source(monkeypatch):
     source = (Path(wcc.__file__).parent.parent / "tools" / "pre_commit_test_gate.py").read_text()
     assert "structural_satisfaction_at" in source and "drift.ok" in source, (
         "channel E's conformance is not wired into the commit gate"
+    )
+
+
+# ── channel F's conformance: the nested surface under a read key ─────────────────────────────
+#
+# WHAT IS BEING PROVEN. `enumerate_f`'s unit is the (TOP-LEVEL key, business reader) pair -- a
+# WIDTH, and channel F's only control before this. The blindness it carries was MEASURED on the
+# live artefact before any of this was written: 93 top-level keys hide 693 distinct NESTED field
+# names, and every ground-truth-shaped field that actually reaches the business side sits at
+# depth >= 1 -- `true_consumption_kwh`, `true_commodity_amount_gbp` and `true_total_amount_gbp`
+# read by `company/billing/monthly_bill_assembly.py`. Adding one moves NOTHING in the width.
+#
+# THE TWO NULL CONTROLS ARE THE POINT, and they are what this control's first cut failed. A pin
+# over nested key names reds on population churn, because several published blobs are dicts keyed
+# by customer id. A control that reds on ordinary work gets relaxed and takes the real reds with
+# it. `_is_id_map` is what separates DATA keys from SCHEMA keys, and M6 is what proves it.
+
+def _artefact() -> dict:
+    """A miniature published artefact: one read blob, one map keyed by customer, one unread key."""
+    return {
+        "bills": [
+            {"period_end": "2024-01-31", "total_amount_gbp": 42.0},
+            {"period_end": "2024-02-29", "total_amount_gbp": 44.0},
+        ],
+        "clv_snapshots": {
+            "C1": {"clv_gbp": 100.0, "as_of": "2024-01"},
+            "C2": {"clv_gbp": 120.0, "as_of": "2024-01"},
+        },
+        "private_blob": {"nobody_reads_me": 1},
+    }
+
+
+def _readers() -> set[str]:
+    """Channel F's width: `bills` and `clv_snapshots` are read business-side, `private_blob` not."""
+    return {"bills -> saas/reporting/annual_report.py", "clv_snapshots -> company/portal/app.py"}
+
+
+def _frozen(artefact: dict | None = None) -> dict[str, tuple[str, ...]]:
+    return dict(wcc.nested_schema(artefact or _artefact(), _readers()).pins)
+
+
+def test_the_nested_surface_of_a_read_key_is_pinned_and_an_unread_key_is_not():
+    verdict = wcc.nested_schema(_artefact(), _readers())
+    assert verdict.pins["bills"] == ("period_end", "total_amount_gbp")
+    assert verdict.unread == ("private_blob",), (
+        "a key no business module reads is not a crossing and must not be pinned"
+    )
+
+
+def test_NULL_CONTROL_an_unmutated_artefact_passes_its_own_baseline():
+    """Move the sample, not the law: without this every mutation below is satisfied by a control
+    that reds on everything."""
+    drift = wcc.check_nested_schema(wcc.nested_schema(_artefact(), _readers()), _frozen())
+    assert drift.ok, drift.report()
+
+
+def test_MUTATION_a_NEW_nested_field_under_a_READ_key_is_WIDENING_and_fails():
+    """THE DEFECT: the top-level key set does not move, the reader set does not move, the width
+    does not move, and a ground-truth field is now published to a business reader."""
+    art = _artefact()
+    art["bills"][0]["true_hidden_margin_gbp"] = 1.0
+    drift = wcc.check_nested_schema(wcc.nested_schema(art, _readers()), _frozen())
+    assert not drift.ok, "a widened published blob was allowed through"
+    assert drift.widened == {"bills": ("true_hidden_margin_gbp",)}, drift.report()
+    assert "WIDENED on channel F" in drift.report() and "true_hidden_margin_gbp" in drift.report()
+
+
+def test_MUTATION_a_RENAMED_nested_field_fails_because_the_new_name_is_an_addition():
+    """This is what keeps narrowing-tolerance from being a hole: rename fires on the ADD half."""
+    art = _artefact()
+    for row in art["bills"]:
+        row["settled_actual_gbp"] = row.pop("total_amount_gbp")
+    drift = wcc.check_nested_schema(wcc.nested_schema(art, _readers()), _frozen())
+    assert not drift.ok and drift.widened == {"bills": ("settled_actual_gbp",)}, drift.report()
+
+
+def test_MUTATION_a_key_acquiring_its_FIRST_business_reader_is_a_new_crossing_and_fails():
+    art = _artefact()
+    readers = _readers() | {"private_blob -> company/portal/app.py"}
+    drift = wcc.check_nested_schema(wcc.nested_schema(art, readers), _frozen())
+    assert not drift.ok and drift.newly_read == ("private_blob",), drift.report()
+    assert "NEW crossing on channel F" in drift.report()
+
+
+def test_FAIL_OPEN_an_artefact_with_no_top_level_keys_REFUSES():
+    """R15 FAIL-OPEN: an empty denominator makes channel F vacuously conformant."""
+    with pytest.raises(wcc.CensusUnavailable, match="empty denominator"):
+        wcc.nested_schema({}, _readers())
+
+
+def test_FAIL_OPEN_zero_business_readers_REFUSES_rather_than_reporting_no_crossings():
+    """The reassuring answer -- 'no nested field crosses' -- from a measurement that looked at
+    nothing. This is exactly what a broken `enumerate_f` would hand this function."""
+    with pytest.raises(wcc.CensusUnavailable, match="looked at nothing"):
+        wcc.nested_schema(_artefact(), set())
+
+
+def test_NULL_CONTROL_a_new_field_under_an_UNREAD_key_does_NOT_fail():
+    """The subject is the WALL CROSSING, not the artefact at large. Without this pin the control
+    reds on published data no business module can see, which is nobody's wall defect."""
+    art = _artefact()
+    art["private_blob"]["another_field"] = 2
+    drift = wcc.check_nested_schema(wcc.nested_schema(art, _readers()), _frozen())
+    assert drift.ok, "a change behind no reader was scored as a crossing: " + drift.report()
+
+
+def test_NULL_CONTROL_population_churn_in_an_id_map_does_NOT_fail():
+    """THE NOISE SOURCE THAT WOULD HAVE KILLED THIS CONTROL, and the reason `_is_id_map` exists.
+
+    Measured across 8 committed artefacts: `churn_risk: +SYN-2021-001 -C1_2` is population churn
+    and no wall event at all. A control that reds every time a customer joins gets relaxed, and
+    takes the real reds with it.
+    """
+    art = _artefact()
+    art["clv_snapshots"].pop("C1")
+    art["clv_snapshots"]["SYN-9999-NEW"] = {"clv_gbp": 90.0, "as_of": "2024-01"}
+    drift = wcc.check_nested_schema(wcc.nested_schema(art, _readers()), _frozen())
+    assert drift.ok, "population churn was read as a schema change: " + drift.report()
+
+
+def test_a_map_contributes_its_VALUES_schema_and_not_its_own_keys():
+    """The discriminator, asserted directly rather than only through the null control."""
+    verdict = wcc.nested_schema(_artefact(), _readers())
+    assert verdict.pins["clv_snapshots"] == ("as_of", "clv_gbp"), verdict.pins["clv_snapshots"]
+    assert "C1" not in verdict.pins["clv_snapshots"], "an identifier key was pinned as schema"
+
+
+def test_the_schema_walk_is_EXHAUSTIVE_so_the_reading_does_not_depend_on_dict_ORDER():
+    """R15 mutation 6 falsified the first cut of this walk, which sampled 5 map values: removing
+    one customer shifted the sample window and `years` gained two field names from churn alone."""
+    art = _artefact()
+    art["clv_snapshots"] = {
+        f"C{i}": {"clv_gbp": float(i), "as_of": "2024-01", **({"rare_field": 1} if i == 99 else {})}
+        for i in range(100)
+    }
+    fields = wcc.nested_schema(art, _readers()).pins["clv_snapshots"]
+    assert "rare_field" in fields, (
+        "a field on the LAST map value was missed, so the reading depends on iteration order"
+    )
+
+
+def test_a_NARROWED_blob_is_a_paydown_and_passes():
+    """A control that reds on its own success case gets relaxed."""
+    art = _artefact()
+    for row in art["bills"]:
+        row.pop("total_amount_gbp")
+    drift = wcc.check_nested_schema(wcc.nested_schema(art, _readers()), _frozen())
+    assert drift.ok and drift.narrowed == {"bills": ("total_amount_gbp",)}, drift.report()
+
+
+def test_a_key_that_LEAVES_the_artefact_is_paid_down_and_passes():
+    art = _artefact()
+    frozen = _frozen()
+    art.pop("clv_snapshots")
+    drift = wcc.check_nested_schema(wcc.nested_schema(art, _readers()), frozen)
+    assert drift.ok and drift.paid_down == ("clv_snapshots",), drift.report()
+
+
+def test_FAIL_CLOSED_a_baseline_with_no_nested_schema_object_raises(tmp_path: Path):
+    path = tmp_path / "baseline.json"
+    path.write_text(json.dumps({"frozen": {}}), encoding="utf-8")
+    with pytest.raises(wcc.CensusUnavailable, match="no `F_nested_schema` object"):
+        wcc.load_nested_schema_baseline(path)
+
+
+def test_THE_LIVE_CHANNEL_F_SURFACE_HAS_NOT_WIDENED():
+    """The control against the real tree, which is what makes the fixtures above evidence about
+    this repo rather than about a fixture."""
+    verdict = wcc.nested_schema_at(rev="HEAD")
+    drift = wcc.check_nested_schema(verdict, wcc.load_nested_schema_baseline())
+    assert drift.ok, drift.report()
+
+
+def test_the_nested_surface_check_is_part_of_the_CLIs_exit_code():
+    """R11's no-orphan-transitions rule: a check whose red changes nothing is not a gate."""
+    import ast
+
+    source = (Path(wcc.__file__).parent.parent / "tools" / "wall_channel_census.py").read_text()
+    returns = [
+        ast.unparse(n.value) for n in ast.walk(ast.parse(source))
+        if isinstance(n, ast.Return) and n.value is not None
+    ]
+    assert any("nested_drift.ok" in r for r in returns), (
+        "the nested surface reports but does not gate -- its red would be a printed line "
+        "nothing acts on"
+    )
+
+
+# ── the GATE's channel-F branch ──────────────────────────────────────────────────────────────
+
+def _gate_nested_branch(monkeypatch, *, verdict, baseline):
+    from tools import pre_commit_test_gate as gate
+
+    _pin_the_other_halves(monkeypatch)
+    monkeypatch.setattr(wcc, "nested_schema_at", lambda **k: verdict)
+    monkeypatch.setattr(wcc, "load_nested_schema_baseline", lambda *a, **k: baseline)
+    return gate._wall_channel_census_check(["simulation/anything.py"])
+
+
+def test_NULL_CONTROL_the_GATE_passes_a_conformant_channel_F(monkeypatch):
+    ok, detail = _gate_nested_branch(
+        monkeypatch, verdict=_conformant_F(), baseline=dict(_conformant_F().pins)
+    )
+    assert ok, detail
+    assert "channel F's 1 read artefact key(s)" in detail, detail
+
+
+def test_MUTATION_the_GATE_refuses_a_WIDENED_published_blob(monkeypatch):
+    """THE DEFECT, at the gate: a ground-truth field added to a published blob, with the
+    top-level key set, the reader set and the width all unmoved."""
+    ok, detail = _gate_nested_branch(
+        monkeypatch,
+        verdict=wcc.NestedSchemaVerdict(
+            pins={"bills": ("period_end", "total_amount_gbp", "true_hidden_margin_gbp")},
+            unread=(),
+        ),
+        baseline=dict(_conformant_F().pins),
+    )
+    assert not ok, "a widened published blob was allowed to commit"
+    assert "WIDENED on channel F" in detail and "true_hidden_margin_gbp" in detail, (
+        "the refusal must carry the diagnostic payload (R5): " + detail
+    )
+
+
+def test_MUTATION_the_GATE_refuses_a_key_with_its_FIRST_business_reader(monkeypatch):
+    ok, detail = _gate_nested_branch(
+        monkeypatch,
+        verdict=wcc.NestedSchemaVerdict(
+            pins={"bills": ("period_end", "total_amount_gbp"), "private_blob": ("secret",)},
+            unread=(),
+        ),
+        baseline=dict(_conformant_F().pins),
+    )
+    assert not ok and "NEW crossing on channel F" in detail and "private_blob" in detail, detail
+
+
+def test_NULL_CONTROL_the_GATE_tolerates_a_NARROWED_blob(monkeypatch):
+    ok, detail = _gate_nested_branch(
+        monkeypatch,
+        verdict=wcc.NestedSchemaVerdict(pins={"bills": ("period_end",)}, unread=()),
+        baseline=dict(_conformant_F().pins),
+    )
+    assert ok, "a paydown was refused, which is the control reding on its own success case: " + detail
+
+
+def test_FAIL_CLOSED_the_GATE_refuses_when_the_channel_F_reading_RAISES(monkeypatch):
+    """R15 FAIL-SILENT: an unavailable check is a FAILED check."""
+    def _boom(**kwargs):
+        raise wcc.CensusUnavailable("no artefact key is read business-side")
+
+    from tools import pre_commit_test_gate as gate
+
+    _pin_the_other_halves(monkeypatch)
+    monkeypatch.setattr(wcc, "nested_schema_at", _boom)
+    ok, detail = gate._wall_channel_census_check(["simulation/anything.py"])
+    assert not ok and "channel-F nested surface RAISED" in detail, detail
+
+
+def test_the_GATE_names_channel_F_in_its_own_source(monkeypatch):
+    """The arming, asserted against the file rather than described in a record."""
+    source = (Path(wcc.__file__).parent.parent / "tools" / "pre_commit_test_gate.py").read_text()
+    assert "nested_schema_at" in source and "nested_drift.ok" in source, (
+        "channel F's conformance is not wired into the commit gate"
     )
