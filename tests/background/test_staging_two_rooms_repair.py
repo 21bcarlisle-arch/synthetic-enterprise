@@ -19,14 +19,18 @@ import pytest
 from background import staging_two_rooms_repair as tr
 
 
-def _rooms(tmp_path, root_text=None, done_text=None, name="WORKER_FINDING_X.md"):
+def _rooms(tmp_path, root_text=None, done_text=None, name="WORKER_FINDING_X.md",
+           parked_text=None):
     root = tmp_path / "staging"
     done = root / "done"
     done.mkdir(parents=True, exist_ok=True)
+    (root / "in_progress").mkdir(parents=True, exist_ok=True)
     if root_text is not None:
         (root / name).write_text(root_text, encoding="utf-8")
     if done_text is not None:
         (done / name).write_text(done_text, encoding="utf-8")
+    if parked_text is not None:
+        (root / "in_progress" / name).write_text(parked_text, encoding="utf-8")
     return root
 
 
@@ -161,3 +165,92 @@ def test_the_worker_calls_it():
     import inspect
     from background import background_worker
     assert "staging_two_rooms_repair" in inspect.getsource(background_worker.main)
+
+
+# ---------------------------------------------------------------------------
+# THE THIRD ROOM (2026-08-20). The name was the defect: `finding_classes` refuses on all
+# three pairings, this paired root-vs-done/ only, and `in_progress/` is the room CLAUDE.md
+# tells you to park an open finding in.
+# ---------------------------------------------------------------------------
+def test_MUTATION_a_duplicate_in_in_progress_is_a_duplicate(tmp_path):
+    """THE named defect. Narrow `OTHER_ROOMS` back to ("done",) and this is the test that reds:
+    the live instance was a finding in root AND in_progress/, and the repairer saw nothing."""
+    root = _rooms(tmp_path, "the finding", None, parked_text="the finding\n\nStill open: item 3.")
+    assert [n for n, _, _ in tr.duplicates(root)] == ["WORKER_FINDING_X.md"]
+
+
+def test_MUTATION_a_document_parked_in_in_progress_ONLY_is_not_a_duplicate(tmp_path):
+    """Null control for the widening. Parking a finding is the NORMAL disposition -- if merely
+    being in `in_progress/` counted, the repairer would report every parked finding forever."""
+    assert tr.duplicates(_rooms(tmp_path, None, None, parked_text="parked")) == []
+
+
+def test_MUTATION_a_resurrected_root_copy_the_parked_copy_does_not_contain_SURVIVES(tmp_path):
+    """The live 2026-08-20 shape, and why widening the room set does not widen what is deleted.
+    The root copy was a byte-identical resurrection of the PRE-MOVE version; the parked copy had
+    a correction PREPENDED, so the root text is not contained in it. Delete-on-sight would have
+    destroyed the only copy of the original text."""
+    root = _rooms(tmp_path, "**Status:** eight ghosts\n\nbody",
+                  None, parked_text="> CORRECTION: nine.\n\n**Status:** nine ghosts\n\nbody")
+    res = tr.repair(root)
+    assert res["repaired"] == [] and res["conflicts"] == ["WORKER_FINDING_X.md"]
+    assert (root / "WORKER_FINDING_X.md").is_file(), "a conflicting root copy was deleted"
+
+
+def test_MUTATION_clearing_the_done_half_while_blind_to_the_parked_half_must_ALARM(tmp_path):
+    """THE fail-silent test, and the exact live measurement that found this.
+
+    Two duplicates of different shapes at once. Before the widening, `repair` cleared the done/
+    one and returned {'repaired': [X], 'conflicts': []} -- so `observe` emitted a bare success
+    verdict and NO alarm, while the tree stayed refused by the pairing it could not see. The
+    property is not that the parked one gets fixed (it cannot be, safely); it is that the report
+    can no longer read as 'clear' while the detector still refuses."""
+    root = _rooms(tmp_path, "alpha", "alpha\n\nDischarged.", name="A_ARCHIVED.md")
+    (root / "B_PARKED.md").write_text("beta says more", encoding="utf-8")
+    (root / "in_progress" / "B_PARKED.md").write_text("beta", encoding="utf-8")
+
+    res = tr.repair(root)
+    assert res["repaired"] == ["A_ARCHIVED.md"], res
+    assert res["conflicts"] == ["B_PARKED.md"], (
+        "the parked-room duplicate was invisible, so a still-refused tree reported as repaired"
+    )
+
+
+def test_MUTATION_done_and_in_progress_with_no_root_copy_is_SHOUTED_not_repaired(tmp_path):
+    """The third pairing. Nothing is deletable -- there is no root copy -- but the detector
+    refuses the tree on it, so silence from the repairer would read as a clean tree."""
+    root = _rooms(tmp_path, None, "consumed", parked_text="parked")
+    res = tr.repair(root)
+    assert res["repaired"] == [] and res["conflicts"] == ["WORKER_FINDING_X.md"]
+    assert (root / "done" / "WORKER_FINDING_X.md").is_file(), "the ARCHIVE was deleted"
+    assert (root / "in_progress" / "WORKER_FINDING_X.md").is_file(), "the PARKED copy was deleted"
+
+
+def test_MUTATION_done_only_and_parked_only_under_DIFFERENT_names_is_not_a_pairing(tmp_path):
+    """Null control for the third pairing: it must key on the same document, not on both rooms
+    merely being non-empty."""
+    root = _rooms(tmp_path, None, "consumed", name="A.md")
+    (root / "in_progress" / "B.md").write_text("parked", encoding="utf-8")
+    assert tr.unrepairable_pairings(root) == []
+    assert tr.repair(root) == {"repaired": [], "conflicts": []}
+
+
+def test_the_repairers_room_set_matches_the_DETECTORS(tmp_path):
+    """Independence, stated as the invariant that was actually violated. `finding_classes`
+    decides what refuses a commit; this decides what can be cleared automatically. A repairer
+    knowing fewer rooms than the detector can only ever clear part of what the detector refuses
+    on -- which is the whole finding, so it is asserted rather than left to the next reader."""
+    from background import finding_classes
+    assert set(tr.OTHER_ROOMS) == {finding_classes.ARCHIVE_DIRNAME, finding_classes.PARKED_DIRNAME}
+
+
+def test_a_doc_in_ALL_THREE_rooms_is_repaired_ONCE(tmp_path):
+    """`duplicates` yields one row per pairing, so the grouping in `repair` is load-bearing:
+    without it the same root copy is removed twice and the second `git rm` reports a conflict
+    on a file that is already correctly gone."""
+    root = _rooms(tmp_path, "the finding", "the finding\n\nDischarged.",
+                  parked_text="the finding\n\nStill open.")
+    assert len(tr.duplicates(root)) == 2
+    res = tr.repair(root)
+    assert res == {"repaired": ["WORKER_FINDING_X.md"], "conflicts": []}, res
+    assert not (root / "WORKER_FINDING_X.md").exists()

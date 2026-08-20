@@ -49,6 +49,30 @@ repairer that deletes on uncertainty is worse than the refusal it is fixing.
 IT STAGES THE DELETION, which is the half that makes it stick. Removing the file from the
 working tree alone leaves the path tracked at HEAD, and every operation that restores a tracked
 path can bring it back -- which is the shape of the observed recurrence. `git rm` ends that.
+
+THERE ARE THREE ROOMS, AND THIS KNEW TWO (2026-08-20). The name was the defect. `finding_classes`
+refuses on ALL THREE PAIRINGS -- its own docstring says so, and it was widened to do that on
+2026-08-12 after a hand census run root-vs-`done/` declared zero while root-vs-`in_progress/` held
+one. This repairer was built on 2026-08-19, AFTER that widening, and still paired root against
+`done/` only. So the room CLAUDE.md instructs you to park an open finding in was the one room the
+repair could not see.
+
+Measured live, with one duplicate of each shape present at once: the detector reported two
+failures; `repair()` cleared the `done/` one and returned `{'changed': True, 'verdict': 'removed 1
+redundant staging copy'}` WITH NO ALARM, while the tree stayed refused by the pairing it is blind
+to. That is the fail-silent shape from R15, in the report rather than the check -- the verdict
+could not distinguish "I cleared everything" from "I cleared the half I can see", and the worker
+loop would have gone on reporting that success hourly.
+
+The live instance is the one that shows why the timidity above is load-bearing. The root copy of
+the ghost-pages finding was a RESURRECTION, byte-identical to the pre-move version at the parent
+commit, while the `in_progress/` copy carried a prepended correction; so the root text is NOT
+contained in the parked text, `classify` returns CONFLICT, and the right output is a shout, not a
+delete. Widening the room set does not widen what this deletes.
+
+`done/`-vs-`in_progress/` is the third pairing and has NO root copy to remove. Nothing here is
+safely deletable, so it is reported rather than repaired -- but it must be REPORTED, because the
+detector refuses the tree on it and silence from the repairer reads as "clear".
 """
 from __future__ import annotations
 
@@ -59,22 +83,50 @@ PROJECT_DIR = Path(__file__).resolve().parents[1]
 STAGING_DIR = PROJECT_DIR / "docs" / "staging"
 DONE_DIR = STAGING_DIR / "done"
 
+#: The rooms that are not the root. Kept in step with `finding_classes.ARCHIVE_DIRNAME` /
+#: `PARKED_DIRNAME` -- the detector refuses on all three pairings, so a repairer that knows
+#: fewer rooms than the detector can only ever clear part of what the detector refuses on.
+ARCHIVE_DIRNAME = "done"
+PARKED_DIRNAME = "in_progress"
+OTHER_ROOMS = (ARCHIVE_DIRNAME, PARKED_DIRNAME)
+
 SAFE = "redundant"
 CONFLICT = "conflicts"
 
 
 def duplicates(staging: Path | None = None) -> list[tuple[str, Path, Path]]:
-    """(name, root_copy, archived_copy) for every doc present in BOTH rooms."""
+    """(name, root_copy, other_copy) for every doc present in the ROOT and some other room.
+
+    One row per PAIRING, so a doc sitting in all three rooms yields two rows; `repair` groups
+    them back by root copy. Only pairings involving the root are returned, because the root copy
+    is the only one this may delete -- it is the room that rings the doorbell and wins draws.
+    """
     root_dir = Path(staging) if staging is not None else STAGING_DIR
-    done_dir = root_dir / "done"
-    if not done_dir.is_dir():
-        return []
     out = []
     for p in sorted(root_dir.glob("*.md")):
-        d = done_dir / p.name
-        if d.is_file():
-            out.append((p.name, p, d))
+        for room in OTHER_ROOMS:
+            other = root_dir / room / p.name
+            if other.is_file():
+                out.append((p.name, p, other))
     return out
+
+
+def unrepairable_pairings(staging: Path | None = None) -> list[str]:
+    """Names present in `done/` AND `in_progress/` but NOT in the root.
+
+    The third pairing. There is no root copy to remove, so nothing here is deletable by a
+    repairer this timid -- but the detector refuses every commit in the tree on it, so it is
+    carried into `conflicts` to be shouted. Passing over it silently is what makes a repair
+    report indistinguishable from a clean tree.
+    """
+    root_dir = Path(staging) if staging is not None else STAGING_DIR
+    done_dir, parked_dir = root_dir / ARCHIVE_DIRNAME, root_dir / PARKED_DIRNAME
+    if not (done_dir.is_dir() and parked_dir.is_dir()):
+        return []
+    return sorted(
+        p.name for p in done_dir.glob("*.md")
+        if (parked_dir / p.name).is_file() and not (root_dir / p.name).is_file()
+    )
 
 
 def classify(root_copy: Path, archived: Path) -> str:
@@ -109,15 +161,26 @@ def _git_rm(path: Path) -> bool:
 def repair(staging: Path | None = None) -> dict:
     """Resolve every SAFE duplicate; report the rest. Never raises into a caller's path."""
     repaired, conflicts = [], []
-    for name, root_copy, archived in duplicates(staging):
-        if classify(root_copy, archived) == SAFE:
+    # Read the third pairing BEFORE the loop below deletes anything. It keys on the ABSENCE of a
+    # root copy, and a successful repair creates exactly that absence -- so scanning afterwards
+    # makes every all-three-rooms repair re-report as an unrepairable pairing, a control reding
+    # on its own success case. The question is what the tree looked like when we found it.
+    rootless = unrepairable_pairings(staging)
+    by_root: dict[tuple[str, Path], list[Path]] = {}
+    for name, root_copy, other in duplicates(staging):
+        by_root.setdefault((name, root_copy), []).append(other)
+    for (name, root_copy), others in by_root.items():
+        # SAFE against ANY room is enough: that room already holds everything the root says,
+        # so the root copy carries nothing that deleting it would lose.
+        if any(classify(root_copy, o) == SAFE for o in others):
             if _git_rm(root_copy):
                 repaired.append(name)
             else:
                 conflicts.append(name)
         else:
             conflicts.append(name)
-    return {"repaired": repaired, "conflicts": conflicts}
+    conflicts.extend(rootless)
+    return {"repaired": sorted(repaired), "conflicts": sorted(set(conflicts))}
 
 
 def observe() -> dict:
@@ -136,8 +199,9 @@ def observe() -> dict:
         )
     if res["conflicts"]:
         out["alarm"] = (
-            "TWO ROOMS, NOT SAFELY REPAIRABLE (the root copy says something the archive does "
-            "not, so neither is redundant): " + ", ".join(res["conflicts"])
+            "TWO ROOMS, NOT SAFELY REPAIRABLE (no copy is provably redundant -- either the root "
+            "copy carries text the other room lacks, or the pair is done/-vs-in_progress/ with "
+            "no root copy to remove): " + ", ".join(res["conflicts"])
             + " -- resolve by hand; every commit in the tree is refused until then."
         )
     return out
