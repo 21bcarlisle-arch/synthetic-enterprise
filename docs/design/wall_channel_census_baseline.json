@@ -5,7 +5,8 @@
     "tool": "tools/wall_channel_census.py",
     "census": "docs/design/EP6_WALL_CONFORMANCE_CENSUS_DISCOVER.md",
     "frozen_at_rev": "worktree",
-    "rule": "A member present here and absent from the tree is PAID DOWN -- re-freeze to record it. A member in the tree and absent here is NEW and fails the check. Channels A and B are reported by the tool and enforced by docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md, not frozen here."
+    "rule": "A member present here and absent from the tree is PAID DOWN -- re-freeze to record it. A member in the tree and absent here is NEW and fails the check. Channels A and B are reported by the tool and enforced by docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md, not frozen here.",
+    "channel_E_rule": "Channel E's CONFORMANCE question, distinct from its width above. A Protocol still declared business-side whose frozen world satisfier no longer satisfies it is DRIFT and fails -- structural typing means neither side declares the other, so that break is silent everywhere else. A new satisfier is a new crossing and fails until looked at. A Protocol that leaves the tree is paid down: re-freeze to record."
   },
   "reported_not_frozen": {
     "A_direct_import": [
@@ -185,6 +186,14 @@
       "years -> saas/reporting/payment_health.py",
       "years -> saas/reporting/portfolio_composition.py",
       "years -> saas/reporting/segment_report.py"
+    ]
+  },
+  "E_structural_satisfaction": {
+    "company/billing/monthly_bill_assembly.py -> ReadArrival": [
+      "simulation/meter_reads.py::MeterReadEvent"
+    ],
+    "company/billing/monthly_bill_assembly.py -> ReadArrivalFeed": [
+      "simulation/meter_reads.py::SimulatedReadFeed"
     ]
   }
 }

@@ -784,8 +784,11 @@ def _wall_channel_census_check(staged: list[str]) -> tuple[bool, str]:
         from tools.wall_channel_census import (
             census_at,
             check,
+            check_satisfaction,
             envelope_wire_conformance_at,
             load_baseline,
+            load_satisfaction_baseline,
+            structural_satisfaction_at,
             wire_conformance_at,
         )
     except Exception as e:  # noqa: BLE001 -- an unavailable check is a FAILED check
@@ -841,17 +844,44 @@ def _wall_channel_census_check(staged: list[str]) -> tuple[bool, str]:
     # declaring a message this build never sends, and a seam with no version to carry, are facts
     # about the contract rather than defects in a crossing. Only a leg this build actually
     # exchanges can refuse a commit.
+    try:
+        satisfaction = structural_satisfaction_at(rev=tree, repo_root=ROOT)
+        drift = check_satisfaction(satisfaction, load_satisfaction_baseline())
+    except Exception as e:  # noqa: BLE001
+        return False, f"channel-E satisfaction RAISED against tree {tree[:9]}: {type(e).__name__}: {e}"
+    # CHANNEL E'S CONFORMANCE BLOCKS FROM ITS FIRST COMMIT -- 2026-08-20 pass 30, by the rule the
+    # two steps above state: a check becomes a gate "in the same commit that makes it satisfiable".
+    #
+    # It has no landing-order excuse to wait for. MEASURED before this line was written rather than
+    # hoped: at HEAD both channel-E Protocols are satisfied by exactly one world class each, the
+    # baseline records that reading, and `check_satisfaction` is green. So the only commits this
+    # can refuse are commits that BREAK a structural crossing or ADD one -- its subject, not its
+    # collateral.
+    #
+    # WHY IT NEEDS A GATE AT ALL, which is the whole argument for the check: the width half above
+    # asks "did a Protocol appear?" and channels C and D ask about transport. NONE of them can see
+    # a world-side class drifting out of a Protocol's shape, because structural typing means
+    # neither side declares the other -- no import breaks, no decode fails, no version mismatches.
+    # The company simply starts reading an attribute that is not there. This is the only control in
+    # the repo whose red is that event.
+    #
+    # ZERO TOLERANCE, no frozen debt list, matching channels C and D: the entire subject is two
+    # crossings, so a debt list here would be a list of the subject.
     if not verdict.ok:
         return False, verdict.report()
     if not wire.ok:
         return False, wire.report()
     if not envelope.ok:
         return False, envelope.report()
+    if not drift.ok:
+        return False, drift.report()
     scored = len(envelope.wire_borne) + len(envelope.half_wired) + len(envelope.in_process)
     detail = (
         "the wall's four walker-invisible channels have not grown; "
         f"channel D's {len(wire.carrying)} wire site(s) carry the version; "
-        f"channel C's {len(envelope.wire_borne)} of {scored} scored seam(s) cross on a wire"
+        f"channel C's {len(envelope.wire_borne)} of {scored} scored seam(s) cross on a wire; "
+        f"channel E's {len(satisfaction.crossings)} structural crossing(s) are satisfied by the "
+        "world class they were frozen against"
     )
     if envelope.legless:
         # NOT a refusal -- the leg-blind fallback is never weaker than the reading it replaced.

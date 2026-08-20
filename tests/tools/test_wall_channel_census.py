@@ -735,6 +735,41 @@ def test_THE_LIVE_WIRE_SITES_ALL_RESOLVE_TO_A_PUBLISHED_KEY():
 # ok. A control whose caller discards its verdict is a control that cannot fail, so the caller
 # gets its own mutation.
 
+def _conformant_E() -> wcc.SatisfactionVerdict:
+    """Channel E's success case: one Protocol, satisfied by one world class."""
+    return wcc.SatisfactionVerdict(
+        crossings={"company/b.py -> Feed": ("simulation/w.py::Impl",)}, internal=()
+    )
+
+
+def _pin_the_other_halves(monkeypatch) -> None:
+    """Force every half of `_wall_channel_census_check` GREEN except the one under test.
+
+    THE CLASS, stated once rather than re-learned per half: this gate step now runs FOUR checks
+    and returns one verdict. Any half left real runs against the fixture's fake index tree
+    `"0"*40`, raises, and hits its own fail-closed branch -- so "the gate refused" becomes evidence
+    about whichever half happened to fail first, and a NULL CONTROL fails while looking like a
+    defect in the half it was pointed at. Callers re-patch the one they are the subject of.
+
+    `check_satisfaction` is left REAL and fed the reading's own crossings as its baseline, so the
+    green path exercises the comparison rather than stubbing it out.
+    """
+    from tools import pre_commit_test_gate as gate
+
+    monkeypatch.setattr(gate, "_index_tree", lambda: "0" * 40)
+    monkeypatch.setattr(wcc, "census_at", lambda tree, root: {})
+    monkeypatch.setattr(wcc, "load_baseline", lambda *a, **k: {})
+    monkeypatch.setattr(wcc, "check", lambda *a, **k: _AlwaysOk())
+    monkeypatch.setattr(wcc, "wire_conformance_at", lambda **k: wcc.WireVerdict(
+        carrying=["a.py -> 10"], silent=[]
+    ))
+    monkeypatch.setattr(wcc, "envelope_wire_conformance_at", lambda **k: _conformant_C())
+    monkeypatch.setattr(wcc, "structural_satisfaction_at", lambda **k: _conformant_E())
+    monkeypatch.setattr(
+        wcc, "load_satisfaction_baseline", lambda *a, **k: dict(_conformant_E().crossings)
+    )
+
+
 def _gate_wire_branch(monkeypatch, *, wire: wcc.WireVerdict):
     """Run `_wall_channel_census_check` with the census and channel-C halves forced GREEN and the
     channel-D wire half forced to `wire`, so the verdict is attributable to that half alone.
@@ -743,14 +778,13 @@ def _gate_wire_branch(monkeypatch, *, wire: wcc.WireVerdict):
     armed (2026-08-20 pass 23). Left real, it would run against the fixture's fake index tree
     `"0"*40`, raise, and hit its own fail-closed branch -- at which point the NULL CONTROL below
     would fail while looking like a defect in channel D. Every half of a multi-part step has to be
-    pinned for any one of them to be a subject.
+    pinned for any one of them to be a subject. CHANNEL E was pinned for the same reason when it
+    armed (2026-08-20 pass 30) -- the third time this fixture has learned the same lesson, which is
+    why `_pin_the_other_halves` now exists rather than a fourth hand-written line.
     """
     from tools import pre_commit_test_gate as gate
 
-    monkeypatch.setattr(gate, "_index_tree", lambda: "0" * 40)
-    monkeypatch.setattr(wcc, "census_at", lambda tree, root: {})
-    monkeypatch.setattr(wcc, "load_baseline", lambda *a, **k: {})
-    monkeypatch.setattr(wcc, "check", lambda *a, **k: _AlwaysOk())
+    _pin_the_other_halves(monkeypatch)
     monkeypatch.setattr(wcc, "wire_conformance_at", lambda **k: wire)
     monkeypatch.setattr(wcc, "envelope_wire_conformance_at", lambda **k: _conformant_C())
     # The step short-circuits when no Python is staged, so the sample must contain some.
@@ -1815,13 +1849,7 @@ def _gate_envelope_branch(monkeypatch, *, envelope: wcc.EnvelopeWireVerdict):
     channel C forced to `envelope`, so the returned verdict is attributable to channel C alone."""
     from tools import pre_commit_test_gate as gate
 
-    monkeypatch.setattr(gate, "_index_tree", lambda: "0" * 40)
-    monkeypatch.setattr(wcc, "census_at", lambda tree, root: {})
-    monkeypatch.setattr(wcc, "load_baseline", lambda *a, **k: {})
-    monkeypatch.setattr(wcc, "check", lambda *a, **k: _AlwaysOk())
-    monkeypatch.setattr(
-        wcc, "wire_conformance_at", lambda **k: wcc.WireVerdict(carrying=["a.py -> 10"], silent=[])
-    )
+    _pin_the_other_halves(monkeypatch)
     monkeypatch.setattr(wcc, "envelope_wire_conformance_at", lambda **k: envelope)
     # The step short-circuits when no Python is staged, so the sample must contain some.
     return gate._wall_channel_census_check(["simulation/anything.py"])
@@ -2649,4 +2677,281 @@ def test_the_belt_check_is_part_of_the_CLIs_exit_code():
     assert any("second_belt.ok" in r for r in returns), (
         "second_belt_conformance reports but does not gate -- its red would be a printed line "
         "nothing acts on"
+    )
+
+
+# ── channel E's conformance: does a WORLD class actually satisfy the Protocol? ───────────────
+#
+# WHY THIS SECTION EXISTS (2026-08-20, pass 30). `enumerate_e` above answers a WIDTH -- how many
+# business-side Protocols are declared. The census module's own docstring names the limitation
+# that leaves: "Channel E's list is a SUPERSET ... not only those a world object satisfies." So
+# the width cannot tell a real wall crossing from a company-internal interface, and it is blind to
+# the failure mode SPECIFIC to structural typing: neither side declares the other, so a world-side
+# class that drifts out of shape breaks NOTHING at import time. There is no `implements` clause to
+# go stale, no envelope to fail decoding, no version to mismatch. Channels C and D cannot fail
+# this way, which is why E needed its own question rather than a copy of theirs.
+#
+# The mutations below were each run first against a probe tree built from `git archive HEAD` --
+# they are transcriptions of observed reds, not predictions of them.
+
+@pytest.fixture()
+def protocol_tree(tmp_path: Path) -> Path:
+    """A miniature repo with ONE business-side Protocol and ONE world class satisfying it.
+
+    Deliberately NOT the `tree` fixture above, whose `ReadArrival` is `pass` -- a memberless
+    Protocol is refused by this control on purpose (see the vacuity test), so the width fixture
+    cannot double as this one.
+    """
+    root = tmp_path / "repo"
+    _write(root, "company/billing/monthly_bill_assembly.py", """
+        from typing import Protocol
+
+
+        class ReadArrival(Protocol):
+            status: str
+            consecutive_estimated_count: int
+    """)
+    _write(root, "simulation/meter_reads.py", """
+        class MeterReadEvent:
+            customer_id: str
+            status: str
+            consecutive_estimated_count: int
+    """)
+    return root
+
+
+def _satisfaction_baseline(root: Path) -> dict[str, tuple[str, ...]]:
+    return dict(wcc.structural_satisfaction(str(root)).crossings)
+
+
+def test_a_world_class_satisfying_a_business_Protocol_is_read_as_a_crossing(protocol_tree):
+    verdict = wcc.structural_satisfaction(str(protocol_tree))
+    assert verdict.crossings == {
+        "company/billing/monthly_bill_assembly.py -> ReadArrival": (
+            "simulation/meter_reads.py::MeterReadEvent",
+        )
+    }, verdict.report()
+    assert verdict.internal == ()
+
+
+def test_a_clean_tree_passes_its_own_satisfaction_baseline(protocol_tree):
+    drift = wcc.check_satisfaction(
+        wcc.structural_satisfaction(str(protocol_tree)), _satisfaction_baseline(protocol_tree)
+    )
+    assert drift.ok, drift.report()
+
+
+def test_MUTATION_the_world_renaming_a_field_is_DRIFT_and_fails(protocol_tree):
+    """THE DEFECT THIS CONTROL EXISTS FOR, and the one nothing else in the repo can see.
+
+    The company still declares the Protocol; the world class no longer has `status`. Structural
+    typing means no import fails and no decode fails -- the company just reads an attribute that
+    is not there any more.
+    """
+    baseline = _satisfaction_baseline(protocol_tree)
+    _write(protocol_tree, "simulation/meter_reads.py", """
+        class MeterReadEvent:
+            customer_id: str
+            read_status: str
+            consecutive_estimated_count: int
+    """)
+    drift = wcc.check_satisfaction(wcc.structural_satisfaction(str(protocol_tree)), baseline)
+    assert not drift.ok, drift.report()
+    assert drift.drifted == {
+        "company/billing/monthly_bill_assembly.py -> ReadArrival": (
+            "simulation/meter_reads.py::MeterReadEvent",
+        )
+    }
+    assert not drift.appeared, "a rename is drift, not a new crossing: " + drift.report()
+
+
+def test_MUTATION_a_NEW_world_satisfier_is_an_unexamined_crossing_and_fails(protocol_tree):
+    baseline = _satisfaction_baseline(protocol_tree)
+    _write(protocol_tree, "simulation/second_feed.py", """
+        class SecondReadEvent:
+            status: str
+            consecutive_estimated_count: int
+    """)
+    drift = wcc.check_satisfaction(wcc.structural_satisfaction(str(protocol_tree)), baseline)
+    assert not drift.ok, drift.report()
+    assert drift.appeared == {
+        "company/billing/monthly_bill_assembly.py -> ReadArrival": (
+            "simulation/second_feed.py::SecondReadEvent",
+        )
+    }
+    assert not drift.drifted, "the original satisfier still satisfies: " + drift.report()
+
+
+def test_FAIL_OPEN_an_empty_world_population_refuses_rather_than_reporting_no_crossings(
+    protocol_tree,
+):
+    """THIS CONTROL'S FAIL-OPEN, named and closed.
+
+    With no world classes every Protocol reads as company-internal, which prints the reassuring
+    answer -- "nothing crosses structurally" -- from a measurement that looked at nothing.
+    """
+    (protocol_tree / "simulation" / "meter_reads.py").unlink()
+    with pytest.raises(wcc.CensusUnavailable, match="empty satisfier population"):
+        wcc.structural_satisfaction(str(protocol_tree))
+
+
+def test_FAIL_CLOSED_a_memberless_Protocol_refuses_rather_than_being_satisfied_by_everything(
+    protocol_tree,
+):
+    """Emptying the Protocol is the cheapest way to make this check say whatever you want: a
+    requirement of no members is a subset of every class in the tree."""
+    _write(protocol_tree, "company/billing/monthly_bill_assembly.py", """
+        from typing import Protocol
+
+
+        class ReadArrival(Protocol):
+            ...
+    """)
+    with pytest.raises(wcc.CensusUnavailable, match="declare no members"):
+        wcc.structural_satisfaction(str(protocol_tree))
+
+
+def test_NULL_CONTROL_a_COMPANY_side_class_satisfying_the_Protocol_is_NOT_a_crossing(
+    protocol_tree,
+):
+    """Moves the sample, not the law. Without this pin the control is satisfiable by a company
+    test double and would report crossings that do not exist -- and `SATISFIER_DIRS` would be
+    free to widen to `WALL_DIRS`, which contains both sides of the wall."""
+    baseline = _satisfaction_baseline(protocol_tree)
+    _write(protocol_tree, "company/billing/fake_feed.py", """
+        class CompanySideDouble:
+            status: str
+            consecutive_estimated_count: int
+    """)
+    verdict = wcc.structural_satisfaction(str(protocol_tree))
+    assert verdict.crossings == baseline, verdict.report()
+    assert wcc.check_satisfaction(verdict, baseline).ok
+
+
+def test_NULL_CONTROL_an_unrelated_world_class_does_not_become_a_satisfier(protocol_tree):
+    baseline = _satisfaction_baseline(protocol_tree)
+    _write(protocol_tree, "simulation/weather.py", """
+        class WeatherHour:
+            temperature_c: float
+    """)
+    assert wcc.check_satisfaction(
+        wcc.structural_satisfaction(str(protocol_tree)), baseline
+    ).ok
+
+
+def test_a_Protocol_that_LEAVES_the_tree_is_paid_down_and_passes(protocol_tree):
+    """The success case must not red, or the control gets relaxed and takes the real reds with
+    it. A satisfier vanishing WITH its Protocol is a paydown; vanishing WITHOUT it is drift."""
+    baseline = _satisfaction_baseline(protocol_tree)
+    _write(protocol_tree, "company/billing/monthly_bill_assembly.py", '"""no Protocol now."""\n')
+    drift = wcc.check_satisfaction(wcc.structural_satisfaction(str(protocol_tree)), baseline)
+    assert drift.ok, drift.report()
+    assert drift.paid_down == ("company/billing/monthly_bill_assembly.py -> ReadArrival",)
+
+
+def test_FAIL_CLOSED_a_baseline_with_no_satisfaction_object_raises(tmp_path):
+    path = tmp_path / "no_key.json"
+    path.write_text(json.dumps({"frozen": {}}), encoding="utf-8")
+    with pytest.raises(wcc.CensusUnavailable, match="has no `E_structural_satisfaction`"):
+        wcc.load_satisfaction_baseline(path)
+
+
+def test_THE_LIVE_WALL_HAS_NOT_DRIFTED():
+    """The shipped reading, against the shipped baseline. This is the one that gates."""
+    verdict = wcc.structural_satisfaction_at(worktree=True)
+    drift = wcc.check_satisfaction(verdict, wcc.load_satisfaction_baseline())
+    assert drift.ok, drift.report()
+
+
+def test_the_satisfaction_check_is_part_of_the_CLIs_exit_code():
+    """R11's no-orphan-transitions rule: a check whose red changes nothing is not a gate."""
+    import ast
+
+    source = (Path(wcc.__file__).parent.parent / "tools" / "wall_channel_census.py").read_text()
+    returns = [
+        ast.unparse(n.value) for n in ast.walk(ast.parse(source))
+        if isinstance(n, ast.Return) and n.value is not None
+    ]
+    assert any("drift.ok" in r for r in returns), (
+        "structural_satisfaction reports but does not gate -- its red would be a printed line "
+        "nothing acts on"
+    )
+
+
+# ── the GATE's channel-E branch ──────────────────────────────────────────────────────────────
+#
+# A CHECK THAT REPORTS IS NOT A GATE (R11, no orphan transitions). The CLI exit-code test above
+# proves the reading reaches `main`'s return; this proves it reaches the thing that actually runs
+# on every commit. The distinction is not academic here -- nobody types the CLI, and channel C
+# spent passes 19-22 green in the tool and unarmed in the gate.
+#
+# THE MUTATIONS MOVE THE VERDICT AND NOTHING ELSE: the other three halves are forced green by
+# `_pin_the_other_halves`, so a refusal is attributable to channel E alone.
+
+def _gate_satisfaction_branch(monkeypatch, *, verdict, baseline):
+    from tools import pre_commit_test_gate as gate
+
+    _pin_the_other_halves(monkeypatch)
+    monkeypatch.setattr(wcc, "structural_satisfaction_at", lambda **k: verdict)
+    monkeypatch.setattr(wcc, "load_satisfaction_baseline", lambda *a, **k: baseline)
+    return gate._wall_channel_census_check(["simulation/anything.py"])
+
+
+def test_NULL_CONTROL_the_GATE_passes_a_conformant_channel_E(monkeypatch):
+    """Move the sample, not the law: without this, every mutation below is satisfied by a gate
+    that refuses everything."""
+    ok, detail = _gate_satisfaction_branch(
+        monkeypatch, verdict=_conformant_E(), baseline=dict(_conformant_E().crossings)
+    )
+    assert ok, detail
+    assert "channel E's 1 structural crossing(s)" in detail, detail
+
+
+def test_MUTATION_the_GATE_refuses_a_tree_whose_world_class_DRIFTED(monkeypatch):
+    """THE DEFECT, at the gate: the Protocol is still declared, the frozen satisfier no longer
+    satisfies it, and no import or decode anywhere in the repo breaks."""
+    ok, detail = _gate_satisfaction_branch(
+        monkeypatch,
+        verdict=wcc.SatisfactionVerdict(crossings={}, internal=("company/b.py -> Feed",)),
+        baseline=dict(_conformant_E().crossings),
+    )
+    assert not ok, "a drifted structural crossing was allowed to commit"
+    assert "DRIFTED on channel E" in detail and "simulation/w.py::Impl" in detail, (
+        "the refusal must carry the diagnostic payload (R5): " + detail
+    )
+
+
+def test_MUTATION_the_GATE_refuses_an_unexamined_NEW_structural_crossing(monkeypatch):
+    ok, detail = _gate_satisfaction_branch(
+        monkeypatch,
+        verdict=wcc.SatisfactionVerdict(
+            crossings={"company/b.py -> Feed": ("simulation/w.py::Impl", "simulation/w.py::New")},
+            internal=(),
+        ),
+        baseline=dict(_conformant_E().crossings),
+    )
+    assert not ok, "a new structural crossing committed without being looked at"
+    assert "NEW structural crossing" in detail and "simulation/w.py::New" in detail, detail
+
+
+def test_FAIL_CLOSED_the_GATE_refuses_when_the_channel_E_reading_RAISES(monkeypatch):
+    """R15 FAIL-SILENT: an unavailable check is a FAILED check. Without this branch, deleting the
+    SIM trees -- which makes `structural_satisfaction` refuse -- would be a way to commit."""
+    def _boom(**kwargs):
+        raise wcc.CensusUnavailable("empty satisfier population")
+
+    from tools import pre_commit_test_gate as gate
+
+    _pin_the_other_halves(monkeypatch)
+    monkeypatch.setattr(wcc, "structural_satisfaction_at", _boom)
+    ok, detail = gate._wall_channel_census_check(["simulation/anything.py"])
+    assert not ok and "channel-E satisfaction RAISED" in detail, detail
+
+
+def test_the_GATE_names_channel_E_in_its_own_source(monkeypatch):
+    """The arming, asserted against the file rather than described in a record -- the check pass 24
+    had to run a git-grep for because a landing defect and a control defect read identically."""
+    source = (Path(wcc.__file__).parent.parent / "tools" / "pre_commit_test_gate.py").read_text()
+    assert "structural_satisfaction_at" in source and "drift.ok" in source, (
+        "channel E's conformance is not wired into the commit gate"
     )

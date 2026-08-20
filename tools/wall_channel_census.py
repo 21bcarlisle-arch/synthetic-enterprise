@@ -2033,6 +2033,184 @@ def second_belt_conformance_at(
         return second_belt_conformance(root)
 
 
+# ── channel E's conformance: does a WORLD class actually satisfy the Protocol? ───────────────
+#
+# WHY (2026-08-20, pass 30 -- this is the oldest un-progressed item on the atom, filed at pass 22
+# as "four of six channels have no conformance question" and unchanged for seven passes).
+# `enumerate_e` answers "how many business-side Protocols are declared", which is a WIDTH. The
+# module docstring names its own limitation: "Channel E's list is a SUPERSET. It enumerates every
+# `Protocol` declared business-side, not only those a world object satisfies." So the width cannot
+# tell a real wall crossing from a company-internal interface, and it is blind to the failure mode
+# that is SPECIFIC to structural typing: neither side declares the other, so when the world-side
+# class drifts out of shape NOTHING BREAKS AT IMPORT TIME. There is no `implements` clause to go
+# stale, no envelope to fail decoding, no version to mismatch. The company simply starts reading an
+# attribute that is no longer there. Channels C and D cannot fail this way and that is exactly why
+# E needed its own question rather than a copy of theirs.
+#
+# THE UNIT IS THE (PROTOCOL, WORLD SATISFIER) PAIR, frozen in the baseline, so the reading reds in
+# BOTH directions: a world class that STOPS satisfying (the silent drift above) and a world class
+# that STARTS satisfying (a new structural crossing nobody looked at).
+#
+# NOT A PROSE SCAN, ON PURPOSE -- the same discipline pass 29 installed for the conversation belt.
+# Both Protocols here NAME their world-side implementor in a docstring ("the world's own
+# `MeterReadEvent` satisfies it as-is"), and reading that sentence would score the DOCUMENTATION as
+# evidence the coupling holds. It is the sentence that stays true while the code drifts. Membership
+# is computed from the class bodies on both sides instead.
+
+#: Only these trees can hold a SATISFIER. A company-side class satisfying a company-side Protocol
+#: is ordinary internal typing and NOT a wall crossing -- without this pin, "the Protocol is
+#: satisfied" would be answerable by a test double and the control would report crossings that do
+#: not exist. Deliberately not `WALL_DIRS`, which contains both sides.
+SATISFIER_DIRS: tuple[str, ...] = tuple(sorted(SIM_PACKAGES))
+
+
+def _protocol_members(node: ast.ClassDef) -> set[str]:
+    """The names a Protocol requires: annotated attributes and declared methods.
+
+    Dunders are excluded -- `object` supplies them, so counting them would make every class a
+    satisfier of any Protocol that declared one.
+    """
+    out: set[str] = set()
+    for stmt in node.body:
+        if isinstance(stmt, ast.AnnAssign) and isinstance(stmt.target, ast.Name):
+            out.add(stmt.target.id)
+        elif isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if not (stmt.name.startswith("__") and stmt.name.endswith("__")):
+                out.add(stmt.name)
+    return out
+
+
+def _class_members(node: ast.ClassDef) -> set[str]:
+    """The names a class provides: annotated fields (dataclasses), plain class attrs, methods."""
+    out: set[str] = set()
+    for stmt in node.body:
+        if isinstance(stmt, ast.AnnAssign) and isinstance(stmt.target, ast.Name):
+            out.add(stmt.target.id)
+        elif isinstance(stmt, ast.Assign):
+            out.update(t.id for t in stmt.targets if isinstance(t, ast.Name))
+        elif isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            out.add(stmt.name)
+    return out
+
+
+def _world_classes(root: str) -> list[tuple[str, str, set[str]]]:
+    """Every class declared in the SIM trees, as (rel path, class name, member names)."""
+    found: list[tuple[str, str, set[str]]] = []
+    for top in SATISFIER_DIRS:
+        for dirpath, _dirnames, filenames in os.walk(os.path.join(root, top)):
+            for fn in sorted(filenames):
+                if not fn.endswith(".py"):
+                    continue
+                path = os.path.join(dirpath, fn)
+                tree = _parse(path)
+                if tree is None:
+                    continue
+                rel = os.path.relpath(path, root).replace(os.sep, "/")
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.ClassDef):
+                        found.append((rel, node.name, _class_members(node)))
+    return found
+
+
+def _business_protocols(root: str) -> list[tuple[str, str, set[str]]]:
+    """Every business-side Protocol, as (rel path, class name, required member names).
+
+    Same subject as `enumerate_e` and found the same way, so the conformance question and the
+    width are asking about one population rather than two that can drift apart.
+    """
+    found: list[tuple[str, str, set[str]]] = []
+    for path, rel in _business_py_files(root):
+        tree = _parse(path)
+        if tree is None:
+            continue
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef) and _protocol_base(node):
+                found.append((rel, node.name, _protocol_members(node)))
+    return found
+
+
+@dataclass(frozen=True)
+class SatisfactionVerdict:
+    """Channel E's structural conformance: which Protocols a world class actually satisfies.
+
+    `crossings` maps `file -> Name` to the sorted world-side satisfiers. `internal` are Protocols
+    no world class satisfies -- company-internal typing, reported so the partition is visible and
+    the superset is measured rather than assumed.
+    """
+
+    crossings: dict[str, tuple[str, ...]]
+    internal: tuple[str, ...]
+
+    def report(self) -> str:
+        total = len(self.crossings) + len(self.internal)
+        lines = [
+            f"channel E structural satisfaction: {len(self.crossings)} of {total} "
+            "business-side Protocol(s) are satisfied by a world class"
+        ]
+        for entry in sorted(self.crossings):
+            lines.append(f"    * {entry} -- satisfied by {', '.join(self.crossings[entry])}")
+        for entry in self.internal:
+            lines.append(f"    - {entry} -- no world class satisfies it, so it is not a crossing")
+        return "\n".join(lines)
+
+
+def structural_satisfaction(root: str) -> SatisfactionVerdict:
+    """THE READING. Which channel-E Protocols are real wall crossings, and satisfied by what.
+
+    FAIL-CLOSED, and the first branch is the one that matters most here:
+      * the SIM trees yield NO classes -> `CensusUnavailable`. This is this control's fail-open.
+        An empty satisfier population makes every Protocol look internal, which reports "nothing
+        crosses structurally" -- the reassuring answer -- from a measurement that looked at
+        nothing. "Could not look" and "found nothing" are the same number and opposite facts.
+      * a Protocol declares NO members -> `CensusUnavailable`. An empty requirement is satisfied by
+        every class in the tree, so it can neither be a meaningful crossing nor a meaningful
+        internal, and emptying a Protocol is the cheapest way to make this check say what you want.
+      * NO business-side Protocols at all -> NOT refused. Channel E fully paid down is a legitimate
+        reading and a control pinned to a non-zero count reds on its own success case.
+    """
+    protocols = _business_protocols(root)
+    if not protocols:
+        return SatisfactionVerdict(crossings={}, internal=())
+
+    memberless = sorted(_entry(rel, name) for rel, name, members in protocols if not members)
+    if memberless:
+        raise CensusUnavailable(
+            f"{len(memberless)} channel-E Protocol(s) declare no members: {memberless} -- an empty "
+            "requirement is satisfied by every class in the tree, so this is a failed check, not a "
+            "pass"
+        )
+
+    world = _world_classes(root)
+    if not world:
+        raise CensusUnavailable(
+            f"no classes found in {list(SATISFIER_DIRS)} -- refusing to measure an empty satisfier "
+            "population, which would report every Protocol as company-internal without looking"
+        )
+
+    crossings: dict[str, tuple[str, ...]] = {}
+    internal: list[str] = []
+    for rel, name, members in protocols:
+        satisfiers = tuple(
+            sorted(f"{wrel}::{wname}" for wrel, wname, wmembers in world if members <= wmembers)
+        )
+        entry = _entry(rel, name)
+        if satisfiers:
+            crossings[entry] = satisfiers
+        else:
+            internal.append(entry)
+    return SatisfactionVerdict(crossings=crossings, internal=tuple(sorted(internal)))
+
+
+def structural_satisfaction_at(
+    rev: str = "HEAD", worktree: bool = False, repo_root: Path = PROJECT_DIR
+) -> SatisfactionVerdict:
+    """`structural_satisfaction` against the worktree, or against the tree at `rev`."""
+    if worktree:
+        return structural_satisfaction(str(repo_root))
+    with head_export(str(repo_root), CENSUS_DIRS, rev=rev) as root:
+        return structural_satisfaction(root)
+
+
 ENUMERATORS = {
     "A_direct_import": enumerate_a,
     "B_indirect_import": enumerate_b,
@@ -2165,8 +2343,95 @@ def check(current: dict[str, set[str]], baseline: dict[str, set[str]]) -> Verdic
     return Verdict(new=new, gone=gone)
 
 
-def freeze_payload(current: dict[str, set[str]], rev: str) -> dict:
-    return {
+SATISFACTION_KEY = "E_structural_satisfaction"
+
+
+def load_satisfaction_baseline(path: Path = BASELINE_PATH) -> dict[str, tuple[str, ...]]:
+    """The frozen (Protocol -> world satisfiers) map. Missing is a FAILED check, not a pass."""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            raw = json.load(fh)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise CensusUnavailable(f"baseline {path} is unreadable: {exc}") from exc
+    frozen = raw.get(SATISFACTION_KEY)
+    if not isinstance(frozen, dict):
+        raise CensusUnavailable(
+            f"baseline {path} has no `{SATISFACTION_KEY}` object -- channel E's conformance "
+            "question has no frozen answer to compare against, which is a failed check"
+        )
+    return {entry: tuple(sorted(sats)) for entry, sats in frozen.items()}
+
+
+@dataclass(frozen=True)
+class SatisfactionDrift:
+    """What changed about who satisfies what.
+
+    `drifted` is THE FAILURE and the reason this control exists: a Protocol still declared
+    business-side whose frozen world satisfier no longer satisfies it. Structural typing means
+    that breaks nothing at import time, so this is the only place it can surface.
+    `appeared` is a new structural crossing -- also a failure, because nobody has looked at it.
+    `paid_down` is a Protocol that left the tree entirely: the success case, recorded and tolerated.
+    """
+
+    drifted: dict[str, tuple[str, ...]]
+    appeared: dict[str, tuple[str, ...]]
+    paid_down: tuple[str, ...]
+
+    @property
+    def ok(self) -> bool:
+        return not self.drifted and not self.appeared
+
+    def report(self) -> str:
+        lines: list[str] = []
+        for entry, lost in sorted(self.drifted.items()):
+            lines.append(
+                f"DRIFTED on channel E -- {entry} is still declared and {', '.join(lost)} no "
+                "longer satisfies it; structural typing breaks silently, so nothing else catches "
+                "this"
+            )
+        for entry, gained in sorted(self.appeared.items()):
+            lines.append(
+                f"NEW structural crossing on channel E -- {entry} is now satisfied by "
+                f"{', '.join(gained)}, which has not been looked at"
+            )
+        for entry in self.paid_down:
+            lines.append(f"paid down on channel E -- {entry} left the tree; re-freeze to record")
+        return "\n".join(lines) or "channel E: every Protocol is satisfied by exactly who it was."
+
+
+def check_satisfaction(
+    current: SatisfactionVerdict, baseline: dict[str, tuple[str, ...]]
+) -> SatisfactionDrift:
+    """Compare the satisfaction reading against its frozen answer.
+
+    A satisfier that vanishes while its Protocol REMAINS is drift (red). A satisfier that vanishes
+    because the whole Protocol left the tree is a paydown (green, recorded) -- the same split the
+    width ratchet makes, applied to the finer unit.
+    """
+    declared = set(current.crossings) | set(current.internal)
+    drifted, appeared = {}, {}
+    paid_down = []
+    for entry, frozen_sats in baseline.items():
+        if entry not in declared:
+            paid_down.append(entry)
+            continue
+        have = set(current.crossings.get(entry, ()))
+        lost = tuple(sorted(set(frozen_sats) - have))
+        if lost:
+            drifted[entry] = lost
+    for entry, sats in current.crossings.items():
+        gained = tuple(sorted(set(sats) - set(baseline.get(entry, ()))))
+        if gained:
+            appeared[entry] = gained
+    return SatisfactionDrift(
+        drifted=drifted, appeared=appeared, paid_down=tuple(sorted(paid_down))
+    )
+
+
+def freeze_payload(
+    current: dict[str, set[str]], rev: str, satisfaction: SatisfactionVerdict | None = None
+) -> dict:
+    payload = {
         "_meta": {
             "title": "The wall's per-channel census -- shrink-only list",
             "atom": "EP6_wall_protocol_typing",
@@ -2185,6 +2450,11 @@ def freeze_payload(current: dict[str, set[str]], rev: str) -> dict:
         },
         "frozen": {cid: sorted(current[cid]) for cid in FROZEN_CHANNEL_IDS},
     }
+    if satisfaction is not None:
+        payload[SATISFACTION_KEY] = {
+            entry: list(sats) for entry, sats in sorted(satisfaction.crossings.items())
+        }
+    return payload
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -2205,10 +2475,20 @@ def main(argv: list[str] | None = None) -> int:
     for cid in CHANNEL_IDS:
         print(f"  {cid:<24} {len(current[cid]):>4} member(s)")
 
+    try:
+        satisfaction = structural_satisfaction_at(rev=args.rev, worktree=args.worktree)
+    except CensusUnavailable as exc:
+        print(
+            f"CHANNEL E SATISFACTION UNAVAILABLE (a failed check, not a pass): {exc}",
+            file=sys.stderr,
+        )
+        return 2
+
     if args.freeze:
         rev = "worktree" if args.worktree else args.rev
         BASELINE_PATH.write_text(
-            json.dumps(freeze_payload(current, rev), indent=2) + "\n", encoding="utf-8"
+            json.dumps(freeze_payload(current, rev, satisfaction), indent=2) + "\n",
+            encoding="utf-8",
         )
         print(f"froze {BASELINE_PATH.relative_to(PROJECT_DIR)} at {rev}")
         return 0
@@ -2281,13 +2561,32 @@ def main(argv: list[str] | None = None) -> int:
         print(f"PROVENANCE UNAVAILABLE (a failed check, not a pass): {exc}", file=sys.stderr)
         return 2
 
+    # GATES FROM ITS FIRST COMMIT, by the rule this file has now stated three times: a check
+    # becomes a gate "in the same commit that makes it satisfiable". Both channel-E Protocols are
+    # satisfied by exactly one world class each at HEAD and the freeze records that, so the only
+    # commits this can refuse are commits that break a structural crossing or add one -- its
+    # subject, not its collateral.
+    print(satisfaction.report())
+    try:
+        drift = check_satisfaction(satisfaction, load_satisfaction_baseline())
+    except CensusUnavailable as exc:
+        print(
+            f"CHANNEL E BASELINE UNAVAILABLE (a failed check, not a pass): {exc}", file=sys.stderr
+        )
+        return 2
+    print(drift.report())
+
     try:
         verdict = check(current, load_baseline())
     except CensusUnavailable as exc:
         print(f"BASELINE UNAVAILABLE (a failed check, not a pass): {exc}", file=sys.stderr)
         return 2
     print(verdict.report())
-    return 0 if (verdict.ok and wire.ok and surface_pins.ok and second_belt.ok) else 1
+    return (
+        0
+        if (verdict.ok and wire.ok and surface_pins.ok and second_belt.ok and drift.ok)
+        else 1
+    )
 
 
 if __name__ == "__main__":  # pragma: no cover
