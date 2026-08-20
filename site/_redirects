@@ -20,10 +20,15 @@
 #                    links. Without the rule every page load takes a 404 on it. Nobody typed
 #                    it and nobody bookmarked it; the browser asks regardless.
 #
-#   www           -- people type www.poesys.net. That is a live habit, not a historical link,
-#                    and without this rule the canonical host is simply not reached.
+# AND ONE THAT WENT THE SAME DAY IT WAS KEPT. I kept a `www.poesys.net/* -> poesys.net/:splat`
+# rule on the reasoning that "people type www". Then I checked, and www.poesys.net HAS NO DNS
+# RECORD -- `getent hosts www.poesys.net` returns nothing, curl cannot connect. A request to
+# www never reaches Cloudflare Pages at all, so the rule could not fire for anyone, ever. I had
+# kept it on a belief while deleting thirty-eight rules for being kept on a belief.
+#
+# If www is ever pointed at this site, it is one line, added back with a reason that has been
+# checked rather than assumed.
 #
 # Anything added here in future should have to answer the same question: whose journey breaks
 # without it, today?
 /favicon.ico /favicon.svg 301
-https://www.poesys.net/* https://poesys.net/:splat 301

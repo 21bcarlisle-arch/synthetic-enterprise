@@ -455,11 +455,17 @@ def test_the_only_redirects_left_are_the_ones_a_reader_actually_needs():
     unprompted -- not URLs preserved because deleting them felt risky."""
     lines = [l.strip() for l in (SITE / "_redirects").read_text(encoding="utf-8").splitlines()
              if l.strip() and not l.strip().startswith("#")]
-    assert len(lines) <= 2, (
-        f"{len(lines)} redirect rules; the ruling of 2026-08-20 left two. A new one needs an "
+    assert len(lines) <= 1, (
+        f"{len(lines)} redirect rules; the ruling of 2026-08-20 left ONE. A new one needs an "
         f"answer to 'whose journey breaks without it, today?' -- not a page that used to exist. "
         f"Rules: {lines}"
     )
     sources = [l.split()[0] for l in lines]
     assert any("favicon" in s for s in sources), "the favicon rule went -- browsers request it unprompted"
-    assert any("www." in s for s in sources), "the www canonicalisation went -- people type it"
+    # The www rule was kept for half a day on the reasoning that "people type www", then deleted
+    # once checked: www.poesys.net has no DNS record, so the rule could never fire. If it comes
+    # back it needs a checked reason, which is why its absence is asserted rather than tolerated.
+    assert not any("www." in s for s in sources), (
+        "a www rule is back. www.poesys.net had no DNS record on 2026-08-20, so such a rule "
+        "cannot fire -- if that has changed, say so here rather than restoring it silently"
+    )
