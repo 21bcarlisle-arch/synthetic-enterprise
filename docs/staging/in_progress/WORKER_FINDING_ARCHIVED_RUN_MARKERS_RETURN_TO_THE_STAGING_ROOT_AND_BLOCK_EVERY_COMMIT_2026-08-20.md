@@ -1,5 +1,18 @@
 **Severity:** BLOCKING · **Lane:** H_harness
 
+> **STILL OPEN, AND WHAT IS OPEN IS THE CAUSE.** Step 1 below — the instrument — is BUILT
+> (`background/staging_root_resurrection_watch.py`, wired into `tools/surgical_land.py::_land_once`
+> around `run_gate`, R15-proven three ways in
+> `tests/background/test_staging_root_resurrection_watch.py`). Steps 2 and 3 are NOT done: the
+> writer is still unidentified and this document still names no cause.
+>
+> **What unblocks it: the next occurrence.** The condition is not live as I write this (1 root
+> marker, 0 twins, `finding_classes --check` green), so there is nothing to measure yet. The
+> instrument now records the wall-clock, the per-file mtimes, whether the bytes were already git
+> objects, and the process table, against the named landing it happened inside. When a record
+> appears in `docs/observability/staging_root_resurrection.jsonl`, read it and close this.
+> Do NOT close this on a reading of the code — see "The generalisable half" at the bottom.
+
 # Archived run markers keep coming back to the staging root, and while they are there NO commit on this tree can pass the gate
 
 **This document deliberately does not name a cause.** I proposed two and measured both to be
@@ -46,15 +59,38 @@ mechanism, not an accident.
 
 ## Where to look, in order
 
-1. **Instrument the write.** No `inotifywait` on this box; a small watcher that stats the ten
-   paths every second and records the wall-clock of each reappearance would settle in minutes
-   what an hour of reading did not. The one strong clue already in hand: an earlier batch all
-   returned with an **identical mtime (21:26:11)** — a single simultaneous event, not a drip.
-   Whatever does this restores the set at once.
+1. ~~**Instrument the write.**~~ **BUILT 2026-08-20** — `background/staging_root_resurrection_watch.py`.
+   No `inotifywait` on this box, and a 1-second daemon would be a new undeclared process, so the
+   instrument is a **bracket** rather than a watcher: it censuses the real staging root either
+   side of the gate in `surgical_land._land_once` and records anything that appeared, against
+   that landing's message and window. That window is not a guess — `git reflog` puts
+   `surgical-land` for `6b6f364f5` at **21:26:51**, forty seconds after the identical-mtime batch
+   at **21:26:11**, so the reappearance happened *inside* a gate run. A bounded foreground
+   `--watch` poller is provided for the live case; nothing starts it.
+
+   The record's discriminating field is **`all_bytes_known_to_git`**: `git hash-object` the bytes
+   on disk and ask whether that object is already in the store. True for the whole batch means
+   these bytes were committed here before — a checkout/reset/merge/saved-copy **restore**. False
+   means something **composed** them. That one boolean rules out an entire half of the candidate
+   space and neither of the two wrong answers had it. Alongside it: per-file `mtime_ns` and a
+   `single_mtime` flag (one mtime for a batch = simultaneous restore; a spread = a producer
+   dripping), `tracked_at_head`, the twin's strict-superset status, and **the process table taken
+   at the moment of detection** — the one fact that expires and that no later reading recovers.
 2. **Anything that runs `git` against the working tree.** A simultaneous restore of exactly the
    tracked-at-HEAD set is the signature of a checkout, a stash pop, or a reset — not of a
    producer writing files one at a time. `tools/surgical_land.py`, the publish gate's HEAD
    checkout, and the fork/worktree reconcilers are all candidates and none has been checked.
+
+   *Partial, 2026-08-20, and labelled as what it is: **inferred from reading, not measured.***
+   `surgical_land`'s every `git` call against the real root is `read-tree` **without `-u`**,
+   `add`/`update-index`/`hash-object`/`write-tree` under a throwaway `GIT_INDEX_FILE`, and
+   `commit-tree`/`update-ref` — none of which writes the working tree; `_overlay_untracked_data`
+   copies root→checkout, the wrong direction. `git worktree list` shows **eleven** other working
+   trees against this repo (`/tmp/ep6-worktree`, `/tmp/k3wt`, `.claude/worktrees/agent-*`, …),
+   and none of them has been checked. **This is exactly the kind of reasoning that produced the
+   two wrong answers — treat it as a hint about where to look, never as a ruling-out.** The
+   ruled-out table above is measurements; this paragraph is not, and it is kept separate for
+   that reason.
 3. **Only then read the publisher.** It was the obvious suspect and it is the one thing
    already proven innocent.
 

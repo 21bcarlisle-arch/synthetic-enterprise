@@ -134,6 +134,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from background import staging_root_resurrection_watch  # noqa: E402  (same reason)
 from background.tree_lock import tree_lock  # noqa: E402  (needs the path insert above)
 
 # The gate is the repo's OWN hook, named in ONE place. Running a hand-picked subset here would
@@ -763,7 +764,15 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
     swept = sweep_stale_extracts()
     try:
         materialise(root, checkout, result_tree, parent, paths, swept=swept)
-        rc, output = run_gate(checkout, hook_rel)
+        # The gate is the window archived run markers have been observed returning to the staging
+        # root inside (WORKER_FINDING_ARCHIVED_RUN_MARKERS_RETURN_TO_THE_STAGING_ROOT..._2026-08-20:
+        # ten files, one shared mtime, forty seconds before this tool's own reflog entry). This
+        # bracket does not prevent that and does not claim a cause; it records the reappearance
+        # against THIS landing so the next occurrence names its own window. It cannot fail the
+        # landing -- every error inside it is swallowed and the body's exceptions pass through.
+        with staging_root_resurrection_watch.bracket(
+                root, "surgical-land gate: " + message.splitlines()[0][:80]):
+            rc, output = run_gate(checkout, hook_rel)
         tests = _test_summary(output)
         if rc != 0:
             raise LandingRefused(
