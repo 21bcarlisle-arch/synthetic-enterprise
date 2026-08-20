@@ -140,6 +140,16 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
 
 .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
   padding: 24px 0 30px; font-size: 11px; color: var(--muted); }
+
+.livefigs { max-width: 1060px; margin: 0 auto; padding: 0 56px 8px; }
+.livefigs .bl { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.lf-row { display: flex; flex-wrap: wrap; gap: 12px; }
+.lf { border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; min-width: 170px; background: var(--surface); }
+.lf .v { font-size: 24px; font-weight: 600; line-height: 1.1; }
+.lf .l { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.lf .c { font-size: 11px; color: var(--muted); margin-top: 5px; }
+.lf-prov { max-width: 1060px; font-size: 11px; color: var(--muted); margin-top: 10px; }
+@media (max-width: 640px) { .livefigs { padding: 0 14px 8px; } .lf { min-width: 100%; } }
 </style>
 </head>
 <body>
@@ -205,11 +215,24 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
     industrial and commercial accounts, not households. Residential accounts outnumber them and earn
     a rounding error of the revenue. Every per-customer figure on this site is therefore split by
     segment, each with its own denominator &mdash; the exact mix, account counts and per-segment unit
-    economics are on <a href="./company/">The Company</a>.</p>
+    economics are on <a href="./capabilities/">Capabilities</a>.</p>
   <p>Read the mission claim below with that in mind: the abatement thesis is about
     <em>households</em>, and the book that currently funds the lights is not. That gap is stated
     here rather than left for a reader to find, and closing it &mdash; changing what the company is
     <em>for</em>, or which customers it serves &mdash; is a director's call, not the machine's.</p>
+</section>
+
+<!-- THREE LIVE FIGURES (brief §4, Home: "three live figures with their date and provenance").
+     Added 2026-08-20. Not decoration and not a dashboard: these are the numbers whose
+     correctness the publish gate's seven remaining checks actually guard, and after the fold
+     retired /proof/ and /world/ they were guarded on no page a reader could open. A check whose
+     figure has no reader must not block publishing (director's rule, same day) -- so either the
+     checks go or the figures get a home. They get a home.
+     Every figure carries its clock, per R14: a basis-less number is a defect, not a style. -->
+<section class="livefigs" id="livefigs">
+  <div class="bl">Where the company stands, from the latest run</div>
+  <div class="lf-row" id="lf-row">Loading the latest run&hellip;</div>
+  <p class="lf-prov" id="lf-prov"></p>
 </section>
 
 <!-- MISSION block (DIRECTOR_RULING_FRONT_MISSION_BLOCK 2026-07-24): the falsifiable claim on
@@ -232,7 +255,7 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
     yet instrumented &mdash; no number is shown here until each household's half-hourly meter reads meet real
     grid carbon intensity. When it runs, the trajectory appears here first. The economics that would fund it
     &mdash; the true cost-to-serve gap &mdash; are worked through on
-    <a href="./proof/#economics-anchor">Proof</a>.</p>
+    <a href="./harness/">Harness</a>.</p>
 </section>
 
 <section class="moap">
@@ -253,63 +276,56 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
     <div class="node">
       <div class="node-head"><span class="node-name">Governance &amp; method</span><span class="stage stage-live">Live</span></div>
       <p class="node-say">One human sets the mission and the handful of decisions that can&rsquo;t be undone; AI designs, builds and tests the rest; a standing set of gates and rules steers everything below it and refuses work that would break them.</p>
-      <a class="node-look" href="./proof/#method-anchor">Look: how the machine checks its own work &rarr;</a>
+      <a class="node-look" href="./harness/#control-kpis">Look: which checks can actually fail &rarr;</a>
     </div>
     <div class="node">
       <div class="node-head"><span class="node-name">The world</span><span class="stage stage-building">Building</span></div>
       <p class="node-say">Real weather over 2016&ndash;2025 drives the actual half-hourly wholesale prices &mdash; 168,000 settlement periods, including the 2021&ndash;22 gas crisis. That price record is real. Per-home DEMAND is not there yet: today every property is one national shape rescaled, so homes look far too smooth and a crowd of them does not smooth out the way a real street does. The fabric-physics rebuild (a per-property thermal model driven by its own local weather) is the current top priority.</p>
-      <a class="node-look" href="./world/#causal-chain">Look: real weather moving real prices &rarr;</a>
+      <a class="node-look" href="./capabilities/#world">Look: how far the world has actually got &rarr;</a>
     </div>
     <div class="node">
       <div class="node-head"><span class="node-name">The households</span><span class="stage stage-live">Live</span></div>
       <p class="node-say">A fresh mix of synthetic households every run, each with hidden traits and a metered life the company has to discover from the outside. Their bigger life events &mdash; moves, new arrivals, income shocks &mdash; are being wired in next.</p>
-      <a class="node-look" href="./customers/#cust-who">Look: a household&rsquo;s year &rarr;</a>
+      <a class="node-look" href="./explore/#spine">Look: one household, end to end &rarr;</a>
     </div>
     <div class="node">
       <div class="node-head"><span class="node-name">The wall</span><span class="stage stage-live">Live</span></div>
       <p class="node-say">The company never sees inside the simulation. It learns its world only the way a real supplier would &mdash; market feeds, forecasts that carry error, imperfect meter reads, payments, complaints &mdash; and the settled truth about a period lands months after it happened.</p>
-      <a class="node-look" href="./world/#crossings">Look: what does and doesn&rsquo;t cross the wall &rarr;</a>
+      
     </div>
     <div class="node">
       <div class="node-head"><span class="node-name">The company</span><span class="stage stage-building">Building</span></div>
       <p class="node-say">One joined-up stack: win customers, forecast the book, price tariffs, hedge forward, bill on three clocks, chase what&rsquo;s owed, settle late and learn from the true-up. Billing, collections and the discovery loop run today; cost-to-serve, competitors and the cash-collateral death-loop are still to come. It can be wrong, and it can die.</p>
-      <a class="node-look" href="./company/#state-decisions">Look: what it believed vs what was true &rarr;</a>
+      
     </div>
     <div class="node">
       <div class="node-head"><span class="node-name">The score</span><span class="stage stage-building">Building</span></div>
       <p class="node-say">Three tests: survive a worst-case shock, earn on a probability-weighted basis, and abate &mdash; cut carbon per household, priced in &pound; per tonne. Survive and earn run today; the carbon meter is designed but not yet wired to live meter reads, and the site says so rather than pretend.</p>
-      <a class="node-look" href="./proof/#not-proven">Look: the score, including what isn&rsquo;t measured yet &rarr;</a>
+      <a class="node-look" href="./harness/#not-proven">Look: what we know is wrong &rarr;</a>
     </div>
   </div>
 </section>
 
 <div class="sec">Three ways in</div>
 <div class="doors-in">
-  <a class="door" href="./world/">
-    <div class="dp">Curious &middot; how it works</div>
-    <div class="dt">The World &gt;</div>
-    <div class="dd">The simulation, walkable: weather &rarr; wholesale price &rarr; segments &rarr; usage &rarr; bills &rarr; carbon. Each link opens onto live data and its external anchor -- Elexon, ONS, DESNZ, Ofgem.</div>
+  <a class="door" href="./knowledge/">
+    <div class="dp">Start here &middot; the domain</div>
+    <div class="dt">Knowledge &gt;</div>
+    <div class="dd">How the GB electricity and gas market actually works: where the wholesale price comes from, what the cap does and does not do, and how settlement really lands. Written for someone who does not work in energy.</div>
   </a>
-  <a class="door" href="./company/">
-    <div class="dp">Energy CEO / COO</div>
-    <div class="dt">The Company &gt;</div>
-    <div class="dd">The supplier as product: pricing, hedging, billing, credit &amp; collections, compliance -- real outputs from the latest run, never a feature list.</div>
+  <a class="door" href="./capabilities/">
+    <div class="dp">How far along is this?</div>
+    <div class="dt">Capabilities &gt;</div>
+    <div class="dd">The simulated world and the supplier inside it, side by side, with what exists today and what does not. Includes the seam inventory -- every place the simulation would be swapped for a real counterparty.</div>
   </a>
-  <a class="door" href="./proof/">
-    <div class="dp">Domain expert / skeptic</div>
-    <div class="dt">Proof &gt;</div>
-    <div class="dd">Fidelity results including the failures, a claim-status on every figure, corrections rendered in place, and a challenge channel -- the page an expert checks first.</div>
+  <a class="door" href="./explore/">
+    <div class="dp">See it working</div>
+    <div class="dt">Explore &gt;</div>
+    <div class="dd">One real household followed from the day its tariff was priced to the day its worth was judged, with what the world knew set against what the supplier believed at each step.</div>
   </a>
 </div>
-
-<!-- Knowledge joins the secondary line rather than the canonical door set (2026-08-12,
-     DIRECTOR_OBSERVATION_PUBLISHED_SURFACE_NAV_AND_STAMPS item 1: "The Knowledge section
-     has no route in from the main nav"). It routes beside Glossary because that is the
-     same kind of surface -- reference material, not a door of the five-surface IA -- and
-     the canonical list above is a director ruling (SITE_V5, 2026-07-23) mirrored in
-     site/test_home_door.py; widening it is his call, not a side effect of closing an
-     orphan. Enforced from now on by tools/site_reachability.py. -->
-<div class="also">Operator? <a href="./now/">The business right now &gt;</a> &middot; <a href="./proof/#method-anchor">The Method &gt;</a> &middot; <a href="./glossary/">Glossary &gt;</a> &middot; <a href="./knowledge/">Knowledge &gt;</a></div>
+  </a>
+</div>
 
 <footer class="foot">
   <span>poesys. -- built and run by AI, directed by a human.</span>
@@ -318,9 +334,48 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
 
 </div></div>
 <footer style="max-width:1060px;margin:0 auto;padding:16px 56px 30px;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved. &middot; <a href="./privacy/" style="color:var(--muted);">Privacy</a></footer>
-<p style="max-width:760px;margin:0 auto 32px;padding:0 24px;font-size:13px;">
-  The record behind these stages — what was checked, when, and what failed — is being
-  rewritten for a reader. <a href="./evidence/">See what it will hold</a>.
-</p>
+<script>
+(function () {
+  var row = document.getElementById("lf-row"), prov = document.getElementById("lf-prov");
+  function gbp(v) { return v === null || v === undefined || isNaN(v) ? null
+    : "\u00a3" + Math.round(Number(v)).toLocaleString("en-GB"); }
+  function card(v, label, clock) {
+    return '<div class="lf"><div class="v">' + v + '</div><div class="l">' + label +
+      '</div><div class="c">' + clock + "</div></div>";
+  }
+  fetch("./data/dashboard.json").then(function (r) { return r.json(); }).then(function (d) {
+    var p = d.portfolio || {}, meta = d.meta || {};
+    // No cohort-pound field is read on this door at all (RC7): not rendered, not looked up.
+    var basis = {};
+    var accounts = ((d.customers || {}).lifetime || {});
+    var n = Array.isArray(accounts) ? accounts.length : Object.keys(accounts).length;
+    var cards = [];
+    if (n) cards.push(card(n, "accounts on the book", "every account, not a sample"));
+    // RC7 (director ruling, 2026-07-24): no cohort-derived pound aggregate may lead a public
+    // surface -- "a share of revenue and an account count, never a total". So the margin
+    // figures the 2026-08-17 brief also asks for are deliberately NOT here; that conflict is
+    // the director's to resolve, not this page's.
+    var years = ((d.financial || {}).annual || []).length;
+    if (years) cards.push(card(years, "years of real settlement data", "2016 to 2025, half-hourly"));
+    var span = (basis.clock ? basis.clock + " clock" : "clock unstated");
+    if (p.period_coverage_fraction !== undefined && p.period_coverage_fraction !== null)
+      cards.push(card(Math.round(p.period_coverage_fraction * 100) + "%",
+        "of that window actually settled", span));
+    if (!cards.length) {
+      row.textContent = "The latest run's figures could not be read, so none are shown.";
+      return;
+    }
+    row.innerHTML = cards.join("");
+    var when = meta.generated_at ? new Date(meta.generated_at) : null;
+    prov.innerHTML = "Generated " +
+      (when && !isNaN(when) ? when.toLocaleString("en-GB", {day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"}) : "at an unknown time") +
+      " from run " + String(meta.source_file || "unknown").replace(/^run_output_/, "").replace(/\.json$/, "") +
+      ". Carbon abated is not published here: it is designed but not yet wired to live meter reads, and " +
+      'saying so is the point \u2014 see <a href="./harness/#not-proven">what we know is wrong</a>.';
+  }).catch(function () {
+    row.textContent = "The latest run's figures could not be loaded, so none are shown rather than a stale number.";
+  });
+})();
+</script>
 </body>
 </html>

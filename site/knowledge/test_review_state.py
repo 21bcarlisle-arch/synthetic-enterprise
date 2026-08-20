@@ -31,7 +31,11 @@ import pytest
 HERE = Path(__file__).resolve().parent
 SITE = HERE.parent
 FEED = SITE / "data" / "knowledge_wholesale.json"
-STUB_TEMPLATE = HERE / "_stub" / "index.html"
+# MOVED, 2026-08-20. This read site/knowledge/_stub/index.html; that template was being
+# DEPLOYED to the live site, so it moved out of the published tree rather than being deleted --
+# it is still the one carrier of the JavaScript mirror this file grades, and deleting it would
+# have retired a real control by accident.
+STUB_TEMPLATE = HERE.parent.parent / "docs" / "site_templates" / "knowledge" / "_stub.html"
 
 sys.path.insert(0, str(HERE))
 

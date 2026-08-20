@@ -27,22 +27,29 @@ import pytest
 
 SITE = Path(__file__).resolve().parent
 
-# The public doors + the private Director door + the two cross-cutting feature
-# surfaces. Each entry is (door_id, page_directory_relative_to_SITE). Home is the
-# front door at the site root; every other door is a subdirectory.
-DOORS = [
-    ("home", "."),
-    ("company", "company"),
-    ("proof", "proof"),
-    ("world", "world"),
-    ("method", "method"),
-    ("project", "project"),
-    ("simplified", "simplified"),
-    ("director", "director"),
-    ("glossary", "glossary"),
-    ("tours", "tours"),
-    ("now", "now"),
-]
+# DERIVED, 2026-08-20. This was a hand-kept list of eleven doors, and it named "project" --
+# a page that had 301'd to /proof/ on 2026-07-23 and was deleted on 2026-08-20, which took
+# this control down with it and made the tree unwritable for every lane.
+#
+# The literal was wrong in both directions, which is the usual shape: it went STALE (a door
+# that no longer existed) and it was INCOMPLETE (the five-tab fold added /explore/ and
+# /harness/, and neither was ever added here, so a dangling evidence link on either would
+# have gone unseen). Every built page is scanned now -- reachable or not, since a broken link
+# on a retained page is still a broken link -- and doors coming and going needs no edit here.
+def _doors():
+    pages = sorted(SITE.rglob("index.html"))
+    out = []
+    for p in pages:
+        rel = p.parent.relative_to(SITE).as_posix()
+        out.append(("home" if rel == "." else rel.replace("/", "-"), rel))
+    assert len(out) >= 10, (
+        f"only {len(out)} built page(s) found under {SITE} -- treating that as a broken scan "
+        "rather than a shrunken site, since a short list here makes this control vacuous"
+    )
+    return out
+
+
+DOORS = _doors()
 
 # Matches a relative reference to a JSON evidence file under data/ or state/, as
 # an ACTUAL link/fetch URL -- i.e. opened by a quote, the way a static href or a
@@ -89,8 +96,12 @@ def test_a_fabricated_reference_is_flagged():
     """R15: the resolver marks a non-existent evidence file as missing. Proves the
     control can fail on its own named defect (a dangling evidence link) rather
     than passing vacuously."""
+    # DERIVED. This named "company", a page deleted on 2026-08-20 -- the same stale-literal
+    # defect that took three other controls down with it. The door is now whichever built page
+    # actually cites evidence, so the proof survives any future fold.
+    door = next(d for _id, d in DOORS if _refs(d))
     fake = "../data/__this_file_does_not_exist__.json"
-    assert not _resolve("company", fake).exists()
+    assert not _resolve(door, fake).exists()
     # And a real one still resolves (independence -- not always-false).
-    real = next(iter(_refs("company")))
-    assert _resolve("company", real).exists(), real
+    real = next(iter(_refs(door)))
+    assert _resolve(door, real).exists(), real

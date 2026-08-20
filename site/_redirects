@@ -18,26 +18,26 @@ https://www.poesys.net/* https://poesys.net/:splat 301
 # SITE_V5 (ruling 2026-07-23): five-surface IA. Method + Simplified fold into
 # Proof; Journey is killed. Their old URLs 301 to Proof (or its anchors). The
 # absorbed content is rendered on /proof/ (method-anchor, simplified-anchor).
-/method /proof/ 301
-/method/* /proof/ 301
-/simplified /proof/ 301
-/simplified/* /proof/ 301
-/project /proof/ 301
-/project/* /proof/ 301
-/tours /proof/ 301
-/tours/* /proof/ 301
+/method /harness/ 301
+/method/* /harness/ 301
+/simplified /harness/ 301
+/simplified/* /harness/ 301
+/project /harness/ 301
+/project/* /harness/ 301
+/tours /harness/ 301
+/tours/* /harness/ 301
 # RC7 iteration-3 REMAINING (DIRECTOR_RULING_IDEA_FIRST_EXTERNAL_REGISTER 2026-07-24):
 # the last floating internal-narrative page. /wip-flow (git-mined WIP + cycle-time
 # dashboard) rendered internal vocab and was NOT literally "behind /proof". Folded
 # here uniformly with the rest of the internal-register cluster -> 301 to /proof.
 # The full page stays in-repo (noindex, unreachable canonically) for reference.
-/wip-flow /proof/ 301
-/wip-flow/* /proof/ 301
+/wip-flow /harness/ 301
+/wip-flow/* /harness/ 301
 # Platform + Casebook previously pointed at the (now killed) Method door -> Proof.
-/platform /proof/ 301
-/platform/* /proof/ 301
-/method-casebook /proof/ 301
-/method-casebook/* /proof/ 301
+/platform /harness/ 301
+/platform/* /harness/ 301
+/method-casebook /harness/ 301
+/method-casebook/* /harness/ 301
 
 # SITE5 (2026-08-18): /knowledge/wholesale-price-formation/ had a DIRECTORY and no entry in
 # site/data/knowledge_wholesale.json, so the shared topic template rendered its own raw slug
@@ -54,3 +54,46 @@ https://www.poesys.net/* https://poesys.net/:splat 301
 # stays in-repo (noindex, unreachable canonically) for reference.
 /knowledge/wholesale-price-formation /knowledge/electricity-wholesale/ 301
 /knowledge/wholesale-price-formation/* /knowledge/electricity-wholesale/ 301
+
+# ── 2026-08-20, director ruling: THE FIVE TABS ARE THE SITE ──────────────────────────────
+# "I don't want hidden pages, and I don't want the maintenance and link burden that comes with
+# them. Anything not in them either has its content moved into a tab that earns it, or it goes
+# and its URL redirects somewhere sensible. No permanent limbo, no page kept because deleting
+# it feels risky."
+#
+# Every directory below is DELETED from the repo, not merely unlinked. Keeping the files while
+# hiding the routes is exactly the limbo the ruling names: the pages still had to be kept
+# building, kept branded, kept link-checked and kept in every control's page list, for readers
+# who could never arrive. Three separate controls broke this week on a stale literal naming one
+# of them.
+#
+# WHERE THE CONTENT WENT, rather than where the URL points:
+#   world      -> Capabilities. The world's fidelity is "how far along is this, really".
+#   company    -> Capabilities. Same question, the supplier's half of it.
+#   proof      -> Harness. Its three jobs re-home: the honest limitations, the corrections
+#                 record, and the belief-vs-truth gap (which is what the G13 store audit
+#                 grades -- that control moved with the figures, it did not die with the page).
+#   evidence   -> Harness. It was an honest hole; the hole is filled there.
+#   customers  -> Explore, which now follows a household end to end and supersedes it.
+#   now        -> Home, which carries the dated latest strip.
+#   glossary   -> Knowledge. Plain English at first use replaces a warehouse of definitions.
+#   director   -> Harness, as the "what a human actually decided" section.
+#   shadow     -> Harness. An internal mirror that was nonetheless being published.
+/world /capabilities/ 301
+/world/* /capabilities/ 301
+/company /capabilities/ 301
+/company/* /capabilities/ 301
+/proof /harness/ 301
+/proof/* /harness/ 301
+/evidence /harness/ 301
+/evidence/* /harness/ 301
+/customers /explore/ 301
+/customers/* /explore/ 301
+/now / 301
+/now/* / 301
+/glossary /knowledge/ 301
+/glossary/* /knowledge/ 301
+/director /harness/ 301
+/director/* /harness/ 301
+/shadow /harness/ 301
+/shadow/* /harness/ 301

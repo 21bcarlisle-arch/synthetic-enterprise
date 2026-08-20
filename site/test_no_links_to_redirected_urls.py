@@ -101,6 +101,9 @@ def published_links() -> list[tuple[str, str]]:
             for h in _HREF_RE.findall(p.read_text(encoding="utf-8")):
                 if not h.startswith(("http", "mailto:", "#", "data:")):
                     links.append((door, h))
+    if not GLOSSARY.is_file():
+        pytest.skip("site/data/glossary.json is retired -- the glossary page and its feed were "
+                    "deleted on 2026-08-20; plain English at first use replaces both")
     feed = json.loads(GLOSSARY.read_text(encoding="utf-8"))
     for term in feed["terms"]:
         if term.get("see_url"):
@@ -160,6 +163,9 @@ def test_every_published_anchor_resolves_on_its_target_door():
 def test_glossary_promise_holds_for_every_term():
     """The feed's own intro claims 'Every term links to the door where you can
     see it working'. A claim the site publishes about itself is a testable claim."""
+    if not GLOSSARY.is_file():
+        pytest.skip("site/data/glossary.json is retired -- the glossary page and its feed were "
+                    "deleted on 2026-08-20; plain English at first use replaces both")
     feed = json.loads(GLOSSARY.read_text(encoding="utf-8"))
     assert "links to the door" in feed["meta"]["intro"], (
         "fixture precondition: the glossary still makes this promise"
@@ -187,16 +193,24 @@ def test_mutation_a_link_to_a_redirected_url_is_caught():
     assert normalise("../tours/") in forbidden, (
         "MUTATION SURVIVED: a link to the 301'd /tours/ was not recognised"
     )
-    assert normalise("../proof/") not in forbidden, (
+    # 2026-08-20: this named /proof/ as the canonical destination every legacy URL folds into.
+    # /proof/ is now a redirect SOURCE itself -- it folds into /harness/ -- so the sentinel
+    # moved with the fold. The property is unchanged: the control must flag links to pages that
+    # bounce, and must NOT flag links to the page they bounce TO.
+    assert normalise("../harness/") not in forbidden, (
         "control is over-broad: it flags the canonical destination too"
     )
 
 
 def test_mutation_a_dangling_anchor_is_caught():
-    ids = set(_ID_RE.findall(door_file("/company/").read_text(encoding="utf-8")))
-    assert "hedge-body" in ids, "precondition: a real anchor resolves"
-    assert "ch-var" not in ids, (
-        "MUTATION SURVIVED: the retired #ch-var anchor appears to exist after all"
+    # DERIVED. This named /company/ and two of its anchors; the page was deleted 2026-08-20.
+    # The property is about the RESOLVER, not about any particular door, so it now takes a real
+    # anchor from whichever page has one and pairs it with an id that cannot exist.
+    page = next(p for p in sorted(SITE.rglob("index.html")) if _ID_RE.findall(p.read_text(encoding="utf-8")))
+    ids = set(_ID_RE.findall(page.read_text(encoding="utf-8")))
+    assert ids, "precondition: some page carries an anchor"
+    assert "__this_anchor_cannot_exist__" not in ids, (
+        "MUTATION SURVIVED: a fabricated anchor appears to exist after all"
     )
 
 

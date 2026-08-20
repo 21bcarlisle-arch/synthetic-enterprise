@@ -1884,7 +1884,19 @@ def generate(run_json_path=None):
         },
     }
 
-    consistency_ok = _check_consistency(portfolio, insights, run_json_path.name)
+    # RETIRED 2026-08-20 (director): the dashboard-vs-exec-summary comparison used to
+    # sit here and contribute to the verdict below. It compared a PUBLISHED number
+    # (dashboard totals, which /proof/ and /world/ render) against an UNPUBLISHED one
+    # (run_insights.json, written to docs/observability/ and fetched by no page on the
+    # site), and raised a director-facing real_alarm every time two derived snapshots
+    # of the same run drifted apart. Nothing read the second surface, so keeping the
+    # two consistent was the entire job it did.
+    #
+    # The seven checks that REMAIN all compare the dashboard against its own sources or
+    # against itself, and each one declares the page it guards in PUBLISH_VERDICT_CHECKS
+    # below. tools/reader_reachability.py answers whether a reader can open that page,
+    # and tests/tools/test_publish_blockers_guard_a_reachable_page.py fails the commit if
+    # any of them cannot -- so this class cannot come back by accretion.
     population_ok = _check_population_consistency(data, dashboard)
     basis_ok = _check_basis_labels_present(portfolio)
     # The label being PRESENT and the label being TRUE are two checks; the
@@ -1895,10 +1907,10 @@ def generate(run_json_path=None):
     bad_debt_ok = _check_bad_debt_reconciliation_present(dashboard["financial"])
     period_ok = _check_period_coverage_present(dashboard["financial"])
     mix_claim_ok = _check_front_door_segment_claim(dashboard)
-    consistency_ok = (
-        consistency_ok and population_ok and basis_ok and parentage_ok and bridge_ok
-        and bad_debt_ok and period_ok and mix_claim_ok
-    )
+    # Only the checks whose figures a reader can actually reach decide the verdict. The other
+    # five still ran above and printed their diagnosis; see REPORTED_NOT_BLOCKING for why they
+    # are reported rather than gating, and what would put them back.
+    consistency_ok = population_ok and mix_claim_ok
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w") as f:
@@ -1909,92 +1921,57 @@ def generate(run_json_path=None):
     return consistency_ok
 
 
-# Headline metrics checked across surfaces (Part C of the website-integrity fix:
-# the Part A gate only ever compared net_margin_gbp; this widens it to the full
-# set of numbers a board member would actually read off the page). Each entry is
-# (portfolio_key, label, insights_area, insights_key). insights_area=None means
-# the field lives at the top level of run_insights.json rather than nested under
-# one of its per-area "insights" blocks.
-_CONSISTENCY_CHECKS = [
-    ("net_margin_gbp", "net margin", None, "net_margin_gbp"),
-    ("gross_margin_gbp", "gross margin", "financial", "gross_margin_gbp"),
-    ("enterprise_value_gbp", "enterprise value", "customers", "enterprise_value_gbp"),
-    ("bills_total", "bills total", "operations", "bills_total"),
-    ("committee_interventions_total", "committee interventions", "risk", "committee_interventions_total"),
-    ("retention_offers", "retention offers", "customers", "retention_offers"),
-    ("retention_retained", "retention retained", "customers", "retained"),
-    ("churn_count", "churn count", "customers", "total_churned"),
-]
+# ── WHAT EACH PUBLISH-BLOCKING CHECK IS FOR ──────────────────────────────────────────────
+# Director ruling, 2026-08-20: "a surface no reader can reach must never be able to block
+# publishing." generate()'s verdict decides whether a run raises the consistency alarm, so
+# every check in that conjunction is a publish blocker and must name the reader-facing page
+# whose figures go wrong if it fires. A check that cannot name one is guarding nobody.
+#
+# This is a RATCHET with all three directions, driven from
+# tests/tools/test_publish_blockers_guard_a_reachable_page.py:
+#   - a check in the conjunction with no entry here          -> FAIL (undeclared blocker)
+#   - an entry naming a page a reader cannot reach           -> FAIL (the ruling itself)
+#   - an entry for a check that is no longer in the verdict  -> FAIL (stale declaration)
+# The third direction is the one that rots quietly: without it this table becomes a list of
+# what the gate used to do, which is how the exec-summary comparison survived a month past
+# the redirect that made it pointless.
+PUBLISH_VERDICT_CHECKS = {
+    # RE-HOMED 2026-08-20, and this control caught it rather than a person noticing. The fold
+    # deleted /proof/ and /world/ -- the only two pages that fetched dashboard.json -- so for a
+    # few minutes all seven checks guarded figures no reader could reach, and
+    # tests/tools/test_publish_blockers_guard_a_reachable_page.py went red naming every one.
+    #
+    # THE TWO THAT STAYED guard something a reader now meets on the front page: the account
+    # count and the years-settled figures added there on the same day, and the segment-mix
+    # sentence that has always been there.
+    "_check_population_consistency": ("/", "the account count and settlement window on the front page"),
+    "_check_front_door_segment_claim": ("/", "the front door's segment-mix claim matches the book"),
+}
 
-
-def _insights_metric(insights, area, key):
-    """Look up key_metrics[key] from the named per-area block in run_insights.json's
-    'insights' list (or the top-level field when area is None)."""
-    if area is None:
-        return insights.get(key)
-    for block in insights.get("insights", []) or []:
-        if block.get("area") == area:
-            return block.get("key_metrics", {}).get(key)
-    return None
-
-
-def _check_consistency(portfolio, insights, source_file, tolerance_gbp=1.0):
-    """Guard against surfaces on the same page disagreeing (Part A #3 / Part C of
-    the website-integrity fix): the exec-summary insights are generated from a
-    separate run_insights.json snapshot, not from the run_output.json this call
-    just loaded, so a step-ordering regression upstream can silently re-introduce
-    a stale/mismatched exec summary next to correct totals. Checks the full set
-    of headline numbers (net/gross margin, enterprise value, bills, committee
-    interventions, retention, churn), not just net margin.
-
-    R15 (KL-8 fix, 2026-07-13): two killer patterns closed. (a) FAIL-SILENT --
-    a missing/empty run_insights.json used to return True (pass), so the gate
-    passed precisely when its comparison input was absent (the R11 orphan-
-    transition class). The pipeline guarantees run_insights.json is written
-    immediately before this gate runs (process_run_complete.save_insights), so
-    an absent/empty insights payload here is a real failure, not a benign
-    first-run -- it now FAILS (which raises the consistency NTFY alarm). (b)
-    FAIL-OPEN -- a headline key present on ONE surface but missing on the other
-    was silently skipped; that is a genuine surface disagreement and is now a
-    mismatch. A key absent on BOTH surfaces is legitimately not-published and
-    is still skipped."""
-    if not insights:
-        print(
-            "CONSISTENCY GATE FAILED: run_insights.json is absent/empty -- the exec-summary "
-            "comparison input is missing, so surface agreement cannot be verified (R15 KL-8 "
-            "fail-silent guard; the pipeline guarantees this file is written before this gate).",
-            file=sys.stderr,
-        )
-        return False
-
-    mismatches = []
-    for p_key, label, area, i_key in _CONSISTENCY_CHECKS:
-        p_val = portfolio.get(p_key)
-        i_val = _insights_metric(insights, area, i_key)
-        if p_val is None and i_val is None:
-            continue  # neither surface publishes this figure -- nothing to reconcile
-        if (p_val is None) != (i_val is None):
-            # one-sided: the figure exists on one surface but not the other --
-            # a real disagreement, not a skip (R15 KL-8 fail-open guard).
-            mismatches.append(
-                "{}: dashboard={} vs insights={} (present on one surface only)".format(
-                    label, p_val, i_val
-                )
-            )
-            continue
-        tol = tolerance_gbp if p_key.endswith("_gbp") else 0
-        if abs(p_val - i_val) > tol:
-            mismatches.append("{}: dashboard={} vs insights={}".format(label, p_val, i_val))
-
-    if mismatches:
-        print(
-            "CONSISTENCY GATE FAILED (source={}): {} surface(s) disagree -- {}".format(
-                source_file, len(mismatches), "; ".join(mismatches)
-            ),
-            file=sys.stderr,
-        )
-        return False
-    return True
+#: REPORTED, NEVER BLOCKING -- and the reason is a genuine conflict between two director
+#: instructions, which is not this module's to resolve.
+#:
+#: RC7 (DIRECTOR_RULING_IDEA_FIRST_EXTERNAL_REGISTER, 2026-07-24) forbids any cohort-derived
+#: pound aggregate from leading a public surface: "a share of revenue and an account count,
+#: never a total". DIRECTOR_BRIEF_WEBSITE_STRUCTURE (2026-08-17) §4 asks Home for "three live
+#: figures ... book size, margin, carbon". Margin cannot be both forbidden and required.
+#:
+#: While that stands, net margin, gross margin, enterprise value, the margin bridge, bad debt
+#: and period coverage are published on NO page a reader can open. By the director's rule of
+#: 2026-08-20 -- "a surface no reader can reach must never be able to block publishing" -- they
+#: therefore cannot gate a publish. They still RUN and still print their diagnosis to stderr on
+#: every cycle, so the moment the conflict is resolved and the figures get a home, re-declaring
+#: them above is a one-line change and nothing has rotted in the meantime.
+#:
+#: This is deliberately not a quiet weakening: it is written down, it names the two
+#: instructions in tension, and the checks are still executing.
+REPORTED_NOT_BLOCKING = {
+    "_check_basis_labels_present": "net margin / enterprise value carry a clock",
+    "_check_derived_basis_parentage": "those figures state the cost basis beneath them",
+    "_check_bridge_reconciles": "the settled-to-billed margin gap is fully explained",
+    "_check_bad_debt_reconciliation_present": "bad debt reconciles against the ledger",
+    "_check_period_coverage_present": "the period a figure covers is stated",
+}
 
 
 # Headline figures that must carry a basis label (CLAUDE.md standing rule,

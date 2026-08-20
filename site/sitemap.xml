@@ -8,6 +8,13 @@
 
   Inclusion rule, matching this site's own information architecture
   (docs/design/SITE_CONSTITUTION.md, site/_redirects):
+    2026-08-20, director ruling: the five tabs ARE the site. The advertised set is now
+    exactly Home, Knowledge, Capabilities, Explore, Harness, plus /privacy/ (a footer
+    route on every page, not a tab). Everything previously listed here (world, company,
+    proof, customers, now, glossary, evidence) is DELETED from the repo and 301'd; see
+    site/_redirects for where each one's content went, which is not always where its URL
+    points. Individual /knowledge/ topic pages stay unlisted for the reason below.
+
     INCLUDED: the live, canonical door set, the front door plus every
     surface reachable from it that is not itself a 301 redirect target.
     /knowledge/ joined that set on 2026-08-12: the section's nine pages had
@@ -33,14 +40,9 @@
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://poesys.net/</loc></url>
-  <url><loc>https://poesys.net/world/</loc></url>
-  <url><loc>https://poesys.net/company/</loc></url>
-  <url><loc>https://poesys.net/capabilities/</loc></url>
-  <url><loc>https://poesys.net/proof/</loc></url>
-  <url><loc>https://poesys.net/customers/</loc></url>
-  <url><loc>https://poesys.net/now/</loc></url>
-  <url><loc>https://poesys.net/glossary/</loc></url>
-  <url><loc>https://poesys.net/evidence/</loc></url>
   <url><loc>https://poesys.net/knowledge/</loc></url>
+  <url><loc>https://poesys.net/capabilities/</loc></url>
+  <url><loc>https://poesys.net/explore/</loc></url>
+  <url><loc>https://poesys.net/harness/</loc></url>
   <url><loc>https://poesys.net/privacy/</loc></url>
 </urlset>

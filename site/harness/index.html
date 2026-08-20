@@ -3,26 +3,58 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex">
 <title>Harness — Poesys</title>
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <link rel="stylesheet" href="../brand/brand.css">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
-main { max-width: 760px; margin: 0 auto; padding: 48px 24px 80px; }
-.badge { display: inline-block; background: var(--surface2); color: var(--muted);
-  border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 12px;
-  letter-spacing: .04em; text-transform: uppercase; margin-bottom: 20px; }
-h1 { font-size: 30px; line-height: 1.25; margin-bottom: 16px; }
-.lede { font-size: 16px; color: var(--muted); margin-bottom: 32px; }
-h2 { font-size: 15px; margin: 32px 0 10px; letter-spacing: .02em; }
-p { margin-bottom: 14px; }
-ol, ul { margin: 0 0 14px 20px; }
-li { margin-bottom: 6px; }
-.note { border-left: 3px solid var(--border); padding: 12px 16px; background: var(--surface);
-  color: var(--muted); font-size: 13px; margin: 24px 0; }
+main { max-width: 860px; margin: 0 auto; padding: 28px 20px 80px; }
+
+h1 { font-size: 26px; line-height: 1.25; margin-bottom: 10px; }
+.purpose { color: var(--muted); font-size: 15px; max-width: 68ch; margin-bottom: 22px; }
+
+.stamp { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 14px; font-size: 12px; color: var(--muted); margin-bottom: 28px; }
+.stamp b { color: var(--text); font-weight: 600; }
+.chk { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; }
+.dot.bad { background: var(--red); }
+.dot.unknown { background: var(--amber); }
+
+section { margin-bottom: 34px; }
+h2 { font-size: 18px; margin-bottom: 6px; }
+.sub { color: var(--muted); font-size: 13px; margin-bottom: 14px; max-width: 68ch; }
+p { margin-bottom: 12px; max-width: 68ch; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 13px 16px; margin-bottom: 10px; }
+.card h3 { font-size: 14px; margin-bottom: 4px; }
+.card .meta { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.card p { font-size: 13px; margin-bottom: 6px; }
+.card p:last-child { margin-bottom: 0; }
+
+.kpis { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 14px; min-width: 128px; }
+.kpi .v { font-size: 21px; font-weight: 600; }
+.kpi .l { font-size: 11px; color: var(--muted); letter-spacing: .03em; }
+
+.wasnow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+.wasnow div { font-size: 13px; }
+.wasnow .k { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.table-scroll { overflow-x: auto; }
+
+.note { border-left: 3px solid var(--border); padding: 11px 15px; background: var(--surface);
+  color: var(--muted); font-size: 13px; }
 a { color: var(--teal); }
+
+@media (max-width: 640px) { .wasnow { grid-template-columns: 1fr; } main { padding: 18px 13px 60px; } }
 </style>
 </head>
 <body>
@@ -39,44 +71,214 @@ a { color: var(--teal); }
   <!-- IA-NAV:END -->
 </nav>
 <main>
-  <span class="badge">This page is being built</span>
-  <h1>The harness: how this is run</h1>
-  <p class="lede">The method behind the simulation — who decides what, how work is chosen, and the honest record of what has gone wrong.</p>
-  <h2>What this page will show</h2>
-  <p>How this project is actually run, in terms an outsider can follow.</p>
-  <ul>
-    <li><strong>The two-seat model</strong> — one human director, one AI agent, and what each
-        is actually allowed to decide.</li>
-    <li><strong>How work is chosen</strong> — how the next thing to build gets picked, and what
-        stops that choice being arbitrary.</li>
-    <li><strong>The named failure classes</strong> — the specific ways this project has been
-        wrong before, written down so they can be recognised again.</li>
-    <li><strong>An honest count of what broke</strong> — including the things that were claimed
-        as working and were not.</li>
-    <li><strong>Known limitations</strong> — re-homed here from the Proof page.</li>
-  </ul>
-  <p>
-    The reason this page exists at all is that the method is the part most likely to be
-    genuinely useful to someone else, and the part least visible from any of the results pages.
-    A page of green numbers tells you nothing about whether the process that produced them can
-    catch its own mistakes.
+  <h1>How this builds itself, and what it keeps getting wrong</h1>
+  <p class="purpose">
+    Everything else on this site is the thing that was built. This page is the machine that
+    builds it — how work is chosen, how a claim is refused when its evidence is missing, and
+    the honest record of what has broken. It is the part of the project with the most to say
+    to someone who does not care about energy at all.
   </p>
 
-  <h2>Roughly when</h2>
-  <p>
-    Next, alongside Explore. The material is largely written already but lives in internal
-    records rather than in anything a stranger could read, and translating it is the work.
-    Until then, the <a href="../proof/">Proof</a> page carries the evidence and the
-    known-limitations section that will move here.
-  </p>
+  <div class="stamp" id="stamp">Loading the record…</div>
+
+  <section>
+    <h2>How the work is chosen</h2>
+    <p class="sub">In plain English, because the machinery is the subject here.</p>
+    <p>
+      There are two seats. A <b>director</b> decides what matters and rules on anything
+      irreversible; he does not write code. A <b>builder</b> — this system — designs, builds,
+      checks and ships everything else, on its own, continuously.
+    </p>
+    <p>
+      Work is held as a map of small pieces, each with a claimed level of maturity and the
+      evidence that would have to exist for that claim to hold. The builder draws from the map
+      rather than from a plan, so the order of work follows what is now provable rather than
+      what was scheduled months ago. A piece cannot claim a higher level without leaving a
+      record of why; a claim with no record is refused at the point of commit, not at review.
+    </p>
+    <p>
+      The rule that does the most work is the dullest one: <b>a check that cannot fail is worse
+      than no check at all</b>. Every control has to be shown firing on the exact defect it
+      claims to catch, by deliberately reintroducing that defect. Most of the entries in the
+      record below were found that way — a control that looked right, passed, and was measuring
+      nothing.
+    </p>
+  </section>
+
+  <section>
+    <h2>What we know is wrong</h2>
+    <p class="sub">Standing weaknesses, stated here rather than discovered by a reader.</p>
+    <div id="not-proven"></div>
+  </section>
+
+  <section>
+    <h2>Where belief and truth diverge</h2>
+    <p class="sub">
+      The company inside the simulation cannot see the world it lives in — it infers. This is the
+      measured size of the gap between what it believes and what is actually true, which is the
+      only number on the site that could not exist outside a simulation.
+    </p>
+    <div class="kpis" id="gap-kpis"></div>
+    <div id="gap-note"></div>
+  </section>
+
+  <section>
+    <h2>What we got wrong, and corrected</h2>
+    <p class="sub">
+      Published claims that turned out to be false, with what replaced them. A project that
+      never lists any of these is not being checked.
+    </p>
+    <div id="corrections"></div>
+  </section>
+
+  <section>
+    <h2>The rules this project has had to mint</h2>
+    <p class="sub">
+      Each of these exists because something broke. They are kept in the order they were
+      learned, with the failure that caused them, because the failure is the useful half.
+    </p>
+    <div class="table-scroll"><table id="rules"><thead><tr>
+      <th>Learned</th><th>The rule</th><th>What caused it</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section>
+    <h2>Checks that can actually fail</h2>
+    <p class="sub">
+      Every control in the system, graded on whether it has been proven to fire on its own
+      named defect. The ones that have not are counted rather than quietly trusted.
+    </p>
+    <div class="kpis" id="control-kpis"></div>
+  </section>
+
+  <section>
+    <h2>What a human actually decided</h2>
+    <p class="sub">Reserved to the director, and nothing else is.</p>
+    <p>
+      Four classes of decision are the director's and cannot be taken by the builder under any
+      circumstances: <b>spending real money</b>, <b>contacting a real person</b>, <b>making an
+      irretractable public claim in the company's name</b>, and <b>anything touching a real
+      person's safety</b>. Everything else — architecture, sequencing, what to build, what to
+      delete, what to publish — is decided and acted on autonomously, and reported afterwards.
+    </p>
+    <p id="reserved-now"></p>
+    <p>
+      That list is short on purpose. An earlier version of this project had a large apparatus of
+      approvals, gates and ratifications, and its measured effect was that work stopped waiting
+      for a human who was asleep. It was removed, and the removal is itself enforced: a control
+      refuses to register any new item as needing the director's approval unless it falls in one
+      of those four classes.
+    </p>
+  </section>
 
   <div class="note">
-    <strong>Why you are seeing this rather than nothing.</strong> The structure of this site was
-    put up before every page behind it was written, deliberately. An empty room you can see into
-    is more honest than a door that isn't there, and far more honest than a room furnished with
-    figures we haven't checked. This page is not indexed by search engines while it is in this
-    state.
+    <strong>What this page is not.</strong> It is not a dashboard, and there is no view behind it
+    showing atom identifiers, internal level numbers or ledger records. Those exist, and they are
+    how the system checks itself, but they are written for the machine and reading them tells you
+    less than the numbers above.
   </div>
 </main>
+
+<script>
+var $ = function (id) { return document.getElementById(id); };
+function esc(s) { return String(s === null || s === undefined ? "" : s).replace(/[&<>"]/g, function (c) {
+  return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]; }); }
+function dt(s) { if (!s) return "unknown"; var d = new Date(s);
+  return isNaN(d) ? esc(s) : d.toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric"}); }
+function n(v) { return (v === null || v === undefined || isNaN(v)) ? "—" : Number(v).toLocaleString("en-GB"); }
+
+function kpi(v, l) { return '<div class="kpi"><div class="v">' + v + '</div><div class="l">' + esc(l) + "</div></div>"; }
+
+function renderStamp(d) {
+  var sa = (d.coupled_gaps || {}).store_agreement || {};
+  /* THE G13 AUDIT, re-homed. It asks the one question a page cannot otherwise ask about itself:
+     is the number I am publishing in any commit? A page generated from the working tree can be
+     perfectly self-consistent and still be showing something that was never committed, or
+     something committed eleven hours ago. Rendered honestly in all three states -- agreeing,
+     disagreeing, and unavailable -- because an unavailable check is a failed check, never a
+     silent pass. */
+  var cls, txt;
+  if (!sa.available) { cls = "unknown"; txt = "figures could not be checked against the committed record"; }
+  else if (sa.agrees) { cls = ""; txt = "figures match the committed record"; }
+  else { cls = "bad"; txt = "figures DIFFER from the committed record — treat them as provisional"; }
+  $("stamp").innerHTML =
+    "<span>Generated <b>" + dt(d.generated_at) + "</b></span>" +
+    "<span>Build <b>" + esc(String(d.git_commit || "").slice(0, 9)) + "</b></span>" +
+    "<span>Test suite <b>" + n(d.test_count) + "</b> checks</span>" +
+    '<span class="chk"><i class="dot ' + cls + '"></i>' + esc(txt) + "</span>";
+}
+
+function renderNotProven(d) {
+  var items = d.not_proven || [];
+  $("not-proven").innerHTML = items.length ? items.map(function (x) {
+    return '<div class="card"><div class="meta">' + esc(x.status || "unproven") + "</div>" +
+      "<h3>" + esc(x.claim) + "</h3><p>" + esc(x.note || "") + "</p></div>";
+  }).join("") : "<p>Nothing is currently listed, which would itself be suspicious — the record could not be read.</p>";
+}
+
+function renderGaps(d) {
+  var g = d.coupled_gaps || {};
+  if (!g.available) {
+    $("gap-kpis").innerHTML = "";
+    $("gap-note").innerHTML = '<div class="note">The gap measurements could not be read, so nothing is shown here rather than a number that might be stale.</div>';
+    return;
+  }
+  $("gap-kpis").innerHTML =
+    kpi(n(g.pair_count), "world/company pairs") +
+    kpi(n(g.measured), "with the gap measured") +
+    kpi(n(g.unmeasured), "not yet measured") +
+    kpi(n(g.worse_than_blind_count), "where the company does worse than guessing");
+  $("gap-note").innerHTML =
+    "<p>Each pair is one thing the simulated world knows and the company has to work out for " +
+    "itself — how a home actually uses heat, whether a customer will pay, what a meter will read. " +
+    "The gap is how wrong the company's version is.</p>" +
+    "<p>The last figure is the one that matters most: a company doing <em>worse than guessing</em> " +
+    "has a model that is actively misleading it, which is more dangerous than having no model. " +
+    "Those are the ones the build queue is ordered by.</p>" +
+    (g.unmeasured ? "<p>" + n(g.unmeasured) + " pairs are not measured yet. They are listed as " +
+      "unmeasured rather than assumed fine.</p>" : "");
+}
+
+function renderCorrections(d) {
+  var items = d.corrections || [];
+  $("corrections").innerHTML = items.length ? items.map(function (x) {
+    return '<div class="card"><div class="meta">' + dt(x.date) + " &middot; " + esc(x.id) + "</div>" +
+      "<h3>" + esc(x.claim) + "</h3>" +
+      '<div class="wasnow"><div><div class="k">What we published</div>' + esc(x.was) + "</div>" +
+      '<div><div class="k">What is true</div>' + esc(x.now) + "</div></div></div>";
+  }).join("") : "<p>No corrections are on record.</p>";
+}
+
+function renderRules(d) {
+  var rows = (d.timeline || []).slice().reverse();
+  $("rules").querySelector("tbody").innerHTML = rows.map(function (r) {
+    return "<tr><td>" + dt(r.date) + "</td><td>" + esc(r.rule || r.name) + "</td><td>" +
+      esc(r.incident || "—") + "</td></tr>";
+  }).join("");
+}
+
+function renderControls(d) {
+  var c = d.control_killlist || {};
+  if (!c.available) { $("control-kpis").innerHTML = "<p>The control register could not be read.</p>"; return; }
+  $("control-kpis").innerHTML =
+    kpi(n(c.controls_total), "controls in the system") +
+    kpi(n(c.mutation_proven), "proven to fire on their own defect") +
+    kpi(n(c.theatre_remaining), "not yet proven — treated as theatre");
+}
+
+fetch("../data/proof.json").then(function (r) { return r.json(); }).then(function (d) {
+  renderStamp(d); renderNotProven(d); renderGaps(d);
+  renderCorrections(d); renderRules(d); renderControls(d);
+}).catch(function () {
+  $("stamp").innerHTML = "The record behind this page could not be loaded, so no figures are shown.";
+});
+
+fetch("../data/director_reserved.json").then(function (r) { return r.json(); }).then(function (j) {
+  $("reserved-now").innerHTML = j.open_count
+    ? "Right now <b>" + n(j.open_count) + "</b> decision(s) are waiting on him."
+    : "Right now nothing is waiting on him. Everything currently in flight is the builder's to decide.";
+}).catch(function () {});
+</script>
+<footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved. &middot; <a href="../privacy/" style="color:var(--muted);">Privacy</a></footer>
 </body>
 </html>

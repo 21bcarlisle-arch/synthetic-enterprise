@@ -2960,11 +2960,18 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
         # generate() raises EvidenceSourceUnavailable BEFORE writing on a missing or
         # empty source, so a bad source leaves the PREVIOUS page live rather than
         # replacing it with a plausible blank (fail-closed, its own docstring).
-        from tools.generate_evidence_data import generate as gen_evidence
-        gen_evidence(git_hash=git_hash)
-        log("Generated site/data/evidence.json + site/evidence/index.html")
+        # RETIRED from the cycle 2026-08-20. /evidence/ is deleted (director ruling: the five
+        # tabs are the site) and its 301 lands on /harness/. Leaving this call in is not a
+        # harmless no-op: it RECREATED site/evidence/index.html thirty minutes after the
+        # directory was deleted, and the page reappeared on the live site. A generator that
+        # outlives its page is how a deleted surface comes back, and it is the mechanical form
+        # of the "permanent limbo" the ruling names.
+        #
+        # tools/generate_evidence_data.py is kept and still runnable on demand. Wire it back
+        # only alongside a page a reader can reach.
+        pass
     except Exception as exc:
-        log("Evidence page generation failed: {}".format(exc))
+        log("Evidence step failed: {}".format(exc))
     try:
         # SITE7: the Capabilities door. Every status on it is DERIVED from the work record
         # and the boundary walker, so a feed not regenerated here is a page that silently
@@ -3020,11 +3027,13 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("Case-study recommender generation failed: {}".format(exc))
     try:
-        from tools.generate_shadow_html import generate as gen_shadow
-        gen_shadow()
-        log("Generated site/shadow/ static HTML mirror")
+        # RETIRED from the cycle 2026-08-20, same reason as the evidence page above: the
+        # /shadow/ mirror is deleted and this call put it straight back. It was an INTERNAL
+        # surface that was nonetheless published at a second root on the public site, carrying
+        # the full internal vocabulary -- exactly the hidden page the ruling is about.
+        pass
     except Exception as exc:
-        log("Shadow HTML generation failed: {}".format(exc))
+        log("Shadow mirror step failed: {}".format(exc))
     try:
         from tools.generate_project_state import generate as gen_state
         gen_state()
@@ -3037,20 +3046,19 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
         log("Generated site/data/phases.json")
     except Exception as exc:
         log("phases.json generation failed: {}".format(exc))
-    try:
-        # Director page comments 2026-07-12 (/project/): "so what... velocity
-        # and depth?" / "show the mix of tests... scope of what we are
-        # testing" -- real pytest-collected counts per test-suite area, not
-        # an estimate. ~30-40s (20 pytest --collect-only subprocess calls)
-        # within an ~8-9min cycle; test-suite composition changes far less
-        # often than the financial data driving the rest of this pipeline,
-        # but re-running it every cycle is simpler than a staleness check
-        # for a <10% time addition (BUDGET_UNCONSTRAINED.md).
-        from tools.generate_test_mix_data import generate as gen_test_mix
-        gen_test_mix()
-        log("Generated site/data/test_mix.json")
-    except Exception as exc:
-        log("test_mix.json generation failed: {}".format(exc))
+    # RETIRED from the cycle 2026-08-20 (director: "we built too much surface too early and
+    # it's slowing us down"). site/data/test_mix.json was fetched by exactly one page,
+    # /project/, which 301'd to /proof/ on 2026-07-23 and is now deleted. Generating it cost
+    # 30-40s of pytest --collect-only subprocesses EVERY publish cycle -- roughly 7% of an
+    # 8-9 minute cycle, spent on a file no reader could ever load, for four weeks.
+    #
+    # The comment that used to sit here justified the cost as "a <10% time addition
+    # (BUDGET_UNCONSTRAINED.md)". That document's premise was withdrawn as false on
+    # 2026-08-03 and CLAUDE.md says never to cite it again; it was still load-bearing here.
+    #
+    # tools/generate_test_mix_data.py is KEPT and still runnable on demand -- the composition
+    # breakdown is a real harness measurement, it just does not need recomputing every cycle
+    # for nobody. Wire it back the moment a reachable page renders it.
     try:
         from tools.generate_capabilities_json import generate as gen_capabilities
         gen_capabilities()
@@ -3466,9 +3474,9 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     # pipeline never picks up the freshly-regenerated world.json (same reasoning
     # as the Platform/Method blocks above -- a regenerated-but-uncommitted file
     # stays frozen on the live site).
-    site_world_html = PROJECT_DIR / "site" / "world" / "index.html"
-    if site_world_html.exists():
-        files.append(str(site_world_html))
+    # 2026-08-20: site/world/index.html is DELETED (director ruling -- the five tabs are the
+    # site). world.json is still generated and still tracked here: Capabilities reads it. The
+    # PAGE went; the DATA has a reader, which is the same split made for dashboard.json.
     site_world_json = PROJECT_DIR / "site" / "data" / "world.json"
     if site_world_json.exists():
         files.append(str(site_world_json))
@@ -3487,10 +3495,13 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     # Doors 3/4 (The Company, The Proof): page + generated data file tracked here or the
     # regenerated JSON stays frozen on the live site (the orphaned-at-commit gap Door 5
     # closed for world.json). (method-casebook retired 2026-07-20 -- entries removed.)
+    # 2026-08-20: both PAGES are deleted; both DATA files stay and are still tracked here.
+    # proof.json is what /harness/ renders -- including the store-agreement audit, which
+    # followed the figures to their new page rather than dying with the old one. company.json
+    # feeds Capabilities. A regenerated-but-uncommitted copy would freeze on the live site
+    # exactly as before, so the reasoning above is unchanged; only the pages are gone.
     for _door_file in (
-        PROJECT_DIR / "site" / "proof" / "index.html",
         PROJECT_DIR / "site" / "data" / "proof.json",
-        PROJECT_DIR / "site" / "company" / "index.html",
         PROJECT_DIR / "site" / "data" / "company.json",
     ):
         if _door_file.exists():

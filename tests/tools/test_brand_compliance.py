@@ -42,18 +42,26 @@ CONSTITUTION_PATH = REPO_ROOT / "docs" / "design" / "BRAND_CONSTITUTION.md"
 # raw colour in their <style>, and render the wordmark. This list is the enforced adoption
 # frontier -- it GROWS as the rollout proceeds (charts/PDFs/remaining pages are declared
 # follow-up atoms; a page joins here only once its CSS surface is genuinely token-only).
-_ADOPTED_LIVE_SURFACES = [
-    REPO_ROOT / "site" / "index.html",          # the front door (BRAND_CONSTITUTION.md DoD)
-    REPO_ROOT / "site" / "method" / "index.html",
-    REPO_ROOT / "site" / "project" / "index.html",
-    REPO_ROOT / "site" / "simplified" / "index.html",
-    REPO_ROOT / "site" / "world" / "index.html",   # (2026-07-20) adopted the brand
-    REPO_ROOT / "site" / "company" / "index.html", # (2026-07-20) adopted the brand
-    REPO_ROOT / "site" / "proof" / "index.html",   # (2026-07-20) adopted the brand
-    # (2026-07-20 v4 site rebuild) platform/ and sim/ were retired -- removed from the adoption
-    # frontier. The remaining un-adopted kept doors (company/world/proof) join here as the BRAND1
-    # L2->L3 rollout reaches them (each once its CSS is genuinely token-only + wordmark).
-]
+# DERIVED, 2026-08-20. This was a hand-kept adoption frontier and it named five pages that
+# were deleted the same day (method, simplified, project, world, company), which took all six
+# assertions below down with it.
+#
+# The frontier was a real idea while the rollout was in progress -- a page joined once its CSS
+# was genuinely token-only. That rollout is finished: every page on the five-tab site links
+# brand.css, so the frontier and the site are the same set, and a hand-kept copy of it can only
+# go stale. UNADOPTED (below) is where a page opts OUT with a reason, which is the direction
+# that still needs a declaration.
+def _adopted_live_surfaces():
+    pages = [p for p in sorted((REPO_ROOT / "site").rglob("index.html"))
+             if "brand/brand.css" in p.read_text(encoding="utf-8")]
+    assert len(pages) >= 5, (
+        f"only {len(pages)} page(s) link the brand stylesheet -- treating that as a broken "
+        "scan rather than an un-branded site"
+    )
+    return pages
+
+
+_ADOPTED_LIVE_SURFACES = _adopted_live_surfaces()
 
 # Files under site/brand/ that are NOT plain consuming surfaces, with the reason each is exempt
 # from the "no raw hex" rule:

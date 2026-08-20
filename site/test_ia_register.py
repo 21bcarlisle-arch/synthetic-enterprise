@@ -89,9 +89,17 @@ def test_the_three_states_are_the_measured_census():
     """
     states = reg.classify()
     by_state = {s: sorted(a for a, st in states.items() if st == s) for s in set(states.values())}
-    assert len(by_state[reg.ADVERTISED]) >= 4, by_state
-    assert by_state[reg.INTERNAL] == ["/director/", "/shadow/"], by_state
-    assert by_state[reg.RETIRED], "the retirement convention has no members -- did a migration delete instead of redirect?"
+    assert len(by_state[reg.ADVERTISED]) >= 5, by_state
+    # 2026-08-20: INTERNAL and RETIRED are both legitimately EMPTY now. The director ruled
+    # that the five tabs are the site, so there are no deliberately-unadvertised pages left
+    # and no pages kept in-repo behind a 301 -- the redirects survive, the directories do not.
+    # Pinning "all three states populated" would now fail on the correct arrangement, which is
+    # the false-positive class this test's own docstring warns about.
+    assert by_state.get(reg.INTERNAL, []) == [], (
+        f"an internal door reappeared: {by_state.get(reg.INTERNAL)}. Every deployed page is "
+        "supposed to be one of the five tabs or reachable from them."
+    )
+    assert by_state.get(reg.UNCLASSIFIED, []) == [], by_state
 
 
 def test_orphan_debt_is_exactly_the_current_orphans():
@@ -100,13 +108,17 @@ def test_orphan_debt_is_exactly_the_current_orphans():
     `register_violations()` reports both -- proven by the two mutations below."""
     states = reg.classify()
     reachable = reg.nav_reachable()
-    orphans = {a for a, s in states.items() if s == reg.ADVERTISED and a not in reachable}
+    orphans = {a for a, s in states.items() if s == reg.ADVERTISED and a not in reachable
+               and a not in reg.NAV_EXEMPT}
     assert orphans == set(reg.ORPHAN_DEBT), (
         f"orphans={sorted(orphans)} debt={sorted(reg.ORPHAN_DEBT)}"
     )
 
 
 def test_every_debt_entry_names_the_step_that_clears_it():
+    """Empty today, and the assertion is kept rather than deleted: the register is the thing
+    that must stay disciplined, not this run of it. All four content entries were discharged
+    on 2026-08-20 exactly as each had predicted."""
     for area, owner in reg.ORPHAN_DEBT.items():
         assert re.match(r"SITE\d+ -- \S", owner), (
             f"{area}'s debt entry must name the owning step, got {owner!r} -- "
@@ -127,12 +139,12 @@ def test_the_canonical_nav_only_routes_to_deployed_areas():
         )
 
 
-def test_the_nav_exemption_is_exactly_one_declared_mirror():
-    assert set(reg.NAV_EXEMPT) == {"/shadow/"}, (
-        "the exemption list is where a nav control goes to die -- one member, declared, "
-        f"with its reason. Got {sorted(reg.NAV_EXEMPT)}"
-    )
-    assert len(reg.NAV_EXEMPT["/shadow/"]) > 40, "an exemption without a reason is an allowlist"
+def test_every_nav_exemption_carries_a_reason():
+    """The exemption list is where a nav control goes to die. It is EMPTY as of 2026-08-20 --
+    its one member was the /shadow/ mirror, now deleted -- and the shape is still asserted so
+    a new exemption cannot arrive as a bare path."""
+    for area, reason in reg.NAV_EXEMPT.items():
+        assert len(reason) > 40, f"{area} is exempted without a reason -- that is an allowlist"
 
 
 def test_only_two_page_depths_exist():
@@ -227,14 +239,10 @@ def test_every_deployed_area_is_owned_declared_generated_or_exempt():
     )
 
 
-def test_the_generated_evidence_page_carries_the_register_nav():
-    """/evidence/ is rewritten every ~30 minutes by its generator, so it is the one
-    page a hand edit cannot hold. Its nav must come from the register too."""
-    html = (SITE / "evidence" / "index.html").read_text(encoding="utf-8")
-    assert reg.render_nav("/evidence/", indent="") in html, (
-        "the generated evidence page's nav is not the register's render -- "
-        "check tools/generate_evidence_data.py::render_html"
-    )
+# RETIRED 2026-08-20 with the page. /evidence/ was deleted under the director's ruling that
+# the five tabs are the site; its 301 lands on /harness/. The property this test guarded -- a
+# GENERATED page's nav must be the register's render, not a copy that drifts -- has no
+# generated page left to guard, so it is removed rather than left pointing at a missing file.
 
 
 def test_no_page_renders_two_active_entries():
@@ -261,12 +269,18 @@ def test_the_pages_that_cannot_highlight_themselves_are_exactly_the_unreached_on
 
 
 def test_a_retired_page_highlights_the_door_it_folded_into():
-    """A reader who lands on a retired page is looking at content that now lives
-    behind another door; highlighting a door that is no longer in the IA would be a
-    lie the register can avoid telling."""
+    """A reader who lands on a retired page is looking at content that now lives behind another
+    door; highlighting a door no longer in the IA would be a lie the register can avoid telling.
+
+    2026-08-20: there are no retired areas left. The fold -- pages kept in-repo behind a 301 --
+    was retired by the director on the grounds that it carried real maintenance cost for pages
+    nobody could reach. The assertion is kept, not deleted, because the fold is a shape the IA
+    could legitimately take again; what changed is that the vacuity guard now SKIPS instead of
+    failing, since "no retired areas" is the correct state rather than a broken migration."""
     states = reg.classify()
     retired = [a for a, s in states.items() if s == reg.RETIRED]
-    assert retired, "no retired areas -- this control would be vacuous"
+    if not retired:
+        pytest.skip("no pages are kept behind a 301 -- see PARENT_OF, deliberately empty")
     for area in retired:
         target = reg.active_target(area)
         assert target != area, f"{area} folds into nothing"
@@ -284,7 +298,11 @@ def _nav_block(html: str) -> str:
 
 # --- mutations (R15) -------------------------------------------------------
 def test_MUTATION_a_hand_edited_nav_fires(tree):
-    victim = tree / "company" / "index.html"
+    # DERIVED. This named site/company/index.html, which was deleted on 2026-08-20 and took
+    # both mutation proofs down with it -- the same stale-literal defect these tests exist to
+    # catch, in the tests themselves.
+    victim = next(p for p in sorted(tree.rglob("index.html"))
+                  if reg.NAV_START in p.read_text(encoding="utf-8"))
     # THE LABEL IS DERIVED, and the reason is that this control silently stopped working when it
     # was not. It corrupted the literal string `>Proof</a>`; the 2026-08-19 fold took Proof off
     # the nav, so the replace matched nothing, the file was rewritten unchanged, and `stale()`
@@ -299,13 +317,19 @@ def test_MUTATION_a_hand_edited_nav_fires(tree):
         "would pass without testing anything"
     )
     victim.write_text(after)
-    assert "/company/" in renderer.stale(tree)
+    victim_area = "/" if victim.parent == tree else "/" + victim.parent.relative_to(tree).as_posix() + "/"
+    assert victim_area in renderer.stale(tree)
 
 
 def test_MUTATION_a_deleted_nav_marker_fires(tree):
-    victim = tree / "company" / "index.html"
+    # DERIVED. This named site/company/index.html, which was deleted on 2026-08-20 and took
+    # both mutation proofs down with it -- the same stale-literal defect these tests exist to
+    # catch, in the tests themselves.
+    victim = next(p for p in sorted(tree.rglob("index.html"))
+                  if reg.NAV_START in p.read_text(encoding="utf-8"))
     victim.write_text(victim.read_text().replace(reg.NAV_START, ""))
-    assert "/company/" in renderer.stale(tree)
+    victim_area = "/" if victim.parent == tree else "/" + victim.parent.relative_to(tree).as_posix() + "/"
+    assert victim_area in renderer.stale(tree)
 
 
 def test_MUTATION_a_new_page_with_no_nav_block_at_all_fires(tree):
@@ -327,27 +351,33 @@ def test_MUTATION_moving_a_tab_in_the_register_makes_every_page_stale(tree):
         after = renderer.stale(tree)
     finally:
         reg.CANONICAL_NAV = original
-    assert len(after) >= 14, f"a tab move reached only {len(after)} page(s): {after}"
+    # DERIVED. This was `>= 14`, a pin on the page count of the day, and the 2026-08-20 fold
+    # took the site to five nav-rendered pages -- so the control failed for the one reason it
+    # must not, a legitimate IA change. What it actually has to prove is that the move reaches
+    # EVERY page that renders the nav, whatever that number is today.
+    nav_pages = [area for area, _ in renderer.pages()]
+    assert sorted(after) == sorted(nav_pages), (
+        f"a tab move reached {sorted(after)} but the nav is rendered on {sorted(nav_pages)} -- "
+        "a page that does not go stale is a page whose nav does not derive from the register"
+    )
+    assert len(after) >= 5, f"only {len(after)} page(s) render the nav at all: {after}"
     assert renderer.stale(tree) == [], "the register did not restore"
 
 
 # ---------------------------------------------------------------------------
 # 3. The director-record condition (ruled 2026-08-18, reserved class 3)
+#
+# DISCHARGED 2026-08-20 BY DELETION, and three tests here are retired with it. The condition
+# was that /director/ may not be made CRAWLABLE until the director has read its rendered
+# content -- a reserved class 3 item (an irretractable public claim in the company's name).
+# The page is now deleted and 301'd to /harness/, so it cannot be crawled by any route: a
+# stronger guarantee than the condition asked for, arrived at from the other direction.
+#
+# What survives is the release machinery itself (director_record_release,
+# director_record_publication_violations and their fail-closed proofs below), because the
+# condition would apply again the moment any director-facing record is published. What is gone
+# is the three tests that asserted the state of a specific deleted page.
 # ---------------------------------------------------------------------------
-def test_the_director_record_is_not_crawlable_yet():
-    assert reg.director_record_publication_violations() == []
-
-
-def test_the_director_record_is_still_internal_and_noindexed():
-    """The state the condition protects. If this ever goes green because /director/
-    was published, the release record below is what must have made it legal."""
-    if reg.director_record_release() is not None:
-        pytest.skip("the director has released the record; the condition is discharged")
-    assert "/director/" in reg.INTERNAL_DOORS
-    assert "/director/" not in reg.advertised_areas()
-    assert "noindex" in (SITE / "director" / "index.html").read_text(encoding="utf-8")
-
-
 def test_MUTATION_advertising_the_director_record_without_a_release_fires(tree):
     sitemap = tree / "sitemap.xml"
     sitemap.write_text(
@@ -357,13 +387,6 @@ def test_MUTATION_advertising_the_director_record_without_a_release_fires(tree):
     )
     problems = reg.director_record_publication_violations(tree)
     assert any("sitemap" in p for p in problems), problems
-
-
-def test_MUTATION_dropping_the_noindex_without_a_release_fires(tree):
-    victim = tree / "director" / "index.html"
-    victim.write_text(victim.read_text().replace("noindex", "index"))
-    problems = reg.director_record_publication_violations(tree)
-    assert any("noindex" in p for p in problems), problems
 
 
 def test_MUTATION_removing_it_from_internal_doors_without_a_release_fires(tree, monkeypatch):

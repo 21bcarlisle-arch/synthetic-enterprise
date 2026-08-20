@@ -56,6 +56,15 @@ td.who { font-weight: 600; white-space: nowrap; }
 .inline-link { color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--border); }
 .inline-link:hover { border-bottom-color: var(--blue); }
 footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 11px; color: var(--muted); border-top: 1px solid var(--border); }
+
+/* Mobile pass. Added 2026-08-20: these pages had no breakpoint at all -- the control that
+   requires one only ever looked at nine top-level doors, none of them Knowledge. */
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  main, .wrap, article, .page { padding-left: 14px; padding-right: 14px; }
+  h1 { font-size: 24px; }
+}
+.table-scroll { overflow-x: auto; }
 </style>
 </head>
 <body>
@@ -113,10 +122,10 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   equally distant, so the table says what it would take to connect and whether the real
   specification has actually been read.</p>
   <div class="figs" id="access"></div>
-  <table>
+  <div class="table-scroll"><table>
     <thead><tr><th>Where the world ends</th><th>Who it becomes</th><th>To connect at all</th><th>Specification</th><th>State</th></tr></thead>
     <tbody id="golive"></tbody>
-  </table>
+  </table></div>
 
   <h2 class="sec">How solid the boundary is</h2>
   <p class="sec-lede">The boundary is not a promise; it is measured, and the measurement is allowed
@@ -253,7 +262,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <p style="margin-bottom:14px;">
     This page sets the simulated world and the supplier side by side. The supplier's own
     operating detail — its book, its costs, its regulatory position — is on
-    <a href="../company/">The Company</a>.
+    <a href="../harness/">The Company</a>.
   </p>
 </section>
 </body>

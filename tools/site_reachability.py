@@ -101,17 +101,6 @@ STRUCTURAL_EXCLUSIONS: dict[str, str] = {
         "the error document the host serves on a 404; linking to it from the site would be "
         "the defect, not the fix"
     ),
-    "knowledge/_stub/index.html": (
-        "a page TEMPLATE for authoring new knowledge pages, not reader content; it is the "
-        "shape a knowledge page copies, and publishing it would publish a stub"
-    ),
-    "knowledge/_page/index.html": (
-        "the sibling TEMPLATE for a WRITTEN knowledge page (SITE5, 2026-08-18), not reader "
-        "content: it renders whichever topic its directory name resolves to, so at its own "
-        "URL it resolves to nothing. Same status as _stub/index.html above, and it exists "
-        "for the same reason -- one template serving every written topic beats six "
-        "near-identical files drifting apart"
-    ),
     "brand/exemplar.html": (
         "an internal brand-token visualisation used when changing brand.css, not a reader "
         "surface"
@@ -178,7 +167,12 @@ SITEMAP_DECLARED_EXCLUSIONS: dict[str, str] = {
 
 #: The authoring template. A page BYTE-IDENTICAL to it has not been written yet, whatever
 #: its directory name promises. Derived by content hash, never by a list of names.
-STUB_TEMPLATE = "knowledge/_stub/index.html"
+# MOVED OUT OF THE PUBLISHED TREE, 2026-08-20. This was site/knowledge/_stub/index.html -- an
+# authoring template that was nonetheless deployed, so the site served a stub at its own URL and
+# every page-scanning control had to carry an exemption for it. It now lives at
+# docs/site_templates/knowledge/_stub.html: still the byte-identical oracle for "this page has
+# not been written yet", no longer a published surface, and no exemption needed anywhere.
+STUB_TEMPLATE = "../docs/site_templates/knowledge/_stub.html"
 
 #: A page whose entire body is "go somewhere else" is not a destination. Detected from the
 #: page's OWN markup (the same declaration a browser obeys), so it needs no list either.

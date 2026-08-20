@@ -106,8 +106,11 @@ def test_the_gate_actually_has_a_population_to_grade():
     Measured 2026-08-11: 12 doors, 110 render functions."""
     doors = _door_scripts()
     total = sum(len(re.findall(r"^\s*function\s+render", code, re.M)) for code in doors.values())
-    assert len(doors) >= 8, f"only {len(doors)} doors found -- the glob is broken, not the site"
-    assert total >= 50, f"only {total} render functions found -- the extractor is broken"
+    assert len(doors) >= 2, f"only {len(doors)} doors found -- the glob is broken, not the site"
+    # The floor was 50, sized to a site with eleven JavaScript doors. Two remain, and the
+    # number is not the property -- "the extractor still finds functions" is. A floor that
+    # tracks the site's size would need re-pinning on every fold, which is how it goes stale.
+    assert total >= 5, f"only {total} render functions found -- the extractor is broken"
 
 
 # --------------------------------------------------------------------------

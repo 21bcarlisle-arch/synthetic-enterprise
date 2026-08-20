@@ -88,7 +88,12 @@ class IaRegisterUnavailable(RuntimeError):
 # `/director/` is the one under a director condition -- see director_record_release().
 # `/shadow/` is a generated MIRROR of the whole site at a second root
 # (tools/generate_shadow_html.py); its subtree is covered by this one entry.
-INTERNAL_DOORS = ("/director/", "/shadow/")
+# EMPTY, 2026-08-20. /director/ folded into Harness as its "what a human actually decided"
+# section and /shadow/ (the internal advisor mirror) was deleted outright -- it was an internal
+# surface that was nonetheless being published on the public site, which is the hidden-page
+# burden the ruling names. The constant stays so the shrink-only test still has something to
+# measure and a NEW internal door has to be declared here rather than appearing quietly.
+INTERNAL_DOORS: tuple[str, ...] = ()
 
 
 # ── UNDER CONSTRUCTION: a fourth state, and a legitimate one ──────────────────
@@ -119,20 +124,12 @@ INTERNAL_DOORS = ("/director/", "/shadow/")
 # shows a reader nothing, which is the failure this whole ruling is about.
 UNDER_CONSTRUCTION_MARKER = "This page is being built"
 
-UNDER_CONSTRUCTION_DOORS: dict[str, tuple[str, str, str]] = {
-    "/explore/": (
-        "One real customer followed through six stages -- PRICED, CHOSEN, USED, BILLED, PAID, "
-        "JUDGED -- showing at each stage what the world knew against what the company believed.",
-        "Next: the traversal for a single customer. The stage data it renders already exists.",
-        "SITE10_explore_traversal",
-    ),
-    "/harness/": (
-        "How this project is actually run: the two-seat model, how work is chosen and "
-        "sequenced, the named failure classes, and an honest count of what broke and why.",
-        "Next: the method account. The known-limitations section moves here from Proof.",
-        "SITE9_harness_tab_and_director_record",
-    ),
-}
+# EMPTY, 2026-08-20, and empty is the shrink-only register working rather than a gap in it.
+# /explore/ left when the six-stage traversal shipped; /harness/ left the same day when it
+# stopped promising a method account and started carrying one. An entry left behind after its
+# page is built is worse than no entry: the page goes on telling readers "this page is being
+# built" over real content, i.e. instructing them to disbelieve what they are looking at.
+UNDER_CONSTRUCTION_DOORS: dict[str, tuple[str, str, str]] = {}
 
 
 # ── The canonical nav ─────────────────────────────────────────────────────────
@@ -179,11 +176,18 @@ CANONICAL_NAV: tuple[NavItem, ...] = (
 # ONE LINK EACH, and that is a rule rather than an accident. Director, 2026-08-19: "prefer fewer
 # cross-links: every one is a thing that has to keep being true, and I'd rather have a smaller
 # number that always work than a web that needs constant verification."
-PARENT_OF: dict[str, str] = {
-    "/world/": "/explore/",        # Explore is where the world gets walked
-    "/company/": "/capabilities/",  # Capabilities is SIM and Company side by side
-    "/proof/": "/harness/",         # the SITE11 destination, reached early and safely
-}
+# EMPTY, 2026-08-20. This held the FOLD: /world/, /company/ and /proof/ kept alive off-nav,
+# each reached by exactly one link from the tab that absorbed it. The director retired that
+# arrangement -- "the five tabs are the site... no permanent limbo, no page kept because
+# deleting it feels risky" -- so their content moved into Capabilities and Harness and the
+# pages are deleted, with 301s in site/_redirects.
+#
+# The fold was a reasonable intermediate state and it cost more than it looked. Each folded
+# page still had to be built, branded, link-checked and named in every control's page list;
+# three separate controls went red this week on a stale literal naming one of them, and one of
+# those refused every lane's commit. A page nobody can reach is not free just because it is
+# quiet.
+PARENT_OF: dict[str, str] = {}
 
 
 # ── Per-page render profile ───────────────────────────────────────────────────
@@ -229,13 +233,7 @@ LEGACY_TAIL: dict[str, tuple[tuple[str, str], ...]] = {}
 #
 # SHRINK-ONLY: `test_ia_register.py` fails if an entry here is no longer an orphan
 # (stale debt claiming credit) and fails on any orphan NOT here (new debt sneaking in).
-ORPHAN_DEBT: dict[str, str] = {
-    "/glossary/": "SITE6 -- the glossary page is 301'd to Knowledge and leaves the sitemap",
-    "/customers/": "SITE10 -- reconciled into Explore, which is a canonical tab",
-    "/evidence/": "SITE9 -- the machine record folds into Harness behind a drill-down",
-    "/now/": "SITE8 -- Home carries the dated 'latest' strip this page duplicates",
-    "/privacy/": "SITE8 -- a footer route, not a tab; Home's foot is its home",
-}
+ORPHAN_DEBT: dict[str, str] = {}
 
 
 # ── The one nav exemption ─────────────────────────────────────────────────────
@@ -245,21 +243,25 @@ ORPHAN_DEBT: dict[str, str] = {
 # a shadow reader onto the live site -- the opposite of what a mirror is for. Exactly
 # one member, asserted as exactly one member, with its reason in the register rather
 # than in a reviewer's memory.
-GENERATED_NAV: dict[str, str] = {
-    # /evidence/ is the only ADVERTISED area whose page is generated -- rewritten every
-    # ~30 minutes on the publish path -- so a hand edit to it is overwritten within the
-    # hour. Its nav comes from THIS register, rendered by the generator named here.
-    # `tools/render_site_nav.py` therefore skips it by declaration rather than by the
-    # accident of what its markup happens to look like, and the control asserts the
-    # generated page anyway.
-    "/evidence/": "tools/generate_evidence_data.py",
-}
+# EMPTY, 2026-08-20. Its one member was /evidence/, the only advertised page whose HTML was
+# rewritten by a generator every ~30 minutes; the page is deleted and its 301 lands on
+# /harness/. Every page on the site is now hand-authored and nav-rendered by
+# tools/render_site_nav.py, so nothing needs the declaration -- but the constant stays, because
+# the next generated page must announce itself here rather than be skipped by the accident of
+# what its markup happens to look like.
+GENERATED_NAV: dict[str, str] = {}
 
 
+# EMPTY, 2026-08-20: its one member was /shadow/, the generated mirror, and the mirror is
+# deleted along with every other page a reader could not reach. The constant stays because an
+# exemption list that has to be re-created to be used is one nobody adds to casually.
 NAV_EXEMPT: dict[str, str] = {
-    "/shadow/": (
-        "generated mirror at a second root; its nav is the mirror's own IA and the "
-        "canonical nav would route a shadow reader onto the live site"
+    "/privacy/": (
+        "a legal footer route carried on every page's foot, deliberately not one of the five "
+        "tabs. It is genuinely reachable -- more reachable than most of the site -- but not "
+        "from the nav, which is what this exemption records. Its previous home was ORPHAN_DEBT, "
+        "which was wrong: it described a page waiting to be folded somewhere, and this one is "
+        "where it belongs."
     ),
 }
 
@@ -380,12 +382,19 @@ def register_violations(site: Path = SITE) -> list[str]:
     reachable = nav_reachable()
     problems: list[str] = []
 
-    orphans = {a for a, s in states.items() if s == ADVERTISED and a not in reachable}
+    # NAV_EXEMPT is a THIRD legitimate account, added 2026-08-20. Before this, an advertised
+    # page with no nav route had exactly two honest homes -- a nav tab, or a dated debt entry --
+    # and /privacy/ fits neither: it is a legal footer route on every single page, so it is
+    # more reachable than most of the site while never being a tab. Filing it as DEBT said it
+    # was waiting to be folded somewhere, which was never true and quietly aged.
+    orphans = {a for a, s in states.items() if s == ADVERTISED and a not in reachable
+               and a not in NAV_EXEMPT}
     for area in sorted(orphans - set(ORPHAN_DEBT)):
         problems.append(
-            f"{area} is ADVERTISED in sitemap.xml with no route from the canonical nav, "
-            f"and is not in ORPHAN_DEBT -- give it a nav route, take it off the sitemap, "
-            f"or record the debt with the step that clears it"
+            f"{area} is ADVERTISED in sitemap.xml with no route from the canonical nav, and is "
+            f"in neither ORPHAN_DEBT nor NAV_EXEMPT -- give it a nav route, take it off the "
+            f"sitemap, record the debt with the step that clears it, or declare with a reason "
+            f"why it is reachable without being a tab"
         )
     for area in sorted(set(ORPHAN_DEBT) - orphans):
         problems.append(

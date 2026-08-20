@@ -85,7 +85,7 @@ def test_cost_arbitrage_leg_no_longer_leads_the_front_door():
     assert "renderThesisChart" not in text, "the cost-to-serve render is still on the front door"
     assert "opex_ledger" not in text, "the front door still renders the cohort opex_ledger figure"
     # It is preserved on /proof -- the front points there rather than deleting it.
-    assert 'href="./proof/#economics-anchor"' in text, "the front does not point to the relocated economics leg"
+    assert 'href="./harness/"' in text, "the front does not point to the relocated economics leg"
 
 
 # ---------------------------------------------------------------------------
@@ -134,8 +134,8 @@ def test_at_least_one_claim_evidence_link():
     # R1: the front door leads with the idea + diagram (no live figure of its own),
     # so its claims link OUT to the evidence surfaces -- the mission's economics leg
     # to /proof, and the door/node cards to the World/Company/Proof surfaces.
-    assert 'href="./proof/#economics-anchor"' in text, "mission block does not link to its economics evidence"
-    assert 'href="./company/"' in text or 'href="./world/"' in text, \
+    assert 'href="./harness/"' in text, "mission block does not link to its economics evidence"
+    assert 'href="./capabilities/' in text or 'href="./harness/' in text, \
         "no claim->evidence link to an evidence door found"
 
 

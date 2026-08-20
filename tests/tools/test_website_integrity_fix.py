@@ -6,7 +6,7 @@ import inspect
 
 from tools import generate_dashboard_data
 from tools.generate_dashboard_data import (
-    _load_build_info, _check_consistency, BUILD_INFO_PATH, count_company_modules,
+    _load_build_info, BUILD_INFO_PATH, count_company_modules,
     _derive_build_from_claude_md, _check_basis_labels_present, extract_portfolio,
     _check_bridge_reconciles,
 )
@@ -145,52 +145,6 @@ def test_load_build_info_partial_file_uses_defaults_for_missing_keys(tmp_path, m
     assert count == 15148
 
 
-def test_check_consistency_passes_when_net_margins_match(capsys):
-    portfolio = {"net_margin_gbp": 1445258.0}
-    insights = {"net_margin_gbp": 1445258.0}
-    assert _check_consistency(portfolio, insights, "run_output_test.json") is True
-    assert "CONSISTENCY GATE FAILED" not in capsys.readouterr().err
-
-
-def test_check_consistency_fails_loudly_on_mismatch(capsys):
-    portfolio = {"net_margin_gbp": 1445258.0}
-    insights = {"net_margin_gbp": -8317.0}
-    assert _check_consistency(portfolio, insights, "run_output_test.json") is False
-    err = capsys.readouterr().err
-    assert "CONSISTENCY GATE FAILED" in err
-    assert "run_output_test.json" in err
-
-
-def test_check_consistency_within_tolerance_passes():
-    portfolio = {"net_margin_gbp": 1445258.4}
-    insights = {"net_margin_gbp": 1445258.9}
-    assert _check_consistency(portfolio, insights, "x.json", tolerance_gbp=1.0) is True
-
-
-def test_check_consistency_fails_closed_when_insights_absent(capsys):
-    # R15 (KL-8 fix): an absent/empty run_insights.json is NOT a benign skip --
-    # the pipeline guarantees the file is written immediately before this gate,
-    # so a missing comparison input is a real failure and must fail CLOSED
-    # (raising the consistency alarm), not pass silently.
-    portfolio = {"net_margin_gbp": 1445258.0}
-    assert _check_consistency(portfolio, None, "x.json") is False
-    assert "CONSISTENCY GATE FAILED" in capsys.readouterr().err
-    assert _check_consistency(portfolio, {}, "x.json") is False
-
-
-def test_check_consistency_skips_key_absent_on_both_surfaces():
-    # A headline key absent on BOTH surfaces is legitimately not-published and is
-    # still skipped (net margin agrees; all other keys absent both sides).
-    assert _check_consistency({"net_margin_gbp": 100.0}, {"net_margin_gbp": 100.0}, "x.json") is True
-
-
-def test_check_consistency_fires_on_one_sided_key(capsys):
-    # R15 (KL-8 fix, fail-open closed): a headline key present on one surface but
-    # missing on the other is a real disagreement, no longer a silent skip.
-    assert _check_consistency({"net_margin_gbp": 100.0}, {"gross_margin_gbp": 5.0}, "x.json") is False
-    assert "CONSISTENCY GATE FAILED" in capsys.readouterr().err
-
-
 def test_check_basis_labels_present_passes_for_real_extract_portfolio():
     """CLOCK_TRUTH_AND_THE_BRIDGE.md (2026-07-12, P0) standing rule: 'No
     financial figure is published without its clock.' extract_portfolio's own
@@ -290,86 +244,54 @@ def test_process_run_complete_generates_insights_before_dashboard():
     assert insights_pos < dashboard_pos
 
 
-# --- Phase QF: Part C -- widened consistency gate + loud-failure NTFY wiring ---
+def test_a_failing_check_propagates_out_of_generate(tmp_path, monkeypatch):
+    """generate() must return the gate verdict, not an unconditional True -- the
+    caller relies on it to decide whether to raise the alarm.
 
-def _insights_with_areas(**area_metrics):
-    """Build a run_insights.json-shaped dict from {area: {key: val}} kwargs."""
-    blocks = []
-    for area, metrics in area_metrics.items():
-        blocks.append({"area": area, "key_metrics": metrics})
-    return {"insights": blocks}
+    Driven by monkeypatching ONE of the seven remaining checks rather than by
+    feeding a specific bad figure, deliberately: the property under test is the
+    propagation, and pinning it to a particular check is how this test would have
+    gone green-because-unreachable when the exec-summary comparison was retired
+    on 2026-08-20 -- which is exactly what it did, since it drove the verdict
+    through the one check that no longer exists."""
+    import tools.generate_dashboard_data as gdd
 
+    run_json = tmp_path / "run_output_test.json"
+    run_json.write_text(json.dumps({
+        "total_net_gbp": 100.0,
+        "_cache_meta": {"git_commit": "deadbeef"},
+    }))
+    out_path = tmp_path / "dashboard.json"
 
-def test_check_consistency_catches_bills_mismatch(capsys):
-    portfolio = {"net_margin_gbp": 100.0, "bills_total": 1605}
-    extra = _insights_with_areas(operations={"bills_total": 1117})
-    insights = dict(extra, net_margin_gbp=100.0)
-    assert _check_consistency(portfolio, insights, "x.json") is False
-    err = capsys.readouterr().err
-    assert "CONSISTENCY GATE FAILED" in err
-    assert "bills total" in err
+    monkeypatch.setattr(gdd, "OUTPUT_PATH", out_path)
+    monkeypatch.setattr(gdd, "load_spot_monthly", lambda: {})
+    monkeypatch.setattr(gdd, "_check_bridge_reconciles", lambda *a, **k: False)
 
-
-def test_check_consistency_catches_committee_interventions_mismatch(capsys):
-    portfolio = {"net_margin_gbp": 100.0, "committee_interventions_total": 38}
-    extra = _insights_with_areas(risk={"committee_interventions_total": 323})
-    insights = dict(extra, net_margin_gbp=100.0)
-    assert _check_consistency(portfolio, insights, "x.json") is False
-    assert "committee interventions" in capsys.readouterr().err
-
-
-def test_check_consistency_catches_enterprise_value_and_retention_mismatches(capsys):
-    portfolio = {
-        "net_margin_gbp": 100.0,
-        "enterprise_value_gbp": 8826938.57,
-        "retention_offers": 14,
-        "retention_retained": 14,
-        "churn_count": 6,
-    }
-    extra = _insights_with_areas(customers={
-        "enterprise_value_gbp": 0.0,
-        "retention_offers": 0,
-        "retained": 0,
-        "total_churned": 0,
-    })
-    insights = dict(extra, net_margin_gbp=100.0)
-    assert _check_consistency(portfolio, insights, "x.json") is False
-    err = capsys.readouterr().err
-    assert "enterprise value" in err
-    assert "retention offers" in err
-    assert "retention retained" in err
-    assert "churn count" in err
+    ok = gdd.generate(run_json)
+    assert ok is False, "a failing check did not reach generate()'s return value"
+    # The DATA is still written on a failed verdict -- the gate reports, it does
+    # not withhold the surface.
+    assert out_path.exists()
 
 
-def test_check_consistency_passes_when_all_headline_numbers_agree():
-    portfolio = {
-        "net_margin_gbp": 1445258.0,
-        "gross_margin_gbp": 6467308.57,
-        "enterprise_value_gbp": 8826938.57,
-        "bills_total": 1605,
-        "committee_interventions_total": 38,
-        "retention_offers": 14,
-        "retention_retained": 14,
-        "churn_count": 6,
-    }
-    extra = _insights_with_areas(
-        financial={"gross_margin_gbp": 6467308.57},
-        customers={
-            "enterprise_value_gbp": 8826938.57,
-            "retention_offers": 14,
-            "retained": 14,
-            "total_churned": 6,
-        },
-        operations={"bills_total": 1605},
-        risk={"committee_interventions_total": 38},
-    )
-    insights = dict(extra, net_margin_gbp=1445258.0)
-    assert _check_consistency(portfolio, insights, "x.json") is True
+def test_the_retired_exec_summary_comparison_has_not_come_back(tmp_path, monkeypatch):
+    """Director ruling 2026-08-20: a surface no reader can reach must never be able
+    to block publishing. run_insights.json is fetched by no page on the site, so a
+    disagreement between it and the dashboard must not change the verdict.
 
+    The mutation is DIFFERENTIAL, not absolute: generate() is run twice over the
+    same run output, once with an exec summary that agrees and once with one that
+    is wildly wrong, and the two verdicts must be identical. Asserting `is True`
+    instead would couple this control to whatever else a stub run happens to trip
+    (it trips the basis-parentage and mix-claim gates, both legitimately), and
+    would then be measuring those rather than the thing it names.
 
-def test_check_consistency_gate_result_propagates_from_generate(tmp_path, monkeypatch):
-    """generate() must return the consistency-gate result (Part C), not an
-    unconditional True -- the caller relies on this to decide whether to NTFY."""
+    The seven surviving checks are forced GREEN for the same reason, and I got
+    this wrong first: without that, both runs returned False for unrelated
+    reasons, `agreeing == disagreeing` held trivially, and re-introducing the
+    retired comparison did NOT turn this test red. A differential control whose
+    difference is masked by a short-circuit is the TAUTOLOGY pattern -- it was
+    only visible because the mutation was actually run."""
     import tools.generate_dashboard_data as gdd
 
     run_json = tmp_path / "run_output_test.json"
@@ -378,16 +300,34 @@ def test_check_consistency_gate_result_propagates_from_generate(tmp_path, monkey
         "_cache_meta": {"git_commit": "deadbeef"},
     }))
     insights_path = tmp_path / "run_insights.json"
-    insights_path.write_text(json.dumps({"net_margin_gbp": -999999.0}))
-    out_path = tmp_path / "dashboard.json"
-
     monkeypatch.setattr(gdd, "RUN_INSIGHTS_PATH", insights_path)
-    monkeypatch.setattr(gdd, "OUTPUT_PATH", out_path)
+    monkeypatch.setattr(gdd, "OUTPUT_PATH", tmp_path / "dashboard.json")
     monkeypatch.setattr(gdd, "load_spot_monthly", lambda: {})
+    for surviving in ("_check_population_consistency", "_check_basis_labels_present",
+                      "_check_derived_basis_parentage", "_check_bridge_reconciles",
+                      "_check_bad_debt_reconciliation_present",
+                      "_check_period_coverage_present", "_check_front_door_segment_claim"):
+        assert hasattr(gdd, surviving), f"{surviving} is gone -- update this list"
+        monkeypatch.setattr(gdd, surviving, lambda *a, **k: True)
 
-    ok = gdd.generate(run_json)
-    assert ok is False
-    assert out_path.exists()
+    insights_path.write_text(json.dumps({"net_margin_gbp": 100.0}))
+    agreeing = gdd.generate(run_json)
+    insights_path.write_text(json.dumps({"net_margin_gbp": -999999.0}))
+    disagreeing = gdd.generate(run_json)
+
+    assert agreeing is True, (
+        "the seven surviving checks are all forced green, so the verdict can only "
+        "be False here if something ELSE joined the conjunction -- find it"
+    )
+
+    assert agreeing == disagreeing, (
+        "the exec summary still moves the publish verdict: agreeing={} disagreeing={}. "
+        "No page on the site fetches run_insights.json, so it cannot be allowed to "
+        "decide whether a reader-facing figure publishes.".format(agreeing, disagreeing)
+    )
+    assert not hasattr(gdd, "_check_consistency"), (
+        "the retired dashboard-vs-exec-summary comparison is back in the module"
+    )
 
 
 def test_generate_dashboard_json_returns_gate_status(tmp_path, monkeypatch):

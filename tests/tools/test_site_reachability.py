@@ -240,8 +240,11 @@ def test_an_UNWRITTEN_page_is_COUNTED_but_NOT_EXCUSED_from_the_orphan_rule(scrat
     could be stranded indefinitely behind a green verdict — the control deciding a content
     question in whichever direction made its own answer clean.
     """
-    template = scratch / "knowledge" / "_stub" / "index.html"
-    template.parent.mkdir(parents=True)
+    # The template moved OUT of the published tree on 2026-08-20 -- it was being deployed, so
+    # the site served a stub at its own URL and every page-scanning control carried an
+    # exemption for it. Written where the module now looks, relative to the site root.
+    template = (scratch / sr.STUB_TEMPLATE).resolve()
+    template.parent.mkdir(parents=True, exist_ok=True)
     template.write_text(_page("stub template"))
     (scratch / "knowledge" / "topic-b").mkdir()
     (scratch / "knowledge" / "topic-b" / "index.html").write_text(_page("stub template"))
@@ -253,13 +256,16 @@ def test_an_UNWRITTEN_page_is_COUNTED_but_NOT_EXCUSED_from_the_orphan_rule(scrat
 def test_ROUTING_an_unwritten_page_clears_the_orphan_and_KEEPS_the_count(scratch: Path):
     """Both halves of the treatment: routing answers the reachability question and leaves
     the content debt still visible, so a routed stub cannot read as a written page."""
-    template = scratch / "knowledge" / "_stub" / "index.html"
-    template.parent.mkdir(parents=True)
+    # The template moved OUT of the published tree on 2026-08-20 -- it was being deployed, so
+    # the site served a stub at its own URL and every page-scanning control carried an
+    # exemption for it. Written where the module now looks, relative to the site root.
+    template = (scratch / sr.STUB_TEMPLATE).resolve()
+    template.parent.mkdir(parents=True, exist_ok=True)
     template.write_text(_page("stub template"))
     (scratch / "knowledge" / "topic-b").mkdir()
     (scratch / "knowledge" / "topic-b" / "index.html").write_text(_page("stub template"))
     (scratch / "knowledge" / "index.html").write_text(
-        _page("knowledge", ["../", "./topic-a/", "./topic-b/", "./_stub/"])
+        _page("knowledge", ["../", "./topic-a/", "./topic-b/"])
     )
 
     assert sr.orphans(scratch) == []

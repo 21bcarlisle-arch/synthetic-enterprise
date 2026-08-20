@@ -22,11 +22,27 @@ from pathlib import Path
 import pytest
 
 SITE = Path(__file__).resolve().parent
-DOORS = [
-    # (method-casebook retired 2026-07-20 -- redundant combined Method+Simplified surface)
-    "proof", "company", "world", "method", "director",
-    "glossary", "tours", "simplified", "now",
-]
+# DERIVED, 2026-08-20. This was a literal list of nine doors, and on that date every one of
+# them was deleted -- the director ruled that the five tabs ARE the site and the rest either
+# moved into a tab or went. A literal list would have taken 45 tests down with the pages.
+#
+# The SUBJECT survives the page list, and it is the more important half: "mobile is where I
+# read this; treat it as the binding constraint" (director, 2026-08-19). So the doors are read
+# from the built site, and a new tab is covered the day it ships rather than the day someone
+# remembers to add it here.
+def _pages():
+    out = []
+    for page in sorted(SITE.rglob("index.html")):
+        rel = page.parent.relative_to(SITE).as_posix()
+        out.append("." if rel == "." else rel)
+    assert len(out) >= 5, (
+        f"only {len(out)} built page(s) under {SITE} -- treating that as a broken scan rather "
+        "than a shrunken site, since a short list makes every test below vacuous"
+    )
+    return out
+
+
+DOORS = _pages()
 
 
 def _html(door: str) -> str:

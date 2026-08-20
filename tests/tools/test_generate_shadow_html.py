@@ -156,25 +156,36 @@ def test_2021_22_crisis_supplier_failure_count_is_single_sourced():
     site/timeline/ -- "29", "28", "30+", "roughly 30", "around 30". No
     anchored citation exists in ASSUMPTIONS.md for an exact figure, so this
     guards consistency of the hedged phrasing ("around 30") rather than
-    asserting a specific unanchored digit."""
+    asserting a specific unanchored digit.
+
+    2026-08-20: the page list was a LITERAL, and it named site/project/index.html -- a page
+    that had 301'd to /proof/ a month earlier and has now been deleted, which took this test
+    down with it. Worse, a literal list means a NEW door states the fact a sixth way and this
+    control never looks. It is now derived from the reachable site, so every page a reader can
+    open is checked and no maintenance is needed when doors come and go."""
     import re
     from pathlib import Path
+    from tools import reader_reachability as rr
     repo_root = Path(__file__).resolve().parents[2]
-    pages = [
-        repo_root / "site" / "index.html",
-        repo_root / "site" / "data" / "proof.json",  # (v4) sim/ retired -> Proof (data-driven, section-12) carries the fact
-        repo_root / "site" / "project" / "index.html",
-        repo_root / "site" / "world" / "index.html",  # (v4) timeline retired -> world carries the fact
-    ]
+    built = rr.pages()
+    # proof.json is data, not a page: (v4) sim/ retired and Proof carries the fact section-12.
+    pages = [repo_root / "site" / "data" / "proof.json"] + [built[u] for u in sorted(rr.reachable())]
+
     bad_pattern = re.compile(r"\b(29|28|30\+)\b.{0,20}(real )?(UK )?suppliers?")
     for page in pages:
-        text = page.read_text()
+        text = page.read_text(errors="replace")
         assert not bad_pattern.search(text), f"{page} uses an inconsistent supplier-failure count"
-    # (v4) count the CONSISTENT hedged phrasing "around 30 ... suppliers" the control guards --
-    # robust to each door's verb ("failed"/"to exit"/"ended ~30 suppliers") since consistency of
-    # the hedge, not a specific verb, is the point.
-    mentions_fact = [p for p in pages if re.search(r"around 30[^<]{0,40}suppliers?", p.read_text())]
-    assert len(mentions_fact) >= 3  # sanity: this must actually be checking real mentions
+    # The CONSISTENT hedged phrasing "around 30 ... suppliers" -- robust to each door's verb
+    # ("failed"/"to exit"/"ended ~30 suppliers") since consistency of the hedge, not a specific
+    # verb, is the point. The floor is 1, not today's 2: a count pinned to today's page set is
+    # the defect this test just suffered from. What the floor has to close is FAIL-OPEN -- the
+    # fact vanishing from the site entirely, leaving the loop above scanning for nothing.
+    mentions_fact = [p for p in pages
+                     if re.search(r"around 30[^<]{0,40}suppliers?", p.read_text(errors="replace"))]
+    assert mentions_fact, (
+        "no reachable page states the 2021-22 supplier-failure fact at all, so the consistency "
+        "check above is scanning for a phrase that is no longer published anywhere"
+    )
 
 
 def test_every_static_site_page_has_the_copyright_footer():
@@ -187,6 +198,8 @@ def test_every_static_site_page_has_the_copyright_footer():
         glob.glob(str(repo_root / "site" / "*" / "index.html"))
     )
     pages = [p for p in pages if "/shadow/" not in p]
-    assert len(pages) >= 10  # sanity: this must actually be scanning real pages
+    # The floor was 10, sized to the pre-fold site. The site is smaller by design now; what
+    # this guard has to close is a BROKEN GLOB returning nothing, not a shrinking site.
+    assert len(pages) >= 3, f"only {len(pages)} page(s) scanned -- the glob is broken"
     missing = [p for p in pages if "Poesys Platforms" not in Path(p).read_text()]
     assert missing == [], f"pages missing the copyright footer: {missing}"

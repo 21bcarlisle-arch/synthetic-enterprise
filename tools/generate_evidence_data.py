@@ -852,7 +852,6 @@ a {{ color: var(--teal); }}
 <body>
 <nav class="site-nav">
   <a href="../" class="nav-logo">Poesys</a>
-  <span class="nav-spacer"></span>
 {site_nav}
 </nav>
 <main>
@@ -896,6 +895,7 @@ a {{ color: var(--teal); }}
     limitations in readable form.
   </div>
 </main>
+<footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved. &middot; <a href="../privacy/" style="color:var(--muted);">Privacy</a></footer>
 </body>
 </html>
 """

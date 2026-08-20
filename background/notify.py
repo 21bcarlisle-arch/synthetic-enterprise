@@ -31,6 +31,15 @@ from background import ntfy_utils
 _HERE = Path(__file__).resolve().parent
 TRANSITIONS_FILE = _HERE.parent / "docs" / "observability" / ".notify_transitions.json"
 
+# G-N4 (director, 2026-08-20). Imported from the module that owns the escalation rather than
+# redeclared, so the threshold in the filed work item and the threshold that files it are the
+# same number -- two copies of one constant is how the document ends up citing a bar that is
+# no longer the bar.
+from background.alarm_repetition import (  # noqa: E402
+    ESCALATE_AFTER_REPEATS as _ESCALATE_AFTER,
+    EPISODE_GAP_SECONDS as _EPISODE_GAP,
+)
+
 # G-N2: the closed set of notification kinds, each with a structural tag the director sees.
 KINDS = ("real_alarm", "digest", "director_echo", "test_fixture")
 _KIND_TAG = {
@@ -79,25 +88,128 @@ def notify(message: str, *, kind: str, transition_key: str | None = None,
     if kind not in KINDS:
         raise ValueError(f"notify kind must be one of {list(KINDS)}, got {kind!r}")
 
+    # G-N4 (director, 2026-08-20): AN UNKEYED real_alarm KEYS ITSELF.
+    #
+    # R5 was never engaged for the alarm that woke him six times overnight, because
+    # sim_runner.py called notify() with no transition_key at all -- the contract's central
+    # rule was opt-in, and the one caller that most needed it had not opted in. Fixing that
+    # caller would leave every other unkeyed real_alarm free to do the same (R10: the class,
+    # not the instance), so the default moved instead.
+    #
+    # The key is derived from the message with elapsed times, counters, hashes and timestamps
+    # normalised away, because the six pages were not byte-identical -- "after 252s" vs
+    # "after 255s" -- and an exact-text dedup would have let all six through.
+    #
+    # Only real_alarm. A digest is a batch and re-sends by design; a director_echo is a reply
+    # and must never be suppressed as a repeat of itself.
+    if transition_key is None and kind == "real_alarm":
+        from background import alarm_repetition
+        transition_key = alarm_repetition.alarm_signature(message)
+        if state is None:
+            state = transition_key  # unchanged condition == unchanged state
+
+    _pending_commit = None   # written only once a send is CONFIRMED (see below)
     if transition_key is not None:
+        now = time.time()
         trans = _read_transitions()
         cur = str(state)
         prev = trans.get(transition_key)  # {"state": str, "ts": float} (or None; legacy str -> changed)
-        if isinstance(prev, dict) and prev.get("state") == cur:
-            if re_escalate_after is None or (time.time() - float(prev.get("ts", 0))) < re_escalate_after:
+        unchanged = isinstance(prev, dict) and prev.get("state") == cur
+
+        # A NEW EPISODE after a long quiet gap. An auto-keyed alarm derives its state from its
+        # own message, so the state can never change and "the condition cleared" is not
+        # expressible -- without this, the third repetition would silence that alarm forever.
+        # A hand-keyed caller passes a real state and needs none of this, so it is scoped to
+        # auto keys only and never overrides an explicit caller's intent.
+        if (unchanged and str(transition_key).startswith("auto:")
+                and (now - float(prev.get("last_seen", prev.get("ts", now)))) > _EPISODE_GAP):
+            unchanged = False
+
+        if unchanged:
+            repeats = int(prev.get("repeats") or 1) + 1
+            first_ts = float(prev.get("first_ts") or prev.get("ts") or now)
+            escalated = bool(prev.get("escalated"))
+            # THE ESCALATION (director, 2026-08-20: "make a repeating alert escalate itself
+            # into the draw instead of re-telling me"). On its own thread, in the contract
+            # every alarm already goes through -- deliberately NOT in an observer that has to
+            # be ticking, because the observer that should have caught the overnight repeat
+            # (RUNG 1d) was structurally sound, correctly fed, and simply not running.
+            #
+            # Guarded whole: a failure to file the work item must never swallow the alarm that
+            # prompted it, which would turn a loud outage into a silent one.
+            if repeats >= _ESCALATE_AFTER and not escalated:
+                try:
+                    from background import alarm_repetition
+                    if alarm_repetition.escalate(message, key=transition_key,
+                                                 repeats=repeats, first_ts=first_ts):
+                        escalated = True
+                except Exception:
+                    pass  # not escalated; the send/suppress decision below is unaffected
+            due = (re_escalate_after is not None
+                   and (now - float(prev.get("ts", 0))) >= re_escalate_after)
+            # `ts` is the last time this key SENT, so it only moves when a send follows.
+            record = {
+                "state": cur, "ts": (now if due else float(prev.get("ts", now))),
+                "repeats": repeats, "first_ts": first_ts, "escalated": escalated,
+                "last_seen": now,   # every FIRING, unlike `ts` which is every SEND
+            }
+            if not due:
+                # Nothing will be sent, so this IS the final record for this firing.
+                trans[transition_key] = record
+                _write_transitions(trans)
                 return f"suppressed:unchanged:{transition_key}"   # R5: unchanged (and not yet due)
-        trans[transition_key] = {"state": cur, "ts": time.time()}
-        _write_transitions(trans)
+            if str(transition_key).startswith("auto:"):
+                _pending_commit = record          # see the note on the changed-state branch
+            else:
+                trans[transition_key] = record
+                _write_transitions(trans)
+        else:
+            # A CHANGED state is a NEW EPISODE: the repeat counter and the escalation latch
+            # both reset, so a condition that returns next week escalates again rather than
+            # being silently absorbed by the record of an old one. This is also the recovery
+            # path -- an alarm that clears changes state, and the next fault pages immediately.
+            #
+            record = {"state": cur, "ts": now, "repeats": 1,
+                      "first_ts": now, "escalated": False, "last_seen": now}
+            # AUTO-KEYED ONLY: the record is DEFERRED to _commit() below and written only if
+            # the send actually DELIVERS. `send_ntfy` returns None when a send fails without
+            # raising, so stamping the store on an ATTEMPT remembers a page that never arrived
+            # and suppresses its retry as a duplicate -- losing the single notification an
+            # outage produces. That is the 2026-07-18 deadman incident, and auto-keying
+            # reintroduced it until that incident's own R15 proof went red.
+            #
+            # An EXPLICITLY-keyed caller keeps the original commit-on-attempt semantics
+            # untouched. Those callers already carry their own delivery bookkeeping (the
+            # deadman's `action_needed` register is the one that caught this), and silently
+            # changing when their transitions land would be a second, unasked-for change
+            # riding along with this one.
+            if str(transition_key).startswith("auto:"):
+                _pending_commit = record
+            else:
+                trans[transition_key] = record
+                _write_transitions(trans)
 
     # G-N3 ROUTING (director, 2026-08-12: "cut the volume to fit it"). Placed AFTER the
     # transition check so a batched item obeys R5 exactly as a paged one does — a deferred
     # duplicate would fill the digest with the noise transition-only exists to remove — and
     # BEFORE the send so a deferred item never reaches the wire. kind="digest" is instant by
     # construction: it IS the batch, so routing it back into the queue would never terminate.
+    def _commit(result):
+        """Record the transition ONLY on a confirmed delivery, then return the result.
+
+        `send_ntfy` returns a falsy value when a send fails without raising, so committing
+        before the send would remember a page that never arrived and suppress its retry as a
+        duplicate -- losing the only notification an outage produces. A deferral into the
+        digest IS a delivery: the item is queued and will reach him."""
+        if result and _pending_commit is not None:
+            trans[transition_key] = _pending_commit
+            _write_transitions(trans)
+        return result
+
     if kind != "digest":
         from background import notification_digest
         if not notification_digest.is_instant(topic_class):
-            return notification_digest.defer(message, kind=kind, topic_class=topic_class)
+            return _commit(notification_digest.defer(message, kind=kind, topic_class=topic_class))
 
     h = dict(headers or {})
     h.setdefault("Tags", _KIND_TAG.get(kind, ""))
@@ -105,11 +217,11 @@ def notify(message: str, *, kind: str, transition_key: str | None = None,
     # A test fixture must be STRUCTURALLY unable to page the director (G-N2), independent of the
     # send_ntfy pytest guard — so even a non-pytest process can never send a test_fixture page.
     if kind == "test_fixture" and not _allow_real_send:
-        return "test_fixture:not-sent"
+        return _commit("test_fixture:not-sent")
 
     # Call via the module (not a bound import) so the conftest pytest guard and caller-test mocks
     # that patch ntfy_utils.send_ntfy are honoured, and the real send's own PYTEST guard applies.
-    return ntfy_utils.send_ntfy(message, headers=h, _allow_real_send=_allow_real_send)
+    return _commit(ntfy_utils.send_ntfy(message, headers=h, _allow_real_send=_allow_real_send))
 
 
 def current_state(transition_key: str) -> str | None:

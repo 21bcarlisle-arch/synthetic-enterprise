@@ -9,20 +9,88 @@
 <link rel="stylesheet" href="../brand/brand.css">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
-main { max-width: 760px; margin: 0 auto; padding: 48px 24px 80px; }
-.badge { display: inline-block; background: var(--surface2); color: var(--muted);
-  border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 12px;
-  letter-spacing: .04em; text-transform: uppercase; margin-bottom: 20px; }
-h1 { font-size: 30px; line-height: 1.25; margin-bottom: 16px; }
-.lede { font-size: 16px; color: var(--muted); margin-bottom: 32px; }
-h2 { font-size: 15px; margin: 32px 0 10px; letter-spacing: .02em; }
-p { margin-bottom: 14px; }
-ol, ul { margin: 0 0 14px 20px; }
-li { margin-bottom: 6px; }
-.note { border-left: 3px solid var(--border); padding: 12px 16px; background: var(--surface);
-  color: var(--muted); font-size: 13px; margin: 24px 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.55; }
+main { max-width: 1100px; margin: 0 auto; padding: 24px 20px 72px; }
+
+.intro { margin-bottom: 20px; }
+h1 { font-size: 24px; line-height: 1.25; margin-bottom: 8px; }
+.purpose { color: var(--muted); font-size: 15px; max-width: 70ch; }
+
+/* ---- operator bar: who am I looking at ---- */
+.opbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 12px; margin: 18px 0 14px; }
+.opbar label { font-size: 12px; color: var(--muted); letter-spacing: .02em; }
+select { background: var(--bg); color: var(--text); border: 1px solid var(--border);
+  border-radius: 6px; padding: 6px 8px; font: inherit; font-size: 13px; max-width: 100%; }
+.who { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.who b { color: var(--text); font-weight: 600; }
+
+/* ---- the running wall strip ---- */
+.wall { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border);
+  border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+.wall > div { background: var(--surface); padding: 10px 13px; }
+.wall .k { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
+.wall .v { font-size: 13px; }
+.wall .truth .k { color: var(--teal); }
+
+/* ---- the six-stage spine ---- */
+.spine { display: flex; gap: 4px; overflow-x: auto; margin-bottom: 16px; padding-bottom: 2px; }
+.spine button { flex: 1 0 auto; background: var(--surface); color: var(--muted);
+  border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font: inherit;
+  font-size: 12px; cursor: pointer; text-align: left; min-width: 118px; }
+.spine button .n { display: block; font-size: 10px; letter-spacing: .08em; opacity: .7; }
+.spine button .t { display: block; font-weight: 600; font-size: 13px; color: var(--text); }
+.spine button[aria-current="true"] { border-color: var(--teal); background: var(--surface2); }
+.spine button[aria-current="true"] .t { color: var(--teal); }
+
+.stage { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; }
+.stage h2 { font-size: 17px; margin-bottom: 4px; }
+.clock { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.clock b { color: var(--text); font-weight: 600; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.panel h3 { font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 4px 8px 4px 0; border-bottom: 1px solid var(--border); }
+th { font-weight: 600; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+td.n, th.n { text-align: right; }
+.table-scroll { overflow-x: auto; }
+
+.bar { height: 9px; background: var(--teal); border-radius: 2px; display: inline-block; vertical-align: middle; }
+.bar.alt { background: var(--muted); }
+.stack { display: flex; height: 22px; border-radius: 4px; overflow: hidden; margin: 6px 0 10px; }
+.stack span { display: block; }
+.key { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; color: var(--muted); }
+.key i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; margin-right: 4px; }
+
+.artefact { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; font-size: 13px; }
+.artefact .head { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border);
+  padding-bottom: 6px; margin-bottom: 8px; }
+.artefact .total { border-top: 1px solid var(--border); margin-top: 6px; padding-top: 6px; font-weight: 600; }
+
+.flag { display: inline-block; font-size: 10px; letter-spacing: .05em; text-transform: uppercase;
+  border: 1px solid var(--border); border-radius: 999px; padding: 1px 7px; color: var(--muted); }
+.flag.est { border-color: var(--amber); color: var(--amber); }
+
+.prov { font-size: 11px; color: var(--muted); margin-top: 10px; }
+.note { border-left: 3px solid var(--border); padding: 10px 14px; background: var(--surface);
+  color: var(--muted); font-size: 12px; margin: 18px 0 0; }
 a { color: var(--teal); }
+
+@media (max-width: 720px) {
+  .cols, .wall { grid-template-columns: 1fr; }
+  main { padding: 16px 12px 60px; }
+}
+
+/* Mobile pass. Added 2026-08-20: these pages had no breakpoint at all -- the control that
+   requires one only ever looked at nine top-level doors, none of them Knowledge. */
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  main, .wrap, article, .page { padding-left: 14px; padding-right: 14px; }
+  h1 { font-size: 24px; }
+}
 </style>
 </head>
 <body>
@@ -39,53 +107,356 @@ a { color: var(--teal); }
   <!-- IA-NAV:END -->
 </nav>
 <main>
-  <span class="badge">This page is being built</span>
-  <h1>Explore: one customer, end to end</h1>
-  <p class="lede">Follow a single household through pricing, consumption, billing and payment — and see, at every stage, the difference between what the world knew and what the company believed.</p>
-  <h2>What this page will show</h2>
-  <p>One customer, followed all the way through, with the wall visible at every step.</p>
-  <ol>
-    <li><strong>Priced</strong> — what the supplier offered, and on what evidence.</li>
-    <li><strong>Chosen</strong> — whether the household took it, and what else was available.</li>
-    <li><strong>Used</strong> — what they actually consumed, half-hour by half-hour.</li>
-    <li><strong>Billed</strong> — what the supplier thought they owed, from estimates.</li>
-    <li><strong>Paid</strong> — what arrived, when, and by what method.</li>
-    <li><strong>Judged</strong> — what the supplier believed about the account afterwards.</li>
-  </ol>
-  <p>
-    At every stage it will put two things side by side: what was <em>true</em> in the simulated
-    world, and what the <em>company</em> believed at that moment. Those are different, and the
-    gap between them is the point of the whole project — a real supplier does not know its
-    customers' consumption when it bills them, and neither does this one.
-  </p>
-  <p>
-    It will also make the change of clock explicit. Consumption happens in half-hours,
-    settlement lands months later, and payment sits somewhere between. That lag is most of what
-    makes energy retail hard, and it is invisible on every page that reports a single number.
-  </p>
+  <div class="intro">
+    <h1>Follow one household from price to verdict</h1>
+    <p class="purpose">
+      This page takes a single real account out of the simulated supplier's book and walks it
+      through six stages, from the day its tariff was priced to the day its worth was judged.
+      At each stage it shows two things side by side: what was true in the world, and what the
+      supplier actually knew at the time. Those are not the same, and the difference is the point.
+    </p>
+  </div>
 
-  <h2>Roughly when</h2>
-  <p>
-    Next. The stage-by-stage data this page renders already exists and is already used
-    elsewhere on the site; what is missing is the traversal itself — picking one customer and
-    telling their story in order. It is the largest single piece of writing left in the site
-    programme, which is why it is not being rushed into a half-version.
-  </p>
+  <div class="opbar">
+    <label for="cust">Account</label>
+    <select id="cust"><option>loading…</option></select>
+    <div class="who" id="who"></div>
+  </div>
 
-  <h2>Where the world detail lives meanwhile</h2>
-  <p>
-    Explore is where the simulated world gets walked, one household at a time. The wider picture
-    it walks through — the market, the weather, and how prices are actually formed — is on
-    <a href="../world/">The World</a>, which stays exactly as it was while this page is built.
-  </p>
+  <div class="wall">
+    <div class="truth"><div class="k">What the world knew</div><div class="v" id="wall-truth">—</div></div>
+    <div><div class="k">What the supplier believed</div><div class="v" id="wall-belief">—</div></div>
+  </div>
+
+  <div class="spine" id="spine"></div>
+  <div class="stage" id="stage">Loading the book…</div>
+
+  <div class="note" id="honest">
+    <strong>How big the book really is.</strong> <span id="bookcount">This</span> is the whole
+    customer book, not a sample of a larger one. A supplier with this few accounts is not a
+    realistic business, and nothing here pretends otherwise — these are a small number of real
+    simulated lives, followed properly, rather than a large number of invented ones.
+  </div>
 
   <div class="note">
-    <strong>Why you are seeing this rather than nothing.</strong> The structure of this site was
-    put up before every page behind it was written, deliberately. An empty room you can see into
-    is more honest than a door that isn't there, and far more honest than a room furnished with
-    figures we haven't checked. This page is not indexed by search engines while it is in this
-    state.
+    <strong>The market these households live in.</strong> Every price above was set inside a
+    simulated Great Britain built on nearly ten years of real settlement data — real weather,
+    real wholesale prices, a real price cap.
+    <a href="../capabilities/">See how far that world has actually got, and what it still gets wrong</a>.
   </div>
 </main>
+
+<script>
+var IDX = null, CUR = null, STAGE = 0, MARKET = null;
+var $ = function (id) { return document.getElementById(id); };
+
+function gbp(v, dp) { if (v === null || v === undefined || isNaN(v)) return "—";
+  return "£" + Number(v).toLocaleString("en-GB", {minimumFractionDigits: dp === undefined ? 2 : dp, maximumFractionDigits: dp === undefined ? 2 : dp}); }
+function num(v, dp) { if (v === null || v === undefined || isNaN(v)) return "—";
+  return Number(v).toLocaleString("en-GB", {minimumFractionDigits: dp || 0, maximumFractionDigits: dp || 0}); }
+function pct(v, dp) { return (v === null || v === undefined || isNaN(v)) ? "—" : (Number(v) * 100).toFixed(dp === undefined ? 1 : dp) + "%"; }
+function esc(s) { return String(s === null || s === undefined ? "" : s).replace(/[&<>"]/g, function (c) {
+  return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]; }); }
+function dt(s) { if (!s) return "—"; var d = new Date(s);
+  return isNaN(d) ? esc(s) : d.toLocaleDateString("en-GB", {day: "numeric", month: "short", year: "numeric"}); }
+
+/* The six stages. Each owns its own clock and its own question, because the change of clock
+   between them is the thing a reader most needs to notice. */
+var STAGES = [
+  {n: "Stage 1", t: "Priced",  q: "Why does this tariff cost what it costs?",     clock: "A single moment, months before any energy flows."},
+  {n: "Stage 2", t: "Chosen",  q: "Why did this household take it?",              clock: "A single moment — the day they signed."},
+  {n: "Stage 3", t: "Used",    q: "How much energy, and when?",                   clock: "Two clocks: gas across the years, electricity across a day."},
+  {n: "Stage 4", t: "Billed",  q: "What were they actually charged?",             clock: "The billing period — a month at a time."},
+  {n: "Stage 5", t: "Paid",    q: "Did the money arrive?",                        clock: "Cash over time, which moves independently of the bills."},
+  {n: "Stage 6", t: "Judged",  q: "Was it the right deal — for them, and for us?", clock: "Retrospective, over the whole life of the account."}
+];
+
+function drawSpine() {
+  $("spine").innerHTML = STAGES.map(function (s, i) {
+    return '<button data-i="' + i + '" aria-current="' + (i === STAGE) + '">' +
+      '<span class="n">' + esc(s.n) + '</span><span class="t">' + esc(s.t) + '</span></button>';
+  }).join("");
+  Array.prototype.forEach.call($("spine").children, function (b) {
+    b.onclick = function () { STAGE = +b.getAttribute("data-i"); drawSpine(); render(); };
+  });
+}
+
+/* ---------- the running wall strip ---------- */
+function setWall(truth, belief) { $("wall-truth").innerHTML = truth; $("wall-belief").innerHTML = belief; }
+
+/* ---------- helpers over one account ---------- */
+function elec(c) { return c.legs && c.legs.electricity ? c.legs.electricity : null; }
+function gas(c) { return c.legs && c.legs.gas ? c.legs.gas : null; }
+function firstInvoice(d) { return d && d.invoices && d.invoices.length ? d.invoices[0] : null; }
+
+function stackRow(parts) {
+  var total = parts.reduce(function (a, p) { return a + Math.max(0, p.v); }, 0) || 1;
+  var colours = ["var(--teal)", "var(--blue)", "var(--amber)", "var(--purple)", "var(--muted)"];
+  return '<div class="stack">' + parts.map(function (p, i) {
+    return '<span style="width:' + (Math.max(0, p.v) / total * 100).toFixed(2) + '%;background:' + colours[i % colours.length] + '"></span>';
+  }).join("") + '</div><div class="key">' + parts.map(function (p, i) {
+    return '<span><i style="background:' + colours[i % colours.length] + '"></i>' + esc(p.k) + " " + p.label + "</span>";
+  }).join("") + "</div>";
+}
+
+function barTable(rows, unit, dp) {
+  var max = rows.reduce(function (a, r) { return Math.max(a, Math.abs(r.v)); }, 0) || 1;
+  return '<div class="table-scroll"><table><tbody>' + rows.map(function (r) {
+    return "<tr><td>" + esc(r.k) + '</td><td class="n">' + num(r.v, dp || 0) + " " + esc(unit || "") +
+      '</td><td style="width:45%"><span class="bar' + (r.alt ? " alt" : "") + '" style="width:' +
+      (Math.abs(r.v) / max * 100).toFixed(1) + '%"></span></td></tr>';
+  }).join("") + "</tbody></table></div>";
+}
+
+/* ---------- stages ---------- */
+function stagePriced(d, c) {
+  var inv = firstInvoice(d);
+  if (!inv) return "<p>No priced tariff is recorded for this account.</p>";
+  var days = inv.days_in_period || 30, kwh = inv.consumption_kwh || 0;
+  var scP = kwh ? (inv.standing_charge_gbp * 100 / kwh) : 0;
+  var ncP = kwh ? (inv.non_commodity_amount_gbp * 100 / kwh) : 0;
+  var parts = [
+    {k: "Energy", v: inv.unit_rate_p_per_kwh, label: (inv.unit_rate_p_per_kwh || 0).toFixed(2) + "p"},
+    {k: "Network, policy and levies", v: ncP, label: ncP.toFixed(2) + "p"},
+    {k: "Standing charge, spread over use", v: scP, label: scP.toFixed(2) + "p"}
+  ];
+  var pnl = (d.annual_pnl || [])[0] || {};
+  setWall(
+    "The account consumed <b>" + num(kwh, 1) + " kWh</b> in its first billing month.",
+    "When the tariff was priced, months earlier, the supplier had <b>no consumption history at all</b> " +
+    "for this household — the rate was set from the segment, not from them."
+  );
+  return '<h2>Priced — why does this tariff cost what it costs?</h2>' +
+    '<div class="clock">Clock: <b>a single moment</b>, before any energy flows. Everything here is a forecast.</div>' +
+    '<div class="cols"><div class="panel"><h3>The stack, in pence per kWh</h3>' + stackRow(parts) +
+    '<p style="font-size:12px;color:var(--muted);margin-top:8px">Standing charge is ' +
+    gbp(inv.standing_charge_gbp_per_day, 4) + '/day — shown here spread across the energy actually used that month, ' +
+    'which is why a low-use month makes it look expensive. It does not change with use; that is the whole point of it.</p></div>' +
+    '<div class="panel"><h3>What the supplier committed to</h3><div class="table-scroll"><table><tbody>' +
+    "<tr><td>Tariff</td><td class=\"n\">" + esc(d.tariff_name || "—") + "</td></tr>" +
+    "<tr><td>Unit rate</td><td class=\"n\">" + (inv.unit_rate_p_per_kwh || 0).toFixed(2) + " p/kWh</td></tr>" +
+    "<tr><td>Standing charge</td><td class=\"n\">" + gbp(inv.standing_charge_gbp_per_day, 4) + "/day</td></tr>" +
+    "<tr><td>Range offered that year</td><td class=\"n\">" + gbp(pnl.tariff_min) + " – " + gbp(pnl.tariff_max) + "/MWh</td></tr>" +
+    "<tr><td>Bought forward</td><td class=\"n\">" + pct(d.avg_hedge_fraction) + " of expected volume</td></tr>" +
+    '</tbody></table></div><p style="font-size:12px;color:var(--muted);margin-top:8px">Buying forward is how the ' +
+    'supplier fixes its own cost before it knows the customer\'s use. The unhedged remainder is bought later at ' +
+    'whatever the market does — which is where a fixed price to the customer becomes a risk to the supplier.</p></div></div>' +
+    '<p class="prov">From this account\'s first issued bill, ' + dt(inv.date) + '. Hedge fraction is the ' +
+    'account\'s lifetime average. Source: <a href="../data/customers/' + esc(d.account_id) + '.json">the account record</a>.</p>';
+}
+
+function stageChosen(d, c) {
+  var journey = (d.reaction_chain || []).filter(function (e) { return e.event_type === "journey_state"; });
+  var first = journey.length ? journey[0] : null;
+  setWall(
+    first ? "The household's private state was <b>" + esc((first.description || "").replace(/^.*advances to /, "").replace(/ \(.*/, "")) +
+      "</b> — a disposition the supplier cannot observe." :
+      "The household had its own reasons for signing, held entirely on the world's side of the wall.",
+    "The supplier knows one fact: <b>they signed on " + dt(d.acquisition_date) + "</b>. It does not know why, " +
+    "and nothing downstream ever tells it."
+  );
+  var rows = [
+    ["Signed", dt(d.acquisition_date)],
+    ["Segment", esc(d.segment || "—")],
+    ["Fuels taken", (c.fuels || []).join(" and ") || "—"],
+    ["Meter", esc(d.meter_type || "—")],
+    ["Supply point", d.mpan && d.mpan.bottom_line ? esc(d.mpan.bottom_line) : "—"]
+  ];
+  return '<h2>Chosen — why did this household take it?</h2>' +
+    '<div class="clock">Clock: <b>a single moment</b> — the day they signed.</div>' +
+    '<div class="cols"><div class="panel"><h3>Everything the supplier recorded</h3><div class="table-scroll"><table><tbody>' +
+    rows.map(function (r) { return "<tr><td>" + r[0] + '</td><td class="n">' + r[1] + "</td></tr>"; }).join("") +
+    "</tbody></table></div></div>" +
+    '<div class="panel"><h3>Everything it did not</h3>' +
+    "<p>Whether they compared offers. Whether a friend recommended it. Whether they were moving house, " +
+    "had just had a child, or simply never got round to switching away. Whether the price mattered at all.</p>" +
+    "<p style=\"margin-top:8px\">In the simulated world all of that exists and drives the decision. None of it " +
+    "crosses to the supplier. This is not a gap to be closed later — real suppliers do not know either, " +
+    "and a model that assumed they did would be modelling a different industry.</p></div></div>" +
+    '<p class="prov">Acquisition record as at ' + dt(d.acquisition_date) + '. The household\'s private state is ' +
+    'read from the world, not from the supplier\'s systems.</p>';
+}
+
+function stageUsed(d, c) {
+  var monthly = (d.consumption && d.consumption.monthly) || [];
+  var byYear = {};
+  monthly.forEach(function (m) { var y = String(m.month).slice(0, 4); byYear[y] = (byYear[y] || 0) + (m.kwh || 0); });
+  var yearRows = Object.keys(byYear).sort().map(function (y) { return {k: y, v: byYear[y]}; });
+  var recent = monthly.slice(-24).map(function (m) { return {k: m.month, v: m.kwh || 0}; });
+
+  var invs = d.invoices || [];
+  var est = invs.filter(function (i) { return i.read_type === "E"; }).length;
+  setWall(
+    "Metered use is known exactly, half-hour by half-hour: <b>" + num(monthly.reduce(function (a, m) { return a + (m.kwh || 0); }, 0), 0) + " kWh</b> over the account's life.",
+    est ? "<b>" + est + " of " + invs.length + " bills</b> were raised on an <b>estimated</b> read. For those periods the " +
+      "supplier was billing a number it had inferred, not measured." :
+      "Every bill on this account was raised on an actual read, so belief and truth coincided here — which is the " +
+      "exception rather than the rule."
+  );
+  return '<h2>Used — how much energy, and when?</h2>' +
+    '<div class="clock">Clock: <b>two of them</b>. Annual shape shows the weather; monthly shape shows the ' +
+    'billing rhythm. A supplier has to reason on both at once.</div>' +
+    '<div class="cols"><div class="panel"><h3>Consumption by year (' + esc((d.consumption && d.consumption.unit) || "kWh") + ")</h3>" +
+    barTable(yearRows, "kWh", 0) +
+    '<p style="font-size:12px;color:var(--muted);margin-top:8px">Gas is heating-dominated and swings hard with ' +
+    'winter temperature; electricity is flatter. Which pattern this account shows tells you what the home is like.</p></div>' +
+    '<div class="panel"><h3>The last 24 months</h3>' + barTable(recent, "kWh", 0) + "</div></div>" +
+    '<p class="prov">Metered consumption for ' + esc(d.account_id) + ", " +
+    (monthly.length ? esc(monthly[0].month) + " to " + esc(monthly[monthly.length - 1].month) : "—") +
+    ". Read quality is taken from the bills themselves, not asserted separately.</p>";
+}
+
+function stageBilled(d, c) {
+  var invs = d.invoices || [];
+  if (!invs.length) return "<p>No bills were issued on this account.</p>";
+  var inv = invs[Math.min(12, invs.length - 1)];
+  var estimated = inv.read_type === "E";
+  setWall(
+    "Actual consumption for this period was metered at <b>" + num(inv.consumption_kwh, 1) + " kWh</b>.",
+    estimated ? "This bill was raised on an <b>estimated</b> read. The figure on the customer's bill is the " +
+      "supplier's belief, and it will be corrected when a real read arrives." :
+      "This bill was raised on an <b>actual</b> read, so the charged figure and the metered figure agree."
+  );
+  var lines = [
+    ["Energy", num(inv.consumption_kwh, 1) + " kWh at " + (inv.unit_rate_p_per_kwh || 0).toFixed(2) + "p", inv.commodity_amount_gbp],
+    ["Standing charge", inv.days_in_period + " days at " + gbp(inv.standing_charge_gbp_per_day, 4), inv.standing_charge_gbp],
+    ["Network, policy and levies", "", inv.non_commodity_amount_gbp],
+    ["VAT", "", inv.vat_gbp]
+  ];
+  return '<h2>Billed — what were they actually charged?</h2>' +
+    '<div class="clock">Clock: <b>the billing period</b>. A bill is a claim about a month that has already happened.</div>' +
+    '<div class="cols"><div class="panel"><h3>The bill, as the customer received it</h3>' +
+    '<div class="artefact"><div class="head"><span>' + esc(inv.id) + "</span><span>" + dt(inv.date) + "</span></div>" +
+    '<div style="font-size:11px;color:var(--muted);margin-bottom:8px">' + dt(inv.period_start) + " – " + dt(inv.period_end) +
+    " &middot; meter " + esc(inv.meter_serial || "—") + " &middot; " +
+    '<span class="flag' + (estimated ? " est" : "") + '">' + (estimated ? "estimated read" : "actual read") + "</span></div>" +
+    '<div class="table-scroll"><table><tbody>' + lines.map(function (l) {
+      return "<tr><td>" + esc(l[0]) + '<div style="font-size:11px;color:var(--muted)">' + esc(l[1]) + "</div></td>" +
+        '<td class="n">' + gbp(l[2]) + "</td></tr>";
+    }).join("") + "</tbody></table>" +
+    '<div class="total" style="display:flex;justify-content:space-between"><span>Total due</span><span>' + gbp(inv.amount_gbp) + "</span></div></div></div>" +
+    '<div class="panel"><h3>Meter reads behind it</h3><div class="table-scroll"><table><tbody>' +
+    "<tr><td>Opening read</td><td class=\"n\">" + num(inv.opening_read_kwh, 1) + "</td></tr>" +
+    "<tr><td>Closing read</td><td class=\"n\">" + num(inv.closing_read_kwh, 1) + "</td></tr>" +
+    "<tr><td>Difference charged</td><td class=\"n\">" + num(inv.consumption_kwh, 1) + " kWh</td></tr>" +
+    "<tr><td>Read quality</td><td class=\"n\">" + (estimated ? "Estimated" : "Actual") + "</td></tr>" +
+    "</tbody></table>" +
+    "<p style=\"margin-top:10px\">An estimated read is not a mistake — it is what a supplier does when no one has " +
+    "read the meter. It becomes a problem only when it runs for long enough that the correction, when it lands, " +
+    "is large enough to matter to the household.</p></div></div>" +
+    '<p class="prov">Bill ' + esc(inv.id) + " as issued " + dt(inv.date) + ". One of " + invs.length +
+    " on this account; the figures are the ones actually charged, not a reconstruction.</p>";
+}
+
+function stagePaid(d, c) {
+  var led = d.ledger || {}, entries = led.entries || [];
+  var recent = entries.slice(-14);
+  var bal = entries.map(function (e) { return {k: e.date, v: e.running_balance_gbp || 0}; }).slice(-24);
+  var arrears = entries.filter(function (e) { return /arrear|dunning|write|recover/i.test(e.type || ""); });
+  setWall(
+    "The household's ability to pay is a property of the world, known exactly.",
+    arrears.length ? "The supplier saw <b>" + arrears.length + " collection event(s)</b> — and only ever after the " +
+      "money failed to arrive, never before." :
+      "Nothing on this account triggered collection activity. The supplier's view of the household's finances is " +
+      "entirely retrospective: it learns from payments that did or did not arrive."
+  );
+  return '<h2>Paid — did the money arrive?</h2>' +
+    '<div class="clock">Clock: <b>cash over time</b>, which runs independently of the billing clock. A balance ' +
+    'moves when money moves, not when a bill is raised.</div>' +
+    '<div class="cols"><div class="panel"><h3>Balance over the last two years</h3>' + barTable(bal, "", 2) +
+    '<p style="font-size:12px;color:var(--muted);margin-top:8px">A direct debit is a flat monthly amount against ' +
+    'a seasonal bill, so the balance builds credit in summer and draws it down in winter. Drift in one direction ' +
+    'across a whole year is the signal that the payment is set wrong.</p></div>' +
+    '<div class="panel"><h3>Most recent movements</h3><div class="table-scroll"><table>' +
+    "<thead><tr><th>Date</th><th>Movement</th><th class=\"n\">Amount</th><th class=\"n\">Balance</th></tr></thead><tbody>" +
+    recent.map(function (e) {
+      return "<tr><td>" + dt(e.date) + "</td><td>" + esc((e.type || "").replace(/_/g, " ")) + '</td><td class="n">' +
+        gbp(e.amount_gbp) + '</td><td class="n">' + gbp(e.running_balance_gbp) + "</td></tr>";
+    }).join("") + "</tbody></table></div></div></div>" +
+    '<p class="prov">Payment ledger as at ' + dt(led.as_of_date) + ". Billed " + gbp(led.total_billed_gbp) +
+    ", collected " + gbp(led.total_collected_gbp) + ", balance " + gbp(led.current_balance_gbp) + ".</p>";
+}
+
+function stageJudged(d, c) {
+  var outcomes = (d.reaction_chain || []).filter(function (e) { return e.company_belief !== null && e.company_belief !== undefined; });
+  var comb = c.combined || {};
+  var lastO = outcomes.length ? outcomes[outcomes.length - 1] : null;
+  setWall(
+    lastO ? "This household's real chance of leaving at its last renewal was <b>" + pct(lastO.sim_truth) + "</b>." :
+      "The household's real disposition is held on the world's side and never published to the supplier.",
+    lastO ? "The supplier's model put it at <b>" + pct(lastO.company_belief) + "</b> — off by <b>" +
+      pct(Math.abs(lastO.company_belief - lastO.sim_truth)) + "</b>, and it acted on its own number." :
+      "The supplier judges the account on what it collected, which is the only thing it can see."
+  );
+  var beliefRows = outcomes.map(function (e, i) {
+    return "<tr><td>" + dt(e.date) + '</td><td class="n">' + pct(e.company_belief) + '</td><td class="n">' +
+      pct(e.sim_truth) + '</td><td class="n">' + pct(e.company_belief - e.sim_truth) + "</td></tr>";
+  }).join("");
+  return '<h2>Judged — was it the right deal, for them and for us?</h2>' +
+    '<div class="clock">Clock: <b>retrospective</b>, over the whole life of the account — and the answer differs ' +
+    'depending on whether you count what was billed, what settled, or what was banked.</div>' +
+    '<div class="cols"><div class="panel"><h3>For us</h3><div class="table-scroll"><table><tbody>' +
+    "<tr><td>Revenue billed</td><td class=\"n\">" + gbp(comb.revenue_gbp) + "</td></tr>" +
+    "<tr><td>Gross margin</td><td class=\"n\">" + gbp(comb.gross_gbp) + "</td></tr>" +
+    "<tr><td>Cost to serve</td><td class=\"n\">" + gbp(d.cost_to_serve_gbp) + "</td></tr>" +
+    "<tr><td>Net after cost to serve</td><td class=\"n\">" + gbp(d.lifetime_net_after_cts_gbp) + "</td></tr>" +
+    "</tbody></table>" +
+    "<p style=\"font-size:12px;color:var(--muted);margin-top:8px\">Cost to serve is what it costs to have this " +
+    "account at all — billing it, answering it, collecting from it. A flat margin on the unit rate can be wiped " +
+    "out entirely by it on a low-use account.</p></div>" +
+    '<div class="panel"><h3>Belief against truth, at each renewal</h3>' +
+    (beliefRows ? '<div class="table-scroll"><table><thead><tr><th>Renewal</th><th class="n">Supplier believed</th>' +
+      '<th class="n">Actually was</th><th class="n">Error</th></tr></thead><tbody>' + beliefRows + "</tbody></table></div>" +
+      "<p style=\"font-size:12px;color:var(--muted);margin-top:8px\">Every retention decision on this account was " +
+      "made on the left-hand column. The right-hand column is what a supplier never gets to see, and it is only " +
+      "visible here because the world is simulated.</p>"
+      : "<p>No renewal decisions were recorded for this account.</p>") +
+    "</div></div>" +
+    '<p class="prov">Lifetime figures across ' + ((c.fuels || []).length > 1 ? "both fuels" : "the single fuel") +
+    ", on the billed clock. Settled and banked figures differ; the account record carries all three.</p>";
+}
+
+var RENDER = [stagePriced, stageChosen, stageUsed, stageBilled, stagePaid, stageJudged];
+
+function render() {
+  if (!CUR) return;
+  var d = CUR.detail, c = CUR.index;
+  $("stage").innerHTML = RENDER[STAGE](d, c);
+}
+
+function selectCustomer(group) {
+  var c = IDX.customers.filter(function (x) { return x.customer_group === group; })[0];
+  if (!c) return;
+  var leg = c.legs.electricity || c.legs.gas;
+  fetch("../data/customers/" + leg.cid + ".json").then(function (r) { return r.json(); }).then(function (d) {
+    CUR = {index: c, detail: d};
+    $("who").innerHTML =
+      "<span><b>" + esc(c.segment) + "</b> household</span>" +
+      "<span>with the supplier since <b>" + dt(c.acquisition_date) + "</b></span>" +
+      "<span><b>" + (c.fuels || []).join(" + ") + "</b></span>" +
+      "<span><b>" + (d.invoices || []).length + "</b> bills issued</span>";
+    render();
+  }).catch(function (e) {
+    $("stage").innerHTML = "<p>This account's record could not be loaded. Nothing is shown rather than " +
+      "something approximate.</p>";
+  });
+}
+
+fetch("../data/customers.json").then(function (r) { return r.json(); }).then(function (j) {
+  IDX = j;
+  $("bookcount").textContent = "All " + j.customers.length + " households below";
+  $("cust").innerHTML = j.customers.map(function (c) {
+    return '<option value="' + esc(c.customer_group) + '">' + esc(c.customer_group) + " — " +
+      esc(c.segment) + ", " + (c.fuels || []).join(" + ") + ", since " + String(c.acquisition_date).slice(0, 4) + "</option>";
+  }).join("");
+  $("cust").onchange = function () { selectCustomer(this.value); };
+  drawSpine();
+  selectCustomer(j.customers[0].customer_group);
+}).catch(function (e) {
+  $("stage").innerHTML = "<p>The customer book could not be loaded, so this page is showing nothing rather " +
+    "than a placeholder that looks like data.</p>";
+});
+</script>
+<footer style="margin-top:48px;padding:20px 0;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved. &middot; <a href="../privacy/" style="color:var(--muted);">Privacy</a></footer>
 </body>
 </html>

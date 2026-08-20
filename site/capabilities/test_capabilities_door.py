@@ -295,13 +295,27 @@ def test_the_unreadable_evidence_gap_is_on_the_plan(feed):
 def test_every_evidence_link_resolves_to_an_anchor_that_exists(feed):
     """A link that 404s or lands on a missing anchor is worse than none: it trains a reader
     to distrust the real ones. Checked against the GENERATED page, not against intent."""
-    page = (SITE / "evidence" / "index.html").read_text(encoding="utf-8")
+    # 2026-08-20: these links pointed at anchors on /evidence/, deleted under the ruling that
+    # the five tabs are the site. The property is unchanged and now stronger -- an evidence
+    # link must land on an anchor that exists on the page it names -- but the page is resolved
+    # from the LINK rather than assumed, so a future re-home cannot silently make this vacuous.
+    missing = []
     for entry in feed["world"]["entries"] + feed["supplier"]["entries"] + feed["go_live"]["seams"]:
         href = entry.get("evidence")
-        if not href:
+        if not href or "#" not in href:
             continue
-        anchor = href.split("#", 1)[1]
-        assert f'id="{anchor}"' in page, f"{entry.get('name') or entry.get('area')} -> #{anchor} does not exist"
+        target, anchor = href.split("#", 1)
+        page_path = (SITE / "capabilities" / target).resolve() if target else \
+            (SITE / "capabilities" / "index.html")
+        if page_path.is_dir():
+            page_path = page_path / "index.html"
+        name = entry.get("name") or entry.get("area")
+        if not page_path.is_file():
+            missing.append(f"{name} -> {href} (page {page_path.name} does not exist)")
+            continue
+        if f'id="{anchor}"' not in page_path.read_text(encoding="utf-8"):
+            missing.append(f"{name} -> #{anchor} does not exist on {target or 'this page'}")
+    assert not missing, missing
 
 
 def test_MUTATION_a_link_to_a_missing_anchor_fires():

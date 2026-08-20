@@ -68,17 +68,11 @@ from live_pixel_verify import canonical_doors  # noqa: E402
 # Each entry is a debt with a name, not a permission. Reasons are load-bearing:
 # they say what has to happen for the entry to be deleted.
 # ---------------------------------------------------------------------------
+# 2026-08-20: the /customers/ and /now/ entries are DELETED, not discharged -- both pages were
+# removed under the director's ruling that the five tabs are the site. A debt register that
+# keeps entries for pages that no longer exist describes a world that is gone, which is the
+# failure its own header warns about.
 UNADOPTED: dict[str, str] = {
-    "/customers/": (
-        "2026-08-03 SITE1_expert_doors fork: 50 raw hex + own :root palette. Outside "
-        "this fork's file_scope (concurrent sibling forks hold site/customers/**). "
-        "Delete this entry when the door links ../brand/brand.css and drops its palette."
-    ),
-    "/now/": (
-        "2026-08-03 SITE1_expert_doors fork: 76 raw hex, a full independent light+dark "
-        "theme whose dark variant sets a DARK BASE SURFACE -- a §3a compliance defect in "
-        "its own right, not merely unadopted. Outside this fork's file_scope."
-    ),
     "/privacy/": (
         "2026-08-03 SITE1_expert_doors fork: 48 raw hex + 4 :root blocks incl. a dark "
         "base, and still ships the legacy '⚡ Poesys' symbol lockup against §4 law 6. "
