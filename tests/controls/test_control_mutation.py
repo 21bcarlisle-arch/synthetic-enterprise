@@ -874,32 +874,57 @@ def test_green_claims_audit_zero_obligation_fixed(monkeypatch):
 # tools/generate_dashboard_data.py -- page-consistency gates (R14 + population)
 # --------------------------------------------------------------------------
 
-def test_dashboard_consistency_gate_fires_on_surface_disagreement():
-    import tools.generate_dashboard_data as gdd
-    portfolio = {"net_margin_gbp": 100.0}
-    # CORRECT: insights agree -> pass.
-    assert gdd._check_consistency(portfolio, {"net_margin_gbp": 100.0}, "run.json") is True
-    # MUTATE: exec-summary insights disagree with the totals -> gate fires.
-    assert gdd._check_consistency(portfolio, {"net_margin_gbp": 200.0}, "run.json") is False
+# RETIRED 2026-08-20, and this is the record of it rather than a silent shrink.
+# `_check_consistency` (dashboard totals vs run_insights.json) was deleted from the module
+# in 03dd8c49e: the fold deleted every page that fetched the second surface, so the two
+# things it kept consistent were both unreachable. Its two mutation tests lived HERE and
+# were the one consumer that retirement missed -- they went red at import-time
+# (AttributeError) and wedged the publish gate for 13 consecutive runs.
+#
+# The invariant they used to carry has NOT gone unheld: the control must never come back,
+# and three assertions now say so -- test_publish_blockers_guard_a_reachable_page.py::
+# test_the_retired_exec_summary_comparison_is_not_declared (both `not in
+# PUBLISH_VERDICT_CHECKS` and `not hasattr`) and test_website_integrity_fix.py:328.
+# What the publish verdict IS now is a two-check conjunction, and both are mutation-tested
+# below: _check_population_consistency and _check_front_door_segment_claim.
 
 
-def test_dashboard_consistency_gate_no_insights_fixed():
-    # KL-8 FIXED (FAIL-SILENT + FAIL-OPEN): the gate previously passed when its
-    # comparison input was absent -- the SAME class as the R11 orphan-transition
-    # incident. The pipeline guarantees run_insights.json is written immediately
-    # before this gate runs, so an absent payload is a real failure.
+def test_dashboard_front_door_mix_claim_gate_fires_when_the_published_sentence_goes_false(tmp_path):
+    # The second half of generate()'s publish verdict (PUBLISH_VERDICT_CHECKS). It had NO
+    # mutation test until now -- the only test that named it forced it green -- so half the
+    # live gate was uncovered under R15 from the moment the exec-summary half was retired.
     import tools.generate_dashboard_data as gdd
-    # (a) FAIL-SILENT closed: missing/empty insights now FAILS (was True).
-    # BEFORE: _check_consistency({"net_margin_gbp": 100.0}, {}, "run.json") is True
-    # AFTER : it is False.
-    assert gdd._check_consistency({"net_margin_gbp": 100.0}, {}, "run.json") is False
-    # (b) FAIL-OPEN closed: a headline key present on one surface but missing on
-    # the other is a disagreement, not a silent skip (was True).
-    assert gdd._check_consistency({"net_margin_gbp": 100.0}, {"insights": []}, "run.json") is False
-    # OUTCOME-SAFE: genuinely-agreeing surfaces still pass. net margin agrees on
-    # both surfaces; every other headline key is absent on BOTH surfaces and is
-    # legitimately not-published, so it is still skipped (not a false mismatch).
-    assert gdd._check_consistency({"net_margin_gbp": 100.0}, {"net_margin_gbp": 100.0}, "run.json") is True
+
+    def front_door(html):
+        p = tmp_path / f"index_{abs(hash(html))}.html"
+        p.write_text(html)
+        return p
+
+    claims_gt_60 = front_door('<p data-mix-claim="non_domestic_revenue_share_gt_60">x</p>')
+    # 70% non-domestic revenue: the published sentence ">60%" is TRUE of this book.
+    true_book = {"financial": {"segment_annual": [
+        {"year": 2025, "resi_electricity": {"revenue_gbp": 300.0},
+         "i&c_electricity": {"revenue_gbp": 700.0}}]}}
+    assert gdd._check_front_door_segment_claim(true_book, claims_gt_60) is True
+
+    # MUTATE the BOOK, never the sentence (R12/R13: the claim is a disclosure, not a
+    # target). At 50% non-domestic the front door's published ">60%" is now FALSE.
+    false_book = {"financial": {"segment_annual": [
+        {"year": 2025, "resi_electricity": {"revenue_gbp": 500.0},
+         "i&c_electricity": {"revenue_gbp": 500.0}}]}}
+    assert gdd._check_front_door_segment_claim(false_book, claims_gt_60) is False
+
+    # FAIL-SILENT closed: the front door unreadable is an UNAVAILABLE check, which is a
+    # FAILED check -- not a pass by absence.
+    assert gdd._check_front_door_segment_claim(true_book, tmp_path / "no_such_door.html") is False
+
+    # FAIL-OPEN closed, both directions of missing input:
+    # (a) the door renders but the machine-readable claim was edited away -- an
+    #     unverifiable sentence must not publish as a verified one.
+    assert gdd._check_front_door_segment_claim(true_book, front_door("<p>mostly business</p>")) is False
+    # (b) the book's own mix is unavailable, so the claim cannot be graded at all. An
+    #     empty segment_annual must NOT read as a 0%-non-domestic (i.e. domestic) book.
+    assert gdd._check_front_door_segment_claim({"financial": {"segment_annual": []}}, claims_gt_60) is False
 
 
 def test_dashboard_basis_label_gate_fires_on_unlabelled_headline_figure():
