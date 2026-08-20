@@ -34,8 +34,9 @@ mutation test.
 from __future__ import annotations
 
 import datetime as dt
-from dataclasses import dataclass
-from typing import Dict, Optional, Tuple
+from dataclasses import dataclass, fields
+from enum import Enum
+from typing import Any, Dict, Optional, Tuple
 
 from interface.contracts.conversation_seam import (
     Channel,
@@ -47,6 +48,7 @@ from interface.contracts.conversation_seam import (
 )
 from interface.contracts.wall_envelope import WallRequest
 from company.comms.susceptibility_estimator import SusceptibilityEstimator
+from company.interfaces.wall_protocol import WallProtocolError, encode_request
 
 
 # ---------------------------------------------------------------------------
@@ -152,6 +154,63 @@ def _choose_channel(segment: CustomerSegment, situation: Situation) -> Channel:
     return permitted[0]
 
 
+# ---------------------------------------------------------------------------
+# ONTO THE WIRE (atom EP6_wall_protocol_typing, 2026-08-20) -- the company's
+# payload codec for the OUTBOUND leg of this crossing.
+#
+# `company.interfaces.wall_protocol` serialises the ENVELOPE and treats
+# `payload` as opaque: its payload codec is a required function argument with
+# no default, so nothing crosses by accident and a new crossing never edits it.
+# This function is this crossing's half of that bargain.
+#
+# It emits the payload TAGGED with its type for the same reason the inbound leg
+# expects a tag: `WallRequest.payload` is opaque to the envelope codec, and a
+# receiver that guessed the type from the field set would mis-route the day a
+# second request payload joins this seam. Nothing here is a wall crossing in the
+# epistemic sense -- the message is data the company already owns and chose to
+# send; the wall polices what flows BACK.
+# ---------------------------------------------------------------------------
+
+
+def _encode_message_field(value: Any, field: str) -> Any:
+    """Encode one outbound field. Refuses an unhandled type rather than
+    coercing: an encoder that can serialise anything is the mirror image of a
+    decoder that can accept anything."""
+    if value is None:
+        return None
+    if isinstance(value, Enum):
+        return value.value
+    # bool is an int subclass; a True step is a malformed field, not 1.
+    if isinstance(value, bool):
+        raise WallProtocolError(
+            "MALFORMED_FIELD", f"{field}: bool is not a conversation payload field type"
+        )
+    if isinstance(value, (int, str)):
+        return value
+    raise WallProtocolError(
+        "MALFORMED_FIELD",
+        f"{field}: {type(value).__name__} has no defined wire form on this seam",
+    )
+
+
+def encode_message_payload(payload: ConversationMessage) -> dict:
+    """Put one outbound ``ConversationMessage`` on the wire, tagged."""
+    if not isinstance(payload, ConversationMessage):
+        raise WallProtocolError(
+            "MALFORMED_FIELD",
+            f"expected a ConversationMessage, got {type(payload).__name__}",
+        )
+    return {
+        "payload_type": ConversationMessage.__name__,
+        "fields": {
+            f.name: _encode_message_field(
+                getattr(payload, f.name), f"ConversationMessage.{f.name}"
+            )
+            for f in fields(payload)
+        },
+    }
+
+
 class ConversationGenerator:
     """Emits situation-keyed, segment-gated ``ConversationMessage`` objects,
     with tone/framing drawn from a ``SusceptibilityEstimator`` belief (learned
@@ -232,4 +291,41 @@ class ConversationGenerator:
             as_of=as_of,
             emitted_at=emitted_at,
             payload=message,
+        )
+
+    def generate_wire_request(
+        self,
+        customer_id: str,
+        segment: CustomerSegment,
+        situation: Situation,
+        product: Product,
+        emitted_step: int,
+        as_of: dt.datetime,
+        emitted_at: dt.datetime,
+        correlation_id: Optional[str] = None,
+        message_id: Optional[str] = None,
+    ) -> dict:
+        """Same as ``generate_wall_request`` but handed over as a BYTES-shaped
+        wire message -- what a real customer-contact platform receives (atom
+        EP6_wall_protocol_typing).
+
+        The envelope is serialised by the company's own codec
+        (``company.interfaces.wall_protocol``); the PAYLOAD codec is supplied
+        here because that codec treats payloads as opaque on purpose -- a
+        required argument with no default, so nothing is serialised by accident
+        and a new crossing never edits it.
+        """
+        return encode_request(
+            self.generate_wall_request(
+                customer_id,
+                segment,
+                situation,
+                product,
+                emitted_step,
+                as_of,
+                emitted_at,
+                correlation_id,
+                message_id,
+            ),
+            encode_payload=encode_message_payload,
         )

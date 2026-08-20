@@ -78,6 +78,7 @@ uplift being any particular size -- nothing here is tuned toward a target value.
 """
 from __future__ import annotations
 
+import datetime as dt
 import json
 from pathlib import Path
 from typing import Callable, Mapping, Optional, Sequence
@@ -102,6 +103,14 @@ from background.live_ledger_guard import guard_live_ledger_write
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 GAP_LEDGER_PATH = PROJECT_DIR / "docs" / "observability" / "conversation_gap_ledger.json"
+
+# The ENVELOPE's wall clock for the wire crossing (atom EP6_wall_protocol_typing).
+# A fixed epoch, not `now()`: this harness's whole output must be reproducible
+# from (customer, message) alone (C-S2), and an envelope timestamp read off the
+# system clock would make two identical runs produce different bytes. It is a
+# transport coordinate only -- nothing in the response model or the belief update
+# reads it, and the abstract-step clock they DO read stays in the payload (C-S5).
+_ENVELOPE_CLOCK_EPOCH = dt.datetime(2026, 1, 1)
 
 # The lever-value <-> true-category matching vocabulary, duplicated HERE BY
 # CONVENTION (never by import of either side's private symbol):
@@ -202,13 +211,23 @@ def _train_estimator(
     rounds: int = _DEFAULT_TRAINING_ROUNDS,
 ) -> None:
     """Seed `estimator` with a genuine observed-reply history, driven ENTIRELY
-    through the real F1a `respond()` + F1b `observe_response()` -- a
-    round-robin exploration across every value of the lever THIS situation's
-    outcome actually responds to (see module docstring: F1b ships no
-    exploration policy of its own, so this harness supplies one for
-    measurement purposes on a throwaway estimator), holding the other,
-    outcome-irrelevant lever fixed at neutral so its evidence is not diluted
-    by a lever the outcome never reacted to."""
+    through the real F1a response model and F1b belief update -- a round-robin
+    exploration across every value of the lever THIS situation's outcome
+    actually responds to (see module docstring: F1b ships no exploration policy
+    of its own, so this harness supplies one for measurement purposes on a
+    throwaway estimator), holding the other, outcome-irrelevant lever fixed at
+    neutral so its evidence is not diluted by a lever the outcome never
+    reacted to.
+
+    ON THE WIRE (atom EP6_wall_protocol_typing, 2026-08-20): the reply crosses
+    as a BYTES-shaped message -- `respond_over_wire` on the world side,
+    `observe_wire` on the company side -- not as a Python object handed down the
+    call frame. This is the live path, so the gap this ledger publishes is now
+    measured against a company that only ever saw an encoded, version-checked
+    envelope. `observed_at` is the envelope's wall clock and is derived from the
+    round index; the abstract-step clock the model actually reasons on stays in
+    the payload (C-S5).
+    """
     vary_framing = situation in _FRAMING_SENSITIVE_SITUATIONS
     for round_idx in range(rounds):
         framing_value = FRAMING_VALUES[round_idx % len(FRAMING_VALUES)] if vary_framing else "neutral_framed"
@@ -223,8 +242,13 @@ def _train_estimator(
                 framing=framing_value,
                 emitted_step=round_idx,
             )
-            response = _sim_conversation_response.respond(customer_id, message)
-            estimator.observe_response(customer_id, message, response)
+            wire = _sim_conversation_response.respond_over_wire(
+                customer_id,
+                message,
+                correlation_id=message.message_id,
+                observed_at=_ENVELOPE_CLOCK_EPOCH + dt.timedelta(days=round_idx),
+            )
+            estimator.observe_wire(customer_id, message, wire)
 
 
 # ---------------------------------------------------------------------------

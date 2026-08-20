@@ -38,14 +38,28 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, Optional, Tuple
+from enum import Enum
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Mapping,
+    Optional,
+    Tuple,
+    Union,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
 
 from interface.contracts.conversation_seam import (
     ConversationMessage,
     ConversationResponse,
+    OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
     ResponseAction,
     validate_response_follows_message,
 )
+from company.interfaces.wall_protocol import WallProtocolError, decode_response
 
 # The FRAMING values the company can put on a message, and the SIM-side
 # susceptibility CATEGORY each is the "matched" lever for. These strings match
@@ -93,6 +107,127 @@ _NEGATIVE_ACTIONS = frozenset(
 # real signal -> the company infers "neutral" rather than over-committing to a
 # lever on thin evidence. A diagnostic threshold, not a tuned target (R12).
 _NEUTRAL_EPSILON = 0.02
+
+
+# ---------------------------------------------------------------------------
+# OFF THE WIRE (atom EP6_wall_protocol_typing, 2026-08-20) -- the company's
+# payload decoder for the OBSERVABLE leg of this crossing.
+#
+# `company.interfaces.wall_protocol` decodes the ENVELOPE and treats `payload`
+# as opaque: its payload codec is a required argument with no default, so
+# nothing is deserialised by accident and a new crossing never edits it. This
+# function is this crossing's half of that bargain.
+#
+# It is deliberately NOT written by reading `simulation.conversation_response`'s
+# encoder. Both sides are written against `interface.contracts.conversation_seam`
+# -- the payload dataclasses and their declared field types -- which is what a
+# real supplier has: the published schema, not the counterparty's source. The
+# field set and types below come from `get_type_hints`, an INDEPENDENT source
+# from anything the sender emitted.
+#
+# ABSENCE IS NEVER AGREEMENT, at payload depth too: a missing field is not
+# defaulted (the company would otherwise fold a belief update the world never
+# advised) and an unknown field is not tolerated (a schema that grew announces
+# itself by its version, never by a key appearing quietly).
+# ---------------------------------------------------------------------------
+
+_OBSERVABLE_PAYLOAD_TYPES = {t.__name__: t for t in OBSERVABLE_RESPONSE_PAYLOAD_TYPES}
+_OBSERVABLE_PAYLOAD_HINTS = {
+    t.__name__: get_type_hints(t) for t in OBSERVABLE_RESPONSE_PAYLOAD_TYPES
+}
+
+
+def _declared_base(declared: Any) -> Tuple[Any, bool]:
+    """Split ``Optional[X]`` into ``(X, True)``; anything else into ``(it, False)``."""
+    if get_origin(declared) is Union:
+        args = [a for a in get_args(declared) if a is not type(None)]
+        if len(args) == 1:
+            return args[0], True
+    return declared, False
+
+
+def _decode_payload_field(raw: Any, declared: Any, where: str) -> Any:
+    """Decode one payload field to the type THE CONTRACT declares for it."""
+    base, optional = _declared_base(declared)
+    if raw is None:
+        if optional:
+            return None
+        raise WallProtocolError(
+            "MALFORMED_FIELD", f"{where} is null but the contract declares it required"
+        )
+    if isinstance(base, type) and issubclass(base, Enum):
+        try:
+            return base(raw)
+        except ValueError as exc:
+            raise WallProtocolError(
+                "MALFORMED_FIELD",
+                f"{where}: {raw!r} is not one of {[m.value for m in base]}",
+            ) from exc
+    if base is str:
+        if not isinstance(raw, str):
+            raise WallProtocolError("MALFORMED_FIELD", f"{where} must be a str, got {raw!r}")
+        return raw
+    if base is int:
+        # bool is an int subclass; a True latency is malformed, not 1.
+        if isinstance(raw, bool) or not isinstance(raw, int):
+            raise WallProtocolError("MALFORMED_FIELD", f"{where} must be an int, got {raw!r}")
+        return raw
+    raise WallProtocolError(
+        "CONTRACT_VIOLATION",
+        f"{where}: this seam has no decoder for declared type {declared!r} -- a field "
+        "type was added to the contract without deciding how it crosses",
+    )
+
+
+def decode_observable_payload(raw: Any) -> Any:
+    """Rebuild one observable conversation payload off the wire, or refuse it."""
+    if not isinstance(raw, Mapping):
+        raise WallProtocolError(
+            "NOT_A_MESSAGE", f"payload must be a mapping, got {type(raw).__name__}"
+        )
+    missing = sorted({"payload_type", "fields"} - set(raw))
+    if missing:
+        raise WallProtocolError(
+            "MISSING_FIELD",
+            f"payload omits {missing} -- an untagged payload cannot be routed to one of "
+            "this seam's observable types",
+        )
+    unknown_keys = sorted(set(raw) - {"payload_type", "fields"})
+    if unknown_keys:
+        raise WallProtocolError(
+            "UNKNOWN_FIELD", f"payload carries undefined key(s) {unknown_keys}"
+        )
+    tag = raw["payload_type"]
+    if tag not in _OBSERVABLE_PAYLOAD_TYPES:
+        raise WallProtocolError(
+            "UNKNOWN_FIELD",
+            f"payload_type {tag!r} is not one of this seam's observable types "
+            f"{sorted(_OBSERVABLE_PAYLOAD_TYPES)}",
+        )
+    body = raw["fields"]
+    if not isinstance(body, Mapping):
+        raise WallProtocolError(
+            "NOT_A_MESSAGE", f"{tag}.fields must be a mapping, got {type(body).__name__}"
+        )
+    hints = _OBSERVABLE_PAYLOAD_HINTS[tag]
+    absent = sorted(set(hints) - set(body))
+    if absent:
+        raise WallProtocolError(
+            "MISSING_FIELD",
+            f"{tag} omits required field(s) {absent} -- never defaulted; the company "
+            "would otherwise fold in a reply the customer did not make",
+        )
+    extra = sorted(set(body) - set(hints))
+    if extra:
+        raise WallProtocolError(
+            "UNKNOWN_FIELD", f"{tag} carries field(s) {extra} the contract does not define"
+        )
+    return _OBSERVABLE_PAYLOAD_TYPES[tag](
+        **{
+            name: _decode_payload_field(body[name], declared, f"{tag}.{name}")
+            for name, declared in hints.items()
+        }
+    )
 
 
 @dataclass
@@ -203,6 +338,52 @@ class SusceptibilityEstimator:
         toward 0 for a very late reply. latency is guaranteed >=1 by the seam
         contract (a non-positive latency is unrepresentable, C-S3)."""
         return self._latency_weight * math.exp(-(latency - 1) / self._latency_scale)
+
+    def observe_wire(
+        self,
+        customer_id: str,
+        message: ConversationMessage,
+        wire: Any,
+    ) -> bool:
+        """Fold in one reply that arrived AS A WIRE MESSAGE -- the entry point a
+        real customer-contact platform reaches, and the one the live gap ledger
+        now uses (atom EP6_wall_protocol_typing).
+
+        This is EP6's claim made concrete for this crossing: a real counterparty
+        hands over bytes and a mock hands over an object, and that is the ONLY
+        place the two observably differ. Coming through here they are the same,
+        because the message has passed the same envelope refusals and the same
+        payload refusals either way.
+
+        Raises ``WallProtocolError`` on anything malformed -- one exception type
+        at the seam, and never a half-built object reaching the belief update
+        below. A refusal is NOT an observation: nothing is marked seen, so a
+        corrected re-delivery of the same ``response_id`` can still land.
+
+        A NON-OK ENVELOPE IS REFUSED ON THIS SEAM, and that is a contract fact
+        rather than a strictness preference: silence is an ACTION here
+        (``ResponseAction.NO_REPLY``), not an absent payload, so every honest
+        conversation answer is an OK carrying an observation. A payload-less
+        envelope is therefore a malformed crossing and not a legitimate "not
+        yet" -- accepting it quietly would let a broken counterparty erase
+        replies the company should have learned from.
+
+        The absent payload is tested for directly rather than through the
+        status enum, and not to save an import: ``WallResponse.__post_init__``
+        already makes "payload is None" and "status is not OK" the SAME fact,
+        so reading the status here would add a second wall crossing that asks
+        nothing the first one has not already answered -- and channel C of
+        ``tools/wall_channel_census.py`` is a shrink-only list.
+        """
+        response = decode_response(wire, decode_payload=decode_observable_payload)
+        if response.payload is None:
+            raise WallProtocolError(
+                "CONTRACT_VIOLATION",
+                f"conversation response {response.correlation_id!r} arrived with status "
+                f"{response.status.value} and no observation -- on this seam silence is "
+                "the NO_REPLY action, so every answer carries a payload",
+            )
+        return self.observe_response(customer_id, message, response.payload)
 
     def observe_response(
         self,

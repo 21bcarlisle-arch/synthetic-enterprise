@@ -68,20 +68,23 @@ import datetime as dt
 import hashlib
 import math
 import random
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, fields
+from enum import Enum
+from typing import Any, Mapping, Optional, Union, get_args, get_origin, get_type_hints
 
 from interface.contracts.conversation_seam import (
     Channel,
     ConversationMessage,
+    ConversationMessageWallRequest,
     ConversationResponse,
     ConversationResponseWallResponse,
+    OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
     ResponseAction,
     SCHEMA_VERSION,
     Situation,
     validate_response_follows_message,
 )
-from interface.contracts.wall_envelope import WallResponse, WallStatus
+from interface.contracts.wall_envelope import WallRequest, WallResponse, WallStatus
 from simulation.nudge_physics import (
     framing_effectiveness_multiplier,
     tone_effectiveness_multiplier,
@@ -418,4 +421,319 @@ def respond_over_wall(
         observed_at=observed_at,
         valid_time=valid_time,
         payload=response,
+    )
+
+
+# ---------------------------------------------------------------------------
+# THE WIRE (atom EP6_wall_protocol_typing, 2026-08-20) -- the counterparty's
+# OWN codec, BOTH DIRECTIONS.
+#
+# Until this section existed, every conversation envelope crossed as a Python
+# object handed straight down the call frame: `schema_version` was populated at
+# construction and never encoded, never decoded, never refused. The wall census
+# (`tools/wall_channel_census.py::envelope_wire_conformance`) reported this seam
+# IN-PROCESS at 63bf50039 for exactly that reason.
+#
+# WHY THE COUNTERPARTY WRITES ITS OWN CODEC, and why that is not duplication:
+# EP6's claim is that "a mock counterparty and a real one are indistinguishable
+# to the company". That is only testable if the mock produces its bytes with its
+# OWN code. Calling `company.interfaces.wall_protocol.encode_response` here and
+# decoding with the same module on the other side would make the round-trip a
+# TAUTOLOGY in the R15 sense -- a decoder checked against its own arithmetic,
+# green through a schema change no real counterparty would have made. It is also
+# forbidden outright: this module never imports `company.*` (module docstring),
+# exactly as a real customer-contact platform never links the supplier's library.
+#
+# WHAT MAKES THE TWO SIDES AGREE IS THE CONTRACT AND ONLY THE CONTRACT: both
+# read `interface.contracts.conversation_seam` -- the payload dataclasses, their
+# declared field types, `OBSERVABLE_RESPONSE_PAYLOAD_TYPES` and `SCHEMA_VERSION`
+# -- the way a real counterparty reads a published schema. A field added to a
+# payload reaches both sides at once; a field one side invents reaches neither.
+#
+# BOTH LEGS, because this seam has two and the payment seam had one. A
+# conversation is a REQUEST (company -> wall: the nudge it chose to send) and,
+# separately in time, a RESPONSE (wall -> company: what the customer did). Wiring
+# only the observable leg would leave the request envelope crossing as an object
+# with an unread version -- the same defect on the other leg, and one the census
+# cannot currently see, because its subject is the SEAM and not the LEG.
+#
+# ABSENCE IS NEVER AGREEMENT applies to both halves: every field is written
+# including its nulls, `schema_version` is written from the CONTRACT's constant
+# (never from a reader's default), a missing key is refused rather than defaulted
+# and an unknown key is refused rather than tolerated.
+# ---------------------------------------------------------------------------
+
+#: The exact key set of a request as the published schema states it. Restated
+#: here rather than imported: the company's codec is not this counterparty's
+#: source of truth, and if the two ever disagree the messages must stop crossing
+#: -- which is the correct outcome and the whole reason they are separate code.
+_REQUEST_WIRE_FIELDS: frozenset[str] = frozenset(
+    {"correlation_id", "request_type", "schema_version", "as_of", "emitted_at", "payload"}
+)
+
+_ENCODABLE_RESPONSE_PAYLOAD_TYPES = {t.__name__: t for t in OBSERVABLE_RESPONSE_PAYLOAD_TYPES}
+_REQUEST_PAYLOAD_HINTS = get_type_hints(ConversationMessage)
+
+
+class SeamCodecError(ValueError):
+    """This seam refused to put a value on the wire, or refused one that
+    arrived. Deliberately NOT `WallProtocolError`: that type is the COMPANY's,
+    and a counterparty does not raise the receiver's exceptions."""
+
+
+def _optional_base(declared: Any) -> tuple[Any, bool]:
+    """Split ``Optional[X]`` into ``(X, True)``; anything else into ``(it, False)``."""
+    if get_origin(declared) is Union:
+        args = [a for a in get_args(declared) if a is not type(None)]
+        if len(args) == 1:
+            return args[0], True
+    return declared, False
+
+
+def _encode_scalar(value: Any, field: str) -> Any:
+    """Encode one payload field. Refuses an unhandled type rather than coercing
+    -- ``str(value)`` here is how a platform silently ships an object's repr and
+    the receiver silently accepts a string."""
+    if value is None:
+        return None
+    if isinstance(value, Enum):
+        return value.value
+    # bool is an int subclass; a True latency is a malformed field, not 1.
+    if isinstance(value, bool):
+        raise SeamCodecError(f"{field}: bool is not a conversation payload field type")
+    if isinstance(value, (int, str)):
+        return value
+    raise SeamCodecError(
+        f"{field}: {type(value).__name__} has no defined wire form on this seam"
+    )
+
+
+def encode_observable_payload(payload: Any) -> dict:
+    """Put one observable response payload on the wire, TAGGED with its type.
+
+    Tagged for the payment seam's reason and not because two types cross today:
+    `WallResponse.payload` is opaque to the envelope codec, so a receiver that
+    guessed the type from the field set would silently mis-route the day this
+    seam's `OBSERVABLE_RESPONSE_PAYLOAD_TYPES` grows a second member. The tag
+    set is read from that tuple, so it grows with the contract.
+    """
+    payload_type = type(payload)
+    if payload_type.__name__ not in _ENCODABLE_RESPONSE_PAYLOAD_TYPES or (
+        _ENCODABLE_RESPONSE_PAYLOAD_TYPES[payload_type.__name__] is not payload_type
+    ):
+        raise SeamCodecError(
+            f"{payload_type.__name__} is not one of this seam's "
+            f"OBSERVABLE_RESPONSE_PAYLOAD_TYPES "
+            f"{sorted(_ENCODABLE_RESPONSE_PAYLOAD_TYPES)}"
+        )
+    return {
+        "payload_type": payload_type.__name__,
+        "fields": {
+            f.name: _encode_scalar(
+                getattr(payload, f.name), f"{payload_type.__name__}.{f.name}"
+            )
+            for f in fields(payload)
+        },
+    }
+
+
+def encode_wall_response(response: WallResponse) -> dict:
+    """Serialise one ``WallResponse`` into the wire form this seam publishes.
+
+    Written against the SCHEMA, not against the company's decoder: the key set
+    below is the response schema as this seam documents it, and if the company
+    widens its own expectation without the schema changing, this encoder keeps
+    emitting the old shape and the far side refuses it.
+    """
+    if not isinstance(response, WallResponse):
+        raise SeamCodecError(f"expected a WallResponse, got {type(response).__name__}")
+    return {
+        "correlation_id": response.correlation_id,
+        "status": response.status.value,
+        "schema_version": SCHEMA_VERSION,
+        "observed_at": response.observed_at.isoformat(),
+        "valid_time": None if response.valid_time is None else response.valid_time.isoformat(),
+        "payload": (
+            None if response.payload is None else encode_observable_payload(response.payload)
+        ),
+        "error": (
+            None
+            if response.error is None
+            else {"code": response.error.code, "message": response.error.message}
+        ),
+    }
+
+
+def respond_over_wire(
+    customer_id: str,
+    message: ConversationMessage,
+    correlation_id: str,
+    observed_at: dt.datetime,
+    valid_time: Optional[dt.date] = None,
+) -> dict:
+    """``respond_over_wall``, but handing over a BYTES-shaped wire message
+    instead of an in-process object -- what a real customer-contact platform
+    delivers, and the form the live gap ledger now crosses on.
+
+    The object form remains: it is how the response is constructed in the first
+    place and what the offline harness measures. What changed is that the
+    COMPANY no longer receives one.
+    """
+    return encode_wall_response(
+        respond_over_wall(customer_id, message, correlation_id, observed_at, valid_time)
+    )
+
+
+# -- the inbound leg: the counterparty RECEIVING the company's message --------
+
+
+def _decode_payload_field(raw: Any, declared: Any, where: str) -> Any:
+    """Decode one message field to the type THE CONTRACT declares for it."""
+    base, optional = _optional_base(declared)
+    if raw is None:
+        if optional:
+            return None
+        raise SeamCodecError(f"{where} is null but the contract declares it required")
+    if isinstance(base, type) and issubclass(base, Enum):
+        try:
+            return base(raw)
+        except ValueError as exc:
+            raise SeamCodecError(
+                f"{where}: {raw!r} is not one of {[m.value for m in base]}"
+            ) from exc
+    if base is str:
+        if not isinstance(raw, str):
+            raise SeamCodecError(f"{where} must be a str, got {raw!r}")
+        return raw
+    if base is int:
+        # bool is an int subclass; a True step is malformed, not 1.
+        if isinstance(raw, bool) or not isinstance(raw, int):
+            raise SeamCodecError(f"{where} must be an int, got {raw!r}")
+        return raw
+    raise SeamCodecError(
+        f"{where}: this seam has no decoder for declared type {declared!r} -- a field "
+        "type was added to the contract without deciding how it crosses"
+    )
+
+
+def decode_message_payload(raw: Any) -> ConversationMessage:
+    """Rebuild the company's outbound message off the wire, or refuse it.
+
+    Not written as the inverse of the company's encoder by reading that
+    encoder's source. The field set and types come from ``get_type_hints`` on
+    the CONTRACT -- an independent source from anything the sender emitted --
+    which is what a real counterparty has: the published schema.
+    """
+    if not isinstance(raw, Mapping):
+        raise SeamCodecError(f"payload must be a mapping, got {type(raw).__name__}")
+    missing = sorted({"payload_type", "fields"} - set(raw))
+    if missing:
+        raise SeamCodecError(
+            f"payload omits {missing} -- an untagged payload cannot be routed to a "
+            "declared message type"
+        )
+    unknown = sorted(set(raw) - {"payload_type", "fields"})
+    if unknown:
+        raise SeamCodecError(f"payload carries undefined key(s) {unknown}")
+    tag = raw["payload_type"]
+    if tag != ConversationMessage.__name__:
+        raise SeamCodecError(
+            f"payload_type {tag!r} is not {ConversationMessage.__name__!r} -- this seam's "
+            "request leg carries exactly one payload type"
+        )
+    body = raw["fields"]
+    if not isinstance(body, Mapping):
+        raise SeamCodecError(f"{tag}.fields must be a mapping, got {type(body).__name__}")
+    absent = sorted(set(_REQUEST_PAYLOAD_HINTS) - set(body))
+    if absent:
+        raise SeamCodecError(
+            f"{tag} omits required field(s) {absent} -- never defaulted; an absent "
+            "field and an agreeing field are not the same bytes"
+        )
+    extra = sorted(set(body) - set(_REQUEST_PAYLOAD_HINTS))
+    if extra:
+        raise SeamCodecError(f"{tag} carries field(s) {extra} the contract does not define")
+    return ConversationMessage(
+        **{
+            name: _decode_payload_field(body[name], declared, f"{tag}.{name}")
+            for name, declared in _REQUEST_PAYLOAD_HINTS.items()
+        }
+    )
+
+
+def decode_wire_request(wire: Any) -> ConversationMessageWallRequest:
+    """Parse one ``WallRequest[ConversationMessage]`` off the wire, or refuse it.
+
+    The counterparty's half of "indistinguishable": the company's nudge arrives
+    here as bytes and is version-checked before anything in this module can act
+    on it. A `schema_version` this build does not speak is refused rather than
+    assumed to be the one version that exists today -- the whole point of
+    putting a version on the wire is that it can DISAGREE.
+    """
+    if not isinstance(wire, Mapping):
+        raise SeamCodecError(f"request must be a mapping, got {type(wire).__name__}")
+    present = frozenset(wire)
+    missing = sorted(_REQUEST_WIRE_FIELDS - present)
+    if missing:
+        raise SeamCodecError(
+            f"request omits required field(s) {missing} -- an absent field is never read "
+            "as agreement with this process's own defaults"
+        )
+    unknown = sorted(present - _REQUEST_WIRE_FIELDS)
+    if unknown:
+        raise SeamCodecError(
+            f"request carries field(s) {unknown} that schema version {SCHEMA_VERSION} "
+            "does not define"
+        )
+    version = wire["schema_version"]
+    if not isinstance(version, int) or isinstance(version, bool):
+        raise SeamCodecError(f"schema_version must be an int, got {version!r}")
+    if version != SCHEMA_VERSION:
+        raise SeamCodecError(
+            f"schema_version {version} is not the {SCHEMA_VERSION} this seam speaks"
+        )
+    correlation_id = wire["correlation_id"]
+    if not isinstance(correlation_id, str) or not correlation_id:
+        raise SeamCodecError(
+            f"correlation_id must be a non-empty str, got {correlation_id!r} -- it is both "
+            "the idempotency key and the only link to the response"
+        )
+    request_type = wire["request_type"]
+    if not isinstance(request_type, str) or not request_type:
+        raise SeamCodecError(f"request_type must be a non-empty str, got {request_type!r}")
+    return WallRequest(
+        correlation_id=correlation_id,
+        request_type=request_type,
+        schema_version=version,
+        as_of=_decode_wire_datetime(wire["as_of"], "as_of"),
+        emitted_at=_decode_wire_datetime(wire["emitted_at"], "emitted_at"),
+        payload=decode_message_payload(wire["payload"]),
+    )
+
+
+def _decode_wire_datetime(raw: Any, field: str) -> dt.datetime:
+    if not isinstance(raw, str):
+        raise SeamCodecError(f"{field} must be an ISO-8601 str, got {raw!r}")
+    try:
+        return dt.datetime.fromisoformat(raw)
+    except ValueError as exc:
+        raise SeamCodecError(f"{field} is not ISO-8601: {raw!r}") from exc
+
+
+def respond_to_wire_request(customer_id: str, wire_request: Any) -> dict:
+    """The whole crossing, end to end, as a real counterparty performs it: bytes
+    in, bytes out. The company's request is decoded and version-checked here, the
+    world answers, and the answer leaves as bytes with its own version on it.
+
+    ``observed_at`` is taken from the request's ``emitted_at``: a response is a
+    SEPARATE, LATER event (C-S3), and the abstract-step clock that expresses HOW
+    much later stays in the payload (C-S5), so the envelope clock is anchored to
+    the only wall-clock instant this seam actually observed.
+    """
+    request = decode_wire_request(wire_request)
+    return respond_over_wire(
+        customer_id,
+        request.payload,
+        correlation_id=request.correlation_id,
+        observed_at=request.emitted_at,
     )

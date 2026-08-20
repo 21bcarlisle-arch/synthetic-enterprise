@@ -421,3 +421,271 @@ def test_r15_nonfinite_adverse_share_rejected_before_comparison(monkeypatch):
     monkeypatch.setattr(cr, "_trust", lambda c: float("inf"))
     with pytest.raises(ValueError):
         cr._adverse_share("Cnan2", _msg(situation=Situation.RENEWAL))
+
+
+# ===========================================================================
+# THE WIRE (atom EP6_wall_protocol_typing, 2026-08-20) -- the counterparty's
+# own codec, both legs.
+#
+# What these prove, and what they deliberately do NOT: they prove this module
+# puts a version-bearing message on the wire and refuses a malformed one
+# coming back the other way. They do NOT prove the far side agrees -- that is
+# a cross-side fact and lives in
+# `tests/background/test_conversation_gap_ledger_wire.py`, because a test that
+# encoded and decoded with the same module's code would be an R15 TAUTOLOGY:
+# green through any schema change, since both halves changed together.
+# ===========================================================================
+
+
+def _imported_roots(rel_path):
+    """The top-level package of every module `rel_path` imports, from its AST.
+    Read structurally, not by scanning for lines that start with `import`: a
+    docstring can wrap onto a line beginning "from ``x``", and a control a
+    stray sentence can turn red gets weakened until it means nothing."""
+    import ast
+    import pathlib
+    tree = ast.parse(pathlib.Path(rel_path).read_text())
+    roots = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            roots.update(a.name.split(".")[0] for a in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            roots.add(node.module.split(".")[0])
+    return roots
+
+
+def _wire_response(customer="Cwire1", mid="MW1", corr="corr-1"):
+    return cr.respond_over_wire(
+        customer, _msg(mid=mid), correlation_id=corr,
+        observed_at=dt.datetime(2026, 1, 1, 12, 0),
+    )
+
+
+def test_the_encoded_response_states_every_envelope_field_including_its_nulls():
+    """ABSENCE IS NEVER AGREEMENT: a wire message states its whole envelope,
+    nulls included. A key omitted because "it is None anyway" is a key the far
+    side must either refuse or default, and defaulting is the fail-open this
+    seam exists to make impossible."""
+    wire = _wire_response()
+    assert set(wire) == {
+        "correlation_id", "status", "schema_version",
+        "observed_at", "valid_time", "payload", "error",
+    }
+    assert wire["valid_time"] is None and "valid_time" in wire
+    assert wire["error"] is None and "error" in wire
+
+
+def test_the_version_is_on_the_wire_and_comes_from_the_contract():
+    """The whole point of the atom for this seam: `schema_version` is not a
+    field populated at construction and left in the process -- it is IN the
+    message, and its value is the CONTRACT's constant, never a reader's own
+    default at read time."""
+    from interface.contracts.conversation_seam import SCHEMA_VERSION
+    assert _wire_response()["schema_version"] == SCHEMA_VERSION
+
+
+def test_the_wire_message_is_json_round_trippable():
+    """A wire form that cannot survive JSON is not a wire form. Everything on
+    it must be a primitive: no enum objects, no datetimes, no dataclasses."""
+    import json
+    wire = _wire_response()
+    assert json.loads(json.dumps(wire)) == wire
+
+
+def test_the_payload_is_tagged_with_its_declared_contract_type():
+    wire = _wire_response()
+    assert wire["payload"]["payload_type"] == "ConversationResponse"
+    assert set(wire["payload"]["fields"]) == {
+        "response_id", "responds_to", "action", "channel_chosen",
+        "latency", "responded_step",
+    }
+
+
+def test_the_encoder_refuses_a_payload_the_contract_does_not_declare():
+    """An encoder that can serialise anything is the mirror of a decoder that
+    can accept anything. The permitted set is read from the contract's
+    OBSERVABLE_RESPONSE_PAYLOAD_TYPES, so it grows with the contract and not
+    with this module."""
+    with pytest.raises(cr.SeamCodecError):
+        cr.encode_observable_payload(_msg())          # a MESSAGE is not an observable
+
+
+def test_the_encoder_refuses_a_bool_where_the_contract_declares_an_int():
+    """bool is an int subclass, so a True latency would encode as `true` and
+    decode back as 1 -- a value the far side would accept and act on. The
+    boundary the rule is most easily wrong about."""
+    with pytest.raises(cr.SeamCodecError):
+        cr._encode_scalar(True, "ConversationResponse.latency")
+    assert cr._encode_scalar(11, "ConversationResponse.latency") == 11
+
+
+def test_no_hidden_trait_reaches_the_wire():
+    """The epistemic wall, asserted on the BYTES rather than on the object.
+    The contract's FORBIDDEN_TRUTH_FIELDS check proves no such FIELD exists;
+    this proves the encoder invented no such KEY on the way out."""
+    fields_on_wire = _wire_response()["payload"]["fields"]
+    for forbidden in FORBIDDEN_TRUTH_FIELDS:
+        assert forbidden not in fields_on_wire
+
+
+# -- the inbound leg: the counterparty receiving the company's message -------
+
+
+def _wire_request(**over):
+    base = {
+        "correlation_id": "corr-1",
+        "request_type": "conversation_message",
+        "schema_version": 1,
+        "as_of": "2026-01-01T09:00:00",
+        "emitted_at": "2026-01-01T09:30:00",
+        "payload": {
+            "payload_type": "ConversationMessage",
+            "fields": {
+                "message_id": "MW1", "situation": "renewal", "channel": "email",
+                "product": "dual_fuel", "tone": "neutral_toned",
+                "framing": "neutral_framed", "emitted_step": 100, "offer": None,
+            },
+        },
+    }
+    base.update(over)
+    return base
+
+
+def test_a_well_formed_request_decodes_to_the_typed_envelope():
+    request = cr.decode_wire_request(_wire_request())
+    assert request.correlation_id == "corr-1"
+    assert request.schema_version == 1
+    assert request.payload == _msg(mid="MW1")
+
+
+def test_a_request_missing_its_version_is_refused_not_defaulted():
+    """The named defect this whole module exists against: `entry.get("field",
+    MY_OWN_CONSTANT)`. An absent field and an agreeing field are the same
+    bytes, so a version that can be defaulted is not a version."""
+    wire = _wire_request()
+    del wire["schema_version"]
+    with pytest.raises(cr.SeamCodecError, match="schema_version"):
+        cr.decode_wire_request(wire)
+
+
+def test_a_version_this_seam_does_not_speak_is_refused():
+    with pytest.raises(cr.SeamCodecError, match="not the 1 this seam speaks"):
+        cr.decode_wire_request(_wire_request(schema_version=2))
+
+
+def test_a_boolean_version_is_malformed_not_version_one():
+    """`True == 1` in Python, so a bool version would pass an `== 1` check and
+    be read as v1. It is a malformed field, not a version."""
+    with pytest.raises(cr.SeamCodecError, match="must be an int"):
+        cr.decode_wire_request(_wire_request(schema_version=True))
+
+
+def test_an_unknown_key_is_refused_rather_than_tolerated():
+    """A schema that grew announces itself by its VERSION, never by a key
+    appearing quietly -- otherwise the version number has no job."""
+    with pytest.raises(cr.SeamCodecError, match="does not define"):
+        cr.decode_wire_request(_wire_request(extra_field="hello"))
+
+
+def test_a_missing_payload_field_is_refused_never_defaulted():
+    wire = _wire_request()
+    del wire["payload"]["fields"]["framing"]
+    with pytest.raises(cr.SeamCodecError, match="omits required field"):
+        cr.decode_wire_request(wire)
+
+
+def test_the_optional_field_accepts_null_and_the_required_ones_do_not():
+    """BOUNDARY: `offer` is `Optional[str]` in the contract and `tone` is not.
+    A decoder that treated every null alike would either refuse every
+    offer-less message (most situations carry no offer) or silently accept a
+    tone-less one. The difference is read from the contract's own type hints."""
+    assert cr.decode_wire_request(_wire_request()).payload.offer is None
+    wire = _wire_request()
+    wire["payload"]["fields"]["tone"] = None
+    with pytest.raises(cr.SeamCodecError, match="contract declares it required"):
+        cr.decode_wire_request(wire)
+
+
+def test_an_enum_value_off_the_contract_is_refused():
+    wire = _wire_request()
+    wire["payload"]["fields"]["situation"] = "not_a_situation"
+    with pytest.raises(cr.SeamCodecError, match="is not one of"):
+        cr.decode_wire_request(wire)
+
+
+def test_a_non_message_is_refused_rather_than_read_as_empty():
+    for junk in (None, "a string", 7, ["a", "list"]):
+        with pytest.raises(cr.SeamCodecError):
+            cr.decode_wire_request(junk)
+
+
+def test_bytes_in_bytes_out_is_the_whole_crossing():
+    """`respond_to_wire_request` is the shape a real counterparty presents: it
+    never sees or returns an in-process envelope object."""
+    out = cr.respond_to_wire_request("Cwire2", _wire_request())
+    assert isinstance(out, dict) and out["correlation_id"] == "corr-1"
+    assert out["payload"]["fields"]["responds_to"] == "MW1"
+
+
+def test_the_answer_is_a_separate_later_event_on_the_wire_too():
+    """C-S3 survives serialisation: `responded_step` strictly exceeds the
+    message's `emitted_step` in the encoded bytes, not just in the object."""
+    out = cr.respond_to_wire_request("Cwire3", _wire_request())
+    assert out["payload"]["fields"]["responded_step"] > 100
+    assert out["payload"]["fields"]["latency"] >= 1
+
+
+def test_R15_MUTATION_defaulting_the_absent_version_makes_the_refusal_vanish():
+    """The mutation this seam's decoder exists to fail, RUN not asserted.
+
+    Replace the version read with the sibling `from_log_entry` pattern --
+    `wire.get("schema_version", SCHEMA_VERSION)` -- and a message that never
+    stated its version decodes CLEAN, silently relabelled as the one version
+    this process happens to speak today. That is the exact fail-open the
+    module docstring names.
+
+    NULL CONTROL: the same wrapper WITHOUT the default leaves the refusal
+    intact, so what the mutation proves is the defaulting and not the wrapping.
+    """
+    wire = _wire_request()
+    del wire["schema_version"]
+
+    def decode_with_default(w):
+        w = dict(w)
+        w.setdefault("schema_version", 1)             # the mutation
+        return cr.decode_wire_request(w)
+
+    def decode_without_default(w):
+        return cr.decode_wire_request(dict(w))        # the null control
+
+    assert decode_with_default(wire).schema_version == 1     # mutation: accepted
+    with pytest.raises(cr.SeamCodecError):
+        decode_without_default(wire)                          # control: still refused
+
+
+def test_R15_MUTATION_a_lenient_superset_check_would_accept_a_widened_message():
+    """EXCUSE-EVERYTHING: relax the exact-key-set rule to "the required keys
+    are present" and a message carrying an undeclared extra key sails through.
+    A decoder that tolerates keys it does not understand cannot tell a v2
+    counterparty from a v1 one, which is the negotiation the version exists
+    for."""
+    widened = _wire_request(unknown_key="from a future schema")
+
+    def lenient(w):
+        missing = cr._REQUEST_WIRE_FIELDS - set(w)
+        assert not missing                            # the mutation: subset check only
+        return True
+
+    assert lenient(widened) is True                   # mutation: accepted
+    with pytest.raises(cr.SeamCodecError):
+        cr.decode_wire_request(widened)               # shipped rule: refused
+
+
+def test_the_module_still_imports_nothing_from_the_company_side():
+    """The counterparty writes its OWN codec, and this is the rule that makes
+    that non-negotiable rather than stylistic: a mock that encoded with the
+    company's encoder would make every round-trip a tautology, and a real
+    customer-contact platform never links the supplier's library."""
+    assert _imported_roots("simulation/conversation_response.py").isdisjoint(
+        {"company", "saas"}
+    )
