@@ -499,3 +499,116 @@ def test_every_declared_payload_type_matches_its_contract_dataclass():
             f"{payload_type.__name__}: the contract's declaration and the "
             "dataclass it certifies have diverged"
         )
+
+
+# ── THE SECOND BELT ON THE ENCODE LEG (EP6 pass 27) ──────────────────────────────────────────
+# The point of these is NARROW and is worth stating so the belt is not credited with more than
+# it does. `OBSERVABLE_PAYLOAD_FIELDS` is the control and already refuses a field added to a
+# payload and nothing else. What it cannot see -- because the edit moves the very thing it reads
+# -- is a truth field added to the dataclass AND declared observable in the same edit. Every
+# mutation below performs exactly that edit, so the closed set is GREEN through all of them.
+
+class _MutantPayload:
+    """Built per-test rather than at module scope, so each mutation names its own field."""
+
+
+def _mutant(field_name: str):
+    """A seventh payload type carrying `field_name`, DECLARED observable in the same breath."""
+    cls = dataclasses.make_dataclass(
+        "MutantAdvice",
+        [("account_id", str), ("amount_gbp", float), (field_name, str)],
+        frozen=True,
+    )
+    return cls, cls(account_id="ACC-1", amount_gbp=12.5, **{field_name: "x"})
+
+
+def _with_mutant(monkeypatch, cls, field_name: str):
+    """Register the mutant exactly as a real same-edit widening would: on the encodable set AND
+    on the contract's closed set. Both halves matter -- omit the second and this would prove only
+    that the closed set works, which is already tested."""
+    from simulation import payment_seam_adapter as psa
+
+    monkeypatch.setitem(psa._ENCODABLE_PAYLOAD_TYPES, cls.__name__, cls)
+    monkeypatch.setitem(
+        psa.OBSERVABLE_PAYLOAD_FIELDS,
+        cls.__name__,
+        ("account_id", "amount_gbp", field_name),
+    )
+
+
+def test_MUTATION_a_truth_field_DECLARED_OBSERVABLE_in_the_same_edit_is_still_refused(
+    monkeypatch,
+):
+    """THE DOCTRINE MUTATION, and the only case that justifies keeping a denylist at all. The
+    closed set is satisfied by construction here -- the field IS declared -- so if the belt were
+    absent the world's true DD failure reason would encode onto the wire unrefused."""
+    from simulation import payment_seam_adapter as psa
+
+    cls, payload = _mutant("dd_failure_reason")
+    _with_mutant(monkeypatch, cls, "dd_failure_reason")
+
+    # The control is genuinely green on this payload: that is what makes the belt load-bearing.
+    assert set(psa.OBSERVABLE_PAYLOAD_FIELDS[cls.__name__]) == {
+        f.name for f in dataclasses.fields(cls)
+    }
+
+    with pytest.raises(psa.SeamEncodeError) as exc:
+        psa.encode_observable_payload(payload)
+    assert "dd_failure_reason" in str(exc.value)
+    assert "forbidden truth field" in str(exc.value)
+
+
+@pytest.mark.parametrize("field_name", ["ability", "willingness", "data_regime", "period_index"])
+def test_MUTATION_each_class_of_world_truth_is_refused_not_only_the_failure_reason(
+    monkeypatch, field_name
+):
+    """One name proves one name. These are the other three producers the belt cites -- the hidden
+    ability/willingness answer key D5 is scored on inferring, the historical-vs-synthetic marker,
+    and the generator's own clock index."""
+    from simulation import payment_seam_adapter as psa
+
+    cls, payload = _mutant(field_name)
+    _with_mutant(monkeypatch, cls, field_name)
+
+    with pytest.raises(psa.SeamEncodeError, match="forbidden truth field"):
+        psa.encode_observable_payload(payload)
+
+
+def test_NULL_CONTROL_an_undeclared_but_INNOCENT_field_trips_the_OTHER_belt(monkeypatch):
+    """Without this the battery above could not tell "the denylist fired" from "anything unusual
+    is refused". An undeclared field that is NOT a truth name must be refused by the closed set,
+    with the closed set's own message -- so the two belts stay separately observable and each has
+    a case only it can pass."""
+    from simulation import payment_seam_adapter as psa
+
+    cls, payload = _mutant("branch_sort_code")
+    monkeypatch.setitem(psa._ENCODABLE_PAYLOAD_TYPES, cls.__name__, cls)
+    monkeypatch.setitem(
+        psa.OBSERVABLE_PAYLOAD_FIELDS, cls.__name__, ("account_id", "amount_gbp")
+    )
+
+    with pytest.raises(psa.SeamEncodeError) as exc:
+        psa.encode_observable_payload(payload)
+    assert "has not declared observable" in str(exc.value)
+    assert "forbidden truth field" not in str(exc.value)
+
+
+def test_the_SIX_REAL_payloads_still_encode_so_the_belt_is_not_a_standing_red(monkeypatch):
+    """A control the tree cannot satisfy gets deleted. All six live payload types must pass both
+    belts unchanged."""
+    from simulation import payment_seam_adapter as psa
+
+    samples = {
+        "RemittanceAdvice": RemittanceAdvice(
+            bank_reference="R-1", account_id="ACC-1", amount_gbp=10.0,
+            rail=PaymentRail.BACS_DIRECT_DEBIT, value_date=date(2024, 5, 1),
+        ),
+        "BacsArruddOutcome": BacsArruddOutcome(
+            mandate_ref="M-1", account_id="ACC-1", amount_gbp=10.0,
+            outcome=DDOutcomeStatus.FAILURE,
+            reason_category=BacsReasonCategory.INSUFFICIENT_FUNDS,
+            reason_text="refer to payer", value_date=date(2024, 5, 1),
+        ),
+    }
+    for payload in samples.values():
+        assert psa.encode_observable_payload(payload)["payload_type"] == type(payload).__name__

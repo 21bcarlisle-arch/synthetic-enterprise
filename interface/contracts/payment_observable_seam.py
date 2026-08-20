@@ -314,3 +314,84 @@ OBSERVABLE_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {
         "reference", "account_id", "amount_gbp", "rail", "cleared_value_date",
     ),
 }
+
+
+# THE SECOND BELT -- the last of the wall's three seams to get one (EP6 pass 27), and
+# the one where it does the most work, for a reason worth stating rather than assuming.
+#
+# WHAT THE CLOSED SET ABOVE CANNOT SEE: a truth field added to a dataclass AND declared
+# observable in the same edit. That edit passes `OBSERVABLE_PAYLOAD_FIELDS` by
+# construction, because it moved the thing the check reads. The denylist is what still
+# fires, and it is a SECOND belt and never the control -- a list of names answers "is
+# this one of the leaks we already thought of", which is not the header's question.
+#
+# WHY THIS SEAM NEEDS IT MOST: the two legs are not equally defended. The ENCODE leg
+# (`simulation/payment_seam_adapter.encode_observable_payload`) checks the closed set,
+# which is declared independently of the dataclasses. The DECODE leg
+# (`company/billing/payment_observation_consumer.decode_observable_payload`) does not:
+# its permitted key set is `get_type_hints(t)` of the contract's own dataclasses, so it
+# WIDENS with its subject and is an R15 TAUTOLOGY for this question. Until this tuple
+# existed, the decode leg had no non-derived check of any kind. That matters precisely
+# because of what this seam is FOR: at go-live the encoder belongs to a bank, not to us,
+# and the decode leg is the only side of the crossing we still own.
+#
+# MEASURED, NOT IMAGINED. The names below are grouped by whether they exist in the
+# world-side payment stack TODAY. Anything in the second group is an anticipated
+# spelling of a class the module header already forbids, and is honestly weaker.
+FORBIDDEN_TRUTH_FIELDS: tuple[str, ...] = (
+    # -- MEASURED: each of these is an attribute of a world-side truth producer that
+    # sits behind this seam, named with the file it lives in.
+    #
+    # `simulation/payment_behaviour_source.py::PaymentEvent` -- the generator whose
+    # events `payment_seam_adapter` maps into the observables above. It carries 10
+    # fields and exactly these 4 are truth: the other 6 (customer_id, due_date,
+    # amount_gbp, payment_method, payment_date, days_late) are either company-owned or
+    # genuinely observable off a bank feed, and are deliberately NOT listed. A denylist
+    # that reds on `days_late` -- which any supplier computes from its own due date and
+    # the advised value date -- is a denylist that gets tuned away with the real leak
+    # still inside it.
+    "result",                          # PaymentEvent.result: the world's own outcome
+                                       # label, and it carries "dispute", which this
+                                       # seam deliberately withholds as NOT_KNOWABLE_YET
+                                       # with no payload at all. The sanctioned
+                                       # observable spellings are `outcome`/`status`.
+    "dd_failure_reason",               # PaymentEvent.dd_failure_reason: the TRUE reason,
+                                       # forbidden by name in this module's header. Only
+                                       # the bank's reported `reason_category`/
+                                       # `reason_text` may cross.
+    "period_index",                    # PaymentEvent.period_index: the SIM's own clock
+                                       # index. A bank feed carries dates.
+    "data_regime",                     # PaymentEvent / WillingnessProfile: the
+                                       # historical-vs-synthetic marker. A company that
+                                       # could read this would know which world it is in.
+    #
+    # `simulation/willingness_classification.py::WillingnessProfile` -- the hidden
+    # ability x willingness answer key, the thing D5/C9 must INFER through this seam and
+    # are scored on being wrong about. `is_in_arrears` is its one sanctioned observable.
+    "ability",
+    "willingness",
+    "quadrant",
+    "discretionary_margin_monthly",
+    "discretionary_margin",
+    #
+    # `simulation/sme_payment_behaviour.py::hardship_tier` and
+    # `simulation/household_demand.py` -- behavioural labels and the stress input the
+    # generator draws payment outcomes from.
+    "hardship_tier",
+    "income_stress",
+    "stress",
+    #
+    # -- ANTICIPATED: no such attribute exists in the tree today. These are spellings of
+    # the four classes the module header forbids, listed so the obvious rename does not
+    # walk straight past the belt. Weaker than the group above by construction.
+    "true_reason",
+    "true_result",
+    "true_outcome",
+    "true_segment",
+    "segment_true",
+    "hardship",
+    "archetype",
+    "propensity",
+    "probability",
+    "ability_to_pay",
+)

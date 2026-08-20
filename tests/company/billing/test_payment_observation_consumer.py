@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import ast
 import copy
+import dataclasses
 import datetime as dt
 from pathlib import Path
 
@@ -587,3 +588,102 @@ def test_reconciliation_is_order_independent():
         return c.expected_collection_misses("ACC-1", as_of=dt.date(2026, 4, 1))
     a, b = build(True), build(False)
     assert [m.invoice_ref for m in a] == [m.invoice_ref for m in b] == ["INV-2"]
+
+
+# ── THE SECOND BELT ON THE DECODE LEG (EP6 pass 27) ──────────────────────────────────────────
+# THIS LEG IS WHERE THE BELT DOES THE MOST WORK, and the reason is structural rather than
+# stylistic. `decode_observable_payload`'s permitted key set is `get_type_hints(t)` of the
+# contract's own dataclasses: it WIDENS whenever they widen, so for the question "could a real
+# supplier know this" it is an R15 TAUTOLOGY. The encode leg has a non-derived answer (the
+# contract's independently-declared `OBSERVABLE_PAYLOAD_FIELDS`); until pass 27 this leg had
+# none at all. That matters because of what this seam is for: at go-live the encoder belongs to
+# a bank and this leg is the only side of the crossing the company still owns.
+
+def _mutant_decode_type(field_name: str):
+    return dataclasses.make_dataclass(
+        "RemittanceAdvice",
+        [("bank_reference", str), ("account_id", str), (field_name, str)],
+        frozen=True,
+    )
+
+
+def _widen_decoder(monkeypatch, field_name: str) -> dict:
+    """Perform the same-edit widening on the DECODE side and return a wire body that fits it."""
+    from company.billing import payment_observation_consumer as poc
+
+    cls = _mutant_decode_type(field_name)
+    monkeypatch.setitem(poc._OBSERVABLE_PAYLOAD_TYPES, "RemittanceAdvice", cls)
+    monkeypatch.setitem(
+        poc._OBSERVABLE_PAYLOAD_HINTS,
+        "RemittanceAdvice",
+        {"bank_reference": str, "account_id": str, field_name: str},
+    )
+    return {
+        "payload_type": "RemittanceAdvice",
+        "fields": {"bank_reference": "R-1", "account_id": "ACC-1", field_name: "x"},
+    }
+
+
+def test_MUTATION_a_counterparty_shipping_the_TRUE_failure_reason_is_refused(monkeypatch):
+    """THE DOCTRINE MUTATION for this leg. The wire body matches the declared hints EXACTLY, so
+    every derived check here -- `absent`, `extra`, the per-field type decode -- is green. Only
+    the denylist stands between this message and the company folding the world's answer key into
+    its own arrears belief, which is the one thing the D5/H27 gap exists to measure."""
+    from company.billing import payment_observation_consumer as poc
+
+    raw = _widen_decoder(monkeypatch, "dd_failure_reason")
+    # The derived check is genuinely satisfied: that is what makes the belt load-bearing here.
+    assert set(raw["fields"]) == set(poc._OBSERVABLE_PAYLOAD_HINTS["RemittanceAdvice"])
+
+    with pytest.raises(poc.WallProtocolError) as exc:
+        poc.decode_observable_payload(raw)
+    assert exc.value.reason == "CONTRACT_VIOLATION"
+    assert "dd_failure_reason" in str(exc.value)
+
+
+@pytest.mark.parametrize("field_name", ["ability", "willingness", "quadrant", "hardship_tier"])
+def test_MUTATION_the_hidden_answer_key_is_refused_by_every_name_the_belt_cites(
+    monkeypatch, field_name
+):
+    """The ability x willingness quadrant is the thing the can't-pay/won't-pay classifier is
+    SCORED on inferring. Handed it directly, the company would be reading the answer key."""
+    from company.billing import payment_observation_consumer as poc
+
+    raw = _widen_decoder(monkeypatch, field_name)
+
+    with pytest.raises(poc.WallProtocolError) as exc:
+        poc.decode_observable_payload(raw)
+    assert exc.value.reason == "CONTRACT_VIOLATION"
+
+
+def test_NULL_CONTROL_an_INNOCENT_unknown_key_trips_the_OTHER_refusal(monkeypatch):
+    """Without this, the tests above could not tell "the denylist fired" from "anything the
+    decoder does not recognise is refused". An unknown key that is not a truth name must come
+    back as UNKNOWN_FIELD, so the two refusals stay separately observable."""
+    from company.billing import payment_observation_consumer as poc
+
+    raw = {
+        "payload_type": "RemittanceAdvice",
+        "fields": {
+            "bank_reference": "R-1", "account_id": "ACC-1", "amount_gbp": 10.0,
+            "rail": "bacs_direct_debit", "value_date": "2024-05-01",
+            "branch_sort_code": "20-00-00",
+        },
+    }
+    with pytest.raises(poc.WallProtocolError) as exc:
+        poc.decode_observable_payload(raw)
+    assert exc.value.reason == "UNKNOWN_FIELD"
+
+
+def test_a_clean_payload_still_decodes_so_the_belt_is_not_a_standing_red():
+    """A control the real traffic cannot satisfy gets deleted."""
+    from company.billing import payment_observation_consumer as poc
+
+    decoded = poc.decode_observable_payload({
+        "payload_type": "RemittanceAdvice",
+        "fields": {
+            "bank_reference": "R-1", "account_id": "ACC-1", "amount_gbp": 10.0,
+            "rail": "bacs_direct_debit", "value_date": "2024-05-01",
+        },
+    })
+    assert decoded.bank_reference == "R-1"

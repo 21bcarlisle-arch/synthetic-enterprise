@@ -119,6 +119,7 @@ from enum import Enum
 from typing import List, Optional
 
 from interface.contracts.payment_observable_seam import (
+    FORBIDDEN_TRUTH_FIELDS,
     OBSERVABLE_PAYLOAD_FIELDS,
     OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
     SCHEMA_VERSION,
@@ -421,6 +422,17 @@ def encode_observable_payload(payload) -> dict:
     envelope codec: six payload types cross this seam, and a receiver that
     guessed from the field set would silently mis-route the day two payloads
     happened to share a shape.
+
+    TWO BELTS, AND ONLY ONE OF THEM IS THE CONTROL.
+    `OBSERVABLE_PAYLOAD_FIELDS` is the control: it asks the closed question --
+    is every field on this payload one the contract has DECLARED observable --
+    so a field added to a dataclass and nothing else is refused HERE, at the
+    point of emission, because it was never declared rather than because
+    someone predicted its name (R10).
+    `FORBIDDEN_TRUTH_FIELDS` is the SECOND belt. It answers the strictly
+    narrower "did we think of this name", and is kept for the one case the
+    closed set cannot see: a truth field added to the dataclass AND declared
+    observable in the same edit, which moves the very thing the control reads.
     """
     payload_type = type(payload)
     if payload_type.__name__ not in _ENCODABLE_PAYLOAD_TYPES or (
@@ -431,6 +443,19 @@ def encode_observable_payload(payload) -> dict:
             f"OBSERVABLE_RESPONSE_PAYLOAD_TYPES {sorted(_ENCODABLE_PAYLOAD_TYPES)}"
         )
     names = [f.name for f in fields(payload)]
+    # DENYLIST FIRST, deliberately -- the same ordering, for the same reason, that
+    # `sim/flex_dispatch.py` states: when a field is both undeclared AND a name the
+    # contract already knows leaks truth, the truth-leak message is the more
+    # diagnostic of the two. Ordering also keeps the two belts separately
+    # observable, so each can have a test that only passes if ITS check fired.
+    leaking = sorted(set(names) & set(FORBIDDEN_TRUTH_FIELDS))
+    if leaking:
+        raise SeamEncodeError(
+            f"{payload_type.__name__} declares forbidden truth field(s) {leaking} -- the "
+            "world's own hidden quantities (the true failure reason, the hidden "
+            "ability/willingness quadrant, the generator's clock) may never cross this "
+            "seam, whatever the contract has declared observable"
+        )
     declared = OBSERVABLE_PAYLOAD_FIELDS.get(payload_type.__name__)
     if declared is None:
         raise SeamEncodeError(

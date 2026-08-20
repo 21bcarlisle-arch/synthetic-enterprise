@@ -1712,6 +1712,215 @@ def surface_pin_conformance_at(
         return surface_pin_conformance(root)
 
 
+SECOND_BELT_CONSTANT = "FORBIDDEN_TRUTH_FIELDS"
+
+
+def _tuple_of_strings(tree: ast.Module, name: str) -> tuple[str, ...] | None:
+    """A module-level `NAME: ... = ("a", "b")` as a tuple, or None if it is not that.
+
+    None covers ABSENT, COMPUTED and EMPTY alike, and the caller must fail closed on all three.
+    Empty is folded in on purpose rather than reported as a third state: a denylist with no
+    names in it refuses nothing, which is precisely the R15 FAIL-OPEN shape, and it is exactly
+    what "delete the awkward entries" leaves behind.
+    """
+    for node in tree.body:
+        targets = (
+            [node.target] if isinstance(node, ast.AnnAssign)
+            else node.targets if isinstance(node, ast.Assign)
+            else []
+        )
+        if not any(isinstance(t, ast.Name) and t.id == name for t in targets):
+            continue
+        if not isinstance(node.value, (ast.Tuple, ast.List)):
+            return None
+        names = [
+            e.value for e in node.value.elts
+            if isinstance(e, ast.Constant) and isinstance(e.value, str)
+        ]
+        if not names or len(names) != len(node.value.elts):
+            return None
+        return tuple(names)
+    return None
+
+
+def declared_second_belt(root: str, seam: str) -> tuple[str, ...] | None:
+    """The truth-field denylist a seam declares, read from its own source. None if it has none.
+
+    FAIL-CLOSED (R15 FAIL-SILENT), the same way `declared_surface` is: an unreadable seam
+    RAISES rather than returning None, because "I could not parse it" and "it declares nothing"
+    are different facts and only one of them is the seam's own doing.
+    """
+    tree = _parse(os.path.join(root, *seam.split(".")) + ".py")
+    if tree is None:
+        raise CensusUnavailable(
+            f"{seam} is unreadable, so whether it carries a second belt cannot be established "
+            "-- an unavailable check is a FAILED check"
+        )
+    return _tuple_of_strings(tree, SECOND_BELT_CONSTANT)
+
+
+def _refuses_on(tree: ast.Module, name: str) -> bool:
+    """Does some function in this module READ `name` and RAISE in the same body?
+
+    NOT symbol-presence, and the difference is the whole point of this half. A module that
+    imports a denylist and never acts on it is the FAIL-OPEN case being looked for -- the
+    declaration exists, the census sees the name, and nothing refuses anything. Requiring the
+    read and the raise to co-occur inside one function body is a coarse proxy for "it is on a
+    refusal path", and coarse is stated rather than hidden: this cannot tell a belt checked in
+    the encode path from one checked in an unrelated helper that happens to raise. What it CAN
+    tell, which is the failure this exists for, is enforced-somewhere from enforced-nowhere.
+    """
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        body = list(ast.walk(node))
+        reads = any(
+            isinstance(n, ast.Name) and n.id == name and isinstance(n.ctx, ast.Load)
+            for n in body
+        )
+        if reads and any(isinstance(n, ast.Raise) for n in body):
+            return True
+    return False
+
+
+def belt_enforcers(root: str, seam: str) -> tuple[str, ...]:
+    """Every non-test module that imports this seam's denylist AND refuses on it.
+
+    TESTS ARE OUT OF SCOPE BY CONSTRUCTION, not by a filter that could be relaxed:
+    `_census_py_files` walks `CENSUS_DIRS`, which is the wall's own trees, and `tests/` is not
+    one of them. That is the right subject -- a belt only the tests consult stops nothing at
+    the crossing, which is where the payload actually goes past.
+    """
+    enforcers: list[str] = []
+    seam_rel = "/".join(seam.split(".")) + ".py"
+    for path, label in _census_py_files(root):
+        if label == seam_rel:
+            continue
+        try:
+            # Cheap prefilter before the parse. Safe rather than fail-open: any module that
+            # REFERENCES the name contains the name textually, `import *` included.
+            if SECOND_BELT_CONSTANT not in open(path, encoding="utf-8").read():
+                continue
+        except OSError:
+            continue
+        tree = _parse(path)
+        if tree is None:
+            continue
+        imported = any(
+            isinstance(n, ast.ImportFrom)
+            and n.module == seam
+            and any(a.name == SECOND_BELT_CONSTANT for a in n.names)
+            for n in ast.walk(tree)
+        )
+        if imported and _refuses_on(tree, SECOND_BELT_CONSTANT):
+            enforcers.append(label)
+    return tuple(sorted(enforcers))
+
+
+@dataclass(frozen=True)
+class SecondBeltVerdict:
+    """Whether each versioned seam carries a truth-field denylist that something acts on.
+
+    WHY THE CENSUS OWNS THIS QUESTION AND NOT THE SEAMS. Two of the three seams grew a belt;
+    the third did not, and the way that was found on 2026-08-20 was a human reading three files
+    side by side. Nothing could have failed. A fourth seam lands tomorrow with the same hole
+    and the same nothing happens -- which is the R10 shape: the CLASS has to fail, not the
+    instance somebody noticed. The question also cannot live in the seams, because a seam that
+    declares no belt is exactly the one that would not carry the check.
+
+    THREE SCORED BUCKETS, because "no belt" and "a belt nobody consults" are different repairs:
+      * `belted`     -- declares a non-empty literal denylist AND at least one non-test module
+        refuses on it. The green case, and it names the enforcers: a claim carries a location.
+      * `unbelted`   -- declares no readable non-empty denylist. Absent, computed and empty all
+        land here (see `_tuple_of_strings`).
+      * `unenforced` -- declares one that NOTHING outside the seam and the tests acts on. The
+        fail-open case: the declaration is real, the refusal is not.
+    `versionless` is reported and NOT scored -- `wall_envelope` defines the shape and is not a
+    crossing, the same honest member channel C's own verdict and the surface pins carry.
+    """
+
+    belted: tuple[tuple[str, int, tuple[str, ...]], ...] = ()
+    unbelted: tuple[str, ...] = ()
+    unenforced: tuple[tuple[str, int], ...] = ()
+    versionless: tuple[str, ...] = ()
+
+    @property
+    def ok(self) -> bool:
+        return not self.unbelted and not self.unenforced
+
+    def report(self) -> str:
+        scored = len(self.belted) + len(self.unbelted) + len(self.unenforced)
+        lines = [
+            f"channel C second belt: {len(self.belted)} of {scored} versioned seam(s) carry a "
+            "truth-field denylist something refuses on"
+        ]
+        lines += [
+            f"    * {seam} -- {count} name(s), enforced by {', '.join(where)}"
+            for seam, count, where in self.belted
+        ]
+        lines += [
+            f"    ! {seam} -- UNBELTED: no readable non-empty `{SECOND_BELT_CONSTANT}`. Its "
+            f"closed set is its only belt, so a truth field added to a payload AND declared "
+            "observable in the same edit crosses unrefused."
+            for seam in self.unbelted
+        ]
+        lines += [
+            f"    ! {seam} -- UNENFORCED: declares {count} forbidden name(s) and no module "
+            "outside the seam itself refuses on them. A denylist nothing reads is a comment."
+            for seam, count in self.unenforced
+        ]
+        lines += [
+            f"    - {seam} -- declares no {SEAM_VERSION_CONSTANT}, so it is not a crossing this "
+            "question is about"
+            for seam in self.versionless
+        ]
+        return "\n".join(lines)
+
+
+def second_belt_conformance(root: str) -> SecondBeltVerdict:
+    """Every channel C seam, asked whether it carries an enforced second belt.
+
+    The seam set is DERIVED from `envelope_seams` for that function's stated reason: a fourth
+    seam added tomorrow owns this question on the day it lands, and it lands UNBELTED (red)
+    rather than unnoticed (green), which is the fail-closed direction.
+    """
+    belted: list[tuple[str, int, tuple[str, ...]]] = []
+    unbelted: list[str] = []
+    unenforced: list[tuple[str, int]] = []
+    versionless: list[str] = []
+
+    for seam in sorted(envelope_seams(root)):
+        if _seam_version(root, seam) is None:
+            versionless.append(seam)
+            continue
+        belt = declared_second_belt(root, seam)
+        if not belt:
+            unbelted.append(seam)
+            continue
+        enforcers = belt_enforcers(root, seam)
+        if not enforcers:
+            unenforced.append((seam, len(belt)))
+        else:
+            belted.append((seam, len(belt), enforcers))
+
+    return SecondBeltVerdict(
+        belted=tuple(belted),
+        unbelted=tuple(unbelted),
+        unenforced=tuple(unenforced),
+        versionless=tuple(versionless),
+    )
+
+
+def second_belt_conformance_at(
+    rev: str = "HEAD", worktree: bool = False, repo_root: Path = PROJECT_DIR
+) -> SecondBeltVerdict:
+    """`second_belt_conformance` against the worktree, or against the tree at `rev`."""
+    if worktree:
+        return second_belt_conformance(str(repo_root))
+    with head_export(str(repo_root), CENSUS_DIRS, rev=rev) as root:
+        return second_belt_conformance(root)
+
+
 ENUMERATORS = {
     "A_direct_import": enumerate_a,
     "B_indirect_import": enumerate_b,
@@ -1927,6 +2136,17 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     print(surface_pins.report())
 
+    # GATES FROM ITS FIRST COMMIT, by the rule this file has now stated twice: a check becomes
+    # a gate "in the same commit that makes it satisfiable". All three seams are belted and
+    # enforced in the commit that adds this, so the only commits it can refuse are commits that
+    # land a crossing with no second belt -- which is its subject, not its collateral.
+    try:
+        second_belt = second_belt_conformance_at(rev=args.rev, worktree=args.worktree)
+    except CensusUnavailable as exc:
+        print(f"SECOND BELT CHECK UNAVAILABLE (a failed check, not a pass): {exc}", file=sys.stderr)
+        return 2
+    print(second_belt.report())
+
     # The artefact half prints its SILENT and UNOBSERVABLE keys as loudly as its carrying ones.
     # The `if carrying:` filter this replaces suppressed exactly the state the check exists to
     # find: at HEAD b22698df8, three logs at 0/1,996 printed as an empty section.
@@ -1955,7 +2175,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"BASELINE UNAVAILABLE (a failed check, not a pass): {exc}", file=sys.stderr)
         return 2
     print(verdict.report())
-    return 0 if (verdict.ok and wire.ok and surface_pins.ok) else 1
+    return 0 if (verdict.ok and wire.ok and surface_pins.ok and second_belt.ok) else 1
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -439,3 +439,106 @@ def test_observed_at_can_postdate_value_date_by_the_real_bacs_cycle():
 def test_schema_version_is_present_and_explicit():
     assert isinstance(SCHEMA_VERSION, int)
     assert SCHEMA_VERSION >= 1
+
+
+# ── THE SECOND BELT (EP6 pass 27) ────────────────────────────────────────────────────────────
+# `FORBIDDEN_TRUTH_FIELDS` is not the control -- `OBSERVABLE_PAYLOAD_FIELDS` is, and it answers
+# the header's actual question ("could a real supplier read this off its own bank feed"). The
+# belt answers the strictly narrower "did we think of this name", and earns its place on exactly
+# one case: a truth field added to a payload AND declared observable in the same edit, which
+# moves the very thing the control reads. These tests are about the LIST; the tests that prove
+# it FIRES live with the two codecs, which is where a payload actually crosses.
+
+#: The names below are claimed in the contract as MEASURED -- each is an attribute of a
+#: world-side truth producer that sits behind this seam. Written out HERE, in the test, rather
+#: than imported from the producers: a list checked against the thing it was generated from
+#: could never disagree with it (R15 TAUTOLOGY), and disagreement is the whole signal.
+_MEASURED_TRUTH_ATTRS = {
+    "simulation.payment_behaviour_source": ("PaymentEvent", (
+        "result", "dd_failure_reason", "period_index", "data_regime",
+    )),
+    "simulation.willingness_classification": ("WillingnessProfile", (
+        "ability", "willingness", "discretionary_margin_monthly", "data_regime",
+    )),
+}
+
+#: PaymentEvent fields the belt DELIBERATELY does not name, with the reason it must not. A
+#: denylist that reds on these is one that gets tuned away with the real leak still inside it.
+_DELIBERATE_NON_MEMBERS = {
+    "customer_id": "company-owned -- the supplier's own customer reference",
+    "due_date": "company-owned -- the supplier set the collection date",
+    "amount_gbp": "observable, and declared observable on five of the six payloads",
+    "payment_method": "company-owned -- the supplier holds the mandate",
+    "payment_date": "observable as the advised value date",
+    "days_late": "computable by any supplier from its own due date and the value date",
+}
+
+
+def test_no_observable_payload_carries_a_forbidden_name():
+    """The green case, and the one that stops the belt being a red the tree lives with. If this
+    ever fails, a truth field reached a declared surface -- which is the belt's entire subject."""
+    from interface.contracts.payment_observable_seam import FORBIDDEN_TRUTH_FIELDS
+
+    for payload_type in OBSERVABLE_RESPONSE_PAYLOAD_TYPES:
+        names = {f.name for f in dataclasses.fields(payload_type)}
+        leaking = names & set(FORBIDDEN_TRUTH_FIELDS)
+        assert not leaking, f"{payload_type.__name__} carries forbidden truth field(s) {leaking}"
+
+
+def test_the_MEASURED_names_really_are_attributes_of_the_producers_they_cite():
+    """THE NULL CONTROL ON THE LIST ITSELF. A denylist of invented names is indistinguishable
+    from a good one until the day it is needed, and this is what tells them apart: every name the
+    contract files as MEASURED must actually exist on the world-side dataclass it names. It also
+    fails if a producer RENAMES its truth field, which is precisely when the belt goes hollow
+    while still looking full."""
+    import importlib
+
+    from interface.contracts.payment_observable_seam import FORBIDDEN_TRUTH_FIELDS
+
+    for module_name, (cls_name, attrs) in _MEASURED_TRUTH_ATTRS.items():
+        cls = getattr(importlib.import_module(module_name), cls_name)
+        actual = {f.name for f in dataclasses.fields(cls)}
+        for attr in attrs:
+            assert attr in actual, (
+                f"the belt files {attr!r} as measured on {module_name}.{cls_name}, which no "
+                "longer carries it -- either the producer renamed its truth field (and the belt "
+                "is now hollow) or the citation was never true"
+            )
+            assert attr in FORBIDDEN_TRUTH_FIELDS, (
+                f"{module_name}.{cls_name}.{attr} is world-side truth and the belt does not "
+                "name it"
+            )
+
+
+def test_the_DELIBERATE_non_members_stay_out_of_the_belt():
+    """A control that reds on a legitimately observable field is one that gets relaxed, and the
+    relaxation takes the real entries with it. Each name here is either the company's own data or
+    something any supplier computes for itself, so naming it would be the belt being WRONG rather
+    than strict."""
+    from interface.contracts.payment_observable_seam import FORBIDDEN_TRUTH_FIELDS
+
+    for name, why in _DELIBERATE_NON_MEMBERS.items():
+        assert name not in FORBIDDEN_TRUTH_FIELDS, f"{name} must stay observable: {why}"
+
+
+def test_the_belt_is_a_LITERAL_and_not_derived_from_the_payloads_it_guards():
+    """R15 TAUTOLOGY, the same guard `OBSERVABLE_PAYLOAD_FIELDS` carries. A denylist computed
+    from the dataclasses would move with them and could never fire."""
+    source = Path(
+        inspect.getfile(
+            __import__(
+                "interface.contracts.payment_observable_seam",
+                fromlist=["payment_observable_seam"],
+            )
+        )
+    ).read_text(encoding="utf-8")
+    node = next(
+        n for n in ast.walk(ast.parse(source))
+        if isinstance(n, ast.AnnAssign) and getattr(n.target, "id", None)
+        == "FORBIDDEN_TRUTH_FIELDS"
+    )
+    assert isinstance(node.value, ast.Tuple), "FORBIDDEN_TRUTH_FIELDS must be a literal tuple"
+    assert node.value.elts, "an empty belt refuses nothing"
+    assert all(
+        isinstance(e, ast.Constant) and isinstance(e.value, str) for e in node.value.elts
+    )

@@ -139,6 +139,7 @@ from company.billing.arrears_engine import (
 )
 from company.interfaces.wall_protocol import WallProtocolError, decode_response
 from interface.contracts.payment_observable_seam import (
+    FORBIDDEN_TRUTH_FIELDS,
     OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
     AddacsAdvice,
     AddacsAdviceType,
@@ -442,7 +443,24 @@ def _decode_payload_field(raw: Any, declared: type, where: str) -> Any:
 
 
 def decode_observable_payload(raw: Any) -> Any:
-    """Rebuild one observable payload off the wire, or refuse it."""
+    """Rebuild one observable payload off the wire, or refuse it.
+
+    THE WALL IS CHECKED HERE TOO, AND THIS LEG NEEDS IT MORE THAN THE OTHER ONE.
+    `expected` below is `get_type_hints(t)` of the contract's own dataclasses --
+    it WIDENS whenever they widen, so it is an R15 TAUTOLOGY for the question
+    "could a real supplier know this". The encode leg has a non-derived answer
+    (the contract's `OBSERVABLE_PAYLOAD_FIELDS`, declared independently of the
+    dataclasses); until EP6 pass 27 this leg had none at all.
+    That gap is not theoretical, because of what this seam is FOR: at go-live
+    the encoder belongs to a bank and this leg is the only side of the crossing
+    the company still owns. A counterparty that started shipping the hidden
+    ability/willingness quadrant, or the TRUE reason a Direct Debit failed,
+    would produce a perfectly well-formed envelope -- and a company that folded
+    those in would be READING the answer key rather than inferring it, which is
+    the one thing the D5/H27 gap exists to measure. Refused BY NAME from the
+    contract's own `FORBIDDEN_TRUTH_FIELDS`, so the class fails rather than the
+    instance somebody remembered (R10).
+    """
     if not isinstance(raw, Mapping):
         raise WallProtocolError(
             "NOT_A_MESSAGE", f"payload must be a mapping, got {type(raw).__name__}"
@@ -474,6 +492,17 @@ def decode_observable_payload(raw: Any) -> Any:
         )
     hints = _OBSERVABLE_PAYLOAD_HINTS[tag]
     expected = set(hints)
+    # DENYLIST FIRST -- same ordering, same reason, as the encode leg and as
+    # `company/market/flex_participation.py`: the truth-leak message is the more
+    # diagnostic of the two, and the ordering keeps each belt separately observable.
+    leaking = sorted(set(body) & set(FORBIDDEN_TRUTH_FIELDS))
+    if leaking:
+        raise WallProtocolError(
+            "CONTRACT_VIOLATION",
+            f"{tag} carries world-internal truth field(s) {leaking} -- this company "
+            "infers ability-to-pay and the reason behind a failed collection from "
+            "observables, and may never be handed them",
+        )
     absent = sorted(expected - set(body))
     if absent:
         raise WallProtocolError(

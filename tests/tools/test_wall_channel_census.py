@@ -2250,3 +2250,239 @@ def test_the_REAL_seams_are_pinned_and_still_mean_what_their_versions_say():
         "a channel C seam has landed with no pin, so its observable surface can widen "
         "silently: " + verdict.report()
     )
+
+
+# ── channel C, the SECOND BELT: is there anything behind the closed set? ──────────────────────
+# WHY THIS BATTERY EXISTS. Pass 26 found, by reading three files side by side, that one of the
+# three seams had no `FORBIDDEN_TRUTH_FIELDS` at all. Nothing could have failed: the belt is a
+# per-seam convention, and a convention is exactly what a fourth seam lands without. This asks
+# the question in the INSTRUMENT, where it can fail on the day the hole arrives (R10 -- the
+# class fails, not the instance somebody happened to notice).
+#
+# The mutations below leave the closed set and the version EXACTLY where they are. That is the
+# point: every one of them is green to the surface pins and green to the wire check, because
+# those ask different questions, and a seam can satisfy both while carrying no second belt.
+
+BELT_SEAM = "interface.contracts.payment_observable_seam"
+
+
+def _belt_seam_source(belt: str = '("result", "ability")') -> str:
+    return f"""
+        from interface.contracts.wall_envelope import WallResponse
+
+        SCHEMA_VERSION = 1
+
+        OBSERVABLE_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {{
+            "PaymentNotification": ("notification_id", "amount_gbp"),
+        }}
+
+        FORBIDDEN_TRUTH_FIELDS: tuple[str, ...] = {belt}
+    """
+
+
+_ENFORCING_ADAPTER = """
+    from interface.contracts.payment_observable_seam import FORBIDDEN_TRUTH_FIELDS
+
+    def encode(payload, names):
+        leaking = sorted(set(names) & set(FORBIDDEN_TRUTH_FIELDS))
+        if leaking:
+            raise ValueError(leaking)
+        return payload
+"""
+
+
+@pytest.fixture()
+def belt_tree(tmp_path: Path) -> Path:
+    """One versioned seam declaring a literal denylist, one module refusing on it.
+
+    One seam on purpose, the `pin_tree` fixture's reason: with exactly one, "the mutation
+    removed the belt" and "the check never found a seam" cannot be confused.
+    """
+    root = tmp_path / "repo"
+    _write(root, "interface/contracts/wall_envelope.py", '"""the envelope shape."""\n')
+    _write(root, "interface/contracts/payment_observable_seam.py", _belt_seam_source())
+    _write(root, "simulation/payment_seam_adapter.py", _ENFORCING_ADAPTER)
+    return root
+
+
+def test_the_fixtures_belt_is_declared_AND_refused_on_so_the_green_case_is_real(belt_tree):
+    """THE NULL CONTROL. Without it every refusal below could be the fixture never having had a
+    working belt in the first place, and the battery would prove nothing about detection."""
+    assert wcc.declared_second_belt(str(belt_tree), BELT_SEAM) == ("result", "ability")
+    assert wcc.belt_enforcers(str(belt_tree), BELT_SEAM) == ("simulation/payment_seam_adapter.py",)
+
+
+def test_a_seam_with_an_enforced_denylist_passes(belt_tree):
+    verdict = wcc.second_belt_conformance(str(belt_tree))
+
+    assert verdict.belted == ((BELT_SEAM, 2, ("simulation/payment_seam_adapter.py",)),)
+    assert verdict.unbelted == () and verdict.unenforced == ()
+    assert verdict.ok, verdict.report()
+
+
+def test_MUTATION_the_seam_declares_NO_denylist_and_is_UNBELTED(belt_tree):
+    """THE DOCTRINE MUTATION -- the exact state pass 26 found on the real payment seam, where
+    the closed set was the only belt on the widest of the three crossings. The version is
+    untouched and the closed set is untouched, so the surface pins stay green through this."""
+    _write(belt_tree, "interface/contracts/payment_observable_seam.py", """
+        from interface.contracts.wall_envelope import WallResponse
+
+        SCHEMA_VERSION = 1
+
+        OBSERVABLE_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {
+            "PaymentNotification": ("notification_id", "amount_gbp"),
+        }
+    """)
+    verdict = wcc.second_belt_conformance(str(belt_tree))
+
+    assert verdict.unbelted == (BELT_SEAM,)
+    assert not verdict.ok
+    assert "UNBELTED" in verdict.report()
+    assert wcc._seam_version(str(belt_tree), BELT_SEAM) == 1
+
+
+def test_FAIL_OPEN_an_EMPTY_denylist_is_UNBELTED_and_not_a_belt(belt_tree):
+    """R15 FAIL-OPEN. A tuple with no names in it refuses nothing, and it is what "delete the
+    awkward entries" leaves behind -- a declaration that reads as present to any check that only
+    asks whether the constant exists."""
+    _write(belt_tree, "interface/contracts/payment_observable_seam.py", _belt_seam_source("()"))
+
+    verdict = wcc.second_belt_conformance(str(belt_tree))
+
+    assert verdict.unbelted == (BELT_SEAM,)
+    assert not verdict.ok
+
+
+def test_FAIL_CLOSED_a_COMPUTED_denylist_is_UNBELTED(belt_tree):
+    """R15 TAUTOLOGY at the subject's end, and the same reading `declared_surface` takes: a
+    denylist derived from the thing it guards moves with it. The census cannot vouch for what it
+    cannot read, and unreadable must not score as present."""
+    _write(
+        belt_tree,
+        "interface/contracts/payment_observable_seam.py",
+        _belt_seam_source("tuple(n for n in _TRUTH_NAMES)"),
+    )
+    verdict = wcc.second_belt_conformance(str(belt_tree))
+
+    assert verdict.unbelted == (BELT_SEAM,)
+    assert not verdict.ok
+
+
+def test_MUTATION_a_denylist_NOTHING_refuses_on_is_UNENFORCED(belt_tree):
+    """THE SECOND FAIL-OPEN, and the one a symbol-presence check cannot see. The declaration is
+    real, non-empty and literal; the codec imports it and never acts on it. A denylist nothing
+    reads is a comment, and the seam's own tests would still pass over it."""
+    _write(belt_tree, "simulation/payment_seam_adapter.py", """
+        from interface.contracts.payment_observable_seam import FORBIDDEN_TRUTH_FIELDS
+
+        KNOWN_LEAKS = FORBIDDEN_TRUTH_FIELDS
+
+        def encode(payload, names):
+            return payload
+    """)
+    verdict = wcc.second_belt_conformance(str(belt_tree))
+
+    assert verdict.unenforced == ((BELT_SEAM, 2),)
+    assert verdict.belted == ()
+    assert not verdict.ok
+    assert "UNENFORCED" in verdict.report()
+
+
+def test_a_belt_only_the_TESTS_consult_is_UNENFORCED(belt_tree):
+    """Tests are out of scope by construction (`CENSUS_DIRS` has no `tests/`), and this pins that
+    it is the right scope rather than an oversight: a belt checked only in a test stops nothing
+    at the crossing, which is where the payload actually goes past."""
+    # The adapter still IMPORTS the seam -- otherwise the seam leaves channel C altogether and
+    # this would pass for the wrong reason, measuring a crossing that no longer exists.
+    _write(belt_tree, "simulation/payment_seam_adapter.py", """
+        from interface.contracts.payment_observable_seam import SCHEMA_VERSION
+
+        def encode(payload, names):
+            return payload
+    """)
+    _write(belt_tree, "tests/simulation/test_payment_seam_adapter.py", _ENFORCING_ADAPTER)
+
+    verdict = wcc.second_belt_conformance(str(belt_tree))
+
+    assert verdict.unenforced == ((BELT_SEAM, 2),)
+    assert not verdict.ok
+
+
+def test_an_enforcer_that_imports_the_belt_from_ANOTHER_seam_does_not_count(belt_tree):
+    """The claim carries a LOCATION. Two seams can both name their denylist
+    `FORBIDDEN_TRUTH_FIELDS`, so a check that matched on the NAME alone would let one seam's
+    enforcement vouch for another's -- and the unbelted seam is exactly the one that would be
+    vouched for."""
+    _write(belt_tree, "interface/contracts/other_seam.py", """
+        SCHEMA_VERSION = 1
+
+        OBSERVABLE_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {"Other": ("a",)}
+
+        FORBIDDEN_TRUTH_FIELDS: tuple[str, ...] = ("truth",)
+    """)
+    # The adapter imports BOTH seams -- the payment one so the crossing still exists to be
+    # scored, the other one for the belt it refuses on. That is the confusable shape.
+    _write(belt_tree, "simulation/payment_seam_adapter.py", """
+        from interface.contracts.other_seam import FORBIDDEN_TRUTH_FIELDS
+        from interface.contracts.payment_observable_seam import SCHEMA_VERSION
+
+        def encode(payload, names):
+            if set(names) & set(FORBIDDEN_TRUTH_FIELDS):
+                raise ValueError(names)
+            return payload
+    """)
+    assert wcc.belt_enforcers(str(belt_tree), BELT_SEAM) == ()
+
+    verdict = wcc.second_belt_conformance(str(belt_tree))
+
+    assert (BELT_SEAM, 2) in verdict.unenforced
+    assert not verdict.ok
+
+
+def test_the_VERSIONLESS_envelope_module_is_reported_and_not_scored_by_the_belt(belt_tree):
+    """`wall_envelope` defines the shape and is not a crossing, so it has nothing to leak. Same
+    honest member the wire check and the surface pins both carry."""
+    verdict = wcc.second_belt_conformance(str(belt_tree))
+
+    assert verdict.versionless == ("interface.contracts.wall_envelope",)
+    assert "not a crossing this question is about" in verdict.report()
+
+
+def test_FAIL_CLOSED_an_unreadable_seam_RAISES_rather_than_reading_as_unbelted(belt_tree):
+    """R15 FAIL-SILENT. "I could not parse it" and "it declares no belt" are different facts and
+    only one of them is the seam's own doing -- and the wrong one is silently greener."""
+    (belt_tree / "interface/contracts/payment_observable_seam.py").write_text(
+        "def broken(:\n", encoding="utf-8"
+    )
+    with pytest.raises(wcc.CensusUnavailable):
+        wcc.declared_second_belt(str(belt_tree), BELT_SEAM)
+
+
+def test_the_REAL_seams_all_carry_a_belt_something_refuses_on():
+    """The live reading, against the real tree rather than a fixture. This is what makes the
+    check a value rather than decoration -- a fourth seam landing without a belt reds here, and
+    the CLI returns 1 with it."""
+    verdict = wcc.second_belt_conformance(str(wcc.PROJECT_DIR))
+
+    assert verdict.ok, verdict.report()
+    assert len(verdict.belted) == 3, verdict.report()
+    assert not verdict.unbelted, (
+        "a channel C seam has landed with no truth-field denylist, so its closed set is its "
+        "only belt: " + verdict.report()
+    )
+
+
+def test_the_belt_check_is_part_of_the_CLIs_exit_code():
+    """R11's no-orphan-transitions rule, applied to a control: a check whose red changes nothing
+    is not a gate. Read off the source rather than by running the CLI, which takes minutes."""
+    import ast
+
+    source = (Path(wcc.__file__).parent.parent / "tools" / "wall_channel_census.py").read_text()
+    returns = [
+        ast.unparse(n.value) for n in ast.walk(ast.parse(source))
+        if isinstance(n, ast.Return) and n.value is not None
+    ]
+    assert any("second_belt.ok" in r for r in returns), (
+        "second_belt_conformance reports but does not gate -- its red would be a printed line "
+        "nothing acts on"
+    )
