@@ -1,28 +1,28 @@
 {
   "annotation": {
-    "checked_at": "2026-08-20T01:11:19Z",
+    "checked_at": "2026-08-20T01:50:37Z",
     "nonblocking_reds": [
       "ERROR tests/company/interfaces/test_the_run_holds_no_policy.py",
       "ERROR tests/company/policy/test_policy_field_consumption.py"
     ],
     "nonblocking_reds_total": 2,
-    "open_findings": 94
+    "open_findings": 95
   },
   "last_verified": {
-    "generated_at": "2026-08-20T01:44:01Z",
-    "git_commit": "6ed95021e",
-    "run_id": "run_output_6ed95021e_20260820T011219Z.json",
-    "verified_at": "2026-08-20T01:44:01Z"
+    "generated_at": "2026-08-20T02:21:47Z",
+    "git_commit": "e080f77dd",
+    "run_id": "run_output_e080f77dd_20260820T015138Z.json",
+    "verified_at": "2026-08-20T02:21:47Z"
   },
   "paused_reason": "scoped publish-path suite red at git=1aa4a3d7a; blocking tests: see sim-runner-log",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-20T01:44:01Z",
-    "git_commit": "6ed95021e",
-    "run_id": "run_output_6ed95021e_20260820T011219Z.json",
-    "verified_at": "2026-08-20T01:44:01Z"
+    "generated_at": "2026-08-20T02:21:47Z",
+    "git_commit": "e080f77dd",
+    "run_id": "run_output_e080f77dd_20260820T015138Z.json",
+    "verified_at": "2026-08-20T02:21:47Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-20T01:44:01Z"
+  "written_at": "2026-08-20T02:21:47Z"
 }
