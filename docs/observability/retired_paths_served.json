@@ -1,0 +1,214 @@
+{
+  "last_changes": [
+    "NEW GHOST    /company/ -- retired, and the edge is serving it 200",
+    "NEW GHOST    /customers/ -- retired, and the edge is serving it 200",
+    "NEW GHOST    /director/ -- retired, and the edge is serving it 200",
+    "NEW GHOST    /evidence/ -- retired, and the edge is serving it 200",
+    "NEW GHOST    /glossary/ -- retired, and the edge is serving it 200",
+    "NEW GHOST    /now/ -- retired, and the edge is serving it 200",
+    "NEW GHOST    /proof/ -- retired, and the edge is serving it 200",
+    "NEW GHOST    /shadow/ -- retired, and the edge is serving it 200",
+    "NEW GHOST    /world/ -- retired, and the edge is serving it 200"
+  ],
+  "paths": {
+    "/company/": {
+      "last_seen": "2026-08-20T16:00:00Z",
+      "last_status": [
+        200,
+        404
+      ],
+      "note": "served from a cache the deployment no longer backs",
+      "still_served": true
+    },
+    "/customers/": {
+      "last_seen": "2026-08-20T16:00:00Z",
+      "last_status": [
+        200,
+        404
+      ],
+      "note": "served from a cache the deployment no longer backs",
+      "still_served": true
+    },
+    "/director/": {
+      "last_seen": "2026-08-20T16:00:00Z",
+      "last_status": [
+        200,
+        404
+      ],
+      "note": "served from a cache the deployment no longer backs",
+      "still_served": true
+    },
+    "/evidence/": {
+      "last_seen": "2026-08-20T17:00:00Z",
+      "last_status": [
+        200
+      ],
+      "note": "served from a cache the deployment no longer backs",
+      "still_served": true
+    },
+    "/glossary/": {
+      "last_seen": "2026-08-20T16:00:00Z",
+      "last_status": [
+        200,
+        404
+      ],
+      "note": "served from a cache the deployment no longer backs",
+      "still_served": true
+    },
+    "/knowledge/_page/": {
+      "last_seen": null,
+      "last_status": null,
+      "note": "never observed by the edge record",
+      "still_served": null
+    },
+    "/knowledge/_stub/": {
+      "last_seen": null,
+      "last_status": null,
+      "note": "never observed by the edge record",
+      "still_served": null
+    },
+    "/knowledge/wholesale-price-formation/": {
+      "last_seen": null,
+      "last_status": null,
+      "note": "never observed by the edge record",
+      "still_served": null
+    },
+    "/method-casebook/": {
+      "last_seen": null,
+      "last_status": null,
+      "note": "never observed by the edge record",
+      "still_served": null
+    },
+    "/method/": {
+      "last_seen": "2026-08-20T10:00:00Z",
+      "last_status": [
+        404
+      ],
+      "note": "the edge now answers correctly",
+      "still_served": false
+    },
+    "/now/": {
+      "last_seen": "2026-08-20T16:00:00Z",
+      "last_status": [
+        200,
+        404
+      ],
+      "note": "served from a cache the deployment no longer backs",
+      "still_served": true
+    },
+    "/platform/": {
+      "last_seen": "2026-08-20T08:00:00Z",
+      "last_status": [
+        301
+      ],
+      "note": "the edge now answers correctly",
+      "still_served": false
+    },
+    "/project/": {
+      "last_seen": "2026-08-20T10:00:00Z",
+      "last_status": [
+        404
+      ],
+      "note": "the edge now answers correctly",
+      "still_served": false
+    },
+    "/proof/": {
+      "last_seen": "2026-08-20T16:00:00Z",
+      "last_status": [
+        200,
+        404
+      ],
+      "note": "served from a cache the deployment no longer backs",
+      "still_served": true
+    },
+    "/shadow/": {
+      "last_seen": "2026-08-20T10:00:00Z",
+      "last_status": [
+        200
+      ],
+      "note": "served from a cache the deployment no longer backs",
+      "still_served": true
+    },
+    "/shadow/customers/": {
+      "last_seen": null,
+      "last_status": null,
+      "note": "never observed by the edge record",
+      "still_served": null
+    },
+    "/shadow/project/": {
+      "last_seen": null,
+      "last_status": null,
+      "note": "never observed by the edge record",
+      "still_served": null
+    },
+    "/shadow/sim/": {
+      "last_seen": null,
+      "last_status": null,
+      "note": "never observed by the edge record",
+      "still_served": null
+    },
+    "/shadow/supplier/": {
+      "last_seen": null,
+      "last_status": null,
+      "note": "never observed by the edge record",
+      "still_served": null
+    },
+    "/sim/": {
+      "last_seen": null,
+      "last_status": null,
+      "note": "never observed by the edge record",
+      "still_served": null
+    },
+    "/simplified/": {
+      "last_seen": "2026-08-20T08:00:00Z",
+      "last_status": [
+        301
+      ],
+      "note": "the edge now answers correctly",
+      "still_served": false
+    },
+    "/staging-status/": {
+      "last_seen": null,
+      "last_status": null,
+      "note": "never observed by the edge record",
+      "still_served": null
+    },
+    "/supplier/": {
+      "last_seen": null,
+      "last_status": null,
+      "note": "never observed by the edge record",
+      "still_served": null
+    },
+    "/timeline/": {
+      "last_seen": null,
+      "last_status": null,
+      "note": "never observed by the edge record",
+      "still_served": null
+    },
+    "/tours/": {
+      "last_seen": "2026-08-20T08:00:00Z",
+      "last_status": [
+        301
+      ],
+      "note": "the edge now answers correctly",
+      "still_served": false
+    },
+    "/wip-flow/": {
+      "last_seen": "2026-08-20T08:00:00Z",
+      "last_status": [
+        301
+      ],
+      "note": "the edge now answers correctly",
+      "still_served": false
+    },
+    "/world/": {
+      "last_seen": "2026-08-20T16:00:00Z",
+      "last_status": [
+        200,
+        404
+      ],
+      "note": "served from a cache the deployment no longer backs",
+      "still_served": true
+    }
+  }
+}

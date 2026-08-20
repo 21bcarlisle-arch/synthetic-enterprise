@@ -1,4 +1,13 @@
-**Severity:** BLOCKING · **Lane:** H_harness · **Status:** cause found, two fixes landed, one defect open
+**Severity:** BLOCKING · **Lane:** H_harness · **Status:** cause found, three fixes landed; the ghost count below was wrong and is corrected in place
+
+> **CORRECTION, 2026-08-20 18:2xZ — there are NINE ghosts, not eight, and the recommendation
+> below rested on a watcher that did not exist.** Both are recorded at the end of this document
+> under "Correction". The headline and the list in the next sections are left as originally
+> written, because the way the list was built is the finding.
+>
+> **Still open after this tick:** items 3 (Harness page content) and 4 (PB3 growth path) below.
+> Item 2 (re-run absence-shaped verifications) is mechanised for `live_pixel_verify` and unbuilt
+> for claims made before 2026-08-20.
 
 # The 504s were never real. What was underneath them is: eight deleted pages are still being served, and our own live checks were reading them
 
@@ -122,6 +131,63 @@ differently would need his word; not acting does not.
 3. **Harness page content** — ships and renders real data; its written method account is
    thinner than the brief asks.
 4. **PB3 growth path** — not started.
+
+## Correction (2026-08-20, next tick): nine, and nobody was reading the record
+
+Two claims above are wrong, and they fail in the same direction.
+
+**1. The ghost list was enumerated by hand, so it holds only what someone thought to visit.**
+Deriving it instead — every page path git has ever seen deleted from `site/` and that the
+checkout still cannot serve, crossed against Cloudflare's own record of what it served 200 —
+finds **nine**. The ninth is **`/shadow/`**, deleted by the same commit as the other eight
+(`03dd8c49e`, the five-tab fold), and it is the OLDEST of them:
+
+    /shadow/    plain=200  cache-busted=404  age=198199   (55.1 hours)
+    /director/  plain=200  cache-busted=404  age=114953   (31.9 hours)
+    the other seven                          age≈35792    (9.9 hours)
+
+So "the oldest is 30 hours" was also wrong — it is 55, and `/shadow/` had been ghosting for
+more than two days while the recommendation was being reasoned from a 30-hour figure. All 21
+page paths that commit deleted were checked live this tick; the other twelve 404 correctly.
+
+`/shadow/` was missed for exactly the reason the derivation exists: nobody visits it, so it
+never appeared in the ad-hoc checks that built the list. `site/_headers` still carries a
+`/shadow/*` rule, which is the one place it was still written down.
+
+**2. "The moment they stop is recorded without anyone remembering to look" was half true.**
+Recorded, yes. Read, no — before this tick the ONLY thing in the repo that opened
+`docs/observability/edge_traffic.jsonl` was the collector that writes it. The clearing of the
+ghosts was a state transition whose release triggered nothing, which is the defect R11 names,
+and it is the same shape as the incident itself: the ghosts went unnoticed for two days
+because nothing was looking.
+
+**Landed (3).** `tools/retired_paths_still_served.py` — derives the population from two sources
+produced independently and for other reasons (git's deletion history, complete and blind to
+traffic; the edge's own server-side record of what it served), and reports each retired path as
+still-served / edge-404s / **never observed**. Three states, not two: a path with no rows is
+UNOBSERVED and never counted as clear, because silence is what the original checks mistook for
+absence. Called from `tools/edge_traffic_capture.py`, so it runs hourly in the process that has
+just written the rows it reads, and an unreadable record fails that unit rather than passing
+quietly. State and transitions land in `docs/observability/retired_paths_served.json`.
+
+It does **not** probe the ghosts by default, and that is a decision rather than an omission:
+these objects sit in a cache we cannot see into or purge, and a request is what keeps an object
+warm in a cache that evicts by recency — the obvious hourly `GET` could be what stops the thing
+it is measuring from expiring. `--probe` exists for a deliberate one-off.
+
+18 R15 tests, `tests/tools/test_retired_paths_still_served.py`, including four null controls
+(a deleted page the edge 404s; a live page serving 200; a path nobody ever served; a
+Cloudflare-internal `/cdn-cgi/` path) and four mutants. Two of those mutants failed on the
+first run and were real defects in the module, not in the tests: phantom `UNK` rows were
+filtered in the reader but not in the row consumer, so any caller holding rows already could
+walk around the filter; and an unnormalised `/./proof/` did not surface as a false positive but
+as **UNOBSERVED**, silently downgrading a live ghost to "no rows".
+
+**The recommendation is unchanged and now has an instrument.** Leave the nine. The reason to
+leave them was never that they are harmless — `/proof/` is still a public page of unverified
+figures — but that forcing them out means rebuilding redirect machinery the director deleted
+for URLs he ruled nobody visits. What changes is that their clearing will now be noticed on the
+hour it happens instead of whenever someone next thinks to check.
 
 ## Working mode, set by the director 2026-08-20
 

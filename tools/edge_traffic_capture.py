@@ -76,6 +76,10 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from tools import retired_paths_still_served as retired_paths  # noqa: E402
+
 PROJECT = Path(__file__).resolve().parent.parent
 OUT = PROJECT / "docs" / "observability" / "edge_traffic.jsonl"
 ZONE_TAG = "f8261ea75d95ecb93867e7318f57766d"   # poesys.net; the account's only zone
@@ -248,6 +252,22 @@ def main() -> int:
     added = append(new_rows)
     print(f"captured {len(new_rows)} row(s), {added} new -> {OUT.relative_to(PROJECT)}")
     print(summarise(new_rows))
+
+    # RECORDING IS NOT NOTICING (2026-08-20). The finding that produced these rows closed on
+    # "the moment the ghosts stop is recorded without anyone remembering to look" -- and until
+    # this call, the only thing in the repo that opened edge_traffic.jsonl was the writer
+    # above. A transition whose release triggers nothing is the defect R11 names, and here it
+    # was the same shape as the thing being watched. The read belongs in THIS process because
+    # this is the one that runs every hour and has just written the rows the answer comes from.
+    #
+    # An unreadable record fails the whole unit rather than passing quietly: capturing rows
+    # nobody can read is the half-job that started this.
+    try:
+        current, changes = retired_paths.run()
+    except retired_paths.RetiredPathCheckUnavailable as exc:
+        print(f"RETIRED-PATH CHECK UNAVAILABLE: {exc}", file=sys.stderr)
+        return 3
+    print(retired_paths.report(current, changes, brief=True))
     return 0
 
 
