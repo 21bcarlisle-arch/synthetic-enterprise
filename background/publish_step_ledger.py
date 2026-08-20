@@ -232,23 +232,52 @@ class PublishStepLedger:
         except Exception:
             was_degraded, known = False, False
 
-        state_path.parent.mkdir(parents=True, exist_ok=True)
-        state_path.write_text(json.dumps({
-            "degraded": now_degraded,
-            "run_stamp": self.run_stamp,
-            "failing_steps": [s["name"] for s in self.failing_steps()],
-        }, indent=2) + "\n")
+        # THE STATE IS RECORDED ONLY ONCE THE ALERT HAS GONE OUT. It used to be written
+        # here, BEFORE the decision below, and that is a correctness bug rather than a
+        # style point.
+        #
+        # MEASURED over the 24h to 2026-08-20 09:20, from the outbound ntfy mirror: SEVEN
+        # "PUBLISH RECOVERED" messages, four of them naming the same run (810561e4f) --
+        # and 37 `degraded->clean` transitions in the sim-runner log against **zero**
+        # `clean->degraded`, and zero "PUBLISH DEGRADED" lines in any log in the repo. You
+        # cannot recover thirty-seven times without degrading. Every one of those recoveries
+        # announced the end of a degradation that was never announced and left no trace.
+        #
+        # The mechanism: a cycle that computed `degraded=True` wrote it here and then died
+        # (159 deadline kills in the same window) before reaching the send or the log. The
+        # flag latched, and the next healthy cycle read it and announced a recovery from a
+        # fault the director had never been told about. Writing after the send means an
+        # interrupted cycle records nothing, and the degradation is re-detected next time --
+        # failing toward RE-ALARMING rather than toward a phantom recovery.
+        def _commit_state():
+            state_path.parent.mkdir(parents=True, exist_ok=True)
+            state_path.write_text(json.dumps({
+                "degraded": now_degraded,
+                "run_stamp": self.run_stamp,
+                "failing_steps": [s["name"] for s in self.failing_steps()],
+            }, indent=2) + "\n")
 
         # An unknown prior state is treated as CLEAN, so the first degraded cycle after the
         # state file is lost still alerts. The opposite default would swallow exactly the
         # alert this module exists to raise.
         if known and was_degraded == now_degraded:
+            _commit_state()          # no alert to lose; recording it cannot strand anything
             return None
         if not known and not now_degraded:
+            _commit_state()
             return None
 
         if send is None:
-            from background.ntfy_utils import send_ntfy as send
+            # Through the ONE contract, not around it. This module called send_ntfy directly,
+            # so it never saw transition-only, auto-keying or escalation -- which is why the
+            # repetition fix of 2026-08-20 could not touch it, and why it stayed the loudest
+            # thing on the channel after that fix landed.
+            from background.notify import notify as _notify
+
+            def send(text):
+                return _notify(text, kind="real_alarm",
+                               transition_key="publish_step_ledger",
+                               state="degraded" if now_degraded else "clean")
 
         if now_degraded:
             lines = [
@@ -264,10 +293,12 @@ class PublishStepLedger:
                     s["error"]))
             lines.append("Detail: site/data/publish_steps.json @ run {}".format(self.run_stamp))
             send("\n".join(lines))
+            _commit_state()
             return "clean->degraded"
 
         send("PUBLISH RECOVERED — all {} publish steps refreshed their artefacts at run {}.".format(
             len(self.steps), self.run_stamp))
+        _commit_state()
         return "degraded->clean"
 
 

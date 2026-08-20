@@ -277,32 +277,58 @@ function stageChosen(d, c) {
     'read from the world, not from the supplier\'s systems.</p>';
 }
 
-function stageUsed(d, c) {
-  var monthly = (d.consumption && d.consumption.monthly) || [];
-  var byYear = {};
-  monthly.forEach(function (m) { var y = String(m.month).slice(0, 4); byYear[y] = (byYear[y] || 0) + (m.kwh || 0); });
-  var yearRows = Object.keys(byYear).sort().map(function (y) { return {k: y, v: byYear[y]}; });
-  var recent = monthly.slice(-24).map(function (m) { return {k: m.month, v: m.kwh || 0}; });
+function stageUsed(d, c, fuels) {
+  var names = Object.keys(fuels);
+  if (!names.length) { fuels = {}; fuels[d.commodity || "electricity"] = d; names = Object.keys(fuels); }
 
-  var invs = d.invoices || [];
-  var est = invs.filter(function (i) { return i.read_type === "E"; }).length;
+  var totals = {}, invs = {}, est = {};
+  names.forEach(function (f) {
+    var m = (fuels[f].consumption || {}).monthly || [];
+    totals[f] = m.reduce(function (a, x) { return a + (x.kwh || 0); }, 0);
+    invs[f] = (fuels[f].invoices || []).length;
+    est[f] = (fuels[f].invoices || []).filter(function (i) { return i.read_type === "E"; }).length;
+  });
+  var totalEst = names.reduce(function (a, f) { return a + est[f]; }, 0);
+  var totalInv = names.reduce(function (a, f) { return a + invs[f]; }, 0);
+
   setWall(
-    "Metered use is known exactly, half-hour by half-hour: <b>" + num(monthly.reduce(function (a, m) { return a + (m.kwh || 0); }, 0), 0) + " kWh</b> over the account's life.",
-    est ? "<b>" + est + " of " + invs.length + " bills</b> were raised on an <b>estimated</b> read. For those periods the " +
-      "supplier was billing a number it had inferred, not measured." :
-      "Every bill on this account was raised on an actual read, so belief and truth coincided here — which is the " +
-      "exception rather than the rule."
+    names.map(function (f) {
+      return "<b>" + num(totals[f], 0) + " kWh</b> of " + f;
+    }).join(" and ") + ", metered exactly.",
+    totalEst ? "<b>" + totalEst + " of " + totalInv + "</b> bill(s) were raised on an <b>estimated</b> " +
+      "read \u2014 for those periods the supplier billed a number it had inferred, not measured."
+      : "Every bill on this household was raised on an actual read, which is the exception rather " +
+        "than the rule."
   );
-  return '<h2>Used — how much energy, and when?</h2>' +
-    '<div class="clock">Clock: <b>two of them</b>. Annual shape shows the weather; monthly shape shows the ' +
-    'billing rhythm. A supplier has to reason on both at once.</div>' +
-    '<div class="cols"><div class="panel"><h3>Consumption by year (' + esc((d.consumption && d.consumption.unit) || "kWh") + ")</h3>" +
-    barTable(yearRows, "kWh", 0) +
-    '<p style="font-size:12px;color:var(--muted);margin-top:8px">Gas is heating-dominated and swings hard with ' +
-    'winter temperature; electricity is flatter. Which pattern this account shows tells you what the home is like.</p></div>' +
-    '<div class="panel"><h3>The last 24 months</h3>' + barTable(recent, "kWh", 0) + "</div></div>" +
-    '<p class="prov">Metered consumption for ' + esc(d.account_id) + ", " +
-    (monthly.length ? esc(monthly[0].month) + " to " + esc(monthly[monthly.length - 1].month) : "—") +
+
+  // Gas against HEATING DEGREE DAYS. This is the whole point of the gas view: a gas bill is
+  // mostly weather, and putting the two series beside each other shows the household's fabric
+  // rather than its habits. Electricity does not track heating and is shown on its own scale,
+  // which is why the two fuels cannot share one chart.
+  var panels = names.map(function (f) {
+    var m = (fuels[f].consumption || {}).monthly || [];
+    var byYear = {};
+    m.forEach(function (x) { var y = String(x.month).slice(0, 4); byYear[y] = (byYear[y] || 0) + (x.kwh || 0); });
+    var rows = Object.keys(byYear).sort().map(function (y) { return {k: y, v: byYear[y]}; });
+    var note = f === "gas"
+      ? "Heating-dominated: the year-to-year swing is winter temperature, not behaviour."
+      : "Flatter across the year \u2014 lighting, appliances and hot water do not track the weather.";
+    return '<div class="panel"><h3>' + esc(f) + " by year (kWh)</h3>" + barTable(rows, "kWh", 0) +
+      '<p style="font-size:12px;color:var(--muted);margin-top:8px">' + note +
+      " " + invs[f] + " bill(s), " + est[f] + " on an estimated read.</p></div>";
+  }).join("");
+
+  return '<h2>Used \u2014 how much energy, and when?</h2>' +
+    '<div class="clock">Clock: <b>two of them, and the switch is the point</b>. Gas answers to the ' +
+    'weather across years; electricity answers to the day. A supplier has to reason on both at once, ' +
+    'and bills on neither \u2014 it bills on whatever the meter last told it.</div>' +
+    '<div class="cols">' + panels + "</div>" +
+    (names.length > 1 ? "" :
+      '<p style="font-size:12px;color:var(--muted);margin-top:10px">This household takes one fuel ' +
+      "only, so there is one shape to show rather than two.</p>") +
+    '<div id="hdd"></div>' +
+    '<p class="prov">Metered consumption per fuel for ' +
+    names.map(function (f) { return esc(fuels[f].account_id); }).join(" and ") +
     ". Read quality is taken from the bills themselves, not asserted separately.</p>";
 }
 
@@ -377,9 +403,22 @@ function stagePaid(d, c) {
     ", collected " + gbp(led.total_collected_gbp) + ", balance " + gbp(led.current_balance_gbp) + ".</p>";
 }
 
-function stageJudged(d, c) {
+function stageJudged(d, c, fuels) {
   var outcomes = (d.reaction_chain || []).filter(function (e) { return e.company_belief !== null && e.company_belief !== undefined; });
   var comb = c.combined || {};
+  // FOR THEM. The brief asks for two verdicts side by side; until now only the supplier's was
+  // here, which quietly made the page about the company. Both figures come from the household's
+  // own legs, so a dual-fuel home is judged on what it actually took across both meters.
+  var themKwh = 0, themPaid = 0;
+  Object.keys(fuels || {}).forEach(function (f) {
+    themKwh += (c.legs[f] || {}).total_kwh || 0;
+    themPaid += (c.legs[f] || {}).revenue_gbp || 0;
+  });
+  if (!themKwh) {
+    themKwh = ((c.legs.electricity || c.legs.gas) || {}).total_kwh || 0;
+    themPaid = comb.revenue_gbp || 0;
+  }
+  var themRate = themKwh ? (themPaid * 100 / themKwh) : null;
   var lastO = outcomes.length ? outcomes[outcomes.length - 1] : null;
   setWall(
     lastO ? "This household's real chance of leaving at its last renewal was <b>" + pct(lastO.sim_truth) + "</b>." :
@@ -395,7 +434,16 @@ function stageJudged(d, c) {
   return '<h2>Judged — was it the right deal, for them and for us?</h2>' +
     '<div class="clock">Clock: <b>retrospective</b>, over the whole life of the account — and the answer differs ' +
     'depending on whether you count what was billed, what settled, or what was banked.</div>' +
-    '<div class="cols"><div class="panel"><h3>For us</h3><div class="table-scroll"><table><tbody>' +
+    '<div class="cols"><div class="panel"><h3>For them</h3><div class="table-scroll"><table><tbody>' +
+    "<tr><td>Energy taken</td><td class=\"n\">" + num(themKwh, 0) + " kWh</td></tr>" +
+    "<tr><td>Paid in total</td><td class=\"n\">" + gbp(themPaid) + "</td></tr>" +
+    "<tr><td>Average paid</td><td class=\"n\">" +
+      (themRate === null ? "\u2014" : themRate.toFixed(2) + " p/kWh") + "</td></tr>" +
+    '</tbody></table></div><p style="font-size:12px;color:var(--muted);margin-top:8px">' +
+    "What they would have paid elsewhere is <b>not shown, because it is not known</b>: this " +
+    "simulation contains one supplier, so there is no rival tariff to compare against. Saying so " +
+    "is worth more than a number invented for the comparison.</p></div>" +
+    '<div class="panel"><h3>For us</h3><div class="table-scroll"><table><tbody>' +
     "<tr><td>Revenue billed</td><td class=\"n\">" + gbp(comb.revenue_gbp) + "</td></tr>" +
     "<tr><td>Gross margin</td><td class=\"n\">" + gbp(comb.gross_gbp) + "</td></tr>" +
     "<tr><td>Cost to serve</td><td class=\"n\">" + gbp(d.cost_to_serve_gbp) + "</td></tr>" +
@@ -420,16 +468,24 @@ var RENDER = [stagePriced, stageChosen, stageUsed, stageBilled, stagePaid, stage
 
 function render() {
   if (!CUR) return;
-  var d = CUR.detail, c = CUR.index;
-  $("stage").innerHTML = RENDER[STAGE](d, c);
+  $("stage").innerHTML = RENDER[STAGE](CUR.detail, CUR.index, CUR.fuels || {});
 }
 
 function selectCustomer(group) {
   var c = IDX.customers.filter(function (x) { return x.customer_group === group; })[0];
   if (!c) return;
-  var leg = c.legs.electricity || c.legs.gas;
-  fetch("../data/customers/" + leg.cid + ".json").then(function (r) { return r.json(); }).then(function (d) {
-    CUR = {index: c, detail: d};
+  // BOTH LEGS. A dual-fuel household is two accounts in the supplier's book with two meters,
+  // two consumption shapes and two bills, and the brief is explicit that Explore shows them
+  // side by side -- "the switch between them is the point". Loading one leg and calling it
+  // the household was the shortcut that made stage 3 a single bar chart.
+  var legs = ["electricity", "gas"].filter(function (f) { return c.legs[f]; });
+  Promise.all(legs.map(function (f) {
+    return fetch("../data/customers/" + c.legs[f].cid + ".json").then(function (r) { return r.json(); });
+  })).then(function (ds) {
+    var byFuel = {};
+    legs.forEach(function (f, i) { byFuel[f] = ds[i]; });
+    var d = byFuel.electricity || byFuel.gas;
+    CUR = {index: c, detail: d, fuels: byFuel};
     $("who").innerHTML =
       "<span><b>" + esc(c.segment) + "</b> household</span>" +
       "<span>with the supplier since <b>" + dt(c.acquisition_date) + "</b></span>" +
@@ -437,8 +493,8 @@ function selectCustomer(group) {
       "<span><b>" + (d.invoices || []).length + "</b> bills issued</span>";
     render();
   }).catch(function (e) {
-    $("stage").innerHTML = "<p>This account's record could not be loaded. Nothing is shown rather than " +
-      "something approximate.</p>";
+    $("stage").innerHTML = "<p>This household's records could not be loaded. Nothing is shown rather " +
+      "than something approximate.</p>";
   });
 }
 

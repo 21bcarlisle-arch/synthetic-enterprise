@@ -145,7 +145,19 @@ def notify(message: str, *, kind: str, transition_key: str | None = None,
                         escalated = True
                 except Exception:
                     pass  # not escalated; the send/suppress decision below is unaffected
+            # ONCE IT IS WORK, STOP RE-TELLING HIM. A caller that sets `re_escalate_after`
+            # is asking to be re-pinged hourly while a condition persists -- which was the
+            # right behaviour when the phone was the only channel. It is not once the
+            # condition has become a drawable work item: the director's instruction was
+            # "escalate itself into the draw INSTEAD of re-telling me", and doing both is
+            # the noise with an extra step.
+            #
+            # MEASURED, 2026-08-20, from the outbound mirror over 24h: of the 21 messages
+            # sent after the escalation went in, the dead-man's BLOCKED alarm accounted for
+            # four -- all hourly re-pings of one unchanged condition that had already
+            # escalated. Nothing about them told him anything the work item did not.
             due = (re_escalate_after is not None
+                   and not escalated
                    and (now - float(prev.get("ts", 0))) >= re_escalate_after)
             # `ts` is the last time this key SENT, so it only moves when a send follows.
             record = {

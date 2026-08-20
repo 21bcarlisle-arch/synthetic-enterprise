@@ -92,7 +92,17 @@ _SKIP_DIRS = {"__pycache__", "node_modules", ".pytest_cache"}
 # Vacuity floor. The population was 66 when this was written; a walk that suddenly returns
 # a handful means the glob, the root or the skip list broke, and a small population would
 # let this control pass by having almost nothing to check.
-_MIN_POPULATION = 20
+# LOWERED 20 -> 10 on 2026-08-20. The floor exists to catch a BROKEN WALK -- a glob that
+# silently stops matching and reports a clean lane it never looked at -- and 20 was the site's
+# control count on the day it was written. The director's fold deleted five site controls whose
+# subjects no longer exist (the glossary layer, the customer-portal claim, links-to-redirected,
+# and the link walker with its test), taking the real population to 19 and reddening this guard
+# for the one reason it must never fire: a legitimate shrink.
+#
+# 10 is chosen against what the lane cannot go under while still being a lane: the five tabs'
+# own door tests plus the register, brand, freshness and reachability controls. It is not the
+# current count, deliberately -- a floor pinned to today's number is this defect again.
+_MIN_POPULATION = 10
 
 
 def _controls_on_disk() -> set[str]:

@@ -3,14 +3,13 @@
 
 REUSE: tools/reader_reachability.py
 CLASS: CUSTOM
-INDEX: searched "reachab", "link_walk", "orphan", "redirect", "nav", "door" -- no existing row
-       answers this question. `site/link_walk.py` is the nearest analogue and is deliberately
-       NOT reused: it classifies every link on every page as DEAD/REDIRECTED/OK for a human
-       report, and its own docstring says it is a diagnostic that is not wired into any gate.
-       This answers ONE question -- can a reader get here from the front door -- and is
-       consumed by a control. `tools/site_reachability.py` checks that a page has SOME route
-       in; the defect that produced this module was a page with a route in whose every follower
-       was 301'd away, which that question cannot see.
+INDEX: searched "reachab", "link_walk", "orphan", "redirect", "nav", "door". The nearest
+       analogue WAS `site/link_walk.py`, a DEAD/REDIRECTED/OK classifier that its own docstring
+       described as a diagnostic wired into no gate -- it was deleted on 2026-08-20 with the
+       redirects it classified, and this module inherits the only question anyone asked of it.
+       `tools/site_reachability.py` remains and is different: it asks whether a page has SOME
+       route in, which cannot see the defect that produced this module -- a page with a route
+       in whose every follower was 301'd away.
 
 DIRECTOR RULING, 2026-08-20: "a surface no reader can reach must never be able to block
 publishing."
@@ -40,9 +39,11 @@ Reachable = there is a path of static `href`s from `site/index.html` to the page
     reads as unreachable, which is the fail-closed direction: it under-claims reachability
     and so over-reports blockers, and a false blocker report costs a conversation while a
     missed one costs another 11-hour outage.
-  - **A redirect SOURCE is not a destination.** `/project/` is in `site/_redirects`; a reader
-    who follows a link there lands on `/proof/`. Counting it as reachable would have declared
-    the dashboard page reachable for the whole month it was not.
+  - **A redirect SOURCE is not a destination**, and this still holds even though it now finds
+    nothing. `site/_redirects` was cut from forty rules to two on 2026-08-20 (favicon and www),
+    neither of which is a page, so no built page is a redirect source any more. The check is
+    kept because it costs one set lookup and it is the difference between "reachable" and
+    "reachable today"; it is not kept because anything currently needs it.
 
 FAIL-CLOSED
 -----------

@@ -170,6 +170,15 @@
       "verdict": "benign",
       "guard": "n/a",
       "why": "Not an alarm record at all: `tools/surgical_land.py::OWNER_MARKER` holds ONE integer -- the PID that created the extract directory it sits inside -- written once, before anything else in the checkout, and never read for severity. It carries no episode-start timestamp and no consecutive-failure counter, so there is no episode any write could shorten; the sweep asks only `os.kill(pid, 0)`, a question about the CURRENT world rather than an accumulated history. It is also not durable state: it lives inside the checkout and dies with it in the same `rmtree`, so 'self-clearing' is its correct and intended behaviour rather than a defect. Hit by the lexicon on `page_`/`stale` in the sweep's own prose, not on the file's contents. Landed by 5bf1efd52 (WORKER_FINDING_THE_ONLY_LEGAL_LANDING_MOVE_LEAKS_150MB_A_KILL_2026-08-14) without a row, which is what this census is for."
+    },
+    ".sim_producer_state.json": {
+      "verdict": "real",
+      "guard": "guarded",
+      "why": "RUNG 1d (supervisor._producer_starved_active) reads BOTH episode-scoped fields for severity: `first_failure_ts` is the outage START the 30-minute drawable bar is measured from, and `consecutive_failures` is the streak the 3-failure bar is measured against. An unguarded failure write that lost its prior -- concurrent writer, truncated read, hand edit -- would reset the streak to 1 and re-stamp the start at now, shortening the outage and dropping the rung back below its own threshold: the 2026-08-09 shape, where a 10h26m publish outage paged as a fresh 14 minutes. Landed RED on this census the day it was written, which is the census working as intended. Guarded in sim_runner.record_run_outcome via guard_episode(since_fields=PRODUCER_SINCE_FIELDS, streak_fields=PRODUCER_STREAK_FIELDS). CLOSE CONDITION, named and INDEPENDENT of the file it closes (R15 anti-tautology): terminal run SUCCESS, which run_simulation sets only after the child exited 0 AND wrote its own run_output_*.json -- the child's artefact, not this file's counter. It is the same independent artefact the detector uses to supersede a stale streak."
+    },
+    "gate_authorizations.jsonl": {
+      "verdict": "benign",
+      "why": "The R16 append-only ledger of level moves. A self-clearing alarm needs a write that can SHORTEN or END an episode nobody proved was over; an append cannot -- every record here is added, none is rewritten or removed, and no alarm derives severity from an episode-scoped field in it. `tools/level_promotion_gate.py` reads it to ask whether a level move was RECORDED, which is a membership question over a growing set, not an episode. Same reasoning as run_history.json and live_decisions_log.jsonl already carry here. Dispositioned 2026-08-20 -- it surfaced as a new hit and was refusing every lane's commit undispositioned."
     }
   }
 }

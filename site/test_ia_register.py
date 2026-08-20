@@ -4,7 +4,7 @@
 WHAT THIS POLICES
 -----------------
 1. **The three-state register (C3).** Every deployed area is ADVERTISED, INTERNAL or
-   RETIRED; an area in none of the three is the failure. An ADVERTISED area with no
+   INTERNAL; an area in neither is the failure. An ADVERTISED area with no
    route from the canonical nav is a defect unless it is recorded in `ORPHAN_DEBT`
    with the step that clears it -- and the debt register can only SHRINK.
 2. **Every page's nav is the register's render.** Sixteen areas, twelve hand-authored
@@ -73,7 +73,7 @@ def test_every_deployed_area_is_in_exactly_one_state():
     # is a legitimate state and the machine should be able to express it"). It is a CLAIMED
     # state like the other three -- the failure this asserts is UNCLASSIFIED, a page a reader
     # can reach that nothing in the repo claims, and an early door is claimed loudly.
-    assert set(states.values()) <= {reg.ADVERTISED, reg.INTERNAL, reg.RETIRED,
+    assert set(states.values()) <= {reg.ADVERTISED, reg.INTERNAL,
                                     reg.UNDER_CONSTRUCTION}, (
         "an UNCLASSIFIED area is deployed and unclaimed: "
         f"{[a for a, s in states.items() if s == reg.UNCLASSIFIED]}"
@@ -90,7 +90,7 @@ def test_the_three_states_are_the_measured_census():
     states = reg.classify()
     by_state = {s: sorted(a for a, st in states.items() if st == s) for s in set(states.values())}
     assert len(by_state[reg.ADVERTISED]) >= 5, by_state
-    # 2026-08-20: INTERNAL and RETIRED are both legitimately EMPTY now. The director ruled
+    # 2026-08-20: INTERNAL is legitimately EMPTY now, and RETIRED no longer exists. The director ruled
     # that the five tabs are the site, so there are no deliberately-unadvertised pages left
     # and no pages kept in-repo behind a 301 -- the redirects survive, the directories do not.
     # Pinning "all three states populated" would now fail on the correct arrangement, which is
@@ -124,10 +124,6 @@ def test_every_debt_entry_names_the_step_that_clears_it():
             f"{area}'s debt entry must name the owning step, got {owner!r} -- "
             "a debt register with no owner is a list of complaints"
         )
-
-
-def test_no_nav_entry_points_at_a_redirect_source():
-    assert reg.no_retired_nav_links() == []
 
 
 def test_the_canonical_nav_only_routes_to_deployed_areas():
@@ -190,14 +186,10 @@ def test_MUTATION_a_nav_route_to_a_missing_page_fires(tree, monkeypatch):
     assert any("/ghost/" in p and "not a deployed area" in p for p in problems), problems
 
 
-def test_MUTATION_a_nav_entry_pointing_at_a_redirect_source_fires(tree, monkeypatch):
-    retired = next(iter(reg.retired_areas(tree / "_redirects")))
-    monkeypatch.setitem(reg.LEGACY_TAIL, "/company/", (("Ghost door", retired),))
-    problems = reg.no_retired_nav_links(tree)
-    assert any(retired in p and "301 source" in p for p in problems), problems
-
-
-@pytest.mark.parametrize("victim", ["sitemap.xml", "_redirects", "index.html"])
+# `_redirects` LEFT this list on 2026-08-20: the register no longer reads it (retired_areas is
+# gone with the RETIRED state), so its absence is no longer a degraded register -- it is a site
+# with no redirects, which is now the normal condition.
+@pytest.mark.parametrize("victim", ["sitemap.xml", "index.html"])
 def test_MUTATION_FAIL_OPEN_a_missing_source_raises_rather_than_reporting_green(tree, victim):
     """The single most important property here. A register that quietly degrades to an
     empty set reports a perfectly green IA for a site that has been deleted."""
@@ -266,26 +258,6 @@ def test_the_pages_that_cannot_highlight_themselves_are_exactly_the_unreached_on
     assert not unexplained, (
         f"pages that cannot say 'you are here' and are not recorded as debt: {sorted(unexplained)}"
     )
-
-
-def test_a_retired_page_highlights_the_door_it_folded_into():
-    """A reader who lands on a retired page is looking at content that now lives behind another
-    door; highlighting a door no longer in the IA would be a lie the register can avoid telling.
-
-    2026-08-20: there are no retired areas left. The fold -- pages kept in-repo behind a 301 --
-    was retired by the director on the grounds that it carried real maintenance cost for pages
-    nobody could reach. The assertion is kept, not deleted, because the fold is a shape the IA
-    could legitimately take again; what changed is that the vacuity guard now SKIPS instead of
-    failing, since "no retired areas" is the correct state rather than a broken migration."""
-    states = reg.classify()
-    retired = [a for a, s in states.items() if s == reg.RETIRED]
-    if not retired:
-        pytest.skip("no pages are kept behind a 301 -- see PARENT_OF, deliberately empty")
-    for area in retired:
-        target = reg.active_target(area)
-        assert target != area, f"{area} folds into nothing"
-        rendered = reg.render_nav(area)
-        assert f'"{reg._relative(target, area)}" class="nav-link active"' in rendered, rendered
 
 
 def _nav_block(html: str) -> str:
@@ -465,3 +437,29 @@ def test_MUTATION_a_new_internal_door_reaches_site_reachability_without_editing_
         "silently would report a deliberate internal door as an orphan"
     )
     importlib.reload(site_reachability)
+
+
+# RETIRED 2026-08-20 with the redirects themselves. Three tests here policed properties of the
+# RETIRED state: that no nav entry pointed at a 301 source, that the control fired when one did,
+# and that a retired page highlighted the door it folded into. `site/_redirects` went from forty
+# rules to two (favicon and www, neither a page), so there is no retired page, no fold, and no
+# 301 source to point at. The director's ruling: "no one has ever visited those URLs. There is
+# no history to protect, so stop protecting it."
+#
+# What replaces them is smaller and asks a better question -- tools/reader_reachability.py walks
+# the built site from the front door and every page must be reachable, which is the property the
+# three above were approximating.
+def test_the_only_redirects_left_are_the_ones_a_reader_actually_needs():
+    """A guard on the SHAPE, not the count: this file is where redirects come back one
+    convenient exception at a time. Both survivors are paths a browser or a person produces
+    unprompted -- not URLs preserved because deleting them felt risky."""
+    lines = [l.strip() for l in (SITE / "_redirects").read_text(encoding="utf-8").splitlines()
+             if l.strip() and not l.strip().startswith("#")]
+    assert len(lines) <= 2, (
+        f"{len(lines)} redirect rules; the ruling of 2026-08-20 left two. A new one needs an "
+        f"answer to 'whose journey breaks without it, today?' -- not a page that used to exist. "
+        f"Rules: {lines}"
+    )
+    sources = [l.split()[0] for l in lines]
+    assert any("favicon" in s for s in sources), "the favicon rule went -- browsers request it unprompted"
+    assert any("www." in s for s in sources), "the www canonicalisation went -- people type it"

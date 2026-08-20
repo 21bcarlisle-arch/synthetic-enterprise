@@ -20,12 +20,15 @@ The brief's §7 control #1 -- "a published area with no route from the nav fails
 cannot be built as written, because the surface is in THREE states, not two, and it has
 no slot for the third:
 
-    ADVERTISED   in sitemap.xml, served, crawlable                          (10 areas)
-    INTERNAL     served 200, deliberately absent from the sitemap           (2 areas)
-    RETIRED      301 to a live door, page kept in-repo for reference        (5 areas)
+    ADVERTISED   in sitemap.xml, served, crawlable
+    INTERNAL     served 200, deliberately absent from the sitemap (empty today)
+
+    A THIRD STATE, RETIRED (301 to a live door, page kept in-repo), existed until 2026-08-20
+    and is gone with the redirects it described. Two states cover the site now, and the second
+    is empty -- which is what "nothing hidden" means when it is a property rather than a claim.
 
 As written the control is red on TWELVE of sixteen areas, and for seven of them
-(5 RETIRED + 2 INTERNAL) that is correct behaviour the project chose deliberately --
+(the deliberate ones) that was correct behaviour the project chose --
 so its only green state is deleting pages the retirement convention says to keep.
 
 The failable form, ruled 2026-08-18 and implemented here as `register_violations()`:
@@ -39,7 +42,7 @@ The failable form, ruled 2026-08-18 and implemented here as `register_violations
 
 DERIVED, NOT TYPED (the anti-pin half of R15)
 ---------------------------------------------
-`advertised_areas()` reads sitemap.xml. `retired_areas()` reads `_redirects`.
+`advertised_areas()` reads sitemap.xml.
 `deployed_areas()` reads the tree. None of the three is a hand-maintained list, so an
 area added to or removed from the IA is picked up without editing this file. The two
 things that ARE typed are the two that are genuinely declarations of intent and cannot
@@ -156,7 +159,6 @@ CANONICAL_NAV: tuple[NavItem, ...] = (
     # So the two tabs I was holding open were never meant to be tabs.
     #
     # NOTHING IS DELETED. /world/, /company/ and /proof/ keep their pages and their content and
-    # are reached by ONE link each from the tab that absorbed them -- see PARENT_OF, which is
     # enforced: a declared parent that does not actually link to its child is a violation, so a
     # fold cannot become a quiet orphaning.
     NavItem("Home", "/"),
@@ -169,7 +171,6 @@ CANONICAL_NAV: tuple[NavItem, ...] = (
 
 # ── The fold: which tab absorbed which page ──────────────────────────────────
 # A child is NOT an orphan: it is reachable, deliberately, one click from its parent tab. This
-# replaces the LEGACY_TAIL habit of hanging extra links off every page's nav -- that is what made
 # the nav non-canonical (Home carried eight items, Knowledge nine) and it is exactly the
 # condition Step 0 existed to abolish.
 #
@@ -187,7 +188,6 @@ CANONICAL_NAV: tuple[NavItem, ...] = (
 # three separate controls went red this week on a stale literal naming one of them, and one of
 # those refused every lane's commit. A page nobody can reach is not free just because it is
 # quiet.
-PARENT_OF: dict[str, str] = {}
 
 
 # ── Per-page render profile ───────────────────────────────────────────────────
@@ -216,13 +216,6 @@ INNER_LINK_CLASS = "nav-link"
 # unnecessary: when Knowledge enters the canonical nav at SITE6, `/world/`'s Knowledge
 # tail link is redundant and goes. `test_ia_register.py` asserts the tail can only
 # shrink, and that no tail entry duplicates a canonical destination.
-# LEGACY_TAIL IS EMPTY, 2026-08-19, and that is the point rather than an omission. It held the
-# per-page extra links by which a reader could reach the orphans -- and it is precisely why the
-# nav was never canonical: Home rendered eight items, Knowledge nine, and the director read two
-# different sites on two pages. Every destination it carried is now either a nav tab, a declared
-# child in PARENT_OF, or a 301. The register keeps the name so the shrink-only test still has a
-# subject, and it must stay empty: a new entry means someone is hanging a link off one page again.
-LEGACY_TAIL: dict[str, tuple[tuple[str, str], ...]] = {}
 
 
 # ── The six real orphans ──────────────────────────────────────────────────────
@@ -285,37 +278,6 @@ def advertised_areas(sitemap: Path = SITEMAP) -> tuple[str, ...]:
     return tuple(dict.fromkeys(areas))
 
 
-def retired_areas(redirects: Path = REDIRECTS) -> dict[str, str]:
-    """Areas that are a 301 SOURCE in `_redirects`, mapped to their target.
-
-    Only top-level area sources count (`/method`, `/method/*`); the favicon and the
-    www-canonicalisation rules are not areas. Fail-closed on an unreadable file --
-    but NOT on an empty result, because a site with no retired areas is a legitimate
-    state (it was this project's state before 2026-07-18).
-    """
-    try:
-        lines = redirects.read_text(encoding="utf-8").splitlines()
-    except OSError as e:
-        raise IaRegisterUnavailable(f"_redirects unreadable: {e}") from e
-    out: dict[str, str] = {}
-    for line in lines:
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        parts = line.split()
-        if len(parts) < 2 or not parts[0].startswith("/"):
-            continue  # absolute-URL rules (www canonicalisation) are not areas
-        source, target = parts[0], parts[1]
-        if source.endswith("/*"):
-            source = source[:-1]
-        elif not source.endswith("/"):
-            source = source + "/"
-        if source.count("/") != 2 or "." in source:  # "/method/" -> 2; skip files
-            continue
-        out.setdefault(source, target)
-    return out
-
-
 def deployed_areas(site: Path = SITE) -> tuple[str, ...]:
     """Every area actually in the tree: the root plus each top-level directory that
     carries an `index.html`. Fail-closed on a tree with no root page."""
@@ -330,7 +292,6 @@ def deployed_areas(site: Path = SITE) -> tuple[str, ...]:
 
 ADVERTISED = "ADVERTISED"
 INTERNAL = "INTERNAL"
-RETIRED = "RETIRED"
 UNDER_CONSTRUCTION = "UNDER_CONSTRUCTION"
 UNCLASSIFIED = "UNCLASSIFIED"
 
@@ -340,7 +301,6 @@ def classify(site: Path = SITE) -> dict[str, str]:
     deployed, not advertised, not redirected, not declared internal -- a page a reader
     can reach and nothing in the repo says should exist."""
     advertised = set(advertised_areas(site / "sitemap.xml"))
-    retired = set(retired_areas(site / "_redirects"))
     internal = set(INTERNAL_DOORS)
     states = {}
     for area in deployed_areas(site):
@@ -353,23 +313,22 @@ def classify(site: Path = SITE) -> dict[str, str]:
             states[area] = UNDER_CONSTRUCTION
         elif area in internal:
             states[area] = INTERNAL
-        elif area in retired:
-            states[area] = RETIRED
         else:
             states[area] = UNCLASSIFIED
     return states
 
 
 def nav_reachable() -> set[str]:
-    """Areas the CANONICAL nav routes to. Deliberately excludes LEGACY_TAIL: the tail
+    """Areas the CANONICAL nav routes to. The tail
     is debt being retired, and counting it as a route would let the orphan count read
     green because six pages happen to cross-link each other."""
     reachable = {item.area for item in CANONICAL_NAV}
     # A child of a tab is reachable BY ITS PARENT, not by the top nav. Counting it here is what
-    # lets /world/ stop being a tab without becoming an orphan -- and `fold_violations` below
     # checks the parent genuinely links to it, so this cannot become an alibi.
-    reachable |= set(PARENT_OF)
     return reachable
+
+
+CANONICAL_NAV_AREAS = tuple(item.area for item in CANONICAL_NAV)
 
 
 def register_violations(site: Path = SITE) -> list[str]:
@@ -447,73 +406,9 @@ def register_violations(site: Path = SITE) -> list[str]:
             f"Add it to CANONICAL_NAV or drop the entry"
         )
 
-    problems.extend(fold_violations(site))
-    problems.extend(no_retired_nav_links(site))
     return problems
 
 
-def fold_violations(site: Path = SITE) -> list[str]:
-    """A declared fold must be a real link. Director ruling, 2026-08-19.
-
-    THE FAILURE THIS EXISTS TO REFUSE: taking a page off the top nav, declaring it a child of
-    some tab, and never adding the link -- which reads as tidy structure and IS an orphaning.
-    `nav_reachable()` counts children as reachable, so without this check that function becomes
-    an alibi: anything could be hidden by naming a parent for it.
-
-    Fails toward REPORTING: an unreadable parent page counts as not linking, because a fold we
-    cannot verify is one we have not made.
-    """
-    problems = []
-    for child, parent in sorted(PARENT_OF.items()):
-        page = site / parent.strip("/") / "index.html" if parent != "/" else site / "index.html"
-        try:
-            body = page.read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            body = ""
-        # THE NAV REGION IS STRIPPED FIRST, and the first draft of this check did not do that.
-        # It passed on all three folds while none of the three content links existed -- because
-        # the nav still carried `../world/` from before the fold, so the check was satisfied by
-        # the very links the fold removes. A control that reads the thing it is replacing is not
-        # a control. The link must be in the PAGE, where a reader can find it.
-        body = re.sub(r"<!-- IA-NAV:START.*?IA-NAV:END -->", "", body, flags=re.S)
-        # accept either an absolute or a relative href to the child
-        slug = child.strip("/")
-        if f'href="{child}"' not in body and f'href="../{slug}/"' not in body \
-                and f'href="./{slug}/"' not in body and f'href="{slug}/"' not in body:
-            problems.append(
-                f"{child} is declared a child of {parent} but {parent} does not link to it -- "
-                f"the fold is a claim, not a route, and {child} is orphaned in fact. Add the "
-                f"one link, or give {child} a nav tab back"
-            )
-    return problems
-
-
-def no_retired_nav_links(site: Path = SITE) -> list[str]:
-    """No nav entry, canonical or tail, may point at a 301 SOURCE.
-
-    `DIRECTOR_RULING_CANONICAL_DOOR_A` (2026-07-24): an internal link to a redirect
-    source lands the reader one bounce late on a door that is not the canonical one.
-    `site/test_link_walk.py` polices the whole site for this and caught the register's
-    first draft doing it on `/wip-flow/`; this check keeps the register itself from
-    ever re-proposing one, which is the earlier and cheaper place to fail.
-    """
-    retired = set(retired_areas(site / "_redirects"))
-    problems = []
-    for area, entries in [("<canonical>", tuple((i.label, i.area) for i in CANONICAL_NAV))] + sorted(
-        LEGACY_TAIL.items()
-    ):
-        for label, target in entries:
-            if target.split("#")[0] in retired:
-                problems.append(
-                    f"{area} nav entry {label!r} points at {target}, which is a 301 source"
-                )
-    return problems
-
-
-CANONICAL_NAV_AREAS = tuple(item.area for item in CANONICAL_NAV)
-
-
-# ── Rendering ─────────────────────────────────────────────────────────────────
 def _relative(target: str, from_area: str) -> str:
     """A site-absolute target as a page-relative href, from the page at `from_area`.
 
@@ -533,30 +428,22 @@ def _relative(target: str, from_area: str) -> str:
 def active_target(area: str, site: Path = SITE) -> str:
     """The area whose nav entry renders as `active` on the page at `area`.
 
-    Normally the page's own area. For a RETIRED page it is the door the page has been
-    FOLDED INTO -- derived from `_redirects`, not typed -- because a reader on
-    `/project/` is looking at content that now lives behind Proof, and highlighting a
-    door that no longer exists in the IA would be a lie the register can avoid telling.
+    It is the page's own area, and as of 2026-08-20 that is the whole rule.
+
+    This function used to resolve a chain: a RETIRED page folded into the door that absorbed
+    it (read from `_redirects`), and that door might itself be a CHILD of a tab (read from
+    `PARENT_OF`), so it walked up with a loop guard to find the entry the nav actually has.
+    Both inputs are gone -- the director deleted the redirects and the fold on the grounds that
+    nobody had ever visited the URLs they protected. Every page on the site is now a tab or
+    lives under one, so the ancestor walk had nothing left to walk.
     """
-    target = retired_areas(site / "_redirects").get(area)
-    resolved = area
-    if target:
-        resolved = target if target.endswith("/") else target + "/"
-    # WALK UP TO THE NAV ANCESTOR (2026-08-19 fold). A retired page folds into a door, and after
-    # the fold that door may itself be a CHILD -- /method/ 301s to /proof/, and /proof/ is now a
-    # child of /harness/. Highlighting /proof/ would mark an entry the nav no longer has, which
-    # is the same lie in a new place. One hop is enough for today's shape and a loop guard is
-    # cheaper than an argument about whether it always will be.
-    seen = set()
-    while resolved in PARENT_OF and resolved not in seen:
-        seen.add(resolved)
-        resolved = PARENT_OF[resolved]
-    return resolved
+    return area
 
 
 def render_nav(area: str, indent: str = "  ", site: Path = SITE) -> str:
-    """The marked nav block for one area: canonical items, then that page's legacy
-    tail, with `active` on the page's own entry (or its fold target, if retired)."""
+    """The marked nav block for one area: the canonical items, with `active` on the page's
+    own entry. The per-page legacy tail is gone (2026-08-20) -- it existed to hang extra links
+    off pages that are now deleted."""
     link_class = HOME_LINK_CLASS if area == "/" else INNER_LINK_CLASS
     active_area = active_target(area, site)
     # THE DOORS ARE ALWAYS WRAPPED (2026-08-19). Home grouped its links in a `.doors` element
@@ -568,7 +455,6 @@ def render_nav(area: str, indent: str = "  ", site: Path = SITE) -> str:
     # can hand-edit its way out.
     lines = [NAV_START, '<span class="doors">']
     entries = [(i.label, i.area) for i in CANONICAL_NAV]
-    entries += list(LEGACY_TAIL.get(area, ()))
     seen_active = False
     for label, target in entries:
         active = not seen_active and target.split("#")[0] == active_area

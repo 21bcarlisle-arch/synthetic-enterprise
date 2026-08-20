@@ -157,6 +157,44 @@ class TestAlerting:
         assert led.notify_on_transition(send=sent.append) == "degraded->clean"
         assert len(sent) == 1
 
+    def test_MUTATION_an_INTERRUPTED_cycle_records_nothing_and_re_alarms(self, tmp_path):
+        """THE defect, measured rather than imagined. Over the 24h to 2026-08-20 09:20 this
+        alarm sent seven PUBLISH RECOVERED messages -- four naming the same run -- against 37
+        `degraded->clean` transitions, ZERO `clean->degraded`, and not one "PUBLISH DEGRADED"
+        line in any log in the repo. You cannot recover 37 times without degrading.
+
+        The state was written BEFORE the alert. A cycle that computed degraded, wrote the flag
+        and then died (159 deadline kills in the same window) latched a degradation nobody was
+        told about; the next healthy cycle announced a recovery from it. The recoveries were not
+        noisy, they were FALSE.
+
+        Simulated here by the send raising -- any interruption between the decision and the
+        delivery has the same shape. What must survive is that the flag is NOT latched, so the
+        degradation is found again next cycle: fail toward re-alarming, never toward a phantom
+        recovery."""
+        led = _ledger(tmp_path)
+        led._state_path().write_text(json.dumps({"degraded": False}))
+        with led.step("Customer sample generation", ["site/data/customer_sample.json"]):
+            raise TypeError("boom")
+
+        def dies(_text):
+            raise RuntimeError("killed mid-send")
+
+        with pytest.raises(RuntimeError):
+            led.notify_on_transition(send=dies)
+        assert json.loads(led._state_path().read_text())["degraded"] is False, (
+            "the interrupted cycle latched a degradation it never announced -- the next clean "
+            "cycle will report a recovery from a fault nobody was told about"
+        )
+
+        # Next cycle, still broken: it alarms, because nothing was recorded.
+        again = _ledger(tmp_path)
+        with again.step("Customer sample generation", ["site/data/customer_sample.json"]):
+            raise TypeError("boom")
+        sent = []
+        assert again.notify_on_transition(send=sent.append) == "clean->degraded"
+        assert len(sent) == 1
+
     def test_an_unchanged_status_never_repeats(self, tmp_path):
         """MUTATION: dropping the `was_degraded == now_degraded` guard would have sent 199
         identical NTFYs over four days, which is how an alert channel becomes noise and

@@ -266,6 +266,29 @@ def test_an_explicitly_keyed_callers_semantics_are_untouched_by_delivery(wired, 
     assert len(sent) == 1, "an explicitly-keyed caller's commit-on-attempt behaviour changed"
 
 
+def test_MUTATION_an_hourly_re_ping_STOPS_once_the_condition_becomes_work(wired, monkeypatch):
+    """The director's instruction is "escalate itself into the draw INSTEAD of re-telling me",
+    and doing both is the noise with an extra step.
+
+    MEASURED from the outbound mirror over 24h on 2026-08-20: after the escalation shipped, the
+    dead-man's BLOCKED alarm still sent four times -- all hourly re-pings of one unchanged
+    condition that had already been filed as work. It sets `re_escalate_after`, which predates
+    there being any other channel to escalate INTO."""
+    n, sent, staging = wired
+    real_time = time.time
+    for hour in range(0, 6):
+        monkeypatch.setattr(time, "time", lambda h=hour: real_time() + h * 3600)
+        n.notify(FAIL_252, kind="real_alarm", transition_key="dm", state="STUCK",
+                 re_escalate_after=1800)
+    assert len(sent) == 2, (
+        f"the alarm paged {len(sent)} times over six hours. Expected TWO: the first page, one "
+        "hourly re-ping, and then the third firing files the work item and goes quiet -- the "
+        "same firing that escalates is the one that stops paging, which is the point. "
+        f"Sent: {sent}"
+    )
+    assert list(staging.glob("*.md")), "it went quiet without filing anything -- that is worse"
+
+
 def test_a_digest_is_not_auto_keyed(wired):
     """A digest IS the batch and re-sends by design; auto-keying it would suppress the
     periodic summary as a repeat of itself."""
