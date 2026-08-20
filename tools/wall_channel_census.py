@@ -2506,6 +2506,64 @@ def channels_without_an_enumerator() -> list[str]:
     return [c.id for c in CHANNELS if not callable(ENUMERATORS.get(c.id))]
 
 
+#: The L3 exit criterion this atom cannot reach from a worker tick, named so the map can
+#: point at it. Passes 26-31 each recorded, in prose, that the cold-eyes walk on the three
+#: seam codecs was the first blocker on L3 and that the invocation could not spawn the fresh
+#: instance it requires; pass 31 recorded plainly that "L3 IS BLOCKED ON AN INSTRUMENT, NOT
+#: ON BUILD WORK". Six consecutive prose recordings is what CLAUDE.md means by a rule that
+#: evaporates, so this is the machine-readable half.
+COLD_EYES_WALK_CRITERION = "L3_cold_eyes_walk_on_the_three_seam_codecs"
+
+#: The capability id a blind review of this atom is recorded under. `tools/blind_review.py`
+#: keys its ledger on the maturity-map atom id (`index_plain_words` resolves exactly that),
+#: so this is a join key and not a label.
+BLIND_REVIEW_CAPABILITY = "EP6_wall_protocol_typing"
+
+
+def cold_eyes_walk_outstanding(ledger_path: Path | None = None) -> tuple[str, ...]:
+    """The L3 criteria this seat cannot pay for — `()` once the walk has been RECORDED.
+
+    This is the live half of the map's `infeasible_here` record on
+    `EP6_wall_protocol_typing`, built to the pattern
+    `background.lcl_household_anchors.unpayable_here_bands` established for
+    `H_GAP_fabric_belief_truth_gap` — an atom that took FIFTEEN consecutive BUILD draws
+    landing real green work while its level never moved, for the same structural reason.
+    This atom has now taken twenty-three passes since its level last moved.
+
+    WHAT IT READS, AND WHY THAT AND NOT A FLAG. The subject is the blind-review LEDGER —
+    the artefact only a walk that actually happened can produce. A predicate reading
+    "is this invocation allowed to delegate?" would be a flag about the seat's permissions,
+    which is both unreadable from disk and the wrong question: the atom is not blocked on
+    permission, it is blocked on a review that has not been performed. `tools/blind_review.py`
+    is the mechanised blindfold for exactly this subject type (a capability, not a rendered
+    artefact), and it records a transcript-and-battery per review. So the re-open is an
+    observable event: on the day a blind review of this capability is recorded, this returns
+    `()`, the map still claims a blocker, and the disagreement REDS rather than sitting there
+    being politely out of date.
+
+    FAIL-CLOSED. An unreadable ledger raises `CensusUnavailable` rather than reporting the
+    walk outstanding OR done — an unavailable check is a FAILED check (R15 FAIL-SILENT), and
+    both silent answers here are wrong in a way that matters. A ledger that does not exist
+    yet is NOT unreadable: nothing recorded is the honest reading that no walk has run, which
+    is the state at the time of writing (the ledger file does not exist, zero reviews ever).
+    """
+    try:
+        from tools.blind_review import load_records
+    except ImportError as exc:  # pragma: no cover - the module is in-tree
+        raise CensusUnavailable(f"blind_review unavailable, so the walk is unknowable: {exc}")
+    try:
+        records = load_records(ledger_path)
+    except Exception as exc:  # noqa: BLE001 - see the fail-closed paragraph above
+        raise CensusUnavailable(
+            f"the blind-review ledger could not be read, so whether the walk has run is "
+            f"unknown -- that is a failed check, not an answer: {exc}"
+        ) from exc
+    for record in records:
+        if record.get("capability") == BLIND_REVIEW_CAPABILITY:
+            return ()
+    return (COLD_EYES_WALK_CRITERION,)
+
+
 # ── taking the census ────────────────────────────────────────────────────────────────────────
 
 def census(root: str, artefact: dict) -> dict[str, set[str]]:

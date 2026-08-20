@@ -29,7 +29,14 @@ def _ts(day: str) -> float:
 
 def _fixture(tmp_path, atoms, records, ledger_actions):
     (tmp_path / "site" / "data").mkdir(parents=True)
-    (tmp_path / "site" / "data" / "maturity_map.json").write_text(json.dumps({"atoms": atoms}))
+    # THE FIXTURE REPRODUCES THE LOSSY PROJECTION ON PURPOSE. The real `site/data/
+    # maturity_map.json` is generated from the map source and DROPS `infeasible_here` --
+    # checked on the live tree against the one atom that carries it. A fixture that fed the
+    # field through both files would be testing a world where the field is readable from the
+    # feed, which is the world this reader exists because we are NOT in.
+    feed = [{k: v for k, v in a.items() if k != "infeasible_here"} for a in atoms]
+    (tmp_path / "site" / "data" / "maturity_map.json").write_text(json.dumps({"atoms": feed}))
+    (tmp_path / "map_source.yaml").write_text(__import__("yaml").safe_dump(atoms))
     store_dir = tmp_path / "store"
     store_dir.mkdir()
     for atom_id, spec in records.items():
@@ -55,6 +62,7 @@ def _point(monkeypatch, root):
     monkeypatch.setattr(ceiling, "MAP_FEED", root / "site" / "data" / "maturity_map.json")
     monkeypatch.setattr(ceiling, "STORE_DIR", root / "store")
     monkeypatch.setattr(ceiling, "LEDGER", root / "obs" / "gate_authorizations.jsonl")
+    monkeypatch.setattr(ceiling, "MAP_SOURCE", root / "map_source.yaml")
 
 
 ATOM = {"id": "X_atom", "level_current": 0, "level_target": 3, "loop_stage": "idle"}
@@ -264,3 +272,292 @@ def test_MUTATION_an_uncomputable_ceiling_closes_the_tier_rather_than_reopening_
 
     monkeypatch.setattr("tools.discovery_pass_ceiling.saturated_ids", boom)
     assert supervisor._idle_discover_frame_draw() is None
+
+
+# ---------------------------------------------------------------------------
+# THE THIRD ANSWER — `infeasible_here` gets its first reader
+# ---------------------------------------------------------------------------
+#
+# THE DEFECT THIS CLOSES, MEASURED BEFORE IT WAS WRITTEN. `decisions()` rendered ONE verdict
+# for every saturated atom — "promote to build, or close it" — which is written for the idle
+# discovery tier that was its only consumer. On the live tree 11 of the 24 saturated atoms are
+# `build` or `harden`, so eleven atoms were being told to promote to the stage they were
+# already in: a first limb that is a no-op and a second that is wrong.
+#
+# And for one shape BOTH limbs are wrong however they are worded. An atom whose level move
+# needs an instrument the seat cannot obtain is neither promotable nor closable — more passes
+# cannot move it, and the work is real and unfinished. `EP6_wall_protocol_typing` is that atom
+# at 23 passes since its level last moved, second worst in the project: six consecutive passes
+# recorded in PROSE that its L3 blocker is a cold-eyes walk requiring a fresh instance none of
+# them was allowed to spawn. The map already had the notation for this (`infeasible_here`,
+# proven on `H_GAP_fabric_belief_truth_gap` after FIFTEEN unproductive BUILD draws) and it had
+# no reader anywhere — which is why the blocker lived in prose that each pass had to rewrite.
+
+BLOCKED_ATOM = {
+    "id": "B_atom", "level_current": 2, "level_target": 3, "loop_stage": "build",
+    "infeasible_here": {
+        "blocks": ["L3_some_instrument"],
+        "predicate": "tests.tools.test_discovery_pass_ceiling._still_blocked",
+        "needs": "a thing this box does not have.",
+    },
+}
+
+
+def _still_blocked():
+    return ("L3_some_instrument",)
+
+
+def _no_longer_blocked():
+    return ()
+
+
+def _blocked_fixture(tmp_path, monkeypatch, atom=BLOCKED_ATOM):
+    _point(monkeypatch, _fixture(tmp_path, [atom], {"B_atom": 6}, [REAL_MOVE]))
+
+
+def test_MUTATION_an_instrument_blocked_atom_is_told_neither_to_promote_nor_to_close(
+    tmp_path, monkeypatch
+):
+    """THE FIRING CASE. The decision must name the instrument and must NOT offer either of the
+    two limbs that cannot be executed, because a decision whose options are all unavailable is
+    one that gets skipped and the passes continue."""
+    _blocked_fixture(tmp_path, monkeypatch)
+    row = ceiling.decisions(5)[0]
+    assert row["instrument_blocked"] is True
+    assert row["blocks"] == ["L3_some_instrument"]
+    assert "a thing this box does not have." in row["decision"]
+    assert "BLOCKED ON AN INSTRUMENT" in row["decision"]
+    assert "promote to build" not in row["decision"]
+
+
+def test_MUTATION_the_blocker_LIFTING_reds_rather_than_sitting_there_out_of_date(
+    tmp_path, monkeypatch
+):
+    """THE RE-OPEN, and the reason the predicate is RUN rather than believed. The map still
+    claims a blocker; the live predicate says it is gone. That disagreement is the acquisition
+    having landed, and it must be visible on the day it happens — the same doctrine
+    `tests/harness/test_lcl_household_anchors.py` pins for the fabric atom.
+
+    A reader that trusted the map's `blocks` list would report this atom blocked for ever."""
+    atom = json.loads(json.dumps(BLOCKED_ATOM))
+    atom["infeasible_here"]["predicate"] = (
+        "tests.tools.test_discovery_pass_ceiling._no_longer_blocked"
+    )
+    _blocked_fixture(tmp_path, monkeypatch, atom)
+    row = ceiling.decisions(5)[0]
+    assert row["instrument_blocked"] is False
+    assert "RE-OPEN" in row["decision"]
+    assert "Clear `infeasible_here`" in row["decision"]
+
+
+def test_NULL_CONTROL_a_saturated_atom_with_no_record_is_not_instrument_blocked(
+    tmp_path, monkeypatch
+):
+    """Without this the firing test above cannot tell "the record was read" from "everything
+    is reported blocked"."""
+    _point(monkeypatch, _fixture(tmp_path, [ATOM], {"X_atom": 6}, [REAL_MOVE]))
+    row = ceiling.decisions(5)[0]
+    assert row["instrument_blocked"] is False
+    assert "BLOCKED ON AN INSTRUMENT" not in row["decision"]
+
+
+def test_NULL_CONTROL_an_UNSATURATED_atom_carrying_a_record_is_not_a_decision(
+    tmp_path, monkeypatch
+):
+    """The subject is the SATURATED set. An atom that is genuinely mid-investigation and
+    happens to know one of its criteria is unpayable here is not yet owed a decision — and a
+    reader that surfaced it would make `infeasible_here` expensive to record honestly."""
+    _point(monkeypatch, _fixture(tmp_path, [BLOCKED_ATOM], {"B_atom": 2}, [REAL_MOVE]))
+    assert ceiling.decisions(5) == []
+
+
+def test_MUTATION_the_saturated_BUILD_decision_no_longer_says_promote_to_build(
+    tmp_path, monkeypatch
+):
+    """THE MEASURED DEFECT, driven directly. A `build`-stage atom told to "promote to build"
+    is being handed its own current state as an instruction."""
+    atom = dict(ATOM, loop_stage="build")
+    _point(monkeypatch, _fixture(tmp_path, [atom], {"X_atom": 6}, [REAL_MOVE]))
+    decision = ceiling.decisions(5)[0]["decision"]
+    assert "promote to build" not in decision
+    assert "land the level move" in decision
+    assert "no longer an available answer" in decision
+
+
+def test_the_idle_decision_is_UNCHANGED_because_the_ruling_wrote_it(tmp_path, monkeypatch):
+    """The stage this module shipped for keeps its exact verdict. Widening a control is not a
+    licence to rewrite the part that was already right."""
+    _point(monkeypatch, _fixture(tmp_path, [ATOM], {"X_atom": 6}, [REAL_MOVE]))
+    assert ceiling.decisions(5)[0]["decision"] == (
+        "promote to build, or close it -- investigating again is no longer an available answer"
+    )
+
+
+@pytest.mark.parametrize("missing", ["blocks", "predicate", "needs"])
+def test_MUTATION_FAIL_CLOSED_a_record_missing_any_half_is_REFUSED(
+    tmp_path, monkeypatch, missing
+):
+    """A blocker that does not name what would lift it is the sentence this field exists to
+    replace. Ignoring the malformed record would silently restore the unanswerable decision —
+    fail-open in the one direction that looks like everything working."""
+    atom = json.loads(json.dumps(BLOCKED_ATOM))
+    del atom["infeasible_here"][missing]
+    _blocked_fixture(tmp_path, monkeypatch, atom)
+    with pytest.raises(ceiling.CeilingUnavailable, match=missing):
+        ceiling.decisions(5)
+
+
+def test_MUTATION_FAIL_SILENT_an_unresolvable_predicate_RAISES_and_does_not_re_open(
+    tmp_path, monkeypatch
+):
+    """AN UNAVAILABLE CHECK IS A FAILED CHECK (R15). The tempting shortcut is to treat an
+    import that no longer resolves as "no blocker" — which would let a predicate RENAMED in
+    passing quietly re-open an atom nobody had unblocked, and the re-open would look exactly
+    like the good news this reader is built to deliver."""
+    atom = json.loads(json.dumps(BLOCKED_ATOM))
+    atom["infeasible_here"]["predicate"] = "tools.nope_not_a_module.gone"
+    _blocked_fixture(tmp_path, monkeypatch, atom)
+    with pytest.raises(ceiling.CeilingUnavailable, match="could not be resolved"):
+        ceiling.decisions(5)
+
+
+def test_MUTATION_FAIL_CLOSED_an_unreadable_map_SOURCE_raises(tmp_path, monkeypatch):
+    """The new second file gets the same treatment as the three that were already here.
+    "No atom is instrument-blocked", computed from a source nobody could read, is the reading
+    that turns a permanent blocker back into an infinite lane."""
+    _blocked_fixture(tmp_path, monkeypatch)
+    ceiling.MAP_SOURCE.write_text("")
+    with pytest.raises(ceiling.CeilingUnavailable):
+        ceiling.decisions(5)
+
+
+def test_MUTATION_a_blocker_recorded_for_an_atom_THE_FEED_DOES_NOT_CARRY_raises(
+    tmp_path, monkeypatch
+):
+    """THE TWO-REF JOIN, driven on the failure it invites. This is the module's only two-file
+    read. An id present in the map source but not in the feed would simply never match a
+    survey row, so the blocker would stop being reported with nothing going red — the silent
+    half of `feedback_a_two_sided_census_must_read_both_sides_from_one_ref`."""
+    _blocked_fixture(tmp_path, monkeypatch)
+    feed = json.loads(ceiling.MAP_FEED.read_text())
+    feed["atoms"][0]["id"] = "B_atom_RENAMED"
+    ceiling.MAP_FEED.write_text(json.dumps(feed))
+    with pytest.raises(ceiling.CeilingUnavailable, match="drifted"):
+        ceiling.decisions(5)
+
+
+def test_saturated_ids_is_DELIBERATELY_untouched_by_any_of_this(tmp_path, monkeypatch):
+    """THE BLAST RADIUS, pinned. `saturated_ids` is what the live supervisor draw consumes;
+    `decisions()` is the reporting half this module's own docstring calls "owed". An
+    instrument-blocked atom must NOT silently leave or enter the draw as a side effect of
+    gaining a decision — that is a separate change with its own Rule-0 argument, and making it
+    by accident here is exactly how an accretion lands."""
+    _blocked_fixture(tmp_path, monkeypatch)
+    assert ceiling.saturated_ids(5) == {"B_atom"}
+
+
+# ---------------------------------------------------------------------------
+# The live record — the map's claim held against the live predicate
+# ---------------------------------------------------------------------------
+def test_no_map_cell_claims_an_instrument_blocker_its_own_predicate_says_is_gone():
+    """EVERY `infeasible_here` CELL, not one named atom -- and the widening is the point.
+
+    The previous version of this test pinned `EP6_wall_protocol_typing` by name and read
+    `records["EP6_wall_protocol_typing"]` directly. It did its job exactly once: on
+    2026-08-20 the cold-eyes walk was recorded, the predicate went to `()`, and the test
+    RED on the disagreement, which is what it was built to do. But its own docstring's
+    instruction was "clear `infeasible_here` from the map cell" -- and following that
+    instruction turned the red into a `KeyError`, because a test keyed on an atom id
+    cannot survive that atom's blocker being lifted. A control whose success case is a
+    crash is a one-shot tripwire, not a control; it would have been deleted-to-green by
+    the next passing tick, taking the invariant with it.
+
+    So the invariant is stated over the CLASS (R10): whatever set of atoms currently
+    claims an instrument blocker, none of them may claim one their own predicate no
+    longer reports. An empty set passes honestly -- "no atom is instrument-blocked" is a
+    real and expected state, and it is the state EP6 entered when its walk was recorded.
+    The next atom to gain an `infeasible_here` cell inherits this check by existing,
+    which the keyed version could never offer.
+    """
+    for atom_id, record in sorted(ceiling._infeasible_records().items()):
+        assert tuple(record["blocks"]) == ceiling.live_blocks(record), (
+            f"{atom_id}: the map's `infeasible_here.blocks` and the live predicate "
+            f"disagree -- either the instrument was acquired (clear the cell and re-open "
+            f"the atom) or the map is claiming a blocker that is not there"
+        )
+
+
+def test_EP6s_walk_is_recorded_and_its_cell_no_longer_claims_the_blocker():
+    """THE RE-OPEN, LANDED — both halves, because either alone is satisfiable by accident.
+
+    A cleared map cell alone proves nothing: deleting the block is a one-line edit any
+    tick could make to silence the class check above. A recorded review alone proves
+    nothing either: the map could still be claiming a blocker that is gone. Asserting
+    both together is what makes this the record of an event rather than of an edit.
+    """
+    from tools import wall_channel_census as census
+
+    assert census.cold_eyes_walk_outstanding() == (), (
+        "no blind review of this capability is recorded -- the walk is outstanding again, "
+        "which means the ledger lost a record rather than that the atom regressed"
+    )
+    assert "EP6_wall_protocol_typing" not in ceiling._infeasible_records(), (
+        "the walk is recorded but the map still claims the seat cannot pay for it"
+    )
+
+
+def test_the_walk_predicate_reads_the_LEDGER_and_not_a_flag(tmp_path):
+    """Both directions of EP6's own predicate, driven on the artefact rather than asserted.
+
+    The subject is the blind-review ledger because that is the thing only a walk that actually
+    happened produces. A missing ledger is NOT unreadable -- nothing recorded is the honest
+    reading that no walk has run, and it is the live state (zero reviews, ever)."""
+    from tools import wall_channel_census as census
+
+    empty = tmp_path / "none.jsonl"
+    assert census.cold_eyes_walk_outstanding(empty) == (census.COLD_EYES_WALK_CRITERION,)
+
+    recorded = tmp_path / "some.jsonl"
+    recorded.write_text(json.dumps({"capability": census.BLIND_REVIEW_CAPABILITY}) + "\n")
+    assert census.cold_eyes_walk_outstanding(recorded) == ()
+
+    # NULL CONTROL: a walk recorded for a DIFFERENT capability does not lift this atom's
+    # blocker. Without this the test above only proves the ledger is non-empty.
+    other = tmp_path / "other.jsonl"
+    other.write_text(json.dumps({"capability": "SomeOtherAtom"}) + "\n")
+    assert census.cold_eyes_walk_outstanding(other) == (census.COLD_EYES_WALK_CRITERION,)
+
+
+def test_the_CLI_actually_PRINTS_the_decision_the_supervisor_says_it_lists(
+    tmp_path, monkeypatch, capsys
+):
+    """THE POINTER AND THE SURFACE, held together.
+
+    Two supervisor rungs tell the operator that `python3 -m tools.discovery_pass_ceiling`
+    "lists the decision each one now is" when they exclude an atom from the draw. Until
+    2026-08-20 the CLI did not call `decisions()` at all -- it re-stated the generic verdict
+    inline, so `decisions()` was a function with no caller (the class
+    `CLASS_NO_CALLER_AND_NEVER_RUNS`) and the supervisor's instruction pointed at a surface
+    that did not carry the thing it promised.
+
+    A test on `decisions()` alone cannot see that: it was green throughout.
+    """
+    _blocked_fixture(tmp_path, monkeypatch)
+    assert ceiling.main(["--ceiling", "5"]) == 0
+    out = capsys.readouterr().out
+    assert "BLOCKED ON AN INSTRUMENT" in out
+    assert "a thing this box does not have." in out
+    assert "B_atom" in out
+
+
+def test_the_CLI_names_a_stage_appropriate_decision_for_an_unblocked_atom(
+    tmp_path, monkeypatch, capsys
+):
+    """NULL CONTROL for the test above -- without it, "the CLI prints something about
+    blockers" would pass on a CLI that printed nothing else."""
+    _point(monkeypatch, _fixture(tmp_path, [dict(ATOM, loop_stage="build")],
+                                 {"X_atom": 6}, [REAL_MOVE]))
+    assert ceiling.main(["--ceiling", "5"]) == 0
+    out = capsys.readouterr().out
+    assert "BLOCKED ON AN INSTRUMENT" not in out
+    assert "land the level move" in out

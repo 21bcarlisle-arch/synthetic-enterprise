@@ -89,6 +89,16 @@ MAP_FEED = PROJECT / "site" / "data" / "maturity_map.json"
 STORE_DIR = PROJECT / "docs" / "design" / "simplifications"
 LEDGER = PROJECT / "docs" / "observability" / "gate_authorizations.jsonl"
 
+#: `infeasible_here` is read from the AUTHORING SOURCE and not from `MAP_FEED`, which is the
+#: only place in this module that reads two files. The reason is measured, not stylistic: the
+#: site feed is a LOSSY projection of the map and DROPS this field — checked on the one atom
+#: that carries it (`H_GAP_fabric_belief_truth_gap` has 18 keys in the feed and
+#: `infeasible_here` is not among them). Reading the blocker from the feed would therefore
+#: report "no atom is instrument-blocked" for ever, which is the FAIL-OPEN reading this whole
+#: module exists to refuse. The join is by atom id, and `_infeasible_records` asserts every id
+#: it returns is one the feed also carries, so the two refs cannot silently drift apart.
+MAP_SOURCE = PROJECT / "docs" / "design" / "maturity_map.yaml"
+
 #: Passes an atom may take without its level moving. Five, not three and not eight, for a
 #: reason that is arguable rather than obvious: at the measured distribution three would
 #: saturate 32 atoms at once (a shock to the draw, and several of those are genuinely
@@ -219,19 +229,159 @@ def is_saturated(atom_id: str, ceiling: int = DEFAULT_CEILING) -> bool:
     return atom_id in saturated_ids(ceiling)
 
 
+#: The keys an `infeasible_here` record must carry to mean anything. A record missing one is
+#: REFUSED rather than ignored: `blocks` with no `predicate` is a sentence, and a sentence is
+#: what this field exists to replace.
+INFEASIBLE_KEYS = ("blocks", "predicate", "needs")
+
+
+def _infeasible_records() -> dict[str, dict]:
+    """atom -> its `infeasible_here` record. Fail-closed at every step.
+
+    An unreadable map RAISES rather than reporting no blockers, for the same reason the rest
+    of this module raises: "nothing is instrument-blocked", computed from a source nobody
+    could read, is the reading that turns a permanent blocker back into an infinite lane.
+    """
+    try:
+        import yaml
+    except ImportError as e:  # pragma: no cover - yaml is a hard dependency here
+        raise CeilingUnavailable(f"yaml unavailable, so blockers are unreadable: {e}") from e
+    try:
+        atoms = yaml.safe_load(MAP_SOURCE.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        raise CeilingUnavailable(f"map source unreadable: {e}") from e
+    if isinstance(atoms, dict):
+        atoms = atoms.get("atoms")
+    if not atoms:
+        raise CeilingUnavailable("map source carries no atoms -- unreadable, not empty")
+    out: dict[str, dict] = {}
+    for atom in atoms:
+        record = atom.get("infeasible_here")
+        if record is None:
+            continue
+        missing = [k for k in INFEASIBLE_KEYS if not record.get(k)]
+        if missing:
+            raise CeilingUnavailable(
+                f"{atom['id']}: `infeasible_here` is missing {missing} -- a blocker that does "
+                f"not name what would lift it is a sentence, not a record"
+            )
+        out[atom["id"]] = record
+    # THE TWO REFS ARE HELD TOGETHER RATHER THAN HOPED ABOUT. This is the module's only
+    # two-file read, and the failure it invites is silent: an atom renamed in the map source
+    # but not in the feed would simply never match a survey row, and its blocker would stop
+    # being reported with nothing going red. So the join key is checked in the direction that
+    # can actually go wrong -- every blocked id must be an id the feed carries.
+    known = {a["id"] for a in _atoms()}
+    stranded = sorted(set(out) - known)
+    if stranded:
+        raise CeilingUnavailable(
+            f"`infeasible_here` is recorded for {stranded}, which the map feed does not carry "
+            f"-- the two refs have drifted and the blocker would be silently unreported"
+        )
+    return out
+
+
+def live_blocks(record: dict) -> tuple[str, ...]:
+    """Run the record's own predicate. The LIVE half, and the thing that makes it re-open.
+
+    The map states a blocker; the predicate re-derives it from disk NOW. When they disagree
+    the acquisition has landed and the atom should re-open -- which is only detectable
+    because the predicate is RUN rather than believed (the pattern
+    `tests/harness/test_lcl_household_anchors.py` pins for the fabric atom).
+
+    A predicate that cannot be imported or called RAISES. An unavailable check is a FAILED
+    check (R15 FAIL-SILENT): treating an unresolvable import path as "no blocker" would let a
+    renamed predicate quietly re-open an atom nobody had unblocked.
+    """
+    path = record["predicate"]
+    module_name, _, func_name = str(path).rpartition(".")
+    try:
+        import importlib
+
+        func = getattr(importlib.import_module(module_name), func_name)
+    except Exception as e:  # noqa: BLE001 - any resolution failure is a failed check
+        raise CeilingUnavailable(
+            f"`infeasible_here.predicate` {path!r} could not be resolved, so whether the "
+            f"blocker still stands is UNKNOWN -- a failed check, not a re-open: {e}"
+        ) from e
+    try:
+        return tuple(func())
+    except Exception as e:  # noqa: BLE001 - same direction
+        raise CeilingUnavailable(f"`infeasible_here.predicate` {path!r} raised: {e}") from e
+
+
+#: The decision a saturated atom faces, BY THE STAGE IT IS ACTUALLY IN. The single verdict
+#: this module shipped with -- "promote to build, or close it" -- is written for the idle
+#: discovery tier that was its only consumer. Rendered unconditionally it tells a `build`-stage
+#: atom to promote to the stage it is already in, i.e. its first limb is a no-op and its second
+#: is wrong, which is a decision that cannot be answered (the class
+#: `WORKER_FINDING_DECISION_WITHOUT_A_DO_NOTHING_OPTION`). Measured on the live tree at the
+#: time of writing: 11 of the 24 saturated atoms are `build` or `harden`, exactly the ten-plus
+#: this module's own docstring calls "owed rather than absent".
+STAGE_DECISIONS = {
+    "idle": "promote to build, or close it -- investigating again is no longer an available "
+            "answer",
+    "build": "land the level move, or record `infeasible_here` if the move needs an instrument "
+             "this seat cannot obtain, or close it -- another build pass at the same level is "
+             "no longer an available answer",
+    "harden": "move the level, or record `infeasible_here` if the move needs an instrument this "
+              "seat cannot obtain, or close it -- hardening is not a level move and cannot "
+              "become one, so another harden pass is no longer an available answer",
+}
+
+
 def decisions(ceiling: int = DEFAULT_CEILING) -> list[dict]:
-    """Saturated atoms as the decision each one now IS: promote, or close.
+    """Saturated atoms as the decision each one now IS.
 
     The verdict is deliberately not computed. Readiness is a judgement about whether the
     investigation answered its question, and a rule that guessed it from a pass count would
     be inventing the very thing the passes were supposed to establish. What this asserts is
-    only that the decision is DUE.
+    only that the decision is DUE, and -- since 2026-08-20 -- that it is one the atom's own
+    stage can actually answer.
+
+    THE THIRD ANSWER, which is why this reads `infeasible_here` at all. An atom whose level
+    move needs an instrument the seat cannot obtain is neither promotable nor closable: more
+    passes cannot move it and the work is real and unfinished. Both shipped limbs are wrong
+    for it, and it is precisely the atom that accumulates passes fastest. That state already
+    had a NOTATION in the map and, until now, no reader anywhere -- so it was carried in prose
+    in six consecutive pass records instead, which is the shape CLAUDE.md calls worse than no
+    rule at all.
     """
-    return [
-        {**r, "decision": "promote to build, or close it -- investigating again is no longer "
-                          "an available answer"}
-        for r in survey(ceiling) if r["saturated"]
-    ]
+    blocked = _infeasible_records()
+    out = []
+    for r in survey(ceiling):
+        if not r["saturated"]:
+            continue
+        record = blocked.get(r["atom"])
+        row = {**r, "decision": STAGE_DECISIONS.get(r["stage"], STAGE_DECISIONS["idle"]),
+               "instrument_blocked": False}
+        if record is not None:
+            still = live_blocks(record)
+            if still:
+                row.update(
+                    instrument_blocked=True,
+                    blocks=list(still),
+                    needs=record["needs"],
+                    decision=(
+                        f"BLOCKED ON AN INSTRUMENT, not on work: {record['needs']} "
+                        f"Neither promotable nor closable -- the passes cannot move the level "
+                        f"until the instrument lands, so do not record another pass as if they "
+                        f"could."
+                    ),
+                )
+            else:
+                row.update(
+                    instrument_blocked=False,
+                    blocks=[],
+                    needs=record["needs"],
+                    decision=(
+                        f"RE-OPEN: the map claims {list(record['blocks'])} but the live "
+                        f"predicate `{record['predicate']}` now returns none of it -- the "
+                        f"instrument landed. Clear `infeasible_here` and resume the level move."
+                    ),
+                )
+        out.append(row)
+    return out
 
 
 def main(argv=None) -> int:
@@ -242,21 +392,34 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
 
     rows = survey(args.ceiling)
-    stuck = [r for r in rows if r["saturated"]]
+    # THIS CLI IS `decisions()`'s ONLY CONSUMER, and until 2026-08-20 it did not call it --
+    # it re-stated the generic verdict inline instead. Both supervisor rungs that exclude an
+    # atom tell the operator, in those words, that `python3 -m tools.discovery_pass_ceiling`
+    # "lists the decision each one now is" (supervisor.py, the HARDEN gate and the idle tier).
+    # It did not. A pointer to a surface that under-delivers is the same defect as the
+    # unanswerable verdict itself, one layer out.
+    stuck = decisions(args.ceiling)
     if args.json:
         print(json.dumps({"ceiling": args.ceiling, "saturated": stuck,
                           "surveyed": len(rows)}, indent=2))
         return 0
-    shown = rows if args.all else stuck
+    shown = rows if args.all else [r for r in rows if r["saturated"]]
     print(f"{'since':>7}{'passes':>7}{'moves':>7}  {'stage':<8}{'level':>6}  atom")
     for r in shown:
         print(f"{r['passes_since_move']:>7}{r['passes']:>7}{r['level_moves']:>7}  "
               f"{r['stage']:<8}{r['level']:>6}  {r['atom']}")
     print(f"\n{len(stuck)} of {len(rows)} atoms below target are SATURATED at ceiling "
           f"{args.ceiling}: {args.ceiling}+ passes SINCE the atom last moved a level.")
-    if stuck:
-        print("They leave the discovery draw. Each is now a decision: promote to build, or "
-              "close it.")
+    blocked = [r for r in stuck if r["instrument_blocked"]]
+    if blocked:
+        print(f"\n{len(blocked)} of them is/are BLOCKED ON AN INSTRUMENT -- neither promotable "
+              f"nor closable, and more passes cannot move them:")
+        for r in blocked:
+            print(f"  {r['atom']} ({r['level']}, {r['passes_since_move']} passes since a move)")
+            print(f"    needs: {r['needs']}")
+    for r in stuck:
+        if not r["instrument_blocked"]:
+            print(f"\n{r['atom']} [{r['stage']}] -- {r['decision']}")
     return 0
 
 
