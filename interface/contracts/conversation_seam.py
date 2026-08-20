@@ -245,9 +245,49 @@ CONTRACT_PAYLOAD_TYPES: tuple[type, ...] = (
 # seam's OBSERVABLE_RESPONSE_PAYLOAD_TYPES.
 OBSERVABLE_RESPONSE_PAYLOAD_TYPES: tuple[type, ...] = (ConversationResponse,)
 
+# THE CLOSED OBSERVABLE FIELD SET -- the wall proper on this seam, mirroring
+# ``flex_observable_seam.OBSERVABLE_PAYLOAD_FIELDS`` and added for the same
+# measured reason on 2026-08-20: a denylist of latent-trait NAMES answers only
+# "is this one of the leaks we already thought of", and this seam's encoder had
+# no field-level check at all. A trait scalar added to ``ConversationResponse``
+# under any name not spelled below -- ``propensity``, ``responsiveness``,
+# ``segment_score`` -- crossed to the company unrefused.
+#
+# The codec asks the closed question instead: is every field on this payload one
+# the contract has DECLARED observable? Adding a field to a dataclass above and
+# nothing else now REFUSES at the point of emission (R15 FAIL-CLOSED). Widening
+# the wall means editing this map, and that edit is the epistemic act.
+#
+# DECLARED HERE, NOT DERIVED -- deliberately not ``get_type_hints`` of the
+# dataclass, which widens whenever the subject widens and is an R15 TAUTOLOGY
+# for this exact question. The duplication is the independence.
+OBSERVABLE_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {
+    "ConversationMessage": (
+        "message_id",
+        "situation",
+        "channel",
+        "product",
+        "tone",
+        "framing",
+        "emitted_step",
+        "offer",
+    ),
+    "ConversationResponse": (
+        "response_id",
+        "responds_to",
+        "action",
+        "channel_chosen",
+        "latency",
+        "responded_step",
+    ),
+}
+
 # Field names that would leak a customer's HIDDEN latent trait across the
-# seam -- the wall test asserts NO payload (message or response) carries any
-# of these. A real supplier never sees the scalar that produced the action.
+# seam -- a SECOND belt behind OBSERVABLE_PAYLOAD_FIELDS, still firing on the
+# one case the closed set cannot see: a trait field added to the dataclass AND
+# declared observable in the same edit. The wall test asserts NO payload
+# (message or response) carries any of these. A real supplier never sees the
+# scalar that produced the action.
 FORBIDDEN_TRUTH_FIELDS: tuple[str, ...] = (
     "framing_susceptibility",
     "framingsusceptibility",

@@ -689,3 +689,128 @@ def test_the_module_still_imports_nothing_from_the_company_side():
     assert _imported_roots("simulation/conversation_response.py").isdisjoint(
         {"company", "saas"}
     )
+
+
+# ---------------------------------------------------------------------------
+# The CLOSED observable field set (EP6 pass 25). Before it, this seam's ENCODE
+# leg had no field-level scrutiny at all -- FORBIDDEN_TRUTH_FIELDS was checked
+# only by tests, and only against names someone had predicted. A latent trait
+# under an unpredicted name crossed to the company.
+# ---------------------------------------------------------------------------
+
+
+def _response_shaped(**extra):
+    """A ConversationResponse-shaped payload under the REAL type name, because
+    the mutation modelled is someone editing the real class."""
+    import dataclasses
+
+    from interface.contracts.conversation_seam import Channel, ResponseAction
+
+    dropped = extra.pop("_drop", ())
+    base = [
+        ("response_id", str), ("responds_to", str), ("action", ResponseAction),
+        ("channel_chosen", Channel), ("latency", int), ("responded_step", int),
+    ]
+    base = [f for f in base if f[0] not in dropped]
+    return dataclasses.make_dataclass(
+        "ConversationResponse", base + [(n, float) for n in extra], frozen=True
+    )
+
+
+def _encode_conv(mutant_type, monkeypatch, **values):
+    import simulation.conversation_response as _cr
+
+    registry = dict(_cr._ENCODABLE_RESPONSE_PAYLOAD_TYPES)
+    registry["ConversationResponse"] = mutant_type
+    monkeypatch.setattr(_cr, "_ENCODABLE_RESPONSE_PAYLOAD_TYPES", registry)
+    return _cr.encode_observable_payload(mutant_type(**values))
+
+
+_BASE_RESPONSE = dict(response_id="r1", responds_to="m1", latency=2, responded_step=7)
+
+
+def _enums():
+    from interface.contracts.conversation_seam import Channel, ResponseAction
+
+    return dict(action=ResponseAction.REPLY, channel_chosen=Channel.EMAIL)
+
+
+def test_null_control_the_declared_response_still_crosses():
+    """The control must admit the real thing, or refusing proves nothing."""
+    from interface.contracts.conversation_seam import ConversationResponse
+    from simulation.conversation_response import encode_observable_payload
+
+    wire = encode_observable_payload(
+        ConversationResponse(**_BASE_RESPONSE, **_enums())
+    )
+    assert set(wire["fields"]) == {
+        "response_id", "responds_to", "action", "channel_chosen",
+        "latency", "responded_step",
+    }
+
+
+def test_mutation_a_latent_trait_under_an_unpredicted_name_is_refused(monkeypatch):
+    """THE named defect. `propensity_scalar` is a hidden trait by meaning and is
+    on NO denylist -- the closed set refuses it for never having been declared
+    observable, which is the R10 form: the class fails, not the instance."""
+    from interface.contracts.conversation_seam import FORBIDDEN_TRUTH_FIELDS
+    from simulation.conversation_response import SeamCodecError
+
+    assert "propensity_scalar" not in FORBIDDEN_TRUTH_FIELDS, (
+        "this test's point is a trait the DENYLIST cannot see; if it is now "
+        "listed, pick another unpredicted trait name"
+    )
+    mutant = _response_shaped(propensity_scalar=float)
+    with pytest.raises(SeamCodecError, match="has not declared observable"):
+        _encode_conv(
+            mutant, monkeypatch,
+            propensity_scalar=0.83, **_BASE_RESPONSE, **_enums(),
+        )
+
+
+def test_mutation_a_known_forbidden_trait_still_trips_the_denylist_belt(monkeypatch):
+    """The SECOND belt is separately observable: a field that is both undeclared
+    and a known trait name must report the TRUTH-LEAK, not the generic refusal,
+    or the denylist has been silently subsumed and can no longer be said to fire."""
+    from interface.contracts.conversation_seam import FORBIDDEN_TRUTH_FIELDS
+    from simulation.conversation_response import SeamCodecError
+
+    assert "true_intent" in FORBIDDEN_TRUTH_FIELDS
+    mutant = _response_shaped(true_intent=float)
+    with pytest.raises(SeamCodecError, match="hidden-trait field"):
+        _encode_conv(
+            mutant, monkeypatch, true_intent=1.0, **_BASE_RESPONSE, **_enums()
+        )
+
+
+def test_mutation_a_stale_declaration_is_refused(monkeypatch):
+    """FAIL-CLOSED the other way: a payload that LOSES a certified field is
+    refused rather than silently emitting a narrower wire form."""
+    from simulation.conversation_response import SeamCodecError
+
+    mutant = _response_shaped(_drop=("responded_step",))
+    values = {k: v for k, v in _BASE_RESPONSE.items() if k != "responded_step"}
+    with pytest.raises(SeamCodecError, match="omits declared observable field"):
+        _encode_conv(mutant, monkeypatch, **values, **_enums())
+
+
+def test_the_declaration_is_not_derived_from_the_payload_it_certifies():
+    """R15 TAUTOLOGY guard -- the closed set must be WRITTEN OUT, not computed
+    from the dataclass it certifies. This seam's DECODE leg builds its allowlist
+    with `get_type_hints(ConversationMessage)`, which is exactly the derived
+    form: it widens whenever the class widens and could not have caught the
+    defect above. That is why the encode leg does not reuse it."""
+    import ast
+    from pathlib import Path
+
+    tree = ast.parse(Path("interface/contracts/conversation_seam.py").read_text())
+    node = next(
+        n for n in ast.walk(tree)
+        if isinstance(n, ast.AnnAssign)
+        and getattr(n.target, "id", None) == "OBSERVABLE_PAYLOAD_FIELDS"
+    )
+    assert isinstance(node.value, ast.Dict), "must be a literal declaration"
+    for entry in node.value.values:
+        assert isinstance(entry, ast.Tuple), "each payload's fields must be literal"
+        for element in entry.elts:
+            assert isinstance(element, ast.Constant) and isinstance(element.value, str)

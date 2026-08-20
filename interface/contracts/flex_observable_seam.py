@@ -177,8 +177,56 @@ OBSERVABLE_RESPONSE_PAYLOAD_TYPES: tuple[type, ...] = (
     FlexSettlementLine,
 )
 
-# Field names that would leak the SIM's hidden truth across this seam -- the
-# wall test asserts none of the observable payloads carries any of these.
+# THE CLOSED OBSERVABLE FIELD SET -- the wall proper, and the reason
+# ``FORBIDDEN_TRUTH_FIELDS`` below is a second belt and not the control.
+#
+# WHY THIS EXISTS AND WHY IT IS WRITTEN OUT BY HAND. A denylist of truth field
+# NAMES answers "is this one of the leaks we already thought of"; it cannot
+# answer "could a real UK flex party know this", which is the guarantee this
+# module's header actually makes. Measured on 2026-08-20: ``FlexDispatchTruth``
+# carries 11 fields and the denylist named 2 of them, so ``true_delivered_mwh``,
+# ``true_delivery_ratio`` and ``true_utilised_revenue`` -- SIM ground truth by
+# their own names -- encoded onto the wire unrefused. The failure mode is not
+# exotic: it is the single most natural edit anyone makes to a settlement line,
+# adding one more useful field.
+#
+# So the codec asks the CLOSED question instead: is every field on this payload
+# one the contract has DECLARED observable? Adding a field to a dataclass above
+# and nothing else now REFUSES at the point of emission (R15 FAIL-CLOSED). To
+# widen the wall you must edit this tuple, and that edit is the epistemic act --
+# it is where a reviewer is forced to answer the header's question out loud.
+#
+# DECLARED HERE, NOT DERIVED. This is deliberately NOT ``get_type_hints`` of the
+# dataclass: a set derived from the subject widens whenever the subject does and
+# is an R15 TAUTOLOGY for exactly the question being asked. Independence is the
+# whole point, which is why the duplication is load-bearing rather than sloppy.
+OBSERVABLE_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {
+    "FlexDispatchInstruction": (
+        "instruction_id",
+        "unit_id",
+        "venue",
+        "direction",
+        "window_start",
+        "window_end",
+        "cleared_price_gbp_per_mwh",
+    ),
+    "FlexSettlementLine": (
+        "settlement_id",
+        "unit_id",
+        "venue",
+        "window_start",
+        "window_end",
+        "metered_delivery_mwh",
+        "utilisation_price_gbp_per_mwh",
+        "utilisation_payment_gbp",
+    ),
+}
+
+# Field names that would leak the SIM's hidden truth across this seam -- a
+# SECOND belt behind OBSERVABLE_PAYLOAD_FIELDS, kept because it still fires on
+# the case the closed set cannot see: a truth field added to the dataclass AND
+# declared observable in the same edit. The wall test asserts none of the
+# observable payloads carries any of these.
 FORBIDDEN_TRUTH_FIELDS: tuple[str, ...] = (
     "residual_mw",
     "residual_demand",

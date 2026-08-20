@@ -119,6 +119,7 @@ from enum import Enum
 from typing import List, Optional
 
 from interface.contracts.payment_observable_seam import (
+    OBSERVABLE_PAYLOAD_FIELDS,
     OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
     SCHEMA_VERSION,
     BacsArruddOutcome,
@@ -429,11 +430,31 @@ def encode_observable_payload(payload) -> dict:
             f"{payload_type.__name__} is not one of this seam's "
             f"OBSERVABLE_RESPONSE_PAYLOAD_TYPES {sorted(_ENCODABLE_PAYLOAD_TYPES)}"
         )
+    names = [f.name for f in fields(payload)]
+    declared = OBSERVABLE_PAYLOAD_FIELDS.get(payload_type.__name__)
+    if declared is None:
+        raise SeamEncodeError(
+            f"{payload_type.__name__} has no OBSERVABLE_PAYLOAD_FIELDS declaration -- "
+            "a payload type the contract has not certified field-by-field may not cross"
+        )
+    undeclared = sorted(set(names) - set(declared))
+    if undeclared:
+        raise SeamEncodeError(
+            f"{payload_type.__name__} declares field(s) {undeclared} the contract has not "
+            "declared observable -- widen OBSERVABLE_PAYLOAD_FIELDS only after answering "
+            "'could a real supplier read this off its own bank/Bacs report alone?'"
+        )
+    absent = sorted(set(declared) - set(names))
+    if absent:
+        raise SeamEncodeError(
+            f"{payload_type.__name__} omits declared observable field(s) {absent} -- the "
+            "contract's declaration has gone stale against the payload it certifies"
+        )
     return {
         "payload_type": payload_type.__name__,
         "fields": {
-            f.name: _encode_scalar(getattr(payload, f.name), f"{payload_type.__name__}.{f.name}")
-            for f in fields(payload)
+            name: _encode_scalar(getattr(payload, name), f"{payload_type.__name__}.{name}")
+            for name in names
         },
     }
 

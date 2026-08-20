@@ -400,3 +400,102 @@ class TestRoundTripBatch:
         ev = _event(customer_id="cust-y", period_index=3, result="success", payment_date="2026-01-15")
         resp = emit_wall_responses(ev)[0]
         assert resp.correlation_id == "cust-y::3"
+
+
+# ---------------------------------------------------------------------------
+# The CLOSED observable field set (EP6 pass 25). This seam's encoder was the
+# weakest of the wall's three: no field-level check and no truth denylist, so
+# any field added to any of its six payload types crossed to the company
+# unrefused. `TestWallNoInternalLeak` above asserts the payloads are clean
+# TODAY; these assert the codec REFUSES the edit that would dirty them.
+# ---------------------------------------------------------------------------
+
+
+def _remittance_shaped(**extra):
+    """A RemittanceAdvice-shaped payload under the REAL type name -- the
+    mutation modelled is someone editing the real contract dataclass."""
+    from interface.contracts.payment_observable_seam import PaymentRail
+
+    dropped = extra.pop("_drop", ())
+    base = [
+        ("bank_reference", str), ("account_id", str), ("amount_gbp", float),
+        ("rail", PaymentRail), ("value_date", date),
+    ]
+    base = [f for f in base if f[0] not in dropped]
+    return dataclasses.make_dataclass(
+        "RemittanceAdvice", base + [(n, float) for n in extra], frozen=True
+    )
+
+
+def _encode_payment(mutant_type, monkeypatch, **values):
+    import simulation.payment_seam_adapter as _psa
+
+    registry = dict(_psa._ENCODABLE_PAYLOAD_TYPES)
+    registry["RemittanceAdvice"] = mutant_type
+    monkeypatch.setattr(_psa, "_ENCODABLE_PAYLOAD_TYPES", registry)
+    return _psa.encode_observable_payload(mutant_type(**values))
+
+
+def _base_remittance():
+    from interface.contracts.payment_observable_seam import PaymentRail
+
+    return dict(
+        bank_reference="BR-1", account_id="A-1", amount_gbp=42.0,
+        rail=PaymentRail.BACS_DIRECT_DEBIT, value_date=date(2026, 1, 1),
+    )
+
+
+def test_null_control_the_declared_remittance_still_crosses():
+    """The control must admit the real thing, or refusing proves nothing."""
+    from simulation.payment_seam_adapter import encode_observable_payload
+
+    wire = encode_observable_payload(RemittanceAdvice(**_base_remittance()))
+    assert set(wire["fields"]) == {
+        "bank_reference", "account_id", "amount_gbp", "rail", "value_date",
+    }
+
+
+def test_mutation_an_undeclared_generator_field_is_refused_at_emission(monkeypatch):
+    """THE named defect. `true_balance_gbp` is generator-internal -- the
+    customer's actual bank balance, which no supplier ever sees -- and this
+    seam had NO denylist that could have named it. The closed set refuses it
+    for never having been declared observable (R10: the class, not the
+    instance)."""
+    from simulation.payment_seam_adapter import SeamEncodeError
+
+    mutant = _remittance_shaped(true_balance_gbp=float)
+    with pytest.raises(SeamEncodeError, match="has not declared observable"):
+        _encode_payment(
+            mutant, monkeypatch, true_balance_gbp=12.34, **_base_remittance()
+        )
+
+
+def test_mutation_a_stale_declaration_is_refused(monkeypatch):
+    """FAIL-CLOSED the other way: a payload that LOSES a certified field is
+    refused rather than silently emitting a narrower wire form."""
+    from simulation.payment_seam_adapter import SeamEncodeError
+
+    mutant = _remittance_shaped(_drop=("amount_gbp",))
+    values = {k: v for k, v in _base_remittance().items() if k != "amount_gbp"}
+    with pytest.raises(SeamEncodeError, match="omits declared observable field"):
+        _encode_payment(mutant, monkeypatch, **values)
+
+
+def test_every_declared_payload_type_matches_its_contract_dataclass():
+    """The declaration must cover ALL SIX payload types and agree with each --
+    a closed set that silently omits a type is fail-open for that type, which
+    is the shape of defect this whole mechanism exists to refuse."""
+    from interface.contracts.payment_observable_seam import (
+        OBSERVABLE_PAYLOAD_FIELDS,
+        OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
+    )
+
+    assert set(OBSERVABLE_PAYLOAD_FIELDS) == {
+        t.__name__ for t in OBSERVABLE_RESPONSE_PAYLOAD_TYPES
+    }
+    for payload_type in OBSERVABLE_RESPONSE_PAYLOAD_TYPES:
+        actual = tuple(f.name for f in dataclasses.fields(payload_type))
+        assert OBSERVABLE_PAYLOAD_FIELDS[payload_type.__name__] == actual, (
+            f"{payload_type.__name__}: the contract's declaration and the "
+            "dataclass it certifies have diverged"
+        )

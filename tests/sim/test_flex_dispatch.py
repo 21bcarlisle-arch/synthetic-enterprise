@@ -236,24 +236,33 @@ def test_a_FORBIDDEN_TRUTH_FIELD_is_refused_BY_NAME_at_the_point_of_emission():
         settlement_id: str
         true_baseline_mwh: float
 
-    @_dc(frozen=True)
-    class Clean:
-        settlement_id: str
-        metered_delivery_mwh: float
+    from interface.contracts.flex_observable_seam import FlexVenue
 
     assert "true_baseline_mwh" in FORBIDDEN_TRUTH_FIELDS
     saved = dict(fd._ENCODABLE_RESPONSE_PAYLOAD_TYPES)
     try:
-        fd._ENCODABLE_RESPONSE_PAYLOAD_TYPES.update({"Leaky": Leaky, "Clean": Clean})
+        fd._ENCODABLE_RESPONSE_PAYLOAD_TYPES.update({"Leaky": Leaky})
         with pytest.raises(fd.SeamCodecError, match="true_baseline_mwh"):
             fd.encode_observable_payload(Leaky("SETT-1", 4.0))
-        # null control: same shape, unforbidden field name -> crosses
-        assert fd.encode_observable_payload(Clean("SETT-1", 4.0))["fields"] == {
-            "settlement_id": "SETT-1", "metered_delivery_mwh": 4.0,
-        }
     finally:
         fd._ENCODABLE_RESPONSE_PAYLOAD_TYPES.clear()
         fd._ENCODABLE_RESPONSE_PAYLOAD_TYPES.update(saved)
+    # NULL CONTROL: the real declared payload, no forbidden name -> crosses, so
+    # what the refusal above detects is the FIELD and not the fixture. It uses
+    # the real type because since EP6 pass 25 a fabricated payload type is
+    # refused on its own account (the closed set), which is a stronger wall
+    # than this test's subject and would mask it.
+    clean = fd.encode_observable_payload(
+        FlexSettlementLine(
+            settlement_id="SETT-1", unit_id="U1", venue=FlexVenue.BALANCING_MECHANISM,
+            window_start=dt.datetime(2026, 1, 1),
+            window_end=dt.datetime(2026, 1, 1, 0, 30),
+            metered_delivery_mwh=4.0, utilisation_price_gbp_per_mwh=50.0,
+            utilisation_payment_gbp=200.0,
+        )
+    )
+    assert clean["fields"]["metered_delivery_mwh"] == 4.0
+    assert not set(clean["fields"]) & set(FORBIDDEN_TRUTH_FIELDS)
 
 
 def test_a_payload_type_the_contract_does_not_declare_OBSERVABLE_is_refused():
@@ -314,3 +323,125 @@ def test_the_wire_feeds_carry_one_message_per_object_response():
     objects, wires = _obj(truth), _wire(truth)
     assert len(objects) == len(wires) > 0
     assert [r.correlation_id for r in objects] == [w["correlation_id"] for w in wires]
+
+
+# ---------------------------------------------------------------------------
+# The CLOSED observable field set (EP6 pass 25). R15 mutation proofs: each
+# asserts the control fires on its own named defect, and the null control
+# asserts it still admits the legitimate payload.
+#
+# The defect these replace was measured, not imagined: FORBIDDEN_TRUTH_FIELDS
+# named 2 of FlexDispatchTruth's 11 fields, so `true_delivered_mwh` encoded
+# onto the wire unrefused while the codec's docstring claimed the CLASS was
+# refused. A denylist cannot answer "is this observable".
+# ---------------------------------------------------------------------------
+
+
+def _settlement_line_shaped(**extra):
+    """A FlexSettlementLine-shaped payload, optionally with fields the contract
+    never declared. Registered under the real type name because the mutation
+    being modelled is someone EDITING the real class, not smuggling a new one."""
+    import dataclasses
+
+    from interface.contracts.flex_observable_seam import FlexVenue
+
+    dropped = extra.pop("_drop", ())
+    fields = [
+        ("settlement_id", str), ("unit_id", str), ("venue", FlexVenue),
+        ("window_start", dt.datetime), ("window_end", dt.datetime),
+        ("metered_delivery_mwh", float), ("utilisation_price_gbp_per_mwh", float),
+        ("utilisation_payment_gbp", float),
+    ]
+    fields = [f for f in fields if f[0] not in dropped]
+    fields += [(name, float) for name in extra]
+    mutant = dataclasses.make_dataclass("FlexSettlementLine", fields, frozen=True)
+    return mutant
+
+
+def _encode_with(mutant_type, monkeypatch, **values):
+    import sim.flex_dispatch as _fd
+
+    registry = dict(_fd._ENCODABLE_RESPONSE_PAYLOAD_TYPES)
+    registry["FlexSettlementLine"] = mutant_type
+    monkeypatch.setattr(_fd, "_ENCODABLE_RESPONSE_PAYLOAD_TYPES", registry)
+    return _fd.encode_observable_payload(mutant_type(**values))
+
+
+_BASE_LINE = dict(
+    settlement_id="s1", unit_id="u1",
+    window_start=dt.datetime(2026, 1, 1), window_end=dt.datetime(2026, 1, 1, 0, 30),
+    metered_delivery_mwh=1.0, utilisation_price_gbp_per_mwh=50.0,
+    utilisation_payment_gbp=50.0,
+)
+
+
+def test_null_control_the_declared_payload_still_crosses():
+    """The control must admit the real thing, or it proves nothing by refusing."""
+    from interface.contracts.flex_observable_seam import FlexVenue
+    from sim.flex_dispatch import encode_observable_payload
+
+    wire = encode_observable_payload(
+        FlexSettlementLine(venue=FlexVenue.BALANCING_MECHANISM, **_BASE_LINE)
+    )
+    assert set(wire["fields"]) == {
+        "settlement_id", "unit_id", "venue", "window_start", "window_end",
+        "metered_delivery_mwh", "utilisation_price_gbp_per_mwh",
+        "utilisation_payment_gbp",
+    }
+
+
+def test_mutation_an_undeclared_truth_field_is_refused_at_emission(monkeypatch):
+    """THE named defect. `true_delivered_mwh` is SIM ground truth off this
+    module's own FlexDispatchTruth and is on NO denylist -- the closed set
+    refuses it because it was never declared observable, which is the R10 form
+    (the class fails, not the instance someone predicted)."""
+    from interface.contracts.flex_observable_seam import (
+        FORBIDDEN_TRUTH_FIELDS,
+        FlexVenue,
+    )
+    from sim.flex_dispatch import SeamCodecError
+
+    assert "true_delivered_mwh" not in FORBIDDEN_TRUTH_FIELDS, (
+        "this test's whole point is a truth field the DENYLIST cannot see; "
+        "if it is now listed, pick another off-list FlexDispatchTruth field"
+    )
+    mutant = _settlement_line_shaped(true_delivered_mwh=float)
+    with pytest.raises(SeamCodecError, match="has not declared observable"):
+        _encode_with(
+            mutant, monkeypatch,
+            venue=FlexVenue.BALANCING_MECHANISM, true_delivered_mwh=4.2, **_BASE_LINE,
+        )
+
+
+def test_mutation_a_stale_declaration_is_refused(monkeypatch):
+    """FAIL-CLOSED the other way: if the payload loses a field the contract
+    still certifies, the declaration has gone stale and the codec says so
+    rather than silently emitting a narrower wire form."""
+    from interface.contracts.flex_observable_seam import FlexVenue
+    from sim.flex_dispatch import SeamCodecError
+
+    values = {k: v for k, v in _BASE_LINE.items() if k != "utilisation_payment_gbp"}
+    mutant = _settlement_line_shaped(_drop=("utilisation_payment_gbp",))
+    with pytest.raises(SeamCodecError, match="omits declared observable field"):
+        _encode_with(mutant, monkeypatch, venue=FlexVenue.BALANCING_MECHANISM, **values)
+
+
+def test_the_declaration_is_not_derived_from_the_payload_it_certifies():
+    """R15 TAUTOLOGY guard. The closed set must be WRITTEN OUT, not computed
+    from the dataclass -- a set derived from its own subject widens whenever
+    the subject widens and could never have caught the defect above."""
+    import ast
+    from pathlib import Path
+
+    src = Path("interface/contracts/flex_observable_seam.py").read_text()
+    tree = ast.parse(src)
+    node = next(
+        n for n in ast.walk(tree)
+        if isinstance(n, ast.AnnAssign)
+        and getattr(n.target, "id", None) == "OBSERVABLE_PAYLOAD_FIELDS"
+    )
+    assert isinstance(node.value, ast.Dict), "must be a literal declaration"
+    for entry in node.value.values:
+        assert isinstance(entry, ast.Tuple), "each payload's fields must be literal"
+        for element in entry.elts:
+            assert isinstance(element, ast.Constant) and isinstance(element.value, str)

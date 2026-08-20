@@ -78,6 +78,8 @@ from interface.contracts.conversation_seam import (
     ConversationMessageWallRequest,
     ConversationResponse,
     ConversationResponseWallResponse,
+    FORBIDDEN_TRUTH_FIELDS,
+    OBSERVABLE_PAYLOAD_FIELDS,
     OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
     ResponseAction,
     SCHEMA_VERSION,
@@ -516,6 +518,16 @@ def encode_observable_payload(payload: Any) -> dict:
     guessed the type from the field set would silently mis-route the day this
     seam's `OBSERVABLE_RESPONSE_PAYLOAD_TYPES` grows a second member. The tag
     set is read from that tuple, so it grows with the contract.
+
+    THE WALL, AT PAYLOAD DEPTH (added 2026-08-20). Every field is checked
+    against the contract's `OBSERVABLE_PAYLOAD_FIELDS` declaration and an
+    UNDECLARED field is refused here, at the point of emission. Until this
+    check existed the encode leg had no field-level scrutiny whatever: a
+    latent trait added to `ConversationResponse` crossed to the company, and
+    `FORBIDDEN_TRUTH_FIELDS` -- checked only by tests, and only against names
+    someone had predicted -- could not see it. The closed set asks the R10
+    question ("is this field certified observable") rather than the instance
+    question ("is this field one of the fifteen names we listed").
     """
     payload_type = type(payload)
     if payload_type.__name__ not in _ENCODABLE_RESPONSE_PAYLOAD_TYPES or (
@@ -526,13 +538,42 @@ def encode_observable_payload(payload: Any) -> dict:
             f"OBSERVABLE_RESPONSE_PAYLOAD_TYPES "
             f"{sorted(_ENCODABLE_RESPONSE_PAYLOAD_TYPES)}"
         )
+    names = [f.name for f in fields(payload)]
+    # DENYLIST FIRST -- see the ordering note in `sim.flex_dispatch`: the
+    # truth-leak message is the more diagnostic when a field trips both belts,
+    # and the ordering keeps each belt separately observable in test.
+    leaking = sorted(set(names) & set(FORBIDDEN_TRUTH_FIELDS))
+    if leaking:
+        raise SeamCodecError(
+            f"{payload_type.__name__} declares hidden-trait field(s) {leaking} -- the "
+            "scalar that produced the action may never cross this seam"
+        )
+    declared = OBSERVABLE_PAYLOAD_FIELDS.get(payload_type.__name__)
+    if declared is None:
+        raise SeamCodecError(
+            f"{payload_type.__name__} has no OBSERVABLE_PAYLOAD_FIELDS declaration -- "
+            "a payload type the contract has not certified field-by-field may not cross"
+        )
+    undeclared = sorted(set(names) - set(declared))
+    if undeclared:
+        raise SeamCodecError(
+            f"{payload_type.__name__} declares field(s) {undeclared} the contract has not "
+            "declared observable -- widen OBSERVABLE_PAYLOAD_FIELDS only after answering "
+            "'could a real supplier read this off its own systems?'"
+        )
+    absent = sorted(set(declared) - set(names))
+    if absent:
+        raise SeamCodecError(
+            f"{payload_type.__name__} omits declared observable field(s) {absent} -- the "
+            "contract's declaration has gone stale against the payload it certifies"
+        )
     return {
         "payload_type": payload_type.__name__,
         "fields": {
-            f.name: _encode_scalar(
-                getattr(payload, f.name), f"{payload_type.__name__}.{f.name}"
+            name: _encode_scalar(
+                getattr(payload, name), f"{payload_type.__name__}.{name}"
             )
-            for f in fields(payload)
+            for name in names
         },
     }
 

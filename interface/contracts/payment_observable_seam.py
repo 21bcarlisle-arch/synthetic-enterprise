@@ -274,3 +274,43 @@ OBSERVABLE_RESPONSE_PAYLOAD_TYPES: tuple[type, ...] = (
     PaymentNotification,
     SettlementConfirmation,
 )
+
+
+# THE CLOSED OBSERVABLE FIELD SET -- the third and last of the wall's codecs to
+# get one (EP6 pass 25), and the one that needed it most: this seam's encoder
+# had neither a field-level check NOR a FORBIDDEN_TRUTH_FIELDS denylist, so any
+# field added to any of the six payloads above crossed to the company unrefused.
+# The other two seams were built on this one's pattern, which is why fixing them
+# alone would have been an instance fix of a class defect (R10).
+#
+# The codec asks the closed question: is every field on this payload one the
+# contract has DECLARED observable? Adding a field to a dataclass above and
+# nothing else now REFUSES at the point of emission (R15 FAIL-CLOSED). Widening
+# the wall means editing this map, and that edit is the epistemic act -- where
+# a reviewer must answer "could a real supplier read this off its own bank
+# statement / Bacs report alone?" out loud.
+#
+# DECLARED HERE, NOT DERIVED from the dataclasses: a set computed from its own
+# subject widens whenever the subject widens and is an R15 TAUTOLOGY for exactly
+# this question. The duplication is the independence.
+OBSERVABLE_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {
+    "RemittanceAdvice": (
+        "bank_reference", "account_id", "amount_gbp", "rail", "value_date",
+    ),
+    "BacsArruddOutcome": (
+        "mandate_ref", "account_id", "amount_gbp", "outcome",
+        "reason_category", "reason_text", "value_date",
+    ),
+    "AddacsAdvice": (
+        "mandate_ref", "account_id", "advice_type", "advice_text", "value_date",
+    ),
+    "AuddisReport": (
+        "mandate_ref", "account_id", "status", "status_text", "value_date",
+    ),
+    "PaymentNotification": (
+        "account_id", "rail", "amount_gbp", "reference", "value_date", "status",
+    ),
+    "SettlementConfirmation": (
+        "reference", "account_id", "amount_gbp", "rail", "cleared_value_date",
+    ),
+}

@@ -90,6 +90,7 @@ import numpy as np
 
 from interface.contracts.flex_observable_seam import (
     FORBIDDEN_TRUTH_FIELDS,
+    OBSERVABLE_PAYLOAD_FIELDS,
     OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
     SCHEMA_VERSION,
     FlexDirection,
@@ -465,14 +466,23 @@ def encode_observable_payload(payload: Any) -> dict:
     receiver that guessed the type from the field set would mis-route them.
     The tag set is read from the contract's own tuple, so it grows with it.
 
-    THE WALL, AT PAYLOAD DEPTH. A payload carrying one of the seam's own
-    `FORBIDDEN_TRUTH_FIELDS` is refused HERE, at the point of emission, not
-    left to the receiver: those names (`true_baseline_mwh`, `system_need_mw`,
-    ...) are exactly the SIM-internal quantities this module holds on
-    `FlexDispatchTruth` and would leak by the most natural edit anyone could
-    make -- adding "one more useful field" to a settlement line. R10: the
-    CLASS is refused by name, so a future L2 field addition fails here rather
-    than passing because nobody thought of that instance.
+    THE WALL, AT PAYLOAD DEPTH, AND IT IS THE CLOSED SET THAT CARRIES IT.
+    A payload is refused HERE, at the point of emission, not left to the
+    receiver, if it declares ANY field the contract has not declared
+    observable in `OBSERVABLE_PAYLOAD_FIELDS`. That is the R10 form of this
+    check: the CLASS "a field nobody has certified a real flex party could
+    know" fails, so a future L2 field addition is refused because it was
+    never declared, not because someone predicted its name.
+
+    `FORBIDDEN_TRUTH_FIELDS` is checked too and is a SECOND belt, not the
+    control. It was the control until 2026-08-20 and it was fail-open by
+    construction: measured against this module's own `FlexDispatchTruth`, it
+    named 2 of 11 truth fields, so `true_delivered_mwh` -- the exact leak the
+    old docstring here claimed was refused as a class -- encoded onto the
+    wire. A denylist answers "did we think of this name"; only the closed set
+    answers "is this observable". It is retained because it still fires on
+    the one case the closed set cannot see: a truth field added to the
+    dataclass and declared observable in the same edit.
     """
     payload_type = type(payload)
     if payload_type.__name__ not in _ENCODABLE_RESPONSE_PAYLOAD_TYPES or (
@@ -484,11 +494,34 @@ def encode_observable_payload(payload: Any) -> dict:
             f"{sorted(_ENCODABLE_RESPONSE_PAYLOAD_TYPES)}"
         )
     names = [f.name for f in dataclass_fields(payload)]
+    # DENYLIST FIRST, deliberately: when a field is both undeclared AND a name
+    # the contract already knows leaks truth, the truth-leak message is the
+    # more diagnostic of the two. Ordering also keeps the two belts separately
+    # observable -- each has a test that can only pass if ITS check fired.
     leaking = sorted(set(names) & set(FORBIDDEN_TRUTH_FIELDS))
     if leaking:
         raise SeamCodecError(
             f"{payload_type.__name__} declares forbidden truth field(s) {leaking} -- the "
             "SIM's own hidden quantities may never cross this seam, whatever the envelope says"
+        )
+    declared = OBSERVABLE_PAYLOAD_FIELDS.get(payload_type.__name__)
+    if declared is None:
+        raise SeamCodecError(
+            f"{payload_type.__name__} has no OBSERVABLE_PAYLOAD_FIELDS declaration -- "
+            "a payload type the contract has not certified field-by-field may not cross"
+        )
+    undeclared = sorted(set(names) - set(declared))
+    if undeclared:
+        raise SeamCodecError(
+            f"{payload_type.__name__} declares field(s) {undeclared} the contract has not "
+            "declared observable -- widen OBSERVABLE_PAYLOAD_FIELDS only after answering "
+            "'could a real UK flex party know this from its own statement alone?'"
+        )
+    absent = sorted(set(declared) - set(names))
+    if absent:
+        raise SeamCodecError(
+            f"{payload_type.__name__} omits declared observable field(s) {absent} -- the "
+            "contract's declaration has gone stale against the payload it certifies"
         )
     return {
         "payload_type": payload_type.__name__,
