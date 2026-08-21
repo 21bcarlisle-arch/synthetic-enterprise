@@ -27,6 +27,7 @@ production behaviour -- matching how every other deadmans_switch.py check is
 tested, not a hand-rolled stand-in for it.
 """
 import json
+import subprocess
 
 import pytest
 
@@ -514,3 +515,83 @@ def test_collection_blocked_reads_the_run_not_the_state_file(tmp_path):
     assert prc.operational_layer_collection_blocked(result, 2) == before
     assert before == ("tests/company/interfaces/test_the_run_holds_no_policy.py",
                       "tests/company/policy/test_policy_field_consumption.py")
+
+
+# ── THE RETRY STORM (2026-08-21, the 34-hour publishing outage) ──────────────────────────────
+#
+# The signal is decoupled from the publish gate in STATE, and was never decoupled in RESOURCES.
+# A timeout fell into the generic `except Exception` handler, which logged "(swallowed)" and
+# returned WITHOUT writing state -- so `last_run_ts` stayed 6.0h stale against a 1.0h throttle,
+# `_operational_layer_check_due()` answered True on every 5-minute deadman cycle, and a
+# 30-minute full-suite pytest was relaunched continuously. The publish gate needed the same box:
+# its suite overran 300s, the budget was raised to 3400s, and it overran that too. 169 runs went
+# unpublished.
+#
+# The swallow was never the defect -- a monitoring check must not raise into the deadman. The
+# defect is that swallowing also discarded the STAMP.
+
+def _timeout_runner(argv):
+    raise subprocess.TimeoutExpired(cmd=argv, timeout=1800)
+
+
+def test_a_timed_out_signal_stamps_its_run_so_the_throttle_engages(sent):
+    """THE MUTATION. Delete the `_write_operational_layer_state` call in the TimeoutExpired
+    handler and this fails: the check is due again on the next deadman cycle and relaunches the
+    full suite, which is the box contention that starved the publish gate for 34 hours."""
+    result = prc.run_operational_layer_signal(
+        now=1000.0, runner=_timeout_runner, log_fn=lambda m: None)
+
+    assert result["ran"] is False
+    assert result["reason"] == "timeout"
+
+    state = json.loads(prc.OPERATIONAL_LAYER_STATE_FILE.read_text())
+    assert state["last_run_ts"] == 1000.0, (
+        "a timeout that does not stamp its run is a retry storm: the throttle reads no run on "
+        "record and re-launches a 30-minute suite every 5-minute deadman cycle")
+
+    # The stamp buys exactly one thing, and this is it: the next attempt is one INTERVAL away,
+    # not one deadman cycle.
+    assert not prc._operational_layer_check_due(1000.0 + 300, state)
+    assert prc._operational_layer_check_due(
+        1000.0 + prc.OPERATIONAL_LAYER_CHECK_INTERVAL_SECONDS + 1, state)
+
+
+def test_a_timed_out_signal_is_never_a_green(sent):
+    """FAIL-CLOSED (R15): an unavailable check is a FAILED check. The suite did not finish, so
+    nothing was demonstrated -- if a timeout could read as healthy this goes silent for another
+    six hours, which is precisely what it just did."""
+    prc.run_operational_layer_signal(now=1000.0, runner=_timeout_runner, log_fn=lambda m: None)
+    state = json.loads(prc.OPERATIONAL_LAYER_STATE_FILE.read_text())
+    assert state["last_result"] == "red_timeout"
+    assert state["consecutive_green"] == 0
+    assert state["consecutive_red"] == 1
+
+    # It ACCUMULATES rather than resetting, so a night of timeouts cannot read as calm.
+    prc.run_operational_layer_signal(
+        now=1000.0 + prc.OPERATIONAL_LAYER_CHECK_INTERVAL_SECONDS + 1,
+        runner=_timeout_runner, log_fn=lambda m: None)
+    assert json.loads(prc.OPERATIONAL_LAYER_STATE_FILE.read_text())["consecutive_red"] == 2
+
+
+def test_a_timeout_is_not_filed_as_a_daemon_red_or_a_collection_block(sent):
+    """THE NULL CONTROL -- own name, same class. 'red' sends the reader to the daemons and
+    'red_blocked' tells them to repair an import error at named paths. A suite that RAN and did
+    not FINISH is neither, and filing it under either names the wrong thing to go and look at
+    (the reasoning EXIT_GATE_TIMED_OUT states for the other clock)."""
+    prc.run_operational_layer_signal(now=1000.0, runner=_timeout_runner, log_fn=lambda m: None)
+    state = json.loads(prc.OPERATIONAL_LAYER_STATE_FILE.read_text())
+    assert state["last_result"] == "red_timeout"
+    assert state["last_result"] not in ("red", "red_blocked", "green")
+
+    # A real red still classifies as a real red -- if this passed for both inputs the handler
+    # would be a blanket relabel, not a classifier.
+    _run(rc=1, now=2000.0)
+    assert json.loads(prc.OPERATIONAL_LAYER_STATE_FILE.read_text())["last_result"] == "red"
+
+
+def test_the_timeout_stays_decoupled_from_the_publish_gate_state(sent):
+    """The decoupling this module claims, asserted on the new path too: a timed-out operational
+    check must not touch the content gate's own state file. Resource contention was the coupling
+    that mattered here; that must not be repaired by introducing a STATE one."""
+    prc.run_operational_layer_signal(now=1000.0, runner=_timeout_runner, log_fn=lambda m: None)
+    assert not prc.PUBLISH_GATE_STATE_FILE.exists()

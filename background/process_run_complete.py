@@ -942,7 +942,10 @@ def run_operational_layer_signal(*, now=None, runner=None, notify_fn=None, log_f
 
 sys.path.insert(0, str(PROJECT_DIR))
 
-from background import finding_severity  # noqa: E402  (OPS9 header parser; exoneration field)
+from background import (  # noqa: E402
+    finding_severity,  # (OPS9 header parser; exoneration field)
+    publish_gate_blocking_read,  # (the record's honesty contract)
+)
 from background.child_diagnostics import (  # noqa: E402  (H30)
     STDERR_TAIL_LINES,
     failure_detail,
@@ -3005,26 +3008,22 @@ def last_blocking_tests(now=None, path=None):
     """(node_ids, git_hash) from the last red gate, or ([], None) if not knowably recent.
 
     ([], None) is returned for absent, unreadable, malformed AND stale -- all four mean the
-    same thing to a reader, which is "this alarm does not know", and the alarm says so."""
-    p = Path(path) if path is not None else GATE_BLOCKING_TESTS_FILE
-    now = time.time() if now is None else float(now)
-    try:
-        rec = json.loads(p.read_text())
-        if not isinstance(rec, dict):
-            return [], None
-        ts = rec.get("ts")
-        if not isinstance(ts, (int, float)):
-            return [], None
-        if now - float(ts) > GATE_BLOCKING_TESTS_MAX_AGE_SECONDS:
-            return [], None
-        node_ids = rec.get("node_ids")
-        if not isinstance(node_ids, list):
-            return [], None
-        gh = rec.get("git_hash")
-        return ([str(n) for n in node_ids[:GATE_MAX_CITED_BLOCKING_TESTS]],
-                str(gh) if isinstance(gh, str) else None)
-    except (json.JSONDecodeError, OSError, ValueError, TypeError):
-        return [], None
+    same thing to a reader, which is "this alarm does not know", and the alarm says so.
+
+    THE BODY LIVES IN A LEAF NOW (2026-08-21). The contract is unchanged and still has exactly
+    one implementation; it moved to `background/publish_gate_blocking_read.py` because the
+    supervisor's RUNG-1 draw asks it, and importing THIS module to ask put every
+    supervisor-importing test inside the publish gate -- 36 test files of harness
+    self-governance that cannot make a published figure wrong. See that module's docstring for
+    the measurement. The POLICY stays here (the age bound is derived from this module's own
+    gate timeout) and is passed at call time, so monkeypatching either constant on this module
+    still steers the read exactly as before."""
+    return publish_gate_blocking_read.read_blocking_record(
+        path if path is not None else GATE_BLOCKING_TESTS_FILE,
+        now=now,
+        max_age=GATE_BLOCKING_TESTS_MAX_AGE_SECONDS,
+        max_cited=GATE_MAX_CITED_BLOCKING_TESTS,
+    )
 
 
 def last_red_census(now=None, path=None):

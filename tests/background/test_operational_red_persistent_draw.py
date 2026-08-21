@@ -316,3 +316,51 @@ def test_still_silent_on_a_below_threshold_blocked_record(tmp_path, monkeypatch)
     _write_signal(tmp_path, monkeypatch,
                   _blocked_state(consecutive_red=supervisor.OPERATIONAL_RED_DRAWABLE_THRESHOLD))
     assert supervisor._operational_red_persistent_draw() is None
+
+
+# ── A TIMED-OUT SIGNAL MUST REACH THE DRAW (2026-08-21) ──────────────────────────────────────
+#
+# `run_operational_layer_signal` gained a third could-not-answer value, `red_timeout`, when the
+# retry storm behind the 34-hour publishing outage was closed. Adding a value there WITHOUT
+# adding it to this rung's predicate would have traded a storm for a fail-SILENT -- the layer
+# unmonitored and nothing drawing it -- which is the exact failure this rung exists to refuse.
+
+def test_a_timed_out_signal_is_drawable_not_silent(tmp_path, monkeypatch):
+    """MUST FIRE. Remove 'red_timeout' from the predicate tuple in
+    `_operational_red_persistent_draw` and this returns None: the operational layer sits
+    unmonitored and no rung surfaces it."""
+    _write_signal(tmp_path, monkeypatch,
+                  {"last_result": "red_timeout", "consecutive_red": 6, "consecutive_green": 0})
+    draw = supervisor._operational_red_persistent_draw(state_path=None)
+    assert draw is not None, "a signal that cannot answer must never be silent (R15)"
+    assert "TIMED-OUT" in draw
+
+
+def test_the_timeout_draw_names_a_duration_not_a_daemon_defect(tmp_path, monkeypatch):
+    """THE NULL CONTROL against mislabelling. The daemon message would send the drawn worker to
+    hunt a capability regression, and the blocked message to repair import errors -- neither is
+    what a suite that ran and did not finish is telling them. 23 pages were spent that way on
+    2026-08-20."""
+    _write_signal(tmp_path, monkeypatch,
+                  {"last_result": "red_timeout", "consecutive_red": 6, "consecutive_green": 0})
+    draw = supervisor._operational_red_persistent_draw(state_path=None)
+    assert "NOT a daemon-lifecycle defect" in draw
+    assert "REPAIR THE IMPORT" not in draw
+    assert "cadence" in draw.lower()
+
+    # ...and a genuine daemon red still gets the daemon diagnosis: if this passed for both
+    # inputs the branch would be a relabel, not a classifier.
+    _write_signal(tmp_path, monkeypatch,
+                  {"last_result": "red", "consecutive_red": 6, "consecutive_green": 0})
+    red_draw = supervisor._operational_red_persistent_draw(state_path=None)
+    assert "PERSISTENT-RED" in red_draw
+    assert "TIMED-OUT" not in red_draw
+
+
+def test_a_below_threshold_timeout_stays_silent(tmp_path, monkeypatch):
+    """MUST STAY SILENT. The drawable bar is deliberately higher than the paging bar: a single
+    slow check is not priority-zero work, and a rung that fires on one would outrank every other
+    lane on noise."""
+    _write_signal(tmp_path, monkeypatch,
+                  {"last_result": "red_timeout", "consecutive_red": 1, "consecutive_green": 0})
+    assert supervisor._operational_red_persistent_draw(state_path=None) is None

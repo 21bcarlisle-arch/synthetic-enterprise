@@ -3358,17 +3358,31 @@ def _live_gate_blocking_record(now=None, record_path=None):
     DELEGATION IS THE POINT, not an implementation convenience. Re-parsing the record here would
     be a second measurement of the same fact that can drift from the first (the mirror class this
     repo already catalogues); the honesty contract must live in exactly one place, and this asks
-    it rather than restating it. The import is LAZY so the draw ladder does not pay
-    `process_run_complete`'s import cost on every rung, and an unimportable/raising reader answers
-    "I don't know" -- an unavailable check is a FAILED check (R15 fail-silent), and here failing
-    means WITHHOLDING the citation, which is the safe direction: the draw still fires, it just
-    stops naming suspects it cannot warrant."""
+    it rather than restating it. The import is LAZY so the draw ladder does not pay the reader's
+    import cost on every rung, and an unimportable/raising reader answers "I don't know" -- an
+    unavailable check is a FAILED check (R15 fail-silent), and here failing means WITHHOLDING the
+    citation, which is the safe direction: the draw still fires, it just stops naming suspects it
+    cannot warrant.
+
+    IT ASKS THE LEAF, NOT THE PUBLISHER (2026-08-21). This used to import
+    `process_run_complete.last_blocking_tests`, and that ONE edge -- this module, which nearly
+    every `tests/background/**` test imports, reaching the module that imports all five other
+    publish-path modules -- put 36 harness self-governance test files inside the publish gate,
+    measured on the real import graph. The contract still lives in exactly one place; that place
+    is now `background/publish_gate_blocking_read.py`, a leaf that publishes nothing. DO NOT
+    "simplify" this back to importing the publisher: `test_publish_scope.py::
+    test_the_supervisor_does_not_import_the_publish_path` fails if the edge returns."""
     try:
-        from background.process_run_complete import last_blocking_tests
-    except Exception:  # pragma: no cover - import-time breakage of the writer's module
+        from background.publish_gate_blocking_read import read_blocking_record
+    except Exception:  # pragma: no cover - import-time breakage of the reader's module
         return [], None
+    # The production caller always DERIVES the path from the resolved state path (see
+    # `_publish_gate_wedge_active`); this default is the standing location, resolved here rather
+    # than read off the publisher's constant, which is the import this cut removes.
+    if record_path is None:
+        record_path = PROJECT_DIR / "docs" / "observability" / GATE_BLOCKING_TESTS_FILENAME
     try:
-        return last_blocking_tests(now=now, path=record_path)
+        return read_blocking_record(record_path, now=now)
     except Exception:  # pragma: no cover - defensive: never an exception into the draw ladder
         return [], None
 
@@ -3778,7 +3792,11 @@ def _operational_red_persistent_draw(
         return None
     if not isinstance(state, dict):
         return None
-    if state.get("last_result") not in ("red", "red_blocked"):
+    # 'red_timeout' (2026-08-21) joins the drawable set for the same reason 'red_blocked' did:
+    # the layer is UNMONITORED and the stated fail-safe direction here is toward drawing. Adding
+    # the value to `process_run_complete` without adding it here would have swapped a retry storm
+    # for a fail-SILENT -- the exact trade this rung exists to refuse.
+    if state.get("last_result") not in ("red", "red_blocked", "red_timeout"):
         return None
     try:
         consecutive_red = int(state.get("consecutive_red") or 0)
@@ -3793,6 +3811,26 @@ def _operational_red_persistent_draw(
     # "regenerate the process-set manifest" is what cost 23 pages on 2026-08-20
     # (WORKER_FINDING_A_SALVAGE_PARKED_THE_PRODUCER_HALF...). Silence is NOT the alternative:
     # the stated fail-safe direction here is toward drawing.
+    # A TIMED-OUT signal draws its own diagnosis for the same reason a BLOCKED one does: the
+    # suite ran and did not finish, so nothing about the daemons has been shown to be wrong and
+    # the daemon message would send the reader to the wrong place. The question here is a
+    # DURATION, and on 2026-08-21 the answer was that this check was the box contention that
+    # starved the publish gate for 34 hours -- so the draw names the cadence decision, not a bug.
+    if state.get("last_result") == "red_timeout":
+        return _operational_red_stale_record_prefix(state, head_time_fn, head_hash_fn) + (
+            "OPERATIONAL-LAYER TIMED-OUT self-refill (RUNG 1b, PRIORITY ZERO): the "
+            f"operational-layer signal has TIMED OUT for {consecutive_red} consecutive checks -- "
+            "it ran and did not finish, so it has produced NO verdict and the operational layer "
+            "is UNMONITORED. This is NOT a daemon-lifecycle defect: do NOT hunt a capability "
+            "regression, nothing about the daemons has been shown to be broken. It is a DURATION "
+            "question, and it is expensive -- this check holds the box for its full timeout every "
+            "time it fails this way, which is what starved the publish gate on 2026-08-21. "
+            "DECIDE THE CADENCE (director console 2026-08-21: 'what genuinely must run before a "
+            "publish and what belongs somewhere else entirely, on its own cadence'): measure how "
+            "long `operational_layer_pytest_argv()` actually needs, then either give it a budget "
+            "it can meet or narrow what it runs. Raising the timeout to fit is the move that "
+            "produced this state -- prefer narrowing. Record the decision and NTFY the director."
+        )
     if state.get("last_result") == "red_blocked":
         blocked = [str(p) for p in (state.get("blocked_by") or [])]
         named = ("\n".join("  - " + p for p in blocked) if blocked

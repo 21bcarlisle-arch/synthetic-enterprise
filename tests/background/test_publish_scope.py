@@ -424,3 +424,82 @@ def test_the_unavailable_root_verdict_does_not_stamp_the_tested_hash(monkeypatch
     assert not stamp.exists(), (
         "a gate with no subject must not stamp a passing hash; found {!r}".format(
             stamp.read_text() if stamp.exists() else None))
+
+
+# ── THE GATE MUST NOT RUN THE HARNESS (2026-08-21, the 33-hour outage) ───────────────────────
+#
+# The fifth way this scoping control can fail, and the only one that fails toward RUNNING TOO
+# MUCH: the scope is derived from the import graph, so a single import edge from a widely
+# imported harness module into the publish path silently enrols every test that touches that
+# harness module. It is not a fail-OPEN (nothing stops blocking), which is why the four tests
+# above could all be green while it happened -- it is a fail-SLOW, and a gate slow enough to
+# miss its own bound blocks publishing exactly as completely as a red one. Measured: 33 hours
+# with nothing published, ending in a 3403s timeout against a 330s publish cadence.
+#
+# `background/supervisor.py` reached `background/process_run_complete.py` for ONE pure JSON
+# reader. Because nearly every `tests/background/**` module imports the supervisor, and the
+# publisher imports the other five publish-path sources, that edge put 36 harness
+# self-governance test files inside the gate -- the draw ladder, the executor daemon and
+# governor, the harden gates, forward discovery, the mint, blocked-atom visibility (198s of
+# child process on its own). None of them can make a figure on the live site wrong, which is
+# `PUBLISH_PATH_SOURCES`'s own stated membership test.
+
+def test_the_supervisor_does_not_import_the_publish_path():
+    """DERIVED, not a name list: asks the real graph whether the supervisor can reach any
+    declared publish-path source, and names the chain when it can.
+
+    R15 mutation (observed 2026-08-21, before the cut): with
+    `from background.process_run_complete import last_blocking_tests` restored in
+    `_live_gate_blocking_record`, this fails and prints
+    `background/supervisor.py -> background/process_run_complete.py`, and the scope is 198
+    files instead of 162."""
+    from collections import deque
+
+    from tools.select_impacted_tests import build_graph
+
+    _, forward = build_graph()
+    start = "background/supervisor.py"
+    assert start in forward, "the graph no longer sees the supervisor -- this control is blind"
+
+    prev = {start: None}
+    q = deque([start])
+    hit = None
+    while q and hit is None:
+        node = q.popleft()
+        for dep in forward.get(node, ()):
+            if dep in prev:
+                continue
+            prev[dep] = node
+            if dep in publish_scope.PUBLISH_PATH_SOURCES:
+                hit = dep
+                break
+            q.append(dep)
+
+    if hit is not None:
+        chain, node = [], hit
+        while node is not None:
+            chain.append(node)
+            node = prev[node]
+        pytest.fail(
+            "the supervisor reaches a publish-path source, so every test that imports the "
+            "supervisor now blocks publishing:\n    " + " -> ".join(reversed(chain)) +
+            "\nAsk the leaf (background/publish_gate_blocking_read.py) instead, or move what "
+            "is needed into one. See that module's docstring for the measured cost.")
+
+
+def test_the_blocking_readers_defaults_match_the_publisher():
+    """The leaf reader carries a SECOND COPY of the publisher's age bound and citation cap, so
+    that the supervisor can read the gate record without importing the publisher. A mirrored
+    constant is only admissible while it cannot drift silently -- this is what makes it fail
+    loudly instead. If the publisher's policy moves, move these with it."""
+    from background import process_run_complete as prc
+    from background import publish_gate_blocking_read as reader
+
+    assert reader.DEFAULT_MAX_AGE_SECONDS == prc.GATE_BLOCKING_TESTS_MAX_AGE_SECONDS, (
+        "the leaf reader's staleness bound has drifted from the publisher's "
+        "({}s vs {}s) -- the supervisor's RUNG-1 draw would age the gate record differently "
+        "from the alarm that writes it".format(
+            reader.DEFAULT_MAX_AGE_SECONDS, prc.GATE_BLOCKING_TESTS_MAX_AGE_SECONDS))
+    assert reader.DEFAULT_MAX_CITED == prc.GATE_MAX_CITED_BLOCKING_TESTS, (
+        "the leaf reader's citation cap has drifted from the publisher's ({} vs {})".format(
+            reader.DEFAULT_MAX_CITED, prc.GATE_MAX_CITED_BLOCKING_TESTS))
