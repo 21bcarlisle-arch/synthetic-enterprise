@@ -20,7 +20,7 @@
     "run_id": "run_output_a892df011_20260820T180449Z.json",
     "verified_at": "2026-08-20T18:34:35Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=4c4f7dfaa; blocking tests: FAILED tests/background/test_publish_gate_wedge_draw.py::test_a_raising_reader_withholds_rather_than_crashing_the_draw_ladder",
+  "paused_reason": "scoped publish-path suite red at git=f983f074c; blocking tests: ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_answer_which_commit_it_is, FAILED tests/tools/test_measure_publish_gate_subject_cost.py::test_the_basetemp_leak_is_reclaimed_by_the_gates_own_sweep, ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_be_bl",
   "paused_since": "2026-08-20T21:10:26Z",
   "schema": 1,
   "showing_run": {
@@ -30,5 +30,5 @@
     "verified_at": "2026-08-20T18:34:35Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-08-21T22:19:53Z"
+  "written_at": "2026-08-21T22:41:29Z"
 }
