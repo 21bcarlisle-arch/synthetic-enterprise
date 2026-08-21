@@ -5,20 +5,24 @@ baseline / true need leaks across the seam).
 from __future__ import annotations
 
 import ast
-import datetime as dt
 import dataclasses
+import datetime as dt
 from pathlib import Path
 
 import pytest
 
 from interface.contracts.flex_observable_seam import (
+    ENROLMENT_REFUSAL_CODES,
     FORBIDDEN_TRUTH_FIELDS,
+    OBSERVABLE_PAYLOAD_FIELDS,
     OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
+    REQUEST_PAYLOAD_FIELDS,
     SCHEMA_VERSION,
     FlexDirection,
     FlexDispatchInstruction,
     FlexDispatchWallResponse,
     FlexEnrolment,
+    FlexEnrolmentOutcome,
     FlexEnrolmentWallRequest,
     FlexSettlementLine,
     FlexSettlementWallResponse,
@@ -127,3 +131,86 @@ def test_no_sim_or_company_import():
     for m in mods:
         assert not m.startswith(("sim", "simulation", "company", "saas")), \
             f"contract must not import {m}"
+
+
+# ===========================================================================
+# EP6 pass 53 -- the enrolment ANSWER's declared surface.
+#
+# `FlexEnrolmentOutcome` is already inside the existing wall guarantee above
+# (it is a member of OBSERVABLE_RESPONSE_PAYLOAD_TYPES, so the truth-field
+# scan covers it without an instance test -- R10). What that scan cannot ask
+# is whether the DECLARATION still describes the dataclass, which is the fact
+# the counterparty's decoder refuses against.
+# ===========================================================================
+
+
+def test_the_DECLARED_surface_matches_the_dataclass_for_every_payload_it_names():
+    """The published key set is what both counterparties refuse against, so a
+    field added to a payload and not declared is a field that cannot cross.
+
+    Written over the WHOLE table rather than the one type this pass added: a
+    per-type assertion is an instance fix wearing a class's clothes, and the
+    next payload would arrive undeclared with nothing to catch it (R10)."""
+    by_name = {t.__name__: t for t in OBSERVABLE_RESPONSE_PAYLOAD_TYPES}
+    for name, declared in OBSERVABLE_PAYLOAD_FIELDS.items():
+        assert name in by_name, f"{name} is declared but is not an observable payload type"
+        actual = tuple(f.name for f in dataclasses.fields(by_name[name]))
+        assert actual == tuple(declared), (
+            f"{name}'s declaration {tuple(declared)} no longer describes the dataclass "
+            f"{actual} -- one side of the wall would refuse what the other sends"
+        )
+    undeclared = sorted(set(by_name) - set(OBSERVABLE_PAYLOAD_FIELDS))
+    assert not undeclared, f"observable payload(s) with no published key set: {undeclared}"
+
+
+def test_MUTATION_a_field_added_to_the_payload_and_not_DECLARED_is_caught():
+    """The control above must fail on its own named defect. The mutation is the
+    realistic one -- somebody widens a payload and forgets the declaration."""
+    original = OBSERVABLE_PAYLOAD_FIELDS["FlexEnrolmentOutcome"]
+    OBSERVABLE_PAYLOAD_FIELDS["FlexEnrolmentOutcome"] = original[:-1]
+    try:
+        with pytest.raises(AssertionError):
+            test_the_DECLARED_surface_matches_the_dataclass_for_every_payload_it_names()
+    finally:
+        OBSERVABLE_PAYLOAD_FIELDS["FlexEnrolmentOutcome"] = original
+    # NULL CONTROL: restored, the control passes -- so it is not always-red.
+    test_the_DECLARED_surface_matches_the_dataclass_for_every_payload_it_names()
+
+
+def test_an_ACCEPTANCE_says_THAT_you_are_registered_and_never_why_or_against_what_else():
+    """The deliberate absences are the design, so they are asserted rather than
+    left in a docstring. A volume field would always equal the request's own
+    `offered_mw` (a mirror no test could fail on); a queue position, clearing
+    price or merit order would be the venue's internals crossing the wall."""
+    fields = {f.name for f in dataclasses.fields(FlexEnrolmentOutcome)}
+    assert fields == {"enrolment_reference", "unit_id", "venue"}
+    # No `accepted` flag: a refusal is the envelope's ERROR path, and a False
+    # branch here would duplicate it.
+    assert "accepted" not in fields
+
+
+def test_the_refusal_vocabulary_is_STRUCTURAL_and_carries_no_economic_reason():
+    """R13: a venue in this build refuses what it CANNOT register, never what
+    it does not fancy. An economic acceptance rule is a difficulty parameter
+    and those are the director's."""
+    assert set(ENROLMENT_REFUSAL_CODES) == {
+        "WINDOW_NOT_A_WINDOW",
+        "OFFER_NOT_DELIVERABLE",
+        "WINDOW_ALREADY_CLOSED",
+        "UNIT_ALREADY_ENROLLED",
+    }
+
+
+def test_the_request_payload_declaration_describes_the_enrolment_dataclass():
+    """The outbound direction is not the epistemic wall -- the company owns
+    every field here -- but the world may not DEFAULT one of them, which is
+    what this declaration exists for."""
+    actual = tuple(f.name for f in dataclasses.fields(FlexEnrolment))
+    assert actual == tuple(REQUEST_PAYLOAD_FIELDS["FlexEnrolment"])
+
+
+def test_the_seam_version_moved_with_the_surface():
+    """A new payload type under an unchanged version number is the drift the
+    census's surface pin exists to catch; the version is bumped in the same
+    edit that adds the type."""
+    assert SCHEMA_VERSION == 2

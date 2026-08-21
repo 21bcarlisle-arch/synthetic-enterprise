@@ -37,6 +37,7 @@
       "company.interfaces.sim_interface -> interface.contracts.flex_observable_seam",
       "company.interfaces.wall_protocol -> interface.contracts.wall_envelope",
       "company.market.flex_participation -> interface.contracts.flex_observable_seam",
+    "company.market.flex_participation -> interface.contracts.wall_envelope",
       "interface.contracts.conversation_seam -> interface.contracts.wall_envelope",
       "interface.contracts.flex_observable_seam -> interface.contracts.wall_envelope",
       "interface.contracts.payment_observable_seam -> interface.contracts.wall_envelope",

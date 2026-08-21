@@ -59,7 +59,7 @@ from __future__ import annotations
 
 import datetime as dt
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import (
     Any,
@@ -77,12 +77,21 @@ from typing import (
 
 import numpy as np
 
-from company.interfaces.wall_protocol import WallProtocolError, decode_response
+from company.interfaces.crossing_conversation import ConversationRegister, UnaskedLeg
+from company.interfaces.wall_protocol import WallProtocolError, decode_response, encode_request
 from interface.contracts.flex_observable_seam import (
     FORBIDDEN_TRUTH_FIELDS,
     OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
+    REQUEST_PAYLOAD_FIELDS,
+    SCHEMA_VERSION,
+    FlexDirection,
+    FlexEnrolment,
+    FlexEnrolmentOutcome,
+    FlexEnrolmentWallRequest,
     FlexSettlementLine,
+    FlexVenue,
 )
+from interface.contracts.wall_envelope import WallStatus
 
 # The company's OWN scarcity-proxy threshold: it expects dispatch in periods
 # whose observed price is at/above this percentile. Its belief parameter (a
@@ -551,6 +560,229 @@ class CompanyVenueOffer:
             raise ValueError(
                 f"CompanyVenueOffer {self.venue}: a utilisation product is paid per delivered "
                 "MWh; an availability price here would double-count the same product")
+
+
+# ---------------------------------------------------------------------------
+# THE ASK -- the company SUBMITTING an enrolment (EP6 pass 52).
+#
+# WHAT WAS WRONG, and it is the reason this module could form a belief about
+# dispatch it had no standing to receive. `CompanyVenueOffer` above is the
+# company's own decision about what to offer and where; the seam has declared
+# `WallRequest[FlexEnrolment]` since it was written; and NOTHING IN THIS BUILD
+# JOINED THEM. No module constructed a `FlexEnrolment`, so every dispatch
+# instruction and settlement line arrived as an answer to a question this
+# company had never asked -- `tools.wall_channel_census` read the seam as
+# UNSOLICITED INBOUND on exactly that evidence, and the venue dispatched a unit
+# nobody had registered.
+#
+# THE REGISTER IS THE EVIDENCE, THE WIRE NEVER IS. `ConversationRegister`
+# (EP6 pass 44) is written when the company SENDS, which is what makes
+# "did I ask for this?" answerable at all. Reused here rather than reinvented:
+# pass 44's own limit (c) was that exactly one crossing held its conversations
+# in it, and a second register would have been a second thing to keep true.
+# ---------------------------------------------------------------------------
+
+
+class FlexEnrolmentRefused(ValueError):
+    """The venue declined to register this enrolment, carrying the venue's own
+    declared refusal `code`.
+
+    RAISED, NOT RETURNED AS AN EMPTY REGISTRATION. A company that read its own
+    rejected registration as "no flex this window" would go on forecasting
+    revenue from a venue that has no record of it -- which is the same
+    silently-under-counting shape `observe_response_wire` refuses a status-less
+    message for, one leg earlier."""
+
+    def __init__(self, code: str, message: str) -> None:
+        super().__init__(f"{code}: {message}")
+        self.code = code
+        self.message = message
+
+
+class MisroutedOutcome(ValueError):
+    """An acceptance came back naming a unit or venue this company did not
+    enrol under that correlation id.
+
+    Checked against the company's OWN submission, never against the message: the
+    echoed fields are what a mis-routed registration gets wrong, so believing
+    them is believing the thing under suspicion. Same reasoning as the payment
+    seam's account roster -- a message naming an account cannot be the evidence
+    that the account is ours."""
+
+
+def encode_enrolment_payload(enrolment: FlexEnrolment) -> dict:
+    """Serialise an enrolment payload onto the wire.
+
+    Every published key is written including any that are None-able: absence is
+    never agreement in this direction either, because a venue that defaulted a
+    missing `offered_mw` would register a volume the company never offered.
+    """
+    declared = REQUEST_PAYLOAD_FIELDS["FlexEnrolment"]
+    body = {
+        "unit_id": enrolment.unit_id,
+        "venue": enrolment.venue.value,
+        "offered_mw": float(enrolment.offered_mw),
+        "direction": enrolment.direction.value,
+        "window_start": enrolment.window_start.isoformat(),
+        "window_end": enrolment.window_end.isoformat(),
+    }
+    if set(body) != set(declared):
+        raise WallProtocolError(
+            "CONTRACT_VIOLATION",
+            f"enrolment wire form {sorted(body)} is not the contract's declared "
+            f"{sorted(declared)} -- a field was added to the payload without deciding "
+            "how it crosses",
+        )
+    return body
+
+
+def decode_enrolment_outcome_payload(raw: Any) -> FlexEnrolmentOutcome:
+    """Rebuild the venue's acceptance off the wire, through this seam's one
+    payload decoder -- so the closed observable field set polices this leg on
+    the same terms as the instruction and settlement feeds."""
+    payload = decode_observable_payload(raw)
+    if not isinstance(payload, FlexEnrolmentOutcome):
+        raise WallProtocolError(
+            "CONTRACT_VIOLATION",
+            f"an enrolment was answered with a {type(payload).__name__}, which is a message "
+            "about a period rather than about the registration that was asked for",
+        )
+    return payload
+
+
+@dataclass
+class FlexEnrolmentBook:
+    """The company's own record of the venues it has ASKED to register with.
+
+    Two books, not one, and the split is load-bearing: `register` holds the
+    SHAPE of each exchange (opened when we sent, closed when the answer came),
+    while `_submitted` holds the CONTENT we sent, which is the only admissible
+    evidence for whether an acceptance describes our own offer. The venue keeps
+    its own book on its own side (`sim.flex_dispatch.VenueRegistrations`) and
+    neither party may read the other's.
+    """
+
+    register: ConversationRegister = field(default_factory=ConversationRegister)
+    _submitted: Dict[str, FlexEnrolment] = field(default_factory=dict)
+    _references: Dict[str, str] = field(default_factory=dict)
+
+    def submit(
+        self,
+        offer: CompanyVenueOffer,
+        *,
+        unit_id: str,
+        window_start: dt.datetime,
+        window_end: dt.datetime,
+        as_of: dt.datetime,
+        direction: FlexDirection = FlexDirection.TURN_DOWN,
+    ) -> dict:
+        """Offer this unit's flexibility into `offer.venue` and hand back the
+        BYTES that cross -- leg 1 of the exchange, and the first thing in this
+        build that ever asked.
+
+        `offer` is the company's OWN participation decision (`CompanyVenueOffer`,
+        above): the volume it chose to enrol and the venue it chose to enrol
+        into. Nothing here is read from across the wall.
+
+        The correlation id is the COMPANY'S, minted from its own submission --
+        an id the counterparty chose would let the counterparty decide what this
+        company believes it asked for.
+        """
+        try:
+            venue = FlexVenue(offer.venue)
+        except ValueError as exc:
+            raise WallProtocolError(
+                "CONTRACT_VIOLATION",
+                f"this company's own book names venue {offer.venue!r}, which is not a market "
+                f"function the seam publishes ({[v.value for v in FlexVenue]}) -- an offer "
+                "nobody runs a market for cannot be submitted",
+            ) from exc
+        enrolment = FlexEnrolment(
+            unit_id=unit_id,
+            venue=venue,
+            offered_mw=float(offer.offered_mw),
+            direction=direction,
+            window_start=window_start,
+            window_end=window_end,
+        )
+        correlation_id = (
+            f"flex-enrol-{unit_id}-{venue.value}-{window_start:%Y%m%dT%H%M}"
+        )
+        request = FlexEnrolmentWallRequest(
+            correlation_id=correlation_id,
+            request_type="flex_enrolment",
+            schema_version=SCHEMA_VERSION,
+            as_of=as_of,
+            emitted_at=as_of,
+            payload=enrolment,
+        )
+        wire = encode_request(request, encode_payload=encode_enrolment_payload)
+        self.register.open_conversation(correlation_id, request.request_type, request.emitted_at)
+        self._submitted[correlation_id] = enrolment
+        return wire
+
+    def observe_outcome(self, wire: Any) -> FlexEnrolmentOutcome:
+        """Read the venue's answer to one enrolment, or refuse it.
+
+        Three refusals, each keyed on something the message cannot supply:
+          * `UnaskedLeg`  -- a correlation id this company never opened. The
+            register is the evidence; a plausible id on the wire never is, or
+            any process able to mint one is registered with us.
+          * `MisroutedOutcome` -- an acceptance whose unit/venue is not the one
+            we submitted under that id.
+          * `FlexEnrolmentRefused` -- the venue understood and declined, with its
+            own declared code. Raised so a rejected registration can never read
+            as a quiet absence of flex.
+        """
+        response = decode_response(wire, decode_payload=decode_enrolment_outcome_payload)
+        submitted = self._submitted.get(response.correlation_id)
+        if submitted is None:
+            raise UnaskedLeg(
+                f"a flex enrolment outcome arrived for correlation_id "
+                f"{response.correlation_id!r}, which this company never submitted -- an "
+                "acknowledgement for a registration we have no record of asking for is an "
+                "incident, not a message to file"
+            )
+        if response.status is not WallStatus.OK:
+            detail = response.error
+            self.register.record_terminal(
+                response.correlation_id,
+                "FlexEnrolmentRefusal",
+                response.status,
+                response.observed_at,
+            )
+            raise FlexEnrolmentRefused(
+                detail.code if detail is not None else "UNSTATED",
+                detail.message if detail is not None else
+                f"the venue answered {response.status.value} and stated no reason",
+            )
+        outcome = response.payload
+        if outcome.unit_id != submitted.unit_id or outcome.venue is not submitted.venue:
+            raise MisroutedOutcome(
+                f"registration {response.correlation_id!r} was submitted for "
+                f"{submitted.unit_id}/{submitted.venue.value} and answered for "
+                f"{outcome.unit_id}/{outcome.venue.value}"
+            )
+        self.register.record_terminal(
+            response.correlation_id,
+            type(outcome).__name__,
+            response.status,
+            response.observed_at,
+        )
+        self._references[response.correlation_id] = outcome.enrolment_reference
+        return outcome
+
+    def registered_references(self) -> Tuple[str, ...]:
+        """Every venue reference this company holds -- what it may quote, and
+        the only registrations it has any standing to be dispatched against."""
+        return tuple(self._references.values())
+
+    def awaiting_answer(self) -> Tuple[str, ...]:
+        """Enrolments submitted and not yet answered. A real party chasing an
+        unacknowledged registration needs this, and a response-driven company
+        could not produce it: it would learn the crossing existed only from the
+        message that ended it."""
+        return tuple(c.correlation_id for c in self.register.open_conversations())
 
 
 def _as_datetime(x) -> dt.datetime:

@@ -2058,7 +2058,15 @@ DECLARED_SURFACE_CONSTANT = "OBSERVABLE_PAYLOAD_FIELDS"
 #: is the defect this table exists to make visible, performed by hand.
 SURFACE_PINS: dict[str, tuple[int, str]] = {
     "interface.contracts.conversation_seam": (1, "f0f702d4c7af9083"),
-    "interface.contracts.flex_observable_seam": (1, "ea1b70a309a2a3e4"),
+    # v2, EP6 pass 52: re-pinned in the same edit that bumped the seam's
+    # SCHEMA_VERSION, which is the only lawful reason to touch this line. What
+    # the surface gained is `FlexEnrolmentOutcome`, the venue's registration
+    # acknowledgement -- the response leg of the exchange this seam declared and
+    # this build had never held either end of. Its three fields are a reference
+    # the venue mints and the unit and venue it was minted against; the
+    # observable-vs-hidden judgement on them is recorded at the dataclass in the
+    # seam itself, where an editor will meet it.
+    "interface.contracts.flex_observable_seam": (2, "e9d4eb24a8d69735"),
     # v2, EP6 pass 44: re-pinned in the same edit that bumped the seam's
     # SCHEMA_VERSION, which is the only lawful reason to touch this line. What
     # the surface gained is `BacsInputReport`, the interim leg's payload; the
@@ -3544,6 +3552,16 @@ def main(argv: list[str] | None = None) -> int:
             and second_belt.ok
             and drift.ok
             and nested_drift.ok
+            # ARMED, EP6 pass 53. The three comments above each promised this
+            # would "become part of this return the day `.ok` is True on HEAD",
+            # and today is that day: `flex_observable_seam` gained its request
+            # leg, which was the last live seam modelling unsolicited inbound as
+            # a reply to a request nothing sends. All three scored seams are now
+            # conversant, so the check can gate without refusing its own repair.
+            # It is a RATCHET from here: a new seam that asks into nothing, or an
+            # existing one losing its request leg, reds this CLI rather than
+            # merely printing a paragraph nobody has to read.
+            and conversations.ok
         )
         else 1
     )

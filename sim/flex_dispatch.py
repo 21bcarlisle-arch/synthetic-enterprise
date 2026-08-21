@@ -81,7 +81,7 @@ LEVEL STATE (R10, registered not hidden):
 from __future__ import annotations
 
 import datetime as dt
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from dataclasses import fields as dataclass_fields
 from enum import Enum
 from typing import Any, Dict, List, Optional, Sequence, Tuple
@@ -89,18 +89,23 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 import numpy as np
 
 from interface.contracts.flex_observable_seam import (
+    ENROLMENT_REFUSAL_CODES,
     FORBIDDEN_TRUTH_FIELDS,
     OBSERVABLE_PAYLOAD_FIELDS,
     OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
+    REQUEST_PAYLOAD_FIELDS,
     SCHEMA_VERSION,
     FlexDirection,
     FlexDispatchInstruction,
     FlexDispatchWallResponse,
+    FlexEnrolment,
+    FlexEnrolmentOutcome,
+    FlexEnrolmentOutcomeWallResponse,
     FlexSettlementLine,
     FlexSettlementWallResponse,
     FlexVenue,
 )
-from interface.contracts.wall_envelope import WallResponse, WallStatus
+from interface.contracts.wall_envelope import ErrorDetail, WallRequest, WallResponse, WallStatus
 
 # The true-scarcity threshold: residual demand at/above this percentile is a
 # genuine system-tight period a real NESO would dispatch flex against. A
@@ -613,6 +618,311 @@ def emit_dispatch_instructions_over_wire(
             truth, unit_id=unit_id, venue=venue, direction=direction
         )
     ]
+
+
+# ---------------------------------------------------------------------------
+# THE REGISTRATION DESK -- this counterparty RECEIVING the flex seam's REQUEST
+# leg (EP6 pass 52).
+#
+# WHAT WAS WRONG. The seam has declared `FlexEnrolmentWallRequest` since it was
+# written and no module in this build ever constructed a `FlexEnrolment`: the
+# only sender was `StubSimInterface.enrol_flex`, which appended the envelope to a
+# list nothing reads, and `LiveSimInterface` does not implement the method at
+# all. So the venue dispatched `unit_id="FLEX_UNIT_1"` -- a KEYWORD DEFAULT --
+# whether or not any company had offered it, over windows nobody had declared,
+# and the company accepted the instructions because it had no record against
+# which to ask whether it had asked. That is the census's UNSOLICITED INBOUND
+# reading and the reviewer's Q2 fail ("we model it as a response to a synthetic
+# request") in a second seam.
+#
+# WHY THE DECODER IS HERE AND NOT IMPORTED, same as the encoder above and for
+# the same reason: `sim/**` may not import `company.*`, so this module restates
+# the PUBLISHED request key set (`_REQUEST_WIRE_FIELDS`, mirroring
+# `wall_protocol.REQUEST_WIRE_FIELDS`, which is itself the envelope's own field
+# list) and refuses against it. Two codecs written independently against one
+# schema is what makes the round trip evidence rather than a handshake with
+# itself.
+#
+# THE VENUE JUDGES ON ITS OWN CLOCK. `answer_enrolment` takes `venue_clock` and
+# never reads the request's `emitted_at` to decide whether a window has closed:
+# a refusal keyed on a timestamp the SENDER controls is a refusal the sender can
+# switch off. Same reasoning as the company's account roster and the
+# counterparty fingerprint -- absence is never agreement, and neither is
+# self-report.
+# ---------------------------------------------------------------------------
+
+#: The exact key set of a REQUEST on the wire, mirrored from the published
+#: envelope. Restated rather than imported (see above); a drift between this and
+#: the company's `wall_protocol.REQUEST_WIRE_FIELDS` stops enrolments crossing,
+#: which is the correct outcome and the whole reason they are separate code.
+_REQUEST_WIRE_FIELDS = frozenset(
+    {"correlation_id", "request_type", "schema_version", "as_of", "emitted_at", "payload"}
+)
+
+#: The request payload's key set, read from the CONTRACT's own declaration so a
+#: field added to `FlexEnrolment` and published is decodable the day it is
+#: declared and not a day before.
+_ENROLMENT_PAYLOAD_FIELDS = frozenset(REQUEST_PAYLOAD_FIELDS["FlexEnrolment"])
+
+#: The request_type this desk answers. A request naming anything else has been
+#: mis-routed to the wrong venue, which is not the same thing as a malformed one.
+ENROLMENT_REQUEST_TYPE = "flex_enrolment"
+
+
+class EnrolmentRefused(ValueError):
+    """This venue would not register an enrolment. Carries the declared
+    `ENROLMENT_REFUSAL_CODES` member as `code` so the refusal crosses the wall as
+    a structured `ErrorDetail` rather than as prose the company has to parse.
+
+    Deliberately NOT `SeamCodecError`: a refusal is a well-formed message the
+    venue understood and declined, and collapsing it into "could not decode"
+    would let a company read its own rejected registration as a bad line on the
+    feed."""
+
+    def __init__(self, code: str, message: str) -> None:
+        if code not in ENROLMENT_REFUSAL_CODES:
+            raise ValueError(
+                f"EnrolmentRefused: {code!r} is not one of the venue's declared refusal "
+                f"codes {list(ENROLMENT_REFUSAL_CODES)} -- an undeclared reason is one the "
+                "company cannot branch on, so it may not be sent"
+            )
+        super().__init__(f"{code}: {message}")
+        self.code = code
+        self.message = message
+
+
+def _decode_enrolment_payload(raw: Any) -> FlexEnrolment:
+    """Rebuild a `FlexEnrolment` off the wire, or refuse it.
+
+    ABSENCE IS NEVER AGREEMENT, in this direction too: a missing key is refused,
+    never defaulted. A defaulted `offered_mw` would register the company for a
+    volume it never offered and then settle it against that volume.
+    """
+    if not isinstance(raw, dict):
+        raise SeamCodecError(f"enrolment payload must be a mapping, got {type(raw).__name__}")
+    keys = set(raw)
+    if keys != _ENROLMENT_PAYLOAD_FIELDS:
+        missing = sorted(_ENROLMENT_PAYLOAD_FIELDS - keys)
+        unknown = sorted(keys - _ENROLMENT_PAYLOAD_FIELDS)
+        raise SeamCodecError(
+            f"enrolment payload key set {sorted(keys)} is not the published one "
+            f"{sorted(_ENROLMENT_PAYLOAD_FIELDS)} (missing={missing}, unknown={unknown})"
+        )
+    try:
+        venue = FlexVenue(raw["venue"])
+        direction = FlexDirection(raw["direction"])
+    except ValueError as exc:
+        raise SeamCodecError(f"enrolment names a venue/direction this venue does not run: {exc}")
+    unit_id = raw["unit_id"]
+    if not isinstance(unit_id, str) or not unit_id:
+        raise SeamCodecError(f"enrolment unit_id must be a non-empty str, got {unit_id!r}")
+    offered = raw["offered_mw"]
+    # bool is an int subclass; a True offer would register as a plausible 1 MW.
+    if isinstance(offered, bool) or not isinstance(offered, (int, float)):
+        raise SeamCodecError(f"enrolment offered_mw must be a number, got {offered!r}")
+    return FlexEnrolment(
+        unit_id=unit_id,
+        venue=venue,
+        offered_mw=float(offered),
+        direction=direction,
+        window_start=_decode_wire_datetime(raw["window_start"], "window_start"),
+        window_end=_decode_wire_datetime(raw["window_end"], "window_end"),
+    )
+
+
+def _decode_wire_datetime(raw: Any, field: str) -> dt.datetime:
+    if not isinstance(raw, str):
+        raise SeamCodecError(f"{field} must be an ISO-8601 str, got {raw!r}")
+    try:
+        return dt.datetime.fromisoformat(raw)
+    except ValueError as exc:
+        raise SeamCodecError(f"{field}: {raw!r} is not an ISO-8601 datetime") from exc
+
+
+def decode_request(wire: Any) -> WallRequest:
+    """Parse one flex enrolment request off the wire, or refuse it.
+
+    Named for the leg it decodes, matching the company codec's own entry point:
+    the two implementations are independent, the NAME is the published one.
+    """
+    if not isinstance(wire, dict):
+        raise SeamCodecError(f"a request must be a mapping, got {type(wire).__name__}")
+    keys = set(wire)
+    if keys != _REQUEST_WIRE_FIELDS:
+        raise SeamCodecError(
+            f"request key set {sorted(keys)} is not the published one "
+            f"{sorted(_REQUEST_WIRE_FIELDS)}"
+        )
+    version = wire["schema_version"]
+    if version != SCHEMA_VERSION:
+        raise SeamCodecError(
+            f"schema_version {version!r} is not the {SCHEMA_VERSION} this seam speaks"
+        )
+    correlation_id = wire["correlation_id"]
+    if not isinstance(correlation_id, str) or not correlation_id:
+        raise SeamCodecError(
+            f"correlation_id must be a non-empty str, got {correlation_id!r} -- a "
+            "registration nothing can be matched to cannot be answered"
+        )
+    request_type = wire["request_type"]
+    if request_type != ENROLMENT_REQUEST_TYPE:
+        raise SeamCodecError(
+            f"request_type {request_type!r} is not {ENROLMENT_REQUEST_TYPE!r} -- this desk "
+            "registers flex enrolments and does not guess at anything else"
+        )
+    return WallRequest(
+        correlation_id=correlation_id,
+        request_type=request_type,
+        schema_version=version,
+        as_of=_decode_wire_datetime(wire["as_of"], "as_of"),
+        emitted_at=_decode_wire_datetime(wire["emitted_at"], "emitted_at"),
+        payload=_decode_enrolment_payload(wire["payload"]),
+    )
+
+
+@dataclass
+class VenueRegistrations:
+    """The VENUE's own book of who is registered here -- the world side's record,
+    held separately from the company's (`FlexEnrolmentBook`) because neither
+    party may read the other's.
+
+    This is what makes `UNIT_ALREADY_ENROLLED` answerable at all: a venue that
+    kept no book could not tell a first registration from a second one, and
+    would sell the same unit's MW twice into the same market function for the
+    same period. Overlap is scoped BY VENUE deliberately -- one unit registered
+    into several DIFFERENT venues over one window is the legitimate multi-venue
+    book `dispatch_and_settle_stacked` models, and the contention it creates is
+    a thing the company is supposed to be able to get wrong.
+    """
+
+    _held: Dict[Tuple[str, str], List[Tuple[dt.datetime, dt.datetime, str]]] = field(
+        default_factory=dict
+    )
+    _minted: int = 0
+
+    def accepted(self, enrolment: FlexEnrolment) -> Optional[str]:
+        """The reference this venue minted for an accepted enrolment, if any."""
+        for start, end, ref in self._held.get((enrolment.unit_id, enrolment.venue.value), []):
+            if start == enrolment.window_start and end == enrolment.window_end:
+                return ref
+        return None
+
+    def overlapping(self, enrolment: FlexEnrolment) -> Optional[str]:
+        """The reference of a registration whose window OVERLAPS this one, if any.
+
+        Half-open windows: a registration ending exactly when another starts is
+        two consecutive availability periods, not a double sale.
+        """
+        for start, end, ref in self._held.get((enrolment.unit_id, enrolment.venue.value), []):
+            if enrolment.window_start < end and start < enrolment.window_end:
+                return ref
+        return None
+
+    def register(self, enrolment: FlexEnrolment) -> str:
+        """Mint a reference and hold the registration. The reference is the
+        VENUE'S, minted from its own sequence: a company that could predict it
+        could quote a registration it never made."""
+        self._minted += 1
+        ref = f"{enrolment.venue.value.upper()}-REG-{self._minted:06d}"
+        self._held.setdefault((enrolment.unit_id, enrolment.venue.value), []).append(
+            (enrolment.window_start, enrolment.window_end, ref)
+        )
+        return ref
+
+
+def answer_enrolment(
+    wire: Any,
+    *,
+    venue_clock: dt.datetime,
+    registrations: VenueRegistrations,
+) -> dict:
+    """Take one enrolment request off the wire and hand back the venue's ANSWER,
+    on the wire -- the flex seam's response leg for its own request leg.
+
+    C-S2 (idempotency): a re-sent registration for a window this venue has
+    already accepted returns the SAME reference rather than minting a second
+    one. `correlation_id` is the idempotency key and a resolver that recomputed
+    would hand the company two references for one registration.
+
+    A refusal crosses as `WallResponse(status=ERROR, error=ErrorDetail(...))`
+    with a code from `ENROLMENT_REFUSAL_CODES` -- the envelope's own shape for
+    "understood and declined", carrying no payload because a non-OK response may
+    not (`WallResponse.__post_init__`).
+
+    RAISES `SeamCodecError` for a message this desk could not read at all, which
+    is a different thing from a registration it refused and is why the two do not
+    share an exception type: an unreadable message has no correlation_id to
+    answer on.
+    """
+    request = decode_request(wire)
+    enrolment = request.payload
+    try:
+        reference = _register_or_refuse(enrolment, venue_clock, registrations)
+    except EnrolmentRefused as refusal:
+        return encode_wall_response(
+            WallResponse(
+                correlation_id=request.correlation_id,
+                status=WallStatus.ERROR,
+                schema_version=SCHEMA_VERSION,
+                observed_at=venue_clock,
+                valid_time=enrolment.window_start.date(),
+                payload=None,
+                error=ErrorDetail(code=refusal.code, message=refusal.message),
+            )
+        )
+    return encode_wall_response(
+        FlexEnrolmentOutcomeWallResponse(
+            correlation_id=request.correlation_id,
+            status=WallStatus.OK,
+            schema_version=SCHEMA_VERSION,
+            observed_at=venue_clock,
+            valid_time=enrolment.window_start.date(),
+            payload=FlexEnrolmentOutcome(
+                enrolment_reference=reference,
+                unit_id=enrolment.unit_id,
+                venue=enrolment.venue,
+            ),
+        )
+    )
+
+
+def _register_or_refuse(
+    enrolment: FlexEnrolment,
+    venue_clock: dt.datetime,
+    registrations: VenueRegistrations,
+) -> str:
+    """The venue's registration rules. STRUCTURAL ONLY (see
+    `ENROLMENT_REFUSAL_CODES`): this venue refuses what it cannot register, never
+    what it does not fancy -- an economic acceptance rule would be a difficulty
+    parameter and those are the director's (R13)."""
+    already = registrations.accepted(enrolment)
+    if already is not None:
+        return already
+    if enrolment.window_end <= enrolment.window_start:
+        raise EnrolmentRefused(
+            "WINDOW_NOT_A_WINDOW",
+            f"availability window ends {enrolment.window_end.isoformat()}, at or before its "
+            f"start {enrolment.window_start.isoformat()}",
+        )
+    if not np.isfinite(enrolment.offered_mw) or enrolment.offered_mw <= 0.0:
+        raise EnrolmentRefused(
+            "OFFER_NOT_DELIVERABLE",
+            f"offered_mw {enrolment.offered_mw!r} is not a finite positive volume",
+        )
+    if enrolment.window_end <= venue_clock:
+        raise EnrolmentRefused(
+            "WINDOW_ALREADY_CLOSED",
+            f"availability window ended {enrolment.window_end.isoformat()}, before this venue "
+            f"read the request at {venue_clock.isoformat()}",
+        )
+    clash = registrations.overlapping(enrolment)
+    if clash is not None:
+        raise EnrolmentRefused(
+            "UNIT_ALREADY_ENROLLED",
+            f"unit {enrolment.unit_id} is already registered at {enrolment.venue.value} over an "
+            f"overlapping window under {clash}",
+        )
+    return registrations.register(enrolment)
 
 
 # ===========================================================================

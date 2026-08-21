@@ -31,10 +31,29 @@ carries neither inference nor ground truth -- only the observation.
 ASYNC BY CONSTRUCTION (C-S3, real here, not theoretical): a real BOA is
 issued in-day and the Elexon settlement line that pays for it lands days
 later, out of order relative to other events. A ``FlexEnrolment``
-(WallRequest) submitted today resolves via a ``FlexDispatchInstruction``
-(WallResponse) later, and the ``FlexSettlementLine`` (a SEPARATE WallResponse)
-later still -- matched only by ``correlation_id`` (see ``wall_envelope``).
-Dispatch and settlement are never same-step resolution.
+(WallRequest) submitted today is answered by a ``FlexEnrolmentOutcome``
+(WallResponse) -- the venue's registration acknowledgement, and the ONLY
+terminal of that exchange -- while the ``FlexDispatchInstruction`` and the
+``FlexSettlementLine`` that may follow are LATER, SEPARATE crossings about
+periods rather than about the registration. Nothing resolves in the step that
+provoked it.
+
+WHAT THIS HEADER SAID UNTIL EP6 PASS 52, AND WHY IT IS WRITTEN DOWN. It said an
+enrolment "resolves via a FlexDispatchInstruction later", and that sentence was
+the seam's whole request leg: no module in this build ever constructed a
+``FlexEnrolment``, so every instruction and settlement line crossed as an answer
+to a question nobody had asked -- ``tools.wall_channel_census`` read the seam as
+UNSOLICITED INBOUND for exactly that reason, and the world dispatched a unit no
+company had ever registered. The registration exchange below is the repair.
+
+STILL UNREPAIRED HERE, named rather than left to be found: the dispatch
+instruction and the settlement line for one period are two different
+``WallResponse``s carrying ONE ``correlation_id``, which ``WallResponse``'s own
+docstring calls a broken contract ("a consumer is entitled to treat the second
+as a restatement of the first"). The shape that fixes it exists --
+``WallInterim`` (EP6 pass 44), which is what a message meaning "you were called,
+payment is still owed" actually is -- and moving those two legs onto it is a
+separate pass, because it changes every consumer of both feeds.
 
 PORTABILITY: ``FlexVenue`` is keyed by MARKET FUNCTION (balancing /
 capacity / turn-down / local-constraint), not a hardcoded GB venue name --
@@ -53,7 +72,17 @@ from enum import Enum
 
 from interface.contracts.wall_envelope import WallRequest, WallResponse
 
-SCHEMA_VERSION = 1
+# v2, EP6 pass 52: bumped in the SAME EDIT that re-pins this seam in
+# `tools/wall_channel_census.py::SURFACE_PINS`, which is the only lawful reason
+# to touch either line. WHAT THE SURFACE GAINED: `FlexEnrolmentOutcome`, the
+# venue's ANSWER to an enrolment -- the response leg of the exchange this seam
+# has declared since it was written and this build had never held either end of.
+# The observable-vs-hidden judgement on its three fields is made at the dataclass
+# itself, where an editor meets it: a registration reference the venue mints, and
+# the unit and venue it was minted against. Nothing about the venue's own
+# reasoning, capacity or merit order crosses -- an acceptance says THAT you are
+# registered, never why or against what else.
+SCHEMA_VERSION = 2
 
 
 class FlexVenue(str, Enum):
@@ -108,10 +137,88 @@ class FlexEnrolment:
     window_end: dt.datetime
 
 
+# The request payload's field set, DECLARED here for the same reason
+# `OBSERVABLE_PAYLOAD_FIELDS` is (below): the counterparty may not import the
+# company's codec, so its decoder needs a PUBLISHED statement of what an
+# enrolment carries to refuse against. Written out rather than derived from the
+# dataclass -- a set derived from its subject widens whenever the subject does
+# and is the R15 TAUTOLOGY for the one question it is asked.
+#
+# This is the OUTBOUND direction and it is NOT the epistemic wall: the company
+# already owns every field here. What the world may not do is DEFAULT one of
+# them -- an enrolment silently read as offering 0 MW over an unbounded window
+# is a registration the company never made.
+REQUEST_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {
+    "FlexEnrolment": (
+        "unit_id",
+        "venue",
+        "offered_mw",
+        "direction",
+        "window_start",
+        "window_end",
+    ),
+}
+
+# The venue's declared REFUSAL vocabulary -- the `ErrorDetail.code` set a
+# rejected enrolment may carry, published so the company can branch on the
+# reason it was refused instead of parsing prose, and so a code neither side
+# recognises is a contract violation rather than a shrug.
+#
+# EVERY MEMBER IS STRUCTURAL, and that is a deliberate line rather than an
+# omission: a venue in this build refuses an enrolment it CANNOT REGISTER, never
+# one it does not fancy. An economic refusal (too small, too expensive, merit
+# order full) would be a difficulty parameter, which is the director's
+# curriculum instrument under R13 and not a thing this seam may invent.
+ENROLMENT_REFUSAL_CODES: tuple[str, ...] = (
+    "WINDOW_NOT_A_WINDOW",       # window_end at or before window_start
+    "OFFER_NOT_DELIVERABLE",     # offered_mw is not a finite positive volume
+    "WINDOW_ALREADY_CLOSED",     # the availability window ended before the venue read it
+    "UNIT_ALREADY_ENROLLED",     # this unit is already registered here over an overlapping window
+)
+
+
 # ---------------------------------------------------------------------------
 # Observable response payloads -- WORLD -> COMPANY. Every field here is the
 # load-bearing epistemic-wall surface: OBSERVATION ONLY, never truth.
 # ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class FlexEnrolmentOutcome:
+    """Observable: the venue ACCEPTED this unit's enrolment, and here is the
+    reference it minted for it. The answer to a ``WallRequest[FlexEnrolment]``
+    and the only terminal this seam's request leg has.
+
+    WHY A REFERENCE IS THE WHOLE PAYLOAD. ``enrolment_reference`` is the venue's
+    own id for the registration -- the thing a real party quotes on every later
+    query about it and CANNOT MINT ITSELF. That is what makes an acceptance
+    worth carrying: a boolean would be information the company could have
+    assumed, and assuming it is exactly how this build spent forty passes
+    dispatching a unit nobody had registered.
+
+    ``unit_id`` and ``venue`` are echoed back because they are what a MIS-ROUTED
+    acceptance gets wrong, and the company checks them against its own
+    submission rather than believing them (``FlexEnrolmentBook.observe_outcome``).
+
+    WHAT IS DELIBERATELY ABSENT. No accepted volume: at L1 a venue accepts the
+    offer or refuses it, so a field whose value is always the request's own
+    ``offered_mw`` would be a mirror that no test could fail on. Partial
+    acceptance is a real L2 product and lands as an additive field then, with a
+    world that can actually produce a number different from the one it was sent.
+    No queue position, no clearing price, no indication of who else registered --
+    all of that is the venue's internals and none of it appears on a real
+    registration acknowledgement.
+
+    A REFUSAL IS NOT THIS TYPE. The envelope already carries one: a rejected
+    enrolment is ``WallResponse(status=ERROR, payload=None,
+    error=ErrorDetail(code=<one of ENROLMENT_REFUSAL_CODES>))``. Giving this
+    dataclass an ``accepted`` flag would create a False branch that duplicates
+    the envelope's own ERROR path, and a payload-carrying refusal would violate
+    ``WallResponse``'s invariant that a non-OK status carries no payload."""
+
+    enrolment_reference: str
+    unit_id: str
+    venue: FlexVenue
 
 
 @dataclass(frozen=True)
@@ -165,6 +272,7 @@ class FlexSettlementLine:
 # ---------------------------------------------------------------------------
 
 FlexEnrolmentWallRequest = WallRequest[FlexEnrolment]
+FlexEnrolmentOutcomeWallResponse = WallResponse[FlexEnrolmentOutcome]
 FlexDispatchWallResponse = WallResponse[FlexDispatchInstruction]
 FlexSettlementWallResponse = WallResponse[FlexSettlementLine]
 
@@ -173,6 +281,7 @@ FlexSettlementWallResponse = WallResponse[FlexSettlementLine]
 # WallResponse -- the epistemic-wall test enumerates exactly this list so a
 # future payload addition is forced to pass the same field-level scrutiny.
 OBSERVABLE_RESPONSE_PAYLOAD_TYPES: tuple[type, ...] = (
+    FlexEnrolmentOutcome,
     FlexDispatchInstruction,
     FlexSettlementLine,
 )
@@ -201,6 +310,11 @@ OBSERVABLE_RESPONSE_PAYLOAD_TYPES: tuple[type, ...] = (
 # is an R15 TAUTOLOGY for exactly the question being asked. Independence is the
 # whole point, which is why the duplication is load-bearing rather than sloppy.
 OBSERVABLE_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {
+    "FlexEnrolmentOutcome": (
+        "enrolment_reference",
+        "unit_id",
+        "venue",
+    ),
     "FlexDispatchInstruction": (
         "instruction_id",
         "unit_id",

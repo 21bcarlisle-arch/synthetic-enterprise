@@ -3708,23 +3708,27 @@ def test_THE_LIVE_WALL_IS_UNSOLICITED_ON_EXACTLY_THE_TWO_SEAMS_THE_WALK_NAMED():
     rather than being re-widened to keep the old assertion trivially true.
     """
     verdict = wcc.seam_conversation_conformance_at(worktree=True)
-    known_unsolicited = {
-        "interface.contracts.flex_observable_seam",
-    }
 
-    assert set(verdict.unsolicited) <= known_unsolicited, (
-        "a NEW channel C seam models unsolicited inbound as a reply to a request nothing sends -- "
-        "the shape the cold-eyes walk of 2026-08-20 named in advance: " + verdict.report()
+    # THE MOMENT THE DOCSTRING ABOVE DESCRIBED, arrived (EP6 pass 53). Every
+    # scored seam is conversant, so this is `assert verdict.ok` exactly as the
+    # original invited -- no longer a pinned population that shrinks, but the
+    # property itself. The old form asserted the conversant set EQUALLED the two
+    # repaired seams, which is this project's recorded COUNT-PINNED class: it
+    # redded on its own success case the moment a third seam was repaired.
+    assert verdict.ok, (
+        "a live channel C seam is not a two-way conversation: it either models unsolicited "
+        "inbound as a reply to a request nothing sends (the shape the cold-eyes walk of "
+        "2026-08-20 named in advance), asks into silence, or is live at neither end. This is "
+        "now a RATCHET -- the wall was whole when it was armed: " + verdict.report()
     )
-    assert not verdict.unanswered, (
-        "a live seam now asks into silence, which no live seam did when this was written: "
-        + verdict.report()
-    )
-    assert not verdict.silent, (
-        "a live seam is live at neither end: " + verdict.report()
-    )
+    # The properties, stated individually so a failure says WHICH one broke
+    # rather than only that `.ok` went false.
+    assert not verdict.unsolicited, verdict.report()
+    assert not verdict.unanswered, verdict.report()
+    assert not verdict.silent, verdict.report()
     assert set(verdict.conversant) == {
         "interface.contracts.conversation_seam",
+        "interface.contracts.flex_observable_seam",
         "interface.contracts.payment_observable_seam",
     }, (
         "the set of genuinely two-way conversations on the wall has changed, which is either a "
@@ -3753,10 +3757,17 @@ def test_the_conversation_check_is_REPORTED_by_the_CLI_and_deliberately_NOT_in_i
     assert any("conversations.report()" in p for p in printed), (
         "the conversation verdict reaches no reader -- a control nobody sees is not reporting"
     )
-    assert not any("conversations.ok" in r for r in returns), (
-        "the conversation check has been wired into the exit code while the live wall still "
-        "fails it, which refuses every commit including its own repair. Arm it in the same "
-        "commit that makes it satisfiable -- and delete this assertion then."
+    # ARMED (EP6 pass 53). This assertion used to be its own inverse -- "must
+    # NOT be in the exit code" -- with the instruction to delete it in the
+    # commit that made the check satisfiable. That commit is this one: the flex
+    # seam gained its request leg, every scored seam is conversant, and the
+    # check now gates instead of only printing. Flipped rather than deleted,
+    # because the useful half was never "it is unarmed", it was "the reader and
+    # the exit code agree about whether this control counts".
+    assert any("conversations.ok" in r for r in returns), (
+        "the conversation check has been DISARMED -- it is reported but no longer reaches the "
+        "exit code, which turns a gating control back into a paragraph. The wall was whole "
+        "when it was armed; if a seam has regressed, fix the seam rather than the gate."
     )
 
 

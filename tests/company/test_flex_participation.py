@@ -5,16 +5,33 @@ de-rating + baseline estimate, and the epistemic-wall no-sim-import guard.
 """
 from __future__ import annotations
 
+import datetime as _dt
+
 import numpy as np
 import pytest
 
+from company.interfaces.crossing_conversation import UnaskedLeg
+from company.interfaces.wall_protocol import WallProtocolError
 from company.market.flex_participation import (
     DEFAULT_PRICE_SCARCITY_PERCENTILE,
+    CompanyVenueOffer,
+    FlexEnrolmentBook,
+    FlexEnrolmentRefused,
+    MisroutedOutcome,
+    encode_enrolment_payload,
     form_participation_belief,
     form_participation_belief_l2,
     learn_delivery_ratio,
     realised_revenue_from_settlement,
 )
+from interface.contracts.flex_observable_seam import (
+    ENROLMENT_REFUSAL_CODES,
+    REQUEST_PAYLOAD_FIELDS,
+    FlexDirection,
+    FlexEnrolment,
+    FlexVenue,
+)
+from sim.flex_dispatch import VenueRegistrations, answer_enrolment
 
 
 def _prices(n=200, seed=0):
@@ -85,3 +102,171 @@ def test_no_sim_import():
     src = open(mod.__file__).read()
     assert "import sim" not in src and "from sim" not in src
     assert "import simulation" not in src and "from simulation" not in src
+
+
+# ===========================================================================
+# EP6 pass 53 -- THE ENROLMENT EXCHANGE, COMPANY SIDE.
+#
+# The request leg (pass 52) landed 675 lines of production code across both
+# sides of the wall with NO test of any kind. These are its controls. The
+# round trip is driven end to end -- company encodes, the VENUE's own
+# independent codec answers, the company reads the answer -- because a
+# company-side test that stubbed the venue's reply would be asserting that
+# this module agrees with a fixture I wrote, which is the R15 TAUTOLOGY for
+# the one question a seam is asked.
+# ===========================================================================
+
+_W_START = _dt.datetime(2026, 3, 1, 16, 0)
+_W_END = _dt.datetime(2026, 3, 1, 19, 0)
+_ASOF = _dt.datetime(2026, 2, 20, 9, 0)
+#: The venue reads the request well before the window closes, so a refusal in
+#: any test below is about the thing that test names and never about the clock.
+_VENUE_CLOCK = _dt.datetime(2026, 2, 20, 10, 0)
+
+
+def _offer(mw=5.0, venue="dfs_turn_down"):
+    return CompanyVenueOffer(venue=venue, offered_mw=mw, priority=1)
+
+
+def _submit(book, *, unit_id="UNIT-A", start=_W_START, end=_W_END, mw=5.0):
+    return book.submit(
+        _offer(mw=mw),
+        unit_id=unit_id,
+        window_start=start,
+        window_end=end,
+        as_of=_ASOF,
+    )
+
+
+def test_the_full_enrolment_ROUND_TRIP_crosses_the_wall_and_comes_back_registered():
+    """THE SUCCESS CASE, and it is the null control every refusal below needs:
+    if this did not pass, a test asserting a refusal would prove only that the
+    exchange never works."""
+    book, venue = FlexEnrolmentBook(), VenueRegistrations()
+
+    wire = _submit(book)
+    answer = answer_enrolment(wire, venue_clock=_VENUE_CLOCK, registrations=venue)
+    outcome = book.observe_outcome(answer)
+
+    assert outcome.unit_id == "UNIT-A"
+    assert outcome.venue is FlexVenue.DFS_TURN_DOWN
+    # The reference is the VENUE's, minted from its own sequence -- the one
+    # thing in this payload the company could not have assumed.
+    assert outcome.enrolment_reference == "DFS_TURN_DOWN-REG-000001"
+    assert book.registered_references() == ("DFS_TURN_DOWN-REG-000001",)
+
+
+def test_the_conversation_is_OPEN_between_the_ask_and_the_answer_and_closed_after():
+    """`awaiting_answer` is the thing a response-driven company cannot produce:
+    it would learn the crossing existed only from the message that ended it."""
+    book, venue = FlexEnrolmentBook(), VenueRegistrations()
+
+    assert book.awaiting_answer() == ()
+    wire = _submit(book)
+    assert len(book.awaiting_answer()) == 1  # the ask is on the books before any reply
+
+    book.observe_outcome(answer_enrolment(wire, venue_clock=_VENUE_CLOCK, registrations=venue))
+    assert book.awaiting_answer() == ()
+
+
+def test_MUTATION_an_outcome_on_a_correlation_id_this_company_NEVER_SUBMITTED_is_refused():
+    """The REGISTER is the evidence that we asked; the message never is, or any
+    process able to mint a plausible id is registered with us.
+
+    The mutation is the forged id and nothing else: the SAME venue, the SAME
+    bytes-shape, answered against a book that did not submit it."""
+    submitter, bystander = FlexEnrolmentBook(), FlexEnrolmentBook()
+    venue = VenueRegistrations()
+
+    answer = answer_enrolment(
+        _submit(submitter), venue_clock=_VENUE_CLOCK, registrations=venue
+    )
+
+    with pytest.raises(UnaskedLeg):
+        bystander.observe_outcome(answer)
+
+    # NULL CONTROL: the identical answer is ACCEPTED by the book that really
+    # asked -- so the refusal is keyed on the register and not on the message.
+    assert submitter.observe_outcome(answer).unit_id == "UNIT-A"
+
+
+def test_a_MISROUTED_acceptance_is_refused_against_our_own_submission_not_the_message():
+    """The echoed unit/venue are what a mis-routed registration gets wrong, so
+    believing them is believing the thing under suspicion."""
+    book, venue = FlexEnrolmentBook(), VenueRegistrations()
+    wire = _submit(book, unit_id="UNIT-A")
+    answer = answer_enrolment(wire, venue_clock=_VENUE_CLOCK, registrations=venue)
+
+    # The venue answers our correlation id describing somebody else's unit.
+    # Mutated INSIDE `fields`: putting a stray top-level key on the payload
+    # would be caught by the key-set belt one layer earlier, and this test
+    # would then pass without the refusal it names ever firing.
+    answer["payload"]["fields"]["unit_id"] = "UNIT-ELSEWHERE"
+
+    with pytest.raises(MisroutedOutcome):
+        book.observe_outcome(answer)
+    # ...and it never reached the reference book.
+    assert book.registered_references() == ()
+
+
+def test_a_REFUSED_registration_RAISES_and_can_never_read_as_a_quiet_absence_of_flex():
+    """A company that read its own rejected registration as "no flex this
+    window" would go on forecasting revenue from a venue with no record of it.
+
+    Asserted by REASON CODE, not a bare `raises`: two refusals on this leg call
+    for different repairs, and a bare raises cannot tell them apart."""
+    book, venue = FlexEnrolmentBook(), VenueRegistrations()
+    # A window that ended before the venue ever read the request.
+    wire = _submit(book, start=_dt.datetime(2026, 1, 1, 1), end=_dt.datetime(2026, 1, 1, 2))
+    answer = answer_enrolment(wire, venue_clock=_VENUE_CLOCK, registrations=venue)
+
+    with pytest.raises(FlexEnrolmentRefused) as exc:
+        book.observe_outcome(answer)
+    assert exc.value.code == "WINDOW_ALREADY_CLOSED"
+    assert exc.value.code in ENROLMENT_REFUSAL_CODES
+    assert book.registered_references() == ()
+
+
+def test_MUTATION_a_field_added_to_the_payload_cannot_cross_UNDECLARED():
+    """The published declaration is load-bearing: the encoder measures its own
+    wire form against the CONTRACT's key set, so a field added on one side and
+    not published is refused rather than silently crossing.
+
+    Mutating the DECLARATION (not the encoder) is what proves the encoder reads
+    it -- if it did not, widening the contract would change nothing."""
+    enrolment = FlexEnrolment(
+        unit_id="UNIT-A",
+        venue=FlexVenue.DFS_TURN_DOWN,
+        offered_mw=5.0,
+        direction=FlexDirection.TURN_DOWN,
+        window_start=_W_START,
+        window_end=_W_END,
+    )
+    # NULL CONTROL: it encodes cleanly against the real declaration.
+    assert set(encode_enrolment_payload(enrolment)) == set(
+        REQUEST_PAYLOAD_FIELDS["FlexEnrolment"]
+    )
+
+    original = REQUEST_PAYLOAD_FIELDS["FlexEnrolment"]
+    REQUEST_PAYLOAD_FIELDS["FlexEnrolment"] = original + ("settlement_priority",)
+    try:
+        with pytest.raises(WallProtocolError) as exc:
+            encode_enrolment_payload(enrolment)
+        assert exc.value.reason == "CONTRACT_VIOLATION"
+    finally:
+        REQUEST_PAYLOAD_FIELDS["FlexEnrolment"] = original
+
+
+def test_the_company_cannot_submit_into_a_venue_the_seam_publishes_no_market_for():
+    """Its own book naming a venue nobody runs a market for is refused at the
+    seam rather than crossing as a string the venue would have to guess at."""
+    book = FlexEnrolmentBook()
+    with pytest.raises(WallProtocolError) as exc:
+        book.submit(
+            _offer(venue="a_venue_that_does_not_exist"),
+            unit_id="UNIT-A",
+            window_start=_W_START,
+            window_end=_W_END,
+            as_of=_ASOF,
+        )
+    assert exc.value.reason == "CONTRACT_VIOLATION"

@@ -11,13 +11,22 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+import sim.flex_dispatch as sim_flex_dispatch
 from interface.contracts.flex_observable_seam import (
+    ENROLMENT_REFUSAL_CODES,
+    REQUEST_PAYLOAD_FIELDS,
+    SCHEMA_VERSION,
     FlexDispatchInstruction,
     FlexSettlementLine,
 )
 from sim.flex_dispatch import (
+    ENROLMENT_REQUEST_TYPE,
     DegenerateFlexError,
     DeliveryModel,
+    EnrolmentRefused,
+    SeamCodecError,
+    VenueRegistrations,
+    answer_enrolment,
     dispatch_and_settle,
     emit_dispatch_instructions,
     emit_settlement_lines,
@@ -459,3 +468,244 @@ def test_the_declaration_is_not_derived_from_the_payload_it_certifies():
         assert isinstance(entry, ast.Tuple), "each payload's fields must be literal"
         for element in entry.elts:
             assert isinstance(element, ast.Constant) and isinstance(element.value, str)
+
+
+# ===========================================================================
+# EP6 pass 53 -- THE ENROLMENT EXCHANGE, VENUE (WORLD) SIDE.
+#
+# Controls for the request leg landed untested by pass 52. The venue's codec
+# is written against the PUBLISHED schema and never against the company's
+# encoder, so these build their wire by hand from the contract's own declared
+# key set -- importing the company's encoder to test the venue's decoder would
+# make the round trip a handshake with itself.
+# ===========================================================================
+
+_E_START = dt.datetime(2026, 3, 1, 16, 0)
+_E_END = dt.datetime(2026, 3, 1, 19, 0)
+_E_CLOCK = dt.datetime(2026, 2, 20, 10, 0)
+
+
+def _enrolment_wire(
+    *,
+    unit_id="UNIT-A",
+    venue="dfs_turn_down",
+    offered_mw=5.0,
+    start=_E_START,
+    end=_E_END,
+    correlation_id="flex-enrol-1",
+    emitted_at=dt.datetime(2026, 2, 20, 9, 0),
+):
+    """A request built from the CONTRACT's declared key set, not from the
+    company's encoder."""
+    return {
+        "correlation_id": correlation_id,
+        "request_type": ENROLMENT_REQUEST_TYPE,
+        "schema_version": SCHEMA_VERSION,
+        "as_of": dt.datetime(2026, 2, 20, 9, 0).isoformat(),
+        "emitted_at": emitted_at.isoformat(),
+        "payload": {
+            "unit_id": unit_id,
+            "venue": venue,
+            "offered_mw": float(offered_mw),
+            "direction": "turn_down",
+            "window_start": start.isoformat(),
+            "window_end": end.isoformat(),
+        },
+    }
+
+
+def test_the_venue_ACCEPTS_a_well_formed_enrolment_and_mints_its_own_reference():
+    """NULL CONTROL for every refusal below: the venue is not always-red."""
+    reg = VenueRegistrations()
+    answer = answer_enrolment(_enrolment_wire(), venue_clock=_E_CLOCK, registrations=reg)
+
+    assert answer["status"] == "OK"
+    assert answer["payload"]["fields"]["enrolment_reference"] == "DFS_TURN_DOWN-REG-000001"
+
+
+def test_C_S2_a_RESENT_enrolment_returns_the_SAME_reference_and_does_not_mint_a_second():
+    """Idempotency. A resolver that recomputed would hand the company two
+    references for one registration -- and the venue would have sold the same
+    unit's MW twice into the same window."""
+    reg = VenueRegistrations()
+    wire = _enrolment_wire()
+
+    first = answer_enrolment(wire, venue_clock=_E_CLOCK, registrations=reg)
+    second = answer_enrolment(wire, venue_clock=_E_CLOCK, registrations=reg)
+
+    assert first["payload"]["fields"]["enrolment_reference"] == (
+        second["payload"]["fields"]["enrolment_reference"]
+    )
+    assert second["status"] == "OK"  # a redelivery is not read as a double enrolment
+
+
+def test_an_OVERLAPPING_window_is_refused_but_a_CONSECUTIVE_one_is_not():
+    """The half-open boundary is the only value this rule is easy to get wrong
+    about: a registration ending exactly when another starts is two consecutive
+    availability periods, not a double sale. Both directions asserted, because
+    a refusal that also fired here would make the venue unable to hold a book
+    at all."""
+    reg = VenueRegistrations()
+    answer_enrolment(_enrolment_wire(), venue_clock=_E_CLOCK, registrations=reg)
+
+    overlapping = answer_enrolment(
+        _enrolment_wire(
+            start=dt.datetime(2026, 3, 1, 18, 0),
+            end=dt.datetime(2026, 3, 1, 21, 0),
+            correlation_id="flex-enrol-2",
+        ),
+        venue_clock=_E_CLOCK,
+        registrations=reg,
+    )
+    assert overlapping["status"] == "ERROR"
+    assert overlapping["error"]["code"] == "UNIT_ALREADY_ENROLLED"
+
+    # NULL CONTROL: butt-jointed, not overlapping -- accepted.
+    consecutive = answer_enrolment(
+        _enrolment_wire(
+            start=_E_END,
+            end=dt.datetime(2026, 3, 1, 22, 0),
+            correlation_id="flex-enrol-3",
+        ),
+        venue_clock=_E_CLOCK,
+        registrations=reg,
+    )
+    assert consecutive["status"] == "OK"
+
+
+def test_the_SAME_unit_may_enrol_at_a_DIFFERENT_venue_over_the_same_window():
+    """Overlap is scoped BY VENUE deliberately: a multi-venue book is the
+    legitimate stacking case, and the contention it creates is a thing the
+    company is supposed to be able to get wrong."""
+    reg = VenueRegistrations()
+    answer_enrolment(_enrolment_wire(), venue_clock=_E_CLOCK, registrations=reg)
+
+    other = answer_enrolment(
+        _enrolment_wire(venue="capacity_market", correlation_id="flex-enrol-4"),
+        venue_clock=_E_CLOCK,
+        registrations=reg,
+    )
+    assert other["status"] == "OK"
+
+
+def test_ABSENCE_IS_NEVER_AGREEMENT_a_missing_payload_key_is_refused_not_defaulted():
+    """The fail-open direction. A defaulted `offered_mw` would register the
+    company for a volume it never offered and then settle it against that
+    volume."""
+    wire = _enrolment_wire()
+    del wire["payload"]["offered_mw"]
+
+    with pytest.raises(SeamCodecError):
+        answer_enrolment(wire, venue_clock=_E_CLOCK, registrations=VenueRegistrations())
+
+
+def test_MUTATION_the_venue_judges_the_window_on_ITS_OWN_clock_not_the_senders():
+    """A refusal keyed on a timestamp the SENDER controls is a refusal the
+    sender can switch off.
+
+    The mutation moves `emitted_at` -- the only clock on the wire -- to claim
+    the request was sent while the window was open. The refusal must not
+    move, because the venue read it after the window closed."""
+    closed = dict(
+        start=dt.datetime(2026, 1, 1, 1, 0),
+        end=dt.datetime(2026, 1, 1, 2, 0),
+    )
+    honest = answer_enrolment(
+        _enrolment_wire(**closed), venue_clock=_E_CLOCK, registrations=VenueRegistrations()
+    )
+    assert honest["error"]["code"] == "WINDOW_ALREADY_CLOSED"
+
+    forged = answer_enrolment(
+        _enrolment_wire(**closed, emitted_at=dt.datetime(2025, 12, 31, 12, 0)),
+        venue_clock=_E_CLOCK,
+        registrations=VenueRegistrations(),
+    )
+    assert forged["error"]["code"] == "WINDOW_ALREADY_CLOSED"
+
+    # NULL CONTROL: the same venue, the same clock, an OPEN window -- accepted.
+    # Without this the two assertions above would also hold of a venue that
+    # refused everything.
+    assert answer_enrolment(
+        _enrolment_wire(), venue_clock=_E_CLOCK, registrations=VenueRegistrations()
+    )["status"] == "OK"
+
+
+def test_a_request_MISROUTED_to_this_desk_is_refused_as_unreadable_not_as_a_rejection():
+    """An unreadable message has no correlation_id to answer on, which is why
+    it raises rather than crossing back as a structured refusal."""
+    wire = _enrolment_wire()
+    wire["request_type"] = "capacity_auction_bid"
+
+    with pytest.raises(SeamCodecError):
+        answer_enrolment(wire, venue_clock=_E_CLOCK, registrations=VenueRegistrations())
+
+
+def test_the_venue_may_not_send_a_refusal_reason_the_company_cannot_branch_on():
+    """An undeclared code is one no company could branch on, so it may not be
+    sent at all. Both directions: a declared code constructs cleanly."""
+    with pytest.raises(ValueError):
+        EnrolmentRefused("WE_JUST_DIDNT_FANCY_IT", "no reason the contract publishes")
+
+    assert EnrolmentRefused(ENROLMENT_REFUSAL_CODES[0], "declared").code in (
+        ENROLMENT_REFUSAL_CODES
+    )
+
+
+def test_a_REFUSAL_carries_no_payload_and_an_ACCEPTANCE_carries_no_error():
+    """The envelope's own invariant, asserted on the bytes this desk actually
+    emits: a non-OK response may not carry a payload."""
+    reg = VenueRegistrations()
+    refused = answer_enrolment(
+        _enrolment_wire(offered_mw=-1.0), venue_clock=_E_CLOCK, registrations=reg
+    )
+    assert refused["error"]["code"] == "OFFER_NOT_DELIVERABLE"
+    assert refused.get("payload") is None
+
+    accepted = answer_enrolment(_enrolment_wire(), venue_clock=_E_CLOCK, registrations=reg)
+    assert accepted.get("error") is None
+
+
+def test_the_venue_side_may_not_import_the_company():
+    """The wall. The venue's codec is written against the published schema; an
+    encoder built by reading the receiver makes the round trip a handshake with
+    itself."""
+    import sim.flex_dispatch as mod
+
+    src = Path(mod.__file__).read_text()
+    assert "import company" not in src and "from company" not in src
+
+
+def test_the_venues_refusal_set_IS_the_contracts_declaration_and_not_a_copy(monkeypatch):
+    """The venue decodes against the CONTRACT's published key set, so a field
+    declared on the enrolment is decodable the day it is declared and not a day
+    before.
+
+    MUTATED ON THE MODULE'S OWN BINDING, never by reloading the module. An
+    earlier draft of this test called `importlib.reload(sim.flex_dispatch)`,
+    which redefines every class in it -- and the 22 tests in
+    `test_flex_dispatch_stacked.py` that had already imported the old classes
+    then failed `isinstance` against the new ones. It passed when this file ran
+    alone and redded the gate, which is this project's own rule met live: never
+    mutate a shared module while a suite is in flight.
+    """
+    # The binding is the contract's declaration, restated as a set.
+    assert sim_flex_dispatch._ENROLMENT_PAYLOAD_FIELDS == frozenset(
+        REQUEST_PAYLOAD_FIELDS["FlexEnrolment"]
+    )
+
+    # NULL CONTROL: against the real declaration, a well-formed wire is accepted.
+    assert answer_enrolment(
+        _enrolment_wire(), venue_clock=_E_CLOCK, registrations=VenueRegistrations()
+    )["status"] == "OK"
+
+    # MUTATION: the venue expects a key the company does not publish, so a wire
+    # built to the CONTRACT's real set is refused as incomplete.
+    monkeypatch.setattr(
+        sim_flex_dispatch,
+        "_ENROLMENT_PAYLOAD_FIELDS",
+        frozenset(REQUEST_PAYLOAD_FIELDS["FlexEnrolment"]) | {"settlement_priority"},
+    )
+    with pytest.raises(SeamCodecError):
+        answer_enrolment(
+            _enrolment_wire(), venue_clock=_E_CLOCK, registrations=VenueRegistrations()
+        )
