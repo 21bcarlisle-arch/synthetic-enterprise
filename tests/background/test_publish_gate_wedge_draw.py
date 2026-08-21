@@ -794,14 +794,19 @@ def test_a_raising_reader_withholds_rather_than_crashing_the_draw_ladder(tmp_pat
     Both halves matter: the draw must still FIRE (a broken suspect-reader must never blind
     RUNG 1 to a real wedge, which would be strictly worse than saying nothing), and it must
     not raise into the ladder that every lower rung is queued behind."""
-    from background import process_run_complete as prc
+    from background import publish_gate_blocking_read as reader
     now = 1_800_000_000.0
     _write(tmp_path, monkeypatch, _laundered_state(now))
     _blocking_record(tmp_path, now)  # a record that WOULD warrant the payload
 
     def _boom(*_a, **_k):
         raise RuntimeError("reader gone")
-    monkeypatch.setattr(prc, "last_blocking_tests", _boom)
+    # The DELEGATE is what breaks. Since 2026-08-21 that is the leaf reader, not
+    # `process_run_complete.last_blocking_tests` -- the supervisor no longer imports the
+    # publisher at all (see `test_publish_scope.py::test_the_supervisor_does_not_import_the_
+    # publish_path`). Patching the publisher here would leave this test passing over a stub
+    # nothing calls, which is the tautology shape it was written to avoid.
+    monkeypatch.setattr(reader, "read_blocking_record", _boom)
 
     assert supervisor._live_gate_blocking_record(now=now) == ([], None)
     msg = supervisor._publish_gate_wedge_active(now=now)
