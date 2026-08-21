@@ -449,3 +449,138 @@ def test_the_company_holds_the_SAME_reference_the_world_will_honour():
         min(called),
         min(called) + dt.timedelta(hours=truth.period_hours),
     ) is None
+
+
+# ===========================================================================
+# EP6 pass 58 -- THE L3 LOOP REGISTERS BEFORE IT IS CALLED.
+#
+# Pass 54 gave the L2 loop a first leg and pass 57 gave the world teeth on the
+# single-venue wire legs; the stacked feeds stayed unbelted because the L3 loop
+# registered nowhere, so the stacking over-claim was being scored over a
+# portfolio that had joined no market. These are that leg and its refusals.
+# ===========================================================================
+
+
+def test_the_L3_feeds_ANSWER_registrations_the_company_HOLDS():
+    m = measure_l3(_synthetic_record())
+    assert m["feeds_solicited"] is True
+    refs = m["enrolment_references_by_venue"]
+    # One reference PER VENUE -- a stacked party signs a separate agreement per
+    # market function, and each reference is the VENUE's, not the company's.
+    assert set(refs) == {"balancing_mechanism", "dso_local_constraint"}
+    assert refs["balancing_mechanism"].startswith("BALANCING_MECHANISM-REG-")
+    assert refs["dso_local_constraint"].startswith("DSO_LOCAL_CONSTRAINT-REG-")
+
+
+def test_MUTATION_a_stacked_world_calling_a_venue_the_portfolio_NEVER_JOINED_is_REFUSED():
+    """The defect the L3 belt exists for, and it is not the L2 one repeated: a
+    portfolio correctly registered at ONE venue, and instructed at another it
+    never joined. Registering only the first venue is the whole mutation -- the
+    unit is known, the window is right, and only the venue is wrong."""
+    import background.flex_dispatch_triad as triad
+
+    real = triad.solicit_registration_stacked
+
+    def register_only_the_first_venue(truth, *, venues, **kw):
+        return real(truth, venues=list(venues)[:1], **kw)
+
+    monkeypatch_target = "solicit_registration_stacked"
+    original = getattr(triad, monkeypatch_target)
+    try:
+        setattr(triad, monkeypatch_target, register_only_the_first_venue)
+        with pytest.raises(UnregisteredDispatch) as exc:
+            measure_l3(_synthetic_record())
+        assert "dso_local_constraint" in str(exc.value)
+    finally:
+        setattr(triad, monkeypatch_target, original)
+
+    # NULL CONTROL: restored, the same record runs clean -- so the refusal above
+    # is the missing registration and not a loop that cannot complete.
+    assert measure_l3(_synthetic_record())["feeds_solicited"] is True
+
+
+def test_the_L3_solicited_OBSERVATION_can_still_be_False__it_is_not_always_green():
+    """The world law refuses at EMISSION; this observation reads the DECODED
+    feeds, so it is not made unfalsifiable by the belt sitting upstream of it. An
+    instruction read for the wrong VENUE -- a mis-keyed feed, which is the real
+    shape of this mistake in a multi-venue book -- still scores False.
+
+    The INSTRUCTION feed rather than the settlement feed, and the reason is worth
+    stating: `learn_delivery_ratio_from_lines` already refuses to learn from a
+    settlement line at a venue the company has no offer in, so mutating that leg
+    raises there and proves nothing about this observation. The instruction leg
+    survives to be scored, which is what makes it the discriminating mutation.
+    """
+    from dataclasses import replace
+
+    import background.flex_dispatch_triad as triad
+    from interface.contracts.flex_observable_seam import FlexVenue
+
+    real = triad.observe_response_wire
+
+    def decode_at_a_venue_we_never_joined(message, **kw):
+        return replace(real(message, **kw), venue=FlexVenue.CAPACITY_MARKET)
+
+    try:
+        triad.observe_response_wire = decode_at_a_venue_we_never_joined
+        m = measure_l3(_synthetic_record())
+    finally:
+        triad.observe_response_wire = real
+
+    assert m["feeds_solicited"] is False
+
+
+def test_the_L3_request_leg_does_not_touch_the_SCORE():
+    """R12/R13. Registering is a crossing, not a tuning knob: the L3 headline
+    must still be the one an independent recomputation from truth and belief
+    gives, so no published figure moved when the loop gained its first leg."""
+    m = measure_l3(_synthetic_record())
+    independent = prediction_gap(
+        m["truth"].total_delivered_mwh, m["belief"].expected_delivered_mwh)
+    assert m["gap"] == independent.gap
+
+    true_mwh = float(np.sum(m["truth"].total_delivered_mwh))
+    expected_mwh = float(np.sum(m["belief"].expected_delivered_mwh))
+    assert m["overclaim_mwh_frac"] == (expected_mwh - true_mwh) / true_mwh
+
+
+def test_the_L3_summary_carries_the_solicited_fact_a_digest_would_quote():
+    s = build_gap_summary_l3(measure_l3(_synthetic_record()))
+    assert s["feeds_solicited"] is True
+    assert s["enrolment_references_by_venue"]
+
+
+def test_a_stacked_registration_naming_TWO_units_refuses_to_name_one():
+    """A stacked portfolio is ONE physical unit offered into several venues --
+    that is what makes the MW contend at all. Two unit ids would mean the loop
+    had silently become two portfolios, and the conservation law it measures
+    would be scoring an aggregate nobody owns, so the type refuses to guess."""
+    from background.flex_dispatch_triad import StackedRegistration, solicit_registration_stacked
+    from interface.contracts.flex_observable_seam import FlexEnrolmentOutcome, FlexVenue
+    from sim.flex_dispatch import VenueRegistrations
+
+    two = StackedRegistration(
+        outcomes={
+            "balancing_mechanism": FlexEnrolmentOutcome(
+                enrolment_reference="A", unit_id="UNIT_ONE",
+                venue=FlexVenue.BALANCING_MECHANISM),
+            "dso_local_constraint": FlexEnrolmentOutcome(
+                enrolment_reference="B", unit_id="UNIT_TWO",
+                venue=FlexVenue.DSO_LOCAL_CONSTRAINT),
+        },
+        venue_book=VenueRegistrations(),
+    )
+    with pytest.raises(ValueError):
+        two.unit_id
+
+    # NULL CONTROL: the REAL leg produces a registration that does name one, so
+    # the refusal above is the disagreement and not the property being broken.
+    from background.flex_dispatch_triad import _default_venues
+    from sim.flex_dispatch import dispatch_and_settle_stacked
+
+    venues = _default_venues(portfolio_mw=100.0)
+    truth = dispatch_and_settle_stacked(
+        _synthetic_record(), venues=venues, portfolio_mw=100.0)
+    real = solicit_registration_stacked(truth, venues=venues)
+    assert real.unit_id == "FLEX_UNIT_1"
+    assert real.venues == ("balancing_mechanism", "dso_local_constraint")

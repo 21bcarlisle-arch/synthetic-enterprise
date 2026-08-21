@@ -107,6 +107,24 @@ LOOP_UNIT_ID = "FLEX_UNIT_1"
 TWIN_ATOM_ID = "flex_participation_belief"
 
 
+def _record_window(truth) -> "tuple[dt.datetime, dt.datetime]":
+    """The availability window a party would declare to cover this whole record.
+
+    SPAN, not first-to-last: a record's dates are not required to be sorted (the
+    triad's own synthetic fixture cycles months), and a window whose end preceded
+    its start is refused WINDOW_NOT_A_WINDOW -- correctly, and for a reason that
+    has nothing to do with what is being measured.
+
+    Shared by the L2 and L3 registration legs rather than restated, because the
+    world's dispatch legs now REFUSE a call outside the declared window: two
+    copies of this arithmetic would be two chances for a loop to register a
+    window half a period short of the one it is about to be called over, and
+    that failure reads as a broken world rather than a broken fixture.
+    """
+    stamps = [_base_date(d) for d in truth.dates]
+    return min(stamps), max(stamps) + dt.timedelta(hours=truth.period_hours)
+
+
 @dataclass(frozen=True)
 class SolicitedRegistration:
     """One completed enrolment exchange, held from BOTH sides -- which only the
@@ -172,13 +190,7 @@ def solicit_registration(
     measured a gap against a refused registration would be scoring a business
     that does not exist.
     """
-    # SPAN, not first-to-last: a record's dates are not required to be sorted
-    # (the triad's own synthetic fixture cycles months), and a window whose end
-    # preceded its start is refused WINDOW_NOT_A_WINDOW -- correctly, and for a
-    # reason that has nothing to do with what is being measured.
-    stamps = [_base_date(d) for d in truth.dates]
-    window_start = min(stamps)
-    window_end = max(stamps) + dt.timedelta(hours=truth.period_hours)
+    window_start, window_end = _record_window(truth)
     venue_clock = window_start - dt.timedelta(days=1)
     venue_book = VenueRegistrations()
     seam = build_sim_interface(
@@ -195,6 +207,110 @@ def solicit_registration(
     return SolicitedRegistration(
         outcome=seam.enrol_flex(enrolment, as_of=venue_clock), venue_book=venue_book
     )
+
+
+@dataclass(frozen=True)
+class StackedRegistration:
+    """One portfolio's registrations across N venues, held from both sides.
+
+    The L3 counterpart of `SolicitedRegistration`, and the difference is the
+    whole reason it is a separate type rather than a list of them: a stacked
+    portfolio holds ONE book with a SEPARATE registration per venue, and the
+    venue is what makes each one distinct. A list of single registrations would
+    carry N books that each know about one venue, which is exactly the state
+    that lets a world call a unit at a venue its book never registered.
+    """
+
+    outcomes: Dict[str, FlexEnrolmentOutcome]
+    venue_book: VenueRegistrations
+
+    @property
+    def unit_id(self) -> str:
+        """The one unit this portfolio is registered under.
+
+        Raises rather than picking one if the outcomes disagree: a stacked
+        portfolio is ONE physical unit offered into several venues (that is what
+        makes the MW contend at all), so two unit ids here would mean the loop
+        had silently become two portfolios and the conservation law it measures
+        would be scoring an aggregate nobody owns.
+        """
+        units = {o.unit_id for o in self.outcomes.values()}
+        if len(units) != 1:
+            raise ValueError(
+                f"a stacked registration must name ONE unit across its venues, got {sorted(units)}"
+            )
+        return units.pop()
+
+    @property
+    def venues(self) -> "tuple[str, ...]":
+        """The venue keys this portfolio actually holds a registration at."""
+        return tuple(sorted(self.outcomes))
+
+    @property
+    def references_by_venue(self) -> Dict[str, str]:
+        """The reference the VENUE minted, per venue -- what a real party quotes."""
+        return {k: o.enrolment_reference for k, o in self.outcomes.items()}
+
+
+def solicit_registration_stacked(
+    truth,
+    *,
+    venues: Sequence[VenueSpec],
+    unit_id: str = LOOP_UNIT_ID,
+) -> StackedRegistration:
+    """LEG 1 OF THE L3 LOOP: the portfolio registers at EVERY venue it will be
+    called by, through the production seam, before anything is dispatched to it.
+
+    WHY L3 GAINED THIS LEG (EP6 pass 58). Pass 57 gave the world teeth on the
+    single-venue wire legs and left the stacked ones unbelted, because belting a
+    feed no loop had registered for would have refused every stacked run. That
+    left the L3 measurement in the state pass 54 found L2 in: the world emitted
+    instructions and settlement lines for `FLEX_UNIT_1` -- a keyword default --
+    at venues nobody had enrolled with, and the company formed a stacking belief
+    about the result. The over-claim L3 scores is a real failure mode of real
+    aggregators; scoring it against a portfolio that had never registered was
+    measuring one over a world that could not have happened.
+
+    ONE BOOK, N REGISTRATIONS, AND THAT IS THE POINT. Every venue is asked
+    separately -- a real party signs a separate agreement per market function --
+    but the answers land in ONE `VenueRegistrations`, which is then handed to the
+    world's emitters. `VenueRegistrations` scopes by (unit, venue), so registering
+    one unit into several venues over one window is accepted (it is the
+    legitimate stacking this atom models) while a SECOND registration at the same
+    venue over an overlapping window is still refused UNIT_ALREADY_ENROLLED.
+
+    THE COMPANY'S BOOK IS THE COMPANY'S DECLARATION. `venues` is the offer book
+    the caller declared, not `truth.venues` read back out of the world: they hold
+    the same specs on the default path, and taking it from the caller keeps the
+    provenance honest -- the company registers what IT offered, and the world
+    calls what IT holds. A loop that registered from the world's own book could
+    never be short a venue, which is precisely the defect the belt exists for.
+
+    Raises (never returns a partial book) if any venue declines: a stacking gap
+    measured against a portfolio one of whose venues refused it would be scoring
+    contention between a registration and a rejection.
+    """
+    window_start, window_end = _record_window(truth)
+    venue_clock = window_start - dt.timedelta(days=1)
+    venue_book = VenueRegistrations()
+    seam = build_sim_interface(
+        flex_venue_clock=venue_clock, flex_registrations=venue_book
+    )
+    outcomes: Dict[str, FlexEnrolmentOutcome] = {}
+    for spec in venues:
+        enrolment = FlexEnrolment(
+            unit_id=unit_id,
+            venue=spec.venue,
+            # The volume THIS venue was offered, which is the whole substance of
+            # a stacked book: registering the portfolio's physical capability at
+            # every venue would be registering a party that cannot contend.
+            offered_mw=float(spec.offered_mw),
+            direction=FlexDirection.TURN_DOWN,
+            window_start=window_start,
+            window_end=window_end,
+        )
+        outcomes[spec.key] = seam.enrol_flex(enrolment, as_of=venue_clock)
+    return StackedRegistration(outcomes=outcomes, venue_book=venue_book)
 
 
 def measure(
@@ -483,12 +599,36 @@ def measure_l3(
     # HARNESS independently confirms it rather than trusting the SIM's word.
     worst_over_allocation_mw = assert_mw_conservation(truth)
 
+    # -- LEG 1: THE PORTFOLIO REGISTERS AT EVERY VENUE, before anything is
+    #    instructed or settled to it (EP6 pass 58). Both stacked feeds now
+    #    consult this book at emission, so a venue the company never enrolled
+    #    with raises `UnregisteredDispatch` instead of reaching the wall. --
+    registration = solicit_registration_stacked(truth, venues=venues)
+
     # -- OBSERVABLES: what actually crossed the wall this run. --
     instructions = [
         observe_response_wire(m, expect=FlexDispatchInstruction)
-        for m in emit_dispatch_instructions_stacked_over_wire(truth)
+        for m in emit_dispatch_instructions_stacked_over_wire(
+            truth, registrations=registration.venue_book)
     ]
-    settlement = observe_settlement_wire(emit_settlement_lines_stacked_over_wire(truth))
+    settlement = observe_settlement_wire(emit_settlement_lines_stacked_over_wire(
+        truth, registrations=registration.venue_book))
+
+    # -- ARE THESE FEEDS SOLICITED? The L2 question asked per venue, and it is
+    #    a genuinely different one at L3: a stacked party can be correctly
+    #    registered at one venue and called at another, which is invisible to a
+    #    unit-only check. Read off the DECODED messages (not off the arguments
+    #    passed in) against the venues the company holds a reference for. The
+    #    world REFUSES the same thing at emission; this is the reader's evidence
+    #    that it did, and it stays falsifiable because it sits downstream of the
+    #    decode -- a mis-keyed feed still scores False. --
+    held_venues = set(registration.venues)
+    observed = [
+        (i.unit_id, str(getattr(i.venue, "value", i.venue))) for i in instructions
+    ] + [(s.unit_id, str(getattr(s.venue, "value", s.venue))) for s in settlement]
+    feeds_solicited = bool(observed) and all(
+        unit == registration.unit_id and venue in held_venues for unit, venue in observed
+    )
 
     offers = [
         CompanyVenueOffer(
@@ -544,6 +684,8 @@ def measure_l3(
         "expected_delivered_mwh": learned_mwh,
         "expected_delivered_mwh_blind": blind_mwh,
         "worst_over_allocation_mw": worst_over_allocation_mw,
+        "enrolment_references_by_venue": registration.references_by_venue,
+        "feeds_solicited": feeds_solicited,
         "true_revenue_gbp": float(np.sum(truth.total_revenue_gbp)),
         "expected_revenue_gbp": float(np.sum(learned.expected_revenue_gbp)),
         "n_venues": len(truth.venues),
@@ -606,6 +748,13 @@ def build_gap_summary_l3(measurement: Dict[str, object]) -> Dict[str, object]:
         "true_delivered_mwh": measurement["true_delivered_mwh"],
         "expected_delivered_mwh": measurement["expected_delivered_mwh"],
         "worst_over_allocation_mw": measurement["worst_over_allocation_mw"],
+        # Not a score and not tuned (R12), the same structural fact the L2
+        # summary carries: did the feeds this over-claim was computed from
+        # answer registrations the company holds -- at the VENUES it holds them
+        # at. A stacking gap quoted against an unsolicited feed is a gap over
+        # contention between venues the party never joined.
+        "enrolment_references_by_venue": measurement["enrolment_references_by_venue"],
+        "feeds_solicited": measurement["feeds_solicited"],
         "note": (
             "L3: N concurrent venues share ONE physical portfolio and the same MW "
             "cannot be delivered twice. The SIM resolves contention by declared "

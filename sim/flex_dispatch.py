@@ -998,13 +998,19 @@ def _register_or_refuse(
 # a default of None would be this project's own fail-open pattern, where the
 # control passes on the argument nobody remembered to pass.
 #
+# EVERY WIRE LEG IS BELTED AS OF EP6 PASS 58. The STACKED L3 emitters were the
+# hold-out, and the reason they were unbelted was real rather than an oversight:
+# the L3 loop did not register at all, so belting them would have refused every
+# stacked run. `background.flex_dispatch_triad.solicit_registration_stacked`
+# gives that loop its registration leg -- one enrolment per venue through the
+# production seam, into ONE book -- which is what made the belt landable here.
+#
 # WHAT IS NOT BELTED, said plainly rather than left to be discovered: the
-# in-process `emit_dispatch_instructions` / `emit_settlement_lines` are
-# constructors (they are how the wire form is built in the first place, and
-# what this module's own truth tests measure), and the STACKED L3 emitters are
-# unbelted because the L3 loop does not register at all yet -- belting them
-# without a registration leg would refuse every stacked run. Both are named in
-# the atom's remaining list.
+# in-process `emit_dispatch_instructions` / `emit_settlement_lines` and their
+# stacked twins are constructors (they are how the wire form is built in the
+# first place, and what this module's own truth tests measure). Belting a
+# constructor would put the check on the object path as well as the wire without
+# adding a refusal the wire does not already make.
 # ---------------------------------------------------------------------------
 
 
@@ -1558,25 +1564,58 @@ def emit_settlement_lines_stacked(
 
 
 def emit_dispatch_instructions_stacked_over_wire(
-    truth: StackedFlexTruth, *, unit_id: str = "FLEX_UNIT_1"
+    truth: StackedFlexTruth,
+    *,
+    registrations: "VenueRegistrations",
+    unit_id: str = "FLEX_UNIT_1",
 ) -> List[dict]:
-    """`emit_dispatch_instructions_stacked`, on the wire."""
-    return [
-        encode_wall_response(r)
-        for r in emit_dispatch_instructions_stacked(truth, unit_id=unit_id)
-    ]
+    """`emit_dispatch_instructions_stacked`, on the wire.
+
+    `registrations` is REQUIRED, exactly as on the single-venue legs, and here
+    the book is asked a question it is not asked anywhere else: the SAME unit
+    holds a SEPARATE registration per venue, so a call at the Capacity Market
+    is licensed by the Capacity Market registration alone. `covers` is keyed by
+    (unit, venue) already, so a portfolio registered at one venue and called at
+    another is refused rather than waved through on the strength of being a
+    known unit.
+    """
+    responses = emit_dispatch_instructions_stacked(truth, unit_id=unit_id)
+    for r in responses:
+        _require_registered(
+            registrations,
+            r.payload.unit_id,
+            r.payload.venue,
+            r.payload.window_start,
+            r.payload.window_end,
+            "stacked dispatch instruction",
+        )
+    return [encode_wall_response(r) for r in responses]
 
 
 def emit_settlement_lines_stacked_over_wire(
     truth: StackedFlexTruth,
     *,
+    registrations: "VenueRegistrations",
     unit_id: str = "FLEX_UNIT_1",
     settlement_lag_days: int = _SETTLEMENT_LAG_DAYS,
 ) -> List[dict]:
-    """`emit_settlement_lines_stacked`, on the wire."""
-    return [
-        encode_wall_response(r)
-        for r in emit_settlement_lines_stacked(
-            truth, unit_id=unit_id, settlement_lag_days=settlement_lag_days
+    """`emit_settlement_lines_stacked`, on the wire.
+
+    `registrations` is REQUIRED for the same reason as on every other wire leg.
+    The stacked settlement feed is where an unregistered venue would be PAID,
+    so a book that covers the unit at one venue does not license a statement
+    line at another.
+    """
+    responses = emit_settlement_lines_stacked(
+        truth, unit_id=unit_id, settlement_lag_days=settlement_lag_days
+    )
+    for r in responses:
+        _require_registered(
+            registrations,
+            r.payload.unit_id,
+            r.payload.venue,
+            r.payload.window_start,
+            r.payload.window_end,
+            "stacked settlement line",
         )
-    ]
+    return [encode_wall_response(r) for r in responses]

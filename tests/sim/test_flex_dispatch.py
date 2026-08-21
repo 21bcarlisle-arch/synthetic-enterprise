@@ -871,3 +871,168 @@ def test_the_book_is_REQUIRED_and_not_a_defaulted_argument():
     ):
         with pytest.raises(TypeError):
             leg(truth)
+
+
+# ---------------------------------------------------------------------------
+# THE VENUE'S TEETH ON THE STACKED (L3) LEGS -- EP6 pass 58.
+#
+# Pass 57 belted the single-venue wire legs and left these two unbelted for a
+# stated reason: the L3 loop registered at no venue at all, so belting them
+# would have refused every stacked run. `solicit_registration_stacked` removed
+# that reason, so these are the same four proofs at the granularity where the
+# multi-venue book is actually load-bearing -- one unit, N SEPARATE
+# registrations, and a call licensed only by the registration at ITS OWN venue.
+# ---------------------------------------------------------------------------
+
+
+def _stacked_venues(portfolio_mw=100.0):
+    """A CONTENDED two-venue book, matching the triad's own default: both
+    venues offer 60% of one portfolio, so the physical ceiling binds."""
+    from interface.contracts.flex_observable_seam import FlexVenue
+    from sim.flex_dispatch import FlexPaymentBasis, VenueSpec
+
+    offered = 0.6 * float(portfolio_mw)
+    return [
+        VenueSpec(venue=FlexVenue.BALANCING_MECHANISM,
+                  basis=FlexPaymentBasis.UTILISATION, offered_mw=offered, priority=1),
+        VenueSpec(venue=FlexVenue.DSO_LOCAL_CONSTRAINT,
+                  basis=FlexPaymentBasis.UTILISATION, offered_mw=offered, priority=2,
+                  call_pct=sim_flex_dispatch.DEFAULT_AVAILABILITY_CALL_PERCENTILE),
+    ]
+
+
+def _stacked_truth(portfolio_mw=100.0):
+    return sim_flex_dispatch.dispatch_and_settle_stacked(
+        _synthetic_record(), venues=_stacked_venues(portfolio_mw),
+        portfolio_mw=portfolio_mw)
+
+
+def _stacked_book(truth, *, unit_id="FLEX_UNIT_1", only=None, pad_hours=0.0):
+    """The VENUE side's book for a stacked portfolio: ONE registration per
+    venue, all for the same unit, each spanning the whole record.
+
+    `only` restricts the book to a subset of venue keys -- the mutation that
+    matters here and cannot be expressed on a single-venue book: a party
+    correctly registered at one venue and called at another.
+
+    Windows are measured against the last event that ACTUALLY crosses at that
+    venue, for the reason `_book_covering` gives: padding against a period
+    nobody was called in would move a boundary no message sits on.
+    """
+    from interface.contracts.flex_observable_seam import FlexDirection, FlexEnrolment
+    from sim.flex_dispatch import _base_date
+
+    stamps = [_base_date(d) for d in truth.dates]
+    book = VenueRegistrations()
+    for v in truth.venues:
+        if only is not None and v.key not in only:
+            continue
+        called = [s for s, on in zip(stamps, truth.call_mask[v.key]) if on]
+        assert called, f"a book covering nothing proves nothing -- {v.key} must be called"
+        book.register(FlexEnrolment(
+            unit_id=unit_id,
+            venue=v.venue,
+            offered_mw=float(v.offered_mw),
+            direction=FlexDirection.TURN_DOWN,
+            window_start=min(stamps),
+            window_end=(max(called)
+                        + dt.timedelta(hours=truth.period_hours)
+                        + dt.timedelta(hours=pad_hours)),
+        ))
+    return book
+
+
+def test_MUTATION_a_stacked_world_calling_a_unit_NOBODY_enrolled_is_refused():
+    """The state the stacked feeds were in until this pass: `unit_id` was a
+    keyword default on both, so the portfolio the company formed a STACKING
+    belief about need never have registered anywhere. Checked against what was
+    EMITTED, so an emitter ignoring its own argument is caught by the same
+    check."""
+    truth = _stacked_truth()
+    book = _stacked_book(truth)
+
+    with pytest.raises(sim_flex_dispatch.UnregisteredDispatch) as exc:
+        sim_flex_dispatch.emit_settlement_lines_stacked_over_wire(
+            truth, unit_id="A_UNIT_NOBODY_ENROLLED", registrations=book)
+    assert "A_UNIT_NOBODY_ENROLLED" in str(exc.value)
+
+    with pytest.raises(sim_flex_dispatch.UnregisteredDispatch):
+        sim_flex_dispatch.emit_dispatch_instructions_stacked_over_wire(
+            truth, unit_id="A_UNIT_NOBODY_ENROLLED", registrations=book)
+
+    # NULL CONTROL: the full book admits both feeds, so the refusals above are
+    # about the unit and not about the legs being broken.
+    assert sim_flex_dispatch.emit_settlement_lines_stacked_over_wire(
+        truth, registrations=book)
+    assert sim_flex_dispatch.emit_dispatch_instructions_stacked_over_wire(
+        truth, registrations=book)
+
+
+def test_MUTATION_a_book_missing_ONE_venue_refuses_only_that_venues_feed():
+    """THE DEFECT ONLY A STACKED BOOK CAN HAVE, and the reason this belt is not
+    just the single-venue one copied.
+
+    A portfolio registered at the Balancing Mechanism and called at a DSO local
+    constraint is a KNOWN unit at an unjoined venue -- a check keyed on the unit
+    alone passes it, and the party is then instructed and paid at a market it
+    never entered. `covers` is keyed by (unit, venue), so the venue it did join
+    still crosses: that half is the null control, and without it this test would
+    also pass on a book that refused everything.
+    """
+    truth = _stacked_truth()
+    keys = [v.key for v in truth.venues]
+    assert len(keys) == 2, "this proof needs a genuinely multi-venue book"
+    partial = _stacked_book(truth, only={keys[0]})
+
+    with pytest.raises(sim_flex_dispatch.UnregisteredDispatch) as exc:
+        sim_flex_dispatch.emit_dispatch_instructions_stacked_over_wire(
+            truth, registrations=partial)
+    assert keys[1] in str(exc.value)
+
+    # NULL CONTROL: that same partial book DOES license its own venue's feed --
+    # proven on a truth carrying only the venue it registered, so the refusal
+    # above is about the missing registration and not about the book being inert.
+    solo = sim_flex_dispatch.dispatch_and_settle_stacked(
+        _synthetic_record(), venues=_stacked_venues()[:1], portfolio_mw=100.0)
+    assert sim_flex_dispatch.emit_dispatch_instructions_stacked_over_wire(
+        solo, registrations=_stacked_book(solo))
+
+
+def test_an_EMPTY_book_refuses_the_stacked_legs_too__the_fail_open_case():
+    """R15 fail-open at the stacked granularity: a venue that has registered
+    NOBODY must instruct and settle nobody. `covers` returns None on an empty
+    book and None is a refusal."""
+    truth = _stacked_truth()
+    for leg in (sim_flex_dispatch.emit_settlement_lines_stacked_over_wire,
+                sim_flex_dispatch.emit_dispatch_instructions_stacked_over_wire):
+        with pytest.raises(sim_flex_dispatch.UnregisteredDispatch):
+            leg(truth, registrations=VenueRegistrations())
+
+
+def test_MUTATION_a_stacked_call_running_PAST_the_declared_availability_is_refused():
+    """CONTAINMENT, NOT OVERLAP, on the stacked legs. Cut by HALF a period, the
+    only shape where the two rules actually disagree: a whole period leaves the
+    window butt-jointed, which overlap refuses as well and so would not
+    discriminate."""
+    truth = _stacked_truth()
+
+    assert sim_flex_dispatch.emit_settlement_lines_stacked_over_wire(
+        truth, registrations=_stacked_book(truth)), "the exactly-covering book must accept"
+
+    part_way = _stacked_book(truth, pad_hours=-0.5 * truth.period_hours)
+    with pytest.raises(sim_flex_dispatch.UnregisteredDispatch):
+        sim_flex_dispatch.emit_settlement_lines_stacked_over_wire(
+            truth, registrations=part_way)
+
+
+def test_the_stacked_book_is_REQUIRED_and_not_a_defaulted_argument():
+    """The fail-open shape this control would otherwise have: a `registrations`
+    defaulting to None makes the check pass for every caller who forgot it.
+    Every wire leg in this module now refuses to be called without a book."""
+    truth = _stacked_truth()
+    for leg in (
+        sim_flex_dispatch.emit_settlement_lines_stacked_over_wire,
+        sim_flex_dispatch.emit_dispatch_instructions_stacked_over_wire,
+    ):
+        with pytest.raises(TypeError):
+            leg(truth)
