@@ -503,3 +503,56 @@ def test_the_blocking_readers_defaults_match_the_publisher():
     assert reader.DEFAULT_MAX_CITED == prc.GATE_MAX_CITED_BLOCKING_TESTS, (
         "the leaf reader's citation cap has drifted from the publisher's ({} vs {})".format(
             reader.DEFAULT_MAX_CITED, prc.GATE_MAX_CITED_BLOCKING_TESTS))
+
+
+# ── R15: THE SCOPED ARGV MAY NEVER NAME A FILE THE BASE ARGV IGNORES (2026-08-21) ───────────
+# The 27-hour publishing outage: `--ignore` is applied while COLLECTING a directory, so replacing
+# the `tests/` positional with an explicit file list re-admitted two heavy full-sim integration
+# tests the gate had already excluded for speed. A faulthandler dump of the live gate caught
+# `tests/simulation/test_phase24a_ic_customer.py` running >240s inside
+# `sim/risk_engine.py::calculate_sigma_recent`, and every ceiling raise since had been sizing a
+# budget for work the gate was never meant to do.
+#
+# BOTH LEGS, because the cheap way to green the first is to name nothing at all:
+#   * drop the subtraction -> `test_a_heavy_ignored_file_never_reaches_the_scoped_argv` fails.
+#   * subtract everything  -> the null control `test_the_scoped_argv_still_names_its_ordinary_tests`
+#     fails, since a gate that names no test file is not a narrower gate, it is no gate.
+def _base_argv_with_ignores():
+    from background import process_run_complete as prc
+    return prc.publish_gate_pytest_argv("tests/")
+
+
+def test_a_heavy_ignored_file_never_reaches_the_scoped_argv():
+    """A file in BOTH the ignore list and the scope must be held OUT of the blocking positional."""
+    from background import publish_scope as ps
+
+    base = _base_argv_with_ignores()
+    ignored = {a.split("=", 1)[1] for a in base if a.startswith("--ignore=")}
+    assert ignored, "the base argv carries no --ignore flags; this control has no subject"
+    heavy = "tests/simulation/test_phase24a_ic_customer.py"
+    assert heavy in ignored, "the outage's own file left the heavy-ignore list -- re-point this"
+
+    scope = {"full_suite": False, "tests": [heavy, "tests/tools/test_run_history.py"],
+             "sources": [], "reason": "fixture"}
+    argv = ps.scoped_pytest_argv(base, scope, run_root=ps.PROJECT_DIR)
+
+    positionals = [a for a in argv if a.startswith("tests/")]
+    assert heavy not in positionals, (
+        "the scoped argv named a file the same argv --ignore's; pytest honours the explicit "
+        "path, so the gate would run it")
+    # ...and it said so rather than dropping it quietly.
+    assert scope.get("heavy_ignored") == [heavy]
+    assert heavy in scope["reason"]
+
+
+def test_the_scoped_argv_still_names_its_ordinary_tests():
+    """NULL CONTROL. One field changed -- the file is NOT ignored -- and it must be named."""
+    from background import publish_scope as ps
+
+    base = _base_argv_with_ignores()
+    ordinary = "tests/tools/test_run_history.py"
+    scope = {"full_suite": False, "tests": [ordinary], "sources": [], "reason": "fixture"}
+    argv = ps.scoped_pytest_argv(base, scope, run_root=ps.PROJECT_DIR)
+
+    assert ordinary in argv, "an un-ignored scoped test must still block the publish"
+    assert "heavy_ignored" not in scope, "nothing was held out, so nothing should be reported"

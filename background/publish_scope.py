@@ -301,9 +301,45 @@ def scoped_pytest_argv(base_argv, scope=None, run_root: Path = PROJECT_DIR):
     # Replace the test-root positional with the resolved file list; every other flag
     # (-x, -q, --tb, -m, --ignore) is inherited untouched.
     argv = [a for a in base_argv if a != "tests/"]
-    # The --ignore flags name paths outside the scope in the common case; harmless, and
-    # keeping them means a scoped run and a full run deselect identically.
-    return argv + list(scope["tests"])
+    # AN EXPLICITLY NAMED FILE BEATS `--ignore` (2026-08-21, the 27-hour publishing outage).
+    #
+    # The line that used to stand here said the `--ignore` flags "name paths outside the scope in
+    # the common case; harmless, and keeping them means a scoped run and a full run deselect
+    # identically." The first clause is true of 6 of the 8 heavy ignores and FALSE of two, and the
+    # conclusion does not survive them: pytest applies `--ignore` while COLLECTING a directory, so
+    # replacing the `tests/` positional with an explicit file list re-admits every ignored file
+    # that the scope also resolved. A scoped run and a full run then deselect DIFFERENTLY, which
+    # is the opposite of what the sentence promised.
+    #
+    # OBSERVED, not inferred (R9). `tests/simulation/test_phase24a_ic_customer.py` and
+    # `tests/simulation/test_phase40b_gas_pass_through.py` are in PUBLISH_GATE_HEAVY_IGNORES and
+    # in the resolved scope, so the gate passed each of them BOTH as `--ignore=<path>` and as a
+    # positional. A faulthandler dump of the live gate (pid 2729053) caught the first one running
+    # anyway, >240s inside one call:
+    #     sim/risk_engine.py:90 in calculate_sigma_recent
+    #     sim/risk_engine.py:211 in assess_term_risk
+    #     simulation/run_phase2b.py:1896 in main
+    #     tests/simulation/test_phase24a_ic_customer.py:74
+    # These are the "full-sim integration tests, 150-480s each" the ignore list exists to keep out
+    # for SPEED. Nothing about them is broken; the gate was simply running work it had already
+    # decided it would not run, which is why six ceiling raises never converted a timeout to a pass.
+    #
+    # DERIVED FROM base_argv, NEVER RESTATED. Reading the ignores back off the argv is what makes
+    # the docstring's "one source of truth for what is deselected" true rather than aspirational:
+    # a heavy ignore added, removed or renamed upstream moves this subtraction with it, and there
+    # is no second list to drift. Coverage is UNCHANGED from the pre-decoupling gate -- these files
+    # were never run by the full-suite gate either, which is the parity the old comment claimed.
+    ignored = {a.split("=", 1)[1] for a in base_argv if a.startswith("--ignore=")}
+    tests = [t for t in scope["tests"] if t not in ignored]
+    dropped = sorted(t for t in scope["tests"] if t in ignored)
+    if dropped:
+        # NOT SILENT. A scope that quietly drops files reads as "covered everything" when it did
+        # not; this is the same surface the reason string is already read from.
+        scope["heavy_ignored"] = dropped
+        scope["reason"] += ("; {} heavy-ignored file(s) held out of the BLOCKING set so the "
+                            "explicit list cannot defeat --ignore ({})".format(
+                                len(dropped), ", ".join(dropped)))
+    return argv + tests
 
 
 # The blocking gate's fail-fast flag. Right for the gate (the verdict is the same either way,
