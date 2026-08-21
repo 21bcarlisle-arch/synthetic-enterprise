@@ -1278,13 +1278,31 @@ def test_the_gate_timeout_exceeds_the_suites_own_runtime(monkeypatch, tmp_path):
     # the timeout now BLOCKS publishing rather than degrading the gate. The worst measured phase
     # is a LOWER bound on its own runtime (rc=-15), which is admissible for a floor and for
     # nothing else -- see the docstring.
-    MEASURED_SUITE_SECONDS = 1867.6
+    # RE-MEASURED AGAINST THE GATE'S ACTUAL SUBJECT, 1867.6 -> 38.6 (2026-08-21).
+    #
+    # 1867.6s was a true measurement of a subject the gate NO LONGER RUNS: the whole tree. The
+    # gate now runs `PUBLISH_GATE_SCOPE` -- 1,183 tests verifying the published output, timed on
+    # the real argv the same day at 38.6s.
+    #
+    # Leaving the old figure here would have been worse than stale. This assertion demands
+    # `bound > 2 x MEASURED`, so against 1867.6 it FORCES the bound to at least 3735s -- a test
+    # whose stated purpose is protecting the bound was the thing ratcheting it upward, and it
+    # would have reverted the cap on the next run. That is how a ceiling becomes monotonic: not
+    # by anyone deciding to raise it, but by a control measuring a subject that has moved.
+    #
+    # The 2x factor is unchanged and still right for its stated reason -- a routine timeout is a
+    # publish BLOCK, so the bound must clear the healthy case comfortably. Against the real
+    # subject, 300s clears 38.6s by 7.7x.
+    MEASURED_SUITE_SECONDS = 38.6
     assert prc.GATE_SUITE_TIMEOUT_SECONDS > MEASURED_SUITE_SECONDS * 2, (
         f"gate timeout {prc.GATE_SUITE_TIMEOUT_SECONDS}s leaves too little headroom over the "
-        f"~{MEASURED_SUITE_SECONDS}s the suite actually takes on the gate's own subject; a "
-        "routine timeout is now a publish BLOCK, so the bound must clear the healthy case "
-        "comfortably"
+        f"~{MEASURED_SUITE_SECONDS}s the SCOPED gate actually takes; a routine timeout is a "
+        "publish BLOCK, so the bound must clear the healthy case comfortably"
     )
+    # And the other direction, which never existed before and is the whole point of the cap: the
+    # bound may not be raised past what a publish gate can afford. Without this, the assertion
+    # above is satisfiable by any large number.
+    assert prc.GATE_SUITE_TIMEOUT_SECONDS <= prc.PUBLISH_GATE_ABSOLUTE_CAP_SECONDS
 
 
 def test_red_publish_gate_captures_output_rather_than_discarding_it(monkeypatch, tmp_path):

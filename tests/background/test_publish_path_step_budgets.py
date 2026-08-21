@@ -260,9 +260,16 @@ def _timed_spawns_in(source):
 # ────────────────────────────────────────────── the runtime arithmetic
 
 def test_the_remainder_budget_is_what_the_path_has_left():
-    """Spend 3000s of the path and the annotation may have the rest, not 4500s."""
-    budget = prc.remainder_budget_seconds(now_monotonic=3000.0, started=0.0)
-    expected = (prc.PUBLISH_PATH_TIMEOUT_SECONDS - 3000.0
+    """Spend most of the path and the annotation may have the rest, not a fresh full bound.
+
+    The spend point is DERIVED from the deadline, not hard-coded. It was `3000.0`, which was a
+    sensible two-thirds of the path when the gate bound was 4500s and became a point PAST the
+    whole deadline when the bound dropped to 300s on 2026-08-21 -- so the test broke on a change
+    that made the system strictly better. A scenario written in absolute seconds silently
+    encodes the constant it was written beside."""
+    spent = prc.PUBLISH_PATH_TIMEOUT_SECONDS * 2 / 3
+    budget = prc.remainder_budget_seconds(now_monotonic=spent, started=0.0)
+    expected = (prc.PUBLISH_PATH_TIMEOUT_SECONDS - spent
                 - prc.REMAINDER_PATH_MARGIN_SECONDS)
     assert budget == expected
     assert budget < prc.GATE_SUITE_TIMEOUT_SECONDS
@@ -272,7 +279,13 @@ def test_the_remainder_budget_never_outlives_the_publisher_itself():
     """THE PROPERTY, at every point in the path: finishing the annotation can never take the
     process past the deadline its caller enforces. At 4500s spent -- a gate that used its whole
     bound -- the old code still offered 4500s more."""
-    for spent in (0.0, 600.0, 3000.0, 4500.0, 5200.0, 5400.0):
+    d = prc.PUBLISH_PATH_TIMEOUT_SECONDS
+    # Up to and including the deadline. PAST it the property is unstateable -- `spent` alone
+    # already exceeds `d`, so no budget however small can satisfy `spent + budget <= d`, and
+    # asserting it there tests arithmetic rather than the guarantee. The over-run case has its
+    # own test below (`..._skips_the_suite_rather_than_running_it_unbounded`), which asserts the
+    # thing that actually matters there: the budget is exactly 0, i.e. DO NOT START.
+    for spent in (0.0, d * 0.1, d * 0.5, d * 0.9, d):
         budget = prc.remainder_budget_seconds(now_monotonic=spent, started=0.0)
         assert spent + budget <= prc.PUBLISH_PATH_TIMEOUT_SECONDS, (
             "at {}s spent the annotation may run {}s, ending {}s past the caller's {}s "
@@ -283,7 +296,8 @@ def test_the_remainder_budget_never_outlives_the_publisher_itself():
 
 def test_an_exhausted_budget_skips_the_suite_rather_than_running_it_unbounded():
     """0 means DO NOT START. The old failure mode was to start anyway and be killed mid-run."""
-    assert prc.remainder_budget_seconds(now_monotonic=5400.0, started=0.0) == 0.0
+    assert prc.remainder_budget_seconds(
+        now_monotonic=prc.PUBLISH_PATH_TIMEOUT_SECONDS * 1.2, started=0.0) == 0.0
     with pytest.raises(RuntimeError, match="no budget left"):
         prc._default_remainder_runner(["pytest"], timeout=0)
 
@@ -322,13 +336,16 @@ def test_the_census_and_the_remainder_share_one_definition():
     original = prc.PUBLISH_PATH_TIMEOUT_SECONDS
     try:
         prc.PUBLISH_PATH_TIMEOUT_SECONDS = original + 1000
-        # 2600s spent, so the REMAINING term binds rather than the cap -- at 1000s spent the
-        # cap does, and the assertion would hold for a hard-coded 4500 too.
-        assert prc.remainder_budget_seconds(now_monotonic=2600.0, started=0.0) == min(
+        # Spend enough that the REMAINING term binds rather than the cap. Derived from the
+        # patched deadline for the same reason as above: an absolute figure here encodes
+        # whatever the bound happened to be the day it was written.
+        late = (original + 1000) * 0.9
+        assert prc.remainder_budget_seconds(now_monotonic=late, started=0.0) == min(
             prc.GATE_SUITE_TIMEOUT_SECONDS,
-            original + 1000 - 2600.0 - prc.REMAINDER_PATH_MARGIN_SECONDS)
-        assert prc.red_census_budget_seconds(now_monotonic=1000.0, started=0.0) == min(
+            original + 1000 - late - prc.REMAINDER_PATH_MARGIN_SECONDS)
+        early = (original + 1000) * 0.1
+        assert prc.red_census_budget_seconds(now_monotonic=early, started=0.0) == min(
             prc.GATE_RED_CENSUS_MAX_SECONDS,
-            original + 1000 - 1000.0 - prc.GATE_RED_CENSUS_PATH_MARGIN_SECONDS)
+            original + 1000 - early - prc.GATE_RED_CENSUS_PATH_MARGIN_SECONDS)
     finally:
         prc.PUBLISH_PATH_TIMEOUT_SECONDS = original

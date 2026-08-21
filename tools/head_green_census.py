@@ -48,8 +48,20 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 BASELINE_PATH = PROJECT_DIR / "docs" / "observability" / "head_red_baseline.json"
 
-# The publish gate's own marker expression, so this measures the same population the gate
-# claims to protect -- not a set of our own choosing that could drift away from it.
+# The publish gate's own marker expression, so the DESELECTIONS match -- not a set of our own
+# choosing that could drift away from it.
+#
+# THIS IS NO LONGER THE SAME POPULATION AS THE GATE, and that inversion is deliberate as of
+# 2026-08-21. The publish gate now runs `process_run_complete.PUBLISH_GATE_SCOPE` -- roughly
+# 1,180 tests that verify the published OUTPUT, in ~39s -- rather than the whole tree, because a
+# 21-to-75-minute gate on a repo that changes every 15 minutes reports on the past instead of
+# verifying the present.
+#
+# So this census is now the WIDER of the two, and that is precisely its job: it is the backstop
+# that catches whatever the narrowing gets wrong. It runs unscoped, nightly, with no `-x`. If
+# the scope split ever drops something that matters, this is what says so -- which is why it
+# must keep running `tests/` and must NEVER be narrowed to match the gate. The two populations
+# being different is the design, not drift.
 MARKER_EXPR = "not operational and not join_report_only and not scale_report_only"
 
 # The heavy modules the publish gate ignores. Kept in step with

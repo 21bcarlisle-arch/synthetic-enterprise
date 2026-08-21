@@ -371,3 +371,42 @@ def test_sim_runners_deadline_kill_is_not_recorded_as_a_test_regression(monkeypa
         "rc=124 launders a stopwatch into a claim about the tests -- _classify_gate_failure "
         "maps any rc>0 to test_regression"
     )
+
+
+# ── THE ABSOLUTE CAP ON GATE DURATION (director, 2026-08-21) ────────────────────────────────
+# *"put a limit on the absolute duration that fails loudly when crossed, so this can't grow back
+# one reasonable addition at a time."*
+#
+# The bound had been re-derived SIX times -- 600, 1800, 2600, 2900, 3600, 4500 -- each time
+# carefully, each time by measuring the suite and adding margin, and each time asking only what
+# the SUITE NEEDS. Its own comment states the asymmetry that made that one-directional: "erring
+# low WEDGES PUBLISHING". Nothing asked what a publish gate can AFFORD, so nothing could ever
+# push back, and it went 30 -> 75 minutes in nineteen hours.
+#
+# These two tests are the counter-pressure. They cannot be satisfied by re-deriving; the seventh
+# raise has to delete a constant in the open and argue with the reason written beside it.
+
+def test_the_gate_bound_stays_under_the_absolute_cap():
+    """The number nothing was watching. Fails LOUDLY on the next raise rather than absorbing it."""
+    assert prc.GATE_SUITE_TIMEOUT_SECONDS <= prc.PUBLISH_GATE_ABSOLUTE_CAP_SECONDS, (
+        f"the publish gate's bound is {prc.GATE_SUITE_TIMEOUT_SECONDS}s, over the absolute cap of "
+        f"{prc.PUBLISH_GATE_ABSOLUTE_CAP_SECONDS}s.\n"
+        "Do NOT re-derive the bound -- that is the move that took it from 600s to 4500s in six "
+        "steps. A gate slower than the cadence of what it gates is reporting on the past. Either "
+        "narrow PUBLISH_GATE_SCOPE, or move the cap deliberately and say why in the same change."
+    )
+
+
+def test_the_cap_is_derived_from_cadence_not_from_the_suite():
+    """R15: the cap must be independent of the thing it constrains. If it were computed from
+    measured suite runtimes it would be the same self-satisfying loop wearing a new name -- the
+    suite would define its own ceiling, which is exactly what six re-derivations did."""
+    import inspect
+    src = inspect.getsource(prc)
+    cap_line = [ln for ln in src.splitlines()
+                if ln.startswith("PUBLISH_GATE_ABSOLUTE_CAP_SECONDS")]
+    assert cap_line, "the absolute cap constant is gone"
+    assert cap_line[0].split("=")[1].strip().isdigit(), (
+        "the absolute cap must be a literal, not computed from suite measurements -- a ceiling "
+        "derived from the thing it caps cannot constrain it"
+    )
