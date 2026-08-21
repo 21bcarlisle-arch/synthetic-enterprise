@@ -156,3 +156,57 @@ def test_the_heartbeat_carries_the_freshness_block(tmp_path, monkeypatch):
     assert written["content_publish"]["state"]
     # The tick verdict is still there: this ADDS a subject, it does not replace one.
     assert written["verdict"] == "rested"
+
+
+# ── THE WEDGE THAT SILENCED ITS OWN ALARM (2026-08-21) ──────────────────────────────────────
+# Publishing was down 28 hours and nothing paged. `state` was derived from the state-file clock
+# alone, and that clock is stamped on any push where the remote advanced -- including the
+# `chore(provenance): verification paused banner` commit the publish path pushes EVERY CYCLE
+# WHILE WEDGED (ten of twenty-five consecutive commits that day). So each cycle of the outage
+# reset the freshness clock, `is_publishing_down()` answered False, the deadman's content check
+# cleared its transition, and the director found it by hand.
+#
+# The cross-check was already computed and already in the snapshot. It just was not consulted.
+
+def test_a_recent_push_does_not_mask_figures_that_have_not_moved(monkeypatch):
+    """THE INCIDENT. Push clock 13 minutes old (a banner commit), figures 20.8 hours old."""
+    import background.publish_freshness as pf
+    now = 1_000_000.0
+    monkeypatch.setattr(pf, "last_published_ts", lambda: now - 780)          # banner, 13 min
+    monkeypatch.setattr(pf, "last_committed_ts", lambda **k: now - 74_988)   # figures, 20.8h
+    snap = pf.snapshot(now=now)
+    assert snap["state"] == "stale", (
+        "a push that moved no figures reported publishing as live -- this is the 28-hour outage"
+    )
+    assert pf.is_publishing_down(snap) is True
+
+
+def test_the_summary_quotes_the_number_that_made_the_verdict(monkeypatch):
+    """"DOWN -- last published 0.2h ago" argues against itself and reads as a glitch."""
+    import background.publish_freshness as pf
+    now = 1_000_000.0
+    monkeypatch.setattr(pf, "last_published_ts", lambda: now - 780)
+    monkeypatch.setattr(pf, "last_committed_ts", lambda **k: now - 74_988)
+    line = pf.describe(pf.snapshot(now=now))
+    assert "DOWN" in line and "20.8h" in line, line
+
+
+def test_an_unavailable_cross_check_is_not_evidence_of_freshness(monkeypatch):
+    """FAIL-SILENT, R15: if git cannot answer when the figures moved, that is UNKNOWN. Treating
+    it as fresh would restore exactly the hole this closes, on any box where git is slow."""
+    import background.publish_freshness as pf
+    now = 1_000_000.0
+    monkeypatch.setattr(pf, "last_published_ts", lambda: now - 10)
+    monkeypatch.setattr(pf, "last_committed_ts", lambda **k: None)
+    assert pf.snapshot(now=now)["state"] == "unknown"
+
+
+def test_both_clocks_fresh_still_reads_as_publishing(monkeypatch):
+    """The control must not be always-red: a genuinely healthy publish still says live."""
+    import background.publish_freshness as pf
+    now = 1_000_000.0
+    monkeypatch.setattr(pf, "last_published_ts", lambda: now - 60)
+    monkeypatch.setattr(pf, "last_committed_ts", lambda **k: now - 120)
+    snap = pf.snapshot(now=now)
+    assert snap["state"] == "publishing"
+    assert pf.is_publishing_down(snap) is False

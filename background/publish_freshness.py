@@ -149,9 +149,36 @@ def snapshot(now: float | None = None, *, _run=None) -> dict:
     pub_ts, com_ts = last_published_ts(), last_committed_ts(_run=_run)
     pub_age, com_age = _age(pub_ts, now), _age(com_ts, now)
 
+    # THE VERDICT IS THE OLDER OF THE TWO CLOCKS, and reading only `pub_age` cost 28 hours of
+    # silence on 2026-08-21.
+    #
+    # `pub_age` comes from the state file, which `process_run_complete._record_content_published`
+    # stamps on any push where `remote_head == local_head` -- i.e. whenever the publish path
+    # successfully pushes ANYTHING. While the gate is red the publish path still pushes, every
+    # cycle, a `chore(provenance): verification paused banner` commit (ten of twenty-five
+    # consecutive commits on 2026-08-21). Each of those reset this clock.
+    #
+    # So the wedge silenced its own alarm. `is_publishing_down()` answered False and
+    # `describe()` said "content publishing: live -- last reached origin 0.2h ago" while the
+    # FIGURES had not moved for 20.8 hours and the last real publish was the previous evening.
+    # The deadman's content check reads `state` and cleared its transition on every cycle, so
+    # nobody was paged; the director noticed by hand.
+    #
+    # The ground truth was already here. `com_age` asks git when CONTENT_PATHS last moved and is
+    # documented as "the cross-check that catches a publish committing locally and never
+    # reaching origin". It was computed, returned in the snapshot, and not consulted by the
+    # verdict -- this module's docstring says `state` exists so "two consumers cannot reach
+    # different verdicts from the same numbers", and the two numbers inside it disagreed by a
+    # day.
+    #
+    # Fresh now means BOTH: a push landed AND the figures moved. Taking the older of the two is
+    # the fail-safe direction -- it can report stale when the site is fine (a quiet sim), which
+    # costs an alarm someone dismisses; the other way round costs a day of silence.
     if pub_age is None:
         state = "unpublished" if not STATE_FILE.exists() else "unknown"
-    elif pub_age <= STALE_AFTER_SECONDS:
+    elif com_age is None:
+        state = "unknown"          # an unavailable cross-check is NOT evidence of freshness
+    elif max(pub_age, com_age) <= STALE_AFTER_SECONDS:
         state = "publishing"
     else:
         state = "stale"
@@ -190,9 +217,15 @@ def describe(snap: dict | None = None) -> str:
         return "content publishing: NO verified publish on record"
     if state == "unknown":
         return "content publishing: age UNKNOWN (freshness could not be measured)"
-    hours = (age or 0) / 3600.0
+    # REPORT THE OLDER CLOCK, for the same reason the verdict now takes it: quoting the push
+    # clock here produced "DOWN -- last published 0.2h ago", a line that argues against its own
+    # verdict and reads as a glitch rather than a 20-hour outage. The number in a one-line
+    # summary has to be the number that made the verdict.
+    com_age = snap.get("committed_age_seconds")
+    worst = max([a for a in (age, com_age) if a is not None] or [0])
+    hours = worst / 3600.0
     if state == "stale":
         extra = " (content is still being committed -- the PUBLISH PATH is what stopped)" \
             if snap.get("committed_but_unpublished") else ""
-        return f"content publishing: DOWN -- last published {hours:.1f}h ago{extra}"
-    return f"content publishing: live -- last reached origin {hours:.1f}h ago"
+        return f"content publishing: DOWN -- figures last moved {hours:.1f}h ago{extra}"
+    return f"content publishing: live -- figures reached origin {hours:.1f}h ago"
