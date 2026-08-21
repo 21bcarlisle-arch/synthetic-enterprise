@@ -1,4 +1,6 @@
-**Severity:** BLOCKING · **Lane:** H_harness
+**Severity:** RECORDED · **Lane:** H_harness
+
+**Discharged:** `tests/background/test_publish_provenance_banner_adoption.py::test_the_typed_five_were_blind_to_nineteen_pages`, `tests/background/test_publish_provenance_banner_adoption.py::test_a_live_data_page_without_the_banner_is_reported`, `tests/background/test_publish_provenance_banner_adoption.py::test_a_site_with_no_live_data_page_fails_rather_than_passing`, `background/publish_provenance.py`, `tools/pre_commit_test_gate.py` — the population is derived from the pages instead of typed, the banner is on all twelve live-data pages, and any staged site page now selects the rule.
 
 # FINDING — the provenance banner is on no page at all, and the control that would say so has been asking five deleted doors about it since the tabs landed
 
@@ -123,3 +125,74 @@ and the machine is not blocked on it — the site is serving, just silently. Doc
 - **Not** established: whether the banner reached readers at any point *before* `03dd8c49e`. The
   five doors carried the script then, by §3's own assertion, but no fetch of the live site from
   that era exists here to confirm it rendered. (*inferred*.)
+
+---
+
+## CLOSED 2026-08-21, `8a0199b21` — both steps, and one thing this finding got wrong
+
+Every claim below is `observed-with-evidence` (R9); the commands are quoted where the value came
+from a fetch or a run.
+
+**Step 1, the control.** The population is now DERIVED from the shipped pages rather than typed:
+`background/publish_provenance.py::live_data_pages` / `banner_adoption_violations`, moved out of
+`test_publish_provenance.py` into `tests/background/test_publish_provenance_banner_adoption.py`.
+
+**Step 2, the placement — done, not deferred.** The finding parked this as a SITE-lane change
+owing an R11 close. It is a four-line head insert on twelve pages, and leaving it would have left
+the property violated while the control went green about the wrong thing, so it went with step 1.
+
+**Step 3, which the finding did not ask for and is the reason this survived a day.** Nothing
+routinely selects a `publish_provenance`-stemmed path — the finding's own diagnosis — so the rule
+is now in `tools/pre_commit_test_gate.py::SITE_SURFACE_TESTS`. Adding or editing any page under
+`site/` runs the rule about pages. Both selection edges were measured by calling `select_targets`
+directly: a staged site page selects it, and so does the module.
+
+### WHERE THIS FINDING WAS WRONG
+
+It says the front door is *"deliberately absent: it renders no live figure"*, quoting the old
+control's own exemption. **That exemption was false, and had been since before the ruling.** Run
+the derived rule over `03dd8c49e^` — the tree the five typed names were right about — and it finds
+**24 live-data pages, of which those five carried the banner and 19 did not**, the front door
+among them: it reads `dashboard.json` and carried nothing. The typed list was not merely stale
+*after* the ruling; it was green on a tree where four fifths of its own population was uncovered.
+That measurement is a test node, not a remark: `test_the_typed_five_were_blind_to_nineteen_pages`.
+
+Two further corrections to this document's framing:
+
+* **The closure is NOT the WITHDRAWN third state this finding proposed.** That shape is for a
+  subject a ruling *deleted*. Here the subject MOVED — `03dd8c49e` says so itself ("world,
+  company → Capabilities; proof, evidence → Harness; now → Home"), and the content came with it.
+  Retiring the property would have withdrawn a rule whose subject is alive on five tabs.
+* **`fetch(` is the wrong detector, and the finding's own §3 contains the counter-example.**
+  `site/company/index.html` at `03dd8c49e^` read all five of its feeds through
+  `function jget(url){ return fetch(url+"?t="+Date.now()); }` and contains the literal `fetch(`
+  exactly once, on a URL it never names. The rule therefore keys on the REFERENCE to a published
+  JSON artefact, with `href=`/`src=` values stripped first so an evidence LINK is not mistaken for
+  a rendered figure. Both directions are pinned by tests.
+
+### R11 CLOSE — fetched from the live site, 2026-08-21T16:06:50Z
+
+All twelve pages serve the layer (`curl -s https://poesys.net<path> | grep -c freshness-banner.js`
+→ `2` on each of `/`, `/capabilities/`, `/explore/`, `/harness/` and the eight `/knowledge/`
+topics), and `https://poesys.net/assets/freshness-banner.js` returns `200`.
+
+The rendered VALUE, not the tag: the asset fetched FROM THE LIVE SITE, driven through
+`site/assets/_freshness_harness.mjs` against `publish_provenance.json` and `tick_heartbeat.json`
+also fetched from the live site, produces `state=paused`, `error=None`, and the sentence
+
+> Verification paused since 2026-08-20T21:10:26Z · showing run
+> run_output_a892df011_20260820T180449Z.json (last verified 2026-08-20T18:34:35Z) — Published with
+> 100 open findings and 68 non-blocking test reds elsewhere in the repository…
+
+which is the director's property 3 satisfied: a visitor can now tell what they are seeing and how
+current it is. The pages carry `cache-control: no-cache, must-revalidate` and answered
+`cf-cache-status: DYNAMIC`, so this is the deployed surface and not an edge-cache ghost.
+
+**Evidence:** 14 tests in the new file, each mutation departing from a null-control fixture proven
+clean; 344 passed across the provenance suite, the site suite and site reachability.
+
+**Still open, same class, NOT fixed here** (untouched by this commit, and pre-existing at
+`7fcf5182d`): 11 reds in `tests/tools/test_site_structure.py` and
+`tests/tools/test_site_lane_gate.py` naming `site/company`, `site/customers`, `site/project` and
+`site/proof`. `03dd8c49e` reports converting 87 controls off literal page lists; these and the one
+above are what it missed.
