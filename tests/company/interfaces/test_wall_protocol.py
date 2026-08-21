@@ -810,6 +810,8 @@ def test_R15_a_refused_message_is_not_marked_processed():
 from company.interfaces.wall_protocol import (  # noqa: E402
     COUNTERPARTY_REGISTRY,
     DECLARED_POSTURE,
+    FLEX_NETWORK_OPERATOR_SENDER,
+    FLEX_SYSTEM_OPERATOR_SENDER,
     FRAME_WIRE_FIELDS,
     CounterpartyNature,
     CounterpartyRecord,
@@ -1122,39 +1124,104 @@ def test_the_verified_sender_is_returned_and_not_merely_checked():
 
 # ---------------------------------------------------------------------------
 # THE RATCHET: which company-side crossings check who is speaking, and which do
-# not. One crossing is framed today; the other two are named here rather than
-# left to be inferred, so adding a third unframed one is a decision somebody
-# has to make on purpose instead of a silence.
+# not.
+#
+# COUNTED PER CALL SITE, NOT PER FILE (EP6 pass 61), and the reason is a defect
+# this ratchet had while exactly one module was framed. It classified each FILE,
+# `if framed ... elif bare ...` -- so the first module to frame ONE of its two
+# response legs would have moved wholesale into the framed set and its remaining
+# bare leg would have stopped being named anywhere. `flex_participation.py` is
+# exactly that module today: its enrolment leg is framed and its observable feed
+# leg is not, and a per-file ratchet would have recorded that as "framed" and
+# gone quiet. A measurement that cannot express the state the system is actually
+# in reports the state it can express.
+#
+# READ WITH `ast`, NOT AS SUBSTRINGS, for the same class of reason: the previous
+# scan counted the phrase wherever it appeared, so a docstring naming
+# `decode_response(` made a module look like a crossing and a comment could
+# silently clear one.
 # ---------------------------------------------------------------------------
 
-_FRAMED_CROSSINGS = {"company/billing/payment_observation_consumer.py"}
-_UNFRAMED_CROSSINGS = {
-    "company/comms/susceptibility_estimator.py",
-    "company/market/flex_participation.py",
+#: path -> how many AUTHENTICATED response decodes it makes.
+_FRAMED_CROSSING_SITES = {
+    "company/billing/payment_observation_consumer.py": 2,
+    "company/market/flex_participation.py": 1,
+}
+
+#: path -> how many response decodes it makes with NO participant check. Named
+#: rather than left to be inferred, so adding one is a decision somebody makes
+#: on purpose instead of a silence.
+_BARE_CROSSING_SITES = {
+    "company/comms/susceptibility_estimator.py": 1,
+    # `observe_response_wire` -- the dispatch-instruction and settlement feeds.
+    # The enrolment leg above is framed; this one is not, and pass 61 says so
+    # rather than letting the file's other half cover for it.
+    "company/market/flex_participation.py": 1,
 }
 
 
-def test_the_framed_and_unframed_crossings_are_exactly_as_declared():
-    """A count that moves is a decision that has to be taken. If a new company
-    module starts decoding wall responses without a participant check, this
-    reds -- which is the only thing standing between "one crossing framed, two
-    named" and a wall that quietly stops authenticating as it grows."""
+def _response_decode_sites() -> tuple[dict, dict]:
+    """(framed, bare) call-site counts across `company/**`, read off the tree."""
+    import ast
     import pathlib
 
     root = pathlib.Path(__file__).resolve().parents[3]
-    framed, unframed = set(), set()
+    framed, bare = {}, {}
+    scanned = 0
     for path in sorted((root / "company").rglob("*.py")):
-        text = path.read_text(encoding="utf-8")
         rel = path.relative_to(root).as_posix()
         if rel == "company/interfaces/wall_protocol.py":
             continue
-        if "decode_framed_response(" in text:
-            framed.add(rel)
-        elif "decode_response(" in text:
-            unframed.add(rel)
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except SyntaxError:
+            continue
+        scanned += 1
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            func = node.func
+            name = (
+                func.id
+                if isinstance(func, ast.Name)
+                else func.attr if isinstance(func, ast.Attribute) else None
+            )
+            if name == "decode_framed_response":
+                framed[rel] = framed.get(rel, 0) + 1
+            elif name == "decode_response":
+                bare[rel] = bare.get(rel, 0) + 1
+    # An empty scan reports a clean wall, which is the FAIL-SILENT pattern: a
+    # package rename would make every crossing vanish and this test go green.
+    assert scanned > 0, "scanned no files under company/ -- a failed check, not a pass"
+    return framed, bare
 
-    assert framed == _FRAMED_CROSSINGS
-    assert unframed == _UNFRAMED_CROSSINGS
+
+def test_the_framed_and_bare_crossing_SITES_are_exactly_as_declared():
+    """A count that moves is a decision that has to be taken. If a new company
+    module starts decoding wall responses without a participant check -- or an
+    existing one adds a second bare leg beside a framed one -- this reds, which
+    is the only thing standing between a declared count and a wall that quietly
+    stops authenticating as it grows."""
+    framed, bare = _response_decode_sites()
+
+    assert framed == _FRAMED_CROSSING_SITES
+    assert bare == _BARE_CROSSING_SITES
+
+
+def test_MUTATION_a_file_with_ONE_framed_and_ONE_bare_leg_is_not_recorded_as_framed():
+    """The defect the per-file ratchet had, pinned so it cannot come back.
+
+    `flex_participation.py` is genuinely in BOTH tables -- one framed leg, one
+    bare -- and the old `if/elif` over file contents could not represent that:
+    it filed the module as framed and its bare leg stopped being named. This
+    asserts the overlap exists AND that it is counted on both sides, which is
+    the thing a per-file scan cannot say."""
+    framed, bare = _response_decode_sites()
+    overlap = set(framed) & set(bare)
+
+    assert overlap == {"company/market/flex_participation.py"}
+    for rel in overlap:
+        assert framed[rel] >= 1 and bare[rel] >= 1
 
 
 # ---------------------------------------------------------------------------
@@ -1279,13 +1346,23 @@ def test_an_EMPTY_registry_is_not_the_open_end_of_this_check():
 # --- the declaration cannot be forged --------------------------------------
 
 
+#: Every world-side tree a counterparty can be impersonated FROM. BOTH are
+#: scanned (EP6 pass 61): the payment stand-in lives in `simulation/` and the
+#: flex venue operators live in `sim/`, and a scan that knew only the first
+#: would have reported the flex rows as un-impersonated -- so relabelling one
+#: REAL would have slipped past the cross-check below while the credential it
+#: accepts was still a literal in this repository. Named as data rather than
+#: inlined, so adding a third world package is one edit in one place.
+_WORLD_TREES = ("simulation", "sim")
+
+
 def _stand_in_credential_fingerprints() -> set[str]:
-    """sha256 of every credential literal that actually exists under
-    `simulation/`, read off the tree.
+    """sha256 of every credential literal that actually exists under the
+    world-side trees, read off the tree.
 
     This is the STRUCTURAL fact `nature` is checked against. It is derived from
     a different source than the thing it checks -- the company declares, the
-    sim tree is measured -- so this is not the R15 TAUTOLOGY pattern.
+    world trees are measured -- so this is not the R15 TAUTOLOGY pattern.
     """
     import ast
     import pathlib
@@ -1293,27 +1370,30 @@ def _stand_in_credential_fingerprints() -> set[str]:
 
     root = pathlib.Path(__file__).resolve().parents[3]
     found: set[str] = set()
-    scanned = 0
-    for path in sorted((root / "simulation").rglob("*.py")):
-        try:
-            tree = ast.parse(path.read_text(encoding="utf-8"))
-        except SyntaxError:
-            continue
-        scanned += 1
-        for node in ast.walk(tree):
-            if not isinstance(node, ast.Assign):
+    for tree_name in _WORLD_TREES:
+        scanned = 0
+        for path in sorted((root / tree_name).rglob("*.py")):
+            try:
+                tree = ast.parse(path.read_text(encoding="utf-8"))
+            except SyntaxError:
                 continue
-            if not isinstance(node.value, ast.Constant) or not isinstance(
-                node.value.value, str
-            ):
-                continue
-            for target in node.targets:
-                if isinstance(target, ast.Name) and "CREDENTIAL" in target.id.upper():
-                    found.add(sha256(node.value.value.encode("utf-8")).hexdigest())
-    # An empty scan reports a clean tree, which is the FAIL-SILENT pattern:
-    # a rename of the sim package would make every row look un-impersonated.
-    assert scanned > 0, "scanned no files under simulation/ -- a failed check, not a pass"
-    assert found, "found no credential literals under simulation/ -- the scan is broken"
+            scanned += 1
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Assign):
+                    continue
+                if not isinstance(node.value, ast.Constant) or not isinstance(
+                    node.value.value, str
+                ):
+                    continue
+                for target in node.targets:
+                    if isinstance(target, ast.Name) and "CREDENTIAL" in target.id.upper():
+                        found.add(sha256(node.value.value.encode("utf-8")).hexdigest())
+        # An empty scan reports a clean tree, which is the FAIL-SILENT pattern:
+        # a rename of a world package would make every row look un-impersonated.
+        # Asserted PER TREE, because a total over both would stay non-zero while
+        # one of them had silently stopped being scanned at all.
+        assert scanned > 0, f"scanned no files under {tree_name}/ -- a failed check, not a pass"
+    assert found, "found no credential literals under the world trees -- the scan is broken"
     return found
 
 
@@ -1331,13 +1411,73 @@ def _misdeclared(registry) -> set[str]:
 
 def test_the_declared_nature_of_every_row_matches_the_tree():
     """What stops the startup assertion being a config flag: relabelling a row
-    to slip past it fails HERE instead of at the seam. The shipped registry's
-    one row is declared STAND_IN and the credential it accepts is a literal in
-    `simulation/payment_seam_adapter.py`, so the label is a measured fact."""
+    to slip past it fails HERE instead of at the seam.
+
+    ASSERTED OVER EVERY ROW, not just the payment one (EP6 pass 61). While the
+    registry had a single entry, naming it was the same as quantifying over it;
+    the moment the flex operators were added, a check of one row would have left
+    two rows carrying a label nothing measured -- and a control that covers the
+    row it was written for and not the ones added after it is how a registry
+    quietly stops being checked."""
     assert _misdeclared(COUNTERPARTY_REGISTRY) == set()
-    shipped = COUNTERPARTY_REGISTRY[PARTICIPANT_ID]
-    assert shipped.nature is CounterpartyNature.STAND_IN
-    assert shipped.credential_sha256 in _stand_in_credential_fingerprints()
+
+    impersonated = _stand_in_credential_fingerprints()
+    declared_stand_in = {
+        sender
+        for sender, record in COUNTERPARTY_REGISTRY.items()
+        if record.nature is CounterpartyNature.STAND_IN
+    }
+    # Every shipped row is a stand-in today, and each one's credential is a
+    # literal a module in this repository holds -- so the label is a measured
+    # fact for all of them and not an assertion about one.
+    assert declared_stand_in == set(COUNTERPARTY_REGISTRY)
+    for sender in declared_stand_in:
+        assert COUNTERPARTY_REGISTRY[sender].credential_sha256 in impersonated, (
+            f"{sender!r} is declared STAND_IN and no module under "
+            f"{'/, '.join(_WORLD_TREES)}/ holds the credential it accepts"
+        )
+    assert PARTICIPANT_ID in declared_stand_in
+
+
+def test_MUTATION_a_scan_of_ONE_world_tree_cannot_see_the_flex_stand_ins(monkeypatch):
+    """The widening is load-bearing, proved by narrowing it back.
+
+    With only `simulation/` scanned -- the shape this check shipped in until the
+    flex seam was framed -- the two flex operator rows accept credentials no
+    measured module holds. Relabelling either REAL would then be invisible here
+    AND silent at the startup assertion, which is the exact forgery the pair of
+    controls exists to make impossible.
+
+    NULL CONTROL: the payment row is still found under the narrowed scan, so
+    this is the missing tree and not a broken scanner."""
+    monkeypatch.setattr(
+        "tests.company.interfaces.test_wall_protocol._WORLD_TREES", ("simulation",)
+    )
+    narrowed = _stand_in_credential_fingerprints()
+
+    assert COUNTERPARTY_REGISTRY[PARTICIPANT_ID].credential_sha256 in narrowed
+    unseen = {
+        sender
+        for sender, record in COUNTERPARTY_REGISTRY.items()
+        if record.credential_sha256 not in narrowed
+    }
+    assert unseen == {FLEX_SYSTEM_OPERATOR_SENDER, FLEX_NETWORK_OPERATOR_SENDER}
+
+    # And the forgery the narrowed scan would have missed: flipped to REAL, it
+    # passes the startup assertion and `_misdeclared` -- computed against the
+    # narrowed fingerprints -- does not flag it either.
+    forged = {
+        FLEX_SYSTEM_OPERATOR_SENDER: dataclasses.replace(
+            COUNTERPARTY_REGISTRY[FLEX_SYSTEM_OPERATOR_SENDER],
+            nature=CounterpartyNature.REAL,
+        )
+    }
+    assert_registry_fit_for_posture(DeploymentPosture.PRODUCTION, registry=forged)
+    assert _misdeclared(forged) == set()
+
+    # Restored to both trees, the same forgery IS caught.
+    monkeypatch.undo()
+    assert _misdeclared(forged) == {FLEX_SYSTEM_OPERATOR_SENDER}
 
 
 def test_MUTATION_a_stand_in_relabelled_REAL_is_CAUGHT_by_the_cross_check():

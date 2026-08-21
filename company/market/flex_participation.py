@@ -78,7 +78,14 @@ from typing import (
 import numpy as np
 
 from company.interfaces.crossing_conversation import ConversationRegister, UnaskedLeg
-from company.interfaces.wall_protocol import WallProtocolError, decode_response, encode_request
+from company.interfaces.wall_protocol import (
+    FLEX_NETWORK_OPERATOR_SENDER,
+    FLEX_SYSTEM_OPERATOR_SENDER,
+    WallProtocolError,
+    decode_framed_response,
+    decode_response,
+    encode_request,
+)
 from interface.contracts.flex_observable_seam import (
     FORBIDDEN_TRUTH_FIELDS,
     OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
@@ -610,6 +617,55 @@ class MisroutedOutcome(ValueError):
     that the account is ours."""
 
 
+# ---------------------------------------------------------------------------
+# WHO THIS COMPANY EXPECTS TO HEAR FROM (EP6 pass 61, Q13).
+#
+# THIS COMPANY'S OWN READING, WRITTEN INDEPENDENTLY OF THE WORLD'S. `sim`'s
+# `FLEX_VENUE_OPERATORS` is the FACT of who runs each market function; this is
+# the company's BELIEF about it, held on its own side of the wall exactly as a
+# real participant holds its own counterparty list. The two are not imported
+# from one another and must not be: a company that read the operator table off
+# the world could not be wrong about it, and being able to be wrong is what
+# makes the check a check. If they disagree the crossing is REFUSED, which is
+# what a supplier addressing a market function whose operator has changed
+# should experience.
+#
+# WHY THIS IS NOT A SECOND COPY OF `COUNTERPARTY_REGISTRY`. That registry
+# answers "will this build accept a message from this participant at all" --
+# identity, proved by credential. This answers "should THIS participant be the
+# one answering THIS registration" -- authorisation, decided against the
+# company's own submission book. A sender can pass the first and fail the
+# second, and that case is the entire reason the flex seam has two registered
+# counterparties rather than one.
+#
+# `FlexVenue.OTHER` IS ABSENT, and so is any default. A venue this company does
+# not know an operator for is one it cannot check an answer against, and the
+# fail-open reading -- "no expected operator, so accept whoever replied" -- is
+# precisely how a registry with a fallback stops being able to say no.
+# ---------------------------------------------------------------------------
+
+VENUE_OPERATORS: Dict[FlexVenue, str] = {
+    FlexVenue.BALANCING_MECHANISM: FLEX_SYSTEM_OPERATOR_SENDER,
+    FlexVenue.CAPACITY_MARKET: FLEX_SYSTEM_OPERATOR_SENDER,
+    FlexVenue.DFS_TURN_DOWN: FLEX_SYSTEM_OPERATOR_SENDER,
+    FlexVenue.DSO_LOCAL_CONSTRAINT: FLEX_NETWORK_OPERATOR_SENDER,
+}
+
+
+class WrongVenueOperator(ValueError):
+    """A registered counterparty answered for a venue it does not operate.
+
+    A SEPARATE TYPE FROM `MisroutedOutcome`, and the split is the point. That
+    one is "the message describes an offer we did not make", read off fields
+    the message itself supplies. This one is "the participant that PROVED who
+    it was is not the one that runs the market we addressed" -- established
+    against the transport frame and this company's own submission book, with
+    nothing the message says entering the decision. Two belts on one leg that
+    a single exception type could not tell apart, and a test asserting a bare
+    `ValueError` would pass with either of them removed.
+    """
+
+
 def encode_enrolment_payload(enrolment: FlexEnrolment) -> dict:
     """Serialise an enrolment payload onto the wire.
 
@@ -744,17 +800,37 @@ class FlexEnrolmentBook:
     def observe_outcome(self, wire: Any) -> FlexEnrolmentOutcome:
         """Read the venue's answer to one enrolment, or refuse it.
 
-        Three refusals, each keyed on something the message cannot supply:
+        Four refusals, each keyed on something the message cannot supply:
+          * `WallProtocolError` -- the transport frame named a participant this
+            build does not know, or one that could not present its credential.
+            Checked FIRST and before the envelope is parsed: a decoder that
+            reads the document and authenticates afterwards has already done
+            the work an unknown sender wanted done.
           * `UnaskedLeg`  -- a correlation id this company never opened. The
             register is the evidence; a plausible id on the wire never is, or
             any process able to mint one is registered with us.
+          * `WrongVenueOperator` -- a registered participant answered for a
+            venue it does not run. Decided against the PROVEN sender and our
+            own submission book, so an impostor cannot satisfy it by echoing
+            the right venue back at us.
           * `MisroutedOutcome` -- an acceptance whose unit/venue is not the one
             we submitted under that id.
           * `FlexEnrolmentRefused` -- the venue understood and declined, with its
             own declared code. Raised so a rejected registration can never read
             as a quiet absence of flex.
+
+        WHY THE FRAME MATTERS HERE AND `MisroutedOutcome` WAS NOT ENOUGH. That
+        check compares the outcome's `unit_id`/`venue` against our submission,
+        and both of those are fields the MESSAGE supplies -- so until this leg
+        was framed, the only thing standing between this company and a
+        registration reference minted by anything at all was that the impostor
+        echo two values back correctly. The evidence for a message's
+        admissibility came out of the message. The frame moves that evidence to
+        a credential the sender has to hold.
         """
-        response = decode_response(wire, decode_payload=decode_enrolment_outcome_payload)
+        sender, response = decode_framed_response(
+            wire, decode_payload=decode_enrolment_outcome_payload
+        )
         submitted = self._submitted.get(response.correlation_id)
         if submitted is None:
             raise UnaskedLeg(
@@ -762,6 +838,15 @@ class FlexEnrolmentBook:
                 f"{response.correlation_id!r}, which this company never submitted -- an "
                 "acknowledgement for a registration we have no record of asking for is an "
                 "incident, not a message to file"
+            )
+        expected_operator = VENUE_OPERATORS.get(submitted.venue)
+        if sender != expected_operator:
+            raise WrongVenueOperator(
+                f"registration {response.correlation_id!r} was submitted to "
+                f"{submitted.venue.value}, which this company holds as operated by "
+                f"{expected_operator!r}, and was answered by {sender!r} -- a participant "
+                "this build is registered with is not thereby entitled to speak for every "
+                "market function"
             )
         if response.status is not WallStatus.OK:
             detail = response.error

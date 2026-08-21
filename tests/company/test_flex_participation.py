@@ -14,10 +14,12 @@ from company.interfaces.crossing_conversation import UnaskedLeg
 from company.interfaces.wall_protocol import WallProtocolError
 from company.market.flex_participation import (
     DEFAULT_PRICE_SCARCITY_PERCENTILE,
+    VENUE_OPERATORS,
     CompanyVenueOffer,
     FlexEnrolmentBook,
     FlexEnrolmentRefused,
     MisroutedOutcome,
+    WrongVenueOperator,
     encode_enrolment_payload,
     form_participation_belief,
     form_participation_belief_l2,
@@ -31,7 +33,13 @@ from interface.contracts.flex_observable_seam import (
     FlexEnrolment,
     FlexVenue,
 )
-from sim.flex_dispatch import VenueRegistrations, answer_enrolment
+from sim.flex_dispatch import (
+    NETWORK_OPERATOR_CREDENTIAL,
+    NETWORK_OPERATOR_ID,
+    SYSTEM_OPERATOR_ID,
+    VenueRegistrations,
+    answer_enrolment,
+)
 
 
 def _prices(n=200, seed=0):
@@ -201,7 +209,12 @@ def test_a_MISROUTED_acceptance_is_refused_against_our_own_submission_not_the_me
     # Mutated INSIDE `fields`: putting a stray top-level key on the payload
     # would be caught by the key-set belt one layer earlier, and this test
     # would then pass without the refusal it names ever firing.
-    answer["payload"]["fields"]["unit_id"] = "UNIT-ELSEWHERE"
+    #
+    # And mutated INSIDE THE FRAME, leaving the sender and its credential
+    # untouched: the point of this test is the belt that reads our own
+    # submission book, so the transport identity must still be valid or the
+    # frame would refuse first and this refusal would never fire.
+    answer["envelope"]["payload"]["fields"]["unit_id"] = "UNIT-ELSEWHERE"
 
     with pytest.raises(MisroutedOutcome):
         book.observe_outcome(answer)
@@ -339,3 +352,139 @@ def test_MUTATION_one_unit_in_TWO_VENUES_on_one_day_is_TWO_conversations():
     assert set(book.registered_references()) == {
         "DFS_TURN_DOWN-REG-000001", "BALANCING_MECHANISM-REG-000002",
     }
+
+
+# ---------------------------------------------------------------------------
+# WHO IS SPEAKING (EP6 pass 61, Q13) -- the flex response leg's transport frame.
+#
+# Before this, the ONLY thing standing between this company and a registration
+# reference minted by anything at all was that the impostor echo the right
+# unit and venue back at us: `MisroutedOutcome` reads both fields out of the
+# message it is checking. Every test below moves that evidence off the message
+# and onto a credential the sender has to hold.
+# ---------------------------------------------------------------------------
+
+
+def test_the_ANSWER_is_authenticated_before_any_of_it_is_believed():
+    """NULL CONTROL for every refusal below: the honest exchange, framed by the
+    operator this company expects, still registers."""
+    book, venue = FlexEnrolmentBook(), VenueRegistrations()
+    answer = answer_enrolment(_submit(book), venue_clock=_VENUE_CLOCK, registrations=venue)
+
+    assert answer["sender"] == SYSTEM_OPERATOR_ID
+    assert book.observe_outcome(answer).enrolment_reference == "DFS_TURN_DOWN-REG-000001"
+
+
+def test_an_UNREGISTERED_sender_is_refused_however_well_formed_its_ANSWER_is():
+    """The forgery `MisroutedOutcome` could never see. The envelope inside is
+    the venue's own, byte for byte -- the correct correlation id, our unit, our
+    venue -- and it is refused because the participant around it is one this
+    build holds no record of.
+
+    Asserted by REASON, not a bare `raises`: this leg now carries four belts
+    and a bare raises cannot say which one fired."""
+    book, venue = FlexEnrolmentBook(), VenueRegistrations()
+    answer = answer_enrolment(_submit(book), venue_clock=_VENUE_CLOCK, registrations=venue)
+    answer["sender"] = "SOMEBODY-ELSE-01"
+
+    with pytest.raises(WallProtocolError) as exc:
+        book.observe_outcome(answer)
+    assert exc.value.reason == "UNKNOWN_SENDER"
+    assert book.registered_references() == ()
+
+
+def test_a_KNOWN_participant_that_cannot_PRESENT_its_credential_is_refused():
+    """Knowing a participant's NAME is public; holding its key is not. Without
+    this, the frame would be a label anyone could copy off a previous message."""
+    book, venue = FlexEnrolmentBook(), VenueRegistrations()
+    answer = answer_enrolment(_submit(book), venue_clock=_VENUE_CLOCK, registrations=venue)
+    answer["credential"] = "system-operator-01::participant-credential::v2"
+
+    with pytest.raises(WallProtocolError) as exc:
+        book.observe_outcome(answer)
+    assert exc.value.reason == "BAD_CREDENTIAL"
+
+
+def test_a_REGISTERED_participant_may_not_speak_for_a_venue_it_does_not_OPERATE():
+    """THE SECOND QUESTION, and the reason this seam has two counterparties.
+
+    The network operator is a participant this build IS registered with and its
+    credential is genuine, so the transport frame accepts it. It still may not
+    answer a DFS registration, because it does not run that market -- identity
+    proved is not authorisation granted.
+
+    This is the case a single-counterparty registry could not express: with one
+    flex participant, a check of the operator would pass for the same reason a
+    check of nothing would."""
+    book, venue = FlexEnrolmentBook(), VenueRegistrations()
+    answer = answer_enrolment(_submit(book), venue_clock=_VENUE_CLOCK, registrations=venue)
+
+    # A real participant, its real credential -- and the wrong market function.
+    answer["sender"] = NETWORK_OPERATOR_ID
+    answer["credential"] = NETWORK_OPERATOR_CREDENTIAL
+
+    with pytest.raises(WrongVenueOperator):
+        book.observe_outcome(answer)
+    assert book.registered_references() == ()
+
+
+def test_the_expected_operator_is_read_off_OUR_SUBMISSION_and_not_off_the_ANSWER():
+    """THE R15 INDEPENDENCE CHECK for this belt. An implementation that took the
+    venue from the message's own payload would agree with any impostor that
+    named the venue it was signing for -- the tautology the frame exists to
+    remove. So: keep the honest payload (it still says `dfs_turn_down`) and
+    move only the SIGNER to the participant that operates a DIFFERENT venue.
+    A check reading the payload would accept this; one reading our submission
+    book refuses it, and the test above is what makes that distinguishable."""
+    book, venue = FlexEnrolmentBook(), VenueRegistrations()
+    answer = answer_enrolment(_submit(book), venue_clock=_VENUE_CLOCK, registrations=venue)
+    assert answer["envelope"]["payload"]["fields"]["venue"] == "dfs_turn_down"
+
+    answer["sender"] = NETWORK_OPERATOR_ID
+    answer["credential"] = NETWORK_OPERATOR_CREDENTIAL
+
+    with pytest.raises(WrongVenueOperator):
+        book.observe_outcome(answer)
+
+
+def test_MUTATION_the_expected_operator_table_has_NO_DEFAULT_for_an_unknown_venue(
+    monkeypatch,
+):
+    """The fail-open reading is "we hold no operator for this venue, so accept
+    whoever replied", and it is how a registry with a fallback stops being able
+    to say no. Emptying the company's table must make the honest exchange
+    REFUSE, not sail through.
+
+    NULL CONTROL is the test above: against the real table the same bytes are
+    accepted, so this is the lookup failing closed and not the seam being
+    always-red."""
+    book, venue = FlexEnrolmentBook(), VenueRegistrations()
+    answer = answer_enrolment(_submit(book), venue_clock=_VENUE_CLOCK, registrations=venue)
+
+    monkeypatch.setattr(
+        "company.market.flex_participation.VENUE_OPERATORS", {}
+    )
+    with pytest.raises(WrongVenueOperator):
+        book.observe_outcome(answer)
+
+
+def test_the_companys_operator_table_is_its_OWN_and_agrees_with_the_worlds_today():
+    """The two tables are written independently -- the world's is the FACT of
+    who runs each market function, the company's is its BELIEF about it -- and
+    neither imports the other. A company that read the operator table off the
+    world could not be wrong about it, and being able to be wrong is what makes
+    the check a check.
+
+    Asserted as AGREEMENT rather than identity: they agree today, and the
+    mechanism that would let them disagree is intact. That the company does not
+    READ the world's table is owned by `test_no_sim_import` above -- a source
+    scan here would be a second copy of it, and one that this comment's own
+    mention of the symbol would defeat."""
+    from sim.flex_dispatch import FLEX_VENUE_OPERATORS
+
+    assert dict(VENUE_OPERATORS) == dict(FLEX_VENUE_OPERATORS)
+    assert VENUE_OPERATORS is not FLEX_VENUE_OPERATORS
+    # Neither is total over the enum: `OTHER` is a venue nobody runs a market
+    # for, and a default on either side is the fail-open shape both refuse.
+    assert FlexVenue.OTHER not in VENUE_OPERATORS
+    assert FlexVenue.OTHER not in FLEX_VENUE_OPERATORS

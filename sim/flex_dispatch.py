@@ -694,6 +694,124 @@ _ENROLMENT_PAYLOAD_FIELDS = frozenset(REQUEST_PAYLOAD_FIELDS["FlexEnrolment"])
 ENROLMENT_REQUEST_TYPE = "flex_enrolment"
 
 
+# ---------------------------------------------------------------------------
+# WHO IS SPEAKING -- the flex seam's transport identity (EP6 pass 61, Q13).
+#
+# WHAT WAS WRONG, and it is not that the answer was unchecked. The company DID
+# check that an acceptance described its own offer -- `MisroutedOutcome` compares
+# the outcome's `unit_id`/`venue` against its own submission. But both of those
+# fields are read OUT OF THE MESSAGE, so the only thing standing between this
+# company and a registration minted by anything at all was that the impostor
+# echo the right two values back: a process that could put bytes on this leg
+# supplied the evidence for its own admissibility. That is the R15 TAUTOLOGY
+# pattern at the transport layer, and the payment seam has not had it since
+# pass 50.
+#
+# A VENUE IS A MARKET FUNCTION AND A SENDER IS A PARTICIPANT, which is the whole
+# reason this mapping exists rather than a `sender = venue.value` line. The
+# contract says so in as many words (`FlexVenue`: "The flex MARKET FUNCTION, not
+# a counterparty"), and in GB the two genuinely do not line up: the system
+# operator runs the balancing mechanism, the capacity market's delivery role and
+# the demand-flexibility service -- THREE functions, ONE counterparty -- while a
+# local constraint market is run by the network operator for that region, which
+# is a different party holding a different key. So the company cannot derive who
+# should be speaking from the venue it addressed without being told, and this is
+# the world's own statement of it.
+#
+# `OTHER` HAS NO OPERATOR AND THAT IS THE POINT. It is the contract's
+# placeholder member -- a venue nobody runs a market for yet -- and a lookup
+# that fell back to some default participant for it would be exactly the
+# fail-open shape `COUNTERPARTY_REGISTRY` refuses on the other side (a table
+# with a default is a table that cannot say no). An unoperated venue cannot put
+# a message on the wire at all.
+#
+# NOT A SECRET IN THE SECRETS SENSE, same as the payment stand-in's: these are
+# synthetic credentials for stand-in counterparties inside a simulation, with no
+# real-world participant and (by `tools/company_network_isolation.py`) no route
+# to one. They are literals here because they are WORLD STATE, not configuration
+# -- and rotating one without updating the company's registry BREAKS THIS SEAM
+# deliberately, which is what a participant changing its key without telling its
+# counterparty does on a real network.
+# ---------------------------------------------------------------------------
+
+#: The participant that runs the national market functions.
+SYSTEM_OPERATOR_ID = "SYSTEM-OPERATOR-01"
+
+#: The participant that runs a local constraint market. A DIFFERENT party from
+#: the one above, holding a different key -- which is what makes "the sender is
+#: registered with us" and "the sender runs the venue we addressed" two
+#: different questions rather than one.
+NETWORK_OPERATOR_ID = "NETWORK-OPERATOR-01"
+
+SYSTEM_OPERATOR_CREDENTIAL = "system-operator-01::participant-credential::v1"
+NETWORK_OPERATOR_CREDENTIAL = "network-operator-01::participant-credential::v1"
+
+#: Which participant operates each market function. Deliberately NOT total over
+#: `FlexVenue`: `OTHER` is absent, and absence refuses.
+FLEX_VENUE_OPERATORS: Dict[FlexVenue, str] = {
+    FlexVenue.BALANCING_MECHANISM: SYSTEM_OPERATOR_ID,
+    FlexVenue.CAPACITY_MARKET: SYSTEM_OPERATOR_ID,
+    FlexVenue.DFS_TURN_DOWN: SYSTEM_OPERATOR_ID,
+    FlexVenue.DSO_LOCAL_CONSTRAINT: NETWORK_OPERATOR_ID,
+}
+
+_OPERATOR_CREDENTIALS: Dict[str, str] = {
+    SYSTEM_OPERATOR_ID: SYSTEM_OPERATOR_CREDENTIAL,
+    NETWORK_OPERATOR_ID: NETWORK_OPERATOR_CREDENTIAL,
+}
+
+
+class UnoperatedVenue(ValueError):
+    """This world runs no market for that venue, so nobody can speak for it.
+
+    Raised on the SENDING side, before any bytes exist. Deliberately not a
+    `WallResponse` refusal: a structured refusal is a message FROM a
+    participant, and the whole content of this error is that there is no
+    participant to send it.
+    """
+
+
+def frame_venue_message(
+    envelope_wire: dict, *, venue: FlexVenue, handed_over_at: dt.datetime
+) -> dict:
+    """Wrap one encoded envelope in the transport frame of the participant that
+    operates `venue`, stamped with the moment it let go of the message.
+
+    Written against the frame SCHEMA and not against the company's
+    `decode_frame`, same rule as `encode_wall_response` above and for the same
+    reason: `sim/**` may not import `company.*`, and a frame built by reading
+    the receiver's code would make the round trip a handshake with itself.
+
+    `handed_over_at` IS REQUIRED AND HAS NO DEFAULT. The tempting default --
+    the envelope's own `observed_at` -- would make a prompt hand-over
+    unfalsifiable by construction: the field could then never disagree with the
+    document it wraps, which is the R15 TAUTOLOGY shape one layer down. A
+    caller that cannot say when it handed a message over does not get to send
+    one.
+    """
+    if not isinstance(envelope_wire, dict):
+        raise SeamCodecError(
+            f"expected an encoded envelope dict, got {type(envelope_wire).__name__}"
+        )
+    if not isinstance(handed_over_at, dt.datetime):
+        raise SeamCodecError(
+            f"handed_over_at must be a datetime, got {type(handed_over_at).__name__}"
+        )
+    operator = FLEX_VENUE_OPERATORS.get(venue)
+    if operator is None:
+        raise UnoperatedVenue(
+            f"no participant in this world operates {getattr(venue, 'value', venue)!r} -- "
+            "a venue with no operator has nobody to put a message on the wire, and a "
+            "fallback sender here would be a transport identity nobody decided about"
+        )
+    return {
+        "sender": operator,
+        "credential": _OPERATOR_CREDENTIALS[operator],
+        "handed_over_at": handed_over_at.isoformat(),
+        "envelope": envelope_wire,
+    }
+
+
 class EnrolmentRefused(ValueError):
     """This venue would not register an enrolment. Carries the declared
     `ENROLMENT_REFUSAL_CODES` member as `code` so the refusal crosses the wall as
@@ -901,36 +1019,58 @@ def answer_enrolment(
     is a different thing from a registration it refused and is why the two do not
     share an exception type: an unreadable message has no correlation_id to
     answer on.
+
+    THE ANSWER CROSSES INSIDE A TRANSPORT FRAME (EP6 pass 61), so the company
+    learns WHO said it before it reads anything it said. A REFUSAL is framed
+    too, and that is not symmetry for its own sake: an unframed refusal would be
+    a message any process could put on this leg to make a company believe its
+    registration had been declined, and a registration a company believes it
+    does not hold is as expensive as one it wrongly believes it does.
+
+    WHICH PARTICIPANT SIGNS IS READ OFF THE REQUEST'S VENUE, which is a field the
+    SENDER controls -- deliberately, and it grants nothing. All it decides is
+    which of this world's own desks answers; the company then checks the PROVEN
+    sender against the venue in its OWN submission book, so a request naming a
+    venue whose operator the sender cannot present a credential for produces an
+    answer the company refuses.
     """
     request = decode_request(wire)
     enrolment = request.payload
     try:
         reference = _register_or_refuse(enrolment, venue_clock, registrations)
     except EnrolmentRefused as refusal:
-        return encode_wall_response(
-            WallResponse(
+        return frame_venue_message(
+            encode_wall_response(
+                WallResponse(
+                    correlation_id=request.correlation_id,
+                    status=WallStatus.ERROR,
+                    schema_version=SCHEMA_VERSION,
+                    observed_at=venue_clock,
+                    valid_time=enrolment.window_start.date(),
+                    payload=None,
+                    error=ErrorDetail(code=refusal.code, message=refusal.message),
+                )
+            ),
+            venue=enrolment.venue,
+            handed_over_at=venue_clock,
+        )
+    return frame_venue_message(
+        encode_wall_response(
+            FlexEnrolmentOutcomeWallResponse(
                 correlation_id=request.correlation_id,
-                status=WallStatus.ERROR,
+                status=WallStatus.OK,
                 schema_version=SCHEMA_VERSION,
                 observed_at=venue_clock,
                 valid_time=enrolment.window_start.date(),
-                payload=None,
-                error=ErrorDetail(code=refusal.code, message=refusal.message),
+                payload=FlexEnrolmentOutcome(
+                    enrolment_reference=reference,
+                    unit_id=enrolment.unit_id,
+                    venue=enrolment.venue,
+                ),
             )
-        )
-    return encode_wall_response(
-        FlexEnrolmentOutcomeWallResponse(
-            correlation_id=request.correlation_id,
-            status=WallStatus.OK,
-            schema_version=SCHEMA_VERSION,
-            observed_at=venue_clock,
-            valid_time=enrolment.window_start.date(),
-            payload=FlexEnrolmentOutcome(
-                enrolment_reference=reference,
-                unit_id=enrolment.unit_id,
-                venue=enrolment.venue,
-            ),
-        )
+        ),
+        venue=enrolment.venue,
+        handed_over_at=venue_clock,
     )
 
 

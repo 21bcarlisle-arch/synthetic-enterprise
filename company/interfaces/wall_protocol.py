@@ -406,10 +406,23 @@ class CounterpartyRecord:
 
 
 #: The company's counterparty on the payment observable seam -- its bank/Bacs
-#: bureau. One entry, because one crossing is framed today (see the module
-#: docstring): a registry row for a participant that never sends would be a
-#: line nobody maintains and a control nothing exercises.
+#: bureau.
 PAYMENT_SEAM_SENDER = "BACS-BUREAU-01"
+
+#: The company's counterparties on the FLEX seam (EP6 pass 61). TWO rows for one
+#: seam, because a venue is a market FUNCTION and a sender is a PARTICIPANT: the
+#: system operator runs the balancing mechanism, the capacity market and the
+#: demand-flexibility service, and a local constraint market is run by the
+#: network operator for that region.
+#:
+#: The second row is not a line nobody maintains. It is what makes "this sender
+#: is registered with us" and "this sender runs the venue we addressed" two
+#: separable questions: with one flex participant, a check that the answer came
+#: from the right operator would pass for the same reason a check of nothing
+#: would, and no test could tell them apart. Both rows send in
+#: `tests/company/test_flex_participation.py`.
+FLEX_SYSTEM_OPERATOR_SENDER = "SYSTEM-OPERATOR-01"
+FLEX_NETWORK_OPERATOR_SENDER = "NETWORK-OPERATOR-01"
 
 #: Every counterparty this build will accept a message from. A sender absent
 #: from this mapping is REFUSED -- there is deliberately no default record and
@@ -426,6 +439,24 @@ COUNTERPARTY_REGISTRY: Mapping[str, CounterpartyRecord] = MappingProxyType(
             # is of (`simulation/payment_seam_adapter.py::PARTICIPANT_CREDENTIAL`).
             # Labelling it anything else reds the cross-check named on
             # DECLARED_POSTURE above.
+            nature=CounterpartyNature.STAND_IN,
+        ),
+        FLEX_SYSTEM_OPERATOR_SENDER: CounterpartyRecord(
+            credential_sha256=(
+                "8d4d8a31b428eae6f116e01ee395cc01c57598b3f07e4fe4966cc29d5650c2f9"
+            ),
+            # The flex seam is on v2 and has never spoken v1: this is the
+            # counterparty's CURRENT release, not what this build can read.
+            speaks_schema_versions=frozenset({2}),
+            # `sim/flex_dispatch.py::SYSTEM_OPERATOR_CREDENTIAL`.
+            nature=CounterpartyNature.STAND_IN,
+        ),
+        FLEX_NETWORK_OPERATOR_SENDER: CounterpartyRecord(
+            credential_sha256=(
+                "116bbaace96f446db28134fc0a11b78bb01965b7cbe0c96a202c5630f16da831"
+            ),
+            speaks_schema_versions=frozenset({2}),
+            # `sim/flex_dispatch.py::NETWORK_OPERATOR_CREDENTIAL`.
             nature=CounterpartyNature.STAND_IN,
         ),
     }

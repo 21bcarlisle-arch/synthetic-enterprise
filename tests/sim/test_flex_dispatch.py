@@ -18,18 +18,25 @@ from interface.contracts.flex_observable_seam import (
     SCHEMA_VERSION,
     FlexDispatchInstruction,
     FlexSettlementLine,
+    FlexVenue,
 )
 from sim.flex_dispatch import (
     ENROLMENT_REQUEST_TYPE,
+    NETWORK_OPERATOR_CREDENTIAL,
+    NETWORK_OPERATOR_ID,
+    SYSTEM_OPERATOR_CREDENTIAL,
+    SYSTEM_OPERATOR_ID,
     DegenerateFlexError,
     DeliveryModel,
     EnrolmentRefused,
     SeamCodecError,
+    UnoperatedVenue,
     VenueRegistrations,
     answer_enrolment,
     dispatch_and_settle,
     emit_dispatch_instructions,
     emit_settlement_lines,
+    frame_venue_message,
     true_scarcity_mask,
 )
 
@@ -560,10 +567,28 @@ def _enrolment_wire(
     }
 
 
+def _answer(*args, **kwargs):
+    """`answer_enrolment`, with the venue's transport frame taken off.
+
+    Every enrolment answer crosses inside a frame naming the participant that
+    operates the venue (EP6 pass 61). The frame is asserted STRUCTURALLY by the
+    transport-identity tests below, which are the only place it is read as
+    bytes; unwrapping it here keeps every test in this section about the
+    venue's REGISTRATION rules rather than about its envelope.
+
+    The key set is asserted on every unwrap rather than trusted, so an answer
+    that stopped being framed could not slip through this helper silently and
+    leave the section below testing an unframed leg.
+    """
+    framed = answer_enrolment(*args, **kwargs)
+    assert set(framed) == {"sender", "credential", "handed_over_at", "envelope"}
+    return framed["envelope"]
+
+
 def test_the_venue_ACCEPTS_a_well_formed_enrolment_and_mints_its_own_reference():
     """NULL CONTROL for every refusal below: the venue is not always-red."""
     reg = VenueRegistrations()
-    answer = answer_enrolment(_enrolment_wire(), venue_clock=_E_CLOCK, registrations=reg)
+    answer = _answer(_enrolment_wire(), venue_clock=_E_CLOCK, registrations=reg)
 
     assert answer["status"] == "OK"
     assert answer["payload"]["fields"]["enrolment_reference"] == "DFS_TURN_DOWN-REG-000001"
@@ -576,8 +601,8 @@ def test_C_S2_a_RESENT_enrolment_returns_the_SAME_reference_and_does_not_mint_a_
     reg = VenueRegistrations()
     wire = _enrolment_wire()
 
-    first = answer_enrolment(wire, venue_clock=_E_CLOCK, registrations=reg)
-    second = answer_enrolment(wire, venue_clock=_E_CLOCK, registrations=reg)
+    first = _answer(wire, venue_clock=_E_CLOCK, registrations=reg)
+    second = _answer(wire, venue_clock=_E_CLOCK, registrations=reg)
 
     assert first["payload"]["fields"]["enrolment_reference"] == (
         second["payload"]["fields"]["enrolment_reference"]
@@ -592,9 +617,9 @@ def test_an_OVERLAPPING_window_is_refused_but_a_CONSECUTIVE_one_is_not():
     a refusal that also fired here would make the venue unable to hold a book
     at all."""
     reg = VenueRegistrations()
-    answer_enrolment(_enrolment_wire(), venue_clock=_E_CLOCK, registrations=reg)
+    _answer(_enrolment_wire(), venue_clock=_E_CLOCK, registrations=reg)
 
-    overlapping = answer_enrolment(
+    overlapping = _answer(
         _enrolment_wire(
             start=dt.datetime(2026, 3, 1, 18, 0),
             end=dt.datetime(2026, 3, 1, 21, 0),
@@ -607,7 +632,7 @@ def test_an_OVERLAPPING_window_is_refused_but_a_CONSECUTIVE_one_is_not():
     assert overlapping["error"]["code"] == "UNIT_ALREADY_ENROLLED"
 
     # NULL CONTROL: butt-jointed, not overlapping -- accepted.
-    consecutive = answer_enrolment(
+    consecutive = _answer(
         _enrolment_wire(
             start=_E_END,
             end=dt.datetime(2026, 3, 1, 22, 0),
@@ -624,9 +649,9 @@ def test_the_SAME_unit_may_enrol_at_a_DIFFERENT_venue_over_the_same_window():
     legitimate stacking case, and the contention it creates is a thing the
     company is supposed to be able to get wrong."""
     reg = VenueRegistrations()
-    answer_enrolment(_enrolment_wire(), venue_clock=_E_CLOCK, registrations=reg)
+    _answer(_enrolment_wire(), venue_clock=_E_CLOCK, registrations=reg)
 
-    other = answer_enrolment(
+    other = _answer(
         _enrolment_wire(venue="capacity_market", correlation_id="flex-enrol-4"),
         venue_clock=_E_CLOCK,
         registrations=reg,
@@ -642,7 +667,7 @@ def test_ABSENCE_IS_NEVER_AGREEMENT_a_missing_payload_key_is_refused_not_default
     del wire["payload"]["offered_mw"]
 
     with pytest.raises(SeamCodecError):
-        answer_enrolment(wire, venue_clock=_E_CLOCK, registrations=VenueRegistrations())
+        _answer(wire, venue_clock=_E_CLOCK, registrations=VenueRegistrations())
 
 
 def test_MUTATION_the_venue_judges_the_window_on_ITS_OWN_clock_not_the_senders():
@@ -656,12 +681,12 @@ def test_MUTATION_the_venue_judges_the_window_on_ITS_OWN_clock_not_the_senders()
         start=dt.datetime(2026, 1, 1, 1, 0),
         end=dt.datetime(2026, 1, 1, 2, 0),
     )
-    honest = answer_enrolment(
+    honest = _answer(
         _enrolment_wire(**closed), venue_clock=_E_CLOCK, registrations=VenueRegistrations()
     )
     assert honest["error"]["code"] == "WINDOW_ALREADY_CLOSED"
 
-    forged = answer_enrolment(
+    forged = _answer(
         _enrolment_wire(**closed, emitted_at=dt.datetime(2025, 12, 31, 12, 0)),
         venue_clock=_E_CLOCK,
         registrations=VenueRegistrations(),
@@ -671,7 +696,7 @@ def test_MUTATION_the_venue_judges_the_window_on_ITS_OWN_clock_not_the_senders()
     # NULL CONTROL: the same venue, the same clock, an OPEN window -- accepted.
     # Without this the two assertions above would also hold of a venue that
     # refused everything.
-    assert answer_enrolment(
+    assert _answer(
         _enrolment_wire(), venue_clock=_E_CLOCK, registrations=VenueRegistrations()
     )["status"] == "OK"
 
@@ -683,7 +708,7 @@ def test_a_request_MISROUTED_to_this_desk_is_refused_as_unreadable_not_as_a_reje
     wire["request_type"] = "capacity_auction_bid"
 
     with pytest.raises(SeamCodecError):
-        answer_enrolment(wire, venue_clock=_E_CLOCK, registrations=VenueRegistrations())
+        _answer(wire, venue_clock=_E_CLOCK, registrations=VenueRegistrations())
 
 
 def test_the_venue_may_not_send_a_refusal_reason_the_company_cannot_branch_on():
@@ -701,13 +726,13 @@ def test_a_REFUSAL_carries_no_payload_and_an_ACCEPTANCE_carries_no_error():
     """The envelope's own invariant, asserted on the bytes this desk actually
     emits: a non-OK response may not carry a payload."""
     reg = VenueRegistrations()
-    refused = answer_enrolment(
+    refused = _answer(
         _enrolment_wire(offered_mw=-1.0), venue_clock=_E_CLOCK, registrations=reg
     )
     assert refused["error"]["code"] == "OFFER_NOT_DELIVERABLE"
     assert refused.get("payload") is None
 
-    accepted = answer_enrolment(_enrolment_wire(), venue_clock=_E_CLOCK, registrations=reg)
+    accepted = _answer(_enrolment_wire(), venue_clock=_E_CLOCK, registrations=reg)
     assert accepted.get("error") is None
 
 
@@ -740,7 +765,7 @@ def test_the_venues_refusal_set_IS_the_contracts_declaration_and_not_a_copy(monk
     )
 
     # NULL CONTROL: against the real declaration, a well-formed wire is accepted.
-    assert answer_enrolment(
+    assert _answer(
         _enrolment_wire(), venue_clock=_E_CLOCK, registrations=VenueRegistrations()
     )["status"] == "OK"
 
@@ -752,9 +777,111 @@ def test_the_venues_refusal_set_IS_the_contracts_declaration_and_not_a_copy(monk
         frozenset(REQUEST_PAYLOAD_FIELDS["FlexEnrolment"]) | {"settlement_priority"},
     )
     with pytest.raises(SeamCodecError):
-        answer_enrolment(
+        _answer(
             _enrolment_wire(), venue_clock=_E_CLOCK, registrations=VenueRegistrations()
         )
+
+
+# ---------------------------------------------------------------------------
+# THE VENUE'S TRANSPORT IDENTITY (EP6 pass 61, Q13) -- who is speaking, stated
+# by the world before the company reads anything it said.
+#
+# These read the frame as BYTES, which is the reason they exist separately from
+# the registration tests above: `_answer` takes the frame off, so nothing in
+# that section would notice the leg going back to unframed except the key-set
+# assertion inside the helper, and a helper is not where a control lives.
+# ---------------------------------------------------------------------------
+
+
+def test_the_ANSWER_crosses_inside_a_frame_naming_the_venues_OPERATOR():
+    """A venue is a market FUNCTION and a sender is a PARTICIPANT. The DFS
+    turn-down service is run by the system operator, so that is who signs --
+    not `dfs_turn_down`, which is not a party and holds no key."""
+    framed = answer_enrolment(
+        _enrolment_wire(), venue_clock=_E_CLOCK, registrations=VenueRegistrations()
+    )
+
+    assert framed["sender"] == SYSTEM_OPERATOR_ID
+    assert framed["credential"] == SYSTEM_OPERATOR_CREDENTIAL
+    assert framed["handed_over_at"] == _E_CLOCK.isoformat()
+    assert framed["envelope"]["status"] == "OK"
+
+
+def test_a_LOCAL_constraint_market_is_signed_by_a_DIFFERENT_participant():
+    """THE NULL CONTROL FOR THE MAPPING ITSELF. Without a venue whose operator
+    differs, `sender == SYSTEM_OPERATOR_ID` would hold of a seam that stamped
+    one constant on everything, and no test in this file could tell the two
+    apart."""
+    framed = answer_enrolment(
+        _enrolment_wire(venue="dso_local_constraint"),
+        venue_clock=_E_CLOCK,
+        registrations=VenueRegistrations(),
+    )
+
+    assert framed["sender"] == NETWORK_OPERATOR_ID
+    assert framed["credential"] == NETWORK_OPERATOR_CREDENTIAL
+
+
+def test_a_REFUSAL_is_framed_too_and_not_only_an_ACCEPTANCE():
+    """An unframed refusal is a message any process could put on this leg to
+    make a company believe its registration was declined -- and a registration
+    a company wrongly believes it does NOT hold is as expensive as one it
+    wrongly believes it does."""
+    framed = answer_enrolment(
+        _enrolment_wire(offered_mw=-1.0),
+        venue_clock=_E_CLOCK,
+        registrations=VenueRegistrations(),
+    )
+
+    assert framed["sender"] == SYSTEM_OPERATOR_ID
+    assert framed["envelope"]["status"] == "ERROR"
+    assert framed["envelope"]["error"]["code"] == "OFFER_NOT_DELIVERABLE"
+
+
+def test_a_venue_NOBODY_OPERATES_cannot_put_a_message_on_the_wire_at_all():
+    """`FlexVenue.OTHER` is the contract's placeholder -- a venue nobody runs a
+    market for yet. A lookup that fell back to some default sender for it would
+    be a transport identity nobody decided about, which is the fail-open shape
+    the company's registry refuses on the other side.
+
+    NULL CONTROL: the same envelope under an OPERATED venue frames cleanly, so
+    this is the mapping refusing and not the framer refusing everything."""
+    with pytest.raises(UnoperatedVenue):
+        frame_venue_message({"status": "OK"}, venue=FlexVenue.OTHER, handed_over_at=_E_CLOCK)
+
+    assert frame_venue_message(
+        {"status": "OK"}, venue=FlexVenue.BALANCING_MECHANISM, handed_over_at=_E_CLOCK
+    )["sender"] == SYSTEM_OPERATOR_ID
+
+
+def test_the_HAND_OVER_time_has_no_default_and_may_not_be_taken_from_the_document():
+    """A default of the envelope's own `observed_at` would make a prompt
+    hand-over unfalsifiable by construction: the field could never disagree
+    with the document it wraps, which is the R15 TAUTOLOGY shape one layer
+    down. A caller that cannot say when it let go does not get to send."""
+    with pytest.raises(TypeError):
+        frame_venue_message({"status": "OK"}, venue=FlexVenue.BALANCING_MECHANISM)
+
+    with pytest.raises(SeamCodecError):
+        frame_venue_message(
+            {"status": "OK"},
+            venue=FlexVenue.BALANCING_MECHANISM,
+            handed_over_at=_E_CLOCK.isoformat(),
+        )
+
+
+def test_the_two_flex_operators_hold_DIFFERENT_credentials():
+    """One credential shared between two participant ids is one participant
+    with two names: the company could not then tell them apart, and the
+    wrong-operator refusal on the far side would be unprovable."""
+    assert SYSTEM_OPERATOR_CREDENTIAL != NETWORK_OPERATOR_CREDENTIAL
+    assert len(set(_flex_operator_credentials().values())) == len(
+        set(_flex_operator_credentials())
+    )
+
+
+def _flex_operator_credentials():
+    return dict(sim_flex_dispatch._OPERATOR_CREDENTIALS)
 
 
 # ---------------------------------------------------------------------------
