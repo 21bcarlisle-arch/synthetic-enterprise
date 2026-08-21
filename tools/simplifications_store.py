@@ -59,6 +59,31 @@ import yaml
 PROJECT = Path(__file__).resolve().parent.parent
 STORE_DIR = PROJECT / "docs" / "design" / "simplifications"
 
+#: libyaml's C scanner where the build has it, the pure-Python one otherwise.
+#:
+#: NOT A CACHE, deliberately. `supervisor.py`'s own call-site comment rules a cache out by name
+#: ("a cache keyed on anything but the current stores is how a record starts outrunning the
+#: code it describes") and that decision stands: this reads the same files, on every call, and
+#: returns the same objects. Only the parser changes, so there is no freshness question to get
+#: wrong.
+#:
+#: WHY IT IS WORTH A CONSTANT. `load_all()` parses every file in the store TWICE -- once to
+#: read its `atom_id`, once via `for_atom` -- so the store's 297 files cost 811 parses per
+#: call. That is 2.28s on the live tree (measured 2026-08-21; the supervisor comment recorded
+#: 2.1s earlier, so the figure grows with the store), paid by every discovery/FRAME draw and by
+#: every test that reaches one. Measured on this tree, CSafeLoader is 24x faster on the same
+#: files. The cost was never the disk or the logic, it was the pure-Python scanner.
+#:
+#: FAIL-SOFT ON ABSENCE, never on content: a wheel built without libyaml has no `CSafeLoader`,
+#: and falling back to `SafeLoader` is the same parse at the old speed. Both loaders accept the
+#: identical safe YAML subset, so a file that parses under one parses under the other.
+_SAFE_LOADER = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
+
+
+def _safe_load(text: str):
+    """`yaml.safe_load` with the fastest available safe loader. Same subset, same result."""
+    return yaml.load(text, Loader=_SAFE_LOADER)
+
 # The store's bound (README "bound"): one file per existing atom, each <=100KB.
 MAX_FILE_BYTES = 100 * 1024
 
@@ -176,7 +201,7 @@ def archive_chunks(atom_id: str, store_dir: Path | None = None) -> list:
 def _archived_docs(atom_id: str, store_dir: Path | None = None) -> list:
     out = []
     for p in archive_chunks(atom_id, store_dir):
-        data = yaml.safe_load(p.read_text(encoding="utf-8"))
+        data = _safe_load(p.read_text(encoding="utf-8"))
         if isinstance(data, dict):
             out.append(data)
     return out
@@ -213,7 +238,7 @@ def archived_atom_ids(store_dir: Path | None = None) -> set:
         return set()
     out = set()
     for p in sorted(d.glob("*.yaml")):
-        data = yaml.safe_load(p.read_text(encoding="utf-8"))
+        data = _safe_load(p.read_text(encoding="utf-8"))
         if isinstance(data, dict) and data.get("atom_id"):
             out.add(str(data["atom_id"]))
         else:  # fall back to the filename, so a malformed chunk is still attributable
@@ -409,7 +434,7 @@ def _read_doc(atom_id: str, store_dir: Path | None = None) -> dict:
     p = _path_for(atom_id, store_dir)
     if not p.is_file():
         return {}
-    data = yaml.safe_load(p.read_text(encoding="utf-8"))
+    data = _safe_load(p.read_text(encoding="utf-8"))
     return data if isinstance(data, dict) else {}
 
 
@@ -459,7 +484,7 @@ def load_all(store_dir: Path | None = None) -> dict[str, list]:
         return out
     ids = set()
     for p in sorted(d.glob("*.yaml")):
-        data = yaml.safe_load(p.read_text(encoding="utf-8"))
+        data = _safe_load(p.read_text(encoding="utf-8"))
         if not isinstance(data, dict):
             continue
         ids.add(str(data.get("atom_id") or p.stem))
@@ -626,7 +651,7 @@ def notes_load_all(store_dir: Path | None = None) -> dict[str, dict]:
     if not d.is_dir():
         return out
     for p in sorted(d.glob("*.yaml")):
-        data = yaml.safe_load(p.read_text(encoding="utf-8"))
+        data = _safe_load(p.read_text(encoding="utf-8"))
         if not isinstance(data, dict):
             continue
         notes = data.get("map_notes")
@@ -794,7 +819,7 @@ def records_load_all(store_dir: Path | None = None) -> dict[str, dict]:
         return out
     ids = set()
     for p in sorted(d.glob("*.yaml")):
-        data = yaml.safe_load(p.read_text(encoding="utf-8"))
+        data = _safe_load(p.read_text(encoding="utf-8"))
         if isinstance(data, dict):
             ids.add(str(data.get("atom_id") or p.stem))
     ids |= archived_atom_ids(store_dir)  # see `load_all` -- the archive is in scope

@@ -26,11 +26,53 @@ Both draw entry points are covered: `_idle_discover_frame_draw` (single) and
 `_idle_discover_frame_draw_concurrent` (the production path via
 `_self_refill_draw`).
 """
+import json
 import random
 
 import pytest
 
 from background import supervisor
+from tools import discovery_pass_ceiling as ceiling
+
+
+def _isolate_pass_ceiling(root, monkeypatch):
+    """Point the DISCOVERY PASS CEILING at this test's tmp root as well.
+
+    `_idle_discover_frame_draw` calls `tools.discovery_pass_ceiling.saturated_ids()`,
+    and that module resolves MAP_FEED / STORE_DIR / LEDGER against its OWN `PROJECT`
+    constant -- monkeypatching `supervisor.PROJECT_DIR` never reached them. So every
+    draw in this file was surveying the LIVE repo: 297 simplification YAMLs re-parsed
+    twice each, which `supervisor.py`'s own call-site comment measures at 2.1s per
+    call (independently re-measured at 2.28s on 2026-08-21). Six tests here drive the
+    draw 50 times apiece, so this file alone spent ~11 minutes inside a collaborator
+    it is not testing -- and grew every time an unrelated atom gained a store file.
+    That is what pushed `pytest -m operational` past its 1800s wall (consecutive_red=5,
+    `red_timeout`); the suite was never failing, it was never finishing.
+
+    Isolation is the fix rather than a stub: `saturated_ids()` FAILS CLOSED (an
+    unreadable ceiling makes the draw return None), so these tests genuinely need a
+    working ceiling -- they just need a small one they own. Each input carries the
+    minimum that keeps the survey valid: an empty feed or empty store both raise
+    `CeilingUnavailable`, and this file's subject is FRAME saturation, not the ceiling.
+    """
+    store = root / "store"
+    store.mkdir()
+    (store / "CEILING_SEED.yaml").write_text(
+        "atom_id: CEILING_SEED\nsimplifications:\n  - note: seed\n", encoding="utf-8")
+    feed = root / "map_feed.json"
+    feed.write_text(json.dumps({"atoms": [{
+        "id": "CEILING_SEED", "level_current": 0, "level_target": 2, "loop_stage": "idle",
+    }]}), encoding="utf-8")
+    ledger = root / "gate_authorizations.jsonl"
+    # One real LEVEL_UP row: the ledger read is fail-closed both ways, and an EMPTY
+    # ledger raises "records no level move at all -- that is a broken read". The seed
+    # atom is not a draw candidate here, so this row only keeps the survey valid.
+    ledger.write_text(json.dumps({
+        "action": "LEVEL_UP", "atom": "CEILING_SEED", "ts": 1_700_000_000.0,
+    }) + "\n", encoding="utf-8")
+    monkeypatch.setattr(ceiling, "STORE_DIR", store)
+    monkeypatch.setattr(ceiling, "MAP_FEED", feed)
+    monkeypatch.setattr(ceiling, "LEDGER", ledger)
 
 
 @pytest.fixture(autouse=True)
@@ -43,6 +85,7 @@ def _isolate_map_and_root(tmp_path, monkeypatch):
     monkeypatch.setattr(supervisor, "PROJECT_DIR", tmp_path)
     monkeypatch.setattr(supervisor, "ATOM_STALL_STATE_FILE", tmp_path / ".atom_stall_tracker.json")
     monkeypatch.setattr(supervisor, "log", lambda msg: None)
+    _isolate_pass_ceiling(tmp_path, monkeypatch)
     # Isolate the live fronts-enforcement flag (director console act, on main
     # since 2026-07-18): this file tests FRAME-saturation draw re-entry, not
     # front membership, so the global fronts filter must be OFF or the synthetic
