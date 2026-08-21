@@ -1,4 +1,50 @@
-**Severity:** LATENT · **Lane:** H_harness
+**Severity:** RECORDED · **Lane:** H_harness
+
+**Discharged:** `tests/tools/test_cold_eyes_battery.py::test_MUTATION_a_row_citing_symbols_that_are_in_no_commit_RAISES`,
+`tests/tools/test_cold_eyes_battery.py::test_NULL_CONTROL_the_same_row_clears_at_the_commit_that_LANDED_those_symbols`,
+`tests/tools/test_cold_eyes_battery.py::test_the_LIVE_rows_all_resolve_at_HEAD_so_this_check_did_not_ship_red`,
+`tests/tools/test_cold_eyes_battery.py::test_RESIDUE_3_a_PASS_row_citing_no_path_is_left_alone_deliberately`,
+`tests/tools/test_cold_eyes_battery.py::test_a_symbol_only_MENTIONED_IN_A_COMMENT_does_not_resolve`,
+`tests/tools/test_cold_eyes_battery.py::test_RESIDUE_2_a_dotted_tail_verifies_the_top_level_name_only`,
+`tests/tools/test_cold_eyes_battery.py::test_FAIL_SILENT_an_unresolvable_ref_blames_the_REF_not_the_evidence`,
+`tests/tools/test_cold_eyes_battery.py::test_the_citation_check_is_reached_through_the_LOADER_not_only_directly`,
+`tools/cold_eyes_battery.py`
+— EP6 pass 52, landed 1878fe546, every condition this document set met. The loader resolves
+each cited path-and-symbol pair against HEAD and raises when one is not defined there; the
+two named residues went into the module docstring, where two more were added because building
+it exposed them, and two of the four are pinned as tests rather than left as prose. The
+mutation is this document's own pair read out of the pre-landing commit and the null control
+is the same row read out of the landing commit, so only the ref varies between them. Reverting
+the resolver to its truthiness shape reds six of the ten new tests including the named
+mutation, while the null control and the absence-claim test correctly stay green. Resolution
+is by parse rather than by substring, because a symbol named only in a comment would satisfy a
+search and that is the same fail-open one level down. Nothing shipped red: all 34 citations in
+HEAD's committed reconciliation resolve, and the outstanding set is unchanged, which is this
+document's own honest limit holding rather than a disappointment. (Every backtick above is
+read as a PATH, so the prose carries none.)
+
+**Corrected in the discharge, because this document's stated null control was stale:** it
+asked for the live rows read out of the landing commit to clear. Measured this pass, 18 of the
+live file's 36 citations do not resolve there — passes 44 to 50 rewrote those rows to cite
+symbols authored after it — so read literally that instruction would have looked like the
+control failing its own null control. The sample is therefore pinned to the two citations this
+document actually measured. The counted figures it reports (11 citations, 2 unresolvable) were
+true of the file as it stood on the morning it was written and are not true of the file now;
+the reasoning they support is unaffected.
+
+**Left open, stated rather than implied:** the queued observation in this document's own
+CORRECTION — that the reconciliation's pass-number field diverges from the pass its evidence
+names — is NOT discharged here, and one thing is now known about it that was not: the field
+has no reader anywhere in the tree, so the divergence is a record inconsistency and not a
+control defect. Whichever field a future draw predicate reads, it must not be that one until
+the two agree.
+
+## Class registration
+
+Belongs to `controls_that_cannot_fail`. Filed under the class by a registration heading rather
+than a bold prose line, which is the second hole this classifier documents and the one this
+document originally fell into: a `**Class:**` line below is unreadable to it, so `--check`
+passed with this finding live and unlisted.
 
 # The cold-eyes battery checks that its evidence is non-empty, never that it is true — and the obvious repair is theatre, measured
 
