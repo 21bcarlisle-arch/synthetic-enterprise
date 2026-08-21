@@ -1125,21 +1125,36 @@ PARTICIPANT_ID = "BACS-BUREAU-01"
 PARTICIPANT_CREDENTIAL = "bacs-bureau-01::participant-credential::v1"
 
 
-def frame_wire_message(envelope_wire: dict) -> dict:
-    """Wrap one encoded envelope in this participant's transport frame.
+def frame_wire_message(envelope_wire: dict, *, handed_over_at: datetime) -> dict:
+    """Wrap one encoded envelope in this participant's transport frame, stamped
+    with the moment this participant let go of it.
 
     Written against the frame SCHEMA, not against the company's `decode_frame`
     -- same rule as `encode_wall_response`, and for the same reason: this
     module may not import `company.*`, and a frame built by reading the
     receiver's code would make the round-trip a tautology.
+
+    `handed_over_at` IS REQUIRED AND HAS NO DEFAULT (atom EP6, pass 49). The
+    obvious default -- "now" -- would have made every historical replay claim
+    it was delivered at import time, and a default of `observed_at` would have
+    made a prompt hand-over unfalsifiable by construction: the field could then
+    never disagree with the document, which is exactly the R15 TAUTOLOGY shape
+    this module refuses elsewhere. A caller that cannot say when it handed a
+    message over does not get to send one.
     """
     if not isinstance(envelope_wire, dict):
         raise SeamEncodeError(
             f"expected an encoded envelope dict, got {type(envelope_wire).__name__}"
         )
+    if not isinstance(handed_over_at, datetime):
+        raise SeamEncodeError(
+            "handed_over_at must be a datetime, got "
+            f"{type(handed_over_at).__name__}"
+        )
     return {
         "sender": PARTICIPANT_ID,
         "credential": PARTICIPANT_CREDENTIAL,
+        "handed_over_at": handed_over_at.isoformat(),
         "envelope": envelope_wire,
     }
 
@@ -1158,9 +1173,16 @@ def emit_wire_responses(
     Since pass 39 each message is FRAMED (see above), so the company's route to
     a payment observation now runs through a participant check as well as the
     envelope's refusals.
+
+    A WELL-BEHAVED BUREAU HANDS OVER PROMPTLY (atom EP6, pass 49), so each
+    message declares its own `observed_at` as its hand-over time: this
+    participant passes a fact on at the moment it has it. That is what makes
+    the ordinary delivery the NULL CONTROL for `BACKLOG_BURST` below -- the
+    burst is defined against this behaviour, not against an arbitrary
+    threshold.
     """
     return [
-        frame_wire_message(encode_wall_response(r))
+        frame_wire_message(encode_wall_response(r), handed_over_at=r.observed_at)
         for r in emit_wall_responses(event, seam_input)
     ]
 
@@ -1330,20 +1352,35 @@ def apply_spec_violation(
                 "BACKLOG_BURST: a burst is many messages held back and released "
                 "together; one message is a delivery"
             )
-        # THE BURST IS THE HAND-OVER ITSELF, and this is the honest modelling
-        # rather than a shortcut. Nothing on this wire records when a message
-        # was HANDED OVER, only when the counterparty says it observed the fact
-        # (`observed_at`). So a burst differs from an ordinary batch in exactly
-        # one respect the company can see -- every message in it is stale -- and
-        # in one it cannot: that they all arrived at once. What this transform
-        # therefore produces is the whole backlog in one list, oldest first,
-        # which is what a rail releases after a queue clears.
-        return [
-            deepcopy(m)
-            for m in sorted(
-                wire_messages, key=lambda m: str(_envelope_of(m).get("observed_at"))
-            )
-        ]
+        # THE BURST IS THE HAND-OVER ITSELF. The whole backlog goes out in one
+        # list, oldest first, which is what a rail releases after a queue
+        # clears.
+        #
+        # SINCE PASS 49 THE BURST IS ALSO VISIBLE, and the change is one line
+        # below. Until the frame carried `handed_over_at` this transform could
+        # only reorder: a released queue and an ordinary batch were the same
+        # bytes, and the company was pinned as unable to tell. Now every
+        # message in the burst declares the SAME hand-over instant -- the
+        # latest one, because that is when the queue actually drained -- while
+        # each keeps its own original `observed_at`. The counterparty is
+        # therefore ADMITTING the delay in the only field that could carry it,
+        # which is what a real rail's transmission header does.
+        #
+        # It admits it HONESTLY here, and that is deliberate: a stand-in that
+        # lied about its hand-over time would be a different violation
+        # (misreporting, not backlogging), and building both into one member
+        # would make a test unable to say which one it caught. The company's
+        # independent receipt clock is what catches a liar, and
+        # `test_a_counterparty_UNDERSTATING_its_delay_is_contradicted` exercises
+        # that path from a hand-authored frame instead.
+        held = sorted(
+            (deepcopy(m) for m in wire_messages),
+            key=lambda m: str(_envelope_of(m).get("observed_at")),
+        )
+        released_at = max(str(_envelope_of(m).get("observed_at")) for m in held)
+        for message in held:
+            message["handed_over_at"] = released_at
+        return held
     raise SpecViolationNotApplicable(
         f"payment_seam_adapter: unrecognised SpecViolation {violation!r} -- a "
         "violation this stand-in cannot emit must refuse, never fall through as "

@@ -119,14 +119,17 @@ def test_R15_mutation_leaking_the_wall_collapses_the_live_gap(monkeypatch):
                 encode_wall_response,
                 frame_wire_message,
             )
-            return [frame_wire_message(encode_wall_response(WallResponse(
-                correlation_id=corr,
-                status=WallStatus.OK,
-                schema_version=SCHEMA_VERSION,
-                observed_at=_dt.datetime.combine(due, _dt.time(6, 0)),
-                valid_time=due,
-                payload=payload,
-            )))]
+            return [frame_wire_message(
+                encode_wall_response(WallResponse(
+                    correlation_id=corr,
+                    status=WallStatus.OK,
+                    schema_version=SCHEMA_VERSION,
+                    observed_at=_dt.datetime.combine(due, _dt.time(6, 0)),
+                    valid_time=due,
+                    payload=payload,
+                )),
+                handed_over_at=_dt.datetime.combine(due, _dt.time(6, 0)),
+            )]
         # non-failed: fall through to the real adapter for coherent success/dispute
         return _real_emit(event, seam_input)
 
@@ -1172,17 +1175,20 @@ def test_q6_OUT_OF_ORDER_REVISION_is_emitted_and_leaves_the_book_identical():
     )
 
 
-def test_q6_BACKLOG_BURST_is_emitted_and_the_company_CANNOT_TELL():
-    """A STATED LIMIT, pinned so it cannot be quietly forgotten (the same
-    treatment pass 41 gave initial silence).
+def test_q6_BACKLOG_BURST_is_emitted_and_the_company_CAN_NOW_TELL():
+    """THE LIMIT PASS 42 PINNED, NOW DISCHARGED (atom EP6, pass 49).
 
-    The stand-in can hold a queue back and release it at once. The company's
-    book comes out identical, and that is correct -- no belief should move on
-    delivery timing. What it cannot do is NOTICE, and the reason is structural:
-    nothing on this wire records when a message was HANDED OVER, only when the
-    counterparty says it observed the fact. A burst and an ordinary batch are
-    the same bytes. Detecting one needs a delivery clock the company does not
-    keep -- the same missing-request-leg family as Q2/Q5."""
+    This test used to assert the opposite, and the sentence it carried is worth
+    keeping because it names exactly what was built: "a burst and an ordinary
+    batch are the same bytes ... detecting one needs a delivery clock the
+    company does not keep". The frame now carries `handed_over_at`, and the
+    company keeps its own receipt clock, so the two are no longer the same
+    bytes and the burst has a name.
+
+    THE BOOK STILL DOES NOT MOVE, and that half of the old test is unchanged
+    and still load-bearing: delivery timing is a fact about the counterparty,
+    never about the customer's money (R12). A repair that made the burst
+    visible by moving a balance would have been the wrong repair."""
     from simulation.payment_seam_adapter import SpecViolation
 
     events = _misbehaviour_batch()
@@ -1192,11 +1198,104 @@ def test_q6_BACKLOG_BURST_is_emitted_and_the_company_CANNOT_TELL():
     assert all(accepted)
     assert dirty.ledger_book.portfolio_balance_gbp() == (
         clean.ledger_book.portfolio_balance_gbp()
+    ), "delivery timing moved a belief; it must not"
+
+    assert dirty_wire != clean_wire, (
+        "the burst must no longer be byte-identical to the ordinary hand-over "
+        "or there is nothing for the company to see"
     )
-    assert dirty_wire == clean_wire, (
-        "THE GAP: the burst is byte-identical to the ordinary hand-over, so no "
-        "company-side check could distinguish them -- a delivery clock (Q2's "
-        "request leg) is what would make it visible"
+    assert len({m["handed_over_at"] for m in dirty_wire}) == 1, (
+        "a released queue leaves at ONE instant -- that is what makes it a burst"
+    )
+    assert len({m["handed_over_at"] for m in clean_wire}) == len(clean_wire), (
+        "the NULL CONTROL: a prompt bureau hands each message over separately"
+    )
+
+
+def test_q6_BACKLOG_BURST_IS_NAMED_BY_THE_COMPANY_and_an_ordinary_batch_IS_NOT():
+    """THE R15 PAIR for the delivery clock, both directions in one test.
+
+    MUTATION: the stand-in holds three months of outcomes and releases them
+    together -- `observe_hand_over` must report `is_backlog_burst`.
+    NULL CONTROL: the identical facts delivered promptly must NOT be reported,
+    which is what stops the detector being a check that is simply red on every
+    hand-over it is ever shown.
+
+    The company's verdict is reached on ITS OWN receipt clock plus what the
+    counterparty declared, never on the SpecViolation that produced the traffic
+    -- nothing here reads the stand-in's intent."""
+    import datetime as _dt
+
+    from company.billing.payment_observation_consumer import PaymentObservationConsumer
+    from simulation.payment_seam_adapter import (
+        SpecViolation,
+        emit_wire_responses_batch,
+    )
+
+    events = _misbehaviour_batch()
+    received_at = _dt.datetime(2026, 8, 17, 12, 0, 0)
+
+    burst = emit_wire_responses_batch(events, spec_violation=SpecViolation.BACKLOG_BURST)
+    dirty = PaymentObservationConsumer().observe_hand_over(burst, received_at=received_at)
+
+    prompt = emit_wire_responses_batch(events, spec_violation=SpecViolation.NONE)
+    clean = PaymentObservationConsumer().observe_hand_over(prompt, received_at=received_at)
+
+    assert dirty.is_backlog_burst, "the released queue was not named"
+    assert not clean.is_backlog_burst, (
+        "the NULL CONTROL reds too -- this detector would call every hand-over "
+        "a burst and could not fail"
+    )
+    assert dirty.declared_release_at == _dt.datetime(2026, 8, 17, 6, 0, 0)
+    assert clean.declared_release_at is None, (
+        "a prompt bureau declares a different instant per message"
+    )
+    assert dirty.message_count == clean.message_count == len(events)
+
+
+def test_q6_a_counterparty_UNDERSTATING_its_delay_is_CONTRADICTED_by_our_own_clock():
+    """WHY THE COMPANY'S RECEIPT CLOCK IS A REQUIRED ARGUMENT (R15 TAUTOLOGY).
+
+    The honest stand-in admits its delay in `handed_over_at`. A dishonest one
+    would stamp a prompt hand-over on a message it actually sat on -- and every
+    field of that message is its own, so no check reading only the wire could
+    catch it. The company's own receipt time is the one fact the counterparty
+    cannot author, and this is the test that proves it is doing work."""
+    import datetime as _dt
+
+    from company.billing.payment_observation_consumer import PaymentObservationConsumer
+    from simulation.payment_seam_adapter import (
+        SpecViolation,
+        emit_wire_responses_batch,
+    )
+
+    # ONE period's outcome, which is what a real daily hand-over carries. The
+    # three-month batch used above is a test convenience; asking whether a
+    # delivery was prompt only means something against a delivery that could
+    # have been.
+    events = _misbehaviour_batch()[-1:]
+    wire = emit_wire_responses_batch(events, spec_violation=SpecViolation.NONE)
+    assert [m["handed_over_at"] for m in wire] == ["2026-08-17T06:00:00"]
+
+    # NULL CONTROL: handed over at 06:00, in our hands by midday. No finding.
+    on_time = PaymentObservationConsumer().observe_hand_over(
+        wire, received_at=_dt.datetime(2026, 8, 17, 12, 0, 0)
+    )
+    assert not on_time.understated_delay, "a prompt delivery must raise nothing"
+    assert not on_time.is_backlog_burst
+
+    # MUTATION: the identical bytes, still claiming a prompt hand-over, but not
+    # in our hands until two months later. Only our own clock can say so.
+    late = PaymentObservationConsumer().observe_hand_over(
+        wire, received_at=_dt.datetime(2026, 10, 17, 12, 0, 0)
+    )
+    assert late.understated_delay, (
+        "the message claims a prompt hand-over and arrived two months later -- "
+        "the counterparty's own account of itself is contradicted"
+    )
+    assert not late.is_backlog_burst, (
+        "and it is NOT a burst: one message is a delivery. The two findings "
+        "must stay distinguishable or neither names a real behaviour"
     )
 
 
@@ -1400,6 +1499,33 @@ def _dd_triad(n=6):
             segment="resi",
         )
     return triad
+
+
+def test_q6_the_LIVE_triad_KEEPS_A_DELIVERY_CLOCK_and_is_not_an_orphan():
+    """THE DELIVERY CLOCK ON THE COMPANY `run_phase2b` ACTUALLY DRIVES (pass
+    49). A detector whose only caller is its own test is built and dark; this
+    asserts the running triad takes its payment traffic as HAND-OVERS and keeps
+    an assessment of each.
+
+    THE HEALTHY ANSWER IS 'NOTHING TO COMPLAIN ABOUT', and that assertion is
+    worthless alone -- a clock wired to nothing reports the same. So the second
+    half re-reads the SAME live assessments and requires them to be real
+    readings: a declared release instant, a measured staleness, and one
+    assessment per crossing."""
+    triad = _dd_triad()
+
+    assert triad.hand_overs, (
+        "the live run took deliveries but kept no delivery clock -- the wiring "
+        "is dark"
+    )
+    assert triad.poorly_delivered_hand_overs() == [], (
+        "a healthy bureau hands over promptly, so the live run must have "
+        "nothing to complain about"
+    )
+    assert all(a.message_count >= 1 for a in triad.hand_overs)
+    assert any(a.worst_staleness is not None for a in triad.hand_overs), (
+        "empty because nothing is wrong, not empty because nothing was measured"
+    )
 
 
 def test_q3_the_LIVE_triad_holds_THREE_LEG_conversations_and_is_not_an_orphan():

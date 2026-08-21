@@ -96,6 +96,7 @@ from company.billing.account_ledger import (
 from company.interfaces.collection_submission import encode_collection_request
 from company.billing.payment_observation_consumer import (
     DEFAULT_RECONCILIATION_GRACE_DAYS,
+    HandOverAssessment,
     PaymentObservationConsumer,
 )
 from interface.contracts.payment_observable_seam import (
@@ -685,10 +686,38 @@ class LivePaymentTriad:
         self._records: List[PeriodRecord] = []
         # persistent per-customer method archetype cache (drawn once, C-S2)
         self._method_cache: dict = {}
+        # WHAT THE DELIVERIES LOOKED LIKE (atom EP6, pass 49 -- Q6). One
+        # `HandOverAssessment` per crossing, kept beside the books and never
+        # inside them: a counterparty that batches badly is a fact about the
+        # counterparty, and no belief may move on it (R12).
+        self._hand_overs: List[HandOverAssessment] = []
 
     @property
     def records(self) -> List[PeriodRecord]:
         return self._records
+
+    @property
+    def hand_overs(self) -> List[HandOverAssessment]:
+        """Every delivery this run took, as the company saw it (EP6 pass 49).
+
+        Public for the reason `consumer` is: a read-out reachable only through
+        a private attribute is one every instrument reaches around, and the
+        next reader would rebuild this from the wire -- which is the one place
+        it must not come from."""
+        return list(self._hand_overs)
+
+    def poorly_delivered_hand_overs(self) -> List[HandOverAssessment]:
+        """The deliveries the company would complain to its bureau about.
+
+        A DIAGNOSTIC, never a target (R12): nothing in this build prices,
+        gates or scores on it. It exists so that "the counterparty batched
+        three months of outcomes into one release" is a thing the company can
+        SAY, which before pass 49 it could not."""
+        return [
+            assessment
+            for assessment in self._hand_overs
+            if assessment.is_backlog_burst or assessment.understated_delay
+        ]
 
     def detection_cells(self, as_of: date) -> dict:
         """The per-cell DETECTION measurements for the fidelity grid.
@@ -865,8 +894,25 @@ class LivePaymentTriad:
         # observation is one that a real bank feed could also take. The two
         # sides are separate code agreeing only via the published contract;
         # nothing here is a shortcut past the envelope's refusals.
-        for wire in emit_wire_responses(event, seam_input):
-            self._consumer.observe_wire(wire)
+        # THE HAND-OVER IS TAKEN AS A HAND-OVER (atom EP6, pass 49 -- Q6).
+        # This used to be a per-message loop, which is exactly why the company
+        # could not see a backlog burst: a burst is a property of the SET of
+        # messages released together, and a reader that only ever sees one at a
+        # time can no more detect it than a per-word reader can detect a
+        # sentence. Every message is still observed individually and in order,
+        # so no belief and no balance moves by one penny -- what is new is that
+        # the company now keeps a DELIVERY CLOCK beside its books.
+        #
+        # `received_at` IS THE COMPANY'S OWN CLOCK, never read off the wire.
+        # The company takes delivery on the due date it is working, which is
+        # the simulated "now" for this crossing; taking it from the message
+        # would make the counterparty the author of the one fact that can
+        # contradict it (R15 TAUTOLOGY).
+        hand_over = self._consumer.observe_hand_over(
+            emit_wire_responses(event, seam_input),
+            received_at=datetime.combine(due_date, time(12, 0)),
+        )
+        self._hand_overs.append(hand_over)
 
         # UNSOLICITED INBOUND, the second channel the rails really have (atom
         # EP6, Q2). A cancelled/closed/deceased mandate is reported by ADDACS

@@ -160,6 +160,7 @@ from company.interfaces.wall_protocol import (
     DECLARED_POSTURE,
     WallProtocolError,
     assert_registry_fit_for_posture,
+    decode_frame_hand_over,
     decode_framed_response,
 )
 from interface.contracts.payment_observable_seam import (
@@ -705,6 +706,57 @@ def decode_observable_payload(raw: Any) -> Any:
     )
 
 
+#: How long a fact may sit with the bureau before passing it on counts as
+#: HELD rather than delivered (atom EP6, pass 49 -- the blind review's Q6).
+#:
+#: One working day, and the number has a domain reason rather than a tuned
+#: one: Bacs is a three-day cycle whose reports are made available daily, so a
+#: bureau that has had an outcome for more than a day and not passed it on is
+#: sitting on it. It is a DIAGNOSTIC threshold in the R12 sense -- it decides
+#: what gets NAMED, never what the company believes, and no ledger figure moves
+#: on it.
+BUREAU_PROMPTNESS = dt.timedelta(days=1)
+
+
+@dataclass(frozen=True)
+class HandOverAssessment:
+    """What the company noticed about a DELIVERY, as distinct from the facts
+    inside it (atom EP6, pass 49 -- the blind review's Q6).
+
+    Every field here is about transport. None of them moves a belief, and that
+    separation is deliberate: a backlog burst tells the company something is
+    wrong with its COUNTERPARTY, not something new about its customers' money.
+    The books come out identical either way, which is why this is a read-out
+    rather than a branch in `observe`.
+    """
+
+    #: How many messages arrived in this hand-over.
+    message_count: int
+    #: The single instant the counterparty declared, where it declared one for
+    #: every message; None where the hand-over carried more than one.
+    declared_release_at: Optional[dt.datetime]
+    #: The oldest fact in the batch, measured against the company's OWN receipt
+    #: clock -- never against anything on the wire.
+    worst_staleness: Optional[dt.timedelta]
+    #: True where two or more messages were released together carrying facts
+    #: the counterparty had held past `BUREAU_PROMPTNESS`.
+    is_backlog_burst: bool
+    #: True where the counterparty's declared hand-over is LATER than the
+    #: moment the company actually received it -- a clock that cannot be right.
+    declared_after_receipt: bool
+    #: True where the counterparty declared a prompt hand-over for a fact the
+    #: company received far later. The counterparty's own account of its
+    #: promptness is contradicted by the company's receipt clock.
+    understated_delay: bool
+
+    def __post_init__(self) -> None:
+        if self.message_count < 0:
+            raise ValueError(
+                "payment_observation_consumer: a hand-over cannot carry a "
+                f"negative number of messages, got {self.message_count}"
+            )
+
+
 class PaymentObservationConsumer:
     """Consumes a stream of `WallResponse`-wrapped payment observables one at
     a time (any order, any lateness, possibly never for a given payment) and
@@ -843,6 +895,103 @@ class PaymentObservationConsumer:
             wire, decode_payload=decode_observable_payload
         )
         return self.observe(response)
+
+    def observe_hand_over(
+        self, wire_messages: Sequence[Any], *, received_at: dt.datetime
+    ) -> HandOverAssessment:
+        """Take delivery of a BATCH of framed messages and say what the
+        DELIVERY looked like, having observed every message in it.
+
+        THE QUESTION THIS ANSWERS (atom EP6, pass 49 -- the blind review's Q6:
+        "can it emit spec-violating traffic ... a backlog burst?"). Until this
+        existed the stand-in could emit `BACKLOG_BURST` and the company could
+        not name it, because `observe_wire` sees one message at a time and a
+        burst is a property of a SET. A per-message entry point can no more
+        detect a burst than a per-word reader can detect a sentence.
+
+        `received_at` IS THE CALLER'S CLOCK AND IS REQUIRED. It is the whole
+        reason this is not a tautology, and it is the same discipline the
+        account roster follows (pass 42): the counterparty's own
+        `handed_over_at` is a CLAIM, and a claim checked only against other
+        fields of the same message is checked against its author. The company
+        supplies the one fact the counterparty cannot author -- when the bytes
+        actually turned up -- so `understated_delay` and `declared_after_receipt`
+        below are findings the counterparty cannot suppress by lying
+        consistently.
+
+        WHY IT IS NOT DEFAULTED TO `utcnow()`. A default would read the wall
+        clock of whichever process happened to run, so a replay of a 2026 batch
+        in 2027 would report every message as a year stale. The caller knows
+        what "now" means for the run it is driving; this method does not.
+
+        NO BELIEF MOVES ON ANY OF THIS. Each message is observed exactly as
+        `observe_wire` would have observed it, in the order given, and the
+        returned assessment is a read-out beside the books rather than a gate
+        in front of them -- delivery timing is a fact about the counterparty,
+        and R12 says a diagnostic is never a target.
+
+        A REFUSED MESSAGE STILL REFUSES. This does not catch `WallProtocolError`:
+        a hand-over containing a message the company cannot read is not a
+        delivery it can assess, and swallowing that to return a tidy verdict
+        would make the frame refusals fail-open for anyone who batched them.
+        """
+        if not isinstance(received_at, dt.datetime):
+            raise ValueError(
+                "payment_observation_consumer: a hand-over must be received at "
+                f"a datetime the company itself holds, got {received_at!r}"
+            )
+        messages = list(wire_messages)
+
+        declared: List[dt.datetime] = []
+        observed: List[dt.datetime] = []
+        for message in messages:
+            _sender, handed_over_at = decode_frame_hand_over(message)
+            _s, response = decode_framed_response(
+                message, decode_payload=decode_observable_payload
+            )
+            self.observe(response)
+            declared.append(handed_over_at)
+            observed.append(response.observed_at)
+
+        release_instants = set(declared)
+        released_together = len(messages) >= 2 and len(release_instants) == 1
+        declared_release_at = declared[0] if len(release_instants) == 1 else None
+
+        # THE COMPANY'S OWN MEASURE: how old the fact was when the bytes
+        # actually turned up. Uses `received_at`, so nothing on the wire can
+        # move it.
+        staleness = [received_at - when for when in observed]
+        worst_staleness = max(staleness) if staleness else None
+
+        # WHAT THE COUNTERPARTY ADMITS: the gap between when it says it handed
+        # a message over and when it says the fact happened. Both terms are its
+        # own, so this is the half a liar controls.
+        admitted_delay = [
+            handed - when for handed, when in zip(declared, observed)
+        ]
+        worst_admitted = max(admitted_delay) if admitted_delay else dt.timedelta(0)
+
+        is_backlog_burst = released_together and worst_admitted > BUREAU_PROMPTNESS
+
+        # WHAT THE COMPANY'S OWN CLOCK SAYS, which the counterparty cannot
+        # author. A declared hand-over after the bytes arrived is impossible; a
+        # prompt-looking declaration on a fact that reached us far later means
+        # the delay happened somewhere the counterparty is not admitting to.
+        declared_after_receipt = any(instant > received_at for instant in declared)
+        understated_delay = any(
+            (received_at - instant) > BUREAU_PROMPTNESS
+            and admitted <= BUREAU_PROMPTNESS
+            for instant, admitted in zip(declared, admitted_delay)
+        )
+
+        return HandOverAssessment(
+            message_count=len(messages),
+            declared_release_at=declared_release_at,
+            worst_staleness=worst_staleness,
+            is_backlog_burst=is_backlog_burst,
+            declared_after_receipt=declared_after_receipt,
+            understated_delay=understated_delay,
+        )
 
     def observe(self, response: WallResponse) -> bool:
         """Process one `WallResponse`. Returns True if newly processed,

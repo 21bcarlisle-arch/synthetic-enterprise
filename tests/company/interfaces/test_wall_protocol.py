@@ -493,8 +493,18 @@ def _through_real_json(response):
 
 def _framed_json(response):
     """The same, FRAMED by the counterparty (atom EP6, pass 39) -- the shape
-    that actually reaches `observe_wire`, participant identity and all."""
-    return json.loads(json.dumps(frame_wire_message(encode_wall_response(response))))
+    that actually reaches `observe_wire`, participant identity and all.
+
+    Handed over PROMPTLY (pass 49): the frame's delivery clock is the response's
+    own `observed_at`, which is what a well-behaved bureau does and what
+    `emit_wire_responses` stamps in production."""
+    return json.loads(
+        json.dumps(
+            frame_wire_message(
+                encode_wall_response(response), handed_over_at=response.observed_at
+            )
+        )
+    )
 
 
 def _decode_from_wire(wire):
@@ -816,6 +826,7 @@ def _frame(**overrides) -> dict:
     message = {
         "sender": PARTICIPANT_ID,
         "credential": PARTICIPANT_CREDENTIAL,
+        "handed_over_at": "2026-06-17T09:00:00",
         "envelope": _wire_response(),
     }
     message.update(overrides)
@@ -886,6 +897,73 @@ def test_FAIL_OPEN_sweep_an_empty_or_wrongly_typed_sender_is_never_a_participant
 def test_FAIL_OPEN_sweep_an_empty_or_wrongly_typed_credential_proves_nothing(bad):
     with pytest.raises(WallProtocolError):
         decode_frame(_frame(credential=bad))
+
+
+# ---------------------------------------------------------------------------
+# THE DELIVERY CLOCK (atom EP6_wall_protocol_typing, pass 49 -- Q6).
+# The frame states WHEN this participant let go of the message, which is a
+# different claim from the `observed_at` inside the document.
+# ---------------------------------------------------------------------------
+
+
+def test_the_hand_over_clock_is_read_off_the_frame_NULL_CONTROL():
+    """Without this, every refusal below would also pass on a decoder that
+    rejected every frame it was ever shown."""
+    from company.interfaces.wall_protocol import decode_frame_hand_over
+
+    sender, handed_over_at = decode_frame_hand_over(_frame())
+    assert sender == PARTICIPANT_ID
+    assert handed_over_at == dt.datetime(2026, 6, 17, 9, 0, 0)
+
+
+@pytest.mark.parametrize("bad", [None, "", 0, [], {}, "yesterday", "2026-13-01T00:00"])
+def test_FAIL_OPEN_sweep_a_hand_over_clock_that_is_not_a_time_is_refused(bad):
+    """A delivery clock the company cannot read is not a delivery clock. The
+    empty string matters most: it is falsy, so any check written as a
+    truthiness test would report it as absent and any check written as
+    `frame.get(...)` would sail past it."""
+    from company.interfaces.wall_protocol import decode_frame_hand_over
+
+    with pytest.raises(WallProtocolError) as caught:
+        decode_frame_hand_over(_frame(handed_over_at=bad))
+    assert caught.value.reason == "MALFORMED_FIELD"
+
+
+def test_the_hand_over_clock_is_authenticated_BEFORE_it_is_believed():
+    """An unregistered sender is refused on identity, not on its timestamp.
+    The order is the property: a build that parsed the clock first would have
+    spent a decode on a field an unknown party authored."""
+    from company.interfaces.wall_protocol import decode_frame_hand_over
+
+    with pytest.raises(WallProtocolError) as caught:
+        decode_frame_hand_over(
+            _frame(sender="TOTALLY-LEGITIMATE-BANK", handed_over_at="nonsense")
+        )
+    assert caught.value.reason == "UNKNOWN_SENDER", (
+        "identity must be settled before any other frame field is trusted"
+    )
+
+
+def test_MUTATION_the_hand_over_clock_is_NOT_derived_from_the_document():
+    """R15 TAUTOLOGY. `handed_over_at` must be an independent field, not a
+    restatement of the envelope's `observed_at` -- if the two could never
+    disagree, the delivery clock could never catch a counterparty that sat on
+    a message, which is the only thing it exists for.
+
+    Moving the frame's clock while leaving the document untouched must move
+    what the decoder reports."""
+    from company.interfaces.wall_protocol import decode_frame_hand_over
+
+    prompt = _frame(handed_over_at="2026-06-17T09:00:00")
+    held = _frame(handed_over_at="2026-09-01T09:00:00")
+    assert prompt["envelope"] == held["envelope"], "only the frame may differ"
+
+    _s1, prompt_at = decode_frame_hand_over(prompt)
+    _s2, held_at = decode_frame_hand_over(held)
+    assert prompt_at != held_at, (
+        "the delivery clock is derived from the document it is meant to be "
+        "able to contradict -- it can never catch a held message"
+    )
 
 
 def test_a_frame_that_is_not_a_mapping_at_all_is_refused():

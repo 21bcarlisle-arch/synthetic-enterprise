@@ -152,6 +152,7 @@ __all__ = [
     "encode_notification",
     "decode_notification",
     "decode_frame",
+    "decode_frame_hand_over",
     "decode_framed_response",
     "decode_framed_interim",
     "decode_framed_notification",
@@ -275,9 +276,26 @@ SUPPORTED_SCHEMA_VERSIONS: frozenset[int] = frozenset(WIRE_VOCABULARY_BY_VERSION
 
 #: The exact key set of a TRANSPORT FRAME. `envelope` carries the message
 #: above; `sender` and `credential` are what the channel asserts about who is
-#: speaking. Three keys, all required -- an unsigned frame is not a frame, and
-#: absence is never agreement here either.
-FRAME_WIRE_FIELDS: frozenset[str] = frozenset({"sender", "credential", "envelope"})
+#: speaking; `handed_over_at` is WHEN that participant says it released this
+#: message. Four keys, all required -- an unsigned frame is not a frame, an
+#: undated one is not a delivery, and absence is never agreement here either.
+#:
+#: WHY THE HAND-OVER CLOCK IS TRANSPORT AND NOT DOCUMENT (atom
+#: EP6_wall_protocol_typing, pass 49, the blind review's Q6). `observed_at`
+#: inside the envelope is when the counterparty says the FACT happened; this is
+#: when it says it PASSED THE FACT ON. They are different claims and a real
+#: rail carries both -- a Bacs file's transmission header is not its
+#: transaction dates. Until this field existed a released backlog and an
+#: ordinary delivery were the same bytes, so the stand-in could emit
+#: `BACKLOG_BURST` and no company-side check could name it.
+#:
+#: IT IS THE COUNTERPARTY'S OWN CLAIM, never a measurement. What makes it
+#: checkable rather than decorative is that the company keeps its OWN receipt
+#: clock and can therefore CONTRADICT it -- see
+#: `PaymentObservationConsumer.observe_hand_over`.
+FRAME_WIRE_FIELDS: frozenset[str] = frozenset(
+    {"sender", "credential", "envelope", "handed_over_at"}
+)
 
 
 class CounterpartyNature(str, Enum):
@@ -925,13 +943,19 @@ def decode_notification(
 
 def _verify_frame(
     wire: Any, registry: Mapping[str, CounterpartyRecord]
-) -> Tuple[str, CounterpartyRecord, Mapping[str, Any]]:
-    """Refuse, or return (sender, that sender's record, the envelope inside).
+) -> Tuple[str, CounterpartyRecord, Mapping[str, Any], dt.datetime]:
+    """Refuse, or return (sender, that sender's record, the envelope inside,
+    the hand-over time it declared).
 
     The order is the point: nothing about the envelope is read until the frame
     around it has named a participant this build knows and that participant has
     proved it. A decoder that parses first and authenticates afterwards has
-    already done the work an unknown sender wanted done."""
+    already done the work an unknown sender wanted done.
+
+    THE HAND-OVER CLOCK IS DECODED AFTER THE CREDENTIAL, deliberately. It is a
+    claim by the sender, so it is worth nothing until the sender is the one it
+    says it is; reading it first would be spending a parse on an unauthenticated
+    field."""
     frame = _require_mapping(wire, "frame")
     _require_exact_fields(frame, FRAME_WIRE_FIELDS, "frame")
     sender = _decode_str(frame["sender"], "sender")
@@ -951,8 +975,9 @@ def _verify_frame(
             f"participant {sender!r} did not present the credential this build "
             "holds a fingerprint for",
         )
+    handed_over_at = _decode_datetime(frame["handed_over_at"], "handed_over_at")
     envelope = _require_mapping(frame["envelope"], "frame.envelope")
-    return sender, record, envelope
+    return sender, record, envelope, handed_over_at
 
 
 def decode_frame(
@@ -966,8 +991,30 @@ def decode_frame(
     there is no value of it that means "skip the check", because an empty
     registry refuses everything rather than accepting everything.
     """
-    sender, _record, envelope = _verify_frame(wire, registry)
+    sender, _record, envelope, _handed_over_at = _verify_frame(wire, registry)
     return sender, envelope
+
+
+def decode_frame_hand_over(
+    wire: Any, *, registry: Mapping[str, CounterpartyRecord] = COUNTERPARTY_REGISTRY
+) -> Tuple[str, dt.datetime]:
+    """Verify the frame and hand back (sender, the hand-over time it DECLARED).
+
+    Separate from `decode_frame` rather than widening its 2-tuple, because the
+    two answer different questions and almost every caller wants the envelope.
+    A consumer asking this one is asking about DELIVERY -- when did this
+    participant say it let go of the message -- and does not need to parse the
+    document to find out.
+
+    THE RETURNED VALUE IS A CLAIM, NOT A MEASUREMENT, and the naming says so.
+    This module authenticates WHO said it; nothing here can establish that it is
+    TRUE. The only thing in this build that can contradict it is a reader
+    holding its own receipt clock beside it, which is why
+    `PaymentObservationConsumer.observe_hand_over` takes `received_at` as an
+    argument from the caller's clock and never reads it off the wire.
+    """
+    sender, _record, _envelope, handed_over_at = _verify_frame(wire, registry)
+    return sender, handed_over_at
 
 
 def decode_framed_response(
@@ -990,7 +1037,7 @@ def decode_framed_response(
     present at all. So the build-wide refusal happens first on a validated
     field, and the per-sender one on the value that survived it.
     """
-    sender, record, envelope = _verify_frame(wire, registry)
+    sender, record, envelope, _handed_over_at = _verify_frame(wire, registry)
     response = decode_response(envelope, decode_payload=decode_payload)
     _require_sender_speaks(sender, record, response.schema_version)
     return sender, response
@@ -1030,7 +1077,7 @@ def decode_framed_interim(
     build that could only make the first check would accept an interim from a
     counterparty that cannot produce one.
     """
-    sender, record, envelope = _verify_frame(wire, registry)
+    sender, record, envelope, _handed_over_at = _verify_frame(wire, registry)
     interim = decode_interim(envelope, decode_payload=decode_payload)
     _require_sender_speaks(sender, record, interim.schema_version)
     return sender, interim
@@ -1052,7 +1099,7 @@ def decode_framed_notification(
     authenticated participant is relaying another's stream position, which would
     corrupt exactly the per-sender ordering the field exists to support.
     """
-    sender, record, envelope = _verify_frame(wire, registry)
+    sender, record, envelope, _handed_over_at = _verify_frame(wire, registry)
     notification = decode_notification(envelope, decode_payload=decode_payload)
     _require_sender_speaks(sender, record, notification.schema_version)
     if notification.sender != sender:
