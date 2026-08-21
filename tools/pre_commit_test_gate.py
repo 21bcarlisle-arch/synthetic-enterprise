@@ -221,6 +221,15 @@ STORE_SURFACE_PREFIX = "docs/design/simplifications/"
 SITE_SURFACE_PREFIX = "site/"
 SITE_SURFACE_TESTS = [
     "tests/tools/test_site_reachability.py",
+    # THE FRESHNESS BANNER (2026-08-21, WORKER_FINDING_THE_FRESHNESS_BANNER_REACHES_NO_PAGE_AND_
+    # ITS_CONTROL_ASKS_FIVE_DELETED_DOORS). A page that renders live figures and cannot say how
+    # old they are is the defect DIRECTOR_RULING_PUBLISH_DECOUPLING property 3 forbids by name,
+    # and it is created by EDITING OR ADDING A PAGE -- never by touching the module that owns the
+    # rule. The old check lived in a `publish_provenance`-stemmed file, which nothing routinely
+    # stages, so when `03dd8c49e` retired the five doors it asserted, its red was seen by no
+    # commit for a day and the banner reached no page at all. Selecting it here is the half that
+    # keeps it true: adding a door now runs the rule about doors. ~0.2s.
+    "tests/background/test_publish_provenance_banner_adoption.py",
 ]
 
 # THE DATA SURFACE (2026-08-12), discharging

@@ -169,14 +169,18 @@ def test_the_banner_layer_fails_loud_not_silent():
     assert 'data-freshness-state' in js
 
 
-def test_every_live_data_door_opts_into_the_banner():
-    """A door that renders live figures without the layer is a page that cannot tell you how
-    old its numbers are -- the exact defect. The front door is deliberately absent: it renders
-    no live figure and carries no script by documented design."""
-    site = prov.PROJECT_DIR / "site"
-    for door in ["company", "proof", "world", "now", "project"]:
-        html = (site / door / "index.html").read_text()
-        assert "freshness-banner.js" in html, door
-    assert "freshness-banner.js" not in (site / "index.html").read_text(), (
-        "the front door renders no live figure and must stay script-free "
-        "(DIRECTOR_RULING_FRONT_MISSION_BLOCK)")
+# `test_every_live_data_door_opts_into_the_banner` LIVED HERE and is now
+# `tests/background/test_publish_provenance_banner_adoption.py`, derived rather than typed
+# (2026-08-21, WORKER_FINDING_THE_FRESHNESS_BANNER_REACHES_NO_PAGE_AND_ITS_CONTROL_ASKS_FIVE_
+# DELETED_DOORS). It asserted five door names -- company, proof, world, now, project -- and a
+# sixth clause exempting the front door for "rendering no live figure".
+#
+# BOTH HALVES WERE WRONG, and the move is not tidying. `03dd8c49e` deleted all five doors on the
+# director's ruling, so the check raised FileNotFoundError: its red said MISSING PAGE while the
+# property was violated in a way it could not see -- the banner was on no page at all. And the
+# exemption was false before that: measured over `03dd8c49e^`, the front door read
+# `dashboard.json` and carried no banner, as did eighteen other live-data pages this list never
+# named. It was green on a tree where four fifths of its own population was uncovered.
+#
+# The replacement derives the population from the pages themselves and is selected by the gate on
+# any staged `site/**.html` (SITE_SURFACE_TESTS), which is the half that lets it stay true.

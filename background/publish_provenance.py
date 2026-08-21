@@ -344,3 +344,151 @@ def banner_line(state=None, now=None) -> str:
     since = state.get("paused_since") or "unknown"
     return "Verification paused since {} · showing run {} (last verified {})".format(
         since, run, (state.get("last_verified") or {}).get("verified_at") or "never")
+
+
+# ── WHICH PAGES OWE A BANNER — DERIVED, NEVER TYPED ──────────────────────────
+# WHY THIS EXISTS AT ALL (2026-08-21, WORKER_FINDING_THE_FRESHNESS_BANNER_REACHES_NO_PAGE).
+# The rule used to be a hand-typed list of five doors -- company, proof, world, now, project.
+# `03dd8c49e` deleted all five on the director's ruling ("the five tabs are the site now"), and
+# the check went on asking those five names for a further day. Its red then said FileNotFoundError
+# -- a MISSING PAGE -- while the property it exists to protect was in fact violated: the banner
+# was on no page at all, of any name. A control that is red for the wrong reason is not a louder
+# control, it is an ABSENT one, because nobody reading its red learns the thing it knows.
+#
+# So the population is DERIVED from the shipped site: a page that fetches anything under `data/`
+# is a page that renders live figures, and a page that renders live figures must be able to tell
+# a visitor how old they are. That is the property in the director's own words, and it is the
+# same repair `03dd8c49e` applied to the other 87 controls it reddened -- "every one is now
+# DERIVED from the built site". This one was missed because nothing selected it.
+#
+# THE EXEMPTION REGISTER IS SHRINK-ONLY AND SELF-FALSIFYING. An exemption naming a page that is
+# not a live-data page (or does not exist) is a VIOLATION, not a no-op -- otherwise the register
+# becomes the place a page goes to escape the rule, and a stale entry is indistinguishable from
+# a live one. Same discipline as `site/ia_register.py`'s debt registers.
+BANNER_ASSET = "assets/freshness-banner.js"
+
+# WHAT COUNTS AS "RENDERS LIVE FIGURES", AND WHY IT IS NOT `fetch(`.
+# The first draft of this matched `fetch("…data/x.json")` and would have been FAIL-OPEN on the
+# very page that motivated it: `site/company/index.html` at `03dd8c49e^` read all five of its
+# feeds through a one-line wrapper -- `function jget(url){ return fetch(url+"?t="+Date.now()); }`
+# -- and contains the literal `fetch(` exactly once, on a URL it never names. A detector that
+# knows ONE CALL SHAPE is a detector any refactor can walk out of silently.
+#
+# So the subject is the REFERENCE, not the call: a published JSON artefact named anywhere in the
+# page's script. `href="…"` / `src="…"` attribute values are stripped FIRST, because a page may
+# legitimately LINK to an evidence file ("see capabilities.json →") without rendering a figure
+# from it, and that link is not a freshness claim. Over-inclusion here is cheap (a banner is
+# never wrong to carry); under-inclusion is the defect being closed.
+_ATTR_URL_RE = re.compile(r"""\b(?:href|src)\s*=\s*["'][^"']*["']""")
+_DATA_REF_RE = re.compile(r"""(?:^|["'./])(?:data|state)/[A-Za-z0-9_./-]+\.json""")
+
+BANNER_EXEMPT: dict[str, str] = {
+    "snapshots/DASHBOARD_20260623_120151.html": (
+        "a DATED ARCHIVE, not a live door: the filename is its own timestamp, it is off the nav "
+        "and out of the sitemap, and its fetches resolve to a data/ directory that does not "
+        "exist beside it. A freshness banner here would state the age of figures the page is "
+        "not showing. It is exempt because it is frozen ON PURPOSE and says so in its own URL."
+    ),
+}
+
+
+def _site_dir(site: Path = None) -> Path:
+    return (PROJECT_DIR / "site") if site is None else Path(site)
+
+
+def _renders_live_figures(text: str) -> bool:
+    """Does this page's markup read a published JSON artefact for display?"""
+    return bool(_DATA_REF_RE.search(_ATTR_URL_RE.sub("", text)))
+
+
+def live_data_pages(site: Path = None, exempt: dict = None) -> tuple:
+    """Every shipped page that renders live figures, as site-relative posix paths.
+
+    Derived by reading the pages, so a page added tomorrow is in the population tomorrow and a
+    page deleted by a ruling leaves it without anyone re-typing a list.
+
+    `exempt` defaults to the SHIPPED register. It is a parameter because the register describes
+    this site and nothing else -- a caller measuring a different tree (a fixture, or the bytes at
+    a pre-ruling commit) must be able to say so, rather than have the shipped list silently
+    misapply. The shipped assertion passes nothing and therefore checks the real register."""
+    root = _site_dir(site)
+    exempt = BANNER_EXEMPT if exempt is None else exempt
+    found = []
+    for page in sorted(root.rglob("*.html")):
+        rel = page.relative_to(root).as_posix()
+        if rel in exempt:
+            continue
+        try:
+            text = page.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        if _renders_live_figures(text):
+            found.append(rel)
+    return tuple(found)
+
+
+def banner_adoption_violations(site: Path = None, exempt: dict = None) -> list:
+    """Pages that render live figures and cannot say how old they are.
+
+    FAIL-CLOSED THREE WAYS (R15), because this control's natural failure is to find nothing and
+    call that clean -- which is precisely how it spent a day being wrong:
+
+      * VACUITY FLOOR. An empty derived population is a VIOLATION, not a pass. If the site has
+        no live-data page the derivation is broken (or pointed at the wrong tree), and a rule
+        about live-data pages that has no subject proves nothing about the site.
+      * THE SRC IS RESOLVED ON DISK. `freshness-banner.js` present as a substring is not the
+        property -- a wrong hop count (`../assets/` from a two-deep page) is a silent 404, the
+        exact fail-silent the layer's own docstring names as its cardinal failure mode. The
+        reference is resolved against the page's own directory and the target must exist.
+      * STALE EXEMPTIONS FAIL. An entry naming a page that is absent, or that no longer fetches
+        live data, is reported -- an exemption register nobody can be wrong in is a hole.
+    """
+    root = _site_dir(site)
+    exempt = BANNER_EXEMPT if exempt is None else exempt
+    problems = []
+
+    pages = live_data_pages(root, exempt)
+    if not pages:
+        problems.append(
+            f"no live-data page found under {root} -- the banner rule has no subject, which "
+            "means the derivation is broken, not that the site is clean")
+
+    for rel in pages:
+        page = root / rel
+        text = page.read_text(encoding="utf-8")
+        srcs = re.findall(r"""<script[^>]*\bsrc=["']([^"']+)["']""", text)
+        hits = [s for s in srcs if s.split("?")[0].endswith("freshness-banner.js")]
+        if not hits:
+            problems.append(
+                f"{rel} fetches live data and loads no freshness banner -- a visitor cannot "
+                "tell how old its figures are")
+            continue
+        for src in hits:
+            # ROOT-ABSOLUTE AND PAGE-RELATIVE ARE BOTH LEGAL, and both are on this site's record:
+            # the five doors retired by `03dd8c49e` all wrote `/assets/freshness-banner.js`, while
+            # today's pages follow the `../brand/brand.css` hop-count convention beside them.
+            # Resolving an absolute src against the PAGE's directory reported every one of those
+            # five as a broken link -- a false positive that would have made this control red on
+            # a tree where the property held. The doc root is the site root; resolve there.
+            ref = src.split("?")[0]
+            base = root if ref.startswith("/") else page.parent
+            target = (base / ref.lstrip("/")).resolve()
+            if not target.is_file():
+                problems.append(
+                    f"{rel} references the banner at {src!r}, which resolves to a file that "
+                    "does not exist -- a wrong hop count is a silent 404")
+
+    for rel in sorted(exempt):
+        page = root / rel
+        if not page.is_file():
+            problems.append(
+                f"BANNER_EXEMPT names {rel}, which is not a page on this site -- a stale "
+                "exemption is a hole nobody can see")
+            continue
+        text = page.read_text(encoding="utf-8")
+        if not _renders_live_figures(text):
+            problems.append(
+                f"BANNER_EXEMPT names {rel}, which renders no live figure -- it was never in "
+                "the population, so the exemption claims credit for nothing")
+
+    return problems
