@@ -69,6 +69,9 @@ sys.path.insert(0, str(PROJECT_DIR))
 
 from background.notify import notify, clear_transition, current_state  # noqa: E402
 from background import action_needed  # noqa: E402
+# Top level and no `try`, matching that module's own doctrine: if the guard cannot be imported,
+# this module does not import either. An unavailable check is a FAILED check (R15).
+from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 from background.harden_commit import is_harden_commit  # noqa: E402
 from background.primary_state_scan import drawable_undrawn_mints  # noqa: E402  (LAW C independent read)
 
@@ -128,11 +131,33 @@ _WORKTREE_UNDECLARED_KEY = "deadman_worktree_undeclared"
 _STATUS_STALE_KEY = "deadman_status_stale"
 
 
-def log(msg: str) -> None:
+def log(msg: str, path=None) -> None:
+    """Append one line to the deadman's diagnostic log.
+
+    A TEST PROCESS MAY NOT WRITE THE LIVE LOG (2026-08-21, finding
+    `WORKER_FINDING_THE_OPERATIONAL_SUITE_WRITES_FAKE_LOOP_BROKEN_ALARMS_INTO_THE_LIVE_DEADMAN_LOG_2026-08-20`;
+    the sibling call named as owed by 637d93472, which closed the same class on
+    `suite_duration_watch.record`).
+
+    CLOSED AT THE CHOKE POINT, NOT AT THE INSTANCE (R10). The reported instance is
+    `tests/background/test_transport_failure_loud.py`, which is `operational`-marked, calls the
+    real `_check_pull_loop_transport()`, and isolates the loud side effects (`send_ntfy`,
+    `TRANSITIONS_FILE`) but not this quiet one — so every operational suite run injected
+    fabricated `[LOOP BROKEN] ... cannot draw: import failed` lines into the one record a human
+    reads to diagnose a broken draw loop, while the transport was `HEALTHY_IDLE` throughout.
+    That same test file already monkeypatches `pull_loop_monitor.LOG_FILE` for exactly this
+    reason (a 2026-07-17 comment says so), which is the class in one file: *a test isolates the
+    paths it thought of*. Relying on the next author to think of one more path is what failed
+    twice; the writer refuses instead.
+
+    `path or LOG_FILE` is read at CALL time, so the established
+    `monkeypatch.setattr(mod, "LOG_FILE", tmp_path / ...)` isolation keeps working unchanged and
+    a caller may also pass a destination explicitly."""
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     entry = f"\n- [{ts}] {msg}"
-    LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(LOG_FILE, "a") as f:
+    dest = guard_live_ledger_write(path or LOG_FILE, writer="deadmans_switch.log")
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    with open(dest, "a") as f:
         f.write(entry)
     print(entry)
 

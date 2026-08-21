@@ -1046,3 +1046,44 @@ def test_committed_but_unpublished_names_its_own_cause(monkeypatch):
     down = [c for c in calls if "PUBLISHING DOWN" in c][0]
     assert "PUBLISH PATH itself is what stopped" in down
     assert "still being committed" in down
+
+
+# ── R15: THE LIVE-LOG REFUSAL, ON TRIAL IN BOTH DIRECTIONS (2026-08-21) ─────────────────────
+# `deadmans_switch.log()` routes its destination through `live_ledger_guard.guard_live_ledger_write`,
+# closing at the choke point the class R10 forbids closing at the instance: the operational suite
+# was appending fabricated `[LOOP BROKEN] ... cannot draw: import failed` lines to the live
+# `docs/observability/deadmans-switch-log.md` while the transport read HEALTHY_IDLE
+# (WORKER_FINDING_THE_OPERATIONAL_SUITE_WRITES_FAKE_LOOP_BROKEN_ALARMS_INTO_THE_LIVE_DEADMAN_LOG).
+#
+# A control that cannot fail is worse than none, so BOTH legs are asserted here:
+#   * drop the `guard_live_ledger_write` call from `log()` -> `test_the_live_deadman_log_refuses_a_test_process` fails.
+#   * make the guard refuse unconditionally (ignore `is_live_record_path`) -> the null control
+#     `test_a_redirected_deadman_log_still_writes` fails, because the refusal would also have
+#     ended the logging every one of this module's 30 call sites depends on.
+# The second leg is the one that matters: the cheap way to green the first is to refuse always,
+# which silences the instrument instead of isolating the fixture.
+def test_the_live_deadman_log_refuses_a_test_process(monkeypatch, tmp_path):
+    """The LIVE path is refused -- and refused for being live, not for being absent."""
+    from background.live_ledger_guard import LiveLedgerWriteUnderTest, LIVE_RECORD_DIR
+
+    live = LIVE_RECORD_DIR / "deadmans-switch-log.md"
+    before = live.read_text() if live.exists() else None
+    monkeypatch.setattr(dms, "LOG_FILE", live)
+    with pytest.raises(LiveLedgerWriteUnderTest) as exc:
+        dms.log("LOOP BROKEN checked (notify-gated): cannot draw: import failed")
+    # The error names the writer to change, not just the fact of refusal.
+    assert "deadmans_switch.log" in str(exc.value)
+    # And nothing reached the record: the refusal is BEFORE the append, not after it.
+    assert (live.read_text() if live.exists() else None) == before
+
+
+def test_a_redirected_deadman_log_still_writes(monkeypatch, tmp_path):
+    """NULL CONTROL. The same call, one field changed -- the destination -- must SUCCEED.
+
+    This is what stops the refusal being greened by refusing everything: `log()` is the deadman's
+    only diagnostic channel, and a guard that cannot tell a tmp_path from the live record would
+    take the whole log out with the fixture rows."""
+    dest = tmp_path / "deadmans-switch-log.md"
+    monkeypatch.setattr(dms, "LOG_FILE", dest)
+    dms.log("LOOP BROKEN checked (notify-gated): cannot draw: import failed")
+    assert "cannot draw: import failed" in dest.read_text()

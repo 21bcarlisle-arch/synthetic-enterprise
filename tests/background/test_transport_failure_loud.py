@@ -222,6 +222,15 @@ def test_deadman_fires_loop_broken_and_is_transition_only(tmp_path, monkeypatch)
     from background import deadmans_switch as D
     import background.notify as N
     monkeypatch.setattr(N, "TRANSITIONS_FILE", tmp_path / ".notify_transitions.json")
+    # THE QUIET SIDE EFFECT, isolated at last (2026-08-21). This test isolated `send_ntfy` and
+    # `TRANSITIONS_FILE` — the loud ones — and drove the REAL `_check_pull_loop_transport()`,
+    # whose `log()` appended this fixture's `cannot draw: import failed` straight into the live
+    # `docs/observability/deadmans-switch-log.md`. Being `operational`-marked, it did so on every
+    # hourly operational run, so the record a human reads to diagnose a broken draw loop carried
+    # LOOP BROKEN lines no deadman cycle produced while the transport was HEALTHY_IDLE. The same
+    # file already patches `pull_loop_monitor.LOG_FILE` (see the 2026-07-17 comment above) —
+    # one module remembered, its sibling not, which is why the refusal now lives in the writer.
+    monkeypatch.setattr(D, "LOG_FILE", tmp_path / "deadmans-switch-log.md")
     calls = []
     monkeypatch.setattr(N.ntfy_utils, "send_ntfy", lambda msg, **k: calls.append(msg) or "id")
     monkeypatch.setattr(
