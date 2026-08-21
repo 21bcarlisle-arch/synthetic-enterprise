@@ -879,6 +879,62 @@ def run_operational_layer_signal(*, now=None, runner=None, notify_fn=None, log_f
         return {"ran": True, "green": is_green, "episode_closed": episode_closed, "rc": rc,
                 "consecutive_red": consecutive_red, "blocked_by": blocked_by,
                 "consecutive_green": consecutive_green, "paged": paged, "digest": digest}
+    except subprocess.TimeoutExpired as exc:
+        # THE RETRY STORM, closed 2026-08-21 (the 34-hour publishing outage).
+        #
+        # This check is DECOUPLED from the publish gate in state -- it never reads or writes
+        # PUBLISH_GATE_STATE_FILE, exactly as the docstring above says. It was never decoupled
+        # in RESOURCES, and that is the half that wedged publishing.
+        #
+        # OBSERVED, not inferred (sim-runner-log.md + .operational_layer_signal.json, 2026-08-21):
+        # a timeout landed in the generic handler below, which logged "(swallowed)" and returned
+        # WITHOUT writing state. `last_run_ts` therefore never advanced -- measured 6.0h stale
+        # against a 1.0h throttle -- so `_operational_layer_check_due()` answered True on EVERY
+        # 5-minute deadman cycle and relaunched a 30-minute full-suite pytest each time. The box
+        # was occupied near-continuously by a check that has timed out 50 times and produced no
+        # verdict since 12:41Z, while the publish gate needed that same box: the gate's own suite
+        # then overran 300s, its budget was raised to 3400s to compensate, and it overran that
+        # too (17:37Z). 46 refusals, 169 unpublished runs, 34 hours.
+        #
+        # THE SWALLOW WAS NEVER THE DEFECT -- a monitoring check must not raise into the deadman.
+        # The defect is that swallowing also discarded the STAMP, so "could not answer" was
+        # indistinguishable from "never asked" and the retry had no throttle. Stamping `now` is
+        # what stops the storm: at most one attempt per interval.
+        #
+        # OWN NAME, SAME CLASS (the EXIT_GATE_TIMED_OUT reasoning at the top of this module,
+        # applied to the other clock). NOT folded into "red": nothing about the operational layer
+        # has been shown to regress, and a red page sends the reader to the daemons. NOT folded
+        # into "red_blocked" either: that means pytest died during COLLECTION and its page names
+        # import errors to repair, which would point at files that are fine. A timeout is its own
+        # fact -- the suite ran and did not finish.
+        #
+        # NOT A GREEN, and the streak advances (R15: an unavailable check is a FAILED check). A
+        # check that cannot answer must never read as healthy, or this goes silent for another
+        # 6 hours -- which is precisely what it just did.
+        try:
+            prior = _read_operational_layer_state()
+        except Exception:
+            prior = {}
+        consecutive_red = int(prior.get("consecutive_red") or 0) + 1
+        log_fn(
+            "Operational-layer signal: suite TIMED OUT after {}s -- recorded as 'red_timeout' "
+            "(consecutive_red={}) and STAMPED, so the throttle engages and the next attempt is "
+            "one interval away, not one deadman cycle. R15: an unavailable check is a failed "
+            "check, never a skipped one.".format(getattr(exc, "timeout", "?"), consecutive_red))
+        try:
+            _write_operational_layer_state({
+                "last_run_ts": now,
+                "last_result": "red_timeout",
+                "consecutive_red": consecutive_red,
+                "consecutive_green": 0,
+            }, episode_closed=False)
+        except Exception as write_exc:
+            # The stamp is the whole point, so a failure to write it is loud rather than swallowed
+            # into the same silence this handler exists to end.
+            log_fn("Operational-layer signal: FAILED to record the timeout stamp ({}) -- the "
+                   "retry throttle is NOT engaged for this cycle.".format(write_exc))
+        return {"ran": False, "reason": "timeout", "last_result": "red_timeout",
+                "consecutive_red": consecutive_red}
     except Exception as exc:
         log_fn("Operational-layer signal check error (swallowed): {}".format(exc))
         return {"ran": False, "reason": "error", "error": str(exc)}
