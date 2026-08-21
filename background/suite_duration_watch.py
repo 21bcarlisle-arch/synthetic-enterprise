@@ -235,22 +235,60 @@ def _now_iso() -> str:
     return datetime.datetime.now(datetime.timezone.utc).isoformat()
 
 
-def is_fixture_row(rec) -> bool:
-    """True for a row that records a zero-second gate run — i.e. not a measurement.
+# A real gate run starts an interpreter, imports the suite and COLLECTS several thousand tests
+# before it can time anything. The measured floor across all 374 rows the publisher has ever
+# written is 3.46s. One second is therefore comfortably below any real run and comfortably above
+# every fixture that writes a token duration — which is the property the rule needs, in both
+# directions. Kept as a named constant so the number that defines "impossible" is auditable
+# rather than buried in a comparison.
+IMPOSSIBLE_GATE_SECONDS = 1.0
 
-    A gate run that compiles, collects and executes ~26k tests cannot take 0.00s; the duration is
-    stored rounded to 2dp, so this is unreachable for any real run and reached by every test one.
+
+def is_fixture_row(rec) -> bool:
+    """True for a row whose duration is impossible for a real gate run — i.e. not a measurement.
+
+    `== 0.0` WAS FAIL-OPEN, AND THE FILE PROVES IT (2026-08-21). The previous rule tested for
+    exactly zero, justified by "unreachable for any real run and reached by every test one". The
+    first half is true; the second half was never true. Classifying the live series by the shape
+    of the sha the writer passed:
+
+        named fixtures (`deadbeef`/`abc1234`)   3,617 rows   — caught by `== 0.0`
+        full 40-char shas                       1,579 rows   — median 0.02s, NOT caught
+        short 9-char shas (the publisher)         374 rows   — min 3.46s, every one >= 1s
+
+    So of the 2,126 rows the old rule ADMITTED as measurements, 1,579 — **74%** — were test
+    writes that happened to pass a small non-zero duration (0.01s, 0.02s, 0.11s) instead of a
+    literal zero. Every reader downstream (the reported line, the trend, the band the next record
+    inherits, the alarm's `previous`) was looking at a series three quarters of which was
+    fixtures, and `note_line` told the reader it had excluded 3,444 rows when the true
+    contamination was 5,023. A control that under-reports its own blind spot by 1,579 rows is the
+    R15 FAIL-OPEN pattern exactly: it passes on the malformed input it exists to catch.
+
+    STILL NOT A git_hash DENYLIST, and now not a single magic value either. The subject remains
+    the impossible VALUE — every present and future fixture that writes a token duration shares
+    it — but the threshold is a floor rather than a point, because a point rule only ever catches
+    fixtures that chose that exact point. Sha SHAPE was considered and rejected: it would read as
+    "fixture" every real row the day the publisher switches to full hashes, which fails CLOSED on
+    real measurements and would hide the very numbers this series exists to keep.
+
+    HONEST LIMIT, STATED IN FULL because a control that rounds its own blind spot down is the
+    defect above wearing a different hat. The rule excludes 5,100 of 5,570 rows and admits 470,
+    of which **96 are still not measurements**: 13 full-sha rows carrying 1–162.64s, and 83
+    `deadbeef`/`abc1234` rows carrying 2.42–3.3s. A duration that plausible is indistinguishable
+    from a measurement BY VALUE, and raising the floor to swallow them would be fitting the
+    threshold to today's sample at the cost of eating a genuinely fast run. They stay admitted
+    and this rule does not claim them. The residue is bounded and CLOSED: `record()` has refused
+    test-process writes since 2026-08-20, so 96 is a final count, not a running one. This rule is
+    for the history already on disk, which is untracked and cannot be re-derived.
+
     `bool` is excluded explicitly because `True == 1.0` is False but `False == 0.0` is True in
     Python, and a `False` in this field is malformed data, not a zero measurement.
-
-    Deliberately NOT a git_hash denylist. `deadbeef`/`abc1234` are today's two fixture shas; a
-    third fixture invents a third sha and a denylist of names would read it as a measurement. The
-    subject is the impossible VALUE, which every present and future fixture shares.
     """
     if not isinstance(rec, dict):
         return False
     d = rec.get("duration_seconds")
-    return isinstance(d, (int, float)) and not isinstance(d, bool) and d == 0.0
+    return (isinstance(d, (int, float)) and not isinstance(d, bool)
+            and 0.0 <= d < IMPOSSIBLE_GATE_SECONDS)
 
 
 def read_series(path: Path | None = None, limit: int | None = None,
@@ -398,9 +436,15 @@ def _exclusion_fragment(excluded: int) -> str:
     """
     if excluded <= 0:
         return ""
-    return (f" ({excluded} zero-second row(s) excluded as test-process writes, not measurements; "
-            "the source is refused at `record()` since 2026-08-20 — the rows already in the "
-            "file are kept, not truncated.)")
+    # "zero-second" NAMED THE OLD RULE, NOT THE ROWS (2026-08-21). While the filter tested
+    # `== 0.0` the two agreed; the moment it became a sub-second FLOOR, a line still saying
+    # "zero-second" would under-describe its own exclusions by the 1,579 rows that made the
+    # floor necessary — the same under-reporting, one layer out. The fragment now describes
+    # the rule that is actually running.
+    return (f" ({excluded} sub-second row(s) excluded as test-process writes, not measurements — "
+            f"under {IMPOSSIBLE_GATE_SECONDS:g}s is impossible for a real gate run; the source "
+            "is refused at `record()` since 2026-08-20 — the rows already in the file are kept, "
+            "not truncated.)")
 
 
 def _trend_fragment(rows: list[dict]) -> str:

@@ -363,11 +363,45 @@ def test_the_line_says_what_it_excluded(tmp_path):
     p.write_text("".join(json.dumps(r) + "\n" for r in (
         _row(0.72, sha="a892df011", ceiling=4500), fixture, fixture)))
     line = sdw.note_line(p)
-    assert "2 zero-second row(s) excluded" in line
+    assert "2 sub-second row(s) excluded" in line
     # Silent when there is nothing to say — no permanent footnote about a fixed problem.
     clean = tmp_path / "clean.jsonl"
     clean.write_text(json.dumps(_row(0.72, sha="a892df011", ceiling=4500)) + "\n")
     assert "excluded" not in sdw.note_line(clean)
+
+
+def test_a_fixture_that_writes_a_token_duration_is_still_a_fixture(tmp_path):
+    """THE FAIL-OPEN THE LIVE FILE PROVED (2026-08-21). `is_fixture_row` tested `== 0.0`, on the
+    stated grounds that zero is "reached by every test one". It is not: of the 2,126 rows the old
+    rule admitted as measurements, 1,579 were test writes carrying 0.01/0.02/0.11s — a full 74%
+    of what every downstream reader saw. Only the two NAMED fixture shas write a literal zero; a
+    fixture that passes any small non-zero number sailed through.
+
+    MUTATION: restore `d == 0.0` in `is_fixture_row` and this fails on both legs — the 0.02s row
+    is admitted as a measurement and the reported line publishes 100% headroom at 0.02s.
+    """
+    token = {"timestamp": "t", "git_hash": "9735ae10f4fd497e1e5c8cb1b58ddcae3dc4bc64",
+             "duration_seconds": 0.02, "ceiling_seconds": 4500, "headroom_ratio": 1.0,
+             "band": "ok", "outcome": "pass"}
+    assert sdw.is_fixture_row(token), "a 0.02s gate run is not a measurement"
+    assert sdw.is_fixture_row(dict(token, duration_seconds=0.11))
+    assert sdw.is_fixture_row(dict(token, duration_seconds=0.0)), "the old subject still holds"
+
+    # THE FLOOR MUST NOT EAT A REAL RUN. 3.46s is the fastest run the publisher has ever
+    # recorded across 374 rows; the fail-fast reds of 2026-08-21 measured ~23s. Both are
+    # measurements and must survive, or the repair fails CLOSED and hides the live numbers.
+    assert not sdw.is_fixture_row(dict(token, duration_seconds=3.46))
+    assert not sdw.is_fixture_row(dict(token, duration_seconds=23.44))
+    assert not sdw.is_fixture_row(dict(token, duration_seconds=1.0)), "the floor is exclusive"
+
+    # The live symptom, end to end: the token row is LAST, so an admitted one publishes itself.
+    p = tmp_path / "series.jsonl"
+    p.write_text("".join(json.dumps(r) + "\n" for r in (
+        _row(0.72, sha="a892df011", ceiling=4500), token)))
+    line = sdw.note_line(p)
+    assert "72%" in line and "100%" not in line
+    assert "a892df011" in line and "9735ae10f" not in line
+    assert "1 sub-second row(s) excluded" in line
 
 
 def test_a_fixture_row_cannot_page_a_false_recovery(tmp_path):
