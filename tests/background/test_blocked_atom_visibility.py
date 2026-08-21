@@ -256,7 +256,18 @@ def test_the_dial_counts_parked_atoms_and_a_park_filtering_reader_would_not():
 # shrinking to a name is progress and must be recorded; a name growing back to `[]` is the
 # regression this control exists to catch.
 UNPARKED_SUBJECT_COVERAGE: dict[str, list[str]] = {
-    "clv": ["W2_17_dual_fuel_leg_clv_attribution"],  # 2026-08-15, SITE2 draw
+    "clv": [
+        "W2_17_dual_fuel_leg_clv_attribution",  # 2026-08-15, SITE2 draw
+        # 2026-08-19. Unparked by the map hunk swept into 02ada0701 (an H27 landing whose
+        # pathspec carried three atom edits; see WORKER_FINDING_AN_EPOCH_3_CURRICULUM_BLOCK_
+        # WAS_DISCHARGED_CITING_A_DIRECTOR_INSTRUCTION_WITH_NO_ARTEFACT_2026-08-19.md §1).
+        # RECORDED, not reverted, and the distinction from EP6 is the whole point: EP1 is
+        # EPOCH 2, whose gate is the RULED EPOCH2_EVIDENCE_PASS (docs/staging/done/), not a
+        # director unblock -- 92 of 133 epoch-2 atoms are already unparked, and EP1's own
+        # `block_reason` was empty, so nothing was crossed. EP6 was epoch 3 behind R13 and
+        # WAS reverted. This entry is the ledger line this constant's docstring asks for.
+        "EP1_clv_three_horizon",
+    ],
     "counterparty_adapter": [],
     "forecast_feed": [],
 }
