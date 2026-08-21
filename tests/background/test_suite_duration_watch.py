@@ -226,7 +226,17 @@ def test_record_gate_run_appends_and_alarms(monkeypatch, tmp_path):
     sdw.record_gate_run(1500.0, 1800, "sha_tight_01", "pass", p)    # headroom 0.17 -> tight
     rows = sdw.read_series(p)
     assert [r["band"] for r in rows] == ["ok", "tight"]
-    assert len(spy.sent) == 1 and "sha_tight" in spy.sent[0][0]
+    headroom_pages = [m for m, kw in spy.sent
+                      if kw.get("transition_key") == "suite_duration_headroom"]
+    assert len(headroom_pages) == 1 and "sha_tight" in headroom_pages[0]
+    # SECOND FIGURE, SEPARATE KEY (2026-08-21). Both runs here are over the 330s cadence, so the
+    # absolute alarm pages once on the FIRST one and stays silent on the second — a different
+    # question from headroom, crossing at a different moment, and deliberately not folded in:
+    # the 600s run is `ok` on headroom and already 1.8x its own cadence.
+    absolute_pages = [m for m, kw in spy.sent
+                      if kw.get("transition_key") == "publish_gate_absolute_duration"]
+    assert len(absolute_pages) == 1 and "sha_ok_00" in absolute_pages[0]
+    assert len(spy.sent) == 2
 
 
 # ── the wiring: the gate measures, and the note reports ───────────────────────────────────────
@@ -381,3 +391,223 @@ def test_a_fixture_row_cannot_page_a_false_recovery(tmp_path):
     real_tight = dict(monkeypatch_free_tight)
     assert sdw.alarm(real_tight, fixture, notify_fn=spy) is not None
     assert len(spy.sent) == 1 and "realtight" in spy.sent[0][0]  # sha rendered at [:9]
+
+
+# ── THE ABSOLUTE NUMBER, WHICH NO CEILING CAN BUY SILENCE ON ──────────────────────────────────
+#
+# Director, 2026-08-21 console: *"Nothing watches the absolute number — only headroom against a
+# budget that grew to fit."* The named defect is six ceiling raises (600 → 4500), after each of
+# which the SAME runtime read as more headroom. Every test below exists to make that move
+# unavailable to the second figure, and the first one is the mutation that matters: point
+# `absolute_band` at the ceiling in any way and it dies.
+def test_the_absolute_band_is_unmoved_by_a_ceiling_that_grew_to_fit():
+    """THE named mutation. Re-derive the verdict against the ceiling — `d / ceiling > 1`, or any
+    ratio band — and this test dies, because the whole ceiling history is applied to ONE fixed
+    runtime here and the verdict may not move.
+
+    1250s is today's real gate run. Under every ceiling this project has shipped it is still four
+    times the cadence, and the instrument must say so at 4500 exactly as loudly as at 600."""
+    verdicts = {sdw.absolute_band(1250.0) for _ in (600, 1800, 2600, 2900, 3400, 3600, 4500)}
+    assert verdicts == {"over_cadence"}, "a verdict that moved with the ceiling is the old figure"
+    # And the headroom ratio over the same runtime DOES move — which is why a second figure had
+    # to exist. This is the contrast the finding rests on, asserted rather than described.
+    assert sdw.headroom(1250.0, 600) != sdw.headroom(1250.0, 4500)
+    assert sdw.band(sdw.headroom(1250.0, 4500)) == "ok"  # "healthy" at 21 minutes
+
+
+def test_the_absolute_band_cannot_be_told_the_ceiling():
+    """Structural, not conventional: the silencing move is unavailable rather than discouraged.
+    MUTATION: add a `ceiling_seconds` parameter — even an unused, defaulted one — and this fails
+    before anyone gets as far as using it."""
+    params = set(inspect.signature(sdw.absolute_band).parameters)
+    assert params == {"duration_seconds"}
+
+
+def test_a_genuinely_fast_gate_reads_within_the_cadence():
+    """THE NULL CONTROL. Without it, `return "over_cadence"` — a constant that can never be
+    satisfied — passes every other test in this class, and an alarm that is always on is an
+    alarm nobody reads. The gate measured 39s scoped and ~10 minutes two weeks ago; the first
+    must read within and the second must not."""
+    assert sdw.absolute_band(39.0) == "within_cadence"
+    assert sdw.absolute_band(sdw.PUBLISH_CADENCE_SECONDS - 1) == "within_cadence"
+    assert sdw.absolute_band(600.0) == "over_cadence"
+
+
+def test_the_absolute_band_fails_closed_on_what_it_cannot_measure():
+    """R15 killer pattern 2 (FAIL-OPEN on missing/zero/malformed): an unmeasurable duration is
+    "unknown", which sends nothing — never "within_cadence", which would read as a green.
+    MUTATION: `except: return "within_cadence"` and this dies.
+
+    A numeric STRING is deliberately absent from this list: `headroom()` coerces one too, and a
+    second rule for the same input would make the two figures disagree about whether a row is
+    measurable at all."""
+    for bad in (None, "", "not-a-number", float("nan"), float("inf"), -1.0, {}):
+        assert sdw.absolute_band(bad) == "unknown", bad
+
+
+def test_the_cadence_alarm_fires_once_on_the_crossing_and_once_on_recovery():
+    """R5, and the first-observation asymmetry this alarm needs: it is crossed TODAY, so a
+    first-ever `over_cadence` must page (the bad direction being the initial state is the case
+    it was built in), while a first-ever `within_cadence` has crossed nothing.
+
+    MUTATION: make the unchanged-band case send, and `alarms sent: 1` becomes 2."""
+    spy = _Spy()
+    slow = {"timestamp": "t", "git_hash": "2c0ba712b", "duration_seconds": 1250.0,
+            "ceiling_seconds": 4500, "headroom_ratio": 0.72, "band": "ok",
+            "cadence_band": "over_cadence", "cadence_seconds": 330, "outcome": "pass"}
+    fast = {"timestamp": "t", "git_hash": "fast00001", "duration_seconds": 39.0,
+            "ceiling_seconds": 4500, "headroom_ratio": 0.99, "band": "ok",
+            "cadence_band": "within_cadence", "cadence_seconds": 330, "outcome": "pass"}
+
+    assert sdw.absolute_alarm(fast, None, notify_fn=spy) is None      # first-ever good: silent
+    assert sdw.absolute_alarm(slow, None, notify_fn=spy) is not None  # first-ever bad: pages
+    assert sdw.absolute_alarm(slow, slow, notify_fn=spy) is None      # unchanged: silent
+    assert sdw.absolute_alarm(fast, slow, notify_fn=spy) is not None  # recovery: pages once
+    assert len(spy.sent) == 2
+    assert "1250.0s" in spy.sent[0][0] and "3.8x" in spy.sent[0][0]
+    assert spy.sent[0][1]["transition_key"] == "publish_gate_absolute_duration"
+    assert "Recovered" in spy.sent[1][0]
+
+
+def test_the_cadence_alarm_is_not_suppressed_by_a_comfortable_headroom_band():
+    """The two figures must be able to DISAGREE, or the second one is decoration. The run below
+    is `band: ok` — 72% headroom, the shape that read healthy for six ceiling raises — and the
+    cadence alarm must page on it anyway.
+
+    MUTATION: gate `absolute_alarm` on the headroom band (`if current["band"] == "ok": return`)
+    and this dies. That mutation is exactly the fold-into-one-alarm design this rejects."""
+    spy = _Spy()
+    comfortable_but_slow = {"timestamp": "t", "git_hash": "a892df011",
+                            "duration_seconds": 1247.73, "ceiling_seconds": 4500,
+                            "headroom_ratio": 0.72, "band": "ok",
+                            "cadence_band": "over_cadence", "cadence_seconds": 330,
+                            "outcome": "pass"}
+    assert sdw.alarm(comfortable_but_slow, None, notify_fn=spy) is None  # headroom: nothing to say
+    assert sdw.absolute_alarm(comfortable_but_slow, None, notify_fn=spy) is not None
+    assert len(spy.sent) == 1 and "raising the ceiling cannot clear it" in spy.sent[0][0]
+
+
+def test_a_fixture_row_cannot_page_the_cadence_alarm(tmp_path):
+    """The same defect as `test_a_fixture_row_cannot_page_a_false_recovery`, which this alarm
+    would otherwise re-open: a 0.0s test write is `within_cadence` by arithmetic, so without the
+    guard one fixture row pages `[GATE ABSOLUTE] Recovered` after a real slow run.
+
+    MUTATION: drop either `is_fixture_row` branch from `absolute_alarm` and this fails."""
+    spy = _Spy()
+    slow = {"timestamp": "t", "git_hash": "2c0ba712b", "duration_seconds": 1250.0,
+            "ceiling_seconds": 4500, "headroom_ratio": 0.72, "band": "ok",
+            "cadence_band": "over_cadence", "cadence_seconds": 330, "outcome": "pass"}
+    fixture = {"timestamp": "t", "git_hash": "abc1234", "duration_seconds": 0.0,
+               "ceiling_seconds": 4500, "headroom_ratio": 1.0, "band": "ok",
+               "cadence_band": "within_cadence", "cadence_seconds": 330, "outcome": "pass"}
+    assert sdw.absolute_alarm(fixture, slow, notify_fn=spy) is None
+    assert spy.sent == []
+    # ...and a fixture may not become the baseline a real crossing is measured against.
+    assert sdw.absolute_alarm(slow, fixture, notify_fn=spy) is not None
+
+
+def test_the_record_stores_the_absolute_verdict_and_the_cadence_it_used(tmp_path):
+    """5,570 historical rows can only be re-asked this question if the answer is ON the row, and
+    the cadence rides along so a future re-derivation cannot silently change what old rows meant.
+    MUTATION: drop either key from `record()` and this fails."""
+    p = tmp_path / "series.jsonl"
+    rec = sdw.record(1250.0, 4500, "2c0ba712b", "pass", p)
+    assert rec["cadence_band"] == "over_cadence"
+    assert rec["cadence_seconds"] == sdw.PUBLISH_CADENCE_SECONDS
+    assert json.loads(p.read_text().splitlines()[-1])["cadence_band"] == "over_cadence"
+
+
+def test_the_read_surface_states_the_absolute_number_beside_the_ratio(tmp_path):
+    """The 75-minute gate was invisible because the only surface reported a RATIO. MUTATION: drop
+    `_absolute_fragment` from `note_line` and this fails — the line goes back to reporting 72%
+    headroom on a run four times slower than its own cadence, with no second opinion."""
+    p = tmp_path / "series.jsonl"
+    p.write_text(json.dumps({"timestamp": "t", "git_hash": "a892df011",
+                             "duration_seconds": 1247.73, "ceiling_seconds": 4500,
+                             "headroom_ratio": 0.72, "band": "ok",
+                             "cadence_band": "over_cadence", "cadence_seconds": 330,
+                             "outcome": "pass"}) + "\n")
+    line = sdw.note_line(p)
+    assert "72%" in line                      # the ratio still reads healthy...
+    assert "1247.73s is 3.8x the 330s cadence" in line   # ...and the absolute number says so
+    assert "never reads it" in line
+
+
+def test_the_cadence_is_read_from_a_measurement_not_an_aspiration():
+    """The 300s cap that wedged publishing twice this morning was an ASPIRATION (the target
+    cadence) used as a production bound. This constant is instead the MEASURED median marker
+    inter-arrival (334s over the last 200 markers), so it describes the world rather than a wish.
+
+    MUTATION: set it to a round aspirational 300 or 60 and this fails. The band is deliberately
+    wide — this pins the constant to the observed shape, not to one sample."""
+    assert 320 <= sdw.PUBLISH_CADENCE_SECONDS <= 440, (
+        "cadence must stay inside the measured p10-p90 inter-arrival band (324s-435s)")
+
+
+def test_a_killed_run_is_not_certified_as_inside_the_cadence():
+    """FOUND BY THE LIVE SURFACE, not by design: rendering `note_line()` against the real series
+    the day this landed produced *"Absolute: 304.05s, inside the 330s publish cadence"* — from the
+    row `304.05s ceiling=300 outcome=timeout`, a gate that was KILLED and never answered. A
+    censored run reported as comfortably healthy is R15 killer pattern 2 in the surface built to
+    watch for exactly that.
+
+    A timeout's duration is a LOWER BOUND. Above the cadence it still decides (≥ over is over);
+    below it, the run was stopped before it could say, and that is `unknown` — never a green.
+
+    MUTATION: drop the `outcome == "timeout"` branch from `row_cadence_band` and the first
+    assertion fails with `within_cadence`."""
+    killed_early = {"duration_seconds": 304.05, "ceiling_seconds": 300, "outcome": "timeout"}
+    assert sdw.row_cadence_band(killed_early) == "unknown"
+    killed_late = {"duration_seconds": 4503.7, "ceiling_seconds": 4500, "outcome": "timeout"}
+    assert sdw.row_cadence_band(killed_late) == "over_cadence"
+    # NULL CONTROL: the censoring rule must key on the OUTCOME, not on the duration being small.
+    # A run that genuinely COMPLETED in 304s is a measurement and must read as one.
+    finished = {"duration_seconds": 304.05, "ceiling_seconds": 3400, "outcome": "pass"}
+    assert sdw.row_cadence_band(finished) == "within_cadence"
+
+
+def test_a_censored_run_cannot_page_a_false_cadence_recovery():
+    """The consequence on the channel, not just in the classifier: without the censoring rule a
+    slow gate followed by a run KILLED at 304s pages `[GATE ABSOLUTE] Recovered` — a recovery
+    that did not happen, sourced from a run that never finished. Same shape as the fixture-row
+    false recovery of 2026-08-20, arriving through a different door."""
+    spy = _Spy()
+    slow = {"timestamp": "t", "git_hash": "2c0ba712b", "duration_seconds": 1250.0,
+            "ceiling_seconds": 4500, "headroom_ratio": 0.72, "band": "ok",
+            "outcome": "pass"}
+    killed = {"timestamp": "t", "git_hash": "f983f074c", "duration_seconds": 304.05,
+              "ceiling_seconds": 300, "headroom_ratio": -0.0135, "band": "tight",
+              "outcome": "timeout"}
+    assert sdw.absolute_alarm(killed, slow, notify_fn=spy) is None
+    assert spy.sent == []
+
+
+def test_the_record_marks_a_timeout_row_censored_at_write_time():
+    """The verdict is stored, so it must be the censoring-aware one at the moment of writing —
+    otherwise every future reader of the 5,570-row history re-derives a green for a killed run.
+    MUTATION: have `record()` call `absolute_band(duration_seconds)` directly and this fails."""
+    import tempfile
+    from pathlib import Path as _P
+    with tempfile.TemporaryDirectory() as d:
+        p = _P(d) / "series.jsonl"
+        rec = sdw.record(304.05, 300, "f983f074c", "timeout", p)
+        assert rec["cadence_band"] == "unknown"
+        assert sdw.record(304.05, 3400, "f983f074c", "pass", p)["cadence_band"] == "within_cadence"
+
+
+def test_the_surface_says_the_absolute_number_is_UNMEASURED_rather_than_going_quiet(tmp_path):
+    """A first draft returned "" for the censored case, so the absolute figure disappeared from
+    the read surface precisely on the runs that were KILLED — silent at the moment of failure,
+    which is the defect this whole figure exists to repair, one level down.
+
+    MUTATION: `return ""` on the unknown branch and this fails."""
+    p = tmp_path / "series.jsonl"
+    p.write_text(json.dumps({"timestamp": "t", "git_hash": "f983f074c",
+                             "duration_seconds": 304.05, "ceiling_seconds": 300,
+                             "headroom_ratio": -0.0135, "band": "tight",
+                             "outcome": "timeout"}) + "\n")
+    line = sdw.note_line(p)
+    assert "UNMEASURED" in line
+    assert "killed at 304.05s" in line
+    assert "not a fast one" in line
+    assert "inside the" not in line, "a killed run may never render as inside the cadence"
