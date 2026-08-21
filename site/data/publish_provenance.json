@@ -15,20 +15,20 @@
     "open_findings": 100
   },
   "last_verified": {
-    "generated_at": "2026-08-20T18:34:35Z",
-    "git_commit": "a892df011",
-    "run_id": "run_output_a892df011_20260820T180449Z.json",
-    "verified_at": "2026-08-20T18:34:35Z"
+    "generated_at": "2026-08-21T22:55:41Z",
+    "git_commit": "f983f074c",
+    "run_id": "run_output_f983f074c_20260821T153143Z.json",
+    "verified_at": "2026-08-21T22:55:41Z"
   },
   "paused_reason": "scoped publish-path suite red at git=f983f074c; blocking tests: ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_answer_which_commit_it_is, FAILED tests/tools/test_measure_publish_gate_subject_cost.py::test_the_basetemp_leak_is_reclaimed_by_the_gates_own_sweep, ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_be_bl",
-  "paused_since": "2026-08-20T21:10:26Z",
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-20T18:34:35Z",
-    "git_commit": "a892df011",
-    "run_id": "run_output_a892df011_20260820T180449Z.json",
-    "verified_at": "2026-08-20T18:34:35Z"
+    "generated_at": "2026-08-21T22:55:41Z",
+    "git_commit": "f983f074c",
+    "run_id": "run_output_f983f074c_20260821T153143Z.json",
+    "verified_at": "2026-08-21T22:55:41Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-08-21T22:41:29Z"
+  "verification_state": "verified",
+  "written_at": "2026-08-21T22:55:41Z"
 }

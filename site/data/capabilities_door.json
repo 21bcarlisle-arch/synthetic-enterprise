@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-08-20T18:13:20Z",
- "git_commit": "720e0541f20ff62fb77cbe5db2ce9fe43dfba9d0",
+ "generated_at": "2026-08-21T22:46:00Z",
+ "git_commit": "b4e34dd67a99476d3d5872b8462b5811f6eaedaa",
  "sources": {
   "record": "site/data/maturity_map.json",
   "status_rule": "site/moap_stage.py (Live / Building / Planned)",
@@ -468,6 +468,10 @@
    "describes": "Seam: the world hands over one renewal's observables and takes back a belief."
   },
   {
+   "module": "collection_submission",
+   "describes": "The company's SUBMISSION side of the payment seam -- leg 1 on the wire (atom EP6_wall_protocol_typing, Q3)."
+  },
+  {
    "module": "collections_communication",
    "describes": "The company's COLLECTIONS-COMMUNICATION surface \u2014 the one place the world may learn the tone of a dunning letter it received."
   },
@@ -478,6 +482,14 @@
   {
    "module": "credit_refund_requests",
    "describes": "The company's CREDIT-REFUND surface \u2014 the one place the world may report a closing credit balance and learn what happened to the refund."
+  },
+  {
+   "module": "crossing_conversation",
+   "describes": "The company's record of a MULTI-LEG crossing (atom EP6_wall_protocol_typing, Q3)."
+  },
+  {
+   "module": "crossing_silence",
+   "describes": "The company's reading of a crossing that went QUIET (atom EP6_wall_protocol_typing, Q5)."
   },
   {
    "module": "customer_experience",
@@ -583,7 +595,7 @@
     "value": 14,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-08-20T16:41:37Z"
+    "as_of": "2026-08-21T22:24:25Z"
    },
    {
     "value": 17,
