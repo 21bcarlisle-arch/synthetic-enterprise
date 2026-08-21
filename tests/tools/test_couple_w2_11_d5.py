@@ -16,6 +16,7 @@ import inspect
 import copy
 import dataclasses
 import shutil
+import subprocess
 import json
 import textwrap
 from datetime import date, timedelta
@@ -7468,9 +7469,112 @@ needs_node = pytest.mark.skipif(
            "is the correct behaviour, but not a thing this assertion can show")
 
 
+# ---------------------------------------------------------------------------
+# THE DOOR WAS RETIRED, AND ITS MACHINERY STILL HAS TO WORK -- the door retirement, 2026-08-21
+# ---------------------------------------------------------------------------
+# The director's five-tabs ruling (`03dd8c49e`) deleted `site/proof/`. Everything
+# below this line used to read the shipped door off the working tree; for a day
+# after that ruling all of it errored with `Cannot find module`, which wedged
+# every commit touching this file because the gate selects tests by filename
+# stem.
+#
+# The repair is NOT to re-point these at a live surface. `/harness/` inherited
+# the proof content but renders four aggregate counts, not a per-pair row, and
+# `https://poesys.net/proof/` still answers 200 only because the edge is serving
+# a cache the deployment no longer backs (`retired_paths_served.json`). Greening
+# a control against either would be the "green suite achieved by deleting the
+# subject" this section exists to catch.
+#
+# So the tests split in two, and the split is the point:
+#   * the SHIPPED walk (`reader_walk`) sees what a reader sees -- a retired
+#     door and withdrawn sites -- and that is asserted, not worked around;
+#   * the walk's MACHINERY is still put on trial, against the retired door's own
+#     bytes read out of git at `03dd8c49e^`. That artefact is in a tree and is
+#     rebuildable by anyone with this repo, which is exactly what the live 200
+#     is not. Every mutation below therefore still proves what it always did --
+#     that this instrument fires on its own named defect if a door comes back --
+#     while no test claims a reader is being shown anything.
+_RETIRED_DOOR_FILES = ("index.html", "_render_harness.mjs")
+
+
+def _git_show(rev_path: str) -> str:
+    proc = subprocess.run(["git", "show", rev_path],
+                          cwd=str(Path(pair.__file__).resolve().parent.parent),
+                          capture_output=True, text=True)
+    return proc.stdout if proc.returncode == 0 else ""
+
+
+@pytest.fixture(scope="module")
+def retired_door(tmp_path_factory):
+    """The retired door's own bytes, materialised out of git history.
+
+    Skipped rather than faked where the history is unavailable (a shallow
+    clone): a hand-written stand-in for the door would make every mutation
+    below a test of the fixture, which is the D30 defect this module has been
+    caught by before.
+    """
+    root = tmp_path_factory.mktemp("retired_proof_door")
+    for name in _RETIRED_DOOR_FILES:
+        text = _git_show(f"{pair._DOOR_RETIRING_RULING}^:site/proof/{name}")
+        if not text:
+            pytest.skip(
+                f"the retired door's `{name}` is not reachable at "
+                f"{pair._DOOR_RETIRING_RULING}^ -- this needs the repo's history")
+        (root / name).write_text(text, encoding="utf-8")
+    return {"index": root / "index.html", "harness": root / "_render_harness.mjs"}
+
+
+@contextlib.contextmanager
+def door_restored(retired_door, index_path=None):
+    """Point the module at the retired door for the duration of one mutation.
+
+    BOTH constants move together. Moving only `_DOOR_INDEX` -- which is what
+    every mutation here used to do, when the harness happened to be on disk --
+    would leave the walk reading a harness that is no longer there, and the
+    mutation would "pass" on an error that has nothing to do with its subject.
+    """
+    previous = (pair._DOOR_INDEX, pair._DOOR_HARNESS)
+    pair._DOOR_INDEX = index_path if index_path is not None else retired_door["index"]
+    pair._DOOR_HARNESS = retired_door["harness"]
+    try:
+        yield
+    finally:
+        pair._DOOR_INDEX, pair._DOOR_HARNESS = previous
+
+
+# What the register declared while the door was live (Hour #21's shipped state).
+# Kept HERE rather than in the module: the withdrawal is the module's answer,
+# and a mutation that restores the door has to restore the declarations with it
+# or it is measuring the withdrawal instead of the machinery.
+_WITHDRAWN_DOOR_RENDERS = {
+    "ageing": (("door:coupled-gaps#note", 3),),
+    "belief": (("door:coupled-gaps#note", 4),),
+    "belief_population_mix": (("door:coupled-gaps#note", 4),),
+    "detection": (("door:coupled-gaps#gap-val", 3), ("door:coupled-gaps#note", 4)),
+    "detection_latency": (("door:coupled-gaps#note", 2),),
+}
+
+
+def _register_with_the_door_back():
+    reg = {k: dict(v) for k, v in pair.PUBLISHED_GAP_CONSUMERS.items()}
+    for dim, restored in _WITHDRAWN_DOOR_RENDERS.items():
+        reg[dim] = dict(reg[dim], reader_renders=tuple(sorted(
+            set(reg[dim].get("reader_renders") or ()) | set(restored))))
+    return reg
+
+
 @pytest.fixture(scope="module")
 def reader_walk():
+    """THE SHIPPED WALK -- against the site as it is, with the door retired."""
     return pair.measure_reader_render_sites()
+
+
+@pytest.fixture(scope="module")
+def door_walk(retired_door):
+    """The same walk with the retired door put back, so the machinery that
+    measured it can still be held to what it claims."""
+    with door_restored(retired_door):
+        return pair.measure_reader_render_sites()
 
 
 @pytest.fixture(scope="module")
@@ -7494,28 +7598,163 @@ def test_all_five_figures_are_rendered_in_the_published_note(component_walk):
     assert pair.check_component_render_sites(component_walk) == []
 
 
-@needs_node
-def test_the_walk_reaches_the_door_and_measures_its_undeclared_precision(reader_walk):
-    """HOUR #18's LEAD 1, CLOSED. The door renders the ledger carrier at 3dp via
-    `fmtGap` -- the first render site any sweep of this module has found outside
-    its own process. Coarser than the declared 4dp, so no epsilon moves."""
+def test_the_shipped_walk_records_the_door_as_RETIRED_not_as_broken(reader_walk):
+    """THE SENTENCE THAT WEDGED THIS FILE (the door retirement, 2026-08-21). For a day after the
+    five-tabs ruling the walk raised `Cannot find module`, which asserts the
+    tool is broken. Nothing was broken: the surface was deleted on purpose, and
+    the difference is what sent the previous taker looking for a moved path.
+
+    So the retirement is now a STATE the control can read, carrying the ruling
+    that caused it -- and it is reached only when the door is wholly absent, a
+    half-present door being a broken one (proven below)."""
     walk = reader_walk["_walk"]
+    assert walk["retired"] is True, walk
+    assert walk["retired_by"] == pair._DOOR_RETIRING_RULING
+    assert walk["available"] is False
+    assert "RETIRED" in str(walk["reason"])
+    assert "Cannot find module" not in str(walk["reason"])
+    # ...and the four regions are recorded as WITHDRAWN rather than forgotten:
+    # the walk still names the surfaces it can no longer measure.
+    assert set(walk["withdrawn_sites"]) == {
+        f"door:coupled-gaps#{r}" for r in pair._DOOR_REGIONS}
+    # No figure reaches a door site any more, and no register entry claims one.
+    for dim in sorted(d for d in reader_walk if d != "_walk"):
+        assert not any(k.startswith("door:") for k, _dp in reader_walk[dim]["sites"])
+        assert reader_walk[dim]["reaches_the_door"] is False
+        assert not any(str(k).startswith("door:") for k, _dp
+                       in (pair.PUBLISHED_GAP_CONSUMERS[dim].get("reader_renders") or ()))
+
+
+def test_the_ruling_really_deleted_the_door_this_walk_says_it_did():
+    """THE RETIREMENT IS EVIDENCE, NOT A STORY SOMEBODY TYPED. `03dd8c49e` is a
+    string in the module; this is the check that the commit it names is the one
+    that removed the door, so a wrong SHA cannot sit there being reassuring."""
+    proc = subprocess.run(
+        ["git", "show", "--name-status", "--format=", pair._DOOR_RETIRING_RULING,
+         "--", "site/proof/"],
+        cwd=str(Path(pair.__file__).resolve().parent.parent),
+        capture_output=True, text=True)
+    if proc.returncode != 0:
+        pytest.skip("this needs the repo's history")
+    deleted = {line.split("\t", 1)[1] for line in proc.stdout.splitlines()
+               if line.startswith("D\t")}
+    for name in _RETIRED_DOOR_FILES:
+        assert f"site/proof/{name}" in deleted, proc.stdout
+    # ...and it is still gone. A door quietly restored would make every
+    # withdrawal below false, which is the first thing the guard checks.
+    assert pair._door_retirement() is not None
+
+
+def test_a_half_present_door_is_BROKEN_and_never_retired(tmp_path, monkeypatch):
+    """R15's fail-open direction, on the retirement itself. If "some file is
+    missing" counted as retirement, any future breakage that happened to remove
+    a file would launder itself into an accepted limitation. Retirement needs
+    the door wholly gone; one file present is a broken door and must be one."""
+    monkeypatch.setattr(pair, "_DOOR_INDEX", tmp_path / "index.html")
+    monkeypatch.setattr(pair, "_DOOR_HARNESS", tmp_path / "_render_harness.mjs")
+    assert pair._door_retirement() is not None          # both absent: retired
+    (tmp_path / "index.html").write_text("<html></html>", encoding="utf-8")
+    assert pair._door_retirement() is None              # one present: NOT retired
+    with pytest.raises(RuntimeError) as exc:
+        pair._door_render({"pairs": []})
+    assert not isinstance(exc.value, pair.DoorRetired)
+
+
+def test_the_withdrawal_is_silent_only_while_it_is_true(reader_walk, component_walk):
+    """THE NULL CONTROL FOR THE WITHDRAWAL. On the site as it stands the door is
+    retired, no page renders the rows, no entry declares a door site -- so the
+    control says nothing, and every figure still meets an artefact through the
+    published note. That silence is what the three mutations below have to be
+    read against: a guard that is quiet everywhere proves nothing."""
+    assert pair.check_door_retirement_still_holds() == []
+    assert pair.check_reader_render_sites(reader_walk, component_walk) == []
+    # The withdrawal did NOT cost any figure its coverage: the per-dimension
+    # vacuity guard is the one that would say so, and it is silent.
+    for dim in sorted(pair.PUBLISHED_GAP_CONSUMERS):
+        assert (set(reader_walk[dim]["sites"])
+                | set(component_walk[dim]["sites"])), dim
+
+
+def test_a_door_that_comes_back_makes_the_withdrawal_fire(retired_door):
+    """FALSIFIER 1. The withdrawal rests on the door being gone. Put its files
+    back and the retirement is false -- those reader surfaces are owed a
+    measurement again, not an accepted limitation."""
+    with door_restored(retired_door):
+        got = pair.check_door_retirement_still_holds()
+    assert any("retirement every withdrawal below rests on is FALSE" in v
+               for v in got), got
+
+
+def test_a_successor_that_renders_the_rows_again_makes_the_withdrawal_fire(tmp_path):
+    """FALSIFIER 2, AND THE ONE THAT MATTERS. The withdrawal is a claim about
+    the SITE -- that no page shows these figures to a reader. A successor door
+    growing the row back would make it false silently, and this is what refuses
+    to let that happen: it names the page and says re-point the walk at THAT
+    one, never at the retired path and never at the cached 200."""
+    (tmp_path / "successor").mkdir()
+    (tmp_path / "successor" / "index.html").write_text(
+        '<div class="gap-row"><div class="gap-val">0.014</div></div>',
+        encoding="utf-8")
+    got = pair.check_door_retirement_still_holds(site_root=tmp_path)
+    assert any("renders coupled-gap rows again" in v for v in got), got
+    assert any("successor/index.html" in v for v in got), got
+    assert any("never at the cached 200" in v for v in got), got
+
+
+def test_the_successor_sweep_does_not_fire_on_the_aggregate_panel_that_did_inherit():
+    """THE SWEEP'S OWN DISCRIMINATION, MEASURED ON THE REAL SUCCESSOR. `/harness/`
+    inherited the proof content and does read `d.coupled_gaps` -- so a sweep for
+    the word "gap" would call it a restored door and the withdrawal would be
+    permanently, wrongly red. It renders four aggregate counts and fixed prose,
+    not a per-pair row, and this asserts the sweep tells those apart on the
+    shipped file rather than on a fixture."""
+    harness = Path(pair.__file__).resolve().parent.parent / "site" / "harness" / "index.html"
+    text = harness.read_text(encoding="utf-8")
+    assert "coupled_gaps" in text and "gap-note" in text     # it really is the heir
+    assert pair.door_successors_rendering_coupled_gap_rows() == ()
+
+
+def test_a_register_that_re_declares_a_withdrawn_door_site_fires():
+    """FALSIFIER 3. The other way the withdrawal goes wrong is quietly, in the
+    register: a figure's epsilon set from a surface this module has just said no
+    reader is shown."""
+    reg = {k: dict(v) for k, v in pair.PUBLISHED_GAP_CONSUMERS.items()}
+    reg["detection"] = dict(reg["detection"],
+                            reader_renders=(("door:coupled-gaps#gap-val", 3),))
+    got = pair.check_door_retirement_still_holds(register=reg)
+    assert any("detection: still declares the withdrawn door site" in v
+               for v in got), got
+
+
+@needs_node
+def test_the_walks_machinery_still_measures_a_door_that_comes_back(door_walk):
+    """HOUR #18's LEAD 1, KEPT ALIVE PAST ITS SUBJECT. The retired door renders
+    the ledger carrier at 3dp via `fmtGap` -- the first render site any sweep of
+    this module found outside its own process. Nobody is shown it any more, and
+    that is asserted above; what this asserts is that the instrument which
+    measured it has not rotted, so a door that comes back is measured rather
+    than trusted."""
+    walk = door_walk["_walk"]
     assert walk["available"] is True, walk
-    assert ("door:coupled-gaps#gap-val", 3) in reader_walk["detection"]["sites"]
-    assert reader_walk["detection"]["reaches_the_door"] is True
+    assert walk.get("retired") is not True
+    assert ("door:coupled-gaps#gap-val", 3) in door_walk["detection"]["sites"]
+    assert door_walk["detection"]["reaches_the_door"] is True
     # ONE figure is CARRIED to the door as a number and re-rendered there by
     # `fmtGap`; the other four ride inside the printed note as digits already
     # chosen. Since Hour #21 that answer comes from the identity of the object
     # the composer handed the ledger writer, not from a float comparison.
     assert walk["headline_dimension"] == "detection"
-    assert [d for d in sorted(reader_walk) if d != "_walk"
-            and reader_walk[d]["reaches_the_door"]] == ["detection"]
+    assert [d for d in sorted(door_walk) if d != "_walk"
+            and door_walk[d]["reaches_the_door"]] == ["detection"]
 
 
-@needs_node
 def test_every_published_figure_now_meets_an_artefact_and_no_epsilon_moved(
         reader_walk, component_walk):
-    """R12: this Hour changed what is MEASURED, never what is computed."""
+    """R12: this Hour changed what is MEASURED, never what is computed.
+
+    Needs no node since the door retirement, 2026-08-21: with the door retired there is no JavaScript
+    left to drive, and every surface these figures have is inside this process.
+    That is the withdrawal stated as a fact about the suite."""
     assert pair.check_reader_render_sites(reader_walk, component_walk) == []
     assert pair.check_component_render_sites(component_walk) == []
     # ageing was 6 between Hours #17 and #20, on a site nobody is handed (D36).
@@ -7525,7 +7764,6 @@ def test_every_published_figure_now_meets_an_artefact_and_no_epsilon_moved(
         "detection": 4, "detection_latency": 2}
 
 
-@needs_node
 def test_an_epsilon_finer_than_every_surface_fires(reader_walk, component_walk):
     """R15, THE GUARD THIS HOUR ADDS. Both checks asked only whether some site
     is FINER than the declaration. Neither asked the other direction, so a
@@ -7581,41 +7819,51 @@ def test_a_carrier_read_as_text_collapses_every_epsilon_to_the_doubles_width():
 
 
 @needs_node
-def test_a_door_rendering_finer_than_the_declared_epsilon_fires(tmp_path, monkeypatch):
+def test_a_door_rendering_finer_than_the_declared_epsilon_fires(tmp_path, retired_door):
     """THE ALARM THE DOOR SITE EXISTS FOR. `fmtGap` at 3dp is coarser than the
-    declared 4dp today; the moment it is not, the reader can separate two
-    companies the epsilon calls identical -- and before this Hour nothing would
-    have said so."""
+    declared 4dp; the moment it is not, the reader can separate two companies
+    the epsilon calls identical -- and before Hour #19 nothing would have said
+    so.
+
+    Run against the retired door's own bytes and the declarations that were live
+    with it (the door retirement, 2026-08-21). Restoring the door WITHOUT restoring the declarations
+    would measure the withdrawal instead of this alarm."""
     mutated = tmp_path / "index.html"
-    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    original = retired_door["index"].read_text(encoding="utf-8")
     assert 'Number(v).toFixed(3); }' in original
     mutated.write_text(
         original.replace("function fmtGap(v){ return v==null?\"—\":Number(v).toFixed(3); }",
                          "function fmtGap(v){ return v==null?\"—\":Number(v).toFixed(6); }"),
         encoding="utf-8")
-    monkeypatch.setattr(pair, "_DOOR_INDEX", mutated)
-    measured = pair.measure_reader_render_sites()
+    with door_restored(retired_door, index_path=mutated):
+        measured = pair.measure_reader_render_sites()
     assert ("door:coupled-gaps#gap-val", 6) in measured["detection"]["sites"]
-    got = pair.check_reader_render_sites(measured, pair.measure_component_render_sites())
+    got = pair.check_reader_render_sites(measured, pair.measure_component_render_sites(),
+                                         register=_register_with_the_door_back())
     assert any("sets its epsilon from 4dp while a reader surface renders it at "
                "6dp" in v for v in got), got
 
 
 @needs_node
-def test_a_door_that_stops_printing_the_note_verbatim_fires(tmp_path, monkeypatch):
-    """THE SEAM THE RENDERER STAGE RESTS ON. Four of the five figures are
-    measured on their renderer's OUTPUT, and that string is a reader surface
-    only because the door concatenates it unchanged -- which Hour #18 verified
-    once, by hand, and nothing has asserted since."""
+def test_a_door_that_stops_printing_the_note_verbatim_fires(tmp_path, retired_door):
+    """THE SEAM THE RENDERER STAGE RESTED ON WHILE THERE WAS A DOOR. Four of the
+    five figures were measured on their renderer's OUTPUT, and that string was a
+    reader surface only because the door concatenated it unchanged.
+
+    Since the retirement (the door retirement, 2026-08-21) those `renderer:` sites are evidence of a
+    chosen PRECISION in a published string and no longer evidence of a reader --
+    which is written down in the register rather than left to be inferred. This
+    keeps the seam's alarm alive for the door that comes back."""
     mutated = tmp_path / "index.html"
-    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    original = retired_door["index"].read_text(encoding="utf-8")
     assert "esc(p.note)" in original
     mutated.write_text(original.replace("esc(p.note)", '"[note withheld]"'),
                        encoding="utf-8")
-    monkeypatch.setattr(pair, "_DOOR_INDEX", mutated)
-    measured = pair.measure_reader_render_sites()
+    with door_restored(retired_door, index_path=mutated):
+        measured = pair.measure_reader_render_sites()
     assert measured["_walk"]["note_verbatim"] is False
-    got = pair.check_reader_render_sites(measured, pair.measure_component_render_sites())
+    got = pair.check_reader_render_sites(measured, pair.measure_component_render_sites(),
+                                         register=_register_with_the_door_back())
     assert any("no longer prints the carried note verbatim" in v for v in got), got
 
 
@@ -7812,7 +8060,6 @@ def test_a_figure_rendered_at_no_site_anywhere_fires(reader_walk, component_walk
                for v in gone), gone
 
 
-@needs_node
 def test_a_sibling_quantity_that_moves_with_the_figure_is_not_a_render_of_it(
         reader_walk, component_walk):
     """EXPERT HOUR #19's SECOND FINDING. The two-seed rule tells a figure from a
@@ -7829,8 +8076,12 @@ def test_a_sibling_quantity_that_moves_with_the_figure_is_not_a_render_of_it(
     assert (site, 4) in reader_walk["belief_population_mix"]["cross_attributed"]
     assert (site, 4) not in reader_walk["belief_population_mix"]["sites"]
     # Its own door site -- the printed note, where the composer's inline `.4f`
-    # renders it -- is not affected by the collision (atom D37, Hour #21).
-    assert ("door:coupled-gaps#note", 4) in reader_walk["belief_population_mix"]["sites"]
+    # rendered it (atom D37, Hour #21) -- was WITHDRAWN with the door (the door retirement, 2026-08-21), so
+    # this figure now has an EMPTY `reader_renders` and its whole coverage is
+    # the component sweep's. The collision never touched that surface, and this
+    # asserts the withdrawal did not silently take it too.
+    assert pair.PUBLISHED_GAP_CONSUMERS["belief_population_mix"]["reader_renders"] == ()
+    assert ("note", 4) in component_walk["belief_population_mix"]["sites"]
     # THE COINCIDENCE IS REAL, on more books than the walk itself uses.
     for seed in (23, 101, 999):
         records, consumer, _b, as_of = pair._resolution_population(300, seed)
@@ -7882,16 +8133,20 @@ def test_the_reader_walk_runs_in_the_cli_not_only_in_tests():
 
 @needs_node
 def test_every_figure_reaches_the_door_and_the_headline_is_known_by_identity(
-        reader_walk, component_walk):
+        door_walk, component_walk):
     """WHAT THE VALUE GATE WAS HIDING. All five figures are rendered on the
     door, inside the note it prints verbatim, each at its own declared
     precision; ONE of them is additionally carried there as a number and
-    re-rendered by `fmtGap`, and which one is now answered by the identity of
-    the object the composer handed the ledger writer."""
-    assert reader_walk["_walk"]["headline_dimension"] == "detection"
-    assert {d: sorted(s for s in reader_walk[d]["sites"]
+    re-rendered by `fmtGap`, and which one is answered by the identity of the
+    object the composer handed the ledger writer.
+
+    On the RETIRED door's own bytes since the door retirement, 2026-08-21 -- this is the property that
+    would have to hold again if a successor rendered these rows, and the exact
+    map of door sites the register withdrew."""
+    assert door_walk["_walk"]["headline_dimension"] == "detection"
+    assert {d: sorted(s for s in door_walk[d]["sites"]
                       if s[0].startswith("door:"))
-            for d in sorted(d for d in reader_walk if d != "_walk")} == {
+            for d in sorted(d for d in door_walk if d != "_walk")} == {
         "ageing": [("door:coupled-gaps#note", 3)],
         "belief": [("door:coupled-gaps#note", 4)],
         "belief_population_mix": [("door:coupled-gaps#note", 4)],
@@ -7899,30 +8154,39 @@ def test_every_figure_reaches_the_door_and_the_headline_is_known_by_identity(
                       ("door:coupled-gaps#note", 4)],
         "detection_latency": [("door:coupled-gaps#note", 2)],
     }
-    # R12: this Hour changed what is MEASURED, never what is computed. Every
-    # door site is at a precision the figure already had, so no epsilon moves.
+    # ...and it is EXACTLY what the register withdrew -- the map above is the
+    # `_WITHDRAWN_DOOR_RENDERS` this file declares, measured off the artefact
+    # rather than copied from it, so a withdrawal that took too much or too
+    # little would show up here.
+    assert {d: sorted(s for s in door_walk[d]["sites"] if s[0].startswith("door:"))
+            for d in sorted(_WITHDRAWN_DOOR_RENDERS)} == {
+        d: sorted(v) for d, v in _WITHDRAWN_DOOR_RENDERS.items()}
+    # R12: no epsilon moved in either direction. Every door site was at a
+    # precision the figure already had, which is why withdrawing them costs no
+    # figure its declared precision.
     assert {d: pair.published_reading_decimals(d)
             for d in pair.PUBLISHED_GAP_CONSUMERS} == {
         "ageing": 3, "belief": 4, "belief_population_mix": 4,
         "detection": 4, "detection_latency": 2}
-    assert pair.check_reader_render_sites(reader_walk, component_walk) == []
+    assert pair.check_reader_render_sites(
+        door_walk, component_walk, register=_register_with_the_door_back()) == []
 
 
 @needs_node
-def test_the_headline_is_not_decided_by_comparing_floats(reader_walk):
-    """R15, THE MUTATION THIS HOUR EXISTS FOR. Restore the value gate and point
+def test_the_headline_is_not_decided_by_comparing_floats(door_walk):
+    """R15, THE MUTATION HOUR #21 EXISTS FOR. Restore the value gate and point
     it at a companion whose carrier has been made equal to the headline's: the
     value test hands that companion the door's `gap-val` and `components`
     regions, and the provenance test does not."""
     books = pair.published_books()
     values = [float(b["result"]["detection"].gap) for b in books]
-    row_values = list(reader_walk["_walk"]["carrier_by_book"])
+    row_values = list(door_walk["_walk"]["carrier_by_book"])
     # The gate that shipped until this Hour, restated.
     def value_gate(carriers):
         return all(a is not None and float(a) == float(b)
                    for a, b in zip(carriers, row_values))
     assert value_gate(values)                      # the headline passes it
-    mix = list(reader_walk["belief_population_mix"]["carrier_by_seed"].values())
+    mix = list(door_walk["belief_population_mix"]["carrier_by_seed"].values())
     assert not value_gate(mix)                     # today, so does nothing else
     # BUT IT IS A COINCIDENCE THAT NOTHING ELSE DOES. A companion equal to the
     # headline on both books is admitted by the value gate to the whole panel.
@@ -7934,7 +8198,7 @@ def test_the_headline_is_not_decided_by_comparing_floats(reader_walk):
     # silently crediting them with `fmtGap`'s precision.
     for dim in ("ageing", "belief", "belief_population_mix", "detection_latency"):
         assert not any(k.endswith(("#gap-val", "#components", "#basis"))
-                       for k, _dp in reader_walk[dim]["sites"]), dim
+                       for k, _dp in door_walk[dim]["sites"]), dim
 
 
 def test_a_composer_that_routes_around_the_ledger_seam_fails_the_walk(monkeypatch):
@@ -7976,21 +8240,27 @@ def test_a_composer_that_routes_around_the_ledger_seam_fails_the_walk(monkeypatc
 
 
 @needs_node
-def test_a_door_region_the_walk_cannot_name_fails_closed(tmp_path, monkeypatch):
+def test_a_door_region_the_walk_cannot_name_fails_closed(tmp_path, retired_door):
     """R15. The whole subject of this instrument is reader surfaces nobody
     searched. A door that grows a fifth region must fail the walk rather than
-    render a figure into a region no sweep looks at."""
+    render a figure into a region no sweep looks at.
+
+    AND IT MUST FAIL AS BROKEN, NOT AS RETIRED (the door retirement, 2026-08-21). A present door that
+    the walk cannot read is the failed check R15 names; only a wholly absent one
+    is the withdrawal. This asserts the two states do not collapse into each
+    other, which is the fail-open a retirement flag invites."""
     mutated = tmp_path / "index.html"
-    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    original = retired_door["index"].read_text(encoding="utf-8")
     assert "'<div class=\"gap-basis\">'" in original
     mutated.write_text(
         original.replace("'<div class=\"gap-basis\">'",
                          "'<div class=\"gap-audit\">audit '+esc(fmtGap(p.value))+"
                          "'</div><div class=\"gap-basis\">'"),
         encoding="utf-8")
-    monkeypatch.setattr(pair, "_DOOR_INDEX", mutated)
-    measured = pair.measure_reader_render_sites()
+    with door_restored(retired_door, index_path=mutated):
+        measured = pair.measure_reader_render_sites()
     assert measured["_walk"]["available"] is False
+    assert measured["_walk"]["retired"] is False
     assert "gap-audit" in str(measured["_walk"]["reason"])
     got = pair.check_reader_render_sites(measured,
                                          pair.measure_component_render_sites())
@@ -7999,60 +8269,67 @@ def test_a_door_region_the_walk_cannot_name_fails_closed(tmp_path, monkeypatch):
 
 @needs_node
 def test_a_door_region_that_vanishes_is_not_a_region_that_renders_nothing(
-        tmp_path, monkeypatch):
+        tmp_path, retired_door):
     """R15's fail-silent pattern, on the region split itself. A region the door
     stopped rendering reads to a value sweep exactly like a region in which the
-    figure does not appear."""
+    figure does not appear.
+
+    This is the same distinction the retirement rests on, one level down: a
+    region that VANISHED is a defect, an absent DOOR is a withdrawal, and
+    neither may be read as the other."""
     mutated = tmp_path / "index.html"
-    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    original = retired_door["index"].read_text(encoding="utf-8")
     assert "+fmtGap(p.value)+'</div>'" in original
     mutated.write_text(original.replace("+fmtGap(p.value)+'</div>'",
                                         "+''+'</div>'"), encoding="utf-8")
-    monkeypatch.setattr(pair, "_DOOR_INDEX", mutated)
-    measured = pair.measure_reader_render_sites()
+    with door_restored(retired_door, index_path=mutated):
+        measured = pair.measure_reader_render_sites()
     assert measured["_walk"]["available"] is False
+    assert measured["_walk"]["retired"] is False
     assert "rendered no ['gap-val'] region" in str(measured["_walk"]["reason"])
 
 
 @needs_node
 def test_a_door_note_that_diverges_from_the_entrys_note_fires(
-        reader_walk, component_walk):
+        door_walk, component_walk):
     """THE VERBATIM SEAM IN THIS INSTRUMENT'S OWN UNITS. Four of the five
-    figures' door coverage rests entirely on the panel printing the entry's note
-    unchanged. `note_verbatim` tests that on the note's first 60 characters;
-    this tests it where it is load-bearing -- at every precision the note
-    renders each figure."""
+    figures' door coverage rested entirely on the panel printing the entry's
+    note unchanged. `note_verbatim` tests that on the note's first 60
+    characters; this tests it where it is load-bearing -- at every precision the
+    note renders each figure. Held against the retired door's bytes (the door retirement, 2026-08-21)."""
+    register = _register_with_the_door_back()
     diverged = {k: (dict(v) if k != "_walk" else v)
-                for k, v in reader_walk.items()}
+                for k, v in door_walk.items()}
     diverged["detection_latency"]["sites"] = tuple(
         s for s in diverged["detection_latency"]["sites"]
         if s[0] != "door:coupled-gaps#note")
-    got = pair.check_reader_render_sites(diverged, component_walk)
+    got = pair.check_reader_render_sites(diverged, component_walk, register=register)
     assert any("detection_latency: the door's printed note renders it at no "
                "precision while the entry's own note renders it at [2]" in v
                for v in got), got
-    # ...and it is SILENT on the shipped walk, where the two agree everywhere.
-    assert pair.check_reader_render_sites(reader_walk, component_walk) == []
+    # ...and it is SILENT on the unmutated walk, where the two agree everywhere.
+    assert pair.check_reader_render_sites(
+        door_walk, component_walk, register=register) == []
 
 
 @needs_node
-def test_the_doors_numeric_component_render_is_now_a_searched_surface(reader_walk):
+def test_the_doors_numeric_component_render_is_now_a_searched_surface(
+        door_walk, retired_door):
     """HOUR #20's LEAD 2. `fmtComponent`/`flattenNumbers` re-render every finite
     numeric leaf of the HEADLINE's components at 4dp -- a surface the component
     sweep structurally cannot see (it searches the entry's STRINGS) and the old
     door search could not reach (it was open to one dimension, as one string).
-    It is now a named region with an owner. Measured: it renders none of the
-    five published figures today, so no epsilon rests on it -- and that is a
-    measurement rather than an absence of one."""
-    assert "door:coupled-gaps#components" in reader_walk["_walk"]["regions"]
+    It is a named region with an owner. Measured: it rendered none of the five
+    published figures, so no epsilon rested on it -- and that is a measurement
+    rather than an absence of one, which is why withdrawing it costs nothing."""
+    assert "door:coupled-gaps#components" in door_walk["_walk"]["regions"]
     assert not any(k == "door:coupled-gaps#components"
-                   for d in reader_walk if d != "_walk"
-                   for k, _dp in (tuple(reader_walk[d]["sites"])
-                                  + tuple(reader_walk[d]["cross_attributed"])))
+                   for d in door_walk if d != "_walk"
+                   for k, _dp in (tuple(door_walk[d]["sites"])
+                                  + tuple(door_walk[d]["cross_attributed"])))
     # The region is REAL and does render numbers at 4dp -- an empty region would
     # produce the same "no sites" answer, which is why the walk refuses one.
-    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
-    assert "Number(v).toFixed(4)" in original
+    assert "Number(v).toFixed(4)" in retired_door["index"].read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -8076,6 +8353,7 @@ def test_the_doors_numeric_component_render_is_now_a_searched_surface(reader_wal
 
 
 def _fixture_row_htmls(
+    retired_door,
     values=(0.118, 0.129),
     notes=("note A 0.118", "note B 0.129"),
     components=({"n": 1.0}, {"n": 2.0}),
@@ -8088,12 +8366,16 @@ def _fixture_row_htmls(
     row's SHAPE, which is the door's and not the scoring's, and driving two
     real books through the composer to measure it would pay two scorings for a
     property neither of them decides. That the fixture reproduces the shipped
-    population EXACTLY is asserted below rather than assumed, and the shipped
-    walk over the real books is covered by `reader_walk` one section up.
+    population EXACTLY is asserted below rather than assumed.
+
+    THE DOOR IS THE RETIRED ONE, READ OUT OF GIT (the door retirement, 2026-08-21). The row census is a
+    property of that artefact, and the artefact is in a tree; what is no longer
+    true -- that a reader is shown any of it -- is asserted directly one section
+    up rather than smuggled in by keeping these green.
     """
-    previous = pair._DOOR_INDEX
-    if index_path is not None:
-        pair._DOOR_INDEX = index_path
+    previous = (pair._DOOR_INDEX, pair._DOOR_HARNESS)
+    pair._DOOR_INDEX = index_path if index_path is not None else retired_door["index"]
+    pair._DOOR_HARNESS = retired_door["harness"]
     try:
         out = []
         for v, note, comp, raw in zip(values, notes, components, raw_gaps):
@@ -8108,7 +8390,7 @@ def _fixture_row_htmls(
             }]}))
         return out
     finally:
-        pair._DOOR_INDEX = previous
+        pair._DOOR_INDEX, pair._DOOR_HARNESS = previous
 
 
 def _census(htmls, values=(0.118, 0.129), headline="detection"):
@@ -8119,11 +8401,11 @@ def _census(htmls, values=(0.118, 0.129), headline="detection"):
 
 
 @needs_node
-def test_the_row_census_is_the_rendered_elements_and_the_register_is_clean():
+def test_the_row_census_is_the_rendered_elements_and_the_register_is_clean(retired_door):
     """NOT ALWAYS-RED, and the population is the ARTEFACT's. Every element the
     door renders has a declaration, every declaration has an element, and the
     shipped register describes the shipped door exactly."""
-    got, measured = _census(_fixture_row_htmls())
+    got, measured = _census(_fixture_row_htmls(retired_door))
     assert got == [], got
     assert set(measured["surfaces"]) == set(pair._DOOR_ROW_SURFACES)
     # THE POPULATION THE CLASS CENSUS COULD NOT EXPRESS, counted: five elements
@@ -8143,13 +8425,13 @@ def test_the_row_census_is_the_rendered_elements_and_the_register_is_clean():
 
 
 @needs_node
-def test_a_classless_element_the_door_grows_fires(tmp_path):
+def test_a_classless_element_the_door_grows_fires(tmp_path, retired_door):
     """THE HOLE THE CLASS CENSUS CANNOT EXPRESS. `_DOOR_ROW_KNOWN_CLASSES`
     refuses any class it cannot name -- and an element with no class attribute
     is not a class it cannot name, it is an element it never looked at. The
     door is mutated to grow one, rendering the figure, and the class census
     stays SILENT while the element census fires."""
-    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    original = retired_door["index"].read_text(encoding="utf-8")
     mutated = tmp_path / "index.html"
     assert "'<div class=\"gap-basis\">'" in original
     mutated.write_text(
@@ -8157,7 +8439,7 @@ def test_a_classless_element_the_door_grows_fires(tmp_path):
                          "'<span>'+fmtGap(p.value)+'</span>'+"
                          "'<div class=\"gap-basis\">'"),
         encoding="utf-8")
-    htmls = _fixture_row_htmls(index_path=mutated)
+    htmls = _fixture_row_htmls(retired_door, index_path=mutated)
     # THE OLD CENSUS IS SILENT ON IT -- proven, not asserted.
     assert pair._door_row_regions(htmls[0])
     got, _ = _census(htmls)
@@ -8167,12 +8449,12 @@ def test_a_classless_element_the_door_grows_fires(tmp_path):
 
 
 @needs_node
-def test_a_wrapper_that_starts_rendering_the_figure_fires(tmp_path):
+def test_a_wrapper_that_starts_rendering_the_figure_fires(tmp_path, retired_door):
     """A DECLARED STRUCTURAL WRAPPER THAT MOVES. The class census's answer to
     any door change is the same refusal whichever it was, discharged by
     appending a string; this one states what the surface IS and is wrong when
     the surface stops being it."""
-    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    original = retired_door["index"].read_text(encoding="utf-8")
     mutated = tmp_path / "index.html"
     assert "'<div class=\"gap-bar\"><span style=\"width:'" in original
     mutated.write_text(
@@ -8180,25 +8462,25 @@ def test_a_wrapper_that_starts_rendering_the_figure_fires(tmp_path):
                          "'<div class=\"gap-bar\">'+fmtGap(p.value)+"
                          "'<span style=\"width:'"),
         encoding="utf-8")
-    got, _ = _census(_fixture_row_htmls(index_path=mutated))
+    got, _ = _census(_fixture_row_htmls(retired_door, index_path=mutated))
     assert any("div.gap-bar[0]` is declared structural and INERT, and its text "
                "moves between books" in v for v in got), got
 
 
 @needs_node
-def test_a_searched_region_gone_constant_fires(tmp_path):
+def test_a_searched_region_gone_constant_fires(tmp_path, retired_door):
     """AN INERT REGION IS NOT AN EMPTY ONE. The walk one level up refuses a
     region that came back EMPTY; a region that renders the same string on both
     books is not empty, and to the two-book rule it is indistinguishable from a
     region that does not render the figure at all."""
-    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    original = retired_door["index"].read_text(encoding="utf-8")
     mutated = tmp_path / "index.html"
     assert "'<div class=\"gap-note\">'+esc(p.note)+'</div>'" in original
     mutated.write_text(
         original.replace("'<div class=\"gap-note\">'+esc(p.note)+'</div>'",
                          "'<div class=\"gap-note\">a fixed sentence</div>'"),
         encoding="utf-8")
-    htmls = _fixture_row_htmls(index_path=mutated)
+    htmls = _fixture_row_htmls(retired_door, index_path=mutated)
     # The region is PRESENT and non-empty, so the shipped guard is silent.
     assert pair._door_row_regions(htmls[0])["door:coupled-gaps#note"].strip()
     got, _ = _census(htmls)
@@ -8207,60 +8489,60 @@ def test_a_searched_region_gone_constant_fires(tmp_path):
 
 
 @needs_node
-def test_a_declaration_that_outlived_its_element_fires(tmp_path):
+def test_a_declaration_that_outlived_its_element_fires(tmp_path, retired_door):
     """THE OTHER DIRECTION. A door that stops rendering a declared surface
     reads to every sweep here exactly like a surface that renders nothing."""
-    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    original = retired_door["index"].read_text(encoding="utf-8")
     mutated = tmp_path / "index.html"
     mutated.write_text(
         original.replace("'<div class=\"gap-basis\">'",
                          "'<div class=\"gap-DELETED\">'"),
         encoding="utf-8")
-    got, _ = _census(_fixture_row_htmls(index_path=mutated))
+    got, _ = _census(_fixture_row_htmls(retired_door, index_path=mutated))
     assert any("div.gap-basis[0]` is declared as a door surface and the "
                "rendered row does not contain it" in v for v in got), got
 
 
 @needs_node
-def test_a_render_that_arrives_in_an_attribute_fires(tmp_path):
+def test_a_render_that_arrives_in_an_attribute_fires(tmp_path, retired_door):
     """A RENDER NEED NOT BE TEXT (atom D39's class). Every literal sweep in
     this module reads text; the one surface of this row that renders the
     headline outside its text was invisible to all of them."""
-    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    original = retired_door["index"].read_text(encoding="utf-8")
     mutated = tmp_path / "index.html"
     mutated.write_text(
         original.replace("'<div class=\"gap-basis\">'",
                          "'<div class=\"gap-basis\" title=\"'+fmtGap(p.value)+"
                          "'\">'"),
         encoding="utf-8")
-    got, _ = _census(_fixture_row_htmls(index_path=mutated))
+    got, _ = _census(_fixture_row_htmls(retired_door, index_path=mutated))
     assert any("moves in attribute(s) ['title'] that its declaration does not "
                "allow" in v for v in got), got
 
 
 @needs_node
-def test_a_bar_that_stops_matching_its_declared_scaling_fires(tmp_path):
+def test_a_bar_that_stops_matching_its_declared_scaling_fires(tmp_path, retired_door):
     """THE SCALED RENDER, HELD TO THE PIXEL (atom D39). The declaration is what
     makes this surface expressible at all -- so the check is that it PREDICTS
     the rendered literal from the carrier, on every book."""
-    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    original = retired_door["index"].read_text(encoding="utf-8")
     mutated = tmp_path / "index.html"
     assert "barPct.toFixed(0)" in original
     mutated.write_text(original.replace("barPct.toFixed(0)", "barPct.toFixed(2)"),
                        encoding="utf-8")
-    got, _ = _census(_fixture_row_htmls(index_path=mutated))
+    got, _ = _census(_fixture_row_htmls(retired_door, index_path=mutated))
     assert any("declared scaling (100x at 0dp) predicts `12`" in v
                for v in got), got
 
 
 @needs_node
-def test_a_scaled_render_finer_than_the_epsilon_fires(tmp_path):
+def test_a_scaled_render_finer_than_the_epsilon_fires(tmp_path, retired_door):
     """THE ALARM THE SCALED SURFACE EXISTS FOR. 100x at 0dp is 2dp of the
     figure, coarser than the 4dp detection's epsilon is set from, so nothing
     moves today. At 100x/3dp -- 5dp of the figure -- the reader can separate
     two companies the epsilon calls identical, and before this Hour no sweep in
     this module could have said so, because they all search UNSCALED digits."""
-    original = pair._DOOR_INDEX.read_text(encoding="utf-8")
+    original = retired_door["index"].read_text(encoding="utf-8")
     mutated = tmp_path / "index.html"
     mutated.write_text(original.replace("barPct.toFixed(0)", "barPct.toFixed(3)"),
                        encoding="utf-8")
@@ -8270,7 +8552,7 @@ def test_a_scaled_render_finer_than_the_epsilon_fires(tmp_path):
     original_reg = pair._DOOR_ROW_SURFACES
     try:
         pair._DOOR_ROW_SURFACES = declared
-        got, _ = _census(_fixture_row_htmls(index_path=mutated))
+        got, _ = _census(_fixture_row_htmls(retired_door, index_path=mutated))
     finally:
         pair._DOOR_ROW_SURFACES = original_reg
     # The declaration now DESCRIBES the door -- this is not a prediction miss.
@@ -8280,7 +8562,7 @@ def test_a_scaled_render_finer_than_the_epsilon_fires(tmp_path):
 
 
 @needs_node
-def test_a_row_whose_shape_is_the_books_refuses():
+def test_a_row_whose_shape_is_the_books_refuses(retired_door):
     """FAIL CLOSED ON A POPULATION THAT IS NOT ONE. Aligning what two books
     have in common and measuring that would report the elements they agree
     about and stay silent about an element only one of them renders -- which is
@@ -8289,7 +8571,7 @@ def test_a_row_whose_shape_is_the_books_refuses():
     # the element paths are not the same set. The real instance of this is a
     # ledger entry with no measured gap, which the door renders every day.
     got, measured = _census(
-        _fixture_row_htmls(values=(0.118, None)), values=(0.118, None))
+        _fixture_row_htmls(retired_door, values=(0.118, None)), values=(0.118, None))
     assert measured["available"] is False
     assert any("is not the same SHAPE on both books" in v for v in got), got
     assert any("an unavailable check is a failed check" in v for v in got), got

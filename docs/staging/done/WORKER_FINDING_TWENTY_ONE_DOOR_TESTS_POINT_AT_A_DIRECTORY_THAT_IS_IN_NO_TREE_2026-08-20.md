@@ -2,6 +2,17 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
+**Discharged:** `tests/tools/test_couple_w2_11_d5.py::test_the_shipped_walk_records_the_door_as_RETIRED_not_as_broken`,
+`tests/tools/test_couple_w2_11_d5.py::test_a_half_present_door_is_BROKEN_and_never_retired`,
+`tests/tools/test_couple_w2_11_d5.py::test_a_door_that_comes_back_makes_the_withdrawal_fire`,
+`tests/tools/test_couple_w2_11_d5.py::test_a_successor_that_renders_the_rows_again_makes_the_withdrawal_fire`,
+`tests/tools/test_couple_w2_11_d5.py::test_a_register_that_re_declares_a_withdrawn_door_site_fires`,
+`tests/tools/test_couple_w2_11_d5.py::test_the_withdrawal_is_silent_only_while_it_is_true`,
+`tools/couple_w2_11_d5.py` — the door is now RETIRED rather than broken, the reader
+surfaces that rested on it are withdrawn rather than deleted, and the withdrawal fails in
+three independent directions with a measured null control, so it cannot become a
+comfortable silence.
+
 rank: after-current-EP6-pass
 found_by: EP6_wall_protocol_typing pass 42 (a refused `surgical_land`)
 found_at: 2026-08-20
@@ -131,7 +142,7 @@ is precisely what turns four of the five figures' measured precisions back into
 claims about an internal string. Both reds are accurate statements about what the
 reader lost.
 
-## What is owed (recommendation, not yet done)
+## What was owed (recommendation) — and what was done, 2026-08-21
 
 The per-pair figures are **still published — as JSON**: `/data/proof.json`
 answers 200 and carries fifteen pairs with `value`, `components`, basis
@@ -161,8 +172,60 @@ published output, which is why this pass did not rush it in a bounded tick:
 greening this suite by guessing would be exactly the "green suite achieved by
 deleting the subject" that this finding was filed to prevent.
 
-**Still BLOCKING — the wedge is NOT cleared.** `tools/couple_w2_11_d5.py` and
-`tests/tools/test_couple_w2_11_d5.py` remain unlandable for the atoms that name
-them. What this pass removes is the wrong hypothesis: the next taker does not
-need to look for a moved path or an uncommitted door, and must not restore the
-retired one.
+---
+
+## DISCHARGED 2026-08-21 — all four items taken, the wedge cleared
+
+The four items above were built as one repair (the door retirement, 2026-08-21). Nothing was re-pointed
+at the retired path and nothing was re-pointed at the cached 200.
+
+**1. The module knows the door was RETIRED.** `_door_retirement()` returns the
+ruling `03dd8c49e` by name, `_door_render` raises a new `DoorRetired` instead of
+letting node fail with `Cannot find module`, and the walk records
+`retired=True`/`retired_by`/`withdrawn_sites` as state rather than as a sentence
+somebody reads. Retirement requires the door to be **wholly** absent: a
+half-present door is BROKEN and keeps the old failed-check refusal, because
+"some file is missing" counting as retirement would let any future breakage
+launder itself into an accepted limitation (`test_a_half_present_door_is_BROKEN_
+and_never_retired` proves both sides).
+
+**2. The reader-surface claims are withdrawn, not deleted.** All five register
+entries lost their `door:coupled-gaps#*` sites, each with the precision it held
+and the reason; `belief_population_mix` now carries an EMPTY `reader_renders`,
+which is the entry that shows what the withdrawal cost. The `renderer:` sites
+survive on a stated basis — see item 4 — and no epsilon moved in either
+direction (R12), because every withdrawn door site was at a precision the figure
+already had.
+
+**3. The withdrawal can fail, three ways, with a null control.**
+`check_door_retirement_still_holds()` re-derives the retirement from the
+artefacts on every run and fires if (a) the door's files return, (b) ANY page
+under `site/` renders coupled-gap rows again — it names the page and says
+re-point the walk at that one — or (c) the register re-declares a withdrawn door
+site. Each has a mutation; the shipped state is silent, and that silence is
+asserted beside them, because a guard that is quiet everywhere proves nothing.
+The sweep is measured against the real successor rather than a fixture:
+`/harness/` did inherit the proof content and does read `coupled_gaps`, so a
+sweep for the word "gap" would have made the withdrawal permanently and wrongly
+red — it renders four aggregate counts and fixed prose, not a row, and the
+control tells those apart on the shipped file.
+
+**4. Does a fetchable JSON artefact count as a reader surface? DECIDED: NO.**
+Answered from this module's own carrier/render boundary rather than a new rule.
+`proof.json`'s `value`/`components`/`baseline_g0`/`raw_gap` are CARRIERS — the
+digits are the double's, nobody chose them, and serialising a float never makes
+its width a precision. `note` is a STRING whose digits each figure's renderer
+chose, which is why `component_renders` and the `renderer:` sites survive: they
+measure a precision that exists and is published, and every epsilon in the
+register is now set from them. What does NOT survive is the R11 claim, and it is
+stated out loud rather than left to be inferred: **no published figure of this
+pair currently meets a reader on a rendered surface.** That is the accepted
+limitation; item 3 is what stops it becoming a comfortable one.
+
+**The 21 tests are green and the wedge is cleared.** They were not re-pointed at
+a live surface and they were not retired. The suite splits: the SHIPPED walk
+asserts the retirement and the withdrawal, and the walk's MACHINERY is still put
+on trial against the retired door's own bytes read out of git at `03dd8c49e^` —
+an artefact that is in a tree and that any clone can rebuild, which is exactly
+what the cached 200 is not. Every mutation still proves what it always did, and
+no test claims a reader is being shown anything.

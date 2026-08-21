@@ -8071,12 +8071,10 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         # Hour this figure had NO artefact-side site at all: the component sweep
         # found none, and its control was silent about that, so the 4dp came
         # from D34's AST read of this renderer and nothing else.
+        # WITHDRAWN, NOT DELETED (the door retirement, 2026-08-21): `door:coupled-gaps#note`
+        # at 4dp. Hour #21 measured it on the rendered pixel and it was true
+        # then; the ruling in `03dd8c49e` retired the door that rendered it.
         "reader_renders": (
-            # ON THE DOOR TOO (atom D37, Hour #21) -- inside the note the panel
-            # prints verbatim, at the same 4dp, which is where this figure's
-            # reader actually stands. Excluded from the door surface until this
-            # Hour by a value gate that admitted only the headline.
-            ("door:coupled-gaps#note", 4),
             ("renderer:background/gap_metric.py::format_belief_summary", 4),
         ),
         # AND IN THE PUBLISHED NOTE (atom D36, Hour #20) -- the same string, now
@@ -8105,9 +8103,13 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         "component_renders": (("note", 4),),
         # ITS RENDERER IS A METHOD, so no call on a bare result reproduces the
         # string its reader is handed; its coverage comes from the component
-        # site above -- and, since Hour #21, from the SAME string one hand-off
-        # further on, printed verbatim on the door at the same 4dp.
-        "reader_renders": (("door:coupled-gaps#note", 4),),
+        # site above -- and, from Hour #21 until the door was retired, from the
+        # SAME string one hand-off further on, printed verbatim at 4dp.
+        # WITHDRAWN (the door retirement, 2026-08-21): `door:coupled-gaps#note` at 4dp. This entry is
+        # now the one that shows what the withdrawal cost -- its `reader_renders`
+        # is EMPTY, so every surface it has left is a component of the published
+        # note, and the per-dimension vacuity guard below is carrying it alone.
+        "reader_renders": (),
         # THE SIBLING COINCIDENCE (Expert Hour #19). This figure's value turns
         # up at 4dp inside `format_belief_summary`, which does not render it:
         # what that renderer prints there is belief's PER-CASE DISAGREEMENT
@@ -8146,9 +8148,13 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         # carrier this figure alone is handed as a number, and the composed note
         # the panel prints verbatim for all five -- and while the door was one
         # search string that distinction could not be written down.
+        # WITHDRAWN (the door retirement, 2026-08-21): `door:coupled-gaps#gap-val` at 3dp
+        # and `door:coupled-gaps#note` at 4dp. This is the figure that loses
+        # most -- the 3dp `fmtGap` render was the ONLY site any sweep of this
+        # module ever found outside its own process, and it is gone with the
+        # door. Nothing about the number changed (R12): what changed is that
+        # the reader who was shown it no longer exists.
         "reader_renders": (
-            ("door:coupled-gaps#gap-val", 3),
-            ("door:coupled-gaps#note", 4),
             ("renderer:background/gap_metric.py::format_detection_summary", 4),
         ),
         "component_renders": (("note", 4),),
@@ -8165,8 +8171,8 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         # had been shown to do: the global constant D34 replaced claimed 4dp
         # for a number its reader gets two decimals of, and nothing on the
         # artefact side had ever confirmed the 2 either.
+        # WITHDRAWN (the door retirement, 2026-08-21): `door:coupled-gaps#note` at 2dp.
         "reader_renders": (
-            ("door:coupled-gaps#note", 2),
             ("renderer:tools/couple_w2_11_d5.py::format_detection_latency_summary", 2),
         ),
         "component_renders": (("note", 2),),
@@ -8203,13 +8209,42 @@ PUBLISHED_GAP_CONSUMERS: Dict[str, Dict[str, object]] = {
         # confirmation of the number D34 read off this function's format spec by
         # AST. Two independent methods, agreeing, and now agreeing with the
         # published note as well.
+        # WITHDRAWN (the door retirement, 2026-08-21): `door:coupled-gaps#note` at 3dp.
         "reader_renders": (
-            ("door:coupled-gaps#note", 3),
             ("renderer:background/gap_metric.py::format_ageing_summary", 3),
         ),
     },
 }
 
+# DOES A FETCHABLE JSON ARTEFACT COUNT AS A READER SURFACE? DECIDED: NO -- BUT
+# THAT IS NOT THE SAME AS THE FIGURES BEING UNPUBLISHED (the door retirement, 2026-08-21).
+# The retired door's finding left this open, because withdrawing the door's
+# regions raises it directly: the per-pair figures are STILL published, as JSON.
+# `/data/proof.json` answers 200 and carries fifteen pairs with `value`,
+# `components`, `baseline_g0`/`raw_gap` and `note`. What was lost is the
+# RENDERED surface, not the publication.
+#
+# The answer follows from this module's own carrier/render boundary rather than
+# from a new rule. A RENDER is the figure's digits inside a string SOMEBODY
+# CHOSE the precision of; a CARRIER is the figure as a number, whose digits are
+# the double's and which nobody chose. Applied to `proof.json`:
+#   * `value`, `components`, `baseline_g0`, `raw_gap` are CARRIERS. They were
+#     never reader surfaces and are not ones now -- serialising a float does
+#     not make its width a precision, which is the whole of lead 2 above.
+#   * `note` is a STRING whose digits each figure's own renderer chose. That is
+#     why `component_renders` and the `renderer:` sites SURVIVE the door's
+#     retirement: they measure a precision that exists and is published, and
+#     they are what every epsilon in this register is now set from.
+# What does NOT survive is the claim R11 is about -- the rendered value a reader
+# is shown. Nobody is shown `proof.json`; it is fetched by pages, and the one
+# page that fetches it prints aggregates. So, said out loud rather than left to
+# be inferred: **no published figure of this pair currently meets a reader on a
+# rendered surface.** Its epsilons rest on chosen precisions in a published
+# string, which is honest evidence of a precision and is NOT evidence of a
+# reader. That sentence is the accepted limitation, and
+# `check_door_retirement_still_holds` is what stops it becoming a comfortable
+# one: the day any page renders these rows again, it fires.
+#
 # THE RENDER SITES PAST THE COMPONENT STRINGS (atom D35, Expert Hour #19).
 # `reader_renders` is where each figure meets a reader on a surface the
 # component sweep structurally cannot see -- its own declared renderer's output,
@@ -8992,6 +9027,101 @@ def check_component_render_sites(
 # mutation for it restores the search and asserts the 18dp site comes back.
 _DOOR_HARNESS = Path(__file__).resolve().parent.parent / "site" / "proof" / "_render_harness.mjs"
 _DOOR_INDEX = Path(__file__).resolve().parent.parent / "site" / "proof" / "index.html"
+# THE DOOR IS RETIRED, WHICH IS NOT THE SAME AS BROKEN (THE DOOR RETIREMENT, 2026-08-21;
+# finding `WORKER_FINDING_TWENTY_ONE_DOOR_TESTS_POINT_AT_A_DIRECTORY_THAT_IS_IN
+# _NO_TREE_2026-08-20`). `site/proof/` was deleted deliberately by the director's
+# five-tabs ruling in `03dd8c49e` -- *"I don't want hidden pages... no permanent
+# limbo, no page kept because deleting it feels risky"* -- along with the
+# redirect that would have kept `/proof` answering. For a day after that the
+# walk raised `RuntimeError: door harness failed: Cannot find module`, which
+# asserts something is BROKEN; nothing was. That wrong sentence is what wedged
+# every commit touching this file, because the gate selects tests by filename
+# stem and 21 of them errored on it.
+#
+# WHY THE DOOR IS NOT SIMPLY RE-POINTED AT ITS SUCCESSOR. `/harness/` inherited
+# the proof CONTENT, but not this surface: `renderGaps` prints four aggregate
+# counts and two paragraphs of fixed prose into `gap-kpis`/`gap-note`, and
+# nowhere in `site/` is there HTML rendering a per-pair ROW. The four regions
+# `_DOOR_REGIONS` names reach no reader as pixels anywhere.
+#
+# AND THE LIVE 200 IS NOT A SUBJECT. `https://poesys.net/proof/` still answers
+# 200 with the retired door's bytes; so do eight other paths the same ruling
+# deleted. `docs/observability/retired_paths_served.json` records why -- *"served
+# from a cache the deployment no longer backs"*. A control re-pointed at that
+# would go green against an object no tree can rebuild, which vanishes without
+# notice, and which is the exact failure ("a green suite achieved by deleting
+# the subject") the door tests were written to catch.
+_DOOR_RETIRING_RULING = "03dd8c49e"
+# The site root the withdrawal's own guard sweeps. A successor door that starts
+# rendering coupled-gap rows again makes the retirement FALSE, and this is where
+# it would appear.
+_SITE_ROOT = Path(__file__).resolve().parent.parent / "site"
+# The markers of a rendered coupled-gap ROW, taken from the retired door's own
+# render code rather than invented: the row wrapper, the two `fmtGap` regions,
+# the severity classifier and the panel entry point. `/harness/`'s aggregate
+# panel matches none of them (it reads `d.coupled_gaps` and prints `gap-kpis`
+# and `gap-note`), which is what makes this a search for the ROW rather than for
+# the word "gap" -- asserted in the tests, not assumed here.
+_COUPLED_GAP_ROW_MARKERS: Tuple[str, ...] = (
+    "renderCoupledGaps", "gap-row", "gap-val", "gap-basis", "classifyGap",
+)
+
+
+class DoorRetired(RuntimeError):
+    """The Proof door is gone ON PURPOSE.
+
+    A subclass of `RuntimeError` so every existing caller still catches it, and
+    a distinct type so the difference between "retired by ruling" and "broken"
+    is something code can ask about instead of a sentence someone reads.
+    """
+
+
+def _door_retirement() -> Optional[str]:
+    """The reason the door cannot be rendered, when that reason is RETIREMENT.
+
+    `None` means the door is there and must be walked. A door that is HALF
+    there -- one of the two files present -- is deliberately NOT retirement: a
+    partial deletion is a broken door, and calling it retired would be the
+    fail-open direction (any future breakage that happens to remove a file
+    would launder itself into an accepted limitation).
+    """
+    present = [p for p in (_DOOR_HARNESS, _DOOR_INDEX) if p.exists()]
+    if present:
+        return None
+    return (
+        f"the Proof door was RETIRED by the director's five-tabs ruling "
+        f"({_DOOR_RETIRING_RULING}), which deleted `site/proof/` and its "
+        "redirect -- it is not missing, moved or broken, and it must not be "
+        "restored or re-pointed at the cached 200 the edge still serves"
+    )
+
+
+def door_successors_rendering_coupled_gap_rows(
+    site_root: Optional[Path] = None,
+) -> Tuple[str, ...]:
+    """Every page under `site/` that renders a coupled-gap ROW again.
+
+    THIS IS THE WITHDRAWAL'S OWN FALSIFIER (R15). Withdrawing the door's reader
+    surfaces is a claim about the SITE -- "no page renders these figures to a
+    reader any more" -- and a claim nothing can refute is not a measurement. If
+    a successor door grows the row back, the withdrawal below is false, this
+    returns it, and `check_reader_render_sites` fires until the walk is
+    re-pointed at it. That is what makes the retirement a fact about the site
+    rather than a way of being green.
+    """
+    root = _SITE_ROOT if site_root is None else Path(site_root)
+    if not root.is_dir():
+        return ()
+    out: List[str] = []
+    for path in sorted(root.rglob("*.html")):
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:                                         # pragma: no cover
+            continue
+        hits = [m for m in _COUPLED_GAP_ROW_MARKERS if m in text]
+        if hits:
+            out.append(f"{path.relative_to(root)} ({', '.join(hits)})")
+    return tuple(out)
 # The panel element the door renders this pair into. The pair itself is
 # `WORLD_ATOM_ID`/`TWIN_ATOM_ID` above -- re-typing those two strings here would
 # make a walk that still passed after a rename, against a door showing nothing.
@@ -9073,6 +9203,13 @@ def _door_render(payload: Dict[str, object]) -> str:
     """The Proof door's coupled-gap panel, rendered by the page's OWN inline
     JavaScript against `payload` -- the rendered pixel (R11), never the source.
     """
+    retirement = _door_retirement()
+    if retirement is not None:
+        # NAMED, NOT INFERRED FROM A STACK TRACE. Letting node fail on the
+        # missing module produced `Cannot find module .../site/proof/
+        # _render_harness.mjs`, which reads as a broken tool and is what sent
+        # the last taker looking for a path that had moved.
+        raise DoorRetired(retirement)
     node = shutil.which("node")
     if node is None:                                            # pragma: no cover
         raise RuntimeError("node is not available")
@@ -9717,12 +9854,25 @@ def measure_reader_render_sites(
     if door:
         try:
             walks = [_walk_to_the_door(b) for b in books]
+        except DoorRetired as exc:
+            # RETIRED IS ITS OWN STATE (the door retirement, 2026-08-21). An unavailable check is a
+            # failed check, but a check whose SUBJECT was deliberately removed
+            # is neither failed nor clean: it is WITHDRAWN, and the difference
+            # has to be legible to the control below or the only two answers
+            # available are a permanent red and a lie. What keeps this from
+            # being the fail-silent pattern is that the withdrawal carries its
+            # own falsifier -- see `check_door_retirement_still_holds`.
+            door_state.update(available=False, retired=True,
+                              retired_by=_DOOR_RETIRING_RULING,
+                              withdrawn_sites=tuple(
+                                  f"{_DOOR_SITE_KEY}#{r}" for r in _DOOR_REGIONS),
+                              reason=str(exc)[:300])
         except Exception as exc:
             # R15: an unavailable check is a FAILED check. The walk records the
             # unavailability as state so `check_reader_render_sites` can fire on
             # it -- it never degrades to "no sites found", which reads exactly
             # like a clean door.
-            door_state.update(available=False,
+            door_state.update(available=False, retired=False,
                               reason=f"{exc.__class__.__name__}: {exc}"[:300])
         else:
             for texts, walk in zip(door_texts, walks):
@@ -9815,6 +9965,61 @@ def measure_reader_render_sites(
     return out
 
 
+def check_door_retirement_still_holds(
+    register: Optional[Dict[str, Dict[str, object]]] = None,
+    site_root: Optional[Path] = None,
+) -> List[str]:
+    """Put the WITHDRAWAL on trial (the door retirement, 2026-08-21).
+
+    The door's reader surfaces are withdrawn rather than deleted, and a
+    withdrawal that nothing can refute is the fail-silent pattern R15 names --
+    it would read, to every caller, exactly like a door that is fine. So the
+    retirement is re-derived from the artefacts on every run and fails in three
+    independent directions:
+
+      * the door's own files are back in the tree, so it is no longer retired
+        and the walk owes a measurement again;
+      * some OTHER page under `site/` renders coupled-gap rows, so the surface
+        came back somewhere else and the walk must be re-pointed at IT (never
+        at the retired path, and never at the cached 200 the edge still serves);
+      * the register still declares a `door:` reader render, so a figure's
+        epsilon is resting on a surface this module has just said no reader is
+        shown.
+
+    Each of these is a statement about a real artefact -- a file, a page, a
+    declaration -- and each has a mutation that makes it fire.
+    """
+    register = PUBLISHED_GAP_CONSUMERS if register is None else register
+    out: List[str] = []
+    if _door_retirement() is None:
+        out.append(
+            "the walk recorded the Proof door as RETIRED and its files are "
+            f"present again ({_DOOR_INDEX}, {_DOOR_HARNESS}) -- the retirement "
+            "every withdrawal below rests on is FALSE, so those reader "
+            "surfaces are owed a measurement rather than an accepted limitation"
+        )
+    for successor in door_successors_rendering_coupled_gap_rows(site_root):
+        out.append(
+            f"`site/{successor}` renders coupled-gap rows again -- the door's "
+            "reader surfaces were withdrawn on the claim that no page shows "
+            "these figures to a reader, and that claim is now false. Re-point "
+            f"the walk at THIS page (never at the retired `site/proof/`, and "
+            "never at the cached 200 the edge still serves for it) and restore "
+            "the withdrawn declarations"
+        )
+    for dim in sorted(register):
+        stale = sorted(str(k) for k, _d in (register[dim].get("reader_renders") or ())
+                       if str(k).startswith(_DOOR_SITE_KEY))
+        if stale:
+            out.append(
+                f"{dim}: still declares the withdrawn door site(s) {stale} "
+                f"while the door is retired ({_DOOR_RETIRING_RULING}) -- a "
+                "figure whose epsilon is set from a surface no reader is shown "
+                "is the defect this register exists to prevent"
+            )
+    return out
+
+
 def check_reader_render_sites(
     measured: Dict[str, Dict[str, object]],
     component_measured: Optional[Dict[str, Dict[str, object]]] = None,
@@ -9833,7 +10038,16 @@ def check_reader_render_sites(
     walk = measured.get("_walk") or {}
     out: List[str] = []
 
-    if walk.get("available") is not True:
+    if walk.get("retired") is True:
+        # THE WITHDRAWAL (the door retirement, 2026-08-21). A retired door is not an unreached one:
+        # there is no reader step here to be unmeasured, because the surface
+        # the director's ruling deleted shows nothing to anybody. Reporting it
+        # as a failure forever would make this control a permanent red that
+        # says nothing about the company; reporting nothing would make it the
+        # fail-silent pattern. What it does instead is re-derive the
+        # retirement from the artefacts and fire the moment it stops holding.
+        out.extend(check_door_retirement_still_holds(register))
+    elif walk.get("available") is not True:
         out.append(
             "the reader walk never reached the Proof door "
             f"({walk.get('reason', 'no reason recorded')}) -- the door renders "
@@ -13232,12 +13446,24 @@ def main() -> None:
     # the suite (2026-08-15): `check_door_row_surfaces` was one of the five
     # controls this module defined and never called, so the census it grades
     # printed above with no verdict beside it.
+    # AND THE WITHDRAWAL IS RE-DERIVED ON THE RUN THAT PUBLISHES, not only
+    # inside the reader walk's retired branch (the door retirement, 2026-08-21).
+    # `check_reader_render_sites` already calls it, so this is a second caller
+    # rather than the only one -- deliberately: the withdrawal is a claim about
+    # the SITE, and it stays true or false whether or not anybody happens to
+    # walk the door on this run. A control reachable only through another
+    # control's branch is one an option away from never running.
     _prec_violations = (
         check_published_reading_precision(
             _prec, published=published_dimensions(result))
         + check_component_render_sites(_sites)
         + check_reader_render_sites(_reader, _sites)
+        + check_door_retirement_still_holds()
         + check_door_row_surfaces(_walk_state))
+    # DE-DUPLICATED, order preserved: the retirement check has two callers by
+    # design, and a violation counted twice would misreport the verdict line
+    # below as two defects where the artefacts hold one.
+    _prec_violations = list(dict.fromkeys(_prec_violations))
     print("           verdict: "
           + ("every declared reader precision held" if not _prec_violations
              else f"{len(_prec_violations)} VIOLATION(S)"))
