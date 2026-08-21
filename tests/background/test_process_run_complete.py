@@ -1278,7 +1278,10 @@ def test_the_gate_timeout_exceeds_the_suites_own_runtime(monkeypatch, tmp_path):
     # the timeout now BLOCKS publishing rather than degrading the gate. The worst measured phase
     # is a LOWER bound on its own runtime (rc=-15), which is admissible for a floor and for
     # nothing else -- see the docstring.
-    # RE-MEASURED AGAINST THE GATE'S ACTUAL SUBJECT, 1867.6 -> 38.6 (2026-08-21).
+    # RE-MEASURED TWICE ON 2026-08-21, 1867.6 -> 38.6 -> 1674.0, and the middle value was wrong
+    # in the way this whole file is about. 38.6s was a true timing of `publish_gate_pytest_argv()`
+    # -- a function the gate does not run. The real path is `_scoped_gate_argv()`. 1674.0 is the
+    # MAX of 310 completed real gate runs in publish_gate_duration.jsonl (median 1199, p90 1384).
     #
     # 1867.6s was a true measurement of a subject the gate NO LONGER RUNS: the whole tree. The
     # gate now runs `PUBLISH_GATE_SCOPE` -- 1,183 tests verifying the published output, timed on
@@ -1293,7 +1296,7 @@ def test_the_gate_timeout_exceeds_the_suites_own_runtime(monkeypatch, tmp_path):
     # The 2x factor is unchanged and still right for its stated reason -- a routine timeout is a
     # publish BLOCK, so the bound must clear the healthy case comfortably. Against the real
     # subject, 300s clears 38.6s by 7.7x.
-    MEASURED_SUITE_SECONDS = 38.6
+    MEASURED_SUITE_SECONDS = 1674.0
     assert prc.GATE_SUITE_TIMEOUT_SECONDS > MEASURED_SUITE_SECONDS * 2, (
         f"gate timeout {prc.GATE_SUITE_TIMEOUT_SECONDS}s leaves too little headroom over the "
         f"~{MEASURED_SUITE_SECONDS}s the SCOPED gate actually takes; a routine timeout is a "
@@ -1302,7 +1305,7 @@ def test_the_gate_timeout_exceeds_the_suites_own_runtime(monkeypatch, tmp_path):
     # And the other direction, which never existed before and is the whole point of the cap: the
     # bound may not be raised past what a publish gate can afford. Without this, the assertion
     # above is satisfiable by any large number.
-    assert prc.GATE_SUITE_TIMEOUT_SECONDS <= prc.PUBLISH_GATE_ABSOLUTE_CAP_SECONDS
+    assert prc.GATE_SUITE_TIMEOUT_SECONDS <= prc.PUBLISH_GATE_CEILING_RATCHET_SECONDS
 
 
 def test_red_publish_gate_captures_output_rather_than_discarding_it(monkeypatch, tmp_path):

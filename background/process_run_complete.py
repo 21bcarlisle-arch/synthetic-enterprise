@@ -370,86 +370,42 @@ PUBLISH_GATE_MARKER_EXPR = (
 )
 
 
-#: WHAT A PUBLISH GATE IS FOR (director, 2026-08-21: *"Say what the gate is actually for and how
-#: long that should take."*)
-#:
-#: It answers ONE question: **would publishing this run put a wrong number or a false claim in
-#: front of a reader?** That is a question about the OUTPUT.
-#:
-#: What it had been answering instead is *is all the code in this repository correct?* -- 27,490
-#: tests, of which 14,388 are company-layer unit tests OF THE CODE THAT ALREADY PRODUCED THIS
-#: RUN. The run has happened. Re-running its unit tests establishes that the code is the same
-#: code that passed at commit time, which is a COMMIT-TIME property being re-checked at publish
-#: time, at a cost of twenty-one minutes.
-#:
-#: The split is by WHEN THE PROPERTY IS TRUE, not by what is expensive:
-#:
-#:   * code correctness            -> COMMIT time. `tools/pre_commit_test_gate.py` selects by
-#:                                    name stem and refuses the commit. Nothing publishes from
-#:                                    code that has not been through it.
-#:   * repository-wide invariants  -> COMMIT time, via that gate's always-run list (the
-#:                                    epistemic wall; the seam ratchet, moved there this morning
-#:                                    precisely because a publish-time ratchet reads as an
-#:                                    unrelated lane's problem a day later).
-#:   * daemon and process health   -> ITS OWN CADENCE, the `operational` marker on the deadman's
-#:                                    timer. Already partitioned; unchanged here.
-#:   * everything, as a backstop   -> NIGHTLY, `head-green-census.timer`, unscoped and with no
-#:                                    `-x`. This is what catches anything the split gets wrong,
-#:                                    and it is why narrowing here does not mean uncovered.
-#:   * THE PUBLISHED OUTPUT        -> PUBLISH time. Below. 1,178 tests, 39s measured.
-#:
-#: STATED PLAINLY, BECAUSE IT IS THE COST: this narrows what can block a publish. A company-layer
-#: regression that reaches a published figure without failing its own stem-selected tests at
-#: commit time would now reach the site and be caught by the nightly census instead of before
-#: the fact. That is a real exposure and it is accepted deliberately, against the measured
-#: alternative -- a gate that took 21 to 75 minutes on a repo that changes every 15, wedged for
-#: 28 hours at a time, publishing NOTHING while it was wedged. A gate that blocks every publish
-#: is not protecting the reader either.
-#:
-#: HAND-ANCHORED, AND THAT IS A KNOWN WEAKNESS. This repo's own lesson, three times over, is
-#: that a hand-maintained list is fail-open by omission. A new published surface whose tests are
-#: not named here is unguarded at publish time. The mitigations are the nightly census above and
-#: `test_publish_scope_covers_every_published_artefact`, which derives the produced-artefact set
-#: and fails when a producer has no test in this list.
-PUBLISH_GATE_SCOPE = (
-    # The generators that WRITE site/data/*.json -- the numbers themselves.
-    "tests/tools/test_generate_dashboard_data.py",
-    "tests/tools/test_generate_dashboard_arrears.py",
-    "tests/tools/test_generate_dashboard_insights.py",
-    "tests/tools/test_generate_dashboard_mgmt.py",
-    "tests/tools/test_generate_dashboard_monthly.py",
-    "tests/tools/test_generate_dashboard_trading.py",
-    "tests/tools/test_generate_dashboard_dd_rails.py",
-    "tests/tools/test_generate_dashboard_data_population_seam.py",
-    # The report the figures are drawn from.
-    "tests/saas/reporting",
-    # The claims the site makes ABOUT those figures -- freshness, provenance, reachability.
-    "tests/tools/test_published_provenance_is_real.py",
-    "tests/tools/test_publish_blockers_guard_a_reachable_page.py",
-    "tests/background/test_published_provenance_is_real.py",
-    "tests/background/test_publish_freshness.py",
-    "tests/background/test_publish_scope.py",
-    # A wall breach means the figures are ILLEGITIMATE, not merely wrong: the company would have
-    # read something a real supplier cannot see. That is a publishing question, not a code one.
-    "tests/architecture/test_epistemic_wall_ratchet.py",
-    # Report-only landing: the marker partition's own containment control.
-    "tests/system/test_report_only_landing.py",
-)
+# WHAT A PUBLISH GATE IS FOR (director, 2026-08-21: *"Say what the gate is actually for and how
+# long that should take."*)
+#
+# It answers ONE question: would publishing this run put a wrong number or a false claim in
+# front of a reader? That is a question about the OUTPUT, not about whether all the code in the
+# repository is correct.
+#
+# I ADDED A HAND-WRITTEN `PUBLISH_GATE_SCOPE` HERE AND DELETED IT AGAIN THE SAME DAY. It was
+# sixteen hand-listed paths, and it was dead: the gate's real entry point `_scoped_gate_argv()`
+# passes `"tests/"` explicitly, so the default was never read. Worse, it duplicated
+# `background/publish_scope.py`, which has done this since 2026-08-10 and does it BETTER --
+# resolving publish-path sources to blocking test files through the static import graph, so the
+# set is DERIVED and cannot go stale the way a hand list does. I wrote a long note calling my
+# version the answer without discovering the one already there.
+#
+# So the scope lives in `publish_scope.resolve_scope()` and nowhere else. The remaining work
+# the director asked for is to narrow what THAT resolves to (currently 6 sources -> 199 test
+# files, ~21 minutes), not to add a second opinion beside it.
+#
+# The rest of the split stands and is unchanged by any of this: code correctness -> commit time
+# (stem selection); repo-wide invariants -> commit time (the always-run list); daemon health ->
+# the `operational` marker on its own cadence; everything, unscoped and with no -x -> the
+# nightly head-green-census, which is deliberately the WIDER of the two and must never be
+# narrowed to match the gate.
 
 
-def publish_gate_pytest_argv(test_root=None):
+def publish_gate_pytest_argv(test_root="tests/"):
     """The exact pytest argv the publish gate runs. Factored out so the blocking SCOPE is a
     single testable surface (R15: a control's scope must be inspectable).
 
-    `test_root` defaults to `PUBLISH_GATE_SCOPE` -- see that constant for what a publish gate is
-    for and why it is not the whole suite. Pass a path to override (the harness that TIMES this
-    gate does, so it can measure either shape).
-
-    The marker expression is unchanged and still applies: `operational`, `join_report_only` and
-    `scale_report_only` are deselected wherever they appear inside the scope.
+    This builds the UNSCOPED argv. The gate does not run it as-is: `_scoped_gate_argv()` takes
+    it as a base and narrows it through `publish_scope.resolve_scope()`. Timing this function is
+    therefore NOT timing the gate -- doing exactly that on 2026-08-21 produced a 300s bound off
+    a ~40s measurement and wedged publishing twice.
     """
-    roots = [test_root] if test_root else list(PUBLISH_GATE_SCOPE)
-    argv = [sys.executable, "-m", "pytest", *roots, "-x", "-q", "--tb=short",
+    argv = [sys.executable, "-m", "pytest", test_root, "-x", "-q", "--tb=short",
             "-m", PUBLISH_GATE_MARKER_EXPR]
     for ignore in PUBLISH_GATE_HEAVY_IGNORES:
         argv.append("--ignore=" + ignore)
@@ -2423,12 +2379,32 @@ def _gate_timed_out():
 # on a genuinely hung gate; erring low WEDGES PUBLISHING. The caller's bound
 # (PUBLISH_PATH_TIMEOUT_SECONDS below) is DERIVED from this constant, so it moves with it and
 # cannot drift -- that pair drifting apart is what wedged publishing for 41 hours on 2026-08-10.
-# LOWERED 4500 -> 300 (2026-08-21), and the reason is not that the suite got faster. The SCOPE
-# changed: the gate now runs `PUBLISH_GATE_SCOPE` -- the tests that verify the published OUTPUT
-# -- instead of the whole tree. Measured on the real argv the same day: **38.6s across 1,183
-# tests**, against 21-75 minutes across 27,490. So 300 is not a squeeze; it is 7.7x the observed
-# cost, and it is the first time this constant has moved DOWN in six re-derivations.
-GATE_SUITE_TIMEOUT_SECONDS = 300
+# 4500 -> 300 -> 1800 (2026-08-21). The middle step was MINE AND IT WAS WRONG, and it wedged
+# publishing for two cycles, so the reasoning is left in full rather than tidied away.
+#
+# I lowered this to 300 after timing `publish_gate_pytest_argv()` at ~40s. That function is NOT
+# what the gate runs. The real call site is `_scoped_gate_argv()`, which passes `"tests/"`
+# explicitly and then narrows through `background/publish_scope.resolve_scope()` -- a DERIVED
+# scoper that has existed since 2026-08-10 and resolves 6 publish-path sources to 199 blocking
+# test files through the static import graph. I timed a code path that never executes, and set a
+# production timeout from it. Observed consequence, twice: `304.05s ceiling=300 outcome=timeout`.
+#
+# 3400 is read from the RECORD of the thing that actually runs. 310 completed real gate runs in
+# `publish_gate_duration.jsonl`: median 1199s, p90 1384s, MAX 1674s. The existing rule is that
+# the bound must clear the healthy case by 2x, because a routine timeout is a publish BLOCK --
+# 2 x 1674 = 3349, so 3400.
+#
+# AND THAT ARITHMETIC CORRECTS SOMETHING I TOLD THE DIRECTOR. The old 4500 was ~2.7x the worst
+# observed run: a defensible margin, not a number nobody was watching. The bound is not generous
+# because it grew unwatched; it is generous BECAUSE THE GATE GENUINELY TAKES TWENTY MINUTES. The
+# absurdity he named is real, but it lives in the scope, not in this constant -- and every one of
+# the six re-derivations above was honestly chasing a subject that kept getting slower.
+#
+# So this number cannot come down by being written smaller. `resolve_scope()` currently resolves
+# 6 publish-path sources to ~200 blocking test files through the static import graph; the
+# director's target of a gate faster than the 5-minute cadence it gates needs THAT set to shrink.
+# That is real work on a derived mechanism and it is not done here.
+GATE_SUITE_TIMEOUT_SECONDS = 3400
 
 # ── THE ABSOLUTE CAP (director, 2026-08-21) ──────────────────────────────────────────────
 # *"A 75-minute gate is absurd on its face and neither of us said so. Nothing watches the
@@ -2453,9 +2429,22 @@ GATE_SUITE_TIMEOUT_SECONDS = 300
 # this, so the seventh raise cannot be another careful paragraph -- it has to delete this
 # constant, in the open, and argue with the sentence above.
 #
-# 300 is five minutes. The scoped publish gate measured 39s over 1,178 tests on 2026-08-21, so
-# the cap sits nearly 8x above the real cost. It is a tripwire on absurdity, not a target.
-PUBLISH_GATE_ABSOLUTE_CAP_SECONDS = 300
+# A RATCHET, NOT A TARGET, and that is the correction that makes it work.
+#
+# My first attempt made this an aspirational cap (300s, the publish cadence) and set the bound to
+# match. The bound was then below what the gate actually needs, and publishing timed out twice.
+# An aspirational cap on a measured quantity does not make the quantity smaller; it just breaks
+# the thing being measured, or -- if someone softens it instead -- becomes the seventh
+# re-derivation wearing a new hat.
+#
+# So this is monotonic instead: the bound may FALL freely and may NEVER RISE. That is exactly the
+# property the director asked for -- "so this can't grow back one reasonable addition at a time"
+# -- and unlike a target it is satisfiable today and still fails loudly tomorrow. Six raises got
+# here; there is no seventh without deleting this line in the open.
+#
+# The 5-minute target is not abandoned, it is just not enforceable by a constant. It is recorded
+# beside the bound above, where the work that would earn it is named.
+PUBLISH_GATE_CEILING_RATCHET_SECONDS = 3400
 
 # The record the harness writes (tools/measure_publish_gate_subject_cost.py) and the factor the
 # bound is derived at. The factor lives HERE, next to the constant it justifies, and the harness's

@@ -386,14 +386,18 @@ def test_sim_runners_deadline_kill_is_not_recorded_as_a_test_regression(monkeypa
 # These two tests are the counter-pressure. They cannot be satisfied by re-deriving; the seventh
 # raise has to delete a constant in the open and argue with the reason written beside it.
 
-def test_the_gate_bound_stays_under_the_absolute_cap():
-    """The number nothing was watching. Fails LOUDLY on the next raise rather than absorbing it."""
-    assert prc.GATE_SUITE_TIMEOUT_SECONDS <= prc.PUBLISH_GATE_ABSOLUTE_CAP_SECONDS, (
+def test_the_gate_bound_never_rises_above_the_ratchet():
+    """The number nothing was watching. MONOTONIC: the bound may fall freely and may never rise.
+
+    First written as an aspirational cap at the 5-minute publish cadence, with the bound set to
+    match -- which put the bound below what the gate actually needs and timed publishing out
+    twice. A target cannot be enforced by a constant; a ratchet can."""
+    assert prc.GATE_SUITE_TIMEOUT_SECONDS <= prc.PUBLISH_GATE_CEILING_RATCHET_SECONDS, (
         f"the publish gate's bound is {prc.GATE_SUITE_TIMEOUT_SECONDS}s, over the absolute cap of "
-        f"{prc.PUBLISH_GATE_ABSOLUTE_CAP_SECONDS}s.\n"
+        f"{prc.PUBLISH_GATE_CEILING_RATCHET_SECONDS}s.\n"
         "Do NOT re-derive the bound -- that is the move that took it from 600s to 4500s in six "
-        "steps. A gate slower than the cadence of what it gates is reporting on the past. Either "
-        "narrow PUBLISH_GATE_SCOPE, or move the cap deliberately and say why in the same change."
+        "steps. The bound may FALL freely; it may not rise. Earn a lower one by narrowing what "
+        "`publish_scope.resolve_scope()` resolves to, which is where the twenty minutes live."
     )
 
 
@@ -404,7 +408,7 @@ def test_the_cap_is_derived_from_cadence_not_from_the_suite():
     import inspect
     src = inspect.getsource(prc)
     cap_line = [ln for ln in src.splitlines()
-                if ln.startswith("PUBLISH_GATE_ABSOLUTE_CAP_SECONDS")]
+                if ln.startswith("PUBLISH_GATE_CEILING_RATCHET_SECONDS")]
     assert cap_line, "the absolute cap constant is gone"
     assert cap_line[0].split("=")[1].strip().isdigit(), (
         "the absolute cap must be a literal, not computed from suite measurements -- a ceiling "
