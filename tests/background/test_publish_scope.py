@@ -392,6 +392,12 @@ def test_a_root_unavailable_scope_stops_the_gate_instead_of_running_it(monkeypat
     red that names whatever pytest happened to trip over. That is the 02:04Z behaviour."""
     from background import process_run_complete as prc
 
+    # CAPTURE THE LOG, do not let it reach the live record. `_run_gate_in` gained a `log()`
+    # call with the two-clocks fix (14219094c), and `live_ledger_guard` correctly refuses a test
+    # process writing docs/observability/sim-runner-log.md -- so this test began failing on the
+    # guard rather than on its own subject. Same pattern the neighbouring publisher tests use.
+    monkeypatch.setattr(prc, "log", lambda *a, **k: None)
+
     ran = []
     monkeypatch.setattr(prc.subprocess, "run",
                         lambda *a, **k: ran.append(a) or pytest.fail("gate ran on a dead root"))
@@ -414,6 +420,7 @@ def test_the_unavailable_root_verdict_does_not_stamp_the_tested_hash(monkeypatch
 
     stamp = tmp_path / "last_tested_hash"
     monkeypatch.setattr(prc, "LAST_TESTED_HASH_FILE", stamp)
+    monkeypatch.setattr(prc, "log", lambda *a, **k: None)   # see the test above
     monkeypatch.setattr(prc.subprocess, "run",
                         lambda *a, **k: pytest.fail("gate ran on a dead root"))
 
