@@ -25,11 +25,48 @@ from pathlib import Path
 
 import pytest
 
-from background import gap_ledger_reconciler, notification_digest, supervisor
+from background import gap_ledger_reconciler, notification_digest, sim_runner, supervisor
 from tests.background import env_constant_sync as _env_sync
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 _GIT_DIR = REPO_ROOT / ".git"
+
+
+@pytest.fixture(autouse=True)
+def _publisher_log_never_reaches_the_live_record(tmp_path, monkeypatch):
+    """Default every test in tests/background/ to a CAPTURED publisher log rather than the live
+    `docs/observability/sim-runner-log.md`.
+
+    THE CLASS, and it is the same one this file's other autouse fixture exists for. The
+    two-clocks fix (14219094c) added a `log()` call to `_run_gate_in`, and
+    `background.live_ledger_guard` correctly refuses a test process writing a live observability
+    record -- a guard earned on 2026-08-17, when exactly that overwrote the coupled gap ledger
+    with a 276-invoice fixture book and republished the public Proof door's belief-vs-truth gap
+    2.68x too low.
+
+    So the guard is right and the tests are right; what was missing is the isolation. SIX tests
+    across TWO files began failing on the guard rather than on their own subject
+    (test_publish_scope.py x2, test_publish_decoupling_exit.py x4) -- and every one of them is
+    inside `publish_scope.resolve_scope()`'s BLOCKING set, so they were blocking publishing while
+    reporting a refusal that had nothing to do with what they assert.
+
+    Fixed for the directory rather than per file, per R10 and per this conftest's own stated
+    principle: the first two were patched individually earlier the same day, and the third file
+    proved that was an instance fix on a class.
+
+    REDIRECT THE DESTINATION, DO NOT REPLACE THE FUNCTION -- and that distinction is the whole
+    fixture. My first version monkeypatched `prc.log` itself and broke FIVE tests that legitimately
+    exercise it (verified by removing the fixture and re-running: 5 of 7 failures went green). The
+    neighbouring fixture below has always redirected PATHS, never functions; I copied its placement
+    and not its technique.
+
+    Pointing `LOG_FILE` at a tmp file leaves `log()` fully intact -- it still formats, still calls
+    `guard_live_ledger_write`, which still permits a non-live destination -- so a test asserting on
+    logging behaviour sees the real thing, and nothing reaches
+    `docs/observability/sim-runner-log.md`. The guard stays exactly as strict as it was.
+    """
+    from background import process_run_complete as prc
+    monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "sim-runner-log.md", raising=False)
 
 
 @pytest.fixture(autouse=True)
@@ -149,6 +186,62 @@ def _isolate_publish_gate_wedge_state(tmp_path, monkeypatch):
         notification_digest, "STATE_FILE",
         tmp_path / ".ntfy_digest_state_absent.json", raising=False,
     )
+    # RUNG 1d PRODUCER STARVATION, the READ side (2026-08-17). Caught by this directory's own class
+    # control -- `test_rest_ladder_isolation.py::test_every_refusal_rung_is_silent_under_the_rest_
+    # proof_setup` -- which names the required fix in its own failure message: pin the rung's live
+    # INPUT here, never stub the rung in one test file. `_producer_starved_active` reads THREE live
+    # paths, and the rung sits at PRIORITY ZERO, so whenever the real producer is unhealthy it wins
+    # the draw and flips every "authorized set empty -> rest" assertion in this directory.
+    #
+    # It passed standalone and red-ed only inside the 18-minute full-directory run, which is the
+    # transient-green this conftest's own docstring warns about: the rung was silent at the instant
+    # the small run sampled it because the producer happened to be healthy just then. The live
+    # producer's health is the weather, and a control whose subject is the weather is not a control.
+    #
+    # The reports dir is pinned at an EMPTY tmp directory rather than an absent one on purpose: an
+    # absent/unreadable dir and an empty one both yield "no artefact age", which is silence, but an
+    # empty REAL directory is the honest analogue of "this checkout has produced nothing", and the
+    # rung's own tests build their artefacts in their own tmp dir anyway.
+    monkeypatch.setattr(
+        supervisor, "SIM_PRODUCER_STATE_FILE",
+        tmp_path / ".sim_producer_state_absent.json", raising=False,
+    )
+    _empty_reports = tmp_path / "reports_isolated"
+    _empty_reports.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(supervisor, "SIM_RUN_OUTPUT_DIR", _empty_reports, raising=False)
+    monkeypatch.setattr(
+        supervisor, "SIM_RUNNER_HOLD_FLAG",
+        tmp_path / ".sim_runner_hold_absent", raising=False,
+    )
+    # RUNG 1d PRODUCER STARVATION (2026-08-17) -- the NINTH instance, and the first that leaks the
+    # other way: a test WRITING live state that a priority-zero rung READS. `sim_runner.
+    # record_run_outcome` defaults to the real `.sim_producer_state.json`, and the existing
+    # `run_simulation()` tests drive its timeout/failure paths -- so a plain suite run stamped
+    # `{"consecutive_failures": 6, "detail": "timeout after 0s: stuck at 2019-03-31 SP47",
+    # "git": "abc1234"}` onto the machine's real producer-health file. Observed, not theorised,
+    # within minutes of the rung landing. Left alone it is worse than the eight leaks above: those
+    # flip assertions inside this directory, this one makes the LIVE draw ladder hand priority-zero
+    # to "the producer is down" on a healthy machine, from a test.
+    #
+    # DONE AS A SWEEP, NOT A NINTH NAMED PATH. Every entry above is one module constant someone
+    # remembered; the failure mode is the one nobody remembers, and `test_sim_runner.py` shows it
+    # directly -- it isolates PROJECT_DIR, LOG_FILE, STAGING_DIR and REPORTS_DIR by hand, four
+    # entries maintained per-file, and PRODUCER_STATE_FILE simply was not on that list because it
+    # did not exist when the list was written. So this redirects EVERY `Path` constant on the
+    # module that points into the real checkout, and a tenth one is covered on the day it lands.
+    for _name in dir(sim_runner):
+        if _name.startswith("__"):
+            continue
+        _value = getattr(sim_runner, _name, None)
+        if not isinstance(_value, Path):
+            continue
+        try:
+            _relative = _value.relative_to(REPO_ROOT)
+        except ValueError:
+            continue           # already outside the checkout: nothing to protect
+        _redirected = tmp_path / "sim_runner_real_tree" / _relative
+        _redirected.parent.mkdir(parents=True, exist_ok=True)
+        monkeypatch.setattr(sim_runner, _name, _redirected, raising=False)
 
 
 # ── THE GHOST-PUSHER TRIPWIRE (issue #11) ────────────────────────────────────────────────────
