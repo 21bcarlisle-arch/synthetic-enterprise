@@ -14,6 +14,7 @@ independent of whatever the live tree happens to hold today.
 """
 from __future__ import annotations
 
+import ast
 import json
 import textwrap
 from pathlib import Path
@@ -1067,6 +1068,13 @@ CODEC_SOURCE = """
         {"correlation_id", "status", "schema_version", "observed_at", "valid_time",
          "payload", "error"}
     )
+    INTERIM_WIRE_FIELDS = frozenset(
+        {"correlation_id", "leg", "interim_type", "schema_version", "observed_at", "payload"}
+    )
+    NOTIFICATION_WIRE_FIELDS = frozenset(
+        {"notification_id", "notification_type", "schema_version", "sender", "sequence",
+         "observed_at", "valid_time", "payload"}
+    )
 
     def decode_response(message):
         return message
@@ -1834,6 +1842,259 @@ def test_THE_LIVE_PER_LEG_QUESTION_IS_ANSWERABLE():
         state == "wire" for _s, _leg, state in verdict.leg_states
     ), "no live leg is wire-borne, so the per-leg control has never answered in its success "
     "direction: " + verdict.report()
+
+
+# ── 15b. the wall has FOUR legs, and the census used to score two ─────────────────────────────
+#
+# THE FINDING THIS SECTION DISCHARGES (2026-08-21, "the wall census scores two legs of a four-leg
+# wall"). `LEG_ENVELOPE_NAMES` carried two keys while `wall_envelope` had declared four primitives
+# since pass 44, and `payment_observable_seam` had ALREADY made the declaration that table reads
+# for both of the missing ones -- `AddacsWallNotification`, `BacsInputReportWallInterim`. Both
+# resolved to None, and the crossing was dropped at `seam_legs` before any per-leg verdict formed.
+#
+# THE FAILURE MODE IS THE ONE THIS WHOLE FILE IS ABOUT, one level up from section 15's: not a leg
+# scored wrong, but a leg OUTSIDE THE SUBJECT SET, which cannot be reported missing from it. The
+# census ended `every frozen channel matches its list exactly` while answering for half the wall.
+# So the tests below are not "does an interim leg pass" -- they are "can an interim leg FAIL",
+# which is the only question a widened subject set actually settles.
+
+FOUR_LEG_SEAM = "interface.contracts.conversation_seam"
+
+#: The same seam as section 15, grown the two legs the wall gained at passes 43 and 44. Each leg
+#: carries a DISTINCT payload type, so a leg's verdict can never be borrowed from its neighbour.
+FOUR_LEG_SEAM_SOURCE = """
+    from interface.contracts.wall_envelope import (
+        WallInterim, WallNotification, WallRequest, WallResponse,
+    )
+
+    SCHEMA_VERSION = 1
+
+    class OutboundMessage:
+        pass
+
+    class InboundReply:
+        pass
+
+    class ProgressNote:
+        pass
+
+    class UnsolicitedTell:
+        pass
+
+    MessageWallRequest = WallRequest[OutboundMessage]
+    ReplyWallResponse = WallResponse[InboundReply]
+    ProgressWallInterim = WallInterim[ProgressNote]
+    TellWallNotification = WallNotification[UnsolicitedTell]
+"""
+
+#: The company end: decodes all four legs through the one codec it is allowed to own, and
+#: constructs every payload type so no leg is scored dormant.
+FOUR_LEG_COMPANY = """
+    from company.interfaces.wall_protocol import (
+        decode_interim, decode_notification, decode_response, encode_request,
+    )
+    from interface.contracts.conversation_seam import (
+        InboundReply, OutboundMessage, ProgressNote, UnsolicitedTell,
+    )
+
+    def send(body, emitted_at):
+        return encode_request(OutboundMessage(), emitted_at)
+
+    def observe(wire):
+        reply = InboundReply()
+        return decode_response(wire), reply
+
+    def observe_progress(wire):
+        note = ProgressNote()
+        return decode_interim(wire), note
+
+    def observe_tell(wire):
+        tell = UnsolicitedTell()
+        return decode_notification(wire), tell
+"""
+
+#: The counterparty end: may not import `company.*`, so it hand-builds each leg's exact key set --
+#: the same shape `simulation/payment_seam_adapter.py` really uses for both new legs.
+FOUR_LEG_WORLD = """
+    from interface.contracts.conversation_seam import SCHEMA_VERSION
+
+    _REQUEST_WIRE_FIELDS = frozenset(
+        {"correlation_id", "request_type", "schema_version", "as_of", "emitted_at", "payload"}
+    )
+
+    def decode_wire_request(wire):
+        if set(wire) != _REQUEST_WIRE_FIELDS:
+            raise ValueError("refused")
+        return wire
+
+    def respond_over_wire(request):
+        return {
+            "correlation_id": request["correlation_id"],
+            "status": "OK",
+            "schema_version": SCHEMA_VERSION,
+            "observed_at": None,
+            "valid_time": None,
+            "payload": None,
+            "error": None,
+        }
+
+    def interim_over_wire(request):
+        return {
+            "correlation_id": request["correlation_id"],
+            "leg": "collection",
+            "interim_type": "input_report",
+            "schema_version": SCHEMA_VERSION,
+            "observed_at": None,
+            "payload": None,
+        }
+
+    def notify_over_wire():
+        return {
+            "notification_id": "n-1",
+            "notification_type": "addacs",
+            "schema_version": SCHEMA_VERSION,
+            "sender": "world",
+            "sequence": 1,
+            "observed_at": None,
+            "valid_time": None,
+            "payload": None,
+        }
+"""
+
+
+@pytest.fixture()
+def four_leg_tree(envelope_tree: Path) -> Path:
+    """A seam wired on all FOUR legs -- the null control every mutation below is measured against."""
+    _write(envelope_tree, "interface/contracts/conversation_seam.py", FOUR_LEG_SEAM_SOURCE)
+    _write(envelope_tree, "company/comms/conversation_generator.py", FOUR_LEG_COMPANY)
+    _write(envelope_tree, "simulation/conversation_response.py", FOUR_LEG_WORLD)
+    return envelope_tree
+
+
+def test_the_census_SUBJECT_SET_is_the_whole_envelope_family_not_two_of_it():
+    """The table-level statement of the finding, asked of the census's own lookup.
+
+    Read from `wall_envelope`'s real generic primitives rather than restated here: a fifth
+    primitive landing tomorrow makes this red on the day it lands, which is exactly the property
+    whose absence let two legs sit outside the subject set from pass 43 until 2026-08-21.
+    """
+    envelope = ast.parse(Path("interface/contracts/wall_envelope.py").read_text())
+    primitives = {
+        node.name
+        for node in ast.walk(envelope)
+        if isinstance(node, ast.ClassDef) and node.name.startswith("Wall")
+        and any(
+            isinstance(b, ast.Subscript) and getattr(b.value, "id", "") == "Generic"
+            for b in node.bases
+        )
+    }
+
+    assert primitives, "no generic Wall* primitive found -- the subject of this test has moved"
+    assert primitives <= set(wcc.LEG_ENVELOPE_NAMES), (
+        f"envelope primitive(s) the census has no leg for: "
+        f"{sorted(primitives - set(wcc.LEG_ENVELOPE_NAMES))} -- a leg outside the subject set "
+        f"cannot be reported missing from it"
+    )
+    for leg in wcc.LEG_ENVELOPE_NAMES.values():
+        assert leg in wcc.LEG_WIRE_CONSTANT and leg in wcc.LEG_DECODE_NAME, leg
+        assert leg in wcc.LEG_ENCODE_NAME, leg
+
+
+def test_NULL_CONTROL_a_seam_wired_on_all_four_legs_is_wire_borne_and_names_each(four_leg_tree):
+    """THE CONTROL THE MUTATIONS BELOW ARE MEASURED AGAINST, and the one that matters most here.
+
+    Widening a subject set is only worth anything if the new subjects can come back GREEN. Without
+    this, a census that red-listed every interim leg on every tree would satisfy the mutations
+    below and be useless -- red on the new legs by construction rather than by evidence.
+    """
+    verdict = wcc.envelope_wire_conformance(str(four_leg_tree))
+
+    assert FOUR_LEG_SEAM in verdict.wire_borne, verdict.report()
+    for leg in ("request", "response", "interim", "notification"):
+        assert (FOUR_LEG_SEAM, leg, "wire") in verdict.leg_states, verdict.report()
+    assert verdict.ok, verdict.report()
+
+
+def test_MUTATION_an_INTERIM_leg_with_no_decoder_is_reported_unmigrated(four_leg_tree):
+    """THE MUTATION THE FINDING NAMED. Only the interim leg's decode is removed -- the company
+    stops importing `decode_interim` and takes the object across the call frame instead. Every
+    other leg keeps both ends, so the seam still has encoders and decoders among its importers and
+    the pre-widening census scored this tree GREEN by never asking about the leg at all.
+    """
+    _write(four_leg_tree, "company/comms/conversation_generator.py", FOUR_LEG_COMPANY.replace(
+        "decode_interim, decode_notification, decode_response, encode_request,",
+        "decode_notification, decode_response, encode_request,",
+    ).replace("return decode_interim(wire), note", "return wire, note"))
+    verdict = wcc.envelope_wire_conformance(str(four_leg_tree))
+
+    assert FOUR_LEG_SEAM not in verdict.wire_borne, verdict.report()
+    assert (FOUR_LEG_SEAM, "interim", "ENCODED-only") in verdict.leg_states, verdict.report()
+    # The neighbours are untouched: this is a LEG verdict, not a seam-wide smear.
+    assert (FOUR_LEG_SEAM, "response", "wire") in verdict.leg_states
+    assert (FOUR_LEG_SEAM, "notification", "wire") in verdict.leg_states
+    assert not verdict.ok
+
+
+def test_MUTATION_a_NOTIFICATION_leg_with_no_encoder_is_reported_unmigrated(four_leg_tree):
+    """The sibling mutation, and it is here because this atom has twice recorded a belt that named
+    one member and missed its neighbour four lines away. Notification is the leg with no request to
+    answer -- the one whose absence from the old table was least likely to be noticed, since
+    nothing about a request/response pair goes missing when a TELL never crosses.
+    """
+    _write(four_leg_tree, "simulation/conversation_response.py", FOUR_LEG_WORLD.split(
+        "    def notify_over_wire():"
+    )[0])
+    verdict = wcc.envelope_wire_conformance(str(four_leg_tree))
+
+    assert FOUR_LEG_SEAM not in verdict.wire_borne, verdict.report()
+    assert (FOUR_LEG_SEAM, "notification", "DECODED-only") in verdict.leg_states, verdict.report()
+    assert (FOUR_LEG_SEAM, "interim", "wire") in verdict.leg_states
+    assert not verdict.ok
+
+
+def test_MUTATION_dropping_a_leg_from_the_lookup_takes_it_OUT_OF_THE_SUBJECT_SET(
+    four_leg_tree, monkeypatch
+):
+    """THE FINDING ITSELF, run as a mutation rather than described.
+
+    Restore the pre-widening lookup and re-run the interim mutation above. The defect is unchanged
+    on disk -- the interim leg still crosses as an object -- and the census reports the seam
+    WIRE-BORNE and green, because the leg it is wrong about is no longer a leg. That is the exact
+    reading this repair replaced, and it is what any future narrowing of the table would restore.
+    """
+    _write(four_leg_tree, "company/comms/conversation_generator.py", FOUR_LEG_COMPANY.replace(
+        "decode_interim, decode_notification, decode_response, encode_request,",
+        "decode_notification, decode_response, encode_request,",
+    ).replace("return decode_interim(wire), note", "return wire, note"))
+    assert not wcc.envelope_wire_conformance(str(four_leg_tree)).ok
+
+    monkeypatch.setitem(wcc.LEG_ENVELOPE_NAMES, "WallInterim", None)
+    verdict = wcc.envelope_wire_conformance(str(four_leg_tree))
+
+    assert FOUR_LEG_SEAM in verdict.wire_borne, verdict.report()
+    assert not [s for s, leg, _ in verdict.leg_states if s == FOUR_LEG_SEAM and leg == "interim"]
+    assert verdict.ok, "the pre-widening census was green on this defect -- that is the finding"
+
+
+def test_THE_LIVE_TREE_ANSWERS_FOR_EVERY_LEG_ITS_SEAMS_DECLARE():
+    """ANSWERABLE, not green -- section 15's rule applied to the two new legs.
+
+    What must hold is that a seam declaring an interim or a notification leg gets a per-leg state
+    for it. A live seam declaring one and resolving to no verdict is the finding recurring.
+    """
+    verdict = wcc.envelope_wire_conformance_at(worktree=True)
+    stated = {(s, leg) for s, leg, _state in verdict.leg_states}
+    root = str(Path.cwd())
+    for seam in wcc.envelope_seams(root):
+        if wcc._seam_version(root, seam) is None:
+            continue
+        for leg in wcc.seam_legs(root, seam):
+            assert (seam, leg) in stated, f"{seam} declares a {leg} leg with no verdict"
+
+    assert any(leg == "notification" for _s, leg in stated), (
+        "no live seam resolves a notification leg -- the widened subject set has no live subject: "
+        + verdict.report()
+    )
 
 
 # ── 16. the CALLER refuses on channel C too -- arming the gate ────────────────────────────────

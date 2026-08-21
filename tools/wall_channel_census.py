@@ -990,15 +990,39 @@ CODEC_MODULE = "company.interfaces.wall_protocol"
 REQUEST_LEG = "request"
 RESPONSE_LEG = "response"
 
+#: THE OTHER TWO LEGS, added EP6 pass 51 to close the finding of 2026-08-21 -- "the wall census
+#: scores two legs of a four-leg wall". The wall has had four primitives since pass 44:
+#: `WallNotification` (pass 43, TELL -- unsolicited, no request to answer) and `WallInterim`
+#: (pass 44, NOT YET FINISHED -- a progress leg that is not a status). The comment below says a
+#: seam owns the question "on the day it lands"; both of these HAD landed, and
+#: `payment_observable_seam` had already made the declaration this table reads
+#: (`AddacsWallNotification`, `BacsInputReportWallInterim`) -- against a lookup with no key for
+#: either. Both resolved to None, and the crossing was dropped before any per-leg verdict formed:
+#: a leg outside the subject set cannot be reported missing from it, so the census ended `every
+#: frozen channel matches its list exactly` while scoring half the wall.
+INTERIM_LEG = "interim"
+NOTIFICATION_LEG = "notification"
+
+#: The four legs, in report order. Named once so that adding a fifth is one edit here plus the
+#: per-leg tables below, rather than a hunt for every place two legs were assumed.
+LEGS: tuple[str, ...] = (REQUEST_LEG, RESPONSE_LEG, INTERIM_LEG, NOTIFICATION_LEG)
+
 #: How a seam DECLARES which legs it owns: by specialising the generic envelope. Derived from the
 #: seam's own source rather than listed here for `envelope_seams`' reason -- a seam that grows a
 #: request leg tomorrow owns the question on the day it lands, not the day someone remembers it.
-LEG_ENVELOPE_NAMES: dict[str, str] = {"WallRequest": REQUEST_LEG, "WallResponse": RESPONSE_LEG}
+LEG_ENVELOPE_NAMES: dict[str, str] = {
+    "WallRequest": REQUEST_LEG,
+    "WallResponse": RESPONSE_LEG,
+    "WallInterim": INTERIM_LEG,
+    "WallNotification": NOTIFICATION_LEG,
+}
 
 #: leg -> the codec constant declaring that leg's exact wire form.
 LEG_WIRE_CONSTANT: dict[str, str] = {
     REQUEST_LEG: "REQUEST_WIRE_FIELDS",
     RESPONSE_LEG: "RESPONSE_WIRE_FIELDS",
+    INTERIM_LEG: "INTERIM_WIRE_FIELDS",
+    NOTIFICATION_LEG: "NOTIFICATION_WIRE_FIELDS",
 }
 
 #: leg -> the codec entry point(s) that DECODE it.
@@ -1015,6 +1039,8 @@ LEG_WIRE_CONSTANT: dict[str, str] = {
 LEG_DECODE_NAME: dict[str, tuple[str, ...]] = {
     REQUEST_LEG: ("decode_request",),
     RESPONSE_LEG: ("decode_response", "decode_framed_response"),
+    INTERIM_LEG: ("decode_interim", "decode_framed_interim"),
+    NOTIFICATION_LEG: ("decode_notification", "decode_framed_notification"),
 }
 
 #: leg -> the codec entry point that ENCODES it. BOTH ends of a leg have two lawful shapes, and
@@ -1026,6 +1052,8 @@ LEG_DECODE_NAME: dict[str, tuple[str, ...]] = {
 LEG_ENCODE_NAME: dict[str, tuple[str, ...]] = {
     REQUEST_LEG: ("encode_request",),
     RESPONSE_LEG: ("encode_response",),
+    INTERIM_LEG: ("encode_interim",),
+    NOTIFICATION_LEG: ("encode_notification",),
 }
 
 DECODE_NAMES: frozenset[str] = frozenset(
@@ -1036,10 +1064,7 @@ DECODE_NAMES: frozenset[str] = frozenset(
 #: the check reads the same rev everything else in this module does (a two-sided census must read
 #: both sides from one ref).
 CODEC_REL = "company/interfaces/wall_protocol.py"
-WIRE_FIELD_CONSTANTS: tuple[str, ...] = (
-    LEG_WIRE_CONSTANT[REQUEST_LEG],
-    LEG_WIRE_CONSTANT[RESPONSE_LEG],
-)
+WIRE_FIELD_CONSTANTS: tuple[str, ...] = tuple(LEG_WIRE_CONSTANT[leg] for leg in LEGS)
 
 #: The per-seam version constant. A seam that declares none has no version to put on a wire, which
 #: is a different fact from staying quiet -- same discipline as `_ports_declaring_the_flag`.
@@ -1067,7 +1092,7 @@ def _frozenset_literal_fields(tree: ast.Module, name: str) -> frozenset[str] | N
 
 
 def wire_field_sets(root: str) -> list[frozenset[str]]:
-    """The declared key set of a request and of a response, read from the codec's own source.
+    """The declared key set of each leg, in `LEGS` order, read from the codec's own source.
 
     FAIL-CLOSED (R15 FAIL-SILENT): an unreadable codec, a missing constant or a constant that is
     not a literal set of strings raises. Every one of those makes the encoder-shape match
@@ -1094,8 +1119,7 @@ def wire_field_sets(root: str) -> list[frozenset[str]]:
 
 def wire_field_sets_by_leg(root: str) -> dict[str, frozenset[str]]:
     """`wire_field_sets`, keyed by the leg each form belongs to. Same fail-closed contract."""
-    request_fields, response_fields = wire_field_sets(root)
-    return {REQUEST_LEG: request_fields, RESPONSE_LEG: response_fields}
+    return dict(zip(LEGS, wire_field_sets(root), strict=True))
 
 
 def seam_legs(root: str, seam: str) -> frozenset[str]:
@@ -1132,7 +1156,7 @@ def _subscript_base_name(node: ast.Subscript) -> str | None:
 def leg_payload_types(root: str, seam: str) -> dict[str, set[str]]:
     """{leg -> the payload type names that leg's envelopes carry}, from the seam's own source."""
     tree = _parse(os.path.join(root, *seam.split(".")) + ".py")
-    payloads: dict[str, set[str]] = {REQUEST_LEG: set(), RESPONSE_LEG: set()}
+    payloads: dict[str, set[str]] = {leg: set() for leg in LEGS}
     if tree is None:
         return payloads
     for node in tree.body:
