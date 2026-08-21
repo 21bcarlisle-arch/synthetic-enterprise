@@ -85,6 +85,16 @@ had -- a crossing is now OPEN FROM THE MOMENT IT WAS ASKED, so a collection
 whose FIRST answer never arrives is visible for the first time. Until pass 44
 nothing recorded that the company had asked, which is why Q5's own row records
 initial silence as invisible.
+
+THAT JOIN IS MADE (pass 46), in `PaymentObservationConsumer.silence_ladder`, and
+it is why the three as-of readings below exist -- `last_heard_at`,
+`acknowledged`, `silent_since`. It is deliberately NOT made here: this module
+imports no ladder and the ladder imports no register, so each stays a thing that
+can be reasoned about alone and the consumer that holds both books does the
+joining. The one reading the ladder could not do without help is the ANSWER TO
+"has the counterparty confirmed it holds this", because an unacknowledged
+submission may equally never have arrived or be collecting money right now, and
+those license different acts.
 """
 from __future__ import annotations
 
@@ -195,6 +205,73 @@ class CrossingConversation:
             if identity in known and identity not in heard:
                 heard.append(identity)
         return tuple(heard) != declared
+
+    def is_open_at(self, as_of: dt.datetime) -> bool:
+        """Was this exchange open at `as_of` -- the Blindfolded reading of
+        `is_closed`, and the one an ageing clock must use.
+
+        Two ways to be absent from this reading and they are deliberately not
+        distinguished, because the ladder does the same thing with both: an
+        exchange CLOSED at or before `as_of` is resolved, and one OPENED after
+        `as_of` did not exist yet. Neither is an open crossing at that clock,
+        and reporting either would be the company reading its own register
+        ahead of its decision time."""
+        if self.opened_at > as_of:
+            return False
+        return self.closed_at is None or self.closed_at > as_of
+
+    def last_heard_at(self, as_of: Optional[dt.datetime] = None) -> Optional[dt.datetime]:
+        """When the counterparty last said ANYTHING on this exchange, or `None`
+        if it never has.
+
+        THE REQUEST LEG IS NOT SOMETHING HEARD, which is the whole content of
+        this property and the reason it can return `None` at all. Leg 1 is the
+        company writing down its own act (see the class docstring on why that
+        is the only admissible evidence it happened); counting it here would
+        make every exchange look answered the instant it was raised, and an
+        unanswered collection would age from a clock that resets on its own
+        emission.
+
+        `as_of` applies the Blindfold: a leg that arrives after the decision
+        clock has not been heard AT that clock, however firmly it sits in the
+        register now."""
+        heard = [
+            leg.observed_at
+            for leg in self.legs
+            if leg.kind is not LegKind.REQUEST
+            and (as_of is None or leg.observed_at <= as_of)
+        ]
+        return max(heard) if heard else None
+
+    def acknowledged(self, as_of: Optional[dt.datetime] = None) -> bool:
+        """Has the counterparty CONFIRMED it holds this request?
+
+        The distinction is worth a method because it is the difference between
+        two situations a company must never conflate. An acknowledged
+        collection is demonstrably in the counterparty's cycle: the outcome is
+        owed and the submission is not lost. An unacknowledged one may never
+        have arrived -- or may have arrived and be collecting money right now,
+        and the company has no way to tell which. What may safely be DONE about
+        the silence turns on exactly this (`crossing_silence.SilenceOrigin`).
+
+        An interim is the only leg that can say it: a terminal closes the
+        exchange, and the request is the company's own word."""
+        return any(
+            leg.kind is LegKind.INTERIM
+            and (as_of is None or leg.observed_at <= as_of)
+            for leg in self.legs
+        )
+
+    def silent_since(self, as_of: Optional[dt.datetime] = None) -> dt.datetime:
+        """When this exchange last produced anything at all -- the moment a
+        silence clock should start from.
+
+        The last thing HEARD where something has been, and the company's own
+        emission where nothing has. Falling back to `opened_at` rather than
+        refusing is the point of the fallback: an exchange nothing has come
+        back on is precisely the one whose silence needs measuring, and it is
+        measured from the only event that exists -- the company asking."""
+        return self.last_heard_at(as_of=as_of) or self.opened_at
 
     @property
     def awaiting(self) -> Tuple[str, ...]:

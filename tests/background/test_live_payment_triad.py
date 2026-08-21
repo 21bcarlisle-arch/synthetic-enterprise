@@ -981,25 +981,31 @@ def test_R15_MUTANT_deleting_the_lift_makes_measure_and_write_refuse(
 
 
 # ---------------------------------------------------------------------------
-# Q5's REMAINING blind spot, PINNED rather than described (atom EP6, pass 41).
+# Q5's INITIAL SILENCE -- pinned as a blind spot by pass 41, CLOSED by pass 46.
+#
+# The pin below is the same scenario pass 41 wrote and the assertion is
+# inverted, which is the honest way to retire a pin: the stand-in is asked to
+# swallow a collection completely, and what the company can now say about it is
+# asserted in place of the empty list it used to return. `git log -p` on this
+# test is therefore the before/after, and the ladder cannot be quietly regressed
+# without this file moving.
 # ---------------------------------------------------------------------------
 
 
-def test_INITIAL_silence_is_produced_by_the_stand_in_and_INVISIBLE_to_the_company():
-    """The stated limit of pass 41's Q5 repair, asserted so it cannot be quietly
-    forgotten or quietly fixed without this test moving.
+def test_INITIAL_silence_is_produced_by_the_stand_in_and_NOW_VISIBLE_to_the_company():
+    """A collection the world swallows whole, on the LIVE company path.
 
-    The silence ladder can only age a crossing the company was TOLD about --
-    something must have arrived to put a row in the register. A crossing whose
-    FIRST message never arrives leaves no trace at all: the company never
-    recorded that it asked, so there is nothing to hold a clock against.
+    Pass 41 made the stand-in able to produce this silence and recorded that the
+    company could not see it: the ladder can only age a crossing something
+    arrived about, and here nothing ever does. The repair was never in the
+    ladder -- it was the missing REQUEST leg (the blind review's Q2/Q3), built
+    as `ConversationRegister` in pass 44 and joined to the ladder in pass 46.
 
-    That is not a defect in the ladder; it is the missing REQUEST leg (the
-    blind review's Q2, `seam_conversation_conformance`'s `unsolicited` bucket).
-    Recorded here because pass 41 made the stand-in able to produce exactly this
-    silence, so the gap is now REACHABLE rather than hypothetical -- and a
-    reader who sees `TransportFault.SILENCE` exists could otherwise reasonably
-    assume the company can detect it.
+    What must be true now: the company holds an open conversation on the
+    strength of its own submission, ages it to ABANDONED, concludes TIMEOUT IN
+    ITS OWN NAME (no message will ever bring one), and carries the obligation
+    that refuses a re-send -- because nothing confirmed the bureau ever received
+    the collection, and a Bacs collection sent twice debits the payer twice.
     """
     from company.billing.payment_observation_consumer import PaymentObservationConsumer
     from simulation.payment_behaviour_source import DIRECT_DEBIT
@@ -1033,13 +1039,58 @@ def test_INITIAL_silence_is_produced_by_the_stand_in_and_INVISIBLE_to_the_compan
 
     from datetime import datetime
 
+    from company.interfaces.crossing_silence import (
+        SILENCE_OBLIGATION,
+        UNRECEIPTED_OBLIGATION,
+        SilenceHorizon,
+    )
+    from interface.contracts.payment_observable_seam import (
+        COLLECTION_REQUEST_TYPE,
+        CollectionRequest,
+        PaymentRail,
+    )
+    from interface.contracts.wall_envelope import WallRequest
+
     long_after = datetime(2026, 12, 1, 9, 0)
     assert consumer.unresolved_crossings() == [], (
-        "nothing arrived, so nothing can be in the register"
+        "nothing arrived, so nothing can be in the register OF ANSWERS -- that "
+        "half of the reading is unchanged and must stay so"
     )
-    assert consumer.silence_ladder(as_of=long_after) == [], (
-        "THE GAP: months of silence on a crossing the company raised, and the "
-        "ladder has nothing to age because no request register exists (Q2)"
+
+    # THE NULL CONTROL, first: a company that never raised the collection still
+    # has nothing to age. The register is the source, not the ladder's optimism.
+    assert consumer.silence_ladder(as_of=long_after) == []
+
+    consumer.note_collection_request(WallRequest(
+        correlation_id="c-silent::p0::inv",
+        request_type=COLLECTION_REQUEST_TYPE,
+        schema_version=SCHEMA_VERSION,
+        as_of=datetime(2026, 8, 17, 6, 0),
+        emitted_at=datetime(2026, 8, 17, 6, 0),
+        payload=CollectionRequest(
+            account_id="ACC-c-silent",
+            mandate_ref="MAN-c-silent",
+            amount_gbp=42.0,
+            rail=PaymentRail.BACS_DIRECT_DEBIT,
+            requested_collection_date=date(2026, 8, 17),
+        ),
+    ))
+
+    (aged,) = consumer.silence_ladder(as_of=long_after)
+    assert aged.correlation_id == "c-silent::p0::inv"
+    assert aged.horizon == SilenceHorizon.ABANDONED
+    assert aged.heard_status is None, "nothing arrived, so there is no word to hold"
+    assert aged.concluded_status == WallStatus.TIMEOUT, (
+        "the company's own clock, in its own name -- no message will bring one"
+    )
+    assert aged.receipt_proven is False
+    assert aged.obligation == UNRECEIPTED_OBLIGATION[SilenceHorizon.ABANDONED]
+    assert aged.obligation != SILENCE_OBLIGATION[SilenceHorizon.ABANDONED], (
+        "the ladder that says 're-ask' is the wrong one here: nothing confirmed "
+        "the bureau ever received this collection"
+    )
+    assert consumer.open_conversations()[0].is_closed is False, (
+        "a conclusion is not a resolution -- ageing never evicts"
     )
 
 
@@ -1366,6 +1417,51 @@ def test_q3_the_LIVE_triad_holds_THREE_LEG_conversations_and_is_not_an_orphan():
     assert conv.leg_count >= 3
     assert [leg.kind for leg in conv.legs[:2]] == [LegKind.REQUEST, LegKind.INTERIM]
     assert conv.legs[1].message_type == "bacs_input_report"
+
+
+def test_the_silence_ladder_runs_on_the_LIVE_company_and_says_it_is_owed_NOTHING():
+    """THE JOIN, ON THE RUNNING TRIAD (pass 46), and the empty answer is the
+    interesting one -- provided it is shown to be a reading rather than a
+    silence of its own.
+
+    A healthy live run answers every collection it raises, so the correct ladder
+    over `run_phase2b`'s own consumer is EMPTY: nothing is open, nothing is
+    owed. That assertion is worthless alone (a ladder wired to nothing returns
+    the same thing), so the second half hands the SAME live consumer one
+    submission the world never answers and requires it to report exactly one
+    abandoned, unreceipted crossing. Empty because there is nothing to say, not
+    empty because nobody is listening."""
+    from datetime import datetime
+
+    from company.interfaces.crossing_silence import SilenceHorizon
+    from interface.contracts.payment_observable_seam import CollectionRequest, PaymentRail
+    from interface.contracts.wall_envelope import WallRequest
+
+    triad = _dd_triad()
+    after = datetime(2026, 9, 30, 9, 0)
+    assert triad._consumer.silence_ladder(as_of=after) == [], (
+        "every collection this run raised was answered, so the company is owed "
+        "nothing on the wall"
+    )
+
+    triad._consumer.note_collection_request(WallRequest(
+        correlation_id="q3c0::swallowed",
+        request_type=COLLECTION_REQUEST_TYPE,
+        schema_version=SCHEMA_VERSION,
+        as_of=datetime(2026, 6, 17, 6, 0),
+        emitted_at=datetime(2026, 6, 17, 6, 0),
+        payload=CollectionRequest(
+            account_id="ACC-q3c0",
+            mandate_ref="MAN-q3c0",
+            amount_gbp=42.0,
+            rail=PaymentRail.BACS_DIRECT_DEBIT,
+            requested_collection_date=date(2026, 6, 17),
+        ),
+    ))
+    (aged,) = triad._consumer.silence_ladder(as_of=after)
+    assert aged.correlation_id == "q3c0::swallowed"
+    assert aged.horizon == SilenceHorizon.ABANDONED
+    assert aged.receipt_proven is False
 
 
 def test_q3_the_SHADOW_company_holds_the_same_exchanges():

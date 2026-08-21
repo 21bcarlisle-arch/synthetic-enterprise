@@ -274,3 +274,96 @@ def test_the_interim_primitive_refuses_to_be_leg_one():
     never be the opening leg of its own conversation."""
     with pytest.raises(ValueError, match="leg must be >= 2"):
         _interim(leg=1)
+
+
+# ── WHAT THE SILENCE LADDER READS OFF A CONVERSATION (pass 46) ──────────────────
+#
+# The join these support is in `PaymentObservationConsumer.silence_ladder`; what
+# is tested here is the reading, which has to be right about one thing above all:
+# the request leg is the COMPANY'S OWN WORD and must never be counted as the
+# counterparty having said something. A version that counted it makes every
+# exchange look answered the instant it was raised, and an unanswered collection
+# then ages from a clock that resets on its own emission -- silence that can
+# never be detected, which is the exact defect Q5 names.
+
+
+def test_the_REQUEST_leg_is_not_something_heard():
+    """THE load-bearing distinction. A conversation with only its request leg
+    has heard NOTHING, and the null control is the same conversation one
+    acknowledgement later."""
+    reg = _opened()
+    assert reg.conversation("INV-1").last_heard_at() is None
+    assert reg.conversation("INV-1").leg_count == 1, (
+        "the leg is present -- this is not an empty register, it is a register "
+        "holding the company's own act"
+    )
+
+    reg.record_interim(_interim())
+    assert reg.conversation("INV-1").last_heard_at() == ACKED
+
+
+def test_silence_runs_from_the_companys_own_emission_until_something_arrives():
+    """The fallback is the point of the fallback: an exchange nothing has come
+    back on is precisely the one whose silence needs measuring, and the only
+    event that exists to measure it from is the company asking."""
+    reg = _opened()
+    assert reg.conversation("INV-1").silent_since() == EMITTED
+
+    reg.record_interim(_interim())
+    assert reg.conversation("INV-1").silent_since() == ACKED, (
+        "once the counterparty speaks, the clock restarts from ITS message"
+    )
+
+
+def test_only_an_INTERIM_acknowledges_receipt():
+    """A terminal closes the exchange and the request is the company's own word,
+    so an acknowledgement is the one leg that can say 'we hold this'."""
+    reg = _opened()
+    assert reg.conversation("INV-1").acknowledged() is False
+
+    reg.record_interim(_interim())
+    assert reg.conversation("INV-1").acknowledged() is True
+
+    push = ConversationRegister()
+    push.record_terminal("PUSH-9", "RemittanceAdvice", WallStatus.OK, ANSWERED)
+    assert push.conversation("PUSH-9").acknowledged() is False, (
+        "a terminal is an outcome, not a confirmation of receipt"
+    )
+
+
+def test_the_readings_are_BLINDFOLDED_by_as_of():
+    """A leg that arrives after the decision clock has not been heard AT that
+    clock, however firmly it sits in the register now. Without this the ladder
+    would age an unanswered crossing from a message the company had not yet
+    received -- and could produce a NEGATIVE silence."""
+    reg = _opened()
+    reg.record_interim(_interim())
+    before = ACKED - dt.timedelta(hours=1)
+
+    conv = reg.conversation("INV-1")
+    assert conv.last_heard_at(as_of=before) is None
+    assert conv.acknowledged(as_of=before) is False
+    assert conv.silent_since(as_of=before) == EMITTED
+    # the null control: at a clock that HAS reached the interim, all three move.
+    assert conv.last_heard_at(as_of=ACKED) == ACKED
+    assert conv.acknowledged(as_of=ACKED) is True
+    assert conv.silent_since(as_of=ACKED) == ACKED
+
+
+def test_is_open_at_reads_the_register_at_the_decision_clock_and_not_now():
+    """Two ways to be absent and the ladder treats them alike: an exchange
+    closed by then is resolved, and one opened after did not exist. The
+    interesting case is the middle one -- a conversation closed TODAY was open
+    last week, and a reader that only knew `is_closed` would say otherwise."""
+    reg = _opened()
+    reg.record_terminal("INV-1", "RemittanceAdvice", WallStatus.OK, ANSWERED)
+    conv = reg.conversation("INV-1")
+
+    assert conv.is_closed is True
+    assert conv.is_open_at(EMITTED + dt.timedelta(hours=1)) is True, (
+        "it was open then, and that is what an as-of read is for"
+    )
+    assert conv.is_open_at(ANSWERED) is False
+    assert conv.is_open_at(EMITTED - dt.timedelta(days=1)) is False, (
+        "a conversation not yet opened is not an open conversation"
+    )

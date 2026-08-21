@@ -153,6 +153,7 @@ from company.interfaces.crossing_conversation import (
 )
 from company.interfaces.crossing_silence import (
     SilenceConclusion,
+    SilenceOrigin,
     conclude_silence,
 )
 from company.interfaces.wall_protocol import (
@@ -1573,19 +1574,92 @@ class PaymentObservationConsumer:
         MINUTE and a date cannot express it. It applies the Blindfold exactly as
         `unresolved_crossings` does: a crossing heard after the decision clock
         is not visible here either.
+
+        TWO BOOKS, ONE LADDER (pass 46), and the second one is the whole reason
+        this method changed. Until now it read only `_unresolved` -- crossings
+        the counterparty had SPOKEN about -- so a collection submitted and never
+        answered at all was not aged, it was ABSENT. That is the gap pass 41
+        recorded against itself ("initial silence is invisible... nothing
+        records that the company asked") and pass 44 removed the cause of by
+        opening a conversation at emission. Both books are read here:
+
+          * `_unresolved` -- the counterparty answered, non-OK. Receipt is
+            proven by the answer, so `SilenceOrigin.ANSWER`.
+          * `_conversations` -- the company asked. If an interim came back,
+            `ACKNOWLEDGEMENT`; if nothing has, `OUR_OWN_REQUEST`, and the
+            obligation the conclusion carries is the one that refuses a re-send
+            (`crossing_silence.UNRECEIPTED_OBLIGATION`).
+
+        THE SAME CROSSING CAN BE IN BOTH, and it is deduplicated by
+        `correlation_id` with the unresolved entry winning, because a status is
+        the richer word: a non-OK response does NOT close a conversation (see
+        `observe`), so a crossing answered "not yet" sits in the open register
+        AND in the open conversation book, and counting it twice would report
+        one silence as two.
+
+        WHICHEVER SPOKE LAST STARTS THE CLOCK. An interim arriving after a "not
+        yet" is the counterparty speaking more recently than its own last
+        status, so the silence began at the interim -- taking the older instant
+        would report a longer silence than the company actually experienced.
+        The status stays the counterparty's last STATUS word either way; the two
+        fields answer different questions and are not merged.
         """
-        crossings = self.unresolved_crossings(
-            account_id=account_id, as_of=as_of.date()
-        )
+        # (status, silent_since, origin) per crossing. The unresolved register
+        # is loaded first so the conversation pass can see what it must not
+        # duplicate.
+        aged: Dict[str, Tuple[Optional[WallStatus], dt.datetime, SilenceOrigin]] = {}
+        for crossing in self.unresolved_crossings(as_of=as_of.date()):
+            if crossing.observed_at <= as_of:
+                aged[crossing.correlation_id] = (
+                    crossing.status,
+                    crossing.observed_at,
+                    SilenceOrigin.ANSWER,
+                )
+        for conversation in self._conversations.conversations():
+            if not conversation.is_open_at(as_of):
+                continue
+            cid = conversation.correlation_id
+            silent_since = conversation.silent_since(as_of=as_of)
+            acknowledged = conversation.acknowledged(as_of=as_of)
+            held = aged.get(cid)
+            if held is not None:
+                status, heard_at, _origin = held
+                # Only an acknowledgement can move the clock forward off a
+                # status. Guarding on it rather than on the instant alone
+                # matters: `silent_since` falls back to the company's own
+                # emission, and a response timestamped before it (clock skew on
+                # the wire) would otherwise relabel a crossing nothing
+                # acknowledged as acknowledged.
+                if acknowledged and silent_since > heard_at:
+                    aged[cid] = (status, silent_since, SilenceOrigin.ACKNOWLEDGEMENT)
+                continue
+            aged[cid] = (
+                None,
+                silent_since,
+                SilenceOrigin.ACKNOWLEDGEMENT if acknowledged
+                else SilenceOrigin.OUR_OWN_REQUEST,
+            )
+        if account_id is not None:
+            # The same exact-equality join `unresolved_crossings` documents and
+            # for the same reason -- a correlation id is attributable to an
+            # account only where the caller set it to that account's own invoice
+            # ref, and inferring one by parsing the id would be attribution by
+            # substring.
+            billed_refs = set(_billed_by_invoice(
+                self.ledger_book.ledger(account_id), as_of.date()
+            ))
+            aged = {cid: v for cid, v in aged.items() if cid in billed_refs}
         return [
             conclude_silence(
-                correlation_id=c.correlation_id,
-                heard_status=c.status,
-                last_heard_at=c.observed_at,
+                correlation_id=cid,
+                heard_status=status,
+                silent_since=silent_since,
                 as_of=as_of,
+                origin=origin,
             )
-            for c in crossings
-            if c.observed_at <= as_of
+            for cid, (status, silent_since, origin) in sorted(
+                aged.items(), key=lambda item: (item[1][1], item[0])
+            )
         ]
 
     def snapshot(

@@ -21,29 +21,38 @@ import pytest
 
 from company.billing.account_ledger import LedgerBook, LedgerEvent, LedgerEventType
 from company.billing.payment_observation_consumer import (
-    ArrearsRiskBelief,
     DEFAULT_RECONCILIATION_GRACE_DAYS,
+    ArrearsRiskBelief,
     ExpectedCollectionMiss,
     MandateBeliefState,
     PaymentObservationConsumer,
 )
+from company.interfaces.crossing_silence import (
+    SILENCE_OBLIGATION,
+    UNRECEIPTED_OBLIGATION,
+    SilenceHorizon,
+)
 from interface.contracts.payment_observable_seam import (
+    ADDACS_NOTIFICATION_TYPE,
+    COLLECTION_REQUEST_TYPE,
     AddacsAdvice,
     AddacsAdviceType,
     AuddisReport,
     AuddisStatus,
     BacsArruddOutcome,
     BacsReasonCategory,
+    CollectionRequest,
     DDOutcomeStatus,
     PaymentNotification,
     PaymentRail,
     RemittanceAdvice,
     SettlementConfirmation,
 )
-from interface.contracts.payment_observable_seam import ADDACS_NOTIFICATION_TYPE
 from interface.contracts.wall_envelope import (
     ErrorDetail,
+    WallInterim,
     WallNotification,
+    WallRequest,
     WallResponse,
     WallStatus,
 )
@@ -313,8 +322,9 @@ def test_dd_failure_never_carries_a_generator_truth_field():
     """`DDFailureObservation` must expose only the observable seam's own
     fields -- no segment/hardship/probability field could ever be attached
     even in principle (dataclass fields introspection, not a runtime check)."""
-    from company.billing.payment_observation_consumer import DDFailureObservation
     import dataclasses
+
+    from company.billing.payment_observation_consumer import DDFailureObservation
     field_names = {f.name for f in dataclasses.fields(DDFailureObservation)}
     forbidden_terms = {"segment", "hardship", "probability", "propensity", "true_reason", "ground_truth"}
     assert not (field_names & forbidden_terms)
@@ -1201,3 +1211,258 @@ def test_an_unheard_stream_reports_nothing_rather_than_a_false_clean_bill():
     assert stream.received == 0
     assert stream.first_sequence is None and stream.last_sequence is None
     assert stream.has_gap is False
+
+
+# ---------------------------------------------------------------------------
+# THE LADDER OVER BOTH BOOKS (atom EP6, pass 46).
+#
+# Pass 41 built `silence_ladder` over ONE register -- crossings the counterparty
+# had ANSWERED -- and recorded the hole in its own evidence: "a crossing whose
+# FIRST message never arrives leaves no trace, because nothing records that the
+# company asked". Pass 44 built the thing that records it. These tests are the
+# join, and the load-bearing one is
+# `test_MUTATION_a_collection_that_is_never_answered_at_all_is_now_AGED`: it
+# fails against the pass-45 consumer, where the answer is an empty list.
+# ---------------------------------------------------------------------------
+
+
+class TestSilenceLadderOverOpenConversations:
+
+    EMITTED = dt.datetime(2026, 8, 17, 9, 0)      # a Monday
+    ACKED = dt.datetime(2026, 8, 17, 15, 0)
+    LONG_AFTER = dt.datetime(2026, 9, 30, 9, 0)
+
+    def _request(self, corr="INV-Q3", account_id="ACC-Q3", emitted_at=None):
+        return WallRequest(
+            correlation_id=corr,
+            request_type=COLLECTION_REQUEST_TYPE,
+            schema_version=2,
+            as_of=emitted_at or self.EMITTED,
+            emitted_at=emitted_at or self.EMITTED,
+            payload=CollectionRequest(
+                account_id=account_id,
+                mandate_ref="MAN-1",
+                amount_gbp=42.0,
+                rail=PaymentRail.BACS_DIRECT_DEBIT,
+                requested_collection_date=dt.date(2026, 8, 20),
+            ),
+        )
+
+    def _interim(self, corr="INV-Q3", at=None):
+        return WallInterim(
+            correlation_id=corr,
+            leg=2,
+            interim_type="bacs_input_report",
+            schema_version=2,
+            observed_at=at or self.ACKED,
+            payload={"submission_ref": "SUB-1"},
+        )
+
+    def test_MUTATION_a_collection_that_is_never_answered_at_all_is_now_AGED(self):
+        """THE defect, stated as its differential. The same consumer, the same
+        clock: one raised the collection and one did not. Before this pass BOTH
+        returned an empty ladder -- a submission the world swallowed was
+        indistinguishable from one never made, for as long as the company cared
+        to wait."""
+        raised = PaymentObservationConsumer()
+        raised.note_collection_request(self._request())
+
+        never_raised = PaymentObservationConsumer()
+
+        (aged,) = raised.silence_ladder(as_of=self.LONG_AFTER)
+        assert aged.correlation_id == "INV-Q3"
+        assert aged.horizon == SilenceHorizon.ABANDONED
+        assert aged.heard_status is None
+        assert aged.receipt_proven is False
+        assert aged.concluded_status == WallStatus.TIMEOUT
+
+        # THE NULL CONTROL, and it is what makes the register the source: a
+        # company that never asked has nothing to be owed, and the ladder must
+        # not invent a crossing for it.
+        assert never_raised.silence_ladder(as_of=self.LONG_AFTER) == []
+
+    def test_the_unanswered_collection_is_not_the_same_at_one_minute_and_one_year(self):
+        """The pass-41 headline, now true of the subject that could not be aged
+        at all: the register row is identical at both reads and only the ladder
+        can tell them apart."""
+        consumer = PaymentObservationConsumer()
+        consumer.note_collection_request(self._request())
+
+        early = consumer.silence_ladder(as_of=self.EMITTED + dt.timedelta(minutes=1))
+        late = consumer.silence_ladder(as_of=self.EMITTED + dt.timedelta(days=365))
+
+        assert early[0].horizon == SilenceHorizon.LATE
+        assert late[0].horizon == SilenceHorizon.ABANDONED
+        assert early[0].concluded_status is None
+        assert late[0].concluded_status == WallStatus.TIMEOUT
+        assert consumer.open_conversations()[0].leg_count == 1, (
+            "the conversation itself has not moved -- the ladder supplies the "
+            "distinction and does not read a changed value"
+        )
+
+    def test_an_ACKNOWLEDGED_submission_gets_the_other_ladder_and_a_later_clock(self):
+        """An input report changes two things at once and both matter: receipt is
+        proven (so a chase is safe where a re-send never was), and the
+        counterparty spoke more recently than the company asked, so the silence
+        is shorter."""
+        consumer = PaymentObservationConsumer()
+        consumer.note_collection_request(self._request())
+        consumer.observe_interim(self._interim())
+
+        (aged,) = consumer.silence_ladder(as_of=self.ACKED + dt.timedelta(days=2))
+        assert aged.receipt_proven is True
+        assert aged.silent_since == self.ACKED
+        assert aged.last_heard_at == self.ACKED
+        assert aged.answer_owed is True
+        assert aged.obligation == SILENCE_OBLIGATION[aged.horizon]
+        assert aged.obligation != UNRECEIPTED_OBLIGATION[aged.horizon]
+
+    def test_the_UNRECEIPTED_obligation_refuses_the_re_send_the_other_one_licenses(self):
+        """The measured consequence of the join, and the reason it is not
+        plumbing: the same horizon on the same rail, and the sentence the
+        company is entitled to say about it depends entirely on whether anything
+        ever confirmed the submission arrived. A re-sent Bacs collection debits
+        the payer twice."""
+        overdue_at = self.EMITTED + dt.timedelta(days=2)
+
+        silent = PaymentObservationConsumer()
+        silent.note_collection_request(self._request())
+        acknowledged = PaymentObservationConsumer()
+        acknowledged.note_collection_request(self._request())
+        acknowledged.observe_interim(self._interim())
+
+        (unheard,) = silent.silence_ladder(as_of=overdue_at)
+        (heard,) = acknowledged.silence_ladder(as_of=overdue_at)
+
+        assert unheard.horizon == heard.horizon == SilenceHorizon.OVERDUE
+        assert unheard.obligation == UNRECEIPTED_OBLIGATION[SilenceHorizon.OVERDUE]
+        assert heard.obligation == SILENCE_OBLIGATION[SilenceHorizon.OVERDUE]
+        assert unheard.next_move != heard.next_move
+
+    def test_a_crossing_in_BOTH_books_is_aged_ONCE(self):
+        """A non-OK response does NOT close a conversation (see `observe`), so a
+        crossing answered 'not yet' sits in the open register AND in the open
+        conversation book. Counting it twice would report one silence as two --
+        and the second copy would carry the unreceipted ladder for a crossing the
+        counterparty demonstrably holds."""
+        consumer = PaymentObservationConsumer()
+        consumer.note_collection_request(self._request())
+        consumer.observe(_pending_resp("INV-Q3", self.EMITTED + dt.timedelta(hours=1)))
+
+        ladder = consumer.silence_ladder(as_of=self.LONG_AFTER)
+        assert [c.correlation_id for c in ladder] == ["INV-Q3"]
+        assert ladder[0].heard_status == WallStatus.NOT_KNOWABLE_YET
+        assert ladder[0].receipt_proven is True, (
+            "an answer arrived, so receipt is proven whatever the conversation "
+            "book knows"
+        )
+
+    def test_whichever_spoke_last_starts_the_clock(self):
+        """An interim arriving AFTER a 'not yet' is the counterparty speaking
+        more recently than its own last status. Taking the older instant would
+        report a longer silence than the company actually experienced; taking
+        the newer one must not lose the status word."""
+        consumer = PaymentObservationConsumer()
+        consumer.note_collection_request(self._request())
+        answered_at = self.EMITTED + dt.timedelta(hours=1)
+        acked_at = self.EMITTED + dt.timedelta(hours=5)
+        consumer.observe(_pending_resp("INV-Q3", answered_at))
+        consumer.observe_interim(self._interim(at=acked_at))
+
+        (aged,) = consumer.silence_ladder(as_of=self.LONG_AFTER)
+        assert aged.silent_since == acked_at
+        assert aged.heard_status == WallStatus.NOT_KNOWABLE_YET, (
+            "the counterparty's last STATUS word is a different question from "
+            "when it last spoke, and the two must not be merged"
+        )
+
+    def test_a_response_timestamped_BEFORE_the_request_does_not_forge_an_acknowledgement(self):
+        """The guard on the clock-forward branch, and its own falsifier. The
+        forward move is keyed on an acknowledgement HAVING ARRIVED, not on the
+        instants alone -- because `silent_since` falls back to the company's own
+        emission, so a counterparty whose clock runs slow (an `observed_at`
+        before the request was raised, which C-S1 does not forbid) would
+        otherwise relabel a crossing nothing acknowledged as acknowledged, and
+        hand it the ladder that licenses a re-send."""
+        consumer = PaymentObservationConsumer()
+        consumer.note_collection_request(self._request())
+        skewed = self.EMITTED - dt.timedelta(minutes=5)
+        consumer.observe(_pending_resp("INV-Q3", skewed))
+
+        (aged,) = consumer.silence_ladder(as_of=self.LONG_AFTER)
+        assert aged.silent_since == skewed
+        assert aged.heard_status == WallStatus.NOT_KNOWABLE_YET
+        assert aged.last_heard_at == skewed, (
+            "an answer is something heard, and no interim exists to move the "
+            "clock off it"
+        )
+
+    def test_a_resolved_conversation_leaves_the_ladder(self):
+        """The only way out is an answer. An OK closes the conversation, and a
+        closed exchange has no silence to measure."""
+        consumer = PaymentObservationConsumer()
+        consumer.note_collection_request(self._request())
+        assert len(consumer.silence_ladder(as_of=self.LONG_AFTER)) == 1
+
+        consumer.observe(_remit_resp(
+            "ACC-Q3", 42.0, "INV-Q3", dt.date(2026, 8, 20), "INV-Q3",
+            observed_at=self.EMITTED + dt.timedelta(days=3),
+        ))
+        assert consumer.silence_ladder(as_of=self.LONG_AFTER) == []
+
+    def test_the_ladder_is_BLINDFOLDED_on_the_conversation_book_too(self):
+        """Three readings at a clock that has not reached the events: a
+        conversation opened later is invisible; an interim that arrives later has
+        not been heard yet, so the silence still runs from the emission; and a
+        conversation closed later was OPEN at the clock and must still be aged."""
+        consumer = PaymentObservationConsumer()
+        consumer.note_collection_request(self._request())
+        consumer.observe_interim(self._interim())
+        consumer.observe(_remit_resp(
+            "ACC-Q3", 42.0, "INV-Q3", dt.date(2026, 8, 20), "INV-Q3",
+            observed_at=self.EMITTED + dt.timedelta(days=3),
+        ))
+
+        assert consumer.silence_ladder(as_of=self.EMITTED - dt.timedelta(days=1)) == []
+
+        (mid,) = consumer.silence_ladder(as_of=self.EMITTED + dt.timedelta(hours=1))
+        assert mid.silent_since == self.EMITTED, (
+            "the acknowledgement had not arrived at this clock, so it cannot be "
+            "the moment the silence started"
+        )
+        assert mid.receipt_proven is False
+        assert consumer.silence_ladder(as_of=self.LONG_AFTER) == []
+
+    def test_the_conversation_half_is_attributed_to_an_account_the_same_way(self):
+        """Exact equality against that account's own billed invoice refs -- the
+        join `unresolved_crossings` documents. A conversation whose id is not one
+        of them is still visible in the account-less read, which is the
+        register's complete reading."""
+        lb = LedgerBook()
+        _bill(lb, "ACC-Q3", "INV-Q3", 42.0, dt.date(2026, 8, 1))
+        consumer = PaymentObservationConsumer(ledger_book=lb)
+        consumer.note_collection_request(self._request())
+        consumer.note_collection_request(self._request(corr="PUSH-9"))
+
+        mine = consumer.silence_ladder(as_of=self.LONG_AFTER, account_id="ACC-Q3")
+        assert [c.correlation_id for c in mine] == ["INV-Q3"]
+        assert len(consumer.silence_ladder(as_of=self.LONG_AFTER)) == 2
+
+    def test_the_ladder_still_evicts_nothing_and_still_acts_on_nothing(self):
+        """Pass 41's two standing clauses, re-asserted over the new subject:
+        ageing out is not being answered, and every obligation is a sentence."""
+        consumer = PaymentObservationConsumer()
+        consumer.note_collection_request(self._request())
+
+        first = consumer.silence_ladder(as_of=self.LONG_AFTER)
+        second = consumer.silence_ladder(as_of=self.LONG_AFTER)
+        assert len(first) == 1, (
+            "asserted before the clauses below because both of them are VACUOUS "
+            "on an empty ladder -- a purity check over nothing passes on a build "
+            "that aged nothing at all"
+        )
+        assert first == second
+        assert [c.correlation_id for c in consumer.open_conversations()] == ["INV-Q3"]
+        assert consumer.conversation("INV-Q3").is_closed is False
+        for aged in first:
+            assert isinstance(aged.obligation, str) and aged.obligation.strip()

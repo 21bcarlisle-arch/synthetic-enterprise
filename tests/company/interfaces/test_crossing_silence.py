@@ -19,7 +19,9 @@ from company.interfaces.crossing_silence import (
     LATE_AFTER,
     OVERDUE_AFTER,
     SILENCE_OBLIGATION,
+    UNRECEIPTED_OBLIGATION,
     SilenceHorizon,
+    SilenceOrigin,
     conclude_silence,
     silence_horizon,
 )
@@ -32,7 +34,7 @@ FRI = dt.datetime(2026, 8, 21, 9, 0)
 
 
 def horizon(last_heard: dt.datetime, as_of: dt.datetime) -> SilenceHorizon:
-    return silence_horizon(last_heard_at=last_heard, as_of=as_of)
+    return silence_horizon(silent_since=last_heard, as_of=as_of)
 
 
 # ── the ladder, at and around each stated boundary ───────────────────────────
@@ -117,7 +119,7 @@ def test_a_clock_running_backwards_RAISES_rather_than_reporting_in_flight():
     """'No time has passed, so IN_FLIGHT' is a confident wrong answer built from
     a contradiction, and it would hide a Blindfold breach behind the most
     reassuring member of the enum."""
-    with pytest.raises(ValueError, match="BEFORE last_heard_at"):
+    with pytest.raises(ValueError, match="BEFORE silent_since"):
         horizon(MON, MON - dt.timedelta(seconds=1))
 
 
@@ -151,7 +153,8 @@ def test_TIMEOUT_is_concluded_only_at_abandonment_and_only_for_an_owed_answer():
     below = conclude_silence(
         correlation_id="INV-1",
         heard_status=WallStatus.NOT_KNOWABLE_YET,
-        last_heard_at=MON,
+        silent_since=MON,
+        origin=SilenceOrigin.ANSWER,
         as_of=MON + dt.timedelta(days=6),
     )
     assert below.horizon == SilenceHorizon.OVERDUE
@@ -163,7 +166,8 @@ def test_TIMEOUT_is_concluded_only_at_abandonment_and_only_for_an_owed_answer():
     at = conclude_silence(
         correlation_id="INV-1",
         heard_status=WallStatus.NOT_KNOWABLE_YET,
-        last_heard_at=MON,
+        silent_since=MON,
+        origin=SilenceOrigin.ANSWER,
         as_of=MON + dt.timedelta(days=7),
     )
     assert at.horizon == SilenceHorizon.ABANDONED
@@ -176,7 +180,8 @@ def test_the_counterparty_word_is_never_overwritten_by_the_company_conclusion():
     aged = conclude_silence(
         correlation_id="INV-1",
         heard_status=WallStatus.NOT_KNOWABLE_YET,
-        last_heard_at=MON,
+        silent_since=MON,
+        origin=SilenceOrigin.ANSWER,
         as_of=MON + dt.timedelta(days=7),
     )
     assert aged.heard_status == WallStatus.NOT_KNOWABLE_YET
@@ -192,7 +197,8 @@ def test_a_failed_exchange_is_not_re_concluded_as_a_timeout(already):
     aged = conclude_silence(
         correlation_id="INV-1",
         heard_status=already,
-        last_heard_at=MON,
+        silent_since=MON,
+        origin=SilenceOrigin.ANSWER,
         as_of=MON + dt.timedelta(days=7),
     )
     assert aged.horizon == SilenceHorizon.ABANDONED
@@ -208,7 +214,8 @@ def test_an_OK_crossing_is_refused_by_the_ladder():
         conclude_silence(
             correlation_id="INV-1",
             heard_status=WallStatus.OK,
-            last_heard_at=MON,
+            silent_since=MON,
+            origin=SilenceOrigin.ANSWER,
             as_of=MON + dt.timedelta(days=7),
         )
 
@@ -224,7 +231,8 @@ def test_each_status_releases_a_DIFFERENT_next_move():
         status: conclude_silence(
             correlation_id="INV-1",
             heard_status=status,
-            last_heard_at=MON,
+            silent_since=MON,
+            origin=SilenceOrigin.ANSWER,
             as_of=MON + dt.timedelta(days=7),
         ).next_move
         for status in (
@@ -243,13 +251,15 @@ def test_the_owed_answer_move_changes_once_the_promise_goes_stale():
     early = conclude_silence(
         correlation_id="INV-1",
         heard_status=WallStatus.NOT_KNOWABLE_YET,
-        last_heard_at=MON,
+        silent_since=MON,
+        origin=SilenceOrigin.ANSWER,
         as_of=MON + dt.timedelta(seconds=30),
     )
     late = conclude_silence(
         correlation_id="INV-1",
         heard_status=WallStatus.NOT_KNOWABLE_YET,
-        last_heard_at=MON,
+        silent_since=MON,
+        origin=SilenceOrigin.ANSWER,
         as_of=MON + dt.timedelta(days=2),
     )
     assert early.next_move != late.next_move
@@ -273,3 +283,177 @@ def test_the_horizon_constants_are_the_ones_the_review_named():
     assert LATE_AFTER == dt.timedelta(minutes=1)
     assert OVERDUE_AFTER == dt.timedelta(hours=24)
     assert ABANDONED_AFTER_WORKING_DAYS == 5
+
+
+# ── THE UNRECEIPTED LADDER (pass 46) ─────────────────────────────────────────
+#
+# Pass 41 built this module over ONE subject: a crossing the counterparty had
+# ANSWERED. Receipt was proven by the answer's existence, so nothing had to say
+# so. The request register (pass 44) added a second subject -- a submission
+# nothing has come back on -- and for that one the company holds no evidence the
+# counterparty ever got it. These tests are about the consequence, which is not
+# cosmetic: `SILENCE_OBLIGATION`'s OVERDUE arm says "re-ask", and a Bacs
+# collection re-sent because no input report arrived is a SECOND collection if
+# the first one landed.
+
+
+def _unreceipted(as_of, correlation_id="INV-Q5"):
+    return conclude_silence(
+        correlation_id=correlation_id,
+        heard_status=None,
+        silent_since=MON,
+        as_of=as_of,
+        origin=SilenceOrigin.OUR_OWN_REQUEST,
+    )
+
+
+def test_the_two_ladders_differ_at_EVERY_horizon():
+    """A copy-paste that left the two tables holding the same sentences would
+    collapse the split silently -- and in the direction that licenses a re-send
+    on an unconfirmed collection. Asserted at import too, and here as well
+    because an assert in a module nobody imports is not a control."""
+    assert set(UNRECEIPTED_OBLIGATION) == set(SilenceHorizon)
+    for band in SilenceHorizon:
+        assert UNRECEIPTED_OBLIGATION[band].strip(), band
+        assert UNRECEIPTED_OBLIGATION[band] != SILENCE_OBLIGATION[band], band
+
+
+def test_an_unreceipted_crossing_gets_the_ladder_that_refuses_a_RESEND():
+    """THE MUTATION, stated as the pair it is: the same horizon, the same
+    elapsed silence, two different obligations, selected by nothing except
+    whether the counterparty was ever shown to hold the request. Point both
+    origins at one table and this fails."""
+    overdue = MON + dt.timedelta(days=2)
+    unreceipted = _unreceipted(overdue)
+    answered = conclude_silence(
+        correlation_id="INV-Q5",
+        heard_status=WallStatus.NOT_KNOWABLE_YET,
+        silent_since=MON,
+        as_of=overdue,
+        origin=SilenceOrigin.ANSWER,
+    )
+
+    assert unreceipted.horizon == answered.horizon == SilenceHorizon.OVERDUE
+    assert unreceipted.obligation == UNRECEIPTED_OBLIGATION[SilenceHorizon.OVERDUE]
+    assert answered.obligation == SILENCE_OBLIGATION[SilenceHorizon.OVERDUE]
+    assert unreceipted.obligation != answered.obligation
+    assert unreceipted.receipt_proven is False
+    assert answered.receipt_proven is True
+
+
+def test_an_ACKNOWLEDGED_crossing_is_receipted_though_it_carries_no_status():
+    """An input report is the counterparty saying it holds the request. There is
+    no status on it -- an interim has none by construction -- so a reader keyed
+    on the status enum alone reads this as unreceipted, which is the wrong
+    ladder for the one case where the submission is provably not lost."""
+    aged = conclude_silence(
+        correlation_id="INV-Q5",
+        heard_status=None,
+        silent_since=MON,
+        as_of=MON + dt.timedelta(days=2),
+        origin=SilenceOrigin.ACKNOWLEDGEMENT,
+    )
+    assert aged.heard_status is None
+    assert aged.receipt_proven is True
+    assert aged.obligation == SILENCE_OBLIGATION[SilenceHorizon.OVERDUE]
+    assert aged.answer_owed is True, (
+        "receipt confirmed and no outcome reported is the clearest case in this "
+        "module of an answer being owed"
+    )
+
+
+def test_an_unreceipted_crossing_owes_the_company_a_question_not_the_counterparty_an_answer():
+    """A counterparty cannot owe an answer to a request nobody can show it
+    received. `answer_owed` is False and the crossing is still open -- the same
+    shape as after a TIMEOUT, where the next move is also the company's."""
+    aged = _unreceipted(MON + dt.timedelta(days=2))
+    assert aged.answer_owed is False
+    assert aged.exchange_failed is False, (
+        "nothing has failed here; nothing has happened, and reading silence as a "
+        "reported failure is what this module exists to refuse"
+    )
+
+
+@pytest.mark.parametrize(
+    "origin,heard_status,expected",
+    [
+        (SilenceOrigin.ANSWER, None, "clock starts from an ANSWER"),
+        (SilenceOrigin.OUR_OWN_REQUEST, WallStatus.NOT_KNOWABLE_YET, "receipt"),
+    ],
+)
+def test_a_self_contradictory_conclusion_is_REFUSED(origin, heard_status, expected):
+    """Both refusals are about one fact: a status is itself proof the
+    counterparty received the request. Claiming an ANSWER clock with no status
+    reports a message that does not exist; claiming nothing came back while
+    holding a status applies the cautious ladder to a crossing that does not
+    need it and, worse, hides that a message arrived."""
+    with pytest.raises(ValueError, match=expected):
+        conclude_silence(
+            correlation_id="INV-Q5",
+            heard_status=heard_status,
+            silent_since=MON,
+            as_of=MON + dt.timedelta(days=2),
+            origin=origin,
+        )
+
+
+def test_a_crossing_nothing_came_back_on_DOES_time_out_at_abandonment():
+    """`WallStatus`'s own docstring is the warrant: a timeout 'says nothing about
+    whether the fact exists, only that the answer did not arrive in time', which
+    is exactly and only what the company knows here. The null control is the
+    horizon below it, where a conclusion would be an outcome with no grounds."""
+    assert _unreceipted(MON + dt.timedelta(days=6)).concluded_status is None
+    concluded = _unreceipted(MON + dt.timedelta(days=7))
+    assert concluded.horizon == SilenceHorizon.ABANDONED
+    assert concluded.concluded_status == WallStatus.TIMEOUT
+    assert concluded.heard_status is None, (
+        "the company's own conclusion must never be readable as the "
+        "counterparty's word -- there is no counterparty word here at all"
+    )
+
+
+def test_last_heard_at_is_None_where_nothing_was_heard_and_is_not_silent_since():
+    """The two fields answer different questions and are the same instant only
+    when something arrived. A `last_heard_at` that fell back to the emission
+    would be the company reading its own request as the counterparty's voice."""
+    unreceipted = _unreceipted(MON + dt.timedelta(days=2))
+    assert unreceipted.silent_since == MON
+    assert unreceipted.last_heard_at is None
+
+    answered = conclude_silence(
+        correlation_id="INV-Q5",
+        heard_status=WallStatus.NOT_KNOWABLE_YET,
+        silent_since=MON,
+        as_of=MON + dt.timedelta(days=2),
+        origin=SilenceOrigin.ANSWER,
+    )
+    assert answered.last_heard_at == answered.silent_since == MON
+
+
+def test_every_situation_the_ladder_can_hold_releases_a_DIFFERENT_next_move():
+    """Pass 41 proved three statuses release three moves. Two more situations
+    exist now and neither has a status at all, so a five-way distinction is the
+    check -- and the two that would collapse first are exactly the two the
+    company must not confuse: chase an acknowledged submission, QUERY an
+    unacknowledged one."""
+    as_of = MON + dt.timedelta(days=7)
+    moves = {
+        "not_knowable_yet": conclude_silence(
+            correlation_id="INV-1", heard_status=WallStatus.NOT_KNOWABLE_YET,
+            silent_since=MON, as_of=as_of, origin=SilenceOrigin.ANSWER,
+        ).next_move,
+        "timeout": conclude_silence(
+            correlation_id="INV-1", heard_status=WallStatus.TIMEOUT,
+            silent_since=MON, as_of=as_of, origin=SilenceOrigin.ANSWER,
+        ).next_move,
+        "error": conclude_silence(
+            correlation_id="INV-1", heard_status=WallStatus.ERROR,
+            silent_since=MON, as_of=as_of, origin=SilenceOrigin.ANSWER,
+        ).next_move,
+        "acknowledged": conclude_silence(
+            correlation_id="INV-1", heard_status=None,
+            silent_since=MON, as_of=as_of, origin=SilenceOrigin.ACKNOWLEDGEMENT,
+        ).next_move,
+        "unreceipted": _unreceipted(as_of).next_move,
+    }
+    assert len(set(moves.values())) == 5, moves
