@@ -31,7 +31,33 @@ import sys
 import textwrap
 from pathlib import Path
 
+import pytest
+
 import background.process_run_complete as prc
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _the_publisher_log_goes_to_tmp(tmp_path_factory):
+    """THIS FILE DRIVES THE REAL GATE, so its diagnostics must not reach the real record.
+
+    `run_fast_tests()` logs the resolved scope through `prc.log()`, which appends to
+    `docs/observability/sim-runner-log.md` -- the file the PUBLISHING DOWN alarm sends a human
+    to. A scope line written by a stubbed run is indistinguishable there from one written by a
+    real publish."""
+    tmp = tmp_path_factory.mktemp("publisher-log")
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(prc, "LOG_FILE", tmp / "sim-runner-log.md")
+        # AND THE BLOCKING-TEST RECORD, which is the same class one step further in.
+        # `run_fast_tests()` -> `_run_gate_in()` -> `_clear_blocking_tests()` unlinks the live
+        # `docs/observability/.last_gate_blocking_tests.json`, and `production_surface_guard`
+        # refuses it. That refusal is a `ProductionWriteRefused`, which is neither of the two
+        # exceptions `_clear_blocking_tests` catches, so it propagates out of a function whose
+        # docstring says "Never raises" -- and the unlink only happens when the file EXISTS, so
+        # this test passes on a machine that has never had a red gate and fails on one that
+        # has. It was failing here for exactly that reason (file present since 14:14 UTC).
+        mp.setattr(prc, "GATE_BLOCKING_TESTS_FILE", tmp / ".last_gate_blocking_tests.json")
+        yield tmp
+
 
 _BG = Path(__file__).resolve().parent
 
