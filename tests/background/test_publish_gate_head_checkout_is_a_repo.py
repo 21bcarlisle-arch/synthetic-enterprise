@@ -33,6 +33,25 @@ sys.path.insert(0, str(REPO))
 from background import process_run_complete as prc  # noqa: E402
 
 
+@pytest.fixture(scope="module", autouse=True)
+def _the_publisher_log_goes_to_tmp(tmp_path_factory):
+    """THIS FILE DRIVES THE REAL PUBLISHER, so its diagnostics must not reach the real record.
+
+    `prc.log()` appends to `docs/observability/sim-runner-log.md` -- the file the PUBLISHING
+    DOWN alarm sends a human to. Every test here calls a publisher entry point that logs, so
+    without this the fixture rows land beside the genuine sim-runner rows and read as real gate
+    verdicts (observed 2026-08-21 20:49-20:51 UTC, six fabricated "could NOT materialise a clean
+    HEAD checkout" lines during a 26-hour publishing outage).
+
+    MODULE-scoped because `head_checkout` is: a function-scoped fixture cannot isolate a write
+    that happens during module-scoped setup, which is why four tests here ERRORED rather than
+    failed."""
+    dest = tmp_path_factory.mktemp("publisher-log") / "sim-runner-log.md"
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(prc, "LOG_FILE", dest)
+        yield dest
+
+
 def _git(args, cwd):
     return subprocess.run(["git", *args], cwd=str(cwd), capture_output=True, text=True,
                           timeout=120)

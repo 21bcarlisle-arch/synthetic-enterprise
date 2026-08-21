@@ -98,6 +98,31 @@ def _the_live_publishers_lock_is_out_of_reach(monkeypatch, tmp_path):
                         tmp_path / ".process_run_complete.lock")
 
 
+@pytest.fixture(autouse=True)
+def _the_publisher_log_goes_to_tmp(monkeypatch, tmp_path):
+    """This module drives REAL publisher entry points, so its diagnostics must not reach the
+    real record -- `prc.log()` appends to `docs/observability/sim-runner-log.md`, the file the
+    PUBLISHING DOWN alarm sends a human to.
+
+    Since 2026-08-21 that write is refused outright: `prc.log()` routes its destination through
+    `live_ledger_guard.guard_live_ledger_write`, which RAISES under a test process. So a test
+    here that calls a logging entry point no longer merely pollutes the record -- it dies on the
+    guard rather than on its own subject, which is what happened to
+    `test_the_basetemp_leak_is_reclaimed_by_the_gates_own_sweep` (via `_sweep_stale_head_
+    checkouts`). That test is inside the publish gate's BLOCKING set, so the refusal wedged
+    publishing while reporting nothing about what it asserts.
+
+    REDIRECT THE DESTINATION, DO NOT REPLACE THE FUNCTION -- the same distinction
+    `tests/background/conftest.py` draws for its own directory. Pointing `LOG_FILE` at a tmp
+    file leaves `log()` fully intact: it still formats and still calls the guard, which still
+    permits a non-live destination. The guard stays exactly as strict as it was.
+
+    AUTOUSE FOR THE MODULE, not for the one test that reds today (R10): every entry point this
+    file exercises logs, so the next one to be given a logging line is covered on the day it is.
+    """
+    monkeypatch.setattr(measure.prc, "LOG_FILE", tmp_path / "sim-runner-log.md", raising=False)
+
+
 def _read(path):
     with open(path) as fh:
         return json.load(fh)
