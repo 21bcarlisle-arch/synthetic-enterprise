@@ -102,6 +102,27 @@ CONTROL_TESTS = [
     # expensive entry in this list and stated rather than glossed: it is an AST walk of
     # four packages, and it is paid on every code commit deliberately.
     "tests/architecture/test_epistemic_wall_ratchet.py",
+    # THE SEAM RATCHET (2026-08-21). The entry above was added after a wall crossing LANDED and
+    # was found hours later. This is the same control shape and it just failed the same way, so
+    # the lesson clearly did not generalise the first time: a repo-wide AST scan whose whole
+    # maintenance rule is "add the row IN THE SAME CHANGE" cannot enforce that if it never runs
+    # on that change.
+    #
+    # It could not. Selection is by name stem, and no seam module has one that reaches
+    # `test_market_at_the_seams`; the scan derives its own surface from two boundary packages
+    # plus a `*seam*.py` convention, so the subject set and the selector set never intersect.
+    # Three EP6 passes (273312507, 21c286c15, fbf44bb94) added currency-named fields to the
+    # typed payment and flex contracts and every one of them was GREEN at commit.
+    #
+    # What the silence cost, measured not predicted: the breach surfaced in the publish gate
+    # instead, and PUBLISHING WAS DOWN 27 HOURS across 43 failed attempts. The register rows
+    # were then recorded late, which the register itself calls a widening it forbids -- the
+    # argument for why that was the honest call is written beside the rows, and rests entirely
+    # on this line existing.
+    #
+    # ~1.1s, an AST walk of the seam surface only (two packages plus the naming convention),
+    # which is why it is far cheaper than the wall entry above it.
+    "tests/architecture/test_market_at_the_seams.py",
 ]
 
 # A staged path under any of these = a code/config change that could break a control or its own

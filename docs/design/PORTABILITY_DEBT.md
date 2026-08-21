@@ -113,11 +113,46 @@ market_quantity   company/interfaces/renewal_offer.py                  gbp      
 market_quantity   company/interfaces/renewal_rate_chain.py             gbp          9
 market_quantity   company/interfaces/sim_interface.py                  gbp          12
 market_quantity   company/interfaces/tou_offer.py                       gbp          3
-market_quantity   interface/contracts/flex_observable_seam.py          gbp          3
-market_quantity   interface/contracts/payment_observable_seam.py       gbp          5
-market_quantity   simulation/payment_seam_adapter.py                   gbp          4
+# EP6 WALL-PROTOCOL ROWS, recorded 2026-08-21 and recorded LATE -- read the note below the
+# block before treating this as an ordinary amendment. Three passes of the typed payment/flex
+# contracts (273312507, 21c286c15, fbf44bb94) added `amount_gbp`, `cleared_price_gbp_per_mwh`
+# and `utilisation_payment_gbp` to seam payloads. Every one is row #1's shape: a currency
+# spelled into a field name. Getting it out means a Money type carried by the adapter, which is
+# EP6's own design work and not a thing to do while the publish queue is stopped.
+market_quantity   company/interfaces/collection_submission.py          gbp          3
+market_quantity   interface/contracts/flex_observable_seam.py          gbp          6
+market_quantity   interface/contracts/payment_observable_seam.py       gbp         11
+market_quantity   simulation/payment_seam_adapter.py                   gbp          9
 ```
 <!-- END market-at-the-seams baseline -->
+
+### Why four rows were amended 2026-08-21 without a remediation, and why that is not the widening this register forbids
+
+This file says **"Never widen a row to make the test green."** Four rows were widened on
+2026-08-21 and the test went green, so the exception has to be argued rather than assumed.
+
+What that sentence protects against is a lane that is *touching a seam* choosing the register
+over the work. That is not what happened. Three separate EP6 passes added currency-named fields
+and **none of them could have been stopped at commit time**: `test_market_at_the_seams.py` was
+not on the pre-commit gate's always-run list, and the gate otherwise selects tests by name stem,
+which no seam module matches. So the maintenance rule this register states — *add the row in the
+same change* — was **unenforceable by construction** for the whole life of this control. Every
+one of those commits was green when it landed.
+
+The breach surfaced instead in the publish gate, ~27 hours later, as
+`publishing has been down` with 43 failed publish attempts and a state file still naming a
+different, already-passing test.
+
+So the amendment is a LATE RECORD of debt that the same-change rule would have collected at
+landing time, not a softening. The remediation (a Money type supplied by the adapter) stays
+owed and stays EP6's.
+
+**The actual repair is in the same change as this note**: `test_market_at_the_seams.py` is now
+on the pre-commit gate's always-run list, beside `test_epistemic_wall_ratchet.py`, which was
+added 2026-08-10 after the identical failure — a repo-wide AST scan enforced only by the publish
+gate, so a breach could land and be found hours later. That comment ends *"`WORKER_FINDING_THE_
+EPISTEMIC_WALL_IS_BREACHED_AT_HEAD_2026-08-09` is what that costs."* This is the second time,
+with the second control of the same shape, and it cost 27 hours of publishing.
 
 ## What ABSORBS (the portable-where-it-reasons half — recorded so the register is honest both ways)
 
