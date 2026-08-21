@@ -51,11 +51,13 @@ LEVELS PRESENT HERE (registered, not implied):
 """
 from __future__ import annotations
 
+import datetime as dt
 from typing import Dict, Optional, Sequence
 
 import numpy as np
 
 from background.gap_metric import prediction_gap
+from company.interfaces.sim_interface import build_sim_interface
 from company.market.flex_participation import (
     CompanyVenueOffer,
     form_participation_belief,
@@ -65,7 +67,10 @@ from company.market.flex_participation import (
     observe_settlement_wire,
 )
 from interface.contracts.flex_observable_seam import (
+    FlexDirection,
     FlexDispatchInstruction,
+    FlexEnrolment,
+    FlexEnrolmentOutcome,
     FlexVenue,
 )
 from sim.flex_dispatch import (
@@ -76,6 +81,11 @@ from sim.flex_dispatch import (
     DeliveryModel,
     FlexPaymentBasis,
     VenueSpec,
+    # `_base_date` is the world's own date parser, imported rather than
+    # restated: these are WORLD dates and a second parser in the harness would
+    # be a second thing to keep true. Nothing crosses the wall here -- the
+    # harness is the one layer allowed both sides.
+    _base_date,
     assert_mw_conservation,
     dispatch_and_settle,
     dispatch_and_settle_stacked,
@@ -85,10 +95,63 @@ from sim.flex_dispatch import (
 )
 
 WORLD_ATOM_ID = "W1_9_dsr_flex_markets"
+#: The unit this loop's portfolio is registered and settled under. ONE literal,
+#: read by the enrolment and never by the settlement emitter -- see
+#: `solicit_registration` below for why that separation is the whole point.
+LOOP_UNIT_ID = "FLEX_UNIT_1"
 # The company twin registered for this world atom (the flex-participation
 # belief facet). A dedicated C-atom id is a proposed follow-on; the flex
 # participation module is the real twin meanwhile.
 TWIN_ATOM_ID = "flex_participation_belief"
+
+
+def solicit_registration(
+    truth,
+    *,
+    enrolled_mw: float,
+    unit_id: str = LOOP_UNIT_ID,
+    venue: FlexVenue = FlexVenue.BALANCING_MECHANISM,
+) -> FlexEnrolmentOutcome:
+    """LEG 1 OF THE LIVE LOOP: the company ASKS this venue to register its unit,
+    through the production seam, and reads the venue's answer.
+
+    WHY THE LOOP GAINED A FIRST LEG (EP6 pass 54). Every measurement below used
+    to begin at a dispatch instruction: the world settled `FLEX_UNIT_1` -- a
+    KEYWORD DEFAULT -- over windows nobody had declared, and the company formed
+    beliefs about the resulting statement because it had no record against which
+    to ask whether it had asked. `tools.wall_channel_census` read exactly that
+    as UNSOLICITED INBOUND. Pass 53 gave the seam a request leg and tests; this
+    is the running loop using it, which is the difference between a leg that
+    exists and a leg that carries traffic.
+
+    THE CLOCK IS THE WORLD'S. The harness holds the world, so it is the harness
+    that hands the venue its read time -- one day before the record opens, so
+    the availability window is registered BEFORE it is delivered, as a real
+    party registers. The company supplies only its own `as_of`; the seam refuses
+    outright rather than judging the window on the submitter's clock.
+
+    Returns the venue's `FlexEnrolmentOutcome`. Raises (never returns an empty
+    registration) if the venue declines -- a loop that measured a gap against a
+    refused registration would be scoring a business that does not exist.
+    """
+    # SPAN, not first-to-last: a record's dates are not required to be sorted
+    # (the triad's own synthetic fixture cycles months), and a window whose end
+    # preceded its start is refused WINDOW_NOT_A_WINDOW -- correctly, and for a
+    # reason that has nothing to do with what is being measured.
+    stamps = [_base_date(d) for d in truth.dates]
+    window_start = min(stamps)
+    window_end = max(stamps) + dt.timedelta(hours=truth.period_hours)
+    venue_clock = window_start - dt.timedelta(days=1)
+    seam = build_sim_interface(flex_venue_clock=venue_clock)
+    enrolment = FlexEnrolment(
+        unit_id=unit_id,
+        venue=venue,
+        offered_mw=float(enrolled_mw),
+        direction=FlexDirection.TURN_DOWN,
+        window_start=window_start,
+        window_end=window_end,
+    )
+    return seam.enrol_flex(enrolment, as_of=venue_clock)
 
 
 def measure(
@@ -169,14 +232,28 @@ def measure_l2(
     truth = dispatch_and_settle(
         out, enrolled_mw=enrolled_mw, period_hours=period_hours, delivery=delivery)
 
+    # -- LEG 1: THE COMPANY ASKS, before anything is settled to it. Registered
+    #    a day before the record opens, through the production seam. --
+    registration = solicit_registration(truth, enrolled_mw=enrolled_mw)
+
     # -- OBSERVABLES the company reads off its own statement (metered delivery
     #    per settled event). It never sees the true ratio or true baseline. --
     # The statement crosses as BYTES (EP6): the world encodes, the company
     # decodes through its own codec and version-checks in between. Everything
     # the L2 de-rating is learned from has been refusable at the seam.
     settlement = observe_settlement_wire(
-        emit_settlement_lines_over_wire(truth, unit_id="FLEX_UNIT_1"))
+        emit_settlement_lines_over_wire(truth, unit_id=LOOP_UNIT_ID))
     observed_delivery = [line.metered_delivery_mwh for line in settlement]
+
+    # -- IS THIS STATEMENT SOLICITED? Two quantities from two sides: the unit
+    #    the WORLD settled to (read off the decoded settlement lines, not off
+    #    the argument passed in -- an emitter that ignored `unit_id` would
+    #    otherwise still score solicited) against the unit the VENUE said it
+    #    registered. Equal means every line answers a registration this company
+    #    holds; unequal means the world is paying a unit nobody enrolled, which
+    #    is the state this whole loop was in until pass 54. --
+    settled_units = {line.unit_id for line in settlement}
+    settlement_solicited = bool(settled_units) and settled_units == {registration.unit_id}
 
     # -- COMPANY L2: learns a de-rating from those observables; estimates its
     #    baseline (possibly biased). Only observed price + own settlement. --
@@ -211,6 +288,8 @@ def measure_l2(
         "baseline_bias": baseline_bias,
         "baseline_error_frac": baseline_error_frac,
         "payment_at_risk_gbp": payment_at_risk_gbp,
+        "enrolment_reference": registration.enrolment_reference,
+        "settlement_solicited": settlement_solicited,
         "true_total_revenue_gbp": truth.total_true_revenue_gbp,
         "expected_total_revenue_gbp": belief.total_expected_revenue_gbp,
         "n_true_dispatch": truth.n_dispatch,
@@ -267,6 +346,12 @@ def build_gap_summary_l2(measurement: Dict[str, object]) -> Dict[str, object]:
         "true_mean_delivery_ratio": measurement["true_mean_delivery_ratio"],
         "baseline_error_frac": measurement["baseline_error_frac"],
         "payment_at_risk_gbp": measurement["payment_at_risk_gbp"],
+        # Not a score and not tuned (R12): a structural fact about whether the
+        # statement this gap was computed from answers a registration the
+        # company holds. A digest quoting a gap against an UNSOLICITED feed is
+        # quoting a business that never asked to exist.
+        "enrolment_reference": measurement["enrolment_reference"],
+        "settlement_solicited": measurement["settlement_solicited"],
         "note": (
             "L2: the SIM portfolio delivers stochastically LESS than instructed "
             "(rebound/non-response); the company DE-RATES using the ratio learned "

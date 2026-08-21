@@ -1,11 +1,22 @@
 """Tests for company.interfaces.sim_interface."""
 
+import datetime as _dt
+
 import pytest
 
 from company.interfaces.sim_interface import (
+    FlexVenueUnreachable,
+    LiveSimInterface,
     SimInterface,
     StubSimInterface,
     build_sim_interface,
+)
+from company.market.flex_participation import FlexEnrolmentRefused
+from interface.contracts.flex_observable_seam import (
+    FlexDirection,
+    FlexEnrolment,
+    FlexEnrolmentOutcome,
+    FlexVenue,
 )
 
 
@@ -173,3 +184,178 @@ def test_base_interface_raises_for_get_churn_estimate():
 def test_get_forward_price_unknown_fuel_returns_100():
     iface = StubSimInterface()
     assert iface.get_forward_price("wind", "2020-01-01") == pytest.approx(100.0)
+
+
+# ===========================================================================
+# EP6 pass 54 -- THE FLEX ENROLMENT DOOR ON THE SEAM.
+#
+# WHAT WAS WRONG. `enrol_flex` was the one declared COMPANY -> WORLD crossing
+# for flex and it crossed nothing: the stub built a request envelope with its
+# own private id grammar, appended it to a list nothing read, and handed the
+# company back its OWN question; `LiveSimInterface` did not implement the
+# method at all. So the venue settled `FLEX_UNIT_1` -- a keyword default --
+# whether or not anybody had enrolled it. No test in this repository called
+# `enrol_flex`, which is why none of that was ever visible.
+#
+# The round trip below is driven through the SHIPPED pieces on both sides
+# (company encoder -> venue's independently-written decoder -> company reader).
+# A seam test that asserted this module agrees with a fixture written here is
+# the R15 TAUTOLOGY for the one question a seam is asked.
+# ===========================================================================
+
+#: The venue reads the request well before the window opens, so a refusal in
+#: any test below is about the thing that test names and never about the clock.
+_VENUE_CLOCK = _dt.datetime(2026, 2, 20, 10, 0)
+_ASOF = _dt.datetime(2026, 2, 20, 9, 0)
+
+
+def _enrolment(
+    unit_id="UNIT-A",
+    venue=FlexVenue.BALANCING_MECHANISM,
+    mw=5.0,
+    start=_dt.datetime(2026, 3, 1, 16, 0),
+    end=_dt.datetime(2026, 3, 1, 19, 0),
+):
+    return FlexEnrolment(
+        unit_id=unit_id,
+        venue=venue,
+        offered_mw=mw,
+        direction=FlexDirection.TURN_DOWN,
+        window_start=start,
+        window_end=end,
+    )
+
+
+def test_the_seam_enrols_END_TO_END_and_hands_back_the_VENUES_OWN_reference():
+    """THE SUCCESS CASE, and the null control every refusal below needs: if this
+    did not pass, a test asserting a refusal would prove only that the door
+    never works."""
+    iface = build_sim_interface(flex_venue_clock=_VENUE_CLOCK)
+
+    outcome = iface.enrol_flex(_enrolment(), as_of=_ASOF)
+
+    assert isinstance(outcome, FlexEnrolmentOutcome)
+    assert outcome.unit_id == "UNIT-A"
+    assert outcome.venue is FlexVenue.BALANCING_MECHANISM
+    # The reference is minted by the VENUE's own sequence -- the one field in
+    # this answer the company could not have assumed.
+    assert outcome.enrolment_reference == "BALANCING_MECHANISM-REG-000001"
+    assert iface.flex_registrations == ("BALANCING_MECHANISM-REG-000001",)
+
+
+def test_the_door_no_longer_hands_the_company_back_its_OWN_outbound_question():
+    """The regression that named this pass. A door returning the request
+    envelope leaves 'did the venue register us?' unanswered anywhere in the
+    build, so the old `flex_enrolments` list -- things we SAID, published as if
+    they were things that HAPPENED -- is gone rather than kept alongside."""
+    iface = build_sim_interface(flex_venue_clock=_VENUE_CLOCK)
+    outcome = iface.enrol_flex(_enrolment(), as_of=_ASOF)
+
+    assert not hasattr(iface, "flex_enrolments")
+    assert not hasattr(outcome, "request_type")  # not an envelope
+    assert not hasattr(outcome, "correlation_id")
+
+
+def test_MUTATION_a_seam_with_NO_VENUE_CLOCK_refuses_instead_of_using_the_SUBMITTERS():
+    """FAIL-CLOSED (R15). The obvious convenience -- default the venue's read
+    time to the sender's `as_of` -- makes WINDOW_ALREADY_CLOSED a refusal the
+    sender can switch off, which is the defect `sim.flex_dispatch` names in its
+    own registration-desk comment.
+
+    The second half is what makes this a control rather than an assertion about
+    an error message: the SAME already-closed window that the fallback would
+    have accepted is REFUSED once a real world clock is present."""
+    closed = _enrolment(start=_dt.datetime(2025, 1, 1, 0, 0),
+                        end=_dt.datetime(2025, 1, 1, 3, 0))
+
+    with pytest.raises(FlexVenueUnreachable):
+        build_sim_interface().enrol_flex(closed, as_of=_dt.datetime(2024, 12, 1, 9, 0))
+
+    with pytest.raises(FlexEnrolmentRefused) as exc:
+        build_sim_interface(flex_venue_clock=_VENUE_CLOCK).enrol_flex(
+            closed, as_of=_dt.datetime(2024, 12, 1, 9, 0))
+    assert exc.value.code == "WINDOW_ALREADY_CLOSED"
+
+
+def test_a_venue_REFUSAL_raises_and_leaves_the_company_holding_NOTHING():
+    """A rejected registration read as a quiet 'no flex this window' is a
+    company that goes on forecasting revenue from a venue with no record of
+    it."""
+    iface = build_sim_interface(flex_venue_clock=_VENUE_CLOCK)
+
+    with pytest.raises(FlexEnrolmentRefused) as exc:
+        iface.enrol_flex(_enrolment(mw=0.0), as_of=_ASOF)
+
+    assert exc.value.code == "OFFER_NOT_DELIVERABLE"
+    assert iface.flex_registrations == ()
+    assert iface.flex_awaiting_answer == ()
+
+
+def test_the_SAME_enrolment_resubmitted_gets_ONE_reference_not_two():
+    """C-S2 idempotency across the seam: the correlation id is the key, and a
+    desk that recomputed would hand this company two references for one
+    registration and let it quote either."""
+    iface = build_sim_interface(flex_venue_clock=_VENUE_CLOCK)
+
+    first = iface.enrol_flex(_enrolment(), as_of=_ASOF)
+    second = iface.enrol_flex(_enrolment(), as_of=_ASOF)
+
+    assert first.enrolment_reference == second.enrolment_reference
+    assert iface.flex_registrations == (first.enrolment_reference,)
+
+
+def test_ONE_unit_into_TWO_venues_over_ONE_day_gets_TWO_registrations():
+    """The stub's private id grammar was `flex-{unit}-{date}` with no venue in
+    the key, so exactly this -- the legitimate multi-venue book the L3 stacking
+    model runs on -- collided on a single correlation id."""
+    iface = build_sim_interface(flex_venue_clock=_VENUE_CLOCK)
+
+    bm = iface.enrol_flex(_enrolment(venue=FlexVenue.BALANCING_MECHANISM), as_of=_ASOF)
+    dfs = iface.enrol_flex(_enrolment(venue=FlexVenue.DFS_TURN_DOWN), as_of=_ASOF)
+
+    assert bm.enrolment_reference != dfs.enrolment_reference
+    assert len(set(iface.flex_registrations)) == 2
+
+
+def test_an_enrolment_is_LISTED_as_awaiting_an_answer_only_until_it_is_answered():
+    """What a real party chases. A response-driven company could not produce
+    this list: it would learn the crossing existed from the message that ended
+    it."""
+    iface = build_sim_interface(flex_venue_clock=_VENUE_CLOCK)
+    assert iface.flex_awaiting_answer == ()
+
+    iface.enrol_flex(_enrolment(), as_of=_ASOF)
+    assert iface.flex_awaiting_answer == ()  # answered synchronously by this desk
+    assert len(iface.flex_registrations) == 1
+
+
+def test_the_seam_publishes_no_door_onto_the_VENUES_OWN_book():
+    """Both books live in one process because this counterparty is a mock --
+    which is the thing EP6 exists to make invisible to the company. So the
+    check is on the PUBLIC surface: nothing the company can reach hands out the
+    venue's registrations."""
+    from sim.flex_dispatch import VenueRegistrations
+
+    iface = build_sim_interface(flex_venue_clock=_VENUE_CLOCK)
+    iface.enrol_flex(_enrolment(), as_of=_ASOF)
+
+    for name in [n for n in dir(iface) if not n.startswith("_")]:
+        value = getattr(iface, name)
+        assert not isinstance(value, VenueRegistrations), (
+            f"{name} publishes the VENUE's own book to the company side")
+
+
+def test_the_LIVE_seam_runs_the_SAME_exchange_as_the_stub():
+    """`LiveSimInterface` did not implement `enrol_flex` at all, so a live
+    company could not enrol into a flex venue -- the base class's
+    NotImplementedError was the whole implementation."""
+    live = LiveSimInterface(flex_venue_clock=_VENUE_CLOCK)
+    stub = StubSimInterface(flex_venue_clock=_VENUE_CLOCK)
+
+    assert (live.enrol_flex(_enrolment(), as_of=_ASOF)
+            == stub.enrol_flex(_enrolment(), as_of=_ASOF))
+
+
+def test_the_base_interface_still_refuses_to_enrol():
+    with pytest.raises(NotImplementedError):
+        SimInterface().enrol_flex(_enrolment(), as_of=_ASOF)

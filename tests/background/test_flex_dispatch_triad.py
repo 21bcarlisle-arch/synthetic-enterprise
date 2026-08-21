@@ -316,3 +316,61 @@ def test_the_wire_carries_the_version_on_EVERY_message_the_harness_crosses():
     messages = emit_settlement_lines_over_wire(truth)
     assert len(messages) > 0
     assert all(m["schema_version"] == SCHEMA_VERSION for m in messages)
+
+
+# ===========================================================================
+# EP6 pass 54 -- IS THE LOOP SOLICITED?
+#
+# Pass 53 gave the flex seam a request leg and 27 controls; the running loop
+# still began at a dispatch instruction, so the world settled `FLEX_UNIT_1` --
+# a keyword default -- to a company that had never enrolled it, and the gap was
+# scored on that statement. `measure_l2` now registers first, through the
+# production seam, and reports whether the statement it scored answers a
+# registration the company holds.
+# ===========================================================================
+
+
+def test_the_L2_statement_answers_a_registration_the_company_HOLDS():
+    m = measure_l2(_synthetic_record(), delivery=DeliveryModel(seed=1))
+    assert m["settlement_solicited"] is True
+    # The reference is the VENUE's -- the company did not mint it.
+    assert m["enrolment_reference"].startswith("BALANCING_MECHANISM-REG-")
+
+
+def test_MUTATION_a_world_settling_a_unit_NOBODY_enrolled_scores_UNSOLICITED():
+    """The state this loop was in until pass 54, reproduced deliberately: the
+    settlement feed names a unit the company never registered. The check is two
+    quantities from two sides -- the unit read off the DECODED settlement lines
+    against the unit the venue said it registered -- so an emitter that ignored
+    its `unit_id` argument cannot score solicited by agreeing with itself."""
+    import background.flex_dispatch_triad as triad
+
+    real = triad.emit_settlement_lines_over_wire
+
+    def settle_a_stranger(truth, *, unit_id="FLEX_UNIT_1", **kw):
+        return real(truth, unit_id="A_UNIT_NOBODY_ENROLLED", **kw)
+
+    original = triad.emit_settlement_lines_over_wire
+    triad.emit_settlement_lines_over_wire = settle_a_stranger
+    try:
+        m = measure_l2(_synthetic_record(), delivery=DeliveryModel(seed=1))
+    finally:
+        triad.emit_settlement_lines_over_wire = original
+
+    assert m["settlement_solicited"] is False
+
+
+def test_the_request_leg_does_not_touch_the_SCORE():
+    """R12/R13. Enrolling is a crossing, not a tuning knob: the L2 gap must be
+    the one an independent recomputation from truth and belief gives, so no
+    published figure moved when the loop gained its first leg."""
+    m = measure_l2(_synthetic_record(), delivery=DeliveryModel(seed=1))
+    independent = prediction_gap(
+        m["truth"].true_utilised_revenue, m["belief"].expected_utilised_revenue)
+    assert m["gap"] == independent.gap
+
+
+def test_the_L2_summary_carries_the_solicited_fact_a_digest_would_quote():
+    s = build_gap_summary_l2(measure_l2(_synthetic_record(), delivery=DeliveryModel(seed=1)))
+    assert s["settlement_solicited"] is True
+    assert s["enrolment_reference"]

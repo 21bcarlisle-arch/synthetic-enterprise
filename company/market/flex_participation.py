@@ -697,16 +697,36 @@ class FlexEnrolmentBook:
                 f"function the seam publishes ({[v.value for v in FlexVenue]}) -- an offer "
                 "nobody runs a market for cannot be submitted",
             ) from exc
-        enrolment = FlexEnrolment(
-            unit_id=unit_id,
-            venue=venue,
-            offered_mw=float(offer.offered_mw),
-            direction=direction,
-            window_start=window_start,
-            window_end=window_end,
+        return self.submit_enrolment(
+            FlexEnrolment(
+                unit_id=unit_id,
+                venue=venue,
+                offered_mw=float(offer.offered_mw),
+                direction=direction,
+                window_start=window_start,
+                window_end=window_end,
+            ),
+            as_of=as_of,
         )
+
+    def submit_enrolment(self, enrolment: FlexEnrolment, *, as_of: dt.datetime) -> dict:
+        """Submit an enrolment this company has ALREADY assembled, and hand back
+        the BYTES that cross.
+
+        THE SECOND DOOR INTO ONE MINTING SITE, and that is the whole reason it is
+        a method rather than a duplicate. `submit` above is the offer-shaped
+        entry (the company decides a volume and a venue); this is the
+        enrolment-shaped one the SIM/company seam's `enrol_flex` enters through,
+        because that seam is handed a `FlexEnrolment` the caller already built.
+        Both mint the correlation id HERE. A second minting site is how the seam
+        came to have its own id grammar -- `flex-{unit}-{date}`, with no venue in
+        the key, so one unit's enrolments into two venues over one day collided
+        on a single id and the second answer would have been read against the
+        first submission.
+        """
         correlation_id = (
-            f"flex-enrol-{unit_id}-{venue.value}-{window_start:%Y%m%dT%H%M}"
+            f"flex-enrol-{enrolment.unit_id}-{enrolment.venue.value}"
+            f"-{enrolment.window_start:%Y%m%dT%H%M}"
         )
         request = FlexEnrolmentWallRequest(
             correlation_id=correlation_id,

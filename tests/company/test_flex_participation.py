@@ -270,3 +270,72 @@ def test_the_company_cannot_submit_into_a_venue_the_seam_publishes_no_market_for
             as_of=_ASOF,
         )
     assert exc.value.reason == "CONTRACT_VIOLATION"
+
+
+# ===========================================================================
+# EP6 pass 54 -- ONE MINTING SITE, TWO DOORS.
+#
+# `submit_enrolment` exists because the SIM/company seam's `enrol_flex` is
+# handed a `FlexEnrolment` the caller already assembled, while `submit` is
+# handed an offer. The failure being controlled for is not hypothetical: the
+# seam HAD its own minting site with its own grammar (`flex-{unit}-{date}`,
+# no venue in the key), so one unit's enrolments into two venues over one day
+# collided on a single correlation id.
+# ===========================================================================
+
+
+def test_both_doors_into_the_book_mint_the_SAME_correlation_id():
+    """The offer-shaped door and the enrolment-shaped door are one exchange. If
+    they can disagree about the id, the register cannot answer 'did I ask for
+    this?' for whichever door the answer comes back to."""
+    via_offer = _submit(FlexEnrolmentBook())
+    via_enrolment = FlexEnrolmentBook().submit_enrolment(
+        FlexEnrolment(
+            unit_id="UNIT-A",
+            venue=FlexVenue.DFS_TURN_DOWN,
+            offered_mw=5.0,
+            direction=FlexDirection.TURN_DOWN,
+            window_start=_W_START,
+            window_end=_W_END,
+        ),
+        as_of=_ASOF,
+    )
+    assert via_offer["correlation_id"] == via_enrolment["correlation_id"]
+    assert via_offer == via_enrolment  # the whole wire, not just the key
+
+
+def test_MUTATION_one_unit_in_TWO_VENUES_on_one_day_is_TWO_conversations():
+    """The defect the seam's own grammar had. Both enrolments are legitimate --
+    a unit registered into several DIFFERENT venues over one window is the
+    multi-venue book `dispatch_and_settle_stacked` models -- so an id that keys
+    only on unit+date makes the venue's second answer arrive on the first
+    submission's id, and `observe_outcome` would check it against the wrong
+    offer."""
+    book, venue = FlexEnrolmentBook(), VenueRegistrations()
+
+    dfs = _submit(book)
+    bm = book.submit_enrolment(
+        FlexEnrolment(
+            unit_id="UNIT-A",
+            venue=FlexVenue.BALANCING_MECHANISM,
+            offered_mw=5.0,
+            direction=FlexDirection.TURN_DOWN,
+            window_start=_W_START,
+            window_end=_W_END,
+        ),
+        as_of=_ASOF,
+    )
+
+    assert dfs["correlation_id"] != bm["correlation_id"]
+    assert len(book.awaiting_answer()) == 2
+
+    book.observe_outcome(answer_enrolment(dfs, venue_clock=_VENUE_CLOCK, registrations=venue))
+    book.observe_outcome(answer_enrolment(bm, venue_clock=_VENUE_CLOCK, registrations=venue))
+    # Two references, one per venue -- and neither answer was read against the
+    # other's submission (a `MisroutedOutcome` would have been raised above).
+    # The SEQUENCE is the desk's own and runs across both market functions, so
+    # the numbers are 1 and 2: what the company may assert is that it holds two
+    # distinct references, never what the venue's counter says next.
+    assert set(book.registered_references()) == {
+        "DFS_TURN_DOWN-REG-000001", "BALANCING_MECHANISM-REG-000002",
+    }

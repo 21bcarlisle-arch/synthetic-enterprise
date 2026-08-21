@@ -21,6 +21,93 @@ from company.crm.payment_behaviour_analytics import BehaviourScore
 from company.pricing.tariff_engine import CompanyTariffEngine
 
 
+class FlexVenueUnreachable(RuntimeError):
+    """This seam holds no flex counterparty clock, so no enrolment can be
+    answered at all.
+
+    RAISED RATHER THAN FALLING BACK TO THE SENDER'S `as_of`, which is the
+    obvious convenience and is the defect `sim.flex_dispatch` names in its own
+    registration-desk comment: a window-closed refusal keyed on a timestamp the
+    SENDER controls is a refusal the sender can switch off. An unavailable
+    counterparty is a FAILED crossing, not a silently accepted one (R15
+    fail-silent).
+    """
+
+
+class _FlexEnrolmentDesk:
+    """The flex enrolment exchange as the SEAM runs it: the company's book on
+    one side, the counterparty's registration desk on the other, and BYTES in
+    between.
+
+    TWO BOOKS IN ONE OBJECT, AND NEITHER READS THE OTHER. `_book` is the
+    COMPANY's (`FlexEnrolmentBook`): what it asked for, and the only admissible
+    evidence that an acceptance describes its own offer. `_venue_desk` is the
+    COUNTERPARTY's (`VenueRegistrations`): who is registered here. They sit in
+    one process because this seam's counterparty is a mock, which is precisely
+    the thing EP6 exists to make invisible to the company -- so the company's
+    view of the exchange is exactly what came back off the wire, and nothing on
+    this class's public surface hands out the venue's book
+    (`tests/company/interfaces/test_sim_interface.py::
+    test_the_seam_publishes_no_door_onto_the_VENUES_OWN_book`).
+
+    THE VENUE CLOCK IS WORLD STATE, held here and never accepted from the
+    caller: a real venue timestamps the enrolments it receives and the company
+    has no say in it. A seam built without one refuses to answer
+    (`FlexVenueUnreachable`) instead of judging the window on the sender's own
+    clock.
+    """
+
+    def __init__(self, venue_clock=None):
+        self._venue_clock = venue_clock
+        self._book = None
+        self._venue_desk = None
+
+    def _open(self):
+        # Deferred: keeps `sim.flex_dispatch` (numpy, the whole dispatch model)
+        # off this module's import path, matching how LiveSimInterface reaches
+        # its price history.
+        if self._book is None:
+            from company.market.flex_participation import FlexEnrolmentBook
+            from sim.flex_dispatch import VenueRegistrations
+            self._book = FlexEnrolmentBook()
+            self._venue_desk = VenueRegistrations()
+        return self._book
+
+    def enrol(self, enrolment, *, as_of):
+        """Leg 1 out, leg 2 back: encode, hand to the venue, read the answer
+        against our OWN submission. Every step is the shipped one -- the
+        company's encoder, the venue's independent decoder, the company's
+        outcome reader -- so a green result here is the round trip and not a
+        handshake with a fixture."""
+        from sim.flex_dispatch import answer_enrolment
+
+        if self._venue_clock is None:
+            raise FlexVenueUnreachable(
+                "this SimInterface holds no flex venue clock, so there is no counterparty to "
+                "register with -- build it with `venue_clock=` (the WORLD's read time). "
+                "Answering on the submitter's own `as_of` would make WINDOW_ALREADY_CLOSED a "
+                "refusal the submitter can switch off"
+            )
+        book = self._open()
+        wire = book.submit_enrolment(enrolment, as_of=as_of)
+        answer = answer_enrolment(
+            wire, venue_clock=self._venue_clock, registrations=self._venue_desk
+        )
+        return book.observe_outcome(answer)
+
+    def references(self) -> tuple:
+        """Every venue reference this company holds. Empty until something is
+        accepted -- and empty is not "no venue": a refusal RAISED."""
+        if self._book is None:
+            return ()
+        return self._book.registered_references()
+
+    def awaiting_answer(self) -> tuple:
+        if self._book is None:
+            return ()
+        return self._book.awaiting_answer()
+
+
 class SimInterface:
     """Formal interface between the company layer and the simulation.
 
@@ -112,15 +199,28 @@ class SimInterface:
         """
         raise NotImplementedError
 
-    def enrol_flex(self, enrolment) -> Any:
-        """Submit a flexibility offer into a venue (COMPANY -> WORLD).
+    def enrol_flex(self, enrolment, *, as_of) -> Any:
+        """Submit a flexibility offer into a venue and read the venue's ANSWER
+        (COMPANY -> WORLD -> COMPANY).
 
-        W1_9 (L1). `enrolment` is an
+        W1_9 (L1) / EP6. `enrolment` is an
         `interface.contracts.flex_observable_seam.FlexEnrolment` (the company's
-        OWN participation-size decision + declared window). Returns the typed
-        `FlexEnrolmentWallRequest` envelope that crosses the seam. This carries
-        only company-owned data outbound; the epistemic wall polices what flows
-        BACK (dispatch instructions / settlement lines).
+        OWN participation-size decision + declared window) and `as_of` is the
+        COMPANY'S submission clock -- never the venue's, which is a world fact
+        this side of the seam may not supply.
+
+        Returns the venue's `FlexEnrolmentOutcome`, carrying the reference IT
+        minted. Raises `FlexEnrolmentRefused` when the venue understood and
+        declined, so a rejected registration can never read as a quiet absence
+        of flex; `FlexVenueUnreachable` when this seam has no counterparty to
+        ask at all.
+
+        WHAT THIS IS NOT ANY MORE. Until EP6 pass 54 this returned the REQUEST
+        envelope -- the company's own outbound message handed straight back to
+        it -- so "did the venue register us?" had no answer anywhere in the
+        build, and the venue went on dispatching a `unit_id` keyword default
+        nobody had enrolled. A door that returns your own question is not a
+        crossing.
         """
         raise NotImplementedError
 
@@ -145,12 +245,12 @@ class StubSimInterface(SimInterface):
     so tests can assert on them.
     """
 
-    def __init__(self):
+    def __init__(self, *, flex_venue_clock=None):
         self._churn_notifications: list[dict] = []
         self._acquisition_notifications: list[dict] = []
         self._retention_notifications: list[dict] = []
         self._customer_statuses: dict[str, str] = {}
-        self._flex_enrolments: list = []
+        self._flex_desk = _FlexEnrolmentDesk(flex_venue_clock)
 
     def get_settlement_data(self, mpan: str, period: str) -> dict[str, Any]:
         return {
@@ -212,21 +312,8 @@ class StubSimInterface(SimInterface):
             'discount_pct': discount_pct, 'outcome': outcome,
         })
 
-    def enrol_flex(self, enrolment) -> Any:
-        from interface.contracts.flex_observable_seam import (
-            FlexEnrolmentWallRequest, SCHEMA_VERSION,
-        )
-        import datetime as _dt
-        req = FlexEnrolmentWallRequest(
-            correlation_id=f"flex-{enrolment.unit_id}-{enrolment.window_start:%Y%m%d}",
-            request_type="flex_enrolment",
-            schema_version=SCHEMA_VERSION,
-            as_of=enrolment.window_start,
-            emitted_at=enrolment.window_start,
-            payload=enrolment,
-        )
-        self._flex_enrolments.append(req)
-        return req
+    def enrol_flex(self, enrolment, *, as_of) -> Any:
+        return self._flex_desk.enrol(enrolment, as_of=as_of)
 
     def get_flex_settlement_lines(self, unit_id: str) -> list:
         # Stub: no live settlement feed (mirrors get_settlement_data zeros).
@@ -235,8 +322,20 @@ class StubSimInterface(SimInterface):
         return []
 
     @property
-    def flex_enrolments(self) -> list:
-        return list(self._flex_enrolments)
+    def flex_registrations(self) -> tuple:
+        """The venue references this company holds -- the only registrations it
+        has standing to be dispatched against.
+
+        Replaces `flex_enrolments`, which handed back the company's own OUTBOUND
+        envelopes: a list of things we said, published as if it were a list of
+        things that happened."""
+        return self._flex_desk.references()
+
+    @property
+    def flex_awaiting_answer(self) -> tuple:
+        """Enrolments submitted and not yet answered -- what a real party
+        chases. A response-driven company could not produce this list."""
+        return self._flex_desk.awaiting_answer()
 
     @property
     def churn_notifications(self) -> list[dict]:
@@ -291,11 +390,12 @@ class LiveSimInterface(SimInterface):
         infrastructure convenience, not for SIM internals.
     """
 
-    def __init__(self):
+    def __init__(self, *, flex_venue_clock=None):
         from company.crm.event_log import CompanyEventLog
         self._engine = CompanyTariffEngine()
         self._price_cache: dict[str, list[dict]] = {}
         self._event_log = CompanyEventLog()
+        self._flex_desk = _FlexEnrolmentDesk(flex_venue_clock)
 
     @property
     def event_log(self):
@@ -375,9 +475,30 @@ class LiveSimInterface(SimInterface):
     ) -> float:
         return estimate_churn_probability(old_rate_gbp_per_mwh, new_rate_gbp_per_mwh, tenure_years, annual_consumption_kwh)
 
+    def enrol_flex(self, enrolment, *, as_of) -> Any:
+        """The SAME exchange the stub runs, deliberately -- one desk, one codec
+        pair, one correlation-id grammar. `LiveSimInterface` did not implement
+        this method at ALL until EP6 pass 54, so a live company could not enrol
+        into a flex venue; the stub's private near-copy was the only sender, and
+        it never sent anything."""
+        return self._flex_desk.enrol(enrolment, as_of=as_of)
 
-def build_sim_interface(live: bool = False) -> SimInterface:
+    @property
+    def flex_registrations(self) -> tuple:
+        return self._flex_desk.references()
+
+    @property
+    def flex_awaiting_answer(self) -> tuple:
+        return self._flex_desk.awaiting_answer()
+
+
+def build_sim_interface(live: bool = False, *, flex_venue_clock=None) -> SimInterface:
     """Factory function. Returns LiveSimInterface when live=True (Phase 11a+).
+
+    `flex_venue_clock` is the WORLD's read time for the flex enrolment desk
+    (EP6). Left None, `enrol_flex` refuses rather than judging an availability
+    window on the submitter's own clock -- so a caller who has no world clock
+    gets a failed crossing, never a silently accepted registration.
 
     ARCH1 hook (docs/design/ARCH1_FRAME.md §4): if the `SIM_RECORDED_TRACE`
     env var points at a recorded exogenous observable trace, return a
@@ -395,5 +516,5 @@ def build_sim_interface(live: bool = False) -> SimInterface:
         from company.interfaces.recorded_sim_interface import RecordedSimInterface
         return RecordedSimInterface.from_path(trace_path)
     if live:
-        return LiveSimInterface()
-    return StubSimInterface()
+        return LiveSimInterface(flex_venue_clock=flex_venue_clock)
+    return StubSimInterface(flex_venue_clock=flex_venue_clock)
