@@ -155,3 +155,66 @@ def test_run_falls_through_to_the_live_reconcile_when_no_rows_are_injected(monke
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
 pytestmark = pytest.mark.operational
+
+
+# ── DAEMONS RUNNING CODE THAT IS NO LONGER HEAD (2026-08-21) ────────────────────────────────
+# R2, "committed != running", is a permanent rule here and it was being broken at scale: three
+# daemons 57, 63 and 65 changed loaded modules behind, four days stale. The supervisor was
+# drawing work on four-day-old logic and a publishing-down alarm fixed that morning was inert in
+# the process that runs it.
+#
+# The control was NOT missing. `evaluate_boot_sha_drift` computed it exactly and `health_check`
+# phrased the fault well. Its only caller was `start_worker.sh` -- stack startup -- so it ran at
+# the one moment drift cannot exist and never while it accumulated. health-check-log.md's last
+# entry was 2026-07-29, twenty-three days earlier.
+
+def test_a_daemon_far_behind_head_is_reported():
+    """The observed incident."""
+    out = W._drift_report(evaluate=lambda: {"stale_detail": {
+        "supervisor": ["m"] * 57, "background-worker": ["m"] * 63}})
+    assert any("supervisor (57 modules behind)" in line for line in out)
+    assert any("background-worker (63 modules behind)" in line for line in out)
+
+
+def test_ordinary_churn_is_not_reported():
+    """ALWAYS-RED IS THE FAILURE MODE HERE, not under-reporting. This tree takes ~20 commits a
+    day, so every daemon is 1-2 modules behind within minutes of restarting. A detector that
+    fires on that gets ignored -- which is exactly how four days of real drift went unseen while
+    a correct control computed it."""
+    assert W._drift_report(evaluate=lambda: {"stale_detail": {
+        "sim-runner": ["m"] * 2, "deadmans-switch": ["m"]}}) == []
+
+
+def test_the_threshold_sits_in_the_gap_the_measurement_found():
+    """1-2 is churn, 57+ is stale, and nothing was observed between. A threshold inside that gap
+    is read from the data; one outside it would be a preference."""
+    assert 2 < W.DRIFT_MODULE_THRESHOLD < 57
+
+
+def test_the_drift_check_never_restarts_anything():
+    """REPORT-ONLY (G-R3). Redeploying a daemon mid-work has its own blast radius and belongs to
+    a decision, not to a reconcile pass -- a watcher that quietly restarted things is the
+    accretion OPS1 forbids."""
+    # The CODE, not the prose. First cut grepped the whole source and tripped on this
+    # function's own docstring, which contains "restart" precisely because it promises not to --
+    # a check reading text it should not have been reading, which is the day's recurring shape
+    # in miniature.
+    import ast, inspect
+    tree = ast.parse(inspect.getsource(W._drift_report).strip())
+    fn = tree.body[0]
+    if (fn.body and isinstance(fn.body[0], ast.Expr)
+            and isinstance(fn.body[0].value, ast.Constant)):
+        fn.body = fn.body[1:]                      # drop the docstring
+    code = ast.unparse(ast.Module(body=fn.body, type_ignores=[])).lower()
+    for verb in ("restart", "systemctl", "kill", "terminate"):
+        assert verb not in code, f"the drift reporter must not {verb}"
+
+
+def test_a_failing_drift_check_does_not_stop_the_reconcile(monkeypatch):
+    """FAIL-SAFE: this rides the reconcile timer, and the reconcile is the thing that must not
+    stop. An exception here is logged and swallowed."""
+    def boom():
+        raise RuntimeError("git unavailable")
+    monkeypatch.setattr(W, "_drift_report", lambda *a, **k: boom())
+    paged = W.run(proc_results=[], sched_results=[], gap_results=[], notify=lambda *a, **k: None)
+    assert paged is False

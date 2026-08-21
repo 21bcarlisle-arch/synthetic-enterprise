@@ -118,6 +118,30 @@ def _digest_class():
     return notification_digest.DIVERGENCE
 
 
+#: How many CHANGED LOADED MODULES make a daemon meaningfully stale rather than merely behind
+#: today's churn. SET FROM THE MEASURED DISTRIBUTION on 2026-08-21, not chosen: immediately after
+#: a restart every daemon sat at 1-2 (this tree takes ~20 commits a day, so "anything changed
+#: since you booted" is true within minutes and is NOT a fault); the genuinely stale ones sat at
+#: 57, 63 and 65. Nothing lives between 2 and 57, so the threshold is a real gap in the data and
+#: not a tuned parameter.
+#:
+#: A count of 1-2 must never report, or this becomes an always-red detector and gets ignored --
+#: which is precisely how the drift went unseen for four days while a correct control computed it.
+DRIFT_MODULE_THRESHOLD = 10
+
+
+def _drift_report(evaluate=None) -> list[str]:
+    """['session (N modules behind)'] for daemons past the threshold. REPORT ONLY -- it never
+    restarts anything. Redeploying a daemon mid-work is a decision with its own blast radius,
+    and a reconcile that silently restarted things would be the accretion OPS1 forbids."""
+    if evaluate is None:
+        from background.process_reconciler import evaluate_boot_sha_drift as evaluate
+    detail = (evaluate() or {}).get("stale_detail") or {}
+    return [f"{s} ({len(f)} modules behind)"
+            for s, f in sorted(detail.items(), key=lambda kv: -len(kv[1]))
+            if len(f) >= DRIFT_MODULE_THRESHOLD]
+
+
 def run(proc_results: list[dict] | None = None,
         sched_results: list[dict] | None = None,
         notify=None,
@@ -146,6 +170,29 @@ def run(proc_results: list[dict] | None = None,
     except Exception as exc:                                   # noqa: BLE001
         # A failure here must never stop the reconcile that this module exists to run.
         _log(f"seat-claim sweep failed (reconcile continues): {exc!r}")
+
+    # DAEMONS RUNNING CODE THAT IS NO LONGER HEAD. R2 -- "committed != running" -- is one of
+    # this repo's permanent rules, and on 2026-08-21 three daemons were 57, 63 and 65 changed
+    # loaded modules behind, four days stale. The supervisor was making draw decisions on
+    # four-day-old logic and a publishing-down alarm fixed that morning was inert in the process
+    # that runs it.
+    #
+    # THE CONTROL WAS NOT MISSING. `process_reconciler.evaluate_boot_sha_drift()` computes this
+    # precisely, and `health_check.py` phrases the fault well ("daemon(s) running an OLD copy of
+    # a module they import (restart to deploy)"). Its only caller is `start_worker.sh`, at stack
+    # startup -- so it ran at the single moment drift CANNOT exist and never during the four days
+    # it accumulated. `health-check-log.md`'s last entry is 2026-07-29. Same shape as the seam
+    # ratchet that wedged publishing for 27 hours the same day: a control that only fires when it
+    # cannot.
+    #
+    # It rides this timer for the same reason the seat-claim sweep does -- declared-versus-actual
+    # is the question this module already asks, and a fix's WORTH is exactly its deployment.
+    try:
+        drift = _drift_report()
+        if drift:
+            _log("boot-sha drift: " + "; ".join(drift))
+    except Exception as exc:                                   # noqa: BLE001
+        _log(f"boot-sha drift check failed (reconcile continues): {exc!r}")
 
     sig, summary = build_report(proc_results, sched_results, gap_results)
     last = _load_last()
