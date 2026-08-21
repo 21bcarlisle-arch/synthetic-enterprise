@@ -40,6 +40,7 @@ from interface.contracts.payment_observable_seam import (
     AuddisReport,
     AuddisStatus,
     BacsArruddOutcome,
+    BacsInputReport,
     BacsReasonCategory,
     CollectionRequest,
     DDOutcomeStatus,
@@ -1249,13 +1250,27 @@ class TestSilenceLadderOverOpenConversations:
         )
 
     def _interim(self, corr="INV-Q3", at=None):
+        # A REAL CONTRACT PAYLOAD, not a stand-in dict (atom EP6, pass 50). The
+        # dict this used to carry was refused the moment `observe_interim`
+        # started checking the leg's declared payload set, and it should have
+        # been: the ladder's subject is a Bacs acknowledgement, and a fixture
+        # that could not cross the wire was proving the ladder against a message
+        # this seam never carries.
         return WallInterim(
             correlation_id=corr,
             leg=2,
             interim_type="bacs_input_report",
             schema_version=2,
             observed_at=at or self.ACKED,
-            payload={"submission_ref": "SUB-1"},
+            payload=BacsInputReport(
+                submission_ref="SUB-1",
+                account_id="ACC-Q3",
+                mandate_ref="MAN-1",
+                amount_gbp=42.0,
+                items_in_submission=1,
+                items_rejected=0,
+                value_date=dt.date(2026, 8, 20),
+            ),
         )
 
     def test_MUTATION_a_collection_that_is_never_answered_at_all_is_now_AGED(self):
@@ -1466,3 +1481,180 @@ class TestSilenceLadderOverOpenConversations:
         assert consumer.conversation("INV-Q3").is_closed is False
         for aged in first:
             assert isinstance(aged.obligation, str) and aged.obligation.strip()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# EACH LEG DECODES AGAINST ITS OWN DECLARED PAYLOAD SET (EP6 pass 50)
+#
+# Until this pass all three legs shared one permissive table, so the LEG carried
+# no claim about what kind of thing had arrived: a counterparty could ship its
+# outcome as an acknowledgement, or a mandate advice as an answer to a question
+# nobody asked, and every check between the wire and belief would still pass.
+# This is the COMPANY side of that split; the world side is in
+# tests/simulation/test_payment_seam_adapter.py.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+from company.interfaces.wall_protocol import WallProtocolError  # noqa: E402
+
+
+class TestPerLegPayloadSets:
+
+    INPUT_REPORT_RAW = {
+        "payload_type": "BacsInputReport",
+        "fields": {
+            "submission_ref": "SUB-1",
+            "account_id": "ACC-1",
+            "mandate_ref": "MAN-1",
+            "amount_gbp": 42.5,
+            "items_in_submission": 38,
+            "items_rejected": 2,
+            "value_date": "2026-03-06",
+        },
+    }
+    ADVICE_RAW = {
+        "payload_type": "AddacsAdvice",
+        "fields": {
+            "mandate_ref": "MAN-1",
+            "account_id": "ACC-1",
+            "advice_type": "payer_cancelled",
+            "advice_text": "Instruction Cancelled By Payer",
+            "value_date": "2026-03-07",
+        },
+    }
+
+    def test_the_interim_leg_accepts_what_the_contract_declares_for_it(self):
+        from company.billing import payment_observation_consumer as poc
+
+        payload = poc.decode_interim_payload(self.INPUT_REPORT_RAW)
+        assert isinstance(payload, BacsInputReport)
+        assert payload.items_in_submission == 38
+
+    def test_the_interim_leg_REFUSES_a_payload_declared_for_another_leg(self):
+        from company.billing import payment_observation_consumer as poc
+
+        with pytest.raises(WallProtocolError) as refused:
+            poc.decode_interim_payload(self.ADVICE_RAW)
+        assert refused.value.reason == "UNKNOWN_FIELD"
+        assert "AddacsAdvice" in str(refused.value)
+
+    def test_the_unsolicited_leg_REFUSES_an_acknowledgement_payload(self):
+        from company.billing import payment_observation_consumer as poc
+
+        with pytest.raises(WallProtocolError):
+            poc.decode_unsolicited_payload(self.INPUT_REPORT_RAW)
+        # NULL CONTROL: the leg's own declared payload still decodes, so the
+        # refusal above is about the SPLIT and not about a broken decoder.
+        assert isinstance(poc.decode_unsolicited_payload(self.ADVICE_RAW), AddacsAdvice)
+
+    def test_the_RESPONSE_leg_is_unchanged_by_the_split(self):
+        """The regression this refactor could most easily have caused: the leg
+        every pre-pass-50 caller used must decode exactly as it did."""
+        from company.billing import payment_observation_consumer as poc
+
+        remittance = {
+            "payload_type": "RemittanceAdvice",
+            "fields": {
+                "bank_reference": "INV-1",
+                "account_id": "ACC-1",
+                "amount_gbp": 42.5,
+                "rail": "bacs_direct_debit",
+                "value_date": "2026-03-06",
+            },
+        }
+        assert isinstance(poc.decode_observable_payload(remittance), RemittanceAdvice)
+        # ... and an interim-only payload is STILL not a response.
+        with pytest.raises(WallProtocolError):
+            poc.decode_observable_payload(self.INPUT_REPORT_RAW)
+
+    def test_R15_MUTANT_one_shared_table_lets_an_ADVICE_arrive_as_an_ACKNOWLEDGEMENT(self):
+        """THE NAMED DEFECT, reproduced: with the pre-pass-50 shared table the
+        interim leg accepts a mandate advice, so `leg` stops being a claim about
+        what arrived. The mutation moves the TABLE and not the message."""
+        from company.billing import payment_observation_consumer as poc
+
+        mutated = poc.decode_observable_payload(
+            self.ADVICE_RAW,
+            types=poc._OBSERVABLE_PAYLOAD_TYPES,
+            hints=poc._OBSERVABLE_PAYLOAD_HINTS,
+        )
+        assert isinstance(mutated, AddacsAdvice), (
+            "the mutant must actually succeed, or this test proves nothing "
+            "about what the shipped split refuses"
+        )
+        with pytest.raises(WallProtocolError):
+            poc.decode_interim_payload(self.ADVICE_RAW)
+
+    def test_an_EMPTY_leg_table_refuses_everything_rather_than_accepting_it(self):
+        """The dial that is not a dial (R15 FAIL-OPEN): there is no value of
+        `types` meaning 'anything goes'."""
+        from company.billing import payment_observation_consumer as poc
+
+        with pytest.raises(WallProtocolError):
+            poc.decode_observable_payload(self.ADVICE_RAW, types={}, hints={})
+
+    def test_a_COUNT_crosses_as_an_int_and_a_float_is_REFUSED(self):
+        """The interim leg is the first payload on this seam to carry an int at
+        all, and until this pass the decode leg had no branch for one -- so a
+        leg the contract declared could never actually cross.
+
+        38.0 is NOT read as 38: a float where the contract declares a count
+        means the two sides disagree about the field, and coercing it would hide
+        exactly that."""
+        from company.billing import payment_observation_consumer as poc
+
+        floated = copy.deepcopy(self.INPUT_REPORT_RAW)
+        floated["fields"]["items_in_submission"] = 38.0
+        with pytest.raises(WallProtocolError) as refused:
+            poc.decode_interim_payload(floated)
+        assert refused.value.reason == "MALFORMED_FIELD"
+
+        boolean = copy.deepcopy(self.INPUT_REPORT_RAW)
+        boolean["fields"]["items_rejected"] = True
+        with pytest.raises(WallProtocolError):
+            poc.decode_interim_payload(boolean)
+
+        # NULL CONTROL: the honest int lands, so the two refusals above are
+        # about the TYPE and not about the field being unreadable.
+        assert poc.decode_interim_payload(self.INPUT_REPORT_RAW).items_rejected == 2
+
+    def test_observe_interim_REFUSES_an_off_leg_payload_before_it_is_filed(self):
+        """The object-level guard, which is what stops a caller inside the
+        company routing round the wire's refusal."""
+        consumer = PaymentObservationConsumer()
+        consumer.note_collection_request(
+            WallRequest(
+                correlation_id="INV-1",
+                request_type=COLLECTION_REQUEST_TYPE,
+                schema_version=2,
+                as_of=dt.datetime(2026, 3, 2, 9, 0),
+                emitted_at=dt.datetime(2026, 3, 2, 9, 0),
+                payload=CollectionRequest(
+                    account_id="ACC-1",
+                    mandate_ref="MAN-1",
+                    amount_gbp=42.5,
+                    rail=PaymentRail.BACS_DIRECT_DEBIT,
+                    requested_collection_date=dt.date(2026, 3, 6),
+                ),
+            )
+        )
+        off_leg = WallInterim(
+            correlation_id="INV-1",
+            leg=2,
+            interim_type="bacs_input_report",
+            schema_version=2,
+            observed_at=dt.datetime(2026, 3, 4, 9, 0),
+            payload=AddacsAdvice(
+                mandate_ref="MAN-1",
+                account_id="ACC-1",
+                advice_type=AddacsAdviceType.PAYER_CANCELLED,
+                advice_text="Instruction Cancelled By Payer",
+                value_date=dt.date(2026, 3, 7),
+            ),
+        )
+        with pytest.raises(ValueError, match="INTERIM_PAYLOAD_TYPES"):
+            consumer.observe_interim(off_leg)
+        assert consumer.conversation("INV-1").leg_count == 1, (
+            "the refusal must leave the exchange as it was -- a message the "
+            "company would not file is not a leg it heard"
+        )

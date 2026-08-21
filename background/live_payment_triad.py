@@ -118,6 +118,8 @@ from simulation.payment_seam_adapter import (
     SeamAdapterInput,
     decode_collection_request,
     emit_input_reports,
+    emit_wire_interim,
+    emit_wire_notification,
     emit_wire_responses,
     mandate_ref_for,
 )
@@ -883,9 +885,17 @@ class LivePaymentTriad:
                 [submitted],
                 submission_ref=f"SUB::{customer_id}::p{period_index}",
             )
+            # LEG 2 CROSSES FRAMED (atom EP6, pass 50). It used to cross as an
+            # in-process object, which left this crossing authenticated on its
+            # response leg and open on its acknowledgement leg -- the asymmetry
+            # Q2's row named as reason (c). One encoding is shared by both books
+            # for `emit_wire_responses`' reason: a shadow that received
+            # different bytes would differ in the transport as well as in the
+            # variable the counterfactual isolates.
             for interim in acknowledgement.interims:
-                self._consumer.observe_interim(interim)
-                self._cf_consumer.observe_interim(interim)
+                interim_wire = emit_wire_interim(interim)
+                self._consumer.observe_wire_interim(interim_wire)
+                self._cf_consumer.observe_wire_interim(interim_wire)
 
         # THE CROSSING IS WIRE-BORNE (atom EP6_wall_protocol_typing,
         # 2026-08-19). The seam hands over MESSAGES, not objects, and the
@@ -923,9 +933,17 @@ class LivePaymentTriad:
         # counterfactual. Nothing here touches cash -- an advice carries no
         # amount and posts nothing -- so the D8 attribution variable is
         # untouched.
+        # FRAMED SINCE PASS 50, and this is the leg where it mattered most: an
+        # ADDACS advice moves mandate belief, and until now it reached that
+        # belief from any caller at all -- no participant named, no credential
+        # presented, no per-counterparty release check. The frame also makes the
+        # document `sender` checkable against an authenticated one, which is the
+        # only thing that keeps `sequence` (and therefore the gap detector)
+        # meaningful when a participant could relay another's stream.
         for advice in self._mandate_stream.emit_for_event(event, seam_input):
-            self._consumer.observe_unsolicited(advice)
-            self._cf_consumer.observe_unsolicited(advice)
+            advice_wire = emit_wire_notification(advice)
+            self._consumer.observe_wire_unsolicited(advice_wire)
+            self._cf_consumer.observe_wire_unsolicited(advice_wire)
 
         # ---- D8 counterfactual: the SAME event, remittance-complete --------
         # `correlation_id` is what the adapter puts in `RemittanceAdvice.

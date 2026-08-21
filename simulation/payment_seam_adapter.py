@@ -124,9 +124,11 @@ from interface.contracts.payment_observable_seam import (
     BACS_INPUT_REPORT_INTERIM_TYPE,
     BACS_INPUT_REPORT_LEG,
     FORBIDDEN_TRUTH_FIELDS,
+    INTERIM_PAYLOAD_TYPES,
     OBSERVABLE_PAYLOAD_FIELDS,
     OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
     SCHEMA_VERSION,
+    UNSOLICITED_PAYLOAD_TYPES,
     AddacsAdvice,
     AddacsAdviceType,
     BacsArruddOutcome,
@@ -953,7 +955,23 @@ class MandateNotificationStream:
 # serialise anything is the mirror of a decoder that can accept anything.
 # ---------------------------------------------------------------------------
 
-_ENCODABLE_PAYLOAD_TYPES = {t.__name__: t for t in OBSERVABLE_RESPONSE_PAYLOAD_TYPES}
+def _encodable(types: Sequence[type]) -> dict:
+    """tag -> type, for one LEG's declared payload set."""
+    return {t.__name__: t for t in types}
+
+
+# EACH LEG CARRIES ITS OWN DECLARED PAYLOAD SET, and the three are deliberately
+# NOT merged into one permissive table (atom EP6_wall_protocol_typing, pass 50).
+# A single set would say only "this payload belongs to this seam somewhere", and
+# a bureau that shipped its input report as an ANSWER, or a mandate advice as an
+# acknowledgement, would encode cleanly -- the leg would stop being a claim about
+# what kind of thing arrived. Each tuple is DECLARED in the contract
+# (`OBSERVABLE_RESPONSE_PAYLOAD_TYPES`, `INTERIM_PAYLOAD_TYPES`,
+# `UNSOLICITED_PAYLOAD_TYPES`), so none of them is computed from what this
+# adapter happens to send.
+_ENCODABLE_PAYLOAD_TYPES = _encodable(OBSERVABLE_RESPONSE_PAYLOAD_TYPES)
+_ENCODABLE_INTERIM_PAYLOAD_TYPES = _encodable(INTERIM_PAYLOAD_TYPES)
+_ENCODABLE_UNSOLICITED_PAYLOAD_TYPES = _encodable(UNSOLICITED_PAYLOAD_TYPES)
 
 
 class SeamEncodeError(ValueError):
@@ -983,8 +1001,14 @@ def _encode_scalar(value, field: str):
     )
 
 
-def encode_observable_payload(payload) -> dict:
+def encode_observable_payload(payload, *, permitted: Optional[dict] = None) -> dict:
     """Put one observable payload on the wire, TAGGED with its type.
+
+    `permitted` names THE LEG this payload is crossing on, defaulting to the
+    response leg because that is what every pre-pass-50 caller meant. It is not
+    a permission dial: there is no value of it that means "anything goes", and
+    passing a wider table than the leg declares is the very substitution the
+    split exists to make visible.
 
     The tag is required because `WallResponse.payload` is opaque to the
     envelope codec: six payload types cross this seam, and a receiver that
@@ -1002,13 +1026,14 @@ def encode_observable_payload(payload) -> dict:
     closed set cannot see: a truth field added to the dataclass AND declared
     observable in the same edit, which moves the very thing the control reads.
     """
+    table = _ENCODABLE_PAYLOAD_TYPES if permitted is None else permitted
     payload_type = type(payload)
-    if payload_type.__name__ not in _ENCODABLE_PAYLOAD_TYPES or (
-        _ENCODABLE_PAYLOAD_TYPES[payload_type.__name__] is not payload_type
+    if payload_type.__name__ not in table or (
+        table[payload_type.__name__] is not payload_type
     ):
         raise SeamEncodeError(
-            f"{payload_type.__name__} is not one of this seam's "
-            f"OBSERVABLE_RESPONSE_PAYLOAD_TYPES {sorted(_ENCODABLE_PAYLOAD_TYPES)}"
+            f"{payload_type.__name__} is not one of the payload types this seam "
+            f"declares for this leg {sorted(table)}"
         )
     names = [f.name for f in fields(payload)]
     # DENYLIST FIRST, deliberately -- the same ordering, for the same reason, that
@@ -1088,6 +1113,66 @@ def encode_wall_response(response: WallResponse) -> dict:
             None
             if response.error is None
             else {"code": response.error.code, "message": response.error.message}
+        ),
+    }
+
+
+def encode_wall_interim(interim: WallInterim) -> dict:
+    """Serialise one `WallInterim` -- leg 2 of a multi-leg exchange -- into the
+    wire form this seam publishes.
+
+    Written against the SCHEMA and not against the company's `decode_interim`,
+    for `encode_wall_response`'s reason: this module may not import `company.*`,
+    and an encoder built by reading the receiver would make the round-trip a
+    handshake with itself.
+
+    NO `status` KEY, and the absence is the whole point of the type. An interim
+    that could carry a resolution is a response, and the third leg collapses
+    back into the second. `leg` and `interim_type` are what a reader routes on.
+    """
+    if not isinstance(interim, WallInterim):
+        raise SeamEncodeError(f"expected a WallInterim, got {type(interim).__name__}")
+    return {
+        "correlation_id": interim.correlation_id,
+        "leg": interim.leg,
+        "interim_type": interim.interim_type,
+        "schema_version": interim.schema_version,
+        "observed_at": interim.observed_at.isoformat(),
+        "payload": encode_observable_payload(
+            interim.payload, permitted=_ENCODABLE_INTERIM_PAYLOAD_TYPES
+        ),
+    }
+
+
+def encode_wall_notification(notification: WallNotification) -> dict:
+    """Serialise one `WallNotification` -- unsolicited inbound -- into the wire
+    form this seam publishes.
+
+    `sender` IS WRITTEN AS A DOCUMENT FIELD as well as being asserted by the
+    frame around it, and the duplication is deliberate on both sides: `sequence`
+    is a position in ONE counterparty's own stream, so a notification separated
+    from its transport frame must still be orderable. The receiver checks the
+    two agree (`decode_framed_notification`), which is what stops an
+    authenticated participant relaying another's stream position.
+    """
+    if not isinstance(notification, WallNotification):
+        raise SeamEncodeError(
+            f"expected a WallNotification, got {type(notification).__name__}"
+        )
+    return {
+        "notification_id": notification.notification_id,
+        "notification_type": notification.notification_type,
+        "schema_version": notification.schema_version,
+        "sender": notification.sender,
+        "sequence": notification.sequence,
+        "observed_at": notification.observed_at.isoformat(),
+        "valid_time": (
+            None
+            if notification.valid_time is None
+            else notification.valid_time.isoformat()
+        ),
+        "payload": encode_observable_payload(
+            notification.payload, permitted=_ENCODABLE_UNSOLICITED_PAYLOAD_TYPES
         ),
     }
 
@@ -1185,6 +1270,51 @@ def emit_wire_responses(
         frame_wire_message(encode_wall_response(r), handed_over_at=r.observed_at)
         for r in emit_wall_responses(event, seam_input)
     ]
+
+
+# ---------------------------------------------------------------------------
+# THE OTHER TWO LEGS GET THE SAME TRANSPORT (atom EP6_wall_protocol_typing,
+# pass 50, 2026-08-21) -- the blind review's Q2(c) and Q13.
+#
+# WHAT WAS WRONG. Since pass 43 the interim and notification legs existed, were
+# live, and crossed to the company AS IN-PROCESS OBJECTS. The response leg had
+# been framed since pass 39, so on the ONE crossing that had a participant check
+# at all, two of its four legs went round it: an ADDACS advice -- which feeds
+# mandate belief -- was accepted from anybody at all, with no sender, no
+# credential and no per-counterparty release check. Q2's own reconciliation row
+# said so in its reason (c) and named it "the next item on this leg", and Q13's
+# says an identity check absent from the path is "a control gap, not an
+# abstraction". A leg that is live and unframed is worse than one not yet built,
+# because the crossing LOOKS authenticated from the response leg alone.
+#
+# WHY THE HAND-OVER CLOCK IS `observed_at` HERE. Same as the response leg: a
+# well-behaved bureau passes a fact on at the moment it has it, which is what
+# makes ordinary delivery the null control for `BACKLOG_BURST`. These two legs
+# have no misbehaviour catalogue of their own yet, and inventing a different
+# hand-over rule for them would make the burst detector's baseline leg-dependent
+# for no modelled reason.
+# ---------------------------------------------------------------------------
+
+
+def emit_wire_interim(interim: WallInterim) -> dict:
+    """One interim leg, encoded and FRAMED -- the form the company receives."""
+    return frame_wire_message(
+        encode_wall_interim(interim), handed_over_at=interim.observed_at
+    )
+
+
+def emit_wire_notification(notification: WallNotification) -> dict:
+    """One unsolicited advice, encoded and FRAMED -- the form the company
+    receives.
+
+    The frame names THIS participant. A notification whose document `sender`
+    says otherwise is refused by the receiver rather than silently re-attributed
+    here, because a stand-in that quietly corrected its own relay would be
+    hiding the one failure this check exists for."""
+    return frame_wire_message(
+        encode_wall_notification(notification),
+        handed_over_at=notification.observed_at,
+    )
 
 
 # ---------------------------------------------------------------------------

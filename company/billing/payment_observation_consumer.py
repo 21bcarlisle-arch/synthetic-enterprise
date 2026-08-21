@@ -161,10 +161,13 @@ from company.interfaces.wall_protocol import (
     WallProtocolError,
     assert_registry_fit_for_posture,
     decode_frame_hand_over,
+    decode_framed_interim,
+    decode_framed_notification,
     decode_framed_response,
 )
 from interface.contracts.payment_observable_seam import (
     FORBIDDEN_TRUTH_FIELDS,
+    INTERIM_PAYLOAD_TYPES,
     OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
     UNSOLICITED_PAYLOAD_TYPES,
     AddacsAdvice,
@@ -581,6 +584,24 @@ _OBSERVABLE_PAYLOAD_HINTS = {
     t.__name__: get_type_hints(t) for t in OBSERVABLE_RESPONSE_PAYLOAD_TYPES
 }
 
+# THE OTHER TWO LEGS DECODE AGAINST THEIR OWN DECLARED SETS (atom
+# EP6_wall_protocol_typing, pass 50), rather than all three sharing one
+# permissive table. The leg is a claim about WHAT KIND OF THING ARRIVED --
+# an answer, an acknowledgement, an unbidden advice -- and a decoder that
+# accepted any of this seam's payloads in any envelope would let that claim be
+# false without refusing anything: a counterparty could ship its outcome as an
+# acknowledgement, or a mandate advice as a response to a question nobody asked,
+# and every check between here and belief would still pass. Both tuples are
+# DECLARED in the contract, so neither is computed from what the adapter sends.
+_INTERIM_PAYLOAD_TYPES_BY_TAG = {t.__name__: t for t in INTERIM_PAYLOAD_TYPES}
+_INTERIM_PAYLOAD_HINTS = {
+    t.__name__: get_type_hints(t) for t in INTERIM_PAYLOAD_TYPES
+}
+_UNSOLICITED_PAYLOAD_TYPES_BY_TAG = {t.__name__: t for t in UNSOLICITED_PAYLOAD_TYPES}
+_UNSOLICITED_PAYLOAD_HINTS = {
+    t.__name__: get_type_hints(t) for t in UNSOLICITED_PAYLOAD_TYPES
+}
+
 
 def _decode_payload_field(raw: Any, declared: type, where: str) -> Any:
     """Decode one payload field to the type THE CONTRACT declares for it."""
@@ -617,6 +638,20 @@ def _decode_payload_field(raw: Any, declared: type, where: str) -> Any:
                 "MALFORMED_FIELD", f"{where} must be a number, got {raw!r}"
             )
         return float(raw)
+    if declared is int:
+        # A COUNT IS NOT A ROUNDED FLOAT (atom EP6, pass 50). The interim leg
+        # was the first payload on this seam to carry an int at all -- Bacs
+        # file-level item counts -- and until this branch existed the decode leg
+        # REFUSED it, so a leg the contract declared could never actually cross.
+        # 38.0 is NOT accepted as 38: a float arriving where the contract
+        # declares a count means the two sides disagree about the field, and
+        # coercing it would hide exactly that. bool is refused for `float`'s
+        # reason -- a True item count is malformed, not 1.
+        if isinstance(raw, bool) or not isinstance(raw, int):
+            raise WallProtocolError(
+                "MALFORMED_FIELD", f"{where} must be an int, got {raw!r}"
+            )
+        return raw
     raise WallProtocolError(
         "CONTRACT_VIOLATION",
         f"{where}: this seam has no decoder for declared type {declared!r} -- a "
@@ -624,8 +659,16 @@ def _decode_payload_field(raw: Any, declared: type, where: str) -> Any:
     )
 
 
-def decode_observable_payload(raw: Any) -> Any:
+def decode_observable_payload(
+    raw: Any, *, types: Any = None, hints: Any = None
+) -> Any:
     """Rebuild one observable payload off the wire, or refuse it.
+
+    `types`/`hints` name THE LEG this payload arrived on and default to the
+    RESPONSE leg, which is what every pre-pass-50 caller meant. They are read at
+    call time from the module tables so a test can still substitute a payload
+    class in place, and there is no value of them meaning "accept anything" --
+    an empty table refuses everything rather than everything passing.
 
     THE WALL IS CHECKED HERE TOO, AND THIS LEG NEEDS IT MORE THAN THE OTHER ONE.
     `expected` below is `get_type_hints(t)` of the contract's own dataclasses --
@@ -659,21 +702,23 @@ def decode_observable_payload(raw: Any) -> Any:
         raise WallProtocolError(
             "UNKNOWN_FIELD", f"payload carries undefined key(s) {unknown_keys}"
         )
+    permitted = _OBSERVABLE_PAYLOAD_TYPES if types is None else types
+    hint_table = _OBSERVABLE_PAYLOAD_HINTS if hints is None else hints
     tag = raw["payload_type"]
-    if tag not in _OBSERVABLE_PAYLOAD_TYPES:
+    if tag not in permitted:
         raise WallProtocolError(
             "UNKNOWN_FIELD",
-            f"payload_type {tag!r} is not one of this seam's observable types "
-            f"{sorted(_OBSERVABLE_PAYLOAD_TYPES)}",
+            f"payload_type {tag!r} is not one of the payload types this seam "
+            f"declares for this leg {sorted(permitted)}",
         )
-    payload_type = _OBSERVABLE_PAYLOAD_TYPES[tag]
+    payload_type = permitted[tag]
     body = raw["fields"]
     if not isinstance(body, Mapping):
         raise WallProtocolError(
             "NOT_A_MESSAGE", f"{tag}.fields must be a mapping, got {type(body).__name__}"
         )
-    hints = _OBSERVABLE_PAYLOAD_HINTS[tag]
-    expected = set(hints)
+    field_hints = hint_table[tag]
+    expected = set(field_hints)
     # DENYLIST FIRST -- same ordering, same reason, as the encode leg and as
     # `company/market/flex_participation.py`: the truth-leak message is the more
     # diagnostic of the two, and the ordering keeps each belt separately observable.
@@ -701,8 +746,26 @@ def decode_observable_payload(raw: Any) -> Any:
     return payload_type(
         **{
             name: _decode_payload_field(body[name], declared, f"{tag}.{name}")
-            for name, declared in hints.items()
+            for name, declared in field_hints.items()
         }
+    )
+
+
+def decode_interim_payload(raw: Any) -> Any:
+    """Rebuild the payload of an INTERIM leg, or refuse it -- the interim leg's
+    own declared set, not the response leg's."""
+    return decode_observable_payload(
+        raw, types=_INTERIM_PAYLOAD_TYPES_BY_TAG, hints=_INTERIM_PAYLOAD_HINTS
+    )
+
+
+def decode_unsolicited_payload(raw: Any) -> Any:
+    """Rebuild the payload of an unsolicited NOTIFICATION, or refuse it -- the
+    unsolicited leg's own declared set, not the response leg's."""
+    return decode_observable_payload(
+        raw,
+        types=_UNSOLICITED_PAYLOAD_TYPES_BY_TAG,
+        hints=_UNSOLICITED_PAYLOAD_HINTS,
     )
 
 
@@ -1148,8 +1211,68 @@ class PaymentObservationConsumer:
         `ConversationRegister.record_interim`. It does NOT touch the ledger, the
         cash position, or any belief: an acknowledgement resolves nothing, so a
         version of this that moved a figure would be reading a resolution into
-        the one message defined by not being one."""
+        the one message defined by not being one.
+
+        REFUSES a payload the contract does not declare for THIS LEG (pass 50),
+        matching `observe_unsolicited`'s final refusal and for the same reason:
+        an outcome arriving as an acknowledgement is a routing error, and filing
+        it would let a payload skip the response leg's checks by turning up in
+        another envelope."""
+        payload = interim.payload
+        if not isinstance(payload, INTERIM_PAYLOAD_TYPES):
+            raise ValueError(
+                f"payment_observation_consumer: {type(payload).__name__!r} arrived "
+                "on the interim leg but this seam does not declare it so -- "
+                "see INTERIM_PAYLOAD_TYPES"
+            )
         return self._conversations.record_interim(interim)
+
+    def observe_wire_interim(self, wire: Any) -> bool:
+        """`observe_interim`, for an interim leg that arrived AS BYTES inside a
+        transport frame -- the form a real bureau delivers (atom EP6, pass 50).
+
+        WHO SENT IT IS CHECKED FIRST, exactly as on the response leg. Until this
+        existed the interim leg was live and UNFRAMED: an acknowledgement was
+        accepted from anybody, on a crossing whose response leg had been
+        authenticated since pass 39. That asymmetry is worse than an unbuilt
+        leg, because the crossing looks authenticated when read from the
+        response leg alone.
+
+        TWO VERSION REFUSALS STACK BELOW THIS LINE and they catch different
+        counterparties -- see `decode_framed_interim`: an interim stamped v1 is
+        refused because that RELEASE has no such message, and one stamped v2
+        from a participant the registry has on v1 only is refused because THAT
+        COUNTERPARTY has not cut over.
+        """
+        _sender, interim = decode_framed_interim(
+            wire, decode_payload=decode_interim_payload
+        )
+        return self.observe_interim(interim)
+
+    def observe_wire_unsolicited(self, wire: Any) -> bool:
+        """`observe_unsolicited`, for an advice that arrived AS BYTES inside a
+        transport frame -- the form a real ADDACS feed delivers (atom EP6,
+        pass 50).
+
+        THIS IS THE LEG THE GAP MATTERED MOST ON. An ADDACS advice moves mandate
+        belief, and until this existed it reached that belief from any caller at
+        all: no participant named, no credential presented, no per-counterparty
+        release check. The blind review's Q13 names exactly this shape -- an
+        identity check absent from the path is "a control gap, not an
+        abstraction".
+
+        THE SENDER IS CHECKED TWICE OVER, and the second check exists only here.
+        `decode_framed_notification` refuses a message whose document `sender`
+        disagrees with the authenticated frame, because `sequence` is a position
+        in ONE counterparty's stream: a participant relaying another's stream
+        position would corrupt the very gap detector the field exists for, and
+        the object-level entry point cannot see the difference because it has no
+        frame to compare against.
+        """
+        _sender, notification = decode_framed_notification(
+            wire, decode_payload=decode_unsolicited_payload
+        )
+        return self.observe_unsolicited(notification)
 
     def conversation(self, correlation_id: str) -> Optional[CrossingConversation]:
         """The exchange behind one correlation id, or `None` where this company

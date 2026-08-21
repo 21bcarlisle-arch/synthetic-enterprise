@@ -1257,3 +1257,199 @@ def test_MUTATION_the_encoder_no_longer_relabels_a_messages_own_vintage():
         "differs from the module constant"
     )
     assert encode_wall_response(old)["schema_version"] == 1
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# THE OTHER TWO LEGS GET THE SAME TRANSPORT (EP6 pass 50) -- Q2(c) and Q13.
+#
+# Until this pass the interim and notification legs were LIVE and UNFRAMED: the
+# response leg had been authenticated since pass 39 while the other two crossed
+# as in-process objects, so the payment crossing looked authenticated when read
+# from one leg alone. These tests are about the WORLD side of that repair -- the
+# encoders and the frame around them. The company side is in
+# tests/company/billing/, and the two meeting on the live path is in
+# tests/background/test_live_payment_triad.py.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+import simulation.payment_seam_adapter as psa  # noqa: E402
+from interface.contracts.payment_observable_seam import (  # noqa: E402
+    INTERIM_PAYLOAD_TYPES,
+    OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
+    UNSOLICITED_PAYLOAD_TYPES,
+)
+from interface.contracts.wall_envelope import WallNotification  # noqa: E402
+from simulation.payment_seam_adapter import (  # noqa: E402
+    PARTICIPANT_CREDENTIAL,
+    SeamEncodeError,
+    emit_wire_interim,
+    emit_wire_notification,
+    encode_wall_interim,
+    encode_wall_notification,
+)
+
+_INPUT_REPORT = BacsInputReport(
+    submission_ref="SUB-1",
+    account_id="ACC-1",
+    mandate_ref="MANDATE-ACC-1",
+    amount_gbp=42.5,
+    items_in_submission=38,
+    items_rejected=2,
+    value_date=_dt.date(2026, 3, 6),
+)
+
+
+def _interim(payload=None, observed_at=None):
+    return WallInterim(
+        correlation_id="INV-1",
+        leg=BACS_INPUT_REPORT_LEG,
+        interim_type=BACS_INPUT_REPORT_INTERIM_TYPE,
+        schema_version=SCHEMA_VERSION,
+        observed_at=observed_at or _dt.datetime(2026, 3, 4, 9, 0),
+        payload=_INPUT_REPORT if payload is None else payload,
+    )
+
+
+def _notification(payload=None, sender=None, sequence=0):
+    return WallNotification(
+        notification_id="ADV-1",
+        notification_type=ADDACS_NOTIFICATION_TYPE,
+        schema_version=SCHEMA_VERSION,
+        sender=PARTICIPANT_ID if sender is None else sender,
+        sequence=sequence,
+        observed_at=_dt.datetime(2026, 3, 7, 9, 0),
+        valid_time=_dt.date(2026, 3, 7),
+        payload=AddacsAdvice(
+            mandate_ref="MANDATE-ACC-1",
+            account_id="ACC-1",
+            advice_type=AddacsAdviceType.PAYER_CANCELLED,
+            advice_text="Instruction Cancelled By Payer",
+            value_date=_dt.date(2026, 3, 7),
+        ) if payload is None else payload,
+    )
+
+
+def test_the_interim_wire_form_is_the_schemas_key_set_and_carries_NO_status():
+    """The absence is the type. An interim that could carry a resolution is a
+    response, and the third leg collapses back into the second."""
+    wire = encode_wall_interim(_interim())
+    assert set(wire) == {
+        "correlation_id", "leg", "interim_type", "schema_version",
+        "observed_at", "payload",
+    }
+    assert "status" not in wire
+    assert wire["leg"] == BACS_INPUT_REPORT_LEG
+    assert wire["payload"]["payload_type"] == "BacsInputReport"
+    # The counts cross as INTEGERS, not as stringified or floated ones.
+    assert wire["payload"]["fields"]["items_in_submission"] == 38
+    assert isinstance(wire["payload"]["fields"]["items_in_submission"], int)
+
+
+def test_the_notification_wire_form_carries_its_sender_as_a_DOCUMENT_field():
+    """`sequence` is a position in ONE counterparty's stream, so a notification
+    separated from its frame must still be orderable."""
+    wire = encode_wall_notification(_notification(sequence=7))
+    assert set(wire) == {
+        "notification_id", "notification_type", "schema_version", "sender",
+        "sequence", "observed_at", "valid_time", "payload",
+    }
+    assert wire["sender"] == PARTICIPANT_ID
+    assert wire["sequence"] == 7
+    assert "correlation_id" not in wire, (
+        "nobody asked, so there is nothing to correlate to -- minting a "
+        "synthetic id is the reviewer's named fail verbatim"
+    )
+
+
+def test_both_legs_are_FRAMED_and_the_frame_names_this_participant():
+    """Q13's axis. A leg that crosses unframed is accepted from anybody."""
+    for wire in (emit_wire_interim(_interim()), emit_wire_notification(_notification())):
+        assert set(wire) == {"sender", "credential", "envelope", "handed_over_at"}
+        assert wire["sender"] == PARTICIPANT_ID
+        assert wire["credential"] == PARTICIPANT_CREDENTIAL
+
+
+def test_the_hand_over_clock_on_both_legs_is_the_messages_own_observed_at():
+    """A well-behaved bureau passes a fact on at the moment it has it -- which
+    is what makes ordinary delivery the null control for a backlog burst. A
+    leg-dependent hand-over rule would make that baseline leg-dependent too."""
+    interim = _interim()
+    assert emit_wire_interim(interim)["handed_over_at"] == interim.observed_at.isoformat()
+    advice = _notification()
+    assert (
+        emit_wire_notification(advice)["handed_over_at"] == advice.observed_at.isoformat()
+    )
+
+
+def test_R15_MUTANT_one_shared_payload_table_lets_an_OUTCOME_cross_as_an_ACKNOWLEDGEMENT():
+    """THE NAMED DEFECT the per-leg split exists to refuse, reproduced by
+    collapsing the interim leg's table back into the response leg's -- which is
+    exactly the shape this seam shipped in until pass 50.
+
+    With the shared table an ARUDD outcome encodes cleanly as an
+    acknowledgement, so the leg stops being a claim about what kind of thing
+    arrived. With the leg's own declared table it is REFUSED."""
+    outcome = BacsArruddOutcome(
+        mandate_ref="MANDATE-ACC-1",
+        account_id="ACC-1",
+        amount_gbp=42.5,
+        outcome=DDOutcomeStatus.FAILURE,
+        reason_category=BacsReasonCategory.INSUFFICIENT_FUNDS,
+        reason_text="Refer to payer",
+        value_date=_dt.date(2026, 3, 6),
+    )
+    with pytest.raises(SeamEncodeError) as refused:
+        encode_wall_interim(_interim(payload=outcome))
+    assert "BacsArruddOutcome" in str(refused.value)
+
+    # THE MUTATION: one permissive table for every leg. The same message now
+    # encodes, which is what "the leg is not a claim" looks like in bytes.
+    shared = {t.__name__: t for t in OBSERVABLE_RESPONSE_PAYLOAD_TYPES}
+    mutated = psa.encode_observable_payload(outcome, permitted=shared)
+    assert mutated["payload_type"] == "BacsArruddOutcome"
+
+    # NULL CONTROL: the split is not simply always-red. The payload the leg
+    # DOES declare still crosses, and so does the outcome on its own leg.
+    assert encode_wall_interim(_interim())["payload"]["payload_type"] == "BacsInputReport"
+    assert psa.encode_observable_payload(outcome)["payload_type"] == "BacsArruddOutcome"
+
+
+def test_the_unsolicited_leg_refuses_a_payload_the_contract_does_not_declare_for_it():
+    """The mirror of the interim case, on the leg where it matters most: an
+    advice that moves mandate belief."""
+    remittance = RemittanceAdvice(
+        bank_reference="INV-1",
+        account_id="ACC-1",
+        amount_gbp=42.5,
+        rail=PaymentRail.BACS_DIRECT_DEBIT,
+        value_date=_dt.date(2026, 3, 6),
+    )
+    with pytest.raises(SeamEncodeError):
+        encode_wall_notification(_notification(payload=remittance))
+    # NULL CONTROL -- the declared payload still crosses.
+    assert (
+        encode_wall_notification(_notification())["payload"]["payload_type"]
+        == "AddacsAdvice"
+    )
+
+
+def test_the_leg_payload_sets_are_the_CONTRACTS_and_not_this_adapters():
+    """The independence claim, asserted rather than described: both tables are
+    read from the contract, so neither can be widened by changing what this
+    module happens to send."""
+    assert INTERIM_PAYLOAD_TYPES == (BacsInputReport,)
+    assert UNSOLICITED_PAYLOAD_TYPES == (AddacsAdvice,)
+    assert psa._ENCODABLE_INTERIM_PAYLOAD_TYPES == {
+        t.__name__: t for t in INTERIM_PAYLOAD_TYPES
+    }
+    assert psa._ENCODABLE_UNSOLICITED_PAYLOAD_TYPES == {
+        t.__name__: t for t in UNSOLICITED_PAYLOAD_TYPES
+    }
+
+
+def test_neither_encoder_will_serialise_the_wrong_envelope_type():
+    """An encoder that can serialise anything is the mirror of a decoder that
+    can accept anything."""
+    with pytest.raises(SeamEncodeError):
+        encode_wall_interim(_notification())
+    with pytest.raises(SeamEncodeError):
+        encode_wall_notification(_interim())

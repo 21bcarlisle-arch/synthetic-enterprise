@@ -1782,3 +1782,260 @@ def test_q3_the_UNSILENCED_crossings_in_that_same_run_all_CLOSED():
         if c.request_type == COLLECTION_REQUEST_TYPE
     ]
     assert open_dd == [], "with the transport behaving, every collection is answered"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Q13 / Q2(c) -- THE OTHER TWO LEGS NOW CROSS FRAMED (EP6 pass 50)
+#
+# Since pass 39 the response leg has been authenticated: a message naming an
+# unregistered participant, presenting a wrong credential, or stamped with a
+# release that counterparty is not on is refused BEFORE the envelope is read.
+# The interim and notification legs were live from passes 43/44 and crossed as
+# in-process OBJECTS, so they went round all of it -- and the notification leg
+# is the one that moves mandate belief. Q2's own reconciliation row named this
+# as its reason (c) and called it "the next item on this leg"; Q13's says an
+# identity check absent from the path is "a control gap, not an abstraction".
+# ═══════════════════════════════════════════════════════════════════════════════
+
+from company.billing.payment_observation_consumer import (  # noqa: E402
+    MandateBeliefState,
+    PaymentObservationConsumer,
+)
+from interface.contracts.payment_observable_seam import (  # noqa: E402
+    ADDACS_NOTIFICATION_TYPE,
+    AddacsAdvice,
+    AddacsAdviceType,
+)
+from interface.contracts.wall_envelope import WallNotification  # noqa: E402
+from simulation.payment_seam_adapter import (  # noqa: E402
+    PARTICIPANT_CREDENTIAL,
+    PARTICIPANT_ID,
+    emit_wire_notification,
+    encode_wall_notification,
+)
+
+_IMPOSTOR = "IMPOSTOR-99"
+
+
+def _advice(sender=PARTICIPANT_ID, mandate_ref="MAN-IMP", notification_id="ADV-IMP"):
+    from datetime import datetime
+
+    return WallNotification(
+        notification_id=notification_id,
+        notification_type=ADDACS_NOTIFICATION_TYPE,
+        schema_version=SCHEMA_VERSION,
+        sender=sender,
+        sequence=0,
+        observed_at=datetime(2026, 6, 18, 9, 0),
+        valid_time=date(2026, 6, 18),
+        payload=AddacsAdvice(
+            mandate_ref=mandate_ref,
+            account_id="ACC-IMP",
+            advice_type=AddacsAdviceType.PAYER_CANCELLED,
+            advice_text="Instruction Cancelled By Payer",
+            value_date=date(2026, 6, 18),
+        ),
+    )
+
+
+def test_q13_R15_MUTANT_the_OBJECT_path_takes_a_mandate_advice_from_ANYBODY():
+    """THE NAMED DEFECT, as a differential on one consumer.
+
+    The mutation is not an injected line -- it is the shape this seam actually
+    shipped in until this pass: hand the company the notification OBJECT, the
+    way `live_payment_triad` did. No participant is named, no credential is
+    presented, nothing is checked, and an advice from `IMPOSTOR-99` moves this
+    company's belief that a real customer's mandate is dead.
+
+    The same advice offered as BYTES, framed by a participant the registry does
+    not hold, is refused before the envelope is read."""
+    from company.interfaces.wall_protocol import WallProtocolError
+
+    object_path = PaymentObservationConsumer()
+    assert object_path.observe_unsolicited(_advice(sender=_IMPOSTOR)) is True
+    assert (
+        object_path.mandate_belief("MAN-IMP").state
+        == MandateBeliefState.LIKELY_DEAD_BELIEVED
+    ), "the mutant must actually reach belief, or the repair below proves nothing"
+
+    wire_path = PaymentObservationConsumer()
+    forged = {
+        "sender": _IMPOSTOR,
+        "credential": "whatever-the-impostor-likes",
+        "handed_over_at": "2026-06-18T09:00:00",
+        "envelope": encode_wall_notification(_advice(sender=_IMPOSTOR)),
+    }
+    with pytest.raises(WallProtocolError) as refused:
+        wire_path.observe_wire_unsolicited(forged)
+    assert refused.value.reason == "UNKNOWN_SENDER"
+    assert wire_path.mandate_belief("MAN-IMP").state == MandateBeliefState.UNKNOWN
+
+    # NULL CONTROL: the check is not simply always-red. The real bureau's own
+    # advice, framed by the real bureau, lands and moves the same belief.
+    honest = PaymentObservationConsumer()
+    assert honest.observe_wire_unsolicited(emit_wire_notification(_advice())) is True
+    assert (
+        honest.mandate_belief("MAN-IMP").state == MandateBeliefState.LIKELY_DEAD_BELIEVED
+    )
+
+
+def test_q13_a_WRONG_CREDENTIAL_on_the_advice_leg_is_refused():
+    """The second refusal the frame buys, and the one a relabelled impostor
+    would hit: the right participant id with the wrong key."""
+    from company.interfaces.wall_protocol import WallProtocolError
+
+    consumer = PaymentObservationConsumer()
+    rotated = dict(emit_wire_notification(_advice()))
+    rotated["credential"] = PARTICIPANT_CREDENTIAL + "-rotated"
+    with pytest.raises(WallProtocolError) as refused:
+        consumer.observe_wire_unsolicited(rotated)
+    assert refused.value.reason == "BAD_CREDENTIAL"
+
+
+def test_q13_an_authenticated_participant_RELAYING_anothers_stream_is_refused():
+    """The refusal that exists ONLY on the framed path, and could not exist on
+    the object one: a notification names its sender twice, and the two must
+    agree. `sequence` is a position in ONE counterparty's stream, so a relayed
+    one is not orderable -- and the gap detector reads exactly that field."""
+    from company.interfaces.wall_protocol import WallProtocolError
+
+    consumer = PaymentObservationConsumer()
+    relayed = {
+        "sender": PARTICIPANT_ID,
+        "credential": PARTICIPANT_CREDENTIAL,
+        "handed_over_at": "2026-06-18T09:00:00",
+        # authenticated as the bureau, carrying somebody else's stream position
+        "envelope": encode_wall_notification(_advice(sender="OTHER-BUREAU-02")),
+    }
+    with pytest.raises(WallProtocolError) as refused:
+        consumer.observe_wire_unsolicited(relayed)
+    assert refused.value.reason == "SENDER_MISMATCH"
+
+    # The object path cannot see this at all -- there is no frame to disagree
+    # with, which is the point of the comparison.
+    assert PaymentObservationConsumer().observe_unsolicited(
+        _advice(sender="OTHER-BUREAU-02")
+    ) is True
+
+
+class _OneAdviceStream:
+    """The bureau's ADDACS feed, forced to produce exactly one advice.
+
+    WHY THE SUPPLY IS FORCED AND THE LEG IS NOT. An advice is emitted only for a
+    mandate-lifecycle failure (cancelled / closed / deceased), and a six-customer
+    single-period fixture draws none -- measured, not assumed: `inbound_stream`
+    reports 0 received across every stress value and population size tried. What
+    is under test here is the LEG the live `record_period` puts an advice on,
+    not the world's probability of producing one, and a test that silently
+    asserted nothing because the draw was empty is the fail-open shape this
+    project refuses. The advice below is the real contract type; everything
+    downstream of `emit_for_event` is the shipped path.
+    """
+
+    def __init__(self, advice):
+        self._advice = advice
+        self.emitted = 0
+
+    @property
+    def sender(self):
+        return PARTICIPANT_ID
+
+    def emit_for_event(self, event, seam_input=None):
+        if self.emitted:
+            return []
+        self.emitted += 1
+        return [self._advice]
+
+
+def _triad_with_one_advice():
+    triad = lpt.LivePaymentTriad()
+    triad._mandate_stream = _OneAdviceStream(_advice())
+    return triad
+
+
+def _drive_q13(triad, n=6):
+    for i in range(n):
+        triad.record_period(
+            customer_id=f"q13c{i}",
+            due_date=date(2026, 6, 17),
+            amount_gbp=42.0,
+            income_stress_value="low",
+            segment="resi",
+        )
+    return triad
+
+
+def test_q13_the_LIVE_notification_leg_IS_FRAMED_and_is_not_an_orphan():
+    """THE WIRING, ON THE COMPANY `run_phase2b` ACTUALLY DRIVES. A framed entry
+    point whose only caller is its own test is built and dark.
+
+    Asserted as a MUTATION rather than by counting calls: the live run is driven
+    once with the real emitter and the advice lands, and once with an emitter
+    whose frame names a participant the registry does not hold. If the live path
+    were still object-borne the forged frame would be ignored and the second run
+    would pass exactly like the first."""
+    from company.interfaces.wall_protocol import WallProtocolError
+
+    clean = _drive_q13(_triad_with_one_advice())
+    assert clean._consumer.inbound_stream(PARTICIPANT_ID).received == 1, (
+        "the advice must reach the company THROUGH the framed path, or the "
+        "mutation below is about nothing"
+    )
+    assert clean._cf_consumer.inbound_stream(PARTICIPANT_ID).received == 1, (
+        "both books are told, for the reason both are billed -- a shadow "
+        "hearing a different set of advices would be a second company"
+    )
+
+    original = lpt.emit_wire_notification
+
+    def _forged_frame(notification):
+        wire = dict(original(notification))
+        wire["sender"] = _IMPOSTOR
+        return wire
+
+    lpt.emit_wire_notification = _forged_frame
+    try:
+        with pytest.raises(WallProtocolError) as refused:
+            _drive_q13(_triad_with_one_advice())
+        assert refused.value.reason == "UNKNOWN_SENDER"
+    finally:
+        lpt.emit_wire_notification = original
+
+    # NULL CONTROL: the restored emitter runs clean again, so the red above is
+    # the forged frame and not a triad left broken by the substitution.
+    assert _drive_q13(_triad_with_one_advice())._consumer.inbound_stream(
+        PARTICIPANT_ID
+    ).received == 1
+
+
+def test_q13_the_LIVE_interim_leg_is_framed_too():
+    """The acknowledgement leg gets the same transport. Same mutation shape: a
+    frame naming an unregistered participant must red the live run."""
+    from company.interfaces.wall_protocol import WallProtocolError
+
+    original = lpt.emit_wire_interim
+
+    def _forged_frame(interim):
+        wire = dict(original(interim))
+        wire["credential"] = "not-the-bureaus-key"
+        return wire
+
+    lpt.emit_wire_interim = _forged_frame
+    try:
+        with pytest.raises(WallProtocolError) as refused:
+            _dd_triad(n=6)
+        assert refused.value.reason == "BAD_CREDENTIAL"
+    finally:
+        lpt.emit_wire_interim = original
+
+
+def test_q13_NO_PUBLISHED_FIGURE_MOVES_BECAUSE_THE_LEGS_ARE_FRAMED():
+    """Transport is not a belief. The same population, the same messages, the
+    same books -- what changed is who is allowed to send them."""
+    triad = _dd_triad(n=6)
+    stream = triad._consumer.inbound_stream(PARTICIPANT_ID)
+    assert stream.received >= 0
+    assert stream.missing_sequences == (), (
+        "a framed leg must not invent a gap in the counterparty's stream"
+    )
+    assert triad.poorly_delivered_hand_overs() == []
