@@ -160,6 +160,7 @@ from company.interfaces.wall_protocol import (
 from interface.contracts.payment_observable_seam import (
     FORBIDDEN_TRUTH_FIELDS,
     OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
+    UNSOLICITED_PAYLOAD_TYPES,
     AddacsAdvice,
     AddacsAdviceType,
     AuddisReport,
@@ -171,7 +172,7 @@ from interface.contracts.payment_observable_seam import (
     RemittanceAdvice,
     SettlementConfirmation,
 )
-from interface.contracts.wall_envelope import WallResponse, WallStatus
+from interface.contracts.wall_envelope import WallNotification, WallResponse, WallStatus
 
 # ---------------------------------------------------------------------------
 # Belief types -- every one of these is the COMPANY'S OWN INFERENCE, built
@@ -417,6 +418,51 @@ class UnresolvedCrossing:
         deliberately single-branched so the two questions -- "is an answer
         owed?" and "what do I do about it?" -- do not collapse into one."""
         return self.status == WallStatus.NOT_KNOWABLE_YET
+
+
+@dataclass(frozen=True)
+class InboundStreamState:
+    """What this company can say about ONE counterparty's unsolicited feed --
+    the read-out of the ordering rule `WallNotification.sequence` makes
+    possible (blind review Q2, atom EP6).
+
+    WHY THIS EXISTS AT ALL. Every other belief in this module is built from
+    messages that ARRIVED. The one question none of them can answer is what
+    DIDN'T -- and for a solicited crossing that is tolerable, because the
+    company knows what it asked and `crossing_silence` ages the unanswered.
+    For unsolicited inbound there is no request to go missing from, so a lost
+    ADDACS advice is simply a mandate the company still believes is alive. This
+    type is the company noticing.
+
+    `missing_sequences` IS INTERIOR-ONLY, and the limit is real rather than an
+    implementation shortcut: gaps are counted strictly BETWEEN the lowest and
+    highest sequence observed. A company that joins a feed at sequence 40 has
+    not lost 0-39, it was not listening, and reporting them as losses would
+    manufacture 40 phantom incidents on the first message of every run.
+    THE COST, STATED: a notification lost BEFORE the first one ever seen is
+    undetectable here, and no reading of this stream will ever show it.
+
+    `out_of_order_arrivals` is kept SEPARATE from the gap count on purpose. A
+    real feed redelivers late far more often than it loses, so a sequence
+    arriving below the high-water mark is the NORMAL case, not an incident; a
+    single counter mixing the two would read as loss every time the transport
+    behaved exactly as expected. A gap that later fills is not a loss at all,
+    and `missing_sequences` recomputes from the observed set so it shrinks when
+    the straggler lands."""
+
+    sender: str
+    received: int
+    first_sequence: Optional[int]
+    last_sequence: Optional[int]
+    missing_sequences: Tuple[int, ...]
+    out_of_order_arrivals: int
+    duplicates_suppressed: int
+
+    @property
+    def has_gap(self) -> bool:
+        """Whether this company is missing at least one message it can PROVE
+        it was sent -- the question the primitive was built to make askable."""
+        return bool(self.missing_sequences)
 
 
 @dataclass
@@ -710,6 +756,15 @@ class PaymentObservationConsumer:
             None if supplied_accounts is None else frozenset(supplied_accounts)
         )
         self._misdirected: List[MisdirectedObservation] = []
+        # THE UNSOLICITED INBOUND REGISTER (atom EP6 -- the blind review's Q2).
+        # Keyed by SENDER, because `WallNotification.sequence` is a position in
+        # one counterparty's stream and comparing two senders' numbering would
+        # invent gaps out of nothing. Ids are held per-sender for the same
+        # reason: two feeds are entitled to reuse a message id.
+        self._notification_ids: Dict[str, Set[str]] = {}
+        self._notification_sequences: Dict[str, Set[int]] = {}
+        self._notification_out_of_order: Dict[str, int] = {}
+        self._notification_duplicates: Dict[str, int] = {}
 
     @property
     def dd_failure_window_days(self) -> int:
@@ -863,6 +918,124 @@ class PaymentObservationConsumer:
                 "OBSERVABLE_RESPONSE_PAYLOAD_TYPES"
             )
         return True
+
+    def observe_unsolicited(self, notification: WallNotification) -> bool:
+        """Process one UNSOLICITED inbound message (blind review Q2).
+
+        Returns True if newly processed, False if this `(sender,
+        notification_id)` has been seen before -- the same True/False dedup
+        contract `observe` uses, for the same C-S2 reason.
+
+        WHY THIS IS A SEPARATE ENTRY POINT AND NOT A BRANCH IN `observe`. The
+        two primitives have genuinely different rules, and collapsing them
+        would mean picking one set and being wrong for the other:
+
+          * IDENTITY. `observe` dedups on `correlation_id` -- the company's own
+            key for a thing it asked. There is no such key here, so identity is
+            the SENDER's `notification_id`, scoped per sender.
+          * RESOLUTION. A response can be superseded by a later answer on the
+            same id (`_unresolved`); a notification resolves nothing and
+            supersedes nothing. It is a fact that happened, not an answer that
+            improved.
+          * ORDER. A response set is deliberately order-blind. A notification
+            stream is ORDERED, and the ordering carries the one fact this
+            company could not otherwise have: what it never received.
+
+        BELIEF IS STILL ORDER-INDEPENDENT. The sequence bookkeeping records
+        arrival order, but the mandate belief this feeds is updated through
+        `_update_mandate_belief`, which is a pure function of the observed set
+        by `value_date`. So a stream replayed in any order reaches the same
+        belief and the same gap reading -- the sequence tells the company what
+        is MISSING, never what is TRUE.
+
+        REFUSES rather than guesses on a notification this seam does not
+        define, matching `observe`'s final `else`: a payload type the contract
+        never declared unsolicited is a routing error, and accepting it here
+        would let any payload skip the response leg's checks by arriving in the
+        other envelope.
+        """
+        payload = notification.payload
+        if not isinstance(payload, UNSOLICITED_PAYLOAD_TYPES):
+            raise ValueError(
+                f"payment_observation_consumer: {type(payload).__name__!r} arrived "
+                "as unsolicited inbound but this seam does not declare it so -- "
+                "see UNSOLICITED_PAYLOAD_TYPES"
+            )
+        sender = notification.sender
+        seen_ids = self._notification_ids.setdefault(sender, set())
+        if notification.notification_id in seen_ids:
+            # C-S2: at-least-once delivery. A redelivery is a no-op and must
+            # NOT re-count in the stream stats, or a chatty transport would
+            # look like a busy counterparty.
+            self._notification_duplicates[sender] = (
+                self._notification_duplicates.get(sender, 0) + 1
+            )
+            return False
+        seen_ids.add(notification.notification_id)
+
+        sequences = self._notification_sequences.setdefault(sender, set())
+        if sequences and notification.sequence < max(sequences):
+            # C-S1: late arrival, the expected case. Recorded, never treated
+            # as an error -- see `InboundStreamState.out_of_order_arrivals`.
+            self._notification_out_of_order[sender] = (
+                self._notification_out_of_order.get(sender, 0) + 1
+            )
+        sequences.add(notification.sequence)
+
+        if self._is_misdirected(payload):
+            # Same suspense answer the response leg gives (Q6): the message was
+            # read and is accounted for in this stream's numbering -- a gap
+            # must not open just because the advice was about a stranger's
+            # mandate -- but it moves no belief of ours.
+            self._misdirected.append(
+                MisdirectedObservation(
+                    correlation_id=notification.notification_id,
+                    account_id=payload.account_id,
+                    payload_type=type(payload).__name__,
+                    amount_gbp=getattr(payload, "amount_gbp", None),
+                    observed_at=notification.observed_at,
+                )
+            )
+            return True
+
+        self._observe_addacs(payload, notification)
+        return True
+
+    def inbound_stream(self, sender: str) -> InboundStreamState:
+        """This company's reading of one counterparty's unsolicited feed.
+
+        Recomputed from the observed set on every call rather than maintained
+        incrementally, so a late straggler filling a hole makes the gap
+        disappear without anyone having to remember to un-count it."""
+        sequences = self._notification_sequences.get(sender, set())
+        if not sequences:
+            return InboundStreamState(
+                sender=sender,
+                received=0,
+                first_sequence=None,
+                last_sequence=None,
+                missing_sequences=(),
+                out_of_order_arrivals=self._notification_out_of_order.get(sender, 0),
+                duplicates_suppressed=self._notification_duplicates.get(sender, 0),
+            )
+        low, high = min(sequences), max(sequences)
+        return InboundStreamState(
+            sender=sender,
+            received=len(sequences),
+            first_sequence=low,
+            last_sequence=high,
+            missing_sequences=tuple(sorted(set(range(low, high + 1)) - sequences)),
+            out_of_order_arrivals=self._notification_out_of_order.get(sender, 0),
+            duplicates_suppressed=self._notification_duplicates.get(sender, 0),
+        )
+
+    def inbound_senders(self) -> Tuple[str, ...]:
+        """Every counterparty this company has heard unsolicited traffic from.
+
+        Present so a caller can reach `inbound_stream` without already knowing
+        the sender id -- an instrument that has to be told which feed to ask
+        about can only ever check the feeds someone remembered to name."""
+        return tuple(sorted(self._notification_sequences))
 
     @property
     def holds_account_roster(self) -> bool:
@@ -1055,7 +1228,13 @@ class PaymentObservationConsumer:
             remittance_ref=payload.reference,
         )
 
-    def _observe_addacs(self, payload: AddacsAdvice, response: WallResponse) -> None:
+    def _observe_addacs(self, payload: AddacsAdvice, envelope: Any = None) -> None:
+        # `envelope` is the WallResponse or WallNotification this advice
+        # arrived in, and is deliberately UNUSED: the mandate belief is a pure
+        # function of the payload's own `advice_type` and `value_date`, so the
+        # same advice moves the belief identically whichever primitive carried
+        # it. Kept in the signature because the sibling `_observe_*` handlers
+        # all take it and a reader comparing them should see one shape.
         if payload.advice_type in _ADDACS_TERMINAL:
             state = MandateBeliefState.LIKELY_DEAD_BELIEVED
         else:  # PAYER_AMENDED / OTHER -- friction observed, not (believed) terminal

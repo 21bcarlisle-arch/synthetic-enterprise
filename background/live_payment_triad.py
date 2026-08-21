@@ -102,7 +102,11 @@ from simulation.payment_behaviour_source import (
     generate_payment_event,
     generate_payment_method,
 )
-from simulation.payment_seam_adapter import SeamAdapterInput, emit_wire_responses
+from simulation.payment_seam_adapter import (
+    MandateNotificationStream,
+    SeamAdapterInput,
+    emit_wire_responses,
+)
 from tools.couple_w2_11_d5 import (
     AS_OF_BUFFER_DAYS,
     PAYMENT_TERMS_DAYS,
@@ -657,6 +661,12 @@ class LivePaymentTriad:
             ledger_book=self._cf_ledger_book,
             dd_failure_window_days=dd_failure_window_days,
         )
+        # THE COUNTERPARTY'S UNSOLICITED FEED (atom EP6 -- the blind review's
+        # Q2). ONE stream for the run, because the sequence numbering is the
+        # feed's and not any period's: a stream rebuilt per period would restart
+        # at zero every time and make a lost advice indistinguishable from a
+        # new period starting, which is precisely the fact it exists to expose.
+        self._mandate_stream = MandateNotificationStream()
         self._n_ambiguous_records = 0
         self._n_ambiguous_credits = 0
         self._records: List[PeriodRecord] = []
@@ -777,6 +787,19 @@ class LivePaymentTriad:
         # nothing here is a shortcut past the envelope's refusals.
         for wire in emit_wire_responses(event, seam_input):
             self._consumer.observe_wire(wire)
+
+        # UNSOLICITED INBOUND, the second channel the rails really have (atom
+        # EP6, Q2). A cancelled/closed/deceased mandate is reported by ADDACS
+        # as well as by the ARUDD line for the collection that failed, and
+        # until this call the company only ever heard the latter. Both books
+        # are told for the reason both are billed: a shadow hearing a different
+        # set of mandate advices would be a second company, not a
+        # counterfactual. Nothing here touches cash -- an advice carries no
+        # amount and posts nothing -- so the D8 attribution variable is
+        # untouched.
+        for advice in self._mandate_stream.emit_for_event(event, seam_input):
+            self._consumer.observe_unsolicited(advice)
+            self._cf_consumer.observe_unsolicited(advice)
 
         # ---- D8 counterfactual: the SAME event, remittance-complete --------
         # `correlation_id` is what the adapter puts in `RemittanceAdvice.

@@ -57,7 +57,7 @@ import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
 
-from interface.contracts.wall_envelope import WallRequest, WallResponse
+from interface.contracts.wall_envelope import WallNotification, WallRequest, WallResponse
 
 SCHEMA_VERSION = 1
 
@@ -261,6 +261,49 @@ AddacsWallResponse = WallResponse[AddacsAdvice]
 AuddisWallResponse = WallResponse[AuddisReport]
 PaymentNotificationWallResponse = WallResponse[PaymentNotification]
 SettlementConfirmationWallResponse = WallResponse[SettlementConfirmation]
+
+# UNSOLICITED leg (Q2): the SAME payload type, carried by the primitive that
+# admits nobody asked for it. `AddacsWallResponse` above is retained only
+# because deleting a shipped specialisation is a separate change from adding
+# the right one; the adapter no longer builds it.
+AddacsWallNotification = WallNotification[AddacsAdvice]
+
+# The notification_type string the ADDACS stream stamps on the envelope. A
+# constant rather than a literal at the two call sites, because a producer and
+# a consumer that spell a routing key differently is a class this project has
+# recorded (substring/spelling attribution defects).
+ADDACS_NOTIFICATION_TYPE = "addacs_advice"
+
+
+# ---------------------------------------------------------------------------
+# UNSOLICITED INBOUND (blind review Q2) -- the subset of the observables above
+# that a real Bacs feed PUSHES at the company rather than sending in answer to
+# anything it asked.
+#
+# WHY ADDACS AND NOT THE OTHERS, since a wrong split here would be the whole
+# defect repeated with a new type. ADDACS is defined by its own contract
+# docstring above as "the payer's bank advising a mandate change the company
+# did not itself action" -- it is unsolicited BY CONSTRUCTION, and there is no
+# request it could be an answer to. The rest are answers to something the
+# company did:
+#   * BacsArruddOutcome -- reports on a collection the company submitted.
+#   * AuddisReport      -- reports on an instruction the company lodged. (Its
+#                          CANCELLED member is arguably pushed; it is left on
+#                          the response leg deliberately rather than split, as
+#                          a per-member split of one payload type is a
+#                          different and larger question than this one.)
+#   * RemittanceAdvice / PaymentNotification / SettlementConfirmation -- for a
+#                          PUSH rail (Faster Payments, standing order, cheque)
+#                          these are genuinely unsolicited too, and that is
+#                          named here as remaining work rather than done
+#                          quietly: they are today emitted only for collections
+#                          the company requested, so moving them now would
+#                          re-label traffic rather than repair it.
+#
+# DECLARED, NOT DERIVED, for `OBSERVABLE_PAYLOAD_FIELDS`' reason: a set computed
+# from "which types does the adapter send as notifications" would agree with the
+# adapter by construction and could never catch it sending the wrong one.
+UNSOLICITED_PAYLOAD_TYPES: tuple[type, ...] = (AddacsAdvice,)
 
 
 # Every observable payload type this seam is permitted to carry in a

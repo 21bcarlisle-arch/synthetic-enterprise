@@ -16,6 +16,9 @@ from datetime import date, datetime
 import pytest
 
 from interface.contracts.payment_observable_seam import (
+    ADDACS_NOTIFICATION_TYPE,
+    AddacsAdvice,
+    AddacsAdviceType,
     BacsArruddOutcome,
     BacsReasonCategory,
     DDOutcomeStatus,
@@ -36,7 +39,9 @@ from simulation.payment_behaviour_source import (
 )
 from simulation.payment_seam_adapter import (
     FOREIGN_ACCOUNT_ID,
+    PARTICIPANT_ID,
     TRANSPORT_ERROR_CODE,
+    MandateNotificationStream,
     SeamAdapterInput,
     SpecViolation,
     SpecViolationNotApplicable,
@@ -919,3 +924,129 @@ class TestSpecViolation:
                 [{"correlation_id": "X"}, {"correlation_id": "Y"}],
                 SpecViolation.OUT_OF_ORDER_REVISION,
             )
+
+
+# ---------------------------------------------------------------------------
+# THE ADDACS STREAM -- the world-side WRITER for unsolicited inbound
+# (blind review Q2, atom EP6). Before this, `AddacsAdvice` was a payload the
+# contract declared, the company had a reader for, and nothing ever sent.
+# ---------------------------------------------------------------------------
+
+
+def _failed_dd(customer_id="C1", reason=CANCELLED_OTHER, period_index=1):
+    return PaymentEvent(
+        customer_id=customer_id,
+        period_index=period_index,
+        due_date="2026-01-10",
+        amount_gbp=120.0,
+        payment_method=DIRECT_DEBIT,
+        result="failed",
+        days_late=5,
+        payment_date=None,
+        dd_failure_reason=reason,
+        data_regime="historical",
+    )
+
+
+def test_a_cancelled_instruction_emits_an_ADDACS_advice():
+    """The mandate-lifecycle fact the world had already drawn and was only
+    reporting down one of its two real channels."""
+    stream = MandateNotificationStream()
+    (notification,) = stream.emit_for_event(_failed_dd())
+    assert isinstance(notification.payload, AddacsAdvice)
+    assert notification.payload.advice_type is AddacsAdviceType.PAYER_CANCELLED
+    assert notification.notification_type == ADDACS_NOTIFICATION_TYPE
+    assert notification.sender == PARTICIPANT_ID
+
+
+def test_INSUFFICIENT_FUNDS_emits_NO_advice():
+    """NULL CONTROL, and the one that stops this being a duplicate of the
+    ARUDD line: the payer had no money, the instruction is untouched, and a
+    real ADDACS would not fire. A stream that emitted on every failure would
+    make the advice carry no information the ARUDD did not already."""
+    stream = MandateNotificationStream()
+    assert stream.emit_for_event(_failed_dd(reason=INSUFFICIENT_FUNDS)) == []
+    assert stream.next_sequence == 0, "a non-event must not burn a sequence"
+
+
+def test_a_SUCCESSFUL_collection_emits_no_advice():
+    stream = MandateNotificationStream()
+    event = dataclasses.replace(_failed_dd(), result="success", payment_date="2026-01-10")
+    assert stream.emit_for_event(event) == []
+
+
+def test_a_NON_DD_rail_emits_no_advice():
+    """ADDACS is a Direct Debit mandate service; a card decline has no mandate
+    to advise on."""
+    stream = MandateNotificationStream()
+    event = dataclasses.replace(_failed_dd(), payment_method=CARD)
+    assert stream.emit_for_event(event) == []
+
+
+def test_the_SOURCE_never_skips_a_sequence():
+    """Load-bearing for the company-side gap detector: any hole the company
+    sees was introduced by the TRANSPORT. A sender that numbered with holes
+    would make loss and normality indistinguishable, and the detector would be
+    measuring the fixture."""
+    stream = MandateNotificationStream()
+    events = [_failed_dd(customer_id=f"C{i}") for i in range(5)]
+    notifications = stream.emit_for_events(events)
+    assert [n.sequence for n in notifications] == [0, 1, 2, 3, 4]
+
+
+def test_non_emitting_events_do_not_perturb_the_numbering():
+    """The stream numbers MESSAGES SENT, not events considered -- otherwise
+    every unrelated successful collection would look to the company like a
+    lost advice."""
+    stream = MandateNotificationStream()
+    notifications = stream.emit_for_events([
+        _failed_dd(customer_id="C0"),
+        _failed_dd(customer_id="C1", reason=INSUFFICIENT_FUNDS),   # emits nothing
+        _failed_dd(customer_id="C2"),
+    ])
+    assert [n.sequence for n in notifications] == [0, 1]
+
+
+def test_the_advice_carries_NO_generator_TRUTH_field():
+    """The wall property, asserted on the new leg rather than assumed from the
+    response leg's version of it."""
+    stream = MandateNotificationStream()
+    (notification,) = stream.emit_for_event(_failed_dd())
+    emitted = {f.name for f in dataclasses.fields(notification.payload)}
+    forbidden = {"result", "dd_failure_reason", "period_index", "data_regime",
+                 "days_late", "ability", "willingness"}
+    assert emitted & forbidden == set()
+
+
+def test_the_advice_text_is_the_BANK_S_words_not_the_generators():
+    """`CANCELLED_OTHER` is the generator's label; a real ADDACS report says
+    'Instruction Cancelled By Payer'. The observable must not leak the former."""
+    stream = MandateNotificationStream()
+    (notification,) = stream.emit_for_event(_failed_dd())
+    assert CANCELLED_OTHER not in notification.payload.advice_text
+
+
+def test_two_streams_number_independently():
+    """A second counterparty's feed is its own stream, as the company's
+    per-sender bookkeeping assumes."""
+    a, b = MandateNotificationStream("BUREAU-A"), MandateNotificationStream("BUREAU-B")
+    (na,) = a.emit_for_event(_failed_dd())
+    (nb,) = b.emit_for_event(_failed_dd(customer_id="C2"))
+    assert na.sequence == nb.sequence == 0
+    assert na.sender != nb.sender
+    assert na.notification_id != nb.notification_id
+
+
+def test_the_advice_is_a_SEPARATE_message_from_the_ARUDD_line():
+    """Both channels report the same underlying truth, and the company must
+    receive two distinct messages -- that is what makes the ADDACS advice
+    losable independently, which is the condition Q2's gap detection needs."""
+    event = _failed_dd()
+    (arudd,) = _map_event_to_responses(event, SeamAdapterInput())
+    (advice,) = MandateNotificationStream().emit_for_event(event)
+    assert isinstance(arudd.payload, BacsArruddOutcome)
+    assert isinstance(advice.payload, AddacsAdvice)
+    assert not hasattr(advice, "correlation_id"), (
+        "the advice must not be correlated to the collection -- nobody asked "
+        "for it, which is the whole of the Q2 repair"
+    )

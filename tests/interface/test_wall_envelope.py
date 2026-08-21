@@ -9,6 +9,7 @@ import pytest
 
 from interface.contracts.wall_envelope import (
     ErrorDetail,
+    WallNotification,
     WallRequest,
     WallResponse,
     WallStatus,
@@ -136,3 +137,77 @@ def test_wall_response_is_frozen():
     )
     with pytest.raises(Exception):
         resp.status = WallStatus.ERROR  # type: ignore[misc]
+
+
+# ---------------------------------------------------------------------------
+# WallNotification -- UNSOLICITED INBOUND (blind review Q2, atom EP6).
+#
+# The primitive exists to make three things structurally impossible, so the
+# tests are mostly REFUSALS: a contract that can only be used correctly is the
+# whole reason this is a third type rather than a flag on WallResponse.
+# ---------------------------------------------------------------------------
+
+def _notif(**over):
+    kw = dict(
+        notification_id="ADDACS-1",
+        notification_type="addacs_advice",
+        schema_version=1,
+        sender="BACS-BUREAU-01",
+        sequence=0,
+        observed_at=dt.datetime(2026, 7, 1),
+        valid_time=None,
+        payload={"mandate": "M1"},
+    )
+    kw.update(over)
+    return WallNotification(**kw)
+
+
+def test_wall_notification_carries_no_correlation_id():
+    """THE point of the type. A correlation id would re-assert the link to a
+    request that was never sent -- the blind review's named fail shape."""
+    assert not hasattr(_notif(), "correlation_id")
+
+
+def test_wall_notification_carries_no_status():
+    """A status answers a question. Nobody asked, so there is no question for
+    this message to be honestly unable to answer."""
+    assert not hasattr(_notif(), "status")
+
+
+def test_a_payloadless_notification_is_REFUSED():
+    """The mirror of WallResponse(OK) needing a payload: an unsolicited
+    message that says nothing is not a message."""
+    with pytest.raises(ValueError, match="must carry a payload"):
+        _notif(payload=None)
+
+
+def test_a_notification_with_no_id_is_REFUSED():
+    """The id is the idempotency key for an at-least-once stream. Without it a
+    redelivery is undetectable, which is C-S2 lost at construction."""
+    with pytest.raises(ValueError, match="notification_id"):
+        _notif(notification_id="")
+
+
+def test_a_notification_with_no_sender_is_REFUSED():
+    """`sequence` is a position in ONE counterparty's stream; unsendered, two
+    feeds' numbering would be compared and invent gaps out of nothing."""
+    with pytest.raises(ValueError, match="must name its sender"):
+        _notif(sender="")
+
+
+def test_a_negative_sequence_is_REFUSED():
+    with pytest.raises(ValueError, match="non-negative"):
+        _notif(sequence=-1)
+
+
+def test_wall_notification_is_frozen():
+    n = _notif()
+    with pytest.raises(Exception):
+        n.sequence = 5  # type: ignore[misc]
+
+
+def test_sequence_zero_is_LEGAL_and_not_confused_with_absent():
+    """NULL CONTROL for the refusals above: 0 is a real first position. A
+    guard written as `if not self.sequence` would reject the first message of
+    every stream, so the success case is asserted rather than assumed."""
+    assert _notif(sequence=0).sequence == 0

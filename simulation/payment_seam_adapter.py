@@ -120,17 +120,25 @@ from enum import Enum
 from typing import List, Optional
 
 from interface.contracts.payment_observable_seam import (
+    ADDACS_NOTIFICATION_TYPE,
     FORBIDDEN_TRUTH_FIELDS,
     OBSERVABLE_PAYLOAD_FIELDS,
     OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
     SCHEMA_VERSION,
+    AddacsAdvice,
+    AddacsAdviceType,
     BacsArruddOutcome,
     BacsReasonCategory,
     DDOutcomeStatus,
     PaymentRail,
     RemittanceAdvice,
 )
-from interface.contracts.wall_envelope import ErrorDetail, WallResponse, WallStatus
+from interface.contracts.wall_envelope import (
+    ErrorDetail,
+    WallNotification,
+    WallResponse,
+    WallStatus,
+)
 from simulation.bacs_rails import ARUDD_NOTIFICATION_LAG_DAYS
 from simulation.payment_behaviour_source import (
     CANCELLED_OTHER,
@@ -524,6 +532,147 @@ def emit_wall_responses_batch(
         seam_input = seam_input_for(event) if seam_input_for is not None else None
         responses.extend(emit_wall_responses(event, seam_input))
     return responses
+
+
+# ---------------------------------------------------------------------------
+# UNSOLICITED INBOUND -- the ADDACS stream (blind review Q2, EP6).
+#
+# WHAT WAS WRONG BEFORE THIS EXISTED: `AddacsAdvice` was a payload the contract
+# declared, the company's consumer had a reader for (`_observe_addacs`, feeding
+# mandate belief), and NO MODULE ANYWHERE EVER SENT. A reader with no writer.
+# The only way to deliver one was as a `WallResponse` correlated to a
+# `CollectionRequest` that is likewise constructed nowhere -- the reviewer's
+# named fail shape exactly, "we model it as a response to a synthetic request".
+#
+# WHY THE TRIGGER IS NOT A NEW WORLD BEHAVIOUR, which matters under R13: this
+# emits nothing the generator did not already decide. A DD failing with the
+# generator's `CANCELLED_OTHER` reason IS the payer having cancelled their
+# instruction at their bank -- already drawn, already observable as the ARUDD
+# line's `INSTRUCTION_CANCELLED` category. Real Bacs reports that one truth
+# through TWO independent channels: ARUDD says the collection failed, ADDACS
+# says the mandate is gone. Building the second channel adds no parameter, no
+# difficulty value and no new draw -- it stops the world under-reporting a fact
+# it had already generated.
+#
+# THE SEQUENCE IS THE STREAM'S, NOT THE EVENT'S, which is why this is a class
+# and not a pure function. A per-event counter would restart on every caller
+# and make gaps undetectable -- the one thing the primitive exists to expose.
+# ---------------------------------------------------------------------------
+
+# The ARUDD reason categories that, in the real rails, are ALSO reported down
+# the ADDACS channel as a mandate-lifecycle advice. DECLARED, not derived from
+# the failure map: a reason category added to the seam tomorrow must be ruled
+# on here by hand, rather than silently joining or silently missing the ADDACS
+# stream depending on how some other table happened to be written.
+_ADDACS_ADVICE_FOR_REASON = {
+    BacsReasonCategory.INSTRUCTION_CANCELLED: AddacsAdviceType.PAYER_CANCELLED,
+    BacsReasonCategory.ACCOUNT_CLOSED: AddacsAdviceType.ACCOUNT_CLOSED,
+    BacsReasonCategory.PAYER_DECEASED: AddacsAdviceType.PAYER_DECEASED,
+}
+
+_ADDACS_ADVICE_TEXT = {
+    AddacsAdviceType.PAYER_CANCELLED: "Instruction Cancelled By Payer",
+    AddacsAdviceType.ACCOUNT_CLOSED: "Account Closed",
+    AddacsAdviceType.PAYER_DECEASED: "Payer Deceased",
+}
+
+# A mandate advice reaches the supplier a working-day or so behind the failed
+# collection it relates to. Fixed, not drawn: the exact lag carries nothing a
+# company system acts differently on, and drawing it would be a new random
+# stream for no observable gain.
+_ADDACS_ADVICE_LAG_DAYS = 1
+
+
+class MandateNotificationStream:
+    """The counterparty's OWN ADDACS feed -- a monotonic, gap-free-at-source
+    stream of unsolicited mandate advices.
+
+    Stateful on purpose. `sequence` is the counterparty's position counter, so
+    it belongs to the FEED and not to any one message; a caller that had to
+    supply it would be numbering the sender's stream on the sender's behalf,
+    and every caller would start again at zero.
+
+    THE SOURCE NEVER SKIPS. This emits 0, 1, 2, ... with no holes, which is
+    what makes the company-side gap detector meaningful: any hole the company
+    observes was introduced by the TRANSPORT (loss), never by the sender. A
+    stand-in that numbered with holes would make a lost message and a normal
+    one indistinguishable, and the detector would be measuring the fixture.
+    """
+
+    def __init__(self, sender: Optional[str] = None) -> None:
+        # Resolved at call time, not as a default: `PARTICIPANT_ID` is defined
+        # further down this module, and duplicating its literal here is the
+        # producer/consumer spelling-drift class. One counterparty, one id.
+        self._sender = sender if sender is not None else PARTICIPANT_ID
+        self._next_sequence = 0
+
+    @property
+    def sender(self) -> str:
+        return self._sender
+
+    @property
+    def next_sequence(self) -> int:
+        return self._next_sequence
+
+    def emit_for_event(
+        self,
+        event: PaymentEvent,
+        seam_input: Optional[SeamAdapterInput] = None,
+    ) -> List[WallNotification]:
+        """Zero or one ADDACS advice for one generator event.
+
+        Returns `[]` for everything that is not a mandate-lifecycle failure --
+        a successful collection, a dispute, a non-DD rail, and an
+        INSUFFICIENT_FUNDS failure (the payer had no money; the instruction is
+        untouched and a real ADDACS would not fire). Emitting on every failure
+        would make the advice a duplicate of the ARUDD line rather than the
+        separate fact it is.
+        """
+        seam_input = seam_input or SeamAdapterInput()
+        if event.result != "failed" or event.payment_method != DIRECT_DEBIT:
+            return []
+        reason_category = bacs_reason_category_for(event.dd_failure_reason)
+        advice_type = _ADDACS_ADVICE_FOR_REASON.get(reason_category)
+        if advice_type is None:
+            return []
+
+        account_id = seam_input.account_id or _default_account_id(event)
+        mandate_ref = seam_input.mandate_ref or _default_mandate_ref(event, account_id)
+        due = date.fromisoformat(event.due_date)
+        payload = AddacsAdvice(
+            mandate_ref=mandate_ref,
+            account_id=account_id,
+            advice_type=advice_type,
+            advice_text=_ADDACS_ADVICE_TEXT[advice_type],
+            value_date=due,
+        )
+        sequence = self._next_sequence
+        self._next_sequence += 1
+        return [
+            WallNotification(
+                # The SENDER's own message identity, not the company's
+                # correlation id: a notification answers nothing, so borrowing
+                # the correlation key would re-assert the link this primitive
+                # exists to deny.
+                notification_id=f"ADDACS-{self._sender}-{sequence}",
+                notification_type=ADDACS_NOTIFICATION_TYPE,
+                schema_version=SCHEMA_VERSION,
+                sender=self._sender,
+                sequence=sequence,
+                observed_at=_observed_at(due, lag_days=_ADDACS_ADVICE_LAG_DAYS),
+                valid_time=due,
+                payload=payload,
+            )
+        ]
+
+    def emit_for_events(self, events, seam_input_for=None) -> List[WallNotification]:
+        """Batch form, mirroring `emit_wall_responses_batch`. The stream's
+        numbering runs ACROSS the batch -- that is the point of holding it."""
+        out: List[WallNotification] = []
+        for event in events:
+            seam_input = seam_input_for(event) if seam_input_for is not None else None
+            out.extend(self.emit_for_event(event, seam_input))
+        return out
 
 
 # ---------------------------------------------------------------------------

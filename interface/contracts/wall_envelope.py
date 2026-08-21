@@ -38,6 +38,7 @@ from typing import Generic, Optional, TypeVar
 
 P = TypeVar("P")
 R = TypeVar("R")
+N = TypeVar("N")
 
 
 class WallStatus(str, Enum):
@@ -139,3 +140,89 @@ class WallResponse(Generic[R]):
             raise ValueError("WallResponse(status=ERROR) must carry an ErrorDetail")
         if self.status != WallStatus.ERROR and self.error is not None:
             raise ValueError(f"WallResponse(status={self.status}) must not carry an error")
+
+
+@dataclass(frozen=True)
+class WallNotification(Generic[N]):
+    """UNSOLICITED INBOUND -- the wall's THIRD primitive, and the answer to the
+    blind review's Q2 ("where does unsolicited inbound live -- pushed D0010s,
+    CSS notifications, DCC alerts, AQ updates?"). Its stated fail shape was
+    "we model it as a response to a synthetic request", which is exactly what
+    this build did until this type existed: an ADDACS advice -- the payer's
+    bank telling the company about a mandate the company never touched -- was
+    a `WallResponse` carrying a `correlation_id` for a `WallRequest` that no
+    module anywhere constructs.
+
+    A notification is NOT a response, and the difference is not cosmetic. Three
+    structural consequences, each of which is why this could not be a flag on
+    `WallResponse`:
+
+    1. NO `correlation_id`, because there is no request to correlate to.
+       Minting a synthetic one would recreate the reviewer's named fail and
+       would also be a live lie: `WallResponse` promises its id matches a
+       request, and a consumer is entitled to that.
+
+    2. NO `status`, and `payload` is MANDATORY. A status is an answer to a
+       question -- `NOT_KNOWABLE_YET` means "you asked, I cannot say yet".
+       Nobody asked here, so there is nothing for a payload-less notification
+       to be honest ABOUT; a message that arrives unbidden and says nothing is
+       not a message. Enforced below rather than documented, for
+       `WallResponse.__post_init__`'s reason: a contract that CAN leak by
+       construction is worse than one that cannot.
+
+    3. `sender` + `sequence` -- THE ORDERING RULE, and the reason this type
+       earns its keep. A response stream is deliberately unordered: matched by
+       id alone, C-S1 tolerates late and out-of-order arrival, and the consumer
+       reconstructs truth from the SET. An unsolicited stream cannot work that
+       way, because the company never knows what it was owed. `sequence` is the
+       counterparty's own position counter for ITS stream, which makes two
+       things detectable that were previously invisible:
+         * a GAP -- the company can tell it MISSED a notification, the one
+           question no amount of reading the messages it did receive can
+           answer;
+         * a REORDER -- distinguishable from a gap, because a real feed
+           redelivers late rather than losing.
+       `notification_id` is the counterparty's own message identity and is the
+       IDEMPOTENCY key (C-S2: at-least-once delivery, so the same advice can
+       arrive twice and the second must be a no-op). It is deliberately a
+       SEPARATE field from `sequence`: a redelivery keeps its id AND its
+       sequence, but a counterparty that renumbers on replay must still be
+       deduplicable.
+
+    `observed_at` / `valid_time` carry the same bitemporal meaning as on
+    `WallResponse` -- when the counterparty observed the fact, and what period
+    the fact is about -- so a restatement is a NEW notification with a later
+    `observed_at`, never an edit.
+    """
+
+    notification_id: str
+    notification_type: str
+    schema_version: int
+    sender: str
+    sequence: int
+    observed_at: dt.datetime
+    valid_time: Optional[dt.date]
+    payload: N
+
+    def __post_init__(self) -> None:
+        if self.payload is None:
+            raise ValueError(
+                "WallNotification must carry a payload -- an unsolicited message "
+                "has no question to be honestly silent about (use WallResponse "
+                "with a status for that)"
+            )
+        if not self.notification_id:
+            raise ValueError(
+                "WallNotification must carry a notification_id -- it is the "
+                "idempotency key for an at-least-once stream (C-S2)"
+            )
+        if not self.sender:
+            raise ValueError(
+                "WallNotification must name its sender -- `sequence` is a "
+                "position in ONE counterparty's stream and is meaningless "
+                "without it"
+            )
+        if self.sequence < 0:
+            raise ValueError(
+                f"WallNotification sequence must be non-negative, got {self.sequence}"
+            )

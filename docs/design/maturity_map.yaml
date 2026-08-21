@@ -4237,8 +4237,8 @@
   depends_on: []
   couples_with: []
   records_rehomed: [evidence]
-  file_scope: ['company/interfaces/wall_protocol.py', 'tests/company/interfaces/test_wall_protocol.py', 'tools/wall_channel_census.py', 'tests/tools/test_wall_channel_census.py', 'company/billing/payment_observation_consumer.py', 'tests/company/billing/test_payment_observation_consumer.py', 'company/market/flex_participation.py', 'simulation/payment_seam_adapter.py', 'tests/simulation/test_payment_seam_adapter.py', 'sim/flex_dispatch.py', 'tools/cold_eyes_battery.py', 'tests/tools/test_cold_eyes_battery.py', 'tools/discovery_pass_ceiling.py', 'tests/tools/test_discovery_pass_ceiling.py', 'tests/background/test_live_payment_triad.py', 'company/interfaces/crossing_silence.py', 'tests/company/interfaces/test_crossing_silence.py', 'docs/design/wall_channel_census_baseline.json', 'background/live_payment_triad.py']
-  simplifications_count: 41
+  file_scope: ['company/interfaces/wall_protocol.py', 'tests/company/interfaces/test_wall_protocol.py', 'tools/wall_channel_census.py', 'tests/tools/test_wall_channel_census.py', 'company/billing/payment_observation_consumer.py', 'tests/company/billing/test_payment_observation_consumer.py', 'company/market/flex_participation.py', 'simulation/payment_seam_adapter.py', 'tests/simulation/test_payment_seam_adapter.py', 'sim/flex_dispatch.py', 'tools/cold_eyes_battery.py', 'tests/tools/test_cold_eyes_battery.py', 'tools/discovery_pass_ceiling.py', 'tests/tools/test_discovery_pass_ceiling.py', 'tests/background/test_live_payment_triad.py', 'company/interfaces/crossing_silence.py', 'tests/company/interfaces/test_crossing_silence.py', 'docs/design/wall_channel_census_baseline.json', 'background/live_payment_triad.py', 'interface/contracts/wall_envelope.py', 'interface/contracts/payment_observable_seam.py', 'tests/interface/test_wall_envelope.py', 'tests/interface/test_payment_observable_seam.py']
+  simplifications_count: 42
 - id: EP7_adapter_elexon_insights
   title: "Elexon Insights and IRIS, for real"
   gain: "The settlement and market data the SIM already fakes arrives from the actual platform, on the actual cadence."

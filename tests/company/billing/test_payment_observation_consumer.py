@@ -40,7 +40,13 @@ from interface.contracts.payment_observable_seam import (
     RemittanceAdvice,
     SettlementConfirmation,
 )
-from interface.contracts.wall_envelope import ErrorDetail, WallResponse, WallStatus
+from interface.contracts.payment_observable_seam import ADDACS_NOTIFICATION_TYPE
+from interface.contracts.wall_envelope import (
+    ErrorDetail,
+    WallNotification,
+    WallResponse,
+    WallStatus,
+)
 
 MODULE_PATH = (
     Path(__file__).resolve().parents[3]
@@ -806,9 +812,14 @@ def test_a_resolved_crossing_is_not_UNRESOLVED_by_a_later_pending_answer():
 def test_NOT_KNOWABLE_YET_is_the_only_status_the_company_AWAITS():
     """The distinction the contract charges for. `NOT_KNOWABLE_YET` says the
     FACT is not resolvable yet -- an answer is still owed. The other two say
-    something about the EXCHANGE and license no such expectation; neither gets
-    a branch of its own, because at HEAD nothing says either and a reader for
-    an unsent message is a dead arm."""
+    something about the EXCHANGE and license no such expectation.
+
+    THIS PROPERTY stays single-branched, but the REASON changed at pass 41: it
+    is no longer "nothing can say either" (the stand-in now can, and the status
+    vocabulary reads 4 of 4 live). It is that `awaiting_resolution` answers
+    "does the counterparty owe an answer", and TIMEOUT/ERROR simply do not. The
+    reader that acts on the difference is `silence_ladder` -- see
+    `TestSilenceLadder` below."""
     consumer = PaymentObservationConsumer()
     consumer.observe(_pending_resp("c-nky", dt.datetime(2026, 1, 1, 9, 0)))
     consumer.observe(_pending_resp("c-timeout", dt.datetime(2026, 1, 1, 9, 0), WallStatus.TIMEOUT))
@@ -859,3 +870,334 @@ def test_the_register_is_ORDER_INDEPENDENT_like_every_other_belief_here():
         snap = consumer.snapshot("ACC-D", as_of=dt.date(2026, 3, 1))
         states.append((snap.unresolved_crossings, snap.balance_summary))
     assert states[0] == states[1] == states[2]
+
+
+# ---------------------------------------------------------------------------
+# THE SILENCE LADDER -- the company's clock against its own open register
+# (atom EP6_wall_protocol_typing, pass 41, the blind review's Q5)
+# ---------------------------------------------------------------------------
+
+
+class TestSilenceLadder:
+    """"How long have I been waiting, and is that too long?"
+
+    `unresolved_crossings` answered "what am I waiting for" and nothing answered
+    this, so a crossing read identically at one minute and at one year. The
+    load-bearing test is
+    `test_MUTATION_a_crossing_that_never_answers_is_NOT_the_same_at_one_minute_and_one_year`:
+    it fails against the pass-40 register, which is the point.
+    """
+
+    HEARD = dt.datetime(2026, 8, 17, 9, 0)   # a Monday
+
+    def _consumer_with_open_crossing(self, status=WallStatus.NOT_KNOWABLE_YET, error=None):
+        consumer = PaymentObservationConsumer()
+        consumer.observe(_pending_resp("INV-Q5", self.HEARD, status, error))
+        return consumer
+
+    def test_MUTATION_a_crossing_that_never_answers_is_NOT_the_same_at_one_minute_and_one_year(self):
+        """THE defect, stated as a test. Both reads see the identical register
+        row; only the ladder can tell them apart."""
+        consumer = self._consumer_with_open_crossing()
+
+        early = consumer.silence_ladder(as_of=self.HEARD + dt.timedelta(minutes=1))
+        late = consumer.silence_ladder(as_of=self.HEARD + dt.timedelta(days=365))
+
+        assert [c.correlation_id for c in early] == ["INV-Q5"]
+        assert [c.correlation_id for c in late] == ["INV-Q5"]
+        assert early[0].horizon != late[0].horizon
+        assert early[0].concluded_status is None
+        assert late[0].concluded_status == WallStatus.TIMEOUT
+
+        # the null control: the underlying register really is unchanged, so the
+        # ladder is supplying the distinction and not reading a moved value.
+        assert consumer.unresolved_crossings() == consumer.unresolved_crossings()
+
+    def test_the_ladder_NEVER_evicts_the_crossing_it_aged(self):
+        """Ageing out is not being answered. A company that dropped the crossing
+        at five working days would be assuming a resolution the seam never sent
+        -- the same fail-open in a slower costume."""
+        consumer = self._consumer_with_open_crossing()
+        way_past = self.HEARD + dt.timedelta(days=400)
+
+        consumer.silence_ladder(as_of=way_past)
+        consumer.silence_ladder(as_of=way_past)
+
+        still_open = consumer.unresolved_crossings()
+        assert [c.correlation_id for c in still_open] == ["INV-Q5"]
+        assert still_open[0].status == WallStatus.NOT_KNOWABLE_YET, (
+            "the counterparty's own word must survive the company's conclusion"
+        )
+
+    def test_the_conclusion_is_never_written_back_into_the_register(self):
+        """A real counterparty that has gone quiet cannot send you a TIMEOUT. If
+        the company wrote one into the register it would be inventing a message
+        it never received."""
+        consumer = self._consumer_with_open_crossing()
+        (aged,) = consumer.silence_ladder(as_of=self.HEARD + dt.timedelta(days=30))
+
+        assert aged.concluded_status == WallStatus.TIMEOUT
+        assert aged.heard_status == WallStatus.NOT_KNOWABLE_YET
+        assert consumer.unresolved_crossings()[0].status == WallStatus.NOT_KNOWABLE_YET
+
+    def test_the_ladder_is_BLINDFOLDED_by_as_of(self):
+        """A crossing heard after the decision clock is not visible here either."""
+        consumer = self._consumer_with_open_crossing()
+        before = self.HEARD - dt.timedelta(days=1)
+        assert consumer.silence_ladder(as_of=before) == []
+
+    def test_a_crossing_heard_later_the_same_day_is_still_excluded(self):
+        """`unresolved_crossings` filters by DATE; the ladder's clock is a
+        datetime, so an afternoon arrival must not be visible to a morning
+        decision clock. Without the datetime-level filter this returns a
+        conclusion whose silence is negative."""
+        consumer = PaymentObservationConsumer()
+        consumer.observe(_pending_resp("INV-PM", dt.datetime(2026, 8, 17, 16, 0)))
+        assert consumer.silence_ladder(as_of=dt.datetime(2026, 8, 17, 9, 0)) == []
+        assert len(consumer.silence_ladder(as_of=dt.datetime(2026, 8, 17, 17, 0))) == 1
+
+    @pytest.mark.parametrize(
+        "status,error",
+        [
+            (WallStatus.NOT_KNOWABLE_YET, None),
+            (WallStatus.TIMEOUT, None),
+            (WallStatus.ERROR, ErrorDetail("E1", "boom")),
+        ],
+    )
+    def test_every_status_the_register_can_hold_is_aged_without_crashing(self, status, error):
+        """The ladder must have an arm for each -- a status it cannot read would
+        raise on the live path rather than in a test."""
+        consumer = self._consumer_with_open_crossing(status, error)
+        (aged,) = consumer.silence_ladder(as_of=self.HEARD + dt.timedelta(days=30))
+        assert aged.heard_status == status
+        assert aged.next_move
+
+    def test_only_an_OWED_answer_is_concluded_as_a_timeout(self):
+        """Re-concluding a TIMEOUT as a TIMEOUT would be the company agreeing
+        with itself and counting it as evidence."""
+        owed = self._consumer_with_open_crossing(WallStatus.NOT_KNOWABLE_YET)
+        failed = self._consumer_with_open_crossing(WallStatus.TIMEOUT)
+        as_of = self.HEARD + dt.timedelta(days=30)
+
+        assert owed.silence_ladder(as_of=as_of)[0].concluded_status == WallStatus.TIMEOUT
+        assert failed.silence_ladder(as_of=as_of)[0].concluded_status is None
+
+    def test_a_resolved_crossing_leaves_the_ladder_entirely(self):
+        """The only way out of the register is an answer -- and then there is
+        nothing left to age."""
+        consumer = self._consumer_with_open_crossing()
+        assert len(consumer.silence_ladder(as_of=self.HEARD + dt.timedelta(days=30))) == 1
+
+        consumer.observe(_remit_resp(
+            "ACC-Q5", 10.0, "INV-Q5", dt.date(2026, 8, 18), "INV-Q5",
+            observed_at=self.HEARD + dt.timedelta(days=1),
+        ))
+        assert consumer.silence_ladder(as_of=self.HEARD + dt.timedelta(days=30)) == []
+
+    def test_the_ladder_is_a_pure_read_and_licenses_no_action(self):
+        """SENSING ONLY (ruling 2026-07-25 s2): obligations are sentences, not
+        calls. Nothing dunns, flags, prices, provisions or re-requests."""
+        consumer = self._consumer_with_open_crossing()
+        as_of = self.HEARD + dt.timedelta(days=30)
+        first = consumer.silence_ladder(as_of=as_of)
+        second = consumer.silence_ladder(as_of=as_of)
+        assert first == second
+        for aged in first:
+            assert isinstance(aged.obligation, str) and aged.obligation.strip()
+
+
+# ---------------------------------------------------------------------------
+# UNSOLICITED INBOUND -- the blind review's Q2 (atom EP6).
+#
+# Q2 asked for "a first-class inbound primitive with its own idempotency and
+# ordering rules", and named the fail: "we model it as a response to a
+# synthetic request". These tests are the two rules, plus the MUTATION that
+# shows the shipped shape losing the fact they exist to keep.
+# ---------------------------------------------------------------------------
+
+_SENDER = "BACS-BUREAU-01"
+
+
+def _advice(mandate="MANDATE-ACC-1", account="ACC-1",
+            advice_type=AddacsAdviceType.PAYER_CANCELLED, value_date=None):
+    return AddacsAdvice(
+        mandate_ref=mandate,
+        account_id=account,
+        advice_type=advice_type,
+        advice_text="Instruction Cancelled By Payer",
+        value_date=value_date or dt.date(2026, 1, 10),
+    )
+
+
+def _notify(sequence, payload=None, sender=_SENDER, notification_id=None,
+            observed_at=None):
+    return WallNotification(
+        notification_id=notification_id or f"ADDACS-{sender}-{sequence}",
+        notification_type=ADDACS_NOTIFICATION_TYPE,
+        schema_version=1,
+        sender=sender,
+        sequence=sequence,
+        observed_at=observed_at or dt.datetime(2026, 1, 11, 6, 0),
+        valid_time=dt.date(2026, 1, 10),
+        payload=payload if payload is not None else _advice(),
+    )
+
+
+def test_an_unsolicited_advice_moves_the_mandate_belief():
+    """The reader existed before this primitive did; what it lacked was any
+    way to be reached that did not invent a request."""
+    c = PaymentObservationConsumer()
+    assert c.observe_unsolicited(_notify(0)) is True
+    assert c.mandate_belief("MANDATE-ACC-1").state is MandateBeliefState.LIKELY_DEAD_BELIEVED
+
+
+def test_a_redelivered_notification_is_a_NO_OP():
+    """C-S2, at-least-once delivery. Identity is the SENDER's message id --
+    the company has no correlation key for a thing it never asked for."""
+    c = PaymentObservationConsumer()
+    n = _notify(0)
+    assert c.observe_unsolicited(n) is True
+    assert c.observe_unsolicited(n) is False
+    stream = c.inbound_stream(_SENDER)
+    assert stream.received == 1, "a redelivery must not inflate the stream"
+    assert stream.duplicates_suppressed == 1
+
+
+def test_the_company_can_tell_it_MISSED_a_notification():
+    """THE question the primitive was built to make askable. Nothing in the
+    messages that DID arrive can answer it -- only the sender's numbering."""
+    c = PaymentObservationConsumer()
+    for seq in (0, 3):                       # the transport lost 1 and 2
+        c.observe_unsolicited(_notify(seq, _advice(mandate=f"M{seq}", account="ACC-1")))
+    stream = c.inbound_stream(_SENDER)
+    assert stream.missing_sequences == (1, 2)
+    assert stream.has_gap is True
+
+
+def test_NULL_CONTROL_a_complete_stream_reports_NO_gap():
+    """Without this the gap test only proves the detector is always red."""
+    c = PaymentObservationConsumer()
+    for seq in range(4):
+        c.observe_unsolicited(_notify(seq, _advice(mandate=f"M{seq}", account="ACC-1")))
+    stream = c.inbound_stream(_SENDER)
+    assert stream.missing_sequences == ()
+    assert stream.has_gap is False
+
+
+def test_MUTATION_the_shipped_shape_CANNOT_SEE_the_loss():
+    """R15: the control fires on its own named defect.
+
+    Reproduces inline what this seam did before the primitive existed -- an
+    ADDACS advice delivered as a `WallResponse` on a synthetic correlation id,
+    the blind reviewer's named fail. The SAME loss (advices 1 and 2 never
+    arrive) is then invisible: every response the company holds is well-formed
+    and consistent, the mandates it never heard about stay believed-ALIVE, and
+    no reading of the consumer discloses that anything is missing.
+    """
+    lost_mandates = ["M1", "M2"]
+
+    old = PaymentObservationConsumer()
+    for seq in (0, 3):
+        old.observe(_resp(_advice(mandate=f"M{seq}", account="ACC-1"),
+                          correlation_id=f"SYNTHETIC-{seq}"))
+    # The old shape has no stream to ask, and the advices it never received
+    # leave no trace of any kind.
+    assert not hasattr(old, "_notification_sequences") or not old.inbound_senders()
+    for m in lost_mandates:
+        assert old.mandate_belief(m).state is MandateBeliefState.UNKNOWN, (
+            "the lost advice leaves the mandate looking merely unheard-of"
+        )
+
+    new = PaymentObservationConsumer()
+    for seq in (0, 3):
+        new.observe_unsolicited(_notify(seq, _advice(mandate=f"M{seq}", account="ACC-1")))
+    for m in lost_mandates:
+        assert new.mandate_belief(m).state is MandateBeliefState.UNKNOWN, (
+            "the new shape does not conjure the content of what it lost..."
+        )
+    assert new.inbound_stream(_SENDER).missing_sequences == (1, 2), (
+        "...but it KNOWS two advices are owed to it, which is the whole repair"
+    )
+
+
+def test_a_late_straggler_CLOSES_the_gap_and_is_not_a_loss():
+    """A gap that fills was never a loss. `missing_sequences` recomputes from
+    the observed set, so nothing has to remember to un-count it."""
+    c = PaymentObservationConsumer()
+    c.observe_unsolicited(_notify(0))
+    c.observe_unsolicited(_notify(2, _advice(mandate="M2")))
+    assert c.inbound_stream(_SENDER).missing_sequences == (1,)
+    c.observe_unsolicited(_notify(1, _advice(mandate="M1")))
+    stream = c.inbound_stream(_SENDER)
+    assert stream.missing_sequences == ()
+    assert stream.out_of_order_arrivals == 1, (
+        "late delivery is the NORMAL case and is counted apart from loss"
+    )
+
+
+def test_belief_is_ORDER_INDEPENDENT_though_the_stream_is_ordered():
+    """The sequence says what is MISSING, never what is TRUE. Two arrival
+    orders of the same advices must reach the same belief (C-S1)."""
+    early = _advice(mandate="M", advice_type=AddacsAdviceType.PAYER_AMENDED,
+                    value_date=dt.date(2026, 1, 5))
+    late = _advice(mandate="M", advice_type=AddacsAdviceType.PAYER_CANCELLED,
+                   value_date=dt.date(2026, 1, 20))
+    forwards = PaymentObservationConsumer()
+    forwards.observe_unsolicited(_notify(0, early))
+    forwards.observe_unsolicited(_notify(1, late))
+    backwards = PaymentObservationConsumer()
+    backwards.observe_unsolicited(_notify(1, late))
+    backwards.observe_unsolicited(_notify(0, early))
+    assert forwards.mandate_belief("M").state is backwards.mandate_belief("M").state
+    assert forwards.mandate_belief("M").state is MandateBeliefState.LIKELY_DEAD_BELIEVED
+
+
+def test_two_senders_do_not_share_a_numbering():
+    """Comparing two counterparties' positions would manufacture gaps."""
+    c = PaymentObservationConsumer()
+    c.observe_unsolicited(_notify(0, sender="BACS-BUREAU-01"))
+    c.observe_unsolicited(_notify(9, _advice(mandate="M9"), sender="OTHER-BUREAU"))
+    assert c.inbound_stream("BACS-BUREAU-01").missing_sequences == ()
+    assert c.inbound_stream("OTHER-BUREAU").missing_sequences == ()
+    assert c.inbound_senders() == ("BACS-BUREAU-01", "OTHER-BUREAU")
+
+
+def test_the_same_id_from_two_senders_is_TWO_messages():
+    """Ids are scoped per sender: two feeds may legitimately reuse one."""
+    c = PaymentObservationConsumer()
+    assert c.observe_unsolicited(_notify(0, notification_id="MSG-1", sender="A")) is True
+    assert c.observe_unsolicited(
+        _notify(0, _advice(mandate="M-B"), notification_id="MSG-1", sender="B")
+    ) is True
+
+
+def test_a_payload_this_seam_does_not_declare_unsolicited_is_REFUSED():
+    """Otherwise any payload could skip the response leg's checks by arriving
+    in the other envelope."""
+    c = PaymentObservationConsumer()
+    smuggled = RemittanceAdvice(
+        bank_reference="R1", account_id="ACC-1", amount_gbp=50.0,
+        rail=PaymentRail.FASTER_PAYMENTS, value_date=dt.date(2026, 1, 10),
+    )
+    with pytest.raises(ValueError, match="does not declare it so"):
+        c.observe_unsolicited(_notify(0, smuggled))
+
+
+def test_an_advice_for_an_account_we_do_not_supply_goes_to_SUSPENSE():
+    """Q6's roster answer applies to this leg too -- and must NOT open a gap,
+    because the message did arrive and is accounted for in the numbering."""
+    c = PaymentObservationConsumer(supplied_accounts=["ACC-1"])
+    c.observe_unsolicited(_notify(0, _advice(mandate="M-X", account="ACC-STRANGER")))
+    assert c.mandate_belief("M-X").state is MandateBeliefState.UNKNOWN
+    assert [m.payload_type for m in c.misdirected_observations()] == ["AddacsAdvice"]
+    assert c.inbound_stream(_SENDER).missing_sequences == ()
+
+
+def test_an_unheard_stream_reports_nothing_rather_than_a_false_clean_bill():
+    """FAIL-CLOSED read-out: a sender never heard from has no first/last
+    sequence, so an empty gap list cannot be read as 'all present'."""
+    c = PaymentObservationConsumer()
+    stream = c.inbound_stream("NEVER-HEARD-FROM")
+    assert stream.received == 0
+    assert stream.first_sequence is None and stream.last_sequence is None
+    assert stream.has_gap is False
