@@ -3,6 +3,7 @@
 """
 from __future__ import annotations
 
+import dataclasses
 import datetime as dt
 
 import pytest
@@ -281,3 +282,42 @@ def test_wall_interim_is_frozen():
     i = _interim()
     with pytest.raises(Exception):
         i.leg = 5  # type: ignore[misc]
+
+
+# ── THE BRANCH LABEL (blind review Q3, the alternative-continuation half) ─────
+
+
+def test_an_interim_is_on_the_TRUNK_by_default_because_most_exchanges_never_diverge():
+    """`None` is not an omission here, it is the only truthful value for a leg
+    every path shares -- and for the whole of a linear exchange, which is what
+    every crossing in this build was until the switch case."""
+    assert _interim().branch is None
+
+
+def test_an_interim_can_NAME_the_continuation_it_belongs_to():
+    """The half `leg` cannot carry. An ordinal says where along a path a message
+    sits and nothing about WHICH path, so two alternative continuations both
+    arrive at leg 3 and are indistinguishable without this."""
+    assert _interim(leg=3, branch="objected").branch == "objected"
+
+
+@pytest.mark.parametrize("empty", ["", " ", "\t", "\n  "])
+def test_an_EMPTY_branch_label_is_REFUSED_rather_than_read_as_the_trunk(empty):
+    """FAIL-OPEN SWEEP. An empty-but-present label is neither the trunk nor a
+    path: a register keyed on it would file every leg carrying one together
+    under a branch that does not exist, and -- worse -- would not conflict with
+    anything, so two contradictory continuations both labelled `""` would read
+    as one. Whitespace is included because `" "` is the spelling a hand-written
+    or trimmed feed produces."""
+    with pytest.raises(ValueError, match="must name a continuation or be absent"):
+        _interim(branch=empty)
+
+
+def test_a_TERMINAL_shape_carries_no_branch_at_all_and_that_is_the_design():
+    """Paths diverge before they end. If the first thing distinguishing two
+    outcomes were the ending itself, that is not a branch -- it is two possible
+    answers, and `status` plus the payload type already say it. Asserted
+    structurally so a later pass adding `branch` to `WallResponse` has to argue
+    with this rather than walk past it."""
+    assert "branch" not in {f.name for f in dataclasses.fields(WallResponse)}
+    assert "branch" in {f.name for f in dataclasses.fields(WallInterim)}

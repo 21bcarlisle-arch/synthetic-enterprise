@@ -1379,6 +1379,7 @@ def test_MUTATION_a_stand_in_relabelled_REAL_is_CAUGHT_by_the_cross_check():
 
 from company.interfaces.wall_protocol import (  # noqa: E402
     INTERIM_WIRE_FIELDS,
+    INTERIM_WIRE_FIELDS_V3,
     NOTIFICATION_WIRE_FIELDS,
     WIRE_VOCABULARY_BY_VERSION,
     decode_framed_interim,
@@ -1431,7 +1432,7 @@ def _wire_notification(**overrides) -> dict:
 @pytest.mark.parametrize(
     "declared, contract",
     [
-        (INTERIM_WIRE_FIELDS, WallInterim),
+        (INTERIM_WIRE_FIELDS_V3, WallInterim),
         (NOTIFICATION_WIRE_FIELDS, WallNotification),
     ],
 )
@@ -1439,8 +1440,33 @@ def test_each_new_wire_field_set_matches_its_contract_dataclass(declared, contra
     """R15 INDEPENDENCE: the key set is stated in the protocol module and
     checked here against `dataclasses.fields` of the envelope -- a different
     source. A field added to the contract and forgotten on the wire reds this
-    instead of silently never crossing."""
+    instead of silently never crossing.
+
+    THE SUBJECT IS THE LATEST DIALECT (EP6 pass 60), which is the repair this
+    test needed the moment a release changed a field set rather than adding a
+    message kind. `INTERIM_WIRE_FIELDS` is v2's set and is now deliberately
+    NARROWER than the contract -- v2 cannot say `branch` -- so asserting it
+    against the dataclass would demand that a shipped release grow a field
+    retrospectively, which is the big-bang cutover this whole table exists to
+    avoid. The claim that still has to hold is that SOME dialect can carry every
+    field the contract defines, or a field would exist that nothing could ever
+    send; the older dialects are checked for containment below instead."""
     assert declared == {f.name for f in dataclasses.fields(contract)}
+
+
+def test_an_OLDER_dialect_is_a_SUBSET_of_the_contract_and_never_a_stranger_to_it():
+    """The other half of the check above, and the one that keeps a superseded
+    key set honest. A release may carry FEWER fields than the current contract
+    (that is what being older means) but never a field the contract has never
+    had -- a key like that could be encoded by nobody and decoded into nothing,
+    and would sit in the table looking like a supported dialect.
+
+    NULL CONTROL, so this cannot pass by the sets being equal: v2's interim is
+    asserted to be strictly smaller, which is the fact that makes the
+    containment test say anything at all."""
+    contract_fields = {f.name for f in dataclasses.fields(WallInterim)}
+    assert INTERIM_WIRE_FIELDS < contract_fields
+    assert INTERIM_WIRE_FIELDS_V3 - INTERIM_WIRE_FIELDS == {"branch"}
 
 
 def test_the_supported_versions_are_DERIVED_from_the_vocabulary_never_restated():
@@ -1452,17 +1478,41 @@ def test_the_supported_versions_are_DERIVED_from_the_vocabulary_never_restated()
     assert all(v for v in WIRE_VOCABULARY_BY_VERSION.values())
 
 
-def test_the_two_releases_actually_DIFFER_or_this_whole_table_is_theatre():
+def test_the_releases_actually_DIFFER_IN_TWO_WAYS_or_this_whole_table_is_theatre():
     """The honest self-check. Keying field sets by version buys nothing if every
-    version maps to the same thing, so state the difference as an assertion: v2
-    speaks two message kinds v1 cannot, and the shared kinds are byte-identical
-    between them (no release here has changed a field on an existing message,
-    and inventing one to make the table look busier would be fabrication)."""
-    v1, v2 = WIRE_VOCABULARY_BY_VERSION[1], WIRE_VOCABULARY_BY_VERSION[2]
+    version maps to the same thing, so the differences are stated as assertions.
+
+    THERE ARE NOW TWO KINDS OF RELEASE IN THIS TABLE, which is what pass 60
+    changed and is the stronger version of this test rather than a relaxation of
+    it. Until then every difference was a new MESSAGE KIND (v1 -> v2 added the
+    interim and the notification), and this test's own docstring said so and
+    said why it was not more: "no release here has changed a field on an
+    existing message, and inventing one to make the table look busier would be
+    fabrication." A real one arrived. v2 -> v3 changes a FIELD SET on a message
+    both releases speak -- the interim gains `branch` -- which is the case the
+    module's design comment has described since pass 47 and never exercised.
+
+    The invariant that survives both is the one worth pinning: request and
+    response have never changed across ANY release here, so a participant that
+    only ever transacts those two is unaffected by every cutover this build has
+    had. That is asserted rather than narrated, because it is the property that
+    makes "no big-bang" true in practice."""
+    v1, v2, v3 = (WIRE_VOCABULARY_BY_VERSION[n] for n in (1, 2, 3))
+
+    # a release that adds MESSAGE KINDS
     assert set(v2) - set(v1) == {"interim", "notification"}
     assert set(v1) - set(v2) == set()
     for shared in set(v1) & set(v2):
         assert v1[shared] == v2[shared]
+
+    # a release that changes a FIELD SET on a kind both already spoke
+    assert set(v3) == set(v2)
+    assert v3["interim"] != v2["interim"]
+    assert v3["interim"] - v2["interim"] == {"branch"}
+
+    # and the one thing no release has ever touched
+    for untouched in ("request", "response"):
+        assert v1[untouched] == v2[untouched] == v3[untouched]
 
 
 # ---------------------------------------------------------------------------
@@ -1729,3 +1779,129 @@ def test_NULL_CONTROL_the_matching_sender_is_accepted_by_the_same_check():
         registry=_RELEASE_WEEKEND_REGISTRY,
     )
     assert (sender, notification.sequence) == ("CUT-OVER", 7)
+
+
+# ---------------------------------------------------------------------------
+# THE BRANCHING RELEASE (EP6 pass 60): v3's interim carries `branch`, and v2's
+# does not. This is the first release in this build to change a field set on a
+# message an earlier release already spoke, so it is also the first exercise of
+# the table's own stated rule -- a new row, both dialects still read.
+# ---------------------------------------------------------------------------
+
+
+def _wire_interim_v3(**overrides) -> dict:
+    """A hand-authored v3 interim -- again NOT `encode_interim` output, so the
+    decoder is never checked against its own arithmetic (R15 TAUTOLOGY)."""
+    message = _wire_interim(schema_version=3, branch="objected")
+    message.update(overrides)
+    return message
+
+
+def test_a_v3_interim_carries_the_branch_ACROSS_the_wire():
+    """The point of the release. A counterparty that has cut over can say which
+    continuation an exchange took, and the label survives the crossing."""
+    interim = decode_interim(_wire_interim_v3(), decode_payload=_dictish)
+    assert (interim.branch, interim.leg, interim.schema_version) == ("objected", 2, 3)
+
+
+def test_a_v2_interim_decodes_to_the_TRUNK_because_its_release_cannot_diverge():
+    """The old dialect is still read, and reading it yields the only truthful
+    answer: a participant on v2 has no way to say a path diverged, so every leg
+    it sends is one every path shares."""
+    interim = decode_interim(_wire_interim(), decode_payload=_dictish)
+    assert interim.branch is None
+    assert interim.schema_version == 2
+
+
+def test_a_v2_interim_carrying_a_BRANCH_KEY_is_an_UNKNOWN_FIELD_not_a_bonus():
+    """The containment direction. A v2 message with a v3 key is not a helpful
+    early adopter -- it is a message whose sender and this build disagree about
+    what release they are on, and accepting it would make the version stamp
+    decorative."""
+    with pytest.raises(WallProtocolError) as caught:
+        decode_interim(_wire_interim(branch="objected"), decode_payload=_dictish)
+    assert caught.value.reason == "UNKNOWN_FIELD"
+
+
+def test_a_v3_interim_OMITTING_branch_is_MISSING_FIELD_and_never_a_trunk_leg():
+    """THE FAIL-OPEN THIS RELEASE COULD HAVE SHIPPED WITH. An absent field and a
+    field agreeing with the default are the same bytes, so a `branch` that could
+    be omitted would not be a branch: a counterparty whose encoder dropped the
+    key would report every divergence as the trunk, and the company would read a
+    contradiction as agreement. On v3 the key is present and NULL on the trunk."""
+    wire = _wire_interim_v3()
+    del wire["branch"]
+    with pytest.raises(WallProtocolError) as caught:
+        decode_interim(wire, decode_payload=_dictish)
+    assert caught.value.reason == "MISSING_FIELD"
+
+
+def test_a_v3_interim_with_an_EXPLICIT_NULL_branch_is_a_trunk_leg_and_accepted():
+    """NULL CONTROL for the refusal above -- and the shape that makes `branch`
+    expressible at all on the new release. Present-and-null is the trunk; only
+    ABSENT is refused, so the test above is measuring omission rather than
+    rejecting every v3 interim that is not on a branch."""
+    interim = decode_interim(_wire_interim_v3(branch=None), decode_payload=_dictish)
+    assert interim.branch is None
+    assert interim.schema_version == 3
+
+
+def test_ENCODING_a_branch_onto_a_release_that_cannot_carry_it_is_REFUSED():
+    """Not dropped, which is the decision that cost something. Encoding the
+    label away would put a well-formed v2 interim on the wire saying the
+    exchange was progressing along the trunk when the sender said it had
+    diverged -- and the receiver could not tell, because nothing in a valid v2
+    message records that a field was removed in transit."""
+    with pytest.raises(WallProtocolError) as caught:
+        encode_interim(
+            WallInterim(
+                correlation_id="INV-9001",
+                leg=3,
+                interim_type="css.objection_raised",
+                schema_version=2,
+                observed_at=_INTERIM_OBSERVED,
+                payload={"reason": "debt"},
+                branch="objected",
+            ),
+            encode_payload=_dictish,
+        )
+    assert caught.value.reason == "FIELD_NOT_IN_VERSION"
+
+
+def test_NULL_CONTROL_the_SAME_leg_without_a_branch_encodes_onto_v2_cleanly():
+    """Moves the sample, not the law: identical in every respect but the label,
+    and it crosses. The refusal above is about the branch and not about leg 3,
+    the interim type, or v2 having stopped working."""
+    wire = encode_interim(
+        WallInterim(
+            correlation_id="INV-9001",
+            leg=3,
+            interim_type="css.objection_raised",
+            schema_version=2,
+            observed_at=_INTERIM_OBSERVED,
+            payload={"reason": "debt"},
+        ),
+        encode_payload=_dictish,
+    )
+    assert set(wire) == INTERIM_WIRE_FIELDS
+    assert decode_interim(wire, decode_payload=_dictish).branch is None
+
+
+def test_a_v3_interim_ROUND_TRIPS_through_real_json_with_its_branch_intact():
+    """The encoder and decoder are held to one table, through bytes rather than
+    through objects -- the same bar `test_a_v2_message_survives_real_json` sets
+    for the older dialect."""
+    original = WallInterim(
+        correlation_id="SWITCH-4471",
+        leg=3,
+        interim_type="css.objection_raised",
+        schema_version=3,
+        observed_at=_INTERIM_OBSERVED,
+        payload={"reason": "debt"},
+        branch="objected",
+    )
+    restored = decode_interim(
+        json.loads(json.dumps(encode_interim(original, encode_payload=_dictish))),
+        decode_payload=_dictish,
+    )
+    assert restored == original

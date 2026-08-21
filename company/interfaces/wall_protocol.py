@@ -134,6 +134,7 @@ __all__ = [
     "REQUEST_WIRE_FIELDS",
     "RESPONSE_WIRE_FIELDS",
     "INTERIM_WIRE_FIELDS",
+    "INTERIM_WIRE_FIELDS_V3",
     "NOTIFICATION_WIRE_FIELDS",
     "FRAME_WIRE_FIELDS",
     "CounterpartyNature",
@@ -191,6 +192,25 @@ RESPONSE_WIRE_FIELDS: frozenset[str] = frozenset(
 INTERIM_WIRE_FIELDS: frozenset[str] = frozenset(
     {"correlation_id", "leg", "interim_type", "schema_version", "observed_at", "payload"}
 )
+
+#: The same leg on the v3 wire, which adds ONE key: `branch`, the alternative
+#: continuation this leg belongs to (EP6 pass 60, `WallInterim.branch`). This is
+#: the first release in this build's history to change a field set on an
+#: EXISTING message rather than add a new message kind, which is why it is a new
+#: constant and a new row in the table below rather than an edit to the one
+#: above. The comment on that table has said since pass 47 that this is what
+#: such a release must look like -- "it lands as a new row in this table rather
+#: than as an edit to the constants above, and both sets go on being read at
+#: once" -- and editing the v2 set would have refused every interim already in
+#: flight from a counterparty that has not cut over, which is the big-bang
+#: cutover Q10 names as the fail.
+#:
+#: THE KEY IS PRESENT AND NULL ON THE TRUNK, never absent. An absent field and a
+#: field agreeing with the default are the same bytes, and this build already
+#: has a recorded test for that shape elsewhere on this seam
+#: (`test_a_reply_missing_its_version_is_refused_not_defaulted`); a v3 interim
+#: that omits `branch` is MISSING_FIELD rather than a trunk leg.
+INTERIM_WIRE_FIELDS_V3: frozenset[str] = INTERIM_WIRE_FIELDS | {"branch"}
 
 #: The exact key set of an unsolicited NOTIFICATION on the wire
 #: (`WallNotification`, pass 43). It carries `sender` as a DOCUMENT field as
@@ -256,8 +276,21 @@ _V2_VOCABULARY: Mapping[str, frozenset[str]] = MappingProxyType(
 #: `SUPPORTED_SCHEMA_VERSIONS` is DERIVED from it below rather than stated
 #: alongside it: a version this build can read is exactly a version whose dialect
 #: it knows, and two independent statements of that could drift apart silently.
+#: v3 -- the branching release (EP6 pass 60). Same four message kinds as v2; the
+#: interim gains `branch`. A v2 counterparty can still say an exchange is in
+#: progress and cannot say WHICH continuation it took, which is exactly what a
+#: participant on the previous release should be able and unable to do.
+_V3_VOCABULARY: Mapping[str, frozenset[str]] = MappingProxyType(
+    {
+        "request": REQUEST_WIRE_FIELDS,
+        "response": RESPONSE_WIRE_FIELDS,
+        "interim": INTERIM_WIRE_FIELDS_V3,
+        "notification": NOTIFICATION_WIRE_FIELDS,
+    }
+)
+
 WIRE_VOCABULARY_BY_VERSION: Mapping[int, Mapping[str, frozenset[str]]] = MappingProxyType(
-    {1: _V1_VOCABULARY, 2: _V2_VOCABULARY}
+    {1: _V1_VOCABULARY, 2: _V2_VOCABULARY, 3: _V3_VOCABULARY}
 )
 
 #: Envelope schema versions this company build can read. A `schema_version`
@@ -847,13 +880,22 @@ def encode_interim(
     Refused if stamped with a version whose vocabulary has no interim, so an
     encoder cannot manufacture bytes that this build's own decoder would
     correctly reject -- the two directions are held to one table.
+
+    A BRANCH LABEL STAMPED ON A RELEASE THAT CANNOT CARRY IT IS REFUSED, not
+    dropped (FIELD_NOT_IN_VERSION). Encoding it away would put a message on the
+    wire that says an exchange is progressing along the trunk when the sender
+    said it had diverged -- and the receiver, reading a well-formed v2 interim,
+    would have no way to know a field had been removed in transit. A release
+    older than the fact being reported is a refusal to send, never a quiet
+    downgrade of what is being said.
     """
     if not isinstance(interim, WallInterim):
         raise WallProtocolError(
             "NOT_A_MESSAGE", f"expected a WallInterim, got {type(interim).__name__}"
         )
     _require_version_speaks(interim.schema_version, "interim")
-    return {
+    dialect = WIRE_VOCABULARY_BY_VERSION[interim.schema_version]["interim"]
+    wire: dict[str, Any] = {
         "correlation_id": interim.correlation_id,
         "leg": interim.leg,
         "interim_type": interim.interim_type,
@@ -861,6 +903,17 @@ def encode_interim(
         "observed_at": _encode_datetime(interim.observed_at, "observed_at"),
         "payload": encode_payload(interim.payload),
     }
+    if "branch" in dialect:
+        wire["branch"] = interim.branch
+    elif interim.branch is not None:
+        raise WallProtocolError(
+            "FIELD_NOT_IN_VERSION",
+            f"interim on branch {interim.branch!r} is stamped schema_version "
+            f"{interim.schema_version}, whose interim carries no 'branch' key -- "
+            "that release cannot say which continuation an exchange took, and "
+            "encoding the label away would send a trunk leg in its place",
+        )
+    return wire
 
 
 def decode_interim(
@@ -873,9 +926,19 @@ def decode_interim(
     refusal is the release weekend made testable -- a counterparty that has not
     cut over cannot tell this build an exchange is still in progress, because on
     its release there is no way to say it.
+
+    `branch` is read with `.get` and that is not a default in disguise: which
+    keys may be present is settled BEFORE this line by `_require_exact_fields`
+    against the sender's own dialect, so on v2 the key cannot be there (it is
+    UNKNOWN_FIELD) and on v3 it cannot be absent (MISSING_FIELD). `None` here
+    therefore means one of two true things -- a release that cannot express a
+    branch, or a trunk leg on one that can -- and never "the sender forgot".
     """
     message, version = _require_vocabulary(wire, "interim", "interim")
     try:
+        branch = message.get("branch")
+        if branch is not None:
+            branch = _decode_str(branch, "branch")
         return WallInterim(
             correlation_id=_decode_correlation_id(message["correlation_id"]),
             leg=_decode_int(message["leg"], "leg"),
@@ -883,6 +946,7 @@ def decode_interim(
             schema_version=version,
             observed_at=_decode_datetime(message["observed_at"], "observed_at"),
             payload=decode_payload(message["payload"]),
+            branch=branch,
         )
     except ValueError as exc:
         if isinstance(exc, WallProtocolError):

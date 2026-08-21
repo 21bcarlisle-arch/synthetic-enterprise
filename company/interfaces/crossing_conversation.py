@@ -43,6 +43,52 @@ as a response to a synthetic request"). A conversation gets longer by having
 more legs, not by annexing the messages next to it.
 
 --------------------------------------------------------------------------
+THE SECOND WORKED CASE, AND IT IS THE HALF AN ORDINAL COULD NOT CARRY (pass
+60): A SWITCH WITH OBJECTION.
+--------------------------------------------------------------------------
+
+Q3 names two examples and this build had only the first. The Bacs cycle above
+is a LINE -- every leg is a later position on one path -- and a line is what
+`leg` numbers. The reviewer's other example is not:
+
+    leg 1  COMPANY -> WORLD   WallRequest[SwitchRequest]
+    leg 2  WORLD -> COMPANY   WallInterim[RegistrationConfirmed]   (trunk)
+                              -- and here the paths DIVERGE:
+    leg 3  WORLD -> COMPANY   WallInterim[ObjectionRaised]         branch=objected
+    leg 4  WORLD -> COMPANY   WallInterim[ObjectionUpheld]         branch=objected
+    leg 5  WORLD -> COMPANY   WallResponse[SwitchCancelled]
+                        -- OR --
+    leg 3  WORLD -> COMPANY   WallInterim[ObjectionWindowClosed]   branch=unobjected
+    leg 4  WORLD -> COMPANY   WallResponse[SwitchCompleted]
+
+An objection is not a later position on one path; it is a DIFFERENT path, taken
+INSTEAD OF the clean one. Before `branch` existed this register could not say
+so, and the failure was not that it lacked expressiveness -- it was that it
+answered wrongly and silently. Both continuations sit at leg 3, the
+deduplication key was (kind, ordinal), so the second arrival was filed as a
+RESTATEMENT of the first and the LATER one won. Measured on this build before
+the field was added: an exchange told `ObjectionRaised` and then
+`ObjectionWindowClosed` reported three legs, one restatement, and
+`ObjectionWindowClosed` as the surviving leg. A company reading that register
+would have started supplying a customer whose switch had been objected, and
+which of the two contradictory outcomes it believed was decided by network
+arrival order.
+
+WHO SAYS WHAT, because the split is the whole design. The COUNTERPARTY names the
+branch a leg is on (`WallInterim.branch`) -- which continuation happened is a
+fact about the world, learned the way everything else on this wall is learned.
+The COMPANY names the branches its process HAS (`open_conversation(branches=)`)
+-- it chose which market process to enter, so the shape of the possible answer
+is its own knowledge. A label outside that set is refused, which is `UnaskedLeg`'s
+reasoning one level up: the wire may report a choice, never extend the menu.
+
+ONLY NON-TERMINAL LEGS CARRY A BRANCH. Paths diverge before they end, so if the
+first thing distinguishing two outcomes were the ending itself, that would not be
+a branch at all -- it would be two possible answers, which `WallStatus` and the
+response's own type already say. `branch_taken` is therefore read off the interim
+legs, and a terminal simply closes whichever path the exchange was on.
+
+--------------------------------------------------------------------------
 THE ONE REFUSAL, AND IT IS THE R15 CLAUSE OF THE DESIGN.
 --------------------------------------------------------------------------
 
@@ -111,6 +157,33 @@ from interface.contracts.wall_envelope import WallInterim, WallStatus
 REQUEST_LEG_NO = 1
 
 
+#: The trunk -- the path every continuation shares, and what `branch is None`
+#: means everywhere below. Named rather than spelled `None` at each site so the
+#: register and its readers cannot drift apart about what an unlabelled leg is.
+TRUNK: Optional[str] = None
+
+
+class BranchError(ValueError):
+    """A leg that cannot belong to the exchange it names -- carrying a REASON.
+
+    Two belts can fire on one leg (an undeclared label and a conflicting one),
+    and this atom's own store records what happens when they cannot be told
+    apart: pass 53's misrouted-acceptance mutation passed on the key-set belt one
+    layer earlier and never reached the refusal it named, and a bare `raises`
+    called that a pass. So the reason is asserted, not the type -- the same idiom
+    as `wall_protocol.WallProtocolError`, which is where this seam already keeps
+    its refusal codes.
+
+    UNDECLARED_BRANCH -- a continuation this company's process does not have.
+    BRANCH_CONFLICT   -- a second, different continuation on an exchange that
+                         has already taken one.
+    """
+
+    def __init__(self, reason: str, message: str) -> None:
+        super().__init__(f"{reason}: {message}")
+        self.reason = reason
+
+
 class LegKind(str, Enum):
     """What a leg IS, which is a different question from where it sits.
 
@@ -142,15 +215,26 @@ class ConversationLeg:
     message_type: str
     observed_at: dt.datetime
     status: Optional[WallStatus] = None   # terminal legs only -- the counterparty's own word
+    branch: Optional[str] = TRUNK         # which continuation; None = shared by all paths
 
     @property
-    def identity(self) -> Tuple[str, Optional[int]]:
+    def identity(self) -> Tuple[str, Optional[int], Optional[str]]:
         """What makes two arrivals THE SAME leg rather than two legs -- the
-        deduplication key for at-least-once delivery (C-S2). Kind plus ordinal,
-        never `observed_at`: a redelivery carries a new transaction time and is
-        still the same leg, and keying on the time would make every retry a new
-        one."""
-        return (self.kind.value, self.leg_no)
+        deduplication key for at-least-once delivery (C-S2). Kind plus ordinal
+        plus BRANCH, never `observed_at`: a redelivery carries a new transaction
+        time and is still the same leg, and keying on the time would make every
+        retry a new one.
+
+        THE BRANCH IS IN THE KEY BECAUSE THE ORDINAL IS NOT ENOUGH, and this was
+        measured rather than reasoned. `leg` orders messages along ONE path, so
+        two alternative continuations both arrive at leg 3 -- and without the
+        branch they were the same key. The register then filed the second as a
+        RESTATEMENT of the first and kept the later arrival, so an exchange told
+        `ObjectionRaised` and then `ObjectionWindowClosed` reported one
+        restatement and `ObjectionWindowClosed` as the survivor. Two
+        contradictory market outcomes, and network arrival order picked which
+        one the company believed."""
+        return (self.kind.value, self.leg_no, self.branch)
 
 
 @dataclass(frozen=True)
@@ -166,10 +250,37 @@ class CrossingConversation:
     correlation_id: str
     request_type: str
     legs: Tuple[ConversationLeg, ...]
-    arrival_order: Tuple[Tuple[str, Optional[int]], ...]
+    arrival_order: Tuple[Tuple[str, Optional[int], Optional[str]], ...]
     opened_at: dt.datetime
     closed_at: Optional[dt.datetime]
     restatements: int
+    branches: Tuple[str, ...] = ()
+
+    @property
+    def branch_taken(self) -> Optional[str]:
+        """Which alternative continuation this exchange went down, or `None` for
+        one still on the trunk -- including one that never diverges at all.
+
+        AT MOST ONE, enforced upstream rather than resolved here: a leg on a
+        second branch is refused at filing (`BRANCH_CONFLICT`), so this property
+        never has to choose between two and never quietly reports the first or
+        the loudest. A reading that PICKED would be the defect this whole field
+        exists to remove, one layer further in.
+
+        `None` on a branching exchange is a real and useful answer -- the paths
+        have not diverged yet, and the company is owed the divergence as much as
+        the outcome."""
+        for leg in self.legs:
+            if leg.branch is not TRUNK:
+                return leg.branch
+        return TRUNK
+
+    @property
+    def is_branching(self) -> bool:
+        """Does this exchange's own process HAVE alternative continuations? A
+        fact about the market process the company entered, declared when it
+        asked -- not about what has arrived since."""
+        return bool(self.branches)
 
     @property
     def leg_count(self) -> int:
@@ -200,7 +311,7 @@ class CrossingConversation:
         company first LEARN of each leg?"""
         declared = tuple(leg.identity for leg in self.legs)
         known = set(declared)
-        heard: List[Tuple[str, Optional[int]]] = []
+        heard: List[Tuple[str, Optional[int], Optional[str]]] = []
         for identity in self.arrival_order:
             if identity in known and identity not in heard:
                 heard.append(identity)
@@ -320,29 +431,58 @@ class ConversationRegister:
         correlation_id: str,
         request_type: str,
         emitted_at: dt.datetime,
+        branches: Tuple[str, ...] = (),
     ) -> None:
         """Record that the company ASKED. Idempotent on `correlation_id`: a
         resend of the same request is the same exchange (C-S2), and re-opening
-        would discard whatever legs had already arrived on it."""
+        would discard whatever legs had already arrived on it.
+
+        `branches` names the ALTERNATIVE CONTINUATIONS this exchange may take --
+        for a switch, ("objected", "unobjected"); for a Bacs collection, nothing,
+        because a collection has one path and two ways of ending it. It comes
+        from the COMPANY, at the moment it asks, because the company chose which
+        market process to enter and therefore knows what shape the answer can
+        take. Default `()` is a linear exchange, which is every caller this build
+        has today and is not a weaker statement than naming branches: an exchange
+        with no alternatives refuses ALL of them, so a counterparty that starts
+        labelling legs on a process the company believes to be linear is caught
+        rather than accommodated.
+
+        THE SET IS THE COMPANY'S AND THE CHOICE IS THE COUNTERPARTY'S, which is
+        the same split `UnaskedLeg` makes one level down. The wire may say which
+        continuation happened; it may never say which continuations EXIST, or a
+        process able to mint a plausible label would be able to extend our own
+        market processes by asserting them."""
         if not correlation_id:
             raise ValueError(
                 "a conversation must be opened under a correlation_id -- an "
                 "exchange nothing can be matched to is not an exchange"
             )
+        if any(not b or not b.strip() for b in branches):
+            raise ValueError(
+                f"every declared branch must be named, got {branches!r} -- an "
+                "empty label is the trunk's spelling, so declaring one would "
+                "make an unlabelled leg indistinguishable from a branch leg"
+            )
+        if len(set(branches)) != len(branches):
+            raise ValueError(
+                f"declared branches must be distinct, got {branches!r} -- a "
+                "repeated continuation is not two ways for an exchange to go"
+            )
         if correlation_id in self._open or correlation_id in self._closed:
             return
+        request_leg = ConversationLeg(
+            kind=LegKind.REQUEST,
+            leg_no=REQUEST_LEG_NO,
+            message_type=request_type,
+            observed_at=emitted_at,
+        )
         self._open[correlation_id] = {
             "request_type": request_type,
             "opened_at": emitted_at,
-            "legs": {
-                (LegKind.REQUEST.value, REQUEST_LEG_NO): ConversationLeg(
-                    kind=LegKind.REQUEST,
-                    leg_no=REQUEST_LEG_NO,
-                    message_type=request_type,
-                    observed_at=emitted_at,
-                ),
-            },
-            "arrival": [(LegKind.REQUEST.value, REQUEST_LEG_NO)],
+            "branches": tuple(branches),
+            "legs": {request_leg.identity: request_leg},
+            "arrival": [request_leg.identity],
             "restatements": 0,
             "closed_at": None,
         }
@@ -366,13 +506,69 @@ class ConversationRegister:
                 "never opened -- an acknowledgement for a request we have no "
                 "record of sending is an incident, not a message to file"
             )
+        self._require_admissible_branch(state, interim.correlation_id, interim.branch)
         leg = ConversationLeg(
             kind=LegKind.INTERIM,
             leg_no=interim.leg,
             message_type=interim.interim_type,
             observed_at=interim.observed_at,
+            branch=interim.branch,
         )
         return self._file(state, leg)
+
+    @staticmethod
+    def _require_admissible_branch(
+        state: dict, correlation_id: str, branch: Optional[str]
+    ) -> None:
+        """The two branch refusals, in the order that reports the honest fault.
+
+        A TRUNK LEG IS ALWAYS ADMISSIBLE and is checked for first, deliberately:
+        a leg every path shares is legal on a linear exchange and on a branching
+        one, before divergence and after it. The CSS registration confirmation
+        that arrives LATE -- after the objection has already been raised -- is an
+        ordinary C-S1 event and refusing it would model a reliability this wall's
+        own contract says does not exist.
+
+        UNDECLARED BEFORE CONFLICT, because a label this company's process does
+        not have says nothing about which continuation the exchange took: it is
+        evidence the message belongs to a different exchange, and reporting it as
+        a conflict would send a reader to reconcile two market outcomes when the
+        repair is that one of them is not ours. This is the same ordering choice
+        `wall_protocol._require_vocabulary` records for version-before-fields.
+
+        CONFLICT IS REFUSED, NOT RESOLVED, and this is the R15 clause. The two
+        available fail-open shapes are keep-the-first and keep-the-last; this
+        register did the second by accident for sixteen passes, so an exchange
+        that was objected read as clean if the clean message happened to land
+        second. Neither is admissible, because the company ACTS differently on
+        the two -- one switch completes and the other does not -- and a
+        contradiction the counterparty has to be asked about is not a value to be
+        picked from a pair by arrival order."""
+        if branch is TRUNK:
+            return
+        declared = state.get("branches", ())
+        if branch not in declared:
+            raise BranchError(
+                "UNDECLARED_BRANCH",
+                f"leg on branch {branch!r} arrived for correlation_id "
+                f"{correlation_id!r}, whose process declares "
+                f"{list(declared) or 'no alternative continuations'} -- the "
+                "company names the continuations its own process has, and a "
+                "message cannot extend that set by asserting one",
+            )
+        taken = next(
+            (leg.branch for leg in state["legs"].values() if leg.branch is not TRUNK),
+            TRUNK,
+        )
+        if taken is not TRUNK and taken != branch:
+            raise BranchError(
+                "BRANCH_CONFLICT",
+                f"correlation_id {correlation_id!r} is already on branch "
+                f"{taken!r} and this leg claims {branch!r} -- these are "
+                "ALTERNATIVE continuations, so both cannot have happened; "
+                "filing it would make arrival order decide which outcome this "
+                "company believes",
+            )
 
     def record_terminal(
         self,
@@ -396,6 +592,7 @@ class ConversationRegister:
             state = {
                 "request_type": "",
                 "opened_at": observed_at,
+                "branches": (),
                 "legs": {},
                 "arrival": [],
                 "restatements": 0,
@@ -458,13 +655,19 @@ class ConversationRegister:
 
     @staticmethod
     def _render(correlation_id: str, state: dict) -> CrossingConversation:
-        def order(item: Tuple[Tuple[str, Optional[int]], ConversationLeg]) -> tuple:
+        def order(item: Tuple[tuple, ConversationLeg]) -> tuple:
+            # The trunk sorts BEFORE a branch at the same ordinal, which is the
+            # order the exchange actually took them in: a shared leg precedes the
+            # divergence it precedes. The tiebreak exists at all because a
+            # counterparty may number a branch leg the same as a trunk one, and
+            # two legs with equal keys would otherwise render in dict order.
             leg = item[1]
+            branch = (1, leg.branch) if leg.branch is not TRUNK else (0, "")
             if leg.kind is LegKind.REQUEST:
-                return (0, REQUEST_LEG_NO)
+                return (0, REQUEST_LEG_NO, branch)
             if leg.kind is LegKind.INTERIM:
-                return (1, leg.leg_no if leg.leg_no is not None else 0)
-            return (2, 0)
+                return (1, leg.leg_no if leg.leg_no is not None else 0, branch)
+            return (2, 0, branch)
 
         legs = tuple(leg for _, leg in sorted(state["legs"].items(), key=order))
         return CrossingConversation(
@@ -475,4 +678,5 @@ class ConversationRegister:
             opened_at=state["opened_at"],
             closed_at=state["closed_at"],
             restatements=state["restatements"],
+            branches=state["branches"],
         )

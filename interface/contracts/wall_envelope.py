@@ -192,7 +192,43 @@ class WallInterim(Generic[IT]):
     rejection. A submission REJECTED at input validation ends the conversation
     at leg 2 and no outcome will ever follow; that is an answer, and
     `WallResponse(status=ERROR)` already says it exactly. Only ACCEPTANCE is an
-    interim, because only acceptance leaves something still owed."""
+    interim, because only acceptance leaves something still owed.
+
+    `branch` -- THE ALTERNATIVE CONTINUATION THIS LEG BELONGS TO (EP6 pass 60),
+    and the half of Q3 the ordinal alone could not carry. Q3's own second
+    example is "a full switch with objection", and an objection is not a later
+    position on one path: it is a DIFFERENT path, taken instead of the clean
+    one. `leg` orders messages ALONG a path and says nothing about WHICH, so
+    two alternative continuations both sitting at leg 3 were indistinguishable
+    -- and `ConversationRegister` deduplicates on (kind, ordinal), so it filed
+    the second as a RESTATEMENT of the first and kept the later arrival.
+    Measured before this field existed, on this build: an exchange told
+    `ObjectionRaised` and then `ObjectionWindowClosed` reported three legs, one
+    restatement, and `ObjectionWindowClosed` as the survivor -- so which of two
+    contradictory market outcomes the company believed was decided by network
+    arrival order.
+
+    `None` is the TRUNK: a leg every path shares (the CSS registration
+    confirmation precedes the objection window and belongs to both outcomes).
+    It is the default because most exchanges never diverge, and for those `None`
+    is not an omission but the only truthful value.
+
+    THE COUNTERPARTY NAMES THE BRANCH, which is why this is a wire field and not
+    a company-side annotation. Which continuation an exchange took is a fact
+    about what HAPPENED, and the company learns it the same way it learns
+    everything else on this wall -- by being told. A company that derived the
+    branch from the message type would be maintaining a private table of every
+    counterparty's vocabulary and calling its own reading of it evidence. What
+    the company supplies from its OWN book is the set of branches its process
+    HAS (`ConversationRegister.open_conversation`); a label outside that set is
+    refused, on `UnaskedLeg`'s reasoning one level up.
+
+    ONLY A NON-TERMINAL LEG CARRIES ONE, and the absence on `WallResponse` is
+    deliberate rather than unfinished. Paths diverge before they end: if the
+    FIRST thing distinguishing two outcomes is the ending itself, that is not a
+    branch, it is two possible answers, and `status` plus the response's own
+    type already say it. The terminal inherits whatever branch the exchange was
+    already on."""
 
     correlation_id: str
     leg: int
@@ -200,6 +236,7 @@ class WallInterim(Generic[IT]):
     schema_version: int
     observed_at: dt.datetime
     payload: IT
+    branch: Optional[str] = None
 
     def __post_init__(self) -> None:
         if self.payload is None:
@@ -219,6 +256,13 @@ class WallInterim(Generic[IT]):
                 f"WallInterim leg must be >= 2, got {self.leg} -- leg 1 is the "
                 "WallRequest, so an interim can never be the opening leg of its "
                 "own conversation"
+            )
+        if self.branch is not None and not self.branch.strip():
+            raise ValueError(
+                "WallInterim branch must name a continuation or be absent -- an "
+                "empty label is neither the trunk nor a path, and a register "
+                "keyed on it would file every unlabelled leg together under a "
+                "branch that does not exist"
             )
 
 
