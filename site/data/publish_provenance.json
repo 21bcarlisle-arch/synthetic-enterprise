@@ -20,7 +20,7 @@
     "run_id": "run_output_a892df011_20260820T180449Z.json",
     "verified_at": "2026-08-20T18:34:35Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=83a95addb; blocking tests: FAILED tests/background/test_publish_gate_scope.py::test_run_fast_tests_emits_the_marker_deselection, FAILED tests/background/test_publish_gate_wedge_draw.py::test_a_raising_reader_withholds_rather_than_crashing_the_draw_ladder",
+  "paused_reason": "scoped publish-path suite red at git=4c4f7dfaa; blocking tests: FAILED tests/background/test_publish_gate_wedge_draw.py::test_a_raising_reader_withholds_rather_than_crashing_the_draw_ladder",
   "paused_since": "2026-08-20T21:10:26Z",
   "schema": 1,
   "showing_run": {
@@ -30,5 +30,5 @@
     "verified_at": "2026-08-20T18:34:35Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-08-21T21:57:36Z"
+  "written_at": "2026-08-21T22:19:53Z"
 }
