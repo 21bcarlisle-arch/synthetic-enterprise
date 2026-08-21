@@ -17,7 +17,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Stdlib-only helper (H30) -- safe at module scope, unlike the publish pipeline.
-from background.child_diagnostics import STDERR_TAIL_LINES, stderr_tail  # noqa: E402
+from background.child_diagnostics import child_output_excerpt  # noqa: E402
 from background.episode_monotonic import guard_episode  # noqa: E402  (PW4)
 
 PEAK_START = 16  # 4pm GMT
@@ -413,6 +413,16 @@ def process_leftover_run_markers():
                 # marker, so "Failed to process (rc=N)" with no payload is the one
                 # log line a backlog diagnosis starts from. Capture what the
                 # publisher actually said.
+                #
+                # BOTH STREAMS (2026-08-21). This captured stderr ALONE for thirteen
+                # days, and the publisher does not refuse on stderr: every verdict
+                # `process_run_complete.log()` issues goes to **stdout**. So all 46
+                # refusals across the 32-hour wedge of 2026-08-20/21 logged the same
+                # four lines of pytensor/SyntaxWarning noise and never once named the
+                # cause -- which was, in the end, one line the publisher had printed
+                # every cycle ("Fast test suite timed out"). The comment above claimed
+                # this capture existed; only half of it did.
+                stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
             )
@@ -428,13 +438,12 @@ def process_leftover_run_markers():
             # docstring claims it sees "OOM SIGKILL rc=-9". It sees return codes; a timeout
             # kill has none. Fail-silent (R15), and it is why a 27h wedge kept naming a test
             # that passes.
-            tail = stderr_tail(getattr(exc, "stderr", None))
             log(f"TIMED OUT processing {marker.name} after {_publisher_deadline_seconds()}s "
                 f"— the publisher outran the deadline this sweep puts on it. NOT a test "
                 f"failure: the gate it was running never returned a verdict. Marker left "
-                f"pending; continuing to the next one."
-                + (f"\n  publisher stderr before the kill (last {STDERR_TAIL_LINES} lines):"
-                   f"\n{tail}" if tail else "\n  publisher stderr: nothing captured before the kill"))
+                f"pending; continuing to the next one. What it had written before the kill:\n"
+                + child_output_excerpt(getattr(exc, "stdout", None),
+                                       getattr(exc, "stderr", None)))
             if position == 0:
                 _remember_oldest_outcome(marker.name, None)
             # rc=None, kind stated: a deadline kill produces no return code, and inventing
@@ -491,10 +500,10 @@ def process_leftover_run_markers():
             # this ordering exists to stop, so the sweep ends here rather than walking on.
             return
         else:
-            tail = stderr_tail(getattr(result, "stderr", None))
-            log(f"Failed to process {marker.name} (rc={result.returncode}) — will retry next cycle"
-                + (f"\n  publisher stderr (last {STDERR_TAIL_LINES} lines):\n{tail}" if tail
-                   else "\n  publisher stderr: EMPTY"))
+            log(f"Failed to process {marker.name} (rc={result.returncode}) — will retry next "
+                f"cycle. The publisher's own verdict is on STDOUT:\n"
+                + child_output_excerpt(getattr(result, "stdout", None),
+                                       getattr(result, "stderr", None)))
         # H15_publish_gate_failure_alert: feed every processing outcome into the
         # publish-gate wedge detector. This sweep is the recurring caller that
         # actually manifests a silent wedge -- process_run_complete returns

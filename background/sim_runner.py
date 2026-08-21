@@ -27,6 +27,47 @@ REPORTS_DIR = PROJECT_DIR / "docs" / "reports"
 HOLD_FLAG = PROJECT_DIR / "docs" / "review_gates" / ".sim_runner_hold"
 FORCE_REPUBLISH_FLAG = PROJECT_DIR / "docs" / "review_gates" / ".force_republish_once"
 
+#: PRODUCER HEALTH, the state file behind supervisor RUNG 1d (2026-08-17).
+#:
+#: WHY IT EXISTS. On 2026-08-17 this runner failed NINE consecutive times over 70
+#: minutes on one KeyError, and nothing drew the fix. Every response was narration:
+#: a line in sim-runner-log.md, an ntfy per failure, and an `agent_status` anomaly
+#: field that no draw rung reads. The publisher, whose outage has the SAME
+#: consequence -- nothing new reaches the live site -- has had a priority-zero draw
+#: rung since 2026-07-23, because the same 2h17m of alarm-into-silence happened to
+#: IT twice and got mechanised. The producer had the alarm and not the mechanism.
+#:
+#: Worse, the three watchers that could have seen it each could not:
+#:   * the publish-gate wedge detector keys on publish FAILURES, and nine failed
+#:     runs produce ZERO publish attempts -- an empty failure list is
+#:     indistinguishable from a healthy gate (fail-open on empty, R15);
+#:   * the operational-layer signal keys on `pytest -m operational` -- daemon
+#:     lifecycle and IaC reconcile -- and this daemon was alive the whole time. It
+#:     read GREEN, consecutive_green=6, at 16:54Z with eight failures behind it,
+#:     because it measures LIVENESS and the broken thing was the OUTPUT;
+#:   * the content-freshness clocks key on commit/publish recency by ANY writer,
+#:     and a concurrent SITE lane kept committing and publishing, so `published_
+#:     age_seconds` read 1.9h against a real producer outage of 3.0h. That is
+#:     `publish_freshness.py`'s own "content moving by luck is not a healthy
+#:     pipeline" defect, one level up.
+#:
+#: CONTRACT (the ONE place the write rule is stated -- supervisor reads this file
+#: and never writes it, per its module doctrine):
+#:   * every terminal run outcome writes it: success CLEARS, failure/timeout/crash
+#:     INCREMENTS. A run that never reaches a terminal outcome leaves it alone.
+#:   * `consecutive_failures` counts terminal non-successes since the last success.
+#:   * `first_failure_ts` is the START of the current failure streak and is NOT
+#:     re-stamped by later failures -- the detector measures the outage from it.
+#:   * a hold is NOT a failure: `_check_hold` skipping a run does not touch it.
+#:   * the DIAGNOSED limb (>=3 failures sustained >30min) is the sharp instrument and is what
+#:     catches an outage of the 2026-08-17 shape; the detector's artefact-age limb is a 3h
+#:     backstop for a runner that writes no counter at all, sized off the measured gap
+#:     distribution rather than a guess (see supervisor.PRODUCER_ARTEFACT_STALE_SECONDS).
+#:   * writing is best-effort and NEVER fatal. A runner that dies because its own
+#:     bookkeeping failed is a worse outcome than an unwritten counter, and the
+#:     detector's artefact-age limb does not depend on this file at all.
+PRODUCER_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".sim_producer_state.json"
+
 BETWEEN_RUN_PAUSE_SECONDS = 60  # brief pause between back-to-back runs
 
 sys.path.insert(0, str(PROJECT_DIR))
@@ -34,8 +75,15 @@ from background.notify import notify  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 from background.agent_protocol import AgentMessage  # noqa: E402
 from background.child_diagnostics import (  # noqa: E402
-    STDERR_TAIL_LINES, failure_detail, stderr_tail,
+    STDERR_TAIL_LINES, child_output_excerpt, failure_detail, stderr_tail,
 )
+from background.episode_monotonic import guard_episode  # noqa: E402
+
+#: The episode-scoped fields of PRODUCER_STATE_FILE, declared for `guard_episode`. A field added
+#: here without being declared is exactly the "wired it in but it is a no-op" gap the guard's own
+#: docstring warns about.
+PRODUCER_SINCE_FIELDS = ("first_failure_ts",)     # LOW-water: an open episode's start only moves earlier
+PRODUCER_STREAK_FIELDS = ("consecutive_failures",)  # HIGH-water: an open counter only goes up
 
 # The publisher's no-publish exit codes, mirrored as LITERALS for the same reason
 # background_worker mirrors them: this module must not take an import-time dependency on the
@@ -55,6 +103,93 @@ def log(msg: str) -> None:
     with open(LOG_FILE, "a") as f:
         f.write(entry)
     print(entry, flush=True)
+
+
+def record_run_outcome(
+    ok: bool,
+    *,
+    detail: str | None = None,
+    head: str | None = None,
+    elapsed: float | None = None,
+    state_path=None,
+    now: float | None = None,
+) -> dict | None:
+    """Record one TERMINAL run outcome to PRODUCER_STATE_FILE. See its contract.
+
+    Returns the written state (for tests), or None if the write failed -- which is
+    logged and never raised, because the runner's job is to run the simulation and
+    a failed counter must not stop it.
+    """
+    import json
+
+    path = Path(state_path) if state_path is not None else PRODUCER_STATE_FILE
+    stamp = time.time() if now is None else now
+    try:
+        previous = json.loads(path.read_text())
+        if not isinstance(previous, dict):
+            previous = {}
+    except (OSError, ValueError):
+        previous = {}
+
+    if ok:
+        state = {
+            "last_result": "ok",
+            "consecutive_failures": 0,
+            "first_failure_ts": None,
+            "last_failure_ts": previous.get("last_failure_ts"),
+            "last_success_ts": stamp,
+            "detail": None,
+            "git": head,
+            "elapsed_s": round(elapsed) if elapsed is not None else None,
+        }
+    else:
+        try:
+            streak = int(previous.get("consecutive_failures") or 0)
+        except (TypeError, ValueError):
+            streak = 0
+        # The streak START is preserved across failures -- the detector measures the
+        # outage from it, so re-stamping it every failure would keep the measured age
+        # pinned near zero and the rung would never reach its threshold. That is the
+        # fail-silent shape this whole mechanism exists to remove, so it is spelled out
+        # here and pinned by `test_the_streak_start_is_not_restamped_by_later_failures`.
+        first = previous.get("first_failure_ts") if streak else None
+        state = {
+            "last_result": "failed",
+            "consecutive_failures": streak + 1,
+            "first_failure_ts": first if isinstance(first, (int, float)) else stamp,
+            "last_failure_ts": stamp,
+            "last_success_ts": previous.get("last_success_ts"),
+            "detail": detail,
+            "git": head,
+            "elapsed_s": round(elapsed) if elapsed is not None else None,
+        }
+
+    # EPISODE GUARD (PW2 self-clearing-alarm census, 2026-08-17). This file carries BOTH shapes
+    # the census calls `real`: an episode START (`first_failure_ts`) and an episode COUNTER
+    # (`consecutive_failures`), and RUNG 1d reads both for severity. Unguarded, any failure write
+    # that lost its prior -- a concurrent writer, a truncated read, a hand edit -- would reset the
+    # streak to 1 and re-stamp the start at now, silently shortening the outage and dropping the
+    # rung back below its 30-minute bar. That is the same shape as the 10h26m publish outage that
+    # paged as a fresh 14 minutes on 2026-08-09, which is why the class has a register.
+    #
+    # THE CLOSE CONDITION IS NAMED AND INDEPENDENT (R15 anti-tautology): the episode ends when a
+    # run reaches TERMINAL SUCCESS -- `ok`, which is set by `run_simulation` only after the child
+    # exited 0 AND wrote its `run_output_*.json`. The evidence is the child's artefact, not this
+    # file's own counter, so the guard cannot be satisfied by the thing it guards.
+    state = guard_episode(
+        previous or None, state,
+        since_fields=PRODUCER_SINCE_FIELDS,
+        streak_fields=PRODUCER_STREAK_FIELDS,
+        episode_closed=ok,
+    )
+
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
+    except OSError as exc:
+        log(f"producer-health state write failed (non-fatal): {exc}")
+        return None
+    return state
 
 
 def _git_head() -> str:
@@ -117,6 +252,8 @@ def run_simulation() -> bool:
         notify(f"[SIM] Run timed out after {elapsed:.0f}s — {failure_detail(exc.stderr)} "
                f"(full tail in sim-runner-log.md)", kind="real_alarm")
         update_agent_status("sim-runner", status="error", last_action=f"Run timed out after {elapsed:.0f}s", anomaly=f"TimeoutExpired after {elapsed:.0f}s: {failure_detail(exc.stderr)}")
+        # PRODUCER HEALTH (RUNG 1d): a timeout is a terminal non-success like any other.
+        record_run_outcome(False, detail=f"timeout after {elapsed:.0f}s: {failure_detail(exc.stderr)}", head=head, elapsed=elapsed)
         return False
     elapsed = time.monotonic() - t0
 
@@ -128,11 +265,18 @@ def run_simulation() -> bool:
         notify(f"[SIM] Run FAILED after {elapsed:.0f}s — {failure_detail(getattr(result, 'stderr', None))} "
                f"(full tail in sim-runner-log.md)", kind="real_alarm")
         update_agent_status("sim-runner", status="error", last_action=f"Run FAILED (rc={result.returncode}) after {elapsed:.0f}s", anomaly=f"Exit code {result.returncode}: {failure_detail(getattr(result, 'stderr', None))}")
+        # PRODUCER HEALTH (RUNG 1d): this is the write that turns a repeating alarm into
+        # drawable work. The 2026-08-17 outage failed here nine times and left nothing the
+        # draw ladder could read.
+        record_run_outcome(False, detail=failure_detail(getattr(result, "stderr", None)), head=head, elapsed=elapsed)
         return False
 
     size_kb = out_json.stat().st_size / 1024
     log(f"Run complete — {elapsed:.0f}s, {size_kb:.0f} KB ({out_json.name})")
     update_agent_status("sim-runner", status="idle", last_action=f"Run complete in {elapsed:.0f}s — {size_kb:.0f} KB ({out_json.name})")
+    # PRODUCER HEALTH (RUNG 1d): a success CLEARS the streak, so the rung stops drawing
+    # without anyone editing state by hand.
+    record_run_outcome(True, head=head, elapsed=elapsed)
     # Stage 4: emit structured AgentMessage for run_complete (first live usage of protocol)
     _msg = AgentMessage(
         sender="sim-runner",
@@ -225,6 +369,14 @@ def auto_process_marker(marker):
             # '/tmp/publish-gate-head-reused'` at 18:51Z -- two reds that say nothing about any
             # test. `process_run_complete._reused_checkout_is_in_use` closes that second half.
             timeout=_publisher_deadline_seconds(),
+            # BOTH STREAMS (2026-08-21) -- and this is the SIBLING HALF again, in the
+            # same file that already records losing three hours to closing this class on
+            # `background_worker` and not on the path that publishes in the steady state.
+            # The publisher refuses on STDOUT (`process_run_complete.log()`); stderr
+            # carries only library warnings. The EXIT_PUBLISH_DID_NOT_LAND branch below
+            # tells the reader "the refusing gate is named in the publisher log tail",
+            # which was structurally false for as long as that tail was stderr-only.
+            stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,  # H30: same defect as run_simulation's, same file
             text=True,
         )
@@ -253,11 +405,10 @@ def auto_process_marker(marker):
         elif rc == 0:
             log('Auto-processed run complete marker')
         else:
-            tail = stderr_tail(getattr(proc_result, 'stderr', None))
-            log('Auto-process failed (rc={}) -- marker left for background_worker{}'.format(
-                rc,
-                '\n  publisher stderr (last {} lines):\n{}'.format(STDERR_TAIL_LINES, tail)
-                if tail else '\n  publisher stderr: EMPTY'))
+            log('Auto-process failed (rc={}) -- marker left for background_worker. '
+                "The publisher's own verdict is on STDOUT:\n{}".format(
+                    rc, child_output_excerpt(getattr(proc_result, 'stdout', None),
+                                             getattr(proc_result, 'stderr', None))))
         # H15 (2026-08-03): feed THIS path's outcome into the publish-gate wedge
         # detector too. This is the path that actually publishes in the steady
         # state, and it fed the detector NOTHING -- only
@@ -270,13 +421,12 @@ def auto_process_marker(marker):
         _record_publish_gate_outcome(marker, rc)
         return rc
     except subprocess.TimeoutExpired as exc:
-        tail = stderr_tail(exc.stderr)
         log('Auto-process timed out after {}s -- the publisher outran the deadline this loop '
             'puts on it. NOT a test failure: the gate it was running never returned a verdict. '
-            'Marker left for background_worker{}'.format(
+            'Marker left for background_worker. What it had written before the kill:\n{}'.format(
                 _publisher_deadline_seconds(),
-                '\n  publisher stderr before the kill:\n{}'.format(tail) if tail
-                else '\n  publisher stderr: nothing captured before the kill'))
+                child_output_excerpt(getattr(exc, 'stdout', None),
+                                     getattr(exc, 'stderr', None))))
         # A timeout IS a publish failure (the marker stays unpublished), and it is exactly how
         # the 4-day 2026-07-25 blackout presented -- so it must reach the detector rather than
         # being swallowed. But it is NOT evidence about the tests, and rc=124 WAS: the
@@ -363,6 +513,10 @@ def main() -> None:
         except Exception as exc:
             log(f"Unexpected error in run_simulation: {type(exc).__name__}: {exc}")
             notify(f"[SIM] Unexpected crash: {type(exc).__name__}: {exc}", kind="real_alarm")
+            # PRODUCER HEALTH (RUNG 1d): a crash INSIDE run_simulation never reached the
+            # terminal writes above, so it is recorded here -- otherwise the one failure
+            # mode that skips the bookkeeping is the one that leaves no counter.
+            record_run_outcome(False, detail=f"{type(exc).__name__}: {exc}")
             success = False
         wait = BETWEEN_RUN_PAUSE_SECONDS if success else 300
         log(f"Waiting {wait}s before next run...")

@@ -1,12 +1,12 @@
 # [CLASS] The publish gate and the wedge: the control that stops publishing, and what it stops on
 
-**Severity:** LATENT · **Lane:** H_harness
+**Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 41 · **Class:** `publish_gate_and_wedge` · **Ruling's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
+**Instances:** 42 · **Class:** `publish_gate_and_wedge` · **Ruling's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 41 instances
+## The 42 instances
 
 - `WORKER_FINDING_AN_OOM_KILL_IS_RECORDED_AS_A_TEST_REGRESSION_2026-08-10.md` — LATENT
 - `WORKER_FINDING_ARCHIVED_STAGING_FILES_RESURRECTED_TWICE_DURING_A_LIVE_SURGICAL_LAND_2026-08-18.md` — LATENT
@@ -17,6 +17,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_A_MUTATION_TEST_RAN_THE_OPERATIONAL_SUITE_INSIDE_THE_PUBLISH_GATE_2026-08-12.md` — LATENT
 - `WORKER_FINDING_A_NEW_REFUSAL_MADE_A_SIBLING_FIXTURE_UNREACHABLE_BY_DESIGN_2026-08-12.md` — LATENT
 - `WORKER_FINDING_A_PROVENANCE_LABEL_IS_STAT_ED_AS_A_REPO_PATH_2026-08-18.md` — LATENT
+- `WORKER_FINDING_A_PUBLISH_TIMEOUT_IS_RECORDED_AS_A_TEST_REGRESSION_AND_THE_SCOPE_CANNOT_MEET_ITS_CAP_2026-08-21.md` — BLOCKING
 - `WORKER_FINDING_A_RED_AT_HEAD_IS_INVISIBLE_TO_EVERY_COMMIT_THAT_DOES_NOT_SELECT_ITS_FILE_2026-08-15.md` — LATENT
 - `WORKER_FINDING_A_REPAIR_DOWNSTREAM_OF_ITS_OWN_GATE_CANNOT_LAND_2026-08-10.md` — RECORDED
 - `WORKER_FINDING_A_SEAM_CUT_HOLLOWED_OUT_82_ORPHAN_RULINGS_AND_WEDGED_THE_REGISTER_2026-08-19.md` — RECORDED
@@ -52,12 +53,13 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**193.0 recorded episode-hours** across 10 of the 41 instances; largest single recorded episode **60h**; 5 instance(s) name a published figure in scope.
+**225.0 recorded episode-hours** across 11 of the 42 instances; largest single recorded episode **60h**; 5 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
 - **60 hours** — `WORKER_FINDING_A_NEW_REFUSAL_MADE_A_SIBLING_FIXTURE_UNREACHABLE_BY_DESIGN_2026-08-12.md`: …ixture unreachable-by-design, and that fixture wedged publishing for ~60h **Severity:** LATENT · **Lane:** H_harness **Date:** 2026-08-12 **S…
 - **41 hours** — `WORKER_FINDING_A_GREEN_PUBLISH_CANNOT_CLEAR_THE_WEDGE_UNTIL_A_SECOND_SUITE_THE_DEADLINE_DOES_NOT_KNOW_ABOUT_FINISHES_2026-08-20.md`: …st_tested_hash` matching the marker's hash → must go RED. This is the 41h fail-open of 2026-08-11 and the repair must not be able to reintrod…
+- **32 hours** — `WORKER_FINDING_A_PUBLISH_TIMEOUT_IS_RECORDED_AS_A_TEST_REGRESSION_AND_THE_SCOPE_CANNOT_MEET_ITS_CAP_2026-08-21.md`: …ad off disk and `ps` at 2026-08-21 16:10-16:25Z. ### 1. The wedge is 32 hours old and 43 of its 46 refusals were genuine reds `docs/observability/…
 - **31 hours** — `WORKER_FINDING_A_DUPLICATE_MARKER_DISARMS_THE_WEDGE_ALARM_2026-08-10.md`: …alarm was disarmed 188 times today while publishing stayed wedged for 31 hours (2026-08-10) **Severity:** BLOCKING · **Lane:** H_harness **Dischar…
 - **23 hours** — `WORKER_FINDING_THE_NAMED_BLOCKING_TEST_PASSES_WHEN_YOU_RUN_IT_2026-08-10.md`: …What happened `.publish_gate_state.json` had wedged publishing for ~23h with one entry: The obvious first move — run the named test — repo…
 - **13 hours** — `WORKER_FINDING_THE_ELEVENTH_WEDGE_WAS_A_STACK_NOT_A_BUG_2026-08-10.md`: …data.py` carried uncommitted hydration. So the gate had been red for 13h on work that was **finished and sitting on the disk it was failing ag…
@@ -66,6 +68,12 @@ This document supersedes the individual findings listed below, which are **archi
 - **3 hours** — `WORKER_FINDING_THE_GATES_SCRATCH_SPACE_IS_RAM_AND_NOTHING_DRAINS_IT_2026-08-12.md`: …separately and is why the exhaustion loop still > closes: the drain's 3h age bound is longer than the ~80-minute fill, so restored reach > rec…
 - **3 hours** — `WORKER_FINDING_THE_TMPFS_DRAIN_WAS_POINTED_AT_THE_WRONG_FILESYSTEM_2026-08-12.md`: …**0** were older than the sweep's `STALE_HEAD_CHECKOUT_AGE_SECONDS` = 3h bound, so a live sweep still frees nothing. Measured fill rate over…
 - **2 hours** — `WORKER_FINDING_A_MUTATION_TEST_RAN_THE_OPERATIONAL_SUITE_INSIDE_THE_PUBLISH_GATE_2026-08-12.md`: …ere quiet only by accident of arithmetic — they need `since_commit >= 2h` and the stall tests pin their gap at ~46 min. Latent, not isolated.…
+
+## What is owed
+
+1 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+
+- `WORKER_FINDING_A_PUBLISH_TIMEOUT_IS_RECORDED_AS_A_TEST_REGRESSION_AND_THE_SCOPE_CANNOT_MEET_ITS_CAP_2026-08-21.md`
 
 ---
 
