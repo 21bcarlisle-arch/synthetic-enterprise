@@ -1,0 +1,85 @@
+atom_id: EP6_wall_protocol_typing
+chunk: 41
+simplifications:
+- '2026-08-21 pass 47 LAND, level HELD at 2, loop_stage stays build. PASS 46 BUILT THE JOIN AND COMMITTED NONE OF IT, WHICH IS THE THIRD PASS RUNNING. The tick drew EP6 and found seven of its file_scope files dirty against HEAD -- the silence ladder reading two books, two obligation tables, three as-of readings on the conversation, and a Q5 reconciliation row already rewritten to pass_no 46 -- and no commit anywhere carrying any of it. Commit 131b86df7 wrote that sentence about pass 43 and 21c286c15 wrote it about 44 and 45. This pass is the landing, and as with pass 45 the landing was not a formality: two of the four R15 claims in the record I was about to land are FALSE, measured, and are corrected in the same tree. Everything below is observed-with-evidence unless labelled inferred (R9). MEASURED AT: HEAD 4e8253db9.
+
+
+  WHAT PASS 46 BUILT, verified at the tree rather than read off its own row. PaymentObservationConsumer.silence_ladder now ages TWO books instead of one -- the unresolved register (the counterparty answered non-OK) and the conversation register (the company asked, pass 44) -- deduplicated by correlation_id with the status entry winning, and with whichever side spoke last starting the clock. That closes reason (a) of the pass-41 row, INITIAL SILENCE IS INVISIBLE, which three passes had named as their upstream. Joining the books surfaced a defect in the ladder itself: SILENCE_OBLIGATION''s OVERDUE arm says ''re-ask'', written when every subject was a crossing the counterparty demonstrably held, and applied unchanged to a submission nothing came back on that sentence licenses a re-submission in the one case where the company cannot rule out the first one having landed -- a Bacs collection sent twice debits the payer twice. Hence SilenceOrigin selecting UNRECEIPTED_OBLIGATION, which names a QUERY at every horizon and a re-send at none.
+
+
+  THE TWO FALSE CLAIMS, AND THE REASON THEY ARE THE POINT OF THIS PASS. All four R15 mutations in the unlanded Q5 row were re-run here, each against a tree materialised from HEAD by git archive OUTSIDE the repo, with only the named part swapped -- never on the shared worktree, which carried 200+ other-lane modifications throughout. TWO HOLD EXACTLY: dropping the acknowledged-guard on the clock-forward branch reds exactly test_a_response_timestamped_BEFORE_the_request_does_not_forge_an_acknowledgement (1 failed, 74 passed), and removing the ANSWER-with-no-status refusal in conclude_silence reds exactly its own parametrised case (1 failed, 31 passed). TWO DO NOT. (1) The row claimed the join mutation reds ''10 of 10'' tests in TestSilenceLadderOverOpenConversations against a null control of ''64 pre-existing tests still passing''. Measured: 21 failed, 54 passed. The class holds ELEVEN tests, and the other ten failures are in the PRE-EXISTING TestSilenceLadder, because pass 46 changed conclude_silence''s signature (last_heard_at -> silent_since, plus origin) and rewrote those tests onto it. They are co-modified by the pass they were offered as the null control for, and a control that moves with its subject is not a control. The honest null control is 54. (2) The row claimed collapsing the two obligation tables reds one named test ''and nothing else (31 pass, so it is not always-red)''. Measured: a module-level assertion in the test file -- ''the two ladders must differ at every horizon'' -- errors the whole file at COLLECTION, so ZERO tests execute. The control fires harder than advertised and the advertisement was still wrong; the (31 pass) figure was the OTHER mutation''s null control, attached to the wrong claim. Both sentences are rewritten in the row rather than dropped, because a row that quietly loses a number it got wrong teaches nothing.
+
+
+  WHY THIS IS A CLASS AND NOT A SLIP, stated because the atom has now produced it three times. A pass that writes its record before it lands is describing a tree that does not exist, and every number in that description is unfalsifiable until someone materialises the tree. Pass 45 recorded that three real defects lived in the gap between pass 44''s record and its commit. This pass records that two false measurements lived in the same gap for pass 46 -- not defects in the CODE, which is sound, but defects in the EVIDENCE, which is worse, because the code has a suite and the evidence has only whoever reads it next. The mitigation is not exhortation: it is that a landing tick re-runs the record''s own mutations before committing it, which is what happened here and is how both were found.
+
+
+  WHAT DID NOT CHANGE. No published figure moved and none was recomputed; this pass adds no capability of its own. Q5 stays FAIL for reason (b) of the pass-41 row, verbatim and unchanged: THE HANDLING IS SPECIFIED, NOT ENACTED -- each horizon names an obligation as a sentence, and nothing re-asks, queries, labels a figure stale or provisions, because acting organs are RESERVED to the director''s dunning/debt/provisioning session (ruling 2026-07-25 s2). The level is still 2, same reason as passes 38-46: Q9 and Q15 need an act in a RESERVED class, so level_target 3 is unreachable in this epoch whatever is built.
+
+
+  EVIDENCE: tests/company/interfaces/test_crossing_silence.py 32 passed (23 at pass 41); tests/company/interfaces/test_crossing_conversation.py 22 passed (17 at pass 44); tests/company/billing/test_payment_observation_consumer.py 75 passed (64 at HEAD); tests/background/test_live_payment_triad.py 42 passed, the LIVE path, including test_the_silence_ladder_runs_on_the_LIVE_company_and_says_it_is_owed_NOTHING; the four mutations above, each re-run at this tick with the figures given; python3 -m tools.epistemic_verifier PASS; python3 -m tools.wall_channel_census --worktree every frozen channel matches its list exactly, with no new channel member (crossing_silence imports no register and crossing_conversation imports no ladder -- the join lives only in the consumer that holds both books); cold_eyes_battery.battery_outstanding re-read after the row edit: Q2, Q3, Q5, Q6, Q9, Q10, Q13, Q14, Q15 -- unchanged, so nothing drifted and no question was cleared as a side effect. conclude_silence has exactly one production caller (the consumer), so the signature change is contained -- grepped, not assumed.
+
+
+  WHAT REMAINS is pass 44''s list with its first item struck: the conversation register is now joined to the silence ladder, so the BRANCHING conversation Q3''s second named example needs (a switch with objection is an alternative continuation, not a later position on one path) is the next item on this atom. The target decision recommended at passes 38-46 -- retarget this atom to level 2 for epoch 3 and move Q9/Q15 to EP19_counterparty_qualification_paths -- is unchanged and still the director''s (R13).'
+- '2026-08-21 pass 48 BUILD, level HELD at 2, loop_stage stays build. THE PASS CEILING''S OWN READING OF THIS ATOM IS WHAT THE TICK ACTED ON, and it is worth restating because it is the reason a forty-something pass on a level-2 atom is not simply the treadmill: `python3 -m tools.discovery_pass_ceiling` reports EP6 as SATURATED (38 passes since its last level move) and then says, uniquely among the 24 saturated atoms, that "THE TARGET IS UNREACHABLE HERE **AND** BUILD WORK REMAINS -- both are true at once": 2 of its 12 disqualifying exit criteria (Q9, Q15) need an act in a RESERVED class, so the level cannot move in this epoch however much is built, and 7 are ordinary build work that must keep being drawn. It also says explicitly: do NOT record `infeasible_here`, because that verdict would retire the payable half. So this pass took the payable half.
+
+
+  WHICH CRITERION, AND WHY THAT ONE. Q10 and Q13 were the two least-recently-touched payable rows, both last repaired at pass 39. Q10 was chosen because its remaining item was named precisely by its own row and sat ENTIRELY inside this atom''s file_scope, where Q13''s remaining half names `company/comms/susceptibility_estimator.py`, which file_scope does not carry. A staged finding from 2026-08-21 recommended Q3 as "the only one no pass has ever touched"; that recommendation is STALE and was not followed -- the live reconciliation shows Q3 was taken by pass 44 and reads "PARTLY REPAIRED, pass 44". Recorded because the finding is still in the staging root and the next tick will read the same stale sentence.
+
+
+  WHAT LANDED. Q10 asked "Can two versions of the same interface run concurrently, per counterparty?" and named its own failure mode: "a single global version constant means every market release is a big-bang cutover". Pass 39 built the per-COUNTERPARTY half (COUNTERPARTY_REGISTRY / speaks_schema_versions) and left the other half undone in words: the wire FIELD SETS were version-blind, one flat key set per message kind applied to every version alike, so this build understood exactly ONE dialect and the table could only express WHICH participants were on it. This pass keys the field sets by version. `company/interfaces/wall_protocol.py::WIRE_VOCABULARY_BY_VERSION` maps version -> message kind -> exact key set and is the sole authority; SUPPORTED_SCHEMA_VERSIONS is now DERIVED from its keys rather than stated beside it, so the single global constant the reviewer named no longer exists as an independent statement that could drift.
+
+
+  THE PART THAT MAKES IT NOT THEATRE, and it is the question this repair invites. A version table whose versions are identical buys nothing. These two genuinely differ, and the difference was already sitting in the tree unused: `WallNotification` (pass 43) and `WallInterim` (pass 44) both existed as in-process Python objects WITH LIVE CONSUMERS and NEITHER COULD BE SERIALISED -- exactly the diagnosis this module''s own docstring makes of `schema_version` before the module existed, "not a switch that is off, a wire that was never built". A primitive with no wire cannot arrive from a real counterparty, so until now the multi-leg conversation and the unsolicited stream were company-side constructions no wire could deliver. They now have codecs, and they are v2-ONLY: v1 is the original two-leg wall, v2 is the release that added them, and an interim stamped v1 is refused MESSAGE_TYPE_NOT_IN_VERSION because that release has no way to say it.
+
+
+  THE RELEASE WEEKEND IS NOW REHEARSABLE, which was Q10''s literal ask: one build, one registry, the cut-over participant reporting an exchange still in progress while the participant still on v1 goes on transacting request/response in the same moment, neither upgraded by force. Two independent refusals stack and are asserted by REASON CODE rather than by a bare `raises`, because they call for different repairs -- MESSAGE_TYPE_NOT_IN_VERSION is about the dialect, VERSION_NOT_SPOKEN about the participant.
+
+
+  AN ORDERING CHANGE CAME WITH IT, and it is the load-bearing bit rather than a detail: the version is decoded FIRST and the key set it selects enforced SECOND, the reverse of what this module did. Which fields are legal is a fact ABOUT a release, so a decoder that judges fields before it knows the dialect is checking a message against a schema its sender never claimed. The visible consequence is a deliberate precedence change: an unknown version carrying an unknown field now reports UNSUPPORTED_VERSION, not UNKNOWN_FIELD, because the field may be perfectly legal in the release it came from. Both directions read the one table, so an encoder cannot emit bytes this build''s own decoder would refuse.
+
+
+  R15, BOTH DIRECTIONS, AND THE MUTATION IS THE MODULE''S OWN HISTORY. The mutation reinstates the exact defect that shipped here -- one key set per kind for every version -- by giving v1 v2''s vocabulary, and the refusal evaporates: the v1 interim decodes happily. The null control moves the SAMPLE and not the law (same bytes stamped v2 decode cleanly), so a check that raised on every interim could not pass both. 32 new tests; 143 pass in tests/company/interfaces/test_wall_protocol.py (was 111); 1247 pass across the downstream consumers; tools.epistemic_verifier PASS on 580 files; `python3 -m tools.wall_channel_census` still reports every frozen channel matching its list exactly.
+
+
+  A CONTROL RED ON ITS OWN SUCCESS CASE, CAUGHT AND REPAIRED IN PASS. Clearing Q10 moved the battery''s outstanding set 9 -> 8 and redded `test_MUTATION_the_shipped_predicate_says_unblocked_while_nine_criteria_fail`, which pinned `len(outstanding) >= 9`. The nine was never the law -- it was the size of the backlog the morning the test was written -- and pinning it made every question this battery closes look like a regression. Re-keyed to the DIVERGENCE it actually claims (the shipped predicate reports clear while the battery holds real questions open), which still fails in both meaningful directions. This is this project''s recorded COUNT-PINNED class, met live.
+
+
+  WHAT IS NOT CLAIMED. No release in this build has ever CHANGED A FIELD on an existing message, so request/response key sets are identical across v1 and v2 and the dialect difference exercised here is a VOCABULARY difference. That is the common shape of a real DTC/SEC/BSC release -- new flows added, existing documents left alone, so counterparties cut over on their own dates -- and inventing a field delta to make the table look busier would have been fabricating a dialect. A release that does change a key set lands as a new row rather than an edit to a constant. Q10 moves to PASS; the atom''s outstanding set is now Q2, Q3, Q5, Q6, Q9, Q13, Q14, Q15, of which Q9 and Q15 are the two reserved-class rows that cannot be paid in this epoch. THE LEVEL DOES NOT MOVE, and cannot, for the reason the ceiling states.
+
+
+  QUEUED, NOT FIXED (SELF-INTERRUPT DISCIPLINE): giving the two v2 shapes a wire makes their legs censusable for the first time, and `tools/wall_channel_census.py::LEG_ENVELOPE_NAMES` knows only WallRequest and WallResponse -- while `interface/contracts/payment_observable_seam.py` already specialises `BacsInputReportWallInterim`. The blindness PREDATES this pass and is filed as a finding rather than fixed on sight.
+
+
+  THE CHECKABLE FORM OF THIS PASS''S LANDING CLAIM, since the record above shouts LANDED and `tools/record_landing_claim_check.py` is right to refuse a claim that carries no location -- five consecutive EP6 passes wrote that word over code no tree held, and this pass was refused by the gate on its first attempt for exactly that reason, before these lines existed:
+
+  LANDED: `WIRE_VOCABULARY_BY_VERSION` in `company/interfaces/wall_protocol.py`
+
+  LANDED: `_require_vocabulary` in `company/interfaces/wall_protocol.py`
+
+  LANDED: `_require_version_speaks` in `company/interfaces/wall_protocol.py`
+
+  LANDED: `INTERIM_WIRE_FIELDS` in `company/interfaces/wall_protocol.py`
+
+  LANDED: `NOTIFICATION_WIRE_FIELDS` in `company/interfaces/wall_protocol.py`
+
+  LANDED: `encode_interim` in `company/interfaces/wall_protocol.py`
+
+  LANDED: `decode_interim` in `company/interfaces/wall_protocol.py`
+
+  LANDED: `encode_notification` in `company/interfaces/wall_protocol.py`
+
+  LANDED: `decode_notification` in `company/interfaces/wall_protocol.py`
+
+  LANDED: `decode_framed_interim` in `company/interfaces/wall_protocol.py`
+
+  LANDED: `decode_framed_notification` in `company/interfaces/wall_protocol.py`
+
+  LANDED: `_require_sender_speaks` in `company/interfaces/wall_protocol.py`
+
+  LANDED: `test_ONE_BUILD_SERVES_BOTH_RELEASES_AT_ONCE_which_is_the_whole_of_Q10` in `tests/company/interfaces/test_wall_protocol.py`
+
+  LANDED: `test_MUTATION_a_VERSION_BLIND_table_accepts_the_interim_v1_cannot_have_sent` in `tests/company/interfaces/test_wall_protocol.py`
+
+  LANDED: `test_the_two_releases_actually_DIFFER_or_this_whole_table_is_theatre` in `tests/company/interfaces/test_wall_protocol.py`
+
+  LANDED: `test_MUTATION_the_shipped_predicate_says_unblocked_while_real_criteria_fail` in `tests/tools/test_cold_eyes_battery.py`'

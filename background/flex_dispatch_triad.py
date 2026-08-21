@@ -52,6 +52,7 @@ LEVELS PRESENT HERE (registered, not implied):
 from __future__ import annotations
 
 import datetime as dt
+from dataclasses import dataclass
 from typing import Dict, Optional, Sequence
 
 import numpy as np
@@ -80,6 +81,7 @@ from sim.flex_dispatch import (
     TRUE_SCARCITY_PERCENTILE,
     DeliveryModel,
     FlexPaymentBasis,
+    VenueRegistrations,
     VenueSpec,
     # `_base_date` is the world's own date parser, imported rather than
     # restated: these are WORLD dates and a second parser in the harness would
@@ -105,13 +107,39 @@ LOOP_UNIT_ID = "FLEX_UNIT_1"
 TWIN_ATOM_ID = "flex_participation_belief"
 
 
+@dataclass(frozen=True)
+class SolicitedRegistration:
+    """One completed enrolment exchange, held from BOTH sides -- which only the
+    harness may do.
+
+    `outcome` is what the COMPANY got back off the wire (the venue's reference,
+    unit and venue). `venue_book` is the VENUE's own registration book, the
+    world-side record the company cannot reach. They are returned together
+    because the loop needs both and for opposite reasons: the outcome is what
+    the company believes, and the book is what the world will actually honour
+    when it is asked to dispatch (EP6 pass 57). A loop handed only the outcome
+    could score itself solicited while the world went on calling anybody.
+    """
+
+    outcome: FlexEnrolmentOutcome
+    venue_book: VenueRegistrations
+
+    @property
+    def unit_id(self) -> str:
+        return self.outcome.unit_id
+
+    @property
+    def enrolment_reference(self) -> str:
+        return self.outcome.enrolment_reference
+
+
 def solicit_registration(
     truth,
     *,
     enrolled_mw: float,
     unit_id: str = LOOP_UNIT_ID,
     venue: FlexVenue = FlexVenue.BALANCING_MECHANISM,
-) -> FlexEnrolmentOutcome:
+) -> SolicitedRegistration:
     """LEG 1 OF THE LIVE LOOP: the company ASKS this venue to register its unit,
     through the production seam, and reads the venue's answer.
 
@@ -130,9 +158,19 @@ def solicit_registration(
     party registers. The company supplies only its own `as_of`; the seam refuses
     outright rather than judging the window on the submitter's clock.
 
-    Returns the venue's `FlexEnrolmentOutcome`. Raises (never returns an empty
-    registration) if the venue declines -- a loop that measured a gap against a
-    refused registration would be scoring a business that does not exist.
+    THE BOOK IS THE HARNESS'S TO OWN (EP6 pass 57), not the seam's to mint.
+    Until now the venue's `VenueRegistrations` was created inside the seam and
+    thrown away with it, so the world's dispatch legs -- which now REFUSE to
+    call a unit their book does not cover -- had nothing to consult. The
+    harness holds the world, so it constructs the venue's book, hands it to the
+    seam as counterparty state, and hands the SAME instance to the emitters.
+    Nothing about the company's side changes: it still reads only what came
+    back off the wire.
+
+    Returns the venue's `FlexEnrolmentOutcome` and that book. Raises (never
+    returns an empty registration) if the venue declines -- a loop that
+    measured a gap against a refused registration would be scoring a business
+    that does not exist.
     """
     # SPAN, not first-to-last: a record's dates are not required to be sorted
     # (the triad's own synthetic fixture cycles months), and a window whose end
@@ -142,7 +180,10 @@ def solicit_registration(
     window_start = min(stamps)
     window_end = max(stamps) + dt.timedelta(hours=truth.period_hours)
     venue_clock = window_start - dt.timedelta(days=1)
-    seam = build_sim_interface(flex_venue_clock=venue_clock)
+    venue_book = VenueRegistrations()
+    seam = build_sim_interface(
+        flex_venue_clock=venue_clock, flex_registrations=venue_book
+    )
     enrolment = FlexEnrolment(
         unit_id=unit_id,
         venue=venue,
@@ -151,7 +192,9 @@ def solicit_registration(
         window_start=window_start,
         window_end=window_end,
     )
-    return seam.enrol_flex(enrolment, as_of=venue_clock)
+    return SolicitedRegistration(
+        outcome=seam.enrol_flex(enrolment, as_of=venue_clock), venue_book=venue_book
+    )
 
 
 def measure(
@@ -241,8 +284,18 @@ def measure_l2(
     # The statement crosses as BYTES (EP6): the world encodes, the company
     # decodes through its own codec and version-checks in between. Everything
     # the L2 de-rating is learned from has been refusable at the seam.
+    # THE WORLD NOW REFUSES BEFORE THE HARNESS SCORES (EP6 pass 57). The venue's
+    # own book is handed to its settlement leg, so a line for a unit it never
+    # registered raises `UnregisteredDispatch` and never reaches the wire at
+    # all. `settlement_solicited` below is KEPT rather than replaced: the law
+    # stops the world producing the statement, the observation reports on the
+    # statement the world did produce, and a check that can only ever be True
+    # because the alternative raises is still worth having as the reader's
+    # evidence -- but it is no longer the only thing standing between this loop
+    # and a settlement nobody asked for.
     settlement = observe_settlement_wire(
-        emit_settlement_lines_over_wire(truth, unit_id=LOOP_UNIT_ID))
+        emit_settlement_lines_over_wire(
+            truth, unit_id=LOOP_UNIT_ID, registrations=registration.venue_book))
     observed_delivery = [line.metered_delivery_mwh for line in settlement]
 
     # -- IS THIS STATEMENT SOLICITED? Two quantities from two sides: the unit

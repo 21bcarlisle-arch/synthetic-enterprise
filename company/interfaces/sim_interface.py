@@ -55,12 +55,23 @@ class _FlexEnrolmentDesk:
     has no say in it. A seam built without one refuses to answer
     (`FlexVenueUnreachable`) instead of judging the window on the sender's own
     clock.
+
+    SO IS THE VENUE'S BOOK, WHICH IS WHY IT IS NOW INJECTABLE (EP6 pass 57).
+    Minting `VenueRegistrations` in here made the counterparty's state be born
+    inside a COMPANY module and die with the seam object, so nothing else in
+    the world could consult it -- and the world's dispatch legs must, or a unit
+    nobody registered stays dispatchable. `venue_desk` lets the layer that
+    holds the world (the harness) own that book and hand the same one to the
+    venue's dispatch emitters. Injecting it changes nothing the company can
+    reach: this class still publishes no door onto it, and `venue_desk=None`
+    keeps the previous behaviour for every caller that has no world to speak
+    of.
     """
 
-    def __init__(self, venue_clock=None):
+    def __init__(self, venue_clock=None, venue_desk=None):
         self._venue_clock = venue_clock
         self._book = None
-        self._venue_desk = None
+        self._venue_desk = venue_desk
 
     def _open(self):
         # Deferred: keeps `sim.flex_dispatch` (numpy, the whole dispatch model)
@@ -70,7 +81,8 @@ class _FlexEnrolmentDesk:
             from company.market.flex_participation import FlexEnrolmentBook
             from sim.flex_dispatch import VenueRegistrations
             self._book = FlexEnrolmentBook()
-            self._venue_desk = VenueRegistrations()
+            if self._venue_desk is None:
+                self._venue_desk = VenueRegistrations()
         return self._book
 
     def enrol(self, enrolment, *, as_of):
@@ -245,12 +257,12 @@ class StubSimInterface(SimInterface):
     so tests can assert on them.
     """
 
-    def __init__(self, *, flex_venue_clock=None):
+    def __init__(self, *, flex_venue_clock=None, flex_registrations=None):
         self._churn_notifications: list[dict] = []
         self._acquisition_notifications: list[dict] = []
         self._retention_notifications: list[dict] = []
         self._customer_statuses: dict[str, str] = {}
-        self._flex_desk = _FlexEnrolmentDesk(flex_venue_clock)
+        self._flex_desk = _FlexEnrolmentDesk(flex_venue_clock, flex_registrations)
 
     def get_settlement_data(self, mpan: str, period: str) -> dict[str, Any]:
         return {
@@ -390,12 +402,12 @@ class LiveSimInterface(SimInterface):
         infrastructure convenience, not for SIM internals.
     """
 
-    def __init__(self, *, flex_venue_clock=None):
+    def __init__(self, *, flex_venue_clock=None, flex_registrations=None):
         from company.crm.event_log import CompanyEventLog
         self._engine = CompanyTariffEngine()
         self._price_cache: dict[str, list[dict]] = {}
         self._event_log = CompanyEventLog()
-        self._flex_desk = _FlexEnrolmentDesk(flex_venue_clock)
+        self._flex_desk = _FlexEnrolmentDesk(flex_venue_clock, flex_registrations)
 
     @property
     def event_log(self):
@@ -492,13 +504,21 @@ class LiveSimInterface(SimInterface):
         return self._flex_desk.awaiting_answer()
 
 
-def build_sim_interface(live: bool = False, *, flex_venue_clock=None) -> SimInterface:
+def build_sim_interface(
+    live: bool = False, *, flex_venue_clock=None, flex_registrations=None
+) -> SimInterface:
     """Factory function. Returns LiveSimInterface when live=True (Phase 11a+).
 
     `flex_venue_clock` is the WORLD's read time for the flex enrolment desk
     (EP6). Left None, `enrol_flex` refuses rather than judging an availability
     window on the submitter's own clock -- so a caller who has no world clock
     gets a failed crossing, never a silently accepted registration.
+
+    `flex_registrations` is the venue's OWN registration book (EP6 pass 57).
+    Left None the seam mints a private one, which is right for a caller with no
+    world to speak of; a caller that HOLDS the world passes the same book it
+    will hand the venue's dispatch emitters, so what the venue registered and
+    what the venue is willing to call are one fact rather than two.
 
     ARCH1 hook (docs/design/ARCH1_FRAME.md §4): if the `SIM_RECORDED_TRACE`
     env var points at a recorded exogenous observable trace, return a
@@ -516,5 +536,9 @@ def build_sim_interface(live: bool = False, *, flex_venue_clock=None) -> SimInte
         from company.interfaces.recorded_sim_interface import RecordedSimInterface
         return RecordedSimInterface.from_path(trace_path)
     if live:
-        return LiveSimInterface(flex_venue_clock=flex_venue_clock)
-    return StubSimInterface(flex_venue_clock=flex_venue_clock)
+        return LiveSimInterface(
+            flex_venue_clock=flex_venue_clock, flex_registrations=flex_registrations
+        )
+    return StubSimInterface(
+        flex_venue_clock=flex_venue_clock, flex_registrations=flex_registrations
+    )

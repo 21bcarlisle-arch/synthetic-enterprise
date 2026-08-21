@@ -46,6 +46,52 @@ def _synthetic_record(n=200, seed=0):
     return {"dates": dates, "residual_mw": residual, "derived_price": price}
 
 
+def _book_covering(
+    truth,
+    *,
+    unit_id="FLEX_UNIT_1",
+    venue=None,
+    pad_hours=0.0,
+):
+    """The VENUE's book with one registration spanning this truth's whole
+    record -- what a party that had actually enrolled would leave behind.
+
+    Built through `VenueRegistrations.register`, the venue's own API, so a
+    fixture cannot register something the desk would have refused.
+
+    The window ENDS at the last DISPATCHED event, not at the last date on the
+    record: a period nobody was called in emits nothing, so padding measured
+    against it would move a boundary no message sits on. `pad_hours` shortens
+    (negative) or lengthens the window against the last event that actually
+    crosses, which is how the containment rule is exercised.
+    """
+    from interface.contracts.flex_observable_seam import (
+        FlexDirection,
+        FlexEnrolment,
+        FlexVenue,
+    )
+    from sim.flex_dispatch import _base_date
+
+    venue = venue or FlexVenue.BALANCING_MECHANISM
+    stamps = [_base_date(d) for d in truth.dates]
+    called = [s for s, on in zip(stamps, truth.dispatch_mask) if on]
+    assert called, "a book covering nothing proves nothing -- this truth dispatches"
+    book = VenueRegistrations()
+    book.register(FlexEnrolment(
+        unit_id=unit_id,
+        venue=venue,
+        offered_mw=float(truth.enrolled_mw),
+        direction=FlexDirection.TURN_DOWN,
+        window_start=min(stamps),
+        window_end=(
+            max(called)
+            + dt.timedelta(hours=truth.period_hours)
+            + dt.timedelta(hours=pad_hours)
+        ),
+    ))
+    return book
+
+
 def test_true_scarcity_mask_is_top_tail():
     residual = np.arange(100.0)
     mask = true_scarcity_mask(residual, percentile=95.0)
@@ -343,7 +389,7 @@ def test_the_wire_feeds_carry_one_message_per_object_response():
         emit_settlement_lines_over_wire as _wire,
     )
     truth = dispatch_and_settle(_synthetic_record())
-    objects, wires = _obj(truth), _wire(truth)
+    objects, wires = _obj(truth), _wire(truth, registrations=_book_covering(truth))
     assert len(objects) == len(wires) > 0
     assert [r.correlation_id for r in objects] == [w["correlation_id"] for w in wires]
 
@@ -709,3 +755,119 @@ def test_the_venues_refusal_set_IS_the_contracts_declaration_and_not_a_copy(monk
         answer_enrolment(
             _enrolment_wire(), venue_clock=_E_CLOCK, registrations=VenueRegistrations()
         )
+
+
+# ---------------------------------------------------------------------------
+# THE VENUE'S TEETH (EP6 pass 57) -- a dispatch is only lawful against a
+# registration this venue holds.
+#
+# Pass 54 gave the running loop a request leg and the HARNESS compared the unit
+# the world settled against the unit the venue registered. That is a real check
+# and it is an OBSERVATION: the world could still produce the statement being
+# observed. These are the WORLD's own refusals, and each carries the null
+# control that says the venue is not simply refusing everything.
+# ---------------------------------------------------------------------------
+
+
+def _venue_and_direction():
+    from interface.contracts.flex_observable_seam import FlexVenue
+    return FlexVenue
+
+
+def test_the_registered_unit_CROSSES__the_null_control_for_every_refusal_below():
+    """NULL CONTROL. A unit registered over the delivered span settles and is
+    instructed exactly as before -- so the refusals below are discriminating and
+    not a venue that has stopped speaking."""
+    truth = dispatch_and_settle(_synthetic_record())
+    book = _book_covering(truth)
+
+    lines = sim_flex_dispatch.emit_settlement_lines_over_wire(truth, registrations=book)
+    instructions = sim_flex_dispatch.emit_dispatch_instructions_over_wire(
+        truth, registrations=book)
+
+    assert len(lines) == len(instructions) == truth.n_dispatch > 0
+    assert all(m["status"] == "OK" for m in lines)
+
+
+def test_MUTATION_a_unit_this_venue_NEVER_REGISTERED_cannot_be_settled_at_all():
+    """The state the world was in until this pass: `unit_id` is a keyword
+    default, so the venue settled whoever the caller named. The book is
+    consulted against what was EMITTED, not against the argument, so an emitter
+    that ignored its own `unit_id` is caught by the same check."""
+    truth = dispatch_and_settle(_synthetic_record())
+    book = _book_covering(truth, unit_id="FLEX_UNIT_1")
+
+    with pytest.raises(sim_flex_dispatch.UnregisteredDispatch) as exc:
+        sim_flex_dispatch.emit_settlement_lines_over_wire(
+            truth, unit_id="A_UNIT_NOBODY_ENROLLED", registrations=book)
+    assert "A_UNIT_NOBODY_ENROLLED" in str(exc.value)
+
+    with pytest.raises(sim_flex_dispatch.UnregisteredDispatch):
+        sim_flex_dispatch.emit_dispatch_instructions_over_wire(
+            truth, unit_id="A_UNIT_NOBODY_ENROLLED", registrations=book)
+
+
+def test_an_EMPTY_book_refuses_rather_than_passing__the_fail_open_case():
+    """R15 fail-open, which is where this class of control usually dies: a venue
+    that has registered NOBODY must settle nobody. `covers` returns None for an
+    empty book and None is a refusal, not a pass."""
+    truth = dispatch_and_settle(_synthetic_record())
+    with pytest.raises(sim_flex_dispatch.UnregisteredDispatch):
+        sim_flex_dispatch.emit_settlement_lines_over_wire(
+            truth, registrations=VenueRegistrations())
+
+
+def test_MUTATION_a_call_running_PAST_the_declared_availability_is_refused():
+    """CONTAINMENT, NOT OVERLAP, and this is the boundary the rule is easiest to
+    be wrong about.
+
+    The registration is cut HALF a period short, so the last event begins inside
+    the declared availability and ENDS outside it: it overlaps, and it is not
+    covered. A venue answering `overlapping` here would call the unit over
+    minutes it never offered -- and `overlapping` is a real method on this class,
+    written for the different question "may I register this?", so collapsing the
+    two is the plausible mistake rather than an invented one. Half a period, not
+    a whole one: a whole one leaves the window butt-jointed to the registration,
+    which overlap ALSO refuses, so it would not discriminate.
+    """
+    truth = dispatch_and_settle(_synthetic_record())
+
+    exact = _book_covering(truth)
+    assert sim_flex_dispatch.emit_settlement_lines_over_wire(
+        truth, registrations=exact), "the exactly-covering book must accept"
+
+    part_way = _book_covering(truth, pad_hours=-0.5 * truth.period_hours)
+    with pytest.raises(sim_flex_dispatch.UnregisteredDispatch):
+        sim_flex_dispatch.emit_settlement_lines_over_wire(truth, registrations=part_way)
+
+
+def test_MUTATION_a_registration_at_ANOTHER_VENUE_does_not_license_this_one():
+    """A unit registered into the Capacity Market has not thereby offered itself
+    to the Balancing Mechanism -- the two are different products with different
+    obligations, and the multi-venue book `dispatch_and_settle_stacked` models
+    is exactly where conflating them would pay twice. Dropping `venue` from the
+    book's key passes this."""
+    FlexVenue = _venue_and_direction()
+    truth = dispatch_and_settle(_synthetic_record())
+
+    elsewhere = _book_covering(truth, venue=FlexVenue.CAPACITY_MARKET)
+    with pytest.raises(sim_flex_dispatch.UnregisteredDispatch):
+        sim_flex_dispatch.emit_settlement_lines_over_wire(
+            truth, venue=FlexVenue.BALANCING_MECHANISM, registrations=elsewhere)
+
+    # NULL CONTROL: the SAME book licenses the venue it was actually made at.
+    assert sim_flex_dispatch.emit_settlement_lines_over_wire(
+        truth, venue=FlexVenue.CAPACITY_MARKET, registrations=elsewhere)
+
+
+def test_the_book_is_REQUIRED_and_not_a_defaulted_argument():
+    """The fail-open shape this control would otherwise have: a `registrations`
+    defaulting to None makes the check pass for every caller who forgot it. Both
+    wire legs refuse to be called without one."""
+    truth = dispatch_and_settle(_synthetic_record())
+    for leg in (
+        sim_flex_dispatch.emit_settlement_lines_over_wire,
+        sim_flex_dispatch.emit_dispatch_instructions_over_wire,
+    ):
+        with pytest.raises(TypeError):
+            leg(truth)

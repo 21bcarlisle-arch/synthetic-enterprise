@@ -581,6 +581,7 @@ def encode_wall_response(response: WallResponse) -> dict:
 def emit_settlement_lines_over_wire(
     truth: FlexDispatchTruth,
     *,
+    registrations: "VenueRegistrations",
     unit_id: str = "FLEX_UNIT_1",
     venue: FlexVenue = FlexVenue.BALANCING_MECHANISM,
     settlement_lag_days: int = _SETTLEMENT_LAG_DAYS,
@@ -591,33 +592,57 @@ def emit_settlement_lines_over_wire(
     The object form remains: it is how the response is constructed in the first
     place and what this module's own tests measure. What changed is that the
     COMPANY no longer receives one.
+
+    `registrations` is this venue's OWN book and is REQUIRED: every line is
+    checked against it before it crosses, and a window it does not cover raises
+    `UnregisteredDispatch` rather than settling a unit nobody enrolled (see THE
+    VENUE'S TEETH below).
     """
-    return [
-        encode_wall_response(r)
-        for r in emit_settlement_lines(
-            truth,
-            unit_id=unit_id,
-            venue=venue,
-            settlement_lag_days=settlement_lag_days,
+    responses = emit_settlement_lines(
+        truth,
+        unit_id=unit_id,
+        venue=venue,
+        settlement_lag_days=settlement_lag_days,
+    )
+    for r in responses:
+        _require_registered(
+            registrations,
+            r.payload.unit_id,
+            r.payload.venue,
+            r.payload.window_start,
+            r.payload.window_end,
+            "settlement line",
         )
-    ]
+    return [encode_wall_response(r) for r in responses]
 
 
 def emit_dispatch_instructions_over_wire(
     truth: FlexDispatchTruth,
     *,
+    registrations: "VenueRegistrations",
     unit_id: str = "FLEX_UNIT_1",
     venue: FlexVenue = FlexVenue.BALANCING_MECHANISM,
     direction: FlexDirection = FlexDirection.TURN_DOWN,
 ) -> List[dict]:
     """`emit_dispatch_instructions`, on the wire. The instruction feed and the
-    settlement feed are separate events in time (C-S3) and cross separately."""
-    return [
-        encode_wall_response(r)
-        for r in emit_dispatch_instructions(
-            truth, unit_id=unit_id, venue=venue, direction=direction
+    settlement feed are separate events in time (C-S3) and cross separately.
+
+    `registrations` is REQUIRED for the same reason it is on the settlement leg
+    -- and it matters MORE here, because an instruction is the moment a unit is
+    actually called."""
+    responses = emit_dispatch_instructions(
+        truth, unit_id=unit_id, venue=venue, direction=direction
+    )
+    for r in responses:
+        _require_registered(
+            registrations,
+            r.payload.unit_id,
+            r.payload.venue,
+            r.payload.window_start,
+            r.payload.window_end,
+            "dispatch instruction",
         )
-    ]
+    return [encode_wall_response(r) for r in responses]
 
 
 # ---------------------------------------------------------------------------
@@ -818,6 +843,29 @@ class VenueRegistrations:
                 return ref
         return None
 
+    def covers(
+        self,
+        unit_id: str,
+        venue: FlexVenue,
+        window_start: dt.datetime,
+        window_end: dt.datetime,
+    ) -> Optional[str]:
+        """The reference of a registration whose AVAILABILITY window CONTAINS
+        this delivery window, if any -- the question a dispatch must pass.
+
+        CONTAINMENT, NOT OVERLAP, and this is the whole content of the rule. A
+        party declares availability FROM x TO y; an instruction that begins
+        inside it and runs past y calls the unit over minutes it never offered,
+        and a venue that accepted that would be settling volume outside the
+        product. `overlapping` above answers a different question (may I
+        register this?) and the two must not be collapsed: overlap is the right
+        test for a double sale and the wrong one for a call.
+        """
+        for start, end, ref in self._held.get((unit_id, venue.value), []):
+            if start <= window_start and window_end <= end:
+                return ref
+        return None
+
     def register(self, enrolment: FlexEnrolment) -> str:
         """Mint a reference and hold the registration. The reference is the
         VENUE'S, minted from its own sequence: a company that could predict it
@@ -923,6 +971,81 @@ def _register_or_refuse(
             f"overlapping window under {clash}",
         )
     return registrations.register(enrolment)
+
+
+# ---------------------------------------------------------------------------
+# THE VENUE'S TEETH -- a dispatch is only lawful against a registration this
+# venue actually holds (EP6 pass 57).
+#
+# WHAT WAS STILL WRONG AFTER PASS 54. The loop gained a request leg and the
+# harness compared the unit the world settled against the unit the venue said
+# it registered -- two quantities from two sides, which is a real check and is
+# the right thing for a HARNESS to do. But it is an OBSERVATION, made after the
+# fact by the one layer allowed to see both sides, and the world went on being
+# able to produce the statement it was observing: nothing in `sim/**` consulted
+# `VenueRegistrations` before putting an instruction or a settlement line on the
+# wire, so a unit nobody had ever enrolled was still dispatchable and still
+# settleable. A gap the harness can only report is not a law the world obeys,
+# and the difference shows up the moment a loop is written that forgets to
+# score it.
+#
+# WHY IT BELONGS ON THE WIRE LEGS AND NOT IN `dispatch_and_settle`. The truth
+# function has no unit and no venue -- it takes a scalar `enrolled_mw` over a
+# price/residual record and knows nothing about WHO is enrolled. The unit
+# enters at EMISSION, where an identity is first attached to a volume, and the
+# wire legs are where that identity crosses to a company. So that is where the
+# book is consulted, and `registrations` is a REQUIRED keyword on both of them:
+# a default of None would be this project's own fail-open pattern, where the
+# control passes on the argument nobody remembered to pass.
+#
+# WHAT IS NOT BELTED, said plainly rather than left to be discovered: the
+# in-process `emit_dispatch_instructions` / `emit_settlement_lines` are
+# constructors (they are how the wire form is built in the first place, and
+# what this module's own truth tests measure), and the STACKED L3 emitters are
+# unbelted because the L3 loop does not register at all yet -- belting them
+# without a registration leg would refuse every stacked run. Both are named in
+# the atom's remaining list.
+# ---------------------------------------------------------------------------
+
+
+class UnregisteredDispatch(ValueError):
+    """This venue would not put an instruction or a settlement line for this
+    unit on the wire, because its own book holds no registration covering the
+    window.
+
+    Deliberately NOT `EnrolmentRefused`: that type answers a REQUEST the
+    company made and crosses as a structured `ErrorDetail` on the response leg.
+    This is the venue declining to SPEAK UNPROMPTED about a unit it never
+    registered, so there is no correlation_id to answer on and no company
+    message it is a reply to -- it is a defect in the world's own caller.
+    """
+
+
+def _require_registered(
+    registrations: "VenueRegistrations",
+    unit_id: str,
+    venue: FlexVenue,
+    window_start: dt.datetime,
+    window_end: dt.datetime,
+    what: str,
+) -> str:
+    """The reference this event is settled/instructed under, or refuse it.
+
+    Returns the reference rather than a bool so the caller cannot check and
+    then emit under a different one, and so an empty book has no path through:
+    `covers` returns None for a book that holds nothing, which is a REFUSAL and
+    not a pass (R15 fail-open -- missing/empty is the state the defect lives
+    in).
+    """
+    reference = registrations.covers(unit_id, venue, window_start, window_end)
+    if reference is None:
+        raise UnregisteredDispatch(
+            f"{what} for unit {unit_id!r} at {venue.value} over "
+            f"[{window_start.isoformat()}, {window_end.isoformat()}) is covered by no "
+            f"registration this venue holds -- a venue may only call a unit inside an "
+            f"availability window that unit declared to it"
+        )
+    return reference
 
 
 # ===========================================================================

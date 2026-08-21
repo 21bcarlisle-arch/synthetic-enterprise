@@ -5,6 +5,8 @@ false-fire (a leaking / perfect-foresight belief collapses the gap to ~0).
 """
 from __future__ import annotations
 
+import datetime as dt
+
 import numpy as np
 import pytest
 
@@ -15,10 +17,16 @@ from background.flex_dispatch_triad import (
     measure,
     measure_l2,
     measure_l3,
+    solicit_registration,
 )
 from background.gap_metric import prediction_gap
 from company.market.flex_participation import form_participation_belief
-from sim.flex_dispatch import DeliveryModel, dispatch_and_settle
+from sim.flex_dispatch import (
+    DeliveryModel,
+    UnregisteredDispatch,
+    _base_date,
+    dispatch_and_settle,
+)
 
 
 def _synthetic_record(n=400, seed=1):
@@ -288,10 +296,12 @@ def test_TRANSPORT_DOES_NOT_MOVE_THE_BELIEF():
         emit_settlement_lines_over_wire,
     )
     truth = dispatch_and_settle(_synthetic_record(), delivery=DeliveryModel(seed=7))
+    book = solicit_registration(truth, enrolled_mw=truth.enrolled_mw).venue_book
     as_objects = [r.payload.metered_delivery_mwh for r in emit_settlement_lines(truth)]
     as_bytes = [
         line.metered_delivery_mwh
-        for line in observe_settlement_wire(emit_settlement_lines_over_wire(truth))
+        for line in observe_settlement_wire(
+            emit_settlement_lines_over_wire(truth, registrations=book))
     ]
     assert as_bytes == as_objects and len(as_bytes) > 0
 
@@ -313,7 +323,8 @@ def test_the_wire_carries_the_version_on_EVERY_message_the_harness_crosses():
     from interface.contracts.flex_observable_seam import SCHEMA_VERSION
     from sim.flex_dispatch import emit_settlement_lines_over_wire
     truth = dispatch_and_settle(_synthetic_record(), delivery=DeliveryModel(seed=7))
-    messages = emit_settlement_lines_over_wire(truth)
+    book = solicit_registration(truth, enrolled_mw=truth.enrolled_mw).venue_book
+    messages = emit_settlement_lines_over_wire(truth, registrations=book)
     assert len(messages) > 0
     assert all(m["schema_version"] == SCHEMA_VERSION for m in messages)
 
@@ -337,12 +348,19 @@ def test_the_L2_statement_answers_a_registration_the_company_HOLDS():
     assert m["enrolment_reference"].startswith("BALANCING_MECHANISM-REG-")
 
 
-def test_MUTATION_a_world_settling_a_unit_NOBODY_enrolled_scores_UNSOLICITED():
-    """The state this loop was in until pass 54, reproduced deliberately: the
-    settlement feed names a unit the company never registered. The check is two
-    quantities from two sides -- the unit read off the DECODED settlement lines
-    against the unit the venue said it registered -- so an emitter that ignored
-    its `unit_id` argument cannot score solicited by agreeing with itself."""
+def test_MUTATION_a_world_settling_a_unit_NOBODY_enrolled_is_now_REFUSED(monkeypatch):
+    """FLIPPED AT EP6 PASS 57, and the flip is the point rather than a repair.
+
+    This test used to reproduce the pass-54 state -- the settlement feed names a
+    unit nobody registered -- and assert the harness SCORED it unsolicited. That
+    was the strongest claim available while the check was an observation. It now
+    reds on its own success: the venue consults its own book before anything
+    crosses, so the stranger's lines never reach the wire to be scored. Asserting
+    the refusal is a strictly stronger claim than asserting the score, so the
+    test asserts the refusal -- this project's recorded pattern for a control
+    whose subject was fixed, kept rather than deleted because its useful half was
+    never "the score is False" but "a unit nobody enrolled must not be settled".
+    """
     import background.flex_dispatch_triad as triad
 
     real = triad.emit_settlement_lines_over_wire
@@ -350,12 +368,31 @@ def test_MUTATION_a_world_settling_a_unit_NOBODY_enrolled_scores_UNSOLICITED():
     def settle_a_stranger(truth, *, unit_id="FLEX_UNIT_1", **kw):
         return real(truth, unit_id="A_UNIT_NOBODY_ENROLLED", **kw)
 
-    original = triad.emit_settlement_lines_over_wire
-    triad.emit_settlement_lines_over_wire = settle_a_stranger
-    try:
-        m = measure_l2(_synthetic_record(), delivery=DeliveryModel(seed=1))
-    finally:
-        triad.emit_settlement_lines_over_wire = original
+    monkeypatch.setattr(triad, "emit_settlement_lines_over_wire", settle_a_stranger)
+    with pytest.raises(UnregisteredDispatch):
+        measure_l2(_synthetic_record(), delivery=DeliveryModel(seed=1))
+
+
+def test_the_solicited_OBSERVATION_can_still_be_False__it_is_not_always_green(monkeypatch):
+    """The world law above does not make `settlement_solicited` unfalsifiable,
+    and a check that could only ever be True would be theatre.
+
+    The law refuses at EMISSION; the observation reads the DECODED lines. So the
+    discriminating mutation is downstream of both: a decoder handing back a unit
+    the company never registered -- a mis-keyed feed, or the same statement read
+    for the wrong party -- is exactly what this observation is for, and it still
+    scores False."""
+    from dataclasses import replace
+
+    import background.flex_dispatch_triad as triad
+
+    real = triad.observe_settlement_wire
+
+    def decode_as_a_stranger(messages):
+        return [replace(line, unit_id="A_UNIT_NOBODY_ENROLLED") for line in real(messages)]
+
+    monkeypatch.setattr(triad, "observe_settlement_wire", decode_as_a_stranger)
+    m = measure_l2(_synthetic_record(), delivery=DeliveryModel(seed=1))
 
     assert m["settlement_solicited"] is False
 
@@ -374,3 +411,41 @@ def test_the_L2_summary_carries_the_solicited_fact_a_digest_would_quote():
     s = build_gap_summary_l2(measure_l2(_synthetic_record(), delivery=DeliveryModel(seed=1)))
     assert s["settlement_solicited"] is True
     assert s["enrolment_reference"]
+
+
+def test_the_company_holds_the_SAME_reference_the_world_will_honour():
+    """The injection is the substance of the pass-57 change, so it is asserted
+    rather than assumed: the book the seam registered into IS the book the
+    world's dispatch legs consult, and the reference the company got back off
+    the wire is the one that covers the delivered window.
+
+    Until now the venue's book was minted inside the seam and died with it, so
+    these were two facts that happened to agree. One book makes them one fact.
+    """
+    from interface.contracts.flex_observable_seam import FlexVenue
+
+    truth = dispatch_and_settle(_synthetic_record(), delivery=DeliveryModel(seed=1))
+    solicited = solicit_registration(truth, enrolled_mw=truth.enrolled_mw)
+
+    called = [
+        _base_date(d) for d, on in zip(truth.dates, truth.dispatch_mask) if on
+    ]
+    assert called
+    for start in (min(called), max(called)):
+        held = solicited.venue_book.covers(
+            solicited.outcome.unit_id,
+            FlexVenue.BALANCING_MECHANISM,
+            start,
+            start + dt.timedelta(hours=truth.period_hours),
+        )
+        assert held == solicited.outcome.enrolment_reference
+
+    # NULL CONTROL: the same book does NOT cover a unit it never registered, so
+    # the assertion above is about this registration and not about `covers`
+    # returning something for anything.
+    assert solicited.venue_book.covers(
+        "A_UNIT_NOBODY_ENROLLED",
+        FlexVenue.BALANCING_MECHANISM,
+        min(called),
+        min(called) + dt.timedelta(hours=truth.period_hours),
+    ) is None
