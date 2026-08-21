@@ -2464,7 +2464,29 @@ def _gate_refusal(timed_out, git_hash, blocking):
 # 6 publish-path sources to ~200 blocking test files through the static import graph; the
 # director's target of a gate faster than the 5-minute cadence it gates needs THAT set to shrink.
 # That is real work on a derived mechanism and it is not done here.
-GATE_SUITE_TIMEOUT_SECONDS = 3400
+#
+# 3400 -> 3800 (2026-08-21, same day, and the third correction to this constant in one afternoon).
+# THE 3400 WAS READ OFF THE WRONG RECORD, AND THIS MODULE ALREADY OWNED A FUNCTION THAT SAYS SO.
+# `measured_gate_timeout_floor()` below is the consumer `test_publish_gate_subject_is_head.py::
+# test_the_timeout_clears_the_floor_the_measurement_implies` reads, and it does not read
+# `publish_gate_duration.jsonl` at all -- it reads `publish_gate_subject_cost.json`, the harness's
+# own timed measurement, whose worst banked phase is 1876.4s and whose floor at 2x is therefore
+# **3752**. So 3400 shipped 352s BELOW the floor its own control enforces, and that control is
+# inside `resolve_scope()`'s 200-file blocking set. The gate runs `-x`. From the moment 3400
+# landed, every publish attempt reddened on the bound's own guard before it could time out at all:
+# a wedge caused by the repair for the wedge.
+#
+# Two records, one number, and the derivation used the one nothing checks against. Worse, the
+# figure it took from the duration series -- "MAX 1674s" over 310 COMPLETED runs -- is survivorship
+# bias in the literal sense: the same file holds `4503.53` and `4503.70`, the two most recent real
+# gate runs, both censored at the 4500s ceiling they were killed by. A maximum computed over the
+# survivors of a bound cannot see the runs that bound truncated, so it re-derives itself downward
+# every time the gate gets slow enough to be killed.
+#
+# 3800 is the lowest round number above the floor `measured_gate_timeout_floor()` actually returns.
+# It is a FALL from the 4500 that stood before today, so the ratchet below keeps its meaning; it is
+# above the floor, so the guard passes; and it is honest, which 3400 was not.
+GATE_SUITE_TIMEOUT_SECONDS = 3800
 
 # ── THE ABSOLUTE CAP (director, 2026-08-21) ──────────────────────────────────────────────
 # *"A 75-minute gate is absurd on its face and neither of us said so. Nothing watches the
@@ -2504,7 +2526,26 @@ GATE_SUITE_TIMEOUT_SECONDS = 3400
 #
 # The 5-minute target is not abandoned, it is just not enforceable by a constant. It is recorded
 # beside the bound above, where the work that would earn it is named.
-PUBLISH_GATE_CEILING_RATCHET_SECONDS = 3400
+#
+# 3400 -> 3800, IN THE OPEN, as the paragraph above requires (2026-08-21, hours after 3400 landed).
+# This is the correction of an arithmetic error, not the seventh re-derivation, and the difference
+# is checkable rather than rhetorical: 3400 was set equal to a bound that this module's OWN floor
+# function scores at 3752, so "satisfiable today" -- the one property the paragraph above claims
+# distinguishes a ratchet from a target -- was FALSE ON ARRIVAL by 352 seconds. An unsatisfiable
+# ratchet is an aspirational cap with better prose, which is exactly the failure the 300s attempt
+# already made once today; it does not slow the suite down, it stops the gate.
+#
+# What the ratchet is FOR still holds and is unchanged: the number may fall freely and may never
+# rise. 3800 is a fall from the 4500 that stood before today, so nothing has grown back -- the
+# afternoon's net movement on this constant is -700s, and every future move must still be a
+# reduction. What changed is that the ceiling is now a value the gate can actually pass under.
+#
+# TO THE NEXT READER WHO WANTS THIS HIGHER: do not. The two runs that would justify it (4503.5s and
+# 4503.7s, 2026-08-20T21:10Z and 2026-08-21T14:42Z) are the ONLY real gate runs since the last
+# successful publish, and both coincided with a second and third pytest suite live on the same box
+# -- the write-time gate and the operational suite. Contention is not runtime. The three runs
+# before them, on a quiet box, took 1248s, 1303s and 1323s.
+PUBLISH_GATE_CEILING_RATCHET_SECONDS = 3800
 
 # The record the harness writes (tools/measure_publish_gate_subject_cost.py) and the factor the
 # bound is derived at. The factor lives HERE, next to the constant it justifies, and the harness's
