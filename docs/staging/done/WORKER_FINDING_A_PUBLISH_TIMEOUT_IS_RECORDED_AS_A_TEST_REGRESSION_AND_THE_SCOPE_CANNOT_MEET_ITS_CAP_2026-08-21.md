@@ -1,5 +1,16 @@
 **Severity:** BLOCKING · **Lane:** H_harness
 
+**Discharged:** `tests/background/test_publisher_deadline_exceeds_its_gate.py::test_the_routers_verdict_for_the_inner_timeout_is_a_failure`,
+`tests/background/test_publisher_deadline_exceeds_its_gate.py::test_a_genuine_red_is_still_a_test_regression`,
+`tests/background/test_publisher_deadline_exceeds_its_gate.py::test_the_public_banner_does_not_call_an_unjudged_suite_red`,
+`tests/background/test_publisher_deadline_exceeds_its_gate.py::test_the_refused_publish_states_one_verdict_in_one_place`
+— recommendation 1 built and R15-proven with nine mutations; the publisher's own gate clock now
+exits under its own code and is recorded and alarmed under its own name, and the public banner no
+longer calls an unjudged suite red. Section 4 is moot: the 300s cap it could not meet was
+reverted at 9dc57daee, bound back to 3400 from twice the observed maximum. Recommendations 2 and
+3 are NOT built and are re-filed as a live LATENT finding, not accepted silently —
+`docs/staging/WORKER_FINDING_THE_PUBLISH_GATE_DISCOVERS_AN_OVER_BUDGET_SCOPE_BY_TIMING_OUT_A_CYCLE_2026-08-21.md`.
+
 # FINDING — the publisher's internal gate timeout is recorded as a test regression, and the gate's own scope contains a single file costing more than the whole absolute cap
 
 **Found by:** the scheduled worker tick of 2026-08-21 16:10-16:25Z, drawn on the director's
