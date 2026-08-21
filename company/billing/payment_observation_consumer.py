@@ -147,6 +147,10 @@ from company.billing.arrears_engine import (
     age_open_items,
     ageing_buckets,
 )
+from company.interfaces.crossing_conversation import (
+    ConversationRegister,
+    CrossingConversation,
+)
 from company.interfaces.crossing_silence import (
     SilenceConclusion,
     conclude_silence,
@@ -172,7 +176,13 @@ from interface.contracts.payment_observable_seam import (
     RemittanceAdvice,
     SettlementConfirmation,
 )
-from interface.contracts.wall_envelope import WallNotification, WallResponse, WallStatus
+from interface.contracts.wall_envelope import (
+    WallInterim,
+    WallNotification,
+    WallRequest,
+    WallResponse,
+    WallStatus,
+)
 
 # ---------------------------------------------------------------------------
 # Belief types -- every one of these is the COMPANY'S OWN INFERENCE, built
@@ -756,6 +766,14 @@ class PaymentObservationConsumer:
             None if supplied_accounts is None else frozenset(supplied_accounts)
         )
         self._misdirected: List[MisdirectedObservation] = []
+        # THE CONVERSATION REGISTER (atom EP6, pass 44 -- the blind review's Q3).
+        # WHAT THE COMPANY ASKED, held from the moment it asked. Every other
+        # register on this consumer is written when something ARRIVES, which is
+        # why the company could hold no clock against a crossing whose first
+        # message never came (Q5's own row records that as invisible, and Q6's
+        # backlog burst has the same missing structure behind it). This one is
+        # written on EMISSION. See `company.interfaces.crossing_conversation`.
+        self._conversations = ConversationRegister()
         # THE UNSOLICITED INBOUND REGISTER (atom EP6 -- the blind review's Q2).
         # Keyed by SENDER, because `WallNotification.sequence` is a position in
         # one counterparty's stream and comparing two senders' numbering would
@@ -884,6 +902,29 @@ class PaymentObservationConsumer:
         self._unresolved.pop(cid, None)
         self._resolved_correlation_ids.add(cid)
         payload = response.payload
+        # THE TERMINAL LEG (Q3). Only an OK closes a conversation, which is the
+        # SAME rule this method already applies two branches up: a non-OK is
+        # recorded as an `UnresolvedCrossing` and explicitly does not close the
+        # crossing, so a register that closed on one would contradict the
+        # consumer it lives in.
+        #
+        # THE LIMIT, named rather than papered over: an input-validation
+        # rejection genuinely ends its exchange -- no outcome will ever follow --
+        # and it arrives as `WallResponse(status=ERROR)`, which is
+        # indistinguishable at this branch from an ERROR the transport raised on
+        # a collection still perfectly alive at the bureau. The wire carries an
+        # `ErrorDetail.code` that could separate them, but keying the register on
+        # a code string would be attribution by spelling, and the company acting
+        # on the difference is `crossing_silence`'s question, not this one. So a
+        # terminating rejection stays OPEN here and is aged by the ladder, which
+        # is the conservative direction: the company keeps expecting an answer
+        # it will not get, and can say so, rather than quietly concluding.
+        self._conversations.record_terminal(
+            correlation_id=cid,
+            message_type=type(payload).__name__,
+            status=response.status,
+            observed_at=response.observed_at,
+        )
         if self._is_misdirected(payload):
             # SUSPENSE, not refusal and not a ledger post. The crossing is
             # marked resolved above and stays so: the message arrived, was read
@@ -918,6 +959,67 @@ class PaymentObservationConsumer:
                 "OBSERVABLE_RESPONSE_PAYLOAD_TYPES"
             )
         return True
+
+    def note_collection_request(self, request: WallRequest) -> None:
+        """Record that the company SUBMITTED a collection -- leg 1 (Q3).
+
+        Called at EMISSION, by the caller that sent the request, and this is the
+        structural change pass 44 makes: until now every register on this
+        consumer was written by an arrival, so a crossing existed, as far as the
+        company was concerned, only once something came back about it. A
+        collection lost on the way to the bureau and a collection never
+        submitted read identically, and so did a collection still in the
+        three-day cycle.
+
+        NOT AN OBSERVATION, which is why it is a separate method and not a
+        branch of `observe`. Nothing crossed the wall inbound here; this is the
+        company writing down its own act, and it is the only admissible evidence
+        that the act happened (see `ConversationRegister`'s docstring on why a
+        message can never supply it).
+
+        Idempotent on `correlation_id` (C-S2): re-submitting is the same
+        exchange, and re-opening would discard legs already heard on it."""
+        self._conversations.open_conversation(
+            correlation_id=request.correlation_id,
+            request_type=request.request_type,
+            emitted_at=request.emitted_at,
+        )
+
+    def observe_interim(self, interim: WallInterim) -> bool:
+        """Process one NON-TERMINAL leg -- leg 2 of a multi-leg exchange (Q3).
+
+        Returns True if newly filed, False for a redelivery of a leg already
+        held: the same C-S2 dedup contract `observe`/`observe_unsolicited` use,
+        so a transport that delivers twice cannot inflate `leg_count` into a
+        measure of itself.
+
+        RAISES `UnaskedLeg` for a `correlation_id` this company never opened.
+        That refusal is deliberate and is the R15 clause of this leg -- see
+        `ConversationRegister.record_interim`. It does NOT touch the ledger, the
+        cash position, or any belief: an acknowledgement resolves nothing, so a
+        version of this that moved a figure would be reading a resolution into
+        the one message defined by not being one."""
+        return self._conversations.record_interim(interim)
+
+    def conversation(self, correlation_id: str) -> Optional[CrossingConversation]:
+        """The exchange behind one correlation id, or `None` where this company
+        has no record of one at all."""
+        return self._conversations.conversation(correlation_id)
+
+    def conversations(self) -> Tuple[CrossingConversation, ...]:
+        """Every exchange this company has a record of, oldest first."""
+        return self._conversations.conversations()
+
+    def open_conversations(self) -> Tuple[CrossingConversation, ...]:
+        """Exchanges asked about and not yet terminally answered -- INCLUDING
+        those nothing has come back on, the reading that did not exist before
+        the request register."""
+        return self._conversations.open_conversations()
+
+    def multi_leg_conversations(self) -> Tuple[CrossingConversation, ...]:
+        """Exchanges that got past the trivial ask/answer pair. Q3's own
+        subject, made countable on a live run."""
+        return self._conversations.multi_leg_conversations()
 
     def observe_unsolicited(self, notification: WallNotification) -> bool:
         """Process one UNSOLICITED inbound message (blind review Q2).

@@ -9,6 +9,7 @@ import pytest
 
 from interface.contracts.wall_envelope import (
     ErrorDetail,
+    WallInterim,
     WallNotification,
     WallRequest,
     WallResponse,
@@ -211,3 +212,72 @@ def test_sequence_zero_is_LEGAL_and_not_confused_with_absent():
     guard written as `if not self.sequence` would reject the first message of
     every stream, so the success case is asserted rather than assumed."""
     assert _notif(sequence=0).sequence == 0
+
+
+# ── THE INTERIM LEG (blind review Q3) ──────────────────────────────────────────
+
+
+def _interim(**over):
+    kwargs = dict(
+        correlation_id="INV-1",
+        leg=2,
+        interim_type="bacs_input_report",
+        schema_version=2,
+        observed_at=dt.datetime(2026, 3, 3, 6, 0),
+        payload={"submission_ref": "SUB-1"},
+    )
+    kwargs.update(over)
+    return WallInterim(**kwargs)
+
+
+def test_an_interim_carries_no_status_so_it_cannot_resolve_anything():
+    """THE LOAD-BEARING ABSENCE. A status is a resolution; give an interim one
+    and nothing distinguishes it from a `WallResponse`, so the third leg
+    collapses back into the second and the conversation is two legs again under
+    a longer name. Asserted structurally rather than trusted to a docstring."""
+    assert not hasattr(_interim(), "status")
+
+
+def test_an_interim_carries_a_correlation_id_and_a_notification_does_not():
+    """The two new primitives are told apart by exactly this. An interim is BY
+    DEFINITION about a request that was made; a message with no request behind
+    it is unsolicited, and giving it a correlation id is the Q2 fail shape
+    ("a response to a synthetic request") in mirror image."""
+    assert _interim().correlation_id == "INV-1"
+    assert not hasattr(_notif(), "correlation_id")
+
+
+def test_an_interim_with_no_payload_is_REFUSED():
+    """An in-progress report that reports nothing is not a leg -- and unlike a
+    response it has no status to be honestly empty behind."""
+    with pytest.raises(ValueError, match="must carry a payload"):
+        _interim(payload=None)
+
+
+def test_an_interim_with_no_correlation_id_is_REFUSED():
+    with pytest.raises(ValueError, match="must carry a correlation_id"):
+        _interim(correlation_id="")
+
+
+@pytest.mark.parametrize("leg", [1, 0, -1, -7])
+def test_an_interim_can_never_be_LEG_ONE_or_earlier(leg):
+    """Leg 1 is the `WallRequest`. This is the structural claim the whole
+    ordering rests on, so it is refused at construction rather than documented:
+    an interim that could call itself leg 1 could describe an exchange nobody
+    started."""
+    with pytest.raises(ValueError, match="leg must be >= 2"):
+        _interim(leg=leg)
+
+
+def test_leg_TWO_is_LEGAL_and_so_is_a_much_later_leg():
+    """NULL CONTROL for the refusals above: the boundary value is the one the
+    rule is most likely to be wrong about, and a long conversation must stay
+    expressible or the primitive caps at three legs."""
+    assert _interim(leg=2).leg == 2
+    assert _interim(leg=9).leg == 9
+
+
+def test_wall_interim_is_frozen():
+    i = _interim()
+    with pytest.raises(Exception):
+        i.leg = 5  # type: ignore[misc]

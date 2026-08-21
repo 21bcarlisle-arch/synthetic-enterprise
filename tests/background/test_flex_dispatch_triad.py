@@ -9,12 +9,16 @@ import numpy as np
 import pytest
 
 from background.flex_dispatch_triad import (
-    measure, build_gap_summary, measure_l2, build_gap_summary_l2,
-    measure_l3, build_gap_summary_l3,
+    build_gap_summary,
+    build_gap_summary_l2,
+    build_gap_summary_l3,
+    measure,
+    measure_l2,
+    measure_l3,
 )
 from background.gap_metric import prediction_gap
-from sim.flex_dispatch import dispatch_and_settle, DeliveryModel
 from company.market.flex_participation import form_participation_belief
+from sim.flex_dispatch import DeliveryModel, dispatch_and_settle
 
 
 def _synthetic_record(n=400, seed=1):
@@ -146,8 +150,8 @@ def test_R15_l3_overclaim_is_not_fail_open_on_an_uncontended_book():
     portfolio large enough that they never contend: the over-claim must
     collapse to ~0, proving a positive reading means real contention rather
     than an always-on number."""
-    from sim.flex_dispatch import FlexPaymentBasis, VenueSpec
     from interface.contracts.flex_observable_seam import FlexVenue
+    from sim.flex_dispatch import FlexPaymentBasis, VenueSpec
 
     roomy = [
         VenueSpec(venue=FlexVenue.BALANCING_MECHANISM,
@@ -208,3 +212,107 @@ def test_l3_summary_shape():
               "true_contention_binding_frac", "worst_over_allocation_mw"):
         assert k in s
     assert "BENCHMARK REQUIRED" in s["note"]
+
+
+# ===========================================================================
+# EP6 pass 22 -- THE HARNESS CROSSES ON THE WIRE. These are the proofs that
+# the codecs are not a spare path built beside the live one: this is the
+# module that scores the belief-vs-truth gap, so the gap is now measured
+# against a company that only ever saw encoded, version-checked bytes.
+# ===========================================================================
+
+
+def test_the_L2_statement_REALLY_crosses_the_wire_and_not_beside_it():
+    """MUTATION on the LIVE path. A codec nobody calls leaves every codec test
+    green -- the only way to see that is to break the codec and require the
+    harness to notice. Patch the company's seam read to refuse and `measure_l2`
+    must FAIL; unpatched, it must still produce its gap.
+
+    NULL CONTROL is the unpatched twin below the assertion, not a separate
+    test: without it the mutation is satisfied by a harness that fails always.
+    """
+    import background.flex_dispatch_triad as triad
+    rec = _synthetic_record()
+    sentinel = RuntimeError("the seam refused")
+
+    def _refuse(_messages):
+        raise sentinel
+
+    original = triad.observe_settlement_wire
+    try:
+        triad.observe_settlement_wire = _refuse
+        with pytest.raises(RuntimeError) as exc:
+            measure_l2(rec, delivery=DeliveryModel(seed=3))
+        assert exc.value is sentinel
+    finally:
+        triad.observe_settlement_wire = original
+    assert measure_l2(rec, delivery=DeliveryModel(seed=3))["gap"] is not None
+
+
+def test_the_L3_feeds_REALLY_cross_the_wire():
+    """The same proof for the stacked instruction and settlement feeds. Wiring
+    L1/L2 alone would have moved the census reading to `3 of 3` with these two
+    still handed over as objects -- the identical defect, one granularity below
+    the instrument's, which is the trap this atom has now met twice."""
+    import background.flex_dispatch_triad as triad
+    rec = _synthetic_record()
+    sentinel = RuntimeError("the instruction feed refused")
+
+    def _refuse(_message, **_kw):
+        raise sentinel
+
+    original = triad.observe_response_wire
+    try:
+        triad.observe_response_wire = _refuse
+        with pytest.raises(RuntimeError) as exc:
+            measure_l3(rec)
+        assert exc.value is sentinel
+    finally:
+        triad.observe_response_wire = original
+    assert measure_l3(rec)["gap"] is not None
+
+
+def test_TRANSPORT_DOES_NOT_MOVE_THE_BELIEF():
+    """The atom's actual claim, asserted rather than asserted-about: a mock
+    counterparty and a real one are INDISTINGUISHABLE to the company. Two
+    companies see the same settlement run -- one handed the lines as objects
+    across a call frame, one handed the same run as bytes it decoded itself --
+    and their beliefs must be identical to the last float. If encoding moves
+    the belief at all, the envelope is transport in name only."""
+    from company.market.flex_participation import (
+        form_participation_belief_l2,
+        observe_settlement_wire,
+    )
+    from sim.flex_dispatch import (
+        emit_settlement_lines,
+        emit_settlement_lines_over_wire,
+    )
+    truth = dispatch_and_settle(_synthetic_record(), delivery=DeliveryModel(seed=7))
+    as_objects = [r.payload.metered_delivery_mwh for r in emit_settlement_lines(truth)]
+    as_bytes = [
+        line.metered_delivery_mwh
+        for line in observe_settlement_wire(emit_settlement_lines_over_wire(truth))
+    ]
+    assert as_bytes == as_objects and len(as_bytes) > 0
+
+    kw = dict(enrolled_mw=1.0, period_hours=1.0)
+    object_belief = form_participation_belief_l2(
+        truth.outturn_price, observed_delivery_mwh=as_objects, **kw)
+    wire_belief = form_participation_belief_l2(
+        truth.outturn_price, observed_delivery_mwh=as_bytes, **kw)
+    assert wire_belief.learned_delivery_ratio == object_belief.learned_delivery_ratio
+    assert np.array_equal(
+        wire_belief.expected_utilised_revenue, object_belief.expected_utilised_revenue)
+
+
+def test_the_wire_carries_the_version_on_EVERY_message_the_harness_crosses():
+    """Not a call-signature claim -- the emitted bytes are inspected. Channel
+    D's lesson applied to channel C: the field being structurally present on
+    the envelope is exactly what made its absence from the wire invisible for
+    four days."""
+    from interface.contracts.flex_observable_seam import SCHEMA_VERSION
+    from sim.flex_dispatch import emit_settlement_lines_over_wire
+    truth = dispatch_and_settle(_synthetic_record(), delivery=DeliveryModel(seed=7))
+    messages = emit_settlement_lines_over_wire(truth)
+    assert len(messages) > 0
+    assert all(m["schema_version"] == SCHEMA_VERSION for m in messages)

@@ -2035,7 +2035,12 @@ DECLARED_SURFACE_CONSTANT = "OBSERVABLE_PAYLOAD_FIELDS"
 SURFACE_PINS: dict[str, tuple[int, str]] = {
     "interface.contracts.conversation_seam": (1, "f0f702d4c7af9083"),
     "interface.contracts.flex_observable_seam": (1, "ea1b70a309a2a3e4"),
-    "interface.contracts.payment_observable_seam": (1, "cee449961c9f268b"),
+    # v2, EP6 pass 44: re-pinned in the same edit that bumped the seam's
+    # SCHEMA_VERSION, which is the only lawful reason to touch this line. What
+    # the surface gained is `BacsInputReport`, the interim leg's payload; the
+    # observable-vs-hidden judgement on its seven fields is recorded at the
+    # version constant in the seam itself, where an editor will meet it.
+    "interface.contracts.payment_observable_seam": (2, "5db4f5d7fbce6fc7"),
 }
 
 

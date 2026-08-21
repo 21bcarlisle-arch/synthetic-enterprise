@@ -57,9 +57,33 @@ import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
 
-from interface.contracts.wall_envelope import WallNotification, WallRequest, WallResponse
+from interface.contracts.wall_envelope import (
+    WallInterim,
+    WallNotification,
+    WallRequest,
+    WallResponse,
+)
 
-SCHEMA_VERSION = 1
+# v2 (EP6 pass 44): the INTERIM leg. `BacsInputReport` is a new payload type on
+# a new leg, which is a change to what this seam can put in front of a
+# counterparty -- so it is a RELEASE, not an edit. `tools.wall_channel_census`
+# caught it as a surface drift under an unchanged version and its instruction is
+# the one followed here: bump and re-pin, in the same edit, in two files.
+#
+# THE JUDGEMENT THE BUMP EXISTS TO FORCE, made out loud because the census's own
+# note says no code can make it: every one of `BacsInputReport`'s seven fields is
+# something a real supplier reads off its own Bacs input report. Five are its own
+# submission echoed back (submission_ref, account_id, mandate_ref, amount_gbp,
+# value_date) and two are the file-level counts the report states
+# (items_in_submission, items_rejected). No truth field, no probability, no
+# segment, no future-dated fact. The observable surface widened, deliberately,
+# and this is the review moment.
+#
+# v1 IS STILL SPOKEN. `company.interfaces.wall_protocol.SUPPORTED_SCHEMA_VERSIONS`
+# carries both, because a release that stopped reading the previous one would
+# refuse every message already in flight -- which is the big-bang cutover Q10
+# names as the defect.
+SCHEMA_VERSION = 2
 
 
 class PaymentRail(str, Enum):
@@ -157,6 +181,50 @@ class CollectionRequest:
     amount_gbp: float
     rail: PaymentRail
     requested_collection_date: dt.date
+
+
+# ---------------------------------------------------------------------------
+# The INTERIM leg (blind review Q3) -- WORLD -> COMPANY, and NOT an answer.
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class BacsInputReport:
+    """Payload of ``WallInterim[BacsInputReport]``: the Bacs input report --
+    "your submission arrived, it validated, N items are in processing" -- which
+    is leg 2 of the real three-working-day Direct Debit cycle this module's own
+    header has described since it was written ("a `CollectionRequest` submitted
+    today resolves via an outcome report DAYS later").
+
+    IT IS NOT AN ANSWER AND MUST NOT BE MODELLED AS ONE. It says nothing about
+    whether the payer will pay -- that is the ARUDD/remittance leg, days later.
+    It says only that the request is now genuinely in flight, which is a fact
+    the company could not previously hold at all: before this leg, a submitted
+    collection and a collection lost on the way to the bureau were the same
+    silence.
+
+    ACCEPTANCE ONLY. A submission REJECTED at input validation ends the
+    conversation and is a ``WallResponse(status=ERROR)``, not this type --
+    ``WallInterim``'s own docstring gives the reason (only acceptance leaves
+    something still owed). So there is no `accepted` flag here: a boolean whose
+    False branch belongs to a different primitive is a branch that will one day
+    be taken.
+
+    FILE-LEVEL FACTS ON A COLLECTION-LEVEL LEG, stated as a limit rather than
+    left to be inferred. Real Bacs acknowledges a FILE; this wall's correlation
+    unit is one collection, so the report is delivered per collection and
+    carries `submission_ref` plus the file's own counts. Every collection in one
+    submission therefore quotes the same `submission_ref` and the same counts,
+    which is what lets a company notice it was acknowledged for fewer items than
+    it sent -- the file-level fact survives, the file-level MESSAGE does not."""
+
+    submission_ref: str
+    account_id: str
+    mandate_ref: str
+    amount_gbp: float
+    items_in_submission: int
+    items_rejected: int
+    value_date: dt.date
 
 
 # ---------------------------------------------------------------------------
@@ -268,11 +336,37 @@ SettlementConfirmationWallResponse = WallResponse[SettlementConfirmation]
 # the right one; the adapter no longer builds it.
 AddacsWallNotification = WallNotification[AddacsAdvice]
 
+# INTERIM leg (Q3): leg 2 of the Bacs cycle, carried by the primitive that
+# admits it is not the answer.
+BacsInputReportWallInterim = WallInterim[BacsInputReport]
+
+# The interim_type string the input-report emitter stamps on the envelope --
+# a constant rather than a literal at the call sites, for
+# `ADDACS_NOTIFICATION_TYPE`'s reason.
+BACS_INPUT_REPORT_INTERIM_TYPE = "bacs_input_report"
+
+# The leg ordinal the input report occupies in the collection conversation:
+# 1 = CollectionRequest, 2 = this, 3 = the outcome (ARUDD / remittance /
+# settlement). Declared here so the emitter and the register cannot disagree
+# about it by each spelling a literal.
+BACS_INPUT_REPORT_LEG = 2
+
+# Every payload this seam is permitted to carry on the INTERIM leg. Declared,
+# not derived, for `UNSOLICITED_PAYLOAD_TYPES`' reason: a set computed from
+# what the adapter sends would agree with the adapter by construction.
+INTERIM_PAYLOAD_TYPES: tuple[type, ...] = (BacsInputReport,)
+
 # The notification_type string the ADDACS stream stamps on the envelope. A
 # constant rather than a literal at the two call sites, because a producer and
 # a consumer that spell a routing key differently is a class this project has
 # recorded (substring/spelling attribution defects).
 ADDACS_NOTIFICATION_TYPE = "addacs_advice"
+
+# The request_type string a collection submission stamps on its envelope --
+# leg 1 of the multi-leg Bacs conversation (Q3). Same reason as above: a
+# producer and a consumer that spell a routing key differently is a class this
+# project has recorded.
+COLLECTION_REQUEST_TYPE = "collection_request"
 
 
 # ---------------------------------------------------------------------------
@@ -349,6 +443,10 @@ OBSERVABLE_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {
     ),
     "AuddisReport": (
         "mandate_ref", "account_id", "status", "status_text", "value_date",
+    ),
+    "BacsInputReport": (
+        "submission_ref", "account_id", "mandate_ref", "amount_gbp",
+        "items_in_submission", "items_rejected", "value_date",
     ),
     "PaymentNotification": (
         "account_id", "rail", "amount_gbp", "reference", "value_date", "status",

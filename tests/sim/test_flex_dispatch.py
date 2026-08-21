@@ -200,23 +200,37 @@ def test_the_encoder_writes_every_declared_key_INCLUDING_its_nulls():
     assert "error" in wire
 
 
-def test_the_version_on_the_wire_comes_from_the_CONTRACT_not_a_literal(monkeypatch):
+def test_the_version_on_the_wire_comes_from_the_CONTRACT_not_a_literal():
     """MUTATION: move the version the encoder reads and the emitted version
     must move with it. A literal `1` in the encoder passes every other test in
     this file and silently mislabels every message the day the schema moves.
 
-    The name is patched, NOT the module reloaded: reloading `sim.flex_dispatch`
-    rebinds `DeliveryModel`, `VenueSpec` and friends to fresh class objects
-    while every other test module in the suite still holds the old ones, so the
-    isolation cost lands on siblings that have nothing to do with this check.
-    Tying the patched name back to the contract is the second assertion.
+    WHAT MOVED, AND WHY THE MUTATION MOVED WITH IT (EP6 pass 44). Until then the
+    encoder wrote this module's OWN `SCHEMA_VERSION` and this test patched that
+    name. Both readings are honestly 'not a literal', and only one of them can
+    ever fail on a real message: an encoder stamping its own constant makes the
+    wire version STRUCTURALLY UNABLE to differ from the reader's, so the
+    decoder's version check -- the one thing a version number is for -- could
+    never fire on anything this seam emitted. The encoder now preserves
+    `response.schema_version`, so the mutation has to move the MESSAGE's vintage,
+    which is the only input on which a preserving and a relabelling encoder
+    disagree. Patching the module name would now pass against BOTH.
+
+    The contract tie stays as an assertion rather than being dropped with the
+    monkeypatch: a seam whose messages stopped being stamped from the contract
+    would leave the preservation check green while the vintage on the wire came
+    from nowhere in particular.
     """
     import sim.flex_dispatch as fd
     from interface.contracts import flex_observable_seam as seam
     assert fd.SCHEMA_VERSION is seam.SCHEMA_VERSION
     assert fd.encode_wall_response(_a_settlement_response())["schema_version"] == 1
-    monkeypatch.setattr(fd, "SCHEMA_VERSION", 7)
-    assert fd.encode_wall_response(_a_settlement_response())["schema_version"] == 7
+    foreign = _a_settlement_response(schema_version=7)
+    assert fd.encode_wall_response(foreign)["schema_version"] == 7
+    # NULL CONTROL. 7 is chosen for being a vintage this seam does not itself
+    # speak; the day the constant reaches it, the assertion above stops being a
+    # test of anything and this line is what says so.
+    assert seam.SCHEMA_VERSION != 7
 
 
 def test_a_FORBIDDEN_TRUTH_FIELD_is_refused_BY_NAME_at_the_point_of_emission():

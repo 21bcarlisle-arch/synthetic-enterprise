@@ -498,18 +498,28 @@ def test_mutation_a_stale_declaration_is_refused(monkeypatch):
 
 
 def test_every_declared_payload_type_matches_its_contract_dataclass():
-    """The declaration must cover ALL SIX payload types and agree with each --
-    a closed set that silently omits a type is fail-open for that type, which
-    is the shape of defect this whole mechanism exists to refuse."""
+    """The declaration must cover EVERY payload type this seam can carry across
+    the wall and agree with each -- a closed set that silently omits a type is
+    fail-open for that type, which is the shape of defect this whole mechanism
+    exists to refuse.
+
+    THE SUBJECT IS EVERY LEG, NOT EVERY RESPONSE (EP6 pass 44). This assertion
+    was written against `OBSERVABLE_RESPONSE_PAYLOAD_TYPES` alone when the
+    response leg was the only leg carrying a payload across the wall. The
+    INTERIM leg (`WallInterim`, Q3) now carries one too, and a set closed over
+    the response types alone would have left the newest crossing the only one
+    outside the declaration -- which is the same fail-open shape one leg
+    further out, and is exactly the "miss next to a hit" class this atom has
+    already recorded twice."""
     from interface.contracts.payment_observable_seam import (
+        INTERIM_PAYLOAD_TYPES,
         OBSERVABLE_PAYLOAD_FIELDS,
         OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
     )
 
-    assert set(OBSERVABLE_PAYLOAD_FIELDS) == {
-        t.__name__ for t in OBSERVABLE_RESPONSE_PAYLOAD_TYPES
-    }
-    for payload_type in OBSERVABLE_RESPONSE_PAYLOAD_TYPES:
+    carried = OBSERVABLE_RESPONSE_PAYLOAD_TYPES + INTERIM_PAYLOAD_TYPES
+    assert set(OBSERVABLE_PAYLOAD_FIELDS) == {t.__name__ for t in carried}
+    for payload_type in carried:
         actual = tuple(f.name for f in dataclasses.fields(payload_type))
         assert OBSERVABLE_PAYLOAD_FIELDS[payload_type.__name__] == actual, (
             f"{payload_type.__name__}: the contract's declaration and the "
@@ -1050,3 +1060,200 @@ def test_the_advice_is_a_SEPARATE_message_from_the_ARUDD_line():
         "the advice must not be correlated to the collection -- nobody asked "
         "for it, which is the whole of the Q2 repair"
     )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# THE INTERIM LEG -- the Bacs input report (blind review Q3, EP6 pass 44)
+# ═══════════════════════════════════════════════════════════════════════════════
+import datetime as _dt  # noqa: E402
+
+from interface.contracts.payment_observable_seam import (  # noqa: E402
+    BACS_INPUT_REPORT_INTERIM_TYPE,
+    BACS_INPUT_REPORT_LEG,
+    COLLECTION_REQUEST_TYPE,
+    SCHEMA_VERSION,
+    BacsInputReport,
+    CollectionRequest,
+)
+from interface.contracts.wall_envelope import WallInterim, WallRequest  # noqa: E402
+from simulation.payment_seam_adapter import (  # noqa: E402
+    BACS_INPUT_REPORT_LAG_DAYS,
+    INPUT_VALIDATION_ERROR_CODE,
+    emit_input_reports,
+    encode_wall_response,
+)
+
+_SUBMITTED_AT = _dt.datetime(2026, 3, 2, 9, 0)
+
+
+def _collection_request(correlation_id="INV-1", account_id="ACC-1", amount=42.5):
+    return WallRequest(
+        correlation_id=correlation_id,
+        request_type=COLLECTION_REQUEST_TYPE,
+        schema_version=SCHEMA_VERSION,
+        as_of=_SUBMITTED_AT,
+        emitted_at=_SUBMITTED_AT,
+        payload=CollectionRequest(
+            account_id=account_id,
+            mandate_ref=f"MANDATE-{account_id}",
+            amount_gbp=amount,
+            rail=PaymentRail.BACS_DIRECT_DEBIT,
+            requested_collection_date=_dt.date(2026, 3, 6),
+        ),
+    )
+
+
+def test_an_accepted_submission_produces_an_INTERIM_and_never_a_response():
+    """THE WHOLE POINT OF THE LEG. An acknowledgement resolves nothing -- it says
+    the request is in flight -- so it must not arrive in the shape that means
+    "here is your answer"."""
+    ack = emit_input_reports([_collection_request()], submission_ref="SUB-1")
+    assert len(ack.interims) == 1 and ack.rejections == ()
+    interim = ack.interims[0]
+    assert isinstance(interim, WallInterim)
+    assert interim.leg == BACS_INPUT_REPORT_LEG == 2
+    assert interim.interim_type == BACS_INPUT_REPORT_INTERIM_TYPE
+    assert isinstance(interim.payload, BacsInputReport)
+    assert not hasattr(interim, "status")
+
+
+def test_the_acknowledgement_lands_BEFORE_the_outcome_it_precedes():
+    """The ordering is the fact that matters: an ack that arrived after the
+    outcome would not be an ack. Real Bacs reports input the working day after
+    submission, ahead of the day-3 return."""
+    interim = emit_input_reports([_collection_request()], submission_ref="SUB-1").interims[0]
+    assert interim.observed_at.date() == _SUBMITTED_AT.date() + _dt.timedelta(
+        days=BACS_INPUT_REPORT_LAG_DAYS
+    )
+    assert interim.observed_at > _SUBMITTED_AT
+
+
+def test_a_REJECTED_item_is_a_terminal_ERROR_and_not_an_interim():
+    """`WallInterim`'s own rule: only ACCEPTANCE leaves something still owed. A
+    rejection at input validation ends the exchange and no outcome will ever
+    follow, so modelling it as an interim carrying `accepted=False` would give
+    the interim a resolution -- which is the move that collapses a three-leg
+    conversation back into two."""
+    ack = emit_input_reports(
+        [_collection_request("INV-1"), _collection_request("INV-2")],
+        submission_ref="SUB-1",
+        rejected_correlation_ids=frozenset({"INV-2"}),
+    )
+    assert [i.correlation_id for i in ack.interims] == ["INV-1"]
+    assert [r.correlation_id for r in ack.rejections] == ["INV-2"]
+    rejection = ack.rejections[0]
+    assert rejection.status is WallStatus.ERROR
+    assert rejection.error.code == INPUT_VALIDATION_ERROR_CODE
+    assert rejection.payload is None
+
+
+def test_the_FILE_LEVEL_counts_ride_on_every_leg_of_the_submission():
+    """Real Bacs acknowledges a FILE; this wall's correlation unit is one
+    collection. The counts are carried per item so that a company acknowledged
+    for fewer items than it sent can see that from any one report -- a check it
+    could not make if the counts were dropped as redundant."""
+    ack = emit_input_reports(
+        [_collection_request(f"INV-{n}") for n in range(4)],
+        submission_ref="SUB-1",
+        rejected_correlation_ids=frozenset({"INV-3"}),
+    )
+    assert len(ack.interims) == 3
+    for interim in ack.interims:
+        assert interim.payload.items_in_submission == 4
+        assert interim.payload.items_rejected == 1
+        assert interim.payload.submission_ref == "SUB-1"
+
+
+def test_a_CLEAN_submission_reports_zero_rejected():
+    """NULL CONTROL for the counts above: without it, `items_rejected` could be
+    a field that is always non-zero and the test would pass on a constant."""
+    ack = emit_input_reports(
+        [_collection_request(f"INV-{n}") for n in range(4)], submission_ref="SUB-1"
+    )
+    assert len(ack.interims) == 4
+    assert {i.payload.items_rejected for i in ack.interims} == {0}
+
+
+def test_the_report_ECHOES_the_submission_and_invents_nothing():
+    """Every field on this payload is the company's own submission handed back
+    or a count of the file it travelled in. A report that named a different
+    account or amount would be the bureau inventing a fact."""
+    request = _collection_request("INV-9", account_id="ACC-77", amount=13.25)
+    payload = emit_input_reports([request], submission_ref="SUB-1").interims[0].payload
+    assert payload.account_id == "ACC-77"
+    assert payload.mandate_ref == "MANDATE-ACC-77"
+    assert payload.amount_gbp == 13.25
+    assert payload.value_date == request.payload.requested_collection_date
+
+
+def test_a_submission_with_NO_REF_is_REFUSED():
+    with pytest.raises(ValueError, match="submission_ref"):
+        emit_input_reports([_collection_request()], submission_ref="")
+
+
+def test_a_NON_COLLECTION_payload_is_REFUSED_rather_than_SKIPPED():
+    """A bureau acknowledging a message it cannot read is the fail-open shape,
+    and silently returning fewer interims than there were requests would make a
+    wrong payload type indistinguishable from a rejection."""
+    bad = WallRequest(
+        correlation_id="INV-1",
+        request_type="something_else",
+        schema_version=SCHEMA_VERSION,
+        as_of=_SUBMITTED_AT,
+        emitted_at=_SUBMITTED_AT,
+        payload={"account_id": "ACC-1"},
+    )
+    with pytest.raises(ValueError, match="acknowledges collection submissions only"):
+        emit_input_reports([bad], submission_ref="SUB-1")
+
+
+def test_REJECTING_an_item_that_was_never_SENT_is_REFUSED():
+    """A rejection for an item not in the submission is not a rejection. Without
+    this the caller could silently ask for a rejection that never happened and
+    read the resulting all-accepted batch as agreement."""
+    with pytest.raises(ValueError, match="not in this submission"):
+        emit_input_reports(
+            [_collection_request("INV-1")],
+            submission_ref="SUB-1",
+            rejected_correlation_ids=frozenset({"INV-404"}),
+        )
+
+
+def test_an_EMPTY_submission_produces_nothing_and_does_not_raise():
+    """A file with no items is a legitimate no-op, not an error, and it must not
+    be confused with a file whose items were all rejected."""
+    ack = emit_input_reports([], submission_ref="SUB-1")
+    assert ack.interims == () and ack.rejections == ()
+
+
+def test_MUTATION_the_encoder_no_longer_relabels_a_messages_own_vintage():
+    """THE DEFECT THE v2 RELEASE EXPOSED. `encode_wall_response` wrote this
+    module's own `SCHEMA_VERSION` and DISCARDED `response.schema_version`, in
+    all three world-side seam encoders, while the company's codec had always
+    preserved it. It was invisible while exactly one version existed.
+
+    An encoder that overwrites the stamp makes the vintage field unable to
+    differ from the reader's constant -- so the decoder's version check, the one
+    thing a version number is FOR, could never fire on anything this seam
+    emitted. Asserted on a response whose version is deliberately NOT the
+    module's current one, which is the only input that can tell the two
+    implementations apart."""
+    old = WallResponse(
+        correlation_id="INV-1",
+        status=WallStatus.OK,
+        schema_version=1,
+        observed_at=_dt.datetime(2026, 3, 6, 6, 0),
+        valid_time=_dt.date(2026, 3, 6),
+        payload=RemittanceAdvice(
+            bank_reference="INV-1",
+            account_id="ACC-1",
+            amount_gbp=42.5,
+            rail=PaymentRail.BACS_DIRECT_DEBIT,
+            value_date=_dt.date(2026, 3, 6),
+        ),
+    )
+    assert old.schema_version != SCHEMA_VERSION, (
+        "the null control: this test says nothing unless the fixture version "
+        "differs from the module constant"
+    )
+    assert encode_wall_response(old)["schema_version"] == 1

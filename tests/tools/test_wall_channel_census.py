@@ -3438,11 +3438,17 @@ def test_THE_LIVE_WALL_IS_UNSOLICITED_ON_EXACTLY_THE_TWO_SEAMS_THE_WALK_NAMED():
 
     WHEN THIS GOES GREEN the assertion below fails, and that is the correct moment to move the
     check into the CLI's return and this test into `assert verdict.ok`.
+
+    ONE OF THE TWO REPAIRED (EP6 pass 44): `payment_observable_seam` gained
+    `WallRequest[CollectionRequest]` on the live path (`background.live_payment_triad`), so it
+    moved from UNSOLICITED to CONVERSANT -- the exact repair this test's docstring invited, not
+    a regression. `flex_observable_seam` is untouched and still asks into nothing. SHRINK-ONLY,
+    same discipline as the population beside it: the pin narrows to the one seam still wrong
+    rather than being re-widened to keep the old assertion trivially true.
     """
     verdict = wcc.seam_conversation_conformance_at(worktree=True)
     known_unsolicited = {
         "interface.contracts.flex_observable_seam",
-        "interface.contracts.payment_observable_seam",
     }
 
     assert set(verdict.unsolicited) <= known_unsolicited, (
@@ -3456,9 +3462,12 @@ def test_THE_LIVE_WALL_IS_UNSOLICITED_ON_EXACTLY_THE_TWO_SEAMS_THE_WALK_NAMED():
     assert not verdict.silent, (
         "a live seam is live at neither end: " + verdict.report()
     )
-    assert verdict.conversant == ("interface.contracts.conversation_seam",), (
-        "the one genuinely two-way conversation on the wall has changed, which is either the "
-        "repair this control exists to invite or a regression: " + verdict.report()
+    assert set(verdict.conversant) == {
+        "interface.contracts.conversation_seam",
+        "interface.contracts.payment_observable_seam",
+    }, (
+        "the set of genuinely two-way conversations on the wall has changed, which is either a "
+        "further repair or a regression: " + verdict.report()
     )
 
 

@@ -153,7 +153,14 @@ R = TypeVar("R")
 #: outside this set is refused as UNSUPPORTED_VERSION -- distinguishably from
 #: an absent one, because "you speak a dialect I do not know" and "you did not
 #: say what you speak" are different failures and call for different repairs.
-SUPPORTED_SCHEMA_VERSIONS: frozenset[int] = frozenset({1})
+# TWO RELEASES AT ONCE (EP6 pass 44). The payment seam went to v2 when it grew
+# the interim leg. This build reads BOTH: a release that dropped the previous
+# version would refuse every message already in flight on the day it shipped,
+# which is precisely the big-bang cutover the review's Q10 names as the failing
+# answer. What this constant says is what this BUILD can read at all; which
+# release a given participant is actually on is `CounterpartyRecord.
+# speaks_schema_versions`, and the two are different facts.
+SUPPORTED_SCHEMA_VERSIONS: frozenset[int] = frozenset({1, 2})
 
 #: The exact key set of a request on the wire. Derived from nothing -- it is
 #: stated here and asserted against the dataclass in the test suite, so a field
@@ -275,7 +282,7 @@ COUNTERPARTY_REGISTRY: Mapping[str, CounterpartyRecord] = MappingProxyType(
             credential_sha256=(
                 "639aca59b3a720c287d0473294933e0bb86c75173c6f0aedaaa5cbd376eda12a"
             ),
-            speaks_schema_versions=frozenset({1}),
+            speaks_schema_versions=frozenset({1, 2}),
             # A module in this repository holds the credential this fingerprint
             # is of (`simulation/payment_seam_adapter.py::PARTICIPANT_CREDENTIAL`).
             # Labelling it anything else reds the cross-check named on

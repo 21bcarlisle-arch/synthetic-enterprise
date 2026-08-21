@@ -1323,3 +1323,240 @@ def test_q6_R15_MUTANT_a_triad_that_stops_stating_its_roster_suspends_its_own_ca
         "landing in suspense, not silently absorbed"
     )
     assert "ACC-q6m0" not in suspended
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Q3 -- A CONVERSATION WITH MORE THAN TWO LEGS, ON THE LIVE PATH (EP6 pass 44)
+# ═══════════════════════════════════════════════════════════════════════════════
+from company.interfaces.crossing_conversation import LegKind, UnaskedLeg  # noqa: E402
+from interface.contracts.payment_observable_seam import (  # noqa: E402
+    COLLECTION_REQUEST_TYPE,
+)
+
+
+def _dd_triad(n=6):
+    """A small population driven through the REAL `record_period`. Direct Debit
+    is the only rail with a request leg -- a push payment is a crossing nobody
+    asked for -- so the method is pinned rather than drawn, and the null control
+    below drives the other rails on purpose."""
+    triad = lpt.LivePaymentTriad()
+    for i in range(n):
+        triad.record_period(
+            customer_id=f"q3c{i}",
+            due_date=date(2026, 6, 17),
+            amount_gbp=42.0,
+            income_stress_value="low",
+            segment="resi",
+        )
+    return triad
+
+
+def test_q3_the_LIVE_triad_holds_THREE_LEG_conversations_and_is_not_an_orphan():
+    """THE SHOWING Q3 ASKED FOR, on the company `run_phase2b` actually drives
+    rather than on a fixture. A control whose only consumer is its own test is
+    an orphan; this asserts the running triad opens the exchange, hears the
+    acknowledgement and closes on the outcome."""
+    triad = _dd_triad()
+    dd = [c for c in triad._consumer.conversations() if c.request_type == COLLECTION_REQUEST_TYPE]
+    assert dd, "the live run must contain at least one submitted collection"
+
+    multi = triad._consumer.multi_leg_conversations()
+    assert multi, "no exchange got past the trivial pair, so Q3 is unanswered"
+    conv = multi[0]
+    assert conv.leg_count >= 3
+    assert [leg.kind for leg in conv.legs[:2]] == [LegKind.REQUEST, LegKind.INTERIM]
+    assert conv.legs[1].message_type == "bacs_input_report"
+
+
+def test_q3_the_SHADOW_company_holds_the_same_exchanges():
+    """A shadow that heard a different set of conversations would be a second
+    company, not a counterfactual -- the same reason it is billed identically
+    and told the same ADDACS advices."""
+    triad = _dd_triad()
+    assert len(triad._consumer.conversations()) == len(triad._cf_consumer.conversations())
+    assert len(triad._consumer.multi_leg_conversations()) == len(
+        triad._cf_consumer.multi_leg_conversations()
+    )
+
+
+def test_q3_a_PUSH_rail_gets_no_request_leg_and_that_is_the_null_control():
+    """Without this the three-leg assertion above could be passing on a triad
+    that opened a conversation for everything. A standing order or card top-up
+    is customer-initiated: the company asked for nothing, so there is nothing to
+    be leg 1 of, and minting a request for one would be the Q2 fail shape built
+    on purpose."""
+    triad = lpt.LivePaymentTriad()
+    for i in range(40):
+        triad.record_period(
+            customer_id=f"q3push{i}",
+            due_date=date(2026, 6, 17),
+            amount_gbp=42.0,
+            income_stress_value="low",
+            segment="resi",
+        )
+    by_method = {r.payment_method for r in triad.records}
+    assert len(by_method) > 1, "the population must contain more than one rail"
+    for conv in triad._consumer.conversations():
+        if conv.request_type != COLLECTION_REQUEST_TYPE:
+            assert conv.leg_count == 1, (
+                "a crossing nobody requested must stay a single terminal leg"
+            )
+            assert not conv.is_multi_leg
+
+
+def test_q3_MUTATION_the_company_REFUSES_an_acknowledgement_it_never_asked_for():
+    """THE R15 CLAUSE ON THE LIVE PATH. The company's own request register is
+    the only evidence it submitted anything; a bureau that could open a
+    conversation by acknowledging one would let any process able to mint a
+    plausible correlation id into the company's book.
+
+    The mutation is the id: the SAME interim, byte for byte, is accepted under a
+    correlation the triad really submitted and refused under one it did not."""
+    from simulation.payment_seam_adapter import emit_input_reports
+
+    triad = _dd_triad()
+    submitted = [
+        c for c in triad._consumer.conversations() if c.request_type == COLLECTION_REQUEST_TYPE
+    ]
+    assert submitted
+    known = submitted[0].correlation_id
+
+    request = lpt.WallRequest(
+        correlation_id="INV-NOBODY-SENT",
+        request_type=COLLECTION_REQUEST_TYPE,
+        schema_version=SCHEMA_VERSION,
+        as_of=lpt.datetime(2026, 6, 1, 9, 0),
+        emitted_at=lpt.datetime(2026, 6, 1, 9, 0),
+        payload=lpt.CollectionRequest(
+            account_id="ACC-q3c0",
+            mandate_ref="MANDATE-ACC-q3c0",
+            amount_gbp=42.0,
+            rail=lpt.PaymentRail.BACS_DIRECT_DEBIT,
+            requested_collection_date=date(2026, 6, 17),
+        ),
+    )
+    forged = emit_input_reports([request], submission_ref="SUB-FORGED").interims[0]
+    with pytest.raises(UnaskedLeg):
+        triad._consumer.observe_interim(forged)
+
+    # NULL CONTROL: the identical message under an id the company really did
+    # submit is a redelivery of a leg already held, so it is a no-op and not a
+    # refusal -- which is what proves the refusal was keyed on the register.
+    import dataclasses as _dc
+
+    genuine = _dc.replace(forged, correlation_id=known)
+    assert triad._consumer.observe_interim(genuine) is False
+
+
+def test_q3_EVERY_PUBLISHED_FIGURE_IS_UNCHANGED_BY_THE_NEW_LEGS():
+    """THE HONEST HEADLINE, measured rather than hedged. The request and interim
+    legs buy STRUCTURE and a new detectable; they must not move a belief. An
+    acknowledgement resolves nothing, so a version of this that shifted a
+    published number would be reading a resolution into the one message defined
+    by not being one.
+
+    Pinned against pass 43's recorded values, which is what makes this a
+    regression test rather than a restatement of whatever the code does now."""
+    triad = _build_triad()
+    result = triad.measure()
+    assert result is not None
+    assert round(result["detection"].gap, 10) == 0.1181818182
+    assert round(result["detection_latency"].gap, 6) == 2.135447
+    assert round(result["belief"].gap, 10) == 0.1470588235
+    assert round(result["belief_population_mix"].gap, 10) == 0.2666666667
+    assert round(result["ageing"].gap, 10) == 0.2469740634
+
+
+def test_q3_A_COLLECTION_THE_WORLD_NEVER_ANSWERS_IS_NOW_VISIBLE_AS_AN_OPEN_EXCHANGE(
+    monkeypatch,
+):
+    """WHAT THE REQUEST REGISTER ACTUALLY BUYS, and it is the gap pass 41 filed
+    as unrepairable from where it stood.
+
+    Q5's own reconciliation row records that INITIAL SILENCE IS INVISIBLE: the
+    silence ladder ages only crossings something arrived about, so a collection
+    whose FIRST message never arrives left no trace, "because nothing records
+    that the company asked". Pass 41 made the stand-in able to produce exactly
+    that silence and could not make the company see it.
+
+    Here the two compose. `TransportFault.SILENCE` eats every response for one
+    crossing -- the real fault machinery, not a stubbed return -- and the
+    exchange stays OPEN, naming what it is still owed, because leg 1 was written
+    down when the company sent it.
+
+    THE MUTATION IS THE PRE-PASS-44 SHAPE: the same silenced crossing on a
+    consumer that was never told a request went out has NO record at all, which
+    is what the company saw before this pass and is asserted here rather than
+    described."""
+    from simulation.payment_seam_adapter import TransportFault
+
+    triad = lpt.LivePaymentTriad()
+    due = date(2026, 6, 17)
+    # PICK A DD CUSTOMER FIRST. Only Direct Debit has a request leg, and the
+    # rail is drawn per customer, so the target is resolved from the triad's own
+    # method draw rather than guessed from a name prefix. The D8 shadow re-emits
+    # a DD crossing under the SAME correlation id, so silencing by id silences
+    # both books -- which is right: a shadow told a different story would be a
+    # second company.
+    dd_customers = [
+        f"q3sil{i}" for i in range(12) if triad._method_for(f"q3sil{i}") == lpt.DIRECT_DEBIT
+    ]
+    assert dd_customers, "the fixture population drew no Direct Debit customer"
+    target = dd_customers[0]
+    cid = f"{target}::{lpt._period_index_for(due)}"
+
+    real_emit = lpt.emit_wire_responses
+    silenced = {}
+
+    def swallow_one(event, seam_input):
+        if seam_input.correlation_id == cid:
+            silenced["cid"] = cid
+            return real_emit(
+                event,
+                lpt.SeamAdapterInput(
+                    account_id=seam_input.account_id,
+                    correlation_id=seam_input.correlation_id,
+                    transport_fault=TransportFault.SILENCE,
+                ),
+            )
+        return real_emit(event, seam_input)
+
+    monkeypatch.setattr(lpt, "emit_wire_responses", swallow_one)
+
+    for i in range(12):
+        triad.record_period(
+            customer_id=f"q3sil{i}",
+            due_date=due,
+            amount_gbp=42.0,
+            income_stress_value="low",
+            segment="resi",
+        )
+    assert silenced, "the fixture never silenced a crossing, so this proves nothing"
+    cid = silenced["cid"]
+
+    conv = triad._consumer.conversation(cid)
+    assert conv is not None, "the company must hold a record of what it submitted"
+    assert not conv.is_closed
+    assert conv.awaiting == ("outcome",)
+    assert conv.leg_count == 2, "leg 1 was sent and leg 2 acknowledged; leg 3 never came"
+    assert conv in triad._consumer.open_conversations()
+
+    # THE PRE-PASS-44 COMPANY, on the identical silence: told nothing about its
+    # own submission, it has no record at all and cannot report being owed
+    # anything. This is the reading the repair replaced.
+    blind = lpt.PaymentObservationConsumer()
+    assert blind.conversation(cid) is None
+    assert blind.open_conversations() == ()
+
+
+def test_q3_the_UNSILENCED_crossings_in_that_same_run_all_CLOSED():
+    """NULL CONTROL for the test above: if every exchange stayed open the
+    assertion there would be measuring nothing. Only the silenced one is owed
+    an outcome."""
+    triad = _dd_triad()
+    open_dd = [
+        c
+        for c in triad._consumer.open_conversations()
+        if c.request_type == COLLECTION_REQUEST_TYPE
+    ]
+    assert open_dd == [], "with the transport behaving, every collection is answered"

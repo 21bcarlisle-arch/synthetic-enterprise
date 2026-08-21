@@ -547,7 +547,19 @@ def encode_wall_response(response: WallResponse) -> dict:
     return {
         "correlation_id": response.correlation_id,
         "status": response.status.value,
-        "schema_version": SCHEMA_VERSION,
+        # THE MESSAGE'S OWN VINTAGE, NOT THIS MODULE'S CURRENT ONE (EP6 pass 44).
+        # This read was `SCHEMA_VERSION` -- the encoder's own constant -- in all
+        # THREE world-side seam encoders, while the company's codec
+        # (`wall_protocol.encode_response`) had always preserved the field. The
+        # defect was invisible for as long as exactly one version existed, and
+        # the payment seam going to v2 is what made the two able to disagree.
+        # An encoder that overwrites the stamp makes the vintage field unable to
+        # differ from the reader's constant, so the decoder's version check --
+        # the one thing a version number is FOR -- could never fire on anything
+        # this seam emitted. Live behaviour is unchanged either way, because
+        # every construction site here already stamps `SCHEMA_VERSION`; what is
+        # removed is the latent relabelling.
+        "schema_version": response.schema_version,
         "observed_at": response.observed_at.isoformat(),
         "valid_time": None if response.valid_time is None else response.valid_time.isoformat(),
         "payload": (

@@ -484,6 +484,38 @@ def test_the_version_is_on_the_wire_and_comes_from_the_contract():
     assert _wire_response()["schema_version"] == SCHEMA_VERSION
 
 
+def test_the_encoder_PRESERVES_a_foreign_vintage_instead_of_relabelling_it():
+    """R10 sibling of the same class fix landed in `sim.flex_dispatch` and
+    `simulation.payment_seam_adapter` (EP6 pass 44): all three world-side seam
+    encoders wrote their OWN `SCHEMA_VERSION` and discarded the message's.
+
+    The test above cannot see that defect and never could, because its fixture
+    stamps the module constant -- the one input on which a preserving and a
+    relabelling encoder agree. It would have stayed green through the whole
+    class. This is its null-differentiating twin: a response whose vintage is
+    deliberately NOT the current constant, which is the only message that can
+    tell the two implementations apart. Without it, the decoder's version check
+    could never fire on anything this seam emitted -- an encoder that overwrites
+    the stamp makes the field structurally unable to differ from the reader's.
+
+    Fixed here rather than filed because R10 forbids closing a class defect with
+    an instance fix, and this seam is one of the three instances.
+    """
+    import dataclasses as _dc
+
+    from interface.contracts.conversation_seam import SCHEMA_VERSION
+    built = cr.respond_over_wall(
+        "Cwire1", _msg(mid="MW1"), correlation_id="corr-1",
+        observed_at=dt.datetime(2026, 1, 1, 12, 0),
+    )
+    foreign = _dc.replace(built, schema_version=7)
+    assert cr.encode_wall_response(foreign)["schema_version"] == 7
+    # NULL CONTROL: 7 is chosen for being a vintage this seam does not speak. The
+    # day the constant reaches it, the assertion above tests nothing and this
+    # line is what says so rather than letting it go quietly green.
+    assert SCHEMA_VERSION != 7
+
+
 def test_the_wire_message_is_json_round_trippable():
     """A wire form that cannot survive JSON is not a wire form. Everything on
     it must be a primitive: no enum objects, no datetimes, no dataclasses."""

@@ -117,10 +117,12 @@ from copy import deepcopy
 from dataclasses import dataclass, fields
 from datetime import date, datetime, time, timedelta
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Sequence, Tuple
 
 from interface.contracts.payment_observable_seam import (
     ADDACS_NOTIFICATION_TYPE,
+    BACS_INPUT_REPORT_INTERIM_TYPE,
+    BACS_INPUT_REPORT_LEG,
     FORBIDDEN_TRUTH_FIELDS,
     OBSERVABLE_PAYLOAD_FIELDS,
     OBSERVABLE_RESPONSE_PAYLOAD_TYPES,
@@ -128,14 +130,18 @@ from interface.contracts.payment_observable_seam import (
     AddacsAdvice,
     AddacsAdviceType,
     BacsArruddOutcome,
+    BacsInputReport,
     BacsReasonCategory,
+    CollectionRequest,
     DDOutcomeStatus,
     PaymentRail,
     RemittanceAdvice,
 )
 from interface.contracts.wall_envelope import (
     ErrorDetail,
+    WallInterim,
     WallNotification,
+    WallRequest,
     WallResponse,
     WallStatus,
 )
@@ -249,8 +255,17 @@ def _default_account_id(event: PaymentEvent) -> str:
     return f"ACC-{event.customer_id}"
 
 
-def _default_mandate_ref(event: PaymentEvent, account_id: str) -> str:
+def mandate_ref_for(account_id: str) -> str:
+    """The mandate reference this build uses for an account -- ONE spelling,
+    exported because the company side has to construct a `CollectionRequest`
+    naming the same mandate the ARUDD line will later report against, and two
+    modules each spelling their own literal is the producer/consumer drift class
+    this file already guards elsewhere (`ADDACS_NOTIFICATION_TYPE`)."""
     return f"MANDATE-{account_id}"
+
+
+def _default_mandate_ref(event: PaymentEvent, account_id: str) -> str:
+    return mandate_ref_for(account_id)
 
 
 class TransportFault(Enum):
@@ -535,6 +550,242 @@ def emit_wall_responses_batch(
 
 
 # ---------------------------------------------------------------------------
+# THE INTERIM LEG -- the Bacs input report (blind review Q3, EP6).
+#
+# WHAT WAS WRONG BEFORE THIS EXISTED: this seam had exactly two legs and could
+# only ever have two, because `correlation_id` bound one answer to one question
+# and there was no shape for a message that resolved nothing. The reviewer's Q3
+# is one sentence -- "show me a conversation with more than two legs" -- and its
+# fail condition is that the layer then "covers only the trivial exchanges".
+#
+# WHY THIS IS NOT A CURRICULUM CHANGE (R13), which a new world message otherwise
+# would be. The input report tells the company NOTHING the company did not
+# already send: it echoes back its own submission and says it validated. No
+# parameter, no difficulty value, no draw, no substream, no generator event. The
+# world is not deciding anything here -- it is acknowledging. That is precisely
+# why it can be built by this seat, and it is also why a REJECTION is not drawn
+# below: which submissions a bureau rejects at input validation IS a world
+# behaviour with a rate, so it is caller-supplied (the `SpecViolation` /
+# `TransportFault` pattern -- default empty, so every committed run is
+# bit-identical) rather than invented here.
+# ---------------------------------------------------------------------------
+
+#: The exact key set of a REQUEST on the wire, MIRRORED from the published
+#: contract rather than imported from the company's codec -- `simulation/` may
+#: not import `company.*` at all, so a counterparty refuses against the schema as
+#: published, which is what a foreign participant reading a spec actually does.
+#: Same shape, same reason, as `simulation/conversation_response.py`'s own
+#: `_REQUEST_WIRE_FIELDS`. Two independent statements of one key set: if they
+#: ever disagree the crossing breaks loudly, which is the point.
+_REQUEST_WIRE_FIELDS: frozenset = frozenset(
+    {"correlation_id", "request_type", "schema_version", "as_of", "emitted_at", "payload"}
+)
+
+_COLLECTION_PAYLOAD_WIRE_FIELDS: frozenset = frozenset(
+    {"account_id", "mandate_ref", "amount_gbp", "rail", "requested_collection_date"}
+)
+
+
+class SeamDecodeError(ValueError):
+    """This counterparty refused a message that arrived. Deliberately NOT
+    `WallProtocolError`: that type is the COMPANY's, and a bureau does not raise
+    its customer's exceptions."""
+
+
+def decode_collection_request(wire) -> WallRequest:
+    """Leg 1 read off the wire by the BUREAU, or refused.
+
+    ABSENCE IS NEVER AGREEMENT, which is the whole of why every field is
+    required in both directions: a missing key is refused rather than defaulted,
+    and an unknown key is refused rather than ignored. A decoder that ignored
+    what it did not recognise would let the company believe it had asked for
+    something this build never read.
+
+    THE VERSION IS CHECKED AND THE CHECK IS NOT A FORMALITY. A submission
+    stamped with a release this bureau does not speak is refused by number,
+    which is the one thing a version exists to make possible."""
+    if not isinstance(wire, dict):
+        raise SeamDecodeError(
+            f"a request must arrive as a mapping, got {type(wire).__name__}"
+        )
+    present = set(wire)
+    missing = sorted(_REQUEST_WIRE_FIELDS - present)
+    if missing:
+        raise SeamDecodeError(
+            f"request omits required field(s) {missing} -- an absent field is "
+            "never read as agreement with this process's own defaults"
+        )
+    unknown = sorted(present - _REQUEST_WIRE_FIELDS)
+    if unknown:
+        raise SeamDecodeError(
+            f"request carries field(s) {unknown} that schema version "
+            f"{SCHEMA_VERSION} does not define"
+        )
+    version = wire["schema_version"]
+    if not isinstance(version, int) or isinstance(version, bool):
+        raise SeamDecodeError(f"schema_version must be an int, got {version!r}")
+    if version != SCHEMA_VERSION:
+        raise SeamDecodeError(
+            f"schema_version {version} is not the {SCHEMA_VERSION} this seam speaks"
+        )
+    payload = wire["payload"]
+    if not isinstance(payload, dict):
+        raise SeamDecodeError(
+            f"a collection payload must be a mapping, got {type(payload).__name__}"
+        )
+    payload_present = set(payload)
+    payload_missing = sorted(_COLLECTION_PAYLOAD_WIRE_FIELDS - payload_present)
+    if payload_missing:
+        raise SeamDecodeError(
+            f"collection payload omits required field(s) {payload_missing}"
+        )
+    payload_unknown = sorted(payload_present - _COLLECTION_PAYLOAD_WIRE_FIELDS)
+    if payload_unknown:
+        raise SeamDecodeError(
+            f"collection payload carries field(s) {payload_unknown} that schema "
+            f"version {SCHEMA_VERSION} does not define"
+        )
+    try:
+        collection = CollectionRequest(
+            account_id=str(payload["account_id"]),
+            mandate_ref=str(payload["mandate_ref"]),
+            amount_gbp=float(payload["amount_gbp"]),
+            rail=PaymentRail(payload["rail"]),
+            requested_collection_date=date.fromisoformat(
+                str(payload["requested_collection_date"])
+            ),
+        )
+        return WallRequest(
+            correlation_id=str(wire["correlation_id"]),
+            request_type=str(wire["request_type"]),
+            schema_version=version,
+            as_of=datetime.fromisoformat(str(wire["as_of"])),
+            emitted_at=datetime.fromisoformat(str(wire["emitted_at"])),
+            payload=collection,
+        )
+    except (TypeError, ValueError) as exc:
+        raise SeamDecodeError(f"collection request is malformed: {exc}") from exc
+
+
+# Real Bacs makes the input report available the working day after submission --
+# day 1 of the three-day cycle, ahead of the day-3 outcome. Fixed, not drawn: the
+# exact lag carries no information a company system acts differently on, and the
+# ORDERING (ack before outcome) is the fact that matters.
+BACS_INPUT_REPORT_LAG_DAYS = 1
+
+INPUT_VALIDATION_ERROR_CODE = "INPUT_VALIDATION_REJECTED"
+
+
+@dataclass(frozen=True)
+class SubmissionAcknowledgement:
+    """What one Bacs submission produced: an interim per ACCEPTED collection and
+    a terminal error per REJECTED one.
+
+    TWO PRIMITIVES OUT OF ONE SUBMISSION, and the split is `WallInterim`'s own
+    rule rather than a preference here: acceptance leaves something still owed
+    (leg 3 is coming), so it is an interim; rejection at input validation ends
+    the exchange and no outcome will ever follow, so it is a `WallResponse` with
+    a status. Modelling the rejection as an interim carrying an `accepted=False`
+    flag would give the interim a resolution, which is the exact move that
+    collapses a three-leg conversation back into two."""
+
+    interims: Tuple[WallInterim, ...]
+    rejections: Tuple[WallResponse, ...]
+
+
+def emit_input_reports(
+    requests: Sequence[WallRequest],
+    submission_ref: str,
+    rejected_correlation_ids: frozenset = frozenset(),
+) -> SubmissionAcknowledgement:
+    """Leg 2 for one submission of `WallRequest[CollectionRequest]`.
+
+    THE FILE-LEVEL COUNTS ARE THE SAME ON EVERY LEG OF THE SUBMISSION, which is
+    the whole reason `submission_ref` and the counts are on the payload at all.
+    Real Bacs acknowledges a FILE; this wall's correlation unit is one
+    collection, so the message is delivered per collection and the file-level
+    fact rides along on each. A company that submitted 40 and is acknowledged
+    for 38 can see that from any one of the 38 reports -- which is a check it
+    could not make if the counts were dropped for being redundant.
+
+    REFUSES rather than skips a request whose payload is not a
+    `CollectionRequest`: a bureau acknowledging a message it cannot read is the
+    fail-open shape, and silently returning fewer interims than there were
+    requests would make a wrong payload type indistinguishable from a rejection.
+    """
+    if not submission_ref:
+        raise ValueError(
+            "a submission must carry a submission_ref -- it is the file-level "
+            "identity every leg of the submission quotes"
+        )
+    ordered = list(requests)
+    for request in ordered:
+        if not isinstance(request.payload, CollectionRequest):
+            raise ValueError(
+                f"emit_input_reports got a {type(request.payload).__name__} on "
+                f"correlation_id {request.correlation_id!r}; the input report "
+                "acknowledges collection submissions only"
+            )
+    unknown = set(rejected_correlation_ids) - {r.correlation_id for r in ordered}
+    if unknown:
+        raise ValueError(
+            f"cannot reject {sorted(unknown)}: not in this submission -- a "
+            "rejection for an item that was never sent is not a rejection"
+        )
+
+    items_in_submission = len(ordered)
+    items_rejected = len(rejected_correlation_ids)
+    interims: List[WallInterim] = []
+    rejections: List[WallResponse] = []
+
+    for request in ordered:
+        collection: CollectionRequest = request.payload
+        observed_at = _observed_at(
+            request.emitted_at.date(), lag_days=BACS_INPUT_REPORT_LAG_DAYS
+        )
+        if request.correlation_id in rejected_correlation_ids:
+            rejections.append(
+                WallResponse(
+                    correlation_id=request.correlation_id,
+                    status=WallStatus.ERROR,
+                    schema_version=SCHEMA_VERSION,
+                    observed_at=observed_at,
+                    valid_time=collection.requested_collection_date,
+                    payload=None,
+                    error=ErrorDetail(
+                        code=INPUT_VALIDATION_ERROR_CODE,
+                        message=(
+                            f"item rejected at input validation in submission "
+                            f"{submission_ref}"
+                        ),
+                    ),
+                )
+            )
+            continue
+        interims.append(
+            WallInterim(
+                correlation_id=request.correlation_id,
+                leg=BACS_INPUT_REPORT_LEG,
+                interim_type=BACS_INPUT_REPORT_INTERIM_TYPE,
+                schema_version=SCHEMA_VERSION,
+                observed_at=observed_at,
+                payload=BacsInputReport(
+                    submission_ref=submission_ref,
+                    account_id=collection.account_id,
+                    mandate_ref=collection.mandate_ref,
+                    amount_gbp=collection.amount_gbp,
+                    items_in_submission=items_in_submission,
+                    items_rejected=items_rejected,
+                    value_date=collection.requested_collection_date,
+                ),
+            )
+        )
+    return SubmissionAcknowledgement(
+        interims=tuple(interims), rejections=tuple(rejections)
+    )
+
+
+# ---------------------------------------------------------------------------
 # UNSOLICITED INBOUND -- the ADDACS stream (blind review Q2, EP6).
 #
 # WHAT WAS WRONG BEFORE THIS EXISTED: `AddacsAdvice` was a payload the contract
@@ -815,7 +1066,19 @@ def encode_wall_response(response: WallResponse) -> dict:
     return {
         "correlation_id": response.correlation_id,
         "status": response.status.value,
-        "schema_version": SCHEMA_VERSION,
+        # THE MESSAGE'S OWN VINTAGE, NOT THIS MODULE'S CURRENT ONE (EP6 pass 44).
+        # This read was `SCHEMA_VERSION` -- the encoder's own constant -- in all
+        # THREE world-side seam encoders, while the company's codec
+        # (`wall_protocol.encode_response`) had always preserved the field. The
+        # defect was invisible for as long as exactly one version existed, and
+        # the payment seam going to v2 is what made the two able to disagree.
+        # An encoder that overwrites the stamp makes the vintage field unable to
+        # differ from the reader's constant, so the decoder's version check --
+        # the one thing a version number is FOR -- could never fire on anything
+        # this seam emitted. Live behaviour is unchanged either way, because
+        # every construction site here already stamps `SCHEMA_VERSION`; what is
+        # removed is the latent relabelling.
+        "schema_version": response.schema_version,
         "observed_at": response.observed_at.isoformat(),
         "valid_time": None if response.valid_time is None else response.valid_time.isoformat(),
         "payload": (

@@ -55,6 +55,19 @@ from typing import Dict, Optional, Sequence
 
 import numpy as np
 
+from background.gap_metric import prediction_gap
+from company.market.flex_participation import (
+    CompanyVenueOffer,
+    form_participation_belief,
+    form_participation_belief_l2,
+    form_stacked_belief,
+    observe_response_wire,
+    observe_settlement_wire,
+)
+from interface.contracts.flex_observable_seam import (
+    FlexDispatchInstruction,
+    FlexVenue,
+)
 from sim.flex_dispatch import (
     DEFAULT_AVAILABILITY_CALL_PERCENTILE,
     DEFAULT_ENROLLED_MW,
@@ -66,18 +79,10 @@ from sim.flex_dispatch import (
     assert_mw_conservation,
     dispatch_and_settle,
     dispatch_and_settle_stacked,
-    emit_dispatch_instructions_stacked,
-    emit_settlement_lines,
-    emit_settlement_lines_stacked,
+    emit_dispatch_instructions_stacked_over_wire,
+    emit_settlement_lines_over_wire,
+    emit_settlement_lines_stacked_over_wire,
 )
-from interface.contracts.flex_observable_seam import FlexVenue
-from company.market.flex_participation import (
-    CompanyVenueOffer,
-    form_participation_belief,
-    form_participation_belief_l2,
-    form_stacked_belief,
-)
-from background.gap_metric import prediction_gap
 
 WORLD_ATOM_ID = "W1_9_dsr_flex_markets"
 # The company twin registered for this world atom (the flex-participation
@@ -166,8 +171,12 @@ def measure_l2(
 
     # -- OBSERVABLES the company reads off its own statement (metered delivery
     #    per settled event). It never sees the true ratio or true baseline. --
-    settlement = emit_settlement_lines(truth, unit_id="FLEX_UNIT_1")
-    observed_delivery = [r.payload.metered_delivery_mwh for r in settlement]
+    # The statement crosses as BYTES (EP6): the world encodes, the company
+    # decodes through its own codec and version-checks in between. Everything
+    # the L2 de-rating is learned from has been refusable at the seam.
+    settlement = observe_settlement_wire(
+        emit_settlement_lines_over_wire(truth, unit_id="FLEX_UNIT_1"))
+    observed_delivery = [line.metered_delivery_mwh for line in settlement]
 
     # -- COMPANY L2: learns a de-rating from those observables; estimates its
     #    baseline (possibly biased). Only observed price + own settlement. --
@@ -337,8 +346,11 @@ def measure_l3(
     worst_over_allocation_mw = assert_mw_conservation(truth)
 
     # -- OBSERVABLES: what actually crossed the wall this run. --
-    instructions = [r.payload for r in emit_dispatch_instructions_stacked(truth)]
-    settlement = [r.payload for r in emit_settlement_lines_stacked(truth)]
+    instructions = [
+        observe_response_wire(m, expect=FlexDispatchInstruction)
+        for m in emit_dispatch_instructions_stacked_over_wire(truth)
+    ]
+    settlement = observe_settlement_wire(emit_settlement_lines_stacked_over_wire(truth))
 
     offers = [
         CompanyVenueOffer(

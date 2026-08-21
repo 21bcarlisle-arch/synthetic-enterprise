@@ -24,9 +24,9 @@ from company.comms.susceptibility_estimator import (
 )
 from company.interfaces.wall_protocol import WallProtocolError
 from interface.contracts.conversation_seam import (
+    FORBIDDEN_TRUTH_FIELDS,
     Channel,
     ConversationMessage,
-    FORBIDDEN_TRUTH_FIELDS,
     Product,
     Situation,
 )
@@ -112,12 +112,32 @@ def test_a_reply_missing_its_version_is_refused_not_defaulted():
     assert exc.value.reason == "MISSING_FIELD"
 
 
+# A version number this build genuinely does not speak. It was the LITERAL 2
+# until EP6 pass 44, when the payment seam's release put 2 inside
+# `SUPPORTED_SCHEMA_VERSIONS` and both tests below stopped refusing anything --
+# one failed loudly (DID NOT RAISE) and the other would have gone quietly green
+# on a message it was supposed to reject. The assertion under it is the repair
+# that matters: a literal picked to be outside a set has to CHECK it is still
+# outside that set, or it silently becomes a test of nothing the next time the
+# set grows.
+_UNSPOKEN_VERSION = 97
+
+
+def test_the_unspoken_version_is_actually_unspoken():
+    """The null control for the two tests below: if this build ever learns to
+    speak `_UNSPOKEN_VERSION`, they are no longer testing a refusal and this
+    says so instead of letting them pass vacuously."""
+    from company.interfaces.wall_protocol import SUPPORTED_SCHEMA_VERSIONS
+
+    assert _UNSPOKEN_VERSION not in SUPPORTED_SCHEMA_VERSIONS
+
+
 def test_a_version_the_company_does_not_speak_is_refused_distinguishably():
     """"You speak a dialect I do not know" and "you did not say what you
     speak" are different failures calling for different repairs, so they carry
     different reasons."""
     with pytest.raises(WallProtocolError) as exc:
-        SusceptibilityEstimator().observe_wire("c1", _msg(), _wire(schema_version=2))
+        SusceptibilityEstimator().observe_wire("c1", _msg(), _wire(schema_version=_UNSPOKEN_VERSION))
     assert exc.value.reason == "UNSUPPORTED_VERSION"
 
 
@@ -128,7 +148,7 @@ def test_a_refused_message_is_not_recorded_as_observed():
     from, lost to a transport error."""
     est = SusceptibilityEstimator()
     with pytest.raises(WallProtocolError):
-        est.observe_wire("c1", _msg(), _wire(schema_version=2))
+        est.observe_wire("c1", _msg(), _wire(schema_version=_UNSPOKEN_VERSION))
     assert est.observe_wire("c1", _msg(), _wire()) is True
 
 

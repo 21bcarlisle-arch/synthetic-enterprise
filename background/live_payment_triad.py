@@ -93,10 +93,20 @@ from company.billing.account_ledger import (
     LedgerEvent,
     LedgerEventType,
 )
+from company.interfaces.collection_submission import encode_collection_request
 from company.billing.payment_observation_consumer import (
     DEFAULT_RECONCILIATION_GRACE_DAYS,
     PaymentObservationConsumer,
 )
+from interface.contracts.payment_observable_seam import (
+    COLLECTION_REQUEST_TYPE,
+    CollectionRequest,
+    PaymentRail,
+)
+from interface.contracts.payment_observable_seam import (
+    SCHEMA_VERSION as SEAM_SCHEMA_VERSION,
+)
+from interface.contracts.wall_envelope import WallRequest
 from simulation.payment_behaviour_source import (
     DIRECT_DEBIT,
     generate_payment_event,
@@ -105,7 +115,10 @@ from simulation.payment_behaviour_source import (
 from simulation.payment_seam_adapter import (
     MandateNotificationStream,
     SeamAdapterInput,
+    decode_collection_request,
+    emit_input_reports,
     emit_wire_responses,
+    mandate_ref_for,
 )
 from tools.couple_w2_11_d5 import (
     AS_OF_BUFFER_DAYS,
@@ -777,6 +790,73 @@ class LivePaymentTriad:
         else:
             correlation_id = f"{customer_id}::p{period_index}::ambiguous"
         seam_input = SeamAdapterInput(account_id=account_id, correlation_id=correlation_id)
+
+        # THE REQUEST LEG AND THE ACKNOWLEDGEMENT (atom EP6, pass 44 -- the
+        # blind review's Q3, "show me a conversation with more than two legs").
+        #
+        # DIRECT DEBIT ONLY, and that is the domain speaking rather than a
+        # shortcut. A DD collection is a PULL the company initiated, so there is
+        # a request to be leg 1 of and a bureau to acknowledge it. A standing
+        # order, card or prepayment top-up is a customer-initiated PUSH: the
+        # company asked for nothing, so there is no conversation, and minting a
+        # request for one would be the Q2 fail shape ("a response to a synthetic
+        # request") built on purpose. Those crossings stay two legs because two
+        # legs is what they have.
+        #
+        # THE COMPANY OPENS ITS OWN BOOK BEFORE THE WORLD ANSWERS. This is the
+        # ordering that matters and it is why the register is written here and
+        # not in the observe loop below: from this line on, a collection that is
+        # never answered at all is VISIBLE as an open conversation, where before
+        # it was indistinguishable from one never submitted.
+        if method == DIRECT_DEBIT:
+            collection_request = WallRequest(
+                correlation_id=correlation_id,
+                request_type=COLLECTION_REQUEST_TYPE,
+                schema_version=SEAM_SCHEMA_VERSION,
+                as_of=datetime.combine(issue_date, time(0, 0)),
+                emitted_at=datetime.combine(issue_date, time(0, 0)),
+                payload=CollectionRequest(
+                    account_id=account_id,
+                    mandate_ref=mandate_ref_for(account_id),
+                    amount_gbp=amount_gbp,
+                    rail=PaymentRail.BACS_DIRECT_DEBIT,
+                    requested_collection_date=due_date,
+                ),
+            )
+            self._consumer.note_collection_request(collection_request)
+            # The shadow is told identically, for the reason it is billed
+            # identically: a counterfactual whose company held a different set
+            # of open conversations would be a second company. For DD the two
+            # correlation ids are the same value (`_counterfactual_correlation_id`
+            # returns the invoice ref, which IS this crossing's id), so this is
+            # the same exchange in both books rather than a parallel one.
+            self._cf_consumer.note_collection_request(collection_request)
+            # ONE ITEM PER SUBMISSION, named as a limit rather than left to be
+            # read off the counts. This triad bills and collects customer by
+            # customer, so the "file" a real bureau would receive with thousands
+            # of items in it carries exactly one here, and
+            # `items_in_submission`/`items_rejected` are therefore 1 and 0 on
+            # every live report. The file-level fields are exercised against
+            # real batches at unit level; what the live run proves is the LEG,
+            # not the batch size.
+            # LEG 1 CROSSES ON THE WIRE, not as an object. The company encodes
+            # with its own codec and the bureau decodes with its own, mirrored
+            # from the published key set -- two independent implementations
+            # agreeing only via the contract, which is what makes the far side's
+            # refusal a check rather than a handshake with itself. Sending the
+            # object would have left this seam ENCODED-ONLY on the census's
+            # transport question: a leg that is live and in-process, which is
+            # the state the instrument exists to red.
+            submitted = decode_collection_request(
+                encode_collection_request(collection_request)
+            )
+            acknowledgement = emit_input_reports(
+                [submitted],
+                submission_ref=f"SUB::{customer_id}::p{period_index}",
+            )
+            for interim in acknowledgement.interims:
+                self._consumer.observe_interim(interim)
+                self._cf_consumer.observe_interim(interim)
 
         # THE CROSSING IS WIRE-BORNE (atom EP6_wall_protocol_typing,
         # 2026-08-19). The seam hands over MESSAGES, not objects, and the
