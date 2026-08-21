@@ -108,3 +108,22 @@ residues above go in the module docstring, where this atom already puts its name
 Q13, Q14), and Q3 — *"show me a conversation with more than two legs"* — is the only one no pass
 has ever touched; it still carries its pass-33 reconciliation while 39–43 each repaired one of
 the others.
+
+> **CORRECTION 2026-08-21 (landing tick, commit 7e7476503).** The ranking paragraph above is left
+> as written because it is the record, but its two factual claims are both false now and one was
+> false when written, so do not act on it as it stands. (1) **Q3 has been touched:** the live
+> reconciliation reads *"PARTLY REPAIRED, pass 44, and still FAIL because the primitive can now
+> express a LINEAR multi-leg exchange and still cannot express a BRANCHING one"* — it does not
+> carry its pass-33 row. Pass 48's own record flagged this sentence as stale and predicted the
+> next tick would read it anyway; this is that tick, and it did. (2) **Q10 is no longer payable:**
+> pass 48 keyed the wire vocabulary by release and Q10 moved to PASS. Measured, not copied —
+> `battery_outstanding('EP6_wall_protocol_typing')` now returns
+> `('Q2', 'Q3', 'Q5', 'Q6', 'Q9', 'Q13', 'Q14', 'Q15')`, of which Q9 and Q15 need an act in a
+> RESERVED class and cannot be paid in this epoch. The payable set is therefore **Q2, Q3, Q5, Q6,
+> Q13, Q14** — six, but not the six named above, and Q2 was never in that list at all.
+>
+> **Queued, not fixed (SELF_INTERRUPT_DISCIPLINE):** the reconciliation's `pass_no` field diverges
+> from the pass its own `evidence` names — Q10 is `pass_no=39` reading "REPAIRED, pass 48", Q5 is
+> `pass_no=47` reading "PARTLY REPAIRED AGAIN, pass 46". Whichever field a draw predicate reads,
+> the other one contradicts it. Filed as an observation here rather than repaired on sight; it is
+> not this finding's subject.
