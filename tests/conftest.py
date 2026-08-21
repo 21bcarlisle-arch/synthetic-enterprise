@@ -1,4 +1,6 @@
+import importlib.util as _il
 import os
+import pathlib
 
 # background.ntfy_utils raises at import time if SE_NTFY_TOPIC isn't set
 # (2026-07-08 topic rotation, docs/staging/NTFY_CHANNEL_HARDENING.md — no
@@ -14,6 +16,17 @@ os.environ.setdefault("SE_WAKE_HMAC_KEY", "pytest-fallback-hmac-key-not-a-real-s
 import numpy as np
 import pandas as pd
 import pytest
+
+# The sink guard's body, factored out 2026-08-21 so its coverage is inspectable rather than a
+# closure inside a fixture. Loaded by explicit file location: `tests/` is not a package, and
+# putting it on sys.path SHADOWS the repo root -- which broke `tools.*` resolution the first
+# time I tried it, in this very file's sessionfinish hook.
+_guard_spec = _il.spec_from_file_location(
+    "production_surface_guard",
+    pathlib.Path(__file__).resolve().parent / "production_surface_guard.py",
+)
+production_surface_guard = _il.module_from_spec(_guard_spec)
+_guard_spec.loader.exec_module(production_surface_guard)
 
 
 def pytest_configure(config):
@@ -77,50 +90,18 @@ def pytest_configure(config):
 # test remembering to stub -- MAKE_IT_STICK: mechanism, not discipline. The leak that already bit
 # (a test wrote the REAL .pull_loop_health.json) is exactly the G-T2 class.
 _BLOCKED_SPAWN = {"tmux", "claude", "systemctl"}
-# G-T2 protects the high-danger RUNTIME CONTROL STATE — files a live daemon READS to make a
-# control decision, where a test writing a fake value corrupts live behaviour (the kill switch;
-# the transport-health signal the deadman alarms on — the .pull_loop_health.json leak that already
-# bit us; the notify dedup store; the boot-SHA records). It deliberately does NOT (yet) protect
-# derived-artifact generators (site/data/**, agent_status.json, docs/reports/**): ~40 tests
-# legitimately regenerate those in-process, and a daemon/generator overwrites them anyway, so that
-# is cosmetic isolation-debt to remediate incrementally — tracked, not rushed on this rung.
-_PROTECTED_WRITE_PATHS = (
-    "docs/observability/.build_executor_enabled",   # THE kill switch — a test must never set it
-    "docs/observability/.pull_loop_health.json",    # deadman alarms on this (the proven leak)
-    "docs/observability/.notify_transitions.json",  # notify() transition-dedup store
-    "docs/observability/.daemon_boot",              # boot-SHA drift records (dir)
-    # PUBLISHED SURFACE, not just internal state (2026-08-10, caught in the act). The publish
-    # decoupling made `_process()` stamp site/data/publish_provenance.json, and the ordinary
-    # publisher tests that drive `_process()` promptly wrote a run id of "abc1234" into the REAL
-    # file -- which the live publisher then committed as a public freshness claim. It reached
-    # origin only because the branch happened to be diverged.
-    #
-    # This is the class in docs/design/PUBLISH_GATE_TESTS_WRITE_LIVE_SURFACES_FINDING.md, and it
-    # is also why this tuple is the right place for the fix rather than a monkeypatch in the one
-    # test that tripped it: a guard list only protects the paths somebody thought of, so the
-    # answer to finding a hole in it is to fill the hole, not to isolate the caller.
-    #
-    # SCOPED TO THE FILE, NOT site/data/ (blast radius measured first): several generator tests
-    # legitimately rewrite site/data/*.json, and protecting the whole directory would red them
-    # for nothing. This is the one path in there that is a PUBLIC CLAIM ABOUT ITS OWN FRESHNESS,
-    # where a test-authored value is not a stale artefact but a lie.
-    "site/data/publish_provenance.json",            # the published freshness/provenance claim
-    # THE WEDGE ALARM'S ONLY NON-GUESSING EVIDENCE (2026-08-10, caught in the act, twelfth
-    # publish wedge). `_write_blocking_tests` publishes "which test is blocking publishing"
-    # here for the alarm, which runs in a different process and otherwise has only an exit
-    # code. `tests/background/test_publish_gate_subject_is_head.py` drives the real
-    # `run_fast_tests` against a sandbox repo, and its fixture redirected the three path
-    # constants its author thought of -- so every run of it stamped this file with a SANDBOX
-    # commit SHA (observed: `1c0414e9f...`, a bad object in this repo) and an empty node list.
-    # A fresh-but-empty record does not read as absent: `last_blocking_tests` returns it, and
-    # the alarm reports "the gate printed no FAILED line" and falls back to citing findings by
-    # mtime -- the 0/8-hit-rate guess this file was built to replace. That test file is in the
-    # gate's own scoped blocking list, so it fired on every publish cycle.
-    #
-    # Same reasoning as the entry above: the caller was fixed (the fixture now DERIVES its
-    # redirect set from the module's source), but a guard list is where the class dies.
-    "docs/observability/.last_gate_blocking_tests.json",   # the wedge alarm's diagnostic payload
-)
+# G-T2's PATH SET LIVES WITH THE SINK, NOT HERE (2026-08-21). It used to be a `_PROTECTED_WRITE_PATHS`
+# tuple at this spot, and when the guard body moved to `tests/production_surface_guard.py` the tuple
+# stayed behind with no consumer: adding a path to it protected nothing, and `test_isolation_guards.py`
+# still instructed its R15 mutation against it -- a mutation that could no longer turn any test red.
+# A guard with two path lists, one of them dead, is the FAIL-SILENT shape R15 names. There is one now:
+# `production_surface_guard.PROTECTED_FILES` (individually-listed files) and `PROTECTED_SURFACES`
+# (whole directories), both carrying the incident record for each entry.
+#
+# What it still deliberately does NOT protect: derived-artifact generators (site/data/**,
+# agent_status.json, docs/reports/**). ~40 tests legitimately regenerate those in-process and a
+# daemon/generator overwrites them anyway, so that is cosmetic isolation-debt to remediate
+# incrementally — tracked, not rushed. `site/data/publish_provenance.json` is the named exception.
 
 
 @pytest.fixture(autouse=True)
@@ -153,51 +134,19 @@ def _no_real_session_spawn(request, monkeypatch):
 
 @pytest.fixture(autouse=True)
 def _no_real_state_write(request, monkeypatch):
-    """G-T2: a test may NOT write to a production state path. Patches Path.write_text/write_bytes/
-    open(write-mode) to raise if the target resolves under a protected production root -- the exact
-    class that leaked when a test wrote the real .pull_loop_health.json. Reads pass; tmp_path passes
-    (it resolves under /tmp). Opt in with @real_state_write."""
+    """G-T2: a test may NOT write a production surface, WHATEVER PRIMITIVE IT USES.
+
+    The body moved to `tests/production_surface_guard.py` on 2026-08-21 so its coverage is a
+    testable surface rather than a closure, and so the two proven holes could be closed there
+    with the evidence beside them: `builtins.open` walked past the old guard even for the
+    explicitly-listed files, and `docs/staging/` -- the director's draw queue -- was not
+    covered at all.
+
+    Reads pass. tmp_path passes (it resolves under /tmp). Opt out with @real_state_write.
+    """
     if request.node.get_closest_marker("real_state_write"):
         return
-    import pathlib
-    repo = pathlib.Path(__file__).resolve().parent.parent
-    protected = [str((repo / r).resolve()) for r in _PROTECTED_WRITE_PATHS]
-
-    def _is_protected(p) -> bool:
-        try:
-            rp = str(pathlib.Path(p).resolve())
-        except Exception:
-            return False
-        return any(rp == pr or rp.startswith(pr + os.sep) for pr in protected)
-
-    real_wt = pathlib.Path.write_text
-    real_wb = pathlib.Path.write_bytes
-    real_open = pathlib.Path.open
-
-    def _blocked(target):
-        raise RuntimeError(
-            f"TEST ISOLATION (G-T2): a test tried to write production state {target}. "
-            "Isolate to tmp_path (monkeypatch the path constant), or mark @pytest.mark.real_state_write."
-        )
-
-    def guarded_wt(self, *a, **k):
-        if _is_protected(self):
-            _blocked(self)
-        return real_wt(self, *a, **k)
-
-    def guarded_wb(self, *a, **k):
-        if _is_protected(self):
-            _blocked(self)
-        return real_wb(self, *a, **k)
-
-    def guarded_open(self, mode="r", *a, **k):
-        if any(m in mode for m in ("w", "a", "x", "+")) and _is_protected(self):
-            _blocked(self)
-        return real_open(self, mode, *a, **k)
-
-    monkeypatch.setattr(pathlib.Path, "write_text", guarded_wt)
-    monkeypatch.setattr(pathlib.Path, "write_bytes", guarded_wb)
-    monkeypatch.setattr(pathlib.Path, "open", guarded_open)
+    production_surface_guard.install(monkeypatch)
 
 
 @pytest.fixture(autouse=True)
