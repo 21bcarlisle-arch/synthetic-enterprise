@@ -2,11 +2,11 @@
 
 **Severity:** LATENT · **Lane:** H_harness
 
-**Instances:** 43 · **Class:** `publish_gate_and_wedge` · **Ruling's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
+**Instances:** 44 · **Class:** `publish_gate_and_wedge` · **Ruling's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 43 instances
+## The 44 instances
 
 - `WORKER_FINDING_AN_OOM_KILL_IS_RECORDED_AS_A_TEST_REGRESSION_2026-08-10.md` — LATENT
 - `WORKER_FINDING_ARCHIVED_STAGING_FILES_RESURRECTED_TWICE_DURING_A_LIVE_SURGICAL_LAND_2026-08-18.md` — LATENT
@@ -14,6 +14,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_A_DUPLICATE_MARKER_DISARMS_THE_WEDGE_ALARM_2026-08-10.md` — RECORDED
 - `WORKER_FINDING_A_FINDING_RECORDED_ITS_OWN_INSTANCE_AS_FIXED_AND_THE_FIX_HAD_NEVER_BEEN_COMMITTED_2026-08-14.md` — RECORDED
 - `WORKER_FINDING_A_GREEN_PUBLISH_CANNOT_CLEAR_THE_WEDGE_UNTIL_A_SECOND_SUITE_THE_DEADLINE_DOES_NOT_KNOW_ABOUT_FINISHES_2026-08-20.md` — RECORDED
+- `WORKER_FINDING_A_HARNESS_DOCUMENT_CHECK_COSTS_THE_PUBLISH_GATE_198_SECONDS_EVERY_CYCLE_2026-08-21.md` — LATENT
 - `WORKER_FINDING_A_MUTATION_TEST_RAN_THE_OPERATIONAL_SUITE_INSIDE_THE_PUBLISH_GATE_2026-08-12.md` — LATENT
 - `WORKER_FINDING_A_NEW_REFUSAL_MADE_A_SIBLING_FIXTURE_UNREACHABLE_BY_DESIGN_2026-08-12.md` — LATENT
 - `WORKER_FINDING_A_PROVENANCE_LABEL_IS_STAT_ED_AS_A_REPO_PATH_2026-08-18.md` — LATENT
@@ -54,7 +55,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**225.0 recorded episode-hours** across 11 of the 43 instances; largest single recorded episode **60h**; 6 instance(s) name a published figure in scope.
+**247.0 recorded episode-hours** across 12 of the 44 instances; largest single recorded episode **60h**; 7 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
@@ -63,6 +64,7 @@ This document supersedes the individual findings listed below, which are **archi
 - **32 hours** — `WORKER_FINDING_A_PUBLISH_TIMEOUT_IS_RECORDED_AS_A_TEST_REGRESSION_AND_THE_SCOPE_CANNOT_MEET_ITS_CAP_2026-08-21.md`: …ad off disk and `ps` at 2026-08-21 16:10-16:25Z. ### 1. The wedge is 32 hours old and 43 of its 46 refusals were genuine reds `docs/observability/…
 - **31 hours** — `WORKER_FINDING_A_DUPLICATE_MARKER_DISARMS_THE_WEDGE_ALARM_2026-08-10.md`: …alarm was disarmed 188 times today while publishing stayed wedged for 31 hours (2026-08-10) **Severity:** BLOCKING · **Lane:** H_harness **Dischar…
 - **23 hours** — `WORKER_FINDING_THE_NAMED_BLOCKING_TEST_PASSES_WHEN_YOU_RUN_IT_2026-08-10.md`: …What happened `.publish_gate_state.json` had wedged publishing for ~23h with one entry: The obvious first move — run the named test — repo…
+- **22 hours** — `WORKER_FINDING_A_HARNESS_DOCUMENT_CHECK_COSTS_THE_PUBLISH_GATE_198_SECONDS_EVERY_CYCLE_2026-08-21.md`: …e:** H_harness **Found:** 2026-08-21, scheduled tick, diagnosing the 22-hour publishing outage. Found by reading the in-flight gate's own process…
 - **13 hours** — `WORKER_FINDING_THE_ELEVENTH_WEDGE_WAS_A_STACK_NOT_A_BUG_2026-08-10.md`: …data.py` carried uncommitted hydration. So the gate had been red for 13h on work that was **finished and sitting on the disk it was failing ag…
 - **10 hours** — `WORKER_FINDING_THE_GHOST_PUSHER_GUARD_FIRES_ON_A_CONCURRENT_WRITER_2026-08-09.md`: …) **Severity:** LATENT · **Lane:** H_harness **Found during:** the ~10h publish-wedge unwedge, while running the gate's own argv without `-x`…
 - **7 hours** — `WORKER_FINDING_SECOND_WEDGE_CAUSE_LANDED_AFTER_THE_FIRST_2026-08-09.md`: …he episode* (23:17 UTC). So: * it is **not** a cause of the observed 7-hour episode (inferred-free: the timestamps do not overlap), and * it **…
