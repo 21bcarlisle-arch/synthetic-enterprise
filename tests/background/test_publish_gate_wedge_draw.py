@@ -81,12 +81,17 @@ def _green(tmp_path, sha, ts):
 
 
 def _blocking_record(tmp_path, now, *, node_ids=("tests/x.py::test_x",), age=0.0,
-                     git_hash="deadbeef"):
+                     git_hash="HEADHASH"):
     """Stamp the LIVE gate blocking record, exactly as `process_run_complete` writes it.
 
     Written to the same `tmp_path` as `_write` and never via a monkeypatched module attribute:
     the draw derives this path from the RESOLVED state path, so a test that forgot to call this
-    reads NO record -- which is the honest "I don't know" -- rather than the real machine's."""
+    reads NO record -- which is the honest "I don't know" -- rather than the real machine's.
+
+    THE DEFAULT HASH IS `_write`'s DEFAULT HEAD, and that is the point (2026-08-21). Since the
+    payload must be about the commit the message names, a record's hash is now load-bearing: the
+    HEALTHY shape is a record measured at HEAD, so that is what the default describes. It used to
+    be `deadbeef` -- a hash matching nothing, which was harmless only while nobody read it."""
     (tmp_path / ".last_gate_blocking_tests.json").write_text(json.dumps(
         {"ts": now - age, "node_ids": list(node_ids), "git_hash": git_hash}))
 
@@ -773,6 +778,107 @@ def test_null_control_a_fresh_record_lets_the_payload_through(tmp_path, monkeypa
     # the census depth claim is warranted again, so the loud default steps aside
     assert "enumerated the WHOLE red set" in msg
     assert "DEPTH UNKNOWN" not in msg
+
+
+# ────── THE DEPTH COUNT MUST NAME THE COMMIT IT WAS COUNTED ON (2026-08-21) ──────
+#
+# Observed live at HEAD e778b4ac0: the record was 20 minutes old (well inside its age bound, so
+# the clock said "citable") and stamped `f983f074c`, 42 commits back -- including `4b171cee8`,
+# which repairs four of the five tests it named. The draw published those five under the words
+# "5 tests are red at THIS HEAD". `_publish_gate_wedge_active` had the hash in hand and dropped
+# it into `_live_hash`; the leading underscore was the defect, written down.
+#
+# THE REPAIR IS TEXT, NOT SUPPRESSION. The record's `git_hash` is the MARKER's commit, not the
+# checkout the suite ran in (the two-clocks split), so it differs from HEAD on almost every
+# HEALTHY cycle -- withholding on a mismatch would silence the suspect list permanently, which is
+# fail-closed into useless. The count still prints in full; only the claim about WHICH TREE it
+# describes is withdrawn. The tests below pin both halves of exactly that.
+
+
+def test_mutation_the_depth_count_names_the_recorded_commit_not_head(tmp_path, monkeypatch):
+    """MUST FIRE -- the named defect. A record stamped at another commit still yields its full
+    count and its suspects, but may NOT call them red "at this HEAD", and must hand over the
+    range that settles whether a fix already landed.
+
+    MUTATION: drop the `record_hash=`/`head=` arguments at the `_wedge_depth_clause` call site
+    (i.e. restore the unconditional "at this HEAD") and this reds."""
+    now = 1_800_000_000.0
+    _write(tmp_path, monkeypatch, _laundered_state(now), head="e778b4ac0")
+    _blocking_record(tmp_path, now, age=60.0, git_hash="f983f074c")  # fresh, but a different commit
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None and "PUBLISH-GATE WEDGE" in msg, "the draw must STILL FIRE"
+    # THE FALSE CLAIM IS GONE...
+    assert "at this HEAD" not in msg
+    assert "at `f983f074c`, NOT at HEAD `e778b4ac0`" in msg
+    assert "git log --oneline f983f074c..e778b4ac0" in msg
+    assert "a fix may already have landed" in msg
+    # ...AND NOTHING WAS SUPPRESSED. This is the half that keeps the repair from being the
+    # fail-closed-into-useless version: suspects and depth both survive.
+    assert "FILED FINDINGS ALREADY HOLDING THE SUSPECTS" in msg
+    assert "WORKER_FINDING_STALE_SUSPECT_2026-08-19.md" in msg
+    assert "enumerated the WHOLE red set" in msg
+    assert "WITHHELD" not in msg
+
+
+def test_null_control_a_record_stamped_at_head_still_says_at_this_head(tmp_path, monkeypatch):
+    """NULL CONTROL -- moves the HASH and nothing else. Same state, same freshness, same node
+    ids: only the commit the record was stamped at changes, and the original wording returns.
+
+    This is the leg that kills the cheapest wrong repair (caveat everything, always)."""
+    now = 1_800_000_000.0
+    _write(tmp_path, monkeypatch, _laundered_state(now), head="e778b4ac0")
+    _blocking_record(tmp_path, now, age=60.0, git_hash="e778b4ac0")  # the ONLY difference
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None
+    assert "at this HEAD" in msg
+    assert "NOT at HEAD" not in msg
+    assert "git log --oneline" not in msg
+    assert "FILED FINDINGS ALREADY HOLDING THE SUSPECTS" in msg
+
+
+def test_a_record_with_no_hash_keeps_the_original_wording(tmp_path, monkeypatch):
+    """R15 FAIL-OPEN GUARD, and the direction is deliberate. A legacy record with no hash cannot
+    prove AGREEMENT -- but it cannot prove DISAGREEMENT either, and inventing a caveat on a
+    record that may well be about HEAD is its own noise. It reads exactly as it did before."""
+    now = 1_800_000_000.0
+    _write(tmp_path, monkeypatch, _laundered_state(now), head="e778b4ac0")
+    (tmp_path / ".last_gate_blocking_tests.json").write_text(json.dumps(
+        {"ts": now - 60.0, "node_ids": ["tests/x.py::test_x"]}))  # no git_hash key
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None and "PUBLISH-GATE WEDGE" in msg
+    assert "at this HEAD" in msg
+    assert "NOT at HEAD" not in msg
+
+
+def test_the_healthy_one_commit_behind_cycle_is_not_silenced(tmp_path, monkeypatch):
+    """THE REGRESSION THE FIRST DRAFT WOULD HAVE SHIPPED. The marker's commit trails HEAD on
+    almost every healthy cycle, so a repair that WITHHELD on a mismatch would have suppressed
+    the suspect list permanently. The caveat appears; the payload does not move."""
+    now = 1_800_000_000.0
+    _write(tmp_path, monkeypatch, _laundered_state(now), head="bbbbbbbbb")
+    _blocking_record(tmp_path, now, age=60.0, git_hash="aaaaaaaaa")  # one commit behind
+    msg = supervisor._publish_gate_wedge_active(now=now)
+    assert msg is not None
+    assert "WITHHELD" not in msg, "a normal cycle's suspects must never be suppressed"
+    assert "WORKER_FINDING_STALE_SUSPECT_2026-08-19.md" in msg
+    assert "NOT at HEAD `bbbbbbbbb`" in msg
+
+
+@pytest.mark.parametrize("record_hash,head,expected", [
+    ("e778b4ac0", "e778b4ac0", True),      # exact
+    ("e778b4ac0", "e778b4ac085c9", True),  # differing abbreviation lengths, same commit
+    ("e778b4ac085c9", "e778b4ac0", True),  # ...and the other way round
+    ("f983f074c", "e778b4ac0", False),     # a different commit
+    ("", "e778b4ac0", False),              # absent
+    (None, "e778b4ac0", False),            # absent
+    ("unknown", "e778b4ac0", False),       # the publisher's own sentinel
+    ("e778b4", "e778b4", False),           # below git's 7-char unambiguity floor
+    ("e778b4ac0", None, False),            # git could not answer for HEAD
+])
+def test_the_hash_predicate_on_trial_directly(record_hash, head, expected):
+    """The predicate itself, so its scope is inspectable rather than only observable through a
+    500-character message (R15: a control's scope must be able to be put on trial)."""
+    assert supervisor._blocking_record_is_about_head(record_hash, head) is expected
 
 
 def test_the_withholding_clause_is_absent_when_there_is_nothing_to_withhold(

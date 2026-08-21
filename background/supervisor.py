@@ -3387,6 +3387,25 @@ def _live_gate_blocking_record(now=None, record_path=None):
         return [], None
 
 
+def _blocking_record_is_about_head(record_hash: str | None, head: str | None) -> bool:
+    """Was the live blocking record stamped at THE COMMIT THE DRAW IS ABOUT TO NAME?
+
+    Prefix-tolerant because both sides are abbreviated independently (`git rev-parse --short`
+    here, the marker's `Git:` line there) and the two abbreviations need not be the same length.
+    Seven hex chars is git's own floor for an unambiguous short SHA. An absent or `unknown` hash
+    answers False -- it cannot prove agreement, and the caller's job is to stop claiming one.
+
+    WHAT THIS DELIBERATELY IS NOT: a citability test. See `_wedge_depth_clause`."""
+    a = str(record_hash or "").strip()
+    b = str(head or "").strip()
+    if not a or not b or "unknown" in (a, b):
+        return False
+    shortest = min(len(a), len(b))
+    if shortest < 7:
+        return False
+    return a[:shortest] == b[:shortest]
+
+
 def _wedge_stale_payload_clause(named: int, cited: int) -> str:
     """The draw says out loud that it is WITHHOLDING a blocking payload it cannot warrant.
 
@@ -3514,7 +3533,7 @@ def _publish_gate_wedge_active(
     # is the reader. The record is looked for BESIDE THE RESOLVED state path, never beside a
     # module default, so a test that redirects one half redirects both and the two halves of this
     # control can never read different trees -- the same rule as `_recorded_green_clock`.
-    live_nodes, _live_hash = _live_gate_blocking_record(
+    live_nodes, live_hash = _live_gate_blocking_record(
         now=now, record_path=Path(sp).parent / GATE_BLOCKING_TESTS_FILENAME)
     payload_citable = bool(live_nodes)
     cited = state.get("cited_findings")
@@ -3546,7 +3565,9 @@ def _publish_gate_wedge_active(
     depth_clause = _wedge_depth_clause(
         state.get("red_census") if payload_citable else None,
         state.get("total_red") if payload_citable else None,
-        named_blocking if payload_citable else 0)
+        named_blocking if payload_citable else 0,
+        record_hash=live_hash if payload_citable else None,
+        head=head)
     # WHAT THE DRAW COULD NOT SEE UNTIL NOW (2026-08-17): that the world moved after the reading
     # was taken. Both are TEXT ONLY and neither can return None -- see their docstrings. They come
     # BEFORE `depth_clause` because the in-flight one countermands that clause's own instruction.
@@ -3567,7 +3588,7 @@ def _publish_gate_wedge_active(
     )
 
 
-def _wedge_depth_clause(census, total_red, named) -> str:
+def _wedge_depth_clause(census, total_red, named, record_hash=None, head=None) -> str:
     """How many tests are red behind the fail-fast verdict -- or an explicit statement that the
     draw does not know. Split out so it can be put on trial directly (R15: a control's scope must
     be inspectable), and so the three answers are one function rather than three format strings.
@@ -3575,18 +3596,43 @@ def _wedge_depth_clause(census, total_red, named) -> str:
     UNKNOWN IS THE DEFAULT AND IT IS LOUD. "Fix the named test" is what a worker does with a
     fail-fast node id, and it is right; it is also exactly what happened on each of five
     consecutive unwedge ticks against one stack of five reds. The clause the worker needs is not
-    "here is a test", it is "this may be one layer of several"."""
+    "here is a test", it is "this may be one layer of several".
+
+    ...AND IT MUST NAME THE COMMIT IT COUNTED ON (2026-08-21, observed live). This clause said
+    "red at THIS HEAD" unconditionally, while the count comes from a record stamped at whatever
+    commit the gate cycle carried. At HEAD `e778b4ac0` the record named `f983f074c`, 42 commits
+    back -- with `4b171cee8`, which repairs four of the five tests it named, sitting between them.
+    A worker reading "5 tests are red at this HEAD" starts from "find the red"; the true state was
+    "four of these were fixed two commits ago". `_publish_gate_wedge_active` had the hash in hand
+    and dropped it into `_live_hash` -- the leading underscore was the defect, written down.
+
+    THE REPAIR IS TEXT, NOT SUPPRESSION, and that is the whole design decision. Withholding the
+    payload on a hash mismatch was the first draft and it is WRONG: the record's `git_hash` is the
+    MARKER's commit, not the checkout the suite ran in (the two-clocks split, 14219094c), so it
+    differs from HEAD on almost every healthy cycle. Suppressing on that would silence the suspect
+    list permanently -- fail-closed into useless, which R15 counts as a failed control, not a safe
+    one. So the count still prints in full; only the false claim about WHICH TREE it describes is
+    withdrawn, on the same "deliberately weaker than a verdict" principle as
+    `_wedge_superseded_hash_clause`. An unknown/absent hash keeps the old wording: it cannot prove
+    disagreement either, and inventing a caveat is its own noise."""
     total = total_red if isinstance(total_red, int) and total_red > 0 else named
+    # WHERE the count was measured, and it only ever WEAKENS the claim -- never the count itself.
+    if record_hash and head and not _blocking_record_is_about_head(record_hash, head):
+        where = (f"at `{record_hash}`, NOT at HEAD `{head}` (the gate record names that commit; "
+                 f"run `git log --oneline {record_hash}..{head}` -- a fix may already have landed, "
+                 "so re-check each before repairing it)")
+    else:
+        where = "at this HEAD"
     if census == "complete":
         if total <= 1:
-            return (" DEPTH: the report-only census enumerated the WHOLE red set at this HEAD and "
+            return (f" DEPTH: the report-only census enumerated the WHOLE red set {where} and "
                     "it is ONE test -- repairing it should clear the wedge.")
-        return (f" DEPTH: {total} tests are red at this HEAD -- the report-only census enumerated "
+        return (f" DEPTH: {total} tests are red {where} -- the report-only census enumerated "
                 "the WHOLE set. This is a STACK, not one defect: fix them TOGETHER in this tick. "
                 "Repairing the named one and re-running hands the next layer to the next tick, "
                 "which is how the 2026-08-14 wedge ran 252 cycles.")
     if census == "partial":
-        return (f" DEPTH: AT LEAST {total} tests are red at this HEAD (the census hit its own "
+        return (f" DEPTH: AT LEAST {total} tests are red {where} (the census hit its own "
                 "failure bound, so there may be more). Treat this as a stack.")
     return (" DEPTH UNKNOWN: the gate is fail-fast and no report-only census is on record, so the "
             "test named above may be one red of several. Enumerate before assuming it is the only "
