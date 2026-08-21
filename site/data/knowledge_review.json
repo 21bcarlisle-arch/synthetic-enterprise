@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T22:46:03Z",
+  "generated_at": "2026-08-21T23:48:57Z",
   "source": "site/data/knowledge_wholesale.json",
   "rule": "site/knowledge/review_state.py",
   "policy": {
@@ -29,10 +29,10 @@
       "state": "fresh",
       "last_verified": "2026-08-19",
       "days_allowed": 183,
-      "age_days": 2,
+      "age_days": 3,
       "overdue_by": null,
       "label": "Reviewed 2026-08-19",
-      "detail": "Checked 2 days ago against a 183-day threshold. Source: GOV.UK UK ETS policy overview; HoC Library SN05927; HMRC CCL1/6."
+      "detail": "Checked 3 days ago against a 183-day threshold. Source: GOV.UK UK ETS policy overview; HoC Library SN05927; HMRC CCL1/6."
     },
     {
       "id": "electricity-wholesale",
@@ -41,10 +41,10 @@
       "state": "fresh",
       "last_verified": "2026-07-25",
       "days_allowed": 183,
-      "age_days": 27,
+      "age_days": 28,
       "overdue_by": null,
       "label": "Reviewed 2026-07-25",
-      "detail": "Checked 27 days ago against a 183-day threshold. Source: GB multi-plant SRMC dispatch stack DISCOVER."
+      "detail": "Checked 28 days ago against a 183-day threshold. Source: GB multi-plant SRMC dispatch stack DISCOVER."
     },
     {
       "id": "gas-wholesale",
@@ -53,10 +53,10 @@
       "state": "fresh",
       "last_verified": "2026-08-19",
       "days_allowed": 183,
-      "age_days": 2,
+      "age_days": 3,
       "overdue_by": null,
       "label": "Reviewed 2026-08-19",
-      "detail": "Checked 2 days ago against a 183-day threshold. Source: National Gas Transmission; DESNZ gas storage & flexibility (2023); HoC Library."
+      "detail": "Checked 3 days ago against a 183-day threshold. Source: National Gas Transmission; DESNZ gas storage & flexibility (2023); HoC Library."
     },
     {
       "id": "gb-electricity-market",
@@ -65,10 +65,10 @@
       "state": "fresh",
       "last_verified": "2026-08-19",
       "days_allowed": 365,
-      "age_days": 2,
+      "age_days": 3,
       "overdue_by": null,
       "label": "Reviewed 2026-08-19",
-      "detail": "Checked 2 days ago against a 365-day threshold. Source: Ofgem regulatory framework; CMA Energy Market Investigation appendix 2.1."
+      "detail": "Checked 3 days ago against a 365-day threshold. Source: Ofgem regulatory framework; CMA Energy Market Investigation appendix 2.1."
     },
     {
       "id": "hedging-forward-market",
@@ -77,10 +77,10 @@
       "state": "fresh",
       "last_verified": "2026-08-19",
       "days_allowed": 365,
-      "age_days": 2,
+      "age_days": 3,
       "overdue_by": null,
       "label": "Reviewed 2026-08-19",
-      "detail": "Checked 2 days ago against a 365-day threshold. Source: Ofgem cap wholesale methodology decisions 2022/2025; Ofgem resilience CfI 2021."
+      "detail": "Checked 3 days ago against a 365-day threshold. Source: Ofgem cap wholesale methodology decisions 2022/2025; Ofgem resilience CfI 2021."
     },
     {
       "id": "imbalance-cashout-settlement",
@@ -89,10 +89,10 @@
       "state": "fresh",
       "last_verified": "2026-08-19",
       "days_allowed": 183,
-      "age_days": 2,
+      "age_days": 3,
       "overdue_by": null,
       "label": "Reviewed 2026-08-19",
-      "detail": "Checked 2 days ago against a 183-day threshold. Source: Elexon BSC Imbalance Pricing Guidance + glossary; Ofgem Balancing SCR."
+      "detail": "Checked 3 days ago against a 183-day threshold. Source: Elexon BSC Imbalance Pricing Guidance + glossary; Ofgem Balancing SCR."
     },
     {
       "id": "merit-order-residual-demand",
@@ -101,10 +101,10 @@
       "state": "fresh",
       "last_verified": "2026-08-19",
       "days_allowed": 365,
-      "age_days": 2,
+      "age_days": 3,
       "overdue_by": null,
       "label": "Reviewed 2026-08-19",
-      "detail": "Checked 2 days ago against a 365-day threshold. Source: Ofgem/Elexon NETA+BETTA self-dispatch; DESNZ REMA."
+      "detail": "Checked 3 days ago against a 365-day threshold. Source: Ofgem/Elexon NETA+BETTA self-dispatch; DESNZ REMA."
     },
     {
       "id": "price-cap",
@@ -113,10 +113,10 @@
       "state": "fresh",
       "last_verified": "2026-08-18",
       "days_allowed": 92,
-      "age_days": 3,
+      "age_days": 4,
       "overdue_by": null,
       "label": "Reviewed 2026-08-18",
-      "detail": "Checked 3 days ago against a 92-day threshold. Source: Ofgem's published cap guidance and its 2022 quarterly-update decision."
+      "detail": "Checked 4 days ago against a 92-day threshold. Source: Ofgem's published cap guidance and its 2022 quarterly-update decision."
     }
   ]
 }

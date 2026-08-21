@@ -1,34 +1,34 @@
 {
   "annotation": {
-    "checked_at": "2026-08-20T06:59:41Z",
+    "checked_at": "2026-08-21T23:43:10Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_committed_store_credits_a_falsifier_the_repository_does_not_have",
-      "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_silenced_absence_is_undeclared",
+      "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_every_declared_honest_absence_is_still_absent_and_still_silenced",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_stale_baseline_entries",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
-      "FAILED tests/background/test_finding_severity.py::test_the_staging_root_has_no_false_discharges",
-      "FAILED tests/background/test_live_ledger_guard.py::test_the_narrowing_to_measurement_ledgers_is_measured_not_assumed",
-      "FAILED tests/background/test_publish_provenance.py::test_every_live_data_door_opts_into_the_banner"
+      "FAILED tests/background/test_conversation_gap_ledger_wire.py::test_R15_MUTATION_a_counterparty_on_a_future_schema_is_refused_not_absorbed",
+      "FAILED tests/background/test_file_api.py::test_healthz_no_auth_required - pro...",
+      "FAILED tests/background/test_live_ledger_guard.py::test_the_narrowing_to_measurement_ledgers_is_measured_not_assumed"
     ],
-    "nonblocking_reds_total": 68,
-    "open_findings": 100
+    "nonblocking_reds_total": 121,
+    "open_findings": 107
   },
   "last_verified": {
-    "generated_at": "2026-08-21T22:55:41Z",
-    "git_commit": "f983f074c",
-    "run_id": "run_output_f983f074c_20260821T153143Z.json",
-    "verified_at": "2026-08-21T22:55:41Z"
+    "generated_at": "2026-08-21T23:58:26Z",
+    "git_commit": "973aa9ac6",
+    "run_id": "run_output_973aa9ac6_20260821T234008Z.json",
+    "verified_at": "2026-08-21T23:58:26Z"
   },
   "paused_reason": "scoped publish-path suite red at git=f983f074c; blocking tests: ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_answer_which_commit_it_is, FAILED tests/tools/test_measure_publish_gate_subject_cost.py::test_the_basetemp_leak_is_reclaimed_by_the_gates_own_sweep, ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_be_bl",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-21T22:55:41Z",
-    "git_commit": "f983f074c",
-    "run_id": "run_output_f983f074c_20260821T153143Z.json",
-    "verified_at": "2026-08-21T22:55:41Z"
+    "generated_at": "2026-08-21T23:58:26Z",
+    "git_commit": "973aa9ac6",
+    "run_id": "run_output_973aa9ac6_20260821T234008Z.json",
+    "verified_at": "2026-08-21T23:58:26Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-21T22:55:41Z"
+  "written_at": "2026-08-21T23:58:26Z"
 }
