@@ -808,7 +808,20 @@ def test_a_raising_reader_withholds_rather_than_crashing_the_draw_ladder(tmp_pat
     # nothing calls, which is the tautology shape it was written to avoid.
     monkeypatch.setattr(reader, "read_blocking_record", _boom)
 
-    assert supervisor._live_gate_blocking_record(now=now) == ([], None)
+    # READ THE RECORD THE PRODUCTION CALL READS (2026-08-21). This guard used to assert on
+    # `_live_gate_blocking_record(now=now)` with NO `record_path`, i.e. the DEFAULT
+    # `PROJECT_DIR/docs/observability/.last_gate_blocking_tests.json` -- and that form cannot
+    # fail. `now` is a fixed 2027 timestamp, so any record really on disk is ~1664x past the
+    # age bound and answers ([], None) from STALENESS whether or not the patch above took
+    # effect (measured: the unpatched call returns ([], None) at this `now`); in the gate's
+    # HEAD checkout the file is untracked and absent, which answers ([], None) too. So the one
+    # line standing between this test and the tautology its own docstring disclaims was
+    # proving the age bound, not the delegation. Point it at the FRESH record this test wrote
+    # -- the same path `_publish_gate_wedge_active` derives -- and the assertion becomes a real
+    # measurement of the patched delegate: unpatched, this record WOULD be cited.
+    record = tmp_path / supervisor.GATE_BLOCKING_TESTS_FILENAME
+    assert record.exists(), "precondition: a record the unpatched reader would cite"
+    assert supervisor._live_gate_blocking_record(now=now, record_path=record) == ([], None)
     msg = supervisor._publish_gate_wedge_active(now=now)
     assert msg is not None and "PUBLISH-GATE WEDGE" in msg, "a broken reader must not blind RUNG 1"
     assert "FILED FINDINGS" not in msg
