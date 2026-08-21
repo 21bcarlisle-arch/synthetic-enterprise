@@ -12,6 +12,11 @@
 > objects, and the process table, against the named landing it happened inside. When a record
 > appears in `docs/observability/staging_root_resurrection.jsonl`, read it and close this.
 > Do NOT close this on a reading of the code — see "The generalisable half" at the bottom.
+>
+> **2026-08-21:** still open, still no cause. What is new is a *restore source* — the INDEX — with
+> a live specimen found on the shared tree and four operations measured against it, plus two
+> corrections to how this document's own instrument should be read. See
+> "A restore source nobody has checked".
 
 # Archived run markers keep coming back to the staging root, and while they are there NO commit on this tree can pass the gate
 
@@ -93,6 +98,77 @@ mechanism, not an accident.
    that reason.
 3. **Only then read the publisher.** It was the obvious suspect and it is the one thing
    already proven innocent.
+
+## A restore source nobody has checked: the INDEX (2026-08-21, measured)
+
+Every candidate in step 2 is a *command*. This section names a **state** instead, because a live
+specimen of it was sitting on the shared tree this morning and it arms three of the commands
+already on that list.
+
+### The specimen, on the real tree
+
+`git status` reported one entry of the shape `AD` — staged as an ADD, absent from the worktree:
+
+| fact | command | value |
+|---|---|---|
+| index holds the staging-root path | `git ls-files -s docs/staging/WORKER_FINDING_ARCHIVED_RUN_MARKERS_…md` | blob `7bd03a47` |
+| HEAD does **not** hold that path | `git cat-file -e HEAD:<root path>` | rc≠0 |
+| HEAD holds the *current* doc elsewhere | `git rev-parse HEAD:docs/staging/in_progress/<same name>` | blob `fcb06765` |
+| the indexed blob is the **pre-move** version | `git log --oneline -1 b096aeaeb` | committed at the root, later moved to `in_progress/` by `4db804458` |
+
+So the index was still carrying an **older copy of this very document, at the staging root**,
+after the document had been moved and rewritten. That is one `git checkout` away from being a
+root file again.
+
+### What that state does, measured in a scratch repo rather than read
+
+Four operations against an `AD` entry, each run in a throwaway repo:
+
+| operation | result |
+|---|---|
+| `git checkout -- .` | **file RESURRECTED in the worktree** |
+| `git restore .` | **file RESURRECTED in the worktree** |
+| `git stash` + `git stash pop` | **file RESURRECTED in the worktree** |
+| `git commit -m … -- <other path>` with a **refusing** pre-commit hook | not resurrected |
+| `git commit` with **no pathspec** | ghost **silently committed** into the tree |
+
+Two consequences, and they cut in opposite directions from the ruled-out table above:
+
+1. **The one surviving "REAL" row does not cover this shape.** A *failed* pathspec commit leaves
+   an `AD` entry alone — measured. So "a failed commit rolling back the deletion" is not the
+   general mechanism; it explains at most the half it was offered for.
+2. **The restore is from the INDEX, not from HEAD.** All three resurrecting commands write the
+   worktree from the index, at once, with one mtime — which is precisely the *"single
+   simultaneous event, not a drip"* signature recorded at 21:26:11.
+
+### This calibrates the instrument, and not in its favour
+
+`staging_root_resurrection_watch.py:188` computes `tracked_at_head` as
+`git cat-file -e HEAD:<rel>`. **An index ghost is by construction not at HEAD**, so a
+resurrection of this specimen would be recorded with `tracked_at_head: False` — while step 2
+above tells the reader to look for *"a simultaneous restore of exactly the **tracked-at-HEAD**
+set"*. Applied literally, that sentence discards the specimen it was written to catch.
+
+The companion field needs the same care. `blob_known_to_git` is `cat-file -e` on the hashed
+bytes, and step 1 reads `True` as *"these bytes were committed here before"*. **`git add` alone
+writes a blob into the object store** — no commit required — so `True` also covers *"some lane
+staged these bytes and never committed them"*. The field is sound; the stated reading of it is
+narrower than the field.
+
+Neither of these is a reason to distrust the instrument. Both are reasons to not let its
+*prose* do the ruling-out, which is the failure this document was opened about.
+
+### What was done about the specimen
+
+The stale entry was dropped with `git reset -- <root path>` (index-only; nothing in the worktree
+or in any commit changed, and no other lane's staged entry was touched). The evidence above is
+recorded here because the specimen itself is now gone.
+
+**Still not a cause.** Nothing here identifies who wrote that index entry, and this section is
+deliberately not filed as the answer. What it does is convert step 2 from a list of commands
+with no precondition into a list of commands **plus the state that makes them dangerous** — and
+that state is cheap to check for: `git status --porcelain | grep -E '^(A|M|R)D'` was one line
+this morning and is a question the tree can be asked at any time.
 
 ## The generalisable half
 
