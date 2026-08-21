@@ -414,3 +414,184 @@ def test_the_cap_is_derived_from_cadence_not_from_the_suite():
         "the absolute cap must be a literal, not computed from suite measurements -- a ceiling "
         "derived from the thing it caps cannot constrain it"
     )
+
+
+# ─────────────────────────────── 5. THE INNER CLOCK — the third caller is the publisher itself
+#
+# Sections 2-4 closed this class on the OUTER clock: every module that spawns the publisher and
+# kills it on its own deadline records `kind="deadline_kill"` and invents no return code. The
+# publisher has a SECOND clock over the same gate -- `GATE_SUITE_TIMEOUT_SECONDS`, its own
+# budget, whose verdict is `_gate_timed_out()` -- and until 2026-08-21 that one had no carve-out
+# at all: it set `tests_ok=False` and fell into the same bare `return 1` as a genuine red, so
+# `_classify_gate_failure` filed a stopwatch as `test_regression`.
+#
+# OBSERVED (WORKER_FINDING_A_PUBLISH_TIMEOUT_IS_RECORDED_AS_A_TEST_REGRESSION_AND_THE_SCOPE_
+# CANNOT_MEET_ITS_CAP_2026-08-21, BLOCKING, recommendation 1): both failures in
+# `.publish_gate_state.json` read `test_regression` while `total_red` was 0 and `blocking_tests`
+# was empty -- an accusation with no accused -- during a 32-hour wedge, 3 of whose 46 refusals
+# were this branch.
+#
+# R10: the fix is not "and also the inner one". It is that a refused publish states WHICH KIND
+# of refusal it was, in ONE place (`_gate_refusal`), so the exit code, the log line and the
+# public banner cannot disagree about the same cycle. Each test below names the mutation that
+# breaks it.
+
+
+def test_the_inner_timeout_does_not_exit_with_the_reds_code():
+    """MUTATION: `return (1, ...)` for the timeout branch -- i.e. the pre-fix code, where a
+    stopwatch and a red left the publisher by the same door. Then the router below has nothing
+    to distinguish them BY, and every downstream reader is back to inferring from rc=1."""
+    timeout_code, _, _ = prc._gate_refusal(True, "abc123", [])
+    red_code, _, _ = prc._gate_refusal(False, "abc123", ["tests/x.py::test_y"])
+
+    assert timeout_code == prc.EXIT_GATE_TIMED_OUT
+    assert timeout_code != red_code, (
+        "a gate that did not finish and a gate that found a red leave the publisher by the same "
+        "exit code, so nothing downstream can tell a stopwatch from a test failure"
+    )
+
+
+def test_the_inner_timeout_is_a_failure_not_a_no_publish():
+    """R15 FAIL-OPEN, the direction that would be worse than the defect being fixed. Naming the
+    timeout is only safe while it still WEDGES: an unavailable check is a FAILED check.
+    MUTATION: add EXIT_GATE_TIMED_OUT to NO_PUBLISH_EXIT_CODES and the streak stops counting a
+    gate that cannot answer, which is how the alarm gets disarmed by a fix."""
+    assert prc.EXIT_GATE_TIMED_OUT not in prc.NO_PUBLISH_EXIT_CODES, (
+        "a gate that could not answer is filed as 'published nothing, evidence of nothing' -- "
+        "which leaves the wedge streak exactly where it found it and lets a timing-out gate "
+        "run silently forever"
+    )
+
+
+def test_the_routers_verdict_for_the_inner_timeout_is_a_failure(tmp_path, monkeypatch):
+    """The seam: the code the publisher returns must reach the wedge detector as a FAILURE
+    (keeping the streak) and under its OWN name. MUTATION: drop the `EXIT_GATE_TIMED_OUT`
+    branch from `record_publish_gate_outcome` and rc=78 falls through to
+    `_classify_gate_failure`, which reads any rc>0 as `test_regression`."""
+    import json
+
+    state = tmp_path / "publish_gate_state.json"
+    monkeypatch.setattr(prc, "PUBLISH_GATE_STATE_FILE", state)
+    monkeypatch.setattr(prc, "_marker_git_hash", lambda m: "abc123")
+    monkeypatch.setattr(prc, "notify", lambda *a, **k: None, raising=False)
+
+    marker = tmp_path / "run_complete_20260821T160300Z.md"
+    marker.write_text("marker\n")
+
+    verdict = prc.record_publish_gate_outcome(marker, prc.EXIT_GATE_TIMED_OUT)
+
+    assert verdict == "failure", (
+        "a gate that did not finish must keep the wedge streak -- R15: an unavailable check is "
+        "a FAILED check"
+    )
+    written = json.loads(state.read_text())
+    assert written["failures"][-1]["kind"] == "gate_timeout", (
+        "the publisher's own gate timeout is recorded as {!r} -- the stopwatch-filed-as-a-red "
+        "defect this branch exists to close".format(written["failures"][-1]["kind"])
+    )
+    assert written["failures"][-1]["kind"] != "test_regression"
+
+
+def test_a_genuine_red_is_still_a_test_regression(tmp_path, monkeypatch):
+    """THE NULL CONTROL. A carve-out that swallowed the real reds would score green on every
+    test above while destroying the signal. MUTATION: classify every failure as `gate_timeout`
+    and this test reds."""
+    import json
+
+    state = tmp_path / "publish_gate_state.json"
+    monkeypatch.setattr(prc, "PUBLISH_GATE_STATE_FILE", state)
+    monkeypatch.setattr(prc, "_marker_git_hash", lambda m: "abc123")
+    monkeypatch.setattr(prc, "notify", lambda *a, **k: None, raising=False)
+
+    marker = tmp_path / "run_complete_20260821T161500Z.md"
+    marker.write_text("marker\n")
+
+    assert prc.record_publish_gate_outcome(marker, 1) == "failure"
+    written = json.loads(state.read_text())
+    assert written["failures"][-1]["kind"] == "test_regression"
+
+
+def test_the_gate_timeout_label_says_the_tests_are_unjudged():
+    """R5 -- the payload carries the diagnostic, and the diagnostic must not be the neighbouring
+    clock's. MUTATION: reuse the `deadline_kill` label and the reader is sent to look at the
+    CALLER's deadline, which did not fire."""
+    label = prc._gate_failure_label("gate_timeout")
+    assert "NOT a test failure" in label and "unjudged" in label
+    assert "CALLER" not in label, (
+        "this is the publisher's OWN clock -- borrowing the caller's label names the wrong "
+        "process to go and look at"
+    )
+    assert label != prc._gate_failure_label("deadline_kill")
+
+
+def test_the_timeout_alarm_does_not_send_the_reader_after_a_test(tmp_path, monkeypatch):
+    """The RUNG-1 draw reads this payload. MUTATION: drop the `kind == "gate_timeout"` branch in
+    `_fire_publish_gate_alert` and the standing clause tells the reader `rc>0 means run that
+    test at HEAD to find the regression` about a cycle where no test was judged -- and the
+    suspect clause names files derived from an EARLIER cycle's `blocking` list."""
+    monkeypatch.setattr(prc, "PUBLISH_GATE_STATE_FILE", tmp_path / "s.json")
+
+    msg = prc._fire_publish_gate_alert(
+        recent=[{}], kind="gate_timeout", rc=prc.EXIT_GATE_TIMED_OUT, git_hash="abc123",
+        unavailable=False, send_ntfy_fn=lambda m: "sent-1",
+        blocking=["tests/background/test_left_over_from_an_earlier_cycle.py::test_x"],
+        markers_pending=3, total_red=0,
+    )
+
+    assert "NO TEST WAS JUDGED" in msg
+    assert "run that test at HEAD to find the regression" not in msg
+    assert "test_left_over_from_an_earlier_cycle" not in msg, (
+        "the timeout alarm names a test from an earlier cycle as a suspect -- naming nobody "
+        "beats naming the innocent"
+    )
+
+
+def test_a_red_alarm_still_names_its_blocking_test(tmp_path, monkeypatch):
+    """THE NULL CONTROL for the alarm half. MUTATION: apply the timeout wording to every kind
+    and a genuine red stops naming the node the reader needs to run."""
+    monkeypatch.setattr(prc, "PUBLISH_GATE_STATE_FILE", tmp_path / "s.json")
+
+    msg = prc._fire_publish_gate_alert(
+        recent=[{}], kind="test_regression", rc=1, git_hash="abc123",
+        unavailable=False, send_ntfy_fn=lambda m: "sent-1",
+        blocking=["tests/background/test_real_red.py::test_x"],
+        markers_pending=3, total_red=1,
+    )
+
+    assert "test_real_red.py::test_x" in msg
+    assert "NO TEST WAS JUDGED" not in msg
+
+
+def test_the_public_banner_does_not_call_an_unjudged_suite_red():
+    """R11/R9 on the ONE sentence a visitor sees. The banner reason was a single format string
+    reading `scoped publish-path suite red at git=...` on EVERY refusal, so a cycle where no
+    test was judged published the claim that the suite was red. MUTATION: return the same reason
+    for both branches and this reds on the word `red`."""
+    _, _, timeout_reason = prc._gate_refusal(True, "abc123", [])
+    _, _, red_reason = prc._gate_refusal(False, "abc123", ["tests/x.py::test_y"])
+
+    assert "UNJUDGED" in timeout_reason and "did not finish" in timeout_reason
+    assert "suite red" not in timeout_reason
+    assert "suite red" in red_reason and "tests/x.py::test_y" in red_reason
+
+
+def test_the_refused_publish_states_one_verdict_in_one_place():
+    """R10, the class rather than the instance: the exit code, the log line and the public
+    banner are three statements about one cycle, and 2026-08-21 is what it looks like when they
+    are authored separately (state file `test_regression`, `total_red: 0`, banner "red"). The
+    publish path must therefore take all three from `_gate_refusal` and compose none of its own.
+
+    MUTATION: re-inline the banner reason at the call site and this scan reds."""
+    import inspect
+
+    src = inspect.getsource(prc._process) if hasattr(prc, "_process") else inspect.getsource(prc)
+    body = src[src.index("tests_ok, timed_out = run_fast_tests("):]
+    body = body[:body.index("Move the marker to done/")]
+
+    assert "_gate_refusal(" in body, (
+        "the publish path no longer routes its refusal through the one function that names it"
+    )
+    assert "suite red at git=" not in body, (
+        "the refusal wording is composed at the call site again -- that is how the banner and "
+        "the state file came to disagree about the same cycle"
+    )

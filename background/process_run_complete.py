@@ -139,6 +139,35 @@ EXIT_NOTHING_PUBLISHED = 76
 # the middle of it at 07:23Z, `.publish_gate_state.json` reading `failures: []` throughout, and
 # poesys.net serving figures 11.5 hours stale while every run archived itself as done.
 EXIT_PUBLISH_DID_NOT_LAND = 77
+# THE INNER CLOCK, closed 2026-08-21
+# (WORKER_FINDING_A_PUBLISH_TIMEOUT_IS_RECORDED_AS_A_TEST_REGRESSION_AND_THE_SCOPE_CANNOT_MEET_ITS_CAP_2026-08-21,
+# BLOCKING, recommendation 1). The publisher has TWO clocks over the same gate. The OUTER one
+# belongs to the caller -- `sim_runner` and `background_worker` both kill the publisher on their
+# own deadline and both already record `kind="deadline_kill"` with no invented return code,
+# under a comment that says why: "rc=124 WAS: the classifier maps any rc>0 to test_regression,
+# which is how a stopwatch became 145 recorded test failures and sent the RUNG-1 draw after a
+# gate that was never judged."
+#
+# The INNER clock -- `GATE_SUITE_TIMEOUT_SECONDS`, the publisher's own budget, whose verdict is
+# `_gate_timed_out()` -- had no such carve-out. It set `tests_ok=False` and fell into the same
+# `return 1` as a genuine red, so `_classify_gate_failure` read it as `test_regression`: the
+# defect this project closed on the outer half, still live on the inner one.
+#
+# OBSERVED, not inferred (docs/observability/.publish_gate_state.json + sim-runner-log.md,
+# 2026-08-21): both recorded failures read `test_regression` while `total_red` was 0 and
+# `blocking_tests` was empty -- an accusation with no accused. The 16:03Z one is provably a
+# stopwatch: "Fast test suite timed out (>300s) -- NOT committing" immediately above "Scoped
+# publish-path gate FAILED". Over 2026-08-20/21, 3 of 46 refusals of a 32-hour wedge were this.
+#
+# NOT `deadline_kill`, deliberately: that label states the CALLER's deadline killed the
+# publisher, which is a different fact about a different clock, and filing this under it would
+# make the payload name the wrong process to go and look at. Same class, own name.
+#
+# NOT in NO_PUBLISH_EXIT_CODES, for the reason given below EXIT_PUBLISH_DID_NOT_LAND: a gate
+# that could not answer is a FAILED gate (R15 -- an unavailable check is a failed check), so it
+# must reach `record_publish_gate_failure` and keep the wedge streak. What changes is what the
+# alarm SAYS, never whether it fires.
+EXIT_GATE_TIMED_OUT = 78
 # The register callers switch on. rc=0 asserts ONE thing -- this process retired the marker and
 # the published surfaces are current. Anything that publishes nothing states so with its own
 # code; `tests/background/test_a_duplicate_marker_is_not_a_publish.py` fails by name on a new
@@ -2302,6 +2331,37 @@ def _gate_timed_out():
     return False, True
 
 
+def _gate_refusal(timed_out, git_hash, blocking):
+    """What a refused gate is called: (exit code, log line, banner reason).
+
+    ONE function because the three facts must not be able to drift apart -- the code the wedge
+    detector classifies on, the line the log carries, and the sentence the public banner
+    publishes are the same claim about the same cycle. 2026-08-21 is what it looks like when
+    they are stated separately: the state file said `test_regression` with `total_red: 0`, and
+    the banner told the visitor the suite was "red at git=..." on a cycle where no test had been
+    judged at all.
+
+    A RED and a TIMEOUT are both refusals and both keep the wedge streak. They differ in what
+    they licence a reader to do: a red names a node to run, a timeout names no node and means
+    the tests are UNJUDGED. See EXIT_GATE_TIMED_OUT.
+    """
+    if timed_out:
+        return (
+            EXIT_GATE_TIMED_OUT,
+            "Scoped publish-path gate DID NOT FINISH (>{}s) - not committing content; the "
+            "tests are UNJUDGED, not red".format(GATE_SUITE_TIMEOUT_SECONDS),
+            "scoped publish-path gate did not finish within {}s at git={}; the suite is "
+            "UNJUDGED, not red -- no test is implicated".format(
+                GATE_SUITE_TIMEOUT_SECONDS, git_hash),
+        )
+    return (
+        1,
+        "Scoped publish-path gate FAILED - not committing content",
+        "scoped publish-path suite red at git={}; blocking tests: {}".format(
+            git_hash, ", ".join(blocking or ()) or "see sim-runner-log"),
+    )
+
+
 # ── THE BOUND IS DERIVED FROM THE SUBJECT THE GATE ACTUALLY RUNS (OPS2 criterion 2) ─────────
 #
 # Was 600s, which the suite itself exceeded (612.94s measured 2026-08-09 for 22,525 tests), so
@@ -4392,6 +4452,10 @@ def _gate_failure_label(kind):
         "signal_kill": "killed by a signal (a resource/environment problem, not a normal test failure)",
         "deadline_kill": ("killed by the CALLER's deadline before the gate returned a verdict -- "
                           "NOT a test failure, and the tests it was running are unjudged"),
+        "gate_timeout": ("the publisher's OWN gate clock (GATE_SUITE_TIMEOUT_SECONDS) expired "
+                         "before the suite returned a verdict -- NOT a test failure, and the "
+                         "tests it was running are unjudged. Nothing here says a test is red; "
+                         "read the gate's wall time against its bound, not the test list"),
         "test_regression": "test failure or processing error (rc>0 -- a real regression is possible)",
         "commit_did_not_land": ("the publish COMMIT did not land -- the publisher's OWN scoped "
                                 "suite was GREEN, so this is NOT a publish-path regression: the "
@@ -4892,13 +4956,29 @@ def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_
     if unavailable:
         what += (" NOTE: the gate-state file was unreadable, so this alert fired "
                  "fail-closed on the first failure rather than risk staying silent.")
-    how = _blocking_clause(blocking, blocking_hash, census, total_red) + (
-           " rc=-9 is almost certainly OOM (free memory or cut test parallelism), "
-           "NOT a code bug; rc>0 means run that test at HEAD to find the regression. Full "
-           "output: docs/observability/sim-runner-log.md, 'Publish gate RED output tail'. "
-           "The alarm clears automatically on the next clean publish.")
-    how += _suspect_clause(blocking, suspects, cited)
-    how += " " + suspect_hit_rate_phrase()
+    if kind == "gate_timeout":
+        # THE READER IS NOT SENT AFTER A TEST THAT WAS NEVER JUDGED (2026-08-21, see
+        # EXIT_GATE_TIMED_OUT). The standing clause below says "rc>0 means run that test at
+        # HEAD" -- true of a red, a lie about a stopwatch, and the reason the RUNG-1 draw
+        # spent a 32-hour wedge hunting nodes that pass.
+        how = ("NO TEST WAS JUDGED -- the gate's own clock expired at "
+               "{}s. Do NOT hunt a red: measure the gate's SCOPE against its bound "
+               "(`python3 -m background.publish_scope`) and read the wall time in "
+               "docs/observability/sim-runner-log.md. The alarm clears automatically on the "
+               "next clean publish."
+               ).format(GATE_SUITE_TIMEOUT_SECONDS)
+    else:
+        how = _blocking_clause(blocking, blocking_hash, census, total_red) + (
+               " rc=-9 is almost certainly OOM (free memory or cut test parallelism), "
+               "NOT a code bug; rc>0 means run that test at HEAD to find the regression. Full "
+               "output: docs/observability/sim-runner-log.md, 'Publish gate RED output tail'. "
+               "The alarm clears automatically on the next clean publish.")
+    if kind != "gate_timeout":
+        # Suspects are DERIVED FROM `blocking`, which on a timeout is whatever an earlier cycle
+        # left behind -- so on this kind they are not weak evidence, they are evidence about a
+        # different cycle. Naming nobody beats naming the innocent.
+        how += _suspect_clause(blocking, suspects, cited)
+        how += " " + suspect_hit_rate_phrase()
     why = ("A silently-wedged publish gate stops the live site and report updating with "
            "NO other signal -- this is the exact ~45-min silent stall of 2026-07-14 (H15).")
     msg = "[ACTION NEEDED] {}\nWhat: {}\nHow: {}\nWhy: {}".format(PUBLISH_GATE_ITEM_ID, what, how, why)
@@ -5191,6 +5271,18 @@ def record_publish_gate_outcome(marker, rc, *, kind=None):
                 rc=rc, git_hash=git_hash, kind="commit_did_not_land",
             )
             return "failure"
+        if rc == EXIT_GATE_TIMED_OUT:
+            # NAMED for the same reason as the code above, and for the reason `deadline_kill`
+            # is named on the two OUTER callers: `_classify_gate_failure` would read rc=78 as
+            # "test_regression" and send the RUNG-1 draw hunting a red test that does not
+            # exist. The publisher's OWN clock stopped this one, and it knows that.
+            record_publish_gate_failure(
+                "the publisher's own gate clock expired on {} before the suite returned a "
+                "verdict -- NO test was judged, so no test is implicated".format(
+                    Path(marker).name),
+                rc=rc, git_hash=git_hash, kind="gate_timeout",
+            )
+            return "failure"
         if rc == 0:
             if not _green_is_on_record_for(git_hash):
                 log("Publish gate: {} exited 0 but no suite PASS is recorded for git={} "
@@ -5463,12 +5555,12 @@ def _process(marker_path_str):
         # goes to origin, so the visitor sees the last verified run under a dated
         # "verification paused since T" line instead of a stamp that has silently stopped
         # moving. 25 hours of exactly that silence is what this ruling was written from.
-        log("Scoped publish-path gate FAILED - not committing content")
-        _publish_provenance_banner(
-            git_hash,
-            reason="scoped publish-path suite red at git={}; blocking tests: {}".format(
-                git_hash, ", ".join(last_blocking_tests()[0]) or "see sim-runner-log"))
-        return 1
+        # A TIMEOUT IS NOT A RED (2026-08-21, see EXIT_GATE_TIMED_OUT). Both refuse the
+        # publish and both keep the streak; only one of them is entitled to say a test failed.
+        code, log_line, reason = _gate_refusal(timed_out, git_hash, last_blocking_tests()[0])
+        log(log_line)
+        _publish_provenance_banner(git_hash, reason=reason)
+        return code
     if timed_out:
         log("WARNING: tests timed out — results unverified but committing")
 
