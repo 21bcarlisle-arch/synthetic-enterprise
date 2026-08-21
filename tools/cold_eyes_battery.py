@@ -54,11 +54,59 @@ question, a verdict outside the vocabulary — every one of these RAISES rather 
 reporting "nothing outstanding". An unavailable check is a FAILED check (R15 FAIL-SILENT),
 and "nothing blocks L3", computed from a source nobody could read, is the reading that
 turned this atom's level into a twenty-eight-pass no-op in the first place.
+
+A NON-EMPTY EVIDENCE STRING IS NOT A TRUE ONE, and the subject is HEAD (pass 51, filed as
+`WORKER_FINDING_THE_BATTERY_CHECKS_THAT_ITS_EVIDENCE_IS_NON_EMPTY_NEVER_THAT_IT_IS_TRUE`)
+-----------------------------------------------------------------------------------------
+Everything above is fail-closed against SILENCE. None of it was fail-closed against a claim
+that cites something which does not exist. `RECONCILIATION_KEYS` was enforced by a
+TRUTHINESS test, so it refused an absent evidence string and accepted every non-empty one —
+while this docstring claimed the rows were "twelve falsifiable claims a reader can check
+against the code" and nothing in the module ever opened the code. Pass 43 recorded a repair
+against eight source files that sat uncommitted in the shared worktree across at least one
+further tick, and this control could not tell.
+
+WHY THE OBVIOUS REPAIR IS THEATRE, MEASURED RATHER THAN ARGUED. Requiring every cited repo
+PATH to resolve was tested against `2c0ba712b`, the real tree as it stood while the defect
+was live: of the twelve rows' citations, unresolvable paths = ZERO. A path-existence control
+would have been GREEN throughout. Pass 43 added a new SYMBOL to a file that already existed,
+so the location resolved and the claim was still false. This is the inverse of the recorded
+lesson that a symbol-presence control is fail-open because the claim carries a location:
+here the claim carries BOTH, and checking only the location is the fail-open half.
+
+SO THE UNIT IS `path::symbol`, RESOLVED AGAINST HEAD. `git show HEAD:<path>` is parsed and
+the cited name must be DEFINED there — not merely present as text, which a comment mentioning
+it would satisfy. HEAD, never the working tree, is the entire mechanism: a symbol present
+only in the worktree is precisely the defect, and because `surgical_land` materialises
+HEAD-plus-pathspec as a real repo, a row citing a symbol authored in the SAME commit resolves
+inside the gate and nowhere else. That property is what makes this check landable at all —
+and what it costs is that `battery_outstanding()` run against a worktree mid-pass will RAISE
+until the pass lands its code with its row. That is the discipline, not a defect.
+
+FOUR NAMED FAIL-OPEN RESIDUES, because a control's limits belong at the code:
+
+1. THE CHECK COVERS THE NOTATION, NOT THE CLAIM. Only `path.py::Name` is resolvable. Q11
+   cites `company/interfaces/wall_protocol.py:176-179` — a line range, which drifts and
+   cannot be resolved by name — and prose citations resolve to nothing at all.
+2. A DOTTED TAIL IS NOT RESOLVED. `X.method` verifies `X` only. Resolving the attribute
+   would need type inference the citation does not carry.
+3. A PASS ROW CITING NO PATH STAYS UNCHECKED, AND THAT IS CORRECT, NOT AN OVERSIGHT. Q17 is
+   a PASS whose reviewer-specified right answer is an ABSENCE — "an honest 'they don't,
+   they're outside this' is fine and expected". A rule requiring every PASS to cite a
+   resolvable symbol would red the one question the reviewer pre-authorised a negative
+   answer for. Absence-claims are left alone deliberately.
+4. IT CANNOT MOVE A VERDICT, ONLY BLOCK ONE. Both citations that would have caught pass 43
+   sit in rows that were already FAIL, and FAIL blocks anyway. Its value is catching the
+   UNLANDED STATE — a record describing code in no tree. Claiming it would have protected
+   the exit criterion would be the overclaim this atom's own walk exists to stop.
 """
 
 from __future__ import annotations
 
+import ast
 import json
+import re
+import subprocess
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -84,6 +132,20 @@ DISQUALIFYING = "DISQUALIFYING"
 #: replace.
 RECONCILIATION_KEYS = ("capability", "n", "verdict", "evidence")
 
+#: A citation this module can actually resolve: a repo-relative path to a Python module, `::`,
+#: and a top-level name. Deliberately narrow — residues 1 and 2 in the module docstring say
+#: what it therefore does not cover, which is the honest half of shipping it.
+CITATION = re.compile(r"([A-Za-z0-9_][A-Za-z0-9_./-]*\.py)::([A-Za-z_][A-Za-z0-9_]*)")
+
+#: The ref citations resolve against. HEAD, never the working tree — see the module docstring
+#: for why that choice IS the mechanism rather than an implementation detail.
+CITATION_REF = "HEAD"
+
+#: Blob cache keyed by (resolved sha, path), so a survey that reads one atom's twelve rows
+#: does not shell out once per citation. Keyed on the SHA rather than the ref name so a
+#: long-lived process cannot serve a stale HEAD after a commit lands under it.
+_BLOB_CACHE: dict[tuple[str, str], str | None] = {}
+
 #: The only two answers. `PARTIAL`, `IN_PROGRESS` and their friends are deliberately absent:
 #: a question that is partly answered has not been answered, and a vocabulary that lets a
 #: blocker be recorded as nearly-cleared is how a blocker stops blocking.
@@ -96,6 +158,101 @@ class BatteryUnavailable(RuntimeError):
 
 def _reconciliation_path(path: Path | str | None = None) -> Path:
     return Path(path) if path is not None else PROJECT_DIR / RECONCILIATION_REL
+
+
+def _git(args: list[str], project_dir: Path) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        ["git", *args], cwd=str(project_dir), capture_output=True, text=True, timeout=30
+    )
+
+
+def _resolve_ref(ref: str, project_dir: Path) -> str:
+    """The ref's SHA, or RAISE naming the ref rather than blaming a citation.
+
+    An unreadable ref is git being unavailable, which is a FAILED check and not a false
+    claim — and the two must not share a message, or a broken checkout reads as a lane
+    fabricating evidence. Same distinction the publish gate draws when it says "DISK, not
+    code".
+    """
+    try:
+        done = _git(["rev-parse", "--verify", f"{ref}^{{commit}}"], project_dir)
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise BatteryUnavailable(
+            f"git could not be run in {project_dir}, so no cited symbol can be resolved and "
+            f"whether the evidence is true is UNKNOWN -- a failed check, not a passed one: {exc}"
+        ) from exc
+    if done.returncode != 0:
+        raise BatteryUnavailable(
+            f"the citation ref {ref!r} does not resolve in {project_dir}, so no cited symbol "
+            f"can be checked against committed truth: {done.stderr.strip()}"
+        )
+    return done.stdout.strip()
+
+
+def _blob_at(sha: str, path: str, project_dir: Path) -> str | None:
+    """The file's committed bytes at `sha`, or None when it is not in that tree."""
+    key = (sha, path)
+    if key not in _BLOB_CACHE:
+        done = _git(["show", f"{sha}:{path}"], project_dir)
+        _BLOB_CACHE[key] = done.stdout if done.returncode == 0 else None
+    return _BLOB_CACHE[key]
+
+
+def _defined_names(source: str) -> set[str] | None:
+    """Every name BOUND at any depth in `source`, or None if it does not parse.
+
+    Defined, not merely mentioned: a substring search would be satisfied by a comment naming
+    the symbol, which is the same fail-open shape one level down.
+    """
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return None
+    names: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            names.add(node.name)
+        elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+            names.add(node.id)
+        elif isinstance(node, ast.alias):
+            names.add((node.asname or node.name).split(".")[0])
+    return names
+
+
+def cited_symbols(evidence: str) -> tuple[tuple[str, str], ...]:
+    """The `path.py::Name` pairs an evidence string claims, in order, deduplicated."""
+    seen: list[tuple[str, str]] = []
+    for path, symbol in CITATION.findall(evidence or ""):
+        if (path, symbol) not in seen:
+            seen.append((path, symbol))
+    return tuple(seen)
+
+
+def unresolved_citations(
+    evidence: str, ref: str = CITATION_REF, project_dir: Path | str | None = None
+) -> tuple[str, ...]:
+    """Cited `path::symbol` pairs that are NOT defined at `ref`, each with why.
+
+    Empty for an evidence string that cites nothing resolvable — residues 1-3 in the module
+    docstring, and residue 3 in particular is load-bearing rather than a gap.
+    """
+    project = Path(project_dir) if project_dir is not None else PROJECT_DIR
+    citations = cited_symbols(evidence)
+    if not citations:
+        return ()
+    sha = _resolve_ref(ref, project)
+    bad: list[str] = []
+    for path, symbol in citations:
+        source = _blob_at(sha, path, project)
+        if source is None:
+            bad.append(f"{path}::{symbol} (no such file at {ref})")
+            continue
+        names = _defined_names(source)
+        if names is None:
+            bad.append(f"{path}::{symbol} ({path} does not parse at {ref})")
+        elif symbol not in names:
+            bad.append(f"{path}::{symbol} ({symbol} is not defined in {path} at {ref})")
+    return tuple(bad)
 
 
 def disqualifying_questions(
@@ -151,13 +308,17 @@ def disqualifying_questions(
 
 
 def load_reconciliations(
-    capability: str = CAPABILITY, path: Path | str | None = None
+    capability: str = CAPABILITY,
+    path: Path | str | None = None,
+    citation_ref: str = CITATION_REF,
+    project_dir: Path | str | None = None,
 ) -> dict[int, dict]:
     """Question number -> its reconciliation row. An ABSENT file is empty, not unreadable.
 
     Nothing recorded is the honest reading that no question has been answered, and it blocks
     every one of them. An unparseable or self-contradictory file is a different thing and
-    raises.
+    raises — and so, since pass 51, does a row whose evidence cites a `path::symbol` that is
+    not defined at `citation_ref`. See the module docstring's HEAD-not-worktree paragraph.
     """
     target = _reconciliation_path(path)
     if not target.exists():
@@ -188,6 +349,14 @@ def load_reconciliations(
                 f"{target.name}:{lineno} carries verdict {row['verdict']!r}, which is outside "
                 f"{list(VERDICTS)} -- an unrecognised verdict is not a pass"
             )
+        unresolved = unresolved_citations(row["evidence"], citation_ref, project_dir)
+        if unresolved:
+            raise BatteryUnavailable(
+                f"{target.name}:{lineno} (question {row['n']}) cites symbols that do not exist "
+                f"at {citation_ref}: {'; '.join(unresolved)} -- a record describing code that "
+                f"is in no commit is not evidence, whatever it says. Land the code with the "
+                f"row, or cite what is actually there"
+            )
         n = int(row["n"])
         if n in out:
             raise BatteryUnavailable(
@@ -202,6 +371,8 @@ def battery_outstanding(
     capability: str = CAPABILITY,
     ledger_path: Path | str | None = None,
     reconciliation_path: Path | str | None = None,
+    citation_ref: str = CITATION_REF,
+    project_dir: Path | str | None = None,
 ) -> tuple[str, ...]:
     """THE L3 EXIT CRITERION, AS A FUNCTION. `()` only when every DISQUALIFYING question PASSES.
 
@@ -213,7 +384,9 @@ def battery_outstanding(
     if not questions:
         return (COLD_EYES_WALK_CRITERION,)
 
-    rows = load_reconciliations(capability, reconciliation_path)
+    rows = load_reconciliations(
+        capability, reconciliation_path, citation_ref, project_dir
+    )
     stranded = sorted(set(rows) - set(questions))
     if stranded:
         raise BatteryUnavailable(
@@ -231,6 +404,8 @@ def unpayable_here(
     capability: str = CAPABILITY,
     ledger_path: Path | str | None = None,
     reconciliation_path: Path | str | None = None,
+    citation_ref: str = CITATION_REF,
+    project_dir: Path | str | None = None,
 ) -> tuple[str, ...]:
     """The outstanding criteria this SEAT cannot pay for — the map's `infeasible_here` half.
 
@@ -246,7 +421,9 @@ def unpayable_here(
     blockers that genuinely remain.
     """
     outstanding = set(battery_outstanding(capability, ledger_path, reconciliation_path))
-    rows = load_reconciliations(capability, reconciliation_path)
+    rows = load_reconciliations(
+        capability, reconciliation_path, citation_ref, project_dir
+    )
     return tuple(
         f"Q{n}"
         for n in sorted(rows)

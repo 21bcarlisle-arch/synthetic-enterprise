@@ -231,3 +231,166 @@ def test_an_ungated_failure_is_outstanding_but_not_unpayable(tmp_path):
     recon = _recon(tmp_path, [_row(1, verdict="FAIL"), _row(2, verdict="FAIL", epoch_gated=True)])
     assert ceb.battery_outstanding(ledger_path=ledger, reconciliation_path=recon) == ("Q1", "Q2")
     assert ceb.unpayable_here(ledger_path=ledger, reconciliation_path=recon) == ("Q2",)
+
+
+# ── pass 51: a NON-EMPTY evidence string is not a TRUE one ────────────────────────────────
+#
+# WORKER_FINDING_THE_BATTERY_CHECKS_THAT_ITS_EVIDENCE_IS_NON_EMPTY_NEVER_THAT_IT_IS_TRUE.
+# `RECONCILIATION_KEYS` was a truthiness test, so it refused an absent evidence string and
+# accepted every non-empty one. The two commits below are the real ones: `2c0ba712b` is the
+# tree as it stood while pass 43's eight source files sat uncommitted, and `131b86df7` is the
+# commit that landed them.
+
+#: The tree as it stood while the defect was LIVE — pass 43's symbols authored, none committed.
+PRE_LANDING = "2c0ba712b"
+#: The commit that landed them. The null control's whole job: this check is not always-red.
+POST_LANDING = "131b86df7"
+
+#: The two citations the finding measured as the ONLY ones a `path::symbol` rule would have
+#: caught, verbatim from pass 43's rows.
+PASS_43_CITATIONS = (
+    "interface/contracts/wall_envelope.py::WallNotification and "
+    "simulation/payment_seam_adapter.py::MandateNotificationStream are the new primitive "
+    "and its world-side stream."
+)
+
+
+def _commit_is_reachable(ref: str) -> bool:
+    import subprocess
+
+    return subprocess.run(
+        ["git", "rev-parse", "--verify", f"{ref}^{{commit}}"],
+        cwd=str(ceb.PROJECT_DIR), capture_output=True, text=True,
+    ).returncode == 0
+
+
+def _repo(tmp_path, files: dict[str, str]):
+    """A throwaway git repo with `files` committed, for the properties that need content."""
+    import subprocess
+
+    root = tmp_path / "repo"
+    root.mkdir()
+    subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+    for rel, body in files.items():
+        target = root / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(body)
+    subprocess.run(["git", "add", "-A"], cwd=root, check=True)
+    subprocess.run(
+        ["git", "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "x"],
+        cwd=root, check=True,
+    )
+    return root
+
+
+def test_MUTATION_a_row_citing_symbols_that_are_in_no_commit_RAISES(tmp_path):
+    """R15 on the real defect, at the real commit where it was live.
+
+    Not a hand-built tree: these are pass 43's own two citations read out of `2c0ba712b`, the
+    commit whose worktree held the code and whose HEAD did not.
+    """
+    assert _commit_is_reachable(PRE_LANDING), (
+        f"{PRE_LANDING} is unreachable, so this mutation tested nothing -- an unavailable "
+        f"check is a FAILED check, never a skip"
+    )
+    ledger = _ledger(tmp_path, _battery((1, "DISQUALIFYING")))
+    recon = _recon(tmp_path, [_row(1, evidence=PASS_43_CITATIONS)])
+    with pytest.raises(BatteryUnavailable, match="do not exist at"):
+        ceb.battery_outstanding(
+            ledger_path=ledger, reconciliation_path=recon, citation_ref=PRE_LANDING
+        )
+
+
+def test_NULL_CONTROL_the_same_row_clears_at_the_commit_that_LANDED_those_symbols(tmp_path):
+    """The control is not always-red, and the sample moves rather than the law.
+
+    THE FINDING'S OWN NULL CONTROL WAS STALE AND THIS IS NOT IT (measured, pass 51). It
+    proposed reading the LIVE rows out of `131b86df7`; 18 of the live file's 36 citations do
+    not resolve there, because passes 44-50 rewrote those rows to cite symbols authored after
+    that commit. Read literally it would have looked like the control failing its own null
+    control. So the sample is pinned to the two citations the finding actually measured, and
+    the only thing that varies between this test and the mutation above is the REF.
+    """
+    assert _commit_is_reachable(POST_LANDING), f"{POST_LANDING} is unreachable"
+    ledger = _ledger(tmp_path, _battery((1, "DISQUALIFYING")))
+    recon = _recon(tmp_path, [_row(1, evidence=PASS_43_CITATIONS)])
+    assert ceb.battery_outstanding(
+        ledger_path=ledger, reconciliation_path=recon, citation_ref=POST_LANDING
+    ) == ()
+
+
+def test_the_LIVE_rows_all_resolve_at_HEAD_so_this_check_did_not_ship_red():
+    """The subject that matters: every citation in the real reconciliation, against real HEAD.
+
+    Fails in both directions. If a pass records a row citing code it has not committed, this
+    goes red and names it. If the check were born red it would have been red the day it
+    landed, which is the failure mode a register of design notes has and a resolver must not.
+    """
+    rows = ceb.load_reconciliations()
+    assert rows, "the live reconciliation is empty, so this asserted nothing"
+    checked = sum(len(ceb.cited_symbols(r["evidence"])) for r in rows.values())
+    assert checked >= 10, f"only {checked} resolvable citations across {len(rows)} rows"
+
+
+def test_RESIDUE_3_a_PASS_row_citing_no_path_is_left_alone_deliberately(tmp_path):
+    """Q17's shape: the reviewer pre-authorised an ABSENCE as the right answer.
+
+    A rule requiring every PASS to cite a resolvable symbol would red the one question whose
+    correct answer is "they don't, they're outside this". The ref here resolves nothing at
+    all, and the row still clears — because it claims nothing resolvable.
+    """
+    ledger = _ledger(tmp_path, _battery((17, "DISQUALIFYING")))
+    recon = _recon(tmp_path, [_row(17, evidence="The honest 'they don't, they're outside this'.")])
+    assert ceb.battery_outstanding(
+        ledger_path=ledger, reconciliation_path=recon, citation_ref=PRE_LANDING
+    ) == ()
+
+
+def test_a_symbol_only_MENTIONED_IN_A_COMMENT_does_not_resolve(tmp_path):
+    """The fail-open a substring search would carry, which is why this parses rather than greps.
+
+    Both halves in one repo so the difference is the symbol and nothing else: `Real` is
+    defined, `OnlyInAComment` appears in the same file as text and is not.
+    """
+    root = _repo(tmp_path, {"m.py": "# OnlyInAComment is discussed here\nclass Real:\n    pass\n"})
+    assert ceb.unresolved_citations("m.py::Real", "HEAD", root) == ()
+    bad = ceb.unresolved_citations("m.py::OnlyInAComment", "HEAD", root)
+    assert len(bad) == 1 and "not defined" in bad[0], bad
+
+
+def test_RESIDUE_2_a_dotted_tail_verifies_the_top_level_name_only(tmp_path):
+    """Pinned as behaviour, not left as prose: `X.method` checks `X`.
+
+    Both directions, so the residue cannot widen or narrow unnoticed: the tail is ignored
+    even when it names nothing, and the head is still enforced.
+    """
+    root = _repo(tmp_path, {"m.py": "class Register:\n    def real(self):\n        pass\n"})
+    assert ceb.unresolved_citations("m.py::Register.no_such_method", "HEAD", root) == ()
+    assert ceb.unresolved_citations("m.py::NoSuchClass.real", "HEAD", root)
+
+
+def test_a_cited_file_absent_at_the_ref_names_the_FILE_not_the_symbol(tmp_path):
+    root = _repo(tmp_path, {"m.py": "X = 1\n"})
+    bad = ceb.unresolved_citations("gone/away.py::Thing", "HEAD", root)
+    assert len(bad) == 1 and "no such file" in bad[0], bad
+
+
+def test_FAIL_SILENT_an_unresolvable_ref_blames_the_REF_not_the_evidence(tmp_path):
+    """git being unavailable and a lane fabricating evidence must not share a message.
+
+    An unreadable ref is a FAILED check either way — but reported as a false claim it would
+    accuse a lane of inventing evidence on the strength of a broken checkout.
+    """
+    root = _repo(tmp_path, {"m.py": "X = 1\n"})
+    with pytest.raises(BatteryUnavailable, match="does not resolve"):
+        ceb.unresolved_citations("m.py::X", "no-such-ref", root)
+
+
+def test_the_citation_check_is_reached_through_the_LOADER_not_only_directly(tmp_path):
+    """A control whose only caller is its own test is an orphan. This asserts the wiring."""
+    ledger = _ledger(tmp_path, _battery((1, "DISQUALIFYING")))
+    recon = _recon(tmp_path, [_row(1, evidence="interface/contracts/wall_envelope.py::Nope")])
+    with pytest.raises(BatteryUnavailable, match="question 1"):
+        ceb.load_reconciliations(path=recon)
+    with pytest.raises(BatteryUnavailable, match="question 1"):
+        ceb.unpayable_here(ledger_path=ledger, reconciliation_path=recon)
