@@ -1278,3 +1278,376 @@ def test_MUTATION_a_stand_in_relabelled_REAL_is_CAUGHT_by_the_cross_check():
     # NULL CONTROL: a participant this repo cannot speak for is not flagged by
     # the same function, so it is measuring the credential and not the label.
     assert _misdeclared({"REAL-BANK": _real()}) == set()
+
+
+# ===========================================================================
+# Q10's REMAINING HALF (EP6 pass 47): THE FIELD SETS ARE KEYED BY VERSION.
+#
+# Before this pass the module held one flat key set per message kind, applied
+# to every version alike. Q10's outstanding item named the consequence exactly:
+# "this build understands exactly ONE wire dialect ... the table can currently
+# only express WHICH participants are on v1, never run a genuine v1/v2 pair. A
+# release weekend cannot be rehearsed until the field sets are keyed by
+# version."
+#
+# What makes the keying non-vacuous is that v1 and v2 have genuinely different
+# MESSAGE VOCABULARIES: v2 is the release that added `WallNotification` (pass
+# 43) and `WallInterim` (pass 44), and v1 can say neither. The request and
+# response key sets are identical across the two, which is a fact about this
+# build's release history rather than a gap -- asserted below rather than left
+# for a reader to discover, because a version table whose versions are the same
+# in every respect WOULD be theatre and should be called that.
+# ===========================================================================
+
+from company.interfaces.wall_protocol import (  # noqa: E402
+    INTERIM_WIRE_FIELDS,
+    NOTIFICATION_WIRE_FIELDS,
+    WIRE_VOCABULARY_BY_VERSION,
+    decode_framed_interim,
+    decode_framed_notification,
+    decode_interim,
+    decode_notification,
+    encode_interim,
+    encode_notification,
+)
+from interface.contracts.wall_envelope import WallInterim, WallNotification  # noqa: E402
+
+_INTERIM_OBSERVED = dt.datetime(2024, 3, 11, 6, 30)
+
+
+def _wire_interim(**overrides) -> dict:
+    """A hand-authored interim on the wire -- NOT `encode_interim` output, so
+    the decoder is never checked against its own arithmetic (R15 TAUTOLOGY)."""
+    message = {
+        "correlation_id": "INV-9001",
+        "leg": 2,
+        "interim_type": "bacs.input_report",
+        "schema_version": 2,
+        "observed_at": "2024-03-11T06:30:00",
+        "payload": {"accepted": 41},
+    }
+    message.update(overrides)
+    return message
+
+
+def _wire_notification(**overrides) -> dict:
+    message = {
+        "notification_id": "ADDACS-77",
+        "notification_type": "addacs.advice",
+        "schema_version": 2,
+        "sender": PARTICIPANT_ID,
+        "sequence": 7,
+        "observed_at": "2024-03-11T06:30:00",
+        "valid_time": "2024-03-11",
+        "payload": {"reason_code": "0"},
+    }
+    message.update(overrides)
+    return message
+
+
+# ---------------------------------------------------------------------------
+# the table is independently checked against the contracts it claims to encode
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "declared, contract",
+    [
+        (INTERIM_WIRE_FIELDS, WallInterim),
+        (NOTIFICATION_WIRE_FIELDS, WallNotification),
+    ],
+)
+def test_each_new_wire_field_set_matches_its_contract_dataclass(declared, contract):
+    """R15 INDEPENDENCE: the key set is stated in the protocol module and
+    checked here against `dataclasses.fields` of the envelope -- a different
+    source. A field added to the contract and forgotten on the wire reds this
+    instead of silently never crossing."""
+    assert declared == {f.name for f in dataclasses.fields(contract)}
+
+
+def test_the_supported_versions_are_DERIVED_from_the_vocabulary_never_restated():
+    """Two independent statements of "which versions exist" could drift apart
+    silently, and the drift would be invisible: a version in the constant but
+    not the table would KeyError deep in a decode, and one in the table but not
+    the constant would be unreachable. So there is one source."""
+    assert SUPPORTED_SCHEMA_VERSIONS == frozenset(WIRE_VOCABULARY_BY_VERSION)
+    assert all(v for v in WIRE_VOCABULARY_BY_VERSION.values())
+
+
+def test_the_two_releases_actually_DIFFER_or_this_whole_table_is_theatre():
+    """The honest self-check. Keying field sets by version buys nothing if every
+    version maps to the same thing, so state the difference as an assertion: v2
+    speaks two message kinds v1 cannot, and the shared kinds are byte-identical
+    between them (no release here has changed a field on an existing message,
+    and inventing one to make the table look busier would be fabrication)."""
+    v1, v2 = WIRE_VOCABULARY_BY_VERSION[1], WIRE_VOCABULARY_BY_VERSION[2]
+    assert set(v2) - set(v1) == {"interim", "notification"}
+    assert set(v1) - set(v2) == set()
+    for shared in set(v1) & set(v2):
+        assert v1[shared] == v2[shared]
+
+
+# ---------------------------------------------------------------------------
+# the release weekend, rehearsed
+# ---------------------------------------------------------------------------
+
+_RELEASE_WEEKEND_REGISTRY = {
+    "CUT-OVER": CounterpartyRecord(
+        credential_sha256=COUNTERPARTY_REGISTRY[PARTICIPANT_ID].credential_sha256,
+        speaks_schema_versions=frozenset({1, 2}),
+        nature=CounterpartyNature.STAND_IN,
+    ),
+    "STILL-ON-V1": CounterpartyRecord(
+        credential_sha256=COUNTERPARTY_REGISTRY[PARTICIPANT_ID].credential_sha256,
+        speaks_schema_versions=frozenset({1}),
+        nature=CounterpartyNature.STAND_IN,
+    ),
+}
+
+
+def test_ONE_BUILD_SERVES_BOTH_RELEASES_AT_ONCE_which_is_the_whole_of_Q10():
+    """The rehearsal. One build, one registry, two participants on different
+    releases, and the difference is OPERATIONAL rather than cosmetic: the
+    cut-over participant can report that an exchange is still in progress, and
+    the one still on v1 has no way to say it. Both are served; neither is
+    upgraded by force; no big-bang cutover."""
+    sender, interim = decode_framed_interim(
+        _frame(sender="CUT-OVER", envelope=_wire_interim()),
+        decode_payload=_dictish,
+        registry=_RELEASE_WEEKEND_REGISTRY,
+    )
+    assert (sender, interim.leg, interim.schema_version) == ("CUT-OVER", 2, 2)
+
+    # The same build, same moment, still transacts request/response with the
+    # participant that has not moved -- which is what "no big-bang" means.
+    _v1_sender, response = decode_framed_response(
+        _frame(sender="STILL-ON-V1", envelope=_wire_response(schema_version=1)),
+        decode_payload=_dictish,
+        registry=_RELEASE_WEEKEND_REGISTRY,
+    )
+    assert response.schema_version == 1
+
+
+def test_a_v1_counterparty_CANNOT_send_an_interim_because_its_release_has_none():
+    """The release-weekend refusal, and the reason it is not VERSION_NOT_SPOKEN:
+    this is about the DIALECT (v1 defines no such message), not about who is
+    speaking it. A build that read it as a participant problem would send
+    someone to edit a registry row when the answer is that v1 cannot express
+    the concept at all."""
+    with pytest.raises(WallProtocolError) as caught:
+        decode_interim(_wire_interim(schema_version=1), decode_payload=_dictish)
+    assert caught.value.reason == "MESSAGE_TYPE_NOT_IN_VERSION"
+
+    with pytest.raises(WallProtocolError) as notif:
+        decode_notification(
+            _wire_notification(schema_version=1), decode_payload=_dictish
+        )
+    assert notif.value.reason == "MESSAGE_TYPE_NOT_IN_VERSION"
+
+
+def test_TWO_STACKED_VERSION_REFUSALS_are_told_apart_by_their_reason_codes():
+    """A framed interim can fail two independent ways and a bare `raises` could
+    not tell them apart. The DIALECT refusal fires on a v1-stamped interim from
+    anyone; the PARTICIPANT refusal fires on a well-formed v2 interim from a
+    sender the registry has on v1 only. Different repairs -- wait for the
+    release, versus update the row -- so both codes are asserted."""
+    with pytest.raises(WallProtocolError) as dialect:
+        decode_framed_interim(
+            _frame(sender="CUT-OVER", envelope=_wire_interim(schema_version=1)),
+            decode_payload=_dictish,
+            registry=_RELEASE_WEEKEND_REGISTRY,
+        )
+    with pytest.raises(WallProtocolError) as participant:
+        decode_framed_interim(
+            _frame(sender="STILL-ON-V1", envelope=_wire_interim()),
+            decode_payload=_dictish,
+            registry=_RELEASE_WEEKEND_REGISTRY,
+        )
+    assert dialect.value.reason == "MESSAGE_TYPE_NOT_IN_VERSION"
+    assert participant.value.reason == "VERSION_NOT_SPOKEN"
+
+
+def test_MUTATION_a_VERSION_BLIND_table_accepts_the_interim_v1_cannot_have_sent(
+    monkeypatch,
+):
+    """R15: the control fires on its own named defect. The defect IS the state
+    this module shipped in until this pass -- one key set per message kind,
+    applied to every version alike. Reinstate it by giving v1 v2's vocabulary
+    and the refusal above evaporates: a v1 participant's interim decodes
+    happily, which is precisely the "understands exactly ONE dialect" reading
+    Q10 objected to."""
+    import company.interfaces.wall_protocol as wp
+
+    version_blind = {v: wp._V2_VOCABULARY for v in (1, 2)}
+    monkeypatch.setattr(wp, "WIRE_VOCABULARY_BY_VERSION", version_blind)
+
+    decoded = wp.decode_interim(_wire_interim(schema_version=1), decode_payload=_dictish)
+    assert decoded.schema_version == 1  # accepted -- the defect, reproduced
+
+
+def test_NULL_CONTROL_the_refusal_is_not_simply_always_red(monkeypatch):
+    """The mutation above moves the LAW (what v1 may say). This moves the
+    SAMPLE and leaves the law alone: the same interim bytes, stamped with the
+    version whose vocabulary does define an interim, decode cleanly. Without
+    this, a check that raised on every interim would pass the mutation test and
+    still be worthless."""
+    decoded = decode_interim(_wire_interim(), decode_payload=_dictish)
+    assert (decoded.leg, decoded.interim_type) == (2, "bacs.input_report")
+
+
+# ---------------------------------------------------------------------------
+# the ordering change, which is what makes the table load-bearing
+# ---------------------------------------------------------------------------
+
+
+def test_the_VERSION_is_read_before_the_field_set_it_selects():
+    """The deliberate precedence change of pass 47. A message that is both on an
+    unknown version and carrying an unknown field now reports the VERSION, not
+    the field -- because the field may well be legal in whatever release it came
+    from, and this build cannot know. Blaming the field would be an overclaim,
+    and would send a reader to the wrong repair."""
+    with pytest.raises(WallProtocolError) as caught:
+        decode_request(
+            _wire_request(schema_version=99, unexpected="x"), decode_payload=_dictish
+        )
+    assert caught.value.reason == "UNSUPPORTED_VERSION"
+
+
+def test_an_absent_schema_version_is_still_MISSING_FIELD_and_not_a_crash():
+    """The key-set pass can no longer run without a version, so the absence is
+    caught explicitly. It must stay MISSING_FIELD: "you did not say what you
+    speak" is the original absence-is-never-agreement refusal and callers key
+    on it."""
+    message = _wire_request()
+    del message["schema_version"]
+    with pytest.raises(WallProtocolError) as caught:
+        decode_request(message, decode_payload=_dictish)
+    assert caught.value.reason == "MISSING_FIELD"
+    assert "schema_version" in str(caught.value)
+
+
+def test_MESSAGE_TYPE_NOT_IN_VERSION_is_distinct_from_UNSUPPORTED_VERSION():
+    """"That release has no such message" and "I cannot read that release at
+    all" are different facts. Collapsing them would hide which of two very
+    different repairs is needed."""
+    with pytest.raises(WallProtocolError) as known_release:
+        decode_interim(_wire_interim(schema_version=1), decode_payload=_dictish)
+    with pytest.raises(WallProtocolError) as unknown_release:
+        decode_interim(_wire_interim(schema_version=99), decode_payload=_dictish)
+    assert known_release.value.reason == "MESSAGE_TYPE_NOT_IN_VERSION"
+    assert unknown_release.value.reason == "UNSUPPORTED_VERSION"
+
+
+# ---------------------------------------------------------------------------
+# both directions read the one table
+# ---------------------------------------------------------------------------
+
+
+def test_the_ENCODER_cannot_emit_bytes_this_builds_own_decoder_would_refuse():
+    """The fail-open shape this avoids: an encoder that happily stamps an
+    interim v1 puts bytes on a wire that are rejected at the far end, where the
+    reason is hardest to recover. Both directions consult the same vocabulary,
+    so they cannot drift apart."""
+    interim = WallInterim(
+        correlation_id="INV-9001",
+        leg=2,
+        interim_type="bacs.input_report",
+        schema_version=1,
+        observed_at=_INTERIM_OBSERVED,
+        payload={"accepted": 41},
+    )
+    with pytest.raises(WallProtocolError) as caught:
+        encode_interim(interim, encode_payload=_dictish)
+    assert caught.value.reason == "MESSAGE_TYPE_NOT_IN_VERSION"
+
+
+@pytest.mark.parametrize("kind", ["interim", "notification"])
+def test_a_v2_message_survives_real_json_and_round_trips(kind):
+    """Through actual JSON, so what is decoded is bytes that could have come off
+    a socket rather than a dict that merely looks like one."""
+    if kind == "interim":
+        original = WallInterim(
+            correlation_id="INV-9001",
+            leg=3,
+            interim_type="bacs.input_report",
+            schema_version=2,
+            observed_at=_INTERIM_OBSERVED,
+            payload={"accepted": 41},
+        )
+        wire = json.loads(json.dumps(encode_interim(original, encode_payload=_dictish)))
+        assert decode_interim(wire, decode_payload=_dictish) == original
+    else:
+        original = WallNotification(
+            notification_id="ADDACS-77",
+            notification_type="addacs.advice",
+            schema_version=2,
+            sender=PARTICIPANT_ID,
+            sequence=7,
+            observed_at=_INTERIM_OBSERVED,
+            valid_time=_VALUE_DATE,
+            payload={"reason_code": "0"},
+        )
+        wire = json.loads(
+            json.dumps(encode_notification(original, encode_payload=_dictish))
+        )
+        assert decode_notification(wire, decode_payload=_dictish) == original
+
+
+# ---------------------------------------------------------------------------
+# fail-open sweeps on the two new ordinals, and the relay refusal
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("bad", [None, "", "2", True, 2.0, [], {}])
+def test_FAIL_OPEN_sweep_an_unusable_leg_is_never_read_as_an_ordinal(bad):
+    """`leg` is the ORDERING claim that makes a conversation more than a bag of
+    correlated messages. `True` is in this sweep on purpose: bool is an int
+    subclass, so a permissive check reads it as leg 1."""
+    with pytest.raises(WallProtocolError) as caught:
+        decode_interim(_wire_interim(leg=bad), decode_payload=_dictish)
+    assert caught.value.reason == "MALFORMED_FIELD"
+
+
+@pytest.mark.parametrize("bad", [None, "", "7", True, 7.0, [], {}])
+def test_FAIL_OPEN_sweep_an_unusable_sequence_is_never_read_as_a_position(bad):
+    with pytest.raises(WallProtocolError) as caught:
+        decode_notification(_wire_notification(sequence=bad), decode_payload=_dictish)
+    assert caught.value.reason == "MALFORMED_FIELD"
+
+
+def test_a_leg_below_two_is_refused_by_the_contract_and_never_escapes_raw():
+    """Leg 1 is the request, by construction. The envelope's own `__post_init__`
+    says so; what this asserts is that the refusal reaches a caller as the ONE
+    exception type the seam raises, never as a bare ValueError."""
+    with pytest.raises(WallProtocolError) as caught:
+        decode_interim(_wire_interim(leg=1), decode_payload=_dictish)
+    assert caught.value.reason == "CONTRACT_VIOLATION"
+
+
+def test_an_AUTHENTICATED_participant_cannot_relay_another_ones_stream_position():
+    """`sequence` is a position in ONE counterparty's stream. The frame's sender
+    is authenticated against a credential fingerprint; the document's is just
+    bytes. A mismatch means a genuine participant is carrying someone else's
+    ordering, which would corrupt the very field it is being trusted for."""
+    with pytest.raises(WallProtocolError) as caught:
+        decode_framed_notification(
+            _frame(
+                sender="CUT-OVER",
+                envelope=_wire_notification(sender="SOMEONE-ELSE"),
+            ),
+            decode_payload=_dictish,
+            registry=_RELEASE_WEEKEND_REGISTRY,
+        )
+    assert caught.value.reason == "SENDER_MISMATCH"
+
+
+def test_NULL_CONTROL_the_matching_sender_is_accepted_by_the_same_check():
+    """Moves the sample, not the law: identical bytes with the two senders in
+    agreement decode cleanly, so the refusal above is measuring the mismatch
+    and not simply rejecting every framed notification."""
+    sender, notification = decode_framed_notification(
+        _frame(sender="CUT-OVER", envelope=_wire_notification(sender="CUT-OVER")),
+        decode_payload=_dictish,
+        registry=_RELEASE_WEEKEND_REGISTRY,
+    )
+    assert (sender, notification.sequence) == ("CUT-OVER", 7)

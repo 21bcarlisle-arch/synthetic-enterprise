@@ -44,20 +44,30 @@ def _row(n, verdict="PASS", capability=CAP, **extra):
 
 # ── THE MUTATION: the shipped predicate, on the live tree ─────────────────────────────────
 
-def test_MUTATION_the_shipped_predicate_says_unblocked_while_nine_criteria_fail():
+def test_MUTATION_the_shipped_predicate_says_unblocked_while_real_criteria_fail():
     """The defect this module exists to repair, asserted against the REAL tree.
 
     `cold_eyes_walk_outstanding` greens on the mere existence of a review record. Pass 33
     wrote that greening on that fact "would make the instrument a ceremony" and then shipped
     exactly that. If this test ever goes red because the two agree, the repair has landed
     somewhere else and this module is redundant — which is a fact worth being told.
+
+    THE CLAIM IS A DIVERGENCE, NOT A COUNT (EP6 pass 48). This asserted
+    `len(outstanding) >= 9` until Q10 was answered and the live set moved 9 -> 8, which
+    redded the control on its own success case: the number nine was never the law, it was
+    the size of the backlog on the morning the test was written, and pinning it made every
+    question this battery closes look like a regression. That is this project's recorded
+    COUNT-PINNED class, and the repair is to assert the thing that is actually true for as
+    long as the defect exists — the two instruments DISAGREE, one reporting clear while the
+    other holds real questions open. It can still fail in both of its meaningful directions:
+    if the shipped predicate ever starts reporting, or if the battery ever empties.
     """
     from tools.wall_channel_census import cold_eyes_walk_outstanding
 
     assert cold_eyes_walk_outstanding() == (), "the shipped predicate no longer reports unblocked"
 
     outstanding = ceb.battery_outstanding()
-    assert len(outstanding) >= 9, outstanding
+    assert outstanding, "the battery is empty, so there is no divergence left to demonstrate"
     # The single sharpest one: no counterparty identity exists anywhere below the port.
     assert "Q13" in outstanding
 

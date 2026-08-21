@@ -121,6 +121,8 @@ from typing import Any, Callable, Mapping, Optional, Tuple, TypeVar
 
 from interface.contracts.wall_envelope import (
     ErrorDetail,
+    WallInterim,
+    WallNotification,
     WallRequest,
     WallResponse,
     WallStatus,
@@ -128,8 +130,11 @@ from interface.contracts.wall_envelope import (
 
 __all__ = [
     "SUPPORTED_SCHEMA_VERSIONS",
+    "WIRE_VOCABULARY_BY_VERSION",
     "REQUEST_WIRE_FIELDS",
     "RESPONSE_WIRE_FIELDS",
+    "INTERIM_WIRE_FIELDS",
+    "NOTIFICATION_WIRE_FIELDS",
     "FRAME_WIRE_FIELDS",
     "CounterpartyNature",
     "CounterpartyRecord",
@@ -142,25 +147,20 @@ __all__ = [
     "decode_request",
     "encode_response",
     "decode_response",
+    "encode_interim",
+    "decode_interim",
+    "encode_notification",
+    "decode_notification",
     "decode_frame",
     "decode_framed_response",
+    "decode_framed_interim",
+    "decode_framed_notification",
 ]
 
 P = TypeVar("P")
 R = TypeVar("R")
-
-#: Envelope schema versions this company build can read. An `schema_version`
-#: outside this set is refused as UNSUPPORTED_VERSION -- distinguishably from
-#: an absent one, because "you speak a dialect I do not know" and "you did not
-#: say what you speak" are different failures and call for different repairs.
-# TWO RELEASES AT ONCE (EP6 pass 44). The payment seam went to v2 when it grew
-# the interim leg. This build reads BOTH: a release that dropped the previous
-# version would refuse every message already in flight on the day it shipped,
-# which is precisely the big-bang cutover the review's Q10 names as the failing
-# answer. What this constant says is what this BUILD can read at all; which
-# release a given participant is actually on is `CounterpartyRecord.
-# speaks_schema_versions`, and the two are different facts.
-SUPPORTED_SCHEMA_VERSIONS: frozenset[int] = frozenset({1, 2})
+IT = TypeVar("IT")
+N = TypeVar("N")
 
 #: The exact key set of a request on the wire. Derived from nothing -- it is
 #: stated here and asserted against the dataclass in the test suite, so a field
@@ -183,6 +183,94 @@ RESPONSE_WIRE_FIELDS: frozenset[str] = frozenset(
         "error",
     }
 )
+
+#: The exact key set of an INTERIM leg on the wire (`WallInterim`, pass 44).
+#: `leg` and `interim_type` are what distinguish it from a response; there is
+#: no `status` key and its absence is load-bearing -- see the dataclass.
+INTERIM_WIRE_FIELDS: frozenset[str] = frozenset(
+    {"correlation_id", "leg", "interim_type", "schema_version", "observed_at", "payload"}
+)
+
+#: The exact key set of an unsolicited NOTIFICATION on the wire
+#: (`WallNotification`, pass 43). It carries `sender` as a DOCUMENT field as
+#: well as being framed by one: `sequence` is a position in one counterparty's
+#: own stream, so a notification separated from its frame is still orderable.
+NOTIFICATION_WIRE_FIELDS: frozenset[str] = frozenset(
+    {
+        "notification_id",
+        "notification_type",
+        "schema_version",
+        "sender",
+        "sequence",
+        "observed_at",
+        "valid_time",
+        "payload",
+    }
+)
+
+
+# ---------------------------------------------------------------------------
+# THE WIRE VOCABULARY OF EACH RELEASE (EP6 pass 47, the review's Q10)
+# ---------------------------------------------------------------------------
+#
+# Until this table existed the field sets above were VERSION-BLIND: one flat key
+# set per message kind, applied to every version alike. Q10's remaining item said
+# so exactly -- "this build understands exactly ONE wire dialect ... the table can
+# currently only express WHICH participants are on v1, never run a genuine v1/v2
+# pair. A release weekend cannot be rehearsed until the field sets are keyed by
+# version." This is that keying.
+#
+# WHAT ACTUALLY DIFFERS BETWEEN v1 AND v2, said plainly, because a version table
+# whose versions are identical is theatre and would deserve the name. The two
+# releases differ in their MESSAGE VOCABULARY, not in the fields of a shared
+# message: v1 is the original two-leg wall and can say ASK and ANSWER; v2 is the
+# release that added the two new legs -- `WallNotification` (pass 43, TELL) and
+# `WallInterim` (pass 44, NOT YET FINISHED). A participant still on v1 therefore
+# cannot send this build an interim or a notification AT ALL, and one that tries
+# is refused MESSAGE_TYPE_NOT_IN_VERSION rather than decoded.
+#
+# THE REQUEST AND RESPONSE KEY SETS ARE BYTE-IDENTICAL ACROSS v1 AND v2, and that
+# is a FACT ABOUT THIS BUILD'S RELEASE HISTORY rather than a gap in the mechanism:
+# no release here has changed a field on an existing message, and inventing one so
+# the table looked busier would be fabricating a dialect. This is also how real
+# DTC/SEC/BSC releases usually land -- new flows are added, existing documents are
+# left alone, precisely so counterparties can cut over on their own dates. When a
+# release DOES change a field set, it lands as a new row in this table rather than
+# as an edit to the constants above, and both sets go on being read at once.
+_V1_VOCABULARY: Mapping[str, frozenset[str]] = MappingProxyType(
+    {"request": REQUEST_WIRE_FIELDS, "response": RESPONSE_WIRE_FIELDS}
+)
+
+_V2_VOCABULARY: Mapping[str, frozenset[str]] = MappingProxyType(
+    {
+        "request": REQUEST_WIRE_FIELDS,
+        "response": RESPONSE_WIRE_FIELDS,
+        "interim": INTERIM_WIRE_FIELDS,
+        "notification": NOTIFICATION_WIRE_FIELDS,
+    }
+)
+
+#: Schema version -> the message kinds that version defines -> that kind's exact
+#: key set. This is the sole authority on both questions, which is why
+#: `SUPPORTED_SCHEMA_VERSIONS` is DERIVED from it below rather than stated
+#: alongside it: a version this build can read is exactly a version whose dialect
+#: it knows, and two independent statements of that could drift apart silently.
+WIRE_VOCABULARY_BY_VERSION: Mapping[int, Mapping[str, frozenset[str]]] = MappingProxyType(
+    {1: _V1_VOCABULARY, 2: _V2_VOCABULARY}
+)
+
+#: Envelope schema versions this company build can read. A `schema_version`
+#: outside this set is refused as UNSUPPORTED_VERSION -- distinguishably from
+#: an absent one, because "you speak a dialect I do not know" and "you did not
+#: say what you speak" are different failures and call for different repairs.
+# TWO RELEASES AT ONCE (EP6 pass 44). The payment seam went to v2 when it grew
+# the interim leg. This build reads BOTH: a release that dropped the previous
+# version would refuse every message already in flight on the day it shipped,
+# which is precisely the big-bang cutover the review's Q10 names as the failing
+# answer. What this constant says is what this BUILD can read at all; which
+# release a given participant is actually on is `CounterpartyRecord.
+# speaks_schema_versions`, and the two are different facts.
+SUPPORTED_SCHEMA_VERSIONS: frozenset[int] = frozenset(WIRE_VOCABULARY_BY_VERSION)
 
 
 #: The exact key set of a TRANSPORT FRAME. `envelope` carries the message
@@ -367,6 +455,11 @@ class WallProtocolError(ValueError):
       ``UNKNOWN_FIELD``        -- a key this schema version does not define.
       ``MALFORMED_FIELD``      -- a key is present with an unusable value.
       ``UNSUPPORTED_VERSION``  -- a version outside SUPPORTED_SCHEMA_VERSIONS.
+      ``MESSAGE_TYPE_NOT_IN_VERSION`` -- the version is one this build reads, and
+                                 that RELEASE defines no such message kind (an
+                                 interim or a notification stamped v1). Distinct
+                                 from UNSUPPORTED_VERSION because the dialect is
+                                 known; it simply has no way to say this.
       ``CONTRACT_VIOLATION``   -- well-formed on the wire, but the envelope's own
                                  invariants reject it (e.g. an OK with no
                                  payload). Raised so a bad message NEVER reaches
@@ -376,6 +469,10 @@ class WallProtocolError(ValueError):
       ``BAD_CREDENTIAL``       -- the participant is known and did not prove it.
       ``VERSION_NOT_SPOKEN``   -- this build can read the dialect; THIS sender is
                                  not on that release.
+      ``SENDER_MISMATCH``      -- the authenticated frame and the notification
+                                 inside it name different senders, so the
+                                 document's `sequence` belongs to someone
+                                 else's stream.
       ``STAND_IN_IN_PRODUCTION`` -- raised at STARTUP, not on a message: this
                                  build was asked to run in production while its
                                  registry still accepts a stand-in counterparty.
@@ -433,6 +530,81 @@ def _decode_schema_version(raw: Any) -> int:
         raise WallProtocolError(
             "UNSUPPORTED_VERSION",
             f"schema_version {raw} is not one of {sorted(SUPPORTED_SCHEMA_VERSIONS)}",
+        )
+    return raw
+
+
+def _require_vocabulary(wire: Any, kind: str, what: str) -> Tuple[Mapping[str, Any], int]:
+    """Refuse, or return (the message, its decoded version).
+
+    THE ORDER IS THE WHOLE POINT, and it is the reverse of what this module did
+    before pass 47. The version is read FIRST, and only then is the key set it
+    implies enforced -- because which fields are legal is a fact ABOUT a release,
+    and a decoder that judges the fields before it knows the dialect is checking
+    a message against a schema its sender never claimed to be speaking.
+
+    The consequence is a deliberate change in which error wins: a message that
+    is both on an unknown version and carrying an unknown field now reports
+    UNSUPPORTED_VERSION, not UNKNOWN_FIELD. That is the honest report -- the
+    field may well be perfectly legal in the release it came from, and this
+    build has no way to know, so blaming the field would be an overclaim.
+
+    `schema_version`'s own absence is still MISSING_FIELD, and is checked here
+    rather than by the key-set pass, because that pass can no longer run: there
+    is no key set to run it against until this value is known.
+    """
+    message = _require_mapping(wire, what)
+    if "schema_version" not in message:
+        raise WallProtocolError(
+            "MISSING_FIELD",
+            f"{what} omits required field ['schema_version'] -- nothing else about "
+            "it can be judged, because which fields this message is allowed to "
+            "carry is a fact about the release it is speaking",
+        )
+    version = _decode_schema_version(message["schema_version"])
+    vocabulary = WIRE_VOCABULARY_BY_VERSION[version]
+    expected = vocabulary.get(kind)
+    if expected is None:
+        raise WallProtocolError(
+            "MESSAGE_TYPE_NOT_IN_VERSION",
+            f"schema_version {version} defines no {kind!r} message -- it speaks "
+            f"{sorted(vocabulary)}, so a counterparty on that release cannot have "
+            f"sent one and this build will not read it as though it had",
+        )
+    _require_exact_fields(message, expected, f"{what} (schema_version {version})")
+    return message, version
+
+
+def _require_version_speaks(version: Any, kind: str) -> None:
+    """The ENCODE-side half of the vocabulary table, and it is not decoration.
+
+    An encoder that can emit a message its own decoder would refuse is the
+    fail-open shape this module exists to avoid: the bytes would leave here
+    looking legal and be rejected at the far end, where the reason is hardest to
+    recover. Both directions read the ONE table above, so a release that gains
+    or loses a message kind changes what can be sent and what can be received in
+    the same edit -- they cannot drift apart.
+    """
+    decoded = _decode_schema_version(version)
+    vocabulary = WIRE_VOCABULARY_BY_VERSION[decoded]
+    if kind not in vocabulary:
+        raise WallProtocolError(
+            "MESSAGE_TYPE_NOT_IN_VERSION",
+            f"cannot encode a {kind!r} stamped schema_version {decoded} -- that "
+            f"release speaks {sorted(vocabulary)}, and bytes this build's own "
+            "decoder would refuse are not bytes it should put on a wire",
+        )
+
+
+def _decode_int(raw: Any, field: str, *, minimum: Optional[int] = None) -> int:
+    # bool is an int subclass; a True here is a malformed ordinal, not a 1.
+    if not isinstance(raw, int) or isinstance(raw, bool):
+        raise WallProtocolError(
+            "MALFORMED_FIELD", f"{field} must be an int, got {raw!r}"
+        )
+    if minimum is not None and raw < minimum:
+        raise WallProtocolError(
+            "MALFORMED_FIELD", f"{field} must be >= {minimum}, got {raw!r}"
         )
     return raw
 
@@ -550,6 +722,7 @@ def encode_request(
         raise WallProtocolError(
             "NOT_A_MESSAGE", f"expected a WallRequest, got {type(request).__name__}"
         )
+    _require_version_speaks(request.schema_version, "request")
     return {
         "correlation_id": request.correlation_id,
         "request_type": request.request_type,
@@ -564,9 +737,7 @@ def decode_request(
     wire: Any, *, decode_payload: Callable[[Any], P]
 ) -> WallRequest[P]:
     """Parse a request off the wire, or refuse it. Never defaults a field."""
-    message = _require_mapping(wire, "request")
-    _require_exact_fields(message, REQUEST_WIRE_FIELDS, "request")
-    version = _decode_schema_version(message["schema_version"])
+    message, version = _require_vocabulary(wire, "request", "request")
     try:
         return WallRequest(
             correlation_id=_decode_correlation_id(message["correlation_id"]),
@@ -597,6 +768,7 @@ def encode_response(
         raise WallProtocolError(
             "NOT_A_MESSAGE", f"expected a WallResponse, got {type(response).__name__}"
         )
+    _require_version_speaks(response.schema_version, "response")
     return {
         "correlation_id": response.correlation_id,
         "status": response.status.value,
@@ -619,9 +791,7 @@ def decode_response(
     has exactly one exception type to handle at the seam and a malformed
     counterparty can never hand company logic a half-built object.
     """
-    message = _require_mapping(wire, "response")
-    _require_exact_fields(message, RESPONSE_WIRE_FIELDS, "response")
-    version = _decode_schema_version(message["schema_version"])
+    message, version = _require_vocabulary(wire, "response", "response")
     raw_payload = message["payload"]
     try:
         return WallResponse(
@@ -632,6 +802,115 @@ def decode_response(
             valid_time=_decode_date(message["valid_time"], "valid_time"),
             payload=None if raw_payload is None else decode_payload(raw_payload),
             error=_decode_error(message["error"]),
+        )
+    except ValueError as exc:
+        if isinstance(exc, WallProtocolError):
+            raise
+        raise WallProtocolError("CONTRACT_VIOLATION", str(exc)) from exc
+
+
+# ---------------------------------------------------------------------------
+# the v2 vocabulary: the two legs that only the later release can speak
+# ---------------------------------------------------------------------------
+#
+# Both shapes existed as in-process Python objects with live consumers before
+# this pass and NEITHER had a wire -- the precise defect the module docstring
+# describes for `schema_version` itself ("not a switch that is off, a wire that
+# was never built"). A primitive that cannot be serialised cannot arrive from a
+# real counterparty, so until here the conversation and the unsolicited stream
+# were company-side constructions that no wire could deliver.
+
+
+def encode_interim(
+    interim: WallInterim[IT], *, encode_payload: Callable[[IT], Any]
+) -> dict[str, Any]:
+    """Serialise a non-terminal leg onto the wire.
+
+    Refused if stamped with a version whose vocabulary has no interim, so an
+    encoder cannot manufacture bytes that this build's own decoder would
+    correctly reject -- the two directions are held to one table.
+    """
+    if not isinstance(interim, WallInterim):
+        raise WallProtocolError(
+            "NOT_A_MESSAGE", f"expected a WallInterim, got {type(interim).__name__}"
+        )
+    _require_version_speaks(interim.schema_version, "interim")
+    return {
+        "correlation_id": interim.correlation_id,
+        "leg": interim.leg,
+        "interim_type": interim.interim_type,
+        "schema_version": interim.schema_version,
+        "observed_at": _encode_datetime(interim.observed_at, "observed_at"),
+        "payload": encode_payload(interim.payload),
+    }
+
+
+def decode_interim(
+    wire: Any, *, decode_payload: Callable[[Any], IT]
+) -> WallInterim[IT]:
+    """Parse a non-terminal leg off the wire, or refuse it.
+
+    A v1 message never reaches the body of this function: v1's vocabulary has no
+    interim, so `_require_vocabulary` raises MESSAGE_TYPE_NOT_IN_VERSION. That
+    refusal is the release weekend made testable -- a counterparty that has not
+    cut over cannot tell this build an exchange is still in progress, because on
+    its release there is no way to say it.
+    """
+    message, version = _require_vocabulary(wire, "interim", "interim")
+    try:
+        return WallInterim(
+            correlation_id=_decode_correlation_id(message["correlation_id"]),
+            leg=_decode_int(message["leg"], "leg"),
+            interim_type=_decode_str(message["interim_type"], "interim_type"),
+            schema_version=version,
+            observed_at=_decode_datetime(message["observed_at"], "observed_at"),
+            payload=decode_payload(message["payload"]),
+        )
+    except ValueError as exc:
+        if isinstance(exc, WallProtocolError):
+            raise
+        raise WallProtocolError("CONTRACT_VIOLATION", str(exc)) from exc
+
+
+def encode_notification(
+    notification: WallNotification[N], *, encode_payload: Callable[[N], Any]
+) -> dict[str, Any]:
+    """Serialise an unsolicited inbound message onto the wire."""
+    if not isinstance(notification, WallNotification):
+        raise WallProtocolError(
+            "NOT_A_MESSAGE",
+            f"expected a WallNotification, got {type(notification).__name__}",
+        )
+    _require_version_speaks(notification.schema_version, "notification")
+    return {
+        "notification_id": notification.notification_id,
+        "notification_type": notification.notification_type,
+        "schema_version": notification.schema_version,
+        "sender": notification.sender,
+        "sequence": notification.sequence,
+        "observed_at": _encode_datetime(notification.observed_at, "observed_at"),
+        "valid_time": _encode_date(notification.valid_time, "valid_time"),
+        "payload": encode_payload(notification.payload),
+    }
+
+
+def decode_notification(
+    wire: Any, *, decode_payload: Callable[[Any], N]
+) -> WallNotification[N]:
+    """Parse an unsolicited inbound message off the wire, or refuse it."""
+    message, version = _require_vocabulary(wire, "notification", "notification")
+    try:
+        return WallNotification(
+            notification_id=_decode_str(message["notification_id"], "notification_id"),
+            notification_type=_decode_str(
+                message["notification_type"], "notification_type"
+            ),
+            schema_version=version,
+            sender=_decode_str(message["sender"], "sender"),
+            sequence=_decode_int(message["sequence"], "sequence"),
+            observed_at=_decode_datetime(message["observed_at"], "observed_at"),
+            valid_time=_decode_date(message["valid_time"], "valid_time"),
+            payload=decode_payload(message["payload"]),
         )
     except ValueError as exc:
         if isinstance(exc, WallProtocolError):
@@ -713,11 +992,74 @@ def decode_framed_response(
     """
     sender, record, envelope = _verify_frame(wire, registry)
     response = decode_response(envelope, decode_payload=decode_payload)
-    if response.schema_version not in record.speaks_schema_versions:
+    _require_sender_speaks(sender, record, response.schema_version)
+    return sender, response
+
+
+def _require_sender_speaks(
+    sender: str, record: CounterpartyRecord, version: int
+) -> None:
+    """The per-COUNTERPARTY version refusal, shared by every framed decoder.
+
+    Distinct from UNSUPPORTED_VERSION on purpose: "this build cannot read that
+    dialect" and "that participant is not on that release" are different facts
+    with different repairs -- change the build, or wait for their cutover.
+    """
+    if version not in record.speaks_schema_versions:
         raise WallProtocolError(
             "VERSION_NOT_SPOKEN",
-            f"participant {sender!r} sent schema_version {response.schema_version}, "
+            f"participant {sender!r} sent schema_version {version}, "
             f"and this build has it on {sorted(record.speaks_schema_versions)} -- "
             "readable by this build, and not this counterparty's current release",
         )
-    return sender, response
+
+
+def decode_framed_interim(
+    wire: Any,
+    *,
+    decode_payload: Callable[[Any], IT],
+    registry: Mapping[str, CounterpartyRecord] = COUNTERPARTY_REGISTRY,
+) -> Tuple[str, WallInterim[IT]]:
+    """Parse an interim leg that arrived inside a transport frame, or refuse it.
+
+    TWO INDEPENDENT VERSION REFUSALS STACK HERE, and they catch different
+    counterparties. `decode_interim` refuses an interim stamped v1 because that
+    RELEASE has no such message; this then refuses one stamped v2 from a sender
+    the registry has on v1 only, because that PARTICIPANT has not cut over. The
+    first is about the dialect, the second about who is speaking it, and a
+    build that could only make the first check would accept an interim from a
+    counterparty that cannot produce one.
+    """
+    sender, record, envelope = _verify_frame(wire, registry)
+    interim = decode_interim(envelope, decode_payload=decode_payload)
+    _require_sender_speaks(sender, record, interim.schema_version)
+    return sender, interim
+
+
+def decode_framed_notification(
+    wire: Any,
+    *,
+    decode_payload: Callable[[Any], N],
+    registry: Mapping[str, CounterpartyRecord] = COUNTERPARTY_REGISTRY,
+) -> Tuple[str, WallNotification[N]]:
+    """Parse an unsolicited notification that arrived framed, or refuse it.
+
+    A NOTIFICATION NAMES ITS SENDER TWICE -- once in the frame the channel
+    asserts, once as a document field -- and the two must agree. They are not
+    the same claim: the frame's sender is authenticated against a credential
+    fingerprint, the document's is just bytes the message carries so that
+    `sequence` remains meaningful once the frame is gone. A mismatch means an
+    authenticated participant is relaying another's stream position, which would
+    corrupt exactly the per-sender ordering the field exists to support.
+    """
+    sender, record, envelope = _verify_frame(wire, registry)
+    notification = decode_notification(envelope, decode_payload=decode_payload)
+    _require_sender_speaks(sender, record, notification.schema_version)
+    if notification.sender != sender:
+        raise WallProtocolError(
+            "SENDER_MISMATCH",
+            f"frame is authenticated as {sender!r} and the notification inside "
+            f"claims sender {notification.sender!r} -- `sequence` is a position "
+            "in ONE counterparty's stream, so a relayed one is not orderable",
+        )
+    return sender, notification
