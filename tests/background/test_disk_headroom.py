@@ -17,6 +17,7 @@ The fail-closed direction is deliberate and asymmetric, and both halves are driv
 from __future__ import annotations
 
 import time
+from pathlib import Path
 
 import pytest
 
@@ -196,3 +197,160 @@ def test_the_governors_cannot_crash_the_worker():
     assert "try:" in head and "except Exception" in head, (
         "the headroom calls are not wrapped -- a governor fault would kill the worker"
     )
+
+
+# ---------------------------------------------------------------------------
+# Property 1 again, for the population a TYPED LIST cannot reach (2026-08-21).
+#
+# The reaper was already caught being decorative once, for one pattern. This is the same
+# defect one level up: on 2026-08-21 `/tmp` -- a tmpfs, so this is RAM -- held 6.5 GB, of
+# which 3,336 MB was 22 abandoned repo copies, and `reapable()` matched exactly ZERO of
+# them. Swap hit 100% and the operational-layer signal went persistently red.
+#
+# R15: each test below is a MUTATION of the named defect, and the suite is only evidence if
+# it FIRES on the real historical population and STAYS SILENT on every keep-case.
+# ---------------------------------------------------------------------------
+def _make_repo_copy(root, name, *, age_h=48.0, with_git=False, missing=()):
+    """A directory shaped like a copy of this repository."""
+    d = root / name
+    for rel in dh.REPO_SIGNATURE:
+        if rel in missing:
+            continue
+        p = d / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("x" * 32, encoding="utf-8")
+    if with_git:
+        (d / ".git").mkdir(parents=True, exist_ok=True)
+    old = time.time() - age_h * 3600
+    import os as _os
+    _os.utime(d, (old, old))
+    return d
+
+
+#: The ACTUAL directory names reclaimed by hand on 2026-08-21, from the manifest taken
+#: before deletion. This is the population the control must not be blind to again.
+THE_2026_08_21_POPULATION = (
+    "ep6head.2jxu", "ep6p29.Mlgrmx", "ep6probe", "ep6probe.hafg", "ep6probe.wIsSNa",
+    "ep6probe2", "ep6tree.qeTc", "g13head", "g13tree", "kn33", "knife3-step46",
+    "tmp.BpEsJAINaZ", "tmp.U4B5Vgh6lA", "tmp.Y9qQoOpprj", "tmp.e5w4C6SbKm",
+    "tmp.lxEVAbhl1J", "tmp.qH5eonLsbM", "tmp.xhOLZgQY52", "tmp.yayVcplJR5",
+    "wouldbe", "wouldbe2", "wtree",
+)
+
+
+def test_the_typed_list_is_blind_to_the_population_that_filled_the_disk(tmp_path):
+    """THE NULL CONTROL, and the reason the derived rule exists.
+
+    Runs the OLD name-based rule over the real 2026-08-21 population. If this ever starts
+    passing by matching them, the derived rule below is no longer load-bearing and this
+    finding has been fixed some other way -- but as written, a name list scores zero."""
+    import fnmatch
+
+    matched = [n for n in THE_2026_08_21_POPULATION
+               if any(fnmatch.fnmatch(n, pat) for pat, _ttl in dh.SCRATCH_PATTERNS)]
+    assert matched == [], (
+        "SCRATCH_PATTERNS now matches {} -- if the fix was to enumerate these names, it is the "
+        "same defect again: the next lane invents the next name.".format(matched)
+    )
+
+
+def test_the_derived_rule_catches_every_one_of_them(tmp_path):
+    """The mutation the control exists to catch: 22 abandoned repo copies, 0 declared names."""
+    for name in THE_2026_08_21_POPULATION:
+        _make_repo_copy(tmp_path, name)
+
+    found = {Path(v["path"]).name for v in dh.repo_copy_scratch(roots=(tmp_path,))}
+    assert found == set(THE_2026_08_21_POPULATION), (
+        "the derived reaper missed {}".format(set(THE_2026_08_21_POPULATION) - found)
+    )
+    assert all(v["kind"] == "repo-copy" for v in dh.repo_copy_scratch(roots=(tmp_path,)))
+
+
+def test_reapable_surfaces_them_so_reap_actually_frees_the_space(tmp_path):
+    """The derived half must reach `reapable()`, not just exist beside it."""
+    _make_repo_copy(tmp_path, "wouldbe")
+    paths = {Path(v["path"]).name for v in dh.reapable(roots=(tmp_path,))}
+    assert "wouldbe" in paths, "repo-copy scratch never reaches the reaper's candidate list"
+
+
+# --- the KEEP direction: every one of these must stay untouched ------------
+def test_a_checkout_with_git_metadata_is_never_reaped(tmp_path):
+    """A worktree/clone can hold committed branches or edits that exist nowhere else. This is
+    the exclusion that spares every entry in `git worktree list` without shelling out."""
+    _make_repo_copy(tmp_path, "ep6-worktree", with_git=True)
+    assert dh.repo_copy_scratch(roots=(tmp_path,)) == []
+
+
+def test_a_directory_that_is_not_a_repo_copy_is_never_reaped(tmp_path):
+    """POSITIVE IDENTIFICATION survives: another program's big old tmp dir is not ours."""
+    d = tmp_path / "someone-elses-cache"
+    (d / "data").mkdir(parents=True)
+    (d / "data" / "blob.bin").write_text("x" * 1024, encoding="utf-8")
+    import os as _os
+    old = time.time() - 400 * 3600
+    _os.utime(d, (old, old))
+    assert dh.repo_copy_scratch(roots=(tmp_path,)) == []
+
+
+def test_a_partial_match_is_not_enough(tmp_path):
+    """Every signature file must be present -- three of four is not identification."""
+    _make_repo_copy(tmp_path, "half", missing=("docs/PROJECT_OVERVIEW.md",))
+    assert dh.repo_copy_scratch(roots=(tmp_path,)) == []
+
+
+def test_scratch_within_its_ttl_is_never_reaped(tmp_path):
+    """A probe that is still running is not abandoned."""
+    _make_repo_copy(tmp_path, "ep6probe", age_h=1.0)
+    assert dh.repo_copy_scratch(roots=(tmp_path,)) == []
+
+
+def test_a_live_process_protects_its_tree_at_any_age(tmp_path, monkeypatch):
+    """A long gate run must never be shot in the back, however old its checkout looks."""
+    d = _make_repo_copy(tmp_path, "ep6_land", age_h=999.0)
+    monkeypatch.setattr(dh, "in_use_dirs", lambda: {str(d.resolve())})
+    assert dh.repo_copy_scratch(roots=(tmp_path,)) == []
+
+
+def test_a_process_sitting_deep_inside_the_tree_also_protects_it(tmp_path, monkeypatch):
+    """cwd is usually a SUBDIRECTORY of the checkout, not its root -- checking only the root
+    would reap a tree with a live pytest inside it."""
+    d = _make_repo_copy(tmp_path, "ep6_land", age_h=999.0)
+    monkeypatch.setattr(dh, "in_use_dirs", lambda: {str((d / "background").resolve())})
+    assert dh.repo_copy_scratch(roots=(tmp_path,)) == []
+
+
+def test_the_project_itself_can_never_be_reaped(tmp_path):
+    """A misconfigured root must not point the reaper at the working tree."""
+    d = _make_repo_copy(tmp_path, "live-tree", age_h=999.0)
+    assert dh.repo_copy_scratch(roots=(tmp_path,), project_dir=d) == []
+    # and a root that IS the project's parent still spares the project
+    assert all(Path(v["path"]).resolve() != d.resolve()
+               for v in dh.repo_copy_scratch(roots=(tmp_path,), project_dir=d))
+
+
+# --- the WIRING, which is the half that was actually missing ---------------
+def test_the_reaper_has_a_production_caller(tmp_path):
+    """`reap()` had NO production caller: `admit()` is its only in-module caller and `admit()`
+    is called by nothing, so between them the reaper had never executed outside a test while
+    `observe()` -- which only narrates -- ran every worker cycle. The 2026-08-19 ruling forbids
+    'reliance on anyone noticing'; an alarm whose remedy is a command in its own text IS that
+    reliance."""
+    import inspect
+
+    src = inspect.getsource(dh.observe)
+    assert "reap()" in src, (
+        "observe() no longer reaps -- the governor is back to narrating a command at a human"
+    )
+
+
+def test_the_governor_only_reaps_under_pressure(tmp_path, monkeypatch):
+    """A healthy box must not walk shared scratch every cycle."""
+    calls = []
+    monkeypatch.setattr(dh, "reap", lambda *a, **k: calls.append(1) or {"removed": [], "freed_mb": 0})
+    monkeypatch.setattr(dh, "sample", lambda *a, **k: {
+        "paths": {}, "tightest": "/tmp", "free_mb": dh.RECOVERED_FLOOR_MB + 5000, "used_pct": 10.0})
+    monkeypatch.setattr(dh, "_save", lambda payload: None)
+    monkeypatch.setattr(dh, "_state", lambda: {"band": dh.HEALTHY})
+    monkeypatch.setattr(dh, "stdlib_shadows", lambda *a, **k: [])
+    dh.observe()
+    assert calls == [], "the governor reaped while healthy"

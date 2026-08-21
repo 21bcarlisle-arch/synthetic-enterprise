@@ -117,6 +117,37 @@ SCRATCH_PATTERNS: tuple[tuple[str, int], ...] = (
 #: the same blind spot as a governor watching one.
 REAP_ROOTS = (Path("/tmp"), Path("/var/tmp"))
 
+#: THE TYPED LIST ABOVE CANNOT SEE THE POPULATION THAT ACTUALLY FILLS THIS DISK, MEASURED.
+#: On 2026-08-21 `/tmp` reached 84% of a 7.8 GB *tmpfs* -- 6.5 GB, which on this box is 6.5 GB
+#: of the 16 GB of RAM, so swap hit 100% (0 MB free) and the box thrashed. 3,336 MB of that was
+#: 22 abandoned repo copies: `wouldbe`, `wouldbe2`, `g13head`, `g13tree`, `knife3-step46`,
+#: `wtree`, `ep6probe`, `ep6probe2`, `ep6probe.hafg`, `ep6tree.qeTc`, `tmp.U4B5Vgh6lA` ...
+#: `reapable()` matched ZERO of the 22 and would have freed 0 of the 3,336 MB.
+#:
+#: The reason is structural, not an oversight in the list: SCRATCH_PATTERNS is a TYPED LIST of
+#: five `mkdtemp` prefixes read out of five modules, and every one of those 22 directories was
+#: made by a lane's ad-hoc `mkdir`/`mktemp -d` in a shell command. A name-based reaper can only
+#: ever cover names somebody remembered to declare, and the lane that invents the next name
+#: will not be the lane that edits this tuple. The list was already caught being decorative
+#: once (`head-checkout-*`, see above); this is the same defect one level up.
+#:
+#: SO IDENTIFY BY CONTENT, WHICH NOBODY HAS TO REMEMBER TO DECLARE. A directory carrying all
+#: of these paths is a copy of THIS repository -- something this project provably created, so
+#: POSITIVE IDENTIFICATION (the doctrine in the module docstring) is preserved in full. This is
+#: a DERIVED rule where the tuple above is an enumerated one, and it stays true for scratch
+#: whose name has never been seen before.
+REPO_SIGNATURE: tuple[str, ...] = (
+    "CLAUDE.md",
+    "PRIORITIES.md",
+    "background/supervisor.py",
+    "docs/PROJECT_OVERVIEW.md",
+)
+
+#: Generous against the work that makes these: an EP6 probe or a KNIFE step tree is a
+#: multi-hour lane, so six hours is well past any legitimate life while still bounding the
+#: accretion to one working session rather than the four days observed.
+REPO_COPY_TTL = 6 * 3600
+
 
 class DiskUnavailable(RuntimeError):
     """The filesystem could not be read. Treated as PRESSURE, never as healthy."""
@@ -179,6 +210,78 @@ def in_use_dirs() -> set[str]:
     return live
 
 
+def _is_repo_copy(path: Path) -> bool:
+    """True if `path` carries every file in REPO_SIGNATURE -- i.e. it is a copy of this repo."""
+    try:
+        return all((path / rel).exists() for rel in REPO_SIGNATURE)
+    except OSError:
+        return False
+
+
+def repo_copy_scratch(now: float | None = None,
+                      roots: tuple[Path, ...] = REAP_ROOTS,
+                      project_dir: Path = PROJECT_DIR) -> list[dict]:
+    """Abandoned COPIES OF THIS REPOSITORY in shared scratch, identified by content.
+
+    The companion to SCRATCH_PATTERNS, for the population a name list structurally cannot
+    reach (see the REPO_SIGNATURE comment: 22 dirs / 3,336 MB, none of them matched).
+
+    EVERY UNCERTAINTY KEEPS, matching this module's stated failure direction -- the four
+    exclusions below are each a case where something that LOOKS like abandoned scratch might
+    be a lane's live or unsaved work:
+
+      * `.git` present -> NEVER a candidate. A registered worktree, a clone, or a gate
+        checkout can hold committed branches or uncommitted edits that exist nowhere else.
+        Worktree accretion is a different mechanism's job (`fork_reconciler`, report-only by
+        ruling) and this reaper must not pre-empt it. This exclusion alone spares every
+        worktree in `git worktree list` without needing to shell out to git.
+      * in use by a live process -> never reaped at any age, as for patterned scratch.
+      * the project itself, or anything containing/contained by it -> never a candidate, so a
+        misconfigured root can never point the reaper at the working tree.
+      * younger than REPO_COPY_TTL -> a probe that is still running is not abandoned.
+    """
+    now = now or time.time()
+    busy = in_use_dirs()
+    try:
+        project = project_dir.resolve()
+    except OSError:
+        return []          # cannot establish what to protect -> reap nothing
+    out = []
+    for root in roots:
+        if not root.is_dir():
+            continue
+        try:
+            children = list(root.iterdir())
+        except OSError:
+            continue
+        for path in children:
+            if not path.is_dir() or path.is_symlink():
+                continue
+            try:
+                resolved = path.resolve()
+            except OSError:
+                continue
+            if resolved == project or resolved in project.parents or project in resolved.parents:
+                continue
+            if (path / ".git").exists():
+                continue
+            if not _is_repo_copy(path):
+                continue
+            if str(path) in busy or str(resolved) in busy:
+                continue
+            if any(b.startswith(str(resolved) + os.sep) for b in busy):
+                continue          # a process is sitting somewhere INSIDE the tree
+            try:
+                age = now - path.stat().st_mtime
+            except OSError:
+                continue
+            if age < REPO_COPY_TTL:
+                continue
+            out.append({"path": str(path), "age_h": round(age / 3600, 1),
+                        "ttl_h": REPO_COPY_TTL // 3600, "kind": "repo-copy"})
+    return out
+
+
 def reapable(now: float | None = None, roots: tuple[Path, ...] = REAP_ROOTS) -> list[dict]:
     """Scratch past its TTL and not in use. Identification is POSITIVE ONLY: a directory that
     matches no declared pattern is never a candidate, however old and however large."""
@@ -200,7 +303,15 @@ def reapable(now: float | None = None, roots: tuple[Path, ...] = REAP_ROOTS) -> 
                 continue
             if age < ttl:
                 continue
-            out.append({"path": str(path), "age_h": round(age / 3600, 1), "ttl_h": ttl // 3600})
+            out.append({"path": str(path), "age_h": round(age / 3600, 1), "ttl_h": ttl // 3600,
+                        "kind": "patterned"})
+    # The derived half. Kept as a separate source rather than folded into the loop above so the
+    # two identification RULES stay visibly different things: one enumerates names, one reads
+    # content, and the receipt says which found each victim.
+    seen = {v["path"] for v in out}
+    for v in repo_copy_scratch(now=now, roots=roots):
+        if v["path"] not in seen:
+            out.append(v)
     return out
 
 
@@ -275,10 +386,45 @@ def observe(paths: tuple[Path, ...] = WATCHED) -> dict:
     except DiskUnavailable as e:
         s, current = {"free_mb": 0, "used_pct": 100.0, "tightest": "unreadable",
                       "error": str(e)}, PRESSURE
+    # SELF-HEAL BEFORE PAGING, because the alarm's own remedy was a sentence asking a human to
+    # run a command. `observe()` was wired into the worker loop on 2026-08-19 and `reap()` was
+    # not wired into anything: `admit()`, its only in-module caller, has no production caller
+    # either, so between them the reaper had never executed outside a test. The 2026-08-19
+    # ruling forbids exactly this -- "alarms before exhaustion rather than after, and no
+    # reliance on anyone noticing" -- and a governor that only narrates is the reliance.
+    # Only under PRESSURE/CRITICAL: reaping is not free, and a healthy box should not walk
+    # shared scratch every worker cycle.
+    if current in (PRESSURE, CRITICAL):
+        try:
+            freed = reap()
+            if freed["removed"]:
+                # DiskUnavailable is caught with OSError below: an unreadable filesystem must
+                # keep reading as PRESSURE (the asymmetry this module is built on), and a
+                # re-sample that raises here would take the whole governor out through
+                # `observe()` -- which is worse than the exhaustion it watches for. Found by
+                # test_MUTATION_FAIL_CLOSED_..., which is the test earning its keep.
+                s = sample(paths)
+                current = band(s["free_mb"], _state().get("band"))
+                payload_reap = (f"reaped {freed['freed_mb']} MB from {len(freed['removed'])} "
+                                f"expired scratch dir(s): "
+                                + ", ".join(f"{r['path']}({r.get('kind', '?')})"
+                                            for r in freed["removed"]))
+            else:
+                payload_reap = "nothing reapable (all scratch in use or within TTL)"
+        except (OSError, DiskUnavailable) as e:
+            # An unreapable filesystem is reported, never swallowed, and never treated as
+            # having recovered the space. `current` is left at whatever the band above said,
+            # which for an unreadable filesystem is PRESSURE.
+            payload_reap = f"reap FAILED: {e}"
+    else:
+        payload_reap = None
+
     prev = _state().get("band")
     changed = current != prev
     payload = {"band": current, "previous": prev, "changed": changed,
                "observed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), **s}
+    if payload_reap is not None:
+        payload["reaped"] = payload_reap
     shadows = stdlib_shadows()
     if shadows:
         payload["stdlib_shadows"] = shadows
@@ -294,7 +440,8 @@ def observe(paths: tuple[Path, ...] = WATCHED) -> dict:
             f"DISK {current.upper()}: {s['free_mb']} MB free on {s['tightest']} "
             f"({s['used_pct']}% used). Floor is {PRESSURE_FLOOR_MB} MB. This alarms BEFORE "
             f"exhaustion by design -- on 2026-08-19 the machine stopped at 152 MB with no "
-            f"warning at all. `python3 -m background.disk_headroom --reap` clears expired scratch."
+            f"warning at all. Expired scratch was ALREADY reaped before this alarm fired "
+            f"({payload_reap}); this band is what remains after that, so it needs a person."
         )
     _save(payload)
     return payload
