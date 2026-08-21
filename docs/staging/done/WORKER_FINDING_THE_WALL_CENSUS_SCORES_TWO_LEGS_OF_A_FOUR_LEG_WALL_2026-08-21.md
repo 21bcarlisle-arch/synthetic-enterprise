@@ -9,6 +9,17 @@ off the live tree; the one inference is labelled.
 **Class:** `measurements_that_mirror` — the instrument's subject set is narrower than the
 population it reports on, so its verdict is about the part it happens to know.
 
+**Discharged:** `tests/tools/test_wall_channel_census.py::test_MUTATION_an_INTERIM_leg_with_no_decoder_is_reported_unmigrated`,
+`tests/tools/test_wall_channel_census.py::test_MUTATION_a_NOTIFICATION_leg_with_no_encoder_is_reported_unmigrated`,
+`tests/tools/test_wall_channel_census.py::test_NULL_CONTROL_a_seam_wired_on_all_four_legs_is_wire_borne_and_names_each`,
+`tests/tools/test_wall_channel_census.py::test_MUTATION_dropping_a_leg_from_the_lookup_takes_it_OUT_OF_THE_SUBJECT_SET`,
+`tests/tools/test_wall_channel_census.py::test_the_census_SUBJECT_SET_is_the_whole_envelope_family_not_two_of_it`
+— EP6 pass 51, landed e84b6d54c. The first two are the mutations this document asked for, the
+third is the null control that stops the widened census being red on every new leg by
+construction, and the fourth restores the old two-key lookup and watches the green come back.
+See the DISCHARGED section at the foot of this document for the two predictions it made that
+did not hold, and for the one defect it surfaced and did not close.
+
 ---
 
 ## Observed, with evidence
@@ -100,3 +111,55 @@ simply red on every new leg.
 
 **Suggested rank:** backlog, behind EP6's remaining payable criteria (Q2, Q3, Q5, Q6, Q13,
 Q14). This instrument mis-scoping does not block any of them.
+
+---
+
+## DISCHARGED 2026-08-21, EP6 pass 51, `e84b6d54c`
+
+Taken by a later EP6 pass exactly as this document reserved it for one, and on the asymmetry it
+named: the repair could only ADD subjects to the census, so the lane widening the instrument
+could not benefit from having widened it.
+
+`LEG_ENVELOPE_NAMES` now carries all four envelope names; `LEG_WIRE_CONSTANT`,
+`LEG_DECODE_NAME` and `LEG_ENCODE_NAME` gained the matching rows; `WIRE_FIELD_CONSTANTS`,
+`wire_field_sets_by_leg` and `leg_payload_types` derive from a single `LEGS` tuple, so the
+two-leg assumption is gone from the code rather than papered over at the lookup. R15 both ways,
+run rather than asserted: an interim leg whose decoder is removed is now reported
+`interim=ENCODED-only` and reds its seam, where the pre-widening census returned the same tree
+WIRE-BORNE and green; a notification leg with no encoder does the same; the null control — a
+seam wired on all four legs — comes back `wire` on all four, which is what proves the widened
+census is not simply red on every new leg. A third test restores the old two-key lookup by
+monkeypatch and watches the green come back, so this document's own claim is now a test.
+
+**Two things this document predicted did not hold, and both are recorded rather than quietly
+dropped**, because it asked for them to be measured rather than trusted:
+
+1. **The predicted red did not happen.** The stated limit was that widening would red-list the
+   payment crossing on its two new legs, `decode_framed_interim` / `decode_framed_notification`
+   having no caller. Pass 50 wired both into `company/billing/payment_observation_consumer.py`
+   (`:1247`, `:1272`) between this filing and its discharge, so the widened census reports
+   `interim=wire` and `notification=wire`. Checked for a false green rather than accepted: the
+   world side builds each exact key set (`simulation/payment_seam_adapter.py:1137`, `:1164`),
+   the company side decodes, and the two are distinct modules, which is what
+   `_leg_is_transported` requires.
+2. **The baseline did not move**, contrary to "the baseline moves in the same commit".
+   `docs/design/wall_channel_census_baseline.json` is a channel-MEMBERSHIP list, and widening
+   the leg tables added no member to any channel.
+
+**And the filing itself was an instance of a second class.** This document states
+`**Class:** measurements_that_mirror` in a bold line near its head — prose the classifier cannot
+read. `classify_file` returned `None` for it, `--check` PASSED with it live and unlisted, and
+the class document never learned it existed: the exact fail-open hole `finding_classes.py`
+documents at `_CLASS_REGISTRATION_HEADING_RE`, whose own cited precedent
+(`WORKER_FINDING_THREE_CONSECUTIVE_PASSES_RECORDED_A_LANDING_THAT_IS_IN_NO_COMMIT_2026-08-19`)
+went six passes the same way. The registration below is the machine-readable act that fixes it
+for this document. **The hole itself is NOT repaired here** — a finding that declares its class
+only in prose is still silently unclassed, and that is a live harness defect this discharge does
+not close.
+
+## Class registration
+
+Belongs to `measurements_that_mirror`. The instrument's subject set was narrower than the
+population it reported on, so its verdict was about the part it happened to know — and, unlike
+the existing members, the narrowing was invisible from the report, which ended `every frozen
+channel matches its list exactly` while answering for half the wall.
