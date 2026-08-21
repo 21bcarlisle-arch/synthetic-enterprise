@@ -42,6 +42,7 @@ _PROJECT_ROOT = str(Path(__file__).resolve().parent.parent)
 if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
+from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402 -- ditto
 from background.publish_step_ledger import PublishStepLedger  # noqa: E402 -- needs the path above
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -1078,10 +1079,17 @@ def _archive_marker(marker):
 
 
 def log(msg):
+    # A TEST PROCESS MAY NOT WRITE THE LIVE sim-runner-log (2026-08-21). This is the file the
+    # PUBLISHING DOWN alarm sends a human to, and on 2026-08-21 it took six fabricated gate
+    # verdicts from pytest tmp roots during a 26-hour publishing outage. Same choke-point
+    # refusal as `deadmans_switch.log` and `suite_duration_watch.record` -- one rule for the
+    # class, not a third guard. Rationale and both R15 legs:
+    # tests/background/test_process_run_complete.py::test_the_live_sim_runner_log_refuses_a_test_process
+    dest = guard_live_ledger_write(LOG_FILE, writer="process_run_complete.log")
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     entry = "- [{}] [process_run] {}".format(ts, msg)
-    LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(LOG_FILE, "a") as f:
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    with open(dest, "a") as f:
         f.write("\n" + entry)
     print(entry, flush=True)
 

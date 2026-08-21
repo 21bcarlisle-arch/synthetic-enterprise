@@ -1809,3 +1809,63 @@ def test_liveness_is_never_easier_to_publish_than_content():
         f"content={content} liveness={liveness}. A liveness path that survives a hook-chain "
         "slowdown the content path dies on is the mechanism that hides a publish freeze."
     )
+
+
+# ── A TEST PROCESS MAY NOT WRITE THE LIVE sim-runner-log (2026-08-21) ─────────────────────────
+#
+# THE OBSERVED DEFECT, not a hypothetical: on 2026-08-21 between 20:49 and 20:51 UTC the live
+# `docs/observability/sim-runner-log.md` took six `[process_run]` lines naming pytest tmp_path
+# roots -- `/tmp/pytest-of-rich/pytest-1512/test_a_root_unavailable_scope_0/checkout-that-never-
+# materialised` -- each reading "Publish gate: could NOT materialise a clean HEAD checkout --
+# not committing". They were fixture output from `tests/background/test_publish_scope.py`
+# driving the real `_run_gate_in`, interleaved with the genuine sim-runner rows.
+#
+# WHY IT MATTERS MORE THAN AN UNTIDY LOG. That file is the one the PUBLISHING DOWN alarm sends
+# a human to: "Check sim-runner-log.md for the publish outcome". During a 26-hour publishing
+# outage it was reporting fabricated gate failures that no publish attempt ever suffered. Same
+# shape as the fabricated LOOP BROKEN rows in the deadman log (0ab42217a) and the fixture book
+# that republished the Proof door's payment gap 2.68x low (the guard's own docstring).
+#
+# CLOSED AT THE CHOKE POINT (R10): `log()` routes its destination through the SAME
+# `live_ledger_guard.guard_live_ledger_write` already wired into `deadmans_switch.log` and
+# `suite_duration_watch.record`, so there is one rule for the class rather than a third guard.
+
+# THE REAL WRITER, captured at IMPORT -- before any autouse fixture runs.
+#
+# `tests/background/conftest.py` defaults every test in this directory to a CAPTURED publisher
+# log by replacing `prc.log` outright. That isolation is right for the other ~1800 tests here,
+# but it means no test in this directory can exercise the real writer -- and a guard that no
+# test can reach is a guard nothing proves (R15: an unavailable check is a FAILED check). The
+# two tests below are the ones that must see the genuine function, so they restore it.
+_REAL_LOG = prc.log
+
+
+def test_the_live_sim_runner_log_refuses_a_test_process(monkeypatch):
+    """The LIVE path is refused -- and refused for being live, not for being absent."""
+    from background.live_ledger_guard import LIVE_RECORD_DIR, LiveLedgerWriteUnderTest
+
+    monkeypatch.setattr(prc, "log", _REAL_LOG)
+    live = LIVE_RECORD_DIR / "sim-runner-log.md"
+    before = live.read_text() if live.exists() else None
+    monkeypatch.setattr(prc, "LOG_FILE", live)
+    with pytest.raises(LiveLedgerWriteUnderTest) as exc:
+        prc.log("Publish gate: could NOT materialise a clean HEAD checkout -- not committing.")
+    # The error names the writer to change, not just the fact of refusal: whoever hits this is
+    # reading a traceback from a test they did not write.
+    assert "process_run_complete.log" in str(exc.value)
+    # And nothing reached the record: the refusal is BEFORE the append, not after it.
+    assert (live.read_text() if live.exists() else None) == before
+
+
+def test_a_redirected_sim_runner_log_still_writes(monkeypatch, tmp_path):
+    """NULL CONTROL. The same call, one field changed -- the destination -- must SUCCEED.
+
+    This is what stops the refusal being greened by refusing everything. Refuse-always is the
+    cheap way to pass the test above, and it would end the publish path's only diagnostic
+    channel: `log()` is what every publish-gate verdict, scope decision and wedge reason is
+    written through, and the alarm for a publishing outage points a human straight at it."""
+    monkeypatch.setattr(prc, "log", _REAL_LOG)
+    dest = tmp_path / "sim-runner-log.md"
+    monkeypatch.setattr(prc, "LOG_FILE", dest)
+    prc.log("Publish gate scope: 6 publish-path source(s) -> 163 blocking test file(s)")
+    assert "163 blocking test file(s)" in dest.read_text()
