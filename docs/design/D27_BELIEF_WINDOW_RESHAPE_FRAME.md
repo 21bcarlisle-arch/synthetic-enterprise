@@ -548,3 +548,71 @@ drift is +2 — which is the edge `belief` now reports, and which the pre-witnes
 reported at all because its top point WAS +2 with nothing above it. The mix entry sits one day
 lower (+1) for its own D19 bluntness reason, exactly as it does at the shipped origin (−309 vs
 −308). Steps 3–4 are untouched by this.
+
+---
+
+## 13. BUILD pass 5 — 2026-08-22 (worker tick, LAND lane) — §12 is in `21585a36b`
+
+**What this pass did: it committed §12.** Nothing else. The origin is still 400 and the reshape is
+still not landed; §9.5 steps 2–4 stand exactly as §12.7 left them, including the correction §12.7
+hands to step 2.
+
+### 13.1 What was found in the tree, before anything was written
+
+At HEAD `32c72b139` — pass 3's addendum, the commit whose whole subject is passes that record work
+they never committed — every symbol §12 describes returned nothing from `git show`:
+
+| asked of `32c72b139` | answer |
+|---|---|
+| `book_memory_grid`'s added point `oldest − window + 1` in `tools/couple_w2_11_d5.py` | absent |
+| `test_the_memory_grid_carries_a_witness_above_its_saturation_point` | absent |
+| `−307` in either belief entry's `own_invisible_drifts` / `own_collapsed_runs` | absent |
+| §12 itself, 137 lines of `D27_BELIEF_WINDOW_RESHAPE_FRAME.md` | absent |
+
+All of it existed only in the shared working tree, which is the loss mode this atom has now met
+four passes running.
+
+### 13.2 Why this is NOT a third false landing claim, and what it is instead
+
+**§12 never said it landed.** Its first sentence says the opposite — *"the origin is still 400 and
+the reshape is still not landed"* — and no sentence in it claims a commit. Passes 1 and 2 wrote
+"Landed" about work in no commit; pass 4 did not, so `record_landing_claim_check.py` has nothing to
+fire on here even had it been reachable, and R3's two-strike counter does not advance.
+
+**The exposure is identical anyway, and that is the finding.** A pass that says nothing about
+landing and a pass that says the wrong thing end the tick in the same state: the atom's work
+reachable from one lane's uncommitted worktree, where a concurrent lane's revert or checkout is the
+documented loss mode. §11.2 established that this control cannot see a pass that commits nothing,
+because a pass that commits nothing never reaches a pre-commit hook. Pass 4 shows the *second* half
+of that gap: even a tick-boundary sweep keyed on the word "landed" would have passed pass 4 clean.
+**The observable is the dirty `file_scope` at tick end, not the claim** — which is what
+`CLASS_UNCOMMITTED_AND_ORPHANED_WORK` already carries, and this pass adds a member to that class
+rather than proposing a second control.
+
+### 13.3 The landing, verified by the tree rather than by the command
+
+`python3 -m tools.surgical_land` over the four paths (`tools/couple_w2_11_d5.py`,
+`tests/tools/test_couple_w2_11_d5.py`, this file, `D27_COMPONENT_LIFT_SUFFIX_DISCOVER.md`), gate
+run to completion undetached — **`landed 21585a36b (4 paths)`, exit 0**, ~15 min wall clock.
+
+Re-verified against the commit, not against the tool's own line:
+
+| asked of `21585a36b` | answer |
+|---|---|
+| `grid.add(int(ages[-1]) - int(window) + 1)` | present, `tools/couple_w2_11_d5.py:3237` |
+| `test_the_memory_grid_carries_a_witness_above_its_saturation_point` | present |
+| `belief` → `own_invisible_drifts` | `(-308, -307, -100, -1, 1, 500)` at `:5113` |
+| `belief_population_mix` → `own_invisible_drifts` | `(-309, -308, -307, -100, -1, 1, 500)` at `:5308` |
+| `git status` on all four paths | empty |
+
+Independently reproduced before landing rather than translated from §12.5's table: the two
+memory-grid nodes, **2 passed, 0.38s** (611 deselected). The register declarations that `−307`
+moves are covered by the gate's own stem selection over `test_couple_w2_11_d5.py`, which is what
+`surgical_land` ran on the tree this commit creates.
+
+### 13.4 What this pass did not do
+
+**Step 2 was not attempted.** It is a re-measurement (§12.7's re-derived declarations, the ~30
+assertions, the axis edges) whose sweeps alone cost more than the wall clock this tick had left
+after a ~15-minute gate, and starting it would have ended the tick with a second uncommitted half —
+the exact state §13.2 is about. The next pass takes §9.5 step 2 with §12.7's correction in hand.
