@@ -812,6 +812,7 @@ def _wall_channel_census_check(staged: list[str]) -> tuple[bool, str]:
         sys.path.insert(0, str(ROOT))
     try:
         from tools.wall_channel_census import (
+            anchored_read_conformance_at,
             census_at,
             check,
             check_nested_schema,
@@ -923,10 +924,33 @@ def _wall_channel_census_check(staged: list[str]) -> tuple[bool, str]:
     # WIDENING REFUSES AND NARROWING DOES NOT. A blob that stops publishing a field is a paydown;
     # refusing it would red on this control's own success case. A RENAME still refuses, because
     # the new name is an addition -- which is what keeps narrowing-tolerance from being a hole.
+    # THE ANCHORED READ BLOCKS FROM ITS FIRST COMMIT -- 2026-08-22 pass 65, by the rule the four
+    # steps above state: a check becomes a gate "in the same commit that makes it satisfiable".
+    # MEASURED at HEAD 8deb45092 before this step was written: both bookless flex readers have
+    # exactly two call sites and both are anchored, so the only commits this can refuse are ones
+    # that add a company-side read of a booked feed outside the book, or strip the anchoring call
+    # out of the method that carries it.
+    #
+    # WHY IT NEEDS A GATE AT ALL, and no other step here can stand in for it. Every check above is
+    # keyed on a MODULE, a seam, a class or a published key. Pass 64 gave the flex feeds a belt
+    # that asks whether this company ever enrolled for what it is being told, and the bookless
+    # transport readers it composes are still importable from the same module. A new
+    # call site that takes the bookless path moves no import edge, bypasses no envelope and
+    # mismatches no version -- every control above stays green while a correctly signed settlement
+    # line for a unit this company never enrolled is decoded and paid. This is the only control in
+    # the repo whose red is that event, and its unit is the CALL SITE for exactly that reason.
+    try:
+        anchored_read = anchored_read_conformance_at(rev=tree, repo_root=ROOT)
+    except Exception as e:  # noqa: BLE001 -- an unavailable check is a FAILED check
+        return False, (
+            f"anchored-read check RAISED against tree {tree[:9]}: {type(e).__name__}: {e}"
+        )
     if not verdict.ok:
         return False, verdict.report()
     if not wire.ok:
         return False, wire.report()
+    if not anchored_read.ok:
+        return False, anchored_read.report()
     if not envelope.ok:
         return False, envelope.report()
     if not drift.ok:
@@ -941,7 +965,9 @@ def _wall_channel_census_check(staged: list[str]) -> tuple[bool, str]:
         f"channel E's {len(satisfaction.crossings)} structural crossing(s) are satisfied by the "
         "world class they were frozen against; "
         f"channel F's {len(nested.pins)} read artefact key(s) publish exactly the "
-        f"{sum(len(v) for v in nested.pins.values())} nested field name(s) they were frozen at"
+        f"{sum(len(v) for v in nested.pins.values())} nested field name(s) they were frozen at; "
+        f"all {len(anchored_read.anchored)} call site(s) of the {len(anchored_read.readers)} "
+        "bookless feed reader(s) are anchored against this company's own book"
     )
     if envelope.legless:
         # NOT a refusal -- the leg-blind fallback is never weaker than the reading it replaced.

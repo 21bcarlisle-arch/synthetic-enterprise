@@ -2573,6 +2573,317 @@ def second_belt_conformance_at(
         return second_belt_conformance(root)
 
 
+# ── the anchored read: a company-side feed read that never asks this company's own book ──────
+#
+# WHY (2026-08-22, EP6 pass 65 -- the item pass 64 closed by NAMING, and could not close in the
+# same pass because the belt has to exist before anything can ask who bypasses it). Pass 64 gave
+# the flex feeds their third belt: `FlexEnrolmentBook.observe_feed` runs the transport read and
+# then admits the payload against the registrations this company actually HOLDS. That belt is
+# real and mutation-proven. What nothing in this tree can see is A NEW READER THAT SKIPS IT.
+# `observe_response_wire` and `observe_settlement_wire` are still importable, still correct at the
+# transport level, and still answer a strictly weaker question -- so a call site that reaches for
+# one of them instead of the book is back in the exact state pass 64 found (a correctly signed
+# settlement line for a unit this company never enrolled, decoded and paid) and NOTHING BREAKS.
+# No import edge moves, so channels A and B see the same two modules. No envelope is bypassed, so
+# channel C is satisfied by either path. No version mismatches, because the version is on the
+# frame and the frame is genuine. Pass 64's own closing paragraph is the finding this section
+# answers, verbatim: "a reader that called `observe_response_wire` directly would be unanchored
+# again, and nothing refuses that. `tools.wall_channel_census` classifies whole FILES and cannot
+# see it."
+#
+# THE UNIT IS THE CALL SITE, which is the one unit every enumerator above cannot use. Channels
+# A-F are keyed on modules, seams, classes and keys, and BOTH paths through this feed live in ONE
+# FILE -- `observe_settlement_wire` and `FlexEnrolmentBook.observe_settlement_feed` are two spellings
+# of the same read in the same module. A file-keyed control cannot
+# express "this module may read the wire and that one may not", let alone "this FUNCTION may".
+#
+# THE RULE, and every clause of it is earned rather than named:
+#   * the BOOKLESS READERS are DERIVED, not listed -- module-level functions in the feed's own
+#     module that decode a wall response, plus (by fixpoint) module-level functions that call one
+#     of those. A third reader added tomorrow is covered on the day it lands, not the day someone
+#     remembers this table. Module-level is the load-bearing word and it is the module's own
+#     reason: "that question needs a registration the company HOLDS, which a module-level function
+#     does not have."
+#   * a call site OUTSIDE the feed's module is UNANCHORED, full stop. That is the module's stated
+#     contract -- "a caller that wants the full check calls the book, not this" -- and it is the
+#     whole exposure pass 64 named.
+#   * a call site INSIDE the module is conformant on exactly two grounds: the enclosing function
+#     is itself a bookless reader (transport composing transport, and its own call sites are
+#     checked by this same rule), or it is a method of the declared book class WHOSE BODY ALSO
+#     CALLS THE ANCHOR. Not "is named observe_feed": the exemption is earned by the anchoring call
+#     being present, so stripping `self._admit(...)` out of `observe_feed` -- the cheapest possible
+#     way to make the belt vanish while every existing test still passes -- reds this control.
+#   * a call at module scope, inside no function at all, is UNANCHORED (fail-closed).
+#
+# MATCHED BY NAME, with both bounds stated rather than discovered later, the same limit
+# `_literal_key_reads` and `wire_call_sites` carry: a read through an alias or a computed getattr
+# is invisible (lower bound), and an unrelated function elsewhere sharing one of these names would
+# be reported (upper bound). The report names file, line and enclosing function, so the second is
+# legible in the refusal rather than mysterious.
+
+#: {feed module (repo-relative) -> (the class that holds this company's own book, the method that
+#: admits a payload against it)}. HAND-WRITTEN, one row, because one feed has a book. What is NOT
+#: hand-written is which functions in that module are the bookless readers -- see above.
+#:
+#: A ROW WHOSE SUBJECT HAS GONE IS A FAILED CHECK, not a quiet pass: an absent module, an absent
+#: class, an absent anchor method or a module with no bookless reader left all raise, because each
+#: of those is also what "somebody deleted the belt" looks like from here.
+ANCHORED_FEEDS: dict[str, tuple[str, str]] = {
+    "company/market/flex_participation.py": ("FlexEnrolmentBook", "_admit"),
+}
+
+
+def _called_names(node: ast.AST) -> set[str]:
+    """Every function/method name called anywhere beneath `node`, by its last component."""
+    names: set[str] = set()
+    for child in ast.walk(node):
+        if isinstance(child, ast.Call):
+            func = child.func
+            if isinstance(func, ast.Name):
+                names.add(func.id)
+            elif isinstance(func, ast.Attribute):
+                names.add(func.attr)
+    return names
+
+
+def _calls_with_scope(
+    node: ast.AST, cls: str | None, func: ast.AST | None, out: list
+) -> None:
+    """Collect (call node, enclosing class name, enclosing function node) for every Call.
+
+    INNERMOST FUNCTION WINS, deliberately: a read hidden in a closure inside an anchoring method
+    is attributed to the closure, which has no anchoring call of its own and is therefore
+    reported. The conservative direction -- a control that credited the enclosing method would
+    hand every future reader a one-line hiding place.
+    """
+    for child in ast.iter_child_nodes(node):
+        if isinstance(child, ast.ClassDef):
+            _calls_with_scope(child, child.name, None, out)
+            continue
+        if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            _calls_with_scope(child, cls, child, out)
+            continue
+        if isinstance(child, ast.Call):
+            out.append((child, cls, func))
+        _calls_with_scope(child, cls, func, out)
+
+
+def bookless_readers(root: str, rel: str, anchor: str) -> tuple[str, ...]:
+    """The module-level functions of `rel` that read the wire holding no book.
+
+    Seeded from the codec's own decode entry points (`DECODE_NAMES`, shared with the channel-C
+    transport question so the two cannot drift apart), then closed under "calls one of these".
+    A module-level function that calls the ANCHOR is excluded: it was handed a book, which is a
+    different fact from not having one.
+    """
+    tree = _parse(os.path.join(root, *rel.split("/")))
+    if tree is None:
+        raise CensusUnavailable(
+            f"{rel} declares a book-anchored feed and cannot be read at this rev -- the subject "
+            "of the anchored-read check is gone, which is a failed check, not a pass"
+        )
+    module_level = {
+        node.name: node
+        for node in tree.body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+    readers = {
+        name
+        for name, node in module_level.items()
+        if _called_names(node) & DECODE_NAMES and anchor not in _called_names(node)
+    }
+    grew = True
+    while grew:
+        grew = False
+        for name, node in module_level.items():
+            if name in readers or anchor in _called_names(node):
+                continue
+            if _called_names(node) & readers:
+                readers.add(name)
+                grew = True
+    return tuple(sorted(readers))
+
+
+def anchoring_methods(root: str, rel: str, cls_name: str, anchor: str) -> tuple[str, ...]:
+    """Methods of `cls_name` whose body calls `anchor` -- the callers permitted to read the wire.
+
+    FAIL-CLOSED on a missing class or a missing anchor DEFINITION. "The book class is gone" and
+    "no method anchors" are the two shapes of the belt being removed, and both are the cheapest
+    way to make this control quiet, so both raise.
+    """
+    tree = _parse(os.path.join(root, *rel.split("/")))
+    if tree is None:
+        raise CensusUnavailable(f"{rel} cannot be read at this rev")
+    book = next(
+        (n for n in ast.walk(tree) if isinstance(n, ast.ClassDef) and n.name == cls_name), None
+    )
+    if book is None:
+        raise CensusUnavailable(
+            f"{rel} no longer declares `{cls_name}` -- the book this feed is anchored against "
+            "has been removed, which is a failed check, not a feed with nothing to check"
+        )
+    methods = {
+        n.name: n for n in book.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+    if anchor not in methods:
+        raise CensusUnavailable(
+            f"`{cls_name}.{anchor}` is not defined in {rel} -- the anchoring call this check "
+            "grants its exemption for does not exist, so every exemption it granted would be a "
+            "name and not a check"
+        )
+    return tuple(
+        sorted(
+            name
+            for name, node in methods.items()
+            if name != anchor and anchor in _called_names(node)
+        )
+    )
+
+
+def unbooked_transport_readers(root: str) -> tuple[str, ...]:
+    """OBSERVATION, NEVER A GATE: business-side modules that decode a wall response and have no
+    book to anchor it against.
+
+    THE SECOND-SUBJECT GUARD. This check is scoped to the feeds that HAVE a book, and a control
+    scoped while there was one subject is exactly the shape that stops covering the second. So the
+    population it is NOT covering is computed and printed beside it, from the same decode entry
+    points, rather than left for a future pass to rediscover.
+
+    NOT FROZEN, and the reason is this module's own A/B rule: enrolment is what a flex feed can be
+    anchored against, and the payment and comms readers have no equivalent holding to admit
+    against today. Freezing this list would red an ordinary commit against a subject whose owner
+    cannot fix it, and a gate that reds for reasons its subject cannot fix is routed around within
+    a day. The codec module itself is excluded -- it IS the decoder, and a decoder decoding is not
+    a crossing (R15 TAUTOLOGY).
+    """
+    found: list[str] = []
+    for path, rel in _business_py_files(root):
+        if rel == CODEC_REL or rel in ANCHORED_FEEDS:
+            continue
+        tree = _parse(path)
+        if tree is None:
+            continue
+        if _called_names(tree) & DECODE_NAMES:
+            found.append(rel)
+    return tuple(sorted(found))
+
+
+@dataclass(frozen=True)
+class AnchoredReadVerdict:
+    """Every call site of a bookless feed reader, split by whether it is anchored.
+
+    `unanchored` is THE FAILURE: a company-side read of a feed that never asks this company's own
+    book whether it registered for what it is being told.
+    """
+
+    anchored: list[str]
+    unanchored: list[str]
+    readers: tuple[str, ...]
+    unbooked: tuple[str, ...]
+
+    @property
+    def ok(self) -> bool:
+        return not self.unanchored
+
+    def report(self) -> str:
+        lines: list[str] = []
+        if self.unanchored:
+            lines.append(
+                f"UNANCHORED FEED READ ({len(self.unanchored)}) -- reads the wire without asking "
+                "this company's own book:"
+            )
+            lines += [f"    ! {s}" for s in self.unanchored]
+        else:
+            lines.append(
+                f"anchored read: all {len(self.anchored)} call site(s) of "
+                f"{len(self.readers)} bookless reader(s) are anchored or transport-internal."
+            )
+        if self.unbooked:
+            lines.append(
+                "    (not covered, no book to anchor against: " + ", ".join(self.unbooked) + ")"
+            )
+        return "\n".join(lines)
+
+
+def anchored_read_conformance(root: str) -> AnchoredReadVerdict:
+    """THE CONTROL. Fails when a company-side call site reads a booked feed off the wire without
+    the book.
+
+    FAIL-CLOSED BRANCHES, each a different way this could go quiet (R15 FAIL-OPEN/FAIL-SILENT):
+      * the feed module, its book class or its anchor method is gone      -> raises (see above);
+      * the module has NO bookless reader left                            -> raises: either the
+        transport layer was renamed out from under this walk, or it was deleted, and both make
+        every later question vacuous;
+      * the readers exist and NOTHING calls them anywhere in the census trees -> raises. An empty
+        denominator makes conformance vacuously true, and a name-matched walk that has silently
+        stopped matching looks exactly like this. Tests are not in `CENSUS_DIRS`, so this cannot
+        be satisfied by the suite that proves the transport belt.
+    """
+    anchored: list[str] = []
+    unanchored: list[str] = []
+    all_readers: set[str] = set()
+    for rel, (cls_name, anchor) in sorted(ANCHORED_FEEDS.items()):
+        readers = bookless_readers(root, rel, anchor)
+        if not readers:
+            raise CensusUnavailable(
+                f"{rel} declares a book-anchored feed and no module-level function in it reads "
+                "the wire -- the transport layer this check is about has been renamed or removed, "
+                "which is a failed check, not a clean one"
+            )
+        permitted = set(anchoring_methods(root, rel, cls_name, anchor))
+        all_readers |= set(readers)
+        sites = 0
+        for path, site_rel in _census_py_files(root):
+            tree = _parse(path)
+            if tree is None:
+                continue
+            calls: list = []
+            _calls_with_scope(tree, None, None, calls)
+            for call, cls, func in calls:
+                target = (
+                    call.func.id
+                    if isinstance(call.func, ast.Name)
+                    else call.func.attr if isinstance(call.func, ast.Attribute) else None
+                )
+                if target not in readers:
+                    continue
+                sites += 1
+                where = f"{func.name}" if func is not None else "<module scope>"
+                if cls is not None and func is not None:
+                    where = f"{cls}.{func.name}"
+                entry = _entry(f"{site_rel}:{call.lineno}", where, target)
+                if site_rel != rel:
+                    unanchored.append(entry)
+                elif func is not None and func.name in readers and cls is None:
+                    anchored.append(entry)
+                elif func is not None and cls == cls_name and func.name in permitted:
+                    anchored.append(entry)
+                else:
+                    unanchored.append(entry)
+        if not sites:
+            raise CensusUnavailable(
+                f"{rel} declares {len(readers)} bookless reader(s) and nothing in the census trees "
+                "calls any of them -- refusing to measure an empty denominator, which would make "
+                "the anchored-read check vacuously conformant"
+            )
+    return AnchoredReadVerdict(
+        anchored=sorted(anchored),
+        unanchored=sorted(unanchored),
+        readers=tuple(sorted(all_readers)),
+        unbooked=unbooked_transport_readers(root),
+    )
+
+
+def anchored_read_conformance_at(
+    rev: str = "HEAD", worktree: bool = False, repo_root: Path = PROJECT_DIR
+) -> AnchoredReadVerdict:
+    """`anchored_read_conformance` against the worktree, or against the tree at `rev`."""
+    if worktree:
+        return anchored_read_conformance(str(repo_root))
+    with head_export(str(repo_root), CENSUS_DIRS, rev=rev) as root:
+        return anchored_read_conformance(root)
+
+
 # ── channel E's conformance: does a WORLD class actually satisfy the Protocol? ───────────────
 #
 # WHY (2026-08-20, pass 30 -- this is the oldest un-progressed item on the atom, filed at pass 22
@@ -3485,6 +3796,21 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     print(second_belt.report())
 
+    # GATES FROM ITS FIRST COMMIT, by the rule this file has now stated five times: a check
+    # becomes a gate "in the same commit that makes it satisfiable". MEASURED before this line was
+    # written rather than hoped -- at HEAD 8deb45092 and in the tree this commit creates, both
+    # bookless readers have exactly two call sites and both are anchored, so the only commits it
+    # can refuse are commits that add a company-side read of a booked feed outside the book, or
+    # take the anchoring call out of the method that has it. Its subject, not its collateral.
+    try:
+        anchored_read = anchored_read_conformance_at(rev=args.rev, worktree=args.worktree)
+    except CensusUnavailable as exc:
+        print(
+            f"ANCHORED READ CHECK UNAVAILABLE (a failed check, not a pass): {exc}", file=sys.stderr
+        )
+        return 2
+    print(anchored_read.report())
+
     # The artefact half prints its SILENT and UNOBSERVABLE keys as loudly as its carrying ones.
     # The `if carrying:` filter this replaces suppressed exactly the state the check exists to
     # find: at HEAD b22698df8, three logs at 0/1,996 printed as an empty section.
@@ -3550,6 +3876,7 @@ def main(argv: list[str] | None = None) -> int:
             and wire.ok
             and surface_pins.ok
             and second_belt.ok
+            and anchored_read.ok
             and drift.ok
             and nested_drift.ok
             # ARMED, EP6 pass 53. The three comments above each promised this

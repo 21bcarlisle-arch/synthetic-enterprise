@@ -780,6 +780,11 @@ def _pin_the_other_halves(monkeypatch) -> None:
     monkeypatch.setattr(
         wcc, "load_nested_schema_baseline", lambda *a, **k: dict(_conformant_F().pins)
     )
+    # THE FIFTH HALF (2026-08-22 pass 65), pinned in the commit that armed it -- the fourth time
+    # this fixture's own docstring has been proved right. Left real, the anchored-read check runs
+    # `head_export` against the fake index tree `"0"*40`, raises, hits its own fail-closed branch,
+    # and every NULL CONTROL above fails while looking like a defect in the half it was aimed at.
+    monkeypatch.setattr(wcc, "anchored_read_conformance_at", lambda **k: _conformant_anchored())
 
 
 def _gate_wire_branch(monkeypatch, *, wire: wcc.WireVerdict):
@@ -4183,4 +4188,383 @@ def test_the_status_check_REPORTS_and_the_status_FLOOR_gates_and_both_reach_a_re
     assert any("floor_gaps" in ast.unparse(n) for n in ast.walk(tree) if isinstance(n, ast.If)), (
         "the status FLOOR no longer gates -- it is satisfiable at HEAD, so reporting-only would "
         "leave the liveness question's cheapest repair (delete the member) unrefused"
+    )
+
+
+# ── 26. the ANCHORED READ -- a company-side feed read that never asks its own book ────────────
+#
+# WHY THIS SECTION EXISTS (2026-08-22, EP6 pass 65). Pass 64 landed the flex feeds' third belt:
+# `FlexEnrolmentBook.observe_feed` runs the transport read and then admits the payload against the
+# registrations this company HOLDS. The belt is proven. What was left owed, in pass 64's own
+# closing paragraph, is that nothing refuses the NEXT reader: "a reader that called
+# `observe_response_wire` directly would be unanchored again, and nothing refuses that.
+# `tools.wall_channel_census` classifies whole FILES and cannot see it."
+#
+# So every mutation below is a NEW CALL SITE or a MOVED ONE in a tree where nothing else changes:
+# no import edge moves, no envelope is bypassed, no version mismatches, and every other control in
+# this file stays green on all of them. That invariance is the point -- it is what makes the call
+# site the only unit that can express this question.
+
+FLEX_REL = "company/market/flex_participation.py"
+
+_FLEX_MODULE = """
+    from company.interfaces.wall_protocol import decode_framed_response
+
+
+    def observe_response_wire(wire, *, expect=None):
+        sender, response = decode_framed_response(wire, decode_payload=_payload)
+        return response.payload
+
+
+    def observe_settlement_wire(messages):
+        return [observe_response_wire(m, expect=Line) for m in messages]
+
+
+    class FlexEnrolmentBook:
+        def held_registrations(self):
+            return self._held
+
+        def _admit(self, payload):
+            for held in self.held_registrations():
+                if held.unit_id == payload.unit_id:
+                    return payload
+            raise UnheldRegistration("names no registration this company holds")
+
+        def observe_feed(self, wire, *, expect=None):
+            return self._admit(observe_response_wire(wire, expect=expect))
+
+        def observe_settlement_feed(self, messages):
+            return [self.observe_feed(m, expect=Line) for m in messages]
+"""
+
+
+@pytest.fixture()
+def flex_tree(tmp_path: Path) -> Path:
+    """A miniature repo carrying the pass-64 shape: two bookless module-level readers, one book,
+    one anchoring method, and one honest outside consumer that goes through the book.
+
+    The outside consumer is in the fixture rather than in a mutation on purpose -- without it,
+    "the control reds on an outside caller" and "the control reds on any caller it has not seen
+    before" are the same experiment.
+    """
+    root = tmp_path / "repo"
+    _write(root, FLEX_REL, _FLEX_MODULE)
+    _write(root, "company/interfaces/wall_protocol.py", """
+        def decode_framed_response(wire, *, decode_payload):
+            return "sender", wire
+    """)
+    _write(root, "background/flex_dispatch_triad.py", """
+        from company.market.flex_participation import FlexEnrolmentBook
+
+
+        def measure_l2(book: FlexEnrolmentBook, feed):
+            return book.observe_settlement_feed(feed)
+    """)
+    return root
+
+
+def _verdict(root: Path) -> "wcc.AnchoredReadVerdict":
+    return wcc.anchored_read_conformance(str(root))
+
+
+def test_the_bookless_readers_are_DERIVED_from_the_decode_entry_points(flex_tree: Path):
+    """Not a name list: the seed is the codec's own decoders, closed under "calls one of these".
+
+    A third reader added tomorrow is covered on the day it lands. `observe_settlement_wire`
+    decodes nothing itself and is still a reader, which is the fixpoint half doing work.
+    """
+    assert wcc.bookless_readers(str(flex_tree), FLEX_REL, "_admit") == (
+        "observe_response_wire",
+        "observe_settlement_wire",
+    )
+
+
+def test_a_tree_that_reads_every_booked_feed_through_its_BOOK_is_conformant(flex_tree: Path):
+    v = _verdict(flex_tree)
+    assert v.ok, v.report()
+    assert len(v.anchored) == 2 and not v.unanchored, v.report()
+    assert "FlexEnrolmentBook.observe_feed" in " ".join(v.anchored)
+
+
+def test_MUTATION_a_NEW_OUTSIDE_READER_taking_the_bookless_path_is_UNANCHORED(flex_tree: Path):
+    """THE DEFECT PASS 64 NAMED AND COULD NOT REFUSE. A settlement reader that imports the bare
+    transport function: the frame is genuine, the operator really runs the venue, the version
+    matches -- and this company never enrolled the unit it is being paid for."""
+    _write(flex_tree, "background/live_flex_reader.py", """
+        from company.market.flex_participation import observe_settlement_wire
+
+
+        def read_the_statement(feed):
+            return observe_settlement_wire(feed)
+    """)
+    v = _verdict(flex_tree)
+    assert not v.ok, "a bookless read from another module was reported conformant"
+    assert any("live_flex_reader.py" in u and "read_the_statement" in u for u in v.unanchored), (
+        "the refusal must name file, line and enclosing function (R5): " + v.report()
+    )
+    assert "UNANCHORED FEED READ" in v.report()
+
+
+def test_NULL_CONTROL_a_NEW_OUTSIDE_READER_going_through_the_BOOK_moves_nothing(flex_tree: Path):
+    """Moves the sample, not the law: same new module, same new consumer of the same feed, one
+    line different. A control that reds here is refusing ordinary work, not the defect."""
+    _write(flex_tree, "background/live_flex_reader.py", """
+        from company.market.flex_participation import FlexEnrolmentBook
+
+
+        def read_the_statement(book: FlexEnrolmentBook, feed):
+            return book.observe_settlement_feed(feed)
+    """)
+    v = _verdict(flex_tree)
+    assert v.ok, "the anchored path through the book was refused: " + v.report()
+    assert len(v.anchored) == 2, v.report()
+
+
+def test_MUTATION_STRIPPING_THE_ANCHORING_CALL_out_of_the_method_reds_it(flex_tree: Path):
+    """The cheapest possible way to delete pass 64's belt: leave every name, every signature and
+    every caller in place and drop `self._admit(...)`. The exemption is EARNED by the anchoring
+    call being present, so this is refused rather than credited to the method's name."""
+    _write(flex_tree, FLEX_REL, _FLEX_MODULE.replace(
+        "return self._admit(observe_response_wire(wire, expect=expect))",
+        "return observe_response_wire(wire, expect=expect)",
+    ))
+    v = _verdict(flex_tree)
+    assert not v.ok, "a book method that stopped admitting was still credited as anchored"
+    assert any("observe_feed" in u for u in v.unanchored), v.report()
+
+
+def test_MUTATION_a_SECOND_CLASS_in_the_feeds_own_module_reading_the_wire_is_UNANCHORED(
+    flex_tree: Path,
+):
+    """The in-module hole. Same file, eleven lines from the belt, holding no book."""
+    _write(flex_tree, FLEX_REL, _FLEX_MODULE + """
+
+    class FlexRevenueTally:
+        def add(self, wire):
+            self.total += observe_response_wire(wire).utilisation_payment_gbp
+    """)
+    v = _verdict(flex_tree)
+    assert not v.ok and any("FlexRevenueTally.add" in u for u in v.unanchored), v.report()
+
+
+def test_MUTATION_a_read_at_MODULE_SCOPE_inside_no_function_is_UNANCHORED(flex_tree: Path):
+    """Fail-closed on the shape with no enclosing function to ask about."""
+    _write(flex_tree, FLEX_REL, _FLEX_MODULE + """
+
+    FIRST_LINE = observe_response_wire(BOOTSTRAP_WIRE)
+    """)
+    v = _verdict(flex_tree)
+    assert not v.ok and any("<module scope>" in u for u in v.unanchored), v.report()
+
+
+def test_a_NEW_BOOKLESS_READER_composed_INSIDE_the_transport_layer_is_not_the_defect(
+    flex_tree: Path,
+):
+    """Transport composing transport is not a crossing, and this is the boundary of the claim: the
+    new function joins the READER set, so its own callers are checked by the same rule. Asserted
+    rather than assumed, because the alternative reading (every new module-level function reds)
+    would make the control refuse the layer it is protecting."""
+    _write(flex_tree, FLEX_REL, _FLEX_MODULE + """
+
+    def observe_instruction_wire(messages):
+        return [observe_response_wire(m, expect=Instruction) for m in messages]
+    """)
+    v = _verdict(flex_tree)
+    assert v.ok, v.report()
+    assert "observe_instruction_wire" in v.readers
+    _write(flex_tree, "background/eager.py", """
+        from company.market.flex_participation import observe_instruction_wire
+
+
+        def read(feed):
+            return observe_instruction_wire(feed)
+    """)
+    after = _verdict(flex_tree)
+    assert not after.ok and any("eager.py" in u for u in after.unanchored), (
+        "the derived reader set did not carry the rule to the function it just admitted: "
+        + after.report()
+    )
+
+
+def test_NULL_CONTROL_the_TEST_SUITE_may_read_the_bare_transport_function(flex_tree: Path):
+    """`tests/` is not in `CENSUS_DIRS`, and it must not be: pass 62's and pass 64's belts are
+    PROVEN by calling the bookless reader directly with a stranger's unit. A control that refused
+    that would make the transport belt unfalsifiable."""
+    _write(flex_tree, "tests/company/test_flex_participation.py", """
+        from company.market.flex_participation import observe_settlement_wire
+
+
+        def test_a_stranger_is_refused():
+            observe_settlement_wire(_feed())
+    """)
+    assert _verdict(flex_tree).ok
+
+
+def test_FAIL_CLOSED_a_feed_module_that_has_gone_is_a_FAILED_check(flex_tree: Path):
+    (flex_tree / FLEX_REL).unlink()
+    with pytest.raises(wcc.CensusUnavailable, match="cannot be read at this rev"):
+        _verdict(flex_tree)
+
+
+def test_FAIL_CLOSED_deleting_the_BOOK_CLASS_raises_rather_than_reporting_clean(flex_tree: Path):
+    """Deleting the book is the cheapest way to make an anchored-read check quiet: with no book,
+    a name-scoped control would find no anchoring method, no exemption to grant, and could be
+    mistaken for a feed with nothing to check."""
+    _write(flex_tree, FLEX_REL, _FLEX_MODULE.split("class FlexEnrolmentBook:")[0])
+    with pytest.raises(wcc.CensusUnavailable, match="no longer declares `FlexEnrolmentBook`"):
+        _verdict(flex_tree)
+
+
+def test_FAIL_CLOSED_deleting_the_ANCHOR_METHOD_raises(flex_tree: Path):
+    """Every exemption this control grants is grounded in `_admit` existing. If it does not, the
+    exemptions are names, and a check whose exemptions are names passes everything."""
+    source = _FLEX_MODULE.replace("    def _admit(self, payload):", "    def _unused(self, payload):")
+    _write(flex_tree, FLEX_REL, source)
+    with pytest.raises(wcc.CensusUnavailable, match="is not defined in"):
+        _verdict(flex_tree)
+
+
+def test_FAIL_CLOSED_a_module_whose_readers_were_RENAMED_OUT_raises(flex_tree: Path):
+    """The walk matches by name. If the transport layer is renamed out from under it, the honest
+    answer is "this check could not be taken", never "nothing to report"."""
+    _write(flex_tree, FLEX_REL, """
+        class FlexEnrolmentBook:
+            def _admit(self, payload):
+                return payload
+
+            def observe_feed(self, wire):
+                return self._admit(wire)
+    """)
+    with pytest.raises(wcc.CensusUnavailable, match="no module-level function"):
+        _verdict(flex_tree)
+
+
+def test_FAIL_CLOSED_readers_that_NOTHING_CALLS_are_an_empty_denominator(flex_tree: Path):
+    """A name-matched walk that has silently stopped matching looks exactly like a feed nobody
+    reads. Both raise, for channel D's stated reason."""
+    _write(flex_tree, FLEX_REL, _FLEX_MODULE.replace(
+        "        return [observe_response_wire(m, expect=Line) for m in messages]",
+        "        return []",
+    ).replace(
+        "            return self._admit(observe_response_wire(wire, expect=expect))",
+        "            return self._admit(wire)",
+    ))
+    with pytest.raises(wcc.CensusUnavailable, match="empty denominator"):
+        _verdict(flex_tree)
+
+
+def test_the_SECOND_SUBJECT_is_computed_and_printed_rather_than_left_to_a_future_pass(
+    flex_tree: Path,
+):
+    """A control scoped while there was one subject stops covering the second. The feeds with NO
+    book are enumerated from the same decode entry points and named in the report, and the codec
+    itself is excluded (it IS the decoder -- R15 TAUTOLOGY)."""
+    _write(flex_tree, "company/billing/payment_observation_consumer.py", """
+        from company.interfaces.wall_protocol import decode_framed_response
+
+
+        def observe_remittance(wire):
+            return decode_framed_response(wire, decode_payload=_p)
+    """)
+    v = _verdict(flex_tree)
+    assert v.ok, "the uncovered population must be an OBSERVATION, never a gate: " + v.report()
+    assert v.unbooked == ("company/billing/payment_observation_consumer.py",)
+    assert "no book to anchor against" in v.report()
+    assert wcc.CODEC_REL not in v.unbooked
+
+
+def test_THE_LIVE_TREE_reads_both_flex_feeds_through_the_BOOK():
+    """R11-shaped: the claim is about the repository, so it is asserted against the repository.
+
+    Both figures are named rather than compared to `>= 0`: two bookless readers, two call sites,
+    and both call sites inside the feed's own module.
+    """
+    v = wcc.anchored_read_conformance(str(Path(wcc.__file__).parent.parent))
+    assert v.ok, v.report()
+    assert v.readers == ("observe_response_wire", "observe_settlement_wire")
+    assert len(v.anchored) == 2 and not v.unanchored, v.report()
+    assert all(FLEX_REL in a for a in v.anchored), v.anchored
+
+
+def test_THE_LIVE_UNBOOKED_POPULATION_IS_THE_TWO_READERS_WITH_NO_BOOK():
+    """Named, so that a third one appearing is a test failure and not a silent widening of the
+    part of the wall this control does not cover."""
+    v = wcc.anchored_read_conformance(str(Path(wcc.__file__).parent.parent))
+    assert v.unbooked == (
+        "company/billing/payment_observation_consumer.py",
+        "company/comms/susceptibility_estimator.py",
+    ), v.unbooked
+
+
+def test_the_anchored_read_check_is_part_of_the_CLIs_exit_code():
+    """R11's no-orphan-transitions rule: a check whose red changes nothing is not a gate."""
+    import ast
+
+    source = (Path(wcc.__file__).parent.parent / "tools" / "wall_channel_census.py").read_text()
+    returns = [
+        ast.unparse(n.value) for n in ast.walk(ast.parse(source))
+        if isinstance(n, ast.Return) and n.value is not None
+    ]
+    assert any("anchored_read.ok" in r for r in returns), (
+        "the anchored-read check reports but does not gate"
+    )
+
+
+# ── the GATE's anchored-read branch ──────────────────────────────────────────────────────────
+
+def _gate_anchored_branch(monkeypatch, *, verdict):
+    from tools import pre_commit_test_gate as gate
+
+    _pin_the_other_halves(monkeypatch)
+    monkeypatch.setattr(wcc, "anchored_read_conformance_at", lambda **k: verdict)
+    return gate._wall_channel_census_check(["company/market/flex_participation.py"])
+
+
+def _conformant_anchored() -> "wcc.AnchoredReadVerdict":
+    return wcc.AnchoredReadVerdict(
+        anchored=[f"{FLEX_REL}:1061 -> FlexEnrolmentBook.observe_feed -> observe_response_wire"],
+        unanchored=[],
+        readers=("observe_response_wire",),
+        unbooked=(),
+    )
+
+
+def test_NULL_CONTROL_the_GATE_passes_an_anchored_tree(monkeypatch):
+    ok, detail = _gate_anchored_branch(monkeypatch, verdict=_conformant_anchored())
+    assert ok, detail
+    assert "bookless feed reader(s) are anchored" in detail, detail
+
+
+def test_MUTATION_the_GATE_REFUSES_a_commit_carrying_an_unanchored_feed_read(monkeypatch):
+    ok, detail = _gate_anchored_branch(
+        monkeypatch,
+        verdict=wcc.AnchoredReadVerdict(
+            anchored=[],
+            unanchored=["background/live_flex_reader.py:12 -> read -> observe_settlement_wire"],
+            readers=("observe_settlement_wire",),
+            unbooked=(),
+        ),
+    )
+    assert not ok, "a commit adding a bookless feed read was allowed to land"
+    assert "UNANCHORED FEED READ" in detail and "live_flex_reader.py:12" in detail, detail
+
+
+def test_FAIL_CLOSED_the_GATE_refuses_when_the_anchored_read_check_RAISES(monkeypatch):
+    """R15 FAIL-SILENT: an unavailable check is a FAILED check."""
+    def _boom(**kwargs):
+        raise wcc.CensusUnavailable("the book class is gone")
+
+    from tools import pre_commit_test_gate as gate
+
+    _pin_the_other_halves(monkeypatch)
+    monkeypatch.setattr(wcc, "anchored_read_conformance_at", _boom)
+    ok, detail = gate._wall_channel_census_check(["company/market/flex_participation.py"])
+    assert not ok and "anchored-read check RAISED" in detail, detail
+
+
+def test_the_GATE_names_the_anchored_read_in_its_own_source():
+    """The arming, asserted against the file rather than described in a record."""
+    source = (Path(wcc.__file__).parent.parent / "tools" / "pre_commit_test_gate.py").read_text()
+    assert "anchored_read_conformance_at" in source and "anchored_read.ok" in source, (
+        "the anchored-read check is not wired into the commit gate"
     )
