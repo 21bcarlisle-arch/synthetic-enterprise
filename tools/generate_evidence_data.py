@@ -1040,12 +1040,29 @@ every atom.
 # --- entry point -------------------------------------------------------------
 
 
-def generate(git_hash: str | None = None) -> dict:
-    """Write site/data/evidence.json and site/evidence/index.html from the primary sources.
+def generate(git_hash: str | None = None, write_page: bool | None = None) -> dict:
+    """Write site/data/evidence.json -- and site/evidence/index.html only if that door still exists.
 
     Safe to call from background/process_run_complete.py: on a missing/empty source it raises
     EvidenceSourceUnavailable BEFORE writing anything, so the publish step logs the failure
     and the previous page stays live rather than being replaced by a plausible blank.
+
+    THE PAGE CAN NO LONGER BE RESURRECTED BY THIS FUNCTION (2026-08-22). `/evidence/` was
+    deleted on 2026-08-20 (director: the five tabs are the site) and this generator recreated
+    it thirty minutes later, because it ran `OUT_HTML.parent.mkdir()` unconditionally -- so the
+    publish cycle had to drop the call entirely to keep the door dead. That took the PAYLOAD
+    down with the page, and the payload has a SECOND consumer: `generate_capabilities_door`
+    reads `site/data/evidence.json` for the "Checked by N automated checks, last run <date>"
+    line on the live Capabilities door. Observed 2026-08-22: `capabilities_door.json`
+    regenerated at 10:02:21Z was still publishing `last_run 2026-08-20T05:08:54Z` to nine
+    capabilities, and would have kept doing so indefinitely -- a stale claim inside a fresh
+    feed, which is worse than a stale page because nothing about it looks old.
+
+    The refusal belongs HERE, at the sink, not in the caller: a guard in the publish path is
+    one caller's discipline, and this is the function that did the resurrecting. `write_page`
+    defaults to "the door's directory already exists" -- an absent directory is never created,
+    so wiring this back into the cycle cannot bring a retired page back. Pass it explicitly
+    only to pin the behaviour in a test.
     """
     # Sources passed EXPLICITLY from the module globals rather than relying on build_payload's
     # defaults: a default argument binds once at definition time, so a redirected source path
@@ -1060,13 +1077,14 @@ def generate(git_hash: str | None = None) -> dict:
     if git_hash:
         payload["git_hash"] = git_hash
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
-    OUT_HTML.parent.mkdir(parents=True, exist_ok=True)
     OUT_JSON.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     # The DATA is written unconditionally; only the RENDERING is held back. See
     # EVIDENCE_READER_READY for why that split is the whole point.
-    OUT_HTML.write_text(
-        render_html(payload) if EVIDENCE_READER_READY else render_placeholder(payload),
-        encoding="utf-8")
+    if OUT_HTML.parent.is_dir() if write_page is None else write_page:
+        OUT_HTML.parent.mkdir(parents=True, exist_ok=True)
+        OUT_HTML.write_text(
+            render_html(payload) if EVIDENCE_READER_READY else render_placeholder(payload),
+            encoding="utf-8")
     return payload
 
 
@@ -1092,7 +1110,14 @@ def main() -> int:
     print(f"\nFINDINGS: {len(found)}")
     for kind, subject, detail in found:
         print(f"  [{kind}] {subject}: {detail}")
-    print(f"\nwrote {OUT_JSON.relative_to(PROJECT)} and {OUT_HTML.relative_to(PROJECT)}")
+    # Named from what is ON DISK afterwards rather than from the intent: this tool printed
+    # "wrote <page>" for two days while writing no page at all would have been the honest line.
+    wrote = str(OUT_JSON.relative_to(PROJECT))
+    if OUT_HTML.is_file():
+        wrote += f" and {OUT_HTML.relative_to(PROJECT)}"
+    else:
+        wrote += f" (no page: {OUT_HTML.parent.relative_to(PROJECT)} is retired)"
+    print(f"\nwrote {wrote}")
     return 0
 
 

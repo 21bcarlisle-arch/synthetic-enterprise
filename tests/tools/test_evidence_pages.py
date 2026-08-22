@@ -46,7 +46,21 @@ MAPPING = SITE / "data" / "moap_node_atoms.json"
 # fixed here -- they are reported instead, and the page renders both of them in red.
 #   site/supplier/index.html -- a door that was REMOVED from the site; still cited by
 #   B2_opex_cost_to_serve and E2_revenue_reconciliation as evidence of their level.
-KNOWN_UNRESOLVED_CITATIONS = {"site/supplier/index.html"}
+#   site/project/index.html, site/customers/index.html -- the same shape, two days old rather
+#   than months: both were deleted by 03dd8c49e (2026-08-20, "eleven pages deleted, their
+#   content moved"), and E2_revenue_reconciliation still cites both as evidence of its level.
+#   PINNED RATHER THAN RE-POINTED, and the difference matters: re-pointing them at /explore/
+#   (the door the ruling names as superseding /customers/) would be a false citation. The
+#   content was measured on 2026-08-22 and did NOT move -- renderBills, filterBillYear,
+#   setBillView, combinedLedgerTotals and billMeterDetailsHtml return zero hits across every
+#   site/**/*.html. So the honest state is "E2's cited evidence no longer exists", which is
+#   what an entry here says and what the payload reports as MISSING; inventing a live-looking
+#   citation would be the FAIL-OPEN-AT-THE-CITATION defect this module exists to catch.
+KNOWN_UNRESOLVED_CITATIONS = {
+    "site/supplier/index.html",
+    "site/project/index.html",
+    "site/customers/index.html",
+}
 
 
 @pytest.fixture(scope="module")
@@ -58,11 +72,30 @@ def payload() -> dict:
 
 
 @pytest.fixture(scope="module")
-def page_html() -> str:
-    assert EVIDENCE_HTML.is_file(), (
-        f"{EVIDENCE_HTML} missing -- run tools/generate_evidence_data.py"
-    )
-    return EVIDENCE_HTML.read_text(encoding="utf-8")
+def page_html(payload) -> str:
+    """The full reader-facing render, produced IN PROCESS rather than read off disk.
+
+    IT USED TO BE THE DEPLOYED FILE, and that stopped being checkable in two steps: the
+    render was switched off on 2026-08-19 (`EVIDENCE_READER_READY = False`, director ruling
+    -- the deployed page became an honest placeholder), and the door itself was deleted on
+    2026-08-20 by 03dd8c49e. From then on this fixture named a path that is not there, so the
+    six controls below raised FileNotFoundError AT SETUP -- they stopped checking anything
+    while reading, in the census, as six failures accusing the generator. A fixture naming a
+    retired path produces a failure that accuses its subject, which is worse than a fixture
+    that merely stops testing anything; that is the same class 03dd8c49e's unfinished half
+    left in `test_site_structure.py` and `test_site_lane_gate.py` on 2026-08-22.
+
+    So the SUBJECT moves down one level, deliberately and with what is lost stated: these are
+    now controls on `render_html` -- the render SITE12_evidence_a_reader_can_use has to ship
+    -- and no longer on a deployed artefact, so they no longer carry R11. They are kept
+    rather than deleted because the render they check is switched off, not withdrawn, and a
+    switched-off render with no controls comes back unchecked. What re-attaches them to a
+    deployed page is `test_the_reader_facing_render_cannot_be_switched_on_without_a_door`
+    below: the flag cannot go True while there is no door for it to render into.
+    """
+    from tools.generate_evidence_data import render_html
+
+    return render_html(payload)
 
 
 @pytest.fixture(scope="module")
@@ -107,25 +140,46 @@ def test_every_node_drills_to_its_own_evidence_section(payload, page_html, mappi
     assert {n["id"] for n in payload["nodes"]} == {n["id"] for n in mapping["nodes"]}
 
 
-def test_front_door_links_every_node_to_its_evidence_and_nothing_else(mapping, page_html):
-    """DEFECT: the front door and the mapping disagree about the node set -- a node silently
-    loses its evidence link, or a link points at a section that does not exist.
+def test_the_front_door_does_not_route_a_reader_to_the_retired_evidence_door():
+    """DEFECT: a link on the live front door landing on a page that is not there.
 
-    Checked in BOTH directions so neither a dropped link nor an orphan link passes."""
+    THE INVERSION IS THE POINT, and it is a third state rather than a deletion. This control
+    used to assert that the front door links EVERY diagram node to its evidence section, in
+    both directions. Its subject was retired twice over: the evidence links were switched off
+    on 2026-08-18 (director: "the evidence links land somewhere a reader can't use"), and
+    /evidence/ itself was deleted on 2026-08-20. Deleting the control would have left nothing
+    watching the route at all, and a route is exactly the thing that comes back by accident --
+    the CSS class is still in the front door's stylesheet, so re-adding a link is one line.
+
+    So the assertion is inverted rather than dropped: while the door is retired, a
+    node-evidence ANCHOR on the front door is the defect. Restoring the door means restoring
+    the both-directions check, and this test failing is what says so."""
     front = FRONT_DOOR.read_text(encoding="utf-8")
-    hrefs = re.findall(
-        r'<a[^>]*class="node-evidence"[^>]*href="([^"]+)"', front
+    hrefs = re.findall(r'<a[^>]*class="node-evidence"[^>]*href="([^"]+)"', front)
+    if EVIDENCE_HTML.is_file():
+        pytest.fail(
+            "site/evidence/index.html is back -- restore the both-directions front-door check "
+            "this test replaced (git show 03dd8c49e^:tests/tools/test_evidence_pages.py)"
+        )
+    assert not hrefs, (
+        f"the front door links {hrefs} to an evidence door that was deleted on 2026-08-20 -- "
+        "a reader following one lands on the /harness/ 301 or on nothing"
     )
-    assert hrefs, "no node-evidence links on the front door at all"
-    frags = [h.split("#", 1)[1] for h in hrefs if "#" in h]
-    assert len(frags) == len(hrefs), f"a node-evidence link has no fragment: {hrefs}"
-    expected = [n["id"] for n in mapping["nodes"]]
-    assert sorted(frags) == sorted(expected), (
-        f"front-door evidence links {sorted(frags)} != mapping nodes {sorted(expected)}"
-    )
-    for frag in frags:
-        assert f'id="{frag}"' in page_html, (
-            f"front door links to #{frag} but the evidence page has no such anchor"
+
+
+def test_the_reader_facing_render_cannot_be_switched_on_without_a_door():
+    """DEFECT (R11, no orphan transitions): `EVIDENCE_READER_READY` flipped to True while
+    there is no `/evidence/` for the render to land in -- a release whose effect is nothing.
+
+    This is also what re-attaches the six render controls above to a deployed artefact: the
+    only way the flag goes True is alongside a door, and a door is a page they can read."""
+    from tools.generate_evidence_data import EVIDENCE_READER_READY
+
+    if EVIDENCE_READER_READY:
+        assert EVIDENCE_HTML.is_file(), (
+            "EVIDENCE_READER_READY is True but site/evidence/index.html does not exist -- the "
+            "reader-facing render has been switched on with nowhere to render. Ship the door "
+            "in the same commit (SITE12_evidence_a_reader_can_use)."
         )
 
 
@@ -284,6 +338,44 @@ def test_rendered_totals_come_from_the_payload(payload, page_html):
         assert f"<strong>{t[key]}</strong>" in page_html, (
             f"total {key}={t[key]} is not rendered on the page"
         )
+
+
+def test_the_publish_cycle_refreshes_the_payload_that_the_capabilities_door_reads():
+    """DEFECT, observed live on 2026-08-22: `site/data/evidence.json` had no producer in the
+    publish cycle while a page published every 25 minutes read it.
+
+    The retirement of /evidence/ on 2026-08-20 correctly dropped the evidence step from
+    `process_run_complete` -- the generator was recreating the deleted door every cycle. What
+    nobody checked is that the payload has a SECOND consumer: `generate_capabilities_door`
+    reads evidence.json for the "Checked by N automated checks, last run <date>" line. So the
+    door kept regenerating (`capabilities_door.json` stamped 2026-08-22T10:02:21Z) while the
+    figure inside it was pinned at 2026-08-20T05:08:54Z, and would have been forever. A stale
+    number inside a fresh feed is worse than a stale page: nothing about it looks old.
+
+    NOT TAUTOLOGICAL: the consumer half is asserted from the CONSUMER's own source, so this
+    fails if the door stops reading the payload (in which case the wiring is genuinely
+    unnecessary and this control should be deleted) exactly as it fails if the producer is
+    unwired again. R15 MUTATION: delete the `gen_evidence()` call from `_process` -> red on
+    the producer half; delete the `evidence.json` read from `generate_capabilities_door` ->
+    red on the consumer half."""
+    publisher = (PROJECT / "background" / "process_run_complete.py").read_text(encoding="utf-8")
+    consumer = (PROJECT / "tools" / "generate_capabilities_door.py").read_text(encoding="utf-8")
+
+    assert "evidence.json" in consumer, (
+        "generate_capabilities_door no longer reads site/data/evidence.json -- if the payload "
+        "has no live consumer left, delete this control and the publish step with it rather "
+        "than keeping a generator running for nobody"
+    )
+    assert "from tools.generate_evidence_data import generate" in publisher, (
+        "the publish cycle does not refresh site/data/evidence.json, but the Capabilities "
+        "door published every cycle reads it -- its 'last run' date will freeze silently"
+    )
+    produced = publisher.index("from tools.generate_evidence_data import generate")
+    consumed = publisher.index("from tools.generate_capabilities_door import generate")
+    assert produced < consumed, (
+        "the payload is refreshed AFTER the door that reads it, so the door publishes the "
+        "previous cycle's figures"
+    )
 
 
 # --- source unavailable must be LOUD (fail-silent killer) --------------------

@@ -3317,9 +3317,24 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
         # outlives its page is how a deleted surface comes back, and it is the mechanical form
         # of the "permanent limbo" the ruling names.
         #
-        # tools/generate_evidence_data.py is kept and still runnable on demand. Wire it back
-        # only alongside a page a reader can reach.
-        pass
+        # THE PAYLOAD IS WIRED BACK, THE PAGE IS NOT (2026-08-22). The clause above reasoned
+        # about the PAGE and took the PAYLOAD with it, and the payload has a second consumer:
+        # `generate_capabilities_door` (the very next step) reads site/data/evidence.json for
+        # the "Checked by N automated checks, last run <date>" line on the LIVE Capabilities
+        # door. With this step dropped, evidence.json froze at 2026-08-20T06:59Z while the
+        # door's own feed kept being rewritten every cycle -- observed 2026-08-22: a
+        # capabilities_door.json stamped 10:02:21Z publishing `last_run 2026-08-20` to nine
+        # capabilities. A stale figure inside a fresh feed is worse than a stale page, because
+        # nothing on the surface says it is old.
+        #
+        # Safe to call now because the RESURRECTION IS FIXED AT THE SINK, not here:
+        # generate() no longer mkdirs the door's directory and writes the page only if that
+        # directory already exists, so this call cannot bring /evidence/ back. That is the
+        # order this project keeps having to relearn -- the caller is not the fix.
+        from tools.generate_evidence_data import generate as gen_evidence
+        _ev = gen_evidence()
+        log("Refreshed site/data/evidence.json ({} citations; no page -- /evidence/ retired)"
+            .format(_ev["totals"]["citations"]))
     except Exception as exc:
         log("Evidence step failed: {}".format(exc))
     try:

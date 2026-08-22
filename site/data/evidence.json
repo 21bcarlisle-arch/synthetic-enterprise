@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-08-20T06:59:08Z",
-  "git_hash": "unknown",
+  "generated_at": "2026-08-22T10:10:06Z",
+  "git_hash": "32b0eaf60",
   "suite": {
-    "test_count": 26584,
-    "timestamp": "2026-08-20T05:08:54.662045+00:00"
+    "test_count": 27607,
+    "timestamp": "2026-08-22T09:33:01.889772+00:00"
   },
   "sources": {
     "node_mapping": "site/data/moap_node_atoms.json",
@@ -2100,11 +2100,11 @@
               "resolved_path": "tests/controls/test_control_mutation.py",
               "raw": "2026-07-16 H17 HARDEN (R15): red-team of check_back_billing_cap_respected found its OWN named defect -- docstring finding (a), existence-check-instead-of-magnitude fail-open (a \u00a30.01 token write-off against a ~\u00a33,860 four-year breach) -- had NO mutation test that fires on it. The sibling zero-write-off test cannot distinguish the two: the old `written_off_gbp > 0` existence check and the current magnitude check BOTH return False at exactly 0.0, so a regression to the exact old bug left the whole suite green. Added tests/controls/test_control_mutation.py::test_back_billing_cap_fires_on_token_write_off_against_large_breach, proven to FAIL on the mutated existence-check control and PASS on the current magnitude check. Test-file-only change; domain_invariants.py unchanged; D3 exit tests (29) + control mutation suite (85) + epistemic verifier all green. Level stays 3->3.",
               "is_test": true,
-              "test_functions": 99
+              "test_functions": 98
             }
           ],
           "test_files": 1,
-          "test_functions": 99,
+          "test_functions": 98,
           "ledger": [],
           "missing": [
             "NO_LEDGER_RECORD"
@@ -2620,10 +2620,26 @@
               "resolved_path": "docs/design/E5_CARBON_THREE_LEDGER_FRAME.md",
               "raw": "docs/design/E5_CARBON_THREE_LEDGER_FRAME.md",
               "is_test": false
+            },
+            {
+              "path": "tests/tools/test_generate_dashboard_data_basis_subject_set.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/tools/test_generate_dashboard_data_basis_subject_set.py",
+              "raw": "tests/tools/test_generate_dashboard_data_basis_subject_set.py",
+              "is_test": true,
+              "test_functions": 11
+            },
+            {
+              "path": "tests/company/test_carbon_cannot_reach_the_sim.py",
+              "status": "RESOLVED",
+              "resolved_path": "tests/company/test_carbon_cannot_reach_the_sim.py",
+              "raw": "tests/company/test_carbon_cannot_reach_the_sim.py",
+              "is_test": true,
+              "test_functions": 15
             }
           ],
-          "test_files": 0,
-          "test_functions": 0,
+          "test_files": 2,
+          "test_functions": 26,
           "ledger": [
             {
               "action": "LEVEL_UP_SELF_CERTIFIED",
@@ -2634,9 +2650,7 @@
               "provenance": "L0->L1: carbon three-ledger data model built and hardened. Evidence: 84 tests green in tests/company/test_carbon_ledger.py + tests/company/test_carbon_not_a_target.py; 14,048 company tests green; epistemic verifier PASS (pure accounting, reads no sim). R15 MUTATION PROOF RUN, 3 mutations all RED with the un-mutated null control GREEN: (a) C1 absent-feed guard deleted via net_status always-ok -> the one-sided-net test returns a price instead of raising; (b) three_ledger_view restored to three bare floats -> 12 red; (c) provenance mix re-weighted by event count instead of tonnage. L2 deliberately NOT claimed: every tonnage is still handed in, no live feed exists, so the L2 bar (mechanically real, genuine artefacts) is not met."
             }
           ],
-          "missing": [
-            "NO_TEST_CITED"
-          ]
+          "missing": []
         },
         {
           "id": "G1_fidelity_grid_scorer",
@@ -2698,17 +2712,17 @@
       ],
       "atoms_at_target": 2,
       "atoms_with_ledger": 3,
-      "atoms_with_missing": 5
+      "atoms_with_missing": 4
     }
   ],
   "totals": {
     "nodes": 6,
     "atoms": 46,
-    "citations": 212,
-    "citations_resolved": 207,
+    "citations": 214,
+    "citations_resolved": 209,
     "citations_relocated": 1,
     "citations_missing": 4,
-    "atoms_with_missing": 43,
+    "atoms_with_missing": 42,
     "nodes_fully_evidenced": 0
   }
 }
