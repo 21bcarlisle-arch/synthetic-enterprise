@@ -2,11 +2,33 @@
 Description=Synthetic Enterprise worker tick timer — fire the continuity check every 60s (the wake backstop + the origin-staged-doc path). The 60s cadence is the worst-case wake latency for a staged doc; worker-tick.path wakes faster on a LOCAL staged doc, this timer additionally catches ORIGIN-staged docs (its tick runs _sync_origin_staging) and spontaneous below-target work. Independent of the .path trigger: R15 — kill the .path unit and this still wakes on the next tick.
 
 [Timer]
-# First check 30s after boot (let daemons settle), then every 60s. A continuity timer that is not
-# armed is fail-silent (R15) — arming it is the whole point. Persistent replays a missed tick after
-# a sleep/downtime so a resumed machine wakes promptly.
+# First check 30s after boot (let daemons settle). A continuity timer that is not armed is
+# fail-silent (R15) — arming it is the whole point. Persistent replays a missed tick after a
+# sleep/downtime so a resumed machine wakes promptly.
 OnBootSec=30s
-OnUnitActiveSec=60s
+#
+# ── WEEKEND BUDGET CADENCE, 2026-08-22 (director: 94% of the weekly allowance used, resets Monday
+#    2026-08-24; "conserving is now the priority over shipping") ──────────────────────────────────
+# 60s was never the observed cadence. Because this is OnUnitActiveSec (measured from the END of the
+# last activation) and a tick runs 15-30 min, the real spacing was tick-duration + 60s. MEASURED,
+# not assumed: `journalctl --user -u worker-tick.service --since "24 hours ago" | grep -c Starting`
+# = 65 starts in the 24h to 2026-08-22 06:45Z, and `model_tier_log.jsonl` records 66 SPAWNED
+# claude-opus-5 invocations over the same window with no other caller — so the tick IS the model
+# spend, one Opus invocation per start, and its prompt carries the whole ~130-item unprocessed
+# staging list every time.
+#
+# 4h was chosen against the ONE thing that must not break this weekend: publishing. Publishing does
+# not run through here — `sim_runner.py` calls `background/process_run_complete.py` directly and
+# contains no model reference at all (grep: 0 hits for claude/claude_bin), so slowing this timer
+# cannot slow or wedge a publish cycle. What the tick still buys at 4h is a periodic autonomous
+# look at a publisher that has broken before (the 28h outage to 2026-08-22 04:44Z), which is why
+# this is slowed and NOT stopped: the kill switch (`.build_executor_enabled`) would also take that
+# away, and it is director-reserved besides.
+#
+# REVERT ON MONDAY 2026-08-24 when the allowance resets: restore `OnUnitActiveSec=60s` here and
+# re-enable worker-tick.path (`systemctl --user enable --now worker-tick.path`), and put both rows
+# in background/schedule_manifest.yaml back to enabled/active: true.
+OnUnitActiveSec=14400s
 Persistent=true
 
 [Install]

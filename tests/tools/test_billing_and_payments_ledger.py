@@ -8,17 +8,22 @@ static guards on the raw script text, plus a faithful Python port of the
 household-level reconciliation identity, executed against the full live
 book -- not a mock."""
 import json
-import re
 from pathlib import Path as _P
 
 PROJECT = _P(__file__).resolve().parents[2]
-PORTAL = PROJECT / "site" / "customers" / "index.html"
 CUSTOMERS_DIR = PROJECT / "site" / "data" / "customers"
 
-
-def _script_body():
-    html = PORTAL.read_text()
-    return re.search(r"<script>(.*)</script>", html, re.S).group(1)
+# RENDER-LAYER GUARDS REMOVED 2026-08-22. Their subject, site/customers/index.html, was deleted by
+# the director's own ruling in 03dd8c49e (2026-08-20, "eleven pages deleted... customers -> Explore,
+# which supersedes it"), and the content did not move: no site/**/*.html now contains renderBills,
+# setBillView, combinedLedgerTotals or any other token these asserted on. So the three static
+# script-text tests here (tab rename, sub-view functions, BILL_VIEW/CASH_SCOPE declaration) could
+# never pass again -- they were not detecting a regression, they were reporting the deletion, once
+# per nightly census, for ever. That commit set the precedent by deleting
+# tests/tools/test_evidence_reader_ready.py for the same reason; it simply missed this file.
+# WHAT IS DELIBERATELY KEPT: everything below that reads site/data/customers/<cid>.json. That data
+# layer is LIVE and still generated, so the reconciliation identity across the full book is real
+# coverage and is untouched. Only the guards on the dead page are gone.
 
 
 def _combined_ledger_totals(elec, gas):
@@ -36,34 +41,6 @@ def _combined_ledger_totals(elec, gas):
         written_off=get(e, "total_written_off_gross_gbp") + get(g, "total_written_off_gross_gbp"),
         recovered=get(e, "total_recovered_gbp") + get(g, "total_recovered_gbp"),
     )
-
-
-def test_tab_renamed_billing_and_payments():
-    body = _script_body()
-    assert '["billing","Billing & Payments"]' in body
-
-
-def test_sub_view_functions_present():
-    body = _script_body()
-    # SITE2 (2026-08-12): the cashflow sub-view stopped returning one blended html
-    # shell and now returns a LIST of side-declared panels, so `renderCashflowShell`
-    # is `cashflowPanels`. Same sub-view, same contents -- the split is the customer's
-    # billed/collected cash on one side of the wall and the supplier's cost-to-serve /
-    # net-contribution / forecast on the other.
-    for fn in ["renderStatementView", "cashflowPanels", "renderCashflow",
-               "combinedLedgerTotals", "reconciliationLine", "monthlyLedgerSeries",
-               "scopeCtsAndCollected", "setBillView", "setCashScope"]:
-        assert "function " + fn in body or "var " + fn in body, fn + " missing"
-
-
-def test_bill_view_state_declared():
-    body = _script_body()
-    decl_line = next(
-        l for l in body.split("\n")
-        if l.strip().startswith("var ACTIVE_TAB=")
-    )
-    assert "BILL_VIEW" in decl_line
-    assert "CASH_SCOPE" in decl_line
 
 
 def _households():

@@ -22,6 +22,33 @@ gate = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(gate)
 
 
+# THE WORKED-EXAMPLE DOOR IS DERIVED FROM DISK, NOT NAMED (2026-08-22).
+# Four tests below used site/proof/index.html and site/proof/test_proof_door.py as their example,
+# and 03dd8c49e (2026-08-20) deleted site/proof/. After that they failed while the gate they exist
+# to check was working PERFECTLY: site_tests_for() correctly returns [] for a directory that is not
+# there, and plan() correctly returns (None, None) for a change set touching nothing real. So the
+# red was the fixture's, not the subject's -- the most misleading failure shape there is, because it
+# points at the gate and the gate is fine.
+# Third instance this week of one class: a control or its fixture naming its subject in a hand-kept
+# literal, then silently ceasing to have a subject when that name is retired (cf. the R14 basis-gate
+# allowlist in f5d8ffa96, and the six-door mobile-pass list in tests/tools/test_site_structure.py).
+# Derived here: the first door carrying BOTH an index.html and at least one sibling test_*.py, which
+# is exactly the shape mechanism C maps. A door retired tomorrow costs nothing; a door added
+# tomorrow is a valid example with nobody editing this file.
+def _example_door():
+    """(door index.html, [sibling test paths]) -- repo-relative, derived from the live tree."""
+    for idx in sorted(ROOT.glob("site/*/index.html")):
+        siblings = sorted(idx.parent.glob("test_*.py"))
+        if siblings:
+            return (str(idx.relative_to(ROOT)),
+                    [str(s.relative_to(ROOT)) for s in siblings])
+    # FAIL-CLOSED, not skip: mechanism C is the thing under test, so "no door has a sibling test"
+    # means these cases cannot be exercised at all, and an unexercised check is a FAILED one (R15).
+    raise AssertionError(
+        "no site/*/index.html has a sibling test_*.py -- mechanism C has no live subject to "
+        "exercise, so this suite cannot prove the direct-edit mapping works")
+
+
 # --- B: broad trigger (whole-suite) selection -------------------------------------------------
 def test_site_data_change_triggers_the_full_suite():
     assert gate.plan(["site/data/dashboard.json"]) == ("full", None)
@@ -49,19 +76,22 @@ def test_decision_log_ledger_triggers_the_full_suite():
 
 def test_broad_trigger_wins_over_targeted():
     # A change set with BOTH a direct site edit and a broad trigger runs the whole suite.
-    assert gate.plan(["site/proof/index.html", "site/data/proof.json"]) == ("full", None)
+    door_html, _ = _example_door()
+    assert gate.plan([door_html, "site/data/proof.json"]) == ("full", None)
 
 
 # --- C: direct-edit changed-file -> sibling test mapping --------------------------------------
 def test_direct_site_html_edit_pulls_in_sibling_tests():
-    tests = gate.site_tests_for("site/proof/index.html")
-    assert "site/proof/test_coupled_gaps_panel.py" in tests
-    assert "site/proof/test_proof_door.py" in tests
-    assert all(t.startswith("site/proof/test_") for t in tests)
+    door_html, siblings = _example_door()
+    tests = gate.site_tests_for(door_html)
+    assert tests == siblings, "a changed door must select exactly its own sibling site tests"
+    prefix = door_html.rsplit("/", 1)[0] + "/test_"
+    assert all(t.startswith(prefix) for t in tests), "must not reach outside the door's directory"
 
 
 def test_changed_site_test_file_maps_to_itself():
-    assert gate.site_tests_for("site/proof/test_proof_door.py") == ["site/proof/test_proof_door.py"]
+    _, siblings = _example_door()
+    assert gate.site_tests_for(siblings[0]) == [siblings[0]]
 
 
 def test_site_data_json_is_not_a_direct_source_edit():
@@ -75,9 +105,10 @@ def test_non_site_file_maps_to_no_site_tests():
 
 
 def test_direct_edit_only_selects_targeted_not_full():
-    mode, targets = gate.plan(["site/proof/index.html"])
+    door_html, siblings = _example_door()
+    mode, targets = gate.plan([door_html])
     assert mode == "targeted"
-    assert "site/proof/test_proof_door.py" in targets
+    assert siblings[0] in targets
 
 
 # --- the gate does NOT false-fire on a non-site change ----------------------------------------
@@ -125,7 +156,7 @@ def test_r15_real_red_site_test_BLOCKS_the_commit__and_neutering_lets_it_through
         pytest.skip("node absent; fail-closed path covered separately")
 
     red = _write_red_test()
-    monkeypatch.setattr(gate, "staged_files", lambda: ["site/proof/index.html"])
+    monkeypatch.setattr(gate, "staged_files", lambda: [_example_door()[0]])
 
     # FIRES: the site lane runs the red test -> blocks.
     monkeypatch.setattr(gate, "plan", lambda files: ("targeted", [red]))
@@ -140,7 +171,7 @@ def test_r15_fail_closed_when_node_missing(monkeypatch):
     """R15 FAIL-CLOSED: the .mjs render harnesses SKIP (not fail) when node is absent, so a
     green-with-skips run is a FALSE pass. With a site-touching change and node missing, the gate
     must REFUSE the commit (an unavailable check is a FAILED check) and must NOT reach pytest."""
-    monkeypatch.setattr(gate, "staged_files", lambda: ["site/proof/index.html"])
+    monkeypatch.setattr(gate, "staged_files", lambda: [_example_door()[0]])
     monkeypatch.setattr(gate.shutil, "which", lambda _name: None)
     reached_pytest = {"yes": False}
     monkeypatch.setattr(gate.subprocess, "run",

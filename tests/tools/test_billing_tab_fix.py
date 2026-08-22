@@ -30,13 +30,18 @@ import sys
 from pathlib import Path as _P
 
 PROJECT = _P(__file__).resolve().parents[2]
-PORTAL = PROJECT / "site" / "customers" / "index.html"
 CUSTOMERS_DIR = PROJECT / "site" / "data" / "customers"
 
-
-def _script_body():
-    html = PORTAL.read_text()
-    return re.search(r"<script>(.*)</script>", html, re.S).group(1)
+# STATIC SCRIPT-TEXT GUARDS REMOVED 2026-08-22 -- see the same note in
+# tests/tools/test_billing_and_payments_ledger.py. site/customers/index.html was deleted by the
+# director's ruling in 03dd8c49e (2026-08-20) and renderBills/toggleBillExpand/EXPANDED_BILL_ID
+# exist in no site HTML now, so those three guards asserted on a file that cannot come back.
+# KEPT: the closed-account-notice tests below, which are a Python PORT of that page's logic run
+# against the live book in site/data/customers/. Worth being explicit about why, because it looks
+# inconsistent -- the port is now the only place that behaviour is specified, and the data it runs
+# on is still generated, so it still fails if the book changes shape. What it no longer claims is
+# that any shipped page renders it; that claim died with the page, and the guards that made it are
+# what has been removed.
 
 
 def _gbp(n):
@@ -68,32 +73,6 @@ def _closed_account_notice(d, invoices):
         else:
             settle = " Account settled to zero."
     return "Account closed " + churned["date"] + " — final bill " + last["id"] + "." + settle
-
-
-def test_expanded_bill_id_is_declared_alongside_other_render_state():
-    """Guards the exact regression: EXPANDED_BILL_ID used in renderBills()/
-    toggleBillExpand() without ever being declared, which throws a
-    ReferenceError on first render (not caught anywhere), leaving
-    bills-section permanently empty."""
-    body = _script_body()
-    decl_line = next(
-        l for l in body.split("\n")
-        if l.strip().startswith("var ACTIVE_TAB=")
-    )
-    assert "EXPANDED_BILL_ID" in decl_line, (
-        "EXPANDED_BILL_ID must be declared in the top-level var statement -- "
-        "reading it undeclared throws a ReferenceError inside renderBills()'s "
-        "map callback, which silently empties the whole Billing tab."
-    )
-    # and every use of it downstream is still present (fix didn't just delete the feature)
-    assert body.count("EXPANDED_BILL_ID") >= 3  # declaration + toggleBillExpand + renderBills
-
-
-def test_render_bills_reads_and_expand_toggle_present():
-    body = _script_body()
-    assert "function renderBills(d){" in body
-    assert "function toggleBillExpand(id){" in body
-    assert "function closedAccountNotice(d, invoices){" in body
 
 
 def test_closed_account_notice_real_churned_customer_c1():
@@ -208,8 +187,3 @@ def test_closed_account_notice_across_full_live_book_no_exceptions():
             assert notice == "", f.name + " not churned but got a spurious notice"
         checked += 1
     assert checked >= 15
-
-
-def test_closed_account_notice_wired_into_render_bills_innerHTML():
-    body = _script_body()
-    assert "section.innerHTML=btns+closedAccountNotice(d,invoices)+summary+" in body

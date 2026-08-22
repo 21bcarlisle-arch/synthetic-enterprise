@@ -19,47 +19,26 @@ sample, asserting label/badge agree with the true segment for every one,
 not just C6.
 """
 import json
-import re
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parents[2]
-PORTAL = PROJECT / "site" / "customers" / "index.html"
 CUSTOMER_SAMPLE = PROJECT / "site" / "data" / "customer_sample.json"
 
-
-def _script_body():
-    html = PORTAL.read_text()
-    return re.search(r"<script>(.*)</script>", html, re.S).group(1)
+# The two STATIC guards that read site/customers/index.html were removed 2026-08-22: that page was
+# deleted by the director's ruling in 03dd8c49e (2026-08-20) and no site HTML carries SEGMENT_BADGE
+# or the hh-label markup now. NOTE THE COST HONESTLY -- those two were the half of this file that
+# checked the PAGE agreed with the port below, so the "kept in sync so this test breaks if the two
+# diverge" promise in _segment_info's docstring no longer has a second side to diverge from. The
+# port is now a specification of segment labelling with no renderer to contradict it, and the live
+# check that remains is that every sampled account's segment resolves to a consistent label.
 
 
 def _segment_info(segment):
-    """Python port of segmentInfo()'s SEGMENT_BADGE lookup in
-    site/customers/index.html -- kept in sync so this test breaks if the
-    two diverge."""
+    """Python port of segmentInfo()'s SEGMENT_BADGE lookup from the former
+    site/customers/index.html. The page is gone (03dd8c49e); this is now the
+    sole statement of the mapping rather than a mirror of one."""
     table = {"I&C": ("bi", "I&C"), "SME": ("bs", "SME"), "resi": ("br", "Residential")}
     return table.get(segment, table["resi"])
-
-
-def test_segment_badge_lists_every_real_segment_explicitly():
-    """Static guard: SEGMENT_BADGE must not be a binary I&C-vs-default
-    check (the exact shape of the original bug) -- SME must be listed."""
-    body = _script_body()
-    match = re.search(r"var SEGMENT_BADGE=\{([^}]*)\}", body)
-    assert match, "SEGMENT_BADGE lookup table not found in site/customers/index.html"
-    table_src = match.group(1)
-    assert '"I&C"' in table_src
-    assert '"SME"' in table_src
-    assert '"resi"' in table_src
-
-
-def test_household_label_is_not_unconditionally_household():
-    """Static guard against the second half of the original bug: the header
-    label must be derived from segment, not a bare hardcoded string."""
-    body = _script_body()
-    assert 'hh-label">Household</span>' not in body, (
-        "the household label must be segment-derived (segmentInfo()), not "
-        "an unconditional literal -- this is exactly the C6 mislabel bug"
-    )
 
 
 def test_every_sampled_account_gets_a_label_consistent_with_its_true_segment():

@@ -94,12 +94,25 @@ systemd_units:
 
   - name: worker-tick.path
     unit_file: background/worker-tick.path
-    enabled: true            # LIVE (cutover 2026-07-20): boot-start, WantedBy=paths.target
-    active: true             # LIVE
+    enabled: false           # WEEKEND BUDGET STAND-DOWN 2026-08-22 — re-enable Monday 2026-08-24
+    active: false            # WEEKEND BUDGET STAND-DOWN 2026-08-22 — re-enable Monday 2026-08-24
     reason: >-
-      The fast local-staged-doc wake (~seconds vs the 60s timer). LIVE since the 2026-07-20 cutover.
-      A staged doc is the primary continuity case (both 2026-07-19 failures hit it). Independent of
-      worker-tick.timer (R15: kill the timer and this still wakes on a staged doc).
+      The fast local-staged-doc wake (~seconds vs the timer). LIVE from the 2026-07-20 cutover until
+      2026-08-22, STOOD DOWN for the weekend at 94% weekly allowance (director: "conserving is now
+      the priority over shipping"). WHY THIS AND NOT THE TIMER ALONE: this unit is PathModified on
+      docs/staging, and sim_runner.py drops a run_complete_*.md marker there every publish cycle
+      (~25 min), so leaving it armed would have re-triggered the tick on the publisher's own
+      heartbeat and the timer's 60s -> 4h change would have bought nothing. Slowing the timer only
+      works if this is down too; that coupling is the whole reason both moved together.
+      The R15 redundancy argument is UNCHANGED and is what makes this safe to stand down rather
+      than delete: the two triggers were always independent, so the timer alone still wakes the
+      tick, now every 4h instead of within 60s. That longer worst-case staged-doc latency is the
+      accepted cost, and it is a latency cost only — nothing is dropped, because the timer tick
+      runs _sync_origin_staging and re-globs the whole staging dir, so a doc staged at minute 1 is
+      picked up by the tick at minute 240 rather than missed.
+      Publishing is NOT affected either way: process_run_complete.py is driven by sim_runner.py,
+      which spawns no model and does not route through the tick.
+      REVERT: `systemctl --user enable --now worker-tick.path` and set both fields back to true.
 
   - name: daily-self-note.service
     unit_file: background/daily-self-note.service

@@ -15,21 +15,22 @@ references every required field, plus a faithful Python port executed
 against representative invoice records so this test breaks if the two
 diverge.
 """
-import re
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parents[2]
-PORTAL = PROJECT / "site" / "customers" / "index.html"
 
-
-def _script_body():
-    html = PORTAL.read_text()
-    return re.search(r"<script>(.*)</script>", html, re.S).group(1)
+# The three STATIC guards that read site/customers/index.html were removed 2026-08-22: the page was
+# deleted by the director's ruling in 03dd8c49e (2026-08-20) and billMeterDetailsHtml /
+# billUsageLinesHtml / billExpandHtml exist in no site HTML now. As in defect1, what is lost is the
+# "kept line-for-line equivalent so this test breaks if the two diverge" contract -- there is no
+# longer a renderer to diverge FROM. The ports below are kept because they still encode the read
+# and register semantics the addendum was written to pin, and they are still exercised against
+# real invoice shapes by the behavioural tests in this file.
 
 
 def _bill_meter_details_html(i):
-    """Python port of billMeterDetailsHtml() in site/customers/index.html --
-    kept line-for-line equivalent so this test breaks if the two diverge."""
+    """Python port of the former billMeterDetailsHtml() in site/customers/index.html
+    (page deleted 03dd8c49e). Now the sole statement of the rendering rule."""
     rows = []
     rows.append(f"Billing period: {i['period_start']} to {i['period_end']}")
     if i.get("opening_read_kwh") is not None and i.get("closing_read_kwh") is not None:
@@ -44,27 +45,6 @@ def _bill_meter_details_html(i):
     if i.get("mprn"):
         rows.append(f"MPRN: {i['mprn']}")
     return rows
-
-
-def test_bill_meter_details_function_exists_and_references_every_required_field():
-    body = _script_body()
-    assert "function billMeterDetailsHtml(i)" in body
-    for field in (
-        "i.period_start", "i.period_end", "i.opening_read_kwh", "i.closing_read_kwh",
-        "i.read_type", "i.meter_serial", "i.mpan", "i.mprn",
-    ):
-        assert field in body, f"billMeterDetailsHtml must reference {field}"
-
-
-def test_bill_expand_html_calls_meter_details():
-    """The meter/period section must actually be wired into the bill
-    expand view, not just defined and unused."""
-    body = _script_body()
-    assert "billMeterDetailsHtml(i)" in body
-    # Called from within billExpandHtml, not some unrelated dead function.
-    expand_fn = re.search(r"function billExpandHtml\(i,allInvoices\)\{(.*?)\n\}", body, re.S)
-    assert expand_fn is not None
-    assert "billMeterDetailsHtml(i)" in expand_fn.group(1)
 
 
 def test_actual_read_shows_period_and_reads():
@@ -105,16 +85,6 @@ def test_missing_read_fields_do_not_crash_or_show_partial_row():
 
 # BILL_CORRECTNESS_ADDENDUM.md Defect 3 (2026-07-09): register/period-
 # structured bill lines.
-
-def test_bill_usage_lines_function_exists_and_uses_registers():
-    body = _script_body()
-    assert "function billUsageLinesHtml(i)" in body
-    assert "i.registers" in body
-    # billEquationHtml must call it, not the old inline single-line logic.
-    eq_fn = re.search(r"function billEquationHtml\(i\)\{(.*?)\n\}", body, re.S)
-    assert eq_fn is not None
-    assert "billUsageLinesHtml(i)" in eq_fn.group(1)
-
 
 def _bill_usage_lines_html(i):
     """Python port of billUsageLinesHtml() -- kept equivalent so this test

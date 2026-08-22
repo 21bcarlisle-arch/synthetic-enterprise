@@ -1,37 +1,16 @@
-"""Phase 263 tests: four-section site structure -- nav bar, customers portal, project page."""
+"""Phase 263 tests: site structure -- the data layer behind the doors, plus the cross-cutting
+mobile-pass guard.
+
+THE PAGE-EXISTENCE TESTS WERE REMOVED 2026-08-22. Six tests here asserted that
+site/customers/index.html and site/project/index.html exist and carry particular markup. Both were
+deleted by the director's ruling in 03dd8c49e (2026-08-20, "eleven pages deleted... no permanent
+limbo, no page kept because deleting it feels risky"), so the tests were asserting the exact state
+the ruling removed. What survives is the customer/phases DATA layer below, which is still generated
+and still read by the live doors."""
 import json
 from pathlib import Path
 
 SITE = Path(__file__).resolve().parents[2] / "site"
-
-
-def test_customers_index_exists():
-    assert (SITE / "customers" / "index.html").exists()
-
-
-def test_customers_index_has_login_form():
-    text = (SITE / "customers" / "index.html").read_text()
-    assert "doLogin" in text
-    assert "acc" in text
-
-
-def test_customers_index_has_site_nav():
-    text = (SITE / "customers" / "index.html").read_text()
-    assert "site-nav" in text or "nav-link" in text
-
-
-def test_project_index_exists():
-    assert (SITE / "project" / "index.html").exists()
-
-
-def test_project_index_has_investor_kpis():
-    text = (SITE / "project" / "index.html").read_text()
-    assert "inv-kpis" in text or "investor" in text.lower()
-
-
-def test_project_index_has_charts():
-    text = (SITE / "project" / "index.html").read_text()
-    assert "chart-tests" in text or 'id="ct"' in text
 
 
 def test_customer_index_json_exists():
@@ -73,20 +52,31 @@ def test_generate_customer_data_module():
     assert callable(generate)
 
 
-# --- SITE1_expert_doors mobile pass (SITE_CONSTITUTION.md door 8, cross-cutting) ---
-# Structural guard so a future edit to one of these doors can't silently drop
-# its phone-legible layout (R15: must be able to FAIL -- a page missing the
-# block fails this test, proven by removing the block from any one file below).
-SITE1_DOORS_WITH_MOBILE_PASS = [
-    # (method-casebook retired 2026-07-20 -- redundant combined Method+Simplified surface)
-    "company", "proof", "world", "method", "glossary", "tours",
-]
+# --- Expert-door mobile pass (SITE_CONSTITUTION.md door 8, cross-cutting) ---
+# Structural guard so a future edit to a door can't silently drop its phone-legible layout
+# (R15: must be able to FAIL -- a page missing the block fails this test, proven by removing the
+# block from any one door).
+#
+# THE DOOR SET IS DERIVED FROM DISK, NOT LISTED (changed 2026-08-22). It used to be the literal
+# ["company", "proof", "world", "method", "glossary", "tours"], and every one of those six was
+# deleted by 03dd8c49e on 2026-08-20 -- so from that commit until this one the control read six
+# missing files and raised FileNotFoundError on the first, which is a control that reports the
+# deletion instead of checking the doors that actually shipped. A hand-kept subject list is the
+# same defect f5d8ffa96 removed from the R14 basis gate the same week: an allowlist inverts the
+# rule, because a door is only checked if somebody remembered to name it.
+# Deny-by-default now: every directory under site/ that has an index.html is a door and is
+# checked, so a door added tomorrow is covered with nobody editing this file, and a door deleted
+# tomorrow simply stops being a subject instead of crashing the control.
+def _doors():
+    return sorted(p.parent.name for p in SITE.glob("*/index.html"))
 
 
-def test_site1_expert_doors_have_mobile_pass():
-    missing = []
-    for door in SITE1_DOORS_WITH_MOBILE_PASS:
-        text = (SITE / door / "index.html").read_text()
-        if "@media (max-width: 640px)" not in text:
-            missing.append(door)
-    assert missing == [], f"SITE1 doors missing the mobile @media(max-width:640px) pass: {missing}"
+def test_site_doors_have_mobile_pass():
+    doors = _doors()
+    # Not vacuous: an empty or near-empty derivation would make this pass by finding nothing,
+    # which is the FAIL-OPEN pattern R15 names. The live set is capabilities/explore/harness/
+    # knowledge/privacy, so 4 is a floor that catches a broken glob without pinning the count.
+    assert len(doors) >= 4, f"door derivation found only {doors} -- glob is broken, not the site"
+    missing = [d for d in doors
+               if "@media (max-width: 640px)" not in (SITE / d / "index.html").read_text()]
+    assert missing == [], f"doors missing the mobile @media(max-width:640px) pass: {missing}"
