@@ -6982,6 +6982,281 @@ def never_forgets_drift_days(
     return max(0, int(oldest) - int(res["window_days"]))
 
 
+# ---------------------------------------------------------------------------
+# WHAT THE RECENCY WINDOW CONTRIBUTES TO THE PUBLISHED FIGURE (atom D27,
+# exit criterion 4; FRAME section 9.5 step 3)
+# ---------------------------------------------------------------------------
+# THE FINDING, AS A LIVE NUMBER RATHER THAN A DATED COMMENT. D27's whole
+# complaint is that the two belief figures cannot be told from a company that
+# NEVER forgets a failed collection. Until this function existed that claim
+# lived in prose, in a register comment and in a `cost` block carrying a
+# measurement date -- three places a reader has to go and trust. The quantity
+# the claim is about is a subtraction: this figure, minus the figure the
+# never-forgets company on the SAME BOOK publishes. On the shipped origin it is
+# EXACTLY 0.0 on every seed and every belief dimension, and that zero IS the
+# defect, stated in the units the figure is published in.
+#
+# WHY IT CANNOT BE COMPUTED IN `score_triad`, and why that is not a gap to be
+# papered over. `dd_failure_window_days` is a CONSTRUCTOR argument -- the organ
+# reads it off itself, so the never-forgets company is a SECOND BUILD, and
+# `score_triad` holds one consumer and no builder. A call that cannot build
+# therefore publishes `None` and the reason (`RECENCY_NOT_MEASURED_ON_THIS_CALL`)
+# rather than a zero: an unavailable measurement rendered as 0.0 is R15's
+# fail-open, and on THIS figure it is indistinguishable from the true answer.
+# The live `run_phase2b` wiring is exactly such a caller.
+#
+# THE PROBE IS THE FALSIFIER (R15). A component frozen at 0.0 would agree with
+# the measurement at the scored company on every seed today, so a control that
+# asked only about the scored company could not fail on the shipped origin --
+# the tautology this module keeps finding one register over. So the instrument
+# is asked about TWO companies: the scored one and a BOOK-DERIVED probe.
+#
+# AND THE PROBE IS THE AMNESIAC COMPANY, WHICH IS THE ONE PLACE IN THIS MODULE
+# A DEGENERATE IS THE RIGHT INSTRUMENT. The register's own lesson is that an
+# indiscriminate degenerate must never be the EVIDENCE OF RESOLUTION -- it is
+# the largest error there is, so it establishes only non-inertness. This
+# control is not asking how finely the figure resolves; the `own_drift` band
+# one field over answers that, over a graded grid. It is asking whether the
+# published component still MOVES WITH THE COMPANY at all, and there the
+# provable extreme is the honest choice: shorten the memory below the book's
+# NEWEST observed failure (`amnesia_floor_window_days`) and the organ counts no
+# failure whatever, so its arrears belief must differ from the never-forgets
+# company's for any book that has an observed failure at all. That is provable
+# rather than swept, which is what lets this control fail on every book instead
+# of on the ones a sweep happened to visit.
+#
+# MEASURED, and this is why the first probe tried here was WRONG (2026-08-22):
+# `smallest_visible_shortening_days` is the smallest shortening that MAY be
+# visible -- its own docstring says so -- and at the shipped origin the company
+# it names publishes a recency contribution of exactly 0.0 on seed 11, because
+# the events it drops carry no account across a severity tier. A probe that is
+# silent on one of three seeds cannot discriminate, and the control said so
+# before this comment was written.
+
+RECENCY_NOT_MEASURED_ON_THIS_CALL = (
+    "recency contribution NOT MEASURED ON THIS CALL: the company's memory is a "
+    "constructor argument, so the never-forgets company this figure is "
+    "subtracted from is a second build, and this scorer was handed one already-"
+    "built company. Reported as unmeasured rather than as 0.0 -- on this "
+    "dimension a zero is also the true answer whenever the scored company "
+    "already never forgets, so a placeholder zero would be unreadable from the "
+    "finding (atom D27)."
+)
+
+
+def measure_recency_contribution(
+    *,
+    n_customers: int = 300,
+    seeds: Sequence[int] = RESOLUTION_SEEDS,
+    runner: Optional[Callable[[int, int], tuple]] = None,
+) -> Dict[str, object]:
+    """WHAT EACH PUBLISHED BELIEF FIGURE OWES TO THE COMPANY'S RECENCY WINDOW
+    (atom D27, exit criterion 4).
+
+    For each belief dimension and seed: the scored company's figure minus the
+    NEVER-FORGETS company's figure on the same book. The never-forgets company
+    is reached by `never_forgets_drift_days` -- derived from the book's oldest
+    observed failure, never from the origin literal -- and every window at or
+    above it counts the same events, so one drift names the whole family.
+
+    Returns `{"dimensions": {dim: {...}}, "never_forgets_drift_days": {...},
+    "probe_drift_days": {...}, "scored_window_days": int, "seeds": (...)}`.
+    Per dimension: `scored`, `never_forgets`, `contribution` and
+    `probe_contribution` per seed, plus `readable` (is the contribution large
+    enough to appear in the figure's own published rendering) and
+    `scored_already_never_forgets`.
+
+    THE PROBE IS NOT DECORATION. `probe_contribution` measures the same
+    subtraction at the AMNESIAC company -- memory shortened below the book's
+    newest observed failure, so the organ counts nothing -- which is the one
+    company this book can PROVE reads apart from the never-forgets one. A
+    component that had stopped depending on the window (frozen, hand-typed, or
+    reading the wrong company) returns one number for both, and
+    `check_recency_contribution` says so. On the shipped origin `contribution`
+    is 0.0 and `probe_contribution` is not, which is the only reason this
+    control can fail here at all."""
+    if runner is None:
+        def runner(seed: int, k: int) -> tuple:
+            # Same cache and the same key shape as
+            # `measure_own_drift_resolution`: `main()` runs both over n=300 and
+            # the same seeds, and the drifts this asks for are already on that
+            # sweep's book-derived grid, so the probe costs nothing there.
+            key = (n_customers, seed, "organ_failure_window_drift_days", k)
+            if key not in _OWN_RESOLUTION_SCORES:
+                recs, cons, _ledger, as_of = build_scenario(
+                    n_customers, seed=seed,
+                    organ_failure_window_drift_days=k)
+                _OWN_RESOLUTION_SCORES[key] = (
+                    recs, score_triad(recs, cons, as_of), as_of)
+            return _OWN_RESOLUTION_SCORES[key]
+
+    dims = tuple(BELIEF_FLOOR_DIMENSIONS)
+    out: Dict[str, Dict[str, object]] = {
+        d: {"scored": {}, "never_forgets": {}, "contribution": {},
+            "probe_contribution": {}, "undefined_readings": []}
+        for d in dims}
+    never: Dict[int, Optional[int]] = {}
+    probe: Dict[int, Optional[int]] = {}
+    window_days: Optional[int] = None
+    for seed in seeds:
+        recs, scored, as_of = runner(seed, 0)
+        res = measure_belief_window_resolution(recs, as_of)
+        window_days = int(res["window_days"])
+        nf = never_forgets_drift_days(recs, as_of)
+        never[seed] = nf
+        # THE AMNESIAC COMPANY, in this book's own drift coordinate: memory
+        # taken below the newest observed failure, where the organ counts no
+        # failure at all. Derived from the book's event dates, never from a
+        # literal -- the hand-copy `never_forgets_drift_days` exists to refuse,
+        # one function over -- and provably a different company from the
+        # never-forgets one wherever the book has an observed failure.
+        amnesia = res["amnesia_floor_window_days"]
+        probe[seed] = None if amnesia is None else int(amnesia) - window_days
+        if nf is None or probe[seed] is None:
+            # A book with no observed failure defines neither company. Refused
+            # rather than defaulted: 0.0 here would report "the window
+            # contributes nothing" about a book that bounds nothing at all.
+            for d in dims:
+                out[d]["scored"][seed] = None
+                out[d]["never_forgets"][seed] = None
+                out[d]["contribution"][seed] = None
+                out[d]["probe_contribution"][seed] = None
+                out[d]["undefined_readings"].append(seed)
+            continue
+        _n, nf_scores, _a = runner(seed, nf)
+        _p, probe_scores, _a2 = runner(seed, probe[seed])
+        for d in dims:
+            base = scored[d].gap
+            ref = nf_scores[d].gap
+            pro = probe_scores[d].gap
+            if any(_is_undefined_reading(v) for v in (base, ref, pro)):
+                out[d]["scored"][seed] = None
+                out[d]["never_forgets"][seed] = None
+                out[d]["contribution"][seed] = None
+                out[d]["probe_contribution"][seed] = None
+                out[d]["undefined_readings"].append(seed)
+                continue
+            out[d]["scored"][seed] = base
+            out[d]["never_forgets"][seed] = ref
+            out[d]["contribution"][seed] = base - ref
+            out[d]["probe_contribution"][seed] = pro - ref
+    for d in dims:
+        eps = published_reading_epsilon(d)
+        vals = [v for v in out[d]["contribution"].values() if v is not None]
+        pvals = [v for v in out[d]["probe_contribution"].values()
+                 if v is not None]
+        out[d]["epsilon"] = eps
+        # READABLE, not merely non-zero: a difference below half a step of this
+        # figure's own published precision reaches no reader (atom D33/D34).
+        out[d]["readable"] = bool(vals) and all(abs(v) >= eps for v in vals)
+        out[d]["probe_readable"] = bool(pvals) and all(
+            abs(v) >= eps for v in pvals)
+        out[d]["scored_already_never_forgets"] = bool(vals) and all(
+            v == 0.0 for v in vals)
+        out[d]["undefined_readings"] = tuple(out[d]["undefined_readings"])
+    return {
+        "dimensions": out,
+        "never_forgets_drift_days": never,
+        "probe_drift_days": probe,
+        "scored_window_days": window_days,
+        "n_customers": n_customers,
+        "seeds": tuple(seeds),
+    }
+
+
+def check_recency_contribution(
+    measured: Optional[Dict[str, object]] = None,
+    published: Optional[Dict[str, object]] = None,
+) -> List[str]:
+    """THE PUBLISHED COMPONENT IS THE MEASURED SUBTRACTION (atom D27, exit
+    criterion 4). Returns violations; empty means every belief figure's
+    `recency_contribution` component is what re-measuring it on this book
+    returns, and that the instrument still depends on the company.
+
+    Three ways to fail, and the first is the one a frozen component dies of:
+
+      * THE INSTRUMENT RETURNS ONE NUMBER FOR TWO COMPANIES. Scored and probe
+        contributions equal on every seed means the reading no longer moves
+        with the window -- exactly what a hand-typed or frozen component looks
+        like, and on the shipped origin the scored reading alone cannot say so
+        because 0.0 is also the truth.
+      * A PUBLISHED COMPONENT THAT DISAGREES with the measurement.
+      * A PLACEHOLDER WHERE A REFUSAL BELONGS. A `recency_contribution` of 0.0
+        published by a caller that could not build the second company is the
+        fail-open shape: it is indistinguishable from the true answer on
+        precisely the dimension this atom is about.
+    """
+    if measured is None:
+        measured = measure_recency_contribution()
+    dims = dict(measured.get("dimensions") or {})
+    out: List[str] = []
+    if not dims:
+        return ["recency contribution measured no belief dimension at all -- "
+                "an unmeasured subtraction reads exactly like a zero one"]
+    for dim in sorted(dims):
+        row = dims[dim]
+        contrib = dict(row.get("contribution") or {})
+        probe = dict(row.get("probe_contribution") or {})
+        defined = [s for s in contrib
+                   if contrib[s] is not None and probe.get(s) is not None]
+        if not defined:
+            out.append(
+                f"{dim}: no seed produced a defined recency contribution -- "
+                "the never-forgets company is undefined on every book here, "
+                "and a control with nothing to compare cannot fail")
+            continue
+        if all(_same_reading(contrib[s], probe[s]) for s in defined):
+            out.append(
+                f"{dim}: the scored company and the book's own AMNESIAC probe "
+                f"({measured.get('probe_drift_days')}) publish "
+                "the SAME recency contribution on every seed -- the component "
+                "no longer moves with the company's memory, which is what a "
+                "frozen or hand-typed number looks like from here")
+        if not row.get("probe_readable"):
+            out.append(
+                f"{dim}: the amnesiac probe's recency contribution is below "
+                f"this figure's own reader step ({row.get('epsilon')!r}) on at "
+                "least one seed, so the falsifier above cannot reach a reader "
+                "either -- a probe no consumer could render is not a "
+                "discriminator. This fired for real on 2026-08-22, when the "
+                "probe was the book's smallest MAY-be-visible shortening and "
+                "seed 11 published exactly 0.0 at it")
+    if published is not None:
+        for dim in sorted(dims):
+            comps = dict(
+                getattr(published.get(dim), "components", None) or {})
+            if "recency_contribution" not in comps:
+                out.append(
+                    f"{dim}: publishes no `recency_contribution` component -- "
+                    "the ledger writer, the live wiring and the dashboard read "
+                    "`components` and never the note (D22)")
+                continue
+            got = comps["recency_contribution"]
+            if got is None:
+                if comps.get("recency_contribution_basis") != \
+                        RECENCY_NOT_MEASURED_ON_THIS_CALL:
+                    out.append(
+                        f"{dim}: publishes an unmeasured `recency_contribution`"
+                        " and no basis saying why -- a bare None is a hole, "
+                        "and a reader cannot tell it from a lost value")
+                continue
+            if got == 0.0 and not row.get("scored_already_never_forgets"):
+                out.append(
+                    f"{dim}: publishes `recency_contribution` 0.0 on a book "
+                    "whose scored company does NOT already never forget -- a "
+                    "placeholder zero standing where a refusal belongs is "
+                    "unreadable from D27's own finding")
+            want = dims[dim]["contribution"]
+            defined_vals = [v for v in want.values() if v is not None]
+            if defined_vals and not any(_same_reading(got, v)
+                                        for v in defined_vals):
+                out.append(
+                    f"{dim}: publishes `recency_contribution` {got!r} and "
+                    f"re-measuring this book returns {sorted(set(defined_vals))!r}"
+                    " -- the component and the subtraction have parted company")
+    return out
+
+
 def measure_belief_band_population_axis(
     *,
     n_customers: Optional[Sequence[int]] = None,
@@ -11663,11 +11938,42 @@ def measure(n_customers: int = 4000, seed: Optional[int] = None,
     not two (the reason the live path reuses this module rather than a bespoke
     metric: R15 independence / no second scorer)."""
     records, consumer, ledger_book, as_of = build_scenario(n_customers, seed=seed)
-    return score_triad(
+    result = score_triad(
         records, consumer, as_of,
         organ_reconciliation_drift_days=organ_reconciliation_drift_days,
         organ_terms_drift_days=organ_terms_drift_days,
     )
+    # THE ONE ENTRY POINT THAT CAN ANSWER IT (atom D27, exit criterion 4).
+    # `score_triad` above stamped the refusal because it holds no builder; this
+    # function has one, so it builds the never-forgets company on THIS book and
+    # replaces the refusal with the subtraction. A caller of `score_triad` still
+    # gets the refusal, which is the point -- the live path is such a caller.
+    nf = never_forgets_drift_days(records, as_of,
+                                  window_days=consumer.dd_failure_window_days)
+    if nf is not None:
+        _nf_records, _nf_consumer, _nf_book, _nf_as_of = build_scenario(
+            n_customers, seed=seed, organ_failure_window_drift_days=nf)
+        reference = score_triad(
+            _nf_records, _nf_consumer, _nf_as_of,
+            organ_reconciliation_drift_days=organ_reconciliation_drift_days,
+            organ_terms_drift_days=organ_terms_drift_days,
+        )
+        for dim in BELIEF_FLOOR_DIMENSIONS:
+            here, there = result[dim].gap, reference[dim].gap
+            if _is_undefined_reading(here) or _is_undefined_reading(there):
+                continue
+            result[dim].components["recency_contribution"] = here - there
+            result[dim].components["recency_contribution_basis"] = (
+                f"this figure minus the NEVER-FORGETS company's on the same "
+                f"book, reached by organ_failure_window_drift_days={nf} "
+                "(derived from the book's oldest observed failure, never from "
+                "the origin literal). 0.0 means the scored company already "
+                "never forgets and the figure cannot tell it from a supplier "
+                "that keeps a recovered customer in collections for ever "
+                "(atom D27)."
+            )
+            result[dim].components["never_forgets_drift_days"] = nf
+    return result
 
 
 def organ_query_dates(
@@ -12624,6 +12930,17 @@ def score_triad(
         "scored_company_window_days"]
     bel.components["memory_blind_band_days"] = tuple(
         DIMENSION_DRIFT_RESOLUTION["belief"]["own_invisible_drifts"])
+    # WHAT THE RECENCY WINDOW CONTRIBUTES TO THIS NUMBER (atom D27, exit
+    # criterion 4) -- and on this path, the refusal rather than the number.
+    # The never-forgets company is a SECOND BUILD (the window is a constructor
+    # argument) and this scorer holds one already-built company, so it reports
+    # UNMEASURED with its reason. `measure()` builds and fills it in; the live
+    # `run_phase2b` wiring cannot and must not be handed a 0.0, which on this
+    # dimension is also the true answer whenever the scored company already
+    # never forgets.
+    bel.components["recency_contribution"] = None
+    bel.components["recency_contribution_basis"] = (
+        RECENCY_NOT_MEASURED_ON_THIS_CALL)
 
     mix = belief_gap(
         _severity_distribution(true_severity_labels),
@@ -12672,6 +12989,13 @@ def score_triad(
     mix.components["memory_blind_band_days"] = tuple(
         DIMENSION_DRIFT_RESOLUTION["belief_population_mix"][
             "own_invisible_drifts"])
+    # The same refusal, stamped separately rather than copied from `bel`: this
+    # figure has its own reader precision and its own contribution, and D33's
+    # whole finding one field over was one function rendering one sentence for
+    # both belief dimensions.
+    mix.components["recency_contribution"] = None
+    mix.components["recency_contribution_basis"] = (
+        RECENCY_NOT_MEASURED_ON_THIS_CALL)
 
     # What THIS book can resolve (atom D25), predicted from the population and
     # the truth-side bucket rule before the figure is published, so the caveat
@@ -14225,6 +14549,33 @@ def main() -> None:
              if not _swp_violations
              else f"{len(_swp_violations)} VIOLATION(S)"))
     for v in _swp_violations:
+        print(f"           !! {v}")
+
+    # WHAT THE RECENCY WINDOW ACTUALLY CONTRIBUTES TO THE TWO BELIEF FIGURES
+    # (atom D27, exit criterion 4). The block above says where the scored
+    # company's memory CAME FROM; this says what that memory is WORTH to the
+    # published number -- the figure minus the never-forgets company's figure
+    # on the same book. On the shipped origin it is 0.0, and that zero is the
+    # atom. The probe column beside it is what lets this control fail here.
+    _rc = measure_recency_contribution()
+    print("  [recency contribution] the two belief figures minus the "
+          "NEVER-FORGETS company's on the same book (n="
+          f"{_rc['n_customers']}, seeds {list(_rc['seeds'])}, never-forgets "
+          f"drift {_rc['never_forgets_drift_days']}, probe drift "
+          f"{_rc['probe_drift_days']}):")
+    for _d in sorted(_rc["dimensions"]):
+        _row = _rc["dimensions"][_d]
+        print(f"           {_d}: contribution "
+              f"{[None if v is None else round(v, 7) for v in _row['contribution'].values()]}"
+              f", probe {[None if v is None else round(v, 7) for v in _row['probe_contribution'].values()]}"
+              f" (reader step {_row['epsilon']}); scored company already never "
+              f"forgets: {_row['scored_already_never_forgets']}")
+    _rc_violations = check_recency_contribution(_rc)
+    print("           verdict: "
+          + ("the published recency contribution is the measured subtraction "
+             "and still moves with the company"
+             if not _rc_violations else f"{len(_rc_violations)} VIOLATION(S)"))
+    for v in _rc_violations:
         print(f"           !! {v}")
 
     # THE BELIEF EDGES' OWN POPULATION AXIS (atom D30, 2026-08-18). The two

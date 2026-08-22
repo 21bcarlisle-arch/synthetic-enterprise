@@ -616,3 +616,124 @@ moves are covered by the gate's own stem selection over `test_couple_w2_11_d5.py
 assertions, the axis edges) whose sweeps alone cost more than the wall clock this tick had left
 after a ~15-minute gate, and starting it would have ended the tick with a second uncommitted half —
 the exact state §13.2 is about. The next pass takes §9.5 step 2 with §12.7's correction in hand.
+
+---
+
+## 14. BUILD pass 6 — 2026-08-22 (worker tick, BUILD lane) — §9.5 step 3, and why not step 2
+
+**What this pass built and landed: exit criterion 4** — the recency contribution, as a published
+component with a falsifier. **The origin is still 400 and the reshape is still not landed.** §9.5
+steps 2 and 4 stand exactly as §12.7 left them.
+
+### 14.1 Why step 3 was taken before step 2 (LAW A: deviation logged with its reason)
+
+§9.5 is an order, not a target, and this pass re-ranked inside it. The reason is measured rather
+than asserted. Step 2 flips the origin, and the flip is **atomic** — `check_scored_window_provenance`
+fires four independent ways the moment `DD_FAILURE_WINDOW_DAYS` moves (§9.4), so a half-flipped tree
+is not a landable tree. Its change set, counted on this tree rather than estimated: **10 register
+fields across the two belief entries**, their surrounding declarations' comments (which state the
+shipped-origin story in prose, not just in literals), the whole `SCENARIO_CONSTANT_CENSUS`
+`measured_divergence` block, and — the part §9.4 did not name — **the semantic inversion of the six
+tests that currently assert the defect** (`test_the_shipped_company_sits_inside_its_own_blind_band`,
+`test_never_forgets_drift_is_derived_from_the_book_and_is_zero_today`,
+`test_todays_published_figure_is_the_never_forgets_companys_figure`, and three siblings). Those do
+not move by re-typing a literal; each has to become the criterion-1 claim with the 400 as its
+mutation. That is not a bounded-tick change, and **five consecutive passes on this atom have ended
+with uncommitted work in the shared tree** (§10–§13) — the loss mode is documented, not hypothetical.
+
+Step 3 is **independent of the origin**: the subtraction it publishes is defined at any window, and
+at the shipped origin its value is exactly the finding. So it lands now and moves by itself when the
+origin does.
+
+### 14.2 Step 2's measurements re-confirmed, so the next pass does not re-measure
+
+Re-run this pass at HEAD `9b9815459` with `DD_FAILURE_WINDOW_DAYS` substituted to
+`organ_default_failure_window_days()` (= 90), n=300, seeds 7/11/23, both belief entries'
+declarations emptied so the grid is the book's alone — **71.8s, 66 grid points**:
+
+| at the candidate origin | `belief` | `belief_population_mix` |
+|---|---|---|
+| measured **unmoved** | none — the band is empty | `(-1,)` |
+| `own_collapsed_runs` | `(-90,-61), (-48,-47,-46), (-23,-22), (-21,-20), (2,3)` | `(-90,-61), (-23,-22), (-1,0), (1,2,3)` |
+| `own_saturates_below` / `_above` | −61 / **+2** | −61 / **+1** |
+| readable floor, own scorer @4dp | 4d | 4d |
+
+`above_edge_range` (−23, 2), `below_edge_range` (−61, −32), null-control floor **17**, invoice span
+**(30, 92)** — §9.2 and §12.7 reproduce **exactly**, including §12.7's correction of §9.2's
+`own_saturates_above: None`. Step 2 is now an editing job with no measurement left in it.
+
+### 14.3 What criterion 4 publishes, measured
+
+`measure_recency_contribution()` — each belief figure minus the **never-forgets company's figure on
+the same book**, reached by `never_forgets_drift_days` (book-derived; 0 on every seed today):
+
+| n=300 | seed 7 | seed 11 | seed 23 |
+|---|---|---|---|
+| `belief` contribution | **0.0** | **0.0** | **0.0** |
+| `belief` amnesiac probe | 0.3481013 | 0.3086420 | 0.3647059 |
+| `belief_population_mix` contribution | **0.0** | **0.0** | **0.0** |
+| `belief_population_mix` amnesiac probe | 0.1833333 | 0.1666667 | 0.2066667 |
+
+The zero row **is** D27's finding, in the units the figure is published in and re-derived on every
+run — where before it lived in a caveat, a register comment and a `cost` block carrying a
+measurement date.
+
+### 14.4 The constraint the FRAME did not state, made a property of the artefact
+
+`dd_failure_window_days` is a **constructor** argument, so the never-forgets company is a second
+BUILD and `score_triad` — handed one already-built company — cannot compute it.
+
+* `score_triad` publishes `recency_contribution = None` plus
+  `recency_contribution_basis = RECENCY_NOT_MEASURED_ON_THIS_CALL`. **Never 0.0**: on this dimension
+  0.0 is also the true answer, so a placeholder would be unreadable from the finding. The live
+  `background/live_payment_triad` path is exactly such a caller (51 tests pass unchanged; the
+  suffix-derived caveat lift is untouched — neither new key ends in `_caveat`).
+* `measure()` has a builder, so it replaces the refusal with the subtraction and stamps
+  `never_forgets_drift_days` beside it.
+
+### 14.5 R15 — and the control fired on its own first design
+
+**The probe is the falsifier.** The true contribution is 0.0 on every seed today, so a control
+asking only about the scored company would agree with a component frozen at zero and could never
+fail here. The instrument is asked about two companies; the second is the **amnesiac** one —
+memory below the book's newest observed failure (`amnesia_floor_window_days`, derived per seed),
+where the organ counts nothing, which is **provably** a different company from never-forgets on any
+book with an observed failure. This is the one place in this module a degenerate is the right probe,
+and the reason is stated beside it: the question is whether the component still moves with the
+company, not how finely it resolves — the `own_drift` band answers that, over a graded grid.
+
+**The first probe was wrong and the control said so before any comment did.** It was the book's
+`smallest_visible_shortening_days` — whose own docstring says it is the smallest shortening that
+*may* be visible — and at the shipped origin **seed 11 publishes a recency contribution of exactly
+0.0 at it**, because the events it drops carry no account across a severity tier. The clean tree was
+RED with `not a discriminator` on both dimensions. `test_a_probe_that_is_silent_on_one_seed_is_refused`
+keeps that live, and asserts the premise first so it fails loudly if the book ever moves.
+
+Four mutations, each fires by name (run live, not quoted):
+
+| mutation | violation |
+|---|---|
+| freeze the component (probe := scored) | `the scored company and the book's own AMNESIAC probe … the component no longer moves` |
+| placeholder 0.0 where a refusal belongs | `a placeholder zero standing where a refusal belongs` |
+| bare `None`, no basis | `a bare None is a hole` |
+| component parted from the subtraction | `publishes recency_contribution 0.5 and re-measuring this book returns [0.0]` |
+
+`check_recency_contribution` is wired into `main()`'s default control block, so the module's own
+check-call census reads it as reachable (`0 UNREACHABLE`, asserted).
+
+### 14.6 Verification
+
+* 7 new nodes, **7 passed** (`-k recency or amnesiac or subtraction`: 5 passed 4.04s;
+  `-k silent_on_one_seed or cannot_build_refuses`: 2 passed 4.91s).
+* Component-population controls, the class that a new component breaks: **8 passed, 6.60s**.
+* `tests/background/test_live_payment_triad.py`: **51 passed, 38.33s** — the live path still gets
+  the refusal and the caveat lift is unmoved.
+* Ruff on both touched files: 4 findings, all pre-existing (`tests/…:11, 950, 972`, `tools/…:139`),
+  none inside the added ranges.
+
+### 14.7 What this pass did not do
+
+The origin is unmoved. **§9.5 step 2** (flip the origin, take §12.7's re-derived declarations, invert
+the six defect-asserting tests) and **step 4** (`own_readable_resolution_floor_days`, the axis edge
+ranges, the ~30 assertions, the coupled-gap ledger row) remain, in that order. §14.2 means step 2
+opens with no sweep to run.

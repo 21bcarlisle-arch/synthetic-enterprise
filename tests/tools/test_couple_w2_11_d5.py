@@ -9964,3 +9964,183 @@ def test_todays_published_figure_is_the_never_forgets_companys_figure(
     # else, so the other three dimensions do not move even here.
     for d in ("ageing", "detection", "detection_latency"):
         assert one_short[d] == today[d], d
+
+
+# ---------------------------------------------------------------------------
+# WHAT THE RECENCY WINDOW CONTRIBUTES TO THE PUBLISHED FIGURE -- atom D27 exit
+# criterion 4 / FRAME section 9.5 step 3, 2026-08-22
+#
+# The criterion is "the published component equals the measured difference
+# between the scored and never-forgets companies", with the mutation "freeze the
+# component -> must fire". The tests below are that mutation and the three other
+# ways this component can go quietly wrong: a placeholder zero where a refusal
+# belongs, a bare None with no reason, and a component that has parted company
+# with the subtraction it names.
+#
+# THE HARD PART, and it is why the probe exists. On the shipped origin the true
+# contribution is EXACTLY 0.0 on every seed and both belief dimensions -- that
+# zero is D27's finding -- so a control that asked only about the scored company
+# would agree with a component frozen at zero and could never fail here. The
+# instrument is therefore asked about two companies, and the second is the
+# AMNESIAC one: memory below the book's newest observed failure, where the organ
+# counts nothing, which is provably a different company from never-forgets on
+# any book with an observed failure.
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def recency_contribution():
+    return pair.measure_recency_contribution()
+
+
+def test_the_recency_contribution_is_zero_and_that_zero_is_the_finding(
+        recency_contribution):
+    """D27's complaint, as a live number rather than a dated comment: each
+    belief figure minus the never-forgets company's figure on the same book is
+    0.0 on every seed. The scored company ALREADY never forgets, so the
+    published number cannot be told from a supplier that keeps a recovered
+    customer in collections for ever."""
+    m = recency_contribution
+    assert m["scored_window_days"] == pair.DD_FAILURE_WINDOW_DAYS
+    assert set(m["never_forgets_drift_days"].values()) == {0}
+    for dim in pair.BELIEF_FLOOR_DIMENSIONS:
+        row = m["dimensions"][dim]
+        assert row["undefined_readings"] == ()
+        assert set(row["contribution"].values()) == {0.0}, dim
+        assert row["scored_already_never_forgets"] is True, dim
+        # NOT MERELY SMALL: below this figure's own reader step, so no consumer
+        # could render the difference even if one existed.
+        assert row["readable"] is False, dim
+        assert row["epsilon"] == pair.published_reading_epsilon(dim)
+
+
+def test_the_probe_is_the_amnesiac_company_derived_from_the_book(
+        recency_contribution):
+    """The falsifier's own subject, checked rather than assumed. The probe drift
+    is `amnesia_floor_window_days - window` on each seed's OWN book -- no
+    literal -- and it takes the memory below the newest observed failure, which
+    is the one company this book can PROVE reads apart from never-forgets."""
+    m = recency_contribution
+    for seed, drift in m["probe_drift_days"].items():
+        records, _c, _l, as_of = pair.build_scenario(300, seed=seed)
+        res = pair.measure_belief_window_resolution(records, as_of)
+        assert drift == res["amnesia_floor_window_days"] - res["window_days"]
+        # Below the newest event: the probe company counts NO observed failure.
+        assert (res["window_days"] + drift) < res["newest_event_age_days"]
+    for dim in pair.BELIEF_FLOOR_DIMENSIONS:
+        row = m["dimensions"][dim]
+        assert row["probe_readable"] is True, dim
+        assert all(abs(v) >= row["epsilon"]
+                   for v in row["probe_contribution"].values()), dim
+    assert pair.check_recency_contribution(m) == []
+
+
+def test_a_probe_that_is_silent_on_one_seed_is_refused(recency_contribution):
+    """THE MEASURED REGRESSION THIS CONTROL CAUGHT ON ITSELF (2026-08-22). The
+    first probe tried here was `smallest_visible_shortening_days` -- the book's
+    smallest MAY-be-visible shortening -- and at the shipped origin seed 11
+    publishes a recency contribution of exactly 0.0 at it, because the events it
+    drops carry no account across a severity tier. The control said so before
+    the comment beside it was written; this keeps it saying so."""
+    records, _c, _l, as_of = pair.build_scenario(300, seed=11)
+    res = pair.measure_belief_window_resolution(records, as_of)
+    weak = -int(res["smallest_visible_shortening_days"])
+    base = pair.score_triad(*pair.build_scenario(300, seed=11)[:2],
+                            pair.build_scenario(300, seed=11)[3])
+    drifted_recs, drifted_cons, _dl, drifted_as_of = pair.build_scenario(
+        300, seed=11, organ_failure_window_drift_days=weak)
+    drifted = pair.score_triad(drifted_recs, drifted_cons, drifted_as_of)
+    assert drifted["belief"].gap == base["belief"].gap, (
+        "the premise moved: the book's smallest may-be-visible shortening now "
+        "moves seed 11's belief figure, so this regression is no longer live")
+
+    silent = copy.deepcopy(recency_contribution)
+    for dim in silent["dimensions"]:
+        row = silent["dimensions"][dim]
+        row["probe_contribution"] = {s: 0.0 if s == 11 else v for s, v
+                                     in row["probe_contribution"].items()}
+        row["probe_readable"] = False
+    violations = pair.check_recency_contribution(silent)
+    assert any("not a discriminator" in v for v in violations)
+
+
+def test_a_frozen_recency_component_fires_by_name(recency_contribution):
+    """EXIT CRITERION 4's OWN MUTATION. A component that has stopped depending
+    on the company's memory returns the same number for the scored company and
+    for the amnesiac one -- and on the shipped origin, where the true answer is
+    0.0, that is the ONLY way to tell it from the truth."""
+    frozen = copy.deepcopy(recency_contribution)
+    for dim in frozen["dimensions"]:
+        frozen["dimensions"][dim]["probe_contribution"] = dict(
+            frozen["dimensions"][dim]["contribution"])
+    violations = pair.check_recency_contribution(frozen)
+    for dim in pair.BELIEF_FLOOR_DIMENSIONS:
+        assert any(v.startswith(f"{dim}: the scored company and the book's own "
+                                "AMNESIAC probe") for v in violations), dim
+
+
+def test_the_scorer_that_cannot_build_refuses_rather_than_publishing_zero(
+        recency_contribution):
+    """THE CONSTRAINT THE FRAME DID NOT STATE, made a property of the artefact.
+    `dd_failure_window_days` is a CONSTRUCTOR argument, so the never-forgets
+    company is a second BUILD -- and `score_triad` is handed one already-built
+    company. It therefore publishes None and the reason, never 0.0, because on
+    this dimension 0.0 is also the true answer and the two would be
+    indistinguishable. The live `run_phase2b` wiring is exactly such a caller."""
+    records, consumer, _l, as_of = pair.build_scenario(300, seed=7)
+    scored = pair.score_triad(records, consumer, as_of)
+    for dim in pair.BELIEF_FLOOR_DIMENSIONS:
+        comps = scored[dim].components
+        assert comps["recency_contribution"] is None, dim
+        assert comps["recency_contribution_basis"] == \
+            pair.RECENCY_NOT_MEASURED_ON_THIS_CALL, dim
+    assert pair.check_recency_contribution(recency_contribution, scored) == []
+
+    # THE MUTATION: fill the refusal in with the placeholder zero, on a book
+    # whose scored company does NOT already never forget.
+    not_saturated = copy.deepcopy(recency_contribution)
+    for dim in not_saturated["dimensions"]:
+        not_saturated["dimensions"][dim][
+            "scored_already_never_forgets"] = False
+    placeholder = pair.score_triad(records, consumer, as_of)
+    for dim in pair.BELIEF_FLOOR_DIMENSIONS:
+        placeholder[dim].components["recency_contribution"] = 0.0
+    violations = pair.check_recency_contribution(not_saturated, placeholder)
+    assert len([v for v in violations if "placeholder zero" in v]) == 2
+
+    # AND A BARE None IS A HOLE: unmeasured without its reason is a lost value.
+    bare = pair.score_triad(records, consumer, as_of)
+    for dim in pair.BELIEF_FLOOR_DIMENSIONS:
+        bare[dim].components.pop("recency_contribution_basis")
+    assert len([v for v in pair.check_recency_contribution(
+        recency_contribution, bare) if "a bare None is a hole" in v]) == 2
+
+
+def test_measure_builds_the_second_company_and_publishes_the_subtraction(
+        recency_contribution):
+    """`measure()` is the entry point that HAS a builder, so it replaces the
+    refusal with the number -- and the number is the subtraction, not a copy of
+    the figure. On the shipped origin it publishes 0.0 with the drift that
+    reached the never-forgets company beside it."""
+    result = pair.measure(300, seed=7)
+    for dim in pair.BELIEF_FLOOR_DIMENSIONS:
+        comps = result[dim].components
+        assert comps["recency_contribution"] == 0.0, dim
+        assert comps["never_forgets_drift_days"] == 0, dim
+        assert "NEVER-FORGETS" in comps["recency_contribution_basis"], dim
+    assert pair.check_recency_contribution(recency_contribution, result) == []
+
+    # THE MUTATION: a component that has parted company with the subtraction.
+    for dim in pair.BELIEF_FLOOR_DIMENSIONS:
+        result[dim].components["recency_contribution"] = 0.5
+    violations = pair.check_recency_contribution(recency_contribution, result)
+    assert len([v for v in violations if "parted company" in v]) == 2
+
+
+def test_the_recency_control_runs_in_the_cli_not_only_in_tests():
+    """A control reachable only from a test is one no run performs (the module's
+    own check-call census rule). This one is on `main()`'s default path."""
+    census = pair.measure_check_call_census()
+    assert "check_recency_contribution" in census["defined"]
+    assert "check_recency_contribution" in census["default_path"]
+    assert "check_recency_contribution" not in census["uncalled"]
