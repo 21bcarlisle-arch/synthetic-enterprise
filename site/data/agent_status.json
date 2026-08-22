@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-08-22T12:43:54.979916+00:00",
+  "last_updated": "2026-08-22T13:52:36.797432+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,7 +15,7 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-08-22T12:43:54.979916+00:00",
+      "last_heartbeat": "2026-08-22T13:52:36.797432+00:00",
       "last_action": "Watcher started",
       "last_action_ts": "2026-08-12T08:55:34.236201+00:00",
       "anomaly": null,
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-08-22T12:30:16.418768+00:00",
-      "last_action": "Run complete in 290s \u2014 4117 KB (run_output_ed2e0e46b_20260822T122526Z.json)",
-      "last_action_ts": "2026-08-22T12:30:16.418768+00:00",
+      "last_heartbeat": "2026-08-22T13:39:14.945040+00:00",
+      "last_action": "Run complete in 278s \u2014 4117 KB (run_output_f597a5363_20260822T133437Z.json)",
+      "last_action_ts": "2026-08-22T13:39:14.945040+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -45,9 +45,9 @@
     {
       "name": "dispatcher",
       "status": "idle",
-      "last_heartbeat": "2026-08-22T11:50:34.635127+00:00",
+      "last_heartbeat": "2026-08-22T12:53:35.229541+00:00",
       "last_action": "Classified from_rich_005.md as NORMAL",
-      "last_action_ts": "2026-08-22T11:50:34.635127+00:00",
+      "last_action_ts": "2026-08-22T12:53:35.229541+00:00",
       "anomaly": null,
       "role": "Classifies inbound NTFY messages (URGENT/NORMAL/FYI) using Qwen3:14b",
       "produces": "docs/observability/dispatcher-log.md, routes to staging/"
@@ -55,9 +55,9 @@
     {
       "name": "ntfy-responder",
       "status": "idle",
-      "last_heartbeat": "2026-08-22T11:50:46.887425+00:00",
+      "last_heartbeat": "2026-08-22T12:53:47.417678+00:00",
       "last_action": "Acked message: 'Your backlog is in a document but the thing that picks your next job reads the m'",
-      "last_action_ts": "2026-08-22T11:50:46.887425+00:00",
+      "last_action_ts": "2026-08-22T12:53:47.417678+00:00",
       "anomaly": null,
       "role": "Receives NTFY messages from Rich; writes from_rich_*.md to staging",
       "produces": "docs/staging/from_rich_*.md"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-08-22T12:43:25.939863+00:00",
+      "last_heartbeat": "2026-08-22T13:43:26.588332+00:00",
       "last_action": "Task batch complete",
-      "last_action_ts": "2026-08-22T12:43:25.939863+00:00",
+      "last_action_ts": "2026-08-22T13:43:26.588332+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-08-22T12:42:49.791732+00:00",
+      "last_heartbeat": "2026-08-22T13:52:17.438475+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-08-21T15:47:20.521914+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-08-22T12:37:47.372774+00:00",
+      "last_heartbeat": "2026-08-22T13:37:47.466597+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-08-22T12:37:47.372774+00:00",
+      "last_action_ts": "2026-08-22T13:37:47.466597+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
