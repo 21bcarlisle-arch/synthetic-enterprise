@@ -2116,10 +2116,10 @@
   frame_saturated: true   # 2026-07-29 RE-CLOSED by the Lane-3 DISCOVER/FRAME fork that delivered BOTH director-named widened-scope items (observables-only trajectory + the carbon clock/basis triple) in docs/design/E5_CARBON_THREE_LEDGER_FRAME.md. Re-opens automatically when loop_stage flips off idle. PRIOR RE-OPEN NOTE RETAINED:   # 2026-07-29 RE-OPENED (director from_rich_20260729_173731, "put all eleven backlog items into the map as real unfinished work items"). This atom IS BACKLOG.md item B9 (BACKLOG says so explicitly: "B9 IS the existing map atom E5_carbon_three_ledger, NOT a new atom" -- do not mint a duplicate). It was in the map but INVISIBLE to the picker: H23 hard-skips FRAME-saturated atoms, so E5 contributed nothing to the draw. The 2026-07-20 saturation was honest FOR THE SCOPE THEN FRAMED (data model + counterfactual comparison + emissions-factor register) -- B9 WIDENED the scope past it, and the widened part is genuinely un-FRAMEd: how a per-household cost-and-carbon trajectory is derived FROM OBSERVABLES ONLY (the wall), and how the site's £/tCO2e figure carries its clock/basis (R14) plus the plain-language working. Those two are the drawable FRAME work now. UNCHANGED WALL: the emissions-factor SET and the counterfactual METHOD stay director values-calls (carbon is the mission = category 6), and the "not yet instrumented" site disclaimer comes off only when the LIVE rendered figure is asserted (R11).
   dial_inherited: 4
   provenance: proposal
-  file_scope: [company/carbon, tests/company/test_carbon_ledger.py, tests/company/test_carbon_not_a_target.py]
+  file_scope: [company/carbon, tests/company/test_carbon_ledger.py, tests/company/test_carbon_not_a_target.py, tests/company/test_carbon_cannot_reach_the_sim.py]
   depends_on: []
   blocked_on: null
-  simplifications_count: 8
+  simplifications_count: 9
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier's carbon-accounting desk: emissions saved for customers, operational emissions spent serving them, and the net -- reported and audited like a P&L, not a single flattering number"
   records_rehomed: [evidence]
