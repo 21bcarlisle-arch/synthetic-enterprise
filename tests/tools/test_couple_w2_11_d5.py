@@ -27,6 +27,7 @@ from unittest import mock
 import pytest
 
 import tools.couple_w2_11_d5 as pair
+from tools.couple_w2_11_d5 import BILL_AMOUNT_GBP, DD_FAILURE_WINDOW_DAYS
 
 from background.gap_metric import (
     GapResult,
@@ -41,6 +42,7 @@ from background.gap_metric import (
     write_gap_entry,
 )
 from company.billing import arrears_engine, payment_observation_consumer
+from company.billing.account_ledger import LedgerEvent
 from company.billing.payment_observation_consumer import PaymentObservationConsumer
 from interface.contracts.wall_envelope import WallResponse
 from simulation.payment_behaviour_source import PaymentEvent
@@ -9681,3 +9683,217 @@ def test_the_calendar_term_is_published_as_a_term_not_as_the_answer(
     assert pair.check_detection_resolution(other) == [], (
         "the control must not fire on a book where the calendar term is loose "
         "-- it reports the disagreement, it does not believe either number")
+
+
+# ---------------------------------------------------------------------------
+# ATOM D27 -- THE ORIGIN IS THE ORGAN'S, AND A SHADOWED DEFAULT OWES A COST
+# ---------------------------------------------------------------------------
+# `DD_FAILURE_WINDOW_DAYS` is not one scenario constant among five: it is the
+# ORIGIN both belief dimensions' bands are stated in (`drift == 0` IS this
+# value), and it shadows a default the company organ chose for itself. It has
+# carried a sound design NOTE and no measurement of what the choice costs for
+# its whole life, which is the atom.
+#
+# The stubs below are AST subjects, never executed: `scenario_organ_default_
+# shadows` reads a function's source, so a stub is how the derived rule is put
+# on trial against a call shape this scenario does not currently contain.
+
+
+def _stub_call_shadowing_an_organ_default():
+    """Passes a module constant to a company parameter that HAS a default."""
+    window = DD_FAILURE_WINDOW_DAYS + 1
+    return PaymentObservationConsumer(dd_failure_window_days=window)
+
+
+def _stub_call_into_a_required_parameter():
+    """The NULL CONTROL: same file, same call shape, REQUIRED parameter -- so
+    there is no organ default behind it to diverge from."""
+    return LedgerEvent(amount_gbp=BILL_AMOUNT_GBP)
+
+
+def test_the_memory_origin_is_read_off_the_organ_and_fails_closed():
+    """CRITERION 2 (D27 FRAME). The organ's own default is DERIVED from its
+    signature, and every way of not being able to read it RAISES rather than
+    falling back to a literal -- the fallback IS the D20 hand-copy this exists
+    to refuse, and it would keep the harness green while the two sides
+    diverged."""
+    assert pair.organ_default_failure_window_days() == 90
+    assert (pair.organ_default_failure_window_days()
+            == inspect.signature(PaymentObservationConsumer.__init__)
+            .parameters["dd_failure_window_days"].default)
+
+    class _Moved:
+        def __init__(self, dd_failure_window_days=137):
+            pass
+
+    class _NoParam:
+        def __init__(self, ledger_book=None):
+            pass
+
+    class _NoDefault:
+        def __init__(self, dd_failure_window_days):
+            pass
+
+    class _BoolDefault:
+        def __init__(self, dd_failure_window_days=True):
+            pass
+
+    # THE MUTATION THE FRAME NAMES: move the organ's default. A hand-typed 90
+    # would sail past this; the derivation follows it.
+    with mock.patch.object(pair, "PaymentObservationConsumer", _Moved):
+        assert pair.organ_default_failure_window_days() == 137
+    # ...and the three unreadable organs, each of which a literal fallback
+    # would have swallowed.
+    for stub in (_NoParam, _NoDefault, _BoolDefault):
+        with mock.patch.object(pair, "PaymentObservationConsumer", stub):
+            with pytest.raises(RuntimeError):
+                pair.organ_default_failure_window_days()
+
+
+def test_the_shadow_finder_is_derived_and_discriminates():
+    """R10: the rule finds the NEXT shadowed organ default, not the one this
+    atom tripped over. Derived from `build_scenario`'s AST -- and the null
+    control is one line away in the same function, so the rule has to tell a
+    defaulted parameter from a required one rather than answering `yes` to
+    every module constant handed to a company class."""
+    shadows = pair.scenario_organ_default_shadows()
+    assert shadows == {
+        "DD_FAILURE_WINDOW_DAYS": ("PaymentObservationConsumer",
+                                   "dd_failure_window_days")}
+    # BILL_AMOUNT_GBP is handed to `LedgerEvent(amount_gbp=...)` in the very
+    # same function and is NOT a shadow: that parameter is required.
+    assert "BILL_AMOUNT_GBP" not in shadows
+
+    # THE TWO CALL SHAPES, ON THEIR OWN. A rule that returned both, or
+    # neither, could not discriminate -- and this is where that fails.
+    assert pair.scenario_organ_default_shadows(
+        _stub_call_shadowing_an_organ_default) == {
+        "DD_FAILURE_WINDOW_DAYS": ("PaymentObservationConsumer",
+                                   "dd_failure_window_days")}
+    assert pair.scenario_organ_default_shadows(
+        _stub_call_into_a_required_parameter) == {}
+
+
+def test_a_shadowed_organ_default_owes_a_measured_divergence():
+    """THE CLASS RULE, failing in BOTH directions (R10/R15).
+
+    A constant that shadows an organ default and records no measured
+    divergence is atom D27 itself -- a design note standing in for a
+    measurement. A `measured_divergence` on a constant that shadows nothing is
+    a field sprinkled to buy a pass, which is how a rule like this one stops
+    discriminating."""
+    records, _consumer, _ledger, as_of = pair.build_scenario(300, seed=7)
+    measured = pair.measure_scored_window_provenance(records, as_of)
+    assert measured["organ_default_window_days"] == 90
+    assert measured["harness_window_days"] == pair.DD_FAILURE_WINDOW_DAYS
+    assert measured["divergence_days"] == 310
+    assert measured["origin_is_organ_default"] is False
+    assert pair.check_scored_window_provenance(measured) == []
+
+    def _census():
+        return copy.deepcopy(pair.SCENARIO_CONSTANT_CENSUS)
+
+    # MUTATION 1 -- the shadow declares no cost at all.
+    c = _census()
+    del c["DD_FAILURE_WINDOW_DAYS"]["measured_divergence"]
+    assert any("records no `measured_divergence`" in v
+               for v in pair.check_scored_window_provenance(measured, c))
+
+    # MUTATION 2 -- the declared divergence drifts from the organ.
+    c = _census()
+    c["DD_FAILURE_WINDOW_DAYS"]["measured_divergence"]["divergence_days"] = 311
+    assert any("re-derive it" in v
+               for v in pair.check_scored_window_provenance(measured, c))
+
+    # MUTATION 3 -- how far, without what it costs. The distance is not the
+    # atom; the price of the distance is.
+    c = _census()
+    del c["DD_FAILURE_WINDOW_DAYS"]["measured_divergence"]["cost"]
+    assert any("and no `cost`" in v
+               for v in pair.check_scored_window_provenance(measured, c))
+
+    # MUTATION 4 -- a cost with no date or subject reads as live when it is a
+    # measurement too expensive to re-derive per run.
+    for field in ("measured", "at_head", "how"):
+        c = _census()
+        del c["DD_FAILURE_WINDOW_DAYS"]["measured_divergence"]["cost"][field]
+        assert any(f"omits `{field}`" in v
+                   for v in pair.check_scored_window_provenance(measured, c))
+
+    # MUTATION 5 -- THE UNDISCRIMINATING DIRECTION. Sprinkle the field on a
+    # constant with no organ behind it.
+    c = _census()
+    c["BILL_AMOUNT_GBP"]["measured_divergence"] = c[
+        "DD_FAILURE_WINDOW_DAYS"]["measured_divergence"]
+    assert any("no company constructor default" in v
+               for v in pair.check_scored_window_provenance(measured, c))
+
+    # MUTATION 6 -- a shadow declaration outliving its call site.
+    c = _census()
+    c["FIRST_DUE_DATE"]["shadows_organ_default"] = ("PaymentObservationConsumer",
+                                                    "dd_failure_window_days")
+    assert any("outliving its call site" in v
+               for v in pair.check_scored_window_provenance(measured, c))
+
+
+def test_never_forgets_drift_is_derived_from_the_book_and_is_zero_today():
+    """THE FINDING, IN THE COORDINATE THE RESHAPE WILL MOVE (atom D27).
+
+    `never_forgets_drift_days` is 0 on the shipped origin: the SCORED company
+    already never forgets, so the published figure cannot distinguish it from a
+    supplier that keeps a recovered customer in collections for ever. It is
+    derived from the BOOK -- the oldest observed failure -- and never from the
+    number 400, which is what makes it move when the origin does."""
+    records, _consumer, _ledger, as_of = pair.build_scenario(300, seed=7)
+    assert pair.never_forgets_drift_days(records, as_of) == 0
+    assert pair.measure_belief_window_resolution(records, as_of)["saturated"]
+
+    # THE MUTATION: at the organ's OWN default the same book yields a non-zero
+    # drift, so the function is reading the book against the window and not
+    # returning a constant. Seed 7's oldest observed failure is 91d old.
+    assert pair.never_forgets_drift_days(records, as_of, window_days=90) == 1
+    assert pair.never_forgets_drift_days(records, as_of, window_days=1) == 90
+
+    # ...and a book with no observed failure bounds nothing, so it gets None
+    # rather than 0. Reporting "already saturated" about a book that presents
+    # no event is the fail-open one field over (R15).
+    clean = [r for r in records if r.result != "failed"]
+    assert pair.never_forgets_drift_days(clean, as_of) is None
+
+
+def test_todays_published_figure_is_the_never_forgets_companys_figure(
+        monkeypatch):
+    """THE EQUALITY THAT STATES THE ATOM, as a control rather than a table.
+
+    At the organ's own default the NEVER-FORGETS company -- reached by the
+    book-derived drift, with the number 400 appearing nowhere -- publishes
+    exactly what this pair publishes TODAY, on all five dimensions. D27's
+    complaint is usually written as a caveat ("this figure cannot distinguish
+    the scored company from one that never forgets"); this is the same claim
+    stated as an equality, which is falsifiable and a caveat is not."""
+    dims = ("ageing", "belief", "belief_population_mix", "detection",
+            "detection_latency")
+
+    def _score(window, drift=0):
+        monkeypatch.setattr(pair, "DD_FAILURE_WINDOW_DAYS", window)
+        recs, cons, _l, as_of = pair.build_scenario(
+            300, seed=7, organ_failure_window_drift_days=drift)
+        return {d: pair.score_triad(recs, cons, as_of)[d].gap for d in dims}, recs, as_of
+
+    today, _r, _a = _score(400)
+    _b, recs90, as_of90 = _score(90)
+    nf_drift = pair.never_forgets_drift_days(recs90, as_of90, window_days=90)
+    assert nf_drift == 1
+    never_forgets, _r2, _a2 = _score(90, drift=nf_drift)
+    assert never_forgets == today, (
+        "today's published figures ARE the never-forgets company's figures")
+
+    # THE MUTATION: one day short of never forgetting is a DIFFERENT company,
+    # and the two belief dimensions are where it shows -- so the equality above
+    # is a measurement and not an artefact of re-scoring the same book.
+    one_short, _r3, _a3 = _score(90, drift=nf_drift - 1)
+    assert one_short["belief"] != today["belief"]
+    # R13 DIFFERENTIAL: the memory knob reaches the belief organ and nothing
+    # else, so the other three dimensions do not move even here.
+    for d in ("ageing", "detection", "detection_latency"):
+        assert one_short[d] == today[d], d

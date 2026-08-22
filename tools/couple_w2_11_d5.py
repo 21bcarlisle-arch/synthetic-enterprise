@@ -215,6 +215,71 @@ AS_OF_BUFFER_DAYS = 30           # comfortably past payment_terms + the ARUDD la
 # window (default 90d in PaymentObservationConsumer) confound the reading.
 DD_FAILURE_WINDOW_DAYS = 400
 
+# ---------------------------------------------------------------------------
+# THE ORIGIN, AND WHY IT IS NOT A BAND CONSTANT (atom D27)
+# ---------------------------------------------------------------------------
+# `DD_FAILURE_WINDOW_DAYS` is the ORIGIN every memory-drift declaration in this
+# file is measured from -- `organ_failure_window_drift_days == 0` IS this value,
+# and the register's bands are stated in that coordinate. So the literal above
+# is not one constant among five: it is the zero of the axis two published
+# figures declare their resolution along.
+#
+# WHAT THE COMMENT ABOVE SAYS, AND WHAT IT DOES NOT. The 400 is deliberate and
+# its stated reason is sound -- a short recency window would let the belief's
+# own decay confound the CHANNEL blind spot this scenario exists to measure.
+# What was never measured or declared is that the same choice costs the two
+# belief dimensions ALL resolution on the only company parameter they read. The
+# two properties are in direct conflict by construction: a dimension can only
+# resolve a memory window if some event falls OUT of memory, which is exactly
+# the confound the 400 removes. A design note stood in for a measurement, and
+# `SCENARIO_CONSTANT_CENSUS["DD_FAILURE_WINDOW_DAYS"]["measured_divergence"]`
+# is that measurement -- put beside the constant, re-derived on every run, and
+# refused by `check_scored_window_provenance` if it drifts from the organ.
+#
+# R12: nothing here proposes a value. 90 is not recommended by its output and
+# 400 is not defended by its output; what is refused is a shadowed organ
+# default whose divergence has never been costed.
+
+_ORGAN_WINDOW_PARAM = "dd_failure_window_days"
+
+
+def organ_default_failure_window_days() -> int:
+    """The DD/rail failure lookback the COMPANY ORGAN itself ships with.
+
+    DERIVED FROM THE ORGAN'S OWN SIGNATURE, never hand-typed. A hand-typed
+    copy of this number is the D20 defect one field over: the organ's default
+    moves, the harness's copy does not, and the gap between the scored company
+    and the shipped one silently re-opens while every control stays green.
+    `PaymentObservationConsumer.dd_failure_window_days` was made public in
+    2026-08-18 for the same reason one register over -- when the private
+    attribute is the only route to a value, every instrument reaches for a
+    constant somewhere else and reports the wrong company.
+
+    FAIL-CLOSED (R15). A missing parameter, an absent default, a bool or a
+    non-int RAISES rather than falling back to a literal. The fallback IS the
+    hand-copy this derivation exists to refuse: it would keep the harness
+    running while the two sides diverged, which is the fail-open shape, not a
+    convenience. An unreadable organ default is a FAILED read, not a default.
+    """
+    params = inspect.signature(PaymentObservationConsumer.__init__).parameters
+    if _ORGAN_WINDOW_PARAM not in params:
+        raise RuntimeError(
+            f"`PaymentObservationConsumer.__init__` has no "
+            f"`{_ORGAN_WINDOW_PARAM}` parameter -- the harness cannot read the "
+            "organ's own memory default, and substituting a literal here is "
+            "the hand-copy this function exists to refuse (atom D27)"
+        )
+    default = params[_ORGAN_WINDOW_PARAM].default
+    if (default is inspect.Parameter.empty or isinstance(default, bool)
+            or not isinstance(default, int)):
+        raise RuntimeError(
+            f"`PaymentObservationConsumer.__init__`'s `{_ORGAN_WINDOW_PARAM}` "
+            f"default is {default!r} -- the harness needs an int day count to "
+            "state where the scored company sits relative to the shipped one, "
+            "and guessing one would be the D20 hand-copy (atom D27)"
+        )
+    return int(default)
+
 
 # ---------------------------------------------------------------------------
 # THE ONE READING PREDICATE (atom D33; closes
@@ -6836,6 +6901,45 @@ def measure_belief_window_resolution(
     }
 
 
+def never_forgets_drift_days(
+    records: Sequence["PeriodRecord"],
+    as_of: date,
+    window_days: Optional[int] = None,
+) -> Optional[int]:
+    """The `organ_failure_window_drift_days` that takes the company's memory to
+    the OLDEST observed failure in THIS book -- the NEVER-FORGETS company
+    (atom D27).
+
+    DERIVED FROM THE BOOK, NEVER FROM THE NUMBER 400. The isolating
+    counterfactual D27 needs is "a supplier that never lets a failed collection
+    go", and until this function existed the only route to it was the harness's
+    own origin literal -- so the counterfactual and the arbitrary constant were
+    the same object, and neither could be stated without the other. An event at
+    age `a` is counted iff `a <= window`, and no event is older than `oldest`,
+    so EVERY window at or above `oldest` counts the same set: one drift names
+    the whole never-forgets family, and it is provable rather than swept.
+
+    ZERO IS THE FINDING, NOT A DEGENERATE. A return of 0 means the SCORED
+    company already never forgets -- its memory reaches past the oldest event
+    this book has -- so the published figure cannot distinguish it from a
+    supplier that keeps a recovered customer in collections for ever. That is
+    D27's whole complaint, expressed in the coordinate the reshape will move,
+    and it is what `measure_scored_window_provenance` reports and refuses to
+    leave in a comment. On the shipped origin it returns 0 on every seed.
+
+    `None` where the book presents no observed failure at all: there is no
+    oldest event to reach past, so no never-forgets company is definable here
+    -- and returning 0 would report "already saturated" about a book that
+    bounds nothing, the fail-open shape (R15) one field over.
+    """
+    res = measure_belief_window_resolution(records, as_of,
+                                           window_days=window_days)
+    oldest = res["oldest_event_age_days"]
+    if oldest is None:
+        return None
+    return max(0, int(oldest) - int(res["window_days"]))
+
+
 def measure_belief_band_population_axis(
     *,
     n_customers: Optional[Sequence[int]] = None,
@@ -7559,6 +7663,70 @@ SCENARIO_CONSTANT_CENSUS: Dict[str, Dict[str, object]] = {
             "308d of saturated headroom D27 owns. Censused as inert on the "
             "EDGES so the two roles stop being one field."
         ),
+        # THE ORGAN DEFAULT THIS CONSTANT SHADOWS, and the fact that it does is
+        # DERIVED from `build_scenario`'s own AST rather than declared here --
+        # `scenario_organ_default_shadows()` finds every scenario constant this
+        # harness hands to a company constructor parameter that has its own
+        # default, so the NEXT such constant is covered the day it lands and
+        # this pair is checked against the organ rather than believed.
+        "shadows_organ_default": ("PaymentObservationConsumer",
+                                  "dd_failure_window_days"),
+        # AND WHAT THE DIVERGENCE COSTS, MEASURED (atom D27, the finding).
+        # A shadowed organ default that has never been costed is the shape this
+        # atom is about: the constant's own comment gives a sound REASON for
+        # the value and no measurement of what the value buys or spends, and a
+        # reader auditing the constant against its comment would never learn
+        # that the same choice takes all resolution off the only company
+        # parameter the two belief dimensions read.
+        #
+        # The first four fields are RE-DERIVED on every run by
+        # `check_scored_window_provenance` (the organ's signature, this
+        # module's constant, and a live book) -- a drift in any of them fires.
+        # The `cost` block is a DATED MEASUREMENT with its provenance, not a
+        # checked invariant: re-deriving it costs two ~70s sweeps, and the
+        # honest way to carry a number too expensive to re-derive per run is to
+        # say when it was taken and on what, never to let it read as live.
+        "measured_divergence": {
+            "organ_default_window_days": 90,
+            "harness_window_days": 400,
+            "divergence_days": 310,
+            # 0 = the SCORED company already never forgets (see
+            # `never_forgets_drift_days`): its memory reaches past the oldest
+            # observed failure this book has, on every seed.
+            "never_forgets_drift_days": 0,
+            "scored_saturated": True,
+            "cost": {
+                "measured": "2026-08-22",
+                "at_head": "34ee29090",
+                "how": ("n=300, seeds 7/11/23, shipped build_scenario/"
+                        "score_triad/measure_published_resolution_floor with "
+                        "the origin substituted in a scratch script; nothing "
+                        "monkeypatched inside the scored path"),
+                # What the shadowed default would resolve, against what the
+                # harness's own origin does. Both figures, through their own
+                # shipped scorers, at the 4dp their own consumers render.
+                "readable_floor_days_at_harness_origin": {
+                    "belief": 310, "belief_population_mix": 314},
+                "readable_floor_days_at_organ_default": {
+                    "belief": 4, "belief_population_mix": 4},
+                "headroom_days_at_harness_origin": (309, 308, 308),
+                "headroom_days_at_organ_default": (-1, -2, -2),
+                # The recency term the 400 assumes away: scored figure minus
+                # the never-forgets figure, at the organ's own default.
+                "recency_contribution_at_organ_default": {
+                    "belief": (0.0189873, 0.0123457, 0.0058824),
+                    "belief_population_mix": (0.0033333, 0.0, 0.0)},
+                # AND THE EQUALITY THAT STATES THE FINDING: at the organ's
+                # default the never-forgets company reads BIT-IDENTICALLY to
+                # what this pair publishes TODAY, on all five dimensions and
+                # every seed. Today's figure IS the never-forgets company's.
+                "never_forgets_reads_todays_published_figure": True,
+                "r13_differential": ("ageing, detection and detection_latency "
+                                     "bit-identical across the origin move on "
+                                     "every seed -- the knob reaches the two "
+                                     "belief dimensions and nothing else"),
+            },
+        },
     },
     "FIRST_DUE_DATE": {
         "bounds_resolution": False,
@@ -7751,6 +7919,233 @@ def _check_census_measured_the_edge_setting_population(
             "not exist"
         ]
     return []
+
+
+def _constants_read(node: ast.AST) -> set:
+    """The MODULE-LEVEL scenario constants an expression reads.
+
+    Upper-case `Name` loads that resolve on this module to a VALUE rather than
+    to a callable -- deliberately not "to an int", because `FIRST_DUE_DATE` is
+    a `date` and a walker keyed on numbers would report this scenario
+    shadow-free about any constant that is not one. Names are the whole of it:
+    a constant reached through an attribute or a call is not a shadow this
+    walker claims to see, and saying so is cheaper than a walker that pretends
+    to."""
+    module = sys.modules[__name__]
+    out = set()
+    for sub in ast.walk(node):
+        if isinstance(sub, ast.Name) and isinstance(sub.ctx, ast.Load):
+            if not sub.id.isupper() or not hasattr(module, sub.id):
+                continue
+            value = getattr(module, sub.id)
+            if not callable(value) and not inspect.ismodule(value):
+                out.add(sub.id)
+    return out
+
+
+def scenario_organ_default_shadows(
+    fn: Optional[Callable] = None,
+) -> Dict[str, Tuple[str, str]]:
+    """Every scenario constant this harness hands to a COMPANY constructor
+    parameter that has its OWN default -- i.e. every constant that SHADOWS an
+    organ default (atom D27).
+
+    DERIVED FROM `build_scenario`'s AST, never listed. That is the R10 half of
+    this atom: D27 was found by tripping over one such constant, and a control
+    naming `DD_FAILURE_WINDOW_DAYS` could only ever fail on the instance that
+    was already known. This finds the NEXT one the day it lands.
+
+    THE DISCRIMINATION IS THE POINT, and this scenario supplies its own null
+    control one line apart: `PaymentObservationConsumer(...,
+    dd_failure_window_days=window_days)` shadows a default (90) and is
+    returned; `LedgerEvent(..., amount_gbp=BILL_AMOUNT_GBP)` passes a module
+    constant to a REQUIRED parameter, shadows nothing, and is not. A rule that
+    returned both would owe a measured divergence for a constant with no organ
+    behind it, and one that returned neither could not fire at all.
+
+    COMPANY-SIDE ONLY, and that is a wall reading rather than a convenience:
+    an "organ default" is a value the COMPANY chose for itself, so the class is
+    keyed on `__module__` starting `company.`. A harness dataclass of this
+    module's own (`PeriodRecord`) has no organ behind its defaults to diverge
+    from.
+
+    One level of local indirection is followed (`window_days = CONST + drift`
+    then `f(param=window_days)`), because that is the shape the shipped call
+    uses and a walker that only read direct `f(param=CONST)` would report this
+    scenario as shadow-free -- green, and blind to its own subject.
+    """
+    fn = build_scenario if fn is None else fn
+    tree = ast.parse(textwrap.dedent(inspect.getsource(fn)))
+    locals_to_constants: Dict[str, set] = {}
+    for sub in ast.walk(tree):
+        if isinstance(sub, ast.Assign):
+            read = _constants_read(sub.value)
+            for tgt in sub.targets:
+                if isinstance(tgt, ast.Name) and read:
+                    locals_to_constants.setdefault(tgt.id, set()).update(read)
+    out: Dict[str, Tuple[str, str]] = {}
+    for sub in ast.walk(tree):
+        if not isinstance(sub, ast.Call) or not isinstance(sub.func, ast.Name):
+            continue
+        target = getattr(sys.modules[__name__], sub.func.id, None)
+        if not inspect.isclass(target):
+            continue
+        if not str(getattr(target, "__module__", "")).startswith("company."):
+            continue
+        try:
+            params = inspect.signature(target.__init__).parameters
+        except (TypeError, ValueError):
+            continue
+        for kw in sub.keywords:
+            if kw.arg is None or kw.arg not in params:
+                continue
+            if params[kw.arg].default is inspect.Parameter.empty:
+                # A REQUIRED parameter has no default to shadow. This is the
+                # null control's own branch.
+                continue
+            names = set(_constants_read(kw.value))
+            if isinstance(kw.value, ast.Name):
+                names |= locals_to_constants.get(kw.value.id, set())
+            for name in names:
+                out[name] = (target.__name__, kw.arg)
+    return out
+
+
+# The `measured_divergence` fields a shadowing constant owes, and that every
+# run re-derives. The `cost` block is deliberately NOT here -- it is a dated
+# measurement, checked for presence and provenance, never for a live match.
+_DIVERGENCE_LIVE_FIELDS = ("organ_default_window_days", "harness_window_days",
+                           "divergence_days", "never_forgets_drift_days",
+                           "scored_saturated")
+_DIVERGENCE_COST_FIELDS = ("measured", "at_head", "how")
+
+
+def measure_scored_window_provenance(
+    records: Optional[Sequence["PeriodRecord"]] = None,
+    as_of: Optional[date] = None,
+    window_days: Optional[int] = None,
+) -> Dict[str, object]:
+    """WHERE THE SCORED COMPANY'S MEMORY CAME FROM, and what shadowing the
+    organ's own default costs this book (atom D27).
+
+    The organ default is read off the organ's signature; the harness value off
+    this module; the never-forgets drift and the saturation off the BOOK the
+    caller supplies. Nothing here is copied from a comment, which is the whole
+    complaint this atom was minted on -- the constant's stated reason is a
+    design note, and a design note standing in for a measurement is what let a
+    published figure lose all resolution on the only company parameter it reads
+    while every control stayed green.
+
+    Without a book, the two book-derived fields are `None` rather than absent:
+    a caller measuring the CONSTANTS is a different question from one measuring
+    a company against a population, and reporting 0 for "no book" would say
+    "already saturated" about a book that bounds nothing."""
+    organ = organ_default_failure_window_days()
+    harness = (DD_FAILURE_WINDOW_DAYS if window_days is None
+               else int(window_days))
+    res = (None if records is None or as_of is None
+           else measure_belief_window_resolution(records, as_of,
+                                                 window_days=harness))
+    return {
+        "organ_default_window_days": organ,
+        "harness_window_days": harness,
+        "divergence_days": harness - organ,
+        "origin_is_organ_default": harness == organ,
+        "never_forgets_drift_days": (
+            None if res is None
+            else (None if res["oldest_event_age_days"] is None
+                  else max(0, int(res["oldest_event_age_days"]) - harness))),
+        "scored_saturated": None if res is None else res["saturated"],
+        "scored_headroom_days": None if res is None else res["headroom_days"],
+        "shadows": scenario_organ_default_shadows(),
+    }
+
+
+def check_scored_window_provenance(
+    measured: Optional[Dict[str, object]] = None,
+    census: Optional[Dict[str, Dict[str, object]]] = None,
+) -> List[str]:
+    """A SHADOWED ORGAN DEFAULT OWES A MEASURED DIVERGENCE (atom D27, R10).
+
+    Returns violations; empty means every scenario constant that shadows a
+    company organ's default declares how far it diverges from it and what the
+    divergence costs -- with the live half re-derived here and the expensive
+    half carrying its date and its subject.
+
+    Both directions fail. A shadow with no declaration is the D27 defect
+    itself; a declaration on a constant that shadows nothing is a field
+    sprinkled to buy a pass, and it would make the rule undiscriminating --
+    which is the failure mode a control like this one actually dies of."""
+    census = SCENARIO_CONSTANT_CENSUS if census is None else census
+    if measured is None:
+        records, _consumer, _book, as_of = build_scenario(
+            300, seed=RESOLUTION_SEEDS[0])
+        measured = measure_scored_window_provenance(records, as_of)
+    shadows = dict(measured.get("shadows") or {})
+    out: List[str] = []
+    for name in sorted(set(census) - set(shadows)):
+        if census[name].get("measured_divergence") is not None:
+            out.append(
+                f"{name}: declares a `measured_divergence` and `build_scenario`"
+                " hands it to no company constructor default -- there is no "
+                "organ behind it to diverge FROM, and a rule that accepted "
+                "this could be satisfied by every constant in the census"
+            )
+        if census[name].get("shadows_organ_default") is not None:
+            out.append(
+                f"{name}: declares `shadows_organ_default` and the AST finds "
+                "no such call -- a declaration outliving its call site reads "
+                "exactly like a live one"
+            )
+    for name, pair in sorted(shadows.items()):
+        entry = census.get(name)
+        if entry is None:
+            out.append(
+                f"{name}: shadows `{pair[0]}.{pair[1]}` and is not censused at "
+                "all -- the D27 shape, before anyone has tripped over it"
+            )
+            continue
+        if tuple(entry.get("shadows_organ_default") or ()) != tuple(pair):
+            out.append(
+                f"{name}: shadows `{pair[0]}.{pair[1]}` and the census "
+                f"declares {entry.get('shadows_organ_default')!r}"
+            )
+        div = entry.get("measured_divergence")
+        if not isinstance(div, dict):
+            out.append(
+                f"{name}: shadows the organ default `{pair[0]}.{pair[1]}` and "
+                "records no `measured_divergence` -- the constant's own "
+                "comment is a design note, and a design note standing in for a "
+                "measurement is atom D27 itself"
+            )
+            continue
+        for field in _DIVERGENCE_LIVE_FIELDS:
+            if field not in div:
+                out.append(f"{name}: `measured_divergence` omits `{field}`")
+                continue
+            got = measured.get(field)
+            if got is not None and div[field] != got:
+                out.append(
+                    f"{name}: declares {field}={div[field]!r} and this run "
+                    f"measures {got!r} -- re-derive it (the organ's default, "
+                    "this module's origin or the book has moved)"
+                )
+        cost = div.get("cost")
+        if not isinstance(cost, dict):
+            out.append(
+                f"{name}: declares a divergence and no `cost` -- how far the "
+                "harness sits from the organ is not what the divergence BUYS "
+                "or SPENDS, and only the second one is the atom"
+            )
+            continue
+        for field in _DIVERGENCE_COST_FIELDS:
+            if not cost.get(field):
+                out.append(
+                    f"{name}: the divergence `cost` omits `{field}` -- a number "
+                    "too expensive to re-derive per run carries its date and "
+                    "its subject or it reads as live"
+                )
+    return out
 
 
 def _check_census_is_complete(measured: Dict[str, object],
@@ -13760,6 +14155,35 @@ def main() -> None:
           "edges are read from (describes this book: "
           f"{_cen['describes_this_books_failure_span']}); the invoice span "
           "above is a DIFFERENT and denser population")
+
+    # WHERE THE SCORED COMPANY'S MEMORY CAME FROM (atom D27), on the run that
+    # publishes. The census above says this constant sets no EDGE, which is
+    # true and is not the whole of it: it is the ORIGIN the edges are measured
+    # from, and it shadows a default the company organ chose for itself. Nothing
+    # recorded what that shadowing costs until this block, which is the atom --
+    # a design note standing in for a measurement.
+    _swp = measure_scored_window_provenance(
+        _cen_recs, _cen_as_of, window_days=_cen_c.dd_failure_window_days)
+    print("  [memory-origin provenance] the scored company's "
+          f"{_swp['harness_window_days']}d memory against the organ's own "
+          f"shipped default of {_swp['organ_default_window_days']}d (derived "
+          "from its signature, never hand-typed): divergence "
+          f"{_swp['divergence_days']}d, is the organ's default: "
+          f"{_swp['origin_is_organ_default']}")
+    print("           never-forgets drift for this book: "
+          f"{_swp['never_forgets_drift_days']}d "
+          "(0 = the SCORED company already never forgets, so the published "
+          "figure cannot tell it from one that keeps a recovered customer in "
+          f"collections for ever); headroom {_swp['scored_headroom_days']}d")
+    print(f"           shadowed organ defaults, derived from build_scenario's "
+          f"AST: {sorted(_swp['shadows'])}")
+    _swp_violations = check_scored_window_provenance(_swp)
+    print("           verdict: "
+          + ("every shadowed organ default declares its measured divergence"
+             if not _swp_violations
+             else f"{len(_swp_violations)} VIOLATION(S)"))
+    for v in _swp_violations:
+        print(f"           !! {v}")
 
     # THE BELIEF EDGES' OWN POPULATION AXIS (atom D30, 2026-08-18). The two
     # resolution controls above are called with a hard `n_customers=300` at
