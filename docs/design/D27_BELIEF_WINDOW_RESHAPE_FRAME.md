@@ -1,10 +1,11 @@
 # FRAME — D27: where the scored company sits inside its own blind band
 
-**Atom:** `D27_belief_window_saturates_on_this_book` (lane D_billing_metering, L0, `loop_stage: idle`)
-**Stage:** FRAME only. **No BUILD code was written** — the atom is epoch-parked and BUILD-gated
-(`EPOCH_GATING_AND_ATOM_AUTHORSHIP.md` Rule 1). This document is the settled design the BUILD draw
-takes, and nothing here is landed in `tools/couple_w2_11_d5.py`.
-**Date:** 2026-08-14 (worker tick, DISCOVER/FRAME lane)
+**Atom:** `D27_belief_window_saturates_on_this_book` (lane D_billing_metering, L0, `loop_stage: build`)
+**Stage:** §§1–8 are the FRAME, written when the atom was `loop_stage: idle` and no BUILD code
+existed. **§9 onwards is BUILD** — the atom's stage moved and the draw is live, so parts of this
+document ARE now landed in `tools/couple_w2_11_d5.py`; §9.4 states exactly which, and §9.5 states
+what is still only designed. The reshape itself is NOT landed.
+**Date:** 2026-08-14 FRAME (worker tick, DISCOVER/FRAME lane); §9 2026-08-22 (worker tick, BUILD lane)
 **Origin:** `docs/staging/WORKER_FINDING_THE_BELIEF_MEMORY_SATURATES_ON_THIS_BOOK_2026-08-11.md`
 (H27 Expert Hour #9)
 
@@ -191,3 +192,204 @@ def run(window, seed, drift=0, n=300):
 # A: run(400, seed); B: run(90, seed); drifts as in the tables above.
 # C/D/E additionally set C.N_PERIODS to 13, 13 and 20.
 ```
+
+---
+
+## 9. BUILD pass 1 — 2026-08-22 (worker tick, BUILD lane)
+
+**Everything in §2 re-measured at HEAD `34ee29090` before anything was built** (the FRAME's
+figures were 8 days old and D30/D33 passes had landed on this module since). n=300, seeds 7/11/23,
+shipped `build_scenario`/`score_triad`/`measure_belief_window_resolution`, origin substituted in a
+scratch script.
+
+**A and B reproduce bit-identically.** A (400): headroom +309/+308/+308, saturated.
+B (organ default 90): headroom −1/−2/−2, not saturated, `predicted_saturates_above_drift`
++1/+2/+2 and `_below` −61/−61/−60. `belief` 0.1518987→0.1708861 (seed 7), 0.1913580→0.2037037 (11),
+0.1352941→0.1411765 (23). R13 differential holds: `ageing`, `detection`, `detection_latency`
+bit-identical between A and B on every seed.
+
+### 9.1 One equality stronger than the FRAME had
+
+The FRAME states reading 2 as "today's published belief figure IS the never-forgets company's
+figure", evidenced by B's `+500` column. Measured this pass with the counterfactual reached by a
+**book-derived** drift (`oldest observed failure age − window`) rather than by a large literal:
+**A == never-forgets on ALL FIVE dimensions, every seed** — not just the two belief figures. So the
+claim is checkable forever without the number 400 or 500 appearing anywhere, which is what
+`test_todays_published_figure_is_the_never_forgets_companys_figure` now asserts.
+
+### 9.2 The bands at the candidate origin, re-derived (not translated)
+
+`measure_own_drift_resolution(n_customers=300)` over the book-derived grid with the two belief
+entries' declarations emptied, so the grid is the book's alone (73s, 65 grid points × 3 seeds):
+
+| | `belief` | `belief_population_mix` |
+|---|---|---|
+| measured **unmoved** (all seeds) | **none — the band is empty** | `(-1,)` |
+| `own_collapsed_runs` | `(-90,-61), (-48,-47,-46), (-23,-22), (-21,-20)` | `(-90,-61), (-23,-22), (-1,0), (1,2)` |
+| `own_saturates_below` | −61 | −61 |
+| `own_saturates_above` | **None** (see §9.3) | +1 |
+| readable floor, own scorer @4dp | **310d → 4d** | **314d → 4d** |
+
+`measure_published_resolution_floor` (69s): both figures resolve a **4-day** memory error at the
+organ's default, against 310d and 314d today, with `readable_at_every_drift_beyond_floor` True on
+both. `measure_belief_band_population_axis`: `above_edge_range` (−23, 2), `below_edge_range`
+(−61, −32); the derived null-control floor stays **n=17** and the invoice span stays (30, 92) — the
+origin move does not move the law, which is what that null control exists to say.
+
+Criterion 5 survives in a different shape than the FRAME predicted: the two figures' *readable
+floors* become equal (4 and 4) where today they differ (310 vs 314), while the *bands* still differ —
+`belief` has no invisible drift at all and the mix is blind at −1 and saturates above at +1. Per-
+dimension bands are still required; a shared band would now be wrong in the opposite direction.
+
+### 9.3 NEW FINDING — the reshape re-opens D29's defect at the other edge
+
+`book_memory_grid` is `{a−W, a−1−W : a ∈ ages} ∪ {0, −W}`. Its **top point is `oldest − W`, which is
+exactly the saturation point**, and a collapsed run needs two points. At the shipped origin the
+declarations union in `+1`/`+500`, supplying the second point by accident. At the organ's default
+they do not, and `belief`'s `saturates_above` is measured **None on a book that provably saturates
+above** — the identical shape D29 named at the bottom ("D27 measured `saturates_below = None` on a
+book that saturates below" because the low tail held one grid point), reappearing at the top,
+*introduced by this reshape*.
+
+The bottom extreme is total amnesia (`window == 0`). The symmetric top extreme is the never-forgets
+company, and it is now derivable: **`book_memory_grid` must include `never_forgets_drift_days + 1`.**
+One point suffices and that is provable rather than swept — an event at age `a` is counted iff
+`a ≤ window` and no `a > oldest` exists, so every larger window is bit-identical by construction.
+
+This changes the grid at the **current** origin too (seed 11/23 gain −307), so it moves the shipped
+`own_collapsed_runs` declarations and must land in the same commit as the re-derivation.
+
+### 9.4 What this pass built, and what it did not
+
+**Built by pass 1; committed by pass 3 as `ccac8c0d6`** — passes 1 and 2 each wrote that this was
+landed and neither committed anything (§10, §11), so for two passes the claim was true of no tree
+but its author's. The commit id above is the point: it is checkable by `git show ccac8c0d6:` against
+any later tree, which the word "Landed" never was. Files (`tools/couple_w2_11_d5.py`,
+`tests/tools/test_couple_w2_11_d5.py`; no
+published figure moves): `organ_default_failure_window_days()` (criterion 2's derivation, fail-closed at three
+unreadable-organ shapes); `never_forgets_drift_days()` (book-derived, replacing the literal as the
+route to the counterfactual — **0 on the shipped origin, which is the finding stated in the
+coordinate the reshape moves**); `scenario_organ_default_shadows()`, which derives from
+`build_scenario`'s AST *which* constants shadow a company organ default rather than naming this one
+(R10), with its null control one line away in the same function (`LedgerEvent(amount_gbp=...)` is a
+**required** parameter and is correctly not a shadow); `measure_/check_scored_window_provenance`,
+wired into `main()`'s control block (the module's check-call census reads 25 controls, 0
+UNREACHABLE); and `SCENARIO_CONSTANT_CENSUS["DD_FAILURE_WINDOW_DAYS"]["measured_divergence"]`, which
+records the divergence and its **cost** with a date and a subject.
+
+The class rule is the point: *a scenario constant that shadows a company organ's default owes a
+measured divergence, and a design note is not one.* Both directions fail — a shadow with no
+declaration, and a declaration on a constant that shadows nothing.
+
+**Not landed: the reshape itself.** The origin is still 400. Measured reason for stopping here
+rather than half-landing: the flip invalidates every memory declaration in the register (they are
+stated in drift coordinates whose zero IS this constant), and this test file runs **~55 minutes**,
+so the ~30 assertions carrying `-308`/`-309`/`-371`/`400` cannot be re-derived and verified inside
+one bounded tick. The sweeps themselves are cheap (73s / 69s / 2s) and their results are in §9.2, so
+the continuation does not need to re-measure.
+
+The provenance control is a **ratchet on that continuation, not a description of the defect**:
+moving the origin fires it four independent ways (`harness_window_days`, `divergence_days`,
+`never_forgets_drift_days`, `scored_saturated`), verified live this pass. The reshape cannot land
+without re-deriving the record.
+
+### 9.5 The continuation, in order
+
+1. Add the never-forgets point to `book_memory_grid` (§9.3) and re-derive the shipped
+   `own_collapsed_runs` at the **current** origin — this is a standalone, publishable repair.
+2. Flip the origin to `organ_default_failure_window_days()` and take §9.2's declarations.
+3. `recency_contribution` (criterion 4). Note the constraint the FRAME does not state: the window is
+   a **constructor** argument and `_arrears_risk_belief` reads it off the consumer, so `score_triad`
+   — which holds one consumer and no builder — cannot compute it. It needs a reference reading
+   threaded in from a second build (`measure()` can; the live `run_phase2b` path cannot, and must
+   publish "not measured on this call" rather than a frozen number).
+4. Re-derive `own_readable_resolution_floor_days` (4/4) and the axis edge ranges (§9.2), update the
+   ~30 assertions, and regenerate the coupled-gap ledger row (R2/R11 — the figure is not moved until
+   the artefact carries it).
+
+---
+
+## 10. BUILD pass 2 — 2026-08-22 03:54 (worker tick, LAND lane)
+
+**Pass 2 wrote no new mechanism.** It found pass 1's entire output — 640 insertions across the two
+`file_scope` files, plus §9 of this document — sitting **uncommitted in the shared working tree**,
+verified it, and wrote the sentence "and landed it" here. **It did not land it** (§11): the reflog's
+last `surgical-land` was `02:53:53` and no commit followed, so this paragraph as pass 2 left it was
+the second false landing claim in this document — made inside the section diagnosing the first.
+At `34ee29090` every symbol §9.4 called "Landed" was absent: `git show
+HEAD:tools/couple_w2_11_d5.py | grep -c` returned **0** for `organ_default_failure_window_days`,
+`never_forgets_drift_days`, `scenario_organ_default_shadows` and `measure_scored_window_provenance`,
+and 0 for `measured_divergence` in the census. Pass 1 ended ~03:52; the tick that drew this atom
+began 03:54, so the work was two minutes from being the next lane's revert.
+
+**What pass 2 verified** (targeted, not the ~55-minute whole file) — reproduced independently by
+pass 3 in §11, which is the only reason this table survives at all:
+
+| selection | result |
+|---|---|
+| the five new tests (`-k "memory_origin or shadow_finder or shadowed_organ_default or never_forgets_drift or never_forgets_companys_figure"`) | **5 passed**, 8.45s |
+| `-k "census or runs_in_the_cli"` — the control-reachability and constant-census population | **25 passed**, 133s, exit 0 |
+
+The diff is **pure addition — 640 insertions, 0 deletions**, which is why a targeted selection is
+adequate evidence here and would not be for a pass that changed a shipped derivation.
+
+### 10.1 The class this belongs to
+
+Not a new class: `CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md`, and the same shape as
+`WORKER_FINDING_THE_LIVE_VALUATION_IS_SERVED_BY_AN_UNCOMMITTED_GENERATOR_2026-08-17.md`. What this
+instance adds is that **the false claim was load-bearing for the continuation**: §9.5 tells the next
+pass to build *on top of* `book_memory_grid` and `organ_default_failure_window_days()`. A pass
+drawing D27 after a concurrent lane reverted the tree would have read "Landed", found the symbols
+gone, and had no way to tell a revert from a rename — the document names no commit to check against.
+
+The durable lesson is in the asymmetry: pass 1 spent a full tick measuring (73s + 69s sweeps, three
+seeds, bit-identical reproduction) and then risked all of it on the one step that costs seconds. A
+measurement that is not committed is not evidence, because nothing can be asked to reproduce it.
+
+---
+
+## 11. BUILD pass 3 — 2026-08-22 (worker tick, LAND lane) — the second false landing claim
+
+**Pass 3 wrote no new mechanism either.** It drew this atom, read §9.4's "Landed" and §10's "and
+landed it", and checked both against git rather than against the document. Both were false:
+
+| asked of git | answer |
+|---|---|
+| `git show HEAD:tools/couple_w2_11_d5.py \| grep -c <symbol>` for the four new functions | **0, 0, 0, 0** |
+| `grep -c measured_divergence` in the census, at HEAD | **0** |
+| the same five greps in the **working tree** | 2, 6, 3, 4, 8 |
+| `git reflog --date=iso` — the last `surgical-land` before this tick | **`34ee29090`, 02:53:53**, and nothing after it but publisher commits at 03:07 and 03:47 |
+
+So pass 2 diagnosed pass 1's false claim, wrote a section about it, verified the work — and then
+made the identical claim itself. The 640 insertions had by then survived three publisher commits in
+the shared tree by luck.
+
+**Reproduced before landing, on pass 3's own run rather than on pass 2's table:**
+
+| selection | pass 2 recorded | pass 3 measured |
+|---|---|---|
+| the five new tests | 5 passed, 8.45s | **5 passed, 8.31s** |
+| `-k "census or runs_in_the_cli"` | 25 passed, 133s | **25 passed, 135.91s, exit 0** |
+
+Landed as **`ccac8c0d6`**, 640 insertions / 0 deletions across the two `file_scope` files, and
+verified **by the tree**: all five symbols return non-zero from `git show ccac8c0d6:`, and the only
+path left dirty afterwards is this document.
+
+### 11.1 Why this is R3, not a third instance of §10.1
+
+Two false completion claims on the same component is the two-strike rule, and the answer is not a
+third paragraph saying "commit your work". What both passes actually lacked was a **checkable
+referent**: "Landed" names no tree, so a later pass cannot tell a lost commit from a revert from a
+rename, and cannot tell a true claim from a false one *at all* without re-deriving the whole diff.
+`ccac8c0d6` in §9.4 can be asked. That is the whole of the repair that belongs in this document.
+
+The class-level control — something that refuses a pass whose record says "landed" while its
+`file_scope` is dirty at tick end — is **queued, not built here**, per SELF_INTERRUPT_DISCIPLINE and
+because it is out of this atom's `file_scope`. Its home is
+`CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md`, and it now has three instances to size itself
+against, two of them in this file. Note for whoever builds it: a pre-commit hook cannot see this
+class (a pass that commits nothing never reaches one), so it needs a tick-boundary sweep.
+
+**§9.5 is unchanged and still the continuation.** The reshape is not landed; the origin is still
+400. Step 1 (the never-forgets point in `book_memory_grid`, §9.3) remains the standalone repair to
+take next, and it now has a committed base to build on.
