@@ -2119,7 +2119,7 @@
   file_scope: [company/carbon, tests/company/test_carbon_ledger.py, tests/company/test_carbon_not_a_target.py]
   depends_on: []
   blocked_on: null
-  simplifications_count: 6
+  simplifications_count: 7
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier's carbon-accounting desk: emissions saved for customers, operational emissions spent serving them, and the net -- reported and audited like a P&L, not a single flattering number"
   records_rehomed: [evidence]

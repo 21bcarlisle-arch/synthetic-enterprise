@@ -1978,7 +1978,77 @@ REPORTED_NOT_BLOCKING = {
 # CLOCK_TRUTH_AND_THE_BRIDGE.md 2026-07-12): "No financial figure is
 # published without its clock. A number whose basis is unstated is a defect,
 # not a formatting choice."
-_BASIS_REQUIRED_PORTFOLIO_KEYS = ("net_margin_gbp", "enterprise_value_gbp")
+#
+# WHICH FIGURES ARE THE SUBJECT IS DERIVED, NOT A HAND-KEPT LIST
+# (2026-08-22, E5_carbon_three_ledger FRAME control C4, promoted from the
+# instance to the class per R10.)
+#
+# This was `_BASIS_REQUIRED_PORTFOLIO_KEYS = ("net_margin_gbp",
+# "enterprise_value_gbp")` -- a two-name allowlist. R14 says EVERY published
+# financial figure carries its clock; an allowlist inverts that, because a
+# figure is checked only if somebody remembered to name it. So every new
+# headline figure was BORN UNCHECKED and passed this gate by never being its
+# subject: fail-silent, the third of R15's three killer patterns.
+#
+# E5's FRAME surfaced it as one instance -- a published tCO2e figure "would
+# pass the R14 basis gate BY NEVER BEING CHECKED" -- and named the class-fix
+# explicitly ("extend the gate's subject set rather than append two keys").
+# Running the derived rule over the real extract_portfolio before changing
+# anything showed the class was already live, not hypothetical: SEVEN keys
+# carry a published-money suffix and only TWO were named. The other five --
+# gross_margin_gbp, treasury_start_gbp, treasury_end_gbp, cost_to_serve_gbp,
+# net_after_cts_gbp -- have been published with no clock at all, invisible to
+# the one gate that exists to see exactly that.
+#
+# Those five are NOT silently grandfathered, and they are NOT given invented
+# labels either: asserting a clock nobody has established is precisely the
+# false claim R14 exists to prevent. They are declared BY NAME with a reason
+# below, which makes the debt enumerable and, the point of the exercise,
+# NON-GROWABLE -- a figure added tomorrow is not on the list, so it fails.
+#
+# Three-direction ratchet, same shape as the publish-blocker table further
+# down, driven from tests/tools/test_generate_dashboard_data_basis_subject_set.py:
+#   - a suffixed portfolio key with no basis entry and no declaration -> FAIL
+#   - a declaration for a key extract_portfolio no longer emits        -> FAIL (stale)
+#   - a declaration for a key that HAS acquired a real basis entry     -> FAIL (stale)
+_BASIS_REQUIRED_SUFFIXES = ("_gbp", "_tco2e")
+
+#: Figures that predate the derived rule and publish WITHOUT a clock. Each
+#: entry is an admission of debt, never a finding that no clock is needed.
+#: Removing an entry is the repair; adding one needs the same justification
+#: in writing, and the ratchet test above will not let one rot here unread.
+_BASIS_DECLARED_UNLABELLED = {
+    "gross_margin_gbp": (
+        "settlement-derived like net_margin_gbp but has never been given its own "
+        "basis entry; inherits that line's settled/billed divergence and would need "
+        "its own bridge row before a clock could be asserted honestly"
+    ),
+    "treasury_start_gbp": (
+        "a treasury BALANCE, not a margin -- its clock is 'banked', but the "
+        "banked-clock definition for opening/closing balances has not been written "
+        "down anywhere a reader can check, so stating it here would be an assertion"
+    ),
+    "treasury_end_gbp": "same as treasury_start_gbp -- the closing side of the same unwritten balance clock",
+    "cost_to_serve_gbp": (
+        "activity-derived (G11_activity_cost_utilisation), whose own coverage limit is "
+        "an open finding; a clock label would imply a completeness this figure does not have"
+    ),
+    "net_after_cts_gbp": "computed FROM net_margin_gbp and cost_to_serve_gbp, so it cannot carry a cleaner basis than the latter",
+}
+
+
+def _basis_required_portfolio_keys(portfolio):
+    """The gate's subject set, DERIVED from the portfolio being published
+    rather than declared ahead of it -- see the block above for why an
+    allowlist here is fail-silent by construction. Any key naming a published
+    money or carbon quantity is a subject unless it is explicitly declared
+    unlabelled."""
+    return tuple(sorted(
+        key for key in portfolio
+        if isinstance(key, str)
+        and key.endswith(_BASIS_REQUIRED_SUFFIXES)
+        and key not in _BASIS_DECLARED_UNLABELLED
+    ))
 
 
 def _check_basis_labels_present(portfolio):
@@ -1989,7 +2059,7 @@ def _check_basis_labels_present(portfolio):
     front door (the exact failure this rule exists to prevent)."""
     basis = portfolio.get("basis", {}) or {}
     missing = []
-    for key in _BASIS_REQUIRED_PORTFOLIO_KEYS:
+    for key in _basis_required_portfolio_keys(portfolio):
         if portfolio.get(key) is None:
             continue
         entry = basis.get(key)
@@ -2003,6 +2073,16 @@ def _check_basis_labels_present(portfolio):
             file=sys.stderr,
         )
         return False
+    # The declared-unlabelled debt is REPORTED on every cycle, never silent --
+    # a register nobody reads is how five figures got here in the first place.
+    declared = sorted(k for k in portfolio if k in _BASIS_DECLARED_UNLABELLED)
+    if declared:
+        print(
+            "BASIS-LABEL DEBT: {} published figure(s) still carry no clock -- {}".format(
+                len(declared), ", ".join(declared)
+            ),
+            file=sys.stderr,
+        )
     return True
 
 
