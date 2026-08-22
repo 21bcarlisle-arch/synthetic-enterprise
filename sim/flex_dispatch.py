@@ -578,10 +578,37 @@ def encode_wall_response(response: WallResponse) -> dict:
     }
 
 
+def _frame_feed(responses, *, handed_over_at: dt.datetime) -> List[dict]:
+    """Encode every response of one feed and hand each one over inside the
+    transport frame of the participant that operates ITS OWN venue.
+
+    PER MESSAGE, NOT PER FEED, and that is not a stylistic choice: a stacked
+    feed carries lines for several venues at once, and in GB those venues are
+    not all run by the same party. A feed signed once by "the sender" would
+    stamp a local constraint market's line with the system operator's identity
+    -- a forgery the world itself committed, and one no company-side check
+    could ever catch, because the company would be authenticating a claim the
+    world had already made false.
+
+    The venue is read off `r.payload.venue`, which is the WORLD'S own record of
+    which market it is settling -- the payload is being constructed here, not
+    received, so there is no message to be believed and no tautology to avoid.
+    """
+    return [
+        frame_venue_message(
+            encode_wall_response(r),
+            venue=r.payload.venue,
+            handed_over_at=handed_over_at,
+        )
+        for r in responses
+    ]
+
+
 def emit_settlement_lines_over_wire(
     truth: FlexDispatchTruth,
     *,
     registrations: "VenueRegistrations",
+    handed_over_at: dt.datetime,
     unit_id: str = "FLEX_UNIT_1",
     venue: FlexVenue = FlexVenue.BALANCING_MECHANISM,
     settlement_lag_days: int = _SETTLEMENT_LAG_DAYS,
@@ -597,6 +624,12 @@ def emit_settlement_lines_over_wire(
     checked against it before it crosses, and a window it does not cover raises
     `UnregisteredDispatch` rather than settling a unit nobody enrolled (see THE
     VENUE'S TEETH below).
+
+    `handed_over_at` IS REQUIRED AND HAS NO DEFAULT, same rule as
+    `frame_venue_message` states it (EP6 pass 61): the tempting default is the
+    statement's own `observed_at`, and a hand-over clock read off the document
+    it wraps can never disagree with it. A statement is handed over as a BATCH
+    -- one settlement run, one moment -- so one clock covers the feed.
     """
     responses = emit_settlement_lines(
         truth,
@@ -613,13 +646,14 @@ def emit_settlement_lines_over_wire(
             r.payload.window_end,
             "settlement line",
         )
-    return [encode_wall_response(r) for r in responses]
+    return _frame_feed(responses, handed_over_at=handed_over_at)
 
 
 def emit_dispatch_instructions_over_wire(
     truth: FlexDispatchTruth,
     *,
     registrations: "VenueRegistrations",
+    handed_over_at: dt.datetime,
     unit_id: str = "FLEX_UNIT_1",
     venue: FlexVenue = FlexVenue.BALANCING_MECHANISM,
     direction: FlexDirection = FlexDirection.TURN_DOWN,
@@ -629,7 +663,8 @@ def emit_dispatch_instructions_over_wire(
 
     `registrations` is REQUIRED for the same reason it is on the settlement leg
     -- and it matters MORE here, because an instruction is the moment a unit is
-    actually called."""
+    actually called. `handed_over_at` is required for the reason given on the
+    settlement leg."""
     responses = emit_dispatch_instructions(
         truth, unit_id=unit_id, venue=venue, direction=direction
     )
@@ -642,7 +677,7 @@ def emit_dispatch_instructions_over_wire(
             r.payload.window_end,
             "dispatch instruction",
         )
-    return [encode_wall_response(r) for r in responses]
+    return _frame_feed(responses, handed_over_at=handed_over_at)
 
 
 # ---------------------------------------------------------------------------
@@ -1707,9 +1742,15 @@ def emit_dispatch_instructions_stacked_over_wire(
     truth: StackedFlexTruth,
     *,
     registrations: "VenueRegistrations",
+    handed_over_at: dt.datetime,
     unit_id: str = "FLEX_UNIT_1",
 ) -> List[dict]:
     """`emit_dispatch_instructions_stacked`, on the wire.
+
+    THIS IS THE FEED WITH TWO SENDERS IN IT. A stacked portfolio is called at
+    several venues at once, and a local constraint market is run by a different
+    participant from the national ones -- so `_frame_feed` signs each message
+    with ITS OWN venue's operator, and one list crosses carrying two identities.
 
     `registrations` is REQUIRED, exactly as on the single-venue legs, and here
     the book is asked a question it is not asked anywhere else: the SAME unit
@@ -1729,13 +1770,14 @@ def emit_dispatch_instructions_stacked_over_wire(
             r.payload.window_end,
             "stacked dispatch instruction",
         )
-    return [encode_wall_response(r) for r in responses]
+    return _frame_feed(responses, handed_over_at=handed_over_at)
 
 
 def emit_settlement_lines_stacked_over_wire(
     truth: StackedFlexTruth,
     *,
     registrations: "VenueRegistrations",
+    handed_over_at: dt.datetime,
     unit_id: str = "FLEX_UNIT_1",
     settlement_lag_days: int = _SETTLEMENT_LAG_DAYS,
 ) -> List[dict]:
@@ -1744,7 +1786,7 @@ def emit_settlement_lines_stacked_over_wire(
     `registrations` is REQUIRED for the same reason as on every other wire leg.
     The stacked settlement feed is where an unregistered venue would be PAID,
     so a book that covers the unit at one venue does not license a statement
-    line at another.
+    line at another. Signed per venue, as the stacked instruction feed is.
     """
     responses = emit_settlement_lines_stacked(
         truth, unit_id=unit_id, settlement_lag_days=settlement_lag_days
@@ -1758,4 +1800,4 @@ def emit_settlement_lines_stacked_over_wire(
             r.payload.window_end,
             "stacked settlement line",
         )
-    return [encode_wall_response(r) for r in responses]
+    return _frame_feed(responses, handed_over_at=handed_over_at)

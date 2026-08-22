@@ -75,6 +75,10 @@ from interface.contracts.flex_observable_seam import (
     FlexVenue,
 )
 from sim.flex_dispatch import (
+    # The world's own settlement lag, imported for the same reason as
+    # `_base_date`: the harness stamps when the venue handed its statement over,
+    # and a second copy of that lag here would be a second thing to keep true.
+    _SETTLEMENT_LAG_DAYS,
     DEFAULT_AVAILABILITY_CALL_PERCENTILE,
     DEFAULT_ENROLLED_MW,
     DEFAULT_PERIOD_HOURS,
@@ -123,6 +127,28 @@ def _record_window(truth) -> "tuple[dt.datetime, dt.datetime]":
     """
     stamps = [_base_date(d) for d in truth.dates]
     return min(stamps), max(stamps) + dt.timedelta(hours=truth.period_hours)
+
+
+def _hand_over_clocks(truth) -> "tuple[dt.datetime, dt.datetime]":
+    """(instruction feed, settlement feed) hand-over moments for this record.
+
+    THE HARNESS HOLDS THE WORLD, so it is the harness that says when the venue
+    let go of each feed -- the same reason `solicit_registration` hands the
+    venue its read clock rather than letting the submitter's timestamp decide.
+
+    `frame_venue_message` REFUSES to default this stamp, and the default it
+    refuses is the envelope's own `observed_at` (EP6 pass 61): a hand-over time
+    read off the document it wraps could never disagree with it, which would
+    make the field unfalsifiable by construction.
+
+    TWO CLOCKS, NOT ONE. The instruction feed and the settlement feed are
+    separate events in time (C-S3) and a venue hands them over at separate
+    moments -- instructions as the record closes, the statement when the
+    settlement run for it completes. One shared stamp would quietly re-merge
+    the two events this seam exists to keep apart.
+    """
+    _start, end = _record_window(truth)
+    return end, end + dt.timedelta(days=_SETTLEMENT_LAG_DAYS)
 
 
 @dataclass(frozen=True)
@@ -409,9 +435,16 @@ def measure_l2(
     # because the alternative raises is still worth having as the reader's
     # evidence -- but it is no longer the only thing standing between this loop
     # and a settlement nobody asked for.
+    # THE STATEMENT IS SIGNED (EP6 pass 62). The venue hands it over inside its
+    # own transport frame, and `observe_settlement_wire` refuses one that does
+    # not name the participant this company holds as the operator of the venue
+    # settling it -- so an unauthenticated feed can no longer tell this loop it
+    # was paid.
+    _instruction_handed_over_at, statement_handed_over_at = _hand_over_clocks(truth)
     settlement = observe_settlement_wire(
         emit_settlement_lines_over_wire(
-            truth, unit_id=LOOP_UNIT_ID, registrations=registration.venue_book))
+            truth, unit_id=LOOP_UNIT_ID, registrations=registration.venue_book,
+            handed_over_at=statement_handed_over_at))
     observed_delivery = [line.metered_delivery_mwh for line in settlement]
 
     # -- IS THIS STATEMENT SOLICITED? Two quantities from two sides: the unit
@@ -606,13 +639,21 @@ def measure_l3(
     registration = solicit_registration_stacked(truth, venues=venues)
 
     # -- OBSERVABLES: what actually crossed the wall this run. --
+    # BOTH STACKED FEEDS CARRY TWO IDENTITIES (EP6 pass 62): each message is
+    # signed by the operator of ITS OWN venue, so a local constraint market's
+    # line arrives from a different participant than the national venues' do,
+    # in the same list. The company refuses any message whose signer does not
+    # run the venue it names.
+    instruction_handed_over_at, statement_handed_over_at = _hand_over_clocks(truth)
     instructions = [
         observe_response_wire(m, expect=FlexDispatchInstruction)
         for m in emit_dispatch_instructions_stacked_over_wire(
-            truth, registrations=registration.venue_book)
+            truth, registrations=registration.venue_book,
+            handed_over_at=instruction_handed_over_at)
     ]
     settlement = observe_settlement_wire(emit_settlement_lines_stacked_over_wire(
-        truth, registrations=registration.venue_book))
+        truth, registrations=registration.venue_book,
+        handed_over_at=statement_handed_over_at))
 
     # -- ARE THESE FEEDS SOLICITED? The L2 question asked per venue, and it is
     #    a genuinely different one at L3: a stacked party can be correctly

@@ -1145,7 +1145,10 @@ def test_the_verified_sender_is_returned_and_not_merely_checked():
 #: path -> how many AUTHENTICATED response decodes it makes.
 _FRAMED_CROSSING_SITES = {
     "company/billing/payment_observation_consumer.py": 2,
-    "company/market/flex_participation.py": 1,
+    # The enrolment leg (pass 61) and `observe_response_wire` -- the
+    # dispatch-instruction and settlement feeds (pass 62). Both legs of this
+    # module now authenticate, so it has left the bare table below.
+    "company/market/flex_participation.py": 2,
 }
 
 #: path -> how many response decodes it makes with NO participant check. Named
@@ -1153,19 +1156,22 @@ _FRAMED_CROSSING_SITES = {
 #: on purpose instead of a silence.
 _BARE_CROSSING_SITES = {
     "company/comms/susceptibility_estimator.py": 1,
-    # `observe_response_wire` -- the dispatch-instruction and settlement feeds.
-    # The enrolment leg above is framed; this one is not, and pass 61 says so
-    # rather than letting the file's other half cover for it.
-    "company/market/flex_participation.py": 1,
 }
 
 
-def _response_decode_sites() -> tuple[dict, dict]:
-    """(framed, bare) call-site counts across `company/**`, read off the tree."""
+def _response_decode_sites(root=None) -> tuple[dict, dict]:
+    """(framed, bare) call-site counts under `<root>/company`, read off the tree.
+
+    `root` IS A PARAMETER so the mutation test below can point this at a tree it
+    built. It defaults to the repository, which is what every real assertion
+    uses; nothing about the scan changes with it.
+    """
     import ast
     import pathlib
 
-    root = pathlib.Path(__file__).resolve().parents[3]
+    if root is None:
+        root = pathlib.Path(__file__).resolve().parents[3]
+    root = pathlib.Path(root)
     framed, bare = {}, {}
     scanned = 0
     for path in sorted((root / "company").rglob("*.py")):
@@ -1208,20 +1214,46 @@ def test_the_framed_and_bare_crossing_SITES_are_exactly_as_declared():
     assert bare == _BARE_CROSSING_SITES
 
 
-def test_MUTATION_a_file_with_ONE_framed_and_ONE_bare_leg_is_not_recorded_as_framed():
+def test_MUTATION_a_file_with_ONE_framed_and_ONE_bare_leg_is_not_recorded_as_framed(
+    tmp_path,
+):
     """The defect the per-file ratchet had, pinned so it cannot come back.
 
-    `flex_participation.py` is genuinely in BOTH tables -- one framed leg, one
-    bare -- and the old `if/elif` over file contents could not represent that:
-    it filed the module as framed and its bare leg stopped being named. This
-    asserts the overlap exists AND that it is counted on both sides, which is
-    the thing a per-file scan cannot say."""
-    framed, bare = _response_decode_sites()
+    ASKED OF A TREE THIS TEST BUILDS, not of the repository, and that changed at
+    EP6 pass 62 for a reason worth stating. Pass 61 wrote this against
+    `flex_participation.py`, which was then genuinely mixed -- a framed
+    enrolment leg and a bare feed leg. Pass 62 framed the feed, so no file in
+    this repository is mixed any more, and the version of this test that
+    asserted `overlap == {that file}` would have had to be deleted the moment
+    the wall got better. A control whose subject was repaired must not be a
+    control that dies: what it is really about is whether the SCANNER can
+    express a mixed file, and that question survives having no mixed file left.
+
+    So the mutation is constructed. A module with one `decode_framed_response`
+    call and one `decode_response` call is written into a scratch tree, and the
+    scan must name it on BOTH sides -- which the old per-file `if/elif` could
+    not do for any input at all.
+    """
+    module = tmp_path / "company" / "market"
+    module.mkdir(parents=True)
+    (module / "mixed.py").write_text(
+        "def a(w):\n"
+        "    return decode_framed_response(w, decode_payload=None)\n"
+        "def b(w):\n"
+        "    return decode_response(w, decode_payload=None)\n",
+        encoding="utf-8",
+    )
+    framed, bare = _response_decode_sites(root=tmp_path)
     overlap = set(framed) & set(bare)
 
-    assert overlap == {"company/market/flex_participation.py"}
-    for rel in overlap:
-        assert framed[rel] >= 1 and bare[rel] >= 1
+    assert overlap == {"company/market/mixed.py"}
+    assert framed["company/market/mixed.py"] == 1
+    assert bare["company/market/mixed.py"] == 1
+
+    # NULL CONTROL: the repository itself has no mixed file today, so a green
+    # above is the scanner working and not the tree happening to be mixed.
+    real_framed, real_bare = _response_decode_sites()
+    assert not (set(real_framed) & set(real_bare))
 
 
 # ---------------------------------------------------------------------------

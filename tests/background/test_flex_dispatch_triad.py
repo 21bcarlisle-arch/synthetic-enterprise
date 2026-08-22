@@ -28,6 +28,13 @@ from sim.flex_dispatch import (
     dispatch_and_settle,
 )
 
+#: A hand-over stamp for tests that call a wire leg DIRECTLY rather than through
+#: `measure_*`. Any datetime does here -- what these tests are about is what the
+#: venue put on the wire, not when it let go of it -- but there is deliberately
+#: no default on the emitters to fall back to (EP6 pass 61): a caller that
+#: cannot say when it handed a message over does not get to send one.
+_HANDED_OVER_AT = dt.datetime(2024, 3, 1, 9, 0)
+
 
 def _synthetic_record(n=400, seed=1):
     """Residual and price CORRELATED but not identical (a gas-like term moves
@@ -301,7 +308,8 @@ def test_TRANSPORT_DOES_NOT_MOVE_THE_BELIEF():
     as_bytes = [
         line.metered_delivery_mwh
         for line in observe_settlement_wire(
-            emit_settlement_lines_over_wire(truth, registrations=book))
+            emit_settlement_lines_over_wire(
+                truth, registrations=book, handed_over_at=_HANDED_OVER_AT))
     ]
     assert as_bytes == as_objects and len(as_bytes) > 0
 
@@ -319,14 +327,21 @@ def test_the_wire_carries_the_version_on_EVERY_message_the_harness_crosses():
     """Not a call-signature claim -- the emitted bytes are inspected. Channel
     D's lesson applied to channel C: the field being structurally present on
     the envelope is exactly what made its absence from the wire invisible for
-    four days."""
+    four days.
+
+    Read one level DOWN as of EP6 pass 62: the feed now hands over a transport
+    FRAME whose `envelope` is the message this assertion is about. Reaching
+    through the frame rather than relaxing the assertion is deliberate -- a
+    `m.get("schema_version")` that silently found nothing would go green on
+    exactly the wire this test exists to refuse."""
     from interface.contracts.flex_observable_seam import SCHEMA_VERSION
     from sim.flex_dispatch import emit_settlement_lines_over_wire
     truth = dispatch_and_settle(_synthetic_record(), delivery=DeliveryModel(seed=7))
     book = solicit_registration(truth, enrolled_mw=truth.enrolled_mw).venue_book
-    messages = emit_settlement_lines_over_wire(truth, registrations=book)
+    messages = emit_settlement_lines_over_wire(
+        truth, registrations=book, handed_over_at=_HANDED_OVER_AT)
     assert len(messages) > 0
-    assert all(m["schema_version"] == SCHEMA_VERSION for m in messages)
+    assert all(m["envelope"]["schema_version"] == SCHEMA_VERSION for m in messages)
 
 
 # ===========================================================================

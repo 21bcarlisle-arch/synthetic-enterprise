@@ -40,6 +40,14 @@ from sim.flex_dispatch import (
     true_scarcity_mask,
 )
 
+#: When the venue let go of a feed, for tests whose subject is what crossed
+#: rather than when. There is deliberately no emitter default to omit it in
+#: favour of (EP6 pass 61): the tempting one is the envelope's own `observed_at`,
+#: and a hand-over stamp read off the document it wraps can never disagree with
+#: it. `test_a_feed_may_not_be_handed_over_without_saying_WHEN` is that rule's
+#: control on these four legs.
+_HANDED_OVER_AT = dt.datetime(2024, 6, 1, 8, 30)
+
 
 def _synthetic_record(n=200, seed=0):
     """A small deterministic record: residual and price are CORRELATED but not
@@ -388,7 +396,12 @@ def test_the_worlds_codec_never_imports_the_companys():
 
 def test_the_wire_feeds_carry_one_message_per_object_response():
     """The wire wrappers are the object emitters' bytes, not a second source of
-    truth: same count, same correlation ids, same order."""
+    truth: same count, same correlation ids, same order.
+
+    Read through the transport frame as of EP6 pass 62. Reaching for
+    `w["envelope"]["correlation_id"]` rather than loosening the comparison is
+    the point: the framed leg must still be the SAME feed, message for message,
+    and a `.get(...)` that quietly found nothing would agree with anything."""
     from sim.flex_dispatch import (
         emit_settlement_lines as _obj,
     )
@@ -396,9 +409,14 @@ def test_the_wire_feeds_carry_one_message_per_object_response():
         emit_settlement_lines_over_wire as _wire,
     )
     truth = dispatch_and_settle(_synthetic_record())
-    objects, wires = _obj(truth), _wire(truth, registrations=_book_covering(truth))
+    objects = _obj(truth)
+    wires = _wire(
+        truth, registrations=_book_covering(truth), handed_over_at=_HANDED_OVER_AT)
     assert len(objects) == len(wires) > 0
-    assert [r.correlation_id for r in objects] == [w["correlation_id"] for w in wires]
+    assert (
+        [r.correlation_id for r in objects]
+        == [w["envelope"]["correlation_id"] for w in wires]
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -908,12 +926,13 @@ def test_the_registered_unit_CROSSES__the_null_control_for_every_refusal_below()
     truth = dispatch_and_settle(_synthetic_record())
     book = _book_covering(truth)
 
-    lines = sim_flex_dispatch.emit_settlement_lines_over_wire(truth, registrations=book)
+    lines = sim_flex_dispatch.emit_settlement_lines_over_wire(
+        truth, registrations=book, handed_over_at=_HANDED_OVER_AT)
     instructions = sim_flex_dispatch.emit_dispatch_instructions_over_wire(
-        truth, registrations=book)
+        truth, registrations=book, handed_over_at=_HANDED_OVER_AT)
 
     assert len(lines) == len(instructions) == truth.n_dispatch > 0
-    assert all(m["status"] == "OK" for m in lines)
+    assert all(m["envelope"]["status"] == "OK" for m in lines)
 
 
 def test_MUTATION_a_unit_this_venue_NEVER_REGISTERED_cannot_be_settled_at_all():
@@ -926,12 +945,12 @@ def test_MUTATION_a_unit_this_venue_NEVER_REGISTERED_cannot_be_settled_at_all():
 
     with pytest.raises(sim_flex_dispatch.UnregisteredDispatch) as exc:
         sim_flex_dispatch.emit_settlement_lines_over_wire(
-            truth, unit_id="A_UNIT_NOBODY_ENROLLED", registrations=book)
+            truth, unit_id="A_UNIT_NOBODY_ENROLLED", registrations=book, handed_over_at=_HANDED_OVER_AT)
     assert "A_UNIT_NOBODY_ENROLLED" in str(exc.value)
 
     with pytest.raises(sim_flex_dispatch.UnregisteredDispatch):
         sim_flex_dispatch.emit_dispatch_instructions_over_wire(
-            truth, unit_id="A_UNIT_NOBODY_ENROLLED", registrations=book)
+            truth, unit_id="A_UNIT_NOBODY_ENROLLED", registrations=book, handed_over_at=_HANDED_OVER_AT)
 
 
 def test_an_EMPTY_book_refuses_rather_than_passing__the_fail_open_case():
@@ -941,7 +960,7 @@ def test_an_EMPTY_book_refuses_rather_than_passing__the_fail_open_case():
     truth = dispatch_and_settle(_synthetic_record())
     with pytest.raises(sim_flex_dispatch.UnregisteredDispatch):
         sim_flex_dispatch.emit_settlement_lines_over_wire(
-            truth, registrations=VenueRegistrations())
+            truth, registrations=VenueRegistrations(), handed_over_at=_HANDED_OVER_AT)
 
 
 def test_MUTATION_a_call_running_PAST_the_declared_availability_is_refused():
@@ -961,11 +980,11 @@ def test_MUTATION_a_call_running_PAST_the_declared_availability_is_refused():
 
     exact = _book_covering(truth)
     assert sim_flex_dispatch.emit_settlement_lines_over_wire(
-        truth, registrations=exact), "the exactly-covering book must accept"
+        truth, registrations=exact, handed_over_at=_HANDED_OVER_AT), "the exactly-covering book must accept"
 
     part_way = _book_covering(truth, pad_hours=-0.5 * truth.period_hours)
     with pytest.raises(sim_flex_dispatch.UnregisteredDispatch):
-        sim_flex_dispatch.emit_settlement_lines_over_wire(truth, registrations=part_way)
+        sim_flex_dispatch.emit_settlement_lines_over_wire(truth, registrations=part_way, handed_over_at=_HANDED_OVER_AT)
 
 
 def test_MUTATION_a_registration_at_ANOTHER_VENUE_does_not_license_this_one():
@@ -980,11 +999,11 @@ def test_MUTATION_a_registration_at_ANOTHER_VENUE_does_not_license_this_one():
     elsewhere = _book_covering(truth, venue=FlexVenue.CAPACITY_MARKET)
     with pytest.raises(sim_flex_dispatch.UnregisteredDispatch):
         sim_flex_dispatch.emit_settlement_lines_over_wire(
-            truth, venue=FlexVenue.BALANCING_MECHANISM, registrations=elsewhere)
+            truth, venue=FlexVenue.BALANCING_MECHANISM, registrations=elsewhere, handed_over_at=_HANDED_OVER_AT)
 
     # NULL CONTROL: the SAME book licenses the venue it was actually made at.
     assert sim_flex_dispatch.emit_settlement_lines_over_wire(
-        truth, venue=FlexVenue.CAPACITY_MARKET, registrations=elsewhere)
+        truth, venue=FlexVenue.CAPACITY_MARKET, registrations=elsewhere, handed_over_at=_HANDED_OVER_AT)
 
 
 def test_the_book_is_REQUIRED_and_not_a_defaulted_argument():
@@ -1080,19 +1099,19 @@ def test_MUTATION_a_stacked_world_calling_a_unit_NOBODY_enrolled_is_refused():
 
     with pytest.raises(sim_flex_dispatch.UnregisteredDispatch) as exc:
         sim_flex_dispatch.emit_settlement_lines_stacked_over_wire(
-            truth, unit_id="A_UNIT_NOBODY_ENROLLED", registrations=book)
+            truth, unit_id="A_UNIT_NOBODY_ENROLLED", registrations=book, handed_over_at=_HANDED_OVER_AT)
     assert "A_UNIT_NOBODY_ENROLLED" in str(exc.value)
 
     with pytest.raises(sim_flex_dispatch.UnregisteredDispatch):
         sim_flex_dispatch.emit_dispatch_instructions_stacked_over_wire(
-            truth, unit_id="A_UNIT_NOBODY_ENROLLED", registrations=book)
+            truth, unit_id="A_UNIT_NOBODY_ENROLLED", registrations=book, handed_over_at=_HANDED_OVER_AT)
 
     # NULL CONTROL: the full book admits both feeds, so the refusals above are
     # about the unit and not about the legs being broken.
     assert sim_flex_dispatch.emit_settlement_lines_stacked_over_wire(
-        truth, registrations=book)
+        truth, registrations=book, handed_over_at=_HANDED_OVER_AT)
     assert sim_flex_dispatch.emit_dispatch_instructions_stacked_over_wire(
-        truth, registrations=book)
+        truth, registrations=book, handed_over_at=_HANDED_OVER_AT)
 
 
 def test_MUTATION_a_book_missing_ONE_venue_refuses_only_that_venues_feed():
@@ -1113,7 +1132,7 @@ def test_MUTATION_a_book_missing_ONE_venue_refuses_only_that_venues_feed():
 
     with pytest.raises(sim_flex_dispatch.UnregisteredDispatch) as exc:
         sim_flex_dispatch.emit_dispatch_instructions_stacked_over_wire(
-            truth, registrations=partial)
+            truth, registrations=partial, handed_over_at=_HANDED_OVER_AT)
     assert keys[1] in str(exc.value)
 
     # NULL CONTROL: that same partial book DOES license its own venue's feed --
@@ -1122,7 +1141,7 @@ def test_MUTATION_a_book_missing_ONE_venue_refuses_only_that_venues_feed():
     solo = sim_flex_dispatch.dispatch_and_settle_stacked(
         _synthetic_record(), venues=_stacked_venues()[:1], portfolio_mw=100.0)
     assert sim_flex_dispatch.emit_dispatch_instructions_stacked_over_wire(
-        solo, registrations=_stacked_book(solo))
+        solo, registrations=_stacked_book(solo), handed_over_at=_HANDED_OVER_AT)
 
 
 def test_an_EMPTY_book_refuses_the_stacked_legs_too__the_fail_open_case():
@@ -1133,7 +1152,7 @@ def test_an_EMPTY_book_refuses_the_stacked_legs_too__the_fail_open_case():
     for leg in (sim_flex_dispatch.emit_settlement_lines_stacked_over_wire,
                 sim_flex_dispatch.emit_dispatch_instructions_stacked_over_wire):
         with pytest.raises(sim_flex_dispatch.UnregisteredDispatch):
-            leg(truth, registrations=VenueRegistrations())
+            leg(truth, registrations=VenueRegistrations(), handed_over_at=_HANDED_OVER_AT)
 
 
 def test_MUTATION_a_stacked_call_running_PAST_the_declared_availability_is_refused():
@@ -1144,12 +1163,12 @@ def test_MUTATION_a_stacked_call_running_PAST_the_declared_availability_is_refus
     truth = _stacked_truth()
 
     assert sim_flex_dispatch.emit_settlement_lines_stacked_over_wire(
-        truth, registrations=_stacked_book(truth)), "the exactly-covering book must accept"
+        truth, registrations=_stacked_book(truth), handed_over_at=_HANDED_OVER_AT), "the exactly-covering book must accept"
 
     part_way = _stacked_book(truth, pad_hours=-0.5 * truth.period_hours)
     with pytest.raises(sim_flex_dispatch.UnregisteredDispatch):
         sim_flex_dispatch.emit_settlement_lines_stacked_over_wire(
-            truth, registrations=part_way)
+            truth, registrations=part_way, handed_over_at=_HANDED_OVER_AT)
 
 
 def test_the_stacked_book_is_REQUIRED_and_not_a_defaulted_argument():
@@ -1163,3 +1182,129 @@ def test_the_stacked_book_is_REQUIRED_and_not_a_defaulted_argument():
     ):
         with pytest.raises(TypeError):
             leg(truth)
+
+
+# ---------------------------------------------------------------------------
+# EP6 pass 62, Q13's other half -- THE FEEDS ARE SIGNED.
+#
+# WHAT WAS WRONG. Pass 61 framed the ENROLMENT leg and left the two observable
+# feeds bare, so anything able to put bytes in front of the company could tell
+# it that it had been dispatched and how much it had been paid. That is the
+# worse of the two holes: a registration the company wrongly believes it holds
+# is a business it does not have, and a settlement line it should never have
+# been sent goes straight into revenue.
+#
+# ONE SIGNATURE PER MESSAGE, NOT PER FEED. A stacked portfolio is called at
+# several venues at once and in GB those venues are not all run by the same
+# party, so a feed signed once would stamp a local constraint market's line
+# with the system operator's identity -- a forgery committed by the world, and
+# one no company-side check could ever catch.
+# ---------------------------------------------------------------------------
+
+
+def test_every_message_on_BOTH_single_venue_feeds_is_SIGNED_by_the_venues_operator():
+    """The bytes are inspected, not the call signature. A frame is only a frame
+    if it is on the wire."""
+    truth = dispatch_and_settle(_synthetic_record())
+    book = _book_covering(truth)
+
+    for leg in (sim_flex_dispatch.emit_settlement_lines_over_wire,
+                sim_flex_dispatch.emit_dispatch_instructions_over_wire):
+        messages = leg(truth, registrations=book, handed_over_at=_HANDED_OVER_AT)
+        assert len(messages) > 0
+        for m in messages:
+            assert set(m) == {"sender", "credential", "handed_over_at", "envelope"}
+            assert m["sender"] == SYSTEM_OPERATOR_ID
+            assert m["credential"] == SYSTEM_OPERATOR_CREDENTIAL
+            assert m["handed_over_at"] == _HANDED_OVER_AT.isoformat()
+            # the message itself is untouched inside the frame
+            assert m["envelope"]["status"] == "OK"
+
+
+#: For the assertion above: the credential of the OTHER operator, so "each
+#: message carries its own signer's key" is checked against something rather
+#: than merely being read back.
+_OTHER_OPERATORS_CREDENTIAL = {
+    SYSTEM_OPERATOR_ID: NETWORK_OPERATOR_CREDENTIAL,
+    NETWORK_OPERATOR_ID: SYSTEM_OPERATOR_CREDENTIAL,
+}
+
+
+def test_a_STACKED_feed_carries_TWO_DIFFERENT_signers_in_ONE_list():
+    """THE TEST A SINGLE-VENUE FEED COULD NOT HAVE.
+
+    The stacked fixture is contended across the Balancing Mechanism and a local
+    constraint market, and those are run by DIFFERENT participants. An
+    implementation that signed the feed once -- the obvious one, and the one a
+    single-venue test would have been perfectly happy with -- puts one identity
+    on both, so this asserts the set of senders has TWO members and that each
+    message's signer matches ITS OWN venue.
+    """
+    from interface.contracts.flex_observable_seam import FlexVenue
+
+    truth = _stacked_truth()
+    book = _stacked_book(truth)
+    expected = {
+        FlexVenue.BALANCING_MECHANISM: SYSTEM_OPERATOR_ID,
+        FlexVenue.DSO_LOCAL_CONSTRAINT: NETWORK_OPERATOR_ID,
+    }
+
+    for leg in (sim_flex_dispatch.emit_settlement_lines_stacked_over_wire,
+                sim_flex_dispatch.emit_dispatch_instructions_stacked_over_wire):
+        messages = leg(truth, registrations=book, handed_over_at=_HANDED_OVER_AT)
+        assert len(messages) > 0
+        senders = {m["sender"] for m in messages}
+        assert senders == {SYSTEM_OPERATOR_ID, NETWORK_OPERATOR_ID}, (
+            "a feed spanning two operators that crosses under one signature is "
+            "the world forging its own messages")
+        for m in messages:
+            venue = FlexVenue(m["envelope"]["payload"]["fields"]["venue"])
+            assert m["sender"] == expected[venue]
+            assert m["credential"] != _OTHER_OPERATORS_CREDENTIAL[m["sender"]]
+
+
+def test_a_feed_may_not_be_handed_over_without_saying_WHEN():
+    """`handed_over_at` has no default on any of the four legs, and the default
+    it is refusing is a specific one: the envelope's own `observed_at`. A
+    hand-over stamp read off the document it wraps could never disagree with
+    it, so the field would be unfalsifiable by construction (EP6 pass 61)."""
+    truth = dispatch_and_settle(_synthetic_record())
+    stacked = _stacked_truth()
+    for leg, t, book in (
+        (sim_flex_dispatch.emit_settlement_lines_over_wire, truth, _book_covering(truth)),
+        (sim_flex_dispatch.emit_dispatch_instructions_over_wire, truth,
+         _book_covering(truth)),
+        (sim_flex_dispatch.emit_settlement_lines_stacked_over_wire, stacked,
+         _stacked_book(stacked)),
+        (sim_flex_dispatch.emit_dispatch_instructions_stacked_over_wire, stacked,
+         _stacked_book(stacked)),
+    ):
+        with pytest.raises(TypeError):
+            leg(t, registrations=book)
+        # NULL CONTROL: the same call WITH a stamp crosses, so the refusal is
+        # about the missing argument and not about the leg being broken.
+        assert leg(t, registrations=book, handed_over_at=_HANDED_OVER_AT)
+
+
+def test_a_feed_for_a_venue_NOBODY_OPERATES_cannot_reach_the_wire():
+    """`FLEX_VENUE_OPERATORS` has no entry for `OTHER` and no default, so a
+    settlement line for a market this world runs nobody for has nobody to sign
+    it. Raised on the SENDING side, before any bytes exist -- a structured
+    refusal would itself be a message from a participant, and the whole content
+    of this error is that there is no participant."""
+    from interface.contracts.flex_observable_seam import FlexVenue
+
+    truth = dispatch_and_settle(_synthetic_record())
+    unoperated = _book_covering(truth, venue=FlexVenue.OTHER)
+
+    with pytest.raises(UnoperatedVenue):
+        sim_flex_dispatch.emit_settlement_lines_over_wire(
+            truth, venue=FlexVenue.OTHER, registrations=unoperated,
+            handed_over_at=_HANDED_OVER_AT)
+
+    # NULL CONTROL: the same feed at an operated venue crosses, so what fired
+    # is the missing operator and not the venue being unregistered.
+    assert sim_flex_dispatch.emit_settlement_lines_over_wire(
+        truth, venue=FlexVenue.CAPACITY_MARKET,
+        registrations=_book_covering(truth, venue=FlexVenue.CAPACITY_MARKET),
+        handed_over_at=_HANDED_OVER_AT)

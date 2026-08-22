@@ -83,7 +83,6 @@ from company.interfaces.wall_protocol import (
     FLEX_SYSTEM_OPERATOR_SENDER,
     WallProtocolError,
     decode_framed_response,
-    decode_response,
     encode_request,
 )
 from interface.contracts.flex_observable_seam import (
@@ -120,8 +119,10 @@ DEFAULT_PRICE_SCARCITY_PERCENTILE: float = 95.0
 # which is the atom's whole claim (EP6).
 #
 # THE COMPANY OWNS ITS CODEC AND CALLS IT: envelope parsing is
-# `company.interfaces.wall_protocol.decode_response`, one implementation for
-# every seam. The COUNTERPARTY may not import it (`sim/**` cannot see
+# `company.interfaces.wall_protocol.decode_framed_response`, one implementation
+# for every seam -- and as of EP6 pass 62 no leg of this seam reaches the
+# envelope without a participant proving who it is first. The COUNTERPARTY may
+# not import that codec (`sim/**` cannot see
 # `company.*`), so it restates the contract's key set and builds the bytes
 # itself. Neither side is the other's source of truth -- both read
 # `interface.contracts.flex_observable_seam`, the way a real party reads a
@@ -281,8 +282,46 @@ def observe_response_wire(wire: Any, *, expect: Optional[type] = None) -> Any:
     settlement feed and the instruction feed are separate events in time
     (C-S3), so a caller that asked for one and was handed the other has a
     mis-routed feed, not a usable message.
+
+    THE FEED IS FRAMED (EP6 pass 62, Q13). Until this pass the enrolment leg
+    authenticated its counterparty and these two feeds did not: anything able
+    to put bytes in front of this function could tell this company it had been
+    dispatched, and how much it had been paid. That is a strictly worse hole
+    than the one pass 61 closed on the enrolment leg, because a registration a
+    company does not hold is a business it does not have, whereas a settlement
+    line it should not have been sent goes straight into revenue.
+
+    TWO REFUSALS, and they are different questions:
+      * `WallProtocolError` -- the frame named a participant this build does
+        not know, or one that could not present its credential, or one whose
+        release does not speak this message's version. Checked FIRST, before
+        the envelope is parsed.
+      * `WrongVenueOperator` -- a registered participant sent a line for a
+        market it does not run. The system operator runs the balancing
+        mechanism, the capacity market and DFS; a local constraint market is
+        run by the network operator, and a genuine credential for one is not
+        authority over the other.
+
+    WHY READING THE VENUE OFF THE PAYLOAD IS NOT THE TAUTOLOGY PASS 61
+    REMOVED. There, the ONLY evidence was field-vs-field: the message supplied
+    both sides of the comparison and nothing had to be held to pass it. Here
+    the evidence is a credential fingerprint this module holds and the sender
+    has to present; the venue in the payload selects WHICH participant is
+    entitled to have sent it. An impostor holding nothing is refused outright,
+    and one holding the system operator's credential cannot mint a local
+    constraint line by relabelling it -- moving the venue moves the operator
+    the frame is required to prove.
+
+    WHAT THIS STILL DOES NOT ASK is whether this company ever enrolled at the
+    venue named. That answer lives in `FlexEnrolmentBook`, which these
+    module-level feed readers do not hold; the world refuses an unregistered
+    dispatch at emission (`UnregisteredDispatch`) and the harness scores
+    `settlement_solicited` downstream, so the company's own book-anchored
+    refusal is the next thing owed on this leg and not something already here.
     """
-    response = decode_response(wire, decode_payload=decode_observable_payload)
+    sender, response = decode_framed_response(
+        wire, decode_payload=decode_observable_payload
+    )
     if response.payload is None:
         raise WallProtocolError(
             "CONTRACT_VIOLATION",
@@ -294,6 +333,16 @@ def observe_response_wire(wire: Any, *, expect: Optional[type] = None) -> Any:
             "CONTRACT_VIOLATION",
             f"flex response {response.correlation_id!r} carries a "
             f"{type(response.payload).__name__} where this feed reads {expect.__name__}",
+        )
+    venue = getattr(response.payload, "venue", None)
+    expected_operator = VENUE_OPERATORS.get(venue)
+    if sender != expected_operator:
+        raise WrongVenueOperator(
+            f"flex message {response.correlation_id!r} names venue "
+            f"{getattr(venue, 'value', venue)!r}, which this company holds as operated "
+            f"by {expected_operator!r}, and was sent by {sender!r} -- a participant this "
+            "build is registered with is not thereby entitled to instruct or settle "
+            "every market function"
         )
     return response.payload
 

@@ -86,21 +86,55 @@ _LINE_FIELDS = {
 }
 
 
+#: The credential the flex system operator holds. Written here as the LITERAL a
+#: counterparty presents, never as the fingerprint the company stores: a fixture
+#: built from the receiver's own table would prove the receiver agrees with
+#: itself. `sim/flex_dispatch.py::SYSTEM_OPERATOR_CREDENTIAL` is the module that
+#: really holds it, and this file may not import from `sim/**`.
+_SYSTEM_OPERATOR_CREDENTIAL = "system-operator-01::participant-credential::v1"
+
+
 def _wire(**over):
-    """One settlement response, keyed exactly as the published schema states."""
+    """One settlement response inside its transport frame, keyed exactly as the
+    published schemas state -- the ENVELOPE's and, since EP6 pass 62, the
+    FRAME's.
+
+    HAND-WRITTEN ON BOTH LAYERS, for the reason the header gives about the
+    envelope: a frame built by calling the world's `frame_venue_message` would
+    agree with the world's idea of a frame and never ask whether the two sides
+    agree. The sender, the credential and the hand-over stamp are written out
+    here from the published frame form.
+
+    `schema_version` IS 2, and that is a fact about the counterparty rather than
+    a fixture detail: the flex seam is on v2 and `COUNTERPARTY_REGISTRY` has
+    both flex operators on v2 only, so a v1 line -- readable by this build --
+    is refused VERSION_NOT_SPOKEN as a message from a release that does not
+    exist. Framing the feed is what made that distinction reachable here.
+
+    Keyword overrides apply to the ENVELOPE (that is what every caller below is
+    varying); `frame=` overrides the frame itself.
+    """
     fields = dict(_LINE_FIELDS)
     fields.update(over.pop("fields", {}))
+    frame_over = over.pop("frame", {})
     msg = {
         "correlation_id": "flex-U1-20240101",
         "status": "OK",
-        "schema_version": 1,
+        "schema_version": 2,
         "observed_at": "2024-01-15T00:00:00",
         "valid_time": "2024-01-01",
         "payload": {"payload_type": "FlexSettlementLine", "fields": fields},
         "error": None,
     }
     msg.update(over)
-    return msg
+    frame = {
+        "sender": "SYSTEM-OPERATOR-01",
+        "credential": _SYSTEM_OPERATOR_CREDENTIAL,
+        "handed_over_at": "2024-01-15T06:00:00",
+        "envelope": msg,
+    }
+    frame.update(frame_over)
+    return frame
 
 
 def test_a_hand_written_message_decodes_to_the_contracts_own_type():
@@ -141,7 +175,7 @@ def test_a_message_that_never_stated_its_version_is_refused_not_relabelled():
     from company.interfaces.wall_protocol import WallProtocolError
     from company.market.flex_participation import observe_settlement_wire
     versionless = _wire()
-    del versionless["schema_version"]
+    del versionless["envelope"]["schema_version"]
     with pytest.raises(WallProtocolError) as absent:
         observe_settlement_wire([versionless])
     assert absent.value.reason == "MISSING_FIELD"
@@ -284,12 +318,12 @@ def test_the_decoder_is_reached_through_the_companys_OWN_codec():
     def _boom(*a, **k):
         raise sentinel
 
-    original = fp.decode_response
+    original = fp.decode_framed_response
     try:
-        fp.decode_response = _boom
+        fp.decode_framed_response = _boom
         with pytest.raises(RuntimeError) as exc:
             fp.observe_settlement_wire([_wire()])
         assert exc.value is sentinel
     finally:
-        fp.decode_response = original
+        fp.decode_framed_response = original
     assert fp.observe_settlement_wire([_wire()])[0].unit_id == "U1"

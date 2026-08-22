@@ -488,3 +488,186 @@ def test_the_companys_operator_table_is_its_OWN_and_agrees_with_the_worlds_today
     # for, and a default on either side is the fail-open shape both refuse.
     assert FlexVenue.OTHER not in VENUE_OPERATORS
     assert FlexVenue.OTHER not in FLEX_VENUE_OPERATORS
+
+
+# ---------------------------------------------------------------------------
+# EP6 pass 62, Q13's other half -- THE COMPANY CHECKS WHO IS SETTLING IT.
+#
+# Pass 61 framed the enrolment leg. These two feeds -- the dispatch instruction
+# and the settlement statement -- stayed bare, so anything able to put bytes in
+# front of `observe_response_wire` could tell this company it had been called
+# and how much it had been paid. A registration wrongly believed is a business
+# that does not exist; a settlement line wrongly believed goes into revenue.
+# ---------------------------------------------------------------------------
+
+_FEED_HANDED_OVER_AT = _dt.datetime(2024, 7, 1, 7, 0)
+
+
+def _flex_record(n=200, seed=0):
+    rng = np.random.default_rng(seed)
+    residual = rng.normal(30000, 4000, n)
+    price = 40 + 0.004 * (residual - 30000) + rng.normal(0, 15, n)
+    dates = np.array([f"2024-{1 + i % 12:02d}-{1 + i % 28:02d}" for i in range(n)])
+    return {"dates": dates, "residual_mw": residual, "derived_price": price}
+
+
+def _settlement_feed(*, venue=FlexVenue.BALANCING_MECHANISM):
+    """One venue's real settlement feed, off the world's own emitter.
+
+    Built by the WORLD and not hand-written here, unlike the envelope fixtures
+    in `tests/company/market/test_flex_participation.py`, and the two serve
+    different purposes: those ask whether the two codecs agree without ever
+    talking to each other, these ask what this company does with a message the
+    world actually sent. Impostors below are made by MUTATING this feed, so the
+    only thing separating an accepted message from a refused one is the change
+    the test names.
+    """
+    from sim.flex_dispatch import dispatch_and_settle, emit_settlement_lines_over_wire
+
+    truth = dispatch_and_settle(_flex_record())
+    stamps = [_dt.datetime.strptime(str(d)[:10], "%Y-%m-%d") for d in truth.dates]
+    called = [s for s, on in zip(stamps, truth.dispatch_mask) if on]
+    book = VenueRegistrations()
+    book.register(FlexEnrolment(
+        unit_id="FLEX_UNIT_1",
+        venue=venue,
+        offered_mw=float(truth.enrolled_mw),
+        direction=FlexDirection.TURN_DOWN,
+        window_start=min(stamps),
+        window_end=max(called) + _dt.timedelta(hours=truth.period_hours),
+    ))
+    return emit_settlement_lines_over_wire(
+        truth, venue=venue, registrations=book,
+        handed_over_at=_FEED_HANDED_OVER_AT)
+
+
+def test_an_UNFRAMED_settlement_line_is_REFUSED_however_well_formed_it_is():
+    """THE DEFECT, reproduced as the thing that no longer crosses.
+
+    The bare envelope taken out of the frame is byte-for-byte the message this
+    company accepted before this pass: same correlation id, same payload, same
+    version. It is refused now because nothing in it says who sent it -- which
+    is the whole difference between a feed and a claim.
+
+    NULL CONTROL: the SAME message inside its frame is accepted, so what fires
+    is the missing frame and not the message being malformed."""
+    from company.market.flex_participation import observe_settlement_wire
+
+    framed = _settlement_feed()
+    assert len(framed) > 0
+    bare = [m["envelope"] for m in framed]
+
+    with pytest.raises(WallProtocolError):
+        observe_settlement_wire(bare)
+
+    assert observe_settlement_wire(framed)[0].unit_id == "FLEX_UNIT_1"
+
+
+def test_an_UNREGISTERED_sender_cannot_tell_this_company_it_was_PAID():
+    """Identity first: a participant with no registry row is refused before the
+    statement is parsed at all, so the work an unknown sender wanted done is
+    never done."""
+    from company.market.flex_participation import observe_settlement_wire
+
+    feed = _settlement_feed()
+    feed[0]["sender"] = "A-PARTICIPANT-NOBODY-REGISTERED"
+
+    with pytest.raises(WallProtocolError) as exc:
+        observe_settlement_wire(feed)
+    assert exc.value.reason == "UNKNOWN_SENDER"
+
+
+def test_a_KNOWN_participant_that_cannot_PRESENT_its_credential_is_refused_on_the_FEED():
+    """The registry names the sender; the credential is what the sender has to
+    hold. Naming a real participant is not being one.
+
+    Deliberately a SEPARATE node from the enrolment leg's test of the same rule
+    rather than a shared one: the two legs reach `_verify_frame` through
+    different call paths, and a single test proving the rule once would go on
+    passing if either path stopped calling it."""
+    from company.market.flex_participation import observe_settlement_wire
+
+    feed = _settlement_feed()
+    feed[0]["credential"] = "system-operator-01::participant-credential::v1-guessed"
+
+    with pytest.raises(WallProtocolError) as exc:
+        observe_settlement_wire(feed)
+    assert exc.value.reason == "BAD_CREDENTIAL"
+
+
+def test_a_REGISTERED_participant_may_not_SETTLE_a_venue_it_does_not_OPERATE():
+    """Identity proved is not authorisation granted, on the money leg.
+
+    The network operator holds a GENUINE credential and this build IS registered
+    with it -- it runs the local constraint market. It does not run the
+    balancing mechanism, so it may not send this company a BM settlement line,
+    and a check that stopped at "the frame verified" would let it.
+
+    NULL CONTROL: the untouched feed from the venue's real operator crosses."""
+    from company.market.flex_participation import observe_settlement_wire
+
+    feed = _settlement_feed(venue=FlexVenue.BALANCING_MECHANISM)
+    assert observe_settlement_wire(feed)[0].venue is FlexVenue.BALANCING_MECHANISM
+
+    feed[0]["sender"] = NETWORK_OPERATOR_ID
+    feed[0]["credential"] = NETWORK_OPERATOR_CREDENTIAL
+    with pytest.raises(WrongVenueOperator) as exc:
+        observe_settlement_wire(feed)
+    assert NETWORK_OPERATOR_ID in str(exc.value)
+
+
+def test_the_INSTRUCTION_feed_is_checked_TOO_and_not_only_the_money_one():
+    """Both feeds go through one reader, and this is what says so. A dispatch
+    instruction the company wrongly believes is a delivery obligation it will
+    be measured against -- the cheaper message to forge and the one a
+    settlement-only check would wave through."""
+    from company.market.flex_participation import observe_response_wire
+    from interface.contracts.flex_observable_seam import FlexDispatchInstruction
+    from sim.flex_dispatch import (
+        dispatch_and_settle,
+        emit_dispatch_instructions_over_wire,
+    )
+
+    truth = dispatch_and_settle(_flex_record())
+    stamps = [_dt.datetime.strptime(str(d)[:10], "%Y-%m-%d") for d in truth.dates]
+    called = [s for s, on in zip(stamps, truth.dispatch_mask) if on]
+    book = VenueRegistrations()
+    book.register(FlexEnrolment(
+        unit_id="FLEX_UNIT_1", venue=FlexVenue.BALANCING_MECHANISM,
+        offered_mw=float(truth.enrolled_mw), direction=FlexDirection.TURN_DOWN,
+        window_start=min(stamps),
+        window_end=max(called) + _dt.timedelta(hours=truth.period_hours)))
+    feed = emit_dispatch_instructions_over_wire(
+        truth, registrations=book, handed_over_at=_FEED_HANDED_OVER_AT)
+
+    # NULL CONTROL first: the honest instruction crosses and is the right type.
+    assert isinstance(
+        observe_response_wire(feed[0], expect=FlexDispatchInstruction),
+        FlexDispatchInstruction,
+    )
+
+    feed[0]["sender"] = NETWORK_OPERATOR_ID
+    feed[0]["credential"] = NETWORK_OPERATOR_CREDENTIAL
+    with pytest.raises(WrongVenueOperator):
+        observe_response_wire(feed[0], expect=FlexDispatchInstruction)
+
+
+def test_MUTATION_the_operator_table_has_NO_DEFAULT_on_the_FEED_leg(monkeypatch):
+    """The fail-open reading -- "we hold no expected operator for this venue, so
+    accept whoever sent it" -- restored as a one-line mutation.
+
+    ITS OWN CONTROL, not a copy of the wrong-operator test above: there the
+    refusal fires because two named participants differ, here it must fire
+    because the company holds NOTHING to compare against. An implementation
+    written `if expected is not None and sender != expected` passes every test
+    above and this one reds.
+
+    NULL CONTROL is every test above: against the real table these same bytes
+    are accepted, so this is the lookup failing closed rather than the feed
+    being always-red."""
+    from company.market.flex_participation import observe_settlement_wire
+
+    feed = _settlement_feed()
+    monkeypatch.setattr("company.market.flex_participation.VENUE_OPERATORS", {})
+    with pytest.raises(WrongVenueOperator):
+        observe_settlement_wire(feed)
