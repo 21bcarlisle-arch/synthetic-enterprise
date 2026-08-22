@@ -4,8 +4,9 @@
 **Stage:** §§1–8 are the FRAME, written when the atom was `loop_stage: idle` and no BUILD code
 existed. **§9 onwards is BUILD** — the atom's stage moved and the draw is live, so parts of this
 document ARE now landed in `tools/couple_w2_11_d5.py`; §9.4 states exactly which, and §9.5 states
-what is still only designed. The reshape itself is NOT landed.
-**Date:** 2026-08-14 FRAME (worker tick, DISCOVER/FRAME lane); §9 2026-08-22 (worker tick, BUILD lane)
+what is still only designed. The reshape itself is NOT landed — §12 lands step 1 of the
+continuation and re-measures the declarations step 2 will need.
+**Date:** 2026-08-14 FRAME (worker tick, DISCOVER/FRAME lane); §9–§12 2026-08-22 (worker ticks, BUILD lane)
 **Origin:** `docs/staging/WORKER_FINDING_THE_BELIEF_MEMORY_SATURATES_ON_THIS_BOOK_2026-08-11.md`
 (H27 Expert Hour #9)
 
@@ -415,3 +416,135 @@ axis a hook can never cover.
 **§9.5 is unchanged and still the continuation.** The reshape is not landed; the origin is still
 400. Step 1 (the never-forgets point in `book_memory_grid`, §9.3) remains the standalone repair to
 take next, and it now has a committed base to build on.
+
+---
+
+## 12. BUILD pass 4 — 2026-08-22 (worker tick, BUILD lane) — §9.5 step 1
+
+**Step 1 only.** The origin is still 400 and the reshape is still not landed; what changes here is
+that the grid the reshape will be measured on can now answer about its own top edge.
+
+### 12.1 The grid, measured before anything was edited
+
+At HEAD `32c72b139`, n=300, `build_scenario` / `book_memory_grid` as shipped:
+
+| seed | oldest observed failure | grid top 3 | saturation drift `oldest − window` | point it gains |
+|---|---|---|---|---|
+| 7 | 91d | −310, −309, 0 | −309 | **−308** |
+| 11 | 92d | −309, −308, 0 | −308 | **−307** |
+| 23 | 92d | −309, −308, 0 | −308 | **−307** |
+
+So the grid's top book-derived point IS the saturation drift on every seed, and the only point above
+it is 0 — which `_measure_collapse_runs` never counts, because 0 is the baseline every other company
+is compared against. §9.3 predicted −307 for seeds 11/23 and that is what the grids read; seed 7's
+own gain is −308, which the union already held from its siblings.
+
+### 12.2 What the witness is, and what it is not
+
+`book_memory_grid` now adds `oldest − window + 1`. The justification is a construction, not a
+sweep: an event at age `a` is counted iff `a ≤ window` and nothing is older than `oldest`, so every
+window at or above `oldest` counts the same events and the whole never-forgets family is
+bit-identical. One point is therefore enough, and it is the *smallest* one — which matters.
+
+**It is deliberately NOT `never_forgets_drift_days() + 1`,** which §9.3 wrote and which does not
+survive contact with the function: that helper clamps at 0 to say something about the SCORED
+company ("it already never forgets" — D27's whole finding in its own coordinate), so at this origin
+it answers 0 and `+1` would put the witness at **+1**, 309 days above the edge. That is not a
+derivation of the edge; it is the register's own `+1` declaration, which is the accident this repair
+exists to remove. The test asserts both halves of that: the helper returns 0 here and `1` is not in
+the grid.
+
+### 12.3 The re-derivation, and the evidence the control fires
+
+`measure_own_drift_resolution(n_customers=300)`, seeds 7/11/23, before and after the grid change
+(76.2s cold; the second sweep costs 1.1s because only the new point per seed is unscored):
+
+| | `belief` | `belief_population_mix` |
+|---|---|---|
+| grid points | 70 → **71** | 70 → **71** |
+| top collapsed run | `(-308, -100, -1, 0, 1, 500)` → `(-308, **-307**, -100, -1, 0, 1, 500)` | `(-309, -308, -100, -1, 0, 1, 500)` → `(-309, -308, **-307**, -100, -1, 0, 1, 500)` |
+| `own_saturates_above` | −308, **unmoved** | −309, **unmoved** |
+| `own_saturates_below` | −371, unmoved | −371, unmoved |
+| `off_target` / `world_identical` | `{}` / True | `{}` / True |
+
+The edges not moving is the expected result and the reassuring one: −308/−309 were already the first
+drifts bit-identical to the baseline on all three seeds, so the witness adds a MEMBER to the run
+rather than extending resolution. Had an edge moved, the shipped one would have been an artefact of
+the missing point rather than a measurement.
+
+Before the declarations were updated, `check_own_drift_resolution` returned **six** violations —
+three per belief entry: `-307` measured invisible and undeclared, a collapse the register does not
+declare, and the declared run now read apart. That is the register's own control firing on the new
+grid, which is why this is a re-derivation and not a re-typing.
+
+### 12.4 R15 on the witness itself
+
+`test_the_memory_grid_carries_a_witness_above_its_saturation_point` is new and carries its own
+mutation: it rebuilds the pre-pass-4 grid on the same book and asserts that grid has **nothing**
+above the saturation drift except 0, at BOTH the shipped origin and the organ's default. Run against
+the pre-pass-4 `book_memory_grid` (monkeypatched into the module, not committed), the control fires
+by name: *"window 400: the grid stops AT its saturation drift −309, so the top run has one member
+and this instrument must measure `saturates_above = None` on a book that saturates above"* — and the
+D29 provenance test's set equality fires too. Both are green on the shipped grid.
+
+The control also asserts the equality the witness rests on (each witness drift counts the same event
+set as the saturation drift) rather than assuming it, and refuses the book outright if `oldest` ever
+drops below the organ's default — the state in which this edge no longer exists and the band would
+need re-deriving anyway.
+
+### 12.5 Verification
+
+| selection | result |
+|---|---|
+| `-k "memory or band or saturat or collapse or grid or off_path or blind or witness"` — every test that reaches this grid, the two entries' declarations, the collapse/saturation checkers, the population axis and the resolution floors | **118 passed**, 495 deselected, **418.30s** |
+| the new witness control + the D29 provenance control, run against the **pre-pass-4** grid | both **FAIL**, by name (§12.4) |
+| `check_own_drift_resolution` on the new grid with the **un-updated** register | **6 violations**, 3 per belief entry (§12.3) |
+
+The selection is chosen by what the change can reach, not by convenience:
+`book_memory_grid` has exactly one caller in the repo (`measure_own_drift_resolution`, via
+`OWN_DRIFT_BOOK_GRIDS`), and the two register entries are read by the checkers and the caveat, all
+of which are inside it.
+
+### 12.6 What did NOT move, checked rather than assumed
+
+* **No published figure.** The gaps are unchanged; the only shipped value that moves is the
+  `memory_blind_band_days` component on both belief dimensions, which gains −307. It reaches no
+  artefact — `docs/observability/coupled_gap_ledger.json` carries no such key, and its W2_11 row is
+  scored on a live population (31 events, oldest 3378d, window 6000d) whose caveat is re-derived per
+  call. `docs/design/D27_COMPONENT_LIFT_SUFFIX_DISCOVER.md` quotes both literals and has been
+  annotated in place so that record does not outrun the code.
+* **The population axis.** `measure_belief_band_population_axis` reads
+  `predicted_saturates_above_drift` off the book predictor and never touches this grid, so
+  `above_edge_range` / `below_edge_range` / the derived n=17 floor are untouched by construction —
+  verified by grep: `book_memory_grid` has exactly one caller in the repo,
+  `measure_own_drift_resolution` via `OWN_DRIFT_BOOK_GRIDS`.
+* **`measure_published_resolution_floor`** builds its own book-derived grid from
+  `smallest_visible_shortening_days`, so the 310d/314d floors are unaffected.
+
+### 12.7 The continuation
+
+**§9.5 steps 2–4 are unchanged and still the reshape** (flip the origin to
+`organ_default_failure_window_days()`, take §9.2's declarations, `recency_contribution`, then the
+~30 assertions and the ledger row). Step 1 is now off that list.
+
+**One correction step 2 must carry, and it is this pass's own doing.** §9.2's table reads
+`own_saturates_above: None` for `belief` at the candidate origin — that reading *is* the artefact
+§9.3 diagnosed, taken on the grid before the witness existed, and it does not survive the witness.
+So §9.2's declarations cannot be copied wholesale into step 2. **Pass 4 re-measured them** rather
+than leaving step 2 to discover it: same method as §9.2 (both belief entries' declarations emptied,
+so the grid is the book's alone), `DD_FAILURE_WINDOW_DAYS` substituted to the organ's default 90,
+n=300, seeds 7/11/23, 66 grid points, 73.2s:
+
+| at the candidate origin | `belief` | `belief_population_mix` |
+|---|---|---|
+| measured **unmoved** | none — the band is empty (§9.2 agrees) | `(-1,)` (§9.2 agrees) |
+| `own_collapsed_runs` | `(-90,-61), (-48,-47,-46), (-23,-22), (-21,-20), ` **`(2,3)`** | `(-90,-61), (-23,-22), (-1,0), ` **`(1,2,3)`** |
+| `own_saturates_below` | −61 | −61 |
+| `own_saturates_above` | **+2** — §9.2 read `None` | **+1**, as §9.2 read it |
+
+Every other figure in §9.2 reproduces. The books read `oldest` 91/92/92 against a 90d window on
+seeds 7/11/23, so the per-seed saturation drifts are +1/+2/+2 and the first all-seed bit-identical
+drift is +2 — which is the edge `belief` now reports, and which the pre-witness grid could not have
+reported at all because its top point WAS +2 with nothing above it. The mix entry sits one day
+lower (+1) for its own D19 bluntness reason, exactly as it does at the shipped origin (−309 vs
+−308). Steps 3–4 are untouched by this.

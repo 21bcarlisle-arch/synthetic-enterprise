@@ -4886,12 +4886,79 @@ def test_the_memory_grid_is_derived_from_the_book_not_the_register():
     grid = pair.book_memory_grid(records, as_of)
     w = pair.DD_FAILURE_WINDOW_DAYS
     assert set(grid) == {0, -w} | {a - w for a in ages} | {
-        a - 1 - w for a in ages}
-    # THE TWO EXTREMES, which are what a run needs two of. D27's grid held one
-    # point below the book and a collapsed run needs two, which is exactly how
-    # a saturating tail was measured as `None`.
+        a - 1 - w for a in ages} | {ages[-1] - w + 1}
+    # THE THREE EXTREMES, which are what a run needs two of at each end. D27's
+    # grid held one point below the book and a collapsed run needs two, which
+    # is exactly how a saturating tail was measured as `None` -- and the same
+    # arithmetic at the top is the never-forgets witness (atom D27 pass 4,
+    # tried by name in the next test).
     assert -w in grid, "total amnesia is the extreme of this parameter"
-    assert min(grid) == -w and max(grid) == 0
+    assert min(grid) == -w
+    assert max(grid) == max(0, ages[-1] - w + 1)
+
+
+def test_the_memory_grid_carries_a_witness_above_its_saturation_point():
+    """THE SAME DEFECT D29 NAMED AT THE BOTTOM, at the TOP -- and this grid
+    INTRODUCES it rather than inheriting it (atom D27, BUILD pass 4).
+
+    `oldest - window` is the grid's own top point AND the saturation drift: the
+    first window that covers the whole book. A collapsed run needs two points,
+    so with nothing above it the sweep can only ever report
+    `saturates_above = None` about a book that provably saturates above. At the
+    SHIPPED origin the register's `+1`/`+500` declarations are unioned into the
+    sweep and supply that second point by accident, which is why this stayed
+    invisible; at the organ's OWN default -- D27's candidate origin, where the
+    declarations sit below the edge -- nothing does.
+
+    The witness rests on a construction, not on a sweep: an event at age `a` is
+    counted iff `a <= window`, and no event is older than `oldest`, so every
+    window at or above `oldest` counts the SAME events. That equality is
+    asserted here rather than assumed."""
+    default = inspect.signature(
+        pair.PaymentObservationConsumer.__init__
+    ).parameters["dd_failure_window_days"].default
+    records, _consumer, _ledger, as_of = pair.build_scenario(_RES_N, seed=7)
+    ages = sorted({(as_of - r.due_date).days
+                   for r in records if r.result == "failed"})
+    assert ages and ages[-1] > default, (
+        "this book no longer outruns the organ's own memory -- the edge this "
+        "witness is about has moved and D27's band needs re-deriving")
+
+    def counted(window):
+        return tuple(a for a in ages if a <= window)
+
+    for w in (pair.DD_FAILURE_WINDOW_DAYS, default):
+        grid = pair.book_memory_grid(records, as_of, window_days=w)
+        saturation_drift = ages[-1] - w
+        assert saturation_drift in grid
+        # `!= 0` because the sweep scores drift 0 as the BASELINE every other
+        # company is compared against -- it is never a member of a run, so a
+        # grid whose only point above the edge is 0 has none.
+        witnesses = [k for k in grid if k > saturation_drift and k != 0]
+        assert witnesses, (
+            f"window {w}: the grid stops AT its saturation drift "
+            f"{saturation_drift}, so the top run has one member and this "
+            "instrument must measure `saturates_above = None` on a book that "
+            "saturates above")
+        for k in witnesses:
+            assert counted(w + k) == counted(w + saturation_drift), (
+                f"window {w}: drift {k} is offered as a never-forgets witness "
+                "and counts a different set of events")
+
+        # THE MUTATION (R15): the grid as D29 left it, on the same book. It has
+        # nothing above the edge at EITHER origin -- at the shipped one the
+        # downstream union hid that, at the organ's default nothing would.
+        pre_witness = {0, -w} | {a - w for a in ages} | {
+            a - 1 - w for a in ages}
+        assert not [k for k in pre_witness if k > saturation_drift and k != 0]
+        assert max(pre_witness) == max(0, saturation_drift)
+
+    # AND IT IS NOT THE CLAMPED HELPER. `never_forgets_drift_days` floors at 0
+    # to say something about the SCORED company, so at the shipped origin it
+    # answers 0 and `+ 1` would put the witness at +1 -- above the edge, but
+    # 309 days above it, which is the accident this test exists to replace.
+    assert pair.never_forgets_drift_days(records, as_of) == 0
+    assert 1 not in pair.book_memory_grid(records, as_of)
 
 
 def test_a_knob_with_no_book_grid_raises_rather_than_asking_the_register():

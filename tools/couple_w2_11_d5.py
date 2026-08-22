@@ -3203,6 +3203,26 @@ def book_memory_grid(records: Sequence["PeriodRecord"], as_of: date,
       second point below the newest event, the low tail holds one grid point
       and a collapsed run needs two, which is exactly why D27 measured
       `saturates_below = None` on a book that saturates below.
+    * The NEVER-FORGETS WITNESS, `oldest - window + 1` -- the same argument at
+      the TOP, and the half D29 did not reach (atom D27, BUILD pass 4). The
+      grid's own top point is `oldest - window`, which IS the saturation drift:
+      the point where the window first covers the whole book. A run needs two,
+      so without a point above it this grid can only ever measure
+      `saturates_above = None` on a book that provably saturates above -- D29's
+      finding at the other edge, and one this grid INTRODUCES rather than
+      inherits. At the shipped origin the register's own `+1`/`+500`
+      declarations supplied that second point BY ACCIDENT, which is why the
+      defect stayed invisible; at the organ's own default (D27's candidate
+      origin) they do not, and the edge measures `None`.
+      ONE point suffices, and that is provable rather than swept: an event at
+      age `a` is counted iff `a <= window`, and no event is older than
+      `oldest`, so every window at or above `oldest` counts the same set and
+      the whole never-forgets family is bit-identical BY CONSTRUCTION.
+      NOT `never_forgets_drift_days() + 1`, which is the same quantity CLAMPED
+      at 0: that clamp is a statement about the SCORED company ("it already
+      never forgets"), and taking the grid point from it would put the witness
+      at `+1` -- far above the edge, and exactly the accident above, dressed as
+      a derivation.
     * The SHIPPED company (`drift == 0`), the reading everything is compared
       against.
     """
@@ -3213,6 +3233,8 @@ def book_memory_grid(records: Sequence["PeriodRecord"], as_of: date,
     for a in ages:
         grid.add(int(a) - window)
         grid.add(int(a) - 1 - window)
+    if ages:
+        grid.add(int(ages[-1]) - int(window) + 1)
     return tuple(sorted(grid))
 
 
@@ -5082,7 +5104,13 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         # belief dimensions were off-path for the register's single drift, so
         # two of five published dimensions had no measured resolution at all.
         "own_drift": "organ_failure_window_drift_days",
-        "own_invisible_drifts": (-308, -100, -1, 1, 500),
+        # -307 JOINED THE BAND (atom D27, BUILD pass 4) with the never-forgets
+        # witness `book_memory_grid` was missing: seeds 11/23 read their oldest
+        # failure at 92d, so -307 is the first window that covers their whole
+        # book with a day to spare, and it was never scored while the grid
+        # stopped AT the saturation point. Invisible on every seed, as the
+        # construction proves it must be.
+        "own_invisible_drifts": (-308, -307, -100, -1, 1, 500),
         # -370 REPLACED -380 (atom D29). -380 does differ from the baseline,
         # which is all D27's sparse grid could ask -- but it takes the memory
         # to 20 days on a book whose youngest failure is 30 days old, so it
@@ -5100,9 +5128,16 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         # and D27's sparse grid supplied the readings, so the entry declared
         # ONE collapse and a bounded band. On a grid the register did not
         # choose there are FIVE, and the low tail saturates too.
+        #
+        # THE TOP RUN GAINED -307 (atom D27, BUILD pass 4), and the edge did
+        # not move: -308 was already the first drift bit-identical to the
+        # baseline on all three seeds, and the witness point adds a member to
+        # the run rather than extending resolution. That is the expected shape
+        # -- if the edge HAD moved, the old one was an artefact of the missing
+        # point rather than a measurement.
         "own_collapsed_runs": (
             (-400, -371), (-358, -357, -356), (-333, -332),
-            (-331, -330), (-308, -100, -1, 0, 1, 500),
+            (-331, -330), (-308, -307, -100, -1, 0, 1, 500),
         ),
         "own_saturates_below": -371,
         "own_saturates_above": -308,
@@ -5266,7 +5301,11 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         # a seed-split drift belongs in neither list -- and saying so here
         # stops a later reader "completing" the band from the other
         # dimension's.
-        "own_invisible_drifts": (-309, -308, -100, -1, 1, 500),
+        # -307 JOINED IT TOO (atom D27, BUILD pass 4) -- the never-forgets
+        # witness, invisible here for the same construction reason as on
+        # `belief`. The two entries' bands still differ at -309, which is this
+        # dimension's own bluntness and not a property of the grid.
+        "own_invisible_drifts": (-309, -308, -307, -100, -1, 1, 500),
         # -370 REPLACED -380 for the same reason as `belief`: -380 sits inside
         # the low saturated run (atom D29).
         "own_visible_drifts": (-370, -350, -320),
@@ -5280,9 +5319,12 @@ DIMENSION_DRIFT_RESOLUTION: Dict[str, Dict[str, object]] = {
         # register asserted away by never asking. The seed-split {-311,-310}
         # collapse is declared as a collapse, which it is on every seed, while
         # neither member is declared visible or invisible, which they are not.
+        # The top run gained -307 here as well (atom D27, BUILD pass 4), one
+        # member further down than its sibling's because this dimension is
+        # already blind at -309.
         "own_collapsed_runs": (
             (-400, -371), (-333, -332), (-311, -310),
-            (-309, -308, -100, -1, 0, 1, 500),
+            (-309, -308, -307, -100, -1, 0, 1, 500),
         ),
         "own_saturates_below": -371,
         "own_saturates_above": -309,

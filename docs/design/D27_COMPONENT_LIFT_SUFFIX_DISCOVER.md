@@ -176,6 +176,10 @@ pass has independently measured as wrong on exactly this book:
   constants measured on the **offline** `n=300`, `window=400` scenario. The live book's own bound is
   `book_bound_floor_days` = **2623d** against a **6000d** company (31 observed failures, oldest
   3378d, headroom 2622d). On the 40×6 fixture above the same literal sits against a bound of 5819.
+  *(Both literals gained `-307` on 2026-08-22, D27 BUILD pass 4: the never-forgets witness added to
+  `book_memory_grid` made the sweep score a drift it had never visited, and it is invisible. The
+  band is one member wider on each entry; nothing else in this section moves, and neither component
+  is published.)*
 
 So no published figure is wrong today and no lane is held. **That is an ordering constraint, not a
 reprieve:** publishing these components before D30's repair lands would hand a machine reader a
