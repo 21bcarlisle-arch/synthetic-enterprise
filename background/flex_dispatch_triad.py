@@ -61,12 +61,18 @@ from background.gap_metric import prediction_gap
 from company.interfaces.sim_interface import build_sim_interface
 from company.market.flex_participation import (
     CompanyVenueOffer,
+    FlexEnrolmentBook,
     form_participation_belief,
     form_participation_belief_l2,
     form_stacked_belief,
-    observe_response_wire,
-    observe_settlement_wire,
 )
+
+# `observe_response_wire` / `observe_settlement_wire` are deliberately NOT
+# imported here any more (EP6 pass 64). Both feeds are now read through the
+# COMPANY'S OWN BOOK, and leaving the unanchored readers in this module's
+# namespace would leave a name a future call site could reach for -- and a name
+# every existing mutation test was still patching while the live path had moved
+# off it. A decoy import is how a control goes on passing against nothing.
 from interface.contracts.flex_observable_seam import (
     FlexDirection,
     FlexDispatchInstruction,
@@ -163,10 +169,18 @@ class SolicitedRegistration:
     the company believes, and the book is what the world will actually honour
     when it is asked to dispatch (EP6 pass 57). A loop handed only the outcome
     could score itself solicited while the world went on calling anybody.
+
+    AND `company_book` IS THE THIRD THING, added because the outcome is not
+    enough on the READER's side either (EP6 pass 64). An acceptance carries a
+    reference, a unit and a venue -- not the WINDOW the company declared itself
+    available over, which is deliberately absent from it so the venue cannot
+    decide it. The company's own book holds the submission, so the book is what
+    the feed reads below are anchored to.
     """
 
     outcome: FlexEnrolmentOutcome
     venue_book: VenueRegistrations
+    company_book: FlexEnrolmentBook
 
     @property
     def unit_id(self) -> str:
@@ -230,8 +244,14 @@ def solicit_registration(
         window_start=window_start,
         window_end=window_end,
     )
+    outcome = seam.enrol_flex(enrolment, as_of=venue_clock)
     return SolicitedRegistration(
-        outcome=seam.enrol_flex(enrolment, as_of=venue_clock), venue_book=venue_book
+        outcome=outcome,
+        venue_book=venue_book,
+        # Taken AFTER the exchange, so the book handed back is one that has an
+        # accepted registration in it. Before the answer it holds a submission
+        # and no standing, and a reader anchored to it would refuse every line.
+        company_book=seam.flex_enrolment_book(),
     )
 
 
@@ -249,6 +269,12 @@ class StackedRegistration:
 
     outcomes: Dict[str, FlexEnrolmentOutcome]
     venue_book: VenueRegistrations
+    #: The COMPANY's own book across all N venues -- one book, N accepted
+    #: registrations, which is what makes a venue-aware feed check possible at
+    #: all (EP6 pass 64). N separate single-venue books would each vouch for
+    #: their own venue and be silent about the others, so a line from a venue
+    #: the portfolio never joined would find some book that ignored it.
+    company_book: FlexEnrolmentBook
 
     @property
     def unit_id(self) -> str:
@@ -336,7 +362,11 @@ def solicit_registration_stacked(
             window_end=window_end,
         )
         outcomes[spec.key] = seam.enrol_flex(enrolment, as_of=venue_clock)
-    return StackedRegistration(outcomes=outcomes, venue_book=venue_book)
+    return StackedRegistration(
+        outcomes=outcomes,
+        venue_book=venue_book,
+        company_book=seam.flex_enrolment_book(),
+    )
 
 
 def measure(
@@ -436,12 +466,17 @@ def measure_l2(
     # evidence -- but it is no longer the only thing standing between this loop
     # and a settlement nobody asked for.
     # THE STATEMENT IS SIGNED (EP6 pass 62). The venue hands it over inside its
-    # own transport frame, and `observe_settlement_wire` refuses one that does
-    # not name the participant this company holds as the operator of the venue
-    # settling it -- so an unauthenticated feed can no longer tell this loop it
-    # was paid.
+    # own transport frame, and the reader refuses one that does not name the
+    # participant this company holds as the operator of the venue settling it --
+    # so an unauthenticated feed can no longer tell this loop it was paid.
+    # AND IT IS READ AGAINST THE COMPANY'S OWN BOOK (EP6 pass 64). Signing is a
+    # claim about WHO SENT IT; the system operator really does run the balancing
+    # mechanism, so a correctly signed statement for a unit or a window this
+    # company never registered for satisfied every belt above it. The book
+    # reader refuses that line -- on standing this company held before the
+    # message arrived, which is what keeps it independent of the message.
     _instruction_handed_over_at, statement_handed_over_at = _hand_over_clocks(truth)
-    settlement = observe_settlement_wire(
+    settlement = registration.company_book.observe_settlement_feed(
         emit_settlement_lines_over_wire(
             truth, unit_id=LOOP_UNIT_ID, registrations=registration.venue_book,
             handed_over_at=statement_handed_over_at))
@@ -644,16 +679,23 @@ def measure_l3(
     # line arrives from a different participant than the national venues' do,
     # in the same list. The company refuses any message whose signer does not
     # run the venue it names.
+    # AND BOTH ARE READ AGAINST THE PORTFOLIO'S OWN BOOK (EP6 pass 64), which
+    # is a strictly bigger question at L3 than at L2: a stacked party correctly
+    # registered at the balancing mechanism is signed for by the same system
+    # operator that runs the capacity market, so an instruction naming a venue
+    # this portfolio never joined clears both belts above. The book holds one
+    # accepted registration per venue and refuses on the venue it lacks.
     instruction_handed_over_at, statement_handed_over_at = _hand_over_clocks(truth)
     instructions = [
-        observe_response_wire(m, expect=FlexDispatchInstruction)
+        registration.company_book.observe_feed(m, expect=FlexDispatchInstruction)
         for m in emit_dispatch_instructions_stacked_over_wire(
             truth, registrations=registration.venue_book,
             handed_over_at=instruction_handed_over_at)
     ]
-    settlement = observe_settlement_wire(emit_settlement_lines_stacked_over_wire(
-        truth, registrations=registration.venue_book,
-        handed_over_at=statement_handed_over_at))
+    settlement = registration.company_book.observe_settlement_feed(
+        emit_settlement_lines_stacked_over_wire(
+            truth, registrations=registration.venue_book,
+            handed_over_at=statement_handed_over_at))
 
     # -- ARE THESE FEEDS SOLICITED? The L2 question asked per venue, and it is
     #    a genuinely different one at L3: a stacked party can be correctly

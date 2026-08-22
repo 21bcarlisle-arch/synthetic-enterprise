@@ -312,12 +312,20 @@ def observe_response_wire(wire: Any, *, expect: Optional[type] = None) -> Any:
     constraint line by relabelling it -- moving the venue moves the operator
     the frame is required to prove.
 
-    WHAT THIS STILL DOES NOT ASK is whether this company ever enrolled at the
-    venue named. That answer lives in `FlexEnrolmentBook`, which these
-    module-level feed readers do not hold; the world refuses an unregistered
-    dispatch at emission (`UnregisteredDispatch`) and the harness scores
-    `settlement_solicited` downstream, so the company's own book-anchored
-    refusal is the next thing owed on this leg and not something already here.
+    WHAT THIS FUNCTION DOES NOT ASK, AND WHERE IT IS ASKED (EP6 pass 64). Both
+    checks above are about WHO SENT THIS. Neither is about whether this company
+    ever asked to be dispatched at all -- and the system operator is a
+    registered participant that signs correctly for the balancing mechanism, so
+    everything here is satisfied by a genuine operator naming a unit this
+    company never enrolled, or a window it never made itself available over.
+    That question needs a registration the company HOLDS, which a module-level
+    function does not have; it is asked by `FlexEnrolmentBook.observe_feed`,
+    and this function stays the transport-level read it composes.
+
+    SO A CALLER THAT WANTS THE FULL CHECK CALLS THE BOOK, NOT THIS. The split
+    is deliberate rather than a convenience default: an `book=None` parameter
+    here would make the strongest belt on this leg the one a caller silently
+    omits, which is the R15 FAIL-OPEN shape this module refuses everywhere else.
     """
     sender, response = decode_framed_response(
         wire, decode_payload=decode_observable_payload
@@ -715,6 +723,45 @@ class WrongVenueOperator(ValueError):
     """
 
 
+class UnheldRegistration(ValueError):
+    """A dispatch instruction or settlement line answering a registration this
+    company does not hold (EP6 pass 64).
+
+    THE THIRD QUESTION ON THIS LEG, and the first one that is not about the
+    sender. `WallProtocolError` asks whether the participant is who it says;
+    `WrongVenueOperator` asks whether that participant runs the market it is
+    speaking for. Both are satisfied by the system operator -- a genuinely
+    registered counterparty, correctly signed, which really does run the
+    balancing mechanism -- telling this company it was called for a unit it
+    never enrolled, or over a window it never made itself available in. The
+    revenue goes in either way.
+
+    DECIDED AGAINST THE COMPANY'S OWN BOOK, WHICH IS WHAT MAKES IT A CHECK. The
+    admissible evidence is a registration this company SUBMITTED and had
+    ACCEPTED: it is held before the message arrives and no field on the message
+    contributes to it. Same reasoning as `MisroutedOutcome` one leg earlier --
+    a message naming a registration cannot be the evidence that the
+    registration is ours.
+
+    SUBMITTED IS NOT HELD. An enrolment sent and not yet answered, or answered
+    with a refusal, confers no standing to be dispatched: anchoring on
+    `_submitted` instead of the accepted set would let a company a venue TURNED
+    DOWN go on believing that venue's settlement lines, which is the precise
+    state `FlexEnrolmentRefused` exists to stop it reaching.
+
+    WHAT IT CANNOT DO, said plainly because the belt above it is what covers
+    the case: it cannot refuse a well-formed forgery naming a registration the
+    company DOES hold. That message is stopped, if at all, by the credential the
+    frame demands. The two belts are complementary and neither contains the
+    other.
+
+    NOT `sim.flex_dispatch.UnregisteredDispatch`, which is the VENUE declining
+    to emit. This is the COMPANY declining to believe, and the coupled point is
+    that either can exist without the other: a real feed is not produced by a
+    world that has already refused on the company's behalf.
+    """
+
+
 def encode_enrolment_payload(enrolment: FlexEnrolment) -> dict:
     """Serialise an enrolment payload onto the wire.
 
@@ -930,6 +977,97 @@ class FlexEnrolmentBook:
         """Every venue reference this company holds -- what it may quote, and
         the only registrations it has any standing to be dispatched against."""
         return tuple(self._references.values())
+
+    def held_registrations(self) -> Tuple[FlexEnrolment, ...]:
+        """The enrolments this company submitted AND had accepted -- the
+        standing it actually holds, as opposed to the asks it has made.
+
+        Keyed off `_references` (written only when an acceptance passed every
+        belt in `observe_outcome`) and read out of `_submitted` (what we
+        SENT, never what came back). Both halves matter: the reference set says
+        WHICH conversations ended in a registration, and our own submission
+        says what that registration covers. Taking the coverage off the
+        acceptance instead would put the venue in charge of what this company
+        believes it is available for -- and the acceptance does not carry a
+        window at all, precisely so it cannot.
+        """
+        return tuple(
+            self._submitted[cid] for cid in self._references if cid in self._submitted
+        )
+
+    def _admit(self, payload: Any) -> Any:
+        """Refuse a feed message that answers no registration this company
+        holds, or return it unchanged.
+
+        THREE THINGS MUST LINE UP -- unit, venue and window -- and dropping any
+        one of them makes this a check that cannot fail on a real defect:
+          * unit alone: a stacked party registered at one venue is dispatchable
+            at every other, which is the exact multi-venue mistake L3 exists to
+            model;
+          * unit + venue, no window: one registration ever made buys standing
+            for all time, so a venue could settle a window this company had
+            already ended its availability in;
+          * venue alone: anybody's unit settles against our book.
+
+        CONTAINMENT, NOT OVERLAP. A dispatch straddling the edge of our declared
+        availability is refused: a party is obliged for the window it declared,
+        and a half-covered call is one we could not have delivered in full. The
+        conservative reading is the one that can be wrong in the direction that
+        costs us nothing -- an honest venue's message stays inside the window it
+        registered us for.
+
+        FAIL-CLOSED ON A PAYLOAD THIS READER CANNOT ANCHOR. A message carrying
+        no unit, venue or window is not a message this book can vouch for, so it
+        is refused rather than waved through as "nothing to check".
+        """
+        unit = getattr(payload, "unit_id", None)
+        venue = getattr(payload, "venue", None)
+        start = getattr(payload, "window_start", None)
+        end = getattr(payload, "window_end", None)
+        if unit is None or venue is None or start is None or end is None:
+            raise UnheldRegistration(
+                f"a {type(payload).__name__} reached this company's feed reader without a "
+                "unit, venue and window to anchor against its own registrations -- a "
+                "message this book cannot check is not a message it may admit"
+            )
+        for held in self.held_registrations():
+            if (
+                held.unit_id == unit
+                and held.venue is venue
+                and held.window_start <= start
+                and end <= held.window_end
+            ):
+                return payload
+        raise UnheldRegistration(
+            f"a {type(payload).__name__} names {unit}/{getattr(venue, 'value', venue)} over "
+            f"[{start}, {end}), which answers no registration this company holds -- it holds "
+            f"{[(h.unit_id, h.venue.value, str(h.window_start), str(h.window_end)) for h in self.held_registrations()]}. "
+            "A correctly signed message from the participant that really runs this market is "
+            "still not a call this company asked to be available for"
+        )
+
+    def observe_feed(self, wire: Any, *, expect: Optional[type] = None) -> Any:
+        """Read ONE dispatch-instruction or settlement message, checked all the
+        way down to this company's own registrations (EP6 pass 64).
+
+        `observe_response_wire` first and unchanged -- identity, then the
+        venue's operator, then the envelope -- and the book's question LAST, in
+        that order for the reason the module states throughout: a reader that
+        consults its own book before authenticating the sender has already done
+        an unknown participant's work for it, and would leak which
+        registrations this company holds through which forgeries it bothers to
+        parse.
+        """
+        return self._admit(observe_response_wire(wire, expect=expect))
+
+    def observe_settlement_feed(self, messages: Sequence[Any]) -> List[FlexSettlementLine]:
+        """This company's settlement statement, read against its own book.
+
+        The book-anchored counterpart of `observe_settlement_wire`, and the one
+        a caller holding a book should use: the bare function cannot ask whether
+        the statement answers anything we registered for.
+        """
+        return [self.observe_feed(m, expect=FlexSettlementLine) for m in messages]
 
     def awaiting_answer(self) -> Tuple[str, ...]:
         """Enrolments submitted and not yet answered. A real party chasing an

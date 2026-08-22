@@ -671,3 +671,253 @@ def test_MUTATION_the_operator_table_has_NO_DEFAULT_on_the_FEED_leg(monkeypatch)
     monkeypatch.setattr("company.market.flex_participation.VENUE_OPERATORS", {})
     with pytest.raises(WrongVenueOperator):
         observe_settlement_wire(feed)
+
+
+# ---------------------------------------------------------------------------
+# EP6 pass 64 -- DID THIS COMPANY EVER ASK TO BE CALLED HERE?
+#
+# The two belts above both answer WHO SENT THIS. The system operator is a
+# registered participant, holds a genuine credential, and really does run the
+# balancing mechanism -- so a message from it naming a unit this company never
+# enrolled, or a window it never made itself available over, satisfied every
+# check on this leg and was booked as revenue. The company's own registrations
+# are the only evidence that can refuse it, and they are held before the
+# message arrives, which is what keeps the check independent of the message.
+# ---------------------------------------------------------------------------
+
+
+def _enrolled(*, venue=FlexVenue.BALANCING_MECHANISM, unit_id="FLEX_UNIT_1",
+              accept=True):
+    """A COMPANY book and the WORLD feed that answers it, both built through the
+    shipped exchange rather than assembled by hand.
+
+    The registration is made the way the live loop makes it -- the company
+    submits, the venue answers, the company reads the answer against its own
+    submission -- because a book populated by poking `_references` would be
+    proving this belt against a state no exchange can produce.
+
+    `accept=False` stops one step short: the enrolment is SUBMITTED and never
+    answered. That is the discriminating fixture for the accepted-vs-submitted
+    mutation and the only difference between the two books it returns.
+    """
+    from sim.flex_dispatch import dispatch_and_settle, emit_settlement_lines_over_wire
+
+    truth = dispatch_and_settle(_flex_record())
+    stamps = [_dt.datetime.strptime(str(d)[:10], "%Y-%m-%d") for d in truth.dates]
+    window_start = min(stamps)
+    window_end = max(stamps) + _dt.timedelta(hours=truth.period_hours)
+    venue_clock = window_start - _dt.timedelta(days=1)
+
+    venue_book = VenueRegistrations()
+    company = FlexEnrolmentBook()
+    wire = company.submit_enrolment(
+        FlexEnrolment(
+            unit_id=unit_id, venue=venue, offered_mw=float(truth.enrolled_mw),
+            direction=FlexDirection.TURN_DOWN,
+            window_start=window_start, window_end=window_end),
+        as_of=venue_clock,
+    )
+    answer = answer_enrolment(wire, venue_clock=venue_clock, registrations=venue_book)
+    if accept:
+        company.observe_outcome(answer)
+    else:
+        # The VENUE still registered us, so the feed below is emittable -- which
+        # is the point: the world is willing and the COMPANY has no standing.
+        pass
+    feed = emit_settlement_lines_over_wire(
+        truth, unit_id=unit_id, venue=venue, registrations=venue_book,
+        handed_over_at=_FEED_HANDED_OVER_AT)
+    return company, feed
+
+
+def test_THE_DEFECT_a_correctly_signed_line_for_a_unit_we_never_enrolled_was_BOOKED():
+    """THE DEFECT AND THE FIX SIDE BY SIDE, which is the only way to show that
+    the unanchored reader was never enough.
+
+    Nothing about the transport is touched: the sender is the system operator,
+    its credential verifies, and it genuinely runs the balancing mechanism. Only
+    the unit named in the payload is somebody else's. `observe_settlement_wire`
+    -- every belt this leg had before this pass -- ACCEPTS it and hands back a
+    payment. The book reader refuses it.
+
+    NULL CONTROL: the same book accepts the untouched feed, so what fires is the
+    unit we never registered and not a book that refuses everything.
+    """
+    from company.market.flex_participation import (
+        UnheldRegistration,
+        observe_settlement_wire,
+    )
+
+    company, feed = _enrolled()
+    for m in feed:
+        m["envelope"]["payload"]["fields"]["unit_id"] = "A_UNIT_NOBODY_ENROLLED"
+
+    # The state of this leg BEFORE this pass: accepted, and worth money.
+    stranger = observe_settlement_wire(feed)
+    assert stranger[0].unit_id == "A_UNIT_NOBODY_ENROLLED"
+    assert stranger[0].utilisation_payment_gbp > 0.0
+
+    with pytest.raises(UnheldRegistration) as exc:
+        company.observe_settlement_feed(feed)
+    assert "A_UNIT_NOBODY_ENROLLED" in str(exc.value)
+
+    clean, clean_feed = _enrolled()
+    assert clean.observe_settlement_feed(clean_feed)[0].unit_id == "FLEX_UNIT_1"
+
+
+def test_MUTATION_a_registration_SUBMITTED_and_not_yet_ACCEPTED_confers_no_standing():
+    """SUBMITTED IS NOT HELD, restored as the one-line mutation it would be:
+    anchoring on `_submitted` rather than the accepted set.
+
+    The two books here differ in exactly one step -- whether the venue's answer
+    was ever read -- and the world is identical in both: the venue registered
+    the unit and emitted the same statement. An implementation that read the
+    submission book passes every other test in this section and reds only here,
+    which is what makes this the discriminating case rather than a restatement.
+    """
+    from company.market.flex_participation import UnheldRegistration
+
+    unanswered, feed = _enrolled(accept=False)
+    assert unanswered.held_registrations() == ()
+    assert len(unanswered.awaiting_answer()) == 1  # we DID ask -- and that is not standing
+
+    with pytest.raises(UnheldRegistration):
+        unanswered.observe_settlement_feed(feed)
+
+    # NULL CONTROL: the same exchange, one step further on.
+    accepted, accepted_feed = _enrolled(accept=True)
+    assert len(accepted.held_registrations()) == 1
+    assert accepted.observe_settlement_feed(accepted_feed)[0].unit_id == "FLEX_UNIT_1"
+
+
+def test_MUTATION_a_line_OUTSIDE_the_window_this_company_declared_is_REFUSED():
+    """One registration ever made must not buy standing for all time.
+
+    A unit-and-venue check with no window is the natural half-implementation and
+    it passes every other test here: the impostor line below names the unit we
+    enrolled, at the venue we enrolled it into, signed by that venue's real
+    operator. The only thing wrong with it is that we had stopped being
+    available -- and a party settled for a window it never declared is being
+    paid for an obligation it never took on.
+
+    NULL CONTROL: the untouched line, one window earlier, crosses.
+    """
+    from company.market.flex_participation import UnheldRegistration
+
+    company, feed = _enrolled()
+    assert company.observe_settlement_feed(feed)[0].metered_delivery_mwh >= 0.0
+
+    held, = company.held_registrations()
+    beyond = held.window_end + _dt.timedelta(days=1)
+    feed[0]["envelope"]["payload"]["fields"]["window_start"] = beyond.isoformat()
+    feed[0]["envelope"]["payload"]["fields"]["window_end"] = (
+        beyond + _dt.timedelta(hours=1)).isoformat()
+
+    with pytest.raises(UnheldRegistration):
+        company.observe_settlement_feed(feed)
+
+
+def test_MUTATION_a_venue_this_party_never_JOINED_cannot_settle_a_unit_it_DID():
+    """The multi-venue case a unit-only check is blind to, and the one that
+    matters most to a stacked book.
+
+    Neither side of this is forged. The DSO feed is a real local-constraint
+    statement, signed by the network operator that really runs that market, for
+    the unit this company really operates. What the company does not have is a
+    registration THERE -- and `WrongVenueOperator` cannot see that, because the
+    signer is correct for the venue named.
+
+    NULL CONTROL: the party that DID join that venue reads the identical bytes
+    and is paid, so the refusal is the missing registration and not the feed.
+    """
+    from company.market.flex_participation import UnheldRegistration
+
+    bm_only, _bm_feed = _enrolled(venue=FlexVenue.BALANCING_MECHANISM)
+    joined_dso, dso_feed = _enrolled(venue=FlexVenue.DSO_LOCAL_CONSTRAINT)
+
+    with pytest.raises(UnheldRegistration) as exc:
+        bm_only.observe_settlement_feed(dso_feed)
+    assert "dso_local_constraint" in str(exc.value)
+
+    assert joined_dso.observe_settlement_feed(dso_feed)[0].venue is (
+        FlexVenue.DSO_LOCAL_CONSTRAINT)
+
+
+def test_the_TRANSPORT_is_checked_BEFORE_the_book_and_the_order_is_load_bearing():
+    """A reader that consults its own registrations first has already done an
+    unknown participant's work for it, and answers a different question than it
+    was asked -- which forgeries get parsed leaks which registrations are held.
+
+    So a message that fails BOTH must fail as a transport problem: the reason
+    code is `UNKNOWN_SENDER`, not `UnheldRegistration`. An implementation with
+    the two checks swapped passes a bare `raises` and reds here.
+    """
+    from company.market.flex_participation import UnheldRegistration
+
+    company, feed = _enrolled()
+    feed[0]["envelope"]["payload"]["fields"]["unit_id"] = "A_UNIT_NOBODY_ENROLLED"
+    feed[0]["sender"] = "A-PARTICIPANT-NOBODY-REGISTERED"
+
+    with pytest.raises(WallProtocolError) as exc:
+        company.observe_settlement_feed(feed)
+    assert exc.value.reason == "UNKNOWN_SENDER"
+    assert not isinstance(exc.value, UnheldRegistration)
+
+
+def test_the_INSTRUCTION_feed_is_book_checked_and_not_only_the_money_one():
+    """Both feeds go through one book reader. A dispatch instruction wrongly
+    believed is a delivery obligation this company will be measured against, and
+    it arrives BEFORE the money does -- so a settlement-only check finds out one
+    settlement run too late."""
+    from company.market.flex_participation import UnheldRegistration
+    from interface.contracts.flex_observable_seam import FlexDispatchInstruction
+    from sim.flex_dispatch import (
+        dispatch_and_settle,
+        emit_dispatch_instructions_over_wire,
+    )
+
+    truth = dispatch_and_settle(_flex_record())
+    stamps = [_dt.datetime.strptime(str(d)[:10], "%Y-%m-%d") for d in truth.dates]
+    window_start = min(stamps)
+    window_end = max(stamps) + _dt.timedelta(hours=truth.period_hours)
+    venue_clock = window_start - _dt.timedelta(days=1)
+
+    venue_book = VenueRegistrations()
+    company = FlexEnrolmentBook()
+    wire = company.submit_enrolment(
+        FlexEnrolment(
+            unit_id="FLEX_UNIT_1", venue=FlexVenue.BALANCING_MECHANISM,
+            offered_mw=float(truth.enrolled_mw), direction=FlexDirection.TURN_DOWN,
+            window_start=window_start, window_end=window_end),
+        as_of=venue_clock)
+    company.observe_outcome(
+        answer_enrolment(wire, venue_clock=venue_clock, registrations=venue_book))
+    feed = emit_dispatch_instructions_over_wire(
+        truth, registrations=venue_book, handed_over_at=_FEED_HANDED_OVER_AT)
+
+    # NULL CONTROL first: the honest instruction crosses and keeps its type.
+    assert isinstance(
+        company.observe_feed(feed[0], expect=FlexDispatchInstruction),
+        FlexDispatchInstruction)
+
+    feed[0]["envelope"]["payload"]["fields"]["unit_id"] = "A_UNIT_NOBODY_ENROLLED"
+    with pytest.raises(UnheldRegistration):
+        company.observe_feed(feed[0], expect=FlexDispatchInstruction)
+
+
+def test_a_payload_this_book_cannot_ANCHOR_is_refused_rather_than_waved_through():
+    """FAIL-CLOSED on the shape the check has nothing to say about. A payload
+    with no unit, venue or window is not a message the book can vouch for, and
+    "nothing to check, so accept" is how a guard stops being able to refuse."""
+    from dataclasses import dataclass as _dc
+
+    from company.market.flex_participation import UnheldRegistration
+
+    @_dc(frozen=True)
+    class Anchorless:
+        settlement_id: str
+
+    company, _feed = _enrolled()
+    with pytest.raises(UnheldRegistration) as exc:
+        company._admit(Anchorless("S1"))
+    assert "Anchorless" in str(exc.value)

@@ -245,22 +245,29 @@ def test_the_L2_statement_REALLY_crosses_the_wire_and_not_beside_it():
 
     NULL CONTROL is the unpatched twin below the assertion, not a separate
     test: without it the mutation is satisfied by a harness that fails always.
+
+    THE PATCH TARGET MOVED WITH THE LIVE PATH (EP6 pass 64). It used to be
+    `triad.observe_settlement_wire`; the loop now reads its statement through
+    the company's OWN book, and that module-level name is deliberately no
+    longer imported here -- so the old patch would have raised AttributeError,
+    and a patch on a name nothing calls is a mutation that proves nothing.
     """
-    import background.flex_dispatch_triad as triad
+    from company.market.flex_participation import FlexEnrolmentBook
+
     rec = _synthetic_record()
     sentinel = RuntimeError("the seam refused")
 
-    def _refuse(_messages):
+    def _refuse(_self, _messages):
         raise sentinel
 
-    original = triad.observe_settlement_wire
+    original = FlexEnrolmentBook.observe_settlement_feed
     try:
-        triad.observe_settlement_wire = _refuse
+        FlexEnrolmentBook.observe_settlement_feed = _refuse
         with pytest.raises(RuntimeError) as exc:
             measure_l2(rec, delivery=DeliveryModel(seed=3))
         assert exc.value is sentinel
     finally:
-        triad.observe_settlement_wire = original
+        FlexEnrolmentBook.observe_settlement_feed = original
     assert measure_l2(rec, delivery=DeliveryModel(seed=3))["gap"] is not None
 
 
@@ -268,22 +275,26 @@ def test_the_L3_feeds_REALLY_cross_the_wire():
     """The same proof for the stacked instruction and settlement feeds. Wiring
     L1/L2 alone would have moved the census reading to `3 of 3` with these two
     still handed over as objects -- the identical defect, one granularity below
-    the instrument's, which is the trap this atom has now met twice."""
-    import background.flex_dispatch_triad as triad
+    the instrument's, which is the trap this atom has now met twice.
+
+    Patch target moved with the live path for the reason the L2 twin above
+    states: both stacked feeds are read through the company's own book now."""
+    from company.market.flex_participation import FlexEnrolmentBook
+
     rec = _synthetic_record()
     sentinel = RuntimeError("the instruction feed refused")
 
-    def _refuse(_message, **_kw):
+    def _refuse(_self, _message, **_kw):
         raise sentinel
 
-    original = triad.observe_response_wire
+    original = FlexEnrolmentBook.observe_feed
     try:
-        triad.observe_response_wire = _refuse
+        FlexEnrolmentBook.observe_feed = _refuse
         with pytest.raises(RuntimeError) as exc:
             measure_l3(rec)
         assert exc.value is sentinel
     finally:
-        triad.observe_response_wire = original
+        FlexEnrolmentBook.observe_feed = original
     assert measure_l3(rec)["gap"] is not None
 
 
@@ -396,17 +407,29 @@ def test_the_solicited_OBSERVATION_can_still_be_False__it_is_not_always_green(mo
     discriminating mutation is downstream of both: a decoder handing back a unit
     the company never registered -- a mis-keyed feed, or the same statement read
     for the wrong party -- is exactly what this observation is for, and it still
-    scores False."""
+    scores False.
+
+    AND IT IS NOW DOWNSTREAM OF THREE (EP6 pass 64), which is why the mutation
+    RELABELS THE RESULT of the real read rather than replacing the read. The
+    company's book refuses a statement for a unit it never registered, so a
+    stranger's line injected ABOVE that belt is now stopped by the belt and
+    never reaches this observation -- the mutation would be testing the belt and
+    reporting on the observation. Relabelling after the book has passed the
+    honest line keeps the mutation pointed at the thing it names."""
     from dataclasses import replace
 
-    import background.flex_dispatch_triad as triad
+    from company.market.flex_participation import FlexEnrolmentBook
 
-    real = triad.observe_settlement_wire
+    real = FlexEnrolmentBook.observe_settlement_feed
 
-    def decode_as_a_stranger(messages):
-        return [replace(line, unit_id="A_UNIT_NOBODY_ENROLLED") for line in real(messages)]
+    def decode_as_a_stranger(self, messages):
+        return [
+            replace(line, unit_id="A_UNIT_NOBODY_ENROLLED")
+            for line in real(self, messages)
+        ]
 
-    monkeypatch.setattr(triad, "observe_settlement_wire", decode_as_a_stranger)
+    monkeypatch.setattr(
+        FlexEnrolmentBook, "observe_settlement_feed", decode_as_a_stranger)
     m = measure_l2(_synthetic_record(), delivery=DeliveryModel(seed=1))
 
     assert m["settlement_solicited"] is False
@@ -525,22 +548,39 @@ def test_the_L3_solicited_OBSERVATION_can_still_be_False__it_is_not_always_green
     settlement line at a venue the company has no offer in, so mutating that leg
     raises there and proves nothing about this observation. The instruction leg
     survives to be scored, which is what makes it the discriminating mutation.
+
+    THE RELABEL NOW HAPPENS AFTER THE BOOK HAS READ THE HONEST MESSAGE (EP6
+    pass 64), same correction as the L2 twin and a sharper one here: the
+    capacity market is exactly a venue this default portfolio never joined, so
+    injecting that venue above the book means the book refuses and this
+    observation is never computed. Mutating below it leaves the belt doing its
+    job and still lets a mis-keyed feed reach -- and falsify -- the score.
     """
     from dataclasses import replace
 
-    import background.flex_dispatch_triad as triad
-    from interface.contracts.flex_observable_seam import FlexVenue
+    from company.market.flex_participation import FlexEnrolmentBook
+    from interface.contracts.flex_observable_seam import FlexDispatchInstruction, FlexVenue
 
-    real = triad.observe_response_wire
+    real = FlexEnrolmentBook.observe_feed
 
-    def decode_at_a_venue_we_never_joined(message, **kw):
-        return replace(real(message, **kw), venue=FlexVenue.CAPACITY_MARKET)
+    def decode_at_a_venue_we_never_joined(self, message, **kw):
+        """Relabels the INSTRUCTION leg ONLY, and the discrimination is now
+        explicit because it used to be free. The old patch target was reached
+        by the instruction feed alone; the book reader serves BOTH feeds, so an
+        undiscriminated relabel also mis-keys the settlement lines and
+        `learn_delivery_ratio_from_lines` raises before this observation is
+        computed -- the exact wrong-leg failure this test's docstring rules out.
+        """
+        payload = real(self, message, **kw)
+        if kw.get("expect") is not FlexDispatchInstruction:
+            return payload
+        return replace(payload, venue=FlexVenue.CAPACITY_MARKET)
 
     try:
-        triad.observe_response_wire = decode_at_a_venue_we_never_joined
+        FlexEnrolmentBook.observe_feed = decode_at_a_venue_we_never_joined
         m = measure_l3(_synthetic_record())
     finally:
-        triad.observe_response_wire = real
+        FlexEnrolmentBook.observe_feed = real
 
     assert m["feeds_solicited"] is False
 
@@ -571,6 +611,7 @@ def test_a_stacked_registration_naming_TWO_units_refuses_to_name_one():
     had silently become two portfolios, and the conservation law it measures
     would be scoring an aggregate nobody owns, so the type refuses to guess."""
     from background.flex_dispatch_triad import StackedRegistration, solicit_registration_stacked
+    from company.market.flex_participation import FlexEnrolmentBook
     from interface.contracts.flex_observable_seam import FlexEnrolmentOutcome, FlexVenue
     from sim.flex_dispatch import VenueRegistrations
 
@@ -584,6 +625,10 @@ def test_a_stacked_registration_naming_TWO_units_refuses_to_name_one():
                 venue=FlexVenue.DSO_LOCAL_CONSTRAINT),
         },
         venue_book=VenueRegistrations(),
+        # An EMPTY company book: this test is about the type refusing to name a
+        # unit when its outcomes disagree, which it must do before anything is
+        # ever read against a registration.
+        company_book=FlexEnrolmentBook(),
     )
     with pytest.raises(ValueError):
         two.unit_id
@@ -599,3 +644,41 @@ def test_a_stacked_registration_naming_TWO_units_refuses_to_name_one():
     real = solicit_registration_stacked(truth, venues=venues)
     assert real.unit_id == "FLEX_UNIT_1"
     assert real.venues == ("balancing_mechanism", "dso_local_constraint")
+
+
+def test_the_COMPANY_still_refuses_the_statement_when_the_WORLD_does_not(monkeypatch):
+    """THE LIVE-PATH PROOF for EP6 pass 64's belt, and the reason it is not
+    redundant with the world's `UnregisteredDispatch`.
+
+    On this loop the venue refuses first: `_require_registered` stops a line for
+    an unenrolled unit ever reaching the wire, so the company's own belt is
+    never exercised through an honest world and a test that only ran the loop
+    would prove nothing about it. The mutation is therefore A VENUE WITH NO
+    TEETH -- which is every real venue, from this company's side of the wall,
+    since no counterparty checks our registrations on our behalf.
+
+    With the world's refusal removed and the statement settled to a unit the
+    company never enrolled, `measure_l2` must still fail. NULL CONTROL: the same
+    toothless world settling the unit the company DID enrol completes normally,
+    so what fires is the missing registration and not the removed world law.
+    """
+    import background.flex_dispatch_triad as triad_module
+    import sim.flex_dispatch as fd
+    from company.market.flex_participation import UnheldRegistration
+
+    monkeypatch.setattr(fd, "_require_registered", lambda *a, **k: None)
+
+    # NULL CONTROL first: toothless world, honest unit -- the loop still runs.
+    assert measure_l2(_synthetic_record(), delivery=DeliveryModel(seed=5))["gap"] is not None
+
+    real_emit = triad_module.emit_settlement_lines_over_wire
+
+    def settle_a_unit_nobody_enrolled(truth, **kw):
+        kw["unit_id"] = "A_UNIT_NOBODY_ENROLLED"
+        return real_emit(truth, **kw)
+
+    monkeypatch.setattr(
+        triad_module, "emit_settlement_lines_over_wire", settle_a_unit_nobody_enrolled)
+    with pytest.raises(UnheldRegistration) as exc:
+        measure_l2(_synthetic_record(), delivery=DeliveryModel(seed=5))
+    assert "A_UNIT_NOBODY_ENROLLED" in str(exc.value)

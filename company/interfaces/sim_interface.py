@@ -119,6 +119,24 @@ class _FlexEnrolmentDesk:
             return ()
         return self._book.awaiting_answer()
 
+    def company_book(self):
+        """The COMPANY'S own enrolment book, or None if nothing was ever asked.
+
+        THE VENUE'S BOOK IS THE ONE THIS SEAM MAY NOT PUBLISH, and this is the
+        other one: what WE submitted and what came back to us, which is company
+        state by construction and was already reachable field-by-field through
+        `references()`. It is handed out whole because a caller reading its own
+        feed needs the registrations, not just the reference strings -- a
+        reference cannot say which window we made ourselves available over
+        (`FlexEnrolmentBook.observe_feed`, EP6 pass 64).
+
+        None rather than an empty book when nothing was asked, so a caller
+        cannot quietly treat "this seam never enrolled" as "this company holds
+        no registrations" -- one is a seam that was never used and the other is
+        a company that was refused.
+        """
+        return self._book
+
 
 class SimInterface:
     """Formal interface between the company layer and the simulation.
@@ -236,6 +254,16 @@ class SimInterface:
         """
         raise NotImplementedError
 
+    def flex_enrolment_book(self):
+        """This company's own flex enrolment book (EP6 pass 64) -- the standing
+        a caller checks its dispatch and settlement feeds against.
+
+        Declared on the base for the reason `enrol_flex` is: an implementation
+        that silently lacked it would send its caller back to the unchecked
+        module-level reader, which is the hole this method exists to close.
+        """
+        raise NotImplementedError
+
     def get_flex_settlement_lines(self, unit_id: str) -> list:
         """The unit's OBSERVABLE flex settlement lines (WORLD -> COMPANY).
 
@@ -348,6 +376,13 @@ class StubSimInterface(SimInterface):
         """Enrolments submitted and not yet answered -- what a real party
         chases. A response-driven company could not produce this list."""
         return self._flex_desk.awaiting_answer()
+
+    def flex_enrolment_book(self):
+        """This company's own flex enrolment book -- see
+        `_FlexEnrolmentDesk.company_book`. A METHOD and not a property beside
+        its two neighbours, deliberately: those read out a value, this hands
+        over the live object a caller then reads its feed against."""
+        return self._flex_desk.company_book()
 
     @property
     def churn_notifications(self) -> list[dict]:
@@ -502,6 +537,9 @@ class LiveSimInterface(SimInterface):
     @property
     def flex_awaiting_answer(self) -> tuple:
         return self._flex_desk.awaiting_answer()
+
+    def flex_enrolment_book(self):
+        return self._flex_desk.company_book()
 
 
 def build_sim_interface(
