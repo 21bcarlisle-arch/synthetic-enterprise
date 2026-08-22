@@ -15,20 +15,20 @@
     "open_findings": 108
   },
   "last_verified": {
-    "generated_at": "2026-08-22T02:07:14Z",
-    "git_commit": "468ce247f",
-    "run_id": "run_output_468ce247f_20260822T014836Z.json",
-    "verified_at": "2026-08-22T02:07:14Z"
+    "generated_at": "2026-08-22T02:47:19Z",
+    "git_commit": "6be8530a3",
+    "run_id": "run_output_6be8530a3_20260822T023819Z.json",
+    "verified_at": "2026-08-22T02:47:19Z"
   },
   "paused_reason": "scoped publish-path suite red at git=f983f074c; blocking tests: ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_answer_which_commit_it_is, FAILED tests/tools/test_measure_publish_gate_subject_cost.py::test_the_basetemp_leak_is_reclaimed_by_the_gates_own_sweep, ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_be_bl",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-22T02:07:14Z",
-    "git_commit": "468ce247f",
-    "run_id": "run_output_468ce247f_20260822T014836Z.json",
-    "verified_at": "2026-08-22T02:07:14Z"
+    "generated_at": "2026-08-22T02:47:19Z",
+    "git_commit": "6be8530a3",
+    "run_id": "run_output_6be8530a3_20260822T023819Z.json",
+    "verified_at": "2026-08-22T02:47:19Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-22T02:07:14Z"
+  "written_at": "2026-08-22T02:47:19Z"
 }
