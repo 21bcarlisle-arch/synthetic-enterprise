@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-08-22T03:59:40Z",
+    "checked_at": "2026-08-22T04:24:56Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_committed_store_credits_a_falsifier_the_repository_does_not_have",
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_every_declared_honest_absence_is_still_absent_and_still_silenced",
@@ -15,20 +15,20 @@
     "open_findings": 109
   },
   "last_verified": {
-    "generated_at": "2026-08-22T04:19:19Z",
-    "git_commit": "a5c3138e6",
-    "run_id": "run_output_a5c3138e6_20260822T040041Z.json",
-    "verified_at": "2026-08-22T04:19:19Z"
+    "generated_at": "2026-08-22T04:44:07Z",
+    "git_commit": "0a6f22ab1",
+    "run_id": "run_output_0a6f22ab1_20260822T042556Z.json",
+    "verified_at": "2026-08-22T04:44:07Z"
   },
   "paused_reason": "scoped publish-path suite red at git=f983f074c; blocking tests: ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_answer_which_commit_it_is, FAILED tests/tools/test_measure_publish_gate_subject_cost.py::test_the_basetemp_leak_is_reclaimed_by_the_gates_own_sweep, ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_be_bl",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-22T04:19:19Z",
-    "git_commit": "a5c3138e6",
-    "run_id": "run_output_a5c3138e6_20260822T040041Z.json",
-    "verified_at": "2026-08-22T04:19:19Z"
+    "generated_at": "2026-08-22T04:44:07Z",
+    "git_commit": "0a6f22ab1",
+    "run_id": "run_output_0a6f22ab1_20260822T042556Z.json",
+    "verified_at": "2026-08-22T04:44:07Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-22T04:19:19Z"
+  "written_at": "2026-08-22T04:44:07Z"
 }
