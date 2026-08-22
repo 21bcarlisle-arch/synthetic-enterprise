@@ -737,3 +737,113 @@ The origin is unmoved. **§9.5 step 2** (flip the origin, take §12.7's re-deriv
 the six defect-asserting tests) and **step 4** (`own_readable_resolution_floor_days`, the axis edge
 ranges, the ~30 assertions, the coupled-gap ledger row) remain, in that order. §14.2 means step 2
 opens with no sweep to run.
+
+---
+
+## 15. BUILD pass 7 — 2026-08-22 (worker tick, BUILD lane) — step 2's register half, DRY-RUN
+
+**The origin is still 400 and the reshape is still not landed.** What this pass adds is the half of
+§9.5 step 2 that was still a guess: §14.2 hands the next pass four measured numbers per entry, and
+the register has **ten** fields that move. This pass derived the remaining six, then put the whole
+candidate-origin register on trial against the module's own shipped checker — so step 2 is no longer
+"take §14.2's table and work the rest out", it is a transcription that has already been run.
+
+### 15.1 Why this pass did not flip the origin
+
+Two reasons, both observed rather than judged.
+
+1. **§14.1 stands unamended.** The flip is atomic, its change set includes the semantic inversion of
+   six tests, and six consecutive passes on this atom have now ended with uncommitted work in the
+   shared tree. Re-attempting the same shape a seventh time is the R3 defect, not persistence.
+2. **A full suite was live on the shared tree for the whole tick** — `pytest tests/ -q` as PID
+   4003393, started 05:49, still running at 06:2x, `cwd` = the shared worktree. `tools/couple_w2_11_d5.py`
+   is imported by that run. Mutating a shared module while a long suite is in flight is a recorded
+   defect class in this repo, and it would have reddened a suite this change has nothing to do with.
+   Everything below was therefore measured in scratch scripts against the shipped functions with the
+   origin substituted **in the process, never in the tree** — the same method §9/§12/§14 used.
+
+### 15.2 The six fields §14.2 does not carry, measured
+
+Same method as §14.2 (both belief entries' declarations emptied so the grid is the book's alone,
+`DD_FAILURE_WINDOW_DAYS` substituted to `organ_default_failure_window_days()` = 90, n=300, seeds
+7/11/23, 66 grid points). §14.2's four fields per entry reproduce **exactly**, so the table below
+gives the whole ten-field diff, marked by provenance.
+
+| field | `belief` | `belief_population_mix` | from |
+|---|---|---|---|
+| `own_invisible_drifts` | `()` — the band is empty | `(-1,)` | §14.2 |
+| `own_collapsed_runs` | `(-90,-61), (-48,-47,-46), (-23,-22), (-21,-20), (2,3)` | `(-90,-61), (-23,-22), (-1,0), (1,2,3)` | §14.2 |
+| `own_saturates_below` | `-61` | `-61` | §14.2 |
+| `own_saturates_above` | `+2` | `+1` | §14.2 |
+| `own_visible_drifts` | `(-60, -45, -30, -4)` | `(-60, -45, -30, -4)` | **this pass** |
+| `own_readable_resolution_floor_days` | `4` | `4` | **this pass** |
+| `own_bit_equality_floor_days` | `4` | `4` | **this pass** |
+| `own_floor_predicate_atom` | `None` (unchanged) | **`None`** — today `D33_the_collapse_predicate_is_bit_equality` | **this pass** |
+| `own_draw_size_axis.above_edge_range` | `(-23, 2)` | `(-23, 2)` | §14.2 |
+| `own_draw_size_axis.below_edge_range` | `(-61, -32)` | `(-61, -32)` | §14.2 |
+
+`measure_published_resolution_floor` at the candidate origin (n=300, seeds 7/11/23):
+`floor_days` **4/4**, per-seed **4/4/1** (`belief`) and **4/4/2** (mix), `bit_equality_floor_days`
+**4/4** with the same per-seed rows, `readable_at_every_drift_beyond_floor` **True** on both. The
+books read `oldest` 91/92/92 against the 90d window, headroom **−1/−2/−2**, `saturated` **False**,
+`amnesia_floor_window_days` 29/29/30 — the scored company stops being the never-forgets company,
+which is the whole reshape.
+
+### 15.3 NEW FINDING — D33's two-predicate divergence is an artefact of the saturated origin
+
+`belief_population_mix` is the one entry in this register that declares a
+`own_floor_predicate_atom`. It has to today: its readable floor is 314d and its bit-equality floor
+312d, because at seed 11 the figure "moves" at −310..−313 by 1.4e-17 — a difference no 4dp consumer
+can render, counted by the collapse predicate as one company told apart from another. D33 exists
+because those two numbers disagree.
+
+**At the organ's own default they agree: 4 and 4, on every seed, on both dimensions.** The
+disagreement was never a property of the predicate — it is what a 1.4e-17 float wobble looks like
+when the *only* drifts large enough to reach the figure at all are 310 days out. Move the origin to
+where the book can resolve a 4-day error and the wobble is nowhere near the floor. So step 2 must
+set `own_floor_predicate_atom` back to `None` on the mix entry, and D33's own claim on this pair
+needs re-stating as origin-conditional rather than deleted — the predicate is still the right one,
+its *witness on this pair* does not survive the reshape. That is a fact about D33 discovered by
+D27's dry-run, and it is not in §9.2, §12.7 or §14.2.
+
+### 15.4 The dry-run, and the control fired on the first choice
+
+The ten fields above were applied to a deep copy of `DIMENSION_DRIFT_RESOLUTION` at the candidate
+origin and run through the shipped `measure_own_drift_resolution` → `check_own_drift_resolution`:
+**0 violations**.
+
+That number is only worth reading because the same instrument refused the first attempt. The
+visible-drift set is the one field here with a genuine choice in it, and the obvious choice — mirror
+today's `(-370, -350, -320, -310)`, four points spanning the sighted region starting at the first
+drift above the low saturation — puts **−61** in the set. `−61` differs from the baseline, so a
+weaker check would take it; it is also the top member of the collapsed run `[-90, -61]`, so it reads
+identically to the companies beside it. The clean tree was **RED, twice, by name**:
+
+> `belief: drift -61d is declared VISIBLE and sits inside the collapsed run [-90, -61] -- it differs
+> from the baseline but not from the companies beside it, so it evidences no resolution; declare a
+> drift the sweep reads APART from its neighbours`
+
+— and the identical violation on the mix. `−60` is the first drift outside that run, which is the
+direct analogue of why `−370` replaced `−380` at the shipped origin (§ the `own_visible_drifts`
+comment, atom D29). **This is why the register half is now transcription and was not before:** a
+plausible reading of §14.2 lands a register that D27's own control rejects.
+
+### 15.5 What is verified, and what is carried
+
+* **Verified live this pass**, against the shipped checker on the candidate-origin register: every
+  field in §15.2 except the two `own_draw_size_axis` ranges — `check_own_drift_resolution` returns
+  `[]`.
+* **Carried from §14.2, not re-measured here**: `above_edge_range` (−23, 2), `below_edge_range`
+  (−61, −32), the derived null-control floor **17** and the invoice span **(30, 92)**.
+  `check_belief_band_population_axis` sweeps eight population sizes and was not run this tick; step 2
+  must run it, and it is the one place in the register half where a surprise is still possible.
+
+### 15.6 What this pass did not do
+
+The origin is unmoved and no `file_scope` file was touched. **§9.5 step 2** is now: apply §15.2's ten
+fields, flip the constant, rewrite the `SCENARIO_CONSTANT_CENSUS["DD_FAILURE_WINDOW_DAYS"]`
+`measured_divergence` block (`divergence_days` 310 → **0**, `never_forgets_drift_days` 0 → **1/2/2**
+per seed, `scored_saturated` True → **False**, and the `cost` block's two `readable_floor_days_at_*`
+maps collapse into one), invert the six defect-asserting tests, and run
+`check_belief_band_population_axis`. **Step 4** (the ~30 assertions, the coupled-gap ledger row)
+follows it unchanged.
