@@ -101,3 +101,70 @@ would leave its neighbours reading the wrong tree and would be one more instance
 
 Sequenced AFTER the sibling class fix, deliberately: three members of one class want one door, and
 building a third separate guard is how the class stops being visible as a class.
+
+---
+
+## SECOND MEASURED INSTANCE, 2026-08-22 — and this one reached `main`
+
+Found by the worker tick that landed `EP6_wall_protocol_typing` pass 62, while checking the
+count invariant at the commit rather than on the tree. Not drawn, not searched for. Every claim
+here is `observed-with-evidence` unless labelled `inferred` (R9). The `Severity:` field above is
+deliberately left as filed; what follows changes what is known about the class, not its grading.
+
+| commit | store (archived + live) | map declares | verdict |
+|---|---|---|---|
+| `973aa9ac6` | 56 (51 + 5) | 56 | green |
+| `87eed63cc` | 56 (51 + 5) | **57** | **red** |
+| `4175424cc` | 57 (53 + 4) | 57 | green |
+
+`87eed63cc` is `Auto-process run complete: report + LATEST.md + site/` — a routine publish commit
+from `background/process_run_complete.py`. It carries a four-line `docs/design/maturity_map.yaml`
+hunk (`simplifications_count: 56 -> 57`, `file_scope` 37 -> 38 entries) that **is not the
+publisher's change**. It was `EP6` pass 62's.
+
+The publisher does not sweep the map by accident. It stages it **deliberately and by name**
+(`process_run_complete.py:3970`, `git add -A docs/design/maturity_map.yaml docs/design/atom_status`)
+and names it again in the commit pathspec, for a stated and legitimate reason: *"Publish the
+pre-gate inbox fold too ... so a reconciled map lands WITH the run it belongs to, never dangling
+uncommitted."* The map reconciler folds atom_status inboxes into the map and leaves the result
+uncommitted; the publisher adopts it so it does not dangle.
+
+That is the whole defect, and it is a design consequence rather than a slip: **the publisher has
+no way to tell the reconciler's fold from any other lane's uncommitted map edit.** Both are "a
+modified `maturity_map.yaml` in the working tree". It adopts whatever it finds. Note the
+adjacent irony — the `git add` sits inside `tree_lock()` taken *specifically* to stop another
+writer's staged change being swept (the comment cites a real prior incident) — and then the
+`-A` on a named path re-opens that hole for the one file this class runs through. The lock
+serialises the index; it cannot make a worktree edit say who authored it.
+
+The mechanism is the one already documented above, reproduced exactly: on disk the roll was
+complete (live store trimmed to 4 rows, `archive/EP6_wall_protocol_typing.045.yaml` holding the
+2 rolled rows as `??` untracked), so the gate's store-contract tests ran in the working tree and
+were correctly green. The commit took the map and not the store, so the committed tree declared
+57 against 56 present. Healed one commit later by `4175424cc`, which landed the store file, the
+untracked chunk and the map's already-committed value together.
+
+### What this instance adds that the first one did not
+
+1. **The red reached `main` and was pushed.** The 2026-08-19 instance was caught before its
+   commit existed. This one was not caught by anything: it was gated, committed, and pushed, and
+   is still in the history.
+2. **The committing lane had no store-surface intent whatsoever.** The publisher does not know
+   what an atom store is, and never reads one. It claims the map for the reconciler's fold and
+   adopts a half-done roll it has no way to distinguish from that fold. So the class does not
+   require a seat that is reasoning about stores to get it wrong — which is what makes a
+   discipline-shaped fix useless here. It also means the guard cannot live in the seat that
+   edits the store: by the time the red is committed, the lane that wrote the map has moved on.
+3. **It therefore measures recommendation 2 above rather than merely restating it.** That repair
+   says *"the instrument already exists and is already the standing answer to a dirty shared
+   index; what is missing is that nothing makes it the only door."* `process_run_complete.py`
+   already knows this — its own comment at line 1349 (`WHY surgical_land AND NOT git commit`)
+   names hook-bypass and the shared-tree sweep as the two reasons it uses `surgical_land`
+   elsewhere — and it still reaches a store-surface file through the other door. A lane that has
+   already internalised the rule, written it down, and routes around it for one path is the
+   strongest available evidence that the door has to be closed by mechanism and not by knowing.
+
+`inferred`: nothing here establishes how long the class has been firing. Two instances three days
+apart, both found incidentally by a seat checking something else, is consistent with a rate well
+above two — but that is not measured, and a census of `simplifications_count` against store
+contents at every commit touching the map is what would measure it.
