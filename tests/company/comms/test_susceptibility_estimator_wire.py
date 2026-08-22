@@ -61,11 +61,22 @@ def _msg(mid="MW1", framing="loss_framed", tone="empathetic_toned", step=100):
     )
 
 
-def _wire(**over):
-    """A well-formed response as the counterparty publishes it. Hand-written
-    against the SCHEMA -- deliberately not produced by calling the sim's
-    encoder, so a refusal proven here is a property of the decoder and not of
-    the pair."""
+#: The participant this seam's replies arrive from, and the credential it
+#: presents. HAND-WRITTEN LITERALS, not imported from
+#: `simulation/conversation_response.py`: this file is the COMPANY's side, and a
+#: fixture that reads the sender's own constants would prove the two agree with
+#: themselves rather than that the company refuses a stranger (R15 TAUTOLOGY).
+#: `tests/simulation/test_conversation_response.py` owns the cross-side fact
+#: that the real counterparty presents exactly these.
+_SENDER = "CONTACT-PLATFORM-01"
+_CREDENTIAL = "contact-platform-01::participant-credential::v1"
+
+
+def _envelope(**over):
+    """A well-formed response DOCUMENT as the counterparty publishes it.
+    Hand-written against the SCHEMA -- deliberately not produced by calling the
+    sim's encoder, so a refusal proven here is a property of the decoder and not
+    of the pair."""
     payload_fields = {
         "response_id": "R1",
         "responds_to": "MW1",
@@ -88,6 +99,26 @@ def _wire(**over):
     return base
 
 
+def _wire(**over):
+    """That document inside the transport FRAME -- what actually arrives at this
+    seam since EP6 pass 67, and what every test below hands to `observe_wire`.
+
+    Frame fields are overridable via `frame=` so a stranger, a forged credential
+    or a missing frame key is one keyword rather than a hand-built dict; every
+    other keyword still addresses the envelope, which is why the document-shaped
+    tests above and below did not change when this seam was framed.
+    """
+    frame_over = over.pop("frame", {})
+    frame = {
+        "sender": _SENDER,
+        "credential": _CREDENTIAL,
+        "handed_over_at": "2026-01-01T12:00:00",
+        "envelope": _envelope(**over),
+    }
+    frame.update(frame_over)
+    return frame
+
+
 def test_a_well_formed_reply_off_the_wire_updates_the_belief():
     est = SusceptibilityEstimator()
     assert est.observe_wire("c1", _msg(), _wire()) is True
@@ -106,7 +137,7 @@ def test_a_reply_missing_its_version_is_refused_not_defaulted():
     """The named fail-open: an absent field and an agreeing field are the same
     bytes, so a version that can be defaulted is not a version."""
     wire = _wire()
-    del wire["schema_version"]
+    del wire["envelope"]["schema_version"]
     with pytest.raises(WallProtocolError) as exc:
         SusceptibilityEstimator().observe_wire("c1", _msg(), wire)
     assert exc.value.reason == "MISSING_FIELD"
@@ -165,7 +196,7 @@ def test_a_payload_less_envelope_is_refused_on_this_seam():
 
 def test_a_missing_payload_field_is_refused_never_defaulted():
     wire = _wire()
-    del wire["payload"]["fields"]["latency"]
+    del wire["envelope"]["payload"]["fields"]["latency"]
     with pytest.raises(WallProtocolError) as exc:
         SusceptibilityEstimator().observe_wire("c1", _msg(), wire)
     assert exc.value.reason == "MISSING_FIELD"
@@ -259,7 +290,7 @@ def widened_seam():
     original_belt = se.FORBIDDEN_TRUTH_FIELDS
     se._OBSERVABLE_PAYLOAD_TYPES[tag] = LeakyResponse
     se._OBSERVABLE_PAYLOAD_HINTS[tag] = hints
-    leaky = _wire(payload_fields={"framing_susceptibility": 87})["payload"]
+    leaky = _envelope(payload_fields={"framing_susceptibility": 87})["payload"]
     try:
         yield se, leaky, hints
     finally:
@@ -440,11 +471,12 @@ def test_R15_MUTATION_defaulting_the_absent_version_makes_the_refusal_vanish():
     intact, so the mutation proves the DEFAULTING and not the wrapping.
     """
     wire = _wire()
-    del wire["schema_version"]
+    del wire["envelope"]["schema_version"]
 
     def observe_with_default(w):
         w = dict(w)
-        w.setdefault("schema_version", 1)             # the mutation
+        w["envelope"] = dict(w["envelope"])
+        w["envelope"].setdefault("schema_version", 1)   # the mutation
         return SusceptibilityEstimator().observe_wire("c1", _msg(), w)
 
     def observe_without_default(w):
@@ -469,7 +501,7 @@ def test_R15_MUTATION_a_permissive_payload_decoder_admits_a_hidden_trait():
             "response_id", "responds_to", "action",
             "channel_chosen", "latency", "responded_step",
         }
-        body = w["payload"]["fields"]
+        body = w["envelope"]["payload"]["fields"]
         assert not declared - set(body)               # the mutation: subset check only
         return body.get("tone_susceptibility")
 
@@ -483,3 +515,151 @@ def test_the_company_side_never_imports_the_world():
     with its OWN codec and reads only the neutral contract. An import of
     `simulation.*` here would make the belief a read of ground truth."""
     assert _imported_roots("company/comms/susceptibility_estimator.py").isdisjoint({"simulation", "sim"})
+
+
+# ── THE PARTICIPANT CHECK on this leg (EP6 pass 67, the blind review's Q13) ──
+# WHY THIS BATTERY EXISTS. Every refusal above is about the DOCUMENT: its key
+# set, its version, its payload's declared fields, its denylisted traits. A
+# document cannot say who handed it over, so until this pass a correctly formed
+# reply from ANY process that could put bytes in front of this seam became a
+# belief -- and every check above stayed green while it did. The payment seam
+# closed this at pass 39 and the flex seam at pass 53; this was the last live
+# leg without it.
+#
+# THE MUTATION THAT MATTERS IS THE LAST ONE. Each refusal below could in
+# principle be produced by some unrelated strictness, so the battery ends by
+# running the OLD code path -- the bare decoder, on the same stranger's message
+# -- and showing the belief folds. That is the difference between "this seam
+# refuses some things" and "this refusal is the participant check".
+
+
+def test_a_stranger_presenting_a_PERFECT_document_is_refused():
+    """The whole exposure in one node: nothing is wrong with this message
+    except who sent it.
+
+    NULL CONTROL is the file's own happy path -- the byte-identical envelope
+    from the registered sender updates the belief (first test in this file), so
+    what this proves is the SENDER and not a newly strict decoder."""
+    with pytest.raises(WallProtocolError) as exc:
+        SusceptibilityEstimator().observe_wire(
+            "c1", _msg(), _wire(frame={"sender": "SOMEONE-ELSE-01"})
+        )
+    assert exc.value.reason == "UNKNOWN_SENDER"
+    assert "SOMEONE-ELSE-01" in str(exc.value)
+
+
+def test_a_REGISTERED_sender_that_cannot_prove_it_is_refused():
+    """Being named in the registry is not the check -- presenting the
+    credential is. Without this, "sender" would be a field anyone could type.
+    """
+    with pytest.raises(WallProtocolError) as exc:
+        SusceptibilityEstimator().observe_wire(
+            "c1", _msg(), _wire(frame={"credential": _CREDENTIAL + "-forged"})
+        )
+    assert exc.value.reason == "BAD_CREDENTIAL"
+
+
+def test_a_version_THIS_PARTICIPANT_is_not_on_is_refused_distinguishably():
+    """Two different facts with two different repairs: `UNSUPPORTED_VERSION`
+    means change the build, `VERSION_NOT_SPOKEN` means wait for that
+    counterparty's cutover. The conversation platform is on v1 only, and 2 is
+    inside `SUPPORTED_SCHEMA_VERSIONS` -- so this message is readable by this
+    build and still wrong.
+
+    NULL CONTROL: the assertion below checks 2 really is a version the build
+    can read. The day the platform's row moves to v2, this stops testing a
+    refusal and says so rather than passing vacuously."""
+    from company.interfaces.wall_protocol import (
+        CONVERSATION_PLATFORM_SENDER,
+        COUNTERPARTY_REGISTRY,
+        SUPPORTED_SCHEMA_VERSIONS,
+    )
+
+    assert 2 in SUPPORTED_SCHEMA_VERSIONS
+    assert 2 not in COUNTERPARTY_REGISTRY[CONVERSATION_PLATFORM_SENDER].speaks_schema_versions
+
+    with pytest.raises(WallProtocolError) as exc:
+        SusceptibilityEstimator().observe_wire("c1", _msg(), _wire(schema_version=2))
+    assert exc.value.reason == "VERSION_NOT_SPOKEN"
+
+
+def test_an_UNFRAMED_message_is_refused_rather_than_read_as_a_document():
+    """The pre-pass-67 wire shape, handed to the post-pass-67 seam. This is
+    what a caller that quietly reverted the producer would deliver, and it is
+    refused rather than parsed -- absence of a frame is never agreement."""
+    with pytest.raises(WallProtocolError) as exc:
+        SusceptibilityEstimator().observe_wire("c1", _msg(), _envelope())
+    assert exc.value.reason in ("MISSING_FIELD", "UNKNOWN_FIELD", "MALFORMED_FIELD")
+
+
+def test_a_frame_missing_a_key_is_refused_and_a_frame_with_an_EXTRA_one_too():
+    """Exact key set on the frame, both directions, for the reason the envelope
+    has one: a missing key would be defaulted and an extra key would be
+    tolerated, and both are how a transport check stops checking."""
+    short = _wire()
+    del short["handed_over_at"]
+    with pytest.raises(WallProtocolError):
+        SusceptibilityEstimator().observe_wire("c1", _msg(), short)
+
+    with pytest.raises(WallProtocolError):
+        SusceptibilityEstimator().observe_wire(
+            "c1", _msg(), _wire(frame={"relayed_by": "MITM-01"})
+        )
+
+
+def test_the_SENDER_is_checked_BEFORE_the_document_is_parsed():
+    """Order is the point, not an implementation detail: a decoder that parses
+    first and authenticates afterwards has already done the work an unknown
+    sender wanted done.
+
+    Constructed so the two answers differ. The message is from a stranger AND
+    its envelope is missing `schema_version` -- a defect this file proves is
+    refused as MISSING_FIELD when the sender is legitimate. Getting
+    UNKNOWN_SENDER back is the evidence that no envelope field was read."""
+    stranger = _wire(frame={"sender": "SOMEONE-ELSE-01"})
+    del stranger["envelope"]["schema_version"]
+
+    with pytest.raises(WallProtocolError) as exc:
+        SusceptibilityEstimator().observe_wire("c1", _msg(), stranger)
+    assert exc.value.reason == "UNKNOWN_SENDER"
+
+    # NULL CONTROL: the same broken envelope from the REGISTERED sender is
+    # refused for the envelope's reason, so the ordering above is a real
+    # difference and not this seam having one error for everything.
+    legitimate = _wire()
+    del legitimate["envelope"]["schema_version"]
+    with pytest.raises(WallProtocolError) as exc:
+        SusceptibilityEstimator().observe_wire("c1", _msg(), legitimate)
+    assert exc.value.reason == "MISSING_FIELD"
+
+
+def test_R15_MUTATION_the_BARE_decoder_folds_the_strangers_reply_into_a_belief():
+    """THE MUTATION, RUN NOT ASSERTED, and it is the code this pass replaced.
+
+    `decode_response(wire["envelope"], ...)` is exactly what
+    `observe_wire` did until pass 67. Run against the stranger's message the
+    test above refuses, it decodes clean and the belief MOVES -- the company
+    has learned something a process it has never heard of told it about one of
+    its customers.
+
+    NULL CONTROL: the shipped path refuses the same bytes. Without that line,
+    "the bare decoder accepts this" and "this message is fine" would be the
+    same observation.
+    """
+    from company.comms.susceptibility_estimator import decode_observable_payload
+    from company.interfaces.wall_protocol import decode_response
+
+    stranger = _wire(frame={"sender": "SOMEONE-ELSE-01", "credential": "anything"})
+
+    # THE MUTATION: the old read, on the old shape, from an unknown participant.
+    est = SusceptibilityEstimator()
+    response = decode_response(
+        stranger["envelope"], decode_payload=decode_observable_payload
+    )
+    assert est.observe_response("c1", _msg(), response.payload) is True
+    assert est.posterior_report("c1")["framing_means"]["loss_framed"] > 0.5
+
+    # THE CONTROL: the shipped path, same bytes, refused before the parse.
+    with pytest.raises(WallProtocolError) as exc:
+        SusceptibilityEstimator().observe_wire("c1", _msg(), stranger)
+    assert exc.value.reason == "UNKNOWN_SENDER"

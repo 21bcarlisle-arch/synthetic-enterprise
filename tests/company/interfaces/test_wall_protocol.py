@@ -1149,14 +1149,22 @@ _FRAMED_CROSSING_SITES = {
     # dispatch-instruction and settlement feeds (pass 62). Both legs of this
     # module now authenticate, so it has left the bare table below.
     "company/market/flex_participation.py": 2,
+    # The conversation seam's inbound leg (pass 67) -- the last bare one, moved
+    # here in the commit that framed it. `simulation/conversation_response.py`
+    # now hands its replies over inside a frame naming CONTACT-PLATFORM-01.
+    "company/comms/susceptibility_estimator.py": 1,
 }
 
 #: path -> how many response decodes it makes with NO participant check. Named
 #: rather than left to be inferred, so adding one is a decision somebody makes
 #: on purpose instead of a silence.
-_BARE_CROSSING_SITES = {
-    "company/comms/susceptibility_estimator.py": 1,
-}
+#:
+#: EMPTY SINCE PASS 67, and an empty table is a claim rather than an absence:
+#: "no company module decodes a wall response without authenticating its
+#: sender". A new bare leg reds the assertion below on the commit that adds it.
+#: The table has NOT stopped being able to fail -- `_response_decode_sites` is
+#: proved able to report a bare site by the mutation below, which builds one.
+_BARE_CROSSING_SITES: dict = {}
 
 
 def _response_decode_sites(root=None) -> tuple[dict, dict]:

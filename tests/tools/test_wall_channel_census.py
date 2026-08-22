@@ -785,6 +785,14 @@ def _pin_the_other_halves(monkeypatch) -> None:
     # `head_export` against the fake index tree `"0"*40`, raises, hits its own fail-closed branch,
     # and every NULL CONTROL above fails while looking like a defect in the half it was aimed at.
     monkeypatch.setattr(wcc, "anchored_read_conformance_at", lambda **k: _conformant_anchored())
+    # THE SIXTH HALF (2026-08-22 pass 67), pinned in the commit that armed it -- the FIFTH time
+    # this fixture's own docstring has been proved right, and pass 65 predicted the fourth in the
+    # same words. Left real, the authenticated-decode check runs `head_export` against the fake
+    # index tree `"0"*40`, raises, hits its own fail-closed branch, and every NULL CONTROL above
+    # fails while looking like a defect in the half it was aimed at.
+    monkeypatch.setattr(
+        wcc, "authenticated_decode_conformance_at", lambda **k: _conformant_authenticated()
+    )
 
 
 def _gate_wire_branch(monkeypatch, *, wire: wcc.WireVerdict):
@@ -4568,3 +4576,372 @@ def test_the_GATE_names_the_anchored_read_in_its_own_source():
     assert "anchored_read_conformance_at" in source and "anchored_read.ok" in source, (
         "the anchored-read check is not wired into the commit gate"
     )
+
+
+# ── 27. the AUTHENTICATED DECODE -- a business read that never asks WHO sent this ─────────────
+#
+# WHY THIS SECTION EXISTS (2026-08-22, EP6 pass 67). Section 26 above asks whether a company-side
+# read of a BOOKED feed goes through the book. This asks the question one layer below it, and the
+# two are independent: a read can be perfectly booked and still have decoded a document from a
+# process this company has never heard of, because a book admits a PAYLOAD and a frame
+# authenticates a SENDER.
+#
+# THE BLINDNESS IS STRUCTURAL AND IT IS THIS FILE'S OWN. `LEG_DECODE_NAME` holds both spellings of
+# each decoder in one tuple because pass 39 proved a single-name match reads a rename as a
+# deletion. From that commit `decode_response` and `decode_framed_response` were the same decode
+# to channel C -- and one of them authenticates. So every mutation below MOVES A CALL SITE BETWEEN
+# THE TWO SPELLINGS in a tree where nothing else changes: same module, same leg, same version,
+# same import edge. Every other control in this file stays green through all of them.
+
+_AUTH_CODEC = """
+    def _verify_frame(wire, registry):
+        return wire["sender"], registry[wire["sender"]], wire["envelope"], wire["handed_over_at"]
+
+
+    def decode_response(wire, *, decode_payload):
+        return decode_payload(wire["payload"])
+
+
+    def decode_framed_response(wire, *, decode_payload, registry=None):
+        sender, _record, envelope, _at = _verify_frame(wire, registry or {})
+        return sender, decode_response(envelope, decode_payload=decode_payload)
+
+
+    def decode_request(wire, *, decode_payload):
+        return decode_payload(wire["payload"])
+
+
+    def decode_interim(wire, *, decode_payload):
+        return decode_payload(wire["payload"])
+
+
+    def decode_framed_interim(wire, *, decode_payload, registry=None):
+        sender, _record, envelope, _at = _verify_frame(wire, registry or {})
+        return sender, decode_interim(envelope, decode_payload=decode_payload)
+
+
+    def decode_notification(wire, *, decode_payload):
+        return decode_payload(wire["payload"])
+
+
+    def decode_framed_notification(wire, *, decode_payload, registry=None):
+        sender, _record, envelope, _at = _verify_frame(wire, registry or {})
+        return sender, decode_notification(envelope, decode_payload=decode_payload)
+"""
+
+
+@pytest.fixture()
+def auth_tree(tmp_path: Path) -> Path:
+    """A miniature repo whose codec has both spellings of every decoder, and one honest business
+    reader that takes the framed one.
+
+    The honest reader is in the FIXTURE and not in a mutation, for the reason `flex_tree` gives:
+    without it, "the control reds on a bare call" and "the control reds on any call it has not
+    seen" would be the same experiment.
+    """
+    root = tmp_path / "repo"
+    _write(root, wcc.CODEC_REL, _AUTH_CODEC)
+    _write(root, "company/billing/honest_consumer.py", """
+        from company.interfaces.wall_protocol import decode_framed_response
+
+
+        def observe_wire(wire):
+            sender, response = decode_framed_response(wire, decode_payload=dict)
+            return response
+    """)
+    return root
+
+
+def _auth(root: Path) -> "wcc.AuthenticatedDecodeVerdict":
+    return wcc.authenticated_decode_conformance(str(root))
+
+
+def test_the_framed_decoders_are_DERIVED_from_the_codecs_own_call_graph(auth_tree: Path):
+    """Not a name list. The seed is the frame verifier and the closure is over the codec's calls,
+    so a fourth framed decoder is covered on the day it lands and a framed decoder that quietly
+    stops verifying is RECLASSIFIED rather than staying on a list."""
+    assert wcc.framed_decoders(str(auth_tree)) == frozenset(
+        {"decode_framed_response", "decode_framed_interim", "decode_framed_notification"}
+    )
+    assert wcc.bare_decoders(str(auth_tree)) == frozenset(
+        {"decode_response", "decode_request", "decode_interim", "decode_notification"}
+    )
+
+
+def test_a_tree_whose_business_reads_are_all_FRAMED_is_conformant(auth_tree: Path):
+    v = _auth(auth_tree)
+    assert v.ok, v.report()
+    assert len(v.authenticated) == 1 and not v.unauthenticated, v.report()
+    assert "authenticate" not in v.report() or "all 1 business-side" in v.report(), v.report()
+
+
+def test_MUTATION_a_business_read_MOVED_TO_THE_BARE_DECODER_is_UNAUTHENTICATED(auth_tree: Path):
+    """THE DEFECT, and it is the smallest possible edit: one identifier. Same module, same leg,
+    same version, same import edge -- and the participant check is gone."""
+    _write(auth_tree, "company/billing/honest_consumer.py", """
+        from company.interfaces.wall_protocol import decode_response
+
+
+        def observe_wire(wire):
+            return decode_response(wire, decode_payload=dict)
+    """)
+    v = _auth(auth_tree)
+    assert not v.ok
+    assert len(v.unauthenticated) == 1, v.report()
+    assert "honest_consumer.py:5" in v.unauthenticated[0], v.unauthenticated
+    assert "observe_wire" in v.unauthenticated[0] and "decode_response" in v.unauthenticated[0]
+    assert "UNAUTHENTICATED WALL DECODE" in v.report()
+
+
+def test_MUTATION_a_NEW_business_module_arriving_on_the_bare_decoder_is_UNAUTHENTICATED(
+    auth_tree: Path,
+):
+    """The other direction: the shipped reader is untouched and a second one lands beside it.
+    A per-file question would have credited the tree for the file that was already right."""
+    _write(auth_tree, "company/comms/new_reader.py", """
+        from company.interfaces.wall_protocol import decode_notification
+
+
+        def observe_advice(wire):
+            return decode_notification(wire, decode_payload=dict)
+    """)
+    v = _auth(auth_tree)
+    assert not v.ok
+    assert len(v.authenticated) == 1 and len(v.unauthenticated) == 1, v.report()
+    assert "new_reader.py" in v.unauthenticated[0], v.unauthenticated
+
+
+def test_MUTATION_a_bare_decode_at_MODULE_SCOPE_is_reported_not_skipped(auth_tree: Path):
+    """Fail-closed on the shape with no enclosing function: an import-time read is still a read,
+    and a walk that only inspects function bodies would miss it silently."""
+    _write(auth_tree, "company/comms/eager.py", """
+        from company.interfaces.wall_protocol import decode_response
+
+        LATEST = decode_response({"payload": {}}, decode_payload=dict)
+    """)
+    v = _auth(auth_tree)
+    assert not v.ok
+    assert "<module scope>" in v.unauthenticated[0], v.unauthenticated
+
+
+def test_MUTATION_a_framed_decoder_that_STOPS_VERIFYING_reclassifies_its_callers(auth_tree: Path):
+    """THE SUBTLEST EDIT, and the reason the two sets are derived rather than listed. Nobody
+    touches the business module: the CODEC's `decode_framed_response` simply stops calling the
+    verifier while keeping its name, its signature and its callers. A control holding a list of
+    framed names would report this tree clean forever.
+
+    NULL CONTROL: the other two framed decoders still verify, so the reclassification is the
+    edit and not the walk collapsing."""
+    _write(auth_tree, wcc.CODEC_REL, _AUTH_CODEC.replace(
+        """    def decode_framed_response(wire, *, decode_payload, registry=None):
+        sender, _record, envelope, _at = _verify_frame(wire, registry or {})
+        return sender, decode_response(envelope, decode_payload=decode_payload)""",
+        """    def decode_framed_response(wire, *, decode_payload, registry=None):
+        return wire["sender"], decode_response(wire["envelope"], decode_payload=decode_payload)""",
+    ))
+    assert wcc.framed_decoders(str(auth_tree)) == frozenset(
+        {"decode_framed_interim", "decode_framed_notification"}
+    )
+    v = _auth(auth_tree)
+    assert not v.ok, "a decoder that kept its name and lost its check was still credited"
+    assert "decode_framed_response" in v.unauthenticated[0], v.unauthenticated
+
+
+def test_NULL_CONTROL_a_SECOND_framed_business_reader_stays_green(auth_tree: Path):
+    """Moves the sample, not the law. Without it, "reds on a bare call" and "reds on any call it
+    has not seen before" are the same observation."""
+    _write(auth_tree, "company/market/second_reader.py", """
+        from company.interfaces.wall_protocol import decode_framed_notification
+
+
+        def observe_advice(wire):
+            sender, advice = decode_framed_notification(wire, decode_payload=dict)
+            return advice
+    """)
+    v = _auth(auth_tree)
+    assert v.ok, v.report()
+    assert len(v.authenticated) == 2, v.report()
+
+
+def test_NULL_CONTROL_the_WORLD_side_calling_a_bare_decoder_stays_green(auth_tree: Path):
+    """`sim/flex_dispatch.py` decodes the company's REQUEST with `decode_request`, and must keep
+    being allowed to: that is the counterparty reading what the company sent it, which is the
+    opposite direction and a different participant's problem. A control that refused it would red
+    an ordinary commit against a subject this question is not about."""
+    _write(auth_tree, "sim/flex_dispatch.py", """
+        from company.interfaces.wall_protocol import decode_request
+
+
+        def receive(wire):
+            return decode_request(wire, decode_payload=dict)
+    """)
+    v = _auth(auth_tree)
+    assert v.ok, v.report()
+    assert not any("flex_dispatch" in a for a in v.authenticated + v.unauthenticated)
+
+
+def test_NULL_CONTROL_the_CODEC_composing_its_own_decoders_is_not_a_crossing(auth_tree: Path):
+    """`decode_framed_response` calls `decode_response`. Counting that would make the codec its
+    own violator forever -- R15 TAUTOLOGY, and the same exclusion `unbooked_transport_readers`
+    makes for the same reason."""
+    v = _auth(auth_tree)
+    assert not any(wcc.CODEC_REL in e for e in v.authenticated + v.unauthenticated)
+
+
+def test_FAIL_CLOSED_a_codec_that_cannot_be_read_RAISES(auth_tree: Path):
+    (auth_tree / wcc.CODEC_REL).unlink()
+    with pytest.raises(wcc.CensusUnavailable, match="cannot be read"):
+        _auth(auth_tree)
+
+
+def test_FAIL_CLOSED_a_codec_with_NO_FRAME_VERIFIER_RAISES(auth_tree: Path):
+    """The cheapest way to make this control quiet: rename the verifier. Without this branch,
+    every decoder would reclassify as bare and the tree would red for the wrong reason -- loud,
+    and then tuned away."""
+    _write(auth_tree, wcc.CODEC_REL, _AUTH_CODEC.replace("_verify_frame", "_check_the_frame"))
+    with pytest.raises(wcc.CensusUnavailable, match="no longer defines"):
+        _auth(auth_tree)
+
+
+def test_FAIL_CLOSED_a_codec_whose_verifier_reaches_NO_decoder_RAISES(auth_tree: Path):
+    """"This codec has no authenticating decoder" and "this walk has stopped matching" are the
+    same value and opposite facts."""
+    _write(auth_tree, wcc.CODEC_REL, """
+        def _verify_frame(wire, registry):
+            return wire["sender"]
+
+
+        def decode_response(wire, *, decode_payload):
+            return decode_payload(wire["payload"])
+    """)
+    with pytest.raises(wcc.CensusUnavailable, match="reaches"):
+        _auth(auth_tree)
+
+
+def test_FAIL_CLOSED_a_codec_where_EVERY_decoder_is_framed_RAISES(auth_tree: Path):
+    """The vacuous case: with no bare entry point left there is no violation this control could
+    ever detect, and a control that cannot fail is worse than none (R15)."""
+    source = "def _verify_frame(wire, registry):\n    return wire['sender']\n\n\n" + "\n\n".join(
+        f"def {name}(wire, *, decode_payload=None, registry=None):\n"
+        f"    return _verify_frame(wire, registry or {{}})"
+        for name in sorted(wcc.DECODE_NAMES)
+    ) + "\n"
+    _write(auth_tree, wcc.CODEC_REL, source)
+    # NULL CONTROL on the fixture itself: the tree really does parse, so the raise below is the
+    # vacuity branch and not the codec having been written as unreadable bytes.
+    assert wcc.framed_decoders(str(auth_tree)) == wcc.DECODE_NAMES
+    with pytest.raises(wcc.CensusUnavailable, match="vacuously conformant"):
+        _auth(auth_tree)
+
+
+def test_FAIL_CLOSED_a_tree_where_NOTHING_business_side_decodes_RAISES(auth_tree: Path):
+    """An empty denominator makes conformance vacuously true, and a name-matched walk that has
+    silently stopped matching looks exactly like this."""
+    (auth_tree / "company" / "billing" / "honest_consumer.py").unlink()
+    with pytest.raises(wcc.CensusUnavailable, match="empty denominator"):
+        _auth(auth_tree)
+
+
+def test_THE_LIVE_TREE_authenticates_every_business_side_decode():
+    """R11-shaped: the claim is about the repository, so it is asserted against the repository.
+
+    THE FIGURES ARE NAMED rather than compared to `>= 0`. Seven call sites across three modules,
+    all framed, and zero bare -- and it is the commit that frames `susceptibility_estimator` that
+    makes the second figure zero for the first time.
+    """
+    v = wcc.authenticated_decode_conformance(str(Path(wcc.__file__).parent.parent))
+    assert v.ok, v.report()
+    assert not v.unauthenticated, v.unauthenticated
+    assert len(v.authenticated) == 7, v.authenticated
+    assert {e.split(":")[0] for e in v.authenticated} == {
+        "company/billing/payment_observation_consumer.py",
+        "company/comms/susceptibility_estimator.py",
+        "company/market/flex_participation.py",
+    }, v.authenticated
+
+
+def test_THE_LIVE_CODEC_still_has_bare_entry_points_this_control_could_fire_on():
+    """The live null control for the vacuity branch: the repository's own codec keeps four
+    unframed decoders, so a green above is the business trees not using them and not this
+    control having nothing left to detect."""
+    root = str(Path(wcc.__file__).parent.parent)
+    assert wcc.bare_decoders(root) == frozenset(
+        {"decode_request", "decode_response", "decode_interim", "decode_notification"}
+    )
+
+
+def test_the_authenticated_decode_check_is_part_of_the_CLIs_exit_code():
+    """R11's no-orphan-transitions rule: a check whose red changes nothing is not a gate."""
+    import ast
+
+    source = (Path(wcc.__file__).parent.parent / "tools" / "wall_channel_census.py").read_text()
+    returns = [
+        ast.unparse(n.value) for n in ast.walk(ast.parse(source))
+        if isinstance(n, ast.Return) and n.value is not None
+    ]
+    assert any("authenticated.ok" in r for r in returns), (
+        "the authenticated-decode check reports but does not gate"
+    )
+
+
+# ── the GATE's authenticated-decode branch ───────────────────────────────────────────────────
+
+def _conformant_authenticated() -> "wcc.AuthenticatedDecodeVerdict":
+    return wcc.AuthenticatedDecodeVerdict(
+        authenticated=["company/billing/x.py:1 -> observe_wire -> decode_framed_response"],
+        unauthenticated=[],
+        framed=("decode_framed_response",),
+        bare=("decode_response",),
+    )
+
+
+def _gate_authenticated_branch(monkeypatch, *, verdict):
+    from tools import pre_commit_test_gate as gate
+
+    _pin_the_other_halves(monkeypatch)
+    monkeypatch.setattr(wcc, "authenticated_decode_conformance_at", lambda **k: verdict)
+    return gate._wall_channel_census_check(["company/comms/susceptibility_estimator.py"])
+
+
+def test_NULL_CONTROL_the_GATE_passes_an_authenticated_tree(monkeypatch):
+    ok, detail = _gate_authenticated_branch(monkeypatch, verdict=_conformant_authenticated())
+    assert ok, detail
+    assert "authenticate the participant" in detail, detail
+
+
+def test_MUTATION_the_GATE_REFUSES_a_commit_carrying_an_unauthenticated_decode(monkeypatch):
+    ok, detail = _gate_authenticated_branch(
+        monkeypatch,
+        verdict=wcc.AuthenticatedDecodeVerdict(
+            authenticated=[],
+            unauthenticated=[
+                "company/comms/susceptibility_estimator.py:420 -> "
+                "SusceptibilityEstimator.observe_wire -> decode_response"
+            ],
+            framed=("decode_framed_response",),
+            bare=("decode_response",),
+        ),
+    )
+    assert not ok, "a commit taking a company decode off the framed entry point was allowed"
+    assert "UNAUTHENTICATED WALL DECODE" in detail and "susceptibility_estimator.py:420" in detail
+
+
+def test_FAIL_CLOSED_the_GATE_refuses_when_the_authenticated_decode_check_RAISES(monkeypatch):
+    """R15 FAIL-SILENT: an unavailable check is a FAILED check."""
+    def _boom(**kwargs):
+        raise wcc.CensusUnavailable("the frame verifier is gone")
+
+    from tools import pre_commit_test_gate as gate
+
+    _pin_the_other_halves(monkeypatch)
+    monkeypatch.setattr(wcc, "authenticated_decode_conformance_at", _boom)
+    ok, detail = gate._wall_channel_census_check(["company/comms/susceptibility_estimator.py"])
+    assert not ok and "authenticated-decode check RAISED" in detail, detail
+
+
+def test_the_GATE_names_the_authenticated_decode_in_its_own_source():
+    """The arming, asserted against the file rather than described in a record."""
+    source = (Path(wcc.__file__).parent.parent / "tools" / "pre_commit_test_gate.py").read_text()
+    assert (
+        "authenticated_decode_conformance_at" in source and "authenticated.ok" in source
+    ), "the authenticated-decode check is not wired into the commit gate"

@@ -617,6 +617,71 @@ def encode_wall_response(response: WallResponse) -> dict:
     }
 
 
+# ---------------------------------------------------------------------------
+# THE TRANSPORT FRAME (atom EP6_wall_protocol_typing, pass 67, 2026-08-22) --
+# this counterparty saying who it is.
+#
+# THE LAST UNFRAMED LIVE LEG. The 2026-08-20 blind review's Q13 asked what
+# happened to counterparty authentication once a mock and a real participant
+# became indistinguishable to the company; the payment seam answered it at pass
+# 39 and the flex seam at pass 53, and this one did not. Until this section
+# existed the company would fold a belief from any process that could put a
+# well-formed conversation envelope in front of it -- the envelope refusals are
+# about the DOCUMENT, and a document says nothing about who handed it over.
+#
+# SAME SHAPE AS THE OTHER TWO, deliberately, and the sameness is the point: the
+# frame is written against the frame SCHEMA and not against the company's
+# `decode_frame`, because this module may not import `company.*` and a frame
+# built by reading the receiver's code would make the round-trip a tautology
+# (the reason `encode_wall_response` above is written the same way).
+#
+# ROTATING `PARTICIPANT_CREDENTIAL` here without updating the company's registry
+# BREAKS THIS SEAM, deliberately -- that is what a participant changing its key
+# without telling its counterparty does on a real network.
+#
+# NOT A SECRET IN THE SECRETS SENSE: a stand-in contact platform's synthetic
+# credential inside a simulation, with no real-world counterparty and (by
+# `tools/company_network_isolation.py`) no route to one. It is world state, not
+# configuration.
+# ---------------------------------------------------------------------------
+
+#: This counterparty's participant identity, as the company's registry knows it.
+#: The customer-contact platform -- the thing a real supplier's replies actually
+#: arrive from, and never the customer directly.
+PARTICIPANT_ID = "CONTACT-PLATFORM-01"
+
+#: What this participant presents to prove that identity. The company stores
+#: sha256 of this string and never the string itself.
+PARTICIPANT_CREDENTIAL = "contact-platform-01::participant-credential::v1"
+
+
+def frame_wire_message(envelope_wire: dict, *, handed_over_at: dt.datetime) -> dict:
+    """Wrap one encoded envelope in this participant's transport frame, stamped
+    with the moment this participant let go of it.
+
+    `handed_over_at` IS REQUIRED AND HAS NO DEFAULT, for the reason the payment
+    seam's twin records: "now" would make every historical replay claim it was
+    delivered at import time, and defaulting it to the envelope's `observed_at`
+    would make a prompt hand-over unfalsifiable by construction (R15 TAUTOLOGY).
+    A caller that cannot say when it handed a message over does not get to send
+    one.
+    """
+    if not isinstance(envelope_wire, dict):
+        raise SeamCodecError(
+            f"expected an encoded envelope dict, got {type(envelope_wire).__name__}"
+        )
+    if not isinstance(handed_over_at, dt.datetime):
+        raise SeamCodecError(
+            f"handed_over_at must be a datetime, got {type(handed_over_at).__name__}"
+        )
+    return {
+        "sender": PARTICIPANT_ID,
+        "credential": PARTICIPANT_CREDENTIAL,
+        "handed_over_at": handed_over_at.isoformat(),
+        "envelope": envelope_wire,
+    }
+
+
 def respond_over_wire(
     customer_id: str,
     message: ConversationMessage,
@@ -631,9 +696,19 @@ def respond_over_wire(
     The object form remains: it is how the response is constructed in the first
     place and what the offline harness measures. What changed is that the
     COMPANY no longer receives one.
+
+    FRAMED since pass 67 (see above), so the company's route to a conversation
+    observation now runs through a participant check as well as the envelope's
+    refusals. A well-behaved contact platform hands a reply on at the moment it
+    has it, so `handed_over_at` is this message's own `observed_at` -- the same
+    ordinary-delivery convention the payment seam uses, and the null control any
+    future late-delivery question would be defined against.
     """
-    return encode_wall_response(
-        respond_over_wall(customer_id, message, correlation_id, observed_at, valid_time)
+    return frame_wire_message(
+        encode_wall_response(
+            respond_over_wall(customer_id, message, correlation_id, observed_at, valid_time)
+        ),
+        handed_over_at=observed_at,
     )
 
 

@@ -813,6 +813,7 @@ def _wall_channel_census_check(staged: list[str]) -> tuple[bool, str]:
     try:
         from tools.wall_channel_census import (
             anchored_read_conformance_at,
+            authenticated_decode_conformance_at,
             census_at,
             check,
             check_nested_schema,
@@ -945,12 +946,36 @@ def _wall_channel_census_check(staged: list[str]) -> tuple[bool, str]:
         return False, (
             f"anchored-read check RAISED against tree {tree[:9]}: {type(e).__name__}: {e}"
         )
+    # THE AUTHENTICATED DECODE BLOCKS FROM ITS FIRST COMMIT -- 2026-08-22 pass 67, by the rule the
+    # five steps above state: a check becomes a gate "in the same commit that makes it
+    # satisfiable". MEASURED at HEAD ebc56959f before this step was written: the business trees
+    # held SEVEN decode call sites and exactly ONE was bare -- `susceptibility_estimator`, the last
+    # live leg with no participant check -- and the same commit that arms this frames it. So the
+    # only commits this can refuse are ones that take a company-side decode off a framed entry
+    # point or land a new one that never was.
+    #
+    # WHY IT NEEDS A GATE AT ALL, and why no step above can stand in for it. Channel C's decode
+    # table holds BOTH spellings of each decoder in one tuple, and it has to: pass 39 learned that
+    # matching a single name reads "the decoder was renamed" as "the decoder went away" and
+    # red-lists a seam for getting STRONGER. The cost is that `decode_response` and
+    # `decode_framed_response` became indistinguishable to every control here -- one authenticates
+    # the sender and one does not. A module moving from the framed entry point to the bare one
+    # deletes the participant check while moving no import edge, no envelope and no version. This
+    # is the only control in the repo whose red is that event.
+    try:
+        authenticated = authenticated_decode_conformance_at(rev=tree, repo_root=ROOT)
+    except Exception as e:  # noqa: BLE001 -- an unavailable check is a FAILED check
+        return False, (
+            f"authenticated-decode check RAISED against tree {tree[:9]}: {type(e).__name__}: {e}"
+        )
     if not verdict.ok:
         return False, verdict.report()
     if not wire.ok:
         return False, wire.report()
     if not anchored_read.ok:
         return False, anchored_read.report()
+    if not authenticated.ok:
+        return False, authenticated.report()
     if not envelope.ok:
         return False, envelope.report()
     if not drift.ok:
@@ -967,7 +992,10 @@ def _wall_channel_census_check(staged: list[str]) -> tuple[bool, str]:
         f"channel F's {len(nested.pins)} read artefact key(s) publish exactly the "
         f"{sum(len(v) for v in nested.pins.values())} nested field name(s) they were frozen at; "
         f"all {len(anchored_read.anchored)} call site(s) of the {len(anchored_read.readers)} "
-        "bookless feed reader(s) are anchored against this company's own book"
+        "bookless feed reader(s) are anchored against this company's own book; "
+        f"all {len(authenticated.authenticated)} business-side wall decode(s) authenticate the "
+        f"participant that handed the message over ({len(authenticated.bare)} bare entry "
+        "point(s) unused there)"
     )
     if envelope.legless:
         # NOT a refusal -- the leg-blind fallback is never weaker than the reading it replaced.

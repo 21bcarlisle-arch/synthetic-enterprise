@@ -60,7 +60,7 @@ from interface.contracts.conversation_seam import (
     ResponseAction,
     validate_response_follows_message,
 )
-from company.interfaces.wall_protocol import WallProtocolError, decode_response
+from company.interfaces.wall_protocol import WallProtocolError, decode_framed_response
 
 # The FRAMING values the company can put on a message, and the SIM-side
 # susceptibility CATEGORY each is the "matched" lever for. These strings match
@@ -416,8 +416,27 @@ class SusceptibilityEstimator:
         so reading the status here would add a second wall crossing that asks
         nothing the first one has not already answered -- and channel C of
         ``tools/wall_channel_census.py`` is a shrink-only list.
+
+        WHO HANDED THIS OVER IS ASKED FIRST (EP6 pass 67, the review's Q13).
+        This read was ``decode_response`` until pass 67 -- the DOCUMENT's
+        refusals and nothing else -- which made this the last live leg where a
+        well-formed envelope from any process at all became a belief. It now
+        goes through ``decode_framed_response``: the transport frame names a
+        participant, that participant proves it against a fingerprint this
+        build holds, and only then is a byte of the envelope parsed. A decoder
+        that parses first and authenticates afterwards has already done the
+        work an unknown sender wanted done.
+
+        THE VERIFIED SENDER IS DELIBERATELY DROPPED HERE and the payment
+        consumer's is not, because the two crossings differ in what they could
+        do with it: that consumer keeps a per-counterparty book and this one
+        holds no equivalent registration to admit a reply against. Binding the
+        name to nothing would be a field that looks like a check. What the
+        frame buys this seam is the refusal, which happens above.
         """
-        response = decode_response(wire, decode_payload=decode_observable_payload)
+        _sender, response = decode_framed_response(
+            wire, decode_payload=decode_observable_payload
+        )
         if response.payload is None:
             raise WallProtocolError(
                 "CONTRACT_VIOLATION",

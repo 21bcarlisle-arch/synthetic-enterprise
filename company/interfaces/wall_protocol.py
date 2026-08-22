@@ -424,6 +424,16 @@ PAYMENT_SEAM_SENDER = "BACS-BUREAU-01"
 FLEX_SYSTEM_OPERATOR_SENDER = "SYSTEM-OPERATOR-01"
 FLEX_NETWORK_OPERATOR_SENDER = "NETWORK-OPERATOR-01"
 
+#: The company's counterparty on the CONVERSATION seam (EP6 pass 67) -- the
+#: customer-contact platform its replies arrive from, which is what a real
+#: supplier has on that leg and never the customer directly.
+#:
+#: This row is the last of the three live seams to get one. Until it existed the
+#: belief update would fold a reply from any process that could put a well-formed
+#: envelope in front of it: the envelope refusals are about the DOCUMENT, and a
+#: document cannot say who handed it over.
+CONVERSATION_PLATFORM_SENDER = "CONTACT-PLATFORM-01"
+
 #: Every counterparty this build will accept a message from. A sender absent
 #: from this mapping is REFUSED -- there is deliberately no default record and
 #: no wildcard, because a registry with a fallback is a registry that cannot
@@ -457,6 +467,16 @@ COUNTERPARTY_REGISTRY: Mapping[str, CounterpartyRecord] = MappingProxyType(
             ),
             speaks_schema_versions=frozenset({2}),
             # `sim/flex_dispatch.py::NETWORK_OPERATOR_CREDENTIAL`.
+            nature=CounterpartyNature.STAND_IN,
+        ),
+        CONVERSATION_PLATFORM_SENDER: CounterpartyRecord(
+            credential_sha256=(
+                "5be03541a35fec6b0c880334c4f6ed3972c3bf229dc2225f06a583422e526559"
+            ),
+            # The conversation seam has only ever published v1: this is the
+            # counterparty's CURRENT release, not what this build can read.
+            speaks_schema_versions=frozenset({1}),
+            # `simulation/conversation_response.py::PARTICIPANT_CREDENTIAL`.
             nature=CounterpartyNature.STAND_IN,
         ),
     }

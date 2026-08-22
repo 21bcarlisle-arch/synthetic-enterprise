@@ -2884,6 +2884,217 @@ def anchored_read_conformance_at(
         return anchored_read_conformance(root)
 
 
+# ── the authenticated-decode question: does a business read ask WHO handed this over? ────────
+#
+# WHY THIS IS A DIFFERENT QUESTION FROM EVERY CHANNEL ABOVE, and the reason is the shape pass 65
+# recorded one layer down. Channel C asks whether a leg is ENCODED and DECODED -- whether the
+# version is on the wire at all. `LEG_DECODE_NAME` deliberately holds BOTH spellings of each
+# decoder in one tuple, because pass 39 learned that a census matching one name reads "the
+# decoder was renamed" as "the decoder went away" and red-lists a seam for getting STRONGER.
+# The cost of that repair is that the two spellings became INDISTINGUISHABLE to every channel:
+# `decode_response` and `decode_framed_response` are the same decode to channel C, and one of
+# them authenticates the sender while the other does not. So a business module could move from
+# the framed entry point to the bare one -- deleting the participant check outright -- and
+# nothing in this tree would move: no import edge (same module), no missing decoder (same leg,
+# same tuple), no version mismatch (the version is on the envelope either way).
+#
+# THAT IS THE BLIND REVIEW'S Q13 ("if the caller genuinely cannot distinguish real from fake,
+# what happened to counterparty authentication?"), whose recorded `answer_needed` is that the
+# check "lives BELOW THE PORT and is verified there, WITH EVIDENCE". Three seams answering it in
+# their own code is the answer; this is the evidence, and it is the half that survives the next
+# refactor.
+#
+# THE TWO SETS ARE DERIVED FROM THE CODEC AND NOT LISTED. A FRAMED decoder is a top-level
+# function of `wall_protocol.py` that reaches the frame verifier -- directly or through another
+# function that does -- and the closure is over the codec's own call graph. So
+# `decode_framed_interim` was covered on the day it landed, a fourth framed decoder is covered on
+# the day it lands, and a framed decoder that quietly stops verifying is RECLASSIFIED as bare by
+# the same walk rather than staying on a list somebody has to remember to edit. BARE is then the
+# remainder of `DECODE_NAMES`, which is itself derived from `LEG_DECODE_NAME` -- so adding a leg
+# adds its decoders to this question too.
+#
+# SCOPED TO `BUSINESS_DIRS`, and the exclusion is a real one rather than convenience.
+# `sim/flex_dispatch.py` calls `decode_request`: that is the WORLD reading what the COMPANY sent
+# it, which is the opposite direction and a different participant's problem. This control is
+# about what the company ACCEPTS. The codec module is excluded for the reason
+# `unbooked_transport_readers` excludes it -- `decode_framed_response` calls `decode_response`,
+# and a decoder decoding is not a crossing (R15 TAUTOLOGY).
+#
+# MATCHED BY NAME, both bounds stated rather than discovered later, the same limit
+# `_literal_key_reads`, `wire_call_sites` and `bookless_readers` carry: a decode through an alias
+# or a computed getattr is invisible (lower bound), and an unrelated function elsewhere sharing
+# one of these names would be reported (upper bound). The report names file, line and enclosing
+# function, so the second is legible in the refusal rather than mysterious.
+
+#: The codec's own frame verifier -- the function that turns "a well-formed document arrived"
+#: into "a participant this build knows handed it over". Named once, and its ABSENCE raises:
+#: see `framed_decoders`.
+FRAME_VERIFIER = "_verify_frame"
+
+
+def framed_decoders(root: str) -> frozenset[str]:
+    """The codec entry points in `DECODE_NAMES` that authenticate the sender before parsing.
+
+    Derived by closure over the codec's OWN call graph from `FRAME_VERIFIER`, never listed.
+
+    FAIL-CLOSED (R15 FAIL-SILENT), because every branch below is also what "somebody removed the
+    authentication" looks like from here:
+      * the codec cannot be read at this rev                  -> raises;
+      * `FRAME_VERIFIER` is not defined in it                 -> raises. Without this, a renamed
+        or deleted verifier would silently reclassify every decoder as bare and red the whole
+        tree for the wrong reason -- loud, and then tuned away;
+      * the closure names no decoder at all                   -> raises. "This codec has no
+        authenticating decoder" and "this walk has stopped matching" are the same value and
+        opposite facts.
+    """
+    tree = _parse(os.path.join(root, *CODEC_REL.split("/")))
+    if tree is None:
+        raise CensusUnavailable(
+            f"{CODEC_REL} cannot be read at this rev, so which decoders authenticate their "
+            "sender is UNKNOWN -- a failed check, not a tree with nothing to check"
+        )
+    top_level = {
+        node.name: node
+        for node in tree.body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+    if FRAME_VERIFIER not in top_level:
+        raise CensusUnavailable(
+            f"{CODEC_REL} no longer defines `{FRAME_VERIFIER}` -- the frame check this control "
+            "classifies decoders by does not exist, so every verdict it gave would be a name "
+            "and not a check"
+        )
+    verifying = {FRAME_VERIFIER}
+    grew = True
+    while grew:
+        grew = False
+        for name, node in top_level.items():
+            if name in verifying:
+                continue
+            if _called_names(node) & verifying:
+                verifying.add(name)
+                grew = True
+    framed = frozenset(name for name in DECODE_NAMES if name in verifying)
+    if not framed:
+        raise CensusUnavailable(
+            f"{CODEC_REL} declares {len(DECODE_NAMES)} decode entry point(s) and none of them "
+            f"reaches `{FRAME_VERIFIER}` -- either the codec has lost its participant check or "
+            "this walk has stopped matching, and both are failed checks"
+        )
+    return framed
+
+
+def bare_decoders(root: str) -> frozenset[str]:
+    """`DECODE_NAMES` minus the framed ones: the entry points that parse an UNAUTHENTICATED
+    document.
+
+    FAIL-CLOSED on an empty remainder. Every decoder being framed would make this control
+    unable to fire on anything, and a control that cannot fail is worse than none (R15) -- so
+    the vacuous case raises rather than reporting a clean tree. It is not hypothetical: it is
+    what deleting the bare decoders from the codec, or widening `FRAME_VERIFIER`'s closure to
+    swallow them, would produce.
+    """
+    bare = DECODE_NAMES - framed_decoders(root)
+    if not bare:
+        raise CensusUnavailable(
+            f"every one of {CODEC_REL}'s {len(DECODE_NAMES)} decode entry point(s) classifies as "
+            "framed, so the unauthenticated-decode check has no violation left to detect and "
+            "would be vacuously conformant on any tree -- refused rather than reported clean"
+        )
+    return bare
+
+
+@dataclass(frozen=True)
+class AuthenticatedDecodeVerdict:
+    """Every business-side wall decode, split by whether the sender was authenticated first.
+
+    `unauthenticated` is THE FAILURE: the company turning a document into a belief, a payment or
+    a position without ever asking which participant handed it over.
+    """
+
+    authenticated: list[str]
+    unauthenticated: list[str]
+    framed: tuple[str, ...]
+    bare: tuple[str, ...]
+
+    @property
+    def ok(self) -> bool:
+        return not self.unauthenticated
+
+    def report(self) -> str:
+        if self.unauthenticated:
+            lines = [
+                f"UNAUTHENTICATED WALL DECODE ({len(self.unauthenticated)}) -- parses a document "
+                "without asking which participant handed it over:"
+            ]
+            lines += [f"    ! {s}" for s in self.unauthenticated]
+            return "\n".join(lines)
+        return (
+            f"authenticated decode: all {len(self.authenticated)} business-side decode call "
+            f"site(s) go through one of {len(self.framed)} framed entry point(s); "
+            f"{len(self.bare)} bare entry point(s) are unused there."
+        )
+
+
+def authenticated_decode_conformance(root: str) -> AuthenticatedDecodeVerdict:
+    """THE CONTROL. Fails when a `company/` or `saas/` call site decodes a wall message through
+    an entry point that does not verify the transport frame.
+
+    FAIL-CLOSED BRANCHES beyond the two derivations' own (see `framed_decoders` /
+    `bare_decoders`): the framed decoders exist and NOTHING in the business trees calls one ->
+    raises. An empty denominator makes conformance vacuously true, and a name-matched walk that
+    has silently stopped matching looks exactly like this. Tests are not in `BUSINESS_DIRS`, so
+    this cannot be satisfied by the suite that proves the belt.
+    """
+    framed = framed_decoders(root)
+    bare = bare_decoders(root)
+    authenticated: list[str] = []
+    unauthenticated: list[str] = []
+    for path, rel in _business_py_files(root):
+        if rel == CODEC_REL:
+            continue
+        tree = _parse(path)
+        if tree is None:
+            continue
+        calls: list = []
+        _calls_with_scope(tree, None, None, calls)
+        for call, cls, func in calls:
+            target = (
+                call.func.id
+                if isinstance(call.func, ast.Name)
+                else call.func.attr if isinstance(call.func, ast.Attribute) else None
+            )
+            if target not in DECODE_NAMES:
+                continue
+            where = func.name if func is not None else "<module scope>"
+            if cls is not None and func is not None:
+                where = f"{cls}.{func.name}"
+            entry = _entry(f"{rel}:{call.lineno}", where, target)
+            (authenticated if target in framed else unauthenticated).append(entry)
+    if not authenticated and not unauthenticated:
+        raise CensusUnavailable(
+            f"nothing under {'/, '.join(BUSINESS_DIRS)}/ calls any of {CODEC_REL}'s "
+            f"{len(DECODE_NAMES)} decode entry point(s) -- refusing to measure an empty "
+            "denominator, which would make the authenticated-decode check vacuously conformant"
+        )
+    return AuthenticatedDecodeVerdict(
+        authenticated=sorted(authenticated),
+        unauthenticated=sorted(unauthenticated),
+        framed=tuple(sorted(framed)),
+        bare=tuple(sorted(bare)),
+    )
+
+
+def authenticated_decode_conformance_at(
+    rev: str = "HEAD", worktree: bool = False, repo_root: Path = PROJECT_DIR
+) -> AuthenticatedDecodeVerdict:
+    """`authenticated_decode_conformance` against the worktree, or against the tree at `rev`."""
+    if worktree:
+        return authenticated_decode_conformance(str(repo_root))
+    with head_export(str(repo_root), CENSUS_DIRS, rev=rev) as root:
+        return authenticated_decode_conformance(root)
+
+
 # ── channel E's conformance: does a WORLD class actually satisfy the Protocol? ───────────────
 #
 # WHY (2026-08-20, pass 30 -- this is the oldest un-progressed item on the atom, filed at pass 22
@@ -3811,6 +4022,23 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     print(anchored_read.report())
 
+    # GATES FROM ITS FIRST COMMIT, by the rule this file has now stated six times: a check becomes
+    # a gate "in the same commit that makes it satisfiable". MEASURED before this line was written
+    # rather than hoped -- at HEAD ebc56959f the business trees held SEVEN decode call sites and
+    # exactly one was bare (`susceptibility_estimator.observe_wire`, the last unframed live leg),
+    # and the same commit that arms this moves it. So the only commits it can refuse are commits
+    # that take a company-side decode off a framed entry point, or land a new one that never was:
+    # its subject, not its collateral.
+    try:
+        authenticated = authenticated_decode_conformance_at(rev=args.rev, worktree=args.worktree)
+    except CensusUnavailable as exc:
+        print(
+            f"AUTHENTICATED DECODE CHECK UNAVAILABLE (a failed check, not a pass): {exc}",
+            file=sys.stderr,
+        )
+        return 2
+    print(authenticated.report())
+
     # The artefact half prints its SILENT and UNOBSERVABLE keys as loudly as its carrying ones.
     # The `if carrying:` filter this replaces suppressed exactly the state the check exists to
     # find: at HEAD b22698df8, three logs at 0/1,996 printed as an empty section.
@@ -3877,6 +4105,7 @@ def main(argv: list[str] | None = None) -> int:
             and surface_pins.ok
             and second_belt.ok
             and anchored_read.ok
+            and authenticated.ok
             and drift.ok
             and nested_drift.ok
             # ARMED, EP6 pass 53. The three comments above each promised this

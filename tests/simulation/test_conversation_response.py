@@ -454,11 +454,81 @@ def _imported_roots(rel_path):
     return roots
 
 
-def _wire_response(customer="Cwire1", mid="MW1", corr="corr-1"):
+def _framed_response(customer="Cwire1", mid="MW1", corr="corr-1"):
+    """What this counterparty actually hands over: an envelope inside its
+    transport frame (EP6 pass 67)."""
     return cr.respond_over_wire(
         customer, _msg(mid=mid), correlation_id=corr,
         observed_at=dt.datetime(2026, 1, 1, 12, 0),
     )
+
+
+def _wire_response(customer="Cwire1", mid="MW1", corr="corr-1"):
+    """The ENVELOPE inside that frame -- the subject of every envelope-shaped
+    assertion below. Kept as its own helper rather than inlining `["envelope"]`
+    at each site, so framing the seam did not turn a dozen document assertions
+    into assertions about the frame."""
+    return _framed_response(customer, mid, corr)["envelope"]
+
+
+def test_the_handed_over_message_is_FRAMED_and_names_this_participant():
+    """Q13's sender half for the conversation seam, and the last of the three
+    live seams to get it (EP6 pass 67). A document says what happened; only the
+    frame says WHO says so."""
+    framed = _framed_response()
+    assert set(framed) == {"sender", "credential", "envelope", "handed_over_at"}
+    assert framed["sender"] == cr.PARTICIPANT_ID
+    assert framed["credential"] == cr.PARTICIPANT_CREDENTIAL
+    assert framed["envelope"]["correlation_id"] == "corr-1"
+
+
+def test_the_company_holds_only_a_FINGERPRINT_of_this_participants_credential():
+    """The check is a real one and not a handshake with itself: the receiver
+    stores sha256 of this string and never the string.
+
+    THE FINGERPRINT IS COMPUTED HERE, never imported from the receiver's
+    registry -- reading the company's stored value and comparing it to itself
+    would be the R15 TAUTOLOGY this whole seam is built to refuse. What is
+    imported is the registry ROW, which is the thing under test."""
+    import hashlib
+
+    from company.interfaces.wall_protocol import (
+        CONVERSATION_PLATFORM_SENDER,
+        COUNTERPARTY_REGISTRY,
+    )
+
+    record = COUNTERPARTY_REGISTRY[CONVERSATION_PLATFORM_SENDER]
+    assert cr.PARTICIPANT_ID == CONVERSATION_PLATFORM_SENDER
+    assert record.credential_sha256 == hashlib.sha256(
+        cr.PARTICIPANT_CREDENTIAL.encode("utf-8")
+    ).hexdigest()
+    # And the credential itself is NOT what the company holds -- the failing
+    # shape this assertion exists to exclude.
+    assert cr.PARTICIPANT_CREDENTIAL != record.credential_sha256
+
+
+def test_a_frame_with_no_hand_over_time_is_UNSENDABLE_not_defaulted():
+    """`handed_over_at` has no default, and the reason is the payment seam's:
+    "now" would make every historical replay claim it was delivered at import
+    time, and defaulting it to `observed_at` would make a prompt hand-over
+    unfalsifiable by construction.
+
+    NULL CONTROL: the same call WITH a datetime frames cleanly, so what this
+    proves is the missing argument and not a broken framer."""
+    with pytest.raises(TypeError):
+        cr.frame_wire_message({"correlation_id": "c"})
+    assert cr.frame_wire_message(
+        {"correlation_id": "c"}, handed_over_at=dt.datetime(2026, 1, 1)
+    )["envelope"] == {"correlation_id": "c"}
+
+
+def test_a_non_datetime_hand_over_and_a_non_envelope_are_both_refused():
+    """Fail-closed on both arguments: a frame built from junk is a frame that
+    would be refused at the far side for the wrong reason."""
+    with pytest.raises(cr.SeamCodecError):
+        cr.frame_wire_message("not a dict", handed_over_at=dt.datetime(2026, 1, 1))
+    with pytest.raises(cr.SeamCodecError):
+        cr.frame_wire_message({"correlation_id": "c"}, handed_over_at="2026-01-01")
 
 
 def test_the_encoded_response_states_every_envelope_field_including_its_nulls():
@@ -655,14 +725,14 @@ def test_bytes_in_bytes_out_is_the_whole_crossing():
     """`respond_to_wire_request` is the shape a real counterparty presents: it
     never sees or returns an in-process envelope object."""
     out = cr.respond_to_wire_request("Cwire2", _wire_request())
-    assert isinstance(out, dict) and out["correlation_id"] == "corr-1"
-    assert out["payload"]["fields"]["responds_to"] == "MW1"
+    assert isinstance(out, dict) and out["envelope"]["correlation_id"] == "corr-1"
+    assert out["envelope"]["payload"]["fields"]["responds_to"] == "MW1"
 
 
 def test_the_answer_is_a_separate_later_event_on_the_wire_too():
     """C-S3 survives serialisation: `responded_step` strictly exceeds the
     message's `emitted_step` in the encoded bytes, not just in the object."""
-    out = cr.respond_to_wire_request("Cwire3", _wire_request())
+    out = cr.respond_to_wire_request("Cwire3", _wire_request())["envelope"]
     assert out["payload"]["fields"]["responded_step"] > 100
     assert out["payload"]["fields"]["latency"] >= 1
 

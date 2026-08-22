@@ -17,6 +17,7 @@ ever saw an encoded, version-checked envelope.
 Named for `conversation_gap_ledger.py`'s stem so `pre_commit_test_gate.
 tests_for` maps that module to these tests; before this file it mapped to none.
 """
+import copy
 import datetime as dt
 
 import pytest
@@ -160,7 +161,12 @@ def test_the_live_gap_ledger_trains_through_the_wire():
         SusceptibilityEstimator.observe_wire = original
 
     assert calls, "the live training loop never crossed the wire"
-    assert set(calls[0][1]) == {
+    # FRAMED since EP6 pass 67: what the live path hands over is the transport
+    # frame, and the document is inside it. Asserting the frame's key set as
+    # well as the envelope's is what would catch a producer quietly reverting to
+    # the bare shape -- the exact half a stranger needs.
+    assert set(calls[0][1]) == {"sender", "credential", "handed_over_at", "envelope"}
+    assert set(calls[0][1]["envelope"]) == {
         "correlation_id", "status", "schema_version",
         "observed_at", "valid_time", "payload", "error",
     }
@@ -194,28 +200,39 @@ def test_the_envelope_clock_is_fixed_so_two_runs_produce_the_same_bytes():
 def test_R15_MUTATION_a_counterparty_on_a_future_schema_is_refused_not_absorbed():
     """THE PROPERTY THE WHOLE ATOM IS FOR, and the one that was untestable
     while the envelope crossed as an object: a counterparty that bumps its
-    schema must be REFUSED by a company that does not speak it.
+    schema must be REFUSED by a company that has it on an earlier release.
 
-    Before this pass, `schema_version` was populated at construction and read
-    by nobody, so a v2 counterparty and a v1 one produced identical behaviour
-    -- the version could not disagree, and a version that cannot disagree is
-    not a version. Here the v2 message is refused distinguishably from a
-    malformed one, which is what makes negotiation possible at all.
+    THIS NODE WAS RED AT ebc56959f AND THE FRAME IS WHAT REPAIRED IT -- observed
+    on a clean HEAD worktree, `DID NOT RAISE`, not inferred. It was written when
+    2 was a version this build could not read at all, and it asserted
+    UNSUPPORTED_VERSION for that reason. EP6 pass 44 put 2 inside
+    `SUPPORTED_SCHEMA_VERSIONS` for the payment seam's release, and from that
+    commit a v2 conversation response DECODED CLEAN: the mutation stopped being
+    refused and the node stopped being able to fail. Its sibling in
+    `tests/company/comms/test_susceptibility_estimator_wire.py` was repaired the
+    same day with `_UNSPOKEN_VERSION` and a null control; this one was not.
+
+    What refuses it now is the PER-COUNTERPARTY table, which has existed since
+    pass 44 and had no subject on this seam until pass 67 gave the seam a
+    registry row: CONTACT-PLATFORM-01 is on v1, so a v2 message from it is
+    readable by this build and still wrong. VERSION_NOT_SPOKEN and
+    UNSUPPORTED_VERSION are deliberately different reasons -- "wait for that
+    participant's cutover" and "change the build" are different repairs.
 
     NULL CONTROL: the same message at v1 is accepted, so the refusal is the
-    VERSION and not the mutation of the dict.
+    VERSION and not the deep copy.
     """
     wire_request = _company_request()
     message = cr.decode_wire_request(wire_request).payload
     response = cr.respond_to_wire_request("c1", wire_request)
 
-    future = dict(response)
-    future["schema_version"] = 2                      # the mutation
-    control = dict(response)                          # the null control
+    future = copy.deepcopy(response)
+    future["envelope"]["schema_version"] = 2          # the mutation
+    control = copy.deepcopy(response)                 # the null control
 
     with pytest.raises(WallProtocolError) as exc:
         SusceptibilityEstimator().observe_wire("c1", message, future)
-    assert exc.value.reason == "UNSUPPORTED_VERSION"
+    assert exc.value.reason == "VERSION_NOT_SPOKEN"
     assert SusceptibilityEstimator().observe_wire("c1", message, control) is True
 
 
@@ -226,8 +243,8 @@ def test_R15_MUTATION_a_counterparty_that_stops_stating_its_version_is_refused()
     protocol that conflates them tells its operator nothing."""
     wire_request = _company_request()
     message = cr.decode_wire_request(wire_request).payload
-    silent = dict(cr.respond_to_wire_request("c1", wire_request))
-    del silent["schema_version"]
+    silent = copy.deepcopy(cr.respond_to_wire_request("c1", wire_request))
+    del silent["envelope"]["schema_version"]
 
     with pytest.raises(WallProtocolError) as exc:
         SusceptibilityEstimator().observe_wire("c1", message, silent)
@@ -253,7 +270,7 @@ def test_R15_MUTATION_a_counterparty_widening_the_payload_is_refused_at_the_wall
     wire_request = _company_request()
     message = cr.decode_wire_request(wire_request).payload
     leaky = cr.respond_to_wire_request("c1", wire_request)
-    leaky["payload"]["fields"]["tone_susceptibility"] = 0.87   # the mutation
+    leaky["envelope"]["payload"]["fields"]["tone_susceptibility"] = 0.87   # the mutation
 
     with pytest.raises(WallProtocolError) as exc:
         SusceptibilityEstimator().observe_wire("c1", message, leaky)
@@ -272,7 +289,7 @@ def test_NULL_CONTROL_a_counterparty_widening_with_an_INNOCENT_name_trips_the_OT
     wire_request = _company_request()
     message = cr.decode_wire_request(wire_request).payload
     odd = cr.respond_to_wire_request("c1", wire_request)
-    odd["payload"]["fields"]["segment_score"] = 0.87
+    odd["envelope"]["payload"]["fields"]["segment_score"] = 0.87
 
     assert "segment_score" not in FORBIDDEN_TRUTH_FIELDS
     with pytest.raises(WallProtocolError) as exc:
