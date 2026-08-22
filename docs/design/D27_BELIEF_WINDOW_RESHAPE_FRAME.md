@@ -383,12 +383,34 @@ referent**: "Landed" names no tree, so a later pass cannot tell a lost commit fr
 rename, and cannot tell a true claim from a false one *at all* without re-deriving the whole diff.
 `ccac8c0d6` in §9.4 can be asked. That is the whole of the repair that belongs in this document.
 
-The class-level control — something that refuses a pass whose record says "landed" while its
-`file_scope` is dirty at tick end — is **queued, not built here**, per SELF_INTERRUPT_DISCIPLINE and
-because it is out of this atom's `file_scope`. Its home is
-`CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md`, and it now has three instances to size itself
-against, two of them in this file. Note for whoever builds it: a pre-commit hook cannot see this
-class (a pass that commits nothing never reaches one), so it needs a tick-boundary sweep.
+### 11.2 The control for this class already exists, and is structurally blind to this instance
+
+Grepped before proposing anything, which is the reason this section says something rather than
+filing a sixteenth near-duplicate: `CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md` already lists
+`WORKER_FINDING_THREE_CONSECUTIVE_PASSES_RECORDED_A_LANDING_THAT_IS_IN_NO_COMMIT_2026-08-19.md`
+(severity RECORDED, **discharged**), and its recommendation 1 was built as
+`tools/record_landing_claim_check.py`, wired into `tools/pre_commit_test_gate.py` at
+`_record_landing_claim_check` — deliberately placed *before* the pure-docs early return, fail-closed
+if the checker is unimportable. That control is the right one for the class and it could not have
+fired on passes 1 or 2, for two independent structural reasons:
+
+1. **Invocation.** It runs `git diff-tree since_tree..tree` from the pre-commit gate. Passes 1 and 2
+   committed nothing at all, so the gate never ran and there was no tree to diff. This is the
+   *ask what invokes a control before you ask what it checks* shape: the predicate is sound and the
+   trigger cannot reach the failure. Closing it needs a **tick-boundary sweep**, not a hook.
+2. **Subject.** `STORE_PREFIX = "docs/design/simplifications/"` — the control reads the atom's store
+   record, because that is where EP6's five false claims lived. D27 has such a record
+   (`D27_belief_window_saturates_on_this_book.yaml`) and the false claims were **not in it**: they
+   were in §9.4 and §10 of this design document, under `docs/design/` but outside the prefix.
+
+Neither of these is a defect in that control — its own docstring is explicit that the unit of claim
+is the store record, and widening the prefix to all of `docs/design/**` would re-import the
+prose-parser problem it was narrowed to avoid. **What this instance adds to the class is that the
+built control's coverage is bounded by two things nobody has measured: which documents can carry a
+landing claim, and whether the pass commits at all.** Registered here as the finding, not fixed on
+sight (SELF_INTERRUPT_DISCIPLINE) and out of this atom's `file_scope`; the sizing evidence for
+whoever takes it is that the *second* axis is the one that caught this file twice, and it is the
+axis a hook can never cover.
 
 **§9.5 is unchanged and still the continuation.** The reshape is not landed; the origin is still
 400. Step 1 (the never-forgets point in `book_memory_grid`, §9.3) remains the standalone repair to
