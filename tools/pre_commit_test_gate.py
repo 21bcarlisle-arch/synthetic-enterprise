@@ -1196,8 +1196,15 @@ def main() -> int:
             sys.stderr.write(
                 "\n[test-gate] ❌ FINDING-CLASS CONSOLIDATION BROKEN -- COMMIT REFUSED.\n"
                 f"{detail}\n"
-                "[test-gate] Re-render with `python3 -m background.finding_classes --render`, "
-                "or fix the membership, then commit. Verify with `--check`.\n"
+                # A BLANKET `--render` IS THE WRONG REPAIR FOR ONE OF THESE STATES, so
+                # the standing hint no longer stands alone: a MISPLACED CLASS DOC line
+                # carries its own move-it-back instruction, and re-rendering on top of
+                # that state writes a second copy into the root while the archived one
+                # stays put -- the TWO ROOMS refusal, one cycle later (2026-08-23, four
+                # publish cycles wedged behind exactly this).
+                "[test-gate] Each line above names its own repair. Where none does: "
+                "re-render with `python3 -m background.finding_classes --render`, or fix "
+                "the membership, then commit. Verify with `--check`.\n"
             )
             return 1
         print("[test-gate] ✓ finding-class consolidation holds")

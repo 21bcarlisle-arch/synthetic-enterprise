@@ -117,6 +117,17 @@ def _assert_bare_number_is_not_a_cost(module) -> None:
     assert [i for i in items if i.unit == "hours"] == []
 
 
+def _assert_a_swept_class_doc_is_misplaced(module, root: Path, swept_name: str) -> None:
+    failures = module.check(root).failures
+    misplaced = [f for f in failures if f.startswith("MISPLACED CLASS DOC")]
+    assert len(misplaced) == 1, failures
+    assert swept_name in misplaced[0]
+    assert f"{module.ARCHIVE_DIRNAME}/" in misplaced[0]
+    # The wrong repair must not be the one offered.
+    assert "--render" not in misplaced[0].replace("do NOT `--render`", "")
+    assert not any(f.startswith("MISSING CLASS DOC") for f in failures), failures
+
+
 def _assert_unconsolidated_is_named(module, root: Path) -> None:
     failures = module.check(root).failures
     assert any(f.startswith("UNCONSOLIDATED") and "SIXTEENTH" in f for f in failures), failures
@@ -379,6 +390,56 @@ def test_a_missing_class_document_fails_the_check(tmp_path):
     failures = fc.check(root).failures
     assert len(failures) == len(fc.CLASSES)
     assert all(f.startswith("MISSING CLASS DOC") for f in failures)
+
+
+def test_a_class_document_swept_into_the_archive_is_named_MISPLACED_not_MISSING(tmp_path):
+    """THE REPAIR THE HINT NAMES HAS TO BE THE RIGHT ONE. On 2026-08-23 a bulk archive
+    carried all five class documents from the staging root into `done/`; the check went
+    red with `MISSING CLASS DOC` and the gate's standing hint said `--render`, which on
+    this state writes a root copy while the archived one stays put — the TWO ROOMS
+    refusal, one cycle later. Four publish cycles wedged behind it.
+
+    Both directions, so the branch cannot be vacuous: archived -> MISPLACED and never
+    MISSING; genuinely absent -> MISSING and never MISPLACED (that second half is what
+    `test_a_missing_class_document_fails_the_check` above holds for the whole set)."""
+    root = _root(tmp_path)
+    _doc(root, "WORKER_FINDING_A_WEDGE_ALARM_2026-08-12.md", "x")
+    _consolidate(root)
+    assert fc.check(root).failures == []
+
+    swept = root / fc.CLASSES[0].document_name
+    swept.rename(root / fc.ARCHIVE_DIRNAME / swept.name)
+    _assert_a_swept_class_doc_is_misplaced(fc, root, swept.name)
+
+    # Deleted outright rather than swept: the bare MISSING failure, no room to point at.
+    (root / fc.ARCHIVE_DIRNAME / swept.name).unlink()
+    failures = fc.check(root).failures
+    assert any(f.startswith(f"MISSING CLASS DOC {swept.name}") for f in failures), failures
+    assert not any(f.startswith("MISPLACED CLASS DOC") for f in failures), failures
+
+
+def test_MUTATION_the_archived_room_lookup_is_load_bearing(tmp_path):
+    """R15. Blind the room lookup and the swept document reads as simply absent again —
+    which is the state that shipped the wrong repair hint through four publish cycles."""
+    root = _root(tmp_path)
+    _doc(root, "WORKER_FINDING_A_WEDGE_ALARM_2026-08-12.md", "x")
+    _consolidate(root)
+    swept = root / fc.CLASSES[0].document_name
+    swept.rename(root / fc.ARCHIVE_DIRNAME / swept.name)
+
+    mutant = _load_mutant(
+        tmp_path,
+        "            if elsewhere:",
+        "            if False:",
+        "mutant_misplaced_class_doc",
+    )
+    try:
+        _assert_a_swept_class_doc_is_misplaced(mutant, root, swept.name)
+    except AssertionError:
+        return
+    raise AssertionError(
+        "MUTATION survived: the archived-room lookup is not load-bearing"
+    )
 
 
 def test_the_five_classes_are_the_five_the_ruling_named():

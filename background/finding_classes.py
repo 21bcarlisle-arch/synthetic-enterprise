@@ -836,7 +836,32 @@ def check(root: Path | str = DEFAULT_STAGING_ROOT) -> CheckResult:
     for finding_class in CLASSES:
         doc = root / finding_class.document_name
         if not doc.exists():
-            result.failures.append(f"MISSING CLASS DOC {finding_class.document_name}")
+            # A CLASS DOCUMENT THAT WENT MISSING WAS USUALLY ARCHIVED, NOT LOST, and the
+            # two states want opposite repairs. `--render` is right when the document was
+            # never written; it is WRONG when a sweep moved this one into `done/`, because
+            # re-rendering writes a second copy and leaves the archived one behind — the
+            # TWO ROOMS state, i.e. the next refusal. On 2026-08-23 a bulk archive carried
+            # all five class documents out of the root and wedged FOUR consecutive publish
+            # cycles behind `MISSING CLASS DOC` while the files sat intact in `done/`; the
+            # generic hint pointed at the one repair that would have made it worse. So say
+            # WHICH ROOM holds it and name the move back, and keep the bare failure for the
+            # genuinely-absent case.
+            elsewhere = [
+                dirname
+                for dirname in ROOM_DIRNAMES
+                if (root / dirname / finding_class.document_name).exists()
+            ]
+            if elsewhere:
+                result.failures.append(
+                    f"MISPLACED CLASS DOC {finding_class.document_name}: absent from the "
+                    f"staging root, present in {'/ and '.join(elsewhere)}/ — a class "
+                    "document lives in the ROOT (its MEMBERS are what get archived). Move "
+                    f"it back (`git checkout HEAD -- docs/staging/"
+                    f"{finding_class.document_name}` then delete the archived copy); do "
+                    "NOT `--render`, which would leave both rooms populated"
+                )
+            else:
+                result.failures.append(f"MISSING CLASS DOC {finding_class.document_name}")
             continue
         text = doc.read_text(encoding="utf-8", errors="replace")
 
