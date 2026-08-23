@@ -2417,6 +2417,26 @@
   level_target: 2
   loop_stage: build
   dial_inherited: 3
+  size: XL  # 2026-08-23 sized from a MEASUREMENT, not a FRAME estimate (basis below)
+  size_basis: >-
+    MEASURED 2026-08-23, and it replaces an estimate that was wrong by an order of
+    magnitude. The one remaining step (the origin flip, FRAME doc section 9.5 step 2)
+    reds 77 of 620 nodes in this atom's own test file -- 33 failed + 44 errors --
+    against a BASELINE of 620 passed / 0 failed at HEAD e9e30d78b, so the whole 77 is
+    caused by the flip with nothing inherited. The atom's own record had carried
+    "the six tests that currently assert the defect" (FRAME section 14.1) since
+    2026-08-22; the sweep makes that 12.8x too small. Seven consecutive BUILD passes
+    attempted this inside a bounded worker tick and every one ended with uncommitted
+    work in the shared tree -- a consequence of drawing work that cannot finish in the
+    window, not of insufficient preparation. Every MEASUREMENT the step needs is now
+    taken and verified (FRAME sections 15.2, 16.1); what remains is 77 test nodes of
+    semantic rewriting, some of it another atom's claims (D33's two-predicate
+    divergence does not survive the reshape, FRAME section 15.3). NOT decomposed yet
+    and not claimed genuinely-atomic: the open question is whether
+    check_scored_window_provenance can legitimately admit a declared in-progress
+    origin move, which would make the flip landable in pieces. R12/G5: this is a DIAL
+    informing decomposition and remaining-effort, never a gate and never a target --
+    xl_decompose_flags() reports and cannot block.
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
   depends_on: [D25_ageing_resolution_is_the_harness_calendar]

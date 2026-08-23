@@ -921,3 +921,84 @@ mechanical inversion would write a false claim. The next pass must count the tru
 running the atom's test file with the origin substituted in-process, and treat that failure list —
 not a prose count — as the change set. That measurement was started this tick and had not returned
 when the tick closed.
+
+---
+
+## 17. BUILD pass 8 (continued) — the blast radius, MEASURED, and what it settles
+
+§16.3 said the next pass must take step 2's change set from a measured failure list rather than a
+prose count. That measurement returned within this tick, and it does not support the plan §14.1 and
+§15.6 were carrying.
+
+### 17.1 The two runs
+
+Both are the atom's own test file, same machine, run concurrently:
+
+| run | origin | result |
+|---|---|---|
+| BASELINE, at HEAD `e9e30d78b` | 400 (shipped) | **620 passed**, 0 failed, 0 errors, 829s |
+| FLIPPED, origin substituted in-process via a pytest plugin | `organ_default_failure_window_days()` = 90 | **33 failed, 543 passed, 44 errors**, 771s |
+
+The baseline is what makes the flipped run readable. A red list gathered without it would have been
+attributed wholesale to the flip on the assumption that HEAD was green — an assumption this repo has
+a recorded lesson about (a named red can already be fixed, or already broken, at HEAD). HEAD is
+clean on this file, so **all 77 affected nodes are caused by the origin move**, with nothing
+inherited and nothing to subtract.
+
+### 17.2 What that settles: step 2 is not a bounded-tick change, and now that is a measurement
+
+§14.1 estimated the test-side change as "the semantic inversion of the six tests that currently
+assert the defect", and §15.6 repeated it. **The measured figure is 77 of 620 nodes — 12.4% of the
+file — which is 12.8× the estimate.** §16.3 had already caught the estimate being wrong by one test
+by reading; the sweep shows it is wrong by an order of magnitude.
+
+This is the fact seven previous passes did not have. §14.1's reasoning was sound given its inputs —
+it declined the flip because the change was too big for a tick — but it was arguing from an estimate
+of six. The decision to defer was right for a reason that turns out to be far stronger than stated.
+And §15.1's counter-argument (that re-attempting the same shape is the R3 defect) is now answerable
+without either persisting or deferring again: **the shape was never the problem — the scope was.**
+Attempting this flip inside a bounded tick was not going to succeed on the seventh attempt or the
+tenth, and the loss mode each time (uncommitted work in a shared tree) is a consequence of starting
+work that cannot finish inside the window, not of insufficient preparation.
+
+**So the recommendation this pass makes, and acts on: step 2 stops being drawn as a bounded worker
+tick.** It needs either a dedicated long session, or a decomposition that makes it landable in
+pieces. The second is worth investigating first and this pass did not do it — the constraint that
+makes the flip atomic is `check_scored_window_provenance` firing four ways the moment the constant
+moves (§9.4), and whether that control can legitimately admit a declared in-progress origin move is a
+design question, not a mechanical one. Recording it as the open question rather than guessing at it.
+
+What is NOT in doubt any more is the register half. §15.2's ten fields are verified against the
+shipped checker, §16.1's two range fields are verified against the population axis, and the null
+control and derived floor are both confirmed unmoved. **Every measurement step 2 needs has now been
+taken.** What remains is 77 test nodes of semantic rewriting, and that is bounded, known, and
+enumerable — the list is below.
+
+### 17.3 The 33 named failures
+
+They are not a homogeneous block, which is the other reason a mechanical inversion would have gone
+wrong. Four distinct kinds are present:
+
+* **The atom's own defect-assertions** — `test_the_scored_company_sits_outside_the_band_it_is_graded_on`,
+  `test_never_forgets_drift_is_derived_from_the_book_and_is_zero_today`,
+  `test_the_recency_contribution_is_zero_and_that_zero_is_the_finding`,
+  `test_the_reshape_moves_no_published_figure`. These invert to the criterion-1 claim with the 400 as
+  their mutation, as §14.1 described.
+* **D30/D33 sibling-atom claims measured on this pair** — `test_the_two_belief_figures_do_not_share_a_
+  resolution`, `test_bit_equality_counts_a_difference_no_consumer_can_render`,
+  `test_a_predicate_divergence_with_no_owner_fires_the_control`, `test_the_belief_edges_move_on_the_
+  draw_size_alone`, `test_the_band_shipped_before_this_repair_is_false_at_the_derived_floor`. §15.3
+  already found that D33's two-predicate divergence is an artefact of the saturated origin and does
+  not survive the reshape; these are the nodes that carry that, and they are **another atom's claims**
+  — they need re-stating as origin-conditional, not deleting, and that is a cross-atom decision D27
+  does not get to take alone.
+* **The null control itself** — `test_the_invoice_span_is_the_null_control_and_does_not_move`. §16.1
+  measured the invoice span as unmoved at the candidate origin, so this failing is a signal worth
+  reading carefully in the next pass rather than inverting: the sweep says the law does not move, and
+  a test asserting exactly that is red. Most likely the node pins the span against the *declaration*
+  rather than the measurement, but that is **inferred, not observed** — it was not opened this tick.
+* **Publication surfaces** — `test_cli_runs_and_prints_all_three_gaps`, `test_cli_write_ledger_
+  publishes_the_measured_note_not_a_retired_one`, `test_the_memory_resolution_caveat_travels_with_both_
+  numbers`, `test_the_census_caveat_travels_with_both_belief_figures`. Every published caveat states
+  the saturation in prose; the reshape falsifies the sentence, not just the number, which is R11
+  territory and is where step 4's ~30 assertions live.
