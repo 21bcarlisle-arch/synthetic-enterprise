@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-08-23T22:09:07Z",
+    "checked_at": "2026-08-23T23:18:00Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_committed_store_credits_a_falsifier_the_repository_does_not_have",
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_every_declared_honest_absence_is_still_absent_and_still_silenced",
@@ -9,26 +9,26 @@
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
       "FAILED tests/background/test_derived_artefact_register.py::TestStaleness::test_every_registered_artefact_is_currently_fresh",
       "FAILED tests/background/test_file_api.py::test_healthz_no_auth_required - pro...",
-      "FAILED tests/background/test_finding_classes.py::test_the_live_staging_root_consolidation_holds"
+      "FAILED tests/background/test_forward_attachment_register.py::test_live_tree_has_no_violations"
     ],
-    "nonblocking_reds_total": 82,
+    "nonblocking_reds_total": 78,
     "open_findings": 12
   },
   "last_verified": {
-    "generated_at": "2026-08-23T22:28:37Z",
-    "git_commit": "5a96836ee",
-    "run_id": "run_output_5a96836ee_20260823T221008Z.json",
-    "verified_at": "2026-08-23T22:28:37Z"
+    "generated_at": "2026-08-23T23:37:50Z",
+    "git_commit": "ec3d8e8e0",
+    "run_id": "run_output_ec3d8e8e0_20260823T231900Z.json",
+    "verified_at": "2026-08-23T23:37:50Z"
   },
   "paused_reason": "scoped publish-path suite red at git=f983f074c; blocking tests: ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_answer_which_commit_it_is, FAILED tests/tools/test_measure_publish_gate_subject_cost.py::test_the_basetemp_leak_is_reclaimed_by_the_gates_own_sweep, ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_be_bl",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-23T22:28:37Z",
-    "git_commit": "5a96836ee",
-    "run_id": "run_output_5a96836ee_20260823T221008Z.json",
-    "verified_at": "2026-08-23T22:28:37Z"
+    "generated_at": "2026-08-23T23:37:50Z",
+    "git_commit": "ec3d8e8e0",
+    "run_id": "run_output_ec3d8e8e0_20260823T231900Z.json",
+    "verified_at": "2026-08-23T23:37:50Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-23T22:28:37Z"
+  "written_at": "2026-08-23T23:37:50Z"
 }
