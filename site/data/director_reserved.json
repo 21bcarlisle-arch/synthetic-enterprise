@@ -1,13 +1,5 @@
 {
-  "generated_at": "2026-08-23T21:43:10.433235+00:00",
-  "open_count": 1,
-  "items": [
-    {
-      "item_id": "publish_gate_wedged",
-      "what": "The run-complete PUBLISH GATE has failed 3 time(s) in a row within the last 60 min -- the site/report pipeline is WEDGED and run_complete markers are piling up unpublished. Latest cause: the publish COMMIT did not land -- the publisher's OWN scoped suite was GREEN, so this is NOT a publish-path regression: the pre-commit hook chain refused the commit (most often another lane's red on the shared tree), outran the hook deadline, or the push never reached origin. Read the 'git/hook output' tail in the log -- it names the refusing gate (rc=77, git=2fc0bb541). EPISODE: wedged since 2026-08-23T21:22 UTC -- 0h20m and 3 consecutive failures in THIS episode (not a fresh hour). Markers pending: 0.",
-      "how": "BLOCKING TEST: UNRECORDED -- the gate's failing node id was not captured (no red gate has run since this record was last cleared, or the record went stale). Read docs/observability/sim-runner-log.md for the last 'Publish gate RED' line; do NOT infer a cause from the backlog list below. rc=-9 is almost certainly OOM (free memory or cut test parallelism), NOT a code bug; rc>0 means run that test at HEAD to find the regression. Full output: docs/observability/sim-runner-log.md, 'Publish gate RED output tail'. The alarm clears automatically on the next clean publish. SUSPECT HIT RATE: not yet measured (20 closed episode(s) emitted no suspect list because the blocking test was unrecorded).",
-      "why": "A silently-wedged publish gate stops the live site and report updating with NO other signal -- this is the exact ~45-min silent stall of 2026-07-14 (H15).",
-      "first_asked_at": "2026-07-18T15:21:58.968619+00:00"
-    }
-  ]
+  "generated_at": "2026-08-23T22:09:08.088994+00:00",
+  "open_count": 0,
+  "items": []
 }
