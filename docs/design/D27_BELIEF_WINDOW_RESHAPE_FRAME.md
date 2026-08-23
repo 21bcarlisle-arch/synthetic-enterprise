@@ -1208,3 +1208,117 @@ XL label is deliberately RETAINED despite the re-size — see the atom's `size_b
 §17.4 budgeted an hour for, because it went at the stated hypothesis instead of re-measuring the
 whole population. Where a sweep is being re-run to identify a *cause*, check whether the cause can be
 evaluated directly first.
+
+## 19. BUILD pass 10 — 2026-08-23 (worker tick, BUILD lane) — §18.3's probe grid SWEPT
+
+§18.3 named `(-1, 1, 5)` as a candidate probe grid, marked it **INFERRED, not measured**, and said it
+"must be swept before it is taken" — and the atom's `size_basis` named exactly that unswept grid as
+the one honest reason the XL label was retained after §18.5's re-size. This pass swept it. The origin
+is still 400, no code moved, and the grid is **not** edited (§19.4 says why it cannot be, yet).
+
+All figures below: `observed-with-evidence`, n=300, seeds 7/11/23, origin substituted in-process via
+`setattr` on the module and restored in a `finally` (never in the tree), at HEAD `46d1984f5`.
+
+### 19.1 The sweep: where the memory knob actually reaches at the candidate origin
+
+Every published dimension, scored at drift `k` against its own base at the candidate origin, compared
+with this module's only equality on a published figure (`_same_reading`), `k ∈ ±1…±12`. Cells give
+**how many of the three seeds move**:
+
+| dimension | −12…−4 | −3 | −2 | −1 | +1 | +2 | +3…+12 |
+|---|---|---|---|---|---|---|---|
+| `ageing` | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| `belief` | 3 | 1 | 1 | **1** | **2** | 3 | 3 |
+| `belief_population_mix` | 3 | 1 | 1 | **0** | **2** | 2 | 2 |
+| `detection` | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| `detection_latency` | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+**§18.3's stated reason is refuted by its own numbers.** The inference was that a ±1 probe "sits
+below the measured floor of 4 and could reintroduce the free pass". It does sit below that floor —
+and it moves the figure anyway, because the two statistics ask different questions. §15.2's floor of
+4d is a **floor over all three seeds** (the smallest error readable on *every* seed); `moves` is a
+**disjunction over seeds and probes** (did *anything* shift *anywhere*). A 4-day all-seed floor is
+perfectly compatible with a 1-day single-seed movement, and that is what the book does.
+
+### 19.2 The candidate grid, through the shipped function, at the post-flip origin
+
+Not the sweep above re-read — `measure_published_figure_caveat_coverage` itself, with
+`DD_FAILURE_WINDOW_DAYS = 90` and `organ_failure_window_drift_days: (-1, 1, 5)`, against the shipped
+grid at the shipped origin as the control. The `moves` column, which is the only column the register
+declares:
+
+| dimension | shipped origin + `(-370,-350,-310)` | candidate origin + `(-1,1,5)` |
+|---|---|---|
+| `belief` | True, at all three | True, at all three |
+| `belief_population_mix` | True, at all three | True, at `(1, 5)` |
+| `ageing` / `detection` / `detection_latency` | False | False |
+
+**The reach map is identical, cell for cell.** So the grid swap costs **zero edits to
+`PUBLISHED_FIGURE_CAVEAT_CONTRACT`** — §18.4's item (1) is one dict literal and nothing downstream of
+it, which is one fewer thing in the flip commit than the decomposition assumed.
+
+Two smaller things, both checked rather than assumed:
+
+- `belief_population_mix` is inert at −1 on every seed (its smallest negative is −2), so that cell is
+  carried by the positive leg alone. Not a free pass — `moves` is a disjunction and `+1`/`+5` both
+  move it — but the negative probe does no work on one of the two reached dimensions, which is a fact
+  about this grid worth having on the record before someone reads `(-1, 1, 5)` as symmetric.
+- Three cells move `step_days: None → {7: 0.0, 11: 0.0, 23: 0.0}`, because the step branch runs only
+  when both −1 and +1 are in the grid. **Inert to the checker**: `check_published_figure_caveat_coverage`
+  reaches the step comparison only after `if not row["moves"]: continue`, and neither belief cell
+  declares a `published_step_component` at all (both are `BOOK`-sourced with a
+  `published_floor_component`). The value is also the honest one and matches what both sibling knobs
+  already publish on their own inert cells.
+
+### 19.3 The whole control, dry-run at the candidate origin — and it is NOT in the 33
+
+`check_published_figure_caveat_coverage` with the candidate grid at the candidate origin returns
+**2 violations**, and neither is about the grid:
+
+```
+belief/organ_failure_window_drift_days: publishes a resolution floor of 310d and the sweep measures 4d ...
+belief_population_mix/...: publishes a resolution floor of 314d and the sweep measures 4d ...
+```
+
+Those are the *rendered* `measured_resolution_floor_days`, which `score_triad` stamps straight from
+`DIMENSION_DRIFT_RESOLUTION[dim]["own_readable_resolution_floor_days"]` — i.e. they are §15.2's
+register half, already measured (4/4) and already dry-run clean at §15.4. Re-running the check with
+§15.2's two values applied to a patched register: **0 violations**. So this control is **green at the
+candidate origin** once step 2's register edit lands, and it is not one of §17.3's 33.
+
+**R15 — the grid still discriminates at the new origin,** proven by mutation on the same measurement:
+
+| mutation | result |
+|---|---|
+| `belief` cell declared `moves: False` (a reached cell called inert) | 1 violation: *declared moves=False but MEASURED moves=True at (-1, 1, 5)* |
+| `ageing` cell declared `moves: True` (an unreached cell called moving) | 1 violation: *declared moves=True but MEASURED moves=False at ()* |
+
+Both directions fire, which is what "the grid hands no free pass" has to mean to be worth anything.
+
+### 19.4 NEW FINDING — the grid and the origin are a matched pair, and the vacuity guard proves it
+
+The candidate grid cannot be landed *before* the flip, and this is not a preference: the candidate
+grid at the **shipped** origin returns **7 violations**, five of them the `probe_bit` guard —
+
+> *"the probe moved NOTHING on any published dimension — an inert counterfactual company certifies
+> every `moves: False` in its column for free"*
+
+— plus the two belief cells reading `declared moves=True but MEASURED moves=False`. That is precisely
+the free pass §18.3 feared, arriving from the opposite direction: **the old grid is invalid at the new
+origin (fail-closed, §18.2), and the new grid is invalid at the old origin (probe_bit, here).** Each
+is unbuildable without the other, so the dict literal is genuinely inside the flip commit rather than
+landable ahead of it — and the vacuity guard that makes the second half true is a control this module
+already had, firing on its own named defect without being asked to.
+
+### 19.5 Re-sizing, and what this pass did not do
+
+The `size_basis`'s stated reason for retaining **XL** after §18.5's re-size was §18.3's unswept grid.
+It is now swept, the candidate is confirmed, and the change set did not enlarge — it shrank by the
+register edits §19.2 shows are not owed. **Re-sized XL → L** on that evidence (R12/G5: a DIAL
+informing decomposition and remaining effort, never a gate and never a target). The remaining step 2
+is ~33 assertion rewrites + 2 dict literals, all of them measured.
+
+**Not done, deliberately:** the origin is NOT flipped, `CAVEAT_COVERAGE_PROBES` is NOT edited (§19.4),
+no level moved (D27 stays at 0), and §18.4's piecewise route — restating each defect-assertion as the
+LAW plus an origin-conditional coordinate, green at the current origin — is untouched and remains the
+next pass's work.

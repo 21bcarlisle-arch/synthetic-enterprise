@@ -2417,7 +2417,7 @@
   level_target: 2
   loop_stage: build
   dial_inherited: 3
-  size: XL  # 2026-08-23 sized from a MEASUREMENT, not a FRAME estimate (basis below)
+  size: L  # 2026-08-23 XL->L when the last unmeasured item was measured (basis below)
   size_basis: >-
     MEASURED 2026-08-23, and it replaces an estimate that was wrong by an order of
     magnitude. The one remaining step (the origin flip, FRAME doc section 9.5 step 2)
@@ -2451,9 +2451,24 @@
     18.3's replacement probe grid (-1, 1, 5) is INFERRED from the measured floor of 4d
     and the sibling convention, NOT swept -- a +-1 probe sits BELOW that floor and could
     reintroduce the free pass the original comment guarded against, which would enlarge
-    the step again. Re-size after that sweep. R12/G5: this is a DIAL informing
-    decomposition and remaining-effort, never a gate and never a target --
-    xl_decompose_flags() reports and cannot block.
+    the step again. Re-size after that sweep. XL -> L 2026-08-23 (FRAME section 19, pass
+    10) BECAUSE THAT SWEEP WAS TAKEN, and the step did not enlarge -- it shrank. The
+    +-1 fear was refuted by its own numbers: the 4d floor is a floor over ALL THREE
+    seeds while the control's `moves` is a DISJUNCTION over seeds and probes, so a
+    1-day drift moves `belief` on one seed and `belief_population_mix` on two, and the
+    candidate grid at the candidate origin reproduces the shipped grid's reach map cell
+    for cell (both belief dimensions True, the other three False). So the grid costs
+    ZERO edits to PUBLISHED_FIGURE_CAVEAT_CONTRACT -- one fewer item than the
+    decomposition assumed -- and check_published_figure_caveat_coverage dry-runs to 0
+    violations at the candidate origin once section 15.2's already-measured register
+    values land, which takes that control out of the 33. R15 both ways on the new grid:
+    a reached cell declared inert and an unreached cell declared moving each raise one
+    violation. The grid and the origin are a MATCHED PAIR (section 19.4): the old grid
+    fails closed at the new origin and the new grid trips the probe_bit vacuity guard
+    at the old one (7 violations), so the dict literal is inside the flip commit rather
+    than landable ahead of it. Nothing unmeasured is now known to remain in step 2.
+    R12/G5: this is a DIAL informing decomposition and remaining-effort, never a gate
+    and never a target -- xl_decompose_flags() reports and cannot block.
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
   depends_on: [D25_ageing_resolution_is_the_harness_calendar]
