@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-23T02:32:38.994020+00:00",
+  "generated_at": "2026-08-23T03:41:03.888329+00:00",
   "stamp_version": 1,
   "stamp_file": "director_last_look.json",
   "stamp_status": "ok",
@@ -21,14 +21,14 @@
     "headline_moves": 1
   },
   "changes": [
-    "reserved queue: 1 added (publish_gate_wedged)",
+    "reserved queue: 1 added (executor-wall_escalated-f13e76f1)",
     "2 daemon(s) went stale: discovery-daemon, epistemic-verifier",
     "total_open_atoms: 55 -> 112"
   ],
   "detail": {
     "new_decisions": [],
     "reserved_added": [
-      "publish_gate_wedged"
+      "executor-wall_escalated-f13e76f1"
     ],
     "reserved_cleared": [],
     "daemons_newly_stale": [
@@ -51,7 +51,7 @@
     "latest_decision_ts": "2026-07-19T06:20:24.473486+00:00",
     "decision_count": 20,
     "reserved_ids": [
-      "publish_gate_wedged"
+      "executor-wall_escalated-f13e76f1"
     ],
     "daemon_status": {
       "session-watchdog": "stale",
@@ -78,8 +78,8 @@
     "open_atoms": 112
   },
   "source_stamps": {
-    "reserved_generated_at": "2026-08-23T02:32:33.796516+00:00",
-    "health_last_updated": "2026-08-23T02:32:31.213290+00:00",
+    "reserved_generated_at": "2026-08-23T03:35:29.077535+00:00",
+    "health_last_updated": "2026-08-23T03:40:42.675602+00:00",
     "decisions_generated_at": "2026-07-19T06:25:33Z"
   }
 }
