@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-08-23T11:29:04Z",
+    "checked_at": "2026-08-23T11:54:15Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_committed_store_credits_a_falsifier_the_repository_does_not_have",
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_every_declared_honest_absence_is_still_absent_and_still_silenced",
@@ -12,23 +12,23 @@
       "FAILED tests/background/test_publish_gate_stub_roots_are_repo_shaped.py::test_every_module_that_drives_the_gate_uses_the_shared_root_shape"
     ],
     "nonblocking_reds_total": 82,
-    "open_findings": 115
+    "open_findings": 17
   },
   "last_verified": {
-    "generated_at": "2026-08-23T11:48:34Z",
-    "git_commit": "9c7b5df6b",
-    "run_id": "run_output_9c7b5df6b_20260823T113005Z.json",
-    "verified_at": "2026-08-23T11:48:34Z"
+    "generated_at": "2026-08-23T12:14:03Z",
+    "git_commit": "7db2771e7",
+    "run_id": "run_output_7db2771e7_20260823T115516Z.json",
+    "verified_at": "2026-08-23T12:14:03Z"
   },
   "paused_reason": "scoped publish-path suite red at git=f983f074c; blocking tests: ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_answer_which_commit_it_is, FAILED tests/tools/test_measure_publish_gate_subject_cost.py::test_the_basetemp_leak_is_reclaimed_by_the_gates_own_sweep, ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_be_bl",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-23T11:48:34Z",
-    "git_commit": "9c7b5df6b",
-    "run_id": "run_output_9c7b5df6b_20260823T113005Z.json",
-    "verified_at": "2026-08-23T11:48:34Z"
+    "generated_at": "2026-08-23T12:14:03Z",
+    "git_commit": "7db2771e7",
+    "run_id": "run_output_7db2771e7_20260823T115516Z.json",
+    "verified_at": "2026-08-23T12:14:03Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-23T11:48:34Z"
+  "written_at": "2026-08-23T12:14:03Z"
 }
