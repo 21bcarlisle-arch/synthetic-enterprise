@@ -1,34 +1,34 @@
 {
   "annotation": {
-    "checked_at": "2026-08-23T12:19:41Z",
+    "checked_at": "2026-08-23T13:28:46Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_committed_store_credits_a_falsifier_the_repository_does_not_have",
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_every_declared_honest_absence_is_still_absent_and_still_silenced",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_stale_baseline_entries",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
+      "FAILED tests/background/test_derived_artefact_register.py::TestStaleness::test_every_registered_artefact_is_currently_fresh",
       "FAILED tests/background/test_file_api.py::test_healthz_no_auth_required - pro...",
-      "FAILED tests/background/test_live_ledger_guard.py::test_the_narrowing_to_measurement_ledgers_is_measured_not_assumed",
-      "FAILED tests/background/test_publish_gate_stub_roots_are_repo_shaped.py::test_every_module_that_drives_the_gate_uses_the_shared_root_shape"
+      "FAILED tests/background/test_forward_attachment_register.py::test_live_tree_has_no_violations"
     ],
-    "nonblocking_reds_total": 82,
-    "open_findings": 17
+    "nonblocking_reds_total": 86,
+    "open_findings": 18
   },
   "last_verified": {
-    "generated_at": "2026-08-23T12:39:04Z",
-    "git_commit": "12131ad8b",
-    "run_id": "run_output_12131ad8b_20260823T122042Z.json",
-    "verified_at": "2026-08-23T12:39:04Z"
+    "generated_at": "2026-08-23T13:48:23Z",
+    "git_commit": "13d567d8f",
+    "run_id": "run_output_13d567d8f_20260823T132947Z.json",
+    "verified_at": "2026-08-23T13:48:23Z"
   },
   "paused_reason": "scoped publish-path suite red at git=f983f074c; blocking tests: ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_answer_which_commit_it_is, FAILED tests/tools/test_measure_publish_gate_subject_cost.py::test_the_basetemp_leak_is_reclaimed_by_the_gates_own_sweep, ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_be_bl",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-23T12:39:04Z",
-    "git_commit": "12131ad8b",
-    "run_id": "run_output_12131ad8b_20260823T122042Z.json",
-    "verified_at": "2026-08-23T12:39:04Z"
+    "generated_at": "2026-08-23T13:48:23Z",
+    "git_commit": "13d567d8f",
+    "run_id": "run_output_13d567d8f_20260823T132947Z.json",
+    "verified_at": "2026-08-23T13:48:23Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-23T12:39:04Z"
+  "written_at": "2026-08-23T13:48:23Z"
 }
