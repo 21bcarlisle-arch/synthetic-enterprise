@@ -2429,13 +2429,30 @@
     attempted this inside a bounded worker tick and every one ended with uncommitted
     work in the shared tree -- a consequence of drawing work that cannot finish in the
     window, not of insufficient preparation. Every MEASUREMENT the step needs is now
-    taken and verified (FRAME sections 15.2, 16.1); what remains is 77 test nodes of
-    semantic rewriting, some of it another atom's claims (D33's two-predicate
-    divergence does not survive the reshape, FRAME section 15.3). NOT decomposed yet
-    and not claimed genuinely-atomic: the open question is whether
-    check_scored_window_provenance can legitimately admit a declared in-progress
-    origin move, which would make the flip landable in pieces. R12/G5: this is a DIAL
-    informing decomposition and remaining-effort, never a gate and never a target --
+    taken and verified (FRAME sections 15.2, 16.1); what remains is semantic rewriting,
+    some of it another atom's claims (D33's two-predicate divergence does not survive
+    the reshape, FRAME section 15.3). RE-SIZED DOWN 2026-08-23 (FRAME section 18, pass
+    9) on evidence arriving, not the dial being tuned: the 77 is NOT 77 units of work.
+    The 44 errors were root-caused to ONE cause by evaluating the test file's 16
+    zero-arg module-scoped fixtures directly at the candidate origin -- exactly 2 raise
+    (own_drift_resolution, caveat_coverage) and both raise the SAME ValueError, because
+    CAVEAT_COVERAGE_PROBES probes the memory knob at -370 and 90-370 is a negative
+    lookback build_scenario fail-closes on. So the remaining change set is ~33
+    non-homogeneous assertion rewrites + 2 dict literals (the probe grid; and the
+    4-field census, whose replacement values check_scored_window_provenance PRINTS in
+    its own violations). The section-17.2 open question is CLOSED and was aimed at the
+    wrong constraint: that control needs no in-progress concession -- it costs ~10
+    lines of the flip commit, and granting one would move a cheaply-live field to the
+    declared side, which is the R15 fail-open shape. The decomposition it asked for is
+    section 18.4: restate each defect-assertion as the LAW plus an origin-conditional
+    coordinate (48 hard-coded origin literals vs 31 already-symbolic references), which
+    is green at the CURRENT origin and lands in as many commits as one likes before the
+    one-line flip. XL RETAINED rather than dropped to L for one honest reason: section
+    18.3's replacement probe grid (-1, 1, 5) is INFERRED from the measured floor of 4d
+    and the sibling convention, NOT swept -- a +-1 probe sits BELOW that floor and could
+    reintroduce the free pass the original comment guarded against, which would enlarge
+    the step again. Re-size after that sweep. R12/G5: this is a DIAL informing
+    decomposition and remaining-effort, never a gate and never a target --
     xl_decompose_flags() reports and cannot block.
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]

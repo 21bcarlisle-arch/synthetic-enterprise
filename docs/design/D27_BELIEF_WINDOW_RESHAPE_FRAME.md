@@ -1039,3 +1039,172 @@ no error traceback was read this tick, and the sizing in §17.2 and in the atom'
 deliberately takes the conservative reading (77 nodes) rather than the optimistic one. A pass that
 names the errors may legitimately re-size this atom DOWN; that would be evidence arriving, not the
 dial being tuned.
+
+---
+
+## 18. BUILD pass 9 — 2026-08-23 (worker tick, BUILD lane) — §17.2's open question closed, §17.4's errors root-caused
+
+This pass took the two items §17 left for its successor and closed both. It did **not** attempt the
+flip, and the origin is still 400 — but the reason to defer it has changed, because the size the
+deferral rested on is now measured to be wrong in the *other* direction.
+
+### 18.1 The open question, answered: NO — and it was aimed at the wrong constraint
+
+§17.2 recorded the open question as *"whether `check_scored_window_provenance` can legitimately admit
+a declared in-progress origin move"*, naming that control as **"the constraint that makes the flip
+atomic"**. Measured this pass (`observed-with-evidence`, origin substituted in-process, never in the
+tree, seed 7, n=300, at HEAD `2211cf534`):
+
+| field | at shipped origin | at candidate origin |
+|---|---|---|
+| `organ_default_window_days` | 90 | 90 |
+| `harness_window_days` | 400 | **90** |
+| `divergence_days` | 310 | **0** |
+| `never_forgets_drift_days` | 0 | **1** |
+| `scored_saturated` | `True` | **`False`** |
+| `check_scored_window_provenance` | **0 violations** | **4 violations** |
+
+The four violations are the four §9.4 predicted. But reading them settles the question, because
+**each one prints its own replacement value**:
+
+```
+DD_FAILURE_WINDOW_DAYS: declares harness_window_days=400 and this run measures 90 -- re-derive it ...
+DD_FAILURE_WINDOW_DAYS: declares divergence_days=310 and this run measures 0 -- re-derive it ...
+DD_FAILURE_WINDOW_DAYS: declares never_forgets_drift_days=0 and this run measures 1 -- re-derive it ...
+DD_FAILURE_WINDOW_DAYS: declares scored_saturated=True and this run measures False -- re-derive it ...
+```
+
+So satisfying this control after the flip is **a four-value edit to one dict literal**, whose values
+the control itself hands you. It costs roughly ten lines of the flip commit. It is not a design
+question, it does not need an escape hatch, and **it was never what made the flip atomic** — §17.2
+misattributed the constraint. The atomicity lives entirely in the test file (§18.2, §18.4).
+
+`never_forgets_drift_days = 1` at the candidate origin is **new** — §15.2 carried the per-seed
+headroom (−1/−2/−2) but the census field itself had never been read at the flipped origin. With it,
+every field `check_scored_window_provenance` compares is now measured on both sides, so step 2's
+census half needs no further measurement at all.
+
+**And the concession would have been wrong on its own merits.** The four fields are re-derived live
+on every check call, from the organ's signature, this module's constant and a live book. Admitting a
+*declared* in-progress value for a field the control can measure **for free** is the FAIL-OPEN shape
+R15 names, and it would make the control answer from the declaration instead of the measurement —
+the TAUTOLOGY pattern one register over. This module already draws that line in the right place and
+says so: the `cost` block is declared-and-dated *because* re-deriving it costs two ~70s sweeps
+(§17 / lines 8002-8005), while the live fields are live *because* they do not. An in-progress flag
+would move a cheap field to the expensive side of a line drawn on expense. Recommendation, taken:
+**leave `check_scored_window_provenance` exactly as it is.**
+
+### 18.2 The 44 errors: ONE root cause, not 44 — and §17.4's inference was half wrong
+
+§17.4 asked for the errors to be named by a full `-rEf` sweep and predicted ~1 hour. This pass got
+the answer in **seconds** by a cheaper route that goes at the stated hypothesis directly: §17.4
+inferred the errors were "a small number of module-scoped fixtures raising and taking their whole
+dependent set with them", so rather than re-run 620 nodes, **evaluate the module-scoped fixtures
+themselves at the candidate origin**. The test file has 18; 16 take no arguments and were called
+directly:
+
+| result | fixtures |
+|---|---|
+| **OK (14)** | `_books`, `_pre_d22_ageing_scorer`, `axis_floors`, `band_population_axis`, `belief_band_axis`, `component_walk`, `constant_census`, `detection_resolution`, `drift_resolution`, `interior_change_points`, `reader_walk`, **`recency_contribution`**, `recon_saturation`, `resolution_floors`, `stress_axis` |
+| **RAISED (2)** | `own_drift_resolution`, `caveat_coverage` |
+| not evaluated (2) | `retired_door`, `door_walk` — take arguments |
+
+Both raise **the same exception, from the same cause**:
+
+```
+ValueError: organ_failure_window_drift_days=-370 takes the company's lookback window to
+-280 days -- a negative memory is not a company this harness can build
+```
+
+§17.4's shape is therefore **confirmed as observed**: the 44 errors are two fixtures taking their
+dependents down, and behind the two fixtures is **one** root cause. Its two specific guesses fare
+less well and are corrected here — `own_drift_resolution` was right, **`recency_contribution` was
+wrong** (it evaluates cleanly at the candidate origin), and `caveat_coverage` was not on the list.
+
+**The full `-rEf` sweep §17.4 asked for then completed in-tick and confirms this exactly.** It ran
+to `33 failed, 543 passed, 44 errors in 770.26s`, reproducing §17.1's flipped counts
+(33/543/44) bit for bit, so the population is stable across runs. Attributing each of the 44 error
+nodes to the fixture it requests — resolving indirect requests through intermediate fixtures —
+gives:
+
+| fixture | error nodes |
+|---|---|
+| `own_drift_resolution` | 22 |
+| `caveat_coverage` | 22 |
+| requesting both | 0 |
+| **unattributed** | **0** |
+
+Every one of the 44 is accounted for by the two fixtures, and both fail on the same `−370` probe.
+The fixture probe's answer and the sweep's answer agree completely — which is what makes the cheap
+route trustworthy here rather than merely faster.
+
+### 18.3 NEW FINDING — the caveat probe grid is origin-relative, and its own justification dissolves at the new origin
+
+The root cause is not a fixture defect. `CAVEAT_COVERAGE_PROBES` (`tools/couple_w2_11_d5.py:4424`)
+probes the memory knob at `(-370, -350, -310)`, and `build_scenario` computes
+`window_days = DD_FAILURE_WINDOW_DAYS + organ_failure_window_drift_days` (line 612) with a
+fail-closed refusal below zero (line 613). At the shipped origin `400 − 370 = 30`, a buildable
+company. At the candidate origin `90 − 370 = −280`, and the guard **correctly** refuses it.
+
+The probe grid is stated in **absolute days** while being **origin-relative** in meaning, and the
+constant's own comment says why it is large:
+
+> *"The memory knob's readable band is far from zero on this book (atom D29/D30: everything from
+> −308 up is one number), so ±1 would probe an inert region and hand every cell a free pass."*
+
+**The probes are large precisely BECAUSE the origin is saturated — which is the defect the reshape
+removes.** So the same change that makes `−370` unbuildable also destroys the reason it was chosen:
+§15.2 measures the readable resolution floor at the candidate origin as **4 days on both dimensions
+and every seed**, so at origin 90 a small probe lands in a *resolving* region, not an inert one, and
+the memory knob stops needing a special case at all — it would take the same shape as its two
+siblings (`organ_terms_drift_days`, `organ_reconciliation_drift_days`, both `(-1, 1, 5)`).
+
+This is a constraint no earlier section states, and it is the reason a mechanical inversion of the
+77 nodes would have gone wrong: **part of the change set is re-choosing a probe grid, not re-deriving
+a number.** Candidate `(-1, 1, 5)`, on the floor-4 measurement and the sibling convention —
+**INFERRED, not measured. It was not swept this tick and must be before it is taken**, since a probe
+of ±1 sits *below* the measured floor of 4 and could reintroduce exactly the free pass the original
+comment guarded against. Naming the candidate so the next pass sweeps a hypothesis rather than
+searching.
+
+### 18.4 What this settles about the decomposition
+
+§17.2 asked for "a decomposition that makes it landable in pieces" and named the wrong obstacle.
+With the control cleared (§18.1) and the errors reduced to one cause (§18.2), the remaining change
+set is:
+
+1. **The probe grid** — one dict literal, once §18.3's candidate is swept. Clears all 44 errors.
+2. **The census** — four values, printed by the control itself (§18.1).
+3. **~33 failing assertions**, which are the real work and are **not** homogeneous (§17.3).
+
+And the axis that makes (3) landable in pieces is visible in the nodes themselves. Within a single
+test, some assertions already track the origin symbolically and others pin the saturated origin's
+coordinates — `test_the_scored_company_sits_outside_the_band_it_is_graded_on` asserts
+`scored_company_window_days == pair.DD_FAILURE_WINDOW_DAYS` (origin-agnostic, survives the flip) two
+lines after `scored_company_headroom_days == 308` (pins the 400). File-wide the split is **48
+hard-coded origin literals against 31 symbolic references**. So the decomposition is: **restate each
+defect-assertion as the LAW plus an origin-conditional coordinate** — e.g. `is_inert ==
+(headroom_days >= 0)` rather than `is_inert is True` — which is green at the CURRENT origin, lands
+in as many commits as one likes while the origin is still 400, and reduces the flip itself to the
+one-line constant move plus §18.4(1)–(2). That is the piecewise landing §17.2 wanted, and it needs
+no concession from any control.
+
+### 18.5 Re-sizing, and what this pass did not do
+
+§17.4 said naming the errors "may legitimately re-size this atom DOWN; that would be evidence
+arriving, not the dial being tuned." It has: the conservative 77-node reading is superseded by
+**~33 assertion rewrites + 2 dict literals**, with 44 of the 77 collapsing to one grid decision.
+R12/G5 — this is a DIAL informing decomposition and remaining effort, never a gate and never a
+target.
+
+**Not done, deliberately:** the origin is NOT flipped, no level moved (D27 stays at 0), the probe
+grid is NOT edited, and §18.3's candidate is NOT swept. The full `-rEf` sweep was left running to
+completion rather than killed a second time (§17.4 had abandoned it once already); it finished
+inside this tick at 770s and its result is folded into §18.2 rather than left as a loose end. The
+XL label is deliberately RETAINED despite the re-size — see the atom's `size_basis` for why
+§18.3's unmeasured probe grid is the reason to wait before dropping it to L.
+
+**Method note for the next pass:** the fixture-evaluation route (§18.2) answered in seconds what
+§17.4 budgeted an hour for, because it went at the stated hypothesis instead of re-measuring the
+whole population. Where a sweep is being re-run to identify a *cause*, check whether the cause can be
+evaluated directly first.
