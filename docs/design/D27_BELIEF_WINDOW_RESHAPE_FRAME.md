@@ -1002,3 +1002,40 @@ wrong. Four distinct kinds are present:
   numbers`, `test_the_census_caveat_travels_with_both_belief_figures`. Every published caveat states
   the saturation in prose; the reshape falsifies the sentence, not just the number, which is R11
   territory and is where step 4's ~30 assertions live.
+
+### 17.4 The 44 errors are NOT named, and that is a gap in this record
+
+§17.3 enumerates the 33 FAILURES. It does not enumerate the **44 errors**, and nothing above should
+be read as if it did. The cause is mundane and worth writing down so the next pass does not repeat
+it: the run used `-rf`, which reports failed nodes only. The summary line counts the errors but the
+short-summary section never lists them, so their identities were never captured.
+
+A re-run with `-rEf` was started this tick and was **killed unfinished** — it reached 42 of 620 nodes
+in 4.5 minutes under CPU contention from two other live suites, i.e. roughly an hour to complete,
+which is past this tick's window. Leaving it running past the tick would have been an orphan process
+contending with the operational suite for no reader, so it was stopped deliberately rather than
+abandoned.
+
+**To name them, next pass:**
+
+```
+PYTHONPATH=<dir-with-flip_plugin>:. python3 -m pytest tests/tools/test_couple_w2_11_d5.py \
+    -p flip_plugin -q --no-header -rEf --tb=no
+```
+
+where `flip_plugin.py` is a two-line `pytest_configure` setting
+`pair.DD_FAILURE_WINDOW_DAYS = pair.organ_default_failure_window_days()` — the origin substituted in
+the PROCESS, never in the tree, which is what let this be measured at all while both `file_scope`
+files were imported by live suites.
+
+**Why the identities matter rather than the count.** 44 errors against 33 failures is a suspicious
+ratio for a change that edits one integer. An ERROR is a fixture blowing up, not an assertion
+disagreeing, so the likely shape is a small number of module-scoped fixtures raising and taking their
+whole dependent set with them — `own_drift_resolution` and `recency_contribution` are both
+module-scoped and both re-score at the origin. If that is what it is, the 44 collapse to perhaps two
+or three root causes and the real remaining work is **smaller than 77 nodes implies**. If instead the
+errors are spread across many independent fixtures, it is larger. **That is INFERRED, not observed** —
+no error traceback was read this tick, and the sizing in §17.2 and in the atom's `size_basis`
+deliberately takes the conservative reading (77 nodes) rather than the optimistic one. A pass that
+names the errors may legitimately re-size this atom DOWN; that would be evidence arriving, not the
+dial being tuned.
