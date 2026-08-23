@@ -847,3 +847,77 @@ per seed, `scored_saturated` True → **False**, and the `cost` block's two `rea
 maps collapse into one), invert the six defect-asserting tests, and run
 `check_belief_band_population_axis`. **Step 4** (the ~30 assertions, the coupled-gap ledger row)
 follows it unchanged.
+
+---
+
+## 16. BUILD pass 8 — 2026-08-23 (worker tick, BUILD lane) — §15.5's open item, closed
+
+**The origin is still 400.** What this pass removes is the last place §15 said "a surprise is still
+possible", so step 2 now has no measurement left in it at all.
+
+### 16.1 The population axis at the candidate origin — no surprise
+
+§15.5 carried `above_edge_range` and `below_edge_range` from §14.2, which measured at **n=300 only**.
+`check_belief_band_population_axis` sweeps **eight** draw sizes, and its whole reason for existing
+(atom D30) is that an edge measured on one population is not a property of the instrument. Carrying
+a one-population reading into a declaration the axis checker will then put on trial is precisely the
+class D30 exists to close, so it was run rather than assumed.
+
+Method: `measure_belief_band_population_axis()` with `DD_FAILURE_WINDOW_DAYS` substituted to
+`organ_default_failure_window_days()` = 90 **in the process, never in the tree** (the same method
+§9/§12/§14/§15 used). 24 books, n = 17/24/40/60/120/300/600/1200 × seeds 7/11/23, 0.5s — the sweep is
+predictor-only, which is what makes this axis askable at all.
+
+| reading | at the candidate origin | §15.5 carried | verdict |
+|---|---|---|---|
+| `above_edge_range` | **(-23, 2)** | (-23, 2) | reproduces |
+| `below_edge_range` | **(-61, -32)** | (-61, -32) | reproduces |
+| `invoice_span_invariant` (null control) | **(30, 92)**, single-valued across all 24 books | (30, 92) | unmoved |
+| derived null-control floor | **17** | 17 | unmoved |
+
+`above_edges` (-23, -18, -3, 1, 2), `below_edges` (-61, -60, -57, -45, -32).
+
+Two of the checker's six rules are worth naming because they are the ones a translated range would
+have failed. **The declared literal must lie inside the measured range:** §15.2's
+`own_saturates_above` is **+2** (`belief`) and **+1** (mix) against a measured above-range topping at
+**+2**, and `own_saturates_below` is **−61** on both against a below-range bottoming at **−61** — both
+declarations sit ON their range edge, so a range translated by arithmetic rather than swept would
+have had no margin to be wrong in. **The edges must actually MOVE along the axis:** above-spread by
+seed {7: 20, 11: 0, 23: 25}, below-spread {7: 1, 11: 29, 23: 1} — non-degenerate, so the scope stays
+a claim rather than reverting to a bare number.
+
+The **null control is the load-bearing half**: the invoice span is single-valued (30, 92) across all
+24 books, so the failure-side movement above is the sample moving and not the law. Had the invoice
+span moved with the origin, every reading in this table would have been draw noise — and the origin
+move would have been perturbing the world rather than the company, which is the R13 wall.
+
+### 16.2 The floor is unmoved, and that is a prediction met rather than a coincidence
+
+`measure_belief_axis_null_control_floor` returns **17** at the candidate origin, the same value the
+shipped register declares. That is the expected result and it is worth stating why: the floor is
+derived off the **invoice-side** span predictor, and the invoice span is dense by construction — every
+account draws every period — so it contains no dependence on the company's memory window. A floor
+that HAD moved with the origin would have meant the derivation was reaching the organ, which is the
+D20 tautology the floor's own comment says it exists not to be. The origin move is a company-side
+change; the floor is a world-side derivation; they are independent, and now that has been observed
+rather than argued.
+
+### 16.3 What this pass did not do
+
+The origin is unmoved and no `file_scope` file was touched — the two `file_scope` files were imported
+by live pytest processes for the whole tick (§15.1's hazard, checked again rather than assumed).
+**§9.5 step 2 is now pure transcription with zero open measurements**: apply §15.2's ten fields (all
+ten now verified — the eight of §15.2 against the shipped checker, the two `own_draw_size_axis` ranges
+here), flip the constant, rewrite the census `measured_divergence` block, and invert the
+defect-asserting tests.
+
+**One correction to §14.1/§15.6 for the next pass, and it enlarges the change set.** "The six tests"
+understates it. The origin is asserted well beyond those six — `test_the_recency_contribution_is_zero_
+and_that_zero_is_the_finding` asserts `contribution == {0.0}` and `scored_already_never_forgets is
+True` on both belief dimensions, and §15.2's own measurements say the contributions become
+(0.0189873, 0.0123457, 0.0058824) on `belief` and **(0.0033333, 0.0, 0.0)** on the mix — note the mix
+keeps a 0.0 on two of three seeds, so the inverted assertion is NOT simply "now non-zero" and a
+mechanical inversion would write a false claim. The next pass must count the true blast radius by
+running the atom's test file with the origin substituted in-process, and treat that failure list —
+not a prose count — as the change set. That measurement was started this tick and had not returned
+when the tick closed.
