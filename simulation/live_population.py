@@ -58,6 +58,11 @@ from pathlib import Path
 from typing import List, Optional
 
 from company.interfaces.supply_book import register_drawn_points, registered_supply_points
+from simulation.segment_vocabulary import (
+    CANONICAL_SEGMENTS,
+    UnknownSegmentError,
+    normalise_segment,
+)
 
 # The supply book, bound once at import: the seam hands back the LIVE roster
 # objects (see company/interfaces/supply_book.py, IDENTITY), so a runtime append
@@ -136,8 +141,17 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
     followed by the additive synthetic acquisition cohort (saas-shaped,
     ground-truth ``cohort`` excluded). Additive-not-replacive.
     """
+    # SEGMENT SUSPENSION (2026-08-24, director: "stop the company serving business accounts
+    # for now"). Applied HERE, at the one place a run's book is assembled, rather than as a
+    # branch inside each consumer -- there are dozens of consumers and a filter per consumer
+    # is a filter that is missing from one of them. Applied FIRST, before the drawn trickle
+    # and before the campaign, so nothing downstream ever sees a suspended account and the
+    # opening capital those two are sized from is the served book's, not the whole roster's.
+    served = served_segments()
+    static = [c for c in CUSTOMERS if _serves(c, served)]
+
     if not draw_population_enabled():
-        return list(CUSTOMERS)
+        return static
     # Local import: keep the SIM-truth generator off the import graph of any
     # caller that never activates (wall hygiene).
     from simulation.population_draw import draw_population
@@ -179,8 +193,9 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
     # Idempotent by `customer_id`: entrypoints bind the book at import time in
     # whatever order Python resolves them, so this runs more than once per process
     # and must not double the book.
+    drawn = [c for c in drawn if _serves(c, served)]
     register_drawn_points(drawn)
-    book = list(CUSTOMERS) + drawn
+    book = static + drawn
 
     won = _won_customer_dicts(_campaign(_pre_growth_book(seed), seed))
     if won:
@@ -205,6 +220,95 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
 # leakage, a real credit check and the statutory cooling-off window — and the
 # quotes that did NOT survive were paid for anyway. The two lists are kept apart
 # for that reason and never merged.
+
+_SERVED_SEGMENTS_CURRICULUM = (
+    Path(__file__).resolve().parent.parent
+    / "docs" / "design" / "curriculum" / "served_segments.json"
+)
+
+#: What the company serves when the curriculum file cannot be read: EVERY segment, i.e. the
+#: pre-2026-08-24 book unchanged. Fail-OPEN here and not closed, which is the opposite
+#: direction to most guards in this repo and is deliberate: an unreadable curriculum file must
+#: not silently DELETE accounts from a published book. Losing customers because a JSON file
+#: failed to parse is a far worse published figure than serving a segment the director meant
+#: to suspend, and the suspension is visible on the site the moment anyone looks.
+#:
+#: IMPORTED, NOT RE-DECLARED. The first version wrote the tuple out here and
+#: `tools/segment_case_guard.py` refused the commit, by name: "every copy drifts, and a bare
+#: `in` against a copy is case-SENSITIVE, so a lower-case spelling silently is not a member".
+#: It was right twice over — the copy was redundant, and `_serves` below was doing exactly the
+#: bare `in` it warns about, so an account carrying `"RESI"` or `"i&c"` would have been
+#: silently suspended. `normalise_segment` fixes that as well as the duplication.
+
+
+def served_segments() -> tuple[str, ...]:
+    """The segments this supplier currently serves. Curriculum, the director's (R13).
+
+    `SE_SERVED_SEGMENTS` overrides as a comma-separated list, for a measurement run without
+    editing a committed file — same convention as the two sibling activations.
+    """
+    env = os.environ.get("SE_SERVED_SEGMENTS", "").strip()
+    if env:
+        return tuple(s.strip() for s in env.split(",") if s.strip())
+    try:
+        with open(_SERVED_SEGMENTS_CURRICULUM) as fh:
+            value = json.load(fh)["served"]["value"]
+        if isinstance(value, list) and value and all(isinstance(v, str) for v in value):
+            return tuple(value)
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    return CANONICAL_SEGMENTS
+
+
+def _serves(customer: dict, served: tuple[str, ...]) -> bool:
+    """Is this account one the company currently takes?
+
+    Both sides are normalised through `simulation.segment_vocabulary`, so a roster spelling of
+    `"I&C"`, `"IC"` or `"i and c"` all resolve to the same member and a curriculum file written
+    in any of them means what its author meant. (The first version of this line also claimed
+    `"industrial"`; it is not one of the vocabulary's aliases, and naming a spelling that in
+    fact falls through to the fail-open branch is how a suspension quietly stops suspending.)
+
+    A missing or unrecognisable `segment` is SERVED, not suspended -- the same fail-open
+    direction as the default above, and for the same reason: an account with a field this
+    filter cannot read must not vanish from a published book.
+
+    THAT LAST PARAGRAPH DESCRIBED BEHAVIOUR THIS FUNCTION DID NOT HAVE (found 2026-08-24 while
+    writing its control, fixed before landing). `normalise_segment` RAISES `UnknownSegmentError`
+    on a present-but-unrecognised spelling -- it defaults only for a genuinely ABSENT one -- so
+    the uncaught call did the exact opposite of the documented direction: a single typo in the
+    director's curriculum file, or one roster row carrying a segment the vocabulary has not
+    learned yet, took down every run that assembles a book rather than serving everything. A
+    fail-open guard that fails HARD is the worst of both, and it is invisible until the day the
+    typo happens. The raise is now caught on both sides, which is what the docstring always
+    claimed and what `served_segments()`'s own default deliberately chose.
+    """
+    account = _canonical(customer.get("segment"))
+    if account is None:
+        return True
+    allowed = {c for c in (_canonical(s) for s in served) if c is not None}
+    if not allowed:
+        # Every entry in the curriculum list was unreadable. Serving NOBODY is the one
+        # outcome worse than serving everybody: it empties the published book on a typo.
+        return True
+    return account in allowed
+
+
+def _canonical(segment) -> Optional[str]:
+    """The canonical spelling of `segment`, or None if this filter cannot read it.
+
+    Absent and unrecognised are collapsed deliberately: `_serves` treats both the same way
+    (serve it), and the distinction `normalise_segment` draws between them -- defaulting for
+    one, raising for the other -- is the right call for a BILLING path and the wrong one for a
+    filter whose failure mode is deleting accounts from a published book.
+    """
+    if segment is None:
+        return None
+    try:
+        return normalise_segment(segment, default=None)
+    except UnknownSegmentError:
+        return None
+
 
 _GROWTH_MANDATE_CURRICULUM = (
     Path(__file__).resolve().parent.parent
@@ -305,13 +409,16 @@ def _pre_growth_book(seed: int) -> List[dict]:
     obvious thing that would otherwise be implicit: the opening balance sheet and the opening
     account count a growth plan is built on are the ones BEFORE it grows.
     """
+    served = served_segments()
+    static = [c for c in _STATIC_ROSTER if _serves(c, served)]
     if not draw_population_enabled():
-        return list(_STATIC_ROSTER)
+        return static
     from simulation.population_draw import draw_population
 
-    return list(_STATIC_ROSTER) + [
+    return static + [
         sc.to_customer_dict()
         for sc in draw_population(seed, draw_region=True, assign_cohorts=True)
+        if _serves(sc.to_customer_dict(), served)
     ]
 
 
@@ -338,7 +445,15 @@ def _resolve_campaign(book: List[dict], seed: int) -> dict:
     outcome = plan_growth_campaign(
         years=range(2016, 2026),
         base_seed=seed,
-        opening_net_assets_gbp=_opening_net_assets_gbp(book),
+        # THE SAME OPENING CAPITAL THE RUN ITSELF USES, and getting this wrong once is why
+        # the comment is here. The campaign planned from `_opening_net_assets_gbp(book)` --
+        # the EAC-scaled formula -- while `run_phase2b` had already moved to the founding
+        # capital figure, so the plan was sized from £12,134 and the company it was planning
+        # for held £250,000. It read as a supplier that ran out of money in 2019; it was two
+        # halves of one balance sheet disagreeing.
+        opening_net_assets_gbp=founding_capital_gbp(
+            fallback=_opening_net_assets_gbp(book)
+        ),
         accounts_held_at_start=len(book),
         horizon_end=horizon,
         credit_bureau=get_credit_bureau_adapter(),
@@ -355,6 +470,32 @@ def _resolve_campaign(book: List[dict], seed: int) -> dict:
     )
     LAST_CAMPAIGN.clear()
     LAST_CAMPAIGN.update({k: v for k, v in outcome.items() if k != "winners"})
+
+    # PERSISTED, because the site has to be able to say WHICH constraint stopped the book.
+    # `LAST_CAMPAIGN` lives in the run's process and dies with it, so a generator running in a
+    # later process — which is every site generator — could only see the final book size and
+    # not the reason it is that size. A curve flattened by our wall clock and a supplier that
+    # ran out of money look identical on a chart, and the director asked for the difference
+    # surfaced rather than left to be inferred (2026-08-24: "a growth curve that's an artefact
+    # of our engine is an inconsistency, not a result").
+    #
+    # Write failures are swallowed on purpose: this is a REPORT of the run, not an input to it,
+    # and a full disk must not stop a book being assembled.
+    try:
+        record = {
+            "generated_by": "simulation.live_population._resolve_campaign",
+            "by_year": outcome["by_year"],
+            "notes": outcome["notes"],
+            "customer_years_committed": outcome["customer_years_committed"],
+            "customer_year_budget": outcome["customer_year_budget"],
+            "wins": len(outcome["winners"]),
+            "quotes": len(outcome["spend"]),
+            "spend_gbp": round(sum(r["amount_gbp"] for r in outcome["spend"]), 2),
+        }
+        _CAMPAIGN_RECORD.parent.mkdir(parents=True, exist_ok=True)
+        _CAMPAIGN_RECORD.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+    except OSError:
+        pass
     return outcome
 
 
@@ -440,3 +581,43 @@ def live_drawn_households(base_seed: Optional[int] = None) -> dict:
     """{customer_id: Household} for the drawn cohort — what
     `simulation.household.build_household_register()` takes."""
     return {cid: premise.household for cid, premise in live_premises(base_seed).items()}
+
+
+#: Where the campaign's own record of a run lands, for generators in later processes.
+_CAMPAIGN_RECORD = (
+    Path(__file__).resolve().parent.parent
+    / "docs" / "observability" / "book_growth_campaign.json"
+)
+
+_FOUNDING_CAPITAL_CURRICULUM = (
+    Path(__file__).resolve().parent.parent
+    / "docs" / "design" / "curriculum" / "founding_capital.json"
+)
+
+
+def founding_capital_gbp(*, fallback: float) -> float:
+    """The company's opening capital. Curriculum, the director's (R13).
+
+    LIVES HERE rather than in `run_phase2b` because this module is already the place a run's
+    opening position is decided -- it assembles the book the old formula was computed FROM --
+    and because `run_phase2b` imports this at module scope, so the reverse would be a cycle.
+
+    `fallback` is the caller's own pre-existing expression, evaluated by the caller and passed
+    in. That shape is deliberate: an unreadable or `null` curriculum file returns the number
+    the run would have had anyway, so this can never zero a balance sheet by failing. A
+    company with no capital is not a conservative default; it is a company that cannot trade.
+    """
+    env = os.environ.get("SE_FOUNDING_CAPITAL_GBP", "").strip()
+    if env:
+        try:
+            return float(env)
+        except ValueError:
+            return fallback
+    try:
+        with open(_FOUNDING_CAPITAL_CURRICULUM) as fh:
+            value = json.load(fh)["founding_capital_gbp"]["value"]
+        if isinstance(value, (int, float)) and value > 0:
+            return float(value)
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    return fallback

@@ -163,34 +163,29 @@ def roll_acquisition(segment: str, rng_seed: str) -> bool:
 # contribution per account-year, is to pass that measurement in here.
 # ═══════════════════════════════════════════════════════════════════════════
 
-#: THE RATE THE BOOK MAY GROW IN ONE YEAR, and the honest account of where it comes from.
+#: THE RATE THE BOOK MAY GROW IN ONE YEAR, set from the director's target.
 #:
-#: NOT A COMMERCIAL JUDGEMENT, and saying so is the point. Measured on the shipped funnel over
-#: 4,000 quotes, `run_acquisition_funnel` converts at 18.7% -- so this company, holding
-#: £2.47m of net assets against fourteen accounts, could quote 4,665 homes in 2016 and win
-#: roughly 870 of them. Capital does not bind it. The funnel does not bind it. What binds it
-#: is `simulation/net_new_acquisition.py::SETTLEMENT_CUSTOMER_YEAR_BUDGET` -- the half-hourly
-#: settlement this machine can build before the stage that died at 465 customer-years in
-#: AO12's scale probe. 20% is simply the largest annual rate whose ten-year book fits inside
-#: that budget, and it was found by measuring rather than argued: at the fixed seed 12%
-#: spends 103.6 of the 279 customer-years and 20% spends 201.8, while 25% overflows and the
-#: engine starts refusing wins the company paid for. Above 25% the published book gets
-#: SMALLER as the rate rises (66 accounts at 25%, 56 at 30%, 53 at 40%) because the refused
-#: wins are still billed -- which is the clearest possible statement that the ceiling is ours.
+#: 2026-08-24: "Grow residential toward 200, earned through the funnel as you've just built it."
+#: The served book opens at 13 records, so reaching 200 across the ten-year window needs
+#: (200/13)^(1/10) - 1 = 32.4% a year. 33% is that number rounded, and it is the ONLY thing in
+#: this file that comes from a target rather than from a measurement.
 #:
-#: WHY IT IS EXPRESSED AS A RATE RATHER THAN A CAP ON THE BOOK. A hard cap produces a step:
-#: the company wins everything it can in 2016, hits the ceiling, and reports flat for nine
-#: years, which is a picture of our RAM wearing a supplier's clothes. A rate produces the
-#: compounding curve a growing supplier actually has, and it leaves every year's outcome
-#: contingent on that year's funnel -- a bad year still wins less. What is OURS is the slope;
-#: what is the company's is whether it achieves it.
+#: WHY A RATE AND NOT A BOOK CAP. A hard cap produces a step — everything won in the first year,
+#: then flat — which is a picture of a constraint wearing a supplier's clothes. A rate produces
+#: the compounding curve a growing supplier actually has and leaves every year's outcome
+#: contingent on that year's funnel: a bad year still wins less, and 2017 won nothing.
 #:
-#: THE REAL FINDING UNDERNEATH, which belongs to PB2 and is not fixed here: a supplier holding
-#: £2.47m against fourteen accounts is over-capitalised by roughly two orders of magnitude.
-#: PB2_OPENING_BOOK_DISCOVER.md derives the opening book that balance sheet actually implies
-#: -- 3,217 accounts. The published company is small because it is a fixture, not because it
-#: is poor, and no growth rate applied to the wrong opening book fixes that.
-MAX_BOOK_GROWTH_RATE_PER_YEAR: float = 0.20
+#: IT IS NOT WHAT WILL BIND. At this rate the book reaches the settlement engine's ceiling
+#: before it reaches 200 — see `net_new_acquisition.SETTLEMENT_CUSTOMER_YEAR_BUDGET` and
+#: docs/design/SETTLEMENT_CEILING_2026-08-24.md. That is deliberate and it is reported per year
+#: rather than hidden: the director asked for the engine constraint SURFACED, so the honest
+#: arrangement is a commercial dial set to his target and a machine limit that visibly stops it
+#: short, not a commercial dial quietly tuned down until the machine never complains.
+#:
+#: THE FINDING UNDERNEATH, which belongs to PB2: a supplier holding this much capital against a
+#: book this small is over-capitalised, and the published company is small because it is a
+#: fixture rather than because it is poor.
+MAX_BOOK_GROWTH_RATE_PER_YEAR: float = 0.33
 
 #: Share of AVAILABLE capital headroom the company is willing to commit to growth in any one
 #: year. A DIAL (R12), not a target: it exists so a single campaign cannot spend the whole
@@ -234,7 +229,7 @@ def growth_quote_budget(
     segment: str = "resi",
     mcr_per_account_gbp: float = 130.0,
     capital_share: float = GROWTH_CAPITAL_SHARE_PER_YEAR,
-    max_growth_rate: float = MAX_BOOK_GROWTH_RATE_PER_YEAR,
+    max_growth_rate: float | None = None,
 ) -> dict:
     """How many quotes the company issues this year, and the binding reason.
 
@@ -249,6 +244,11 @@ def growth_quote_budget(
     committed capital supports is `committed / (cost_per_win + mcr)`. Quotes follow from
     wins through the company's own believed conversion.
     """
+    # Read at CALL time -- see the note in net_new_acquisition.plan_growth_campaign. A default
+    # argument freezes the constant at import and makes the dial unmovable from a test or a
+    # measurement run.
+    if max_growth_rate is None:
+        max_growth_rate = MAX_BOOK_GROWTH_RATE_PER_YEAR
     if mandate != "grow":
         return {"quotes": 0, "budget_gbp": 0.0, "wins_capital_allows": 0,
                 "binding": "mandate", "headroom_gbp": 0.0}

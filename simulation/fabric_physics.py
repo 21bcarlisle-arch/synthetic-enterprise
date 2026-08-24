@@ -157,6 +157,7 @@ from __future__ import annotations
 
 import hashlib
 import math
+from functools import lru_cache
 import random
 from dataclasses import dataclass
 from enum import Enum
@@ -354,6 +355,7 @@ class AmbientProfile:
     with any profile in the family, and the caller is told rather than not told."""
 
 
+#: (the cache is `cached_ambient_profile` at the end of this module, not here)
 def reconstruct_ambient_profile(
     *,
     temperature_min_c: float,
@@ -1216,3 +1218,41 @@ def reconstruction_reconciles(profile: AmbientProfile, *, tolerance_c: float = 0
     if not math.isfinite(residual):
         return False
     return abs(residual) <= tolerance_c
+
+
+# ---------------------------------------------------------------------------
+# THE CACHE THAT WAS NOT THERE — a measured negative result, kept as a record
+# ---------------------------------------------------------------------------
+#
+# On 2026-08-24 the director asked: "if our own code binds growth rather than the simulated
+# economics, say so on the site and fix it if it's cheap." A profile of a short run pointed
+# straight here: `_diurnal_shape` was called 8,254,848 times, and `fabric_providers_for_book`
+# was 13.5s of a 24s run — the single largest cost in the settlement build.
+#
+# THE HYPOTHESIS, which was reasonable and wrong. `reconstruct_ambient_profile` is pure in five
+# scalars and runs an 80-step bisection; `fabric_demand_path` calls it once per CUSTOMER-day;
+# and it depends only on the weather at a SITE and the latitude. So N households sharing a site
+# should have been recomputing one identical day N times, and an `lru_cache` should have
+# collapsed that by N.
+#
+# MEASURED ON A 49-ACCOUNT RESIDENTIAL BOOK OVER THE FULL 2016-2025 WINDOW:
+#     CacheInfo(hits=1, misses=13783)
+#     elapsed 8.4 min — IDENTICAL to the uncached run, to the tenth of a minute.
+#
+# One hit. 13,783 distinct keys over 3,650 days is about 3.8 distinct (site, latitude) pairs,
+# which is the number of FABRIC-ELIGIBLE customers — and that number did NOT grow when the book
+# went from 13 accounts to 49, because the drawn households are not fabric-eligible. So the
+# redundancy the cache was built for does not exist at any book size this project has, and the
+# cost it was aimed at is not the cost that scales.
+#
+# THE CACHE IS THEREFORE NOT HERE. A cache with a 0.007% hit rate is not a small win, it is
+# machinery that has to be understood by every future reader and pays nothing — and it carries
+# a real hazard, since the first version of it silently broke two tests in
+# tests/simulation/test_fabric_physics.py by serving results computed under one monkeypatched
+# state to a test running under another.
+#
+# WHAT ACTUALLY BINDS, from the same measurement: the settlement loop itself, which is linear in
+# accounts x half-hours and has no redundancy to remove. 49 accounts = 3,217,400 settlement
+# periods = 8.4 min. The full record is in docs/design/SETTLEMENT_CEILING_2026-08-24.md and the
+# figure a reader sees is on the site, because a growth curve bounded by our wall-clock is an
+# artefact and the director's instruction was to say so.

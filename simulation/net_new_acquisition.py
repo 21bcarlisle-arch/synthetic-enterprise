@@ -216,37 +216,34 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR) 
 # THE CAMPAIGN — turning a budget into a book, one survived funnel at a time
 # ═══════════════════════════════════════════════════════════════════════════
 
-#: The ENGINEERING ceiling, and it is a completely different kind of number from everything
+#: THE ENGINEERING CEILING, and it is a completely different kind of number from everything
 #: else in this module. `saas.growth_mandate.growth_quote_budget` says what the SUPPLIER can
-#: afford; this says what THIS MACHINE can settle. They are nowhere near each other: at the
-#: 2016 opening balance sheet the company's capital supports 933 new accounts in year one,
-#: and `docs/observability/scale_probe_10k/report.json` records `settlement_build` dying at
-#: 8,145,405 half-hourly records -- 465 customer-years -- with a pressure of 7.4x this box's
-#: budget at the 10k target.
+#: afford; this says what THIS MACHINE can settle inside a publish cycle. They are nowhere near
+#: each other.
 #:
-#: 279 IS 60% OF THAT MEASURED DEATH, not of a comfortable maximum, which is why the margin
-#: is large. `ceiling_death` is the point at which the stage FELL OVER; treating it as a
-#: working limit would put every published run one unlucky allocation away from producing
-#: nothing. The existing 14-account book already spends about 118 customer-years of it.
+#: SET FROM WALL CLOCK, MEASURED, 2026-08-24 — not from the scale probe any more, and the
+#: correction matters. The first value (279) came from AO12's probe dying at 8,145,405
+#: HALF-HOURLY settlement records, i.e. 465 customer-years OF HALF-HOURLY METERING. Applying
+#: that to a residential book charges profile-class households at the half-hourly rate and
+#: over-states their cost. What actually constrains a run is wall clock against the publish
+#: cadence, and that was measured directly:
 #:
-#: MEASURED AFTER THE FACT, 2026-08-24, and the measurement says this bound is CONSERVATIVE
-#: and the unit is imperfect. A full run at the resulting 34-account book completed green in
-#: 8.5 minutes and built **3,226,200 settlement periods** -- 40% of the 8,145,405 at which
-#: the probe's stage died. So there is roughly another doubling of the book inside the
-#: engine, and this budget is not yet the real ceiling.
+#:     33 accounts (resi + I&C + SME)   3,226,200 settlement periods   8.5 min
+#:     49 accounts (residential only)   3,217,400 settlement periods   8.4 min
 #:
-#: WHY THE UNIT IS WRONG, stated rather than quietly corrected. A customer-year is not what
-#: settlement costs: a half-hourly account builds 17,520 records a year and a
-#: profile-class account builds a fraction of that, so charging both at the same rate
-#: over-charges the domestic book this campaign actually wins. The right unit is settlement
-#: records, and switching to it is a real change with its own measurement, not a constant
-#: edit. Until then this over-states the cost in the safe direction.
+#: Linear in accounts x half-hours, with no redundancy in it — a cache on the hottest function
+#: returned ONE hit in 13,784 calls and changed the elapsed time not at all
+#: (docs/design/SETTLEMENT_CEILING_2026-08-24.md). So 600 customer-years is about 7 million
+#: periods, roughly 18 minutes, which keeps a full cycle inside half an hour and leaves the
+#: publisher its gate. 200 accounts would be ~34 min and would push the cycle past it.
 #:
 #: A DIAL, and the one most likely to be wrong (R12). Nothing optimises toward it, and the
-#: campaign REPORTS when this is what bound the book rather than the balance sheet -- because
-#: a growth curve flattened by our RAM reads, on the published site, exactly like a supplier
-#: that ran out of money, and those are not the same fact.
-SETTLEMENT_CUSTOMER_YEAR_BUDGET = 279.0
+#: campaign REPORTS when this is what bound the book rather than the balance sheet — because a
+#: growth curve flattened by our wall clock reads, on the published site, exactly like a
+#: supplier that ran out of money, and those are not the same fact. The director's instruction
+#: was to surface exactly this: "a growth curve that's an artefact of our engine is an
+#: inconsistency, not a result."
+SETTLEMENT_CUSTOMER_YEAR_BUDGET = 600.0
 
 
 def _customer_years(win_date: dt.date, horizon_end: dt.date) -> float:
@@ -265,7 +262,7 @@ def plan_growth_campaign(
     cost_per_quote_gbp: Mapping[str, float],
     run_funnel,
     quote_budget_fn,
-    customer_year_budget: float = SETTLEMENT_CUSTOMER_YEAR_BUDGET,
+    customer_year_budget: float | None = None,
     customer_years_already_committed: float = 0.0,
     prospects_per_year: int = PROSPECTS_PER_YEAR,
     commodity_weights: Optional[Mapping[str, float]] = None,
@@ -309,6 +306,16 @@ def plan_growth_campaign(
     quote, won or lost), `by_year` rows carrying the binding reason, and `notes` -- any year
     where the ENGINEERING budget rather than the company's capital was what stopped it.
     """
+    # READ AT CALL TIME, not bound as a default argument. `customer_year_budget: float =
+    # SETTLEMENT_CUSTOMER_YEAR_BUDGET` evaluates the module constant when the FUNCTION IS
+    # DEFINED, so `monkeypatch.setattr(module, "SETTLEMENT_CUSTOMER_YEAR_BUDGET", x)` -- and
+    # every measurement run that tried it -- silently did nothing. Found by running a
+    # deliberate 3,000-customer-year sweep and watching it stop at 279 anyway. A constant that
+    # cannot be moved is a constant nobody can measure the sensitivity of, which is most of
+    # what a dial is for.
+    if customer_year_budget is None:
+        customer_year_budget = SETTLEMENT_CUSTOMER_YEAR_BUDGET
+
     winners: list[tuple[SyntheticCustomer, dt.date]] = []
     spend: list[dict] = []
     by_year: list[dict] = []

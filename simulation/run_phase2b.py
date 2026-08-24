@@ -145,7 +145,12 @@ from simulation.hh_consumption import (
 )
 from simulation.household import household_of
 from simulation.household_demand import HouseholdDemandRegister
-from simulation.live_population import live_drawn_households, live_dwellings, live_population
+from simulation.live_population import (
+    founding_capital_gbp,
+    live_drawn_households,
+    live_dwellings,
+    live_population,
+)
 from simulation.nudge_physics import framing_effectiveness_multiplier, susceptibility_for
 from simulation.payment_timing import generate_payment_record, stress_bad_debt_multiplier
 from simulation.policy_costs import (
@@ -244,7 +249,27 @@ TOTAL_GAS_AQ = sum(c["aq_kwh"] for c in GAS_CUSTOMERS)
 # Treat 1 kWh gas ≈ 0.25 kWh electricity for treasury sizing (conservative)
 GAS_ELEC_WEIGHT = 0.25
 EFFECTIVE_EAC = TOTAL_ELEC_EAC + TOTAL_GAS_AQ * GAS_ELEC_WEIGHT
-STARTING_TREASURY_GBP = 3250.0 * (EFFECTIVE_EAC / ORIGINAL_4_CUSTOMER_EAC_KWH)
+# FOUNDING CAPITAL, not a multiple of the book's meter reads (2026-08-24).
+#
+# THE FORMULA BELOW IS THE FALLBACK AND IT IS KEPT DELIBERATELY. `3250 * (EFFECTIVE_EAC /
+# 15000)` is a scaling hack inherited from the four-customer era -- `run_phase1e.py` still
+# carries the un-scaled ancestor, `STARTING_TREASURY_GBP = 3250.0`. It makes the company's
+# CAPITAL a function of its customers' CONSUMPTION, and three impossible things follow: it can
+# never be undercapitalised, because taking on a customer capitalises it; it can never be
+# capital-constrained in a way that binds, because the constraint grows with the thing it
+# constrains; and suspending a segment destroys capital that was never earned from it.
+#
+# That last one is how it surfaced. Suspending I&C on the director's word dropped opening
+# treasury from £2,201,241 to £12,134 while the licensing obligation was unchanged. A real
+# supplier that stops selling to industry does not lose its share capital.
+#
+# The curriculum figure is a FOUNDING INVESTMENT: fixed, independent of the book, and derived
+# from the Ofgem MCR and the shipped funnel's measured cost per win
+# (docs/design/curriculum/founding_capital.json carries the arithmetic). `null` there restores
+# the formula, which is why the formula stays in this file rather than in a git history.
+STARTING_TREASURY_GBP = founding_capital_gbp(
+    fallback=3250.0 * (EFFECTIVE_EAC / ORIGINAL_4_CUSTOMER_EAC_KWH)
+)
 
 # Phase 5c minimum hedge mandate: every term starts at the mandate floor, not a
 # neutral 50/50 guess. KNIFE3 step 23 (§3r): the floor is the DESK's mandate and

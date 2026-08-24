@@ -1,0 +1,22 @@
+{
+  "_meta": {
+    "artefact": "founding_capital",
+    "version": 1,
+    "status": "ACTIVE — 2026-08-24",
+    "authority": "Worker-proposed under DIRECTOR_RULING_POPULATION_AND_BOOK_GROWTH_2026-08-11 (\"sequencing and numbers are the worker's\") and the console of 2026-08-24 (\"Grow residential toward 200\"). Recorded as CURRICULUM and therefore the director's to move, because opening capital decides which world the company lives in. He is told the figure and the derivation; the dial is his.",
+    "consumed_by": "simulation.run_phase2b.STARTING_TREASURY_GBP"
+  },
+  "the_defect_this_replaces": {
+    "formula": "STARTING_TREASURY_GBP = 3250.0 * (EFFECTIVE_EAC / 15000)",
+    "origin": "A scaling hack from the four-customer era — `simulation/run_phase1e.py` still carries the un-scaled ancestor, `STARTING_TREASURY_GBP = 3250.0`. When the book was four households, multiplying the base by the book's consumption was a reasonable way to keep the arithmetic in proportion. It was never a balance sheet.",
+    "why_it_is_an_inconsistency_rather_than_a_result": "It makes the company's CAPITAL a function of its customers' METER READS. Three things follow and none of them can happen to a real supplier: it can never be undercapitalised, because taking on a customer capitalises it; it can never be capital-constrained in any way that binds, because the constraint grows with the thing it is supposed to constrain; and suspending a segment DESTROYS capital that was never earned from it. That last one is how this surfaced — suspending I&C on 2026-08-24 dropped opening treasury from £2,201,241 to £12,134 on a book whose licensing obligation is unchanged. A real supplier that stops selling to industry does not lose its share capital.",
+    "director_framing_2026-08-24": "\"every customer and segment is individually credible and free of inconsistencies\" — a household in a company capitalised by its own consumption is not an implausible household, but the company around it is an implausible company, and per-customer figures computed inside it inherit that."
+  },
+  "founding_capital_gbp": {
+    "value": 250000,
+    "basis": "DERIVED from the director's 200-account target and two figures this repo already holds, not chosen. (a) Ofgem Minimum Capital Requirement, £130 net assets per domestic customer, 26 July 2023 decision — docs/market_research/ofgem_licence_readiness.md §2, live at saas/capital/solvency.py::MCR_FLOOR_GBP_PER_CUSTOMER. 200 × £130 = £26,000 that must be HELD and cannot be spent. (b) Cost per won account, from the shipped funnel: £150 per quote at the 18.7% conversion measured over 4,000 quotes = £802 per win; 200 × £802 = £160,400 of acquisition spend. (c) Working capital for the seasonal mismatch — a domestic supplier collects a flat direct debit against a seasonal bill and carries the winter drawdown; at £473 average annual domestic revenue, a quarter of a year's book revenue is ≈ £23,650. Sum ≈ £210,000, rounded up to £250,000 so the figure is a round founding investment rather than a total dressed as one.",
+    "what_this_deliberately_makes_true": "Capital is NOT the binding constraint on growth at this target, and that is the point rather than an accident. Sizing the balance sheet to the licensed book moves the constraint onto the funnel and the market — where a supplier's growth constraint actually lives, and where it can be LOST. A capital ceiling set below the target would have produced a growth curve bounded by a number in this file, which is the same defect as a curve bounded by our settlement engine: an artefact wearing a result's clothes.",
+    "what_it_does_to_the_published_figures": "Everything financial moves and none of it matters to the director's stated priority — \"I don't care about profit — it's fiction ... £1.4m or £5m is irrelevant\". What does matter is that the figures are now internally consistent: a supplier with £250,000 of founding capital, serving households, holding £130 of net assets against each one.",
+    "restore_the_old_behaviour": "Set `value` to null. `run_phase2b` falls back to the EAC-scaled formula, which is kept in code precisely so this is one field rather than a revert."
+  }
+}
