@@ -402,7 +402,31 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
 #: supplier that ran out of money, and those are not the same fact. The director's instruction
 #: was to surface exactly this: "a growth curve that's an artefact of our engine is an
 #: inconsistency, not a result."
-SETTLEMENT_CUSTOMER_YEAR_BUDGET = 600.0
+#:
+#: RAISED 600 -> 1200, 2026-08-24, ON A MEASUREMENT RATHER THAN A HOPE. The daily settlement
+#: fold (simulation/settlement_daily.py) changed both constraints this number was set from, so
+#: the full 2016-2025 horizon was re-measured with the fold live:
+#:
+#:     at  600:  elapsed 433.8s (7.2 min)   peak RSS 2,011 MB    454.4 customer-years
+#:     at 1200:  elapsed 746.8s (12.4 min)  peak RSS 3,117 MB    796.1 customer-years
+#:
+#: Both rows are MEASURED, not the second extrapolated from the first — and the extrapolation
+#: would have been wrong in the pessimistic direction: cost per customer-year FELL from 4.43 MB
+#: to 3.91 as the book grew, so the straight line through the first row (~19 min, ~5.3 GB) is
+#: not what the raise actually costs. 12.4 minutes leaves seventeen for the publisher's gate
+#: inside the half-hour cycle, which is the SAME design point the 600 was chosen for and in
+#: fact better than the ~18 minutes the old budget cost pre-fold for a third of the book. The
+#: memory figure is 4.5x better than the 14.2 GB the box was surviving (badly: ten OOM kills)
+#: before the fold. So this spends part of what the fold bought and deliberately not all of it:
+#: the headroom is a budget, not a solved problem, and 1,200 leaves the larger half unspent.
+#:
+#: WHY IT MOVES AT ALL, which is the director's instruction of 2026-08-24: "200 residential
+#: earned through the funnel, now the fold has bought the room." A book growing from ~13 to 200
+#: over the ten-year window is roughly 1,060 customer-years, which 600 cannot hold and 1,200
+#: can. This is an ENGINEERING ceiling — what this machine can settle in a cycle — and not an
+#: R13 curriculum value: it does not decide how hard the world is, only how much of the world
+#: this box can afford to settle.
+SETTLEMENT_CUSTOMER_YEAR_BUDGET = 1200.0
 
 
 def _customer_years(win_date: dt.date, horizon_end: dt.date) -> float:
