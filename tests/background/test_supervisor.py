@@ -36,6 +36,11 @@ class _FakeClock:
         self.now += seconds
 
 
+# Bound at import, BEFORE the autouse `_isolate` fixture stubs the module attribute out -- the
+# two tests of this helper's own behaviour must exercise the real implementation, not the stub.
+_REAL_SUBSTANTIVE_COMMITS_SINCE = supervisor._substantive_commits_since
+
+
 def _reset_supervisor_state():
     supervisor._was_paused = False
 
@@ -58,6 +63,12 @@ def _isolate(tmp_path, monkeypatch):
     monkeypatch.setattr(supervisor, "IDLE_TURN_COUNTER_FILE", tmp_path / ".supervisor_idle_turn_count.json")
     monkeypatch.setattr(supervisor, "ATOM_STALL_STATE_FILE", tmp_path / ".atom_stall_tracker.json")
     monkeypatch.setattr(supervisor, "ntfy", lambda msg: None)
+    # The stuck escalation's second close condition (2026-08-24) shells out to `git log --since`
+    # against the REAL repo, which these tests drive with a _FakeClock starting at 0.0 -- an
+    # unpatched call would sweep the entire project history and suppress every escalation test.
+    # Default to 0 ("nothing landed"), the value that leaves the pre-existing escalation
+    # behaviour exactly as it was; tests that exercise the close condition override it.
+    monkeypatch.setattr(supervisor, "_substantive_commits_since", lambda since: 0)
     # Isolated from the real, committed PRIORITIES.md -- defaults to a
     # nonexistent tmp_path file (no backlog found, matching the pre-existing
     # "nothing open" test expectations), never the real repo file.
@@ -1710,6 +1721,105 @@ def test_stuck_escalation_fires_after_threshold_elapsed(monkeypatch):
     supervisor.run_cycle()
     assert len(ntfy_calls) == 1
     assert "swallowing turns" in ntfy_calls[0]
+
+
+def _drive_to_stuck_threshold(monkeypatch, landed):
+    """Run supervisor cycles past STUCK_THRESHOLD_SECONDS with `landed` as the work signal.
+    Returns the ntfy calls made. `landed` is what _substantive_commits_since reports."""
+    monkeypatch.setattr(supervisor, "is_session_idle", lambda session: True)
+    monkeypatch.setattr(supervisor, "grant_turn", lambda reason: True)
+    ntfy_calls = []
+    monkeypatch.setattr(supervisor, "ntfy", lambda msg: ntfy_calls.append(msg))
+    monkeypatch.setattr(supervisor, "_substantive_commits_since", lambda since: landed)
+    agenda_module.set_agenda("PhaseX", "stepY", "stuck forever")
+
+    clock = _FakeClock()
+    monkeypatch.setattr(supervisor.time, "time", clock)
+    for _ in range(supervisor.STUCK_THRESHOLD_SECONDS // _STEP + 1):
+        clock.advance(_STEP)
+        supervisor.run_cycle()
+    return ntfy_calls
+
+
+def test_stuck_escalation_suppressed_when_substantive_commits_landed(monkeypatch):
+    """THE 2026-08-24 DEFECT. _stuck_key is the doorbell reason plus the resident staging list,
+    and both are structurally permanent (CLASS_* docs re-render, `in_progress/` items are
+    deliberately re-surfaced), so that key can NEVER close on its own. It paged "granting turns
+    for ~60min with no state change" while ten commits landed between 09:16 and 12:36, which is
+    what made the director believe turns were being swallowed below tmux. Real landings mean
+    turns are being delivered AND used -- the exact claim the page makes -- so they close it."""
+    assert _drive_to_stuck_threshold(monkeypatch, landed=3) == []
+
+
+def test_stuck_escalation_still_fires_when_only_housekeeping_landed(monkeypatch):
+    """THE MUTATION (R15): the fix must not silence the alarm it was narrowing. A genuinely
+    swallowed turn is a machine where the publisher keeps committing on its own cadence and
+    nothing else does -- _substantive_commits_since reports 0 -- and that MUST still page."""
+    calls = _drive_to_stuck_threshold(monkeypatch, landed=0)
+    assert len(calls) == 1 and "swallowing turns" in calls[0]
+
+
+def test_stuck_escalation_fires_when_the_commit_check_is_unavailable(monkeypatch):
+    """R15 fail-silent: an unavailable check is a FAILED check, never a convenient suppression.
+    git erroring returns None, and an ALARM's safe failure direction is to page anyway."""
+    calls = _drive_to_stuck_threshold(monkeypatch, landed=None)
+    assert len(calls) == 1 and "swallowing turns" in calls[0]
+
+
+def test_housekeeping_commit_subjects_are_not_counted_as_progress(monkeypatch):
+    """The discriminator itself, against real subjects taken from this repo's log. Counting the
+    publisher's own commits is the FAIL-OPEN direction and the dangerous one: it commits every
+    cycle, so a genuinely stuck seat would go permanently unpaged."""
+    subjects = [
+        "Auto-process run complete: report + LATEST.md + site/ (git=ff9253d98, net=1)",
+        "chore(derived): land 3 re-rendered projection(s) pre-gate -- docs/design/X.md",
+        "chore(provenance): refresh stamps",
+        "chore(liveness): tick",
+        "Explore's empty container gets the real weather series",  # a real landing
+    ]
+
+    class _R:
+        returncode = 0
+        stdout = "\n".join(subjects) + "\n"
+
+    monkeypatch.setattr(supervisor.subprocess, "run", lambda *a, **k: _R())
+    assert _REAL_SUBSTANTIVE_COMMITS_SINCE(0) == 1
+
+
+def test_substantive_commits_since_actually_discriminates_against_the_real_repo():
+    """INDEPENDENCE (R15). The two tests above mock subprocess, so they prove the SUBJECT PARSER
+    and say nothing about the QUERY -- and a `--since` git cannot parse would return zero every
+    time, making the suppression silently inert and the alarm exactly as wrong as before. So run
+    the real query against the real repo and prove it discriminates in both directions."""
+    import subprocess as sp
+
+    real_head = sp.run(["git", "log", "-1", "--format=%ct"], cwd=str(supervisor.PROJECT_DIR),
+                       capture_output=True, text=True, timeout=10)
+    if real_head.returncode != 0 or not real_head.stdout.strip():
+        pytest.skip("not a git repo / no commits")
+    newest = float(real_head.stdout.strip())
+
+    # A cutoff after the newest commit: nothing can have landed.
+    assert _REAL_SUBSTANTIVE_COMMITS_SINCE(newest + 86400) == 0
+    # A cutoff before the newest SUBSTANTIVE commit: it must be counted. Found by asking git, so
+    # the test stays true on a tree whose HEAD happens to be a housekeeping commit.
+    log = sp.run(["git", "log", "-40", "--pretty=%ct\t%s"], cwd=str(supervisor.PROJECT_DIR),
+                 capture_output=True, text=True, timeout=10).stdout.splitlines()
+    substantive = [ln.split("\t", 1) for ln in log if "\t" in ln]
+    substantive = [(float(ct), s) for ct, s in substantive
+                   if not s.startswith(supervisor._HOUSEKEEPING_COMMIT_SUBJECT_PREFIXES)]
+    if not substantive:
+        pytest.skip("no substantive commit in the last 40")
+    assert _REAL_SUBSTANTIVE_COMMITS_SINCE(substantive[0][0] - 1) >= 1
+
+
+def test_substantive_commits_since_is_none_when_git_fails(monkeypatch):
+    """Three-valued, like _commit_is_ancestor: UNKNOWABLE is not zero."""
+    def _boom(*a, **k):
+        raise OSError("git missing")
+
+    monkeypatch.setattr(supervisor.subprocess, "run", _boom)
+    assert _REAL_SUBSTANTIVE_COMMITS_SINCE(0) is None
 
 
 def test_stuck_escalation_does_not_repeat_for_same_key(monkeypatch):

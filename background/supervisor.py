@@ -3212,6 +3212,50 @@ def _head_commit_epoch() -> float | None:
         return None
 
 
+# The machine-generated commit subjects that are NOT evidence a seat advanced. Each is emitted by
+# an unattended pipeline on its own cadence, whether or not any turn accomplished anything:
+# `Auto-process run complete:` (process_run_complete's publish), and the chore(...) family the
+# same publish path lands for re-rendered projections, provenance and liveness stamps. Counting
+# these as progress is the FAIL-OPEN direction and the more dangerous one -- the publisher commits
+# every cycle, so a stuck seat would go permanently unpaged. See _substantive_commits_since.
+_HOUSEKEEPING_COMMIT_SUBJECT_PREFIXES = (
+    "Auto-process run complete:",
+    "chore(derived):",
+    "chore(provenance):",
+    "chore(liveness):",
+)
+
+
+def _substantive_commits_since(since_epoch: float) -> int | None:
+    """How many NON-housekeeping commits have landed since `since_epoch`? None when UNKNOWABLE.
+
+    This is the work-actually-happened signal the stuck escalation was missing. `_stuck_key` is
+    built from the doorbell reason plus the resident staging list, and BOTH are structurally
+    permanent: the CLASS_* docs re-render and `in_progress/` items are deliberately re-surfaced
+    (CLAUDE.md), so that key can never close on its own. On 2026-08-24 it therefore paged
+    "granting turns for ~60min with no state change" while ten commits landed between 09:16 and
+    12:36 -- and the page is what made the director believe turns were being swallowed below tmux.
+    A false page on a working machine is not a harmless false positive; it spends the one scarce
+    resource (his attention) and misdirects it.
+
+    Three-valued like _commit_is_ancestor: a git failure or an unparseable log returns None, which
+    the caller must treat as a FAILED check. For an ALARM the safe failure is to page anyway --
+    never to suppress on a check that did not run (R15 fail-silent)."""
+    try:
+        r = subprocess.run(
+            ["git", "log", f"--since={int(since_epoch)}", "--pretty=%s"],
+            cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=10,
+        )
+    except Exception:
+        return None
+    if r.returncode != 0:
+        return None
+    return sum(
+        1 for line in r.stdout.splitlines()
+        if line.strip() and not line.startswith(_HOUSEKEEPING_COMMIT_SUBJECT_PREFIXES)
+    )
+
+
 def _commit_is_ancestor(ancestor: str, descendant: str) -> bool | None:
     """Is `ancestor` reachable from `descendant`? True/False, or None when UNKNOWABLE.
 
@@ -5530,6 +5574,24 @@ def _check_stuck_escalation(reason: str) -> None:
     elapsed = now - first_seen_at
     if elapsed >= STUCK_THRESHOLD_SECONDS and not state.get("escalated"):
         minutes = int(elapsed // 60)
+        # THE SECOND CLOSE CONDITION (2026-08-24): the doorbell key has not changed, but did the
+        # SEAT actually move? _stuck_key's staging list is permanently resident, so the key alone
+        # can only ever say "the same work is still on the list" -- never "nothing happened".
+        # Real landings mean turns are being delivered and used, which is the precise claim this
+        # page makes; so the episode closes on the work, not on the shopping list. None (git
+        # unavailable) is a FAILED check and deliberately does NOT suppress: an alarm fails toward
+        # paging.
+        landed = _substantive_commits_since(first_seen_at)
+        if landed:
+            log(f"STUCK escalation suppressed -- {landed} substantive commit(s) landed in the "
+                f"last ~{minutes}min, so turns are being delivered and used; the doorbell is "
+                f"resident work, not a stall. Episode reset. -- {reason}")
+            state = guard_episode(
+                state, {"key": key, "episode_key": episode_key, "first_seen_at": now,
+                        "escalated": False},
+                since_fields=STUCK_SINCE_FIELDS, episode_closed=True)
+            _save_stuck_state(state)
+            return
         # `reason` is the DOORBELL -- the raw work order find_work() hands the tick. Interpolated
         # whole, it put 114 staged filenames on the director's phone on 2026-08-13. He needs the
         # STATE (turns granted for an hour, nothing moving) and one handle on the work, not the
