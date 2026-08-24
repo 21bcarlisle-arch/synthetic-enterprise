@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T17:28:47Z",
+  "generated_at": "2026-08-24T19:40:56Z",
   "source": "site/data/knowledge_wholesale.json",
   "rule": "site/knowledge/review_state.py",
   "policy": {
@@ -19,7 +19,7 @@
     "due": 0,
     "unchecked": 0,
     "stub": 0,
-    "fresh": 8
+    "fresh": 10
   },
   "topics": [
     {
@@ -105,6 +105,30 @@
       "overdue_by": null,
       "label": "Reviewed 2026-08-19",
       "detail": "Checked 5 days ago against a 365-day threshold. Source: Ofgem/Elexon NETA+BETTA self-dispatch; DESNZ REMA."
+    },
+    {
+      "id": "metering-and-reads",
+      "title": "Metering and meter reads",
+      "rate_of_change": "medium",
+      "state": "fresh",
+      "last_verified": "2026-08-24",
+      "days_allowed": 183,
+      "age_days": 0,
+      "overdue_by": null,
+      "label": "Reviewed 2026-08-24",
+      "detail": "Checked 0 days ago against a 183-day threshold. Source: Elexon BSC settlement arrangements and load-profile guidance; Ofgem licence conditions on billing and back-billing; the MHHS programme's milestones."
+    },
+    {
+      "id": "non-commodity-costs",
+      "title": "The non-commodity cost stack",
+      "rate_of_change": "medium",
+      "state": "fresh",
+      "last_verified": "2026-08-24",
+      "days_allowed": 183,
+      "age_days": 0,
+      "overdue_by": null,
+      "label": "Reviewed 2026-08-24",
+      "detail": "Checked 0 days ago against a 183-day threshold. Source: HMRC CCL rate tables; Ofgem RO buy-out and mutualisation publications; LCCC CfD determinations; DESNZ Green Gas Levy rates; Ofgem cap methodology annexes."
     },
     {
       "id": "price-cap",
