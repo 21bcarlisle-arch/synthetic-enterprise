@@ -58,8 +58,19 @@ def test_resolve_book_flag_off_byte_identical_to_static_customers():
 
 def test_resolve_book_flag_on_additively_carries_syn_cohort(monkeypatch):
     """Wire is load-bearing: flag-on the book grows by the SYN cohort. Reverting
-    the wire to `list(CUSTOMERS)` (the mutation) fails this assertion."""
+    the wire to `list(CUSTOMERS)` (the mutation) fails this assertion.
+
+    `SE_GROW_BOOK=0` pins PB3's net-new campaign OFF so this measures the DRAW seam and
+    nothing else. Without it the assertion read "every addition starts with SYN-", which was
+    true while the draw was the only source of additions and stopped being true the moment
+    the growth mandate was activated (2026-08-24) — and it WEDGED PUBLISHING, because this
+    file is inside the publish gate's blocking set. The subject here is the wire being
+    load-bearing, not how many sources feed it; a second source makes that untestable rather
+    than false. `test_resolve_book_carries_the_WON_accounts_too` below is where the campaign's
+    additions are asserted.
+    """
     monkeypatch.setenv(_ACTIVATION_ENV, "1")
+    monkeypatch.setenv("SE_GROW_BOOK", "0")
     book = _resolve_book()
 
     static_ids = {c["customer_id"] for c in CUSTOMERS}
@@ -70,6 +81,23 @@ def test_resolve_book_flag_on_additively_carries_syn_cohort(monkeypatch):
     assert static_ids <= live_ids
     assert syn_ids, "flag-on must additively include the SYN acquisition cohort"
     assert all(cid.startswith("SYN-") for cid in syn_ids)
+
+
+def test_resolve_book_carries_the_WON_accounts_too(monkeypatch):
+    """The dashboard's book is the one a READER sees, so it has to carry PB3's wins.
+
+    This seam is what `generate_dashboard_data` resolves the published book from. If it
+    carried the drawn trickle and not the accounts the funnel won, every per-customer figure
+    on the site would be computed over a book the company does not have — the class of
+    inconsistency that matters more here than any total.
+    """
+    monkeypatch.setenv(_ACTIVATION_ENV, "1")
+    monkeypatch.setenv("SE_GROW_BOOK", "1")
+    ids = {c["customer_id"] for c in _resolve_book()}
+    assert {i for i in ids if i.startswith("PROS-")}, (
+        "the published book must include the accounts the campaign won"
+    )
+    assert {i for i in ids if i.startswith("SYN-")}, "and the drawn trickle as well"
 
 
 def _syn_book_entry():
