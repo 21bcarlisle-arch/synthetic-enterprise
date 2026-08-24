@@ -3997,6 +3997,7 @@ def _producer_starved_active(
     state_path: Path | None = None,
     reports_dir: Path | None = None,
     hold_flag: Path | None = None,
+    oom_clause_fn=None,
 ) -> str | None:
     """RUNG 1d (PRIORITY ZERO) detector: is the SIMULATION PRODUCER down?
 
@@ -4009,6 +4010,23 @@ def _producer_starved_active(
     into the draw ladder, and never a phantom that cannot drain.
     """
     now = time.time() if now is None else now
+
+    # THE OOM DOOR (2026-08-24). Both limbs below read inputs that an OOM kill cannot reach:
+    # the state file needs a Python-level exception to record anything, and artefact age is
+    # equally consistent with "dead" and "killed every time". Asked ONLY when a limb is already
+    # about to fire -- a journal read costs a couple of seconds and must not sit on the draw
+    # ladder's hot path. Guarded: this rung never raises into the draw.
+    def _oom_clause() -> str:
+        try:
+            if oom_clause_fn is not None:
+                clause = oom_clause_fn()
+            else:
+                from background.oom_watch import producer_oom_clause
+
+                clause = producer_oom_clause()
+        except Exception:
+            clause = None
+        return f" {clause}" if clause else ""
 
     # A hold is a DELIBERATE stop, not an outage. Checked first: while it stands, no
     # amount of producer silence is drawable work.
@@ -4065,7 +4083,7 @@ def _producer_starved_active(
                 f"above. NAME the defect one line, FIX it, and close the CLASS rather than the "
                 f"instance (R10) if the break came from a rename or a contract change: the reader "
                 f"that crashed is rarely the only one. The rung clears itself on the next "
-                f"successful run; do NOT edit the counter by hand."
+                f"successful run; do NOT edit the counter by hand.{_oom_clause()}"
             )
 
     # ---- LIMB 2: UNDIAGNOSED -- no artefact for a long time and no failure counter to
@@ -4076,14 +4094,20 @@ def _producer_starved_active(
         return (
             f"PRODUCER SILENT self-refill (RUNG 1d, PRIORITY ZERO): no simulation run output has "
             f"been written for {artefact_age / 3600:.1f}h (newest docs/reports/run_output_*.json), "
-            f"and the producer's own state says '{last_result}' -- so this is not a run failing, it "
-            f"is runs NOT HAPPENING. A dead producer takes the live site stale exactly as a wedged "
+            f"and the producer's own state says '{last_result}'. Whether that means the runs are "
+            f"FAILING, being KILLED, or NOT HAPPENING is not decided by either input above -- "
+            f"read the OOM-door clause at the end of this message before assuming any of them "
+            f"(2026-08-24: this sentence used to assert the runs were absent outright, and was "
+            f"wrong for four hours while every one of them was being OOM-killed mid-flight). "
+            f"A silent producer takes the live site stale exactly as a wedged "
             f"publish gate does, and no publish alarm watches this door. DIAGNOSE with evidence "
             f"(R9): is the sim_runner process alive (`ps -eo pid,etime,cmd | grep sim_runner`), is "
             f"its unit up, is `.sim_runner_hold` absent (this rung already checked, but re-check "
             f"whether it SHOULD be held), and does a foreground run get further than the daemon "
-            f"does? Restart it with the current code (R2: committed is not running) and confirm a "
-            f"run output lands before calling it fixed."
+            f"does? A restart (R2: committed is not running) is the repair ONLY if the runs are "
+            f"genuinely absent -- if the clause below names OOM kills, systemd has already "
+            f"restarted it once per kill and a further one is not a repair. Confirm a run output "
+            f"lands before calling it fixed.{_oom_clause()}"
         )
 
     return None

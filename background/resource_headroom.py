@@ -16,6 +16,14 @@ anon-rss. Four heavy residents were observed live in one window -- an annual-rep
 5,548 MB, two scoped pytest gates at 854 MB and 577 MB, and a 316 MB agent seat -- against
 a MemTotal the estimating code believed was 32 GB and which is really 15.9 GB.
 
+Every number in the paragraph above is a 2026-08-10 MEASUREMENT and is kept as the incident
+record, not as current state -- both have since moved, in opposite directions. The guest is
+now ~24 GB (raised by the director mid-outage 2026-08-24), and the annual-report run is not
+5,548 MB any more: it was OOM-killed fourteen times that day at peaks up to 13.5 G. Read the
+guest size from `sample()["total_mb"]` and the job's size from `weight_drift()`, never from
+this paragraph -- a memory constant read out of a docstring is the exact defect this module
+was built about, and `CLASS_WEIGHTS_MB["sim_run"]` then repeated it.
+
 The cost is not the crash. It is that an oom-kill is INDISTINGUISHABLE DOWNSTREAM from a
 test regression: the gate dies mid-suite with no summary line, the publisher records
 `kind: "test_regression"`, and the next cycle hunts a bug that never existed. A weekend of
@@ -120,8 +128,14 @@ RESERVE_FOR_UNDECLARED_MB = 1024
 # no measured weight and must pass one explicitly -- guessing on a caller's behalf is how a
 # budget becomes fiction (the 32 GB constant was exactly that).
 CLASS_WEIGHTS_MB = {
-    # tools.run_annual_report, observed 5,548 MB RSS 2026-08-10.
-    "sim_run": 6144,
+    # tools.run_annual_report. RE-DERIVED 2026-08-24 from systemd's own record (see
+    # CLASS_UNITS and weight_drift below): fourteen OOM kills of sim-runner.service in one
+    # day, peaks 3.6G climbing to 13.5G, max 13,824 MB. The previous entry here said 6,144 MB
+    # "observed 5,548 MB RSS 2026-08-10" -- true when written and 2.2x short fourteen days
+    # later, because the book this job holds in memory grew under it. Budgeted AT the observed
+    # peak, like subject_cost: padding it would be the guess this table's own comment forbids,
+    # and `weight_drift` is the mechanism that keeps it current instead.
+    "sim_run": 13824,
     # tools.measure_publish_gate_subject_cost, oom-killed at 9,648 MB anon-rss 2026-08-10.
     # Budgeted at its observed peak: it is the largest single resident this project runs.
     "subject_cost": 9728,
@@ -131,6 +145,132 @@ CLASS_WEIGHTS_MB = {
     # more; observed 577 MB and still climbing at sample time.
     "census": 1536,
 }
+
+# Which systemd unit's record re-derives which class weight. Only classes that RUN AS A UNIT
+# can appear -- the others are started ad hoc and leave no journal to check against, so they
+# have no automatic re-derivation and stay hand-measured.
+CLASS_UNITS = {"sim_run": "sim-runner.service"}
+
+#: How far back weight_drift asks. Wider than oom_watch's default so a weekly growth trend is
+#: visible rather than only the current episode.
+DRIFT_WINDOW = "-24h"
+
+
+def weight_drift(job_class: str, since: str = DRIFT_WINDOW, journal_reader=None,
+                 peaks_reader=None) -> dict:
+    """Has the world outgrown a declared weight? {job_class, declared_mb, observed_peak_mb, ...}
+
+    WHY THIS EXISTS (OPS1: the designed reason, not a patch). `CLASS_WEIGHTS_MB` is the
+    governor's model of how big a job is, and `admit()` is only as sound as it. A weight is a
+    MEASUREMENT with a date on it, and this project has already been bitten twice by a memory
+    constant that was true when written and false when read -- the 32 GB host figure, and then
+    `sim_run` itself at 6,144 MB while the job it names was being killed at 13.5 G. A stale
+    weight fails in the FAIL-OPEN direction: the governor admits a job it thinks is half its
+    real size, and the kernel resolves the difference. So the table needs a reading that can
+    contradict it, from a source it does not write.
+
+    INDEPENDENCE (anti-tautology, R15). The observed peak comes from systemd's journal -- a
+    record written by neither this table, nor the job, nor this repository. Comparing the
+    table against a number derived from the table would be the tautology this rule names.
+
+    `drifted` is TRISTATE and the third value is the point:
+      * True  -- the journal answered and the observed peak EXCEEDS the declared weight;
+      * False -- the journal answered and the weight still covers what was observed;
+      * None  -- the journal could not be read, or the class has no unit. An unavailable
+                 check is a FAILED check (R15), never a clean one, so None must not be
+                 rendered as "no drift" by any caller.
+    """
+    declared = CLASS_WEIGHTS_MB.get(job_class)
+    unit = CLASS_UNITS.get(job_class)
+    verdict = {
+        "job_class": job_class,
+        "unit": unit,
+        "declared_mb": declared,
+        "observed_peak_mb": None,
+        "samples": 0,
+        "drifted": None,
+        "detail": None,
+    }
+    if declared is None:
+        verdict["detail"] = (
+            f"{job_class!r} has no declared weight, so there is nothing to check it against"
+        )
+        return verdict
+    if unit is None:
+        verdict["detail"] = (
+            f"{job_class!r} does not run as a systemd unit, so it leaves no independent "
+            f"record -- this weight stays hand-measured and UNVERIFIED here, not clean"
+        )
+        return verdict
+
+    if peaks_reader is not None:
+        peaks = peaks_reader(unit, since)
+    else:
+        try:
+            from background.oom_watch import read_unit_memory_peaks_mb
+
+            peaks = read_unit_memory_peaks_mb(
+                unit=unit, since=since, journal_reader=journal_reader
+            )
+        except Exception:
+            peaks = None
+
+    if peaks is None:
+        verdict["detail"] = (
+            f"the journal for {unit} could not be read, so whether {job_class!r}'s "
+            f"{declared:.0f} MB still covers it is UNKNOWN -- an unavailable check is a "
+            f"failed check (R15), not a clean one"
+        )
+        return verdict
+    if not peaks:
+        verdict["detail"] = (
+            f"the journal for {unit} recorded no memory peak in {since}: nothing to "
+            f"re-derive {job_class!r} from, so its {declared:.0f} MB stands unverified"
+        )
+        return verdict
+
+    peak = max(peaks)
+    verdict["observed_peak_mb"] = round(peak, 1)
+    verdict["samples"] = len(peaks)
+    verdict["drifted"] = peak > declared
+    if verdict["drifted"]:
+        verdict["detail"] = (
+            f"{job_class!r} is declared at {declared:.0f} MB but {unit} peaked at "
+            f"{peak:.0f} MB across {len(peaks)} run(s) in {since} -- the governor is sizing "
+            f"this job at {peak / declared:.1f}x under its measured footprint, which admits "
+            f"it into memory that is not there. Re-derive CLASS_WEIGHTS_MB[{job_class!r}]"
+        )
+    else:
+        verdict["detail"] = (
+            f"{job_class!r} declared at {declared:.0f} MB still covers the {peak:.0f} MB "
+            f"peak observed across {len(peaks)} run(s) in {since}"
+        )
+    return verdict
+
+
+def weight_drift_alarm(verdicts) -> str | None:
+    """The NTFY/log payload naming every drifted or unverifiable weight, or None if all clean.
+
+    An UNREADABLE verdict is reported, not swallowed: the whole failure mode is a weight
+    nobody has checked lately, and "we could not check" is that same state.
+    """
+    drifted = [v for v in verdicts if v.get("drifted") is True]
+    unknown = [v for v in verdicts if v.get("drifted") is None]
+    if not drifted and not unknown:
+        return None
+    parts = []
+    if drifted:
+        parts.append(
+            "DECLARED JOB WEIGHT OUTGROWN: "
+            + "; ".join(v["detail"] for v in drifted)
+            + ". Until re-derived, admit() is fail-open for these classes."
+        )
+    if unknown:
+        parts.append(
+            "WEIGHT UNVERIFIED (a failed check, not a clean one — R15): "
+            + "; ".join(f"{v['job_class']}: {v['detail']}" for v in unknown)
+        )
+    return " | ".join(parts)
 
 
 def _now_iso() -> str:
@@ -263,7 +403,8 @@ def _write_json(path: Path, payload) -> None:
         pass
 
 
-def observe(episode_path: Path | None = None, **sample_kwargs) -> dict:
+def observe(episode_path: Path | None = None, drift_kwargs: dict | None = None,
+            **sample_kwargs) -> dict:
     """Sample, fold into the episode, and return {sample, episode, transition}.
 
     `transition` is "entered", "recovered", or None -- and ONLY a non-None transition may be
@@ -323,8 +464,39 @@ def observe(episode_path: Path | None = None, **sample_kwargs) -> dict:
         transition = None
 
     episode["last_sample"] = obs
+
+    # THE WEIGHT-DRIFT READING (2026-08-24). Folded in here rather than given its own daemon
+    # because OPS1 forbids a new operational mechanism to patch a symptom: this is a missing
+    # READING handed to the observer that already runs, already owns the memory picture, and
+    # is already wired into background_worker's cycle. Nothing here schedules, holds or
+    # restarts.
+    #
+    # R5 -- TRANSITION ONLY, on the same doctrine as the pressure band above. A drifted weight
+    # is a STANDING condition that persists until someone edits the table, so alarming it
+    # every cycle would be the repeating-status noise R5 exists to stop. The set of drifted
+    # classes is remembered in the episode and announced only when it CHANGES.
+    drift_alarm = None
+    try:
+        verdicts = [weight_drift(name, **(drift_kwargs or {})) for name in sorted(CLASS_UNITS)]
+        # Keyed on the class names, not the raw MB: the peak moves a little on every run and
+        # would re-announce constantly, whereas "which weights are now wrong" is the fact.
+        flagged = sorted(
+            v["job_class"] for v in verdicts if v.get("drifted") is not False
+        )
+        episode["weight_drift"] = verdicts
+        if flagged != (prev.get("weight_drift_flagged") or []):
+            drift_alarm = weight_drift_alarm(verdicts)
+        episode["weight_drift_flagged"] = flagged
+    except Exception as exc:  # noqa: BLE001 -- a governor that crashes the worker is worse
+        episode["weight_drift"] = None
+        episode["weight_drift_flagged"] = prev.get("weight_drift_flagged") or []
+        drift_alarm = f"weight-drift check itself failed to run ({exc}) — R15: a failed check"
+
     _write_json(path, episode)
-    return {"sample": obs, "episode": episode, "transition": transition}
+    result = {"sample": obs, "episode": episode, "transition": transition}
+    if drift_alarm:
+        result["shadow_alarm"] = drift_alarm
+    return result
 
 
 def _victims(episode: dict, kills_now):

@@ -95,22 +95,30 @@ def _hold(path, pid, weight_mb, starttime="12345", job_class="sim_run"):
 
 def test_denies_when_the_budget_is_exhausted_though_memory_looks_free(tmp_path):
     """MUTATION KILLED: dropping the declared-budget condition and admitting on measured
-    memory alone. Memory looks free here (8 GB available) precisely BECAUSE the 9.7 GB
+    memory alone. Memory looks free here (16 GB available) precisely BECAUSE the 9.7 GB
     subject-cost job that declared has not allocated its peak yet -- the collision that has
-    not happened YET. This is the measured 2026-08-10 pairing: subject_cost (oom-killed at
-    9,648 MB) against a sim_run, which together cannot fit 16 GB however free it looks now.
+    not happened YET. This is the real pairing: subject_cost (oom-killed at 9,648 MB) against
+    a sim_run (peaked at 13.5 G on 2026-08-24), which together cannot fit the 24 GB guest
+    however free it looks now.
+
+    RE-SIZED 2026-08-24 with the sim_run weight. The scenario was written at total=16000 /
+    available=8000, where the measured condition ALSO denied once sim_run was re-derived from
+    6,144 MB to 13,824 MB -- which would have quietly destroyed the independence this test
+    exists to prove while leaving it green on the first two assertions. The numbers here are
+    chosen so the measured condition still ADMITS and only the budget refuses; the mutation
+    killed is unchanged.
     """
     res = tmp_path / "reservations.json"
     _hold(res, pid=4242, weight_mb=9728, job_class="subject_cost")
     proc = _fake_proc(tmp_path, 4242)
 
     d = rh.admit("sim_run", reservations_path=res, proc_root=proc,
-                 **_sample_kwargs(tmp_path, total_mb=16000, available_mb=8000))
+                 **_sample_kwargs(tmp_path, total_mb=24000, available_mb=16000))
 
     assert d["admitted"] is False
     assert "budget exhausted" in d["reason"]
     assert d["committed_mb"] == pytest.approx(9728)
-    # The measured condition would have ADMITTED this (8000 - 6144 > 1024): the denial can
+    # The measured condition would have ADMITTED this (16000 - 13824 > 1024): the denial can
     # only have come from the declared budget, which is what makes the pair independent.
     assert d["available_mb"] - d["weight_mb"] > rh.RESERVE_FOR_UNDECLARED_MB
 
@@ -380,3 +388,151 @@ def test_this_live_process_reads_as_live():
     reservation is reaped instantly and the budget silently stops binding."""
     assert rh._proc_starttime(os.getpid()) is not None
     assert rh._is_live({"pid": os.getpid(), "starttime": rh._proc_starttime(os.getpid())})
+
+
+# --------------------------------------------------------------------------------------
+# WEIGHT DRIFT -- a declared weight is a MEASUREMENT WITH A DATE ON IT (2026-08-24).
+#
+# THE NAMED DEFECT: `CLASS_WEIGHTS_MB["sim_run"]` said 6,144 MB, sourced to an RSS sample
+# taken on 2026-08-10. Fourteen days later the job it names was OOM-killed fourteen times in
+# one day at peaks up to 13.5 G. The weight was never wrong when written and was never
+# re-checked, so `admit()` was sizing the largest job on the box at 2.2x under its real
+# footprint -- fail-open, in the one direction this governor exists to prevent.
+#
+# These tests are the mechanism that stops that recurring, so they are written to fire on the
+# OLD CONSTANT against the REAL journal of the day it failed.
+# --------------------------------------------------------------------------------------
+
+# Peaks as systemd recorded them for sim-runner.service on 2026-08-24, in MB.
+_REAL_PEAKS_MB = [10.3 * 1024, 10.7 * 1024, 13.2 * 1024, 13.5 * 1024]
+
+
+def _peaks(values):
+    return lambda unit, since: list(values)
+
+
+def test_the_named_defect_fires_on_the_pre_fix_constant(monkeypatch):
+    """THE test. The 2026-08-24 record against the weight that was live that morning."""
+    monkeypatch.setitem(rh.CLASS_WEIGHTS_MB, "sim_run", 6144)
+
+    verdict = rh.weight_drift("sim_run", peaks_reader=_peaks(_REAL_PEAKS_MB))
+
+    assert verdict["drifted"] is True
+    assert verdict["observed_peak_mb"] == pytest.approx(13824.0)
+    assert "2.2x under its measured footprint" in verdict["detail"]
+
+    alarm = rh.weight_drift_alarm([verdict])
+    assert "DECLARED JOB WEIGHT OUTGROWN" in alarm
+    assert "fail-open" in alarm
+
+
+def test_the_re_derived_constant_covers_the_record_it_was_derived_from():
+    """ANTI-REGRESSION, and the reason this is not just a one-off edit.
+
+    The repair for the above was to re-derive the constant from systemd's record. This holds
+    that repair: whatever `sim_run` says today must still cover the peak that killed it. A
+    future edit that lowers it back under 13.5 G turns this red.
+    """
+    verdict = rh.weight_drift("sim_run", peaks_reader=_peaks(_REAL_PEAKS_MB))
+
+    assert verdict["drifted"] is False, verdict["detail"]
+    assert rh.weight_drift_alarm([verdict]) is None
+
+
+def test_a_weight_that_still_covers_the_record_is_not_flagged():
+    """The FAIL side: a control that flagged a healthy weight would be worthless."""
+    verdict = rh.weight_drift("sim_run", peaks_reader=_peaks([2048.0, 3072.0]))
+
+    assert verdict["drifted"] is False
+    assert "still covers" in verdict["detail"]
+
+
+@pytest.mark.parametrize(
+    "reader",
+    [
+        pytest.param(lambda unit, since: None, id="journal_unreadable"),
+        pytest.param(lambda unit, since: [], id="journal_empty"),
+    ],
+)
+def test_an_unchecked_weight_is_not_a_clean_one(reader):
+    """R15 killer pattern 3, and the whole failure mode restated.
+
+    MUTATION KILLED: `verdict["drifted"] = bool(peaks and max(peaks) > declared)`, which
+    renders both of these as False -- i.e. as "this weight is fine". The state being
+    repaired IS a weight nobody has checked lately, so "we could not check" must never
+    render as the clean answer. It is None, and the alarm says so out loud.
+    """
+    verdict = rh.weight_drift("sim_run", peaks_reader=reader)
+
+    assert verdict["drifted"] is None
+    assert verdict["observed_peak_mb"] is None
+
+    alarm = rh.weight_drift_alarm([verdict])
+    assert alarm is not None, "an unverified weight must not pass silently"
+    assert "UNVERIFIED" in alarm
+
+
+def test_a_class_with_no_unit_is_unverified_rather_than_silently_clean():
+    """`subject_cost` is started ad hoc and leaves no journal, so it CANNOT be re-derived.
+
+    That is a real limit and it is reported as one. A control that returned False here would
+    be claiming to have checked three weights while only ever checking one.
+    """
+    verdict = rh.weight_drift("subject_cost")
+
+    assert verdict["drifted"] is None
+    assert "no independent record" in verdict["detail"] or "hand-measured" in verdict["detail"]
+
+
+def test_an_undeclared_class_has_nothing_to_check():
+    verdict = rh.weight_drift("no_such_class")
+
+    assert verdict["drifted"] is None
+    assert verdict["declared_mb"] is None
+
+
+def test_observe_surfaces_drift_and_only_on_transition(tmp_path, monkeypatch):
+    """R5, held on the new reading exactly as on the pressure band.
+
+    A drifted weight is a STANDING condition -- it persists until a human edits the table --
+    so an alarm every cycle would be the repeating-status noise R5 exists to stop. The set of
+    flagged classes is remembered in the episode; only a CHANGE speaks.
+    """
+    monkeypatch.setitem(rh.CLASS_WEIGHTS_MB, "sim_run", 6144)
+    ep = tmp_path / "episode.json"
+    drift = {"peaks_reader": _peaks(_REAL_PEAKS_MB)}
+
+    first = rh.observe(episode_path=ep, drift_kwargs=drift,
+                       **_sample_kwargs(tmp_path, available_mb=9000))
+    assert "DECLARED JOB WEIGHT OUTGROWN" in first["shadow_alarm"]
+
+    again = rh.observe(episode_path=ep, drift_kwargs=drift,
+                       meminfo_path=_meminfo(tmp_path, available_mb=9000, name="m2"),
+                       vmstat_path=_vmstat(tmp_path, name="v2"),
+                       psi_path=_psi(tmp_path, name="p2"))
+    assert again.get("shadow_alarm") is None, "unchanged drift must not re-announce (R5)"
+
+    # And it speaks again when the condition CLEARS, so a repair is visible.
+    rh.CLASS_WEIGHTS_MB["sim_run"] = 13824
+    repaired = rh.observe(episode_path=ep, drift_kwargs=drift,
+                          meminfo_path=_meminfo(tmp_path, available_mb=9000, name="m3"),
+                          vmstat_path=_vmstat(tmp_path, name="v3"),
+                          psi_path=_psi(tmp_path, name="p3"))
+    assert repaired["episode"]["weight_drift_flagged"] == []
+
+
+def test_a_drift_check_that_raises_never_takes_the_observer_down(tmp_path):
+    """A governor that can crash the worker is a worse outage than the one it prevents.
+
+    The pressure sample must still be returned, and the failure must be SAID rather than
+    swallowed into a green.
+    """
+    def _boom(unit, since):
+        raise RuntimeError("journal exploded")
+
+    result = rh.observe(episode_path=tmp_path / "ep.json",
+                        drift_kwargs={"peaks_reader": _boom},
+                        **_sample_kwargs(tmp_path, available_mb=9000))
+
+    assert result["sample"]["available_mb"] == 9000
+    assert "failed check" in (result.get("shadow_alarm") or "")
