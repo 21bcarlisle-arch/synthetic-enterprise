@@ -2,11 +2,11 @@
 
 **Severity:** LATENT · **Lane:** H_harness
 
-**Instances:** 45 · **Class:** `publish_gate_and_wedge` · **Ruling's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
+**Instances:** 47 · **Class:** `publish_gate_and_wedge` · **Ruling's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 45 instances
+## The 47 instances
 
 - `WORKER_FINDING_AN_OOM_KILL_IS_RECORDED_AS_A_TEST_REGRESSION_2026-08-10.md` — LATENT
 - `WORKER_FINDING_ARCHIVED_STAGING_FILES_RESURRECTED_TWICE_DURING_A_LIVE_SURGICAL_LAND_2026-08-18.md` — LATENT
@@ -29,6 +29,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_DURATION_SERIES_RECORDS_ABORTED_RUNS_2026-08-10.md` — LATENT
 - `WORKER_FINDING_THE_ELEVENTH_WEDGE_WAS_A_STACK_NOT_A_BUG_2026-08-10.md` — LATENT
 - `WORKER_FINDING_THE_EPISODE_CLOSES_ON_AN_EMPTY_QUEUE_THAT_CANNOT_EMPTY_2026-08-12.md` — LATENT
+- `WORKER_FINDING_THE_GATES_REFUSAL_QUOTES_SIX_GREEN_LINES_WHEN_A_NON_PYTEST_GATE_REDS_2026-08-24.md` — LATENT
 - `WORKER_FINDING_THE_GATES_SCRATCH_SPACE_IS_RAM_AND_NOTHING_DRAINS_IT_2026-08-12.md` — LATENT
 - `WORKER_FINDING_THE_GATE_SELECTS_BY_FILENAME_STEM_SO_A_RENAMED_KEYS_CONSUMERS_NEVER_RUN_2026-08-17.md` — LATENT
 - `WORKER_FINDING_THE_GATE_WAS_THE_BRANCHS_OWN_ADMISSION_TICKET_2026-08-12.md` — RECORDED
@@ -37,6 +38,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_LANDING_TOOL_EXTRACTS_INTO_THE_TMPFS_THE_GATE_WAS_MOVED_OFF_2026-08-14.md` — RECORDED
 - `WORKER_FINDING_THE_NAMED_BLOCKING_TEST_PASSES_WHEN_YOU_RUN_IT_2026-08-10.md` — LATENT
 - `WORKER_FINDING_THE_PRE_COMMIT_GATE_MAPS_NO_TESTS_TO_A_DATA_FILE_2026-08-09.md` — RECORDED
+- `WORKER_FINDING_THE_PRODUCER_IS_NOT_DEAD_IT_IS_OOM_KILLED_TWELVE_TIMES_TODAY_2026-08-24.md` — LATENT
 - `WORKER_FINDING_THE_PUBLISH_GATE_DISCOVERS_AN_OVER_BUDGET_SCOPE_BY_TIMING_OUT_A_CYCLE_2026-08-21.md` — LATENT
 - `WORKER_FINDING_THE_PUBLISH_GATE_HAS_NEVER_COMPLETED_ABOVE_1666_SECONDS_AND_ITS_CEILING_IS_3800_2026-08-21.md` — LATENT
 - `WORKER_FINDING_THE_PUBLISH_GATE_WEDGE_TWO_DOCSTRINGS_CITE_HAS_NEVER_EXISTED_2026-08-18.md` — LATENT
@@ -56,7 +58,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**273.0 recorded episode-hours** across 13 of the 45 instances; largest single recorded episode **60h**; 7 instance(s) name a published figure in scope.
+**273.0 recorded episode-hours** across 13 of the 47 instances; largest single recorded episode **60h**; 7 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 

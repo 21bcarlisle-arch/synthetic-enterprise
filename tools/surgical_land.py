@@ -512,8 +512,17 @@ def materialise(root: Path, checkout: Path, result_tree: str, parent: str,
 # Step 4: the gate, against the extract.
 # ---------------------------------------------------------------------------------------------
 
-def run_gate(checkout: Path, hook_rel: str = HOOK_REL) -> tuple[int, str]:
-    """Run the repo's own pre-commit hook inside the extract. Returns (rc, combined output).
+def run_gate(checkout: Path, hook_rel: str = HOOK_REL) -> tuple[int, str, str]:
+    """Run the repo's own pre-commit hook inside the extract. Returns (rc, stdout, stderr).
+
+    THE TWO STREAMS ARE KEPT APART, and that is load-bearing rather than tidy (2026-08-24,
+    WORKER_FINDING_THE_GATES_REFUSAL_QUOTES_SIX_GREEN_LINES_WHEN_A_NON_PYTEST_GATE_REDS). This
+    returned `stdout + stderr` for a year. The hook is a `cmd || exit 1` chain of twelve gates,
+    so it stops at the first failure and whichever gate reds writes the END of stdout -- which
+    makes the tail of STDOUT the one read that names the refusing gate without needing to know
+    twelve vocabularies. Concatenating stderr onto it destroyed exactly that property: the tail
+    of the joined stream is import-time SyntaxWarnings, every time, and the refusal that
+    reached a reader was six green ticks under the word REFUSED.
 
     FAIL-CLOSED: a hook that is missing, unreadable or un-runnable raises rather than returning
     0. This is the branch that decides whether the tool is a gate or a rubber stamp."""
@@ -530,7 +539,7 @@ def run_gate(checkout: Path, hook_rel: str = HOOK_REL) -> tuple[int, str]:
         raise LandingRefused(
             "the gate could not be EXECUTED ({}) -- refusing rather than landing ungated.".format(
                 exc)) from exc
-    return r.returncode, (r.stdout or "") + (r.stderr or "")
+    return r.returncode, (r.stdout or ""), (r.stderr or "")
 
 
 _PYTEST_SUMMARY = child_diagnostics.PYTEST_SUMMARY
@@ -556,20 +565,40 @@ _NO_OUTPUT = child_diagnostics.NO_OUTPUT
 _is_verdict_line = child_diagnostics.is_verdict_line
 
 
-def _verdict_excerpt(output: str, limit: int = 4000) -> str:
-    """SELECT the lines that decide a red gate's verdict, rather than SLICE the stream's tail.
+def _verdict_excerpt(stdout: str, stderr: str = "", limit: int = 4000) -> str:
+    """Why a red gate refused, from BOTH of its streams, labelled.
 
-    `run_gate` returns stdout + stderr concatenated in that order, so this stream is the exact
-    shape the shared selector was written for -- pytest's verdict on stdout, import-time
-    SyntaxWarnings on stderr, and a tail that therefore keeps the noise and drops the verdict
-    REPRODUCIBLY rather than unluckily. The why, both incidents and the fail-closed contract
-    are documented once, on `child_diagnostics.verdict_excerpt`.
+    Each stream is excerpted on its own: the tail (which, for a `cmd || exit 1` chain, is
+    written by whichever gate went red) plus any earlier verdict lines that tail would lose
+    (the individual FAILED nodes of a pytest run that printed 200 lines after them). The
+    reasoning, and both incidents that produced it, are documented once on
+    `child_diagnostics.verdict_excerpt`.
 
-    Character-budgeted rather than line-budgeted because a refusal MESSAGE has a size, not a
-    line count; the publisher's log header wants lines. That is the whole difference between
-    the two callers, and it is a parameter rather than a fork of the code."""
-    excerpt, _selected = child_diagnostics.verdict_excerpt(output, max_chars=limit)
-    return excerpt
+    STDERR IS SHOWN, NOT DROPPED, and gets the smaller share. It is where a gate that died on
+    a traceback says so, and a refusal that hid that would be the mirror of the defect this
+    replaced -- but it is also where the library warnings live, so it must never be able to
+    crowd out stdout's verdict. Hence the split budget rather than a preference.
+
+    Character-budgeted rather than line-budgeted because a refusal MESSAGE has a size; the
+    publisher's log header wants lines. That is the whole difference between the two callers,
+    and it is a parameter rather than a fork of the code."""
+    reserve = max(400, limit // 5)
+    out_text, _ = child_diagnostics.verdict_excerpt(
+        stdout, max_chars=limit - reserve, empty_marker=child_diagnostics.NO_OUTPUT)
+    parts = ["  gate stdout (the verdict, and the tail the refusing gate wrote):", out_text]
+    # STDERR NEVER OUTWEIGHS THE STREAM THAT CARRIES THE VERDICT. A fixed reserve is wrong at
+    # both ends: a gate that refuses in three lines would be buried under 400 characters of
+    # SyntaxWarning -- visually the same defect as the one this replaced -- while a gate that
+    # dies on a traceback and says nothing on stdout needs the whole budget over here. So the
+    # cap is the size of the stdout section, except when there IS no stdout section.
+    said_nothing = out_text.strip() in ("", child_diagnostics.NO_OUTPUT)
+    err_budget = limit if said_nothing else min(reserve, len(out_text))
+    err_text, _ = child_diagnostics.verdict_excerpt(stderr, max_chars=err_budget,
+                                                    empty_marker="")
+    if err_text.strip():
+        parts += ["  gate stderr (usually library noise -- read it when stdout names nothing):",
+                  err_text]
+    return "\n".join(parts)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -741,13 +770,14 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
         # landing -- every error inside it is swallowed and the body's exceptions pass through.
         with staging_root_resurrection_watch.bracket(
                 root, "surgical-land gate: " + message.splitlines()[0][:80]):
-            rc, output = run_gate(checkout, hook_rel)
-        tests = _test_summary(output)
+            rc, gate_out, gate_err = run_gate(checkout, hook_rel)
+        tests = _test_summary(gate_out + gate_err)
         if rc != 0:
             raise LandingRefused(
                 "GATE RED on the resulting tree (rc={}). This is the tree the commit WOULD "
                 "create, not the working tree -- a working tree that passes here means the "
-                "unstaged half is what makes it pass.\n{}".format(rc, _verdict_excerpt(output)))
+                "unstaged half is what makes it pass.\n{}".format(
+                    rc, _verdict_excerpt(gate_out, gate_err)))
     finally:
         shutil.rmtree(checkout, ignore_errors=True)
         _ACTIVE_CHECKOUTS.discard(checkout)

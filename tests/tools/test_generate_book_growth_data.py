@@ -96,6 +96,114 @@ def test_a_missing_record_publishes_UNAVAILABLE_and_never_a_curve_of_zeroes():
         )
 
 
+# ── the SECOND artefact: the conversion rate the company learned from those years ────────────
+#
+# The curve is not the only thing our engine shaped. `dcba2f2e2` gave the company a win-rate
+# learning loop, so from the first engine-bound year onward it plans every campaign on a
+# conversion rate computed over losses our machine produced -- and the published series really
+# does decay 0.169 -> 0.051 while nothing commercial suppressed it
+# (WORKER_FINDING_THE_COMPANY_NOW_LEARNS_A_WIN_RATE_FROM_YEARS_AN_ENGINEERING_CAP_DECIDED).
+#
+# THE COMPANY IS NOT CHANGED, and that is the design rather than a limitation: a supplier able to
+# tell which of its own losses were artefacts would be reading simulation internals. What is
+# added is what the SITE says about the number.
+#
+# MUTATION SENSITIVITY (R15):
+#   * flag on `binding_is_our_artefact` instead of on the strictly-earlier history ->
+#     `test_the_first_engine_bound_years_own_learned_rate_is_still_CLEAN` red.
+#   * make the flag non-latching (only the immediately preceding year) ->
+#     `test_contamination_LATCHES_because_a_companys_history_only_grows` red.
+#   * flag every year ->
+#     `test_MUTATION_a_run_our_engine_never_bound_contaminates_no_learned_rate` red.
+#   * caveat a year that planned on belief ->
+#     `test_a_year_that_planned_on_BELIEF_has_no_learned_rate_to_caveat` red.
+
+def _learning_campaign(*specs):
+    """Years of (binding, planning_on, realised_win_rate_used)."""
+    return {
+        "by_year": [
+            {"year": 2016 + i, "quotes_issued": 10 * (i + 1), "wins": 3, "accounts_after": 20 + i,
+             "spend_gbp": 100.0, "binding": b, "homes_in_market": 400,
+             "switching_multiplier": 1.0, "believed_win_rate": 0.2,
+             "realised_win_rate_used": rate, "planning_on": plan}
+            for i, (b, plan, rate) in enumerate(specs)
+        ],
+        "notes": [], "quotes": 100, "wins": 9, "spend_gbp": 1000.0,
+        "customer_years_committed": 590.0, "customer_year_budget": 600.0,
+    }
+
+
+def test_the_first_engine_bound_years_own_learned_rate_is_still_CLEAN():
+    """THE DISCRIMINATION THAT MAKES THE FLAG WORTH HAVING, taken from the real 2020 row: that
+    year WAS engine-bound and still won 22 accounts, and the rate it planned on came from
+    2016-2019, every one of them commercial. A flag keyed on the year's own binding would caveat
+    a number nothing is wrong with, and a caveat a reader learns to ignore is worse than none."""
+    out = gb.build(_learning_campaign(
+        ("growth_rate", "realised", 0.164),
+        ("settlement_engine", "realised", 0.169),
+        ("settlement_engine", "realised", 0.178),
+    ))
+
+    assert out["years"][1]["binding_is_our_artefact"] is True
+    assert out["years"][1]["learned_win_rate_is_contaminated"] is False
+    assert out["years"][2]["learned_win_rate_is_contaminated"] is True
+    assert out["learned_win_rate_contaminated_years"] == [2018]
+    assert "From 2018 onward" in out["win_rate_statement"]
+
+
+def test_contamination_LATCHES_because_a_companys_history_only_grows():
+    """One engine-bound year in the middle contaminates EVERY later rate, not just the next one.
+    The company never forgets a year, so neither can the caveat."""
+    out = gb.build(_learning_campaign(
+        ("growth_rate", "realised", 0.16),
+        ("settlement_engine", "realised", 0.17),
+        ("market", "realised", 0.12),
+        ("capital", "realised", 0.09),
+    ))
+
+    assert out["learned_win_rate_contaminated_years"] == [2018, 2019]
+    assert out["years"][2]["binding_is_our_artefact"] is False, (
+        "fixture is not testing latching -- these later years must be bound by something "
+        "commercial, or the test would pass on a flag keyed on the year's own binding"
+    )
+
+
+def test_MUTATION_a_run_our_engine_never_bound_contaminates_no_learned_rate():
+    """R15 null control. If everything were flagged the flag would carry no information, and the
+    section would tell a reader to discount a conversion rate that is a real commercial result."""
+    out = gb.build(_learning_campaign(
+        ("market", "realised", 0.16), ("capital", "realised", 0.15),
+    ))
+
+    assert out["learned_win_rate_contaminated_years"] == []
+    assert all(not y["learned_win_rate_is_contaminated"] for y in out["years"])
+    assert "None of them is an artefact of our engine" in out["win_rate_statement"]
+    assert "commercial result" in out["years"][0]["learned_win_rate_caveat"]
+
+
+def test_a_year_that_planned_on_BELIEF_has_no_learned_rate_to_caveat():
+    """The company's opening years plan on a mandate figure, not on their own books. Attaching a
+    contamination warning there would warn about a number the company never computed."""
+    out = gb.build(_learning_campaign(
+        ("settlement_engine", "realised", 0.17),
+        ("growth_rate", "belief", None),
+    ))
+
+    assert out["years"][1]["learned_win_rate_is_contaminated"] is False
+    assert out["years"][1]["learned_win_rate_caveat"] == ""
+    assert 2017 not in out["learned_win_rate_contaminated_years"]
+
+
+def test_the_statement_names_the_spend_a_reader_would_judge_growth_by():
+    """The quote budget is derived from the learned rate, and the acquisition spend from the quote
+    budget. A caveat that stopped at the percentage would leave the money figure uncaveated."""
+    out = gb.build(_learning_campaign(
+        ("settlement_engine", "realised", 0.17), ("settlement_engine", "realised", 0.12),
+    ))
+
+    assert "acquisition spend" in out["win_rate_statement"]
+
+
 def test_every_published_money_figure_carries_its_clock():
     """R14: no financial figure without its basis."""
     out = gb.build(_campaign("capital", "settlement_engine"))

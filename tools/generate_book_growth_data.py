@@ -74,6 +74,59 @@ def _binding_of(row: dict) -> str:
     return str(row.get("binding") or "unknown")
 
 
+#: What a reader is told about a learned conversion rate our own engine helped produce.
+CONTAMINATED_CAVEAT = (
+    "The company computed this from its own books, and its books say it quoted and did not win. "
+    "But an earlier year's wins were refused by OUR settlement engine, so some of the losses in "
+    "that denominator were never a commercial event. The company's inference is sound; the world "
+    "it inferred from was not."
+)
+CLEAN_CAVEAT = (
+    "Computed over years the market and the company's own balance sheet decided, with no year "
+    "our settlement engine bound. This conversion rate is a commercial result."
+)
+
+
+def _mark_learned_rate_provenance(years: list[dict]) -> None:
+    """Say which learned win rates were computed over a history OUR engine had already touched.
+
+    WHY THIS IS NOT THE SAME FLAG AS `binding_is_our_artefact`, and why getting it wrong would be
+    worse than omitting it. That flag answers "did our engine stop the book THIS year". This
+    answers a different question -- "was the number the company PLANNED on computed over a history
+    that includes such a year" -- and the two diverge in both directions:
+
+      * 2020 was engine-bound AND still won 22 accounts. Its learned rate came from 2016-2019,
+        all commercial. Flagging it because it is itself engine-bound would caveat a clean number.
+      * 2021 was engine-bound too, but the thing that matters about its learned rate is that the
+        rate was computed over a history INCLUDING 2020 -- and from there the contamination is
+        permanent, because the company's history only grows.
+
+    So the rule is STRICTLY EARLIER, and it latches: once an engine-bound year enters the history,
+    every later learned rate carries it. That is why the published series decays 0.169 -> 0.051
+    while nothing commercial suppressed the conversion
+    (WORKER_FINDING_THE_COMPANY_NOW_LEARNS_A_WIN_RATE_FROM_YEARS_AN_ENGINEERING_CAP_DECIDED).
+
+    NOT A WALL VIOLATION, and the distinction is the whole design. The COMPANY still learns the
+    contaminated rate and still plans on it -- nothing here changes a single company-side number,
+    because a supplier that could tell which of its own losses were artefacts would be reading
+    simulation internals. What changes is what the SITE tells its reader, which is the harness's
+    own job and the one place the fact is legitimately known.
+    """
+    seen_engine_bound = False
+    for y in years:
+        # `planning_on` "belief"/"mandate" means no learned rate was used at all, so there is
+        # nothing to caveat -- and saying otherwise would attach a warning to a number the
+        # company never computed.
+        learned = y.get("realised_win_rate_used") is not None and y.get("planning_on") == "realised"
+        y["learned_win_rate_is_contaminated"] = bool(learned and seen_engine_bound)
+        y["learned_win_rate_caveat"] = (
+            CONTAMINATED_CAVEAT if y["learned_win_rate_is_contaminated"]
+            else (CLEAN_CAVEAT if learned else "")
+        )
+        if y["binding_is_our_artefact"]:
+            seen_engine_bound = True
+
+
 def build(campaign: dict | None) -> dict:
     """The published shape. `campaign` is the record, or None when there is no run to describe."""
     stamp = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
@@ -116,6 +169,8 @@ def build(campaign: dict | None) -> dict:
         })
 
     artefact_years = [y["year"] for y in years if y["binding_is_our_artefact"]]
+    _mark_learned_rate_provenance(years)
+    contaminated = [y["year"] for y in years if y["learned_win_rate_is_contaminated"]]
     return {
         "generated_at": stamp,
         "available": True,
@@ -142,6 +197,23 @@ def build(campaign: dict | None) -> dict:
         ) if artefact_years else (
             "No year was bound by our settlement engine: every year's growth was decided by the "
             "market, the company's capital, or its own growth mandate."
+        ),
+        # THE SECOND HALF OF THE SAME INSTRUCTION. The curve is not the only thing our engine
+        # shaped: the company LEARNS its conversion rate from these years and plans the next
+        # campaign on it, so an engine-bound year does not just flatten one bar -- it lowers
+        # every learned rate after it, and the quote budget (and the acquisition spend a reader
+        # would use to judge whether growth was worth it) is computed from that.
+        "learned_win_rate_contaminated_years": contaminated,
+        "win_rate_statement": (
+            "From {first} onward the conversion rate the company planned on was computed over a "
+            "history our own settlement engine had already bound, so it falls without any "
+            "commercial mechanism suppressing it. Read the decline as an artefact of this "
+            "simulation, not as a supplier losing its touch -- and note the quote budget, and "
+            "therefore the acquisition spend, is derived from that same rate.".format(
+                first=contaminated[0])
+        ) if contaminated else (
+            "Every conversion rate the company planned on was computed over years the market and "
+            "its own balance sheet decided. None of them is an artefact of our engine."
         ),
         "notes": campaign.get("notes") or [],
     }

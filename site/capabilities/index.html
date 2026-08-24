@@ -269,7 +269,8 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <em>our own settlement engine refused to settle the accounts it won</em>. The first three are
   facts about the supplier. The last is a limit of this simulation, and it is marked as one rather
   than left to look like a commercial result.</p>
-  <p id="growth-headline" style="margin:0 0 14px;font-weight:600;"></p>
+  <p id="growth-headline" style="margin:0 0 8px;font-weight:600;"></p>
+  <p id="growth-winrate" style="margin:0 0 14px;"></p>
   <div id="growth"></div>
   <p id="growth-note" class="stamp" style="margin-top:10px;"></p>
 </section>
@@ -295,17 +296,33 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         return;
       }
       $("growth-headline").textContent = d.engine_bound_statement || "";
+      // THE LEARNED RATE IS THE SECOND ARTEFACT, and it is the one a reader would otherwise
+      // read as a supplier losing its touch. Rendered as its own sentence above the table so it
+      // is met before the column that carries it, not discovered after.
+      $("growth-winrate").textContent = d.win_rate_statement || "";
       var rows = d.years.map(function (y) {
         var flag = y.binding_is_our_artefact
           ? '<span title="' + esc(y.binding_meaning) + '" style="color:#b45309;font-weight:600;">'
             + esc(y.binding_label) + " &#9888;</span>"
           : '<span title="' + esc(y.binding_meaning) + '">' + esc(y.binding_label) + "</span>";
+        // What the company PLANNED the next campaign on. Blank where it planned on its opening
+        // belief rather than on its own books -- an empty cell is the truth there, and a "0.0%"
+        // would be a number the company never held.
+        var rate = (y.realised_win_rate_used == null || y.planning_on !== "realised")
+          ? '<span title="Planned on its opening belief; it had no conversion history of its own '
+            + 'to learn from yet.">&mdash;</span>'
+          : (y.learned_win_rate_is_contaminated
+              ? '<span title="' + esc(y.learned_win_rate_caveat) + '" style="color:#b45309;font-weight:600;">'
+                + (y.realised_win_rate_used * 100).toFixed(1) + "% &#9888;</span>"
+              : '<span title="' + esc(y.learned_win_rate_caveat) + '">'
+                + (y.realised_win_rate_used * 100).toFixed(1) + "%</span>");
         return "<tr>"
           + "<td>" + esc(y.year) + "</td>"
           + '<td style="text-align:right;">' + esc(y.quotes_issued) + "</td>"
           + '<td style="text-align:right;">' + esc(y.wins) + "</td>"
           + '<td style="text-align:right;">' + esc(y.accounts_after) + "</td>"
           + '<td style="text-align:right;">' + esc(y.homes_in_market) + "</td>"
+          + '<td style="text-align:right;">' + rate + "</td>"
           + "<td>" + flag + "</td>"
           + "</tr>";
       }).join("");
@@ -317,6 +334,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         + '<th style="text-align:right;">Won</th>'
         + '<th style="text-align:right;">Book</th>'
         + '<th style="text-align:right;" title="Households actually switching supplier that year, from the published DESNZ switching series">In market</th>'
+        + '<th style="text-align:right;" title="The conversion rate the company planned the next campaign on, computed from its own books. A marked figure was computed over a history our settlement engine had already bound.">Planned on</th>'
         + '<th style="text-align:left;">What limited it</th>'
         + "</tr></thead><tbody>" + rows + "</tbody></table></div>";
       var s = d.settlement || {};

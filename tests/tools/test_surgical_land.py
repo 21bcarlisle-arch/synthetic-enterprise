@@ -196,14 +196,14 @@ def _racing_gate(repo: Path, lose_until: int, calls: list[int]):
 
     def gate(checkout, hook_rel=sl.HOOK_REL):
         calls.append(len(calls) + 1)
-        rc, out = real_run_gate(checkout, hook_rel)
+        rc, out, err = real_run_gate(checkout, hook_rel)
         if len(calls) <= lose_until:
             name = "colleague_{}.txt".format(len(calls))
             (repo / name).write_text("landed mid-gate\n")
             _run(repo, "git", "add", name)
             _run(repo, "git", "commit", "-q", "--no-verify", "-m", "colleague {}".format(
                 len(calls)))
-        return rc, out
+        return rc, out, err
 
     return gate
 
@@ -473,9 +473,9 @@ def test_a_content_sourced_retry_commits_the_same_bytes_the_caller_gave(
     racing = _racing_gate(repo, lose_until=1, calls=calls)
 
     def gate(checkout, hook_rel=sl.HOOK_REL):
-        rc, out = racing(checkout, hook_rel)
+        rc, out, err = racing(checkout, hook_rel)
         (repo / "code.py").write_text("VALUE = 99  # the mover rewrote it mid-gate\n")
-        return rc, out
+        return rc, out, err
 
     monkeypatch.setattr(sl, "run_gate", gate)
 
@@ -908,18 +908,22 @@ def test_the_sweeper_still_reclaims_the_legacy_tmpfs_backlog(tmp_path: Path, mon
 # to bypass. So these tests are written against the excerpt, not against the verdict.
 # --------------------------------------------------------------------------------------------
 
-def _incident_stream() -> str:
-    """The 2026-08-20 incident, reproduced in its load-bearing shape: pytest's verdict on STDOUT,
-    an unbounded import-time SyntaxWarning on STDERR, concatenated stdout-then-stderr exactly as
-    `run_gate` returns them. The verdict therefore sits ~200 lines before the end and every one
-    of the last 4000 characters is noise."""
-    stdout = "\n".join(
+#: The 2026-08-20 incident's STDOUT: pytest's verdict, then 200 lines of progress after it.
+def _incident_stdout() -> str:
+    return "\n".join(
         ["[test-gate] 22 test file(s): tests/tools/test_wall_channel_census.py ..."]
         + ["FAILED tests/tools/test_wall_channel_census.py::test_channel_{}".format(i)
            for i in range(5)]
         + ["5 failed, 2600 passed, 12 warnings in 118.4s"]
+        + ["[test-gate] cleaning up scratch checkout {}".format(i) for i in range(200)]
     )
-    noise = "\n".join(
+
+
+#: Its STDERR: an unbounded import-time warning, every byte of it noise. Kept as its own stream
+#: because `run_gate` stopped concatenating the two on 2026-08-24 -- see the finding referenced
+#: in `run_gate`'s docstring; joining them is what put this noise where the verdict should be.
+def _incident_stderr() -> str:
+    return "\n".join(
         'saas/reporting/annual_report.py:7952: SyntaxWarning: "\\_" is an invalid escape '
         'sequence. Such sequences will not work in the future.\n'
         '  f"Shadow discount: assumes P(accept) = (1 - churn\\_estimate)",\n'
@@ -927,23 +931,20 @@ def _incident_stream() -> str:
         "  warnings.warn(msg)"
         for _ in range(60)
     )
-    return stdout + "\n" + noise
 
 
-def test_the_refusal_names_the_failed_nodes_when_the_tail_is_pure_warning_noise():
-    """THE named defect. This is the mutation the finding asked for, and the fixture is the
-    incident rather than an invention of one."""
-    stream = _incident_stream()
+def test_the_refusal_names_the_failed_nodes_the_tail_would_have_lost():
+    """THE 2026-08-20 defect. The verdict sits 200 lines before the end of stdout, so a tail
+    alone loses every FAILED node; the excerpt has to carry them forward."""
+    stdout = _incident_stdout()
 
-    # The fixture genuinely reproduces the incident, or this test proves nothing: the OLD
-    # selector (a positional slice) must carry zero diagnostic characters on this same stream.
-    old_selector = stream[-4000:]
-    assert "FAILED " not in old_selector, (
-        "fixture no longer reproduces the incident -- the positional tail can still see the "
-        "verdict, so this test would pass without the selection it exists to prove"
+    # The fixture genuinely reproduces the incident, or this test proves nothing.
+    assert "FAILED " not in "\n".join(stdout.splitlines()[-40:]), (
+        "fixture no longer reproduces the incident -- the tail can still see the verdict, so "
+        "this test would pass without the selection it exists to prove"
     )
 
-    excerpt = sl._verdict_excerpt(stream)
+    excerpt = sl._verdict_excerpt(stdout, _incident_stderr())
 
     for i in range(5):
         assert "test_channel_{}".format(i) in excerpt, (
@@ -952,58 +953,160 @@ def test_the_refusal_names_the_failed_nodes_when_the_tail_is_pure_warning_noise(
         )
     assert "5 failed, 2600 passed" in excerpt, "the count decides whether the list is whole"
     assert "[test-gate] 22 test file(s)" in excerpt, "the selection line says WHAT was run"
-    assert "SyntaxWarning" not in excerpt
+
+
+def test_the_warning_noise_is_shown_as_STDERR_and_never_as_the_verdict():
+    """The 2026-08-20 fix was "do not let stderr's tail masquerade as the verdict", NOT "hide
+    stderr". A gate that dies on a traceback says so there and nowhere else, so the repair is
+    LABELLING and a budget, not suppression -- and the label is what stops a reader mistaking
+    a SyntaxWarning for the reason their commit was refused."""
+    excerpt = sl._verdict_excerpt(_incident_stdout(), _incident_stderr())
+
+    head, _, err_section = excerpt.partition("gate stderr")
+    assert "SyntaxWarning" not in head, (
+        "library noise appeared in the stdout section, where a reader looks for the verdict"
+    )
+    assert "SyntaxWarning" in err_section, "stderr was dropped entirely, not merely demoted"
+    assert len(err_section) < len(head), (
+        "stderr is outweighing the stream that carries the verdict"
+    )
+
+
+def test_a_gate_that_dies_on_stderr_alone_gets_the_whole_budget():
+    """The mirror fail-open of demoting stderr. A hook that dies before any gate prints —
+    `sh: 1: python3: not found`, an OOM, an import that blew up — says nothing on stdout and
+    everything on stderr. Capping stderr against the size of a stdout section that does not
+    exist would leave the refusal with no diagnostic at all, which is the state this whole
+    control exists to make impossible."""
+    traceback = "\n".join([
+        "Traceback (most recent call last):",
+        '  File "tools/orphan_ratchet.py", line 12, in <module>',
+        "    from background.schedule import committed_entrypoints",
+        "ModuleNotFoundError: No module named 'background.schedule'",
+    ])
+
+    excerpt = sl._verdict_excerpt("", traceback)
+
+    assert "ModuleNotFoundError: No module named 'background.schedule'" in excerpt
+    assert sl._NO_OUTPUT in excerpt, (
+        "the empty stdout must SAY it was empty -- 'the gate printed nothing' and 'nobody "
+        "looked' are different defects and a reader must not have to guess which"
+    )
 
 
 def test_a_verdict_already_in_the_tail_is_still_printed():
-    """NULL CONTROL, required by the finding: a refusal whose tail DOES contain the verdict must
-    still print it. Without this, a 'fix' that merely stripped warnings would score as a pass
-    while having rewritten the noise rather than selected the signal."""
-    stream = "\n".join(
+    """NULL CONTROL, required by the 2026-08-20 finding: a refusal whose tail DOES contain the
+    verdict must still print it. Without this, a 'fix' that merely stripped warnings would
+    score as a pass while having rewritten the noise rather than selected the signal."""
+    stdout = "\n".join(
         ["some incidental chatter"]
         + ["FAILED tests/background/test_publish_scope.py::test_the_scope_is_the_publish_path"]
         + ["1 failed, 40 passed in 3.2s"]
     )
-    assert "FAILED " in stream[-4000:], "fixture is not a null control -- the tail must hold it"
 
-    excerpt = sl._verdict_excerpt(stream)
+    excerpt = sl._verdict_excerpt(stdout)
 
     assert "test_the_scope_is_the_publish_path" in excerpt
     assert "1 failed, 40 passed" in excerpt
 
 
-def test_a_stream_with_no_recognisable_verdict_falls_back_to_the_bounded_tail():
-    """FAIL-CLOSED, not fail-open: an unrecognised stream degrades to the OLD behaviour (a
-    bounded tail), never to an empty excerpt. A selector that printed nothing when it recognised
-    nothing would be strictly worse than the slice it replaced."""
-    stream = "\n".join("a segfault, or some gate that is not pytest at all" for _ in range(50))
+# ── the 2026-08-24 defect: a selection that was WRONG rather than EMPTY ──────────────────────
+#
+# WORKER_FINDING_THE_GATES_REFUSAL_QUOTES_SIX_GREEN_LINES_WHEN_A_NON_PYTEST_GATE_REDS. The hook
+# runs TWELVE gates; the verdict vocabulary knows three. When the pytest gate PASSES and the
+# tenth gate reds, the pass's own green `[test-gate] ✓` lines are recognised vocabulary -- so
+# the old `if not verdict:` fallback could not fire, and the refusal printed six green ticks
+# under the word REFUSED. Worse than an empty excerpt, which at least admits it knows nothing.
+#
+# The falsifier and null control below are the ones that finding specified, verbatim.
 
-    excerpt = sl._verdict_excerpt(stream)
+_GREEN_TEST_GATE = "\n".join([
+    "578 passed, 14 warnings in 123.75s (0:02:03)",
+    "[test-gate] ✓ wall crossings reconcile at the tree this commit creates (6 live, 91 ruled)",
+    "[test-gate] ✓ the wall's four walker-invisible channels have not grown",
+    "[test-gate] ✓ every first-party reference resolves in the tree this commit creates",
+    "[test-gate] 18 test file(s): tests/tools/test_orphan_ratchet.py ...",
+    "[test-gate] ✓ all targeted tests green",
+])
 
-    assert excerpt.strip(), "the refusal went silent on a stream it did not recognise"
-    assert excerpt in stream
-    assert len(excerpt) <= 4000
+_RED_ORPHAN_RATCHET = "\n".join([
+    "orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS.",
+    "  tools.settlement_footprint_probe",
+    "Nothing imports these, and no committed systemd unit, timer or git hook runs them.",
+    "Wire it to something that runs, or -- if it is deliberately dormant -- say so by adding",
+    "it with `python3 tools/orphan_ratchet.py --freeze` in the SAME commit.",
+])
+
+
+def test_a_NON_PYTEST_gate_that_reds_after_a_green_pytest_gate_is_named():
+    """THE FALSIFIER the finding asked for. Not one character of the orphan-ratchet block
+    survived into the real refusal; reconstructing it cost a hand-written script and a second
+    gate cycle."""
+    excerpt = sl._verdict_excerpt(_GREEN_TEST_GATE + "\n" + _RED_ORPHAN_RATCHET,
+                                  _incident_stderr())
+
+    assert "orphan-ratchet: THIS COMMIT ADDS WORK" in excerpt, (
+        "the refusal names none of the gate that actually red. `orphan-ratchet:` is not in the "
+        "verdict vocabulary and never should be -- nine of the twelve gates are not, and "
+        "naming them one at a time is an instance fix for a class defect (R10)"
+    )
+    assert "tools.settlement_footprint_probe" in excerpt, "the subject was dropped"
+    assert "--freeze" in excerpt, "the repair command was dropped"
+
+
+def test_MUTATION_a_green_chain_still_shows_its_green_lines_and_claims_no_refusal():
+    """The finding's own null control: the same stream with the red block removed must still
+    excerpt the green lines and must not report a refusal, or the fix has moved the blind spot
+    rather than closed it."""
+    excerpt = sl._verdict_excerpt(_GREEN_TEST_GATE)
+
+    assert "all targeted tests green" in excerpt
+    assert "orphan-ratchet" not in excerpt
+    assert "REFUS" not in excerpt, "the excerpt invented a refusal on a green chain"
+
+
+def test_the_tail_is_the_FLOOR_and_not_the_fallback():
+    """The structural property that closes the class: whatever a `cmd || exit 1` chain wrote
+    LAST is always present, whether or not anything in the stream is recognised vocabulary.
+    That is what makes the twelve gates' twelve vocabularies stop mattering."""
+    stdout = _GREEN_TEST_GATE + "\nsome twelfth gate nobody has a marker for said NO"
+
+    excerpt = sl._verdict_excerpt(stdout)
+
+    assert "some twelfth gate nobody has a marker for said NO" in excerpt
+
+
+def test_a_stream_with_no_recognisable_verdict_still_shows_its_bounded_tail():
+    """FAIL-CLOSED, not fail-open: an unrecognised stream degrades to a bounded tail, never to
+    an empty excerpt. A selector that printed nothing when it recognised nothing would be
+    strictly worse than the slice it replaced."""
+    stdout = "\n".join("a segfault, or some gate that is not pytest at all" for _ in range(50))
+
+    excerpt = sl._verdict_excerpt(stdout)
+
+    assert "a segfault, or some gate that is not pytest at all" in excerpt
+    assert len(excerpt) <= 4200, "the excerpt is no longer bounded"
 
 
 def test_an_empty_gate_stream_says_so_rather_than_refusing_with_nothing():
     for empty in ("", "   \n\n  "):
         excerpt = sl._verdict_excerpt(empty)
         assert excerpt.strip(), "a refusal with a literally empty diagnostic"
-        assert excerpt == sl._NO_OUTPUT
+        assert sl._NO_OUTPUT in excerpt
 
 
 def test_the_excerpt_stays_bounded_and_keeps_the_count_when_the_verdict_itself_is_huge():
     """The signal is bounded in the happy case but not in principle -- 900 red nodes must not
     blow the budget, and the line that says HOW MANY there were is the one that must survive."""
-    stream = "\n".join(
+    stdout = "\n".join(
         ["FAILED tests/some/very/long/path/test_module_{}.py::test_a_named_case".format(i)
          for i in range(900)]
         + ["900 failed, 12 passed in 240.0s"]
     )
 
-    excerpt = sl._verdict_excerpt(stream)
+    excerpt = sl._verdict_excerpt(stdout)
 
-    assert len(excerpt) <= 4000, "the excerpt is no longer bounded"
+    assert len(excerpt) <= 4200, "the excerpt is no longer bounded"
     assert "900 failed, 12 passed" in excerpt, (
         "truncation dropped the count -- the operator cannot tell a truncated list from a "
         "complete one"
@@ -1013,9 +1116,10 @@ def test_the_excerpt_stays_bounded_and_keeps_the_count_when_the_verdict_itself_i
 
 
 def test_a_red_landing_refuses_with_the_failed_node_in_the_message(repo: Path):
-    """End-to-end, through the real hook and real streams: the property only holds because
-    `run_gate` concatenates stdout BEFORE stderr, so it is worth proving against a subprocess
-    rather than a hand-built string."""
+    """End-to-end, through the real hook and real subprocess streams. Worth proving here and
+    not only on a hand-built string, because the property depends on `run_gate` keeping the two
+    streams APART -- a regression to concatenation would put 400 lines of stderr where the
+    verdict is and pass every string-level test above."""
     noisy_hook = textwrap.dedent(
         """\
         #!/bin/sh
@@ -1043,5 +1147,12 @@ def test_a_red_landing_refuses_with_the_failed_node_in_the_message(repo: Path):
         "the refusal still cannot name the node it fired on"
     )
     assert "1 failed, 9 passed" in message
-    assert "SyntaxWarning" not in message, "the noise came back into the refusal"
+    # The noise is DEMOTED, not deleted: it must not be in the section a reader consults for
+    # the verdict, and it must not outweigh that section. Deleting stderr outright would blind
+    # the refusal to a gate that dies on a traceback, which is the mirror defect.
+    verdict_section, _, err_section = message.partition("gate stderr")
+    assert "SyntaxWarning" not in verdict_section, (
+        "the noise came back into the section that carries the verdict"
+    )
+    assert len(err_section) < len(verdict_section), "stderr is crowding out stdout"
     assert _head(repo) == before, "a red gate must commit nothing"

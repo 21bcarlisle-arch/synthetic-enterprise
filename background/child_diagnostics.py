@@ -51,14 +51,20 @@ NTFY_STDERR_CHARS = 240
 NOT_PIPED = "not captured by the launch site (stream was not piped)"
 SAID_NOTHING = "empty (the child wrote nothing to it)"
 
-#: Rendered when the excerpt SELECTED lines rather than sliced a tail, so the label never
-#: claims a positional read the excerpt did not perform.
-SELECTED_LABEL = "the lines that decide the verdict"
-#: Rendered when nothing was recognised and the excerpt fell back to the old positional slice.
-TAIL_LABEL = "last {} lines, nothing recognisable to select"
+#: Labels. The header says which of the two reads produced the lines under it, because
+#: "last 40 lines" printed over a selection is a small lie that costs a reader the one thing
+#: the header is for: knowing whether the lines above are all there were.
+SELECTED_LABEL = "the verdict lines a {}-line tail would lose, then that tail"
+TAIL_LABEL = "last {} lines"
 
 VERDICT_TRUNCATED = "  [... earlier verdict lines dropped to fit the excerpt budget ...]"
+TAIL_JOIN = ("  [... and the last {} lines, where a fail-fast chain leaves the refusal of "
+             "whichever step went red ...]")
 NO_OUTPUT = "<the gate produced no output to quote>"
+
+#: How much of a stream the tail is, when a caller does not say. Sized like STDERR_TAIL_LINES
+#: for the same reason: one Python traceback, or one gate's refusal block, fits comfortably.
+DEFAULT_TAIL_LINES = STDERR_TAIL_LINES
 
 #: pytest's own count line ("5 failed, 2600 passed in 118.4s"), the line that says whether a
 #: list of red nodes is whole. Shared with `tools/surgical_land.py::_test_summary`.
@@ -129,58 +135,100 @@ def is_verdict_line(line: str) -> bool:
 def verdict_excerpt(text: str, *, max_chars: int | None = None,
                     max_lines: int | None = None,
                     empty_marker: str = NO_OUTPUT) -> tuple[str, bool]:
-    """SELECT the lines that decide a verdict, rather than SLICE the stream's tail.
+    """The stream's TAIL, plus the earlier verdict lines that tail would lose.
 
-    Returns `(excerpt, selected)` — the second element says which of the two happened, so a
-    caller can LABEL its excerpt honestly instead of printing "last 40 lines" over a selection.
+    Returns `(excerpt, selected)` — `selected` says whether anything was added ahead of the
+    tail, so a caller can label its excerpt honestly.
 
-    WHY POSITION IS THE WRONG SELECTOR AT ANY BUDGET (two incidents, same shape):
+    TWO READS, BOTH NECESSARY, AND THE HISTORY IS WHY EITHER ALONE IS FAIL-OPEN.
 
-    * 2026-08-20, `surgical_land`'s gate refusal (WORKER_FINDING_THE_GATES_REFUSAL_TAIL_IS_FOUR_
-      THOUSAND_CHARACTERS_OF_ONE_WARNING). The gate's stdout+stderr are concatenated in that
-      order; pytest's verdict goes to stdout and import-time SyntaxWarnings to stderr, so the
-      tail systematically kept the noise and dropped the verdict — REPRODUCIBLY, not unluckily.
-      One `\\_` in an f-string filled all 4000 characters and cost a whole extra gate cycle.
-    * 2026-08-21, the publisher's refusals in `background-worker-log.md`. Same shape on a
-      single stream: a publish prints ~100 `Generated site/data/*.json` progress lines AFTER
-      the sentence that names the refusal, so `lines[-40:]` is a list of things that went
-      right. On the 17:37Z cycle the forty lines shown were forty successes.
+    *The tail alone was wrong* (2026-08-20 and 2026-08-21, two incidents, one shape). A publish
+    prints ~100 `Generated site/data/*.json` lines AFTER the sentence naming its refusal, so
+    `lines[-40:]` was a list of things that went RIGHT; and a gate's stdout+stderr concatenated
+    put import-time SyntaxWarnings after pytest's verdict, so one `\\_` in an f-string filled
+    all 4000 characters. In both the noise is UNBOUNDED and the signal BOUNDED, so no budget
+    rescues a positional read on its own.
 
-    In both, the noise in the stream is UNBOUNDED and the signal is BOUNDED. That asymmetry is
-    the whole argument: no budget rescues a positional read of a stream whose tail is written
-    by whatever the runtime did last.
+    *The selection alone was ALSO wrong, and worse* (2026-08-24,
+    WORKER_FINDING_THE_GATES_REFUSAL_QUOTES_SIX_GREEN_LINES_WHEN_A_NON_PYTEST_GATE_REDS). The
+    first version of this function returned the selection and fell back to the tail only when
+    the selection was EMPTY — keyed on the selection being empty, never on its being WRONG.
+    `tools/git-hooks/pre-commit` runs TWELVE gates and the vocabulary below knows three of
+    them; when the pytest gate PASSES and the tenth gate reds, the pass's own green
+    `[test-gate] ✓` lines are recognised vocabulary, the fallback cannot fire, and the refusal
+    hands its reader six green ticks under the word REFUSED. That is worse than an empty
+    excerpt: an empty one says it knows nothing, and this one invites the inference that the
+    refusal is spurious — which ends in a bypass, and bypass is a WALL.
 
-    FAIL-CLOSED, NOT FAIL-OPEN. A stream with no recognisable verdict line degrades to the
-    bounded tail — the OLD behaviour, never worse than it — and a stream with nothing in it at
-    all says so explicitly. This never returns an empty excerpt: a refusal that cannot say why
-    it fired is one an operator learns to bypass, which is the failure HOOK-BYPASS IS A WALL
-    exists to prevent.
+    SO THE TAIL IS NOT THE FALLBACK, IT IS THE FLOOR. It is always present, and the selection
+    is only ever ADDED to it. That closes the vocabulary hole STRUCTURALLY rather than by
+    naming nine more gates (R10: an instance fix for a class defect, which decays the moment a
+    thirteenth gate is added): a `cmd || exit 1` chain stops at its first failure, so whichever
+    step reds wrote the END of the stream — which is exactly what a tail is good at, and needs
+    no vocabulary at all. The selection's remaining job is the one the tail genuinely cannot
+    do: carry the individual FAILED nodes out of a pytest run that printed 200 lines after
+    them.
+
+    Requires the caller to hand it ONE stream. Concatenating stdout and stderr defeats the
+    floor, because then the tail belongs to whichever stream was appended last rather than to
+    the step that failed — see `surgical_land.run_gate`, which stopped doing that on the same
+    day for this reason.
+
+    This never returns an empty excerpt: a refusal that cannot say why it fired is one an
+    operator learns to bypass.
     """
-    lines = text.splitlines() if isinstance(text, str) else []
-    verdict = [ln for ln in lines if is_verdict_line(ln)]
-    if not verdict:
-        tail = _positional_tail(text, max_chars=max_chars, max_lines=max_lines)
-        return (tail if tail.strip() else empty_marker), False
+    lines = [ln.rstrip() for ln in text.splitlines() if ln.strip()] if isinstance(text, str) \
+        else []
+    if not lines:
+        return empty_marker, False
 
-    if max_lines is not None and len(verdict) > max_lines:
-        # Keep the EARLIEST verdict lines (the individual red nodes, and the CAUSE line that
-        # sits above its consequences) and always keep the LAST one (pytest's count, or the
-        # final refusal) — the line that tells you whether the list above it is whole.
-        verdict = verdict[: max(max_lines - 2, 1)] + [VERDICT_TRUNCATED, verdict[-1]]
+    tail_n = max_lines if max_lines is not None else DEFAULT_TAIL_LINES
+    cut = max(0, len(lines) - tail_n)
+    tail = lines[cut:]
+    # ONLY the verdict lines the tail would lose. A verdict line already inside the tail is
+    # printed by the tail; repeating it would spend the budget saying the same thing twice.
+    earlier = [ln for ln in lines[:cut] if is_verdict_line(ln)]
 
-    selected = "\n".join(verdict)
-    if max_chars is not None and len(selected) > max_chars:
-        last = verdict[-1]
-        budget = max_chars - len(last) - len(VERDICT_TRUNCATED) - 2
-        keep: list[str] = []
-        used = 0
-        for line in verdict[:-1]:
-            if line == VERDICT_TRUNCATED or used + len(line) + 1 > budget:
-                break
-            keep.append(line)
-            used += len(line) + 1
-        selected = "\n".join(keep + [VERDICT_TRUNCATED, last])
-    return selected, True
+    if not earlier:
+        return _cap_chars("\n".join(tail), max_chars), False
+
+    joiner = TAIL_JOIN.format(len(tail))
+    # THE TAIL HAS PRIORITY IN THE BUDGET. It is the part that explains the refusal; the
+    # earlier verdict lines are context for it. A budget that squeezed the tail out to fit
+    # more FAILED nodes would reintroduce the defect above at a smaller scale.
+    floor = "\n".join([joiner] + tail)
+    if max_chars is not None and len(floor) >= max_chars:
+        return _cap_chars("\n".join(tail), max_chars), False
+
+    keep: list[str] = []
+    used = 0 if max_chars is None else len(floor) + 1
+    dropped = False
+    for line in earlier:
+        if len(keep) >= tail_n or (max_chars is not None
+                                   and used + len(line) + 1 + len(VERDICT_TRUNCATED) > max_chars):
+            dropped = True
+            break
+        keep.append(line)
+        used += len(line) + 1
+    if dropped:
+        # NO SILENT CAPS. A truncated list that does not say so reads as a complete one.
+        keep = keep[:-1] + [VERDICT_TRUNCATED] if keep else [VERDICT_TRUNCATED]
+    return "\n".join(keep + [joiner] + tail), True
+
+
+def _cap_chars(text: str, max_chars: int | None) -> str:
+    """Trim to a character budget from the END, on a line boundary.
+
+    A raw `text[-n:]` opens the excerpt mid-token (`t.py:7952: SyntaxWarning...`), and a reader
+    who cannot tell a truncated line from a real one spends the first second of a diagnosis on
+    the wrong question. Dropping the partial line costs one line and removes the ambiguity;
+    when the budget cannot hold even one whole line, the character slice is still better than
+    nothing and is returned as-is."""
+    if max_chars is None or len(text) <= max_chars:
+        return text
+    cut = text[-max_chars:]
+    _, sep, rest = cut.partition("\n")
+    return rest if sep and rest.strip() else cut
 
 
 def _positional_tail(text: object, *, max_chars: int | None,
@@ -278,7 +326,7 @@ def child_output_excerpt(stdout: object, stderr: object, *,
         if not excerpt.strip():
             parts.append("  child {}: {}".format(name, SAID_NOTHING))
             continue
-        label = SELECTED_LABEL if selected else TAIL_LABEL.format(limit)
+        label = SELECTED_LABEL.format(limit) if selected else TAIL_LABEL.format(limit)
         parts.append("  child {} ({}):\n{}".format(name, label, excerpt))
     return "\n".join(parts)
 

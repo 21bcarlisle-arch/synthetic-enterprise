@@ -51,6 +51,7 @@ from background.child_diagnostics import (
     SAID_NOTHING,
     SELECTED_LABEL,
     STDERR_TAIL_LINES,
+    TAIL_LABEL,
     VERDICT_TRUNCATED,
     child_output_excerpt,
 )
@@ -143,6 +144,14 @@ class TestTheExcerptShowsBothStreams:
 # MUTATION SENSITIVITY (R15) — each proven by reverting the fix, not asserted:
 #   * revert `child_output_excerpt` to `stderr_tail(raw, limit)` ->
 #     `test_the_verdict_survives_the_progress_lines_printed_after_it` red.
+#
+# CORRECTED 2026-08-24, same day, by
+# WORKER_FINDING_THE_GATES_REFUSAL_QUOTES_SIX_GREEN_LINES_WHEN_A_NON_PYTEST_GATE_REDS: the
+# first version of this fix made the tail a FALLBACK that fired only when the selection was
+# EMPTY, never when it was WRONG -- so a recognised-but-green line disarmed it. The tail is now
+# the FLOOR: always present, with the earlier verdict lines ADDED to it. These tests therefore
+# assert that the verdict REACHES the excerpt, never that the progress lines are absent from
+# it; the second shape is what encoded the fail-open.
 #   * drop VERDICT_PHRASES (leaving only the shouted markers) ->
 #     `test_every_refusal_the_publisher_can_issue_is_selected` red on the two refusals that
 #     carry no shouted word (`could NOT materialise ... not committing`, `DID NOT FINISH`).
@@ -163,7 +172,7 @@ class TestTheExcerptShowsBothStreams:
 EVERY_PUBLISHER_REFUSAL = [
     "- [17:37 UTC] [process_run] Tests FAILED - not committing",
     "- [17:37 UTC] [process_run] Publish gate: could NOT materialise a clean HEAD checkout "
-    "-- not committing. ",
+    "-- not committing.",
     "- [17:37 UTC] [process_run] Fast test suite timed out (>1800s) -- NOT committing.",
     "- [17:37 UTC] [process_run] Scoped publish-path gate DID NOT FINISH (>1800s) - not "
     "committing content; the gate never returned a verdict",
@@ -196,8 +205,8 @@ class TestTheExcerptSelectsTheVerdictRatherThanTheTail:
         text = child_output_excerpt(REAL_REFUSAL_THEN_PROGRESS, "")
 
         assert "Scoped publish-path gate FAILED" in text
-        assert "Generated site/data/thing_99.json" not in text, (
-            "the excerpt is still showing the hundred things that went right"
+        assert text.count("Generated site/data/") <= STDERR_TAIL_LINES, (
+            "the excerpt is unbounded -- the hundred progress lines are all in it"
         )
 
     @pytest.mark.parametrize("refusal", EVERY_PUBLISHER_REFUSAL)
@@ -213,14 +222,17 @@ class TestTheExcerptSelectsTheVerdictRatherThanTheTail:
         )
         text = child_output_excerpt(stream, "")
         assert refusal in text, "this refusal is invisible to the selector"
-        assert "Generated site/data/" not in text
 
     def test_the_publishers_progress_prefix_is_not_a_verdict_marker(self):
         """Every line in that fixture carries `[process_run]`, including all hundred progress
-        lines. Selecting on the prefix that happens to sit on the refusal would rebuild the
-        positional tail with extra steps — and would pass the test above while doing it."""
+        lines. Selecting on the prefix that happens to sit on the refusal would drag all
+        hundred in ON TOP OF the tail — roughly tripling the excerpt while adding nothing, and
+        turning a bounded diagnostic into a second copy of the log."""
         text = child_output_excerpt(REAL_REFUSAL_THEN_PROGRESS, "")
-        assert text.count("Generated site/data/") == 0
+        assert text.count("Generated site/data/") <= STDERR_TAIL_LINES, (
+            "progress lines were selected as verdict lines: {} of them in what should be a "
+            "{}-line tail".format(text.count("Generated site/data/"), STDERR_TAIL_LINES)
+        )
 
     def test_ordinary_lowercase_prose_about_failure_is_not_a_verdict(self):
         """This project shouts its refusals and narrates in lowercase. A case-insensitive
@@ -230,7 +242,7 @@ class TestTheExcerptSelectsTheVerdictRatherThanTheTail:
              "retrying the refused push after a transient failure"] * 30
         )
         text = child_output_excerpt(prose, "")
-        assert "last {} lines".format(STDERR_TAIL_LINES) in text, (
+        assert TAIL_LABEL.format(STDERR_TAIL_LINES) in text, (
             "lowercase prose was treated as a verdict, so the header claims a selection it "
             "did not make"
         )
@@ -259,12 +271,11 @@ class TestTheExcerptSelectsTheVerdictRatherThanTheTail:
         """"last 40 lines" printed over a selection is a small lie that costs the reader the
         one thing the header is for: whether the lines above it are all there were."""
         selected = child_output_excerpt(REAL_REFUSAL_THEN_PROGRESS, "")
-        assert SELECTED_LABEL in selected
-        assert "last {} lines".format(STDERR_TAIL_LINES) not in selected
+        assert SELECTED_LABEL.format(STDERR_TAIL_LINES) in selected
 
         sliced = child_output_excerpt("nothing recognisable here at all", "")
-        assert SELECTED_LABEL not in sliced
-        assert "last {} lines".format(STDERR_TAIL_LINES) in sliced
+        assert SELECTED_LABEL.format(STDERR_TAIL_LINES) not in sliced
+        assert TAIL_LABEL.format(STDERR_TAIL_LINES) in sliced
 
     def test_the_selection_stays_bounded_and_says_when_it_truncated(self):
         """The signal is bounded in the happy case but not in principle. 900 red nodes must
@@ -277,7 +288,7 @@ class TestTheExcerptSelectsTheVerdictRatherThanTheTail:
         )
         text = child_output_excerpt(stream, "")
 
-        assert len(text.splitlines()) <= STDERR_TAIL_LINES + 4
+        assert len(text.splitlines()) <= 2 * STDERR_TAIL_LINES + 4
         assert "900 failed, 12 passed" in text, "truncation dropped the count"
         assert VERDICT_TRUNCATED in text, "truncation happened silently (no silent caps)"
         assert "test_module_0.py" in text, "the earliest red nodes are what you act on first"
