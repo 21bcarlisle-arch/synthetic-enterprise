@@ -71,6 +71,7 @@ PRODUCER_STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".sim_producer_st
 BETWEEN_RUN_PAUSE_SECONDS = 60  # brief pause between back-to-back runs
 
 sys.path.insert(0, str(PROJECT_DIR))
+from background import publisher_budget  # noqa: E402
 from background.notify import notify  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 from background.agent_protocol import AgentMessage  # noqa: E402
@@ -440,24 +441,25 @@ def auto_process_marker(marker):
 
 def _publisher_deadline_seconds():
     """The deadline this loop puts on ONE publisher run -- the publisher's OWN declared
-    budget, never a number of ours.
+    budget, never a number of ours, and never one this process cached earlier.
 
-    Imported lazily and at CALL time (not bound at import) for the same reason the outcome
-    router below is lazy: this module must not acquire an import-time dependency on the
-    publish pipeline, and a constant snapshotted at import would go stale against a reloaded
-    module in exactly the tests that check this coupling.
+    READ FROM DISK, NOT FROM `sys.modules` (2026-08-22, and this loop is where it was
+    OBSERVED). The old body was a lazy `from background import process_run_complete` under a
+    docstring claiming a call-time import kept the number current. A lazy import is still a
+    one-time import. This daemon started at 16:45:22 on 2026-08-21, inside the 78 minutes
+    when `GATE_SUITE_TIMEOUT_SECONDS` was transiently 300 (commit 8d6f4a2b4), and cached
+    1200. The constant was corrected to 3400 at 17:28 and 3800 at 18:32; this loop went on
+    killing every publish at 1200s for ten hours, four cycles in a row, each recorded as
+    `deadline_kill` against a gate with `total_red: 0` and `blocking_tests: []`. The last of
+    them was killed with a GREEN gate behind it, mid-`git commit`.
 
-    FAIL-LONG, not fail-short. If the publisher is unimportable the subprocess is going to
-    fail immediately anyway, so the only thing a fallback can do is re-create the bug by
-    being too small. Deliberately larger than any bound the publisher currently declares;
-    `tests/background/test_publisher_deadline_exceeds_its_gate.py` pins the real coupling for
-    EVERY caller that spawns the publisher, this one included."""
+    FAIL-LONG, not fail-short. A too-long deadline delays one diagnosis; a too-short one
+    decides the inner gate's verdict by stopwatch, which is the whole defect."""
     try:
-        from background import process_run_complete as prc
-        return prc.PUBLISH_PATH_TIMEOUT_SECONDS
+        return publisher_budget.declared_publisher_budget_seconds()
     except Exception as exc:
-        log('publisher deadline falling back (publisher module unreadable: {})'.format(exc))
-        return 60 * 60
+        log('publisher deadline falling back (publisher would not declare it: {})'.format(exc))
+        return publisher_budget.FALLBACK_SECONDS
 
 
 def _record_publish_gate_outcome(marker, rc, *, kind=None):

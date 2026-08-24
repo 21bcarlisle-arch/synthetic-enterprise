@@ -13,6 +13,8 @@ lock), draw-error is loud-not-spawn.
 """
 import importlib
 import json
+import os
+import threading
 from pathlib import Path
 
 import pytest
@@ -93,7 +95,13 @@ def test_p2_timer_and_path_are_independent_triggers():
     timer = (REPO / "background" / "worker-tick.timer").read_text()
     path = (REPO / "background" / "worker-tick.path").read_text()
     svc = (REPO / "background" / "worker-tick.service").read_text()
-    assert "[Timer]" in timer and "OnUnitActiveSec=60s" in timer          # timer wakes every 60s
+    # The PROPERTY is that a periodic wake exists and is armed at boot, NOT its period: the cadence
+    # is a director-moved DIAL (60s -> 4h weekend stand-down -> 1800s on 2026-08-24) and pinning the
+    # number here only reds this file every time he moves it -- which wedges the whole module,
+    # because the pre-commit gate selects tests by filename stem.
+    assert "[Timer]" in timer and "OnBootSec=" in timer                    # armed at boot
+    period = [l for l in timer.splitlines() if l.startswith("OnUnitActiveSec=")]
+    assert period and int(period[0].split("=")[1].rstrip("s")) > 0         # ...and wakes again
     assert "[Path]" in path and "PathModified=" in path                    # path wakes on a staged doc
     assert "Unit=worker-tick.service" in path                              # path -> the same service
     assert "Type=oneshot" in svc and "background.worker_tick" in svc       # the service runs the tick
@@ -140,6 +148,145 @@ def test_stale_lock_dead_pid_reclaimed(_isolate):
 def test_malformed_lock_not_in_flight(_isolate):
     (_isolate / ".worker_tick.lock").write_text("{not json")
     assert wt.invocation_in_flight() is False
+
+
+# ---- H44: the claim is ATOMIC and precedes the draw (no TOCTOU double-spawn) -------------------
+
+def _flags_on(tmp):
+    (tmp / ".build_executor_enabled").write_text("")
+    (tmp / ".scheduled_invocations_enabled").write_text("")
+
+
+class _FakeProc:
+    def __init__(self, pid=4321):
+        self.pid = pid
+
+    def wait(self):
+        return 0
+
+
+def test_h44_a_second_tick_arriving_mid_draw_cannot_claim(_isolate, monkeypatch):
+    """THE defect: run_tick used to check invocation_in_flight(), THEN do the draw (origin sync +
+    find_work -- real I/O, real wall time), THEN write the lock only after spawning. Two ticks
+    overlapping in that window both read the lock free and both spawned; the second _write_lock
+    overwrote the first, so the wreckage looked like one legitimate holder.
+
+    Proven by putting the second tick's claim INSIDE the first tick's draw -- the exact window."""
+    _flags_on(_isolate)
+    race = {}
+
+    def _draw_with_a_second_tick_arriving():
+        race["claimed_mid_draw"] = wt._claim_lock(os.getpid(), "the second tick")
+        return ("unprocessed staging -- BAZ.md", False)
+
+    monkeypatch.setattr(wt, "_draw", _draw_with_a_second_tick_arriving)
+    monkeypatch.setattr(wt, "spawn_invocation", lambda reason: _FakeProc())
+    d = wt.run_tick()
+    assert d.outcome == "SPAWNED"                 # the first tick did its work
+    assert race["claimed_mid_draw"] is False      # ...and the second could NOT also claim
+
+
+def test_h44_mutation_the_old_check_then_write_shape_does_double_claim(_isolate, monkeypatch):
+    """R15 mutation: restore the PRE-FIX shape (check in_flight, claim nothing) and the same probe
+    now says the second tick was free to spawn too. So the assertion above is a property of the
+    atomic claim, not of the probe never being able to succeed."""
+    _flags_on(_isolate)
+    monkeypatch.setattr(wt, "_claim_lock", lambda pid, reason: not wt.invocation_in_flight())
+    race = {}
+
+    def _draw_with_a_second_tick_arriving():
+        race["claimed_mid_draw"] = wt._claim_lock(os.getpid(), "the second tick")
+        return ("unprocessed staging -- BAZ.md", False)
+
+    monkeypatch.setattr(wt, "_draw", _draw_with_a_second_tick_arriving)
+    monkeypatch.setattr(wt, "spawn_invocation", lambda reason: _FakeProc())
+    wt.run_tick()
+    assert race["claimed_mid_draw"] is True       # the defect, present exactly when the fix is off
+
+
+def test_h44_two_overlapping_run_ticks_spawn_exactly_once(_isolate, monkeypatch):
+    """End-to-end: two run_tick() calls genuinely overlapping (the first is held inside its slow
+    draw while the second runs start to finish) produce ONE spawn, and the loser rests LOCK_HELD."""
+    _flags_on(_isolate)
+    first_in_draw = threading.Event()
+    second_done = threading.Event()
+    spawns = []
+
+    def _slow_draw():
+        first_in_draw.set()
+        second_done.wait(timeout=10)              # bounded: never wedges the suite
+        return ("unprocessed staging -- BAZ.md", False)
+
+    monkeypatch.setattr(wt, "_draw", _slow_draw)
+    monkeypatch.setattr(wt, "spawn_invocation",
+                        lambda reason: (spawns.append(reason), _FakeProc(4321 + len(spawns)))[1])
+    outcomes = {}
+    first = threading.Thread(target=lambda: outcomes.__setitem__("first", wt.run_tick()))
+    first.start()
+    assert first_in_draw.wait(timeout=10), "the first tick never reached its draw"
+    outcomes["second"] = wt.run_tick()            # arrives while the first is mid-draw
+    second_done.set()
+    first.join(timeout=15)
+
+    assert outcomes["second"].outcome == "LOCK_HELD" and outcomes["second"].spawn is False
+    assert outcomes["first"].outcome == "SPAWNED"
+    assert len(spawns) == 1, f"double spawn: {spawns}"
+
+
+def test_h44_a_rested_tick_gives_the_claim_back(_isolate, monkeypatch):
+    """The claim is now taken BEFORE the draw, so a tick that draws nothing must release it — else
+    every rested tick would park a lock and the next tick would wait for a dead pid to be noticed."""
+    _flags_on(_isolate)
+    monkeypatch.setattr(wt, "_draw", lambda: (None, False))
+    monkeypatch.setattr(wt, "spawn_invocation", lambda reason: _FakeProc())
+    d = wt.run_tick()
+    assert d.outcome == "REST_NO_WORK"
+    assert not (_isolate / ".worker_tick.lock").exists()
+    assert wt.invocation_in_flight() is False
+
+
+def test_h44_a_broken_draw_still_releases_the_claim(_isolate, monkeypatch):
+    """Same, for the exception path: a draw that RAISES (not one that returns an Exception) must
+    not leave the slot claimed by a process that is about to exit."""
+    _flags_on(_isolate)
+
+    def _explode():
+        raise RuntimeError("supervisor import blew up")
+
+    monkeypatch.setattr(wt, "_draw", _explode)
+    with pytest.raises(RuntimeError):
+        wt.run_tick()
+    assert not (_isolate / ".worker_tick.lock").exists()
+
+
+def test_h44_release_leaves_another_holders_claim_alone(_isolate):
+    """A blind unlink at the exit edge would delete whoever claimed the slot after a stale reclaim,
+    re-opening the window at the other end. Release is ownership-checked."""
+    (_isolate / ".worker_tick.lock").write_text(json.dumps({"pid": os.getpid(), "ts": 0}))
+    wt._release_lock(2_000_000_111)                       # not our pid -> not ours to drop
+    assert (_isolate / ".worker_tick.lock").exists()
+    wt._release_lock(2_000_000_111, os.getpid())          # ours -> dropped
+    assert not (_isolate / ".worker_tick.lock").exists()
+
+
+def test_h44_claim_reclaims_a_stale_lock_but_not_a_live_one(_isolate):
+    (_isolate / ".worker_tick.lock").write_text(json.dumps({"pid": 2_000_000_111, "ts": 0}))
+    assert wt._claim_lock(os.getpid(), "after a crashed invocation") is True   # stale -> reclaimed
+    assert json.loads((_isolate / ".worker_tick.lock").read_text())["pid"] == os.getpid()
+    assert wt._claim_lock(os.getpid(), "a second tick") is False               # live -> refused
+
+
+def test_h44_claim_refuses_when_the_lockfile_cannot_exist(_isolate, monkeypatch):
+    """R15 fail-open check: with no lockfile there is no mutual exclusion, so an unavailable claim
+    must REST, not spawn. An unavailable control is a failed control."""
+    monkeypatch.setattr(wt, "LOCK_FILE", _isolate / "not-a-dir" / "sub" / ".worker_tick.lock")
+    (_isolate / "not-a-dir").write_text("")               # a FILE where the lock's parent must be
+    assert wt._claim_lock(os.getpid(), "x") is False
+    _flags_on(_isolate)
+    monkeypatch.setattr(wt, "_draw", lambda: ("unprocessed staging -- BAZ.md", False))
+    spawns = []
+    monkeypatch.setattr(wt, "spawn_invocation", lambda reason: spawns.append(reason))
+    assert wt.run_tick().outcome == "LOCK_HELD" and spawns == []
 
 
 def test_draw_error_is_loud_not_spawn():

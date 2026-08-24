@@ -5210,3 +5210,19 @@
   file_scope: ['docs/design/maturity_map.yaml', 'tools/simplifications_store.py', 'background/naive_organ.py', 'tests/design/test_maturity_map_schema.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a regulator's data-quality rulebook -- every register declares who reads it, who may write it, how it is bounded, and how a check on it was proven to catch a planted error, rather than trusting each new register to reinvent the same disciplines"
+- id: H44_worker_tick_lock_toctou
+  title: "worker_tick.py's spawn lock has a real TOCTOU window: two overlapping run_tick() calls can both spawn"
+  gain: "WORKER_FINDING_TWO_LIVE_WORKER_INVOCATIONS_RAN_THE_IDENTICAL_DOORBELL_CONCURRENTLY_2026-08-24 observed two live `claude -p` invocations carrying byte-identical doorbell text at 2026-08-24 07:25, one already mid-git-commit while the other (this session) started cold on the same staging queue. `.worker_tick.lock` named only one holder, correctly, but that is consistent with a genuine race, not proof one never happened: `run_tick()` (background/worker_tick.py:379-397) checks `invocation_in_flight()` once, then does the origin-sync + find_work() draw (real I/O, non-trivial wall time), and only calls `_write_lock()` AFTER `spawn_invocation()` returns -- so two overlapping check-windows can both read the lock free and both spawn; the second `_write_lock()` simply overwrites the first's entry, leaving exactly one apparently-legitimate holder even when two children ran. Cost: a second full context stream re-reads the whole repo/CLAUDE.md for work the first stream is already doing (direct token cost, zero marginal value) plus real tree-corruption risk from two uncoordinated agentic sessions editing the same shared tree -- exactly the class the docstring says the lock prevents. Fix: make invocation_in_flight() + _write_lock() one atomic critical section (e.g. os.open(LOCK_FILE, O_CREAT | O_EXCL) claimed BEFORE the draw, released/overwritten only by the same pid, stale lock still reclaimed on a dead pid as today) and add a test starting two run_tick() calls with an artificially slow _draw() that asserts only one spawns."
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 1
+  level_target: 1
+  loop_stage: harden
+  dial_inherited: 2
+  provenance: worker_finding
+  depends_on: []
+  couples_with: []
+  file_scope: ['background/worker_tick.py', 'tests/background/test_worker_tick.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real ops team's cron-locking discipline -- a scheduler that can double-spawn on a slow draw is the same class of bug as a duplicate payment run, caught by making the claim-and-check one atomic step rather than two"

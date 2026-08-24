@@ -556,6 +556,15 @@ REVIEWED_CLOSE_TO_LEARN = {
     # can be trusted to declare their reader/writer/bound/death, the same close_to_learn class as
     # its H_harness siblings H29-H35 (test-isolation, diagnosability, control-integrity).
     "H43_birth_certificate_law_remaining_instantiations",
+    # 2026-08-24 reviewed (worker tick, self-minted from a live observed defect --
+    # WORKER_FINDING_TWO_LIVE_WORKER_INVOCATIONS_RAN_THE_IDENTICAL_DOORBELL_CONCURRENTLY_2026-08-24).
+    # H44 is a SCHEDULER-CORRECTNESS atom -- worker_tick.py's check-then-spawn-then-lock
+    # sequence has a real TOCTOU window that can double-spawn on a slow draw. It moves no
+    # money and touches no revenue flow; what it produces is whether the scheduler that
+    # decides which turn runs can be trusted not to run two, the same close_to_learn class
+    # as its H_harness siblings H29-H35/H43 (test-isolation, diagnosability, control-
+    # integrity, governance-data contracts).
+    "H44_worker_tick_lock_toctou",
 }
 
 # The coupled topology landed in the yaml (C5). Each pair is world<->company as

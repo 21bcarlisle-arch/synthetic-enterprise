@@ -9,7 +9,9 @@ rest ~128.7k tok/h) — all from a resident turn-chain that must pay inference t
 THE WHOLE JOB (cheap Python, NO model inference):
   1. Autonomy enabled?  (.build_executor_enabled, fail-closed)          -> else exit 0
   2. Scheduled mode on?  (.scheduled_invocations_enabled)               -> else exit 0 (dark/pre-cutover)
-  3. An invocation already live?  (lockfile + live-pid check)           -> else exit 0 (no stacking)
+  3. CLAIM the spawn slot (O_EXCL lockfile; a stale/dead holder is reclaimed) -> else exit 0 (no
+       stacking). Claimed BEFORE step 4 because step 4 is real I/O: checking first and writing the
+       lock after the spawn is a TOCTOU window as wide as the draw (H44).
   4. Sync origin-staged docs (RC3) + find_work() — the sole draw authority.
        - no work (drained-and-gated)  -> exit 0    <== ZERO tokens: this is what makes rest cheap (P1)
        - work                          -> spawn ONE `claude -p "<doorbell>"` (headless,
@@ -227,11 +229,73 @@ def invocation_in_flight() -> bool:
         return False  # malformed/unreadable lock => treat as free (fail toward progress; single tick)
 
 
+def _lock_payload(pid: int, reason: str) -> str:
+    return json.dumps({"pid": pid, "ts": time.time(), "reason": reason[:300]})
+
+
 def _write_lock(pid: int, reason: str) -> None:
+    """Overwrite the lock's holder. Only legitimate for a caller that ALREADY owns the claim —
+    it hands the slot from the tick process to the invocation it just spawned. Claiming is
+    _claim_lock's job; this call cannot be the claim, which is exactly the H44 defect."""
     try:
-        LOCK_FILE.write_text(json.dumps({"pid": pid, "ts": time.time(), "reason": reason[:300]}))
+        LOCK_FILE.write_text(_lock_payload(pid, reason))
     except Exception:
         pass
+
+
+def _claim_lock(pid: int, reason: str) -> bool:
+    """Atomically claim the spawn slot. True iff THIS process now owns the lockfile.
+
+    O_CREAT|O_EXCL makes the check and the claim ONE step. The old two-step shape
+    (invocation_in_flight() ... draw ... _write_lock() after the spawn) left a window as wide as
+    the draw's origin-sync + find_work() I/O in which two ticks could both read the lock free and
+    both spawn — and the second _write_lock() then OVERWROTE the first, so the evidence afterwards
+    was a single apparently-legitimate holder even when two `claude -p` sessions were live on the
+    same shared tree (H44_worker_tick_lock_toctou).
+
+    A STALE lock (dead holder / malformed / unreadable) is reclaimed exactly ONCE and the atomic
+    create retried, so a crashed invocation never wedges the tick — the same fail-toward-progress
+    rule invocation_in_flight() has always had. Losing that retry means another tick claimed it
+    first: not ours.
+
+    Any OTHER failure to create the file (unwritable dir, permissions) returns False and LOGS: with
+    no lockfile there is no mutual exclusion at all, so spawning would double-spawn on every tick.
+    An unavailable control is a FAILED control (R15) — a visible rest beats a silent stacking."""
+    for reclaimed in (False, True):
+        try:
+            LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+            fd = os.open(str(LOCK_FILE), os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+        except FileExistsError:
+            if reclaimed or invocation_in_flight():
+                return False                      # a live holder, or we already spent the reclaim
+            with contextlib.suppress(Exception):  # stale -> reclaim once, then retry atomically
+                LOCK_FILE.unlink()
+            continue
+        except Exception as e:
+            _log(f"LOCK UNAVAILABLE ({e!r}) — refusing to spawn: no lockfile means no no-stacking")
+            return False
+        try:
+            os.write(fd, _lock_payload(pid, reason).encode())
+        except Exception:
+            pass
+        finally:
+            os.close(fd)
+        return True
+    return False
+
+
+def _release_lock(*owned_pids: int) -> None:
+    """Drop the lock only if it is still OURS. A blind unlink would delete a claim someone else
+    made after a stale reclaim, re-opening the double-spawn window at the exit edge. A malformed
+    or absent lock is garbage/gone and is cleared either way (it already reads as free)."""
+    try:
+        holder = int(json.loads(LOCK_FILE.read_text()).get("pid", 0))
+        if holder not in owned_pids:
+            return
+    except Exception:
+        pass
+    with contextlib.suppress(Exception):
+        LOCK_FILE.unlink()
 
 
 @dataclass
@@ -375,41 +439,49 @@ def run_tick() -> TickDecision:
     whole lifetime — see spawn_invocation)."""
     enabled = autonomy_enabled()
     scheduled = scheduled_mode()
-    # Cheap-first: don't even draw if disabled/dark/in-flight (no origin fetch, no work).
-    if not enabled or not scheduled or invocation_in_flight():
-        d = decide_tick(enabled, scheduled, invocation_in_flight() if enabled and scheduled else False,
-                        (None, False))
+    # Cheap-first: don't even draw if disabled/dark. Then CLAIM the spawn slot atomically BEFORE
+    # the draw (H44) — the draw is real I/O, and a check-then-draw-then-write lock is a TOCTOU
+    # window exactly that wide. Everything past this point runs holding the claim, so the release
+    # lives in a finally.
+    me = os.getpid()
+    claimed = _claim_lock(me, "tick drawing") if (enabled and scheduled) else False
+    if not enabled or not scheduled or not claimed:
+        d = decide_tick(enabled, scheduled, (enabled and scheduled and not claimed), (None, False))
         _write_health(d.outcome, d.detail)
         # Gated tick (paused/dark/in-flight): still ship a heartbeat for liveness, but skip the
         # map read -- the cheap path stays cheap (no supervisor import when autonomy is off).
         _write_heartbeat(d, f"(not evaluated -- tick {d.outcome})")
         _log(f"{d.outcome}: {d.detail[:120]}")
         return d
-    draw = _draw()
-    d = decide_tick(True, True, False, draw)
-    _write_health(d.outcome, d.detail)
-    # RAIL-3: ship the verdict + whole-set enumeration on every drew/rested/exception tick. _draw()
-    # already imported supervisor, so the enumeration read is free here.
-    _write_heartbeat(d, _enumeration_line())
-    if d.spawn:
-        proc = spawn_invocation(d.reason)
-        if proc is not None:
-            _write_lock(proc.pid, d.reason)
-            _log(f"SPAWNED bounded invocation pid={proc.pid}: {d.reason[:120]}")
-            try:
-                rc = proc.wait()
-            except Exception as e:
-                rc = f"wait-error {e!r}"
-            finally:
-                # suppression-lint: not-a-suppression suppress -- contextlib exception context manager on lockfile cleanup, not a page/alarm suppression
-                with contextlib.suppress(Exception):
-                    LOCK_FILE.unlink()
-            _log(f"invocation pid={proc.pid} exited (rc={rc})")
+    owned = [me]
+    try:
+        draw = _draw()
+        d = decide_tick(True, True, False, draw)
+        _write_health(d.outcome, d.detail)
+        # RAIL-3: ship the verdict + whole-set enumeration on every drew/rested/exception tick.
+        # _draw() already imported supervisor, so the enumeration read is free here.
+        _write_heartbeat(d, _enumeration_line())
+        if d.spawn:
+            proc = spawn_invocation(d.reason)
+            if proc is not None:
+                _write_lock(proc.pid, d.reason)   # hand the claim we already hold to the child
+                owned.append(proc.pid)
+                _log(f"SPAWNED bounded invocation pid={proc.pid}: {d.reason[:120]}")
+                try:
+                    rc = proc.wait()
+                except Exception as e:
+                    rc = f"wait-error {e!r}"
+                _log(f"invocation pid={proc.pid} exited (rc={rc})")
+            else:
+                _log("decided to spawn but launch failed — next tick retries")
         else:
-            _log("decided to spawn but launch failed — next tick retries")
-    else:
-        _log(f"{d.outcome}: {d.detail[:120]}")
-    return d
+            _log(f"{d.outcome}: {d.detail[:120]}")
+        return d
+    finally:
+        # Released on EVERY exit including a rested/errored draw: the claim is now taken before the
+        # draw, so a tick that decides not to spawn must give the slot back rather than make the
+        # next tick wait for its pid to die.
+        _release_lock(*owned)
 
 
 if __name__ == "__main__":

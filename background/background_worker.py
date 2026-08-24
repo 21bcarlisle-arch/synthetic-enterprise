@@ -17,6 +17,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # Stdlib-only helper (H30) -- safe at module scope, unlike the publish pipeline.
+from background import publisher_budget  # noqa: E402
 from background.child_diagnostics import child_output_excerpt  # noqa: E402
 from background.episode_monotonic import guard_episode  # noqa: E402  (PW4)
 
@@ -515,23 +516,24 @@ def process_leftover_run_markers():
 
 def _publisher_deadline_seconds():
     """The deadline this sweep puts on ONE publisher run — the publisher's OWN declared
-    budget, never a number of ours.
+    budget, never a number of ours, and never one this process cached earlier.
 
-    Imported lazily and at CALL time (not bound at import) for the same reason the outcome
-    router below is lazy: this module must not acquire an import-time dependency on the
-    publisher, and a constant snapshotted at import would go stale against a reloaded
-    module in exactly the tests that check this coupling.
+    READ FROM DISK, NOT FROM `sys.modules` (2026-08-22). This used to be a lazy
+    `from background import process_run_complete`, with a docstring claiming that importing
+    at CALL time kept the number current. It does not: a lazy import is still a one-time
+    import, so the constant was whatever was on disk when THIS DAEMON first published. This
+    sweep ran for ten hours on a 4300s deadline it had frozen at 17:28:59 on 2026-08-21
+    while the publisher declared 4700 — and `sim_runner`, started inside a 78-minute window
+    when the gate bound was transiently 300, froze 1200 and killed four consecutive publish
+    cycles on a stopwatch. `background.publisher_budget` asks the file every time.
 
-    FAIL-LONG, not fail-short. If the publisher is unimportable, the subprocess is going to
-    fail immediately anyway, so the only thing the fallback can do is re-create the bug by
-    being too small. It is deliberately larger than any bound the publisher currently
-    declares; `test_publisher_deadline_exceeds_its_gate.py` pins the real coupling."""
+    FAIL-LONG, not fail-short. A too-long deadline delays one diagnosis; a too-short one
+    decides the inner gate's verdict by stopwatch, which is the whole defect."""
     try:
-        from background import process_run_complete as prc
-        return prc.PUBLISH_PATH_TIMEOUT_SECONDS
+        return publisher_budget.declared_publisher_budget_seconds()
     except Exception as exc:
-        log(f"publisher deadline falling back (publisher module unreadable: {exc})")
-        return 60 * 60
+        log(f"publisher deadline falling back (publisher would not declare it: {exc})")
+        return publisher_budget.FALLBACK_SECONDS
 
 
 def _record_publish_gate_outcome(marker, rc, *, kind=None):
