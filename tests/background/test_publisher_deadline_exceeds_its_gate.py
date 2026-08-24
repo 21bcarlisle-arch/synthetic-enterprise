@@ -55,7 +55,22 @@ import pytest
 
 from background import background_worker as bw
 from background import process_run_complete as prc
+from background import publisher_budget
 from background import sim_runner as sr
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _the_publisher_log_goes_to_tmp(tmp_path_factory):
+    """THIS FILE DRIVES THE REAL PUBLISHER, so its diagnostics must not reach the real record.
+
+    The deadline-kill tests below call the detector and classifier for real, and those paths
+    log. `prc.log()` appends to `docs/observability/sim-runner-log.md` -- the file the
+    PUBLISHING DOWN alarm sends a human to -- so fixture rows there read as real gate verdicts.
+    Same isolation the neighbouring publisher tests already apply per-test."""
+    dest = tmp_path_factory.mktemp("publisher-log") / "sim-runner-log.md"
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(prc, "LOG_FILE", dest)
+        yield dest
 
 
 # ─────────────────────────────────────────────────────── 1. the coupling
@@ -81,11 +96,19 @@ def test_the_deadline_leaves_room_for_the_publish_path_after_the_gate():
     )
 
 
-def test_the_sweep_derives_its_deadline_rather_than_restating_it(monkeypatch):
+def test_the_sweep_derives_its_deadline_rather_than_restating_it():
     """MUTATION -- the anti-drift property, and the one a matching pair of literals would
-    pass while broken. Move the publisher's declared budget; the sweep must move with it."""
-    monkeypatch.setattr(prc, "PUBLISH_PATH_TIMEOUT_SECONDS", 4242)
-    assert bw._publisher_deadline_seconds() == 4242, (
+    pass while broken: restore `return 1200` (or 900, or 4300) and this reds.
+
+    The reference is this test process's OWN import of the publisher, which -- in a
+    freshly-started interpreter -- is by definition what is on disk. Two independent paths to
+    the same source; a caller that restated the number reaches neither.
+
+    It used to `monkeypatch.setattr(prc, "PUBLISH_PATH_TIMEOUT_SECONDS", 4242)` and assert the
+    helper followed. That asserted the helper read the module object in THIS process, which is
+    exactly the property that turned out to be the defect (section 6) -- so the test that was
+    meant to prove currency was pinning the mechanism that lost it."""
+    assert bw._publisher_deadline_seconds() == prc.PUBLISH_PATH_TIMEOUT_SECONDS, (
         "the sweep is carrying its own copy of the number -- the exact shape that let 900s "
         "survive three re-derivations of the gate's own bound"
     )
@@ -247,12 +270,11 @@ PUBLISHER_CALLERS = (
 
 @pytest.mark.parametrize("module_path,module", PUBLISHER_CALLERS,
                          ids=[p for p, _ in PUBLISHER_CALLERS])
-def test_every_publisher_caller_derives_its_deadline(module_path, module, monkeypatch):
-    """MUTATION, per caller: move the publisher's declared budget and every caller must move
-    with it. `sim_runner` FAILED this until 2026-08-10 -- it answered 1200 whatever the
-    publisher declared, which is the whole defect as a single number."""
-    monkeypatch.setattr(prc, "PUBLISH_PATH_TIMEOUT_SECONDS", 4242)
-    assert module._publisher_deadline_seconds() == 4242, (
+def test_every_publisher_caller_derives_its_deadline(module_path, module):
+    """MUTATION, per caller: restate the number anywhere in the chain and this reds.
+    `sim_runner` FAILED this until 2026-08-10 -- it answered 1200 whatever the publisher
+    declared, which is the whole defect as a single number."""
+    assert module._publisher_deadline_seconds() == prc.PUBLISH_PATH_TIMEOUT_SECONDS, (
         "{} carries its own copy of the deadline -- the exact shape that let 900s survive "
         "three re-derivations of the gate's own bound, and then let 1200s survive the fix "
         "aimed at 900s".format(module_path)
@@ -595,3 +617,221 @@ def test_the_refused_publish_states_one_verdict_in_one_place():
         "the refusal wording is composed at the call site again -- that is how the banner and "
         "the state file came to disagree about the same cycle"
     )
+
+
+# ─────────────── 6. THE NUMBER WAS RIGHT AND THE PROCESS WAS OLD (observed 2026-08-22)
+#
+# Sections 1 and 4 pinned that every caller DERIVES its deadline from the publisher's declared
+# budget rather than restating it. Both callers passed. Both callers were also, in production,
+# using numbers the publisher had not declared for ten hours -- 1200 in `sim_runner`, 4300 in
+# `background_worker` -- and their own logs printed those numbers in as many words.
+#
+# The derivation was never the problem. `sys.modules` was. Each helper did
+#
+#     from background import process_run_complete as prc   # inside the function
+#     return prc.PUBLISH_PATH_TIMEOUT_SECONDS
+#
+# under a docstring asserting that importing at CALL time (not at module import) kept the value
+# current. A lazy import is still a ONE-TIME import: after the first call the name resolves out
+# of `sys.modules`, and the constant read off it is frozen at whatever was on disk when THAT
+# PROCESS first published. "Call time" was true of the import statement and false of the number.
+#
+# OBSERVED, not inferred:
+#   * `GATE_SUITE_TIMEOUT_SECONDS` was 300 from 16:10:46 to 17:28:57 on 2026-08-21 (commit
+#     8d6f4a2b4, narrowing the gate's scope), then 3400, then 3800 at 18:32:27.
+#   * `sim_runner` started 16:45:22 -- inside that window -- and cached 300 + 900 = 1200.
+#   * docs/observability/sim-runner-log.md, four consecutive cycles 00:55Z–02:13Z on 08-22:
+#     "Auto-process timed out after 1200s". The fourth died with a GREEN gate behind it,
+#     mid-`git commit`, after the marker had already been archived to done/.
+#   * `.publish_gate_state.json` for all four: `kind: deadline_kill`, `total_red: 0`,
+#     `blocking_tests: []` -- four publish failures with no accused.
+#   * `background_worker` started 17:28:59, two seconds after the 3400 commit, and its own log
+#     says "TIMED OUT ... after 4300s" three times on 08-21 while the publisher declared 4700.
+#     Two daemons, two different frozen values, one mechanism -- which is what makes it a class.
+#
+# R10 forbids closing this at the instance, and the instance here is tempting and useless: the
+# constant is correct on disk RIGHT NOW, so every static test in this file passes at HEAD. The
+# only fix that holds is that a caller reads the FILE, not a module object it is holding.
+
+def test_the_publisher_budget_probe_reads_the_current_declared_value():
+    """The probe is the whole mechanism, so it gets its own node: it must agree with the
+    publisher this test process imported. If it drifts from that, every test below is
+    measuring a number nothing else in the system uses."""
+    assert (publisher_budget.declared_publisher_budget_seconds()
+            == prc.PUBLISH_PATH_TIMEOUT_SECONDS)
+
+
+@pytest.mark.parametrize("module_path,module", PUBLISHER_CALLERS,
+                         ids=[p for p, _ in PUBLISHER_CALLERS])
+def test_a_stale_in_process_publisher_does_not_decide_the_deadline(
+        module_path, module, monkeypatch):
+    """THE MUTATION IS THE INCIDENT. Poison the in-process module object with the exact value
+    `sim_runner` was frozen on -- 1200 -- and ask the caller for its deadline.
+
+    Pre-fix, the helper resolves `process_run_complete` out of `sys.modules`, finds 1200, and
+    returns it: this test reds, which is the whole ten-hour wedge reproduced in three lines.
+    Post-fix it shells out to the file and answers what the publisher declares today.
+
+    This is deliberately the mutation the OLD version of
+    `test_every_publisher_caller_derives_its_deadline` performed and ASSERTED THE OPPOSITE of
+    -- it patched the module object and required the helper to follow. That test could only
+    pass if the helper read the stale object, so the control proving currency was pinning the
+    exact mechanism that lost it. A control can be green, honest, and aimed backwards."""
+    on_disk = prc.PUBLISH_PATH_TIMEOUT_SECONDS
+    monkeypatch.setattr(prc, "PUBLISH_PATH_TIMEOUT_SECONDS", 1200)
+
+    assert module._publisher_deadline_seconds() == on_disk, (
+        "{} answered a deadline from a module object held in this process rather than from "
+        "the publisher on disk. That is the 2026-08-22 wedge: a daemon that started while the "
+        "gate bound was transiently 300 killed four green publish cycles at 1200s over the "
+        "next ten hours, while every static test in this file passed.".format(module_path)
+    )
+
+
+@pytest.mark.parametrize("module_path,module", PUBLISHER_CALLERS,
+                         ids=[p for p, _ in PUBLISHER_CALLERS])
+def test_every_caller_reaches_the_publisher_through_the_fresh_reader(module_path, module):
+    """VACUITY GUARD for the test above. A caller could pass it by hard-coding a number that
+    happens to equal today's budget, and the parametrised derivation test would then be the
+    only thing standing -- which is precisely the pair of green tests that coexisted with the
+    live defect. So assert the wiring too: the helper must go through the module whose whole
+    contract is that it re-reads the file."""
+    import inspect
+
+    src = inspect.getsource(module._publisher_deadline_seconds)
+    assert "publisher_budget" in src, (
+        "{}._publisher_deadline_seconds() no longer routes through background.publisher_budget "
+        "-- if it imports the publisher directly again, it is holding a frozen constant and "
+        "nothing in this file will notice until the next wedge".format(module_path)
+    )
+
+
+def test_the_fallback_exceeds_the_largest_budget_the_publisher_can_declare():
+    """FAIL-LONG, and the sibling instance of the same class one layer down.
+
+    The fallback that stood until 2026-08-22 was `60 * 60` under a comment calling it
+    "deliberately larger than any bound the publisher currently declares". It was 3600 against
+    a declared 4700 -- a constant frozen in place while its subject grew past it, in the very
+    fallback whose job is to never be too small.
+
+    Checked against the RATCHET, not against today's value: the ratchet is the largest bound
+    the publisher can ever declare and it may only fall, so this stays true without being
+    re-derived every time the gate bound moves."""
+    largest_declarable = (prc.PUBLISH_GATE_CEILING_RATCHET_SECONDS
+                          + prc.PUBLISH_PATH_ALLOWANCE_SECONDS)
+    assert publisher_budget.FALLBACK_SECONDS > largest_declarable, (
+        "the fail-long fallback is {}s against a largest declarable budget of {}s -- it would "
+        "kill the publisher before its own gate could answer, which is the defect the fallback "
+        "exists to avoid".format(publisher_budget.FALLBACK_SECONDS, largest_declarable)
+    )
+
+
+def test_the_probe_answers_from_the_file_as_it_is_now(tmp_path, monkeypatch):
+    """THE FRESHNESS PROPERTY AT THE PROBE ITSELF, and the reason this module exists: the same
+    call, against the same name, must give two different answers when the FILE changes between
+    them. An imported constant cannot do that; that is the whole incident.
+
+    It also pins that the derived expression is EVALUATED rather than pattern-matched -- the
+    budget is a sum of two constants declared above it, so a reader that only understood
+    integer literals would find nothing and fall back long forever."""
+    fake = tmp_path / "process_run_complete.py"
+    monkeypatch.setattr(publisher_budget, "PUBLISHER_SOURCE", fake)
+
+    fake.write_text(
+        "GATE_SUITE_TIMEOUT_SECONDS = 1000\n"
+        "PUBLISH_PATH_ALLOWANCE_SECONDS = 2 * 60\n"
+        "PUBLISH_PATH_TIMEOUT_SECONDS = "
+        "GATE_SUITE_TIMEOUT_SECONDS + PUBLISH_PATH_ALLOWANCE_SECONDS\n"
+    )
+    assert publisher_budget.declared_publisher_budget_seconds() == 1120
+
+    fake.write_text(
+        "GATE_SUITE_TIMEOUT_SECONDS = 3800\n"
+        "PUBLISH_PATH_ALLOWANCE_SECONDS = 15 * 60\n"
+        "PUBLISH_PATH_TIMEOUT_SECONDS = "
+        "GATE_SUITE_TIMEOUT_SECONDS + PUBLISH_PATH_ALLOWANCE_SECONDS\n"
+    )
+    assert publisher_budget.declared_publisher_budget_seconds() == 4700, (
+        "the probe answered the same number after the file changed -- it is caching, which is "
+        "the defect it was written to end"
+    )
+
+
+def test_the_probe_refuses_rather_than_inventing_a_number(tmp_path, monkeypatch):
+    """R15 FAIL-OPEN, the direction that would be worse than the bug. The probe must RAISE when
+    the publisher will not state a budget, so the caller logs a fail-LONG fallback against the
+    run it affects. A probe that returned a plausible default would put this whole class back:
+    an unavailable check is a FAILED check, and a silently-defaulted deadline is unfalsifiable.
+
+    Three ways it can fail to read, all of which must refuse rather than guess."""
+    fake = tmp_path / "process_run_complete.py"
+    monkeypatch.setattr(publisher_budget, "PUBLISHER_SOURCE", fake)
+
+    # 1. the constant is gone
+    fake.write_text("SOMETHING_ELSE = 5\n")
+    with pytest.raises(publisher_budget.BudgetUnreadable):
+        publisher_budget.declared_publisher_budget_seconds()
+
+    # 2. it is no longer integer arithmetic this reader may evaluate. It must NOT execute the
+    #    publisher's code to find out -- refusing is the safe answer, guessing is not.
+    fake.write_text("PUBLISH_PATH_TIMEOUT_SECONDS = _measure_the_suite()\n")
+    with pytest.raises(publisher_budget.BudgetUnreadable):
+        publisher_budget.declared_publisher_budget_seconds()
+
+    # 3. the file is not there at all
+    monkeypatch.setattr(publisher_budget, "PUBLISHER_SOURCE", tmp_path / "gone.py")
+    with pytest.raises(OSError):
+        publisher_budget.declared_publisher_budget_seconds()
+
+
+def test_the_probe_never_executes_what_it_reads():
+    """The publisher's source is a file the publish path EXECUTES; this module only measures
+    it. An `eval`-based reader would import-by-side-effect from inside a daemon's deadline
+    calculation, which is a worse failure than the one being fixed -- and it is the shape the
+    first version of this module had, which broke ten sibling tests by putting the probe on the
+    same `subprocess.run` seam a publisher spawn uses.
+
+    MUTATION: swap `_evaluate_int` for `eval(compile(...))` and this reds.
+
+    Scanned as AST, not as text: the module's own docstring explains at length why it does not
+    use `subprocess`, and a substring search over the source counted that explanation as a
+    violation. A control that reads prose as code is measuring the wrong file."""
+    import inspect
+
+    tree = ast.parse(inspect.getsource(publisher_budget))
+
+    called = {node.func.id for node in ast.walk(tree)
+              if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)}
+    assert not (called & {"eval", "exec", "compile", "__import__"}), (
+        "the budget reader executes the publisher's source -- it must parse it; it is called "
+        "from inside a daemon's deadline calculation and must not be able to run what it reads"
+    )
+
+    imported = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imported.update(a.name.split(".")[0] for a in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imported.add(node.module.split(".")[0])
+    assert "subprocess" not in imported, (
+        "the budget probe is back on the subprocess seam -- every test that stubs a publisher "
+        "spawn intercepts it there, which is how ten sibling tests broke the first time"
+    )
+    assert "importlib" not in imported, (
+        "reloading the publisher to read one integer re-runs its module body inside a daemon's "
+        "deadline calculation -- the fresh READ must not become a fresh IMPORT"
+    )
+
+
+def test_the_callers_fallback_is_the_probes_own(tmp_path, monkeypatch):
+    """The fail-long path, end to end, PER CALLER -- not merely that a constant exists.
+
+    MUTATION: return a bare `60 * 60` in either caller's `except` (which is what both did
+    until 2026-08-22) and this reds, because 3600 is not the fallback the ratchet test above
+    is protecting."""
+    monkeypatch.setattr(publisher_budget, "PUBLISHER_SOURCE", tmp_path / "gone.py")
+    for module_path, module in PUBLISHER_CALLERS:
+        assert module._publisher_deadline_seconds() == publisher_budget.FALLBACK_SECONDS, (
+            "{} invents its own fallback when the publisher will not state a budget"
+            .format(module_path)
+        )

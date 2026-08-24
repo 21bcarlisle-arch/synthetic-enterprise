@@ -24,7 +24,6 @@ from __future__ import annotations
 import json
 import shutil
 import sqlite3
-import subprocess
 import sys
 from pathlib import Path
 
@@ -45,9 +44,9 @@ from tools import build_projections as bp  # noqa: E402
 from tools import generate_projections_page as gpp  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[2]
-DOOR = REPO / "site" / "wip-flow" / "index.html"
-HARNESS = REPO / "site" / "wip-flow" / "_render_harness.mjs"
-NODE = shutil.which("node")
+# No DOOR/HARNESS constants: site/wip-flow was deleted 2026-08-20 and pointing them at a
+# path that is not there is how a fixture starts accusing its own subject. See the section-4
+# note at the foot of this file.
 
 
 @pytest.fixture()
@@ -235,60 +234,33 @@ def test_every_key_the_page_consumes_is_present(repo: Path):
 
 
 # ------------------------------------------------- 4. fail-VISIBLE on the page (R11 in-repo)
-
-
-def _render(payload: dict) -> dict:
-    proc = subprocess.run(
-        [NODE, str(HARNESS), str(DOOR)],
-        input=json.dumps(payload), capture_output=True, text=True,
-    )
-    assert proc.returncode == 0, proc.stderr
-    return json.loads(proc.stdout)
-
-
-@pytest.mark.skipif(NODE is None, reason="node not available")
-def test_the_rendered_page_states_which_commit_the_wip_came_from():
-    out = _render({
-        "wip": {"total_atoms": 7, "by_stage": [], "by_lane": [],
-                "concurrent_build_wip": 1, "harden_wip": 2, "idle_count": 4},
-        "projection_store": {"head_sha": "deadbeefcafe1234", "rows_total": 432,
-                             "derived_from": "committed blobs only (git cat-file)"},
-    })
-    note = out["build-note"]["innerHTML"]
-    assert "projection store @ deadbeefc" in note, note
-    assert "432 rows" in note, note
-
-
-@pytest.mark.skipif(NODE is None, reason="node not available")
-def test_an_unavailable_store_is_rendered_in_red_and_never_silently_swallowed():
-    """The failure mode this replaces is a stale number nobody can see is stale. If the
-    store does not answer, the page must SAY the numbers came from the hand-refreshed file."""
-    out = _render({
-        "wip": {"total_atoms": 7, "by_stage": [], "by_lane": [],
-                "concurrent_build_wip": 1, "harden_wip": 2, "idle_count": 4},
-        "projection_store_unavailable": True,
-    })
-    note = out["build-note"]["innerHTML"]
-    assert "UNAVAILABLE" in note, note
-    assert "var(--red)" in note, note
-    assert "wip_flow.json" in note, note
-
-
-@pytest.mark.skipif(NODE is None, reason="node not available")
-def test_r15_the_provenance_control_is_silent_when_there_is_nothing_to_say():
-    """A stamp that renders unconditionally would pass both tests above while proving
-    nothing. Neither branch may fire when the page is driven with wip_flow.json alone."""
-    out = _render({"wip": {"total_atoms": 7, "by_stage": [], "by_lane": [],
-                           "concurrent_build_wip": 1, "harden_wip": 2, "idle_count": 4}})
-    note = out["build-note"]["innerHTML"]
-    assert "projection store" not in note, note
-    assert "UNAVAILABLE" not in note, note
-
-
-def test_the_door_reads_the_projection_feed():
-    """The wiring itself, asserted on the shipped page: the door fetches the store's feed
-    and takes `wip` from it. Without this the generator is a design with no caller — the
-    exact shape the instruction that minted this atom exists to end."""
-    html = DOOR.read_text()
-    assert "../data/projections.json" in html
-    assert "d.wip=p.wip" in html
+#
+# SECTION 4 IS GONE AND ITS REQUIREMENT IS NOT, 2026-08-23.
+#
+# Four tests lived here and all four drove `site/wip-flow/index.html` and its Node render
+# harness: the provenance stamp rendering the store's sha and row count, the UNAVAILABLE
+# red-panel branch, the R15 mutant proving neither branch fires unprompted, and
+# `test_the_door_reads_the_projection_feed` -- the one that held this atom's whole point,
+# that the generator has a caller.
+#
+# 03dd8c49e (2026-08-20, the director's five-tab consolidation) deleted site/wip-flow with
+# ten other pages. The tests were not deleted with it, so since that date they failed
+# pointing AT a generator that works. Re-pointing them was the preferred fix and was
+# MEASURED to be unavailable: `projections.json` and `wip_flow.json` return ZERO hits
+# across every site/**/*.html, so no surviving door reads the feed and there is no page
+# whose pixels these could assert on.
+#
+# THE GAP IS FILED, NOT SWALLOWED, because deleting these quietly would turn a live
+# requirement into no requirement while looking in the diff exactly like the harmless
+# removals beside it. `background/process_run_complete.py` still calls
+# `generate_projections_page.generate()` on every publish cycle, so the feed is rewritten
+# every ~25 minutes for nobody -- a producer with no reader, which is the precise shape
+# atom G13_projection_consumers exists to end ("a store with no reader is the same
+# design-with-no-caller this instruction was written to end; the caller IS the
+# deliverable"). G13's OTHER caller, the lab query, is alive and green
+# (tests/tools/test_lab_query.py, 23 passed), so the atom keeps a real reader and its
+# level 2 is not unbacked -- it is half of what it was.
+#
+#   docs/staging/WORKER_FINDING_THE_PROJECTION_FEED_IS_REWRITTEN_EVERY_CYCLE_FOR_NO_READER_2026-08-23.md
+#
+# Whoever re-wires the feed into a surviving door restores these four here.
