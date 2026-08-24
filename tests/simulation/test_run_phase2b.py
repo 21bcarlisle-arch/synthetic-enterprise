@@ -309,18 +309,32 @@ def test_the_run_emits_a_treasury_drawdown_register(_phase2b_result_2017):
     assert register, "the run emitted no drawdown register at all"
 
     all_records = result["all_records"]
-    rebuilt = TreasuryDrawdown()
-    rebuilt.add(all_records)
-    assert register == rebuilt.points_by_year(), (
-        "the register the run emitted is not a fold of the run's own book -- it is being fed "
-        "somewhere other than the single point `all_records` is extended")
+
+    # THE ORACLE CHANGED WHEN THE FOLD WAS WIRED (2026-08-24), and it had to. This asserted
+    # `register == TreasuryDrawdown().add(all_records).points_by_year()` -- a rebuild from the
+    # retained book -- which was sound only while that book held every half-hour. It now holds
+    # DAILY rows (simulation/settlement_daily.py), so a rebuild from it is a strictly coarser
+    # path and cannot reproduce a per-period register BY CONSTRUCTION. That is not the register
+    # failing; it is its entire reason for existing, since a drawdown that opens and closes
+    # inside one day is invisible in daily closes.
+    #
+    # The property asserted is the one that survives, and it is the one that matters:
+    # THE REGISTER MAY SEE MORE THAN THE BOOK, NEVER LESS.
+    assert any(r.get("settlement_periods_folded", 1) > 1 for r in all_records), (
+        "no record in the retained book folds several periods -- the fold is not wired, and "
+        "the comparison below would be comparing a thing to itself")
 
     demonstrated = False
     for year, points in sorted(register.items()):
         yr = [r for r in all_records if r["settlement_date"][:4] == year]
         accumulation = [r["treasury_cash_balance_gbp"] for r in yr]
-        assert _drawdown_events(points) == _drawdown_events(accumulation), (
-            f"{year}: the register is not lossless against the accumulation-order walk")
+        book_events = _drawdown_events(accumulation)
+        register_events = _drawdown_events(points)
+        for event in book_events:
+            assert event in register_events, (
+                f"{year}: the daily book finds a drawdown the per-period register missed -- "
+                "the register is being fed somewhere other than the single point "
+                "`all_records` is extended, or it is dropping turning points")
 
         re_sorted = _drawdown_events([
             r["treasury_cash_balance_gbp"]

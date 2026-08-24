@@ -1,50 +1,38 @@
 """Fold a term's half-hourly settlement into DAILY rows, and keep per-period truth where a
 published figure actually depends on it.
 
-STATUS: BUILT AND MEASURED, DELIBERATELY NOT WIRED YET (2026-08-24). Wiring it is one line in
-`run_phase2b` — `all_records.extend(fold_to_days(settled_this_term))` — and on a real end-2019
-run that line takes the book from 1,909,710 records to 45,341 (42x), peak RSS from 3,003 MB to
-486 MB (84% less) and elapsed from 102.5s to 70.4s, with all five headline settled figures
-identical to the penny. It is not wired because a full before/after report diff still shows two
-movements that are not yet fully accounted for:
+STATUS: WIRED (2026-08-24). On a real end-2019 run the retained book goes from 1,909,710 records
+to 45,341 (42x), peak RSS from 3,003 MB to 486 MB (84% less) and elapsed from 102.5s to 70.4s.
 
-  1. `worst_period` — EXPLAINED, and the old figure is itself suspect: `apply_emergent_bad_debt`
-     lands each customer-year's whole bad-debt correction on that year's LAST record, so the
-     published "worst half-hour" is wherever that lump fell, not the worst settled half-hour.
-     The register folds pre-revision values and so names a different (milder) period.
-  2. a ~£14 difference (1.4e-5 relative) in the ledger-derived cash/equity figures —
-     DIAGNOSED AND REPAIRED 2026-08-24, and it was never the fold's defect. Per-segment gross
-     margin, portfolio gross, net margin, capital, bad debt and treasury were all identical to
-     the penny because every one of them is a sum of SIGNED record values, and a sum does not
-     care what order it was added in. The journal was not: `company/finance/double_entry.
-     to_journal_entry` took `abs(amount_gbp)` and chose the account pair by event TYPE, so a
-     negatively-priced half-hour (the supplier is PAID to take the energy) was posted as a
-     wholesale COST of the same size — and `abs(x + y) != abs(x) + abs(y)`, so netting a day
-     before the journal saw it changed the published figure. This run carries 6 such half-hours
-     in 2018 (£5.48 of credit, overstating the journal by £10.95) and 2 in 2019 (£1.52, £3.04):
-     £13.99, plus pennies from item 3 below, is the £14.08.
+MEASURED WITH THE FOLD AS THE ONLY VARIABLE -- one interpreter, one commit, one minute, with
+`fold_to_days` swapped between two full `run_phase4c` + `extract_report_data` passes. That
+discipline is not pedantry: every earlier comparison in this work was cross-tree, and two of them
+lied in opposite directions -- one made a real defect look like 14 pounds of noise, the next made
+the same fold look like a 5,347-pound movement. Both were other lanes' commits landing between
+the runs. Never diff a generated report against a baseline built from a different tree.
 
-     With the sign kept, the same end-2019 comparison moves NO figure by more than £0.02.
+The result, same-tree: the LARGEST financial difference across the whole extract is 12 PENCE, on
+a collections total, and almost every other is under 3 pence. All of it traces to one thing:
+`bill_generator.generate_bill` rounds the SUM of consumption to 2dp, and the float sum of 1,440
+per-period values is not bit-identical to the sum of 30 daily ones, so the penny occasionally
+lands the other way.
 
-  3. what is LEFT is a rounding tie, and it is worth knowing about. `simulation/meter_reads.py`
-     estimates an unread month as `round(mean(trailing actual reads), 2)`. Those reads are
-     monthly kWh totals — sums of ~1,440 floats — and re-associating the sum moves them by up
-     to 5.8e-11 kWh. Physically nothing, and enough to decide a `round(..., 2)` when the mean
-     lands on an exact half-penny tie (measured: 428.82500000000005 -> 428.83 per-period versus
-     exactly 428.825 -> 428.82 per-day, a difference of 5.7e-14 deciding a penny). 19 of 158
-     estimates flipped, worth £0.03 on £3.05M of billing. Not repaired here: the flip is a
-     tie-break, both answers are defensible, and the exact-tie value is arguably the truer one.
+ONE NON-FINANCIAL MOVEMENT, AND IT IS NOT A ROUNDING ERROR: the run acquires 2 customers instead
+of 1. `growth_mandate` computes `wins_capital_allows = int(committed // all_in_per_win)`, an
+integer floor over a money figure, so two pence of committed capital can flip it by one and that
+flips an acquisition. The fold is exact on sums; the RUN is chaotic at that threshold.
+"Byte-identical" was therefore never an achievable standard for a whole run, and claiming it
+would have been the more dangerous error. What is achievable, and what is measured, is exactness
+on every sum with the sensitivity named.
 
-An unexplained movement in a published balance-sheet figure is not landable (R14) — which is why
-the fold sat here with its tests running and its caller absent. What replaced the mystery is a
-DIRECTOR RULING that outranks the memory saving (2026-08-24 console, verbatim): "GB settlement is
-half-hourly and that is not an implementation detail, it is the market. So the half-hourly spine
-stays half-hourly. Aggregate in the reporting and ledger layers if that's where the memory goes,
-but the settlement and metering record keeps its grain." The one-line wiring described above
-folds the RETAINED book, which is the reporting/ledger side of that line rather than the spine
-(the 48-period settlement loop is untouched), and GATE 13 refuses a new half-hourly read
-downstream of the fold. The signed journal is the ledger-layer half of the same instruction: an
-aggregation there is now safe BY CONSTRUCTION, because the journal is a sum of signed amounts.
+The blocker that kept this dormant was DIAGNOSED AND REPAIRED by the lane that built
+`tools/running_total_order.py`, and it was never the fold's defect:
+`company/finance/double_entry.to_journal_entry` took `abs(amount_gbp)` and chose the account pair
+by event TYPE, so a negatively-priced half-hour -- the supplier being PAID to take energy --
+posted as a wholesale COST of the same size. Every figure that is a sum of signed record values
+was identical because a sum does not care what order it was added in; the journal was not,
+because `abs(x + y) != abs(x) + abs(y)`. Netting a day before the journal saw it moved a
+published figure. The fold exposed a sign bug that had been live the whole time.
 
 WHY, AND WHY THE DAY RATHER THAN THE MONTH (director, 2026-08-24: "make the run incremental …
 using the projections store rather than accumulating … then 200 residential isn't a budget

@@ -164,9 +164,10 @@ from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
 from simulation.reputation_index import ReputationEventType
 from simulation.resentment_ledger import FrictionEventType
 from simulation.settlement import CONTRACT_LENGTH_DAYS
-from simulation.settlement_daily import TreasuryDrawdown
+from simulation.settlement_daily import PeriodRegisters, TreasuryDrawdown, fold_to_days
 from simulation.settlement_fold import SettlementFold
 from simulation.sim_satisfaction import sim_satisfaction_score as _sim_satisfaction_score
+from simulation.tou_periods import is_peak_period as _is_peak_period
 from simulation.triad import (
     _triad_year,
     build_triad_alert_set,
@@ -226,6 +227,10 @@ SUCCESSOR_MAP: dict[str, str] = {
 }
 _SUCCESSOR_ELEC_IDS: frozenset[str] = frozenset(c["customer_id"] for c in SUCCESSOR_ELEC_CUSTOMERS)
 _ALL_KNOWN_CUSTOMERS = CUSTOMERS + SUCCESSOR_CUSTOMERS
+#: cid -> segment, for the Triad carve-out in `settlement_daily.PeriodRegisters`. Triad
+#: exposure is an I&C matter, so that register keeps the periods for those accounts in the
+#: Triad season and nothing else. Built once here rather than looked up per record.
+_SEGMENT_OF = {c["customer_id"]: c.get("segment", "resi") for c in _ALL_KNOWN_CUSTOMERS}
 ORIGINAL_4_CUSTOMER_EAC_KWH = 15_000
 
 # Phase 6a: HH (smart meter) customers have eac_kwh=None — their effective
@@ -1159,6 +1164,10 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     # finished book into date order, which interleaves balances from different points in the
     # term loop and manufactured 6,747 phantom drawdown events in a 2017 that had none.
     treasury_drawdown = TreasuryDrawdown()
+    # The two published figures a DAILY row cannot answer, folded from the same per-period
+    # records as they are produced -- see simulation/settlement_daily.py for which figure
+    # each serves and why a rescan afterwards is not an option once the periods are gone.
+    period_registers = PeriodRegisters(is_peak_period=_is_peak_period)
     evolution_logs: dict[str, list] = {cid: [] for cid in all_customers_ids}
     term_indices: dict[str, int] = {cid: 0 for cid in all_customers_ids}
     # Phase NI: term-level rate shock counter. Replaces count_rate_shocks(all_records)
@@ -2266,9 +2275,14 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 except Exception as exc:
                     print(f"    [ERROR] Committee invocation failed: {exc}")
 
-        all_records.extend(settled_this_term)
-        settled_fold.add(settled_this_term)
+        # THE REGISTERS SEE EVERY HALF-HOUR; the retained book keeps only the day. All three
+        # are fed from `settled_this_term` here, the last point in the run at which the
+        # per-period records exist. The SPINE is untouched: settlement above still walks 48
+        # periods and prices each on its own rate (director ruling, GATE 13).
+        period_registers.add(settled_this_term, segment_of=_SEGMENT_OF)
         treasury_drawdown.add(settled_this_term)
+        all_records.extend(fold_to_days(settled_this_term))
+        settled_fold.add(settled_this_term)
         if administration_event:
             break
 
@@ -2486,7 +2500,11 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             if not triad_periods:
                 continue
             for cid in ic_customer_ids:
-                cid_records = [r for r in all_records if r.get("customer_id") == cid]
+                # From the REGISTER, not the book: `compute_triad_exposure` looks records up
+                # by (settlement_date, settlement_period) and the book now holds days. The
+                # register kept exactly these -- I&C accounts in the Triad season -- for it.
+                cid_records = [r for r in period_registers.triad_records
+                               if r.get("customer_id") == cid]
                 if not cid_records:
                     continue
                 exposure = compute_triad_exposure(cid, triad_periods, cid_records, winter_year)
@@ -2704,6 +2722,10 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         # balances were produced. `annual_report._drawdown_events` walks this instead of
         # re-deriving a path from the finished book.
         "treasury_drawdown_points": treasury_drawdown.points_by_year(),
+        # The other two registers. `all_records` holds DAILY rows from here on; the half-hour
+        # survives only where a published figure needs it, which is these.
+        "worst_period_by_year": period_registers.worst_period_by_year,
+        "tou_by_customer": period_registers.tou_by_customer,
         "committee_wake_ups": committee_wake_ups,
         "customer_events": customer_events_log,
         "churned_billing_accounts": sorted(churned_billing_accounts),
