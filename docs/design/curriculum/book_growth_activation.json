@@ -28,11 +28,14 @@
     "no_forecast_contribution": "The plan spends down from capital held and does not credit itself with margin the new accounts will earn, so the modelled ceiling is conservative. See saas/growth_mandate.py."
   },
   "published_figures_moved": {
-    "notice": "The director's standing instruction on the sibling activation is 'Tell me before any published figure moves, and re-baseline honestly'. He was told by NTFY on 2026-08-24 before this flip reached a publish cycle.",
-    "book": "20 records (14 accounts + 5 gas legs + 1 SYN) -> 34 records; 14 net-new electricity accounts won from 245 quotes",
-    "net_margin_gbp": "1,529,289 -> 1,352,579 (down 176,710, -11.6%)",
-    "gross_margin_gbp": "6,471,175 -> 6,424,395",
-    "why_it_fell": "Growth costs money. 245 quotes were paid for and 231 of them lost, and a decade of acquisition spend against thin new-account margin is a real supplier result rather than a defect. A reader who sees the book grow and the margin fall is seeing the actual trade a small supplier makes.",
-    "run_cost": "3,226,200 settlement periods, 8.5 min against ~5 min at the 20-record book. Publishing cadence is unaffected: the cycle is dominated by the publish gate, not the sim."
+    "notice": "The director's standing instruction on the sibling activation is 'Tell me before any published figure moves, and re-baseline honestly'. He was told by NTFY before this flip reached a publish cycle. CORRECTED AFTER THE FACT, which is what 'honestly' requires: the figures below are the PUBLISHED ones, read from site/data/dashboard.json and site/data/company.json at 2026-08-24T08:27Z (run 4683e68f7). The pre-flip notice quoted a standalone measurement run of run_phase2b.main(), which came out lower \u2014 the published run differs because it also carries the churn/replacement dynamics against the larger book. The number that counts is the one a reader sees.",
+    "book": "19 accounts -> 33. 26 resi (was 9), 5 I&C, 2 SME. Fourteen net-new electricity accounts, each won through the funnel.",
+    "net_margin_gbp": "1,529,289 -> 1,448,758 (down 80,531, -5.3%)",
+    "gross_margin_gbp": "6,471,175 -> 6,425,560",
+    "bills_issued": "1,600 -> 2,629",
+    "retention_offers": "13 -> 18; churn events 5 -> 8",
+    "revenue_mix_unchanged": "I&C is still 98.7% of revenue, so the front door's 'more than 95% of its revenue is non-domestic' stays true \u2014 checked rather than assumed, because tripling the domestic book is exactly the change that would have made that sentence false.",
+    "superseded_estimate": "An earlier draft of this block recorded 1,352,579 / -11.6% from the standalone run. Left named rather than deleted: a figure quoted to the director and then corrected should be findable.",
+    "why_it_fell": "Growth costs money. 245 quotes were paid for and 231 lost, and a decade of acquisition spend against thin new-account margin is a real supplier result rather than a defect. A reader who sees the book grow and the margin fall is seeing the trade a small supplier actually makes."
   }
 }
