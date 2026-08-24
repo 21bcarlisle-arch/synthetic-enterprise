@@ -164,6 +164,7 @@ from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
 from simulation.reputation_index import ReputationEventType
 from simulation.resentment_ledger import FrictionEventType
 from simulation.settlement import CONTRACT_LENGTH_DAYS
+from simulation.settlement_fold import SettlementFold
 from simulation.sim_satisfaction import sim_satisfaction_score as _sim_satisfaction_score
 from simulation.triad import (
     _triad_year,
@@ -702,30 +703,46 @@ def _compute_company_divergence(
     }
 
 
-def _derive_eac_from_settlement(cid: str, all_records: list[dict]) -> float:
+def _as_fold(settled) -> SettlementFold:
+    """Accept either the fold or a plain list of records.
+
+    The list branch is for the tests that pin these two functions directly (they hand over a
+    handful of hand-built records, which is the clearest way to state what the function means).
+    The RUN never takes it: `main` builds one fold and feeds it once, because a second fold
+    built from a different slice of the book is exactly the point-in-time drift these functions
+    must not have.
+    """
+    if isinstance(settled, SettlementFold):
+        return settled
+    fold = SettlementFold()
+    fold.add(settled or [])
+    return fold
+
+
+def _derive_eac_from_settlement(cid: str, settled) -> float:
     """Mean actual annual consumption from all available settlement records.
 
     Phase 25a: used as SIM oracle for the demand_estimation_log, replacing
     the declared EAC (EFFECTIVE_EAC_KWH) which mismatches actual consumption
     for EV customers (C2/C4: declared 3500/5500 kWh, actual ~6820 kWh with EV).
     Falls back to EFFECTIVE_EAC_KWH when fewer than 180 days of records exist.
+
+    2026-08-24: reads a running fold instead of filtering the whole settled book by
+    customer_id. Same answer, from O(1) lookups rather than a scan whose cost grows with
+    everything every other customer has ever settled -- see `simulation/settlement_fold.py`
+    for the measurement that made this the run's only quadratic term.
     """
-    from datetime import date as _date
-    recs = [
-        r for r in all_records
-        if r.get("customer_id") == cid and r.get("consumption_kwh") is not None
-    ]
-    if not recs:
+    fold = _as_fold(settled)
+    if not fold.has_records(cid):
         return EFFECTIVE_EAC_KWH.get(cid, 0.0)
-    dates = [r["settlement_date"] for r in recs]
-    total_days = (_date.fromisoformat(max(dates)) - _date.fromisoformat(min(dates))).days + 1
+    total_days = fold.span_days(cid)
     if total_days < 180:
         return EFFECTIVE_EAC_KWH.get(cid, 0.0)
-    return sum(r["consumption_kwh"] for r in recs) / total_days * 365.25
+    return fold.total_consumption_kwh(cid) / total_days * 365.25
 
 
 def _company_eac_estimate(
-    cid: str, term_start_str: str, all_records: list[dict],
+    cid: str, term_start_str: str, settled,
     base_eac_override: float | None = None,
 ) -> float:
     """Estimate customer annual consumption from observable prior-year billing records.
@@ -736,17 +753,16 @@ def _company_eac_estimate(
 
     Phase H: base_eac_override replaces the EFFECTIVE_EAC_KWH fallback when provided.
     Allows the caller to supply a household-model-adjusted base (EV/solar/ASHP multiplied).
+
+    2026-08-24: the 12-month window is now answered from per-day totals rather than by
+    filtering the whole book. The WINDOW IS UNCHANGED and still half-open -- `[year_ago,
+    term_start)` -- because it is the point-in-time blindfold, not an implementation detail.
     """
     from datetime import date as _date
     term_start = _date.fromisoformat(term_start_str)
     year_ago = term_start.replace(year=term_start.year - 1)
-    estimated = sum(
-        r["consumption_kwh"]
-        for r in all_records
-        if r.get("customer_id") == cid
-        and r.get("consumption_kwh") is not None
-        and year_ago <= _date.fromisoformat(r["settlement_date"]) < term_start
-    )
+    estimated = _as_fold(settled).consumption_kwh_between(
+        cid, year_ago.isoformat(), term_start.isoformat())
     base = base_eac_override if (base_eac_override is not None) else EFFECTIVE_EAC_KWH.get(cid, 0.0)
     return estimated if estimated > 0 else base
 
@@ -1129,6 +1145,11 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     dynamic_pricing_log: list[dict] = []
 
     all_records: list[dict] = []
+    # THE FOLD, fed at exactly one place -- the line that extends `all_records` below.
+    # Fed anywhere else it would see records the list has not, and the point-in-time window
+    # `_company_eac_estimate` depends on would quietly widen. `simulation/settlement_fold.py`
+    # carries the measurement that put it here.
+    settled_fold = SettlementFold()
     evolution_logs: dict[str, list] = {cid: [] for cid in all_customers_ids}
     term_indices: dict[str, int] = {cid: 0 for cid in all_customers_ids}
     # Phase NI: term-level rate shock counter. Replaces count_rate_shocks(all_records)
@@ -1311,11 +1332,11 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                 prev_hf = current_hf.get(cid, 0.0)
                 hangover_periods = hangover_remaining.get(cid, 0)
                 # Phase 23a: company estimates EAC from observable prior-year billing
-                company_eac = _company_eac_estimate(cid, term_start_str, all_records)
+                company_eac = _company_eac_estimate(cid, term_start_str, settled_fold)
                 # Phase 25a: true_eac is mean annual settled consumption (actual, not declared).
                 # Fixes misleading ~100% error for EV customers (C2/C4 declared 3500/5500
                 # kWh but actually consume ~6820 kWh/year with EV charging).
-                true_eac = _derive_eac_from_settlement(cid, all_records) or EFFECTIVE_EAC_KWH.get(cid, 0.0)
+                true_eac = _derive_eac_from_settlement(cid, settled_fold) or EFFECTIVE_EAC_KWH.get(cid, 0.0)
                 if true_eac > 0:
                     eac_err_pct = (company_eac - true_eac) / true_eac * 100.0
                     demand_estimation_log.append({
@@ -1830,7 +1851,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             else:
                 _adj_base_elec = None
             # Phase 25a/H: use billing records; falls back to household-adjusted declared EAC.
-            eac_kwh = _company_eac_estimate(cid, term_start_str, all_records, base_eac_override=_adj_base_elec)
+            eac_kwh = _company_eac_estimate(cid, term_start_str, settled_fold, base_eac_override=_adj_base_elec)
             if is_hh_customer(customer):
                 shape_fn = hh_shape_fn(hh_consumption_by_customer[cid])
                 # Phase MT: I&C customers reduce demand 25% during Triad risk windows.
@@ -2177,7 +2198,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             portfolio_var_stressed = sum(
                 current_risk[c["customer_id"]]["var_stressed_gbp"] for c in active_elec
             )
-            _eac = {c["customer_id"]: _company_eac_estimate(c["customer_id"], rec["settlement_date"], all_records) for c in active_elec}
+            _eac = {c["customer_id"]: _company_eac_estimate(c["customer_id"], rec["settlement_date"], settled_fold) for c in active_elec}
             total_eac_active = sum(_eac.values())
             sigma_weighted = sum(
                 current_risk[c["customer_id"]]["sigma_recent"] * _eac[c["customer_id"]] / total_eac_active
@@ -2237,6 +2258,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
                     print(f"    [ERROR] Committee invocation failed: {exc}")
 
         all_records.extend(settled_this_term)
+        settled_fold.add(settled_this_term)
         if administration_event:
             break
 
