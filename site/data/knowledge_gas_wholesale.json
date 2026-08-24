@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "topic_id": "gas-wholesale",
+    "title": "The gas wholesale market",
+    "subtitle": "Why gas prices set electricity prices, and why a gas bill is mostly a weather bill.",
+    "one_line": "GB gas trades against the National Balancing Point, a virtual point where all gas in the network is deemed to be. Gas matters twice to an electricity supplier: it is a fuel it sells directly, and it is the fuel of the plant that usually sets the electricity price.",
+    "wall_placement": "Public-reality commons only. Everything on this page is a published feature of the GB energy market, readable by anyone \u2014 so it is readable by the simulated company too, the same way a real supplier reads the codes and the market reports. Nothing here is an internal of the simulation.",
+    "rate_of_change_class": "medium",
+    "claim_freshness": {
+      "last_verified": "2026-08-24",
+      "written": "2026-08-24",
+      "checked_by": "worker",
+      "source": "Ofgem and National Gas published arrangements for the NBP and the daily balancing regime.",
+      "route": "Written from established market mechanism \u2014 the codes and arrangements that have governed GB trading for years. Where a NUMBER would date, the page states the mechanism and refuses the number.",
+      "note": "Written 2026-08-24 to replace a stub. Six Knowledge pages shipped as identical empty templates and had been serving a heading with no content. Mechanism claims only \u2014 no live price or level that a quarter would falsify."
+    }
+  },
+  "rungs": {
+    "headline": {
+      "heading": "The claim, in one sentence",
+      "body": "Gas in GB is traded at a single virtual hub \u2014 the National Balancing Point \u2014 on a daily balancing regime, and because gas plant usually sets the marginal electricity price, the NBP price propagates into the electricity price with a slope set by the efficiency of that plant rather than one-for-one."
+    },
+    "plain": {
+      "heading": "In plain terms",
+      "body": "Unlike electricity, gas can be stored \u2014 in the pipes themselves, in storage facilities, in LNG cargoes on the water. That single fact changes the shape of the market.\n\nElectricity must balance every half-hour. Gas balances over a **day**: a shipper has to match what it puts in with what its customers take out across a gas day, and the network's own 'linepack' absorbs the mismatch in between. So gas prices are daily, not half-hourly, and gas does not have electricity's extreme intraday volatility.\n\nWhat it has instead is a much stronger link to weather over longer horizons, and a much stronger link to the rest of the world. GB gas competes for LNG cargoes with Asia and with continental Europe. A cold snap in one and a supply interruption in another both show up at the NBP.\n\nFor a domestic supplier this cuts two ways. It sells gas to households, where demand is overwhelmingly heating and therefore overwhelmingly temperature. And it buys electricity whose price is usually a gas price wearing different units."
+    },
+    "theory": {
+      "heading": "How it works",
+      "body": "**The NBP is virtual.** There is no physical location. Gas entering the system anywhere is deemed to be at the same point, which is what makes a single national price possible and what makes GB gas a genuinely liquid market.\n\n**Daily balancing.** Shippers nominate what they will deliver and offtake. Imbalance is cashed out against system marginal buy and sell prices, so the incentive is to be flat by the end of the gas day rather than in every hour.\n\n**The link to power.** A gas plant converts gas to electricity at some efficiency \u2014 call it roughly 50% for a modern CCGT. So one MWh of electricity needs roughly two MWh of gas, and a \u00a31/MWh move in gas becomes roughly a \u00a32/MWh move in the electricity price *in the hours where gas is marginal*. Add the carbon cost of burning it and the slope steepens further.\n\n**Household gas demand is a fabric problem.** How much gas a home burns is a function of the temperature difference it is holding against, the heat loss of the building, and the efficiency of the boiler. It is far more predictable from weather than electricity demand is."
+    },
+    "expected_shape": {
+      "heading": "What the data should look like",
+      "body": "**Annual household gas should track heating degree days closely** \u2014 much more closely than electricity tracks anything. A household whose gas does not follow the weather is telling you something changed: occupancy, heating system, or a meter that is not being read.\n\n**Gas price volatility should be lower intraday and comparable or higher across seasons** than electricity's, because storage smooths the short run and cannot smooth a cold winter.\n\n**The gas-to-power slope should be visible but only conditionally.** Regressing power price on gas price across all hours gives a slope diluted by the hours gas was not marginal; the relationship is much stronger if you condition on tight residual demand."
+    },
+    "live_evidence": {
+      "heading": "What this simulation actually does",
+      "body": "Gas is settled daily against real historical NBP prices for 2016\u20132025, and household gas demand is driven by a fabric model \u2014 building heat loss against reconstructed half-hourly ambient temperature from the Open-Meteo archive \u2014 rather than by a profile scaled to an annual quantity.\n\nThat distinction is the point of the whole gas path here: a home's gas is produced by its physics, so two homes with the same annual consumption but different fabric behave differently in a cold snap, which is what actually happens.\n\nExplore's third stage puts a household's gas against the measured degree days side by side, with the correlation stated."
+    },
+    "residuals": {
+      "heading": "What this page does not settle",
+      "body": "The efficiency figure that sets the gas-to-power slope is not one number. It varies by plant, by load, and by ambient conditions, and the marginal plant is not the same plant every hour. Any single slope is an approximation and this page does not pretend otherwise.\n\nNor does it settle how much of the 2021\u201322 price episode was fundamentals and how much was the market repricing risk. The simulation lives through that period on the real recorded prices rather than taking a view on why they were what they were."
+    },
+    "scope_delta": {
+      "heading": "Where the simulation stops",
+      "body": "No shipper-level daily balancing behaviour: gas is settled but the company does not nominate and is not cashed out against system marginal prices the way a real shipper is. No storage optimisation. No LNG or interconnector modelling. No within-day gas trading."
+    }
+  }
+}

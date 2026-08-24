@@ -330,7 +330,7 @@ function stageUsed(d, c, fuels) {
     (names.length > 1 ? "" :
       '<p style="font-size:12px;color:var(--muted);margin-top:10px">This household takes one fuel ' +
       "only, so there is one shape to show rather than two.</p>") +
-    '<div id="hdd"></div>' +
+    '<div class="cols" id="hdd">' + hddPanel(fuels) + "</div>" +
     '<p class="prov">Metered consumption per fuel for ' +
     names.map(function (f) { return esc(fuels[f].account_id); }).join(" and ") +
     ". Read quality is taken from the bills themselves, not asserted separately.</p>";
@@ -475,6 +475,88 @@ function render() {
   $("stage").innerHTML = RENDER[STAGE](CUR.detail, CUR.index, CUR.fuels || {});
 }
 
+var HDD_BY_YEAR = {};   /* year -> heating degree days, from the real archive */
+var HDD_META = {};
+
+/* Pearson r over the years both series cover. Stated rather than asserted: the stage claims
+   gas answers to the weather, and a claim like that on a published page should carry the
+   number that supports it and the n it rests on. Returns null when there is not enough
+   overlap to say anything, and the caller then says nothing rather than printing a
+   correlation computed from three points. */
+function correlate(pairs) {
+  var n = pairs.length;
+  if (n < 4) return null;
+  var sx = 0, sy = 0;
+  pairs.forEach(function (p) { sx += p[0]; sy += p[1]; });
+  var mx = sx / n, my = sy / n, sxy = 0, sxx = 0, syy = 0;
+  pairs.forEach(function (p) {
+    var dx = p[0] - mx, dy = p[1] - my;
+    sxy += dx * dy; sxx += dx * dx; syy += dy * dy;
+  });
+  if (sxx <= 0 || syy <= 0) return null;
+  return sxy / Math.sqrt(sxx * syy);
+}
+
+function hddPanel(fuels) {
+  if (HDD_BY_YEAR === null) {
+    return '<div class="panel"><h3>Gas against the weather</h3><p>The weather archive could ' +
+      'not be loaded, so this comparison is not shown. The bills above are unaffected.</p></div>';
+  }
+  var gasLeg = fuels && fuels.gas;
+  if (!gasLeg) {
+    return '<div class="panel"><h3>Gas against the weather</h3><p>This household takes ' +
+      'electricity only, so there is no heating load to compare with the weather. ' +
+      'Electricity demand does not track temperature the way a gas bill does &mdash; that is ' +
+      'the whole reason the two fuels are shown on separate scales above.</p></div>';
+  }
+  var m = (gasLeg.consumption || {}).monthly || [];
+  var byYear = {};
+  m.forEach(function (x) {
+    var y = String(x.month).slice(0, 4);
+    byYear[y] = (byYear[y] || 0) + (x.kwh || 0);
+  });
+  var years = Object.keys(byYear).filter(function (y) { return HDD_BY_YEAR[y]; }).sort();
+  if (!years.length) {
+    return '<div class="panel"><h3>Gas against the weather</h3><p>No year of this ' +
+      'household&rsquo;s gas overlaps the weather archive, so there is nothing to compare.</p></div>';
+  }
+  var pairs = years.map(function (y) { return [HDD_BY_YEAR[y], byYear[y]]; });
+  var r = correlate(pairs);
+  var maxH = Math.max.apply(null, years.map(function (y) { return HDD_BY_YEAR[y]; }));
+  var maxG = Math.max.apply(null, years.map(function (y) { return byYear[y]; }));
+
+  var rows = years.map(function (y) {
+    return "<tr><td>" + esc(y) + "</td>" +
+      '<td class="n">' + num(HDD_BY_YEAR[y], 0) + "</td>" +
+      '<td style="width:28%"><span class="bar" style="width:' +
+        (HDD_BY_YEAR[y] / maxH * 100).toFixed(1) + '%"></span></td>' +
+      '<td class="n">' + num(byYear[y], 0) + "</td>" +
+      '<td style="width:28%"><span class="bar alt" style="width:' +
+        (byYear[y] / maxG * 100).toFixed(1) + '%"></span></td></tr>';
+  }).join("");
+
+  var verdict = r === null
+    ? "Too few overlapping years on this account to put a number on the relationship."
+    : "Across these " + years.length + " years the two move together with a correlation of " +
+      "<b>r = " + r.toFixed(2) + "</b>" +
+      (r > 0.6 ? " — the household&rsquo;s gas is following the weather, not its habits."
+       : r > 0.3 ? " — a visible relationship, weaker than a well-heated home usually shows; " +
+                   "an account whose occupancy changed mid-run will do this."
+       : " — weaker than the heating story predicts. On this household the year-to-year swing " +
+         "is coming from something other than temperature, and that is worth knowing rather " +
+         "than smoothing over.");
+
+  return '<div class="panel"><h3>Gas against the weather</h3>' +
+    '<div class="table-scroll"><table><thead><tr><th>Year</th><th class="n">Heating degree days</th>' +
+    '<th></th><th class="n">Gas kWh</th><th></th></tr></thead><tbody>' + rows +
+    "</tbody></table></div>" +
+    '<p style="font-size:12px;color:var(--muted);margin-top:8px">' + verdict + " " +
+    "Degree days are measured, not modelled: " + esc(HDD_META.source || "the weather archive") +
+    ", " + esc(HDD_META.location || "London") + ", base " +
+    esc(String(HDD_META.hdd_base_c || 15.5)) + "&deg;C. The supplier bills on the meter and " +
+    "never on this &mdash; the comparison is available to you, not to it.</p></div>";
+}
+
 function selectCustomer(group) {
   var c = IDX.customers.filter(function (x) { return x.customer_group === group; })[0];
   if (!c) return;
@@ -501,6 +583,28 @@ function selectCustomer(group) {
       "than something approximate.</p>";
   });
 }
+
+/* THE WEATHER, as its own fetch and deliberately not blocking the page.
+
+   Stage 3's copy has always promised this -- "a gas bill is mostly weather, and putting the
+   two series beside each other shows the household's fabric rather than its habits" -- and
+   the container it promised it into (`<div id="hdd">`) has been empty since the stage was
+   written. This fills it from `site/data/weather.json`: 120 months of REAL heating-degree
+   days from the Open-Meteo Historical Archive at London 51.51N, base 15.5C, the same series
+   the simulation's own gas settlement is driven by.
+
+   If it fails the page keeps working and the container says why. A household's bills are the
+   subject of this stage; the weather is the explanation, and an explanation that will not
+   load must not take the subject down with it. */
+fetch("../data/weather.json").then(function (r) { return r.json(); }).then(function (w) {
+  HDD_BY_YEAR = {};
+  (w.monthly || []).forEach(function (m) {
+    var y = String(m.month).slice(0, 4);
+    HDD_BY_YEAR[y] = (HDD_BY_YEAR[y] || 0) + (m.hdd || 0);
+  });
+  HDD_META = w.metadata || {};
+  render();
+}).catch(function () { HDD_BY_YEAR = null; });
 
 fetch("../data/customers.json").then(function (r) { return r.json(); }).then(function (j) {
   IDX = j;

@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "topic_id": "imbalance-cashout-settlement",
+    "title": "Imbalance, cash-out and settlement",
+    "subtitle": "What happens to the difference between what a supplier contracted for and what its customers actually used.",
+    "one_line": "Every half-hour, each supplier's contracted volume is compared with what its customers actually consumed. The difference is cashed out at a single imbalance price, and the comparison is re-run for more than a year afterwards as real meter data replaces estimates.",
+    "wall_placement": "Public-reality commons only. Everything on this page is a published feature of the GB energy market, readable by anyone \u2014 so it is readable by the simulated company too, the same way a real supplier reads the codes. Nothing here is an internal of the simulation.",
+    "rate_of_change_class": "slow",
+    "claim_freshness": {
+      "last_verified": "2026-08-24",
+      "written": "2026-08-24",
+      "checked_by": "worker",
+      "source": "The Balancing and Settlement Code and Elexon's published settlement timetable and guidance.",
+      "route": "Written from established market mechanism. Where a NUMBER would date, the page states the mechanism and refuses the number.",
+      "note": "Written 2026-08-24 to replace a stub. Six Knowledge pages shipped as identical empty templates and had been serving a heading with no content."
+    }
+  },
+  "rungs": {
+    "headline": {
+      "heading": "The claim, in one sentence",
+      "body": "A supplier is settled on the difference between contract and consumption in every half-hour, at a price it does not choose and cannot see in advance \u2014 and because the consumption side arrives late and improves for over a year, a supplier's own accounts for a past period are an estimate that keeps being corrected."
+    },
+    "plain": {
+      "heading": "In plain terms",
+      "body": "This is the part of the industry that most surprises people who assume a supplier knows what it sold.\n\nOn the day, nobody knows. Domestic meters are not all read half-hourly, and even smart data does not all arrive promptly. So settlement starts with **estimates** \u2014 profiles that say what a typical customer of a given class would have used in each half-hour, scaled to their annual consumption.\n\nReal readings then arrive over months. Settlement is re-run, several times, each run using better data than the last. A supplier's volume for a half-hour last February is a number that moves.\n\nMeanwhile the difference between contracted and consumed is charged at the **imbalance price** \u2014 which is set by what it cost the system operator to fix the system's own shortfall, not by anything the supplier did. In a tight half-hour that price can be extraordinary. A supplier that was short in exactly those half-hours pays it.\n\nThe result is that a supplier's cost of serving a customer is genuinely not knowable on the day it serves them, and any figure it publishes early carries a clock."
+    },
+    "theory": {
+      "heading": "How it works",
+      "body": "**Single price cash-out.** GB settles imbalance at one price per half-hour for everyone \u2014 you do not get a better price for being long in the helpful direction. The price is derived from the actions the system operator actually took to balance, so it reflects real scarcity.\n\n**Profiling.** Non-half-hourly customers are allocated to the half-hours by profile class, which is a published shape, not their real behaviour. Their real behaviour is recovered later, in aggregate, through reconciliation.\n\n**Reconciliation runs.** Settlement is performed at intervals after the fact, each one replacing more estimated data with metered data, out beyond a year. A supplier receives charges and credits at each run.\n\n**Why the clock matters commercially.** A margin computed on billed volume, on settled volume, and on cash actually banked are three different numbers for the same period. Reporting one without saying which is not a rounding difference \u2014 the gap can be large."
+    },
+    "expected_shape": {
+      "heading": "What the data should look like",
+      "body": "**Imbalance prices should be extremely fat-tailed** \u2014 mostly unremarkable, occasionally orders of magnitude away. An imbalance series that looks like a tidy distribution is not an imbalance series.\n\n**A supplier's settled volume for a past period should change between runs,** and the changes should shrink as the runs progress. If they do not shrink, the meter data is not improving.\n\n**Estimated-read periods should reconcile with a visible correction** when a real read lands, and the size of that correction should grow with how long the estimate ran."
+    },
+    "live_evidence": {
+      "heading": "What this simulation actually does",
+      "body": "The simulation settles half-hourly against the real published system prices and carries imbalance as a real cost line. Every published financial figure is labelled with its clock \u2014 settled, billed, or banked \u2014 because the three genuinely differ and a figure without its clock is treated here as a defect rather than a simplification.\n\nEstimated versus actual meter reads are modelled per bill: Explore's fourth stage shows a household's actual bill with the read type on it, and the correction when a real read lands."
+    },
+    "residuals": {
+      "heading": "What this page does not settle",
+      "body": "The full BSC reconciliation timetable is more elaborate than described here, and the simulation implements its economic consequence \u2014 that the number moves and the clocks differ \u2014 rather than every run and every deadline.\n\nHow much a domestic supplier's realised cost is driven by imbalance rather than by contracted cost depends heavily on how well it hedges volume, and this page does not put a number on it."
+    },
+    "scope_delta": {
+      "heading": "Where the simulation stops",
+      "body": "No Supplier Volume Allocation in its full detail. No modelling of the supplier's relationship with its own data collectors and aggregators. Reconciliation is modelled in its effect on the figures, not as the industry's full run calendar."
+    }
+  }
+}

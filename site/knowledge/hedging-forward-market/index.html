@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Poesys -- Knowledge</title>
+<title>Poesys &mdash; Hedging and the forward market</title>
 <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="stylesheet" href="../../brand/brand.css">
 <!-- Freshness banner (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10, property 3): this page
@@ -72,7 +72,7 @@ h2.sec { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-sp
 </nav>
 <div class="wrap">
   <main>
-    <h1 id="hero-h" class="hero-h">&nbsp;</h1>
+    <h1 id="hero-h" class="hero-h">Hedging and the forward market</h1>
     <p id="hero-sub" class="hero-sub"></p>
     <div id="review-state" class="reviewline"></div>
 
@@ -169,15 +169,8 @@ function neighboursFromEdges(d, topic){
 function render(page, graph){
   var m = page.meta, r = page.rungs;
   set("hero-sub", esc(m.subtitle));
-  set("hero-h", esc(m.title));
   set("r-headline", "<b>" + esc(r.headline.heading) + ".</b> " + esc(r.headline.body));
-  if (m.no_current_level) {
-    set("r-nolevel", "<b>No current figure on this page.</b> " + esc(m.no_current_level));
-  } else {
-    var box = document.getElementById("r-nolevel");
-    if (box && box.parentNode && box.parentNode.removeChild) { box.parentNode.removeChild(box); }
-    set("r-nolevel", "");
-  }
+  set("r-nolevel", "<b>No current figure on this page.</b> " + esc(m.no_current_level));
 
   var pairs = [["plain","h-plain","r-plain"],["theory","h-theory","r-theory"],
                ["expected_shape","h-shape","r-shape"],["live_evidence","h-evidence","r-evidence"],
@@ -188,9 +181,8 @@ function render(page, graph){
   });
 
   set("wall-note", esc(m.wall_placement));
-  set("page-note", "A written page, not a stub. It explains the mechanism; where a figure "
-    + "changes faster than this page can be re-checked, the page sends you to the source "
-    + "rather than carrying a number that would quietly go wrong.");
+  set("page-note", "A written page, not a stub. It explains the mechanism and deliberately "
+    + "carries no current cap level, because that changes every quarter and the mechanism does not.");
 
   var me = null;
   graph.topics.forEach(function(t){ if(t.id === m.topic_id) me = t; });
@@ -207,25 +199,11 @@ function render(page, graph){
   }).join("") : '<div class="muted">No linked topics.</div>');
 }
 
-// One template, every written topic -- the topic id is the directory name, the same rule the
-// stub template uses, so adding a page is a data edit plus a copy of this file.
-function pageTopicId(){
-  try {
-    var parts = location.pathname.split("/").filter(function(p){ return p && p !== "index.html"; });
-    return parts.length ? parts[parts.length - 1] : "";
-  } catch(e){ return ""; }
-}
-
 if (typeof window !== "undefined" && window.document && document.getElementById("r-headline")) {
-  var __tid = pageTopicId();
   Promise.all([
-    fetch("../../data/knowledge_topics.json?t=" + Date.now()).then(function(r){ return r.json(); }),
+    fetch("../../data/knowledge_hedging_forward_market.json?t=" + Date.now()).then(function(r){ return r.json(); }),
     fetch("../../data/knowledge_wholesale.json?t=" + Date.now()).then(function(r){ return r.json(); })
-  ]).then(function(both){
-    var page = both[0].pages && both[0].pages[__tid];
-    if (!page) { throw new Error("no written page recorded for " + __tid); }
-    render(page, both[1]);
-  })
+  ]).then(function(both){ render(both[0], both[1]); })
    .catch(function(e){
      set("r-headline", "This page could not load its content (" + esc(e) + "). Nothing is shown rather than a partial explanation.");
    });

@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "topic_id": "hedging-forward-market",
+    "title": "Hedging and the forward market",
+    "subtitle": "Why a supplier buys energy years before it knows who its customers will be \u2014 and what it is actually buying.",
+    "one_line": "A supplier that sells a fixed price and buys at spot is not a supplier, it is a bet. Hedging is buying the energy ahead of the promise, and what it purchases is not cheapness \u2014 it is the removal of a risk that can end a company in one winter.",
+    "wall_placement": "Public-reality commons only. Everything on this page is a published feature of the GB energy market, readable by anyone \u2014 so it is readable by the simulated company too, the same way a real supplier reads the codes and the market reports. Nothing here is an internal of the simulation.",
+    "rate_of_change_class": "slow",
+    "claim_freshness": {
+      "last_verified": "2026-08-24",
+      "written": "2026-08-24",
+      "checked_by": "worker",
+      "source": "Standard energy trading practice; Ofgem's supplier licensing and financial resilience guidance.",
+      "route": "Written from established market mechanism \u2014 the codes and arrangements that have governed GB trading for years. Where a NUMBER would date, the page states the mechanism and refuses the number.",
+      "note": "Written 2026-08-24 to replace a stub. Six Knowledge pages shipped as identical empty templates and had been serving a heading with no content. Mechanism claims only \u2014 no live price or level that a quarter would falsify."
+    }
+  },
+  "rungs": {
+    "headline": {
+      "heading": "The claim, in one sentence",
+      "body": "Hedging is not an attempt to beat the market. It is the purchase of certainty: a supplier locks in cost before it fixes price, so that the margin it quoted is the margin it earns, and it accepts being worse off in falling markets as the price of surviving rising ones."
+    },
+    "plain": {
+      "heading": "In plain terms",
+      "body": "A household signs a twelve-month fixed tariff. The supplier has just promised a price for energy it has not bought, to be delivered over the next year.\n\nIf it does nothing and prices rise, it delivers that energy at a loss for twelve months with no way to stop. Several GB suppliers failed in exactly this way in 2021 \u2014 the promise was fixed and the cost was not.\n\nSo it buys ahead. Typically most of the expected volume, layered in over time rather than in one transaction, because buying it all on one day means the whole book is exposed to that one day's price.\n\nWhat it cannot do is buy exactly the right amount, because it does not know exactly how much its customers will use \u2014 that depends on weather it cannot forecast and on customers who may leave. So it hedges most and leaves a remainder to be bought closer to delivery. The remainder is the deliberate residual risk, and how big to leave it is the real decision."
+    },
+    "theory": {
+      "heading": "How it works",
+      "body": "**Layering.** A supplier buys in tranches across months, so its realised cost is an average of many days' prices rather than one. This does not lower the expected cost; it lowers the variance of the cost, which is the thing that kills companies.\n\n**Volume risk is the hard part.** A hedge is a fixed quantity. Consumption is not. A warm winter leaves a supplier long \u2014 holding energy it must sell back, possibly into a market that has fallen for the same reason it is long. A cold winter leaves it short and buying at spot in the hours spot is worst. Volume risk and price risk are correlated, and correlated in the direction that hurts.\n\n**Churn compounds it.** A hedge is bought against a forecast book. If customers leave, the energy is still bought.\n\n**Collateral.** Forward positions require margin. A supplier that is hedged and right can still fail on cash, because the counterparty calls margin against the position before the customer pays the bill that justifies it."
+    },
+    "expected_shape": {
+      "heading": "What the data should look like",
+      "body": "**Hedged cost should be smoother than spot, and worse in falling markets.** If a hedging strategy looks better than spot in every year, it is being scored against a period chosen after the fact.\n\n**The gap between hedged and naked cost should be largest in the crisis years** and should have the opposite sign in the calm ones. That sign flip is what tells you the hedge is real rather than a smoothing of the same series.\n\n**Hedge ratios should sit below 100%** and the unhedged residual should show up as a volume-weighted exposure to spot, visible as extra variance in cold months."
+    },
+    "live_evidence": {
+      "heading": "What this simulation actually does",
+      "body": "The company hedges to a mandate, layered across terms, and its realised cost is reported against what going unhedged would have cost \u2014 including the years hedging lost it money. Over 2016\u20132025 that comparison has been consistently unflattering to the hedge outside the crisis, and the report says so rather than quietly reporting the hedged figure alone.\n\nThat is the intended behaviour, not a defect: the hedge bought survival through 2021\u201322 and was paid for out of the calm years either side."
+    },
+    "residuals": {
+      "heading": "What this page does not settle",
+      "body": "How much to hedge is genuinely unsettled and depends on risk appetite, capital, and how concentrated the book is. There is no optimum this page can hand you, and a simulation that produced one would have optimised against its own history.\n\nThe forward-versus-spot question \u2014 whether forward prices are systematically above expected spot, and by how much \u2014 is a live argument in the literature and nothing here resolves it."
+    },
+    "scope_delta": {
+      "heading": "Where the simulation stops",
+      "body": "The company trades standardised blocks against a mandate; it does not run a trading desk, take views, or use options. Collateral and margin calls are modelled as a cash constraint but the counterparty credit process is simplified. No cross-commodity or basis hedging."
+    }
+  }
+}

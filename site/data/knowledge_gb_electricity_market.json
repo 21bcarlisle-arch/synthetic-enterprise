@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "topic_id": "gb-electricity-market",
+    "title": "How the GB electricity market fits together",
+    "subtitle": "Four markets, one wire, and a settlement process that decides months later what actually happened.",
+    "one_line": "Electricity in Great Britain is bought and sold four times over \u2014 years ahead, days ahead, within the day, and after the fact \u2014 and the physical system is balanced by a fifth mechanism that only the system operator can call. A supplier is a participant in all of them at once, and its cost of serving a customer is not known on the day it serves them.",
+    "wall_placement": "Public-reality commons only. Everything on this page is a published feature of the GB energy market, readable by anyone \u2014 so it is readable by the simulated company too, the same way a real supplier reads the codes and the market reports. Nothing here is an internal of the simulation and nothing here tells the company anything its real counterpart could not look up.",
+    "rate_of_change_class": "slow",
+    "claim_freshness": {
+      "last_verified": "2026-08-24",
+      "written": "2026-08-24",
+      "checked_by": "worker",
+      "source": "The Balancing and Settlement Code and its Elexon guidance, the Connection and Use of System Code, and Ofgem's supply licence conditions \u2014 all published.",
+      "route": "Written from established market mechanism \u2014 the codes and settlement arrangements that have governed GB trading for years, not a figure that moves. Where a NUMBER would date, this page states the mechanism and refuses the number; see `no_current_level`.",
+      "note": "Written 2026-08-24 to replace a stub. Six Knowledge pages shipped as identical empty templates and had been serving readers a page with a heading and no content; this is one of them. Mechanism claims only \u2014 no live price, level or threshold that a quarter would falsify."
+    }
+  },
+  "rungs": {
+    "headline": {
+      "heading": "The claim, in one sentence",
+      "body": "A GB electricity supplier does not buy electricity once. It contracts ahead for most of what it thinks its customers will use, trues that up as the delivery day approaches, and is then charged or paid for the difference between what it contracted for and what its customers actually took \u2014 a difference nobody knows precisely until settlement runs, months afterwards."
+    },
+    "plain": {
+      "heading": "In plain terms",
+      "body": "Think of it as promising to buy a quantity of something you cannot store, for people who have not yet decided how much of it they want.\n\nA supplier looks at its book, forecasts how much its customers will use in each half-hour, and buys roughly that much in advance \u2014 mostly months or years ahead, because that is where the liquidity is and because buying at the last minute means taking whatever the price is. Closer to the day it adjusts, in the day-ahead auction and then intraday as the weather forecast firms up.\n\nThen the day happens. Customers use what they use. Wind blows harder or less hard than forecast. The supplier's contracted volume and its customers' actual volume do not match, and the gap is settled at the imbalance price \u2014 a price the supplier does not choose and cannot see in advance.\n\nThe thing that surprises people is the timing. The supplier does not find out its real position on the day. Meter readings arrive late, estimates are used in the meantime, and settlement is re-run repeatedly over more than a year as better data replaces worse. A supplier's accounts for last winter keep moving for a long time after last winter."
+    },
+    "theory": {
+      "heading": "How it works",
+      "body": "Five layers, and a supplier touches all of them.\n\n**Forward and futures.** Standardised blocks \u2014 seasons, quarters, months \u2014 traded bilaterally or through brokers and exchanges. This is where a supplier fixes the bulk of its cost, and it is what makes a fixed-price retail tariff possible at all: you cannot sell a household a fixed price for a year unless you have already bought most of the energy.\n\n**Day-ahead.** An auction that clears a price for every half-hour of tomorrow. This is the reference price most of the market marks against.\n\n**Intraday.** Continuous trading up to close of the delivery period, where late forecast revisions get traded out.\n\n**The Balancing Mechanism.** After gate closure only the system operator acts. It accepts bids and offers from generators and large flexible loads to keep supply and demand matched in real time. A supplier is not a participant here; it is a payer, through the balancing costs that flow back to it.\n\n**Settlement.** Elexon determines, per half-hour and per supplier, what its customers actually consumed and what it had contracted, and charges or pays the difference. That determination is made several times over more than a year, because the meter data improves."
+    },
+    "expected_shape": {
+      "heading": "What the data should look like",
+      "body": "If that is how it works, three things follow and each is visible in published data.\n\n**Prices should be far more volatile the closer you get to delivery.** A season-ahead contract moves slowly; a half-hour imbalance price can be an order of magnitude away from the day-ahead price for that same half-hour. The forward curve is not a forecast of the spot price so much as a price for certainty.\n\n**A supplier's realised cost should differ from any single published price.** Its cost is a weighted blend across contracts struck at different times, plus an imbalance settlement it did not choose. Anyone quoting one wholesale number as 'the' cost of supply is quoting an input, not a cost.\n\n**Last year's numbers should keep changing.** If settlement reruns are real, a supplier's reported volume for a past period moves as reconciliation runs land. A book that never restates is a book that is not settling."
+    },
+    "live_evidence": {
+      "heading": "What this simulation actually does",
+      "body": "The simulation buys forward against a hedging mandate, settles half-hourly against real Elexon system prices, and carries the imbalance difference as a real cost. Its wholesale inputs are the published historical record for 2016\u20132025, not a generated series.\n\nWhat it does NOT model is the Balancing Mechanism as a market the company can participate in. Balancing costs reach the company as costs; it never submits a bid. For a domestic supplier that is close to reality, and it is a real simplification rather than a hidden one."
+    },
+    "residuals": {
+      "heading": "What this page does not settle",
+      "body": "The relationship between forward prices and realised spot is not a solved question and nothing here claims it is. Whether hedging ahead is cheaper than buying spot over a long enough run is genuinely contested \u2014 the answer depends on the period you pick, and picking the period is where most confident answers come from.\n\nThis simulation takes a position on it only in the sense that its company follows a mandate and the results are then reported, including the years the mandate cost it money."
+    },
+    "scope_delta": {
+      "heading": "Where the simulation stops",
+      "body": "No Balancing Mechanism participation. No Capacity Market auction behaviour (the charge is modelled, the auction is not). No interconnector trading strategy. No modelling of the supplier as a generator.\n\nThese are named rather than quietly absent because a reader who knows the market will look for them, and finding them missing without a note is worse than finding them missing with one."
+    }
+  }
+}

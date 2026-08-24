@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "topic_id": "merit-order-residual-demand",
+    "title": "Merit order and residual demand",
+    "subtitle": "Why the price of electricity is set by the last plant needed, and why wind changes the price without ever setting it.",
+    "one_line": "Generators are dispatched cheapest first. The price is set by the most expensive plant that has to run. Wind and solar have almost no fuel cost, so they do not set the price \u2014 they change which plant does, by shrinking the demand everything else has to meet.",
+    "wall_placement": "Public-reality commons only. Everything on this page is a published feature of the GB energy market, readable by anyone \u2014 so it is readable by the simulated company too, the same way a real supplier reads the codes and the market reports. Nothing here is an internal of the simulation and nothing here tells the company anything its real counterpart could not look up.",
+    "rate_of_change_class": "slow",
+    "claim_freshness": {
+      "last_verified": "2026-08-24",
+      "written": "2026-08-24",
+      "checked_by": "worker",
+      "source": "Standard electricity-market economics as it applies to the GB dispatch; the shape is visible directly in Elexon's published half-hourly system prices and NESO's generation mix data.",
+      "route": "Written from established market mechanism \u2014 the codes and settlement arrangements that have governed GB trading for years, not a figure that moves. Where a NUMBER would date, this page states the mechanism and refuses the number; see `no_current_level`.",
+      "note": "Written 2026-08-24 to replace a stub. Six Knowledge pages shipped as identical empty templates and had been serving readers a page with a heading and no content; this is one of them. Mechanism claims only \u2014 no live price, level or threshold that a quarter would falsify."
+    }
+  },
+  "rungs": {
+    "headline": {
+      "heading": "The claim, in one sentence",
+      "body": "Electricity is priced at the marginal cost of the last generator needed to meet demand, so the price is not an average of what generation cost \u2014 it is the cost of the single most expensive unit running, and everything cheaper is paid that same price."
+    },
+    "plain": {
+      "heading": "In plain terms",
+      "body": "Line every generator up by what it costs to run for one more hour \u2014 not what it cost to build, what it costs to run. Nuclear and renewables are at the cheap end because their fuel is free or nearly so. Gas is further along, and its position moves with the gas price. The oldest, least efficient plant is at the far end.\n\nNow take the demand for a given half-hour and work along the line until it is met. The last generator you needed sets the price for everyone. A wind farm that would have run at \u00a35 is paid the same as the gas plant that set the price at \u00a380.\n\nThis is why two things that sound contradictory are both true: renewables have very low marginal cost, and adding renewables does not straightforwardly make electricity cheap. It makes it cheaper *when they are generating enough to push the marginal plant down the line*. On a still, cold evening the marginal plant is gas, and the price is a gas price."
+    },
+    "theory": {
+      "heading": "How it works",
+      "body": "The mechanism turns on **residual demand** \u2014 total demand minus whatever the near-zero-marginal-cost generation happens to be producing. That residual is what the dispatchable fleet has to meet, and it is the number that selects the marginal plant.\n\nResidual demand is far more volatile than demand itself. Demand follows a fairly stable daily and seasonal rhythm. Wind does not. Subtract one from the other and you get a quantity that can swing enormously between two days with identical demand.\n\nThree consequences follow directly.\n\n**The price becomes a step function of residual demand,** not a smooth one \u2014 it jumps as the margin crosses from one technology to the next.\n\n**The same demand can clear at very different prices** depending on the weather, which is why a supplier's cost is a weather problem as much as a market one.\n\n**As renewable capacity grows the distribution of prices becomes bimodal** rather than simply lower: many hours near zero when renewables cover most of the residual, and a persistent tail of expensive hours when they do not."
+    },
+    "expected_shape": {
+      "heading": "What the data should look like",
+      "body": "**Price should correlate with residual demand far better than with demand.** If you plot system price against total demand you get a cloud; against residual demand you get a curve.\n\n**The curve should have visible steps,** and the steps should sit where the technology on the margin changes.\n\n**The gas price should propagate into the electricity price with a slope near the heat rate of the marginal plant** \u2014 roughly a 2:1 relationship in \u00a3/MWh terms for a modern CCGT \u2014 but only in the hours where gas is actually marginal. In hours where it is not, the relationship should break down entirely, and a model that applies one slope to every hour is wrong in a way that averages out and therefore hides."
+    },
+    "live_evidence": {
+      "heading": "What this simulation actually does",
+      "body": "The world layer reconstructs a merit order and prices against it, and the company sees only the resulting published prices \u2014 never the stack that produced them, which is the correct epistemic position: a supplier observes prices and infers the mechanism, it does not read the dispatch.\n\nThe historical spine is real: 2016\u20132025 half-hourly system prices from Elexon, against which the reconstruction is calibrated rather than fitted."
+    },
+    "residuals": {
+      "heading": "What this page does not settle",
+      "body": "Marginal-cost pricing describes the mechanism, not every price you will ever observe. Real prices depart from it for reasons this page does not model: unit commitment and the cost of starting a plant that was off, transmission constraints that force a more expensive plant to run in the right place, scarcity pricing when the margin gets thin, and strategic bidding.\n\nEach of those makes the observed price higher than a pure merit-order calculation would say, and the gap is largest exactly when the system is tight \u2014 which is when it matters most."
+    },
+    "scope_delta": {
+      "heading": "Where the simulation stops",
+      "body": "No locational modelling: GB is treated as one price zone, which is what the current market arrangements do, but it means constraint costs appear as a charge rather than as a price difference between places.\n\nNo unit commitment. No strategic bidding behaviour. The reconstruction is of the economic stack, not of the system operator's dispatch decisions."
+    }
+  }
+}

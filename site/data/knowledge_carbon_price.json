@@ -1,0 +1,49 @@
+{
+  "meta": {
+    "topic_id": "carbon-price",
+    "title": "The carbon price",
+    "subtitle": "How a price on emissions reaches a household bill \u2014 and why it moves the electricity price more than the gas price.",
+    "one_line": "Emitting carbon in GB power generation costs money, through the UK Emissions Trading Scheme and a top-up. That cost is a marginal cost to a gas generator, so it enters the electricity price through the merit order \u2014 which means it can raise the price of electricity a household uses even when that electricity came from wind.",
+    "wall_placement": "Public-reality commons only. Everything on this page is a published feature of the GB energy market, readable by anyone \u2014 so it is readable by the simulated company too, the same way a real supplier reads the codes. Nothing here is an internal of the simulation.",
+    "rate_of_change_class": "fast",
+    "claim_freshness": {
+      "last_verified": "2026-08-24",
+      "written": "2026-08-24",
+      "checked_by": "worker",
+      "source": "UK ETS and Carbon Price Support arrangements as published by the UK government and Ofgem.",
+      "route": "Written from established market mechanism. Where a NUMBER would date, the page states the mechanism and refuses the number.",
+      "note": "Written 2026-08-24 to replace a stub. Six Knowledge pages shipped as identical empty templates and had been serving a heading with no content."
+    },
+    "no_current_level": "This page deliberately carries NO current carbon price. UK ETS allowances trade continuously and the level moves; any figure written here would be wrong within weeks and would be read as current. The MECHANISM is what is stable and what this page states."
+  },
+  "rungs": {
+    "headline": {
+      "heading": "The claim, in one sentence",
+      "body": "A carbon price is a cost per tonne emitted, paid by the generator; because it is a marginal cost of running a gas plant, it moves the electricity price in every hour a gas plant is setting that price \u2014 and it reaches households through the unit rate, not as a visible line."
+    },
+    "plain": {
+      "heading": "In plain terms",
+      "body": "Two things carry a carbon cost in GB power: allowances under the UK Emissions Trading Scheme, which generators must surrender for what they emit, and a supplementary domestic top-up.\n\nFor a gas generator that is a per-MWh cost like fuel is: burn gas, emit CO2, buy allowances. So it shifts that plant's position in the merit order and, when that plant is marginal, it shifts the price everyone is paid.\n\nThe counter-intuitive part follows from that. Because the marginal plant sets the price for all generation, a carbon price raises the revenue of the zero-carbon plant too. A wind farm earns more because gas got more expensive. That is not a loophole \u2014 it is the mechanism working: it is what makes low-carbon generation more profitable and high-carbon generation less, which is the point.\n\nFor the household, none of this appears as a carbon line. It arrives inside the unit rate, having passed through the wholesale price."
+    },
+    "theory": {
+      "heading": "How it works",
+      "body": "**The cost per MWh depends on the plant's emissions intensity.** A modern CCGT emits roughly 0.35 tonnes of CO2 per MWh of electricity; an old coal plant emitted far more. So a carbon price hits coal several times harder than gas per unit of output, which is precisely why a carbon price reorders the merit order rather than just raising everything.\n\n**It enters the electricity price conditionally.** In an hour where gas is marginal, the carbon cost of that gas plant is in the price. In an hour where the margin is met without fossil generation, it largely is not.\n\n**On the gas bill it is much smaller.** Domestic gas burned in a boiler is not in the ETS in the way generation is, so a household's gas unit rate does not carry the same pass-through. This asymmetry \u2014 carbon reaching electricity harder than gas \u2014 has a consequence people find surprising: it can make electrifying heat look worse on a bill comparison than it is on emissions.\n\n**Levies are a separate thing.** Renewables Obligation and Contracts for Difference costs also appear on bills and are also climate policy, but they are not carbon prices \u2014 they are support schemes recovered per unit. Conflating them is the most common error here."
+    },
+    "expected_shape": {
+      "heading": "What the data should look like",
+      "body": "**Carbon price moves should propagate into power prices with a slope near the marginal plant's emissions intensity** \u2014 roughly 0.35 \u00a3/MWh per \u00a3/tonne for CCGT \u2014 and only in the hours that plant is marginal.\n\n**The propagation should weaken as renewable penetration rises,** because the share of hours with a fossil plant on the margin falls. A carbon price and a decarbonising grid interact: the same carbon price does less to the average electricity price each year.\n\n**Household gas unit rates should show no comparable sensitivity,** which is the asymmetry above and is checkable directly against published rates."
+    },
+    "live_evidence": {
+      "heading": "What this simulation actually does",
+      "body": "The simulation carries a carbon ledger and the policy-cost stack that reaches a household bill, with RO and CfD levies in the settlement records as their own lines rather than folded into an aggregate.\n\nExplore's first stage breaks a household's unit rate into energy, network, policy and levies, and standing charge \u2014 so a reader can see how much of what they pay is not energy at all."
+    },
+    "residuals": {
+      "heading": "What this page does not settle",
+      "body": "Whether the current arrangements price carbon at the right level is a policy question and this page takes no position on it.\n\nNor does it settle how much of the pass-through is competed away versus retained. The simulation passes wholesale cost through to the tariff by an explicit mechanism, and that mechanism is a modelling choice rather than an observed fact about the retail market."
+    },
+    "scope_delta": {
+      "heading": "Where the simulation stops",
+      "body": "No ETS allowance market: the carbon cost arrives as a published input, not as a market the company or the generators trade in. No free allocation modelling. No border adjustment. The carbon ledger accounts for emissions attributable to the book; it does not model the generator's own compliance position."
+    }
+  }
+}
