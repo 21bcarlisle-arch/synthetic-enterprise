@@ -1,5 +1,16 @@
 **Severity:** BLOCKING · **Lane:** H_harness
 
+**Discharged:** `tests/saas/reporting/test_a_year_bucket_is_not_a_treasury_series.py::test_the_published_report_never_shows_one_swing_twice`,
+`tests/saas/reporting/test_a_year_bucket_is_not_a_treasury_series.py::test_the_checker_fires_on_the_report_this_repair_replaced`,
+`tests/saas/reporting/test_a_year_bucket_is_not_a_treasury_series.py::test_two_genuinely_distinct_swings_are_not_refused`
+
+Discharged by the 2026-08-24 tick that read the published report at origin rather than the tree
+that wrote it. The one thing this document still owed was the figure, and the figure has moved:
+where the shared surface published the same swing twice, once in 2022 and once in 2023, it now
+publishes it once, in 2023. The receivable reached the balance sheet as a liability in the same
+run. See the final section for the readings and for the control that now watches the artefact
+rather than the function.
+
 # The published treasury-drawdown count is an artefact of re-sorting a running balance that was never a time series — 6,747 "events" in a year the treasury never drew down
 
 **Found by:** the before/after diff of a real end-2019 report while folding the settlement book
@@ -661,3 +672,88 @@ receivable.
 The next published report showing **one** 2022/2023 drawdown event rather than two, verified on
 the rendered artefact (R11), together with the receivable reaching the balance sheet. Both are
 one run away and neither needs an act.
+
+---
+
+## THE FIGURE HAS MOVED ON THE SHARED SURFACE — and the control that would have caught the residual now reads the artefact, not the function (2026-08-24, worker tick, RUNG 1c blocking draw)
+
+**Severity releases.** Both discharge conditions above are met, read from `origin/main` rather
+than from the working tree that produced them, and the gap the residual slipped through is now
+covered by a control on the published bytes.
+
+### The readings (R11), taken from origin rather than from disk
+
+The previous section left the repair in the working tree and said the next `sim_runner` cycle
+would republish. It did: the cycle stamped `dbd35f07b` extracted at ~22:40 UTC and the publisher
+committed the report as `f2496a985`. That commit was **local only** — origin was three commits
+behind and still served the old figure, which is the state this project's own rule about
+commit-claims outrunning origin exists for. This tick pushed it (`109d3f1fe..c3163bdd1`) and then
+re-read the shared surface with `git show origin/main:docs/reports/ANNUAL_REPORT.md`.
+
+| discharge condition | origin BEFORE the push | origin NOW |
+|---|---|---|
+| one 2022/2023 event, not two | `2022  £1,169,284.66 -> £1,035,944.82 (11.4%)` **and** `2023  £1,169,284.70 -> £1,035,932.01 (11.4%)` | **one event**, 2023, `£1,169,284.70 -> £1,035,932.01 (11.4%)`; 2022 reads `none` with the other eight years |
+| the receivable on the balance sheet | — | `Trade Receivables £0.00`, `Customer Accounts in Credit (liability) £200.29` |
+
+The surviving event is the higher of the two peaks and the lower of the two troughs, dated by its
+trough — which is exactly the AFTER the previous section could only DERIVE. It is now
+**measured**, on the artefact, at origin.
+
+### The gap this closes, which is not the figure
+
+Every control this repair had was a statement about a **function**. `_drawdown_events_by_year`
+was mutation-tested five ways; `test_the_published_events_are_one_walk_and_say_so` asserts the
+one-walk property on the dict, where `sequence` lives. None of them could see the report. So the
+residual — the same swing published twice, four pence apart — sat on the published surface
+through a full publish cycle with a green tree, and was found by a human-shaped reading of the
+rendered file rather than by anything in the suite.
+
+The extract that carries `sequence` (`docs/reports/run_output_latest.json`) cannot close that
+gap: it is 14 MB, the publish commit does not carry it, and the copy at HEAD is a July artefact
+whose 2024 bucket still holds dozens of near-duplicate events. **The one current published
+artefact is the rendered report**, and it renders peak, trough and percentage — which is enough,
+because the defect has a signature the rendering cannot hide. One swing sampled by two buckets
+comes out as two events whose peaks AND troughs both agree to a rounding error. Two genuinely
+independent drawdowns on a book that grew £250k to £1.75M do not.
+
+`test_the_published_report_never_shows_one_swing_twice` parses every drawdown line out of
+`docs/reports/ANNUAL_REPORT.md` and refuses any such pair, at a tolerance of 1e-3 on both ends —
+1% of a 10% drawdown's own depth, against a real pair that agreed to 3.4e-8 on the peak and
+1.2e-5 on the trough. It floors on the **lines**, not the events, because a book with no drawdown
+at all is a legitimate report (the end-2017 window is exactly that) while a rendering change that
+hides the figure from the control is not.
+
+### Controls, R15-proven — five named mutations, fires OBSERVED in scratch trees
+
+| mutation | tests fired |
+|---|---|
+| M1 point the live control at the report this repair replaced (origin/main's own bytes) | 1 — `test_the_published_report_never_shows_one_swing_twice` |
+| M2 fail-open: the pair-finder returns nothing always | 1 — the null control |
+| M3 the tolerance becomes exact equality | 1 — the null control |
+| M4 rendering drift: the threshold-line regex stops matching | 3 |
+| M5 over-reach: refuse any two events at all | 1 — `test_two_genuinely_distinct_swings_are_not_refused` |
+
+**M1 is the one that earns the section.** It is not an invented defect: it points the control at
+the bytes `origin/main` served until this tick, and watches it refuse them. A control that has
+only ever seen a clean artefact has never been shown to fire on the artefact at all — and that,
+precisely, was the state of every control here before this tick. **M4 is the FAIL-SILENT guard**:
+a report that stops rendering the figure, or a parser that stops reading it, is a failure and not
+an empty result — the rendered count on each line is checked against the number of events parsed
+out of that same line. **M5 is the over-reach guard**: a checker that refused any two events
+would also never publish one swing twice, and would red the first honest report with two real
+drawdowns in it.
+
+10 green on the unmutated tree.
+
+### What is NOT closed by this, named rather than absorbed
+
+1. **`docs/reports/run_output_latest.json` is tracked and is not republished by the publish
+   commit.** The copy at HEAD predates every repair in this document, so the one artefact that
+   carries `sequence` — the strongest form of the class control — cannot be asserted against.
+   That is the `CLASS_UNCOMMITTED_AND_ORPHANED_WORK` shape on a 14 MB file, and whether the right
+   answer is to commit it, to reduce it, or to stop tracking it is a real question this tick did
+   not answer.
+2. **The control reads the report, not the site.** No public surface renders the drawdown figure
+   today, so the report is the published artefact; if one ever does, it needs its own reading.
+3. The 61-table register, the calendar-vs-April keying in the ROC summary and the other items
+   named in earlier sections of this document remain where their own findings left them.
