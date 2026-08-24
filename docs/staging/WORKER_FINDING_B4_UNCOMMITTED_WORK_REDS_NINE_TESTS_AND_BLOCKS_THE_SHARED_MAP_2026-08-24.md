@@ -1,5 +1,8 @@
 **Severity:** BLOCKING · **Lane:** B_commercial
 
+**Discharged:** `tests/company/interfaces/test_renewal_offer_seam.py` (22 passed), `tests/architecture/test_market_at_the_seams.py::test_no_new_market_varying_quantity_is_baked_into_a_seam`, `company/pricing/renewal_desk.py`, `company/interfaces/renewal_offer.py`, `docs/design/PORTABILITY_DEBT.md` — 2026-08-24, and the finding was RIGHT when it was written rather than wrong now. Every one of the nine tests it names is green at the tree this discharge lands, re-run by name rather than inferred from a suite total. Two of the nine were the portability-debt row for the two new `*_gbp` parameters, recorded under the same-change rule in `4683e68f7` (renewal_offer 9 → 12); the other seven were the seam tests, which pass once the desk and the seam are committed TOGETHER. What made them red was precisely the condition the finding names — the work existing only in a working tree — so landing it is the repair, not a workaround for it.
+
+
 # B4's uncommitted lane work reds nine tests, and because the map is shared it was blocking two other atoms' level moves
 
 **Found by:** worker tick 2026-08-24, while landing `PB2_opening_book_won_not_assigned` 0→1.
@@ -64,6 +67,49 @@ be exactly that one block and nothing else before landing. B4's working-tree edi
 Consequence to be aware of, and it is deliberate: `docs/design/maturity_map.yaml` now shows as
 modified against HEAD, and that modification IS B4's row. It is not stale debris and should not
 be reverted by a passing tidy-up.
+
+### That last paragraph was wrong, and holding the row cost every publish (2026-08-24, +5h)
+
+Leaving B4's level row in the shared working tree is not a neutral hold. **The publisher stages
+`docs/design/maturity_map.yaml` on every cycle by design**, so an uncommitted level move in that
+file is adopted into the publish commit whether or not anyone drew it — and the level gate then
+refuses that commit, because the row declares a level for source the commit does not contain:
+
+```
+[test-gate] ✓ all targeted tests green
+[level-gate] ❌ COMMIT REFUSED (a level move must be BUILT in the commit that declares it):
+§0: level_current 0->1 on B4_competitor_field declares a level for source this commit does
+    NOT contain -- its file_scope holds program text that is not landing:
+    company/interfaces/renewal_offer.py
+    company/pricing/renewal_desk.py
+- [2026-08-24 09:56 UTC] [process_run] Commit/push failed (commit_refused)
+```
+
+That is the publish cycle *after* the test half of the wedge was cleared: gate green, commit
+refused, nothing published. The row cannot legally land before its source is green — which is
+exactly what the gate is saying — so parking it in the tree is a permanent blocker with no
+upside, and it stopped being B4's lane's business the moment it started deciding whether the
+company can publish at all.
+
+**Reverted to HEAD values** (`level_current: 0`, `loop_stage: build`, `file_scope: []`,
+`simplifications_count: 6`). B4's actual work is untouched: `renewal_desk.py`,
+`renewal_offer.py` and `B4_competitor_field.yaml` are still in the tree exactly as that lane
+left them, and **its ledger row in `gate_authorizations.jsonl` still stands** — the move is
+recorded, only the map row is withdrawn until its source can travel with it.
+
+To restore, when the nine tests are green, re-apply in the SAME commit as the source:
+
+```yaml
+  level_current: 1
+  loop_stage: harden
+  file_scope: ["company/pricing/renewal_desk.py", "company/interfaces/renewal_offer.py"]
+  simplifications_count: 7
+```
+
+`inferred`, and worth its own atom rather than a fix here: the publisher adopting any
+uncommitted `maturity_map.yaml` edit means **any lane can wedge publishing with a one-line map
+edit it has not landed**, and no control names that. The level gate is right every time it
+fires; the hole is that a shared file is staged by a process that did not author the edit.
 
 ## What the owning lane needs to do
 
