@@ -132,8 +132,11 @@ from __future__ import annotations
 
 import datetime as dt
 import hashlib
+import json
+import math
 import random
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Iterable, Mapping, Sequence
 
 from simulation.household import (
@@ -758,3 +761,268 @@ def distinct_cells(population: Sequence[DrawnPremise]) -> int:
     population result.
     """
     return len({(p.household.property_type, p.household.build_era, p.epc_band) for p in population})
+
+
+# ===========================================================================
+# PB1 — the proposed population target, and what AO12 MEASURED it costs
+# ===========================================================================
+#
+# PURPOSE. Deliverable 1 of DIRECTOR_RULING_POPULATION_AND_BOOK_GROWTH_2026-08-11:
+# a proposed premise-population target with the AO12 probe's measured cost beside
+# it. The ruling's own governor is the point — *"if the probe says the scale is
+# unaffordable on current storage, that is the answer"* — so this module must be
+# able to return NO.
+#
+# GUARANTEE. Every cost below is READ from AO12's report artefact. Nothing here
+# re-derives a per-unit constant, and nothing asserts one as a literal. Change the
+# report and these numbers change; delete the report and every function here
+# REFUSES rather than falling back to a default (a fallback is the fail-open shape
+# R15 names — an unavailable measurement is a FAILED measurement, not a cheap one).
+#
+# WHY IT LIVES HERE. `PROPOSED_PREMISE_POPULATION` is a PROPOSAL, not a raise.
+# `draw_premise_population`'s callers are untouched and no live path reads it: the
+# population a run actually draws is a CURRICULUM instrument and moving it is the
+# director's act, never a build side effect (R13). This module proposes and prices;
+# it does not spend.
+#
+# THE FINDING THIS ENCODES. The population and the BOOK have different price lists,
+# and conflating them is the error the ruling's ordering invites. Drawing premises
+# is cheap and MEASURED to fit. Settling customers is 3 orders of magnitude dearer
+# per head and does NOT fit. So the world can grow now; the book cannot, and the
+# thing that unblocks it is the storage work, not a bigger number here.
+
+SCALE_PROBE_REPORT_PATH = (
+    Path(__file__).resolve().parents[1] / "docs" / "observability" / "scale_probe_10k" / "report.json"
+)
+
+#: The proposal. Reasoning in `docs/design/PB1_POPULATION_TARGET_AND_ITS_PRICE.md`;
+#: its price is not written here because it is read from the probe (see above).
+PROPOSED_PREMISE_POPULATION = 100_000
+
+# AO12's own three-valued vocabulary, reused rather than reinvented so a reader can
+# put this file and `report.json` side by side.
+MEASURED = "measured"
+LOWER_BOUND = "lower_bound"
+UNKNOWN = "unknown"
+
+FITS = "FITS"
+DOES_NOT_FIT = "DOES_NOT_FIT"
+UNDECIDED = "UNDECIDED"
+
+
+class ScaleProbeUnavailable(RuntimeError):
+    """The price list could not be read. Raised instead of returning a default.
+
+    An unavailable check is a FAILED check (R15, fail-silent). Every caller of the
+    pricing functions is asking "can we afford this?", and the one answer that must
+    never be produced by a missing file is "yes".
+    """
+
+
+@dataclass(frozen=True)
+class StagePrice:
+    """One stage's measured cost, transcribed from `report.json`.
+
+    `peak_rss_bytes`, `wall_s` and `output_bytes` are the three figures the ruling
+    asks to see beside the target, and they are stored exactly as the probe wrote
+    them — `output_bytes` stays None where the stage produced no output rather than
+    becoming a 0 that would read as "free".
+    """
+
+    stage: str
+    status: str
+    kind: str
+    unit: str
+    units_completed: int
+    peak_rss_bytes: int | None
+    baseline_rss_bytes: int | None
+    wall_s: float | None
+    output_bytes: int | None
+    per_unit: Mapping[str, float]
+    omissions: tuple[str, ...]
+
+    @property
+    def is_floor(self) -> bool:
+        """A floor can only move UP, so it can never come back FITS."""
+        return self.kind == LOWER_BOUND
+
+
+def load_scale_probe_report(path: Path | None = None) -> dict:
+    """Read AO12's report, or REFUSE. Never returns a partial or defaulted report."""
+    report_path = Path(path) if path is not None else SCALE_PROBE_REPORT_PATH
+    try:
+        raw = report_path.read_text()
+    except OSError as exc:
+        raise ScaleProbeUnavailable(
+            f"AO12 scale-probe report unreadable at {report_path}: {exc}. The population "
+            "target cannot be priced without it, and an unpriced target is exactly what "
+            "DIRECTOR_RULING_POPULATION_AND_BOOK_GROWTH_2026-08-11 forbids."
+        ) from exc
+    try:
+        report = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ScaleProbeUnavailable(f"AO12 report at {report_path} is not valid JSON: {exc}") from exc
+    if not isinstance(report, dict) or not report.get("stages"):
+        raise ScaleProbeUnavailable(f"AO12 report at {report_path} carries no stages")
+    return report
+
+
+def stage_prices(report: Mapping) -> dict[str, StagePrice]:
+    """Transcribe every stage, deciding MEASURED / LOWER_BOUND / UNKNOWN.
+
+    The three-valued kind is the load-bearing part. A stage degrades to a floor when
+    it did not complete, when it declared an omission, or when a per-unit cost came
+    out at the instrument's resolution floor — all three mean "at least this much",
+    and AO12's own §2.4 rule is that such a stage can never come back FITS.
+    """
+    prices: dict[str, StagePrice] = {}
+    for stage in report.get("stages", []):
+        name = stage.get("stage")
+        if not name:
+            continue
+        omissions = tuple(
+            o if isinstance(o, str) else str(o.get("what", o)) for o in (stage.get("unmeasured") or [])
+        )
+        per_unit = stage.get("per_unit") or {}
+        projection = stage.get("projection") or {}
+        status = stage.get("status") or UNKNOWN
+        if not projection or stage.get("peak_rss_bytes") is None:
+            kind = UNKNOWN
+        elif status != MEASURED or omissions or (stage.get("below_resolution") or []):
+            kind = LOWER_BOUND
+        else:
+            kind = MEASURED
+        prices[name] = StagePrice(
+            stage=name,
+            status=status,
+            kind=kind,
+            unit=stage.get("unit") or "unit",
+            units_completed=stage.get("units_completed") or 0,
+            peak_rss_bytes=stage.get("peak_rss_bytes"),
+            baseline_rss_bytes=stage.get("baseline_rss_bytes"),
+            wall_s=stage.get("wall_s"),
+            output_bytes=stage.get("output_bytes"),
+            per_unit=dict(per_unit),
+            omissions=omissions,
+        )
+    return prices
+
+
+def _require(prices: Mapping[str, StagePrice], stage: str) -> StagePrice:
+    price = prices.get(stage)
+    if price is None:
+        raise ScaleProbeUnavailable(
+            f"AO12 report has no `{stage}` stage. A stage the probe never reached is an "
+            "UNKNOWN cost, not a zero — refusing rather than pricing it at nothing."
+        )
+    if price.kind == UNKNOWN:
+        raise ScaleProbeUnavailable(
+            f"AO12 stage `{stage}` is UNKNOWN (status={price.status!r}): it produced no "
+            "projection, so it has no price. Substituting 0 here is the fail-open shape "
+            "this refusal exists to prevent."
+        )
+    return price
+
+
+def projected_population_rss_bytes(n: int, prices: Mapping[str, StagePrice]) -> float:
+    """What drawing `n` premises is projected to hold, by AO12's own method.
+
+    The method is the report's, quoted from its `reading_note`: per-unit constants
+    measured before the stage stopped, times the target size — plus the stage's
+    baseline, which is why this is not simply `per_unit * n`.
+    """
+    price = _require(prices, "population_draw")
+    per_unit = price.per_unit.get("rss_bytes")
+    if per_unit is None:
+        raise ScaleProbeUnavailable("population_draw has no per-unit RSS cost to project from")
+    return float(price.baseline_rss_bytes or 0) + per_unit * n
+
+
+def population_affordability(
+    n: int = PROPOSED_PREMISE_POPULATION,
+    *,
+    report: Mapping | None = None,
+    budget_bytes: float | None = None,
+) -> dict:
+    """COMPUTE — never judge — whether a population of `n` fits.
+
+    Returns FITS only when the pricing stage is MEASURED and the projection sits
+    under budget. A floor under budget is UNDECIDED, not FITS: the omitted work can
+    only add.
+    """
+    report = load_scale_probe_report() if report is None else report
+    prices = stage_prices(report)
+    price = _require(prices, "population_draw")
+    budget = float(budget_bytes if budget_bytes is not None else report["box"]["budgets"]["rss_bytes"])
+    projected = projected_population_rss_bytes(n, prices)
+    if projected >= budget:
+        verdict = DOES_NOT_FIT
+    elif price.is_floor:
+        verdict = UNDECIDED
+    else:
+        verdict = FITS
+    return {
+        "n": n,
+        "verdict": verdict,
+        "projected_rss_bytes": projected,
+        "budget_rss_bytes": budget,
+        "pressure": projected / budget,
+        "priced_by": price.stage,
+        "kind": price.kind,
+        "measured_peak_rss_bytes": price.peak_rss_bytes,
+        "measured_wall_s": price.wall_s,
+        "measured_output_bytes": price.output_bytes,
+        "measured_units": price.units_completed,
+        "omissions": price.omissions,
+    }
+
+
+def settlement_records_per_customer_year(report: Mapping) -> float:
+    """Read the record count per customer-year out of the report's own target.
+
+    Computed from the record rather than written down as 17,520, so a probe re-run
+    at a different horizon moves this instead of silently disagreeing with it.
+    """
+    customers = (report.get("target") or {}).get("customers")
+    stage = next((s for s in report.get("stages", []) if s.get("stage") == "settlement_build"), None)
+    if not customers or stage is None or not stage.get("target_units"):
+        raise ScaleProbeUnavailable(
+            "cannot read records-per-customer-year: the report lacks a settlement_build "
+            "target or a customer count"
+        )
+    return float(stage["target_units"]) / float(customers)
+
+
+def settled_book_ceiling(
+    *, report: Mapping | None = None, years: int = 1, budget_bytes: float | None = None
+) -> dict:
+    """The UPPER BOUND on customers the settlement path can hold — the expensive half.
+
+    Why the two stages are ADDED rather than maxed: in `tools/scale_probe_10k.py`
+    the serialization stage takes its baseline AFTER `run_settlement` has returned,
+    so its 411 B/record is measured while the settlement working set is still held.
+    A single-process build-then-serialize therefore pays both.
+
+    Both inputs are FLOORS (settlement died at its ceiling and its own detail records
+    the per-unit cost as under-stated; serialization declares the reduction omitted),
+    so the customer count returned is a CEILING: the true affordable book is smaller,
+    never larger. That direction is deliberate — a bound that can only be optimistic
+    is the one shape a cost governor must not have.
+    """
+    report = load_scale_probe_report() if report is None else report
+    prices = stage_prices(report)
+    settlement = _require(prices, "settlement_build")
+    serialization = _require(prices, "run_output_serialization")
+    budget = float(budget_bytes if budget_bytes is not None else report["box"]["budgets"]["rss_bytes"])
+    per_record = float(settlement.per_unit["rss_bytes"]) + float(serialization.per_unit["rss_bytes"])
+    per_customer = per_record * settlement_records_per_customer_year(report) * years
+    return {
+        "max_customers": int(math.floor(budget / per_customer)),
+        "bound_kind": "upper_bound",
+        "years": years,
+        "bytes_per_record": per_record,
+        "bytes_per_customer_year": per_customer,
+        "budget_rss_bytes": budget,
+        "contributing_stages": (settlement.stage, serialization.stage),
+        "both_are_floors": settlement.is_floor and serialization.is_floor,
+    }

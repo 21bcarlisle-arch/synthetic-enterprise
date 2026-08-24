@@ -3884,7 +3884,7 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 2
-  level_current: 0
+  level_current: 2
   level_target: 2
   loop_stage: build
   dial_inherited: 3
@@ -3893,7 +3893,7 @@
   couples_with: []
   records_rehomed: [evidence]
   simplifications_count: 2
-  file_scope: [simulation/premise_population.py, tools/scale_probe_10k.py, tests/simulation/test_premise_population.py]
+  file_scope: [simulation/premise_population.py, tools/scale_probe_10k.py, tests/simulation/test_premise_population.py, docs/design/PB1_POPULATION_TARGET_AND_ITS_PRICE.md]
 - id: PB2_opening_book_won_not_assigned
   title: "The company starts with a real book, and it had to win it"
   gain: "A 13-account book stops being a stress test of the money machinery and starts being a small supplier."
@@ -3901,7 +3901,7 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 2
-  level_current: 0
+  level_current: 1
   level_target: 3
   loop_stage: build
   dial_inherited: 3
@@ -3910,7 +3910,9 @@
   couples_with: []
   records_rehomed: [evidence]
   simplifications_count: 2
-  file_scope: [saas/customers.py, simulation/population_draw.py, tests/saas/test_customers.py]
+  file_scope: [saas/customers.py, simulation/population_draw.py, tests/saas/test_customers.py,
+    tests/simulation/test_opening_book_subset.py, tests/simulation/test_live_population_seam.py,
+    docs/design/PB2_JOIN_KEY_BUILD.md]
 - id: PB3_book_growth_as_earned_outcome
   title: "A growth curve that can be lost"
   gain: "Book size becomes an outcome the company can fail at, instead of a number that goes up."

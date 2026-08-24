@@ -419,3 +419,161 @@ def test_the_population_spans_a_wide_range_of_true_heat_loss(population):
         fp.fabric_parameters(p.household).heat_loss_coefficient_kw_per_k for p in population
     )
     assert hlc[-1] / hlc[0] > 10.0
+
+
+# ---------------------------------------------------------------------------
+# PB1 — the proposed target and its price
+#
+# The controls that matter here are not "is 100,000 a good number" (a judgement no
+# test can hold) but "did this proposal PRICE itself, and can the pricing say NO".
+# Every mutation below attacks one of R15's three killer patterns: TAUTOLOGY (the
+# price is written here rather than read), FAIL-OPEN (an unmeasured stage priced at
+# zero), FAIL-SILENT (a missing report answering "affordable").
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def probe_report():
+    return pp.load_scale_probe_report()
+
+
+def test_the_proposed_target_is_affordable_on_the_committed_measurement(probe_report):
+    """The proposal's own claim, computed rather than asserted."""
+    verdict = pp.population_affordability(report=probe_report)
+    assert verdict["verdict"] == pp.FITS
+    assert verdict["kind"] == pp.MEASURED, "a floor may never come back FITS"
+    assert verdict["projected_rss_bytes"] < verdict["budget_rss_bytes"]
+
+
+def test_the_price_is_read_from_the_report_and_not_written_in_this_repo(probe_report):
+    """TAUTOLOGY killer. Double the per-unit costs the report carries and every
+    derived figure must move with them. A constant transcribed into the module (or
+    into this test) survives the report changing — which is precisely the failure
+    the ruling's "measured cost beside it" exists to prevent."""
+    import copy
+
+    baseline = pp.settled_book_ceiling(report=probe_report, years=1)
+    mutated = copy.deepcopy(dict(probe_report))
+    for stage in mutated["stages"]:
+        if stage["stage"] in ("settlement_build", "run_output_serialization"):
+            stage["per_unit"]["rss_bytes"] *= 2.0
+    after = pp.settled_book_ceiling(report=mutated, years=1)
+
+    assert after["bytes_per_record"] == pytest.approx(baseline["bytes_per_record"] * 2.0)
+    assert after["max_customers"] < baseline["max_customers"]
+
+
+def test_mutation_an_unmeasured_stage_is_refused_rather_than_priced_at_zero(probe_report):
+    """FAIL-OPEN killer, and the exact shape the drawn work named: a stage the probe
+    never reached is an UNKNOWN cost, not a zero.
+
+    Two directions, because refusing is only half the property. First: strip the
+    projection and the ceiling REFUSES. Second: had it instead substituted zero, the
+    affordable book would have come out strictly LARGER — the reassuring direction.
+    That second assertion is what proves the refusal is load-bearing rather than
+    decorative."""
+    import copy
+
+    honest = pp.settled_book_ceiling(report=probe_report, years=1)
+
+    unmeasured = copy.deepcopy(dict(probe_report))
+    for stage in unmeasured["stages"]:
+        if stage["stage"] == "settlement_build":
+            stage["projection"] = {}
+            stage["peak_rss_bytes"] = None
+    assert pp.stage_prices(unmeasured)["settlement_build"].kind == pp.UNKNOWN
+    with pytest.raises(pp.ScaleProbeUnavailable, match="UNKNOWN"):
+        pp.settled_book_ceiling(report=unmeasured, years=1)
+
+    zeroed = copy.deepcopy(dict(probe_report))
+    for stage in zeroed["stages"]:
+        if stage["stage"] == "settlement_build":
+            stage["per_unit"]["rss_bytes"] = 0.0
+    assert pp.settled_book_ceiling(report=zeroed, years=1)["max_customers"] > honest["max_customers"]
+
+
+def test_a_missing_or_malformed_report_refuses_instead_of_answering(tmp_path):
+    """FAIL-SILENT killer. An unavailable measurement is a FAILED measurement. The
+    one answer a missing price list must never produce is "yes, affordable"."""
+    with pytest.raises(pp.ScaleProbeUnavailable):
+        pp.load_scale_probe_report(tmp_path / "does_not_exist.json")
+
+    malformed = tmp_path / "malformed.json"
+    malformed.write_text("{not json")
+    with pytest.raises(pp.ScaleProbeUnavailable):
+        pp.load_scale_probe_report(malformed)
+
+    empty = tmp_path / "empty.json"
+    empty.write_text('{"stages": []}')
+    with pytest.raises(pp.ScaleProbeUnavailable):
+        pp.load_scale_probe_report(empty)
+
+
+def test_a_floor_below_budget_is_undecided_and_never_fits(probe_report):
+    """AO12 §2.4's own rule, enforced here: a stage carrying a declared omission can
+    only get dearer, so "under budget" is not "affordable". Mutating the pricing
+    stage to declare an omission must downgrade a FITS to UNDECIDED without any
+    number changing."""
+    import copy
+
+    assert pp.population_affordability(report=probe_report)["verdict"] == pp.FITS
+
+    with_omission = copy.deepcopy(dict(probe_report))
+    for stage in with_omission["stages"]:
+        if stage["stage"] == "population_draw":
+            stage["unmeasured"] = [{"what": "a declared omission, injected by this control"}]
+    downgraded = pp.population_affordability(report=with_omission)
+    assert downgraded["verdict"] == pp.UNDECIDED
+    assert downgraded["projected_rss_bytes"] < downgraded["budget_rss_bytes"]
+
+
+def test_the_transcription_reproduces_the_probes_own_affordability_map(probe_report):
+    """INDEPENDENCE. The report stores its own per-stage verdict; this module derives
+    one from the raw stage records by a different route. They must agree — if they
+    do not, one of the two is reading the artefact wrongly and the disagreement is
+    the finding."""
+    stored = probe_report["affordability"]
+    prices = pp.stage_prices(probe_report)
+    expected_kind = {pp.FITS: pp.MEASURED, "DOES_NOT_FIT": pp.LOWER_BOUND, "UNDECIDED": pp.LOWER_BOUND}
+    for stage, verdict in stored.items():
+        assert prices[stage].kind == expected_kind[verdict], (
+            f"{stage}: report says {verdict}, transcription says kind={prices[stage].kind}"
+        )
+
+
+def test_the_book_the_settlement_path_can_hold_is_far_below_the_proposed_population(probe_report):
+    """THE FINDING, pinned so it cannot quietly stop being true: the population and
+    the book have different price lists. Drawing premises fits with room to spare;
+    settling them does not, by more than two orders of magnitude."""
+    population = pp.population_affordability(report=probe_report)
+    book = pp.settled_book_ceiling(report=probe_report, years=1)
+
+    assert population["verdict"] == pp.FITS
+    assert book["both_are_floors"], "the ceiling is only honest if its inputs are floors"
+    assert book["max_customers"] * 100 < pp.PROPOSED_PREMISE_POPULATION
+
+
+def test_the_decade_ceiling_is_ten_times_tighter_than_the_year(probe_report):
+    """AO12's Limit 3: every projection is a single year and the decade is 10x. The
+    run this company publishes replays a decade, so the year figure is the wrong one
+    to quote at it."""
+    year = pp.settled_book_ceiling(report=probe_report, years=1)["max_customers"]
+    decade = pp.settled_book_ceiling(report=probe_report, years=10)["max_customers"]
+    assert decade == pytest.approx(year / 10, rel=0.02)
+
+
+def test_the_proposal_is_not_wired_into_the_live_draw():
+    """R13 GUARD. `PROPOSED_PREMISE_POPULATION` is a proposal, not a raise: moving the
+    population a run actually draws is a curriculum act and the director's, never a
+    build side effect. This fails the moment any caller starts drawing from it."""
+    import subprocess
+
+    repo = pp.SCALE_PROBE_REPORT_PATH.parents[3]
+    found = subprocess.run(
+        ["git", "grep", "-l", "PROPOSED_PREMISE_POPULATION", "--", "*.py"],
+        cwd=repo, capture_output=True, text=True,
+    ).stdout.split()
+    assert set(found) <= {
+        "simulation/premise_population.py",
+        "tests/simulation/test_premise_population.py",
+    }, f"the proposed target has acquired a live consumer: {found}"
