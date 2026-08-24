@@ -187,6 +187,21 @@ class Population:
         )
         return str(self.counted) + " of " + str(self.available) + " (" + why + ")"
 
+    def as_published_dict(self) -> dict:
+        """The population as JSON, with `available` MATERIALISED rather than derived.
+
+        A reader of the published artefact has no properties, only keys. Leaving
+        `available` to be re-added downstream is how a denominator gets recomputed
+        differently in two places — so it is written once, here, by the object that
+        owns the arithmetic.
+        """
+        return {
+            "counted": self.counted,
+            "excluded": self.excluded,
+            "available": self.available,
+            "reasons": dict(sorted(self.reasons.items())),
+        }
+
 
 @dataclass(frozen=True)
 class HorizonValue:
@@ -206,6 +221,21 @@ class HorizonValue:
     @property
     def is_estimable(self) -> bool:
         return self.value_gbp is not None
+
+    def as_published_dict(self) -> dict:
+        """This horizon's answer as JSON — the blank survives as `null`, never as 0.0.
+
+        `horizon` and `time_model` are emitted as their `.value` strings explicitly.
+        Both are `str` subclasses, so `json.dumps` would already produce the right
+        characters; spelling `.value` means a later change to the enum's base class
+        cannot silently change the shape of a published artefact.
+        """
+        return {
+            "horizon": self.horizon.value,
+            "time_model": self.time_model.value,
+            "value_gbp": self.value_gbp,
+            "population": self.population.as_published_dict(),
+        }
 
 
 @dataclass(frozen=True)
@@ -329,6 +359,25 @@ class CohortValue:
             return None
         return self.mean_value_gbp > 0
 
+    def as_published_dict(self) -> dict:
+        """The cohort as JSON, carrying the three-state `is_profitable` intact.
+
+        `null` here is "this cohort has no counted member", NOT "it breaks even" —
+        the §5 repair travels into the artefact rather than stopping at the object,
+        because a publisher that re-derives the boolean from `mean_value_gbp` is
+        exactly the sibling implementation that got it wrong.
+        """
+        return {
+            "key": self.key,
+            "time_model": self.time_model.value,
+            "mean_value_gbp": self.mean_value_gbp,
+            "median_value_gbp": self.median_value_gbp,
+            "total_value_gbp": self.total_value_gbp,
+            "pooled_churn_probability": self.pooled_churn_probability,
+            "is_profitable": self.is_profitable,
+            "population": self.population.as_published_dict(),
+        }
+
 
 @dataclass(frozen=True)
 class BookCLV:
@@ -342,6 +391,16 @@ class BookCLV:
     accounts: tuple[AccountCLV, ...]
     cohorts: Mapping[str, CohortValue]
     portfolio: CohortValue
+    #: WHICH of the three horizons the cohort and portfolio aggregates were built
+    #: from, and at WHAT discount rate. Both are REQUIRED with no default, for the
+    #: reason `still_supplied` is: this atom is being published, and a valuation
+    #: figure without its basis is R14's defect in a different currency. Every
+    #: account carries all three horizons, so `portfolio.mean_value_gbp` is
+    #: uninterpretable — not merely under-documented — unless the book says which
+    #: one it aggregated. `estimate_book` is the only construction site and it
+    #: knows both, so neither can be supplied by a guess downstream.
+    aggregate_horizon: Horizon
+    discount_rate: float
 
     def cohort(self, key: str) -> CohortValue | None:
         """The cohort, or None if no such cohort exists in this book.
@@ -356,6 +415,47 @@ class BookCLV:
             if a.account_id == account_id:
                 return a
         return None
+
+    def as_published_dict(self) -> dict:
+        """The whole book as a JSON-safe statement, basis first.
+
+        THIS IS THE ONLY WAY THIS ATOM LEAVES THE PROCESS, and that is deliberate.
+        `three_horizon_clv` has been computed on every run since pass 10 and read by
+        nothing, which is the difference between built and dark; the fix is not a
+        second estimator in the publisher but a single serialisation owned by the
+        object that holds the numbers. A publisher that re-derives anything here —
+        an aggregate, a denominator, a profitability flag — has forked the
+        implementation, and this module's own reconciliation register exists because
+        that has already happened six times on this one quantity.
+
+        WHAT IS DELIBERATELY NOT HERE: no rounding, no `£` formatting, no
+        "0.0 if None". Presentation is the renderer's job and a blank stays a blank
+        all the way to the page, where `NOT_AVAILABLE` is printed for it under a
+        named reason. Rounding at the seam would make the artefact and the object
+        disagree at the fourth decimal, which is how a reconciliation becomes
+        unfalsifiable.
+        """
+        return {
+            "aggregate_horizon": self.aggregate_horizon.value,
+            "discount_rate": self.discount_rate,
+            "portfolio": self.portfolio.as_published_dict(),
+            "cohorts": {
+                key: cohort.as_published_dict()
+                for key, cohort in sorted(self.cohorts.items())
+            },
+            "accounts": [
+                {
+                    "account_id": account.account_id,
+                    Horizon.CONTRACT_TERM.value:
+                        account.contract_term.as_published_dict(),
+                    Horizon.TENURE_EXPECTED.value:
+                        account.tenure_expected.as_published_dict(),
+                    Horizon.PORTFOLIO_COHORT.value:
+                        account.portfolio_cohort.as_published_dict(),
+                }
+                for account in sorted(self.accounts, key=lambda a: a.account_id)
+            ],
+        }
 
 
 def survival_discounted_value_gbp(
@@ -672,7 +772,17 @@ def estimate_book(
     cohorts = {seg: _aggregate(seg, group) for seg, group in by_segment.items()}
     portfolio = _aggregate("portfolio", members)
     return BookCLV(
-        accounts=tuple(accounts), cohorts=cohorts, portfolio=portfolio
+        accounts=tuple(accounts),
+        cohorts=cohorts,
+        portfolio=portfolio,
+        # The basis travels WITH the numbers rather than beside them. `horizon` and
+        # `discount_rate` are this call's own arguments, so the book cannot disagree
+        # with the aggregation that produced it — the alternative, letting a
+        # publisher declare the basis it believes was used, is the TAUTOLOGY shape
+        # inverted: a label that no longer checks anything because it is written by
+        # whoever is reading.
+        aggregate_horizon=horizon,
+        discount_rate=discount_rate,
     )
 
 

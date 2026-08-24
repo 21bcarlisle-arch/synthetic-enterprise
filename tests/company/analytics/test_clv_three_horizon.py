@@ -12,6 +12,7 @@ degenerate: `drop_null` and `supplied` came out bit-identical on every field.
 
 from __future__ import annotations
 
+import json
 import math
 import subprocess
 import tempfile
@@ -24,6 +25,7 @@ from company.analytics.clv_three_horizon import (
     CLV_SEAM_REGISTER,
     DISCOUNT_RATE,
     AccountObservables,
+    BookCLV,
     Exclusion,
     Horizon,
     RenewalPoint,
@@ -487,3 +489,150 @@ def test_the_old_horizon_vocabulary_is_not_reintroduced_here():
         capture_output=True, text=True, check=False,
     )
     assert out.stdout.strip() == "", "the renamed module is back in the index"
+
+
+# ---------------------------------------------------------------------------
+# PUBLICATION — the estimator's output has to leave the process to be worth anything.
+#
+# Each control below names the defect it fires on, and each was run against a
+# deliberately broken `as_published_dict` before being run against the shipped one.
+# The pattern being guarded is the one this atom has already committed twice: a
+# number that exists in an object and reaches no reader is indistinguishable from a
+# number that was never computed.
+# ---------------------------------------------------------------------------
+
+
+def _published_four_cells() -> dict:
+    return estimate_book(FOUR_CELLS).as_published_dict()
+
+
+def test_the_published_book_is_json_safe_all_the_way_down():
+    """DEFECT: an Enum, a dataclass or a tuple survives into the artefact.
+
+    `json.dumps` on the shipped output is the whole control — a `BookCLV` handed
+    straight to a writer raises here, which is what a caller would have hit at the
+    end of a nine-minute run rather than in a test.
+    """
+    payload = _published_four_cells()
+    round_tripped = json.loads(json.dumps(payload))
+    assert round_tripped == payload, "the payload is not its own JSON round trip"
+
+
+def test_the_published_book_states_the_basis_its_aggregate_was_built_on():
+    """DEFECT: a portfolio mean published with no horizon and no discount rate.
+
+    All three horizons exist for every account, so an aggregate figure without its
+    basis is uninterpretable rather than merely under-labelled. The two are read
+    from the CALL, so a book aggregated on a different horizon says so.
+    """
+    on_contract = estimate_book(
+        FOUR_CELLS, horizon=Horizon.CONTRACT_TERM
+    ).as_published_dict()
+    on_cohort = estimate_book(
+        FOUR_CELLS, horizon=Horizon.PORTFOLIO_COHORT, discount_rate=0.05
+    ).as_published_dict()
+
+    assert on_contract["aggregate_horizon"] == Horizon.CONTRACT_TERM.value
+    assert on_contract["discount_rate"] == DISCOUNT_RATE
+    assert on_cohort["aggregate_horizon"] == Horizon.PORTFOLIO_COHORT.value
+    assert on_cohort["discount_rate"] == 0.05
+    # Independence: the label moved because the AGGREGATE moved, not because a
+    # string was copied. A different horizon counts a different population here.
+    assert (
+        on_contract["portfolio"]["population"]["counted"]
+        != on_cohort["portfolio"]["population"]["counted"]
+    )
+
+
+def test_the_basis_cannot_be_omitted_by_a_caller_that_forgets_it():
+    """DEFECT: `aggregate_horizon` defaulted, so a future construction site drops it.
+
+    The same shape as `still_supplied`: a field that may be forgotten is a field
+    that will be, and this one decides whether a published figure means anything.
+    """
+    with pytest.raises(TypeError):
+        BookCLV(  # type: ignore[call-arg]
+            accounts=(),
+            cohorts={},
+            portfolio=estimate_book(FOUR_CELLS).portfolio,
+        )
+
+
+def test_a_structural_blank_survives_publication_as_null_not_as_zero():
+    """DEFECT: the serialiser coerces `None` to 0.0 and publishes 'worth nothing'.
+
+    `A_sb` is supplied with NO observed margin — the cell the live book cannot
+    supply. Its contract-term value must arrive as `null` carrying its reason, and
+    the reason must be the named exclusion rather than an empty dict.
+    """
+    payload = _published_four_cells()
+    blank = next(a for a in payload["accounts"] if a["account_id"] == "A_sb")
+    contract = blank[Horizon.CONTRACT_TERM.value]
+    assert contract["value_gbp"] is None
+    assert contract["population"]["reasons"] == {Exclusion.NO_MARGIN_OBSERVED.value: 1}
+
+    valued = next(a for a in payload["accounts"] if a["account_id"] == "A_sv")
+    assert valued[Horizon.CONTRACT_TERM.value]["value_gbp"] is not None
+    # Independence from the assertion above: the blank and the valued account differ
+    # in the artefact, so a serialiser that emitted `None` for everything would fail.
+    assert valued[Horizon.CONTRACT_TERM.value]["time_model"] == (
+        TimeModel.CONSTANT_HAZARD_FIXED_TERM.value
+    )
+
+
+def test_the_published_population_carries_the_denominator_that_was_available():
+    """DEFECT: `available` is dropped at the seam and re-derived downstream.
+
+    A reader of JSON has no properties. `counted + excluded` recomputed in three
+    publishers is three chances to recompute it differently; it is written once by
+    the object that owns it.
+    """
+    payload = _published_four_cells()
+    population = payload["portfolio"]["population"]
+    assert population["available"] == population["counted"] + population["excluded"]
+    assert population["available"] == len(FOUR_CELLS)
+    # The ceased accounts are excluded UNDER THEIR NAME, not silently absent.
+    assert population["reasons"].get(Exclusion.CEASED.value) == 2
+
+
+def test_an_empty_cohort_publishes_a_null_verdict_not_a_false_one():
+    """DEFECT: `is_profitable` re-derived downstream as `mean > 0`, so `None` -> False.
+
+    A cohort with no counted member and a cohort that loses money must not publish
+    the same boolean. Here every member of the `gone` segment has ceased, so the
+    cohort exists and counts nobody.
+    """
+    ceased_only = [
+        _account("G1", still_supplied=False, margin=100.0, segment="gone"),
+        _account("G2", still_supplied=False, margin=100.0, segment="gone"),
+        SUPPLIED_AND_VALUED,
+    ]
+    payload = estimate_book(ceased_only).as_published_dict()
+    gone = payload["cohorts"]["gone"]
+    assert gone["mean_value_gbp"] is None
+    assert gone["is_profitable"] is None, "an empty cohort published a verdict"
+    assert gone["population"]["counted"] == 0
+    assert payload["cohorts"]["residential"]["is_profitable"] is True
+
+
+def test_the_published_book_is_deterministic_and_ordered():
+    """DEFECT: dict/tuple iteration order leaks into the artefact, so two identical
+    runs produce two different files and every diff of a published report is noise."""
+    shuffled = list(reversed(FOUR_CELLS))
+    assert estimate_book(FOUR_CELLS).as_published_dict() == (
+        estimate_book(shuffled).as_published_dict()
+    )
+    ids = [a["account_id"] for a in _published_four_cells()["accounts"]]
+    assert ids == sorted(ids)
+
+
+def test_every_account_publishes_all_three_horizons():
+    """DEFECT: the serialiser publishes only the aggregate horizon, which would make
+    the artefact unable to answer the question the atom is named for."""
+    payload = _published_four_cells()
+    for account in payload["accounts"]:
+        for horizon in Horizon:
+            assert horizon.value in account, (
+                f"{account['account_id']} is missing {horizon.value}"
+            )
+            assert account[horizon.value]["horizon"] == horizon.value

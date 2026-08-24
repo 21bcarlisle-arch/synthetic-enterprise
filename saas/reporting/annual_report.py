@@ -261,11 +261,11 @@ def extract_report_data(run_output: dict) -> dict:
     for the full 9.5-year window)."""
     phase2b = run_output["phase2b"]
     all_records = phase2b["all_records"]
-    # THE THREE REGISTERS a run folds from its per-period records when the settlement book is
-    # reduced to daily rows (simulation/settlement_daily.py). Each serves one published figure
-    # a day cannot answer. `.get` with a default, not `[...]`: no run emits them yet -- the
-    # fold is built and dormant -- and every hand-built test run output lacks them, so a
-    # missing register must fall back to scanning `all_records` rather than raise.
+    # THE THREE REGISTERS the run folded from its per-period records before the book was
+    # reduced to daily rows (2026-08-24, simulation/settlement_daily.py). Each serves one
+    # published figure a day cannot answer. `.get` with a default, not `[...]`: this function
+    # is handed hand-built run outputs by a great many tests, and a missing register must fall
+    # back to scanning whatever `all_records` holds rather than raise.
     worst_period_by_year = phase2b.get("worst_period_by_year") or {}
     tou_by_customer = phase2b.get("tou_by_customer") or {}
     treasury_drawdown_points = phase2b.get("treasury_drawdown_points") or {}
@@ -342,10 +342,12 @@ def extract_report_data(run_output: dict) -> dict:
                 "gross_gbp": sum(r["margin_gbp"] for r in crecs),
                 "capital_gbp": sum(r["capital_cost_gbp"] for r in crecs),
                 "net_gbp": sum(r["net_margin_gbp"] for r in crecs),
-                # THE RANGE, not the range of a day's opening rates. Under ToU the peak and
-                # off-peak halves of a day carry different unit rates, so a daily row carries
-                # the extremes it saw; minima of daily minima compose exactly. Falls back to
-                # the record's own rate, which is what every per-period record carries.
+                # THE RANGE, not the range of a day's opening rates. Under a ToU tariff the
+                # peak and off-peak halves of a day carry different unit rates, so a daily row
+                # carries the extremes it saw alongside the rate it opened on (2026-08-24,
+                # simulation/settlement_daily.py). Minima of daily minima compose exactly.
+                # `.get(...) or r[...]` falls back for a pre-fold record, which is what every
+                # hand-built test fixture is.
                 "tariff_min_gbp_per_mwh": min(
                     r.get("unit_rate_min_gbp_per_mwh", r["unit_rate_gbp_per_mwh"])
                     for r in crecs),
@@ -383,8 +385,12 @@ def extract_report_data(run_output: dict) -> dict:
         treasury_end = max(yr_records, key=lambda r: (r["settlement_date"], r["settlement_period"]))[
             "treasury_cash_balance_gbp"
         ]
-        # THE WORST HALF-HOUR. Prefer the run's own register: once the book holds daily rows
-        # a min over it names the worst DAY and labels it a period. Falls back to the scan.
+        # THE WORST HALF-HOUR, from the run's own register. `yr_records` holds DAILY rows
+        # since 2026-08-24, so a min over it would name the worst DAY and label it a period.
+        # The register was folded from the per-period records as they were produced; the scan
+        # below is the fallback for a run output that predates it (and for the many tests that
+        # build `all_records` by hand), and it degrades to the worst row available rather than
+        # failing.
         worst_record = (worst_period_by_year or {}).get(year) or (
             min(yr_records, key=lambda r: r["net_margin_gbp"]) if yr_records else {})
 
@@ -434,8 +440,12 @@ def extract_report_data(run_output: dict) -> dict:
             if _year(e["period_end"]) == year
         ]
 
-        # THE TREASURY PATH. Prefer the run's own drawdown register: a drawdown opens and
-        # closes between half-hours and a daily close cannot see it. Falls back to the book.
+        # THE TREASURY PATH, from the run's own drawdown register. A drawdown opens and closes
+        # between half-hours, and the book now holds daily CLOSES -- an intra-day trough would
+        # simply not be in it. The register keeps the turning points (every new running peak and
+        # every new low beneath it), which is exactly the state `_drawdown_events` walks, so
+        # replaying them reproduces the same events. Falls back to the book for a run output
+        # that predates the register.
         treasury_series = (treasury_drawdown_points or {}).get(year) or [
             r["treasury_cash_balance_gbp"]
             for r in sorted(yr_records,
@@ -735,11 +745,13 @@ def extract_report_data(run_output: dict) -> dict:
     _HH_CUSTOMERS = {"C7", "C8", "C9"}
     tou_stats: dict[str, dict] = {}
     for cid in _HH_CUSTOMERS:
-        # THE PEAK/OFF-PEAK SPLIT. Prefer the run's own register: a daily row is neither peak
-        # nor off-peak, and the register split each half-hour as it was settled using the
-        # WORLD's copy of the band -- the one that priced the revenue being split. That copy
-        # and `company.market.tou_periods`' are independent readings of a published Elexon
-        # convention and agree today. Falls back to splitting the records here.
+        # THE PEAK/OFF-PEAK SPLIT, from the run's own register. The book holds daily rows, and
+        # a day is neither peak nor off-peak. The register split each half-hour as it was
+        # settled, using the WORLD's copy of the band -- the one that actually priced the
+        # revenue being split. That copy and `company.market.tou_periods`' are independent
+        # readings of a published Elexon convention and agree today; a divergence reds
+        # `tests/simulation/test_settlement_daily.py::test_the_two_peak_band_definitions_still_agree`
+        # rather than quietly moving this figure.
         bucket = (tou_by_customer or {}).get(cid)
         if bucket is None:
             hh_recs = [r for r in all_records
@@ -904,6 +916,13 @@ def extract_report_data(run_output: dict) -> dict:
             {"customer_id": lowest_clv[0], "clv_gbp": lowest_clv[1]["clv_gbp"]} if lowest_clv else None
         ),
         "avg_clv_gbp": _avg(clv_values),
+        # EP1's three-horizon book, forwarded UNTOUCHED. Nothing is recomputed,
+        # re-aggregated or rounded on the way through: the estimator's own
+        # `as_published_dict` is the single shape, and this layer's only job is to
+        # stop it dying with the run process. A run artefact written before that key
+        # existed yields `None`, and `_three_horizon_clv_section` prints
+        # NOT_AVAILABLE for it under a named reason rather than a zero.
+        "three_horizon_clv": run_output.get("three_horizon_clv"),
         "hedge_effectiveness_total": hedge_effectiveness_total,
         "customer_events": phase2b.get("customer_events", []),
         "churned_billing_accounts": phase2b.get("churned_billing_accounts", []),
@@ -1524,6 +1543,154 @@ def _section_repricing_impact(data: dict) -> str:
         )
     lines.append("")
 
+    return "\n".join(lines)
+
+
+#: What the report says when the run artefact carries no three-horizon book at all.
+#: NAMED, and not the same sentence as `NOT_AVAILABLE`: "the estimator produced
+#: nothing" and "this artefact predates the estimator's publisher" are different
+#: facts about the company, and collapsing them would let a genuinely broken
+#: producer hide inside the wording used for an old file.
+THREE_HORIZON_ABSENT = (
+    "Not published by this run. The three-horizon estimate is computed on every "
+    "run; a run artefact written before the estimator had a reader carries no "
+    "`three_horizon_clv` key, and that absence is reported here rather than "
+    "rendered as zero."
+)
+
+
+def _horizon_cell(hv: dict | None) -> str:
+    """One horizon's number, or the REASON there isn't one. Never a zero.
+
+    `value_gbp is None` is a structural blank — the company cannot value this
+    account on this basis — and the population's own reason counts say which blank
+    it is. Printing `£0.00` here would publish "worth nothing" for "not knowable",
+    which is the defect `Exclusion` exists to make unreachable upstream; it would be
+    a poor joke to reintroduce it at the last inch.
+    """
+    if not hv:
+        return "—"
+    if hv.get("value_gbp") is None:
+        reasons = (hv.get("population") or {}).get("reasons") or {}
+        why = ", ".join(sorted(reasons)) if reasons else "no reason recorded"
+        return f"not estimable ({why})"
+    return _fmt_gbp(hv["value_gbp"])
+
+
+def _three_horizon_clv_section(data: dict) -> str:
+    """EP1 — what a customer is worth on three horizons, with each one's population.
+
+    THIS SECTION IS THE READER THE ESTIMATOR DID NOT HAVE. `three_horizon_clv` has
+    been computed on every run since the estimator was wired into the customer-value
+    view, and reached no published artefact; a capability whose output nothing reads
+    is indistinguishable from one that was never built, which is why publication —
+    not more arithmetic — is what this atom owed.
+
+    IT SITS BESIDE THE ENTERPRISE-VALUE SECTION, NEVER OVER IT. The two disagree,
+    substantially and on the record (a ~4.6x two-implementation gap at the last
+    reading), and that disagreement is a DIAGNOSTIC to be explained, never a number
+    to be reconciled by picking the more flattering one (R12). Publishing both under
+    their own names is what makes the gap arguable at all; quietly swapping the
+    headline would delete the evidence and call it progress.
+
+    EVERY FIGURE CARRIES ITS BASIS. The aggregate names which horizon it was built
+    from and at what discount rate, because all three horizons exist for every
+    account and a portfolio mean without that label is uninterpretable. The
+    populations are printed as `counted of available` with the exclusion reasons,
+    so a reader can see the denominator used and the one that was on offer.
+    """
+    book = data.get("three_horizon_clv")
+    if not book:
+        return (
+            "## Customer Lifetime Value — Three Horizons (EP1)\n\n"
+            f"- Contract-term / tenure-expected / portfolio-cohort value: {THREE_HORIZON_ABSENT}\n"
+        )
+
+    portfolio = book.get("portfolio") or {}
+    population = portfolio.get("population") or {}
+    basis = book.get("aggregate_horizon", "unstated")
+    rate = book.get("discount_rate")
+    lines = [
+        "## Customer Lifetime Value — Three Horizons (EP1)",
+        "",
+        "The same book on three valuation bases, each carrying its own time model "
+        "and its own population. This is the company's OWN estimate, assembled from "
+        "what it can observe about its customers; it is allowed to be wrong, and "
+        "the gap against realised value is measured separately and never tuned "
+        "toward (R12).",
+        "",
+        f"**Aggregate basis:** `{basis}` at a "
+        f"{rate:.1%} discount rate."
+        if isinstance(rate, (int, float))
+        else f"**Aggregate basis:** `{basis}` (discount rate unstated).",
+        "",
+    ]
+
+    mean = portfolio.get("mean_value_gbp")
+    if mean is None:
+        lines.append(
+            "- Portfolio mean value per account: not estimable — "
+            f"{population.get('counted', 0)} of {population.get('available', 0)} "
+            "accounts counted."
+        )
+    else:
+        lines.append(
+            f"- Portfolio mean value per account: {_fmt_gbp(mean)}; "
+            f"median {_fmt_gbp(portfolio.get('median_value_gbp'))}; "
+            f"total {_fmt_gbp(portfolio.get('total_value_gbp'))}."
+        )
+    reasons = population.get("reasons") or {}
+    why = (
+        " Excluded: " + ", ".join(f"{k}={v}" for k, v in sorted(reasons.items())) + "."
+        if reasons
+        else ""
+    )
+    lines.append(
+        f"- Population: {population.get('counted', 0)} of "
+        f"{population.get('available', 0)} accounts.{why}"
+    )
+    lines.append("")
+
+    cohorts = book.get("cohorts") or {}
+    if cohorts:
+        lines.append("### By segment")
+        lines.append("")
+        lines.append("| Segment | Mean value | Counted / available | Profitable? |")
+        lines.append("|---|---|---|---|")
+        for key, cohort in sorted(cohorts.items()):
+            pop = cohort.get("population") or {}
+            mean_value = cohort.get("mean_value_gbp")
+            # THREE states, not two. `None` is "no counted member in this cohort",
+            # which is not the same claim as "this cohort loses money" — the
+            # distinction the estimator's own `is_profitable` was built to keep, so
+            # it is read from the artefact rather than re-derived from the mean.
+            profitable = cohort.get("is_profitable")
+            verdict = (
+                "no counted member"
+                if profitable is None
+                else ("yes" if profitable else "no")
+            )
+            lines.append(
+                f"| {key} | "
+                f"{_fmt_gbp(mean_value) if mean_value is not None else 'not estimable'} | "
+                f"{pop.get('counted', 0)} / {pop.get('available', 0)} | {verdict} |"
+            )
+        lines.append("")
+
+    accounts = book.get("accounts") or []
+    if accounts:
+        lines.append("### By account")
+        lines.append("")
+        lines.append("| Account | Contract term | Tenure expected | Portfolio cohort |")
+        lines.append("|---|---|---|---|")
+        for account in accounts:
+            lines.append(
+                f"| {account.get('account_id', '?')} | "
+                f"{_horizon_cell(account.get('contract_term'))} | "
+                f"{_horizon_cell(account.get('tenure_expected'))} | "
+                f"{_horizon_cell(account.get('portfolio_cohort'))} |"
+            )
+        lines.append("")
     return "\n".join(lines)
 
 
@@ -9575,6 +9742,11 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_retention_durability(data))
     sections.append(_section_retention_deferral_economics(data))   # Phase QM
     sections.append(_section_enterprise_value_analysis(data))
+    # BESIDE the enterprise-value section, deliberately adjacent: the two value the
+    # same book and disagree, and putting them next to each other is what makes the
+    # disagreement a question a reader can ask rather than a discrepancy between
+    # pages nobody reads together.
+    sections.append(_three_horizon_clv_section(data))
     sections.append(_clv_trajectory_section(data))
     sections.append(_lifetime_pricing_section(data))
     sections.append(_section_repricing_impact(data))
