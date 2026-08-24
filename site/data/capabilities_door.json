@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-08-24T05:27:00Z",
- "git_commit": "b62f75d143509b0f3b3bd81fa8ba3cc5ff9dfc39",
+ "generated_at": "2026-08-24T15:07:13Z",
+ "git_commit": "7309e5ddeb40c8b62edc319369836adfdd4079ba",
  "sources": {
   "record": "site/data/maturity_map.json",
   "status_rule": "site/moap_stage.py (Live / Building / Planned)",
@@ -25,7 +25,7 @@
      "checks": 56,
      "covered": 2,
      "of": 2,
-     "last_run": "2026-08-23T13:28:35.567511+00:00"
+     "last_run": "2026-08-24T07:10:09.334981+00:00"
     }
    },
    {
@@ -40,7 +40,7 @@
      "checks": 22,
      "covered": 1,
      "of": 1,
-     "last_run": "2026-08-23T13:28:35.567511+00:00"
+     "last_run": "2026-08-24T07:10:09.334981+00:00"
     }
    },
    {
@@ -55,7 +55,7 @@
      "checks": 62,
      "covered": 1,
      "of": 1,
-     "last_run": "2026-08-23T13:28:35.567511+00:00"
+     "last_run": "2026-08-24T07:10:09.334981+00:00"
     }
    },
    {
@@ -84,7 +84,7 @@
      "checks": 65,
      "covered": 4,
      "of": 4,
-     "last_run": "2026-08-23T13:28:35.567511+00:00"
+     "last_run": "2026-08-24T07:10:09.334981+00:00"
     }
    },
    {
@@ -110,7 +110,7 @@
      "checks": 20,
      "covered": 1,
      "of": 2,
-     "last_run": "2026-08-23T13:28:35.567511+00:00"
+     "last_run": "2026-08-24T07:10:09.334981+00:00"
     }
    },
    {
@@ -125,7 +125,7 @@
      "checks": 38,
      "covered": 1,
      "of": 1,
-     "last_run": "2026-08-23T13:28:35.567511+00:00"
+     "last_run": "2026-08-24T07:10:09.334981+00:00"
     }
    },
    {
@@ -180,7 +180,7 @@
      "checks": 98,
      "covered": 1,
      "of": 1,
-     "last_run": "2026-08-23T13:28:35.567511+00:00"
+     "last_run": "2026-08-24T07:10:09.334981+00:00"
     }
    },
    {
@@ -248,7 +248,7 @@
      "checks": 10,
      "covered": 2,
      "of": 3,
-     "last_run": "2026-08-23T13:28:35.567511+00:00"
+     "last_run": "2026-08-24T07:10:09.334981+00:00"
     }
    },
    {
@@ -264,7 +264,7 @@
      "checks": 35,
      "covered": 2,
      "of": 2,
-     "last_run": "2026-08-23T13:28:35.567511+00:00"
+     "last_run": "2026-08-24T07:10:09.334981+00:00"
     }
    },
    {
@@ -290,7 +290,7 @@
      "checks": 26,
      "covered": 1,
      "of": 1,
-     "last_run": "2026-08-23T13:28:35.567511+00:00"
+     "last_run": "2026-08-24T07:10:09.334981+00:00"
     }
    },
    {
@@ -597,21 +597,21 @@
  "scale": {
   "figures": [
    {
-    "value": 14,
+    "value": 28,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-08-24T04:17:46Z"
+    "as_of": "2026-08-24T09:42:15Z"
    },
    {
-    "value": 17,
+    "value": 78,
     "basis": "book size used by the break-even analysis",
     "source": "site/data/dashboard.json",
     "as_of": "2016-2025"
    }
   ],
   "agree": false,
-  "low": 14,
-  "high": 17,
+  "low": 28,
+  "high": 78,
   "real_world": "A real GB supplier serves hundreds of thousands to millions of homes."
  },
  "gaps": [
@@ -620,12 +620,12 @@
     "planned": true,
     "items": 1,
     "started": 0,
-    "drawable_now": false,
-    "when": "waiting on earlier work to finish first",
-    "waiting_on_count": 1
+    "drawable_now": true,
+    "when": "being worked on now",
+    "waiting_on_count": 0
    },
-   "title": "The book is 14\u201317 customers",
-   "what": "Everything on this page is true of a supplier with 14\u201317 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 14 (accounts in the live customer feed), 17 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
+   "title": "The book is 28\u201378 customers",
+   "what": "Everything on this page is true of a supplier with 28\u201378 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 28 (accounts in the live customer feed), 78 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
   },
   {
    "plan": {

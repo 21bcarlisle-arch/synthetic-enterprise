@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-08-24T05:27:00Z",
-  "git_hash": "b62f75d14",
+  "generated_at": "2026-08-24T15:07:13Z",
+  "git_hash": "7309e5dde",
   "suite": {
-    "test_count": 27609,
-    "timestamp": "2026-08-23T13:28:35.567511+00:00"
+    "test_count": 27632,
+    "timestamp": "2026-08-24T07:10:09.334981+00:00"
   },
   "sources": {
     "node_mapping": "site/data/moap_node_atoms.json",
@@ -308,11 +308,11 @@
               "resolved_path": "tests/background/test_supervisor.py",
               "raw": "tests/background/test_supervisor.py",
               "is_test": true,
-              "test_functions": 190
+              "test_functions": 196
             }
           ],
           "test_files": 1,
-          "test_functions": 190,
+          "test_functions": 196,
           "ledger": [],
           "missing": [
             "NO_LEDGER_RECORD"
@@ -1798,8 +1798,8 @@
     {
       "id": "the_company",
       "name": "The company",
-      "declared_stage": "Building",
-      "computed_stage": "Building",
+      "declared_stage": "Live",
+      "computed_stage": "Live",
       "stage_matches": true,
       "look_href": "./company/#state-decisions",
       "evidence_href": "./evidence/#the_company",
@@ -2407,10 +2407,10 @@
           "id": "B4_competitor_field",
           "name": "Competitor field (price ceiling / undercut pressure)",
           "lane": "B_commercial",
-          "loop_stage": "idle",
-          "level_current": 0,
+          "loop_stage": "harden",
+          "level_current": 1,
           "level_target": 1,
-          "at_target": false,
+          "at_target": true,
           "in_map": true,
           "citations": [
             {
@@ -2451,14 +2451,23 @@
           ],
           "test_files": 0,
           "test_functions": 0,
-          "ledger": [],
+          "ledger": [
+            {
+              "action": "LEVEL_UP_SELF_CERTIFIED",
+              "level": 1,
+              "ts": 1787558284.2250977,
+              "iso": "2026-08-24",
+              "authorized_by": "agent_self_certified",
+              "provenance": "B4_competitor_field L0->L1: the company now prices against a published competitor signal it can legitimately see. W2_3_competitor_field (its declared depends_on) reached L1/harden, clearing the BUILD-unblock gate the 2026-07-16 FRAME named. WIRING: simulation/renewals.py computes published_svt_gbp_per_mwh (simulation.svt_rates, electricity-only, None pre-2016) and published_market_switching_multiplier (simulation.market_switching_propensity) on the SIM side per term and hands both across company/interfaces/renewal_offer.py::request_renewal_offer as REQUIRED keyword-only params (the door R15 guard forbids defaults) into company/pricing/renewal_desk.py::quote_renewal -- the same shape published_policy_cost_per_mwh / published_network_cost_per_mwh already cross. EPISTEMIC CHOICE: the undercut input is the published AGGREGATE savings signal, NOT tariff_benchmarking.py SupplierRank -- the world generates no per-competitor tariff field, so reading one would be the wall violation the DISCOVER pass ruled out. EVIDENCE: (1) 41 tests pass across tests/company/pricing/test_renewal_desk.py (new, 14: the pure ceiling calibration, the segment/SVT/cost-floor gates, and a quote_renewal integration pair proving I&C is unaffected by the same domestic SVT that caps an otherwise-identical resi offer), tests/company/interfaces/test_renewal_offer_seam.py and tests/simulation/test_renewals_approval_routing.py. (2) python3 -m tools.epistemic_verifier: PASS, no barrier violations. (3) The R15 FAIL-CLOSED neutrality guard test_applied_fixed_rate_is_exactly_the_priced_rate_approval_cannot_alter_it was RE-POINTED, not weakened: it spies on the new named _apply_competitive_ceiling checkpoint (the last legitimate pricing step before governance routing) instead of price_fixed_tariff raw return, so it still fires on its own defect -- an approval layer altering the applied rate. (4) SAFETY SHAPE: domestic-only (segment == resi; real Ofgem SVT is no ceiling on I&C/SME) and never below the wholesale-plus-published-pass-through cost floor, so a genuine wholesale spike still reaches its full rate and its full NON_ROUTINE_RATE_INCREASE_THRESHOLD escalation. Full record: docs/design/simplifications/B4_competitor_field.yaml."
+            }
+          ],
           "missing": [
             "NO_TEST_CITED"
           ]
         }
       ],
-      "atoms_at_target": 11,
-      "atoms_with_ledger": 0,
+      "atoms_at_target": 12,
+      "atoms_with_ledger": 1,
       "atoms_with_missing": 12
     },
     {

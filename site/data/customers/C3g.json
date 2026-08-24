@@ -2062,7 +2062,7 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-14",
+    "as_of_date": "2025-06-21",
     "entries": [
       {
         "date": "2016-07-31",
@@ -3235,10 +3235,10 @@
       "customer_id": "C3",
       "date": "2017-07-01",
       "event_type": "retention_decision",
-      "description": "Renewal window: company estimated 38% churn risk, decided to offer a 3% discount (cost GBP8.48) against GBP165.63 expected term margin at risk -- expected value of offering GBP157.15. Comms framed as a gain (save with this discount).",
-      "company_belief": 0.382,
+      "description": "Renewal window: company estimated 38% churn risk, decided to offer a 3% discount (cost GBP8.46) against GBP164.96 expected term margin at risk -- expected value of offering GBP156.50. Comms framed as a gain (save with this discount).",
+      "company_belief": 0.379,
       "sim_truth": null,
-      "amount_gbp": 157.15,
+      "amount_gbp": 156.5,
       "outcome": "retained",
       "framing_type": "gain_framed"
     },
@@ -3279,9 +3279,9 @@
       "customer_id": "C3",
       "date": "2020-06-30",
       "event_type": "outcome_churned",
-      "description": "Renewal outcome: CHURNED -- company believed 8% churn risk at decision time, SIM realized probability was 10%.",
+      "description": "Renewal outcome: CHURNED -- company believed 8% churn risk at decision time, SIM realized probability was 12%.",
       "company_belief": 0.076,
-      "sim_truth": 0.1,
+      "sim_truth": 0.117,
       "amount_gbp": null,
       "outcome": "churned",
       "framing_type": null

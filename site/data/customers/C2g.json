@@ -121,14 +121,14 @@
       "date": "2020-03-31",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 143.0 \u00a3/MWh",
+      "detail": "Tariff renewed at 120.0 \u00a3/MWh",
       "effect": "Unit rate stepped 3.25p/kWh -> 3.22p/kWh"
     },
     {
       "date": "2021-03-31",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 172.0 \u00a3/MWh",
+      "detail": "Tariff renewed at 169.0 \u00a3/MWh",
       "effect": "Unit rate stepped 2.17p/kWh -> 2.18p/kWh"
     },
     {
@@ -149,7 +149,7 @@
       "date": "2024-03-30",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 207.0 \u00a3/MWh",
+      "detail": "Tariff renewed at 203.0 \u00a3/MWh",
       "effect": "Unit rate stepped 10.32p/kWh -> 9.99p/kWh"
     },
     {
@@ -4714,7 +4714,7 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-14",
+    "as_of_date": "2025-06-21",
     "entries": [
       {
         "date": "2016-05-01",
@@ -6965,11 +6965,21 @@
         "method": null,
         "description": "Invoice INV366 raised",
         "running_balance_gbp": 74.96
+      },
+      {
+        "date": "2025-06-19",
+        "type": "payment_received",
+        "invoice_number": 365,
+        "amount_gbp": -71.29,
+        "info_amount_gbp": null,
+        "method": "direct_debit",
+        "description": "Payment received",
+        "running_balance_gbp": 3.67
       }
     ],
-    "current_balance_gbp": 74.96,
+    "current_balance_gbp": 3.67,
     "total_billed_gbp": 10213.21,
-    "total_collected_gbp": 10138.25,
+    "total_collected_gbp": 10209.54,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
@@ -7584,7 +7594,7 @@
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 5% churn risk at decision time, SIM realized probability was 6%.",
       "company_belief": 0.046,
-      "sim_truth": 0.055,
+      "sim_truth": 0.061,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null

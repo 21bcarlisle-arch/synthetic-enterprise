@@ -96,14 +96,14 @@
       "date": "2017-12-31",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 115.0 \u00a3/MWh",
+      "detail": "Tariff renewed at 116.0 \u00a3/MWh",
       "effect": "Unit rate stepped 2.63p/kWh -> 2.64p/kWh"
     },
     {
       "date": "2018-12-31",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 146.0 \u00a3/MWh",
+      "detail": "Tariff renewed at 145.0 \u00a3/MWh",
       "effect": "Unit rate stepped 3.35p/kWh -> 3.36p/kWh"
     },
     {
@@ -3082,7 +3082,7 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-14",
+    "as_of_date": "2025-06-21",
     "entries": [
       {
         "date": "2016-01-31",
@@ -5038,7 +5038,7 @@
       "date": "2020-12-30",
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 8% churn risk at decision time, SIM realized probability was 17%.",
-      "company_belief": 0.081,
+      "company_belief": 0.083,
       "sim_truth": 0.17,
       "amount_gbp": null,
       "outcome": "renewed",

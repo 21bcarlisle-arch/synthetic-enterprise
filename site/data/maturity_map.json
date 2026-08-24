@@ -1,26 +1,6 @@
 {
   "atoms": [
     {
-      "id": "H_forward_discovery_draw",
-      "name": "Forward-discovery draw: when the BUILD feasible set is empty the supervisor routes through the dial-widen (priority classes + headroom sensor) and hands the next DISCOVER/FRAME item BEFORE any allow-stop; drain is claimable only after that ALSO returns empty",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 1,
-      "level_target": 3,
-      "loop_stage": "idle",
-      "dial_inherited": 3,
-      "expert_hour_status": "attempted_finding_open",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
       "id": "D3_catchup_rebilling",
       "name": "Estimated billing & catch-up rebilling cycle",
       "lane": "D_billing_metering",
@@ -189,9 +169,9 @@
       "value_stream": "wholesale_to_price",
       "value_stream_label": "Wholesale to Price",
       "epoch": 4,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 1,
-      "loop_stage": "idle",
+      "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -199,9 +179,9 @@
       ],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 63,
       "forward_attachments": []
     },
     {
@@ -2062,28 +2042,6 @@
       "forward_attachments": []
     },
     {
-      "id": "A8_experiment_loop_speed",
-      "name": "Experiment-loop speed: cut the inner-loop cycle time that makes the Epoch-4 evolutionary tournament arithmetically feasible (mock-interface + parallelism + tiered tests)",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 2,
-      "level_target": 3,
-      "loop_stage": "idle",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "ARCH1_internal_seams"
-      ],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
       "id": "A9_market_at_the_seams_design_law",
       "name": "Minted 2026-08-10 under the backlog-triage Group A instruction (verify the market-at-the-seams design law has its atom; mint if not -- it did not). From docs/design/refs/ADVISOR_ANALYSIS_MARKET_PORTABILITY_2026-08-07.md: the analysis decomposes Poesys into INVARIANT (harness/method, the epistemic wall as law, the bitemporal spine, population + affordability machinery), PARAMETERISE (cost-stack line items, tariff structures, cap-analogues, calendars, loss factors, weather anchors -- tables not code), ADAPTER-SWAP (settlement body, metering/data infrastructure, switching registry, payment rails, market comms -- the SAME operation go-live already defines, with a different endpoint set), and REBUILD (compliance organs, consumer-protection surfaces, language layers, local credit/debt law). The DESIGN LAW this atom owns is the middle two: no counterparty identity hardcoded across a seam, and every market-varying quantity reachable as a table rather than a literal. Standing constraint, mechanised -- the existing PORTABILITY_DEBT.md register records breaches in shipped code (remediation-on-touch, never speculative retrofit) and this atom is what makes a NEW breach fail rather than get logged. NOT in scope: building a second market or segment; GB SME/I&C is the analysis's recommended first extension and is a separate future draw.",
       "lane": "A_strategy_governance",
@@ -2104,29 +2062,6 @@
       "forward_attachments": []
     },
     {
-      "id": "H17_autonomous_build_executor",
-      "name": "Autonomous build-executor: a governed headless-turn executor that CONSUMES the Rule-0 self-refill draw and lands work (the map moves without the interactive session as sole executor); ALSO the Epoch-4 tournament substrate",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 0,
-      "level_target": 3,
-      "loop_stage": "idle",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "A8_experiment_loop_speed",
-        "ARCH1_internal_seams"
-      ],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
       "id": "G4_unified_failure_register",
       "name": "Unified Failure Register: one append-only cross-retro index with GLOBAL per-class strike-counting (Nth-strike is a class property), theme-tagged, surfaced on the Method door -- so two-strike/R3 redesigns fire on time, not years late",
       "lane": "G_data_learning",
@@ -2136,26 +2071,6 @@
       "level_current": 0,
       "level_target": 3,
       "loop_stage": "build",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
-      "id": "H18_harness_self_mutation_audit",
-      "name": "Harness-self mutation audit: point R15 INWARD -- mutation-test the controls that watch the controls (the verdict organs / meta-controls), not just the SIM/compliance controls H12 covered",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 0,
-      "level_target": 2,
-      "loop_stage": "idle",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
@@ -2327,26 +2242,6 @@
       "forward_attachments": []
     },
     {
-      "id": "H20_parallel_maintenance_lane",
-      "name": "Parallel MAINTENANCE lane: a standing worker drawing bug-fix/housekeeping/notification-hygiene work concurrently with BUILD/DISCOVER/SITE, integrating per-atom through the external-truth gate, bounded by file-scope disjointness",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 0,
-      "level_target": 3,
-      "loop_stage": "idle",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
       "id": "G11_activity_cost_utilisation",
       "name": "Activity-based cost + utilisation: attribute elapsed-time AND tokens to a PRODUCTIVE/WASTE activity taxonomy from existing git/token/deadman data; surface productive-%, cost-of-self-maintenance, rework-rate, value-per-problem, idle-on-director on the Method door",
       "lane": "H_harness",
@@ -2365,48 +2260,6 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
-      "id": "H21_self_contained_escalation",
-      "name": "Escalation payload is self-contained: the NTFY body carries WHAT/OPTIONS/CONTEXT/WHY-DOOR/DEFAULT so a one-word phone reply resolves it; an on-box log link is never the substance (tightens H19)",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 0,
-      "level_target": 3,
-      "loop_stage": "idle",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
-      "id": "H22_scheduled_housekeeping",
-      "name": "Scheduled housekeeping: a standing cadence+threshold sweep (maintenance-lane function) that inventories and clears cruft \u2014 stale worktrees, dead branches, staging droppings, unbounded logs, orphaned tmux, local/origin drift \u2014 reversible-by-default, never touching in-flight work",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 0,
-      "level_target": 3,
-      "loop_stage": "idle",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "H20_parallel_maintenance_lane"
-      ],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
       "stalled": false,
       "stall_consecutive_unchanged": null,
       "forward_attachments": []
@@ -2491,28 +2344,6 @@
       "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
-      "id": "OPS1_governance_refusal_mutation_test",
-      "name": "Governance mutation test: prove the autonomous worker REFUSES director-gated/HELD work at top of queue",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 2,
-      "level_target": 3,
-      "loop_stage": "idle",
-      "dial_inherited": 2,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "OPS1_operational_layer_rebuild"
-      ],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 266,
       "forward_attachments": []
     },
     {
@@ -2612,7 +2443,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1636,
+      "stall_consecutive_unchanged": 1651,
       "forward_attachments": []
     },
     {
@@ -2631,26 +2462,6 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
-      "id": "H25_self_gov_detection_hardening",
-      "name": "Self-governance detection-hardening: forge-proofing (sub-step 7, crypto-tie FRONT_OPEN/GATE_CLEAR/LEVEL_UP provenance to director_input_log HMAC/console-presence), level-baseline fail-silent edge (git-ref read fails -> LEVEL gate stops checking, surfaced but not paged), is_build_authorized loop_stage defense-in-depth (currently relies solely on the upstream _is_valid_candidate idle-drop; add a stage re-check), and wire fronts_reconciler.evaluate onto a LIVE cadence (reconcile-watch timer) so detection pages transition-only, not only on-demand",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 1,
-      "level_target": 3,
-      "loop_stage": "idle",
-      "dial_inherited": 2,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
       "stalled": false,
       "stall_consecutive_unchanged": null,
       "forward_attachments": []
@@ -2716,46 +2527,6 @@
       "forward_attachments": []
     },
     {
-      "id": "H28_precommit_gate_ambient_cwd_git_discovery",
-      "name": "Pre-commit gate ambient-cwd git-discovery residual (scoped from H24): the GIT_* scrub closes the leaked-env vector but a gate-run test shelling git from cwd=ROOT still discovers the real .git by upward directory-walk -- GIT_* absence does not make it location-blind. LATENT not active (every H24 control test uses an explicit tmp-repo cwd, so none exercises this path). Scoped fix (e.g. GIT_CEILING_DIRECTORIES) needs a which-tests analysis first because some control tests legitimately read the real repo, so closing it blindly risks regressing them.",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 0,
-      "level_target": 3,
-      "loop_stage": "idle",
-      "dial_inherited": 4,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
-      "id": "H27_phone_act_channel",
-      "name": "Phone-answerable [ACT] channel: director resolves authority-requiring decisions from his phone in seconds (forge-proof, no SSH/console paste) -- Tailscale-identity-gated + pre-framed tap/single-word answers, provenance-logged like a console act, console as fail-closed fallback",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 0,
-      "level_target": 3,
-      "loop_stage": "idle",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
       "id": "W2_11_payment_behaviour_source",
       "name": "Payment-behaviour generator (sim-source, coupled-triad W of the D5 decomposition): baseline generator of customer payment behaviour -- who pays when, DD success/failure, arrears/late-payment patterns, payment-method mix -- ANCHORED TO EXTERNAL real-world payment statistics (Bacs DD failure rates, DD take-up, payment-timing distributions), decided BLIND to company P&L (R13 baseline). Difficulty dials are CURRICULUM (director-authored), not agent-tunable.",
       "lane": "W2_customer_generator",
@@ -2808,7 +2579,7 @@
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
       "level_current": 2,
-      "level_target": 3,
+      "level_target": 2,
       "loop_stage": "harden",
       "dial_inherited": 3,
       "expert_hour_status": "attempted_finding_open",
@@ -2818,7 +2589,7 @@
         "W2_11_payment_behaviour_source"
       ],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
       "stall_consecutive_unchanged": 418,
       "forward_attachments": []
@@ -3085,7 +2856,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1636,
+      "stall_consecutive_unchanged": 1652,
       "forward_attachments": []
     },
     {
@@ -3111,7 +2882,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 267,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": []
     },
     {
@@ -3137,7 +2908,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 266,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": []
     },
     {
@@ -3163,7 +2934,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 267,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": []
     },
     {
@@ -3189,7 +2960,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 267,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": []
     },
     {
@@ -3215,7 +2986,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 267,
+      "stall_consecutive_unchanged": 281,
       "forward_attachments": []
     },
     {
@@ -3241,7 +3012,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 266,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": []
     },
     {
@@ -3267,7 +3038,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 267,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": []
     },
     {
@@ -3293,7 +3064,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 267,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": []
     },
     {
@@ -3924,71 +3695,6 @@
       "forward_attachments": []
     },
     {
-      "id": "HX1_exit_criterion_counter_mechanise",
-      "name": "Harness exit-criterion counter, mechanised: the ratified N=3 consecutive-content-advance / zero-stall-class counter computed from PRIMARY STATE (git history, maturity map, gate-authorizations ledger, fidelity register, backlog), with its R15 pair -- a synthetic stall resets the counter, three clean content advances satisfy it",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 2,
-      "level_target": 3,
-      "loop_stage": "harden",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "HX2_stall_set_coverage_verdict"
-      ],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
-      "id": "HX2_stall_set_coverage_verdict",
-      "name": "Stall-set coverage verdict on the four director-named events: for each of console-rescue, publish-gate-wedge >1h, origin-freeze/push-failure >30min, and advisor-restart-ruling -- confirm it is ALREADY detected, ADD a detector, or ARGUE with evidence that it is not stall-class",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 2,
-      "level_target": 3,
-      "loop_stage": "harden",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
-      "id": "HX3_counter_published_and_derivable",
-      "name": "The exit-criterion counter published in the daily self-note (current value + cause of last reset) and DERIVABLE by any surface that would claim harness completion -- coherence-by-derivation: a hand-written harness-done claim anywhere is a publish-gate failure",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 0,
-      "level_target": 3,
-      "loop_stage": "build",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "HX1_exit_criterion_counter_mechanise",
-        "HX2_stall_set_coverage_verdict"
-      ],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
       "id": "CA4_cohort_activation_sequencing_verdict",
       "name": "Activation-sequencing verdict on cohort assignment: either PROCEED with the activation (default, ruling tag proceed) OR an EVIDENCED counter-proposal that activating now corrupts a baseline / invalidates a comparison / collides with in-flight work -- a written go/no-go before the live flip",
       "lane": "W2_customer_generator",
@@ -4125,26 +3831,6 @@
       "depends_on": [
         "SPINE_3_gas_storage_crisis_regime"
       ],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
-      "id": "H29_import_time_env_capture_test_isolation",
-      "name": "Test-isolation defect: background/ntfy_utils.py captures WAKE_HMAC_KEY = os.environ.get('SE_WAKE_HMAC_KEY') at MODULE-IMPORT time (line 45), so the value is frozen by whichever test imports the module first. Four wake-signing tests pass in isolation and FAIL in any full-suite run.",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 3,
-      "level_current": 0,
-      "level_target": 2,
-      "loop_stage": "idle",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
       "couples_with": [],
       "chain": null,
       "at_target": false,
@@ -4357,50 +4043,6 @@
       "forward_attachments": []
     },
     {
-      "id": "B11_evolutionary_tournament_harness",
-      "name": "The evolutionary tournament HARNESS: rerun a company configuration across the scenario set to death or endpoint, score each run on Survive/Earn/Abate, rank them, and publish the result as a finding -- mortality removes configurations. The mechanism only; the fitness function and mortality rules themselves are director-reserved values. BACKLOG.md B11 (Wave E, endgame).",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 4,
-      "level_current": 0,
-      "level_target": 3,
-      "loop_stage": "idle",
-      "dial_inherited": 2,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "SPINE_1_scenario_world_state"
-      ],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
-      "id": "OPS1_launcher_cutover_completion",
-      "name": "SEVEN daemons still have a systemd unit installed+enabled AND remain in start_worker.sh's tmux launch set (background-worker, dispatcher, discovery-daemon, sim-runner, sanity-daemon, naive-organ, token-proxy). They are single-launcher today only because those units happen to be inactive -- each DOUBLES at the next boot, which is exactly the defect that made one director NTFY become two queued instructions on 2026-07-29. Complete each cutover (one at a time, per the 2026-07-17 one-at-a-time ruling) so DOUBLE_LAUNCH cannot recur.",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 0,
-      "level_target": 3,
-      "loop_stage": "idle",
-      "dial_inherited": 5,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "OPS1_operational_layer_rebuild"
-      ],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
       "id": "W1_11_fabric_physics_core",
       "name": "Fabric physics core: a 2R2C grey-box thermal model (indoor-air node + building-mass node) with a DEADBAND thermostat and a finite-modulation heat source, parameterised from EPC-class structural fields, driven by half-hourly local weather. Layer 1 of the two-layer premise demand engine -- fabric sets both the annual LEVEL and the intra-day CHARACTER.",
       "lane": "W1_market_weather",
@@ -4574,34 +4216,14 @@
       "value_stream_label": "Close to Learn",
       "epoch": 2,
       "level_current": 2,
-      "level_target": 3,
+      "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
-      "id": "SP4_owned_quantity_registry_gate",
-      "name": "Owned-quantity registry + default-closed gate making a second source of truth for a published quantity structurally impossible (net margin, treasury, EV, bad debt, cost-to-serve, carbon)",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 0,
-      "level_target": 3,
-      "loop_stage": "build",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": false,
       "stall_consecutive_unchanged": null,
       "forward_attachments": []
@@ -4872,26 +4494,6 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
-      "id": "OPS_stall_class_register_adoption",
-      "name": "Adopt the rescued stall-class register: a 693-line module + 447-line test built in a fork that died before committing, with no rival and no home atom until now",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 2,
-      "level_target": 3,
-      "loop_stage": "harden",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [],
-      "chain": null,
-      "at_target": false,
       "stalled": false,
       "stall_consecutive_unchanged": null,
       "forward_attachments": []
@@ -5286,7 +4888,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 17,
+      "stall_consecutive_unchanged": 3,
       "forward_attachments": [
         {
           "source": "docs/staging/done/PLANNER_MINTED_population_and_book_growth_2026-08-11.md",
@@ -5335,7 +4937,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 266,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": []
     },
     {
@@ -5384,7 +4986,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 266,
+      "stall_consecutive_unchanged": 281,
       "forward_attachments": []
     },
     {
@@ -5394,9 +4996,9 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -5404,9 +5006,9 @@
       ],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 267,
+      "stall_consecutive_unchanged": 39,
       "forward_attachments": []
     },
     {
@@ -5416,9 +5018,9 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 2,
-      "level_current": 0,
+      "level_current": 3,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -5426,9 +5028,9 @@
       ],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 267,
+      "stall_consecutive_unchanged": 143,
       "forward_attachments": []
     },
     {
@@ -5440,7 +5042,7 @@
       "epoch": 2,
       "level_current": 0,
       "level_target": 3,
-      "loop_stage": "idle",
+      "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -5463,14 +5065,14 @@
       "value_stream_label": "Close to Learn",
       "epoch": 3,
       "level_current": 2,
-      "level_target": 3,
+      "level_target": 2,
       "loop_stage": "build",
       "dial_inherited": 3,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
       "stall_consecutive_unchanged": 25,
       "forward_attachments": []
@@ -5516,7 +5118,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 267,
+      "stall_consecutive_unchanged": 281,
       "forward_attachments": []
     },
     {
@@ -5538,7 +5140,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 267,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": []
     },
     {
@@ -5584,7 +5186,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 267,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": []
     },
     {
@@ -5650,7 +5252,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 267,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": []
     },
     {
@@ -5692,7 +5294,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 266,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -5733,7 +5335,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 267,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -5789,7 +5391,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 267,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": []
     },
     {
@@ -5811,7 +5413,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 266,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": []
     },
     {
@@ -6574,7 +6176,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2434,
+      "stall_consecutive_unchanged": 2540,
       "forward_attachments": []
     },
     {
@@ -6848,7 +6450,7 @@
       "value_stream": "close_to_learn",
       "value_stream_label": "Close to Learn",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 2,
       "loop_stage": "idle",
       "dial_inherited": 1,
@@ -6858,9 +6460,9 @@
       ],
       "couples_with": [],
       "chain": null,
-      "at_target": false,
+      "at_target": true,
       "stalled": true,
-      "stall_consecutive_unchanged": 2433,
+      "stall_consecutive_unchanged": 2532,
       "forward_attachments": []
     },
     {
@@ -6882,7 +6484,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 267,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": []
     },
     {
@@ -6926,7 +6528,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 266,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": []
     },
     {
@@ -6948,7 +6550,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 267,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": []
     },
     {
@@ -6973,7 +6575,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2434,
+      "stall_consecutive_unchanged": 2540,
       "forward_attachments": []
     },
     {
@@ -6995,7 +6597,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 267,
+      "stall_consecutive_unchanged": 280,
       "forward_attachments": []
     },
     {
@@ -7039,7 +6641,27 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 266,
+      "stall_consecutive_unchanged": 280,
+      "forward_attachments": []
+    },
+    {
+      "id": "H44_worker_tick_lock_toctou",
+      "name": "",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 1,
+      "level_target": 1,
+      "loop_stage": "harden",
+      "dial_inherited": 2,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 3,
       "forward_attachments": []
     }
   ],
@@ -7123,7 +6745,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 316,
+  "total_atoms": 298,
   "epoch2_movements": [
     {
       "id": "M1",

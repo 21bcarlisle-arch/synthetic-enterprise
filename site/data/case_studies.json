@@ -1,21 +1,21 @@
 {
   "meta": {
-    "generated_at": "2026-08-24T05:23:00Z",
+    "generated_at": "2026-08-24T15:03:08Z",
     "git_commit": "unknown",
-    "household_count": 14,
+    "household_count": 75,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
   "cases": [
     {
       "category": "Most eventful journey",
-      "headline": "78 timeline + reaction-chain entries on record",
+      "headline": "136 timeline + reaction-chain entries on record",
       "wall_side": "sim",
-      "account_id": "C7",
-      "base_account_id": "C7",
+      "account_id": "PROS-2018-0035",
+      "base_account_id": "PROS-2018-0035",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "C7",
+        "acc": "PROS-2018-0035",
         "tab": "timeline"
       }
     },
@@ -37,56 +37,56 @@
       "category": "Retention save, then churned anyway",
       "headline": "The company offered retention and won, then lost the account regardless",
       "wall_side": "company",
-      "account_id": "C6",
-      "base_account_id": "C6",
-      "segment": "SME",
+      "account_id": "PROS-2018-0003",
+      "base_account_id": "PROS-2018-0003",
+      "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "C6",
+        "acc": "PROS-2018-0003",
         "tab": "timeline",
-        "year": 2024
+        "year": 2020
       }
     },
     {
       "category": "Heaviest arrears cascade",
-      "headline": "5 debt write-off event(s) in the arrears cascade",
+      "headline": "9 debt write-off event(s) in the arrears cascade",
       "wall_side": "company",
-      "account_id": "C4",
-      "base_account_id": "C4",
+      "account_id": "PROS-2020-0043",
+      "base_account_id": "PROS-2020-0043",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "C4",
+        "acc": "PROS-2020-0043",
         "tab": "timeline",
-        "year": 2017
+        "year": 2020
       }
     },
     {
       "category": "Notable life event",
-      "headline": "Job loss (2023) -- Real downstream drift: income stress low -> high",
+      "headline": "Boiler replaced (2025) -- Usage moved +3% (avg 349 kWh/mo -> 360 kWh/mo)",
       "wall_side": "sim",
-      "account_id": "C3",
-      "base_account_id": "C3",
+      "account_id": "PROS-2018-0016",
+      "base_account_id": "PROS-2018-0016",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "C3",
+        "acc": "PROS-2018-0016",
         "tab": "timeline",
-        "year": 2023
+        "year": 2025
       }
     },
     {
       "category": "Silent-middle churn risk",
-      "headline": "True satisfaction fell 12.2 percentage points (63.8% in 2019 to 51.7% in 2024) but never once answered a survey -- invisible to the company's measurement instrument",
+      "headline": "True satisfaction fell 37.0 percentage points (73.9% in 2020 to 36.9% in 2025) but never once answered a survey -- invisible to the company's measurement instrument",
       "wall_side": "sim",
-      "account_id": "C_IC2",
-      "base_account_id": "C_IC2",
-      "segment": "I&C",
+      "account_id": "PROS-2019-0079",
+      "base_account_id": "PROS-2019-0079",
+      "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "C_IC2",
+        "acc": "PROS-2019-0079",
         "tab": "timeline",
-        "year": 2024
+        "year": 2025
       }
     }
   ]
