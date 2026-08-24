@@ -1156,3 +1156,126 @@ def test_a_red_landing_refuses_with_the_failed_node_in_the_message(repo: Path):
     )
     assert len(err_section) < len(verdict_section), "stderr is crowding out stdout"
     assert _head(repo) == before, "a red gate must commit nothing"
+
+
+# ===========================================================================
+# The tree lock at the commit-and-swap (2026-08-24).
+#
+# THE DEFECT THESE FIRE ON. Two landings in a row passed a fifteen-minute gate and then
+# threw the whole verdict away because a publisher held the tree lock for longer than
+# `tree_lock`'s 60s default -- and the CLI reported it as a raw traceback ending in
+# `fcntl.flock`, which reads exactly like "your change is broken" and is the opposite of
+# what happened. Both halves are tested: the wait is long enough to be worth having, and
+# the refusal when it is not says which of the two things went wrong.
+#
+# NOT a retry. Retrying is `BaseMoved`'s alone and that asymmetry is the tool's safety
+# argument (see `land`'s docstring); a lock wait is a wait, and HEAD is still re-checked
+# under the lock afterwards, so waiting cannot launder a stale gate.
+# ===========================================================================
+
+
+def _lock_stub(raise_timeout: bool, seen: dict):
+    """A stand-in for `background.tree_lock.tree_lock` that records the timeout it was given."""
+    import contextlib
+
+    @contextlib.contextmanager
+    def _stub(timeout: float = 60.0):
+        seen["timeout"] = timeout
+        if raise_timeout:
+            raise sl.TreeLockTimeout(
+                "Could not acquire tree lock (/x/.tree.lock) within {}s".format(timeout))
+        yield
+
+    return _stub
+
+
+def test_the_commit_swap_waits_far_longer_for_the_lock_than_the_daemon_default(
+    repo: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """The constant must actually REACH `tree_lock`, or it is decoration.
+
+    This is the FAIL-OPEN shape for this change: a named constant that nothing passes is
+    indistinguishable from the 60s default that caused the incident, and every other test
+    here would still be green.
+    """
+    seen: dict = {}
+    monkeypatch.setattr(sl, "ROOT", repo.resolve())
+    monkeypatch.setattr(sl, "tree_lock", _lock_stub(False, seen))
+    (repo / "code.py").write_text("VALUE = 7\n")
+
+    sl.land(repo, ["code.py"], "msg")
+
+    assert seen["timeout"] == sl.COMMIT_SWAP_LOCK_TIMEOUT_SECONDS, (
+        "the swap is still waiting on tree_lock's own default, so the constant is decorative"
+    )
+    assert seen["timeout"] >= 600.0, (
+        "a wait shorter than the gate it is protecting cannot do the job it was added for"
+    )
+
+
+def test_a_lock_that_never_frees_refuses_by_saying_the_CHANGE_IS_FINE(
+    repo: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """The diagnostic, which is the whole point -- and that nothing was committed."""
+    seen: dict = {}
+    monkeypatch.setattr(sl, "ROOT", repo.resolve())
+    monkeypatch.setattr(sl, "tree_lock", _lock_stub(True, seen))
+    (repo / "code.py").write_text("VALUE = 8\n")
+    before = _head(repo)
+
+    with pytest.raises(sl.LandingRefused) as excinfo:
+        sl.land(repo, ["code.py"], "msg")
+
+    message = str(excinfo.value)
+    assert "gate PASSED" in message, "the refusal does not say the gate was green"
+    assert "Nothing is wrong with the change" in message
+    assert "re-run" in message, "the refusal does not say what to do about it"
+    assert _head(repo) == before, "a lock timeout must commit nothing"
+
+
+def test_MUTATION_a_lock_that_frees_lands_normally(
+    repo: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Proves the two tests above are not passing because landing is broken outright."""
+    seen: dict = {}
+    monkeypatch.setattr(sl, "ROOT", repo.resolve())
+    monkeypatch.setattr(sl, "tree_lock", _lock_stub(False, seen))
+    (repo / "code.py").write_text("VALUE = 42\n")
+    before = _head(repo)
+
+    sha = sl.land(repo, ["code.py"], "msg")
+
+    assert _head(repo) == sha != before
+    assert _run(repo, "git", "show", sha + ":code.py").stdout == "VALUE = 42\n"
+
+
+def test_a_timeout_raised_AFTER_the_lock_was_held_is_not_dressed_up_as_contention(
+    repo: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """FAIL-SILENT guard: the friendly message is only true for a lock never acquired.
+
+    If the swap itself ever raised `TreeLockTimeout` from inside the held lock -- a nested
+    lock, a helper that takes its own -- reporting "another writer held the lock" would be a
+    fabricated diagnosis of a real bug. It must propagate as itself.
+    """
+    import contextlib
+
+    @contextlib.contextmanager
+    def _acquires_fine(timeout: float = 60.0):
+        yield
+
+    def _explode(*a, **k):
+        raise sl.TreeLockTimeout("a DIFFERENT lock, taken while this one was already held")
+
+    monkeypatch.setattr(sl, "ROOT", repo.resolve())
+    monkeypatch.setattr(sl, "tree_lock", _acquires_fine)
+    monkeypatch.setattr(sl, "_refresh_index_for", _explode)
+    (repo / "code.py").write_text("VALUE = 9\n")
+
+    with pytest.raises(sl.TreeLockTimeout) as excinfo:
+        sl.land(repo, ["code.py"], "msg")
+
+    assert "a DIFFERENT lock" in str(excinfo.value)
+    assert "Nothing is wrong with the change" not in str(excinfo.value), (
+        "a real bug inside the lock was reported as ordinary contention"
+    )

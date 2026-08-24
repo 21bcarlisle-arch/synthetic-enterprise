@@ -134,7 +134,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from background import child_diagnostics, staging_root_resurrection_watch  # noqa: E402
-from background.tree_lock import tree_lock  # noqa: E402  (needs the path insert above)
+from background.tree_lock import TreeLockTimeout, tree_lock  # noqa: E402  (needs the path insert above)
 
 # The gate is the repo's OWN hook, named in ONE place. Running a hand-picked subset here would
 # recreate the accretion the ruling forbids: the tool must face what `git commit` faces.
@@ -660,13 +660,43 @@ def _refresh_index_for(root: Path, result_tree: str, files: list[str]) -> None:
                                        r.stderr.decode("utf-8", "replace").strip()[-300:]))
 
 
+#: How long the commit-and-swap waits for the tree lock, and why it is not `tree_lock`'s own
+#: 60s default. By the time we reach the swap the gate has ALREADY PASSED -- on this repo that
+#: is ten to fifteen minutes of tests -- and the swap itself is three git plumbing calls, so
+#: milliseconds. Failing the whole landing because a publisher happened to hold the lock for a
+#: minute discards a green verdict that cost more than the wait ever could, and it is not a
+#: safety trade: `BaseMoved` still refuses if HEAD actually moved, whether we waited or not.
+#: Observed twice on 2026-08-24, both times with the gate green and the daemons mid-publish.
+#: Kept FINITE rather than blocking forever so a genuinely wedged lock still surfaces.
+COMMIT_SWAP_LOCK_TIMEOUT_SECONDS = 900.0
+
+
 @contextmanager
 def _write_lock(root: Path):
     if root.resolve() != ROOT:
         yield
         return
-    with tree_lock():
-        yield
+    # `held` is what keeps this `except` honest: the body below the yield is `_commit_and_swap`'s
+    # git plumbing, and if IT ever raised TreeLockTimeout we would report "could not acquire" for
+    # something that had already acquired. Only a timeout raised before the lock was ever held
+    # gets the friendly refusal; anything after it propagates as itself.
+    held = False
+    try:
+        with tree_lock(timeout=COMMIT_SWAP_LOCK_TIMEOUT_SECONDS):
+            held = True
+            yield
+    except TreeLockTimeout as exc:
+        if held:
+            raise
+        # NOT a bare traceback. This refusal is the one that says "your change is fine" -- the
+        # gate passed and nothing about the commit is wrong -- and a stack trace ending in
+        # `fcntl.flock` says the opposite to whoever reads it next.
+        raise LandingRefused(
+            "the gate PASSED and the commit was NOT made: another writer held the tree lock for "
+            "the whole {:.0f}s wait ({}). Nothing is wrong with the change. Find the holder "
+            "(`ps aux | grep python3`, the publisher and sim_runner are the usual two), let it "
+            "finish, and re-run the same command -- the gate will simply run again.".format(
+                COMMIT_SWAP_LOCK_TIMEOUT_SECONDS, exc)) from exc
 
 
 def _commit_and_swap(root: Path, result_tree: str, parent: str, message: str,
