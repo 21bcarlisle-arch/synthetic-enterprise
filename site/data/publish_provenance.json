@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-08-24T03:42:25Z",
+    "checked_at": "2026-08-24T04:07:51Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_committed_store_credits_a_falsifier_the_repository_does_not_have",
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_every_declared_honest_absence_is_still_absent_and_still_silenced",
@@ -12,23 +12,23 @@
       "FAILED tests/background/test_forward_attachment_register.py::test_live_tree_has_no_violations"
     ],
     "nonblocking_reds_total": 78,
-    "open_findings": 11
+    "open_findings": 10
   },
   "last_verified": {
-    "generated_at": "2026-08-24T04:02:12Z",
-    "git_commit": "39e59c0ee",
-    "run_id": "run_output_39e59c0ee_20260824T034325Z.json",
-    "verified_at": "2026-08-24T04:02:12Z"
+    "generated_at": "2026-08-24T04:27:18Z",
+    "git_commit": "095dfced7",
+    "run_id": "run_output_095dfced7_20260824T040851Z.json",
+    "verified_at": "2026-08-24T04:27:18Z"
   },
   "paused_reason": "scoped publish-path suite red at git=f983f074c; blocking tests: ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_answer_which_commit_it_is, FAILED tests/tools/test_measure_publish_gate_subject_cost.py::test_the_basetemp_leak_is_reclaimed_by_the_gates_own_sweep, ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_be_bl",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-24T04:02:12Z",
-    "git_commit": "39e59c0ee",
-    "run_id": "run_output_39e59c0ee_20260824T034325Z.json",
-    "verified_at": "2026-08-24T04:02:12Z"
+    "generated_at": "2026-08-24T04:27:18Z",
+    "git_commit": "095dfced7",
+    "run_id": "run_output_095dfced7_20260824T040851Z.json",
+    "verified_at": "2026-08-24T04:27:18Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-24T04:02:12Z"
+  "written_at": "2026-08-24T04:27:18Z"
 }
