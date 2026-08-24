@@ -641,3 +641,80 @@ def test_the_remainder_leak_guard_can_fail():
         "the leak guard did not fire on a deliberately leaked unwon premise -- "
         "it cannot fail, so it is not evidence"
     )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PB2 STEP 3 -- the wall, and the cross-path property the id guard used to carry
+# ═══════════════════════════════════════════════════════════════════════════
+def test_the_shipped_remainder_never_reaches_a_company_visible_dict(monkeypatch, tmp_path):
+    """Exit (c) on the RUN's own stock, not a fixture's.
+
+    The test above proves the property for a hand-built stock. This one proves it for
+    the world the shipped seam actually draws -- 4,400 homes across the campaign's
+    decade, of which the company won 68. The remainder is the other 4,332, and a
+    supplier holds no object for any of them.
+    """
+    monkeypatch.setenv("SE_DRAW_POPULATION", "1")
+    monkeypatch.setenv("SE_GROW_BOOK", "1")
+    # Never the repo's published path: resolving a campaign writes the verdict record,
+    # and a test that resolves one must not restate the published figure as its own.
+    monkeypatch.setattr(lp, "_SUBSET_VERDICT_RECORD", tmp_path / "verdict.json")
+    lp._CAMPAIGN_MEMO.clear()
+    try:
+        from simulation.population_draw import unwon_remainder
+
+        seed = lp._DEFAULT_BASE_SEED
+        stock = lp.world_premise_stock(seed)
+        book = [sc for sc in lp._drawn_trickle(seed)]
+        book += [p for p, _w in lp._campaign(lp._pre_growth_book(seed), seed)["winners"]]
+        remainder = {p.premise_id for p in unwon_remainder(stock, book)}
+        assert remainder, "vacuous: the run left nothing unwon"
+
+        visible = set()
+        for c in lp.live_population(seed):
+            visible.update(str(v) for v in c.values())
+        assert not (remainder & visible), sorted(remainder & visible)[:5]
+    finally:
+        lp._CAMPAIGN_MEMO.clear()
+
+
+def test_every_account_in_the_book_has_exactly_one_dwelling_of_its_own(monkeypatch, tmp_path):
+    """The cross-path property `make_household`'s "one home, one id" guard USED to
+    carry, asserted where the information actually is.
+
+    That guard compared the drawn household's own label against the customer id, and
+    it was independent evidence only because `draw_premise` labelled the household
+    with the premise id and the premise id WAS the customer id -- the false join key.
+    With a real join key the label is `PSTK-2021-0401` and the comparison is no longer
+    available, so the property is stated directly instead of being inferred from an id
+    collision: `live_premises()` and `live_population()` are two independent re-draws
+    of the same world and they must agree on which accounts exist.
+
+    Not hypothetical. The campaign memo's own comment records paying for this once --
+    two callers keyed the memo differently and `live_premises()` ended up holding
+    dwellings for winners that were not in the book.
+    """
+    monkeypatch.setenv("SE_DRAW_POPULATION", "1")
+    monkeypatch.setenv("SE_GROW_BOOK", "1")
+    monkeypatch.setattr(lp, "_SUBSET_VERDICT_RECORD", tmp_path / "verdict.json")
+    lp._CAMPAIGN_MEMO.clear()
+    try:
+        seed = lp._DEFAULT_BASE_SEED
+        premises = lp.live_premises(seed)
+        book_ids = {c["customer_id"] for c in lp.live_population(seed)}
+        assert premises, "vacuous: the world drew no dwellings"
+
+        orphans = set(premises) - book_ids
+        assert not orphans, f"dwellings held for accounts not in the book: {sorted(orphans)}"
+
+        # No dwelling serves two accounts. A set of premises smaller than the register
+        # means one home was handed to more than one customer -- which `subset_verdict`'s
+        # `double_won` clause would also catch, and this states at the seam.
+        assert len({p.premise_id for p in premises.values()}) == len(premises)
+
+        # And the household handed to each account is labelled for THAT account, which
+        # is what keeps `simulation.household.make_household`'s guard meaningful.
+        for cid, hh in lp.live_drawn_households(seed).items():
+            assert hh.customer_id == cid
+    finally:
+        lp._CAMPAIGN_MEMO.clear()

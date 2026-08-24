@@ -66,12 +66,24 @@ def test_resolve_book_flag_on_additively_carries_syn_cohort(resolve, monkeypatch
 
     static_ids = {c["customer_id"] for c in CUSTOMERS}
     live_ids = {c["customer_id"] for c in book}
-    syn_ids = live_ids - static_ids
+    added = live_ids - static_ids
 
-    # Additive-not-replacive: every static customer still present, plus SYN-*.
+    # Additive-not-replacive: every static customer still present, plus the drawn book.
     assert static_ids <= live_ids
-    assert syn_ids, "flag-on must additively include the SYN acquisition cohort"
-    assert all(cid.startswith("SYN-") for cid in syn_ids)
+    # THE SYN COHORT SPECIFICALLY, and it stays a separate assertion from the one below
+    # because it is what makes this test able to fail: reverting the wire to
+    # `list(CUSTOMERS)` (the named mutation) empties exactly this set.
+    assert {cid for cid in added if cid.startswith("SYN-")}, (
+        "flag-on must additively include the SYN acquisition cohort"
+    )
+    # TWO PREFIXES, NOT ONE, and this assertion was RED at HEAD until 2026-08-24 for a
+    # reason worth stating rather than deleting. `SYN-` is the Profile-B trickle; `PROS-`
+    # is an account the net-new campaign WON through the five-stage funnel (PB3, its own
+    # id namespace by design so a prospect can never be confused with an account). The
+    # campaign landed and this test still described a book with one drawn half, so it
+    # failed on the shipped path and went on failing -- a control asserting the shape the
+    # code had before the feature it was never updated for.
+    assert all(cid.startswith(("SYN-", "PROS-")) for cid in added), sorted(added)
 
 
 @_RESOLVERS

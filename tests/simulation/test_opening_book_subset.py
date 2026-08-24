@@ -275,3 +275,320 @@ def _replace_premise_id(premise, premise_id):
     import dataclasses
 
     return dataclasses.replace(premise, premise_id=premise_id)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PB2 STEP 3 -- THE INVERSION, JUDGED ON THE SHIPPED PATH
+#
+# Everything above judges the MECHANISM: hand `subset_verdict` a stock and a book
+# and it fires on all five clauses. Step 1's own record was explicit that this is
+# not the same as the property holding (`PB2_JOIN_KEY_BUILD.md` §4(d)): *"met as a
+# mechanism, not yet as a property of the running company ... nothing in the shipped
+# run path calls it yet"*. A control with no caller is this repo's characteristic
+# failure, not an absent one.
+#
+# The tests below judge `simulation.live_population` -- the seam an actual run
+# assembles its book through -- and the load-bearing falsifier is
+# `test_the_shipped_control_reds_without_the_stock`, which runs the same predicate
+# against the path as it shipped BEFORE this step and requires it to RED.
+# ═══════════════════════════════════════════════════════════════════════════
+import simulation.live_population as lp  # noqa: E402
+from simulation.net_new_acquisition import (  # noqa: E402
+    DOMESTIC_ONLY,
+    PROSPECTS_PER_YEAR,
+    iter_prospects,
+    year_premise_stock,
+)
+
+RUN_SEED = lp._DEFAULT_BASE_SEED
+
+
+@pytest.fixture
+def _live(monkeypatch, tmp_path):
+    """The shipped run's state: the draw activated and the campaign running.
+
+    Stated rather than inherited. Both flags are committed curriculum today, so an
+    unset environment already means ON -- but a test that depends on a curriculum
+    file is a test that changes meaning when the director changes his mind, and the
+    subject here is the MECHANISM, not the curriculum.
+
+    THE RECORD PATH IS REDIRECTED, and this fixture learned that the hard way rather
+    than by foresight. `_record_subset_verdict` fires whenever a campaign resolves for
+    the first time in a process, and the falsifiers below deliberately resolve WRONG
+    worlds -- so the first run of this file overwrote the repo's published
+    `book_subset_verdict.json` with a red verdict from a mutant, listing all 66
+    winners as `outside_stock`. A published figure produced by a test's mutation is
+    worse than no figure: it is a real red about a world that does not exist.
+    """
+    monkeypatch.setenv("SE_DRAW_POPULATION", "1")
+    monkeypatch.setenv("SE_GROW_BOOK", "1")
+    monkeypatch.setattr(lp, "_SUBSET_VERDICT_RECORD", tmp_path / "verdict.json")
+    lp._CAMPAIGN_MEMO.clear()
+    yield
+    lp._CAMPAIGN_MEMO.clear()
+
+
+def _shipped_book(seed=RUN_SEED):
+    """The run's whole drawn domestic book as `SyntheticCustomer`s: trickle + winners."""
+    served = lp.served_segments()
+    book = [sc for sc in lp._drawn_trickle(seed) if lp._serves(sc.to_customer_dict(), served)]
+    book += [p for p, _won in lp._campaign(lp._pre_growth_book(seed), seed)["winners"]]
+    return book
+
+
+# ---------------------------------------------------------------------------
+# The positive claim, on the path a run actually takes
+# ---------------------------------------------------------------------------
+def test_the_shipped_book_is_a_genuine_subset_of_the_worlds_stock(_live):
+    verdict = lp.book_subset_verdict()
+
+    # Preconditions FIRST. A green verdict on an empty book, or on a world where
+    # everything was won, carries no information -- those are the two fail-open
+    # shapes, and they are the ones that would have passed every day of this atom's
+    # life before the inversion.
+    assert verdict["n_book_domestic"] > 0, "vacuous: the run won nothing"
+    assert verdict["n_remainder"] > 0, "vacuous: the world had nothing left unwon"
+    assert verdict["ok"] is True, verdict["failures"]
+    assert verdict["n_stock"] == PROSPECTS_PER_YEAR * len(lp.CAMPAIGN_YEARS) + (
+        lp.TRICKLE_STOCK_RESERVE * len(lp.CAMPAIGN_YEARS)
+    )
+
+
+def test_both_halves_of_the_drawn_book_are_in_the_stock_not_only_the_campaign(_live):
+    """The exclusion that would have made this green for free.
+
+    The campaign is 66 of the 68 drawn accounts, so a verdict scoped to WINNERS
+    alone would read green while the Profile-B trickle still sat at premises named
+    after itself. `feedback_an_exclusion_that_makes_your_own_verdict_green` is
+    exactly that shape. Both halves are asserted to be in the stock by VALUE.
+    """
+    stock = set(lp.world_premise_stock(RUN_SEED))
+    trickle = [sc for sc in lp._drawn_trickle(RUN_SEED) if sc.premise is not None]
+    winners = [p for p, _w in lp._campaign(lp._pre_growth_book(RUN_SEED), RUN_SEED)["winners"]]
+
+    assert trickle, "vacuous: the trickle drew nobody"
+    assert winners, "vacuous: the campaign won nobody"
+    for sc in trickle + winners:
+        assert sc.premise in stock, f"{sc.customer_id} is at a premise the world never drew"
+        assert sc.premise.premise_id != sc.customer_id, (
+            f"{sc.customer_id} sits at a premise named after itself -- the false join key"
+        )
+
+
+def test_the_two_streams_never_claim_the_same_home(_live):
+    """The reserve partition. The campaign takes the head of each year's stock and the
+    trickle the tail, so a home cannot be sold twice. `subset_verdict`'s `double_won`
+    clause is the general control; this pins the specific arrangement that satisfies it,
+    because the two slices are computed in different functions and could drift apart.
+    """
+    for year in lp.CAMPAIGN_YEARS:
+        whole = lp._year_stock(year, RUN_SEED)
+        campaign = whole[:PROSPECTS_PER_YEAR]
+        trickle = lp._trickle_stock(year, RUN_SEED)
+        assert set(campaign).isdisjoint(set(trickle))
+        assert len(campaign) + len(trickle) == len(whole), "a slot belongs to neither"
+
+
+# ---------------------------------------------------------------------------
+# R15 -- the falsifiers. Each runs the SHIPPED predicate on a world it must refuse.
+# ---------------------------------------------------------------------------
+def test_the_shipped_control_reds_without_the_stock(_live):
+    """THE LOAD-BEARING FALSIFIER. Judge the book the seam produced BEFORE step 3 --
+    both halves minting a dwelling per account -- against the same world stock, with
+    the same predicate. It must RED on `outside_stock`.
+
+    Run against the real generators rather than a mock: `premise_stock_fn=None` and
+    `premise_stock_fn=None` on the campaign IS the shipped pre-step-3 path, reachable
+    by dropping one argument at each of two call sites. If this ever goes green the
+    control has stopped testing subset and started testing that two sets exist.
+    """
+    from simulation.population_draw import draw_population as _draw
+
+    pre_step3_trickle = _draw(RUN_SEED, draw_region=True, assign_cohorts=True)
+    verdict = subset_verdict(lp.world_premise_stock(RUN_SEED), pre_step3_trickle)
+
+    assert verdict["ok"] is False
+    assert "outside_stock" in verdict["failures"]
+    # And name the shape rather than only the clause: the "premise" was the account.
+    assert any(sc.premise.premise_id == sc.customer_id for sc in pre_step3_trickle)
+
+
+def test_the_verdict_reds_when_the_draw_is_inactive(monkeypatch):
+    """FAIL-OPEN, the shape R15 names second. With the draw off there is no drawn book
+    at all, and a control that reports green on "nothing to check" is worse than none --
+    it would have read green on every run this atom ever made before activation."""
+    monkeypatch.setenv("SE_DRAW_POPULATION", "0")
+    verdict = lp.book_subset_verdict()
+    assert verdict["ok"] is False
+    assert verdict["failures"] == ["draw_inactive"]
+
+
+def test_a_pool_larger_than_its_stock_raises_rather_than_truncating():
+    """R15 fail-closed, the prospect side. A market silently shortened to fit its stock
+    has its size set by the wrong thing, and every prospect that survived would still
+    pass the subset control -- the truncation is invisible in the verdict."""
+    short = year_premise_stock(2019, base_seed=RUN_SEED, n=10)
+    with pytest.raises(ValueError, match="premise stock exhausted"):
+        list(iter_prospects(2019, base_seed=RUN_SEED, n=400, premise_stock=short))
+
+
+def test_the_reserve_raises_when_a_year_out_draws_more_than_it(monkeypatch):
+    """The trickle's own fail-closed edge. `TRICKLE_STOCK_RESERVE` is headroom over a
+    Poisson(1.0) year, and the reason a generous reserve is safe is that being wrong
+    STOPS rather than truncates. Driven at a lambda that exhausts it deliberately."""
+    from simulation.population_draw import draw_population as _draw
+
+    with pytest.raises(ValueError, match="premise stock exhausted"):
+        _draw(
+            RUN_SEED,
+            start_year=2021,
+            end_year=2021,
+            acquisitions_per_year_lambda=200.0,
+            premise_stock_fn=lambda y: year_premise_stock(y, base_seed=RUN_SEED, n=3),
+        )
+
+
+def test_supplying_both_claim_shapes_raises():
+    """One mechanism, two shapes. Honouring both would claim each premise twice, and
+    the resulting book would still be a subset -- the failure would be silent."""
+    from simulation.population_draw import draw_population as _draw
+
+    with pytest.raises(ValueError, match="two shapes of one claim"):
+        _draw(
+            RUN_SEED,
+            premise_stock=_stock(),
+            premise_stock_fn=lambda y: year_premise_stock(y, base_seed=RUN_SEED, n=5),
+        )
+
+
+# ---------------------------------------------------------------------------
+# The properties step 3 was expected to deliver
+# ---------------------------------------------------------------------------
+def test_membership_is_stable_when_the_stock_grows():
+    """`PB2_JOIN_KEY_BUILD.md` §5 recorded this as OWED, and named step 3 as the place
+    it would be paid: the flat claim's shuffle is seeded on the stock SIZE, so growing
+    the world re-rolls which homes were won. A positional claim into a year's stock has
+    no such term. Asserted against the pre-existing shuffle as the CONTRAST, so this
+    cannot quietly stop testing what it says it tests."""
+    def claimed(stock_n):
+        return [
+            c.premise.premise_id
+            for c in iter_prospects(
+                2019, base_seed=RUN_SEED, n=20, segment_weights=DOMESTIC_ONLY,
+                premise_stock=year_premise_stock(2019, base_seed=RUN_SEED, n=stock_n),
+            )
+            if c.premise is not None
+        ]
+
+    small, grown = claimed(100), claimed(4000)
+    assert small and small == grown
+
+    # THE CONTRAST that makes the assertion above mean something: the flat, shuffled
+    # claim this replaces does NOT have the property, so a reader can see the two are
+    # different mechanisms rather than take the docstring's word for it.
+    from simulation.population_draw import draw_population as _draw
+
+    flat_small = [c.premise.premise_id for c in _draw(
+        SEED, start_year=2021, end_year=2025, acquisitions_per_year_lambda=3.0,
+        premise_stock=draw_premise_population(60, base_seed=SEED, as_of=AS_OF),
+    ) if c.premise]
+    flat_grown = [c.premise.premise_id for c in _draw(
+        SEED, start_year=2021, end_year=2025, acquisitions_per_year_lambda=3.0,
+        premise_stock=draw_premise_population(400, base_seed=SEED, as_of=AS_OF),
+    ) if c.premise]
+    assert flat_small and flat_small != flat_grown
+
+
+def test_a_years_stock_is_drawn_at_that_years_as_of():
+    """The fidelity reason the stock is per-year rather than one decade-wide draw.
+
+    `draw_premise` reads `as_of` for the meter cadence (`smart_read_share(as_of.year)`)
+    and the EPC lodgement window. A single stock at 2016 would model a country in which
+    no meter ever got smarter across the run's whole decade -- strictly LESS faithful
+    than the per-acquisition mint step 3 replaces, and the one direction R13 forbids.
+    """
+    from simulation.premise_population import DAILY_CADENCE_DAYS
+
+    def smart_share(year):
+        stock = year_premise_stock(year, base_seed=RUN_SEED, n=300)
+        return sum(p.meter_cadence_days == DAILY_CADENCE_DAYS for p in stock) / len(stock)
+
+    early, late = smart_share(2016), smart_share(2025)
+    assert late > early, (
+        f"the stock is time-blind: 2016 smart share {early:.3f}, 2025 {late:.3f}"
+    )
+    # And every member of a year's stock carries a lodgement inside THAT year's window,
+    # not the decade's -- the second thing `as_of` decides.
+    for p in year_premise_stock(2016, base_seed=RUN_SEED, n=50):
+        if p.epc_lodged is not None:
+            assert dt.date(2006, 1, 1) <= p.epc_lodged < dt.date(2016, 1, 1)
+
+
+def test_the_stock_claim_does_not_perturb_the_prospect_stream():
+    """C-S2. The claim reads a pre-drawn sequence and never touches the prospect `rng`,
+    so segment, commodity, band, EAC, payment method and the in-market date must be
+    byte-identical with and without a stock. This is what bounds the change's blast
+    radius to one field: every figure measured before it was measured on this world."""
+    def attrs(pool):
+        return [
+            (c.customer_id, c.acquisition_date, c.segment, c.commodity,
+             c.payment_method, c.consumption_band, c.eac_kwh, c.region)
+            for c in pool
+        ]
+
+    # DOMESTIC_ONLY, the weights the shipped campaign uses. Not cosmetic: a claim is
+    # made only for a domestic point, so a mixed pool would leave the comparison below
+    # dereferencing a None premise on the SME rows -- and would be comparing a
+    # different thing from what the run does.
+    plain = list(iter_prospects(2019, base_seed=RUN_SEED, n=50,
+                                segment_weights=DOMESTIC_ONLY))
+    claimed = list(iter_prospects(
+        2019, base_seed=RUN_SEED, n=50, segment_weights=DOMESTIC_ONLY,
+        premise_stock=year_premise_stock(2019, base_seed=RUN_SEED, n=50),
+    ))
+    assert attrs(plain) == attrs(claimed)
+    assert [c.premise.premise_id for c in plain] != [c.premise.premise_id for c in claimed]
+
+
+def test_the_same_prospects_win_with_and_without_the_stock(_live):
+    """The blast radius, stated as a claim and checked rather than asserted in prose.
+
+    The funnel is seeded on the prospect's own id and date, and neither moves, so the
+    inversion changes WHICH HOUSE each winner lives in and nothing else. If this ever
+    fails, the campaign's outcome has become a function of the stock and every published
+    growth figure moved for a reason nobody declared.
+    """
+    won_with = [p.customer_id for p, _w in lp._campaign(lp._pre_growth_book(RUN_SEED), RUN_SEED)["winners"]]
+    lp._CAMPAIGN_MEMO.clear()
+
+    import simulation.net_new_acquisition as nna
+    real = nna.iter_prospects
+    try:
+        # The pre-step-3 call: identical but for the stock argument being dropped.
+        nna.iter_prospects = lambda *a, **kw: real(
+            *a, **{k: v for k, v in kw.items() if k != "premise_stock"}
+        )
+        won_without = [
+            p.customer_id
+            for p, _w in lp._campaign(lp._pre_growth_book(RUN_SEED), RUN_SEED)["winners"]
+        ]
+    finally:
+        nna.iter_prospects = real
+    assert won_with and won_with == won_without
+
+
+def test_the_recorded_verdict_is_the_predicate_the_tests_judge(_live, tmp_path, monkeypatch):
+    """R15 independence. The published record must be the SAME function this file
+    judges, never a re-derivation beside it -- a second copy of the arithmetic is how a
+    published green and a red control end up living in the same repo."""
+    import json
+
+    record = tmp_path / "book_subset_verdict.json"
+    monkeypatch.setattr(lp, "_SUBSET_VERDICT_RECORD", record)
+    lp._record_subset_verdict(RUN_SEED)
+
+    written = json.loads(record.read_text())
+    live = lp.book_subset_verdict(RUN_SEED)
+    for key, value in live.items():
+        assert written[key] == value, key
+    assert written["base_seed"] == RUN_SEED

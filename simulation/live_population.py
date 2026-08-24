@@ -152,36 +152,9 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
 
     if not draw_population_enabled():
         return static
-    # Local import: keep the SIM-truth generator off the import graph of any
-    # caller that never activates (wall hygiene).
-    from simulation.population_draw import draw_population
 
     seed = _DEFAULT_BASE_SEED if base_seed is None else base_seed
-    # draw_region=True (ACTIVATION §1): the activated book carries REAL regions
-    # from the ratified curriculum marginal, not the UNKNOWN_SYNTHETIC placeholder
-    # — region is a PUBLIC observable the company sees at enrolment (curriculum
-    # note), so it belongs in the saas-shaped dict. The hidden `cohort` stays
-    # excluded by `to_customer_dict()` (wall). Still behind the default-OFF flag:
-    # this only prepares the tested seam; flipping the flag remains the held,
-    # director-reserved release rung.
-    #
-    # assign_cohorts=True (CA1, DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED §1,
-    # curriculum act committed e685eb76d, tag proceed; go/no-go on record in
-    # docs/design/CA4_COHORT_ACTIVATION_SEQUENCING_VERDICT.md): each drawn
-    # household carries its SIM-truth cohort (tenure-tilted accommodation/cars/
-    # nssec joint + region-pinned heating + curriculum-drawn green_stance/
-    # price_sensitivity/channel_pref at RATIFIED values — no tuning, R13). This
-    # rides on the HIDDEN `SyntheticCustomer.cohort`; `to_customer_dict()` still
-    # omits it, so the saas-shaped OBSERVABLE stream stays byte-identical to the
-    # no-cohort case (§2 elicitation wall — the company discovers, never reads,
-    # cohort structure). `assign_cohort()` draws from its OWN named substream so
-    # this cannot perturb the acquisition draw (C-S2). The wall is RE-PROVEN to
-    # fire post-activation in test_wall_drawn_book_never_exposes_ground_truth_
-    # cohort, which now asserts cohorts ARE assigned yet NEVER surface.
-    drawn = [
-        sc.to_customer_dict()
-        for sc in draw_population(seed, draw_region=True, assign_cohorts=True)
-    ]
+    drawn = [sc.to_customer_dict() for sc in _drawn_trickle(seed)]
     # ACTIVATION (2026-08-13): register the drawn points on the supply book before
     # handing them back. Iterating a book you cannot then RESOLVE BY ID is what
     # broke the home-move path -- `run_phase2b` looks a winning account back up
@@ -202,6 +175,195 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
         register_drawn_points(won)
         book = book + won
     return book
+
+
+# ---------------------------------------------------------------------------
+# PB2 — THE WORLD'S STOCK, AND THE BOOK AS A SUBSET OF IT
+# ---------------------------------------------------------------------------
+# THE INVERSION (`PB2_UNWON_REMAINDER_FRAME.md` §1). Before this, both halves of the
+# drawn book MINTED a dwelling per account: `_draw_dwelling` is keyed on the customer
+# id, so a "premise" was the account's own name in another grammar. There was no set
+# the book came out of, so there was no remainder, so "won, never assigned" had
+# nothing that could falsify it — the world contained exactly the homes the company
+# had already acquired and not one more.
+#
+# Now the SIM draws the STOCK — the homes addressable in each year — and both halves
+# claim out of it. The campaign quotes into it and loses most of what it quotes; the
+# Profile-B trickle takes its slot from a reserved tail. What neither ever claimed is
+# the UNWON REMAINDER, and it is the object every one of PB2's remaining exits needs.
+#
+# WHERE THE REMAINDER MUST NOT GO. It is world truth with no company-side name: a
+# supplier holds no register of the households it never approached (FRAME §2, bottom
+# row). Nothing below crosses `company/interfaces/sim_interface.py`, and the runtime
+# wall guard in `tests/simulation/test_live_population_seam.py` is what proves it.
+
+#: Reserved tail of each year's stock. The campaign claims slots `[0, PROSPECTS_PER_YEAR)`
+#: and the Profile-B trickle claims from `[PROSPECTS_PER_YEAR, +RESERVE)`, so the two
+#: streams can never claim the same home however either is re-sized. 40 against a
+#: Poisson(1.0) year is not a guess dressed as a margin — exhaustion RAISES rather than
+#: truncating, so the cost of it being too small is a loud stop, and the cost of it being
+#: generous is 40 premise draws a year at the 0.04 ms each measured below.
+TRICKLE_STOCK_RESERVE = 40
+
+#: The years the campaign runs over. Named once because the stock, the campaign and the
+#: verdict must all mean the same decade; a second literal is how they stop meaning it.
+CAMPAIGN_YEARS = range(2016, 2026)
+
+#: Where the subset verdict lands for readers in later processes — the same reason
+#: `book_growth_campaign.json` exists. WORLD TRUTH, and deliberately COUNTS ONLY: the
+#: remainder's membership is the thing the wall forbids leaking, and a file naming 3,934
+#: specific unwon homes is a register of exactly what a supplier does not have.
+_SUBSET_VERDICT_RECORD = (
+    Path(__file__).resolve().parent.parent
+    / "docs" / "observability" / "book_subset_verdict.json"
+)
+
+
+#: Memo, keyed on `(year, seed)`. The same justification the campaign memo below states,
+#: and the same narrow scope: a year's stock is 440 premise draws, it is resolved by the
+#: campaign, by the trickle and by `world_premise_stock` within one process, and it is a
+#: pure function of its key — so the memo can return the same stock faster, never a
+#: different one. Measured: it takes a repeated `live_population()` from 80 ms to 10 ms.
+_YEAR_STOCK_MEMO: dict = {}
+
+
+def _year_stock(year: int, seed: int):
+    """The addressable housing stock in `year`, campaign slots then trickle reserve."""
+    from simulation.net_new_acquisition import PROSPECTS_PER_YEAR, year_premise_stock
+
+    key = (year, seed)
+    if key not in _YEAR_STOCK_MEMO:
+        _YEAR_STOCK_MEMO[key] = year_premise_stock(
+            year, base_seed=seed, n=PROSPECTS_PER_YEAR + TRICKLE_STOCK_RESERVE
+        )
+    return _YEAR_STOCK_MEMO[key]
+
+
+def _trickle_stock(year: int, seed: int):
+    """The trickle's reserved tail of `year`'s stock.
+
+    A SLICE of the same object the campaign draws from, never a second stock. Two
+    stocks would be two worlds, and the subset control would then be judging the book
+    against whichever one the caller happened to hand it — the wrong-subject shape at
+    one remove, and the exact reason `subset_verdict` matches by value.
+    """
+    from simulation.net_new_acquisition import PROSPECTS_PER_YEAR
+
+    return _year_stock(year, seed)[PROSPECTS_PER_YEAR:]
+
+
+def world_premise_stock(seed: int) -> tuple:
+    """Every home addressable across the campaign's decade. SIM TRUTH — never a seam
+    output, and no `company/**` or `saas/**` module may call it.
+
+    Re-drawn rather than cached, the convention this module already keeps for the
+    trickle and the premise register: measured 2026-08-24 at **0.16 s / 1.8 MB RSS for
+    4,400 premises** (~417 bytes each), which is the first measurement of the premise
+    draw's per-unit cost anywhere in the repo — `PB1_POPULATION_TARGET_AND_ITS_PRICE.md`
+    §(b) and this atom's own FRAME §5 both record that no such number existed, and both
+    correctly refused to infer one from the 860 bytes AO12 measured for a *customer*.
+    """
+    stock: list = []
+    for year in CAMPAIGN_YEARS:
+        stock.extend(_year_stock(year, seed))
+    return tuple(stock)
+
+
+def _drawn_trickle(seed: int):
+    """The Profile-B trickle as `SyntheticCustomer`s, each at a claimed stock premise.
+
+    ONE accessor for what were three identical `draw_population(...)` call sites
+    (`live_population`, `_pre_growth_book`, `live_premises`). They had to agree on
+    every argument or the run would hold dwellings for accounts that were not in its
+    own book — the same class of drift the campaign memo's own comment records paying
+    for once. Now they cannot disagree, because there is nothing left to disagree about.
+
+    draw_region=True (ACTIVATION §1): the activated book carries REAL regions from the
+    ratified curriculum marginal, not the UNKNOWN_SYNTHETIC placeholder — region is a
+    PUBLIC observable the company sees at enrolment, so it belongs in the saas-shaped
+    dict. The hidden `cohort` stays excluded by `to_customer_dict()` (wall).
+
+    assign_cohorts=True (CA1, DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED §1, curriculum
+    act committed e685eb76d; go/no-go in `docs/design/CA4_COHORT_ACTIVATION_SEQUENCING_
+    VERDICT.md`): each drawn household carries its SIM-truth cohort at RATIFIED values
+    (no tuning, R13). It rides on the HIDDEN `SyntheticCustomer.cohort`, which
+    `to_customer_dict()` omits, so the OBSERVABLE stream is byte-identical to the
+    no-cohort case (§2 elicitation wall — the company discovers, never reads, cohort
+    structure). `assign_cohort()` draws from its OWN named substream so it cannot
+    perturb the acquisition draw (C-S2), and the wall is re-proven to fire
+    post-activation in `test_wall_drawn_book_never_exposes_ground_truth_cohort`.
+
+    premise_stock_fn (PB2 step 3): the trickle's home is now a slot in the world's
+    stock rather than a dwelling minted under the account's own name. Isolated the same
+    way — the claim reads a pre-drawn sequence and never touches the acquisition `rng`,
+    so segment, commodity, band, EAC, payment method and date are byte-identical to the
+    mint (`test_the_stock_claim_does_not_perturb_the_trickle`).
+    """
+    from simulation.population_draw import draw_population
+
+    return draw_population(
+        seed,
+        draw_region=True,
+        assign_cohorts=True,
+        premise_stock_fn=lambda year: _trickle_stock(year, seed),
+    )
+
+
+def book_subset_verdict(seed: Optional[int] = None) -> dict:
+    """PB2 exit (d), judged on the SHIPPED path: is this run's book a genuine subset?
+
+    The subject is the WHOLE drawn domestic book — the trickle AND the campaign's
+    winners — because an exclusion is what would make this verdict green for free. The
+    13 hand-authored founders are excluded STRUCTURALLY rather than by a filter: they
+    predate the stock, carry no premise, and are not `SyntheticCustomer`s at all, so
+    they are not candidates for membership in the first place. `n_founders` is reported
+    anyway, because an exclusion nobody can count is an exclusion nobody can check.
+
+    Returns `subset_verdict`'s own dict (the SAME predicate the tests judge — never a
+    re-derivation of it) plus the run's context. Returns a verdict with
+    `ok=False, failures=['draw_inactive']` when the population draw is off: there is no
+    drawn book to be a subset of anything, and reporting that as green is the fail-open
+    shape this control exists to refuse.
+    """
+    from simulation.population_draw import subset_verdict
+
+    if not draw_population_enabled():
+        return {"ok": False, "failures": ["draw_inactive"], "n_stock": 0,
+                "n_book_domestic": 0, "n_remainder": 0}
+    seed = _DEFAULT_BASE_SEED if seed is None else seed
+    served = served_segments()
+    book = [sc for sc in _drawn_trickle(seed) if _serves(sc.to_customer_dict(), served)]
+    book += [p for p, _won_on in _campaign(_pre_growth_book(seed), seed)["winners"]]
+    verdict = dict(subset_verdict(world_premise_stock(seed), book))
+    verdict["n_founders"] = len([c for c in _STATIC_ROSTER if _serves(c, served)])
+    return verdict
+
+
+def _record_subset_verdict(seed: int) -> None:
+    """Persist the verdict for readers in a later process. Never raises.
+
+    NOT a gate, and deliberately not one. A run that assembles a book must not be
+    stopped by its own measurement of that book: the verdict is evidence, and the
+    control that FAILS on a bad verdict is a test
+    (`tests/simulation/test_opening_book_subset.py`), which is where a control belongs
+    — one that can be run against a deliberately broken world and observed to red.
+    """
+    try:
+        _SUBSET_VERDICT_RECORD.parent.mkdir(parents=True, exist_ok=True)
+        _SUBSET_VERDICT_RECORD.write_text(
+            json.dumps(
+                {
+                    "generated_by": "simulation.live_population._record_subset_verdict",
+                    "base_seed": seed,
+                    **book_subset_verdict(seed),
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+    except OSError:
+        pass
 
 
 # ---------------------------------------------------------------------------
@@ -399,6 +561,11 @@ def _campaign(book: List[dict], seed: int) -> dict:
     # the book is not a key at all.
     if seed not in _CAMPAIGN_MEMO:
         _CAMPAIGN_MEMO[seed] = _resolve_campaign(book, seed)
+        # AFTER the memo is populated, never inside `_resolve_campaign`: the verdict
+        # re-enters `_campaign` to read the winners, and computing it before the memo
+        # is set would recurse forever. Recorded here rather than at the seam because
+        # this is the one place a campaign is resolved exactly once per seed.
+        _record_subset_verdict(seed)
     return _CAMPAIGN_MEMO[seed]
 
 
@@ -413,11 +580,9 @@ def _pre_growth_book(seed: int) -> List[dict]:
     static = [c for c in _STATIC_ROSTER if _serves(c, served)]
     if not draw_population_enabled():
         return static
-    from simulation.population_draw import draw_population
-
     return static + [
         sc.to_customer_dict()
-        for sc in draw_population(seed, draw_region=True, assign_cohorts=True)
+        for sc in _drawn_trickle(seed)
         if _serves(sc.to_customer_dict(), served)
     ]
 
@@ -438,13 +603,21 @@ def _resolve_campaign(book: List[dict], seed: int) -> dict:
     from tools.credit_adapters import get_credit_bureau_adapter
 
     horizon = _dt.date(2026, 1, 1)
+    from simulation.net_new_acquisition import PROSPECTS_PER_YEAR
     existing_cy = sum(
         max(0.0, (horizon - _dt.date.fromisoformat(c["acquisition_date"])).days / 365.25)
         for c in book
     )
     outcome = plan_growth_campaign(
-        years=range(2016, 2026),
+        years=CAMPAIGN_YEARS,
         base_seed=seed,
+        # PB2 step 3, the inversion: the campaign quotes INTO the world's stock instead
+        # of minting a dwelling for each prospect it invents. The slice is the campaign's
+        # half of each year's stock; `_trickle_stock` takes the tail, so the two streams
+        # cannot claim the same home. This is what gives the run a remainder — the homes
+        # nobody won — and therefore what makes "won, never assigned" falsifiable rather
+        # than definitionally true.
+        premise_stock_fn=lambda year: _year_stock(year, seed)[:PROSPECTS_PER_YEAR],
         # THE SAME OPENING CAPITAL THE RUN ITSELF USES, and getting this wrong once is why
         # the comment is here. The campaign planned from `_opening_net_assets_gbp(book)` --
         # the EAC-scaled formula -- while `run_phase2b` had already moved to the founding
@@ -545,12 +718,10 @@ def live_premises(base_seed: Optional[int] = None) -> dict:
     """
     if not draw_population_enabled():
         return {}
-    from simulation.population_draw import draw_population
-
     seed = _DEFAULT_BASE_SEED if base_seed is None else base_seed
     premises = {
         sc.customer_id: sc.premise
-        for sc in draw_population(seed, draw_region=True, assign_cohorts=True)
+        for sc in _drawn_trickle(seed)
         if sc.premise is not None
     }
     # A WON HOME IS STILL A HOME (B12). `dwelling_records.build_properties` raises
@@ -579,8 +750,32 @@ def live_dwellings(base_seed: Optional[int] = None) -> dict:
 
 def live_drawn_households(base_seed: Optional[int] = None) -> dict:
     """{customer_id: Household} for the drawn cohort — what
-    `simulation.household.build_household_register()` takes."""
-    return {cid: premise.household for cid, premise in live_premises(base_seed).items()}
+    `simulation.household.build_household_register()` takes.
+
+    RELABELLED to the customer id, and this line is PB2 step 3 paying a debt it
+    created rather than a convenience. `premise_population.draw_premise` builds its
+    household with `customer_id=premise_id`, which was harmless while the two were
+    the same string — that sameness WAS the false join key. Now that an account sits
+    at `PSTK-2021-0401`, handing that household on unlabelled makes
+    `make_household`'s "one home, one id" guard raise on every drawn account in the
+    book: a control that was correct, and whose correctness rested entirely on the
+    defect next door.
+
+    The guard is kept, not weakened. What changes is that the label now says what
+    the field is named after — the customer this household belongs to — and the
+    binding is made HERE, at the one seam that holds both the account and the
+    premise it was won at. The cross-path property the guard cannot see from inside
+    `make_household` (that `live_premises` and `live_population` agree on which
+    accounts exist at all, the drift the campaign memo already paid for once) is
+    asserted directly in `test_live_population_seam.py` instead of inferred from an
+    id collision.
+    """
+    import dataclasses
+
+    return {
+        cid: dataclasses.replace(premise.household, customer_id=cid)
+        for cid, premise in live_premises(base_seed).items()
+    }
 
 
 #: Where the campaign's own record of a run lands, for generators in later processes.

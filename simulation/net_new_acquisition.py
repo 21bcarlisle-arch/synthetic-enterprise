@@ -70,7 +70,8 @@ yet a rival supplier taking the customer.
 from __future__ import annotations
 
 import datetime as dt
-from typing import Iterator, Mapping, Optional
+import functools
+from typing import Iterator, Mapping, Optional, Sequence
 
 from simulation.population_draw import (
     DEFAULT_BAND_WEIGHTS,
@@ -136,6 +137,73 @@ DOMESTIC_ONLY: dict[str, float] = {"resi": 1.0}
 #: that is never won must never be confusable with an account, in a log or in a register.
 PROSPECT_ID_PREFIX = "PROS"
 
+#: Stock premise ids are NAMESPACED BY YEAR, and the namespace is load-bearing rather than
+#: cosmetic. `premise_population.draw_premise_population` mints `P0000..P{n-1}` for every
+#: `base_seed` and every `as_of`, so a bare `P0007` names a SLOT and not a dwelling — PB2's
+#: `foreign_world` clause exists because two unrelated worlds share that id set entirely. The
+#: year-scoped id makes the union below a genuine stock instead of ten overlapping ones, so
+#: "the homes this supplier could have won, 2016-2025" is a set that can actually be counted.
+STOCK_ID_PREFIX = "PSTK"
+
+
+def year_premise_stock(
+    year: int, *, base_seed: int, n: int = PROSPECTS_PER_YEAR
+) -> tuple:
+    """The addressable housing stock in `year` — the homes the campaign quotes INTO.
+
+    PB2's inversion (`PB2_UNWON_REMAINDER_FRAME.md` §1): the SIM draws the STOCK and the
+    company's funnel decides which of it becomes a book. What is returned here is world
+    truth with no company-side name — a supplier holds no register of the households it
+    never approached — so it must never cross `company/interfaces/sim_interface.py`.
+
+    **Drawn PER YEAR, at that year's `as_of`, and that is a fidelity requirement rather
+    than an implementation convenience.** `draw_premise` reads `as_of` twice: the meter
+    cadence is drawn against `smart_read_share(as_of.year)` and the EPC lodgement is drawn
+    uniformly over the ten years before it. One stock drawn once at 2016 would therefore
+    model a country in which no meter ever got smarter and no certificate was ever
+    re-lodged across the whole decade the run covers — strictly less faithful than the
+    per-acquisition draw this replaces, which is the one direction R13 forbids. A year's
+    stock is "the homes in the market in that year", which is exactly the object
+    `iter_prospects` was already modelling one prospect at a time.
+
+    HONEST SIMPLIFICATION, dated 2026-08-24: a home in the market in 2016 and again in
+    2019 appears as two members of the union, because nothing here carries a dwelling's
+    identity across years. That is the same simplification `iter_prospects` already made
+    (its per-year pools are independent draws) and it is visible in the remainder as a
+    slight over-count of distinct homes. Fixing it needs a persistent dwelling register,
+    which is a larger object than this atom.
+
+    Deterministic in `(base_seed, year, n)` and independent of everything the company
+    does — the property that makes a win attributable to the campaign rather than the draw.
+    """
+    if n <= 0:
+        raise ValueError(f"a premise stock needs at least one home, got {n}")
+    from simulation.premise_population import draw_premise, raked_joint
+
+    fitted = raked_joint()
+    as_of = dt.date(year, 1, 1)
+    return tuple(
+        draw_premise(
+            f"{STOCK_ID_PREFIX}-{year}-{i:04d}",
+            base_seed=base_seed,
+            as_of=as_of,
+            joint=fitted,
+        )
+        for i in range(1, n + 1)
+    )
+
+
+def _claim_slot(premise, _customer_id: str):
+    """The claim `_draw_one` calls: this prospect's slot, already decided.
+
+    `_draw_one`'s hook takes the customer id because the flat claim in
+    `population_draw` needs it for its exhaustion message. A positional claim has
+    already resolved the slot before the hook is built, so the id is unused here —
+    named with a leading underscore rather than dropped, because a hook whose
+    signature quietly diverges from its one interface is how the next caller breaks.
+    """
+    return premise
+
 
 def iter_prospects(
     year: int,
@@ -146,6 +214,7 @@ def iter_prospects(
     commodity_weights: Optional[Mapping[str, float]] = None,
     band_weights: Optional[Mapping[str, float]] = None,
     draw_region: bool = True,
+    premise_stock: Optional[Sequence] = None,
 ) -> Iterator[SyntheticCustomer]:
     """Yield this year's prospects in date order. A prospect is NOT a customer.
 
@@ -157,9 +226,32 @@ def iter_prospects(
     `acquisition_date` on the yielded record is the date the prospect is IN THE MARKET —
     the day a quote could be issued. It becomes an acquisition date only if the funnel is
     survived, and `run_phase2b` stamps the won account with the funnel's own term start.
+
+    `premise_stock` (default None — PB2 step 3, the inversion). Supplied, prospect `i` is a
+    home AT `premise_stock[i - 1]`: it is drawn OUT OF the world's stock rather than having
+    a dwelling minted for it. Default None keeps the per-prospect mint and therefore a
+    byte-identical stream, so the parameter is additive.
+
+    **POSITIONAL, deliberately, and not shuffled.** Stock members are exchangeable — each
+    is an independent draw from the same raked joint, keyed on its own premise id — so
+    slot `i` is already a uniform sample and a shuffle would buy nothing. It would cost
+    something real: `PB2_JOIN_KEY_BUILD.md` §5 recorded that the trickle's claim shuffle is
+    seeded on the stock SIZE, so growing the stock re-rolls which premises were won. A
+    positional claim into a per-year slice has no such term. Prospect `PROS-2019-0007` sits
+    at `PSTK-2019-0007` however large the pool gets and whatever the company spent, which
+    is the membership stability that §5 said step 3 was expected to deliver.
+
+    Exhaustion RAISES rather than truncating. A pool silently shortened to fit its stock
+    has its size set by the wrong thing and would still pass every subset control.
     """
     if n <= 0:
         raise ValueError(f"a prospect pool needs at least one home, got {n}")
+    if premise_stock is not None and len(premise_stock) < n:
+        raise ValueError(
+            f"premise stock exhausted for {year}: a pool of {n} homes wants {n} stock "
+            f"members and was given {len(premise_stock)}. A market cannot be larger than "
+            f"the world it is drawn from -- raise the stock, never truncate the pool."
+        )
     from simulation.premise_population import raked_joint
 
     # Fit the published stock joint ONCE per year-stream, not per prospect: 168 cells of
@@ -179,6 +271,14 @@ def iter_prospects(
             if draw_region
             else "UNKNOWN_SYNTHETIC"
         )
+        # C-S2: the claim reads a pre-drawn sequence and never touches `rng`, so switching
+        # the stock on cannot perturb the prospect draw itself. Segment, commodity, band,
+        # EAC, payment method and the in-market date are all byte-identical with and
+        # without a stock; the funnel is seeded on the prospect's own id, so THE SAME
+        # PROSPECTS WIN either way. What changes is the house each of them lives in.
+        claim = None
+        if premise_stock is not None:
+            claim = functools.partial(_claim_slot, premise_stock[i - 1])
         yield _draw_one(
             rng,
             customer_id=pid,
@@ -190,6 +290,7 @@ def iter_prospects(
             base_seed=base_seed,
             assign_cohorts=False,
             premise_joint=premise_joint,
+            claim_premise=claim,
         )
 
 
@@ -267,6 +368,7 @@ def plan_growth_campaign(
     prospects_per_year: int = PROSPECTS_PER_YEAR,
     commodity_weights: Optional[Mapping[str, float]] = None,
     segment_weights: Optional[Mapping[str, float]] = None,
+    premise_stock_fn=None,
 ) -> dict:
     """Resolve a multi-year acquisition campaign into won accounts and booked spend.
 
@@ -290,6 +392,14 @@ def plan_growth_campaign(
     `run_funnel(segment, seed, term_start, credit_bureau, total_amount_gbp)` is injected
     rather than imported so a test can drive an always-win and an always-lose bureau without
     reaching into the funnel's internals.
+
+    `premise_stock_fn(year) -> Sequence[DrawnPremise]` (default None) is injected on the same
+    terms and is PB2's inversion: supplied, each year's prospects are homes claimed out of
+    the world's addressable stock rather than dwellings minted per prospect, so the book this
+    campaign wins is a measurable SUBSET of a population that also contains everyone it never
+    won. `year_premise_stock` in this module is the shipped implementation; injecting it
+    rather than calling it keeps the default byte-identical and lets a control hand in a
+    deliberately wrong stock.
 
     THE WALL, and this is the one place this module could have breached it. An earlier draft
     called `saas.growth_mandate.growth_quote_budget` directly from here -- a SIM module
@@ -337,10 +447,20 @@ def plan_growth_campaign(
         cy_exhausted_at = None
 
         if quotes:
+            # THE STOCK IS DRAWN WHOLE, not up to the quote count, and that is the
+            # independence property rather than an inefficiency. `pool` is a generator and
+            # the loop below breaks at `quotes`, so only the quoted prospects are ever
+            # materialised -- but the STOCK slot each of them claims must not depend on how
+            # many the company could afford, or "who was in the market" would quietly become
+            # a function of the balance sheet. A positional claim into a whole year's stock
+            # has no such term (see `iter_prospects`' own note).
             pool = iter_prospects(
                 year, base_seed=base_seed, n=prospects_per_year,
                 commodity_weights=commodity_weights or ELECTRICITY_ONLY,
                 segment_weights=segment_weights or DOMESTIC_ONLY,
+                premise_stock=(
+                    premise_stock_fn(year) if premise_stock_fn is not None else None
+                ),
             )
             for i, prospect in enumerate(pool):
                 if i >= quotes:

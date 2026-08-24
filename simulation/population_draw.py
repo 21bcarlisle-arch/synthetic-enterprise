@@ -69,6 +69,7 @@ HONEST SIMPLIFICATIONS (R10, dated)
 from __future__ import annotations
 
 import datetime as dt
+import functools
 import hashlib
 import json
 import math
@@ -364,6 +365,7 @@ def iter_acquisition_events(
     assign_cohorts: bool = False,
     draw_region: bool = False,
     premise_stock: Optional[Sequence["DrawnPremise"]] = None,
+    premise_stock_fn: Optional[Callable[[int], Sequence["DrawnPremise"]]] = None,
 ) -> Iterator[SyntheticCustomer]:
     """Yield synthetic acquisition EVENTS one at a time, in date order
     (C-S1 event-arrival tolerance: a consumer must NOT assume batch
@@ -409,7 +411,32 @@ def iter_acquisition_events(
     RAISES if the stock cannot cover the draw (`ValueError`) -- a book larger than
     the world it was won out of is a defect, never a silently truncated book
     (R15 fail-closed).
+
+    `premise_stock_fn(year) -> Sequence[DrawnPremise]` (default None, PB2 step 3) is
+    the PER-YEAR form of the same claim, and it exists because `as_of` is not a
+    detail. `draw_premise` reads it twice -- the meter cadence is drawn against
+    `smart_read_share(as_of.year)` and the EPC lodgement uniformly over the ten
+    years before it -- so ONE stock spanning a decade models a country where no
+    meter ever got smarter and no certificate was ever re-lodged. That is strictly
+    less faithful than the per-acquisition mint it replaces, which is the one
+    direction R13 forbids. With `premise_stock_fn`, acquisition `i` of year `Y`
+    claims slot `i - 1` of `Y`'s own stock: POSITIONAL, so membership does not move
+    when the stock grows (`PB2_JOIN_KEY_BUILD.md` §5 recorded that the flat
+    `premise_stock` shuffle above re-rolls the book whenever `n` changes, and named
+    fixing it as step 3's job -- this is that fix).
+
+    The two are MUTUALLY EXCLUSIVE and supplying both raises. They are one mechanism
+    with two shapes, not two mechanisms: `premise_stock` remains the flat form that
+    step 1 shipped and its callers keep, `premise_stock_fn` is what a multi-year
+    world uses.
     """
+    if premise_stock is not None and premise_stock_fn is not None:
+        raise ValueError(
+            "premise_stock and premise_stock_fn are two shapes of one claim; supply "
+            "one. The flat stock is shuffled across the whole draw and the per-year "
+            "one is positional within a year, so honouring both would mean claiming "
+            "each premise twice."
+        )
     segment_weights = segment_weights or DEFAULT_SEGMENT_WEIGHTS
     commodity_weights = commodity_weights or DEFAULT_COMMODITY_WEIGHTS
     band_weights = band_weights or DEFAULT_BAND_WEIGHTS
@@ -450,6 +477,24 @@ def iter_acquisition_events(
     rng = _substream(base_seed)
     for year in range(start_year, end_year + 1):
         n = _poisson(rng, acquisitions_per_year_lambda)
+        # PB2 step 3: this year's own stock, at this year's `as_of`. Resolved ONCE per
+        # year and only when a year actually draws -- most years of a Poisson(1.0)
+        # trickle draw nothing, and a stock nobody claims from is a decade of premise
+        # draws nothing reads.
+        year_stock: Optional[Sequence["DrawnPremise"]] = None
+        if premise_stock_fn is not None and n:
+            year_stock = premise_stock_fn(year)
+
+        def _claim_in_year(cid: str, _i: int = 0, _stock=None) -> "DrawnPremise":
+            if _i >= len(_stock):
+                raise ValueError(
+                    f"premise stock exhausted at acquisition {cid}: year {year} drew "
+                    f"{n} acquisitions into a stock of {len(_stock)}. A book cannot be "
+                    f"larger than the world it was won out of -- raise the stock, "
+                    f"never truncate the book."
+                )
+            return _stock[_i]
+
         # Draw each acquisition's day-of-year, then sort so events arrive in
         # chronological order within the year.
         days_in_year = (dt.date(year, 12, 31) - dt.date(year, 1, 1)).days
@@ -457,6 +502,17 @@ def iter_acquisition_events(
         for i, offset in enumerate(day_offsets, start=1):
             acq_date = dt.date(year, 1, 1) + dt.timedelta(days=offset)
             cid = f"SYN-{year}-{i:03d}"
+            if year_stock is not None:
+                # Bound per acquisition so the slot is `i - 1` and nothing else: a
+                # POSITIONAL claim, so this account's home does not move when the
+                # stock grows or when another year draws a different count.
+                claim_fn = functools.partial(
+                    _claim_in_year, _i=i - 1, _stock=year_stock
+                )
+            elif claim_order is not None:
+                claim_fn = _claim
+            else:
+                claim_fn = None
             cust_region = (
                 draw_region_for_customer(cid, base_seed, region_curriculum)
                 if draw_region
@@ -473,7 +529,7 @@ def iter_acquisition_events(
                 base_seed=base_seed,
                 assign_cohorts=assign_cohorts,
                 premise_joint=premise_joint,
-                claim_premise=_claim if claim_order is not None else None,
+                claim_premise=claim_fn,
             )
 
 
