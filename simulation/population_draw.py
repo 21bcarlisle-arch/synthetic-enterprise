@@ -75,7 +75,17 @@ import math
 import random
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Iterator, List, Mapping, Optional, Tuple
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
 from simulation.household_segments import TenureType, tenure_for_customer
 
@@ -138,6 +148,10 @@ DEFAULT_START_YEAR = 2021
 DEFAULT_END_YEAR = 2025  # inclusive
 
 STREAM_NAME = "W2_2_population_draw"
+# PB2 step 1: the named salt for the claim-order shuffle over the premise stock.
+# Its own salt, so the claim order can never share a sequence with the acquisition
+# draw or with any other consumer of `_substream` (C-S2).
+PREMISE_CLAIM_SALT = "PB2_premise_claim_order"
 
 
 # ---------------------------------------------------------------------------
@@ -282,6 +296,7 @@ def _draw_one(
     base_seed: int,
     assign_cohorts: bool = False,
     premise_joint: Optional[Mapping] = None,
+    claim_premise: Optional[Callable[[str], "DrawnPremise"]] = None,
 ) -> SyntheticCustomer:
     segment = _weighted_choice(rng, segment_weights)
     commodity = _weighted_choice(rng, commodity_weights)
@@ -302,13 +317,27 @@ def _draw_one(
     # world's ground truth. Its substream is isolated, so the acquisition draw above
     # is byte-identical to before this field existed
     # (`test_the_dwelling_draw_does_not_perturb_the_acquisition_stream`).
-    premise = _draw_dwelling(
-        customer_id,
-        segment=segment,
-        acquisition_date=acquisition_date,
-        base_seed=base_seed,
-        joint=premise_joint,
-    )
+    # PB2 step 1 (the join key): when the caller supplied a premise STOCK, the
+    # acquisition was won AT a premise claimed out of that stock, and the claimed
+    # premise -- carrying its `P####` stock id -- is the one the account holds. The
+    # per-customer mint below is then NOT reached, which is the whole repair: a
+    # minted premise is keyed on the customer that caused it to exist, so the
+    # "join key" it produces is the customer id relabelled (R15 tautology).
+    # A claim is made ONLY for a domestic point, because only a domestic point has a
+    # dwelling in this stock (`_draw_dwelling` returns None for SME/I&C, and the
+    # stock is an England HOUSING-stock draw). Claiming for a non-resi point would
+    # burn a premise that no account then holds -- it would leave the remainder
+    # quietly short by a premise that is neither won nor unwon.
+    if claim_premise is not None and segment == "resi":
+        premise = claim_premise(customer_id)
+    else:
+        premise = _draw_dwelling(
+            customer_id,
+            segment=segment,
+            acquisition_date=acquisition_date,
+            base_seed=base_seed,
+            joint=premise_joint,
+        )
     return SyntheticCustomer(
         customer_id=customer_id,
         acquisition_date=acquisition_date.isoformat(),
@@ -334,6 +363,7 @@ def iter_acquisition_events(
     region: str = _PLACEHOLDER_REGION,
     assign_cohorts: bool = False,
     draw_region: bool = False,
+    premise_stock: Optional[Sequence["DrawnPremise"]] = None,
 ) -> Iterator[SyntheticCustomer]:
     """Yield synthetic acquisition EVENTS one at a time, in date order
     (C-S1 event-arrival tolerance: a consumer must NOT assume batch
@@ -359,6 +389,26 @@ def iter_acquisition_events(
     OBSERVABLE region equals the cohort region for the same customer (same
     substream, see `draw_region_for_customer`). An explicit `region` override is
     ignored while `draw_region=True`.
+
+    `premise_stock` (default None, PB2 step 1 -- the join key): the world's drawn
+    premise stock (`premise_population.draw_premise_population`). When supplied,
+    each acquisition CLAIMS a premise out of that stock without replacement, so the
+    account it creates is an account AT a stock premise and carries that premise's
+    `P####` id. `book_premise_ids ⊆ stock_premise_ids` then becomes a set relation
+    over ONE key, which is what makes PB2 exit (d) measurable at all -- and the
+    premises never claimed are the UNWON REMAINDER (`unwon_remainder()`), the object
+    the ruling's "won, never assigned" needs in order to be falsifiable.
+
+    Default None preserves the per-customer premise MINT and therefore a
+    byte-identical stream (`test_default_off_is_byte_identical`). The mint is what
+    PB2's FRAME pass called the false join key: `_draw_dwelling` is keyed on the
+    `customer_id`, so the minted `premise_id` IS the customer id, its intersection
+    with the drawn stock is empty, and a subset control over it can only ever be
+    trivially false or tautologically true.
+
+    RAISES if the stock cannot cover the draw (`ValueError`) -- a book larger than
+    the world it was won out of is a defect, never a silently truncated book
+    (R15 fail-closed).
     """
     segment_weights = segment_weights or DEFAULT_SEGMENT_WEIGHTS
     commodity_weights = commodity_weights or DEFAULT_COMMODITY_WEIGHTS
@@ -372,6 +422,30 @@ def iter_acquisition_events(
     from simulation.premise_population import raked_joint
 
     premise_joint = raked_joint()
+
+    # PB2 step 1: the claim order over the stock. Drawn ONCE per stream from this
+    # subsystem's OWN named substream (C-S2) -- never from `rng` below, so switching
+    # the stock on does not perturb the acquisition sequence itself, exactly as the
+    # cohort and dwelling draws are isolated.
+    claim_order: Optional[List["DrawnPremise"]] = None
+    if premise_stock is not None:
+        claim_order = list(premise_stock)
+        _substream(base_seed, f"{PREMISE_CLAIM_SALT}:{len(claim_order)}").shuffle(claim_order)
+    claimed = 0
+
+    def _claim(cid: str) -> "DrawnPremise":
+        nonlocal claimed
+        assert claim_order is not None
+        if claimed >= len(claim_order):
+            raise ValueError(
+                f"premise stock exhausted at acquisition {cid}: the draw wants more "
+                f"than {len(claim_order)} domestic premises. A book cannot be larger "
+                f"than the world it was won out of -- raise the stock (PB2's derived "
+                f"floor is ceil(5.8324 x N_book) premises), never truncate the book."
+            )
+        premise = claim_order[claimed]
+        claimed += 1
+        return premise
 
     rng = _substream(base_seed)
     for year in range(start_year, end_year + 1):
@@ -399,6 +473,7 @@ def iter_acquisition_events(
                 base_seed=base_seed,
                 assign_cohorts=assign_cohorts,
                 premise_joint=premise_joint,
+                claim_premise=_claim if claim_order is not None else None,
             )
 
 
@@ -410,6 +485,125 @@ def draw_population(base_seed: int, **kwargs) -> List[SyntheticCustomer]:
     genuinely need the whole cohort at once.
     """
     return list(iter_acquisition_events(base_seed, **kwargs))
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PB2 -- THE UNWON REMAINDER AND THE SUBSET CONTROL
+#
+# The remainder is the premises the world drew and the company never acquired.
+# It is WORLD TRUTH with no company-side name: a supplier does not hold a list
+# of the households it has not signed (PB2_UNWON_REMAINDER_FRAME.md §2, the
+# bottom row of its table). Everything below is therefore SIM-side and must
+# never cross `company/interfaces/sim_interface.py` -- same rule as `cohort`
+# and `premise` above, and for the same reason.
+#
+# `subset_verdict` is the CONTROL, written as a function so that any tool and
+# the tests judge the SAME predicate rather than two re-derivations of it
+# (the convention `premise_population.observed_shares` already sets).
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def unwon_remainder(
+    stock: Sequence["DrawnPremise"], book: Sequence[SyntheticCustomer]
+) -> Tuple["DrawnPremise", ...]:
+    """The drawn premises no account in `book` sits at, in stock order.
+
+    WORLD TRUTH. The company has no object for these premises at all.
+
+    Matched by VALUE, not by `premise_id`: the id is positional (`P0000` exists in
+    every world), so an id-only match would count this world's `P0000` as won
+    because some other world's `P0000` is in the book. See `subset_verdict`'s
+    `foreign_world` clause.
+    """
+    won = {c.premise for c in book if c.premise is not None}
+    return tuple(p for p in stock if p not in won)
+
+
+def subset_verdict(
+    stock: Sequence["DrawnPremise"], book: Sequence[SyntheticCustomer]
+) -> Dict[str, object]:
+    """PB2 exit (d): is the opening book a GENUINE subset of the drawn stock?
+
+    Returns a verdict dict; `ok` is True only if every clause below holds. The
+    clauses exist because a subset assertion passes trivially on a broken world,
+    and each named failure here is one of R15's three killer shapes:
+
+    * `book_empty` -- FAIL-OPEN. The empty set is a subset of anything, so a bare
+      `book_ids <= stock_ids` returns True on a book that does not exist. It would
+      have passed on the 2016 window today, where the draw yields zero accounts.
+    * `remainder_empty` -- FAIL-OPEN, and the one that matters most. If every drawn
+      premise was won there is no losing, so "subset" carries no information: it is
+      the `|book| == |stock|` tautology the DISCOVER pass found on today's seam.
+    * `outside_stock` -- the real claim. A book premise that is not a stock member
+      means the account was MINTED rather than won. This is the clause that REDs on
+      the pre-repair path, where the premise id is the customer id relabelled.
+    * `foreign_world` -- a book premise whose id NAMES a stock slot but whose
+      dwelling is a different dwelling. `premise_id` is POSITIONAL, not identity-
+      bearing: `draw_premise_population` mints `P0000..P{n-1}` for every base_seed,
+      so two unrelated worlds share an id set entirely. An id-only subset check
+      therefore cannot tell "won at P0054 of THIS world" from "won at P0054 of some
+      other world" -- the wrong-subject shape at one remove. Membership is decided
+      by VALUE, and this clause reports the slots that collided.
+    * `double_won` -- two accounts at one premise. Not a subset violation in set
+      terms, which is exactly why it needs its own clause: `{P1} <= {P1, P2}` is
+      True however many times P1 was sold.
+
+    DECLARED, BOUNDED EXCLUSION: the subject is the DOMESTIC book only. A drawn
+    SME/I&C point carries no dwelling by construction (`_draw_dwelling` returns
+    None for non-resi) and the stock is an England housing-stock draw, so a
+    non-domestic account is not a candidate for membership. The count is reported
+    as `n_non_domestic` rather than dropped silently -- an exclusion that is
+    declared and bounded, never one that quietly makes the verdict green. The 13
+    hand-authored `CUSTOMERS` are excluded structurally: they are not in `book`,
+    they predate the stock, and they have no premise.
+    """
+    domestic = [c for c in book if c.premise is not None]
+    by_id = {p.premise_id: p for p in stock}
+    book_ids = [c.premise.premise_id for c in domestic]
+    seen: Dict[str, int] = {}
+    for pid in book_ids:
+        seen[pid] = seen.get(pid, 0) + 1
+
+    # Membership is decided by VALUE, not by the id alone -- see `foreign_world`.
+    outside = sorted({pid for pid in book_ids if pid not in by_id})
+    foreign = sorted(
+        {
+            c.premise.premise_id
+            for c in domestic
+            if c.premise.premise_id in by_id and by_id[c.premise.premise_id] != c.premise
+        }
+    )
+    double = sorted(pid for pid, n in seen.items() if n > 1)
+    remainder = unwon_remainder(stock, domestic)
+
+    failures: List[str] = []
+    if not domestic:
+        failures.append("book_empty")
+    if not remainder:
+        failures.append("remainder_empty")
+    if outside:
+        failures.append("outside_stock")
+    if foreign:
+        failures.append("foreign_world")
+    if double:
+        failures.append("double_won")
+
+    return {
+        "ok": not failures,
+        "failures": failures,
+        "n_stock": len(by_id),
+        "n_book_domestic": len(domestic),
+        "n_non_domestic": len(book) - len(domestic),
+        "n_remainder": len(remainder),
+        "outside_stock": outside,
+        "foreign_world": foreign,
+        "double_won": double,
+        # The win rate the book actually realised against the stock it was drawn
+        # from. A DIAGNOSTIC (R12), never a target -- PB2's derived funnel floor
+        # says this should approach 17.1% once the funnel decides wins (PB3), and
+        # it is reported so that drift is VISIBLE, not so that it can be tuned.
+        "realised_take_rate": (len(domestic) / len(by_id)) if by_id else None,
+    }
 
 
 # ═══════════════════════════════════════════════════════════════════════════

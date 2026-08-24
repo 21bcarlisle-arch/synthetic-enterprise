@@ -530,3 +530,114 @@ def test_a_won_home_has_the_WORLDS_dwelling_not_the_suppliers_approximation(monk
     assert won, "fixture is vacuous if the campaign won nothing"
     assert all(cid in premises for cid in won)
     assert all(cid in households for cid in won)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PB2 -- THE UNWON REMAINDER, as a new SUBJECT of this existing instrument.
+#
+# `PB2_UNWON_REMAINDER_FRAME.md` §4(c) is explicit that PB2 must NOT build a
+# third wall control: the static ratchet and this runtime guard already exist,
+# and this repo's characteristic failure is an orphaned control, not an absent
+# one. What PB2 supplies is the subject they never had -- the premises the
+# world drew and the company never acquired.
+#
+# Why the static ratchet is not enough on its own here: the remainder is DATA,
+# not an import. A company module that never imports `simulation.*` can still
+# be HANDED the unwon set by a caller, and an import scan cannot see a value
+# passed through a dict. That is the half this runtime guard covers.
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def _drawn_book_and_stock():
+    """A book won out of a stock, with a non-empty remainder. Built here rather
+    than in a fixture so each assertion below can state its own preconditions."""
+    import datetime as dt
+
+    from simulation.population_draw import draw_population
+    from simulation.premise_population import draw_premise_population
+
+    stock = draw_premise_population(200, base_seed=42, as_of=dt.date(2021, 1, 1))
+    return draw_population(base_seed=42, premise_stock=stock), stock
+
+
+def test_the_supplier_shaped_dict_never_carries_the_premise_it_was_won_at():
+    """The account's premise is HIDDEN SIM TRUTH, exactly like `cohort`.
+
+    The company discovers a home through `company.crm.property_discovery` and is
+    entitled to be wrong about it. Emitting `premise` (or its id) in the saas-shaped
+    dict would hand the company the world's answer -- and now that the premise is a
+    STOCK member rather than a per-customer mint, its id would also hand over the
+    account's position in the drawn population.
+    """
+    book, _ = _drawn_book_and_stock()
+    assert book, "fixture is vacuous if nothing was drawn"
+    for customer in book:
+        rendered = customer.to_customer_dict()
+        assert "premise" not in rendered
+        assert "premise_id" not in rendered
+        assert not any("premise" in str(k).lower() for k in rendered)
+
+
+def test_the_unwon_remainder_is_reachable_only_from_sim():
+    """A company-side read of the unwon set must be refused by the static ratchet.
+
+    The remainder's only home is `simulation.population_draw.unwon_remainder`, and
+    `simulation` is a wall side no `company.*` / `saas.*` module may import. This
+    asserts the function IS in that module (so it inherits the ratchet's refusal)
+    rather than having quietly been placed somewhere reachable.
+    """
+    from simulation.population_draw import subset_verdict, unwon_remainder
+
+    for fn in (unwon_remainder, subset_verdict):
+        assert fn.__module__ == "simulation.population_draw", (
+            f"{fn.__name__} moved out of the SIM module the wall ratchet guards; "
+            "the remainder would no longer be refused to the company by construction"
+        )
+        assert not fn.__module__.startswith(("company.", "saas."))
+
+
+def test_the_remainder_is_not_derivable_from_what_the_company_can_see():
+    """THE wall claim, stated as the leak it forbids.
+
+    Given everything the seam hands the company -- the saas-shaped dicts for every
+    account it holds -- the unwon premises must not be enumerable. This is the
+    negative direction the FRAME names non-negotiable: a company-side read of
+    drawn-but-not-acquired premises fails.
+    """
+    book, stock = _drawn_book_and_stock()
+    remainder = {p.premise_id for p in __import__(
+        "simulation.population_draw", fromlist=["unwon_remainder"]
+    ).unwon_remainder(stock, book)}
+    assert remainder, "fixture is vacuous if the company won the whole world"
+
+    visible = set()
+    for customer in book:
+        for value in customer.to_customer_dict().values():
+            visible.add(str(value))
+            if isinstance(value, dict):
+                visible.update(str(v) for v in value.values())
+
+    assert not (remainder & visible), (
+        "an unwon premise id surfaced in a supplier-visible dict -- the company can "
+        "see a household it never approached"
+    )
+
+
+def test_the_remainder_leak_guard_can_fail():
+    """R15 falsifier for the test above: deliberately leak one unwon premise into
+    the observable dict and the SAME predicate must catch it. Without this, the
+    assertion could be passing because the dicts happen to hold no ids at all."""
+    book, stock = _drawn_book_and_stock()
+    from simulation.population_draw import unwon_remainder
+
+    remainder = {p.premise_id for p in unwon_remainder(stock, book)}
+    leaked = sorted(remainder)[0]
+
+    rendered = book[0].to_customer_dict()
+    rendered["nearby_prospect"] = leaked  # the mutation
+
+    visible = {str(v) for v in rendered.values()}
+    assert remainder & visible, (
+        "the leak guard did not fire on a deliberately leaked unwon premise -- "
+        "it cannot fail, so it is not evidence"
+    )
