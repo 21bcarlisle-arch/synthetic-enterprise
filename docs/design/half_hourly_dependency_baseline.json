@@ -1,0 +1,32 @@
+{
+  "_doc": "Half-hourly reads of the RETAINED settlement book, frozen. The spine (hedged_settlement, hh_consumption, imbalance_ledger, the meter-read path) is half-hourly by design and deliberately NOT scanned. See tools/half_hourly_dependency_ratchet.py.",
+  "reads": {
+    "saas/cost_to_serve.py": [
+      "periods=record.get(\"settlement_periods_folded\", 1))",
+      "periods=record.get(\"settlement_periods_folded\", 1))"
+    ],
+    "saas/ledger.py": [
+      "\"settlement_period\": record[\"settlement_period\"],",
+      "\"settlement_period\": record[\"settlement_period\"],",
+      "events.sort(key=lambda e: (e[\"timestamp\"], e.get(\"settlement_period\", 0), e[\"event_type\"]))",
+      "str(record[\"settlement_period\"]),",
+      "str(record[\"settlement_period\"]),"
+    ],
+    "saas/reporting/annual_report.py": [
+      "\"settlement_period\": worst_record.get(\"settlement_period\"),",
+      "def _section_worst_settlement_periods(data: dict) -> str:",
+      "f\"period {wp['settlement_period']}, net margin {_fmt_gbp(wp['net_margin_gbp'])}\"",
+      "from company.market.tou_periods import is_peak_period",
+      "if is_peak_period(r[\"settlement_date\"], r.get(\"settlement_period\") or 1)]",
+      "if not is_peak_period(r[\"settlement_date\"],",
+      "key=lambda r: (r[\"settlement_date\"], r.get(\"settlement_period\") or 0))",
+      "r.get(\"settlement_period\") or 1)]",
+      "sections.append(_section_worst_settlement_periods(data)) # Phase BR",
+      "treasury_end = max(yr_records, key=lambda r: (r[\"settlement_date\"], r[\"settlement_period\"]))[",
+      "wp.get(\"settlement_period\", \"?\"),"
+    ],
+    "saas/reporting/segment_report.py": [
+      "for r in sorted(yr_records, key=lambda r: (r[\"settlement_date\"], r.get(\"settlement_period\", 0)))"
+    ]
+  }
+}

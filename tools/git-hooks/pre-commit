@@ -169,3 +169,25 @@ python3 -m tools.file_scope_generated_paths || exit 1
 # R15-proven in tests/tools/test_annual_report_import_ratchet.py, including the fail-closed
 # path: a scan that reads nothing must RAISE, never report clean layering it never looked at.
 python3 -m tools.annual_report_import_ratchet || exit 1
+
+# ── GATE 13: the half-hourly spine is the market, not an implementation detail ──────────────
+# Director ruling, 2026-08-24: "GB settlement is half-hourly and that is not an implementation
+# detail, it is the market. So the half-hourly spine stays half-hourly. Aggregate in the
+# reporting and ledger layers if that's where the memory goes, but the settlement and metering
+# record keeps its grain. And put a control on it that fails if anything half-hourly-dependent
+# is added while the fold is live, so this can't be discovered later by a tariff that silently
+# can't be priced."
+#
+# `simulation/settlement_daily.py` folds the RETAINED settlement book to daily rows. The SPINE
+# -- hedged_settlement's 48-period loop, sim/hh_data, the consumption feed, the imbalance ledger
+# -- is untouched and is deliberately NOT scanned: a ratchet over it would fire on the very code
+# the ruling requires. What this refuses is a NEW half-hourly read DOWNSTREAM of the fold, which
+# would get a day and be wrong in a way that looks like an answer.
+#
+# The class is not hypothetical: four published figures were already being re-derived from the
+# retained book (the peak/off-peak split, the worst half-hour, the treasury path, Triad
+# exposure) and every one was found by diffing a generated report rather than by reading.
+# Fail-closed both ways -- an unreadable baseline or a scan that finds nothing REFUSES.
+# R15-proven in tests/tools/test_half_hourly_dependency_ratchet.py (9 tests), including two
+# that pin the spine as NOT a subject of the control.
+python3 -m tools.half_hourly_dependency_ratchet || exit 1
