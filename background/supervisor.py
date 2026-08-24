@@ -915,10 +915,25 @@ def _prefer_unmerged_free(candidates: list, lane: str = "BUILD") -> list:
         return candidates
 
 
-def _exclude_saturated_harden(candidates: list[dict]) -> list[dict]:
-    """THE PASS CEILING, APPLIED TO THE HARDEN RUNG OF THE CORE DRAW (director ruling
-    2026-08-19: "make it impossible for the system to run indefinitely on work that cannot
-    change its own state").
+def _exclude_saturated_from_core_draw(candidates: list[dict]) -> list[dict]:
+    """THE PASS CEILING, APPLIED TO THE CORE DRAW (director ruling 2026-08-19: "make it
+    impossible for the system to run indefinitely on work that cannot change its own
+    state"), at the ceiling appropriate to each candidate's own stage.
+
+    EXTENDED TO `build` ON 2026-08-24, which reverses this function's original central
+    decision. Everything below the next paragraph is the 2026-08-19 record and is kept
+    because the asymmetry it argues is still live — only the conclusion "and therefore build
+    is exempt" is dead. The premise was *"for a saturated build atom, drawing it again IS the
+    promote path the ceiling demands"*: a claim about what a build pass does, asserted and
+    never measured. Measured on 2026-08-24, `EP6_wall_protocol_typing` had taken **55 build
+    passes since its level last moved** and `SITE2_two_sided_wall_exhibit` 18. Fifty-five
+    passes is not a promote path being attempted; it is the unbounded run the ruling outlawed
+    wearing the one stage label this gate was told to trust, and over the fortnight to that
+    date EP6 alone consumed more passes than the whole map recorded level moves. The
+    asymmetry survives as a DIAL rather than an exemption: `build` is gated at
+    `discovery_pass_ceiling.BUILD_CEILING` (10) against `harden`'s 5, because a build pass
+    can move a level and a harden pass cannot. The stage policy lives in the ceiling module;
+    this function applies whatever it returns.
 
     The ceiling landed on 2026-08-19 and reached exactly ONE consumer --
     `_idle_discover_frame_draw`, which feeds only on `idle` atoms. This lane is the other
@@ -928,17 +943,16 @@ def _exclude_saturated_harden(candidates: list[dict]) -> list[dict]:
     rung that drew `H27_payment_belief_gap` for its FORTY-EIGHTH pass, its forty-third since
     the atom last moved a level, with the ceiling shipped and watching a different lane.
 
-    WHY `harden` AND NOT `build`, which is the whole design decision here. A `build` draw at
-    least ATTEMPTS the level move the ceiling is asking for, and the core BUILD rung has
-    nothing beneath it -- closing it is a Rule-0 hazard in a way closing the discovery tier
-    was not (discovery could close safely precisely because BUILD and HARDEN stayed open
-    below it). Worse, for a saturated `build` atom, drawing it again IS the promote path the
-    ceiling demands, so excluding it would refuse the very answer the ruling asks for. An
-    atom sitting at `harden` on level 2 of 3 for its eighth, thirteenth, forty-third pass is
-    the opposite shape: hardening is not a level move and cannot become one, so the passes
-    cannot terminate on their own. That asymmetry is the control's subject, and
-    `test_a_saturated_BUILD_atom_is_deliberately_NOT_excluded` is its null control -- without
-    that pin this function silently becomes the thing the ruling forbids.
+    WHY `harden` AND `build` DIFFER BY 2x rather than being equal (the 2026-08-19 argument,
+    which survives its own conclusion). A `build` draw at least ATTEMPTS the level move the
+    ceiling is asking for, and the core BUILD rung has nothing beneath it -- narrowing it is
+    a Rule-0 hazard in a way closing the discovery tier was not (discovery could close safely
+    precisely because BUILD and HARDEN stayed open below it). An atom sitting at `harden` on
+    level 2 of 3 for its eighth, thirteenth, forty-third pass is the opposite shape:
+    hardening is not a level move and cannot become one, so the passes cannot terminate on
+    their own. That asymmetry is this control's subject and it is what sets 10 against 5. Its
+    null control is now `test_a_saturated_BUILD_atom_UNDER_the_build_ceiling_survives` --
+    without that pin the two ceilings collapse into one and the asymmetry dies silently.
 
     FAILS OPEN, DELIBERATELY THE OPPOSITE DIRECTION TO `_idle_discover_frame_draw`. That tier
     fails toward an empty lane because its risk is the unbounded run. This one fails toward
@@ -950,43 +964,43 @@ def _exclude_saturated_harden(candidates: list[dict]) -> list[dict]:
 
     WHAT THIS DOES NOT COVER, named rather than left for the next reader to discover. LANE 2
     (SITE, `_site_lane_draw_concurrent`) selects below-target atoms REGARDLESS of loop_stage,
-    so a `site/**`-scoped saturated harden atom would still be drawable there. Checked, not
-    assumed: of the five live saturated harden atoms today (H27_payment_belief_gap,
-    HX2_stall_set_coverage_verdict, W3_1b_intra_year_price_cap_granularity,
-    W2_payment_channel_dd_consistency_invariant, D_money_boundary_reconciliation) NONE has a
-    `site/` path in its file_scope, so the bypass is structural rather than live. Left open
-    deliberately -- SITE is an intentionally ungated parallel lane and narrowing it is a
-    separate decision with its own Rule-0 argument, not a line to slip into this commit."""
+    so a `site/**`-scoped atom over its ceiling is still drawable there. This was structural
+    rather than live on 2026-08-19 and is LIVE as of the build extension:
+    `SITE1_expert_doors` and `SITE2_two_sided_wall_exhibit` are both `site/`-scoped and both
+    over a ceiling. Left open deliberately and with a reason that is now stronger, not
+    weaker -- SITE is the lane whose output a reader actually sees, it is the one place the
+    fortnight's measurement says the project was UNDER-spending, and narrowing it would cut
+    exactly the wrong thing. The ceiling's job here is to stop unbounded investigation, not
+    to stop pages being finished."""
     if not candidates:
         return candidates
     try:
-        from tools.discovery_pass_ceiling import saturated_ids
+        from tools.discovery_pass_ceiling import core_draw_exclusions
 
-        over_ceiling = saturated_ids()
+        over_ceiling = core_draw_exclusions()
     except Exception as exc:  # noqa: BLE001 - see the fail-open paragraph above
         log(
-            "HARDEN pass-ceiling gate skipped (fail-open, never narrows the core draw on a "
+            "CORE pass-ceiling gate skipped (fail-open, never narrows the core draw on a "
             f"broken ceiling): {exc}"
         )
         return candidates
-    kept = [
-        a for a in candidates
-        if not (a.get("loop_stage") == "harden" and a.get("id") in over_ceiling)
-    ]
+    kept = [a for a in candidates if a.get("id") not in over_ceiling]
     if not kept:
         log(
-            f"HARDEN pass-ceiling gate: all {len(candidates)} core candidate(s) are saturated "
-            "harden atoms -- keeping the full set (Rule 0: a guard never zeroes the feasible "
-            "set). Every one of them is now a decision: certify the level, or close it."
+            f"CORE pass-ceiling gate: all {len(candidates)} core candidate(s) are over their "
+            "stage's pass ceiling -- keeping the full set (Rule 0: a guard never zeroes the "
+            "feasible set). Every one of them is now a decision: land the level, retarget "
+            "it, or close it."
         )
         return candidates
     if len(kept) != len(candidates):
         dropped = [a.get("id") for a in candidates if a not in kept]
         log(
-            f"HARDEN pass-ceiling gate: excluding {dropped} from the core draw -- each has "
-            "taken 5+ HARDEN passes since its level last moved (director ruling 2026-08-19). "
-            "Hardening again cannot move the level; `python3 -m tools.discovery_pass_ceiling` "
-            "lists the decision each one now is."
+            f"CORE pass-ceiling gate: excluding {dropped} from the core draw -- each has run "
+            "past its stage's ceiling of passes since its level last moved (5 harden, 10 "
+            "build; director ruling 2026-08-19, extended to build 2026-08-24 on the measured "
+            "55-pass EP6 case). `python3 -m tools.discovery_pass_ceiling` lists the decision "
+            "each one now is."
         )
     return kept
 
@@ -1128,7 +1142,8 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
             else:
                 _kept.append(_a)
         candidates = _kept
-    # PASS CEILING on the HARDEN rung (director ruling 2026-08-19). Placed HERE, with the hard
+    # PASS CEILING on the core draw (director ruling 2026-08-19; extended from harden-only to
+    # build 2026-08-24, at a 2x ceiling -- see the helper). Placed HERE, with the hard
     # exclusions (coupled-triad above) rather than with the soft preferences below, on the lesson
     # commit d7d36b46a records: two SOFT guards composed into a no-op and the atom with 1,307
     # unchanged draws was weighted like the one promoted that morning. A prefer-then-fall-back
@@ -1140,7 +1155,7 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
     # on anything but the current stores is how a record starts outrunning the code it
     # describes, and 2s against a draw that already shells out to git for the unmerged-work
     # guard below is not where this loop's time goes.
-    candidates = _exclude_saturated_harden(candidates)
+    candidates = _exclude_saturated_from_core_draw(candidates)
     # UNMERGED-WORK guard (2026-07-30, H10 -- the fix the `.forks_in_flight.json` record itself
     # named after predicting its own decay). Prefer candidates whose file_scope does NOT overlap
     # work already sitting unmerged in a branch/worktree, so the draw cannot hand out an atom a

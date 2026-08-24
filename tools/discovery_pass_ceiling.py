@@ -238,6 +238,49 @@ def is_saturated(atom_id: str, ceiling: int = DEFAULT_CEILING) -> bool:
     return atom_id in saturated_ids(ceiling)
 
 
+#: The ceiling for a `build` atom in the CORE draw, and the only place the two stages differ.
+#:
+#: THE PREMISE THIS REPLACES, AND THE MEASUREMENT THAT REFUTED IT (2026-08-24). When the
+#: ceiling was wired to the core draw on 2026-08-19, `build` was deliberately exempted, and
+#: the reason was written into `supervisor._exclude_saturated_harden` as a design decision:
+#: *"for a saturated `build` atom, drawing it again IS the promote path the ceiling demands,
+#: so excluding it would refuse the very answer the ruling asks for."* That is a claim about
+#: what a build pass DOES, and it was never measured. Measured now, on the live store:
+#:
+#:     EP6_wall_protocol_typing   55 passes since its level last moved   [build]
+#:     SITE2_two_sided_wall_exhibit  18 passes since its level last moved  [build]
+#:
+#: Fifty-five consecutive build passes that did not move the level is not a promote path
+#: being attempted; it is the same unbounded run the ruling outlawed, wearing the one stage
+#: label the gate was told to trust. The exemption was the largest single sink in the project
+#: over the fortnight to 2026-08-24 — that atom alone took more passes than the whole map
+#: recorded level moves.
+#:
+#: WHY TEN AND NOT FIVE, which is the part that keeps the original insight. The 2026-08-19
+#: asymmetry is real and survives: a build pass CAN move a level and a harden pass cannot, so
+#: hardening again is never an answer while building again sometimes is. Build therefore gets
+#: DOUBLE the rope, not unlimited rope. At the live distribution ten excludes exactly the two
+#: runaways above and leaves SP3 (7), EP1 (6), SITE1 (5) and G4 (5) drawable — the smallest
+#: change that ends the unbounded case without narrowing the primary state-moving lane. It is
+#: a DIAL (R12): nothing optimises toward it and no figure is scored against it.
+BUILD_CEILING = 10
+
+
+def core_draw_exclusions() -> set[str]:
+    """Atoms the CORE draw must skip, at the ceiling appropriate to each atom's own stage.
+
+    Split out of the supervisor so the ceiling POLICY lives with the ceiling. `idle` is
+    absent on purpose: the core draw does not hand out idle atoms at all
+    (`supervisor._maturity_map_draw_concurrent._is_valid_candidate` excludes them), and the
+    discovery tier gates them at `DEFAULT_CEILING` through `saturated_ids`.
+    """
+    per_stage = {"harden": DEFAULT_CEILING, "build": BUILD_CEILING}
+    return {
+        r["atom"] for r in survey()
+        if r["stage"] in per_stage and r["passes_since_move"] >= per_stage[r["stage"]]
+    }
+
+
 #: The keys an `infeasible_here` record must carry to mean anything. A record missing one is
 #: REFUSED rather than ignored: `blocks` with no `predicate` is a sentence, and a sentence is
 #: what this field exists to replace.
