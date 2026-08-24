@@ -261,6 +261,76 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     });
 })();
 </script>
+<section style="max-width:760px;margin:0 auto;padding:0 24px 24px;">
+  <h2 class="sec">How the book grew, and what stopped it</h2>
+  <p class="sec-lede">The supplier starts with a handful of accounts and has to win the rest. A flat
+  year on this table can mean four different things &mdash; it could not afford to quote, it chose
+  not to grow faster than its own mandate, almost nobody was switching that year, or
+  <em>our own settlement engine refused to settle the accounts it won</em>. The first three are
+  facts about the supplier. The last is a limit of this simulation, and it is marked as one rather
+  than left to look like a commercial result.</p>
+  <p id="growth-headline" style="margin:0 0 14px;font-weight:600;"></p>
+  <div id="growth"></div>
+  <p id="growth-note" class="stamp" style="margin-top:10px;"></p>
+</section>
+<script>
+/* THE GROWTH CURVE WITH ITS BINDING REASON. Its own fetch and its own IIFE, deliberately: this
+   section arrived after the page and a failure here must not take the capability columns down
+   with it. Same discipline as the block above -- on any failure the figures are ABSENT, never
+   zero, because a curve of zeroes is a claim that the supplier won nothing. */
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c];
+    });
+  };
+  fetch("../data/book_growth.json?t=" + Date.now())
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (!d.available) {
+        $("growth-note").textContent =
+          "No campaign record is available, so this table is absent rather than empty. " +
+          (d.reason || "");
+        return;
+      }
+      $("growth-headline").textContent = d.engine_bound_statement || "";
+      var rows = d.years.map(function (y) {
+        var flag = y.binding_is_our_artefact
+          ? '<span title="' + esc(y.binding_meaning) + '" style="color:#b45309;font-weight:600;">'
+            + esc(y.binding_label) + " &#9888;</span>"
+          : '<span title="' + esc(y.binding_meaning) + '">' + esc(y.binding_label) + "</span>";
+        return "<tr>"
+          + "<td>" + esc(y.year) + "</td>"
+          + '<td style="text-align:right;">' + esc(y.quotes_issued) + "</td>"
+          + '<td style="text-align:right;">' + esc(y.wins) + "</td>"
+          + '<td style="text-align:right;">' + esc(y.accounts_after) + "</td>"
+          + '<td style="text-align:right;">' + esc(y.homes_in_market) + "</td>"
+          + "<td>" + flag + "</td>"
+          + "</tr>";
+      }).join("");
+      $("growth").innerHTML =
+        '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">'
+        + "<thead><tr>"
+        + '<th style="text-align:left;">Year</th>'
+        + '<th style="text-align:right;">Quotes</th>'
+        + '<th style="text-align:right;">Won</th>'
+        + '<th style="text-align:right;">Book</th>'
+        + '<th style="text-align:right;" title="Households actually switching supplier that year, from the published DESNZ switching series">In market</th>'
+        + '<th style="text-align:left;">What limited it</th>'
+        + "</tr></thead><tbody>" + rows + "</tbody></table></div>";
+      var s = d.settlement || {};
+      $("growth-note").textContent =
+        "Spend and book figures are on the settled clock. Settlement committed "
+        + esc(s.customer_years_committed) + " of " + esc(s.customer_year_budget)
+        + " customer-years available to this machine.";
+    })
+    .catch(function (err) {
+      $("growth-note").textContent =
+        "The growth curve could not be loaded (" + err + "). The figures are absent, not zero.";
+    });
+})();
+</script>
 <section style="max-width:760px;margin:0 auto;padding:0 24px 48px;">
   <h2 style="font-size:15px;margin:32px 0 10px;">The supplier's own operating detail</h2>
   <p style="margin-bottom:14px;">
