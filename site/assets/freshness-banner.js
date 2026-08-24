@@ -37,6 +37,25 @@
   var STATE = { data: null, error: null, rendered: false };
   window.PoesysFreshness = STATE;
 
+  /* THE INCLUDING SCRIPT TAG, captured at load because `document.currentScript` is null by the
+     time a deferred callback runs. A REFERENCE page -- one that publishes no simulation figure
+     -- opts out of the figure-freshness half of this banner with one attribute:
+
+         <script src="../../assets/freshness-banner.js" data-figures="none" defer></script>
+
+     Director, 2026-08-24, on /knowledge/price-cap/: "its own footer says no simulation figure
+     appears there, so a freshness warning about figures is noise that undermines the honest
+     banners elsewhere. Reference pages shouldn't carry publishing status."
+
+     It is an OPT-OUT FROM A CLAIM, NOT FROM THE BANNER. The layer still renders, because this
+     file's own doctrine is that presence is how a reader tells the layer is alive from the
+     layer having failed to load -- it just stops asserting an age for figures the page does
+     not have. */
+  var SELF = document.currentScript;
+  function carriesNoFigures() {
+    return !!(SELF && SELF.getAttribute("data-figures") === "none");
+  }
+
   function dataUrl() {
     /* Doors live at varying depths (/, /company/, /proof/). Resolve against the
        document's own base rather than guessing a relative hop count -- a wrong
@@ -105,10 +124,25 @@
     if (cp.state === "unpublished") {
       return "No verified publish is on record — the age of these figures is unestablished.";
     }
-    var hours = (cp.published_age_seconds || 0) / 3600;
-    return "PUBLISHING IS DOWN — the figures on this page last reached the site " +
-           hours.toFixed(1) + "h ago. Anything above this line is that old, whatever the " +
-           "verification line says." +
+    /* THE VERDICT AND THE NUMBER MUST COME FROM THE SAME CLOCK.
+       `publish_freshness.snapshot()` decides `stale` on the OLDER of two ages -- the push
+       (`published_age_seconds`) and the last time the figures themselves moved in git
+       (`committed_age_seconds`) -- precisely so "a push landed" cannot pass for "the figures
+       moved". This sentence then printed the YOUNGER one, and on 2026-08-24 the director was
+       shown "PUBLISHING IS DOWN — the figures on this page last reached the site 0.3h ago":
+       down on one clock and eighteen minutes fresh on the other, in one sentence.
+       It now reports the age the verdict rests on, and names which clock that is. */
+    var pubAge = cp.published_age_seconds;
+    var comAge = cp.committed_age_seconds;
+    var decided = Math.max(
+      typeof pubAge === "number" ? pubAge : 0,
+      typeof comAge === "number" ? comAge : 0
+    );
+    var figuresAreOlder = typeof comAge === "number" && comAge >= (pubAge || 0);
+    return "PUBLISHING IS DOWN — the figures on this page last " +
+           (figuresAreOlder ? "changed " : "reached the site ") +
+           (decided / 3600).toFixed(1) + "h ago. Anything above this line is that old, " +
+           "whatever the verification line says." +
            (cp.committed_but_unpublished
              ? " (Content is still being committed; the publish path is what stopped.)"
              : "");
@@ -132,19 +166,27 @@
   }
 
   function render(d, unknown, hb) {
-    var stale = unknown ? "" : stalenessSentence(hb);
+    var noFigures = carriesNoFigures();
+    var stale = (unknown || noFigures) ? "" : stalenessSentence(hb);
     var bar = document.createElement("div");
     bar.className = "poesys-freshness";
     /* A stale publish OUTRANKS a green verification for the banner's state, because it outranks
        it for the reader: "verified" describes the run these figures came from, and "stale"
        describes whether the page is showing that run at all. */
     bar.setAttribute("data-freshness-state",
-      unknown ? "unknown" : (stale ? "stale" : ((d && d.verification_state) || "paused")));
+      unknown ? "unknown"
+              : (noFigures ? "reference"
+                           : (stale ? "stale" : ((d && d.verification_state) || "paused"))));
     bar.setAttribute("role", "status");
 
     var line = unknown
       ? "Freshness unknown — provenance unavailable. Treat every figure on this page as of unknown age."
-      : sentence(d);
+      : (noFigures
+          ? "Reference page — nothing here is produced by the simulation, so no figure on it " +
+            "has a publish age. Sourced and dated in the page itself."
+          : sentence(d));
+    /* The open-findings note is about the REPOSITORY, not about these figures, so it stays on
+       a reference page: it is the one part of the banner that is still true there. */
     var note = unknown ? "" : annotationSentence(d);
 
     bar.innerHTML =

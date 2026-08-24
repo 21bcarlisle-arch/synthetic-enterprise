@@ -9,7 +9,7 @@
 // keeps the layer's own .catch() branches on their real path, so a missing feed shows up as the
 // rendered UNKNOWN banner rather than as a vacuous pass.
 //
-// Usage: node _freshness_harness.mjs <freshness-banner.js>
+// Usage: node _freshness_harness.mjs <freshness-banner.js> [data-figures]
 //   stdin:  {"/data/publish_provenance.json": <payload|null>,
 //            "/data/tick_heartbeat.json": <payload|null>}     (null = 404)
 //   stdout: {"state": "...", "text": "...", "html": "...", "error": null|"..."}
@@ -40,10 +40,21 @@ function makeElement(tag) {
 
 const head = { appendChild() {} };
 const body = { firstChild: null, insertBefore(node) { created.push(node); } };
+// THE INCLUDING SCRIPT TAG. The layer reads `document.currentScript` at load so a REFERENCE
+// page can declare `data-figures="none"` and opt out of a freshness claim about figures it does
+// not have. Supplying it here is supplying an input the asset already reads -- the same shape as
+// the feeds above -- and without it that branch is untestable and would ship unexercised.
+const currentScript = {
+  getAttribute(name) {
+    return name === "data-figures" ? (process.argv[3] || null) : null;
+  },
+};
+
 const document = {
   head,
   body,
   readyState: "complete",
+  currentScript,
   createElement: makeElement,
   addEventListener(_, fn) { fn(); },
 };

@@ -9,7 +9,7 @@
 <!-- Freshness banner (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10, property 3): this page
      renders live figures, so it must state how current they are. One line, one asset,
      no page-authored freshness sentence -- see site/assets/freshness-banner.js. -->
-<script src="../../assets/freshness-banner.js" defer></script>
+<script src="../../assets/freshness-banner.js" data-figures="none" defer></script>
 <style>
 /* Brand palette consumed from ../../brand/brand.css (BRAG tokens, no raw hex). */
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -64,11 +64,15 @@ h2.sec { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-sp
 <body>
 <nav class="site-nav">
   <a href="../../" class="nav-logo wordmark">poesys.</a>
-  <a class="nav-link" href="../../company/">Company</a>
-  <a class="nav-link" href="../../world/">World</a>
-  <a class="nav-link active" href="../">Knowledge</a>
-  <a class="nav-link" href="../../proof/">Proof</a>
-  <a class="nav-link" href="../../glossary/">Glossary</a>
+  <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
+  <span class="doors">
+  <a href="../../" class="nav-link">Home</a>
+  <a href="../" class="nav-link active">Knowledge</a>
+  <a href="../../capabilities/" class="nav-link">Capabilities</a>
+  <a href="../../explore/" class="nav-link">Explore</a>
+  <a href="../../harness/" class="nav-link">Harness</a>
+  </span>
+  <!-- IA-NAV:END -->
 </nav>
 <div class="wrap">
   <main>

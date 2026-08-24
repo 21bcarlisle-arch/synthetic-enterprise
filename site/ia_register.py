@@ -409,17 +409,28 @@ def register_violations(site: Path = SITE) -> list[str]:
     return problems
 
 
-def _relative(target: str, from_area: str) -> str:
-    """A site-absolute target as a page-relative href, from the page at `from_area`.
+def _relative(target: str, from_area: str, depth: int = 0) -> str:
+    """A site-absolute target as a page-relative href, from a page `depth` levels below
+    `from_area`.
 
-    Only two depths exist on this surface (root, and one directory down), so this is
-    deliberately not a general path solver -- a general one would silently produce a
-    plausible wrong answer if a third depth ever appeared. `deployed_areas()` only
-    ever yields those two, and `test_ia_register.py` asserts it.
+    THE OLD PREMISE WAS FALSE AND COST EIGHT PAGES (2026-08-24, director on
+    /knowledge/price-cap/). This function used to say "only two depths exist on this surface
+    (root, and one directory down)" and take no depth at all. A THIRD depth had existed since
+    the Knowledge topic pages were built -- `/knowledge/price-cap/` and its seven siblings --
+    and because the renderer could not address them they were never given the canonical nav.
+    They kept a hand-written one naming Company, World, Knowledge, Proof and Glossary: the
+    pre-fold nav, two of whose links have pointed at pages deleted on 2026-08-20 ever since.
+
+    `depth` is levels BELOW `from_area`, so 0 is the area's own index page and 1 is a topic
+    page under it. It is explicit rather than derived because deriving it from a path is how a
+    plausible wrong answer gets produced silently, which is what the old docstring was right to
+    be afraid of.
     """
+    up = depth + (0 if from_area == "/" else 1)
     if target == from_area:
-        return "./"  # a page's own entry, the convention every hand-written nav used
-    prefix = "./" if from_area == "/" else "../"
+        # A page's own entry. At depth 0 that is the page itself; below, it is the ancestor.
+        return "./" if depth == 0 else "../" * depth
+    prefix = ("../" * up) if up else "./"
     if target == "/":
         return prefix
     return prefix + target.lstrip("/")
@@ -440,10 +451,13 @@ def active_target(area: str, site: Path = SITE) -> str:
     return area
 
 
-def render_nav(area: str, indent: str = "  ", site: Path = SITE) -> str:
+def render_nav(area: str, indent: str = "  ", site: Path = SITE, depth: int = 0) -> str:
     """The marked nav block for one area: the canonical items, with `active` on the page's
     own entry. The per-page legacy tail is gone (2026-08-20) -- it existed to hang extra links
-    off pages that are now deleted."""
+    off pages that are now deleted.
+
+    `depth` is how many levels below `area` the page being rendered into sits -- 1 for a
+    Knowledge topic page under `/knowledge/`. See `_relative`."""
     link_class = HOME_LINK_CLASS if area == "/" else INNER_LINK_CLASS
     active_area = active_target(area, site)
     # THE DOORS ARE ALWAYS WRAPPED (2026-08-19). Home grouped its links in a `.doors` element
@@ -461,7 +475,7 @@ def render_nav(area: str, indent: str = "  ", site: Path = SITE) -> str:
         seen_active = seen_active or active
         classes = " ".join(c for c in (link_class, "active" if active else "") if c)
         attr = f' class="{classes}"' if classes else ""
-        lines.append(f'<a href="{_relative(target, area)}"{attr}>{label}</a>')
+        lines.append(f'<a href="{_relative(target, area, depth)}"{attr}>{label}</a>')
     lines.append("</span>")
     lines.append(NAV_END)
     return ("\n" + indent).join(lines)

@@ -63,9 +63,10 @@ def _heartbeat(state, age_hours=0.0, committed_but_unpublished=False):
     }
 
 
-def render(prov=VERIFIED_PROVENANCE, heartbeat=None):
+def render(prov=VERIFIED_PROVENANCE, heartbeat=None, figures=None):
+    """`figures="none"` renders as a page that declares it publishes no simulation figure."""
     result = subprocess.run(
-        [NODE, str(HARNESS), str(ASSET)],
+        [NODE, str(HARNESS), str(ASSET)] + ([figures] if figures else []),
         input=json.dumps({PROV: prov, HEARTBEAT: heartbeat}),
         capture_output=True, text=True, timeout=60,
     )
@@ -133,3 +134,79 @@ def test_a_missing_provenance_file_still_fails_LOUD():
     assert out["state"] == "unknown"
     assert "Freshness unknown" in out["text"]
     assert out["error"]
+
+
+# ── the director's two banner findings on /knowledge/price-cap/, 2026-08-24 ──────────────────
+
+def _two_clock_heartbeat(push_hours, figures_hours):
+    """A heartbeat where the two clocks disagree, which is the ordinary state of a wedge: the
+    publish path keeps pushing provenance commits while the figures themselves sit still."""
+    return {
+        "ts_iso": "2026-08-24T15:00:00Z",
+        "verdict": "drew",
+        "content_publish": {
+            "state": "stale",
+            "published_age_seconds": push_hours * 3600,
+            "committed_age_seconds": figures_hours * 3600,
+            "committed_but_unpublished": False,
+        },
+    }
+
+
+def test_the_verdict_and_the_number_come_from_the_same_clock():
+    """THE SENTENCE THAT CONTRADICTED ITSELF. `publish_freshness.snapshot()` decides `stale` on
+    the OLDER of two ages — the push, and when the figures last moved in git — precisely so "a
+    push landed" cannot pass for "the figures moved". The banner printed the YOUNGER one, so the
+    director was shown "PUBLISHING IS DOWN — the figures on this page last reached the site 0.3h
+    ago": down on one clock and eighteen minutes fresh on the other, in one sentence."""
+    out = render(heartbeat=_two_clock_heartbeat(push_hours=0.3, figures_hours=9.2))
+
+    assert out["state"] == "stale"
+    assert "9.2h" in out["text"], (
+        "the banner is still reporting the push clock (0.3h) while its verdict rests on the "
+        "figures clock (9.2h) — the two halves of the sentence disagree")
+    assert "0.3h" not in out["text"]
+    assert "last changed" in out["text"], (
+        "the sentence says the figures 'reached the site' when what it measured is when they "
+        "last CHANGED — naming the wrong clock is how the contradiction started")
+
+
+def test_when_the_push_is_the_older_clock_the_sentence_says_so():
+    """R15 null control on the above: if it always said "changed" it would be a different fixed
+    wording, not a sentence that reports which clock decided."""
+    out = render(heartbeat=_two_clock_heartbeat(push_hours=14.0, figures_hours=2.0))
+
+    assert "14.0h" in out["text"]
+    assert "reached the site" in out["text"]
+
+
+def test_a_reference_page_carries_no_publishing_status_at_all():
+    """Director, 2026-08-24: "its own footer says no simulation figure appears there, so a
+    freshness warning about figures is noise that undermines the honest banners elsewhere.
+    Reference pages shouldn't carry publishing status." """
+    out = render(heartbeat=_two_clock_heartbeat(push_hours=0.3, figures_hours=9.2),
+                 figures="none")
+
+    assert "PUBLISHING IS DOWN" not in out["text"]
+    assert "Verified" not in out["text"]
+    assert out["state"] == "reference"
+    assert "Reference page" in out["text"]
+
+
+def test_a_reference_page_still_renders_a_banner():
+    """NOT an opt-out from the banner, only from a claim it cannot honestly make. This file's
+    own asset says presence is how a reader tells the layer is alive from the layer having
+    failed to load; a reference page that rendered nothing would forfeit that."""
+    out = render(heartbeat=_two_clock_heartbeat(0.3, 9.2), figures="none")
+
+    assert out["text"].strip(), "the layer rendered nothing at all on a reference page"
+    assert out["error"] is None
+
+
+def test_a_figures_page_is_unaffected_by_the_reference_opt_out():
+    """The opt-out must be opt-IN. A page that does not declare itself a reference page keeps
+    every warning it had."""
+    out = render(heartbeat=_two_clock_heartbeat(0.3, 9.2))
+
+    assert "PUBLISHING IS DOWN" in out["text"]
+    assert out["state"] == "stale"
