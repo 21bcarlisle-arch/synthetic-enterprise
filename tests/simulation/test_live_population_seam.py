@@ -85,8 +85,16 @@ def test_flag_off_returns_fresh_list_each_call():
 
 def test_activation_adds_synthetic_acquisitions(monkeypatch):
     """Flag ON: the book is CUSTOMERS + additive SYN-* acquisitions (the wire
-    is load-bearing — its presence is what adds the cohort)."""
+    is load-bearing — its presence is what adds the cohort).
+
+    `SE_GROW_BOOK=0` pins PB3's net-new campaign OFF so this measures the DRAW and nothing
+    else. Without it the test reads whatever `book_growth_activation.json` currently says and
+    reds the moment that flag flips, on an assertion that was never about growth — the
+    subject here is additive-not-replacive, and a second source of additions makes it
+    untestable rather than wrong.
+    """
     monkeypatch.setenv("SE_DRAW_POPULATION", "1")
+    monkeypatch.setenv("SE_GROW_BOOK", "0")
     assert lp.draw_population_enabled() is True
     book = lp.live_population()
     # Additive-not-replacive: every static customer survives, in order, first.
@@ -463,3 +471,62 @@ def test_registration_is_idempotent(monkeypatch):
     assert len(lp.live_population()) == first
     ids = [c["customer_id"] for c in drawn_supply_points()]
     assert len(ids) == len(set(ids)), f"drawn book has duplicates: {ids}"
+
+
+# ---------------------------------------------------------------------------
+# PB3 — the net-new campaign's additions, through the same seam
+# ---------------------------------------------------------------------------
+
+def test_the_growth_mandate_adds_WON_accounts_on_top_of_the_drawn_cohort(monkeypatch):
+    """Both flags ON: static roster, then the drawn trickle, then the accounts actually won.
+
+    The ORDER is the assertion. Additive-not-replacive has to survive a second source of
+    additions, and the two sources must stay distinguishable: `SYN-` was granted by the
+    curriculum's trickle and `PROS-` was won through the funnel. A reader of the book who
+    could not tell them apart could not tell a granted account from an earned one, which is
+    the whole distinction PB3 exists to draw.
+    """
+    monkeypatch.setenv("SE_DRAW_POPULATION", "1")
+    monkeypatch.setenv("SE_GROW_BOOK", "1")
+    book = lp.live_population()
+    assert book[: len(CUSTOMERS)] == list(CUSTOMERS)
+    extra = book[len(CUSTOMERS):]
+    syn = [c for c in extra if c["customer_id"].startswith("SYN-")]
+    won = [c for c in extra if c["customer_id"].startswith("PROS-")]
+    assert syn and won, "both sources must be present when both flags are on"
+    assert len(syn) + len(won) == len(extra), f"unclassified additions: {extra}"
+    assert all(c["acquisition_type"] == "net_new_won" for c in won)
+    assert all(c["commodity"] == "electricity" for c in won)
+
+
+def test_the_growth_mandate_OFF_is_byte_identical_to_the_draw_alone(monkeypatch):
+    """The seam's standing contract: OFF changes nothing.
+
+    Same shape as the draw's own flag-off guarantee. If this ever reds, the campaign has
+    started reaching the book through some path the flag does not gate, and every measurement
+    taken with it off is suspect.
+    """
+    monkeypatch.setenv("SE_DRAW_POPULATION", "1")
+    monkeypatch.setenv("SE_GROW_BOOK", "0")
+    off = lp.live_population()
+    assert not [c for c in off if c["customer_id"].startswith("PROS-")]
+
+
+def test_a_won_home_has_the_WORLDS_dwelling_not_the_suppliers_approximation(monkeypatch):
+    """B12, on the accounts the campaign adds.
+
+    `dwelling_records.build_properties` raises `DwellingNotDrawn` for a supplied customer the
+    world drew no dwelling for, and it is right to: the alternative is `saas.property_model`
+    filling one in from the supplier's modal band, so the company's guess would be correct by
+    construction on the only cohort that grows. This is the regression test for the real
+    failure — a full run stopped on `PROS-2016-0003` for exactly this.
+    """
+    monkeypatch.setenv("SE_DRAW_POPULATION", "1")
+    monkeypatch.setenv("SE_GROW_BOOK", "1")
+    won = [c["customer_id"] for c in lp.live_population()
+           if c["customer_id"].startswith("PROS-")]
+    premises = lp.live_premises()
+    households = lp.live_drawn_households()
+    assert won, "fixture is vacuous if the campaign won nothing"
+    assert all(cid in premises for cid in won)
+    assert all(cid in households for cid in won)

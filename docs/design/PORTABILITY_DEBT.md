@@ -98,6 +98,13 @@ make the test green.
 # the same-change rule -- the gas strike and the ToU offer are two more doors
 # whose fields name a currency. Recorded rather than renamed: sweeping currency
 # out of field names is a Money type, not a wall pass (remediation-on-touch).
+# renewal_offer 9 -> 12, amended 2026-08-24. B4_competitor_field adds
+# `published_svt_gbp_per_mwh` and `published_market_switching_multiplier` to
+# `request_renewal_offer`, so the competitor signal crosses as published market values. Row
+# #1's shape again, recorded on the same terms. RECORDED BY ANOTHER LANE than the one that
+# wrote it: B4 is being built by a worker tick in the shared tree and the debt was still
+# unrecorded when this commit's gate read it. Whoever commits first pays -- leaving it would
+# have meant either lane's next commit failing on the other's work.
 # growth_desk 13 -> 22, amended 2026-08-24 under the same-change rule (atom PB3). The
 # net-new acquisition campaign needed the supplier's own quote budget on the world side, and
 # the epistemic-wall ratchet refused the direct `simulation -> saas.growth_mandate` import,
@@ -119,7 +126,7 @@ market_quantity   company/interfaces/growth_desk.py                    gbp      
 market_quantity   company/interfaces/internal_seams.py                 gbp          5
 market_quantity   company/interfaces/point_in_time_view.py             gbp          4
 market_quantity   company/interfaces/recorded_sim_interface.py         gbp          5
-market_quantity   company/interfaces/renewal_offer.py                  gbp          9
+market_quantity   company/interfaces/renewal_offer.py                  gbp         12
 market_quantity   company/interfaces/renewal_rate_chain.py             gbp          9
 market_quantity   company/interfaces/sim_interface.py                  gbp          12
 market_quantity   company/interfaces/tou_offer.py                       gbp          3
