@@ -361,3 +361,101 @@ balance-sheet line by the amounts in the section above as well.
 
 Also still open, and unrelated to the count: the negative 2020 trade receivable (−£53.47) noted
 at the end of the previous section.
+
+---
+
+## THE NEGATIVE RECEIVABLE IS REPAIRED — a credit balance on 1100 is a liability, not a minus-fifty-three-pound asset (2026-08-24, worker tick, RUNG 1c blocking draw)
+
+**Severity stays BLOCKING for the one reason it has stayed BLOCKING since the count itself was
+repaired: the LIVE published figures are still the old ones.** Nothing here regenerates them. What
+this tick closes is the second of the two items left open above — "the negative 2020 trade
+receivable (−£53.47) noted at the end of the previous section".
+
+### What was wrong
+
+Account 1100 is debit-normal, so once the journal keeps its signs (the repair two sections up), a
+book whose customers have collectively paid ahead of what they were billed nets NEGATIVE.
+`balance_sheet()` read that net straight through into `trade_receivables_gbp` and added it to
+`total_assets_gbp`. Money owed BACK to customers was therefore published as an asset of minus
+fifty-three pounds — understating assets and hiding a liability in the same stroke.
+
+### The repair
+
+A presentation split, not a journal entry: the debit balance stays the receivable, the credit
+balance is reported as `customer_accounts_in_credit_gbp` and joins `total_liabilities_gbp`. No
+account balance moves, so `balance_sheet_with_held_credit`'s augmented journal composes unchanged,
+and assets and liabilities rise by the same amount so `equation_holds` is untouched. The annual
+report renders the new row only when it is non-zero — a £0.00 row on every ordinary year teaches a
+reader to stop looking at it.
+
+### The figures (R14), and what is measured versus derived
+
+**Measured (cited, not re-run):** the BEFORE figure is the one the section above measured on a real
+end-2019 run — 2020 trade receivables closing at **−£53.47**.
+
+**Derived, not measured (R9 label):** the AFTER figures follow arithmetically from that BEFORE,
+because the split is deterministic given the net:
+
+| figure | before | after |
+|---|---|---|
+| `trade_receivables_gbp` | −£53.47 | £0.00 |
+| `customer_accounts_in_credit_gbp` | (did not exist) | £53.47 |
+| `total_assets_gbp` | X | X + £53.47 |
+| `total_liabilities_gbp` | Y | Y + £53.47 |
+| `treasury.working_capital` | W | **W — unchanged** |
+
+**Why the run was not repeated to measure it directly, stated rather than hidden:** at the time of
+this tick `background.resource_headroom.sample()` reported 3,875 MB available of 24,032 MB with the
+live producer (`background/sim_runner.py`) holding the rest, against 8 recorded OOM kills. A second
+full-window run would have been a real risk to the running producer for a £53 presentation figure
+whose after-value is arithmetic. The working-capital invariance is not asserted as arithmetic — it
+is proven by a test that reconstructs the pre-split formula from the post-split fields.
+
+### Controls, R15-proven — four named mutations applied, fires OBSERVED and recorded
+
+`tests/company/finance/test_a_credit_balance_on_receivables_is_a_liability.py`, 8 tests, green on
+the unmutated tree:
+
+| mutation | tests fired |
+|---|---|
+| M1 restore the netted read (the named defect) | 5 |
+| M2 clamp the receivable but drop it from liabilities | 2 |
+| M3 fail-open: `customer_accounts_in_credit = 0.0` always | 3 |
+| M4 over-reach: apply the same clamp to cash (1001) | 1 |
+
+One of the eight is a NULL CONTROL stating the pre-repair answers (−£20.00 receivables, £1,100.00
+total assets on the fixture) and asserting they do not come back. Another asserts that an ordinary
+debit balance — the overwhelmingly common case — publishes every field exactly as before, so this
+repair moves the years that are in credit and no others.
+
+**M4 is the one that earns its place.** The split is deliberately NOT applied to cash: a negative
+cash balance is a real overdraft and its sign is what every consumer of `cash_gbp` needs, so
+clamping it would report an overdrawn company as holding zero cash. Without a test saying so, that
+exclusion is indistinguishable from an oversight and a later reader "completing the pattern" would
+introduce the worse defect. If an overdraft facility is ever modelled it is a bank liability and
+belongs in the 2xxx chart as a posted entry, not in this presentation split.
+
+### Two things named here rather than fixed here
+
+1. **`customer_accounts_in_credit_gbp` is NOT `customer_credit_held_gbp`.** DD3's held credit is a
+   positive-balances-only aggregate from the direct-debit balance book, booked by an actual journal
+   entry; this one is whatever 1100 itself owes, derived from billing and payment. They describe
+   overlapping economics from two different books. A supplier reporting both would say so, and the
+   code now does; reconciling them is a separate question and is not answered here.
+2. **`company/finance/treasury.py::working_capital` double-counts VAT** — it adds
+   `vat_payable_gbp` to `total_liabilities_gbp`, which already includes it. Observed-with-evidence
+   that this is INERT today: no branch of `to_journal_entry` posts to 2100 at all (a
+   `vat_remittance_event` posts DR 4001 / CR 1001), so `vat_payable_gbp` is £0.00 in every journal
+   this company produces. It is a fail-open waiting for the first entry that ever credits 2100.
+   Registered as its own latent finding rather than fixed on sight (SELF_INTERRUPT_DISCIPLINE).
+
+### What is still owed on this document — unchanged, and it is one thing
+
+**The live published figures.** `docs/reports/run_output_latest.json` and the site still carry the
+old drawdown count, the old `treasury_end_gbp`, the magnitude-only journal's balance sheet and the
+netted receivable. All four are baked at run time by a run whose git stamp is `53ceb2008`, which
+predates every repair in this document. `python3 -m saas.reporting.annual_report` cannot move them:
+that CLI renders from already-extracted data, and the figures were reduced before they were saved.
+The next full run through `python3 -m tools.run_annual_report` is what republishes them, and when it
+does it moves the drawdown count to the true count, `treasury_end_gbp` by roughly +£1.8k, equity
+down 0.44%, and any in-credit year's receivable off the asset side.

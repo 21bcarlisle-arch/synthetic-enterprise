@@ -8846,6 +8846,18 @@ def _section_management_accounts(data: dict) -> str:
             "| Cash | " + _fmt_gbp(bs.get("cash_gbp", 0)) + " |",
             "| Trade Receivables | " + _fmt_gbp(bs.get("trade_receivables_gbp", 0)) + " |",
             "| **Total Assets** | **" + _fmt_gbp(bs.get("total_assets_gbp", 0)) + "** |",
+        ]
+        # The credit half of Trade Receivables, when there is one: customers who have
+        # collectively paid ahead of what they were billed. Rendered only when non-zero,
+        # because a row of £0.00 on every ordinary year's balance sheet teaches a reader
+        # to stop reading it (2026-08-24).
+        in_credit = bs.get("customer_accounts_in_credit_gbp", 0) or 0
+        if in_credit:
+            lines += [
+                "| Customer Accounts in Credit (liability) | "
+                + _fmt_gbp(in_credit) + " |",
+            ]
+        lines += [
             "| Opening Capital | " + _fmt_gbp(bs.get("opening_capital_gbp", 0)) + " |",
             "| Current Period Profit | " + _fmt_gbp(bs.get("current_period_profit_gbp", 0)) + " |",
             "",

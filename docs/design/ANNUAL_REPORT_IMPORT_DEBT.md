@@ -15,9 +15,9 @@ deliberately later rather than drifting into it."*
 |---|---|
 | Production importers reading a COMPUTATION | **0** (was 1, moved out) |
 | Production importers frozen with a stated reason | **2** (the renderer's own runner; a publisher importing two path constants) |
-| Test files importing the report | **80** |
-| ...of which reach into private `_section_*` functions | **77** |
-| `saas/reporting/annual_report.py` | **9936 lines** |
+| Test files importing the report | **81** |
+| ...of which reach into private `_section_*` functions | **78** |
+| `saas/reporting/annual_report.py` | **9948 lines** |
 
 ## What the shape means
 

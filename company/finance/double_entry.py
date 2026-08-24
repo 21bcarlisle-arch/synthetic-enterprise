@@ -372,6 +372,10 @@ def balance_sheet(journal: list[dict[str, Any]]) -> dict[str, Any]:
 
     Assets = Liabilities + Equity is the reconciliation test.
     Equity includes opening capital plus the current period's net profit.
+
+    A credit balance on Trade Receivables is presented as a liability
+    (``customer_accounts_in_credit_gbp``), never as a negative asset -- see the
+    comment on the split below for what that is and what it deliberately excludes.
     """
     b = account_balances(journal)
 
@@ -379,7 +383,26 @@ def balance_sheet(journal: list[dict[str, Any]]) -> dict[str, Any]:
         return b.get(code, {}).get("net", 0.0)
 
     cash = net("1001")
-    receivables = net("1100")
+    # A CREDIT BALANCE ON TRADE RECEIVABLES IS NOT A NEGATIVE ASSET (2026-08-24).
+    # 1100 nets debit-normal, so once the journal keeps its signs a book whose customers
+    # have collectively paid ahead of what they were billed nets NEGATIVE -- observed on a
+    # real end-2019 run, where receivables close at -£53.47. That is money the company owes
+    # its customers, and presenting it as an asset of minus fifty-three pounds both
+    # understates assets and hides a liability. Split it: the debit balance stays the
+    # receivable, the credit balance is reported as customer accounts in credit and joins
+    # total liabilities. No journal entry is posted and no account balance moves -- this is
+    # a presentation rule, so `balance_sheet_with_held_credit`'s augmented journal composes
+    # unchanged. Assets and liabilities both rise by the same amount, so the equation holds.
+    #
+    # DELIBERATELY NOT APPLIED TO CASH (1001): a negative cash balance is a real overdraft
+    # and its sign is what every consumer of `cash_gbp` (treasury.cash_flow_by_year, the
+    # site's cash series) needs to see. Clamping it would report an overdrawn company as
+    # holding zero cash. No overdraft facility exists in this model, so there is no observed
+    # instance; if one is ever built, it is a bank liability and belongs in the 2xxx chart
+    # as a posted entry rather than in this presentation split.
+    receivables_net = net("1100")
+    receivables = max(receivables_net, 0.0)
+    customer_accounts_in_credit = max(-receivables_net, 0.0)
     total_assets = cash + receivables
 
     vat_payable = net("2100")
@@ -391,7 +414,7 @@ def balance_sheet(journal: list[dict[str, Any]]) -> dict[str, Any]:
     # every pre-DD3 journal), so no existing published figure changes.
     total_liabilities = sum(
         net(code) for code, info in ACCOUNTS.items() if info["type"] == "liability"
-    )
+    ) + customer_accounts_in_credit
 
     opening_capital = net("3001")
     retained = net("3900")
@@ -407,6 +430,13 @@ def balance_sheet(journal: list[dict[str, Any]]) -> dict[str, Any]:
         "total_assets_gbp": total_assets,
         "vat_payable_gbp": vat_payable,
         "customer_credit_held_gbp": customer_credit_held,
+        # The credit half of 1100, reported separately rather than netted against the
+        # debit half. NOT the same figure as `customer_credit_held_gbp`: that one is
+        # DD3's positive-balances-only aggregate from the direct-debit balance book,
+        # booked by an actual journal entry; this one is whatever 1100 itself owes,
+        # derived from billing and payment. They describe overlapping economics from
+        # two different books, and a supplier reporting both would say so.
+        "customer_accounts_in_credit_gbp": customer_accounts_in_credit,
         "total_liabilities_gbp": total_liabilities,
         "opening_capital_gbp": opening_capital,
         "retained_earnings_gbp": retained,
