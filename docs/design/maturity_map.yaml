@@ -3901,7 +3901,7 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 2
-  level_current: 1
+  level_current: 3
   level_target: 3
   loop_stage: build
   dial_inherited: 3
@@ -3910,9 +3910,11 @@
   couples_with: []
   records_rehomed: [evidence]
   simplifications_count: 2
-  file_scope: [saas/customers.py, simulation/population_draw.py, tests/saas/test_customers.py,
+  file_scope: [saas/customers.py, simulation/population_draw.py, simulation/net_new_acquisition.py,
+    simulation/live_population.py, tests/saas/test_customers.py,
     tests/simulation/test_opening_book_subset.py, tests/simulation/test_live_population_seam.py,
-    docs/design/PB2_JOIN_KEY_BUILD.md]
+    tests/simulation/test_run_phase_settlement_population_seam.py,
+    docs/design/PB2_JOIN_KEY_BUILD.md, docs/design/PB2_INVERSION_BUILD.md]
 - id: PB3_book_growth_as_earned_outcome
   title: "A growth curve that can be lost"
   gain: "Book size becomes an outcome the company can fail at, instead of a number that goes up."
@@ -5078,7 +5080,7 @@
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 2
   loop_stage: idle
   dial_inherited: 1

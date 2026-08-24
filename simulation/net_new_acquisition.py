@@ -407,10 +407,17 @@ def plan_growth_campaign(
     is precisely the crossing `run_acquisition_funnel` removed from itself in KNIFE pass 3
     (design `B6_cpa_is_company_accounting`), and for the same reason: what a supplier can
     afford to spend is company accounting, and the world has no view of it and no business
-    deciding it. So `quote_budget_fn(net_assets_gbp, accounts_held) -> plan` ARRIVES as an
-    injected callable, exactly like `run_funnel` and `cost_per_quote_gbp`. `run_phase2b` is
-    the orchestrator and is the layer permitted to hold both sides; nothing under
-    `simulation/` imports `saas.*` to make this work.
+    deciding it. So `quote_budget_fn(net_assets_gbp, accounts_held, quotes_issued_to_date,
+    wins_to_date) -> plan` ARRIVES as an injected callable, exactly like `run_funnel` and
+    `cost_per_quote_gbp`. `run_phase2b` is the orchestrator and is the layer permitted to hold
+    both sides; nothing under `simulation/` imports `saas.*` to make this work.
+
+    The last two arguments are the company's OWN quote book, carried forward by the year loop
+    below (2026-08-24). They travel the same direction as the first two and for the same reason:
+    a supplier knows how many quotes it issued and how many converted because it issued them, so
+    this is its commercial record arriving back at its own planner, not the world disclosing an
+    outcome. Year one sees an empty book and plans on its founding belief; every year after it
+    plans on what its books have since said.
 
     Returns a dict with `winners` (SyntheticCustomer, win_date) pairs, `spend` (one row per
     quote, won or lost), `by_year` rows carrying the binding reason, and `notes` -- any year
