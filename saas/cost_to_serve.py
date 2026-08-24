@@ -103,14 +103,29 @@ def get_bad_debt_rate(year: int, segment: str) -> float:
     year_rates = _BAD_DEBT_RATE_BY_YEAR.get(year, BAD_DEBT_RATE)
     return year_rates.get(segment, BAD_DEBT_RATE.get(segment, 0.02))
 
-def cost_to_serve_for_period(segment: str, revenue_gbp: float, commodity: str = "electricity") -> float:
-    """Return the cost-to-serve (£) for one settlement period for one account.
+def cost_to_serve_for_period(segment: str, revenue_gbp: float, commodity: str = "electricity",
+                             periods: int = 1) -> float:
+    """Return the cost-to-serve (£) for `periods` settlement periods for one account.
 
     segment: "resi" or "SME" — must be a key in FIXED_OVERHEAD_GBP_PER_YEAR.
     revenue_gbp: this period's billed revenue for the account. Currently
         unused (cost-to-serve is fixed overhead only, see module docstring)
         but kept in the signature for call-site stability and in case a
         future revenue-scaled component (e.g. transaction fees) is added.
+    periods: how many settlement periods this record REPRESENTS. 1 for a raw half-hourly
+        electricity record and for a gas day; 48 for an electricity row that has been folded
+        to a day. Without it a folded book pays 1/48th of its own overhead -- measured, on a
+        real end-2019 run: portfolio cost-to-serve fell from £10,448.70 to £1,488.87 and
+        carried EBITDA, corporation tax and enterprise value with it.
+
+    periods: how many settlement periods this record REPRESENTS. 1 for a raw half-hourly
+        electricity record and for a gas day; 48 for an electricity row folded to a day
+        (2026-08-24, simulation/settlement_daily.py). This is the ONE figure in this module
+        that counts a record as a unit of TIME rather than a bucket of quantities, so it is
+        the one the fold could break -- and did, measurably: on a real end-2019 run portfolio
+        cost-to-serve fell from £10,448.70 to £1,488.87 and carried EBITDA, corporation tax
+        and enterprise value with it.
+
     commodity: "electricity" (default, half-hourly cadence) or "gas" (daily
         cadence) — the annual overhead is the same £ figure per segment
         either way, but it must be divided by however many settlement
@@ -119,8 +134,8 @@ def cost_to_serve_for_period(segment: str, revenue_gbp: float, commodity: str = 
         for the cross-fuel bug this parameter fixes).
     """
     if commodity == "gas":
-        return FIXED_OVERHEAD_GBP_PER_PERIOD_GAS[segment]
-    return FIXED_OVERHEAD_GBP_PER_PERIOD[segment]
+        return FIXED_OVERHEAD_GBP_PER_PERIOD_GAS[segment] * periods
+    return FIXED_OVERHEAD_GBP_PER_PERIOD[segment] * periods
 
 
 def build_cost_to_serve(settlement_records: list[dict], customers: list[dict]) -> dict:
@@ -187,7 +202,9 @@ def build_cost_to_serve(settlement_records: list[dict], customers: list[dict]) -
         customer_id = record["customer_id"]
         segment = segment_by_customer[customer_id]
         commodity = record.get("commodity", "electricity")
-        cost = cost_to_serve_for_period(segment, record["revenue_gbp"], commodity)
+        cost = cost_to_serve_for_period(
+            segment, record["revenue_gbp"], commodity,
+            periods=record.get("settlement_periods_folded", 1))
         margin = record["margin_gbp"]
         net_of_all_costs = record["net_margin_gbp"]
 
@@ -227,7 +244,9 @@ def build_cost_to_serve_ledger_events(
         month = record["settlement_date"][:7]
         segment = segment_by_customer[record["customer_id"]]
         commodity = record.get("commodity", "electricity")
-        cost = cost_to_serve_for_period(segment, record["revenue_gbp"], commodity)
+        cost = cost_to_serve_for_period(
+            segment, record["revenue_gbp"], commodity,
+            periods=record.get("settlement_periods_folded", 1))
         by_month[month] = by_month.get(month, 0.0) + cost
 
     return [

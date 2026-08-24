@@ -261,6 +261,14 @@ def extract_report_data(run_output: dict) -> dict:
     for the full 9.5-year window)."""
     phase2b = run_output["phase2b"]
     all_records = phase2b["all_records"]
+    # THE THREE REGISTERS a run folds from its per-period records when the settlement book is
+    # reduced to daily rows (simulation/settlement_daily.py). Each serves one published figure
+    # a day cannot answer. `.get` with a default, not `[...]`: no run emits them yet -- the
+    # fold is built and dormant -- and every hand-built test run output lacks them, so a
+    # missing register must fall back to scanning `all_records` rather than raise.
+    worst_period_by_year = phase2b.get("worst_period_by_year") or {}
+    tou_by_customer = phase2b.get("tou_by_customer") or {}
+    treasury_drawdown_points = phase2b.get("treasury_drawdown_points") or {}
     bills = run_output.get("bills", [])
     payment_behaviour = run_output.get("payment_behaviour", {})
     contact_model = run_output.get("contact_model", {})
@@ -334,8 +342,16 @@ def extract_report_data(run_output: dict) -> dict:
                 "gross_gbp": sum(r["margin_gbp"] for r in crecs),
                 "capital_gbp": sum(r["capital_cost_gbp"] for r in crecs),
                 "net_gbp": sum(r["net_margin_gbp"] for r in crecs),
-                "tariff_min_gbp_per_mwh": min(r["unit_rate_gbp_per_mwh"] for r in crecs),
-                "tariff_max_gbp_per_mwh": max(r["unit_rate_gbp_per_mwh"] for r in crecs),
+                # THE RANGE, not the range of a day's opening rates. Under ToU the peak and
+                # off-peak halves of a day carry different unit rates, so a daily row carries
+                # the extremes it saw; minima of daily minima compose exactly. Falls back to
+                # the record's own rate, which is what every per-period record carries.
+                "tariff_min_gbp_per_mwh": min(
+                    r.get("unit_rate_min_gbp_per_mwh", r["unit_rate_gbp_per_mwh"])
+                    for r in crecs),
+                "tariff_max_gbp_per_mwh": max(
+                    r.get("unit_rate_max_gbp_per_mwh", r["unit_rate_gbp_per_mwh"])
+                    for r in crecs),
             }
 
         # D2_three_clocks (2026-07-12, ADVISOR_STEER_TWIN_READONLY.md real
@@ -367,7 +383,10 @@ def extract_report_data(run_output: dict) -> dict:
         treasury_end = max(yr_records, key=lambda r: (r["settlement_date"], r["settlement_period"]))[
             "treasury_cash_balance_gbp"
         ]
-        worst_record = min(yr_records, key=lambda r: r["net_margin_gbp"])
+        # THE WORST HALF-HOUR. Prefer the run's own register: once the book holds daily rows
+        # a min over it names the worst DAY and labels it a period. Falls back to the scan.
+        worst_record = (worst_period_by_year or {}).get(year) or (
+            min(yr_records, key=lambda r: r["net_margin_gbp"]) if yr_records else {})
 
         wake_ups = [w for w in committee_wake_ups if _year(w["settlement_date"]) == year]
 
@@ -415,9 +434,12 @@ def extract_report_data(run_output: dict) -> dict:
             if _year(e["period_end"]) == year
         ]
 
-        treasury_series = [
+        # THE TREASURY PATH. Prefer the run's own drawdown register: a drawdown opens and
+        # closes between half-hours and a daily close cannot see it. Falls back to the book.
+        treasury_series = (treasury_drawdown_points or {}).get(year) or [
             r["treasury_cash_balance_gbp"]
-            for r in sorted(yr_records, key=lambda r: (r["settlement_date"], r["settlement_period"]))
+            for r in sorted(yr_records,
+                            key=lambda r: (r["settlement_date"], r.get("settlement_period") or 0))
         ]
         treasury_drawdown_events = _drawdown_events(treasury_series)
 
@@ -474,10 +496,10 @@ def extract_report_data(run_output: dict) -> dict:
             "committee_wake_ups": wake_ups,
             "hedge_fractions": hedge_fractions,
             "worst_period": {
-                "settlement_date": worst_record["settlement_date"],
-                "settlement_period": worst_record["settlement_period"],
-                "customer_id": worst_record["customer_id"],
-                "net_margin_gbp": worst_record["net_margin_gbp"],
+                "settlement_date": worst_record.get("settlement_date"),
+                "settlement_period": worst_record.get("settlement_period"),
+                "customer_id": worst_record.get("customer_id"),
+                "net_margin_gbp": worst_record.get("net_margin_gbp", 0.0),
             },
             "bills_count": len(yr_bills),
             "avg_clarity": _avg([b["clarity_score"] for b in yr_bills]),
@@ -713,15 +735,33 @@ def extract_report_data(run_output: dict) -> dict:
     _HH_CUSTOMERS = {"C7", "C8", "C9"}
     tou_stats: dict[str, dict] = {}
     for cid in _HH_CUSTOMERS:
-        hh_recs = [r for r in all_records if r.get("customer_id") == cid and r.get("commodity") == "electricity"]
-        if not hh_recs:
-            continue
-        peak_recs = [r for r in hh_recs if is_peak_period(r["settlement_date"], r["settlement_period"])]
-        offpeak_recs = [r for r in hh_recs if not is_peak_period(r["settlement_date"], r["settlement_period"])]
-        total_kwh = sum(r["consumption_kwh"] for r in hh_recs)
-        peak_kwh = sum(r["consumption_kwh"] for r in peak_recs)
-        peak_revenue = sum(r["revenue_gbp"] for r in peak_recs)
-        offpeak_revenue = sum(r["revenue_gbp"] for r in offpeak_recs)
+        # THE PEAK/OFF-PEAK SPLIT. Prefer the run's own register: a daily row is neither peak
+        # nor off-peak, and the register split each half-hour as it was settled using the
+        # WORLD's copy of the band -- the one that priced the revenue being split. That copy
+        # and `company.market.tou_periods`' are independent readings of a published Elexon
+        # convention and agree today. Falls back to splitting the records here.
+        bucket = (tou_by_customer or {}).get(cid)
+        if bucket is None:
+            hh_recs = [r for r in all_records
+                       if r.get("customer_id") == cid and r.get("commodity") == "electricity"]
+            if not hh_recs:
+                continue
+            peak_recs = [r for r in hh_recs
+                         if is_peak_period(r["settlement_date"], r.get("settlement_period") or 1)]
+            offpeak_recs = [r for r in hh_recs
+                            if not is_peak_period(r["settlement_date"],
+                                                  r.get("settlement_period") or 1)]
+            total_kwh = sum(r["consumption_kwh"] for r in hh_recs)
+            peak_kwh = sum(r["consumption_kwh"] for r in peak_recs)
+            peak_revenue = sum(r["revenue_gbp"] for r in peak_recs)
+            offpeak_revenue = sum(r["revenue_gbp"] for r in offpeak_recs)
+        else:
+            total_kwh = bucket["total_kwh"]
+            peak_kwh = bucket["peak_kwh"]
+            peak_revenue = bucket["peak_revenue_gbp"]
+            offpeak_revenue = bucket["offpeak_revenue_gbp"]
+            if not total_kwh:
+                continue
         tou_stats[cid] = {
             "total_kwh": round(total_kwh, 1),
             "peak_kwh": round(peak_kwh, 1),
