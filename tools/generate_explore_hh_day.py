@@ -27,8 +27,19 @@ stage 3 rather than an exception to it, because the profile-class household next
 handful of times a year and its curve is inferred. `corroboration` below MEASURES that agreement
 against the company's own feed instead of asserting it; a divergence is reported, never hidden.
 
-Accounts with no half-hourly meter are named in `accounts_without_half_hourly` so the page can
-say WHY it is showing nothing for them. That absence is the point, not a hole.
+Accounts with no half-hourly READ RECORD are named in `accounts_without_half_hourly` so the page
+can say WHY it is showing nothing for them. That absence is the point, not a hole.
+
+AND "NO RECORD" IS NOT "NO SMART METER", which is what the published sentence used to say
+(2026-08-24). On the book as it stands, 68 of 75 households have no half-hourly day to draw --
+and three of those 68 have a SMART METER. Calling all 68 "households without a half-hourly meter"
+is false for exactly those three, and false in the direction that flatters us: it presents a
+consent-and-read-frequency gap as a metering-estate gap, which is a different problem with a
+different fix. In GB a smart meter is only read half-hourly where the customer's read-frequency
+consent allows it; the meter can measure every half-hour and the supplier still hold twelve
+readings a year. The counts are therefore split at the source -- `smart_without_hh_reads` beside
+`without_smart_meter` -- and the sentence names both. `smart_meter_but_no_hh_reads` carries the
+accounts themselves so the number is checkable rather than merely stated.
 """
 from __future__ import annotations
 
@@ -138,11 +149,44 @@ def corroborate(account_id: str, days: list[dict], feed: dict | None) -> dict:
     }
 
 
+#: Meter types that CAN physically report half-hourly. `Smart` is the domestic SMETS meter;
+#: `HH` is the half-hourly-settled I&C metering class. `Traditional` cannot, at any consent
+#: setting, which is why it is the one absence that is genuinely about the metering estate.
+#: Anything unrecognised is treated as NOT smart on purpose: this count is published as
+#: "we could be reading these and are not", and guessing a strange value into that sentence
+#: would overstate the claim. A new meter type therefore shows up as a quiet zero, not a
+#: fabricated number -- and `_METER_TYPES_SEEN` below is what makes it noisy instead.
+_HALF_HOURLY_CAPABLE_METERS = frozenset({"smart", "hh"})
+
+
+def _is_smart(detail: dict) -> bool:
+    return str(detail.get("meter_type") or "").strip().lower() in _HALF_HOURLY_CAPABLE_METERS
+
+
 def build(book: dict, details: dict, feed: dict | None,
           hh_files: dict[str, Path]) -> dict:
     stamp = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
     accounts: dict[str, dict] = {}
     without: list[dict] = []
+    # A SUBSET of `without`, not a parallel list: every entry here is also in `without`, so the
+    # two counts can never disagree about how many households have no day to draw. Building it
+    # as its own scan of the book is how that guarantee would be lost.
+    smart_without: list[dict] = []
+
+    def _no_reads(customer, account_id, detail, why):
+        row = {
+            "customer_group": customer.get("customer_group"),
+            "account_id": account_id,
+            "meter_type": detail.get("meter_type"),
+            # WHICH of the two absences this is. `no_hh_record` means the world never wrote a
+            # half-hourly file for this account; `no_usable_day` means it did and no day in it
+            # survived `pick_days`. They look identical on the page and are different defects
+            # -- the second is ours.
+            "why": why,
+        }
+        without.append(row)
+        if _is_smart(detail):
+            smart_without.append(row)
 
     for customer in book.get("customers") or []:
         leg = ((customer.get("legs") or {}).get("electricity") or {})
@@ -153,20 +197,12 @@ def build(book: dict, details: dict, feed: dict | None,
         has_hh = bool((detail.get("consumption") or {}).get("has_hh_data"))
         path = hh_files.get(account_id)
         if not (has_hh and path):
-            without.append({
-                "customer_group": customer.get("customer_group"),
-                "account_id": account_id,
-                "meter_type": detail.get("meter_type"),
-            })
+            _no_reads(customer, account_id, detail, "no_hh_record")
             continue
         days = read_days(path)
         picked = pick_days(days)
         if not picked:
-            without.append({
-                "customer_group": customer.get("customer_group"),
-                "account_id": account_id,
-                "meter_type": detail.get("meter_type"),
-            })
+            _no_reads(customer, account_id, detail, "no_usable_day")
             continue
         accounts[customer.get("customer_group")] = dict(
             picked,
@@ -182,14 +218,57 @@ def build(book: dict, details: dict, feed: dict | None,
                   "per panel, no averaging",
         "accounts": accounts,
         "accounts_without_half_hourly": without,
+        # The 68 are not one group. A traditional meter CANNOT report half-hourly; a smart meter
+        # can and simply is not being read that way, which is a consent/read-frequency fact, not
+        # a metering-estate one. Split at the source so the page cannot re-merge them by accident.
+        "smart_meter_but_no_hh_reads": smart_without,
+        "counts": {
+            "with_hh_reads": len(accounts),
+            "smart_without_hh_reads": len(smart_without),
+            "without_smart_meter": len(without) - len(smart_without),
+            "households": len(accounts) + len(without),
+        },
+        # THE FAIL-SILENT GUARD for `_HALF_HOURLY_CAPABLE_METERS`. An unrecognised meter type is
+        # counted as not-smart, which is the safe direction for the published claim but is also
+        # invisible -- a whole new metering class could arrive and the smart-but-unread count
+        # would simply stay flat. Publishing every value the book actually carried makes that
+        # arrival readable, and `test_explore_hh_day.py` asserts each one is classified.
+        "meter_types_seen": sorted({
+            str((details.get(a) or {}).get("meter_type"))
+            for a in (
+                [r["account_id"] for r in without]
+                + [v["account_id"] for v in accounts.values()]
+            )
+        }),
         # Said here rather than hard-coded in the page, so the sentence a reader meets moves
         # with the book instead of going stale the first time a meter is upgraded.
-        "coverage_statement": (
-            "{n} of {t} households on this book have a half-hourly meter. The rest report a "
-            "handful of readings a year, so neither the supplier nor this page can draw their "
-            "day -- the curve for those homes is inferred from a profile, not measured."
-        ).format(n=len(accounts), t=len(accounts) + len(without)),
+        "coverage_statement": _coverage_statement(
+            with_reads=len(accounts),
+            smart_without=len(smart_without),
+            households=len(accounts) + len(without),
+        ),
     }
+
+
+def _coverage_statement(*, with_reads: int, smart_without: int, households: int) -> str:
+    """The sentence a reader meets, and the reason it is assembled rather than formatted.
+
+    The smart-but-unread clause must DISAPPEAR when that count is zero rather than render as
+    "0 of them", because a sentence carrying a zero reads as a caveat about nothing and trains
+    the reader to skip the clause on the day it is not zero.
+    """
+    head = (
+        "{n} of {t} households on this book have a half-hourly read record, so a real day can "
+        "be drawn for them. The rest report a handful of readings a year -- the curve for those "
+        "homes is inferred from a profile, not measured."
+    ).format(n=with_reads, t=households)
+    if not smart_without:
+        return head
+    return head + (
+        " {s} of them have a SMART METER and still no half-hourly reads: the meter can measure "
+        "every half-hour, but read frequency is the customer's consent to give, and without it "
+        "the supplier holds monthly figures from a meter capable of 17,520 a year."
+    ).format(s=smart_without)
 
 
 def _load(path: Path):

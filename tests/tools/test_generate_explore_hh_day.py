@@ -199,3 +199,123 @@ def test_clock_of_covers_the_whole_day():
     assert hh.clock_of(1) == "00:00"
     assert hh.clock_of(37) == "18:00"
     assert hh.clock_of(48) == "23:30"
+
+
+# ── a smart meter we are not reading is not a meter we do not have (2026-08-24) ───────────────
+#
+# THE DEFECT. The published sentence said "N of T households have a half-hourly meter" and
+# counted every household with no drawable day into the complement. Three of them had a SMART
+# METER. That is false in the flattering direction: it presents a read-frequency-and-consent gap
+# as a metering-estate gap, which is a different problem with a different owner. In GB a smart
+# meter is read half-hourly only where the customer's consent allows it, so the meter can measure
+# 17,520 times a year while the supplier holds twelve.
+
+
+def test_a_smart_meter_with_no_reads_is_counted_apart_from_a_traditional_one(tmp_path):
+    path = _csv(tmp_path, "C7", [("2021-02-11", WINTER)])
+    out = hh.build(
+        _book("C7", "C1", "C2"),
+        {"C7": _detail("C7"),
+         "C1": _detail("C1", has_hh=False, meter="Smart"),
+         "C2": _detail("C2", has_hh=False, meter="Traditional")},
+        None, {"C7": path})
+
+    assert out["counts"] == {"with_hh_reads": 1, "smart_without_hh_reads": 1,
+                            "without_smart_meter": 1, "households": 3}
+    assert [r["account_id"] for r in out["smart_meter_but_no_hh_reads"]] == ["C1"]
+    assert "SMART METER" in out["coverage_statement"]
+    assert "1 of 3 households" in out["coverage_statement"]
+
+
+def test_the_smart_subset_can_never_disagree_with_the_total_that_have_no_day(tmp_path):
+    """`smart_meter_but_no_hh_reads` is a SUBSET of `accounts_without_half_hourly`, not a second
+    scan of the book. Two independent scans is how the two counts would drift, and the drifting
+    one is always the one nobody is looking at."""
+    path = _csv(tmp_path, "C7", [("2021-02-11", WINTER)])
+    out = hh.build(
+        _book("C7", "C1", "C2", "C3"),
+        {"C7": _detail("C7"),
+         "C1": _detail("C1", has_hh=False, meter="Smart"),
+         "C2": _detail("C2", has_hh=False, meter="Traditional"),
+         "C3": _detail("C3", has_hh=False, meter="HH")},
+        None, {"C7": path})
+
+    without_ids = {r["account_id"] for r in out["accounts_without_half_hourly"]}
+    smart_ids = {r["account_id"] for r in out["smart_meter_but_no_hh_reads"]}
+    assert smart_ids <= without_ids, "the smart list has an account the total does not have"
+    assert (out["counts"]["smart_without_hh_reads"]
+            + out["counts"]["without_smart_meter"]) == len(without_ids)
+    assert out["counts"]["with_hh_reads"] + len(without_ids) == out["counts"]["households"]
+
+
+def test_MUTATION_no_smart_meter_goes_unread_and_the_clause_DISAPPEARS(tmp_path):
+    """A zero must not render as "0 of them have a smart meter".
+
+    A caveat carrying a zero is a caveat about nothing, and a reader who meets it every week
+    learns to skip the clause -- on the day it stops being zero, which is the day it matters.
+    This is also the control proving the test above is not passing vacuously.
+    """
+    path = _csv(tmp_path, "C7", [("2021-02-11", WINTER)])
+    out = hh.build(
+        _book("C7", "C2"),
+        {"C7": _detail("C7"), "C2": _detail("C2", has_hh=False, meter="Traditional")},
+        None, {"C7": path})
+
+    assert out["counts"]["smart_without_hh_reads"] == 0
+    assert "SMART METER" not in out["coverage_statement"]
+    assert "0 of them" not in out["coverage_statement"]
+
+
+def test_an_UNKNOWN_meter_type_is_not_guessed_into_the_smart_claim_but_is_still_published(
+    tmp_path,
+):
+    """FAIL-SILENT guard. An unrecognised type counts as not-smart, which is the safe direction
+    for a published claim -- but silent, so a whole new metering class could arrive and the
+    smart-but-unread count would just stay flat. `meter_types_seen` is what makes it readable."""
+    path = _csv(tmp_path, "C7", [("2021-02-11", WINTER)])
+    out = hh.build(
+        _book("C7", "C1"),
+        {"C7": _detail("C7"), "C1": _detail("C1", has_hh=False, meter="SMETS3-Whatever")},
+        None, {"C7": path})
+
+    assert out["counts"]["smart_without_hh_reads"] == 0, (
+        "an unrecognised meter type was guessed into a claim about what we could be reading"
+    )
+    assert "SMETS3-Whatever" in out["meter_types_seen"], (
+        "the unrecognised type is invisible, so the conservative default is unauditable"
+    )
+
+
+def test_the_two_absences_are_distinguished_by_the_reason_they_happened(tmp_path):
+    """`no_hh_record` (the world never wrote one) and `no_usable_day` (it did, and no day
+    survived selection) look identical on the page and are different defects -- the second is
+    OURS. Recording which one happened is what makes that distinguishable at all."""
+    empty = _csv(tmp_path, "C7", [])
+    out = hh.build(
+        _book("C7", "C1"),
+        {"C7": _detail("C7"), "C1": _detail("C1", has_hh=False)},
+        None, {"C7": empty})
+
+    why = {r["account_id"]: r["why"] for r in out["accounts_without_half_hourly"]}
+    assert why == {"C7": "no_usable_day", "C1": "no_hh_record"}
+
+
+def test_the_PAGE_reads_the_smart_split_and_not_only_the_generator(tmp_path):
+    """The orphan class this project keeps finding, in its data-side form.
+
+    Splitting the count in the generator changes nothing a reader sees if the page still prints
+    one sentence for both groups -- and the wrong sentence would now be provably wrong, with the
+    correct figure sitting unread in the same file. A browser check belongs on the live surface
+    (R11); what belongs HERE is that the field has a consumer at all.
+    """
+    from pathlib import Path
+
+    page = (Path(hh.__file__).resolve().parent.parent
+            / "site" / "explore" / "index.html").read_text(encoding="utf-8")
+    assert "smart_meter_but_no_hh_reads" in page, (
+        "the generator publishes the split and the page never reads it"
+    )
+    assert "smartUnread" in page
+    assert "has no half-hourly meter" not in page, (
+        "the page still tells a smart-metered household it has no smart meter"
+    )

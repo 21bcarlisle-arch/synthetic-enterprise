@@ -651,15 +651,26 @@ function hhDayPanels() {
   var group = CUR && CUR.index ? CUR.index.customer_group : null;
   var a = group ? HH_DAYS[group] : null;
   if (!a) {
-    // NOT A HOLE. A profile-class meter genuinely has no day to draw, for the supplier as much
-    // as for this page, and saying so is the wall lesson of this stage rather than an apology
-    // for a missing chart.
+    // NOT A HOLE, and NOT ONE STORY EITHER. A traditional meter cannot report half-hourly at any
+    // setting; a smart meter can, and is simply not being read that way. This panel used to tell
+    // every unread household the first story, which is wrong for the second group and wrong in
+    // the direction that flatters us -- it makes a consent-and-read-frequency gap look like an
+    // estate we do not own.
+    var body = HH_META.smartUnread && HH_META.smartUnread[group]
+      ? "This household <b>has a smart meter</b> and there is still no day to draw. The meter " +
+        "can measure every half-hour &mdash; 17,520 readings a year &mdash; but how often it is " +
+        "actually read is the customer's consent to give, and without it the supplier holds " +
+        "monthly totals from a meter capable of far more. So the half-hourly figures it settles " +
+        "on for this home are <b>inferred from a national profile</b>, not measured, exactly as " +
+        "they are for a household with no smart meter at all. The difference is that this one " +
+        "could be fixed by asking."
+      : "This household has no meter that can report half-hourly, so there is no day to draw " +
+        "&mdash; and that is not a gap in this page. Its meter is read a handful of times a " +
+        "year; between those readings the supplier does not know when the electricity was used, " +
+        "only how much. Every half-hourly figure it settles on for a home like this one is " +
+        "<b>inferred from a national profile</b>, not measured here.";
     return '<div class="panel" style="margin-top:16px"><h3>The day clock</h3>' +
-      "<p>This household has no half-hourly meter, so there is no day to draw &mdash; and that " +
-      "is not a gap in this page. Its meter is read a handful of times a year; between those " +
-      "readings the supplier does not know when the electricity was used, only how much. Every " +
-      "half-hourly figure it settles on for a home like this one is <b>inferred from a national " +
-      "profile</b>, not measured here.</p>" +
+      "<p>" + body + "</p>" +
       '<p style="font-size:12px;color:var(--muted);margin-top:8px">' + esc(HH_META.coverage || "") +
       "</p></div>";
   }
@@ -736,7 +747,13 @@ fetch("../data/weather.json").then(function (r) { return r.json(); }).then(funct
    clocks one clock and lost the thing the stage exists to teach. */
 fetch("../data/explore_hh_days.json").then(function (r) { return r.json(); }).then(function (w) {
   HH_DAYS = w.accounts || {};
-  HH_META = {coverage: w.coverage_statement || ""};
+  /* The smart-but-unread households are indexed BY GROUP here rather than searched per render,
+     because the panel below has to tell one absence from the other for the household actually
+     on screen -- "no half-hourly meter" is false for these, and false in our favour. */
+  HH_META = {coverage: w.coverage_statement || "", smartUnread: {}};
+  (w.smart_meter_but_no_hh_reads || []).forEach(function (r) {
+    HH_META.smartUnread[r.customer_group] = r;
+  });
   render();
 }).catch(function () { HH_DAYS = null; });
 
