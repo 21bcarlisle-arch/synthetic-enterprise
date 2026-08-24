@@ -536,3 +536,49 @@ def test_a_drift_check_that_raises_never_takes_the_observer_down(tmp_path):
 
     assert result["sample"]["available_mb"] == 9000
     assert "failed check" in (result.get("shadow_alarm") or "")
+
+
+def test_the_live_peak_joins_the_sample_and_can_be_the_only_thing_that_fires():
+    """THE post-mortem gap, as a test. The journal is CLEAN here -- every recorded peak fits
+    the declared weight -- and the growth is entirely inside the running unit lifetime, which
+    is the regime a journal-only reading cannot see at all.
+
+    MUTATION KILLED: dropping the live reader and trusting the journal alone. That mutation
+    leaves this green only if the journal happens to have caught a restart; on the real
+    sim-runner it reported 13,824 MB while the unit stood at 22,703 MB.
+    """
+    verdict = rh.weight_drift(
+        "sim_run",
+        peaks_reader=_peaks([4096.0, 8192.0]),
+        live_reader=lambda unit: 22703.0,
+    )
+
+    assert verdict["drifted"] is True
+    assert verdict["live_peak_mb"] == pytest.approx(22703.0)
+    assert verdict["observed_peak_mb"] == pytest.approx(22703.0)
+
+
+def test_an_injected_journal_does_not_silently_recruit_the_real_boxes_live_peak():
+    """DETERMINISM, and it is not academic: this box's live peak is currently ABOVE every
+    weight in the table, so a test that constructed a small journal would flip to drifted
+    from the machine it happens to run on. Injecting either reader means the observation set
+    is what was injected.
+    """
+    verdict = rh.weight_drift("sim_run", peaks_reader=_peaks([2048.0]))
+
+    assert verdict["live_peak_mb"] is None
+    assert verdict["observed_peak_mb"] == pytest.approx(2048.0)
+    assert verdict["drifted"] is False
+
+
+def test_a_live_peak_alone_is_an_observation_even_when_the_journal_is_unreadable():
+    """An unreadable journal is still a failed check -- but a live reading is real evidence,
+    so it becomes the sample rather than being discarded into 'unknown'."""
+    verdict = rh.weight_drift(
+        "sim_run",
+        peaks_reader=lambda unit, since: None,
+        live_reader=lambda unit: 22703.0,
+    )
+
+    assert verdict["drifted"] is True
+    assert verdict["observed_peak_mb"] == pytest.approx(22703.0)

@@ -118,6 +118,48 @@ def read_unit_memory_peaks_mb(
     return peaks
 
 
+def read_unit_memory_peak_live_mb(unit: str = PRODUCER_UNIT, runner=None) -> float | None:
+    """The peak systemd is holding for the unit's CURRENT run, in MB. None if unreadable.
+
+    WHY THIS EXISTS ALONGSIDE THE JOURNAL READING, which is the whole point and was learned
+    the hard way. systemd writes `Consumed ... memory peak` when a unit STOPS. `sim-runner`
+    is a long-lived loop that performs run after run inside one unit lifetime, so the journal
+    only ever learns a peak when the unit RESTARTS -- i.e. after an OOM kill or a deploy.
+    That makes a journal-only reading POST-MORTEM: it can only report growth that has already
+    cost something, which is precisely the regime a drift check is supposed to get ahead of.
+
+    Measured, not reasoned: at 16:35 on 2026-08-24 the journal's best answer for this unit was
+    13,824 MB while `MemoryPeak` on the running unit stood at 22,703 MB. The journal was not
+    wrong -- it was reporting the last unit lifetime, and the current one had grown 64% inside
+    it without ever stopping to say so.
+
+    FAIL-SILENT IS A FAILED CHECK (R15). `[not set]`, an empty value, a non-numeric value or a
+    systemctl that will not answer all return None -- never 0.0, which a caller comparing
+    against a declared weight would read as a clean, tiny job.
+    """
+    if runner is None:
+        if shutil.which("systemctl") is None:
+            return None
+
+        def runner(argv):
+            return subprocess.run(
+                argv, capture_output=True, text=True, errors="replace", timeout=30
+            )
+
+    argv = ["systemctl", "--user", "show", unit, "-p", "MemoryPeak", "--value"]
+    try:
+        result = runner(argv)
+    except (OSError, subprocess.SubprocessError, Exception):
+        return None
+    if getattr(result, "returncode", 1) != 0:
+        return None
+    raw = (getattr(result, "stdout", "") or "").strip()
+    # systemd says `[not set]` for a unit that never ran, and empty for an unknown property.
+    if not raw or not raw.isdigit():
+        return None
+    return int(raw) / (1024.0 * 1024.0)
+
+
 @dataclass(frozen=True)
 class OomKill:
     """One kill, as systemd recorded it."""

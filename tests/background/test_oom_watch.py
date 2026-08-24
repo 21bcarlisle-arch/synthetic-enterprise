@@ -367,3 +367,84 @@ def test_an_unparseable_size_is_none_never_zero(junk):
     from background.oom_watch import parse_memory_size_mb
 
     assert parse_memory_size_mb(junk) is None
+
+
+# ------------------------------------------------------------------- THE LIVE PEAK
+#
+# The journal writes a peak when a unit STOPS. sim-runner is a long-lived loop doing run
+# after run inside one unit lifetime, so a journal-only reading is POST-MORTEM -- it reports
+# the previous lifetime and is blind to growth inside the current one. Measured 2026-08-24:
+# journal 13,824 MB against MemoryPeak 22,703 MB on the running unit, same moment.
+
+
+class _Ran:
+    def __init__(self, stdout="", returncode=0):
+        self.stdout = stdout
+        self.returncode = returncode
+
+
+def test_the_live_peak_is_read_in_mb():
+    from background.oom_watch import read_unit_memory_peak_live_mb
+
+    # The real value observed on 2026-08-24, in bytes.
+    got = read_unit_memory_peak_live_mb(unit=UNIT, runner=lambda argv: _Ran("23805833216\n"))
+    assert got == pytest.approx(22703.0, abs=1.0)
+
+
+def test_the_live_peak_asks_the_running_unit_not_the_journal():
+    """MUTATION KILLED: querying MemoryCurrent, which is what the unit holds RIGHT NOW.
+
+    Current is not peak: sampled between runs it reads near zero, and a weight check against
+    it would call every job tiny. The property name is part of the contract.
+    """
+    from background.oom_watch import read_unit_memory_peak_live_mb
+
+    seen = {}
+
+    def _runner(argv):
+        seen["argv"] = argv
+        return _Ran("1048576")
+
+    read_unit_memory_peak_live_mb(unit=UNIT, runner=_runner)
+    assert "MemoryPeak" in seen["argv"]
+    assert "MemoryCurrent" not in seen["argv"]
+    assert UNIT in seen["argv"]
+
+
+@pytest.mark.parametrize(
+    "stdout,rc",
+    [
+        pytest.param("[not set]", 0, id="never_ran"),
+        pytest.param("", 0, id="unknown_property"),
+        pytest.param("   ", 0, id="blank"),
+        pytest.param("infinity", 0, id="non_numeric"),
+        pytest.param("23805833216", 1, id="systemctl_refused"),
+    ],
+)
+def test_an_unreadable_live_peak_is_none_never_zero(stdout, rc):
+    """R15 FAIL-OPEN. 0.0 would read as a tiny job and clear every drift check.
+
+    `[not set]` is systemd's own answer for a unit that has never run, and it is the case a
+    naive int() cast turns into an exception or a zero.
+    """
+    from background.oom_watch import read_unit_memory_peak_live_mb
+
+    assert read_unit_memory_peak_live_mb(
+        unit=UNIT, runner=lambda argv: _Ran(stdout, rc)
+    ) is None
+
+
+def test_a_runner_that_raises_is_unreadable_not_clean():
+    from background.oom_watch import read_unit_memory_peak_live_mb
+
+    def _boom(argv):
+        raise OSError("no systemctl")
+
+    assert read_unit_memory_peak_live_mb(unit=UNIT, runner=_boom) is None
+
+
+def test_systemctl_absent_is_unreadable_not_clean(monkeypatch):
+    from background.oom_watch import read_unit_memory_peak_live_mb
+
+    monkeypatch.setattr(oom_watch.shutil, "which", lambda name: None)
+    assert read_unit_memory_peak_live_mb(unit=UNIT) is None

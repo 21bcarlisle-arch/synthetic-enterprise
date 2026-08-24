@@ -157,7 +157,7 @@ DRIFT_WINDOW = "-24h"
 
 
 def weight_drift(job_class: str, since: str = DRIFT_WINDOW, journal_reader=None,
-                 peaks_reader=None) -> dict:
+                 peaks_reader=None, live_reader=None) -> dict:
     """Has the world outgrown a declared weight? {job_class, declared_mb, observed_peak_mb, ...}
 
     WHY THIS EXISTS (OPS1: the designed reason, not a patch). `CLASS_WEIGHTS_MB` is the
@@ -187,6 +187,7 @@ def weight_drift(job_class: str, since: str = DRIFT_WINDOW, journal_reader=None,
         "unit": unit,
         "declared_mb": declared,
         "observed_peak_mb": None,
+        "live_peak_mb": None,
         "samples": 0,
         "drifted": None,
         "detail": None,
@@ -203,17 +204,39 @@ def weight_drift(job_class: str, since: str = DRIFT_WINDOW, journal_reader=None,
         )
         return verdict
 
-    if peaks_reader is not None:
-        peaks = peaks_reader(unit, since)
+    # TWO SOURCES, AND THE SECOND IS NOT REDUNDANT. The journal only learns a peak when the
+    # unit STOPS, so for a long-lived loop like sim-runner it reports the LAST unit lifetime
+    # and is blind to growth inside the current one -- post-mortem exactly where this check
+    # needs to be early. `MemoryPeak` on the running unit closes that. Measured 2026-08-24:
+    # journal 13,824 MB vs live 22,703 MB for the same unit, at the same moment.
+    #
+    # INJECTION SEMANTICS: passing either reader means "this is the observation set", and the
+    # other defaults to no-observation. Tests that construct a journal must not have the real
+    # box's live peak silently join their sample -- that would make them non-deterministic in
+    # the one direction that matters, since the real number is currently above every weight.
+    injected = peaks_reader is not None or live_reader is not None
+    if injected:
+        peaks = peaks_reader(unit, since) if peaks_reader is not None else []
+        live = live_reader(unit) if live_reader is not None else None
     else:
         try:
-            from background.oom_watch import read_unit_memory_peaks_mb
+            from background.oom_watch import (
+                read_unit_memory_peak_live_mb,
+                read_unit_memory_peaks_mb,
+            )
 
             peaks = read_unit_memory_peaks_mb(
                 unit=unit, since=since, journal_reader=journal_reader
             )
+            live = read_unit_memory_peak_live_mb(unit=unit)
         except Exception:
-            peaks = None
+            peaks, live = None, None
+
+    if live is not None:
+        # None means the journal could not be read; a live reading does not repair that, but
+        # it IS an observation, so it becomes the sample rather than being discarded.
+        peaks = ([] if peaks is None else list(peaks)) + [live]
+        verdict["live_peak_mb"] = round(live, 1)
 
     if peaks is None:
         verdict["detail"] = (
