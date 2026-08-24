@@ -343,3 +343,128 @@ def test_each_year_records_the_basis_it_was_planned_on():
     for row in out["by_year"]:
         assert "planning_on" in row and "believed_win_rate" in row
         assert "realised_win_rate_used" in row
+
+
+# ---------------------------------------------------------------------------
+# PB3 exit (a): the market is REAL, and it is the same market churn sees
+# ---------------------------------------------------------------------------
+
+def test_the_in_play_market_follows_the_real_switching_series():
+    """Until PB3 the pool was PROSPECTS_PER_YEAR flat, so the market was equally open every
+    year from 2016 to 2025. It was not. These are the DESNZ-calibrated years the LOSS side has
+    used since it was built: 2016 peak competition, 2022 the crisis when switching stopped."""
+    peak, peak_mult = nna.homes_in_market(2016)
+    normal, normal_mult = nna.homes_in_market(2024)
+    crisis, crisis_mult = nna.homes_in_market(2022)
+
+    assert peak >= normal > crisis, (peak, normal, crisis)
+    assert normal > 2 * crisis, "the series must bite, not merely tilt"
+    assert normal_mult == pytest.approx(1.0, abs=0.05), "2024 is the normalisation year"
+    assert peak_mult > 2.0 and crisis_mult < 0.5, "the real series, not a flattened stand-in"
+
+
+def test_the_market_can_only_be_THINNED_never_widened_past_the_stock_partition():
+    """THE CAP, and it is coherence rather than caution.
+
+    Prospects come from `iter_prospects(year, n=prospects_per_year)` out of a stock partition
+    PB2 splits with the Profile-B trickle. A 2.17x year asking for 869 homes out of a 400-home
+    partition does not get 869 prospects -- it gets 400, plus a quotes_issued that claims
+    quotes the run never issued and never billed. Measured before the cap went in: 2016
+    reported 600 quotes and 400 wins on an always-win funnel.
+
+    The cost is a NAMED simplification: above 1.0 the multiplier is inert, so a peak year
+    understates how open the market was.
+    """
+    assert nna.homes_in_market(2016)[0] == nna.PROSPECTS_PER_YEAR
+    assert nna.homes_in_market(2024, multiplier=5.0)[0] == nna.PROSPECTS_PER_YEAR
+    assert nna.homes_in_market(2024, multiplier=0.25)[0] == nna.PROSPECTS_PER_YEAR // 4
+
+
+def test_every_quote_the_run_REPORTS_is_a_quote_it_actually_BILLED():
+    """The defect the cap exists to prevent, asserted end-to-end rather than at the helper.
+
+    `quotes_issued` is what the published growth curve is read from, and `spend` is one row per
+    quote actually put through the funnel. If the pool can promise more homes than the stock
+    partition holds, the first number silently exceeds the second.
+    """
+    for year in (2016, 2022, 2024):
+        out = _campaign(years=[year], quote_budget_fn=_budget(600),
+                        customer_year_budget=100_000.0)
+        row = out["by_year"][0]
+        assert row["quotes_issued"] == len(out["spend"]), (
+            f"{year}: reported {row['quotes_issued']} quotes, billed {len(out['spend'])}"
+        )
+        assert row["wins"] == len(out["winners"])
+
+
+def test_MUTATION_a_flat_multiplier_gives_back_the_pre_PB3_flat_market():
+    """R15 null control for the test above. Pin the multiplier and the variation vanishes --
+    so the spread really does come from the switching series and not from the year arithmetic,
+    the rounding, or the prospect draw."""
+    pools = {nna.homes_in_market(y, multiplier=1.0)[0] for y in (2016, 2022, 2024)}
+    assert pools == {nna.PROSPECTS_PER_YEAR}
+
+
+def test_a_thin_market_wins_fewer_customers_from_the_same_balance_sheet():
+    """THE ADD PATH. Identical capital, identical funnel, identical plan -- only the year
+    differs. A supplier cannot win customers who are not in the market to be won.
+
+    THE SETTLEMENT BUDGET IS LIFTED HERE, and finding out why is most of what this test is
+    worth. Left at its default this comparison INVERTS: 2016 wins 60 and 2022 wins 157, because
+    a customer won in 2016 accrues ten customer-years against the horizon and one won in 2022
+    accrues four, so a fixed settlement budget buys fewer of the earlier ones. That is a real
+    mechanism and not a bug -- but it is an ENGINEERING ceiling, and reading it as a market
+    effect would credit the switching series with a result the horizon arithmetic produced.
+    The two are separated rather than blended: the budget is raised until it cannot bind, and
+    what remains is the market alone.
+    """
+    kw = dict(quote_budget_fn=_budget(600), customer_year_budget=100_000.0)
+    rich = _campaign(years=[2016], **kw)
+    thin = _campaign(years=[2022], **kw)
+
+    assert len(rich["winners"]) > len(thin["winners"])
+    assert rich["by_year"][0]["quotes_issued"] > thin["by_year"][0]["quotes_issued"]
+    assert rich["by_year"][0]["homes_in_market"] > thin["by_year"][0]["homes_in_market"]
+    # Non-vacuity: the thin year must still be a real campaign, not an empty one -- otherwise
+    # this passes on a mechanism that simply switched acquisition off.
+    assert thin["by_year"][0]["quotes_issued"] > 0
+    assert len(thin["winners"]) > 0
+    # And neither year may be settlement-bound, or the budget is still what is being measured.
+    assert not any("SETTLEMENT-BOUND" in n for n in rich["notes"] + thin["notes"])
+
+
+def test_a_thin_market_and_our_own_ceiling_carry_OPPOSITE_instructions():
+    """No-silent-caps, split in two. Both cap the year; one is our artefact and should be
+    raised, the other is a real crisis and raising anything would falsify it. The pre-PB3
+    message said 'raise the pool' unconditionally, which on a market-thin year is exactly
+    backwards."""
+    _, thin_note = nna.quote_capacity(10_000, 178, engineering_ceiling=400)
+    _, ceiling_note = nna.quote_capacity(10_000, 400, engineering_ceiling=400)
+
+    assert "MARKET-THIN" in thin_note and "would falsify it" in thin_note
+    assert "raise the pool" not in thin_note
+    assert "MARKET-BOUND" in ceiling_note and "raise" in ceiling_note
+
+    # And an uncapped year says nothing at all.
+    assert nna.quote_capacity(10, 400, engineering_ceiling=400)[1] is None
+
+
+def test_both_legs_read_the_SAME_switching_constant():
+    """THE ANTI-GOAL-SEEK GUARD (director, 2026-08-17), registered in this atom's
+    simplifications file BEFORE the build and asserted here so it cannot be quietly lost.
+
+    Acquisition and churn must resolve the same function. If they ever read separate
+    constants, book size becomes tunable in one direction and R12 goal-seeking on it stops
+    being structurally unavailable and becomes merely forbidden -- which this project has
+    repeatedly found is not the same thing.
+    """
+    import inspect
+
+    from simulation import customer_events, market_switching_propensity
+
+    assert customer_events.market_switching_multiplier is (
+        market_switching_propensity.market_switching_multiplier
+    ), "the LOSS leg no longer reads the shared constant"
+
+    src = inspect.getsource(nna.homes_in_market)
+    assert "market_switching_propensity" in src, "the ADD leg no longer reads it either"

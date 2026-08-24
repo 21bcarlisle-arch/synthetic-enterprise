@@ -294,7 +294,48 @@ def iter_prospects(
         )
 
 
-def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR) -> tuple[int, str | None]:
+def homes_in_market(year: int, prospects_per_year: int = PROSPECTS_PER_YEAR,
+                    multiplier: float | None = None) -> tuple[int, float]:
+    """How many homes are actually in play in `year`, and the multiplier that set it.
+
+    PB3's ADD path (2026-08-24). Until now the in-play pool was `PROSPECTS_PER_YEAR`, a flat
+    engineering constant, so the market was equally open every year from 2016 to 2025. It was
+    not: `market_switching_propensity` already carries the real, DESNZ-calibrated answer, and
+    the LOSS side has been using it since it was built. 2016 is peak competition at ~2.2x the
+    2024 normal; 2022 is the crisis at ~0.4x, when switching very nearly stopped.
+
+    THE SAME CONSTANT ON BOTH LEGS, which is the point and is the director's anti-goal-seek
+    guard (2026-08-17, registered in this atom's simplifications file BEFORE the build). Churn
+    reads this multiplier in `customer_events`; acquisition now reads it here. A parameter
+    change that opens the market to win more customers opens it equally for the ones already
+    on the book, so R12 goal-seeking on book size is structurally unavailable rather than
+    merely forbidden. That guarantee is a property of the SHARING, and anything that later
+    splits the legs owes a replacement -- see this atom's simplification entry, which says so.
+
+    IT CAN ONLY THIN, NEVER WIDEN, and this cap is load-bearing rather than defensive. The
+    prospects are drawn `iter_prospects(year, n=prospects_per_year)` out of a stock partition
+    PB2 splits with the Profile-B trickle -- the campaign takes the head, the trickle the tail.
+    Letting a 2.17x year ask for 869 homes out of a 400-home partition does not produce 869
+    prospects; it produces 400 and a `quotes_issued` of 869 that claims quotes the run never
+    issued and never billed. Measured before the cap: 2016 reported 600 quotes and 400 wins on
+    an always-win funnel, which is the same defect one step downstream.
+
+    SO THE SIMPLIFICATION IS NAMED, not silent (registered in this atom's simplifications
+    file): above 1.0 the multiplier is inert, and in a peak-competition year this model
+    UNDERSTATES how open the market was. Closing it means widening the stock partition itself,
+    which is PB2's boundary with the trickle and not a number to change from here.
+
+    `multiplier` is injectable for tests only; the default is the real year-keyed series.
+    """
+    if multiplier is None:
+        from simulation.market_switching_propensity import market_switching_multiplier
+        multiplier = market_switching_multiplier(year)
+    in_play = min(prospects_per_year, int(round(prospects_per_year * multiplier)))
+    return max(0, in_play), float(multiplier)
+
+
+def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR,
+                   *, engineering_ceiling: int | None = None) -> tuple[int, str | None]:
     """How many quotes actually get issued, and a WARNING if the world is the reason.
 
     Returns `(quotes, market_binding_reason_or_None)`. The second element exists because a
@@ -302,9 +343,26 @@ def quote_capacity(affordable_quotes: int, pool_size: int = PROSPECTS_PER_YEAR) 
     published site, exactly like a supplier that chose not to grow. The two are different
     facts and the run must be able to tell them apart — CLAUDE.md's no-silent-caps rule
     applied to the one number a reader is most likely to draw a conclusion from.
+
+    `engineering_ceiling` SPLITS that warning in two, because since PB3 wired the real
+    switching series into the pool there are two different reasons a year can be capped and
+    they carry opposite instructions. Hitting OUR constant is an artefact and the reader
+    should raise it. Being capped because 2022 was a crisis in which almost nobody switched
+    supplier is a genuine commercial result and raising anything would be falsifying it. The
+    old message said "raise the pool" unconditionally; on a market-bound year that is now
+    exactly the wrong advice, so the two are worded apart.
     """
+    ceiling = pool_size if engineering_ceiling is None else engineering_ceiling
     if affordable_quotes <= pool_size:
         return max(0, affordable_quotes), None
+    if pool_size < ceiling:
+        return pool_size, (
+            f"MARKET-THIN: the company could afford {affordable_quotes} quotes and only "
+            f"{pool_size} homes were in the market, against an engineering ceiling of "
+            f"{ceiling}. The binding constraint is the REAL switching rate for this year, "
+            f"not a constant in this file — this year's book IS a commercial result, and "
+            f"raising the pool would falsify it."
+        )
     return pool_size, (
         f"MARKET-BOUND: the company could afford {affordable_quotes} quotes and only "
         f"{pool_size} homes were in the market. Growth this year is limited by "
@@ -363,6 +421,7 @@ def plan_growth_campaign(
     cost_per_quote_gbp: Mapping[str, float],
     run_funnel,
     quote_budget_fn,
+    switching_multiplier_fn=None,
     customer_year_budget: float | None = None,
     customer_years_already_committed: float = 0.0,
     prospects_per_year: int = PROSPECTS_PER_YEAR,
@@ -454,7 +513,14 @@ def plan_growth_campaign(
             net_assets_gbp=net_assets, accounts_held=accounts,
             quotes_issued_to_date=quotes_issued_to_date, wins_to_date=wins_to_date,
         )
-        quotes, market_note = quote_capacity(plan["quotes"], prospects_per_year)
+        # NOT `in_market`: that name is already taken in this function for a PROSPECT'S OWN
+        # in-market DATE (`winners.append((prospect, in_market))`), and shadowing it put a date
+        # into this row and would have put an int into every winner tuple.
+        homes_in_play, switching_multiplier = homes_in_market(
+            year, prospects_per_year, multiplier=switching_multiplier_fn(year)
+            if switching_multiplier_fn else None)
+        quotes, market_note = quote_capacity(
+            plan["quotes"], homes_in_play, engineering_ceiling=prospects_per_year)
         if market_note:
             notes.append(f"{year}: {market_note}")
 
@@ -533,6 +599,11 @@ def plan_growth_campaign(
             "believed_win_rate": plan.get("believed_win_rate"),
             "realised_win_rate_used": plan.get("realised_win_rate"),
             "planning_on": plan.get("planning_on", "belief"),
+            # PB3: how open the market actually was this year, and the real switching
+            # multiplier that decided it. Reported so a flat year can be read as the crisis it
+            # was rather than as a supplier that chose not to grow.
+            "homes_in_market": homes_in_play,
+            "switching_multiplier": round(switching_multiplier, 3),
             "spend_gbp": round(spent_this_year, 2),
             "accounts_after": accounts,
             "capital_headroom_gbp": plan["headroom_gbp"],
