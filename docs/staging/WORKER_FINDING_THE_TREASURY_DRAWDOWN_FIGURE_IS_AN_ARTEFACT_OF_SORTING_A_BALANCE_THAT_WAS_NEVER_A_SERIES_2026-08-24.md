@@ -66,3 +66,59 @@ available to any future consumer that sorts `all_records` and reads a running to
 there are other running totals on those records (`gross_margin_ytd_gbp`, `net_margin_ytd_gbp`,
 `capital_costs_ytd_gbp`). Those have not been checked. The class fix is a control that names
 running-total fields and refuses a re-sorted read of them (R10) — not built here.
+
+---
+
+## THE CLASS FIX IS BUILT AND WIRED — and it was sitting uncommitted (2026-08-24, worker tick, RUNG 1c blocking draw)
+
+**Severity stays BLOCKING. The published figure is still the artefact**, and that — not the
+missing class control — is what this document's own "why BLOCKING" paragraph is about. What has
+changed is that the sentence above ("not built here") is no longer true.
+
+`tools/running_total_order.py`, `tests/tools/test_running_total_order.py` and GATE 14 in
+`tools/git-hooks/pre-commit` existed **only in the shared working tree**: 16 KB of control,
+15 green R15 tests and thirty wired lines of hook, none of it in any commit, and therefore
+enforcing nothing on anybody. That is the same class as
+`docs/staging/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md` — a control that is not
+committed is not a control — so this tick's contribution is to LAND it rather than to build it
+again.
+
+### What the control actually does, and what it found
+
+It names the four fields stamped as portfolio running totals during the term loop
+(`treasury_cash_balance_gbp`, `gross_margin_ytd_gbp`, `net_margin_ytd_gbp`,
+`capital_costs_ytd_gbp` — sourced from the producers, not invented) and refuses three AST
+shapes of re-sorted read across `simulation`, `saas`, `company`, `sim`, `tools` and
+`background`. Reordering is the defect; slicing is not, so an order-preserving `yr[-1][field]`
+over a filtered bucket stays silent, which is how `run_phase2b` prints its own treasury.
+
+It found **two instances this document did not know about**, both `treasury_end`, both a
+published balance-sheet figure:
+
+| module | shape | why it is wrong |
+|---|---|---|
+| `saas/reporting/annual_report.py` | comprehension-over-reordering | the named instance — the `_drawdown_events` fallback, still live for a pre-register run output |
+| `saas/reporting/annual_report.py` | subscript-of-reordering | `max(yr_records, key=(date, period))` is the balance of the latest-DATED record, not the balance the year closed at |
+| `saas/reporting/segment_report.py` | comprehension-over-reordering | the same defect, and worse: this copy has no register fallback at all, so it is unconditionally the artefact |
+
+The `read-of-reordered-binding` shape has **zero** instances and is checked anyway, because a
+control that only catches the shapes already committed is a control that can only ever be green.
+
+### Why this does not discharge the finding
+
+The three reads above are frozen as a shrink-only RATCHET with their counts, so a new one fails
+and a second read of an already-frozen (module, shape, field) fails rather than hiding inside
+the baseline. **Frozen is not fixed.** `--gate` ignores them so the tree is not held hostage;
+the tool's default mode reports them and is the standing red. Each repair moves a published
+figure, so each lands with its before/after measured (R14) rather than as a drive-by edit — and
+the first of them is still blocked on the daily fold's one undiagnosed ~£14 ledger movement.
+
+Discharging on the strength of a control that freezes the defect it names would be the
+fail-open shape this project keeps catching: the class is now checkable, the instances are still
+published, and the severity follows the published figure.
+
+**What discharges this document:** the fold wired, `_drawdown_events` reading the register in
+accumulation order with the fallback deleted rather than left reachable, the two `treasury_end`
+reads repointed to `yr_records[-1]`, all three ratchet entries removed with their before/after
+figures stated — and the published count moving from thousands of events to the true count, said
+out loud in the landing commit rather than left for a reader to notice.

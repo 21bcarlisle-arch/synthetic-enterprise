@@ -191,3 +191,33 @@ python3 -m tools.annual_report_import_ratchet || exit 1
 # R15-proven in tests/tools/test_half_hourly_dependency_ratchet.py (9 tests), including two
 # that pin the spine as NOT a subject of the control.
 python3 -m tools.half_hourly_dependency_ratchet || exit 1
+
+# ── GATE 14: a running total may only be read in the order it was accumulated ────────────────
+# THE CLASS FIX (R10) for the treasury-drawdown artefact found 2026-08-24. `run_phase2b`
+# settles one customer's whole term before starting the next, so `treasury_cash_balance_gbp`
+# -- a PORTFOLIO running total stamped on each record as it is produced -- means something in
+# accumulation order and nothing in any other. `annual_report` sorted the book by
+# (settlement_date, settlement_period) before walking it into `_drawdown_events`, interleaving
+# balances produced at completely different points in the term loop. Measured on a real
+# end-2017 run: 0 genuine drawdowns published as 6,747, each a penny apart, with a RAG rating
+# computed from them. The number was not too high -- the phenomenon did not happen.
+#
+# The finding closed its own INSTANCE with a register that folds the drawdown during the run.
+# It left the class open in writing: nothing checked that a balance stamped in accumulation
+# order is only ever read in accumulation order, and three other running totals ride the same
+# records. This gate is that check, and it found TWO MORE the finding did not know about --
+# both `treasury_end`, a published balance-sheet figure, one of them (segment_report) with no
+# register fallback at all.
+#
+# RATCHET, not a freeze: the three reads that exist today are frozen WITH THEIR COUNTS, so a
+# NEW read fails, a SECOND read of an already-frozen (module, shape, field) fails rather than
+# hiding inside the baseline, and a repaired entry left behind fails too. Every frozen entry
+# names its repair. Those repairs MOVE PUBLISHED FIGURES and so land measured (R14), which is
+# why this gate ignores them while the default mode -- `python3 -m tools.running_total_order`
+# -- reports them as the standing red.
+# R15-proven both ways in tests/tools/test_running_total_order.py (15 tests, synthetic trees
+# with hand-written answers), including the null controls that keep it usable (an
+# order-preserving `yr[-1][field]` and a re-sorted read of a NON-running-total field are both
+# silent) and the fail-closed path: a scan that sees no running-total field must RAISE, never
+# report a clean tree it never looked at.
+python3 -m tools.running_total_order --gate || exit 1
