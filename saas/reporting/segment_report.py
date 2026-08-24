@@ -142,11 +142,16 @@ def extract_segment_data(run_output: dict) -> dict:
                         curr_hc = snap["headcounts"].get(sid, 0)
                         smart_upgrades[sid] = max(0, curr_hc - prev_hc)
 
-        treasury_series = [
-            r["treasury_cash_balance_gbp"]
-            for r in sorted(yr_records, key=lambda r: (r["settlement_date"], r.get("settlement_period", 0)))
-        ]
-        treasury_end = treasury_series[-1] if treasury_series else None
+        # THE BALANCE THE YEAR CLOSED AT, in ACCUMULATION order (2026-08-24,
+        # docs/staging/WORKER_FINDING_THE_TREASURY_DRAWDOWN_FIGURE_IS_AN_ARTEFACT_OF_SORTING_A_BALANCE_THAT_WAS_NEVER_A_SERIES_2026-08-24.md).
+        # This built a re-sorted series and took its last element; `treasury_cash_balance_gbp`
+        # is a portfolio running total stamped record-by-record during the term loop, so
+        # re-sorting it and reading the end names whichever record happens to carry the latest
+        # (date, period) -- not the balance the year ended on. Filtering preserves accumulation
+        # order, so `yr_records[-1]` is the true close, matching `run_phase2b`'s own print.
+        # MEASURED on a real end-2017 run (R14), same defect and same input as the annual
+        # report's copy: 2016 £250,807.39 -> £252,386.55, 2017 £281,285.30 -> £283,078.93.
+        treasury_end = yr_records[-1]["treasury_cash_balance_gbp"] if yr_records else None
 
         wake_ups = [w for w in committee_wake_ups if _year(w["settlement_date"]) == year]
 

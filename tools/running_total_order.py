@@ -24,8 +24,11 @@ what this module is, is the CLASS:
      those records (`gross_margin_ytd_gbp`, `net_margin_ytd_gbp`, `capital_costs_ytd_gbp`).
      Those have not been checked."
 
-They have now. The scan found the named instance and TWO MORE the finding did not know about
-(both `treasury_end`, a published balance-sheet figure): see `KNOWN_READS`.
+They have now. The scan found the named instance and TWO MORE the finding did not know about,
+both `treasury_end`, a published balance-sheet figure. Those two are REPAIRED (2026-08-24,
+read in accumulation order, movement measured -- see the note under `KNOWN_READS`); the named
+instance remains, because its repair is the drawdown register and that is blocked on the daily
+fold's one undiagnosed ~£14 ledger movement.
 
 WHY A STATIC CONTROL RATHER THAN A RUNTIME GUARD. The runtime alternative is to stamp an
 accumulation index on every record and have a checked reader refuse an out-of-order walk.
@@ -36,11 +39,13 @@ order a list was built in is a property of the CODE, so the code is where it is 
 WHAT COUNTS AS A RE-SORTED READ. Three shapes, each a real way to write the defect:
 
   * `comprehension-over-reordering` -- `[r[FIELD] for r in sorted(recs, key=...)]`.
-    The named instance, and `segment_report`'s copy of it.
+    The named instance (still live), and `segment_report`'s `treasury_end` copy of it
+    (repaired 2026-08-24).
   * `subscript-of-reordering`      -- `max(recs, key=...)[FIELD]`.
     `annual_report`'s `treasury_end`: the balance of whichever record has the latest
     (date, period), which is not the balance the year actually closed at. The run's own
-    printout uses `yr[-1]` -- accumulation order -- so these two disagree by construction.
+    printout uses `yr[-1]` -- accumulation order -- so these two disagreed by construction,
+    which is how the repair was checked. Repaired 2026-08-24; zero instances today.
   * `read-of-reordered-binding`    -- `s = sorted(recs, ...)` ... `s[-1][FIELD]`.
     Zero instances today. It is here because it is the obvious way to walk around the first
     two without meaning to, and a control that only catches the shapes already committed is
@@ -110,20 +115,25 @@ KNOWN_READS: dict[str, dict] = {
                "undiagnosed ~£14 ledger movement, see that module's docstring), then delete "
                "the fallback rather than leaving a wrong path reachable.",
     },
-    "saas/reporting/annual_report.py::subscript-of-reordering::treasury_cash_balance_gbp": {
-        "count": 1,
-        "why": "`treasury_end`: `max(yr_records, key=(settlement_date, settlement_period))` -- "
-               "the balance of the latest-dated record, not the balance the year closed at. "
-               "REPAIR: read `yr_records[-1]` (accumulation order), which is what "
-               "`run_phase2b` already prints for the same year. MOVES A PUBLISHED FIGURE, so "
-               "it lands with its before/after measured (R14), not here.",
-    },
-    "saas/reporting/segment_report.py::comprehension-over-reordering::treasury_cash_balance_gbp": {
-        "count": 1,
-        "why": "the same `treasury_end` defect as above, and WORSE: this copy has no register "
-               "fallback at all, so it is unconditionally the artefact. REPAIR: as above.",
-    },
 }
+
+#: REPAIRED AND REMOVED FROM THE BASELINE -- kept here as prose because a ratchet entry that
+#: simply vanishes leaves no record that the debt was PAID rather than hidden. Both were
+#: `treasury_end`, both a published balance-sheet figure, both repaired to `yr_records[-1]`
+#: (accumulation order) on 2026-08-24 with their movement measured on a real end-2017 run:
+#:
+#:   saas/reporting/annual_report.py   subscript-of-reordering
+#:       was `max(yr_records, key=(settlement_date, settlement_period))`
+#:   saas/reporting/segment_report.py  comprehension-over-reordering
+#:       was `sorted(...)` built into a series, then `[-1]`
+#:
+#:   year  published BEFORE   published AFTER    move
+#:   2016  £250,807.39        £252,386.55        +£1,579.16
+#:   2017  £281,285.30        £283,078.93        +£1,793.63
+#:
+#: The AFTER figures agree to the penny with what `run_phase2b` prints for the same years in
+#: its own "Portfolio P&L by calendar year" table -- an independent check, since that print
+#: never went near a re-sort. The BEFORE figures agreed with nothing.
 
 
 class OrderCheckUnavailable(RuntimeError):

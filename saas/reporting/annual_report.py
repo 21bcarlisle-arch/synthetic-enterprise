@@ -382,9 +382,22 @@ def extract_report_data(run_output: dict) -> dict:
             entry["net_gbp"] += r["net_margin_gbp"]
             entry["consumption_kwh"] += r.get("consumption_kwh", 0.0)
 
-        treasury_end = max(yr_records, key=lambda r: (r["settlement_date"], r["settlement_period"]))[
-            "treasury_cash_balance_gbp"
-        ]
+        # THE BALANCE THE YEAR CLOSED AT, in ACCUMULATION order (2026-08-24,
+        # docs/staging/WORKER_FINDING_THE_TREASURY_DRAWDOWN_FIGURE_IS_AN_ARTEFACT_OF_SORTING_A_BALANCE_THAT_WAS_NEVER_A_SERIES_2026-08-24.md).
+        # `treasury_cash_balance_gbp` is a portfolio running total stamped record-by-record
+        # during the term loop, so it is meaningful only in the order it was accumulated.
+        # This was `max(yr_records, key=(settlement_date, settlement_period))` -- the balance
+        # of the latest-DATED record, which is a different record entirely once the loop has
+        # interleaved terms. Filtering preserves accumulation order, so `yr_records[-1]` is
+        # the balance the year actually ended on, and is what `run_phase2b` itself prints
+        # (`run_phase2b.py`'s "Portfolio P&L by calendar year" uses `yr[-1]`).
+        # MEASURED on a real end-2017 run (R14): 2016 £250,807.39 -> £252,386.55,
+        # 2017 £281,285.30 -> £283,078.93; both now agree with the producer's own print to
+        # the penny, where the old figures agreed with nothing.
+        # Indexed, not guarded: `year` comes from the years already present in the record
+        # list, so `yr_records` is non-empty by construction -- and the old `max()` raised on
+        # empty too. A guard here would put a `None` into a float-typed published field.
+        treasury_end = yr_records[-1]["treasury_cash_balance_gbp"]
         # THE WORST HALF-HOUR, from the run's own register. `yr_records` holds DAILY rows
         # since 2026-08-24, so a min over it would name the worst DAY and label it a period.
         # The register was folded from the per-period records as they were produced; the scan

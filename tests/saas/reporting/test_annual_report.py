@@ -250,8 +250,16 @@ def test_extract_report_data_splits_by_year():
     # backlog item): 110.0 + 112.0 from the two C1 electricity records
     assert y2016["segment_split"]["resi electricity"]["revenue_gbp"] == 222.0
     assert y2016["segment_split"]["resi gas"]["revenue_gbp"] == 105.0
-    # Picked from the chronologically latest record (2016-06-01), not list order
-    assert y2016["treasury_end_gbp"] == 1017.0
+    # THE BALANCE THE YEAR CLOSED AT, read in ACCUMULATION order -- the last 2016 record in
+    # LIST order (the C1g gas row, £1021.0), not the chronologically latest one (2016-06-01,
+    # £1017.0, which is what this asserted until 2026-08-24). `treasury_cash_balance_gbp` is
+    # a portfolio running total stamped as the term loop produces records -- C1's whole
+    # electricity term, then C1g's gas term -- so it is meaningful in accumulation order and
+    # in no other (WORKER_FINDING_THE_TREASURY_DRAWDOWN_FIGURE_IS_AN_ARTEFACT_OF_SORTING_A_
+    # BALANCE_THAT_WAS_NEVER_A_SERIES_2026-08-24.md).
+    assert y2016["treasury_end_gbp"] == 1021.0
+    # Null control: the old re-sorted answer must not come back.
+    assert y2016["treasury_end_gbp"] != 1017.0
     # All 13 customers (incl. Phase 6a HH customers C7-C9) have a 2016
     # acquisition_date.
     assert y2016["acquisitions"] == [

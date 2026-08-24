@@ -130,10 +130,27 @@ def test_extract_net_per_customer():
     assert npc == pytest.approx((85.0 + 102.0) / 150)
 
 
-def test_extract_treasury_end():
+def test_extract_treasury_end_is_read_in_accumulation_order():
+    """The balance the year CLOSED at, not the balance of its latest-dated record.
+
+    `treasury_cash_balance_gbp` is a portfolio running total stamped record-by-record as the
+    term loop produces them, so it is meaningful in accumulation order and in no other
+    (2026-08-24, WORKER_FINDING_THE_TREASURY_DRAWDOWN_FIGURE_IS_AN_ARTEFACT_OF_SORTING_A_
+    BALANCE_THAT_WAS_NEVER_A_SERIES). The fixture above is deliberately built the way a real
+    run is: the balances rise monotonically down the list while the DATES jump about, because
+    one customer's whole term is settled before the next customer's starts.
+
+    This asserted 508_487.0 until 2026-08-24 -- the balance at 2016-06-01, the latest-dated
+    2016 record. That figure is BELOW four balances the treasury had already reached by then,
+    which is the tell: a running total cannot go backwards here.
+    """
     data = extract_segment_data(_run_output())
-    # Last record in 2016 sorted by date is 2016-06-01 (resi_standard), treasury=508_487.0
-    assert data["years"]["2016"]["treasury_end_gbp"] == pytest.approx(508_487.0)
+    # Last 2016 record in ACCUMULATION order is the 2016-05-01 gas_resi row.
+    assert data["years"]["2016"]["treasury_end_gbp"] == pytest.approx(508_741.0)
+    # Null control: the old, re-sorted answer must NOT be what comes back.
+    assert data["years"]["2016"]["treasury_end_gbp"] != pytest.approx(508_487.0)
+    # 2017 closes on the run's own final treasury, as a year-end balance must.
+    assert data["years"]["2017"]["treasury_end_gbp"] == pytest.approx(508_855.0)
 
 
 def test_extract_committee_wake_ups():

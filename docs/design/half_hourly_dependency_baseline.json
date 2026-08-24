@@ -22,11 +22,7 @@
       "key=lambda r: (r[\"settlement_date\"], r.get(\"settlement_period\") or 0))",
       "r.get(\"settlement_period\") or 1)]",
       "sections.append(_section_worst_settlement_periods(data)) # Phase BR",
-      "treasury_end = max(yr_records, key=lambda r: (r[\"settlement_date\"], r[\"settlement_period\"]))[",
       "wp.get(\"settlement_period\", \"?\"),"
-    ],
-    "saas/reporting/segment_report.py": [
-      "for r in sorted(yr_records, key=lambda r: (r[\"settlement_date\"], r.get(\"settlement_period\", 0)))"
     ]
   }
 }

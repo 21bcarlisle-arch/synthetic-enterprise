@@ -122,3 +122,54 @@ accumulation order with the fallback deleted rather than left reachable, the two
 reads repointed to `yr_records[-1]`, all three ratchet entries removed with their before/after
 figures stated — and the published count moving from thousands of events to the true count, said
 out loud in the landing commit rather than left for a reader to notice.
+
+---
+
+## TWO OF THE THREE ARE REPAIRED AND MEASURED — the ratchet is 3 → 1 (2026-08-24, worker tick, RUNG 1c blocking draw)
+
+**Severity stays BLOCKING for the same reason as before:** the published drawdown count is still
+the artefact, because its repair is the register and the register is still unwired. What has
+moved is the OTHER defect the class control found — `treasury_end`, a published balance-sheet
+figure, wrong in both report generators.
+
+Both now read `yr_records[-1]` (accumulation order). Filtering preserves the order the balance
+was accumulated in; re-sorting does not.
+
+| where | was | now |
+|---|---|---|
+| `saas/reporting/annual_report.py` | `max(yr_records, key=(settlement_date, settlement_period))[…]` | `yr_records[-1][…]` |
+| `saas/reporting/segment_report.py` | a `sorted(…)` series, then `[-1]` | `yr_records[-1][…]` |
+
+### The figure this moves, measured (R14)
+
+A real bounded run, `simulation.run_phase2b.main(report_end="2017-12-31")` — the same window the
+original finding measured on:
+
+| year | records | published BEFORE | published AFTER | move |
+|---|---|---|---|---|
+| 2016 | 199,522 | £250,807.39 | £252,386.55 | +£1,579.16 |
+| 2017 | 330,366 | £281,285.30 | £283,078.93 | +£1,793.63 |
+
+**The check that makes this more than a preference:** the AFTER figures agree to the penny with
+what `run_phase2b` prints for those same years in its own "Portfolio P&L by calendar year" table
+(`252386.55`, `283078.93`), and that print never went near a re-sort — it reads `yr[-1]`. The
+BEFORE figures agreed with nothing. 2017's AFTER is also the run's final treasury, which a
+year-end balance for the last year must be and the old one was not.
+
+Two tests encoded the defect as their expected answer and were rewritten with it named
+(`test_annual_report.py::test_extract_report_data_splits_by_year`, whose comment said "picked
+from the chronologically latest record… not list order"; and `test_segment_report.py`'s
+treasury-end test, which asserted a 2016 close BELOW four balances the treasury had already
+reached — a running total cannot go backwards). Both now carry a null control asserting the old
+re-sorted answer does NOT come back.
+
+### What is still owed
+
+1. **The drawdown count itself** — one ratchet entry left, `annual_report.py`'s
+   `_drawdown_events` fallback. Blocked on the daily fold's one undiagnosed ~£14 ledger
+   movement; when that clears, wire the register and delete the fallback rather than leaving a
+   wrong path reachable.
+2. **The live published `treasury_end_gbp`** is still the old value on the site and in
+   `docs/reports/run_output_latest.json`: those figures are baked at run time and this repair
+   takes effect on the next full run's report generation. Nothing was regenerated here, and the
+   next publish moves the balance-sheet line by roughly the amounts above.
