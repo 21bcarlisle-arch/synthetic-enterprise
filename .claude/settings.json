@@ -12,13 +12,25 @@
       "Bash(git fetch*)"
     ]
   },
-  "fallbackModel": ["claude-sonnet-5", "claude-haiku-4-5-20251001"],
+  "fallbackModel": [
+    "claude-sonnet-5",
+    "claude-haiku-4-5-20251001"
+  ],
   "env": {
     "//": "REST HEARTBEAT (LOOP_CONTINUITY_REARM_DESIGN.md, 2026-07-19): the drained-and-gated Stop hook now keeps the worker's turn-chain alive with a bounded in-hook poll + keep-alive continuations. Claude Code force-stops a Stop hook after 8 consecutive no-progress blocks; a resting heartbeat is 'no progress' by design, so raise the built-in cap. The pull-loop's own git-based MAX_NO_PROGRESS (background-checked) stays the REAL runaway guard for PRODUCTIVE chains; heartbeats are exempt from it by construction. Console-agnostic (only the worker seat heartbeats).",
     "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "100000"
   },
   "hooks": {
     "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PROJECT_DIR:-/home/rich/synthetic-enterprise}/.claude/hooks/stamp_seat_heartbeat.py"
+          }
+        ],
+        "matcher": "*"
+      },
       {
         "matcher": "Bash",
         "hooks": [

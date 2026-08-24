@@ -171,6 +171,24 @@ def run(proc_results: list[dict] | None = None,
         # A failure here must never stop the reconcile that this module exists to run.
         _log(f"seat-claim sweep failed (reconcile continues): {exc!r}")
 
+    # SEAT CONTINUITY (2026-08-24, director: "nothing notices it has stopped ... I shouldn't
+    # be the mechanism that spots a stall"). The sweep above releases work the seat CLAIMED
+    # and then stopped moving; this one handles the case where the seat itself is gone —
+    # killed mid-edit by an API error, holding uncommitted work nobody has a record of.
+    #
+    # HERE rather than in a timer of its own, for the same reason the claim sweep is here:
+    # this module already runs every five minutes and already asks "what was declared versus
+    # what is actually true". A new timer would be a new thing that can silently fail to be
+    # armed, which is the failure class this whole file exists to catch.
+    try:
+        from background import seat_continuity
+
+        filed = seat_continuity.sweep()
+        if filed:
+            _log(f"interactive seat stopped mid-work; handoff filed: {filed}")
+    except Exception as exc:                                   # noqa: BLE001
+        _log(f"seat-continuity sweep failed (reconcile continues): {exc!r}")
+
     # DAEMONS RUNNING CODE THAT IS NO LONGER HEAD. R2 -- "committed != running" -- is one of
     # this repo's permanent rules, and on 2026-08-21 three daemons were 57, 63 and 65 changed
     # loaded modules behind, four days stale. The supervisor was making draw decisions on
