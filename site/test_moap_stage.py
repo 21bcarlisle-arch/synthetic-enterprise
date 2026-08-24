@@ -148,13 +148,22 @@ def test_stage_disagreement_surfaces_declared_vs_computed():
 # --- LIVE checks ------------------------------------------------------------
 def test_level_parser_reads_real_map():
     """The parser reads the real maturity map with sane levels for every atom, anchored on a
-    known atom's real levels (H_forward_discovery_draw: current 1, target 3)."""
+    known atom's real levels.
+
+    THE ANCHOR MOVED, 2026-08-24, and the reason is worth keeping. It was
+    `H_forward_discovery_draw` (1/3) — an agent-authored `H_harness` atom, and one of the
+    nineteen deleted in `docs/design/RETIRED_ATOMS_2026-08-24.md`, which reds this test with
+    a bare `None`. An anchor is a hostage to whatever it names, so it should name something
+    the project would have to change its mind about to remove. `D3_catchup_rebilling` is a
+    shipped billing capability at 3/3 with a director-ruling lineage: if it ever leaves the
+    map, a test going red is the correct outcome rather than an accident.
+    """
     levels = map_atom_levels()
     assert len(levels) > 50, len(levels)
     assert all(0 <= v["current"] for v in levels.values())
     assert all(v["target"] >= 1 for v in levels.values()), "every real atom target must be >= 1"
-    fd = levels.get("H_forward_discovery_draw")
-    assert fd == {"current": 1, "target": 3}, fd
+    anchor = levels.get("D3_catchup_rebilling")
+    assert anchor == {"current": 3, "target": 3}, anchor
 
 
 def test_every_real_front_door_node_computes_a_valid_stage():

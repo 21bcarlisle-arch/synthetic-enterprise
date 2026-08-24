@@ -1,36 +1,3 @@
-- id: H_forward_discovery_draw
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 2
-  level_current: 1
-  level_target: 3
-  loop_stage: idle
-  dial_inherited: 3
-  provenance: proposal
-  frame_saturated: true
-  file_scope: [background/supervisor.py, tests/background/test_forward_discovery_draw.py]
-  depends_on: []
-  blocked_on: null
-  simplifications_count: 9
-  expert_hour: {status: attempted_finding_open, last: "2026-07-22", findings: ["draw keys on Fn-header PRESENCE not open/closed STATUS, so with all F1-F5 tracks DISCOVER-complete (the permanent real state) _is_drained_and_gated never returns True and the supervisor never auto-rests -- a FAIL-OPEN churn class (re-granting a turn ~every 2min with nothing open); the R15 both-ways proof tests only the two extremes and leaves the common all-tracks-closed state untested; fix is a status-aware parse (BUILD, director/twin-gated) -- QUEUED not fixed per SELF_INTERRUPT_DISCIPLINE"]}
-  real_world_twin: "an ops scheduler that never idles a capable worker while any lower-priority queue still has work"
-  records_rehomed: [evidence]
-# Maturity Map v1.1 canonical data store (docs/design/MATURITY_MAP.md Section 6).
-# v1 SEED -- 2026-07-10, director audit ("is the dial-weighted draw actually wired
-# and live -- evidence, not intent"). Real atoms only, honestly leveled from actual
-# codebase/doc state observed this session and in this project's build history --
-# NOT the full 60-120 target Section 8's Current-state entry names; this is a
-# genuine, evidence-backed starter set (~28 atoms across all 12 lanes) so the
-# supervisor's self-refill has real data to draw from NOW. Expand incrementally at
-# phase close (add/update an atom when a phase actually moves one), rather than
-# fabricating the remaining count up front. Uncertain levels are marked
-# level_current: null with a note in evidence, per the doc's own instruction --
-# not guessed.
-#
-# Dial values below are copied verbatim from MATURITY_MAP.md Section 8 (the
-# director-ratified equaliser table) -- not invented here.
-
 - id: D3_catchup_rebilling
   notes_rehomed: [name]
   lane: D_billing_metering
@@ -166,7 +133,7 @@
   epoch: 4
   level_current: 0
   level_target: 1
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   records_rehomed: [evidence]
   file_scope: []
@@ -1659,23 +1626,6 @@
   real_world_twin: "a watchdog that pages an operator only when the console is genuinely quiet, not in the half-second flicker between two log lines"
   depends_on: []
 
-- id: A8_experiment_loop_speed
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  compounding: true  # ONE_FRAMEWORK C1/C7: THE canonical compounding atom -- cutting inner-loop cycle time makes every future experiment cheaper (COMPOUNDING_WORK_FIRST, the one atom explicitly authorised past the moratorium). View/dial facet, draw TIE-BREAK only, never a gate; absent = not-compounding.
-  epoch: 2
-  level_current: 2
-  level_target: 3
-  loop_stage: idle
-  dial_inherited: 3
-  provenance: proposal
-  records_rehomed: [evidence]
-  file_scope: [tools, background, tests]
-  simplifications_count: 7
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "an org that cannot afford to run the experiments its own strategy requires until it makes experiments cheap"
-  depends_on: [ARCH1_internal_seams]
 - id: A9_market_at_the_seams_design_law
   title: "A second market must fit behind the seams that already exist"
   gain: "Portability stops being a review lens someone remembers to apply and becomes a check that fails when a counterparty gets hardcoded."
@@ -1692,21 +1642,6 @@
   couples_with: []
   records_rehomed: [evidence]
   file_scope: ['docs/design/PORTABILITY_DEBT.md', 'tests/architecture/test_market_at_the_seams.py']
-- id: H17_autonomous_build_executor
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  compounding: true  # ONE_FRAMEWORK C1/C7: the harness that compounds -- lets the map move without the human as sole executor (cuts human-in-loop latency), and IS the Epoch-4 tournament substrate (COMPOUNDING_WORK_FIRST). View/dial facet, draw TIE-BREAK only, never a gate; absent = not-compounding.
-  epoch: 2
-  level_current: 0
-  level_target: 3
-  loop_stage: idle
-  dial_inherited: 3
-  provenance: proposal
-  records_rehomed: [evidence]
-  file_scope: [background, tools, tests]
-  depends_on: [A8_experiment_loop_speed, ARCH1_internal_seams]
-  simplifications_count: 2
 - id: G4_unified_failure_register
   notes_rehomed: [name]
   lane: G_data_learning
@@ -1720,19 +1655,6 @@
   records_rehomed: [evidence]
   file_scope: [docs/retrospectives, tools, tests]
   simplifications_count: 5
-- id: H18_harness_self_mutation_audit
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 2
-  level_current: 0
-  level_target: 2
-  loop_stage: idle
-  dial_inherited: 3
-  provenance: proposal
-  records_rehomed: [evidence]
-  file_scope: [tests/controls, background, tools]
-  simplifications_count: 3
 - id: W4_3_external_truth_wall
   notes_rehomed: [name]
   lane: W4_the_wall
@@ -1867,23 +1789,6 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a team with an explicit Definition of Ready / Definition of Done"
   depends_on: []
-- id: H20_parallel_maintenance_lane
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 2
-  level_current: 0
-  level_target: 3
-  loop_stage: idle
-  dial_inherited: 3
-  provenance: proposal
-  size: L
-  records_rehomed: [evidence]
-  file_scope: [background, tools, docs/design]
-  simplifications_count: 2
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a maintenance/reliability team working a defect backlog in parallel with feature teams"
-  depends_on: []
 - id: G11_activity_cost_utilisation
   notes_rehomed: [name]
   lane: H_harness
@@ -1901,41 +1806,6 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an activity-based-costing view of an engineering org: value output vs overhead/rework"
   depends_on: [G5_effort_sizing_discipline, G7_wip_cycle_time_dashboard]
-- id: H21_self_contained_escalation
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 2
-  level_current: 0
-  level_target: 3
-  loop_stage: idle
-  dial_inherited: 3
-  provenance: proposal
-  size: M
-  records_rehomed: [evidence]
-  file_scope: [background, docs/design]
-  simplifications_count: 2
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "an on-call page that carries the decision, not a link to a dashboard you must open"
-  depends_on: []
-- id: H22_scheduled_housekeeping
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 2
-  level_current: 0
-  level_target: 3
-  loop_stage: idle
-  dial_inherited: 3
-  provenance: proposal
-  size: M
-  records_rehomed: [evidence]
-  file_scope: [background, tools, docs/design]
-  simplifications_count: 3
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "an SRE housekeeping cron: log rotation, stale-branch reaping, disk/cruft sweeps on a schedule"
-  depends_on: [H20_parallel_maintenance_lane]
-
 - id: H23_frame_saturation_draw_marker
   notes_rehomed: [name]
   lane: H_harness
@@ -2014,30 +1884,6 @@
     findings: []
   real_world_twin: an ops team standardising on fully-qualified resource names after an ambiguous alias pointed a command at the wrong host
   depends_on: []   # was [OPS1_operational_layer_rebuild] — removed 2026-07-17: the fix is independent of OPS1 completion, and it is the maiden task
-- id: OPS1_governance_refusal_mutation_test
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 2
-  level_current: 2
-  level_target: 3
-  loop_stage: idle   # PARKED 2026-07-17: harness BUILT (L2). L2->L3 is the DIRECTOR-WATCHED LIVE worker-outcome run, which the atom's own DoD + the director explicitly reserve to a controlled, halt-ready window ("never a maiden flight"). The loop drew this for BUILD; the worker correctly REFUSED to run it autonomously and parked it -- a live instance of the very behaviour this atom verifies. Flips to build/L3 only when the director triggers the live run.
-  blocked_reason: director_live_run   # harness complete (L2); L3 = the director-watched live run. Excluded from the draw until he triggers it. Clear this to re-admit.
-  block_reason: "Harness complete (L2); L3 = the director-watched live run -- excluded from the draw until he triggers it."
-  dial_inherited: 2
-  provenance: proposal
-  records_rehomed: [evidence]
-  file_scope:
-  - background/supervisor.py
-  - .claude/hooks/pull_next_work.py
-  simplifications_count: 3
-  expert_hour:
-    status: not_attempted
-    last: null
-    findings: []
-  real_world_twin: 'a change-freeze drill: deliberately queue a frozen change and verify the automation refuses to deploy it, rather than discovering in production that the freeze wasn''t enforced'
-  depends_on:
-  - OPS1_operational_layer_rebuild
 - id: OPS1_transport_failure_must_be_loud
   notes_rehomed: [name]
   lane: H_harness
@@ -2136,20 +1982,6 @@
   records_rehomed: [evidence]
   file_scope: [background/fork_reconciler.py]
   simplifications_count: 7
-- id: H25_self_gov_detection_hardening
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 2
-  level_current: 1
-  level_target: 3
-  loop_stage: idle
-  frame_saturated: true
-  dial_inherited: 2
-  provenance: proposal
-  records_rehomed: [evidence]
-  file_scope: [background/fronts_reconciler.py, background/reconcile_watch.py]
-  simplifications_count: 6
 - id: H26_core_bare_corruption_guard
   notes_rehomed: [name]
   lane: H_harness
@@ -2189,37 +2021,6 @@
   records_rehomed: [evidence]
   file_scope: [tools/pre_commit_test_gate.py]
   simplifications_count: 11
-- id: H28_precommit_gate_ambient_cwd_git_discovery
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 2
-  level_current: 0
-  level_target: 3
-  loop_stage: idle
-  frame_saturated: true
-  dial_inherited: 4
-  provenance: proposal
-  records_rehomed: [evidence]
-  file_scope: [tools/pre_commit_test_gate.py]
-  simplifications_count: 2
-- id: H27_phone_act_channel
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 2
-  level_current: 0
-  level_target: 3
-  loop_stage: idle
-  frame_saturated: true
-  dial_inherited: 3
-  provenance: proposal
-  records_rehomed: [evidence]
-  file_scope: []
-  simplifications_count: 4
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a bank''s out-of-band transaction-approval push -- tap-to-approve on a device bound to your identity -- vs having to log into online banking to authorise"
-  depends_on: []
 - id: W2_11_payment_behaviour_source
   notes_rehomed: [name]
   lane: W2_customer_generator
@@ -2256,7 +2057,7 @@
   value_stream: meter_to_cash
   epoch: 3
   level_current: 2
-  level_target: 3
+  level_target: 2
   loop_stage: harden
   dial_inherited: 3
   provenance: proposal
@@ -3025,60 +2826,6 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an investor data-room where every headline claim on the one-page overview links to the underlying evidence -- the audited number, the test result, the source -- so a reader can drill from the summary to the primary fact rather than taking the summary on trust"
   depends_on: []
-- id: HX1_exit_criterion_counter_mechanise
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  provenance: proposal
-  epoch: 2
-  level_current: 2
-  level_target: 3
-  loop_stage: harden
-  blocked_on: null   # 2026-07-29 blocked_on CLEARED (DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY_2026-07-29.md items 1+2): director_build_open/director_level_up are abolished as BLOCK TYPES -- there is no such thing as needing a build opened, and levels are proposed+recorded (ledger-backed, self-certification via background.gate_authorization.record_level_up_self_certified now suffices, R16), never gated. Prior blocked_on/block_reason preserved above/below for the record; this atom re-enters the normal draw for whichever lane/loop_stage it already carries.
-  block_reason: "H_harness/close_to_learn is off every open product front and fronts enforcement is ON, so filter_build_candidates excludes it; the BUILD needs a director BUILD_OPEN/FRONT_OPEN (R16); design and exit criteria are discharged."
-  dial_inherited: 3
-  records_rehomed: [evidence]
-  file_scope: [background, tests/background]
-  simplifications_count: 6
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a covenant-compliance test an auditor recomputes from the primary books -- the ledger, the filings, the register -- to a single pass/fail a third party can reproduce without the company''s own say-so, never a number the company asserts about itself"
-  depends_on: [HX2_stall_set_coverage_verdict]
-- id: HX2_stall_set_coverage_verdict
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  provenance: proposal
-  epoch: 2
-  level_current: 2
-  level_target: 3
-  loop_stage: harden
-  blocked_on: null   # 2026-07-29 blocked_on CLEARED (DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY_2026-07-29.md items 1+2): director_build_open/director_level_up are abolished as BLOCK TYPES -- there is no such thing as needing a build opened, and levels are proposed+recorded (ledger-backed, self-certification via background.gate_authorization.record_level_up_self_certified now suffices, R16), never gated. Prior blocked_on/block_reason preserved above/below for the record; this atom re-enters the normal draw for whichever lane/loop_stage it already carries.
-  block_reason: "H_harness/close_to_learn is off every open product front and fronts enforcement is ON, so filter_build_candidates excludes it; the BUILD needs a director BUILD_OPEN/FRONT_OPEN (R16); design and exit criteria are discharged."
-  dial_inherited: 3
-  records_rehomed: [evidence]
-  file_scope: [background, tests/background, docs/design]
-  simplifications_count: 7
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a control-coverage audit that walks each incident that actually occurred and asks whether an existing control would have caught it, adding the missing control rather than assuming the register was complete"
-  depends_on: []
-- id: HX3_counter_published_and_derivable
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  provenance: proposal
-  epoch: 2
-  level_current: 0
-  level_target: 3
-  loop_stage: build
-  blocked_on: null   # 2026-07-29 blocked_on CLEARED (DIRECTOR_RULING_RIP_OUT_PERMISSION_MACHINERY_2026-07-29.md items 1+2): director_build_open/director_level_up are abolished as BLOCK TYPES -- there is no such thing as needing a build opened, and levels are proposed+recorded (ledger-backed, self-certification via background.gate_authorization.record_level_up_self_certified now suffices, R16), never gated. Prior blocked_on/block_reason preserved above/below for the record; this atom re-enters the normal draw for whichever lane/loop_stage it already carries.
-  block_reason: "H_harness/close_to_learn is off every open product front and fronts enforcement is ON, so filter_build_candidates excludes it; the BUILD needs a director BUILD_OPEN/FRONT_OPEN (R16); design and exit criteria are discharged."
-  dial_inherited: 3
-  records_rehomed: [evidence]
-  file_scope: [background, tools, tests, docs/observability]
-  simplifications_count: 2
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a covenant-status line in the board pack that is computed from the compliance test rather than typed by management -- so no one can write 'in compliance' by hand while the underlying test says otherwise"
-  depends_on: [HX1_exit_criterion_counter_mechanise, HX2_stall_set_coverage_verdict]
 - id: CA4_cohort_activation_sequencing_verdict
   notes_rehomed: [name]
   lane: W2_customer_generator
@@ -3200,22 +2947,6 @@
   simplifications_count: 2
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier treasury in winter 2021/22: hedges are in the money on paper but exchange/counterparty variation-margin calls demand cash today against a forward that has moved -- the accounting P&L is positive while the liquidity runs out, the mechanism that actually killed several real GB suppliers (the mark-to-market P&L survived; the cash did not)"
-  records_rehomed: [evidence]
-- id: H29_import_time_env_capture_test_isolation
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 3
-  level_current: 0
-  level_target: 2
-  loop_stage: idle
-  dial_inherited: 3
-  provenance: proposal
-  file_scope: [background/ntfy_utils.py, tests/background/test_ntfy_utils.py]
-  depends_on: []
-  simplifications_count: 4
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a service that reads a secret into a constant at boot and is then impossible to rotate without a restart -- the same import-time-capture bug shape, where the test suite is the first place it shows up."
   records_rehomed: [evidence]
 - id: W2_16_payment_outcome_rng_substream_isolation
   notes_rehomed: [name, notes]
@@ -3398,39 +3129,6 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the GB retail switching market: comparison sites publish every rival tariff, a fraction of the book acts on a relative-price gap within weeks, and the incumbent learns it lost only when the erroneous-transfer/gaining-supplier flows arrive -- never by being told what the competitor was thinking"
   records_rehomed: [evidence]
-- id: B11_evolutionary_tournament_harness
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 4
-  level_current: 0
-  level_target: 3
-  loop_stage: idle
-  dial_inherited: 2
-  provenance: proposal
-  file_scope: [background/tournament_harness.py, tests/background/test_tournament_harness.py]
-  depends_on: [SPINE_1_scenario_world_state]
-  frame_saturated: true
-  simplifications_count: 2
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "how a quant fund actually selects a strategy: the same book is rerun across a library of stress worlds, each run scored on survival and return, the configurations that blow up are deleted rather than argued with, and the survivors are ranked -- the scoring rule is set by the investment committee, never by the backtester"
-  records_rehomed: [evidence]
-- id: OPS1_launcher_cutover_completion
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 2
-  level_current: 0
-  level_target: 3
-  loop_stage: idle
-  dial_inherited: 5
-  provenance: proposal
-  file_scope: [background/process_manifest.yaml]
-  depends_on: [OPS1_operational_layer_rebuild]
-  simplifications_count: 8
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a half-finished migration from one process supervisor to another, where the old launcher was never actually decommissioned -- so the service quietly runs twice and every message it consumes is handled twice, invisible until something acts on one of them."
-  records_rehomed: [evidence]
 - id: W1_11_fabric_physics_core
   notes_rehomed: [name]
   lane: W1_market_weather
@@ -3557,7 +3255,7 @@
   value_stream: close_to_learn
   epoch: 2
   level_current: 2
-  level_target: 3
+  level_target: 2
   loop_stage: build
   dial_inherited: 3
   provenance: proposal
@@ -3565,21 +3263,6 @@
   depends_on: []
   blocked_on: null
   simplifications_count: 7
-  records_rehomed: [evidence]
-- id: SP4_owned_quantity_registry_gate
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 2
-  level_current: 0
-  level_target: 3
-  loop_stage: build
-  dial_inherited: 3
-  provenance: proposal
-  file_scope: [tools, background/owned_quantity_registry.py, tests/tools]
-  depends_on: []
-  blocked_on: null
-  simplifications_count: 2
   records_rehomed: [evidence]
 - id: SP5_shared_primitive_ensuring_activity
   notes_rehomed: [name]
@@ -3776,34 +3459,6 @@
   blocked_on: null
   simplifications_count: 4
   records_rehomed: [evidence]
-- id: OPS_stall_class_register_adoption
-  notes_rehomed: [name]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 2
-  level_current: 2
-  level_target: 3
-  loop_stage: harden
-  dial_inherited: 3
-  provenance: proposal
-  file_scope: [background/stall_class_register.py, background/daily_self_note.py, tests/background/test_stall_class_register.py]
-  depends_on: []
-  blocked_on: null
-  simplifications_count: 3
-  records_rehomed: [evidence]
-
-# ---------------------------------------------------------------------------
-# DIRECTOR PROGRAMME "Architected out, organic in" (ratified 2026-08-05,
-# docs/staging/DIRECTOR_PROGRAMME_ARCHITECTED_OUT_2026-08-05.md). Absorbed into
-# the map 2026-08-08 -- the programme had sat 3 days CONSUMED (staged, read) but
-# not ABSORBED (no atom, so not drawable): the R17 defect the ruling itself warns
-# about. Order MAP -> NET -> KNIFE -> RHYTHM is RULED and strict; it is carried
-# here by depends_on, not by prose, so the draw cannot take a KNIFE pass before
-# the NET that protects it. Titles/gain follow the plain-words naming law
-# (DIRECTOR_RULING_H_LANE_CUT_AND_PLAIN_NAMING_2026-08-05 Ruling 2).
-# Several of these belong to the ruled OPS lane, which does not exist on the map
-# yet; filed H_harness with pending_lane_move, as H27 does.
-# ---------------------------------------------------------------------------
 - id: AO1_capability_index
   title: "The list of what we already have"
   gain: "A builder can find an existing capability in seconds, so the cheapest move stops being 'write it again'."
@@ -4231,14 +3886,14 @@
   epoch: 2
   level_current: 0
   level_target: 2
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['AO12_scale_probe_10k']
   couples_with: []
   records_rehomed: [evidence]
   simplifications_count: 2
-  file_scope: []
+  file_scope: [simulation/premise_population.py, tools/scale_probe_10k.py, tests/simulation/test_premise_population.py]
 - id: PB2_opening_book_won_not_assigned
   title: "The company starts with a real book, and it had to win it"
   gain: "A 13-account book stops being a stress test of the money machinery and starts being a small supplier."
@@ -4248,14 +3903,14 @@
   epoch: 2
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['PB1_population_target_and_its_price']
   couples_with: []
   records_rehomed: [evidence]
   simplifications_count: 2
-  file_scope: []
+  file_scope: [saas/customers.py, simulation/population_draw.py, tests/saas/test_customers.py]
 - id: PB3_book_growth_as_earned_outcome
   title: "A growth curve that can be lost"
   gain: "Book size becomes an outcome the company can fail at, instead of a number that goes up."
@@ -4265,13 +3920,13 @@
   epoch: 2
   level_current: 0
   level_target: 3
-  loop_stage: idle
+  loop_stage: build
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['PB2_opening_book_won_not_assigned']
   couples_with: ['W2_3_competitor_field']
   simplifications_count: 1
-  file_scope: []
+  file_scope: [simulation/net_new_acquisition.py, simulation/run_phase2b.py, tests/simulation/test_net_new_acquisition.py]
 
 # --- EPOCH 3: the wall becomes real transport (blocked -- R13 curriculum)
 - id: EP6_wall_protocol_typing
@@ -4282,7 +3937,7 @@
   value_stream: close_to_learn
   epoch: 3
   level_current: 2
-  level_target: 3
+  level_target: 2
   loop_stage: build
   dial_inherited: 3
   provenance: director_ruling

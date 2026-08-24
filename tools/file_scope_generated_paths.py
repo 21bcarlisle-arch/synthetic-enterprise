@@ -70,7 +70,11 @@ ARTEFACT_SUFFIXES = (".json", ".md", ".sqlite", ".csv")
 # unmerged-work guard whenever its named artefact is dirty, which for most of them is always.
 FROZEN: frozenset[tuple[str, str]] = frozenset({
     ("H14_judge_validation", "site/data"),
-    ("HX3_counter_published_and_derivable", "docs/observability"),
+    # ("HX3_counter_published_and_derivable", "docs/observability") removed 2026-08-24:
+    # the atom was retired (docs/design/RETIRED_ATOMS_2026-08-24.md), so the debt is gone
+    # rather than paid. This control's own message names the reason to delete it rather than
+    # leave it -- a freeze list that keeps entries for things that no longer exist stops
+    # being a shrinking debt list and becomes a place debt is forgotten.
     ("CA2_coverage_report_realised_cohort", "docs/observability/cohort_coverage_realised.json"),
     ("CA3_segmentation_untestable_ledger_marking",
      "docs/observability/segmentation_testability_ledger.json"),

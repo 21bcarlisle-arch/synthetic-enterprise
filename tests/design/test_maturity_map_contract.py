@@ -81,10 +81,8 @@ LEGACY_IDS = frozenset({
     "F1c_harness_conversation_gap",
     "H_GAP_fabric_belief_truth_gap",
     "H_draw_excludes_external_blocked_atoms",
-    "H_forward_discovery_draw",
     "H_stop_control_gap_characterisation",
     "OPS_run_marker_sweep_livelock",
-    "OPS_stall_class_register_adoption",
     "SITE_EH1_segment_disclosure",
     "SITE_EH2_predictions_ledger_can_fail",
     "SITE_EH3_figure_reconciliation_and_periods",
@@ -136,13 +134,9 @@ LEGACY_NUMBER_COLLISIONS = {
         "H24_precommit_gate_git_env_isolation",
         "H24_worktree_dir_autoreap",
     }),
-    ("H", "27"): frozenset({
-        "H27_payment_belief_gap",
-        "H27_phone_act_channel",
-    }),
+    # ("H", "27") entry deleted 2026-08-24: `H27_phone_act_channel` was retired
+    # (docs/design/RETIRED_ATOMS_2026-08-24.md) and the number no longer collides.
     ("OPS", "1"): frozenset({
-        "OPS1_governance_refusal_mutation_test",
-        "OPS1_launcher_cutover_completion",
         "OPS1_operational_layer_rebuild",
         "OPS1_session_watchdog_collapse",
         "OPS1_tmux_target_qualification",
@@ -448,6 +442,87 @@ def test_required_field_allowlisted_atom_does_not_fire():
     assert check_required_fields([atom]) == []
 
 
+# ============================================================================
+# (f) THE SELF-MINT RATCHET -- 2026-08-24
+# ============================================================================
+#
+# WHY THIS IS A CONTRACT CLAUSE AND NOT A NOTE IN CLAUDE.md. On 2026-08-24 `H_harness`
+# held 135 of the map's 316 atoms and 44 of the 112 still below target: two of every five
+# remaining work items in the project were the harness as its own subject. Sixty-two of the
+# 135 were `provenance: proposal` -- authored by the agent, for the agent, under the standing
+# licence in EPOCH_GATING_AND_ATOM_AUTHORSHIP.md -- and of the 23 below target NOT ONE had a
+# dependent outside that set. Nineteen were deleted (docs/design/RETIRED_ATOMS_2026-08-24.md).
+#
+# Deleting rows fixes today's queue and nothing about tomorrow's, and CLAUDE.md's own decay
+# rule is explicit that the difference between a rule that holds and a rule that evaporates
+# is whether it is a mechanism: "every rule that DECAYED was an exhortation; every rule that
+# HELD was a MECHANISM". So the count is a RATCHET, in the same doctrine as the LEGACY_*
+# allowlists above: it may only ever shrink.
+#
+# WHAT IT DOES NOT FORBID, which is the reason it keys on provenance rather than on lane. A
+# new harness atom carrying a director ruling, steer, programme or mandate, or an advisor
+# artefact, is unaffected -- the director asking for harness work has never been the problem.
+# What needs a bound is the agent commissioning it from itself, because that supply is
+# infinite by construction and always tractable, which is exactly the combination that wins
+# draws forever. Displacing an existing self-minted atom is also unaffected: close one, mint
+# one.
+SELF_MINTED_HARNESS_CEILING = 43
+
+
+def check_self_minted_harness_ceiling(atoms) -> int | None:
+    """(f) count of agent-authored H_harness atoms, or None when within the ratchet."""
+    n = sum(
+        1 for a in atoms
+        if a.get("lane") == "H_harness" and a.get("provenance") == "proposal"
+    )
+    return n if n > SELF_MINTED_HARNESS_CEILING else None
+
+
+def test_self_minted_harness_atoms_are_at_or_below_the_ratchet():
+    n = check_self_minted_harness_ceiling(load_atoms())
+    assert n is None, (
+        f"{n} agent-authored (provenance: proposal) H_harness atoms, ceiling is "
+        f"{SELF_MINTED_HARNESS_CEILING}. A new one needs a director ruling/steer/programme "
+        f"or an advisor artefact behind it, or it has to displace one already there. "
+        f"Lowering the ceiling to match a genuine cleanup is the ONLY edit this line takes."
+    )
+
+
+def test_MUTATION_one_atom_over_the_ratchet_fires():
+    """R15: the control fires on its own named defect -- one self-minted atom too many."""
+    atoms = [
+        _atom(id=f"H{i}_x", lane="H_harness", provenance="proposal")
+        for i in range(SELF_MINTED_HARNESS_CEILING + 1)
+    ]
+    assert check_self_minted_harness_ceiling(atoms) == SELF_MINTED_HARNESS_CEILING + 1
+
+
+def test_MUTATION_a_director_provenance_harness_atom_does_NOT_count():
+    """The null control on the subject set, and the clause that keeps this from being a lane cap.
+
+    Same lane, same count, different provenance. If this ever reds, the ratchet has started
+    refusing the director his own harness work, which is not what it was measured to fix.
+    """
+    atoms = [
+        _atom(id=f"H{i}_x", lane="H_harness", provenance="director_ruling")
+        for i in range(SELF_MINTED_HARNESS_CEILING * 2)
+    ]
+    assert check_self_minted_harness_ceiling(atoms) is None
+
+
+def test_MUTATION_a_self_minted_atom_on_a_WORLD_lane_does_NOT_count():
+    """The other null control: the ratchet is about the harness, not about self-authorship.
+
+    Agent-authored atoms on the world and company lanes are the project working as designed
+    -- they are where the fortnight's measurement said the project was UNDER-spending.
+    """
+    atoms = [
+        _atom(id=f"W1_{i}_x", lane="W1_market_weather", provenance="proposal")
+        for i in range(SELF_MINTED_HARNESS_CEILING * 2)
+    ]
+    assert check_self_minted_harness_ceiling(atoms) is None
+
+
 if __name__ == "__main__":  # pragma: no cover
     import sys
     _atoms = load_atoms()
@@ -458,6 +533,7 @@ if __name__ == "__main__":  # pragma: no cover
         "edges": check_edges(_atoms, _ids),
         "field_types": check_field_types(_atoms),
         "required_fields": check_required_fields(_atoms),
+        "self_minted_harness": check_self_minted_harness_ceiling(_atoms),
     }
     live = {k: v for k, v in problems.items() if v}
     if live:

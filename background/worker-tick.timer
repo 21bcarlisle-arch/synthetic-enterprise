@@ -25,10 +25,37 @@ OnBootSec=30s
 # this is slowed and NOT stopped: the kill switch (`.build_executor_enabled`) would also take that
 # away, and it is director-reserved besides.
 #
-# REVERT ON MONDAY 2026-08-24 when the allowance resets: restore `OnUnitActiveSec=60s` here and
-# re-enable worker-tick.path (`systemctl --user enable --now worker-tick.path`), and put both rows
-# in background/schedule_manifest.yaml back to enabled/active: true.
-OnUnitActiveSec=14400s
+# ── MONDAY 2026-08-24: REVERTED, BUT NOT TO 60s ────────────────────────────────────────────────
+# The stand-down's revert fell due today and the director handed the cadence over with it. Going
+# straight back to 60s was refused on the weekend's own measurement, and the reasoning is worth
+# more than the number.
+#
+# THE WEEKEND WAS AN EXPERIMENT NOBODY DESIGNED, AND IT RETURNED A RESULT. Cutting tick spawns ~90%
+# (66/day to ~6/day) cost nothing measurable: publishing ran untouched, and the work not done was
+# investigation that moved no level. Read against the fortnight either side, that is not a story
+# about the weekend — it is a story about what the ticks were choosing. Level moves, from
+# `gate_authorizations.jsonl`: 2026-08-19 was the last day any level moved AT ALL. 08-20 and 08-21
+# ran the FULL 60s cadence, ~66 Opus invocations each, and recorded ZERO. So the collapse predates
+# the stand-down by two full-rate days, and rate cannot be its cause.
+#
+# WHAT THE TICKS WERE DOING INSTEAD, measured the same morning: `EP6_wall_protocol_typing` had taken
+# 55 build passes since its level last moved and `SITE2_two_sided_wall_exhibit` 18, both invisible
+# to a pass ceiling that was wired only to the idle tier. `H_harness` held 135 of the map's 316
+# atoms. Meanwhile PB1/PB2/PB3 — the director's own 2026-08-11 ruling, and the only reader-visible
+# work in the queue — sat `loop_stage: idle`, structurally undrawable for BUILD, for thirteen days.
+#
+# 30 MINUTES, AND WHY A MIDDLE RATHER THAN EITHER END. The draw changed this morning (build atoms
+# now hit a ceiling; nineteen self-minted harness atoms retired; the PB atoms promoted to build).
+# Restoring 60s the same hour would spend a full week's allowance proving a draw that has not run
+# once. Staying at 4h would leave the change unmeasured. At OnUnitActiveSec — spacing is
+# tick-duration + this value, and a tick runs 15-30 min — 30 min gives roughly 20-30 ticks/day
+# against the fortnight's 66.
+#
+# THE TEST, so this is not a number someone has to re-litigate from taste: if the changed draw
+# produces level moves and reader-visible landings at this rate, restore 60s. If it does not, the
+# rate was never the constraint and 60s would only have bought more of the fortnight. Either
+# outcome is an answer; the current number is the one that lets the question be asked.
+OnUnitActiveSec=1800s
 Persistent=true
 
 [Install]

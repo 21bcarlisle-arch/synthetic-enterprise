@@ -86,7 +86,9 @@ systemd_units:
     enabled: true            # LIVE (cutover 2026-07-20): boot-start, WantedBy=timers.target
     active: true             # LIVE: armed — an un-armed continuity timer is fail-silent (R15)
     reason: >-
-      The 60s wake backstop + origin-staged-doc path. LIVE since the 2026-07-20 cutover. This is the
+      The wake backstop + origin-staged-doc path, at 30 min since 2026-08-24 (was 60s to 08-22,
+      4h over the weekend stand-down; the timer file carries the full reasoning and the test that
+      decides whether it goes back to 60s). LIVE since the 2026-07-20 cutover. This is the
       continuity heartbeat's replacement: level-triggered (did the timer fire?) instead of the
       edge-triggered stop-hook re-arm that could not stay alive (3 failures in ~30h: input-block,
       death-on-API-error, token-burn). Independent of worker-tick.path (R15: either trigger alone
@@ -94,8 +96,8 @@ systemd_units:
 
   - name: worker-tick.path
     unit_file: background/worker-tick.path
-    enabled: false           # WEEKEND BUDGET STAND-DOWN 2026-08-22 — re-enable Monday 2026-08-24
-    active: false            # WEEKEND BUDGET STAND-DOWN 2026-08-22 — re-enable Monday 2026-08-24
+    enabled: false           # STAYS DOWN 2026-08-24 — the wake it provides is the publisher's own
+    active: false            # marker, not a staged doc. See the reason block.
     reason: >-
       The fast local-staged-doc wake (~seconds vs the timer). LIVE from the 2026-07-20 cutover until
       2026-08-22, STOOD DOWN for the weekend at 94% weekly allowance (director: "conserving is now
@@ -112,7 +114,24 @@ systemd_units:
       picked up by the tick at minute 240 rather than missed.
       Publishing is NOT affected either way: process_run_complete.py is driven by sim_runner.py,
       which spawns no model and does not route through the tick.
-      REVERT: `systemctl --user enable --now worker-tick.path` and set both fields back to true.
+      NOT REVERTED ON 2026-08-24, and the weekend's own reason block above is why. This unit is
+      PathModified on docs/staging; the only thing that modifies docs/staging on a cadence is
+      sim_runner.py dropping a run_complete_*.md marker every ~25 min. So what this unit actually
+      delivers is not "a fast wake on a staged doc" — it is the PUBLISHER RINGING THE WORKER'S OWN
+      DOORBELL every 25 minutes, forever, whether or not any work exists. That was written down as
+      a coupling to be managed on 2026-08-22; read again on 2026-08-24 against the fortnight's
+      measurement (zero level moves on two full-cadence days) it is better named as one of the
+      structures generating work nobody needed, and the director handed the machinery over that
+      morning to change exactly this.
+      WHAT IS LOST, stated rather than waved past: a genuine director-staged doc now waits for the
+      timer instead of waking in seconds. That is a LATENCY cost only and it is bounded by the
+      timer's 30 min — nothing is dropped, because the timer tick runs _sync_origin_staging and
+      re-globs the whole staging directory. The ntfy responder writes staged docs to the same
+      directory and is unaffected.
+      REVERT, if the latency turns out to matter more than the treadmill:
+      `systemctl --user enable --now worker-tick.path` and set both fields back to true. The
+      honest fix, if it is ever wanted, is a path unit that ignores run_complete_*.md rather than
+      one that treats the publisher's heartbeat as a doorbell.
 
   - name: daily-self-note.service
     unit_file: background/daily-self-note.service
