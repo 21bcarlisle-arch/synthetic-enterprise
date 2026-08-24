@@ -3621,11 +3621,11 @@ Arrears: DESNZ business energy debt (GREEN <8%, crisis <12%).
 | 2018 | 5.01% | 6% | OK | 31.6% | 8% | ! |
 | 2019 | 4.61% | 6% | OK | 33.3% | 8% | ! |
 | 2020 | 4.44% | 6% | OK | 32.9% | 8% | ! |
-| 2021 | 4.25% | 8% | OK | 32.3% | 12% | ! |
-| 2022 | 4.32% | 8% | OK | 19.5% | 12% | ! |
-| 2023 | 4.22% | 8% | OK | 18.6% | 12% | ! |
-| 2024 | 4.18% | 6% | OK | 11.8% | 8% | ~ |
-| 2025 | 4.69% | 6% | OK | 8.1% | 8% | ~ |
+| 2021 | 4.25% | 8% | OK | 41.7% | 12% | ! |
+| 2022 | 4.32% | 8% | OK | 36.6% | 12% | ! |
+| 2023 | 4.22% | 8% | OK | 43.1% | 12% | ! |
+| 2024 | 4.18% | 6% | OK | 37.7% | 8% | ! |
+| 2025 | 4.69% | 6% | OK | 31.9% | 8% | ! |
 
 **Complaints:** 10 of 10 years GREEN (I&C baseline 2-6% normal, 2-8% crisis).
 **Arrears:** 0 of 10 years GREEN (DESNZ I&C baseline <8% normal, <12% crisis).
@@ -3870,17 +3870,17 @@ the model ever flag this customer, at any renewal, before they left?
 
 ## Scenario Sensitivity Analysis (Phase PZ)
 
-Live portfolio (60 active customers) under 12-month forward scenarios.
-Generated: 2026-08-24T22:42:41Z
+Live portfolio (235 active customers) under 12-month forward scenarios.
+Generated: 2026-08-24T23:01:02Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
 | Scenario | Elec Fwd (£/MWh) | Gas Fwd (£/MWh) | Hedge Rec | Renewing | Exposure Delta |
 |----------|------------------|-----------------|-----------|----------|----------------|
 | Base | 86.7 | 55.1 | INCREASE | 0 | — |
-| Bull | 56.1 | 35.7 | INCREASE | 0 | £-400,517 |
-| Bear | 147.9 | 93.8 | INCREASE | 0 | +£801,034 |
-| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£1,571,061 |
+| Bull | 56.1 | 35.7 | INCREASE | 0 | £-409,100 |
+| Bear | 147.9 | 93.8 | INCREASE | 0 | +£818,200 |
+| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£1,607,683 |
 
 **Scenario labels:**
 - **Base**: Base (normal OU, long-run mean start)

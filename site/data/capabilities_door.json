@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-08-24T23:00:55Z",
- "git_commit": "4679439761a1f8e7ded23be329fc230865042e14",
+ "generated_at": "2026-08-24T23:41:04Z",
+ "git_commit": "9cf9983d47e1f7429fb847ff4f1311ca65d3d833",
  "sources": {
   "record": "site/data/maturity_map.json",
   "status_rule": "site/moap_stage.py (Live / Building / Planned)",
@@ -597,10 +597,10 @@
  "scale": {
   "figures": [
    {
-    "value": 75,
+    "value": 258,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-08-24T21:44:53Z"
+    "as_of": "2026-08-24T23:00:59Z"
    },
    {
     "value": 261,
@@ -610,7 +610,7 @@
    }
   ],
   "agree": false,
-  "low": 75,
+  "low": 258,
   "high": 261,
   "real_world": "A real GB supplier serves hundreds of thousands to millions of homes."
  },
@@ -624,8 +624,8 @@
     "when": "being worked on now",
     "waiting_on_count": 0
    },
-   "title": "The book is 75\u2013261 customers",
-   "what": "Everything on this page is true of a supplier with 75\u2013261 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 75 (accounts in the live customer feed), 261 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
+   "title": "The book is 258\u2013261 customers",
+   "what": "Everything on this page is true of a supplier with 258\u2013261 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 258 (accounts in the live customer feed), 261 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
   },
   {
    "plan": {
