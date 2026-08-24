@@ -92,28 +92,48 @@ EXCLUDED_SUBPATHS = {
                 "linked from any live nav; not a user-facing reporting surface",
 }
 
-# Live surfaces that MUST render a net-margin figure. Auto-discovery (a content
-# glob) cannot notice a surface that has gone blank — an emptied/truncated deploy
-# renders no net-margin token and simply drops out of the discovered set, passing
-# the disclosure scan silently. So the core control also asserts these surfaces
-# are PRESENT, non-empty and still rendering their figure; an unavailable expected
-# surface is a VIOLATION (R15 fail-silent doctrine — an unavailable check has
-# FAILED, not succeeded). Kept in lockstep with the must_include set below.
-EXPECTED_NET_MARGIN_SURFACES = (
-    "project/index.html",
-    "customers/index.html",
-    "company/index.html",   # the nav-linked surface the four-item hand-registry missed
-    # (2026-07-28 HARDEN red-team) two further LIVE nav-linked doors were found
-    # rendering the net_margin_gbp figure yet sitting OUTSIDE this fail-silent
-    # registry -- an emptied deploy of either would have passed the control green.
-    # site/index.html links "./proof/" as a top-level door and "./now/" as "the
-    # business right now". They are load-bearing public reporting surfaces, so an
-    # emptied/vanished deploy of either is a fail-silent VIOLATION, not a pass.
-    # test_no_live_net_margin_surface_escapes_expected_registry now forbids this
-    # registry from ever going stale again (discovered subset of EXPECTED).
-    "now/index.html",
-    "proof/index.html",
+# Doors that MUST render a net-margin figure, and the two things that changed about
+# this registry on 2026-08-24.
+#
+# WHY IT WENT RED FOR FOUR DAYS. It used to be a literal tuple of five page paths --
+# project, customers, company, now, proof. Every one of them was DELETED on 2026-08-20
+# ("The five tabs are the site now", 03dd8c49e), so this control failed on all five with
+# "expected net-margin surface missing/unreadable" and stayed failing, because nothing in
+# any subsequent commit's path selection reached this file. That commit's own message names
+# the class -- "a generator that outlives its page is how a deleted surface returns" -- and
+# says 87 controls carrying literal page lists were rewritten to DERIVE from the built site.
+# This one was missed. It is the last of them.
+#
+# WHY IT IS NOW EMPTY, which is a RULING and not rot. RC7 (director, 2026-07-24) forbids a
+# cohort-derived pound aggregate from leading a public surface: "a share of revenue and an
+# account count, never a total". site/index.html carries that ruling in its own source and
+# deliberately does not render the margin figures a later brief asked for. Measured on this
+# tree: ZERO live pages match NET_MARGIN_KEY. So the invariant "a net-margin figure carries
+# its clock" currently has no subjects -- not because the check broke, because the director
+# removed the figures.
+#
+# THE EMPTY SET IS DECLARED, NEVER SILENT. An empty registry that simply passes is R15's
+# fail-silent pattern wearing a green tick, so `EXPECTED_EMPTY_REASON` is REQUIRED whenever
+# this tuple is empty and a test enforces it. And entries are DOOR AREAS checked against
+# `site/ia_register.py`, not free-text paths: naming a door the IA register no longer
+# advertises now FAILS here, so deleting a door is one edit in the register plus a loud
+# refusal here, instead of a control that quietly rots for four days.
+EXPECTED_NET_MARGIN_DOORS: tuple[str, ...] = ()
+
+EXPECTED_EMPTY_REASON = (
+    "RC7 (director ruling, 2026-07-24): no cohort-derived pound aggregate may lead a public "
+    "surface -- 'a share of revenue and an account count, never a total'. No advertised door "
+    "renders a net-margin figure, so the disclosure invariant has no subjects. If a margin "
+    "figure returns to a public door, add that door here and the control has teeth again."
 )
+
+
+def _door_to_page(door: str) -> str:
+    """'/capabilities/' -> 'capabilities/index.html'; '/' -> 'index.html'."""
+    return (door.strip("/") + "/index.html").lstrip("/")
+
+
+EXPECTED_NET_MARGIN_SURFACES = tuple(_door_to_page(d) for d in EXPECTED_NET_MARGIN_DOORS)
 
 
 def _is_excluded(path: Path) -> bool:
@@ -194,30 +214,78 @@ def test_all_live_net_margin_surfaces_carry_a_clock_disclosure():
     )
 
 
-def test_control_discovers_more_than_the_original_hand_registry():
-    """Guard the red-team finding itself: auto-discovery must see AT LEAST the
-    four originally-registered surfaces PLUS site/company/index.html (the live
-    nav-linked surface the atom's hand-registry omitted). If discovery ever
-    silently drops below this set the control has gone blind."""
+def test_discovery_and_the_registry_agree_about_which_doors_report_margin():
+    """Replaces a `must_include` set of three pages that no longer exist.
+
+    The old assertion pinned discovery to project/, customers/ and company/ so the control
+    could not "go blind" -- a good instinct that became the blindness itself the day those
+    pages were deleted: the guard against silence was three literals with nothing checking
+    they still referred to anything. What survives the deletion is the RELATION, so that is
+    what is asserted now: everything the registry expects must actually be discovered, and
+    anything discovered on an advertised door must be in the registry. Both directions, no
+    literals, and it re-arms itself the moment a margin figure returns to a public door.
+    """
     discovered = {p.relative_to(SITE).as_posix() for p in _discovered_live_surfaces(SITE)}
-    must_include = {
-        # NOTE (2026-07-18, Campaign A front-door rebuild): the ROOT index.html
-        # was deliberately re-pitched to treasury/EV/opex-per-household pulses and
-        # no longer renders a net-margin figure (verified: 0 net-margin tokens;
-        # see site/test_home_door.py which asserts treasury_end_gbp / opex pulses).
-        # It is therefore correctly NOT a net-margin surface any more -- net-margin
-        # coverage is preserved on the four below (incl. the nav-linked company
-        # door). Dropping it here tracks a real design change, not discovery going
-        # blind; the disclosure invariant + R15 mutation guard are unchanged.
-        # (2026-07-19 v4 retirement) supplier/index.html retired -- the old Supplier
-        # split re-homes into The Company; its net-margin+disclosure coverage lives
-        # on company/index.html below, so discovery is unchanged, not going blind.
-        "project/index.html",
-        "customers/index.html",
-        "company/index.html",  # the surface the four-item hand-registry missed
-    }
-    missing = must_include - discovered
-    assert not missing, f"control no longer discovers live net-margin surfaces: {missing}"
+
+    missing = set(EXPECTED_NET_MARGIN_SURFACES) - discovered
+    assert not missing, (
+        "the registry expects these doors to render a net-margin figure and discovery cannot "
+        f"find one on them -- a blank or truncated deploy, or a stale registry: {missing}"
+    )
+
+    import sys
+    sys.path.insert(0, str(SITE))
+    import ia_register  # noqa: PLC0415 -- the canonical door list, deliberately imported here
+
+    advertised_pages = {_door_to_page(d) for d in ia_register.CANONICAL_NAV_AREAS}
+    unregistered = (discovered & advertised_pages) - set(EXPECTED_NET_MARGIN_SURFACES)
+    assert not unregistered, (
+        "an ADVERTISED door renders a net-margin figure and is not in the registry, so an "
+        f"emptied deploy of it would pass this control silently: {unregistered}"
+    )
+
+
+def test_the_registry_can_only_name_doors_the_IA_REGISTER_STILL_ADVERTISES():
+    """THE MECHANISM THAT STOPS THIS GOING STALE AGAIN, and the reason it is worth a test
+    of its own rather than a line in the one above.
+
+    This module's four-day red was not a wrong value, it was an UNANCHORED one: five page
+    paths, maintained by hand, with nothing tying them to the site's own list of doors. So
+    deleting a door left this file's idea of the site untouched and wrong. Anchoring the
+    registry to `site/ia_register.py` makes that impossible in the only way that lasts --
+    the next door deletion fails HERE, by name, with the fix stated.
+    """
+    import sys
+    sys.path.insert(0, str(SITE))
+    import ia_register  # noqa: PLC0415
+
+    advertised = set(ia_register.CANONICAL_NAV_AREAS)
+    unknown = [d for d in EXPECTED_NET_MARGIN_DOORS if d not in advertised]
+    assert not unknown, (
+        f"this registry names {unknown}, which the IA register no longer advertises. A door "
+        "was deleted and this control was not told. Remove it here too, or restore it there."
+    )
+
+
+def test_an_EMPTY_registry_must_say_why_rather_than_pass_quietly():
+    """R15 fail-silent, in the shape this control is most likely to meet it.
+
+    An empty expected-set makes the fail-silent guard a no-op: every check below it iterates
+    nothing and returns green. That is indistinguishable from a healthy site, so the emptiness
+    has to carry its own reason -- and the reason has to be a real one, not a blank string
+    somebody left to make a red go away.
+    """
+    if EXPECTED_NET_MARGIN_DOORS:
+        return
+    assert EXPECTED_EMPTY_REASON.strip(), (
+        "the expected-surface registry is empty and says nothing about why, so this control "
+        "now passes on any site at all and nobody can tell"
+    )
+    assert len(EXPECTED_EMPTY_REASON) > 80, "an empty registry needs a reason, not a word"
+    assert not _discovered_live_surfaces(SITE), (
+        "the registry is declared empty on the grounds that no page renders a net-margin "
+        "figure, and discovery just found one -- the declaration is out of date"
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -225,24 +293,44 @@ def test_control_discovers_more_than_the_original_hand_registry():
 # --------------------------------------------------------------------------- #
 
 def test_control_fires_on_stripped_disclosure(tmp_path):
-    """MUTATION: take a real compliant surface, strip its disclosure tokens, and
-    assert the control now flags it. A control that cannot fire is theatre."""
-    real = SITE / "company" / "index.html"   # (v4) supplier retired; company is the live twin
-    text = real.read_text(encoding="utf-8", errors="replace")
-    assert NET_MARGIN_KEY.search(text) and DISCLOSURE.search(text), (
-        "precondition: company page must currently be a compliant net-margin surface"
+    """MUTATION: a compliant net-margin surface, stripped of its disclosure tokens, must be
+    flagged. A control that cannot fire is theatre.
+
+    THE SUBJECT IS BUILT HERE AND NOT BORROWED. This test used to read
+    `site/company/index.html` as its "real compliant surface" and mutate that. When the page
+    was deleted the mutation test died with a FileNotFoundError -- so the one test whose whole
+    job is proving the control still has teeth was the one that stopped being able to run, and
+    it stopped for a reason that had nothing to do with the control. An R15 proof that depends
+    on a live page is only as durable as that page. This one owns its subject.
+    """
+    compliant = (
+        "<html><body>"
+        '<span class="kpi-basis">settled clock</span>'
+        '<span id="x">net_margin_gbp</span>'
+        "</body></html>"
     )
-    # Remove every disclosure token — the net-margin figure remains.
-    mutated = DISCLOSURE.sub("XXX", text)
+    assert NET_MARGIN_KEY.search(compliant) and DISCLOSURE.search(compliant), (
+        "precondition: the built subject must be a compliant net-margin surface"
+    )
+    mutated = DISCLOSURE.sub("XXX", compliant)
     assert NET_MARGIN_KEY.search(mutated), "mutation must keep the net-margin figure"
     assert not DISCLOSURE.search(mutated), "mutation must remove all disclosure tokens"
 
     fake_site = tmp_path / "site"
     (fake_site / "supplier").mkdir(parents=True)
     (fake_site / "supplier" / "index.html").write_text(mutated, encoding="utf-8")
+    # The NULL half, in the same test so the two can never drift apart: unmutated, the very
+    # same bytes must produce NO violation. Without it "the control flags things" is equally
+    # satisfied by a control that flags everything.
+    (fake_site / "clean").mkdir(parents=True)
+    (fake_site / "clean" / "index.html").write_text(compliant, encoding="utf-8")
+
     violations = net_margin_surfaces_missing_disclosure(fake_site)
     assert any("supplier" in p.as_posix() for p, _ in violations), (
         "R15: control FAILED to fire on a net-margin surface stripped of its disclosure"
+    )
+    assert not any("clean" in p.as_posix() for p, _ in violations), (
+        "the control flags a COMPLIANT surface, so firing on the mutant proves nothing"
     )
 
 
