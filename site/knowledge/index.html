@@ -7,6 +7,12 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <link rel="stylesheet" href="../brand/brand.css">
+<!-- Freshness banner (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10, property 3): this page
+     renders live figures, so it must state how current they are. One line, one asset,
+     no page-authored freshness sentence -- see site/assets/freshness-banner.js. The index
+     joined this population on 2026-08-24, when its review badges started coming from the
+     record rather than from hand-typed markup. -->
+<script src="../assets/freshness-banner.js" defer></script>
 <style>
 /* Brand palette consumed from ../brand/brand.css (BRAG tokens, no raw hex). */
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -30,9 +36,18 @@ a.card:hover { border-color: var(--teal); }
 .muted { color: var(--muted); font-size: 12px; }
 .inline-link { color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--border); }
 .inline-link:hover { border-bottom-color: var(--blue); }
-.stub-badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .03em;
+/* The review badge is EMPTY in the markup and filled from the record. It carried the word
+   "Stub" in hand-typed markup until 2026-08-24, by which time all seven pages it said that
+   about had been written and checked against published sources -- the index went on calling
+   them unwritten for six days while each page's own header said "A written page, not a
+   stub." Nothing here may state a review state; the state comes from the feed. */
+.state-badge { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: .03em;
   border-radius: 4px; padding: 2px 6px; vertical-align: middle; margin-left: 6px;
-  color: var(--amber); border: 1px solid var(--amber); }
+  color: var(--muted); border: 1px solid var(--border); }
+.state-badge:empty { display: none; }
+.state-badge.rev-fresh { color: var(--blue); border-color: var(--blue); }
+.state-badge.rev-due { color: var(--amber); border-color: var(--amber); }
+.state-badge.rev-unchecked { color: var(--amber); border-color: var(--amber); }
 footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 11px; color: var(--muted); }
 
 /* Mobile pass. Added 2026-08-20: these pages had no breakpoint at all -- the control that
@@ -66,32 +81,112 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     <a class="inline-link" href="../harness/">Proof</a>.
   </p>
 
-  <div class="sec">Published</div>
-  <a class="card" href="./electricity-wholesale/">
-    <div class="card-h">How GB wholesale electricity prices are formed</div>
-    <div class="card-p">
-      Merit order, marginal pricing and the half-hourly settlement cycle — how a
-      price emerges from the stack, and what moves it.
-    </div>
-  </a>
-
-  <div class="sec">Stubs — not yet written</div>
-  <p class="muted" style="margin-bottom:12px;">
-    These nodes hold their place in the GB wholesale-energy domain graph. Each
-    states what a complete treatment will cover and how it connects to the
-    topics around it, and says plainly that the full explanation is not yet
-    written. They are linked rather than hidden because that is what they were
-    built to be — an honest stub is a published page; a page nobody can reach is
-    not.
+  <div class="sec">The topics</div>
+  <p class="muted" style="margin-bottom:12px;" id="review-note">
+    Each card carries the state of that page's last check against its published
+    source. The badge is read from the same record the page itself reads, against
+    your clock rather than the clock at publish time — so a page that goes past its
+    review threshold says so here before you click into it.
   </p>
-  <a class="card" href="./gas-wholesale/"><div class="card-h">Gas wholesale <span class="stub-badge">Stub</span></div></a>
-  <a class="card" href="./gb-electricity-market/"><div class="card-h">The GB electricity market <span class="stub-badge">Stub</span></div></a>
-  <a class="card" href="./merit-order-residual-demand/"><div class="card-h">Merit order and residual demand <span class="stub-badge">Stub</span></div></a>
-  <a class="card" href="./hedging-forward-market/"><div class="card-h">Hedging and the forward market <span class="stub-badge">Stub</span></div></a>
-  <a class="card" href="./imbalance-cashout-settlement/"><div class="card-h">Imbalance, cash-out and settlement <span class="stub-badge">Stub</span></div></a>
-  <a class="card" href="./price-cap/"><div class="card-h">The price cap <span class="stub-badge">Stub</span></div></a>
-  <a class="card" href="./carbon-price/"><div class="card-h">Carbon price <span class="stub-badge">Stub</span></div></a>
+
+  <!-- REAL <a> links, not built by script (tools/site_reachability.py strips inline scripts
+       before reading hrefs, on purpose: a route only JavaScript can build is not a route a
+       crawler or a reader with failed JS can follow). Card TITLE and BLURB are quoted from
+       site/data/knowledge_wholesale.json and site/knowledge/test_index_reflects_the_record.py
+       fails if either drifts from it. The badge is left EMPTY here and filled below. -->
+  <a class="card" href="./electricity-wholesale/">
+    <div class="card-h">GB electricity wholesale <span class="state-badge" id="state-electricity-wholesale"></span></div>
+    <div class="card-p">How the GB wholesale electricity price is set at the margin.</div>
+  </a>
+  <a class="card" href="./gas-wholesale/">
+    <div class="card-h">GB gas wholesale <span class="state-badge" id="state-gas-wholesale"></span></div>
+    <div class="card-p">The GB gas market whose price sets the marginal plant's bid for most hours -- a market in its own right, not a driver-stub of electricity.</div>
+  </a>
+  <a class="card" href="./gb-electricity-market/">
+    <div class="card-h">The GB electricity market (structure &amp; settlement) <span class="state-badge" id="state-gb-electricity-market"></span></div>
+    <div class="card-p">The half-hourly settled market these prices live in.</div>
+  </a>
+  <a class="card" href="./merit-order-residual-demand/">
+    <div class="card-h">Merit order &amp; residual demand <span class="state-badge" id="state-merit-order-residual-demand"></span></div>
+    <div class="card-p">The cheapest-first dispatch queue and the demand left after renewables.</div>
+  </a>
+  <a class="card" href="./carbon-price/">
+    <div class="card-h">The UK carbon price (UK ETS + CPS) <span class="state-badge" id="state-carbon-price"></span></div>
+    <div class="card-p">Carbon Price Support plus the traded ETS price, added to every tonne burned.</div>
+  </a>
+  <a class="card" href="./imbalance-cashout-settlement/">
+    <div class="card-h">Imbalance &amp; cash-out <span class="state-badge" id="state-imbalance-cashout-settlement"></span></div>
+    <div class="card-p">How the system prices being short or long, up to the £6,000/MWh ceiling.</div>
+  </a>
+  <a class="card" href="./hedging-forward-market/">
+    <div class="card-h">Hedging &amp; the forward market <span class="state-badge" id="state-hedging-forward-market"></span></div>
+    <div class="card-p">How a supplier buys ahead to blunt the price it would otherwise face.</div>
+  </a>
+  <a class="card" href="./price-cap/">
+    <div class="card-h">The retail price cap <span class="state-badge" id="state-price-cap"></span></div>
+    <div class="card-p">How the wholesale price reaches the household through Ofgem's cap -- a retail boundary of the wholesale domain.</div>
+  </a>
 </div>
+<script>
+// THE REVIEW RULE, mirrored from site/knowledge/review_state.py -- byte-identical to the
+// copy every topic page carries, and graded against the Python by
+// site/knowledge/test_index_reflects_the_record.py on every topic and every threshold
+// boundary. It is computed here rather than read from site/data/knowledge_review.json
+// because a state frozen at publish time is the fail-open this control exists to prevent:
+// if publishing stopped, a page past its threshold would go on reporting itself fresh.
+function reviewState(topic, policy, today){
+  var days = (policy && policy.threshold_days && policy.threshold_days[topic && topic.rate_of_change]) || 92;
+  var rec = (topic && topic.reviewed) || {};
+  var raw = rec.last_verified;
+  var when = (typeof raw === "string") ? new Date(raw.slice(0,10) + "T00:00:00Z") : null;
+  if (!when || isNaN(when.getTime())) {
+    // FOUR states. A STUB declares itself unwritten and makes no claim to distrust; an
+    // UNCHECKED page makes a full argument nobody has verified. Only a CHECK moves either.
+    if (!topic || topic.kind !== "page") {
+      return { state:"stub", label:"Not written yet", days_allowed:days, written:null,
+               detail:"This page names its topic and says it is not written. It makes no claim to check." };
+    }
+    return { state:"unchecked", label:"Written, awaiting check", days_allowed:days,
+             written: rec.written || null,
+             detail:(rec.written ? "Written " + rec.written + ". " : "") +
+                    "The explanation below has not been checked against the published source." };
+  }
+  var age = Math.floor((today - when) / 86400000);
+  if (age - days > 0) {
+    return { state:"due", label:"Review due", days_allowed:days, age_days:age,
+             detail:"Last checked " + age + " days ago; this subject is meant to be re-checked every " + days + " days." };
+  }
+  return { state:"fresh", label:"Reviewed " + raw, days_allowed:days, age_days:age,
+           detail:"Checked " + age + " days ago against a " + days + "-day threshold." +
+                  (rec.source ? " Source: " + rec.source + "." : "") };
+}
+
+function renderBadges(feed, today){
+  var policy = feed && feed.review_policy;
+  var topics = (feed && feed.topics) || [];
+  for (var i = 0; i < topics.length; i++) {
+    var t = topics[i];
+    var el = document.getElementById("state-" + t.id);
+    if (!el) { continue; }
+    var s = reviewState(t, policy, today);
+    el.textContent = s.label;
+    el.className = "state-badge rev-" + s.state;
+    el.setAttribute("title", s.detail || "");
+  }
+}
+
+// FAIL-CLOSED. An unreadable feed leaves every badge EMPTY and says so. It must never
+// leave the cards looking checked -- an unavailable check is a failed check (R15), and
+// the shape that reaches a reader is the feed 404ing after a good deploy.
+fetch("../data/knowledge_wholesale.json?t=" + Date.now())
+  .then(function (r) { return r.json(); })
+  .then(function (feed) { renderBadges(feed, new Date()); })
+  .catch(function () {
+    document.getElementById("review-note").textContent =
+      "The review record could not be loaded, so these cards show the pages without their " +
+      "review state. Each page carries its own last-checked date on its header.";
+  });
+</script>
 <footer>
   Reference material. Figures on linked pages carry their own source and vintage.
   <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</div>
