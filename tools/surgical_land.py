@@ -111,7 +111,6 @@ from __future__ import annotations
 import argparse
 import atexit
 import os
-import re
 import shutil
 import signal
 import subprocess
@@ -134,7 +133,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from background import staging_root_resurrection_watch  # noqa: E402  (same reason)
+from background import child_diagnostics, staging_root_resurrection_watch  # noqa: E402
 from background.tree_lock import tree_lock  # noqa: E402  (needs the path insert above)
 
 # The gate is the repo's OWN hook, named in ONE place. Running a hand-picked subset here would
@@ -534,7 +533,7 @@ def run_gate(checkout: Path, hook_rel: str = HOOK_REL) -> tuple[int, str]:
     return r.returncode, (r.stdout or "") + (r.stderr or "")
 
 
-_PYTEST_SUMMARY = re.compile(r"^.*\b(\d+ (?:passed|failed|error)[^\n]*)$", re.M)
+_PYTEST_SUMMARY = child_diagnostics.PYTEST_SUMMARY
 
 
 def _test_summary(output: str) -> str:
@@ -545,62 +544,32 @@ def _test_summary(output: str) -> str:
     return hits[-1].strip() if hits else "not parsed"
 
 
-_VERDICT_TRUNCATED = "  [... earlier verdict lines dropped to fit the excerpt budget ...]"
-_NO_OUTPUT = "<the gate produced no output to quote>"
-
-
-def _is_verdict_line(line: str) -> bool:
-    """Does this line participate in DECIDING the gate's verdict?
-
-    Deliberately narrow: the per-node failures, the harness's own selection lines, and pytest's
-    count. Warnings, tracebacks and progress dots are all noise for the purpose of the refusal
-    header -- the operator's next move is decided by WHICH nodes went red, not by why."""
-    stripped = line.strip()
-    if stripped.startswith(("FAILED ", "ERROR ")):
-        return True
-    if "[test-gate]" in line:
-        return True
-    return bool(_PYTEST_SUMMARY.match(line))
+# THE SELECTOR MOVED (2026-08-24), and the move IS the class fix (R10). This refusal header
+# and the publisher's refusal header in `background_worker` had the SAME defect for the SAME
+# reason -- an excerpt chosen by POSITION out of a stream whose tail is written by whatever the
+# runtime did last -- and only this one was repaired. Fixing the sibling by copying this
+# function would have left two vocabularies to keep in step, so the predicate and the budgeting
+# now live once, in `background.child_diagnostics`, and both refusal headers call it. The names
+# below stay as this module's own handles on that shared implementation.
+_VERDICT_TRUNCATED = child_diagnostics.VERDICT_TRUNCATED
+_NO_OUTPUT = child_diagnostics.NO_OUTPUT
+_is_verdict_line = child_diagnostics.is_verdict_line
 
 
 def _verdict_excerpt(output: str, limit: int = 4000) -> str:
     """SELECT the lines that decide a red gate's verdict, rather than SLICE the stream's tail.
 
-    Why this is not `output[-limit:]` (2026-08-20, WORKER_FINDING_THE_GATES_REFUSAL_TAIL_IS_
-    FOUR_THOUSAND_CHARACTERS_OF_ONE_WARNING): `run_gate` returns stdout + stderr concatenated
-    in that order. pytest's verdict (the FAILED nodes and the count) goes to STDOUT; import-time
-    SyntaxWarnings go to STDERR. So the tail systematically keeps the noise and drops the
-    verdict, and it does so REPRODUCIBLY rather than unluckily -- one `\\_` in an f-string in a
-    module the selected tests re-import was enough to fill all 4000 characters, leaving a
-    refusal with zero diagnostic characters and costing a whole extra gate cycle to reconstruct
-    by hand. The noise in that stream is unbounded and the signal is bounded, so position is the
-    wrong selector at any budget.
+    `run_gate` returns stdout + stderr concatenated in that order, so this stream is the exact
+    shape the shared selector was written for -- pytest's verdict on stdout, import-time
+    SyntaxWarnings on stderr, and a tail that therefore keeps the noise and drops the verdict
+    REPRODUCIBLY rather than unluckily. The why, both incidents and the fail-closed contract
+    are documented once, on `child_diagnostics.verdict_excerpt`.
 
-    FAIL-CLOSED, not fail-open: a stream with no recognisable verdict line degrades to the
-    bounded tail (the old behaviour), and a stream with nothing in it at all says so explicitly.
-    This function never returns an empty excerpt -- a refusal that cannot say why it fired is
-    one an operator learns to bypass, which is the failure HOOK-BYPASS IS A WALL exists to
-    prevent."""
-    verdict = [ln for ln in output.splitlines() if _is_verdict_line(ln)]
-    if not verdict:
-        tail = output[-limit:]
-        return tail if tail.strip() else _NO_OUTPUT
-
-    selected = "\n".join(verdict)
-    if len(selected) > limit:
-        # Keep the EARLIEST verdict lines (the individual red nodes -- what you act on) and
-        # always keep the LAST one (pytest's count -- what tells you whether the list is whole).
-        last = verdict[-1]
-        budget = limit - len(last) - len(_VERDICT_TRUNCATED) - 2
-        keep: list[str] = []
-        used = 0
-        for line in verdict[:-1]:
-            if used + len(line) + 1 > budget:
-                break
-            keep.append(line)
-            used += len(line) + 1
-        selected = "\n".join(keep + [_VERDICT_TRUNCATED, last])
-    return selected
+    Character-budgeted rather than line-budgeted because a refusal MESSAGE has a size, not a
+    line count; the publisher's log header wants lines. That is the whole difference between
+    the two callers, and it is a parameter rather than a fork of the code."""
+    excerpt, _selected = child_diagnostics.verdict_excerpt(output, max_chars=limit)
+    return excerpt
 
 
 # ---------------------------------------------------------------------------------------------

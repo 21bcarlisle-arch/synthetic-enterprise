@@ -46,7 +46,14 @@ from unittest.mock import MagicMock
 import pytest
 
 from background import background_worker, sim_runner
-from background.child_diagnostics import NOT_PIPED, SAID_NOTHING, child_output_excerpt
+from background.child_diagnostics import (
+    NOT_PIPED,
+    SAID_NOTHING,
+    SELECTED_LABEL,
+    STDERR_TAIL_LINES,
+    VERDICT_TRUNCATED,
+    child_output_excerpt,
+)
 
 #: What the publisher printed to STDOUT on the 16:03Z cycle — its own verdict.
 REAL_PUBLISHER_STDOUT = (
@@ -123,6 +130,157 @@ class TestTheExcerptShowsBothStreams:
         parent's failure — how a monitoring path takes down what it monitors."""
         assert isinstance(child_output_excerpt(MagicMock(), 7), str)
         assert isinstance(child_output_excerpt(b"\xff\xfe bytes", None), str)
+
+
+# ── the second half of the same defect: WHERE IN THE STREAM the excerpt looks ─────────────
+#
+# Rendering both streams fixed WHICH stream is read. It left the excerpt choosing lines by
+# POSITION, and the module's own docstring said so in writing while shipping the slice anyway.
+# A publish prints ~100 `Generated site/data/*.json` lines AFTER the sentence that names its
+# refusal, so `lines[-40:]` is a list of things that went RIGHT — on the 2026-08-21 17:37Z
+# cycle, forty of them (docs/observability/background-worker-log.md:5344).
+#
+# MUTATION SENSITIVITY (R15) — each proven by reverting the fix, not asserted:
+#   * revert `child_output_excerpt` to `stderr_tail(raw, limit)` ->
+#     `test_the_verdict_survives_the_progress_lines_printed_after_it` red.
+#   * drop VERDICT_PHRASES (leaving only the shouted markers) ->
+#     `test_every_refusal_the_publisher_can_issue_is_selected` red on the two refusals that
+#     carry no shouted word (`could NOT materialise ... not committing`, `DID NOT FINISH`).
+#   * add "[process_run]" to VERDICT_MARKERS (the tempting one — it prefixes the refusal) ->
+#     `test_the_publishers_progress_prefix_is_not_a_verdict_marker` red.
+#   * make `is_verdict_line` match case-insensitively ->
+#     `test_ordinary_lowercase_prose_about_failure_is_not_a_verdict` red.
+#   * make the fallback return "" instead of the tail ->
+#     `test_a_stream_with_nothing_to_select_still_shows_its_tail` red.
+#   * match "Traceback" as a verdict line ->
+#     `test_a_child_that_died_on_a_traceback_still_shows_its_exception_line` red.
+#   * hardcode the label to "last N lines" ->
+#     `test_the_header_says_whether_it_selected_or_sliced` red.
+
+#: EVERY refusal `background/process_run_complete.py` can print, quoted verbatim with the line
+#: it lives on. Two of the five carry no shouted word — `FAILED`/`REFUSED`/`ABORT` all miss
+#: them — which is the reason the selector has a second, case-insensitive clause vocabulary.
+EVERY_PUBLISHER_REFUSAL = [
+    "- [17:37 UTC] [process_run] Tests FAILED - not committing",
+    "- [17:37 UTC] [process_run] Publish gate: could NOT materialise a clean HEAD checkout "
+    "-- not committing. ",
+    "- [17:37 UTC] [process_run] Fast test suite timed out (>1800s) -- NOT committing.",
+    "- [17:37 UTC] [process_run] Scoped publish-path gate DID NOT FINISH (>1800s) - not "
+    "committing content; the gate never returned a verdict",
+    "- [17:37 UTC] [process_run] Scoped publish-path gate FAILED - not committing content",
+]
+
+#: The 17:37Z cycle: its verdict, then the hundred progress lines that buried it.
+REAL_REFUSAL_THEN_PROGRESS = "\n".join(
+    ["- [17:31 UTC] [process_run] Running fast test suite (SIM_FAST_MODE=1)",
+     "- [17:37 UTC] [process_run] Fast test suite timed out (>3400s) -- NOT committing. "
+     "R15: an unavailable check is a FAILED check; a gate that did not finish cannot "
+     "authorise a publish.",
+     "- [17:37 UTC] [process_run] Scoped publish-path gate FAILED - not committing content"]
+    + ["- [17:37 UTC] [process_run] Generated site/data/thing_{}.json".format(i)
+       for i in range(100)]
+)
+
+
+class TestTheExcerptSelectsTheVerdictRatherThanTheTail:
+
+    def test_the_verdict_survives_the_progress_lines_printed_after_it(self):
+        """THE named defect, on the real stream shape rather than an invented one."""
+        # The fixture genuinely reproduces the incident, or this test proves nothing.
+        old_selector = REAL_REFUSAL_THEN_PROGRESS.splitlines()[-STDERR_TAIL_LINES:]
+        assert not any("FAILED" in ln for ln in old_selector), (
+            "fixture no longer reproduces the incident — the positional tail can still see "
+            "the verdict, so this would pass without the selection it exists to prove"
+        )
+
+        text = child_output_excerpt(REAL_REFUSAL_THEN_PROGRESS, "")
+
+        assert "Scoped publish-path gate FAILED" in text
+        assert "Generated site/data/thing_99.json" not in text, (
+            "the excerpt is still showing the hundred things that went right"
+        )
+
+    @pytest.mark.parametrize("refusal", EVERY_PUBLISHER_REFUSAL)
+    def test_every_refusal_the_publisher_can_issue_is_selected(self, refusal):
+        """Not "the two refusals that happened to be in the log" — ALL of them, quoted from
+        `process_run_complete.py`. Two carry no shouted word at all, so a vocabulary derived
+        from the incident alone would ship with a hole exactly where the timeout path lives,
+        and the next 32-hour wedge would be the one this fix did not cover.
+        """
+        stream = "\n".join(
+            [refusal] + ["- [17:37 UTC] [process_run] Generated site/data/thing_{}.json"
+                         .format(i) for i in range(100)]
+        )
+        text = child_output_excerpt(stream, "")
+        assert refusal in text, "this refusal is invisible to the selector"
+        assert "Generated site/data/" not in text
+
+    def test_the_publishers_progress_prefix_is_not_a_verdict_marker(self):
+        """Every line in that fixture carries `[process_run]`, including all hundred progress
+        lines. Selecting on the prefix that happens to sit on the refusal would rebuild the
+        positional tail with extra steps — and would pass the test above while doing it."""
+        text = child_output_excerpt(REAL_REFUSAL_THEN_PROGRESS, "")
+        assert text.count("Generated site/data/") == 0
+
+    def test_ordinary_lowercase_prose_about_failure_is_not_a_verdict(self):
+        """This project shouts its refusals and narrates in lowercase. A case-insensitive
+        match would select the narrative and drown the verdict — the same defect, inverted."""
+        prose = "\n".join(
+            ["the publisher failed over to the cached feed, which is not an error",
+             "retrying the refused push after a transient failure"] * 30
+        )
+        text = child_output_excerpt(prose, "")
+        assert "last {} lines".format(STDERR_TAIL_LINES) in text, (
+            "lowercase prose was treated as a verdict, so the header claims a selection it "
+            "did not make"
+        )
+
+    def test_a_stream_with_nothing_to_select_still_shows_its_tail(self):
+        """FAIL-CLOSED: an unrecognised stream degrades to the OLD behaviour, never to an
+        empty excerpt. A selector that printed nothing when it recognised nothing would be
+        strictly worse than the slice it replaced."""
+        stream = "\n".join("a segfault, or some gate that is not pytest at all"
+                           for _ in range(60))
+        text = child_output_excerpt(stream, "")
+        assert "segfault" in text
+
+    def test_a_child_that_died_on_a_traceback_still_shows_its_exception_line(self):
+        """A traceback is deliberately NOT matched: its diagnostic is the LAST line, which is
+        exactly what a positional tail is good at. Selecting the `Traceback` header while
+        dropping the `NameError` under it would be worse than the slice."""
+        tb = ("Traceback (most recent call last):\n"
+              '  File "background/sim_runner.py", line 411, in run_simulation\n'
+              "    segments = _IC_SEGMENTS\n"
+              "NameError: name '_IC_SEGMENTS' is not defined")
+        text = child_output_excerpt("", tb)
+        assert "_IC_SEGMENTS' is not defined" in text
+
+    def test_the_header_says_whether_it_selected_or_sliced(self):
+        """"last 40 lines" printed over a selection is a small lie that costs the reader the
+        one thing the header is for: whether the lines above it are all there were."""
+        selected = child_output_excerpt(REAL_REFUSAL_THEN_PROGRESS, "")
+        assert SELECTED_LABEL in selected
+        assert "last {} lines".format(STDERR_TAIL_LINES) not in selected
+
+        sliced = child_output_excerpt("nothing recognisable here at all", "")
+        assert SELECTED_LABEL not in sliced
+        assert "last {} lines".format(STDERR_TAIL_LINES) in sliced
+
+    def test_the_selection_stays_bounded_and_says_when_it_truncated(self):
+        """The signal is bounded in the happy case but not in principle. 900 red nodes must
+        not paste a whole suite run into the observability log, and the truncation must be
+        VISIBLE — a silent cap reads as "that was all of them"."""
+        stream = "\n".join(
+            ["FAILED tests/some/path/test_module_{}.py::test_a_case".format(i)
+             for i in range(900)]
+            + ["900 failed, 12 passed in 240.0s"]
+        )
+        text = child_output_excerpt(stream, "")
+
+        assert len(text.splitlines()) <= STDERR_TAIL_LINES + 4
+        assert "900 failed, 12 passed" in text, "truncation dropped the count"
+        assert VERDICT_TRUNCATED in text, "truncation happened silently (no silent caps)"
+        assert "test_module_0.py" in text, "the earliest red nodes are what you act on first"
 
 
 # ── half one: the leftover-marker sweep ──────────────────────────────────────────────────
