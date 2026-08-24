@@ -31,7 +31,13 @@ import fs from "node:fs";
 import vm from "node:vm";
 
 const htmlPath = process.argv[2];
-if (!htmlPath) { console.error("usage: _live_harness.mjs <door.html>"); process.exit(2); }
+if (!htmlPath) { console.error("usage: _live_harness.mjs <door.html> [#hash]"); process.exit(2); }
+// OPTIONAL INITIAL HASH. A door that deep-links part of itself (/explore/#used) reads
+// `location.hash` on boot, exactly as it reads `fetch` -- so supplying it is supplying an INPUT
+// the page already takes, not an escape hatch for running arbitrary code in the sandbox. Added
+// so a stage-driven page can be verified on the stage under test rather than only on whichever
+// one it happens to open at.
+const initialHash = process.argv[3] || "";
 const html = fs.readFileSync(htmlPath, "utf8");
 
 // A door may carry several inline <script> blocks; concatenate them in document
@@ -117,7 +123,7 @@ const sandbox = {
   URLSearchParams, URL, Intl, TextDecoder, TextEncoder, structuredClone,
   setTimeout(fn) { return setTimeout(fn, 0); }, clearTimeout,
   requestAnimationFrame(fn) { return setTimeout(fn, 0); },
-  location: { hash: "", href: "https://poesys.net/", pathname: "/" },
+  location: { hash: initialHash, href: "https://poesys.net/" + initialHash, pathname: "/" },
   history: { replaceState() {}, pushState() {} },
   localStorage: { getItem() { return null; }, setItem() {}, removeItem() {} },
   navigator: { userAgent: "live-pixel-verify" },

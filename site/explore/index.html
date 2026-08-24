@@ -78,6 +78,14 @@ td.n, th.n { text-align: right; }
   border: 1px solid var(--border); border-radius: 999px; padding: 1px 7px; color: var(--muted); }
 .flag.est { border-color: var(--amber); color: var(--amber); }
 
+/* ---- the day clock: 48 settlement periods across one dated day ---- */
+.hh { display: flex; align-items: flex-end; gap: 1px; height: 96px; margin: 4px 0 2px;
+  border-bottom: 1px solid var(--border); }
+.hh span { flex: 1 1 0; background: var(--teal); border-radius: 1px 1px 0 0; min-height: 1px; }
+.hh span.peak { background: var(--amber); }
+.hh-axis { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted);
+  margin-bottom: 8px; }
+
 .prov { font-size: 11px; color: var(--muted); margin-top: 10px; }
 .note { border-left: 3px solid var(--border); padding: 10px 14px; background: var(--surface);
   color: var(--muted); font-size: 12px; margin: 18px 0 0; }
@@ -175,13 +183,30 @@ var STAGES = [
   {n: "Stage 6", t: "Judged",  q: "Was it the right deal — for them, and for us?", clock: "Retrospective, over the whole life of the account."}
 ];
 
+/* The spine is a place in the document, so it gets an address. A reader who wants to show
+   someone "the bit where the two clocks diverge" can link to /explore/#used instead of
+   describing which button to press. Unknown or absent hash falls back to stage 1. */
+function stageFromHash() {
+  var want = String((typeof location !== "undefined" && location.hash) || "").replace("#", "");
+  for (var i = 0; i < STAGES.length; i++) {
+    if (STAGES[i].t.toLowerCase() === want.toLowerCase()) { return i; }
+  }
+  return 0;
+}
+
 function drawSpine() {
   $("spine").innerHTML = STAGES.map(function (s, i) {
     return '<button data-i="' + i + '" aria-current="' + (i === STAGE) + '">' +
       '<span class="n">' + esc(s.n) + '</span><span class="t">' + esc(s.t) + '</span></button>';
   }).join("");
   Array.prototype.forEach.call($("spine").children, function (b) {
-    b.onclick = function () { STAGE = +b.getAttribute("data-i"); drawSpine(); render(); };
+    b.onclick = function () {
+      STAGE = +b.getAttribute("data-i");
+      // replaceState, not pushState: six stages of one page are one place, and filling a
+      // reader's back button with them makes leaving the page a six-press job.
+      try { history.replaceState(null, "", "#" + STAGES[STAGE].t.toLowerCase()); } catch (e) {}
+      drawSpine(); render();
+    };
   });
 }
 
@@ -314,9 +339,23 @@ function stageUsed(d, c, fuels) {
     var byYear = {};
     m.forEach(function (x) { var y = String(x.month).slice(0, 4); byYear[y] = (byYear[y] || 0) + (x.kwh || 0); });
     var rows = Object.keys(byYear).sort().map(function (y) { return {k: y, v: byYear[y]}; });
+    // DERIVED, NOT ASSERTED. This said "electricity is flatter across the year \u2014 lighting,
+    // appliances and hot water do not track the weather", which is true of a gas-heated home
+    // and plainly false of the electrically-heated ones on this book: C7 takes 89 kWh on its
+    // hardest February day and 16 on a June one, and the day panel below prints both. A
+    // sentence contradicted by the chart under it is worse than no sentence.
+    var swing = seasonalSwing(m);
     var note = f === "gas"
       ? "Heating-dominated: the year-to-year swing is winter temperature, not behaviour."
-      : "Flatter across the year \u2014 lighting, appliances and hot water do not track the weather.";
+      : (swing === null
+          ? "Not enough of this meter's year is on record to say how it moves with the seasons."
+          : swing >= 2.0
+            ? "Winter months run <b>" + swing.toFixed(1) + "\u00d7</b> summer months on this " +
+              "meter \u2014 this home heats with electricity, so its electricity answers to the " +
+              "weather too."
+            : "Winter months run " + swing.toFixed(1) + "\u00d7 summer months \u2014 close to " +
+              "flat, which is what a home that heats with something other than electricity " +
+              "looks like.");
     return '<div class="panel"><h3>' + esc(f) + " by year (kWh)</h3>" + barTable(rows, "kWh", 0) +
       '<p style="font-size:12px;color:var(--muted);margin-top:8px">' + note +
       " " + invs[f] + " bill(s), " + est[f] + " on an estimated read.</p></div>";
@@ -331,6 +370,7 @@ function stageUsed(d, c, fuels) {
       '<p style="font-size:12px;color:var(--muted);margin-top:10px">This household takes one fuel ' +
       "only, so there is one shape to show rather than two.</p>") +
     '<div class="cols" id="hdd">' + hddPanel(fuels) + "</div>" +
+    '<div id="hhday">' + hhDayPanels() + "</div>" +
     '<p class="prov">Metered consumption per fuel for ' +
     names.map(function (f) { return esc(fuels[f].account_id); }).join(" and ") +
     ". Read quality is taken from the bills themselves, not asserted separately.</p>";
@@ -557,6 +597,90 @@ function hddPanel(fuels) {
     "never on this &mdash; the comparison is available to you, not to it.</p></div>";
 }
 
+/* Mean winter month against mean summer month for one fuel's monthly series. Returns null
+   rather than a number when either season is missing — a ratio computed from one December is
+   not a seasonal fact, and printing it would be inventing the shape of a year. */
+function seasonalSwing(monthly) {
+  var win = [], sum = [];
+  (monthly || []).forEach(function (x) {
+    var mm = String(x.month).slice(5, 7), k = x.kwh || 0;
+    if (mm === "12" || mm === "01" || mm === "02") { win.push(k); }
+    else if (mm === "06" || mm === "07" || mm === "08") { sum.push(k); }
+  });
+  if (!win.length || !sum.length) { return null; }
+  var avg = function (a) { return a.reduce(function (p, q) { return p + q; }, 0) / a.length; };
+  var s = avg(sum);
+  return s > 0 ? avg(win) / s : null;
+}
+
+/* ---------- the second clock: one dated day, 48 settlement periods ---------- */
+
+var HH_DAYS = {};    /* customer_group -> its two dated days, from site/data/explore_hh_days.json */
+var HH_META = {};
+
+function hhChart(day) {
+  var max = day.periods.reduce(function (a, v) { return Math.max(a, v); }, 0) || 1;
+  var bars = day.periods.map(function (v, i) {
+    return '<span class="' + (i + 1 === day.peak_period ? "peak" : "") + '" style="height:' +
+      (v / max * 100).toFixed(1) + '%" title="' + esc(clockOf(i + 1)) + " — " +
+      num(v, 3) + ' kWh"></span>';
+  }).join("");
+  return '<div class="hh">' + bars + "</div>" +
+    '<div class="hh-axis"><span>00:00</span><span>06:00</span><span>12:00</span>' +
+    "<span>18:00</span><span>24:00</span></div>";
+}
+
+function clockOf(period) {
+  var m = (period - 1) * 30;
+  return (m / 60 < 10 ? "0" : "") + Math.floor(m / 60) + ":" + (m % 60 === 0 ? "00" : "30");
+}
+
+function hhDayPanel(day) {
+  return '<div class="panel"><h3>' + esc(dt(day.date)) + "</h3>" + hhChart(day) +
+    '<p style="font-size:12px;color:var(--muted)">' +
+    "<b>" + num(day.total_kwh, 1) + " kWh</b> across the day, peaking at <b>" +
+    esc(day.peak_clock) + "</b> (" + num(day.peak_kwh, 2) + " kWh in that half hour). " +
+    esc(day.chosen_by) + ".</p></div>";
+}
+
+function hhDayPanels() {
+  if (HH_DAYS === null) {
+    return '<div class="panel"><h3>The day clock</h3><p>The half-hourly record could not be ' +
+      "loaded, so the day view is not shown. The figures above are unaffected.</p></div>";
+  }
+  var group = CUR && CUR.index ? CUR.index.customer_group : null;
+  var a = group ? HH_DAYS[group] : null;
+  if (!a) {
+    // NOT A HOLE. A profile-class meter genuinely has no day to draw, for the supplier as much
+    // as for this page, and saying so is the wall lesson of this stage rather than an apology
+    // for a missing chart.
+    return '<div class="panel" style="margin-top:16px"><h3>The day clock</h3>' +
+      "<p>This household has no half-hourly meter, so there is no day to draw &mdash; and that " +
+      "is not a gap in this page. Its meter is read a handful of times a year; between those " +
+      "readings the supplier does not know when the electricity was used, only how much. Every " +
+      "half-hourly figure it settles on for a home like this one is <b>inferred from a national " +
+      "profile</b>, not measured here.</p>" +
+      '<p style="font-size:12px;color:var(--muted);margin-top:8px">' + esc(HH_META.coverage || "") +
+      "</p></div>";
+  }
+  var panels = [a.hardest_day, a.summer_day].filter(Boolean).map(hhDayPanel).join("");
+  var c = a.corroboration || {};
+  var agree = c.available
+    ? "Checked against the supplier's own published feed on " + esc(dt(c.date)) + ": " +
+      c.periods_compared + " periods, largest disagreement <b>" +
+      num(c.max_abs_difference_kwh, 5) + " kWh</b> &mdash; rounding, not a difference of belief."
+    : "The supplier's published feed carries no day for this meter, so the agreement is " +
+      "asserted here rather than measured (" + esc(c.why || "reason not recorded") + ").";
+  return '<div style="margin-top:16px">' +
+    '<h3 style="font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);' +
+    'margin-bottom:8px">The other clock &mdash; one day, half hour by half hour</h3>' +
+    '<div class="cols">' + panels + "</div>" +
+    '<p class="prov">Two dated days out of ' + num(a.days_on_record, 0) + " on this meter's " +
+    "record, lifted whole rather than averaged &mdash; every bar is a metered half hour. " +
+    "<b>This meter reports every thirty minutes, so here the supplier's picture and the " +
+    "world's are the same artefact.</b> " + agree + "</p></div>";
+}
+
 function selectCustomer(group) {
   var c = IDX.customers.filter(function (x) { return x.customer_group === group; })[0];
   if (!c) return;
@@ -606,6 +730,16 @@ fetch("../data/weather.json").then(function (r) { return r.json(); }).then(funct
   render();
 }).catch(function () { HDD_BY_YEAR = null; });
 
+/* THE DAY CLOCK, as its own fetch and deliberately not blocking the page — same discipline as
+   the weather above. Stage 3's own title has promised "electricity across a day" since it was
+   written and the stage rendered it by YEAR, in the same table as gas, which made the two
+   clocks one clock and lost the thing the stage exists to teach. */
+fetch("../data/explore_hh_days.json").then(function (r) { return r.json(); }).then(function (w) {
+  HH_DAYS = w.accounts || {};
+  HH_META = {coverage: w.coverage_statement || ""};
+  render();
+}).catch(function () { HH_DAYS = null; });
+
 fetch("../data/customers.json").then(function (r) { return r.json(); }).then(function (j) {
   IDX = j;
   $("bookcount").textContent = "All " + j.customers.length + " households below";
@@ -614,6 +748,7 @@ fetch("../data/customers.json").then(function (r) { return r.json(); }).then(fun
       esc(c.segment) + ", " + (c.fuels || []).join(" + ") + ", since " + String(c.acquisition_date).slice(0, 4) + "</option>";
   }).join("");
   $("cust").onchange = function () { selectCustomer(this.value); };
+  STAGE = stageFromHash();
   drawSpine();
   selectCustomer(j.customers[0].customer_group);
 }).catch(function (e) {

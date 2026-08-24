@@ -3575,6 +3575,20 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("book_growth.json generation failed: {}".format(exc))
     try:
+        # Explore stage 3's SECOND CLOCK (site/data/explore_hh_days.json). The stage is titled
+        # "electricity across a day" and rendered it by YEAR, in the same table as gas, which
+        # made the two clocks one clock and lost the thing that stage exists to teach. Wired
+        # here for the same R11 no-orphan-transition reason as its neighbours: it names two
+        # DATED days out of a meter's record and corroborates them against the company's own
+        # published feed, so it must ride the cycle or it freezes against both sources.
+        from tools.generate_explore_hh_day import generate as gen_hh_day
+        hh_day = gen_hh_day()
+        log("Generated site/data/explore_hh_days.json ({} meter(s) with a day, {} without)"
+            .format(len(hh_day.get("accounts") or {}),
+                    len(hh_day.get("accounts_without_half_hourly") or [])))
+    except Exception as exc:
+        log("explore_hh_days.json generation failed: {}".format(exc))
+    try:
         # Door 5 THE WORLD operational window -- the intra-day wholesale market feed
         # (site/data/market.json). Reads docs/market_data/price_feed.json and derives
         # the movement (latest / trajectory / session range / last change) so the
