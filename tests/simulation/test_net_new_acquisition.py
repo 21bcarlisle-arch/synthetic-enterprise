@@ -46,8 +46,14 @@ def _always(won: bool, cost: float = 150.0):
 
 
 def _budget(quotes: int):
-    """A pinned company plan, so these tests measure the CAMPAIGN and not the budget rule."""
-    def _fn(net_assets_gbp, accounts_held):
+    """A pinned company plan, so these tests measure the CAMPAIGN and not the budget rule.
+
+    Takes the company's running quote book (2026-08-24) and deliberately IGNORES it: these tests
+    pin the plan precisely so the campaign is what varies. `test_the_campaign_feeds_the_company_
+    its_own_quote_book` below is the one that asserts the counts arrive, and it is separate for
+    that reason -- a pinned budget that also consumed them could not tell the two apart.
+    """
+    def _fn(net_assets_gbp, accounts_held, quotes_issued_to_date=0, wins_to_date=0):
         return {"quotes": quotes, "budget_gbp": quotes * 150.0,
                 "wins_capital_allows": quotes // 5, "binding": "capital",
                 "headroom_gbp": net_assets_gbp}
@@ -188,8 +194,15 @@ def test_an_empty_pool_is_refused_rather_than_returning_nothing():
 
 def test_the_mandate_is_the_off_switch_and_costs_nothing():
     plan = growth_quote_budget("flat", 2_000_000.0, 14)
-    assert plan == {"quotes": 0, "budget_gbp": 0.0, "wins_capital_allows": 0,
-                    "binding": "mandate", "headroom_gbp": 0.0}
+    assert plan["quotes"] == 0
+    assert plan["budget_gbp"] == 0.0
+    assert plan["wins_capital_allows"] == 0
+    assert plan["binding"] == "mandate"
+    assert plan["headroom_gbp"] == 0.0
+    # A company that is not going to market has no conversion to plan on and must not
+    # imply one: the off switch reports its basis as the mandate, not as a belief it holds.
+    assert plan["planning_on"] == "mandate"
+    assert plan["realised_win_rate"] is None
 
 
 def test_a_supplier_in_MCR_breach_has_no_growth_budget_at_all():
@@ -288,3 +301,45 @@ def test_MUTATION_an_uncapped_year_returns_no_warning():
     """Null control: the warning must key on the cap biting, not fire unconditionally."""
     quotes, note = nna.quote_capacity(12, pool_size=400)
     assert (quotes, note) == (12, None)
+
+
+def test_the_campaign_feeds_the_company_its_own_quote_book():
+    """2026-08-24: the campaign must hand the company what it booked, so year N+1 is planned on
+    evidence rather than on the founding assumption forever.
+
+    R15 -- the assertion is that the counts ARRIVE and are CUMULATIVE and LAGGED. Year one must
+    see an empty book (it has issued nothing yet), and each later year must see exactly the
+    totals of the years before it, never including its own. A version that passed the current
+    year's numbers would look identical on a one-year campaign, so this runs three.
+    """
+    seen = []
+
+    def _recording_budget(net_assets_gbp, accounts_held, quotes_issued_to_date=0, wins_to_date=0):
+        seen.append((quotes_issued_to_date, wins_to_date))
+        return {"quotes": 10, "budget_gbp": 10 * 150.0,
+                "wins_capital_allows": 2, "binding": "capital",
+                "headroom_gbp": net_assets_gbp}
+
+    out = _campaign(years=[2018, 2019, 2020], quote_budget_fn=_recording_budget)
+
+    assert len(seen) == 3
+    assert seen[0] == (0, 0), "year one has no book to learn from"
+
+    by_year = out["by_year"]
+    # Each year is handed the running totals of the years STRICTLY before it.
+    for i in range(1, 3):
+        expected_quotes = sum(y["quotes_issued"] for y in by_year[:i])
+        expected_wins = sum(y["wins"] for y in by_year[:i])
+        assert seen[i] == (expected_quotes, expected_wins), f"year index {i} saw the wrong book"
+
+    # Non-vacuity: the campaign must actually have issued quotes, or the equality above is
+    # 0 == 0 three times and asserts nothing.
+    assert seen[-1][0] > 0, "vacuous: the campaign issued no quotes at all"
+
+
+def test_each_year_records_the_basis_it_was_planned_on():
+    """The gap is reported per year, so the growth curve can be read as a belief being corrected."""
+    out = _campaign(years=[2018, 2019], quote_budget_fn=_budget(10))
+    for row in out["by_year"]:
+        assert "planning_on" in row and "believed_win_rate" in row
+        assert "realised_win_rate_used" in row

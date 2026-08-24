@@ -202,8 +202,57 @@ GROWTH_CAPITAL_SHARE_PER_YEAR: float = 1.0 / 3.0
 #: and is the point: a supplier's acquisition plan is built on its believed conversion, and
 #: discovering that the belief was optimistic is a thing this simulation should be able to
 #: show rather than assume away.
-def expected_quotes_per_win(segment: str = "resi") -> float:
+#: The company's own quote book must be this large before its realised rate displaces the prior.
+#: One bad year is not a rate. Below this the sample is noise and planning off it would swing the
+#: campaign harder than the evidence justifies -- above it, the company has issued enough quotes
+#: that its own conversion is the better estimate of its next one.
+MIN_QUOTES_FOR_REALISED_RATE: int = 40
+
+#: The floor a realised rate is clamped to before it becomes a divisor. A year that won NOTHING is
+#: a real and important outcome, but 1/0 is not a plan -- untreated it asks for infinite quotes,
+#: and the capital ceiling would then silently become the only thing bounding the campaign. The
+#: company concludes "worse than anything I have seen", not "free".
+MIN_CREDIBLE_WIN_RATE: float = 0.01
+
+
+def realised_win_rate(quotes_issued: int, wins: int) -> float | None:
+    """The company's OWN conversion, or None when it has not yet issued enough quotes to have one.
+
+    This is the company's commercial record, not a read through the wall: a real supplier knows
+    how many quotes it sent and how many became customers, because it sent them. Nothing here
+    consults who won or why -- only the two counts the company itself booked.
+    """
+    if quotes_issued < MIN_QUOTES_FOR_REALISED_RATE:
+        return None
+    if quotes_issued <= 0:
+        return None
+    return max(MIN_CREDIBLE_WIN_RATE, wins / quotes_issued)
+
+
+#: Quotes per win, used to turn a capital ceiling into a quote budget. NOT a constant of the
+#: world: it is the company's own ESTIMATE, and the estimate it starts with is its own
+#: published flat win rate. `run_acquisition_funnel` is what actually decides, and its
+#: realised rate is lower (five stages of leakage compounding, plus the credit bureau), so a
+#: company planning off this number systematically over-estimates its wins. That is correct
+#: and is the point: a supplier's acquisition plan is built on its believed conversion, and
+#: discovering that the belief was optimistic is a thing this simulation should be able to
+#: show rather than assume away.
+#:
+#: WHAT CHANGED (2026-08-24, the director's question -- can the company see its own win rate and
+#: act on it?). It could not: this returned the founding assumption forever, so the belief was
+#: never tested against the company's own books and the over-estimate above compounded silently
+#: for the whole campaign. Now, once the company has issued enough quotes to have a rate,
+#: ITS OWN replaces the prior. The prior is still where every company starts, and still what it
+#: uses in year one -- what it no longer does is keep believing it after the evidence arrives.
+def expected_quotes_per_win(
+    segment: str = "resi",
+    quotes_issued: int = 0,
+    wins: int = 0,
+) -> float:
     rate = ACQUISITION_WIN_RATE.get(segment, ACQUISITION_WIN_RATE["resi"])
+    own = realised_win_rate(quotes_issued, wins)
+    if own is not None:
+        rate = own
     return 1.0 / rate
 
 
@@ -230,6 +279,8 @@ def growth_quote_budget(
     mcr_per_account_gbp: float = 130.0,
     capital_share: float = GROWTH_CAPITAL_SHARE_PER_YEAR,
     max_growth_rate: float | None = None,
+    quotes_issued_to_date: int = 0,
+    wins_to_date: int = 0,
 ) -> dict:
     """How many quotes the company issues this year, and the binding reason.
 
@@ -251,12 +302,15 @@ def growth_quote_budget(
         max_growth_rate = MAX_BOOK_GROWTH_RATE_PER_YEAR
     if mandate != "grow":
         return {"quotes": 0, "budget_gbp": 0.0, "wins_capital_allows": 0,
-                "binding": "mandate", "headroom_gbp": 0.0}
+                "binding": "mandate", "headroom_gbp": 0.0,
+                "believed_win_rate": None, "realised_win_rate": None,
+                "planning_on": "mandate"}
 
     headroom = capital_headroom_gbp(net_assets_gbp, accounts_held, mcr_per_account_gbp)
     committed = headroom * capital_share
     cost_per_quote = COST_PER_ACQUISITION.get(segment, COST_PER_ACQUISITION["resi"])
-    quotes_per_win = expected_quotes_per_win(segment)
+    quotes_per_win = expected_quotes_per_win(segment, quotes_issued_to_date, wins_to_date)
+    own_rate = realised_win_rate(quotes_issued_to_date, wins_to_date)
     cost_per_win = cost_per_quote * quotes_per_win
     all_in_per_win = cost_per_win + mcr_per_account_gbp
     if all_in_per_win <= 0:  # pragma: no cover - both terms are positive constants
@@ -281,4 +335,11 @@ def growth_quote_budget(
         "wins_rate_allows": wins_rate_allows,
         "binding": binding,
         "headroom_gbp": round(headroom, 2),
+        # THE GAP, reported rather than inferred (COUPLED_TRIAD: the gap is the score). Both
+        # numbers are the company's own -- what it assumed when it started, and what its books
+        # have since told it -- so a reader of the growth curve can see whether the campaign was
+        # planned on a founding belief or on evidence, and how far apart the two were.
+        "believed_win_rate": ACQUISITION_WIN_RATE.get(segment, ACQUISITION_WIN_RATE["resi"]),
+        "realised_win_rate": own_rate,
+        "planning_on": "realised" if own_rate is not None else "belief",
     }

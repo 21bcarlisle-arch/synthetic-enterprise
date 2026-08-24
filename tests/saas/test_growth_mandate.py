@@ -126,3 +126,101 @@ def test_acquisition_budget_empty():
 def test_acquisition_budget_single_resi():
     budget = acquisition_budget_gbp({"C1": 0.5}, {"C1": "resi"})
     assert budget == pytest.approx(0.5 * 150.0)
+
+
+# ---------------------------------------------------------------------------
+# The company's own win rate (2026-08-24, the director's question: can the
+# company see its own win rate and act on it?). Before this, it could not --
+# `expected_quotes_per_win` returned the founding assumption forever, so the
+# belief was never tested against the company's own books and the campaign
+# over-estimated its wins for the whole run. These are the company's OWN
+# counts (quotes it issued, accounts it won), so nothing here crosses the wall.
+# ---------------------------------------------------------------------------
+
+def test_the_company_starts_on_its_founding_belief():
+    """Year one has no book to learn from, and must plan on the prior -- unchanged behaviour."""
+    from saas.growth_mandate import expected_quotes_per_win
+
+    assert expected_quotes_per_win("resi") == pytest.approx(1.0 / ACQUISITION_WIN_RATE["resi"])
+    assert expected_quotes_per_win("resi", quotes_issued=0, wins=0) == pytest.approx(
+        1.0 / ACQUISITION_WIN_RATE["resi"]
+    )
+
+
+def test_one_bad_year_is_not_a_rate():
+    """VACUITY/NOISE GUARD. Below the evidence threshold the sample is noise, and planning off
+    it would swing the campaign harder than the evidence justifies."""
+    from saas.growth_mandate import MIN_QUOTES_FOR_REALISED_RATE, expected_quotes_per_win
+
+    just_under = MIN_QUOTES_FOR_REALISED_RATE - 1
+    assert expected_quotes_per_win("resi", quotes_issued=just_under, wins=0) == pytest.approx(
+        1.0 / ACQUISITION_WIN_RATE["resi"]
+    ), "a sub-threshold sample must not displace the prior"
+
+
+def test_the_company_acts_on_its_own_rate_once_it_has_one():
+    """THE POINT. Enough quotes issued, and the company's OWN conversion replaces the founding
+    assumption -- so a supplier whose real rate is half what it assumed plans twice the quotes."""
+    from saas.growth_mandate import MIN_QUOTES_FOR_REALISED_RATE, expected_quotes_per_win
+
+    quotes = MIN_QUOTES_FOR_REALISED_RATE * 10
+    realised = ACQUISITION_WIN_RATE["resi"] / 2          # half the believed rate
+    wins = int(quotes * realised)
+
+    got = expected_quotes_per_win("resi", quotes_issued=quotes, wins=wins)
+    assert got == pytest.approx(1.0 / realised, rel=0.02)
+    assert got > 1.0 / ACQUISITION_WIN_RATE["resi"], "a worse realised rate must need MORE quotes"
+
+
+def test_a_year_that_won_nothing_does_not_ask_for_infinite_quotes():
+    """FAIL-OPEN GUARD (R15). Winning nothing is a real and important outcome, but 1/0 is not a
+    plan: untreated the divisor explodes and the capital ceiling silently becomes the only thing
+    bounding the campaign. The company concludes 'worse than anything I have seen', not 'free'."""
+    from saas.growth_mandate import (
+        MIN_CREDIBLE_WIN_RATE,
+        MIN_QUOTES_FOR_REALISED_RATE,
+        expected_quotes_per_win,
+    )
+
+    got = expected_quotes_per_win(
+        "resi", quotes_issued=MIN_QUOTES_FOR_REALISED_RATE * 10, wins=0
+    )
+    assert got == pytest.approx(1.0 / MIN_CREDIBLE_WIN_RATE)
+    import math
+    assert math.isfinite(got)
+
+
+def test_the_budget_reports_which_basis_it_planned_on():
+    """THE GAP IS THE SCORE (COUPLED_TRIAD): both numbers are reported, so the growth curve reads
+    as a belief being corrected rather than a number that moved."""
+    from saas.growth_mandate import MIN_QUOTES_FOR_REALISED_RATE, growth_quote_budget
+
+    naive = growth_quote_budget("grow", 250_000.0, 60)
+    assert naive["planning_on"] == "belief"
+    assert naive["realised_win_rate"] is None
+    assert naive["believed_win_rate"] == pytest.approx(ACQUISITION_WIN_RATE["resi"])
+
+    quotes = MIN_QUOTES_FOR_REALISED_RATE * 10
+    learned = growth_quote_budget(
+        "grow", 250_000.0, 60,
+        quotes_issued_to_date=quotes, wins_to_date=int(quotes * 0.05),
+    )
+    assert learned["planning_on"] == "realised"
+    assert learned["realised_win_rate"] == pytest.approx(0.05, rel=0.02)
+    # The belief is still reported alongside it -- that is what makes the gap readable.
+    assert learned["believed_win_rate"] == pytest.approx(ACQUISITION_WIN_RATE["resi"])
+
+
+def test_a_worse_realised_rate_buys_fewer_wins_from_the_same_capital():
+    """THE CONSEQUENCE, and the reason this is worth wiring at all: discovering the belief was
+    optimistic must CHANGE the plan, not just annotate it. Same balance sheet, worse evidence,
+    fewer wins it can afford -- because each win now costs more quotes."""
+    from saas.growth_mandate import MIN_QUOTES_FOR_REALISED_RATE, growth_quote_budget
+
+    quotes = MIN_QUOTES_FOR_REALISED_RATE * 10
+    optimistic = growth_quote_budget("grow", 250_000.0, 60)
+    pessimistic = growth_quote_budget(
+        "grow", 250_000.0, 60,
+        quotes_issued_to_date=quotes, wins_to_date=int(quotes * 0.05),
+    )
+    assert pessimistic["wins_capital_allows"] < optimistic["wins_capital_allows"]

@@ -634,9 +634,10 @@ def _resolve_campaign(book: List[dict], seed: int) -> dict:
             seg: quote_cost_gbp(segment=seg) for seg in ("resi", "SME")
         },
         run_funnel=run_acquisition_funnel,
-        quote_budget_fn=lambda net_assets_gbp, accounts_held: vars(
+        quote_budget_fn=lambda net_assets_gbp, accounts_held, quotes_issued_to_date=0, wins_to_date=0: vars(
             plan_growth_campaign_year(
-                net_assets_gbp=net_assets_gbp, accounts_held=accounts_held
+                net_assets_gbp=net_assets_gbp, accounts_held=accounts_held,
+                quotes_issued_to_date=quotes_issued_to_date, wins_to_date=wins_to_date,
             )
         ),
         customer_years_already_committed=existing_cy,

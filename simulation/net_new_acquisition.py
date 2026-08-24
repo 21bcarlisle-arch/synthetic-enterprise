@@ -435,8 +435,18 @@ def plan_growth_campaign(
     accounts = int(accounts_held_at_start)
     committed_cy = float(customer_years_already_committed)
 
+    # The company's own running quote book, carried year to year. This is what makes the
+    # campaign a LEARNING one rather than a plan repeated: year one is issued on the founding
+    # belief, and every year after it is issued on what the company's own books have since
+    # said. The counts are the company's, so they cross back into its plan freely.
+    quotes_issued_to_date = 0
+    wins_to_date = 0
+
     for year in years:
-        plan = quote_budget_fn(net_assets_gbp=net_assets, accounts_held=accounts)
+        plan = quote_budget_fn(
+            net_assets_gbp=net_assets, accounts_held=accounts,
+            quotes_issued_to_date=quotes_issued_to_date, wins_to_date=wins_to_date,
+        )
         quotes, market_note = quote_capacity(plan["quotes"], prospects_per_year)
         if market_note:
             notes.append(f"{year}: {market_note}")
@@ -504,11 +514,18 @@ def plan_growth_campaign(
                 won_this_year += 1
 
         net_assets -= spent_this_year
+        # Booked BEFORE the record below, so `planning_on` in each year's row is the basis this
+        # year was planned on -- not one retro-fitted from a total that already includes it.
+        quotes_issued_to_date += quotes
+        wins_to_date += won_this_year
         by_year.append({
             "year": year,
             "quotes_issued": quotes,
             "quotes_affordable": plan["quotes"],
             "wins": won_this_year,
+            "believed_win_rate": plan.get("believed_win_rate"),
+            "realised_win_rate_used": plan.get("realised_win_rate"),
+            "planning_on": plan.get("planning_on", "belief"),
             "spend_gbp": round(spent_this_year, 2),
             "accounts_after": accounts,
             "capital_headroom_gbp": plan["headroom_gbp"],

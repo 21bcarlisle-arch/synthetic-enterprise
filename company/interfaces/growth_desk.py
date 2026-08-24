@@ -234,12 +234,21 @@ class GrowthCampaignPlan:
     wins_rate_allows: int
     binding: str
     headroom_gbp: float
+    #: What the supplier assumed its conversion was when it started, what its own quote book has
+    #: since told it (None until it has issued enough quotes to have a rate), and which of the two
+    #: this year's plan was actually built on. Reported so the growth curve can be read as a
+    #: belief being corrected rather than a number that moved.
+    believed_win_rate: float | None = None
+    realised_win_rate: float | None = None
+    planning_on: str = "belief"
 
 
 def plan_growth_campaign_year(
     *,
     net_assets_gbp: float,
     accounts_held: int,
+    quotes_issued_to_date: int = 0,
+    wins_to_date: int = 0,
 ) -> GrowthCampaignPlan:
     """Ask the supplier how large an acquisition campaign it will run this year.
 
@@ -272,7 +281,14 @@ def plan_growth_campaign_year(
     """
     from saas.growth_mandate import growth_quote_budget
 
-    plan = growth_quote_budget("grow", net_assets_gbp, accounts_held)
+    # The two counts are the company's OWN books -- quotes it issued, accounts it won -- so they
+    # travel INWARD across this seam exactly as `net_assets_gbp` and `accounts_held` do. Nothing
+    # about who won, or why, or which homes were on offer comes back the other way; the world
+    # still decides every outcome, and the company still only ever learns the totals it booked.
+    plan = growth_quote_budget(
+        "grow", net_assets_gbp, accounts_held,
+        quotes_issued_to_date=quotes_issued_to_date, wins_to_date=wins_to_date,
+    )
     return GrowthCampaignPlan(
         quotes=plan["quotes"],
         budget_gbp=plan["budget_gbp"],
@@ -280,6 +296,9 @@ def plan_growth_campaign_year(
         wins_rate_allows=plan.get("wins_rate_allows", 0),
         binding=plan["binding"],
         headroom_gbp=plan["headroom_gbp"],
+        believed_win_rate=plan.get("believed_win_rate"),
+        realised_win_rate=plan.get("realised_win_rate"),
+        planning_on=plan.get("planning_on", "belief"),
     )
 
 
