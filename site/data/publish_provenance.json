@@ -1,34 +1,34 @@
 {
   "annotation": {
-    "checked_at": "2026-08-24T21:31:38Z",
+    "checked_at": "2026-08-24T22:43:03Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_committed_store_credits_a_falsifier_the_repository_does_not_have",
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_every_declared_honest_absence_is_still_absent_and_still_silenced",
+      "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_MUTATION_the_word_only_predicate_fires_this_contradiction_on_the_real_corpus",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
       "FAILED tests/background/test_derived_artefact_register.py::TestStaleness::test_every_registered_artefact_is_currently_fresh",
       "FAILED tests/background/test_forward_attachment_register.py::test_live_tree_has_no_violations",
-      "FAILED tests/background/test_forward_attachment_register.py::test_live_rendering_is_current",
-      "FAILED tests/background/test_live_ledger_guard.py::test_the_narrowing_to_measurement_ledgers_is_measured_not_assumed"
+      "FAILED tests/background/test_forward_attachment_register.py::test_live_rendering_is_current"
     ],
-    "nonblocking_reds_total": 72,
-    "open_findings": 22
+    "nonblocking_reds_total": 74,
+    "open_findings": 23
   },
   "last_verified": {
-    "generated_at": "2026-08-24T21:52:52Z",
-    "git_commit": "dbd35f07b",
-    "run_id": "run_output_dbd35f07b_20260824T213239Z.json",
-    "verified_at": "2026-08-24T21:52:52Z"
+    "generated_at": "2026-08-24T23:17:19Z",
+    "git_commit": "467943976",
+    "run_id": "run_output_467943976_20260824T224404Z.json",
+    "verified_at": "2026-08-24T23:17:19Z"
   },
   "paused_reason": "scoped publish-path suite red at git=4683e68f7; blocking tests: FAILED tests/background/test_publisher_deadline_exceeds_its_gate.py::test_the_sweep_derives_its_deadline_rather_than_restating_it, FAILED tests/background/test_publisher_deadline_exceeds_its_gate.py::test_every_publisher_caller_derives_its_deadline[background/background_worker.py], FAILED tests/background/test_publisher_deadline_excee",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-24T21:52:52Z",
-    "git_commit": "dbd35f07b",
-    "run_id": "run_output_dbd35f07b_20260824T213239Z.json",
-    "verified_at": "2026-08-24T21:52:52Z"
+    "generated_at": "2026-08-24T23:17:19Z",
+    "git_commit": "467943976",
+    "run_id": "run_output_467943976_20260824T224404Z.json",
+    "verified_at": "2026-08-24T23:17:19Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-24T21:52:52Z"
+  "written_at": "2026-08-24T23:17:19Z"
 }

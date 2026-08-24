@@ -13,16 +13,16 @@
     "ofgem_avg_pct": 13.6,
     "ratio": 0.36,
     "years_compared": 10,
-    "total_renewals": 388,
+    "total_renewals": 665,
     "rag": "GREEN",
     "note": "SIM portfolio is predominantly I&C (B2B contract churn) vs Ofgem residential switching. Long-run average comparison is more robust than single-year with N<15 renewals."
   },
   "crisis_churn_direction": {
     "pre_crisis_avg_pct": 5.2,
-    "crisis_avg_pct": 2.7,
-    "2022_sim_rate_pct": 1.6,
+    "crisis_avg_pct": 2.9,
+    "2022_sim_rate_pct": 1.2,
     "2022_ofgem_rate_pct": 4.0,
-    "2022_ratio_vs_ofgem": 0.4,
+    "2022_ratio_vs_ofgem": 0.3,
     "rolling_divergence_flag": false,
     "absolute_divergence_flag": false,
     "crisis_divergence_flag": false,
@@ -72,40 +72,40 @@
     },
     {
       "year": 2021,
-      "bad_debt_gbp": 1124.0,
-      "bad_debt_rate": 0.06,
+      "bad_debt_gbp": 1499.0,
+      "bad_debt_rate": 0.08,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 4.0,
       "rag": "AMBER"
     },
     {
       "year": 2022,
-      "bad_debt_gbp": 868.0,
-      "bad_debt_rate": 0.02,
+      "bad_debt_gbp": 1092.0,
+      "bad_debt_rate": 0.03,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 4.0,
       "rag": "AMBER"
     },
     {
       "year": 2023,
-      "bad_debt_gbp": 2613.0,
-      "bad_debt_rate": 0.1,
+      "bad_debt_gbp": 4755.0,
+      "bad_debt_rate": 0.18,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 4.0,
       "rag": "AMBER"
     },
     {
       "year": 2024,
-      "bad_debt_gbp": 568.0,
-      "bad_debt_rate": 0.03,
+      "bad_debt_gbp": 2323.0,
+      "bad_debt_rate": 0.1,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
       "rag": "AMBER"
     },
     {
       "year": 2025,
-      "bad_debt_gbp": 198.0,
-      "bad_debt_rate": 0.02,
+      "bad_debt_gbp": 755.0,
+      "bad_debt_rate": 0.07,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
       "rag": "AMBER"
@@ -159,7 +159,7 @@
       "ofgem_rate_prev": 0.14,
       "ofgem_rate_curr": 0.09,
       "sim_rate_prev": 0.087,
-      "sim_rate_curr": 0.0317,
+      "sim_rate_curr": 0.0303,
       "rag": "GREEN"
     },
     {
@@ -168,8 +168,8 @@
       "sim_direction": "down",
       "ofgem_rate_prev": 0.09,
       "ofgem_rate_curr": 0.04,
-      "sim_rate_prev": 0.0317,
-      "sim_rate_curr": 0.0161,
+      "sim_rate_prev": 0.0303,
+      "sim_rate_curr": 0.0118,
       "rag": "GREEN"
     },
     {
@@ -178,8 +178,8 @@
       "sim_direction": "up",
       "ofgem_rate_prev": 0.04,
       "ofgem_rate_curr": 0.08,
-      "sim_rate_prev": 0.0161,
-      "sim_rate_curr": 0.0328,
+      "sim_rate_prev": 0.0118,
+      "sim_rate_curr": 0.0439,
       "rag": "GREEN"
     },
     {
@@ -188,8 +188,8 @@
       "sim_direction": "up",
       "ofgem_rate_prev": 0.08,
       "ofgem_rate_curr": 0.13,
-      "sim_rate_prev": 0.0328,
-      "sim_rate_curr": 0.1,
+      "sim_rate_prev": 0.0439,
+      "sim_rate_curr": 0.0724,
       "rag": "GREEN"
     },
     {
@@ -198,8 +198,8 @@
       "sim_direction": "up",
       "ofgem_rate_prev": 0.13,
       "ofgem_rate_curr": 0.14,
-      "sim_rate_prev": 0.1,
-      "sim_rate_curr": 0.1087,
+      "sim_rate_prev": 0.0724,
+      "sim_rate_curr": 0.1316,
       "rag": "GREEN"
     }
   ],
@@ -240,37 +240,37 @@
       "calibrated_multiplier": 0.95
     },
     "2021": {
-      "renewals": 61,
+      "renewals": 64,
       "churns": 2,
-      "sim_churn_rate": 0.0317,
+      "sim_churn_rate": 0.0303,
       "ofgem_benchmark": 0.09,
       "calibrated_multiplier": 0.57
     },
     "2022": {
-      "renewals": 61,
+      "renewals": 84,
       "churns": 1,
-      "sim_churn_rate": 0.0161,
+      "sim_churn_rate": 0.0118,
       "ofgem_benchmark": 0.04,
       "calibrated_multiplier": 0.44
     },
     "2023": {
-      "renewals": 59,
-      "churns": 2,
-      "sim_churn_rate": 0.0328,
+      "renewals": 109,
+      "churns": 5,
+      "sim_churn_rate": 0.0439,
       "ofgem_benchmark": 0.08,
       "calibrated_multiplier": 0.79
     },
     "2024": {
-      "renewals": 54,
-      "churns": 6,
-      "sim_churn_rate": 0.1,
+      "renewals": 141,
+      "churns": 11,
+      "sim_churn_rate": 0.0724,
       "ofgem_benchmark": 0.13,
       "calibrated_multiplier": 1.0
     },
     "2025": {
-      "renewals": 41,
-      "churns": 5,
-      "sim_churn_rate": 0.1087,
+      "renewals": 132,
+      "churns": 20,
+      "sim_churn_rate": 0.1316,
       "ofgem_benchmark": 0.14,
       "calibrated_multiplier": 0.93
     }
@@ -310,7 +310,7 @@
     },
     {
       "year": 2020,
-      "complaint_rate_pct": 4.48,
+      "complaint_rate_pct": 4.44,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -318,7 +318,7 @@
     },
     {
       "year": 2021,
-      "complaint_rate_pct": 4.45,
+      "complaint_rate_pct": 4.25,
       "benchmark_green_hi": 8.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": true,
@@ -326,7 +326,7 @@
     },
     {
       "year": 2022,
-      "complaint_rate_pct": 4.54,
+      "complaint_rate_pct": 4.32,
       "benchmark_green_hi": 8.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": true,
@@ -334,7 +334,7 @@
     },
     {
       "year": 2023,
-      "complaint_rate_pct": 4.43,
+      "complaint_rate_pct": 4.22,
       "benchmark_green_hi": 8.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": true,
@@ -342,7 +342,7 @@
     },
     {
       "year": 2024,
-      "complaint_rate_pct": 4.52,
+      "complaint_rate_pct": 4.18,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -350,7 +350,7 @@
     },
     {
       "year": 2025,
-      "complaint_rate_pct": 4.51,
+      "complaint_rate_pct": 4.69,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -429,8 +429,8 @@
     {
       "year": 2020,
       "new_arrears_count": 26,
-      "active_customers": 76,
-      "new_arrears_rate_pct": 34.2,
+      "active_customers": 79,
+      "new_arrears_rate_pct": 32.9,
       "ic_arrears_count": 1,
       "ic_active_customers": 5,
       "ic_arrears_rate_pct": 20.0,
@@ -445,9 +445,9 @@
     },
     {
       "year": 2021,
-      "new_arrears_count": 31,
-      "active_customers": 72,
-      "new_arrears_rate_pct": 43.1,
+      "new_arrears_count": 40,
+      "active_customers": 96,
+      "new_arrears_rate_pct": 41.7,
       "ic_arrears_count": 2,
       "ic_active_customers": 5,
       "ic_arrears_rate_pct": 40.0,
@@ -462,9 +462,9 @@
     },
     {
       "year": 2022,
-      "new_arrears_count": 24,
-      "active_customers": 69,
-      "new_arrears_rate_pct": 34.8,
+      "new_arrears_count": 45,
+      "active_customers": 123,
+      "new_arrears_rate_pct": 36.6,
       "ic_arrears_count": 0,
       "ic_active_customers": 5,
       "ic_arrears_rate_pct": 0.0,
@@ -479,9 +479,9 @@
     },
     {
       "year": 2023,
-      "new_arrears_count": 31,
-      "active_customers": 69,
-      "new_arrears_rate_pct": 44.9,
+      "new_arrears_count": 72,
+      "active_customers": 167,
+      "new_arrears_rate_pct": 43.1,
       "ic_arrears_count": 0,
       "ic_active_customers": 5,
       "ic_arrears_rate_pct": 0.0,
@@ -496,9 +496,9 @@
     },
     {
       "year": 2024,
-      "new_arrears_count": 25,
-      "active_customers": 67,
-      "new_arrears_rate_pct": 37.3,
+      "new_arrears_count": 80,
+      "active_customers": 212,
+      "new_arrears_rate_pct": 37.7,
       "ic_arrears_count": 1,
       "ic_active_customers": 5,
       "ic_arrears_rate_pct": 20.0,
@@ -513,9 +513,9 @@
     },
     {
       "year": 2025,
-      "new_arrears_count": 19,
-      "active_customers": 60,
-      "new_arrears_rate_pct": 31.7,
+      "new_arrears_count": 75,
+      "active_customers": 235,
+      "new_arrears_rate_pct": 31.9,
       "ic_arrears_count": 0,
       "ic_active_customers": 5,
       "ic_arrears_rate_pct": 0.0,
@@ -605,7 +605,7 @@
     {
       "segment": "resi",
       "year": 2023,
-      "attempts": 1,
+      "attempts": 4,
       "wins": 0,
       "win_rate_pct": 0.0,
       "benchmark_green_range_pct": [
@@ -629,26 +629,26 @@
     {
       "segment": "resi",
       "year": 2024,
-      "attempts": 5,
-      "wins": 0,
-      "win_rate_pct": 0.0,
+      "attempts": 10,
+      "wins": 1,
+      "win_rate_pct": 10.0,
+      "benchmark_green_range_pct": [
+        15.0,
+        20.0
+      ],
+      "rag": "AMBER"
+    },
+    {
+      "segment": "resi",
+      "year": 2025,
+      "attempts": 20,
+      "wins": 6,
+      "win_rate_pct": 30.0,
       "benchmark_green_range_pct": [
         15.0,
         20.0
       ],
       "rag": "RED"
-    },
-    {
-      "segment": "resi",
-      "year": 2025,
-      "attempts": 5,
-      "wins": 1,
-      "win_rate_pct": 20.0,
-      "benchmark_green_range_pct": [
-        15.0,
-        20.0
-      ],
-      "rag": "GREEN"
     }
   ]
 }

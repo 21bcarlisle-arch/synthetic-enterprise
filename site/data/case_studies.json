@@ -1,8 +1,8 @@
 {
   "meta": {
-    "generated_at": "2026-08-24T21:40:42Z",
+    "generated_at": "2026-08-24T22:56:55Z",
     "git_commit": "unknown",
-    "household_count": 75,
+    "household_count": 258,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
   "cases": [
@@ -37,14 +37,14 @@
       "category": "Retention save, then churned anyway",
       "headline": "The company offered retention and won, then lost the account regardless",
       "wall_side": "company",
-      "account_id": "PROS-2018-0003",
-      "base_account_id": "PROS-2018-0003",
+      "account_id": "PROS-2020-0110",
+      "base_account_id": "PROS-2020-0110",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2018-0003",
+        "acc": "PROS-2020-0110",
         "tab": "timeline",
-        "year": 2020
+        "year": 2025
       }
     },
     {
@@ -63,16 +63,16 @@
     },
     {
       "category": "Notable life event",
-      "headline": "Boiler replaced (2025) -- Usage moved +3% (avg 349 kWh/mo -> 360 kWh/mo)",
+      "headline": "Income recovery (2023) -- Real downstream drift: income stress high -> low",
       "wall_side": "sim",
-      "account_id": "PROS-2018-0016",
-      "base_account_id": "PROS-2018-0016",
+      "account_id": "PROS-2024-0022",
+      "base_account_id": "PROS-2024-0022",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2018-0016",
+        "acc": "PROS-2024-0022",
         "tab": "timeline",
-        "year": 2025
+        "year": 2023
       }
     },
     {

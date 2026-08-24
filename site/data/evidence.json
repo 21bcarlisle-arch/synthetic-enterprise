@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-08-24T21:44:47Z",
-  "git_hash": "109d3f1fe",
+  "generated_at": "2026-08-24T23:00:55Z",
+  "git_hash": "467943976",
   "suite": {
-    "test_count": 27975,
-    "timestamp": "2026-08-24T20:37:04.760012+00:00"
+    "test_count": 27993,
+    "timestamp": "2026-08-24T22:42:52.639830+00:00"
   },
   "sources": {
     "node_mapping": "site/data/moap_node_atoms.json",
@@ -2201,11 +2201,11 @@
               "resolved_path": "tests/tools/test_e2_revenue_reconciliation_surfaces.py",
               "raw": "tests/tools/test_e2_revenue_reconciliation_surfaces.py",
               "is_test": true,
-              "test_functions": 10
+              "test_functions": 12
             }
           ],
           "test_files": 1,
-          "test_functions": 10,
+          "test_functions": 12,
           "ledger": [],
           "missing": [
             "NO_LEDGER_RECORD",
