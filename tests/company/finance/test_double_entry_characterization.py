@@ -50,13 +50,37 @@ def je(debit, credit, amount, entry_id="e1"):
 
 
 # A fixed five-event trading history reused across the statement tests.
+#
+# THE SIGNS ARE THE MAKERS' OWN (2026-08-24). Every constructor in `saas/ledger.py`
+# signs `amount_gbp` the same way — cash out negative, cash in positive — and since
+# 2026-08-24 the journal READS that sign to choose the direction (a negative-priced
+# half-hour is a wholesale credit, not a cost). These fixtures carried +£400 of
+# "settlement" and +£50 of "VAT remitted", which was harmless while the journal
+# absolutised and is a pair of credit notes now. Signed as the producers sign them,
+# every figure below is unchanged — which is the point: the repair moved nothing that
+# was already the right way round.
 FIVE_EVENTS = [
     event("billing_event", 1000.0, "t1", "2024-01-01"),
     event("payment_received_event", 800.0, "t2", "2024-02-01"),
-    event("settlement_event", 400.0, "t3", "2024-02-02", cid="WHOLESALE"),
-    event("vat_remittance_event", 50.0, "t4", "2024-03-01", cid="HMRC"),
-    event("bad_debt_event", 100.0, "t5", "2024-03-05", cid="C2"),
+    event("settlement_event", -400.0, "t3", "2024-02-02", cid="WHOLESALE"),
+    event("vat_remittance_event", -50.0, "t4", "2024-03-01", cid="HMRC"),
+    event("bad_debt_event", -100.0, "t5", "2024-03-05", cid="C2"),
 ]
+
+#: The sign each event type's own maker in `saas/ledger.py` gives `amount_gbp`.
+NORMAL_SIGN = {
+    "billing_event": +1,
+    "payment_received_event": +1,
+    "vat_remittance_event": -1,
+    "non_commodity_cost_event": -1,
+    "settlement_event": -1,
+    "capital_charge_event": -1,
+    "bad_debt_event": -1,
+    "acquisition_spend_event": -1,
+    "retention_cost_event": -1,
+    "fixed_cost_event": -1,
+    "cost_to_serve_event": -1,
+}
 
 
 # ---------------------------------------------------------------------------
@@ -81,10 +105,23 @@ FIVE_EVENTS = [
     ],
 )
 def test_event_type_maps_to_fixed_account_pair(event_type, debit, credit):
-    entry = to_journal_entry(event(event_type, 100.0, "t1"))
+    """An event carrying its maker's own sign maps to the pair it always did."""
+    entry = to_journal_entry(event(event_type, 100.0 * NORMAL_SIGN[event_type], "t1"))
     assert (entry["debit_account"], entry["credit_account"]) == (debit, credit)
     assert entry["amount_gbp"] == 100.0
     assert entry["source_event_type"] == event_type
+
+
+@pytest.mark.parametrize("event_type", sorted(NORMAL_SIGN))
+def test_an_oppositely_signed_event_maps_to_the_same_pair_reversed(event_type):
+    """The other half of the same rule, since 2026-08-24: reverse the sign and the
+    same two accounts swap sides. Nothing new is invented and nothing is dropped —
+    the magnitude is still the magnitude."""
+    normal = to_journal_entry(event(event_type, 100.0 * NORMAL_SIGN[event_type], "t1"))
+    reversed_ = to_journal_entry(event(event_type, -100.0 * NORMAL_SIGN[event_type], "t1"))
+    assert reversed_["debit_account"] == normal["credit_account"]
+    assert reversed_["credit_account"] == normal["debit_account"]
+    assert reversed_["amount_gbp"] == 100.0
 
 
 def test_vat_remittance_debits_revenue_so_it_reduces_reported_revenue():
@@ -93,7 +130,7 @@ def test_vat_remittance_debits_revenue_so_it_reduces_reported_revenue():
     reported revenue is net of remitted VAT."""
     journal = build_journal([
         event("billing_event", 1000.0, "t1"),
-        event("vat_remittance_event", 50.0, "t2", cid="HMRC"),
+        event("vat_remittance_event", -50.0, "t2", cid="HMRC"),
     ])
     assert income_statement(journal)["revenue_gbp"] == 950.0
 
@@ -104,15 +141,26 @@ def test_unrecognised_event_type_returns_none_and_is_skipped_silently():
     assert build_journal([event("mystery_event", 10.0, "t1")]) == []
 
 
-def test_negative_amount_is_absolutised_flipping_a_credit_note_into_revenue():
-    """SURPRISE (sign class, money-relevant): to_journal_entry takes abs() of the
-    amount. A billing_event of -£250 — the natural shape of a credit note or a
-    rebill reversal — is booked as a POSITIVE £250 DR Receivables / CR Revenue,
-    i.e. it INCREASES revenue and receivables instead of reducing them. The sign
-    is discarded silently, so a reversal is indistinguishable from a fresh bill."""
+def test_the_absolutised_credit_note_surprise_is_repaired():
+    """WITHDRAWN SURPRISE, repaired 2026-08-24 — this test characterized the defect
+    and now characterizes its absence.
+
+    What it used to say, verbatim: "to_journal_entry takes abs() of the amount. A
+    billing_event of -£250 — the natural shape of a credit note or a rebill reversal
+    — is booked as a POSITIVE £250 DR Receivables / CR Revenue, i.e. it INCREASES
+    revenue and receivables instead of reducing them."
+
+    It was not hypothetical. The end-2019 run bills five accounts a negative total,
+    and 2018-19 carries thousands of negatively-priced settlement half-hours (the
+    supplier is paid to take the energy), each booked as a wholesale COST of the same
+    size. See `tests/company/finance/test_the_journal_keeps_the_sign.py` for the
+    repair's own R15 battery and the £14.08 of published cash it was worth.
+    """
     entry = to_journal_entry(event("billing_event", -250.0, "t1"))
     assert entry["amount_gbp"] == 250.0
-    assert (entry["debit_account"], entry["credit_account"]) == ("1100", "4001")
+    assert (entry["debit_account"], entry["credit_account"]) == ("4001", "1100")
+    # NULL CONTROL: the characterized answer, named, so its return reds this test.
+    assert (entry["debit_account"], entry["credit_account"]) != ("1100", "4001")
 
 
 def test_missing_transaction_id_falls_back_to_an_unknown_marker():

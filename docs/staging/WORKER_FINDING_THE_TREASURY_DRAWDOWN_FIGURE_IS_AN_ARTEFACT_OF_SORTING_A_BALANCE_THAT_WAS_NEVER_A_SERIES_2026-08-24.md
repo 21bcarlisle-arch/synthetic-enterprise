@@ -173,3 +173,99 @@ re-sorted answer does NOT come back.
    `docs/reports/run_output_latest.json`: those figures are baked at run time and this repair
    takes effect on the next full run's report generation. Nothing was regenerated here, and the
    next publish moves the balance-sheet line by roughly the amounts above.
+
+---
+
+## THE BLOCKER ON OWED ITEM 1 IS GONE — the £14 was the journal discarding a sign (2026-08-24, worker tick, RUNG 1c blocking draw)
+
+**Severity stays BLOCKING: the published drawdown count is still the artefact.** Nothing about
+the count moved here. What moved is the thing owed item 1 was WAITING ON — "the daily fold's one
+undiagnosed ~£14 ledger movement" — which turns out not to have been the fold's defect at all.
+
+### The diagnosis, measured on the window it was measured on
+
+One real end-2019 run (1,909,710 records), the SAME book each time, the ledger built over it two
+ways. Held constant so the record book is the only variable: the bills, the payment model, the
+opening treasury.
+
+| where the £14 is, and is not | result |
+|---|---|
+| ledger over the two books with the SAME bills | every figure identical |
+| the bills themselves | 5 of 1,510 totals move, £0.03 in all |
+| `derive_pnl` over the two books | ≤ £0.05 on every key |
+| `annual_management_pack` — cash, equity, assets | **2019 cash £1,039,946.12 -> £1,039,960.20, +£14.08** |
+
+The pack is the only consumer that goes through `company/finance/double_entry.py`, and that is
+where the sign was being thrown away:
+
+```python
+amount = abs(event["amount_gbp"])          # then the account pair, by event TYPE alone
+```
+
+Every maker in `saas/ledger.py` signs the same way — cash out negative, cash in positive — so an
+event whose real value is negative was booked as its own opposite, wrong by twice the value:
+
+* a **negatively-priced half-hour** — the supplier is PAID to take the energy, real and
+  increasingly common on the GB system — posted as a wholesale COST. This run: 6 half-hours in
+  2018 (£5.48 of credit, £10.95 of overstatement) and 2 in 2019 (£1.52, £3.04).
+* a **credit bill** — 21 of them here, £2,673.47 in total — posted as REVENUE.
+
+`abs(x + y) != abs(x) + abs(y)`, so the published journal depended on how finely the book was
+cut, while every signed figure (portfolio gross, net, treasury) stayed identical to the penny.
+£10.95 + £3.04 = £13.99 of it is the wholesale credits; the remaining £0.09 is item 3 below.
+
+### What the repair moves in the published figures (R14)
+
+`to_journal_entry` now reads the sign and reverses the SAME two accounts when the amount opposes
+its normal direction. Nothing new is invented, nothing is dropped, and an ordinarily-signed event
+of every one of the ten recognised types maps exactly where it always did. Measured on the same
+end-2019 run, magnitude-only journal -> signed journal:
+
+| figure | published today | repaired | move |
+|---|---|---|---|
+| 2019 total equity / total assets | £1,211,357.90 | £1,206,024.95 | **−£5,332.95** (−0.44%) |
+| 2019 cash | £1,039,946.12 | £1,034,720.12 | −£5,226.01 |
+| 2019 revenue | £1,612,762.50 | £1,611,470.84 | −£1,291.66 |
+| 2019 corporation tax | £117,888.50 | £117,643.66 | −£244.84 |
+| 2018 wholesale cost | £177,195.88 | £177,184.92 | −£10.95 |
+
+The dominant term is the credit bills, not the negative prices: booking £2,673.47 of credits as
+revenue put roughly twice that on the balance sheet. **The balance sheet has been overstating
+equity by 0.44%, and that is a repair, not a movement to be explained away** — the next full run
+publishes the lower figures.
+
+### And the £14.08 is gone
+
+The same end-2019 fold comparison, re-run on the signed journal: **no figure moves by more than
+£0.02.** What remains is a rounding tie in `simulation/meter_reads.py` — an unread month is
+estimated as `round(mean(trailing actual reads), 2)`, those reads are sums of ~1,440 floats, and
+re-associating a sum moves them by 5.8e-11 kWh, which is enough to decide a penny when the mean
+lands on an exact half-penny tie (428.82500000000005 -> 428.83 one way, exactly 428.825 ->
+428.82 the other). 19 of 158 estimates flipped, worth £0.03 on £3.05M billed. Left alone
+deliberately: both answers are defensible and the exact-tie one is arguably truer.
+
+### Controls, R15-proven
+
+`tests/company/finance/test_the_journal_keeps_the_sign.py` — 7 tests. Four named mutations were
+applied and the fires recorded, not asserted: restoring `abs` fires 4 tests; an unconditional
+swap fires 3; swapping on the sign alone (ignoring the entry's normal direction) fires 4; letting
+a zero amount swap fires 1. Two of them are NULL CONTROLS that state the pre-repair answer and
+assert it does not come back. `test_double_entry_characterization.py` had frozen this exact
+defect under the name `test_negative_amount_is_absolutised_flipping_a_credit_note_into_revenue`
+("characterized, not endorsed"); it is now
+`test_the_absolutised_credit_note_surprise_is_repaired`, quoting what it used to say.
+
+### What this does NOT discharge
+
+The drawdown count. Owed item 1 above is no longer BLOCKED, but it is not DONE: wiring the
+register and deleting the `_drawdown_events` fallback is the next act, and it lands with its own
+before/after. Note also the director's 2026-08-24 console ruling, which outranks the memory
+saving and changes where the fold may be used at all: "the half-hourly spine stays half-hourly.
+Aggregate in the reporting and ledger layers if that's where the memory goes." The signed journal
+is the ledger-layer half of that instruction — an aggregation there is now safe by construction,
+because a sum of signed amounts does not care what order it was added in.
+
+One observation left for whoever takes the register: with the sign kept, 2020 trade receivables
+close at **−£53.47**. A negative receivable is money the company owes its customers and probably
+belongs in account 2200 (Customer Credit Balances Held) rather than as a negative asset. Small,
+real, and not repaired here.

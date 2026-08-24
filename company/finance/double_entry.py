@@ -89,10 +89,56 @@ def _entry(
     }
 
 
+def _money_in_is_the_normal_direction(debit_account: str) -> bool:
+    """True when this entry's NORMAL direction is money coming IN.
+
+    Derived from the chart, not tabulated: every entry below either debits an asset
+    (1001 cash / 1100 receivables), which is money arriving, or credits one, which is
+    money leaving. So the debit account's type IS the direction, and a new event type
+    cannot forget to register itself in a lookup that would then silently mis-post it.
+    """
+    return ACCOUNTS.get(debit_account, {}).get("type") == "asset"
+
+
 def to_journal_entry(event: dict[str, Any]) -> dict[str, Any] | None:
     """Convert one ledger event to a double-entry journal record.
 
     Returns None for unrecognised event types (forward-compatible).
+
+    A NEGATIVE-VALUED EVENT IS POSTED THE OTHER WAY ROUND (2026-08-24). Every event
+    maker in `saas/ledger.py` signs `amount_gbp` the same way — cash out is negative,
+    cash in is positive — and the branches below name the account pair for the NORMAL
+    sign. The magnitude alone used to be taken (`abs`), so an event whose real value
+    was negative was booked as its own opposite: a half-hour of NEGATIVE wholesale
+    price (a real and increasingly common UK occurrence — the supplier is paid to
+    take the energy) was posted as a wholesale COST of the same size, and a credit
+    bill was posted as revenue. The error is twice the credit, every time.
+
+    Measured on a real end-2019 run before this was fixed: 2018's journal wholesale
+    cost was overstated, and folding the same settlement book to daily rows — which
+    nets a negative half-hour against the day's positive ones BEFORE `abs` sees it —
+    moved published cash/equity by £14.08 while every signed figure (portfolio gross,
+    net, treasury) stayed identical to the penny. That £14.08 was the last
+    unexplained movement blocking `simulation/settlement_daily.py`; keeping the sign
+    removes it by construction, because a sum of signed amounts does not care what
+    order it was added in and `abs` of a sum does.
+    """
+    entry = _entry_in_the_normal_direction(event)
+    if entry is None:
+        return None
+    signed = float(event.get("amount_gbp") or 0.0)
+    if signed and (signed > 0) != _money_in_is_the_normal_direction(entry["debit_account"]):
+        entry["debit_account"], entry["credit_account"] = (
+            entry["credit_account"], entry["debit_account"],
+        )
+    return entry
+
+
+def _entry_in_the_normal_direction(event: dict[str, Any]) -> dict[str, Any] | None:
+    """The account pair this event type takes when its amount carries its usual sign.
+
+    Magnitude only — the direction is decided by the caller above, which is the one
+    place that reads the sign.
     """
     et = event["event_type"]
     eid = event.get("transaction_id", f"unknown:{et}")

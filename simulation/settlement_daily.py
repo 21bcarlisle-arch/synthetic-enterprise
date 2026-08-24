@@ -13,12 +13,38 @@ movements that are not yet fully accounted for:
      published "worst half-hour" is wherever that lump fell, not the worst settled half-hour.
      The register folds pre-revision values and so names a different (milder) period.
   2. a ~£14 difference (1.4e-5 relative) in the ledger-derived cash/equity figures —
-     NOT YET DIAGNOSED. Per-segment gross margin, portfolio gross, net margin, capital, bad debt
-     and treasury are all identical to the penny; cost-to-serve was measured exactly equal after
-     the `periods` repair in `saas/cost_to_serve.py`. Something downstream of the ledger is not.
+     DIAGNOSED AND REPAIRED 2026-08-24, and it was never the fold's defect. Per-segment gross
+     margin, portfolio gross, net margin, capital, bad debt and treasury were all identical to
+     the penny because every one of them is a sum of SIGNED record values, and a sum does not
+     care what order it was added in. The journal was not: `company/finance/double_entry.
+     to_journal_entry` took `abs(amount_gbp)` and chose the account pair by event TYPE, so a
+     negatively-priced half-hour (the supplier is PAID to take the energy) was posted as a
+     wholesale COST of the same size — and `abs(x + y) != abs(x) + abs(y)`, so netting a day
+     before the journal saw it changed the published figure. This run carries 6 such half-hours
+     in 2018 (£5.48 of credit, overstating the journal by £10.95) and 2 in 2019 (£1.52, £3.04):
+     £13.99, plus pennies from item 3 below, is the £14.08.
 
-An unexplained movement in a published balance-sheet figure is not landable (R14), which is why
-the fold sits here with its tests running and its caller absent rather than live.
+     With the sign kept, the same end-2019 comparison moves NO figure by more than £0.02.
+
+  3. what is LEFT is a rounding tie, and it is worth knowing about. `simulation/meter_reads.py`
+     estimates an unread month as `round(mean(trailing actual reads), 2)`. Those reads are
+     monthly kWh totals — sums of ~1,440 floats — and re-associating the sum moves them by up
+     to 5.8e-11 kWh. Physically nothing, and enough to decide a `round(..., 2)` when the mean
+     lands on an exact half-penny tie (measured: 428.82500000000005 -> 428.83 per-period versus
+     exactly 428.825 -> 428.82 per-day, a difference of 5.7e-14 deciding a penny). 19 of 158
+     estimates flipped, worth £0.03 on £3.05M of billing. Not repaired here: the flip is a
+     tie-break, both answers are defensible, and the exact-tie value is arguably the truer one.
+
+An unexplained movement in a published balance-sheet figure is not landable (R14) — which is why
+the fold sat here with its tests running and its caller absent. What replaced the mystery is a
+DIRECTOR RULING that outranks the memory saving (2026-08-24 console, verbatim): "GB settlement is
+half-hourly and that is not an implementation detail, it is the market. So the half-hourly spine
+stays half-hourly. Aggregate in the reporting and ledger layers if that's where the memory goes,
+but the settlement and metering record keeps its grain." The one-line wiring described above
+folds the RETAINED book, which is the reporting/ledger side of that line rather than the spine
+(the 48-period settlement loop is untouched), and GATE 13 refuses a new half-hourly read
+downstream of the fold. The signed journal is the ledger-layer half of the same instruction: an
+aggregation there is now safe BY CONSTRUCTION, because the journal is a sum of signed amounts.
 
 WHY, AND WHY THE DAY RATHER THAN THE MONTH (director, 2026-08-24: "make the run incremental …
 using the projections store rather than accumulating … then 200 residential isn't a budget
