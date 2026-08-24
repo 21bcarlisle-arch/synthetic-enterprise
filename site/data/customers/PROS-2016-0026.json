@@ -847,8 +847,8 @@
       "period_start": "2017-05-01",
       "period_end": "2017-05-31",
       "commodity": "electricity",
-      "consumption_kwh": 428.9,
-      "unit_rate_p_per_kwh": 13.572,
+      "consumption_kwh": 428.8,
+      "unit_rate_p_per_kwh": 13.575,
       "commodity_amount_gbp": 58.21,
       "standing_charge_gbp": 7.75,
       "days_in_period": 31,
@@ -862,14 +862,14 @@
       "mprn": null,
       "read_type": "E",
       "opening_read_kwh": 6203.2,
-      "closing_read_kwh": 6632.1,
+      "closing_read_kwh": 6632.0,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 428.9,
+          "consumption_kwh": 428.8,
           "amount_gbp": 58.21,
-          "unit_rate_p_per_kwh": 13.572
+          "unit_rate_p_per_kwh": 13.575
         }
       ],
       "catchup_applied": false,
@@ -888,8 +888,8 @@
       "period_start": "2017-06-01",
       "period_end": "2017-06-30",
       "commodity": "electricity",
-      "consumption_kwh": 428.8,
-      "unit_rate_p_per_kwh": 13.575,
+      "consumption_kwh": 428.9,
+      "unit_rate_p_per_kwh": 13.572,
       "commodity_amount_gbp": 58.21,
       "standing_charge_gbp": 7.5,
       "days_in_period": 30,
@@ -902,15 +902,15 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 6632.1,
+      "opening_read_kwh": 6632.0,
       "closing_read_kwh": 7060.9,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 428.8,
+          "consumption_kwh": 428.9,
           "amount_gbp": 58.21,
-          "unit_rate_p_per_kwh": 13.575
+          "unit_rate_p_per_kwh": 13.572
         }
       ],
       "catchup_applied": false,
@@ -970,8 +970,8 @@
       "period_start": "2017-08-01",
       "period_end": "2017-08-31",
       "commodity": "electricity",
-      "consumption_kwh": 428.9,
-      "unit_rate_p_per_kwh": 13.572,
+      "consumption_kwh": 428.8,
+      "unit_rate_p_per_kwh": 13.575,
       "commodity_amount_gbp": 58.21,
       "standing_charge_gbp": 7.75,
       "days_in_period": 31,
@@ -985,14 +985,14 @@
       "mprn": null,
       "read_type": "E",
       "opening_read_kwh": 7489.7,
-      "closing_read_kwh": 7918.6,
+      "closing_read_kwh": 7918.5,
       "registers": [
         {
           "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 428.9,
+          "consumption_kwh": 428.8,
           "amount_gbp": 58.21,
-          "unit_rate_p_per_kwh": 13.572
+          "unit_rate_p_per_kwh": 13.575
         }
       ],
       "catchup_applied": false,
@@ -1025,8 +1025,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 7918.6,
-      "closing_read_kwh": 8347.4,
+      "opening_read_kwh": 7918.5,
+      "closing_read_kwh": 8347.3,
       "registers": [
         {
           "register_id": "1",
@@ -1066,8 +1066,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 8347.4,
-      "closing_read_kwh": 8776.2,
+      "opening_read_kwh": 8347.3,
+      "closing_read_kwh": 8776.1,
       "registers": [
         {
           "register_id": "1",
@@ -1107,8 +1107,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 8776.2,
-      "closing_read_kwh": 9205.1,
+      "opening_read_kwh": 8776.1,
+      "closing_read_kwh": 9205.0,
       "registers": [
         {
           "register_id": "1",
@@ -1142,14 +1142,14 @@
       "standing_charge_gbp_per_day": 0.25,
       "non_commodity_amount_gbp": 26.2,
       "vat_gbp": 4.99,
-      "amount_gbp": 29.61,
+      "amount_gbp": 29.63,
       "status": "PAID",
       "meter_serial": "M00062000",
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "A",
-      "opening_read_kwh": 9205.1,
-      "closing_read_kwh": 9690.2,
+      "opening_read_kwh": 9205.0,
+      "closing_read_kwh": 9690.1,
       "registers": [
         {
           "register_id": "1",
@@ -1164,8 +1164,8 @@
       "catchup_period_end": "2017-11-30",
       "catchup_periods_covered": 10,
       "catchup_direction": "overcharge",
-      "catchup_raw_delta_gbp": -75.19,
-      "catchup_adjustment_gbp": -75.19,
+      "catchup_raw_delta_gbp": -75.17,
+      "catchup_adjustment_gbp": -75.17,
       "catchup_written_off_gbp": 0.0,
       "catchup_back_billing_cap_applied": false
     },
@@ -1189,8 +1189,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "A",
-      "opening_read_kwh": 9690.2,
-      "closing_read_kwh": 10173.6,
+      "opening_read_kwh": 9690.1,
+      "closing_read_kwh": 10173.5,
       "registers": [
         {
           "register_id": "1",
@@ -1230,8 +1230,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 10173.6,
-      "closing_read_kwh": 10658.0,
+      "opening_read_kwh": 10173.5,
+      "closing_read_kwh": 10657.9,
       "registers": [
         {
           "register_id": "1",
@@ -1271,8 +1271,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 10658.0,
-      "closing_read_kwh": 11142.4,
+      "opening_read_kwh": 10657.9,
+      "closing_read_kwh": 11142.3,
       "registers": [
         {
           "register_id": "1",
@@ -1312,8 +1312,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 11142.4,
-      "closing_read_kwh": 11626.9,
+      "opening_read_kwh": 11142.3,
+      "closing_read_kwh": 11626.8,
       "registers": [
         {
           "register_id": "1",
@@ -1353,8 +1353,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 11626.9,
-      "closing_read_kwh": 12111.3,
+      "opening_read_kwh": 11626.8,
+      "closing_read_kwh": 12111.2,
       "registers": [
         {
           "register_id": "1",
@@ -1394,8 +1394,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 12111.3,
-      "closing_read_kwh": 12595.8,
+      "opening_read_kwh": 12111.2,
+      "closing_read_kwh": 12595.7,
       "registers": [
         {
           "register_id": "1",
@@ -1435,8 +1435,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 12595.8,
-      "closing_read_kwh": 13080.2,
+      "opening_read_kwh": 12595.7,
+      "closing_read_kwh": 13080.1,
       "registers": [
         {
           "register_id": "1",
@@ -1476,8 +1476,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 13080.2,
-      "closing_read_kwh": 13564.6,
+      "opening_read_kwh": 13080.1,
+      "closing_read_kwh": 13564.5,
       "registers": [
         {
           "register_id": "1",
@@ -1517,8 +1517,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 13564.6,
-      "closing_read_kwh": 14049.1,
+      "opening_read_kwh": 13564.5,
+      "closing_read_kwh": 14049.0,
       "registers": [
         {
           "register_id": "1",
@@ -1558,8 +1558,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 14049.1,
-      "closing_read_kwh": 14533.5,
+      "opening_read_kwh": 14049.0,
+      "closing_read_kwh": 14533.4,
       "registers": [
         {
           "register_id": "1",
@@ -1599,8 +1599,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 14533.5,
-      "closing_read_kwh": 15018.0,
+      "opening_read_kwh": 14533.4,
+      "closing_read_kwh": 15017.9,
       "registers": [
         {
           "register_id": "1",
@@ -1640,8 +1640,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 15018.0,
-      "closing_read_kwh": 15502.4,
+      "opening_read_kwh": 15017.9,
+      "closing_read_kwh": 15502.3,
       "registers": [
         {
           "register_id": "1",
@@ -1681,8 +1681,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 15502.4,
-      "closing_read_kwh": 15986.8,
+      "opening_read_kwh": 15502.3,
+      "closing_read_kwh": 15986.7,
       "registers": [
         {
           "register_id": "1",
@@ -1722,8 +1722,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "A",
-      "opening_read_kwh": 15986.8,
-      "closing_read_kwh": 16424.1,
+      "opening_read_kwh": 15986.7,
+      "closing_read_kwh": 16424.0,
       "registers": [
         {
           "register_id": "1",
@@ -1763,8 +1763,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 16424.1,
-      "closing_read_kwh": 16892.7,
+      "opening_read_kwh": 16424.0,
+      "closing_read_kwh": 16892.6,
       "registers": [
         {
           "register_id": "1",
@@ -1804,8 +1804,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 16892.7,
-      "closing_read_kwh": 17361.3,
+      "opening_read_kwh": 16892.6,
+      "closing_read_kwh": 17361.2,
       "registers": [
         {
           "register_id": "1",
@@ -1845,8 +1845,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 17361.3,
-      "closing_read_kwh": 17829.9,
+      "opening_read_kwh": 17361.2,
+      "closing_read_kwh": 17829.8,
       "registers": [
         {
           "register_id": "1",
@@ -1886,8 +1886,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 17829.9,
-      "closing_read_kwh": 18298.5,
+      "opening_read_kwh": 17829.8,
+      "closing_read_kwh": 18298.4,
       "registers": [
         {
           "register_id": "1",
@@ -1927,8 +1927,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 18298.5,
-      "closing_read_kwh": 18767.1,
+      "opening_read_kwh": 18298.4,
+      "closing_read_kwh": 18767.0,
       "registers": [
         {
           "register_id": "1",
@@ -1968,8 +1968,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 18767.1,
-      "closing_read_kwh": 19235.7,
+      "opening_read_kwh": 18767.0,
+      "closing_read_kwh": 19235.6,
       "registers": [
         {
           "register_id": "1",
@@ -2009,8 +2009,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 19235.7,
-      "closing_read_kwh": 19704.3,
+      "opening_read_kwh": 19235.6,
+      "closing_read_kwh": 19704.2,
       "registers": [
         {
           "register_id": "1",
@@ -2050,8 +2050,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 19704.3,
-      "closing_read_kwh": 20172.8,
+      "opening_read_kwh": 19704.2,
+      "closing_read_kwh": 20172.7,
       "registers": [
         {
           "register_id": "1",
@@ -2091,8 +2091,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 20172.8,
-      "closing_read_kwh": 20641.4,
+      "opening_read_kwh": 20172.7,
+      "closing_read_kwh": 20641.3,
       "registers": [
         {
           "register_id": "1",
@@ -2132,8 +2132,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 20641.4,
-      "closing_read_kwh": 21110.0,
+      "opening_read_kwh": 20641.3,
+      "closing_read_kwh": 21109.9,
       "registers": [
         {
           "register_id": "1",
@@ -2173,8 +2173,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "A",
-      "opening_read_kwh": 21110.0,
-      "closing_read_kwh": 21593.4,
+      "opening_read_kwh": 21109.9,
+      "closing_read_kwh": 21593.3,
       "registers": [
         {
           "register_id": "1",
@@ -2214,8 +2214,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 21593.4,
-      "closing_read_kwh": 22061.4,
+      "opening_read_kwh": 21593.3,
+      "closing_read_kwh": 22061.3,
       "registers": [
         {
           "register_id": "1",
@@ -2255,8 +2255,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 22061.4,
-      "closing_read_kwh": 22529.4,
+      "opening_read_kwh": 22061.3,
+      "closing_read_kwh": 22529.3,
       "registers": [
         {
           "register_id": "1",
@@ -2296,8 +2296,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 22529.4,
-      "closing_read_kwh": 22997.4,
+      "opening_read_kwh": 22529.3,
+      "closing_read_kwh": 22997.3,
       "registers": [
         {
           "register_id": "1",
@@ -2337,8 +2337,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 22997.4,
-      "closing_read_kwh": 23465.4,
+      "opening_read_kwh": 22997.3,
+      "closing_read_kwh": 23465.3,
       "registers": [
         {
           "register_id": "1",
@@ -2378,8 +2378,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 23465.4,
-      "closing_read_kwh": 23933.4,
+      "opening_read_kwh": 23465.3,
+      "closing_read_kwh": 23933.3,
       "registers": [
         {
           "register_id": "1",
@@ -2419,8 +2419,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 23933.4,
-      "closing_read_kwh": 24401.4,
+      "opening_read_kwh": 23933.3,
+      "closing_read_kwh": 24401.3,
       "registers": [
         {
           "register_id": "1",
@@ -2460,8 +2460,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "A",
-      "opening_read_kwh": 24401.4,
-      "closing_read_kwh": 24748.8,
+      "opening_read_kwh": 24401.3,
+      "closing_read_kwh": 24748.7,
       "registers": [
         {
           "register_id": "1",
@@ -2501,8 +2501,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 24748.8,
-      "closing_read_kwh": 25171.5,
+      "opening_read_kwh": 24748.7,
+      "closing_read_kwh": 25171.4,
       "registers": [
         {
           "register_id": "1",
@@ -2542,8 +2542,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 25171.5,
-      "closing_read_kwh": 25594.2,
+      "opening_read_kwh": 25171.4,
+      "closing_read_kwh": 25594.1,
       "registers": [
         {
           "register_id": "1",
@@ -2583,8 +2583,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 25594.2,
-      "closing_read_kwh": 26016.9,
+      "opening_read_kwh": 25594.1,
+      "closing_read_kwh": 26016.8,
       "registers": [
         {
           "register_id": "1",
@@ -2624,8 +2624,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 26016.9,
-      "closing_read_kwh": 26439.6,
+      "opening_read_kwh": 26016.8,
+      "closing_read_kwh": 26439.5,
       "registers": [
         {
           "register_id": "1",
@@ -2665,8 +2665,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 26439.6,
-      "closing_read_kwh": 26862.3,
+      "opening_read_kwh": 26439.5,
+      "closing_read_kwh": 26862.2,
       "registers": [
         {
           "register_id": "1",
@@ -2706,8 +2706,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 26862.3,
-      "closing_read_kwh": 27285.0,
+      "opening_read_kwh": 26862.2,
+      "closing_read_kwh": 27284.9,
       "registers": [
         {
           "register_id": "1",
@@ -2747,8 +2747,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 27285.0,
-      "closing_read_kwh": 27707.7,
+      "opening_read_kwh": 27284.9,
+      "closing_read_kwh": 27707.6,
       "registers": [
         {
           "register_id": "1",
@@ -2788,8 +2788,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 27707.7,
-      "closing_read_kwh": 28130.4,
+      "opening_read_kwh": 27707.6,
+      "closing_read_kwh": 28130.3,
       "registers": [
         {
           "register_id": "1",
@@ -2829,8 +2829,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 28130.4,
-      "closing_read_kwh": 28553.1,
+      "opening_read_kwh": 28130.3,
+      "closing_read_kwh": 28553.0,
       "registers": [
         {
           "register_id": "1",
@@ -2870,8 +2870,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 28553.1,
-      "closing_read_kwh": 28975.8,
+      "opening_read_kwh": 28553.0,
+      "closing_read_kwh": 28975.7,
       "registers": [
         {
           "register_id": "1",
@@ -2911,8 +2911,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 28975.8,
-      "closing_read_kwh": 29398.5,
+      "opening_read_kwh": 28975.7,
+      "closing_read_kwh": 29398.4,
       "registers": [
         {
           "register_id": "1",
@@ -2952,8 +2952,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 29398.5,
-      "closing_read_kwh": 29821.2,
+      "opening_read_kwh": 29398.4,
+      "closing_read_kwh": 29821.1,
       "registers": [
         {
           "register_id": "1",
@@ -2993,8 +2993,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "A",
-      "opening_read_kwh": 29821.2,
-      "closing_read_kwh": 30190.6,
+      "opening_read_kwh": 29821.1,
+      "closing_read_kwh": 30190.5,
       "registers": [
         {
           "register_id": "1",
@@ -3034,8 +3034,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 30190.6,
-      "closing_read_kwh": 30590.6,
+      "opening_read_kwh": 30190.5,
+      "closing_read_kwh": 30590.5,
       "registers": [
         {
           "register_id": "1",
@@ -3075,8 +3075,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 30590.6,
-      "closing_read_kwh": 30990.7,
+      "opening_read_kwh": 30590.5,
+      "closing_read_kwh": 30990.6,
       "registers": [
         {
           "register_id": "1",
@@ -3116,8 +3116,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 30990.7,
-      "closing_read_kwh": 31390.7,
+      "opening_read_kwh": 30990.6,
+      "closing_read_kwh": 31390.6,
       "registers": [
         {
           "register_id": "1",
@@ -3157,8 +3157,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 31390.7,
-      "closing_read_kwh": 31790.8,
+      "opening_read_kwh": 31390.6,
+      "closing_read_kwh": 31790.7,
       "registers": [
         {
           "register_id": "1",
@@ -3198,8 +3198,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 31790.8,
-      "closing_read_kwh": 32190.8,
+      "opening_read_kwh": 31790.7,
+      "closing_read_kwh": 32190.7,
       "registers": [
         {
           "register_id": "1",
@@ -3239,8 +3239,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 32190.8,
-      "closing_read_kwh": 32590.9,
+      "opening_read_kwh": 32190.7,
+      "closing_read_kwh": 32590.8,
       "registers": [
         {
           "register_id": "1",
@@ -3280,8 +3280,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 32590.9,
-      "closing_read_kwh": 32990.9,
+      "opening_read_kwh": 32590.8,
+      "closing_read_kwh": 32990.8,
       "registers": [
         {
           "register_id": "1",
@@ -3321,8 +3321,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 32990.9,
-      "closing_read_kwh": 33391.0,
+      "opening_read_kwh": 32990.8,
+      "closing_read_kwh": 33390.9,
       "registers": [
         {
           "register_id": "1",
@@ -3362,8 +3362,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 33391.0,
-      "closing_read_kwh": 33791.0,
+      "opening_read_kwh": 33390.9,
+      "closing_read_kwh": 33790.9,
       "registers": [
         {
           "register_id": "1",
@@ -3403,8 +3403,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 33791.0,
-      "closing_read_kwh": 34191.1,
+      "opening_read_kwh": 33790.9,
+      "closing_read_kwh": 34191.0,
       "registers": [
         {
           "register_id": "1",
@@ -3444,8 +3444,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 34191.1,
-      "closing_read_kwh": 34591.1,
+      "opening_read_kwh": 34191.0,
+      "closing_read_kwh": 34591.0,
       "registers": [
         {
           "register_id": "1",
@@ -3485,8 +3485,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "A",
-      "opening_read_kwh": 34591.1,
-      "closing_read_kwh": 34961.7,
+      "opening_read_kwh": 34591.0,
+      "closing_read_kwh": 34961.6,
       "registers": [
         {
           "register_id": "1",
@@ -3526,8 +3526,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 34961.7,
-      "closing_read_kwh": 35324.2,
+      "opening_read_kwh": 34961.6,
+      "closing_read_kwh": 35324.1,
       "registers": [
         {
           "register_id": "1",
@@ -3567,8 +3567,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 35324.2,
-      "closing_read_kwh": 35686.7,
+      "opening_read_kwh": 35324.1,
+      "closing_read_kwh": 35686.6,
       "registers": [
         {
           "register_id": "1",
@@ -3608,8 +3608,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 35686.7,
-      "closing_read_kwh": 36049.2,
+      "opening_read_kwh": 35686.6,
+      "closing_read_kwh": 36049.1,
       "registers": [
         {
           "register_id": "1",
@@ -3649,8 +3649,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 36049.2,
-      "closing_read_kwh": 36411.6,
+      "opening_read_kwh": 36049.1,
+      "closing_read_kwh": 36411.5,
       "registers": [
         {
           "register_id": "1",
@@ -3690,8 +3690,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 36411.6,
-      "closing_read_kwh": 36774.1,
+      "opening_read_kwh": 36411.5,
+      "closing_read_kwh": 36774.0,
       "registers": [
         {
           "register_id": "1",
@@ -3731,8 +3731,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 36774.1,
-      "closing_read_kwh": 37136.6,
+      "opening_read_kwh": 36774.0,
+      "closing_read_kwh": 37136.5,
       "registers": [
         {
           "register_id": "1",
@@ -3772,8 +3772,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 37136.6,
-      "closing_read_kwh": 37499.0,
+      "opening_read_kwh": 37136.5,
+      "closing_read_kwh": 37498.9,
       "registers": [
         {
           "register_id": "1",
@@ -3813,8 +3813,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 37499.0,
-      "closing_read_kwh": 37861.5,
+      "opening_read_kwh": 37498.9,
+      "closing_read_kwh": 37861.4,
       "registers": [
         {
           "register_id": "1",
@@ -3854,8 +3854,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 37861.5,
-      "closing_read_kwh": 38224.0,
+      "opening_read_kwh": 37861.4,
+      "closing_read_kwh": 38223.9,
       "registers": [
         {
           "register_id": "1",
@@ -3895,8 +3895,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 38224.0,
-      "closing_read_kwh": 38586.4,
+      "opening_read_kwh": 38223.9,
+      "closing_read_kwh": 38586.3,
       "registers": [
         {
           "register_id": "1",
@@ -3936,8 +3936,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "A",
-      "opening_read_kwh": 38586.4,
-      "closing_read_kwh": 38933.1,
+      "opening_read_kwh": 38586.3,
+      "closing_read_kwh": 38933.0,
       "registers": [
         {
           "register_id": "1",
@@ -3977,8 +3977,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 38933.1,
-      "closing_read_kwh": 39295.3,
+      "opening_read_kwh": 38933.0,
+      "closing_read_kwh": 39295.2,
       "registers": [
         {
           "register_id": "1",
@@ -4018,8 +4018,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 39295.3,
-      "closing_read_kwh": 39657.5,
+      "opening_read_kwh": 39295.2,
+      "closing_read_kwh": 39657.4,
       "registers": [
         {
           "register_id": "1",
@@ -4059,8 +4059,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 39657.5,
-      "closing_read_kwh": 40019.7,
+      "opening_read_kwh": 39657.4,
+      "closing_read_kwh": 40019.6,
       "registers": [
         {
           "register_id": "1",
@@ -4100,8 +4100,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 40019.7,
-      "closing_read_kwh": 40381.9,
+      "opening_read_kwh": 40019.6,
+      "closing_read_kwh": 40381.8,
       "registers": [
         {
           "register_id": "1",
@@ -4141,8 +4141,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "A",
-      "opening_read_kwh": 40381.9,
-      "closing_read_kwh": 40865.3,
+      "opening_read_kwh": 40381.8,
+      "closing_read_kwh": 40865.2,
       "registers": [
         {
           "register_id": "1",
@@ -4182,8 +4182,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "A",
-      "opening_read_kwh": 40865.3,
-      "closing_read_kwh": 41317.9,
+      "opening_read_kwh": 40865.2,
+      "closing_read_kwh": 41317.8,
       "registers": [
         {
           "register_id": "1",
@@ -4223,8 +4223,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 41317.9,
-      "closing_read_kwh": 41745.5,
+      "opening_read_kwh": 41317.8,
+      "closing_read_kwh": 41745.4,
       "registers": [
         {
           "register_id": "1",
@@ -4264,8 +4264,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 41745.5,
-      "closing_read_kwh": 42173.1,
+      "opening_read_kwh": 41745.4,
+      "closing_read_kwh": 42173.0,
       "registers": [
         {
           "register_id": "1",
@@ -4305,8 +4305,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 42173.1,
-      "closing_read_kwh": 42600.6,
+      "opening_read_kwh": 42173.0,
+      "closing_read_kwh": 42600.5,
       "registers": [
         {
           "register_id": "1",
@@ -4346,8 +4346,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 42600.6,
-      "closing_read_kwh": 43028.2,
+      "opening_read_kwh": 42600.5,
+      "closing_read_kwh": 43028.1,
       "registers": [
         {
           "register_id": "1",
@@ -4387,8 +4387,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 43028.2,
-      "closing_read_kwh": 43455.7,
+      "opening_read_kwh": 43028.1,
+      "closing_read_kwh": 43455.6,
       "registers": [
         {
           "register_id": "1",
@@ -4428,8 +4428,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 43455.7,
-      "closing_read_kwh": 43883.3,
+      "opening_read_kwh": 43455.6,
+      "closing_read_kwh": 43883.2,
       "registers": [
         {
           "register_id": "1",
@@ -4469,8 +4469,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 43883.3,
-      "closing_read_kwh": 44310.9,
+      "opening_read_kwh": 43883.2,
+      "closing_read_kwh": 44310.8,
       "registers": [
         {
           "register_id": "1",
@@ -4510,8 +4510,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 44310.9,
-      "closing_read_kwh": 44738.4,
+      "opening_read_kwh": 44310.8,
+      "closing_read_kwh": 44738.3,
       "registers": [
         {
           "register_id": "1",
@@ -4551,8 +4551,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 44738.4,
-      "closing_read_kwh": 45166.0,
+      "opening_read_kwh": 44738.3,
+      "closing_read_kwh": 45165.9,
       "registers": [
         {
           "register_id": "1",
@@ -4592,8 +4592,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 45166.0,
-      "closing_read_kwh": 45593.5,
+      "opening_read_kwh": 45165.9,
+      "closing_read_kwh": 45593.4,
       "registers": [
         {
           "register_id": "1",
@@ -4633,8 +4633,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 45593.5,
-      "closing_read_kwh": 46021.1,
+      "opening_read_kwh": 45593.4,
+      "closing_read_kwh": 46021.0,
       "registers": [
         {
           "register_id": "1",
@@ -4674,8 +4674,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 46021.1,
-      "closing_read_kwh": 46448.7,
+      "opening_read_kwh": 46021.0,
+      "closing_read_kwh": 46448.6,
       "registers": [
         {
           "register_id": "1",
@@ -4715,8 +4715,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "A",
-      "opening_read_kwh": 46448.7,
-      "closing_read_kwh": 46926.7,
+      "opening_read_kwh": 46448.6,
+      "closing_read_kwh": 46926.6,
       "registers": [
         {
           "register_id": "1",
@@ -4756,8 +4756,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 46926.7,
-      "closing_read_kwh": 47398.0,
+      "opening_read_kwh": 46926.6,
+      "closing_read_kwh": 47397.9,
       "registers": [
         {
           "register_id": "1",
@@ -4797,8 +4797,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 47398.0,
-      "closing_read_kwh": 47869.3,
+      "opening_read_kwh": 47397.9,
+      "closing_read_kwh": 47869.2,
       "registers": [
         {
           "register_id": "1",
@@ -4838,8 +4838,8 @@
       "mpan": "1000000000815",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 47869.3,
-      "closing_read_kwh": 48340.7,
+      "opening_read_kwh": 47869.2,
+      "closing_read_kwh": 48340.6,
       "registers": [
         {
           "register_id": "1",
@@ -5347,17 +5347,17 @@
         "date": "2018-01-05",
         "type": "invoice_raised",
         "invoice_number": 1931,
-        "amount_gbp": 29.61,
+        "amount_gbp": 29.63,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1931 raised",
-        "running_balance_gbp": 122.92
+        "running_balance_gbp": 122.94
       },
       {
         "date": "2018-01-19",
         "type": "payment_received",
         "invoice_number": 1931,
-        "amount_gbp": -29.61,
+        "amount_gbp": -29.63,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -7235,8 +7235,8 @@
       }
     ],
     "current_balance_gbp": -135.13,
-    "total_billed_gbp": 13845.34,
-    "total_collected_gbp": 13980.47,
+    "total_billed_gbp": 13845.36,
+    "total_collected_gbp": 13980.49,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
@@ -7537,11 +7537,11 @@
       },
       {
         "month": "2022-02",
-        "kwh": 400.0
+        "kwh": 400.1
       },
       {
         "month": "2022-03",
-        "kwh": 400.1
+        "kwh": 400.0
       },
       {
         "month": "2022-04",
@@ -7549,7 +7549,7 @@
       },
       {
         "month": "2022-05",
-        "kwh": 400.0
+        "kwh": 400.1
       },
       {
         "month": "2022-06",

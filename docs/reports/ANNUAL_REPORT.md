@@ -10,12 +10,12 @@ the last partial). The business survived the full window.
 - Final treasury: £1,640,474.23
   (£1,390,474.23 net change)
 - Solvency signal (final year): £30,092/customer (58 customers, OK; Ofgem floor £130/customer)
-- Customer bills (all-in): £23,056,845.74
-  VAT remitted to HMRC: (£3,762,845.45) | Revenue (ex-VAT): £19,294,000.28
-  Non-commodity pass-through: (£4,891,692.68)
-- Gross margin: £6,650,780.27
+- Customer bills (all-in): £23,056,845.78
+  VAT remitted to HMRC: (£3,762,845.47) | Revenue (ex-VAT): £19,294,000.31
+  Non-commodity pass-through: (£4,891,692.75)
+- Gross margin: £6,650,780.22
 - Capital costs: £53,861.15
-- Net margin: £6,596,919.11
+- Net margin: £6,596,919.07
 - Capital cost ratio: 0.8% of gross
 - Net margin as % of revenue: 34.2%
   (industry benchmark for a retail energy supplier: 2-5%)
@@ -23,7 +23,7 @@ the last partial). The business survived the full window.
 - Bills issued: 5927, average clarity 0.862,
   service quality score 0.908
 - Enterprise value (CLV sum across 53 billing accounts): £1,387,197.01
-- Cost to serve (whole portfolio): £42,861.27, net margin after cost to serve: £6,554,057.85
+- Cost to serve (whole portfolio): £42,861.27, net margin after cost to serve: £6,554,057.81
 - Hedge effectiveness (whole window): hedging cost £4,407,560.91 vs. a fully unhedged book (commodity-only: actual net £1,390,474.23 vs. naked net £5,798,035.14)
 
 - **2021** (crisis year): net margin £75,855.19, 0 risk committee wake-up(s).
@@ -152,7 +152,7 @@ RAG: RED = immediate board action, AMBER = monitor closely, GREEN = on track.
 
 Phase 5c replaced the old reactive hedging model (start at 50/50, risk committee reacts upward from there with no floor) with a minimum hedge mandate: every term starts at least 85% hedged (`MIN_HEDGE_FLOOR` in `sim/hedging_strategy.py`), modelling a real supplier's supply-obligation-first behaviour rather than a speculative book with a safety valve. Because capital cost is charged on the unhedged (active) position only, raising the floor to 85% caps that active position at 15% of volume by construction.
 
-The figures below come from two *different* simulation runs (this run vs. the preserved old-model snapshot) — do not subtract a figure from one run's row from a figure in the other's. This run (Phase 9a): gross £6,650,780.27, capital £53,861.15, net £6,596,919.11. Old-model run (commodity-only, pre-Phase-9a): gross £45,417.31, capital £18,637.75, net £26,779.56.
+The figures below come from two *different* simulation runs (this run vs. the preserved old-model snapshot) — do not subtract a figure from one run's row from a figure in the other's. This run (Phase 9a): gross £6,650,780.22, capital £53,861.15, net £6,596,919.07. Old-model run (commodity-only, pre-Phase-9a): gross £45,417.31, capital £18,637.75, net £26,779.56.
 
 - **Capital cost as % of gross margin**: 0.8% (commodity basis, comparable to old model) / 0.8% (Phase 9a all-in gross) under the new mandate vs. 41.0% (commodity-only) under the old reactive model.
 - **2021 net margin**: £75,855.19 under the new mandate vs. £-1,096.43 under the old reactive model.
@@ -160,7 +160,7 @@ The figures below come from two *different* simulation runs (this run vs. the pr
 
 **Whole-run net margin, three ways:**
 
-- Mandate-hedged (actual, this run, Phase 9a): £6,596,919.11
+- Mandate-hedged (actual, this run, Phase 9a): £6,596,919.07
 - Old reactive model (actual, commodity-only): £26,779.56
 - Fully naked (this run's counterfactual, commodity-only): £5,798,035.14
 - Fully naked (old run's counterfactual, commodity-only): £33,476.19
@@ -2172,18 +2172,18 @@ Most loss-making single 30-minute period per settlement year.
 
 | Year | Date | SP | Customer | Net Margin £ |
 |------|------|----|----------|-------------|
-| 2016 | 2016-12-31 | 48 | PROS-2016-0024 | -£45 |
-| 2017 | 2017-12-31 | 48 | PROS-2017-0038 | -£147 |
-| 2018 | 2018-12-31 | 48 | C6 | -£268 |
-| 2019 | 2019-12-31 | 48 | PROS-2016-0024 | -£103 |
-| 2020 | 2020-12-31 | 48 | PROS-2020-0043 | -£247 |
-| 2021 | 2021-12-31 | 48 | PROS-2020-0086 | -£280 |
-| 2022 | 2022-12-31 | 48 | PROS-2020-0086 | -£186 |
-| 2023 | 2023-12-31 | 48 | PROS-2020-0043 | -£723 |
-| 2024 | 2024-12-31 | 48 | PROS-2019-0079 | -£315 |
-| 2025 | 2025-02-09 | 48 | PROS-2020-0047 | -£186 |
+| 2016 | 2016-11-08 | 40 | C6 | -£0 |
+| 2017 | 2017-05-17 | 32 | C_IC1 | -£20 |
+| 2018 | 2018-03-01 | 27 | C_IC1 | -£17 |
+| 2019 | 2019-02-04 | 35 | C_IC1 | -£14 |
+| 2020 | 2020-03-16 | 20 | C_IC1 | -£19 |
+| 2021 | 2021-11-24 | 30 | C_IC1 | -£76 |
+| 2022 | 2022-01-24 | 26 | C_IC1 | -£90 |
+| 2023 | 2023-06-16 | 22 | C_IC1 | -£22 |
+| 2024 | 2024-06-28 | 31 | C_IC1 | -£26 |
+| 2025 | 2025-01-08 | 31 | C_IC1 | -£81 |
 
-**Single worst period: 2023 2023-12-31 SP48 (PROS-2020-0043, -£723)** — exposure from gas supply anchor at year-end pricing.
+**Single worst period: 2022 2022-01-24 SP26 (C_IC1, -£90)** — exposure from gas supply anchor at year-end pricing.
 
 > SP = settlement period (1-48; SP1 = 00:00-00:30). Year-end gas exposure dominates from 2020 onward as C_IC3g position grows.
 
@@ -2241,13 +2241,13 @@ Contracts for Difference levy (negative = credit to supplier in high-price perio
 | 2019 | +£28,892 | £167,761 | £255 | — | 625 |
 | 2020 | +£36,185 | £243,993 | £542 | — | 860 |
 | 2021 | +£15,328 | £251,924 | £1,124 | — | 844 |
-| 2022 | -£50,870 CREDIT | £262,029 | £868 | 1 | 819 |
+| 2022 | -£50,870 CREDIT | £262,029 | £868 | — | 819 |
 | 2023 | +£66,207 | £277,893 | £2,613 | 1 | 808 |
 | 2024 | +£112,231 | £314,026 | £568 | — | 748 |
 | 2025 | +£47,886 | £140,800 | £198 | — | 338 |
 
 **CfD turned CREDIT in 2022: -£50,870 (high wholesale → CfD generators repay system)**
-**Treasury drawdown years: 2022, 2023** (credit facility used)
+**Treasury drawdown years: 2023** (credit facility used)
 **Peak bad debt year: 2023 (£2,613)**
 
 > CfD (Contracts for Difference): when wholesale > strike price, generators repay;
@@ -2560,7 +2560,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (60 active customers) under 12-month forward scenarios.
-Generated: 2026-08-24T20:36:53Z
+Generated: 2026-08-24T21:10:19Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -2661,16 +2661,16 @@ Annual change in gross margin decomposed into revenue and cost drivers.
 
 | Year | Revenue £ | Wholesale £ | Non-Commodity £ | Gross Margin £ | GM% | ΔRevenue £ | ΔWholesale £ | ΔNon-Comm £ | ΔGM £ |
 |------|-----------|-------------|-----------------|----------------|-----|------------|--------------|-------------|-------|
-| 2016 | £18,483.45 | £4,112.34 | £4,914.15 | £9,456.96 | 51.2% | — | — | — | — |
-| 2017 | £351,096.04 | £112,606.98 | £113,988.58 | £124,500.49 | 35.5% | +£332,612.59 | +£108,494.64 | +£109,074.43 | +£115,043.53 |
-| 2018 | £571,826.21 | £177,184.92 | £168,627.27 | £226,014.01 | 39.5% | +£220,730.17 | +£64,577.95 | +£54,638.69 | +£101,513.53 |
-| 2019 | £1,612,067.31 | £504,904.06 | £450,946.33 | £656,216.92 | 40.7% | +£1,040,241.11 | +£327,719.14 | +£282,319.06 | +£430,202.91 |
-| 2020 | £1,907,796.97 | £440,786.46 | £642,685.95 | £824,324.56 | 43.2% | +£295,729.66 | £-64,117.60 | +£191,739.62 | +£168,107.63 |
-| 2021 | £2,474,455.62 | £987,839.66 | £695,858.76 | £790,757.20 | 32.0% | +£566,658.65 | +£547,053.20 | +£53,172.80 | £-33,567.36 |
-| 2022 | £4,381,723.73 | £2,433,925.01 | £817,226.79 | £1,130,571.92 | 25.8% | +£1,907,268.11 | +£1,446,085.35 | +£121,368.03 | +£339,814.72 |
-| 2023 | £3,585,057.29 | £1,679,933.54 | £894,129.38 | £1,010,994.37 | 28.2% | £-796,666.43 | £-753,991.48 | +£76,902.60 | £-119,577.55 |
-| 2024 | £3,074,405.73 | £949,334.64 | £827,559.68 | £1,297,511.41 | 42.2% | £-510,651.56 | £-730,598.90 | £-66,569.70 | +£286,517.04 |
-| 2025 | £1,317,087.93 | £460,899.72 | £275,755.78 | £580,432.43 | 44.1% | £-1,757,317.80 | £-488,434.92 | £-551,803.90 | £-717,078.98 |
+| 2016 | £18,483.46 | £4,112.34 | £4,914.16 | £9,456.96 | 51.2% | — | — | — | — |
+| 2017 | £351,096.06 | £112,606.98 | £113,988.58 | £124,500.50 | 35.5% | +£332,612.60 | +£108,494.64 | +£109,074.43 | +£115,043.54 |
+| 2018 | £571,826.20 | £177,184.92 | £168,627.27 | £226,014.00 | 39.5% | +£220,730.13 | +£64,577.95 | +£54,638.69 | +£101,513.49 |
+| 2019 | £1,612,067.35 | £504,904.06 | £450,946.35 | £656,216.94 | 40.7% | +£1,040,241.15 | +£327,719.14 | +£282,319.07 | +£430,202.94 |
+| 2020 | £1,907,796.98 | £440,786.46 | £642,685.97 | £824,324.55 | 43.2% | +£295,729.64 | £-64,117.60 | +£191,739.63 | +£168,107.61 |
+| 2021 | £2,474,455.61 | £987,839.66 | £695,858.76 | £790,757.18 | 32.0% | +£566,658.62 | +£547,053.20 | +£53,172.79 | £-33,567.36 |
+| 2022 | £4,381,723.68 | £2,433,925.01 | £817,226.79 | £1,130,571.88 | 25.8% | +£1,907,268.08 | +£1,446,085.35 | +£121,368.02 | +£339,814.70 |
+| 2023 | £3,585,057.40 | £1,679,933.54 | £894,129.40 | £1,010,994.47 | 28.2% | £-796,666.28 | £-753,991.48 | +£76,902.61 | £-119,577.41 |
+| 2024 | £3,074,405.69 | £949,334.64 | £827,559.69 | £1,297,511.36 | 42.2% | £-510,651.71 | £-730,598.90 | £-66,569.70 | +£286,516.89 |
+| 2025 | £1,317,087.88 | £460,899.72 | £275,755.78 | £580,432.38 | 44.1% | £-1,757,317.81 | £-488,434.92 | £-551,803.91 | £-717,078.98 |
 
 **Best GM year: 2016 (51.2%)** | **Worst GM year: 2022 (25.8%)**
 
@@ -2704,9 +2704,9 @@ Decomposes each year's net margin change into: gross margin movement, bad debt, 
 
 An estimated-basis bill's revenue is recognised in full when issued (Phase 7a) -- that cash effect is correct and unchanged. This section shows how much of currently-recognised revenue is still PROVISIONAL (estimated, awaiting confirmation against a real meter read) versus already CONFIRMED, and how much has been RESTATED this run as D3's catch-up-rebilling resolved prior estimates.
 
-**Outstanding unbilled revenue accrual: £644,193.43** across 820 bill(s) not yet confirmed by an actual read.
+**Outstanding unbilled revenue accrual: £644,193.46** across 820 bill(s) not yet confirmed by an actual read.
 
-**Revenue restated this run: £3,055.59** across 523 catch-up correction(s) -- see the Net Margin Bridge above for the settlement-clock view and D3_catchup_rebilling for the per-bill mechanism.
+**Revenue restated this run: £3,055.36** across 523 catch-up correction(s) -- see the Net Margin Bridge above for the settlement-clock view and D3_catchup_rebilling for the per-bill mechanism.
 
 | Customer | Outstanding Accrual £ |
 |----------|------------------------|
@@ -2789,18 +2789,18 @@ Real-world context: Bulb 2021 collapse at ~-0.01x; Igloo 2021 ~0.07x.
 
 | Year | Equity | Monthly Rev | FRA Ratio | RAG | Compliant |
 |------|--------|-------------|-----------|-----|-----------|
-| 2016 | £257,574.83 | £1,540.29 | 167.2x | ✓ GREEN | Yes |
-| 2017 | £371,230.85 | £29,258.00 | 12.7x | ✓ GREEN | Yes |
-| 2018 | £579,186.14 | £47,652.18 | 12.2x | ✓ GREEN | Yes |
-| 2019 | £1,193,340.20 | £134,338.94 | 8.9x | ✓ GREEN | Yes |
-| 2020 | £1,963,635.79 | £158,983.08 | 12.3x | ✓ GREEN | Yes |
+| 2016 | £257,574.84 | £1,540.29 | 167.2x | ✓ GREEN | Yes |
+| 2017 | £371,230.88 | £29,258.01 | 12.7x | ✓ GREEN | Yes |
+| 2018 | £579,186.15 | £47,652.18 | 12.2x | ✓ GREEN | Yes |
+| 2019 | £1,193,340.23 | £134,338.95 | 8.9x | ✓ GREEN | Yes |
+| 2020 | £1,963,635.81 | £158,983.08 | 12.3x | ✓ GREEN | Yes |
 | 2021 | £2,686,672.08 | £206,204.63 | 13.0x | ✓ GREEN | Yes |
-| 2022 | £3,697,402.84 | £365,143.64 | 10.1x | ✓ GREEN | Yes |
-| 2023 | £4,601,231.43 | £298,754.77 | 15.4x | ✓ GREEN | Yes |
-| 2024 | £5,806,955.68 | £256,200.48 | 22.7x | ✓ GREEN | Yes |
-| 2025 | £6,334,242.77 | £109,757.33 | 57.7x | ✓ GREEN | Yes |
+| 2022 | £3,697,402.80 | £365,143.64 | 10.1x | ✓ GREEN | Yes |
+| 2023 | £4,601,231.49 | £298,754.78 | 15.4x | ✓ GREEN | Yes |
+| 2024 | £5,806,955.69 | £256,200.47 | 22.7x | ✓ GREEN | Yes |
+| 2025 | £6,334,242.72 | £109,757.32 | 57.7x | ✓ GREEN | Yes |
 
-**Weakest year:** 2019 — 8.9x (equity £1,193,340.20 vs monthly revenue £134,338.94). RAG: GREEN.
+**Weakest year:** 2019 — 8.9x (equity £1,193,340.23 vs monthly revenue £134,338.95). RAG: GREEN.
 **Strongest year:** 2016 — 167.2x.
 
 ## I&C Broker / TPI Commission (Phase OA)
@@ -2833,16 +2833,16 @@ Zero-mean: adjustments go both ways. Crisis years bias toward supplier credit.
 
 | Year | Revenue £ | Pool Outstanding £ | Max Adverse £ | RAG | Crisis |
 |------|-----------|---------------------|---------------|-----|--------|
-| 2016 | £18,483.45 | £6,869.68 | £58.39 | ✓ GREEN |  |
-| 2017 | £351,096.04 | £130,490.70 | £1,109.17 | ✓ GREEN |  |
-| 2018 | £571,826.21 | £212,528.74 | £1,806.49 | ✓ GREEN |  |
-| 2019 | £1,612,067.31 | £599,151.69 | £5,092.79 | ✓ GREEN |  |
-| 2020 | £1,907,796.97 | £709,064.54 | £6,027.05 | ✓ GREEN |  |
-| 2021 | £2,474,455.62 | £919,672.67 | £7,817.22 | ✓ GREEN | CREDIT EXPECTED |
-| 2022 | £4,381,723.73 | £1,628,540.65 | £13,842.60 | ✓ GREEN | CREDIT EXPECTED |
-| 2023 | £3,585,057.29 | £1,332,446.29 | £11,325.79 | ✓ GREEN |  |
-| 2024 | £3,074,405.73 | £1,142,654.13 | £9,712.56 | ✓ GREEN |  |
-| 2025 | £1,317,087.93 | £489,517.68 | £4,160.90 | ✓ GREEN |  |
+| 2016 | £18,483.46 | £6,869.69 | £58.39 | ✓ GREEN |  |
+| 2017 | £351,096.06 | £130,490.70 | £1,109.17 | ✓ GREEN |  |
+| 2018 | £571,826.20 | £212,528.74 | £1,806.49 | ✓ GREEN |  |
+| 2019 | £1,612,067.35 | £599,151.70 | £5,092.79 | ✓ GREEN |  |
+| 2020 | £1,907,796.98 | £709,064.55 | £6,027.05 | ✓ GREEN |  |
+| 2021 | £2,474,455.61 | £919,672.67 | £7,817.22 | ✓ GREEN | CREDIT EXPECTED |
+| 2022 | £4,381,723.68 | £1,628,540.64 | £13,842.60 | ✓ GREEN | CREDIT EXPECTED |
+| 2023 | £3,585,057.40 | £1,332,446.33 | £11,325.79 | ✓ GREEN |  |
+| 2024 | £3,074,405.69 | £1,142,654.12 | £9,712.56 | ✓ GREEN |  |
+| 2025 | £1,317,087.88 | £489,517.66 | £4,160.90 | ✓ GREEN |  |
 
 **Peak reconciliation exposure:** 2022 — max adverse £13,843 (4.5 months weighted tail).
 
@@ -2856,16 +2856,16 @@ WATCH = within 20% of threshold. BREACH = threshold crossed.
 
 | Year | Customers | Net Assets | Treasury | Cash Wks | Bad Debt % | Overall |
 |------|-----------|------------|----------|----------|------------|---------|
-| 2016 | 18 | £257,574.83 | £252,541.86 | 3193w | 0.45% | ✗ BREACH |
-| 2017 | 23 | £371,230.85 | £284,692.59 | 131w | 0.12% | ✗ BREACH |
-| 2018 | 38 | £579,186.14 | £349,237.47 | 102w | 0.22% | ✗ BREACH |
-| 2019 | 54 | £1,193,340.20 | £530,971.76 | 55w | 0.02% | ✗ BREACH |
-| 2020 | 76 | £1,963,635.79 | £622,797.60 | 73w | 0.04% | ✗ BREACH |
+| 2016 | 18 | £257,574.84 | £252,541.86 | 3193w | 0.45% | ✗ BREACH |
+| 2017 | 23 | £371,230.88 | £284,692.59 | 131w | 0.12% | ✗ BREACH |
+| 2018 | 38 | £579,186.15 | £349,237.47 | 102w | 0.22% | ✗ BREACH |
+| 2019 | 54 | £1,193,340.23 | £530,971.76 | 55w | 0.02% | ✗ BREACH |
+| 2020 | 76 | £1,963,635.81 | £622,797.60 | 73w | 0.04% | ✗ BREACH |
 | 2021 | 72 | £2,686,672.08 | £848,829.05 | 45w | 0.06% | ✗ BREACH |
-| 2022 | 69 | £3,697,402.84 | £1,113,511.01 | 24w | 0.02% | ✗ BREACH |
-| 2023 | 69 | £4,601,231.43 | £1,511,824.80 | 47w | 0.10% | ✗ BREACH |
-| 2024 | 67 | £5,806,955.68 | £1,741,214.83 | 95w | 0.03% | ✗ BREACH |
-| 2025 | 60 | £6,334,242.77 | £1,745,358.49 | 197w | 0.02% | ✗ BREACH |
+| 2022 | 69 | £3,697,402.80 | £1,113,511.01 | 24w | 0.02% | ✗ BREACH |
+| 2023 | 69 | £4,601,231.49 | £1,511,824.80 | 47w | 0.10% | ✗ BREACH |
+| 2024 | 67 | £5,806,955.69 | £1,741,214.83 | 95w | 0.03% | ✗ BREACH |
+| 2025 | 60 | £6,334,242.72 | £1,745,358.49 | 197w | 0.02% | ✗ BREACH |
 
 **BREACH years:** 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025 — board escalation required.
 
@@ -3907,7 +3907,7 @@ No individual customers outside ±40.0/80.0 thresholds.
 - Segment resi/gas net -4.7% (benchmark Ofgem CMA 2-4%)
 ## Transaction Log
 
-Total events: 15,836,971
+Total events: 381,498
 
 | Event type | Count |
 |------------|-------|
@@ -3916,34 +3916,34 @@ Total events: 15,836,971
 | back_billing_write_off_event | 65 |
 | bad_debt_event | 5,835 |
 | billing_event | 5,925 |
-| capital_charge_event | 7,845,138 |
+| capital_charge_event | 173,200 |
 | cost_to_serve_event | 114 |
 | fixed_cost_event | 114 |
 | non_commodity_cost_event | 5,925 |
 | payment_received_event | 5,925 |
 | revenue_restatement_event | 523 |
-| settlement_event | 7,961,460 |
+| settlement_event | 177,925 |
 | vat_remittance_event | 5,925 |
 
 **Cash-flow waterfall (from ledger)**
 
 | Flow | Amount |
 |------|--------|
-| Customer bills (all-in) | £23,056,845.74 |
-|   Less: VAT remitted to HMRC | (£3,762,845.45) |
-| = Revenue (ex-VAT) | £19,294,000.28 |
-| Less: non-commodity pass-through | (£4,891,692.68) |
+| Customer bills (all-in) | £23,056,845.78 |
+|   Less: VAT remitted to HMRC | (£3,762,845.47) |
+| = Revenue (ex-VAT) | £19,294,000.31 |
+| Less: non-commodity pass-through | (£4,891,692.75) |
 | Wholesale cost (settlement events) | (£7,751,527.34) |
-| Gross margin | £6,650,780.27 |
+| Gross margin | £6,650,780.22 |
 | Capital charges | (£53,861.15) |
-| Net margin | £6,596,919.11 |
+| Net margin | £6,596,919.07 |
 
-_Cash reconciliation: of £23,056,845.74 billed, bad debt of £461,340.08 was written off, leaving £22,595,705.94 cash collected (gross of VAT). After operating costs, net cash position before VAT remittance: £9,898,624.77._
+_Cash reconciliation: of £23,056,845.78 billed, bad debt of £461,340.09 was written off, leaving £22,595,705.99 cash collected (gross of VAT). After operating costs, net cash position before VAT remittance: £9,898,624.74._
 
 | Acquisition spend | (£2,775.00) |
 | Fixed overhead | (£5,700.00) |
 | Cost to serve | (£42,861.27) |
-| Operating net margin | £6,545,582.85 |
+| Operating net margin | £6,545,582.81 |
 
 ## Annual Management Accounts
 
@@ -3951,31 +3951,31 @@ Year-by-year income statement from company accounting records. All figures £.
 
 | Year | Revenue | Wholesale | Non-Commod | Gross Margin | Bad Debt | OpEx | Net Margin |
 |------|---------|-----------|-----------|--------------|----------|------|------------|
-| 2016 | £18,483.45 | £4,112.34 | £4,914.15 | £9,456.96 | £304.55 | £1,780.34 | £7,574.83 (41.0%) |
-| 2017 | £351,096.04 | £112,606.98 | £113,988.58 | £124,500.49 | £7,125.79 | £9,553.24 | £113,656.02 (32.4%) |
-| 2018 | £571,826.21 | £177,184.92 | £168,627.27 | £226,014.01 | £12,796.57 | £16,554.95 | £207,955.28 (36.4%) |
-| 2019 | £1,612,067.31 | £504,904.06 | £450,946.33 | £656,216.92 | £34,137.81 | £39,587.37 | £614,154.07 (38.1%) |
-| 2020 | £1,907,796.97 | £440,786.46 | £642,685.95 | £824,324.56 | £44,417.36 | £51,992.59 | £770,295.59 (40.4%) |
-| 2021 | £2,474,455.62 | £987,839.66 | £695,858.76 | £790,757.20 | £54,892.86 | £61,754.97 | £723,036.29 (29.2%) |
-| 2022 | £4,381,723.73 | £2,433,925.01 | £817,226.79 | £1,130,571.92 | £99,051.79 | £105,804.49 | £1,010,730.76 (23.1%) |
-| 2023 | £3,585,057.29 | £1,679,933.54 | £894,129.38 | £1,010,994.37 | £89,809.42 | £96,509.22 | £903,828.60 (25.2%) |
-| 2024 | £3,074,405.73 | £949,334.64 | £827,559.68 | £1,297,511.41 | £74,795.31 | £81,931.06 | £1,205,724.25 (39.2%) |
-| 2025 | £1,317,087.93 | £460,899.72 | £275,755.78 | £580,432.43 | £44,008.63 | £47,208.12 | £527,287.09 (40.0%) |
-| **Total** | **£19,294,000.28** | | | | | | **£6,084,242.77 (31.5%)** |
+| 2016 | £18,483.46 | £4,112.34 | £4,914.16 | £9,456.96 | £304.55 | £1,780.34 | £7,574.84 (41.0%) |
+| 2017 | £351,096.06 | £112,606.98 | £113,988.58 | £124,500.50 | £7,125.79 | £9,553.24 | £113,656.04 (32.4%) |
+| 2018 | £571,826.20 | £177,184.92 | £168,627.27 | £226,014.00 | £12,796.57 | £16,554.95 | £207,955.27 (36.4%) |
+| 2019 | £1,612,067.35 | £504,904.06 | £450,946.35 | £656,216.94 | £34,137.81 | £39,587.37 | £614,154.08 (38.1%) |
+| 2020 | £1,907,796.98 | £440,786.46 | £642,685.97 | £824,324.55 | £44,417.36 | £51,992.59 | £770,295.58 (40.4%) |
+| 2021 | £2,474,455.61 | £987,839.66 | £695,858.76 | £790,757.18 | £54,892.86 | £61,754.97 | £723,036.27 (29.2%) |
+| 2022 | £4,381,723.68 | £2,433,925.01 | £817,226.79 | £1,130,571.88 | £99,051.79 | £105,804.49 | £1,010,730.72 (23.1%) |
+| 2023 | £3,585,057.40 | £1,679,933.54 | £894,129.40 | £1,010,994.47 | £89,809.43 | £96,509.22 | £903,828.69 (25.2%) |
+| 2024 | £3,074,405.69 | £949,334.64 | £827,559.69 | £1,297,511.36 | £74,795.31 | £81,931.06 | £1,205,724.20 (39.2%) |
+| 2025 | £1,317,087.88 | £460,899.72 | £275,755.78 | £580,432.38 | £44,008.63 | £47,208.12 | £527,287.04 (40.0%) |
+| **Total** | **£19,294,000.31** | | | | | | **£6,084,242.72 (31.5%)** |
 
-**Best year:** 2024 — net £1,205,724.25 (39.2% margin)
-**Worst year:** 2016 — net £7,574.83 (41.0% margin)
+**Best year:** 2024 — net £1,205,724.20 (39.2% margin)
+**Worst year:** 2016 — net £7,574.84 (41.0% margin)
 
 ### Balance Sheet (Year End 2025)
 
 | Item | Value |
 |------|-------|
-| Cash | £6,334,443.05 |
+| Cash | £6,334,443.01 |
 | Trade Receivables | £0.00 |
-| **Total Assets** | **£6,334,443.05** |
+| **Total Assets** | **£6,334,443.01** |
 | Customer Accounts in Credit (liability) | £200.29 |
 | Opening Capital | £250,000.00 |
-| Current Period Profit | £6,084,242.77 |
+| Current Period Profit | £6,084,242.72 |
 
 ## Budget vs Actual
 
@@ -3983,16 +3983,16 @@ Annual plan compared to management account actuals. RAG: GREEN <5%, AMBER 5-15%,
 
 | Year | Bud Revenue | Act Revenue | Rev% | Bud Net | Act Net | Net% | RAG |
 |------|-------------|-------------|------|---------|---------|------|-----|
-| 2016 | £14,671.69 | £18,483.45 | +26.0% | £6,592.99 | £7,574.83 | +14.9% | AMBER |
-| 2017 | £16,138.86 | £351,096.04 | +2075.5% | £7,252.29 | £113,656.02 | +1467.2% | RED |
-| 2018 | £386,623.75 | £571,826.21 | +47.9% | £128,424.00 | £207,955.28 | +61.9% | RED |
-| 2019 | £675,851.95 | £1,612,067.31 | +138.5% | £281,335.50 | £614,154.07 | +118.3% | RED |
-| 2020 | £1,816,630.04 | £1,907,796.97 | +5.0% | £736,963.94 | £770,295.59 | +4.5% | GREEN |
-| 2021 | £2,028,952.42 | £2,474,455.62 | +22.0% | £833,649.22 | £723,036.29 | -13.3% | AMBER |
-| 2022 | £2,607,611.88 | £4,381,723.73 | +68.0% | £790,935.58 | £1,010,730.76 | +27.8% | RED |
-| 2023 | £4,508,414.67 | £3,585,057.29 | -20.5% | £1,029,561.00 | £903,828.60 | -12.2% | AMBER |
-| 2024 | £3,512,844.39 | £3,074,405.73 | -12.5% | £893,105.75 | £1,205,724.25 | +35.0% | RED |
-| 2025 | £3,145,356.42 | £1,317,087.93 | -58.1% | £1,315,150.33 | £527,287.09 | -59.9% | RED |
+| 2016 | £14,671.69 | £18,483.46 | +26.0% | £6,592.99 | £7,574.84 | +14.9% | AMBER |
+| 2017 | £16,138.86 | £351,096.06 | +2075.5% | £7,252.29 | £113,656.04 | +1467.2% | RED |
+| 2018 | £386,623.75 | £571,826.20 | +47.9% | £128,424.00 | £207,955.27 | +61.9% | RED |
+| 2019 | £675,851.95 | £1,612,067.35 | +138.5% | £281,335.50 | £614,154.08 | +118.3% | RED |
+| 2020 | £1,816,630.04 | £1,907,796.98 | +5.0% | £736,963.94 | £770,295.58 | +4.5% | GREEN |
+| 2021 | £2,028,952.42 | £2,474,455.61 | +22.0% | £833,649.22 | £723,036.27 | -13.3% | AMBER |
+| 2022 | £2,607,611.88 | £4,381,723.68 | +68.0% | £790,935.58 | £1,010,730.72 | +27.8% | RED |
+| 2023 | £4,508,414.67 | £3,585,057.40 | -20.5% | £1,029,561.00 | £903,828.69 | -12.2% | AMBER |
+| 2024 | £3,512,844.39 | £3,074,405.69 | -12.5% | £893,105.75 | £1,205,724.20 | +35.0% | RED |
+| 2025 | £3,145,356.42 | £1,317,087.88 | -58.1% | £1,315,150.33 | £527,287.04 | -59.9% | RED |
 
 ## Growth & Acquisition
 
@@ -4033,7 +4033,7 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 | 2025 | (£300.00) |
 
 **Total fixed cost:** £5,700.00 over simulation window
-**Operating net margin** (energy margin less acquisition spend & fixed costs): £6,588,444.11
+**Operating net margin** (energy margin less acquisition spend & fixed costs): £6,588,444.07
 
 ## 2016
 
@@ -4046,7 +4046,7 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.92 (avg 0.92), C1g 0.85 (avg 0.85), C2 0.91 (avg 0.91), C2g 0.85 (avg 0.85), C3 0.89 (avg 0.89), C3g 0.85 (avg 0.85), C4 0.89 (avg 0.89), C4g 0.85 (avg 0.85), C5 0.92 (avg 0.92), C6 0.91 (avg 0.91), C7 0.92 (avg 0.92), C8 0.91 (avg 0.91), C9 0.89 (avg 0.89), PROS-2016-0003 0.92 (avg 0.92), PROS-2016-0011 0.92 (avg 0.92), PROS-2016-0020 0.92 (avg 0.92), PROS-2016-0024 0.92 (avg 0.92), PROS-2016-0026 0.92 (avg 0.92)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
-- Worst single period: PROS-2016-0024 on 2016-12-31 period 48, net margin £-45.33
+- Worst single period: C6 on 2016-11-08 period 40, net margin £-0.36
 
 **Customer Book**
 
@@ -4124,7 +4124,7 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.89 (avg 0.89), C1g 0.85 (avg 0.85), C2 0.92 (avg 0.92), C2g 0.85 (avg 0.85), C3 0.91 (avg 0.91), C3g 0.85 (avg 0.85), C4 0.90 (avg 0.90), C4g 0.85 (avg 0.85), C5 0.89 (avg 0.89), C6 0.92 (avg 0.92), C7 0.89 (avg 0.89), C8 0.92 (avg 0.92), C9 0.91 (avg 0.91), C_IC1 0.94 (avg 0.94), PROS-2016-0003 0.94 (avg 0.94), PROS-2016-0011 0.93 (avg 0.93), PROS-2016-0020 0.94 (avg 0.94), PROS-2016-0024 0.94 (avg 0.94), PROS-2016-0026 0.94 (avg 0.94), PROS-2017-0019 0.93 (avg 0.93), PROS-2017-0022 0.93 (avg 0.93), PROS-2017-0036 0.93 (avg 0.93), PROS-2017-0038 0.93 (avg 0.93)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
-- Worst single period: PROS-2017-0038 on 2017-12-31 period 48, net margin £-146.54
+- Worst single period: C_IC1 on 2017-05-17 period 32, net margin £-20.47
 
 **Customer Book**
 
@@ -4212,7 +4212,7 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.92 (avg 0.92), C1g 0.85 (avg 0.85), C2 0.91 (avg 0.91), C2g 0.85 (avg 0.85), C3 0.90 (avg 0.90), C3g 0.85 (avg 0.85), C4 0.91 (avg 0.91), C4g 0.85 (avg 0.85), C5 0.92 (avg 0.92), C6 0.91 (avg 0.91), C7 0.92 (avg 0.92), C8 0.91 (avg 0.91), C9 0.90 (avg 0.90), C_IC1 0.85 (avg 0.89), C_IC2 0.92 (avg 0.92), PROS-2016-0011 0.91 (avg 0.91), PROS-2016-0020 0.92 (avg 0.92), PROS-2016-0024 0.92 (avg 0.92), PROS-2016-0026 0.92 (avg 0.92), PROS-2017-0019 0.91 (avg 0.91), PROS-2017-0022 0.92 (avg 0.92), PROS-2017-0036 0.92 (avg 0.92), PROS-2017-0038 0.92 (avg 0.92), PROS-2018-0002 0.89 (avg 0.89), PROS-2018-0003 0.89 (avg 0.89), PROS-2018-0009 0.89 (avg 0.89), PROS-2018-0014 0.92 (avg 0.92), PROS-2018-0016 0.92 (avg 0.92), PROS-2018-0018 0.92 (avg 0.92), PROS-2018-0022 0.92 (avg 0.92), PROS-2018-0024 0.92 (avg 0.92), PROS-2018-0035 0.92 (avg 0.92), PROS-2018-0039 0.92 (avg 0.92), PROS-2018-0043 0.92 (avg 0.92), PROS-2018-0053 0.92 (avg 0.92), PROS-2018-0058 0.91 (avg 0.91), PROS-2018-0059 0.91 (avg 0.91)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
-- Worst single period: C6 on 2018-12-31 period 48, net margin £-268.38
+- Worst single period: C_IC1 on 2018-03-01 period 27, net margin £-16.74
 
 **Customer Book**
 
@@ -4329,7 +4329,7 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.89 (avg 0.89), C1g 0.85 (avg 0.85), C2 0.92 (avg 0.92), C2g 0.85 (avg 0.85), C3 0.89 (avg 0.89), C3g 0.85 (avg 0.85), C4 0.89 (avg 0.89), C4g 0.85 (avg 0.85), C5 0.89 (avg 0.89), C6 0.91 (avg 0.91), C7 0.89 (avg 0.89), C8 0.92 (avg 0.92), C9 0.89 (avg 0.89), C_IC1 0.85 (avg 0.89), C_IC2 0.85 (avg 0.89), C_IC3 0.96 (avg 0.96), C_IC3g 0.00 (avg 0.00), PROS-2016-0011 0.92 (avg 0.92), PROS-2016-0020 0.92 (avg 0.92), PROS-2016-0024 0.92 (avg 0.92), PROS-2016-0026 0.93 (avg 0.93), PROS-2017-0019 0.93 (avg 0.93), PROS-2017-0022 0.92 (avg 0.92), PROS-2017-0036 0.93 (avg 0.93), PROS-2017-0038 0.93 (avg 0.93), PROS-2018-0003 0.91 (avg 0.91), PROS-2018-0009 0.91 (avg 0.91), PROS-2018-0014 0.92 (avg 0.92), PROS-2018-0016 0.93 (avg 0.93), PROS-2018-0018 0.92 (avg 0.92), PROS-2018-0022 0.92 (avg 0.92), PROS-2018-0024 0.93 (avg 0.93), PROS-2018-0035 0.92 (avg 0.92), PROS-2018-0039 0.93 (avg 0.93), PROS-2018-0043 0.92 (avg 0.92), PROS-2018-0053 0.92 (avg 0.92), PROS-2018-0058 0.92 (avg 0.92), PROS-2018-0059 0.92 (avg 0.92), PROS-2019-0003 0.92 (avg 0.92), PROS-2019-0008 0.92 (avg 0.92), PROS-2019-0009 0.93 (avg 0.93), PROS-2019-0012 0.93 (avg 0.93), PROS-2019-0015 0.92 (avg 0.92), PROS-2019-0021 0.93 (avg 0.93), PROS-2019-0023 0.93 (avg 0.93), PROS-2019-0024 0.93 (avg 0.93), PROS-2019-0027 0.92 (avg 0.92), PROS-2019-0050 0.92 (avg 0.92), PROS-2019-0060 0.92 (avg 0.92), PROS-2019-0063 0.92 (avg 0.92), PROS-2019-0069 0.92 (avg 0.92), PROS-2019-0079 0.93 (avg 0.93), PROS-2019-0082 0.92 (avg 0.92)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
-- Worst single period: PROS-2016-0024 on 2019-12-31 period 48, net margin £-103.00
+- Worst single period: C_IC1 on 2019-02-04 period 35, net margin £-14.46
 
 **Customer Book**
 
@@ -4478,7 +4478,7 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - Hedge fraction at first renewal this year (avg across year's terms): C1 0.89 (avg 0.89), C1g 0.85 (avg 0.85), C2 0.89 (avg 0.89), C2g 0.85 (avg 0.85), C4 0.87 (avg 0.87), C4g 0.85 (avg 0.85), C6 0.89 (avg 0.89), C7 0.89 (avg 0.89), C8 0.88 (avg 0.88), C9 0.85 (avg 0.85), C_IC1 0.85 (avg 0.87), C_IC2 0.85 (avg 0.87), C_IC3 0.96 (avg 0.96), C_IC3g 0.00 (avg 0.00), C_IC4 0.85 (avg 0.85), PROS-2016-0011 0.91 (avg 0.91), PROS-2016-0020 0.91 (avg 0.91), PROS-2016-0024 0.91 (avg 0.91), PROS-2016-0026 0.91 (avg 0.91), PROS-2017-0019 0.91 (avg 0.91), PROS-2017-0022 0.91 (avg 0.91), PROS-2017-0036 0.91 (avg 0.91), PROS-2017-0038 0.91 (avg 0.91), PROS-2018-0009 0.91 (avg 0.91), PROS-2018-0014 0.91 (avg 0.91), PROS-2018-0016 0.91 (avg 0.91), PROS-2018-0018 0.91 (avg 0.91), PROS-2018-0022 0.91 (avg 0.91), PROS-2018-0024 0.91 (avg 0.91), PROS-2018-0035 0.91 (avg 0.91), PROS-2018-0039 0.89 (avg 0.89), PROS-2018-0043 0.90 (avg 0.90), PROS-2018-0053 0.89 (avg 0.89), PROS-2018-0058 0.90 (avg 0.90), PROS-2018-0059 0.90 (avg 0.90), PROS-2019-0003 0.90 (avg 0.90), PROS-2019-0008 0.91 (avg 0.91), PROS-2019-0009 0.91 (avg 0.91), PROS-2019-0012 0.91 (avg 0.91), PROS-2019-0015 0.91 (avg 0.91), PROS-2019-0021 0.91 (avg 0.91), PROS-2019-0023 0.91 (avg 0.91), PROS-2019-0024 0.91 (avg 0.91), PROS-2019-0027 0.89 (avg 0.89), PROS-2019-0050 0.89 (avg 0.89), PROS-2019-0060 0.87 (avg 0.87), PROS-2019-0063 0.87 (avg 0.87), PROS-2019-0069 0.89 (avg 0.89), PROS-2019-0079 0.89 (avg 0.89), PROS-2020-0002 0.90 (avg 0.90), PROS-2020-0006 0.90 (avg 0.90), PROS-2020-0009 0.90 (avg 0.90), PROS-2020-0012 0.90 (avg 0.90), PROS-2020-0013 0.90 (avg 0.90), PROS-2020-0016 0.90 (avg 0.90), PROS-2020-0022 0.91 (avg 0.91), PROS-2020-0025 0.90 (avg 0.90), PROS-2020-0032 0.90 (avg 0.90), PROS-2020-0042 0.90 (avg 0.90), PROS-2020-0043 0.90 (avg 0.90), PROS-2020-0047 0.90 (avg 0.90), PROS-2020-0048 0.90 (avg 0.90), PROS-2020-0050 0.89 (avg 0.89), PROS-2020-0067 0.89 (avg 0.89), PROS-2020-0081 0.89 (avg 0.89), PROS-2020-0086 0.89 (avg 0.89), PROS-2020-0090 0.88 (avg 0.88), PROS-2020-0095 0.88 (avg 0.88), PROS-2020-0097 0.90 (avg 0.90), PROS-2020-0099 0.88 (avg 0.88), PROS-2020-0100 0.88 (avg 0.88)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
-- Worst single period: PROS-2020-0043 on 2020-12-31 period 48, net margin £-247.36
+- Worst single period: C_IC1 on 2020-03-16 period 20, net margin £-19.31
 
 **Customer Book**
 
@@ -4667,7 +4667,7 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - Hedge fraction at first renewal this year (avg across year's terms): C2 0.93 (avg 0.93), C2g 0.85 (avg 0.85), C4 0.94 (avg 0.94), C4g 0.88 (avg 0.88), C6 0.93 (avg 0.93), C7 0.97 (avg 0.97), C8 0.93 (avg 0.93), C9 0.92 (avg 0.92), C_IC1 0.85 (avg 0.88), C_IC2 0.85 (avg 0.89), C_IC3 0.96 (avg 0.96), C_IC3g 0.00 (avg 0.00), C_IC4 0.85 (avg 0.85), PROS-2016-0011 0.89 (avg 0.89), PROS-2016-0020 0.90 (avg 0.90), PROS-2016-0024 0.91 (avg 0.91), PROS-2016-0026 0.91 (avg 0.91), PROS-2017-0019 0.89 (avg 0.89), PROS-2017-0022 0.91 (avg 0.91), PROS-2017-0036 0.90 (avg 0.90), PROS-2017-0038 0.90 (avg 0.90), PROS-2018-0009 0.89 (avg 0.89), PROS-2018-0014 0.89 (avg 0.89), PROS-2018-0016 0.89 (avg 0.89), PROS-2018-0018 0.89 (avg 0.89), PROS-2018-0022 0.90 (avg 0.90), PROS-2018-0024 0.89 (avg 0.89), PROS-2018-0035 0.90 (avg 0.90), PROS-2018-0039 0.91 (avg 0.91), PROS-2018-0043 0.91 (avg 0.91), PROS-2018-0053 0.92 (avg 0.92), PROS-2018-0058 0.93 (avg 0.93), PROS-2018-0059 0.94 (avg 0.94), PROS-2019-0003 0.89 (avg 0.89), PROS-2019-0008 0.89 (avg 0.89), PROS-2019-0009 0.89 (avg 0.89), PROS-2019-0012 0.89 (avg 0.89), PROS-2019-0015 0.91 (avg 0.91), PROS-2019-0021 0.90 (avg 0.90), PROS-2019-0023 0.91 (avg 0.91), PROS-2019-0024 0.91 (avg 0.91), PROS-2019-0027 0.90 (avg 0.90), PROS-2019-0050 0.94 (avg 0.94), PROS-2019-0060 0.93 (avg 0.93), PROS-2019-0063 0.92 (avg 0.92), PROS-2019-0069 0.93 (avg 0.93), PROS-2019-0079 0.94 (avg 0.94), PROS-2020-0002 0.90 (avg 0.90), PROS-2020-0006 0.90 (avg 0.90), PROS-2020-0009 0.89 (avg 0.89), PROS-2020-0012 0.89 (avg 0.89), PROS-2020-0013 0.89 (avg 0.89), PROS-2020-0016 0.89 (avg 0.89), PROS-2020-0022 0.91 (avg 0.91), PROS-2020-0025 0.91 (avg 0.91), PROS-2020-0032 0.91 (avg 0.91), PROS-2020-0042 0.91 (avg 0.91), PROS-2020-0043 0.91 (avg 0.91), PROS-2020-0047 0.92 (avg 0.92), PROS-2020-0048 0.92 (avg 0.92), PROS-2020-0050 0.92 (avg 0.92), PROS-2020-0067 0.93 (avg 0.93), PROS-2020-0086 0.93 (avg 0.93), PROS-2020-0090 0.94 (avg 0.94), PROS-2020-0095 0.93 (avg 0.93), PROS-2020-0097 0.93 (avg 0.93), PROS-2020-0099 0.93 (avg 0.93), PROS-2020-0100 0.93 (avg 0.93), SYN-2021-001 0.95 (avg 0.95)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
-- Worst single period: PROS-2020-0086 on 2021-12-31 period 48, net margin £-279.78
+- Worst single period: C_IC1 on 2021-11-24 period 30, net margin £-75.58
 
 **Customer Book**
 
@@ -4850,7 +4850,7 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - Hedge fraction at first renewal this year (avg across year's terms): C2 0.97 (avg 0.97), C2g 0.94 (avg 0.94), C4 0.97 (avg 0.97), C4g 0.91 (avg 0.91), C6 0.95 (avg 0.95), C7 0.93 (avg 0.93), C8 0.97 (avg 0.97), C9 0.94 (avg 0.94), C_IC1 1.00 (avg 0.97), C_IC2 1.00 (avg 0.97), C_IC3 0.96 (avg 0.96), C_IC3g 0.00 (avg 0.00), C_IC4 0.85 (avg 0.85), PROS-2016-0011 0.95 (avg 0.95), PROS-2016-0020 0.95 (avg 0.95), PROS-2016-0024 0.95 (avg 0.95), PROS-2016-0026 0.95 (avg 0.95), PROS-2017-0019 0.95 (avg 0.95), PROS-2017-0022 0.95 (avg 0.95), PROS-2017-0036 0.95 (avg 0.95), PROS-2017-0038 0.95 (avg 0.95), PROS-2018-0009 0.95 (avg 0.95), PROS-2018-0014 0.94 (avg 0.94), PROS-2018-0016 0.95 (avg 0.95), PROS-2018-0018 0.95 (avg 0.95), PROS-2018-0022 0.95 (avg 0.95), PROS-2018-0024 0.95 (avg 0.95), PROS-2018-0035 0.95 (avg 0.95), PROS-2018-0039 0.95 (avg 0.95), PROS-2018-0043 0.95 (avg 0.95), PROS-2018-0053 0.95 (avg 0.95), PROS-2018-0058 0.95 (avg 0.95), PROS-2018-0059 0.95 (avg 0.95), PROS-2019-0003 0.95 (avg 0.95), PROS-2019-0008 0.94 (avg 0.94), PROS-2019-0009 0.95 (avg 0.95), PROS-2019-0012 0.95 (avg 0.95), PROS-2019-0015 0.95 (avg 0.95), PROS-2019-0021 0.95 (avg 0.95), PROS-2019-0023 0.95 (avg 0.95), PROS-2019-0024 0.95 (avg 0.95), PROS-2019-0027 0.95 (avg 0.95), PROS-2019-0050 0.95 (avg 0.95), PROS-2019-0060 0.95 (avg 0.95), PROS-2019-0063 0.95 (avg 0.95), PROS-2019-0069 0.95 (avg 0.95), PROS-2019-0079 0.95 (avg 0.95), PROS-2020-0002 0.94 (avg 0.94), PROS-2020-0006 0.95 (avg 0.95), PROS-2020-0009 0.95 (avg 0.95), PROS-2020-0012 0.95 (avg 0.95), PROS-2020-0013 0.95 (avg 0.95), PROS-2020-0016 0.95 (avg 0.95), PROS-2020-0022 0.95 (avg 0.95), PROS-2020-0025 0.95 (avg 0.95), PROS-2020-0032 0.95 (avg 0.95), PROS-2020-0042 0.95 (avg 0.95), PROS-2020-0043 0.95 (avg 0.95), PROS-2020-0047 0.95 (avg 0.95), PROS-2020-0048 0.95 (avg 0.95), PROS-2020-0050 0.95 (avg 0.95), PROS-2020-0067 0.95 (avg 0.95), PROS-2020-0086 0.95 (avg 0.95), PROS-2020-0090 0.95 (avg 0.95), PROS-2020-0095 0.95 (avg 0.95), PROS-2020-0099 0.95 (avg 0.95), PROS-2020-0100 0.95 (avg 0.95), SYN-2021-001 0.94 (avg 0.94)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
-- Worst single period: PROS-2020-0086 on 2022-12-31 period 48, net margin £-186.34
+- Worst single period: C_IC1 on 2022-01-24 period 26, net margin £-89.73
 
 **Customer Book**
 
@@ -4939,7 +4939,7 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 **Portfolio Health**
 
 - Capital cost ratio: 1.2% of gross
-- Treasury drawdown events (>=10% threshold): 1 -- £1,169,284.66 -> £1,035,944.82 (11.4%)
+- Treasury drawdown events (>=10% threshold): none
 - Bills issued: 819, average clarity 0.870, average bill shock 19.2%, bad debt provision £868.39, avg complaint probability 4.5%
 - Solvency signal: £16,871/customer (66 customers) — OK (Ofgem floor £130/customer)
 
@@ -5029,7 +5029,7 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - Hedge fraction at first renewal this year (avg across year's terms): C2 0.94 (avg 0.94), C2g 0.85 (avg 0.85), C4 0.90 (avg 0.90), C4g 0.85 (avg 0.85), C6 0.94 (avg 0.94), C7 0.92 (avg 0.92), C8 0.94 (avg 0.94), C9 0.91 (avg 0.91), C_IC1 0.85 (avg 0.88), C_IC2 0.85 (avg 0.88), C_IC3 0.96 (avg 0.96), C_IC3g 0.00 (avg 0.00), C_IC4 0.85 (avg 0.85), PROS-2016-0011 0.94 (avg 0.94), PROS-2016-0020 0.94 (avg 0.94), PROS-2016-0024 0.94 (avg 0.94), PROS-2016-0026 0.94 (avg 0.94), PROS-2017-0019 0.94 (avg 0.94), PROS-2017-0022 0.94 (avg 0.94), PROS-2017-0036 0.95 (avg 0.95), PROS-2017-0038 0.95 (avg 0.95), PROS-2018-0009 0.93 (avg 0.93), PROS-2018-0014 0.93 (avg 0.93), PROS-2018-0016 0.94 (avg 0.94), PROS-2018-0018 0.94 (avg 0.94), PROS-2018-0022 0.94 (avg 0.94), PROS-2018-0024 0.94 (avg 0.94), PROS-2018-0035 0.95 (avg 0.95), PROS-2018-0043 0.95 (avg 0.95), PROS-2018-0053 0.95 (avg 0.95), PROS-2018-0058 0.95 (avg 0.95), PROS-2018-0059 0.95 (avg 0.95), PROS-2019-0003 0.93 (avg 0.93), PROS-2019-0008 0.93 (avg 0.93), PROS-2019-0009 0.93 (avg 0.93), PROS-2019-0012 0.94 (avg 0.94), PROS-2019-0015 0.94 (avg 0.94), PROS-2019-0021 0.95 (avg 0.95), PROS-2019-0023 0.95 (avg 0.95), PROS-2019-0024 0.95 (avg 0.95), PROS-2019-0027 0.95 (avg 0.95), PROS-2019-0050 0.95 (avg 0.95), PROS-2019-0060 0.94 (avg 0.94), PROS-2019-0063 0.94 (avg 0.94), PROS-2019-0069 0.94 (avg 0.94), PROS-2019-0079 0.94 (avg 0.94), PROS-2020-0002 0.93 (avg 0.93), PROS-2020-0006 0.93 (avg 0.93), PROS-2020-0009 0.93 (avg 0.93), PROS-2020-0012 0.93 (avg 0.93), PROS-2020-0013 0.94 (avg 0.94), PROS-2020-0016 0.93 (avg 0.93), PROS-2020-0022 0.94 (avg 0.94), PROS-2020-0025 0.94 (avg 0.94), PROS-2020-0032 0.95 (avg 0.95), PROS-2020-0042 0.95 (avg 0.95), PROS-2020-0043 0.95 (avg 0.95), PROS-2020-0047 0.95 (avg 0.95), PROS-2020-0048 0.95 (avg 0.95), PROS-2020-0050 0.95 (avg 0.95), PROS-2020-0067 0.95 (avg 0.95), PROS-2020-0090 0.94 (avg 0.94), PROS-2020-0095 0.94 (avg 0.94), PROS-2020-0099 0.94 (avg 0.94), PROS-2020-0100 0.94 (avg 0.94), PROS-2023-0001 0.94 (avg 0.94), SYN-2021-001 0.92 (avg 0.92)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
-- Worst single period: PROS-2020-0043 on 2023-12-31 period 48, net margin £-723.00
+- Worst single period: C_IC1 on 2023-06-16 period 22, net margin £-21.82
 
 **Customer Book**
 
@@ -5207,7 +5207,7 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - Hedge fraction at first renewal this year (avg across year's terms): C2 0.91 (avg 0.91), C2g 0.85 (avg 0.85), C7 0.88 (avg 0.88), C8 0.91 (avg 0.91), C9 0.88 (avg 0.88), C_IC1 0.85 (avg 0.87), C_IC2 0.85 (avg 0.87), C_IC3 0.94 (avg 0.94), C_IC3g 0.00 (avg 0.00), C_IC4 0.85 (avg 0.85), PROS-2016-0011 0.93 (avg 0.93), PROS-2016-0020 0.92 (avg 0.92), PROS-2016-0026 0.92 (avg 0.92), PROS-2017-0019 0.93 (avg 0.93), PROS-2017-0022 0.93 (avg 0.93), PROS-2017-0036 0.92 (avg 0.92), PROS-2017-0038 0.93 (avg 0.93), PROS-2018-0009 0.93 (avg 0.93), PROS-2018-0014 0.93 (avg 0.93), PROS-2018-0016 0.92 (avg 0.92), PROS-2018-0018 0.92 (avg 0.92), PROS-2018-0022 0.93 (avg 0.93), PROS-2018-0035 0.92 (avg 0.92), PROS-2018-0043 0.92 (avg 0.92), PROS-2018-0053 0.92 (avg 0.92), PROS-2018-0058 0.91 (avg 0.91), PROS-2018-0059 0.91 (avg 0.91), PROS-2019-0003 0.93 (avg 0.93), PROS-2019-0008 0.93 (avg 0.93), PROS-2019-0009 0.92 (avg 0.92), PROS-2019-0012 0.93 (avg 0.93), PROS-2019-0015 0.93 (avg 0.93), PROS-2019-0021 0.93 (avg 0.93), PROS-2019-0023 0.93 (avg 0.93), PROS-2019-0024 0.93 (avg 0.93), PROS-2019-0027 0.92 (avg 0.92), PROS-2019-0050 0.91 (avg 0.91), PROS-2019-0060 0.91 (avg 0.91), PROS-2019-0063 0.91 (avg 0.91), PROS-2019-0069 0.89 (avg 0.89), PROS-2019-0079 0.92 (avg 0.92), PROS-2020-0002 0.92 (avg 0.89), PROS-2020-0006 0.93 (avg 0.93), PROS-2020-0009 0.93 (avg 0.93), PROS-2020-0012 0.93 (avg 0.93), PROS-2020-0013 0.93 (avg 0.93), PROS-2020-0016 0.92 (avg 0.92), PROS-2020-0022 0.93 (avg 0.93), PROS-2020-0025 0.93 (avg 0.93), PROS-2020-0032 0.93 (avg 0.93), PROS-2020-0042 0.91 (avg 0.91), PROS-2020-0047 0.92 (avg 0.92), PROS-2020-0048 0.92 (avg 0.92), PROS-2020-0050 0.92 (avg 0.92), PROS-2020-0067 0.91 (avg 0.91), PROS-2020-0090 0.90 (avg 0.90), PROS-2020-0099 0.91 (avg 0.91), PROS-2020-0100 0.91 (avg 0.91), PROS-2023-0001 0.92 (avg 0.92), SYN-2021-001 0.88 (avg 0.88)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
-- Worst single period: PROS-2019-0079 on 2024-12-31 period 48, net margin £-315.49
+- Worst single period: C_IC1 on 2024-06-28 period 31, net margin £-26.36
 
 **Customer Book**
 
@@ -5376,7 +5376,7 @@ _Note: acquired customers are registered but do not yet settle energy in Phase 8
 - Hedge fraction at first renewal this year (avg across year's terms): C2 0.86 (avg 0.86), C2g 0.85 (avg 0.85), C8 0.86 (avg 0.86), PROS-2016-0011 0.88 (avg 0.88), PROS-2016-0020 0.88 (avg 0.88), PROS-2016-0026 0.88 (avg 0.88), PROS-2017-0019 0.88 (avg 0.88), PROS-2017-0022 0.88 (avg 0.88), PROS-2017-0036 0.88 (avg 0.88), PROS-2018-0009 0.88 (avg 0.88), PROS-2018-0014 0.88 (avg 0.88), PROS-2018-0016 0.88 (avg 0.88), PROS-2018-0018 0.88 (avg 0.88), PROS-2018-0022 0.88 (avg 0.88), PROS-2018-0035 0.88 (avg 0.88), PROS-2018-0043 0.86 (avg 0.86), PROS-2018-0053 0.86 (avg 0.86), PROS-2018-0058 0.87 (avg 0.87), PROS-2018-0059 0.87 (avg 0.87), PROS-2019-0003 0.88 (avg 0.88), PROS-2019-0008 0.88 (avg 0.88), PROS-2019-0009 0.88 (avg 0.88), PROS-2019-0012 0.88 (avg 0.88), PROS-2019-0015 0.88 (avg 0.88), PROS-2019-0021 0.88 (avg 0.88), PROS-2019-0023 0.88 (avg 0.88), PROS-2019-0027 0.88 (avg 0.88), PROS-2019-0050 0.88 (avg 0.88), PROS-2019-0060 0.85 (avg 0.85), PROS-2019-0063 0.86 (avg 0.86), PROS-2019-0069 0.87 (avg 0.87), PROS-2020-0006 0.88 (avg 0.88), PROS-2020-0009 0.88 (avg 0.88), PROS-2020-0012 0.88 (avg 0.88), PROS-2020-0013 0.88 (avg 0.88), PROS-2020-0016 0.88 (avg 0.88), PROS-2020-0022 0.88 (avg 0.88), PROS-2020-0032 0.88 (avg 0.88), PROS-2020-0042 0.87 (avg 0.87), PROS-2020-0048 0.87 (avg 0.87), PROS-2020-0050 0.87 (avg 0.87), PROS-2020-0067 0.85 (avg 0.85), PROS-2020-0090 0.87 (avg 0.87), PROS-2020-0099 0.86 (avg 0.86), PROS-2020-0100 0.86 (avg 0.86), PROS-2023-0001 0.88 (avg 0.88)
 - Risk committee (Context Handshake) interventions: 0
 - VaR ratio (current vs stressed floor): no risk committee wake-up this year
-- Worst single period: PROS-2020-0047 on 2025-02-09 period 48, net margin £-185.56
+- Worst single period: C_IC1 on 2025-01-08 period 31, net margin £-81.34
 
 **Customer Book**
 

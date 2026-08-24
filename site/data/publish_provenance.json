@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-08-24T20:37:15Z",
+    "checked_at": "2026-08-24T21:31:38Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_committed_store_credits_a_falsifier_the_repository_does_not_have",
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_every_declared_honest_absence_is_still_absent_and_still_silenced",
@@ -12,23 +12,23 @@
       "FAILED tests/background/test_live_ledger_guard.py::test_the_narrowing_to_measurement_ledgers_is_measured_not_assumed"
     ],
     "nonblocking_reds_total": 72,
-    "open_findings": 21
+    "open_findings": 22
   },
   "last_verified": {
-    "generated_at": "2026-08-24T21:25:48Z",
-    "git_commit": "d2bc0fd96",
-    "run_id": "run_output_d2bc0fd96_20260824T203816Z.json",
-    "verified_at": "2026-08-24T21:25:48Z"
+    "generated_at": "2026-08-24T21:52:52Z",
+    "git_commit": "dbd35f07b",
+    "run_id": "run_output_dbd35f07b_20260824T213239Z.json",
+    "verified_at": "2026-08-24T21:52:52Z"
   },
   "paused_reason": "scoped publish-path suite red at git=4683e68f7; blocking tests: FAILED tests/background/test_publisher_deadline_exceeds_its_gate.py::test_the_sweep_derives_its_deadline_rather_than_restating_it, FAILED tests/background/test_publisher_deadline_exceeds_its_gate.py::test_every_publisher_caller_derives_its_deadline[background/background_worker.py], FAILED tests/background/test_publisher_deadline_excee",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-24T21:25:48Z",
-    "git_commit": "d2bc0fd96",
-    "run_id": "run_output_d2bc0fd96_20260824T203816Z.json",
-    "verified_at": "2026-08-24T21:25:48Z"
+    "generated_at": "2026-08-24T21:52:52Z",
+    "git_commit": "dbd35f07b",
+    "run_id": "run_output_dbd35f07b_20260824T213239Z.json",
+    "verified_at": "2026-08-24T21:52:52Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-24T21:25:48Z"
+  "written_at": "2026-08-24T21:52:52Z"
 }
