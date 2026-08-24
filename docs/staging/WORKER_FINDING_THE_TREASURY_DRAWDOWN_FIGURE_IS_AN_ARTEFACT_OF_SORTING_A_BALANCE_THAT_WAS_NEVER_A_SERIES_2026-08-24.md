@@ -459,3 +459,79 @@ that CLI renders from already-extracted data, and the figures were reduced befor
 The next full run through `python3 -m tools.run_annual_report` is what republishes them, and when it
 does it moves the drawdown count to the true count, `treasury_end_gbp` by roughly +£1.8k, equity
 down 0.44%, and any in-credit year's receivable off the asset side.
+
+---
+
+## THREE OF THE FOUR PUBLISHED FIGURES HAVE MOVED — and verifying that turned up a residual of the same class (2026-08-24, worker tick, RUNG 1c blocking draw)
+
+**Severity stays BLOCKING, and the reason has changed.** It is no longer "the live published
+figures are all still the old ones" — three of the four moved on the run that published at
+19:41 UTC. It is now the residual named in the second half of this section, which is on the same
+published risk figure and is not yet measured.
+
+### What is now published, checked at HEAD rather than on disk (R11)
+
+`docs/reports/ANNUAL_REPORT.md` is **git-clean**, so the rendered values below are HEAD's:
+
+| owed item | was | published now | status |
+|---|---|---|---|
+| the drawdown count | 6,747 events in 2017 | `Treasury drawdown events (>=10% threshold): none` in 8 of 10 years | **MOVED** |
+| the rendered line length | 202,048 chars | longest line in the whole report is **7,916** | **MOVED** |
+| `treasury_end_gbp` | a re-sorted `max()` | 2025 = £1,745,358.49, agreeing to the penny with the report's own "Treasury peak: 2025 (£1,745,358)" | **MOVED** |
+| the signed journal | magnitude-only | run stamp `4b3086b1f` **is** the signed-journal commit | **MOVED** |
+| the netted receivable | −£53.47 (end-2019 window) | still published: `Trade Receivables £-200.29`, `customer_accounts_in_credit_gbp: null` | **NOT YET** |
+
+**Why the receivable alone is behind, measured not guessed.** `sim-runner-log.md` records
+`[2026-08-24 19:11 UTC] Starting run — git=4b3086b1f`, and the report was extracted at ~19:41 UTC.
+The receivable repair is commit `94c9b4123`, authored **20:04 UTC** — 23 minutes after the
+extract. It is one run behind, not un-landed. `sim_runner` stamps HEAD at run start and runs on a
+~30–90 min cadence, so the next run carries it with no intervention; nothing here forces one.
+
+### The residual, and it is the same root property one level down
+
+The register was **absent** from this run output (`treasury_drawdown_points` is not a key — the
+run predates `f0c5d2865`), so the published count came from the **fallback**: the
+accumulation-order read of `yr_records`. That is a real exercise of the fallback on a 10-year
+book, and it is the first one. It returned two events:
+
+```
+2022   peak £1,169,284.6555   trough £1,035,944.824   11.4035%
+2023   peak £1,169,284.6953   trough £1,035,932.012   11.4046%
+```
+
+**Observed-with-evidence:** those two "different years" have peaks **4 pence apart** and troughs
+£12.81 apart, on a book whose treasury grew £250k → £1.75M. Two independent swings landing that
+close is not a coincidence worth entertaining.
+
+**Inferred (R9 label), and this is the mechanism I could not check here:** a year's treasury
+series is a *subsequence* of the portfolio running total, sampled at the moments the term loop
+happened to emit records dated in that year. Between two consecutive samples the balance travels
+through other customers' whole terms. So one stretch of the term loop that emitted both 2022- and
+2023-dated records would show the **same** swing in both buckets — which is what the numbers look
+like.
+
+**This is not a fallback-versus-register disagreement.** `TreasuryDrawdown.add` partitions on
+`day[:4]` and folds turning points *within each year's bucket*, exactly as the fallback does.
+They agree — which is why this document's own byte-equality test passed — and they share the
+property. The comment at `annual_report.py:468` says the fallback is "the same path the register
+folded, just unfolded", and that is true; what neither says is that **year-partitioning a
+portfolio running total breaks accumulation order for the same reason re-sorting did**, just
+2,000× more gently. This document's opening sentence — "meaningful in ACCUMULATION order and in
+no other" — applies to the repair as well as to the defect.
+
+**What would settle it, stated because I could not run it:** walk the full book once in
+accumulation order with no year partition, and attribute each completed drawdown to the year of
+the record at its trough. If 2022 and 2023 collapse to one event, the published count is 1 and
+not 2. `all_records` is not retained in the run output (`extract_report_data`'s own docstring
+says so — ~1M rows), so this needs a real bounded run and is a BUILD draw, not a read.
+
+**Not fixed on sight (SELF_INTERRUPT_DISCIPLINE).** Filed here rather than as a new staging-root
+document deliberately: it is the same figure, the same class and the same document's own repair,
+and a new class member would have to re-render `CLASS_MEASUREMENTS_THAT_MIRROR` in its own commit
+against a `--check` that passes today.
+
+### What discharges this document now
+
+1. The receivable reaching the published balance sheet on the next run (mechanism live, no act needed).
+2. The residual above measured — one full-book accumulation-order walk — and the published count
+   corrected to whatever that says, with its before/after stated (R14).
