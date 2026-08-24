@@ -221,3 +221,31 @@ python3 -m tools.half_hourly_dependency_ratchet || exit 1
 # silent) and the fail-closed path: a scan that sees no running-total field must RAISE, never
 # report a clean tree it never looked at.
 python3 -m tools.running_total_order --gate || exit 1
+
+# ── GATE 15: an atom that CLAIMS A LEVEL must name a file_scope that exists ──────────────────
+# THIRTEEN atoms were doing otherwise when this landed (2026-08-24), eleven of them broken by a
+# single commit -- 03dd8c49e, "The five tabs are the site now", which deleted eleven pages on a
+# director ruling. `E2_revenue_reconciliation` was the worst: L3 claimed, all three of its named
+# paths gone, and its own control red for four days as a result. A level is a claim about
+# evidence; a deleted path is not evidence, and nothing anywhere said so.
+#
+# That commit's message names the class it was fixing on the OTHER side of the same boundary --
+# "a generator that outlives its page is how a deleted surface returns" -- and rewrote 87
+# controls carrying literal page lists to derive from the built site. Nothing looked at the MAP.
+# An atom that outlives its files is the same defect wearing governance clothes, and it is worse,
+# because the map is what the draw reads to decide what to work on.
+#
+# KEYS ON THE CLAIM, NOT ON THE PATH. A `level_current: 0` proposal naming the files it WOULD
+# create is correct and there are 17 of them; refusing those would make the map unable to
+# describe future work. NO FROZEN BASELINE: the thirteen were repaired in the arming commit, so
+# this starts at zero with nothing to erode.
+# TWO KINDS OF NOTHING. On its first run inside this hook it found one the map-side scan had
+# missed entirely: `PB2_opening_book_won_not_assigned` at L3 naming a build record that was on
+# disk and had NEVER BEEN COMMITTED. The extract is built from git objects, so the gate sees what
+# a fresh clone would -- which is the whole point. DELETED and NOT IN GIT are reported apart,
+# because "missing" sends a reader hunting a deletion that never happened.
+# R15-proven in tests/tools/test_scope_evidence_ratchet.py (14 tests), including the parser
+# cross-check that killed the first implementation -- a regex reader silently produced an EMPTY
+# file_scope for three atoms, and an empty scope means "nothing to check" -- and the guard that a
+# git probe which cannot run degrades to existence-only instead of inventing an uncommitted find.
+python3 -m tools.scope_evidence_ratchet || exit 1

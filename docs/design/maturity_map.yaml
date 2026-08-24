@@ -234,7 +234,7 @@
   loop_stage: harden
   dial_inherited: 3
   records_rehomed: [evidence]
-  file_scope: ["site/supplier/index.html", "site/project/index.html", "site/customers/index.html"]
+  file_scope: ["tests/tools/test_e2_revenue_reconciliation_surfaces.py", "site/ia_register.py", "site/index.html"]
   simplifications_count: 7
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "one true revenue line, used consistently across FP&A and statutory reporting"
@@ -1005,7 +1005,7 @@
   blocked_on: null
   block_reason: null
   records_rehomed: [evidence]
-  file_scope: ["site/company/", "site/index.html", "tools/generate_dashboard_data.py", "tools/generate_company_data.py", "tools/generate_world_data.py"]
+  file_scope: ["site/capabilities/", "site/index.html", "tools/generate_dashboard_data.py", "tools/generate_capabilities_json.py"]
   simplifications_count: 2
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real suppliers published accounts: domestic and I&C are reported as separate segments because they are different businesses with different margins, churn and credit risk -- no supplier publishes one blended margin-per-customer across both"
@@ -1024,7 +1024,7 @@
   blocked_on: null
   block_reason: null
   records_rehomed: [evidence]
-  file_scope: ["site/proof/", "tools/generate_proof_data.py"]
+  file_scope: ["site/harness/", "tools/generate_proof_data.py"]
   simplifications_count: 3
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real trading desks P&L attribution: a forecast that cannot be marked wrong is not a forecast, and no risk committee accepts a track record in which every miss was reclassified"
@@ -1043,7 +1043,7 @@
   blocked_on: null
   block_reason: null
   records_rehomed: [evidence]
-  file_scope: ["tools/generate_dashboard_data.py", "tools/generate_world_data.py", "site/company/", "site/world/"]
+  file_scope: ["tools/generate_dashboard_data.py", "site/capabilities/"]
   simplifications_count: 1
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "statutory accounts: a stub period is labelled a stub, bad debt reconciles to one number, and an auditor asks why a margin sits 8x above the regulated allowance"
@@ -1853,7 +1853,6 @@
   provenance: proposal
   records_rehomed: [evidence]
   file_scope:
-  - background/session_watchdog.py
   - background/worker_seat.py
   simplifications_count: 3
   expert_hour:
@@ -1876,7 +1875,6 @@
   records_rehomed: [evidence]
   file_scope:
   - background/worker_seat.py
-  - background/session_watchdog.py
   simplifications_count: 2
   expert_hour:
     status: not_attempted
@@ -3424,7 +3422,7 @@
   loop_stage: harden
   dial_inherited: 3
   provenance: proposal
-  file_scope: [saas/money.py, tools/generate_billing_ledger.py, tools/generate_invoice_data.py, company/compliance/domain_invariants.py, site/customers/index.html, tools/verify_printed_bill_render.mjs, tools/mutate_printed_figure_rederivation.py, tests/company/compliance/test_printed_figure_rederivation.py]
+  file_scope: [saas/money.py, tools/generate_billing_ledger.py, tools/generate_invoice_data.py, company/compliance/domain_invariants.py, site/explore/index.html, tools/verify_printed_bill_render.mjs, tools/mutate_printed_figure_rederivation.py, tests/company/compliance/test_printed_figure_rederivation.py]
   depends_on: [D_money_boundary_reconciliation]
   blocked_on: null
   simplifications_count: 7
@@ -3454,7 +3452,7 @@
   loop_stage: build
   dial_inherited: 3
   provenance: proposal
-  file_scope: [site/director, tools/generate_director_data.py, site/director/test_director_door.py]
+  file_scope: [tools/generate_director_data.py, site/harness/index.html]
   depends_on: []
   blocked_on: null
   simplifications_count: 4
@@ -3554,7 +3552,7 @@
   depends_on: [AO5_hotspot_consolidation]
   couples_with: []
   records_rehomed: [evidence, exit_evidence]
-  file_scope: ['saas/reporting/annual_report.py', 'saas/reporting/segment_report.py', 'simulation/run_phase4c_on_phase2b.py', 'simulation/run_segments.py', 'tests/architecture/test_epistemic_wall_ratchet.py']
+  file_scope: ['saas/reporting/annual_report.py', 'saas/reporting/segment_report.py', 'simulation/run_phase4c_on_phase2b.py', 'tools/run_segments.py', 'tests/architecture/test_epistemic_wall_ratchet.py']
 - id: KNIFE2_customer_straddle
   title: "Stop the simulation reaching into the customer module"
   gain: "The 16 places where the simulated world reads the company's own customer code directly go through the seam instead, so the company can be wrong about its customers the way a real supplier can."
@@ -4693,7 +4691,7 @@
   provenance: director_ruling
   depends_on: [G12_queryable_projections]
   couples_with: [G12_queryable_projections]
-  file_scope: ['tools/lab_query.py', 'tests/tools/test_lab_query.py', 'tools/generate_projections_page.py', 'tests/tools/test_generate_projections_page.py', 'site/wip-flow/index.html', 'tools/build_projections.py', 'tools/generate_proof_data.py', 'site/proof/index.html', 'tests/tools/test_proof_store_agreement.py']
+  file_scope: ['tools/lab_query.py', 'tests/tools/test_lab_query.py', 'tools/generate_projections_page.py', 'tests/tools/test_generate_projections_page.py', 'tools/build_projections.py', 'tools/generate_proof_data.py', 'site/harness/index.html', 'tests/tools/test_proof_store_agreement.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the analyst who actually opens the warehouse -- the reason the warehouse is funded"
 
@@ -4822,7 +4820,7 @@
   provenance: director_ruling
   depends_on: []
   couples_with: [D_printed_figure_rederivation, D_money_boundary_reconciliation]
-  file_scope: ['site/customers/index.html', 'site/customers/_bill_render_harness.mjs', 'tests/company/compliance/test_printed_bill_foots_render.py', 'tools/verify_printed_bill_render.mjs']
+  file_scope: ['site/explore/index.html', 'tests/company/compliance/test_printed_bill_foots_render.py', 'tools/verify_printed_bill_render.mjs']
   simplifications_count: 1
   expert_hour: {status: not_attempted, last: null, findings: []}
   records_rehomed: [evidence]
@@ -4842,7 +4840,7 @@
   provenance: director_ruling
   depends_on: []
   couples_with: [D36_bill_render_footing_and_pence, SITE3_wall_exhibit_url_rename]
-  file_scope: ['site/customers/index.html', 'site/customers/test_wall_exhibit.py', 'site/customers/_wall_harness.mjs', 'site/customers/_landing_harness.mjs', 'site/customers/_subject_harness.mjs', 'site/customers/test_customers_door.py', 'site/customers/_render_harness.mjs', 'site/_redirects', 'site/test_no_links_to_redirected_urls.py', 'docs/design/SITE_CONSTITUTION.md', 'tools/generate_case_study_recommender.py', 'tests/tools/test_case_study_recommender.py']
+  file_scope: ['site/explore/index.html', 'tools/generate_explore_hh_day.py', 'tests/tools/test_generate_explore_hh_day.py', 'docs/design/SITE_CONSTITUTION.md', 'tools/generate_case_study_recommender.py', 'tests/tools/test_case_study_recommender.py']
   simplifications_count: 18
   expert_hour:
     status: findings_open
@@ -4977,7 +4975,7 @@
   provenance: worker_finding
   depends_on: []
   couples_with: [H27_payment_belief_gap]
-  file_scope: ['background/gap_metric.py', 'tools/generate_proof_data.py', 'site/proof/index.html']
+  file_scope: ['background/gap_metric.py', 'tools/generate_proof_data.py', 'site/harness/index.html']
   real_world_twin: "a KPI pack printing 'index' beside two columns, one a ratio to base and one a raw variance, in the same typeface"
   expert_hour: {status: not_attempted, last: null, findings: []}
 - id: D41_the_hold_record_answers_the_draw
