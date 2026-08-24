@@ -414,3 +414,225 @@ def test_measure_does_not_mutate_the_run_it_is_given():
     before = copy.deepcopy(run)
     couple_clv.measure(run)
     assert run == before
+
+
+# --- WHOSE ESTIMATOR THIS ROW GRADES (pass 17) --------------------------------
+#
+# THE NAMED DEFECT these controls exist for: the ledger row is keyed
+# `EP1_clv_three_horizon` and the belief it grades is produced by
+# `saas/clv_model.py::build_clv`, an estimator that is not EP1's and is not in
+# EP1's `file_scope`. Measured on the live artefact 2026-08-24: zeroing or
+# deleting EP1's ENTIRE published output leaves the headline bit-identical.
+#
+# That is a failure shape the three R15 names do not cover. The checker is
+# correct, it can fail, and it fails honestly -- about the wrong subject. A
+# mutation battery aimed at the checker cannot see it; only a mutation aimed at
+# the SUBJECT can. So the mutations below are aimed at the subject.
+
+
+def _producer_tree(tmp_path, body, imports="from saas.clv_model import build_clv"):
+    """A throwaway repo root holding just the belief producer.
+
+    `belief_provenance` reads the SOURCE, so a fake tree is the only way to
+    mutate the wiring without touching the real reporting layer mid-suite.
+    """
+    producer = tmp_path / couple_clv.BELIEF_PRODUCER_FILE
+    producer.parent.mkdir(parents=True, exist_ok=True)
+    producer.write_text(
+        f"{imports}\n\n\ndef {couple_clv.BELIEF_PRODUCER_FUNCTION}(records, risk, years):\n"
+        f"{body}\n", encoding="utf-8")
+    return tmp_path
+
+
+def test_the_real_tree_resolves_the_declared_belief_producer():
+    """The declaration is TRUE of the tree it ships in, or it is decoration."""
+    prov = couple_clv.belief_provenance()
+    assert prov["estimator_is_called"] is True
+    assert prov["estimator_imported_from"] == couple_clv.BELIEF_ESTIMATOR_MODULE
+    assert prov["verified"] is True
+
+
+def test_the_ledger_entry_names_the_estimator_it_actually_grades():
+    """A reader of the row must not have to infer whose number it is."""
+    result, _ = couple_clv.measure(_run())
+    prov = result.components["belief_provenance"]
+    assert prov["produced_by"] == (
+        f"{couple_clv.BELIEF_PRODUCER_FILE}::{couple_clv.BELIEF_PRODUCER_FUNCTION}")
+    assert prov["estimator_callable"] == couple_clv.BELIEF_ESTIMATOR_CALLABLE
+    assert result.components["grades_atom_estimator"] is False
+    # The note must SAY it, not merely carry a field a reader may not open.
+    assert "does NOT grade EP1" in result.note
+    assert "clv_three_horizon" in result.note
+
+
+def test_deleting_ep1s_entire_output_leaves_the_headline_identical():
+    """THE MIS-SUBJECTION, PINNED.
+
+    This is the mutation that exposed the defect, kept as a permanent control.
+    It asserts the CURRENT, honest state: EP1's output is not an input here. The
+    day someone wires EP1's estimator into the graded belief this test FAILS --
+    which is the point. It fails loudly at the moment the declaration
+    `GRADES_ATOM_ESTIMATOR = False` stops being true, instead of letting the row
+    silently start meaning something new.
+    """
+    run = _run()
+    run["three_horizon_clv"] = {
+        "accounts": {"C1": {"tenure_expected": {"value_gbp": 12345.0}}},
+        "portfolio": {"total_gbp": 999999.0},
+    }
+    with_ep1, _ = couple_clv.measure(run)
+
+    zeroed = copy.deepcopy(run)
+    zeroed["three_horizon_clv"]["accounts"]["C1"]["tenure_expected"]["value_gbp"] = 0.0
+    zeroed["three_horizon_clv"]["portfolio"]["total_gbp"] = 0.0
+    assert couple_clv.measure(zeroed)[0].gap == with_ep1.gap
+
+    deleted = copy.deepcopy(run)
+    deleted.pop("three_horizon_clv")
+    assert couple_clv.measure(deleted)[0].gap == with_ep1.gap
+
+    # NULL CONTROL. Without this the test above would also pass on a measurement
+    # that is insensitive to EVERYTHING -- a headline pinned to a constant would
+    # satisfy it. Moving the belief the row DOES grade must move the number.
+    moved = copy.deepcopy(run)
+    for snap in moved["clv_snapshots"].values():
+        for account in snap:
+            if isinstance(snap[account], (int, float)):
+                snap[account] *= 1.01
+    assert couple_clv.measure(moved)[0].gap != with_ep1.gap
+
+
+def test_a_missing_belief_producer_raises_rather_than_grading_anyway(tmp_path):
+    """FAIL-SILENT. Unable to say what it measures = a failed measurement."""
+    with pytest.raises(FileNotFoundError):
+        couple_clv.belief_provenance(repo_root=tmp_path)
+
+
+def test_a_producer_missing_the_declared_function_raises(tmp_path):
+    root = tmp_path / "r"
+    producer = root / couple_clv.BELIEF_PRODUCER_FILE
+    producer.parent.mkdir(parents=True, exist_ok=True)
+    producer.write_text("def something_else():\n    return {}\n", encoding="utf-8")
+    with pytest.raises(ValueError):
+        couple_clv.belief_provenance(repo_root=root)
+
+
+def test_a_producer_that_stopped_calling_the_declared_estimator_is_unverified(tmp_path):
+    """MUTATION: the belief moves to a different estimator and nobody updates
+    the declaration. `verified` must go False rather than the row carrying a
+    stale claim about whose number it holds."""
+    root = _producer_tree(tmp_path / "r", "    return some_other_model(records)")
+    prov = couple_clv.belief_provenance(repo_root=root)
+    assert prov["estimator_is_called"] is False
+    assert prov["verified"] is False
+
+
+def test_a_producer_importing_the_estimator_from_elsewhere_is_unverified(tmp_path):
+    """MUTATION: same callable NAME, different module -- the shape a rename or a
+    shim would take. Matching on the name alone would pass this."""
+    root = _producer_tree(tmp_path / "r", "    return build_clv(records)",
+                          imports="from saas.legacy_clv import build_clv")
+    prov = couple_clv.belief_provenance(repo_root=root)
+    assert prov["estimator_is_called"] is True
+    assert prov["estimator_imported_from"] == "saas.legacy_clv"
+    assert prov["verified"] is False
+
+
+def test_wiring_ep1_into_the_producer_flips_grades_atom_estimator(tmp_path):
+    """THE CONTROL FIRES THE OTHER WAY TOO.
+
+    Without this, `grades_atom_estimator` could be hard-wired to False and every
+    test above would still pass -- the FAIL-OPEN pattern inverted. Wiring EP1's
+    estimator into the producer must flip it to True, and must then leave
+    `verified` False until the module constant is updated with it.
+
+    THE FIXTURE STILL CALLS `build_clv`, AND THAT IS THE WHOLE POINT (found by
+    running the mutation, not by reading the assertion). The first version of
+    this test had the producer call EP1's estimator INSTEAD of `build_clv`. That
+    made `estimator_is_called` False, so `verified` came out False by a route
+    that has nothing to do with the declaration -- and the mutation that deletes
+    the declaration check from `verified` fired ZERO tests. This is the identical
+    blind-fixture shape pass 16 recorded as its own M5. Blending both calls is
+    what isolates the one condition under test: every other input to `verified`
+    is now satisfied, so only the declaration comparison can make it False.
+    """
+    root = _producer_tree(
+        tmp_path / "r",
+        ("    base = build_clv(risk, records)\n"
+         "    return clv_three_horizon.estimate_book(records) or base"),
+        imports=("from saas.clv_model import build_clv\n"
+                 "from company.analytics import clv_three_horizon"))
+    prov = couple_clv.belief_provenance(repo_root=root)
+    # Everything verified() looks at EXCEPT the declaration is satisfied here.
+    assert prov["estimator_is_called"] is True
+    assert prov["estimator_imported_from"] == couple_clv.BELIEF_ESTIMATOR_MODULE
+    assert prov["grades_atom_estimator"] is True
+    assert prov["verified"] is False, (
+        "the wiring changed and GRADES_ATOM_ESTIMATOR still says False -- the "
+        "declaration must be updated, not silently outvoted by the tree")
+
+
+# --- THE ERROR DECOMPOSITION (R4) ---------------------------------------------
+
+
+def test_a_pure_scale_error_is_attributed_to_the_scalar():
+    """A belief that is exactly 3x the truth has PERFECT ranking and a terrible
+    MAE ratio. The decomposition must say so, or `gap > 1` will keep being read
+    as 'carries no information about the individual customer'."""
+    counted = [{"belief_gbp": 3 * t, "realised_gbp": float(t)}
+               for t in (100, 200, 400, 800, -300)]
+    dec = couple_clv.magnitude_diagnostic(counted)
+    assert dec["magnitude_inflated_accounts"] == len(counted)
+    assert dec["best_single_scale"] == pytest.approx(1 / 3)
+    assert dec["gap_after_best_single_scale"] == pytest.approx(0.0, abs=1e-9)
+
+
+def test_null_control_an_unbiased_belief_is_not_attributed_to_a_scalar():
+    """THE NULL CONTROL for the test above, and it is what makes it mean
+    anything. A diagnostic that collapsed the gap for EVERY input would satisfy
+    the scale test while distinguishing nothing. Here the errors are symmetric
+    and there is no scale to find: the best scalar must stay near 1 and must NOT
+    drive the gap to zero."""
+    counted = [{"belief_gbp": t + e, "realised_gbp": float(t)} for t, e in
+               ((100, 90), (200, -90), (400, 90), (800, -90), (-300, 90))]
+    dec = couple_clv.magnitude_diagnostic(counted)
+    assert dec["magnitude_inflated_accounts"] < len(counted)
+    assert dec["best_single_scale"] == pytest.approx(1.0, abs=0.15)
+    assert dec["gap_after_best_single_scale"] > 0.1
+
+
+def test_the_decomposition_declares_itself_in_sample():
+    """R12 / tautology guard: an in-sample fit reported as skill would be a
+    number to steer by. The flag and the reading must travel with it."""
+    dec = couple_clv.magnitude_diagnostic(
+        [{"belief_gbp": 300.0, "realised_gbp": 100.0},
+         {"belief_gbp": 600.0, "realised_gbp": 200.0}])
+    assert dec["in_sample"] is True
+    assert "never a correction" in dec["reading"]
+
+
+def test_an_empty_population_still_reports_whose_estimator_it_would_grade():
+    """The pass-16 lesson, applied to the new field: the branch where nothing
+    can be scored is exactly where a dropped declaration hides longest."""
+    empty = couple_clv.measure(_run(counted=[], supplied=["C2"]))[0]
+    assert empty.gap is None
+    assert empty.components["grades_atom_estimator"] is False
+    assert empty.components["belief_provenance"]["produced_by"]
+
+    run = _run()
+    run.pop("churned_billing_accounts")
+    unavailable = couple_clv.measure(run)[0]
+    assert unavailable.components["unavailable_reason"]
+    assert unavailable.components["grades_atom_estimator"] is False
+
+
+def test_measure_propagates_an_unresolvable_provenance(monkeypatch):
+    """FAIL-SILENT, at the wiring rather than the resolver. `belief_provenance`
+    raising is only useful if `measure` lets it through: a caller that swallowed
+    it would publish a headline while unable to say whose estimator produced it.
+    """
+    def _boom(repo_root=None):
+        raise FileNotFoundError("producer gone")
+    monkeypatch.setattr(couple_clv, "belief_provenance", _boom)
+    with pytest.raises(FileNotFoundError):
+        couple_clv.measure(_run())

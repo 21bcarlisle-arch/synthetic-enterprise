@@ -112,10 +112,54 @@ the mechanism), never fitting the estimator to this number.
 DETERMINISM (C-S2). No RNG, no wall clock, no git call inside the measurement.
 `measured_at` and `run_git_commit` are gathered by `main()` and passed in, because
 `gap_metric` never calls a clock.
+
+=============================================================================
+WHOSE ESTIMATOR THIS ROW ACTUALLY GRADES -- 2026-08-24, pass 17
+=============================================================================
+
+THE LEDGER KEY IS `EP1_clv_three_horizon` AND THE GRADED BELIEF IS NOT EP1'S.
+The belief side of this pair is `clv_snapshots`, and that field is built in
+`saas/reporting/annual_report.py::_build_clv_snapshots` by calling
+`saas/clv_model.py::build_clv` -- a churn-hazard annuity that predates this atom
+and is not in `EP1_clv_three_horizon`'s `file_scope`. EP1's own estimator,
+`company/analytics/clv_three_horizon.py`, publishes the separate
+`three_horizon_clv` table and contributes NOTHING to this measurement.
+
+MEASURED, NOT ARGUED (R15, on the 2026-08-24 20:38 artefact, 80 accounts):
+
+    baseline gap                                     2.595540998141295
+    every `three_horizon_clv` value zeroed           2.595540998141295   UNMOVED
+    `three_horizon_clv` DELETED from the artefact    2.595540998141295   UNMOVED
+    legacy `clv_snapshots` series nudged +1%         2.624227839450484   moved
+
+A control that is bit-identical when its named subject's entire published output
+is deleted is not measuring that subject. This is a FOURTH failure shape beside
+the three R15 names: the control runs, it can fail, and it fails honestly -- about
+something else. Call it MIS-SUBJECTED. It is invisible to a mutation battery aimed
+at the checker, because the checker is correct; only a mutation aimed at the
+SUBJECT exposes it.
+
+WHY IT IS DECLARED HERE RATHER THAN REPAIRED HERE. EP1's estimator cannot be
+backtested today at all: a backtest needs a belief recorded BEFORE the outcome, and
+`three_horizon_clv` is a single end-of-run table with no per-year series. Producing
+one means writing a snapshot from `run_phase4c_on_phase2b` or the reporting layer,
+both OUTSIDE this atom's `file_scope`, and it moves a published surface. So this
+pass makes the mis-subjection STATED and MECHANISED instead of leaving it implicit:
+`belief_provenance()` resolves the producing callable from the source tree by AST,
+`components.grades_atom_estimator` carries the answer onto the ledger entry, and
+`tests/tools/test_couple_clv.py` fails the day EP1's estimator IS wired in and this
+declaration is not updated with it.
+
+The pre-existing `note` said the live comparison was impossible because of
+right-censoring. That is true and it is not the whole truth: it explains why EP1's
+CURRENT values cannot be scored, and says nothing about the belief that was scored
+instead. A reader of a row keyed `EP1_clv_three_horizon` would reasonably take the
+number for EP1's. It is not.
 """
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import statistics
 import subprocess
@@ -156,6 +200,169 @@ EXCLUSION_NO_REALISED = "no_realised_lifetime_margin"
 
 #: Why the whole measurement is unavailable rather than empty.
 UNAVAILABLE_NO_ROSTER = "no_ceased_roster_published"
+
+
+#: WHERE THE GRADED BELIEF COMES FROM. `clv_snapshots` is written by this
+#: function, which calls this callable, imported from this module. Every one of
+#: the three is CHECKED against the source tree by `belief_provenance()` -- a
+#: constant that merely asserts a wiring is the prose-only shape MAKE_IT_STICK
+#: says evaporates.
+BELIEF_FIELD = "clv_snapshots"
+BELIEF_PRODUCER_FILE = "saas/reporting/annual_report.py"
+BELIEF_PRODUCER_FUNCTION = "_build_clv_snapshots"
+BELIEF_ESTIMATOR_CALLABLE = "build_clv"
+BELIEF_ESTIMATOR_MODULE = "saas.clv_model"
+
+#: The atom this ledger row is KEYED to, and whose estimator it does NOT grade.
+ATOM_ESTIMATOR_MODULE = "company.analytics.clv_three_horizon"
+
+#: The declaration. `False` is the measured state, not a placeholder: see the
+#: mutation table in this module's docstring. Flipping this to `True` without
+#: also making the belief come from EP1's estimator is caught by
+#: `test_the_declaration_cannot_claim_ep1_while_the_producer_says_otherwise`.
+GRADES_ATOM_ESTIMATOR = False
+
+#: Why the measurement is unavailable rather than wrong.
+UNAVAILABLE_NO_PROVENANCE = "belief_producer_not_resolvable_from_source"
+
+
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parent.parent
+
+
+def belief_provenance(repo_root=None) -> dict:
+    """Resolve, from the SOURCE TREE, which estimator produces the graded belief.
+
+    Returns the observed facts plus `verified` -- whether they match this module's
+    declared constants. Never returns a cheerful default: an unreadable or
+    unparseable producer, or a producer function that is not there, RAISES
+    (`FileNotFoundError` / `ValueError`). An unavailable check is a FAILED check
+    (R15 fail-silent), and this one exists precisely to notice a wiring change.
+
+    INDEPENDENCE (R15 tautology). The facts are read from
+    `saas/reporting/annual_report.py`'s AST -- the call graph as written -- not
+    from any string this module or that one declares about itself. Nothing here
+    imports the producer: importing it would resolve names through whatever the
+    interpreter happens to have loaded, and the question is what the SOURCE says.
+
+    `grades_atom_estimator` is the load-bearing output. It is True only if EP1's
+    estimator module is reachable by name inside the producing function, which is
+    the checkable form of "this row grades the atom it is keyed to".
+    """
+    root = Path(repo_root) if repo_root is not None else _repo_root()
+    producer = root / BELIEF_PRODUCER_FILE
+    if not producer.is_file():
+        raise FileNotFoundError(
+            f"belief producer {BELIEF_PRODUCER_FILE} is missing -- the provenance "
+            "of the graded belief cannot be established, so the measurement is "
+            "unavailable rather than clean")
+    tree = ast.parse(producer.read_text(encoding="utf-8"), filename=str(producer))
+
+    fn = next((n for n in ast.walk(tree)
+               if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+               and n.name == BELIEF_PRODUCER_FUNCTION), None)
+    if fn is None:
+        raise ValueError(
+            f"{BELIEF_PRODUCER_FILE} no longer defines "
+            f"{BELIEF_PRODUCER_FUNCTION}; the belief this row grades has moved "
+            "and the declaration in tools/couple_clv.py is stale")
+
+    called = {n.func.id for n in ast.walk(fn)
+              if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
+    called |= {n.func.attr for n in ast.walk(fn)
+               if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)}
+
+    # Where the called estimator was imported from, read at module scope.
+    imported_from = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module:
+            if any(a.name == BELIEF_ESTIMATOR_CALLABLE for a in node.names):
+                imported_from = node.module
+                break
+
+    # Is EP1's own estimator reachable by name inside the producing function?
+    names_in_fn = {n.id for n in ast.walk(fn) if isinstance(n, ast.Name)}
+    names_in_fn |= {n.attr for n in ast.walk(fn) if isinstance(n, ast.Attribute)}
+    ep1_leaf = ATOM_ESTIMATOR_MODULE.rsplit(".", 1)[-1]
+    ep1_wired = ep1_leaf in names_in_fn or any(
+        isinstance(n, ast.ImportFrom) and n.module
+        and ATOM_ESTIMATOR_MODULE in n.module
+        for n in ast.walk(fn))
+
+    observed = {
+        "belief_field": BELIEF_FIELD,
+        "produced_by": f"{BELIEF_PRODUCER_FILE}::{BELIEF_PRODUCER_FUNCTION}",
+        "estimator_callable": BELIEF_ESTIMATOR_CALLABLE,
+        "estimator_imported_from": imported_from,
+        "estimator_is_called": BELIEF_ESTIMATOR_CALLABLE in called,
+        "atom_estimator_module": ATOM_ESTIMATOR_MODULE,
+        "atom_estimator_wired_into_producer": ep1_wired,
+    }
+    observed["grades_atom_estimator"] = bool(ep1_wired)
+    observed["verified"] = (
+        observed["estimator_is_called"]
+        and imported_from == BELIEF_ESTIMATOR_MODULE
+        and observed["grades_atom_estimator"] == GRADES_ATOM_ESTIMATOR
+    )
+    return observed
+
+
+def magnitude_diagnostic(counted: list) -> dict:
+    """R4 decomposition of the error: is it SCALE, or is it information?
+
+    `gap > 1` is usually read as "the estimate carries less information about the
+    individual customer than the portfolio mean". That reading is not safe,
+    because a mean-absolute-error ratio CONFLATES two different failures: getting
+    the ordering wrong, and getting the ordering right at the wrong size. An
+    estimator that ranks every customer correctly but is uniformly three times too
+    large scores worse than no-skill here while being far more useful than the
+    mean.
+
+    So this reports both, and the two must be read together:
+
+      * `magnitude_inflated_accounts` -- how often |belief| EXCEEDS |realised|.
+        Under an unbiased estimator this is a coin flip; a run of them is a
+        systematic scale error and points R4 at the horizon, not the ranking.
+      * `best_single_scale` -- the ONE constant that, applied to every belief,
+        minimises the same mean absolute error, and the gap it would produce.
+
+    `best_single_scale` IS FITTED IN-SAMPLE ON THE COUNTED POPULATION and is
+    therefore NOT an estimate of out-of-sample skill; reported as such, it would
+    be the tautology pattern. It is an ATTRIBUTION: the share of the headline that
+    one scalar can absorb, which is the share not attributable to per-account
+    error. R12 APPLIES WITH FULL FORCE -- this number is a diagnostic pointing at
+    a mechanism to investigate, and multiplying the estimator by it to move the
+    headline would be exactly the goal-seeking R12 forbids.
+    """
+    if not counted:
+        return {"available": False, "reason": "empty population"}
+    beliefs = [r["belief_gbp"] for r in counted]
+    truths = [r["realised_gbp"] for r in counted]
+    mean_truth = statistics.fmean(truths)
+    g0 = statistics.fmean([abs(mean_truth - t) for t in truths])
+
+    def mae(scale):
+        return statistics.fmean(
+            [abs(scale * b - t) for b, t in zip(beliefs, truths)])
+
+    # The MAE-optimal scale lies at one of the points where a term's kink sits,
+    # t_i / b_i -- an exact search over the candidate set, no grid and no RNG.
+    candidates = sorted({t / b for b, t in zip(beliefs, truths) if b != 0} | {0.0, 1.0})
+    best = min(candidates, key=mae)
+    return {
+        "available": True,
+        "magnitude_inflated_accounts": sum(
+            1 for b, t in zip(beliefs, truths) if abs(b) > abs(t)),
+        "population": len(counted),
+        "best_single_scale": best,
+        "gap_after_best_single_scale": (mae(best) / g0) if g0 > 0 else None,
+        "in_sample": True,
+        "reading": (
+            "share of the headline one scalar absorbs = the share NOT explained "
+            "by per-account error. Fitted in-sample: an attribution, never a "
+            "skill estimate and never a correction to apply (R12)."
+        ),
+    }
 
 
 def load_run_output(path=None) -> dict:
@@ -349,11 +556,19 @@ def measure(run: dict) -> tuple:
     headline divides one by the other, so `gap > 1` reads "worse than knowing
     nothing about the individual customer".
     """
+    # RESOLVED FIRST, AND ALLOWED TO RAISE. If the source tree can no longer say
+    # which estimator produced the graded belief, this measurement does not know
+    # what it is measuring, and publishing a headline anyway is the fail-silent
+    # pattern with the subject rather than the checker as its victim.
+    provenance = belief_provenance()
+
     split = build_observations(run)
     counted, excluded = split["counted"], split["excluded"]
     detail = {"counted": counted, "excluded": excluded,
               "unavailable": split["unavailable"],
-              "roster_crosscheck": roster_crosscheck(run, counted)}
+              "roster_crosscheck": roster_crosscheck(run, counted),
+              "belief_provenance": provenance,
+              "error_decomposition": magnitude_diagnostic(counted)}
 
     if split["unavailable"] is not None:
         # The ceased AUTHORITY is missing, which is not the same as an empty
@@ -366,7 +581,14 @@ def measure(run: dict) -> tuple:
                       "so belief cannot be scored against outcome"),
             normalisation=NORMALISATION_DIVISOR, raw_gap_is=DIVISOR_RAW_GAP_IS,
             components={"counted": 0, "excluded": 0,
-                        "unavailable_reason": split["unavailable"]},
+                        "unavailable_reason": split["unavailable"],
+                        # Carried even here: WHOSE estimator this row would have
+                        # graded is a fact about the wiring, not about the
+                        # population, and a branch that drops it lets an
+                        # unmeasurable run hide a mis-subjected key.
+                        "belief_provenance": provenance,
+                        "grades_atom_estimator": provenance[
+                            "grades_atom_estimator"]},
             note=("Measurement UNAVAILABLE, not zero: the ceased authority "
                   f"({split['unavailable']}) is absent from the run artefact."),
         ), detail
@@ -384,7 +606,10 @@ def measure(run: dict) -> tuple:
             # saying whether the check that would have found accounts could run.
             components={"counted": 0, "excluded": len(excluded),
                         "roster_sources_agree": detail[
-                            "roster_crosscheck"]["agrees"]},
+                            "roster_crosscheck"]["agrees"],
+                        "belief_provenance": provenance,
+                        "grades_atom_estimator": provenance[
+                            "grades_atom_estimator"]},
             note="Population empty; the pair is unmeasured, not measured at zero.",
         ), detail
 
@@ -444,15 +669,25 @@ def measure(run: dict) -> tuple:
             "crosscheck_snapshot_coverage": crosscheck["snapshot_coverage"],
             "still_supplied_disagrees_with_roster": crosscheck[
                 "still_supplied_disagrees"],
+            "belief_provenance": provenance,
+            "grades_atom_estimator": provenance["grades_atom_estimator"],
+            "error_decomposition": magnitude_diagnostic(counted),
         },
         note=(
-            "Point-in-time backtest of the company's own CLV against realised "
+            "Point-in-time backtest of a company CLV belief against realised "
             "lifetime margin, over accounts whose life COMPLETED inside the run. "
-            "Still-supplied accounts are excluded as right-censored, which is why "
-            "the direct comparison against EP1's live output is impossible: the "
-            "accounts EP1 values are exactly the ones whose outcome is unknown, "
-            "and the ones whose outcome is known are exactly the ones it refuses "
-            "to value. R12: diagnostic, never a target."
+            "WHOSE BELIEF: the graded field is `clv_snapshots`, produced by "
+            f"{BELIEF_PRODUCER_FILE}::{BELIEF_PRODUCER_FUNCTION} via "
+            f"{BELIEF_ESTIMATOR_MODULE}.{BELIEF_ESTIMATOR_CALLABLE}. Despite this "
+            "row's key it does NOT grade EP1's estimator "
+            "(company/analytics/clv_three_horizon.py): zeroing or deleting EP1's "
+            "entire published output leaves this headline bit-identical, measured "
+            "2026-08-24. EP1 cannot be backtested yet because it publishes only a "
+            "terminal table and a backtest needs a belief recorded before the "
+            "outcome. Separately, still-supplied accounts are excluded as "
+            "right-censored, so EP1's CURRENT values would be unscoreable even "
+            "with a series: the accounts it values are the ones whose outcome is "
+            "unknown. R12: diagnostic, never a target."
         ),
     )
     return result, detail
@@ -493,6 +728,21 @@ def main(argv=None) -> int:
     print(f"  gap = raw/g0          : {result.gap}")
     crosscheck = detail["roster_crosscheck"]
     print(f"  roster sources agree  : {crosscheck['agrees']}")
+
+    prov = detail["belief_provenance"]
+    print(f"  belief graded         : {prov['belief_field']} "
+          f"<- {prov['produced_by']} -> "
+          f"{prov['estimator_imported_from']}.{prov['estimator_callable']}")
+    print(f"  grades EP1's estimator: {prov['grades_atom_estimator']}"
+          + ("" if prov["grades_atom_estimator"]
+             else "   <- this row is keyed to EP1 and does not grade it"))
+    dec = detail.get("error_decomposition") or {}
+    if dec.get("available"):
+        print(f"  |belief| > |realised| : "
+              f"{dec['magnitude_inflated_accounts']}/{dec['population']}")
+        print(f"  one-scalar attribution: scale {dec['best_single_scale']:.3f} "
+              f"-> gap {dec['gap_after_best_single_scale']:.4f} "
+              f"(IN-SAMPLE; diagnostic, never a correction -- R12)")
 
     if args.write_ledger:
         write_gap_entry(
