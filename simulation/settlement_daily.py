@@ -4,35 +4,66 @@ published figure actually depends on it.
 STATUS: WIRED (2026-08-24). On a real end-2019 run the retained book goes from 1,909,710 records
 to 45,341 (42x), peak RSS from 3,003 MB to 486 MB (84% less) and elapsed from 102.5s to 70.4s.
 
-MEASURED WITH THE FOLD AS THE ONLY VARIABLE -- one interpreter, one commit, one minute, with
+MEASURED WITH THE FOLD AS THE ONLY VARIABLE — one interpreter, one commit, one minute, with
 `fold_to_days` swapped between two full `run_phase4c` + `extract_report_data` passes. That
 discipline is not pedantry: every earlier comparison in this work was cross-tree, and two of them
-lied in opposite directions -- one made a real defect look like 14 pounds of noise, the next made
-the same fold look like a 5,347-pound movement. Both were other lanes' commits landing between
-the runs. Never diff a generated report against a baseline built from a different tree.
+lied in opposite directions. One made a real defect look like £14 of noise; the next made the
+same fold look like a £5,347 movement. Both were other lanes' commits landing between the runs.
+Never diff a report against a baseline built from a different tree.
 
-The result, same-tree: the LARGEST financial difference across the whole extract is 12 PENCE, on
-a collections total, and almost every other is under 3 pence. All of it traces to one thing:
+The result, same-tree: **the largest financial difference across the whole extract is £0.12**, on
+a collections total, and almost every other is under £0.03. All of it traces to one thing —
 `bill_generator.generate_bill` rounds the SUM of consumption to 2dp, and the float sum of 1,440
 per-period values is not bit-identical to the sum of 30 daily ones, so the penny occasionally
 lands the other way.
 
-ONE NON-FINANCIAL MOVEMENT, AND IT IS NOT A ROUNDING ERROR: the run acquires 2 customers instead
-of 1. `growth_mandate` computes `wins_capital_allows = int(committed // all_in_per_win)`, an
-integer floor over a money figure, so two pence of committed capital can flip it by one and that
-flips an acquisition. The fold is exact on sums; the RUN is chaotic at that threshold.
-"Byte-identical" was therefore never an achievable standard for a whole run, and claiming it
-would have been the more dangerous error. What is achievable, and what is measured, is exactness
-on every sum with the sensitivity named.
+ONE NON-FINANCIAL DIFFERENCE, AND IT IS NOT A ROUNDING ERROR: the run acquired 2 customers
+instead of 1. `growth_mandate` computes `wins_capital_allows = int(committed // all_in_per_win)`,
+an integer floor over a money figure, so a two-pence difference in committed capital can flip it
+by one and that flips an acquisition. The fold is exact on sums; the RUN is chaotic at that
+threshold. "Byte-identical" was therefore never an achievable standard for the whole run, and
+claiming it would have been the more dangerous error — what is achievable, and what is measured
+here, is exactness on every sum with the sensitivity named.
 
-The blocker that kept this dormant was DIAGNOSED AND REPAIRED by the lane that built
-`tools/running_total_order.py`, and it was never the fold's defect:
-`company/finance/double_entry.to_journal_entry` took `abs(amount_gbp)` and chose the account pair
-by event TYPE, so a negatively-priced half-hour -- the supplier being PAID to take energy --
-posted as a wholesale COST of the same size. Every figure that is a sum of signed record values
-was identical because a sum does not care what order it was added in; the journal was not,
-because `abs(x + y) != abs(x) + abs(y)`. Netting a day before the journal saw it moved a
-published figure. The fold exposed a sign bug that had been live the whole time.
+The two movements that kept this dormant are resolved:
+
+  1. `worst_period` — EXPLAINED, and the old figure is itself suspect: `apply_emergent_bad_debt`
+     lands each customer-year's whole bad-debt correction on that year's LAST record, so the
+     published "worst half-hour" is wherever that lump fell, not the worst settled half-hour.
+     The register folds pre-revision values and so names a different (milder) period.
+  2. the ledger-derived cash/equity movement — DIAGNOSED AND REPAIRED 2026-08-24 by the lane
+     that built `tools/running_total_order.py`, and it was never the fold's defect. Per-segment gross
+     margin, portfolio gross, net margin, capital, bad debt and treasury were all identical to
+     the penny because every one of them is a sum of SIGNED record values, and a sum does not
+     care what order it was added in. The journal was not: `company/finance/double_entry.
+     to_journal_entry` took `abs(amount_gbp)` and chose the account pair by event TYPE, so a
+     negatively-priced half-hour (the supplier is PAID to take the energy) was posted as a
+     wholesale COST of the same size — and `abs(x + y) != abs(x) + abs(y)`, so netting a day
+     before the journal saw it changed the published figure. This run carries 6 such half-hours
+     in 2018 (£5.48 of credit, overstating the journal by £10.95) and 2 in 2019 (£1.52, £3.04):
+     £13.99, plus pennies from item 3 below, is the £14.08.
+
+     With the sign kept, the same end-2019 comparison moves NO figure by more than £0.02.
+
+  3. what is LEFT is a rounding tie, and it is worth knowing about. `simulation/meter_reads.py`
+     estimates an unread month as `round(mean(trailing actual reads), 2)`. Those reads are
+     monthly kWh totals — sums of ~1,440 floats — and re-associating the sum moves them by up
+     to 5.8e-11 kWh. Physically nothing, and enough to decide a `round(..., 2)` when the mean
+     lands on an exact half-penny tie (measured: 428.82500000000005 -> 428.83 per-period versus
+     exactly 428.825 -> 428.82 per-day, a difference of 5.7e-14 deciding a penny). 19 of 158
+     estimates flipped, worth £0.03 on £3.05M of billing. Not repaired here: the flip is a
+     tie-break, both answers are defensible, and the exact-tie value is arguably the truer one.
+
+An unexplained movement in a published balance-sheet figure is not landable (R14) — which is why
+the fold sat here with its tests running and its caller absent. What replaced the mystery is a
+DIRECTOR RULING that outranks the memory saving (2026-08-24 console, verbatim): "GB settlement is
+half-hourly and that is not an implementation detail, it is the market. So the half-hourly spine
+stays half-hourly. Aggregate in the reporting and ledger layers if that's where the memory goes,
+but the settlement and metering record keeps its grain." The one-line wiring described above
+folds the RETAINED book, which is the reporting/ledger side of that line rather than the spine
+(the 48-period settlement loop is untouched), and GATE 13 refuses a new half-hourly read
+downstream of the fold. The signed journal is the ledger-layer half of the same instruction: an
+aggregation there is now safe BY CONSTRUCTION, because the journal is a sum of signed amounts.
 
 WHY, AND WHY THE DAY RATHER THAN THE MONTH (director, 2026-08-24: "make the run incremental …
 using the projections store rather than accumulating … then 200 residential isn't a budget
@@ -67,7 +98,9 @@ rather than a rescan of a list afterwards:
     `tests/simulation/test_settlement_daily.py::test_the_two_peak_band_definitions_still_agree`
     pins so a future divergence surfaces as a red test rather than as a moved figure.
   * the treasury path — `_drawdown_events` walks the balance after every half-hour, and an
-    intra-day dip is invisible in daily closes. Register: the drawdown fold itself, per year.
+    intra-day dip is invisible in daily closes. Register: the drawdown fold itself, over the
+    whole book as ONE path (not per year — see `TreasuryDrawdown`, which says why the year is a
+    tag on each point rather than a bucket the points are sorted into).
   * Triad exposure — wants the actual periods, for I&C customers in the Triad season only.
     Register: those records, kept whole. Bounded by construction: Nov–Feb, I&C only.
 
@@ -221,22 +254,38 @@ class PeriodRegisters:
 
 
 class TreasuryDrawdown:
-    """The treasury path's drawdown, folded per year instead of rebuilt from every half-hour.
+    """The treasury path's drawdown, folded ONCE over the whole book in accumulation order.
 
     `annual_report._drawdown_events` walks the balance after EVERY settlement period, so a dip
     that opens and closes inside one day is visible to it and invisible in daily closes. Rather
     than keep 10.5M balances to rediscover that, the peak-and-trough walk happens here, once,
     as the balances are produced.
 
-    The register is the events themselves, so the report's own function can be handed a path it
-    can still walk: `series_for(year)` returns the SIGNIFICANT points — every new running peak
-    and every new trough below it — which is a lossless input for a drawdown computation and is
-    O(turning points) rather than O(periods).
+    The register is a PATH, not a set of per-year paths — `points()` returns every significant
+    point in the order the balance took, each tagged with the year of the record that produced
+    it. A significant point is every new running peak and every new low beneath the last
+    recorded point; a balance between the two moves no drawdown and is dropped, which makes the
+    register O(turning points) rather than O(periods) and lossless for a (peak, trough) walk.
+
+    WHY THE YEAR IS A TAG AND NOT A PARTITION (2026-08-24, the residual of
+    `docs/staging/WORKER_FINDING_THE_TREASURY_DRAWDOWN_FIGURE_IS_AN_ARTEFACT_OF_SORTING_A_BALANCE_THAT_WAS_NEVER_A_SERIES_2026-08-24.md`).
+    This register used to keep a separate peak and a separate point list per year, keyed on
+    `settlement_date[:4]`. `treasury_cash_balance_gbp` is a PORTFOLIO running total stamped
+    record-by-record during the term loop, so a year's records are a SUBSEQUENCE of it, sampled
+    at the moments the loop happened to emit records dated in that year — and between two
+    consecutive samples the balance travels through other customers' whole terms. Bucketing it
+    is therefore the same defect as re-sorting it, just 2,000x gentler: one stretch of the term
+    loop that emitted both 2022- and 2023-dated records showed the SAME swing in both buckets,
+    and the report published it as two events with peaks four pence apart.
+
+    The year of a completed drawdown is the year of the record at its TROUGH — the year the
+    treasury was actually at its lowest — which the consumer derives from the tags. Every
+    published event is therefore an event the portfolio balance genuinely had.
     """
 
     def __init__(self) -> None:
-        self._points: dict[str, list[float]] = {}
-        self._peak: dict[str, float] = {}
+        self._points: list[list] = []
+        self._peak: float | None = None
 
     def add(self, records) -> None:
         for rec in records:
@@ -245,25 +294,21 @@ class TreasuryDrawdown:
             if balance is None or not day:
                 continue
             year = day[:4]
-            points = self._points.setdefault(year, [])
-            peak = self._peak.get(year)
-            if peak is None:
-                points.append(balance)
-                self._peak[year] = balance
+            if self._peak is None:
+                self._points.append([balance, year])
+                self._peak = balance
                 continue
-            if balance > peak:
-                points.append(balance)
-                self._peak[year] = balance
-            elif not points or balance < points[-1]:
+            if balance > self._peak:
+                self._points.append([balance, year])
+                self._peak = balance
+            elif balance < self._points[-1][0]:
                 # A new low since the last recorded point: it can only deepen a drawdown, so it
                 # is a turning point. A balance between the last point and the peak changes no
                 # drawdown and is dropped.
-                points.append(balance)
+                self._points.append([balance, year])
 
-    def series_for(self, year: str) -> list[float]:
-        return list(self._points.get(year, []))
-
-    def points_by_year(self) -> dict[str, list[float]]:
-        """The whole register, for the run to hand to the report. A plain dict of lists so it
-        survives the JSON round-trip every persisted run output goes through."""
-        return {year: list(points) for year, points in self._points.items()}
+    def points(self) -> list[list]:
+        """The whole register, for the run to hand to the report. A plain list of `[balance,
+        year]` pairs so it survives the JSON round-trip every persisted run output goes
+        through (a tuple comes back from JSON as a list, so it is a list here already)."""
+        return [list(point) for point in self._points]

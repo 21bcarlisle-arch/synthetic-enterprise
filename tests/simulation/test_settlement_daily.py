@@ -214,8 +214,8 @@ def test_the_drawdown_register_reproduces_the_reports_own_events(seed):
     register = TreasuryDrawdown()
     register.add(records)
 
-    assert _drawdown_events(register.series_for("2019")) == _drawdown_events(series)
-    assert len(register.series_for("2019")) < len(series), (
+    assert _drawdown_events([p[0] for p in register.points()]) == _drawdown_events(series)
+    assert len(register.points()) < len(series), (
         "the register kept every point, so it is not saving anything")
 
 
@@ -228,7 +228,7 @@ def test_an_intra_day_trough_survives_the_register_and_not_the_daily_close():
     register = TreasuryDrawdown()
     register.add(day)
 
-    assert _drawdown_events(register.series_for("2019")), "the intra-day trough was lost"
+    assert _drawdown_events([p[0] for p in register.points()]), "the intra-day trough was lost"
     daily_close = [fold_to_days(day)[0]["treasury_cash_balance_gbp"]]
     assert not _drawdown_events(daily_close), (
         "the fixture does not demonstrate the problem — the daily close sees the trough too")

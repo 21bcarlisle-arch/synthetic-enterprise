@@ -253,6 +253,86 @@ def _drawdown_events(treasury_series: list[float], threshold: float = DRAWDOWN_T
     return events
 
 
+def _drawdown_events_by_year(
+    path: list, threshold: float = DRAWDOWN_THRESHOLD_PCT
+) -> dict[str, list[dict]]:
+    """The same walk as `_drawdown_events`, over ONE path for the whole book, with each
+    completed drawdown attributed to the year of the record at its TROUGH.
+
+    `path` is a sequence of `(balance, year)` pairs in the order the balance was accumulated —
+    either the run's own register (`TreasuryDrawdown.points()`) or, for a run output that
+    predates it, the retained book read straight through.
+
+    WHY NOT PER YEAR (2026-08-24, the residual of
+    `docs/staging/WORKER_FINDING_THE_TREASURY_DRAWDOWN_FIGURE_IS_AN_ARTEFACT_OF_SORTING_A_BALANCE_THAT_WAS_NEVER_A_SERIES_2026-08-24.md`).
+    This used to filter the book to one year and walk that. `treasury_cash_balance_gbp` is a
+    PORTFOLIO running total stamped record-by-record during the term loop, so a year's records
+    are a SUBSEQUENCE of it — between two consecutive same-year records the balance travels
+    through other customers' whole terms. Filtering preserves ORDER but it does not preserve
+    the SERIES, so one swing that straddled a stretch of the loop emitting both 2022- and
+    2023-dated records was reported once in each year, with peaks four pence apart.
+
+    Each event carries `sequence`, its position in that one walk. It is what makes the walk's
+    defining property CHECKABLE by a consumer rather than merely true: a drawdown completes only
+    when the balance takes out the previous peak, so ordered by `sequence` the peaks strictly
+    increase, and the sequences across all years together are 0..n-1 with no repeats. A
+    partition cannot produce either — every bucket restarts its own peak and its own count —
+    which is how the 2022/2023 double-count would have announced itself.
+    """
+    events_by_year: dict[str, list[dict]] = {}
+    peak = trough = None
+    trough_year = None
+    sequence = 0
+
+    def close():
+        nonlocal sequence
+        if peak is None or not (peak > 0 and trough < peak):
+            return
+        drawdown_pct = (peak - trough) / peak
+        if drawdown_pct >= threshold:
+            events_by_year.setdefault(trough_year, []).append({
+                "peak_gbp": peak,
+                "trough_gbp": trough,
+                "drawdown_pct": drawdown_pct,
+                "sequence": sequence,
+            })
+            sequence += 1
+
+    for point in path:
+        balance, year = point[0], point[1]
+        if peak is None:
+            peak = trough = balance
+            trough_year = year
+            continue
+        if balance > peak:
+            close()
+            peak = trough = balance
+            trough_year = year
+        elif balance < trough:
+            trough = balance
+            trough_year = year
+    close()
+    return events_by_year
+
+
+def _treasury_path_from_book(book: list) -> list:
+    """The fallback path for a run output that predates the register: the retained book's own
+    balances, in the order it holds them, tagged with each record's year.
+
+    An order-preserving read of the whole book, NOT a per-year filter of it (see
+    `_drawdown_events_by_year`). It is coarser than the register — the book is folded to daily
+    rows, so a dip that opened and closed inside one day is simply not present — but it is the
+    same series, and an absent register must not silently become "no drawdowns" either.
+
+    Not a point-in-time read: this is ex-post reporting on a finished run, and the balance it
+    walks is one the run itself already produced."""
+    return [
+        [r["treasury_cash_balance_gbp"], r["settlement_date"][:4]]
+        for r in book
+        if r.get("treasury_cash_balance_gbp") is not None and r.get("settlement_date")
+    ]
+
+
 def extract_report_data(run_output: dict) -> dict:
     """Reduce `run_phase4c_on_phase2b.main()`'s output to a small,
     JSON-serialisable dict of everything `generate_annual_report()` needs --
@@ -268,7 +348,21 @@ def extract_report_data(run_output: dict) -> dict:
     # back to scanning whatever `all_records` holds rather than raise.
     worst_period_by_year = phase2b.get("worst_period_by_year") or {}
     tou_by_customer = phase2b.get("tou_by_customer") or {}
-    treasury_drawdown_points = phase2b.get("treasury_drawdown_points") or {}
+    # THE TREASURY PATH, walked ONCE for the whole book rather than once per year -- the year of
+    # an event is the year of the record at its trough. The register is the run's own fold of it
+    # (`TreasuryDrawdown.points()`, `[balance, year]` pairs); a run output that predates it, and
+    # every hand-built one in the tests, falls back to the retained book in the order the book
+    # holds it. Both are the same portfolio series; neither is a per-year slice of it, which is
+    # the residual repaired 2026-08-24 (see `_drawdown_events_by_year`).
+    #
+    # No as_of bound is owed on this read and none is missing: `extract_report_data` is ex-post
+    # reporting on a FINISHED run, and every balance it walks is one that run already produced
+    # and stamped. The blindfold applies to the company DECIDING from history, not to the annual
+    # report describing a completed window.
+    treasury_path = phase2b.get("treasury_drawdown_path")
+    if treasury_path is None:
+        treasury_path = _treasury_path_from_book(all_records)
+    drawdown_events_by_year = _drawdown_events_by_year(treasury_path)
     bills = run_output.get("bills", [])
     payment_behaviour = run_output.get("payment_behaviour", {})
     contact_model = run_output.get("contact_model", {})
@@ -453,27 +547,13 @@ def extract_report_data(run_output: dict) -> dict:
             if _year(e["period_end"]) == year
         ]
 
-        # THE TREASURY PATH, from the run's own drawdown register. `treasury_cash_balance_gbp`
-        # is a PORTFOLIO running total stamped on each record as the term loop produced it, so
-        # the only order it means anything in is the order it was accumulated in. This line used
-        # to re-sort the book into (date, period) order first, which interleaves balances from
-        # different points in the term loop: on a real end-2017 run that manufactured 6,747
-        # drawdown events in a year whose treasury never drew down at all.
-        #
-        # The register keeps that order's turning points (every new running peak and every new
-        # low beneath it), which is exactly the state `_drawdown_events` walks, so replaying them
-        # reproduces the same events -- and it survives a book folded to daily rows, where an
-        # intra-day trough would simply not be present.
-        #
-        # No register (a run output that predates it, or one of the many hand-built ones in
-        # tests): read the book in ACCUMULATION order. `yr_records` is an order-preserving filter
-        # of the run's record book, so this is the same path the register folded, just unfolded.
-        # It is a second correct read, NOT the old re-sorted one -- and an absent register must
-        # not silently become "no drawdowns" either.
-        treasury_series = treasury_drawdown_points.get(year)
-        if treasury_series is None:
-            treasury_series = [r["treasury_cash_balance_gbp"] for r in yr_records]
-        treasury_drawdown_events = _drawdown_events(treasury_series)
+        # THE YEAR'S DRAWDOWNS, taken from the ONE walk of the whole portfolio path made above.
+        # A year's events are the ones whose TROUGH fell in it. Nothing per-year is computed
+        # here on purpose: this line used to re-sort the book into (date, period) order (6,747
+        # manufactured events in a real 2017 that had none), and after that repair it still
+        # walked the year's own records as though they were a series of their own -- which
+        # double-counted one swing across 2022 and 2023 on the first ten-year book it saw.
+        treasury_drawdown_events = drawdown_events_by_year.get(year, [])
 
         var_wake_ups = [w for w in wake_ups if "portfolio_var_current_gbp" in w]
         var_ratio = (

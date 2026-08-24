@@ -1164,7 +1164,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     # finished book into date order, which interleaves balances from different points in the
     # term loop and manufactured 6,747 phantom drawdown events in a 2017 that had none.
     treasury_drawdown = TreasuryDrawdown()
-    # The two published figures a DAILY row cannot answer, folded from the same per-period
+    # The three published figures a DAILY row cannot answer, folded from the same per-period
     # records as they are produced -- see simulation/settlement_daily.py for which figure
     # each serves and why a rescan afterwards is not an option once the periods are gone.
     period_registers = PeriodRegisters(is_peak_period=_is_peak_period)
@@ -2718,10 +2718,13 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             {"customer_id": v.customer_id, "is_eligible": v.is_eligible, "reason": v.reason}
             for v in fabric_eligibility_verdicts
         ],
-        # The treasury path's turning points per year, folded in accumulation order as the
-        # balances were produced. `annual_report._drawdown_events` walks this instead of
-        # re-deriving a path from the finished book.
-        "treasury_drawdown_points": treasury_drawdown.points_by_year(),
+        # The treasury path's turning points for the WHOLE book, folded in accumulation order as
+        # the balances were produced, each tagged with the year of its record.
+        # `annual_report._drawdown_events_by_year` walks this instead of re-deriving a path from
+        # the finished book. One path, not one per year: a year's records are a subsequence of a
+        # portfolio running total, so bucketing them showed one swing as an event in each of two
+        # years (2026-08-24; see `TreasuryDrawdown`).
+        "treasury_drawdown_path": treasury_drawdown.points(),
         # The other two registers. `all_records` holds DAILY rows from here on; the half-hour
         # survives only where a published figure needs it, which is these.
         "worst_period_by_year": period_registers.worst_period_by_year,

@@ -3238,7 +3238,7 @@ def _crossed_terms_run_output(with_register: bool):
         register = TreasuryDrawdown()
         register.add(term_one)
         register.add(term_two)
-        run_output["phase2b"]["treasury_drawdown_points"] = register.points_by_year()
+        run_output["phase2b"]["treasury_drawdown_path"] = register.points()
     return run_output
 
 
@@ -3258,7 +3258,9 @@ def test_the_drawdown_reads_the_register_and_not_the_retained_book():
         _record("C1", "electricity", "2017-01-02", 48, 10.0, 2.0, 8.0, 50.0, 100_000.0),
         _record("C1", "electricity", "2017-01-03", 48, 10.0, 2.0, 8.0, 50.0, 100_000.0),
     ]
-    run_output["phase2b"]["treasury_drawdown_points"] = {"2017": [100_000.0, 10_000.0, 100_000.0]}
+    run_output["phase2b"]["treasury_drawdown_path"] = [
+        [100_000.0, "2017"], [10_000.0, "2017"], [100_000.0, "2017"],
+    ]
 
     events = extract_report_data(run_output)["years"]["2017"]["treasury_drawdown_events"]
     assert len(events) == 1, "the register was not read -- the retained book cannot see this dip"

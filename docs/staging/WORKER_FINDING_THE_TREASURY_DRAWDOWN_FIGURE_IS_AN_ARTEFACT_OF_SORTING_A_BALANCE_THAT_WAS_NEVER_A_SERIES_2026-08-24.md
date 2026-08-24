@@ -535,3 +535,129 @@ against a `--check` that passes today.
 1. The receivable reaching the published balance sheet on the next run (mechanism live, no act needed).
 2. The residual above measured — one full-book accumulation-order walk — and the published count
    corrected to whatever that says, with its before/after stated (R14).
+
+---
+
+## THE RESIDUAL IS REPAIRED — a year's records are a SUBSEQUENCE of the portfolio balance, not a series of their own (2026-08-24, worker tick, RUNG 1c blocking draw)
+
+**Severity stays BLOCKING for one reason and it is the same one: the published figure has not
+moved yet.** What this tick closes is the mechanism behind it — the residual the section above
+could only label INFERRED, because settling it was said to need a full-book run and the memory
+headroom to take one did not exist at the time.
+
+It did not need one. The claim was about a MECHANISM, and a mechanism can be built.
+
+### What was wrong
+
+The count repair replaced `sorted(yr_records, key=(settlement_date, settlement_period))` with an
+accumulation-order read — and then walked **the year's own records** as though they were a series.
+They are not. `treasury_cash_balance_gbp` is a PORTFOLIO running total stamped record-by-record
+during the term loop, so a year's records are a *subsequence* of it, sampled at the moments the
+loop happened to emit records dated in that year; between two consecutive samples the balance
+travels through other customers' whole terms. Filtering preserves ORDER. It does not preserve the
+SERIES.
+
+So one swing straddling a stretch of the loop that emitted both 2022- and 2023-dated records was
+published as **two events, one in each year** — each year seeing its own sample of the same peak
+and the same trough. `TreasuryDrawdown` had the identical property one level down: it partitioned
+on `day[:4]` and kept a separate peak per bucket, which is why the register and the fallback
+agreed and this document's own byte-equality test passed. They agreed because they shared the
+defect.
+
+The finding's opening sentence — "meaningful in ACCUMULATION order and in no other" — was always
+the whole rule. `sorted()` broke it loudly (6,747 events). The year partition broke it quietly
+(2 events for 1).
+
+### The mechanism, DEMONSTRATED rather than inferred (R9)
+
+`tests/saas/reporting/test_a_year_bucket_is_not_a_treasury_series.py::test_the_year_partition_reports_one_swing_as_two_events`
+builds the interleave the mechanism requires — one swing, records of two years straddling it —
+and reproduces the real signature to the penny: the two "events" come out with **peaks 0.04 apart
+and troughs 12.81 apart**, which are the two gaps this document measured on the live book. That is
+the same claim as a full-book walk, without the £1.7M book: two independent swings do not land
+four pence apart, and now there is a fixture saying exactly which construction does.
+
+### The repair
+
+One walk of the whole path, each completed drawdown dated by the year of the record at its
+**trough** — the year the treasury was actually at its lowest.
+
+* `simulation/settlement_daily.py::TreasuryDrawdown` folds ONE path for the book and tags each
+  turning point with its year (`points()` -> `[balance, year]` pairs). The year is a TAG, not a
+  bucket. `points_by_year()`/`series_for()` are gone: a partition-shaped accessor is the defect's
+  own shape, and leaving one is an invitation.
+* `simulation/run_phase2b.py` emits it as `treasury_drawdown_path` (was `treasury_drawdown_points`).
+* `saas/reporting/annual_report.py::_drawdown_events_by_year` walks it once; the per-year loop now
+  only looks its year up. A run output predating the register falls back to
+  `_treasury_path_from_book` — the retained book in the order the book holds it, whole, **not**
+  filtered per year, so the fallback no longer carries the defect either.
+
+### The figures (R14), and which are measured
+
+**Measured, from the published artefact at HEAD** (`docs/reports/run_output_latest.json`, run
+stamp `4b3086b1f`) — the BEFORE, exactly as this document's residual section reported it:
+
+| year | peak | trough | pct |
+|---|---|---|---|
+| 2022 | £1,169,284.6555 | £1,035,944.8242 | 11.4035% |
+| 2023 | £1,169,284.6953 | £1,035,932.0121 | 11.4046% |
+
+**Derived, not measured (R9 label):** the AFTER is **one** event, at the higher of the two peaks
+and the lower of the two troughs — £1,169,284.6953 -> £1,035,932.0121, 11.4046%, dated **2023**
+by its trough. That follows from the two rows above IF they are one swing, which is what the
+fixture establishes and what a full-book walk would confirm directly.
+
+**Why no full run was taken here, stated rather than hidden:** headroom recovered to 21,922 MB of
+24,032 MB mid-tick, so it was no longer impossible — but `background/sim_runner.py` is live on a
+~30-90 min cadence and a second concurrent full-window run is how this host collected its 10 OOM
+kills. The next cycle reads this working tree and republishes the figure with no intervention.
+What WAS run against real data is `tests/simulation/test_run_phase2b.py::test_the_run_emits_a_treasury_drawdown_register`,
+which takes a genuine 2017 run and asserts the register is a lossless compression of that run's
+own book (same events, fewer points) with a null control proving the window distinguishes
+accumulation order from date order.
+
+### Controls, R15-proven — five named mutations, fires OBSERVED in scratch worktrees
+
+`tests/saas/reporting/test_a_year_bucket_is_not_a_treasury_series.py`, 8 tests:
+
+| mutation | tests fired |
+|---|---|
+| M1 reorder the path year-by-year before the walk | 3 |
+| M2 attribute an event to the year of its PEAK instead of its trough | 2 |
+| M3 fail-open: `_drawdown_events_by_year` returns `{}` always | 3 |
+| M4 drop the year tag from the register (`points()` returns bare balances) | 8 |
+| M5 the genuine pre-repair shape — one INDEPENDENT walk per year bucket | 3 |
+
+### The CLASS control (R10), because an instance fix would not close this
+
+A static scanner cannot catch a bucketed walk — it names no `sorted`. So the control is a
+PROPERTY of the published figure. Every event now carries `sequence`, its position in the one
+walk, which makes two facts checkable by any consumer:
+
+* the sequences across all years are exactly 0..n-1, no repeats — **a partition restarts its
+  count in every bucket**, so a duplicate `sequence` IS the partition;
+* ordered by `sequence` the peaks strictly increase — a drawdown completes only when the balance
+  takes out the previous peak, so **only a bucket that restarted its own peak can publish a later
+  event at a lower one**, which is precisely what the real pair did (1,169,284.6555 then
+  1,169,284.6953 in year order, the second event's peak *above* the first's).
+
+`test_the_published_events_are_one_walk_and_say_so` asserts both on the published dict. M5 — the
+genuine pre-repair shape — reds it on duplicate sequences. `tools/running_total_order.py`'s
+doctrine note carried the clause that authorised this ("filtering preserves accumulation order,
+and a bucket is CORRECT"); it now states the distinction it was missing — that is true of a LAST
+VALUE and false of a SERIES — and points at this control.
+
+### What is still owed on this document, and it is one thing
+
+**The published figure.** `docs/reports/ANNUAL_REPORT.md` at HEAD still prints the two events
+(lines 4941 and 5120), because they were baked by a run that predates this repair. Nothing here
+regenerates them and no run was forced. The next `sim_runner` cycle reads this working tree and
+republishes; when it does, the two lines become one event in 2023 and 2022 joins the eight years
+already reading "none". Also still one run behind, unchanged from the section above: the netted
+receivable.
+
+### What discharges this document now
+
+The next published report showing **one** 2022/2023 drawdown event rather than two, verified on
+the rendered artefact (R11), together with the receivable reaching the balance sheet. Both are
+one run away and neither needs an act.

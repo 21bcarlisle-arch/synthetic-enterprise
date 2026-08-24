@@ -51,9 +51,26 @@ WHAT COUNTS AS A RE-SORTED READ. Three shapes, each a real way to write the defe
     two without meaning to, and a control that only catches the shapes already committed is
     a control that can only ever be green.
 
-WHAT IS DELIBERATELY NOT FLAGGED. `yr[-1][FIELD]` where `yr` is a filter or a bucket of
-`all_records` is CORRECT -- filtering preserves accumulation order, and that is how
-`run_phase2b` prints its own treasury. Reordering is the defect; slicing is not.
+WHAT IS DELIBERATELY NOT FLAGGED, AND THE ONE THING THAT CLAUSE GOT WRONG. `yr[-1][FIELD]`
+where `yr` is a filter or a bucket of `all_records` is CORRECT -- filtering preserves
+accumulation order, and that is how `run_phase2b` prints its own treasury. Reordering is the
+defect; slicing is not.
+
+That is true of a LAST VALUE and false of a SERIES, and this module said it without the
+distinction until 2026-08-24. A bucket of a PORTFOLIO running total is a SUBSEQUENCE of it,
+sampled at the moments the term loop happened to emit records matching the bucket's key: the
+balance travels through other customers' whole terms between two consecutive samples, so the
+bucket has the right ORDER and is not the right SERIES. Reading `yr[-1]` off it is still fine
+(the year did close at that balance). Walking it as a path is not -- and `_drawdown_events`
+walked it as a path, which reported ONE portfolio swing as a 2022 event and a 2023 event with
+peaks four pence apart. Repaired 2026-08-24 by folding the drawdown over the whole book once
+and dating each event by its trough (`saas/reporting/annual_report.py::_drawdown_events_by_year`,
+`simulation/settlement_daily.py::TreasuryDrawdown`).
+
+The static shapes below do not catch that -- a bucketed walk names no `sorted`. Its control is
+a PROPERTY of the published figure instead: every drawdown event carries its position in the
+one walk, so the sequences are 0..n-1 and the peaks strictly increase, neither of which a
+partition can produce. `tests/saas/reporting/test_a_year_bucket_is_not_a_treasury_series.py`.
 
 RATCHET, NOT A FREEZE -- same shape as `tools/company_network_isolation.py` and the orphan
 ratchet. The three reads that exist today are frozen WITH THEIR COUNTS so the debt can only

@@ -15,9 +15,18 @@ deliberately later rather than drifting into it."*
 |---|---|
 | Production importers reading a COMPUTATION | **0** (was 1, moved out) |
 | Production importers frozen with a stated reason | **2** (the renderer's own runner; a publisher importing two path constants) |
-| Test files importing the report | **81** |
+| Test files importing the report | **82** |
 | ...of which reach into private `_section_*` functions | **78** |
-| `saas/reporting/annual_report.py` | **9948 lines** |
+| `saas/reporting/annual_report.py` | **10028 lines** |
+
+Re-measured 2026-08-24 (was 81 / 78 / 9,948). The debt grew by one test file, a control on a
+published figure the report computes — which is the shape this record exists to make visible:
+a figure with nowhere else to live gets its control pointed at the renderer.
+
+**Counted against the tree the commit CREATES, not the working tree.** The shared worktree
+carries other lanes' untracked test files; one of them (`test_policy_cost_coverage.py`) imports
+the report and made the live count 83. A ratchet figure regenerated from the worktree records
+another lane's debt as this one's and reds the gate on the next landing either way.
 
 ## What the shape means
 
