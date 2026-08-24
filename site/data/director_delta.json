@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T19:40:54.610587+00:00",
+  "generated_at": "2026-08-24T21:10:10.857823+00:00",
   "stamp_version": 1,
   "stamp_file": "director_last_look.json",
   "stamp_status": "ok",
@@ -10,8 +10,8 @@
   "changed": true,
   "counts": {
     "new_decisions": 0,
-    "reserved_changed": 1,
-    "reserved_added": 1,
+    "reserved_changed": 0,
+    "reserved_added": 0,
     "reserved_cleared": 0,
     "daemons_flipped": 1,
     "daemons_newly_stale": 1,
@@ -21,15 +21,12 @@
     "headline_moves": 1
   },
   "changes": [
-    "reserved queue: 1 added (executor-wall_escalated-f13e76f1)",
     "1 daemon(s) went stale: discovery-daemon",
     "total_open_atoms: 55 -> 86"
   ],
   "detail": {
     "new_decisions": [],
-    "reserved_added": [
-      "executor-wall_escalated-f13e76f1"
-    ],
+    "reserved_added": [],
     "reserved_cleared": [],
     "daemons_newly_stale": [
       "discovery-daemon"
@@ -49,9 +46,7 @@
   "current_state": {
     "latest_decision_ts": "2026-07-19T06:20:24.473486+00:00",
     "decision_count": 20,
-    "reserved_ids": [
-      "executor-wall_escalated-f13e76f1"
-    ],
+    "reserved_ids": [],
     "daemon_status": {
       "session-watchdog": "stale",
       "staging-watcher": "live",
@@ -77,8 +72,8 @@
     "open_atoms": 86
   },
   "source_stamps": {
-    "reserved_generated_at": "2026-08-24T19:30:04.586034+00:00",
-    "health_last_updated": "2026-08-24T19:40:54.257643+00:00",
+    "reserved_generated_at": "2026-08-24T20:37:16.415955+00:00",
+    "health_last_updated": "2026-08-24T21:09:40.971776+00:00",
     "decisions_generated_at": "2026-07-19T06:25:33Z"
   }
 }

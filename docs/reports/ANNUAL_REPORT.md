@@ -2560,7 +2560,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (60 active customers) under 12-month forward scenarios.
-Generated: 2026-08-24T18:56:43Z
+Generated: 2026-08-24T20:36:53Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -3971,8 +3971,9 @@ Year-by-year income statement from company accounting records. All figures £.
 | Item | Value |
 |------|-------|
 | Cash | £6,334,443.05 |
-| Trade Receivables | £-200.29 |
-| **Total Assets** | **£6,334,242.77** |
+| Trade Receivables | £0.00 |
+| **Total Assets** | **£6,334,443.05** |
+| Customer Accounts in Credit (liability) | £200.29 |
 | Opening Capital | £250,000.00 |
 | Current Period Profit | £6,084,242.77 |
 
