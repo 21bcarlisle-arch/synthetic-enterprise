@@ -3561,6 +3561,20 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("company.json generation failed: {}".format(exc))
     try:
+        # The growth curve WITH the reason it has that shape (director, 2026-08-24: "if our own
+        # code binds growth rather than the simulated economics, say so on the site"). The
+        # campaign has been writing docs/observability/book_growth_campaign.json every run and
+        # NOTHING read it, so a year flattened by our settlement engine reached the site looking
+        # exactly like a supplier that ran out of money. Wired HERE, on the regen cycle, for the
+        # R11 no-orphan-transition reason: a generated surface that does not ride the cycle
+        # freezes against its live source, and this one exists precisely to track it.
+        from tools.generate_book_growth_data import generate as gen_growth
+        grown = gen_growth()
+        log("Generated site/data/book_growth.json ({} year(s), engine-bound: {})".format(
+            len(grown.get("years") or []), grown.get("engine_bound_years")))
+    except Exception as exc:
+        log("book_growth.json generation failed: {}".format(exc))
+    try:
         # Door 5 THE WORLD operational window -- the intra-day wholesale market feed
         # (site/data/market.json). Reads docs/market_data/price_feed.json and derives
         # the movement (latest / trajectory / session range / last change) so the
