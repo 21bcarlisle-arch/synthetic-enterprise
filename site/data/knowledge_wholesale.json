@@ -974,6 +974,17 @@
         "last_verified": "2026-08-24",
         "source": "Elexon BSC settlement arrangements and load-profile guidance; Ofgem licence conditions on billing and back-billing; the MHHS programme's milestones"
       }
+    },
+    {
+      "id": "non-commodity-costs",
+      "title": "The non-commodity cost stack",
+      "kind": "page",
+      "blurb": "Network and policy costs -- roughly a third of a bill, set administratively rather than cleared in a market.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-08-24",
+        "source": "HMRC CCL rate tables; Ofgem RO buy-out and mutualisation publications; LCCC CfD determinations; DESNZ Green Gas Levy rates; Ofgem cap methodology annexes"
+      }
     }
   ],
   "edges": [
@@ -1026,6 +1037,16 @@
       "from": "metering-and-reads",
       "type": "prerequisite-for",
       "to": "price-cap"
+    },
+    {
+      "from": "non-commodity-costs",
+      "type": "part-of",
+      "to": "price-cap"
+    },
+    {
+      "from": "carbon-price",
+      "type": "part-of",
+      "to": "non-commodity-costs"
     }
   ],
   "review_policy": {
