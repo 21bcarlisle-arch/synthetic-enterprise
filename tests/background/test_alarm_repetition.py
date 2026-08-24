@@ -21,6 +21,7 @@ correctly and did nothing, and only the real strings showed it.
 from __future__ import annotations
 
 import json
+import calendar
 import time
 
 import pytest
@@ -358,3 +359,103 @@ def test_the_store_records_the_episode_not_just_the_last_state(wired):
     assert entry["repeats"] == 4
     assert entry["escalated"] is True
     assert entry["first_ts"] <= entry["ts"]
+
+
+# ---------------------------------------------------------------------------
+# ONE DOCUMENT PER SIGNATURE, NOT ONE PER SIGNATURE PER DAY (2026-08-24)
+# ---------------------------------------------------------------------------
+
+# UTC, deliberately: `escalate()` stamps dates with `datetime.fromtimestamp(..., timezone.utc)`,
+# and `time.mktime` is LOCAL — on a BST machine it shifted every expected date by a day and the
+# per-day idempotence test read as broken when it was the fixture that was wrong.
+_DAY1 = calendar.timegm(time.strptime("2026-08-22", "%Y-%m-%d"))
+_DAY2 = _DAY1 + 86_400
+_DAY3 = _DAY1 + 2 * 86_400
+
+
+def test_the_same_alarm_on_a_LATER_DAY_files_no_second_document(tmp_path):
+    """THE DEFECT THIS FIXES, measured on the live tree 2026-08-24.
+
+    Idempotence used to be keyed on a path containing the DATE, so an unchanged condition
+    refiled itself every midnight. The staging root held NINE of these documents that
+    morning -- three signatures on each of three days -- which was 15 of the 18 actionable
+    items the tick's own draw prompt carried. The escalation built to stop a process
+    re-creating a finding hourly was re-creating one daily.
+    """
+    first = ar.escalate(FAIL_252, key="k", repeats=3, first_ts=_DAY1, staging_dir=tmp_path,
+                        now=_DAY1 + 60)
+    assert first is not None
+
+    second = ar.escalate(FAIL_252, key="k", repeats=40, first_ts=_DAY1,
+                         staging_dir=tmp_path, now=_DAY2)
+    third = ar.escalate(FAIL_252, key="k", repeats=90, first_ts=_DAY1,
+                        staging_dir=tmp_path, now=_DAY3)
+    assert second is None and third is None
+    assert len(list(tmp_path.glob("WORKER_FINDING_REPEATING_ALARM_*.md"))) == 1
+
+
+def test_the_continuing_condition_is_RECORDED_on_the_one_document(tmp_path):
+    """Nothing is lost by not filing again -- the new fact is one line, not a new copy."""
+    p = ar.escalate(FAIL_252, key="k", repeats=3, first_ts=_DAY1, staging_dir=tmp_path,
+                    now=_DAY1 + 60)
+    ar.escalate(FAIL_252, key="k", repeats=40, first_ts=_DAY1, staging_dir=tmp_path, now=_DAY2)
+    ar.escalate(FAIL_252, key="k", repeats=90, first_ts=_DAY1, staging_dir=tmp_path, now=_DAY3)
+    text = p.read_text(encoding="utf-8")
+    assert "## Still live" in text
+    assert "2026-08-23" in text and "2026-08-24" in text
+    assert "90 repeats" in text
+
+
+def test_MANY_calls_on_ONE_day_add_ONE_line(tmp_path):
+    """The same defect at a finer grain: a tick that runs 48 times must not write 48 lines."""
+    p = ar.escalate(FAIL_252, key="k", repeats=3, first_ts=_DAY1, staging_dir=tmp_path,
+                    now=_DAY1 + 60)
+    for i in range(20):
+        ar.escalate(FAIL_252, key="k", repeats=10 + i, first_ts=_DAY1,
+                    staging_dir=tmp_path, now=_DAY2 + i * 60)
+    assert p.read_text(encoding="utf-8").count("2026-08-23") == 1
+
+
+def test_a_document_parked_in_IN_PROGRESS_still_suppresses_a_refile(tmp_path):
+    """`in_progress/` is a live room, not an archive (CLAUDE.md: it is a BUILD queue).
+
+    A finding someone has picked up and parked must not spawn a duplicate in the root while
+    they are working on it.
+    """
+    p = ar.escalate(FAIL_252, key="k", repeats=3, first_ts=_DAY1, staging_dir=tmp_path,
+                    now=_DAY1 + 60)
+    parked = tmp_path / "in_progress"
+    parked.mkdir()
+    p.rename(parked / p.name)
+    assert ar.escalate(FAIL_252, key="k", repeats=40, first_ts=_DAY1,
+                       staging_dir=tmp_path, now=_DAY2) is None
+    assert not list(tmp_path.glob("WORKER_FINDING_REPEATING_ALARM_*.md"))
+
+
+def test_MUTATION_an_ARCHIVED_finding_does_NOT_suppress_a_new_episode(tmp_path):
+    """THE NULL CONTROL, and the limb that stops this becoming a silencer.
+
+    A condition that returns after being archived is a NEW episode and an R3 two-strike
+    signal -- the fix did not hold. If `done/` were searched too, the second occurrence of a
+    recurring fault would be swallowed for ever by a document someone closed weeks ago, and
+    the suppression built to reduce noise would be deleting the one signal that matters.
+    """
+    p = ar.escalate(FAIL_252, key="k", repeats=3, first_ts=_DAY1, staging_dir=tmp_path,
+                    now=_DAY1 + 60)
+    done = tmp_path / "done"
+    done.mkdir()
+    p.rename(done / p.name)
+    again = ar.escalate(FAIL_252, key="k", repeats=3, first_ts=_DAY2,
+                        staging_dir=tmp_path, now=_DAY2 + 60)
+    assert again is not None, "an archived finding must not suppress a fresh episode"
+    assert again.exists()
+
+
+def test_a_DIFFERENT_signature_still_files_its_own_document(tmp_path):
+    """The suppression keys on the condition, not on 'a repeating-alarm finding exists'."""
+    ar.escalate(FAIL_252, key="k1", repeats=3, first_ts=_DAY1, staging_dir=tmp_path,
+                now=_DAY1 + 60)
+    other = ar.escalate(OTHER_FAULT, key="k2", repeats=3, first_ts=_DAY2,
+                        staging_dir=tmp_path, now=_DAY2)
+    assert other is not None
+    assert len(list(tmp_path.glob("WORKER_FINDING_REPEATING_ALARM_*.md"))) == 2

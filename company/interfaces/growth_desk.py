@@ -217,3 +217,81 @@ def book_retention_cost(
     return make_retention_cost_event(
         billing_account, event_date, cost_gbp, company_churn_estimate
     )
+
+
+@dataclass(frozen=True)
+class GrowthCampaignPlan:
+    """The supplier's answer to "how many homes can we go and quote this year?".
+
+    `wins_capital_allows` and `wins_rate_allows` are BOTH reported, and keeping them apart
+    is the point: for the published company they differ by two orders of magnitude, and one
+    number would hide that the balance sheet is not what limits this book.
+    """
+
+    quotes: int
+    budget_gbp: float
+    wins_capital_allows: int
+    wins_rate_allows: int
+    binding: str
+    headroom_gbp: float
+
+
+def plan_growth_campaign_year(
+    *,
+    net_assets_gbp: float,
+    accounts_held: int,
+) -> GrowthCampaignPlan:
+    """Ask the supplier how large an acquisition campaign it will run this year.
+
+    THE SEAM, AND WHY THIS FUNCTION EXISTS RATHER THAN A DIRECT IMPORT (2026-08-24, atom
+    PB3). `simulation/live_population.py` assembles the run's book and needs the supplier's
+    quote budget to do it. The obvious move -- `from saas.growth_mandate import
+    growth_quote_budget` inside the seam module -- was written, and
+    `tests/architecture/test_epistemic_wall_ratchet.py::test_no_new_sim_reads_company` caught
+    it as a new SIM->company crossing. It was right to: the ratchet's own message offers two
+    answers, allowlist it or route it through the seam, and an allowlist entry for a crossing
+    that has a perfectly good seam sitting next to it is how a wall becomes a formality.
+
+    WHAT CROSSES, AND WHAT DOES NOT. Two plain scalars go in -- what the supplier holds and
+    how many accounts it has, both of which the world already knows because it is the world
+    that settles them. A decision comes back. Nothing here exposes the MCR constant, the
+    capital share, the growth-rate cap, or the per-segment cost table, and there is
+    deliberately no parameter through which a caller could reach one; the same rule
+    `decide_acquisition` above is built on.
+
+    WHY THIS DOES NOT CONSULT `MANDATE`, which looks like an omission and is not. Module-level
+    `MANDATE` is "flat" and governs the REPLACEMENT path -- whether the supplier goes to market
+    when an account churns (`mandate_permits_replacement`). Whether this world contains a
+    supplier that runs acquisition campaigns at all is a different question and a CURRICULUM
+    one: it is decided in `docs/design/curriculum/book_growth_activation.json`, default OFF,
+    on exactly the terms `SE_DRAW_POPULATION` already sets, and it is the director's under
+    R13. So the caller has already established that a campaign is happening before it gets
+    here; what it is asking is how big a one this balance sheet supports. Answering "none,
+    because MANDATE says flat" would let a company constant silently veto a curriculum act,
+    and the two would then disagree with no way to tell which was meant.
+    """
+    from saas.growth_mandate import growth_quote_budget
+
+    plan = growth_quote_budget("grow", net_assets_gbp, accounts_held)
+    return GrowthCampaignPlan(
+        quotes=plan["quotes"],
+        budget_gbp=plan["budget_gbp"],
+        wins_capital_allows=plan["wins_capital_allows"],
+        wins_rate_allows=plan.get("wins_rate_allows", 0),
+        binding=plan["binding"],
+        headroom_gbp=plan["headroom_gbp"],
+    )
+
+
+def quote_cost_gbp(*, segment: str) -> float:
+    """What issuing one quote costs the supplier. A scalar, not the table.
+
+    `plan_growth_campaign_year` returns a whole-campaign budget; the campaign also has to
+    bill each quote as it is issued, won or lost. Handing back one number per segment keeps
+    `COST_PER_ACQUISITION` itself on the company side, which is the same trade
+    `run_acquisition_funnel` made when it stopped importing that table and took the cost as
+    an argument instead (KNIFE pass 3, `B6_cpa_is_company_accounting`).
+    """
+    from saas.growth_mandate import COST_PER_ACQUISITION
+
+    return COST_PER_ACQUISITION.get(segment, COST_PER_ACQUISITION["resi"])

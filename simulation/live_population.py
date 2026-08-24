@@ -64,6 +64,12 @@ from company.interfaces.supply_book import register_drawn_points, registered_sup
 # to the acquired book is visible here exactly as it was before KNIFE pass 2.
 CUSTOMERS = registered_supply_points()
 
+#: The hand-authored roster as it stood at import, frozen. `CUSTOMERS` above is a LIVE view of
+#: the supply book by design (KNIFE pass 2 IDENTITY: a runtime append to the acquired book
+#: must be visible through it), which makes it the wrong thing to compute an OPENING position
+#: from -- it grows as the run registers wins. This is the same records, snapshotted once.
+_STATIC_ROSTER = tuple(CUSTOMERS)
+
 # Director-authorised activation (R13 curriculum). The env var is the OVERRIDE;
 # the committed curriculum file is the durable state of record.
 _ACTIVATION_ENV = "SE_DRAW_POPULATION"
@@ -174,7 +180,205 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
     # whatever order Python resolves them, so this runs more than once per process
     # and must not double the book.
     register_drawn_points(drawn)
-    return list(CUSTOMERS) + drawn
+    book = list(CUSTOMERS) + drawn
+
+    won = _won_customer_dicts(_campaign(_pre_growth_book(seed), seed))
+    if won:
+        register_drawn_points(won)
+        book = book + won
+    return book
+
+
+# ---------------------------------------------------------------------------
+# PB3 — NET-NEW ACQUISITION, the earned half of the book
+# ---------------------------------------------------------------------------
+# WHY IT ENTERS HERE. This seam is already the single place a run's book is
+# assembled, and the drawn trickle already arrives through it, registered on the
+# supply book so `registered_point()` can resolve an id later. A won account has
+# exactly the same requirement. Putting the campaign anywhere else in
+# `run_phase2b` would mean an account appearing after renewal schedules had been
+# built, which is the same defect the successor path was designed around.
+#
+# WHAT IT IS NOT. The trickle above APPENDS its draw: every drawn event becomes a
+# customer with certainty, which is a growth curve that cannot be lost. These
+# accounts each survived `run_acquisition_funnel` — five stages, per-stage
+# leakage, a real credit check and the statutory cooling-off window — and the
+# quotes that did NOT survive were paid for anyway. The two lists are kept apart
+# for that reason and never merged.
+
+_GROWTH_MANDATE_CURRICULUM = (
+    Path(__file__).resolve().parent.parent
+    / "docs" / "design" / "curriculum" / "book_growth_activation.json"
+)
+
+
+def growth_mandate_active() -> bool:
+    """True iff the net-new acquisition campaign runs. Same shape as the draw flag.
+
+    DEFAULT OFF and fail-closed on every error path: an unreadable or malformed
+    curriculum file means the book does not grow, because the alternative — a
+    published book that changed size because a JSON file failed to parse — is the
+    worst outcome available here.
+    """
+    env = os.environ.get("SE_GROW_BOOK", "")
+    if env == "1":
+        return True
+    if env == "0":
+        return False
+    try:
+        with open(_GROWTH_MANDATE_CURRICULUM) as fh:
+            return json.load(fh)["activated"]["value"] is True
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
+
+
+def _opening_net_assets_gbp(book: List[dict]) -> float:
+    """The company's opening capital, computed from the PRE-GROWTH book.
+
+    `run_phase2b.STARTING_TREASURY_GBP` scales treasury with the book's own
+    consumption (£3,250 per 15,000 kWh of EAC), so reading it after the campaign
+    has run would let the accounts the campaign won pay for themselves — a
+    supplier bootstrapping capital out of customers it has not yet acquired.
+    Recomputed here from the roster as it stands BEFORE any win, which is what an
+    opening balance sheet means.
+
+    THE HALF-HOURLY ACCOUNTS ARE THE WHOLE NUMBER, and getting this wrong the first
+    time is worth recording. A smart-metered or I&C account carries `eac_kwh: None`
+    because its consumption is read from real half-hourly data rather than an
+    estimate, so summing `eac_kwh` and skipping the Nones silently drops the four
+    GWh-scale I&C accounts and values the opening balance sheet at about £20k
+    instead of £2.4m — two orders of magnitude, all of it in the accounts that
+    matter most. The campaign then read as CAPITAL-bound from its second year and
+    stopped issuing quotes entirely by 2022, which looked like a plausible
+    commercial story and was an arithmetic error. `run_phase2b.EFFECTIVE_EAC_KWH`
+    derives those accounts through `estimate_annual_kwh(load_hh_consumption(cid))`
+    and this uses the same call, so the two cannot drift.
+
+    Duplicating the £3,250/15,000 kWh constant rather than importing it is
+    deliberate and narrow: `run_phase2b` imports THIS module at module scope, so
+    importing back would be a cycle. The two are pinned together by
+    `test_opening_capital_matches_the_runs_own_treasury_scaling`.
+    """
+    from simulation.hh_consumption import estimate_annual_kwh, load_hh_consumption
+
+    total_eac = 0.0
+    for c in book:
+        if c.get("commodity") != "electricity":
+            continue
+        eac = c.get("eac_kwh")
+        if eac is None:
+            eac = estimate_annual_kwh(load_hh_consumption(c["customer_id"]))
+        total_eac += eac
+    return 3250.0 * (total_eac / 15_000.0)
+
+
+#: Memo, keyed on seed. Every other draw in this module RE-DRAWS rather than caching, and
+#: says so, because a population draw is cheap and a cache is a place for staleness to live.
+#: The campaign is different in kind: it is 265 resolutions of a five-stage funnel plus a
+#: credit check, and `live_population()`, `live_premises()` and `live_drawn_households()`
+#: each need the same answer within one process. It is deterministic in `(seed, book size)`,
+#: so the memo cannot return a different campaign from a re-run — only a faster one.
+_CAMPAIGN_MEMO: dict = {}
+
+
+def _campaign(book: List[dict], seed: int) -> dict:
+    """The resolved campaign for this seed: winners, spend, per-year rows, notes."""
+    if not growth_mandate_active():
+        return {"winners": [], "spend": [], "by_year": [], "notes": [],
+                "customer_years_committed": 0.0, "customer_year_budget": 0.0}
+    # KEYED ON THE SEED ALONE, and the first draft's `(seed, len(book))` is why this comment
+    # exists. `CUSTOMERS` is a LIVE view of the supply book (`registered_supply_points()`), so
+    # its length changes the moment the trickle registers -- two callers reaching this from
+    # either side of that registration got two different keys, resolved two different
+    # campaigns, and `live_premises()` ended up holding dwellings for winners that were not
+    # in the book. Every caller now resolves against the same `_pre_growth_book(seed)`, so
+    # the book is not a key at all.
+    if seed not in _CAMPAIGN_MEMO:
+        _CAMPAIGN_MEMO[seed] = _resolve_campaign(book, seed)
+    return _CAMPAIGN_MEMO[seed]
+
+
+def _pre_growth_book(seed: int) -> List[dict]:
+    """The roster the campaign runs AGAINST: static plus the trickle, and nothing it won.
+
+    One function so that every caller resolves the identical campaign. It also states the
+    obvious thing that would otherwise be implicit: the opening balance sheet and the opening
+    account count a growth plan is built on are the ones BEFORE it grows.
+    """
+    if not draw_population_enabled():
+        return list(_STATIC_ROSTER)
+    from simulation.population_draw import draw_population
+
+    return list(_STATIC_ROSTER) + [
+        sc.to_customer_dict()
+        for sc in draw_population(seed, draw_region=True, assign_cohorts=True)
+    ]
+
+
+def _resolve_campaign(book: List[dict], seed: int) -> dict:
+    """Run the campaign. Callers want `_campaign`; this is the uncached body."""
+    import datetime as _dt
+
+    # THROUGH THE SEAM, never straight at `saas.growth_mandate`. The first draft imported
+    # the budget rule directly and `test_no_new_sim_reads_company` refused it as a new
+    # SIM->company crossing -- correctly, because `company/interfaces/growth_desk.py` is
+    # exactly the sanctioned route and already carries `decide_acquisition` for the
+    # replacement path. Two scalars go out, a decision comes back; the MCR, the capital
+    # share, the growth-rate cap and the per-segment cost table all stay on the company side.
+    from company.interfaces.growth_desk import plan_growth_campaign_year, quote_cost_gbp
+    from simulation.acquisition_funnel import run_acquisition_funnel
+    from simulation.net_new_acquisition import plan_growth_campaign
+    from tools.credit_adapters import get_credit_bureau_adapter
+
+    horizon = _dt.date(2026, 1, 1)
+    existing_cy = sum(
+        max(0.0, (horizon - _dt.date.fromisoformat(c["acquisition_date"])).days / 365.25)
+        for c in book
+    )
+    outcome = plan_growth_campaign(
+        years=range(2016, 2026),
+        base_seed=seed,
+        opening_net_assets_gbp=_opening_net_assets_gbp(book),
+        accounts_held_at_start=len(book),
+        horizon_end=horizon,
+        credit_bureau=get_credit_bureau_adapter(),
+        cost_per_quote_gbp={
+            seg: quote_cost_gbp(segment=seg) for seg in ("resi", "SME")
+        },
+        run_funnel=run_acquisition_funnel,
+        quote_budget_fn=lambda net_assets_gbp, accounts_held: vars(
+            plan_growth_campaign_year(
+                net_assets_gbp=net_assets_gbp, accounts_held=accounts_held
+            )
+        ),
+        customer_years_already_committed=existing_cy,
+    )
+    LAST_CAMPAIGN.clear()
+    LAST_CAMPAIGN.update({k: v for k, v in outcome.items() if k != "winners"})
+    return outcome
+
+
+def _won_customer_dicts(outcome: dict) -> List[dict]:
+    """Winners as saas-shaped OBSERVABLES, stamped with the date they were actually won.
+
+    `acquisition_date` moves from "the day this home was in the market" to "the day the
+    contract started", because that is what the field means to every downstream consumer and
+    a prospect that was quoted in March and won in April did not acquire in March.
+    """
+    return [
+        {**prospect.to_customer_dict(),
+         "acquisition_date": won_on.isoformat(),
+         "acquisition_type": "net_new_won"}
+        for prospect, won_on in outcome["winners"]
+    ]
+
+
+#: The campaign's own record of the run just assembled — per-year quotes, wins, spend and
+#: the BINDING reason. Published rather than discarded because the growth curve is
+#: meaningless without it: a flat year is a supplier that lost, a supplier that could not
+#: afford to try, or this machine refusing to settle the wins, and those are three different
+#: facts that look identical on a chart.
+LAST_CAMPAIGN: dict = {}
 
 
 # ---------------------------------------------------------------------------
@@ -203,11 +407,22 @@ def live_premises(base_seed: Optional[int] = None) -> dict:
     from simulation.population_draw import draw_population
 
     seed = _DEFAULT_BASE_SEED if base_seed is None else base_seed
-    return {
+    premises = {
         sc.customer_id: sc.premise
         for sc in draw_population(seed, draw_region=True, assign_cohorts=True)
         if sc.premise is not None
     }
+    # A WON HOME IS STILL A HOME (B12). `dwelling_records.build_properties` raises
+    # `DwellingNotDrawn` for any supplied customer the world drew no dwelling for, and it is
+    # right to: the alternative is `saas.property_model` approximating the world's ground
+    # truth from the supplier's own modal band, which is the exact defect B12 exists to stop.
+    # A net-new win carries the dwelling drawn with it as a prospect, so it belongs in this
+    # register on the same terms as the trickle -- found by running the full sim, which
+    # stopped on `PROS-2016-0003`.
+    for prospect, _won_on in _campaign(_pre_growth_book(seed), seed)["winners"]:
+        if prospect.premise is not None:
+            premises[prospect.customer_id] = prospect.premise
+    return premises
 
 
 def live_dwellings(base_seed: Optional[int] = None) -> dict:

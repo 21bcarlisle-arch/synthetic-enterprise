@@ -1,0 +1,30 @@
+{
+  "_meta": {
+    "artefact": "book_growth_activation",
+    "version": 1,
+    "status": "BUILT, DEFAULT-OFF — awaiting the director's word",
+    "authority": "NOT YET GIVEN. The mechanism is built under DIRECTOR_RULING_POPULATION_AND_BOOK_GROWTH_2026-08-11 clause 3 ('Growth is gradual and earned ... a growth curve that cannot be lost is not a growth curve'), which assigns the numbers to the worker and the ordering and the wall to the director. Flipping this to true changes every published financial figure, and the director's standing instruction on the sibling activation is explicit: 'Tell me before any published figure moves, and re-baseline honestly.' So it ships false and moves on his word, exactly as population_draw_activation.json did between 2026-07-24 and 2026-08-13.",
+    "r13_discipline": "Whether this world contains a supplier that runs acquisition campaigns is a CURRICULUM question — which world the company faces — and therefore the director's. HOW BIG a campaign that supplier runs is the company's own decision, made from its own balance sheet through company/interfaces/growth_desk.plan_growth_campaign_year(). The two are deliberately separated: this file is on/off, and it holds no growth number at all.",
+    "consumed_by": "simulation.live_population.growth_mandate_active()"
+  },
+  "activated": {
+    "value": false,
+    "basis": "Default. The env override SE_GROW_BOOK=1 pins it on for a measurement run without editing this file; SE_GROW_BOOK=0 pins it off. Unset env + this value == OFF, and every error path reading this file also resolves to OFF (a published book that changed size because a JSON file failed to parse is the worst outcome available here).",
+    "effect": "simulation.live_population.live_population() appends the accounts a ten-year acquisition campaign actually WON — each one having survived the five-stage funnel, the credit check and the statutory cooling-off window — and registers them on the supply book. live_premises()/live_drawn_households() carry the world's dwelling for each won home, so the company can still be wrong about it (B12)."
+  },
+  "measured_when_on": {
+    "basis": "Full run at base seed 20260724, measured 2026-08-24 before the flag was offered. These are OUTCOMES, not settings: nothing in this file or in the code targets them.",
+    "book": "20 records -> 34 (14 net-new electricity accounts won)",
+    "quotes_issued": 245,
+    "wins": 14,
+    "realised_conversion": "5.7% of quotes issued became accounts, against the funnel's own ~19% on an unconstrained pool — the gap is wins the settlement cap refused, and they were still billed",
+    "years_that_won_nothing": "2020, 2021, 2023, 2024, 2025 — growth is contingent, which is the property clause 3 asks for",
+    "binding_constraint": "settlement_engine from 2019 onward. NOT the balance sheet: the supplier's capital supports ~900 new accounts in year one. See simulation/net_new_acquisition.py::SETTLEMENT_CUSTOMER_YEAR_BUDGET."
+  },
+  "known_limitations": {
+    "electricity_only": "A won gas account's record needs an aq_kwh the drawn saas-shaped dict does not carry, and run_phase2b.TOTAL_GAS_AQ raises KeyError on the first one. Inventing an annual quantity for a home whose gas nothing has modelled is worse than single-fuel growth. Dual-fuel net-new is real remaining work.",
+    "domestic_only": "The whole plan is denominated in Ofgem's MCR, which is a per-domestic-customer figure. An SME prospect also has no drawn dwelling, so it would raise DwellingNotDrawn.",
+    "no_competitor": "The loss side is the funnel's own leakage, not a rival supplier's counter-offer. B4_competitor_field is PB3's named couple and is a separate atom.",
+    "no_forecast_contribution": "The plan spends down from capital held and does not credit itself with margin the new accounts will earn, so the modelled ceiling is conservative. See saas/growth_mandate.py."
+  }
+}

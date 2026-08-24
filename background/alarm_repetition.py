@@ -190,6 +190,30 @@ def escalate(message: str, *, key: str, repeats: int, first_ts: float,
     if path.exists():
         return None
 
+    # ONE DOCUMENT PER SIGNATURE, NOT ONE PER SIGNATURE PER DAY (2026-08-24, director
+    # console: "Stop filing findings where a class document already covers them").
+    #
+    # THE DEFECT, MEASURED. Idempotence above is keyed on a path that CONTAINS THE DATE, so
+    # an unchanged condition refiled itself every midnight. On the morning of 2026-08-24 the
+    # staging root held NINE of these documents -- three signatures on each of 08-22, 08-23
+    # and 08-24 -- and every one of the nine said the same thing about the same unchanged
+    # condition. That was 15 of the 18 actionable items in the root, so the tick's own draw
+    # prompt was three-quarters this module talking about itself. The escalation built to
+    # stop a process re-creating a finding hourly was re-creating one daily; the docstring
+    # above says that defect "wearing a different hat" is exactly what to watch for, and it
+    # was watching the wrong clock.
+    #
+    # WHAT REPLACES IT. A live document for this signature -- in the root or parked in
+    # `in_progress/` -- is UPDATED IN PLACE with a dated still-live line. Nothing is lost:
+    # the fact worth having on the second day is "this is still happening, and now for
+    # longer", which is one line, not a second copy of the first document. `done/` is
+    # deliberately NOT searched: a condition that returns after being archived is a NEW
+    # episode and an R3 two-strike signal, and it must be able to file again.
+    live = _live_finding_for(message, staging_dir=target)
+    if live is not None:
+        _note_still_live(live, today=today, repeats=repeats, window_h=(now - first_ts) / 3600.0)
+        return None
+
     window_h = max(0.0, (now - first_ts)) / 3600.0
     body = f"""**Severity:** LATENT · **Lane:** H_harness
 
@@ -221,9 +245,12 @@ The repetition is the finding. Something is failing the same way on a loop and n
 converging on it, which is the shape the director named as "a symptom, not an event". Draw
 this, diagnose the condition named above, and either fix it or record why the alarm is wrong.
 
-Archive to `docs/staging/done/` when the condition is resolved. Re-escalation is not
-suppressed by this file: a NEW episode on a later day files a new document, so a condition
-that returns next week is not silently absorbed into today's record.
+Archive to `docs/staging/done/` when the condition is resolved. While this document is live
+-- here or in `in_progress/` -- a continuing condition APPENDS a dated line below rather than
+filing a second document (2026-08-24). A condition that returns AFTER this has been archived
+files a fresh document, because that is a new episode and an R3 two-strike signal.
+
+## Still live
 """
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -231,3 +258,45 @@ that returns next week is not silently absorbed into today's record.
     except OSError as exc:
         raise EscalationUnavailable(f"could not file {path}: {exc}") from exc
     return path
+
+
+def _live_finding_for(message: str, *, staging_dir: Path) -> Path | None:
+    """An UNACTIONED document already covering this alarm signature, or None.
+
+    Searches the staging root and `in_progress/` and not `done/` -- see the reasoning at the
+    call site. Matching is by the same slug `finding_path` builds, so it keys on the
+    normalised CONDITION and not on the alarm's varying elapsed-time text.
+    """
+    stem = f"WORKER_FINDING_REPEATING_ALARM_{_slug(message)}_"
+    for room in (staging_dir, staging_dir / "in_progress"):
+        try:
+            matches = sorted(room.glob(f"{stem}*.md"))
+        except OSError:
+            continue  # an unreadable room is not evidence that nothing is filed
+        if matches:
+            return matches[0]
+    return None
+
+
+def _note_still_live(path: Path, *, today: str, repeats: int, window_h: float) -> None:
+    """Append one dated line recording that the condition has not changed.
+
+    Idempotent per DAY: a second call on the same date rewrites nothing, so a tick that runs
+    forty-eight times cannot turn one document into forty-eight lines -- which would be the
+    same defect at a finer grain.
+    """
+    marker = f"- **{today}**"
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return  # a document we cannot read is not one we can annotate; the alarm still fires
+    if marker in text:
+        return
+    line = (f"{marker} — still live. {repeats} repeats over {window_h:.1f}h without the "
+            f"state changing. No second document filed: this condition already has one.\n")
+    if "## Still live" not in text:
+        text = text.rstrip() + "\n\n## Still live\n"
+    try:
+        path.write_text(text.rstrip() + "\n" + line, encoding="utf-8")
+    except OSError:
+        return
