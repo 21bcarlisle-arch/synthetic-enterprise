@@ -1,34 +1,34 @@
 {
   "annotation": {
-    "checked_at": "2026-08-24T05:16:55Z",
+    "checked_at": "2026-08-24T07:10:23Z",
     "nonblocking_reds": [
+      "FAILED tests/architecture/test_epistemic_wall_ratchet.py::test_no_new_sim_reads_company",
+      "FAILED tests/architecture/test_epistemic_wall_ratchet.py::test_mutation_injected_company_reads_sim_reds_only_new_crossing",
+      "FAILED tests/architecture/test_epistemic_wall_ratchet.py::test_mutation_injected_sim_reads_company_reds_only_new_crossing",
+      "FAILED tests/architecture/test_epistemic_wall_ratchet.py::test_baseline_census_is_exactly_as_frozen",
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_committed_store_credits_a_falsifier_the_repository_does_not_have",
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_every_declared_honest_absence_is_still_absent_and_still_silenced",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_stale_baseline_entries",
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
-      "FAILED tests/background/test_derived_artefact_register.py::TestStaleness::test_every_registered_artefact_is_currently_fresh",
-      "FAILED tests/background/test_file_api.py::test_healthz_no_auth_required - pro...",
-      "FAILED tests/background/test_forward_attachment_register.py::test_live_tree_has_no_violations"
+      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_stale_baseline_entries"
     ],
-    "nonblocking_reds_total": 78,
+    "nonblocking_reds_total": 93,
     "open_findings": 10
   },
   "last_verified": {
-    "generated_at": "2026-08-24T05:36:35Z",
-    "git_commit": "b62f75d14",
-    "run_id": "run_output_b62f75d14_20260824T051756Z.json",
-    "verified_at": "2026-08-24T05:36:35Z"
+    "generated_at": "2026-08-24T06:19:12Z",
+    "git_commit": "a1c61124d",
+    "run_id": "run_output_a1c61124d_20260824T060943Z.json",
+    "verified_at": "2026-08-24T06:19:12Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=f983f074c; blocking tests: ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_answer_which_commit_it_is, FAILED tests/tools/test_measure_publish_gate_subject_cost.py::test_the_basetemp_leak_is_reclaimed_by_the_gates_own_sweep, ERROR tests/background/test_publish_gate_head_checkout_is_a_repo.py::test_the_checkout_can_be_bl",
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=4683e68f7; blocking tests: FAILED tests/tools/test_generate_dashboard_data_population_seam.py::test_resolve_book_flag_on_additively_carries_syn_cohort",
+  "paused_since": "2026-08-24T07:52:12Z",
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-24T05:36:35Z",
-    "git_commit": "b62f75d14",
-    "run_id": "run_output_b62f75d14_20260824T051756Z.json",
-    "verified_at": "2026-08-24T05:36:35Z"
+    "generated_at": "2026-08-24T06:19:12Z",
+    "git_commit": "a1c61124d",
+    "run_id": "run_output_a1c61124d_20260824T060943Z.json",
+    "verified_at": "2026-08-24T06:19:12Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-08-24T05:36:35Z"
+  "verification_state": "paused",
+  "written_at": "2026-08-24T07:52:12Z"
 }
