@@ -1266,6 +1266,103 @@ cumulative history suggests — a recovery signal.
 | PROS-2023-0001 | — | £634.76 |
 | SYN-2021-001 | — | £481.91 |
 
+## Customer Lifetime Value — Three Horizons (EP1)
+
+The same book on three valuation bases, each carrying its own time model and its own population. This is the company's OWN estimate, assembled from what it can observe about its customers; it is allowed to be wrong, and the gap against realised value is measured separately and never tuned toward (R12).
+
+**Aggregate basis:** `tenure_expected` at a 10.0% discount rate.
+
+- Portfolio mean value per account: £5,070.81; median £221.85; total £268,753.00.
+- Population: 53 of 75 accounts. Excluded: ceased=22.
+
+### By segment
+
+| Segment | Mean value | Counted / available | Profitable? |
+|---|---|---|---|
+| I&C | £63,215.92 | 4 / 4 | yes |
+| SME | not estimable | 0 / 2 | no counted member |
+| resi | £324.27 | 49 / 69 | yes |
+
+### By account
+
+| Account | Contract term | Tenure expected | Portfolio cohort |
+|---|---|---|---|
+| C1 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| C2 | £52.38 | £88.26 | £110.97 |
+| C3 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| C4 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| C5 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | not estimable (no_cohort_peers) |
+| C6 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | not estimable (no_cohort_peers) |
+| C7 | £-26.15 | £-46.67 | £110.97 |
+| C8 | £86.96 | £165.28 | £110.97 |
+| C9 | £183.96 | £697.82 | £110.97 |
+| C_IC1 | £61,397.83 | £134,904.51 | £30,194.34 |
+| C_IC2 | £37,674.85 | £76,722.30 | £30,194.34 |
+| C_IC3 | £17,036.56 | £28,703.80 | £30,194.34 |
+| C_IC4 | £4,291.22 | £12,533.08 | £30,194.34 |
+| PROS-2016-0003 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| PROS-2016-0011 | £52.85 | £116.13 | £110.97 |
+| PROS-2016-0020 | £57.52 | £102.66 | £110.97 |
+| PROS-2016-0024 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| PROS-2016-0026 | £78.69 | £140.45 | £110.97 |
+| PROS-2017-0019 | £81.18 | £213.21 | £110.97 |
+| PROS-2017-0022 | £80.45 | £305.19 | £110.97 |
+| PROS-2017-0036 | £87.41 | £156.01 | £110.97 |
+| PROS-2017-0038 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| PROS-2018-0002 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| PROS-2018-0003 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| PROS-2018-0009 | £82.89 | £575.46 | £110.97 |
+| PROS-2018-0014 | £60.90 | £422.82 | £110.97 |
+| PROS-2018-0016 | £69.06 | £227.68 | £110.97 |
+| PROS-2018-0018 | £43.16 | £77.03 | £110.97 |
+| PROS-2018-0022 | £100.34 | £696.60 | £110.97 |
+| PROS-2018-0024 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| PROS-2018-0035 | £101.12 | £180.49 | £110.97 |
+| PROS-2018-0039 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| PROS-2018-0043 | £117.15 | £197.39 | £110.97 |
+| PROS-2018-0053 | £88.69 | £158.30 | £110.97 |
+| PROS-2018-0058 | £87.12 | £155.50 | £110.97 |
+| PROS-2018-0059 | £99.13 | £217.80 | £110.97 |
+| PROS-2019-0003 | £116.22 | £806.89 | £110.97 |
+| PROS-2019-0008 | £61.72 | £110.17 | £110.97 |
+| PROS-2019-0009 | £64.32 | £130.99 | £110.97 |
+| PROS-2019-0012 | £107.82 | £748.51 | £110.97 |
+| PROS-2019-0015 | £92.41 | £304.68 | £110.97 |
+| PROS-2019-0021 | £104.33 | £186.21 | £110.97 |
+| PROS-2019-0023 | £130.37 | £232.68 | £110.97 |
+| PROS-2019-0024 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| PROS-2019-0027 | £116.28 | £195.91 | £110.97 |
+| PROS-2019-0050 | £103.64 | £184.98 | £110.97 |
+| PROS-2019-0060 | £121.82 | £205.24 | £110.97 |
+| PROS-2019-0063 | £119.33 | £201.06 | £110.97 |
+| PROS-2019-0069 | £92.39 | £155.66 | £110.97 |
+| PROS-2019-0079 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| PROS-2019-0082 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| PROS-2020-0002 | £105.80 | £348.81 | £110.97 |
+| PROS-2020-0006 | £107.66 | £747.41 | £110.97 |
+| PROS-2020-0009 | £99.51 | £690.88 | £110.97 |
+| PROS-2020-0012 | £104.75 | £727.21 | £110.97 |
+| PROS-2020-0013 | £103.68 | £719.78 | £110.97 |
+| PROS-2020-0016 | £68.42 | £150.34 | £110.97 |
+| PROS-2020-0022 | £119.67 | £830.78 | £110.97 |
+| PROS-2020-0025 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| PROS-2020-0032 | £146.71 | £261.85 | £110.97 |
+| PROS-2020-0042 | £153.52 | £258.66 | £110.97 |
+| PROS-2020-0043 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| PROS-2020-0047 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| PROS-2020-0048 | £149.91 | £252.58 | £110.97 |
+| PROS-2020-0050 | £131.67 | £221.85 | £110.97 |
+| PROS-2020-0067 | £150.43 | £268.49 | £110.97 |
+| PROS-2020-0081 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| PROS-2020-0086 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| PROS-2020-0090 | £81.82 | £146.03 | £110.97 |
+| PROS-2020-0095 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| PROS-2020-0097 | not estimable (no_margin_observed) | not estimable (no_margin_observed) | £110.97 |
+| PROS-2020-0099 | £84.91 | £151.56 | £110.97 |
+| PROS-2020-0100 | £79.45 | £141.80 | £110.97 |
+| PROS-2023-0001 | £161.97 | £1,124.47 | £110.97 |
+| SYN-2021-001 | £77.27 | £536.44 | £110.97 |
+
 ## CLV Trajectory
 
 Point-in-Time Customer Lifetime Value per billing account at each year-end.
@@ -2254,19 +2351,19 @@ Arrears: DESNZ business energy debt (GREEN <8%, crisis <12%).
 
 | Year | Complaint rate% | C.Bench hi | C.RAG | Arrears rate% | A.Bench hi | A.RAG |
 |------|-----------------|-----------|-------|---------------|-----------|-------|
-| 2016 | 5.34% | 6% | OK | 22.2% | 8% | ! |
-| 2017 | 5.33% | 6% | OK | 17.4% | 8% | ! |
-| 2018 | 5.01% | 6% | OK | 18.4% | 8% | ! |
-| 2019 | 4.61% | 6% | OK | 13.0% | 8% | ~ |
-| 2020 | 4.48% | 6% | OK | 9.2% | 8% | ~ |
-| 2021 | 4.45% | 8% | OK | 13.9% | 12% | ~ |
-| 2022 | 4.54% | 8% | OK | 5.8% | 12% | OK |
-| 2023 | 4.43% | 8% | OK | 17.4% | 12% | ~ |
-| 2024 | 4.52% | 6% | OK | 11.9% | 8% | ~ |
-| 2025 | 4.51% | 6% | OK | 6.7% | 8% | OK |
+| 2016 | 5.34% | 6% | OK | 27.8% | 8% | ! |
+| 2017 | 5.33% | 6% | OK | 34.8% | 8% | ! |
+| 2018 | 5.01% | 6% | OK | 31.6% | 8% | ! |
+| 2019 | 4.61% | 6% | OK | 33.3% | 8% | ! |
+| 2020 | 4.48% | 6% | OK | 34.2% | 8% | ! |
+| 2021 | 4.45% | 8% | OK | 43.1% | 12% | ! |
+| 2022 | 4.54% | 8% | OK | 34.8% | 12% | ! |
+| 2023 | 4.43% | 8% | OK | 44.9% | 12% | ! |
+| 2024 | 4.52% | 6% | OK | 37.3% | 8% | ! |
+| 2025 | 4.51% | 6% | OK | 31.7% | 8% | ! |
 
 **Complaints:** 10 of 10 years GREEN (I&C baseline 2-6% normal, 2-8% crisis).
-**Arrears:** 2 of 10 years GREEN (DESNZ I&C baseline <8% normal, <12% crisis).
+**Arrears:** 0 of 10 years GREEN (DESNZ I&C baseline <8% normal, <12% crisis).
 
 ## Plausibility vs Industry
 
@@ -2462,17 +2559,17 @@ the model ever flag this customer, at any renewal, before they left?
 
 ## Scenario Sensitivity Analysis (Phase PZ)
 
-Live portfolio (22 active customers) under 12-month forward scenarios.
-Generated: 2026-08-24T13:48:03Z
+Live portfolio (60 active customers) under 12-month forward scenarios.
+Generated: 2026-08-24T16:07:35Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
 | Scenario | Elec Fwd (£/MWh) | Gas Fwd (£/MWh) | Hedge Rec | Renewing | Exposure Delta |
 |----------|------------------|-----------------|-----------|----------|----------------|
 | Base | 86.7 | 55.1 | INCREASE | 0 | — |
-| Bull | 56.1 | 35.7 | INCREASE | 0 | £-399,147 |
-| Bear | 147.9 | 93.8 | INCREASE | 0 | +£798,295 |
-| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£1,565,218 |
+| Bull | 56.1 | 35.7 | INCREASE | 0 | £-400,517 |
+| Bear | 147.9 | 93.8 | INCREASE | 0 | +£801,034 |
+| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£1,571,060 |
 
 **Scenario labels:**
 - **Base**: Base (normal OU, long-run mean start)
