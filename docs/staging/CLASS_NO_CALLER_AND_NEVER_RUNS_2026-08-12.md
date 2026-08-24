@@ -2,20 +2,21 @@
 
 **Severity:** LATENT · **Lane:** H_harness
 
-**Instances:** 4 · **Class:** `no_caller_and_never_runs` · **Ruling's own count:** ~5 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "no-caller/never-runs")
+**Instances:** 5 · **Class:** `no_caller_and_never_runs` · **Ruling's own count:** ~5 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "no-caller/never-runs")
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 4 instances
+## The 5 instances
 
 - `WORKER_FINDING_A_POPULATION_TEST_IS_UNREACHABLE_BY_ANY_STEM_SELECTOR_2026-08-10.md` — LATENT
 - `WORKER_FINDING_THE_CORRECTED_SENTENCE_NEVER_REACHED_THE_READER_AND_ITS_CONTROL_HAS_NO_CALLER_2026-08-15.md` — RECORDED
 - `WORKER_FINDING_THE_MAPS_TWO_CONTROLS_ARE_UNREACHABLE_FROM_THE_MAP_2026-08-14.md` — RECORDED
+- `WORKER_FINDING_THE_MEMORY_GOVERNOR_ENTERED_PRESSURE_LOST_TWO_PROCESSES_AND_RECOVERED_WITHOUT_SAYING_A_WORD_2026-08-24.md` — LATENT
 - `WORKER_FINDING_TWO_UNIMPORTABLE_PHASE2A_MODULES_2026-08-09.md` — LATENT
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**0 hours traced** across 4 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
+**0 hours traced** across 5 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
 
 ---
 
