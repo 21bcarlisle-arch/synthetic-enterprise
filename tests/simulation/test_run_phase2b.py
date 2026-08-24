@@ -286,3 +286,53 @@ def test_price_history_as_of_electricity_and_gas_independent():
     # after this 2016 decision could have known them.
     gas_hist = piv.get_price_history_as_of("gas")
     assert gas_hist == []
+
+
+# ── the treasury drawdown register (2026-08-24) ─────────────────────────────────────────────
+
+def test_the_run_emits_a_treasury_drawdown_register(_phase2b_result_2017):
+    """`treasury_cash_balance_gbp` is a PORTFOLIO running total, stamped on each record as the
+    term loop produces it. The report used to rebuild its drawdown path by re-sorting the
+    finished book into (date, period) order, which interleaves balances from different points in
+    that loop and manufactured 6,747 drawdown events in a real 2017 that had none.
+
+    The run now folds the path while that order is still the one it is being read in. This is the
+    emitting half of the seam; `tests/saas/reporting/test_annual_report.py` holds the reading
+    half. Both are needed: a rename on either side is silent, because the report's read is a
+    `.get` that would quietly fall back to the book.
+    """
+    from saas.reporting.annual_report import _drawdown_events
+    from simulation.settlement_daily import TreasuryDrawdown
+
+    result = _phase2b_result_2017
+    register = result["treasury_drawdown_points"]
+    assert register, "the run emitted no drawdown register at all"
+
+    all_records = result["all_records"]
+    rebuilt = TreasuryDrawdown()
+    rebuilt.add(all_records)
+    assert register == rebuilt.points_by_year(), (
+        "the register the run emitted is not a fold of the run's own book -- it is being fed "
+        "somewhere other than the single point `all_records` is extended")
+
+    demonstrated = False
+    for year, points in sorted(register.items()):
+        yr = [r for r in all_records if r["settlement_date"][:4] == year]
+        accumulation = [r["treasury_cash_balance_gbp"] for r in yr]
+        assert _drawdown_events(points) == _drawdown_events(accumulation), (
+            f"{year}: the register is not lossless against the accumulation-order walk")
+
+        re_sorted = _drawdown_events([
+            r["treasury_cash_balance_gbp"]
+            for r in sorted(yr, key=lambda r: (r["settlement_date"],
+                                               r.get("settlement_period") or 0))
+        ])
+        if re_sorted != _drawdown_events(accumulation):
+            demonstrated = True
+
+    # NULL CONTROL: on a book settled term-by-term the two orderings genuinely disagree, so the
+    # equality asserted above is a fact about the register rather than about a book whose order
+    # happens not to matter.
+    assert demonstrated, (
+        "no year in this window distinguishes accumulation order from date order, so this test "
+        "would pass against the defect it exists to catch")

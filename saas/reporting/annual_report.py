@@ -453,17 +453,26 @@ def extract_report_data(run_output: dict) -> dict:
             if _year(e["period_end"]) == year
         ]
 
-        # THE TREASURY PATH, from the run's own drawdown register. A drawdown opens and closes
-        # between half-hours, and the book now holds daily CLOSES -- an intra-day trough would
-        # simply not be in it. The register keeps the turning points (every new running peak and
-        # every new low beneath it), which is exactly the state `_drawdown_events` walks, so
-        # replaying them reproduces the same events. Falls back to the book for a run output
-        # that predates the register.
-        treasury_series = (treasury_drawdown_points or {}).get(year) or [
-            r["treasury_cash_balance_gbp"]
-            for r in sorted(yr_records,
-                            key=lambda r: (r["settlement_date"], r.get("settlement_period") or 0))
-        ]
+        # THE TREASURY PATH, from the run's own drawdown register. `treasury_cash_balance_gbp`
+        # is a PORTFOLIO running total stamped on each record as the term loop produced it, so
+        # the only order it means anything in is the order it was accumulated in. This line used
+        # to re-sort the book into (date, period) order first, which interleaves balances from
+        # different points in the term loop: on a real end-2017 run that manufactured 6,747
+        # drawdown events in a year whose treasury never drew down at all.
+        #
+        # The register keeps that order's turning points (every new running peak and every new
+        # low beneath it), which is exactly the state `_drawdown_events` walks, so replaying them
+        # reproduces the same events -- and it survives a book folded to daily rows, where an
+        # intra-day trough would simply not be present.
+        #
+        # No register (a run output that predates it, or one of the many hand-built ones in
+        # tests): read the book in ACCUMULATION order. `yr_records` is an order-preserving filter
+        # of the run's record book, so this is the same path the register folded, just unfolded.
+        # It is a second correct read, NOT the old re-sorted one -- and an absent register must
+        # not silently become "no drawdowns" either.
+        treasury_series = treasury_drawdown_points.get(year)
+        if treasury_series is None:
+            treasury_series = [r["treasury_cash_balance_gbp"] for r in yr_records]
         treasury_drawdown_events = _drawdown_events(treasury_series)
 
         var_wake_ups = [w for w in wake_ups if "portfolio_var_current_gbp" in w]

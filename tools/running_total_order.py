@@ -106,16 +106,10 @@ SELF_EXEMPT: frozenset[str] = frozenset({
 #: THE THREE READS THAT EXIST TODAY, frozen with their counts. Shrink-only: see the module
 #: docstring. Key is `module::shape::field`; `count` is what makes a SECOND read of the same
 #: (module, shape, field) a failure rather than a silent restatement of the first.
-KNOWN_READS: dict[str, dict] = {
-    "saas/reporting/annual_report.py::comprehension-over-reordering::treasury_cash_balance_gbp": {
-        "count": 1,
-        "why": "the named instance: the `_drawdown_events` fallback path, still live for a run "
-               "output that predates the register. REPAIR: wire "
-               "`simulation/settlement_daily.py::TreasuryDrawdown` (blocked on the fold's one "
-               "undiagnosed ~£14 ledger movement, see that module's docstring), then delete "
-               "the fallback rather than leaving a wrong path reachable.",
-    },
-}
+#: EMPTY, AND THAT IS THE POINT: the baseline is paid off, not abandoned. Every entry that was
+#: ever in it is recorded below with its movement measured. An empty baseline means `--gate` and
+#: the default report now agree, so the standing red this module used to carry is gone.
+KNOWN_READS: dict[str, dict] = {}
 
 #: REPAIRED AND REMOVED FROM THE BASELINE -- kept here as prose because a ratchet entry that
 #: simply vanishes leaves no record that the debt was PAID rather than hidden. Both were
@@ -134,6 +128,29 @@ KNOWN_READS: dict[str, dict] = {
 #: The AFTER figures agree to the penny with what `run_phase2b` prints for the same years in
 #: its own "Portfolio P&L by calendar year" table -- an independent check, since that print
 #: never went near a re-sort. The BEFORE figures agreed with nothing.
+#:
+#: THE THIRD AND LAST ENTRY, PAID 2026-08-24 -- the named instance, the drawdown count itself:
+#:
+#:   saas/reporting/annual_report.py   comprehension-over-reordering
+#:       was `sorted(yr_records, key=(settlement_date, settlement_period))` walked by
+#:       `_drawdown_events`. REPAIRED by wiring `simulation/settlement_daily.py::
+#:       TreasuryDrawdown` into `run_phase2b` (fed at the same single point the settlement fold
+#:       is, emitted as `treasury_drawdown_points`) and reading it. The remaining no-register
+#:       path reads the book in ACCUMULATION order, which is a second CORRECT read rather than
+#:       the old one kept alive: an absent register must not silently become "no drawdowns".
+#:
+#:   The published figure this moves, on a real `run_phase2b.main(report_end="2017-12-31")`
+#:   (199,522 records in 2016, 330,366 in 2017):
+#:
+#:   year  drawdown events BEFORE   AFTER   deepest BEFORE
+#:   2016  0                        0       --
+#:   2017  6,747                    0       11.0%
+#:
+#:   Not "too high" -- the phenomenon did not happen. The RAG rating beside it
+#:   (GREEN <25% | AMBER 25-50% | RED >50%) was computed from the same artefact, and the
+#:   rendered line was 202,048 characters of near-duplicate events in the end-2019 report.
+#:   The register the run emitted was checked equal to one folded independently over the run's
+#:   own book, and its events equal to the accumulation-order walk of that book, both years.
 
 
 class OrderCheckUnavailable(RuntimeError):

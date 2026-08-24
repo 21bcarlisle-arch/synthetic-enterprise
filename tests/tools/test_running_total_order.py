@@ -211,20 +211,51 @@ def test_a_missing_scan_directory_is_unavailable_not_clean(tmp_path):
 
 def test_the_live_tree_matches_its_frozen_baseline():
     """The gate is green on the real repository -- and green for a stated reason, not by
-    accident: exactly the three frozen reads, no more and no fewer."""
+    accident: exactly the frozen reads, no more and no fewer. With the baseline now empty that
+    also means a STALE entry fails, which is the half of the ratchet that keeps a paid debt
+    from being quietly re-frozen."""
     assert rto.gate_problems() == []
 
 
-def test_the_live_scan_still_finds_the_named_instance():
-    """The finding's own instance must still be visible to the default (reporting) mode.
+def test_the_named_instance_is_repaired_and_the_live_scan_is_clean():
+    """WAS `test_the_live_scan_still_finds_the_named_instance`, and it asserted that
+    `saas/reporting/annual_report.py::comprehension-over-reordering::treasury_cash_balance_gbp`
+    was STILL THERE -- correct while the debt was outstanding, and the defect's own expected
+    answer once it was not.
 
-    If a refactor made it invisible without repairing it, the standing red would go quiet
-    and the debt would look discharged.
+    Paid 2026-08-24: `run_phase2b` folds the drawdown during the run
+    (`TreasuryDrawdown`, emitted as `treasury_drawdown_points`) and the report walks that; the
+    no-register path reads the book in accumulation order instead of re-sorting it. Measured on
+    a real end-2017 run, the published 2017 drawdown count moved 6,747 -> 0.
+
+    The clean scan is only meaningful because the scanner is proven to fire elsewhere in this
+    file on all three shapes; `test_a_re_sorted_read_of_the_treasury_does_not_come_back` below
+    is the null control for this specific one.
     """
     found = rto.scan_tree()
     keys = {rto._key(v) for v in found}
-    assert (f"saas/reporting/annual_report.py::comprehension-over-reordering::{FIELD}") in keys
-    assert keys == set(rto.KNOWN_READS)
+    assert keys == set(), f"a re-sorted read of a running total is back in the tree: {keys}"
+    assert rto.KNOWN_READS == {}, (
+        "the baseline is not empty, so the scan being clean would be a STALE BASELINE failure")
+
+
+def test_a_re_sorted_read_of_the_treasury_does_not_come_back(tmp_path):
+    """NULL CONTROL for the repair above. The exact line `annual_report` used to carry, in a
+    scratch tree: the scanner still finds it, so the clean live scan is a fact about the
+    repository rather than about a scanner that stopped looking."""
+    root = _tree(tmp_path, **{
+        "saas/annual_report.py": (
+            "def extract(yr_records):\n"
+            "    return [r['treasury_cash_balance_gbp']\n"
+            "            for r in sorted(yr_records,\n"
+            "                            key=lambda r: (r['settlement_date'],\n"
+            "                                           r.get('settlement_period') or 0))]\n"
+        ),
+        "simulation/producer.py": "rec['treasury_cash_balance_gbp'] = balance\n",
+    })
+    found = rto.scan_tree(root=root, dirs=("saas", "simulation"))
+    assert {rto._key(v) for v in found} == {
+        f"saas/annual_report.py::comprehension-over-reordering::{FIELD}"}
 
 
 def test_every_frozen_entry_names_a_repair():

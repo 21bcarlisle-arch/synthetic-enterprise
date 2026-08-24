@@ -274,3 +274,8 @@ class TreasuryDrawdown:
 
     def series_for(self, year: str) -> list[float]:
         return list(self._points.get(year, []))
+
+    def points_by_year(self) -> dict[str, list[float]]:
+        """The whole register, for the run to hand to the report. A plain dict of lists so it
+        survives the JSON round-trip every persisted run output goes through."""
+        return {year: list(points) for year, points in self._points.items()}

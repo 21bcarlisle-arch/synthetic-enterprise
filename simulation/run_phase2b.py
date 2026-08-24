@@ -164,6 +164,7 @@ from simulation.renewals import NOTICE_DAYS, build_renewal_schedule
 from simulation.reputation_index import ReputationEventType
 from simulation.resentment_ledger import FrictionEventType
 from simulation.settlement import CONTRACT_LENGTH_DAYS
+from simulation.settlement_daily import TreasuryDrawdown
 from simulation.settlement_fold import SettlementFold
 from simulation.sim_satisfaction import sim_satisfaction_score as _sim_satisfaction_score
 from simulation.triad import (
@@ -1150,6 +1151,14 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     # `_company_eac_estimate` depends on would quietly widen. `simulation/settlement_fold.py`
     # carries the measurement that put it here.
     settled_fold = SettlementFold()
+    # THE TREASURY DRAWDOWN REGISTER, fed from the same single point for the same reason.
+    # `treasury_cash_balance_gbp` is a PORTFOLIO running total stamped on each record as the
+    # term loop produces it, so it means something in accumulation order and in no other; the
+    # register walks the peaks and troughs HERE, while that order is still the one it is being
+    # read in. `saas/reporting/annual_report.py` used to rebuild the path by re-sorting the
+    # finished book into date order, which interleaves balances from different points in the
+    # term loop and manufactured 6,747 phantom drawdown events in a 2017 that had none.
+    treasury_drawdown = TreasuryDrawdown()
     evolution_logs: dict[str, list] = {cid: [] for cid in all_customers_ids}
     term_indices: dict[str, int] = {cid: 0 for cid in all_customers_ids}
     # Phase NI: term-level rate shock counter. Replaces count_rate_shocks(all_records)
@@ -2259,6 +2268,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
 
         all_records.extend(settled_this_term)
         settled_fold.add(settled_this_term)
+        treasury_drawdown.add(settled_this_term)
         if administration_event:
             break
 
@@ -2690,6 +2700,10 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             {"customer_id": v.customer_id, "is_eligible": v.is_eligible, "reason": v.reason}
             for v in fabric_eligibility_verdicts
         ],
+        # The treasury path's turning points per year, folded in accumulation order as the
+        # balances were produced. `annual_report._drawdown_events` walks this instead of
+        # re-deriving a path from the finished book.
+        "treasury_drawdown_points": treasury_drawdown.points_by_year(),
         "committee_wake_ups": committee_wake_ups,
         "customer_events": customer_events_log,
         "churned_billing_accounts": sorted(churned_billing_accounts),

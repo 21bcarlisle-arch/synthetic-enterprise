@@ -19,7 +19,6 @@
       "from company.market.tou_periods import is_peak_period",
       "if is_peak_period(r[\"settlement_date\"], r.get(\"settlement_period\") or 1)]",
       "if not is_peak_period(r[\"settlement_date\"],",
-      "key=lambda r: (r[\"settlement_date\"], r.get(\"settlement_period\") or 0))",
       "r.get(\"settlement_period\") or 1)]",
       "sections.append(_section_worst_settlement_periods(data)) # Phase BR",
       "wp.get(\"settlement_period\", \"?\"),"

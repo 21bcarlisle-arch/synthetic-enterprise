@@ -3202,3 +3202,124 @@ def test_median_averages_the_two_middle_values_for_even_n():
     assert _median([1, 2, 3, 4]) == 2.5
     assert _median([3, 1, 2]) == 2
     assert _median([1464.4826463344248, 38255.60595319814]) == pytest.approx(19860.044299741142)
+
+
+# ── the treasury path is a RUNNING TOTAL and may only be read in accumulation order ──────────
+# (2026-08-24, WORKER_FINDING_THE_TREASURY_DRAWDOWN_FIGURE_IS_AN_ARTEFACT_OF_SORTING_A_BALANCE_
+#  THAT_WAS_NEVER_A_SERIES). `treasury_cash_balance_gbp` is a PORTFOLIO running total stamped on
+#  each record as the term loop produces it. `extract_report_data` used to re-sort the book into
+#  (settlement_date, settlement_period) order before walking it, which interleaves balances from
+#  different points in that loop: measured on a real end-2017 run, 6,747 drawdown events in a
+#  2017 whose treasury never drew down once.
+
+def _crossed_terms_run_output(with_register: bool):
+    """One customer, two terms, settled term-by-term -- so the book's ACCUMULATION order and its
+    (date, period) order are different orders of the same balances.
+
+    Accumulation order  1000 -> 1100 -> 1200 -> 2000 -> 2100 -> 2200  rises throughout: a
+    treasury that never drew down. Date order interleaves the two terms and invents two
+    drawdowns of ~45%, which `test_the_re_sorted_treasury_path_does_not_come_back` pins.
+    """
+    run_output = _run_output()
+    term_one = [
+        _record("C1", "electricity", "2017-01-01", 1, 10.0, 2.0, 8.0, 50.0, 1000.0),
+        _record("C1", "electricity", "2017-06-01", 1, 10.0, 2.0, 8.0, 50.0, 1100.0),
+        _record("C1", "electricity", "2017-12-01", 1, 10.0, 2.0, 8.0, 50.0, 1200.0),
+    ]
+    term_two = [
+        _record("C1", "electricity", "2017-02-01", 1, 10.0, 2.0, 8.0, 50.0, 2000.0),
+        _record("C1", "electricity", "2017-07-01", 1, 10.0, 2.0, 8.0, 50.0, 2100.0),
+        _record("C1", "electricity", "2017-11-01", 1, 10.0, 2.0, 8.0, 50.0, 2200.0),
+    ]
+    run_output["phase2b"]["all_records"] = term_one + term_two
+    if with_register:
+        # What the run itself folds, in the order the balances were produced.
+        from simulation.settlement_daily import TreasuryDrawdown
+        register = TreasuryDrawdown()
+        register.add(term_one)
+        register.add(term_two)
+        run_output["phase2b"]["treasury_drawdown_points"] = register.points_by_year()
+    return run_output
+
+
+def test_the_drawdown_reads_the_register_and_not_the_retained_book():
+    """The wired path, on the one fixture where the two answers DIFFER -- which is the only kind
+    that proves the register is consulted at all.
+
+    The register exists because a drawdown opens and closes between half-hours: here the book
+    the report retains holds three identical daily closes (no drawdown visible anywhere in it)
+    while the run itself saw the balance fall to a tenth and recover between two of them. Read
+    the book and the answer is "no drawdowns"; read the register and it is the 90% one that
+    happened.
+    """
+    run_output = _crossed_terms_run_output(with_register=False)
+    run_output["phase2b"]["all_records"] = [
+        _record("C1", "electricity", "2017-01-01", 48, 10.0, 2.0, 8.0, 50.0, 100_000.0),
+        _record("C1", "electricity", "2017-01-02", 48, 10.0, 2.0, 8.0, 50.0, 100_000.0),
+        _record("C1", "electricity", "2017-01-03", 48, 10.0, 2.0, 8.0, 50.0, 100_000.0),
+    ]
+    run_output["phase2b"]["treasury_drawdown_points"] = {"2017": [100_000.0, 10_000.0, 100_000.0]}
+
+    events = extract_report_data(run_output)["years"]["2017"]["treasury_drawdown_events"]
+    assert len(events) == 1, "the register was not read -- the retained book cannot see this dip"
+    assert events[0]["drawdown_pct"] == pytest.approx(0.9)
+
+
+def test_the_register_is_walked_in_the_order_the_run_folded_it():
+    """And the register's own order is load-bearing: it is a path, not a set of values."""
+    data = extract_report_data(_crossed_terms_run_output(with_register=True))
+
+    assert data["years"]["2017"]["treasury_drawdown_events"] == [], (
+        "a treasury that rose from 1000 to 2200 without ever falling reported a drawdown")
+
+
+def test_an_absent_register_reads_the_book_in_accumulation_order():
+    """A run output that predates the register -- and every hand-built one in these tests --
+    still gets the right answer, because filtering the book preserves the order it was
+    accumulated in. An absent register must not become 'no drawdowns' by fiat either: that is
+    the FAIL-OPEN shape, and the second half of this test is what would catch it."""
+    data = extract_report_data(_crossed_terms_run_output(with_register=False))
+    assert data["years"]["2017"]["treasury_drawdown_events"] == []
+
+    # The same code path, on a book whose accumulation order DOES contain a real drawdown.
+    # Without this the test above passes just as well on a function that returns [] always.
+    real = _crossed_terms_run_output(with_register=False)
+    real["phase2b"]["all_records"] = [
+        _record("C1", "electricity", "2017-01-01", 1, 10.0, 2.0, 8.0, 50.0, 2000.0),
+        _record("C1", "electricity", "2017-02-01", 1, 10.0, 2.0, 8.0, 50.0, 1000.0),
+        _record("C1", "electricity", "2017-03-01", 1, 10.0, 2.0, 8.0, 50.0, 2500.0),
+    ]
+    events = extract_report_data(real)["years"]["2017"]["treasury_drawdown_events"]
+    assert len(events) == 1 and events[0]["drawdown_pct"] == pytest.approx(0.5)
+
+
+def test_the_re_sorted_treasury_path_does_not_come_back():
+    """NULL CONTROL. States the pre-repair answer and asserts it is not the published one.
+
+    Restore the `sorted(yr_records, key=(settlement_date, settlement_period))` this line used to
+    do and the first assertion fails, because that ordering is what manufactures the events.
+    """
+    from saas.reporting.annual_report import _drawdown_events
+
+    for with_register in (True, False):
+        run_output = _crossed_terms_run_output(with_register=with_register)
+        yr_records = run_output["phase2b"]["all_records"]
+
+        re_sorted = _drawdown_events([
+            r["treasury_cash_balance_gbp"]
+            for r in sorted(yr_records,
+                            key=lambda r: (r["settlement_date"], r.get("settlement_period") or 0))
+        ])
+        assert len(re_sorted) == 2 and all(e["drawdown_pct"] > 0.4 for e in re_sorted), (
+            "the fixture no longer demonstrates the defect, so the assertion below proves nothing")
+
+        published = extract_report_data(run_output)["years"]["2017"]["treasury_drawdown_events"]
+        assert published != re_sorted, f"the re-sorted path is back (register={with_register})"
+        assert published == []
+
+
+# The other half of this seam -- that `run_phase2b` actually EMITS the register, fed from its own
+# book, under the name read above -- is proven against a real run in
+# tests/simulation/test_run_phase2b.py::test_the_run_emits_a_treasury_drawdown_register.
+# A rename on either side is otherwise silent: this read is a `.get`, so it would quietly fall
+# back to the book and go on publishing a number.

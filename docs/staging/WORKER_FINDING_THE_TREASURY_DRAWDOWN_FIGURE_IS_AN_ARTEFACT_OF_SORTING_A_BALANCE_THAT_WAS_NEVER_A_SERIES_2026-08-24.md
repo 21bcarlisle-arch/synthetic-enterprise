@@ -269,3 +269,95 @@ One observation left for whoever takes the register: with the sign kept, 2020 tr
 close at **−£53.47**. A negative receivable is money the company owes its customers and probably
 belongs in account 2200 (Customer Credit Balances Held) rather than as a negative asset. Small,
 real, and not repaired here.
+
+---
+
+## THE DRAWDOWN COUNT ITSELF IS REPAIRED — 6,747 published events in 2017 become 0 (2026-08-24, worker tick, RUNG 1c blocking draw)
+
+**Severity: this document's own discharge condition is now met.** Owed item 1 — the last ratchet
+entry, the named instance, the figure the whole finding is about — is repaired and measured. The
+ratchet is 1 → 0 and `KNOWN_READS` is empty.
+
+### What was wired
+
+`simulation/settlement_daily.py::TreasuryDrawdown` had no caller. It now has exactly one, fed at
+the **same single point** `SettlementFold` is fed (`all_records.extend(settled_this_term)` in
+`run_phase2b`), for the same stated reason: fed anywhere else it would see records the book has
+not. The run emits it as `treasury_drawdown_points`, and `annual_report.extract_report_data`
+walks it.
+
+The `sorted(yr_records, key=(settlement_date, settlement_period))` read is gone.
+
+### The published figure this moves (R14)
+
+A real `simulation.run_phase2b.main(report_end="2017-12-31")` — the same window this finding was
+originally measured on:
+
+| year | records | drawdown events PUBLISHED | drawdown events AFTER | deepest published |
+|---|---|---|---|---|
+| 2016 | 199,522 | 0 | 0 | — |
+| 2017 | 330,366 | **6,747** | **0** | 11.0% |
+
+**Said out loud, as this document asked:** the annual report will stop reporting that the
+treasury drew down by 11% thousands of times in 2017. It never drew down at all that year. The
+RAG rating beside it was computed from the same artefact, and the rendered line was 202,048
+characters of near-duplicate events in the end-2019 report — three such lines were two-thirds of
+that file's bytes.
+
+Two independent checks on the same run, both green: the register the run emitted is byte-equal
+to one folded independently over the run's own book, and its events equal the accumulation-order
+walk of that book in both years.
+
+### The one deviation from the stated discharge condition, and why
+
+This document asked for "the fallback deleted rather than left reachable". What is deleted is the
+**re-sorted** read. What remains when no register is present is a read of the book in
+**accumulation order** — `yr_records` is an order-preserving filter, so it is the same path the
+register folded, just unfolded.
+
+Deleting the branch outright would make an absent register publish "no drawdowns", which is the
+FAIL-OPEN pattern (R15) this project keeps catching: passes on missing. The clause's purpose was
+that no WRONG path stays reachable, and none does. `test_an_absent_register_reads_the_book_in_
+accumulation_order` carries the second half that makes it more than a preference — the same code
+path on a book that genuinely does contain a 50% drawdown, so a function that returns `[]` always
+would fail it.
+
+### Controls, R15-proven — four named mutations applied, fires recorded not asserted
+
+`tests/saas/reporting/test_annual_report.py`, four tests. The unmutated tree is green; then:
+
+| mutation | tests fired |
+|---|---|
+| M1 restore the re-sorted read (the named defect) | 2 |
+| M2 ignore the register, always read the book | 1 |
+| M3 fail-open: an absent register becomes no drawdowns | 1 |
+| M4 sort only when the register is absent | 2 |
+
+M2 is the one that mattered: the first draft of these controls had a fixture on which the
+register and the book gave the SAME answer, so **nothing proved the register was consulted at
+all** — M2 fired zero tests and the hole was invisible until the mutation was run. The fixture is
+now the case the register exists for: three identical daily closes in the retained book, and a
+balance that fell to a tenth and recovered between two of them in the register.
+
+`tests/simulation/test_run_phase2b.py::test_the_run_emits_a_treasury_drawdown_register` proves
+the emitting half against a REAL run (reusing the existing module-scoped end-2017 fixture, no new
+run cost), with its own null control asserting that the two orderings genuinely disagree on that
+book — otherwise the equality it checks would be a fact about the window, not about the register.
+
+`tests/tools/test_running_total_order.py::test_the_live_scan_still_finds_the_named_instance`
+asserted the defect was STILL PRESENT — correct while the debt was outstanding, the defect's own
+expected answer once it was not. It is now
+`test_the_named_instance_is_repaired_and_the_live_scan_is_clean`, quoting what it used to say,
+and a new null control drives the old line through the scanner in a scratch tree so that "the
+live scan is clean" is a fact about the repository rather than about a scanner that stopped
+looking.
+
+### What is still owed
+
+**The live published figures.** `docs/reports/run_output_latest.json` and the site still carry
+the old drawdown count and the old `treasury_end_gbp`: both are baked at run time. Nothing was
+regenerated here. The next full run's report generation is what moves them, and it moves the
+balance-sheet line by the amounts in the section above as well.
+
+Also still open, and unrelated to the count: the negative 2020 trade receivable (−£53.47) noted
+at the end of the previous section.
