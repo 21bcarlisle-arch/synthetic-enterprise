@@ -53,6 +53,22 @@ from simulation.payment_behaviour_source import PaymentEvent
 _N = 900
 _SEED = 101
 
+# THE BOOK'S OWN COORDINATES, which the D27 origin flip does NOT move (FRAME
+# s18.4). Both are properties of the scenario constants and the draw, measured
+# at BOTH candidate origins and identical at each: they are the anchors that
+# let a defect-assertion be restated as the LAW plus a coordinate, so that it
+# is green at the shipped 400 and green at the organ's own 90, and can
+# therefore land BEFORE the flip rather than inside it.
+#
+# `_INVOICE_BAND_TOP_DAYS` -- the oldest INVOICE age; the top of the band the
+# belief figures are graded against, and what `predict_event_age_span_from_
+# constants()["oldest_age_days"]` predicts. Same on every RESOLUTION_SEEDS seed.
+# `_OLDEST_OBSERVED_FAILURE_AGE_DAYS` -- the oldest OBSERVED FAILURE age, which
+# is a DRAW (a failure has to land on the extreme invoice), so it is per-seed
+# and one day short of the band top on seed 7.
+_INVOICE_BAND_TOP_DAYS = 92
+_OLDEST_OBSERVED_FAILURE_AGE_DAYS = {7: 91, 11: 92, 23: 92}
+
 
 def _ever_flagged(records, consumer, as_of, dd_channel_only: bool = False):
     """The company's EVER-FLAGGED set, taken from the scorer's OWN sweep rather
@@ -5310,12 +5326,28 @@ def test_the_scored_company_sits_outside_the_band_it_is_graded_on():
     """THE HOUR'S FINDING, measured not asserted (R12: reported, never tuned).
     The band tops out at the book's oldest invoice age; the scored company
     holds `DD_FAILURE_WINDOW_DAYS` of memory, far above it -- so every belief
-    figure is read where that parameter is inert by construction."""
+    figure is read where that parameter is inert by construction.
+
+    STATED AS THE LAW PLUS AN ORIGIN-CONDITIONAL COORDINATE (D27 FRAME s18.4).
+    This node used to pin `headroom == 308` and `is_inert is True`, which are
+    the SATURATED origin's coordinates and not the claim -- the claim is that
+    the company's memory is graded against the top of THIS book's band, and
+    that top is `_INVOICE_BAND_TOP_DAYS`, a property of the scenario constants
+    which the origin flip does not move. Written this way the node is green at
+    the shipped 400 (inert, 308d of headroom) AND green at the organ's own 90
+    (NOT inert, 2d short), so it lands before the flip instead of inside it.
+    """
     for seed in pair.RESOLUTION_SEEDS:
         records, _c, _l, as_of = pair.build_scenario(300, seed=seed)
         measured = pair.measure_scenario_constant_census(records, as_of)
-        assert measured["scored_company_is_inert"] is True, seed
-        assert measured["scored_company_headroom_days"] == 308, seed
+        # THE COORDINATE, anchored independently: the band top is the book's,
+        # not the origin's, so it is a literal here and the origin is not.
+        assert measured["measured_oldest_age_days"] == _INVOICE_BAND_TOP_DAYS, seed
+        # THE LAW.
+        assert measured["scored_company_headroom_days"] == (
+            pair.DD_FAILURE_WINDOW_DAYS - _INVOICE_BAND_TOP_DAYS), seed
+        assert measured["scored_company_is_inert"] == (
+            pair.DD_FAILURE_WINDOW_DAYS >= _INVOICE_BAND_TOP_DAYS), seed
         assert measured["scored_company_window_days"] == pair.DD_FAILURE_WINDOW_DAYS
 
 
@@ -9910,10 +9942,24 @@ def test_never_forgets_drift_is_derived_from_the_book_and_is_zero_today():
     already never forgets, so the published figure cannot distinguish it from a
     supplier that keeps a recovered customer in collections for ever. It is
     derived from the BOOK -- the oldest observed failure -- and never from the
-    number 400, which is what makes it move when the origin does."""
+    number 400, which is what makes it move when the origin does.
+
+    STATED AS THE LAW PLUS AN ORIGIN-CONDITIONAL COORDINATE (D27 FRAME s18.4).
+    The two live readings below used to be pinned at the saturated origin's
+    answers (`== 0`, `saturated` true). The claim is not those answers, it is
+    that the drift reaches the book's OLDEST OBSERVED FAILURE -- a coordinate
+    the flip does not move -- from wherever the company's memory happens to
+    start. So this node is green at 400 (drift 0, saturated) and green at the
+    organ's own 90 (drift 1, NOT saturated) and lands before the flip."""
     records, _consumer, _ledger, as_of = pair.build_scenario(300, seed=7)
-    assert pair.never_forgets_drift_days(records, as_of) == 0
-    assert pair.measure_belief_window_resolution(records, as_of)["saturated"]
+    oldest = _OLDEST_OBSERVED_FAILURE_AGE_DAYS[7]
+    resolution = pair.measure_belief_window_resolution(records, as_of)
+    # THE COORDINATE, anchored independently of the origin.
+    assert resolution["oldest_event_age_days"] == oldest
+    # THE LAW: reach the oldest event from here, and never go backwards.
+    assert pair.never_forgets_drift_days(records, as_of) == max(
+        0, oldest - pair.DD_FAILURE_WINDOW_DAYS)
+    assert resolution["saturated"] is (pair.DD_FAILURE_WINDOW_DAYS >= oldest)
 
     # THE MUTATION: at the organ's OWN default the same book yields a non-zero
     # drift, so the function is reading the book against the window and not

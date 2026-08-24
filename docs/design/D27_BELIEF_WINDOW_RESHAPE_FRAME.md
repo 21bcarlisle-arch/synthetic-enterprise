@@ -1322,3 +1322,96 @@ is ~33 assertion rewrites + 2 dict literals, all of them measured.
 no level moved (D27 stays at 0), and §18.4's piecewise route — restating each defect-assertion as the
 LAW plus an origin-conditional coordinate, green at the current origin — is untouched and remains the
 next pass's work.
+
+---
+
+## 20. BUILD pass 11 — 2026-08-24 (worker tick, BUILD lane) — §18.4's piecewise route STARTED
+
+§19.5 handed this pass one item: the piecewise route — *restate each defect-assertion as the LAW plus
+an origin-conditional coordinate, green at the current origin* — "untouched and remains the next
+pass's work." This pass **started it and landed the first increment**. The origin is still 400, the
+reshape is still not landed, no level moved (D27 stays at 0), and `CAVEAT_COVERAGE_PROBES` is still
+untouched (§19.4 — it cannot move before the flip).
+
+**This is the first pass on this atom since §12 to change a `file_scope` file, and the first ever to
+change one in a way that is green at BOTH origins.** That is the whole point of the route: eleven
+passes have measured, and the reason none could land the flip is that every measured edit was only
+valid on one side of it. An origin-agnostic assertion is valid on both, so it lands now.
+
+All figures `observed-with-evidence`, at HEAD `2598ca8c0` plus this pass's edit; the candidate origin
+is substituted **in the process** via a `pytest_configure` plugin on `PYTHONPATH`, never in the tree
+(§17.4's method, unchanged).
+
+### 20.1 The two nodes restated, and what each now says
+
+| node | pinned before | says now |
+|---|---|---|
+| `test_the_scored_company_sits_outside_the_band_it_is_graded_on` | `is_inert is True`, `headroom == 308` | `headroom == WINDOW − 92`, `is_inert == (WINDOW ≥ 92)` |
+| `test_never_forgets_drift_is_derived_from_the_book_and_is_zero_today` | `drift == 0`, `saturated` true | `drift == max(0, 91 − WINDOW)`, `saturated is (WINDOW ≥ 91)` |
+
+`WINDOW` is `pair.DD_FAILURE_WINDOW_DAYS` — the origin, symbolically. The literals are the **book's**
+coordinates, and each is asserted independently in the same node (`measured_oldest_age_days == 92`,
+`oldest_event_age_days == 91`) so the law is not checked against a number the law itself produced.
+
+### 20.2 Green at both origins, which is the acceptance test for this route
+
+```
+shipped origin (400):   2 passed in 0.99s
+candidate origin (90):  2 passed in 0.37s   (-p flip_plugin)
+```
+
+Before this pass both nodes were in §17.3's 33. **They are not any more**, and they did not have to
+wait for the flip to stop being.
+
+And the two new module constants did not disturb their neighbours: the whole
+`census|never_forgets|window_resolution|saturat|band` selection over this file — 81 nodes, every one
+that reads either coordinate — is **81 passed, 0 failed, 376.73s** at the shipped origin.
+
+### 20.3 R15 — the restatement did not weaken the control
+
+A restatement is exactly the move that can quietly turn an assertion into a tautology (the law
+re-derived from the value it checks). Four mutations, run against the restated nodes, each on the
+side of the origin where it is the honest defect:
+
+| mutation | origin | result |
+|---|---|---|
+| `headroom` read off the YOUNGEST band edge instead of the oldest | 400 | **1 failed** |
+| `scored_company_is_inert` hard-wired `True` | 90 | **1 failed** |
+| `never_forgets_drift_days` returns a constant `0` | 90 | **1 failed** |
+| `saturated` hard-wired `True` | 90 | **1 failed** |
+
+The last three are the specific defect this atom exists to name — *a company that never forgets,
+reported as though it had been tested* — and all three now fire from the test side at the origin
+where they are wrong, which the pinned form could not do at all.
+
+### 20.4 NEW FINDING — there are TWO book coordinates, not one, and they differ by a day on one seed
+
+The obvious reading of §18.4 is that the flip-invariant coordinate is "the top of the book", one
+number. It is two, and they are the D30 edge-setting-population distinction arriving on the test side:
+
+| coordinate | seed 7 | seed 11 | seed 23 |
+|---|---|---|---|
+| oldest **invoice** age (the band top) | 92 | 92 | 92 |
+| oldest **observed failure** age | **91** | 92 | 92 |
+
+The invoice side is dense by construction — every account draws every period — so it reaches the
+constants' band on every seed. A *failure* has to **land** on the extreme invoice, which is a draw,
+so it is per-seed and one day short on seed 7. A restatement that used the band top for both would be
+green on two seeds of three. Recorded as `_INVOICE_BAND_TOP_DAYS` (scalar) and
+`_OLDEST_OBSERVED_FAILURE_AGE_DAYS` (per-seed dict) with the reason on the constants, so the next
+increment does not have to rediscover it. Measured at both origins and identical at each — which is
+what qualifies them as anchors at all.
+
+### 20.5 What this pass did not do
+
+The origin is **not** flipped. 31 of §17.3's 33 remain pinned — including all four publication
+surfaces (§17.3's R11 group, where the *prose* states the saturation and not just the number) and the
+five D30/D33 sibling-atom claims (§15.3 — a cross-atom decision D27 does not take alone). The
+probe-grid dict and the census values stay inside the flip commit (§19.4). `recency_contribution`'s
+node was **examined and deliberately left**: its law — *the contribution is zero exactly when the
+scored company already never forgets* — is sound, but its `readable`/`epsilon` assertions need a
+measurement at the candidate origin that this tick did not take, and inferring them would put an
+unmeasured number on the record. Named here rather than guessed.
+
+**The route is now proven rather than proposed**, and the remaining 31 land the same way, in as many
+commits as anyone likes, while the origin is still 400.
