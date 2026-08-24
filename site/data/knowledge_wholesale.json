@@ -14,7 +14,7 @@
     "claim_freshness": {
       "last_verified": "2026-07-25",
       "source_pass": "GB multi-plant SRMC dispatch stack DISCOVER",
-      "note": "REVIEW DATE DELIBERATELY NOT MOVED. Five of this page's seven sections were EMPTY STRINGS until 2026-08-24 \u2014 it rendered its headings over nothing, and its 21kB HTML file did not look like a stub next to its siblings. Those five were WRITTEN on 2026-08-24 from established market mechanism. That is authorship, not verification: the two original claims were checked against sources on 2026-07-25 and nobody has re-checked them since, so `last_verified` stays where it was. site/knowledge/test_review_state.py::test_no_review_date_exists_without_evidence_of_the_check caught the first attempt to move it, which is exactly what it is for \u2014 a date must not be typed in without saying what it was checked against, and 'I wrote some prose' is not a check.",
+      "note": "REVIEW DATE DELIBERATELY NOT MOVED. Five of this page's seven sections were EMPTY STRINGS until 2026-08-24 — it rendered its headings over nothing, and its 21kB HTML file did not look like a stub next to its siblings. Those five were WRITTEN on 2026-08-24 from established market mechanism. That is authorship, not verification: the two original claims were checked against sources on 2026-07-25 and nobody has re-checked them since, so `last_verified` stays where it was. site/knowledge/test_review_state.py::test_no_review_date_exists_without_evidence_of_the_check caught the first attempt to move it, which is exactly what it is for — a date must not be typed in without saying what it was checked against, and 'I wrote some prose' is not a check.",
       "written_sections_2026_08_24": [
         "theory",
         "expected_shape",
@@ -64,7 +64,7 @@
         {
           "id": "carbon_support",
           "label": "UK Carbon Price Support (the fixed carbon top-up)",
-          "value": "~\u00a318",
+          "value": "~£18",
           "unit": "per tCO2, frozen 1 Apr 2016 -> 31 Mar 2028",
           "class": "Fact",
           "citation": "HMRC Climate Change Levy rates"
@@ -86,8 +86,8 @@
           "citation": "DESNZ, 'Decisive action to break influence of gas on electricity prices'"
         }
       ],
-      "worked": "Worked example: a gas plant that turns 49% of its fuel into electricity, paying a gas price of P per MWh of fuel and ~\u00a318/tCO2 of carbon on 0.183 tCO2 per MWh of fuel, has an SRMC of roughly P/0.49 + 18*0.183/0.49 + a few pounds of running cost. Notice the price is far more sensitive to the gas price than to anything the electricity market itself does -- which is exactly why a gas shock passes straight through to bills.",
-      "body": "The price is set by the last generator needed, not by an average of what generation cost.\n\nLine the fleet up by short-run marginal cost \u2014 what it costs to produce one more MWh right now, not what it cost to build. Nuclear and renewables sit at the cheap end because their fuel is free or nearly so. Gas sits further along and its position moves with the gas price and the carbon price. Work along that line until demand is met; the last unit you needed sets the price, and everything cheaper is paid the same.\n\nThe quantity that selects the marginal plant is **residual demand** \u2014 total demand minus whatever the near-zero-marginal-cost generation happens to be producing. Residual demand is far more volatile than demand, because demand follows a stable daily and seasonal rhythm and wind does not. Two days with identical demand can have completely different residuals and therefore completely different prices.\n\nLayered on top of that single mechanism are four trading horizons \u2014 forward and futures years ahead, a day-ahead auction, continuous intraday trading, and finally the Balancing Mechanism, where after gate closure only the system operator acts. A supplier participates in the first three and pays for the fourth."
+      "worked": "Worked example: a gas plant that turns 49% of its fuel into electricity, paying a gas price of P per MWh of fuel and ~£18/tCO2 of carbon on 0.183 tCO2 per MWh of fuel, has an SRMC of roughly P/0.49 + 18*0.183/0.49 + a few pounds of running cost. Notice the price is far more sensitive to the gas price than to anything the electricity market itself does -- which is exactly why a gas shock passes straight through to bills.",
+      "body": "The price is set by the last generator needed, not by an average of what generation cost.\n\nLine the fleet up by short-run marginal cost — what it costs to produce one more MWh right now, not what it cost to build. Nuclear and renewables sit at the cheap end because their fuel is free or nearly so. Gas sits further along and its position moves with the gas price and the carbon price. Work along that line until demand is met; the last unit you needed sets the price, and everything cheaper is paid the same.\n\nThe quantity that selects the marginal plant is **residual demand** — total demand minus whatever the near-zero-marginal-cost generation happens to be producing. Residual demand is far more volatile than demand, because demand follows a stable daily and seasonal rhythm and wind does not. Two days with identical demand can have completely different residuals and therefore completely different prices.\n\nLayered on top of that single mechanism are four trading horizons — forward and futures years ahead, a day-ahead auction, continuous intraday trading, and finally the Balancing Mechanism, where after gate closure only the system operator acts. A supplier participates in the first three and pays for the fourth."
     },
     "expected_shape": {
       "heading": "What the data should look like",
@@ -96,19 +96,19 @@
         {
           "id": "baseload",
           "label": "Ordinary baseload price",
-          "shape": "typically \u00a340-90/MWh across 2016-2021, before the gas crisis",
+          "shape": "typically £40-90/MWh across 2016-2021, before the gas crisis",
           "class": "Fact"
         },
         {
           "id": "crisis_tail",
           "label": "Crisis-year spike tails",
-          "shape": "day-ahead peaks reaching several hundred \u00a3/MWh in 2021-2022, with imbalance prices reaching into the thousands",
+          "shape": "day-ahead peaks reaching several hundred £/MWh in 2021-2022, with imbalance prices reaching into the thousands",
           "class": "Fact"
         },
         {
           "id": "cashout_ceiling",
           "label": "Regulatory cash-out ceiling",
-          "shape": "imbalance price capped at \u00a36,000/MWh -- a hard wall, prices approach but do not exceed it",
+          "shape": "imbalance price capped at £6,000/MWh -- a hard wall, prices approach but do not exceed it",
           "class": "Fact",
           "citation": "GB scarcity-constants benchmark (VoLL / cash-out ceiling)"
         },
@@ -119,7 +119,7 @@
           "class": "Fact"
         }
       ],
-      "body": "Three things follow if the mechanism above is real, and each is checkable against published data rather than against this simulation.\n\n**Price should track residual demand far better than demand.** Plotted against total demand you get a cloud; against residual demand you get a curve with visible steps where the marginal technology changes.\n\n**The gas price should propagate with a slope near the marginal plant's heat rate** \u2014 roughly 2:1 in \u00a3/MWh for a modern CCGT, steeper once carbon is added \u2014 but only in the hours gas is actually marginal. Averaged across all hours the relationship dilutes, which is how a single regression coefficient hides the real structure.\n\n**As renewable share rises the price distribution should become bimodal rather than simply lower:** many hours near zero, and a persistent tail of expensive hours when the wind is not blowing. A falling average with an unchanged shape would be evidence against the mechanism."
+      "body": "Three things follow if the mechanism above is real, and each is checkable against published data rather than against this simulation.\n\n**Price should track residual demand far better than demand.** Plotted against total demand you get a cloud; against residual demand you get a curve with visible steps where the marginal technology changes.\n\n**The gas price should propagate with a slope near the marginal plant's heat rate** — roughly 2:1 in £/MWh for a modern CCGT, steeper once carbon is added — but only in the hours gas is actually marginal. Averaged across all hours the relationship dilutes, which is how a single regression coefficient hides the real structure.\n\n**As renewable share rises the price distribution should become bimodal rather than simply lower:** many hours near zero, and a persistent tail of expensive hours when the wind is not blowing. A falling average with an unchanged shape would be evidence against the mechanism."
     },
     "live_evidence": {
       "heading": "Live evidence",
@@ -607,7 +607,7 @@
         "gas_price_gbp_per_mwh": 29.1,
         "source": "Typed SRMC dispatch stack from sim/merit_order_reconstruction.build_merit_stack(): CCGT/OCGT short-run marginal cost grounded in DUKES 5.10.C thermal efficiencies, DUKES 5.14 emission factors and Carbon Price Support ~GBP18/tCO2; gas input is the real NBP 2024 annual-mean from sim/gas_prices_history (FRED). Pipeline-computed, never hand-drawn.",
         "as_of": "2025-06-07",
-        "caption": "The 2024 GB merit order: plants dispatch cheapest-first (renewables and nuclear at near-zero cost), and the LAST plant needed to meet demand sets the price for everyone. On an ordinary day that marginal plant is gas \u2014 so the whole market clears near the gas-fired SRMC.",
+        "caption": "The 2024 GB merit order: plants dispatch cheapest-first (renewables and nuclear at near-zero cost), and the LAST plant needed to meet demand sets the price for everyone. On an ordinary day that marginal plant is gas — so the whole market clears near the gas-fired SRMC.",
         "marginal_note": "At 2024 gas (GBP29.1/MWh) the marginal (price-setting) plant is a gas CCGT clearing around GBP94.9/MWh at the top of demand.",
         "plants": [
           {
@@ -616,12 +616,12 @@
             "cap_gw": 8.0
           },
           {
-            "label": "CCGT \u2014 best vintage",
+            "label": "CCGT — best vintage",
             "srmc": 66.0,
             "cap_gw": 15.0
           },
           {
-            "label": "CCGT \u2014 worst vintage",
+            "label": "CCGT — worst vintage",
             "srmc": 77.7,
             "cap_gw": 15.0
           },
@@ -732,7 +732,7 @@
           }
         ]
       },
-      "body": "This simulation does not generate a wholesale price. It settles half-hourly against the real published Elexon system price record for 2016\u20132025 \u2014 roughly 168,000 settlement periods \u2014 so every cost the company reports traces to a number the market actually printed.\n\nWhat is reconstructed rather than read is the merit order behind those prices, and the company never sees it. It observes published prices and infers, which is the position a real supplier is in: it reads the market, it does not read the dispatch.\n\nThe 2021\u201322 period is in the record at its real levels rather than smoothed, which is why the company's hedging shows a cost in the calm years and a rescue in the crisis one."
+      "body": "This simulation does not generate a wholesale price. It settles half-hourly against the real published Elexon system price record for 2016–2025 — roughly 168,000 settlement periods — so every cost the company reports traces to a number the market actually printed.\n\nWhat is reconstructed rather than read is the merit order behind those prices, and the company never sees it. It observes published prices and infers, which is the position a real supplier is in: it reads the market, it does not read the dispatch.\n\nThe 2021–22 period is in the record at its real levels rather than smoothed, which is why the company's hedging shows a cost in the calm years and a rescue in the crisis one."
     },
     "residuals": {
       "heading": "Where our picture is still weak",
@@ -759,7 +759,7 @@
           "class": "Fact"
         }
       ],
-      "body": "Marginal-cost pricing describes the mechanism, not every price observed. Real prices depart from it for reasons this account does not capture: the cost of starting a plant that was off, transmission constraints that force a more expensive plant to run in the right place, scarcity pricing when the margin is thin, and strategic bidding.\n\nAll of those push observed prices ABOVE a pure merit-order calculation, and the gap is largest exactly when the system is tight \u2014 which is when a supplier is most exposed. So a reconstruction of this kind is systematically optimistic in the hours that matter most, and that is a weakness worth stating rather than a detail."
+      "body": "Marginal-cost pricing describes the mechanism, not every price observed. Real prices depart from it for reasons this account does not capture: the cost of starting a plant that was off, transmission constraints that force a more expensive plant to run in the right place, scarcity pricing when the margin is thin, and strategic bidding.\n\nAll of those push observed prices ABOVE a pure merit-order calculation, and the gap is largest exactly when the system is tight — which is when a supplier is most exposed. So a reconstruction of this kind is systematically optimistic in the hours that matter most, and that is a weakness worth stating rather than a detail."
     },
     "scope_delta": {
       "heading": "What this page does not yet establish",
@@ -840,7 +840,7 @@
           "text": "The hockey-stick magnitude bands are present, but the mechanism behind them -- climbing the stack through peakers, imports and demand response; the convex price-versus-residual-demand surface -- is not shown."
         }
       ],
-      "body": "GB is treated as a single price zone, which matches current arrangements but means constraint costs arrive as a charge rather than as a price difference between places.\n\nNo unit commitment, no strategic bidding, no interconnector trading strategy, and no participation in the Balancing Mechanism \u2014 balancing reaches the company as a cost it pays, never as a market it acts in. For a domestic supplier that last one is close to reality; the others are simplifications."
+      "body": "GB is treated as a single price zone, which matches current arrangements but means constraint costs arrive as a charge rather than as a price difference between places.\n\nNo unit commitment, no strategic bidding, no interconnector trading strategy, and no participation in the Balancing Mechanism — balancing reaches the company as a cost it pays, never as a market it acts in. For a domestic supplier that last one is close to reality; the others are simplifications."
     }
   },
   "revision": {
@@ -922,8 +922,8 @@
       "title": "Imbalance & cash-out",
       "kind": "page",
       "class": "slow",
-      "blurb": "How the system prices being short or long, up to the \u00a36,000/MWh ceiling.",
-      "scope": "A complete treatment covers how being short or long against your contracted position is priced: the single imbalance price, the balancing actions that set it, and the cash-out ceiling (\u00a36,000/MWh) that caps a shortfall; and why this is the price that ultimately disciplines a supplier's hedging. It is a settlement mechanism of electricity wholesale.",
+      "blurb": "How the system prices being short or long, up to the £6,000/MWh ceiling.",
+      "scope": "A complete treatment covers how being short or long against your contracted position is priced: the single imbalance price, the balancing actions that set it, and the cash-out ceiling (£6,000/MWh) that caps a shortfall; and why this is the price that ultimately disciplines a supplier's hedging. It is a settlement mechanism of electricity wholesale.",
       "rate_of_change": "medium",
       "reviewed": {
         "last_verified": "2026-08-19",
@@ -962,6 +962,17 @@
           "The headline level represents a typical dual-fuel customer at TDCV.",
           "The lag is real: Ofgem moved to quarterly updates in 2022 expressly 'so prices don't lag behind changes in the market'."
         ]
+      }
+    },
+    {
+      "id": "metering-and-reads",
+      "title": "Metering and meter reads",
+      "kind": "page",
+      "blurb": "The market settles every half hour; most meters are read a few times a year.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-08-24",
+        "source": "Elexon BSC settlement arrangements and load-profile guidance; Ofgem licence conditions on billing and back-billing; the MHHS programme's milestones"
       }
     }
   ],
@@ -1004,6 +1015,16 @@
     {
       "from": "electricity-wholesale",
       "type": "bounded-by",
+      "to": "price-cap"
+    },
+    {
+      "from": "metering-and-reads",
+      "type": "mechanism-of",
+      "to": "gb-electricity-market"
+    },
+    {
+      "from": "metering-and-reads",
+      "type": "prerequisite-for",
       "to": "price-cap"
     }
   ],
