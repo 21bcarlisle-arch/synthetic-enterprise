@@ -154,6 +154,9 @@ EXCLUSION_CENSORED = "right_censored_lifetime"
 EXCLUSION_NO_SNAPSHOT = "no_point_in_time_belief_recorded"
 EXCLUSION_NO_REALISED = "no_realised_lifetime_margin"
 
+#: Why the whole measurement is unavailable rather than empty.
+UNAVAILABLE_NO_ROSTER = "no_ceased_roster_published"
+
 
 def load_run_output(path=None) -> dict:
     """The published run artefact. Missing/unreadable raises -- an unavailable
@@ -179,20 +182,79 @@ def _earliest_belief(clv_snapshots: dict, account: str):
     return years[0], float(clv_snapshots[years[0]][account])
 
 
+def known_accounts(run: dict) -> set:
+    """Every account this run says ANYTHING about.
+
+    THE POPULATION SOURCE, AND THE REASON IT IS NOT `by_billing_account`
+    (2026-08-24, pass 16). This module used to walk `by_billing_account` and so
+    could only ever see the accounts that table happens to hold. That table is
+    built in `saas/reporting/annual_report.py` by iterating `CUSTOMERS` -- the
+    hand-authored SEED roster -- while `clv_snapshots`, `per_customer_lifetime`
+    and `churned_billing_accounts` are all built over
+    `CUSTOMERS + SUCCESSOR_CUSTOMERS + DRAWN_CUSTOMERS`. So as the drawn book
+    grew, the harness grading EP1 stayed pinned to the 13 seed accounts:
+    measured on the 2026-08-24 book, 5 accounts counted where 19 were available,
+    and the headline came out bit-identical to the reading four passes earlier
+    on a book a sixth the size. A gap that cannot move when the book grows is
+    not a measurement of the estimator, it is a measurement of the fixture.
+
+    Taking the UNION rather than any one field is deliberate: each of the four
+    sources omits accounts the others hold, and a denominator drawn from one of
+    them would silently inherit that omission -- which is the defect this
+    function exists to close, one field along.
+    """
+    accounts = set(run.get("by_billing_account") or {})
+    for snapshot in (run.get("clv_snapshots") or {}).values():
+        if isinstance(snapshot, dict):
+            accounts.update(k for k in snapshot if isinstance(k, str))
+    accounts.update(k for k in (run.get("per_customer_lifetime") or {})
+                    if isinstance(k, str))
+    accounts.update(a for a in (run.get("churned_billing_accounts") or [])
+                    if isinstance(a, str))
+    return accounts
+
+
+def ceased_roster(run: dict):
+    """The world's own statement of who left, or `None` if it did not publish one.
+
+    THE CEASED AUTHORITY, and it is the WORLD's field rather than the reporting
+    layer's. `churned_billing_accounts` is written in `simulation/run_phase2b.py`
+    when a churn event actually fires in the term loop;
+    `by_billing_account[...]["still_supplied"]` is re-derived one layer up from
+    settlement quiet, over the seed accounts only. For a belief-vs-OUTCOME
+    backtest the outcome side must come from the world, and
+    `saas/enterprise_value.py` already frames the pair that way in its own
+    comment.
+
+    `None` -- not an empty set -- when the field is absent or malformed. An
+    absent authority makes the measurement UNAVAILABLE, and the caller says so
+    rather than treating "nobody is on the roster" as "nobody has left", which
+    would count the entire book as right-censored and publish a clean empty
+    population (R15 fail-open).
+    """
+    churned = run.get("churned_billing_accounts")
+    if not isinstance(churned, list):
+        return None
+    return {a for a in churned if isinstance(a, str)}
+
+
 def build_observations(run: dict) -> dict:
     """Split the book into the counted population and the named exclusions.
 
-    Returns a dict with `counted` (list of per-account records) and `excluded`
-    (list of `{account, reason}`), so the caller never has to infer a denominator.
+    Returns a dict with `counted` (list of per-account records), `excluded`
+    (list of `{account, reason}`) and `unavailable` (a named reason, or None), so
+    the caller never has to infer a denominator.
     """
     accounts = run.get("by_billing_account") or {}
     snapshots = run.get("clv_snapshots") or {}
     lifetimes = run.get("per_customer_lifetime") or {}
+    roster = ceased_roster(run)
+    if roster is None:
+        return {"counted": [], "excluded": [], "unavailable": UNAVAILABLE_NO_ROSTER}
 
     counted, excluded = [], []
-    for account in sorted(accounts):
-        record = accounts[account] or {}
-        if record.get("still_supplied"):
+    for account in sorted(known_accounts(run)):
+        if account not in roster:
             excluded.append({"account": account, "reason": EXCLUSION_CENSORED})
             continue
         year, belief = _earliest_belief(snapshots, account)
@@ -216,24 +278,65 @@ def build_observations(run: dict) -> dict:
             # pre-snapshot earnings, because that only lowers the realised side.
             "sign_error_robust": belief > 0 and float(realised) < 0,
         })
-    return {"counted": counted, "excluded": excluded}
+    return {"counted": counted, "excluded": excluded, "unavailable": None}
 
 
 def roster_crosscheck(run: dict, counted: list) -> dict:
-    """Second, independently-written source for who left. Reported, never used to
-    silently overrule `still_supplied` -- a disagreement between two fields that
-    should agree is a finding, not something for this module to resolve."""
-    churned = run.get("churned_billing_accounts")
-    if not isinstance(churned, list):
+    """Independent second derivation of who left, checked against the authority.
+
+    WHICH SIDE IS THE CHECK CHANGED IN PASS 16, AND THAT IS THE POINT. This used
+    to compare the roster against a population derived from
+    `by_billing_account.still_supplied`. Once the roster becomes the AUTHORITY
+    (see `ceased_roster`), comparing it against the population it produced would
+    be the TAUTOLOGY pattern -- the check would read its own input. So the check
+    is now the signal that was previously unused: an account the SNAPSHOT SERIES
+    dropped.
+
+    Independence, stated so it can be argued with: the roster is a churn EVENT in
+    the term loop (`simulation/run_phase2b.py`); the snapshot drop is
+    `_build_clv_snapshots` excluding an account its own truncated record window
+    shows as ceased, via the settlement-quiet rule in `ceased_billing_accounts`.
+    An event firing and a meter going quiet are two different derivations, and
+    neither is computed from the other.
+
+    COVERAGE IS DECLARED, NOT ASSUMED. The snapshot series can only speak about
+    accounts it ever valued; an account that churned before its first year-end
+    snapshot is invisible to it and is reported under `never_snapshotted` rather
+    than counted as a disagreement. `agrees` is `None` -- never `True` -- when
+    the check cannot be run at all, because an unavailable check is a FAILED
+    check (R15 fail-silent), and `still_supplied` is reported beside it as a
+    third, partial-coverage signal over the accounts that have such a row.
+    """
+    roster = ceased_roster(run)
+    snapshots = run.get("clv_snapshots") or {}
+    years = sorted(y for y, snap in snapshots.items() if isinstance(snap, dict))
+    if roster is None or not years:
         return {"available": False, "agrees": None, "only_in_roster": [],
-                "only_in_counted": []}
-    from_counted = {r["account"] for r in counted}
-    from_roster = {a for a in churned if isinstance(a, str)}
+                "only_in_snapshot_drop": [], "never_snapshotted": [],
+                "snapshot_coverage": 0, "still_supplied_disagrees": []}
+
+    def _valued(year):
+        return {a for a, v in snapshots[year].items()
+                if isinstance(v, (int, float)) and not isinstance(v, bool)}
+
+    ever = set().union(*(_valued(y) for y in years))
+    dropped = ever - _valued(years[-1])
+    # Restricted to the accounts the snapshot series can actually speak about.
+    roster_seen = roster & ever
+    accounts = run.get("by_billing_account") or {}
     return {
         "available": True,
-        "agrees": from_counted == from_roster,
-        "only_in_roster": sorted(from_roster - from_counted),
-        "only_in_counted": sorted(from_counted - from_roster),
+        "agrees": roster_seen == dropped,
+        "only_in_roster": sorted(roster_seen - dropped),
+        "only_in_snapshot_drop": sorted(dropped - roster_seen),
+        "never_snapshotted": sorted(roster - ever),
+        "snapshot_coverage": len(ever),
+        # Third signal, partial coverage: a seed account whose reporting-layer
+        # `still_supplied` contradicts the world's roster. Reported, never used.
+        "still_supplied_disagrees": sorted(
+            a for a, rec in accounts.items()
+            if isinstance(rec, dict) and "still_supplied" in rec
+            and bool(rec["still_supplied"]) == (a in roster)),
     }
 
 
@@ -249,7 +352,24 @@ def measure(run: dict) -> tuple:
     split = build_observations(run)
     counted, excluded = split["counted"], split["excluded"]
     detail = {"counted": counted, "excluded": excluded,
+              "unavailable": split["unavailable"],
               "roster_crosscheck": roster_crosscheck(run, counted)}
+
+    if split["unavailable"] is not None:
+        # The ceased AUTHORITY is missing, which is not the same as an empty
+        # population and must not read like one: without it every account would
+        # fall through as right-censored and the pair would report a clean
+        # nothing-to-score (R15 fail-open).
+        return GapResult(
+            metric="belief", gap=None, raw_gap=0.0, g0=0.0,
+            baseline=("the run publishes no ceased roster -- who left is unknown, "
+                      "so belief cannot be scored against outcome"),
+            normalisation=NORMALISATION_DIVISOR, raw_gap_is=DIVISOR_RAW_GAP_IS,
+            components={"counted": 0, "excluded": 0,
+                        "unavailable_reason": split["unavailable"]},
+            note=("Measurement UNAVAILABLE, not zero: the ceased authority "
+                  f"({split['unavailable']}) is absent from the run artefact."),
+        ), detail
 
     if not counted:
         # No population is an UNDEFINED headline, not a zero one. `None` is the
@@ -258,7 +378,13 @@ def measure(run: dict) -> tuple:
             metric="belief", gap=None, raw_gap=0.0, g0=0.0,
             baseline="no completed customer lifetime in this run -- nothing to score",
             normalisation=NORMALISATION_DIVISOR, raw_gap_is=DIVISOR_RAW_GAP_IS,
-            components={"counted": 0, "excluded": len(excluded)},
+            # The cross-check is reported even with nothing to score: whether the
+            # two cessation derivations agree is a fact about the RUN, and a
+            # branch that dropped it would report an empty population without
+            # saying whether the check that would have found accounts could run.
+            components={"counted": 0, "excluded": len(excluded),
+                        "roster_sources_agree": detail[
+                            "roster_crosscheck"]["agrees"]},
             note="Population empty; the pair is unmeasured, not measured at zero.",
         ), detail
 
@@ -313,7 +439,11 @@ def measure(run: dict) -> tuple:
             ),
             "roster_sources_agree": crosscheck["agrees"],
             "roster_only_in_churn_list": crosscheck["only_in_roster"],
-            "roster_only_in_counted": crosscheck["only_in_counted"],
+            "roster_only_in_snapshot_drop": crosscheck["only_in_snapshot_drop"],
+            "roster_never_snapshotted": crosscheck["never_snapshotted"],
+            "crosscheck_snapshot_coverage": crosscheck["snapshot_coverage"],
+            "still_supplied_disagrees_with_roster": crosscheck[
+                "still_supplied_disagrees"],
         },
         note=(
             "Point-in-time backtest of the company's own CLV against realised "

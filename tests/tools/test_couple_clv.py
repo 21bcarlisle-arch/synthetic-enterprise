@@ -31,32 +31,48 @@ from tools import couple_clv
 
 # --- Fixtures ----------------------------------------------------------------
 
-def _run(counted=None, supplied=None):
+def _run(counted=None, supplied=None, off_book=()):
     """A minimal run artefact in the shape the real one publishes.
 
     `counted` are ceased accounts as (id, belief, realised); `supplied` are
     still-supplied account ids, which must never reach the counted population.
+
+    `off_book` are ceased accounts in the same (id, belief, realised) shape that
+    get NO `by_billing_account` row -- the shape a DRAWN customer actually has on
+    the live book, because that table is built from the seed roster only. The
+    default is empty so the pre-existing controls below keep their original
+    population; the tests that name this defect pass it explicitly.
+
+    THE FINAL SNAPSHOT YEAR HOLDS ONLY THE SUPPLIED ACCOUNTS, which is what the
+    real artefact looks like: `_build_clv_snapshots` drops an account once its own
+    truncated window shows it ceased. That drop is the independent cross-check
+    signal, so a fixture in which nobody ever leaves the snapshot series would
+    make the cross-check untestable.
     """
     counted = counted if counted is not None else [
         ("C1", 900.0, 200.0), ("C3", 600.0, 100.0), ("C4", 700.0, -200.0)]
     supplied = supplied if supplied is not None else ["C2", "C9"]
 
-    accounts, snapshots, lifetimes = {}, {"2016": {}, "2017": {}}, {}
-    for account, belief, realised in counted:
-        accounts[account] = {"still_supplied": False}
+    accounts = {}
+    snapshots = {"2016": {}, "2017": {}, "2018": {}}
+    lifetimes = {}
+    for account, belief, realised in list(counted) + list(off_book):
         snapshots["2016"][account] = belief
         # A LATER, different snapshot: the module must take the EARLIEST.
         snapshots["2017"][account] = belief * 10.0
         lifetimes[account] = {"net_margin_after_cost_to_serve_gbp": realised}
+    for account, _, _ in counted:
+        accounts[account] = {"still_supplied": False}
     for account in supplied:
         accounts[account] = {"still_supplied": True}
-        snapshots["2016"][account] = 5000.0
+        for year in snapshots.values():
+            year[account] = 5000.0
         lifetimes[account] = {"net_margin_after_cost_to_serve_gbp": 4321.0}
     return {
         "by_billing_account": accounts,
         "clv_snapshots": snapshots,
         "per_customer_lifetime": lifetimes,
-        "churned_billing_accounts": [a for a, _, _ in counted],
+        "churned_billing_accounts": [a for a, _, _ in list(counted) + list(off_book)],
     }
 
 
@@ -83,11 +99,87 @@ def test_a_leaking_population_filter_changes_the_headline():
     would be decorative and the test above would be vacuous."""
     kept, _ = couple_clv.measure(_run())
     leaked_run = _run()
-    for account in ("C2", "C9"):
-        leaked_run["by_billing_account"][account]["still_supplied"] = False
+    leaked_run["churned_billing_accounts"] += ["C2", "C9"]
     leaked, leaked_detail = couple_clv.measure(leaked_run)
     assert len(leaked_detail["counted"]) == 5
     assert leaked.gap != pytest.approx(kept.gap)
+
+
+# --- The population source: the defect pass 16 was drawn on -------------------
+
+def test_a_ceased_account_with_no_billing_row_is_still_counted():
+    """THE NAMED DEFECT (2026-08-24, pass 16). This module used to walk
+    `by_billing_account`, which `saas/reporting/annual_report.py` builds from the
+    SEED roster (`CUSTOMERS`) alone, while snapshots, lifetimes and the churn
+    roster are built over `CUSTOMERS + SUCCESSOR_CUSTOMERS + DRAWN_CUSTOMERS`. A
+    drawn customer who lived and left therefore had a belief, an outcome and a
+    churn event -- and was invisible to the harness grading the estimator.
+
+    Measured on the 2026-08-24 book: 5 counted where 19 were available."""
+    run = _run(off_book=[("PROS-2019-0024", 1200.0, 300.0)])
+    assert "PROS-2019-0024" not in run["by_billing_account"]
+    _, detail = couple_clv.measure(run)
+    assert "PROS-2019-0024" in {r["account"] for r in detail["counted"]}
+
+
+def test_the_off_book_population_is_load_bearing_on_the_headline():
+    """Null control for the test above: an account merely APPEARING in the
+    counted list proves nothing if it does not reach the arithmetic. The off-book
+    account here is wrong in a different direction from the seed accounts, so a
+    headline that ignored it cannot coincide with one that did not."""
+    without, _ = couple_clv.measure(_run())
+    with_off_book, detail = couple_clv.measure(
+        _run(off_book=[("PROS-2019-0024", 1200.0, 300.0)]))
+    assert len(detail["counted"]) == 4
+    assert with_off_book.gap != pytest.approx(without.gap)
+    assert with_off_book.components["available_accounts"] == 6
+
+
+def test_the_denominator_counts_the_whole_book_not_one_table():
+    """`available` is the union of every source, so an account known ONLY to the
+    lifetime table still shows up as available rather than vanishing from both
+    the numerator and the denominator -- a silent drop that would leave the
+    published population self-consistent and wrong."""
+    run = _run()
+    run["per_customer_lifetime"]["PROS-2020-0043"] = {
+        "net_margin_after_cost_to_serve_gbp": -281.44}
+    assert "PROS-2020-0043" in couple_clv.known_accounts(run)
+    result, _ = couple_clv.measure(run)
+    assert result.components["available_accounts"] == 6
+
+
+@pytest.mark.parametrize("source, value", [
+    ("by_billing_account", {"still_supplied": True}),
+    ("clv_snapshots", None),                       # handled below
+    ("per_customer_lifetime", {"net_margin_after_cost_to_serve_gbp": 12.0}),
+    ("churned_billing_accounts", None),            # handled below
+])
+def test_every_source_contributes_to_the_denominator(source, value):
+    """EACH of the four sources must be load bearing on its own.
+
+    Written because the mutation that dropped ONE source from the union fired
+    ZERO tests: the earlier fixtures give every extra account a row in three
+    sources at once, so removing any one of them left the account reachable by
+    the others and nothing could tell. That is the same blind-fixture shape this
+    project keeps catching -- a control that only exercises the sources jointly
+    cannot show that the union is a union.
+
+    On the live book the snapshot source is currently REDUNDANT (every account it
+    holds is also in `per_customer_lifetime`), so this is the only place its
+    contribution is visible at all. A denominator that silently shrinks is the
+    defect: it makes the counted fraction look better without anyone deciding to
+    exclude anybody."""
+    run = _run()
+    before = len(couple_clv.known_accounts(run))
+    if source == "clv_snapshots":
+        run["clv_snapshots"]["2016"]["ONLY-HERE"] = 500.0
+    elif source == "churned_billing_accounts":
+        run["churned_billing_accounts"] = run["churned_billing_accounts"] + ["ONLY-HERE"]
+    else:
+        run[source]["ONLY-HERE"] = value
+    assert "ONLY-HERE" in couple_clv.known_accounts(run), (
+        f"an account known ONLY to {source} vanished from the denominator")
+    assert len(couple_clv.known_accounts(run)) == before + 1
 
 
 def test_the_earliest_snapshot_is_the_belief_not_the_latest():
@@ -193,27 +285,89 @@ def test_an_unparseable_run_artefact_raises(tmp_path):
 
 # --- The independent roster cross-check --------------------------------------
 
-def test_a_roster_disagreement_is_reported_not_silently_resolved():
-    """Two independently-written fields say who left. When they disagree the
-    module must SAY so -- resolving it silently would hide exactly the kind of
-    population defect this atom's history is made of."""
+def test_the_crosscheck_agrees_when_the_two_derivations_agree():
+    """The baseline the disagreement tests below are measured against. The roster
+    (a churn EVENT) and the snapshot drop (a meter going QUIET) are two different
+    derivations; on an ordinary book they name the same accounts."""
+    result, detail = couple_clv.measure(_run())
+    assert detail["roster_crosscheck"]["agrees"] is True
+    assert result.components["roster_sources_agree"] is True
+    assert result.components["crosscheck_snapshot_coverage"] == 5
+
+
+def test_a_snapshot_drop_the_roster_does_not_name_is_reported():
+    """An account the snapshot series dropped but no churn event names. Reported,
+    never used to overrule the authority -- a disagreement between two fields
+    that should agree is a finding, not something for this module to resolve."""
     run = _run()
-    run["churned_billing_accounts"] = ["C1", "C3"]          # drops C4
+    run["clv_snapshots"]["2018"].pop("C2")          # goes quiet, no churn event
     result, detail = couple_clv.measure(run)
     assert detail["roster_crosscheck"]["agrees"] is False
-    assert detail["roster_crosscheck"]["only_in_counted"] == ["C4"]
-    assert result.components["roster_sources_agree"] is False
+    assert detail["roster_crosscheck"]["only_in_snapshot_drop"] == ["C2"]
     # ...and the disagreement does NOT quietly change the population.
     assert {r["account"] for r in detail["counted"]} == {"C1", "C3", "C4"}
+    assert result.components["roster_sources_agree"] is False
 
 
-def test_an_absent_roster_field_reports_unavailable_not_agreement():
-    """FAIL-SILENT: a cross-check that cannot run must not report success."""
+def test_an_account_that_churned_before_any_snapshot_is_not_a_disagreement():
+    """COVERAGE IS DECLARED. The snapshot series can only speak about accounts it
+    ever valued; three accounts on the live 2026-08-24 roster
+    (PROS-2018-0002, PROS-2019-0082, PROS-2020-0081) left before their first
+    year-end snapshot. Counting them as cross-check failures would make a
+    correctly-reported blind spot look like a data defect."""
+    run = _run()
+    run["churned_billing_accounts"] = run["churned_billing_accounts"] + ["PROS-X"]
+    run["per_customer_lifetime"]["PROS-X"] = {
+        "net_margin_after_cost_to_serve_gbp": 114.10}
+    result, detail = couple_clv.measure(run)
+    assert detail["roster_crosscheck"]["never_snapshotted"] == ["PROS-X"]
+    assert detail["roster_crosscheck"]["agrees"] is True
+    # It is still excluded BY NAME rather than silently dropped.
+    reasons = {e["account"]: e["reason"] for e in detail["excluded"]}
+    assert reasons["PROS-X"] == couple_clv.EXCLUSION_NO_SNAPSHOT
+
+
+def test_an_absent_roster_makes_the_measurement_unavailable_not_empty():
+    """FAIL-OPEN, and the reason this changed shape in pass 16. The roster is now
+    the ceased AUTHORITY, so without it nothing is known to have left -- and the
+    tempting behaviour, letting every account fall through as right-censored, is
+    exactly the fail-open pattern: it publishes a serene 'no completed lifetime
+    to score' over a book full of them."""
     run = _run()
     run.pop("churned_billing_accounts")
     result, detail = couple_clv.measure(run)
+    assert detail["unavailable"] == couple_clv.UNAVAILABLE_NO_ROSTER
+    assert result.gap is None
+    assert result.components["unavailable_reason"] == couple_clv.UNAVAILABLE_NO_ROSTER
+    assert "UNAVAILABLE" in result.note
+    # ...and it is distinguishable from a genuinely empty population, which is a
+    # DIFFERENT state and says so.
+    empty, empty_detail = couple_clv.measure(_run(counted=[]))
+    assert empty_detail["unavailable"] is None
+    assert empty.gap is None
+    assert empty.note != result.note
+
+
+def test_an_absent_crosscheck_reports_unavailable_not_agreement():
+    """FAIL-SILENT: a cross-check that cannot run must not report success."""
+    run = _run()
+    run["clv_snapshots"] = {}
+    result, detail = couple_clv.measure(run)
     assert detail["roster_crosscheck"]["available"] is False
     assert result.components["roster_sources_agree"] is None
+
+
+def test_a_still_supplied_flag_contradicting_the_roster_is_reported():
+    """The third, partial-coverage signal. `still_supplied` is the reporting
+    layer's own reading and covers seed accounts only; where it contradicts the
+    world's churn event the module says which account, rather than picking one."""
+    run = _run()
+    run["by_billing_account"]["C4"]["still_supplied"] = True   # roster says ceased
+    result, detail = couple_clv.measure(run)
+    assert detail["roster_crosscheck"]["still_supplied_disagrees"] == ["C4"]
+    assert result.components["still_supplied_disagrees_with_roster"] == ["C4"]
+    # The authority still decides the population.
+    assert "C4" in {r["account"] for r in detail["counted"]}
 
 
 # --- The truth-window caveat is applied honestly ------------------------------
