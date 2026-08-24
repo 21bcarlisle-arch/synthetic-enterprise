@@ -8,9 +8,9 @@
 
 | Property | Source | Result |
 |---|---|---|
-| Invisible to the BUILD draw | `supervisor._maturity_map_draw_concurrent` (the real draw) | 96/96 parked atoms not offered — 72 proven excluded BY THE PARK (lifting the park alone makes them drawable), 24 excluded for another reason |
-| Visible to the staleness clocks | `tools/map_assertion_provenance.build_rows` (AO11) | 96/96 parked atoms carry a row |
-| Visible to the composition dial | this module, over all 316 atoms | 96 parked (20 with a gate stated in `block_reason`) |
+| Invisible to the BUILD draw | `supervisor._maturity_map_draw_concurrent` (the real draw) | 78/78 parked atoms not offered — 54 proven excluded BY THE PARK (lifting the park alone makes them drawable), 24 excluded for another reason |
+| Visible to the staleness clocks | `tools/map_assertion_provenance.build_rows` (AO11) | 78/78 parked atoms carry a row |
+| Visible to the composition dial | this module, over all 298 atoms | 78 parked (19 with a gate stated in `block_reason`) |
 
 ## The dial
 
@@ -18,21 +18,21 @@ At mint (2026-08-08) the ruling measured **82 harness vs 7 commercial across 206
 
 | Lane | All atoms | Excluding parked | Hidden by a park-filtering reader |
 |---|---:|---:|---:|
-| `H_harness` | 135 | 101 | 34 |
+| `H_harness` | 117 | 97 | 20 |
 | `D_billing_metering` | 46 | 36 | 10 |
-| `W2_customer_generator` | 31 | 25 | 6 |
+| `W2_customer_generator` | 31 | 28 | 3 |
 | `W1_market_weather` | 20 | 12 | 8 |
 | `C_customer_ops` | 17 | 13 | 4 |
 | `G_data_learning` | 14 | 10 | 4 |
 | `W4_the_wall` | 13 | 3 | 10 |
 | `F_risk_compliance` | 11 | 6 | 5 |
-| `B_commercial` | 9 | 4 | 5 |
+| `B_commercial` | 9 | 5 | 4 |
 | `A_strategy_governance` | 9 | 2 | 7 |
 | `E_finance_treasury` | 7 | 5 | 2 |
 | `W3_industry_systems` | 3 | 2 | 1 |
 | `W5_banking_payment_rails` | 1 | 1 | 0 |
 
-Harness share of the whole map: **42.7%** (135 of 316).
+Harness share of the whole map: **39.3%** (117 of 298).
 This is a DIAGNOSTIC (R12). `--check` never fails on it.
 The same lane counts split by `loop_stage` are on the WIP-flow door (`tools/generate_wip_flow_data.py`); what is here and not there is the with/without-parked comparison and the two probes below it.
 
@@ -45,7 +45,7 @@ Matched on the atom id, as the ruling measured it; a floor, not a census.
 | `clv` | 2 | 2 |
 | `counterparty_adapter` | 8 | 0 |
 | `forecast_feed` | 1 | 0 |
-| `tournament` | 2 | 0 |
+| `tournament` | 1 | 0 |
 
 **This table is the visibility property doing work.** Where the third column is 0 and the second is not, every atom covering that subject is parked — a reader that filtered parked atoms would report exactly the zero the ruling was minted to fix.
 

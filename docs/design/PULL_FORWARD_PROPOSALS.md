@@ -8,14 +8,13 @@ Each atom below is parked (`loop_stage: idle`) and has had work filed toward it 
 
 ## EP16_anchored_generators — Generated worlds that stay tethered to reality
 
-- Lane `W1_market_weather` · epoch 4 · **3 built toward it**
+- Lane `W1_market_weather` · epoch 4 · **2 built toward it**
 - Gate: director-reserved curriculum sequencing (R13). Epoch-4 commitment set (ruling §1); pull-forward is proposal-only (§3).
 - Status: **PENDING the director** — no word on disk
 
 The case (accretion ledger):
 
 - `2026-08-08` · `docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md` — the anchor that judges a generated home is itself gas-shaped, and the only electrically-heated home in the cast is the one it fails; a heat-pump band needs a real published source (EoH / SERL) before any generator can claim to be tethered.
-- `2026-08-09` · `docs/staging/WORKER_FINDING_MUTATION_VALID_ON_ONE_SUBPOPULATION_ONLY_2026-08-09.md` — an anchored generator is only as good as the mutation
 - `2026-08-11` · `docs/staging/done/PLANNER_MINTED_population_and_book_growth_2026-08-11.md` — the director ruled the world's population up and the book won by acquisition; a bigger population must still be anchored, its per-run variation is EP17's subject, and a won book is what a CLV number is for.
 
 ## EP17_varied_population_draw — A different cast every run
