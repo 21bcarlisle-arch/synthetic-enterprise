@@ -209,17 +209,11 @@ company.compliance.fair_value_assessment_register | unhooked | consumers:company
 company.core.account_intelligence | unhooked | consumers:company.core | Account Intelligence Report (Phase EI).; 1 test(s); no importer
 company.core.adr_register | unhooked | consumers:company.core | Architectural Decision Record (ADR) Register (Phase EE).; 1 test(s); no importer
 company.core.event_ledger | unhooked | consumers:company.core | Event Ledger Core (Phase DZ).; 1 test(s); no importer
-company.crm.acquisition_cohort | unhooked | consumers:company.crm | Customer acquisition cohort CLV analysis: cohort tracking, payback period.; 2 test(s); no importer
 company.crm.acquisition_journey | unhooked | consumers:company.crm | no docstring; 1 test(s); no importer
-company.crm.acquisition_strategy_book | unhooked | consumers:company.crm | Acquisition Strategy Intelligence Book.; 2 test(s); no importer
 company.crm.ancillary_products | unhooked | consumers:company.crm | Smart home product bundle and ancillary revenue tracker.; 3 test(s); no importer
 company.crm.behaviour_segment | unhooked | consumers:company.crm | Customer behaviour segmentation model.; 1 test(s); no importer
 company.crm.campaign_tracker | unhooked | consumers:company.crm | Outbound contact campaign tracker: retention, renewal, and collections campaigns.; 2 test(s); no importer
-company.crm.channel_roi | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer
 company.crm.churn_analytics | unhooked | consumers:company.crm | Churn waterfall and reason code analysis.; 1 test(s); no importer
-company.crm.clv_calculator | unhooked | consumers:company.crm | Customer lifetime value (CLV) calculator.; 2 test(s); no importer
-company.crm.clv_cohort_book | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer
-company.crm.clv_sensitivity_model | unhooked | consumers:company.crm | CLV Sensitivity Model (Phase DW).; 1 test(s); no importer
 company.crm.complaint_root_cause_analyser | unhooked | consumers:company.crm | Customer Complaint Root Cause Analyser (Phase DS).; 1 test(s); no importer
 company.crm.contact_centre_metrics | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer
 company.crm.contact_journey | unhooked | consumers:company.crm | Customer contact preferences and multi-channel communication management.; 2 test(s); no importer
@@ -230,7 +224,6 @@ company.crm.cos_process | unhooked | consumers:company.crm | no docstring; 2 tes
 company.crm.credit_assessment_register | unhooked | consumers:company.crm | Customer Credit Assessment Register (Phase DU).; 1 test(s); no importer
 company.crm.credit_scoring | unhooked | consumers:company.crm | Customer credit scoring and risk tier classification.; 2 test(s); no importer
 company.crm.customer_comm_preferences | unhooked | consumers:company.crm | Customer Communication Preference Register.; 2 test(s); no importer
-company.crm.customer_profitability_scorecard | unhooked | consumers:company.crm | Customer Profitability Scorecard (Phase FK).; 1 test(s); no importer
 company.crm.customer_retention | unhooked | consumers:company.crm | Customer Retention Offer Book — Phase AE.; 1 test(s); no importer
 company.crm.decarb_recommender | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer
 company.crm.eep_book | unhooked | consumers:company.crm | no docstring; 4 test(s); no importer
@@ -245,7 +238,6 @@ company.crm.notification_prefs | unhooked | consumers:company.crm | Customer not
 company.crm.occupancy_register | unhooked | consumers:company.crm | no docstring; 1 test(s); no importer
 company.crm.portal_analytics | unhooked | consumers:company.crm | no docstring; 4 test(s); no importer
 company.crm.portfolio_repricing | unhooked | consumers:company.crm | Portfolio Repricing Action Book — Phase AC.; 2 test(s); no importer
-company.crm.porting_loss_register | unhooked | consumers:company.crm | Porting Loss Register (Phase FL).; 1 test(s); no importer
 company.crm.priority_services | unhooked | consumers:company.crm | no docstring; 1 test(s); no importer
 company.crm.property_improvement | unhooked | consumers:company.crm | Property improvement event tracker.; 1 test(s); no importer
 company.crm.renewal_conversion | unhooked | consumers:company.crm | Renewal Conversion Rate Book.; 1 test(s); no importer
@@ -254,7 +246,6 @@ company.crm.renewals_book | unhooked | consumers:company.crm | no docstring; 4 t
 company.crm.solr_intake | unhooked | consumers:company.crm | no docstring; 3 test(s); no importer
 company.crm.solr_register | unhooked | consumers:company.crm | Supplier of Last Resort (SoLR) Register: tracks customer transfers from failed suppliers.; 1 test(s); no importer
 company.crm.switch_analytics | unhooked | consumers:company.crm | no docstring; 5 test(s); no importer
-company.crm.switching_cba | unhooked | consumers:company.crm | Switching Friction Cost-Benefit Analyser (Phase EJ).; 1 test(s); no importer
 company.crm.switching_cost_model | unhooked | consumers:company.crm | Switching Cost Model (Phase DK).; 1 test(s); no importer
 company.crm.switching_report | unhooked | consumers:company.crm | Customer gain/loss switching analytics: market share movement, churn tracking.; 2 test(s); no importer
 company.crm.tariff_notification | unhooked | consumers:company.crm | Tariff change notification system: 42-day advance notice per Ofgem SLC 25B.; 3 test(s); no importer
@@ -274,12 +265,9 @@ company.finance.debt_age_analysis | unhooked | consumers:company.finance | Debt 
 company.finance.payroll | unhooked | consumers:company.finance | Staff headcount and payroll cost model: operational cost driver for company P&L.; 2 test(s); no importer
 company.finance.period_reconciliation | unhooked | consumers:company.finance | Period-end financial reconciliation: revenue-cost matching, settlement variances.; 2 test(s); no importer
 company.finance.pnl | unhooked | consumers:company.finance | Company Layer — P&L from Ledger Events.; 2 test(s); no importer
-company.finance.portfolio_dashboard | unhooked | consumers:company.finance | Customer Portfolio Profitability Dashboard (Phase EG).; 1 test(s); no importer
 company.finance.portfolio_margin_sensitivity | unhooked | consumers:company.finance | Portfolio margin sensitivity analyser — five-factor sensitivity table.; 2 test(s); no importer
 company.finance.revenue_accruals | unhooked | consumers:company.finance | Revenue accruals ledger: billed vs unbilled accrual for month-end close.; 5 test(s); no importer
-company.finance.segment_profitability | unhooked | consumers:company.finance | Customer Segment Profitability Analysis (Phase ES).; 1 test(s); no importer
 company.finance.trade_finance | unhooked | consumers:company.finance | Trade finance instrument registry: letters of credit, bank guarantees, parent guarantees.; 3 test(s); no importer
-company.finance.treasury | unhooked | consumers:company.finance | FI3 -- Treasury management: cash position, working capital, MCR headroom, and forward cash fl...; 1 test(s); no importer
 company.finance.working_capital | unhooked | consumers:company.finance | Working capital daily cash position: inflows, outflows, headroom monitoring.; 1 test(s); no importer
 company.market.agreed_capacity_register | unhooked | consumers:company.market | Agreed Capacity Register (Phase GS).; 2 test(s); no importer
 company.market.bsuos_ledger | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
@@ -335,7 +323,6 @@ company.market.shipper_code_register | unhooked | consumers:company.market | Xos
 company.market.smart_meter_programme_register | unhooked | consumers:company.market | Smart Meter Installation Programme Register (Phase GI).; 2 test(s); no importer
 company.market.smart_meter_rollout | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
 company.market.switch_governance | unhooked | consumers:company.market | Switching cooling-off and objection management: 14-day right, ET resolution.; 4 test(s); no importer
-company.market.tariff_benchmarking | unhooked | consumers:company.market | Tariff Benchmarking Register (Phase EZ).; 1 test(s); no importer
 company.market.tnuos_ledger | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
 company.market.triad_notification_book | unhooked | consumers:company.market | Triad Notification Book — proactive I&C demand reduction for TNUoS Triad avoidance.; 3 test(s); no importer
 company.market.uig_allocation_register | unhooked | consumers:company.market | Unidentified Gas (UIG) Allocation Register (Phase GN).; 2 test(s); no importer
@@ -343,7 +330,6 @@ company.pricing.break_even_assessor | unhooked | consumers:company.pricing | Bre
 company.pricing.ncc_forecast_register | unhooked | consumers:company.pricing | Non-Commodity Cost (NCC) Forecast Register (Phase GW).; 2 test(s); no importer
 company.pricing.price_elasticity | unhooked | consumers:company.pricing | Price Elasticity Estimator — models customer churn response to tariff changes.; 2 test(s); no importer
 company.pricing.price_transparency_register | unhooked | consumers:company.pricing | Price Transparency Publication Register (Phase DL).; 1 test(s); no importer
-company.pricing.renewal_pricing_engine | unhooked | consumers:company.pricing | Renewal Pricing Engine — compute optimal renewal tariff for each customer.; 2 test(s); no importer
 company.pricing.segment_profitability | unhooked | consumers:company.pricing | Tariff Segment Profitability Book.; 1 test(s); no importer
 company.pricing.standing_charge_assessor | unhooked | consumers:company.pricing | Standing Charge Fairness Assessor (Phase FP).; 1 test(s); no importer
 company.pricing.tariff_smoothing | unhooked | consumers:company.pricing | no docstring; 1 test(s); no importer
