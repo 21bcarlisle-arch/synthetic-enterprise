@@ -123,21 +123,31 @@ def test_applied_fixed_rate_is_exactly_the_priced_rate_approval_cannot_alter_it(
     lives outside the neutralised surface.
 
     This guard closes the hole INDEPENDENTLY: every fixed term's applied
-    unit_rate MUST equal, to the value, the rate the pricing organ
-    (price_fixed_tariff) actually returned for it -- proving no approval-layer
-    logic (cap, delay, block, revert) sits between pricing and application. Any
-    such alteration diverges applied-vs-priced and fires here.
+    unit_rate MUST equal, to the value, the rate the LAST pricing-organ step
+    actually returned for it -- proving no approval-layer logic (cap, delay,
+    block, revert) sits between pricing and application. Any such alteration
+    diverges applied-vs-priced and fires here.
+
+    B4_competitor_field (2026-08-24) added a legitimate, NAMED, non-approval
+    step after price_fixed_tariff -- company.pricing.renewal_desk.
+    _apply_competitive_ceiling, the SVT-anchored undercut-pressure cap (see
+    that function's own docstring). That step is real and intentional, so the
+    checkpoint this guard spies on moved to it: it is still the single named
+    function through which every fixed term's rate must pass before
+    governance routing sees it, and an approval-layer alteration downstream of
+    it is exactly as invisible to price_fixed_tariff's own return value as
+    before B4 landed -- this guard still catches it.
     """
     records = _spiked_records()
-    priced: list[float] = []
-    real_price = renewal_desk.price_fixed_tariff
+    finalized: list[float] = []
+    real_final = renewal_desk._apply_competitive_ceiling
 
     def _spy(*a, **k):
-        rate = real_price(*a, **k)
-        priced.append(rate)
+        rate = real_final(*a, **k)
+        finalized.append(rate)
         return rate
 
-    monkeypatch.setattr(renewal_desk, "price_fixed_tariff", _spy)
+    monkeypatch.setattr(renewal_desk, "_apply_competitive_ceiling", _spy)
     schedule = build_renewal_schedule("C_PRICED", "2016-01-01", "2017-06-30", records, 2800)
 
     applied = [
@@ -145,8 +155,8 @@ def test_applied_fixed_rate_is_exactly_the_priced_rate_approval_cannot_alter_it(
         for t in schedule
         if t["unit_rate_gbp_per_mwh"] is not None
     ]
-    # Every fixed term applied EXACTLY the priced rate, one-for-one, in order.
-    assert applied == priced
+    # Every fixed term applied EXACTLY the finalized rate, one-for-one, in order.
+    assert applied == finalized
     # Guard against a vacuous pass: the fixture MUST contain a non-routine move
     # (the only case where the approval workflow runs at all) -- else there is
     # nothing for the neutrality guarantee to be about.

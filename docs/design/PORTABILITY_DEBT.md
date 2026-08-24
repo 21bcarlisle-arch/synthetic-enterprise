@@ -109,6 +109,13 @@ make the test green.
 # was refused by this row. The same-change rule cuts both ways: a row may not be written for
 # code that is not in the same commit, any more than code may be written without its row. B4
 # re-adds these two sites in the commit that lands the fields.
+# renewal_offer 9 -> 12, RE-ADDED 2026-08-24 by the commit that lands B4_competitor_field
+# (L0 -> L1) -- the same commit carries `published_svt_gbp_per_mwh` and
+# `published_market_switching_multiplier` into company/interfaces/renewal_offer.py, so the row
+# and the code now arrive together and the register is exact in both directions again. This is
+# the block above's own instruction being carried out, not a second pre-emptive amendment.
+# RECORDED RATHER THAN RENAMED for the reason row #1 gives: the currency belongs in a Money
+# type the adapter supplies, and lifting it out is a cross-cutting change, not a wall pass.
 # growth_desk 13 -> 22, amended 2026-08-24 under the same-change rule (atom PB3). The
 # net-new acquisition campaign needed the supplier's own quote budget on the world side, and
 # the epistemic-wall ratchet refused the direct `simulation -> saas.growth_mandate` import,
@@ -130,7 +137,7 @@ market_quantity   company/interfaces/growth_desk.py                    gbp      
 market_quantity   company/interfaces/internal_seams.py                 gbp          5
 market_quantity   company/interfaces/point_in_time_view.py             gbp          4
 market_quantity   company/interfaces/recorded_sim_interface.py         gbp          5
-market_quantity   company/interfaces/renewal_offer.py                  gbp          9
+market_quantity   company/interfaces/renewal_offer.py                  gbp         12
 market_quantity   company/interfaces/renewal_rate_chain.py             gbp          9
 market_quantity   company/interfaces/sim_interface.py                  gbp          12
 market_quantity   company/interfaces/tou_offer.py                       gbp          3

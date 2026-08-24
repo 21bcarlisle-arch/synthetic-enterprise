@@ -131,13 +131,13 @@
   lane: B_commercial
   value_stream: wholesale_to_price
   epoch: 4
-  level_current: 0
+  level_current: 1
   level_target: 1
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 3
   records_rehomed: [evidence]
-  file_scope: []
-  simplifications_count: 6
+  file_scope: ["company/pricing/renewal_desk.py", "company/interfaces/renewal_offer.py"]
+  simplifications_count: 7
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "real GB domestic switching market with ~8 active suppliers"
   depends_on: [W2_3_competitor_field]

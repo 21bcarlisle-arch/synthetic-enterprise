@@ -139,15 +139,26 @@ def request_renewal_offer(
     published_network_cost_per_mwh: float,
     prior_fixed_unit_rate: float | None,
     fallback_forward_price_gbp_per_mwh: float,
+    published_svt_gbp_per_mwh: float | None,
+    published_market_switching_multiplier: float,
 ) -> RenewalOffer:
     """Ask the company what it will quote this customer for this term.
 
-    Keyword-only on purpose: eleven positional arguments across a wall is how a
-    caller ends up passing the wrong observable without either side noticing.
+    Keyword-only on purpose: eleven-plus positional arguments across a wall is
+    how a caller ends up passing the wrong observable without either side
+    noticing.
 
     Every parameter is a plain value or a list of published market records. There is
     deliberately no parameter through which a caller could supply, or reach, the
     company's pricing engine, its decision policy or its decision log.
+
+    published_svt_gbp_per_mwh / published_market_switching_multiplier
+    (B4_competitor_field, 2026-08-24): the Ofgem-published domestic default-
+    tariff cap for this term, and the published aggregate market-savings
+    signal (docs/design/simplifications/B4_competitor_field.yaml) -- both
+    computed by the world from its own published-data modules
+    (simulation.svt_rates, simulation.market_switching_propensity) and handed
+    across as plain values, the same shape as the policy/network costs above.
     """
     # Imported HERE, not at module level, and for a measured reason: a module-level
     # `from ... import quote_renewal` puts the desk's own entry point in this
@@ -170,4 +181,6 @@ def request_renewal_offer(
         published_network_cost_per_mwh=published_network_cost_per_mwh,
         prior_fixed_unit_rate=prior_fixed_unit_rate,
         fallback_forward_price_gbp_per_mwh=fallback_forward_price_gbp_per_mwh,
+        published_svt_gbp_per_mwh=published_svt_gbp_per_mwh,
+        published_market_switching_multiplier=published_market_switching_multiplier,
     )

@@ -87,7 +87,7 @@ def _records(start: str, end: str, price: float = 60.0) -> list[dict]:
 
 def _ask(tariff_type="fixed", term_start="2017-01-01", records=None,
          prior=None, fallback=99.0, segment="resi", eac_kwh=2800,
-         customer_id="C_SEAM"):
+         customer_id="C_SEAM", svt=None, switching_multiplier=1.0):
     ts = date.fromisoformat(term_start)
     return request_renewal_offer(
         customer_id=customer_id,
@@ -102,6 +102,12 @@ def _ask(tariff_type="fixed", term_start="2017-01-01", records=None,
         published_network_cost_per_mwh=40.0,
         prior_fixed_unit_rate=prior,
         fallback_forward_price_gbp_per_mwh=fallback,
+        # B4_competitor_field (2026-08-24): svt=None keeps this seam-door
+        # suite's fixtures behaviourally identical to before the atom landed
+        # -- the ceiling never binds with no published SVT. The ceiling's own
+        # behaviour is covered by tests/company/pricing/test_renewal_desk.py.
+        published_svt_gbp_per_mwh=svt,
+        published_market_switching_multiplier=switching_multiplier,
     )
 
 
@@ -231,8 +237,8 @@ def test_mutation_a_defaulted_desk_parameter_reds_the_signature_control():
     """Perform it: give the door an `engine=` convenience default."""
     with _Mutant(
         SEAM_SOURCE,
-        "    fallback_forward_price_gbp_per_mwh: float,\n) -> RenewalOffer:",
-        "    fallback_forward_price_gbp_per_mwh: float,\n"
+        "    published_market_switching_multiplier: float,\n) -> RenewalOffer:",
+        "    published_market_switching_multiplier: float,\n"
         "    engine: object = None,  # MUTATION\n) -> RenewalOffer:",
         "mutant_renewal_offer_sig",
     ) as mutated:
@@ -301,6 +307,8 @@ def test_mutation_skipping_the_routing_for_one_product_reds_the_governance_contr
             published_network_cost_per_mwh=40.0,
             prior_fixed_unit_rate=None,
             fallback_forward_price_gbp_per_mwh=99.0,
+            published_svt_gbp_per_mwh=None,
+            published_market_switching_multiplier=1.0,
         )
         # The defect is silent on every other axis: a rate was still quoted.
         assert offer.unit_rate_gbp_per_mwh is not None
@@ -362,6 +370,8 @@ def test_mutation_dropping_the_cold_start_fallback_reds_the_control():
             published_network_cost_per_mwh=40.0,
             prior_fixed_unit_rate=None,
             fallback_forward_price_gbp_per_mwh=123.456,
+            published_svt_gbp_per_mwh=None,
+            published_market_switching_multiplier=1.0,
         )
         with pytest.raises(AssertionError):
             assert offer.company_forward_price_gbp_per_mwh == 123.456

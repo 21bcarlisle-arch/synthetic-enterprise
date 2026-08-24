@@ -112,6 +112,81 @@ NON_ROUTINE_RATE_INCREASE_THRESHOLD = 0.20
 # so the tariff applied is unchanged.
 APPROVAL_LATENCY_DAYS = 1
 
+# ---------------------------------------------------------------------------
+# B4_competitor_field (2026-08-24 BUILD, level 0 -> 1): the domestic SVT
+# ceiling / undercut-pressure signal.
+#
+# docs/design/simplifications/B4_competitor_field.yaml's 2026-07-15 DISCOVER
+# pass found the world publishes only an AGGREGATE market-savings signal
+# (simulation.market_switching_propensity.market_switching_multiplier), not a
+# per-competitor tariff field -- wiring company/market/tariff_benchmarking.py's
+# SupplierRank would have the company read a field the world does not
+# generate, an epistemic-wall violation. So the L1 undercut-pressure input is
+# that aggregate signal, handed in as a plain float by the world
+# (simulation/renewals.py), exactly the way published_policy_cost_per_mwh and
+# published_network_cost_per_mwh already cross this same door.
+# ---------------------------------------------------------------------------
+
+# SVT x 1.02 matches company/pricing/renewal_pricing_engine.py's own
+# CMA-2016-anchored ceiling -- 2% above SVT is the documented maximum that
+# preserves meaningful renewal conversion. That engine is orphaned (zero
+# non-test callers); this is the first live wiring of its calibration.
+_SVT_CEILING_PCT = 1.02
+# Tightens the ceiling as the published market-savings signal rises above the
+# 2024 baseline (multiplier == 1.0): the more savings available elsewhere, the
+# harder a renewal must undercut SVT to hold conversion. A quiet market
+# (multiplier <= 1.0 -- nowhere cheaper to go, e.g. the 2022 crisis) applies no
+# extra discount; the plain SVT x 1.02 ceiling is unchanged.
+_UNDERCUT_SENSITIVITY_PCT_PER_MULTIPLIER = 0.01
+_MIN_CEILING_PCT = 0.97  # floor: never demand pricing more than 3% below SVT
+
+
+def _competitive_ceiling_gbp_per_mwh(
+    svt_gbp_per_mwh: float, market_switching_multiplier: float,
+) -> float:
+    """The SVT-anchored ceiling this term's rate must not exceed, before the
+    cost floor (applied by the caller) protects against a guaranteed loss."""
+    pressure = max(0.0, market_switching_multiplier - 1.0)
+    ceiling_pct = max(
+        _MIN_CEILING_PCT,
+        _SVT_CEILING_PCT - _UNDERCUT_SENSITIVITY_PCT_PER_MULTIPLIER * pressure,
+    )
+    return round(svt_gbp_per_mwh * ceiling_pct, 2)
+
+
+def _apply_competitive_ceiling(
+    unit_rate: float,
+    *,
+    segment: str,
+    company_fwd: float,
+    locked_policy: float,
+    locked_network: float,
+    published_svt_gbp_per_mwh: float | None,
+    published_market_switching_multiplier: float,
+) -> float:
+    """Cap a struck fixed rate at the domestic competitive ceiling.
+
+    Real GB SVT (the Ofgem default-tariff cap) is a domestic-only protection
+    -- I&C/SME customers are never on it, so the ceiling only applies to the
+    resi segment. It never prices below the wholesale-plus-published-pass-
+    through-cost floor: a genuine wholesale spike (cost floor above the
+    ceiling) still reaches its full rate and its full non-routine escalation,
+    matching renewal_pricing_engine.py's own NO_OFFER-preserving shape -- an
+    undercut ceiling may cost margin, it may never force a sale below cost.
+
+    Named and called from one place so the R15 seam guard
+    (tests/simulation/test_renewals_approval_routing.py) can spy on exactly
+    this step: the last thing that may touch the rate before governance
+    routing sees it.
+    """
+    if segment != "resi" or published_svt_gbp_per_mwh is None:
+        return unit_rate
+    ceiling = _competitive_ceiling_gbp_per_mwh(
+        published_svt_gbp_per_mwh, published_market_switching_multiplier
+    )
+    cost_floor = company_fwd + locked_policy + locked_network
+    return min(unit_rate, max(ceiling, cost_floor))
+
 
 @dataclass(frozen=True)
 class FixedRateStrike:
@@ -249,6 +324,8 @@ def quote_renewal(
     published_network_cost_per_mwh: float,
     prior_fixed_unit_rate: float | None,
     fallback_forward_price_gbp_per_mwh: float,
+    published_svt_gbp_per_mwh: float | None,
+    published_market_switching_multiplier: float,
 ) -> RenewalOffer:
     """Decide the company's offer for one renewal term.
 
@@ -298,6 +375,15 @@ def quote_renewal(
     locked_network = _strike.locked_network_cost_gbp_per_mwh
 
     if unit_rate is not None:
+        unit_rate = _apply_competitive_ceiling(
+            unit_rate,
+            segment=segment,
+            company_fwd=company_fwd,
+            locked_policy=locked_policy,
+            locked_network=locked_network,
+            published_svt_gbp_per_mwh=published_svt_gbp_per_mwh,
+            published_market_switching_multiplier=published_market_switching_multiplier,
+        )
         _route_pricing_move(
             customer_id=customer_id,
             term_start=term_start,

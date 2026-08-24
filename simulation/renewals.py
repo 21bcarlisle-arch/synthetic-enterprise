@@ -31,6 +31,7 @@ from datetime import date, timedelta
 from company.interfaces.renewal_offer import request_renewal_offer
 
 from sim.forward_curve import generate_forward_price
+from simulation.market_switching_propensity import market_switching_multiplier
 from simulation.policy_costs import (
     get_cm_levy_per_mwh,
     get_fit_levy_per_mwh,
@@ -38,6 +39,7 @@ from simulation.policy_costs import (
     get_electricity_policy_cost_per_mwh,
 )
 from simulation.settlement import CONTRACT_LENGTH_DAYS
+from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
 
 # Phase 34a: company prices the tariff 42 days before term start (statutory notice period).
 # The company's forward estimate uses market data observable at notice_date, not at term_start.
@@ -137,6 +139,13 @@ def build_renewal_schedule(
             + get_fit_levy_per_mwh(term_start_str)
         )
         network_cost = get_electricity_network_cost_per_mwh(term_start_str, segment)
+        # B4_competitor_field (2026-08-24): two more published figures, handed
+        # over the same way as policy_cost/network_cost above -- the Ofgem
+        # domestic default-tariff cap (None before 2016, where no data exists)
+        # and the published aggregate market-savings signal for the term's
+        # year (docs/design/simplifications/B4_competitor_field.yaml).
+        svt_gbp_per_mwh = get_svt_elec_rate_gbp_per_mwh(term_start_str)
+        switching_multiplier = market_switching_multiplier(term_start.year)
         # KNIFE pass 3, B7_renewal_is_a_company_decision: the world serves notice and
         # then ASKS. What comes back is an offer — a rate, the forward the company
         # priced off, and the two cost components it chose to lock. Which forward it
@@ -158,6 +167,8 @@ def build_renewal_schedule(
             # the company's notice-date lookback window is empty. A named leak, not
             # an oversight — register §3a records it as owed.
             fallback_forward_price_gbp_per_mwh=sim_fwd,
+            published_svt_gbp_per_mwh=svt_gbp_per_mwh,
+            published_market_switching_multiplier=switching_multiplier,
         )
         company_fwd = offer.company_forward_price_gbp_per_mwh
         unit_rate = offer.unit_rate_gbp_per_mwh
