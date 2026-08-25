@@ -240,6 +240,24 @@ def test_deemed_tariff_type_field():
 
 # --- MARGIN_REALISM Step 5 (W3_1_price_cap_binding): the Ofgem cap as a
 # BINDING constraint on deemed/SVT pricing, not just a lookup ---
+#
+# BASIS (2026-08-25, the VAT-basis repair). The literals below -- 208.0, 40.7,
+# 283.4 -- are the PUBLISHED cap levels, and the commons artefact declares them
+# INCLUDING VAT at 5%. Every rate this module settles is ex-VAT: VAT is a
+# separate line added downstream. Until the repair these tests asserted that the
+# settled ex-VAT rate EQUALLED the inc-VAT level, which is the defect itself
+# written down as an expectation -- a ceiling 5% above the law, passing green
+# since the clamp was written. They now assert the de-VATed level, and
+# `tests/simulation/test_price_cap_vat_basis.py` holds the control that fires if
+# the rate and the ceiling ever land on opposite sides of VAT again.
+#
+# 0.05 is written out rather than imported from the module under test: importing
+# it would derive the expectation from the same constant the code uses, and the
+# assertion would then pass with any VAT rate at all (R15, TAUTOLOGY).
+def _ex_vat(published_inc_vat_level: float) -> float:
+    """A published (inc-VAT) cap level restated on the ex-VAT basis rates settle on."""
+    return published_inc_vat_level / 1.05
+
 
 def test_deemed_cap_binds_when_spot_plus_premium_exceeds_cap_post_2019():
     """The cap in force on 1 Jan 2022 is 208.0 GBP/MWh -- the Oct-2021 cap, which
@@ -258,7 +276,7 @@ def test_deemed_cap_binds_when_spot_plus_premium_exceeds_cap_post_2019():
         commodity="electricity",
     )
     r = result[0]
-    assert r["unit_rate_gbp_per_mwh"] == pytest.approx(208.0)
+    assert r["unit_rate_gbp_per_mwh"] == pytest.approx(_ex_vat(208.0))
     assert r["cap_bound"] is True
     # Wholesale cost is unaffected by the cap -- the company still buys at spot.
     assert r["wholesale_cost_gbp"] == pytest.approx(1000.0 * (2.0 / 1000.0))
@@ -334,7 +352,7 @@ def test_deemed_gas_commodity_uses_gas_cap_not_electricity_cap():
         commodity="gas",
     )
     r = result[0]
-    assert r["unit_rate_gbp_per_mwh"] == pytest.approx(40.7)
+    assert r["unit_rate_gbp_per_mwh"] == pytest.approx(_ex_vat(40.7))
     assert r["cap_bound"] is True
 
 
@@ -368,8 +386,8 @@ def test_deemed_cap_year_tracks_settlement_date_not_term_start_across_year_bound
     dec_2021 = [r for r in across_new_year if r["settlement_date"] == "2021-12-31"]
     jan_2022 = [r for r in across_new_year if r["settlement_date"] == "2022-01-01"]
     assert dec_2021 and jan_2022
-    assert all(r["unit_rate_gbp_per_mwh"] == pytest.approx(208.0) for r in dec_2021)
-    assert all(r["unit_rate_gbp_per_mwh"] == pytest.approx(208.0) for r in jan_2022)
+    assert all(r["unit_rate_gbp_per_mwh"] == pytest.approx(_ex_vat(208.0)) for r in dec_2021)
+    assert all(r["unit_rate_gbp_per_mwh"] == pytest.approx(_ex_vat(208.0)) for r in jan_2022)
 
     # (b) the real cap-window boundary IS
     across_the_step = run_deemed_term(
@@ -385,8 +403,8 @@ def test_deemed_cap_year_tracks_settlement_date_not_term_start_across_year_bound
     mar = [r for r in across_the_step if r["settlement_date"] == "2022-03-31"]
     apr = [r for r in across_the_step if r["settlement_date"] == "2022-04-01"]
     assert mar and apr
-    assert all(r["unit_rate_gbp_per_mwh"] == pytest.approx(208.0) for r in mar)
-    assert all(r["unit_rate_gbp_per_mwh"] == pytest.approx(283.4) for r in apr)
+    assert all(r["unit_rate_gbp_per_mwh"] == pytest.approx(_ex_vat(208.0)) for r in mar)
+    assert all(r["unit_rate_gbp_per_mwh"] == pytest.approx(_ex_vat(283.4)) for r in apr)
     assert all(r["cap_bound"] is True for r in across_new_year + across_the_step)
 
 

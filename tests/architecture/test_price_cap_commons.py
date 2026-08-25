@@ -180,15 +180,20 @@ def cap_reading_divergence() -> list[tuple[date, str, float | None, float | None
     are independently owned and a supplier misreading the cap is a fidelity
     feature. It exists so that divergence is a visible event rather than a silent
     one.
+
+    BOTH SIDES ARE READ INC-VAT, which is the basis the commons publishes, so
+    what this reports is a divergence in the READING and never an artefact of
+    units. The world's ex-VAT accessor exists for comparison against a settled
+    rate, not for comparison against the company's belief.
     """
     from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
-    from simulation.price_cap_enforcement import binding_cap_unit_rate_gbp_per_mwh
+    from simulation.price_cap_enforcement import binding_cap_unit_rate_gbp_per_mwh_inc_vat
 
     out = []
     for d in _published_span():
         for fuel in ("electricity", "gas"):
             company = get_cap_unit_rate_for_date(fuel, d)
-            world = binding_cap_unit_rate_gbp_per_mwh(fuel, d)
+            world = binding_cap_unit_rate_gbp_per_mwh_inc_vat(fuel, d)
             if company != world:
                 out.append((d, fuel, company, world))
     return out
@@ -200,7 +205,7 @@ def test_the_two_readings_are_independent_and_the_harness_can_prove_it(monkeypat
     permanently empty, and nothing notices — which is the state the cut removed.
 
     MUTATION (must fire): make `simulation.price_cap_enforcement.
-    binding_cap_unit_rate_gbp_per_mwh` delegate to
+    binding_cap_unit_rate_gbp_per_mwh_inc_vat` delegate to
     `company.pricing.ofgem_price_cap.get_cap_unit_rate_for_date`.
 
     The mutation is injected on the COMPANY side, and the assertion is that the
@@ -209,10 +214,10 @@ def test_the_two_readings_are_independent_and_the_harness_can_prove_it(monkeypat
     company, the company's misreading would propagate.
     """
     import company.pricing.ofgem_price_cap as company_cap
-    from simulation.price_cap_enforcement import binding_cap_unit_rate_gbp_per_mwh
+    from simulation.price_cap_enforcement import binding_cap_unit_rate_gbp_per_mwh_inc_vat
 
     probe = date(2022, 2, 15)  # inside the Oct-2021 window, the crisis one
-    world_before = binding_cap_unit_rate_gbp_per_mwh("electricity", probe)
+    world_before = binding_cap_unit_rate_gbp_per_mwh_inc_vat("electricity", probe)
 
     # The company misreads the law: it forgets that the cap moved mid-year and
     # falls back to its own annual blend. A real, plausible misreading, and
@@ -231,7 +236,7 @@ def test_the_two_readings_are_independent_and_the_harness_can_prove_it(monkeypat
         "test would pass even if the world still read the company's answer"
     )
 
-    world_after = binding_cap_unit_rate_gbp_per_mwh("electricity", probe)
+    world_after = binding_cap_unit_rate_gbp_per_mwh_inc_vat("electricity", probe)
     assert world_after == world_before, (
         "the world's enforced ceiling moved when the COMPANY's reading was "
         "mutated — the lanes are still coupled"
@@ -315,7 +320,7 @@ def test_past_the_published_schedule_the_last_level_still_binds(module_name: str
     lookup = (
         module.get_cap_unit_rate_for_date
         if module_name.startswith("company")
-        else module.binding_cap_unit_rate_gbp_per_mwh
+        else module.binding_cap_unit_rate_gbp_per_mwh_inc_vat
     )
     far_future = date.today().replace(year=date.today().year + 40)
     assert lookup("electricity", far_future) is not None

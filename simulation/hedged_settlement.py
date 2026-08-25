@@ -41,7 +41,7 @@ from datetime import date, timedelta
 
 from sim.hedging import settle_hedged_period
 from sim.risk_engine import compute_net_margin
-from simulation.price_cap_enforcement import binding_cap_unit_rate_gbp_per_mwh
+from simulation.price_cap_enforcement import binding_cap_unit_rate_gbp_per_mwh_ex_vat
 from simulation.policy_costs import (
     get_ccl_per_mwh,
     get_cfd_levy_per_mwh,
@@ -316,7 +316,14 @@ def run_deemed_term(
                 # a misread became unrepresentable. Both lanes read the same
                 # published law from the regulation commons; neither reads the
                 # other's interpretation of it.
-                _cap = binding_cap_unit_rate_gbp_per_mwh(commodity, current_date)
+                #
+                # 2026-08-25: EX-VAT, and the suffix is load-bearing.
+                # `uncapped_rate_gbp_per_mwh` is a spot price times a premium —
+                # ex-VAT, like every rate this file settles. The published cap is
+                # inc-VAT at 5%. Clamping one against the other let the world
+                # enforce a ceiling 5% above the law, always in the supplier's
+                # favour. Compare like with like or the ceiling is a fiction.
+                _cap = binding_cap_unit_rate_gbp_per_mwh_ex_vat(commodity, current_date)
                 if _cap is not None:
                     billed_rate_gbp_per_mwh = min(uncapped_rate_gbp_per_mwh, _cap)
 
