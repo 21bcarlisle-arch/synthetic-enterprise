@@ -140,8 +140,40 @@ class AcquisitionFunnelResult:
     credit_bureau_true_creditworthy: bool | None = None
 
 
-def _quote_to_application_rate(segment: str) -> float:
-    return QUOTE_TO_APPLICATION.get(segment, QUOTE_TO_APPLICATION["resi"])
+def _quote_to_application_rate(segment: str, price_differential_pct: float = 0.0) -> float:
+    """Quote -> application, and the ONE stage our own price position reaches.
+
+    Atom `PB3_book_growth_as_earned_outcome`, exit criterion (b1), 2026-08-25. Until now
+    every rate in this file was a function of `segment` alone (`_cooling_off_survival_rate`
+    adds the date, for a statutory reason). That made the win side blind to the company's
+    price in a way the loss side never was: price badly and the book shrank, price
+    brilliantly and it grew at exactly the same 24%. A company with the best offer in the
+    market acquired at the same rate as one with the worst.
+
+    WHY THIS STAGE AND NO OTHER. Quote -> application is the household comparing our number
+    against the market's and deciding whether to proceed; that is the only stage in the
+    funnel where our price is the subject. Credit check is the bureau's verdict on the
+    applicant, onboarding is our own operations, and cooling-off is a statutory window whose
+    survival rate is a regime fact — none of the three is a judgement about our offer, and
+    scaling them by price position would be inventing a response nothing supports.
+
+    `price_differential_pct` defaults to 0.0 (parity) and the multiplier is exactly 1.0
+    there, so every existing caller — including the replacement path in `run_phase2b`,
+    which passes nothing — is byte-identical.
+
+    CLAMPED AT 1.0 rather than at the research range's upper end. `QUOTE_TO_APPLICATION`
+    is a probability, and a sufficiently cheap offer would otherwise carry it past one and
+    turn a rate into a certainty. The clamp is a bound on the arithmetic; it is not a cap
+    on how competitive the company may be. At the shipped resi rate of 0.24 it binds only
+    past a multiplier of 4.17, i.e. at the curve's own saturation of 4.4 — a supplier
+    priced ~28% below the market average, which is far outside anything the company's
+    capital lets it sustain. If a run ever reaches it, the model has stopped distinguishing
+    between very cheap offers, and that is a fidelity limit worth knowing about.
+    """
+    from simulation.market_switching_propensity import offer_position_multiplier
+
+    base = QUOTE_TO_APPLICATION.get(segment, QUOTE_TO_APPLICATION["resi"])
+    return min(1.0, base * offer_position_multiplier(price_differential_pct))
 
 
 def _credit_check_to_onboarding_rate(segment: str) -> float:
@@ -175,7 +207,8 @@ def _stage_day_offset(seed: str, stage: str) -> int:
     return rng.randint(lo, hi)
 
 
-def run_acquisition_funnel(segment, seed, term_start, credit_bureau, total_amount_gbp):
+def run_acquisition_funnel(segment, seed, term_start, credit_bureau, total_amount_gbp,
+                           price_differential_pct: float = 0.0):
     """Run quote -> application -> credit_check -> onboarding -> cooling_off.
 
     credit_bureau must expose .check_credit(applicant_id, segment, seed) -> result
@@ -189,6 +222,14 @@ def run_acquisition_funnel(segment, seed, term_start, credit_bureau, total_amoun
     Every stage draws from an independent seeded RNG except credit_check, which is
     delegated to credit_bureau. Same seed + term_start always reproduces the same
     result.
+
+    price_differential_pct is our price against the market average as a fraction, and it
+    reaches exactly one stage — see `_quote_to_application_rate`. It defaults to parity,
+    where it changes nothing. The ROLL is unchanged by it in every case: the same seeded
+    uniform is drawn and only the threshold it is compared against moves, so a prospect
+    who would have applied at parity still applies at a cheaper price, and the prospects a
+    price change wins or loses are the marginal ones. That is what makes a book difference
+    between two price positions attributable to the price rather than to a reshuffled draw.
 
     THE WALL (KNIFE pass 3, design B6_cpa_is_company_accounting)
     ------------------------------------------------------------
@@ -233,7 +274,9 @@ def run_acquisition_funnel(segment, seed, term_start, credit_bureau, total_amoun
 
     _record("quote", True)
 
-    passed = _bernoulli(seed, "application", _quote_to_application_rate(segment))
+    passed = _bernoulli(
+        seed, "application", _quote_to_application_rate(segment, price_differential_pct)
+    )
     _record("application", passed)
     if not passed:
         return _result("application", False)

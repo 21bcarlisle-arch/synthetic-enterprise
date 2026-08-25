@@ -468,3 +468,178 @@ def test_both_legs_read_the_SAME_switching_constant():
 
     src = inspect.getsource(nna.homes_in_market)
     assert "market_switching_propensity" in src, "the ADD leg no longer reads it either"
+
+
+# ---------------------------------------------------------------------------
+# EXIT (b1) — the arrival stream held FIXED, and our own market position alone
+# moves the book in BOTH directions
+#
+# This is the leg the 2026-08-18 re-amendment added and the 2026-08-20 DISCOVER pass
+# measured absent: "the company's price is the only lever on book size, and it works in
+# one direction." Losses have read `price_differential_pct` since Phase NS
+# (`customer_events` -> `home_move_win_rate`); until 2026-08-25 nothing on the win side
+# did, so a company with the best offer in the market acquired at the same 24% as one
+# with the worst.
+#
+# EVERYTHING EXCEPT THE PRICE IS PINNED in the three tests below -- same seed, same year,
+# same prospect draw, same premise stock, same credit bureau, same quote budget, same
+# settlement budget. `price_differential_pct` is the only input that moves, which is what
+# "our own market position ALONE" requires and what makes the difference attributable.
+# ---------------------------------------------------------------------------
+
+def _priced(d: float, *, year: int = 2018, quotes: int = 300):
+    """The identical campaign at one price position. Nothing here varies but `d`."""
+    import functools
+
+    from simulation.acquisition_funnel import run_acquisition_funnel
+    from tools.credit_adapters import get_credit_bureau_adapter
+
+    return _campaign(
+        years=[year],
+        run_funnel=functools.partial(run_acquisition_funnel, price_differential_pct=d),
+        credit_bureau=get_credit_bureau_adapter(),
+        quote_budget_fn=_budget(quotes),
+        customer_year_budget=100_000.0,
+    )
+
+
+def test_b1_our_own_price_position_moves_the_book_in_BOTH_directions():
+    """The exit criterion, stated as the ruling states it: won AND lost against the market.
+
+    Cheaper than the market average wins MORE of the same prospects; dearer wins FEWER. One
+    company decision, one mechanism, both directions -- which is what separates this from a
+    curve that merely goes up and down for unrelated reasons (the R15 fail-open the
+    2026-08-18 re-amendment closed).
+    """
+    cheap = len(_priced(-0.05)["winners"])
+    parity = len(_priced(0.0)["winners"])
+    dear = len(_priced(+0.05)["winners"])
+
+    assert cheap > parity, f"pricing below the market won nothing extra: {cheap} vs {parity}"
+    assert dear < parity, f"pricing above the market cost nothing: {dear} vs {parity}"
+    # Non-vacuity on both ends: neither extreme may be the trivial all-or-nothing campaign,
+    # or this passes on a mechanism that simply switched acquisition off or on.
+    assert 0 < dear, "the dear campaign won nothing at all -- that is a switch, not elasticity"
+    assert cheap < 300, "the cheap campaign won every quote -- the funnel stopped filtering"
+
+
+def test_b1_the_prospect_STREAM_is_identical_across_the_three_price_positions():
+    """The null control the criterion names: the ARRIVAL STREAM must be HELD FIXED.
+
+    Without this, `test_b1_...BOTH_directions` above is satisfiable by a price that quietly
+    reshuffles or re-sizes the draw -- a bigger book from more prospects, not from a better
+    offer. The homes quoted into, the number of quotes issued and the year's in-play market
+    are asserted byte-identical at all three positions, so the ONLY thing that differs
+    between them is which prospects said yes.
+    """
+    rows = {d: _priced(d)["by_year"][0] for d in (-0.05, 0.0, +0.05)}
+
+    assert len({r["homes_in_market"] for r in rows.values()}) == 1, (
+        "our price changed the SIZE of the market -- that is the world's fact, not ours"
+    )
+    assert len({r["quotes_issued"] for r in rows.values()}) == 1, (
+        "our price changed how many quotes we issued -- the arrival stream is not held fixed"
+    )
+    quoted = {
+        d: tuple(row["prospect_id"] for row in _priced(d)["spend"])
+        for d in (-0.05, 0.0, +0.05)
+    }
+    assert quoted[-0.05] == quoted[0.0] == quoted[+0.05], (
+        "a different set of homes was quoted at a different price -- the win difference is "
+        "not attributable to the offer"
+    )
+
+
+def test_b1_the_win_side_reads_the_SAME_elasticity_the_loss_side_does():
+    """Both legs, one curve. `_savings_to_rate` is the DESNZ-calibrated piecewise function
+    the churn leg has used since Phase NS; the win side must resolve that same object rather
+    than a private copy of it, or book size becomes tunable on one leg alone.
+    """
+    import inspect
+
+    from simulation import acquisition_funnel, market_switching_propensity as msp
+
+    assert "_savings_to_rate" in inspect.getsource(msp.offer_position_multiplier), (
+        "the win side stopped reading the shared elasticity"
+    )
+    assert "offer_position_multiplier" in inspect.getsource(
+        acquisition_funnel._quote_to_application_rate
+    ), "the funnel stopped reading the price position at all"
+
+    # And the guarantee that makes goal-seeking structurally unavailable rather than merely
+    # forbidden: every gain on one leg is exactly the reciprocal of the cost on the other.
+    for d in (0.01, 0.05, 0.10, 0.25):
+        assert msp.offer_position_multiplier(d) * msp.offer_position_multiplier(-d) == pytest.approx(
+            1.0
+        ), f"the two directions stopped being each other's price at d={d}"
+
+
+def test_b1_parity_is_EXACTLY_unchanged_so_the_shipped_run_moved_not_one_roll():
+    """The wiring is provably inert at the run's shipped position (`PRICE_DIFFERENTIAL_PCT
+    = 0.0`). A mechanism that shifted the book merely by existing could not be read as a
+    response to a price the company chose."""
+    from simulation.acquisition_funnel import QUOTE_TO_APPLICATION, _quote_to_application_rate
+    from simulation.market_switching_propensity import offer_position_multiplier
+
+    assert offer_position_multiplier(0.0) == 1.0
+    for segment in ("resi", "SME"):
+        assert _quote_to_application_rate(segment) == QUOTE_TO_APPLICATION[segment]
+        assert _quote_to_application_rate(segment, 0.0) == QUOTE_TO_APPLICATION[segment]
+
+
+def test_MUTATION_b1_a_price_blind_funnel_makes_both_directions_vanish():
+    """R15 for `test_b1_our_own_price_position_moves_the_book_in_BOTH_directions`.
+
+    The mutation IS the pre-2026-08-25 build: a quote-to-application rate that is a function
+    of segment alone. Applied to the imported module object through monkeypatch, never to a
+    file. If the book still moved with the price under this mutation, the movement would be
+    coming from somewhere other than the mechanism this atom built.
+    """
+    from simulation import acquisition_funnel
+
+    original = acquisition_funnel._quote_to_application_rate
+    try:
+        acquisition_funnel._quote_to_application_rate = (
+            lambda segment, price_differential_pct=0.0: acquisition_funnel.
+            QUOTE_TO_APPLICATION.get(segment, acquisition_funnel.QUOTE_TO_APPLICATION["resi"])
+        )
+        cheap = len(_priced(-0.05)["winners"])
+        parity = len(_priced(0.0)["winners"])
+        dear = len(_priced(+0.05)["winners"])
+    finally:
+        acquisition_funnel._quote_to_application_rate = original
+
+    assert cheap == parity == dear, (
+        "the price-blind funnel STILL moved the book -- the win difference in the live test "
+        f"is not attributable to the price position ({cheap}/{parity}/{dear})"
+    )
+
+
+def test_MUTATION_b1_the_market_crisis_floor_on_the_dearer_side_flattens_it():
+    """R15 for the negative branch, and it guards a defect this build actually had.
+
+    The first draft read `_savings_to_rate` straight on both sides. Its negative branch
+    returns the flat crisis floor, which encodes 2022's "nowhere cheaper to go" -- a fact
+    about THE MARKET having no cheaper alternative, false by construction for one supplier
+    priced above the average. Under that reading every dearer position collapsed onto a
+    single value: 1% above the market cost exactly what 20% above cost, i.e. a supplier
+    could raise prices without limit at no cost to its win rate.
+
+    The mutation restores the straight read. The live assertion below it is the one that
+    fails under the mutation, which is what makes it a control rather than a comment.
+    """
+    from simulation import market_switching_propensity as msp
+
+    dear = [msp.offer_position_multiplier(d) for d in (0.01, 0.05, 0.10, 0.20)]
+    assert dear == sorted(dear, reverse=True) and len(set(dear)) == 4, (
+        "the dearer side is not strictly monotone -- a price rise is free somewhere"
+    )
+
+    mutated = [
+        msp._savings_to_rate(-d * msp.CALIBRATION_ANNUAL_BILL_GBP) / msp._PARITY_RATE
+        for d in (0.01, 0.05, 0.10, 0.20)
+    ]
+    assert len(set(mutated)) == 1, (
+        "the mutation no longer reproduces the flat-crisis-floor defect, so this control is "
+        "asserting against a mechanism that has moved"
+    )

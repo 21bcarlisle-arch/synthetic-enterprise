@@ -100,3 +100,103 @@ def market_switching_multiplier(renewal_year: int) -> float:
     adjusted_rate = _savings_to_rate(savings) * structural
     cal = _calibration_rate()
     return max(adjusted_rate / cal, _CRISIS_FLOOR_RATE / cal)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# THE OTHER SIDE OF THE SAME CURVE — what OUR price position does to switching
+#
+# Atom `PB3_book_growth_as_earned_outcome`, exit criterion (b1), 2026-08-25.
+#
+# Everything above answers "how many households moved supplier this year", and the
+# loss leg has read it since Phase NS. It is a MARKET-level fact: it says how big the
+# switching flow was, and nothing about which supplier won it. `MARKET_SAVINGS_BY_YEAR`
+# is keyed on the year alone, so no decision this company makes can move it, and that
+# is correct — one small supplier does not set the national switching rate.
+#
+# What was missing is the half that IS the company's: a household deciding between the
+# market average and OUR offer. The driver is the same one the module already argues for
+# and the same one 2022 disconfirmed the alternative of — SAVINGS AVAILABLE, not the
+# absolute price level. So this reads `_savings_to_rate`, the identical piecewise curve,
+# at the savings OUR position offers rather than at the savings the market offers.
+#
+# WHY THAT SHARING IS LOAD-BEARING AND NOT TIDINESS (R12, and the director's
+# anti-goal-seek guard of 2026-08-17, registered in this atom's simplifications file
+# before the build). Book size is wins minus losses. Both are now functions of the same
+# `price_differential_pct` through the same elasticity, with opposite signs: pricing
+# down wins prospects AND holds the existing book, pricing up loses both. There is no
+# constant here that can be moved to grow the book without paying for it on the other
+# leg, so goal-seeking on book size is structurally unavailable rather than forbidden by
+# a rule someone has to remember.
+
+#: Reference annual dual-fuel bill at the calibration year, GBP. This exists ONLY to put
+#: `price_differential_pct` — a fraction — onto the GBP scale `_savings_to_rate` is
+#: calibrated in. Anchored on the Ofgem Default Tariff Cap typical dual-fuel
+#: direct-debit level through 2024, which sat at £1,690 (Apr-Jun) and £1,717 (Oct-Dec).
+#:
+#: IT IS A SCALE, NOT A MODELLED BILL, and the distinction matters because no customer's
+#: bill is computed from it anywhere — `simulation/price_cap_enforcement.py` owns what a
+#: bill may be and is untouched by this. Getting it wrong stretches or compresses how
+#: sharply the win side responds to a given price position; it cannot move anybody's money.
+#:
+#: SANITY CHECK, and it is the reason to trust the pairing rather than the figure: the
+#: calibration year's market saving is £150 against this bill, i.e. the best deal in the
+#: market sat ~8.8% below the average. That is a plausible best-vs-average spread for
+#: 2024 and it is the consistency test this constant actually has to pass.
+CALIBRATION_ANNUAL_BILL_GBP = 1700.0
+
+#: Parity denominator. `_savings_to_rate(0.0)` is the propensity of a household offered
+#: exactly the market average — the shipped run's position (`PRICE_DIFFERENTIAL_PCT = 0.0`).
+#: Normalising by it makes the multiplier EXACTLY 1.0 at parity, so wiring this in changes
+#: no shipped outcome by a single roll, and every movement below is attributable to a price
+#: position the company chose.
+_PARITY_RATE = _savings_to_rate(0.0)
+
+
+def offer_position_multiplier(price_differential_pct: float) -> float:
+    """The world's response to OUR price against the market average. 1.0 at parity.
+
+    `price_differential_pct` is our price relative to the market average as a fraction:
+    ``0.05`` = 5% above (dearer), ``-0.05`` = 5% below (cheaper). It is the SAME run
+    parameter the loss leg already reads — `simulation.customer_events` passes it to
+    `saas.home_move_win_rate.build_home_move_win_rates`, where being dearer lowers the
+    probability of holding a property through a move.
+
+    Above 1.0 means a household is more willing to take our offer than the market's;
+    below 1.0, less. Multiplies a WIN-side conversion rate; it never touches the size of
+    the market (`net_new_acquisition.homes_in_market` owns that, off the year-keyed
+    series), because how many homes are in play is the world's fact and how many of them
+    take our quote is ours.
+
+    THE CURVE IS READ ON ITS POSITIVE SIDE ONLY, AND ITS NEGATIVE BRANCH IS DELIBERATELY
+    NOT REUSED. This is the one place where the market-level curve does not transfer, and
+    reading it straight was the first draft's defect — measured, not reasoned about: every
+    dearer position collapsed onto a single value, so being 1% above the market cost
+    exactly what being 20% above cost. The cause is that `_savings_to_rate` returns the
+    flat `_CRISIS_FLOOR_RATE` for negative savings, and that floor encodes the 2022
+    "nowhere cheaper to go" effect — a statement about THE MARKET having no cheaper
+    alternative. For one supplier priced above the average the premise is false by
+    construction: a cheaper alternative exists, it is the average. Transferring the floor
+    would have modelled a supplier who can raise prices indefinitely at no cost to its win
+    rate, which is the precise shape of the defect this atom exists to remove.
+
+    SO THE DEARER SIDE IS THE MIRROR OF THE CHEAPER SIDE, and this is a NAMED SIMPLIFICATION
+    (registered in this atom's simplifications file, 2026-08-25): pricing 10% above the
+    market is assumed to cost exactly what pricing 10% below it gains, reciprocally. Real
+    retail is not symmetric — loss aversion and incumbency inertia both say a dearer offer
+    is punished harder than a cheaper one is rewarded — and nothing in the DESNZ series can
+    settle the asymmetry, because a market-level switching count never observed this
+    supplier's own quote book. Symmetry is the assumption that invents least, and it is
+    monotone, which is the property the model actually needs.
+
+    It also makes the anti-goal-seek guarantee exact rather than approximate:
+    ``m(d) * m(-d) == 1`` for every d, so the win side's gain from a price cut is precisely
+    the reciprocal of what the same cut costs elsewhere. There is no d at which both legs
+    improve.
+
+    Bounded by the curve itself, not by a clamp bolted on: `_savings_to_rate` saturates at
+    0.22, so this returns [1/4.4, 4.4] across every finite input.
+    """
+    our_saving_gbp = -float(price_differential_pct) * CALIBRATION_ANNUAL_BILL_GBP
+    if our_saving_gbp >= 0.0:
+        return _savings_to_rate(our_saving_gbp) / _PARITY_RATE
+    return _PARITY_RATE / _savings_to_rate(-our_saving_gbp)
