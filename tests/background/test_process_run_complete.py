@@ -1869,3 +1869,130 @@ def test_a_redirected_sim_runner_log_still_writes(monkeypatch, tmp_path):
     monkeypatch.setattr(prc, "LOG_FILE", dest)
     prc.log("Publish gate scope: 6 publish-path source(s) -> 163 blocking test file(s)")
     assert "163 blocking test file(s)" in dest.read_text()
+
+
+# ── THE STALE INDEX LOCK THAT REPORTED ITSELF AS A PATHSPEC ERROR (2026-08-25) ───────────────
+#
+# `.git/index.lock`, 1,274,828 bytes, mtime 6,182s old, with NO git process alive. `git add`
+# failed with "Unable to create '.git/index.lock': File exists"; its rc was never read and its
+# stderr was captured into a variable nobody looked at. Nothing was staged, so the
+# `git commit -- <pathspec>` that followed was handed paths the index had never heard of and
+# reported a pathspec error about a file that existed, was not ignored, and was perfectly legal
+# to add. Nine consecutive publish cycles failed that way; it took 1h43m to find.
+
+_LOCK_STDERR = "fatal: Unable to create '/home/rich/synthetic-enterprise/.git/index.lock': File exists."
+
+
+def _publish_with_add(monkeypatch, tmp_path, *, add):
+    """Drive git_commit_push with `git add` answering `add()`.
+
+    Returns (outcome reason, the git subcommands actually attempted, the lines logged).
+    """
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(prc, "tree_lock", lambda *a, **k: contextlib.nullcontext())
+    monkeypatch.setattr(prc, "_provenance_is_publishable", lambda *a, **k: True)
+    # A non-empty pathspec, so the COMMIT_REFUSED below can only be the add's doing and not
+    # the pre-existing empty-pathspec refusal a few lines under it.
+    monkeypatch.setattr(prc, "_commit_pathspec", lambda *a, **k: ["docs/reports/ANNUAL_REPORT.md"])
+    monkeypatch.setattr(prc, "_push_due", lambda: False)
+    logged = []
+    monkeypatch.setattr(prc, "log", lambda msg, *a, **kw: logged.append(str(msg)))
+    attempted = []
+
+    def fake_run(cmd, **kwargs):
+        attempted.append(list(cmd[:2]))
+        if list(cmd[:2]) == ["git", "add"]:
+            return add()
+        return fake_completed(cmd, **kwargs)
+    monkeypatch.setattr(prc.subprocess, "run", fake_run)
+
+    outcome = {}
+    prc.git_commit_push("abc1234", 1000.0, outcome=outcome)
+    return outcome.get("reason"), attempted, "\n".join(logged)
+
+
+def test_a_failed_git_add_refuses_the_cycle_and_names_the_lock(tmp_path, monkeypatch):
+    """MUTATION: drop the rc check in `_git_add_or_refuse` (return True unconditionally) and
+    all three assertions below fail -- which is exactly the pre-fix mechanism.
+
+    `git add` is ALL-OR-NOTHING, so a failed add can only ever be followed by a MISLEADING
+    commit error. The publish must therefore stop AT the add, and say the lock's own words.
+    """
+    def locked():
+        return types.SimpleNamespace(returncode=128, stdout="", stderr=_LOCK_STDERR)
+
+    reason, attempted, logged = _publish_with_add(monkeypatch, tmp_path, add=locked)
+
+    # 1. The cycle is refused, with an outcome that is NOT retryable-as-a-no-op, so the next
+    #    cycle genuinely retries instead of fingerprinting this as a clean skip.
+    assert reason == prc.COMMIT_REFUSED
+    assert prc.COMMIT_REFUSED not in prc.RETRYABLE_PUBLISH_OUTCOMES
+    # 2. `git commit` is never reached. Pre-fix it WAS, and its pathspec complaint is the
+    #    wrong diagnosis that cost 1h43m.
+    assert ["git", "commit"] not in attempted, (
+        "the publish walked into a commit that cannot work: {}".format(attempted))
+    # 3. The lock's own message survives to the log, verbatim -- the one line naming the cause.
+    assert "index.lock" in logged and "File exists" in logged
+    assert "NOTHING IS STAGED" in logged
+
+
+def test_a_successful_git_add_still_reaches_the_commit(tmp_path, monkeypatch):
+    """NULL CONTROL: the same call, one field changed -- the add's return code -- must PROCEED.
+
+    Refusing every cycle is the cheap way to green the test above, and it would be a total
+    publishing outage. This moves the SAMPLE (rc 128 -> 0), not the law."""
+    def clean():
+        return types.SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    reason, attempted, logged = _publish_with_add(monkeypatch, tmp_path, add=clean)
+
+    assert ["git", "commit"] in attempted
+    assert reason != prc.COMMIT_REFUSED
+    assert "NOTHING IS STAGED" not in logged
+
+
+def test_no_publish_path_git_add_goes_unchecked(tmp_path, monkeypatch):
+    """R10 CLASS CLOSURE, and the reason this is a census rather than a third scenario test.
+
+    The finding named ONE unchecked add (the publish surface). There was a second, identical
+    one in `_commit_and_push_paths` that nobody had hit yet -- the banner/heartbeat path --
+    and fixing only the caught instance is precisely what makes a class recur. The population
+    is open-ended: any `git add` added to this module tomorrow is the next instance, and it
+    will again surface as a confusing error from the NEXT command rather than as itself.
+
+    So the subject is the module: every `git add` invocation must be lexically inside
+    `_git_add_or_refuse`, which is the one place the return code is read.
+    """
+    import ast
+
+    source = Path(prc.__file__).read_text()
+    tree = ast.parse(source)
+
+    # Which function encloses a given line -- innermost wins, so a nested def is attributed
+    # to itself rather than to its parent.
+    functions = [node for node in ast.walk(tree)
+                 if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))]
+
+    def enclosing(lineno):
+        holders = [f for f in functions if f.lineno <= lineno <= (f.end_lineno or f.lineno)]
+        return min(holders, key=lambda f: (f.end_lineno or f.lineno) - f.lineno).name if holders else "<module>"
+
+    offenders = []
+    for node in ast.walk(tree):
+        # The argv literal itself: ["git", "add", ...], however it is concatenated afterwards.
+        if not isinstance(node, ast.List) or len(node.elts) < 2:
+            continue
+        head = [e.value for e in node.elts[:2]
+                if isinstance(e, ast.Constant) and isinstance(e.value, str)]
+        if head != ["git", "add"]:
+            continue
+        where = enclosing(node.lineno)
+        if where != "_git_add_or_refuse":
+            offenders.append("{} (line {})".format(where, node.lineno))
+
+    assert not offenders, (
+        "these `git add` invocations bypass the one place that reads the return code, so a "
+        "lock or a bad path there can only surface as a misleading error from the next "
+        "command: {}".format(offenders))
+    # And the census is not vacuously green: the checked add really is there.
+    assert any(f.name == "_git_add_or_refuse" for f in functions)
