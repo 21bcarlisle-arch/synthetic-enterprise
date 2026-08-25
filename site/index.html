@@ -267,11 +267,21 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
   <p class="thesis-sentence">The score is <strong>&pound; per tonne of CO&#8322;e saved</strong>, measured
     against the yardstick it has to beat &mdash; the UK government's carbon appraisal value,
     <strong>&pound;273/tCO&#8322;e (2025)</strong>.</p>
-  <p class="thesis-caveat"><strong>The honest state, plainly:</strong> the carbon ledger is designed, not
-    yet instrumented &mdash; no number is shown here until each household's half-hourly meter reads meet real
-    grid carbon intensity. When it runs, the trajectory appears here first. The economics that would fund it
-    &mdash; the true cost-to-serve gap &mdash; are worked through on
-    <a href="./harness/">Harness</a>.</p>
+  <!-- EVERY NUMBER IN THE NEXT TWO PARAGRAPHS IS FILLED FROM site/data/explore_carbon.json, never
+       typed here. A hand-authored figure beside a generated one is the defect this project files
+       against itself most often, and the worst place to make it is the paragraph explaining why a
+       different figure is honestly absent. The fallback text carries NO number at all. -->
+  <p class="thesis-caveat"><strong>The honest state, plainly.</strong> The half-hourly instrument now
+    runs: a household's metered half hours are multiplied by what the grid was actually burning in
+    each of them<span id="carbon-worst"></span>. That is <strong>emissions</strong>, and emissions
+    are measurable. <a href="./explore/#used">See it on a real household &rarr;</a></p>
+  <p class="thesis-caveat"><strong>Why the score above still says NOT YET MEASURED.</strong> Abatement
+    is not emissions. It is what a household did <em>not</em> emit because of something we did, which
+    needs a claim about a world that did not happen &mdash; a randomised holdout, a matched comparison,
+    or a weather-normalised before-and-after. <span id="carbon-coverage">At the current number of
+    half-hourly reads</span> none of those is viable, and the honest thing is to say so rather than
+    publish an engineering estimate with a measurement's confidence. The number that would change this
+    fastest is not a model: it is meters.</p>
 </section>
 
 <section class="moap">
@@ -386,11 +396,36 @@ nav.doors a.active { color: var(--text); font-weight: 700; }
     prov.innerHTML = "Generated " +
       (when && !isNaN(when) ? when.toLocaleString("en-GB", {day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"}) : "at an unknown time") +
       " from run " + String(meta.source_file || "unknown").replace(/^run_output_/, "").replace(/\.json$/, "") +
-      ". Carbon abated is not published here: it is designed but not yet wired to live meter reads, and " +
-      'saying so is the point \u2014 see <a href="./harness/#not-proven">what we know is wrong</a>.';
+      ". Carbon ABATED is still not published here \u2014 that needs a counterfactual and there is " +
+      "none. Carbon EMITTED now is, half hour by half hour, on the accounts whose meters can say " +
+      'when \u2014 see <a href="./explore/#used">Explore</a> and ' +
+      '<a href="./harness/#not-proven">what we know is wrong</a>.';
   }).catch(function () {
     row.textContent = "The latest run's figures could not be loaded, so none are shown rather than a stale number.";
   });
+
+  /* The two carbon sentences above, filled from the generated file. On any failure the spans
+     stay as authored -- which is a sentence with no number in it, never a stale one. */
+  fetch("./data/explore_carbon.json").then(function (r) { return r.json(); }).then(function (c) {
+    var measured = (c.accounts || []).filter(function (a) { return a.timing_effect_pct !== undefined; });
+    var worst = measured.reduce(function (a, b) {
+      return a === null || Math.abs(b.timing_effect_pct) > Math.abs(a.timing_effect_pct) ? b : a;
+    }, null);
+    if (worst) {
+      var el = document.getElementById("carbon-worst");
+      if (el) el.innerHTML = ", and on its hardest day one household emitted <strong>" +
+        Math.abs(worst.timing_effect_pct).toFixed(0) + "% " +
+        (worst.timing_effect_pct >= 0 ? "more" : "less") +
+        "</strong> than the annual-average method reports";
+    }
+    var n = c.counts || {};
+    var total = (n.measured || 0) + (n.profiled || 0) + (n.uncovered || 0);
+    if (total) {
+      var cov = document.getElementById("carbon-coverage");
+      if (cov) cov.innerHTML = "At <strong>" + (n.measured || 0) + " of " + total +
+        " accounts</strong> with a half-hourly read,";
+    }
+  }).catch(function () { /* the authored, number-free sentence stands */ });
 })();
 </script>
 </body>

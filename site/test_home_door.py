@@ -71,8 +71,30 @@ def test_mission_block_leads_with_score_and_yardstick():
     assert "carbon abatement through personalisation" in text
     assert "273/tCO&#8322;e (2025)" in text, "the £273/tCO2e (2025) government yardstick is not on the front door"
     assert "per tonne of CO&#8322;e saved" in text
-    # The honest state is stated plainly: designed, not instrumented, no number shown.
-    assert "designed, not\n    yet instrumented" in text or "designed, not yet instrumented" in text.replace("\n    ", " ")
+    # THE HONEST STATE, AND IT CHANGED ON 2026-08-25 -- so this control's SUBJECT changed with
+    # it rather than the control being relaxed. It used to pin the literal "designed, not yet
+    # instrumented", which was true while nothing multiplied a meter read by a grid intensity.
+    # The half-hourly instrument now runs (EP13, sim/grid_carbon_intensity.py ->
+    # company/carbon/half_hourly_footprint.py), so that sentence had become false and pinning a
+    # false sentence is worse than pinning none.
+    #
+    # What must stay true is the DISTINCTION the caveat exists to draw, and it is now two
+    # claims rather than one: emissions are measured, and the SCORE -- pounds per tonne
+    # ABATED -- still is not, because abatement needs a counterfactual this book cannot supply.
+    assert "designed, not yet instrumented" not in text.replace("\n    ", " "), (
+        "the front door still says the carbon ledger is not instrumented, and it is"
+    )
+    assert "NOT YET MEASURED" in text, "the score's honest tag has gone from the front door"
+    assert "Abatement\n    is not emissions" in text or \
+        "Abatement is not emissions" in text.replace("\n    ", " "), (
+            "the front door no longer distinguishes abatement from emissions, so a reader has "
+            "every reason to read the kilograms as the score"
+        )
+    # NUMBER-FREE IN THE MARKUP. Both carbon sentences are filled from
+    # site/data/explore_carbon.json at render time; a figure typed into this file would go stale
+    # against a generated one, which is the defect this project files against itself most often.
+    assert 'id="carbon-worst"></span>' in text, "the worst-case figure is not a filled span"
+    assert 'id="carbon-coverage"' in text, "the coverage figure is not a filled span"
 
 
 def test_cost_arbitrage_leg_no_longer_leads_the_front_door():

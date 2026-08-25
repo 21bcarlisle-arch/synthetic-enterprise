@@ -39,6 +39,11 @@ DOOR = SITE / "explore" / "index.html"
 BOOK = SITE / "data" / "customers.json"
 HH_DAYS = SITE / "data" / "explore_hh_days.json"
 WEATHER = SITE / "data" / "weather.json"
+# The carbon layer stage 3 gained on 2026-08-25 (EP13). Supplied here because the
+# harness asserts NO feed goes unresolved -- a door that asks for a file this fixture
+# does not hold renders a stated absence, which would silently make every assertion
+# below a test of the absence path rather than of the page.
+CARBON = SITE / "data" / "explore_carbon.json"
 
 #: The stage under test, as a reader would link to it.
 USED = "#used"
@@ -68,6 +73,7 @@ def _render(first_group: str) -> dict:
         "../data/customers.json": book,
         "../data/weather.json": _load(WEATHER),
         "../data/explore_hh_days.json": _load(HH_DAYS),
+        "../data/explore_carbon.json": _load(CARBON),
     }
     for customer in book["customers"]:
         for leg in (customer.get("legs") or {}).values():
@@ -187,4 +193,90 @@ def test_the_seasonal_note_is_derived_from_this_meter_and_not_asserted():
     assert re.search(r"Winter months run <b>?[\d.]+&times;|Winter months run [\d.]+×|"
                      r"Winter months run <b>[\d.]+×", html) or "Winter months run" in html, (
         "the electricity panel no longer says how this meter actually moves with the seasons"
+    )
+
+
+# ---------------------------------------------------------------------------
+# The carbon layer (EP13, 2026-08-25) -- the mission's own number, on the same days
+# ---------------------------------------------------------------------------
+#
+# WHY IT IS TESTED HERE rather than in its own file: it renders inside stage 3, from the same
+# two dated days, for the same two households. Splitting it off would mean a second copy of the
+# fixture above and two places to notice that the day the consumption panel shows is not the day
+# the carbon panel costs.
+#
+# THE ASYMMETRY IS AGAIN THE INTERESTING HALF, exactly as for the day chart: 249 of 263 accounts
+# have a traditional meter, and for every one of them the honest answer is that the timing effect
+# is UNAVAILABLE. A page that printed 0% there would be claiming a measurement nobody made, in a
+# column where three of the entries are real -- which is the more expensive error, because it
+# reads as good news.
+
+def test_the_carbon_figure_reaches_the_reader_on_a_measured_household():
+    """MUTATION (must fire): drop the `carbonPanels()` call from `stageUsed`."""
+    html = _stage("C7")
+
+    assert "kg CO&#8322;e" in html or "kg CO₂e" in html, (
+        "stage 3 renders no carbon figure at all for a household whose meter reports every "
+        "half hour, which is the only kind that can have one"
+    )
+    assert "EMISSIONS, NOT ABATEMENT" in html.upper(), (
+        "the panel does not say which of the two it is, and a reader has every reason to read "
+        "the kilograms as the mission's score"
+    )
+
+
+def test_the_timing_effect_is_stated_AGAINST_the_annual_method_it_replaces():
+    """The number that is new information rather than a restatement. Without the flat
+    counterpart beside it, "29.0 kg" is a quantity; with it, it is a claim about timing."""
+    html = _stage("C7")
+
+    assert "annual-average method" in html, (
+        "the panel gives a carbon figure with nothing to compare it against, so the reader "
+        "cannot tell whether timing mattered here at all"
+    )
+    assert re.search(r"\d+% (higher|lower)</b> than the annual-average method", html), (
+        "no timing effect is rendered as a percentage against the annual method"
+    )
+
+
+def test_a_PROFILED_household_is_told_the_timing_effect_is_UNAVAILABLE_and_never_zero():
+    """THE EXPENSIVE ERROR, and the one this page is built to refuse. C1 has a traditional
+    meter. Its emissions are known; when it drew is not recorded and no estimate recovers it.
+
+    MUTATION (must fire): return 0.0 from `Footprint.timing_effect_pct` for a profiled account
+    instead of raising, and render it.
+    """
+    html = _stage("C1")
+
+    assert "unavailable" in html.lower() and "not zero" in html.lower(), (
+        "a profiled household is not told that its timing effect is unavailable rather than zero"
+    )
+    assert not re.search(r"\d+% (higher|lower)</b> than the annual-average method", html), (
+        "a household with no half-hourly meter was given a timing effect anyway"
+    )
+
+
+def test_the_page_carries_the_direction_its_errors_point_in():
+    """Both of the shape's largest gaps -- no coal, no interconnector imports -- make quiet half
+    hours look cleaner than they were, so a timing benefit read off it is an upper bound. That
+    flatters the mission's own thesis, which is exactly why it belongs on the page and not in a
+    module docstring."""
+    html = _stage("C7")
+
+    assert "UPPER BOUND" in html, (
+        "the page states a timing benefit without stating that it is an upper bound"
+    )
+
+
+def test_the_coverage_is_DERIVED_and_names_how_few_households_are_measured():
+    """A carbon figure without its sample size is a slogan (advisor scope brief, 2026-08-04).
+    And the sentence must MOVE when a smart meter is fitted, so it is built from the counts
+    rather than written beside them."""
+    html = _stage("C1")
+    carbon = _load(CARBON)
+    measured = carbon["counts"]["measured"]
+    total = sum(carbon["counts"].values())
+
+    assert "{} of {} account(s) are MEASURED".format(measured, total) in html, (
+        "the page's coverage sentence is not the one derived from the live counts"
     )

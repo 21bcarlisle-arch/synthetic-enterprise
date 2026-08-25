@@ -5663,6 +5663,38 @@ def _process(marker_path_str):
     except Exception as exc:
         log("Consumption feed publication skipped: {}".format(exc))
 
+    # THE GRID-INTENSITY SHAPE FEED, and it must run AFTER the consumption feed and after
+    # `generate_explore_hh_day` above -- it sizes its own record window from the dated days
+    # those two publish, so a feed built first would carry a fortnight of half hours and none
+    # of the days anyone actually has a meter read for. That was the failure on its first run:
+    # the Explore page would have shown a household's half-hourly consumption beside no carbon
+    # at all. Not zero carbon -- none, silently.
+    log("Publishing grid carbon-intensity shape feed")
+    try:
+        from tools.generate_grid_intensity_feed import generate as gen_intensity
+        _feed = gen_intensity()
+        log("Grid intensity feed published: {} record(s) over {}..{}, {} year(s) summarised"
+            .format(len(_feed.get("records") or []),
+                    (_feed.get("records_cover") or {}).get("from"),
+                    (_feed.get("records_cover") or {}).get("to"),
+                    len(_feed.get("by_year") or {})))
+    except Exception as exc:
+        log("Grid intensity feed publication skipped: {}".format(exc))
+
+    # The mission's own number, on the days Explore already shows. Same R11 no-orphan-transition
+    # reason as its neighbours: a generated surface that does not ride the regen cycle freezes
+    # against its live source, and this one is downstream of THREE of them.
+    log("Generating explore carbon layer")
+    try:
+        from tools.generate_explore_carbon import generate as gen_carbon
+        _carbon = gen_carbon()
+        log("Generated site/data/explore_carbon.json ({} measured account-day(s); {} of {} "
+            "accounts have a half-hourly-capable meter)".format(
+                len([a for a in _carbon.get("accounts") or [] if "co2e_kg_timed" in a]),
+                _carbon.get("half_hourly_capable_meters"), _carbon.get("accounts_on_book")))
+    except Exception as exc:
+        log("explore_carbon.json generation skipped: {}".format(exc))
+
     log("Fetching weather data (Open-Meteo)")
     try:
         _run_weather_data(git_hash)
