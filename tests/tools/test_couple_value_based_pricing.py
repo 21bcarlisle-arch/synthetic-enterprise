@@ -292,3 +292,39 @@ def test_the_ledger_write_is_OPT_IN_so_a_read_only_run_cannot_move_the_record():
 
     assert "--write-ledger" in source
     assert "if _args.write_ledger:" in source
+
+
+def test_the_ledger_write_REFUSES_a_pair_the_map_does_not_declare():
+    """MIS-SUBJECTION, ONE STEP EARLIER. `tools/couple_clv.py` records what happens when a ledger
+    row's key and its actual subject come apart: a row keyed `EP1_clv_three_horizon` graded a
+    different module's belief entirely and stayed bit-identical when its named subject's whole
+    published output was deleted. It named that shape MIS-SUBJECTED.
+
+    A row keyed on a pair the MAP does not declare is the same defect one step earlier: the pair
+    would be this tool's invention, published where a reader takes it for the map's own record.
+    `B10_competitor_switching_response` has no twin declared today, so the write refuses and says
+    what would make it legal.
+
+    MUTATION (must fire): write the row regardless of what the map says.
+    """
+    from tools import couple_value_based_pricing as cvp
+
+    declared, why = cvp.coupling_is_declared()
+
+    assert isinstance(declared, bool) and why
+    if not declared:
+        assert "does not declare" in why or "unverified" in why
+        assert "Declare the twin on the map first" in why or "unverified" in why
+
+
+def test_the_refusal_is_reachable_from_the_write_path():
+    """A refusal nobody consults is a comment. The `--write-ledger` branch must ASK before it
+    writes, not after."""
+    from pathlib import Path
+
+    source = Path(
+        __file__).resolve().parents[2].joinpath("tools/couple_value_based_pricing.py").read_text()
+    tail = source[source.index("if __name__ ==") :]
+
+    assert "coupling_is_declared()" in tail
+    assert tail.index("coupling_is_declared()") < tail.index("write_gap_entry(")

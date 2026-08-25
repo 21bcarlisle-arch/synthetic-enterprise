@@ -443,6 +443,39 @@ WORLD_ATOM_ID = "B10_competitor_switching_response"
 TWIN_ATOM_ID = "B4_competitor_field"
 
 
+def coupling_is_declared() -> tuple[bool, str]:
+    """Does the MAP declare this world/twin pair, or would writing the ledger invent one?
+
+    THE LEDGER IS READ AS THE MAP'S OWN RECORD, and `tools/couple_clv.py` records what happens
+    when a row's key and its actual subject come apart: a control keyed `EP1_clv_three_horizon`
+    that graded a different module's belief entirely, and stayed bit-identical when its named
+    subject's whole output was deleted. It called that shape MIS-SUBJECTED. A row keyed on a pair
+    the map does not declare is the same defect one step earlier -- the pair itself would be this
+    tool's invention, and a reader would take it for the map's.
+
+    So the write REFUSES rather than asserting a coupling nobody declared, and says what would
+    make it legal: `B10_competitor_switching_response` currently has no twin on the map, and
+    naming one there is a map edit with its own owner.
+    """
+    try:
+        import yaml
+
+        from background.coupled_triad import build_coupling
+
+        atoms = yaml.safe_load((PROJECT / "docs" / "design" / "maturity_map.yaml")
+                               .read_text(encoding="utf-8"))
+        coupling = build_coupling(atoms)
+    except Exception as exc:
+        return False, f"the map's coupling could not be read ({exc!r}), so the pair is unverified"
+    declared = coupling.get(WORLD_ATOM_ID)
+    if declared == TWIN_ATOM_ID:
+        return True, "the map declares {} -> {}".format(WORLD_ATOM_ID, TWIN_ATOM_ID)
+    return False, (
+        "the map does not declare {} -> {} (it says {!r}). Writing the row would invent a "
+        "coupling and publish it as the map's. Declare the twin on the map first."
+    ).format(WORLD_ATOM_ID, TWIN_ATOM_ID, declared)
+
+
 def _git_head() -> str | None:
     try:
         out = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT),
@@ -519,7 +552,10 @@ if __name__ == "__main__":
             print("  -> WORSE THAN THE FLAT RULE: the per-customer belief carries less "
                   "information than predicting the population mean, so no inference advantage "
                   "can be claimed from it.")
-        if _args.write_ledger:
+        _declared, _why = coupling_is_declared()
+        if _args.write_ledger and not _declared:
+            print("  ledger NOT written: {}".format(_why))
+        elif _args.write_ledger:
             _ledger = write_gap_entry(
                 WORLD_ATOM_ID, TWIN_ATOM_ID, _gap,
                 measured_at=datetime.now(timezone.utc).isoformat(),
