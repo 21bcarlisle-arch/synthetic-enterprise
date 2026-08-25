@@ -55,7 +55,26 @@ MAX_TENURE_DISCOUNT_YEARS = 5
 BILL_STRESS_SENSITIVITY = 0.25
 BILL_STRESS_THRESHOLD_GBP = 3000.0
 HEDGE_SENSITIVITY_REDUCTION = 0.4
-MAX_CHURN_PROBABILITY = 0.95
+#: THE ASYMPTOTE, AND IT IS 1.0 BECAUSE NOBODY IS UNCONDITIONALLY CAPTIVE. It was 0.95 until
+#: 2026-08-25, and that five points was a floor of customers modelled as STAYING WHATEVER THEY
+#: ARE CHARGED. Harmless in a belief that is only reported -- and it was only reported for
+#: months, scored against the world's truth and looking healthy, because real renewals sit at
+#: ±10% where the curve is fine. Fatal the moment a decision was made out of it: expected value
+#: is `P(stay) x margin x volume`, so a P(stay) that never falls below 5% makes expected value
+#: monotone increasing in price WITHOUT LIMIT, and the first maximiser to run against it
+#: (`company/pricing/value_based_renewal.py`) priced every one of 263 real accounts thirty to a
+#: hundred times the flat rule and reported no losses. The maximiser was not wrong. It found
+#: what the model actually said.
+#:
+#: WHAT WAS NOT DONE, said plainly because it was the tempting move: nudging this number until
+#: the pricing arm behaved. That is goal-seeking against a calibrated belief (R12), and the
+#: figure that came out would have been one chosen to make a pricing rule look sensible. What
+#: changed instead is a SHAPE, in the direction that costs the company more rather than less:
+#: above the elbow `P(stay)` now decays exponentially toward zero instead of flattening onto a
+#: captive 5%, so a supplier that prices far enough above the market loses everybody, which is
+#: the only thing a retail market has ever done. Every estimate below the elbow -- which is
+#: every estimate any real renewal in this book has ever produced -- is byte-for-byte unchanged.
+MAX_CHURN_PROBABILITY = 1.0
 # Phase QP+1 (0.95-ceiling calibration fix, PRIORITIES.md P1, flagged since Phase QB):
 # a hard clamp at MAX_CHURN_PROBABILITY collapsed every sufficiently large single-renewal
 # rate rise into an indistinguishable 95% -- most visibly in the Decision Event Ledger's
@@ -104,7 +123,14 @@ CRISIS_PASSIVE_YEARS = frozenset({"2022"})
 def _saturate_churn_probability(raw: float) -> float:
     """Asymptotically approach MAX_CHURN_PROBABILITY above CHURN_SATURATION_ELBOW instead
     of hard-clamping. Identity below the elbow -- unchanged behaviour for every estimate
-    that was not previously being clamped."""
+    that was not previously being clamped.
+
+    Since 2026-08-25 that asymptote is 1.0, so `1 - p` decays exponentially toward zero and
+    there is no price at which a residual share of the book is modelled as staying. The
+    function is UNCHANGED; what changed is the constant it reads. That is the whole of the
+    "captive floor" fix, and it is worth noticing how small it is next to how much it was
+    holding up: a decision that maximises `P(stay) x margin` is unbounded for any asymptote
+    below 1.0 and bounded for 1.0 exactly."""
     if raw <= 0.0:
         return 0.0
     if raw <= CHURN_SATURATION_ELBOW:
@@ -178,6 +204,7 @@ def estimate_churn_probability(
     hedge_fraction: float = 0.0,
     hangover_periods_remaining: int = 0,
     segment: str = "resi",
+    market_move_pct: float = 0.0,
 ) -> float:
     """Estimate churn probability from observable renewal signals.
 
@@ -198,8 +225,35 @@ def estimate_churn_probability(
     segment: "resi" (default), "SME", or "I&C". I&C uses broker-driven
         constants (higher base churn, higher rate sensitivity, less tenure
         loyalty) reflecting that sophisticated buyers shop at every renewal.
+    market_move_pct: how far the WHOLE MARKET's price moved over the same window, as a
+        fraction (0.667 = the market rose 66.7%). The rate response is taken on this
+        customer's rate change NET OF IT -- see below. Defaults to 0.0, which is no netting
+        and behaviour identical to every estimate this model has ever produced.
 
-    Returns: churn probability estimate in [0.0, 0.95]
+    THE RATE RESPONSE IS ON THE SUPPLIER-SPECIFIC MOVE, NOT ON THE BILL (2026-08-25). A
+    customer whose bill rises 60% because THIS SUPPLIER raised its price, and one whose bill
+    rises 60% because the market did, are not facing the same decision: the first has a
+    cheaper alternative and it is obvious -- the market average -- and the second has nowhere
+    to go. That second case is not a hypothesis; it is 2022, when domestic bills reached
+    £3,549/yr and switching COLLAPSED to 3-4%, and it is the largest single feature of the
+    published series this model's sensitivity was fitted to.
+
+    So `rate_sensitivity` now multiplies `rate_increase_pct - market_move_pct` and the
+    market-wide component carries NO independent rate response. That is not a new assumption
+    invented here, it is the calibrated finding the series already carries, stated in the
+    company's own words in `company/crm/market_conditions.py`: what drives switching is
+    SAVINGS AVAILABLE, and a market-wide move changes nobody's savings available.
+
+    NO NEW CONSTANT WAS ADDED, and that is deliberate rather than tidy. The correction moves
+    an existing calibrated sensitivity onto the quantity it was always meant to describe; a
+    fresh "supplier-specific sensitivity" would have been a free parameter whose value nothing
+    outside this company could settle, sitting in the exact place a maximiser is about to
+    read. The simplification this leaves standing -- that a sensitivity fitted to market-wide
+    savings transfers unchanged to supplier-specific savings -- is NAMED, and it is
+    conservative for the company in the direction that matters: it understates, never
+    overstates, how hard a customer punishes a supplier-specific rise.
+
+    Returns: churn probability estimate in [0.0, 1.0), asymptotic and with no captive floor.
     """
     if segment == "I&C":
         base_rate = IC_BASE_CHURN_RATE
@@ -228,6 +282,9 @@ def estimate_churn_probability(
         rate_increase_pct = (new_rate_gbp_per_mwh - old_rate_gbp_per_mwh) / old_rate_gbp_per_mwh
     else:
         rate_increase_pct = 0.0
+    # The part of this customer's rate change that is THIS SUPPLIER'S doing, and therefore the
+    # part against which a cheaper alternative demonstrably exists.
+    own_move_pct = rate_increase_pct - float(market_move_pct)
 
     tenure_discount = tenure_discount_per_year * min(tenure_years, MAX_TENURE_DISCOUNT_YEARS)
 
@@ -235,5 +292,5 @@ def estimate_churn_probability(
     bill_stress = bill_stress_sens * max(0.0, prev_annual_bill_gbp / bill_stress_threshold - 1.0)
 
     hangover_uplift = CRISIS_HANGOVER_BASE_UPLIFT if hangover_periods_remaining > 0 else 0.0
-    p = base_rate + effective_rate_sensitivity * rate_increase_pct - tenure_discount + bill_stress + hangover_uplift
+    p = base_rate + effective_rate_sensitivity * own_move_pct - tenure_discount + bill_stress + hangover_uplift
     return _saturate_churn_probability(p)

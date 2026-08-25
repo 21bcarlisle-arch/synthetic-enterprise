@@ -41,3 +41,46 @@ def market_conditions_multiplier(renewal_year: int | None) -> float:
     if renewal_year is None:
         return DEFAULT_MULTIPLIER
     return MARKET_SWITCHING_MULTIPLIER_BY_YEAR.get(renewal_year, DEFAULT_MULTIPLIER)
+
+
+def market_rate_move_pct(renewal_year: int | None, fuel: str = "electricity") -> float:
+    """How far the WHOLE MARKET's domestic price moved into `renewal_year`, as a fraction.
+
+    ``0.667`` = the market rose 66.7% that year; ``-0.208`` = it fell 20.8%.
+
+    WHY THE COMPANY NEEDS THIS SEPARATELY FROM ITS OWN RATE CHANGE, which is the finding
+    `WORKER_FINDING_THE_CHURN_MODELS_CAP_MAKES_THE_PROFIT_MAXIMISING_PRICE_UNBOUNDED`
+    (2026-08-25) exists to fix. A customer whose bill rises 60% because THIS SUPPLIER put its
+    price up, and a customer whose bill rises 60% because the market did, are facing completely
+    different decisions. The first has a cheaper alternative and it is obvious: the market
+    average. The second has nowhere to go -- which is precisely the 2022 collapse in switching
+    (bills at £3,549/yr, switching at 3-4%) that the published series this company reads is
+    calibrated on. Until now the company's churn model saw only the customer's own rate change
+    and could not tell the two apart, so it read a market-wide move as if the company had made
+    it, and -- the half that mattered -- read its OWN move with a sensitivity fitted to
+    market-wide behaviour.
+
+    DERIVED FROM THE PUBLISHED CAP, NOT WRITTEN DOWN, and read through the company's own cap
+    module (`company/pricing/ofgem_price_cap.py`) rather than the world's. The Default Tariff
+    Cap is the one domestic price series a real supplier can look up without knowing anybody
+    else's book, it is a shared regulatory commons both lanes may read, and each lane's READING
+    of it stays independently owned -- the same discipline `value_based_renewal.
+    max_supported_rate_increase_pct` already had to be corrected into.
+
+    Returns 0.0 -- no netting, unchanged behaviour -- when the year is unknown or falls outside
+    the published schedule, because "the market did not move" is the only claim the company can
+    make with no observation. That is a FAIL-SOFT and it is deliberate: it degrades to the
+    pre-existing model rather than to a fabricated market move.
+    """
+    if renewal_year is None:
+        return 0.0
+    from company.pricing.ofgem_price_cap import get_cap_unit_rate_gbp_per_mwh
+
+    try:
+        now = get_cap_unit_rate_gbp_per_mwh(fuel, int(renewal_year))
+        before = get_cap_unit_rate_gbp_per_mwh(fuel, int(renewal_year) - 1)
+    except Exception:
+        return 0.0
+    if not now or not before or before <= 0.0:
+        return 0.0
+    return (now - before) / before

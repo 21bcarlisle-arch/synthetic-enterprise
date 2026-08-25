@@ -19,10 +19,18 @@ def test_stub_churn_estimate_clamps_to_zero():
     assert result >= 0.0
 
 
-def test_stub_churn_estimate_clamps_to_max():
+def test_stub_churn_estimate_saturates_where_the_model_saturates():
+    """The seam DELEGATES; it does not hold a ceiling of its own. This asserted the literal 0.95
+    until 2026-08-25, when the model's asymptote moved to 1.0 (there is no share of a book that
+    stays whatever it is charged -- see `tests/company/crm/test_captive_floor_and_market_
+    netting.py`). Pinning the literal here made a seam test look like a calibration test and
+    would have to be re-edited every time the model was corrected.
+    """
     iface = StubSimInterface()
     result = iface.get_churn_estimate("C1", 100.0, 10000.0, 0.0)
-    assert result == 0.95
+
+    assert result == pytest.approx(estimate_churn_probability(100.0, 10000.0, 0.0))
+    assert result > 0.95, "a 99x price rise no longer saturates the estimate"
 
 
 def test_stub_churn_estimate_ignores_account_id():
@@ -90,10 +98,15 @@ def test_stub_returns_float():
     assert isinstance(r, float)
 
 
-def test_live_clamps_to_max():
-    iface = LiveSimInterface()
-    r = iface.get_churn_estimate('C1', 100.0, 10000.0, 0.0)
-    assert r == pytest.approx(0.95)
+def test_live_saturates_where_the_model_saturates():
+    """Same delegation property on the live implementation, and the two must AGREE -- a stub
+    that saturated somewhere the live seam did not would let a test suite pass against a company
+    that behaves differently in a run."""
+    live = LiveSimInterface().get_churn_estimate('C1', 100.0, 10000.0, 0.0)
+    stub = StubSimInterface().get_churn_estimate('C1', 100.0, 10000.0, 0.0)
+
+    assert live == pytest.approx(estimate_churn_probability(100.0, 10000.0, 0.0))
+    assert live == pytest.approx(stub)
 
 
 def test_stub_zero_tenure_matches_model():

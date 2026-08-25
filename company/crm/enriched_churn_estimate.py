@@ -19,13 +19,36 @@ from __future__ import annotations
 
 from typing import Optional
 
-from company.crm.churn_model import estimate_churn_probability, estimate_passive_churn_probability
-from company.crm.market_conditions import market_conditions_multiplier
+from company.crm.churn_model import MAX_CHURN_PROBABILITY, estimate_churn_probability, estimate_passive_churn_probability
+from company.crm.market_conditions import market_conditions_multiplier, market_rate_move_pct
 from company.crm.payment_behaviour_analytics import BehaviourScore
 from company.crm.payment_churn_model import combined_churn_probability
-from saas.churn_model import BASE_ANNUAL_CHURN_PROBABILITY, MAX_CHURN_PROBABILITY
+from saas.churn_model import BASE_ANNUAL_CHURN_PROBABILITY
 
 INDUSTRY_BASE_CHURN_RATE: float = 0.05
+
+
+def _apply_market_conditions(p_leave: float, multiplier: float) -> float:
+    """Scale a churn probability by the market-conditions multiplier IN SURVIVAL SPACE.
+
+    `result = 1 - (1 - p) ** m` rather than `result = p * m`, and the difference is a captive
+    floor (2026-08-25). The old form bounded the estimate at `m` itself, so in 2022 (m = 0.44)
+    no customer could ever be given more than a 44% chance of leaving -- 56% of every account
+    modelled as staying whatever it was charged, in exactly the shape the churn model's own
+    0.95 ceiling had, one layer up and reached by a different route. A decision maximising
+    `P(stay) x margin` is unbounded against either.
+
+    Survival space is not a device to get rid of it; it is what the multiplier IS. It scales an
+    annual switching RATE (published DESNZ series, 2024 = 1.0), and rates compose through the
+    survivor function, not by multiplying probabilities. Two consequences fall out rather than
+    being asserted: it agrees with the old form to first order where every real renewal sits
+    (p = 0.10, m = 0.44: 0.0440 before, 0.0453 now), and it cannot bound the estimate away from
+    1.0 for any finite m, because `(1 - p) ** m -> 0` as `p -> 1` whatever m is.
+    """
+    survival = max(0.0, 1.0 - float(p_leave))
+    if survival <= 0.0:
+        return 1.0
+    return 1.0 - survival ** max(0.0, float(multiplier))
 
 
 def enriched_churn_estimate(
@@ -71,9 +94,14 @@ def enriched_churn_estimate(
         hedge_fraction=hedge_fraction,
         hangover_periods_remaining=hangover_periods_remaining,
         segment=segment,
+        # The market-wide half of this customer's rate change, from the company's own reading
+        # of the published cap. Netted off inside the rate model so its sensitivity applies to
+        # what THIS SUPPLIER did. Zero -- no netting -- when the year is unknown.
+        market_move_pct=market_rate_move_pct(renewal_year, fuel=fuel),
     )
     payment_est = combined_churn_probability(bill_shock_count, behaviour_score, satisfaction_score)
-    result = max(rate_est, payment_est) * market_conditions_multiplier(renewal_year)
+    result = _apply_market_conditions(max(rate_est, payment_est),
+                                      market_conditions_multiplier(renewal_year))
     return max(0.0, min(result, MAX_CHURN_PROBABILITY))
 
 
@@ -107,5 +135,6 @@ def enriched_passive_churn_estimate(
         old_rate_gbp_per_mwh, new_rate_gbp_per_mwh, tenure_years,
     )
     payment_est = combined_churn_probability(bill_shock_count, behaviour_score, satisfaction_score)
-    result = max(rate_est, payment_est) * market_conditions_multiplier(renewal_year)
+    result = _apply_market_conditions(max(rate_est, payment_est),
+                                      market_conditions_multiplier(renewal_year))
     return max(0.0, min(result, MAX_CHURN_PROBABILITY))
