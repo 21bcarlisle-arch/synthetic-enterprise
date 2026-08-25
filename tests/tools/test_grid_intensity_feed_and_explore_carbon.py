@@ -663,6 +663,77 @@ def test_the_feed_publishes_the_correction_ON_THE_STATISTIC_THE_PAGE_PRINTS():
             assert row.get(key), f"{year} carries no {key}, so its factor rests on nothing"
 
 
+def test_the_WITHIN_DAY_FIGURES_QUOTED_in_ERROR_DIRECTION_are_the_MEASURED_ones():
+    """A DERIVED-VS-TYPED PAIR, and this file already knows why that class matters.
+
+    THE FINDING (2026-08-25): the page's "1.36x" correction blends two axes that behave
+    oppositely. Split day by day, this shape's BETWEEN-day swing matches the published series
+    (0.93-1.00x over 2019-2024) and its WITHIN-day swing does not (1.41-1.58x). A household can
+    shift the washing from 6pm to 2am and cannot shift it to a windier Tuesday in March, so the
+    whole exaggeration sits on the only axis a time-shifting claim acts on -- and the annual
+    factor therefore UNDER-corrects the claim it is printed to correct.
+
+    That is worth saying on the page only if the numbers said there stay the measured ones. The
+    sentence is prose typed by a human hand; the feed is computed. This control reads the numbers
+    back OUT of the sentence and holds them against the feed, so the two cannot drift -- the same
+    defect shape as the hardcoded '3.2x' correction deleted from this panel earlier the same day,
+    and as the ERROR_DIRECTION reason found to be a recollection the same morning.
+
+    MUTATION (must fire): move any quoted bound, or let the measurement move past one.
+    """
+    import re
+
+    quoted = re.findall(r"\((\d+\.\d+)-(\d+\.\d+)x, mean (\d+\.\d+)\)", gif.ERROR_DIRECTION)
+    assert len(quoted) == 2, (
+        "ERROR_DIRECTION no longer quotes exactly two (low-highx, mean m) ranges, so this "
+        "control cannot tell which claim it is checking and must be re-derived rather than "
+        "left to pass on whatever it finds"
+    )
+    claims = {
+        "between_day_swing_overstated_by": tuple(float(v) for v in quoted[0]),
+        "within_day_swing_overstated_by": tuple(float(v) for v in quoted[1]),
+    }
+
+    feed = json.loads(FEED.read_text(encoding="utf-8")) if FEED.is_file() else None
+    if not feed or not (feed.get("versus_published") or {}).get("available"):
+        pytest.skip("the published-series comparison is not available in this tree")
+    versus = feed["versus_published"]
+    years = versus["headline_years"]
+    assert years, "no headline year, so the quoted range rests on nothing"
+
+    for key, (low, high, mean_claimed) in claims.items():
+        measured = [versus["by_year"][y][key] for y in years]
+        assert all(v is not None for v in measured), (
+            f"a headline year carries no {key}: the sentence quotes a range over years the feed "
+            "does not measure"
+        )
+        # THE BOUNDS MUST BE THE MEASURED ONES, NOT MERELY CONTAIN THEM. Written first as
+        # `min(measured) >= low and max(measured) <= high`, this control passed every time the
+        # quoted range was WIDENED -- so "1.41-1.90x" against a measured 1.41-1.58x, which is
+        # simply a false sentence to a reader, was invisible to it. A one-sided containment check
+        # on a published range is fail-open by construction: the loosest possible claim always
+        # survives it. Both ends are pinned to the rounding the sentence itself prints.
+        assert (round(min(measured), 2), round(max(measured), 2)) == pytest.approx((low, high), abs=5e-3), (
+            f"{key} measured {min(measured):.3f}-{max(measured):.3f} over {years}, but "
+            f"ERROR_DIRECTION tells the reader {low}-{high}"
+        )
+        got_mean = sum(measured) / len(measured)
+        assert got_mean == pytest.approx(mean_claimed, abs=5e-3), (
+            f"{key} means {got_mean:.3f} across the headline years; the sentence says "
+            f"{mean_claimed}"
+        )
+
+    # THE DIRECTION OF THE CLAIM, not only its arithmetic: the sentence's whole point is that one
+    # axis is right and the other is not. If they ever converge the sentence is wrong even with
+    # every number in range, so the ordering is asserted rather than left to the reader.
+    within = [versus["by_year"][y]["within_day_swing_overstated_by"] for y in years]
+    between = [versus["by_year"][y]["between_day_swing_overstated_by"] for y in years]
+    assert min(within) > max(between), (
+        "the within-day and between-day overstatements now overlap, so 'the whole of the "
+        "exaggeration sits on the intra-day axis' is no longer what the measurement says"
+    )
+
+
 def test_the_stated_ERROR_DIRECTION_does_not_contradict_the_NAMED_GAPS_beside_it():
     """THE FINDING: the sentence that reaches the page said both largest gaps push the same way.
 

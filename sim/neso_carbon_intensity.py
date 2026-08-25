@@ -286,7 +286,7 @@ def compare_shapes(
     published: Mapping[tuple[str, int], float],
     demand_by_period: Mapping[tuple[str, int], float],
     year: str,
-) -> dict[str, float]:
+) -> dict[str, float | None]:
     """The GAP, on the half hours BOTH series cover, RE-NORMALISED over that intersection.
 
     The re-normalisation is not tidiness. Each series arrives normalised over its own coverage;
@@ -352,9 +352,75 @@ def compare_shapes(
                 f"the {label} shape's 5th percentile is non-positive in {year}, so its p95/p5 "
                 "spread is undefined"
             )
+    # THE SWING SPLIT INTO THE TWO AXES IT IS ACTUALLY MADE OF, because "the range is overstated"
+    # is one sentence covering two quantities that behave completely differently, and only ONE of
+    # them is the axis a time-shifting recommendation acts on. A household can move its washing
+    # from 6pm to 2am; it cannot move it to a windier Tuesday in March. So a range overstatement
+    # that lives BETWEEN days costs a customer-facing claim nothing, and the same overstatement
+    # living WITHIN a day makes every shifting figure on the page too large.
+    #
+    # Measured over 2019-2024 the two do not merely differ, they point opposite ways: this
+    # reconstruction's BETWEEN-day swing matches the published series to within 4% in every year
+    # (0.96-1.00x), and its WITHIN-day swing is 1.41-1.59x too large in every year. The whole of
+    # the aggregate overstatement is intra-day, which the aggregate figure cannot say.
+    #
+    # UNWEIGHTED PER HALF HOUR AND GROUPED BY SETTLEMENT DATE, deliberately matching the
+    # percentile statistics above rather than the demand-weighted renormalisation: these are
+    # dispersion statistics over the same population the page's p95/p5 is drawn from, and mixing
+    # two weightings inside one row is how the previous Expert Hour finding happened.
+    by_date_ours: dict[str, list[float]] = {}
+    by_date_theirs: dict[str, list[float]] = {}
+    for k in common:
+        by_date_ours.setdefault(k[0], []).append(ours[k])
+        by_date_theirs.setdefault(k[0], []).append(theirs[k])
+
+    def _split(values_by_date: dict[str, list[float]]) -> tuple[float, float]:
+        """(within-day sd, between-day sd) — the day means removed, then measured across days.
+
+        The day mean is subtracted PER DAY rather than the series mean subtracted once. That is
+        the whole content of the statistic: subtracting the global mean instead would leave every
+        day's own level inside the "within-day" term and report the total dispersion twice.
+
+        EACH DAY IS WEIGHTED BY THE HALF HOURS IT ACTUALLY CARRIES, and that is not a refinement
+        — it is what makes `within**2 + between**2 == total**2` an identity rather than a
+        coincidence. THE PANEL IS NOT BALANCED: 2019 shares 16,923 half hours with the published
+        series over 359 days, not the 17,232 a full day each would give, and a short day
+        weighted like a full one puts the shortfall into neither term. Written first with the
+        day means averaged equally, this was caught only because the mutation that exposes it
+        SURVIVED a balanced-panel control — under equal weighting the two are identical, so a
+        48-period fixture cannot tell them apart. `test_the_decomposition_recombines_on_an_
+        UNBALANCED_panel` is the one that can.
+        """
+        n_total = sum(len(vs) for vs in values_by_date.values())
+        grand = sum(sum(vs) for vs in values_by_date.values()) / n_total
+        deviations = [v - (sum(vs) / len(vs)) for vs in values_by_date.values() for v in vs]
+        within = (sum(d * d for d in deviations) / n_total) ** 0.5
+        between = (
+            sum(len(vs) * ((sum(vs) / len(vs)) - grand) ** 2 for vs in values_by_date.values())
+            / n_total
+        ) ** 0.5
+        return within, between
+
+    within_ours, between_ours = _split(by_date_ours)
+    within_theirs, between_theirs = _split(by_date_theirs)
+
+    def _ratio(numerator: float, denominator: float) -> float | None:
+        """None, never NaN, when the published side has no swing on this axis to be measured
+        against — a single-day comparison has no between-day term at all. NaN would survive
+        `round()` and every comparison downstream as a quietly false answer (R15 fail-open);
+        None makes a caller say what it does about an undefined quantity."""
+        return (numerator / denominator) if denominator > 0.0 else None
+
     return {
         "year": float(year),
         "half_hours": float(len(common)),
+        "days": float(len(by_date_ours)),
+        "reconstructed_within_day_sd": within_ours,
+        "published_within_day_sd": within_theirs,
+        "reconstructed_between_day_sd": between_ours,
+        "published_between_day_sd": between_theirs,
+        "within_day_swing_overstated_by": _ratio(within_ours, within_theirs),
+        "between_day_swing_overstated_by": _ratio(between_ours, between_theirs),
         "reconstructed_min": min(ours.values()),
         "published_min": min(theirs.values()),
         "reconstructed_max": max(ours.values()),

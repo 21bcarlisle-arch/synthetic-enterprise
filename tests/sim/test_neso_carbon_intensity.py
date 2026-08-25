@@ -299,6 +299,141 @@ def test_no_shared_half_hour_in_the_year_raises():
         compare_shapes({("2024-01-15", 1): 1.0}, {("2023-01-15", 1): 1.0}, demand, "2024")
 
 
+def _two_day_pair(within_scale_ours: float = 1.0, between_spread_ours: float = 0.0):
+    """Two days, 48 half hours each, with the WITHIN-day swing and the BETWEEN-day spread made
+    independently controllable. The published side is fixed; only ours moves.
+
+    BOTH KNOBS PRESERVE THE SERIES MEAN, and that is a property of the fixture rather than a
+    detail: `published_shape` divides each series by its OWN demand-weighted mean, so a fixture
+    that moves ours' mean while claiming to scale its swing measures the two together and the
+    expected factor stops being the number you dialled in. The between-day knob therefore pushes
+    the two days APART symmetrically instead of lifting one.
+    """
+    days = ("2024-01-15", "2024-01-16")
+    demand = {(d, p): 20000.0 for d in days for p in range(1, 49)}
+    theirs_g = {(d, p): 300.0 + (60.0 if d == days[1] else 0.0) + 4.0 * p
+                for d in days for p in range(1, 49)}
+    day_mean = {d: sum(theirs_g[(d, p)] for p in range(1, 49)) / 48.0 for d in days}
+    push = {days[0]: -between_spread_ours, days[1]: +between_spread_ours}
+    ours_g = {
+        (d, p): (day_mean[d] + push[d]
+                 + within_scale_ours * (theirs_g[(d, p)] - day_mean[d]))
+        for d in days for p in range(1, 49)
+    }
+    return published_shape(ours_g, demand), published_shape(theirs_g, demand), demand
+
+
+def test_the_swing_decomposition_separates_two_axes_that_move_independently():
+    """The whole claim of the statistic: doubling the WITHIN-day swing must move the within-day
+    factor and leave the between-day one alone, and vice versa.
+
+    NAMED DEFECT IT FIRES ON (mutation-proven 2026-08-25): subtracting the SERIES mean instead of
+    each DAY's own mean. That leaves every day's level inside the 'within-day' term, so a change
+    made purely between days leaks into the intra-day figure -- which is precisely the confusion
+    the split exists to end. Under that mutation the second assertion below goes to 1.14.
+    """
+    doubled = compare_shapes(*_two_day_pair(within_scale_ours=2.0), "2024")
+    assert doubled["days"] == 2
+    assert doubled["within_day_swing_overstated_by"] == pytest.approx(2.0, rel=1e-6)
+    assert doubled["between_day_swing_overstated_by"] == pytest.approx(1.0, rel=1e-6)
+
+    # The two days pushed 60 g/kWh further apart, their internal shape untouched: theirs' day
+    # means sit 30 either side of the grand mean, ours 90, so the factor is exactly 3.
+    apart = compare_shapes(*_two_day_pair(between_spread_ours=60.0), "2024")
+    assert apart["within_day_swing_overstated_by"] == pytest.approx(1.0, rel=1e-6)
+    assert apart["between_day_swing_overstated_by"] == pytest.approx(3.0, rel=1e-6)
+
+
+def test_the_two_swing_terms_recombine_to_the_total_dispersion():
+    """A variance decomposition that does not recombine is not one — it is two unrelated numbers
+    with suggestive names. within^2 + between^2 == total^2 holds only when the day means are
+    removed exactly once, so this is the arithmetic check the naming implies.
+
+    NOT SUFFICIENT ON ITS OWN, and it is left here saying so. Every day in this fixture carries
+    all 48 half hours, and on a BALANCED panel the count-weighted and equally-weighted
+    between-day terms are the same number — so this control cannot see which one the module
+    uses. The next test is the one that can; this one holds the identity itself.
+    """
+    ours, theirs, demand = _two_day_pair(within_scale_ours=1.7, between_spread_ours=25.0)
+    stats = compare_shapes(ours, theirs, demand, "2024")
+    for side, series in (("reconstructed", ours), ("published", theirs)):
+        keys = [k for k in series if k in demand]
+        # Balanced panel (48 half hours every day), which is what makes the plain identity apply.
+        mean = sum(series[k] for k in keys) / len(keys)
+        total_var = sum((series[k] - mean) ** 2 for k in keys) / len(keys)
+        within = stats[f"{side}_within_day_sd"]
+        between = stats[f"{side}_between_day_sd"]
+        assert within ** 2 + between ** 2 == pytest.approx(total_var, rel=1e-9), (
+            f"the {side} decomposition does not recombine, so the two terms are not a split "
+            "of the dispersion they are named after"
+        )
+
+
+def test_the_decomposition_recombines_on_an_UNBALANCED_panel():
+    """THE CONTROL THAT EXISTS BECAUSE ITS MUTATION SURVIVED THE ONE ABOVE (R15, 2026-08-25).
+
+    The real comparison is not balanced — 2019 shares 16,923 half hours over 359 days, where a
+    full day each would be 17,232 — so how a short day is weighted in the between-day term is a
+    live choice, not a formality. Weighted by the half hours it carries, the split recombines to
+    the total dispersion exactly. Weighted equally with every other day, it does not, and the
+    error is silent: two plausible-looking numbers that no longer add up to the thing they claim
+    to be a split of.
+
+    Mutation-proven both ways, and the figures are the mutation run's own: equal-weighting the
+    day means breaks the identity here by 4.2% while passing every balanced-panel control in
+    this file, and subtracting the series mean in place of each day's breaks it by 68.3%.
+    """
+    days = {"2024-01-15": 48, "2024-01-16": 6, "2024-01-17": 30}
+    demand = {(d, p): 20000.0 for d, n in days.items() for p in range(1, n + 1)}
+    grams = {(d, p): 250.0 + 90.0 * i + 4.0 * p
+             for i, (d, n) in enumerate(days.items()) for p in range(1, n + 1)}
+    shape = published_shape(grams, demand)
+    stats = compare_shapes(shape, shape, demand, "2024")
+
+    assert stats["days"] == 3
+    assert stats["half_hours"] == 84, "the fixture must actually be unbalanced"
+
+    keys = list(shape)
+    mean = sum(shape[k] for k in keys) / len(keys)
+    total_var = sum((shape[k] - mean) ** 2 for k in keys) / len(keys)
+    got = stats["published_within_day_sd"] ** 2 + stats["published_between_day_sd"] ** 2
+    assert got == pytest.approx(total_var, rel=1e-9), (
+        "the split does not recombine once the days differ in length, so a short day's "
+        "dispersion is being counted into neither term"
+    )
+
+
+def test_a_pure_rescaling_moves_the_swing_factors_and_never_the_correlation():
+    """The two published quantities answer different questions and must not be read as one.
+
+    Correlation is scale-invariant: a model that swings 3x too hard but at exactly the right
+    times scores a perfect 1.0. So a page that quotes correlation as evidence the range is right,
+    or a swing factor as evidence the TIMING is right, is quoting the wrong number. This pins
+    that they move independently, which is the only reason publishing both is not redundancy.
+    """
+    # A PURE RESCALE OF THE WHOLE SERIES, which needs BOTH knobs turned together: theirs' day
+    # means sit 30 either side of the grand mean, so tripling the swing about that mean means
+    # tripling the within-day term AND pushing the days to +/-90. Turn only one knob and the
+    # result is a reshaping, not a rescaling, and correlation legitimately falls below 1.
+    ours, theirs, demand = _two_day_pair(within_scale_ours=3.0, between_spread_ours=60.0)
+    stats = compare_shapes(ours, theirs, demand, "2024")
+    assert stats["correlation"] == pytest.approx(1.0, abs=1e-9)
+    assert stats["within_day_swing_overstated_by"] == pytest.approx(3.0, rel=1e-6)
+    assert stats["between_day_swing_overstated_by"] == pytest.approx(3.0, rel=1e-6)
+
+
+def test_a_single_day_reports_no_between_day_factor_rather_than_a_nan():
+    """FAIL-OPEN control. One day has no between-day term at all. NaN would survive round() and
+    every downstream comparison as a quietly false answer; None forces a caller to say so."""
+    demand = {("2024-01-15", p): 20000.0 for p in range(1, 49)}
+    shape = published_shape({("2024-01-15", p): 100.0 + 5 * p for p in range(1, 49)}, demand)
+    stats = compare_shapes(shape, shape, demand, "2024")
+    assert stats["days"] == 1
+    assert stats["published_between_day_sd"] == pytest.approx(0.0, abs=1e-12)
+    assert stats["between_day_swing_overstated_by"] is None
+    assert stats["within_day_swing_overstated_by"] == pytest.approx(1.0, rel=1e-9)
+
+
 def test_the_comparison_does_not_derive_the_published_series_from_our_own():
     """TAUTOLOGY control, enforced structurally rather than asserted.
 

@@ -188,7 +188,15 @@ NAMED_GAPS = [
 ERROR_DIRECTION = (
     "The RANGE is overstated, and that is the sentence to carry: this shape's p95/p5 spread runs "
     "about 1.36x the published series', so any benefit computed from moving load between quiet "
-    "and busy half hours is an UPPER BOUND on the real one. What is no longer true, and was "
+    "and busy half hours is an UPPER BOUND on the real one. THAT 1.36x IS A BLEND OF TWO AXES "
+    "THAT BEHAVE OPPOSITELY, and the one a household can act on is the worse of them: split "
+    "day-by-day (2026-08-25), this shape's BETWEEN-day swing matches the published series to "
+    "within 7% in every year 2019-2024 (0.93-1.00x, mean 0.96), while its WITHIN-day swing is "
+    "too large in every one of those years (1.41-1.58x, mean 1.48). A customer can move the "
+    "washing from 6pm to 2am; they cannot move it to a windier Tuesday in March -- so the whole "
+    "of this model's exaggeration sits on the only axis a time-shifting recommendation acts on, "
+    "and the annual figure UNDERSTATES the correction such a claim needs by about a tenth. What "
+    "is no longer true, and was "
     "until the thermal floor was measured on 2026-08-25, is that the clean END is uniformly "
     "optimistic: flooring the stack at the gas fleet's demonstrated annual minimum moved the "
     "quietest half hours from about 3.2x too clean to a MIXED picture -- still slightly cleaner "
@@ -306,7 +314,12 @@ def versus_published(shape: dict, demand: dict, published: dict | None = None,
             measured = neso.compare_shapes(shape, published, demand, year)
         except Exception:  # noqa: BLE001 -- a year the two series do not share is simply absent
             continue
-        row = {k: round(v, 4) for k, v in measured.items()}
+        # `None` SURVIVES INTO THE FEED AS `null` RATHER THAN BEING ROUNDED OR DROPPED. A
+        # comparison term can be genuinely undefined -- a single-day year has no between-day
+        # swing to be measured against -- and `round(None)` is a TypeError that would take the
+        # whole publish down for a year that is merely short. Dropping the key instead would be
+        # worse: an absent key reads to every consumer as a comparison that came out clean.
+        row = {k: (None if v is None else round(v, 4)) for k, v in measured.items()}
         # THE TWO DIVISORS KEEP MORE DIGITS THAN EVERYTHING ELSE IN THIS ROW, because they are
         # the only values here that are DIVIDED BY rather than read. Four places would put a
         # 0.005% error into every household figure derived downstream -- small, but a rounding

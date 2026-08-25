@@ -115,6 +115,27 @@ MOVING LOAD BETWEEN QUIET AND BUSY HALF HOURS IS AN UPPER BOUND on the real one.
 error direction that matters here, because it flatters the mission's own thesis, and it must be
 carried on the face of anything published from this rather than left in a module nobody opens.
 
+AND THAT 1.36x IS A BLEND OF TWO AXES THAT POINT OPPOSITE WAYS (2026-08-25). Split day by day by
+`neso_carbon_intensity.compare_shapes`, this shape's BETWEEN-day swing matches the published
+series to within 7% in every year 2019-2024 (0.93-1.00x, mean 0.96) and its WITHIN-day swing is
+too wide in every one of them (1.41-1.58x, mean 1.48). The aggregate figure averages a term this
+model gets RIGHT with a term it gets WRONG — and the wrong one is the only axis a customer can
+act on, because a household can move the washing from 6pm to 2am and cannot move it to a windier
+Tuesday in March. So the annual correction UNDERSTATES what an intra-day shifting claim needs.
+Nothing here was tuned to that: the split is a measurement and R12 forbids moving a constant to
+change it.
+
+WHAT THAT RE-DIAGNOSED, and it is the reason the level did not move. The thermal floor closed a
+LEVEL error at the clean end and left CORRELATION untouched at 0.726 in 2024 — the model knows
+how clean a quiet half hour is and still does not know WHICH half hours were the quiet ones. The
+decomposition says where that lives: the day MEANS track well (day-mean correlation 0.761 in
+2024, 0.931 in 2019), the within-day ordering does not. Measured against the candidates in the
+gap list above, the error correlates with RENEWABLE SHARE (-0.49 in 2024) far more than with
+anything else, and the deeper reading is structural rather than a missing correction: this
+shape's own correlation with renewable share is -0.84 where the published series' is only -0.53,
+and that divergence has widened every year since 2019. A dispatch model handed demand, wind and
+solar can only be a function of residual demand; GB's actual intensity increasingly is not.
+
 WHAT IS NO LONGER TRUE, and it changed on 2026-08-25 when the thermal floor was measured: the
 CLEAN END is no longer uniformly optimistic. It used to sit ~3.2x too clean in every year. It is
 now MIXED — still slightly cleaner than published in 2019, 2022 and 2023, and DIRTIER than
