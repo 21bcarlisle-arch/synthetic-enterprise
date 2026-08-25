@@ -84,7 +84,7 @@
   ],
   "invoices": [
     {
-      "id": "PROS-2018-0002-INV2425",
+      "id": "PROS-2018-0002-INV2565",
       "date": "2018-01-31",
       "period_start": "2018-01-02",
       "period_end": "2018-01-31",
@@ -125,7 +125,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2018-0002-INV2426",
+      "id": "PROS-2018-0002-INV2566",
       "date": "2018-02-28",
       "period_start": "2018-02-01",
       "period_end": "2018-02-28",
@@ -166,7 +166,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2018-0002-INV2427",
+      "id": "PROS-2018-0002-INV2567",
       "date": "2018-03-31",
       "period_start": "2018-03-01",
       "period_end": "2018-03-31",
@@ -207,7 +207,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2018-0002-INV2428",
+      "id": "PROS-2018-0002-INV2568",
       "date": "2018-04-30",
       "period_start": "2018-04-01",
       "period_end": "2018-04-30",
@@ -248,7 +248,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2018-0002-INV2429",
+      "id": "PROS-2018-0002-INV2569",
       "date": "2018-05-31",
       "period_start": "2018-05-01",
       "period_end": "2018-05-31",
@@ -289,7 +289,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2018-0002-INV2430",
+      "id": "PROS-2018-0002-INV2570",
       "date": "2018-06-30",
       "period_start": "2018-06-01",
       "period_end": "2018-06-30",
@@ -330,7 +330,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2018-0002-INV2431",
+      "id": "PROS-2018-0002-INV2571",
       "date": "2018-07-31",
       "period_start": "2018-07-01",
       "period_end": "2018-07-31",
@@ -371,7 +371,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2018-0002-INV2432",
+      "id": "PROS-2018-0002-INV2572",
       "date": "2018-08-31",
       "period_start": "2018-08-01",
       "period_end": "2018-08-31",
@@ -412,7 +412,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2018-0002-INV2433",
+      "id": "PROS-2018-0002-INV2573",
       "date": "2018-09-30",
       "period_start": "2018-09-01",
       "period_end": "2018-09-30",
@@ -453,7 +453,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2018-0002-INV2434",
+      "id": "PROS-2018-0002-INV2574",
       "date": "2018-10-31",
       "period_start": "2018-10-01",
       "period_end": "2018-10-31",
@@ -494,7 +494,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2018-0002-INV2435",
+      "id": "PROS-2018-0002-INV2575",
       "date": "2018-11-30",
       "period_start": "2018-11-01",
       "period_end": "2018-11-30",
@@ -535,7 +535,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2018-0002-INV2436",
+      "id": "PROS-2018-0002-INV2576",
       "date": "2018-12-31",
       "period_start": "2018-12-01",
       "period_end": "2018-12-31",
@@ -576,7 +576,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2018-0002-INV2437",
+      "id": "PROS-2018-0002-INV2577",
       "date": "2019-01-01",
       "period_start": "2019-01-01",
       "period_end": "2019-01-01",
@@ -623,17 +623,17 @@
       {
         "date": "2018-02-02",
         "type": "invoice_raised",
-        "invoice_number": 2425,
+        "invoice_number": 2565,
         "amount_gbp": 115.55,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2425 raised",
+        "description": "Invoice INV2565 raised",
         "running_balance_gbp": 115.55
       },
       {
         "date": "2018-02-16",
         "type": "payment_received",
-        "invoice_number": 2425,
+        "invoice_number": 2565,
         "amount_gbp": -115.55,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -643,17 +643,17 @@
       {
         "date": "2018-03-01",
         "type": "invoice_raised",
-        "invoice_number": 2426,
+        "invoice_number": 2566,
         "amount_gbp": 115.01,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2426 raised",
+        "description": "Invoice INV2566 raised",
         "running_balance_gbp": 115.01
       },
       {
         "date": "2018-03-15",
         "type": "payment_received",
-        "invoice_number": 2426,
+        "invoice_number": 2566,
         "amount_gbp": -115.01,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -663,17 +663,17 @@
       {
         "date": "2018-04-10",
         "type": "invoice_raised",
-        "invoice_number": 2427,
+        "invoice_number": 2567,
         "amount_gbp": 115.81,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2427 raised",
+        "description": "Invoice INV2567 raised",
         "running_balance_gbp": 115.81
       },
       {
         "date": "2018-04-24",
         "type": "payment_received",
-        "invoice_number": 2427,
+        "invoice_number": 2567,
         "amount_gbp": -115.81,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -683,17 +683,17 @@
       {
         "date": "2018-05-05",
         "type": "invoice_raised",
-        "invoice_number": 2428,
+        "invoice_number": 2568,
         "amount_gbp": 115.55,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2428 raised",
+        "description": "Invoice INV2568 raised",
         "running_balance_gbp": 115.55
       },
       {
         "date": "2018-05-19",
         "type": "payment_received",
-        "invoice_number": 2428,
+        "invoice_number": 2568,
         "amount_gbp": -115.55,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -703,17 +703,17 @@
       {
         "date": "2018-06-01",
         "type": "invoice_raised",
-        "invoice_number": 2429,
+        "invoice_number": 2569,
         "amount_gbp": 115.83,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2429 raised",
+        "description": "Invoice INV2569 raised",
         "running_balance_gbp": 115.83
       },
       {
         "date": "2018-06-15",
         "type": "payment_received",
-        "invoice_number": 2429,
+        "invoice_number": 2569,
         "amount_gbp": -115.83,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -723,17 +723,17 @@
       {
         "date": "2018-07-05",
         "type": "invoice_raised",
-        "invoice_number": 2430,
+        "invoice_number": 2570,
         "amount_gbp": 115.55,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2430 raised",
+        "description": "Invoice INV2570 raised",
         "running_balance_gbp": 115.55
       },
       {
         "date": "2018-07-19",
         "type": "payment_received",
-        "invoice_number": 2430,
+        "invoice_number": 2570,
         "amount_gbp": -115.55,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -743,17 +743,17 @@
       {
         "date": "2018-08-01",
         "type": "invoice_raised",
-        "invoice_number": 2431,
+        "invoice_number": 2571,
         "amount_gbp": 115.83,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2431 raised",
+        "description": "Invoice INV2571 raised",
         "running_balance_gbp": 115.83
       },
       {
         "date": "2018-08-15",
         "type": "payment_received",
-        "invoice_number": 2431,
+        "invoice_number": 2571,
         "amount_gbp": -115.83,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -763,17 +763,17 @@
       {
         "date": "2018-08-31",
         "type": "invoice_raised",
-        "invoice_number": 2432,
+        "invoice_number": 2572,
         "amount_gbp": 115.83,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2432 raised",
+        "description": "Invoice INV2572 raised",
         "running_balance_gbp": 115.83
       },
       {
         "date": "2018-09-14",
         "type": "payment_received",
-        "invoice_number": 2432,
+        "invoice_number": 2572,
         "amount_gbp": -115.83,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -783,17 +783,17 @@
       {
         "date": "2018-10-07",
         "type": "invoice_raised",
-        "invoice_number": 2433,
+        "invoice_number": 2573,
         "amount_gbp": 115.55,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2433 raised",
+        "description": "Invoice INV2573 raised",
         "running_balance_gbp": 115.55
       },
       {
         "date": "2018-10-21",
         "type": "payment_received",
-        "invoice_number": 2433,
+        "invoice_number": 2573,
         "amount_gbp": -115.55,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -803,17 +803,17 @@
       {
         "date": "2018-11-01",
         "type": "invoice_raised",
-        "invoice_number": 2434,
+        "invoice_number": 2574,
         "amount_gbp": 115.82,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2434 raised",
+        "description": "Invoice INV2574 raised",
         "running_balance_gbp": 115.82
       },
       {
         "date": "2018-11-15",
         "type": "payment_received",
-        "invoice_number": 2434,
+        "invoice_number": 2574,
         "amount_gbp": -115.82,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -823,17 +823,17 @@
       {
         "date": "2018-11-30",
         "type": "invoice_raised",
-        "invoice_number": 2435,
+        "invoice_number": 2575,
         "amount_gbp": 115.55,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2435 raised",
+        "description": "Invoice INV2575 raised",
         "running_balance_gbp": 115.55
       },
       {
         "date": "2018-12-14",
         "type": "payment_received",
-        "invoice_number": 2435,
+        "invoice_number": 2575,
         "amount_gbp": -115.55,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -843,27 +843,27 @@
       {
         "date": "2019-01-06",
         "type": "invoice_raised",
-        "invoice_number": 2436,
+        "invoice_number": 2576,
         "amount_gbp": 115.81,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2436 raised",
+        "description": "Invoice INV2576 raised",
         "running_balance_gbp": 115.81
       },
       {
         "date": "2019-01-13",
         "type": "invoice_raised",
-        "invoice_number": 2437,
+        "invoice_number": 2577,
         "amount_gbp": -169.09,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2437 raised",
+        "description": "Invoice INV2577 raised",
         "running_balance_gbp": -53.28
       },
       {
         "date": "2019-01-20",
         "type": "payment_received",
-        "invoice_number": 2436,
+        "invoice_number": 2576,
         "amount_gbp": -115.81,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -951,9 +951,9 @@
       "customer_id": "PROS-2018-0002",
       "date": "2019-01-02",
       "event_type": "retention_decision",
-      "description": "Renewal window: company estimated 36% churn risk, decided to offer a 3% discount (cost GBP29.19) against GBP571.97 expected term margin at risk -- expected value of offering GBP542.78. Comms framed as a gain (save with this discount).",
-      "company_belief": 0.355,
-      "sim_truth": 0.037,
+      "description": "Renewal window: company estimated 34% churn risk, decided to offer a 3% discount (cost GBP29.19) against GBP571.97 expected term margin at risk -- expected value of offering GBP542.78. Comms framed as a gain (save with this discount).",
+      "company_belief": 0.335,
+      "sim_truth": 0.031,
       "amount_gbp": 542.78,
       "outcome": "churned_despite_offer",
       "framing_type": "gain_framed"
@@ -962,9 +962,9 @@
       "customer_id": "PROS-2018-0002",
       "date": "2019-01-02",
       "event_type": "outcome_churned",
-      "description": "Renewal outcome: CHURNED -- company believed 36% churn risk at decision time, SIM realized probability was 4%.",
-      "company_belief": 0.355,
-      "sim_truth": 0.037,
+      "description": "Renewal outcome: CHURNED -- company believed 34% churn risk at decision time, SIM realized probability was 3%.",
+      "company_belief": 0.335,
+      "sim_truth": 0.031,
       "amount_gbp": null,
       "outcome": "churned",
       "framing_type": null

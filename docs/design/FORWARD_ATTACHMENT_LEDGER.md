@@ -15,7 +15,7 @@ A finding or DISCOVER mint declares what it advances by putting one line in its 
 Nothing below is stored by hand. Delete the declaration and the row disappears.
 
 
-**18 attachment(s)** from 13 source doc(s), across 14 atom(s).
+**21 attachment(s)** from 16 source doc(s), across 16 atom(s).
 
 ## AO1_capability_index
 **The list of what we already have**  
@@ -31,11 +31,23 @@ _epoch 3 · lane H_harness · L2→L2 · build_
 - `2026-08-09` · `docs/staging/done/WORKER_FINDING_THE_INDEX_READS_THE_WORKING_TREE_2026-08-09.md` (finding) — the index's population question and
 - `2026-08-12` · `docs/staging/done/WORKER_REPORT_THE_INDEX_NOW_KNOWS_WHAT_THE_REPO_CARRIES_2026-08-12.md` (finding)
 
+## C14_thermal_parameter_inference
+**Company-side thermal parameter inference: the supplier estimates each premise's heat loss coefficien**  
+_epoch 3 · lane C_customer_ops · L3→L3 · harden_
+
+- `2026-08-09` · `docs/staging/done/WORKER_FINDING_DECISION_WITHOUT_A_DO_NOTHING_OPTION_2026-08-09.md` (finding)
+
 ## D11_detection_gap_is_recall_only
 **Reshape the coupled-triad DETECTION dimension, which has two defects the 2026-08-09 H27 Expert Hour **  
 _epoch 3 · lane D_billing_metering · L2→L2 · build_
 
 - `2026-08-09` · `docs/staging/done/WORKER_FINDING_H27_EXPERT_HOUR_DETECTION_IS_RECALL_ONLY_2026-08-09.md` (finding)
+
+## D12_detection_cell_grid_is_recall_only
+**Three published detection dimensions are still RECALL ONLY after D11 fixed the fourth: the regime-pa**  
+_epoch 3 · lane D_billing_metering · L2→L2 · build_
+
+- `2026-08-09` · `docs/staging/done/WORKER_FINDING_THE_SECOND_DIRECTION_NEEDS_ITS_OWN_POPULATION_2026-08-09.md` (finding)
 
 ## D19_belief_gap_is_distribution_only
 **The W2_11<->D5 triad's BELIEF dimension is a total-variation distance between two population severit**  
@@ -78,6 +90,7 @@ _epoch 3 · lane D_billing_metering · L2→L2 · build_
 _epoch 4 · lane W1_market_weather · L0→L3 · idle_
 
 - `2026-08-08` · `docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md` (finding) — the anchor that judges a generated home is itself gas-shaped, and the only electrically-heated home in the cast is the one it fails; a heat-pump band needs a real published source (EoH / SERL) before any generator can claim to be tethered.
+- `2026-08-09` · `docs/staging/done/WORKER_FINDING_MUTATION_VALID_ON_ONE_SUBPOPULATION_ONLY_2026-08-09.md` (finding) — an anchored generator is only as good as the mutation
 - `2026-08-11` · `docs/staging/done/PLANNER_MINTED_population_and_book_growth_2026-08-11.md` (other) — the director ruled the world's population up and the book won by acquisition; a bigger population must still be anchored, its per-run variation is EP17's subject, and a won book is what a CLV number is for.
 
 ## EP17_varied_population_draw

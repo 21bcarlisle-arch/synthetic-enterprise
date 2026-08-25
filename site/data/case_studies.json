@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-08-25T05:42:16Z",
+    "generated_at": "2026-08-25T20:46:22Z",
     "git_commit": "unknown",
     "household_count": 258,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
@@ -21,16 +21,16 @@
     },
     {
       "category": "Largest company-vs-SIM churn divergence",
-      "headline": "91.8 percentage points apart at the 2018 renewal (sim 3.2% vs company 95.0%)",
+      "headline": "94.8 percentage points apart at the 2019 renewal (sim 4.3% vs company 99.2%)",
       "wall_side": "sim",
-      "account_id": "C_IC1",
-      "base_account_id": "C_IC1",
+      "account_id": "C_IC2",
+      "base_account_id": "C_IC2",
       "segment": "I&C",
       "commodity": "electricity",
       "link": {
-        "acc": "C_IC1",
+        "acc": "C_IC2",
         "tab": "timeline",
-        "year": 2018
+        "year": 2019
       }
     },
     {
@@ -49,16 +49,16 @@
     },
     {
       "category": "Heaviest arrears cascade",
-      "headline": "9 debt write-off event(s) in the arrears cascade",
+      "headline": "8 debt write-off event(s) in the arrears cascade",
       "wall_side": "company",
-      "account_id": "PROS-2020-0043",
-      "base_account_id": "PROS-2020-0043",
+      "account_id": "PROS-2019-0063",
+      "base_account_id": "PROS-2019-0063",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2020-0043",
+        "acc": "PROS-2019-0063",
         "tab": "timeline",
-        "year": 2020
+        "year": 2019
       }
     },
     {

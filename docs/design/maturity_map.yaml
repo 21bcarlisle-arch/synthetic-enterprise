@@ -4115,13 +4115,50 @@
   #   That is the coal-and-interconnectors build named above, still not done. L3 needs that build
   #   and then a SECOND Expert Hour. LAW A: the drawn plan said 2->3 and a plan is a diagnostic,
   #   never a target.
+  #   THE BUILD IS NOW DONE, 2026-08-25, AND IT DID NOT REACH L3 EITHER. `sim/elexon_fuel_outturn.py`
+  #   ingests Elexon's published half-hourly generation-by-fuel-type outturn (FUELHH, key-free) and
+  #   supplies the two things the dispatch model structurally cannot know: cross-border flow, which
+  #   is set by FOREIGN prices and is therefore an observable, and coal AVAILABILITY, which is a
+  #   fleet fact. The line between them is load-bearing and tested: half-hourly coal outturn is
+  #   NOT handed over, because whether coal ran IS the merit-order question the reconstruction
+  #   exists to answer independently -- a model that reads the metered mix and applies published
+  #   factors is NESO's arithmetic with a different cache, and the coupled-triad gap would then
+  #   measure nothing while still producing a number. Import factors are NESO's OWN published ones
+  #   (methodology Table 1); the two cables that table predates get NO invented factor and their
+  #   share is MEASURED instead (84% of imported MWh priced over the series, 66% in 2024).
+  #   THE ZERO-THERMAL GAP IS CLOSED TOO, 2026-08-25 (third build of the day), AND L3 STILL DOES
+  #   NOT FOLLOW -- but the reason has CHANGED, which is the part to read. The stack is now floored
+  #   at the CCGT+OCGT fleet's DEMONSTRATED ANNUAL MINIMUM from the same FUELHH outturn (1,835 MW
+  #   in 2016 -> 303 MW in 2024), crossing the boundary as one scalar a year exactly as coal does.
+  #   Measured before/after IN ONE PROCESS against identical caches: p95/p5 overstatement 1.90x ->
+  #   1.36x, max/min 2.44x -> 1.04x, mean absolute error down in EVERY year. NOT A CLEAN WIN, and
+  #   both halves are published: the clean end now OVERSHOOTS in 2020 (0.314 vs 0.244) and 2021
+  #   (0.233 vs 0.195), so the "clean end is optimistic" sentence that reaches the page was wrong
+  #   in two years of six and now claims the RANGE instead. WHAT HOLDS L3 NOW is correlation, which
+  #   moved by less than 0.004 in every year and is still 0.726 in 2024: the floor fixed the LEVEL
+  #   of the clean end and left the TIMING untouched, so the shape knows how clean a quiet half
+  #   hour is and not which half hours were quiet. That is a different failure from this morning's
+  #   and a harder one. The second Expert Hour is also still untaken. LAW A.
+  #   MEASURED, AND NOT A CLEAN WIN. Clean end 0.057-0.070 -> 0.076-0.096, so 3.2x too clean
+  #   becomes 2.3x. The headline overstatement every abatement figure inherits: p95/p5 2.88x ->
+  #   1.90x, max/min 3.15x -> 2.43x. Five years of six improved on correlation and mean absolute
+  #   error. 2019 and 2021 got WORSE on spread (3.27 -> 3.59, 5.01 -> 5.86) because those are the
+  #   years coal still had a fleet and the cables were already fully priced, so coal widens the
+  #   dirty end with no offset; 2021 also lost correlation (0.900 -> 0.885). Named, not averaged.
+  #   THE NEXT GAP IS NAMED AND SIZED, and it is not either of the two just closed: this model
+  #   lets the thermal stack reach EXACTLY ZERO and GB's never does. After imports, no gas at all
+  #   is dispatched in 0.1% of 2016's half hours, 1.3% of 2019's, 16.1% of 2024's and 30.8% of
+  #   2025's. That share grows with renewables, which is why the residual clean-end error is worst
+  #   in the recent years. L3 needs that build, the two uncovered cables, and a SECOND Expert Hour.
   file_scope: ['sim/grid_carbon_intensity.py', 'sim/neso_carbon_intensity.py',
+    'sim/elexon_fuel_outturn.py',
     'company/carbon/half_hourly_footprint.py',
     'tools/generate_grid_intensity_feed.py', 'tools/generate_explore_carbon.py',
     'tests/sim/test_grid_carbon_intensity.py', 'tests/sim/test_neso_carbon_intensity.py',
+    'tests/sim/test_elexon_fuel_outturn.py',
     'tests/company/carbon/test_half_hourly_footprint.py',
     'tests/tools/test_grid_intensity_feed_and_explore_carbon.py']
-  simplifications_count: 2
+  simplifications_count: 3
 - id: EP14_adapter_published_cost_stack
   title: "The non-commodity stack, parsed from what is actually published"
   gain: "Network and policy costs stop being parameters and start being documents that change under the company."
