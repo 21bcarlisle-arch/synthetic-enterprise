@@ -89,6 +89,7 @@ from typing import (
 )
 
 from simulation.household_segments import TenureType, tenure_for_customer
+from simulation.segment_vocabulary import INDUSTRIAL_AND_COMMERCIAL, normalise_segment
 
 if TYPE_CHECKING:  # the dwelling type only — `premise_population` is imported lazily
     from simulation.premise_population import DrawnPremise
@@ -244,6 +245,26 @@ class SyntheticCustomer:
     # be wrong about it.
     premise: Optional["DrawnPremise"] = None
 
+    # THE METER THE SUPPLIER HAS INSTALLED AT THIS SUPPLY POINT, and it is an OBSERVABLE rather
+    # than hidden truth like `cohort` and `premise` above -- a supplier reads its own meter type
+    # off the national metering database and prints it on every bill. So `to_customer_dict()`
+    # DOES render it, and that difference from the two fields above is the whole point.
+    #
+    # WHAT IT REPAIRS (2026-08-25). 249 of the book's 264 accounts carried no meter field at all
+    # -- every customer the acquisition funnel has ever won -- so
+    # `simulation.meter_reads.meter_type_for_customer` silently defaulted all of them to
+    # "traditional". The book showed 14 half-hourly-capable meters against a GB domestic
+    # penetration of 68.9%, and the carbon instrument built the day before could measure 3
+    # residential households out of 256.
+    #
+    # THIS IS THE SAME DEFECT THE DIRECTOR FLAGGED ON 2026-07-09 AND IT IS ITS 249TH INSTANCE.
+    # Then it was C1-C4: "carried no smart_meter key at all, so meter_type_for_customer()
+    # silently defaulted every one of them to traditional" (saas/customers.py:310). That was
+    # fixed by stamping the seven hand-authored customers from the supplier's fleet record. The
+    # funnel then began minting customers that record has never heard of, and the default came
+    # straight back -- which is why the fix belongs at the DRAW and not in another roster.
+    smart_meter: bool = False
+
     def to_customer_dict(self) -> dict:
         """Render a saas-shaped customer dict (for the L2 integration layer)."""
         return {
@@ -257,6 +278,10 @@ class SyntheticCustomer:
             "eac_kwh": self.eac_kwh,
             "location": {"lat": None, "lon": None, "region": self.region},
             "tariff_type": self.tariff_type,
+            # RENDERED, unlike `cohort` and `premise`: see the field's own note. Without this the
+            # supplier's book cannot say what meter it installed, and every drawn customer reads
+            # as traditional.
+            "smart_meter": self.smart_meter,
             "data_regime": self.data_regime,
         }
 
@@ -350,6 +375,17 @@ def _draw_one(
         region=region,
         cohort=cohort,
         premise=premise,
+        # DRAWN AGAINST THE PUBLISHED GB PENETRATION FOR THE ACQUISITION YEAR, on its own RNG
+        # substream (C-S2) so adding it leaves every other drawn attribute byte-identical. The
+        # curve is `simulation.premise_population.smart_meter_penetration` -- DESNZ Q4 2024 Smart
+        # Meters Statistics Table 5a, 10.6% (2016) to 68.9% (2024) -- which the world already
+        # used for read cadence. No new constant, and no second interpolation of one series.
+        #
+        # R13: this is a BASELINE fidelity change, not a curriculum one. It moves the world
+        # toward the published national series and was decided blind to company P&L -- it makes
+        # the company's book HARDER to serve cheaply, not easier, because a smart meter means the
+        # supplier can no longer bill an estimate and hope.
+        smart_meter=_draw_smart_meter(customer_id, base_seed, acquisition_date.year, segment),
     )
 
 
@@ -699,6 +735,34 @@ def _load_cohort_curriculum(path: Optional[Path] = None) -> dict:
         with open(_CURRICULUM_PATH, "r", encoding="utf-8") as f:
             _curriculum_cache = json.load(f)
     return _curriculum_cache
+
+
+#: Segments whose meters are half-hourly settled by mandate rather than by rollout: BSC P272
+#: made HH settlement compulsory for I&C sites above 100kW from 2014, so they were metered that
+#: way before the domestic programme began. Drawing them against a domestic penetration curve
+#: would model a large industrial site waiting its turn in a household rollout.
+#:
+#: NAMED FROM THE VOCABULARY, not written out. The first draft carried the literal pair
+#: `("I&C", "IC")` to catch both spellings, and `tools/segment_case_guard.py` refused the commit
+#: for it -- correctly, because a second spelling handled locally is how one segment becomes two
+#: over time. `normalise_segment` is the single place that knows the aliases.
+_MANDATED_HH_SEGMENTS = (INDUSTRIAL_AND_COMMERCIAL,)
+
+
+def _draw_smart_meter(customer_id: str, base_seed: int, year: int, segment: str) -> bool:
+    """Does this drawn supply point have a smart (or HH) meter at acquisition?
+
+    Deterministic per customer and independent of draw ORDER, so a customer's meter does not
+    change when the book around it grows -- the same C-S2 property `_cohort_substream` exists
+    for, and the same one the CLV lifetime fix cited when it removed an identifier-dependence
+    from valuation.
+    """
+    if normalise_segment(segment, default=None) in _MANDATED_HH_SEGMENTS:
+        return True
+    from simulation.premise_population import smart_meter_penetration
+
+    roll = _cohort_substream(customer_id, base_seed, "smart_meter").random()
+    return roll < smart_meter_penetration(int(year))
 
 
 def _cohort_substream(customer_id: str, base_seed: int, axis: str) -> random.Random:

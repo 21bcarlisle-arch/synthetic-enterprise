@@ -344,12 +344,35 @@ MONTHLY_CADENCE_DAYS = 30
 QUARTERLY_CADENCE_DAYS = 90
 
 
-def smart_read_share(year: int) -> float:
-    """Share of premises whose supplier holds a DAILY read, in `year`."""
+def smart_meter_penetration(year: int) -> float:
+    """Share of premises that HAVE a smart meter in `year`, communicating or not.
+
+    LIFTED OUT OF `smart_read_share` (2026-08-25) because two different questions were
+    answering as one, and the second had no caller at all. "Does this premise have a smart
+    meter" is a fact about the METER FLEET -- it decides what the supplier's book says, what
+    tariffs the customer is eligible for, and whether a half-hourly carbon figure is even
+    possible. "Does the supplier hold a daily read from it" is a fact about COMMUNICATION, and
+    it is the product of the first with `_SMART_COMMUNICATING_RATE`.
+
+    A supplier knows the first about every one of its own supply points -- it is on the national
+    metering database and on every bill -- so this is an observable, not hidden world truth, and
+    it is the one `population_draw.to_customer_dict()` renders onto the supplier's book.
+
+    DESNZ Q4 2024 Smart Meters Statistics Table 5a, linearly interpolated: 10.6% (2016) to
+    68.9% (2024), held flat outside the window.
+    """
     fraction = (year - 2016) / (2024 - 2016)
     fraction = min(1.0, max(0.0, fraction))
-    penetration = _SMART_SHARE_2016 + (_SMART_SHARE_2024 - _SMART_SHARE_2016) * fraction
-    return penetration * _SMART_COMMUNICATING_RATE
+    return _SMART_SHARE_2016 + (_SMART_SHARE_2024 - _SMART_SHARE_2016) * fraction
+
+
+def smart_read_share(year: int) -> float:
+    """Share of premises whose supplier holds a DAILY read, in `year`.
+
+    DERIVED from `smart_meter_penetration`, never a second interpolation of the same series --
+    this repository has already paid for having three copies of one grid-intensity curve.
+    """
+    return smart_meter_penetration(year) * _SMART_COMMUNICATING_RATE
 
 
 # EPC register coverage: ~60% of stock holds a certificate, transaction-biased
