@@ -146,6 +146,7 @@ from simulation.hh_consumption import (
 from simulation.household import household_of
 from simulation.household_demand import HouseholdDemandRegister
 from simulation.live_population import (
+    campaign_quotes_paid_for,
     founding_capital_gbp,
     live_drawn_households,
     live_dwellings,
@@ -815,6 +816,64 @@ def _ic_flex_roster(elec_customers: list[dict], eac_by_cid: dict) -> list[tuple]
     ]
 
 
+def campaign_acquisition_spend_events(report_end: str = REPORT_END) -> list[dict]:
+    """The growth campaign's quotes, booked as acquisition spend. PB3 exit (c), 2026-08-25.
+
+    THE DEFECT THIS CLOSES, measured on unmodified HEAD at the shipped configuration. The
+    two `acquisition_spend_events.append` sites in `main` both sit inside the CHURN branch of
+    the replacement path, so the only acquisition spend that ever reached
+    `company.finance.accounting_close.close_the_books` — and therefore the only spend that
+    ever reached the P&L — was the cost of replacing customers who had left. The ten-year
+    growth campaign beside it, which won 244 of the book's 264 accounts, issued **1,295
+    quotes and spent £157,155**, and booked none of it. The total was summed into
+    `docs/observability/book_growth_campaign.json` and held in
+    `simulation.live_population.LAST_CAMPAIGN`; neither is a ledger. The published run
+    reported **£5,587.50** of acquisition spend (`site/data/dashboard.json`,
+    `financial.ledger.acquisition_spend_gbp`) over **43** `acquisition_spend_event` rows
+    (`docs/reports/ANNUAL_REPORT.md`). 96.4% of what this supplier spent winning customers
+    was missing from its own accounts.
+
+    IT IS THE ATOM'S OWN MECHANISM, not a reporting tidy-up. The ruling names three —
+    *"churn, acquisition cost, and the competitor field are the mechanisms"* — and a growth
+    curve whose cost is booked to a JSON file cannot be lost on price, because losing costs
+    nothing and quoting is free. This is exit criterion (c)'s "costs a penny" clause applied
+    to the earned half of the book. The activation record for this very campaign told the
+    director *"Growth costs money. 245 quotes were paid for and 231 lost"*; in the accounts
+    they were not.
+
+    THROUGH THE `growth_desk` DOOR, the same one the replacement path uses two screens below.
+    What an attempt COST is company accounting — the wall `run_acquisition_funnel` states in
+    its own docstring, which is why `total_amount_gbp` is a required INPUT to the funnel
+    rather than something the world looks up. So the world resolves who was quoted and what
+    the attempt cost it, and the supplier books it. `won` rides along unchanged, so cost per
+    acquisition stays derivable and a lost quote stays what it is: spend with no account
+    against it, which is exactly what makes acquisition cost something this company can get
+    wrong.
+
+    WITHIN THE REPORTED PERIOD, filtered rather than assumed, and against `report_end` — the
+    run's EFFECTIVE end — rather than the constant, so a truncated window does not post a
+    decade of cost into a close that stops in March. At the shipped full window it excludes
+    nothing: all 1,295 rows fall inside it, asserted rather than claimed in
+    `test_c_the_window_filter_excludes_nothing_at_the_shipped_configuration`.
+
+    RETURNS `[]` WITH THE GROWTH MANDATE OFF, because `_campaign` short-circuits to an empty
+    outcome there — so the default path books exactly what it booked before, and the null
+    control that proves the measured spend is the CAMPAIGN's rather than a re-labelling of
+    the replacement path's is a real one.
+    """
+    return [
+        book_acquisition_spend(
+            billing_account=quote["prospect_id"],
+            event_date=quote["event_date"],
+            amount_gbp=quote["amount_gbp"],
+            won=quote["won"],
+            segment=quote["segment"],
+        )
+        for quote in campaign_quotes_paid_for()
+        if REPORT_START <= quote["event_date"] <= report_end
+    ]
+
+
 def main(report_end: str | None = None, sim_interface=None, policy: DecisionPolicy | None = None):
     """Run the full Phase 2b + 4c settlement simulation.
 
@@ -1195,8 +1254,10 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     # rolls the fraction forward. The world holds the desk, not the book.
     hedge_desk = build_hedge_desk()
 
-    # Phase 8a: growth mandate tracking
-    acquisition_spend_events: list[dict] = []
+    # Phase 8a: growth mandate tracking.
+    # PB3 exit (c), 2026-08-25: SEEDED with the growth campaign's own quotes, which until now
+    # were paid for and never booked. See `campaign_acquisition_spend_events`.
+    acquisition_spend_events: list[dict] = campaign_acquisition_spend_events(effective_end)
     fixed_cost_events: list[dict] = []
     _acquisition_counter: dict[str, int] = {}  # base_id -> next fresh-acquisition suffix
 

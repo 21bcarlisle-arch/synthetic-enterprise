@@ -723,6 +723,40 @@ def _won_customer_dicts(outcome: dict) -> List[dict]:
     ]
 
 
+def campaign_quotes_paid_for(base_seed: Optional[int] = None) -> List[dict]:
+    """Every quote the growth campaign PAID FOR this run — won and lost alike.
+
+    PB3 exit (c), the "costs a penny" clause, 2026-08-25. Until now this list existed and
+    nothing spent it. `_resolve_campaign` summed it into `book_growth_campaign.json` as a
+    reported total and `LAST_CAMPAIGN` held it in the run's own process, and neither is an
+    account: `run_phase2b`'s `acquisition_spend_events` — the list that actually reaches
+    `company.finance.accounting_close.close_the_books` and therefore the P&L — was appended
+    to at exactly two sites, both inside the CHURN branch of the replacement path. Measured
+    at HEAD on the shipped configuration: the campaign issued **1,295 quotes and spent
+    £157,155**, the published ledger reported **£5,587.50** of acquisition spend, and the
+    annual report carried **43** acquisition_spend_events. 96.4% of what this supplier spent
+    winning customers was absent from its own accounts.
+
+    That is not a reporting gap, it is the atom's own mechanism missing. The ruling names
+    three — "churn, acquisition cost, and the competitor field" — and a growth curve whose
+    cost is booked to a JSON file cannot be lost on price, because losing costs nothing.
+    The activation record for this very campaign told the director *"Growth costs money. 245
+    quotes were paid for and 231 lost"*; in the accounts they were not.
+
+    ROWS, NOT EVENTS. This returns the campaign's own rows and stops there. `run_phase2b`
+    books them through `company.interfaces.growth_desk.book_acquisition_spend`, the same door
+    the replacement path uses, because what an attempt COST is company accounting and the
+    world has no view of it — the wall `run_acquisition_funnel` states in its own docstring.
+    A `make_acquisition_spend_event` call in this module would be the world writing the
+    supplier's ledger.
+
+    Deterministic in the seed and memoised with the campaign, so this costs nothing beyond
+    the resolution `live_population()` has already paid for.
+    """
+    seed = _DEFAULT_BASE_SEED if base_seed is None else base_seed
+    return list(_campaign(_pre_growth_book(seed), seed)["spend"])
+
+
 #: The campaign's own record of the run just assembled — per-year quotes, wins, spend and
 #: the BINDING reason. Published rather than discarded because the growth curve is
 #: meaningless without it: a flat year is a supplier that lost, a supplier that could not

@@ -827,3 +827,225 @@ def test_b2_the_two_flags_are_INDEPENDENT_and_the_default_path_is_untouched(monk
         assert not (tmp_path / "campaign.json").exists()
     finally:
         lp._CAMPAIGN_MEMO.clear()
+
+
+# ---------------------------------------------------------------------------
+# EXIT (c) — THE QUOTES ARE PAID FOR IN THE ACCOUNTS, NOT IN A JSON FILE
+# ---------------------------------------------------------------------------
+# Criterion (c) asks that no step change in book size be unmodelled, and names three
+# things a modelled acquisition does: pass a funnel, COST A PENNY, and be able to fail.
+# The campaign's winners passed a funnel from the day it was built and (b1) made them
+# able to fail on price. They did not cost a penny. `run_phase2b`'s two
+# `acquisition_spend_events.append` sites both sit inside the churn branch of the
+# replacement path, so the only acquisition spend that ever reached the P&L was the cost
+# of replacing customers who left; the campaign's own 1,295 quotes and £157,155 were
+# summed into `book_growth_campaign.json`, which is a report and not a ledger.
+#
+# THE MEASUREMENT THAT MADE THIS A BUILD rather than a hunch, taken on unmodified HEAD at
+# the shipped configuration: campaign spend £157,155 over 1,295 quotes; published ledger
+# `acquisition_spend_gbp` £5,587.50 over 43 rows. 96.4% of what this supplier spent
+# winning customers was missing from its own accounts, and the activation record for this
+# very campaign had told the director "Growth costs money."
+
+CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 1295
+CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 157155.0
+
+
+def test_c_every_quote_the_campaign_paid_for_is_BOOKED_as_acquisition_spend():
+    """THE EXIT TEST for (c)'s cost clause. Nothing the campaign bought goes unbooked.
+
+    Judged quote-by-quote rather than on the total, because a total can be right while
+    the population behind it is wrong -- one £157,155 row would satisfy a sum check and
+    would not be a ledger. The subject is `campaign_quotes_paid_for()` itself, so this
+    cannot pass by the two lists agreeing on a number neither of them got from the
+    campaign.
+    """
+    from simulation.live_population import campaign_quotes_paid_for
+    from simulation.run_phase2b import campaign_acquisition_spend_events
+
+    quotes = campaign_quotes_paid_for()
+    events = campaign_acquisition_spend_events()
+
+    assert len(quotes) == CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG, (
+        "the shipped campaign has been re-sized -- re-measure before trusting the "
+        f"figures in this file's header ({len(quotes)} quotes)"
+    )
+    assert round(sum(q["amount_gbp"] for q in quotes), 2) == CAMPAIGN_SPEND_AT_SHIPPED_CONFIG
+
+    assert len(events) == len(quotes), (
+        f"{len(quotes) - len(events)} quote(s) the company paid for were never booked"
+    )
+    # The ledger's sign convention: spend is a NEGATIVE amount (`saas.ledger.
+    # make_acquisition_spend_event`), and `company.finance.pnl` negates it back into an
+    # operating cost. A positive row here would ADD £157,155 of margin instead.
+    assert round(-sum(e["amount_gbp"] for e in events), 2) == CAMPAIGN_SPEND_AT_SHIPPED_CONFIG
+
+    by_account = {e["billing_account"]: e for e in events}
+    for quote in quotes:
+        booked = by_account.get(quote["prospect_id"])
+        assert booked is not None, f"{quote['prospect_id']} was quoted and never booked"
+        assert booked["event_type"] == "acquisition_spend_event"
+        assert booked["timestamp"] == quote["event_date"]
+        assert booked["amount_gbp"] == -quote["amount_gbp"]
+        assert booked["segment"] == quote["segment"]
+        # THE LOST QUOTES ARE THE POINT. A ledger that booked only the winners would
+        # report a cost per acquisition of one quote per account and make growth look
+        # free at the margin -- the exact shape that stops acquisition cost being
+        # something this company can get wrong.
+        assert booked["acquisition_won"] == quote["won"]
+
+    lost = [e for e in events if not e["acquisition_won"]]
+    assert lost, "vacuous: no losing quote was booked, so nothing here proves losses cost"
+
+
+def test_c_NULL_CONTROL_with_the_growth_mandate_OFF_no_campaign_spend_is_booked(
+    monkeypatch, tmp_path
+):
+    """The null control, and without it the test above is not attributable.
+
+    `campaign_acquisition_spend_events` books whatever `campaign_quotes_paid_for` hands
+    it. If that accessor returned the REPLACEMENT path's spend, or a constant, or
+    anything at all under a switched-off campaign, the £157,155 above would be a number
+    the build produced rather than the campaign's. With the mandate off the company runs
+    no campaign, so it must book nothing -- and the shipped default path must be exactly
+    as expensive as it was before this build.
+    """
+    from simulation import live_population as lp
+    from simulation.run_phase2b import campaign_acquisition_spend_events
+
+    monkeypatch.setenv("SE_GROW_BOOK", "0")
+    monkeypatch.setattr(lp, "_SUBSET_VERDICT_RECORD", tmp_path / "verdict.json")
+    monkeypatch.setattr(lp, "_CAMPAIGN_RECORD", tmp_path / "campaign.json")
+    lp._CAMPAIGN_MEMO.clear()
+    try:
+        assert campaign_acquisition_spend_events() == []
+    finally:
+        lp._CAMPAIGN_MEMO.clear()
+
+
+def test_c_the_window_filter_excludes_nothing_at_the_shipped_configuration():
+    """The claim `campaign_acquisition_spend_events` makes about its own filter.
+
+    A period filter that silently dropped part of the decade would understate the very
+    cost this build exists to book, and it would look identical to a smaller campaign.
+    Asserted rather than argued: at the full window every quote is inside it.
+    """
+    from simulation.live_population import campaign_quotes_paid_for
+    from simulation.run_phase2b import REPORT_END, REPORT_START, campaign_acquisition_spend_events
+
+    outside = [
+        q["prospect_id"] for q in campaign_quotes_paid_for()
+        if not REPORT_START <= q["event_date"] <= REPORT_END
+    ]
+    assert not outside, f"quotes fall outside the reported period and are dropped: {outside}"
+    assert len(campaign_acquisition_spend_events()) == CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG
+
+
+def test_c_MUTATION_the_window_filter_can_actually_EXCLUDE():
+    """R15 for the test above: a filter that never excludes anything is not a filter.
+
+    The test above passes if the `if` were deleted entirely, so on its own it proves the
+    filter harmless rather than present. Handed a `report_end` mid-decade, it must drop
+    exactly the quotes dated after it -- which is also the truncated-window behaviour a
+    short run depends on.
+    """
+    from simulation.live_population import campaign_quotes_paid_for
+    from simulation.run_phase2b import campaign_acquisition_spend_events
+
+    cutoff = "2019-12-31"
+    booked = {e["billing_account"] for e in campaign_acquisition_spend_events(cutoff)}
+    expected = {q["prospect_id"] for q in campaign_quotes_paid_for()
+                if q["event_date"] <= cutoff}
+
+    assert booked == expected
+    assert 0 < len(booked) < CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG, (
+        f"the filter excluded {CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG - len(booked)} quotes; "
+        "a filter that excludes nothing on a truncated window is not filtering"
+    )
+
+
+@pytest.fixture
+def shipped_supply_book():
+    """The two run-based tests below need the supply book the SHIPPED run assembles.
+
+    FOUND BY RUNNING THEM TOGETHER, not by reading. `_no_arrivals` above tears the drawn
+    book down with `saas.customers._clear_drawn_customers()` on the way out — correctly,
+    because a fixture's trimmed roster must not leak — but nothing puts the shipped drawn
+    book BACK. Every test in this file that judges the campaign directly is indifferent to
+    that; a test that runs `run_phase2b.main` is not, because the run resolves account ids
+    against `DRAWN_CUSTOMERS` and gets `None` for a customer the book still contains.
+    Combined with `tests/simulation/test_run_phase2b.py` in one session it surfaced as
+    `AttributeError: 'NoneType' object has no attribute 'get'` in `hh_consumption`.
+
+    So this re-registers by re-running the seam at the shipped configuration, and restores
+    `ACQUIRED_CUSTOMERS` afterwards — the same idiom
+    `tests/simulation/test_home_move_undeliverable_win.py::restore_acquired_book` already
+    keeps for a run that appends wins to a module-level list.
+    """
+    import simulation.live_population as lp
+    import simulation.run_phase2b as rp
+    from saas.customers import _clear_drawn_customers
+
+    acquired_before = list(rp.ACQUIRED_CUSTOMERS)
+    _clear_drawn_customers()
+    lp._CAMPAIGN_MEMO.clear()
+    lp.live_population()
+    try:
+        yield
+    finally:
+        rp.ACQUIRED_CUSTOMERS[:] = acquired_before
+
+
+def test_c_the_booked_spend_REACHES_THE_RUN_and_therefore_the_P_AND_L(shipped_supply_book):
+    """The wiring, proven by running the thing rather than by reading it.
+
+    A helper nothing calls books nothing, and that failure mode is invisible to every
+    test above. This runs `run_phase2b.main` over a truncated window -- 5.6 s measured
+    2026-08-25 -- and asserts the campaign's quotes are in the run's OWN
+    `acquisition_spend_events`, which is the list `run_phase4c_on_phase2b` hands to
+    `close_the_books`. Then it runs the P&L over exactly those events and asserts the
+    money arrives as an operating cost, because a spend event the income statement
+    ignored would be booked and still free.
+    """
+    from company.finance.pnl import company_income_statement
+    from simulation.run_phase2b import main
+
+    result = main(report_end="2016-06-30")
+    events = result["acquisition_spend_events"]
+    campaign_rows = [e for e in events if e["billing_account"].startswith("PROS-")]
+
+    assert campaign_rows, "the run booked no campaign spend -- the helper is not wired in"
+    spent = round(-sum(e["amount_gbp"] for e in campaign_rows), 2)
+    assert spent > 0
+
+    statement = company_income_statement(campaign_rows)
+    assert statement["acquisition_spend_gbp"] == spent, (
+        "the campaign's spend events reached the run and not the income statement"
+    )
+    assert statement["total_operating_costs_gbp"] >= spent
+
+
+def test_MUTATION_c_the_PRE_BUILD_run_books_none_of_it(shipped_supply_book):
+    """R15 for the wiring test: the mutation IS `run_phase2b` as it stood before today.
+
+    Before this build the run seeded `acquisition_spend_events` with an empty list and
+    filled it only from the replacement path. Restoring that -- by returning nothing from
+    the helper the run seeds itself from -- must take the campaign's spend back out of the
+    run entirely. If it did not, the spend asserted above is arriving from somewhere other
+    than this build and the control is describing rather than proving.
+    """
+    import simulation.run_phase2b as rp
+
+    real = rp.campaign_acquisition_spend_events
+    rp.campaign_acquisition_spend_events = lambda report_end=rp.REPORT_END: []
+    try:
+        result = rp.main(report_end="2016-06-30")
+    finally:
+        rp.campaign_acquisition_spend_events = real
+
+    campaign_rows = [e for e in result["acquisition_spend_events"]
+                     if e["billing_account"].startswith("PROS-")]
+    assert not campaign_rows, (
+        "the pre-build run STILL books campaign spend -- the £157,155 measured above is "
+        "not attributable to this change"
+    )
