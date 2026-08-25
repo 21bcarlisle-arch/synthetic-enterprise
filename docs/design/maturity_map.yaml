@@ -3926,8 +3926,9 @@
   provenance: director_ruling
   depends_on: ['PB2_opening_book_won_not_assigned']
   couples_with: ['W2_3_competitor_field']
-  simplifications_count: 2
-  file_scope: [simulation/net_new_acquisition.py, simulation/run_phase2b.py, tests/simulation/test_net_new_acquisition.py]
+  simplifications_count: 3
+  file_scope: [simulation/net_new_acquisition.py, simulation/run_phase2b.py, tests/simulation/test_net_new_acquisition.py,
+    simulation/market_switching_propensity.py, simulation/acquisition_funnel.py, simulation/live_population.py]
 
 # --- EPOCH 3: the wall becomes real transport (blocked -- R13 curriculum)
 - id: EP6_wall_protocol_typing
