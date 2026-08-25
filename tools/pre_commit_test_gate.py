@@ -230,6 +230,15 @@ SITE_SURFACE_TESTS = [
     # commit for a day and the banner reached no page at all. Selecting it here is the half that
     # keeps it true: adding a door now runs the rule about doors. ~0.2s.
     "tests/background/test_publish_provenance_banner_adoption.py",
+    # THE WALL SIDES (2026-08-25, SITE2_two_sided_wall_exhibit exit 1). Same shape a third time,
+    # and this one has already happened once: the exhibit's side-declaration control was
+    # `site/customers/test_wall_exhibit.py`, and `03dd8c49e` deleted it with the page whose
+    # content moved to `site/explore/`. The atom's file_scope was re-homed; the control was not,
+    # so for five days every panel's side was a claim in prose with nothing able to fail. A panel
+    # is added by EDITING A PAGE, never by touching tools/explore_wall_sides.py -- so per-file
+    # selection would fire on the checker and stay silent on the commit that strands a figure on
+    # the wrong side of the wall. ~0.2s (reads one file, no subprocess, no network).
+    "tests/tools/test_explore_wall_sides.py",
 ]
 
 # THE DATA SURFACE (2026-08-12), discharging

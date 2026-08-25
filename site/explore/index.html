@@ -55,6 +55,31 @@ select { background: var(--bg); color: var(--text); border: 1px solid var(--bord
 .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .panel h3 { font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
 
+/* ---- THE WALL SIDES (SITE2). Every panel declares which side of the epistemic wall its
+   figures come from, as a DATA ATTRIBUTE and not only as prose. The attribute is what
+   `tools/explore_wall_sides.py` reads, so a panel added without one fails a named test
+   rather than being caught by a reader. The badge is the same fact, made visible. ---- */
+.panel[data-side] { border-left: 3px solid var(--border); padding-left: 10px; }
+.panel[data-side="customer"] { border-left-color: var(--teal); }
+.panel[data-side="company"]  { border-left-color: #c98a3a; }
+.panel[data-side="sim"]      { border-left-color: #8f6fd0; }
+.side-tag { display: inline-block; font-size: 9px; letter-spacing: .09em; text-transform: uppercase;
+  padding: 1px 5px; border-radius: 3px; margin-bottom: 6px; font-weight: 600;
+  border: 1px solid var(--border); color: var(--muted); }
+.panel[data-side="customer"] .side-tag { color: var(--teal); border-color: var(--teal); }
+.panel[data-side="company"]  .side-tag { color: #c98a3a; border-color: #c98a3a; }
+.panel[data-side="sim"]      .side-tag { color: #8f6fd0; border-color: #8f6fd0; }
+/* The customer-eye subset (exit criterion 2): what a real account holder would see, isolated
+   as its own view rather than assembled by a visitor reading labels across the whole page. */
+body.eyes-customer .panel[data-side="company"],
+body.eyes-customer .panel[data-side="sim"] { display: none; }
+body.eyes-customer .wall { display: none; }
+.eyes { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--muted);
+  margin-bottom: 12px; flex-wrap: wrap; }
+.eyes button { background: var(--surface); color: var(--muted); border: 1px solid var(--border);
+  border-radius: 6px; padding: 5px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+.eyes button[aria-pressed="true"] { border-color: var(--teal); color: var(--teal); background: var(--surface2); }
+
 table { border-collapse: collapse; width: 100%; font-size: 13px; }
 th, td { text-align: left; padding: 4px 8px 4px 0; border-bottom: 1px solid var(--border); }
 th { font-weight: 600; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
@@ -135,6 +160,15 @@ a { color: var(--teal); }
     <div class="who" id="who"></div>
   </div>
 
+  <!-- THE EXHIBIT'S OWN CONTROLS (SITE2). Whose eyes you are reading through is a choice the
+       visitor makes here, not something they reconstruct by reading labels down the page. -->
+  <div class="eyes">
+    <span>Read this page as:</span>
+    <button id="eyes-all" aria-pressed="true">Everyone at once</button>
+    <button id="eyes-cust" aria-pressed="false">Only what the customer can see</button>
+    <span id="eyes-note"></span>
+  </div>
+
   <div class="wall">
     <div class="truth"><div class="k">What the world knew</div><div class="v" id="wall-truth">—</div></div>
     <div><div class="k">What the supplier believed</div><div class="v" id="wall-belief">—</div></div>
@@ -148,6 +182,30 @@ a { color: var(--teal); }
     customer book, not a sample of a larger one. A supplier with this few accounts is not a
     realistic business, and nothing here pretends otherwise — these are a small number of real
     simulated lives, followed properly, rather than a large number of invented ones.
+  </div>
+
+  <div class="note" id="wall-legend">
+    <strong>Three vantages, and this page is the only place they sit together.</strong>
+    Every panel above is tagged with the side of the epistemic wall its figures come from, and
+    the tag is a property of the markup rather than a claim in the prose — a panel added without
+    one fails a test before it can be committed.
+    <ul style="margin:8px 0 0 18px;font-size:13px">
+      <li><b>The customer can see this</b> — bills, meter reads, their own consumption, the
+        balance on their account. A real account holder holds all of it.</li>
+      <li><b>Company-only</b> — cost to serve, lifetime net, the hedge fraction behind the
+        tariff. A real supplier knows these and does not show them to the household.</li>
+      <li><b>SIM-only</b> — the household's real churn disposition, its private reasons for
+        signing. <em>Nothing outside a simulation can see these at all</em>, including the
+        supplier. They are visible here only because this world is synthetic, and they are what
+        makes the belief-versus-truth comparison possible.</li>
+    </ul>
+    <p style="margin-top:8px">
+      This is an exhibit about the wall, not a customer's account page. The supplier's actual
+      customer-facing system lives at <code>company/portal/</code> in the repository and shows a
+      household only the first of these three groups; if it ever showed the second or third it
+      would be a defect there, not a feature. What you are reading is the auditor's view of both
+      sides at once.
+    </p>
   </div>
 
   <div class="note">
@@ -218,6 +276,24 @@ function elec(c) { return c.legs && c.legs.electricity ? c.legs.electricity : nu
 function gas(c) { return c.legs && c.legs.gas ? c.legs.gas : null; }
 function firstInvoice(d) { return d && d.invoices && d.invoices.length ? d.invoices[0] : null; }
 
+/* THE ONE WAY A PANEL IS EMITTED (SITE2 exit 1). `side` is required and must be one of
+   customer / company / sim: the epistemic wall has exactly those three vantages, and a figure
+   that cannot be attributed to one of them has no business on the page. A raw
+   hand-written panel div anywhere in this file is a defect, because it would render a figure
+   with no declared side -- tools/explore_wall_sides.py fails on exactly that, so the rule is
+   enforced at commit time and not by whoever reads the diff. */
+var SIDE_LABEL = {
+  customer: "The customer can see this",
+  company: "Company-only",
+  sim: "SIM-only — nothing outside the simulation can see this"
+};
+function panel(side, title, body, style) {
+  if (!SIDE_LABEL[side]) throw new Error("panel() needs a wall side, got: " + side);
+  return '<div class="panel" data-side="' + side + '"' + (style ? ' style="' + style + '"' : "") +
+    '><span class="side-tag">' + SIDE_LABEL[side] + "</span>" +
+    (title ? "<h3>" + title + "</h3>" : "") + body + "</div>";
+}
+
 function stackRow(parts) {
   var total = parts.reduce(function (a, p) { return a + Math.max(0, p.v); }, 0) || 1;
   var colours = ["var(--teal)", "var(--blue)", "var(--amber)", "var(--purple)", "var(--muted)"];
@@ -257,19 +333,22 @@ function stagePriced(d, c) {
   );
   return '<h2>Priced — why does this tariff cost what it costs?</h2>' +
     '<div class="clock">Clock: <b>a single moment</b>, before any energy flows. Everything here is a forecast.</div>' +
-    '<div class="cols"><div class="panel"><h3>The stack, in pence per kWh</h3>' + stackRow(parts) +
-    '<p style="font-size:12px;color:var(--muted);margin-top:8px">Standing charge is ' +
-    gbp(inv.standing_charge_gbp_per_day, 4) + '/day — shown here spread across the energy actually used that month, ' +
-    'which is why a low-use month makes it look expensive. It does not change with use; that is the whole point of it.</p></div>' +
-    '<div class="panel"><h3>What the supplier committed to</h3><div class="table-scroll"><table><tbody>' +
-    "<tr><td>Tariff</td><td class=\"n\">" + esc(d.tariff_name || "—") + "</td></tr>" +
-    "<tr><td>Unit rate</td><td class=\"n\">" + (inv.unit_rate_p_per_kwh || 0).toFixed(2) + " p/kWh</td></tr>" +
-    "<tr><td>Standing charge</td><td class=\"n\">" + gbp(inv.standing_charge_gbp_per_day, 4) + "/day</td></tr>" +
-    "<tr><td>Range offered that year</td><td class=\"n\">" + gbp(pnl.tariff_min) + " – " + gbp(pnl.tariff_max) + "/MWh</td></tr>" +
-    "<tr><td>Bought forward</td><td class=\"n\">" + pct(d.avg_hedge_fraction) + " of expected volume</td></tr>" +
-    '</tbody></table></div><p style="font-size:12px;color:var(--muted);margin-top:8px">Buying forward is how the ' +
-    'supplier fixes its own cost before it knows the customer\'s use. The unhedged remainder is bought later at ' +
-    'whatever the market does — which is where a fixed price to the customer becomes a risk to the supplier.</p></div></div>' +
+    '<div class="cols">' +
+    panel("customer", "The stack, in pence per kWh", stackRow(parts) +
+      '<p style="font-size:12px;color:var(--muted);margin-top:8px">Standing charge is ' +
+      gbp(inv.standing_charge_gbp_per_day, 4) + '/day — shown here spread across the energy actually used that month, ' +
+      'which is why a low-use month makes it look expensive. It does not change with use; that is the whole point of it.</p>') +
+    panel("company", "What the supplier committed to",
+      '<div class="table-scroll"><table><tbody>' +
+      "<tr><td>Tariff</td><td class=\"n\">" + esc(d.tariff_name || "—") + "</td></tr>" +
+      "<tr><td>Unit rate</td><td class=\"n\">" + (inv.unit_rate_p_per_kwh || 0).toFixed(2) + " p/kWh</td></tr>" +
+      "<tr><td>Standing charge</td><td class=\"n\">" + gbp(inv.standing_charge_gbp_per_day, 4) + "/day</td></tr>" +
+      "<tr><td>Range offered that year</td><td class=\"n\">" + gbp(pnl.tariff_min) + " – " + gbp(pnl.tariff_max) + "/MWh</td></tr>" +
+      "<tr><td>Bought forward</td><td class=\"n\">" + pct(d.avg_hedge_fraction) + " of expected volume</td></tr>" +
+      '</tbody></table></div><p style="font-size:12px;color:var(--muted);margin-top:8px">Buying forward is how the ' +
+      'supplier fixes its own cost before it knows the customer\'s use. The unhedged remainder is bought later at ' +
+      'whatever the market does — which is where a fixed price to the customer becomes a risk to the supplier.</p>') +
+    '</div>' +
     '<p class="prov">From this account\'s first issued bill, ' + dt(inv.date) + '. Hedge fraction is the ' +
     'account\'s lifetime average. Source: <a href="../data/customers/' + esc(d.account_id) + '.json">the account record</a>.</p>';
 }
@@ -293,15 +372,18 @@ function stageChosen(d, c) {
   ];
   return '<h2>Chosen — why did this household take it?</h2>' +
     '<div class="clock">Clock: <b>a single moment</b> — the day they signed.</div>' +
-    '<div class="cols"><div class="panel"><h3>Everything the supplier recorded</h3><div class="table-scroll"><table><tbody>' +
-    rows.map(function (r) { return "<tr><td>" + r[0] + '</td><td class="n">' + r[1] + "</td></tr>"; }).join("") +
-    "</tbody></table></div></div>" +
-    '<div class="panel"><h3>Everything it did not</h3>' +
-    "<p>Whether they compared offers. Whether a friend recommended it. Whether they were moving house, " +
-    "had just had a child, or simply never got round to switching away. Whether the price mattered at all.</p>" +
-    "<p style=\"margin-top:8px\">In the simulated world all of that exists and drives the decision. None of it " +
-    "crosses to the supplier. This is not a gap to be closed later — real suppliers do not know either, " +
-    "and a model that assumed they did would be modelling a different industry.</p></div></div>" +
+    '<div class="cols">' +
+    panel("customer", "Everything the supplier recorded",
+      '<div class="table-scroll"><table><tbody>' +
+      rows.map(function (r) { return "<tr><td>" + r[0] + '</td><td class="n">' + r[1] + "</td></tr>"; }).join("") +
+      "</tbody></table></div>") +
+    panel("sim", "Everything it did not",
+      "<p>Whether they compared offers. Whether a friend recommended it. Whether they were moving house, " +
+      "had just had a child, or simply never got round to switching away. Whether the price mattered at all.</p>" +
+      "<p style=\"margin-top:8px\">In the simulated world all of that exists and drives the decision. None of it " +
+      "crosses to the supplier. This is not a gap to be closed later — real suppliers do not know either, " +
+      "and a model that assumed they did would be modelling a different industry.</p>") +
+    "</div>" +
     '<p class="prov">Acquisition record as at ' + dt(d.acquisition_date) + '. The household\'s private state is ' +
     'read from the world, not from the supplier\'s systems.</p>';
 }
@@ -356,9 +438,9 @@ function stageUsed(d, c, fuels) {
             : "Winter months run " + swing.toFixed(1) + "\u00d7 summer months \u2014 close to " +
               "flat, which is what a home that heats with something other than electricity " +
               "looks like.");
-    return '<div class="panel"><h3>' + esc(f) + " by year (kWh)</h3>" + barTable(rows, "kWh", 0) +
+    return panel("customer", esc(f) + " by year (kWh)", barTable(rows, "kWh", 0) +
       '<p style="font-size:12px;color:var(--muted);margin-top:8px">' + note +
-      " " + invs[f] + " bill(s), " + est[f] + " on an estimated read.</p></div>";
+      " " + invs[f] + " bill(s), " + est[f] + " on an estimated read.</p>");
   }).join("");
 
   return '<h2>Used \u2014 how much energy, and when?</h2>' +
@@ -396,25 +478,28 @@ function stageBilled(d, c) {
   ];
   return '<h2>Billed — what were they actually charged?</h2>' +
     '<div class="clock">Clock: <b>the billing period</b>. A bill is a claim about a month that has already happened.</div>' +
-    '<div class="cols"><div class="panel"><h3>The bill, as the customer received it</h3>' +
-    '<div class="artefact"><div class="head"><span>' + esc(inv.id) + "</span><span>" + dt(inv.date) + "</span></div>" +
-    '<div style="font-size:11px;color:var(--muted);margin-bottom:8px">' + dt(inv.period_start) + " – " + dt(inv.period_end) +
-    " &middot; meter " + esc(inv.meter_serial || "—") + " &middot; " +
-    '<span class="flag' + (estimated ? " est" : "") + '">' + (estimated ? "estimated read" : "actual read") + "</span></div>" +
-    '<div class="table-scroll"><table><tbody>' + lines.map(function (l) {
-      return "<tr><td>" + esc(l[0]) + '<div style="font-size:11px;color:var(--muted)">' + esc(l[1]) + "</div></td>" +
-        '<td class="n">' + gbp(l[2]) + "</td></tr>";
-    }).join("") + "</tbody></table>" +
-    '<div class="total" style="display:flex;justify-content:space-between"><span>Total due</span><span>' + gbp(inv.amount_gbp) + "</span></div></div></div>" +
-    '<div class="panel"><h3>Meter reads behind it</h3><div class="table-scroll"><table><tbody>' +
-    "<tr><td>Opening read</td><td class=\"n\">" + num(inv.opening_read_kwh, 1) + "</td></tr>" +
-    "<tr><td>Closing read</td><td class=\"n\">" + num(inv.closing_read_kwh, 1) + "</td></tr>" +
-    "<tr><td>Difference charged</td><td class=\"n\">" + num(inv.consumption_kwh, 1) + " kWh</td></tr>" +
-    "<tr><td>Read quality</td><td class=\"n\">" + (estimated ? "Estimated" : "Actual") + "</td></tr>" +
-    "</tbody></table>" +
-    "<p style=\"margin-top:10px\">An estimated read is not a mistake — it is what a supplier does when no one has " +
-    "read the meter. It becomes a problem only when it runs for long enough that the correction, when it lands, " +
-    "is large enough to matter to the household.</p></div></div>" +
+    '<div class="cols">' +
+    panel("customer", "The bill, as the customer received it",
+      '<div class="artefact"><div class="head"><span>' + esc(inv.id) + "</span><span>" + dt(inv.date) + "</span></div>" +
+      '<div style="font-size:11px;color:var(--muted);margin-bottom:8px">' + dt(inv.period_start) + " – " + dt(inv.period_end) +
+      " &middot; meter " + esc(inv.meter_serial || "—") + " &middot; " +
+      '<span class="flag' + (estimated ? " est" : "") + '">' + (estimated ? "estimated read" : "actual read") + "</span></div>" +
+      '<div class="table-scroll"><table><tbody>' + lines.map(function (l) {
+        return "<tr><td>" + esc(l[0]) + '<div style="font-size:11px;color:var(--muted)">' + esc(l[1]) + "</div></td>" +
+          '<td class="n">' + gbp(l[2]) + "</td></tr>";
+      }).join("") + "</tbody></table>" +
+      '<div class="total" style="display:flex;justify-content:space-between"><span>Total due</span><span>' + gbp(inv.amount_gbp) + "</span></div></div>") +
+    panel("customer", "Meter reads behind it",
+      '<div class="table-scroll"><table><tbody>' +
+      "<tr><td>Opening read</td><td class=\"n\">" + num(inv.opening_read_kwh, 1) + "</td></tr>" +
+      "<tr><td>Closing read</td><td class=\"n\">" + num(inv.closing_read_kwh, 1) + "</td></tr>" +
+      "<tr><td>Difference charged</td><td class=\"n\">" + num(inv.consumption_kwh, 1) + " kWh</td></tr>" +
+      "<tr><td>Read quality</td><td class=\"n\">" + (estimated ? "Estimated" : "Actual") + "</td></tr>" +
+      "</tbody></table>" +
+      "<p style=\"margin-top:10px\">An estimated read is not a mistake — it is what a supplier does when no one has " +
+      "read the meter. It becomes a problem only when it runs for long enough that the correction, when it lands, " +
+      "is large enough to matter to the household.</p>") +
+    "</div>" +
     '<p class="prov">Bill ' + esc(inv.id) + " as issued " + dt(inv.date) + ". One of " + invs.length +
     " on this account; the figures are the ones actually charged, not a reconstruction.</p>";
 }
@@ -434,16 +519,19 @@ function stagePaid(d, c) {
   return '<h2>Paid — did the money arrive?</h2>' +
     '<div class="clock">Clock: <b>cash over time</b>, which runs independently of the billing clock. A balance ' +
     'moves when money moves, not when a bill is raised.</div>' +
-    '<div class="cols"><div class="panel"><h3>Balance over the last two years</h3>' + barTable(bal, "", 2) +
-    '<p style="font-size:12px;color:var(--muted);margin-top:8px">A direct debit is a flat monthly amount against ' +
-    'a seasonal bill, so the balance builds credit in summer and draws it down in winter. Drift in one direction ' +
-    'across a whole year is the signal that the payment is set wrong.</p></div>' +
-    '<div class="panel"><h3>Most recent movements</h3><div class="table-scroll"><table>' +
-    "<thead><tr><th>Date</th><th>Movement</th><th class=\"n\">Amount</th><th class=\"n\">Balance</th></tr></thead><tbody>" +
-    recent.map(function (e) {
-      return "<tr><td>" + dt(e.date) + "</td><td>" + esc((e.type || "").replace(/_/g, " ")) + '</td><td class="n">' +
-        gbp(e.amount_gbp) + '</td><td class="n">' + gbp(e.running_balance_gbp) + "</td></tr>";
-    }).join("") + "</tbody></table></div></div></div>" +
+    '<div class="cols">' +
+    panel("customer", "Balance over the last two years", barTable(bal, "", 2) +
+      '<p style="font-size:12px;color:var(--muted);margin-top:8px">A direct debit is a flat monthly amount against ' +
+      'a seasonal bill, so the balance builds credit in summer and draws it down in winter. Drift in one direction ' +
+      'across a whole year is the signal that the payment is set wrong.</p>') +
+    panel("customer", "Most recent movements",
+      '<div class="table-scroll"><table>' +
+      "<thead><tr><th>Date</th><th>Movement</th><th class=\"n\">Amount</th><th class=\"n\">Balance</th></tr></thead><tbody>" +
+      recent.map(function (e) {
+        return "<tr><td>" + dt(e.date) + "</td><td>" + esc((e.type || "").replace(/_/g, " ")) + '</td><td class="n">' +
+          gbp(e.amount_gbp) + '</td><td class="n">' + gbp(e.running_balance_gbp) + "</td></tr>";
+      }).join("") + "</tbody></table></div>") +
+    "</div>" +
     '<p class="prov">Payment ledger as at ' + dt(led.as_of_date) + ". Billed " + gbp(led.total_billed_gbp) +
     ", collected " + gbp(led.total_collected_gbp) + ", balance " + gbp(led.current_balance_gbp) + ".</p>";
 }
@@ -479,7 +567,9 @@ function stageJudged(d, c, fuels) {
   return '<h2>Judged — was it the right deal, for them and for us?</h2>' +
     '<div class="clock">Clock: <b>retrospective</b>, over the whole life of the account — and the answer differs ' +
     'depending on whether you count what was billed, what settled, or what was banked.</div>' +
-    '<div class="cols"><div class="panel"><h3>For them</h3><div class="table-scroll"><table><tbody>' +
+    '<div class="cols">' +
+    panel("customer", "For them",
+      '<div class="table-scroll"><table><tbody>' +
     "<tr><td>Energy taken</td><td class=\"n\">" + num(themKwh, 0) + " kWh</td></tr>" +
     "<tr><td>Paid in total</td><td class=\"n\">" + gbp(themPaid) + "</td></tr>" +
     "<tr><td>Average paid</td><td class=\"n\">" +
@@ -487,8 +577,9 @@ function stageJudged(d, c, fuels) {
     '</tbody></table></div><p style="font-size:12px;color:var(--muted);margin-top:8px">' +
     "What they would have paid elsewhere is <b>not shown, because it is not known</b>: this " +
     "simulation contains one supplier, so there is no rival tariff to compare against. Saying so " +
-    "is worth more than a number invented for the comparison.</p></div>" +
-    '<div class="panel"><h3>For us</h3><div class="table-scroll"><table><tbody>' +
+    "is worth more than a number invented for the comparison.</p>") +
+    panel("company", "For us",
+      '<div class="table-scroll"><table><tbody>' +
     "<tr><td>Revenue billed</td><td class=\"n\">" + gbp(comb.revenue_gbp) + "</td></tr>" +
     "<tr><td>Gross margin</td><td class=\"n\">" + gbp(comb.gross_gbp) + "</td></tr>" +
     "<tr><td>Cost to serve</td><td class=\"n\">" + gbp(d.cost_to_serve_gbp) + "</td></tr>" +
@@ -496,15 +587,19 @@ function stageJudged(d, c, fuels) {
     "</tbody></table>" +
     "<p style=\"font-size:12px;color:var(--muted);margin-top:8px\">Cost to serve is what it costs to have this " +
     "account at all — billing it, answering it, collecting from it. A flat margin on the unit rate can be wiped " +
-    "out entirely by it on a low-use account.</p></div>" +
-    '<div class="panel"><h3>Belief against truth, at each renewal</h3>' +
+    "out entirely by it on a low-use account.</p>") +
+    /* SIM, not company: this panel prints `sim_truth` beside the company's belief, and sim_truth
+       is the household's real churn disposition -- a figure no supplier can read. Attributing
+       this panel to the company would be exactly the leak SITE2 exit 3 names, which is why
+       test_no_sim_only_figure_sits_in_a_company_panel asserts it by symbol and not by eye. */
+    panel("sim", "Belief against truth, at each renewal",
     (beliefRows ? '<div class="table-scroll"><table><thead><tr><th>Renewal</th><th class="n">Supplier believed</th>' +
       '<th class="n">Actually was</th><th class="n">Error</th></tr></thead><tbody>' + beliefRows + "</tbody></table></div>" +
       "<p style=\"font-size:12px;color:var(--muted);margin-top:8px\">Every retention decision on this account was " +
       "made on the left-hand column. The right-hand column is what a supplier never gets to see, and it is only " +
       "visible here because the world is simulated.</p>"
-      : "<p>No renewal decisions were recorded for this account.</p>") +
-    "</div></div>" +
+      : "<p>No renewal decisions were recorded for this account.</p>")) +
+    "</div>" +
     '<p class="prov">Lifetime figures across ' + ((c.fuels || []).length > 1 ? "both fuels" : "the single fuel") +
     ", on the billed clock. Settled and banked figures differ; the account record carries all three.</p>";
 }
@@ -514,7 +609,33 @@ var RENDER = [stagePriced, stageChosen, stageUsed, stageBilled, stagePaid, stage
 function render() {
   if (!CUR) return;
   $("stage").innerHTML = RENDER[STAGE](CUR.detail, CUR.index, CUR.fuels || {});
+  countEyes();
 }
+
+/* THE CUSTOMER-EYE SUBSET (SITE2 exit 2). The hiding is done by CSS on `data-side`, so what
+   the visitor sees in this mode is exactly what the attribute says -- there is no second list
+   of "customer panels" that could drift out of step with the tags the test checks. The count
+   is printed rather than implied, because "some panels are hidden" is a weaker statement than
+   "eleven of nineteen panels on this stage are not the customer's to see". */
+function countEyes() {
+  var all = document.querySelectorAll("#stage .panel[data-side]");
+  var mine = document.querySelectorAll('#stage .panel[data-side="customer"]');
+  var hidden = all.length - mine.length;
+  $("eyes-note").innerHTML = document.body.classList.contains("eyes-customer")
+    ? "<b>" + hidden + "</b> of " + all.length + " panels on this stage are hidden — they are the " +
+      "supplier's or the simulation's, not the household's."
+    : all.length + " panels on this stage: <b>" + mine.length + "</b> the customer could see, <b>" +
+      hidden + "</b> they could not.";
+}
+
+function setEyes(customerOnly) {
+  document.body.classList.toggle("eyes-customer", customerOnly);
+  $("eyes-cust").setAttribute("aria-pressed", customerOnly ? "true" : "false");
+  $("eyes-all").setAttribute("aria-pressed", customerOnly ? "false" : "true");
+  countEyes();
+}
+$("eyes-all").onclick = function () { setEyes(false); };
+$("eyes-cust").onclick = function () { setEyes(true); };
 
 var HDD_BY_YEAR = {};   /* year -> heating degree days, from the real archive */
 var HDD_META = {};
@@ -540,15 +661,15 @@ function correlate(pairs) {
 
 function hddPanel(fuels) {
   if (HDD_BY_YEAR === null) {
-    return '<div class="panel"><h3>Gas against the weather</h3><p>The weather archive could ' +
-      'not be loaded, so this comparison is not shown. The bills above are unaffected.</p></div>';
+    return panel("customer", "Gas against the weather", '<p>The weather archive could ' +
+      'not be loaded, so this comparison is not shown. The bills above are unaffected.</p>');
   }
   var gasLeg = fuels && fuels.gas;
   if (!gasLeg) {
-    return '<div class="panel"><h3>Gas against the weather</h3><p>This household takes ' +
+    return panel("customer", "Gas against the weather", '<p>This household takes ' +
       'electricity only, so there is no heating load to compare with the weather. ' +
       'Electricity demand does not track temperature the way a gas bill does &mdash; that is ' +
-      'the whole reason the two fuels are shown on separate scales above.</p></div>';
+      'the whole reason the two fuels are shown on separate scales above.</p>');
   }
   var m = (gasLeg.consumption || {}).monthly || [];
   var byYear = {};
@@ -558,8 +679,8 @@ function hddPanel(fuels) {
   });
   var years = Object.keys(byYear).filter(function (y) { return HDD_BY_YEAR[y]; }).sort();
   if (!years.length) {
-    return '<div class="panel"><h3>Gas against the weather</h3><p>No year of this ' +
-      'household&rsquo;s gas overlaps the weather archive, so there is nothing to compare.</p></div>';
+    return panel("customer", "Gas against the weather", '<p>No year of this ' +
+      'household&rsquo;s gas overlaps the weather archive, so there is nothing to compare.</p>');
   }
   var pairs = years.map(function (y) { return [HDD_BY_YEAR[y], byYear[y]]; });
   var r = correlate(pairs);
@@ -587,7 +708,7 @@ function hddPanel(fuels) {
          "is coming from something other than temperature, and that is worth knowing rather " +
          "than smoothing over.");
 
-  return '<div class="panel"><h3>Gas against the weather</h3>' +
+  return panel("customer", "Gas against the weather",
     '<div class="table-scroll"><table><thead><tr><th>Year</th><th class="n">Heating degree days</th>' +
     '<th></th><th class="n">Gas kWh</th><th></th></tr></thead><tbody>' + rows +
     "</tbody></table></div>" +
@@ -595,7 +716,7 @@ function hddPanel(fuels) {
     "Degree days are measured, not modelled: " + esc(HDD_META.source || "the weather archive") +
     ", " + esc(HDD_META.location || "London") + ", base " +
     esc(String(HDD_META.hdd_base_c || 15.5)) + "&deg;C. The supplier bills on the meter and " +
-    "never on this &mdash; the comparison is available to you, not to it.</p></div>";
+    "never on this &mdash; the comparison is available to you, not to it.</p>");
 }
 
 /* Mean winter month against mean summer month for one fuel's monthly series. Returns null
@@ -637,17 +758,17 @@ function clockOf(period) {
 }
 
 function hhDayPanel(day) {
-  return '<div class="panel"><h3>' + esc(dt(day.date)) + "</h3>" + hhChart(day) +
+  return panel("customer", esc(dt(day.date)), hhChart(day) +
     '<p style="font-size:12px;color:var(--muted)">' +
     "<b>" + num(day.total_kwh, 1) + " kWh</b> across the day, peaking at <b>" +
     esc(day.peak_clock) + "</b> (" + num(day.peak_kwh, 2) + " kWh in that half hour). " +
-    esc(day.chosen_by) + ".</p></div>";
+    esc(day.chosen_by) + ".</p>");
 }
 
 function hhDayPanels() {
   if (HH_DAYS === null) {
-    return '<div class="panel"><h3>The day clock</h3><p>The half-hourly record could not be ' +
-      "loaded, so the day view is not shown. The figures above are unaffected.</p></div>";
+    return panel("customer", "The day clock", '<p>The half-hourly record could not be ' +
+      "loaded, so the day view is not shown. The figures above are unaffected.</p>");
   }
   var group = CUR && CUR.index ? CUR.index.customer_group : null;
   var a = group ? HH_DAYS[group] : null;
@@ -670,10 +791,10 @@ function hhDayPanels() {
         "year; between those readings the supplier does not know when the electricity was used, " +
         "only how much. Every half-hourly figure it settles on for a home like this one is " +
         "<b>inferred from a national profile</b>, not measured here.";
-    return '<div class="panel" style="margin-top:16px"><h3>The day clock</h3>' +
+    return panel("customer", "The day clock",
       "<p>" + body + "</p>" +
       '<p style="font-size:12px;color:var(--muted);margin-top:8px">' + esc(HH_META.coverage || "") +
-      "</p></div>";
+      "</p>", "margin-top:16px");
   }
   var panels = [a.hardest_day, a.summer_day].filter(Boolean).map(hhDayPanel).join("");
   var c = a.corroboration || {};
@@ -709,14 +830,14 @@ var CARBON = {};   /* site/data/explore_carbon.json, or null when it could not b
    in this pipeline; the score in pounds per tonne stays NOT YET MEASURED on the front door. */
 function carbonDayPanel(row) {
   if (row.unavailable) {
-    return '<div class="panel"><h3>' + esc(dt(row.date)) + " &mdash; no carbon figure</h3>" +
+    return panel("customer", esc(dt(row.date)) + " &mdash; no carbon figure",
       "<p>" + esc(row.unavailable) + "</p>" +
       '<p style="font-size:12px;color:var(--muted);margin-top:8px">The consumption for this day ' +
       "is real and is drawn above. What is missing is the grid's side of the multiplication, so " +
-      "the answer is absent rather than zero.</p></div>";
+      "the answer is absent rather than zero.</p>");
   }
   var up = row.timing_effect_pct >= 0;
-  return '<div class="panel"><h3>' + esc(dt(row.date)) + "</h3>" +
+  return panel("customer", esc(dt(row.date)),
     '<p style="font-size:22px;margin:2px 0 6px"><b>' + num(row.co2e_kg_timed, 1) +
     " kg CO&#8322;e</b></p>" +
     "<p>Measured half hour by half hour. The same kWh valued at the year's <b>average</b> " +
@@ -734,13 +855,13 @@ function carbonDayPanel(row) {
         row.year_stats.p95_over_p5.toFixed(1) + "&times;</b> the cleanest 5%, so timing is worth " +
         "that much at most and never more."
       : "") +
-    "</p></div>";
+    "</p>");
 }
 
 function carbonPanels() {
   if (CARBON === null) {
-    return '<div class="panel" style="margin-top:16px"><h3>Carbon</h3><p>The carbon figures ' +
-      "could not be loaded, so none are shown. The consumption above is unaffected.</p></div>";
+    return panel("customer", "Carbon", '<p>The carbon figures ' +
+      "could not be loaded, so none are shown. The consumption above is unaffected.</p>", "margin-top:16px");
   }
   if (!CARBON || !CARBON.accounts) return "";
   var group = CUR && CUR.index ? CUR.index.customer_group : null;
@@ -754,13 +875,13 @@ function carbonPanels() {
     return '<div style="margin-top:16px">' +
       '<h3 style="font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);' +
       'margin-bottom:8px">Carbon &mdash; emissions, not abatement</h3>' +
-      '<div class="panel"><p>This household’s <b>emissions</b> are known: its consumption ' +
+      panel("customer", "", '<p>This household’s <b>emissions</b> are known: its consumption ' +
       "times the published annual grid intensity, the same way every supplier reports a " +
       "profile-class customer. What is <b>unavailable</b> — not zero — is the " +
       "<b>timing effect</b>. Its meter does not record when anything happened, so nothing can " +
       "recover whether it drew at clean hours or dirty ones.</p>" +
       '<p style="font-size:12px;color:var(--muted);margin-top:8px">' + esc(CARBON.coverage_statement || "") +
-      "</p></div></div>";
+      "</p>") + "</div>";
   }
   return '<div style="margin-top:16px">' +
     '<h3 style="font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);' +
