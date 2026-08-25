@@ -394,30 +394,45 @@ class TestTheTermIsPriced:
 # forward is not a mechanism (MAKE_IT_STICK), so the rename ships with the control that
 # refuses its own undo.
 #
-# WHAT THE CORPUS IS, AND WHY: every identifier the repository's Python actually BINDS or
-# REFERENCES -- names, attributes, imports, class and function definitions -- read via
-# `ast`, over the WORKING TREE (the tree a commit would create), with no file excluded and
-# this file included. It is deliberately NOT a text scan: the module docstring of
-# `company/core/commitment_actual_forecast.py` says what this module used to be called,
-# and a docstring recording history is not a symbol claiming a name. That is the same
-# comment-doctrine `background/process_run_complete.py` already applies -- "a comment
-# mentioning a symbol is not the symbol being built".
+# WHAT THE CORPUS IS, AND WHY: every identifier THIS MODULE actually BINDS or REFERENCES
+# -- names, attributes, imports, class and function definitions -- read via `ast` from the
+# WORKING TREE copy of `company/core/commitment_actual_forecast.py` (the tree a commit
+# would create). It is deliberately NOT a text scan: that module's docstring says what it
+# used to be called, and a docstring recording history is not a symbol claiming a name.
+# That is the same comment-doctrine `background/process_run_complete.py` already applies --
+# "a comment mentioning a symbol is not the symbol being built".
+#
+# WHY ONE MODULE AND NOT THE TREE (narrowed 2026-08-25, and the scope IS the claim). This
+# scan walked all 2,335 .py files in the tree until today, which asserted something the
+# control never meant: that `three_horizon_clv` is retired REPOSITORY-WIDE. It is not. The
+# guarded module's own docstring says the opposite -- "the name three-horizon CLV now
+# belongs unambiguously to EP1_clv_three_horizon" -- so EP1 binding it is the rename
+# WORKING, not failing. `cbb2fd2d8` landed EP1's CLV work and the tree-wide read went red
+# on `simulation/run_phase4c_on_phase2b.py:512` publishing EP1's own field, at which point
+# the control was demanding the undo of the thing it exists to protect. The claim this
+# control makes, and the only one it can support, is the one in its name: the name does not
+# return to THIS MODULE.
+#
+# The neighbouring half of the guarantee is NOT lost by narrowing: the retired PATH is held
+# dead tree-wide by `tests/company/analytics/test_clv_three_horizon.py::
+# test_the_old_horizon_vocabulary_is_not_reintroduced_here`, which greps the git index for
+# `company/core/three_horizon_clv.py`. Path resurrection is that control's; name
+# re-adoption inside this module is this one's.
 #
 # R15: the forbidden tokens are assembled at runtime so this control's own source binds
 # neither of them, which is what lets the corpus be exception-free rather than
 # self-exempting. Its floors are below.
 # ---------------------------------------------------------------------------------------
 
-_SCAN_SKIP_DIRS = {
-    ".git", "__pycache__", "node_modules", ".venv", "venv",
-    ".pytest_cache", ".mypy_cache", ".claude",
-}
+_GUARDED_MODULE = "company/core/commitment_actual_forecast.py"
 
-# Measured 2026-08-19 over the working tree: 2335 .py files, 0 unparseable. The floor is
-# set well below the measurement so ordinary growth and pruning do not move it, but a scan
-# that finds an empty or collapsed corpus -- the FAIL-OPEN shape R15 names -- is a failure
-# and not a pass.
-_MIN_PY_FILES_SCANNED = 1800
+# The single-file equivalent of the old 1800-file floor. A one-module corpus cannot
+# "collapse" by shrinking, so the FAIL-OPEN shape R15 names arrives a different way here:
+# the path moves or is renamed, `ast` yields nothing, and an empty name set passes every
+# membership test below. These are the symbols that must be present for the read to have
+# happened at all -- the tracker class the rename introduced, and a method only this
+# module defines.
+_MUST_BE_BOUND = ("CommitmentActualForecastTracker", "update_h3")
 
 
 def _repo_root():
@@ -425,57 +440,61 @@ def _repo_root():
     return pathlib.Path(__file__).resolve().parents[3]
 
 
-def _bound_identifiers():
-    """(identifiers, files_scanned, unparseable) over every .py in the working tree."""
-    import ast
-    import os
+def _bound_identifiers(source=None):
+    """(identifiers, unparseable) bound by the guarded module.
 
-    root = _repo_root()
-    names, scanned, unparseable = set(), 0, []
-    for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [d for d in dirnames if d not in _SCAN_SKIP_DIRS]
-        for fn in filenames:
-            if not fn.endswith(".py"):
-                continue
-            path = os.path.join(dirpath, fn)
-            scanned += 1
-            try:
-                tree = ast.parse(open(path, encoding="utf-8").read())
-            except Exception:
-                # An unavailable check is a FAILED check (R15). Recorded, not skipped.
-                unparseable.append(os.path.relpath(path, root))
-                continue
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Name):
-                    names.add(node.id)
-                elif isinstance(node, ast.Attribute):
-                    names.add(node.attr)
-                elif isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
-                    names.add(node.name)
-                elif isinstance(node, ast.alias):
-                    for part in node.name.split("."):
-                        names.add(part)
-                    if node.asname:
-                        names.add(node.asname)
-                elif isinstance(node, ast.ImportFrom) and node.module:
-                    for part in node.module.split("."):
-                        names.add(part)
-    return names, scanned, unparseable
+    `source` overrides the on-disk read so the mutation control below can prove this
+    scanner still fires on the defect it names, without writing to the real module.
+    """
+    import ast
+
+    path = _repo_root() / _GUARDED_MODULE
+    names, unparseable = set(), []
+    if source is None:
+        if not path.is_file():
+            # An unavailable check is a FAILED check (R15). Recorded, not skipped.
+            return names, [f"{_GUARDED_MODULE} is not a file"]
+        source = path.read_text(encoding="utf-8")
+    try:
+        tree = ast.parse(source)
+    except Exception as exc:
+        return names, [f"{_GUARDED_MODULE} did not parse: {exc}"]
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name):
+            names.add(node.id)
+        elif isinstance(node, ast.Attribute):
+            names.add(node.attr)
+        elif isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+            names.add(node.name)
+        elif isinstance(node, ast.alias):
+            for part in node.name.split("."):
+                names.add(part)
+            if node.asname:
+                names.add(node.asname)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            for part in node.module.split("."):
+                names.add(part)
+    return names, unparseable
+
+
+def _forbidden_names():
+    # assembled so this control's own source does not bind what it forbids
+    return {
+        "three" + "_horizon_" + "clv",
+        "ThreeHorizon" + "CLVTracker",
+    }
 
 
 def test_the_scan_can_see_this_module_and_is_not_empty():
     """The anti-fail-open half. A control that greens because it read nothing is worse
-    than none, so the corpus must be large AND must demonstrably contain the very symbol
+    than none, so the corpus must parse AND must demonstrably contain the very symbols
     this rename introduced."""
-    names, scanned, unparseable = _bound_identifiers()
-    assert unparseable == [], f"unparseable Python in the scan corpus: {unparseable}"
-    assert scanned >= _MIN_PY_FILES_SCANNED, (
-        f"only {scanned} .py files scanned, floor {_MIN_PY_FILES_SCANNED} -- "
-        "the corpus collapsed, so a green verdict below would mean nothing"
-    )
-    assert "CommitmentActualForecastTracker" in names, (
-        "the scan did not reach this module's own tracker class, so it cannot be "
-        "trusted to have reached anything else"
+    names, unparseable = _bound_identifiers()
+    assert unparseable == [], f"the guarded module could not be read: {unparseable}"
+    missing = [n for n in _MUST_BE_BOUND if n not in names]
+    assert not missing, (
+        f"the scan did not find {missing} in {_GUARDED_MODULE}, so a green verdict "
+        "below would mean the file was never really read"
     )
 
 
@@ -485,16 +504,49 @@ def test_the_three_horizon_clv_name_does_not_return_to_this_module():
     commitment / actual / re-forecast. Reintroducing either identifier as a SYMBOL
     (an import, an alias, a class, a module) re-opens the collision eight passes recorded.
     """
-    forbidden = {
-        # assembled so this control's own source does not bind what it forbids
-        "three" + "_horizon_" + "clv",
-        "ThreeHorizon" + "CLVTracker",
-    }
-    names, _, _ = _bound_identifiers()
-    offenders = sorted(forbidden & names)
+    names, unparseable = _bound_identifiers()
+    assert unparseable == [], f"the guarded module could not be read: {unparseable}"
+    offenders = sorted(_forbidden_names() & names)
     assert not offenders, (
-        f"the three-horizon-CLV name is bound again as a symbol: {offenders}. "
-        "That name belongs to EP1_clv_three_horizon (contract-term / tenure-expected / "
-        "portfolio-cohort); this module answers commitment vs actual vs re-forecast. "
-        "See the module docstring of company/core/commitment_actual_forecast.py."
+        f"the three-horizon-CLV name is bound again as a symbol in {_GUARDED_MODULE}: "
+        f"{offenders}. That name belongs to EP1_clv_three_horizon (contract-term / "
+        "tenure-expected / portfolio-cohort); this module answers commitment vs actual "
+        "vs re-forecast. See the module docstring of "
+        "company/core/commitment_actual_forecast.py."
+    )
+
+
+def test_the_name_guard_fires_when_the_name_is_re_injected_into_this_module():
+    """R15 mutation. Narrowing a control's scope is exactly the move that can leave it
+    unable to fail, so the narrowed scan is run against a mutated copy of the guarded
+    module carrying the defect it names -- each forbidden spelling separately, in the
+    shape the rename actually removed (a class definition, and an attribute read).
+
+    This is the control's own falsifier. If either mutation goes undetected, the guard
+    above is decorative and the eight recorded collision passes have no mechanism.
+    """
+    clean, unparseable = _bound_identifiers()
+    assert unparseable == []
+    assert not (_forbidden_names() & clean), "precondition: the real module is clean"
+
+    real = (_repo_root() / _GUARDED_MODULE).read_text(encoding="utf-8")
+    attr_name, class_name = sorted(_forbidden_names())
+
+    mutations = {
+        class_name: f"\n\nclass {class_name}:\n    pass\n",
+        attr_name: f"\n\ndef _resurrected(view):\n    return view.{attr_name}\n",
+    }
+    for expected, injected in mutations.items():
+        names, bad = _bound_identifiers(source=real + injected)
+        assert bad == [], f"the mutated copy did not parse: {bad}"
+        assert expected in names, (
+            f"the narrowed scan did NOT see {expected!r} re-injected into "
+            f"{_GUARDED_MODULE} -- this control cannot fail, which R15 says is worse "
+            "than having no control at all"
+        )
+
+    # And the scan must not simply report every name it is asked about.
+    names, _ = _bound_identifiers(source=real)
+    assert "a_name_this_module_never_binds" not in names, (
+        "the scanner reports names that are absent, so its positives mean nothing"
     )
