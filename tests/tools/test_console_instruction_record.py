@@ -317,3 +317,38 @@ def test_an_ENTIRELY_silent_window_RAISES_rather_than_writing_an_empty_record(tm
 
     with pytest.raises(cir.TranscriptUnavailable):
         cir.director_turns_across(cir.recent_transcripts(d))
+
+
+def test_an_ARCHIVED_days_record_is_updated_IN_PLACE_and_never_resurrected(tmp_path):
+    """A DOORBELL FOR A TURN ACTIONED DAYS AGO (2026-08-25). Merging across a multi-day window
+    means most of those days have already been read, actioned and archived to `done/`. Writing
+    their record back into the staging ROOT rings the doorbell again -- and leaves the same
+    document in two rooms making mutually exclusive claims, which `background/finding_classes.py`
+    refuses by name (it did, the moment this landed).
+
+    An archived day's record still gets RICHER as more transcripts merge into it. It just does
+    not come back to life.
+
+    MUTATION (must fire): always write to the staging root.
+    """
+    d = _transcript(tmp_path, [
+        _line("user", "said on the 22nd", ts="2026-08-22T09:00:00.000Z"),
+        _line("user", "said today", ts="2026-08-25T09:00:00.000Z"),
+    ])
+    out = tmp_path / "staging"
+    (out / "done").mkdir(parents=True)
+    archived = out / "done" / "DIRECTOR_CONSOLE_2026-08-22.md"
+    archived.write_text("an older, thinner record\n", encoding="utf-8")
+
+    cir.write(directory=d, staging=out)
+
+    assert "said on the 22nd" in archived.read_text(encoding="utf-8"), (
+        "the archived record was not updated, so merging gained nothing for that day"
+    )
+    assert not (out / "DIRECTOR_CONSOLE_2026-08-22.md").exists(), (
+        "an actioned day's record was re-created in the staging root -- that is a doorbell for a "
+        "turn already handled, and the same document in two rooms"
+    )
+    assert (out / "DIRECTOR_CONSOLE_2026-08-25.md").is_file(), (
+        "a day with no archived copy must still land in the root, where the doorbell reads it"
+    )

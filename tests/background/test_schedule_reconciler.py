@@ -139,3 +139,65 @@ def test_live_process_unit_names_cover_the_daemon_set():
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
 pytestmark = pytest.mark.operational
+
+
+# ---------------------------------------------------------------------------
+# The installer must not report success having armed nothing (2026-08-25)
+# ---------------------------------------------------------------------------
+
+def test_the_installer_REACHES_the_user_bus_or_refuses():
+    """MEASURED THE DAY IT BIT. `systemctl --user` needs XDG_RUNTIME_DIR. Run from a shell
+    without it -- cron, a non-login shell, a headless turn -- every `enable` and `start` failed
+    while its `&& echo` simply printed nothing, and the script exited 0 having COPIED files and
+    ARMED NOTHING. `delivery-seat.timer` was installed, reported clean, and absent from
+    `systemctl --user list-timers`.
+
+    That is the exact fail-silent this manifest exists to prevent: units declared in git, present
+    on disk, never scheduled. A timer nobody fires is indistinguishable from a feature nobody
+    built.
+
+    MUTATION (must fire): drop the export or the bus check.
+    """
+    from pathlib import Path
+
+    script = (Path(__file__).resolve().parents[2] / "background" / "install_schedule.sh"
+              ).read_text(encoding="utf-8")
+
+    assert "XDG_RUNTIME_DIR" in script, "the installer cannot reach the user bus from a non-login shell"
+    assert "show-environment" in script, "nothing checks that the bus is reachable before installing"
+    assert "REFUSING" in script
+
+
+def test_a_FAILED_enable_or_arm_is_reported_and_exits_non_zero():
+    """A partial install reporting success is how a declared timer ends up never firing. The
+    failure has to reach both a human reading a scrollback and a caller checking rc.
+
+    MUTATION (must fire): go back to `systemctl ... >/dev/null 2>&1 && echo`, which swallows the
+    failure and keeps the exit code at 0.
+    """
+    from pathlib import Path
+
+    script = (Path(__file__).resolve().parents[2] / "background" / "install_schedule.sh"
+              ).read_text(encoding="utf-8")
+
+    assert "DECLARED BUT NEVER FIRES" in script
+    assert "FAILURES=$((FAILURES+1))" in script
+    assert 'if [ "${FAILURES:-0}" -gt 0 ]; then' in script
+    assert script.count("exit 1") >= 2, (
+        "the installer can still exit 0 having armed nothing"
+    )
+
+
+def test_the_delivery_seat_units_are_DECLARED_so_a_fresh_machine_reconstructs_them():
+    """IaC: reconstruct-from-repo-alone is the test. An orienting seat nobody schedules is the
+    chat window it replaces."""
+    from background.schedule_reconciler import load_manifest
+
+    units = {u["name"]: u for u in load_manifest()["systemd_units"]}
+
+    assert units["delivery-seat.timer"]["active"] is True
+    assert units["delivery-seat.timer"]["enabled"] is True
+    assert units["delivery-seat.service"]["enabled"] is False, (
+        "the .service is timer-triggered; flagging it enabled would make the drift check "
+        "report a healthy oneshot as down"
+    )

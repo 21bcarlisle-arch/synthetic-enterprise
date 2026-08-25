@@ -39,10 +39,15 @@ Run:  python3 -m tools.couple_value_based_pricing
 """
 from __future__ import annotations
 
+import argparse
 import collections
 import glob
 import json
+import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
+
+from background.gap_metric import _normalise, write_gap_entry
 
 from simulation.churn_ceiling import WORLD_MAX_CHURN_PROBABILITY
 from simulation.customer_events import _price_differential_vs_market
@@ -53,6 +58,10 @@ from saas.payment_behaviour import (
     CREDIT_RISK_BY_CUSTOMER,
     DEFAULT_CREDIT_RISK,
     PAYMENT_TIMING_DAYS_BY_CREDIT_RISK,
+)
+from company.pricing.regulated_average_margin import (
+    AverageMarginUnavailable,
+    average_player_margin,
 )
 from company.pricing.value_based_renewal import (
     FLAT_RULES,
@@ -132,6 +141,71 @@ def belief_versus_truth(*, offered_rate: float, current_rate: float, tenure_year
     }
 
 
+def _average_player(*, annual_revenue_gbp: float, eac_kwh: float) -> dict | None:
+    """What Ofgem's published EBIT allowance says an efficient supplier earns on this customer.
+
+    THE BILL BASIS IS NAMED RATHER THAN ASSUMED. The allowance's variable component scales with
+    the cap level EXCLUDING EBIT, headroom and VAT. What this book publishes is `revenue_gbp` --
+    this company's own revenue, which includes its GBP 2.00/MWh margin and excludes VAT. Using it
+    as the base slightly OVERSTATES the average player's variable component, by 1.3975% of a
+    margin that is itself tiny -- about a penny a year. Named because an unnamed approximation in
+    a control is how a control stops being one.
+    """
+    try:
+        result = average_player_margin(annual_revenue_gbp, eac_kwh, fuels=1)
+    except AverageMarginUnavailable as exc:
+        return {"available": False, "why": str(exc)[:120]}
+    return {
+        "available": True,
+        "low": round(result.low_gbp_per_mwh, 2),
+        "high": round(result.high_gbp_per_mwh, 2),
+        "low_gbp_per_year": round(result.low_gbp_per_year, 2),
+        "high_gbp_per_year": round(result.high_gbp_per_year, 2),
+    }
+
+
+def _average_player_summary(rows: list[dict]) -> dict:
+    """THE QUESTION THE ARMS COMPARISON COULD NOT ANSWER UNTIL NOW: is the control a credible
+    average player?
+
+    Director, 2026-08-25: *"there has to be a baseline to beat. Average behaviour is the control
+    ... Without that comparison, 'it performed well' means nothing."* The control has been this
+    company's own flat rule, and nothing in the tree could say whether that rule was anywhere
+    near average. Ofgem's Default Tariff Cap publishes the regulator's own answer.
+    """
+    scored = [r["average_player_gbp_per_mwh"] for r in rows
+              if (r.get("average_player_gbp_per_mwh") or {}).get("available")]
+    if not scored:
+        return {"available": False,
+                "why": "no account carried both a bill and a consumption, so no average-player "
+                       "margin could be computed for any of them"}
+    lows = sorted(s["low"] for s in scored)
+    highs = sorted(s["high"] for s in scored)
+    n = len(lows)
+    median_low, median_high = lows[n // 2], highs[n // 2]
+    return {
+        "available": True,
+        "accounts_scored": n,
+        "source": "Ofgem Default Tariff Cap EBIT allowance, decision 25 August 2023, cap period "
+                  "11a -- docs/domain_artefact_library/regulatory/price_cap_ebit_allowance.md",
+        "median_gbp_per_mwh_low": round(median_low, 2),
+        "median_gbp_per_mwh_high": round(median_high, 2),
+        "this_companys_flat_rule_gbp_per_mwh": TARGET_MARGIN_GBP_PER_MWH,
+        "flat_rule_as_share_of_average_low": round(TARGET_MARGIN_GBP_PER_MWH / median_low, 3)
+        if median_low else None,
+        "flat_rule_as_share_of_average_high": round(TARGET_MARGIN_GBP_PER_MWH / median_high, 3)
+        if median_high else None,
+        "what_it_means": (
+            "The control this comparison scores the value arm against is this company's own flat "
+            "rule. If that rule sits well below what the regulator allows an efficient supplier "
+            "to earn, then an arm 'beating' it has demonstrated the control's implausibility and "
+            "not its own inference -- which is the one thing the director's frame says the "
+            "comparison must not do. A RANGE rather than a figure because the published "
+            "allowance is dual fuel and this book is single fuel; see the source."
+        ),
+    }
+
+
 def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
     """Both arms over every account the company has enough of its own record to price."""
     legs = _legs(book)
@@ -196,6 +270,12 @@ def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
             "expected_cost_gbp_per_year": round(value.costs.total_gbp, 2) if value.costs else None,
             "bad_debt_gbp_per_year": round(value.costs.bad_debt_gbp, 2) if value.costs else None,
             "unsourced_cost_terms": list(value.costs.unsourced) if value.costs else [],
+            # WHAT AN AVERAGE PLAYER WOULD HAVE EARNED on this same customer, from Ofgem's
+            # published EBIT allowance. Read `company/pricing/regulated_average_margin.py` for
+            # why a single-fuel answer is a RANGE. This is a COMPARATOR and never a target: the
+            # value arm is not scored against it and no decision reads it.
+            "average_player_gbp_per_mwh": _average_player(
+                annual_revenue_gbp=float(leg.get("revenue_gbp") or 0.0) / years, eac_kwh=eac),
             "belief_vs_truth": belief_versus_truth(
                 offered_rate=common["base_rate_gbp_per_mwh"] + value.margin_gbp_per_mwh,
                 current_rate=avg_rate, tenure_years=years, eac_kwh=eac,
@@ -219,6 +299,7 @@ def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
                 "cannot drift from the supplier it describes."
             ),
         },
+        "average_player": _average_player_summary(per_account),
         "model_support_bound_pct": round(max_supported_rate_increase_pct(), 1),
         "differs_from_control": sum(
             1 for r in per_account if r["value_margin_gbp_per_mwh"] != TARGET_MARGIN_GBP_PER_MWH),
@@ -230,7 +311,7 @@ def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
         "median_implied_bill_change_pct": (
             sorted(r["implied_bill_change_pct"] for r in per_account)[n // 2] if n else None),
         "belief_vs_truth": belief,
-        "verdict": _verdict(per_account, belief),
+        "verdict": _verdict(per_account, belief, _average_player_summary(per_account)),
         "accounts": per_account,
     }
 
@@ -284,12 +365,36 @@ def _belief_clause(belief: dict) -> str:
                 "over-price and be punished for it.").format(under, scored, median)
     return ("The belief is no longer the obvious cause -- the median account is scored {:+.1f}pp "
             "against the world, on the conservative side, with {} of {} under-estimating "
-            "departures. What that leaves open is whether the FLAT CONTROL is a credible average "
-            "player: an arm that beats a control nobody would actually run has measured the "
-            "control and not its own inference.").format(median, under, scored)
+            "departures.").format(median, under, scored)
 
 
-def _verdict(rows: list[dict], belief: dict) -> dict:
+def _control_clause(average: dict, rows: list[dict]) -> str:
+    """WHETHER THE CONTROL IS A CREDIBLE AVERAGE PLAYER, answered with an external figure instead
+    of left open.
+
+    This clause used to end "what that leaves open is whether the flat control is a credible
+    average player" and stop there, which is a question a reader cannot answer either. Ofgem's
+    published EBIT allowance answers it, and the answer is not the convenient one: the control IS
+    under-priced, and nowhere near enough to explain the arm.
+    """
+    if not average.get("available"):
+        return ("Whether the flat control is a credible average player could not be scored on "
+                "this run, so that cause stays open.")
+    low = average["median_gbp_per_mwh_low"]
+    high = average["median_gbp_per_mwh_high"]
+    flat = average["this_companys_flat_rule_gbp_per_mwh"]
+    chosen = sorted(r["value_margin_gbp_per_mwh"] for r in rows)[len(rows) // 2] if rows else 0.0
+    ratio_low = chosen / high if high else 0.0
+    return ("The flat control IS under-priced -- GBP {:.2f}/MWh against a regulated average of "
+            "GBP {:.2f}-{:.2f} for an efficient supplier -- but not nearly enough to be the "
+            "cause: the value arm's median choice of GBP {:.0f}/MWh is still {:.0f}x the TOP of "
+            "that range. Repricing the control to average behaviour would move it by a factor of "
+            "two to four and leave the arm's answer an order of magnitude away, so the arm is "
+            "not beating a straw man -- it is asking to charge many times what a regulated "
+            "efficient supplier earns.").format(flat, low, high, chosen, ratio_low)
+
+
+def _verdict(rows: list[dict], belief: dict, average: dict) -> dict:
     """The one paragraph a reader needs, DERIVED, so it cannot go stale beside the numbers.
 
     A comparison that leaves the reader to work out whether the arm is usable will be quoted as
@@ -320,13 +425,68 @@ def _verdict(rows: list[dict], belief: dict) -> dict:
                 "would move the median bill by {:+.0f}%, far outside anything this company has "
                 "ever charged or observed a customer respond to".format(median_change))
         why = ("The value arm " + " and ".join(parts) + ". Not fit to wire to the renewal desk. "
-               + _belief_clause(belief))
+               + _belief_clause(belief) + " " + _control_clause(average, rows))
     return {
         "fit_to_run": fit,
         "at_grid_edge": at_edge,
         "median_implied_bill_change_pct": median_change,
         "why": why,
     }
+
+
+#: The coupled pair this tool measures. The WORLD owns how a household responds to its own
+#: supplier's price position (`simulation/market_switching_propensity.churn_position_multiplier`,
+#: reached through `customer_events`); the COMPANY owns its estimate of the same thing
+#: (`company/crm/enriched_churn_estimate`). Named as atom ids because that is what the ledger and
+#: the coupled-triad gate read.
+WORLD_ATOM_ID = "B10_competitor_switching_response"
+TWIN_ATOM_ID = "B4_competitor_field"
+
+
+def _git_head() -> str | None:
+    try:
+        out = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT),
+                             capture_output=True, text=True, timeout=30)
+        return out.stdout.strip()[:12] if out.returncode == 0 else None
+    except Exception:
+        return None
+
+
+def price_belief_gap(rows: list[dict]):
+    """The company's price-response belief against the world's, normalised by NO SKILL.
+
+    THE GAP IS THE SCORE (COUPLED_TRIAD_DESIGN). The belief-vs-truth summary beside this reports
+    a median error in percentage points, which says how BIASED the company is and nothing about
+    whether its belief carries any information. This says the second thing, and it is the one the
+    thesis is about: the no-skill baseline is a supplier that predicts the SAME departure
+    probability for every account -- the population mean -- which is exactly "a supplier applying
+    flat rules with no per-customer view".
+
+    A gap above 1.0 means the company's per-customer belief is WORSE than that flat rule. That is
+    a result worth publishing, not a bug: an advantage that must come from inference cannot be
+    claimed by a model carrying less information than the mean.
+    """
+    scored = [r["belief_vs_truth"] for r in rows if r.get("belief_vs_truth")]
+    if len(scored) < 2:
+        return None
+    believed = [s["company_believes_p_leave"] for s in scored]
+    actual = [s["world_would_p_leave"] for s in scored]
+    mean_actual = sum(actual) / len(actual)
+    raw = sum(abs(b - a) for b, a in zip(believed, actual)) / len(actual)
+    g0 = sum(abs(mean_actual - a) for a in actual) / len(actual)
+    return _normalise(
+        raw, g0,
+        "a supplier that predicts the population-mean departure probability for every account "
+        "-- flat rules, no per-customer view",
+        "belief",
+        {"accounts_scored": len(scored),
+         "company_mean_abs_error": round(raw, 4),
+         "no_skill_mean_abs_error": round(g0, 4),
+         "world_mean_p_leave": round(mean_actual, 4)},
+        note=("Measured at the price the company's OWN value arm chooses, which is where it "
+              "would actually be wrong. Below 1.0 the per-customer belief beats the flat rule; "
+              "above 1.0 it is worse than predicting the mean."),
+    )
 
 
 def generate(out_path: Path | None = None) -> dict:
@@ -340,7 +500,30 @@ def generate(out_path: Path | None = None) -> dict:
 
 
 if __name__ == "__main__":
+    _ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    _ap.add_argument("--write-ledger", action="store_true",
+                     help="persist the measured price-belief gap into coupled_gap_ledger.json")
+    _args = _ap.parse_args()
     d = generate()
     print("priced {} account(s); {} differ from the control; {} at a grid edge".format(
         d["accounts_priced"], d["differs_from_control"], d["endpoint_bound"]))
     print("fit to run: {} -- {}".format(d["verdict"]["fit_to_run"], d["verdict"]["why"]))
+    _gap = price_belief_gap(d["accounts"])
+    if _gap is None:
+        print("price-belief gap: NOT MEASURABLE -- fewer than two accounts could be scored "
+              "against the world")
+    else:
+        print("price-belief gap: {} (company {} vs no-skill {})".format(
+            _gap.gap, _gap.raw_gap, _gap.g0))
+        if _gap.gap is not None and _gap.gap > 1.0:
+            print("  -> WORSE THAN THE FLAT RULE: the per-customer belief carries less "
+                  "information than predicting the population mean, so no inference advantage "
+                  "can be claimed from it.")
+        if _args.write_ledger:
+            _ledger = write_gap_entry(
+                WORLD_ATOM_ID, TWIN_ATOM_ID, _gap,
+                measured_at=datetime.now(timezone.utc).isoformat(),
+                run_git_commit=_git_head(),
+            )
+            print("  ledger written: {} -> gap={}".format(
+                WORLD_ATOM_ID, _ledger[WORLD_ATOM_ID]["gap"]))

@@ -288,7 +288,15 @@ def write(directory: Path | None = None, staging: Path | None = None) -> list[Pa
     written = []
     for day, turns in by_day(all_turns).items():
         body = render(day, turns, ", ".join(used))
-        path = out_dir / f"DIRECTOR_CONSOLE_{day}.md"
+        name = f"DIRECTOR_CONSOLE_{day}.md"
+        # WRITE INTO THE ROOM THAT ALREADY HOLDS IT (2026-08-25). Reaching back across several
+        # days means most of them have already been read and archived, and re-creating their
+        # record in the staging ROOT would ring a doorbell for a turn that was actioned days ago
+        # -- and leave the same document in two rooms making mutually exclusive claims, which
+        # `background/finding_classes.py` refuses by name. An archived day's record still gets
+        # richer as more transcripts are merged; it just does not come back to life.
+        archived = out_dir / "done" / name
+        path = archived if archived.exists() else out_dir / name
         if path.exists() and path.read_text(encoding="utf-8") == body:
             continue
         path.write_text(body, encoding="utf-8")

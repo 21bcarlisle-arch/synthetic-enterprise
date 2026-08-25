@@ -1,0 +1,70 @@
+version: 1
+oriented_at: "2026-08-25T17:40:59.419280+00:00"
+thesis_read: >-
+  This stretch the company made its first genuine per-customer commercial decision: the value
+  arm priced 263 accounts individually on expected value, and the world gained the ability to
+  punish it for getting that wrong -- until yesterday a supplier 200% above the market lost the
+  same third of its book as one 25% above, so a flat-rules baseline could be neither beaten nor
+  lost to. Against the thesis that is real movement, and the belief-vs-truth gap on price moving
+  from -7.8pp to +0.5pp is the wall doing exactly what it exists to do. But the honest read is
+  that an inference advantage still cannot be claimed, for two separate reasons and neither is
+  small. The two organs the advantage must come from both measure WORSE than no-skill: the CLV
+  estimator carries 1.76x the error of simply assigning every account the population mean, and
+  the win-rate learning loop is at 1.23x never updating at all -- the company's belief about
+  itself is currently anti-informative. And the control it would be compared against is a flat
+  £2/MWh margin lifted from `saas/tariff_pricing.py`, while the value arm chose £100-160/MWh on
+  213 of 263 accounts; the arms record's own verdict already asks whether an arm beating that
+  rule has demonstrated its inference or merely the control's implausibility. So: the machinery
+  of per-customer decision exists, the instrument that would tell us it works does not yet mean
+  anything, and it reports `fit_to_run: false` on itself. Not backwards -- five atoms
+  self-certified to L2 and the price cap, the journal sign and 6,747 phantom drawdowns were all
+  genuinely fixed -- but the project is closer to the thesis in machinery than in evidence. Two
+  things are drifting. The director named the 117 H_harness atoms twice on 24 August, once at
+  20:45 and again at 21:24 ("the map should be half the size and true"); it is still exactly 117
+  and nothing has read them. And publishing has been down 11.8 hours with the publish commit
+  refusing to land on 12 consecutive episodes against a green scoped suite, so the carbon figure
+  he called the entire point of this project is stale on the live surface.
+stretch_reviewed:
+  since: "2026-08-24T17:40:59.419280+00:00"
+  commits: 59
+  substantive: 49
+focus:
+  - id: flat-control-credible-average-player
+    what: Calibrate the £2/MWh flat-rules control arm to an externally sourced average UK supplier margin, decided blind to how it makes the value arm look.
+    why: The thesis makes the baseline the entire meaning of "it performed well", and a control the company's own verdict describes as one nobody would actually run cannot carry that weight.
+  - id: publish-path-lands
+    what: Make a green publisher run reach origin -- the commit has been refused, timed out or lost on 12 consecutive episodes while its own scoped suite passed.
+    why: R11 makes the live surface the definition of done, so with this down nothing below can be shown true, and the half-hourly carbon figure has sat 11.8h stale.
+  - id: EP1_clv_three_horizon
+    what: The CLV estimator and the instrument that grades it -- 1.76x worse than the population mean, graded on 5 accounts of a book that now holds 263.
+    why: CLV is the quantity the thesis says every per-customer choice is made on; below an estimator carrying less information than the mean, those choices are arbitrary, and 5-of-263 could not detect an improvement anyway.
+  - id: expected-cost-collections-term
+    what: Collections cost is counted as zero inside the EV arithmetic, so every expected-cost figure is a declared floor and only 4 of 263 accounts differ on credit risk at all.
+    why: The director named default risk, collections cost and bad debt as the three terms that must sit inside the arithmetic rather than behind a floor -- two are in, and the third is a hole the new licence register cannot close for us.
+  - id: harness-lane-prune
+    what: Read the 117 H_harness atoms; delete what should not exist, close what is finished, collapse what is bookkeeping rather than work.
+    why: Named twice by the director on 24 August and unchanged since; it is what the draw actually sees, so an untrue map silently shapes every tick's choice of work.
+not_now:
+  - what: Wiring the value arm to the live renewal desk now that it prices per customer.
+    why: >-
+      It reports `fit_to_run: false` on itself -- 8 of 263 accounts priced at the edge of its own grid and a median implied bill move of +51.4%. That is a ceiling reporting itself as a decision, and wiring it would push a real pricing defect behind the wall for the company to have to rediscover.
+  - what: Explore's remaining stages with real data, which the director named third in his own queue.
+    why: Those stages render the very numbers focus items 1 and 3 are currently deciding the credibility of. A truer surface over an estimator worse than the mean publishes the error more clearly rather than fixing it; it moves up the moment the CLV instrument means something.
+  - what: Pushing EP13 carbon to L3.
+    why: Its Expert Hour was taken and refused, and the 3.16x spread overstatement is now caveated on the page in the same sentence as the figure. The honest level is already held; an L3 push buys presentation, not fidelity, and the thesis needs fidelity.
+  - what: Filing further findings against the 30 already sitting LATENT.
+    why: The director named this directly as a token cost -- don't file where a class document already covers it -- and five class documents already carry these shapes. The queue needs discharging, not lengthening.
+  - what: Restructuring lanes and epochs alongside the harness prune, which he explicitly gave authority for.
+    why: A lane restructure changes what every future draw sees, and five atoms are mid-flight at L2 right now. Prune the stock first; judge the structure once the map is true, so the two changes can be told apart.
+wrong:
+  - what: The captive-floor repair landed without the three tests that asserted the floor, so HEAD was red on its own fix.
+    corrected: true
+  - what: 915 lines of finished, green CLV work died with the session that wrote it and refused every lane's map commit until it was found and adopted.
+    corrected: true
+  - what: Three consecutive landing attempts were killed by their own `timeout` wrappers, discarding 66 minutes of green gate with no test red to show for it -- and the publisher is still failing to land commits now.
+    corrected: false
+  - what: The published carbon timing spread overstated the real grid by 3.16x, and its error bars turned out to be a recollection written in the grammar of a measurement.
+    corrected: true
+  - what: This seat's own orienting brief reported no level movement in the window while `gate_authorizations.jsonl` records five self-certified moves -- the instrument reads the map file rather than the ledger R16 makes the record.
+    corrected: false
+for_the_director: []

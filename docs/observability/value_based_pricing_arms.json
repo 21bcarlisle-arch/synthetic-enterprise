@@ -7,6 +7,17 @@
   "margin_gbp_per_mwh": 2.0,
   "what_it_is": "what this company does today: one margin for every account, whoever they are. Imported from saas/tariff_pricing.py rather than restated, so the control cannot drift from the supplier it describes."
  },
+ "average_player": {
+  "available": true,
+  "accounts_scored": 263,
+  "source": "Ofgem Default Tariff Cap EBIT allowance, decision 25 August 2023, cap period 11a -- docs/domain_artefact_library/regulatory/price_cap_ebit_allowance.md",
+  "median_gbp_per_mwh_low": 3.73,
+  "median_gbp_per_mwh_high": 8.54,
+  "this_companys_flat_rule_gbp_per_mwh": 2.0,
+  "flat_rule_as_share_of_average_low": 0.536,
+  "flat_rule_as_share_of_average_high": 0.234,
+  "what_it_means": "The control this comparison scores the value arm against is this company's own flat rule. If that rule sits well below what the regulator allows an efficient supplier to earn, then an arm 'beating' it has demonstrated the control's implausibility and not its own inference -- which is the one thing the director's frame says the comparison must not do. A RANGE rather than a figure because the published allowance is dual fuel and this book is single fuel; see the source."
+ },
  "model_support_bound_pct": 83.1,
  "differs_from_control": 263,
  "endpoint_bound": 8,
@@ -38,7 +49,7 @@
   "fit_to_run": false,
   "at_grid_edge": 8,
   "median_implied_bill_change_pct": 51.4,
-  "why": "The value arm chose the highest margin available to it on 8 of 263 accounts, which is a ceiling reporting itself as a decision and would move the median bill by +51%, far outside anything this company has ever charged or observed a customer respond to. Not fit to wire to the renewal desk. The belief is no longer the obvious cause -- the median account is scored +3.5pp against the world, on the conservative side, with 123 of 263 under-estimating departures. What that leaves open is whether the FLAT CONTROL is a credible average player: an arm that beats a control nobody would actually run has measured the control and not its own inference."
+  "why": "The value arm chose the highest margin available to it on 8 of 263 accounts, which is a ceiling reporting itself as a decision and would move the median bill by +51%, far outside anything this company has ever charged or observed a customer respond to. Not fit to wire to the renewal desk. The belief is no longer the obvious cause -- the median account is scored +3.5pp against the world, on the conservative side, with 123 of 263 under-estimating departures. The flat control IS under-priced -- GBP 2.00/MWh against a regulated average of GBP 3.73-8.54 for an efficient supplier -- but not nearly enough to be the cause: the value arm's median choice of GBP 130/MWh is still 15x the TOP of that range. Repricing the control to average behaviour would move it by a factor of two to four and leave the arm's answer an order of magnitude away, so the arm is not beating a straw man -- it is asking to charge many times what a regulated efficient supplier earns."
  },
  "accounts": [
   {
@@ -59,6 +70,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.46,
+    "high": 13.57,
+    "low_gbp_per_year": 4.38,
+    "high_gbp_per_year": 24.14
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.2722,
     "company_believes_p_leave": 0.4274,
@@ -84,6 +102,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.96,
+    "high": 8.73,
+    "low_gbp_per_year": 10.15,
+    "high_gbp_per_year": 29.91
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.095,
     "company_believes_p_leave": 0.5,
@@ -109,6 +134,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.98,
+    "high": 11.33,
+    "low_gbp_per_year": 7.05,
+    "high_gbp_per_year": 26.81
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.0369,
     "company_believes_p_leave": 0.5407,
@@ -134,6 +166,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.01,
+    "high": 11.15,
+    "low_gbp_per_year": 7.3,
+    "high_gbp_per_year": 27.06
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.0435,
     "company_believes_p_leave": 0.4405,
@@ -159,6 +198,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 1.58,
+    "high": 2.48,
+    "low_gbp_per_year": 34.61,
+    "high_gbp_per_year": 54.37
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.1758,
     "company_believes_p_leave": 0.5418,
@@ -184,6 +230,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.58,
+    "high": 3.38,
+    "low_gbp_per_year": 63.63,
+    "high_gbp_per_year": 83.39
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.1726,
     "company_believes_p_leave": 0.6025,
@@ -209,6 +262,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.54,
+    "high": 4.06,
+    "low_gbp_per_year": 32.99,
+    "high_gbp_per_year": 52.75
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.0972,
     "company_believes_p_leave": 0.4986,
@@ -234,6 +294,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.73,
+    "high": 4.41,
+    "low_gbp_per_year": 31.97,
+    "high_gbp_per_year": 51.73
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.1368,
     "company_believes_p_leave": 0.4747,
@@ -259,6 +326,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.47,
+    "high": 4.1,
+    "low_gbp_per_year": 30.11,
+    "high_gbp_per_year": 49.87
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.0636,
     "company_believes_p_leave": 0.5211,
@@ -284,6 +358,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.36,
+    "high": 2.37,
+    "low_gbp_per_year": 4630.32,
+    "high_gbp_per_year": 4650.08
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.1484,
     "company_believes_p_leave": 0.5573,
@@ -309,6 +390,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.77,
+    "high": 2.79,
+    "low_gbp_per_year": 2720.71,
+    "high_gbp_per_year": 2740.47
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.0311,
     "company_believes_p_leave": 0.501,
@@ -334,6 +422,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.54,
+    "high": 2.54,
+    "low_gbp_per_year": 9985.37,
+    "high_gbp_per_year": 10005.13
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.0979,
     "company_believes_p_leave": 0.5309,
@@ -359,6 +454,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.36,
+    "high": 2.37,
+    "low_gbp_per_year": 6999.51,
+    "high_gbp_per_year": 7019.27
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.1408,
     "company_believes_p_leave": 0.5531,
@@ -384,6 +486,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 0.79,
+    "high": 0.79,
+    "low_gbp_per_year": 3940.05,
+    "high_gbp_per_year": 3959.81
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.7301,
     "company_believes_p_leave": 0.4377,
@@ -409,6 +518,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 0.49,
+    "high": 1.91,
+    "low_gbp_per_year": 6.85,
+    "high_gbp_per_year": 26.61
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.8108,
     "company_believes_p_leave": 0.546,
@@ -434,6 +550,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 0.65,
+    "high": 1.74,
+    "low_gbp_per_year": 11.69,
+    "high_gbp_per_year": 31.45
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.7625,
     "company_believes_p_leave": 0.4008,
@@ -459,6 +582,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 0.53,
+    "high": 1.42,
+    "low_gbp_per_year": 11.84,
+    "high_gbp_per_year": 31.6
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.7833,
     "company_believes_p_leave": 0.4516,
@@ -484,6 +614,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 0.54,
+    "high": 1.08,
+    "low_gbp_per_year": 19.7,
+    "high_gbp_per_year": 39.46
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.7784,
     "company_believes_p_leave": 0.4381,
@@ -509,6 +646,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.97,
+    "high": 7.73,
+    "low_gbp_per_year": 20.84,
+    "high_gbp_per_year": 40.6
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.7405,
     "company_believes_p_leave": 0.5243,
@@ -534,6 +678,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.27,
+    "high": 7.07,
+    "low_gbp_per_year": 9.35,
+    "high_gbp_per_year": 29.11
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.2432,
     "company_believes_p_leave": 0.4357,
@@ -559,6 +710,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.21,
+    "high": 8.26,
+    "low_gbp_per_year": 12.58,
+    "high_gbp_per_year": 32.34
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.1294,
     "company_believes_p_leave": 0.479,
@@ -584,6 +742,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.28,
+    "high": 8.7,
+    "low_gbp_per_year": 11.99,
+    "high_gbp_per_year": 31.75
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.1596,
     "company_believes_p_leave": 0.462,
@@ -609,6 +774,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.18,
+    "high": 7.13,
+    "low_gbp_per_year": 8.68,
+    "high_gbp_per_year": 28.44
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.1376,
     "company_believes_p_leave": 0.5075,
@@ -634,6 +806,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.94,
+    "high": 6.83,
+    "low_gbp_per_year": 14.97,
+    "high_gbp_per_year": 34.73
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.1617,
     "company_believes_p_leave": 0.4609,
@@ -659,6 +838,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.2,
+    "high": 8.18,
+    "low_gbp_per_year": 12.71,
+    "high_gbp_per_year": 32.47
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.1967,
     "company_believes_p_leave": 0.443,
@@ -684,6 +870,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.83,
+    "high": 6.54,
+    "low_gbp_per_year": 15.06,
+    "high_gbp_per_year": 34.82
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.1727,
     "company_believes_p_leave": 0.4551,
@@ -709,6 +902,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.32,
+    "high": 8.21,
+    "low_gbp_per_year": 13.39,
+    "high_gbp_per_year": 33.15
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2164,
     "company_believes_p_leave": 0.4336,
@@ -734,6 +934,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.49,
+    "high": 8.67,
+    "low_gbp_per_year": 13.34,
+    "high_gbp_per_year": 33.1
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3716,
     "company_believes_p_leave": 0.5308,
@@ -759,6 +966,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 1.68,
+    "high": 4.75,
+    "low_gbp_per_year": 10.84,
+    "high_gbp_per_year": 30.6
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.2712,
     "company_believes_p_leave": 0.4658,
@@ -784,6 +998,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.07,
+    "high": 5.93,
+    "low_gbp_per_year": 10.62,
+    "high_gbp_per_year": 30.38
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.1084,
     "company_believes_p_leave": 0.5136,
@@ -809,6 +1030,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.46,
+    "high": 8.78,
+    "low_gbp_per_year": 12.83,
+    "high_gbp_per_year": 32.59
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.186,
     "company_believes_p_leave": 0.4483,
@@ -834,6 +1062,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.09,
+    "high": 5.34,
+    "low_gbp_per_year": 12.77,
+    "high_gbp_per_year": 32.53
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.1338,
     "company_believes_p_leave": 0.5135,
@@ -859,6 +1094,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.37,
+    "high": 8.54,
+    "low_gbp_per_year": 12.87,
+    "high_gbp_per_year": 32.63
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2129,
     "company_believes_p_leave": 0.4352,
@@ -884,6 +1126,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.39,
+    "high": 7.76,
+    "low_gbp_per_year": 15.3,
+    "high_gbp_per_year": 35.06
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.1996,
     "company_believes_p_leave": 0.4415,
@@ -909,6 +1158,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.44,
+    "high": 9.94,
+    "low_gbp_per_year": 10.46,
+    "high_gbp_per_year": 30.22
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3591,
     "company_believes_p_leave": 0.5379,
@@ -934,6 +1190,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.19,
+    "high": 7.94,
+    "low_gbp_per_year": 13.25,
+    "high_gbp_per_year": 33.01
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3477,
     "company_believes_p_leave": 0.5446,
@@ -959,6 +1222,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.69,
+    "high": 8.91,
+    "low_gbp_per_year": 13.94,
+    "high_gbp_per_year": 33.7
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.399,
     "company_believes_p_leave": 0.5159,
@@ -984,6 +1254,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.83,
+    "high": 8.13,
+    "low_gbp_per_year": 17.6,
+    "high_gbp_per_year": 37.36
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4549,
     "company_believes_p_leave": 0.4882,
@@ -1009,6 +1286,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.96,
+    "high": 9.36,
+    "low_gbp_per_year": 14.53,
+    "high_gbp_per_year": 34.29
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4455,
     "company_believes_p_leave": 0.4926,
@@ -1034,6 +1318,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.17,
+    "high": 7.81,
+    "low_gbp_per_year": 13.46,
+    "high_gbp_per_year": 33.22
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3755,
     "company_believes_p_leave": 0.5286,
@@ -1059,6 +1350,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.46,
+    "high": 7.62,
+    "low_gbp_per_year": 9.44,
+    "high_gbp_per_year": 29.2
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.0821,
     "company_believes_p_leave": 0.4747,
@@ -1084,6 +1382,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.64,
+    "high": 8.81,
+    "low_gbp_per_year": 13.93,
+    "high_gbp_per_year": 33.69
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3671,
     "company_believes_p_leave": 0.5334,
@@ -1109,6 +1414,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.24,
+    "high": 6.39,
+    "low_gbp_per_year": 10.67,
+    "high_gbp_per_year": 30.43
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.1244,
     "company_believes_p_leave": 0.5159,
@@ -1134,6 +1446,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.49,
+    "high": 8.58,
+    "low_gbp_per_year": 13.54,
+    "high_gbp_per_year": 33.3
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3652,
     "company_believes_p_leave": 0.5344,
@@ -1159,6 +1478,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.33,
+    "high": 7.34,
+    "low_gbp_per_year": 16.43,
+    "high_gbp_per_year": 36.19
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3687,
     "company_believes_p_leave": 0.5324,
@@ -1184,6 +1510,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.75,
+    "high": 10.56,
+    "low_gbp_per_year": 10.86,
+    "high_gbp_per_year": 30.62
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3849,
     "company_believes_p_leave": 0.5235,
@@ -1209,6 +1542,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.33,
+    "high": 7.29,
+    "low_gbp_per_year": 16.59,
+    "high_gbp_per_year": 36.35
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3615,
     "company_believes_p_leave": 0.5365,
@@ -1234,6 +1574,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.05,
+    "high": 10.84,
+    "low_gbp_per_year": 11.79,
+    "high_gbp_per_year": 31.55
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4608,
     "company_believes_p_leave": 0.4855,
@@ -1259,6 +1606,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.15,
+    "high": 8.69,
+    "low_gbp_per_year": 18.06,
+    "high_gbp_per_year": 37.82
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4736,
     "company_believes_p_leave": 0.4796,
@@ -1284,6 +1638,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.4,
+    "high": 7.46,
+    "low_gbp_per_year": 9.37,
+    "high_gbp_per_year": 29.13
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.0849,
     "company_believes_p_leave": 0.4866,
@@ -1309,6 +1670,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.84,
+    "high": 8.85,
+    "low_gbp_per_year": 15.16,
+    "high_gbp_per_year": 34.92
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4551,
     "company_believes_p_leave": 0.4881,
@@ -1334,6 +1702,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.14,
+    "high": 5.88,
+    "low_gbp_per_year": 11.31,
+    "high_gbp_per_year": 31.07
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.0883,
     "company_believes_p_leave": 0.489,
@@ -1359,6 +1734,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.55,
+    "high": 7.62,
+    "low_gbp_per_year": 17.22,
+    "high_gbp_per_year": 36.98
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4132,
     "company_believes_p_leave": 0.5085,
@@ -1384,6 +1766,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.01,
+    "high": 5.16,
+    "low_gbp_per_year": 12.59,
+    "high_gbp_per_year": 32.35
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.0275,
     "company_believes_p_leave": 0.4502,
@@ -1409,6 +1798,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.43,
+    "high": 7.51,
+    "low_gbp_per_year": 16.65,
+    "high_gbp_per_year": 36.41
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3839,
     "company_believes_p_leave": 0.524,
@@ -1434,6 +1830,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.66,
+    "high": 8.81,
+    "low_gbp_per_year": 14.05,
+    "high_gbp_per_year": 33.81
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4263,
     "company_believes_p_leave": 0.5019,
@@ -1459,6 +1862,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.22,
+    "high": 6.18,
+    "low_gbp_per_year": 11.1,
+    "high_gbp_per_year": 30.86
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.0994,
     "company_believes_p_leave": 0.4969,
@@ -1484,6 +1894,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.81,
+    "high": 8.92,
+    "low_gbp_per_year": 14.7,
+    "high_gbp_per_year": 34.46
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4407,
     "company_believes_p_leave": 0.4949,
@@ -1509,6 +1926,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.81,
+    "high": 8.93,
+    "low_gbp_per_year": 14.67,
+    "high_gbp_per_year": 34.43
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4395,
     "company_believes_p_leave": 0.4955,
@@ -1534,6 +1958,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.88,
+    "high": 10.76,
+    "low_gbp_per_year": 11.12,
+    "high_gbp_per_year": 30.88
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3971,
     "company_believes_p_leave": 0.5169,
@@ -1559,6 +1990,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.73,
+    "high": 7.99,
+    "low_gbp_per_year": 17.27,
+    "high_gbp_per_year": 37.03
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4174,
     "company_believes_p_leave": 0.5064,
@@ -1584,6 +2022,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.27,
+    "high": 7.56,
+    "low_gbp_per_year": 8.46,
+    "high_gbp_per_year": 28.22
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.1433,
     "company_believes_p_leave": 0.5415,
@@ -1609,6 +2054,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.81,
+    "high": 9.1,
+    "low_gbp_per_year": 14.2,
+    "high_gbp_per_year": 33.96
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3837,
     "company_believes_p_leave": 0.5241,
@@ -1634,6 +2086,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.78,
+    "high": 8.97,
+    "low_gbp_per_year": 14.41,
+    "high_gbp_per_year": 34.17
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4299,
     "company_believes_p_leave": 0.5001,
@@ -1659,6 +2118,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.63,
+    "high": 7.71,
+    "low_gbp_per_year": 17.62,
+    "high_gbp_per_year": 37.38
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4648,
     "company_believes_p_leave": 0.4836,
@@ -1684,6 +2150,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.95,
+    "high": 8.08,
+    "low_gbp_per_year": 18.89,
+    "high_gbp_per_year": 38.65
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5183,
     "company_believes_p_leave": 0.4605,
@@ -1709,6 +2182,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.75,
+    "high": 6.95,
+    "low_gbp_per_year": 23.12,
+    "high_gbp_per_year": 42.88
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5259,
     "company_believes_p_leave": 0.4574,
@@ -1734,6 +2214,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.19,
+    "high": 8.51,
+    "low_gbp_per_year": 19.12,
+    "high_gbp_per_year": 38.88
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5086,
     "company_believes_p_leave": 0.4645,
@@ -1759,6 +2246,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.39,
+    "high": 6.87,
+    "low_gbp_per_year": 10.52,
+    "high_gbp_per_year": 30.28
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.0928,
     "company_believes_p_leave": 0.5021,
@@ -1784,6 +2278,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.68,
+    "high": 6.86,
+    "low_gbp_per_year": 22.8,
+    "high_gbp_per_year": 42.56
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5069,
     "company_believes_p_leave": 0.4652,
@@ -1809,6 +2310,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.28,
+    "high": 6.37,
+    "low_gbp_per_year": 11.03,
+    "high_gbp_per_year": 30.79
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.0985,
     "company_believes_p_leave": 0.5062,
@@ -1834,6 +2342,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.21,
+    "high": 5.04,
+    "low_gbp_per_year": 15.49,
+    "high_gbp_per_year": 35.25
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.1047,
     "company_believes_p_leave": 0.5108,
@@ -1859,6 +2374,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.2,
+    "high": 6.86,
+    "low_gbp_per_year": 9.33,
+    "high_gbp_per_year": 29.09
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.2553,
     "company_believes_p_leave": 0.4541,
@@ -1884,6 +2406,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.55,
+    "high": 7.85,
+    "low_gbp_per_year": 9.5,
+    "high_gbp_per_year": 29.26
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.0706,
     "company_believes_p_leave": 0.4869,
@@ -1909,6 +2438,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.24,
+    "high": 6.15,
+    "low_gbp_per_year": 11.34,
+    "high_gbp_per_year": 31.1
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.0735,
     "company_believes_p_leave": 0.4888,
@@ -1934,6 +2470,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.51,
+    "high": 8.22,
+    "low_gbp_per_year": 14.74,
+    "high_gbp_per_year": 34.5
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.458,
     "company_believes_p_leave": 0.4868,
@@ -1959,6 +2502,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.21,
+    "high": 5.35,
+    "low_gbp_per_year": 13.83,
+    "high_gbp_per_year": 33.59
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.0698,
     "company_believes_p_leave": 0.4864,
@@ -1984,6 +2534,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.5,
+    "high": 7.59,
+    "low_gbp_per_year": 16.93,
+    "high_gbp_per_year": 36.69
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3935,
     "company_believes_p_leave": 0.5188,
@@ -2009,6 +2566,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.49,
+    "high": 8.43,
+    "low_gbp_per_year": 13.99,
+    "high_gbp_per_year": 33.75
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4059,
     "company_believes_p_leave": 0.5123,
@@ -2034,6 +2598,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.23,
+    "high": 6.32,
+    "low_gbp_per_year": 10.73,
+    "high_gbp_per_year": 30.49
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.1171,
     "company_believes_p_leave": 0.5202,
@@ -2059,6 +2630,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.56,
+    "high": 7.88,
+    "low_gbp_per_year": 9.5,
+    "high_gbp_per_year": 29.26
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.073,
     "company_believes_p_leave": 0.4885,
@@ -2084,6 +2662,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.66,
+    "high": 8.77,
+    "low_gbp_per_year": 14.14,
+    "high_gbp_per_year": 33.9
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4037,
     "company_believes_p_leave": 0.5134,
@@ -2109,6 +2694,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.12,
+    "high": 6.45,
+    "low_gbp_per_year": 9.66,
+    "high_gbp_per_year": 29.42
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.2383,
     "company_believes_p_leave": 0.4424,
@@ -2134,6 +2726,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.53,
+    "high": 8.01,
+    "low_gbp_per_year": 9.12,
+    "high_gbp_per_year": 28.88
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.07,
     "company_believes_p_leave": 0.4965,
@@ -2159,6 +2758,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.31,
+    "high": 7.8,
+    "low_gbp_per_year": 8.33,
+    "high_gbp_per_year": 28.09
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.1342,
     "company_believes_p_leave": 0.5438,
@@ -2184,6 +2790,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.63,
+    "high": 9.85,
+    "low_gbp_per_year": 17.52,
+    "high_gbp_per_year": 37.28
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.7734,
     "company_believes_p_leave": 0.506,
@@ -2209,6 +2822,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.73,
+    "high": 8.5,
+    "low_gbp_per_year": 9.36,
+    "high_gbp_per_year": 29.12
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.0551,
     "company_believes_p_leave": 0.4868,
@@ -2234,6 +2854,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.42,
+    "high": 8.05,
+    "low_gbp_per_year": 24.09,
+    "high_gbp_per_year": 43.85
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.6836,
     "company_believes_p_leave": 0.5443,
@@ -2259,6 +2886,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.2,
+    "high": 9.4,
+    "low_gbp_per_year": 15.99,
+    "high_gbp_per_year": 35.75
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.535,
     "company_believes_p_leave": 0.4596,
@@ -2284,6 +2918,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.16,
+    "high": 9.0,
+    "low_gbp_per_year": 10.68,
+    "high_gbp_per_year": 30.44
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.1287,
     "company_believes_p_leave": 0.5185,
@@ -2309,6 +2950,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.86,
+    "high": 6.2,
+    "low_gbp_per_year": 32.58,
+    "high_gbp_per_year": 52.34
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.6747,
     "company_believes_p_leave": 0.5451,
@@ -2334,6 +2982,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.19,
+    "high": 8.13,
+    "low_gbp_per_year": 12.76,
+    "high_gbp_per_year": 32.52
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.1135,
     "company_believes_p_leave": 0.5276,
@@ -2359,6 +3014,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.89,
+    "high": 8.85,
+    "low_gbp_per_year": 15.48,
+    "high_gbp_per_year": 35.24
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5175,
     "company_believes_p_leave": 0.4675,
@@ -2384,6 +3046,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.93,
+    "high": 8.42,
+    "low_gbp_per_year": 10.56,
+    "high_gbp_per_year": 30.32
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.113,
     "company_believes_p_leave": 0.5279,
@@ -2409,6 +3078,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.79,
+    "high": 8.47,
+    "low_gbp_per_year": 16.0,
+    "high_gbp_per_year": 35.76
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5444,
     "company_believes_p_leave": 0.4576,
@@ -2434,6 +3110,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.92,
+    "high": 8.02,
+    "low_gbp_per_year": 18.9,
+    "high_gbp_per_year": 38.66
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5027,
     "company_believes_p_leave": 0.4745,
@@ -2459,6 +3142,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.32,
+    "high": 9.87,
+    "low_gbp_per_year": 15.36,
+    "high_gbp_per_year": 35.12
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4961,
     "company_believes_p_leave": 0.4773,
@@ -2484,6 +3174,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.09,
+    "high": 11.08,
+    "low_gbp_per_year": 11.55,
+    "high_gbp_per_year": 31.31
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4912,
     "company_believes_p_leave": 0.5011,
@@ -2509,6 +3206,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.93,
+    "high": 9.11,
+    "low_gbp_per_year": 15.01,
+    "high_gbp_per_year": 34.77
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4699,
     "company_believes_p_leave": 0.4888,
@@ -2534,6 +3238,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.29,
+    "high": 9.82,
+    "low_gbp_per_year": 15.33,
+    "high_gbp_per_year": 35.09
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4858,
     "company_believes_p_leave": 0.4817,
@@ -2559,6 +3270,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.02,
+    "high": 9.15,
+    "low_gbp_per_year": 15.48,
+    "high_gbp_per_year": 35.24
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4856,
     "company_believes_p_leave": 0.4827,
@@ -2584,6 +3302,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.38,
+    "high": 8.04,
+    "low_gbp_per_year": 23.73,
+    "high_gbp_per_year": 43.49
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5322,
     "company_believes_p_leave": 0.4632,
@@ -2609,6 +3334,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.78,
+    "high": 7.96,
+    "low_gbp_per_year": 17.86,
+    "high_gbp_per_year": 37.62
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4431,
     "company_believes_p_leave": 0.5021,
@@ -2634,6 +3366,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.28,
+    "high": 9.36,
+    "low_gbp_per_year": 16.65,
+    "high_gbp_per_year": 36.41
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5618,
     "company_believes_p_leave": 0.4584,
@@ -2659,6 +3398,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.22,
+    "high": 8.33,
+    "low_gbp_per_year": 20.27,
+    "high_gbp_per_year": 40.03
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.6948,
     "company_believes_p_leave": 0.545,
@@ -2684,6 +3430,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.02,
+    "high": 8.05,
+    "low_gbp_per_year": 19.75,
+    "high_gbp_per_year": 39.51
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5124,
     "company_believes_p_leave": 0.4821,
@@ -2709,6 +3462,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.95,
+    "high": 10.91,
+    "low_gbp_per_year": 16.42,
+    "high_gbp_per_year": 36.18
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.7736,
     "company_believes_p_leave": 0.5359,
@@ -2734,6 +3494,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 5.21,
+    "high": 10.6,
+    "low_gbp_per_year": 19.11,
+    "high_gbp_per_year": 38.87
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.887,
     "company_believes_p_leave": 0.4713,
@@ -2759,6 +3526,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.8,
+    "high": 9.78,
+    "low_gbp_per_year": 19.09,
+    "high_gbp_per_year": 38.85
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.8559,
     "company_believes_p_leave": 0.4825,
@@ -2784,6 +3558,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.92,
+    "high": 10.21,
+    "low_gbp_per_year": 18.37,
+    "high_gbp_per_year": 38.13
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.8198,
     "company_believes_p_leave": 0.4952,
@@ -2809,6 +3590,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.48,
+    "high": 8.57,
+    "low_gbp_per_year": 21.62,
+    "high_gbp_per_year": 41.38
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.7825,
     "company_believes_p_leave": 0.5092,
@@ -2834,6 +3622,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.99,
+    "high": 10.45,
+    "low_gbp_per_year": 18.03,
+    "high_gbp_per_year": 37.79
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.7905,
     "company_believes_p_leave": 0.5061,
@@ -2859,6 +3654,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.45,
+    "high": 8.59,
+    "low_gbp_per_year": 21.25,
+    "high_gbp_per_year": 41.01
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.7634,
     "company_believes_p_leave": 0.5166,
@@ -2884,6 +3686,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.99,
+    "high": 9.54,
+    "low_gbp_per_year": 21.67,
+    "high_gbp_per_year": 41.43
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.7695,
     "company_believes_p_leave": 0.5142,
@@ -2909,6 +3718,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.67,
+    "high": 8.84,
+    "low_gbp_per_year": 22.09,
+    "high_gbp_per_year": 41.85
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.8116,
     "company_believes_p_leave": 0.5015,
@@ -2934,6 +3750,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.27,
+    "high": 9.12,
+    "low_gbp_per_year": 17.4,
+    "high_gbp_per_year": 37.16
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.7421,
     "company_believes_p_leave": 0.5262,
@@ -2959,6 +3782,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.32,
+    "high": 9.19,
+    "low_gbp_per_year": 17.5,
+    "high_gbp_per_year": 37.26
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.7537,
     "company_believes_p_leave": 0.5214,
@@ -2984,6 +3814,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.43,
+    "high": 8.68,
+    "low_gbp_per_year": 20.65,
+    "high_gbp_per_year": 40.41
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.729,
     "company_believes_p_leave": 0.5317,
@@ -3009,6 +3846,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.29,
+    "high": 8.45,
+    "low_gbp_per_year": 20.38,
+    "high_gbp_per_year": 40.14
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.7095,
     "company_believes_p_leave": 0.5401,
@@ -3034,6 +3878,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.51,
+    "high": 11.04,
+    "low_gbp_per_year": 13.67,
+    "high_gbp_per_year": 33.43
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.7391,
     "company_believes_p_leave": 0.5274,
@@ -3059,6 +3910,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.97,
+    "high": 7.31,
+    "low_gbp_per_year": 23.5,
+    "high_gbp_per_year": 43.26
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5426,
     "company_believes_p_leave": 0.4674,
@@ -3084,6 +3942,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.17,
+    "high": 7.56,
+    "low_gbp_per_year": 24.27,
+    "high_gbp_per_year": 44.03
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.7074,
     "company_believes_p_leave": 0.541,
@@ -3109,6 +3974,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.13,
+    "high": 7.56,
+    "low_gbp_per_year": 23.72,
+    "high_gbp_per_year": 43.48
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5544,
     "company_believes_p_leave": 0.4629,
@@ -3134,6 +4006,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.17,
+    "high": 8.37,
+    "low_gbp_per_year": 19.59,
+    "high_gbp_per_year": 39.35
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5417,
     "company_believes_p_leave": 0.4687,
@@ -3159,6 +4038,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.29,
+    "high": 8.61,
+    "low_gbp_per_year": 19.61,
+    "high_gbp_per_year": 39.37
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5436,
     "company_believes_p_leave": 0.4679,
@@ -3184,6 +4070,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.23,
+    "high": 9.39,
+    "low_gbp_per_year": 16.23,
+    "high_gbp_per_year": 35.99
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.536,
     "company_believes_p_leave": 0.4726,
@@ -3209,6 +4102,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.5,
+    "high": 10.01,
+    "low_gbp_per_year": 16.14,
+    "high_gbp_per_year": 35.9
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5468,
     "company_believes_p_leave": 0.4667,
@@ -3234,6 +4134,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.74,
+    "high": 7.53,
+    "low_gbp_per_year": 19.53,
+    "high_gbp_per_year": 39.29
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5394,
     "company_believes_p_leave": 0.4695,
@@ -3259,6 +4166,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.22,
+    "high": 9.33,
+    "low_gbp_per_year": 16.34,
+    "high_gbp_per_year": 36.1
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5566,
     "company_believes_p_leave": 0.4629,
@@ -3284,6 +4198,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.25,
+    "high": 9.4,
+    "low_gbp_per_year": 16.29,
+    "high_gbp_per_year": 36.05
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5514,
     "company_believes_p_leave": 0.4649,
@@ -3309,6 +4230,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 5.13,
+    "high": 9.44,
+    "low_gbp_per_year": 23.47,
+    "high_gbp_per_year": 43.23
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 1.151,
     "company_believes_p_leave": 0.5596,
@@ -3334,6 +4262,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.98,
+    "high": 7.45,
+    "low_gbp_per_year": 22.63,
+    "high_gbp_per_year": 42.39
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4894,
     "company_believes_p_leave": 0.4919,
@@ -3359,6 +4294,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.8,
+    "high": 12.3,
+    "low_gbp_per_year": 12.66,
+    "high_gbp_per_year": 32.42
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5233,
     "company_believes_p_leave": 0.4776,
@@ -3384,6 +4326,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.22,
+    "high": 8.35,
+    "low_gbp_per_year": 20.19,
+    "high_gbp_per_year": 39.95
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5545,
     "company_believes_p_leave": 0.4712,
@@ -3409,6 +4358,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.09,
+    "high": 8.25,
+    "low_gbp_per_year": 19.47,
+    "high_gbp_per_year": 39.23
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5202,
     "company_believes_p_leave": 0.4847,
@@ -3434,6 +4390,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.92,
+    "high": 7.98,
+    "low_gbp_per_year": 19.13,
+    "high_gbp_per_year": 38.89
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5,
     "company_believes_p_leave": 0.4931,
@@ -3459,6 +4422,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.94,
+    "high": 8.71,
+    "low_gbp_per_year": 16.33,
+    "high_gbp_per_year": 36.09
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5408,
     "company_believes_p_leave": 0.4765,
@@ -3484,6 +4454,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.49,
+    "high": 11.4,
+    "low_gbp_per_year": 12.82,
+    "high_gbp_per_year": 32.58
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5249,
     "company_believes_p_leave": 0.4828,
@@ -3509,6 +4486,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.36,
+    "high": 8.6,
+    "low_gbp_per_year": 20.3,
+    "high_gbp_per_year": 40.06
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.7116,
     "company_believes_p_leave": 0.5517,
@@ -3534,6 +4518,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.11,
+    "high": 8.18,
+    "low_gbp_per_year": 19.94,
+    "high_gbp_per_year": 39.7
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5639,
     "company_believes_p_leave": 0.4677,
@@ -3559,6 +4550,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.76,
+    "high": 9.99,
+    "low_gbp_per_year": 17.96,
+    "high_gbp_per_year": 37.72
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.7915,
     "company_believes_p_leave": 0.5157,
@@ -3584,6 +4582,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 6.61,
+    "high": 13.07,
+    "low_gbp_per_year": 20.22,
+    "high_gbp_per_year": 39.98
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5056,
     "company_believes_p_leave": 0.4916,
@@ -3609,6 +4614,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.27,
+    "high": 9.48,
+    "low_gbp_per_year": 16.19,
+    "high_gbp_per_year": 35.95
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5191,
     "company_believes_p_leave": 0.4869,
@@ -3634,6 +4646,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.17,
+    "high": 9.33,
+    "low_gbp_per_year": 16.01,
+    "high_gbp_per_year": 35.77
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5099,
     "company_believes_p_leave": 0.4906,
@@ -3659,6 +4678,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.22,
+    "high": 9.38,
+    "low_gbp_per_year": 16.18,
+    "high_gbp_per_year": 35.94
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5368,
     "company_believes_p_leave": 0.4797,
@@ -3684,6 +4710,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.88,
+    "high": 8.65,
+    "low_gbp_per_year": 16.05,
+    "high_gbp_per_year": 35.81
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5495,
     "company_believes_p_leave": 0.4748,
@@ -3709,6 +4742,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.67,
+    "high": 10.44,
+    "low_gbp_per_year": 16.0,
+    "high_gbp_per_year": 35.76
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5148,
     "company_believes_p_leave": 0.4894,
@@ -3734,6 +4774,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.15,
+    "high": 9.4,
+    "low_gbp_per_year": 15.6,
+    "high_gbp_per_year": 35.36
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4831,
     "company_believes_p_leave": 0.5029,
@@ -3759,6 +4806,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.77,
+    "high": 6.66,
+    "low_gbp_per_year": 25.78,
+    "high_gbp_per_year": 45.54
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4809,
     "company_believes_p_leave": 0.5039,
@@ -3784,6 +4838,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.01,
+    "high": 8.39,
+    "low_gbp_per_year": 18.14,
+    "high_gbp_per_year": 37.9
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4781,
     "company_believes_p_leave": 0.5051,
@@ -3809,6 +4870,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.63,
+    "high": 7.46,
+    "low_gbp_per_year": 18.75,
+    "high_gbp_per_year": 38.51
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4748,
     "company_believes_p_leave": 0.5083,
@@ -3834,6 +4902,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.06,
+    "high": 7.69,
+    "low_gbp_per_year": 22.17,
+    "high_gbp_per_year": 41.93
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4974,
     "company_believes_p_leave": 0.4967,
@@ -3859,6 +4934,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.64,
+    "high": 7.54,
+    "low_gbp_per_year": 18.38,
+    "high_gbp_per_year": 38.14
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4876,
     "company_believes_p_leave": 0.501,
@@ -3884,6 +4966,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.95,
+    "high": 8.15,
+    "low_gbp_per_year": 18.59,
+    "high_gbp_per_year": 38.35
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4722,
     "company_believes_p_leave": 0.5086,
@@ -3909,6 +4998,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.37,
+    "high": 7.45,
+    "low_gbp_per_year": 16.31,
+    "high_gbp_per_year": 36.07
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2369,
     "company_believes_p_leave": 0.4526,
@@ -3934,6 +5030,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.58,
+    "high": 7.93,
+    "low_gbp_per_year": 16.27,
+    "high_gbp_per_year": 36.03
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2399,
     "company_believes_p_leave": 0.4513,
@@ -3959,6 +5062,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.71,
+    "high": 8.89,
+    "low_gbp_per_year": 14.17,
+    "high_gbp_per_year": 33.93
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2509,
     "company_believes_p_leave": 0.4473,
@@ -3984,6 +5094,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.65,
+    "high": 7.71,
+    "low_gbp_per_year": 17.79,
+    "high_gbp_per_year": 37.55
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4228,
     "company_believes_p_leave": 0.5328,
@@ -4009,6 +5126,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.31,
+    "high": 5.68,
+    "low_gbp_per_year": 27.67,
+    "high_gbp_per_year": 47.43
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3796,
     "company_believes_p_leave": 0.5555,
@@ -4034,6 +5158,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.25,
+    "high": 7.89,
+    "low_gbp_per_year": 13.83,
+    "high_gbp_per_year": 33.59
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2288,
     "company_believes_p_leave": 0.457,
@@ -4059,6 +5190,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.79,
+    "high": 9.37,
+    "low_gbp_per_year": 13.41,
+    "high_gbp_per_year": 33.17
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2168,
     "company_believes_p_leave": 0.4625,
@@ -4084,6 +5222,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.6,
+    "high": 8.93,
+    "low_gbp_per_year": 13.34,
+    "high_gbp_per_year": 33.1
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2137,
     "company_believes_p_leave": 0.464,
@@ -4109,6 +5254,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.57,
+    "high": 7.2,
+    "low_gbp_per_year": 19.44,
+    "high_gbp_per_year": 39.2
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2359,
     "company_believes_p_leave": 0.4538,
@@ -4134,6 +5286,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.55,
+    "high": 8.71,
+    "low_gbp_per_year": 13.62,
+    "high_gbp_per_year": 33.38
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2175,
     "company_believes_p_leave": 0.4631,
@@ -4159,6 +5318,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.13,
+    "high": 10.07,
+    "low_gbp_per_year": 13.76,
+    "high_gbp_per_year": 33.52
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2281,
     "company_believes_p_leave": 0.4582,
@@ -4184,6 +5350,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.71,
+    "high": 8.15,
+    "low_gbp_per_year": 16.48,
+    "high_gbp_per_year": 36.24
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2338,
     "company_believes_p_leave": 0.4556,
@@ -4209,6 +5382,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.51,
+    "high": 7.77,
+    "low_gbp_per_year": 16.28,
+    "high_gbp_per_year": 36.04
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2235,
     "company_believes_p_leave": 0.4603,
@@ -4234,6 +5414,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.63,
+    "high": 9.01,
+    "low_gbp_per_year": 13.3,
+    "high_gbp_per_year": 33.06
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2078,
     "company_believes_p_leave": 0.4676,
@@ -4259,6 +5446,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.48,
+    "high": 7.77,
+    "low_gbp_per_year": 15.99,
+    "high_gbp_per_year": 35.75
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.216,
     "company_believes_p_leave": 0.4637,
@@ -4284,6 +5478,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.21,
+    "high": 10.11,
+    "low_gbp_per_year": 14.08,
+    "high_gbp_per_year": 33.84
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2313,
     "company_believes_p_leave": 0.4576,
@@ -4309,6 +5510,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.19,
+    "high": 5.29,
+    "low_gbp_per_year": 30.07,
+    "high_gbp_per_year": 49.83
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2206,
     "company_believes_p_leave": 0.4624,
@@ -4334,6 +5542,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.52,
+    "high": 7.68,
+    "low_gbp_per_year": 16.7,
+    "high_gbp_per_year": 36.46
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2258,
     "company_believes_p_leave": 0.4601,
@@ -4359,6 +5574,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.67,
+    "high": 8.86,
+    "low_gbp_per_year": 13.98,
+    "high_gbp_per_year": 33.74
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2338,
     "company_believes_p_leave": 0.4564,
@@ -4384,6 +5606,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.9,
+    "high": 10.87,
+    "low_gbp_per_year": 11.04,
+    "high_gbp_per_year": 30.8
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2226,
     "company_believes_p_leave": 0.4615,
@@ -4409,6 +5638,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.01,
+    "high": 11.09,
+    "low_gbp_per_year": 11.19,
+    "high_gbp_per_year": 30.95
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2566,
     "company_believes_p_leave": 0.4465,
@@ -4434,6 +5670,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.05,
+    "high": 11.54,
+    "low_gbp_per_year": 10.7,
+    "high_gbp_per_year": 30.46
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2072,
     "company_believes_p_leave": 0.4688,
@@ -4459,6 +5702,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.67,
+    "high": 8.39,
+    "low_gbp_per_year": 15.37,
+    "high_gbp_per_year": 35.13
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.1707,
     "company_believes_p_leave": 0.487,
@@ -4484,6 +5734,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.5,
+    "high": 7.86,
+    "low_gbp_per_year": 15.86,
+    "high_gbp_per_year": 35.62
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2039,
     "company_believes_p_leave": 0.4703,
@@ -4509,6 +5766,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.23,
+    "high": 8.75,
+    "low_gbp_per_year": 18.49,
+    "high_gbp_per_year": 38.25
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4708,
     "company_believes_p_leave": 0.5159,
@@ -4534,6 +5798,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.75,
+    "high": 8.56,
+    "low_gbp_per_year": 15.42,
+    "high_gbp_per_year": 35.18
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4665,
     "company_believes_p_leave": 0.5178,
@@ -4559,6 +5830,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.51,
+    "high": 7.36,
+    "low_gbp_per_year": 18.0,
+    "high_gbp_per_year": 37.76
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4472,
     "company_believes_p_leave": 0.5268,
@@ -4584,6 +5862,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.83,
+    "high": 8.92,
+    "low_gbp_per_year": 14.87,
+    "high_gbp_per_year": 34.63
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.444,
     "company_believes_p_leave": 0.5283,
@@ -4609,6 +5894,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.02,
+    "high": 8.27,
+    "low_gbp_per_year": 18.72,
+    "high_gbp_per_year": 38.48
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4979,
     "company_believes_p_leave": 0.504,
@@ -4634,6 +5926,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.26,
+    "high": 9.8,
+    "low_gbp_per_year": 15.2,
+    "high_gbp_per_year": 34.96
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4891,
     "company_believes_p_leave": 0.5078,
@@ -4659,6 +5958,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.27,
+    "high": 8.78,
+    "low_gbp_per_year": 18.72,
+    "high_gbp_per_year": 38.48
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5226,
     "company_believes_p_leave": 0.4937,
@@ -4684,6 +5990,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.89,
+    "high": 8.35,
+    "low_gbp_per_year": 17.21,
+    "high_gbp_per_year": 36.97
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4464,
     "company_believes_p_leave": 0.5272,
@@ -4709,6 +6022,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.37,
+    "high": 9.78,
+    "low_gbp_per_year": 15.93,
+    "high_gbp_per_year": 35.69
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5088,
     "company_believes_p_leave": 0.5002,
@@ -4734,6 +6054,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.83,
+    "high": 8.06,
+    "low_gbp_per_year": 17.88,
+    "high_gbp_per_year": 37.64
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4353,
     "company_believes_p_leave": 0.5333,
@@ -4759,6 +6086,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.8,
+    "high": 9.04,
+    "low_gbp_per_year": 14.35,
+    "high_gbp_per_year": 34.11
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3984,
     "company_believes_p_leave": 0.5521,
@@ -4784,6 +6118,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.05,
+    "high": 9.4,
+    "low_gbp_per_year": 14.93,
+    "high_gbp_per_year": 34.69
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4595,
     "company_believes_p_leave": 0.5219,
@@ -4809,6 +6150,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.79,
+    "high": 9.29,
+    "low_gbp_per_year": 13.62,
+    "high_gbp_per_year": 33.38
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2569,
     "company_believes_p_leave": 0.4514,
@@ -4834,6 +6182,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.46,
+    "high": 6.89,
+    "low_gbp_per_year": 19.91,
+    "high_gbp_per_year": 39.67
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4063,
     "company_believes_p_leave": 0.5479,
@@ -4859,6 +6214,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.78,
+    "high": 8.3,
+    "low_gbp_per_year": 16.52,
+    "high_gbp_per_year": 36.28
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4033,
     "company_believes_p_leave": 0.5495,
@@ -4884,6 +6246,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.53,
+    "high": 7.53,
+    "low_gbp_per_year": 17.45,
+    "high_gbp_per_year": 37.21
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4225,
     "company_believes_p_leave": 0.5405,
@@ -4909,6 +6278,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.45,
+    "high": 7.56,
+    "low_gbp_per_year": 16.61,
+    "high_gbp_per_year": 36.37
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2435,
     "company_believes_p_leave": 0.458,
@@ -4934,6 +6310,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.65,
+    "high": 8.08,
+    "low_gbp_per_year": 16.28,
+    "high_gbp_per_year": 36.04
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2473,
     "company_believes_p_leave": 0.4588,
@@ -4959,6 +6342,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.72,
+    "high": 8.14,
+    "low_gbp_per_year": 16.68,
+    "high_gbp_per_year": 36.44
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4022,
     "company_believes_p_leave": 0.5509,
@@ -4984,6 +6374,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.69,
+    "high": 8.7,
+    "low_gbp_per_year": 14.51,
+    "high_gbp_per_year": 34.27
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4718,
     "company_believes_p_leave": 0.5171,
@@ -5009,6 +6406,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.04,
+    "high": 8.61,
+    "low_gbp_per_year": 17.43,
+    "high_gbp_per_year": 37.19
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4664,
     "company_believes_p_leave": 0.5196,
@@ -5034,6 +6438,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.52,
+    "high": 8.56,
+    "low_gbp_per_year": 13.78,
+    "high_gbp_per_year": 33.54
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4211,
     "company_believes_p_leave": 0.5412,
@@ -5059,6 +6470,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.57,
+    "high": 8.65,
+    "low_gbp_per_year": 13.91,
+    "high_gbp_per_year": 33.67
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.429,
     "company_believes_p_leave": 0.5373,
@@ -5084,6 +6502,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.3,
+    "high": 7.14,
+    "low_gbp_per_year": 16.94,
+    "high_gbp_per_year": 36.7
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.187,
     "company_believes_p_leave": 0.4845,
@@ -5109,6 +6534,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.72,
+    "high": 9.13,
+    "low_gbp_per_year": 13.55,
+    "high_gbp_per_year": 33.31
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2312,
     "company_believes_p_leave": 0.4643,
@@ -5134,6 +6566,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.55,
+    "high": 7.93,
+    "low_gbp_per_year": 16.04,
+    "high_gbp_per_year": 35.8
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2258,
     "company_believes_p_leave": 0.4667,
@@ -5159,6 +6598,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.26,
+    "high": 7.37,
+    "low_gbp_per_year": 15.65,
+    "high_gbp_per_year": 35.41
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2255,
     "company_believes_p_leave": 0.4669,
@@ -5184,6 +6630,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.6,
+    "high": 6.89,
+    "low_gbp_per_year": 21.65,
+    "high_gbp_per_year": 41.41
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2352,
     "company_believes_p_leave": 0.4625,
@@ -5209,6 +6662,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.5,
+    "high": 7.96,
+    "low_gbp_per_year": 15.48,
+    "high_gbp_per_year": 35.24
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2148,
     "company_believes_p_leave": 0.4718,
@@ -5234,6 +6694,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.16,
+    "high": 10.39,
+    "low_gbp_per_year": 13.16,
+    "high_gbp_per_year": 32.92
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2495,
     "company_believes_p_leave": 0.4562,
@@ -5259,6 +6726,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.71,
+    "high": 9.4,
+    "low_gbp_per_year": 12.89,
+    "high_gbp_per_year": 32.65
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2213,
     "company_believes_p_leave": 0.4688,
@@ -5284,6 +6758,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.38,
+    "high": 7.58,
+    "low_gbp_per_year": 15.89,
+    "high_gbp_per_year": 35.65
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3952,
     "company_believes_p_leave": 0.5554,
@@ -5309,6 +6790,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.47,
+    "high": 7.67,
+    "low_gbp_per_year": 16.36,
+    "high_gbp_per_year": 36.12
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3858,
     "company_believes_p_leave": 0.5613,
@@ -5334,6 +6822,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.39,
+    "high": 8.28,
+    "low_gbp_per_year": 13.73,
+    "high_gbp_per_year": 33.49
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3997,
     "company_believes_p_leave": 0.5539,
@@ -5359,6 +6854,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.67,
+    "high": 8.81,
+    "low_gbp_per_year": 14.09,
+    "high_gbp_per_year": 33.85
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.1428,
     "company_believes_p_leave": 0.5096,
@@ -5384,6 +6886,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.39,
+    "high": 9.09,
+    "low_gbp_per_year": 11.75,
+    "high_gbp_per_year": 31.51
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.1376,
     "company_believes_p_leave": 0.5126,
@@ -5409,6 +6918,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.13,
+    "high": 6.61,
+    "low_gbp_per_year": 17.76,
+    "high_gbp_per_year": 37.52
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.0893,
     "company_believes_p_leave": 0.542,
@@ -5434,6 +6950,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.03,
+    "high": 6.54,
+    "low_gbp_per_year": 17.06,
+    "high_gbp_per_year": 36.82
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.1165,
     "company_believes_p_leave": 0.5258,
@@ -5459,6 +6982,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.39,
+    "high": 9.01,
+    "low_gbp_per_year": 11.92,
+    "high_gbp_per_year": 31.68
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.1424,
     "company_believes_p_leave": 0.5106,
@@ -5484,6 +7014,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.17,
+    "high": 7.66,
+    "low_gbp_per_year": 13.94,
+    "high_gbp_per_year": 33.7
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.1385,
     "company_believes_p_leave": 0.5129,
@@ -5509,6 +7046,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.47,
+    "high": 8.09,
+    "low_gbp_per_year": 14.87,
+    "high_gbp_per_year": 34.63
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2028,
     "company_believes_p_leave": 0.4792,
@@ -5534,6 +7078,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.73,
+    "high": 7.83,
+    "low_gbp_per_year": 17.95,
+    "high_gbp_per_year": 37.71
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.212,
     "company_believes_p_leave": 0.4748,
@@ -5559,6 +7110,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.6,
+    "high": 9.33,
+    "low_gbp_per_year": 12.42,
+    "high_gbp_per_year": 32.18
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2041,
     "company_believes_p_leave": 0.4786,
@@ -5584,6 +7142,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.48,
+    "high": 8.06,
+    "low_gbp_per_year": 14.99,
+    "high_gbp_per_year": 34.75
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2134,
     "company_believes_p_leave": 0.4742,
@@ -5609,6 +7174,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.49,
+    "high": 8.59,
+    "low_gbp_per_year": 13.54,
+    "high_gbp_per_year": 33.3
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2236,
     "company_believes_p_leave": 0.4703,
@@ -5634,6 +7206,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.56,
+    "high": 7.95,
+    "low_gbp_per_year": 16.05,
+    "high_gbp_per_year": 35.81
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2171,
     "company_believes_p_leave": 0.4732,
@@ -5659,6 +7238,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.71,
+    "high": 9.19,
+    "low_gbp_per_year": 13.39,
+    "high_gbp_per_year": 33.15
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2225,
     "company_believes_p_leave": 0.4707,
@@ -5684,6 +7270,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.49,
+    "high": 7.82,
+    "low_gbp_per_year": 15.92,
+    "high_gbp_per_year": 35.68
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.224,
     "company_believes_p_leave": 0.4701,
@@ -5709,6 +7302,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.53,
+    "high": 7.94,
+    "low_gbp_per_year": 15.8,
+    "high_gbp_per_year": 35.56
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.23,
     "company_believes_p_leave": 0.4673,
@@ -5734,6 +7334,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.51,
+    "high": 8.06,
+    "low_gbp_per_year": 15.23,
+    "high_gbp_per_year": 34.99
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2163,
     "company_believes_p_leave": 0.4736,
@@ -5759,6 +7366,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.2,
+    "high": 16.05,
+    "low_gbp_per_year": 7.01,
+    "high_gbp_per_year": 26.77
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5039,
     "company_believes_p_leave": 0.5065,
@@ -5784,6 +7398,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.83,
+    "high": 11.51,
+    "low_gbp_per_year": 9.87,
+    "high_gbp_per_year": 29.63
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5129,
     "company_believes_p_leave": 0.5027,
@@ -5809,6 +7430,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.14,
+    "high": 14.38,
+    "low_gbp_per_year": 7.98,
+    "high_gbp_per_year": 27.74
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5273,
     "company_believes_p_leave": 0.4968,
@@ -5834,6 +7462,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.27,
+    "high": 17.61,
+    "low_gbp_per_year": 6.33,
+    "high_gbp_per_year": 26.09
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4005,
     "company_believes_p_leave": 0.4034,
@@ -5859,6 +7494,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.27,
+    "high": 18.58,
+    "low_gbp_per_year": 5.9,
+    "high_gbp_per_year": 25.66
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.399,
     "company_believes_p_leave": 0.4039,
@@ -5884,6 +7526,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 2.8,
+    "high": 7.03,
+    "low_gbp_per_year": 13.04,
+    "high_gbp_per_year": 32.8
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.286,
     "company_believes_p_leave": 0.4436,
@@ -5909,6 +7558,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.18,
+    "high": 19.71,
+    "low_gbp_per_year": 5.32,
+    "high_gbp_per_year": 25.08
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3076,
     "company_believes_p_leave": 0.4353,
@@ -5934,6 +7590,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.61,
+    "high": 18.38,
+    "low_gbp_per_year": 6.61,
+    "high_gbp_per_year": 26.37
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4004,
     "company_believes_p_leave": 0.4034,
@@ -5959,6 +7622,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.13,
+    "high": 16.85,
+    "low_gbp_per_year": 6.42,
+    "high_gbp_per_year": 26.18
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4005,
     "company_believes_p_leave": 0.4034,
@@ -5984,6 +7654,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.89,
+    "high": 17.43,
+    "low_gbp_per_year": 5.68,
+    "high_gbp_per_year": 25.44
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3301,
     "company_believes_p_leave": 0.427,
@@ -6009,6 +7686,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 5.34,
+    "high": 23.0,
+    "low_gbp_per_year": 5.98,
+    "high_gbp_per_year": 25.74
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.9418,
     "company_believes_p_leave": 0.4792,
@@ -6034,6 +7718,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.32,
+    "high": 23.1,
+    "low_gbp_per_year": 4.54,
+    "high_gbp_per_year": 24.3
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3577,
     "company_believes_p_leave": 0.4173,
@@ -6059,6 +7750,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.32,
+    "high": 22.02,
+    "low_gbp_per_year": 4.82,
+    "high_gbp_per_year": 24.58
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4431,
     "company_believes_p_leave": 0.3907,
@@ -6084,6 +7782,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.59,
+    "high": 17.79,
+    "low_gbp_per_year": 4.99,
+    "high_gbp_per_year": 24.75
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2732,
     "company_believes_p_leave": 0.4488,
@@ -6109,6 +7814,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.27,
+    "high": 12.21,
+    "low_gbp_per_year": 7.22,
+    "high_gbp_per_year": 26.98
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2383,
     "company_believes_p_leave": 0.4636,
@@ -6134,6 +7846,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.64,
+    "high": 18.83,
+    "low_gbp_per_year": 4.74,
+    "high_gbp_per_year": 24.5
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.6123,
     "company_believes_p_leave": 0.4654,
@@ -6159,6 +7878,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.13,
+    "high": 13.24,
+    "low_gbp_per_year": 8.97,
+    "high_gbp_per_year": 28.73
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.6145,
     "company_believes_p_leave": 0.4646,
@@ -6184,6 +7910,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.58,
+    "high": 24.5,
+    "low_gbp_per_year": 4.55,
+    "high_gbp_per_year": 24.31
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5158,
     "company_believes_p_leave": 0.3712,
@@ -6209,6 +7942,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 12.87,
+    "high": 33.58,
+    "low_gbp_per_year": 12.28,
+    "high_gbp_per_year": 32.04
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 2.553,
     "company_believes_p_leave": 0.3211,
@@ -6234,6 +7974,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.59,
+    "high": 30.73,
+    "low_gbp_per_year": 3.47,
+    "high_gbp_per_year": 23.23
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.466,
     "company_believes_p_leave": 0.3842,
@@ -6259,6 +8006,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.35,
+    "high": 32.33,
+    "low_gbp_per_year": 3.07,
+    "high_gbp_per_year": 22.83
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3111,
     "company_believes_p_leave": 0.3417,
@@ -6284,6 +8038,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.17,
+    "high": 26.58,
+    "low_gbp_per_year": 3.68,
+    "high_gbp_per_year": 23.44
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.3916,
     "company_believes_p_leave": 0.4062,
@@ -6309,6 +8070,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.76,
+    "high": 33.23,
+    "low_gbp_per_year": 3.3,
+    "high_gbp_per_year": 23.06
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5105,
     "company_believes_p_leave": 0.3725,
@@ -6334,6 +8102,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.15,
+    "high": 17.79,
+    "low_gbp_per_year": 6.02,
+    "high_gbp_per_year": 25.78
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.5941,
     "company_believes_p_leave": 0.4717,
@@ -6359,6 +8134,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.78,
+    "high": 36.2,
+    "low_gbp_per_year": 3.01,
+    "high_gbp_per_year": 22.77
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4317,
     "company_believes_p_leave": 0.3145,
@@ -6384,6 +8166,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.78,
+    "high": 36.2,
+    "low_gbp_per_year": 3.01,
+    "high_gbp_per_year": 22.77
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4317,
     "company_believes_p_leave": 0.3145,
@@ -6409,6 +8198,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.42,
+    "high": 37.36,
+    "low_gbp_per_year": 2.65,
+    "high_gbp_per_year": 22.41
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2496,
     "company_believes_p_leave": 0.2737,
@@ -6434,6 +8230,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.32,
+    "high": 38.44,
+    "low_gbp_per_year": 2.5,
+    "high_gbp_per_year": 22.26
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2171,
     "company_believes_p_leave": 0.2797,
@@ -6459,6 +8262,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.3,
+    "high": 39.58,
+    "low_gbp_per_year": 2.41,
+    "high_gbp_per_year": 22.17
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.2119,
     "company_believes_p_leave": 0.2807,
@@ -6484,6 +8294,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.96,
+    "high": 19.47,
+    "low_gbp_per_year": 5.04,
+    "high_gbp_per_year": 24.8
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": 0.4229,
     "company_believes_p_leave": 0.3966,
@@ -6509,6 +8326,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.53,
+    "high": 79.66,
+    "low_gbp_per_year": 1.19,
+    "high_gbp_per_year": 20.95
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.058,
     "company_believes_p_leave": 0.0849,
@@ -6534,6 +8358,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.02,
+    "high": 62.14,
+    "low_gbp_per_year": 1.37,
+    "high_gbp_per_year": 21.13
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.0634,
     "company_believes_p_leave": 0.0849,
@@ -6559,6 +8390,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.51,
+    "high": 108.51,
+    "low_gbp_per_year": 0.86,
+    "high_gbp_per_year": 20.62
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.0689,
     "company_believes_p_leave": 0.0848,
@@ -6584,6 +8422,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 4.32,
+    "high": 88.77,
+    "low_gbp_per_year": 1.01,
+    "high_gbp_per_year": 20.77
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.0357,
     "company_believes_p_leave": 0.085,
@@ -6609,6 +8454,13 @@
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
+   "average_player_gbp_per_mwh": {
+    "available": true,
+    "low": 3.95,
+    "high": 107.95,
+    "low_gbp_per_year": 0.75,
+    "high_gbp_per_year": 20.51
+   },
    "belief_vs_truth": {
     "price_differential_vs_svt": -0.1379,
     "company_believes_p_leave": 0.0844,

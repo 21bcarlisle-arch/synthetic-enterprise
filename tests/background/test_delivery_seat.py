@@ -511,3 +511,67 @@ def test_orientation_is_never_tiered_down_to_a_cheaper_model():
     what matters; it runs on a timer, which is exactly the property that would tempt someone to
     class it as mechanical volume."""
     assert seat.MODEL == "claude-opus-5"
+
+
+# --------------------------------------------------------------------------- #
+# The seat's own first correction of itself (2026-08-25)                       #
+# --------------------------------------------------------------------------- #
+
+def test_level_moves_are_read_from_the_LEDGER_and_not_diffed_from_the_map(monkeypatch, tmp_path):
+    """R16: THE LEDGER IS THE RECORD, and this is the seat correcting a defect IT reported.
+
+    Its first orientation wrote, under `wrong`: *"This seat's own orienting brief reported no
+    level movement in the window while `gate_authorizations.jsonl` records five self-certified
+    moves -- the instrument reads the map file rather than the ledger R16 makes the record."*
+
+    That is exactly right, and it is a fail-silent of the worst kind for an orienting seat: the
+    map has no history, so a diff against a previous snapshot reads as EMPTY on the very first
+    run -- the run with no previous snapshot to diff against, and the one whose judgement sets
+    the direction everything else follows.
+
+    MUTATION (must fire): go back to diffing map levels between orientations.
+    """
+    import json as _json
+
+    ledger = tmp_path / "gate_authorizations.jsonl"
+    now = datetime(2026, 8, 25, 12, 0, tzinfo=timezone.utc)
+    ledger.write_text("\n".join([
+        _json.dumps({"atom": "OLD", "action": "LEVEL_UP_SELF_CERTIFIED", "level": 2,
+                     "ts": (now - timedelta(days=4)).timestamp()}),
+        _json.dumps({"atom": "RECENT", "action": "LEVEL_UP_SELF_CERTIFIED", "level": 2,
+                     "ts": (now - timedelta(hours=1)).timestamp(), "provenance": "because"}),
+        _json.dumps({"atom": "NOT_A_LEVEL_MOVE", "action": "SOMETHING_ELSE",
+                     "ts": (now - timedelta(hours=1)).timestamp()}),
+        "not json at all",
+    ]) + "\n", encoding="utf-8")
+    monkeypatch.setattr(seat, "PROJECT_DIR", tmp_path)
+    (tmp_path / "docs" / "observability").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "docs" / "observability" / "gate_authorizations.jsonl").write_text(
+        ledger.read_text(encoding="utf-8"), encoding="utf-8")
+
+    rows = seat.levels_recorded_since(now - timedelta(hours=6))
+
+    assert [r["atom"] for r in rows] == ["RECENT"], (
+        "the ledger read is not filtering by time, by action, or is dying on a malformed line"
+    )
+    assert rows[0]["why"] == "because", "the reason a level moved is what an orienting seat needs"
+
+
+def test_a_recorded_level_move_WAKES_the_seat():
+    """A stretch in which a level moved is never a quiet stretch, and the map diff could not see
+    it. Before this, five self-certified moves in a window could all read as 'nothing happened'."""
+    assert seat.is_material(_brief(levels_recorded=[{"atom": "A", "level": 2}]))[0] is True
+
+
+def test_the_MAP_diff_is_kept_beside_the_ledger_rather_than_replaced_by_it():
+    """The two answer different questions and disagreeing is information: a level that moved in
+    the map with NO ledger entry is an unrecorded move, which is what the level-promotion gate
+    exists to refuse.
+
+    MUTATION (must fire): delete `map_levels` from the brief once the ledger read exists.
+    """
+    import inspect
+
+    source = inspect.getsource(seat.build_brief)
+
+    assert "levels_recorded" in source and "map_levels()" in source

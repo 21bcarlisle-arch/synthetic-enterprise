@@ -155,3 +155,140 @@ def test_a_book_that_cannot_be_scored_says_so_rather_than_reporting_no_gap():
     summary = cvp._belief_summary([{"belief_vs_truth": None}])
 
     assert summary["available"] is False and "no account" in summary["why"]
+
+
+# ---------------------------------------------------------------------------
+# Is the control a credible average player? (2026-08-25)
+# ---------------------------------------------------------------------------
+
+def test_the_average_player_comparator_reads_the_PUBLISHED_allowance():
+    """The director's frame makes the baseline the entire meaning of "it performed well", and
+    until now nothing in the tree could say whether this company's flat GBP 2.00/MWh was anywhere
+    near average behaviour. Ofgem's Default Tariff Cap publishes the regulator's own answer.
+
+    MUTATION (must fire): invent an average-player margin here instead of reading the company's
+    reading of the published allowance.
+    """
+    from tools import couple_value_based_pricing as cvp
+
+    row = cvp._average_player(annual_revenue_gbp=1000.0, eac_kwh=3100.0)
+
+    assert row["available"] is True
+    assert row["low"] < row["high"], (
+        "a single-fuel answer must stay a RANGE -- no single-fuel split of the fixed component "
+        "is published, and collapsing it to a point invents one"
+    )
+
+
+def test_an_account_with_no_bill_reports_UNAVAILABLE_not_zero():
+    """A silent zero would make an average supplier look like one earning nothing, which makes
+    the control trivially easy to beat -- the exact misreading the comparator exists to end."""
+    from tools import couple_value_based_pricing as cvp
+
+    assert cvp._average_player(annual_revenue_gbp=0.0, eac_kwh=3100.0)["available"] is False
+    assert cvp._average_player(annual_revenue_gbp=1000.0, eac_kwh=0.0)["available"] is False
+
+
+def test_the_verdict_ANSWERS_the_control_question_instead_of_leaving_it_open():
+    """WHAT THIS CHANGED, and it went against the convenient answer.
+
+    The verdict used to end "what that leaves open is whether the flat control is a credible
+    average player", which is a question a reader cannot answer either -- and it is the answer a
+    value arm would most like to be true, because "the control was a straw man" excuses the arm.
+    Measured, the control IS under-priced and NOWHERE NEAR enough to be the cause.
+
+    MUTATION (must fire): drop `_control_clause` from the verdict and the open question returns.
+    """
+    from tools import couple_value_based_pricing as cvp
+
+    average = {"available": True, "median_gbp_per_mwh_low": 3.73,
+               "median_gbp_per_mwh_high": 8.54, "this_companys_flat_rule_gbp_per_mwh": 2.0}
+    rows = [{"value_margin_gbp_per_mwh": 130.0}] * 3
+
+    clause = cvp._control_clause(average, rows)
+
+    assert "under-priced" in clause
+    assert "not nearly enough to be the cause" in clause
+    assert "straw man" in clause
+
+
+def test_the_control_clause_says_so_when_the_control_IS_the_cause():
+    """The clause has to be able to reach the other verdict, or it is a sentence rather than a
+    reading. If the arm's own choice sat inside the regulated range, repricing the control WOULD
+    be the whole story."""
+    from tools import couple_value_based_pricing as cvp
+
+    average = {"available": True, "median_gbp_per_mwh_low": 3.73,
+               "median_gbp_per_mwh_high": 8.54, "this_companys_flat_rule_gbp_per_mwh": 2.0}
+    near = cvp._control_clause(average, [{"value_margin_gbp_per_mwh": 6.0}])
+    far = cvp._control_clause(average, [{"value_margin_gbp_per_mwh": 130.0}])
+
+    assert "1x the TOP" in near or "0x the TOP" in near, near
+    assert "15x the TOP" in far, far
+
+
+def test_an_UNSCORABLE_average_leaves_the_cause_open_rather_than_asserting_one():
+    from tools import couple_value_based_pricing as cvp
+
+    clause = cvp._control_clause({"available": False}, [])
+
+    assert "could not be scored" in clause and "stays open" in clause
+
+
+def test_the_price_belief_gap_is_scored_against_NO_SKILL_not_against_zero():
+    """THE GAP IS THE SCORE, and this is the one that speaks in the thesis's own terms.
+
+    The belief-vs-truth summary reports a median error in percentage points, which says how
+    BIASED the company is and nothing about whether its belief carries any INFORMATION. The
+    no-skill baseline here is a supplier predicting the same departure probability for every
+    account -- the population mean -- which is precisely the director's "flat rules with no
+    per-customer view". A gap at or above 1.0 means the per-customer belief is no better than
+    that, and no inference advantage can be claimed from it.
+
+    MUTATION (must fire): normalise against zero error, or against the company's own mean, which
+    would make the gap unbeatable-by-construction (R15 tautology).
+    """
+    from tools import couple_value_based_pricing as cvp
+
+    # A company whose belief is EXACTLY the population mean scores 1.0 by construction: it has
+    # reproduced the flat rule and nothing more.
+    flat = [{"belief_vs_truth": {"company_believes_p_leave": 0.2, "world_would_p_leave": w}}
+            for w in (0.1, 0.2, 0.3)]
+
+    assert cvp.price_belief_gap(flat).gap == pytest.approx(1.0)
+
+    # A company that knows each account exactly beats it.
+    perfect = [{"belief_vs_truth": {"company_believes_p_leave": w, "world_would_p_leave": w}}
+               for w in (0.1, 0.2, 0.3)]
+
+    assert cvp.price_belief_gap(perfect).gap == pytest.approx(0.0)
+
+    # And one that is anti-informative loses to it, which must be expressible.
+    inverted = [{"belief_vs_truth": {"company_believes_p_leave": 1.0 - w, "world_would_p_leave": w}}
+                for w in (0.05, 0.2, 0.6)]
+
+    assert cvp.price_belief_gap(inverted).gap > 1.0
+
+
+def test_a_gap_needs_TWO_accounts_before_it_means_anything():
+    """One account has no population to be a mean of, so the no-skill baseline is zero error by
+    construction and the gap would be undefined or infinite. Reported as not-measurable rather
+    than as a number."""
+    from tools import couple_value_based_pricing as cvp
+
+    assert cvp.price_belief_gap([]) is None
+    assert cvp.price_belief_gap(
+        [{"belief_vs_truth": {"company_believes_p_leave": 0.2, "world_would_p_leave": 0.1}}]) is None
+
+
+def test_the_ledger_write_is_OPT_IN_so_a_read_only_run_cannot_move_the_record():
+    """`--write-ledger`, exactly as its sibling `tools/couple_pb3_book_growth.py` has it. A
+    measurement tool that writes the public record on every run makes the record a function of
+    how often someone ran it."""
+    from pathlib import Path
+
+    source = Path(
+        __file__).resolve().parents[2].joinpath("tools/couple_value_based_pricing.py").read_text()
+
+    assert "--write-ledger" in source
+    assert "if _args.write_ledger:" in source

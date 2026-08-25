@@ -218,9 +218,48 @@ def findings_now() -> dict:
             "blocking": by_sev.get("BLOCKING", []), "unclassified": by_sev.get("UNCLASSIFIED", [])}
 
 
+def levels_recorded_since(since: datetime) -> list[dict]:
+    """Level moves RECORDED IN THE LEDGER during the stretch.
+
+    R16: THE LEDGER IS THE RECORD, and this is the seat's own first correction of itself. Its
+    first orientation reported "no level movement in the window" while
+    `gate_authorizations.jsonl` held five self-certified moves, because the brief compared the
+    MAP FILE between orientations -- which has no history, cannot see a move that happened and
+    was later superseded, and reads as empty on the very first run when there is no previous
+    snapshot to diff against. The map is a live record of where things ARE; the ledger is the
+    record of what MOVED, and a seat asking "what happened in this stretch" wants the second.
+
+    The map snapshot is still taken (see `map_levels`) because a diff catches a level that moved
+    with NO ledger entry -- which is a different defect and one the level-promotion gate exists
+    to refuse. The two disagreeing is information, so both are carried.
+    """
+    path = PROJECT_DIR / "docs" / "observability" / "gate_authorizations.jsonl"
+    cutoff = since.timestamp()
+    out = []
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return out
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if "LEVEL_UP" not in str(row.get("action", "")):
+            continue
+        if float(row.get("ts") or 0.0) >= cutoff:
+            out.append({"atom": row.get("atom"), "level": row.get("level"),
+                        "why": str(row.get("provenance") or "")[:400]})
+    return out
+
+
 def map_levels() -> dict:
-    """Every atom's current level. Compared against the last orientation's copy to see what moved
-    -- which is the only honest way to say whether the stretch actually advanced anything."""
+    """Every atom's current level, as the MAP FILE has it. Kept beside the ledger read above, not
+    replaced by it: a level that moved in the map with no ledger entry is a different defect from
+    a level that moved and was recorded, and only the diff can see the first."""
     try:
         import yaml
         atoms = yaml.safe_load(MATURITY_MAP.read_text(encoding="utf-8"))
@@ -303,6 +342,7 @@ def build_brief(now: datetime | None = None) -> dict:
         "substantive_count": sum(1 for c in commits if c["substantive"]),
         "findings": findings_now(),
         "levels_moved": moved,
+        "levels_recorded": levels_recorded_since(since),
         "publish": publish_state(),
         "director_inputs": director_inputs(since),
         "previous_focus": list(prev_focus),
@@ -318,6 +358,9 @@ def is_material(brief: dict) -> tuple[bool, str]:
     recorded whichever it is."""
     if brief["substantive_count"]:
         return True, f"{brief['substantive_count']} substantive commit(s) in the stretch"
+    if brief.get("levels_recorded"):
+        return True, "{} level move(s) recorded in the ledger".format(
+            len(brief["levels_recorded"]))
     if brief["levels_moved"]:
         return True, f"{len(brief['levels_moved'])} atom level(s) moved"
     if brief["director_inputs"]:
@@ -495,9 +538,12 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
 
 
 def _notify(message: str) -> None:
+    """Through `background.notify.notify`, never `send_ntfy` directly -- the notify contract, and
+    a test enumerates new direct callers. The seat pages RARELY: only when its own record was
+    refused, or when something is genuinely the director's."""
     try:
-        from background.ntfy_utils import send_ntfy
-        send_ntfy(message)
+        from background.notify import notify
+        notify(message)
     except Exception:
         _log(f"notify failed, message was: {message}")
 
@@ -518,4 +564,9 @@ def main(argv=None) -> int:
 
 
 if __name__ == "__main__":
+    # SEAT GUARD, FIRST ACT. Orienting on a foreign checkout would read someone else's git log,
+    # someone else's staging root, and write direction into a tree that is not the seat's.
+    from background._seat import refuse_if_foreign
+
+    refuse_if_foreign("delivery_seat")
     sys.exit(main())
