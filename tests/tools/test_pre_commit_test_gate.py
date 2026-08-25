@@ -89,6 +89,50 @@ def test_control_test_files_all_exist():
         assert (ROOT / t).exists(), f"control test missing: {t}"
 
 
+# ── THE LINT RATCHET's selection hole (2026-08-26) ───────────────────────────────────────────
+# R15 on the SELECTION layer. The shrink-only ruff ratchet lints the WHOLE REPO but was selected
+# by filename stem, so only a commit touching its own file could run it. It was found red at HEAD
+# four times (08-10, 08-12, 08-14, 08-26); the last found 22 violations across 8 codes that had
+# each landed green. This pins the repair: an ORDINARY .py commit, one that does not touch the
+# ratchet and has no test file of its own, must still select it.
+#
+# The assertion deliberately uses a path that CANNOT map to the ratchet by stem, because a stem
+# match would prove nothing about the always-on set -- which is the whole defect being fixed.
+
+RUFF_RATCHET = "tests/architecture/test_static_quality_ratchet.py"
+
+
+def test_an_ordinary_code_commit_selects_the_lint_ratchet():
+    targets = gate.select_targets(["saas/some_new_module.py"])
+    assert RUFF_RATCHET in targets, (
+        "a commit that can move the repo-wide ruff census must RUN the ratchet that "
+        "forbids raising it; stem selection alone reaches it only from its own file, which "
+        "is how 22 violations landed green past a shrink-only floor"
+    )
+    # The subject really is repo-wide, so the selection hole really was total: assert the
+    # ratchet's own scope rather than trusting the comment above it.
+    ratchet_src = (ROOT / RUFF_RATCHET).read_text()
+    assert 'ruff_counts_for(makefile_lint_scope(), REPO_ROOT)' in ratchet_src, (
+        "the ratchet no longer lints the Makefile scope from the repo root; if its subject "
+        "narrowed to something a stem selector can reach, this entry can leave CONTROL_TESTS"
+    )
+
+
+def test_mutation_dropping_the_ratchet_from_the_control_set_is_visible():
+    """The control can FAIL: with the entry removed, an ordinary commit stops selecting it."""
+    without = [t for t in gate.CONTROL_TESTS if t != RUFF_RATCHET]
+    assert len(without) == len(gate.CONTROL_TESTS) - 1, "the ratchet is not in CONTROL_TESTS"
+    original = gate.CONTROL_TESTS
+    try:
+        gate.CONTROL_TESTS = without
+        assert RUFF_RATCHET not in gate.select_targets(["saas/some_new_module.py"])
+    finally:
+        gate.CONTROL_TESTS = original
+    # ...and restoring it brings the selection back, so the assertion above tracks the list
+    # rather than some unrelated always-on path.
+    assert RUFF_RATCHET in gate.select_targets(["saas/some_new_module.py"])
+
+
 # ── THE LEVEL SURFACE gate (director P0, 2026-07-21): a level/ledger change is DATA but its ──────
 # effects must be caught at COMMIT time. R15: these prove the mapping FIRES (a maturity-map or
 # ledger change with NO code file runs the level-sensitive set) -- delete the level_surface branch

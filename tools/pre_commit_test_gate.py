@@ -123,6 +123,34 @@ CONTROL_TESTS = [
     # ~1.1s, an AST walk of the seam surface only (two packages plus the naming convention),
     # which is why it is far cheaper than the wall entry above it.
     "tests/architecture/test_market_at_the_seams.py",
+    # THE LINT RATCHET (2026-08-26). Fifth entry, same class as the four above, and it is here
+    # because that class has now cost the SAME control four separate repairs: the shrink-only
+    # ruff ratchet was found red at HEAD on 08-10, 08-12, 08-14 and 08-26. Its own log records
+    # each one, and the 08-12 entry states the mechanism plainly -- the excess "ACCRETED across
+    # ~25 commits over two days rather than arriving in one", so there is no single commit to
+    # blame and every individual pre-commit run was green.
+    #
+    # THE REASON IT ACCRETES IS SELECTION, NOT THE COMMITS. `real_ruff_counts()` lints the WHOLE
+    # REPO (`ruff check .`, the Makefile scope), so every commit that touches any .py file can
+    # move its counts; selection is by filename stem, so the only commit that RUNS it is one
+    # touching `test_static_quality_ratchet.py` itself. Subject set = the repo; selector set =
+    # one file. That is the identical shape as the store-contract note below (a data file has no
+    # stem to match) and as the seam entry above (no seam module's stem reaches the test), and
+    # it is R15's FAIL-SILENT killer at the SELECTION layer: the assertions were never wrong and
+    # fired correctly the instant anything ran them.
+    #
+    # What the silence cost, measured not predicted: at HEAD on 2026-08-26, 22 violations across
+    # 8 rule codes had landed past the floor, plus one code sitting stale BELOW it (someone
+    # deleted an unused import without lowering the baseline, which this same test would have
+    # caught at that commit). Every one of them landed green.
+    #
+    # ~0.2s for the whole file (13 tests), of which the repo-wide scan is 0.096s measured on this
+    # machine -- ruff is a Rust binary, so this is the CHEAPEST entry in this list by an order of
+    # magnitude and roughly a twentieth of the seam entry above it. Stated because the standing
+    # finding WORKER_FINDING_THE_PUBLISH_COMMITS_HOOK_BUDGET_IS_SPENT_BY_TWO_TEST_FILES
+    # (2026-08-25) is live: two test files already spend 393s of a 600s hook budget, so anything
+    # added here has to declare what it costs against that. 0.2s is 0.03% of that budget.
+    "tests/architecture/test_static_quality_ratchet.py",
 ]
 
 # A staged path under any of these = a code/config change that could break a control or its own
