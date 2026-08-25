@@ -280,3 +280,48 @@ def test_the_coverage_is_DERIVED_and_names_how_few_households_are_measured():
     assert "{} of {} account(s) are MEASURED".format(measured, total) in html, (
         "the page's coverage sentence is not the one derived from the live counts"
     )
+
+
+def test_the_SPREAD_is_never_shown_without_its_MEASURED_correction():
+    """THE FIGURE A READER WOULD QUOTE, and it was wrong on this page for four hours.
+
+    The panel used to end "the dirtiest 5% of half hours ran 5.1x the cleanest 5%, so timing is
+    worth that much at most and never more." That reads as a fact about the GRID. It is a fact
+    about this MODEL, which dispatches no coal and no interconnector imports, and which measures
+    3.16x wider than NESO's published series over the years both cover.
+
+    A caveat in a module docstring is not carried by the number when the number is quoted. So the
+    spread and its measured correction are one sentence or neither is shown.
+
+    MUTATION (must fire): drop the `versus_published` clause and render the spread alone.
+    """
+    html = _stage("C7")
+    carbon = _load(CARBON)
+    versus = carbon.get("versus_published") or {}
+
+    # THE ABSENT BRANCH MUST NOT BE REACHABLE BY A MIS-READ. The first version of this test read
+    # `versus_published` off an account row while the generator wrote it under `grid`, found
+    # nothing, took the branch below and passed -- while the page rendered no spread at all for
+    # exactly that reason. The live tree carries the comparison, so demand it here and let the
+    # absent branch cover only a tree that genuinely has no cached NESO series.
+    assert "versus_published" in carbon, (
+        "the page data carries no versus_published key at all, so the branch below would pass "
+        "on a mis-keyed field rather than on a real absence"
+    )
+    if not versus.get("available"):
+        assert "the dirtiest 5%" not in html, (
+            "the page shows a spread while its measured correction is unavailable -- an "
+            "uncorrected spread is the figure that was wrong, published again"
+        )
+        return
+
+    assert "the dirtiest 5%" in html, "the spread vanished entirely rather than being corrected"
+    assert "wider</b> than" in html and "NESO" in html, (
+        "the spread is rendered without the measured comparison that bounds it"
+    )
+    assert "upper bound" in html.lower(), (
+        "the page does not tell the reader which way to read the timing figures"
+    )
+    assert "at most and never more" not in html, (
+        "the pre-correction sentence is still on the page"
+    )

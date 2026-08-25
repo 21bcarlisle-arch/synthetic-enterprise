@@ -221,6 +221,12 @@ def build(hh_days: dict, shape: dict, feed: dict, meter: dict) -> dict:
         "basis": FOOTPRINT_BASIS,
         "not_included": NOT_INCLUDED,
         "coverage_statement": book.coverage_statement(),
+        # TOP LEVEL, not inside `grid` and not per account-day: it is a property of the SHAPE
+        # every panel is computed from, and the page's control refuses to render a spread
+        # without it. Nested one level deeper on the first pass, which rendered as the spread
+        # silently VANISHING -- the correct failure direction, and the reason the render check
+        # caught it where the unit test had passed on its own skip path.
+        "versus_published": (feed.get("versus_published") or {}),
         "counts": counts,
         "half_hourly_capable_meters": meter.get("half_hourly_capable", 0),
         "accounts_on_book": total_accounts,

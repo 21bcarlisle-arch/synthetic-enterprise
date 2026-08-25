@@ -61,14 +61,27 @@ select { background: var(--bg); color: var(--text); border: 1px solid var(--bord
    rather than being caught by a reader. The badge is the same fact, made visible. ---- */
 .panel[data-side] { border-left: 3px solid var(--border); padding-left: 10px; }
 .panel[data-side="customer"] { border-left-color: var(--teal); }
-.panel[data-side="company"]  { border-left-color: #c98a3a; }
-.panel[data-side="sim"]      { border-left-color: #8f6fd0; }
+/* THE TWO SIDES OF THE WALL, IN THE BRAND'S OWN VOCABULARY rather than in two new hexes.
+ * Landed 2026-08-06 as two raw hex literals, which red `test_adopted_door_has_no_raw_hex`
+ * at HEAD and refused every commit touching this page -- including the publisher's, from
+ * 10:24 UTC. brand.css settles what to do instead, in its own words: "Colour is INFORMATION,
+ * never decoration (law 1): the off-brand accents collapse onto the four BRAG status
+ * colours", and it already collapses both teal and purple to blue for exactly this reason.
+ * So adding two named tokens would have re-improvised the per-page palette that block exists
+ * to remove; these collapse onto tokens that already carry the meaning.
+ *
+ * The mapping is not arbitrary. `--teal` is what this page's own wall strip already uses for
+ * "what the world knew". `--amber` is documented as "at risk / provisional / estimated", and
+ * everything on the company's side of the epistemic wall IS an estimate -- that is the
+ * project's central claim, so the colour states it rather than decorating it. */
+.panel[data-side="company"]  { border-left-color: var(--amber); }
+.panel[data-side="sim"]      { border-left-color: var(--teal); }
 .side-tag { display: inline-block; font-size: 9px; letter-spacing: .09em; text-transform: uppercase;
   padding: 1px 5px; border-radius: 3px; margin-bottom: 6px; font-weight: 600;
   border: 1px solid var(--border); color: var(--muted); }
 .panel[data-side="customer"] .side-tag { color: var(--teal); border-color: var(--teal); }
-.panel[data-side="company"]  .side-tag { color: #c98a3a; border-color: #c98a3a; }
-.panel[data-side="sim"]      .side-tag { color: #8f6fd0; border-color: #8f6fd0; }
+.panel[data-side="company"]  .side-tag { color: var(--amber); border-color: var(--amber); }
+.panel[data-side="sim"]      .side-tag { color: var(--teal); border-color: var(--teal); }
 /* The customer-eye subset (exit criterion 2): what a real account holder would see, isolated
    as its own view rather than assembled by a visitor reading labels across the whole page. */
 body.eyes-customer .panel[data-side="company"],
@@ -950,10 +963,20 @@ function carbonDayPanel(row) {
     row.dirtiest.shape.toFixed(2) + "&times;). " + row.half_hours + " metered half hours. " +
     /* The spread is the panel's OWN year. Quoting the page's newest year here put 2025's
        figure under a February 2021 day on this panel's first render. */
-    (row.year_stats && row.year_stats.p95_over_p5
+    /* THE SPREAD NEVER APPEARS WITHOUT ITS MEASURED CORRECTION. On its own it reads as a fact
+       about the grid; it is a fact about this model, and the model overstates the range by a
+       factor that has been measured against NESO's published series rather than estimated.
+       If the comparison is unavailable the spread is NOT shown at all -- a number whose error
+       bar could not be computed is worse than no number here, because this is the one figure
+       a reader would quote. */
+    (row.year_stats && row.year_stats.p95_over_p5 && CARBON.versus_published &&
+     CARBON.versus_published.available
       ? "Across " + esc(String(row.year)) + " as a whole the dirtiest 5% of half hours ran <b>" +
-        row.year_stats.p95_over_p5.toFixed(1) + "&times;</b> the cleanest 5%, so timing is worth " +
-        "that much at most and never more."
+        row.year_stats.p95_over_p5.toFixed(1) + "&times;</b> the cleanest 5% <em>on this " +
+        "model's own shape</em> &mdash; which measures <b>" +
+        CARBON.versus_published.spread_overstated_by.toFixed(1) + "&times; wider</b> than " +
+        "NESO's published series over the years both cover, so read the timing figures above " +
+        "as an upper bound by about that factor."
       : "") +
     "</p>");
 }

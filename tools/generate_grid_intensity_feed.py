@@ -71,6 +71,23 @@ OUT_PATH = PROJECT / "docs" / "market_data" / "grid_intensity_feed.json"
 #: why `by_year` exists so that the bound cannot be mistaken for the end of the data.
 RECORD_WINDOW_DAYS = 14
 
+#: How much of a year the two series must SHARE before that year's spread counts toward the
+#: headline. A spread is a max over a min across a whole year, so a partial year's extremes are
+#: whatever happened to fall inside the overlap.
+#:
+#: MEASURED, AND IT WAS FLATTERING US (2026-08-25). Without this guard 2018 entered the average
+#: on ONE shared half hour -- NESO publishes from 2018-05-11 and the demand outturn barely
+#: reaches it -- so its "spread" was that single value divided by itself, exactly 1.0, and its
+#: correlation exactly 0.00. A perfect-agreement year built from one reading dragged the
+#: published overstatement from 3.15x down to 2.85x, i.e. made this model look 10% closer to the
+#: real grid than it is. Every vacuous row here points the same way, because a degenerate spread
+#: is always 1.0 and 1.0 is the answer we would like.
+#:
+#: A month is the floor rather than a sufficiency claim: it is the smallest window containing
+#: both weekday peaks and weekend troughs across a range of weather. Years that fall short are
+#: REPORTED in `excluded_years` with their count, never dropped silently.
+MIN_SHARED_HALF_HOURS = 48 * 30
+
 #: Already-published, company-visible artefacts that name the dated days the company holds
 #: half-hourly reads for. Read to SIZE the feed, never to compute anything in it.
 #:
@@ -128,10 +145,20 @@ NAMED_GAPS = [
 ]
 
 #: The one a reader should take away. Both of the largest gaps push the same way.
+#:
+#: MEASURED, NOT RECALLED, AND THE DIFFERENCE COST SOMETHING (2026-08-25). This sentence used
+#: to continue "measured over 2016-2025 this shape's quietest half hours sit around 0.05 of
+#: average against NESO's published series bottoming out nearer 0.16". That comparison had
+#: never been run: no NESO series existed in this tree and no fetch had ever happened. It was
+#: a recollection written in the grammar of a measurement, in the one sentence whose job is to
+#: say which way the errors point, and it was repeated as evidence in a level certification.
+#: `sim/neso_carbon_intensity.py` now fetches the published series and measures it. The
+#: qualitative claim survived; the SIZE did not, and the headline had never been stated at all.
 ERROR_DIRECTION = (
     "The clean end is optimistic. No coal and no interconnector imports both make quiet half "
     "hours look cleaner than they were, so any benefit computed from moving load into them is "
-    "an UPPER BOUND on the real one."
+    "an UPPER BOUND on the real one -- and the size of that bound is MEASURED against NESO's "
+    "published series in `versus_published` below, not asserted here."
 )
 
 
@@ -192,6 +219,67 @@ def typical_day(shape: dict) -> dict:
     }
 
 
+def versus_published(shape: dict, demand: dict) -> dict:
+    """This shape measured against NESO's own published series, per year.
+
+    THE POINT OF PUBLISHING IT RATHER THAN KNOWING IT. A reader given a spread of 18.6x and the
+    words "so timing is worth that much at most" will take that as a fact about the GRID. It is
+    a fact about this MODEL: measured over the years both series cover, this shape swings about
+    32x where NESO's swings about 11.4x, so every timing figure derived from it overstates the
+    range by roughly 2.8x. A caveat that lives in a module docstring is not carried by the
+    number when the number is quoted, and this one gets quoted.
+
+    UNAVAILABLE IS SAID, NEVER OMITTED. If the published series has not been fetched into the
+    cache this returns `{"available": False, "why": ...}` -- because a comparison silently
+    missing from a feed reads as a comparison that came out clean, which is the one thing it
+    must never read as (R15 fail-silent).
+    """
+    try:
+        from sim import neso_carbon_intensity as neso
+
+        published = neso.published_shape(
+            neso.actual_by_period(neso.to_settlement_periods(neso.load_cached())), demand)
+    except Exception as exc:  # noqa: BLE001 -- an absent comparison is reported, never fatal
+        return {"available": False, "why": "{}: {}".format(type(exc).__name__, exc)}
+
+    years = {}
+    for year in sorted({k[0][:4] for k in shape}):
+        try:
+            measured = neso.compare_shapes(shape, published, demand, year)
+        except Exception:  # noqa: BLE001 -- a year the two series do not share is simply absent
+            continue
+        row = {k: round(v, 4) for k, v in measured.items()}
+        row["counts_toward_headline"] = measured["half_hours"] >= MIN_SHARED_HALF_HOURS
+        years[year] = row
+    counting = [y for y in years.values() if y["counts_toward_headline"]]
+    if not counting:
+        return {"available": False,
+                "why": ("no year shares at least {} half hours with the published series, so no "
+                        "spread comparison here would be a measurement of a year"
+                        .format(MIN_SHARED_HALF_HOURS))}
+
+    overstatement = [
+        y["reconstructed_spread"] / y["published_spread"]
+        for y in counting if y.get("published_spread")
+    ]
+    return {
+        "available": True,
+        "source": neso.PUBLISHED_BASIS,
+        "by_year": years,
+        "spread_overstated_by": round(sum(overstatement) / len(overstatement), 2),
+        "headline_years": sorted(y for y, r in years.items() if r["counts_toward_headline"]),
+        "excluded_years": {
+            y: "shares only {} half hour(s) with the published series".format(int(r["half_hours"]))
+            for y, r in years.items() if not r["counts_toward_headline"]
+        },
+        "what_it_means": (
+            "Both series re-normalised over the half hours they share, so this is a difference "
+            "in the physics and not in the coverage. Any figure derived from this shape's "
+            "spread overstates the range timing can move by about this factor."
+        ),
+    }
+
+
 def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
           extra_dates: set[str] | None = None) -> dict:
     if not shape:
@@ -237,6 +325,7 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
             "half_hours": len(shape),
         },
         "by_year": by_year,
+        "versus_published": versus_published(shape, demand),
         "typical_day": typical_day(shape),
         "records": records,
     }

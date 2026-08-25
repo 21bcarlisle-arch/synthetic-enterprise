@@ -230,3 +230,81 @@ def test_the_LIVE_page_measures_FEWER_accounts_than_have_a_capable_meter():
     assert 0 < measured <= capable <= carbon["accounts_on_book"], (
         f"measured={measured}, capable={capable}, book={carbon['accounts_on_book']}"
     )
+
+
+# --------------------------------------------------------------------------- #
+# The measured gap against NESO (2026-08-25) -- and its vacuity guard          #
+# --------------------------------------------------------------------------- #
+
+def _shape_for(year: str, values):
+    return {(f"{year}-01-{1 + i // 48:02d}", 1 + i % 48): v for i, v in enumerate(values)}
+
+
+def test_a_year_sharing_ONE_half_hour_does_not_count_toward_the_headline():
+    """THE DEFECT, MEASURED ON THE LIVE FEED THE DAY THIS WAS WRITTEN, and it flattered us.
+
+    NESO publishes from 2018-05-11 and this tree's demand outturn barely reaches it, so 2018
+    shared exactly ONE half hour with the published series. Its "spread" was that value divided
+    by itself -- 1.0, perfect agreement -- and its correlation exactly 0.00. That row entered the
+    average and dragged the published overstatement from 3.16x to 2.85x: a 10% improvement in
+    this model's apparent fidelity, manufactured from one reading.
+
+    Every vacuous row here points the same way, because a degenerate spread is always exactly
+    1.0 and 1.0 is the answer we would like.
+
+    MUTATION (must fire): drop the `counts_toward_headline` filter from the average.
+    """
+    assert gif.MIN_SHARED_HALF_HOURS > 1, "a single half hour would still count as a year"
+
+    feed = json.loads(FEED.read_text(encoding="utf-8")) if FEED.is_file() else None
+    if not feed or not (feed.get("versus_published") or {}).get("available"):
+        pytest.skip("the published-series comparison is not available in this tree")
+    versus = feed["versus_published"]
+
+    for year, row in versus["by_year"].items():
+        if row["half_hours"] < gif.MIN_SHARED_HALF_HOURS:
+            assert not row["counts_toward_headline"], (
+                f"{year} shares {int(row['half_hours'])} half hour(s) and still counts"
+            )
+            assert year in versus["excluded_years"], (
+                f"{year} was excluded from the headline and NOT reported as excluded -- a "
+                "silent exclusion is how a coverage bound becomes invisible"
+            )
+
+
+def test_the_headline_says_we_OVERSTATE_and_by_how_much():
+    """VACUITY GUARD ON THE WHOLE COMPARISON. A `versus_published` block that came out at exactly
+    1.0 would mean either perfect agreement or a broken measurement, and the two are
+    indistinguishable from the number alone. This model does overstate -- no coal, no
+    interconnector imports -- so a headline at or below 1.0 is the instrument failing, not the
+    model being right."""
+    feed = json.loads(FEED.read_text(encoding="utf-8")) if FEED.is_file() else None
+    if not feed or not (feed.get("versus_published") or {}).get("available"):
+        pytest.skip("the published-series comparison is not available in this tree")
+
+    factor = feed["versus_published"]["spread_overstated_by"]
+    assert factor > 1.5, (
+        f"this shape claims to be within {factor}x of NESO's spread. It dispatches no coal and "
+        "no interconnector imports, so that is the comparison breaking rather than the model "
+        "being that good"
+    )
+    assert len(feed["versus_published"]["headline_years"]) >= 3, (
+        "the headline rests on fewer than three years of overlap"
+    )
+
+
+def test_an_ABSENT_published_series_is_REPORTED_not_omitted(monkeypatch):
+    """R15 FAIL-SILENT, and the most expensive silence available here: a comparison missing from
+    the feed reads exactly like a comparison that came out clean. The page's own control refuses
+    to render a spread without it, so the absence has to be legible rather than falsy."""
+    import sim.neso_carbon_intensity as neso
+
+    def _no_cache():
+        raise neso.NesoIntensityUnavailable("no cached series in this tree")
+
+    monkeypatch.setattr(neso, "load_cached", _no_cache)
+    shape = _shape_for("2024", [1.0] * 96)
+    built = gif.versus_published(shape, {k: 30_000.0 for k in shape})
+
+    assert built["available"] is False
+    assert "no cached series" in built["why"], "the absence does not say why"

@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-25T07:47:12Z",
+ "generated": "2026-08-25T10:51:46Z",
  "basis": "Electricity emissions only. Company estimate: its own published ANNUAL grid intensity (company/regulatory/carbon_emissions.py, the single owner) given half-hourly resolution by the published shape feed. Generation-based, national, outturn, no loss correction. NOT abatement -- there is no counterfactual here and none is implied.",
  "not_included": [
   "gas -- a near-constant factor per kWh burned, and the only lever on it is using less",
@@ -9,6 +9,123 @@
   "any customer with neither a half-hourly read nor a profiled consumption figure"
  ],
  "coverage_statement": "7 of 263 account(s) are MEASURED -- a real half-hourly meter read met with the grid's intensity in that half hour. 256 are PROFILED: their emissions are known but their TIMING EFFECT IS UNAVAILABLE, not zero -- a traditional meter does not record when anything happened, and no estimate recovers it.",
+ "versus_published": {
+  "available": true,
+  "source": "gCO2/kWh, national, half-hourly, NESO/National Grid Carbon Intensity API (api.carbonintensity.org.uk, key-free, openly licensed). Consumption basis: LOSS-CORRECTED, INCLUDES interconnector imports at the exporting country's intensity, INCLUDES coal. Both forecast and actual are published; 'actual' is outturn.",
+  "by_year": {
+   "2018": {
+    "year": 2018.0,
+    "half_hours": 1.0,
+    "reconstructed_min": 1.0,
+    "published_min": 1.0,
+    "reconstructed_max": 1.0,
+    "published_max": 1.0,
+    "reconstructed_spread": 1.0,
+    "published_spread": 1.0,
+    "mean_error": 0.0,
+    "mean_abs_error": 0.0,
+    "correlation": 0.0,
+    "counts_toward_headline": false
+   },
+   "2019": {
+    "year": 2019.0,
+    "half_hours": 16923.0,
+    "reconstructed_min": 0.0573,
+    "published_min": 0.2169,
+    "reconstructed_max": 1.7067,
+    "published_max": 2.0194,
+    "reconstructed_spread": 29.7957,
+    "published_spread": 9.3125,
+    "mean_error": -0.0048,
+    "mean_abs_error": 0.1204,
+    "correlation": 0.8457,
+    "counts_toward_headline": true
+   },
+   "2020": {
+    "year": 2020.0,
+    "half_hours": 16492.0,
+    "reconstructed_min": 0.055,
+    "published_min": 0.2436,
+    "reconstructed_max": 1.9418,
+    "published_max": 1.965,
+    "reconstructed_spread": 35.3157,
+    "published_spread": 8.0652,
+    "mean_error": -0.0211,
+    "mean_abs_error": 0.1823,
+    "correlation": 0.8227,
+    "counts_toward_headline": true
+   },
+   "2021": {
+    "year": 2021.0,
+    "half_hours": 16646.0,
+    "reconstructed_min": 0.0562,
+    "published_min": 0.1949,
+    "reconstructed_max": 1.7922,
+    "published_max": 1.7694,
+    "reconstructed_spread": 31.9114,
+    "published_spread": 9.0789,
+    "mean_error": -0.0082,
+    "mean_abs_error": 0.1131,
+    "correlation": 0.8998,
+    "counts_toward_headline": true
+   },
+   "2022": {
+    "year": 2022.0,
+    "half_hours": 14929.0,
+    "reconstructed_min": 0.0696,
+    "published_min": 0.2108,
+    "reconstructed_max": 2.0426,
+    "published_max": 1.7406,
+    "reconstructed_spread": 29.3356,
+    "published_spread": 8.2564,
+    "mean_error": -0.036,
+    "mean_abs_error": 0.2046,
+    "correlation": 0.8244,
+    "counts_toward_headline": true
+   },
+   "2023": {
+    "year": 2023.0,
+    "half_hours": 17362.0,
+    "reconstructed_min": 0.0585,
+    "published_min": 0.1647,
+    "reconstructed_max": 1.8963,
+    "published_max": 1.9579,
+    "reconstructed_spread": 32.4228,
+    "published_spread": 11.8846,
+    "mean_error": -0.0166,
+    "mean_abs_error": 0.2289,
+    "correlation": 0.7719,
+    "counts_toward_headline": true
+   },
+   "2024": {
+    "year": 2024.0,
+    "half_hours": 17492.0,
+    "reconstructed_min": 0.0586,
+    "published_min": 0.1053,
+    "reconstructed_max": 1.9808,
+    "published_max": 2.2795,
+    "reconstructed_spread": 33.8272,
+    "published_spread": 21.6429,
+    "mean_error": 0.0224,
+    "mean_abs_error": 0.3027,
+    "correlation": 0.6806,
+    "counts_toward_headline": true
+   }
+  },
+  "spread_overstated_by": 3.16,
+  "headline_years": [
+   "2019",
+   "2020",
+   "2021",
+   "2022",
+   "2023",
+   "2024"
+  ],
+  "excluded_years": {
+   "2018": "shares only 1 half hour(s) with the published series"
+  },
+  "what_it_means": "Both series re-normalised over the half hours they share, so this is a difference in the physics and not in the coverage. Any figure derived from this shape's spread overstates the range timing can move by about this factor."
+ },
  "counts": {
   "measured": 7,
   "profiled": 256,
@@ -18,9 +135,9 @@
  "accounts_on_book": 263,
  "grid": {
   "year": "2025",
-  "published_at": "2026-08-25T07:47:11.922369+00:00",
+  "published_at": "2026-08-25T10:51:45.461962+00:00",
   "source": "Elexon Insights half-hourly demand outturn (INDO) and wind+solar generation outturn (AGWS), through the dispatch stack in sim/merit_order_reconstruction.py (DUKES 5.10.C efficiencies, DESNZ GHG conversion factors).",
-  "error_direction": "The clean end is optimistic. No coal and no interconnector imports both make quiet half hours look cleaner than they were, so any benefit computed from moving load into them is an UPPER BOUND on the real one.",
+  "error_direction": "The clean end is optimistic. No coal and no interconnector imports both make quiet half hours look cleaner than they were, so any benefit computed from moving load into them is an UPPER BOUND on the real one -- and the size of that bound is MEASURED against NESO's published series in `versus_published` below, not asserted here.",
   "named_gaps": [
    "no coal is dispatched, so coal-heavy years read cleaner than GB was at the dirty end",
    "interconnector imports are not modelled, so heavy-import half hours read dirtier",
