@@ -163,3 +163,110 @@ rather than a hypothesis.
   — contains `tests/background/test_derived_artefact_register.py`.
 - `SIM_FAST_MODE=1 python3 -m pytest tests/background/test_derived_artefact_register.py -q` —
   385s before the archive narrowing, 348s after, 13 passed both times.
+
+---
+
+# 2026-08-25, third instalment: the second gate checks the ONE THING the first cannot, so the receipt named above is a fail-open — and the cost is four test files the publisher selects by writing them
+
+**Severity unchanged (LATENT).** Written against the delivery seat's own question — *"decide whether
+that second gate checks anything the first did not, and remove the duplication"* — because the
+answer turned out to invalidate the repair this document proposed an hour earlier.
+
+## The question, answered: YES, and it is the more important of the two
+
+The two gates run overlapping test FILES against **different subjects**, and nothing above noticed:
+
+| | subject | evidence |
+|---|---|---|
+| publisher's scoped gate | a clean `git archive HEAD` extract | `process_run_complete.py:1321`, `with _head_checkout() as head_dir` — DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09, *"the working tree belongs to the lanes"* |
+| the `git commit` hook chain | **the working tree** | `pre_commit_test_gate.py`, `subprocess.run([... pytest ...], cwd=str(ROOT))` |
+
+The publisher's gate is therefore **structurally blind to the content the commit is landing**. This
+cycle's regenerated report, dashboard and site data exist in exactly one place — the working tree —
+and the only gate that ever reads them is the one inside `git commit`.
+
+So the second gate is not redundant. It is the only one answering the question that matters.
+
+## Which kills the repair proposed above, and it must not be built as described
+
+The section above names the closure as *"a gate receipt keyed on the exact tree hash the commit
+creates: the publisher gates the tree it is about to commit."*
+
+**The publisher never gates that tree.** It gates `HEAD^{tree}` — the parent. There is no moment in
+the cycle at which a green verdict exists against the tree the commit creates, so a receipt keyed on
+that hash could only be written by asserting a subject that was never tested. That is FAIL-OPEN and
+TAUTOLOGY together (R15), on the control CLAUDE.md names a WALL. The "it cannot go stale by
+construction, because a different tree is a different hash" argument is sound and irrelevant: the
+defect is not staleness, it is that the verdict was never taken on that subject at all.
+
+The shape is not dead — `tools/surgical_land.py` **does** gate the tree the commit would create, in
+a clean extract of it. A receipt written by *that* path has a real subject behind it. That is a
+different design from the one above and it is the one worth writing.
+
+## Where the cost actually is — measured on the real pathspec
+
+The earlier instalments measured two test files in isolation and inferred the rest. This pass ran
+`select_targets` over the **actual 317 paths of publish commit `7cdd8e66c`**. A real publish commit
+selects **17 test files**, and all but five of the 317 staged paths contribute nothing at all:
+
+```
+docs/design/BLOCKED_ATOM_VISIBILITY.md    -> 2 test files
+docs/design/FORWARD_ATTACHMENT_LEDGER.md  -> 3
+docs/design/PULL_FORWARD_PROPOSALS.md     -> 2
+docs/observability/naive_organ_log.jsonl  -> 2
+docs/state/billing_ledger.json            -> 3
+(the other 312 paths -> 0)
+```
+
+`site/**`, `docs/reports/**` and `docs/status/**` — 307 of the 317 — are already excluded by
+`PUBLISHED_OUTPUT_ROOTS`. **The three files that pull in every expensive test are the derived
+artefact renderings, and the publisher writes them itself.**
+
+`_repair_derived_artefacts_in()` (`process_run_complete.py:1359`) re-renders those three projections
+from HEAD into the checkout *and* the working tree on every cycle. `BLOCKED_ATOM_VISIBILITY.md` has
+changed in **30 of the last 30 commits that touched it**, so it is staged essentially every cycle.
+Staging a rendering selects its renderer's whole test file — including
+`test_derived_artefact_register.py`, whose R15 mutation tests extract a `git archive HEAD` per
+fixture instance.
+
+The loop is closed and self-inflicted: **the publisher selects its own most expensive tests by
+doing its own repair.**
+
+## It is a TRIPLE, not a double
+
+The instalment above says the file runs twice. Measured on the real pathspecs, it runs three times
+per repairing cycle:
+
+1. `_land_repaired_artefacts` → `surgical_land` pre-gate. Staging just
+   `FORWARD_ATTACHMENT_LEDGER.md` + `PULL_FORWARD_PROPOSALS.md` (commit `1b6d4a295`, verbatim)
+   selects **4 files, `test_derived_artefact_register.py` among them** — the 348s file, paid in full
+   for a two-file docs commit.
+2. the publisher's own scoped gate — `resolve_scope()` contains it.
+3. the publish commit's hook chain, where the same renderings are staged again.
+
+## Two claims from the instalment above that this pass could not reproduce
+
+Recorded because the next reader will otherwise start from them, as I did:
+
+- **"`blocked_atom_visibility`'s clock probe shells out to `git blame` per atom across 298 atoms in
+  a cold checkout."** There is no `blame` in `background/blocked_atom_visibility.py` at all. The only
+  blame on this path is `tools/map_assertion_provenance.py:189` — **one**
+  `blame --line-porcelain` of the map — and `process_run_complete.py:2100` records it measured at
+  **0.65s** inside the checkout. Whatever the 348s is, it is not that, and the next optimisation
+  aimed there will find nothing.
+- **"the second run is against the tree the commit would create rather than the working tree."**
+  It is against the working tree (`cwd=ROOT`, above). The inversion is what hid the fail-open.
+
+## What this makes the next move
+
+Not a fourth number, not the receipt as described, and not an optimisation aimed at the blame probe.
+The lever the measurement actually points at is that a **re-rendered projection which is a pure
+function of committed sources drags its renderer's full R15 mutation suite into three commits** —
+mutation tests that prove the CONTROL can fail, and that have no dependency whatever on the data
+being committed. Separating "run the control" from "re-prove the control can fail" is the change
+with headroom in it, and it weakens nothing: the freshness check
+(`test_every_registered_artefact_is_currently_fresh`, 3 `--check` subprocesses) still runs on every
+staged rendering.
+
+That is a design piece with an R15 obligation of its own, and it is stated here rather than
+attempted at the end of this tick.
