@@ -15,11 +15,40 @@ reconstruct, from a record that was correct throughout.
 
 The class is therefore NOT "the bill does not foot" -- it is "the bill does not foot AS
 PRINTED, and the checks all read the record". Which is why every assertion here runs the
-PAGE'S OWN render functions (``_bill_render_harness.mjs`` drives the second inline script
+PAGE'S OWN render functions (``_bill_render_harness.mjs`` drives the page's inline script
 in a VM against the real per-customer JSON) and parses the figures back out of the emitted
-markup and the emitted PDF column. Reading the JSON and adding it up would pass while the
-page stayed unreadable; re-implementing the renderer in Python would drift from the page
-and pass while the page failed -- the tautology R15 names.
+markup. Reading the JSON and adding it up would pass while the page stayed unreadable;
+re-implementing the renderer in Python would drift from the page and pass while the page
+failed -- the tautology R15 names.
+
+WHERE THE SUBJECT WENT, AND WHAT THIS CONTROL WAS DOING MEANWHILE
+-----------------------------------------------------------------
+Built against ``site/customers/index.html``. On 2026-08-20 the director's no-hidden-pages
+ruling folded eleven pages into five tabs; ``/customers/`` was deleted and 301'd to
+``/explore/``, "which supersedes it". The page went, the harness went, and this module's
+constants kept pointing at both -- so from that day all nineteen assertions ERRORED at
+fixture setup on ``FileNotFoundError``. An erroring control is not a red build: this file's
+tests are selected by pathspec, so nothing ran them and nothing said so.
+
+The bill did not survive the move. ``/explore/`` printed its own four-line bill -- Energy,
+Standing charge, Network, VAT above a "Total due" -- which is the footing set MINUS
+``catchup_adjustment_gbp``: the D36 defect, reintroduced by a page consolidation, on a
+surface with no live control. Measured on the published data at re-homing: 796 of 10,239
+bills did not add up as printed, and the eleven households whose currently-rendered bill was
+one of them included two printing POSITIVE charge lines above a NEGATIVE total -- the
+C1g-INV141 shape the ruling was written about. Re-homed to ``site/explore/`` 2026-08-25 with
+the renderer restored; the assertions and their five mutations are unchanged, because the
+page functions were ported back under their own names rather than rewritten.
+
+THE PDF HALF IS WITHDRAWN, NOT PASSING
+--------------------------------------
+The deleted page carried a downloadable jsPDF bill (a director ask, 2026-07-10) and four of
+the nineteen assertions read its column. ``/explore/`` has no PDF, so those four have no
+subject: they are WITHDRAWN, which is a third state and not a quiet pass.
+``test_the_pdf_half_of_this_control_is_withdrawn_not_passing`` is what keeps that honest --
+it fails if a PDF path returns to the page without its control coming back with it. Whether
+the download itself should be restored is a surface question for the director, filed rather
+than decided here.
 
 WHAT IS CHECKED, AND AGAINST WHAT
 ---------------------------------
@@ -32,15 +61,29 @@ WHAT IS CHECKED, AND AGAINST WHAT
 * money on the bill path prints in pounds and pence, checked against genuinely
   non-integer values.
 
-THE POPULATION, AND A DEFECT IT EXPOSES THAT IS NOT THIS ATOM'S TO FIX
----------------------------------------------------------------------
-The page renders ``site/data/customers/*.json`` (21 accounts). ``PRINTED_BILL_FOOTS_EXACTLY``
-runs on ``site/state/billing_ledger.json`` (18). The three accounts in the difference are
-re-acquired accounts (``C1_2``, ``C2_2``, ``C5_2``), and 30 of their invoice RECORDS do not
-foot by a penny -- a data defect the printed-footing invariant cannot see because those
-accounts are outside its population. It is staged as its own finding, not fixed here (D36
-is render-layer only, and SELF-INTERRUPT DISCIPLINE says queue it). What this module
-therefore asserts is BOTH halves, kept separate so neither can hide the other:
+THE POPULATION, AND A DEFECT IT EXPOSED THAT WAS NOT THIS ATOM'S TO FIX
+----------------------------------------------------------------------
+This module originally recorded that the page rendered ``site/data/customers/*.json``
+(21 accounts) while ``PRINTED_BILL_FOOTS_EXACTLY`` ran on ``site/state/billing_ledger.json``
+(18), with 30 invoice RECORDS in the three-account difference failing to foot by a penny --
+staged as its own finding rather than fixed here (D36 is render-layer only, and
+SELF-INTERRUPT DISCIPLINE says queue it).
+
+RESOLVED 2026-08-12, and not in the direction the finding proposed. ``C1_2``/``C2_2``/
+``C5_2`` are SUCCESSOR accounts (``saas/customers.py::SUCCESSOR_CUSTOMERS``) that activate
+only when the predecessor churns and we win the home-mover competition. They activated in
+earlier runs and not in this one, and ``tools/generate_customer_data.generate()`` never
+removed the artefact of a departed account -- so the three files sat on the publish path
+unrefreshed, still holding invoice amounts from the era when ``generate_invoice_data``
+fabricated them by splitting lifetime revenue, rounding components and total independently.
+The 30 were stale bytes with no live producer, which is why re-pointing the footing control
+at a second path could have turned them red but never green. The generator now retires
+departed artefacts (``_retire_departed_artefacts``); the class guard is
+``tests/tools/test_no_orphan_published_customer_artefacts.py``. The book has since grown --
+263 accounts / 10,239 invoices at re-homing, all of them footing on all five components.
+
+The two assertions below are kept separate anyway, because the split is what made the
+defect legible in the first place and the exemption can reappear:
 
 * ``test_the_renderer_introduces_no_residual_of_its_own`` -- WHOLE population, zero
   tolerance: the gap between the printed column and the printed total is exactly the gap
@@ -72,8 +115,8 @@ import pytest
 from company.compliance.domain_invariants import _FOOTING_COMPONENT_KEYS
 
 PROJECT = Path(__file__).resolve().parents[3]
-PAGE = PROJECT / "site" / "customers" / "index.html"
-HARNESS = PROJECT / "site" / "customers" / "_bill_render_harness.mjs"
+PAGE = PROJECT / "site" / "explore" / "index.html"
+HARNESS = PROJECT / "site" / "explore" / "_bill_render_harness.mjs"
 CUSTOMER_DATA = PROJECT / "site" / "data" / "customers"
 
 NODE = shutil.which("node")
@@ -111,22 +154,6 @@ def _rows(screen_html: str) -> list[tuple[str, Decimal | None]]:
         label, cell = m.group(1), m.group(2)
         tokens = MONEY.findall(cell)
         out.append((label, _money(tokens[-1]) if tokens else None))
-    return out
-
-
-def _pdf_lines(calls: list[dict]) -> list[tuple[str, Decimal | None]]:
-    """(label, amount) for the PDF's charge column, paired by baseline."""
-    by_y: dict[float, dict] = {}
-    for c in calls:
-        row = by_y.setdefault(c["y"], {})
-        row["amount" if c["right"] else "label"] = c["text"]
-    out = []
-    for y in sorted(by_y):
-        row = by_y[y]
-        if "amount" not in row:
-            continue
-        tokens = MONEY.findall(row["amount"])
-        out.append((row.get("label", ""), _money(tokens[-1]) if tokens else None))
     return out
 
 
@@ -168,7 +195,7 @@ def _customer_files() -> list[Path]:
 
 
 def _render(page: Path) -> dict[str, dict]:
-    """{invoice_id: {"screen": html, "pdf": [...], "record": invoice_dict}}."""
+    """{invoice_id: {"screen": html, "record": invoice_dict}}."""
     files = _customer_files()
     proc = subprocess.run(
         [NODE, str(HARNESS), str(page), *[str(f) for f in files]],
@@ -183,7 +210,7 @@ def _render(page: Path) -> dict[str, dict]:
     rendered = {}
     for acct in out["accounts"]:
         for inv in acct["invoices"]:
-            rendered[inv["id"]] = {"screen": inv["screen"], "pdf": inv["pdf"], "record": records[inv["id"]]}
+            rendered[inv["id"]] = {"screen": inv["screen"], "record": records[inv["id"]]}
     assert rendered, "the harness rendered no bills -- every assertion below would be vacuous"
     return rendered
 
@@ -245,16 +272,26 @@ def test_a_catch_up_bill_prints_its_catch_up_line_on_screen(rendered):
     )
 
 
-def test_a_catch_up_bill_prints_its_catch_up_line_in_the_pdf(rendered):
-    """Exit criterion 1, PDF half. The downloaded statement is the artefact a customer
-    keeps and disputes from; a line that is on screen and not in the PDF is worse than
-    absent from both, because the two disagree."""
-    catch_ups = _catch_up_bills(rendered)
-    missing = [
-        inv_id for inv_id, r in catch_ups.items()
-        if not any("Catch-up adjustment" in label for label, _ in _pdf_lines(r["pdf"]))
-    ]
-    assert not missing, f"{len(missing)}/{len(catch_ups)} catch-up bills printed no catch-up line in the PDF"
+def test_the_pdf_half_of_this_control_is_withdrawn_not_passing(page_source):
+    """The third state, between failed and clean.
+
+    Four of this module's nineteen assertions read a downloadable jsPDF bill on the deleted
+    /customers/ page. /explore/ has no PDF, so they were not fixed and did not pass -- their
+    SUBJECT was retired by a ruling, and they were removed with that recorded. The danger in
+    a withdrawal is that it rots: someone re-adds a download button, and the four checks that
+    would have policed it are gone with nothing saying they ever existed.
+
+    So the withdrawal is itself checked. If a PDF path returns to this page, this fails and
+    names what has to come back with it. It is deliberately keyed on the PAGE, not on a
+    to-do list, because the page is the thing that can change under us.
+    """
+    assert "jspdf" not in page_source.lower(), (
+        "a PDF path is back on /explore/ -- restore the four withdrawn PDF assertions with it "
+        "(catch-up line in the PDF, the PDF column adds to the PDF total, the printed catch-up "
+        "figure is the ledger's on the PDF surface, and the harness's PDF capture). A download "
+        "the customer keeps and disputes from, with no control on its column, is the D36 defect "
+        "on a second surface."
+    )
 
 
 def test_the_catch_up_line_names_the_period_it_corrects(rendered):
@@ -293,10 +330,9 @@ def test_the_printed_catch_up_figure_is_the_ledgers_own(rendered):
     wrong = []
     for inv_id, r in _catch_up_bills(rendered).items():
         expected = _dec(r["record"][CATCHUP_KEY])
-        for surface, rows in (("screen", _rows(r["screen"])), ("pdf", _pdf_lines(r["pdf"]))):
-            printed = [amt for label, amt in rows if "Catch-up adjustment" in label]
-            if printed != [expected]:
-                wrong.append((inv_id, surface, printed, expected))
+        printed = [amt for label, amt in _rows(r["screen"]) if "Catch-up adjustment" in label]
+        if printed != [expected]:
+            wrong.append((inv_id, printed, expected))
     assert not wrong, f"printed catch-up figures that are not the ledger's: {wrong[:5]}"
 
 
@@ -352,22 +388,6 @@ def test_the_printed_column_adds_up_on_every_bill_whose_record_foots(rendered):
         "30-invoice data defect into a hole big enough to hide a render defect in"
     )
     assert checked > 0
-
-
-def test_the_pdf_column_adds_up_to_the_pdf_total(rendered):
-    """The same test on the downloaded artefact. The PDF prints one usage line where the
-    screen may print one per register, so it is checked in its own right rather than
-    assumed equal to the screen."""
-    failures = []
-    for inv_id, r in rendered.items():
-        if _record_components(r["record"]) != _dec(r["record"][TOTAL_KEY]):
-            continue
-        lines = _pdf_lines(r["pdf"])
-        totals = [amt for label, amt in lines if label.startswith("Total")]
-        charges = [amt for label, amt in lines if not label.startswith("Total") and amt is not None]
-        if len(totals) != 1 or sum(charges, Decimal("0")) != totals[0]:
-            failures.append((inv_id, [(label, str(amt)) for label, amt in lines]))
-    assert failures == [], f"PDF columns that do not add to their printed total: {failures[:2]}"
 
 
 # ===========================================================================

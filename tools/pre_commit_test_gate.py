@@ -239,6 +239,18 @@ SITE_SURFACE_TESTS = [
     # selection would fire on the checker and stay silent on the commit that strands a figure on
     # the wrong side of the wall. ~0.2s (reads one file, no subprocess, no network).
     "tests/tools/test_explore_wall_sides.py",
+    # THE PRINTED BILL (2026-08-25, D36). The fourth instance of the same shape, and the one
+    # that proves per-file selection is the wrong instrument for a page control. This module
+    # is stemmed `test_printed_bill_foots_render`, so `tests_for()` selects it when someone
+    # edits the TEST -- and never when someone edits the bill. `03dd8c49e` deleted the page it
+    # drove and its harness; nineteen assertions then ERRORED at fixture setup for five days,
+    # which no commit ran and no digest reported, while the bill Explore inherited went back to
+    # printing four charge lines above a total they did not sum to (796 of 10,239 published
+    # bills, 11 of them on a currently-rendered stage). An erroring control is a failed control
+    # (R15 fail-silent); selecting it on any page edit is what makes it able to say so. ~5.7s:
+    # it is a node subprocess over the whole published book, which is the cost of checking a
+    # POPULATION rather than the one bill the stage happens to open on.
+    "tests/company/compliance/test_printed_bill_foots_render.py",
 ]
 
 # THE DATA SURFACE (2026-08-12), discharging

@@ -98,6 +98,12 @@ td.n, th.n { text-align: right; }
   text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border);
   padding-bottom: 6px; margin-bottom: 8px; }
 .artefact .total { border-top: 1px solid var(--border); margin-top: 6px; padding-top: 6px; font-weight: 600; }
+/* The bill's charge column (D36). Restored here verbatim from the deleted /customers/ page:
+   a bill is read by re-adding the column with a pen, so every component gets its own row
+   with the amount hard against the right margin. */
+.artefact .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; gap: 12px; }
+.artefact .row:last-child { border-bottom: none; }
+.artefact .rl { color: var(--muted); }
 
 .flag { display: inline-block; font-size: 10px; letter-spacing: .05em; text-transform: uppercase;
   border: 1px solid var(--border); border-radius: 999px; padding: 1px 7px; color: var(--muted); }
@@ -313,6 +319,110 @@ function barTable(rows, unit, dp) {
   }).join("") + "</tbody></table></div>";
 }
 
+/* ---------- the printed bill (atom D36) ----------
+   RESTORED 2026-08-25. This block was built on site/customers/index.html on 2026-08-12 to close
+   the director's ruling THE PORTAL IS A WALL EXHIBIT Part 1, and it was DELETED with that page on
+   2026-08-20 when eleven pages became five tabs. Explore was named as the page that supersedes
+   /customers/, but the bill it inherited printed four charge lines -- Energy, Standing charge,
+   Network, VAT -- above a "Total due", which is the D36 defect exactly: that line-up is the
+   footing set MINUS catchup_adjustment_gbp, the one component that decides the sign of the total.
+   On the published data 796 of 10,239 bills did not add up as printed, and eleven households'
+   currently-rendered bill was one of them -- two of those printing positive charges above a
+   NEGATIVE total, the same shape as C1g-INV141 in the ruling. The functions below are ported
+   verbatim (names, markup, comments) rather than rewritten, so D36's own control and its five
+   mutation tests attach to the same source shapes they were proven against. */
+
+/* Print the rate to the precision it was CHOSEN at (saas/money.py::minimal_display_rate), so
+   printed_quantity x printed_rate == printed_amount holds on the pixel. Truncating here re-breaks
+   the identity -- 86.1% of rendered usage lines once showed a multiplication that did not hold. */
+function rateStr(v){
+  if(v==null)return null;
+  var s=String(v),i=s.indexOf(".");
+  var dp=i>=0?(s.length-i-1):0;
+  return v.toFixed(Math.max(2,Math.min(6,dp)));
+}
+/* Money on the BILL path prints in pounds AND PENCE. The page-wide gbp() is a PORTFOLIO
+   formatter; on a bill the customer re-adds the column with a pen, and the pennies that decide
+   whether it adds up must survive to the reader. Non-finite values print "-", never "£NaN". */
+function billGbp(n){
+  if(n==null||n==="")return "-";
+  var v=Number(n);
+  if(!isFinite(v))return "-";
+  return (v<0?"-":"")+"£"+Math.abs(v).toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function standingChargeLabel(i){
+  return (i.days_in_period!=null&&i.standing_charge_gbp_per_day!=null)
+    ?("Standing charge ("+i.days_in_period+" days &times; £"+rateStr(i.standing_charge_gbp_per_day)+"/day)")
+    :"Standing charge";
+}
+/* The catch-up line names the period it corrects and which way it corrects it. The FIGURE is
+   carried straight through from the ledger's catchup_adjustment_gbp -- never re-derived here from
+   the raw delta, the written-off part, or "total minus the other four". */
+function catchupLabel(i){
+  var dir=i.catchup_direction==="overcharge"?"overcharge correction"
+    :i.catchup_direction==="undercharge"?"undercharge correction":"correction";
+  var per=(i.catchup_period_start&&i.catchup_period_end)
+    ?(" for "+esc(i.catchup_period_start)+" to "+esc(i.catchup_period_end)):"";
+  return "Catch-up adjustment ("+dir+per+")";
+}
+/* THE BILL'S COMPONENT SET (D36). This is BILL_FOOTS's own footing set --
+   _FOOTING_COMPONENT_KEYS in company/compliance/domain_invariants.py -- in printing order, and
+   tests/company/compliance/test_printed_bill_foots_render.py pins the two against each other in
+   BOTH directions so a component added to the invariant can never quietly go unprinted here.
+   Why a list and not four hand-written rows: a hand-kept line-up is what produced the defect
+   twice -- once on /customers/ in 2026-08 and again on this page when it inherited the bill. */
+var BILL_COMPONENTS=[
+  {key:"commodity_amount_gbp",always:true,label:function(){return "Usage";}},
+  {key:"standing_charge_gbp",always:true,label:standingChargeLabel},
+  {key:"non_commodity_amount_gbp",label:function(){return "Network &amp; environmental";}},
+  {key:"vat_gbp",label:function(){return "VAT";}},
+  {key:"catchup_adjustment_gbp",label:catchupLabel}
+];
+/* A component prints when it is non-zero (or is always-printed). Zero is the only value that may
+   be omitted, because omitting it cannot change the sum -- any other omission breaks the footing
+   this set exists to protect. */
+function billComponentPrints(c,i){
+  if(c.always)return true;
+  var v=Number(i[c.key]);
+  return i[c.key]!=null&&isFinite(v)&&v!==0;
+}
+function billComponentRowHtml(c,i){
+  if(!billComponentPrints(c,i))return "";
+  return "<div class=\"row\"><span class=\"rl\">+ "+c.label(i)+"</span><span>"+billGbp(i[c.key])+"</span></div>";
+}
+function billUsageLinesHtml(i){
+  var unitTag=i.commodity==="gas"?"p/kWh (gas)":"p/kWh (elec)";
+  if(i.registers&&i.registers.length){
+    return i.registers.map(function(r){
+      /* Prefer the rate the ledger printed; fall back to computing one only for pre-2026-08-03
+         records that predate the field. */
+      var rate=r.unit_rate_p_per_kwh!=null?r.unit_rate_p_per_kwh
+        :(r.consumption_kwh?(r.amount_gbp/r.consumption_kwh*100):null);
+      var label=i.registers.length>1?("Usage ("+esc(r.label)+")"):"Usage";
+      return rate!=null
+        ?"<div class=\"row\"><span class=\"rl\">"+label+"</span><span>"+r.consumption_kwh.toFixed(1)+" kWh &times; "+rateStr(rate)+unitTag+" = "+billGbp(r.amount_gbp)+"</span></div>"
+        :"<div class=\"row\"><span class=\"rl\">"+label+"</span><span>"+billGbp(r.amount_gbp)+"</span></div>";
+    }).join("");
+  }
+  if(i.unit_rate_p_per_kwh!=null){
+    return "<div class=\"row\"><span class=\"rl\">Usage</span><span>"+i.consumption_kwh.toFixed(1)+" kWh &times; "+rateStr(i.unit_rate_p_per_kwh)+unitTag+" = "+billGbp(i.commodity_amount_gbp)+"</span></div>";
+  }
+  return "<div class=\"row\"><span class=\"rl\">Usage charge</span><span>"+billGbp(i.commodity_amount_gbp)+"</span></div>";
+}
+function billEquationHtml(i){
+  var parts=BILL_COMPONENTS.map(function(c){
+    /* The commodity component is the usage BREAKDOWN (one row per register, each with its own
+       quantity x rate), so it is rendered by its own function rather than as a single amount. */
+    return c.key==="commodity_amount_gbp"?billUsageLinesHtml(i):billComponentRowHtml(c,i);
+  });
+  parts.push("<div class=\"row\" style=\"font-weight:700\"><span class=\"rl\">= Total</span><span>"+billGbp(i.amount_gbp)+"</span></div>");
+  if(Number(i.amount_gbp)<0){
+    parts.push("<div style=\"font-size:11px;color:var(--muted);margin-top:4px\">This bill is a CREDIT &mdash; the balance is owed to you, not by you"+
+      (Number(i.catchup_adjustment_gbp)<0?": the catch-up adjustment above is larger than this period's charges":"")+".</div>");
+  }
+  return parts.join("");
+}
+
 /* ---------- stages ---------- */
 function stagePriced(d, c) {
   var inv = firstInvoice(d);
@@ -470,12 +580,6 @@ function stageBilled(d, c) {
       "supplier's belief, and it will be corrected when a real read arrives." :
       "This bill was raised on an <b>actual</b> read, so the charged figure and the metered figure agree."
   );
-  var lines = [
-    ["Energy", num(inv.consumption_kwh, 1) + " kWh at " + (inv.unit_rate_p_per_kwh || 0).toFixed(2) + "p", inv.commodity_amount_gbp],
-    ["Standing charge", inv.days_in_period + " days at " + gbp(inv.standing_charge_gbp_per_day, 4), inv.standing_charge_gbp],
-    ["Network, policy and levies", "", inv.non_commodity_amount_gbp],
-    ["VAT", "", inv.vat_gbp]
-  ];
   return '<h2>Billed — what were they actually charged?</h2>' +
     '<div class="clock">Clock: <b>the billing period</b>. A bill is a claim about a month that has already happened.</div>' +
     '<div class="cols">' +
@@ -484,11 +588,7 @@ function stageBilled(d, c) {
       '<div style="font-size:11px;color:var(--muted);margin-bottom:8px">' + dt(inv.period_start) + " – " + dt(inv.period_end) +
       " &middot; meter " + esc(inv.meter_serial || "—") + " &middot; " +
       '<span class="flag' + (estimated ? " est" : "") + '">' + (estimated ? "estimated read" : "actual read") + "</span></div>" +
-      '<div class="table-scroll"><table><tbody>' + lines.map(function (l) {
-        return "<tr><td>" + esc(l[0]) + '<div style="font-size:11px;color:var(--muted)">' + esc(l[1]) + "</div></td>" +
-          '<td class="n">' + gbp(l[2]) + "</td></tr>";
-      }).join("") + "</tbody></table>" +
-      '<div class="total" style="display:flex;justify-content:space-between"><span>Total due</span><span>' + gbp(inv.amount_gbp) + "</span></div></div>") +
+      billEquationHtml(inv) + "</div>") +
     panel("customer", "Meter reads behind it",
       '<div class="table-scroll"><table><tbody>' +
       "<tr><td>Opening read</td><td class=\"n\">" + num(inv.opening_read_kwh, 1) + "</td></tr>" +
