@@ -144,7 +144,20 @@ NAMED_GAPS = [
     "no loss correction is applied here and none must be applied downstream either",
 ]
 
-#: The one a reader should take away. Both of the largest gaps push the same way.
+#: The one a reader should take away. The CONCLUSION is measured; the REASON is not a tidy story.
+#:
+#: THE REASON WAS WRONG AND CONTRADICTED THE LIST TWENTY LINES ABOVE IT (2026-08-25, Expert Hour
+#: finding). This sentence used to say "no coal and no interconnector imports BOTH make quiet half
+#: hours look cleaner". `NAMED_GAPS` says the opposite on both limbs, in the same module, in the
+#: same feed: coal omission is a DIRTY-end error ("coal-heavy years read cleaner than GB was at
+#: the dirty end"), and the import omission makes half hours read DIRTIER, not cleaner -- GB is a
+#: net importer of French nuclear and Norwegian hydro, and NESO's consumption basis counts them at
+#: the exporting country's intensity. So the two gaps push in OPPOSITE directions and only their
+#: NET effect is knowable, which is precisely why it has to be measured rather than argued.
+#:
+#: It is measured, and the conclusion survives its broken reasoning: over the years both series
+#: cover this shape's clean end sits near 0.06 of average against NESO's 0.19. The clean end IS
+#: optimistic. What could not be asserted from the gap list -- and was -- is WHY.
 #:
 #: MEASURED, NOT RECALLED, AND THE DIFFERENCE COST SOMETHING (2026-08-25). This sentence used
 #: to continue "measured over 2016-2025 this shape's quietest half hours sit around 0.05 of
@@ -155,10 +168,13 @@ NAMED_GAPS = [
 #: `sim/neso_carbon_intensity.py` now fetches the published series and measures it. The
 #: qualitative claim survived; the SIZE did not, and the headline had never been stated at all.
 ERROR_DIRECTION = (
-    "The clean end is optimistic. No coal and no interconnector imports both make quiet half "
-    "hours look cleaner than they were, so any benefit computed from moving load into them is "
-    "an UPPER BOUND on the real one -- and the size of that bound is MEASURED against NESO's "
-    "published series in `versus_published` below, not asserted here."
+    "The clean end is optimistic, and that is MEASURED rather than argued: over the years both "
+    "series cover, this shape's quietest half hours sit near 0.06 of average where NESO's "
+    "published series bottoms out near 0.19. So any benefit computed from moving load into quiet "
+    "half hours is an UPPER BOUND on the real one. The named gaps do NOT all push that way -- "
+    "omitting coal understates the dirty end, while omitting interconnector imports makes half "
+    "hours read dirtier than they were -- so only their net effect is knowable, and the size of "
+    "the bound is measured in `versus_published` below, never inferred from the gap list."
 )
 
 
@@ -219,7 +235,25 @@ def typical_day(shape: dict) -> dict:
     }
 
 
-def versus_published(shape: dict, demand: dict) -> dict:
+def published_series(demand: dict) -> tuple[dict | None, str]:
+    """NESO's published shape on the same normalisation as ours, or (None, why).
+
+    SPLIT OUT OF `versus_published` so it is fetched ONCE per run and used twice -- for the
+    year-level comparison, and for the per-half-hour values the records carry. Building it
+    twice would double the cost of the one part of this generator that reads a 12 MB cache,
+    on a machine whose memory the director has named as a budget being spent.
+    """
+    try:
+        from sim import neso_carbon_intensity as neso
+
+        return neso.published_shape(
+            neso.actual_by_period(neso.to_settlement_periods(neso.load_cached())), demand), ""
+    except Exception as exc:  # noqa: BLE001 -- an absent comparison is reported, never fatal
+        return None, "{}: {}".format(type(exc).__name__, exc)
+
+
+def versus_published(shape: dict, demand: dict, published: dict | None = None,
+                     why_unavailable: str = "") -> dict:
     """This shape measured against NESO's own published series, per year.
 
     THE POINT OF PUBLISHING IT RATHER THAN KNOWING IT. A reader given a spread of 18.6x and the
@@ -236,11 +270,13 @@ def versus_published(shape: dict, demand: dict) -> dict:
     """
     try:
         from sim import neso_carbon_intensity as neso
-
-        published = neso.published_shape(
-            neso.actual_by_period(neso.to_settlement_periods(neso.load_cached())), demand)
     except Exception as exc:  # noqa: BLE001 -- an absent comparison is reported, never fatal
         return {"available": False, "why": "{}: {}".format(type(exc).__name__, exc)}
+
+    if published is None:
+        published, why_unavailable = published_series(demand)
+    if published is None:
+        return {"available": False, "why": why_unavailable}
 
     years = {}
     for year in sorted({k[0][:4] for k in shape}):
@@ -249,6 +285,12 @@ def versus_published(shape: dict, demand: dict) -> dict:
         except Exception:  # noqa: BLE001 -- a year the two series do not share is simply absent
             continue
         row = {k: round(v, 4) for k, v in measured.items()}
+        # THE TWO DIVISORS KEEP MORE DIGITS THAN EVERYTHING ELSE IN THIS ROW, because they are
+        # the only values here that are DIVIDED BY rather than read. Four places would put a
+        # 0.005% error into every household figure derived downstream -- small, but a rounding
+        # artefact in a number whose whole job is to make two series comparable.
+        for key in ("reconstructed_renormalisation_divisor", "published_renormalisation_divisor"):
+            row[key] = round(measured[key], 8)
         row["counts_toward_headline"] = measured["half_hours"] >= MIN_SHARED_HALF_HOURS
         years[year] = row
     counting = [y for y in years.values() if y["counts_toward_headline"]]
@@ -262,11 +304,29 @@ def versus_published(shape: dict, demand: dict) -> dict:
         y["reconstructed_spread"] / y["published_spread"]
         for y in counting if y.get("published_spread")
     ]
+    # THE SECOND FACTOR IS THE ONE THE PAGE MAY QUOTE, and it exists because the first one was
+    # being quoted against a statistic it is not (2026-08-25, Expert Hour finding). The customer
+    # panel prints a p95/p5 spread -- "the dirtiest 5% of half hours ran 5.1x the cleanest 5%" --
+    # and then said it measured `spread_overstated_by` "wider than" NESO's. That factor is the
+    # mean of six max/min ratios: two single half hours out of seventeen thousand, on both sides,
+    # which `year_stats`' own docstring already refuses to rest a claim on. Comparing the two put
+    # a tail statistic and a robust statistic under one word.
+    #
+    # BOTH ARE PUBLISHED, NOT ONE SWAPPED FOR THE OTHER. max/min is still the honest answer to
+    # "how much wider is this model's whole range", and dropping it to make the page tidier would
+    # be choosing the flattering statistic after seeing both -- the thing R12 exists to stop.
+    p95_overstatement = [
+        y["reconstructed_p95_over_p5"] / y["published_p95_over_p5"]
+        for y in counting if y.get("published_p95_over_p5")
+    ]
     return {
         "available": True,
         "source": neso.PUBLISHED_BASIS,
         "by_year": years,
         "spread_overstated_by": round(sum(overstatement) / len(overstatement), 2),
+        "p95_spread_overstated_by": (
+            round(sum(p95_overstatement) / len(p95_overstatement), 2) if p95_overstatement else None
+        ),
         "headline_years": sorted(y for y, r in years.items() if r["counts_toward_headline"]),
         "excluded_years": {
             y: "shares only {} half hour(s) with the published series".format(int(r["half_hours"]))
@@ -274,8 +334,13 @@ def versus_published(shape: dict, demand: dict) -> dict:
         },
         "what_it_means": (
             "Both series re-normalised over the half hours they share, so this is a difference "
-            "in the physics and not in the coverage. Any figure derived from this shape's "
-            "spread overstates the range timing can move by about this factor."
+            "in the physics and not in the coverage. `spread_overstated_by` compares max/min on "
+            "both sides -- the whole range, two half hours wide. `p95_spread_overstated_by` "
+            "compares the dirtiest-5%-over-cleanest-5% spread on both sides, which is the "
+            "statistic the customer page prints and therefore the only one a sentence about that "
+            "page's figure may use. Neither is a correction to apply to a HOUSEHOLD: how wrong "
+            "this shape is for one home depends on when that home drew, and that is measured per "
+            "household in the paired `published` value on each record."
         ),
     }
 
@@ -288,8 +353,24 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
     first_kept = (datetime.fromisoformat(last_date) - timedelta(days=window_days)).date().isoformat()
     wanted = set(extra_dates or ())
 
+    # THE PUBLISHED SERIES TRAVELS WITH THE RECORDS, not only as a year-level summary. A reader
+    # given "this model overstates the range by 3.2x" can only apply it as a hand-wave to a
+    # particular household's day; the two values side by side in the same half hour let the same
+    # arithmetic be done twice and the ANSWERS compared, which is the coupled-triad rung: the
+    # company's belief, the world's published truth, and the gap between them for THIS meter.
+    # `null` where NESO published nothing -- an absence, never a substituted 1.0, which would be
+    # the flat method smuggled in and would always pull the gap toward zero.
+    published, published_why = published_series(demand)
     records = [
-        {"date": date_str, "period": period, "shape": round(value, 5)}
+        {
+            "date": date_str,
+            "period": period,
+            "shape": round(value, 5),
+            "published": (
+                None if published is None or (date_str, period) not in published
+                else round(published[(date_str, period)], 5)
+            ),
+        }
         for (date_str, period), value in sorted(shape.items())
         if date_str >= first_kept or date_str in wanted
     ]
@@ -325,7 +406,7 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
             "half_hours": len(shape),
         },
         "by_year": by_year,
-        "versus_published": versus_published(shape, demand),
+        "versus_published": versus_published(shape, demand, published, published_why),
         "typical_day": typical_day(shape),
         "records": records,
     }

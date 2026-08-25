@@ -969,16 +969,65 @@ function carbonDayPanel(row) {
        If the comparison is unavailable the spread is NOT shown at all -- a number whose error
        bar could not be computed is worse than no number here, because this is the one figure
        a reader would quote. */
+    /* LIKE FOR LIKE, AND NO MAGNITUDE INSTRUCTION (2026-08-25, Expert Hour). Two defects lived
+       in this one sentence. It quoted a p95/p5 spread and corrected it with a factor built from
+       max/min ratios -- two statistics under one word -- so it now uses the p95/p5 factor the
+       feed computes for exactly this sentence. And it told the reader to "read the timing
+       figures above as an upper bound by about that factor", which is wrong for every household
+       measured: on this panel's own C7 day it sends him to 10.6% when the measured answer is
+       31.1%, and on C9's day the published series does not even agree on the SIGN. A year-level
+       range ratio cannot be applied to one household's day. The DIRECTION survives (it is
+       measured); the MAGNITUDE belongs to the per-household paragraph below, which measures it
+       for this home rather than asking the reader to estimate it. */
     (row.year_stats && row.year_stats.p95_over_p5 && CARBON.versus_published &&
-     CARBON.versus_published.available
+     CARBON.versus_published.available && CARBON.versus_published.p95_spread_overstated_by
       ? "Across " + esc(String(row.year)) + " as a whole the dirtiest 5% of half hours ran <b>" +
         row.year_stats.p95_over_p5.toFixed(1) + "&times;</b> the cleanest 5% <em>on this " +
-        "model's own shape</em> &mdash; which measures <b>" +
-        CARBON.versus_published.spread_overstated_by.toFixed(1) + "&times; wider</b> than " +
-        "NESO's published series over the years both cover, so read the timing figures above " +
-        "as an upper bound by about that factor."
+        "model's own shape</em> &mdash; which is <b>" +
+        CARBON.versus_published.p95_spread_overstated_by.toFixed(1) + "&times; wider</b> than " +
+        "the same 5%-to-5% spread in NESO's published series over the years both cover. This " +
+        "model's clean end is too clean, so a timing benefit read off it is an upper bound. " +
+        "How much of one, for THIS household, is measured below rather than estimated from " +
+        "this figure."
       : "") +
-    "</p>");
+    "</p>" + beliefVsTruth(row));
+}
+
+/* THE SAME DAY, MEASURED THE OTHER WAY. Everything above is the company's own belief about
+   the grid. NESO publishes what the grid actually did, half hour by half hour, and this
+   paragraph does the identical arithmetic against it and prints both answers.
+
+   IT REPLACES A HAND-WAVE WITH A MEASUREMENT. The sentence above tells the reader the model
+   overstates the grid's whole range by about 3.2x and leaves him to discount this household's
+   figure himself. That does not work: how wrong the model is for a HOUSEHOLD depends on when
+   that household drew, and measured across the days on this page the disagreement runs from a
+   quarter of a percentage point to twenty-eight -- and on at least one day the two do not even
+   agree on whether the home drew cleaner or dirtier than average.
+
+   THE COMPANY IS NOT CORRECTED BY IT, and that is the design, not an oversight. The company
+   reads its own reconstruction; the published series is the world's, and the distance between
+   them is what this project calls the gap. Fixing the belief silently would delete the only
+   number that says how good the belief is. */
+function beliefVsTruth(row) {
+  var b = row.belief_vs_truth;
+  if (!b) return "";
+  if (!b.available) {
+    return '<p style="font-size:12px;color:var(--muted);margin-top:8px">' +
+      "<b>Not checked against the published grid:</b> " + esc(b.why) + "</p>";
+  }
+  var wider = Math.abs(b.belief_pct) > Math.abs(b.truth_pct);
+  return '<p style="font-size:12px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">' +
+    "<b>Measured against NESO's published series</b> for the same half hours, the timing effect " +
+    "is <b>" + b.truth_pct.toFixed(1) + "%</b>, not " + b.belief_pct.toFixed(1) + "%. This " +
+    "company's own grid model " + (wider ? "overstates" : "understates") + " what timing did " +
+    "for this household by <b>" + Math.abs(b.gap_pp).toFixed(1) + " percentage points</b>" +
+    (b.sign_differs
+      ? " &mdash; and the two <b>disagree on the direction</b>: the company believes this home " +
+        "drew at " + (b.belief_pct >= 0 ? "dirtier" : "cleaner") + "-than-average times and the " +
+        "published grid says " + (b.truth_pct >= 0 ? "dirtier" : "cleaner") + "."
+      : ".") +
+    " The company is not shown this series and is not corrected by it: the gap is the " +
+    "measurement. " + b.half_hours + " half hours compared.</p>";
 }
 
 function carbonPanels() {
@@ -1010,6 +1059,16 @@ function carbonPanels() {
     '<h3 style="font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);' +
     'margin-bottom:8px">Carbon &mdash; emissions, not abatement</h3>' +
     '<div class="cols">' + rows.map(carbonDayPanel).join("") + "</div>" +
+    /* THE BOOK-LEVEL READING OF THE SAME GAP, on the section rather than a panel, because it
+       is a fact about the instrument and not about this household. Rendered whether or not it
+       is available -- an absent gap reads as a gap of zero, which is the one thing it is not. */
+    ((CARBON.versus_published_households || {}).available
+      ? '<p class="prov"><b>Belief against published truth:</b> ' +
+        esc(CARBON.versus_published_households.statement) + "</p>"
+      : (CARBON.versus_published_households
+          ? '<p class="prov"><b>Belief against published truth &mdash; not measured:</b> ' +
+            esc(CARBON.versus_published_households.why || "") + "</p>"
+          : "")) +
     '<p class="prov"><b>' + esc(CARBON.basis || "") + "</b> " +
     esc(g.error_direction || "") + " Grid shape from " + esc(g.source || "an unnamed source") +
     ". " + esc(CARBON.coverage_statement || "") +

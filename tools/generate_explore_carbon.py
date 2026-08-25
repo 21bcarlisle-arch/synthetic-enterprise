@@ -31,6 +31,7 @@ Run:  python3 -m tools.generate_explore_carbon
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping, Sequence
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -151,8 +152,159 @@ def _why_unavailable(date_str: str, feed: dict) -> str:
     )
 
 
+def published_shape_from_feed(feed: dict) -> dict:
+    """{(date, period): NESO's published shape} out of the feed's own records.
+
+    Read from the SAME records the company's shape is read from, so a half hour cannot appear on
+    one side of the comparison and not the other for a reason to do with file layout.
+    """
+    return {
+        (str(r["date"]), int(r["period"])): float(r["published"])
+        for r in (feed.get("records") or [])
+        if r.get("date") is not None and r.get("period") is not None
+        and r.get("published") is not None
+    }
+
+
+def belief_versus_truth(
+    reads: Sequence[Mapping],
+    shape: Mapping[tuple[str, int], float],
+    published: Mapping[tuple[str, int], float],
+    feed: dict,
+    year: str,
+) -> dict:
+    """THIS household's timing effect computed twice: through the company's shape, and through
+    NESO's published series. The coupled-triad rung, at the grain a reader can check.
+
+    WHY THIS IS NOT THE SPREAD RATIO ALREADY ON THE PAGE. The feed says this model overstates
+    the grid's total range by about 3.2x, and until now the page asked the reader to discount
+    every household figure by that factor himself. A range ratio does not translate into a
+    household's answer: it depends entirely on WHEN that household drew. Measured, the two
+    disagree by anything from a quarter of a percentage point to twenty-eight, and on at least
+    one real household-day THE SIGN IS DIFFERENT -- the company believes the home drew dirtier
+    than average and the published grid says it drew cleaner. No discount factor recovers that.
+
+    BOTH SIDES RE-NORMALISED over the half hours the two series share in this calendar year,
+    using the divisors `compare_shapes` computed, because each series arrives normalised over
+    its own coverage and comparing them raw measures the coverage. Recomputing the divisors here
+    from the feed's trimmed records would be a different normalisation wearing the same name.
+
+    REFUSED, never approximated, when the year is one the headline itself excludes. 2018 shares
+    exactly ONE half hour with the published series in this tree; a divisor from one half hour
+    is not a year's mean, and this project has already published a figure that was wrong by 10%
+    for precisely that reason. A refusal says which of the two series was missing.
+    """
+    year_row = ((feed.get("versus_published") or {}).get("by_year") or {}).get(year) or {}
+    if not year_row.get("counts_toward_headline"):
+        return {
+            "available": False,
+            "why": (
+                "{} shares too few half hours with NESO's published series for a year mean, so "
+                "there is nothing to re-normalise this household against. The comparison is "
+                "absent rather than approximated.".format(year)
+            ),
+        }
+    ours_divisor = year_row.get("reconstructed_renormalisation_divisor")
+    theirs_divisor = year_row.get("published_renormalisation_divisor")
+    if not ours_divisor or not theirs_divisor:
+        return {"available": False,
+                "why": "the feed carries no re-normalisation divisor for {}".format(year)}
+
+    kwh = belief = truth = 0.0
+    used = missing = 0
+    for read in reads:
+        key = (str(read.get("date") or ""), int(read.get("period") or 0))
+        our_value, their_value = shape.get(key), published.get(key)
+        if our_value is None or their_value is None or read.get("kwh") is None:
+            missing += 1
+            continue
+        k = float(read["kwh"])
+        kwh += k
+        belief += k * (our_value / ours_divisor)
+        truth += k * (their_value / theirs_divisor)
+        used += 1
+
+    if used == 0 or kwh <= 0.0:
+        return {
+            "available": False,
+            "why": (
+                "no half hour of this day appears in BOTH series, so the two answers cannot be "
+                "put beside each other. NESO publishes from 2018 and the cached series is "
+                "shorter still; this is an absence, not an agreement."
+            ),
+        }
+
+    belief_pct = 100.0 * (belief / kwh - 1.0)
+    truth_pct = 100.0 * (truth / kwh - 1.0)
+    return {
+        "available": True,
+        "belief_pct": round(belief_pct, 2),
+        "truth_pct": round(truth_pct, 2),
+        "gap_pp": round(belief_pct - truth_pct, 2),
+        "sign_differs": (belief_pct >= 0.0) != (truth_pct >= 0.0),
+        "half_hours": used,
+        "half_hours_without_published": missing,
+        "basis": (
+            "Both figures are this household's own metered half hours weighted by a grid shape "
+            "and compared with the flat annual method. BELIEF uses the company's reconstructed "
+            "shape; TRUTH uses NESO's published half-hourly carbon intensity. Both series "
+            "re-normalised over the half hours they share in {}, so the difference is physics "
+            "and not coverage.".format(year)
+        ),
+    }
+
+
+def _household_gap_summary(accounts: list) -> dict:
+    """The book-level reading of the per-household gaps, counts first.
+
+    THE COUNTS LEAD because most panels cannot be compared at all: NESO's cached series starts
+    in 2019 and half the days this page shows are older. A mean gap quoted without saying it is
+    a mean over six panels of fourteen is the same defect as a margin quoted without its book.
+    """
+    measured = [
+        row["belief_vs_truth"] for row in accounts
+        if isinstance(row.get("belief_vs_truth"), dict) and row["belief_vs_truth"].get("available")
+    ]
+    total = sum(1 for row in accounts if "belief_vs_truth" in row)
+    if not measured:
+        return {
+            "available": False,
+            "panels_on_page": total,
+            "why": (
+                "no household-day on this page has half hours in BOTH the company's shape and "
+                "NESO's published series, so the company's belief has not been measured against "
+                "the published grid at this grain. Unmeasured, not agreed."
+            ),
+        }
+    gaps = [row["gap_pp"] for row in measured]
+    overstated = sum(1 for g in gaps if g > 0.0)
+    flips = sum(1 for row in measured if row["sign_differs"])
+    return {
+        "available": True,
+        "panels_measured": len(measured),
+        "panels_on_page": total,
+        "panels_without_published_series": total - len(measured),
+        "mean_gap_pp": round(sum(gaps) / len(gaps), 2),
+        "max_gap_pp": round(max(gaps, key=abs), 2),
+        "belief_overstates_on": overstated,
+        "sign_flips": flips,
+        "statement": (
+            "On {} of {} household-days this page shows, the company's own grid shape can be "
+            "checked against NESO's published series. It overstates the timing effect on {} of "
+            "them, by {} percentage points on average and {} at the widest{}. The company is not "
+            "shown the published series and is not corrected by it: the gap IS the score."
+        ).format(
+            len(measured), total, overstated,
+            round(sum(gaps) / len(gaps), 1), round(max(gaps, key=abs), 1),
+            (", and on {} the two disagree about whether the household drew cleaner or dirtier "
+             "than average at all".format(flips)) if flips else "",
+        ),
+    }
+
+
 def build(hh_days: dict, shape: dict, feed: dict, meter: dict) -> dict:
     accounts = []
+    published = published_shape_from_feed(feed)
     for account_id, day_record in sorted((hh_days.get("accounts") or {}).items()):
         if not isinstance(day_record, dict):
             continue
@@ -193,6 +345,7 @@ def build(hh_days: dict, shape: dict, feed: dict, meter: dict) -> dict:
                 "panel": panel_name,
                 "date": fp.period_from,
                 "year": row_year,
+                "belief_vs_truth": belief_versus_truth(reads, shape, published, feed, row_year),
                 "year_stats": (feed.get("by_year") or {}).get(row_year),
                 "kwh": fp.kwh,
                 "co2e_kg_timed": fp.co2e_kg_timed,
@@ -227,6 +380,11 @@ def build(hh_days: dict, shape: dict, feed: dict, meter: dict) -> dict:
         # silently VANISHING -- the correct failure direction, and the reason the render check
         # caught it where the unit test had passed on its own skip path.
         "versus_published": (feed.get("versus_published") or {}),
+        # THE SAME COMPARISON ONE GRAIN DOWN. `versus_published` is a fact about two SERIES;
+        # this is a fact about the HOUSEHOLDS this page actually shows, and it is the one the
+        # mission's number is made of. Published even when it is unavailable, for the same
+        # reason the series-level one is: a missing gap reads as a gap of zero.
+        "versus_published_households": _household_gap_summary(accounts),
         "counts": counts,
         "half_hourly_capable_meters": meter.get("half_hourly_capable", 0),
         "accounts_on_book": total_accounts,

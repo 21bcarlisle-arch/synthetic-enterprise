@@ -305,16 +305,23 @@ def compare_shapes(
     if not common:
         raise NesoIntensityUnavailable(f"the two series share no demand-weighted half hour in {year}")
 
-    def _renormalised(source: Mapping[tuple[str, int], float]) -> dict[tuple[str, int], float]:
+    def _renormalised(
+        source: Mapping[tuple[str, int], float],
+    ) -> tuple[dict[tuple[str, int], float], float]:
         total = sum(source[k] * float(demand_by_period[k]) for k in common)
         weight = sum(float(demand_by_period[k]) for k in common)
         mean = total / weight
         if mean <= 0.0:
             raise NesoIntensityUnavailable(f"a series had a non-positive demand-weighted mean in {year}")
-        return {k: source[k] / mean for k in common}
+        return {k: source[k] / mean for k in common}, mean
 
-    ours = _renormalised(reconstructed)
-    theirs = _renormalised(published)
+    # THE DIVISOR IS RETURNED, NOT ONLY USED. Every caller that wants to put ONE half hour of
+    # the two series beside each other -- a household's meter read, say -- has to re-normalise
+    # it the same way this function does, or it measures the coverage difference instead of the
+    # physics. Handing back the constant is what makes that reproducible outside this function;
+    # recomputing it at the call site is how the two normalisations drift apart.
+    ours, ours_divisor = _renormalised(reconstructed)
+    theirs, theirs_divisor = _renormalised(published)
 
     # A SPREAD IS max/min, SO min IS A DENOMINATOR. Guarded by name rather than left to
     # ZeroDivisionError because the traceback names the arithmetic and not the cause; the cause
@@ -328,6 +335,23 @@ def compare_shapes(
 
     errors = [ours[k] - theirs[k] for k in common]
     abs_errors = [abs(e) for e in errors]
+    # BOTH SERIES ALSO MEASURED ON THE STATISTIC THE PAGE ACTUALLY QUOTES (2026-08-25, Expert
+    # Hour finding). max/min is a spread between two single half hours -- "one reading of one
+    # meter", as this generator's own docstring says about exactly this shape of number -- and
+    # it is NOT what the customer panel prints. That panel prints p95/p5. Publishing only the
+    # max/min ratio meant the page compared a p95/p5 spread against a max/min-derived
+    # correction factor and called the result "wider than", which is two different statistics
+    # wearing one word. Both are returned so a caller can compare like with like and the
+    # tail-sensitive one stays visible beside the robust one rather than being replaced by it.
+    p95_ours, p5_ours = _percentile(sorted(ours.values()), 0.95), _percentile(sorted(ours.values()), 0.05)
+    p95_theirs = _percentile(sorted(theirs.values()), 0.95)
+    p5_theirs = _percentile(sorted(theirs.values()), 0.05)
+    for label, low in (("reconstructed", p5_ours), ("published", p5_theirs)):
+        if low <= 0.0:
+            raise NesoIntensityUnavailable(
+                f"the {label} shape's 5th percentile is non-positive in {year}, so its p95/p5 "
+                "spread is undefined"
+            )
     return {
         "year": float(year),
         "half_hours": float(len(common)),
@@ -337,10 +361,30 @@ def compare_shapes(
         "published_max": max(theirs.values()),
         "reconstructed_spread": max(ours.values()) / min(ours.values()),
         "published_spread": max(theirs.values()) / min(theirs.values()),
+        "reconstructed_p95_over_p5": p95_ours / p5_ours,
+        "published_p95_over_p5": p95_theirs / p5_theirs,
         "mean_error": sum(errors) / len(errors),
         "mean_abs_error": sum(abs_errors) / len(abs_errors),
         "correlation": _correlation([ours[k] for k in common], [theirs[k] for k in common]),
+        "reconstructed_renormalisation_divisor": ours_divisor,
+        "published_renormalisation_divisor": theirs_divisor,
     }
+
+
+def _percentile(sorted_values: list[float], fraction: float) -> float:
+    """The nearest-rank percentile, DELIBERATELY IDENTICAL to the one the feed generator uses.
+
+    The whole point of the p95/p5 pair returned by `compare_shapes` is that it can be set beside
+    the number the customer panel prints, which `tools/generate_grid_intensity_feed.py::year_stats`
+    computes with its own copy of this rule. Two percentile conventions -- nearest-rank here,
+    interpolated there -- would put a few per cent of silent disagreement into a comparison whose
+    only job is to be like-for-like, which is the finding this function exists to close in a
+    subtler form. `test_the_two_percentile_implementations_cannot_drift_apart` fails if they part.
+    """
+    if not sorted_values:
+        raise NesoIntensityUnavailable("no values to take a percentile of")
+    index = min(int(fraction * len(sorted_values)), len(sorted_values) - 1)
+    return sorted_values[index]
 
 
 def _correlation(a: list[float], b: list[float]) -> float:

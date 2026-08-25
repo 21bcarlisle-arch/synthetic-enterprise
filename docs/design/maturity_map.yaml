@@ -4095,16 +4095,33 @@
   #   That row stands unedited -- it is the record of what was certified and when, which is what
   #   a ledger is for -- and the corrected figures live here, where the draw and GATE 15 read
   #   them. A record that can be rewritten when it turns out to be wrong is not a record.
-  #   STILL OPEN -- no Expert Hour has been taken. That is a HARDEN draw, not a BUILD one, and it
-  #   is the remaining gate on L3. The level is NOT moved here: LAW A, the drawn plan said 2->3
-  #   and the plan is a diagnostic, never a target.
+  #   TAKEN 2026-08-25, AND IT DID NOT PASS -- the Expert Hour that this note called the remaining
+  #   gate on L3 was drawn and run the same day (cold-eyes-walk: blind fork, priors before pixels,
+  #   veteran persona, every finding then verified against the live render and the generating
+  #   modules). 10 findings, 5 MAJOR, in docs/observability/sanity_adjudication_ledger.json;
+  #   1 blind finding adjudicated a FALSE POSITIVE and recorded so it cannot re-raise.
+  #   independence: FALSE -- same model family as the builder, so this bought BLINDNESS, not
+  #   independence, and the verdict is worth exactly that much.
+  #   VERDICT: not "this is real". THREE of the MAJOR findings were wrong on a live customer-
+  #   facing surface and were repaired in the same pass, each with a mutation-proven control:
+  #   the panel's "read the timing figures as an upper bound by about that factor" instruction
+  #   (wrong for every measured household -- 1.09x to 7.0x where it said 3.2x, and on C9's day
+  #   the sign reverses); a p95/p5 spread corrected by a max/min-derived factor (two statistics
+  #   under one word -- 3.16x vs the like-for-like 2.87x); and ERROR_DIRECTION, the sentence that
+  #   REACHES THE PAGE, contradicting this same module's NAMED_GAPS on both limbs.
+  #   THE LEVEL STILL DOES NOT MOVE, and the finding count is not why. L3 means the thing FAILS
+  #   LIKE REALITY. Measured this pass, our p95/p5 spread runs 3.27 (2019) -> 18.42 (2024) where
+  #   NESO's published series runs 2.78 -> 5.06 -- the divergence WIDENS by year and reaches 3.6x.
+  #   That is the coal-and-interconnectors build named above, still not done. L3 needs that build
+  #   and then a SECOND Expert Hour. LAW A: the drawn plan said 2->3 and a plan is a diagnostic,
+  #   never a target.
   file_scope: ['sim/grid_carbon_intensity.py', 'sim/neso_carbon_intensity.py',
     'company/carbon/half_hourly_footprint.py',
     'tools/generate_grid_intensity_feed.py', 'tools/generate_explore_carbon.py',
     'tests/sim/test_grid_carbon_intensity.py', 'tests/sim/test_neso_carbon_intensity.py',
     'tests/company/carbon/test_half_hourly_footprint.py',
     'tests/tools/test_grid_intensity_feed_and_explore_carbon.py']
-  simplifications_count: 1
+  simplifications_count: 2
 - id: EP14_adapter_published_cost_stack
   title: "The non-commodity stack, parsed from what is actually published"
   gain: "Network and policy costs stop being parameters and start being documents that change under the company."

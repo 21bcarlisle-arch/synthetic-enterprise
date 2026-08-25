@@ -308,3 +308,298 @@ def test_an_ABSENT_published_series_is_REPORTED_not_omitted(monkeypatch):
 
     assert built["available"] is False
     assert "no cached series" in built["why"], "the absence does not say why"
+
+
+# --------------------------------------------------------------------------- #
+# The gap ONE GRAIN DOWN: this household's belief against the published truth  #
+# --------------------------------------------------------------------------- #
+
+def _days(first: int, last: int) -> list[str]:
+    return [f"2024-{1 + (d - 1) // 30:02d}-{1 + (d - 1) % 30:02d}" for d in range(first, last + 1)]
+
+
+def _paired_feed():
+    """Two series that OVERLAP WITHOUT COINCIDING, each drifting day by day.
+
+    THE COVERAGE MISMATCH IS THE WHOLE FIXTURE, not scenery. Ours runs days 1-60, the published
+    one runs days 11-80, and the level of each drifts across the window. So each series' own
+    demand-weighted mean is taken over half hours the other never saw, and their raw values sit
+    at different levels for a reason that has nothing to do with the grid. That is exactly the
+    live situation -- 2022 shares 14,929 of 17,520 half hours -- and it is what gives the
+    re-normalisation divisors something real to do. Two series covering identical half hours
+    agree about their means for free, which is why the first version of this fixture could not
+    fail and skipped itself instead.
+
+    Our shape swings 4x within the day; the published one swings 1.2x. That is the defect in
+    miniature: no coal and no interconnector imports make the model's clean end far too clean.
+    """
+    import sim.neso_carbon_intensity as neso
+
+    ours_days, pub_days = _days(1, 60), _days(11, 80)
+    all_days = sorted(set(ours_days) | set(pub_days))
+    keys = [(d, p) for d in all_days for p in range(1, 49)]
+    demand = {k: 30_000.0 for k in keys}
+
+    def drift(day: str) -> float:
+        return 1.0 + 0.01 * all_days.index(day)
+
+    ours = {(d, p): (0.4 if p <= 24 else 1.6) * drift(d) for d in ours_days for p in range(1, 49)}
+    grams = {(d, p): (200.0 if p <= 24 else 240.0) * drift(d)
+             for d in pub_days for p in range(1, 49)}
+
+    published = neso.published_shape(grams, demand)
+    versus = gif.versus_published(ours, demand, published, "")
+    feed = {
+        "records": [{"date": d, "period": p, "shape": ours.get((d, p)),
+                     "published": published.get((d, p))}
+                    for d, p in keys if (d, p) in ours],
+        "versus_published": versus,
+    }
+    return feed, ours, published
+
+
+def test_the_feed_carries_the_PUBLISHED_value_in_THE_SAME_HALF_HOUR_not_only_a_year_summary():
+    """A ratio between two YEARS' spreads cannot be applied to one household's day.
+
+    `spread_overstated_by` says this model overstates the grid's total range by about 3.2x, and
+    the page used to ask the reader to discount every household figure by that factor himself.
+    How wrong the model is for a HOUSEHOLD depends entirely on when that household drew --
+    measured on the live page the disagreement runs from 0.3 to 28 percentage points. The two
+    values have to travel in the same record for anyone to do that arithmetic.
+    """
+    feed, _ours, _pub = _paired_feed()
+    assert all("published" in r for r in feed["records"]), (
+        "a record without a `published` key cannot be compared at all, and its absence would "
+        "be indistinguishable from agreement"
+    )
+    covered = [r for r in feed["records"] if r["published"] is not None]
+    assert covered, "no record carries the published series"
+
+
+def test_a_half_hour_the_published_series_does_not_cover_is_NULL_and_never_a_substituted_ONE():
+    """R15 FAIL-OPEN, and the substitution would flatter us in the usual direction.
+
+    1.0 is the shape's own average, so filling a missing published value with it makes the truth
+    side read "exactly average" for that half hour -- which always drags the measured gap TOWARD
+    ZERO, i.e. toward "our model is fine". An absence has to stay an absence.
+    """
+    feed, _ours, _pub = _paired_feed()
+    uncovered = [r for r in feed["records"] if r["date"] < "2024-01-11"]
+    assert uncovered, "the fixture no longer has an uncovered stretch to check"
+    assert all(r["published"] is None for r in uncovered), (
+        "a half hour outside the published series was given a value"
+    )
+    assert not any(r["published"] == 1.0 for r in uncovered), "1.0 was substituted for an absence"
+
+
+def test_the_household_gap_is_MEASURED_against_the_published_series_and_not_inferred():
+    """THE COUPLED-TRIAD RUNG at the grain the mission's number is made of: the company's belief,
+    the world's published truth, and the distance between them for ONE metered day."""
+    feed, ours, published = _paired_feed()
+    reads = [{"date": "2024-01-15", "period": p, "kwh": 1.0} for p in range(1, 25)]
+
+    got = gec.belief_versus_truth(reads, ours, gec.published_shape_from_feed(feed), feed, "2024")
+    assert got["available"] is True, got.get("why")
+
+    # THE EXPECTATION IS DERIVED FROM THE FIXTURE'S OWN PARAMETERS, never pasted from what the
+    # code returned -- a test whose expected value came out of the subject is the TAUTOLOGY
+    # pattern and would survive any arithmetic change made consistently in both places.
+    #   drift(day n) = 1 + 0.01*(n-1); the household drew day 15, clean half only.
+    #   ours: clean half hour = 0.4*drift(15); re-normalised by the mean of ours over the
+    #         SHARED days 11..60, which is 1.0 * mean(drift) = 1.345.
+    #   theirs: published_shape already divided grams by their mean over days 11..80
+    #         (220 * 1.445); re-normalised again by the published mean over days 11..60.
+    drift = lambda n: 1.0 + 0.01 * (n - 1)  # noqa: E731 -- one line, and named right here
+    mean_drift = lambda a, b: 1.0 + 0.01 * ((a - 1) + (b - 1)) / 2.0  # noqa: E731
+    expect_belief = 100.0 * (0.4 * drift(15) / (1.0 * mean_drift(11, 60)) - 1.0)
+    pub_own_mean = 220.0 * mean_drift(11, 80)
+    expect_truth = 100.0 * (
+        (200.0 * drift(15) / pub_own_mean) / (220.0 * mean_drift(11, 60) / pub_own_mean) - 1.0)
+
+    assert got["belief_pct"] == pytest.approx(expect_belief, abs=0.05), got
+    assert got["truth_pct"] == pytest.approx(expect_truth, abs=0.05), got
+    # THE HEADLINE THE FIXTURE EXISTS TO SHOW: our shape swings 4x within the day and the
+    # published one 1.2x, so the company believes timing did far more for this household than
+    # the published grid says it did.
+    assert got["belief_pct"] < expect_truth - 40.0, got
+    assert got["gap_pp"] == pytest.approx(got["belief_pct"] - got["truth_pct"], abs=0.01)
+    assert got["half_hours"] == 24
+
+
+def test_MUTATION_dropping_the_RENORMALISATION_makes_the_two_answers_disagree_about_coverage():
+    """The divisors are what makes this a measurement of physics rather than of file coverage.
+
+    Each series arrives normalised over ITS OWN half hours; here the published one is missing
+    ten days, so its raw values sit at a different level from ours for a reason that is nothing
+    to do with the grid. Computing the truth side without dividing by the published divisor is
+    the mutation, and it must move the answer.
+    """
+    feed, ours, published = _paired_feed()
+    reads = [{"date": "2024-01-15", "period": p, "kwh": 1.0} for p in range(1, 25)]
+    row = feed["versus_published"]["by_year"]["2024"]
+    divisor = row["published_renormalisation_divisor"]
+    assert divisor > 0.0, "the feed carries no published re-normalisation divisor"
+
+    honest = gec.belief_versus_truth(
+        reads, ours, gec.published_shape_from_feed(feed), feed, "2024")
+    mutated = dict(row, published_renormalisation_divisor=1.0)
+    hurt = gec.belief_versus_truth(
+        reads, ours, gec.published_shape_from_feed(feed),
+        {**feed, "versus_published": {"by_year": {"2024": mutated}}}, "2024")
+
+    if divisor == pytest.approx(1.0, abs=1e-9):
+        pytest.skip("this fixture's coverage happens to leave the divisor at 1.0")
+    assert hurt["truth_pct"] != pytest.approx(honest["truth_pct"], abs=0.01), (
+        "dropping the re-normalisation left the answer unchanged, so the divisor is decorative"
+    )
+
+
+def test_a_year_the_HEADLINE_EXCLUDES_gets_NO_household_comparison():
+    """The 2018 lesson, one grain down. That year shares exactly ONE half hour with the published
+    series in this tree; a divisor computed from one reading is not a year's mean, and a
+    household figure resting on it would carry the same manufactured agreement that dragged the
+    published overstatement from 3.16x to 2.85x. Refused, with the reason said."""
+    feed, ours, published = _paired_feed()
+    reads = [{"date": "2024-01-15", "period": p, "kwh": 1.0} for p in range(1, 25)]
+    got = gec.belief_versus_truth(
+        reads, ours, gec.published_shape_from_feed(feed), feed, "2018")
+    assert got["available"] is False
+    assert "too few half hours" in got["why"], got
+
+
+def test_a_day_OUTSIDE_the_published_series_is_an_ABSENCE_and_not_an_agreement():
+    """Half the household-days this page shows predate NESO's cached series. Reporting them as a
+    gap of zero would say the company's model was vindicated on days nothing checked it."""
+    feed, ours, published = _paired_feed()
+    reads = [{"date": "2024-01-05", "period": p, "kwh": 1.0} for p in range(1, 25)]
+    got = gec.belief_versus_truth(
+        reads, ours, gec.published_shape_from_feed(feed), feed, "2024")
+    assert got["available"] is False
+    assert "not an agreement" in got["why"], got
+
+
+def test_the_BOOK_LEVEL_gap_says_UNMEASURED_rather_than_nothing_when_no_day_overlaps():
+    """R15 FAIL-SILENT on the summary. A section that simply omits the comparison reads as a
+    section whose comparison came out clean."""
+    summary = gec._household_gap_summary([
+        {"account_id": "C1", "belief_vs_truth": {"available": False, "why": "no overlap"}},
+    ])
+    assert summary["available"] is False
+    assert "Unmeasured, not agreed" in summary["why"], summary
+    assert summary["panels_on_page"] == 1
+
+
+def test_the_LIVE_page_data_carries_the_household_gap_for_every_day_it_prices():
+    """R11 on the artefact the page fetches: every day that gets a carbon figure gets either a
+    measured comparison against the published series or a stated reason it has none."""
+    if not CARBON.is_file():
+        pytest.skip("the page data has not been generated in this tree")
+    data = json.loads(CARBON.read_text(encoding="utf-8"))
+    priced = [r for r in (data.get("accounts") or []) if "co2e_kg_timed" in r]
+    if not priced:
+        pytest.skip("no measured household-day on the live page")
+
+    for row in priced:
+        got = row.get("belief_vs_truth")
+        assert isinstance(got, dict), f"{row['account_id']} {row['date']} carries no comparison"
+        assert got.get("available") is True or got.get("why"), (
+            f"{row['account_id']} {row['date']} has an unavailable comparison with no reason"
+        )
+    assert "versus_published_households" in data, (
+        "the page data carries no book-level reading of the gap, so the section would render "
+        "nothing where an absence has to be legible"
+    )
+
+
+# --------------------------------------------------------------------------- #
+# The Expert Hour findings, 2026-08-25 -- a correction that was not like-for-  #
+# like, and a stated reason its own module contradicted                        #
+# --------------------------------------------------------------------------- #
+
+def test_the_two_percentile_implementations_cannot_drift_apart():
+    """THE COMPARISON IS ONLY LIKE-FOR-LIKE IF BOTH SIDES ROUND THE SAME WAY.
+
+    The page prints a p95/p5 spread computed by `gif._percentile`; the factor that corrects it
+    is computed from `neso._percentile`. Two percentile conventions -- nearest-rank one side,
+    interpolated the other -- would reintroduce the finding this pair was written to close, at a
+    grain too small for anyone to see on the page. So they are held to the same rule here.
+
+    MUTATION (must fire): change either implementation's index rule.
+    """
+    from sim import neso_carbon_intensity as neso
+
+    # Deliberately awkward lengths: 7 and 13 are where nearest-rank and interpolated part
+    # company on the 5th and 95th percentile, which is exactly the pair being compared.
+    for n in (7, 13, 20, 48, 17_000):
+        values = sorted(float(i) for i in range(1, n + 1))
+        for fraction in (0.05, 0.5, 0.95):
+            assert gif._percentile(values, fraction) == neso._percentile(values, fraction), (
+                f"the two percentile implementations disagree at n={n}, p={fraction}: the "
+                "page's spread and its correction factor are no longer the same statistic"
+            )
+
+
+def test_the_feed_publishes_the_correction_ON_THE_STATISTIC_THE_PAGE_PRINTS():
+    """THE FINDING: a p95/p5 spread was corrected by a max/min-derived factor.
+
+    The panel prints "the dirtiest 5% of half hours ran 5.1x the cleanest 5%" and then said that
+    measured `spread_overstated_by` "wider than" NESO's. That factor is the mean of six max/min
+    ratios -- two single half hours out of seventeen thousand on each side, which `year_stats`'
+    own docstring refuses to rest a claim on. Both statistics are now published and the page
+    must be able to reach the one it quotes.
+
+    MUTATION (must fire): delete `p95_spread_overstated_by` from `versus_published`.
+    """
+    feed = json.loads(FEED.read_text(encoding="utf-8")) if FEED.is_file() else None
+    if not feed or not (feed.get("versus_published") or {}).get("available"):
+        pytest.skip("the published-series comparison is not available in this tree")
+    versus = feed["versus_published"]
+
+    assert versus.get("p95_spread_overstated_by"), (
+        "the feed offers no p95/p5 correction, so any page sentence correcting a p95/p5 spread "
+        "is forced back onto the max/min factor -- the defect itself"
+    )
+    assert versus["p95_spread_overstated_by"] > 1.0, (
+        "the p95/p5 correction came out at or below 1.0, which would mean this shape's robust "
+        "spread is no wider than NESO's -- with no coal and no imports modelled that is the "
+        "instrument failing, not the model being right"
+    )
+    # THE TWO FACTORS ARE DIFFERENT NUMBERS, which is the whole reason the finding mattered. If
+    # they ever coincide this test is no longer evidence of anything and should be re-derived.
+    assert versus["p95_spread_overstated_by"] != versus["spread_overstated_by"], (
+        "the tail and robust corrections are identical, so this control can no longer tell "
+        "whether the page picked the right one"
+    )
+    for year in versus["headline_years"]:
+        row = versus["by_year"][year]
+        for key in ("reconstructed_p95_over_p5", "published_p95_over_p5"):
+            assert row.get(key), f"{year} carries no {key}, so its factor rests on nothing"
+
+
+def test_the_stated_ERROR_DIRECTION_does_not_contradict_the_NAMED_GAPS_beside_it():
+    """THE FINDING: the sentence that reaches the page said both largest gaps push the same way.
+
+    `NAMED_GAPS` says otherwise in the same module -- coal omission is a DIRTY-end error, and
+    omitting interconnector imports makes half hours read DIRTIER, not cleaner. The published
+    conclusion (the clean end is optimistic) is true and measured; the reason given for it was
+    not, and a reason a reader can check against the list one field away is the kind of wrong
+    that costs trust in the number beside it.
+
+    MUTATION (must fire): restore "both make quiet half hours look cleaner".
+    """
+    text = gif.ERROR_DIRECTION.lower()
+    gaps = " ".join(gif.NAMED_GAPS).lower()
+
+    assert "interconnector imports are not modelled, so heavy-import half hours read dirtier" in gaps, (
+        "the gap list no longer states the interconnector direction, so this control has lost "
+        "the side of the comparison it checks against"
+    )
+    assert not ("both" in text and "cleaner" in text.split("upper bound")[0]), (
+        "the error-direction sentence again claims both gaps push toward cleaner, which the "
+        "named gaps in this same module contradict on both limbs"
+    )
+    assert "upper bound" in text, "the direction a reader must take away is no longer stated"
+    assert "measured" in text, (
+        "the clean-end claim reads as asserted rather than measured -- the exact sentence that "
+        "was found to be a recollection in the grammar of a measurement"
+    )

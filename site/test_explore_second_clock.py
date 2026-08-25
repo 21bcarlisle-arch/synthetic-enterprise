@@ -325,3 +325,63 @@ def test_the_SPREAD_is_never_shown_without_its_MEASURED_correction():
     assert "at most and never more" not in html, (
         "the pre-correction sentence is still on the page"
     )
+
+
+def test_the_HOUSEHOLDS_OWN_belief_is_rendered_against_the_PUBLISHED_grid_not_only_a_ratio():
+    """R11 ON THE MISSION'S NUMBER, and it replaces a hand-wave that did not work.
+
+    Until this landed the panel told the reader that this model's range measures 3.16x wider
+    than NESO's and left him to discount the household figure above by that factor. He cannot:
+    how wrong the model is for a HOUSEHOLD depends on when that household drew. Measured across
+    the days this page shows, the disagreement runs from 0.3 to 27.9 percentage points, and on
+    C9's summer day the two do not agree on the DIRECTION -- the company believes the home drew
+    at dirtier-than-average times (+10.4%) and NESO's published series says cleaner (-2.2%).
+
+    So the household's own second answer is on the page, in the same panel, in the same units.
+
+    MUTATION (must fire): delete the `beliefVsTruth(row)` call from `carbonDayPanel`.
+    """
+    carbon = _load(CARBON)
+    rows = [r for r in (carbon.get("accounts") or []) if r.get("account_id") == "C9"]
+    measured = [r for r in rows if (r.get("belief_vs_truth") or {}).get("available")]
+    if not measured:
+        pytest.skip("C9 has no household-day measurable against the published series")
+
+    html = _stage("C9")
+    assert "Measured against NESO&#x27;s published series" in html or \
+           "Measured against NESO's published series" in html, (
+        "the household's published-series answer is not rendered at all, so the page still "
+        "offers only the model's own belief and a ratio the reader cannot apply"
+    )
+    row = measured[0]["belief_vs_truth"]
+    assert "%.1f%%" % row["truth_pct"] in html, (
+        "the panel does not carry the measured truth figure %.1f%%" % row["truth_pct"]
+    )
+    assert "%.1f percentage points" % abs(row["gap_pp"]) in html, (
+        "the gap between belief and published truth is not stated in the reader's units"
+    )
+    if row["sign_differs"]:
+        assert "disagree on the direction" in html, (
+            "the two answers disagree about whether this home drew cleaner or dirtier than "
+            "average and the page renders that as an ordinary difference of degree"
+        )
+
+
+def test_a_day_with_NO_published_series_says_so_rather_than_rendering_a_clean_agreement():
+    """R15 FAIL-SILENT on the same panel. Half the household-days this page shows predate NESO's
+    cached series, and a panel that simply omits the comparison for them reads exactly like a
+    panel whose comparison came out clean."""
+    carbon = _load(CARBON)
+    absent = [
+        r for r in (carbon.get("accounts") or [])
+        if isinstance(r.get("belief_vs_truth"), dict)
+        and not r["belief_vs_truth"].get("available")
+    ]
+    if not absent:
+        pytest.skip("every household-day on this page is measurable against the published series")
+
+    html = _stage(absent[0]["account_id"])
+    assert "Not checked against the published grid" in html, (
+        "a day with no published series to check against renders nothing about it, which is "
+        "indistinguishable from a day where the two series agreed"
+    )
