@@ -170,7 +170,7 @@ def test_no_control_the_site_lane_executes_is_missing_from_the_repository():
     assert not untracked, (
         "the site lane EXECUTES controls that exist in no commit -- pytest collects from "
         "the working tree, so each of these is collected, passes, and is counted in the "
-        f"gate's `✓ site tests green`, while no clone of this repository has it:\n  - "
+        "gate's `✓ site tests green`, while no clone of this repository has it:\n  - "
         + "\n  - ".join(untracked)
         + "\nThe assurance they produce is real on this machine only, and any committed "
         "record that cites one of them as its discharge or as a covered subject is "

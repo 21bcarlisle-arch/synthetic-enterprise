@@ -65,10 +65,10 @@ Exit status: 0 all doors verified, 1 any failure (including "could not check").
 from __future__ import annotations
 
 import argparse
-import json
-import re
 import itertools
+import json
 import os
+import re
 import subprocess
 import sys
 import tempfile

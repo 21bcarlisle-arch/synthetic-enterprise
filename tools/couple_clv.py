@@ -166,8 +166,12 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
-from background.gap_metric import (NORMALISATION_DIVISOR, DIVISOR_RAW_GAP_IS,
-                                   GapResult, write_gap_entry)
+from background.gap_metric import (
+    DIVISOR_RAW_GAP_IS,
+    NORMALISATION_DIVISOR,
+    GapResult,
+    write_gap_entry,
+)
 
 #: The ledger key. EP1 is a COMPANY atom, and the pair it stands in is
 #: company-belief vs world-outcome rather than one map world atom -- the ledger

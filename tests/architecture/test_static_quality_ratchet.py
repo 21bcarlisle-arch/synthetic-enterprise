@@ -342,10 +342,64 @@ BASELINE_DATE = "2026-08-06"
 #   E401 multiple-imports-on-one-line ..   21
 # `invalid-syntax` (1) is a Python-3.12-only f-string in
 # company/trading/emir_reporting_register.py.
+#
+# 2026-08-26  RED AT HEAD AGAIN, 22 violations across 8 codes; all 22 REPAIRED,
+#   F401 SHRUNK 278 -> 277. This is the fourth entry in this log recording the same
+#   shape, and the shape is not a coincidence: the pre-commit gate SELECTS TESTS BY
+#   THE FILENAME STEM OF THE CHANGED PATHS, so this module runs only on a commit that
+#   touches `test_static_quality_ratchet.py` itself. Every other commit is invisible to
+#   it. That is the standing finding
+#   WORKER_FINDING_THE_RUFF_RATCHET_IS_RED_AT_HEAD_AND_ONLY_SOME_COMMITS_CAN_SEE_IT
+#   (2026-08-14), and it is a SCOPE defect in the control, not in the commits: a
+#   shrink-only ratchet whose scope excludes almost every commit that can move it will
+#   accrete, be found late, and be paid by whoever next touches this file. Recorded
+#   here because the repair does not fix it; only changing what selects this test does.
+#
+#   MEASURED on `git archive HEAD` + an overlay of exactly this commit's 13 paths (the
+#   HEAD+pathspec tree the gate actually lints), never the working tree — the 2026-08-09
+#   episode-3 entry above is why, and the stale edit this pass discarded is why again:
+#   it sat uncommitted for 8 days claiming I001 1367 / F401 276 / F541 26 against a tree
+#   measuring 1380 / 277 / 28, numbers that were true of a working tree in 2026-08-18 and
+#   of no tree since. A baseline measured on a shared dirty tree expires the moment
+#   another lane commits or reverts.
+#
+#   THE 22, and what each actually was. Eight are real defects; one is a missing
+#   annotation and is labelled as such rather than counted as a fix.
+#     W291 3 + W293 2  tests/design/test_maturity_map_facets.py — trailing whitespace.
+#     F841 5  tools/generate_dashboard_data.py — the five REPORTED_NOT_BLOCKING checks
+#       whose results are deliberately unused (they run for their printed diagnosis).
+#       Renamed to `_basis_ok` &c: the intent was already correct and documented above
+#       them, so the name now SAYS deliberately-unused instead of ruff guessing.
+#     E741 2  tools/lane_formation.py — `l` as a comprehension variable; it binds a lane
+#       id, so it is now `lane`.
+#     F541 1  site/test_the_site_lane_runs_no_untracked_control.py — placeholder-less f.
+#     E401 1  tests/background/test_reconcile_watch.py — `import ast, inspect` split.
+#     I001 7  seven clean files `--fix`ed one at a time, this ratchet's own stated
+#       remedy. NOT a repo-wide `--fix`: 1373 files offend and the tree has concurrent
+#       writers, so a sweep would rewrite hundreds of files belonging to other lanes.
+#     E402 1  background/health_check.py:34 — the ONE that is an annotation, not a fix.
+#       Both imports there must follow `sys.path.insert`; line 23 already carries
+#       `# noqa: E402` saying so and line 34 did not. Making the file consistent
+#       suppresses nothing line 23 was not already suppressing, but it is a notation
+#       change and is not evidence that a defect was removed.
+#
+#   ONE AUTO-FIX HAD TO BE UNDONE BY HAND, and it is the reason `--fix` is not trusted
+#   blind here. On `background/notify.py` ruff's isort split a single
+#   `from background.alarm_repetition import (...)  # noqa: E402` into TWO statements and
+#   carried the `noqa` onto only one of them — clearing one I001 and MINTING a fresh
+#   E402, so the census came back with E402 still one over. Rewritten by hand as one
+#   sorted block keeping the noqa. An import-sorter that can move a `noqa` off the line
+#   it was written for can convert one violation into another, which no total will show
+#   you: it was caught because the per-code census was set-differenced against HEAD's,
+#   not because the sum looked wrong.
+#
+#   F401 277 is NOT this pass's doing — it was already one BELOW the floor at pristine
+#   HEAD, i.e. someone deleted an unused import without lowering the baseline. Shrunk
+#   here per the shrink-only rule, which is the whole point of the stale-entry check.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
     "I001": 1373,
-    "F401": 278,
+    "F401": 277,
     "E402": 176,
     "F841": 128,
     "E741": 108,
@@ -364,7 +418,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2379  # was 2381; -2 (see 2026-08-17 entry above)
+RUFF_BASELINE_TOTAL = 2378  # was 2379; -1 (F401 278 -> 277; see the 2026-08-26 entry)
 
 
 # --------------------------------------------------------------------------

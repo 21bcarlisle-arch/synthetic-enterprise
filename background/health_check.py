@@ -31,7 +31,7 @@ from background.notify import notify  # noqa: E402
 # Dark-gated (executor-daemon, correctly absent when not enabled) and support services
 # (token-proxy, file-api) carry health_checked:false in the manifest, so they are excluded
 # here exactly as before — plus naive-organ is now correctly included.
-from background import process_reconciler as _reconciler
+from background import process_reconciler as _reconciler  # noqa: E402
 EXPECTED_PANES = _reconciler.health_checked_map()
 
 

@@ -56,7 +56,10 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 from tools.epistemic_wall import (  # noqa: E402
-    COMPANY_PACKAGES, WALL_DIRS, build_edges, top_package,
+    COMPANY_PACKAGES,
+    WALL_DIRS,
+    build_edges,
+    top_package,
 )
 
 #: Modules that ARE the network. Anything importing one of these can open a socket, and

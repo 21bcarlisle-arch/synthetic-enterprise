@@ -80,6 +80,7 @@ from pathlib import Path
 from typing import Dict, Iterable, Mapping, Optional, Sequence
 
 from background.coupled_triad import GAP_LEDGER_PATH
+
 # Imported at TOP LEVEL with no `try` ON PURPOSE (R15 FAIL-SILENT): if the
 # refusal cannot be imported, this module must not import either. An
 # unavailable check is a FAILED check, never a skipped one.

@@ -386,7 +386,7 @@ REVIEWED_CLOSE_TO_LEARN = {
     "SITE_director_window_delta_view",
     "A1_learn_loop_chair", "A2_decision_rights_register", "A3_approval_interface",
     "A4_sim_approver", "A5_tournament_fitness_mortality", "A6_coupled_triad_gap_metric",
-    "A7_harm_cost_weights_decision", 
+    "A7_harm_cost_weights_decision",
     # 2026-07-23 reviewed (publish-gate unwedge, DIRECTOR_RULING_UNWEDGE_AND_AXIS3): the harness/
     # gap-measurement leg of the F1 conversations coupled triad -- measures the belief-vs-truth GAP
     # between the SIM customer response (F1a) and the COMPANY's estimated susceptibility (F1b), NOT
@@ -423,8 +423,8 @@ REVIEWED_CLOSE_TO_LEARN = {
     "H8_harness_bootstrap_dr", "H9_map_write_serialisation", "H10_worktree_isolation",
     "H11_naive_organ", "H12_mutation_test_controls", "H14_judge_validation",
     "H15_publish_gate_failure_alert", "H16_idle_detection_stability_gate",
-    "H19_escalation_ntfy_route_around", 
-    
+    "H19_escalation_ntfy_route_around",
+
     "H23_frame_saturation_draw_marker", "H23_publish_gate_scope_marker",
     "H24_precommit_gate_git_env_isolation", "H24_worktree_dir_autoreap",
      # 2026-07-28 reviewed: scoped defense-in-depth residual of H24 (gate-run tests discover the real .git by upward-walk from cwd=ROOT) -- same commit/publish-chain-integrity close_to_learn class as H24/H26
@@ -432,7 +432,7 @@ REVIEWED_CLOSE_TO_LEARN = {
      # 2026-07-18 reviewed: governance/authority infra (director phone-[ACT] channel) -- shortens the director-decision feedback loop, the same close_to_learn class as its siblings H25/H26/G10/A3
     "H_draw_excludes_external_blocked_atoms",
     "OPS1_operational_layer_rebuild", "OPS1_session_watchdog_collapse",
-    "OPS1_tmux_target_qualification", 
+    "OPS1_tmux_target_qualification",
     "OPS1_transport_failure_must_be_loud",
     "SITE1_expert_doors",
     # 2026-07-27 minted from DIRECTOR_RULING_HARNESS_INVESTMENT_AND_ITS_EVIDENCE (Problem One):
@@ -444,7 +444,7 @@ REVIEWED_CLOSE_TO_LEARN = {
     # exit-criterion counter / stall-set coverage / counter-published atoms -- they MEASURE the
     # harness's own stall behaviour (belief-vs-truth about whether the machine actually stalled),
     # the same close_to_learn class as the H1..H27 harness siblings, not a revenue-flow movement.
-    
+
     # 2026-07-27 minted from DIRECTOR_RULING_COHORT_ASSIGNMENT_ACTIVATED (WORK THIS CREATES item 3):
     # marks volume-dependent segmentation capabilities untestable-at-current-book in the FIDELITY
     # ledger -- a belief-vs-truth / claim-status honesty atom, sibling to G2_fidelity_evidence_ledger,

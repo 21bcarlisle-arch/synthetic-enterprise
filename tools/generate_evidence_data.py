@@ -86,8 +86,6 @@ if str(SITE) not in sys.path:
 if str(PROJECT) not in sys.path:
     sys.path.insert(0, str(PROJECT))
 
-from tools import simplifications_store as store  # noqa: E402 (H41 record tenant)
-
 # SITE4: /evidence/ is the one advertised area with NO `<nav>` element at all, and the
 # only one whose page is GENERATED (here, every ~30 minutes on the publish path) --
 # hand-editing the file is overwritten within the hour, so its nav has to be rendered
@@ -95,6 +93,8 @@ from tools import simplifications_store as store  # noqa: E402 (H41 record tenan
 # rather than re-implemented: a second nav definition is the drift this step exists to
 # end. site/ is already on sys.path above.
 import ia_register as _ia  # noqa: E402
+
+from tools import simplifications_store as store  # noqa: E402 (H41 record tenant)
 
 MAP_PATH = PROJECT / "docs" / "design" / "maturity_map.yaml"
 STORE_DIR = PROJECT / "docs" / "design" / "simplifications"

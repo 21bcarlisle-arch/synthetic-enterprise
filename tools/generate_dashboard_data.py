@@ -1898,14 +1898,14 @@ def generate(run_json_path=None):
     # and tests/tools/test_publish_blockers_guard_a_reachable_page.py fails the commit if
     # any of them cannot -- so this class cannot come back by accretion.
     population_ok = _check_population_consistency(data, dashboard)
-    basis_ok = _check_basis_labels_present(portfolio)
+    _basis_ok = _check_basis_labels_present(portfolio)
     # The label being PRESENT and the label being TRUE are two checks; the
     # margin-basis finding got past the first one for the whole life of the
     # defect (2026-08-17).
-    parentage_ok = _check_derived_basis_parentage(portfolio)
-    bridge_ok = _check_bridge_reconciles()
-    bad_debt_ok = _check_bad_debt_reconciliation_present(dashboard["financial"])
-    period_ok = _check_period_coverage_present(dashboard["financial"])
+    _parentage_ok = _check_derived_basis_parentage(portfolio)
+    _bridge_ok = _check_bridge_reconciles()
+    _bad_debt_ok = _check_bad_debt_reconciliation_present(dashboard["financial"])
+    _period_ok = _check_period_coverage_present(dashboard["financial"])
     mix_claim_ok = _check_front_door_segment_claim(dashboard)
     # Only the checks whose figures a reader can actually reach decide the verdict. The other
     # five still ran above and printed their diagnosis; see REPORTED_NOT_BLOCKING for why they

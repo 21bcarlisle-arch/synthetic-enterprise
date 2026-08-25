@@ -162,8 +162,8 @@ def formation(window_days: int = DEFAULT_WINDOW_DAYS) -> dict[str, Any]:
         if a.get("loop_stage") == "build"
         and (a.get("level_current") or 0) < (a.get("level_target") or 0)
     }
-    starved = sorted(l for l in buildable_lanes if per_lane[l] < STARVED_LANE_FLOOR)
-    shares = {l: n / attributed for l, n in per_lane.items()}
+    starved = sorted(lane for lane in buildable_lanes if per_lane[lane] < STARVED_LANE_FLOOR)
+    shares = {lane: n / attributed for lane, n in per_lane.items()}
     top_lane, top_n = per_lane.most_common(1)[0]
 
     reasons: list[str] = []

@@ -36,8 +36,8 @@ TRANSITIONS_FILE = _HERE.parent / "docs" / "observability" / ".notify_transition
 # same number -- two copies of one constant is how the document ends up citing a bar that is
 # no longer the bar.
 from background.alarm_repetition import (  # noqa: E402
-    ESCALATE_AFTER_REPEATS as _ESCALATE_AFTER,
     EPISODE_GAP_SECONDS as _EPISODE_GAP,
+    ESCALATE_AFTER_REPEATS as _ESCALATE_AFTER,
 )
 
 # G-N2: the closed set of notification kinds, each with a structural tag the director sees.

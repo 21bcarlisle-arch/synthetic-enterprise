@@ -288,7 +288,7 @@ def map_levels() -> dict:
 
 def publish_state() -> dict:
     try:
-        from background.publish_freshness import snapshot, describe
+        from background.publish_freshness import describe, snapshot
         snap = snapshot()
         return {"available": True, "describe": describe(snap)}
     except Exception as exc:

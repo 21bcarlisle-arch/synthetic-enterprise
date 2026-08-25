@@ -199,7 +199,8 @@ def test_the_drift_check_never_restarts_anything():
     # function's own docstring, which contains "restart" precisely because it promises not to --
     # a check reading text it should not have been reading, which is the day's recurring shape
     # in miniature.
-    import ast, inspect
+    import ast
+    import inspect
     tree = ast.parse(inspect.getsource(W._drift_report).strip())
     fn = tree.body[0]
     if (fn.body and isinstance(fn.body[0], ast.Expr)
