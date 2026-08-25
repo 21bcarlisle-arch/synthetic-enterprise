@@ -1025,6 +1025,24 @@ def extract_report_data(run_output: dict) -> dict:
         # existed yields `None`, and `_three_horizon_clv_section` prints
         # NOT_AVAILABLE for it under a named reason rather than a zero.
         "three_horizon_clv": run_output.get("three_horizon_clv"),
+        # EP1's SAME estimate as a per-year-end SERIES, forwarded UNTOUCHED beside the
+        # terminal table above. THIS LINE IS THE ONE THAT WAS MISSING, and its absence
+        # is why pass 18 wired a belief series that could never arrive. The producer
+        # has computed `three_horizon_clv_snapshots` on every run since that pass, but
+        # `docs/reports/run_output_latest.json` is this function's REDUCED output, not
+        # the raw run -- so a key the reducer does not name is dropped between the two,
+        # silently and with no error anywhere. `tools/couple_clv` reads the reduced
+        # artefact, found no series, fell back to `saas.clv_model.build_clv` and went on
+        # reporting `grades_atom_estimator=False` under the reason
+        # `run_predates_ep1_belief_series` -- which told four consecutive runs to wait
+        # for a NEXT run that would have been just as empty.
+        #
+        # Pass 18 verified a four-link AST chain (key -> door -> impl -> EP1) proving
+        # the PRODUCER publishes the series honestly. Every link held. The chain simply
+        # stopped one link short of the artefact the grader actually opens, which is the
+        # same mis-subjection shape pass 17 found one layer down: a control that is
+        # correct, can fail, and is aimed slightly to the left of its subject.
+        "three_horizon_clv_snapshots": run_output.get("three_horizon_clv_snapshots"),
         "hedge_effectiveness_total": hedge_effectiveness_total,
         "customer_events": phase2b.get("customer_events", []),
         "churned_billing_accounts": phase2b.get("churned_billing_accounts", []),

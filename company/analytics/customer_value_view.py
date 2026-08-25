@@ -69,6 +69,7 @@ from dataclasses import dataclass
 from company.analytics.clv_three_horizon import (
     AccountObservables,
     BookCLV,
+    Horizon,
     RenewalPoint,
     estimate_book,
 )
@@ -77,7 +78,11 @@ from saas.cost_to_serve import build_cost_to_serve, build_cost_to_serve_ledger_e
 from saas.enterprise_value import build_enterprise_value, ceased_billing_accounts
 from saas.home_move_win_rate import build_home_move_win_rates
 
-__all__ = ["CustomerValueView", "build_customer_value_view"]
+__all__ = [
+    "CustomerValueView",
+    "build_customer_value_view",
+    "build_three_horizon_clv_snapshots",
+]
 
 #: Contract term in years, by the roster's own `contract_type`. Anything unmapped
 #: takes 365 days — NOT as a silent default but as the assumption
@@ -226,3 +231,158 @@ def _clv_observables(
             )
         )
     return observables
+
+
+#: How a blank travels into the snapshot series. `HorizonValue.value_gbp is None`
+#: means THE COMPANY CANNOT VALUE THIS ACCOUNT ON THIS HORIZON and the reason is in
+#: the population; a series that dropped the reason would republish constraint 3's
+#: defect ("a structural blank is not the number zero") one layer out. Emitted when
+#: a horizon is blank and its population recorded no reason at all — which the
+#: estimator does not do today, so this string appearing in an artefact is a
+#: FINDING, not a state to design around. It is never `None`: a blank whose reason
+#: field is also blank is indistinguishable from a value that was simply not written.
+BLANK_WITHOUT_REASON = "blank_reason_not_recorded"
+
+
+def _blank_reason(horizon_value) -> str | None:
+    """The named reason a horizon is blank, or `None` when it is not blank.
+
+    Joined with "|" on the (today impossible) chance an account-level population
+    records more than one reason, rather than picking the first and discarding the
+    rest — a silently-dropped reason is the thing this field exists to prevent.
+    """
+    if horizon_value.value_gbp is not None:
+        return None
+    reasons = sorted(horizon_value.population.reasons)
+    return "|".join(reasons) if reasons else BLANK_WITHOUT_REASON
+
+
+def build_three_horizon_clv_snapshots(
+    settlement_records: list[dict],
+    customers: list[dict],
+    price_differential_pct: float,
+    *,
+    years: list[str] | None = None,
+) -> dict:
+    """EP1's own estimate, recorded at each year end from what was observable THEN.
+
+    WHY THIS EXISTS, AND IT IS THE BINDING L3 BLOCKER RATHER THAN A NICETY. Under
+    the COUPLED TRIAD rule the gap between the company's belief and realised truth
+    IS this atom's score, and a gap needs a belief recorded BEFORE the outcome.
+    `three_horizon_clv` is one END-OF-RUN table: every number in it was formed after
+    everything that could refute it had already happened, so it can be reported and
+    never GRADED. Pass 17 measured what filled the vacuum -- the ledger row keyed
+    `EP1_clv_three_horizon` was grading `saas.clv_model.build_clv`, a different
+    estimator entirely, and stayed bit-identical when EP1's whole published table was
+    deleted from the artefact. This function is the belief series that makes the row
+    able to be about EP1 at all.
+
+    THE POINT-IN-TIME BOUND LIVES HERE, IN THE CALLER, EXACTLY AS THIS MODULE'S
+    DOCSTRING SAID IT WOULD. That docstring states that `build_customer_value_view`
+    deliberately takes no `as_of` -- it is an after-the-fact aggregation over records
+    that have already settled -- and that "if a future caller ever routes a
+    point-in-time DECISION through this output, that caller needs the bound". A
+    backtest is precisely that caller: each year's view is built from the records
+    truncated at `{year}-12-31` and nothing else, so year Y's belief cannot contain
+    a fact from year Y+1. Note this is the shape of the 2026-07-10 hedge-volatility
+    foresight bug, which is why the bound is applied to the INPUT rather than
+    filtered out of the output afterwards.
+
+    NOTHING IS RE-DERIVED. Each snapshot is a real `build_customer_value_view` call
+    on the truncated window, so cost-to-serve, churn risk, cessation and EP1's
+    observables are formed by the same code the end-of-run table uses. A snapshot
+    builder that assembled EP1's inputs itself would be the seventh fork of one
+    quantity this atom's own reconciliation register was built to stop. Measured
+    cost of the whole ten-year series on a 258-account, 18,684-record book: 0.2s,
+    against 0.08s for the single full build it sits beside.
+
+    THE ROSTER IS PASSED WHOLE AND THAT IS NOT A LEAK. `_clv_observables` iterates
+    the TRUNCATED `churn_risk`, so an account with no settlement at or before the
+    cutoff never reaches the roster lookup; a customer acquired in 2024 is absent
+    from the 2021 snapshot rather than valued at zero in it. The fields then read
+    (`segment`, `acquisition_date`, `contract_type`, `acquisition_type`) are facts
+    known when the customer was signed, never outcomes. This is asserted by a test
+    that adds a future-acquired customer and requires the earlier snapshots to be
+    byte-identical, not by this paragraph.
+
+    `years` defaults to every calendar year the records themselves touch, derived
+    from the settlement dates rather than from a constant or a clock -- a run that
+    stops in June publishes no snapshot for a year it never reached.
+
+    Returns::
+
+        {"discount_rate": float,
+         "aggregate_horizon": str,
+         "years": {"2021": {"cutoff": "2021-12-31",
+                            "observation_edge": "2021-06-07" | None,
+                            "covers_full_year": bool,
+                            "accounts": {"C1": {"tenure_expected": {"value_gbp": float | None,
+                                                                    "reason": str | None},
+                                                ...}}}}}
+
+    `observation_edge` is the newest settlement the supplier had actually observed at
+    the cutoff, and `covers_full_year` says whether the run reached the year's final
+    day. Both are carried because a PARTIAL year is a real reading of a shorter
+    period and not a low reading of a full one -- ranking the two against each other
+    is what published a £3,255,946 "fall" that never happened, and a grader that
+    took the last snapshot as a full year would repeat it one artefact away.
+    """
+    if years is None:
+        years = sorted({r["settlement_date"][:4] for r in settlement_records})
+
+    out: dict[str, dict] = {}
+    basis: BookCLV | None = None
+    for year in years:
+        cutoff = year + "-12-31"
+        records_to_year = [
+            r for r in settlement_records if r["settlement_date"] <= cutoff
+        ]
+        # The edge of what the supplier had observed. Derived from the ALREADY
+        # truncated window, so it can never be later than the cutoff and consults
+        # nothing unobserved. It is the same quantity `ceased_billing_accounts`
+        # takes as its own default, which is why cessation is left to that default
+        # below rather than being passed an override -- passing one is what emptied
+        # the 2025 snapshot in the sibling series.
+        edge = (
+            max(r["settlement_date"] for r in records_to_year)
+            if records_to_year
+            else None
+        )
+        book = build_customer_value_view(
+            records_to_year, customers, price_differential_pct
+        ).three_horizon_clv
+        basis = book
+        out[year] = {
+            "cutoff": cutoff,
+            "observation_edge": edge,
+            "covers_full_year": edge is not None and edge >= cutoff,
+            "accounts": {
+                account.account_id: {
+                    horizon.value: {
+                        "value_gbp": account.horizon(horizon).value_gbp,
+                        "reason": _blank_reason(account.horizon(horizon)),
+                    }
+                    for horizon in Horizon
+                }
+                for account in sorted(book.accounts, key=lambda a: a.account_id)
+            },
+        }
+
+    # The basis travels with the series for the reason `BookCLV` requires it: a
+    # valuation number without its horizon and its discount rate is R14's defect in
+    # a different currency, and a grader that had to guess which horizon it was
+    # comparing would be guessing about the thing it grades. Read off a REAL book
+    # rather than restated from the module constants, so a change to either cannot
+    # leave the label behind.
+    #
+    # With no years there is no book, so there is no basis -- and `null` here says
+    # exactly that rather than naming a horizon nothing was computed on. This is the
+    # empty branch, so it is where a fail-open would hide: a consumer must refuse an
+    # unlabelled series, and `tools/couple_clv.py` does.
+    return {
+        "discount_rate": basis.discount_rate if basis is not None else None,
+        "aggregate_horizon": (
+            basis.aggregate_horizon.value if basis is not None else None
+        ),
+        "years": out,
+    }

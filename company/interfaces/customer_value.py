@@ -27,6 +27,14 @@ WHAT THIS DOES NOT DO. The billing-experience group (`saas.contact_model`,
 crossings of the run module. They are a different process on a different input
 (`bills`, not settled records) and §3h already ruled the third a routing
 residual. Stated rather than left to be discovered from a count that stops at 4.
+
+WHAT THE SECOND EXPORT IS FOR. `build_three_horizon_clv_snapshots` takes the same
+two things the world owns -- settled records and the customer book -- and hands
+back EP1's estimate as it stood at each year end. It crosses HERE rather than
+being composed world-side for the same reason the view does: the truncation is
+arithmetic on records the world already handed over, and what the supplier
+believed in 2021 is the supplier's own affair. The world never learns anything
+by the call that it did not already own.
 """
 
 from __future__ import annotations
@@ -34,6 +42,11 @@ from __future__ import annotations
 from company.analytics.customer_value_view import (
     CustomerValueView,
     build_customer_value_view,
+    build_three_horizon_clv_snapshots,
 )
 
-__all__ = ["CustomerValueView", "build_customer_value_view"]
+__all__ = [
+    "CustomerValueView",
+    "build_customer_value_view",
+    "build_three_horizon_clv_snapshots",
+]

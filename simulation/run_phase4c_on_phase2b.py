@@ -69,7 +69,10 @@ from company.interfaces.accounting_close import close_the_books
 from company.interfaces.dd_review import annual_dd_review_view
 from company.interfaces.bill_assembly import assemble_monthly_bills
 from company.interfaces.billing_experience import build_billing_experience_view
-from company.interfaces.customer_value import build_customer_value_view
+from company.interfaces.customer_value import (
+    build_customer_value_view,
+    build_three_horizon_clv_snapshots,
+)
 from company.interfaces.supply_book import (
     acquired_supply_points,
     successor_supply_points,
@@ -495,6 +498,34 @@ def main(report_end: str | None = None, policy=None):
         "churn_risk": churn_risk,
         "home_move_win_rates": home_move_win_rates,
         "enterprise_value": enterprise_value,
+        # EP1 -- the same book on three valuation bases, handed over in the ONE
+        # published shape the estimator owns. Serialised here rather than in the
+        # reporting layer because `saas/` never imports `simulation/` and the
+        # `BookCLV` object dies with this process: what crosses is plain data, the
+        # same discipline every other key in this dict follows.
+        #
+        # This key is what closes "computed on every run and read by nothing". It
+        # sits BESIDE `enterprise_value`, which is still the figure the board and
+        # the live site are published from -- swapping the number under a published
+        # surface is a separate act needing evidence on the rendered value (R11),
+        # not a side effect of giving the estimator a reader.
+        "three_horizon_clv": customer_value.three_horizon_clv.as_published_dict(),
+        # EP1's SAME estimate, recorded at each year end from what the supplier could
+        # see THEN. The end-of-run table above can be reported and never GRADED: every
+        # number in it was formed after everything that could refute it had happened.
+        # Under the COUPLED TRIAD rule the gap is this atom's score, and a gap needs a
+        # belief recorded BEFORE the outcome -- so without this key the ledger row
+        # keyed `EP1_clv_three_horizon` had nothing of EP1's to grade, and pass 17
+        # measured that it was silently grading `saas.clv_model.build_clv` instead.
+        #
+        # The point-in-time bound lives company-side, in the snapshot builder, which
+        # is what `customer_value_view`'s own docstring said a caller routing a
+        # point-in-time decision would have to do. The world hands over the same two
+        # things it already hands over and learns nothing new by the call. Measured
+        # cost of the full ten-year series on a 258-account book: 0.2s.
+        "three_horizon_clv_snapshots": build_three_horizon_clv_snapshots(
+            all_records, all_customers, PRICE_DIFFERENTIAL_PCT
+        ),
         "price_differential_pct": PRICE_DIFFERENTIAL_PCT,
         "ledger_events": ledger_events,
         "ledger_pnl": ledger_pnl,

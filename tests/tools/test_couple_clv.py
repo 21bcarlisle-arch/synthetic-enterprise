@@ -466,14 +466,20 @@ def test_the_ledger_entry_names_the_estimator_it_actually_grades():
 
 
 def test_deleting_ep1s_entire_output_leaves_the_headline_identical():
-    """THE MIS-SUBJECTION, PINNED.
+    """THE MIS-SUBJECTION, PINNED -- AND SINCE 2026-08-25 IT PINS THE FALLBACK.
 
-    This is the mutation that exposed the defect, kept as a permanent control.
-    It asserts the CURRENT, honest state: EP1's output is not an input here. The
-    day someone wires EP1's estimator into the graded belief this test FAILS --
-    which is the point. It fails loudly at the moment the declaration
-    `GRADES_ATOM_ESTIMATOR = False` stops being true, instead of letting the row
-    silently start meaning something new.
+    RESTATED RATHER THAN LEFT TO DRIFT, because what it means changed under it and
+    a control that quietly starts asserting something else is this atom's own
+    recurring defect. Pass 17 wrote it as the permanent record of the mis-subjection
+    and said "the day someone wires EP1's estimator into the graded belief this test
+    FAILS -- which is the point". Pass 18 wired it, and this test did NOT fail: the
+    `_run()` fixture carries no `three_horizon_clv_snapshots`, so it exercises the
+    FALLBACK path, where the legacy series is still graded under a named reason.
+
+    That is worth keeping and worth naming. It is now the control that an artefact
+    predating the wiring is still measured honestly -- terminal `three_horizon_clv`
+    is not, and never was, an input to a backtest. The EP1 path is pinned from the
+    other side by `test_moving_the_legacy_belief_no_longer_moves_the_headline`.
     """
     run = _run()
     run["three_horizon_clv"] = {
@@ -636,3 +642,273 @@ def test_measure_propagates_an_unresolvable_provenance(monkeypatch):
     monkeypatch.setattr(couple_clv, "belief_provenance", _boom)
     with pytest.raises(FileNotFoundError):
         couple_clv.measure(_run())
+
+
+# =============================================================================
+# EP1'S OWN BELIEF SERIES -- 2026-08-25, pass 18
+# =============================================================================
+#
+# Pass 17 proved this row graded `saas.clv_model.build_clv` and not the atom it is
+# keyed to, by mutating the SUBJECT rather than the checker: EP1's whole published
+# output could be deleted without moving the headline. These controls are the
+# INVERSE of that mutation, and they are the only evidence that would settle it --
+# a row that grades EP1 must move when EP1's belief moves and must NOT move when
+# the legacy belief moves. Anything less is a re-subjection claim resting on the
+# wiring rather than on the number.
+
+
+def _ep1_series(beliefs, horizon="tenure_expected", years=("2016", "2017")):
+    """EP1's series in the shape `build_three_horizon_clv_snapshots` publishes.
+
+    `beliefs` is {account: value_or_None}. The LATER year is deliberately a
+    different number: the module must take the EARLIEST, which for a ceased
+    account is the only year it has a forward belief at all.
+    """
+    def _cell(value, scale):
+        v = None if value is None else value * scale
+        return {
+            "contract_term": {"value_gbp": v, "reason":
+                              None if v is not None else "no_margin_observed"},
+            "tenure_expected": {"value_gbp": v, "reason":
+                                None if v is not None else "no_margin_observed"},
+            "portfolio_cohort": {"value_gbp": 1.0, "reason": None},
+        }
+    return {
+        "discount_rate": 0.10,
+        "aggregate_horizon": horizon,
+        "years": {
+            year: {
+                "cutoff": f"{year}-12-31",
+                "observation_edge": f"{year}-12-31",
+                "covers_full_year": True,
+                "accounts": {a: _cell(v, 1.0 if i == 0 else 10.0)
+                             for a, v in beliefs.items()},
+            }
+            for i, year in enumerate(years)
+        },
+    }
+
+
+def _run_with_ep1(counted=None, **kw):
+    counted = counted if counted is not None else [
+        ("C1", 900.0, 200.0), ("C3", 600.0, 100.0), ("C4", 700.0, -200.0)]
+    run = _run(counted=counted, **kw)
+    run[couple_clv.EP1_BELIEF_FIELD] = _ep1_series(
+        {a: b for a, b, _ in counted})
+    return run
+
+
+def test_the_tree_wires_ep1s_own_belief_series():
+    """The declaration is TRUE of the tree it ships in, or it is decoration."""
+    prov = couple_clv.ep1_series_provenance()
+    assert prov["published_by_producer"] is True
+    assert prov["reached_through_the_door"] is True
+    assert prov["series_uses_the_shared_view_builder"] is True
+    assert prov["atom_estimator_imported_by_series"] is True
+    assert prov["grades_atom_estimator"] is True
+
+
+def test_a_run_carrying_ep1s_series_is_graded_on_ep1s_own_belief():
+    result, _ = couple_clv.measure(_run_with_ep1())
+    assert result.components["grades_atom_estimator"] is True
+    prov = result.components["belief_provenance"]
+    assert prov["graded_belief_field"] == couple_clv.EP1_BELIEF_FIELD
+    assert prov["graded_horizon"] == "tenure_expected"
+    assert prov["fallback_reason"] is None
+    # The note SAYS it, not merely a field a reader may not open.
+    assert "EP1's OWN estimator" in result.note
+    assert "does NOT grade EP1" not in result.note
+
+
+def test_moving_ep1s_belief_moves_the_headline():
+    """The mutation pass 17 could not make fire. If EP1's published belief can
+    change without moving this number, the row still is not about EP1."""
+    run = _run_with_ep1()
+    base = couple_clv.measure(run)[0].gap
+    moved = copy.deepcopy(run)
+    for year in moved[couple_clv.EP1_BELIEF_FIELD]["years"].values():
+        for cell in year["accounts"].values():
+            cell["tenure_expected"]["value_gbp"] *= 1.5
+    assert couple_clv.measure(moved)[0].gap != base
+
+
+def test_moving_the_legacy_belief_no_longer_moves_the_headline():
+    """THE RE-SUBJECTION, PINNED FROM THE OTHER SIDE. Pass 17's null control was
+    that nudging `clv_snapshots` moved the number -- proof the row was about the
+    legacy estimator. Once EP1's series is present that must STOP being true, or
+    the two beliefs are being blended and the row is about neither."""
+    run = _run_with_ep1()
+    base = couple_clv.measure(run)[0].gap
+    moved = copy.deepcopy(run)
+    for snap in moved["clv_snapshots"].values():
+        for account in snap:
+            if isinstance(snap[account], (int, float)):
+                snap[account] *= 1.01
+    assert couple_clv.measure(moved)[0].gap == base
+
+
+def test_the_graded_horizon_is_read_from_the_series_not_assumed():
+    """A series that quotes a different aggregate basis must be graded on THAT
+    one. Hardcoding the horizon here would silently grade a number the book no
+    longer publishes."""
+    run = _run_with_ep1()
+    base = couple_clv.measure(run)[0].gap
+    other = copy.deepcopy(run)
+    other[couple_clv.EP1_BELIEF_FIELD]["aggregate_horizon"] = "portfolio_cohort"
+    result, _ = couple_clv.measure(other)
+    assert result.components["belief_provenance"]["graded_horizon"] == (
+        "portfolio_cohort")
+    assert result.gap != base
+
+
+def test_an_ep1_blank_is_excluded_by_name_and_never_enters_as_zero():
+    run = _run(counted=[("C1", 900.0, 200.0), ("C3", 600.0, 100.0)])
+    run[couple_clv.EP1_BELIEF_FIELD] = _ep1_series({"C1": 900.0, "C3": None})
+    result, detail = couple_clv.measure(run)
+    assert result.components["grades_atom_estimator"] is True
+    assert {e["account"] for e in detail["excluded"]
+            if e["reason"] == couple_clv.EXCLUSION_NO_SNAPSHOT} == {"C3"}
+    assert [r["account"] for r in detail["counted"]] == ["C1"]
+
+
+@pytest.mark.parametrize("break_it,reason", [
+    (lambda run: run.pop(couple_clv.EP1_BELIEF_FIELD),
+     couple_clv.FALLBACK_SERIES_ABSENT),
+    (lambda run: run[couple_clv.EP1_BELIEF_FIELD].update({"years": {}}),
+     couple_clv.FALLBACK_SERIES_EMPTY),
+    (lambda run: run[couple_clv.EP1_BELIEF_FIELD].update(
+        {"aggregate_horizon": None}), couple_clv.FALLBACK_SERIES_UNLABELLED),
+])
+def test_an_unusable_ep1_series_falls_back_under_a_named_reason(break_it, reason):
+    """FAIL-CLOSED, and NAMED. An unlabelled or empty series must not be graded
+    on a guessed horizon, and the fallback must not read like a choice: an
+    artefact that predates the wiring and a tree that never had it call for
+    different work, so the ledger has to tell them apart."""
+    run = _run_with_ep1()
+    break_it(run)
+    result, _ = couple_clv.measure(run)
+    prov = result.components["belief_provenance"]
+    assert result.components["grades_atom_estimator"] is False
+    assert prov["fallback_reason"] == reason
+    # ...and the wiring fact survives the fallback: the TREE does wire EP1.
+    assert prov["tree_wires_ep1"] is True
+    assert "does NOT grade EP1" in result.note
+    assert reason in result.note
+
+
+# --- The chain, mutated link by link -----------------------------------------
+
+_EP1_IMPL = """\
+from company.analytics.clv_three_horizon import estimate_book
+
+
+def build_three_horizon_clv_snapshots(records, customers, pct):
+    build_customer_value_view(records, customers, pct)
+    return {}
+"""
+
+_EP1_PRODUCER = """\
+from company.interfaces.customer_value import build_three_horizon_clv_snapshots
+
+
+def main():
+    return {"three_horizon_clv_snapshots": build_three_horizon_clv_snapshots(1, 2, 3)}
+"""
+
+
+def _ep1_tree(tmp_path, producer=_EP1_PRODUCER, impl=_EP1_IMPL):
+    root = tmp_path / "r"
+    for rel, text in ((couple_clv.EP1_PRODUCER_FILE, producer),
+                      (couple_clv.EP1_SERIES_IMPL_FILE, impl)):
+        path = root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+    return root
+
+
+def test_the_synthetic_chain_resolves_so_the_mutations_below_are_not_vacuous(tmp_path):
+    prov = couple_clv.ep1_series_provenance(repo_root=_ep1_tree(tmp_path))
+    assert prov["grades_atom_estimator"] is True
+
+
+@pytest.mark.parametrize("producer,impl,link", [
+    # The key is published, but not by the declared callable.
+    (_EP1_PRODUCER.replace(
+        'build_three_horizon_clv_snapshots(1, 2, 3)', '{}'),
+     _EP1_IMPL, "published_by_producer"),
+    # Reached around the door, straight at the implementation.
+    (_EP1_PRODUCER.replace("company.interfaces.customer_value",
+                           "company.analytics.customer_value_view"),
+     _EP1_IMPL, "reached_through_the_door"),
+    # A SECOND implementation: the series no longer comes from the shared builder.
+    (_EP1_PRODUCER,
+     _EP1_IMPL.replace("build_customer_value_view(records, customers, pct)",
+                       "my_own_clv(records)"), "series_uses_the_shared_view_builder"),
+    # The series stops valuing with EP1's estimator.
+    (_EP1_PRODUCER,
+     _EP1_IMPL.replace(
+         "from company.analytics.clv_three_horizon import estimate_book",
+         "from saas.clv_model import build_clv"),
+     "atom_estimator_imported_by_series"),
+])
+def test_mutation_breaking_any_link_unwires_the_chain(tmp_path, producer, impl, link):
+    """PERFORM each defect. A chain whose links cannot individually fail is a
+    declaration, not a check -- and pass 17's whole finding was a declaration that
+    had never been checked against the thing it named."""
+    prov = couple_clv.ep1_series_provenance(
+        repo_root=_ep1_tree(tmp_path, producer=producer, impl=impl))
+    assert prov[link] is False
+    assert prov["grades_atom_estimator"] is False
+
+
+def test_a_missing_ep1_file_raises_rather_than_grading_anyway(tmp_path):
+    """FAIL-SILENT. Unable to say whether it grades EP1 = a failed measurement."""
+    with pytest.raises(FileNotFoundError):
+        couple_clv.ep1_series_provenance(repo_root=tmp_path)
+
+
+def test_an_impl_missing_the_declared_function_raises(tmp_path):
+    root = _ep1_tree(tmp_path, impl="def something_else():\n    return {}\n")
+    with pytest.raises(ValueError):
+        couple_clv.ep1_series_provenance(repo_root=root)
+
+
+def test_measure_propagates_an_unresolvable_ep1_provenance(monkeypatch):
+    def _boom(repo_root=None):
+        raise FileNotFoundError("series producer gone")
+    monkeypatch.setattr(couple_clv, "ep1_series_provenance", _boom)
+    with pytest.raises(FileNotFoundError):
+        couple_clv.measure(_run())
+
+
+def test_the_crosscheck_follows_the_graded_series_not_the_legacy_one():
+    """FOUND BY A MUTATION THAT FIRED ZERO, which is the only way this class of
+    defect has ever been found in this atom (pass 16's M5, pass 17's M3, now this).
+
+    Reverting `roster_crosscheck` to read `clv_snapshots` while the headline was
+    graded on EP1's series passed all 59 controls: every fixture had the two series
+    dropping the same accounts, so the check could read either and agree. A ledger
+    row would then publish a cross-check about one belief beside a headline about
+    another -- the mis-subjection pass 17 named, moved one field along.
+
+    Here the two series DISAGREE on purpose. The legacy series never drops C1; EP1's
+    blanks it once the account stops settling, which is what the roster says
+    happened. The check must follow the belief the headline was computed from.
+    """
+    run = _run(counted=[("C1", 900.0, 200.0)], supplied=["C2"])
+    for year in run["clv_snapshots"].values():
+        year["C1"] = 900.0          # the legacy series never lets go of C1
+    run[couple_clv.EP1_BELIEF_FIELD] = _ep1_series({"C1": 900.0})
+    run[couple_clv.EP1_BELIEF_FIELD]["years"]["2017"]["accounts"]["C1"][
+        "tenure_expected"] = {"value_gbp": None, "reason": "no_margin_observed"}
+
+    result, detail = couple_clv.measure(run)
+    assert result.components["grades_atom_estimator"] is True
+    assert detail["roster_crosscheck"]["agrees"] is True, detail["roster_crosscheck"]
+
+    # NULL CONTROL. The same check over the LEGACY series disagrees -- so the
+    # assertion above is a statement about which series was read, not a fixture in
+    # which every reading happens to agree.
+    legacy = couple_clv.roster_crosscheck(
+        run, detail["counted"], {"snapshots": run["clv_snapshots"]})
+    assert legacy["agrees"] is False

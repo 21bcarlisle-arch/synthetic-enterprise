@@ -204,3 +204,81 @@ def test_the_payload_the_run_hands_over_is_json_serialisable():
     dataclass or an Enum reached `json.dump`. Cheap here, expensive there."""
     payload = estimate_book(BOOK).as_published_dict()
     assert json.loads(json.dumps(payload)) == payload
+
+
+PRODUCER = REPO_ROOT / "simulation" / "run_phase4c_on_phase2b.py"
+
+# EP1's published namespace in the run output. Every key the producer emits under
+# this prefix is one of this atom's beliefs; the prefix is the atom's, not this
+# test's invention.
+_EP1_KEY_PREFIX = "three_horizon_clv"
+
+
+def _ep1_keys_the_producer_publishes() -> set[str]:
+    """Every `three_horizon_clv*` key in the producer's returned dict, read from
+    its SOURCE by AST. Imports nothing: the question is what the run module says
+    it publishes, and importing it would drag in the whole simulation stack.
+    """
+    tree = ast.parse(PRODUCER.read_text(encoding="utf-8"))
+    return {
+        node.value
+        for dct in ast.walk(tree)
+        if isinstance(dct, ast.Dict)
+        for node in dct.keys
+        if isinstance(node, ast.Constant)
+        and isinstance(node.value, str)
+        and node.value.startswith(_EP1_KEY_PREFIX)
+    }
+
+
+def test_every_ep1_key_the_producer_publishes_survives_the_reducer():
+    """DEFECT (OBSERVED 2026-08-25, and it cost a whole pass): the producer emits an
+    EP1 belief key on every run, `extract_report_data` does not name it, and the key
+    is dropped between the run and `run_output_latest.json` with no error anywhere.
+
+    THIS IS DELIBERATELY NOT AN ASSERTION ABOUT ONE KEY. Closing the observed
+    instance -- `three_horizon_clv_snapshots` -- with a hard-coded assertion would
+    leave the CLASS open, and the class has now fired twice on this atom: the
+    terminal table was wired to a reducer that carried it, the belief series was
+    wired to one that did not, and nothing distinguished the two at the producer.
+    R10 requires the class to fail automatically, so the expected key set is read
+    from the producer's own source. A pass that adds EP1's third belief key and
+    forgets this layer fails HERE, on the day it writes the key, rather than four
+    runs later when a grader quietly reports `grades_atom_estimator=False`.
+
+    WHY THE SILENCE IS THE REAL DEFECT. `run_output_latest.json` is this function's
+    REDUCED output, not the raw run, so a dropped key is indistinguishable from a
+    key the producer never computed -- which is exactly how `tools/couple_clv` came
+    to blame `run_predates_ep1_belief_series`, a cause that would never expire.
+    """
+    published = _ep1_keys_the_producer_publishes()
+    # The control must not pass by finding nothing to check (FAIL-OPEN).
+    assert published, f"no EP1 keys found in {PRODUCER} -- the AST read is broken"
+    assert _EP1_KEY_PREFIX in published, "the terminal table key is missing"
+
+    run_output = {
+        "phase2b": {
+            "all_records": [],
+            "committee_wake_ups": [],
+            "hedge_evolution": {},
+            "starting_treasury": 0.0,
+            "final_treasury": 0.0,
+            "total_gross": 0.0,
+            "total_capital": 0.0,
+            "administration_event": None,
+        },
+    }
+    # A distinct sentinel per key, so a reducer that forwards ONE payload under two
+    # names cannot pass: the assertion is per-key identity, not mere presence.
+    sentinels = {key: {"sentinel": key} for key in published}
+    run_output.update(sentinels)
+
+    extracted = extract_report_data(run_output)
+    dropped = sorted(key for key in published if key not in extracted)
+    assert not dropped, (
+        f"the producer publishes {sorted(published)} but extract_report_data drops "
+        f"{dropped} -- the grader reads the REDUCED artefact, so these beliefs "
+        f"never reach it"
+    )
+    for key in published:
+        assert extracted[key] is sentinels[key], f"{key} was rebuilt, not forwarded"

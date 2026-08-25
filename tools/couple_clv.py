@@ -226,6 +226,41 @@ GRADES_ATOM_ESTIMATOR = False
 UNAVAILABLE_NO_PROVENANCE = "belief_producer_not_resolvable_from_source"
 
 
+# =============================================================================
+# EP1'S OWN BELIEF SERIES -- 2026-08-25, pass 18
+# =============================================================================
+#
+# Pass 17 declared the mis-subjection and said why it could not be repaired: a
+# backtest needs a belief recorded BEFORE the outcome, and EP1 published only a
+# terminal table. `three_horizon_clv_snapshots` is that belief, recorded at each
+# year end from the records observable then, and its arrival is what lets this row
+# be about the atom it is keyed to.
+#
+# WHY THE EARLIEST SNAPSHOT IS NOT A DETAIL HERE, AND IS THE WHOLE MECHANISM.
+# EP1 blanks `contract_term` and `tenure_expected` for a CEASED account: its
+# margin comes from `enterprise_value["by_customer"]`, which drops ceased accounts,
+# so `annual_margin_gbp` arrives as `None` and the horizon is unestimable under a
+# named reason. The counted population of this pair is EXACTLY the ceased accounts.
+# Graded on the terminal table alone the population would therefore be empty by
+# construction -- the same disjointness pass 11 measured, one field along. The
+# series dissolves it: at an EARLY year end that customer was still supplied, had
+# an observed margin, and carries a real forward belief. `_earliest_belief` takes
+# that year, which is also the year with the most forecasting left to be wrong
+# about.
+EP1_BELIEF_FIELD = "three_horizon_clv_snapshots"
+EP1_PRODUCER_FILE = "simulation/run_phase4c_on_phase2b.py"
+EP1_PRODUCER_CALLABLE = "build_three_horizon_clv_snapshots"
+EP1_PRODUCER_DOOR = "company.interfaces.customer_value"
+EP1_SERIES_IMPL_FILE = "company/analytics/customer_value_view.py"
+
+#: Named reasons a run falls back to the legacy series. A fallback that did not
+#: say WHY would be pass 17's defect with a newer date on it.
+FALLBACK_SERIES_ABSENT = "run_predates_ep1_belief_series"
+FALLBACK_SERIES_EMPTY = "ep1_belief_series_has_no_years"
+FALLBACK_SERIES_UNLABELLED = "ep1_belief_series_states_no_aggregate_horizon"
+FALLBACK_NOT_WIRED = "ep1_series_not_resolvable_from_source_tree"
+
+
 def _repo_root() -> Path:
     return Path(__file__).resolve().parent.parent
 
@@ -305,6 +340,181 @@ def belief_provenance(repo_root=None) -> dict:
         and observed["grades_atom_estimator"] == GRADES_ATOM_ESTIMATOR
     )
     return observed
+
+
+def ep1_series_provenance(repo_root=None) -> dict:
+    """Resolve, from the SOURCE TREE, whether EP1's own estimator produces the
+    `three_horizon_clv_snapshots` series -- and refuse to guess.
+
+    The chain checked, each link read as WRITTEN rather than imported (the same
+    independence argument `belief_provenance` makes: importing would resolve names
+    through whatever the interpreter had loaded, and the question is what the
+    source says):
+
+      1. `simulation/run_phase4c_on_phase2b.py` binds the published key to a CALL
+         of `build_three_horizon_clv_snapshots` -- a key bound to anything else is
+         not this series however it is named;
+      2. that callable is imported from the company door, not from a world module
+         and not from the implementation behind the door;
+      3. `company/analytics/customer_value_view.py` defines it, and it calls
+         `build_customer_value_view` -- so the numbers come from the SAME builder
+         the end-of-run table uses rather than a lookalike;
+      4. that module imports `estimate_book` from EP1's estimator module.
+
+    `grades_atom_estimator` is True only when all four hold. Any missing FILE
+    raises, and a producer that no longer defines the function raises: an
+    unavailable check is a FAILED check (R15 fail-silent), and this one exists
+    precisely to notice the wiring being taken out again.
+    """
+    root = Path(repo_root) if repo_root is not None else _repo_root()
+    producer = root / EP1_PRODUCER_FILE
+    impl = root / EP1_SERIES_IMPL_FILE
+    for path, name in ((producer, EP1_PRODUCER_FILE), (impl, EP1_SERIES_IMPL_FILE)):
+        if not path.is_file():
+            raise FileNotFoundError(
+                f"{name} is missing -- whether this row grades EP1's own estimator "
+                "cannot be established, so the measurement is unavailable rather "
+                "than clean")
+
+    ptree = ast.parse(producer.read_text(encoding="utf-8"), filename=str(producer))
+    # Link 1: the key is bound to a CALL of the declared callable.
+    published_by_producer = False
+    for node in ast.walk(ptree):
+        if not isinstance(node, ast.Dict):
+            continue
+        for key, value in zip(node.keys, node.values):
+            if (isinstance(key, ast.Constant) and key.value == EP1_BELIEF_FIELD
+                    and isinstance(value, ast.Call)
+                    and isinstance(value.func, ast.Name)
+                    and value.func.id == EP1_PRODUCER_CALLABLE):
+                published_by_producer = True
+
+    # Link 2: where the producer imported it from.
+    imported_from = None
+    for node in ast.walk(ptree):
+        if isinstance(node, ast.ImportFrom) and node.module:
+            if any(a.name == EP1_PRODUCER_CALLABLE for a in node.names):
+                imported_from = node.module
+                break
+
+    itree = ast.parse(impl.read_text(encoding="utf-8"), filename=str(impl))
+    fn = next((n for n in ast.walk(itree)
+               if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+               and n.name == EP1_PRODUCER_CALLABLE), None)
+    if fn is None:
+        raise ValueError(
+            f"{EP1_SERIES_IMPL_FILE} no longer defines {EP1_PRODUCER_CALLABLE}; "
+            "EP1's belief series has moved and this module's declaration is stale")
+
+    # Link 3: the series is built by the same builder, not a second implementation.
+    called_in_fn = {n.func.id for n in ast.walk(fn)
+                    if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
+    # Link 4: EP1's estimator is what that module values with.
+    estimator_imported = any(
+        isinstance(n, ast.ImportFrom) and n.module
+        and ATOM_ESTIMATOR_MODULE in n.module
+        and any(a.name == "estimate_book" for a in n.names)
+        for n in ast.walk(itree))
+
+    observed = {
+        "belief_field": EP1_BELIEF_FIELD,
+        "produced_by": f"{EP1_PRODUCER_FILE}::{EP1_PRODUCER_CALLABLE}",
+        "published_by_producer": published_by_producer,
+        "producer_imported_from": imported_from,
+        "reached_through_the_door": imported_from == EP1_PRODUCER_DOOR,
+        "series_uses_the_shared_view_builder":
+            "build_customer_value_view" in called_in_fn,
+        "atom_estimator_module": ATOM_ESTIMATOR_MODULE,
+        "atom_estimator_imported_by_series": estimator_imported,
+    }
+    observed["grades_atom_estimator"] = bool(
+        published_by_producer
+        and observed["reached_through_the_door"]
+        and observed["series_uses_the_shared_view_builder"]
+        and estimator_imported)
+    return observed
+
+
+def flatten_ep1_series(series: dict) -> dict:
+    """EP1's series reduced to the `{year: {account: value|None}}` shape.
+
+    ON THE HORIZON, WHICH IS READ AND NEVER ASSUMED. The series states the
+    `aggregate_horizon` it was built on and this reduces on THAT, so a change to
+    the estimator's aggregate basis moves the graded number instead of silently
+    grading a horizon the book no longer quotes. A series that states no horizon
+    is refused by the caller rather than defaulted here -- naming a basis the
+    producer did not name is exactly the fabrication R14 is about.
+
+    A blank stays a blank: `value_gbp` of `None` travels as `None` and is skipped
+    by `_earliest_belief`'s numeric test, so an unestimable account is excluded by
+    name upstream rather than entering the arithmetic as a zero.
+    """
+    horizon = series["aggregate_horizon"]
+    out = {}
+    for year, snapshot in (series.get("years") or {}).items():
+        if not isinstance(snapshot, dict):
+            continue
+        accounts = snapshot.get("accounts") or {}
+        out[year] = {
+            account: cell[horizon].get("value_gbp")
+            for account, cell in accounts.items()
+            if isinstance(cell, dict) and isinstance(cell.get(horizon), dict)
+        }
+    return out
+
+
+def select_belief(run: dict, repo_root=None) -> dict:
+    """Which series this run's headline is graded on, and WHY that one.
+
+    EP1's series is preferred whenever the tree wires it AND the run actually
+    carries it, labelled, with at least one year. Everything else falls back to the
+    legacy `clv_snapshots` under a NAMED reason -- an unnamed fallback would be
+    pass 17's mis-subjection with a newer date on it, and the interesting case is
+    precisely the boring one: an artefact produced before this wiring existed.
+
+    TWO FACTS, KEPT APART ON PURPOSE. `tree_wires_ep1` is about the repository;
+    `grades_atom_estimator` is about THIS RUN. A tree that wires the series and an
+    artefact that predates it is the normal state for the first run after landing,
+    and a single conflated boolean would either claim a grading that did not happen
+    or hide a wiring that did.
+    """
+    legacy = belief_provenance(repo_root=repo_root)
+    ep1 = ep1_series_provenance(repo_root=repo_root)
+    series = run.get(EP1_BELIEF_FIELD)
+
+    if not ep1["grades_atom_estimator"]:
+        fallback = FALLBACK_NOT_WIRED
+    elif not isinstance(series, dict):
+        fallback = FALLBACK_SERIES_ABSENT
+    elif not (series.get("years") or {}):
+        fallback = FALLBACK_SERIES_EMPTY
+    elif not series.get("aggregate_horizon"):
+        fallback = FALLBACK_SERIES_UNLABELLED
+    else:
+        fallback = None
+
+    if fallback is None:
+        snapshots = flatten_ep1_series(series)
+        return {
+            "belief_field": EP1_BELIEF_FIELD,
+            "graded_horizon": series["aggregate_horizon"],
+            "discount_rate": series.get("discount_rate"),
+            "snapshots": snapshots,
+            "grades_atom_estimator": True,
+            "fallback_reason": None,
+            "ep1_series": ep1,
+            "legacy_series": legacy,
+        }
+    return {
+        "belief_field": BELIEF_FIELD,
+        "graded_horizon": None,
+        "discount_rate": None,
+        "snapshots": run.get("clv_snapshots") or {},
+        "grades_atom_estimator": False,
+        "fallback_reason": fallback,
+        "ep1_series": ep1,
+        "legacy_series": legacy,
+    }
 
 
 def magnitude_diagnostic(counted: list) -> dict:
@@ -389,7 +599,7 @@ def _earliest_belief(clv_snapshots: dict, account: str):
     return years[0], float(clv_snapshots[years[0]][account])
 
 
-def known_accounts(run: dict) -> set:
+def known_accounts(run: dict, graded_snapshots: dict | None = None) -> set:
     """Every account this run says ANYTHING about.
 
     THE POPULATION SOURCE, AND THE REASON IT IS NOT `by_billing_account`
@@ -409,11 +619,22 @@ def known_accounts(run: dict) -> set:
     sources omits accounts the others hold, and a denominator drawn from one of
     them would silently inherit that omission -- which is the defect this
     function exists to close, one field along.
+
+    `graded_snapshots` is the series actually being graded, in the flat
+    `{year: {account: value}}` shape. It is a FIFTH source rather than a
+    replacement for `clv_snapshots`: the union is the point, and reading only the
+    graded series would re-open the same omission from the other side the day the
+    two series cover different books. Defaults to the legacy field, so a caller
+    that does not know which series is graded still gets the pass-16 denominator.
     """
     accounts = set(run.get("by_billing_account") or {})
-    for snapshot in (run.get("clv_snapshots") or {}).values():
-        if isinstance(snapshot, dict):
-            accounts.update(k for k in snapshot if isinstance(k, str))
+    series = [run.get("clv_snapshots") or {}]
+    if graded_snapshots:
+        series.append(graded_snapshots)
+    for source in series:
+        for snapshot in source.values():
+            if isinstance(snapshot, dict):
+                accounts.update(k for k in snapshot if isinstance(k, str))
     accounts.update(k for k in (run.get("per_customer_lifetime") or {})
                     if isinstance(k, str))
     accounts.update(a for a in (run.get("churned_billing_accounts") or [])
@@ -445,22 +666,29 @@ def ceased_roster(run: dict):
     return {a for a in churned if isinstance(a, str)}
 
 
-def build_observations(run: dict) -> dict:
+def build_observations(run: dict, belief: dict | None = None) -> dict:
     """Split the book into the counted population and the named exclusions.
 
     Returns a dict with `counted` (list of per-account records), `excluded`
     (list of `{account, reason}`) and `unavailable` (a named reason, or None), so
     the caller never has to infer a denominator.
+
+    `belief` is the output of `select_belief` -- which series is being graded. It
+    defaults to resolving that itself so a direct caller cannot accidentally grade
+    a different series from the one the ledger entry declares; passing it in is the
+    normal path and saves re-walking the source tree.
     """
+    if belief is None:
+        belief = select_belief(run)
     accounts = run.get("by_billing_account") or {}
-    snapshots = run.get("clv_snapshots") or {}
+    snapshots = belief["snapshots"]
     lifetimes = run.get("per_customer_lifetime") or {}
     roster = ceased_roster(run)
     if roster is None:
         return {"counted": [], "excluded": [], "unavailable": UNAVAILABLE_NO_ROSTER}
 
     counted, excluded = [], []
-    for account in sorted(known_accounts(run)):
+    for account in sorted(known_accounts(run, snapshots)):
         if account not in roster:
             excluded.append({"account": account, "reason": EXCLUSION_CENSORED})
             continue
@@ -488,7 +716,7 @@ def build_observations(run: dict) -> dict:
     return {"counted": counted, "excluded": excluded, "unavailable": None}
 
 
-def roster_crosscheck(run: dict, counted: list) -> dict:
+def roster_crosscheck(run: dict, counted: list, belief: dict | None = None) -> dict:
     """Independent second derivation of who left, checked against the authority.
 
     WHICH SIDE IS THE CHECK CHANGED IN PASS 16, AND THAT IS THE POINT. This used
@@ -515,7 +743,12 @@ def roster_crosscheck(run: dict, counted: list) -> dict:
     third, partial-coverage signal over the accounts that have such a row.
     """
     roster = ceased_roster(run)
-    snapshots = run.get("clv_snapshots") or {}
+    # The GRADED series, so the cross-check speaks about the same belief the
+    # headline does. Its independence argument survives the swap unchanged: EP1
+    # blanks a ceased account's horizon because `enterprise_value` drops it under
+    # the settlement-quiet rule, which is still the meter going quiet and still not
+    # the churn event the roster records.
+    snapshots = (belief or select_belief(run))["snapshots"]
     years = sorted(y for y, snap in snapshots.items() if isinstance(snap, dict))
     if roster is None or not years:
         return {"available": False, "agrees": None, "only_in_roster": [],
@@ -560,13 +793,27 @@ def measure(run: dict) -> tuple:
     # which estimator produced the graded belief, this measurement does not know
     # what it is measuring, and publishing a headline anyway is the fail-silent
     # pattern with the subject rather than the checker as its victim.
-    provenance = belief_provenance()
+    belief = select_belief(run)
+    provenance = belief["legacy_series"] if belief["fallback_reason"] else belief[
+        "ep1_series"]
+    # The full picture travels regardless of which branch won: WHOSE estimator was
+    # graded, whose was not, and the named reason. A ledger row that carried only
+    # the winning chain could not be used to tell "the tree does not wire EP1" from
+    # "this artefact predates the wiring", and those call for different work.
+    provenance = dict(provenance)
+    provenance["graded_belief_field"] = belief["belief_field"]
+    provenance["graded_horizon"] = belief["graded_horizon"]
+    provenance["fallback_reason"] = belief["fallback_reason"]
+    provenance["tree_wires_ep1"] = belief["ep1_series"]["grades_atom_estimator"]
+    provenance["grades_atom_estimator"] = belief["grades_atom_estimator"]
+    provenance["legacy_chain"] = belief["legacy_series"]
+    provenance["ep1_chain"] = belief["ep1_series"]
 
-    split = build_observations(run)
+    split = build_observations(run, belief)
     counted, excluded = split["counted"], split["excluded"]
     detail = {"counted": counted, "excluded": excluded,
               "unavailable": split["unavailable"],
-              "roster_crosscheck": roster_crosscheck(run, counted),
+              "roster_crosscheck": roster_crosscheck(run, counted, belief),
               "belief_provenance": provenance,
               "error_decomposition": magnitude_diagnostic(counted)}
 
@@ -673,24 +920,55 @@ def measure(run: dict) -> tuple:
             "grades_atom_estimator": provenance["grades_atom_estimator"],
             "error_decomposition": magnitude_diagnostic(counted),
         },
-        note=(
-            "Point-in-time backtest of a company CLV belief against realised "
-            "lifetime margin, over accounts whose life COMPLETED inside the run. "
-            "WHOSE BELIEF: the graded field is `clv_snapshots`, produced by "
-            f"{BELIEF_PRODUCER_FILE}::{BELIEF_PRODUCER_FUNCTION} via "
-            f"{BELIEF_ESTIMATOR_MODULE}.{BELIEF_ESTIMATOR_CALLABLE}. Despite this "
-            "row's key it does NOT grade EP1's estimator "
-            "(company/analytics/clv_three_horizon.py): zeroing or deleting EP1's "
-            "entire published output leaves this headline bit-identical, measured "
-            "2026-08-24. EP1 cannot be backtested yet because it publishes only a "
-            "terminal table and a backtest needs a belief recorded before the "
-            "outcome. Separately, still-supplied accounts are excluded as "
-            "right-censored, so EP1's CURRENT values would be unscoreable even "
-            "with a series: the accounts it values are the ones whose outcome is "
-            "unknown. R12: diagnostic, never a target."
-        ),
+        note=_whose_belief_note(belief),
     )
     return result, detail
+
+
+def _whose_belief_note(belief: dict) -> str:
+    """The note a reader of the row actually sees, saying WHOSE number it is.
+
+    A field a reader may not open is not a disclosure -- pass 17's rule, kept. So
+    the sentence is built from the same selection the arithmetic used rather than
+    written twice, and the fallback branch states its named reason in prose.
+    """
+    head = (
+        "Point-in-time backtest of a company CLV belief against realised lifetime "
+        "margin, over accounts whose life COMPLETED inside the run. "
+    )
+    if belief["grades_atom_estimator"]:
+        return head + (
+            f"WHOSE BELIEF: the graded field is `{EP1_BELIEF_FIELD}` -- EP1's OWN "
+            "estimator (company/analytics/clv_three_horizon.py), recorded at each "
+            "year end from the records observable then, on the "
+            f"`{belief['graded_horizon']}` horizon at a discount rate of "
+            f"{belief['discount_rate']}. This row grades the atom it is keyed to, "
+            "which it did NOT before 2026-08-25: pass 17 measured that deleting "
+            "EP1's entire published output left the headline bit-identical. The "
+            "belief taken is the EARLIEST year-end snapshot, which is also the "
+            "only one a ceased account has -- EP1 blanks the forward horizons once "
+            "an account stops settling, so a terminal table alone would grade an "
+            "empty population. TRUTH-WINDOW BIAS: the realised total spans the "
+            "whole lifetime while the belief is taken at the first snapshot, so "
+            "truth is measured over a longer window than the belief forecasts, "
+            "which flatters an over-estimating belief. R12: diagnostic, never a "
+            "target."
+        )
+    return head + (
+        f"WHOSE BELIEF: the graded field is `{BELIEF_FIELD}`, produced by "
+        f"{BELIEF_PRODUCER_FILE}::{BELIEF_PRODUCER_FUNCTION} via "
+        f"{BELIEF_ESTIMATOR_MODULE}.{BELIEF_ESTIMATOR_CALLABLE}. Despite this "
+        "row's key it does NOT grade EP1's estimator "
+        "(company/analytics/clv_three_horizon.py); the named reason is "
+        f"`{belief['fallback_reason']}`. EP1's own belief series "
+        f"(`{EP1_BELIEF_FIELD}`) is "
+        + ("wired in the source tree but absent from this artefact, so this run "
+           "predates it and the next run will grade EP1."
+           if belief["ep1_series"]["grades_atom_estimator"]
+           else "not resolvable from the source tree.")
+        + " Separately, still-supplied accounts are excluded as right-censored. "
+        "R12: diagnostic, never a target."
+    )
 
 
 def _git_head():

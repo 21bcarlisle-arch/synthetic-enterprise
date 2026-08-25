@@ -154,17 +154,32 @@ def test_the_fixture_is_not_vacuous(view):
 def test_the_door_re_exports_the_implementation():
     assert door.build_customer_value_view is impl.build_customer_value_view
     assert door.CustomerValueView is impl.CustomerValueView
-    assert set(door.__all__) == {"CustomerValueView", "build_customer_value_view"}
+    assert (
+        door.build_three_horizon_clv_snapshots
+        is impl.build_three_horizon_clv_snapshots
+    )
+    assert set(door.__all__) == {
+        "CustomerValueView",
+        "build_customer_value_view",
+        # EP1's point-in-time belief series (2026-08-25, pass 18). Same two inputs
+        # the world already hands over, truncated per year end company-side.
+        "build_three_horizon_clv_snapshots",
+    }
 
 
 def test_the_run_module_reaches_the_view_only_through_the_door():
     """The world imports the seam, not the implementation and not the four
-    modules the view was lifted out of."""
+    modules the view was lifted out of.
+
+    The import is matched on the MODULE and the NAMES rather than on one exact
+    line: pinning the line meant a second export could not be added without the
+    control reading as a breach, which is a control that fails on the wrong thing.
+    The teeth are the forbidden list below, which is unchanged.
+    """
     source = open(RUN_MODULE_PATH).read()
-    assert (
-        "from company.interfaces.customer_value import build_customer_value_view"
-        in source
-    )
+    assert "from company.interfaces.customer_value import" in source
+    for name in ("build_customer_value_view", "build_three_horizon_clv_snapshots"):
+        assert name in source, f"{name} is not reached at all from the run module"
     for forbidden in (
         "company.analytics.customer_value_view",
         "from saas.cost_to_serve import",
