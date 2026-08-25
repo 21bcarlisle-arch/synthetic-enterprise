@@ -91,12 +91,51 @@ confidence (R10: named, never fabricated):
 
 WHICH WAY THE ERRORS POINT, and this is the sentence to read if you read only one. The two
 largest gaps -- no coal and no interconnector imports -- both make the CLEAN end of the shape
-cleaner than GB actually was. Measured over 2016-2025 this shape's quietest half hours sit
-around 0.05 of average against NESO's published series bottoming out nearer 0.16, while the
-dirty end lands in roughly the right place. So ANY BENEFIT COMPUTED FROM MOVING LOAD INTO CLEAN
-HALF HOURS IS AN UPPER BOUND on the real one. That is the error direction that matters here,
-because it flatters the mission's own thesis, and it must be carried on the face of anything
-published from this rather than left in a module nobody opens.
+cleaner than GB actually was. So ANY BENEFIT COMPUTED FROM MOVING LOAD INTO CLEAN HALF HOURS IS
+AN UPPER BOUND on the real one. That is the error direction that matters here, because it
+flatters the mission's own thesis, and it must be carried on the face of anything published from
+this rather than left in a module nobody opens.
+
+HOW BIG THE GAP ACTUALLY IS. Until 2026-08-25 the paragraph above continued "measured over
+2016-2025 this shape's quietest half hours sit around 0.05 of average against NESO's published
+series bottoming out nearer 0.16". THAT COMPARISON HAD NEVER BEEN RUN. No NESO series existed in
+this tree and no fetch had ever happened -- it was a recollection written in the grammar of a
+measurement, in the one docstring whose job is to say which way the errors point.
+`sim/neso_carbon_intensity.py` now fetches the published series and `compare_shapes` measures it,
+both shapes re-normalised over the half hours they share (2019-2024; NESO publishes from
+2018-05-11):
+
+    year      half hours   ours min   NESO min   ours max   NESO max   ours/NESO spread   corr
+    2019         16,923      0.057      0.217      1.707      2.019     29.8x /  9.3x     0.85
+    2020         16,492      0.055      0.244      1.942      1.965     35.3x /  8.1x     0.82
+    2021         16,646      0.056      0.195      1.792      1.769     31.9x /  9.1x     0.90
+    2022         14,929      0.070      0.211      2.043      1.741     29.3x /  8.3x     0.82
+    2023         17,362      0.058      0.165      1.896      1.958     32.4x / 11.9x     0.77
+    2024         17,492      0.059      0.105      1.981      2.279     33.8x / 21.6x     0.68
+
+Three corrections to what the old sentence claimed, and one thing it never mentioned at all:
+
+  * OUR CLEAN END, ~0.059, was stated correctly.
+  * NESO'S FLOOR IS NOT 0.16. Over these six years it averages 0.189 and only 2024 falls below
+    0.16. The old sentence understated the gap it was warning about: our quietest half hours are
+    not 3x too clean but closer to 3.2x, and in 2019-2022 nearer 3.5x.
+  * THE DIRTY END "lands in roughly the right place" HELD UP -- 1.71-2.04 against 1.74-2.28.
+  * THE SPREAD WAS NEVER STATED AND IS THE HEADLINE. This shape swings 32x from its cleanest to
+    its dirtiest half hour; NESO's swings 11.4x. We overstate the total range timing can move by
+    about 2.8x. Any abatement number computed from this shape inherits that factor.
+
+And one finding that is about GB rather than about us: NESO'S OWN FLOOR FALLS AND ITS OWN SPREAD
+WIDENS across the window (0.217 -> 0.105, 9.3x -> 21.6x). That is real decarbonisation -- as
+renewables grow the clean end genuinely gets cleaner -- so the two series are converging on the
+spread axis for a reason that has nothing to do with this model improving. Correlation moving
+0.85 -> 0.68 over the same years says the opposite about the timing detail, and both facts have
+to be carried together.
+
+R15 note on that measurement: the first run against the real feed raised ZeroDivisionError, not
+a number. NESO publishes `actual: 0` for five half hours over the window, four consecutive on
+2023-06-07, against a lowest genuine reading of 14 gCO2/kWh -- a feed outage, not a clean grid.
+The adapter now drops them as absent. Had that guard sat one line later the run would have
+reported the cleanest possible grid as fact instead of failing loudly.
 
 R13: nothing here is fitted. The shape is real outturn through a dispatch model built from
 published GB engineering figures, and no constant in it was chosen by looking at what came out.
