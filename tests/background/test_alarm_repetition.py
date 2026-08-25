@@ -459,3 +459,57 @@ def test_a_DIFFERENT_signature_still_files_its_own_document(tmp_path):
                         staging_dir=tmp_path, now=_DAY2)
     assert other is not None
     assert len(list(tmp_path.glob("WORKER_FINDING_REPEATING_ALARM_*.md"))) == 2
+
+
+# ---------------------------------------------------------------------------
+# UUIDs (2026-08-25) -- the variable that survived normalisation in pieces
+# ---------------------------------------------------------------------------
+
+def test_a_session_UUID_does_not_survive_normalisation_in_PIECES():
+    """THE MEASURED DEFECT. `seat_continuity` put the dead session's id in its subject, and the
+    staging root filled with EIGHTEEN copies of one alarm in nine hours -- SESSION_B_C_D_A_A_E,
+    SESSION_F_E_EE_A_E, SESSION_C_C_A and fifteen more.
+
+    A UUID is not caught by the git-hash rule: `{7,40}` eats its 8- and 12-character groups but
+    its 4-character groups are too short, the trailing number rule then eats their digits, and
+    the LETTERS come out the other side as a per-session fingerprint. So the de-duplicator saw
+    eighteen distinct conditions where there was one, and `_slug`'s own docstring names exactly
+    this outcome ("a fresh document per repetition") as the thing it exists to prevent.
+
+    Truncated ids are included because that is what actually arrives: seat_continuity stored
+    `session_id[:24]`, which cuts mid-group and leaves a trailing hyphen.
+    """
+    ids = [
+        "c7e894aa-3221-45f7-8713-b1a18a6232a9",   # full
+        "f0e2ee4a-e5b1-4c3d-9a2b-77c0d5e1a884",   # full, different
+        "c7e894aa-3221-45f7-8713-",               # truncated at [:24]
+        "f0e2ee4a-e5b1-4c3d-9a2b-",               # truncated, different
+    ]
+    slugs = {ar._slug(f"[SEAT] session {i} stopped mid-work") for i in ids}
+
+    assert len(slugs) == 1, f"one condition produced {len(slugs)} filenames: {sorted(slugs)}"
+
+
+def test_MUTATION_ORDINARY_hyphenated_words_are_NOT_eaten_by_the_UUID_rule():
+    """The null half, and it is the one that decides whether the rule is safe to keep.
+
+    A pattern loose enough to swallow `pre-commit-gate` or `test-driven-code` would blur alarms
+    that differ only in which hyphenated thing failed -- the exact opposite defect, and a much
+    quieter one. Three-plus hex-only groups is the line: real words are not hex.
+    """
+    keep = ["pre-commit-gate", "test-driven-code", "read-only-probe", "half-hourly-spine"]
+    for word in keep:
+        assert ar.normalise(word) == word, f"the UUID rule ate {word!r}"
+
+    assert ar.alarm_signature("the pre-commit-gate refused") != \
+        ar.alarm_signature("the test-driven-code refused")
+
+
+def test_TWO_DIFFERENT_alarms_that_merely_both_quote_a_uuid_stay_apart():
+    """Normalising the id must not merge two genuinely different conditions -- everything the
+    alarm says ABOUT the id is preserved, which is the same contract a KeyError and a TypeError
+    from one daemon already have."""
+    a = "[SEAT] session c7e894aa-3221-45f7-8713 stopped mid-work"
+    b = "[FORK] worker c7e894aa-3221-45f7-8713 never merged home"
+
+    assert ar.alarm_signature(a) != ar.alarm_signature(b)

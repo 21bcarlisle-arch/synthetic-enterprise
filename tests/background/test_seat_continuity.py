@@ -294,10 +294,17 @@ def test_a_SECOND_interruption_files_its_OWN_handoff(beat, no_seat, tmp_path, mo
     """THE ONE THAT WOULD HAVE SILENTLY LOST WORK, caught by reading the filing path.
 
     `alarm_repetition` was changed on 2026-08-24 to hold ONE live document per signature --
-    right for a recurring alarm about an unchanged condition, wrong here. Two interruptions
-    are not one condition recurring: each carries a DIFFERENT set of uncommitted paths, so
-    folding the second into the first would discard exactly the state this module exists to
-    preserve. The subject varies by session for that reason.
+    right for a recurring alarm about an unchanged condition, wrong when the second
+    interruption is holding something else entirely: folding it into the first would discard
+    exactly the state this module exists to preserve.
+
+    THE SUBJECT USED TO VARY BY SESSION ID FOR THIS REASON AND THAT WAS THE WRONG DISCRIMINATOR
+    (2026-08-25) -- it made every interruption distinct, including eighteen consecutive ones
+    over the same unadopted work. The subject now varies by the AREAS of the held work, which
+    is why this test still passes unchanged: `first/edit.py` and `second/quite/different.py`
+    are genuinely different work and still get two documents. Its sibling
+    `test_the_SAME_unadopted_work_across_two_deaths_is_ONE_document` is the other half, and
+    the two together are the actual contract.
     """
     from background import seat_work_in_hand
     monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
@@ -363,3 +370,168 @@ def test_the_sweep_is_WIRED_into_the_five_minute_reconcile():
     assert "seat_continuity" in src and "seat_continuity.sweep()" in src, (
         "nothing in production calls seat_continuity.sweep() -- the mechanism is inert"
     )
+
+
+# ---------------------------------------------------------------------------
+# The eighteen copies (2026-08-25) -- and the two halves that must stay true
+# ---------------------------------------------------------------------------
+
+def test_the_SAME_unadopted_work_across_two_deaths_is_ONE_document(
+    beat, no_seat, tmp_path, monkeypatch
+):
+    """THE DEFECT, IN MINIATURE. Measured on the live tree the morning it was found: eighteen
+    handoff documents in nine hours -- SESSION_B_C_D_A_A_E, SESSION_F_E_EE_A_E, SESSION_C_C_A
+    and fifteen more -- one every thirty minutes, all listing the same paths, every one of them
+    saying "Nothing was claimed". They filled the head of the tick's draw queue and pushed three
+    self-drawable mints to positions 43-46 of 48, where no bounded session ever reached them.
+
+    A second seat dying over work nobody has adopted yet is the SAME condition continuing, and
+    `alarm_repetition` already knows how to say that: it appends a dated still-live line to the
+    document that exists. What defeated it was the session id in the subject.
+    """
+    from background import seat_work_in_hand
+    monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
+    monkeypatch.setattr(sc, "_last_commit", lambda: "abc1234")
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda: ["simulation/hedged_settlement.py"])
+    staging = tmp_path / "staging"
+    staging.mkdir()
+    p, write = beat
+
+    write(sc.SILENT_AFTER_SECONDS + 1, session_id="c7e894aa-3221-45f7-8713-b1a18a6232a9")
+    assert sc.sweep(path=p, now=NOW, staging_dir=staging) is not None
+    write(sc.SILENT_AFTER_SECONDS + 1, session_id="f0e2ee4a-e5b1-4c3d-9a2b-77c0d5e1a884")
+    sc.sweep(path=p, now=NOW + 1800, staging_dir=staging)
+
+    docs = sorted(staging.glob("*.md"))
+    assert len(docs) == 1, (
+        f"the same unadopted work filed {len(docs)} documents; every one of them is a page of "
+        f"the tick's draw queue spent on work already in it: {[d.name for d in docs]}"
+    )
+
+
+def test_the_document_is_NAMED_for_the_work_it_is_about(beat, no_seat, tmp_path, monkeypatch):
+    """The filename is what a reader sees in the queue, and it is the only discriminator that
+    survives: `alarm_repetition._slug` keeps the first TEN words of the NORMALISED subject, and
+    normalise() turns every number into `#`. So a count cannot name the work and neither can
+    anything past the tenth word -- the first attempt at this fix put the areas at the END of
+    the sentence and produced one identical filename for every death, which is the original bug
+    wearing the fix's clothes."""
+    from background import seat_work_in_hand
+    monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
+    monkeypatch.setattr(sc, "_last_commit", lambda: "abc1234")
+    monkeypatch.setattr(sc, "_uncommitted_paths",
+                        lambda: ["simulation/hedged_settlement.py", "tests/simulation/t.py"])
+    staging = tmp_path / "staging"
+    staging.mkdir()
+    p, write = beat
+    write(sc.SILENT_AFTER_SECONDS + 1, session_id="c7e894aa-3221-45f7-8713-b1a18a6232a9")
+    sc.sweep(path=p, now=NOW, staging_dir=staging)
+
+    name = next(staging.glob("*.md")).name
+    assert "SIMULATION" in name and "TESTS" in name, (
+        f"the handoff is not named for what it holds, so the queue cannot be read: {name}"
+    )
+    assert "C7E894AA" not in name.upper(), "the session id is back in the subject"
+
+
+# ---------------------------------------------------------------------------
+# _uncommitted_paths: source, not the daemons' own exhaust
+# ---------------------------------------------------------------------------
+
+def test_the_held_paths_are_SOURCE_and_exclude_the_daemons_own_output(monkeypatch):
+    """A bare `git status --porcelain` answered 582 on the live tree, of which 397 were
+    documents in `docs/staging/` and 84 were logs under `docs/observability/` that daemons
+    rewrite every minute. The handoff listed sixty log files, said "…and 499 more", and buried
+    the 49 real source paths -- an entire uncommitted VAT-basis repair among them.
+
+    THE EXCLUSION IS NOT RE-IMPLEMENTED HERE, and the test is shaped to prove that rather than
+    to re-state it: `tree_divergence` already owns the list of what the machine rewrites, for
+    the daily squatting report, and a second copy of it in this module would be a second opinion
+    that drifts. So this asserts the DELEGATION plus the one exclusion that is genuinely local.
+    """
+    from background import tree_divergence
+
+    # The inherited half -- daemon output never reaches this module at all.
+    assert tree_divergence._is_generated("docs/observability/worker-tick-log.md")
+    assert tree_divergence._is_generated("site/data/customers.json")
+
+    # The local half -- a staged doc is already IN the draw, so naming it as unadopted work
+    # tells the reader about the queue he is reading it from.
+    monkeypatch.setattr(tree_divergence, "changed_paths", lambda _d=None: [
+        "simulation/hedged_settlement.py",
+        "docs/staging/WORKER_FINDING_SOMETHING_2026-08-25.md",
+    ])
+    assert sc._uncommitted_paths() == ["simulation/hedged_settlement.py"]
+
+
+def test_a_seat_that_died_holding_ONLY_MACHINE_OUTPUT_files_NOTHING(
+    beat, no_seat, tmp_path, monkeypatch
+):
+    """THE GUARD THAT HAD BECOME UNREACHABLE. `_handoff_for` has always said "died holding
+    nothing, file nothing" -- but the old `git status --porcelain` counted `docs/observability/`,
+    which is never clean, so the condition could not be true and every dead seat filed, forever,
+    whatever it had or had not been doing.
+
+    The stub returns what `changed_paths` really returns (it has already dropped observability
+    and site/ itself); what is left to exercise here is the staging exclusion, which is this
+    module's own and is the self-referential half -- the handoff counting the previous handoff.
+    """
+    from background import seat_work_in_hand, tree_divergence
+    monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
+    monkeypatch.setattr(tree_divergence, "changed_paths",
+                        lambda _d=None: ["docs/staging/WORKER_FINDING_X_2026-08-25.md",
+                                         "docs/staging/in_progress/PLANNER_MINTED_y.md"])
+    staging = tmp_path / "staging"
+    staging.mkdir()
+    p, write = beat
+    write(sc.SILENT_AFTER_SECONDS + 1)
+
+    assert sc.sweep(path=p, now=NOW, staging_dir=staging) is None
+    assert not list(staging.glob("*.md"))
+
+
+def test_MUTATION_one_real_source_path_among_the_exhaust_still_files(
+    beat, no_seat, tmp_path, monkeypatch
+):
+    """The null half of the test above -- without it, "files nothing" would also be satisfied by
+    a filter that swallowed everything, which is the fail-open shape R15 names second."""
+    from background import seat_work_in_hand, tree_divergence
+    monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
+    monkeypatch.setattr(sc, "_last_commit", lambda: "abc1234")
+    monkeypatch.setattr(tree_divergence, "changed_paths",
+                        lambda _d=None: ["docs/staging/WORKER_FINDING_X_2026-08-25.md",
+                                         "simulation/hedged_settlement.py"])
+    staging = tmp_path / "staging"
+    staging.mkdir()
+    p, write = beat
+    write(sc.SILENT_AFTER_SECONDS + 1)
+
+    assert sc.sweep(path=p, now=NOW, staging_dir=staging) is not None
+    text = next(staging.glob("*.md")).read_text(encoding="utf-8")
+    assert "simulation/hedged_settlement.py" in text
+    assert "WORKER_FINDING_X" not in text
+
+
+def test_an_UNREADABLE_tree_files_ANYWAY_and_says_the_list_is_UNKNOWN(
+    beat, no_seat, tmp_path, monkeypatch
+):
+    """R15 fail-silent, in the direction this repo has already ruled on for alarms: "a git
+    failure returns None, which the caller must treat as a FAILED check. For an ALARM the safe
+    failure is to page anyway -- never to suppress on a check that did not run."
+
+    Rendering an unreadable tree as a clean one would tell the reader the seat left nothing,
+    which is the single most expensive sentence this document could contain.
+    """
+    from background import seat_work_in_hand, tree_divergence
+    monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
+    monkeypatch.setattr(sc, "_last_commit", lambda: "abc1234")
+    monkeypatch.setattr(tree_divergence, "changed_paths", lambda _d=None: None)
+    staging = tmp_path / "staging"
+    staging.mkdir()
+    p, write = beat
+    write(sc.SILENT_AFTER_SECONDS + 1)
+
+    assert sc.sweep(path=p, now=NOW, staging_dir=staging) is not None
+    text = next(staging.glob("*.md")).read_text(encoding="utf-8")
+    assert "could not be read" in text and "UNKNOWN, not empty" in text
+    assert "The tree is clean" not in text

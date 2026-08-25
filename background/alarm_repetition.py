@@ -96,10 +96,29 @@ EPISODE_GAP_SECONDS = 4 * 3600
 #:   git hashes         "(git=a77784f4a)" / "(git=a11556e23)"
 #:   timestamps         ISO stamps and HH:MM:SS in the body
 #:   byte/KB sizes      "4117 KB"
+#:   session UUIDs      "session c7e894aa-3221-45f7-8713-" -- seat_continuity's eighteen copies
 #: Normalising these is what makes "the same alarm" a decidable question. Everything else --
 #: the exception type, the failing key, the module -- is preserved, so a KeyError and a
 #: TypeError from the same daemon stay two different alarms with two different work items.
 _VARIABLE = (
+    # UUIDs, and this one MUST run before the git-hash rule below or it never fires.
+    #
+    # MEASURED, 2026-08-25: the staging root held EIGHTEEN copies of one alarm --
+    # WORKER_FINDING_REPEATING_ALARM_SESSION_B_C_D_A_A_E_STOPPED_MID_WORK_..., _F_E_EE_A_E_...,
+    # _C_C_A_..., one every thirty minutes for nine hours -- because `seat_continuity` puts the
+    # dead session's id in its subject and a UUID SURVIVES this normaliser in pieces. The
+    # `{7,40}` rule below eats a UUID's 8- and 12-character groups, but its 4-character groups
+    # are too short to match; the trailing number rule then eats their digits and leaves the
+    # LETTERS. `c7e894aa-3221-45f7-8713-` normalised to `# #f# #` and slugged to `SESSION_F`,
+    # while `f0e2ee4a-e5b1-4c3d-9a2b-` slugged to `SESSION_E_B_C_D_A_B`. Two firings of one
+    # condition, two filenames, two documents -- the "process re-creating a finding hourly"
+    # defect that `_slug`'s own docstring says it exists to prevent, walking straight through it.
+    #
+    # Order is the whole fix: run first and the whole token goes; run second and there is
+    # nothing hyphen-shaped left to match. Deliberately tolerant of TRUNCATION (`[:24]` is what
+    # seat_continuity stores, which cuts mid-group and leaves a trailing hyphen) and it needs
+    # three-plus hex groups, so `pre-commit-gate` and `test-driven-code` are untouched.
+    re.compile(r"\b[0-9a-f]{4,}(?:-[0-9a-f]{2,}){2,}-?"),    # UUIDs, whole or truncated
     re.compile(r"\b[0-9a-f]{7,40}\b"),                       # git hashes / digests
     re.compile(r"\b\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2})?Z?\b"),  # timestamps
     re.compile(r"\b\d{2}:\d{2}(:\d{2})?\b"),                 # clock times

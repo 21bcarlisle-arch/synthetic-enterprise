@@ -226,17 +226,78 @@ def state(*, path: Path | None = None, now: float | None = None) -> str:
     return DEAD if _any_interactive_seat() is False else LIVE
 
 
-def _uncommitted_paths() -> list[str]:
-    """Repo-relative paths with uncommitted changes -- the work the session left behind."""
-    out = subprocess.run(["git", "status", "--porcelain"],
-                         cwd=PROJECT_DIR, capture_output=True, text=True)
-    if out.returncode != 0:
-        return []
-    paths = []
-    for line in out.stdout.splitlines():
-        if len(line) > 3:
-            paths.append(line[3:].strip().split(" -> ")[-1])
-    return paths
+def _uncommitted_paths() -> list[str] | None:
+    """SOURCE paths the seat left behind. `None` when git could not be asked at all.
+
+    THE MEASURED DEFECT, 2026-08-25. This was a bare `git status --porcelain`, and on this tree
+    that answers 582 -- of which 397 are documents in `docs/staging/` and 84 are the daemons'
+    own logs under `docs/observability/`, rewritten every minute by processes that have nothing
+    to do with the seat. The handoff document therefore listed sixty log files, said "…and 499
+    more", and directly above them said "Nothing was claimed."
+
+    Two consequences, and the second is the expensive one. The document was useless: the 49
+    real source files -- an entire uncommitted VAT-basis repair among them -- were buried in
+    machine exhaust. And `_handoff_for`'s "died holding nothing, file nothing" guard became
+    UNREACHABLE, because `docs/observability/` is never clean, so every dead seat filed,
+    forever, whatever it had or had not been doing.
+
+    IT IS ALSO A MIRROR, in this repo's own sense (CLASS_MEASUREMENTS_THAT_MIRROR): the handoff
+    writes itself into `docs/staging/`, so the next handoff counted the previous handoff as work
+    the seat left behind. The instrument was reading its own output back.
+
+    REUSED, NOT REBUILT (AO2). `tree_divergence.changed_paths` already answers exactly this
+    question -- "source files diverging from HEAD, generated artefacts and runtime state
+    excluded" -- for the daily squatting report, with the same `GENERATED_PREFIXES` reasoning
+    and the same `None`-not-`[]` failure contract. Duplicating that list here would have given
+    this module a second, quietly diverging opinion about what counts as source.
+
+    `docs/staging/` is dropped ON TOP of that, and only here: a staged document is already IN
+    the tick's draw by the act of existing there, so naming it as unadopted work is telling the
+    reader about the queue he is currently reading.
+    """
+    from background import tree_divergence
+
+    paths = tree_divergence.changed_paths(PROJECT_DIR)
+    if paths is None:
+        return None  # git could not answer; an unavailable check is not an empty tree (R15)
+    return sorted(p for p in paths if not p.startswith("docs/staging/"))
+
+
+#: How many top-level areas the subject names before it stops. `alarm_repetition._slug` keeps the
+#: first TEN words of the normalised subject, and each area costs one word (two when it is a
+#: dotted filename like `CLAUDE.md`, which normalise splits). Four leaves room for the rest of
+#: the sentence and still tells two bodies of work apart.
+SUBJECT_AREAS = 4
+
+#: Directories, not loose files. A top-level file diverging (`CLAUDE.md`, `head.txt`) is almost
+#: always another lane's edit rather than the shape of the seat's work, and letting each one
+#: claim an area slot pushed the real directories out of the subject entirely -- measured: the
+#: first draft's subject read "CLAUDE.md, PRIORITIES.md, _r11_tmp.mjs, background" and never
+#: reached simulation or tests, where the actual orphaned repair was.
+_LOOSE_FILE = "the tree root"
+
+
+def _held_areas(uncommitted: list[str] | None) -> str:
+    """The subject's discriminator: WHICH work is being held, in words that survive
+    `alarm_repetition.normalise` AND fit inside `_slug`'s ten-word window.
+
+    It has to be WORDS and it has to be EARLY. normalise() replaces every number with `#`, so a
+    count cannot tell two documents apart; the path list is far too long for a filename; and
+    anything past the tenth word never reaches the slug at all -- the first draft of this put
+    the areas at the end of the sentence, and every seat death still produced one identical
+    filename, which is the same bug in the opposite direction.
+
+    Top-level areas are the right grain: stable when one file of a body of work gets committed
+    (which should NOT re-file), different when the seat was holding something else entirely
+    (which SHOULD).
+    """
+    if uncommitted is None:
+        return "an unreadable tree"
+    if not uncommitted:
+        return "nothing"
+    areas = sorted({p.split("/", 1)[0] if "/" in p else _LOOSE_FILE for p in uncommitted})
+    named = ", ".join(areas[:SUBJECT_AREAS])
+    return named + (" and elsewhere" if len(areas) > SUBJECT_AREAS else "")
 
 
 def _last_commit() -> str:
@@ -245,8 +306,13 @@ def _last_commit() -> str:
     return out.stdout.strip() if out.returncode == 0 else "(unreadable)"
 
 
-def handoff_document(rec: dict, claims: dict, uncommitted: list[str], now: float) -> str:
-    """The handoff, as markdown. Pure, so a test judges the same text a reader gets."""
+def handoff_document(rec: dict, claims: dict, uncommitted: list[str] | None, now: float) -> str:
+    """The handoff, as markdown. Pure, so a test judges the same text a reader gets.
+
+    `uncommitted` is None when git could not be asked. That is NOT rendered as a clean tree:
+    the reader is told the tree could not be read and to look himself, because "the seat died
+    and we cannot see what it left" is the one state where a silent empty list does real damage.
+    """
     silence_h = (now - float(rec.get("ts", now))) / 3600.0
     tools = ", ".join(t.get("tool", "?") for t in (rec.get("recent_tools") or [])) or "none recorded"
     claim_lines = "\n".join(
@@ -255,8 +321,13 @@ def handoff_document(rec: dict, claims: dict, uncommitted: list[str], now: float
         + (f"\n  paths: {', '.join(v.get('paths') or []) or '(none declared)'}")
         for k, v in sorted(claims.items())
     ) or "- Nothing was claimed. Whatever it was doing, it did not say."
-    dirty = "\n".join(f"- `{p}`" for p in uncommitted[:60]) or "- Nothing. The tree is clean."
-    more = (f"\n…and {len(uncommitted) - 60} more.\n" if len(uncommitted) > 60 else "")
+    if uncommitted is None:
+        dirty = ("- **The tree could not be read** — `git status` failed here, so this list is\n"
+                 "  UNKNOWN, not empty. Run `git status` yourself before concluding nothing was left.")
+        more = ""
+    else:
+        dirty = "\n".join(f"- `{p}`" for p in uncommitted[:60]) or "- Nothing. The tree is clean."
+        more = (f"\n…and {len(uncommitted) - 60} more.\n" if len(uncommitted) > 60 else "")
 
     return f"""**Severity:** LATENT · **Lane:** H_harness
 
@@ -276,8 +347,11 @@ draws it like any other work.
 
 ## What it left in the tree, uncommitted
 
-This is the real state — more reliable than anything the session could have written about
-itself, because an API error is precisely the thing that stops it writing.
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
 
 {dirty}
 {more}
@@ -329,23 +403,40 @@ def _handoff_for(rec: dict, *, now: float, staging_dir: Path | None = None) -> s
 
     claims = seat_work_in_hand._load(seat_work_in_hand.CLAIMS_FILE)
     uncommitted = _uncommitted_paths()
-    if not claims and not uncommitted:
+    if not claims and uncommitted == []:
         return None  # died holding nothing; a handoff here would be the noise this replaces
+    # `uncommitted is None` falls THROUGH the guard on purpose: git could not be asked, so we do
+    # not know that it held nothing, and for an alarm the safe failure is to file (R15).
 
-    # ONE DOCUMENT PER INTERRUPTION, and the session id is in the SUBJECT rather than only in
-    # the key. `alarm_repetition` classifies and de-duplicates on the normalised subject line,
-    # and it was changed this morning to hold ONE live document per signature -- correct for a
-    # recurring alarm about an unchanged condition, and wrong here. Two interruptions are not
-    # one condition recurring: each carries a DIFFERENT set of uncommitted paths, and folding
-    # the second into the first would silently discard exactly the state this module exists to
-    # preserve. So the subject varies by session, and the repeat-within-one-interruption case
-    # is handled by clearing the heartbeat instead -- after which `state()` reads ABSENT and
-    # the five-minute sweep files nothing.
-    session_tag = (rec.get("session_id") or f"at-{int(float(rec.get('ts', now)))}")[:24]
+    # ONE DOCUMENT PER UNADOPTED BODY OF WORK -- NOT ONE PER INTERRUPTION (2026-08-25).
+    #
+    # The subject used to carry the dead session's id, on the argument that "two interruptions
+    # are not one condition recurring: each carries a DIFFERENT set of uncommitted paths, and
+    # folding the second into the first would silently discard exactly the state this module
+    # exists to preserve." That argument was sound about a real risk and false about this tree,
+    # and it cost eighteen documents in nine hours -- SESSION_B_C_D_A_A_E, SESSION_F_E_EE_A_E,
+    # SESSION_C_C_A and fifteen more, each 4.6KB, all of them listing the same daemon logs and
+    # all of them saying "Nothing was claimed". They took the head of the tick's draw queue and
+    # pushed three self-drawable mints to positions 43-46 of 48, where no bounded session ever
+    # reached them. The machine's alarms had become the machine's workload.
+    #
+    # The path sets did not in fact differ: they were 99% `docs/observability/` churn, which is
+    # the defect `_uncommitted_paths` above now fixes. Once the list is SOURCE only, two seats
+    # dying over the same unadopted work are holding the same thing, and that IS one condition
+    # -- it stays live until the work is adopted or reverted, which is precisely the semantics
+    # `alarm_repetition`'s still-live append gives for free.
+    #
+    # THE OLD ARGUMENT IS STILL HONOURED, not overruled: a second interruption over DIFFERENT
+    # work must still get its own document. It does, because the subject names the work rather
+    # than the session -- the count of held source paths and the first of them by path order.
+    # Same work, same subject, one document; different work, different subject, two.
+    #
+    # (The session id also could not de-duplicate even when it was wanted to. A UUID survived
+    # `alarm_repetition.normalise` in fragments -- see the UUID rule added there the same day.)
     filed = alarm_repetition.escalate(
-        f"[SEAT] session {session_tag} stopped mid-work holding "
-        f"{len(claims)} claim(s) and {len(uncommitted)} uncommitted path(s)",
-        key=f"seat-continuity:{session_tag}",
+        f"[SEAT] {_held_areas(uncommitted)} left uncommitted by a session that stopped "
+        f"mid-work holding {len(claims)} claim(s)",
+        key="seat-continuity",
         repeats=1,
         first_ts=float(rec.get("ts", now)),
         staging_dir=staging_dir,
