@@ -200,3 +200,75 @@ def offer_position_multiplier(price_differential_pct: float) -> float:
     if our_saving_gbp >= 0.0:
         return _savings_to_rate(our_saving_gbp) / _PARITY_RATE
     return _PARITY_RATE / _savings_to_rate(-our_saving_gbp)
+
+
+#: Where the DESNZ series stops informing the curve: `_savings_to_rate` is flat at `_MAX_RATE`
+#: above this, so beyond it every input maps to the same output.
+_CALIBRATED_SAVINGS_CEILING_GBP = 400.0
+
+#: The last slope the data actually informs, per GBP of annual saving. Taken from the final
+#: graduated segment of `_savings_to_rate` (0.13 -> 0.22 across 250..400 GBP) rather than
+#: written down, so a re-calibration of that segment moves this with it.
+_LAST_INFORMED_SLOPE_PER_GBP = (_MAX_RATE - 0.13) / (_CALIBRATED_SAVINGS_CEILING_GBP - 250.0)
+
+
+def churn_position_multiplier(price_differential_pct: float) -> float:
+    """The world's LOSS-side response to our price against the market. 1.0 at parity.
+
+    THE RECIPROCAL OF `offer_position_multiplier` BELOW SATURATION, and deliberately NOT above
+    it. Both legs share one curve so that the anti-goal-seek guarantee holds -- there is no
+    differential at which the company gains on winning AND on keeping -- and that property is
+    preserved here: this is monotone increasing in the differential, so a dearer position is
+    never better on this leg.
+
+    WHY THE TWO LEGS PART COMPANY ABOVE SATURATION, measured rather than reasoned about.
+    `_savings_to_rate` is flat at `_MAX_RATE` above 400 GBP of annual saving, so
+    `offer_position_multiplier` saturates at 4.4x. Applied to the loss side that produced this:
+
+        +10% vs market  -> churn x1.96 -> p(leave) 0.157
+        +25% vs market  -> churn x4.40 -> p(leave) 0.352
+        +50% vs market  -> churn x4.40 -> p(leave) 0.352
+       +200% vs market  -> churn x4.40 -> p(leave) 0.352
+
+    A supplier 25% above the market and one 200% above it lose the SAME third of their book.
+    The world could punish moderate over-pricing and could not express a supplier pricing itself
+    out of existence -- so `WORLD_MAX_CHURN_PROBABILITY` was unreachable by the one mechanism
+    that should reach it.
+
+    ON THE WIN SIDE THE SATURATION IS CORRECT and is left alone: you cannot win more customers
+    than the market has engaged households to give, and `_MAX_RATE` is exactly that ceiling. On
+    the LOSS side the same number is a category error -- a MARKET-WIDE annual switching rate used
+    to bound an INDIVIDUAL's response to their own supplier doubling their bill. It is the third
+    instance of that shape found today, after the company's `MAX_CHURN_PROBABILITY` cap and the
+    win leg's own crisis-floor defect (`50274434a`).
+
+    WHAT IS ASSUMED, NAMED AS A SIMPLIFICATION. Above the calibrated ceiling the response
+    continues at the LAST SLOPE THE DATA INFORMS rather than flattening. Flattening is not the
+    neutral choice -- it is an extrapolation too, and it is the one that asserts "no further
+    response", which is both the least defensible of the available assumptions and the one that
+    flatters an over-pricing supplier. Continuing the measured slope invents no new parameter:
+    it is derived from the final graduated segment of `_savings_to_rate` and moves if that
+    segment is ever recalibrated.
+
+    WHAT WOULD DISCHARGE IT: a supplier-level churn series against that supplier's own position
+    versus the market -- the 2018-19 small-supplier failures and the SoLR events are the obvious
+    place to look. A market-level switching count can never settle it, because it never observed
+    any single supplier's own book.
+
+    R13: baseline fidelity, decided blind to company P&L, and it moves against the company --
+    it makes over-pricing more expensive and cannot make anything cheaper.
+    """
+    differential = float(price_differential_pct)
+    if differential <= 0.0:
+        # Cheaper or at parity: the reciprocal of the win leg, exactly. No extrapolation is
+        # involved and none is invented -- a keener price cannot take churn below the crisis
+        # floor the market series already carries.
+        return 1.0 / offer_position_multiplier(differential)
+
+    our_shortfall_gbp = differential * CALIBRATION_ANNUAL_BILL_GBP
+    if our_shortfall_gbp <= _CALIBRATED_SAVINGS_CEILING_GBP:
+        return 1.0 / offer_position_multiplier(differential)
+
+    beyond = our_shortfall_gbp - _CALIBRATED_SAVINGS_CEILING_GBP
+    extrapolated_rate = _MAX_RATE + _LAST_INFORMED_SLOPE_PER_GBP * beyond
+    return extrapolated_rate / _PARITY_RATE

@@ -22,7 +22,10 @@ import pytest
 
 from simulation import customer_events as ce
 from simulation.churn_ceiling import WORLD_MAX_CHURN_PROBABILITY
-from simulation.market_switching_propensity import offer_position_multiplier
+from simulation.market_switching_propensity import (
+    churn_position_multiplier,
+    offer_position_multiplier,
+)
 from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
 
 TERM = "2024-01-01"
@@ -68,12 +71,47 @@ def test_an_UNKNOWN_market_reference_is_not_reported_as_parity_either():
 def test_being_DEARER_raises_churn(differential):
     """MUTATION (must fire): drop the price block from the churn chain -- which is exactly the
     state of HEAD before this landed."""
-    assert 1.0 / offer_position_multiplier(differential) > 1.0
+    assert churn_position_multiplier(differential) > 1.0
 
 
 @pytest.mark.parametrize("differential", [-0.05, -0.10, -0.20])
 def test_being_CHEAPER_lowers_churn(differential):
-    assert 1.0 / offer_position_multiplier(differential) < 1.0
+    assert churn_position_multiplier(differential) < 1.0
+
+
+def test_a_supplier_that_prices_itself_OUT_OF_THE_MARKET_can_lose_essentially_everyone():
+    """THE PROPERTY THE WORLD DID NOT HAVE, and the reason the loss leg parts from the win leg.
+
+    Measured before the fix: a supplier 25% above the market and one 200% above it lost the SAME
+    third of their book, because the shared curve saturates at 4.4x. The world could punish
+    moderate over-pricing and could not express a supplier pricing itself out of existence -- so
+    `WORLD_MAX_CHURN_PROBABILITY` was unreachable by the one mechanism that should reach it.
+
+    MUTATION (must fire): revert the loss leg to `1 / offer_position_multiplier`.
+    """
+    base = 0.08
+    assert min(base * churn_position_multiplier(0.25), WORLD_MAX_CHURN_PROBABILITY) < 0.5
+    assert min(base * churn_position_multiplier(1.00), WORLD_MAX_CHURN_PROBABILITY) == pytest.approx(
+        WORLD_MAX_CHURN_PROBABILITY), (
+        "a supplier charging double the market still cannot lose its book"
+    )
+
+
+def test_the_two_legs_AGREE_below_saturation_and_only_part_above_it():
+    """The split is surgical, not a second curve. Below the calibrated ceiling the loss leg IS
+    the reciprocal of the win leg, so nothing already measured moves."""
+    for d in (-0.20, -0.05, 0.0, 0.05, 0.10, 0.20):
+        assert churn_position_multiplier(d) == pytest.approx(1.0 / offer_position_multiplier(d))
+    assert churn_position_multiplier(1.0) > 1.0 / offer_position_multiplier(1.0)
+
+
+def test_the_WIN_leg_keeps_its_saturation_because_the_market_is_finite():
+    """You cannot win more customers than the market has engaged households to give, and
+    `_MAX_RATE` is exactly that ceiling. Extending the win leg too would have modelled a supplier
+    who can buy an unbounded number of customers by discounting.
+
+    MUTATION (must fire): extrapolate the win leg as well."""
+    assert offer_position_multiplier(-2.0) == pytest.approx(offer_position_multiplier(-5.0))
 
 
 def test_the_loss_side_is_the_EXACT_reciprocal_of_the_win_side():
@@ -85,9 +123,13 @@ def test_the_loss_side_is_the_EXACT_reciprocal_of_the_win_side():
 
     MUTATION (must fire): give the churn side its own elasticity constant.
     """
-    for d in (0.02, 0.05, 0.10, 0.25, 0.50):
+    # BELOW SATURATION ONLY. Above it the legs part on purpose -- see
+    # `test_the_two_legs_AGREE_below_saturation_and_only_part_above_it` -- and the guarantee that
+    # survives up there is monotonicity, tested separately: there is still no d at which both
+    # legs improve, because churn rises and wins fall across the whole range.
+    for d in (0.02, 0.05, 0.10, 0.20):
         win = offer_position_multiplier(d)
-        churn = 1.0 / offer_position_multiplier(d)
+        churn = churn_position_multiplier(d)
         # RECIPROCAL WITH THE WIN SIDE: what a price move costs in departures is exactly what it
         # costs in wins, inverted. (The first version of this assertion multiplied the two the
         # wrong way round and asserted m(d)^2 == 1, which is only true at parity -- caught by
@@ -95,14 +137,33 @@ def test_the_loss_side_is_the_EXACT_reciprocal_of_the_win_side():
         assert churn * win == pytest.approx(1.0), "the two legs are no longer reciprocal"
         # SYMMETRIC ABOUT PARITY: dearer by d costs what cheaper by d gains, so there is no d at
         # which both legs improve.
-        assert churn * (1.0 / offer_position_multiplier(-d)) == pytest.approx(1.0)
+        assert churn * churn_position_multiplier(-d) == pytest.approx(1.0)
+
+
+def test_ABOVE_saturation_the_punishment_exceeds_the_reward_which_is_the_asymmetry_real_retail_has():
+    """AN ACCIDENT WORTH KEEPING, and worth naming rather than leaving to be discovered.
+
+    `offer_position_multiplier`'s own docstring registers symmetry as a NAMED SIMPLIFICATION and
+    says plainly what it costs: "Real retail is not symmetric -- loss aversion and incumbency
+    inertia both say a dearer offer is punished harder than a cheaper one is rewarded -- and
+    nothing in the DESNZ series can settle the asymmetry."
+
+    Extending the loss leg past the calibrated ceiling, for the separate reason that the world
+    could not otherwise kill an over-pricing supplier, produces exactly that asymmetry above
+    saturation. It is not evidence for the asymmetry and does not discharge the simplification --
+    it happens to point the way the literature says, which is worth recording and not worth
+    claiming."""
+    for d in (0.50, 1.00, 2.00):
+        punished = churn_position_multiplier(d)
+        rewarded = 1.0 / churn_position_multiplier(-d)
+        assert punished > rewarded
 
 
 def test_the_response_is_MONOTONE_in_price():
     """The property the model actually needs. A non-monotone response would give a supplier a
     price at which raising it further LOSES fewer customers, which is not a market."""
-    multipliers = [1.0 / offer_position_multiplier(d)
-                   for d in (-0.5, -0.2, -0.05, 0.0, 0.05, 0.2, 0.5)]
+    multipliers = [churn_position_multiplier(d)
+                   for d in (-0.5, -0.2, -0.05, 0.0, 0.05, 0.2, 0.5, 1.0, 2.0)]
 
     assert all(a <= b + 1e-12 for a, b in zip(multipliers, multipliers[1:])), multipliers
 
@@ -111,10 +172,12 @@ def test_the_response_is_BOUNDED_so_a_price_shock_cannot_produce_a_probability_a
     """The curve saturates at 0.22 and so bounds itself in [1/4.4, 4.4]; the world ceiling then
     catches the product. Both are needed: an unbounded multiplier on a churn already near the
     ceiling would produce a probability above 1 and roll it."""
-    extreme = 1.0 / offer_position_multiplier(50.0)
+    extreme = churn_position_multiplier(50.0)
 
-    assert extreme <= 4.5
-    assert min(0.9 * extreme, WORLD_MAX_CHURN_PROBABILITY) <= WORLD_MAX_CHURN_PROBABILITY
+    assert min(0.9 * extreme, WORLD_MAX_CHURN_PROBABILITY) <= WORLD_MAX_CHURN_PROBABILITY, (
+        "the world ceiling no longer catches an extreme price shock, so a probability above one "
+        "could be rolled"
+    )
 
 
 # --------------------------------------------------------------------------- #

@@ -32,6 +32,7 @@ from saas.home_move_win_rate import build_home_move_win_rates
 from simulation.churn_ceiling import WORLD_MAX_CHURN_PROBABILITY
 from simulation.household import IncomeStress, household_of
 from simulation.market_switching_propensity import (
+    churn_position_multiplier,
     market_switching_multiplier,
     offer_position_multiplier,
 )
@@ -214,7 +215,13 @@ def roll_lifecycle_event(
     if differential is None:
         differential = price_differential_pct
     if differential:
-        p_churn_price = (1.0 - effective_p_retain) / offer_position_multiplier(differential)
+        # `churn_position_multiplier`, not `1 / offer_position_multiplier`, and the difference
+        # only appears past +25%: the shared curve saturates there, so a supplier 25% above the
+        # market and one 200% above it were losing the SAME third of their book. The loss leg
+        # continues at the last slope the data informs; the win leg keeps the saturation, because
+        # you cannot win more customers than the market has to give. See that function for the
+        # measurement and for what would discharge the assumption.
+        p_churn_price = (1.0 - effective_p_retain) * churn_position_multiplier(differential)
         effective_p_retain = 1.0 - min(p_churn_price, WORLD_MAX_CHURN_PROBABILITY)
     # Phase MZ: apply income_stress switching propensity before retention modifier.
     # Layer 2 dimension 3 (2026-07-09): tenure applied in the same call --
@@ -293,6 +300,9 @@ def roll_lifecycle_event(
         "price_differential_vs_svt": round(differential, 4) if differential else None,
         "offer_position_multiplier": (
             round(offer_position_multiplier(differential), 4) if differential else None
+        ),
+        "churn_position_multiplier": (
+            round(churn_position_multiplier(differential), 4) if differential else None
         ),
         "market_switching_multiplier": round(market_switching_multiplier(market_year), 4) if market_year is not None else None,
     }
