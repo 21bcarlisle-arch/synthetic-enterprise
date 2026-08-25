@@ -261,7 +261,45 @@ PUSH_THROTTLE_SECONDS = 30 * 60
 # content dying early and the correct direction of a fix that could be wrong is "publish the
 # figures too". It still fits inside the 900s cap `background_worker.py::process_leftover_run_
 # markers` puts on this whole process.
-GIT_COMMIT_HOOK_TIMEOUT_SECONDS = 10 * 60
+#
+# 600 -> 840 (2026-08-25), AND THE NUMBER IS THE SMALL HALF OF THIS CHANGE. Publishing was down
+# 12.2 hours across twelve consecutive `commit_did_not_land` episodes with `total_red: 0` and the
+# publisher's own scoped suite GREEN every time. The cause was this deadline: the hook chain runs
+# a full test gate and was outrunning 600s. `docs/observability/publish_gate_duration.jsonl` shows
+# the publisher's own comparable gate at 456s at 07:42 and 557s at 17:38 ON THE SAME DAY -- a 22%
+# rise in ten hours -- so 600 had stopped being a deadline and become a coin toss on machine load.
+#
+# WHAT WAS NOT DONE, because the director ruled on it (2026-08-21): *"A 75-minute gate is absurd
+# on its face and neither of us said so."* NO GATE BUDGET GROWS HERE. `GATE_SUITE_TIMEOUT_SECONDS`
+# is untouched at 3800 and `PUBLISH_PATH_TIMEOUT_SECONDS` at 4700. 840 fits inside the 900s the
+# publish path ALREADY reserves for everything after the gate, so this takes room that was
+# allocated rather than asking for more -- and `test_the_deadline_leaves_room_for_the_publish_
+# path_after_the_gate` still holds.
+#
+# AND THE REAL REPAIR IS NOT THIS. The publisher pays for TWO full suite runs per cycle: its own
+# scoped gate, and then a comparable chain again inside `git commit`. Halving that is the fix with
+# headroom in it; raising a deadline only buys time against a curve that is still rising. That
+# change touches the commit gate, which is a wall, and needs its own design and its own controls.
+# Recorded here so the next reader knows this constant is a STOPGAP with a measurement behind it,
+# not an answer.
+#
+# THE MEASUREMENT THAT WAS MISSING is now taken: `_record_commit_hook_duration` times this call
+# and records it against THIS deadline, so the hook chain's cost is observed rather than inferred
+# from the publisher's separate gate. Twelve timeouts happened with nothing recording how long the
+# thing that timed out actually took.
+#: The worst comparable full-suite gate run measured on this machine, WITH THE DATE IN THE NAME.
+#: The constant this replaces was `measured_hook_chain_seconds = 30  # ... 2026-08-03`, and its
+#: date sat in a comment nobody re-read while the real cost grew twentyfold. A date in the
+#: IDENTIFIER is visible at every call site and in every diff.
+#: Source: `docs/observability/publish_gate_duration.jsonl`, worst of the last twenty runs on
+#: 2026-08-25 (456s at 07:42 rising to 557s at 17:38 the same day).
+MEASURED_GATE_SECONDS_2026_08_25 = 557
+
+#: How much room the deadline must have over measured reality. 1.25 rather than the old 5x: a
+#: large multiple over a small stale number is what made the previous control unable to fail.
+COMMIT_DEADLINE_HEADROOM = 1.25
+
+GIT_COMMIT_HOOK_TIMEOUT_SECONDS = 14 * 60
 
 
 # THE KILL'S OWN DIAGNOSTIC WAS BLOCK-BUFFERED AWAY (2026-08-13, R15 fail-silent).
@@ -3759,6 +3797,36 @@ def _commit_pathspec(files, extra_relative=()):
     return spec
 
 
+COMMIT_HOOK_DURATION_PATH = (
+    PROJECT_DIR / "docs" / "observability" / "commit_hook_duration.jsonl")
+
+
+def _record_commit_hook_duration(elapsed_seconds: float, git_hash: str, outcome: str) -> None:
+    """How long the pre-commit HOOK CHAIN actually took, recorded against the deadline that
+    actually kills it.
+
+    THE THING THAT TIMES OUT WAS THE ONE THING UNMEASURED. `publish_gate_duration.jsonl` records
+    the publisher's OWN scoped gate and grades its headroom against `GATE_SUITE_TIMEOUT_SECONDS`
+    (3800s), reporting `band: ok, headroom_ratio: 0.85` -- while the commit that runs a comparable
+    chain was being killed at 600s. Two deadlines differing by a factor of six, and the one the
+    instrument grades against is not the one that binds. Twelve consecutive publish failures on
+    2026-08-25 produced no record of how long the chain took, only that it exceeded a number.
+
+    A SEPARATE LEDGER, deliberately: this is a different subject from the publisher's scoped gate,
+    and folding the two series together would make both unreadable. The same recorder, so the
+    banding, the headroom ratio and the transition alarm are the ones already trusted elsewhere.
+
+    NEVER RAISES. An observer that can take down the publish it observes is itself a defect.
+    """
+    try:
+        from background.suite_duration_watch import record_gate_run
+
+        record_gate_run(float(elapsed_seconds), GIT_COMMIT_HOOK_TIMEOUT_SECONDS,
+                        str(git_hash or "unknown"), outcome, COMMIT_HOOK_DURATION_PATH)
+    except Exception:  # noqa: BLE001 - see docstring
+        pass
+
+
 def _git_said_nothing_to_commit(tail) -> bool:
     """Did git refuse because the index was EMPTY, rather than because a hook said no?
 
@@ -4094,11 +4162,14 @@ def git_commit_push(git_hash, net_margin, outcome=None):
                 # no-op, so the run would never be published again. An empty pathspec is a
                 # broken state, and the next cycle must really retry it.
                 return _outcome(COMMIT_REFUSED, False)
+            _hook_started = time.monotonic()
             result = subprocess.run(["git", "commit", "-m", msg, "--"] + pathspec,
                                     cwd=str(PROJECT_DIR),
                                     timeout=GIT_COMMIT_HOOK_TIMEOUT_SECONDS,
                                     env=_commit_hook_env(),
                                     capture_output=True, text=True)
+            _record_commit_hook_duration(time.monotonic() - _hook_started, git_hash,
+                                         "pass" if result.returncode == 0 else "refused")
         except subprocess.TimeoutExpired as exc:
             # UNCAUGHT, THIS CRASHED THE PUBLISH (CLAUDE.md's own standing learning:
             # "sim_runner TimeoutExpired must be caught -- uncaught exception kills the
@@ -4108,6 +4179,7 @@ def git_commit_push(git_hash, net_margin, outcome=None):
             # and the diagnosis pointed at the test suite for hours. A slow hook chain
             # must degrade to "retry next cycle", never take the pipeline down, and must
             # say SO in the log.
+            _record_commit_hook_duration(time.monotonic() - _hook_started, git_hash, "timeout")
             _tail = stderr_tail(exc.stderr) or stderr_tail(exc.stdout)
             log("Commit TIMED OUT after {}s ({}) -- the pre-commit hook chain outran its "
                 "deadline. Nothing committed; retrying next cycle. If this repeats, the "
