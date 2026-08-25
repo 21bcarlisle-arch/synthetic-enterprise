@@ -39,7 +39,7 @@ WHAT IT DOES, AND WHAT IT DELIBERATELY DOES NOT
 -----------------------------------------------
 `claim()` records that the seat has taken a named piece of work. `release()` clears it.
 `sweep()` -- run by the 5-minute reconcile timer -- finds claims that are older than
-`STALE_AFTER_SECONDS` with **no commit touching the tree since the claim**, files them into
+`STALE_AFTER_SECONDS` with **no commit touching the CLAIMED PATHS since the claim**, files them into
 `docs/staging/` through the existing escalation, and clears the claim so the work is drawable
 by anyone.
 
@@ -48,15 +48,27 @@ watching; the correct response is for the work to move, not for a phone to buzz.
 
 It does NOT try to detect "is the seat thinking?" -- unanswerable, and a watcher that guesses
 at intent fails in whichever direction its author was optimistic about. It measures one
-observable thing: did anything land in the repository since this was claimed.
+observable thing: did anything land against THIS work's own paths since it was claimed.
 
-PROGRESS IS COMMITS, AND THAT CHOICE IS THE LOAD-BEARING ONE
--------------------------------------------------------------
+PROGRESS IS COMMITS **TOUCHING THE CLAIMED PATHS**, AND THAT SECOND HALF WAS MISSING
+------------------------------------------------------------------------------------
 A heartbeat the seat writes itself would be satisfied by the seat writing a heartbeat -- the
 tautology R15 names first, and this module would then certify a four-hour stall as healthy
-provided the staller kept saying it was fine. Commits are independent of the claimant's
-opinion of its own progress. The cost is a false positive on genuinely long single pieces of
-work; the deadline is set well past any real one, and re-claiming is one call.
+provided the staller kept saying it was fine.
+
+The first version avoided that and walked straight into its sibling. It compared the claim
+against the tree's HEAD, and **this is a shared working tree with four other lanes committing
+into it** -- roughly twenty commits a day. Caught 2026-08-21, hours after shipping it, by
+running it against a live claim: `head > claimed_at` was True and the claim read as MOVING
+while the seat had done nothing at all. Every commit crediting it belonged to somebody else.
+
+So the seat was not certifying its own progress; it was being certified by everyone else's.
+Same defect wearing the opposite costume, and the deadline could never have fired on a busy
+day -- which is exactly the day a stall costs the most.
+
+Progress now means: a commit since the claim that TOUCHES THE CLAIMED PATHS. A claim with no
+paths has no observable progress signal at all, so it goes stale on schedule and is released.
+That is the fail-safe direction: work nobody can see moving belongs back in the draw.
 """
 from __future__ import annotations
 
@@ -98,9 +110,16 @@ def _save(claims: dict, path: Path) -> None:
     path.write_text(json.dumps(claims, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
-def _head_commit_time() -> float:
-    """UTC epoch of HEAD. Used as "has anything landed", not as a clock."""
-    out = subprocess.run(["git", "log", "-1", "--format=%ct"],
+def _last_commit_time_touching(paths: list[str]) -> float:
+    """UTC epoch of the newest commit touching any of `paths`, or 0.0 if none.
+
+    Scoped to the paths ON PURPOSE. The unscoped version of this asked whether the TREE had
+    moved, which on a shared checkout is always yes and credited a stalled claim with four
+    other lanes' work.
+    """
+    if not paths:
+        return 0.0
+    out = subprocess.run(["git", "log", "-1", "--format=%ct", "--"] + list(paths),
                          cwd=PROJECT_DIR, capture_output=True, text=True)
     if out.returncode != 0 or not out.stdout.strip():
         return 0.0
@@ -110,13 +129,25 @@ def _head_commit_time() -> float:
         return 0.0
 
 
-def claim(work_id: str, note: str = "", *, path: Path | None = None,
-          now: float | None = None) -> None:
-    """Record that the seat has taken `work_id`. Re-claiming resets the deadline, which is
-    the correct escape hatch for genuinely long work: say so, out loud, in the record."""
+def claim(work_id: str, note: str = "", paths: list[str] | None = None, *,
+          path: Path | None = None, now: float | None = None) -> None:
+    """Record that the seat has taken `work_id`.
+
+    `paths` is the repo-relative file_scope this work will move. It is what makes the deadline
+    real: without it there is no way to tell this work moving from the rest of the tree moving,
+    and on a shared tree the rest of the tree always moves. Omitting it is allowed and means
+    "release me on schedule unless I re-claim" -- honest, and the safe direction.
+
+    Re-claiming resets the deadline, which is the escape hatch for genuinely long work: say so,
+    out loud, in the record.
+    """
     p = path or CLAIMS_FILE
     claims = _load(p)
-    claims[work_id] = {"claimed_at": time.time() if now is None else now, "note": note}
+    claims[work_id] = {
+        "claimed_at": time.time() if now is None else now,
+        "note": note,
+        "paths": list(paths or []),
+    }
     _save(claims, p)
 
 
@@ -127,34 +158,48 @@ def release(work_id: str, *, path: Path | None = None) -> None:
         _save(claims, p)
 
 
-def stale_claims(*, path: Path | None = None, now: float | None = None,
-                 head_time: float | None = None) -> list[tuple[str, dict, float]]:
-    """[(work_id, record, idle_seconds)] for claims past the deadline with nothing landed.
+def held(*, path: Path | None = None) -> list[str]:
+    """Work ids currently claimed. Added 2026-08-25 for `background/delivery_lane.py`, which needs
+    to know what another tick already has in hand before it offers the same item again."""
+    return sorted(_load(path or CLAIMS_FILE))
 
-    Pure apart from its two injected clocks, so the whole decision is testable without a
-    repository, a timer, or a wall-clock sleep.
-    """
+
+def stale_claims(*, path: Path | None = None, now: float | None = None,
+                 head_time: float | None = None,
+                 stale_after: float | None = None) -> list[tuple[str, dict, float]]:
+    """[(work_id, record, idle_seconds)] for claims past the deadline whose own paths have not
+    moved. `head_time` overrides the per-claim lookup, for tests.
+
+    `stale_after` defaults to `STALE_AFTER_SECONDS`, so the interactive seat's behaviour is
+    byte-identical. It exists because `delivery_lane` shares this primitive with a different
+    deadline: its work is the multi-hour class by design, and a 45-minute deadline there would
+    thrash a claim rather than catch a stall. One store per subject, one deadline per subject,
+    ONE implementation."""
     now = time.time() if now is None else now
-    head = _head_commit_time() if head_time is None else head_time
+    deadline = STALE_AFTER_SECONDS if stale_after is None else float(stale_after)
     out = []
     for work_id, rec in sorted(_load(path or CLAIMS_FILE).items()):
         claimed_at = float(rec.get("claimed_at", 0))
-        if head > claimed_at:
-            continue                      # something landed since the claim: this is moving
+        moved = (head_time if head_time is not None
+                 else _last_commit_time_touching(rec.get("paths") or []))
+        if moved > claimed_at:
+            continue                      # THIS work landed something: it is moving
         idle = now - claimed_at
-        if idle >= STALE_AFTER_SECONDS:
+        if idle >= deadline:
             out.append((work_id, rec, idle))
     return out
 
 
 def sweep(*, path: Path | None = None, now: float | None = None,
-          head_time: float | None = None, staging_dir: Path | None = None) -> list[str]:
+          head_time: float | None = None, staging_dir: Path | None = None,
+          stale_after: float | None = None) -> list[str]:
     """File every stale claim back into the draw and clear it. Returns the ids released."""
     from background import alarm_repetition
 
     p = path or CLAIMS_FILE
     released = []
-    for work_id, rec, idle in stale_claims(path=p, now=now, head_time=head_time):
+    for work_id, rec, idle in stale_claims(path=p, now=now, head_time=head_time,
+                                           stale_after=stale_after):
         note = (rec.get("note") or "").strip()
         message = (
             f"[SEAT] {work_id} was claimed and has not moved for {idle / 3600:.1f}h\n"

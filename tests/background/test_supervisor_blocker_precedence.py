@@ -100,6 +100,12 @@ def _neutralise_rungs_above_and_below(monkeypatch, *, site=(), discovery=()):
     monkeypatch.setattr(supervisor, "_operational_red_persistent_draw", lambda *a, **k: None)
     monkeypatch.setattr(supervisor, "_site_lane_draw_concurrent", lambda *a, **k: list(site))
     monkeypatch.setattr(supervisor, "_idle_discover_frame_draw_concurrent", lambda *a, **k: list(discovery))
+    # LANE 0 -- DELIVERY (2026-08-25). A FOURTH source of work, and one that reads a LIVE record
+    # (`docs/direction/DIRECTION.yaml`) rather than anything this test builds. Left un-neutralised,
+    # every assertion here about the exact draw message becomes an assertion about whatever the
+    # delivery seat happened to decide three hours ago. Silenced for the same reason as the rungs
+    # above and below: this file is about RUNG 1c and nothing else.
+    monkeypatch.setattr(supervisor, "_delivery_lane_draw", lambda *a, **k: None)
     monkeypatch.setattr(supervisor, "log", lambda *a, **k: None)
 
 

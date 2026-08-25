@@ -92,6 +92,21 @@ THIS SESSION WRITES DIRECTION. IT DOES NOT WRITE CODE. Do not edit, create or de
 except `docs/direction/DIRECTION.yaml`. Nothing else you touch will be committed, so a code edit
 here is work thrown away and a second writer on a tree that already has three.
 
+YOUR DIRECTION IS NOW BUILT, WHICH CHANGES HOW TO WRITE IT (2026-08-25). A focus item that names a
+maturity-map atom biases the ordinary draw toward it. A focus item that names ANYTHING ELSE is
+handed to a worker tick as LANE 0 -- ahead of the dial-weighted lanes -- and that tick will do the
+work and land it (`background/delivery_lane.py`). Until this landed, four of five of your
+predecessor's focus items were unreachable by any draw and the director had to sit through an
+interactive session to get them built. So:
+
+  * write `what` as an INSTRUCTION a competent worker can act on with no further conversation --
+    the file, the measurement, the decision to be made -- not as a topic;
+  * `why` is what that worker uses to decide what DONE means, because a focus item has no exit
+    test. Say what would make it finished;
+  * two to five items, and they are worked in YOUR ORDER, so put the one that matters first;
+  * an item that is genuinely finished must DISAPPEAR from focus at your next orientation. That
+    disappearance is the acceptance test -- nothing else marks the work complete.
+
 WHAT TO PRODUCE: overwrite `docs/direction/DIRECTION.yaml` with exactly this shape.
 
     version: 1

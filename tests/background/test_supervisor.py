@@ -18,6 +18,8 @@ import pytest
 
 from background import action_needed as action_needed_module
 from background import agenda as agenda_module
+from background import delivery_lane as delivery_lane_module
+from background import direction as direction_module
 from background import supervisor
 
 
@@ -138,6 +140,14 @@ def _isolate(tmp_path, monkeypatch):
     # isolated here). The surface itself is proven both ways in test_missing_work_block_surface.py.
     monkeypatch.setattr(action_needed_module, "REGISTER_PATH", tmp_path / "action_needed_register.json")
     monkeypatch.setattr(action_needed_module, "SITE_RESERVED_PATH", tmp_path / "director_reserved.json")
+    # LANE 0 -- DELIVERY (2026-08-25). The draw gained a FOURTH source of work: the delivery
+    # seat's own direction record (`background/delivery_lane.py`). Without this, every "nothing is
+    # open" test reads the LIVE `docs/direction/DIRECTION.yaml` and correctly finds work in it --
+    # which is not the condition those tests are describing. Isolating it here is the same rule
+    # the block above already states: every new state path a cycle touches gets isolated in this
+    # fixture. The lane itself is proven both ways in test_delivery_lane.py.
+    monkeypatch.setattr(direction_module, "DIRECTION_PATH", tmp_path / "DIRECTION.yaml")
+    monkeypatch.setattr(delivery_lane_module, "CLAIMS_FILE", tmp_path / "delivery_claims.json")
     (tmp_path / "staging").mkdir()
     _reset_supervisor_state()
     yield

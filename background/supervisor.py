@@ -630,6 +630,28 @@ def _is_externally_blocked(a: dict) -> bool:
     return False
 
 
+def _delivery_lane_draw() -> str | None:
+    """LANE 0 -- the delivery seat's own decisions, drawn as work.
+
+    Director, 2026-08-25: *"orienting became autonomous while the actual building stayed gated on
+    my keypress, which is the opposite of what I wanted."* The seat decides every three hours and,
+    until this landed, four of its five decisions named work no draw could reach -- `direction.
+    focus_weights` biases atoms the draw was already considering, and a focus id that is not an
+    atom biases nothing. See `background/delivery_lane.py` for the measurement.
+
+    It is drawn ALONGSIDE the three lanes and never instead of them: the combined message carries
+    it first and the lanes below it unchanged. THREE_LANES.md exists because a cascade that
+    returned on the first non-empty tier left SITE and DISCOVERY permanently idle, and a new tier
+    that pre-empted them would be that regression wearing a delivery seat's clothes.
+
+    Never raises -- see the helper's own docstring."""
+    try:
+        from background import delivery_lane
+    except Exception:  # noqa: BLE001 - a lane that cannot import must not take the draw down
+        return None
+    return delivery_lane.draw()
+
+
 def _maturity_map_draw(rng: Any = None) -> str | None:
     """Primary self-refill source (2026-07-10, MATURITY_MAP.md Section 6/8:
     "Supervisor self-refill draws work from lanes proportional to dials").
@@ -4890,7 +4912,7 @@ def product_interleave_digest_line(record: dict | None = None) -> str:
     return " | ".join(parts)
 
 
-def _self_refill_draw() -> str | None:
+def _self_refill_draw_ladder() -> str | None:
     """The backlog-driven draw itself (maturity map, falling back to
     PRIORITIES.md prose only if the YAML is unavailable) -- factored out so
     find_work() can call it UNCONDITIONALLY (R3_WORK_GRANTING_REDESIGN.md
@@ -5054,7 +5076,8 @@ def _self_refill_draw() -> str | None:
     # RUNG 1c blocker fired (OPS12 exit criterion 3: a blocker's draw must always name
     # itself in the returned reason, so it can never be silently dropped from this
     # byte-preserved short path).
-    if blocker_reason is None and len(build_atoms) == 1 and not site_atoms and not discovery_atoms:
+    if (blocker_reason is None and len(build_atoms) == 1
+            and not site_atoms and not discovery_atoms):
         return f"self-refill from maturity map (dial-weighted): {_format_atom_draw(build_atoms[0])}"
 
     sections: list[str] = []
@@ -5228,6 +5251,73 @@ def _self_refill_draw() -> str | None:
             "invariants, or widen its real-world fidelity. NTFY the director this dial was yielded."
         )
     return None
+
+
+def _priority_zero_active() -> bool:
+    """Is one of the PRIORITY-ZERO rungs live -- wedged publish gate, dead producer, persistent
+    operational red?
+
+    Asked through the ladder's OWN predicates rather than by sniffing the message it returns: a
+    string test would break the first time a rung reworded itself, and would break silently, in
+    the direction of diluting an emergency.
+
+    FAILS TOWARD THE EMERGENCY. Any error reads as "yes, something is wrong", because the harmful
+    mistake here is handing a worker a delivery item alongside a dead pipeline; the harmless one
+    is delaying a delivery item by one thirty-minute tick.
+    """
+    try:
+        if _publish_gate_wedge_active():
+            return True
+        if _producer_starved_active():
+            return True
+        if _operational_red_persistent_draw():
+            return True
+    except Exception:  # noqa: BLE001 - see docstring
+        return True
+    return False
+
+
+def _self_refill_draw() -> str | None:
+    """The whole draw: LANE 0 (the delivery seat's decision) PLUS the ladder, never one instead of
+    the other.
+
+    ALONGSIDE IS THE WHOLE DESIGN (docs/design/THE_DELIVERY_SEAT.md 5b). The first version of this
+    let a delivery item RETURN, and three R17 tests caught it inside the hour: with the three map
+    lanes gated, `PROPOSE-HALF` and `FORWARD-DISCOVERY` stopped firing because the delivery item
+    returned above them. That is exactly the shape `THREE_LANES.md` was written against -- a
+    cascade that returns on the first non-empty tier starves every tier below it -- and the
+    forward-discovery lane is the always-drawable floor R17 exists to protect. A new tier at the
+    top of that ladder is that regression wearing a delivery seat's clothes, and it took a
+    delivery seat about forty minutes to build one.
+
+    So the seat's decision is PREPENDED to whatever the ladder produces. Every rung keeps firing
+    exactly as before, every existing assertion on the ladder's own string still holds, and
+    nothing below can be starved by a seat that names work every three hours.
+
+    When the lane is empty -- no live direction, every item an atom, or all of them claimed -- the
+    return value is byte-identical to the ladder's, which is what it was before this existed.
+    """
+    if _priority_zero_active():
+        # AN EMERGENCY IS THE WHOLE MESSAGE. Rungs 1/1b/1d exist because a wedged publish gate, a
+        # dead producer or a persistent operational red each stop the project outright, and they
+        # outrank every product lane by ruling. Prepending a delivery item to one of them would
+        # hand a worker two things to do with the urgent one second -- diluting the exact
+        # precedence those rungs were built to assert. `test_producer_starvation_draw.py` asserts
+        # the equality that catches this, and it caught it.
+        #
+        # The delivery seat AGREES, which is the reassuring part: its own second focus item on the
+        # day this landed was "publish-path-lands". A seat that decides what matters would put the
+        # outage first too.
+        return _self_refill_draw_ladder()
+
+    delivery = _delivery_lane_draw()
+    ladder = _self_refill_draw_ladder()
+    if delivery:
+        log("LANE 0 DELIVERY: drew the delivery seat's own decision ahead of the dial-weighted "
+            "lanes, ALONGSIDE them (background/delivery_lane.py)")
+    if delivery and ladder:
+        return f"{delivery} || {ladder}"
+    return delivery or ladder
 
 
 def _is_drained_and_gated() -> bool:

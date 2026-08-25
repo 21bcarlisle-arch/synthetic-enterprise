@@ -96,6 +96,64 @@ Three consequences, all deliberate:
   Stale direction is worse than none — it steers toward what mattered yesterday with all the
   confidence of what matters now.
 
+## 5b. LANE 0 — the decisions become work (2026-08-25)
+
+**The constraint above was lifted by the man who imposed it**, the day after it shipped:
+
+> *"When I asked for the delivery seat I said it must decide and write direction rather than code,
+> so it could never be a second writer on the tree. That was a defence against a problem you have
+> since solved — surgical landings, pathspec commits, tree locks. The result was that orienting
+> became autonomous while the actual building stayed gated on my keypress, which is the opposite
+> of what I wanted."*
+
+He was right, and the measurement was immediate. The seat's first record named five focus items
+and **four of them could not be reached by any draw on the machine**:
+
+    flat-control-credible-average-player   UNREACHABLE
+    publish-path-lands                     UNREACHABLE
+    EP1_clv_three_horizon                  atom
+    expected-cost-collections-term         UNREACHABLE
+    harness-lane-prune                     UNREACHABLE
+
+§5's weight bias multiplies the dial of an atom the draw is *already considering*. A focus id the
+map has never heard of multiplies nothing. So the steering wheel was connected only to roads
+already on the map — and the two items that did get built that day were built by hand, in an
+interactive session, which is precisely what he wanted gone.
+
+**And the map had run out of roads**, in the supervisor's own log the same evening:
+
+> `IDLE DISCOVER/FRAME draw: all 24 idle atom(s) are OVER THE PASS CEILING — each has been
+> investigated repeatedly without its level moving. This is a TRUE empty discovery set, not a
+> spin: every one of them is now a decision (promote to build, or close).`
+
+"Every one of them is now a decision" is the machine asking for judgement. A dial-weighted draw
+cannot supply one. The seat supplies exactly that and could not reach the draw. One wire closes
+both halves.
+
+**What the wire is NOT.** The seat's write scope is unchanged — three paths, none of them code —
+so the property he liked survives untouched. What changed is that the TICKS, which land real work
+every day (38 spawned invocations and zero rests on 2026-08-25), can be handed the seat's
+judgement instead of only the map's weighted chance. Turn-granting was never broken. Its INPUT
+was, and that is the smaller repair and the better one.
+
+**Placement: alongside, never instead of.** LANE 0 is prepended to the combined three-lane grant.
+`THREE_LANES.md` exists because a cascade that returned on the first non-empty tier left SITE and
+DISCOVERY permanently idle; a new tier that pre-empted them would be that regression wearing a
+delivery seat's clothes. The byte-preserved single-BUILD-atom short path is explicitly guarded so
+it cannot silently drop a decision to preserve a string.
+
+**Claims, because continuity is what this seat owns.** `background/seat_work_in_hand.py` — built
+for the same failure one seat over — is reused with its own store and its own deadline
+(100 minutes: longer than the interactive seat's 45 because this is the multi-hour class of work
+by design, shorter than the tick's 2-hour ceiling so a dead invocation cannot outlive its claim).
+A claim that lands nothing goes back in the pool and pages.
+
+**Done is derived and needs no new machinery.** A focus item has no exit test — that is what makes
+it direction rather than an atom. The seat re-orients every three hours and rewrites focus from the
+state of the tree, so an item that is finished stops appearing. *The seat's next orientation is the
+acceptance test for its own last decision*, and it already records `previous_focus_drawn` beside
+it. `--release` exists only so a tick that finishes early is not left sitting on a claim.
+
 ## 6. Controls (R15 — each names the mutation that must fire)
 
 | control | mutation that must red it |
@@ -141,10 +199,17 @@ implying he has read anything.
 **A new page instead of rebuilding `/harness/`.** Rejected: he asked for ONE page and named the
 one he already opens. A sixth tab would answer the request by adding to the problem.
 
-**Letting the orienting session edit code when it sees something small.** Rejected, and it is the
-constraint he stated. The value of this seat is that its output is *direction*, which is cheap to
-be wrong about and easy to correct. A second writer on the tree is expensive to be wrong about and
-collides with the concurrent-writer problem CLAUDE.md already documents three times over.
+**Letting the orienting session edit code when it sees something small.** Rejected on 2026-08-25,
+and the director OVERTURNED that the next day — see §5b. The reasoning was sound and the conclusion
+was wrong in a specific way: the value of this seat *is* that its output is direction, cheap to be
+wrong about and easy to correct. What did not follow is that its direction should be unbuildable.
+The repair keeps the seat out of the code and puts its decisions in front of the ticks, which is
+what "act, not only point" actually required.
+
+**Giving the seat itself write access to the code tree** (the literal reading of the overturn).
+Rejected on the evidence: turn-granting is not broken — 38 tick invocations and zero rests on the
+day in question, several landing substantial commits. What was broken was the INPUT to the draw.
+Making the seat a fourth writer would have added the concurrency cost without touching the cause.
 
 **Making direction a filter on the draw** (only focus atoms are drawable). Rejected as a Rule-0
 violation: an empty feasible set is a defect in the dials, and a filter is a dial that can empty

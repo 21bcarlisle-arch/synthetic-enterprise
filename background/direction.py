@@ -221,6 +221,36 @@ def current_focus(path: Path | None = None, now: datetime | None = None) -> tupl
     return direction.focus_keys()
 
 
+def unreachable_focus(atom_ids, path: Path | None = None,
+                      now: datetime | None = None) -> list[dict]:
+    """Focus items the DRAW CANNOT REACH, in the seat's own order.
+
+    THE DEFECT THIS NAMES, measured on the seat's very first record (2026-08-25): `focus_weights`
+    multiplies the dial weight of an atom the draw was ALREADY considering, so a focus id that is
+    not an atom multiplies nothing. Four of five focus items were ids the map had never heard of
+    -- `flat-control-credible-average-player`, `publish-path-lands`,
+    `expected-cost-collections-term`, `harness-lane-prune` -- and every one of them was work the
+    director had to sit through an interactive session to get built.
+
+    So this is the OTHER half of the steer, and `background/delivery_lane.py` is what draws it: an
+    item with an atom is reached by the weight bias, and an item without one is reached here.
+    Splitting on that keeps the two paths from double-counting the same work.
+
+    ORDER IS PRESERVED because `focus` is ordered and its first entry is what the seat judged
+    mattered most. Sorting or filtering it here would quietly overrule the judgement this whole
+    mechanism exists to carry.
+
+    An expired or missing record yields NOTHING, exactly as `current_focus` does: stale direction
+    stops steering on its own, and it must not start handing out work either.
+    """
+    direction = read_direction(path)
+    if direction is None or not direction.is_live(now):
+        return []
+    known = set(atom_ids or ())
+    return [dict(item) for item in direction.focus
+            if item.get("id") and item["id"] not in known]
+
+
 def focus_multiplier(atom_id: str, focus: tuple[str, ...]) -> float:
     """This atom's weight multiplier under the given focus. ALWAYS >= 1.0 -- an atom the direction
     does not name keeps exactly the weight it had, so direction can only ever ADD attention.
