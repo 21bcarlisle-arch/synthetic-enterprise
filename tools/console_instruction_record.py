@@ -120,12 +120,41 @@ def director_turns(transcript: Path) -> list[tuple[str, str]]:
         raise TranscriptUnavailable(f"{transcript} could not be read: {exc}") from exc
 
     turns: list[tuple[str, str]] = []
+    seen: set[str] = set()
+
+    def _keep(stamp, text: str) -> None:
+        text = _REMINDER_RE.sub("", (text or "").strip()).strip()
+        if not text or any(text.startswith(p) for p in _NOT_THE_DIRECTOR):
+            return
+        key = " ".join(text.split())
+        if key in seen:
+            return
+        seen.add(key)
+        turns.append((str(stamp or ""), text))
+
     for line in raw.splitlines():
         try:
             rec = json.loads(line)
         except Exception:  # noqa: BLE001 - one bad line is not a blind transcript
             continue
-        if rec.get("type") != "user":
+        kind = rec.get("type")
+        # THE TURN HE TYPED BETWEEN TURNS (2026-08-25). A message sent while a turn is already
+        # running is not written as a `user` record at all -- it is QUEUED, and the transcript
+        # holds it as `{"type": "queue-operation", "operation": "enqueue", "content": ...}`.
+        # This capture read `type == "user"` only, so the single most consequential instruction
+        # of that day -- the standing mandate that created the delivery seat -- left NO trace on
+        # disk while the module whose whole purpose is to leave one reported eight turns and a
+        # clean run. That is the EP6 failure again, one channel over: the mechanism behaved
+        # perfectly and the input never reached the file.
+        #
+        # DEDUPED BY TEXT, not by uuid: `enqueue` and `remove` carry the SAME content (queued,
+        # then dequeued when it is delivered), and a message that also lands as a real `user`
+        # record would otherwise appear twice. First occurrence wins, so the recorded timestamp
+        # is when he SENT it rather than when the machine got round to it.
+        if kind == "queue-operation" and rec.get("operation") == "enqueue":
+            _keep(rec.get("timestamp"), rec.get("content") if isinstance(rec.get("content"), str) else "")
+            continue
+        if kind != "user":
             continue
         content = (rec.get("message") or {}).get("content")
         if isinstance(content, str):
@@ -137,13 +166,7 @@ def director_turns(transcript: Path) -> list[tuple[str, str]]:
                             if isinstance(b, dict) and b.get("type") == "text")
         else:
             continue
-        text = text.strip()
-        if not text or any(text.startswith(p) for p in _NOT_THE_DIRECTOR):
-            continue
-        text = _REMINDER_RE.sub("", text).strip()
-        if not text:
-            continue
-        turns.append((str(rec.get("timestamp") or ""), text))
+        _keep(rec.get("timestamp"), text)
     if not turns:
         raise TranscriptUnavailable(
             f"{transcript.name} holds no director turn at all -- that is a broken read or the "
@@ -151,6 +174,71 @@ def director_turns(transcript: Path) -> list[tuple[str, str]]:
             "difference"
         )
     return turns
+
+
+#: How far back to look for transcripts that could still hold turns for a day being written.
+#: Bounded because `observe()` runs in the worker loop and the transcript directory is ~75 MB
+#: across fourteen files; three days covers every day this tool writes a record for.
+RECENT_TRANSCRIPT_DAYS = 3.0
+
+
+def recent_transcripts(directory: Path | None = None,
+                       days: float = RECENT_TRANSCRIPT_DAYS) -> list[Path]:
+    """Every transcript recent enough to hold a turn for a day being written, newest first.
+
+    WHY NOT JUST THE NEWEST (2026-08-25, found while landing the queued-turn fix above). `write()`
+    regenerates one record PER CALENDAR DAY from a SINGLE transcript, and there is more than one
+    session per day: running this from session B rewrote `DIRECTOR_CONSOLE_2026-08-24.md`, which
+    had been built from session A, and session A's three turns were simply gone. The record most
+    likely to be overwritten is the one written by whichever session was not last to run -- so the
+    turns that vanish are chosen by scheduling accident.
+
+    That is this module's own founding failure with the sign flipped: it exists because the
+    director's words evaporated when the pane scrolled, and it was quietly deleting them when a
+    second session ran.
+
+    ALWAYS INCLUDES THE NEWEST, whatever its mtime, so a machine with an odd clock still gets the
+    live session. Unreadable entries are skipped here and surface as a raise downstream if NOTHING
+    is readable -- silence and blindness must never render the same.
+    """
+    d = Path(directory) if directory is not None else TRANSCRIPT_DIR
+    newest = newest_transcript(d)
+    try:
+        files = sorted(d.glob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
+    except OSError:
+        return [newest]
+    cutoff = newest.stat().st_mtime - days * 86400.0
+    keep = [p for p in files if p == newest or p.stat().st_mtime >= cutoff]
+    return keep or [newest]
+
+
+def director_turns_across(paths: list[Path]) -> tuple[list[tuple[str, str]], list[str]]:
+    """([(ts, text)] merged across transcripts in timestamp order, [transcript names used]).
+
+    DEDUPED BY TEXT, exactly as within one transcript: the same instruction can appear in two
+    sessions (a resumed session replays context), and recording it twice would read as the
+    director having said it twice.
+    """
+    merged: dict[str, tuple[str, str]] = {}
+    used: list[str] = []
+    for path in paths:
+        try:
+            turns = director_turns(path)
+        except TranscriptUnavailable:
+            # A transcript with no director turn is not a failure HERE -- it is a session he
+            # never spoke in. It only fails when NOTHING readable holds a turn (below).
+            continue
+        used.append(path.name)
+        for ts, text in turns:
+            key = " ".join(text.split())
+            if key not in merged or (ts and ts < merged[key][0]):
+                merged[key] = (ts, text)
+    if not merged:
+        raise TranscriptUnavailable(
+            "no transcript in the recent window holds a director turn -- that is a broken read, "
+            "not a silent director, and writing it as a record would erase the difference"
+        )
+    return sorted(merged.values(), key=lambda row: row[0]), sorted(used)
 
 
 def by_day(turns: list[tuple[str, str]]) -> dict[str, list[tuple[str, str]]]:
@@ -194,12 +282,12 @@ def render(day: str, turns: list[tuple[str, str]], transcript_name: str) -> str:
 def write(directory: Path | None = None, staging: Path | None = None) -> list[Path]:
     """Write one record per calendar day. Idempotent: a day whose content is unchanged is not
     rewritten, so this can run every worker cycle without churning the tree."""
-    transcript = newest_transcript(directory)
+    all_turns, used = director_turns_across(recent_transcripts(directory))
     out_dir = Path(staging) if staging is not None else STAGING_DIR
     out_dir.mkdir(parents=True, exist_ok=True)
     written = []
-    for day, turns in by_day(director_turns(transcript)).items():
-        body = render(day, turns, transcript.name)
+    for day, turns in by_day(all_turns).items():
+        body = render(day, turns, ", ".join(used))
         path = out_dir / f"DIRECTOR_CONSOLE_{day}.md"
         if path.exists() and path.read_text(encoding="utf-8") == body:
             continue

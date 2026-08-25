@@ -153,6 +153,34 @@ systemd_units:
       Fires SM1 once each morning (07:00 local) so the status arrives UNPROMPTED — the last open
       thread of the self-measurement steer. Idempotent per day + Persistent, so a catch-up replay
       after downtime still yields exactly one note.
+  - name: delivery-seat.service
+    unit_file: background/delivery-seat.service
+    enabled: false           # timer-triggered, not boot-enabled itself (static)
+    active: false            # Type=oneshot — runs one orientation and EXITS; inactive(dead) is correct
+    reason: >-
+      THE DELIVERY SEAT (docs/design/THE_DELIVERY_SEAT.md; director console 2026-08-25: "what you
+      don't have is anything that ORIENTS"). The oneshot the .timer fires: reads the last stretch,
+      judges it against the thesis, and writes ONE direction record. It is the third role on this
+      machine — the tick EXECUTES, the seat works when a human GRANTS a turn, and this ORIENTS —
+      and the job it replaces was being done by hand in a chat window.
+      IT WRITES DIRECTION, NEVER CODE: `git add` takes background/direction.py::WRITE_SCOPE and
+      nothing else, so anything its session touched outside those three paths is simply not in its
+      commit. Its output MULTIPLIES the supervisor's dial weights and can never zero one, so a
+      wrong or stale direction slows the machine and can never stop it (Rule 0). Not enabled/active
+      itself (the .timer drives it); flagging it down would be wrong.
+
+  - name: delivery-seat.timer
+    unit_file: background/delivery-seat.timer
+    enabled: true            # boot-start (WantedBy=timers.target)
+    active: true             # must be ARMED — an orienting seat nobody schedules is the chat window it replaces (R15 fail-silent)
+    reason: >-
+      Every three hours, twenty past. Not the tick's thirty minutes: orientation is not execution
+      and a stretch has to be long enough to have a shape. The service's own skip rule (no
+      substantive commit, no level move, no director input, no blocking finding, live direction
+      still inside its window) means a quiet three hours costs one cheap read and NO model turn,
+      so the real cadence is bounded by material change rather than by this clock — which is R5's
+      rule and, separately, what the token budget requires.
+
   - name: head-green-census.service
     unit_file: background/head-green-census.service
     enabled: false           # timer-triggered, not boot-enabled itself (static)

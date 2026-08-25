@@ -177,3 +177,143 @@ def test_the_worker_calls_it():
         "the console recorder is not called by the worker loop -- the director's words will "
         "stop reaching disk and nothing will say so"
     )
+
+
+# ---------------------------------------------------------------------------
+# The turn he typed BETWEEN turns (2026-08-25)
+# ---------------------------------------------------------------------------
+def _queued(text, ts="2026-08-25T16:54:41.891Z", operation="enqueue"):
+    """A message sent while a turn was already running. The harness does not write it as a
+    `user` record at all -- it queues it, and the transcript holds
+    `{"type": "queue-operation", "operation": "enqueue", "content": "..."}`."""
+    return json.dumps({"type": "queue-operation", "operation": operation,
+                       "timestamp": ts, "content": text})
+
+
+def test_a_message_typed_WHILE_A_TURN_IS_RUNNING_is_still_captured(tmp_path):
+    """THE HOLE THIS MODULE WAS BUILT TO CLOSE, ONE CHANNEL OVER, found the day it bit.
+
+    On 2026-08-25 the director sent a standing mandate mid-turn -- the instruction that created
+    the delivery seat, and the most consequential of that day. It was QUEUED rather than written
+    as a `user` record, this capture read `type == "user"` only, and so the module whose entire
+    purpose is to stop his words evaporating reported eight turns, a clean run, and left no trace
+    of the ninth. That is the EP6 failure exactly: the mechanism behaved perfectly and the input
+    never reached the file.
+
+    MUTATION (must fire): read `type == "user"` only.
+    """
+    d = _transcript(tmp_path, [
+        _line("user", "a turn typed normally", ts="2026-08-25T10:00:00.000Z"),
+        _queued("an architectural gap I want you to close"),
+    ])
+
+    turns = cir.director_turns(cir.newest_transcript(d))
+
+    assert [t[1] for t in turns] == ["a turn typed normally",
+                                     "an architectural gap I want you to close"]
+
+
+def test_the_queued_message_is_recorded_ONCE_not_three_times(tmp_path):
+    """`enqueue` and `remove` carry the SAME content -- queued, then dequeued when delivered --
+    and a queued message that later lands as a real `user` record would make three. Deduped by
+    text, first occurrence winning, so the recorded timestamp is when he SENT it rather than when
+    the machine got round to it.
+
+    MUTATION (must fire): drop the dedupe, or key it on uuid instead of text.
+    """
+    d = _transcript(tmp_path, [
+        _queued("do the thing", ts="2026-08-25T16:54:41.891Z"),
+        _queued("do the thing", ts="2026-08-25T16:54:59.332Z", operation="remove"),
+        _line("user", "do the thing", ts="2026-08-25T17:10:00.000Z"),
+    ])
+
+    turns = cir.director_turns(cir.newest_transcript(d))
+
+    assert turns == [("2026-08-25T16:54:41.891Z", "do the thing")]
+
+
+def test_harness_scaffolding_is_STILL_not_the_director_when_it_arrives_queued(tmp_path):
+    """The queued path must not become a way round the prefix filter -- otherwise widening the
+    capture would have widened what counts as his word, in a file the release door reads."""
+    d = _transcript(tmp_path, [
+        _line("user", "a real turn", ts="2026-08-25T09:00:00.000Z"),
+        _queued("<system-reminder>not him</system-reminder>"),
+        _queued("<local-command-stdout>Compacted", ts="2026-08-25T16:55:00.000Z"),
+    ])
+
+    assert [t[1] for t in cir.director_turns(cir.newest_transcript(d))] == ["a real turn"]
+
+
+# ---------------------------------------------------------------------------
+# One day, more than one session (2026-08-25)
+# ---------------------------------------------------------------------------
+def test_a_SECOND_session_on_the_same_day_does_not_ERASE_the_first(tmp_path):
+    """THIS MODULE'S OWN FOUNDING FAILURE, WITH THE SIGN FLIPPED, found while landing the queued
+    -turn fix. `write()` regenerates one record PER CALENDAR DAY, and it built that record from a
+    SINGLE transcript -- so running it from session B rewrote the day's record that session A had
+    built, and session A's turns were simply gone. Which session's words survived was decided by
+    which one happened to run last.
+
+    It exists because the director's words evaporated when the pane scrolled. It was deleting them
+    when a second session ran.
+
+    MUTATION (must fire): read only `newest_transcript`.
+    """
+    d = tmp_path / "t"
+    d.mkdir()
+    (d / "a.jsonl").write_text(_line("user", "said in session A", ts="2026-08-24T09:00:00.000Z"),
+                               encoding="utf-8")
+    (d / "b.jsonl").write_text(_line("user", "said in session B", ts="2026-08-24T18:00:00.000Z"),
+                               encoding="utf-8")
+    out = tmp_path / "staging"
+
+    cir.write(directory=d, staging=out)
+    body = (out / "DIRECTOR_CONSOLE_2026-08-24.md").read_text(encoding="utf-8")
+
+    assert "said in session A" in body, "the earlier session's turns were erased by the later one"
+    assert "said in session B" in body
+    assert "a.jsonl" in body and "b.jsonl" in body, (
+        "the record must name every transcript it drew from, or a reader cannot tell what it saw"
+    )
+
+
+def test_the_same_instruction_seen_in_TWO_sessions_is_recorded_ONCE(tmp_path):
+    """A resumed session replays context, so the same turn legitimately appears in two
+    transcripts. Recording it twice would read as the director having said it twice."""
+    d = tmp_path / "t"
+    d.mkdir()
+    for name, ts in (("a.jsonl", "2026-08-24T09:00:00.000Z"),
+                     ("b.jsonl", "2026-08-24T11:00:00.000Z")):
+        (d / name).write_text(_line("user", "do the thing", ts=ts), encoding="utf-8")
+
+    turns, used = cir.director_turns_across(cir.recent_transcripts(d))
+
+    assert turns == [("2026-08-24T09:00:00.000Z", "do the thing")], (
+        "the earliest sighting must win, so the recorded time is when he SENT it"
+    )
+    assert used == ["a.jsonl", "b.jsonl"]
+
+
+def test_a_session_he_never_spoke_in_is_SKIPPED_and_does_not_blind_the_read(tmp_path):
+    """A transcript with no director turn is a session he was silent in, not a broken read. Only
+    an EMPTY merge is a failure -- silence and blindness must never render the same, which is the
+    property this whole module was built on."""
+    d = tmp_path / "t"
+    d.mkdir()
+    (d / "quiet.jsonl").write_text(_line("assistant", "just me talking"), encoding="utf-8")
+    (d / "loud.jsonl").write_text(_line("user", "a real turn", ts="2026-08-24T09:00:00.000Z"),
+                                  encoding="utf-8")
+
+    turns, used = cir.director_turns_across(cir.recent_transcripts(d))
+
+    assert [t[1] for t in turns] == ["a real turn"]
+    assert used == ["loud.jsonl"]
+
+
+def test_an_ENTIRELY_silent_window_RAISES_rather_than_writing_an_empty_record(tmp_path):
+    d = tmp_path / "t"
+    d.mkdir()
+    (d / "quiet.jsonl").write_text(_line("assistant", "just me talking"), encoding="utf-8")
+
+    with pytest.raises(cir.TranscriptUnavailable):
+        cir.director_turns_across(cir.recent_transcripts(d))

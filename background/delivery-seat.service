@@ -1,0 +1,15 @@
+[Unit]
+Description=Synthetic Enterprise: the DELIVERY SEAT — the periodic session that ORIENTS rather than executes. Reads the last stretch (commits split substantive/mechanical, staging findings by severity, map level moves, publish freshness, anything the director said), judges it against the thesis, and writes ONE direction record. It writes DIRECTION ONLY: `git add` is called with background/direction.py::WRITE_SCOPE and nothing else, so it can never become a second writer on the code tree. Its output MULTIPLIES the supervisor's dial weights and can never zero one — a wrong or stale direction makes the machine slower to reach something, never unable to (Rule 0). Design: docs/design/THE_DELIVERY_SEAT.md.
+After=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/rich/synthetic-enterprise
+# NTFY secret via the Option-2 out-of-tree location; `-` = still orient (and log) if absent. The
+# seat only pages for something genuinely the director's, so a missing topic must not stop it.
+EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
+ExecStart=/usr/bin/python3 -m background.delivery_seat
+# The orienting session is bounded in-process (delivery_seat.SESSION_TIMEOUT_SECONDS = 1800). This
+# is the belt to that brace: a hung session becomes a killed cgroup and therefore a SKIPPED
+# orientation, never a wedge that keeps the next one from firing.
+TimeoutStartSec=2400

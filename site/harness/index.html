@@ -86,6 +86,45 @@ a { color: var(--teal); }
   <div class="stamp" id="stamp">Loading the record…</div>
 
   <section>
+    <h2>The delivery record</h2>
+    <p class="sub">
+      What the machine did, what it decided, what it got wrong, and what it is doing next —
+      in that order, because that is the order the questions get asked in.
+    </p>
+    <p>
+      Three things run here. A <b>tick</b> wakes on a timer, takes one piece of work, does it and
+      exits. A <b>builder's seat</b> works when a human hands it a turn. Neither of those decides
+      what <em>matters</em> — so a third, the <b>delivery seat</b>, wakes every few hours, reads
+      the stretch just gone, and writes down what the next one should be. It writes direction and
+      never code. What it decides makes some work more likely to be picked up next; it can never
+      stop any work being picked up at all, which is deliberate — a wrong instruction should slow
+      this machine down, never wedge it.
+    </p>
+    <div class="kpis" id="delivery-kpis"></div>
+
+    <h3>What it did</h3>
+    <div id="delivery-did"></div>
+
+    <h3>What it decided, and what it turned down</h3>
+    <div id="delivery-decided"></div>
+
+    <h3>What it got wrong</h3>
+    <div id="delivery-wrong"></div>
+
+    <h3>What it is doing next</h3>
+    <div id="delivery-next"></div>
+  </section>
+
+  <section>
+    <h2>What has changed since the director last looked</h2>
+    <p class="sub">
+      A standing diff against a recorded position, so nothing has to be re-read to find the part
+      that moved.
+    </p>
+    <div id="director-delta">Loading the delta…</div>
+  </section>
+
+  <section>
     <h2>How the work is chosen</h2>
     <p class="sub">In plain English, because the machinery is the subject here.</p>
     <p>
@@ -195,6 +234,31 @@ a { color: var(--teal); }
     <p class="sub">
       Each of these exists because something broke. They are kept in the order they were
       learned, with the failure that caused them, because the failure is the useful half.
+    </p>
+    <p>
+      A rule earns its place here only by being converted into something that runs. Written
+      rules decay — this project has watched several of them do it, always the same way: the
+      rule stays in the document, everyone agrees with it, and the behaviour drifts back
+      because nothing was checking. So the test applied to every rule below is whether you
+      could delete the sentence and still have the rule hold. If not, it isn't a rule yet.
+    </p>
+    <p>
+      The most useful thing this list has taught is about the shape of failures, rather than
+      any single entry. Almost nothing here was caused by a <i>missing</i> check. In one day of
+      August 2026 five separate controls were found to be present, correct in intent, wired in,
+      and pointed slightly off-target: a cache-clearing step that reported its own failure and
+      then exited successfully, so months of deployments were recorded green; a rule requiring
+      a change to be recorded alongside the code, enforced only by a check that never ran on
+      that code; a guard that reported "I could not ask" as "the answer is empty"; a batch of
+      timeouts that turned out to be an artefact of the measuring instrument rather than the
+      thing measured; and a stall detector whose notion of progress was satisfied by other
+      people's work.
+    </p>
+    <p>
+      Every one of those reads as green until something forces a second look. That is why the
+      section below counts controls by whether they have been <i>proven to fail</i> rather than
+      by whether they exist, and why the entries here name the failure and not just the
+      remedy — a rule remembered without its failure is the first step back to not having it.
     </p>
     <div class="table-scroll"><table id="rules"><thead><tr>
       <th>Learned</th><th>The rule</th><th>What caused it</th>
@@ -345,6 +409,137 @@ fetch("../data/proof.json").then(function (r) { return r.json(); }).then(functio
 }).catch(function () {
   $("stamp").innerHTML = "The record behind this page could not be loaded, so no figures are shown.";
 });
+
+/* THE DELIVERY RECORD. Every value below is READ from site/data/delivery.json, which is itself
+   read from committed records (git, the seat's own decision log). Nothing here is derived a
+   second time -- a page that recomputes a number becomes a second opinion, and the first time it
+   disagrees with the record nobody can tell which is wrong. */
+function renderDeliveryKpis(d) {
+  var did = d.what_it_did || {}, dec = d.what_it_decided || {}, next = d.what_next || {};
+  $("delivery-kpis").innerHTML =
+    kpi(n(did.substantive), "pieces of real work, last 40 commits") +
+    kpi(n(did.mechanical), "routine republishes, not counted as work") +
+    kpi(dec.available ? n((dec.focus || []).length) : "—", "things it is choosing to do next") +
+    kpi(next.steered_recently ? "yes" : (((next.steer_checks || []).length) ? "no" : "—"),
+        "did its last decision actually change what got picked up");
+}
+
+function renderDeliveryDid(d) {
+  var did = d.what_it_did || {};
+  if (!did.available) {
+    $("delivery-did").innerHTML = '<div class="note">' + esc(did.why || "The commit record could not be read, so nothing is shown here rather than a number that might be stale.") + "</div>";
+    return;
+  }
+  var rows = (did.commits || []).slice(0, 12);
+  $("delivery-did").innerHTML =
+    "<p>" + esc(did.what_the_split_means) + "</p>" +
+    (rows.length ? rows.map(function (c) {
+      return '<div class="card"><div class="meta">' + dt(c.at) + " &middot; " +
+        (c.substantive ? "work" : "routine republish") + "</div><h3>" + esc(c.subject) + "</h3></div>";
+    }).join("") : "<p>No commits in the window.</p>");
+}
+
+function renderDeliveryDecided(d) {
+  var dec = d.what_it_decided || {};
+  if (!dec.available) {
+    $("delivery-decided").innerHTML = '<div class="note">' + esc(dec.why) + "</div>";
+    return;
+  }
+  var stale = dec.live ? "" :
+    '<div class="note">This direction is ' + n(dec.age_hours) + ' hours old and has passed its ' +
+    n(dec.expires_after_hours) + '-hour window, so it has stopped steering anything. Old direction ' +
+    'is worse than none — it points at what mattered yesterday with all the confidence of what ' +
+    'matters now — so it expires on its own rather than being trusted until someone notices.</div>';
+  /* THE REJECTIONS ARE SHOWN BESIDE THE CHOICES and are not an appendix. A record of what was
+     chosen hides the judgement; the trade-off it was chosen OVER is the reviewable half, and the
+     seat's record is refused outright if it is empty. */
+  $("delivery-decided").innerHTML = stale +
+    (dec.thesis_read ? "<p>" + esc(dec.thesis_read) + "</p>" : "") +
+    '<div class="wasnow"><div><div class="k">Chose</div>' +
+    ((dec.focus || []).map(function (f) {
+      return "<p><b>" + esc(f.what || f.id) + "</b><br>" + esc(f.why || "") + "</p>"; }).join("") ||
+      "<p>Nothing named.</p>") +
+    '</div><div><div class="k">Turned down, and why</div>' +
+    ((dec.not_now || []).map(function (f) {
+      return "<p><b>" + esc(f.what) + "</b><br>" + esc(f.why || "") + "</p>"; }).join("") ||
+      "<p>Nothing recorded.</p>") +
+    "</div></div>" +
+    ((dec.for_the_director || []).length
+      ? '<div class="note"><strong>Waiting on the director.</strong> ' +
+        (dec.for_the_director || []).map(function (f) { return esc(f.what); }).join("; ") + "</div>"
+      : "<p>Nothing on this list is waiting on a human.</p>");
+}
+
+function renderDeliveryWrong(d) {
+  var w = d.what_it_got_wrong || {};
+  var items = w.entries || [];
+  /* ALLOWED TO BE EMPTY, NOT ALLOWED TO BE ABSENT. A machine reporting no mistakes is either not
+     looking or not saying, and those read identically from outside -- so an empty panel states
+     WHICH of the two it is instead of showing nothing. */
+  $("delivery-wrong").innerHTML = items.length
+    ? items.map(function (x) {
+        return '<div class="card"><div class="meta">' + dt(x.at) + "</div><p>" + esc(x.what) + "</p></div>";
+      }).join("")
+    : '<div class="note">' + esc(w.empty_means || "Nothing recorded.") + "</div>";
+  if ((w.refused_own_records || []).length) {
+    $("delivery-wrong").innerHTML +=
+      '<div class="note"><strong>It has also refused its own work.</strong> ' +
+      n(w.refused_own_records.length) + " direction record(s) were thrown out for being malformed " +
+      "rather than used. The previous one kept steering.</div>";
+  }
+}
+
+function renderDeliveryNext(d) {
+  var next = d.what_next || {}, dec = d.what_it_decided || {};
+  var focus = (dec.focus || []);
+  $("delivery-next").innerHTML =
+    (focus.length
+      ? "<ol>" + focus.map(function (f) {
+          return "<li><b>" + esc(f.what || f.id) + "</b> — " + esc(f.why || "") + "</li>"; }).join("") + "</ol>"
+      : "<p>Nothing is currently named, so the machine is working from its standing priorities.</p>") +
+    "<p>" + esc(next.why_this_is_here || "") + "</p>" +
+    (((next.steer_checks || []).length && !next.steered_recently)
+      ? '<div class="note"><strong>The steer is not biting.</strong> Recent decisions named work ' +
+        'and none of it was picked up. That is a fault in the steering, not a fact about the week, ' +
+        'and it is shown here because a nudge that quietly does nothing looks exactly like one ' +
+        'that was taken.</div>'
+      : "");
+}
+
+fetch("../data/delivery.json").then(function (r) { return r.json(); }).then(function (d) {
+  renderDeliveryKpis(d); renderDeliveryDid(d); renderDeliveryDecided(d);
+  renderDeliveryWrong(d); renderDeliveryNext(d);
+}).catch(function () {
+  $("delivery-kpis").innerHTML = "";
+  $("delivery-did").innerHTML = "<p>The delivery record could not be loaded, so nothing is shown here.</p>";
+});
+
+/* SITE9, whose block the director overturned on 2026-08-25: "Rebuild the delta as a section on
+   /harness/." The feed has been generated every cycle since and nothing rendered it. */
+function renderDirectorDelta(j) {
+  var changes = j.changes || [];
+  /* THE STAMP'S HONESTY TRAVELS WITH IT. `last_look_recorded_by` currently reads
+     "bootstrap-at-build-time (not a director read receipt)" -- the baseline was set when the
+     mechanism was built and nobody has marked a read since. A panel saying "since you last
+     looked" over a stamp nobody set would be claiming he has looked. It says so instead. */
+  var receipt = String(j.last_look_recorded_by || "");
+  var real = receipt && receipt.indexOf("bootstrap") !== 0;
+  $("director-delta").innerHTML =
+    "<p>Measured against a position recorded on <b>" + dt(j.last_look_at) + "</b>" +
+    (real ? "." :
+      " — which was set when this mechanism was built and is <em>not</em> a record of anyone " +
+      "reading anything. Until a read is marked, this is a diff against that starting point.") + "</p>" +
+    (j.stamp_problem ? '<div class="note">' + esc(j.stamp_problem) + "</div>" : "") +
+    (changes.length
+      ? "<ul>" + changes.map(function (c) { return "<li>" + esc(c) + "</li>"; }).join("") + "</ul>"
+      : "<p>Nothing has moved since that position.</p>") +
+    "<p>" + esc(j.how_the_stamp_advances || "") + "</p>";
+}
+
+fetch("../data/director_delta.json").then(function (r) { return r.json(); }).then(renderDirectorDelta)
+  .catch(function () {
+    $("director-delta").innerHTML = "<p>The delta could not be loaded, so nothing is shown here.</p>";
+  });
 
 fetch("../data/director_reserved.json").then(function (r) { return r.json(); }).then(function (j) {
   $("reserved-now").innerHTML = j.open_count

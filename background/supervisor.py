@@ -122,6 +122,11 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
 from background import agenda as agenda_module  # noqa: E402
+# THE READ SIDE ONLY. `background/delivery_seat.py` -- the session that WRITES direction -- is
+# never imported here and must not be: the draw reads a validated file on disk and has no path to
+# the thing that produced it. See docs/design/THE_DELIVERY_SEAT.md §2 for why that severance is
+# the whole design, and background/daily_self_note.py for the law it is the other side of.
+from background import direction as _direction  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 from background.coupled_triad import (  # noqa: E402
     load_gap_ledger as _coupled_load_gap_ledger,
@@ -1174,6 +1179,13 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
     if not candidates:
         return []
     weights = [max(1, a.get("dial_inherited", 1)) for a in candidates]
+    # THE DELIVERY SEAT STEERS HERE, and only here (docs/design/THE_DELIVERY_SEAT.md §5).
+    # A WEIGHT, NEVER A GATE: `focus_weights` multiplies these dials and can never return
+    # zero or change who is a candidate, so a wrong or stale direction record makes this
+    # loop slower to reach something and never unable to. That is Rule 0 in one line -- an
+    # empty feasible set is a defect in the dials, and a filter is a dial that can empty it.
+    # Missing/malformed/expired direction returns these weights untouched, byte-for-byte.
+    weights = _direction.focus_weights(candidates, weights)
     picker = rng or random
     primary = picker.choices(candidates, weights=weights, k=1)[0]
     # COMPOUNDING tie-break (ONE_FRAMEWORK §7 sub-step 2, C1/C7): AFTER the
@@ -1580,6 +1592,13 @@ def _idle_discover_frame_draw(rng: Any = None) -> dict | None:
     if not candidates:
         return None
     weights = [max(1, a.get("dial_inherited", 1)) for a in candidates]
+    # THE DELIVERY SEAT STEERS HERE, and only here (docs/design/THE_DELIVERY_SEAT.md §5).
+    # A WEIGHT, NEVER A GATE: `focus_weights` multiplies these dials and can never return
+    # zero or change who is a candidate, so a wrong or stale direction record makes this
+    # loop slower to reach something and never unable to. That is Rule 0 in one line -- an
+    # empty feasible set is a defect in the dials, and a filter is a dial that can empty it.
+    # Missing/malformed/expired direction returns these weights untouched, byte-for-byte.
+    weights = _direction.focus_weights(candidates, weights)
     picker = rng or random
     return picker.choices(candidates, weights=weights, k=1)[0]
 
@@ -1666,6 +1685,13 @@ def _idle_discover_frame_draw_concurrent(
         return []
 
     weights = [max(1, a.get("dial_inherited", 1)) for a in candidates]
+    # THE DELIVERY SEAT STEERS HERE, and only here (docs/design/THE_DELIVERY_SEAT.md §5).
+    # A WEIGHT, NEVER A GATE: `focus_weights` multiplies these dials and can never return
+    # zero or change who is a candidate, so a wrong or stale direction record makes this
+    # loop slower to reach something and never unable to. That is Rule 0 in one line -- an
+    # empty feasible set is a defect in the dials, and a filter is a dial that can empty it.
+    # Missing/malformed/expired direction returns these weights untouched, byte-for-byte.
+    weights = _direction.focus_weights(candidates, weights)
     picker = rng or random
     primary = picker.choices(candidates, weights=weights, k=1)[0]
     if exclude_stalled:
@@ -1786,6 +1812,13 @@ def _site_lane_draw_concurrent(
         return []
 
     weights = [max(1, a.get("dial_inherited", 1)) for a in candidates]
+    # THE DELIVERY SEAT STEERS HERE, and only here (docs/design/THE_DELIVERY_SEAT.md §5).
+    # A WEIGHT, NEVER A GATE: `focus_weights` multiplies these dials and can never return
+    # zero or change who is a candidate, so a wrong or stale direction record makes this
+    # loop slower to reach something and never unable to. That is Rule 0 in one line -- an
+    # empty feasible set is a defect in the dials, and a filter is a dial that can empty it.
+    # Missing/malformed/expired direction returns these weights untouched, byte-for-byte.
+    weights = _direction.focus_weights(candidates, weights)
     picker = rng or random
     primary = picker.choices(candidates, weights=weights, k=1)[0]
     if exclude_stalled:

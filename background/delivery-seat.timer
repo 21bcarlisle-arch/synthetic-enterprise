@@ -1,0 +1,12 @@
+[Unit]
+Description=Synthetic Enterprise delivery-seat timer — orient every three hours. THREE HOURS AND NOT THE TICK'S THIRTY MINUTES because orientation is not execution: a stretch has to be long enough to have a shape, and orienting every half hour is mostly re-reading. The service's own skip rule means a quiet three hours costs one cheap read and no model turn at all, so the real cadence is bounded by material change rather than by this clock (R5: state transitions, not heartbeats). Committed as IaC — an orienting seat that only runs when someone remembers is the chat window it replaces.
+
+[Timer]
+OnCalendar=*-*-* 00/3:20:00
+Persistent=true
+# Twenty past the hour, deliberately: the worker tick runs on the hour and the half hour, and an
+# orientation that reads git in the same second a tick is committing reads a half-written stretch.
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target
