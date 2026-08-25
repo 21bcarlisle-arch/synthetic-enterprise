@@ -1,5 +1,25 @@
 **Severity:** BLOCKING · **Lane:** W4_the_wall
 
+**Discharged:** `tests/tools/test_scope_evidence_ratchet.py::test_the_LIVE_map_is_clean`,
+`tests/design/test_maturity_map_facets.py`, `docs/design/maturity_map.yaml`,
+`docs/observability/gate_authorizations.jsonl` — the named falsifier is the right one because
+this finding's claim is precisely that the map does not describe the tree: GATE 15 refuses any
+atom claiming a level on a file_scope path that is deleted or uncommitted, so EP13 at
+`level_current: 2` with `file_scope: []` could not have survived it, and EP13 at level 2 naming
+nine files that exist and are committed is what passing it means. (EP13:  level_current 0 -> 2,
+loop_stage idle -> build, block_reason cleared, file_scope [] -> the nine files the atom owns;
+plus the L0->L2 self-certification in the ledger.) —
+2026-08-25, and **the finding was RIGHT when it was written rather than wrong now.** THE REPAIR
+IS THE LANDING: the map entry this finding says does not describe the tree travels in the very
+commit carrying this line, so the condition it names is gone by construction rather than by
+argument. Its own recommendation is what discharged it — "the lane holding EP1's uncommitted
+`three_horizon_clv` build lands it" — done at `cbb2fd2d8`, after which the store roll and both
+map counts landed and this correction stopped being unlandable. The finding's three unlandable
+steps were each real and each was cleared in the order it named. What it could not have known,
+and is recorded here because the next reader will hit it: the correction was ALSO refusing the
+PUBLISHER from 09:25 to 11:20 UTC, because the level raise was sitting in the shared INDEX while
+being held out of its commit, and the level gate reads the tree rather than the pathspec.
+
 **Rank:** after the current top item.
 
 BLOCKING is the honest reading of the ruling's own definition rather than a self-flattering
@@ -164,4 +184,61 @@ Not done by this seat, and why: adopting another lane's 722-line uncommitted bui
 declined to make unilaterally, and a >66-minute landing cannot be verified inside a bounded
 tick — starting one and exiting would produce a fourth unattended attempt, which is the defect
 rather than the fix.
+
+---
+
+## Update, 2026-08-25 09:58 UTC — attempt 4 was killed BY THIS SEAT, and the wrapper was only half the mechanism
+
+`observed-with-evidence`. Attempt 4 was in flight when this tick drew (PID 1120782,
+`timeout 5900`, started 10:04:51 BST → kill at 11:43:11). Two things were measured before
+touching it, and the second is new:
+
+1. **The wrapper was again short.** 49 min of budget remained against a gate this finding
+   already measures at **>66 min**.
+2. **It had already lost a HEAD race and was re-gating from scratch.** Its task output carried
+   one line: `[surgical-land] attempt 1/3 lost the race: HEAD 0dc6e252f -> 5eff5ab32;
+   re-gating the new base.` D36 (`5eff5ab32`) landed underneath it. Its gate `pytest`
+   (PID 1150194) had therefore only started at 10:48:34 and was **5.6 minutes into its second
+   gate**. It could not have finished.
+
+**So the mechanism is not "the wrapper is shorter than the gate". It is that `surgical_land`
+re-gates from zero on a lost HEAD race — up to 3 times — so a wrapper must cover N × gate,
+and any other lane's commit resets the clock the wrapper is racing.** A 90-minute wrapper,
+which the previous update recommended as sufficient, would still have died here. On a tree
+where every lane commits through the same gate, no fixed wrapper value is safe; the wrapper
+has to go, which is what the previous update said for a weaker reason than the true one.
+
+**What this seat did, and the part that was an error.** Intending to implement this finding's
+own recommendation without spending a fifth attempt, it `kill -9`'d the `timeout` process alone
+(1120782), expecting the child to reparent and continue. **GNU `timeout` holds its child in a
+separate process group, and the whole chain died with it** — `surgical_land`, its pre-commit
+hook, and its gate. That is a real cost and it is this seat's, not the wrapper's:
+**attempt 4 was destroyed rather than rescued.** Mitigating but not excusing: attempt 4 was
+already unable to finish inside its own budget, per (1) and (2) above.
+`observed-with-evidence`: nothing was committed, HEAD unchanged at `5eff5ab32`, no partial
+state, no lock left held.
+
+**Attempt 5 is running now, and is the shape this finding asked for.** Same 13-path pathspec,
+same commit message, verified before launch (all 13 paths carry content; all five
+register-claimed symbols — `ep1_series_provenance`, `select_belief`, `flatten_ep1_series`,
+`build_three_horizon_clv_snapshots`, `three_horizon_clv_snapshots` — present at the claimed
+paths by grep):
+
+    setsid nohup /tmp/ep1_land_relaunch.sh > /tmp/ep1_land_relaunch.log 2>&1 &
+
+PID **1158791**, `ppid=382`, `sid=1158791` — its own session, reparented to init, so it
+outlives the bounded tick that started it. `pgrep -af '^timeout'` → none. This answers the
+previous update's "must be run by a seat that can stay with it": **no seat needs to stay with
+it, because nothing will cut it off.** Reversal: `kill 1158791`; it holds no lock and commits
+nothing until it succeeds.
+
+**Do not start another EP1 landing** — it would race this one and force it to re-gate, which
+is defect (2) above. A breadcrumb saying so was appended, explicitly attributed, to the
+originating seat's two task-output files; that also released three `until … sleep … done`
+pollers (PIDs 1077146, 1123251, 1128007) which were waiting on the process this seat had
+killed and would otherwise have spun forever.
+
+**Nothing was committed by this tick, deliberately.** Moving HEAD now is precisely what
+forces attempt 5 to re-gate. EP13's map correction stays staged-and-uncommitted, and this
+finding stays open, until 1158791 reports.
 

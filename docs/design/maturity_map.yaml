@@ -4060,16 +4060,50 @@
   lane: W4_the_wall
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 3
-  loop_stage: idle
-  block_reason: "director-reserved curriculum sequencing (R13). Epoch-3 commitment set (ruling §1); pull-forward is proposal-only (§3)."
+  loop_stage: build
+  # BLOCK DISCHARGED 2026-08-25 by the director's own instruction, quoted: "Wire the carbon
+  # ledger to live meter reads and grid intensity, publish it with its provenance, and say
+  # plainly what it does and does not yet include." The block was curriculum SEQUENCING -- this
+  # atom was parked because the epoch-3 commitment set did not include it and pull-forward was
+  # proposal-only. Being asked for it directly is what a pull-forward proposal exists to obtain.
+  block_reason: null
   dial_inherited: 3
   provenance: director_ruling
   depends_on: ['EP6_wall_protocol_typing']
   couples_with: []
   records_rehomed: [evidence]
-  file_scope: []
+  # STILL L2 as of 2026-08-25, and one of the three original reasons is now closed. The note as
+  # written was: "the shape dispatches no coal and no interconnector imports, so its clean end is
+  # optimistic against NESO's published series; no Expert Hour has been taken; and the
+  # coupled-triad rung is unmet -- there is no independent truth series to measure the company's
+  # belief against yet."
+  #   CLOSED -- the truth series exists. `sim/neso_carbon_intensity.py` is the adapter this atom
+  #   was actually named for (NESO Carbon Intensity API, key-free, from 2018-05-11), and it is
+  #   independent by construction: it imports nothing from the reconstruction, and a test walks
+  #   its AST to keep it that way rather than asserting it in prose.
+  #   QUANTIFIED, NOT CLOSED -- the clean-end optimism was "direction known, size not" and now
+  #   has a size: over 2019-2024 our floor is ~0.059 against NESO's ~0.189, and our shape swings
+  #   32x where NESO's swings 11.4x. Every abatement figure derived from this shape carries that
+  #   2.8x overstatement of the range. Fixing it means dispatching coal and modelling
+  #   interconnector imports, which is build work this atom has not done.
+  #   ALSO CORRECTED -- the reconstruction's docstring asserted this comparison ("NESO ...
+  #   bottoming out nearer 0.16") before any fetch had ever run. Measured, NESO's floor averages
+  #   0.189 and only 2024 is below 0.16, so the old sentence understated the gap it warned about.
+  #   The SAME sentence was cited as error-bar evidence in this atom's own L0->L2 ledger row.
+  #   That row stands unedited -- it is the record of what was certified and when, which is what
+  #   a ledger is for -- and the corrected figures live here, where the draw and GATE 15 read
+  #   them. A record that can be rewritten when it turns out to be wrong is not a record.
+  #   STILL OPEN -- no Expert Hour has been taken. That is a HARDEN draw, not a BUILD one, and it
+  #   is the remaining gate on L3. The level is NOT moved here: LAW A, the drawn plan said 2->3
+  #   and the plan is a diagnostic, never a target.
+  file_scope: ['sim/grid_carbon_intensity.py', 'sim/neso_carbon_intensity.py',
+    'company/carbon/half_hourly_footprint.py',
+    'tools/generate_grid_intensity_feed.py', 'tools/generate_explore_carbon.py',
+    'tests/sim/test_grid_carbon_intensity.py', 'tests/sim/test_neso_carbon_intensity.py',
+    'tests/company/carbon/test_half_hourly_footprint.py',
+    'tests/tools/test_grid_intensity_feed_and_explore_carbon.py']
   simplifications_count: 1
 - id: EP14_adapter_published_cost_stack
   title: "The non-commodity stack, parsed from what is actually published"
