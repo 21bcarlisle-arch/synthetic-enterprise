@@ -3768,6 +3768,54 @@ def _git_said_nothing_to_commit(tail) -> bool:
     return bool(tail) and "nothing to commit" in tail.lower()
 
 
+def _git_add_or_refuse(args, *, timeout, label) -> bool:
+    """`git add` the given argv tail, and answer whether it ACTUALLY staged.
+
+    THE ADD'S RETURN CODE WAS NEVER READ, SO THE COMMIT'S ERROR BECAME THE DIAGNOSIS
+    (2026-08-25, WORKER_FINDING_A_STALE_INDEX_LOCK...). A stale `.git/index.lock` --
+    1,274,828 bytes, no git process alive -- made `git add` fail with *"Unable to create
+    '.git/index.lock': File exists"*. That stderr was captured into a variable nobody read
+    and discarded. Nothing was staged, so the `git commit -- <pathspec>` that followed was
+    handed paths the index had never heard of, and reported:
+
+        error: pathspec 'docs/staging/done/run_complete_...md' did not match any file(s)
+
+    about a file that existed, was not ignored, and was perfectly legal to add. Nine
+    consecutive publish cycles failed that way and the reader was sent after the LAST LINK
+    for 1h43m while the cause sat in a discarded pipe.
+
+    `git add` is ALL-OR-NOTHING: one bad path, or one lock, and NOTHING is staged. So an
+    unchecked rc here can only ever produce a misleading downstream error, never a truthful
+    one -- which is why this is a shared helper and not a fix at the one site that was
+    caught. Every add on the publish path answers here or the class comes back.
+
+    Deliberately NOT a stale-lock reaper: deleting a lock automatically is how a LIVE
+    `git commit` gets its index corrupted, and this repository's pre-commit gates hold that
+    lock legitimately for forty-five minutes at a stretch. Say the truth loudly; let a seat
+    decide. (Confirmed at the fix: the lock present while writing this was a live gate's,
+    not a stale one.)
+    """
+    try:
+        result = subprocess.run(["git", "add"] + list(args), cwd=str(PROJECT_DIR),
+                                timeout=timeout, capture_output=True, text=True)
+    except subprocess.TimeoutExpired as exc:  # noqa: PERF203 -- a hung add is a refusal too
+        log("{}: `git add` TIMED OUT after {}s -- nothing is staged, so the commit that "
+            "would follow could only report a confusing pathspec error. Refusing this cycle; "
+            "the next one retries. ({})".format(label, timeout, exc))
+        return False
+    if result.returncode != 0:
+        # BOTH streams: git puts "Unable to create index.lock" on stderr, but a pathspec
+        # complaint can land on stdout, and an empty diagnostic here is the whole defect.
+        tail = (stderr_tail(getattr(result, "stderr", None))
+                or stderr_tail(getattr(result, "stdout", None))
+                or "no output captured from `git add`")
+        log("{}: `git add` FAILED (rc={}) -- NOTHING IS STAGED. This, not any pathspec error "
+            "from the commit that would follow, is the cause. Refusing this cycle so the "
+            "next one retries.\n{}".format(label, result.returncode, tail))
+        return False
+    return True
+
+
 def git_commit_push(git_hash, net_margin, outcome=None):
     """Commit and push the publish surface. Returns True iff the content is committed.
 
@@ -4004,15 +4052,16 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     # unrelated auto-process commit message).
     with tree_lock():
         try:
-            subprocess.run(["git", "add"] + files, cwd=str(PROJECT_DIR), timeout=120,
-                           stderr=subprocess.PIPE, text=True)  # H30
+            if not _git_add_or_refuse(files, timeout=120, label="Auto-process publish"):
+                return _outcome(COMMIT_REFUSED, False)
             # Publish the pre-gate inbox fold too (maturity_map.yaml change + the deleted
             # atom_status inboxes) so a reconciled map lands WITH the run it belongs to,
             # never dangling uncommitted. -A stages the inbox DELETIONS. No-op if nothing
             # was folded this cycle.
-            subprocess.run(["git", "add", "-A", "docs/design/maturity_map.yaml",
-                            "docs/design/atom_status"], cwd=str(PROJECT_DIR), timeout=120,
-                           stderr=subprocess.PIPE, text=True)  # H30
+            if not _git_add_or_refuse(
+                    ["-A", "docs/design/maturity_map.yaml", "docs/design/atom_status"],
+                    timeout=120, label="Auto-process publish (map fold)"):
+                return _outcome(COMMIT_REFUSED, False)
             # COMMIT TIMEOUT (2026-08-03): this is NOT a bare `git commit` -- it runs
             # the whole pre-commit hook chain (tools/git-hooks/pre-commit: status-honesty,
             # pre_commit_test_gate, level_promotion_gate, site_lane_gate,
@@ -4522,8 +4571,12 @@ def _commit_and_push_paths(paths, msg, *, label):
     if not _provenance_is_publishable(paths, label=label):
         return False
     with tree_lock():
-        subprocess.run(["git", "add"] + list(paths), cwd=str(PROJECT_DIR), timeout=30,
-                       stderr=subprocess.PIPE, text=True)
+        # THE SAME UNCHECKED ADD, at the site the finding did not name (2026-08-25). The
+        # banner/heartbeat path stages exactly as blindly as the publish path did, so a lock
+        # here produces the same misleading pathspec error one function down. Fixing only the
+        # caught instance is what makes a class recur -- see `_git_add_or_refuse`.
+        if not _git_add_or_refuse(list(paths), timeout=30, label=label):
+            return False
     # The SAME budget the content commit gets, from the SAME constant -- see
     # GIT_COMMIT_HOOK_TIMEOUT_SECONDS for why a liveness path with its own, larger number is the
     # mechanism that hides a content freeze rather than a harmless duplication.
@@ -5680,6 +5733,21 @@ def _process(marker_path_str):
                     len(_feed.get("by_year") or {})))
     except Exception as exc:
         log("Grid intensity feed publication skipped: {}".format(exc))
+
+    # THE BASELINE TO BEAT (director, 2026-08-25: "Average behaviour is the control -- the same
+    # book run by a supplier applying flat rules with no per-customer view. Without that
+    # comparison, 'it performed well' means nothing."). Two arms over the live book, every cycle,
+    # so the control cannot drift away from the supplier it describes and the comparison cannot
+    # freeze against a book that has moved. Cheap: two JSON reads and a few hundred decisions.
+    log("Comparing pricing arms against the flat-rule control")
+    try:
+        from tools.couple_value_based_pricing import generate as gen_arms
+        _arms = gen_arms()
+        log("Pricing arms: {} account(s) priced, {} differ from the control, fit to run: {}"
+            .format(_arms.get("accounts_priced"), _arms.get("differs_from_control"),
+                    (_arms.get("verdict") or {}).get("fit_to_run")))
+    except Exception as exc:
+        log("Pricing-arm comparison skipped: {}".format(exc))
 
     # The mission's own number, on the days Explore already shows. Same R11 no-orphan-transition
     # reason as its neighbours: a generated surface that does not ride the regen cycle freezes
