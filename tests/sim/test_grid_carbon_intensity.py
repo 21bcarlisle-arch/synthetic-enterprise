@@ -169,6 +169,300 @@ def test_the_must_run_rate_is_DERIVED_from_a_cited_factor_and_a_stated_split():
 
 
 # --------------------------------------------------------------------------- #
+# The two gaps this module named for its whole life, closed 2026-08-25          #
+# --------------------------------------------------------------------------- #
+
+FRENCH_T_PER_MWH = 0.053   # NESO's own published import factor, via sim/elexon_fuel_outturn.py
+DUTCH_T_PER_MWH = 0.474
+
+
+def test_an_import_is_DIRTY_against_a_windy_night_and_CLEAN_against_a_working_gas_fleet():
+    """THE WHOLE REASON THE NET EFFECT HAD TO BE MEASURED RATHER THAN ARGUED.
+
+    The feed's `ERROR_DIRECTION` used to assert that omitting imports made quiet half hours look
+    cleaner, while `NAMED_GAPS` twenty lines above asserted it made them look dirtier. Both
+    sentences were about the same omission and one of them had to be wrong. Neither was: the sign
+    depends on what the import DISPLACES.
+
+      * On a windy night the thermal stack is already idle. A French import at 53 gCO2/kWh
+        displaces nothing and simply ADDS carbon to a half hour the model had running on
+        must-run and curtailed wind. The clean end goes UP -- which is the direction that
+        narrows this model's overstated spread toward NESO's.
+      * In a still winter evening the same import displaces CCGT at roughly 380 gCO2/kWh. The
+        dirty end goes DOWN.
+
+    MUTATION (must fire): drop the `+ import_mw * import_rate` term, or stop subtracting
+    `import_mw` from the residual -- each kills exactly one of the two limbs.
+    """
+    quiet_demand, quiet_renewables = WINDY_SUMMER_NIGHT
+    quiet_without = gci.emissions_rate_t_per_mwh(quiet_demand, quiet_renewables, YEAR)
+    quiet_with = gci.emissions_rate_t_per_mwh(
+        quiet_demand, quiet_renewables, YEAR,
+        import_mw=3_000.0, import_rate_t_per_mwh=FRENCH_T_PER_MWH,
+    )
+    assert quiet_with > quiet_without, (
+        "a 3 GW import into a half hour with no thermal running added no carbon at all"
+    )
+
+    busy_demand, busy_renewables = STILL_WINTER_EVENING
+    busy_without = gci.emissions_rate_t_per_mwh(busy_demand, busy_renewables, YEAR)
+    busy_with = gci.emissions_rate_t_per_mwh(
+        busy_demand, busy_renewables, YEAR,
+        import_mw=3_000.0, import_rate_t_per_mwh=FRENCH_T_PER_MWH,
+    )
+    assert busy_with < busy_without, (
+        "a French import displaced gas in a still winter evening and the half hour did not clean up"
+    )
+
+
+def test_the_import_FACTOR_decides_the_sign_and_the_Dutch_cable_is_dirtier_than_GB_gas():
+    """The rate passed in is not decoration, and this test was written wrong first.
+
+    The first version asserted that a Dutch import at 474 gCO2/kWh must make a STILL WINTER
+    EVENING dirtier. It does the opposite, and the model is right: at 45 GW of demand with 2 GW
+    of renewables the plant at the margin is an OCGT peaker, `EF_GAS_TCO2_PER_MWH_TH / 0.35` =
+    523 gCO2/kWh, so even the dirtiest cable GB has is an improvement on what it displaced.
+
+    So the claim that can actually be made is narrower and more useful: against the MID-MERIT
+    CCGT band, ~370 gCO2/kWh at the efficiency actually dispatched, a Dutch import is dirtier and
+    a French one is cleaner. Two cables, one half hour, opposite signs -- which no model that
+    charges imports at a constant can produce.
+
+    MUTATION (must fire): ignore `import_rate_t_per_mwh` and charge every import at one factor.
+    """
+    demand, renewables = 30_000.0, 0.0   # thermal 22 GW, inside the 30 GW CCGT band
+    plain = gci.emissions_rate_t_per_mwh(demand, renewables, YEAR)
+    dutch = gci.emissions_rate_t_per_mwh(
+        demand, renewables, YEAR, import_mw=3_000.0, import_rate_t_per_mwh=DUTCH_T_PER_MWH,
+    )
+    french = gci.emissions_rate_t_per_mwh(
+        demand, renewables, YEAR, import_mw=3_000.0, import_rate_t_per_mwh=FRENCH_T_PER_MWH,
+    )
+    assert dutch > plain > french
+
+    # And the peaker case, stated rather than left as the thing that broke the first draft.
+    peak_demand, peak_renewables = STILL_WINTER_EVENING
+    assert gci.emissions_rate_t_per_mwh(
+        peak_demand, peak_renewables, YEAR,
+        import_mw=3_000.0, import_rate_t_per_mwh=DUTCH_T_PER_MWH,
+    ) < gci.emissions_rate_t_per_mwh(peak_demand, peak_renewables, YEAR)
+
+
+def test_an_EXPORT_passed_as_a_negative_import_cannot_credit_the_half_hour():
+    """Belt to `elexon_fuel_outturn`'s braces. The adapter clamps per cable; if a later caller
+    hands this function a netted negative anyway, it must not become negative tonnage and it must
+    not increase GB's thermal requirement either -- the quantity is per kWh of GB DEMAND, and
+    under that consumption basis an exported MWh's emissions belong to whoever consumed it.
+
+    MUTATION (must fire): drop the `max(0.0, ...)` clamp on `import_mw`.
+    """
+    demand, renewables = STILL_WINTER_EVENING
+    plain = gci.emissions_rate_t_per_mwh(demand, renewables, YEAR)
+    exporting = gci.emissions_rate_t_per_mwh(
+        demand, renewables, YEAR, import_mw=-3_000.0, import_rate_t_per_mwh=FRENCH_T_PER_MWH,
+    )
+    assert exporting == pytest.approx(plain)
+
+
+def test_coal_dispatches_ABOVE_the_CCGT_band_and_is_invisible_below_it():
+    """Coal is a peaking plant in this window -- DUKES 5.10.B load factors of 8-21% against
+    CCGT's three to four times that -- so it runs only once the mid-merit band is full.
+
+    Both limbs are needed. A model that dispatched coal FIRST would make every half hour dirtier
+    and would still pass a test that only checked "coal raises emissions somewhere".
+
+    MUTATION (must fire): dispatch coal before the CCGT band, or ahead of it in the residual.
+    """
+    inside_band = 25_000.0   # thermal 17 GW, well inside the 30 GW CCGT band
+    assert gci.emissions_rate_t_per_mwh(
+        inside_band, 0.0, YEAR, coal_capacity_mw=8_000.0
+    ) == pytest.approx(gci.emissions_rate_t_per_mwh(inside_band, 0.0, YEAR))
+
+    above_band = 45_000.0    # thermal 37 GW, 7 GW of it above the CCGT band
+    assert gci.emissions_rate_t_per_mwh(
+        above_band, 0.0, YEAR, coal_capacity_mw=8_000.0
+    ) > gci.emissions_rate_t_per_mwh(above_band, 0.0, YEAR)
+
+
+def test_coal_above_the_band_displaces_PEAKERS_and_is_charged_at_the_DUKES_coal_factor():
+    """Checked at the outcome against a hand-computed dispatch, so it cannot be satisfied by the
+    module agreeing with itself. Coal at ~0.92 t/MWh replaces OCGT at
+    `EF_GAS_TCO2_PER_MWH_TH / 0.35` ~ 0.52, so the half hour gets dirtier by the difference.
+
+    MUTATION (must fire): charge coal at the gas factor, or leave the peaker MW in place instead
+    of subtracting the coal that displaced them (which would double-count 3 GW of generation).
+    """
+    demand, coal_capacity = 45_000.0, 3_000.0
+    thermal = demand - merit.MUST_RUN_FLOOR_MW
+    above = thermal - merit.CCGT_CAPACITY_MW
+    worst, best = merit._ccgt_efficiency_band(YEAR)
+    mean_eff = best - (best - worst) * (merit.CCGT_CAPACITY_MW / merit.CCGT_CAPACITY_MW) / 2.0
+
+    expected = (
+        merit.MUST_RUN_FLOOR_MW * gci.MUST_RUN_EMISSIONS_RATE_T_PER_MWH
+        + merit.CCGT_CAPACITY_MW * (merit.EF_GAS_TCO2_PER_MWH_TH / mean_eff)
+        + coal_capacity * merit.EF_COAL_TCO2_PER_MWH_E_BY_YEAR[YEAR]
+        + (above - coal_capacity) * (merit.EF_GAS_TCO2_PER_MWH_TH / merit.OCGT_REFERENCE_EFFICIENCY)
+    ) / demand
+
+    assert gci.emissions_rate_t_per_mwh(
+        demand, 0.0, YEAR, coal_capacity_mw=coal_capacity
+    ) == pytest.approx(expected)
+
+
+def test_a_year_with_no_coal_capacity_reproduces_the_pre_coal_shape_exactly():
+    """The fleet closed in September 2024, and the model has to close with it rather than carry
+    a phantom band forward. No end date is written anywhere: the capacity is measured from the
+    published outturn and reaches zero on its own.
+
+    MUTATION (must fire): default a missing year's coal capacity to the previous year's.
+    """
+    d, r = _toy([45_000.0, 25_000.0] * 24, [1_000.0, 4_000.0] * 24, year="2025")
+    with_map = gci.build_shape(d, r, coal_capacity_by_year={2024: 9_000.0, 2025: 0.0})
+    without = gci.build_shape(d, r)
+    assert with_map == without
+
+
+def test_the_coal_capacity_of_a_CLAMPED_year_is_never_borrowed_from_the_year_before():
+    """`_year_of` clamps 2025 to 2024 so the DUKES tables stay in range, and clamping is right
+    for a published constant that stops in 2024. It is wrong for a fleet that SHUT: reading the
+    coal capacity through the same clamp would resurrect 2024's coal in a year Elexon says the
+    fleet generated nothing.
+
+    MUTATION (must fire): key the coal-capacity lookup on `_year_of(year)`.
+    """
+    d, r = _toy([45_000.0] * 48, [1_000.0] * 48, year="2025")
+    borrowed = gci.build_shape(d, r, coal_capacity_by_year={2024: 9_000.0})
+    honest = gci.build_shape(d, r)
+    # A single-year toy normalises to a mean of 1.0 either way, so the shapes cannot be compared
+    # directly -- the absolute rate is where the borrowing would show.
+    rate_clamped = gci.emissions_rate_t_per_mwh(45_000.0, 1_000.0, 2025, coal_capacity_mw=9_000.0)
+    rate_honest = gci.emissions_rate_t_per_mwh(45_000.0, 1_000.0, 2025, coal_capacity_mw=0.0)
+    assert rate_clamped > rate_honest, "this fixture cannot tell the two apart, so it proves nothing"
+    assert borrowed == honest
+
+
+def test_a_half_hour_with_NOTHING_left_to_dispatch_still_runs_gas():
+    """THE DEFECT THIS CLOSED, stated as the half hour that produced it.
+
+    Renewables plus must-run cover the whole of demand, so the stack has nothing to do and the
+    model dispatched EXACTLY ZERO thermal plant -- 16.1% of 2024's half hours and 30.8% of
+    2025's. GB never does that: gas runs for inertia, reserve and voltage whatever the residual
+    says. Those are also precisely the half hours a time-shifting recommendation points a
+    customer at, so the error sat exactly where it did the most damage.
+
+    MUTATION (must fire): drop the `thermal_mw = max(thermal_mw, floor_mw)` line.
+    """
+    quiet = dict(demand_mw=22_000.0, renewable_generation_mw=18_000.0, year=YEAR)
+    without = gci.emissions_rate_t_per_mwh(**quiet)
+    with_floor = gci.emissions_rate_t_per_mwh(**quiet, thermal_floor_mw=4_000.0)
+    assert with_floor > without, "the floor must put carbon into a half hour that had none"
+    # And it is the MUST-RUN rate exactly when no floor is given -- i.e. the old behaviour was a
+    # grid of nothing but biomass-blended baseload.
+    assert without == pytest.approx(gci.MUST_RUN_EMISSIONS_RATE_T_PER_MWH * 8_000.0 / 22_000.0)
+
+
+def test_the_floor_displaces_RENEWABLES_and_never_manufactures_generation_above_demand():
+    """The floor is served by constraining wind off, not by generating more than the half hour
+    used -- the same call the must-run floor already makes two lines above it.
+
+    A floor larger than the room under demand would push total generation past demand and divide
+    it by demand anyway, reporting an intensity for energy nobody consumed.
+
+    MUTATION (must fire): drop the `min(..., demand_mw - must_run_mw)` cap.
+    """
+    # 9 GW demand, 8 GW must-run: only 1 GW of room, against a 5 GW floor.
+    capped = gci.emissions_rate_t_per_mwh(9_000.0, 9_000.0, YEAR, thermal_floor_mw=5_000.0)
+    exactly_the_room = gci.emissions_rate_t_per_mwh(9_000.0, 9_000.0, YEAR, thermal_floor_mw=1_000.0)
+    assert capped == pytest.approx(exactly_the_room)
+    absurd = gci.emissions_rate_t_per_mwh(9_000.0, 9_000.0, YEAR, thermal_floor_mw=50_000.0)
+    assert absurd == pytest.approx(exactly_the_room)
+
+
+def test_a_BUSY_half_hour_is_UNCHANGED_by_the_floor():
+    """The correction must reach the quiet end and nothing else. A still winter evening already
+    dispatches far more than any year's floor, so the floor is not binding and must not move it.
+
+    MUTATION (must fire): apply the floor as an ADDITION to thermal rather than a lower bound.
+    """
+    busy = dict(demand_mw=45_000.0, renewable_generation_mw=2_000.0, year=YEAR)
+    assert gci.emissions_rate_t_per_mwh(**busy, thermal_floor_mw=4_000.0) == pytest.approx(
+        gci.emissions_rate_t_per_mwh(**busy)
+    )
+
+
+def test_the_DEFAULT_floor_reproduces_the_known_wrong_shape_exactly():
+    """The signature is fail-open by construction and this pins that rather than hiding it: a
+    caller that forgets the floor gets the pre-2026-08-25 series, silently.
+
+    That is why the control is NOT here. It is `generate_grid_intensity_feed.fuel_mix()`, which
+    RAISES when the thermal series is absent so the published feed cannot quietly revert. This
+    test exists so the fail-open default is a known and stated property.
+
+    MUTATION (must fire): give `thermal_floor_mw` a non-zero default, which would change the
+    shape of every existing caller without any of them saying so.
+    """
+    d, r = _toy([45_000.0, 25_000.0] * 24, [1_000.0, 4_000.0] * 24, year="2024")
+    assert gci.build_shape(d, r, thermal_floor_by_year={2024: 0.0}) == gci.build_shape(d, r)
+
+
+def test_the_floor_of_a_year_is_never_borrowed_from_another_year():
+    """A year with no measured floor gets none -- the pre-existing behaviour -- rather than the
+    neighbouring year's, which would be a measurement asserted where none was taken.
+
+    MUTATION (must fire): key the floor lookup on `_year_of(year)`, or fall back to any year.
+    """
+    d, r = _toy([22_000.0] * 48, [18_000.0] * 48, year="2025")
+    rate_2025 = gci.emissions_rate_t_per_mwh(22_000.0, 18_000.0, 2025, thermal_floor_mw=4_000.0)
+    rate_none = gci.emissions_rate_t_per_mwh(22_000.0, 18_000.0, 2025, thermal_floor_mw=0.0)
+    assert rate_2025 > rate_none, "this fixture cannot tell the two apart, so it proves nothing"
+    assert gci.build_shape(d, r, thermal_floor_by_year={2024: 4_000.0}) == gci.build_shape(d, r)
+
+
+def test_an_import_larger_than_demand_cannot_meet_the_half_hour_twice():
+    """A feed defect, or a half hour where GB wheeled power across itself, must not produce a
+    rate computed on more energy than was consumed.
+
+    MUTATION (must fire): drop the `min(..., demand_mw)` clamp.
+    """
+    rate = gci.emissions_rate_t_per_mwh(
+        10_000.0, 0.0, YEAR, import_mw=40_000.0, import_rate_t_per_mwh=DUTCH_T_PER_MWH,
+    )
+    assert rate < DUTCH_T_PER_MWH + gci.MUST_RUN_EMISSIONS_RATE_T_PER_MWH
+
+
+def test_the_anchor_still_holds_once_coal_and_cables_are_dispatched():
+    """The normalisation is what stops a consumer's published annual total from moving. Adding
+    two new emission sources to the numerator is exactly the change that could break it silently.
+    """
+    demands = [20_000.0, 30_000.0, 45_000.0, 25_000.0] * 12
+    renewables = [10_000.0, 5_000.0, 2_000.0, 12_000.0] * 12
+    d, r = _toy(demands, renewables)
+    imports = {k: (2_000.0, FRENCH_T_PER_MWH) for k in d}
+
+    shape = gci.build_shape(d, r, imports_by_period=imports, coal_capacity_by_year={2024: 5_000.0})
+
+    assert gci.demand_weighted_mean(shape, d, "2024") == pytest.approx(1.0)
+
+
+def test_a_half_hour_with_NO_import_reading_is_dispatched_with_none_rather_than_DROPPED():
+    """The opposite call from the one made for a missing renewable outturn, and the difference is
+    which way the error runs. A missing wind reading treated as zero INVENTS a dirty half hour;
+    a missing cable reading treated as zero reproduces the behaviour this series had for its
+    whole life and is bounded by it. Dropping the half hour instead would shorten the series the
+    year's normalisation is taken over -- a coverage change disguised as a physics one.
+
+    MUTATION (must fire): `continue` when a key is absent from `imports_by_period`.
+    """
+    d, r = _toy([20_000.0, 30_000.0] * 24, [8_000.0, 6_000.0] * 24)
+    partial = {k: (2_000.0, FRENCH_T_PER_MWH) for k in list(d)[:10]}
+
+    shape = gci.build_shape(d, r, imports_by_period=partial)
+
+    assert len(shape) == len(d)
+
+
+# --------------------------------------------------------------------------- #
 # The anchor: a demand-weighted mean of exactly 1.0                            #
 # --------------------------------------------------------------------------- #
 

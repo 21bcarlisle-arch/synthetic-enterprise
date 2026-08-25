@@ -385,3 +385,41 @@ def test_a_day_with_NO_published_series_says_so_rather_than_rendering_a_clean_ag
         "a day with no published series to check against renders nothing about it, which is "
         "indistinguishable from a day where the two series agreed"
     )
+
+
+def test_the_reader_is_told_HOW_MUCH_OF_THE_TIMING_EFFECT_IS_A_TEMPLATE():
+    """THE FINDING (2026-08-25): the timing effect is the grid's shape times the household's,
+    and the page corrected the grid side five times before it said anything about this one.
+
+    86-94% of a priced winter day's kWh is placed by `HEATING_PERIOD_WEIGHTS` -- one national
+    constant, uniform across the same two windows for every premise in the country, and those
+    are the two windows the grid is dirtiest in. The panel said "when this household drew",
+    which credits a home for a shape a module-level constant chose.
+
+    WHAT IS ASSERTED HERE IS THE RENDER, not the feed field: a share published in JSON and
+    invisible on the page leaves the attribution uncorrected for the only person who reads it.
+
+    MUTATION (must fire): drop the `shapeProvenance(row)` call from `carbonDayPanel`, or
+    restore the unhedged clause.
+    """
+    html = _stage("C7")
+
+    assert "household drew made its carbon" not in html, (
+        "the rendered panel again attributes the timing effect to when the HOUSEHOLD drew"
+    )
+    assert re.search(r"household&#x27;s profile has it drawing|household's profile has it drawing", html), (
+        "the hedged attribution does not reach the reader, so the correction lives only in "
+        "the source of a file nobody opens"
+    )
+    assert "Where this day&#x27;s shape comes from" in html or "Where this day's shape comes from" in html, (
+        "the provenance paragraph is not rendered on a measured household's panel"
+    )
+    share = re.search(r"(\d+)% of its kWh falls in", html)
+    assert share, "the provenance paragraph renders no measured share, only prose"
+    assert int(share.group(1)) > 40, (
+        "the rendered share is at or below the 19-of-48 flat baseline on C7's hardest day, "
+        "which contradicts the measured 86% -- the paragraph is quoting the wrong row"
+    )
+    assert "no concentration at all would put" in html, (
+        "the share is rendered without its null baseline, so a reader cannot tell 86% from 40%"
+    )

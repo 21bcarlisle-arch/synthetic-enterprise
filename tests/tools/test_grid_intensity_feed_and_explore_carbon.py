@@ -24,6 +24,55 @@ CARBON = REPO / "site" / "data" / "explore_carbon.json"
 
 
 # --------------------------------------------------------------------------- #
+# The fail-open signature, and the one place it is closed (2026-08-25)          #
+# --------------------------------------------------------------------------- #
+
+def test_the_feed_REFUSES_to_publish_without_the_fuel_mix_rather_than_reverting_to_the_old_shape():
+    """THE ONE CONTROL THAT MAKES `build_shape`'s OPTIONAL KEYWORDS SAFE.
+
+    `sim.grid_carbon_intensity.build_shape` takes coal capacity and interconnector flow as
+    keywords whose defaults reproduce the shape EXACTLY as it was before either was modelled.
+    That is fail-open by construction: a caller that forgets them gets a series that lost two
+    corrections and says nothing about it, and the feed's own `named_gaps` would go on claiming
+    the corrections were there. Nothing in the arithmetic could notice -- both shapes are
+    dimensionless, both normalise to 1.0, both look exactly like a carbon shape.
+
+    So the boundary is here, on the path that actually publishes: no mix, no feed.
+
+    MUTATION (must fire): wrap the `fuel_mix()` call in `generate()` in a try/except that falls
+    back to `build_shape(demand, renewables)`.
+    """
+    from sim import elexon_fuel_outturn as fuel
+
+    original = fuel.CACHE_PATH
+    try:
+        fuel.CACHE_PATH = REPO / "sim" / "cache" / "definitely_not_a_cache_that_exists.json"
+        with pytest.raises(fuel.FuelOutturnUnavailable):
+            gif.fuel_mix()
+    finally:
+        fuel.CACHE_PATH = original
+
+
+def test_the_published_import_coverage_is_the_MEASURED_one_and_not_a_sentence():
+    """The feed states what share of GB's imported energy it can price. That number has to come
+    out of the adapter's own count, because a hand-typed "most imports are covered" is exactly
+    the coverage sentence this file's docstring already calls out once.
+
+    MUTATION (must fire): hard-code `covered_fraction` in `build()`.
+    """
+    shape = {("2025-06-06", p): 1.0 for p in range(1, 49)}
+    demand = {k: 30_000.0 for k in shape}
+
+    built = gif.build(shape, demand, import_coverage={"covered_fraction": 0.6612},
+                      coal_capacity_by_year={2024: 1873.0, 2025: 110.0})
+
+    assert built["import_coverage"]["covered_fraction"] == pytest.approx(0.6612)
+    assert built["import_coverage"]["uncovered_cables"] == ["INTNSL (Norway)", "INTVKL (Denmark)"]
+    # The coal fleet closing has to be legible AS a closure, which needs the zero row present.
+    assert built["coal_demonstrated_max_mw"]["2025"] == 110
+
+
+# --------------------------------------------------------------------------- #
 # The window -- the defect this pair had on its first run                      #
 # --------------------------------------------------------------------------- #
 
@@ -275,21 +324,59 @@ def test_a_year_sharing_ONE_half_hour_does_not_count_toward_the_headline():
 def test_the_headline_says_we_OVERSTATE_and_by_how_much():
     """VACUITY GUARD ON THE WHOLE COMPARISON. A `versus_published` block that came out at exactly
     1.0 would mean either perfect agreement or a broken measurement, and the two are
-    indistinguishable from the number alone. This model does overstate -- no coal, no
-    interconnector imports -- so a headline at or below 1.0 is the instrument failing, not the
-    model being right."""
+    indistinguishable from the number alone.
+
+    THIS CONTROL ASSERTED THAT THE MODEL STAYS BAD, AND THE MODEL STOPPED BEING THAT BAD
+    (2026-08-25, the thermal floor). It required `spread_overstated_by > 1.5`, and its stated
+    reason was "it dispatches no coal and no interconnector imports" -- a premise that died
+    earlier the same day when both were built. The floor then carried max/min from 2.44x to
+    1.04x and this went red. That is a control encoding a premise the tree has outgrown, and the
+    repair is NOT to lower 1.5 until it passes: a threshold moved to green a red is the
+    goal-seeking R12 exists to stop, and it would be indistinguishable from this one whether the
+    instrument had broken or not.
+
+    SO THE GUARD NOW CHECKS THE THING IT NAMES. A broken comparison is DEGENERATE, and the test
+    above documents exactly what that looks like on this feed: a spread of exactly 1.0 from a
+    value divided by itself, with a correlation of exactly 0.00. Those are checkable directly,
+    and unlike a fidelity threshold they do not expire when the model improves.
+
+    ONE FIDELITY CLAIM SURVIVES, on the statistic the page actually prints. `p95/p5` is the
+    robust spread (max/min rests on two single half hours out of seventeen thousand, which
+    `year_stats` refuses to rest a claim on) and it still runs ~1.36x, so we do still overstate.
+    A drop below 1.0 there would mean this model UNDERSTATES the range, which has never happened
+    and would be worth a human look rather than a silent pass.
+
+    MUTATION (must fire): compare the published series against itself, which is the shape a
+    broken comparison takes -- correlation 1.0, zero error, every spread ratio 1.0.
+    """
     feed = json.loads(FEED.read_text(encoding="utf-8")) if FEED.is_file() else None
     if not feed or not (feed.get("versus_published") or {}).get("available"):
         pytest.skip("the published-series comparison is not available in this tree")
 
-    factor = feed["versus_published"]["spread_overstated_by"]
-    assert factor > 1.5, (
-        f"this shape claims to be within {factor}x of NESO's spread. It dispatches no coal and "
-        "no interconnector imports, so that is the comparison breaking rather than the model "
-        "being that good"
-    )
-    assert len(feed["versus_published"]["headline_years"]) >= 3, (
+    versus = feed["versus_published"]
+    assert len(versus["headline_years"]) >= 3, (
         "the headline rests on fewer than three years of overlap"
+    )
+
+    for year in versus["headline_years"]:
+        row = versus["by_year"][str(year)]
+        assert 0.0 < abs(row["correlation"]) < 1.0, (
+            f"{year} correlates {row['correlation']} with the published series. Exactly 0.0 is "
+            "the degenerate single-half-hour row and exactly 1.0 is a series compared against "
+            "itself; either is the instrument failing, not the model succeeding"
+        )
+        assert row["mean_abs_error"] > 0.0, (
+            f"{year} differs from the published series by exactly nothing, which is not a "
+            "reconstruction agreeing -- it is the same numbers on both sides"
+        )
+        assert row["reconstructed_p95_over_p5"] != row["published_p95_over_p5"], (
+            f"{year}'s reconstructed and published spreads are identical to the digit"
+        )
+
+    factor = versus["p95_spread_overstated_by"]
+    assert factor > 1.0, (
+        f"this shape claims to UNDERSTATE the published spread ({factor}x on p95/p5). That has "
+        "never happened and is more likely the comparison breaking than the model being right"
     )
 
 
@@ -586,13 +673,27 @@ def test_the_stated_ERROR_DIRECTION_does_not_contradict_the_NAMED_GAPS_beside_it
     that costs trust in the number beside it.
 
     MUTATION (must fire): restore "both make quiet half hours look cleaner".
+
+    ITS SUBJECT MOVED AND THE CONTROL FOLLOWED IT RATHER THAN BEING DELETED (2026-08-25). The
+    gap it used to quote -- "interconnector imports are not modelled" -- stopped being true when
+    they were modelled, and this test went red for the right reason: the string it anchored on
+    was gone. Deleting it would have removed the only check that the published REASON agrees
+    with the published GAPS, at the exact moment the gaps changed, which is when that check is
+    worth most. So the anchor is now the RESIDUE -- the two cables NESO publishes no factor for,
+    which are still dispatched as GB gas and still read dirtier -- and it is asserted on the
+    direction word rather than on a whole sentence, so the next rewording does not fake a pass
+    OR a fail.
     """
     text = gif.ERROR_DIRECTION.lower()
     gaps = " ".join(gif.NAMED_GAPS).lower()
 
-    assert "interconnector imports are not modelled, so heavy-import half hours read dirtier" in gaps, (
+    assert "interconnector" in gaps and "reads dirtier" in gaps, (
         "the gap list no longer states the interconnector direction, so this control has lost "
         "the side of the comparison it checks against"
+    )
+    assert "thermal" in gaps and "demonstrated annual minimum" in gaps, (
+        "the gap list no longer names the thermal floor, which is what the range claim now rests "
+        "on; without it the error direction rests on nothing"
     )
     assert not ("both" in text and "cleaner" in text.split("upper bound")[0]), (
         "the error-direction sentence again claims both gaps push toward cleaner, which the "
@@ -602,4 +703,113 @@ def test_the_stated_ERROR_DIRECTION_does_not_contradict_the_NAMED_GAPS_beside_it
     assert "measured" in text, (
         "the clean-end claim reads as asserted rather than measured -- the exact sentence that "
         "was found to be a recollection in the grammar of a measurement"
+    )
+    # THE SUBJECT MOVED A SECOND TIME AND THE CONTROL FOLLOWED IT AGAIN (2026-08-25, the thermal
+    # floor). The old gap -- "the thermal stack reaches exactly zero" -- stopped being true when
+    # the floor was measured, and with it went the claim that the clean end is UNIFORMLY
+    # optimistic: in 2020 and 2021 the model's quietest half hours are now DIRTIER than published.
+    # An error-direction sentence that still said "the clean end is optimistic" full stop would be
+    # asserting a direction the measurement beside it contradicts in two of six years, which is
+    # the exact defect this control was written for, pointed the other way. So the claim the
+    # sentence is now allowed to make is about the RANGE, and it must say the clean end is mixed.
+    assert "range" in text, (
+        "the surviving overstatement is of the RANGE, and the sentence no longer says so"
+    )
+    assert "dirtier than published" in text, (
+        "the error-direction sentence omits that the clean end now overshoots in some years -- "
+        "reporting only the flattering half of a measurement that moved in both directions"
+    )
+
+
+# --------------------------------------------------------------------------- #
+# The CONSUMPTION side of the multiplication (2026-08-25)                      #
+# --------------------------------------------------------------------------- #
+# THE FINDING these close: every timing figure on Explore is the grid's shape TIMES the
+# household's, the EP13 Expert Hour spent all five MAJOR findings on the first one, and the
+# second one is a two-block template. `simulation/demand_model.py::HEATING_PERIOD_WEIGHTS` is
+# ONE module-level constant -- uniform over periods 13-20 and 34-44, identical for every
+# premise in the country -- so 86-94% of a priced winter day's kWh is placed by a national
+# constant, in the two windows the grid is dirtiest in. The world defect is already owned by
+# `W1_11_fabric_physics_core`; what is closed HERE is the published ATTRIBUTION, which credited
+# a household for a shape it did not choose.
+#
+# R10: not the instance. The class is "a customer-facing figure attributes to a household
+# something a constant decided", and the three controls below make the class red automatically
+# -- a new priced panel with no provenance fails, a restored attribution clause fails, and a
+# window that stops being derived from the producer fails.
+
+def test_every_PRICED_panel_publishes_WHERE_ITS_SHAPE_CAME_FROM():
+    """A panel may not publish a timing effect without the share of it a template placed.
+
+    MUTATION (must fire): drop the `shape_provenance` key from `build()`'s account row.
+    """
+    data = json.loads(CARBON.read_text())
+    priced = [a for a in data["accounts"] if "timing_effect_pct" in a]
+    assert priced, "no priced panel in the published file, so this control checked nothing"
+    for row in priced:
+        sp = row.get("shape_provenance")
+        assert sp, f"{row['account_id']} {row['date']} prices a day with no shape provenance"
+        assert sp.get("available") is True, (
+            f"{row['account_id']} {row['date']} reports its provenance unavailable while still "
+            "publishing a timing effect built from those same kWh"
+        )
+        assert 0.0 <= sp["share_in_modelled_window"] <= 1.0
+        assert sp["periods_in_window"] < sp["periods_in_day"], (
+            "the modelled window covers the whole day, so the share is 1.0 by construction and "
+            "measures nothing -- a tautology, not a control"
+        )
+
+
+def test_the_modelled_window_is_DERIVED_from_the_producer_and_not_restated():
+    """The published window must move when the world's constant moves.
+
+    THE FAIL-OPEN THIS REFUSES: hard-coding "06:00-10:00 and 16:30-22:00" into the generator
+    would keep printing a measured-sounding sentence for years after `W1_11_fabric_physics_core`
+    lands a per-home shape. Independence runs the right way here -- the page's claim is ABOUT
+    the constant, so reading the constant is correctness, not tautology.
+
+    MUTATION (must fire): replace `modelled_load_windows()`'s body with a literal list.
+    """
+    from simulation import demand_model
+
+    original = list(demand_model.HEATING_PERIOD_WEIGHTS)
+    assert gec.modelled_load_windows() == [
+        p for p, w in enumerate(original, start=1) if w > 0
+    ]
+
+    # Move the producer; the generator must follow it, not its own memory of it.
+    moved = [1.0 if p in (5, 6) else 0.0 for p in range(1, 49)]
+    demand_model.HEATING_PERIOD_WEIGHTS[:] = moved
+    try:
+        assert gec.modelled_load_windows() == [5, 6], (
+            "the generator reported the old window after the world's constant moved, so the "
+            "sentence it feeds is a restatement wearing the grammar of a derivation"
+        )
+    finally:
+        demand_model.HEATING_PERIOD_WEIGHTS[:] = original
+    assert gec.modelled_load_windows() != [5, 6]
+
+
+def test_the_page_does_not_credit_the_HOUSEHOLD_for_the_TEMPLATES_shape():
+    """The rendered clause, and the null the reader needs to read the number.
+
+    MUTATION (must fire): restore "household drew made its carbon", or delete the null-baseline
+    sentence from `shapeProvenance`.
+    """
+    page = (REPO / "site" / "explore" / "index.html").read_text()
+
+    assert "household drew made its carbon" not in page, (
+        "the panel again attributes the timing effect to when the HOUSEHOLD drew, which the "
+        "consumption template underneath it cannot support"
+    )
+    assert "household's profile has it drawing" in page, (
+        "the hedged attribution is gone and nothing named replaced it"
+    )
+    assert "shapeProvenance(row)" in page, (
+        "the provenance paragraph is no longer rendered, so the share is published in the data "
+        "and invisible on the page -- the failure mode that makes a feed field decorative"
+    )
+    assert "no concentration at all would put" in page, (
+        "the provenance sentence no longer prints its own null baseline, so a reader is asked "
+        "to supply the 40%-is-flat comparison himself and cannot"
     )

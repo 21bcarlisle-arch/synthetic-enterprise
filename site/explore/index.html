@@ -954,8 +954,16 @@ function carbonDayPanel(row) {
     '<p style="font-size:22px;margin:2px 0 6px"><b>' + num(row.co2e_kg_timed, 1) +
     " kg CO&#8322;e</b></p>" +
     "<p>Measured half hour by half hour. The same kWh valued at the year's <b>average</b> " +
+    /* "WHEN THIS HOUSEHOLD DREW" WAS AN ATTRIBUTION THE PIPELINE CANNOT SUPPORT (2026-08-25).
+       86-94% of the kWh on these winter days is placed by HEATING_PERIOD_WEIGHTS -- ONE
+       national constant in simulation/demand_model.py, uniform over the same two windows for
+       every premise in the country. The arithmetic is right and the kWh are the ones in the
+       meter file, but the clause credited a HOME for a shape a module-level constant chose.
+       "has it drawing" is the smallest true edit: it names a profile without pretending the
+       profile is a measurement. The magnitude is measured underneath, not estimated here. */
     "intensity would read " + num(row.co2e_kg_flat, 1) + " kg &mdash; so <b>when</b> this " +
-    "household drew made its carbon <b>" + Math.abs(row.timing_effect_pct).toFixed(0) + "% " +
+    "household's profile has it drawing made its carbon <b>" +
+    Math.abs(row.timing_effect_pct).toFixed(0) + "% " +
     (up ? "higher" : "lower") + "</b> than the annual-average method reports.</p>" +
     '<p style="font-size:12px;color:var(--muted);margin-top:8px">Cleanest half hour <b>' +
     esc(row.cleanest.clock) + "</b> (" + row.cleanest.shape.toFixed(2) + "&times; the year's " +
@@ -990,7 +998,31 @@ function carbonDayPanel(row) {
         "How much of one, for THIS household, is measured below rather than estimated from " +
         "this figure."
       : "") +
-    "</p>" + beliefVsTruth(row));
+    "</p>" + beliefVsTruth(row) + shapeProvenance(row));
+}
+
+/* THE OTHER HALF OF THE MULTIPLICATION, and the page published five corrections to the first
+   half before it published one to this one. The timing effect is the grid's shape TIMES the
+   household's, and beliefVsTruth above measures the error in the grid's. This measures how
+   much of the household's is a template.
+
+   IT PRINTS ITS OWN NULL. 19 of 48 half hours are in the window, so a day with no
+   concentration at all puts 40% of its kWh there -- saying "86%" without saying "40% is flat"
+   asks the reader to supply the baseline, and he cannot. The industrial panels land at 40-46%
+   and the summer panels at 31-63%, so the number discriminates rather than always alarming. */
+function shapeProvenance(row) {
+  var s = row.shape_provenance;
+  if (!s || !s.available) return "";
+  var flat = s.periods_in_window / s.periods_in_day;
+  return '<p style="font-size:12px;color:var(--muted);margin-top:8px">' +
+    "<b>Where this day's shape comes from:</b> " +
+    (s.share_in_modelled_window * 100).toFixed(0) + "% of its kWh falls in " +
+    (s.modelled_window_clock || []).map(esc).join(" and ") + " &mdash; the windows this " +
+    "world's demand model places <em>all</em> heating load in, as one national constant " +
+    "identical for every household on the book. That is " + s.periods_in_window + " of " +
+    s.periods_in_day + " half hours, so a day with no concentration at all would put " +
+    (flat * 100).toFixed(0) + "% here. Those are also the hours the grid is dirtiest in, so " +
+    "the figure above is in part a property of that template and not only of this home.</p>";
 }
 
 /* THE SAME DAY, MEASURED THE OTHER WAY. Everything above is the company's own belief about

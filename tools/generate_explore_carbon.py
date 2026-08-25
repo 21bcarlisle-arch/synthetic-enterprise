@@ -46,6 +46,7 @@ from company.carbon.half_hourly_footprint import (
     load_shape,
     measured_footprint,
 )
+from simulation.demand_model import HEATING_PERIOD_WEIGHTS
 
 PROJECT = Path(__file__).resolve().parent.parent
 HH_DAYS = PROJECT / "site" / "data" / "explore_hh_days.json"
@@ -103,6 +104,58 @@ def _reads_from_day(panel: dict) -> list[dict]:
 #: Meter types that can record a half hour at all. Same set as `generate_explore_hh_day`'s,
 #: and it is the CAPABILITY that decides the ceiling on how much of the mission is measurable.
 _HALF_HOURLY_CAPABLE = frozenset({"smart", "hh"})
+
+
+def modelled_load_windows() -> list[int]:
+    """The settlement periods the WORLD's demand model places all heating load in.
+
+    DERIVED FROM THE PRODUCER, never restated here. `HEATING_PERIOD_WEIGHTS` is a single
+    module-level constant in `simulation/demand_model.py`: uniform weight over periods 13-20
+    and 34-44, zero elsewhere, identical for every premise in the country. Reading it rather
+    than copying "06:00-10:00 and 16:30-22:00" into this file means that when
+    `W1_11_fabric_physics_core` lands a per-home shape, the sentence this feeds follows the
+    model instead of going quietly stale while still sounding measured.
+    """
+    return [p for p, w in enumerate(HEATING_PERIOD_WEIGHTS, start=1) if w > 0]
+
+
+def shape_provenance(reads: Sequence[Mapping]) -> dict:
+    """How much of this day's kWh the world MODELLED into that fixed window.
+
+    WHY A CUSTOMER-FACING PANEL CARRIES THIS. The timing effect is a product of two series --
+    the grid's shape and the household's -- and the panel attributes it to the household in as
+    many words. On the days this page prices, 86-95% of the day's kWh sits inside the two
+    windows above, which are also the two windows the grid is dirtiest in. So the figure is
+    substantially a property of a national template that does not vary between households, and
+    a page that says "when this household drew" without saying so is attributing to a home
+    something a constant decided. MEASURED per day rather than asserted once, because the share
+    differs by household and the honest correction is the one this home's own numbers support.
+    """
+    windows = set(modelled_load_windows())
+    total = sum(float(r["kwh"]) for r in reads)
+    if total <= 0:
+        return {"available": False, "why": "The day's metered total is zero, so no share of it can be attributed."}
+    inside = sum(float(r["kwh"]) for r in reads if int(r["period"]) in windows)
+    return {
+        "available": True,
+        "modelled_window_periods": sorted(windows),
+        "modelled_window_clock": _window_clock(sorted(windows)),
+        "share_in_modelled_window": round(inside / total, 4),
+        "periods_in_window": len(windows),
+        "periods_in_day": PERIODS,
+        "owning_defect": "W1_11_fabric_physics_core",
+    }
+
+
+def _window_clock(periods: Sequence[int]) -> list[str]:
+    """Contiguous runs of settlement periods -> human clock ranges, for the page to print."""
+    runs: list[list[int]] = []
+    for p in periods:
+        if runs and p == runs[-1][-1] + 1:
+            runs[-1].append(p)
+        else:
+            runs.append([p])
+    return [f"{_clock(r[0])}-{_clock(r[-1] + 1)}" for r in runs]
 
 
 def _meter_counts(detail_dir: Path) -> dict:
@@ -346,6 +399,11 @@ def build(hh_days: dict, shape: dict, feed: dict, meter: dict) -> dict:
                 "date": fp.period_from,
                 "year": row_year,
                 "belief_vs_truth": belief_versus_truth(reads, shape, published, feed, row_year),
+                # THE OTHER HALF OF THE MULTIPLICATION. `belief_vs_truth` measures the GRID
+                # side's error; this measures how much of the answer the CONSUMPTION side's
+                # national template placed. Both, or the page corrects one of two overstatements
+                # and reads as if it had corrected the figure.
+                "shape_provenance": shape_provenance(reads),
                 "year_stats": (feed.get("by_year") or {}).get(row_year),
                 "kwh": fp.kwh,
                 "co2e_kg_timed": fp.co2e_kg_timed,

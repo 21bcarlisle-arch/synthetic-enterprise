@@ -136,8 +136,21 @@ def dates_with_reads(paths=READ_BEARING_ARTEFACTS) -> set[str]:
 #: and the advisor's scope brief makes stating them the condition of publishing at all
 #: ("a carbon figure without its basis is not a measurement, it is a slogan").
 NAMED_GAPS = [
-    "no coal is dispatched, so coal-heavy years read cleaner than GB was at the dirty end",
-    "interconnector imports are not modelled, so heavy-import half hours read dirtier",
+    "the thermal stack is floored at the CCGT+OCGT fleet's demonstrated annual MINIMUM output, so "
+    "no half hour is dispatched with no gas running -- but that floor is the year's single lowest "
+    "reading (303 MW in 2024, against a 1st percentile of 1,720 MW), deliberately the most "
+    "conservative number available, so quiet half hours still run less gas than GB actually ran",
+    "the floor corrects the LEVEL of the clean end and not the TIMING of it: correlation against "
+    "the published series moved by less than 0.004 in every year and is still 0.73 in 2024, so "
+    "this shape knows how clean a quiet half hour is far better than it knows which half hours "
+    "were the quiet ones",
+    "interconnector imports are counted at NESO's own published per-cable factors, but two of "
+    "GB's nine cables postdate that table -- North Sea Link (Norway) and Viking Link (Denmark) -- "
+    "so their flow is still dispatched as GB gas and reads dirtier than it was; that is 34% of "
+    "imported MWh in 2024 and it is growing",
+    "coal is dispatched from the fleet's demonstrated annual maximum, but its place in merit is "
+    "fixed above the CCGT band rather than recomputed from the gas/coal spread, so the 2021-22 "
+    "gas spike understates coal",
     "the must-run floor is a constant 8 GW; nuclear outages and hydro seasonality are not modelled",
     "national only -- no regional series is offered, modelled or otherwise",
     "outturn, never forecast: this grades what happened and must not judge shifting advice",
@@ -167,14 +180,23 @@ NAMED_GAPS = [
 #: say which way the errors point, and it was repeated as evidence in a level certification.
 #: `sim/neso_carbon_intensity.py` now fetches the published series and measures it. The
 #: qualitative claim survived; the SIZE did not, and the headline had never been stated at all.
+#: STILL OPTIMISTIC AFTER THE TWO LARGEST GAPS WERE CLOSED (2026-08-25). Coal is now dispatched
+#: and interconnector imports are now carried, and the clean end moved from 3.2x too clean to
+#: 2.3x — a real improvement that does not change the sentence's direction, which is the point
+#: worth publishing. The remaining cause is named and sized in `NAMED_GAPS`: this model still
+#: lets the thermal stack reach exactly zero, in 16.1% of 2024's half hours.
 ERROR_DIRECTION = (
-    "The clean end is optimistic, and that is MEASURED rather than argued: over the years both "
-    "series cover, this shape's quietest half hours sit near 0.06 of average where NESO's "
-    "published series bottoms out near 0.19. So any benefit computed from moving load into quiet "
-    "half hours is an UPPER BOUND on the real one. The named gaps do NOT all push that way -- "
-    "omitting coal understates the dirty end, while omitting interconnector imports makes half "
-    "hours read dirtier than they were -- so only their net effect is knowable, and the size of "
-    "the bound is measured in `versus_published` below, never inferred from the gap list."
+    "The RANGE is overstated, and that is the sentence to carry: this shape's p95/p5 spread runs "
+    "about 1.36x the published series', so any benefit computed from moving load between quiet "
+    "and busy half hours is an UPPER BOUND on the real one. What is no longer true, and was "
+    "until the thermal floor was measured on 2026-08-25, is that the clean END is uniformly "
+    "optimistic: flooring the stack at the gas fleet's demonstrated annual minimum moved the "
+    "quietest half hours from about 3.2x too clean to a MIXED picture -- still slightly cleaner "
+    "than published in 2019, 2022 and 2023, and now DIRTIER than published in 2020 and 2021. "
+    "That is MEASURED, year by year, in `versus_published` below and never inferred from the gap "
+    "list, which is the same reason the gaps are not all pushing one way: an import's sign "
+    "depends on what it displaced -- against the mid-merit gas band a Dutch import is dirtier "
+    "than what it replaced, against a peaker it is cleaner -- so only the net is knowable."
 )
 
 
@@ -346,7 +368,10 @@ def versus_published(shape: dict, demand: dict, published: dict | None = None,
 
 
 def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
-          extra_dates: set[str] | None = None) -> dict:
+          extra_dates: set[str] | None = None,
+          import_coverage: dict | None = None,
+          coal_capacity_by_year: dict | None = None,
+          thermal_floor_by_year: dict | None = None) -> dict:
     if not shape:
         raise ShapeUnavailable("no shape to publish")
     last_date = max(key[0] for key in shape)
@@ -387,9 +412,53 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
         "error_direction": ERROR_DIRECTION,
         "named_gaps": NAMED_GAPS,
         "source": (
-            "Elexon Insights half-hourly demand outturn (INDO) and wind+solar generation "
-            "outturn (AGWS), through the dispatch stack in sim/merit_order_reconstruction.py "
-            "(DUKES 5.10.C efficiencies, DESNZ GHG conversion factors)."
+            "Elexon Insights half-hourly demand outturn (INDO), wind+solar generation outturn "
+            "(AGWS) and generation-by-fuel-type outturn (FUELHH, for coal availability and "
+            "interconnector flow), through the dispatch stack in "
+            "sim/merit_order_reconstruction.py (DUKES 5.10.C efficiencies, DUKES 5.14 coal "
+            "emission factors, DESNZ GHG conversion factors). Import carbon intensities are "
+            "NESO's own published figures (Carbon Intensity Forecast Methodology, Table 1)."
+        ),
+        # WHAT THE MODELLED SLICE OF IMPORTS ACTUALLY IS, as a measured fraction of imported
+        # MWh rather than as an adjective. Two of GB's nine cables -- North Sea Link and Viking
+        # Link -- postdate NESO's published factor table, so their flow is left modelled as GB
+        # generation and this number says how much of the answer that is. A gap quoted in per
+        # cent can be argued with; "some imports are not covered" cannot.
+        "import_coverage": (
+            None if import_coverage is None else {
+                "covered_fraction": round(float(import_coverage["covered_fraction"]), 4),
+                "uncovered_cables": ["INTNSL (Norway)", "INTVKL (Denmark)"],
+                "what_it_means": (
+                    "The share of GB's imported MWh, over the whole series, whose carbon "
+                    "intensity NESO publishes a factor for. The remainder is dispatched as GB "
+                    "generation exactly as it was before imports were modelled at all, which "
+                    "reads DIRTIER than it was for a Norwegian hydro import."
+                ),
+            }
+        ),
+        # A CAPACITY THAT MEASURES ITSELF TO ZERO. Published so a reader can see the coal fleet
+        # close in the data rather than trust that a hand-written end date was right.
+        "coal_demonstrated_max_mw": (
+            None if coal_capacity_by_year is None
+            else {str(y): round(float(mw)) for y, mw in sorted(coal_capacity_by_year.items())}
+        ),
+        # WHAT THE FLEET WAS NEVER OBSERVED BELOW, and the diagnostic that says whether to
+        # believe it. `floor_mw` is the year's smallest CCGT+OCGT reading and is the number the
+        # dispatch uses; `p1_mw` is the 1st percentile of the same year, published ONLY so a
+        # reader can see whether that minimum is a lone outlier. Using p1 instead would raise the
+        # floor, narrow the modelled swing and improve this model's score against the published
+        # series -- which is why the robust statistic is the one that is reported and the raw
+        # minimum is the one that is consumed (R12).
+        "thermal_floor_mw": (
+            None if thermal_floor_by_year is None
+            else {
+                str(y): {
+                    "floor_mw": round(float(r["floor_mw"])),
+                    "p1_mw": round(float(r["p1_mw"])),
+                    "half_hours": int(r["half_hours"]),
+                }
+                for y, r in sorted(thermal_floor_by_year.items())
+            }
         ),
         "records_window_days": window_days,
         "records_cover": {
@@ -412,10 +481,44 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
     }
 
 
+def fuel_mix() -> tuple[dict, dict, dict, dict]:
+    """(imports by half hour, coal capacity by year, the measured import coverage, thermal floor).
+
+    THE ONE PLACE THE NEW INPUTS CANNOT BE FORGOTTEN, and that is its job. `build_shape` takes
+    them all as optional keywords whose defaults reproduce the shape exactly as it was before
+    coal, cables and the thermal floor were modelled -- a fail-open signature by construction. So
+    the control is here, on the path that actually publishes: an absent or unusable mix RAISES
+    out of `generate()` and the feed does not get written, rather than being rewritten with a
+    series that quietly lost three corrections and says nothing about it.
+
+    THE FLOOR IS UNPACKED TO `{year: floor_mw}` HERE, so the `p1_mw` published beside it stays a
+    diagnostic and has no path into the dispatch.
+    """
+    from sim import elexon_fuel_outturn as fuel
+
+    series = fuel.to_settlement_periods(fuel.load_cached())
+    floors = fuel.thermal_floor_by_year(fuel.thermal_by_period(fuel.load_cached_thermal()))
+    return (
+        fuel.imports_by_period(series),
+        fuel.coal_capacity_by_year(series),
+        fuel.import_coverage(series),
+        floors,
+    )
+
+
 def generate(out_path: Path | None = None) -> dict:
     demand = aggregate_demand(json.loads(DEMAND_CACHE.read_text(encoding="utf-8")))
     renewables = aggregate_renewable_generation(json.loads(AGWS_CACHE.read_text(encoding="utf-8")))
-    data = build(build_shape(demand, renewables), demand, extra_dates=dates_with_reads())
+    imports, coal_capacity, coverage, thermal_floors = fuel_mix()
+    shape = build_shape(
+        demand,
+        renewables,
+        imports_by_period=imports,
+        coal_capacity_by_year=coal_capacity,
+        thermal_floor_by_year={y: r["floor_mw"] for y, r in thermal_floors.items()},
+    )
+    data = build(shape, demand, extra_dates=dates_with_reads(), import_coverage=coverage,
+                 coal_capacity_by_year=coal_capacity, thermal_floor_by_year=thermal_floors)
     dest = OUT_PATH if out_path is None else out_path
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(data, indent=1) + "\n", encoding="utf-8")
