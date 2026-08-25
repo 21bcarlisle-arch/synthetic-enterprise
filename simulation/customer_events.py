@@ -31,11 +31,39 @@ from saas.churn_model import build_churn_risk
 from saas.home_move_win_rate import build_home_move_win_rates
 from simulation.churn_ceiling import WORLD_MAX_CHURN_PROBABILITY
 from simulation.household import IncomeStress, household_of
-from simulation.market_switching_propensity import market_switching_multiplier
+from simulation.market_switching_propensity import (
+    market_switching_multiplier,
+    offer_position_multiplier,
+)
 from simulation.satisfaction_churn import adjust_churn_for_satisfaction
 from simulation.switching_propensity import adjust_churn_probability
 
 PRICE_DIFFERENTIAL_PCT = 0.0  # matches run_phase4c_on_phase2b.py
+
+
+def _price_differential_vs_market(
+    new_rate_gbp_per_mwh: float | None, term_start_str: str
+) -> float | None:
+    """Where THIS customer's offered rate sits against the published market reference.
+
+    Returns a fraction: 0.05 = 5% dearer than the SVT, -0.05 = 5% cheaper. `None` when the rate
+    or the reference is unavailable, so the caller can fall back rather than treat an unknown
+    position as parity -- parity is a claim, and "we do not know where we sit" is not it.
+
+    THE SVT IS THE REFERENCE because it is the published default a real household is compared
+    against, it is what `company/pricing/renewal_desk._apply_competitive_ceiling` already prices
+    against, and `_build_churn_basis_risk` already reports the same quantity as
+    `rate_vs_svt_pct`. Introducing a second notion of "the market" here would be one name and two
+    numbers, which this repository has paid for before.
+    """
+    if new_rate_gbp_per_mwh is None:
+        return None
+    from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
+
+    svt = get_svt_elec_rate_gbp_per_mwh(term_start_str)
+    if not svt or svt <= 0:
+        return None
+    return (float(new_rate_gbp_per_mwh) - float(svt)) / float(svt)
 
 # Disposition of a churned account's home-move outcome. Three-valued because the
 # WIN roll and the DELIVERY of that win are two different facts.
@@ -144,6 +172,50 @@ def roll_lifecycle_event(
     if market_year is not None:
         p_churn_market = (1.0 - effective_p_retain) * market_switching_multiplier(market_year)
         effective_p_retain = 1.0 - min(p_churn_market, WORLD_MAX_CHURN_PROBABILITY)
+    # OUR OWN PRICE POSITION, and until 2026-08-25 the world could not see it.
+    #
+    # THE DEFECT, MEASURED. `price_differential_pct` arrived here as a parameter and was used at
+    # exactly ONE site: `build_home_move_win_rates`. It touched the WIN side and nothing in the
+    # churn chain at all. So an existing customer's chance of leaving read bill shock, income
+    # stress, satisfaction, market conditions and tenure -- and never what this supplier was
+    # charging them relative to everyone else. The company could price itself to any level and
+    # lose nobody for it.
+    #
+    # WHAT THAT COST, and it is the whole thesis rather than a detail. The director's frame is a
+    # supplier that "should behave like an average player by default, and beat average precisely
+    # to the degree it understands and predicts the truth better than average", measured against
+    # "the same book run by a supplier applying flat rules". With price disconnected from
+    # departure there is no such measurement: over-pricing has no consequence, so a flat-rules
+    # baseline can be neither beaten nor lost to on the one lever a supplier actually holds. It
+    # also explains the world's observed churn never exceeding 0.41 against its own 0.95 ceiling
+    # -- the largest lever was not attached.
+    #
+    # THE MIRROR OF THE WIN SIDE, on purpose. `50274434a` (PB3 b1, the same day) gave the WIN
+    # side `offer_position_multiplier`, and its docstring proves `m(d) * m(-d) == 1` so that
+    # "there is no d at which both legs improve". The loss side takes the reciprocal, which by
+    # that identity is `m(-d)`: being dearer costs departures in exactly the proportion it costs
+    # wins. Reusing the same curve is what keeps the guarantee exact rather than approximate --
+    # two independently-shaped price responses would leave a differential at which the company
+    # gained on both legs, which is the goal-seeking hole R12 exists to close.
+    #
+    # R13: BASELINE, not curriculum. Real households leave suppliers that become expensive; a
+    # world where they cannot is less faithful, not easier. It was decided blind to company P&L
+    # and it moves AGAINST the company -- it introduces a way to lose customers that did not
+    # exist before, and no way to gain any.
+    # PER CUSTOMER, NOT PER RUN, and that difference is what makes per-customer pricing
+    # testable at all. A run-level constant would move the whole book together and could never
+    # distinguish a supplier that prices two customers differently from one that prices them the
+    # same -- which is the only distinction the thesis is about. The differential is therefore
+    # derived from THIS customer's own offered rate against the published SVT, the same
+    # market reference `renewal_desk._apply_competitive_ceiling` already prices against and the
+    # one `_build_churn_basis_risk` already reports as `rate_vs_svt_pct`. The run-level parameter
+    # remains as the fallback for a caller that has no rate to hand.
+    differential = _price_differential_vs_market(new_rate_gbp_per_mwh, term_start_str)
+    if differential is None:
+        differential = price_differential_pct
+    if differential:
+        p_churn_price = (1.0 - effective_p_retain) / offer_position_multiplier(differential)
+        effective_p_retain = 1.0 - min(p_churn_price, WORLD_MAX_CHURN_PROBABILITY)
     # Phase MZ: apply income_stress switching propensity before retention modifier.
     # Layer 2 dimension 3 (2026-07-09): tenure applied in the same call --
     # renters switch less (see switching_propensity.py's module note).
@@ -218,5 +290,9 @@ def roll_lifecycle_event(
         "company_churn_estimate": company_churn_estimate,
         "churn_estimate_error_pct": churn_estimate_error_pct,
         "retention_offered": retention_modifier is not None,
+        "price_differential_vs_svt": round(differential, 4) if differential else None,
+        "offer_position_multiplier": (
+            round(offer_position_multiplier(differential), 4) if differential else None
+        ),
         "market_switching_multiplier": round(market_switching_multiplier(market_year), 4) if market_year is not None else None,
     }
