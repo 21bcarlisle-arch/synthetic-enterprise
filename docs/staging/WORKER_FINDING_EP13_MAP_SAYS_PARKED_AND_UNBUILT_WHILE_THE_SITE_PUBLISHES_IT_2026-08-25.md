@@ -116,3 +116,52 @@ lands. Cheaper, but it edits another lane's record.
   and PB3 with no working-tree state.
 - Landing attempts and their distinct refusals are quoted in full in the three
   `surgical_land` runs of this tick.
+
+---
+
+## Update, 2026-08-25 09:05 UTC — the recommended unblock ran, and its WRAPPER killed it
+
+`observed-with-evidence`. The recommendation above ("the lane holding EP1's uncommitted
+`three_horizon_clv` build lands it") was in fact attempted, and was in flight while this finding
+was being drawn. PID 1036229, started 07:57:33 UTC:
+
+    timeout 4000 python3 -m tools.surgical_land -m "$(cat …/msg_ep1.txt)" -- \
+      tools/couple_clv.py company/analytics/customer_value_view.py \
+      company/interfaces/customer_value.py simulation/run_phase4c_on_phase2b.py \
+      saas/reporting/annual_report.py docs/design/simplifications/EP1_clv_three_horizon.yaml \
+      …archive/EP1_clv_three_horizon.009.yaml …archive/EP1_clv_three_horizon.010.yaml \
+      docs/design/simplifications/PB3_book_growth_as_earned_outcome.yaml …4 test files
+
+Its pathspec was RIGHT — it carried both halves of the roll and both wedged atoms, EP1 and PB3.
+It ran for 66 minutes and its entire recorded output is one word:
+
+    Terminated                 timeout 4000 python3 -m tools.surgical_land …
+
+**It was not refused. No test went red. `timeout 4000` reached its limit and killed the gate
+mid-run**, and because `timeout` kills rather than reports, the landing left no error, no partial
+commit and no diagnosis — the 795-byte task output above is the whole record. HEAD is unchanged
+at `0dc6e252f`, and every claim in the body of this finding still holds.
+
+**This is the third consecutive pass EP1's uncommitted tree has wedged unrelated lanes, and the
+mechanism is now identified and is not the one this finding first proposed.** Pass 18 ended
+without committing; pass 19 was refused by the per-atom map budget; this pass was killed by its
+own wrapper. The R3 candidate is therefore narrower and more fixable than "a store whose register
+entry can be written before the code it claims exists": **the landing command is wrapped in a
+timeout shorter than the gate it is wrapping.** EP1's pathspec selects the company analytics,
+seam, run_phase4c and annual-report suites; that gate demonstrably needs more than 66 minutes,
+so any wrapper below ~90 minutes converts a green gate into a silent no-op. This is the known
+class [[a timeout wrapper kills surgical_land mid-gate and leaves no error]], recurring with a
+measured duration attached for the first time.
+
+**Recommendation, and the default if nobody objects:** re-run that exact command with **no
+`timeout` wrapper at all** — `surgical_land` already retries a lost HEAD race by itself and
+already has its own lock handling, so the wrapper adds no safety and removes the diagnosis. It
+must be run by a seat that can stay with it to completion rather than at the tail of a bounded
+tick, because the failure mode being fixed is precisely a landing that is cut off partway.
+
+Not done by this seat, and why: adopting another lane's 722-line uncommitted build across
+`company/`, `tools/`, `simulation/` and `saas/` unreviewed is the call this finding already
+declined to make unilaterally, and a >66-minute landing cannot be verified inside a bounded
+tick — starting one and exiting would produce a fourth unattended attempt, which is the defect
+rather than the fix.
+
