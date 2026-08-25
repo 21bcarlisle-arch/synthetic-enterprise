@@ -1,9 +1,75 @@
 {
- "generated_at": "2026-08-25T20:28:09.929849+00:00",
+ "generated_at": "2026-08-25T23:25:45.937659+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "27d2133d0",
+    "at": "2026-08-26T00:17:07+01:00",
+    "subject": "the lint ratchet lints the whole repo but was reachable only from its own filename, so it joins the always-run set at a twentieth the cost of the entry above it",
+    "substantive": true
+   },
+   {
+    "sha": "e28a255cb",
+    "at": "2026-08-26T00:12:43+01:00",
+    "subject": "the ratchet that forbids new lint debt is selected by filename stem, so the only commits it can see are the ones that touch it, and 22 violations walked past it",
+    "substantive": true
+   },
+   {
+    "sha": "da0fcb4c2",
+    "at": "2026-08-25T23:47:54+01:00",
+    "subject": "the 1.36x correction on the carbon panel averages an axis this model gets right with the one it gets wrong, and the wrong one is the only axis a household can act on",
+    "substantive": true
+   },
+   {
+    "sha": "ee316bb62",
+    "at": "2026-08-25T23:32:42+01:00",
+    "subject": "the EP13 thermal-floor build landed at HEAD with its record left in the working tree, so the atom's only account of what moved was one power cut from gone",
+    "substantive": true
+   },
+   {
+    "sha": "d3e7dff25",
+    "at": "2026-08-25T23:08:54+01:00",
+    "subject": "the second gate is the only one that can see what the commit is landing, so the receipt design named last night would have released a wall on a verdict nobody ever took",
+    "substantive": false
+   },
+   {
+    "sha": "42c0636ca",
+    "at": "2026-08-25T22:57:05+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=7cdd8e66c, net=\u00a31,264,955)",
+    "substantive": true
+   },
+   {
+    "sha": "677843425",
+    "at": "2026-08-25T22:51:09+01:00",
+    "subject": "the publish that ended a fifteen-hour outage landed with THREE SECONDS of headroom, and the duplication behind it is now proven rather than suspected",
+    "substantive": false
+   },
+   {
+    "sha": "1b6d4a295",
+    "at": "2026-08-25T22:48:16+01:00",
+    "subject": "chore(derived): land 2 re-rendered projection(s) pre-gate -- docs/design/FORWARD_ATTACHMENT_LEDGER.md, docs/design/PULL_FORWARD_PROPOSALS.md",
+    "substantive": true
+   },
+   {
+    "sha": "7cdd8e66c",
+    "at": "2026-08-25T22:08:02+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=bf9d30c14, net=\u00a31,264,955)",
+    "substantive": true
+   },
+   {
+    "sha": "64cbf0a8a",
+    "at": "2026-08-25T21:53:38+01:00",
+    "subject": "adopted: EP13's level-2 claim rests on two files git has never seen, and that is what has been refusing every publish commit since the deadline fix stopped them timing out",
+    "substantive": true
+   },
+   {
+    "sha": "bf9d30c14",
+    "at": "2026-08-25T21:30:47+01:00",
+    "subject": "LANE 0: four of the delivery seat's five decisions could not be reached by any draw on this machine, so the two that got built were built by hand in a session that needed the director present",
+    "substantive": true
+   },
    {
     "sha": "f0ec17a92",
     "at": "2026-08-25T20:14:36+01:00",
@@ -177,145 +243,102 @@
     "at": "2026-08-25T07:28:23+01:00",
     "subject": "FINDING: the simplifications count invariant is tree-wide, so two atoms red at HEAD refuse every lane's register entry",
     "substantive": false
-   },
-   {
-    "sha": "50274434a",
-    "at": "2026-08-25T07:25:24+01:00",
-    "subject": "PB3 (b1): the win side reads the company's own price position through the SAME elasticity the loss side does",
-    "substantive": true
-   },
-   {
-    "sha": "a94dd33ca",
-    "at": "2026-08-25T06:54:07+01:00",
-    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=229dea00d, net=\u00a31,277,721)",
-    "substantive": false
-   },
-   {
-    "sha": "229dea00d",
-    "at": "2026-08-25T06:22:29+01:00",
-    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=fc821806b, net=\u00a31,277,721)",
-    "substantive": true
-   },
-   {
-    "sha": "fc821806b",
-    "at": "2026-08-25T05:50:59+01:00",
-    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=4c42f31ec, net=\u00a31,277,721)",
-    "substantive": true
-   },
-   {
-    "sha": "4c42f31ec",
-    "at": "2026-08-25T00:48:57+01:00",
-    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=3b25c333f, net=\u00a31,277,721)",
-    "substantive": false
-   },
-   {
-    "sha": "9cf9983d4",
-    "at": "2026-08-25T00:32:10+01:00",
-    "subject": "clv: the coupled-gap row keyed EP1 has never graded EP1 -- pass 17's mis-subjection finding lands, code and record together",
-    "substantive": true
-   },
-   {
-    "sha": "3b25c333f",
-    "at": "2026-08-25T00:17:20+01:00",
-    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=467943976, net=\u00a31,277,721)",
-    "substantive": true
-   },
-   {
-    "sha": "2b86e5904",
-    "at": "2026-08-25T00:08:45+01:00",
-    "subject": "chore(derived): land 1 re-rendered projection(s) pre-gate -- docs/design/BLOCKED_ATOM_VISIBILITY.md",
-    "substantive": true
-   },
-   {
-    "sha": "467943976",
-    "at": "2026-08-24T23:36:56+01:00",
-    "subject": "finding: the domestic price cap is enforced against a rate on the wrong side of VAT, so the ceiling sits 5% above the law",
-    "substantive": false
-   },
-   {
-    "sha": "07c7b49ff",
-    "at": "2026-08-24T23:32:26+01:00",
-    "subject": "map: Capabilities and Explore have been live for days and the map still had them at zero -- two atoms closed, and seven read and deliberately NOT closed",
-    "substantive": true
-   },
-   {
-    "sha": "a8df2e995",
-    "at": "2026-08-24T23:30:41+01:00",
-    "subject": "billing: four customer-years billed NEGATIVE and the gate was right to shout -- it was the oracle that was wrong, not the ledger",
-    "substantive": true
    }
   ],
-  "substantive": 34,
-  "mechanical": 6,
+  "substantive": 35,
+  "mechanical": 5,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-08-25T20:22:29.336970+00:00",
+  "oriented_at": "2026-08-25T23:21:29.324152+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "Three hours, four commits, all substantive, and the two that matter both landed against the top of the last direction record: the baseline now exists as an external fact rather than this company's own habit, and the publish outage was diagnosed to a real cause. The baseline is the bigger of the two. Ofgem's own EBIT decision says an efficient supplier earns GBP 3.73-8.54/MWh on this book; the flat control was GBP 2.00, about a quarter of that at the top of the range. The director's frame said \"it performed well\" means nothing without a credible control, and the control is now credible and independently sourced. But the same measurement destroyed the more comfortable story: the value arm's median choice is GBP 130/MWh, which is fifteen times the TOP of what the regulator allows. Repricing the control moves it by two to four times and leaves the arm an order of magnitude away, so the arm is not beating a straw man -- it is asking to charge many times what a regulated efficient supplier earns, on 213 of 263 accounts, and it says `fit_to_run: false` about itself. The belief is no longer the excuse: the median account is now scored +3.5pp CONSERVATIVE against what the world would actually do. So the honest read is that the per-customer machinery, the world that can punish it, and the control to judge it against all now exist -- and the decision that machinery produces is not one any supplier would make. The advantage still cannot be claimed, and the reason has moved from \"we cannot measure it\" to \"the answer is visibly wrong\", which is progress. Two things are drifting and both are mechanical. The publish repair raised the commit deadline from 600s to 840s and its own commit message said the number was the small half of the change; the very next episode still did not land, 811 seconds after its own scoped gate went green, and publishing is now down 13 hours. That is a second strike on one component (R3) and the answer is not a third number. And the mechanism that makes this record reachable at all -- LANE 0, its supervisor wiring, its tests -- is running from the working tree and is in NO COMMIT: git has never seen `background/delivery_lane.py`, yet the supervisor logged six LANE 0 draws from it this evening. On the previous focus: the orienting brief reports that none of it was drawn. That is the instrument being wrong, not the steer -- it counts maturity-map atom draws only, so the two items that DID land, by hand, are invisible to it. The steer is not a no-op; it is unmeasured. What IS true is that every ordinary draw is livelocked: all five BUILD candidates are stalled, EP1 at 268 consecutive draws without its level moving, and all 24 idle atoms are over the discovery pass ceiling. Naming an atom is therefore no longer enough on its own -- the draw already picks these constantly and nothing moves. Every item below is written as an instruction for that reason.",
+  "thesis_read": "Three hours, eleven commits, nine substantive, and the top of the last record was answered properly: the value arm no longer reports a ceiling as a decision. A coarse grid that could only ever return one of its own sixteen numbers now brackets, and a refinement decides -- 107 accounts sitting on exactly GBP 130 became a concentration of 1.9%, with interior optima on 257 of 263 and only one account still at the top of its grid. That is the difference between a per-customer decision and a rule wearing one, and it is the single most thesis-relevant thing this project has built. LANE 0 landed too, so this record is reachable by a draw, and publishing is live again -- the cause was never the deadline but two files git had never seen, and the receipt redesign the last record ordered was correctly REJECTED on analysis rather than built, because only the second gate can see what the commit is landing. Both of those items therefore leave focus. What the improved arm bought is a much sharper problem, and it is the world's, not the company's. Freed to choose, the arm chose a median of GBP 115/MWh and a +53% median bill -- roughly GBP 900 a year on a typical account -- and it is right to, because `simulation/market_switching_propensity.py:55` caps the world's annual switching rate at 22% once savings available pass GBP 400, and both sides cap the leave probability at 0.95. So the world models one in five leaving whether a rival is GBP 400 or GBP 2,000 cheaper, and one in twenty staying whatever they are charged. The arm has priced its entire book into the flat top of that curve, which is beyond anything the DESNZ series it was fitted to ever observed. This is the coupled-triad rule biting exactly where it was meant to: no company capability is complete until it has faced a world that can defeat it, and this world cannot defeat a supplier that gouges. It also weakens the headline comparison -- a +2.0pp belief-versus-truth gap between an estimator and a truth fitted from the same published series, read where neither has data, is co-calibration and not demonstrated inference. So the honest position is that the per-customer machinery is now real and the instrument that would judge it is not. On the previous focus: the brief again reports none of it drawn, and again the brief is wrong -- it counts maturity-map atom draws only, and three of the five items were non-atom instructions, two of which landed. The steer is working and unmeasured; that is now the third record in a row where this seat's own instrument would have told the next seat to give up on steers that were succeeding. The genuine drift is different and it repeated within this stretch: the arm rebuild -- 207 lines, and the best work here -- is sitting UNCOMMITTED in a shared tree with 462 untracked paths, which is the exact defect the last record caught on LANE 0 and fixed.",
   "focus": [
    {
-    "id": "value-arm-chooses-a-bound-not-a-customer",
-    "what": "In `company/pricing/value_based_renewal.py`, diagnose why expected value rises monotonically in margin across the whole region the churn model supports, so the \"choice\" is whichever bound binds first -- 165 of 263 accounts support-bound, 8 at the grid edge, 107 landing on the identical GBP 130/MWh. Fix the arithmetic so the chosen margin is interior and set by that customer's own switching response, or state with evidence that no interior optimum exists and what the arm must do then.",
-    "why": "This is the organ the whole thesis rests on, and right now it is not making a per-customer decision -- it is charging the maximum its model will permit and reporting the ceiling as an inference. Done when the record shows chosen margins set by the customer rather than by the bound, and `fit_to_run` says something other than \"a ceiling reporting itself as a decision\"."
+    "id": "land-the-value-arm",
+    "what": "Check HEAD first; if it is already there, say so and stop, which costs one lookup. Otherwise land through `tools.surgical_land` by pathspec: `company/pricing/value_based_renewal.py`, `tests/company/pricing/test_value_based_renewal.py`, `tools/couple_value_based_pricing.py`, `tests/tools/test_couple_value_based_pricing.py` and `docs/observability/value_based_pricing_arms.json`. Stage only those hunks, never a broad add.",
+    "why": "This is the coarse-bracket-plus-refinement rebuild that turned the arm from a bound-reporter into a per-customer chooser, and git has never seen a line of it. The last record caught this exact shape on LANE 0 and the fix held; the tree has since documented a concurrent lane reverting uncommitted work mid-tick. Done when `git ls-files` and `git log` show the rebuild at HEAD and the arms record beside it, so the evidence for every claim above survives a power cut."
    },
    {
-    "id": "publish-path-lands",
-    "what": "Second strike (R3): stop raising the deadline. The publisher runs its own scoped gate GREEN (517s, 2,426 passed) and then the commit pays for the pre-commit hook chain's gate a second time and is killed. Read the hook-chain durations the new instrumentation in `background/process_run_complete.py` now records, decide whether that second gate checks anything the first did not, and remove the duplication.",
-    "why": "R11 makes the live surface the definition of done, so with this down nothing below can be shown true and the director's own delivery page is stale. 600 was raised to 840 at 18:16Z and the next episode failed at 19:13Z -- the curve is still rising, so a third number buys minutes. Done when a publisher run reaches origin and the figures move."
-   },
-   {
-    "id": "land-lane-zero",
-    "what": "Check HEAD first, and if it is not already there, land `background/delivery_lane.py`, `tests/background/test_delivery_lane.py` and the `_delivery_lane_draw` wiring in `background/supervisor.py`, `background/direction.py` and `docs/design/THE_DELIVERY_SEAT.md` by pathspec through `tools.surgical_land`. If it is already at HEAD, say so and stop -- that costs one lookup.",
-    "why": "`git ls-files` returns nothing for the module the supervisor drew from six times tonight. It exists only in a shared working tree that has 465 untracked paths and a standing repeating alarm for uncommitted work, and a concurrent lane reverting it would silently restore the exact defect the director named this afternoon -- direction that no draw can reach."
-   },
-   {
-    "id": "EP1_clv_three_horizon",
-    "what": "Fix the INSTRUMENT before the estimator. The CLV gap of 1.76x was measured on 2026-08-19 from 5 completed lives out of a book that now holds 263, and its own note says the comparison is structurally impossible: the accounts EP1 values are exactly the right-censored ones it refuses to grade. Re-measure, and either find a grading that reaches live accounts or record in `docs/observability/coupled_gap_ledger.json` that this gap cannot be moved by building.",
-    "why": "CLV is the quantity every per-customer choice in the thesis is made on, and it has been drawn 268 times without moving because there is nothing there to move -- an estimator cannot be improved against a six-day-old sample of five that cannot see the accounts it is used on."
+    "id": "W2_3_competitor_field",
+    "what": "Make the world's switching curve say when it is being read outside its own data. `_savings_to_rate` in `simulation/market_switching_propensity.py` is fitted to the DESNZ 2015-2025 series and returns a flat `_MAX_RATE = 0.22` for every savings figure above GBP 400, and `WORLD_MAX_CHURN_PROBABILITY` caps the leave probability at 0.95. Do NOT invent a steeper elasticity. Make the out-of-calibration region explicit and reported at the seam -- the world's own equivalent of the `model_support_bound` the company arm already carries -- so that a run in which the company prices into the flat top is visible as unsupported extrapolation rather than a confident answer. Then re-run the arms comparison and record what the arm's choices look like once the world can say \"I do not know\".",
+    "why": "The thesis says the advantage must come from inference and there must be a baseline to beat. Neither claim can be made against a world that keeps 78% of a book whatever it charges, and the arm has put its whole book past GBP 400 of savings available where the curve is flat. R13 binds this: it is a baseline change, so it is made for fidelity to the data only and decided blind to what it does to the company's numbers -- an extrapolation flag is defensible because the series genuinely has no observations there, and a new number would not be. Done when a reader of the run can see which decisions were taken in a region the world has no evidence for, and the arm's verdict says so in its own words."
    },
    {
     "id": "harness-lane-prune",
-    "what": "Execute the split already designed on 2026-08-24: H_harness holds 117 of 298 atoms and only 20 carry a gap. Move closed atoms out of the drawn file behind a loader, honouring the named hazard that `site/moap_coherence.py` derives Live/Building/Planned from atom levels and will flip Live nodes to Planned unless that reader still gets all atoms. In the same pass take the decision the supervisor has been asking for since 20:24Z on the 24 idle atoms over the pass ceiling: promote or close, one line of reason each.",
-    "why": "Named twice by the director on 24 August and unchanged since; the analysis is done and the execution is not. It is also now the livelock: 337 consecutive discovery draws over a set where nothing can move is the draw spending tokens to rediscover that these are decisions, and a decision is what this seat is for."
+    "what": "Execute the split designed on 2026-08-24, which is unchanged since: `H_harness` still holds 117 of 298 atoms and only 20 carry a gap. Move closed atoms out of the drawn file behind a loader, honouring the named hazard that `site/moap_coherence.py` derives Live/Building/Planned from atom levels and will flip Live nodes to Planned unless that reader still receives all atoms. In the same pass, dispose of the idle atoms sitting over the discovery pass ceiling -- promote or close, one line of reason each.",
+    "why": "The director named it twice on 24 August and made it the fourth item of his own console queue; it has now been carried across two direction records with the analysis done and the execution not, which makes it the clearest thing that is drifting. It is also the livelock: the draw keeps spending tokens rediscovering that these are decisions, and a decision is what this seat is for. Done when the drawn map is materially smaller, every atom is either live work or closed with a reason, and the coherence reader still shows the same Live nodes."
+   },
+   {
+    "id": "EP1_clv_three_horizon",
+    "what": "Fix the instrument before the estimator. `docs/observability/coupled_gap_ledger.json` still carries `measured_at: 2026-08-19` over 5 counted accounts out of 13 available, on a book that now holds 263, and its own note says the comparison is structurally impossible -- the accounts EP1 values are exactly the right-censored ones it refuses to grade. Re-measure, and either find a grading that reaches live accounts or record in that ledger that this gap cannot be moved by building and why.",
+    "why": "Lifetime value is the quantity every per-customer choice in the thesis is ultimately made on, and this figure has been quoted as current in three consecutive direction records while resting on five completed lives from a week ago. An estimator cannot be improved against a sample that cannot see the accounts it is used on, which is why the atom draws without moving. Done when the ledger's own timestamp and account count match the book it describes, or the ledger states plainly that it never can."
    }
   ],
   "not_now": [
    {
-    "what": "The zero collections-cost term inside the expected-cost arithmetic, carried from the last record.",
-    "why": "Still true and still a declared floor on every one of the 263 accounts, but it is now demonstrably not what is wrong. The arm chooses GBP 130/MWh against GBP 57-101 of expected cost; a few pounds of dunning cost cannot explain a fifteen-fold gap to the regulated average. Fix the order of magnitude first, then the pounds will matter."
+    "what": "Wiring the value arm to the live renewal desk.",
+    "why": "Rejected for the third record running and the reason is now stronger, not weaker. The arm is a genuine per-customer chooser and it still says `fit_to_run: false` about itself, because it would move the median bill +53% on the strength of a world curve that is flat where it is being read. Wiring it would push a real pricing defect behind the wall for the company to have to rediscover, which is the one thing the epistemic design is for."
+   },
+   {
+    "what": "Moving `_MAX_RATE`, `WORLD_MAX_CHURN_PROBABILITY` or the company's churn cap so the arm's answer looks sensible.",
+    "why": "This is the cheapest available fix and it is goal-seeking against a calibrated belief. R12 says an output is a diagnostic and never something to tune toward; R13 says the baseline changes for fidelity reasons decided blind to company results. A number chosen to make a pricing rule read well is the exact inversion this project exists to avoid, and the finding that surfaced it says so first."
+   },
+   {
+    "what": "Deriving the real elasticity above GBP 400 of savings available, rather than flagging it.",
+    "why": "There is no published GB series where a household was offered that much and observed, so any value would be authored rather than measured -- which makes it a curriculum value and the director's, not mine. Flagging the extrapolation needs no such number, delivers the honesty the comparison actually lacks, and leaves him a clean question if he ever wants the number."
    },
    {
     "what": "Explore's remaining stages with real data, the director's own third priority.",
-    "why": "Those stages render the numbers focus item 1 is currently deciding the credibility of, and publishing has been down 13 hours, so the work could not be verified on the live surface even if it were done. It moves up the moment the arm is fit to run and the publish path lands."
+    "why": "Those stages render exactly the numbers the second focus item is currently deciding the credibility of. Publishing them now spends the effort twice and risks putting a figure on the live surface that the same night's work says is unsupported. It moves up the moment the world can state where it does not know."
    },
    {
-    "what": "Wiring the value arm to the live renewal desk.",
-    "why": "Unchanged from the last record and now better evidenced: it reports `fit_to_run: false` on itself and would move the median bill by +51.4%. Wiring it pushes a real pricing defect behind the wall for the company to have to rediscover."
+    "what": "The publish commit's hook budget -- 393 seconds of a 600 second allowance spent by the first two of fifteen test files.",
+    "why": "Publishing is live, the fifteen-hour outage traced to untracked files rather than to the deadline, and the receipt redesign named last night was correctly killed on analysis because only the second gate can see what the commit is landing. One always-run entry was already made twenty times cheaper this stretch. The finding stays LATENT deliberately: it is a real accretion, and it is not what is standing between this company and the thesis tonight."
    },
    {
-    "what": "Raising the commit deadline a third time to clear the publish backlog quickly.",
-    "why": "It is the cheapest thing available and it is the thing that just failed. The measured hook chain rose 22% in ten hours; 840 will be the new 600 by tomorrow. R3 says the second false completion on one component means redesign, not another patch."
+    "what": "Filing further findings against the 30 already sitting LATENT.",
+    "why": "The director named this directly as a token cost, and five class documents already cover these shapes. The queue needs discharging, not lengthening -- the harness prune above is the discharging."
    },
    {
-    "what": "Filing further findings against the 29 already sitting LATENT.",
-    "why": "The director named this directly as a token cost and five class documents already cover these shapes. The queue needs discharging, not lengthening."
-   },
-   {
-    "what": "Restructuring lanes and epochs alongside the harness prune, which he explicitly authorised.",
-    "why": "A lane restructure changes what every future draw sees, and the draw is already livelocked. Prune the stock first so the two changes can be told apart when the draw either recovers or does not."
+    "what": "Re-opening the director's first two console priorities -- 200 residential through the funnel, and the win-rate loop.",
+    "why": "Both have moved and neither needs steering from here. The priced book is 256 residential of 263, and the win side got its build this morning when the funnel was made to read the company's own price position through the same elasticity the loss side uses. Steering work that is already running costs a draw and buys nothing."
    }
   ],
   "for_the_director": [],
-  "orientations_recorded": 2,
+  "orientations_recorded": 3,
   "skips_recorded": 0,
   "refusals_recorded": 0
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-08-25T23:21:29.324152+00:00",
+    "what": "The value arm rebuild -- 207 lines, the most thesis-relevant work in the repository, and the evidence behind every claim in this record -- was left uncommitted in a shared working tree that holds 462 untracked paths and carries a standing alarm for exactly this."
+   },
+   {
+    "at": "2026-08-25T23:21:29.324152+00:00",
+    "what": "The world's switching curve saturates at 22% a year above GBP 400 of savings available and both leave-probability caps sit at 0.95, so the simulation cannot punish a supplier that overcharges. It went unnoticed for months because the belief was only ever reported; the first decision made out of it found it immediately."
+   },
+   {
+    "at": "2026-08-25T23:21:29.324152+00:00",
+    "what": "The belief-versus-truth gap has been published as evidence of the company's inference while the company's estimator and the world's truth are fitted from the same published switching series and are being read where neither has data. Agreement there is co-calibration, not demonstrated inference, and the record did not say so."
+   },
+   {
+    "at": "2026-08-25T23:21:29.324152+00:00",
+    "what": "This seat's orienting brief again reported that NONE of the previous focus was drawn while two of the five items landed inside the window. It counts maturity-map atom draws only, so a non-atom instruction is invisible to it by construction and reads as ignored -- which tells the next seat to abandon steers that are working. Third record carrying this."
+   },
+   {
+    "at": "2026-08-25T23:21:29.324152+00:00",
+    "what": "The carbon panel's 1.36x correction averaged an axis the model gets right with the one it gets wrong, and the wrong one was the only axis a household could act on. Found and rebuilt this stretch."
+   },
+   {
+    "at": "2026-08-25T23:21:29.324152+00:00",
+    "what": "The lint ratchet lints the whole repository but was selected by its own filename stem, so the only commits it could ever see were the ones that touched it, and 22 violations walked past. It now joins the always-run set at a twentieth the cost of the entry above it."
+   },
    {
     "at": "2026-08-25T20:22:29.336970+00:00",
     "what": "The publish repair shipped the number and not the redesign. Its own commit message says \"600 -> 840, AND THE NUMBER IS THE SMALL HALF OF THIS CHANGE\" -- the small half is what landed, and the next episode failed 811s after its scoped gate went green."
@@ -362,13 +385,24 @@
  },
  "what_next": {
   "focus": [
-   "value-arm-chooses-a-bound-not-a-customer",
-   "publish-path-lands",
-   "land-lane-zero",
-   "EP1_clv_three_horizon",
-   "harness-lane-prune"
+   "land-the-value-arm",
+   "W2_3_competitor_field",
+   "harness-lane-prune",
+   "EP1_clv_three_horizon"
   ],
   "steer_checks": [
+   {
+    "drawn": [],
+    "focus": [
+     "value-arm-chooses-a-bound-not-a-customer",
+     "publish-path-lands",
+     "land-lane-zero",
+     "EP1_clv_three_horizon",
+     "harness-lane-prune"
+    ],
+    "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",
+    "steered": false
+   },
    {
     "drawn": [],
     "focus": [
