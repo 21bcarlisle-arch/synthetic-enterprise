@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-08-25T20:31:58Z",
+    "checked_at": "2026-08-25T21:22:07Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_committed_store_credits_a_falsifier_the_repository_does_not_have",
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_every_declared_honest_absence_is_still_absent_and_still_silenced",
@@ -15,20 +15,20 @@
     "open_findings": 25
   },
   "last_verified": {
-    "generated_at": "2026-08-25T21:08:01Z",
-    "git_commit": "bf9d30c14",
-    "run_id": "run_output_bf9d30c14_20260825T203258Z.json",
-    "verified_at": "2026-08-25T21:08:01Z"
+    "generated_at": "2026-08-25T21:57:04Z",
+    "git_commit": "7cdd8e66c",
+    "run_id": "run_output_7cdd8e66c_20260825T212307Z.json",
+    "verified_at": "2026-08-25T21:57:04Z"
   },
   "paused_reason": "scoped publish-path suite red at git=4683e68f7; blocking tests: FAILED tests/background/test_publisher_deadline_exceeds_its_gate.py::test_the_sweep_derives_its_deadline_rather_than_restating_it, FAILED tests/background/test_publisher_deadline_exceeds_its_gate.py::test_every_publisher_caller_derives_its_deadline[background/background_worker.py], FAILED tests/background/test_publisher_deadline_excee",
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-25T21:08:01Z",
-    "git_commit": "bf9d30c14",
-    "run_id": "run_output_bf9d30c14_20260825T203258Z.json",
-    "verified_at": "2026-08-25T21:08:01Z"
+    "generated_at": "2026-08-25T21:57:04Z",
+    "git_commit": "7cdd8e66c",
+    "run_id": "run_output_7cdd8e66c_20260825T212307Z.json",
+    "verified_at": "2026-08-25T21:57:04Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-25T21:08:01Z"
+  "written_at": "2026-08-25T21:57:04Z"
 }

@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-25T20:50:58Z",
+ "generated": "2026-08-25T21:40:40Z",
  "basis": "Electricity emissions only. Company estimate: its own published ANNUAL grid intensity (company/regulatory/carbon_emissions.py, the single owner) given half-hourly resolution by the published shape feed. Generation-based, national, outturn, no loss correction. NOT abatement -- there is no counterfactual here and none is implied.",
  "not_included": [
   "gas -- a near-constant factor per kWh burned, and the only lever on it is using less",
@@ -175,7 +175,7 @@
  "accounts_on_book": 263,
  "grid": {
   "year": "2025",
-  "published_at": "2026-08-25T20:50:57.234519+00:00",
+  "published_at": "2026-08-25T21:40:39.716359+00:00",
   "source": "Elexon Insights half-hourly demand outturn (INDO), wind+solar generation outturn (AGWS) and generation-by-fuel-type outturn (FUELHH, for coal availability and interconnector flow), through the dispatch stack in sim/merit_order_reconstruction.py (DUKES 5.10.C efficiencies, DUKES 5.14 coal emission factors, DESNZ GHG conversion factors). Import carbon intensities are NESO's own published figures (Carbon Intensity Forecast Methodology, Table 1).",
   "error_direction": "The RANGE is overstated, and that is the sentence to carry: this shape's p95/p5 spread runs about 1.36x the published series', so any benefit computed from moving load between quiet and busy half hours is an UPPER BOUND on the real one. What is no longer true, and was until the thermal floor was measured on 2026-08-25, is that the clean END is uniformly optimistic: flooring the stack at the gas fleet's demonstrated annual minimum moved the quietest half hours from about 3.2x too clean to a MIXED picture -- still slightly cleaner than published in 2019, 2022 and 2023, and now DIRTIER than published in 2020 and 2021. That is MEASURED, year by year, in `versus_published` below and never inferred from the gap list, which is the same reason the gaps are not all pushing one way: an import's sign depends on what it displaced -- against the mid-merit gas band a Dutch import is dirtier than what it replaced, against a peaker it is cleaner -- so only the net is knowable.",
   "named_gaps": [
