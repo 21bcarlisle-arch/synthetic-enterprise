@@ -110,3 +110,48 @@ def test_the_LIVE_book_reports_a_verdict_consistent_with_its_own_rows(tmp_path):
     assert data["accounts_priced"] > 0
     assert data["verdict"]["fit_to_run"] == (at_edge == 0
                                              and data["median_implied_bill_change_pct"] < 25.0)
+
+
+# --------------------------------------------------------------------------- #
+# The coupled-triad measurement: belief against truth, at the chosen price     #
+# --------------------------------------------------------------------------- #
+
+def test_the_gap_is_measured_at_the_price_the_ARM_ACTUALLY_CHOOSES():
+    """The whole point of measuring it here rather than at a renewal that happened. The thesis is
+    that advantage comes from prediction, so the number that matters is how wrong the company is
+    AT THE PRICE ITS OWN DECISION PICKS -- not at the price it happened to charge last year."""
+    scored = cvp.belief_versus_truth(offered_rate=200.0, current_rate=150.0, tenure_years=4.0,
+                                     eac_kwh=3100, segment="resi", term_start="2025-01-01")
+
+    assert scored is not None
+    assert set(scored) >= {"price_differential_vs_svt", "company_believes_p_leave",
+                           "world_would_p_leave", "belief_error_pp"}
+
+
+def test_an_UNKNOWN_market_position_is_NOT_scored_as_a_perfect_prediction():
+    """R15 fail-silent, in the direction that would flatter the company most: an unscoreable
+    account returning a zero error would report perfect foresight, and the summary averages it."""
+    assert cvp.belief_versus_truth(offered_rate=200.0, current_rate=150.0, tenure_years=4.0,
+                                   eac_kwh=3100, segment="resi", term_start="1990-01-01") is None
+
+
+def test_the_SIGN_of_the_error_is_reported_and_not_just_its_size():
+    """A company that expects FEWER departures than it will get is a company that will over-price
+    and be punished; one that expects more will leave money on the table. A mean absolute error
+    hides which failure this is, and they are not the same failure.
+
+    MUTATION (must fire): summarise with abs() and drop `underestimating_departures`."""
+    rows = [{"belief_vs_truth": {"belief_error_pp": -12.0}},
+            {"belief_vs_truth": {"belief_error_pp": -4.0}},
+            {"belief_vs_truth": {"belief_error_pp": 9.0}}]
+
+    summary = cvp._belief_summary(rows)
+
+    assert summary["underestimating_departures"] == 2
+    assert summary["median_belief_error_pp"] == -4.0
+
+
+def test_a_book_that_cannot_be_scored_says_so_rather_than_reporting_no_gap():
+    summary = cvp._belief_summary([{"belief_vs_truth": None}])
+
+    assert summary["available"] is False and "no account" in summary["why"]

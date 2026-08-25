@@ -44,6 +44,10 @@ import glob
 import json
 from pathlib import Path
 
+from simulation.churn_ceiling import WORLD_MAX_CHURN_PROBABILITY
+from simulation.customer_events import _price_differential_vs_market
+from simulation.market_switching_propensity import churn_position_multiplier
+from company.crm.enriched_churn_estimate import enriched_churn_estimate
 from saas.non_commodity import standing_charge_rate
 from saas.payment_behaviour import (
     CREDIT_RISK_BY_CUSTOMER,
@@ -91,6 +95,41 @@ def _legs(book: dict) -> dict:
             if cid:
                 out[cid] = leg
     return out
+
+
+def belief_versus_truth(*, offered_rate: float, current_rate: float, tenure_years: float,
+                        eac_kwh: float, segment: str, term_start: str) -> dict | None:
+    """What the COMPANY believes would happen at its own chosen price, against what the WORLD
+    would actually do. The coupled-triad measurement, at the price the decision picks.
+
+    HARNESS ONLY, and this file is where that is allowed: `tools/` sits outside the wall and is
+    the one layer permitted to hold the company's belief and the world's outcome side by side
+    (COUPLED_TRIAD_DESIGN 1.3). Nothing here is reachable from `company/`.
+
+    WHY IT IS WORTH MEASURING NOW AND WAS NOT THIS MORNING. Until `baec3efb2` the world's churn
+    did not read the supplier's own price at all, so both sides were blind and the gap was
+    identically zero by construction -- a guaranteed zero contributes nothing to a score. The
+    world now responds, and `fbe8b0ab6` let that response reach the world's ceiling. The
+    company's model still saturates at 0.95 with a floor of customers who never leave. So the
+    gap is real for the first time, and it points the way the thesis says it should: a company
+    that predicts badly should lose.
+    """
+    differential = _price_differential_vs_market(offered_rate, term_start)
+    if differential is None:
+        return None
+    believed = float(enriched_churn_estimate(
+        current_rate, offered_rate, tenure_years, float(eac_kwh), segment=segment))
+    # The world's response to this position, applied to the same base the company started from,
+    # so the comparison isolates the PRICE response and not the rest of the chain.
+    base = float(enriched_churn_estimate(current_rate, current_rate, tenure_years,
+                                         float(eac_kwh), segment=segment))
+    actual = min(base * churn_position_multiplier(differential), WORLD_MAX_CHURN_PROBABILITY)
+    return {
+        "price_differential_vs_svt": round(differential, 4),
+        "company_believes_p_leave": round(believed, 4),
+        "world_would_p_leave": round(actual, 4),
+        "belief_error_pp": round(100.0 * (believed - actual), 1),
+    }
 
 
 def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
@@ -157,6 +196,10 @@ def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
             "expected_cost_gbp_per_year": round(value.costs.total_gbp, 2) if value.costs else None,
             "bad_debt_gbp_per_year": round(value.costs.bad_debt_gbp, 2) if value.costs else None,
             "unsourced_cost_terms": list(value.costs.unsourced) if value.costs else [],
+            "belief_vs_truth": belief_versus_truth(
+                offered_rate=common["base_rate_gbp_per_mwh"] + value.margin_gbp_per_mwh,
+                current_rate=avg_rate, tenure_years=years, eac_kwh=eac,
+                segment=common["segment"], term_start=f"{as_of_year}-01-01"),
         })
 
     chosen = collections.Counter(r["value_margin_gbp_per_mwh"] for r in per_account)
@@ -184,8 +227,36 @@ def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
         "segmented_credit_risk": sum(1 for r in per_account if r["customer_id"] in CREDIT_RISK_BY_CUSTOMER),
         "median_implied_bill_change_pct": (
             sorted(r["implied_bill_change_pct"] for r in per_account)[n // 2] if n else None),
+        "belief_vs_truth": _belief_summary(per_account),
         "verdict": _verdict(per_account),
         "accounts": per_account,
+    }
+
+
+def _belief_summary(rows: list[dict]) -> dict:
+    """How wrong the company would be, at the price its own arm chooses.
+
+    UNDER-ESTIMATES ARE COUNTED SEPARATELY because the sign is the whole story: a company that
+    believes fewer customers will leave than actually will is a company that will over-price and
+    be punished for it, and that is the failure mode this arm has.
+    """
+    scored = [r["belief_vs_truth"] for r in rows if r.get("belief_vs_truth")]
+    if not scored:
+        return {"available": False, "why": "no account could be scored against the world"}
+    errors = sorted(s["belief_error_pp"] for s in scored)
+    n = len(errors)
+    return {
+        "available": True,
+        "accounts_scored": n,
+        "median_belief_error_pp": errors[n // 2],
+        "mean_belief_error_pp": round(sum(errors) / n, 1),
+        "underestimating_departures": sum(1 for e in errors if e < -1.0),
+        "what_it_means": (
+            "Positive means the company expects MORE departures than the world would deliver; "
+            "negative means it expects FEWER -- it will over-price and be punished. This is the "
+            "gap the thesis says the advantage must come from: a supplier beats a flat rule only "
+            "to the degree this number is small."
+        ),
     }
 
 
