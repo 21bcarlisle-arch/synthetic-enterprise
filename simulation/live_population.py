@@ -140,6 +140,21 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
     ACTIVATED (``SE_DRAW_POPULATION=1``, director-reserved): ``CUSTOMERS``
     followed by the additive synthetic acquisition cohort (saas-shaped,
     ground-truth ``cohort`` excluded). Additive-not-replacive.
+
+    THE TWO FLAGS ARE INDEPENDENT, and until 2026-08-25 they were not (PB3 exit
+    (b2)). The drawn trickle is an ARRIVAL: a home the curriculum hands this
+    supplier, which it could not have failed to get. The campaign is a CONTEST:
+    prospects quoted at the company's own expense, most of which it loses. They
+    are different objects and they answer to different flags —
+    ``SE_DRAW_POPULATION`` and ``SE_GROW_BOOK`` — but the campaign used to sit
+    INSIDE the trickle's branch, so emptying the arrival stream emptied growth
+    with it. Measured at HEAD before this change: draw off, mandate on, ten years
+    of campaign, book 18 -> 18, nought won, and the mandate reported itself
+    ACTIVE the whole time. That is exit (b2) red — "with the arrival stream
+    EMPTIED, the book must still be able to grow" — and it was red for a
+    structural reason rather than a commercial one, which is the worst kind:
+    every published growth figure was contingent on a flag that has nothing to do
+    with whether this company can win a customer.
     """
     # SEGMENT SUSPENSION (2026-08-24, director: "stop the company serving business accounts
     # for now"). Applied HERE, at the one place a run's book is assembled, rather than as a
@@ -149,27 +164,34 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
     # opening capital those two are sized from is the served book's, not the whole roster's.
     served = served_segments()
     static = [c for c in CUSTOMERS if _serves(c, served)]
-
-    if not draw_population_enabled():
-        return static
-
     seed = _DEFAULT_BASE_SEED if base_seed is None else base_seed
-    drawn = [sc.to_customer_dict() for sc in _drawn_trickle(seed)]
-    # ACTIVATION (2026-08-13): register the drawn points on the supply book before
-    # handing them back. Iterating a book you cannot then RESOLVE BY ID is what
-    # broke the home-move path -- `run_phase2b` looks a winning account back up
-    # with `registered_point()`, got `None` for a drawn customer, and passed that
-    # `None` into `register_acquired_point()`. Registering closes that gap at the
-    # single point where the drawn cohort enters the system, so every entrypoint
-    # gets it, not just the ones that remembered to.
-    #
-    # Idempotent by `customer_id`: entrypoints bind the book at import time in
-    # whatever order Python resolves them, so this runs more than once per process
-    # and must not double the book.
-    drawn = [c for c in drawn if _serves(c, served)]
-    register_drawn_points(drawn)
-    book = static + drawn
+    book = static
 
+    if draw_population_enabled():
+        drawn = [sc.to_customer_dict() for sc in _drawn_trickle(seed)]
+        # ACTIVATION (2026-08-13): register the drawn points on the supply book before
+        # handing them back. Iterating a book you cannot then RESOLVE BY ID is what
+        # broke the home-move path -- `run_phase2b` looks a winning account back up
+        # with `registered_point()`, got `None` for a drawn customer, and passed that
+        # `None` into `register_acquired_point()`. Registering closes that gap at the
+        # single point where the drawn cohort enters the system, so every entrypoint
+        # gets it, not just the ones that remembered to.
+        #
+        # Idempotent by `customer_id`: entrypoints bind the book at import time in
+        # whatever order Python resolves them, so this runs more than once per process
+        # and must not double the book.
+        drawn = [c for c in drawn if _serves(c, served)]
+        register_drawn_points(drawn)
+        book = static + drawn
+
+    # OUTSIDE the branch above, which is the whole of the (b2) change. `_campaign`
+    # short-circuits to an empty outcome when `growth_mandate_active()` is false and
+    # touches neither memo nor record on that path, so with both flags off this call
+    # is a dict literal and the returned book is byte-identical to the pre-change
+    # `return static`. `_pre_growth_book` was already flag-aware in both directions --
+    # it has returned the static roster alone under a disabled draw since it was
+    # written -- so the campaign already knew how to plan against a book with no
+    # arrivals in it. Nothing was missing but the reachability.
     won = _won_customer_dicts(_campaign(_pre_growth_book(seed), seed))
     if won:
         register_drawn_points(won)
@@ -597,8 +619,11 @@ def _resolve_campaign(book: List[dict], seed: int) -> dict:
     # exactly the sanctioned route and already carries `decide_acquisition` for the
     # replacement path. Two scalars go out, a decision comes back; the MCR, the capital
     # share, the growth-rate cap and the per-segment cost table all stay on the company side.
+    import functools
+
     from company.interfaces.growth_desk import plan_growth_campaign_year, quote_cost_gbp
     from simulation.acquisition_funnel import run_acquisition_funnel
+    from simulation.customer_events import PRICE_DIFFERENTIAL_PCT
     from simulation.net_new_acquisition import plan_growth_campaign
     from tools.credit_adapters import get_credit_bureau_adapter
 
@@ -633,7 +658,17 @@ def _resolve_campaign(book: List[dict], seed: int) -> dict:
         cost_per_quote_gbp={
             seg: quote_cost_gbp(segment=seg) for seg in ("resi", "SME")
         },
-        run_funnel=run_acquisition_funnel,
+        # THE SAME MARKET POSITION THE LOSS LEG IS ALREADY PRICED AT (PB3 (b1), 2026-08-25).
+        # `PRICE_DIFFERENTIAL_PCT` is the run's own parameter for where this supplier's price
+        # sits against the market average, and `simulation.customer_events` has been handing
+        # it to the retention side since Phase NS. Binding it here rather than adding a
+        # parameter to `plan_growth_campaign` keeps the campaign a pure resolver -- the
+        # caller decides what the company's offer is, and the campaign only resolves it --
+        # and it makes the shared input visible at the one place both legs are configured.
+        # At the shipped 0.0 the multiplier is exactly 1.0 and the book is unchanged.
+        run_funnel=functools.partial(
+            run_acquisition_funnel, price_differential_pct=PRICE_DIFFERENTIAL_PCT
+        ),
         quote_budget_fn=lambda net_assets_gbp, accounts_held, quotes_issued_to_date=0, wins_to_date=0: vars(
             plan_growth_campaign_year(
                 net_assets_gbp=net_assets_gbp, accounts_held=accounts_held,

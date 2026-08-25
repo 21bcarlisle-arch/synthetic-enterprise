@@ -49,6 +49,17 @@ def _flag_off_by_default(monkeypatch):
     # invariants are unchanged -- they now STATE the state they test instead of
     # inheriting it from a default that the director has since moved.
     monkeypatch.setenv(_ACTIVATION_ENV, "0")
+    # PB3 EXIT (b2), 2026-08-25: the same discipline for the OTHER flag, and the
+    # reason is the change that made it necessary. `live_population()` used to
+    # resolve the net-new campaign INSIDE its `draw_population_enabled()` branch,
+    # so pinning the draw off pinned growth off with it and every assertion below
+    # got `SE_GROW_BOOK` for free. The two flags are now independent -- (b2)
+    # required it, because an arrival flag that also governs whether the company
+    # can WIN a customer makes "the book must still be able to grow with the
+    # arrival stream emptied" unanswerable -- so a suite that means "no draw" has
+    # to say "no draw" rather than inherit it. Tests that want the campaign set
+    # `SE_GROW_BOOK=1` themselves and override this.
+    monkeypatch.setenv("SE_GROW_BOOK", "0")
 
 
 @_RESOLVERS

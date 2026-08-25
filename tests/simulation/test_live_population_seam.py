@@ -49,7 +49,7 @@ def _hidden_cohort_field_names() -> set:
 
 @pytest.fixture(autouse=True)
 def _clear_flag(monkeypatch):
-    """Pin the activation flag OFF so each test states the state it tests.
+    """Pin the activation flags OFF so each test states the state it tests.
 
     CHANGED 2026-08-13 (activation): this used to DELETE the variable, because
     unset meant OFF -- the draw was default-OFF and held for a director word.
@@ -58,8 +58,22 @@ def _clear_flag(monkeypatch):
     activated, and unset therefore means ON. The OFF-path invariants below are
     unchanged and still fully tested; what changed is that they now have to SAY
     off instead of assuming it. Tests of the new default set their own state.
+
+    CHANGED 2026-08-25 (PB3 exit (b2)): `SE_GROW_BOOK` is pinned here too, and the
+    reason is the change itself. Until (b2) the net-new campaign was resolved INSIDE
+    `live_population`'s `draw_population_enabled()` branch, so pinning the draw off
+    pinned growth off with it and every OFF-path assertion in this file got the
+    second flag for free. The two are now independent -- which is exactly what (b2)
+    required, since an arrival flag that also governs whether the company can win a
+    customer makes "the book must still be able to grow with the arrival stream
+    emptied" unanswerable -- so a test that means "no draw" has to say "no draw"
+    rather than inherit it. This is the discipline
+    `test_activation_adds_synthetic_acquisitions` already applied by hand below,
+    lifted to the fixture so it is total rather than remembered. Tests that DO want
+    the campaign set `SE_GROW_BOOK=1` themselves and override this.
     """
     monkeypatch.setenv("SE_DRAW_POPULATION", "0")
+    monkeypatch.setenv("SE_GROW_BOOK", "0")
     yield
 
 

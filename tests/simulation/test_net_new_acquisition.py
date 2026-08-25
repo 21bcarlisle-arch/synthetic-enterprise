@@ -643,3 +643,187 @@ def test_MUTATION_b1_the_market_crisis_floor_on_the_dearer_side_flattens_it():
         "the mutation no longer reproduces the flat-crisis-floor defect, so this control is "
         "asserting against a mechanism that has moved"
     )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# EXIT (b2) — the arrival stream EMPTIED, and the book must still be able to grow
+#
+# THE OTHER HALF OF THE NULL CONTROL, and the criterion is explicit about why one
+# leg alone is not enough: "(b1) without (b2) is satisfiable by the curriculum".
+# (b1) holds the arrival stream FIXED and moves the price — which proves the win is
+# contested, but says nothing about whether the book would have grown anyway. (b2)
+# takes the arrivals away entirely. Whatever is left is what this company won.
+#
+# WHAT "THE ARRIVAL STREAM" IS, named exactly as criterion (c) names it — the seven
+# supply points this book gained in ten years without contesting one of them:
+#   * FIVE from the static roster's hand-authored `acquisition_date` literals,
+#     C_IC1 (2017-01-01), C_IC2 (2018-01-01), C_IC3 and C_IC3g (2019-01-01),
+#     C_IC4 (2020-01-01) — one I&C site a year, each on New Year's Day;
+#   * TWO from the curriculum's Profile-B trickle, SYN-2021-001 and SYN-2025-001.
+# Emptying it means removing BOTH: the roster is trimmed to the accounts already on
+# supply when the window opens, and `SE_DRAW_POPULATION` is off. Trimming only one
+# would leave the other free to supply the growth and the test would pass on it.
+#
+# RED AT HEAD BEFORE THIS BUILD, `observed-with-evidence`, and for a structural
+# reason rather than a commercial one. `live_population()` resolved the campaign
+# INSIDE the `draw_population_enabled()` branch, so emptying the arrival stream also
+# switched off the only mechanism by which the book could grow. Measured on the
+# unmodified module at seed 20260724: draw off, `SE_GROW_BOOK=1`, `growth_mandate_
+# active()` returning True the whole time, ten campaign years — book 18 -> 18, nought
+# won. The mandate was live and unreachable. `test_MUTATION_b2_*` below restores that
+# reachability and asserts the book goes flat again, which is what makes the pass
+# above it evidence rather than a description.
+# ---------------------------------------------------------------------------
+
+#: The run's own seed, not this module's `SEED`. (b2) is asserted at the SEAM — the
+#: one place a book is assembled from arrivals plus wins — so it must be asserted on
+#: the world the run actually draws.
+RUN_SEED = 20260724
+
+#: The window opens on the roster as it stands at the start of 2016. Any account
+#: dated after this is something the book GAINED, and (b2) asks where it came from.
+WINDOW_OPEN = "2016-12-31"
+
+
+def _no_arrivals(monkeypatch, tmp_path, *, mandate: bool):
+    """The book with the arrival stream emptied. Returns (book, opening_roster).
+
+    Both halves of the stream go. The trickle is switched off at its flag; the
+    roster's staggered dates are removed by trimming every account that arrives
+    after the window opens, which leaves a roster that is entirely on supply on day
+    one and can therefore gain nothing by standing still.
+
+    NEITHER RECORD IS THE REPO'S. Resolving a campaign writes the subset verdict and
+    the campaign record, and a run with no arrivals in it is not the published run —
+    letting it overwrite either file would put a fixture's figures where a reader
+    would take them for the company's.
+    """
+    from saas.customers import _clear_drawn_customers
+    from simulation import live_population as lp
+
+    opening = [c for c in lp._STATIC_ROSTER if c["acquisition_date"] <= WINDOW_OPEN]
+    monkeypatch.setenv("SE_DRAW_POPULATION", "0")
+    monkeypatch.setenv("SE_GROW_BOOK", "1" if mandate else "0")
+    monkeypatch.setattr(lp, "_STATIC_ROSTER", tuple(opening))
+    monkeypatch.setattr(lp, "CUSTOMERS", list(opening))
+    monkeypatch.setattr(lp, "_SUBSET_VERDICT_RECORD", tmp_path / "verdict.json")
+    monkeypatch.setattr(lp, "_CAMPAIGN_RECORD", tmp_path / "campaign.json")
+    lp._CAMPAIGN_MEMO.clear()
+    try:
+        return lp.live_population(RUN_SEED), opening
+    finally:
+        lp._CAMPAIGN_MEMO.clear()
+        _clear_drawn_customers()
+
+
+def test_b2_the_arrival_stream_really_IS_empty(monkeypatch, tmp_path):
+    """The null control, and it comes first because everything below rests on it.
+
+    With the mandate off there is no campaign, so the fixture's book is the arrival
+    stream and nothing else. If a single account still arrives after the window
+    opens, the stream was not emptied and the growth measured in the next test could
+    be that residue rather than a win. This is the assertion that stops (b2) being
+    satisfied by an arrival the fixture forgot to remove.
+    """
+    book, opening = _no_arrivals(monkeypatch, tmp_path, mandate=False)
+
+    assert [c["customer_id"] for c in book] == [c["customer_id"] for c in opening], (
+        "with no mandate the book is not the opening roster -- something is still arriving"
+    )
+    late = [c["customer_id"] for c in book if c["acquisition_date"] > WINDOW_OPEN]
+    assert not late, f"the arrival stream is not empty: {late}"
+    # And the stream this is emptying is a real one: unemptied, those same five
+    # staggered arrivals are there to be found. Without this the fixture could be
+    # trimming a roster that never had a staggered date in it and the emptiness
+    # above would be a property of the roster rather than of the trim.
+    #
+    # READ FROM `saas.customers`, not from `lp._STATIC_ROSTER`: monkeypatch does not
+    # undo the trim until this test ENDS, so the module attribute is still the
+    # trimmed tuple here and would report an empty stream whatever the roster held.
+    from saas.customers import CUSTOMERS as _ROSTER
+
+    staggered = [c["customer_id"] for c in _ROSTER
+                 if c["acquisition_date"] > WINDOW_OPEN]
+    assert set(staggered) == {"C_IC1", "C_IC2", "C_IC3", "C_IC3g", "C_IC4"}, staggered
+
+
+def test_b2_with_the_arrival_stream_EMPTIED_the_book_still_GROWS(monkeypatch, tmp_path):
+    """THE EXIT CRITERION. No arrivals, and the book is bigger at the end than at the start.
+
+    Every account above the opening roster got there by surviving the five-stage
+    funnel, the credit bureau and the statutory cooling-off window at the company's
+    own expense — so the growth is the company's outcome, from the same contested
+    mechanism (b1) proved can be lost, and not the curriculum handing it customers.
+    """
+    book, opening = _no_arrivals(monkeypatch, tmp_path, mandate=True)
+
+    assert len(book) > len(opening), (
+        f"the book did not grow with the arrivals removed: {len(opening)} -> {len(book)}"
+    )
+    gained = [c for c in book if c["customer_id"] not in {o["customer_id"] for o in opening}]
+    assert gained, "vacuous: nothing was gained"
+    granted = [c["customer_id"] for c in gained if c.get("acquisition_type") != "net_new_won"]
+    assert not granted, f"the book grew by accounts nobody contested: {granted}"
+    # Every gain is dated inside the campaign's decade, so none of them is an opening
+    # account re-labelled or a record dated outside the window it was won in. NOT
+    # `> WINDOW_OPEN`: `CAMPAIGN_YEARS` opens in 2016, so a first-year win is dated
+    # inside the opening year and is still a win. What identifies a gain is that it is
+    # not on the opening roster, which the id comparison above already establishes.
+    assert all("2016-01-01" <= c["acquisition_date"] < "2026-01-01" for c in gained)
+
+
+def test_MUTATION_b2_a_campaign_gated_behind_the_ARRIVAL_flag_goes_flat(monkeypatch, tmp_path):
+    """R15 for the test above, and the mutation IS the pre-2026-08-25 module.
+
+    Before this build `live_population()` returned early when the population draw was
+    off, and the campaign sat below that return. The mutation restores exactly that
+    reachability — the campaign resolves to nothing whenever the arrival stream is
+    empty — without touching a file. If the book still grew under it, the growth in
+    the live test would be arriving from somewhere other than the campaign, and the
+    control would be describing rather than proving.
+    """
+    from simulation import live_population as lp
+
+    real_campaign = lp._campaign
+
+    def _gated(book, seed):
+        if not lp.draw_population_enabled():
+            return {"winners": [], "spend": [], "by_year": [], "notes": [],
+                    "customer_years_committed": 0.0, "customer_year_budget": 0.0}
+        return real_campaign(book, seed)
+
+    monkeypatch.setattr(lp, "_campaign", _gated)
+    book, opening = _no_arrivals(monkeypatch, tmp_path, mandate=True)
+
+    assert len(book) == len(opening), (
+        "the arrival-gated campaign STILL grew the book -- the growth asserted in "
+        f"test_b2_... is not attributable to the decoupling ({len(opening)} -> {len(book)})"
+    )
+
+
+def test_b2_the_two_flags_are_INDEPENDENT_and_the_default_path_is_untouched(monkeypatch, tmp_path):
+    """The decoupling must not have moved the shipped default, which is both flags off.
+
+    With no draw and no mandate `live_population()` returns the served roster and
+    nothing else, and — the part worth asserting rather than assuming — it resolves
+    no campaign at all: the memo is still empty afterwards. A default path that
+    quietly started resolving a 245-quote campaign to discard it would be inert in
+    its output and not in its cost.
+    """
+    from simulation import live_population as lp
+
+    monkeypatch.setenv("SE_DRAW_POPULATION", "0")
+    monkeypatch.setenv("SE_GROW_BOOK", "0")
+    monkeypatch.setattr(lp, "_SUBSET_VERDICT_RECORD", tmp_path / "verdict.json")
+    monkeypatch.setattr(lp, "_CAMPAIGN_RECORD", tmp_path / "campaign.json")
+    lp._CAMPAIGN_MEMO.clear()
+    try:
+        book = lp.live_population(RUN_SEED)
+        served = lp.served_segments()
+        assert [c["customer_id"] for c in book] == [
+            c["customer_id"] for c in lp.CUSTOMERS if lp._serves(c, served)
+        ]
+        assert not lp._CAMPAIGN_MEMO, "the default path resolved a campaign it then threw away"
+        assert not (tmp_path / "campaign.json").exists()
+    finally:
+        lp._CAMPAIGN_MEMO.clear()
