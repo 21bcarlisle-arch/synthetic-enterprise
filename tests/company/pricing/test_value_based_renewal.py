@@ -200,48 +200,126 @@ def test_a_ceiling_that_forbids_EVERY_candidate_raises_rather_than_defaulting():
 
 
 # --------------------------------------------------------------------------- #
-# The harm surface, and the weight that is not mine                            #
+# The licence, read rather than recalled -- and the floor that is gone         #
 # --------------------------------------------------------------------------- #
 
-def test_the_arm_WANTS_to_charge_a_struggling_household_more_and_is_stopped():
-    """MEASURED, AND IT IS THE UNCOMFORTABLE RESULT THIS MODULE EXISTS TO SURFACE.
+def test_the_FLOOR_is_gone_and_a_struggling_household_can_be_priced_on_its_cost():
+    """THE CORRECTION THE DIRECTOR ASKED FOR, and reading SLC 27 is what settled it.
 
-    Unconstrained, the value arm priced the flighty, expensive-to-serve, three-bill-shock
-    household HIGHEST of the three probed -- £100/MWh against £80 for the loyal one. The logic is
-    impeccable: a customer who is leaving anyway should be extracted from while they are here.
-    It is also what a regulator fines a real supplier for.
+    This arm used to refuse to price a household in payment difficulty above the flat rule. The
+    licence does not say that. SLC 27.8 requires ability to pay to be ascertained and used "when
+    CALCULATING INSTALMENTS" -- a debt-repayment duty, not a pricing one -- and the register
+    quotes it verbatim. What replaces the floor is the cost itself: a customer with a higher
+    expected default costs more to serve, and the arithmetic now says so.
 
-    The weight that would settle it is `A7_harm_cost_weights_ratio`, an R13 curriculum value,
-    open in the action register and unsigned. So the arm may price DOWN from flat for a
-    household in difficulty and never UP, and it RECORDS that it wanted to -- because "no
-    different from flat" must not mean both "nothing to gain" and "refused to take it".
-
-    MUTATION (must fire): drop the distress branch and let the maximiser through.
+    MUTATION (must fire): reinstate a floor at TARGET_MARGIN_GBP_PER_MWH for distressed accounts.
     """
-    distressed = _decide(vbr.VALUE_BASED, bill_shock_count=3)
+    priced = _decide(vbr.VALUE_BASED, credit_risk="vulnerable", payment_delay_days=45,
+                     bill_shock_count=3, max_offered_rate_gbp_per_mwh=250.0)
 
-    assert distressed.margin_gbp_per_mwh <= TARGET_MARGIN_GBP_PER_MWH
-    assert distressed.withheld_reason, "the arm held back and left no record that it had"
-    assert "A7_harm_cost_weights_ratio" in distressed.withheld_reason, (
-        "the refusal does not name the reserved value that would settle it, so the next reader "
-        "cannot tell a policy from a bug"
+    assert priced.margin_gbp_per_mwh > TARGET_MARGIN_GBP_PER_MWH, (
+        "a household in payment difficulty is still floored at the flat rule, which is a "
+        "stronger rule than SLC 27 supports"
+    )
+    assert priced.withheld_reason is None
+
+
+def test_expected_cost_RISES_with_credit_risk_and_that_is_what_replaces_the_floor():
+    """Director: "pricing follows expected cost -- and default risk, collections cost and bad
+    debt are part of that cost. Put them inside the EV arithmetic and let the answer emerge."
+
+    The flat 2.00 was never neutral. It was a cross-subsidy from reliable payers to unreliable
+    ones, invisible because nobody had put the cost in the sum."""
+    low = _decide(vbr.FLAT_RULES, credit_risk="low", payment_delay_days=5).costs
+    bad = _decide(vbr.FLAT_RULES, credit_risk="vulnerable", payment_delay_days=45).costs
+
+    assert bad.total_gbp > low.total_gbp * 1.5, (
+        f"expected cost barely moves with credit risk ({low.total_gbp:.2f} -> {bad.total_gbp:.2f})"
+    )
+    assert bad.bad_debt_gbp > low.bad_debt_gbp and bad.carrying_gbp > low.carrying_gbp
+
+
+def test_bad_debt_is_taken_on_the_WHOLE_BILL_and_not_on_the_margin():
+    """THE ENTIRE ECONOMICS OF A RISKY CUSTOMER. A default on a 1,700 GBP annual bill costs the
+    supplier the wholesale, network and policy cost it has already paid -- not the six pounds of
+    margin it hoped to make. Charging the loss against the margin would make default look like a
+    rounding error.
+
+    MUTATION (must fire): pass the margin instead of the revenue to `bad_debt_provision_gbp`.
+    """
+    costs = vbr.expected_annual_costs(
+        cost_to_serve_gbp_per_year=0.0, annual_revenue_gbp=1700.0, credit_risk="high")
+
+    assert costs.bad_debt_gbp > 50.0, (
+        f"a 5% default probability on a 1,700 GBP bill produced {costs.bad_debt_gbp:.2f} -- that "
+        "is a rate applied to something much smaller than the bill"
     )
 
 
-def test_a_CRITICAL_payment_score_is_distress_even_with_no_bill_shocks():
-    scored = _decide(vbr.VALUE_BASED, behaviour_score=BehaviourScore.CRITICAL)
+def test_an_UNSOURCED_cost_term_is_NAMED_rather_than_counted_as_zero():
+    """No per-contact or per-dunning-step cost exists anywhere in this tree. The term is in the
+    arithmetic and its absence is legible, because a silent zero here understates exactly the
+    customers this decision is about."""
+    costs = vbr.expected_annual_costs(cost_to_serve_gbp_per_year=55.0, annual_revenue_gbp=1700.0)
 
-    assert scored.withheld_reason and scored.margin_gbp_per_mwh <= TARGET_MARGIN_GBP_PER_MWH
+    assert any("collections cost" in u for u in costs.unsourced)
+    assert costs.collections_gbp == 0.0
 
 
-def test_MUTATION_a_healthy_payer_is_NOT_withheld():
-    """The null. Without it, "protects the vulnerable" is also satisfied by an arm that never
-    prices above flat at all -- which is the control."""
-    healthy = _decide(vbr.VALUE_BASED, behaviour_score=BehaviourScore.EXCELLENT,
-                      eac_kwh=18000, cost_to_serve_gbp_per_year=25.0, expected_periods=6.0)
+def test_forgetting_the_STANDING_CHARGE_makes_the_arm_OVER_PRICE():
+    """THIS TEST CORRECTED ME, WHICH IS WHAT IT IS FOR.
 
-    assert healthy.withheld_reason is None
-    assert healthy.margin_gbp_per_mwh > TARGET_MARGIN_GBP_PER_MWH
+    Without fixed revenue every customer came out value-negative -- 2.00 GBP/MWh on 3.1 MWh is
+    6.20 GBP a year against 66 to 98 of cost -- reading as "this company loses money on every
+    domestic customer", an artefact of omitting a 0.27 GBP/day standing charge the customer
+    really pays.
+
+    I then wrote this test asserting the standing charge merely raised the LEVEL and cancelled
+    between the arms. It does not, and the assertion caught it: the value-maximising margin FELL
+    from 80.00 to 60.00. Fixed revenue is only earned from a customer who STAYS, so it sits
+    inside the retention term -- making retention more valuable makes losing the customer more
+    expensive, and the optimiser charges LESS to keep them.
+
+    A supplier that forgets its standing charge therefore over-prices its commodity. That is a
+    result, not a caveat, and it would have been asserted away.
+    """
+    without = _decide(vbr.VALUE_BASED, max_offered_rate_gbp_per_mwh=250.0)
+    with_sc = _decide(vbr.VALUE_BASED, max_offered_rate_gbp_per_mwh=250.0,
+                      fixed_revenue_gbp_per_year=98.55)
+
+    assert with_sc.margin_gbp_per_mwh < without.margin_gbp_per_mwh, (
+        "counting revenue the customer really pays did not make retention more valuable"
+    )
+    assert any("fixed revenue" in u for u in without.costs.unsourced)
+    assert not any("fixed revenue" in u for u in with_sc.costs.unsourced)
+
+
+def test_SLC_7_4_binds_a_DEEMED_contract_and_does_not_reach_a_negotiated_one():
+    """The comparative test that IS in the licence, against the floor that was not. SLC 7.4 makes
+    a deemed-contract class margin significantly above the book's general margin unduly onerous;
+    it reaches a negotiated contract not at all, and flattening that difference would be
+    inventing an obligation -- the same error as the floor, in the other direction.
+
+    MUTATION (must fire): apply the class-margin test regardless of `is_deemed_contract`.
+    """
+    deemed = _decide(vbr.VALUE_BASED, max_offered_rate_gbp_per_mwh=250.0,
+                     is_deemed_contract=True, book_general_margin_gbp_per_mwh=2.0)
+    negotiated = _decide(vbr.VALUE_BASED, max_offered_rate_gbp_per_mwh=250.0,
+                         is_deemed_contract=False, book_general_margin_gbp_per_mwh=2.0)
+
+    assert deemed.withheld_reason and "SLC 7.4" in deemed.withheld_reason
+    assert deemed.margin_gbp_per_mwh <= TARGET_MARGIN_GBP_PER_MWH
+    assert negotiated.withheld_reason is None
+    assert negotiated.margin_gbp_per_mwh > TARGET_MARGIN_GBP_PER_MWH
+
+
+def test_an_UNKNOWN_book_margin_on_a_deemed_contract_FAILS_the_check_rather_than_passing_it():
+    """R15 fail-silent, with a regulator on the other end. A comparative test that cannot find
+    its comparator has not been satisfied."""
+    unknown = _decide(vbr.VALUE_BASED, max_offered_rate_gbp_per_mwh=250.0,
+                      is_deemed_contract=True, book_general_margin_gbp_per_mwh=None)
+
+    assert unknown.withheld_reason and "cannot be run" in unknown.withheld_reason
 
 
 # --------------------------------------------------------------------------- #

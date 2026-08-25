@@ -44,6 +44,12 @@ import glob
 import json
 from pathlib import Path
 
+from saas.non_commodity import standing_charge_rate
+from saas.payment_behaviour import (
+    CREDIT_RISK_BY_CUSTOMER,
+    DEFAULT_CREDIT_RISK,
+    PAYMENT_TIMING_DAYS_BY_CREDIT_RISK,
+)
 from company.pricing.value_based_renewal import (
     FLAT_RULES,
     VALUE_BASED,
@@ -115,6 +121,17 @@ def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
             expected_periods=min(6.0, years),
             segment=record.get("segment") or "resi",
             renewal_year=as_of_year,
+            # EXPECTED COST, from the company's own records. Credit risk is the supplier's own
+            # segmentation (`CREDIT_RISK_BY_CUSTOMER`, seed estimates, defaulting to medium for
+            # an account it has not segmented -- which is 259 of 263 and is itself worth
+            # noticing); payment timing is that segment's own expected delay; and the standing
+            # charge is what this customer really pays per day and the first version forgot.
+            credit_risk=CREDIT_RISK_BY_CUSTOMER.get(cid, DEFAULT_CREDIT_RISK),
+            payment_delay_days=PAYMENT_TIMING_DAYS_BY_CREDIT_RISK.get(
+                CREDIT_RISK_BY_CUSTOMER.get(cid, DEFAULT_CREDIT_RISK)),
+            annual_revenue_gbp=float(leg.get("revenue_gbp") or 0.0) / years,
+            fixed_revenue_gbp_per_year=365.0 * standing_charge_rate(
+                record.get("commodity") or "electricity", record.get("segment") or "resi"),
         )
         try:
             flat = decide_margin(arm=FLAT_RULES, **common)
@@ -136,6 +153,10 @@ def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
             "ceiling_bound": value.ceiling_bound,
             "extrapolation_bound": value.extrapolation_bound,
             "withheld_reason": value.withheld_reason,
+            "credit_risk": CREDIT_RISK_BY_CUSTOMER.get(cid, DEFAULT_CREDIT_RISK),
+            "expected_cost_gbp_per_year": round(value.costs.total_gbp, 2) if value.costs else None,
+            "bad_debt_gbp_per_year": round(value.costs.bad_debt_gbp, 2) if value.costs else None,
+            "unsourced_cost_terms": list(value.costs.unsourced) if value.costs else [],
         })
 
     chosen = collections.Counter(r["value_margin_gbp_per_mwh"] for r in per_account)
@@ -160,6 +181,7 @@ def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
         "extrapolation_bound": sum(1 for r in per_account if r["extrapolation_bound"]),
         "withheld_on_vulnerability": sum(1 for r in per_account if r["withheld_reason"]),
         "chosen_margins": {str(k): v for k, v in sorted(chosen.items())},
+        "segmented_credit_risk": sum(1 for r in per_account if r["customer_id"] in CREDIT_RISK_BY_CUSTOMER),
         "median_implied_bill_change_pct": (
             sorted(r["implied_bill_change_pct"] for r in per_account)[n // 2] if n else None),
         "verdict": _verdict(per_account),

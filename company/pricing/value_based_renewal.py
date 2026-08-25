@@ -88,6 +88,8 @@ from dataclasses import dataclass, field
 
 from company.crm.enriched_churn_estimate import enriched_churn_estimate
 from company.crm.payment_behaviour_analytics import BehaviourScore
+from company.regulatory.pricing_permissions import check_class_margin
+from saas.payment_behaviour import DEFAULT_CREDIT_RISK, bad_debt_provision_gbp
 from saas.clv_model import DISCOUNT_RATE_ANNUAL, _annuity_factor
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 
@@ -224,6 +226,10 @@ class MarginDecision:
     #: an optimum, it is a constant of this module read back, and the first version of this grid
     #: returned one for every customer shape probed. Reported so nobody has to notice.
     endpoint_bound: bool = False
+    #: The cost terms behind `expected_value_gbp`, itemised, and which of them this company has
+    #: no figure for. A total that is missing collections cost or standing-charge revenue is a
+    #: different number from one that is not, and only this field can tell them apart.
+    costs: "ExpectedAnnualCosts | None" = None
     #: WHY the value arm declined to charge what it wanted to. `None` when it did not decline.
     #: This is the one place the arm is deliberately NOT a maximiser, and it says so out loud.
     withheld_reason: str | None = None
@@ -241,6 +247,111 @@ class MarginDecision:
         return abs(self.margin_gbp_per_mwh - TARGET_MARGIN_GBP_PER_MWH) > 1e-9
 
 
+@dataclass(frozen=True)
+class ExpectedAnnualCosts:
+    """What serving this customer for a year is expected to cost, term by term.
+
+    ITEMISED RATHER THAN SUMMED, because the terms have completely different provenance and a
+    single number hides which of them is a measurement and which is a guess. `unsourced` names
+    the ones this company has no figure for, so a reader can see the hole instead of inferring
+    a zero.
+    """
+
+    cost_to_serve_gbp: float
+    bad_debt_gbp: float
+    collections_gbp: float
+    carrying_gbp: float
+    #: Revenue this customer pays that is NOT the commodity margin -- the standing charge, and
+    #: anything else billed per day rather than per MWh. See `expected_value_gbp` for why leaving
+    #: it out changes the LEVEL of the answer and not the CHOICE.
+    fixed_revenue_gbp: float = 0.0
+    unsourced: tuple[str, ...] = ()
+
+    @property
+    def total_gbp(self) -> float:
+        return self.cost_to_serve_gbp + self.bad_debt_gbp + self.collections_gbp + self.carrying_gbp
+
+
+def expected_annual_costs(
+    *,
+    cost_to_serve_gbp_per_year: float,
+    annual_revenue_gbp: float,
+    credit_risk: str = DEFAULT_CREDIT_RISK,
+    payment_delay_days: float | None = None,
+    cost_of_capital_annual: float = DISCOUNT_RATE_ANNUAL,
+    collections_gbp_per_year: float | None = None,
+    fixed_revenue_gbp_per_year: float | None = None,
+) -> ExpectedAnnualCosts:
+    """Expected cost of serving one customer for a year, INCLUDING the cost of them not paying.
+
+    Director, 2026-08-25: *"pricing follows expected cost -- and default risk, collections cost
+    and bad debt are part of that cost. Put them inside the EV arithmetic and let the answer
+    emerge rather than imposing a floor."*
+
+    BAD DEBT IS TAKEN ON THE WHOLE BILL, NOT ON THE MARGIN, and that is the entire economics of
+    a risky customer. A default on a 1,700 GBP annual bill costs the supplier the wholesale,
+    network and policy cost it has already paid -- not the six pounds of margin it hoped to make.
+    Charging the margin for the loss would make default look like a rounding error and would let
+    the arm price a bad payer as though they were merely unprofitable.
+
+    THE RATE IS THE COMPANY'S OWN AND IT IS NOT ABOVE SUSPICION. `saas.payment_behaviour.
+    bad_debt_provision_gbp` applies a per-segment default probability (0.5% low to 8%
+    vulnerable). Its own module says it is "not yet wired into saas/cost_to_serve.py", and
+    `saas/cost_to_serve.py` records that Phase QD measured the FLAT bad-debt rate as overstating
+    true bad debt by about 30x. That measurement was of the flat rate, not of this per-segment
+    table, and the table has never been re-measured against the emergent arrears model. It is
+    used as the company's belief and the caveat travels with it; it is NOT adjusted here, because
+    tuning a belief so a pricing arm behaves is the inversion this project exists to avoid.
+
+    CARRYING COST IS REAL MONEY AND IS USUALLY FORGOTTEN. A customer who pays 45 days after
+    period-end against one who pays in 5 has borrowed the bill from the supplier for forty extra
+    days. At the CLV model's own discount rate that is a genuine cost of the relationship, and it
+    is one of the two places (with collections) where a slow payer differs from a defaulter.
+
+    COLLECTIONS COST IS UNSOURCED IN THIS TREE. No per-contact or per-dunning-step cost exists
+    anywhere under `company/` or `saas/` -- searched. Rather than invent one, the term is present
+    in the arithmetic, defaults to zero, and is NAMED in `unsourced` so that a total which is
+    missing it says so. A silent zero here would understate the cost of exactly the customers
+    this decision is about.
+    """
+    revenue = max(0.0, float(annual_revenue_gbp))
+    bad_debt = bad_debt_provision_gbp(credit_risk, revenue)
+
+    unsourced: list[str] = []
+    if collections_gbp_per_year is None:
+        unsourced.append(
+            "collections cost: no per-contact or per-dunning-step figure exists in this tree, so "
+            "the cost of chasing a late payer is counted as zero and this total is a FLOOR"
+        )
+        collections = 0.0
+    else:
+        collections = float(collections_gbp_per_year)
+
+    if payment_delay_days is None:
+        unsourced.append("payment timing: no expected delay supplied, so no carrying cost is counted")
+        carrying = 0.0
+    else:
+        carrying = revenue * (float(payment_delay_days) / 365.0) * float(cost_of_capital_annual)
+
+    if fixed_revenue_gbp_per_year is None:
+        unsourced.append(
+            "fixed revenue: no standing-charge contribution supplied, so every figure derived "
+            "from this is a MARGIN-ONLY contribution. A domestic electricity standing charge is "
+            "0.27 GBP/day in this tree -- about 99 GBP a year -- so an EV computed without it "
+            "understates by roughly that much and MUST NOT be read as saying a customer is "
+            "value-negative"
+        )
+
+    return ExpectedAnnualCosts(
+        cost_to_serve_gbp=float(cost_to_serve_gbp_per_year),
+        bad_debt_gbp=bad_debt,
+        collections_gbp=collections,
+        carrying_gbp=carrying,
+        fixed_revenue_gbp=float(fixed_revenue_gbp_per_year or 0.0),
+        unsourced=tuple(unsourced),
+    )
+
+
 def expected_value_gbp(
     *,
     margin_gbp_per_mwh: float,
@@ -249,8 +360,27 @@ def expected_value_gbp(
     p_retain: float,
     expected_periods: float,
     discount_rate: float = DISCOUNT_RATE_ANNUAL,
+    fixed_revenue_gbp_per_year: float = 0.0,
 ) -> float:
     """Expected discounted contribution from one customer at one candidate margin.
+
+    FIXED REVENUE IS PART OF THE SUM AND LEAVING IT OUT NEARLY PUBLISHED A FALSE CLAIM. The
+    first version compared the commodity margin against the WHOLE cost of serving, and every
+    customer came out value-negative -- 2.00 GBP/MWh on 3.1 MWh is 6.20 GBP a year against 66 to
+    98 GBP of cost. That reads as "this company loses money on every domestic customer", and it
+    is an artefact: a domestic electricity standing charge is 0.27 GBP/day, about 99 GBP a year,
+    which the customer really pays and the sum really omitted.
+
+    AND IT DOES NOT CANCEL, WHICH IS THE INTERESTING PART. My first correction claimed the
+    standing charge merely raised the level, because both arms bill it -- and the test refused
+    that: with it the value-maximising margin FELL from 80.00 to 60.00 GBP/MWh. The reason is
+    that fixed revenue is only earned from a customer who STAYS, so it sits inside the retention
+    term. Making retention more valuable makes losing the customer more expensive, and the
+    optimiser responds by charging LESS to keep them.
+
+    So omitting it did two things, not one: it understated the level, and it made the arm
+    OVER-PRICE. A supplier that forgets its standing charge charges more for its commodity than
+    the economics support.
 
     COST TO SERVE IS SUBTRACTED INSIDE THE RETAINED BRANCH, not outside it, and the difference
     is the whole economics of a bad customer: a supplier does not pay to serve an account that
@@ -262,7 +392,9 @@ def expected_value_gbp(
     second opinion about the time value of a customer would be a second CLV — and this repo has
     already paid for having three of a thing that should be one.
     """
-    annual_contribution = margin_gbp_per_mwh * eac_mwh - cost_to_serve_gbp_per_year
+    annual_contribution = (
+        margin_gbp_per_mwh * eac_mwh + fixed_revenue_gbp_per_year - cost_to_serve_gbp_per_year
+    )
     return p_retain * annual_contribution * _annuity_factor(expected_periods, discount_rate)
 
 
@@ -284,6 +416,13 @@ def decide_margin(
     renewal_year: int | None = None,
     candidates: tuple[float, ...] = CANDIDATE_MARGINS_GBP_PER_MWH,
     max_offered_rate_gbp_per_mwh: float | None = None,
+    annual_revenue_gbp: float | None = None,
+    credit_risk: str = DEFAULT_CREDIT_RISK,
+    payment_delay_days: float | None = None,
+    collections_gbp_per_year: float | None = None,
+    fixed_revenue_gbp_per_year: float | None = None,
+    is_deemed_contract: bool = False,
+    book_general_margin_gbp_per_mwh: float | None = None,
 ) -> MarginDecision:
     """The offered margin for ONE customer, under ONE arm.
 
@@ -307,6 +446,19 @@ def decide_margin(
     eac_mwh = float(eac_kwh) / 1000.0
     periods = FALLBACK_LIFETIME_PERIODS if not expected_periods else float(expected_periods)
 
+    # EXPECTED COST, NOT COST TO SERVE. Everything it costs to have this customer for a year,
+    # including the cost of them not paying -- see `expected_annual_costs` for why bad debt is
+    # taken on the whole bill and not on the margin.
+    costs = expected_annual_costs(
+        cost_to_serve_gbp_per_year=cost_to_serve_gbp_per_year,
+        annual_revenue_gbp=(current_rate_gbp_per_mwh * eac_mwh
+                            if annual_revenue_gbp is None else annual_revenue_gbp),
+        credit_risk=credit_risk,
+        payment_delay_days=payment_delay_days,
+        collections_gbp_per_year=collections_gbp_per_year,
+        fixed_revenue_gbp_per_year=fixed_revenue_gbp_per_year,
+    )
+
     def _score(margin: float) -> tuple[float, float]:
         offered = base_rate_gbp_per_mwh + margin
         p_leave = enriched_churn_estimate(
@@ -321,8 +473,9 @@ def decide_margin(
         p_stay = max(0.0, 1.0 - float(p_leave))
         return p_stay, expected_value_gbp(
             margin_gbp_per_mwh=margin, eac_mwh=eac_mwh,
-            cost_to_serve_gbp_per_year=cost_to_serve_gbp_per_year,
+            cost_to_serve_gbp_per_year=costs.total_gbp,
             p_retain=p_stay, expected_periods=periods,
+            fixed_revenue_gbp_per_year=costs.fixed_revenue_gbp,
         )
 
     if arm == FLAT_RULES:
@@ -334,7 +487,7 @@ def decide_margin(
             customer_id=customer_id, arm=FLAT_RULES,
             margin_gbp_per_mwh=TARGET_MARGIN_GBP_PER_MWH,
             expected_value_gbp=value, p_retain=p_stay, expected_periods=periods,
-            cost_to_serve_gbp_per_year=cost_to_serve_gbp_per_year, eac_mwh=eac_mwh,
+            cost_to_serve_gbp_per_year=costs.total_gbp, eac_mwh=eac_mwh, costs=costs,
             considered=((TARGET_MARGIN_GBP_PER_MWH, value),),
         )
 
@@ -377,46 +530,46 @@ def decide_margin(
         scored, key=lambda row: (-round(row[2], 6), row[0])
     )
 
-    # THE ARM WANTS TO CHARGE A STRUGGLING HOUSEHOLD MORE, AND IT IS NOT ALLOWED TO BY ACCIDENT.
+    # THE FLOOR IS GONE, AND READING THE LICENCE IS WHY.
     #
-    # Measured on the first probe, not reasoned about afterwards. Three customer shapes, no
-    # ceiling: the loyal, cheap-to-serve, high-volume household priced at £80/MWh -- and the
-    # FLIGHTY, EXPENSIVE-TO-SERVE, THREE-BILL-SHOCK household priced HIGHEST of all, at £100. The
-    # logic is impeccable and the conclusion is that a customer who is probably leaving anyway
-    # should be extracted from while they are still here. That is what unconstrained expected-
-    # value maximisation says about a household in payment difficulty, and it is what a regulator
-    # fines a real supplier for.
+    # Until 2026-08-25 this arm refused to price a household in payment difficulty above the flat
+    # rule, on the reasoning that charging a struggling customer more is the harm side of
+    # `A7_harm_cost_weights_ratio`. The director asked me to check that against the rules rather
+    # than assume it, and the rules do not say it:
     #
-    # THE WEIGHT THAT WOULD SETTLE IT IS THE DIRECTOR'S AND IS UNSIGNED. `A7_harm_cost_weights_
-    # ratio` is the harm:loss ratio for exactly this trade-off -- the cost of treating someone
-    # who genuinely cannot pay as though they would not, against the cost of forbearing with
-    # someone who simply will not. It is an R13 curriculum value, it is open in the action
-    # register, and it is not the builder's to pick.
+    #   SLC 27.8 requires the supplier to ascertain ability to pay and use it "when CALCULATING
+    #   INSTALMENTS". It is a debt-repayment duty. It does not govern the unit rate.
     #
-    # So the arm does not pick it either. Where the company's own ledger says this household is
-    # in difficulty, the value arm may price DOWN from the flat rule but never UP, and it records
-    # that it wanted to. A silent fall-back to flat would have made "no different from flat" mean
-    # two different things -- nothing to gain, and refused to take it -- which is the fail-silent
-    # shape R15 names third.
-    in_distress = (
-        behaviour_score in DISTRESS_SCORES or bill_shock_count >= DISTRESS_BILL_SHOCKS
+    # What the licence does constrain is recorded in `docs/domain_artefact_library/regulatory/
+    # pricing_differentiation_permissions.md` with the text quoted, and read by
+    # `company/regulatory/pricing_permissions.py`. Two of those bite here:
+    #
+    #   SLC 7.3/7.4 -- a DEEMED-contract class margin significantly above the book's general
+    #   margin is unduly onerous. Comparative, so it does not forbid a wide margin, only a
+    #   singled-out one, and it reaches a negotiated contract not at all.
+    #   SLC 27.8A(a)(ii) -- incentives must attach to "successful customer outcomes not the value
+    #   of repayment rates". That is why this module offers nothing that sets a repayment amount.
+    #
+    # AND THE ARITHMETIC NOW CARRIES WHAT THE FLOOR WAS STANDING IN FOR. A risky customer's
+    # expected cost includes their expected default: on a 1,700 GBP bill the spread from low to
+    # vulnerable is 66 to 212 GBP a year, about 47 GBP/MWh at domestic volumes. The flat 2.00 was
+    # never neutral -- it was a large cross-subsidy from reliable payers to unreliable ones,
+    # invisible because nobody had put the cost in the sum.
+    verdict = check_class_margin(
+        class_margin_gbp_per_mwh=best_margin,
+        book_general_margin_gbp_per_mwh=book_general_margin_gbp_per_mwh,
+        is_deemed_contract=is_deemed_contract,
     )
     withheld = None
-    if in_distress and best_margin > TARGET_MARGIN_GBP_PER_MWH:
-        withheld = (
-            "the company's own payment records put this household in difficulty (behaviour "
-            "{}, {} bill shock(s)), and the value arm wanted {:.2f} GBP/MWh -- above the flat "
-            "rule. Charging a struggling customer MORE because they are likely to leave is the "
-            "harm side of A7_harm_cost_weights_ratio, whose weight is a director-reserved "
-            "curriculum value and is unsigned. Held at the flat rule rather than taken."
-        ).format(getattr(behaviour_score, "value", behaviour_score), bill_shock_count, best_margin)
-        best_margin = TARGET_MARGIN_GBP_PER_MWH
+    if not verdict.permitted:
+        withheld = "{}: {}".format(verdict.condition, verdict.reason)
+        best_margin = min(best_margin, TARGET_MARGIN_GBP_PER_MWH)
         best_p, best_value = _score(best_margin)
 
     return MarginDecision(
         customer_id=customer_id, arm=VALUE_BASED, margin_gbp_per_mwh=best_margin,
         expected_value_gbp=best_value, p_retain=best_p, expected_periods=periods,
-        cost_to_serve_gbp_per_year=cost_to_serve_gbp_per_year, eac_mwh=eac_mwh,
+        cost_to_serve_gbp_per_year=costs.total_gbp, eac_mwh=eac_mwh, costs=costs,
         considered=tuple((m, v) for m, _p, v in scored),
         endpoint_bound=withheld is None and best_margin in (allowed[0], allowed[-1]),
         ceiling_bound=ceiling_bound,
