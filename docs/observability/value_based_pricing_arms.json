@@ -25,11 +25,11 @@
   "200.0": 2
  },
  "segmented_credit_risk": 4,
- "median_implied_bill_change_pct": 51.5,
+ "median_implied_bill_change_pct": 51.4,
  "belief_vs_truth": {
   "available": true,
   "accounts_scored": 263,
-  "median_belief_error_pp": 3.6,
+  "median_belief_error_pp": 3.5,
   "mean_belief_error_pp": 0.5,
   "underestimating_departures": 123,
   "what_it_means": "Positive means the company expects MORE departures than the world would deliver; negative means it expects FEWER -- it will over-price and be punished. This is the gap the thesis says the advantage must come from: a supplier beats a flat rule only to the degree this number is small."
@@ -37,8 +37,8 @@
  "verdict": {
   "fit_to_run": false,
   "at_grid_edge": 8,
-  "median_implied_bill_change_pct": 51.5,
-  "why": "The value arm chose the highest margin available to it on 8 of 263 accounts, which is a ceiling reporting itself as a decision and would move the median bill by +52%, far outside anything this company has ever charged or observed a customer respond to. Not fit to wire to the renewal desk. Whether the cause is the belief underneath or the flat control being a long way from optimal is what the belief-vs-truth gap beside this verdict answers: while the company UNDER-estimates departures at its own chosen price, it will over-price and be punished for it, and that is not a decision worth making."
+  "median_implied_bill_change_pct": 51.4,
+  "why": "The value arm chose the highest margin available to it on 8 of 263 accounts, which is a ceiling reporting itself as a decision and would move the median bill by +51%, far outside anything this company has ever charged or observed a customer respond to. Not fit to wire to the renewal desk. The belief is no longer the obvious cause -- the median account is scored +3.5pp against the world, on the conservative side, with 123 of 263 under-estimating departures. What that leaves open is whether the FLAT CONTROL is a credible average player: an arm that beats a control nobody would actually run has measured the control and not its own inference."
  },
  "accounts": [
   {
@@ -169,26 +169,26 @@
   {
    "customer_id": "C6",
    "segment": "SME",
-   "eac_kwh": 24068.5,
+   "eac_kwh": 24642.8,
    "flat_margin_gbp_per_mwh": 2.0,
    "value_margin_gbp_per_mwh": 100.0,
    "value_over_flat_multiple": 50.0,
-   "implied_bill_change_pct": 52.0,
+   "implied_bill_change_pct": 50.6,
    "endpoint_bound": false,
    "ceiling_bound": false,
    "extrapolation_bound": true,
    "withheld_reason": null,
    "credit_risk": "medium",
-   "expected_cost_gbp_per_year": 226.88,
-   "bad_debt_gbp_per_year": 89.71,
+   "expected_cost_gbp_per_year": 227.74,
+   "bad_debt_gbp_per_year": 91.06,
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
    "belief_vs_truth": {
-    "price_differential_vs_svt": 0.1527,
-    "company_believes_p_leave": 0.594,
-    "world_would_p_leave": 0.4748,
-    "belief_error_pp": 11.9
+    "price_differential_vs_svt": 0.1726,
+    "company_believes_p_leave": 0.6025,
+    "world_would_p_leave": 0.5705,
+    "belief_error_pp": 3.2
    }
   },
   {
@@ -223,22 +223,22 @@
    "flat_margin_gbp_per_mwh": 2.0,
    "value_margin_gbp_per_mwh": 100.0,
    "value_over_flat_multiple": 50.0,
-   "implied_bill_change_pct": 53.2,
+   "implied_bill_change_pct": 53.1,
    "endpoint_bound": false,
    "ceiling_bound": false,
    "extrapolation_bound": true,
    "withheld_reason": null,
    "credit_risk": "medium",
-   "expected_cost_gbp_per_year": 109.1,
-   "bad_debt_gbp_per_year": 45.7,
+   "expected_cost_gbp_per_year": 109.17,
+   "bad_debt_gbp_per_year": 45.75,
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
    "belief_vs_truth": {
-    "price_differential_vs_svt": 0.1358,
-    "company_believes_p_leave": 0.4753,
-    "world_would_p_leave": 0.1223,
-    "belief_error_pp": 35.3
+    "price_differential_vs_svt": 0.1368,
+    "company_believes_p_leave": 0.4747,
+    "world_would_p_leave": 0.1231,
+    "belief_error_pp": 35.2
    }
   },
   {
@@ -2398,22 +2398,22 @@
    "flat_margin_gbp_per_mwh": 2.0,
    "value_margin_gbp_per_mwh": 130.0,
    "value_over_flat_multiple": 65.0,
-   "implied_bill_change_pct": 50.2,
+   "implied_bill_change_pct": 50.0,
    "endpoint_bound": false,
    "ceiling_bound": false,
    "extrapolation_bound": false,
    "withheld_reason": null,
    "credit_risk": "medium",
-   "expected_cost_gbp_per_year": 81.34,
-   "bad_debt_gbp_per_year": 22.83,
+   "expected_cost_gbp_per_year": 81.42,
+   "bad_debt_gbp_per_year": 22.91,
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
    "belief_vs_truth": {
-    "price_differential_vs_svt": 0.5409,
-    "company_believes_p_leave": 0.459,
-    "world_would_p_leave": 0.6114,
-    "belief_error_pp": -15.2
+    "price_differential_vs_svt": 0.5444,
+    "company_believes_p_leave": 0.4576,
+    "world_would_p_leave": 0.6156,
+    "belief_error_pp": -15.8
    }
   },
   {
@@ -2430,14 +2430,14 @@
    "withheld_reason": null,
    "credit_risk": "medium",
    "expected_cost_gbp_per_year": 86.3,
-   "bad_debt_gbp_per_year": 27.06,
+   "bad_debt_gbp_per_year": 27.05,
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
    "belief_vs_truth": {
-    "price_differential_vs_svt": 0.5028,
-    "company_believes_p_leave": 0.4744,
-    "world_would_p_leave": 0.5668,
+    "price_differential_vs_svt": 0.5027,
+    "company_believes_p_leave": 0.4745,
+    "world_would_p_leave": 0.5666,
     "belief_error_pp": -9.2
    }
   },
@@ -3673,22 +3673,22 @@
    "flat_margin_gbp_per_mwh": 2.0,
    "value_margin_gbp_per_mwh": 130.0,
    "value_over_flat_multiple": 65.0,
-   "implied_bill_change_pct": 50.0,
+   "implied_bill_change_pct": 49.8,
    "endpoint_bound": false,
    "ceiling_bound": false,
    "extrapolation_bound": false,
    "withheld_reason": null,
    "credit_risk": "medium",
-   "expected_cost_gbp_per_year": 78.94,
-   "bad_debt_gbp_per_year": 22.89,
+   "expected_cost_gbp_per_year": 79.03,
+   "bad_debt_gbp_per_year": 22.97,
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
    "belief_vs_truth": {
-    "price_differential_vs_svt": 0.5442,
-    "company_believes_p_leave": 0.4768,
-    "world_would_p_leave": 0.8205,
-    "belief_error_pp": -34.4
+    "price_differential_vs_svt": 0.5495,
+    "company_believes_p_leave": 0.4748,
+    "world_would_p_leave": 0.8287,
+    "belief_error_pp": -35.4
    }
   },
   {
@@ -3698,22 +3698,22 @@
    "flat_margin_gbp_per_mwh": 2.0,
    "value_margin_gbp_per_mwh": 130.0,
    "value_over_flat_multiple": 65.0,
-   "implied_bill_change_pct": 51.6,
+   "implied_bill_change_pct": 51.5,
    "endpoint_bound": false,
    "ceiling_bound": false,
    "extrapolation_bound": false,
    "withheld_reason": null,
    "credit_risk": "medium",
-   "expected_cost_gbp_per_year": 80.67,
-   "bad_debt_gbp_per_year": 22.85,
+   "expected_cost_gbp_per_year": 80.72,
+   "bad_debt_gbp_per_year": 22.9,
    "unsourced_cost_terms": [
     "collections cost: no per-contact or per-dunning-step figure exists in this tree, so the cost of chasing a late payer is counted as zero and this total is a FLOOR"
    ],
    "belief_vs_truth": {
-    "price_differential_vs_svt": 0.5123,
-    "company_believes_p_leave": 0.4905,
-    "world_would_p_leave": 0.779,
-    "belief_error_pp": -28.8
+    "price_differential_vs_svt": 0.5148,
+    "company_believes_p_leave": 0.4894,
+    "world_would_p_leave": 0.7829,
+    "belief_error_pp": -29.3
    }
   },
   {

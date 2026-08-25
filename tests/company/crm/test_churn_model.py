@@ -532,3 +532,91 @@ def test_is_active_renewal_crisis_year_forces_passive_regardless_of_probability(
     from company.crm.churn_model import is_active_renewal, CRISIS_PASSIVE_YEARS
     for yr in CRISIS_PASSIVE_YEARS:
         assert is_active_renewal(f"{yr}-04-01", "C1_crisis", active_probability=1.0) is False
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# 2026-08-25 -- the two properties that discharge
+# WORKER_FINDING_THE_CHURN_MODELS_CAP_MAKES_THE_PROFIT_MAXIMISING_PRICE_UNBOUNDED.
+#
+# The finding names exactly what would close it: "a rate response that distinguishes a
+# supplier-specific move from a market-wide one, and that does not leave a floor of
+# unconditionally captive customers". These are those two, plus the mutation controls that
+# make them able to FAIL (R15): each of the two headline tests below has a partner that puts
+# ONLY the removed constant back and asserts the defect returns. A control that cannot fail
+# is worse than none.
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+def test_a_market_wide_rise_and_a_supplier_specific_one_are_not_the_same_event():
+    """Same bill move, same customer, same everything -- but one is the market's doing and
+    one is ours. Before this fix the model could not tell them apart at all."""
+    supplier_specific = estimate_churn_probability(120.0, 200.0, 4.0, 3100.0, market_move_pct=0.0)
+    market_wide = estimate_churn_probability(120.0, 200.0, 4.0, 3100.0,
+                                             market_move_pct=(200.0 - 120.0) / 120.0)
+    assert supplier_specific > market_wide + 0.30, (
+        "a customer whose supplier raised its price 67% while the market stood still has a "
+        "cheaper alternative and it is obvious; one whose whole market moved has nowhere to go"
+    )
+    # And a supplier that moves LESS than the market is rewarded, not merely punished less.
+    moved_less = estimate_churn_probability(120.0, 140.0, 4.0, 3100.0, market_move_pct=0.50)
+    flat_market = estimate_churn_probability(120.0, 140.0, 4.0, 3100.0, market_move_pct=0.0)
+    assert moved_less < flat_market
+
+
+def test_null_control_market_netting_off_restores_the_indistinguishable_model():
+    """THE MUTATION. `market_move_pct` defaults to 0.0 -- no netting -- which is the model as
+    it stood. With it, the two events above become the identical number, which is the defect.
+    If this ever stops holding, the test above is passing for some other reason."""
+    a = estimate_churn_probability(120.0, 200.0, 4.0, 3100.0)
+    b = estimate_churn_probability(120.0, 200.0, 4.0, 3100.0, market_move_pct=0.0)
+    assert a == b
+    # ... and the netting is the ONLY thing that separates them.
+    assert estimate_churn_probability(120.0, 200.0, 4.0, 3100.0,
+                                      market_move_pct=(200.0 - 120.0) / 120.0) != a
+
+
+def test_the_market_move_is_derived_from_the_published_cap_not_written_down():
+    """The company reads its OWN cap module for the market-wide half. Independence matters
+    here (R15 TAUTOLOGY): if this came from the same place as the customer's own rate, the
+    netting would be identically zero and the test above would be checking nothing."""
+    from company.crm.market_conditions import market_rate_move_pct
+    from company.pricing.ofgem_price_cap import get_cap_unit_rate_gbp_per_mwh
+
+    move = market_rate_move_pct(2022)
+    now = get_cap_unit_rate_gbp_per_mwh("electricity", 2022)
+    before = get_cap_unit_rate_gbp_per_mwh("electricity", 2021)
+    assert move == pytest.approx((now - before) / before)
+    assert move > 0.5, "2022 is the largest published domestic step there has ever been"
+    # FAIL-SOFT, not fail-open: an unknown year nets nothing rather than inventing a move.
+    assert market_rate_move_pct(None) == 0.0
+    assert market_rate_move_pct(1900) == 0.0
+
+
+def test_no_customer_is_modelled_as_staying_whatever_they_are_charged():
+    """P(stay) must decay toward zero, not onto a floor. This is the property the whole
+    finding turns on: expected value is `P(stay) x margin x volume`, so any floor above zero
+    makes the profit-maximising price unbounded."""
+    from company.crm.churn_model import MAX_CHURN_PROBABILITY as CEILING
+    assert CEILING == 1.0, "a company belief bounded below certainty IS the captive floor"
+    p_stay = [1.0 - estimate_churn_probability(120.0, 120.0 * (1.0 + d), 4.0, 3100.0)
+              for d in (1.0, 2.0, 4.0, 8.0, 16.0)]
+    assert all(later < earlier for earlier, later in zip(p_stay, p_stay[1:])), \
+        "retention must keep falling, not flatten"
+    assert p_stay[-1] < 1e-4, f"a floor of {p_stay[-1]:.4f} survives an unbounded price"
+    # It approaches zero ASYMPTOTICALLY -- still strictly positive at +800%, and only
+    # reaching a literal 0.0 further out where double precision runs out of room. The
+    # distinction matters: a curve that CLAMPS to zero would have an interior kink an
+    # optimiser could sit in, and this one does not.
+    assert p_stay[-2] > 0.0
+
+
+def test_null_control_a_ceiling_below_one_reinstates_the_captive_floor(monkeypatch):
+    """THE MUTATION, and it is the finding's own arithmetic. Put back the single constant
+    that was changed -- nothing else -- and retention flattens onto 5% no matter the price."""
+    import company.crm.churn_model as cm
+    monkeypatch.setattr(cm, "MAX_CHURN_PROBABILITY", 0.95)
+    p_stay = [1.0 - cm.estimate_churn_probability(120.0, 120.0 * (1.0 + d), 4.0, 3100.0)
+              for d in (1.0, 4.0, 16.0, 64.0)]
+    assert p_stay[-1] == pytest.approx(0.05, abs=1e-6), (
+        "with the old ceiling, 5% of every account stays whatever it is charged -- if this "
+        "assertion fails the defect is not what the finding said it was"
+    )

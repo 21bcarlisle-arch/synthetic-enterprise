@@ -204,6 +204,8 @@ def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
 
     chosen = collections.Counter(r["value_margin_gbp_per_mwh"] for r in per_account)
     n = len(per_account)
+    # The verdict READS the gap rather than restating a cause beside it -- see `_belief_clause`.
+    belief = _belief_summary(per_account)
     return {
         "as_of_year": as_of_year,
         "accounts_priced": n,
@@ -227,8 +229,8 @@ def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
         "segmented_credit_risk": sum(1 for r in per_account if r["customer_id"] in CREDIT_RISK_BY_CUSTOMER),
         "median_implied_bill_change_pct": (
             sorted(r["implied_bill_change_pct"] for r in per_account)[n // 2] if n else None),
-        "belief_vs_truth": _belief_summary(per_account),
-        "verdict": _verdict(per_account),
+        "belief_vs_truth": belief,
+        "verdict": _verdict(per_account, belief),
         "accounts": per_account,
     }
 
@@ -260,7 +262,34 @@ def _belief_summary(rows: list[dict]) -> dict:
     }
 
 
-def _verdict(rows: list[dict]) -> dict:
+def _belief_clause(belief: dict) -> str:
+    """Which of the two candidate causes the belief-vs-truth gap actually supports, READ OFF
+    THE GAP rather than asserted beside it.
+
+    The two are not the same problem and they need opposite work. If the company UNDER-estimates
+    departures at its own chosen price it will over-price and be punished, and the belief is
+    still wrong. If the gap is small or conservative, the belief is carrying the decision and
+    what remains is whether the FLAT CONTROL is a credible average player -- because an arm that
+    beats a control nobody would run measures the control, not the inference.
+    """
+    if not belief.get("available"):
+        return ("The belief-vs-truth gap could not be scored, so which of the two causes this is "
+                "cannot be read off this run.")
+    median = belief["median_belief_error_pp"]
+    under = belief["underestimating_departures"]
+    scored = belief["accounts_scored"]
+    if median < -1.0:
+        return ("The belief is still the cause: the company under-estimates departures at its "
+                "own chosen price on {} of {} accounts (median {:+.1f}pp), so it would "
+                "over-price and be punished for it.").format(under, scored, median)
+    return ("The belief is no longer the obvious cause -- the median account is scored {:+.1f}pp "
+            "against the world, on the conservative side, with {} of {} under-estimating "
+            "departures. What that leaves open is whether the FLAT CONTROL is a credible average "
+            "player: an arm that beats a control nobody would actually run has measured the "
+            "control and not its own inference.").format(median, under, scored)
+
+
+def _verdict(rows: list[dict], belief: dict) -> dict:
     """The one paragraph a reader needs, DERIVED, so it cannot go stale beside the numbers.
 
     A comparison that leaves the reader to work out whether the arm is usable will be quoted as
@@ -271,19 +300,32 @@ def _verdict(rows: list[dict]) -> dict:
     at_edge = sum(1 for r in rows if r["endpoint_bound"])
     median_change = sorted(r["implied_bill_change_pct"] for r in rows)[len(rows) // 2]
     fit = at_edge == 0 and median_change < 25.0
+    if fit:
+        why = ("The value arm found interior optima and moves the median bill "
+               "by {:+.0f}%.").format(median_change)
+    else:
+        # THE DIAGNOSIS IS DERIVED, NOT WRITTEN DOWN, and this paragraph is the reason that
+        # rule earned itself. Until 2026-08-25 it asserted a fixed cause -- the churn model's
+        # 0.95 ceiling and its floor of captive customers -- which was true when it was
+        # written and became FALSE the moment the ceiling was fixed, while the verdict stayed
+        # correctly False for an entirely different reason. A stale cause beside a live number
+        # is worse than no cause: a reader trusts it and stops looking.
+        parts = []
+        if at_edge:
+            parts.append(
+                "chose the highest margin available to it on {} of {} accounts, which is a "
+                "ceiling reporting itself as a decision".format(at_edge, len(rows)))
+        if median_change >= 25.0:
+            parts.append(
+                "would move the median bill by {:+.0f}%, far outside anything this company has "
+                "ever charged or observed a customer respond to".format(median_change))
+        why = ("The value arm " + " and ".join(parts) + ". Not fit to wire to the renewal desk. "
+               + _belief_clause(belief))
     return {
         "fit_to_run": fit,
-        "why": (
-            "The value arm chose the highest margin available to it on {} of {} accounts and "
-            "would move the median bill by {:+.0f}%. That is not a decision, it is a ceiling: "
-            "the company's churn model caps churn at MAX_CHURN_PROBABILITY = 0.95 and saturates "
-            "toward it, so a floor of customers is modelled as staying whatever they are "
-            "charged, and expected value rises with price across the whole range the model "
-            "supports. The arithmetic is doing its job; the belief underneath it cannot carry a "
-            "decision. Fix the belief before wiring the decision."
-        ).format(at_edge, len(rows), median_change) if not fit else (
-            "The value arm found interior optima and moves the median bill by {:+.0f}%."
-        ).format(median_change),
+        "at_grid_edge": at_edge,
+        "median_implied_bill_change_pct": median_change,
+        "why": why,
     }
 
 

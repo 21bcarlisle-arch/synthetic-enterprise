@@ -282,10 +282,19 @@ def test_forgetting_the_STANDING_CHARGE_makes_the_arm_OVER_PRICE():
 
     A supplier that forgets its standing charge therefore over-prices its commodity. That is a
     result, not a caveat, and it would have been asserted away.
+
+    THE GRID IS A £1 ONE HERE AND THAT IS NOT A WEAKENING (2026-08-25). On the shipped
+    16-point grid this comparison ran on until today, both arms landed on the same rung
+    (60.00) once the churn model's captive floor was removed and its rate response was put
+    on the supplier-specific move -- the optimum shifts, the SIZE of the effect being
+    measured does not, and a grid whose gaps are wider than the effect measures the grid.
+    Resolved to £1 the property is exactly as it was: 86.00 without the standing charge,
+    70.00 with it. Asserting the mechanism, at a resolution that can see it.
     """
-    without = _decide(vbr.VALUE_BASED, max_offered_rate_gbp_per_mwh=250.0)
+    fine = tuple(float(m) for m in range(1, 161))
+    without = _decide(vbr.VALUE_BASED, max_offered_rate_gbp_per_mwh=250.0, candidates=fine)
     with_sc = _decide(vbr.VALUE_BASED, max_offered_rate_gbp_per_mwh=250.0,
-                      fixed_revenue_gbp_per_year=98.55)
+                      fixed_revenue_gbp_per_year=98.55, candidates=fine)
 
     assert with_sc.margin_gbp_per_mwh < without.margin_gbp_per_mwh, (
         "counting revenue the customer really pays did not make retention more valuable"
@@ -359,3 +368,73 @@ def test_an_account_with_NO_consumption_raises_rather_than_being_priced():
 def test_an_unknown_arm_is_refused_rather_than_defaulted():
     with pytest.raises(vbr.MarginDecisionUnavailable):
         _decide("whatever_seems_best")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# 2026-08-25: the maximiser is BOUNDED BY ITS BELIEF, not by the guard bolted in front of it.
+#
+# `max_supported_rate_increase_pct` (+83.1%, the largest published cap step) still stands and
+# is still right -- a decision must not extrapolate past its evidence. But it was doing a
+# second job it should never have had to do: hiding the fact that expected value rose forever
+# behind it. These tests DISABLE the guard on purpose, so what they measure is the belief.
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+#: Deliberately absurd at the top end -- £5,000/MWh is roughly forty times a domestic unit
+#: rate. If the optimum is interior on THIS grid it is interior anywhere.
+_ABSURD_GRID = (0.5, 2.0, 10.0, 40.0, 60.0, 100.0, 200.0, 500.0, 1200.0, 5000.0)
+
+
+def _decide_unguarded(monkeypatch, **overrides):
+    monkeypatch.setattr(vbr, "max_supported_rate_increase_pct", lambda: 1.0e9)
+    kwargs = dict(
+        customer_id="PROBE", arm=vbr.VALUE_BASED,
+        current_rate_gbp_per_mwh=120.0, base_rate_gbp_per_mwh=118.0,
+        eac_kwh=3100.0, tenure_years=4.0, cost_to_serve_gbp_per_year=80.0,
+        expected_periods=6.0, segment="resi", renewal_year=2025,
+        fixed_revenue_gbp_per_year=99.0, candidates=_ABSURD_GRID,
+    )
+    kwargs.update(overrides)
+    return vbr.decide_margin(**kwargs)
+
+
+def test_the_profit_maximising_price_is_interior_with_the_support_guard_removed(monkeypatch):
+    """The finding's headline, tested as arithmetic rather than argued. With nothing bounding
+    the search, expected value must TURN OVER and fall away -- otherwise the arm's answer is
+    whatever ceiling it happened to be given, which is not a decision."""
+    d = _decide_unguarded(monkeypatch)
+    assert not d.endpoint_bound, "the winner is still the largest candidate offered"
+    evs = [ev for _, ev in d.considered]
+    peak = max(range(len(evs)), key=lambda i: evs[i])
+    assert 0 < peak < len(evs) - 1, "the peak must be strictly inside the grid"
+    assert evs[-1] < evs[peak] / 100.0, (
+        "expected value must COLLAPSE at an absurd price, not merely grow more slowly -- a "
+        "supplier priced forty times the market keeps nobody"
+    )
+
+
+def test_null_control_the_old_ceiling_makes_it_unbounded_again(monkeypatch):
+    """THE MUTATION (R15). Put back the single constant -- the company churn model's 0.95
+    ceiling -- and the same maximiser on the same account runs away to the top of any grid it
+    is given, with expected value still climbing. If this control ever stops failing that way,
+    the test above is not measuring what it claims to."""
+    import company.crm.churn_model as cm
+    monkeypatch.setattr(cm, "MAX_CHURN_PROBABILITY", 0.95)
+    d = _decide_unguarded(monkeypatch)
+    assert d.endpoint_bound
+    assert d.margin_gbp_per_mwh == _ABSURD_GRID[-1]
+    evs = [ev for _, ev in d.considered]
+    assert evs[-1] > evs[-2] > 0.0, "expected value was still rising at £5,000/MWh"
+
+
+def test_the_market_wide_half_of_a_rate_move_reaches_the_decision(monkeypatch):
+    """The decision path must actually SEE the supplier-specific/market-wide split -- a
+    correction that stops at the model and never reaches the maximiser is a dark fix.
+
+    2022's published cap step is +66.7%; 2026's is flat. Pricing the same customer at the
+    same rate in those two worlds must give different answers, and the direction is the one
+    the world's own history dictates: in a year when everybody's price moved, the customer
+    has nowhere to go, so the company may charge more."""
+    in_a_moving_market = _decide_unguarded(monkeypatch, renewal_year=2022)
+    in_a_still_market = _decide_unguarded(monkeypatch, renewal_year=2026)
+    assert in_a_moving_market.margin_gbp_per_mwh > in_a_still_market.margin_gbp_per_mwh
+    assert in_a_moving_market.p_retain > in_a_still_market.p_retain

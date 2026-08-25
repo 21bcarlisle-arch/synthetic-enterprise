@@ -7,7 +7,13 @@ import pytest
 from company.crm.enriched_churn_estimate import enriched_churn_estimate
 from company.crm.payment_behaviour_analytics import BehaviourScore
 from company.interfaces.sim_interface import StubSimInterface
-from saas.churn_model import BASE_ANNUAL_CHURN_PROBABILITY, MAX_CHURN_PROBABILITY
+from company.crm.churn_model import MAX_CHURN_PROBABILITY as COMPANY_MAX_CHURN_PROBABILITY
+from saas.churn_model import BASE_ANNUAL_CHURN_PROBABILITY
+from saas.churn_model import MAX_CHURN_PROBABILITY as SAAS_MAX_CHURN_PROBABILITY
+
+#: Kept as the module-level name every other test here already uses. It is now the COMPANY's
+#: ceiling, which is the one a company belief should ever have been bounded by.
+MAX_CHURN_PROBABILITY = COMPANY_MAX_CHURN_PROBABILITY
 
 
 def _rate_est(old, new, tenure=1.0, kwh=0.0):
@@ -45,17 +51,24 @@ def test_high_rate_increase_dominates_over_excellent_payment():
     assert abs(p - rate_only) < 1e-9
 
 
-def test_all_three_signals_capped_at_095():
-    """Phase QP+1: the underlying rate estimate now asymptotically approaches the cap
-    (saturating curve, not a hard clamp -- see test_churn_model.py's calibration-fix
-    tests) rather than hitting it exactly, so this extreme combination reads as very
-    close to, but no longer bit-exact with, MAX_CHURN_PROBABILITY."""
+def test_all_three_signals_approach_certainty_without_a_captive_floor():
+    """2026-08-25: this test used to assert the estimate landed on 0.95 -- SAAS's ceiling,
+    imported into a company belief -- and that number was a floor of customers modelled as
+    staying whatever they were charged. It is now the COMPANY's own ceiling of 1.0, and the
+    assertion is the property rather than the constant: an extreme combination of every
+    signal reads as near-certain departure, and strictly below certainty.
+
+    Phase QP+1's saturating curve is unchanged; only what it saturates TOWARD moved."""
     p = enriched_churn_estimate(50.0, 200.0, 0.5, 10000.0,
                                  bill_shock_count=10,
                                  behaviour_score=BehaviourScore.CRITICAL,
                                  satisfaction_score=0.20)
-    assert p == pytest.approx(MAX_CHURN_PROBABILITY, abs=0.01)
-    assert p <= MAX_CHURN_PROBABILITY
+    assert p == pytest.approx(COMPANY_MAX_CHURN_PROBABILITY, abs=0.01)
+    assert p < COMPANY_MAX_CHURN_PROBABILITY
+    assert p > SAAS_MAX_CHURN_PROBABILITY, (
+        "the old 0.95 ceiling must no longer bind this estimate -- if it does, the captive "
+        "floor is back and a value-maximising price is unbounded again"
+    )
 
 
 def test_max_is_taken_not_sum():
