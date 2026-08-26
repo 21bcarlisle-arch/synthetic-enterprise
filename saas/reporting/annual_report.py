@@ -1025,6 +1025,13 @@ def extract_report_data(run_output: dict) -> dict:
         # existed yields `None`, and `_three_horizon_clv_section` prints
         # NOT_AVAILABLE for it under a named reason rather than a zero.
         "three_horizon_clv": run_output.get("three_horizon_clv"),
+        # WHICH RATES WERE CARRIED FORWARD, forwarded UNTOUCHED from the SIM's own
+        # `policy_costs.coverage_report`. It travels in the run output rather than being
+        # computed here because `saas/` never imports `simulation/`: the only honest way
+        # for the report to say a rate was extrapolated is for the world to say so in what
+        # it hands over. Rendered by `_extrapolation_note` under the policy-cost table; a
+        # run artefact written before the key existed yields `None` and the note is silent.
+        "policy_cost_coverage": run_output.get("policy_cost_coverage"),
         # EP1's SAME estimate as a per-year-end SERIES, forwarded UNTOUCHED beside the
         # terminal table above. THIS LINE IS THE ONE THAT WAS MISSING, and its absence
         # is why pass 18 wired a belief series that could never arrive. The producer
@@ -3600,6 +3607,101 @@ def _section_bill_shock_summary(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _extrapolation_note(data: dict) -> str:
+    """Say, in the published report, which of the policy stack's rates were carried forward.
+
+    THE MEASUREMENT EXISTED FOR TWELVE DAYS AND NOBODY COULD READ IT (2026-08-26).
+    `simulation.policy_costs.coverage_report` was built on 2026-08-14 and
+    `run_phase4c_on_phase2b` has been emitting it in the run output ever since. The
+    renderer half was never written, so the whole apparatus resolved to a key nothing
+    read. A measurement nobody can read is not a disclosure, and £391,531.72 of 2025
+    policy stack — 8.09% of the total — went on being published as though every rate
+    behind it was tabulated.
+
+    ACROSS THE WALL, NOT THROUGH IT. Everything here is read out of the block the SIM
+    handed over; `saas/` does not import `simulation/`, and a renderer that asked the
+    rate tables directly would be the company reading the world's internals in order
+    to describe them — with the disclosure itself as the excuse. That is exactly the
+    crossing `test_the_renderer_cannot_reach_across_the_wall_to_compute_this` pins,
+    by PARSING the imports rather than grepping for them.
+
+    DERIVED, NEVER NARRATED. No count, no table name and no date is written down here:
+    the "N of M", the clamp dates and the basis split all come out of the block, so
+    extending a table moves the note and extending every table DELETES it. A note
+    carrying a hardcoded "13 tables" or "2025" would be a third copy of a fact the
+    tables already state, false the first time either moved — the trap the fuel-mix
+    reconciliation note avoided the same week, and the reason
+    `test_the_note_is_derived_from_the_tables_not_narrated` mutates the tables at BOTH
+    edges and asserts the note disappears.
+
+    IT STATES THE LIMITATION, NOT AN ERROR. Clamping is a defensible modelling choice
+    — the rate for a year that has not been published yet has to come from somewhere.
+    Clamping SILENTLY is the fail-open shape R15 names. The finding graded itself
+    LATENT for precisely that reason, and the wording keeps that distinction rather
+    than implying the numbers are wrong.
+
+    Returns "" when the window is fully covered, so a run that needs no disclosure
+    prints none.
+    """
+    coverage = data.get("policy_cost_coverage") or {}
+    tables = coverage.get("tables") or {}
+    if not coverage.get("any_extrapolated") or not tables:
+        return ""
+
+    total = coverage.get("table_count") or len(tables)
+    clamped = coverage.get("extrapolated_count") or len(tables)
+    window = coverage.get("window") or ["", ""]
+
+    # Grouped by the date the clamp STARTS, because that is the sentence a reader needs
+    # ("from April 2025, these six"), and because the apr_mar/calendar split falls out of
+    # it for free rather than being asserted. The Jan-Mar quarter the 2026-08-13
+    # network-charge defect turned on is visible here as two different dates, which is the
+    # whole reason the marker is keyed through each table's declared basis.
+    from_dates: dict[str, list[str]] = {}
+    for name, info in sorted(tables.items()):
+        started = info.get("clamped_from")
+        if started:
+            from_dates.setdefault(started, []).append(name)
+    leading = sorted(n for n, i in tables.items() if i.get("clamped_at_start"))
+
+    lines = [
+        "### Rate coverage — EXTRAPOLATED RATES in this window",
+        "",
+        f"Of the {total} year-keyed policy and network rate tables behind these figures, "
+        f"**{clamped} of {total}** serve at least one date in the reported window "
+        f"({window[0]} to {window[1]}) from outside their own tabulated coverage. Where a "
+        f"date falls beyond a table's last published year, the last tabulated rate is "
+        f"carried forward; where it falls before the first, the first is carried back.",
+        "",
+    ]
+    if from_dates:
+        lines.append("| Clamped from | Tables | Last tabulated year |")
+        lines.append("|--------------|--------|---------------------|")
+        for started in sorted(from_dates):
+            names = from_dates[started]
+            covers = sorted({str(tables[n].get("covers", ["", ""])[1]) for n in names})
+            lines.append(
+                f"| {started} | {len(names)} ({', '.join(n.strip('_').lower() for n in names)}) "
+                f"| {', '.join(covers)} |"
+            )
+        lines.append("")
+    if leading:
+        lines.append(
+            f"A further {len(leading)} table(s) clamp at the LEADING edge — the window opens "
+            f"before their first tabulated year, so the earliest bills are priced on a rate "
+            f"carried back rather than one published for that year."
+        )
+        lines.append("")
+    lines.append(
+        "This is a statement about how far the rate tables reach, and **not a claim that "
+        "the carried-forward rates are wrong** — extrapolating an unpublished year from the "
+        "last published one is a normal modelling choice. What would not be normal is doing "
+        "it without saying so."
+    )
+    lines.append("")
+    return "\n".join(lines)
+
+
 def _section_policy_costs(data: dict) -> str:
     """Phase 21a/27b/30a/31a: Electricity Policy Costs — year-by-year breakdown.
 
@@ -3760,6 +3862,12 @@ def _section_policy_costs(data: dict) -> str:
         f"when cross-year terms meet a different actual levy (notably 2022 CfD rebate)."
     )
     lines.append("")
+    # The disclosure rides with the figures it qualifies. Appended rather than headed
+    # separately so it cannot be read without the table it is about -- a coverage caveat
+    # filed in its own section is a caveat nobody reaches.
+    _coverage = _extrapolation_note(data)
+    if _coverage:
+        lines.append(_coverage)
     return "\n".join(lines)
 
 
