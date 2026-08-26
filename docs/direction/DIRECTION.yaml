@@ -1,301 +1,254 @@
 version: 1
-oriented_at: "2026-08-26T14:20:29.349957+00:00"
+oriented_at: "2026-08-26T17:24:00.375391+00:00"
 thesis_read: >-
-  The thesis has a reading again and it is a loss, and this time the loss is real rather than
-  plumbing. The A/B was re-run on the repaired chain: the control arm reproduces bit-identically
-  (net GBP 1,145,681.029513 in both runs), so the arm is the only thing that changed. Every
-  mechanism fix worked exactly as designed -- `clamped_by_the_price_cap` falls 27 to 0, so the
-  cap now binds inside the search instead of landing afterwards; `ceiling_bound` fires 20 times
-  where it was structurally unable to fire at all; declines rise 3 to 10 as the arm refuses
-  renewals it cannot lawfully price; and the median chosen margin more than halves, GBP 100.50 to
-  GBP 39.75/MWh. And the loss barely moved: net -GBP 91,742 and enterprise value -GBP 110,731 over
-  ten years, against -GBP 118,252 before, a 6.4% improvement. The arm halved its price and lost the
-  same money, which retires over-pricing as the mechanism and means the honest sentence today is
-  that the company's per-customer arm loses to its own flat rule on realised P&L. Two things
-  qualify that and both are work rather than caveats. First, of 69 renewals seen the arm chooses
-  freely on 21: 36 land on a bound, 20 at the ceiling and 16 at the floor, plus 2 extrapolation-
-  bound. On a capped domestic book the regulator and the floor make most of the decisions, and that
-  is a finding about what a per-customer arm can even do here. Second -- and this is the centre --
-  the belief it maximises against carries no per-account lifetime information at all. Recovering
-  the hazard from EP1's own published output, all 33 graded accounts return the identical 0.05 and
-  a flat 20-year tenure: one distinct value across the whole graded population. So whatever ranking
-  that CLV produced came entirely from the margin term, and the lifetime half of "lifetime value"
-  is a constant. The hazard is `0.05 + 0.03 x bill_shock_count`, a step function of one integer
-  that is zero for 42% of all renewal decisions in the run. The thesis says the advantage must come
-  from INFERENCE; on the dimension the whole thesis is named after, there is currently no inference
-  to have an advantage from. That also corrects me: I sent the last stretch at a five-fold
-  inflation in the lifetime term, and the term is not inflated -- believed hazard 0.05 against a
-  realised 0.053 in the bucket every graded account sits in, and portfolio believed tenure 11.74
-  years against a realised implied 13.82. It runs SHORT, and the defect is absent dispersion, not
-  wrong level. The 2.529 gap is also partly the yardstick: the graded population is selected on the
-  outcome, like-for-like resi excluded-over-graded is 2.96x, and a point-in-time-fair divisor gives
-  2.193 rather than 2.529. Finally, the headline loss cannot yet be attributed to anything: the arm
-  gives up GBP 123,006 of gross margin on 3 extra churns, which is GBP 41,000 a churn against
-  domestic accounts averaging ~GBP 420 of whole-life margin, so it cannot be three domestic
-  customers -- and the instrument built to say which accounts it was reports
-  `largest_single_difference_gbp: 0.0` because every per-account figure in it is null and the
-  aggregation sums nulls to zero. Nothing went backwards. The project is materially more honest
-  than it was three hours ago and commercially exactly where it was. On the previous direction the
-  record is good: all four items were worked, the Lane 0 progress signal and the A/B re-run both
-  landed, EP1 was advanced by a worker that overturned my diagnosis rather than executing it, and
-  EP13 moved twice without reaching the rung I named. This is the first orientation where the
-  delivery lane's own progress signal can be trusted, because `record_landing` now binds real paths
-  to each claim.
+  The loss I have reported for three orientations was never a property of per-customer pricing. It
+  was one industrial account priced on a household curve: the arm could not reach its own churn
+  model's industrial branch, so it discounted 3.9 GWh customers off a domestic hazard. `fef45d833`
+  fixed the reach and the sign flipped -- realised enterprise value against the frozen control went
+  from -GBP 110,731 to +GBP 2,293,743, net margin to +GBP 3,082,499. That is a real repair and it
+  is not a win, and the reason is the director's own sentence, written at 16:43 and landing 24
+  minutes before the flip: a GBP 3M headline on the wrong population is worth less to him than a
+  negative result on the right one. `margin_movers` says 15 accounts are 99.97% of the entire
+  GBP 2.99M of absolute movement, C_IC1 alone +GBP 1,764,966, against residential accounts moving
+  GBP 1,147 to GBP 5,134. The company's per-customer arm has now been measured twice and both
+  readings are about five industrial accounts. Underneath that sits the thing that actually shames
+  this record: the director ruled I&C out of the book on 24 August, and the ruling is COMPLETE in
+  the working tree -- `served_segments.json` at `["resi","SME"]`, `simulation/live_population.py`,
+  six test files -- and is not in HEAD, which still serves I&C. Two days of per-customer argument,
+  mine and the machine's, ran on a book he had already removed, and the tree-divergence alarm named
+  it in bulk every one of those days. So the honest reading is that the project's commercial
+  question is not yet asked, let alone answered: there is no measurement of per-customer pricing on
+  the population the company is meant to serve. What did move is real. The instrument tail closed
+  properly -- `churn_roster_diff` no longer sums declared blanks to zero and now reports
+  GBP 554,980 of single-account concentration, which is what exposed the I&C story; and the
+  belief-vs-outcome measurement landed, then twice self-corrected within the stretch for describing
+  28 of 58 priced decisions without saying why. It reports `discrimination_auc` 0.646 on 28 matched
+  decisions, so the retention belief the arm prices with does carry information. The CLV lifetime
+  term still carries none: one distinct hazard, 0.05, across all 33 graded accounts. On the steers,
+  one drifted and I am naming it rather than repeating it -- EP13 has now been named in focus twice
+  and drawn twice, and there is still no `tools/couple_carbon_intensity.py` among the fifteen
+  couplers and no EP13 row among the ledger's sixteen keys. The work did not drift; the steer did.
 stretch_reviewed:
-  since: "2026-08-26T11:21:14.564328+00:00"
-  commits: 10
-  substantive: 5
+  since: "2026-08-26T14:20:29.349957+00:00"
+  commits: 9
+  substantive: 6
 focus:
-  - id: churn-roster-diff-reports-nulls-as-zero
+  - id: land-the-suspended-book-and-rerun-on-residential
     what: >-
-      Land the churn-roster-diff instrument and make it capable of reporting a number. Three
-      things are uncommitted in the working tree right now and they are the whole instrument:
-      `tools/run_value_cycle_ab.py` (modified -- `git show HEAD:tools/run_value_cycle_ab.py |
-      grep -c churn_roster_diff` returns 0), `tests/tools/test_run_value_cycle_ab.py`
-      (untracked), and `docs/observability/value_cycle_ab.json` (modified -- the 13:58:01Z run,
-      identical in every realised figure to the committed 12:35:29Z one, differing only by
-      carrying the new block). Commit them by pathspec. Then fix the defect the output shows:
-      `churn_roster_diff` names five accounts -- C1_2, C3, C6, C7 lost under the value arm and
-      PROS-2019-0003 under the control -- and every one has `segment: null` and
-      `realised_lifetime_margin_gbp: null`, while `only_in_value_arm_realised_gbp`,
-      `only_in_control_arm_realised_gbp` and `largest_single_difference_gbp` all read 0.0. The
-      per-account entries correctly declare a blank; the aggregation collapses those blanks to
-      zero, so the verdict is a constant no run can move, and it is published beside a `reading`
-      that instructs the reader to divide it into `realised_delta.gross_margin_gbp`. Two halves,
-      both needed: make the arms publish `per_customer_lifetime` so the figures exist at all
-      (`tools/run_value_cycle_ab.py:163` reads `result["per_customer_lifetime"]` and falls back
-      to `phase2b`; `margin_movers` is unavailable for the same reason), and make the aggregates
-      unavailable rather than 0.0 when they are summing blanks. R15 both ways: a mutation proving
-      a genuine single-account concentration is reported, and a null control proving an all-blank
-      input reports unavailable instead of zero. Then re-run and say which accounts moved the
-      GBP 123,006.
+      Land the I&C suspension that is sitting uncommitted, then re-run the comparison on the book it
+      creates. The suspension is finished work: `docs/design/curriculum/served_segments.json` in the
+      working tree reads `served: ["resi","SME"]` with C_IC1, C_IC2, C_IC3, C_IC4 and C_IC3g moved to
+      `suspended_accounts`, while `git show HEAD:` on the same path still reads
+      `["resi","SME","I&C"]`. It travels with `simulation/live_population.py` and six already-modified
+      test files -- `tests/company/interfaces/test_renewal_offer_seam.py`,
+      `tests/simulation/test_served_segments_curriculum.py`, `test_live_population_seam.py`,
+      `test_phase24a_ic_customer.py`, `test_phase40b_gas_pass_through.py` and
+      `test_run_phase_settlement_population_seam.py` -- because removing C_IC3g takes the only
+      pass_through gas account out of the served book. Land exactly that set by pathspec with
+      `python3 -m tools.surgical_land`, and check that tool first: `tools/surgical_land.py` and
+      `tests/tools/test_surgical_land.py` are themselves modified in this tree, so the landing
+      instrument is mid-change. Then re-run `python3 -m tools.run_value_cycle_ab` and write the
+      reading into `docs/design/THE_VALUE_CYCLE_REALISED_AB.md`, replacing the current one, which is
+      on the superseded book and does not say so. SME stays served: that call is already made and
+      reasoned inside the file from measured per-account deltas (C5 +1,574 and C6 +2,754 sit inside
+      the residential range of +1,147 to +5,134, where the industrial accounts sit two to three
+      orders of magnitude outside it), so do not re-open it without new figures.
     why: >-
-      The only measurement this project has of its own thesis is -GBP 110,731 of enterprise value,
-      and nobody can currently say whether that is a portfolio property or one decision. The arm
-      loses GBP 123,006 of gross margin on 3 extra churns -- GBP 41,000 each, against domestic
-      accounts whose whole-life margin averages about GBP 420. This book carries five I&C accounts
-      averaging GBP 221,491 of lifetime margin and the four accounts the value arm lost differently
-      are all C-prefixed. If the delta is one large account then "the value arm loses" is a case
-      study and n=1 is not a thesis; if it is spread, the loss is a portfolio result and everything
-      downstream reads differently. This is first because it is the cheapest item here and it
-      decides how to read every other item, and because the instrument that would answer it is a
-      control whose verdict cannot vary -- the fourth R15 shape, on the measurement that matters
-      most. It is also the same lesson this stretch already learned twice: `6089f90a9` and
-      `5a2caf338` landed because a paired reading was only as committed as its weaker half, and
-      two commits later the entire instrument is sitting in one worktree again. Finished when the
-      tool, its test and its output are in origin, an all-blank input reports unavailable rather
-      than 0.0, both directions are proven by tests, and the record names the accounts behind the
-      GBP 123,006 or states with figures that no single account dominates it.
+      This is the director's direct instruction of 16:43 today, restating his ruling of 24 August,
+      and it is the one question this project exists to answer: can a supplier deciding
+      customer-by-customer beat the same book run on flat rules, on residential. Right now nobody
+      knows, because both readings the machine has produced are about five industrial accounts --
+      the first said the arm loses GBP 110,731 and the second says it gains GBP 2,293,743, and
+      99.97% of the movement in the second is 15 accounts in a segment he had already ordered out.
+      His words on how to read the outcome are the acceptance condition and must not be softened:
+      "a negative result on the right population is worth more to me than a GBP 3M headline on the
+      wrong one." It is first because everything else here is either measured by this comparison or
+      changes the population it runs on. Finished when the suspension is in origin, the A/B has been
+      re-run arm against frozen control on the resi+SME book, and the record states plainly which
+      way it went -- including, if that is the answer, that per-customer pricing cannot beat flat
+      rules on households, said in those words rather than hedged.
   - id: EP1_clv_three_horizon
     what: >-
-      Give the tenure horizon per-account dispersion it does not have, from observables the
-      company can actually know. The measured fact to work from, not to re-derive:
+      Give the tenure horizon per-account dispersion, from observables the company can actually
+      know. The measured fact to work from, not to re-derive:
       `docs/observability/coupled_gap_ledger.json` `components.lifetime_level` reports
       `distinct_hazards: 1`, `hazard_histogram {"0.05": 33}`,
-      `hazard_is_constant_across_graded_population: true`, median believed tenure 20.0 years for
-      every graded account. The cause is `saas/churn_model.py::churn_probability` --
-      `min(0.05 + 0.03 * bill_shock_count, cap)`, a step function of one integer that is zero for
-      42% of the run's 622 renewal decisions -- consumed by
-      `company/analytics/clv_three_horizon.py` at H2 as `hazard = latest.churn_probability`, with
-      the term `1.0 / hazard`. Do NOT re-diagnose the level: `hazard_calibration` grades belief
-      against a tally of `event_type` and the 0.05 bucket reads 0.05 believed against 0.053
-      realised over 263 decisions, so the level is right and the dispersion is what is missing.
-      Widen the propensity to use more of what a supplier observes about an account -- payment
-      method and payment behaviour, tenure to date, the account's own tariff against the market it
-      could switch to, consumption volatility, contact and complaint history -- and check every
-      input against the wall before using it: if it needs a simulation internal it is a violation,
-      and `company/interfaces/sim_interface.py` is the only door. Then re-measure with
+      `hazard_is_constant_across_graded_population: true` and a median believed tenure of 20.0 years
+      for every graded account, measured at 11:46:22Z. The cause is
+      `saas/churn_model.py::churn_probability` -- `min(0.05 + 0.03 * bill_shock_count, cap)`, a step
+      function of one integer that is zero for 42% of the run's renewal decisions -- consumed by
+      `company/analytics/clv_three_horizon.py` at H2 as `hazard = latest.churn_probability` with the
+      term `1.0 / hazard`. Do NOT re-diagnose the level: `hazard_calibration` grades belief against a
+      tally of realised `event_type` and the 0.05 bucket reads 0.05 believed against 0.053 realised
+      over 263 decisions, so the level is about right and the dispersion is what is missing. Widen
+      the propensity to use more of what a supplier observes about a household -- payment method and
+      payment behaviour, tenure to date, the account's own tariff against the market it could switch
+      to, consumption volatility, contact and complaint history -- and check every input against the
+      wall before using it: if it needs a simulation internal it is a violation, and
+      `company/interfaces/sim_interface.py` is the only door. Re-measure with
       `python3 -m tools.couple_clv` and report the ledger's next reading whichever way it moves.
-      Nothing may be tuned toward a smaller gap (R12), and the 0.204 scalar is not to be applied.
-      If the gap worsens, that is the result and saying so is the deliverable. A level move to 3
-      is available on this evidence if the coupled rung is genuinely met -- self-certify with
+      Nothing may be tuned toward a smaller gap (R12) and the 0.204 scalar is not to be applied; if
+      the gap worsens that is the result and saying so is the deliverable. A level move to 3 is
+      available on this evidence if the coupled rung is genuinely met -- self-certify with
       `record_level_up_self_certified`, and never `--no-verify` a `level_current` change.
     why: >-
-      This is the thesis, stated as a defect. The director's thesis is a supplier deciding
-      customer-by-customer on lifetime value, beating a flat baseline through better prediction
-      and nothing else -- and on the lifetime half of that sentence the company currently predicts
-      the same 20-year life for every customer it grades. A constant cannot rank anything, so
-      whatever per-customer view the value arm has today comes entirely from the margin term, and
-      the arm that loses GBP 110,731 is maximising against a belief that is flat on the axis the
-      thesis names. It is second only because item one decides whether that loss is a portfolio
-      property, and it is not fourth because every other measurement in this project ultimately
-      grades this estimator. It is also the first lead here that is a real inference problem rather
-      than an instrument repair: the hazard is not wrong, it is uninformative, and making it
-      informative from observables alone is exactly the work the thesis says the advantage has to
-      come from. Finished when the graded population shows more than one distinct hazard, the
-      ledger's next entry comes from a changed estimator rather than a changed sample, every new
-      input is named with the observable it comes from and cleared against the wall, and the new
-      gap is recorded whichever direction it went.
-  - id: no-skill-baseline-fitted-on-the-graded-population
+      With I&C suspended this stops being one term among several and becomes the whole per-customer
+      question. The served book is households plus two SME accounts, and if the lifetime belief is a
+      single constant across them then the arm has no per-customer view at all on the only population
+      left -- so item one's re-run would read "flat rules win" for a structural reason rather than a
+      commercial one, and we would learn nothing from a negative result the director specifically
+      asked for. The split is already visible: `belief_vs_outcome.discrimination_auc` is 0.646 on 28
+      matched decisions, so the retention belief the arm prices with does carry information, while
+      the CLV lifetime term carries exactly one distinct value. The thesis says the advantage must
+      come from INFERENCE; on the axis the thesis is named after there is currently nothing to infer
+      from. Finished when the graded population shows more than one distinct hazard, the ledger's
+      next entry comes from a changed estimator rather than a changed sample, every new input is
+      named with the observable it comes from and cleared against the wall, and the new gap is
+      recorded whichever direction it went.
+  - id: the-uncommitted-disease
     what: >-
-      Decide the divisor and then ratchet the class. I decide the first half here so nobody has to
-      ask: the published no-skill baseline moves to the point-in-time-fair one -- the mean realised
-      value of accounts that had ALREADY ceased when each belief was formed -- and the in-sample
-      figure is published beside it, not deleted, so the two readings stay comparable and the
-      change is legible in the record. Both numbers already exist for EP1: 2.529 in-sample against
-      2.193 point-in-time-fair, so about 13% of the headline is the yardstick and the belief is
-      still worse than no-skill either way; this is not an acquittal and must not be presented as
-      one. The reason it is a decision rather than a diagnosis is that it moves a published figure,
-      which is mine to take and is taken. Then do the class work
-      `WORKER_FINDING_THE_CLV_GAP_IS_GRADED_ONLY_ON_THE_CUSTOMERS_WHO_LEFT_2026-08-26.md` leaves
-      open under R10: `tools/couple_supply_start.py` normalises against "predict the mean tenure",
-      and `couple_pb3_book_growth.py` and `couple_value_based_pricing.py` also publish an in-sample
-      `g0` -- none has been checked for whether its graded population is selected on the outcome it
-      predicts. Walk all fifteen `tools/couple_*.py`, and make the general rule enforceable rather
-      than remembered: a no-skill baseline computed on the graded population is not no-skill, so
-      any coupler publishing a `g0` must publish the selection profile beside it or fail. Reuse
-      `tools/clv_gap_selection.py`, which already does this for EP1 and already has its six
-      proven mutations.
+      Clear the divergence by walking it, and make an alarm at this multiple impossible to absorb.
+      `python3 -m background.tree_divergence` right now: "436 source file(s) vs HEAD, oldest 156.3h
+      (7 attributed, 429 unattributed)", breaching on both count and age, with 423 of the 436
+      unattributed under `docs/`. Disposition by lane rather than bulk-committing: land what is
+      finished, delete what is residue, and say in the record what each group was -- a sweep that
+      makes the count fall without anyone reading the files is the same defect wearing a smaller
+      number. The named oldest is `tests/simulation/test_policy_cost_coverage.py`, test-first work
+      whose subject was never built (1 passes, 6 fail, against GBP 391,531.72 of published 2025
+      policy stack priced on silently clamped tables); decide it -- build the subject or delete the
+      tests -- rather than leave it a seventh day. Then the half he named next: 47 remote refs,
+      mostly worktree-agent and salvage. Say what is stranded on the salvage branches, land or
+      discard it, delete the rest. Finally change how a breach of this size reaches a reader:
+      `background/tree_divergence.py` is report-only by deliberate design, which is right, but
+      report-only currently means it lands in a digest, and that is what let 29x over the trip line
+      be absorbed for six days.
     why: >-
-      The coupled-triad doctrine says the gap IS how this project judges itself, and sixteen atoms
-      are graded by that ledger. EP1 has just shown what a contaminated one looks like: a perfectly
-      calibrated hazard scored as a five-fold over-estimate because the harness graded the model on
-      precisely the 5% who left, and that single artefact aimed a whole stretch of thesis-critical
-      work at the wrong term -- mine, and the closing report to the director. If any other coupler
-      grades an outcome-conditioned population, the number the director reads as "the company's
-      belief against the world" is partly the yardstick, and we would not know which. This is third
-      rather than first because EP1's contamination is now measured and declared, so nothing is
-      currently being misread; but it is on the list rather than in the tail because it is the
-      instrument every other item is measured with. Finished when the published EP1 divisor is the
-      point-in-time-fair one with the in-sample figure beside it, every `couple_*.py` has been
-      walked and its answer recorded, and a control fails a coupler that publishes a `g0` without
-      the selection profile that lets a reader judge it.
-  - id: EP13_adapter_carbon_intensity
+      His words, and he is right: "Six days is not work in flight -- that's the disease that has cost
+      us most, finished work that never got committed, measured in bulk and batched into a digest
+      nobody reads." Focus item one IS this disease in its most expensive form -- his own curriculum
+      ruling, complete with its six test fixes, unlanded for two days while three orientations argued
+      figures it would have changed, with the alarm firing correctly every day and naming it in bulk.
+      That is not a reporting gap, it is a control that fires and cannot be heard, which is the same
+      family as a control that cannot fire. It is third because item one lands the instance that is
+      costing most and item two is the thesis itself, but it is on the list because it is the only
+      item here that prevents the next occurrence. Finished when the count reflects a walked tree
+      rather than a swept one and the walk is written down, the salvage branches are dispositioned
+      in writing with what was stranded on each, and a breach this far over the line reaches a reader
+      as itself rather than as one line among many.
+  - id: dual-fuel-in-the-funnel
     what: >-
-      Build the coupler. There are fifteen `tools/couple_*.py` and none is carbon;
-      `docs/observability/coupled_gap_ledger.json` has sixteen keys and none is EP13; the atom is
-      still `level_current: 2`. The independent truth series exists -- `sim/neso_carbon_intensity.py`,
-      NESO's published half-hourly number, deliberately a separate module from
-      `sim/grid_carbon_intensity.py` so the two routes stay independent -- and it has never been
-      used to grade anything. Write `tools/couple_carbon_intensity.py` in the shape of its
-      siblings, measure the gap between the company's reconstructed intensity shape and NESO's
-      published series, and write the row into the ledger. Read focus item three before choosing
-      the divisor: do not publish a `g0` fitted on a population selected by the thing it predicts.
-      The specific claim to confirm or correct in figures is the one `sim/grid_carbon_intensity.py`
-      makes about itself in its own L2 ledger entry -- that its quietest half hours sit near 0.05
-      of average against NESO bottoming out nearer 0.16, because no coal and no interconnector
-      imports are dispatched, so any time-shifting benefit computed from it is an upper bound.
-      That sentence is a recollection written in the grammar of a measurement. Move `level_current`
-      to 3 and self-certify with `record_level_up_self_certified` only if the gap is measured and
-      the atom's three named L2 reservations are answered; if the gap is large the level stays at 2
-      and saying so with the figures is the deliverable. Never `--no-verify` a `level_current`
-      change.
+      Make the acquisition funnel win dual fuel, not electricity only. This is owed debt rather than
+      a discovery -- `simulation/net_new_acquisition.py:115` already says so in its own comment:
+      "grows on one fuel. The dual-fuel half of net-new growth is real remaining work." The company
+      side already models the shape and is waiting for a population to apply it to:
+      `company/crm/dual_fuel_account.py`, `account_hierarchy.py::is_dual_fuel` and its
+      `dual_fuel_accounts` census, `company/billing/dual_fuel_bill.py`, and the gas-leg estimate in
+      `company/crm/churn_desk.py`. What is missing is the world creating dual-fuel wins, in
+      `simulation/acquisition_funnel.py` and `simulation/net_new_acquisition.py`, at a rate anchored
+      to a published source rather than chosen -- the same module already cites a real Ofgem-era
+      figure per dual-fuel-equivalent domestic customer, so the anchoring convention exists. R13: this
+      is a curriculum change, which is the director's, and he authorised it at 16:43 -- so record it
+      as a named, versioned world artefact citing his instruction verbatim, never as a silent
+      parameter change. Then measure what it does to the three things he named for accounts carrying
+      both legs.
     why: >-
-      This atom was named last orientation, drawn, and two substantive commits landed against it --
-      the biomass envelope measured and deliberately not dispatched, the actionable forecast graded
-      as a ceiling -- and the rung that actually gates the level was not the one built. Under the
-      coupled-triad rule no world atom reaches 3 until the company has been tested against it and
-      the gap measured, so this is the one atom on the board whose level can move on real evidence
-      rather than on a landed file. It is fourth because it is world fidelity rather than the
-      supplier's per-customer inference, and the three items above are all on the thesis itself.
-      It is on the list at all because it is the same discipline in a cleaner instance: a number
-      published without the independent comparison that could refute it, with the refuting series
-      already built and sitting unused. Finished when the ledger carries a carbon row produced by
-      a coupler that reads both series, the 0.05-against-0.16 claim is confirmed or corrected in
-      figures, and the level either moves with that evidence cited or is explicitly held with the
-      reason written down.
+      His reason is the thesis rather than fidelity: "dual fuel changes cost-to-serve, churn and
+      lifetime value -- so a single-fuel-only book quietly distorts every per-customer number we've
+      been arguing about." A supplier deciding customer-by-customer on lifetime value, where every
+      customer has exactly one fuel and real households mostly have two, is deciding well about a
+      book that does not exist. It is fourth against his own ordering of it second, and that is my
+      call and my risk: it changes the served population again, and items one and two are a
+      measurement and the estimator that measurement grades. Running the residential A/B, moving the
+      book underneath it, then re-running would spend the comparison twice and leave the answer he
+      asked for no clearer. It goes in the moment the residential reading exists, and if item one
+      slips, this moves up rather than waits. Finished when the funnel produces dual-fuel wins at a
+      sourced rate, the change is a named artefact quoting the instruction that authorised it, and
+      the effect on cost-to-serve, churn and lifetime value is measured for dual-leg accounts rather
+      than asserted.
 not_now:
   - what: Wiring the value arm to the live renewal desk.
     why: >-
-      Rejected for the eighth record and for the first time on a clean measurement rather than a
-      suspicion. The arm now receives all twenty observables, the cap binds inside its search, the
-      control reproduces bit-identically, and it still loses net GBP 91,742 and GBP 110,731 of
-      enterprise value over ten years. It also chooses freely on 21 of 69 renewals; the rest are
-      the ceiling, the floor or the support bound. Wiring a mechanism that has been measured
-      losing, whose objective is flat on the axis it is supposed to discriminate on, would push a
-      worse pricing decision behind the wall for the company to rediscover.
+      Rejected for the ninth record, and the positive number is a WORSE reason to wire it than the
+      loss was. The arm now shows +GBP 2,293,743 of enterprise value, and
+      `margin_movers.concentration_top_n_share_of_absolute_movement` is 0.9997 -- 15 accounts are the
+      whole GBP 2.99M, C_IC1 alone +GBP 1,764,966 -- in the segment the director removed from the
+      book. There is not yet a single measurement of this mechanism on the population the company
+      actually serves; that is focus item one, and wiring before it would push a decision behind the
+      wall on evidence drawn entirely from accounts the company no longer has.
       `active_policy().renewal_margin_arm` stays "flat_rules".
-  - what: Applying the 0.204 rescale that would take the CLV gap from 2.529 to 0.806.
+  - what: EP13_adapter_carbon_intensity, the carbon coupler.
     why: >-
-      Rejected for the third record and now on stronger ground than R12 alone: it would be fitting
-      a constant in-sample to the exact comparison it is then judged by, AND it would be correcting
-      a level that has since been measured as roughly right. Believed hazard 0.05 against a
-      realised 0.053 over 263 decisions, and portfolio believed tenure running short of realised
-      rather than long. Dividing by five would move the published gap and make the estimator worse.
-  - what: Re-running the A/B again before anything upstream of it changes.
+      Named in focus twice, drawn twice, and there is still no `tools/couple_carbon_intensity.py`
+      among the fifteen couplers and no EP13 row among the ledger's sixteen keys, with the atom at
+      level 2. Naming it a third time unchanged would be the drift rather than the cure. It loses
+      because the director re-pointed the whole board at the residential book 40 minutes ago and this
+      is world fidelity on an axis nothing downstream is currently blocked on. When it returns, the
+      first question is whether the atom is real as filed -- not a fourth naming.
+  - what: The no-skill-baseline walk across the fifteen `couple_*.py`.
     why: >-
-      It is cheap and it is the reflex, so it needs an explicit rejection. The 12:35Z and 13:58Z
-      runs return identical realised figures to six decimal places -- the run is deterministic, so
-      another one buys nothing until an input moves. The next re-run happens after focus item two
-      changes the belief the arm maximises against, and its value is that it will be a genuine
-      before-and-after rather than a repetition. Focus item one re-runs it only to populate the
-      roster diff.
-  - what: Explore's remaining stages with real data, the director's third console priority.
+      Named last orientation and never drawn, and it stays out for one stretch more because focus
+      item one is about to change the graded population entirely. The divisor question is worth
+      answering once, on the book the company will keep, rather than twice. Nothing is being misread
+      while it waits: EP1's own contamination is measured and published beside the attribution --
+      like-for-like resi excluded-over-graded 2.9645, point-in-time-fair divisor 2.193 against the
+      in-sample 2.529 -- with a control that fails if the scale figure is ever emitted alone.
+  - what: Re-architecting the publish gate so it is faster than the cadence it gates.
     why: >-
-      Deferred a third time and I am naming the expiry rather than deferring again by reflex.
-      Publishing is live, the observables fix has landed and the A/B figures are now honest, so
-      the earlier reasons have both expired. The remaining one is narrow: the headline those
-      stages would render is -GBP 110,731, and focus item one may show within the day that it is
-      one I&C account rather than a portfolio result, which would change the sentence printed
-      beside it. This goes into focus at the next orientation whichever way item one lands --
-      either as a portfolio result worth rendering or as a case study that must be labelled one.
-  - what: Rebuilding the CLV grading to reach the 230 excluded accounts.
+      He returned my own flag to me and it stands. Not taken now because publishing is live and the
+      figures reached origin 0.4h ago, so this is degraded rather than broken, and the real fix is
+      changing what the gate runs rather than what it is allowed to spend -- I have already said
+      raising the ceiling cannot clear it. Named here so a known constraint is not mistaken for a
+      forgotten one.
+  - what: Working the 34 LATENT findings as a body.
     why: >-
-      218 of the 230 are right-censored -- still supplied, so no realised lifetime exists to grade
-      against -- and engineering around that would be inventing the truth the gap exists to
-      measure. What changed this stretch is that the exclusion is no longer invisible: the ledger
-      now publishes the selection profile, the like-for-like resi ratio of 2.96x, and a control
-      that fails if the scale attribution is ever published without it. Measured and declared beats
-      engineered around. The counted set grew 5 to 33 on its own; waiting remains the instrument.
-  - what: Working the 37 LATENT findings as a body.
+      Focus item one takes the one that matters, because it is the director's own ruling sitting
+      unlanded rather than because it is on the pile. The tail would cost a stretch and close nothing
+      the thesis needs while four items above sit directly on it. The tail keeps.
+  - what: Cutting fixture output out of the live autonomous-runner log.
     why: >-
-      Focus item one takes exactly one of them and takes it because it is a broken control on the
-      only thesis measurement this project has, not because it is on the pile. The tail would cost
-      a stretch and close nothing the thesis needs, at the moment three items above are all sitting
-      directly on it. The tail keeps.
-  - what: Cutting the fixture output out of the live autonomous-runner log.
-    why: >-
-      It misleads a reader diagnosing the runner and it is now growing rather than static -- 5,953
-      lines matching MagicMock or a pytest temp path in a 26,504-line file, up from 2,619 a day
-      ago, which means test runs are appending to a production log. Rejected again because it
-      costs a reader clarity and costs the machine nothing, and all four items above are on the
-      thesis. Recorded in `wrong` with the growth figure so the trend is visible if it keeps
-      doubling.
+      Re-measured rather than re-quoted: 5,965 of 26,534 lines match MagicMock or a pytest temp path,
+      against 5,953 of 26,504 three hours ago. So it is still growing, but by twelve lines, not
+      doubling as I implied last time -- and correcting my own trend claim is most of this entry's
+      value. Rejected a fifth time: it costs a reader diagnosing the runner some clarity and costs the
+      machine nothing.
 wrong:
   - what: >-
-      My own direction, the closing report to the director and `THE_VALUE_CYCLE_REALISED_AB.md`
-      all sent this stretch at a five-fold inflation in EP1's lifetime term. The term is not
-      inflated. Graded against a tally of realised churn events, believed hazard 0.05 reads
-      against a realised 0.053 over 263 decisions, and portfolio believed tenure of 11.74 years
-      runs SHORT of a realised implied 13.82. The real defect is the opposite shape -- absent
-      dispersion, one distinct hazard across all 33 graded accounts -- and the worker that drew
-      the item overturned the diagnosis rather than executing it.
+      I read the value arm's loss as a portfolio property of per-customer pricing and sent three
+      orientations and a closing report on that basis. It was one industrial account priced on a
+      household curve: the arm could not reach its own churn model's industrial branch, so it
+      discounted 3.9 GWh customers off a domestic hazard. Fixed at `fef45d833`, and the realised
+      enterprise-value delta went from -GBP 110,731 to +GBP 2,293,743.
     corrected: true
   - what: >-
-      I read gap 2.529 as an estimator fault. The graded population is selected on the outcome it
-      predicts: like-for-like within resi, excluded accounts average 2.96x the graded ones, and a
-      point-in-time-fair divisor gives 2.193. About 13% of the headline was the yardstick. Now
-      measured and published beside the attribution, with a control that fails if the scale figure
-      is ever emitted alone; the divisor itself is unchanged and is focus item three.
+      The flip is not a win and I am recording that before anyone reads it as one.
+      `margin_movers.concentration_top_n_share_of_absolute_movement` is 0.9997 -- 15 accounts are the
+      entire GBP 2.99M of absolute movement, C_IC1 alone +GBP 1,764,966 -- in a segment the director
+      had already ordered out of the book. Both `docs/observability/value_cycle_ab.json` and the
+      reading in `THE_VALUE_CYCLE_REALISED_AB.md` are on the superseded book and neither says so.
+    corrected: false
+  - what: >-
+      The director's 24 August instruction to suspend I&C has been COMPLETE in the working tree since
+      -- `served_segments.json` at `["resi","SME"]`, `simulation/live_population.py` and six test
+      files -- and is not in HEAD, which still serves I&C. Two days of per-customer argument, mine
+      included, ran on the book he had removed, while the tree-divergence alarm named it in bulk
+      every day.
+    corrected: false
+  - what: >-
+      EP13 has been named in focus twice and drawn twice and no carbon coupler exists. The work did
+      not drift; the steer did. Removed from focus rather than named a third time, but the atom is
+      still at level 2 on evidence nothing has measured.
+    corrected: false
+  - what: >-
+      The belief-vs-outcome instrument I asked for shipped describing 28 of 58 priced decisions
+      without saying why, and needed two further commits (`b0f5ee0e8`, `920aa9eeb`) to publish
+      `unmatched_by_year` and the reason those renewals met no churn roll. Self-caught inside the
+      stretch, but it is the second instrument in two stretches to land reporting a partial
+      population as if it were the whole one.
     corrected: true
   - what: >-
-      My instruction to write the A/B re-run to a new `--out` path protected the wrong artefact.
-      The superseded PRIOR run is the one nothing routine will ever re-create; the re-run writes
-      the default path that everything reads. The worker inverted it correctly and landed the
-      prior deliberately at `6089f90a9`.
-    corrected: true
-  - what: >-
-      The churn-roster-diff instrument is entirely uncommitted -- the tool change, its test file
-      and its only output -- two commits after this same stretch landed `6089f90a9` and
-      `5a2caf338` for exactly this class. The record that cites it is in origin; the thing that
-      produced it is in one worktree.
-    corrected: false
-  - what: >-
-      `churn_roster_diff.largest_single_difference_gbp` publishes 0.0 and cannot publish anything
-      else: every per-account `realised_lifetime_margin_gbp` in it is null and the aggregation
-      sums nulls to zero, while `available` reads true and the `reading` beside it tells a reader
-      to divide that constant into GBP 123,006 of gross margin. A control whose verdict is a
-      constant, on the measurement that matters most.
-    corrected: false
-  - what: >-
-      `docs/observability/autonomous-runner-log.md` now carries 5,953 lines matching MagicMock or
-      a pytest temp path in 26,504 lines, up from 2,619 a day ago. It is not stale residue; a
-      writer is still appending fixture output to a live operational log. Recorded for the fourth
-      time and deliberately not promoted -- it misleads a reader, it does not stop the machine.
-    corrected: false
-  - what: >-
-      The tree-root residue I carried uncorrected in the last two records -- six `.land_*.sh`
-      scripts, `_r11_tmp.mjs`, and four zero-byte lock files -- is gone. It was the permanently
-      true condition the "uncommitted work" alarm keyed on, so that alarm can now clear.
+      `churn_roster_diff` summed declared blanks to zero, so "no concentration" was the only answer
+      it could give on the measurement that matters most. Fixed at `d8ae96730`; it now reports
+      GBP 554,980 of single-account concentration, which is what exposed the industrial story behind
+      both headline figures.
     corrected: true
 for_the_director: []
