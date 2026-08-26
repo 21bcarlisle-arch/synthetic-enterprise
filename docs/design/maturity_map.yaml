@@ -1052,10 +1052,13 @@
   #   MUTATION and was rebuilt (at the 5,600 MW fallback the correct and the mispriced arithmetic
   #   are identical, so the fixture could not see the defect it named).
   #   WHAT HOLDS L3 NOW is the same axis, smaller: 0.746 still points a customer at some of the
-  #   wrong half hours, and the second Expert Hour is still untaken. THE NEXT GAP IS THE OTHER
-  #   HALF OF THE SAME BLOCK -- biomass, still flat at 2,400 MW, which may NOT be handed over the
-  #   same way because it carries 120 gCO2/kWh and so is an emissions term; closing it means
-  #   MODELLING biomass dispatch, a harder build than this one. LAW A.
+  #   wrong half hours, and the second Expert Hour is still untaken. THE BIOMASS STEP WAS TAKEN
+  #   2026-08-26 AND ITS PREMISE WAS REFUTED, so it is no longer the next gap: the fleet's annual
+  #   envelope is measured and published (2024: 73-3,328 MW, mean 2,142 against the assumed
+  #   2,400) and the dispatch is built and R15-proven, but wiring it made the series worse on
+  #   four axes of five and it is OFF behind a tested flag. The residual explains only 2.6-33.5%
+  #   of biomass's variance -- a CfD plant runs on AVAILABILITY, so its low readings are outages.
+  #   The next gap is an outage model, not a tidier percentile. LAW A.
   file_scope: ['sim/grid_carbon_intensity.py', 'sim/neso_carbon_intensity.py',
     'sim/elexon_fuel_outturn.py',
     'company/carbon/half_hourly_footprint.py',
@@ -1064,7 +1067,7 @@
     'tests/sim/test_elexon_fuel_outturn.py',
     'tests/company/carbon/test_half_hourly_footprint.py',
     'tests/tools/test_grid_intensity_feed_and_explore_carbon.py']
-  simplifications_count: 5
+  simplifications_count: 6
 - id: EP14_adapter_published_cost_stack
   title: "The non-commodity stack, parsed from what is actually published"
   gain: "Network and policy costs stop being parameters and start being documents that change under the company."

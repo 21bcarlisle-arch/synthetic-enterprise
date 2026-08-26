@@ -1,34 +1,34 @@
 {
   "annotation": {
-    "checked_at": "2026-08-26T07:38:16Z",
+    "checked_at": "2026-08-26T10:27:01Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_committed_store_credits_a_falsifier_the_repository_does_not_have",
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_every_declared_honest_absence_is_still_absent_and_still_silenced",
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_MUTATION_the_word_only_predicate_fires_this_contradiction_on_the_real_corpus",
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_symbol.py::test_the_symbol_population_is_not_vacuous",
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_rule_exceeds_baseline",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_stale_baseline_entries",
       "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
-      "FAILED tests/background/test_aged_staging_digest.py::test_digest_still_dedupes_to_once_per_day_with_aged_docs_present"
+      "FAILED tests/background/test_aged_staging_digest.py::test_digest_still_dedupes_to_once_per_day_with_aged_docs_present",
+      "FAILED tests/background/test_defect_backlog_draw.py::test_rung_is_in_authorized_set_enumeration"
     ],
-    "nonblocking_reds_total": 33,
-    "open_findings": 38
+    "nonblocking_reds_total": 31,
+    "open_findings": 31
   },
   "last_verified": {
-    "generated_at": "2026-08-26T08:05:48Z",
-    "git_commit": "2327a1754",
-    "run_id": "run_output_2327a1754_20260826T073921Z.json",
-    "verified_at": "2026-08-26T08:05:48Z"
+    "generated_at": "2026-08-26T10:54:01Z",
+    "git_commit": "61b8250fc",
+    "run_id": "run_output_61b8250fc_20260826T102802Z.json",
+    "verified_at": "2026-08-26T10:54:01Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=4683e68f7; blocking tests: FAILED tests/background/test_publisher_deadline_exceeds_its_gate.py::test_the_sweep_derives_its_deadline_rather_than_restating_it, FAILED tests/background/test_publisher_deadline_exceeds_its_gate.py::test_every_publisher_caller_derives_its_deadline[background/background_worker.py], FAILED tests/background/test_publisher_deadline_excee",
+  "paused_reason": null,
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-26T08:05:48Z",
-    "git_commit": "2327a1754",
-    "run_id": "run_output_2327a1754_20260826T073921Z.json",
-    "verified_at": "2026-08-26T08:05:48Z"
+    "generated_at": "2026-08-26T10:54:01Z",
+    "git_commit": "61b8250fc",
+    "run_id": "run_output_61b8250fc_20260826T102802Z.json",
+    "verified_at": "2026-08-26T10:54:01Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-26T08:05:48Z"
+  "written_at": "2026-08-26T10:54:01Z"
 }
