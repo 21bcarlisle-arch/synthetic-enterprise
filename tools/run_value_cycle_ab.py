@@ -115,6 +115,11 @@ def realised_metrics(result: dict) -> dict:
         # minus wholesale, before levies, network, capital and bad debt -- the same basis
         # `simulation/portfolio_pnl.py` uses, and NOT the net line above.
         "total_gross_margin_gbp": figure("total_gross"),
+        # The line that closed the 2026-08-26 gross-fell-while-net-rose divergence, and it was
+        # in the run's output all along, unreported. Publishing gross and net without the
+        # deductions between them left a GBP 30,924 gap that had to be recorded as
+        # `observed and unexplained` -- see `gross_to_net_bridge` for the full walk.
+        "total_capital_cost_gbp": figure("total_capital"),
         "total_bad_debt_gbp": figure("total_bad_debt"),
         "final_treasury_gbp": figure("final_treasury"),
         "enterprise_value_gbp": ev["enterprise_value_gbp"],
@@ -123,6 +128,259 @@ def realised_metrics(result: dict) -> dict:
         # NOT a realised figure and labelled so: how many renewals the arm priced at all. It is
         # here because a delta of zero has two causes and only this number separates them.
         "renewals_priced_by_the_arm": len(phase2b.get("value_arm_log", [])),
+    }
+
+
+#: The deduction lines that sit BETWEEN `total_gross` and `total_net`, each named with the
+#: record fields it is summed from. Electricity and gas book the same economic line under
+#: different keys, so both are summed into one bridge line rather than reported as two
+#: half-visible ones. Source of truth for the identity: `sim.risk_engine.compute_net_margin`
+#: as called from `simulation/hedged_settlement.py` (elec) and `simulation/gas_settlement.py`
+#: (gas), plus the bad-debt deduction applied in `simulation/run_phase2b.py`.
+GROSS_TO_NET_LINES = (
+    ("policy_and_levies_gbp", ("policy_cost_gbp", "gas_policy_cost_gbp"),
+     "RO + CfD + CCL + CM + FiT + SoLR mutualisation (elec), CCL + GGL (gas)"),
+    ("network_gbp", ("network_cost_gbp", "gas_network_cost_gbp"),
+     "DUoS + TNUoS unit charges (elec), transportation + metering (gas)"),
+    ("capital_cost_gbp", ("capital_cost_gbp",),
+     "cost of collateral, sized once per term and allocated across the periods that settled"),
+    ("bad_debt_gbp", ("bad_debt_gbp",),
+     "money billed that never arrived, deducted from net in run_phase2b"),
+)
+
+
+def _bridge_one_arm(result: dict) -> dict:
+    """Walk ONE arm's settled ledger and sum every line between gross and net.
+
+    From `phase2b.all_records` -- the world's own rows -- and NOT from the run's summary
+    totals, because the summary publishes only three of the five lines and the two it omits
+    are the two that turned out to matter.
+
+    THE RESIDUAL IS THE CONTROL (R15). This does not assert that the five lines account for
+    the whole difference; it computes `net - (gross - deductions)` and publishes it. A cost
+    line that exists in the world and is missing from `GROSS_TO_NET_LINES` shows up here as a
+    non-zero number instead of being silently absorbed into one of the lines that IS listed --
+    which is the difference between a decomposition and a plausible story. A per-line
+    `.get(field, 0.0)` would otherwise be exactly the fail-open pattern `realised_metrics`
+    already refuses for the top-level figures: elec and gas records genuinely carry different
+    key sets, so a missing key cannot be an error at the record level, and the residual is
+    where a missing key at the LEDGER level becomes visible.
+    """
+    records = (result.get("phase2b") or {}).get("all_records")
+    if not isinstance(records, list) or not records:
+        raise ValueError(
+            "this arm's run carries no `phase2b.all_records`, so the gross-to-net bridge "
+            "cannot be walked. A zero-filled bridge would be indistinguishable from a run "
+            "in which every deduction happened to be zero.")
+
+    lines = {name: 0.0 for name, _fields, _why in GROSS_TO_NET_LINES}
+    gross = net = revenue = wholesale = volume_kwh = 0.0
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        gross += float(record.get("margin_gbp", 0.0) or 0.0)
+        net += float(record.get("net_margin_gbp", 0.0) or 0.0)
+        revenue += float(record.get("revenue_gbp", 0.0) or 0.0)
+        wholesale += float(record.get("wholesale_cost_gbp", 0.0) or 0.0)
+        volume_kwh += float(record.get("consumption_kwh", 0.0) or 0.0)
+        for name, fields, _why in GROSS_TO_NET_LINES:
+            for field in fields:
+                lines[name] += float(record.get(field, 0.0) or 0.0)
+
+    deductions = sum(lines.values())
+    return {
+        "records": len(records),
+        "gross_margin_gbp": gross,
+        **lines,
+        "total_deductions_gbp": deductions,
+        "net_margin_gbp": net,
+        # net MINUS what the five lines predict it should be. Not an error bar: a named hole.
+        "unexplained_residual_gbp": net - (gross - deductions),
+        # Gross itself splits two ways, and a fall in gross means one of these moved.
+        "revenue_gbp": revenue,
+        "wholesale_cost_gbp": wholesale,
+        "volume_kwh": volume_kwh,
+    }
+
+
+def gross_to_net_bridge(control: dict, value: dict) -> dict:
+    """Why net can rise while gross falls -- decomposed into named cost lines, per arm.
+
+    THE DEFECT THIS ANSWERS (2026-08-26, this file's own artefact): the A/B reported gross
+    margin FALLING by GBP 14,151 while net margin ROSE by GBP 16,773, and could attribute
+    only GBP 2,591 of the GBP 30,924 gap to bad debt. The rest was written down as *observed
+    and unexplained*, with volume-lost-to-churn recorded as an INFERRED candidate. It was
+    unexplained because the instrument published gross, bad debt and net and nothing in
+    between -- three of five lines -- so the two largest terms had nowhere to appear.
+
+    Every line here is a sum over the world's own settled rows, so the sign convention is
+    fixed and stated once: each `*_gbp` deduction line is a POSITIVE cost, and its
+    contribution to the net delta is MINUS its delta. `net_delta_reconstructed_gbp` adds
+    those contributions up; `reconstruction_error_gbp` is what it misses. A decomposition
+    that does not close is a decomposition that has not been done, and this says which.
+
+    THE RESIDUAL IS DELIBERATELY NOT A CONTRIBUTION, and the first draft of this function
+    had it as one. With the residual in the sum, `reconstructed` reduces algebraically to
+    `net_delta` for ANY set of lines whatsoever -- including the empty set -- so
+    `reconstruction_closes` was a constant `True` reporting itself as a check. That is R15's
+    TAUTOLOGY pattern written into the control built to close an unexplained gap, which
+    would have been a fitting way to fail. Excluded, the sum closes only when the named
+    lines really are all the lines, and `reconstruction_error_gbp` is exactly the residual
+    delta it misses.
+    """
+    control_side = _bridge_one_arm(control)
+    value_side = _bridge_one_arm(value)
+
+    contributions = {
+        # Gross carries its own sign: more gross is more net.
+        "gross_margin_gbp": value_side["gross_margin_gbp"] - control_side["gross_margin_gbp"],
+    }
+    for name, _fields, _why in GROSS_TO_NET_LINES:
+        # A deduction FALLING is a net gain, hence the inversion, applied once, here.
+        contributions[name] = -(value_side[name] - control_side[name])
+
+    net_delta = value_side["net_margin_gbp"] - control_side["net_margin_gbp"]
+    reconstructed = sum(contributions.values())
+    ranked = sorted(contributions.items(), key=lambda kv: -abs(kv[1]))
+
+    return {
+        "what_this_is": (
+            "The arithmetic between gross and net, per arm, summed from the world's own "
+            "settled records. Answers `gross fell and net rose` with named lines and "
+            "figures instead of a candidate list."
+        ),
+        "basis": (
+            "R14 -- SETTLED. Every figure is summed from phase2b.all_records, the same rows "
+            "run_phase2b sums for total_gross/total_net. Not billed, not banked."
+        ),
+        "line_definitions": {
+            name: {"summed_from": list(fields), "is": why}
+            for name, fields, why in GROSS_TO_NET_LINES
+        },
+        "control_arm": control_side,
+        "value_arm": value_side,
+        "net_delta_contribution_gbp": dict(ranked),
+        "largest_contribution": ranked[0][0] if ranked else None,
+        "net_delta_gbp": net_delta,
+        "net_delta_reconstructed_gbp": reconstructed,
+        # THE CONTROL ON THE CONTROL, and it is NOT a tautology: the residual is excluded
+        # from the sum above, so a cost line that exists in the world and is missing from
+        # GROSS_TO_NET_LINES lands here as a number rather than being absorbed. If this is
+        # not ~0 the lines above do not add up to the headline and the attribution is not to
+        # be quoted, whatever it says.
+        "reconstruction_error_gbp": reconstructed - net_delta,
+        "reconstruction_closes": abs(reconstructed - net_delta) < 0.01,
+        "unexplained_residual_delta_gbp": (
+            value_side["unexplained_residual_gbp"] - control_side["unexplained_residual_gbp"]),
+    }
+
+
+def churn_volume_attribution(control: dict, value: dict) -> dict:
+    """Test the INFERRED candidate: was the gross fall the volume of the extra churned accounts?
+
+    The 2026-08-26 reading offered `volume lost to the two extra churned accounts` as an
+    explanation and was careful to label it inferred. This measures it: split BOTH ledgers by
+    whether a row's billing account churned in one arm and not the other, and report the
+    volume and gross those rows carry. If the differentially-churned accounts hold a small
+    share of the gross fall, the candidate is RULED OUT and says so -- which is a finding, not
+    a failure. The whole point of writing it down is that it can come back negative.
+    """
+    def rosters(result):
+        return set((result.get("phase2b") or {}).get("churned_billing_accounts") or [])
+
+    control_churned, value_churned = rosters(control), rosters(value)
+    differential = sorted(control_churned.symmetric_difference(value_churned))
+    differential_set = set(differential)
+
+    def split(result):
+        records = (result.get("phase2b") or {}).get("all_records") or []
+        buckets = {"differentially_churned": {"gross_gbp": 0.0, "volume_kwh": 0.0},
+                   "everyone_else": {"gross_gbp": 0.0, "volume_kwh": 0.0}}
+        for record in records:
+            if not isinstance(record, dict):
+                continue
+            customer_id = record.get("customer_id")
+            if not isinstance(customer_id, str):
+                continue
+            key = ("differentially_churned"
+                   if _billing_account_id(customer_id) in differential_set
+                   else "everyone_else")
+            buckets[key]["gross_gbp"] += float(record.get("margin_gbp", 0.0) or 0.0)
+            buckets[key]["volume_kwh"] += float(record.get("consumption_kwh", 0.0) or 0.0)
+        return buckets
+
+    control_split, value_split = split(control), split(value)
+    gross_delta = sum(v["gross_gbp"] for v in value_split.values()) - sum(
+        v["gross_gbp"] for v in control_split.values())
+    differential_gross_delta = (value_split["differentially_churned"]["gross_gbp"]
+                                - control_split["differentially_churned"]["gross_gbp"])
+    share = (differential_gross_delta / gross_delta) if gross_delta else None
+
+    return {
+        "what_this_is": (
+            "Whether the accounts that churned under ONE arm and not the other carry the "
+            "gross-margin fall. Measured, so it can rule the candidate out."
+        ),
+        "differentially_churned_accounts": differential,
+        "control_only": sorted(control_churned - value_churned),
+        "value_only": sorted(value_churned - control_churned),
+        "control_arm": control_split,
+        "value_arm": value_split,
+        "gross_delta_gbp": gross_delta,
+        "gross_delta_from_differentially_churned_gbp": differential_gross_delta,
+        "share_of_gross_delta": share,
+        "volume_delta_kwh": (
+            sum(v["volume_kwh"] for v in value_split.values())
+            - sum(v["volume_kwh"] for v in control_split.values())),
+    }
+
+
+def book_identity(result: dict) -> dict:
+    """WHICH BOOK this ran on, in the artefact, so the next reader does not infer it from a date.
+
+    `WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26` is the finding
+    this discharges, and it was raised against this file's own output. Two readings three days
+    apart were each correct about a book the company no longer had, and in both cases the only
+    way to tell was to compare a commit timestamp against a run timestamp by hand. Dual-fuel
+    share is here because that is precisely the change that invalidated the previous reading:
+    one household is one billing account, so a gas leg moves cost-to-serve, churn and lifetime
+    value together.
+    """
+    records = (result.get("phase2b") or {}).get("all_records") or []
+    accounts: dict[str, set] = collections.defaultdict(set)
+    for record in records:
+        customer_id = record.get("customer_id") if isinstance(record, dict) else None
+        if not isinstance(customer_id, str):
+            continue
+        commodity = record.get("commodity") or "electricity"
+        accounts[_billing_account_id(customer_id)].add(commodity)
+
+    # THE POPULATION IS A FREE VARIABLE OF THE RUN, and until now the record of the run did
+    # not capture it: the book is resolved at import time from the curriculum file, so a run
+    # on the wrong segments produced a clean, complete, entirely plausible artefact -- R15
+    # FAIL-OPEN one level up from R14's clock rule. Read from the resolver, never restated
+    # here, so this cannot drift from the list the population was actually built with.
+    from simulation.live_population import served_segments
+
+    elec = sum(1 for c in accounts.values() if "electricity" in c)
+    gas = sum(1 for c in accounts.values() if "gas" in c)
+    dual = sum(1 for c in accounts.values() if {"electricity", "gas"} <= c)
+    return {
+        "served_segments": list(served_segments()),
+        "billing_accounts_settled_in_window": len(accounts),
+        "with_an_electricity_leg": elec,
+        "with_a_gas_leg": gas,
+        "dual_fuel": dual,
+        "dual_fuel_share_of_accounts": (dual / len(accounts)) if accounts else None,
+        "accounts_at_end_of_window": (
+            (result.get("enterprise_value") or {}).get("portfolio", {}).get("account_count")),
+        "why_this_is_here": (
+            "So a reader can tell WHICH book a figure describes without diffing a commit "
+            "date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_"
+            "ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. "
+            "The filename is not the control: `value_cycle_ab_resi.json` in fact served "
+            "resi AND SME, so the one piece of provenance a reader had was misleading."
+        ),
     }
 
 
@@ -688,6 +946,12 @@ def run_value_cycle_ab(report_end: str | None = None) -> dict:
             "The same book and the same world, run once per pricing arm, scored on what "
             "ACTUALLY happened. No figure here is anything the company believed."
         ),
+        # WHICH BOOK. First, because two prior readings of this artefact were correct about a
+        # book the company no longer had and neither could say so in its own words.
+        "book_identity": {
+            "control_arm": book_identity(control),
+            "value_arm": book_identity(value),
+        },
         "arm_identity": {
             "differing_fields": sorted(
                 f for f in CURRENT_POLICY.__dataclass_fields__
@@ -712,6 +976,10 @@ def run_value_cycle_ab(report_end: str | None = None) -> dict:
                 value_m["total_gross_margin_gbp"] - control_m["total_gross_margin_gbp"]),
             "bad_debt_gbp": value_m["total_bad_debt_gbp"] - control_m["total_bad_debt_gbp"],
         },
+        # WHY the net delta is what it is, line by line. Without this the headline is a result
+        # with no mechanism, which is the shape that let a GBP 3.08M figure stand for two days.
+        "gross_to_net_bridge": gross_to_net_bridge(control, value),
+        "churn_volume_attribution": churn_volume_attribution(control, value),
         "decision_shape": arm_decision_shape(value),
         # Was the advantage INFERENCE, or a profitable miscalibration? The two produce the
         # same P&L and completely different conclusions -- see `belief_vs_outcome`.
@@ -750,11 +1018,20 @@ def main(argv: list[str] | None = None) -> int:
 
     d = result["realised_delta"]
     shape = result["decision_shape"]
+    book = result["book_identity"]["control_arm"]
+    bridge = result["gross_to_net_bridge"]
     print("value cycle A/B -- REALISED, {} window".format(report_end or "full"))
+    print("  book            {} accounts, {} dual fuel ({:.1%})".format(
+        book["billing_accounts_settled_in_window"], book["dual_fuel"],
+        book["dual_fuel_share_of_accounts"] or 0.0))
     print("  net margin      {:+,.0f} GBP".format(d["net_margin_gbp"]))
     print("  enterprise val  {:+,.0f} GBP".format(d["enterprise_value_gbp"]))
     print("  accounts at end {:+d}   churned {:+d}".format(
         d["accounts_at_end"], d["churned_accounts"]))
+    print("  gross-to-net    {} (largest term {:+,.0f} GBP), closes={}".format(
+        bridge["largest_contribution"],
+        bridge["net_delta_contribution_gbp"].get(bridge["largest_contribution"], 0.0),
+        bridge["reconstruction_closes"]))
     print("  arm priced {} renewal(s), {} distinct margins, {} endpoint-bound".format(
         shape.get("priced", 0), shape.get("distinct_margins", 0),
         shape.get("endpoint_bound", 0)))

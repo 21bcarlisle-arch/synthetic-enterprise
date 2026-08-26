@@ -55,11 +55,15 @@ test, and `margin_basis` is published beside the figures so the two bases cannot
 
 import pytest
 
+from simulation.live_population import served_segments
 from tools.run_value_cycle_ab import (
     REPORTED_BASIS,
     SETTLED_BASIS,
     belief_vs_outcome,
+    book_identity,
     churn_roster_diff,
+    churn_volume_attribution,
+    gross_to_net_bridge,
     margin_movers,
     realised_metrics,
 )
@@ -435,6 +439,7 @@ def test_movers_stays_quiet_when_the_two_arms_produced_the_same_book():
 def _full_arm(**overrides):
     phase2b = {
         "total_net": 1_000.0, "total_gross": 5_000.0, "total_bad_debt": 10.0,
+        "total_capital": 40.0,
         "final_treasury": 1_250.0, "churned_billing_accounts": ["A"],
         "value_arm_log": [{}, {}],
     }
@@ -453,7 +458,7 @@ def test_realised_metrics_reports_what_the_world_did():
 
 
 @pytest.mark.parametrize("missing", ["total_net", "total_gross", "total_bad_debt",
-                                     "final_treasury"])
+                                     "total_capital", "final_treasury"])
 def test_a_missing_figure_raises_rather_than_reporting_zero(missing):
     """R15 FAIL-SILENT, and it has already happened once: `.get(key, 0.0)` reported £0
     revenue for BOTH arms, identically, so the delta was a clean zero and nothing looked
@@ -636,3 +641,227 @@ def test_an_unmatched_decision_is_excluded_rather_than_counted_as_retained():
     result = belief_vs_outcome(_arm_with(log, [_event("A", "churned")]))
     assert result["priced_and_scored"] == 1
     assert result["realised_retention_rate"] == 0.0
+
+
+# ---------------------------------------------------------------------------
+# gross_to_net_bridge — the £30,924 that was "observed and unexplained"
+# ---------------------------------------------------------------------------
+#
+# THE DEFECT THESE TESTS EXIST FOR (2026-08-26): the A/B published gross margin FALLING by
+# £14,151 while net margin ROSE by £16,773, could attribute £2,591 of the £30,924 gap to bad
+# debt, and recorded the rest as unexplained with volume-lost-to-churn offered as an INFERRED
+# candidate. Nothing was wrong with the run. The instrument published gross, bad debt and net
+# and nothing in between — three of the five lines — so the two largest terms had nowhere to
+# appear. These tests hold the bridge to the property that makes it an attribution rather than
+# a story: it closes, and when it cannot close it says so instead of absorbing the difference.
+
+def _ledger(rows, churned=(), account_count=12):
+    return {"phase2b": {"all_records": list(rows),
+                        "churned_billing_accounts": list(churned)},
+            "enterprise_value": {"portfolio": {"account_count": account_count}}}
+
+
+def _elec(customer="C1", *, gross, policy=0.0, network=0.0, capital=0.0, bad_debt=0.0,
+          volume=1_000.0, extra=0.0):
+    """One electricity row whose net obeys the world's own identity.
+
+    `extra` is a deduction the row really suffers and the bridge has no line for — the
+    shape of a cost line added to the world and never added here.
+    """
+    return {"customer_id": customer, "margin_gbp": gross, "policy_cost_gbp": policy,
+            "network_cost_gbp": network, "capital_cost_gbp": capital,
+            "bad_debt_gbp": bad_debt, "consumption_kwh": volume,
+            "revenue_gbp": gross * 2, "wholesale_cost_gbp": gross,
+            "net_margin_gbp": gross - policy - network - capital - bad_debt - extra}
+
+
+def _gas(customer="C1g", *, gross, policy=0.0, network=0.0, capital=0.0, volume=500.0):
+    """A gas row. It books the same economic lines under DIFFERENT KEYS, which is the
+    reason `GROSS_TO_NET_LINES` maps a list of fields onto one bridge line."""
+    return {"customer_id": customer, "commodity": "gas", "margin_gbp": gross,
+            "gas_policy_cost_gbp": policy, "gas_network_cost_gbp": network,
+            "capital_cost_gbp": capital, "consumption_kwh": volume,
+            "revenue_gbp": gross * 2, "wholesale_cost_gbp": gross,
+            "net_margin_gbp": gross - policy - network - capital}
+
+
+def test_the_bridge_names_the_line_that_moved_and_closes_on_the_net_delta():
+    """The whole point: a net delta with a mechanism attached, in named lines with figures."""
+    control = _ledger([_elec(gross=5_000.0, policy=100.0, network=200.0,
+                             capital=3_000.0, bad_debt=400.0)])
+    value = _ledger([_elec(gross=4_800.0, policy=95.0, network=190.0,
+                           capital=2_000.0, bad_debt=350.0)])
+    bridge = gross_to_net_bridge(control, value)
+
+    assert bridge["reconstruction_closes"] is True
+    assert bridge["net_delta_gbp"] == pytest.approx(865.0)
+    assert bridge["largest_contribution"] == "capital_cost_gbp"
+    contributions = bridge["net_delta_contribution_gbp"]
+    assert contributions["capital_cost_gbp"] == pytest.approx(1_000.0)
+    assert contributions["gross_margin_gbp"] == pytest.approx(-200.0)
+    assert contributions["bad_debt_gbp"] == pytest.approx(50.0)
+
+
+def test_a_cost_line_the_bridge_does_not_know_about_stops_it_closing():
+    """R15 — THE MUTATION THIS CONTROL MUST SURVIVE. `extra` is a real deduction with no
+    bridge line, exactly the shape of a cost added to the world and never added here. The
+    bridge must refuse to close rather than quietly enlarge one of the lines it does carry:
+    an attribution that always adds up is not an attribution, it is arithmetic laundering.
+
+    This is also why the residual is NOT one of the contributions. With it in the sum,
+    `reconstructed` reduces to `net_delta` for any set of lines including the empty one, and
+    `reconstruction_closes` would be a constant True — the first draft did exactly that."""
+    control = _ledger([_elec(gross=5_000.0, capital=1_000.0)])
+    value = _ledger([_elec(gross=5_000.0, capital=1_000.0, extra=250.0)])
+    bridge = gross_to_net_bridge(control, value)
+
+    assert bridge["reconstruction_closes"] is False
+    assert bridge["reconstruction_error_gbp"] == pytest.approx(250.0)
+    assert bridge["unexplained_residual_delta_gbp"] == pytest.approx(-250.0)
+    assert bridge["value_arm"]["unexplained_residual_gbp"] == pytest.approx(-250.0)
+
+
+def test_gas_and_electricity_book_the_same_line_under_different_keys_and_are_summed_as_one():
+    """Reporting `policy_cost_gbp` alone would show a dual-fuel book's levies as the
+    electricity leg's only — half a line, indistinguishable from a small one."""
+    control = _ledger([_elec(gross=1_000.0, policy=50.0),
+                       _gas(gross=200.0, policy=30.0)])
+    value = _ledger([_elec(gross=1_000.0, policy=10.0),
+                     _gas(gross=200.0, policy=5.0)])
+    bridge = gross_to_net_bridge(control, value)
+
+    assert bridge["control_arm"]["policy_and_levies_gbp"] == pytest.approx(80.0)
+    assert bridge["value_arm"]["policy_and_levies_gbp"] == pytest.approx(15.0)
+    assert bridge["net_delta_contribution_gbp"]["policy_and_levies_gbp"] == pytest.approx(65.0)
+    assert bridge["reconstruction_closes"] is True
+
+
+def test_gross_falling_while_net_rises_is_reported_as_two_signed_terms_not_one_puzzle():
+    """The literal 2026-08-26 shape, at scale: gross down, net up. Both signs survive into
+    the output, because a decomposition that only reports the winning line is a headline."""
+    control = _ledger([_elec(gross=433_174.76, capital=320_502.33, bad_debt=32_984.26)])
+    value = _ledger([_elec(gross=419_023.25, capital=292_168.64, bad_debt=30_393.17)])
+    bridge = gross_to_net_bridge(control, value)
+
+    contributions = bridge["net_delta_contribution_gbp"]
+    assert contributions["gross_margin_gbp"] < 0
+    assert contributions["capital_cost_gbp"] > 0
+    assert bridge["net_delta_gbp"] > 0
+    assert bridge["reconstruction_closes"] is True
+
+
+def test_an_arm_with_no_ledger_raises_rather_than_bridging_a_row_of_zeroes():
+    """R15 FAIL-OPEN, the pattern `realised_metrics` already refuses at the top level: a
+    zero-filled bridge is indistinguishable from a run where every deduction was zero."""
+    with pytest.raises(ValueError, match="all_records"):
+        gross_to_net_bridge(_ledger([]), _ledger([_elec(gross=1.0)]))
+
+
+def test_the_bridge_states_the_clock_it_is_measured_on():
+    """R14 — no financial figure without its basis, and this publishes five of them."""
+    bridge = gross_to_net_bridge(_ledger([_elec(gross=1.0)]), _ledger([_elec(gross=2.0)]))
+    assert "SETTLED" in bridge["basis"]
+    assert set(bridge["line_definitions"]) == {
+        "policy_and_levies_gbp", "network_gbp", "capital_cost_gbp", "bad_debt_gbp"}
+
+
+# ---------------------------------------------------------------------------
+# churn_volume_attribution — a candidate that is allowed to come back negative
+# ---------------------------------------------------------------------------
+
+def test_the_churn_candidate_is_confirmed_when_the_lost_accounts_carry_the_gross_fall():
+    control = _ledger([_elec("C1", gross=1_000.0), _elec("C2", gross=500.0)])
+    value = _ledger([_elec("C1", gross=1_000.0)], churned=["C2"])
+    attribution = churn_volume_attribution(control, value)
+
+    assert attribution["differentially_churned_accounts"] == ["C2"]
+    assert attribution["gross_delta_gbp"] == pytest.approx(-500.0)
+    assert attribution["share_of_gross_delta"] == pytest.approx(1.0)
+
+
+def test_the_churn_candidate_is_RULED_OUT_when_the_fall_sits_with_everyone_else():
+    """The result this function exists to be able to return. `volume lost to the two extra
+    churned accounts` was offered as an inferred explanation; measuring it has to be able to
+    come back saying no, or measuring it adds nothing over asserting it."""
+    control = _ledger([_elec("C1", gross=1_000.0), _elec("C2", gross=10.0)])
+    value = _ledger([_elec("C1", gross=600.0)], churned=["C2"])
+    attribution = churn_volume_attribution(control, value)
+
+    assert attribution["gross_delta_gbp"] == pytest.approx(-410.0)
+    assert attribution["share_of_gross_delta"] == pytest.approx(10.0 / 410.0)
+    assert attribution["share_of_gross_delta"] < 0.05
+
+
+def test_accounts_that_churned_under_BOTH_arms_are_not_differential():
+    """A departure both arms suffered explains no delta between them."""
+    control = _ledger([_elec("C1", gross=1_000.0)], churned=["C9"])
+    value = _ledger([_elec("C1", gross=900.0)], churned=["C9"])
+    attribution = churn_volume_attribution(control, value)
+
+    assert attribution["differentially_churned_accounts"] == []
+    assert attribution["gross_delta_from_differentially_churned_gbp"] == 0.0
+
+
+def test_a_dual_fuel_households_two_legs_are_one_churned_billing_account():
+    """`_billing_account_id` folds `C1g` into `C1`; splitting the ledger by raw customer id
+    would leave the gas leg in `everyone_else` while its own household churned."""
+    control = _ledger([_elec("C1", gross=1_000.0), _gas("C1g", gross=200.0)])
+    value = _ledger([], churned=["C1"])
+    attribution = churn_volume_attribution(control, value)
+
+    assert attribution["control_arm"]["differentially_churned"]["gross_gbp"] == pytest.approx(
+        1_200.0)
+    assert attribution["control_arm"]["everyone_else"]["gross_gbp"] == 0.0
+
+
+# ---------------------------------------------------------------------------
+# book_identity — WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON
+# ---------------------------------------------------------------------------
+
+def test_the_artefact_can_name_its_own_book():
+    """Two readings three days apart were each correct about a book the company no longer
+    had, and the only way to tell was to compare a commit timestamp to a run timestamp by
+    hand. The run now says which book it ran on, in its own output."""
+    identity = book_identity(_ledger(
+        [_elec("C1", gross=1.0), _gas("C1g", gross=1.0), _elec("C2", gross=1.0)],
+        account_count=2))
+
+    assert identity["billing_accounts_settled_in_window"] == 2
+    assert identity["served_segments"] == list(served_segments())
+    assert identity["with_an_electricity_leg"] == 2
+    assert identity["with_a_gas_leg"] == 1
+    assert identity["dual_fuel"] == 1
+    assert identity["dual_fuel_share_of_accounts"] == pytest.approx(0.5)
+    assert identity["accounts_at_end_of_window"] == 2
+
+
+def test_an_electricity_only_book_is_reported_as_one_rather_than_left_to_inference():
+    """The single-fuel book the superseded reading ran on. It must be visibly 0% dual fuel,
+    not silently absent — that absence is the whole defect."""
+    identity = book_identity(_ledger([_elec("C1", gross=1.0), _elec("C2", gross=1.0)]))
+    assert identity["dual_fuel"] == 0
+    assert identity["dual_fuel_share_of_accounts"] == 0.0
+    assert identity["with_a_gas_leg"] == 0
+
+
+def test_an_empty_book_reports_an_unavailable_share_rather_than_a_flattering_zero():
+    identity = book_identity(_ledger([]))
+    assert identity["billing_accounts_settled_in_window"] == 0
+    assert identity["dual_fuel_share_of_accounts"] is None
+
+
+def test_the_book_names_the_segments_it_was_allowed_to_serve(monkeypatch):
+    """The population is a FREE VARIABLE of the run — resolved from the curriculum file at
+    import time — and until this landed the record of the run did not capture it. A run on
+    the wrong segments produced a clean, complete, plausible artefact and no control could
+    fire, which is R15 FAIL-OPEN one level above R14's clock rule.
+
+    Read from `served_segments()` rather than restated, so the artefact cannot claim a book
+    the population was not built from. Monkeypatching the env override is the cheapest proof
+    that it is genuinely read per call and not frozen at import."""
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", "resi")
+    identity = book_identity(_ledger([_elec("C1", gross=1.0)]))
+    assert identity["served_segments"] == ["resi"]
+
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", "resi,SME")
+    assert book_identity(_ledger([_elec("C1", gross=1.0)]))["served_segments"] == ["resi", "SME"]
