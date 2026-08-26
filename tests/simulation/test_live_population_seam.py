@@ -530,7 +530,20 @@ def test_the_growth_mandate_adds_WON_accounts_on_top_of_the_drawn_cohort(monkeyp
     assert syn and won, "both sources must be present when both flags are on"
     assert len(syn) + len(won) == len(extra), f"unclassified additions: {extra}"
     assert all(c["acquisition_type"] == "net_new_won" for c in won)
-    assert all(c["commodity"] == "electricity" for c in won)
+
+    # DUAL FUEL, 2026-08-26. This read `all(c["commodity"] == "electricity" for c in won)`,
+    # which characterised the single-fuel book the director asked to be rid of: *"the funnel
+    # only ever wins electricity, never dual fuel ... a single-fuel-only book quietly
+    # distorts every per-customer number we've been arguing about."* A won home on the mains
+    # gas network now takes a gas leg, so the assertion moves from "every win is
+    # electricity" to the property that actually matters -- every win is one of the two
+    # fuels, and each gas leg belongs to an electricity account in the same book.
+    assert all(c["commodity"] in ("electricity", "gas") for c in won)
+    elec_ids = {c["customer_id"] for c in won if c["commodity"] == "electricity"}
+    gas = [c for c in won if c["commodity"] == "gas"]
+    assert gas, "no won home took a gas leg; the book is single-fuel again"
+    assert all(g["customer_id"][:-1] in elec_ids for g in gas), (
+        "a gas leg with no electricity account beside it is not a dual-fuel household")
 
 
 def test_the_growth_mandate_OFF_is_byte_identical_to_the_draw_alone(monkeypatch):
@@ -741,10 +754,28 @@ def test_every_account_in_the_book_has_exactly_one_dwelling_of_its_own(monkeypat
         orphans = set(premises) - book_ids
         assert not orphans, f"dwellings held for accounts not in the book: {sorted(orphans)}"
 
-        # No dwelling serves two accounts. A set of premises smaller than the register
-        # means one home was handed to more than one customer -- which `subset_verdict`'s
-        # `double_won` clause would also catch, and this states at the seam.
-        assert len({p.premise_id for p in premises.values()}) == len(premises)
+        # No dwelling serves two BILLING ACCOUNTS. A set of premises smaller than the
+        # register means one home was handed to more than one customer -- which
+        # `subset_verdict`'s `double_won` clause would also catch, and this states at the
+        # seam.
+        #
+        # KEYED ON THE BILLING ACCOUNT SINCE 2026-08-26, and the distinction is the point.
+        # A dual-fuel household is ONE home with TWO supply points: `PROS-x` and `PROS-xg`
+        # share a dwelling because it is the same house, and they must, or
+        # `build_properties` raises `DwellingNotDrawn` on the gas leg and the supplier's
+        # modal band fills one in -- the exact defect B12 exists to stop. Counting supply
+        # points here would have read one household as two customers. The guard that
+        # matters is unchanged: a dwelling shared by two genuinely different customers
+        # still fails, because their billing accounts differ.
+        from saas.customer_reaction import _billing_account_id
+
+        homes_per_account = {}
+        for cid, premise in premises.items():
+            homes_per_account.setdefault(premise.premise_id, set()).add(
+                _billing_account_id(cid))
+        shared = {pid: accounts for pid, accounts in homes_per_account.items()
+                  if len(accounts) > 1}
+        assert not shared, f"one dwelling handed to two billing accounts: {shared}"
 
         # And the household handed to each account is labelled for THAT account, which
         # is what keeps `simulation.household.make_household`'s guard meaningful.

@@ -725,19 +725,105 @@ def _resolve_campaign(book: List[dict], seed: int) -> dict:
     return outcome
 
 
+#: The gas leg's metering conversion constants, taken from what the seed book already
+#: carries: every domestic gas customer in `saas/customers.py` (C1g..C4g) has
+#: `cv_factor = 39.5` and `cf = 1.02264` -- the GB standard calorific value and volume
+#: correction. Read off the roster rather than invented, and constant there, so a drawn leg
+#: that used anything else would be a different kind of meter for no stated reason.
+GAS_CV_FACTOR = 39.5
+GAS_CORRECTION_FACTOR = 1.02264
+
+
+def _gas_leg_for(prospect, elec: dict) -> dict | None:
+    """The gas half of a dual-fuel win, or None for a home with no gas meter.
+
+    WHY THIS EXISTS (2026-08-26, director: *"The funnel only ever wins electricity, never
+    dual fuel. Real suppliers win both together far more often than not, and dual fuel
+    changes cost-to-serve, churn and lifetime value -- so a single-fuel-only book quietly
+    distorts every per-customer number we've been arguing about."*)
+
+    `net_new_acquisition.ELECTRICITY_ONLY` names the blocker precisely and declines to
+    guess past it: *"a gas account's record carries `aq_kwh` and the drawn saas-shaped dict
+    does not, so `run_phase2b.TOTAL_GAS_AQ` raises `KeyError` on the first won gas
+    prospect ... Deriving an `aq_kwh` for a won gas account means inventing an annual
+    quantity for a home whose gas consumption nothing has yet modelled, and an invented
+    quantity feeding straight into the run's total gas position is worse than a book that
+    grows on one fuel."*
+
+    THAT REASONING WAS RIGHT AND ITS PREMISE HAS SINCE EXPIRED. The quantity is no longer
+    invented: `population_draw.TDCV_BANDS_KWH["gas"]` carries Ofgem's Typical Domestic
+    Consumption Values per band, already duplicated SIM-side under the regulation-commons
+    duplication convention, and the prospect already drew a `consumption_band`. So the gas
+    AQ comes from the same published table, for the same band, by the same uniform draw the
+    electricity EAC uses -- not from a number anybody chose.
+
+    WHETHER a home takes gas is not a share to tune either: it is `DrawnPremise.commodity`,
+    which reads the dwelling's own drawn `heating_system`. The dual-fuel rate is therefore a
+    property of the housing stock this supplier is selling into, and it moves when the stock
+    moves -- which is what "real suppliers win both together far more often than not" should
+    look like when it is modelled rather than parameterised.
+
+    ITS OWN RNG SUBSTREAM (C-S2). The AQ is drawn from a substream salted with this
+    customer's id, so adding the gas leg leaves every other drawn attribute of every other
+    prospect byte-identical -- the property `population_draw._substream` exists to give and
+    the reason a new draw can be added to a shipped population at all.
+
+    The id convention is the seed book's: `C1` bills with `C1g`, and
+    `saas.customer_reaction._billing_account_id` unifies them by stripping the trailing `g`.
+    A dual-fuel household is ONE billing account with two supply points, which is what makes
+    this change reach cost-to-serve, churn and lifetime value rather than just adding rows.
+    """
+    from simulation.population_draw import TDCV_BANDS_KWH, _substream
+
+    premise = getattr(prospect, "premise", None)
+    if premise is None or getattr(premise, "commodity", None) != "gas":
+        # NO PREMISE OR NO GAS METER, NO GAS LEG. `DrawnPremise.commodity` is "the fuel
+        # whose register the supplier reads for heat", derived from the dwelling's own
+        # drawn `heating_system` -- so a heat-pump home gets no gas account for the honest
+        # reason that it has no gas meter, and a prospect drawn without a premise (the
+        # pre-PB2 path, `premise_joint=None`) gets none because nothing has said what kind
+        # of home it is. Neither is a share anybody tuned.
+        return None
+    band = elec.get("consumption_band")
+    bands = TDCV_BANDS_KWH.get("gas") or {}
+    if band not in bands:
+        # NAMED FAIL-CLOSED: a band the published table has no row for gets NO gas leg,
+        # rather than a defaulted quantity. An invented AQ feeding the run's total gas
+        # position is the exact outcome `ELECTRICITY_ONLY` refused, and it would be worse
+        # arriving silently from a fallback than it was arriving not at all.
+        return None
+    low, high = bands[band]
+    rng = _substream(_DEFAULT_BASE_SEED, f"gas_leg_aq:{elec['customer_id']}")
+    return {
+        **{k: v for k, v in elec.items() if k not in ("eac_kwh", "tariff_type")},
+        "customer_id": f"{elec['customer_id']}g",
+        "commodity": "gas",
+        "aq_kwh": round(rng.uniform(low, high), 1),
+        "cv_factor": GAS_CV_FACTOR,
+        "cf": GAS_CORRECTION_FACTOR,
+    }
+
+
 def _won_customer_dicts(outcome: dict) -> List[dict]:
     """Winners as saas-shaped OBSERVABLES, stamped with the date they were actually won.
 
     `acquisition_date` moves from "the day this home was in the market" to "the day the
     contract started", because that is what the field means to every downstream consumer and
     a prospect that was quoted in March and won in April did not acquire in March.
+
+    DUAL FUEL: a won home on the mains gas network gets its gas leg here, immediately after
+    its electricity one -- see `_gas_leg_for`.
     """
-    return [
-        {**prospect.to_customer_dict(),
-         "acquisition_date": won_on.isoformat(),
-         "acquisition_type": "net_new_won"}
-        for prospect, won_on in outcome["winners"]
-    ]
+    won: List[dict] = []
+    for prospect, won_on in outcome["winners"]:
+        elec = {**prospect.to_customer_dict(),
+                "acquisition_date": won_on.isoformat(),
+                "acquisition_type": "net_new_won"}
+        won.append(elec)
+        gas = _gas_leg_for(prospect, elec)
+        if gas is not None:
+            won.append(gas)
+    return won
 
 
 def campaign_quotes_paid_for(base_seed: Optional[int] = None) -> List[dict]:
@@ -819,8 +905,18 @@ def live_premises(base_seed: Optional[int] = None) -> dict:
     # register on the same terms as the trickle -- found by running the full sim, which
     # stopped on `PROS-2016-0003`.
     for prospect, _won_on in _campaign(_pre_growth_book(seed), seed)["winners"]:
-        if prospect.premise is not None:
-            premises[prospect.customer_id] = prospect.premise
+        if prospect.premise is None:
+            continue
+        premises[prospect.customer_id] = prospect.premise
+        # THE GAS LEG IS THE SAME HOME (2026-08-26, dual fuel). A dual-fuel household is one
+        # dwelling with two supply points, so `PROS-x` and `PROS-xg` share a premise -- and
+        # they must SHARE it rather than the gas leg having none, for the reason the comment
+        # above gives: `build_properties` raises `DwellingNotDrawn` for a supplied customer
+        # the world drew no dwelling for, and the alternative to raising is the supplier's
+        # modal band filling one in, which is the defect B12 exists to stop. Registering the
+        # same premise object under both ids is the honest answer: it IS the same house.
+        if prospect.premise.commodity == "gas":
+            premises[f"{prospect.customer_id}g"] = prospect.premise
     return premises
 
 
