@@ -20,8 +20,6 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "health-check-log.md"
 
 sys.path.insert(0, str(PROJECT_DIR))
-from background.notify import notify  # noqa: E402
-
 # The set of daemons whose ABSENCE is a fault, DERIVED from the single declared
 # manifest (background/process_manifest.yaml) rather than hand-maintained here.
 # OPS1 sub-step 2 (G-L2): the old hand-maintained dict had silently DRIFTED from
@@ -32,6 +30,9 @@ from background.notify import notify  # noqa: E402
 # (token-proxy, file-api) carry health_checked:false in the manifest, so they are excluded
 # here exactly as before — plus naive-organ is now correctly included.
 from background import process_reconciler as _reconciler  # noqa: E402
+from background.notify import notify  # noqa: E402
+from tools import maturity_map_store as map_store  # noqa: E402
+
 EXPECTED_PANES = _reconciler.health_checked_map()
 
 
@@ -271,13 +272,13 @@ def _check_stale_dependencies() -> str | None:
     2026-07-12) -- the check's job is to keep surfacing the question, not to
     answer it once and stop looking.
     """
-    try:
-        import yaml
-    except ImportError:
-        return None
+    # The `import yaml` availability probe that used to stand here is gone with the parse it
+    # guarded: the map is read through `map_store`, which imports yaml at module scope, so a
+    # missing yaml fails this module's own import long before this line and the probe could
+    # only ever have been dead.
     map_path = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
     try:
-        atoms = yaml.safe_load(map_path.read_text(encoding="utf-8"))
+        atoms = map_store.load_atoms(map_path)
     except (OSError, Exception):
         return None
     if not isinstance(atoms, list):
@@ -368,7 +369,9 @@ def _check_single_interactive_session(_pids=None, _pane_session=None) -> str | N
     alarm -- never go silent on a possible real duplicate."""
     try:
         from background.interactive_session_probe import (
-            interactive_claude_pids, _ppid_of, SESSION_NAME,
+            SESSION_NAME,
+            _ppid_of,
+            interactive_claude_pids,
         )
         pids = interactive_claude_pids() if _pids is None else list(_pids)
         if len(pids) <= 1:

@@ -84,6 +84,7 @@ if str(PROJECT) not in sys.path:
     sys.path.insert(0, str(PROJECT))
 
 from tools import cold_eyes_battery as battery  # noqa: E402
+from tools import maturity_map_store as map_store  # noqa: E402 (after the sys.path setup above)
 from tools import simplifications_store as store  # noqa: E402
 
 MAP_FEED = PROJECT / "site" / "data" / "maturity_map.json"
@@ -294,13 +295,13 @@ def _infeasible_records() -> dict[str, dict]:
     of this module raises: "nothing is instrument-blocked", computed from a source nobody
     could read, is the reading that turns a permanent blocker back into an infinite lane.
     """
+    # The `import yaml` probe that used to stand here is gone with the parse it guarded. The map
+    # is read through `map_store`, which imports yaml at module scope, so a missing yaml fails
+    # this module's import at line 87 and never reaches here -- and an unreadable map still
+    # raises, through `MapStoreError` below, which is the refusal the docstring promises.
     try:
-        import yaml
-    except ImportError as e:  # pragma: no cover - yaml is a hard dependency here
-        raise CeilingUnavailable(f"yaml unavailable, so blockers are unreadable: {e}") from e
-    try:
-        atoms = yaml.safe_load(MAP_SOURCE.read_text(encoding="utf-8"))
-    except (OSError, ValueError) as e:
+        atoms = map_store.load_atoms(MAP_SOURCE)
+    except (OSError, ValueError, map_store.MapStoreError) as e:
         raise CeilingUnavailable(f"map source unreadable: {e}") from e
     if isinstance(atoms, dict):
         atoms = atoms.get("atoms")

@@ -33,6 +33,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+from tools import maturity_map_store as map_store
+
 # C2's file_scope is the AUTHORITATIVE list of belief-layer modules that must
 # build property beliefs ONLY from observable events, never from a direct
 # ground-truth read. It lives in maturity_map.yaml (atom
@@ -75,7 +77,10 @@ def _c2_file_scope_from_atoms(atoms: list) -> tuple[str, ...]:
 
 
 def _c2_file_scope_from_map() -> tuple[str, ...]:
-    atoms = yaml.safe_load(MAP_PATH.read_text())
+    # The map is TWO files since 2026-08-26 and C2 sits in the closed half. Reading the live
+    # half alone would raise the missing-atom ValueError above -- the guard failing CLOSED on
+    # a storage change rather than a wall hole. `load_atoms` is the whole population.
+    atoms = map_store.load_atoms(MAP_PATH)
     return _c2_file_scope_from_atoms(atoms)
 
 
@@ -272,7 +277,7 @@ def test_coverage_set_is_sourced_from_the_live_map_not_a_hardcoded_copy():
     guard is ever reverted to a hardcoded tuple that drifts from the map, this
     assertion fires.
     """
-    atoms = yaml.safe_load(MAP_PATH.read_text())
+    atoms = map_store.load_atoms(MAP_PATH)
     map_scope = _c2_file_scope_from_atoms(atoms)
     assert set(C2_FILE_SCOPE) == set(map_scope)
     assert len(C2_FILE_SCOPE) >= 1

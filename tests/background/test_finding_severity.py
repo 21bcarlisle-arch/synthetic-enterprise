@@ -339,7 +339,11 @@ def test_mutation_g_dropping_the_denial_guard_kills_a_named_test(tmp_path):
 def test_the_lane_vocabulary_matches_the_maturity_map():
     """LANES is hard-coded so an importer never dies on a mid-write map. The drift check
     belongs HERE, where a disagreement is visible instead of fatal."""
-    atoms = yaml.safe_load((REPO / "docs" / "design" / "maturity_map.yaml").read_text())
+    # BOTH HALVES: a lane whose atoms have all reached target lives entirely in the closed
+    # file, so a drift check reading the drawn half alone would stop noticing exactly the
+    # lanes that finished -- and report agreement by having a smaller population to disagree.
+    from tools import maturity_map_store as map_store
+    atoms = map_store.load_atoms(REPO / "docs" / "design" / "maturity_map.yaml")
     rows = atoms["atoms"] if isinstance(atoms, dict) else atoms
     in_map = {a["lane"] for a in rows if isinstance(a, dict) and a.get("lane")}
     assert in_map <= set(fs.LANES), f"lanes in the map but not in LANES: {in_map - set(fs.LANES)}"

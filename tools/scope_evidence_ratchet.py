@@ -49,6 +49,8 @@ from pathlib import Path
 
 import yaml
 
+from tools import maturity_map_store as map_store
+
 ROOT = Path(__file__).resolve().parent.parent
 MAP_PATH = ROOT / "docs" / "design" / "maturity_map.yaml"
 
@@ -152,7 +154,7 @@ def violations(text: str, root: Path = ROOT,
 
 def main(argv: list[str] | None = None) -> int:
     try:
-        text = MAP_PATH.read_text(encoding="utf-8")
+        text = map_store.map_text(MAP_PATH)
         parse_atoms(text)
     except (OSError, ValueError, yaml.YAMLError) as exc:
         # FAIL-CLOSED. An unreadable map is an unavailable check, and R15 names an unavailable

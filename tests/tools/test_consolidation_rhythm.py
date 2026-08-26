@@ -19,6 +19,7 @@ from pathlib import Path
 import pytest
 
 import tools.consolidation_rhythm as cr
+from tools import maturity_map_store as map_store  # noqa: E402
 
 SOURCE = Path(cr.__file__)
 
@@ -277,7 +278,9 @@ def test_an_unavailable_index_raises(monkeypatch) -> None:
 
 def test_the_live_map_still_yields_atoms() -> None:
     """Pins the parser against the REAL map: a schema change must not silently empty the scan."""
-    atoms = cr.atoms_from_map((cr.ROOT / cr.MAP_REL).read_text(encoding="utf-8"))
+    # BOTH halves (2026-08-26): an epoch closes across the whole map, and reading the drawn
+    # half alone would have made this sanity check pass on 74 atoms instead of 298.
+    atoms = cr.atoms_from_map(map_store.map_text(cr.ROOT / cr.MAP_REL))
     assert len(atoms) > 100
 
 

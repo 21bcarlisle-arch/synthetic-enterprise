@@ -39,7 +39,15 @@ from background import delivery_lane as dl
 from background import direction as d
 from background import seat_work_in_hand as claims_mod
 
-NOW = datetime(2026, 8, 25, 12, 0, tzinfo=timezone.utc)
+# THE CLOCK IS RELATIVE, NOT FIXED (2026-08-26). A frozen `NOW` was a time bomb: the record it
+# stamps has a liveness window (`Direction.is_live` / FOCUS_MAX_AGE_HOURS) that every function
+# under test consults against the REAL clock, since none of them takes a `now` for that check.
+# So this file passed on the day it was written and every one of its eight draw tests went red
+# a day later, for a reason that had nothing to do with the code they cover -- an expired
+# fixture reads exactly like a lane that stopped drawing. Anchoring on the wall clock keeps the
+# record inside its own window whenever the suite runs, and the claim arithmetic below stays
+# self-consistent because it is all derived from the same instant.
+NOW = datetime.now(timezone.utc)
 NOW_EPOCH = NOW.timestamp()
 
 

@@ -49,6 +49,7 @@ from pathlib import Path
 
 import yaml
 
+from tools import maturity_map_store as map_store
 from tools import simplifications_store as store
 
 PROJECT = Path(__file__).resolve().parent.parent
@@ -586,6 +587,20 @@ def merge(
         if ev_adds:
             store.append_to_record_for_atom(ib["id"], "evidence", ev_adds, store_dir)
     map_path.write_text(new_text)
+    # RE-FILE, in the same call that raised the level. `map_path` is the DRAWN half only, so a
+    # fold that lifts an atom to its own target leaves the record sitting in the half the split
+    # invariant forbids -- and that invariant reds a tree-wide test file, refusing every commit
+    # in every lane. Reaching target is the success path of the machine, so the fold has to be
+    # what satisfies it: the level move and the move between halves land as one act, never as a
+    # hand edit somebody remembers. Both directions, so a RAISED target brings its atom back to
+    # the drawn half instead of leaving the work dark where no draw looks.
+    moved = map_store.refile(map_path)
+    if moved["to_closed"] or moved["to_live"]:
+        print(
+            f"re-filed: {len(moved['to_closed'])} -> closed {moved['to_closed']}, "
+            f"{len(moved['to_live'])} -> live {moved['to_live']}",
+            file=sys.stderr,
+        )
     if clear:
         for ib in inboxes:
             ib["_path"].unlink()

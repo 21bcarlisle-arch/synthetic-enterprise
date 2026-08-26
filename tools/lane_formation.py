@@ -57,6 +57,8 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+from tools import maturity_map_store as map_store
+
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 MAP_PATH = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
 STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".lane_formation_state.json"
@@ -78,8 +80,7 @@ class FormationUnavailable(RuntimeError):
 
 def _atoms() -> list[dict]:
     try:
-        import yaml
-        loaded = yaml.safe_load(MAP_PATH.read_text(encoding="utf-8"))
+        loaded = map_store.load_atoms(MAP_PATH)
     except Exception as exc:  # noqa: BLE001
         raise FormationUnavailable(f"the maturity map could not be read: {exc}") from exc
     atoms = loaded if isinstance(loaded, list) else (loaded or {}).get("atoms", [])

@@ -31,6 +31,7 @@ the tree it operates on is a stand-in.
 import fcntl
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -45,6 +46,10 @@ from background import process_run_complete as prc  # noqa: E402
 from tests.background.publish_gate_root_shape import (  # noqa: E402
     materialise_repo_shaped_root,
 )
+
+# `shutil.disk_usage`'s own return shape, so a stand-in cannot pass by being a different thing
+# from what the code under test unpacks.
+_DiskUsage = type(shutil.disk_usage("/"))
 
 
 def _git(args, cwd):
@@ -163,6 +168,26 @@ def sandbox(tmp_path, monkeypatch, logged):
     pytest_temp_root = tmp_path / "pytest-temps"
     pytest_temp_root.mkdir()
     monkeypatch.setattr(prc, "PYTEST_TEMP_ROOT_PARENT", pytest_temp_root)
+    # THE MACHINE'S FREE SPACE IS NOT THIS MODULE'S SUBJECT (2026-08-14, the twentieth wedge --
+    # and, like the eighteenth, this fixture WAS it).
+    #
+    # `HEAD_CHECKOUT_ROOT` is redirected above into `tmp_path`, which pytest puts under
+    # `tempfile.gettempdir()` -- on this box a 7.8G **tmpfs**. `_head_checkout`'s disk pre-flight
+    # then measured that tmpfs against the PRODUCTION floor (`HEAD_CHECKOUT_MIN_FREE_MB` = 400MB,
+    # sized for a real 8,662-file checkout) and refused to materialise a stand-in repo of eight
+    # files. Observed 2026-08-14 12:03Z, publishing wedged since 06:29Z, with the gate's own log
+    # line in the sandbox saying it outright: "DISK, not code -- only 354MB free". `df` agreed:
+    # /tmp at 96%. Production was never affected -- its root is `/var/tmp` on ext4, 888G free --
+    # so the red was the box's tmpfs weather wearing this test's name, and it would have cleared
+    # and returned on its own (`feedback_a_control_that_must_win_a_race_has_the_weather_as_its
+    # _subject`).
+    #
+    # So the pre-flight is PINNED here, exactly as `test_publish_gate_disk_preflight.py` pins it
+    # for its own subject -- that module owns the guard's behaviour in both directions and is
+    # where a change to it must show up. Nothing here weakens it: the constant is untouched, and
+    # `test_a_full_filesystem_under_the_sandbox_cannot_red_the_verdict` below is this pin's
+    # mutation test, red the moment this line is removed.
+    monkeypatch.setattr(prc, "_free_mb", lambda _p: prc.HEAD_CHECKOUT_MIN_FREE_MB * 10)
     monkeypatch.setattr(prc, "UNTRACKED_DATA_OVERLAY", ())
     monkeypatch.setattr(prc, "REUSED_CHECKOUT_KEEP", ("__pycache__",))
     monkeypatch.setattr(prc, "LAST_TESTED_HASH_FILE", tmp_path / ".last_tested_hash")
@@ -234,6 +259,33 @@ def test_mutation_pointing_the_gate_back_at_the_tree_reds(sandbox, monkeypatch):
         "with the shared tree as its subject the gate reds on work that was never committed -- "
         "if this passes, the checkout is no longer what decides the verdict")
     assert not prc.LAST_TESTED_HASH_FILE.exists()
+
+
+def test_a_full_filesystem_under_the_sandbox_cannot_red_the_verdict(sandbox, monkeypatch):
+    """MUTATION (R15) on the `sandbox` fixture's disk pin -- red the moment that pin is removed.
+
+    The incident this reproduces (2026-08-14, the twentieth wedge): the fixture's checkout root
+    lives on the box's tmpfs, the tmpfs was at 96%, and the production 400MB floor refused a
+    checkout for an eight-file stand-in repo -- so the verdict of the test above was the free
+    space on /tmp rather than anything about a dirty tree, and publishing stayed down 6h.
+
+    The sabotage is at the MACHINE measurement (`shutil.disk_usage`), one layer below the pin,
+    and it reports a genuinely full filesystem rather than an unreadable one: `_free_mb` maps an
+    OSError to None, and None already means "could not measure, proceed", so raising would pass
+    with or without the pin and prove nothing. Zero free bytes is the condition that actually
+    refuses. With the pin, `_free_mb` is never consulted and the verdict is unmoved."""
+    _break_the_working_tree(sandbox)
+    monkeypatch.setattr(prc, "publish_gate_pytest_argv", _argv_that_parses("pkg/thing.py"))
+    monkeypatch.setattr(prc.shutil, "disk_usage",
+                        lambda _p: _DiskUsage(total=1 << 40, used=1 << 40, free=0))
+
+    passed, timed_out = prc.run_fast_tests(_sha(sandbox))
+
+    assert passed is True, (
+        "the machine's free space decided this module's verdict -- the pre-flight is production "
+        "behaviour and belongs to test_publish_gate_disk_preflight.py, not to a fixture whose "
+        "checkout root pytest happens to place on a tmpfs")
+    assert timed_out is False
 
 
 def test_the_gate_runs_with_its_cwd_inside_the_checkout(sandbox, monkeypatch):
@@ -1300,9 +1352,13 @@ def _ops2_exit_text() -> str:
     import yaml
 
     sys.path.insert(0, str(REPO))
+    from tools import maturity_map_store as map_store
     from tools import simplifications_store as _store
 
-    raw = yaml.safe_load((REPO / "docs" / "design" / "maturity_map.yaml").read_text())
+    # BOTH HALVES. This walks the map for ONE atom by id, and that atom reaching its target is
+    # the success path -- at which point its record moves to the closed file and a drawn-half
+    # read finds nothing, which this test would report as "the simplification is absent".
+    raw = map_store.load_atoms(REPO / "docs" / "design" / "maturity_map.yaml")
     found = []
 
     def walk(node):

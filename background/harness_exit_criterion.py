@@ -55,6 +55,8 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from tools import maturity_map_store as map_store
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 
 RATIFICATION_DOC_PATH = (
@@ -177,11 +179,10 @@ def product_atoms(path: Path | None = None) -> dict[str, dict]:
     exists to serve. Harness machinery is excluded on either marker (lane or
     value_stream), so an atom cannot escape the exclusion by carrying only one.
     """
-    import yaml
 
     p = path or MAP_PATH
     try:
-        atoms = yaml.safe_load(p.read_text(encoding="utf-8"))
+        atoms = map_store.load_atoms(p)
     except Exception as exc:  # noqa: BLE001
         raise ExitCriterionError(
             f"maturity map {p} is unreadable ({type(exc).__name__}: {exc}); without it no atom "

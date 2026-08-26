@@ -49,6 +49,7 @@ from pathlib import Path
 import yaml
 
 from tools import effort_calibration as ec
+from tools import maturity_map_store as map_store
 
 PROJECT = Path(__file__).resolve().parent.parent
 MATURITY_MAP_YAML = PROJECT / "docs" / "design" / "maturity_map.yaml"
@@ -117,7 +118,7 @@ def _load_atoms():
     if not MATURITY_MAP_YAML.is_file():
         return []
     try:
-        data = yaml.safe_load(MATURITY_MAP_YAML.read_text())
+        data = map_store.load_atoms(MATURITY_MAP_YAML)
     except yaml.YAMLError:
         return []
     return data if isinstance(data, list) else []

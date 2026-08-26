@@ -84,6 +84,7 @@ from pathlib import Path
 import yaml
 
 from background import forward_attachment_register as far
+from tools import maturity_map_store as map_store
 from tools.merge_atom_status import (
     MergeError,
     _atom_block_bounds,
@@ -138,8 +139,8 @@ def _map_atoms(map_path: Path | None = None) -> dict[str, dict]:
     either (a candidate set of {} proposes nothing, and the door reads elsewhere)."""
     p = Path(map_path) if map_path else MAP_PATH
     try:
-        doc = yaml.safe_load(p.read_text(encoding="utf-8"))
-    except (OSError, yaml.YAMLError):
+        doc = map_store.load_atoms(p)
+    except (OSError, yaml.YAMLError, map_store.MapStoreError):
         return {}
     found: dict[str, dict] = {}
 
@@ -388,6 +389,123 @@ def apply_release(
     }
 
 
+# ------------------------------------------------- the discharge control (R10 class fix)
+
+# The map has exactly TWO legal states for a curriculum park, and `apply_release` is what
+# moves between them: `block_reason` present (parked), or the field ABSENT (released through
+# the door, which DELETES it). There is no third state, and this set is the enumeration of
+# that fact. Adding a name here is a deliberate act — a discharge recorded in a field nothing
+# reads is a hopeful pointer, not a record.
+LEGAL_BLOCK_FIELDS = frozenset({"block_reason"})
+
+
+def discharge_violations(map_path: Path | None = None, root: Path | None = None) -> dict:
+    """THE CONTROL over discharged blocks: a claim that a park ENDED must resolve.
+
+    Origin: `EP6_wall_protocol_typing` was moved `idle -> build` by a hand-authored
+    `block_reason_discharged:` citing "the director's instruction of 2026-08-19 naming EP6
+    for promotion". No such artefact exists on any channel, and the field itself is one this
+    codebase never writes and never reads — `apply_release` deletes `block_reason`, it does
+    not rename it. So the map recorded an authority that no reader can reach: the
+    `the record outran its code` shape applied to AUTHORITY instead of to code.
+
+    R10, so the POPULATION IS THE CLASS and not that cell: every `block_reason*` field on
+    every atom in the map. Two violations, and the pairing is the point —
+
+      `unknown_block_field`     — a `block_reason*` field outside `LEGAL_BLOCK_FIELDS`.
+                                  Renaming the claim to a new spelling IS this violation, so
+                                  the control cannot be greened by rewording it.
+      `unresolvable_discharge`  — such a field exists AND `release_verdict` finds no director
+                                  word naming the atom. This is the "cited artefact must
+                                  EXIST and NAME the atom" leg, and it deliberately reuses
+                                  the door's own recogniser rather than inventing a second
+                                  authority channel (CLAUDE.md: do not invent authority
+                                  checks).
+
+    WHAT THIS CANNOT SEE, stated rather than glossed. An atom whose `block_reason` is simply
+    DELETED by hand, with `loop_stage` set to `build`, is byte-indistinguishable from one the
+    door released honestly — the map carries no field saying "this atom is curriculum-gated"
+    other than the free-text gate itself, and `candidates()` already refuses to match on that
+    prose for good reason. Closing that needs a typed facet on the atom, which is queued as a
+    finding, not invented here.
+
+    TWO LEGS MEASURED AND REJECTED, because the plausible ones are the wrong population:
+      * "epoch >= 3 not parked must have a director release" — 109 of 164 epoch-3+ atoms are
+        already drawn at HEAD. `epoch` is the NARRATIVE arc label, not the gate.
+      * "a live `block_reason` on a drawn atom" — 10 such at HEAD, none of them this defect;
+        that is the known stale-park-cell class and is reported below, never enforced here.
+        (A further 11 carry the key with an EMPTY value; those belong to the existing
+        `unstated_reason_block` gate and are deliberately not counted with the 10.)
+
+    FAIL-CLOSED (R15): an unreadable map is a violation, not an empty pass; an unreadable
+    director source is a `blind_scan` violation, because an unavailable check is a FAILED
+    check. `population` is returned explicitly so an EMPTY population is visible rather than
+    silently green — a wall enforced over a rotation set of zero is this project's own
+    recurring defect, and this control's population legitimately drops to zero the moment the
+    EP6 cell is restored.
+    """
+    p = Path(map_path) if map_path else MAP_PATH
+    try:
+        doc = map_store.load_atoms(p)
+    except (OSError, yaml.YAMLError, map_store.MapStoreError) as exc:
+        return {
+            "atoms_scanned": 0, "population": 0, "stale_park_cells": [],
+            "violations": [{"kind": "unreadable_map", "path": str(p), "detail": str(exc)}],
+        }
+    if doc is None:
+        return {
+            "atoms_scanned": 0, "population": 0, "stale_park_cells": [],
+            "violations": [{"kind": "unreadable_map", "path": str(p),
+                            "detail": "map is empty"}],
+        }
+
+    atoms = _map_atoms(p)
+    violations: list[dict] = []
+    population: list[str] = []
+    stale_park_cells: list[str] = []
+
+    for atom_id in sorted(atoms):
+        atom = atoms[atom_id]
+        block_fields = sorted(k for k in atom if str(k).startswith("block_reason"))
+        for field in block_fields:
+            if field in LEGAL_BLOCK_FIELDS:
+                # Reported, never enforced — and TRUTHY only. A `block_reason:` present but
+                # EMPTY is the separate, already-gated `unstated_reason_block` class (11 such
+                # at HEAD); folding the two together would make this number mean two things.
+                if (atom.get(field) or "").strip() and (
+                    atom.get("loop_stage") or ""
+                ).strip() not in ("idle", ""):
+                    stale_park_cells.append(atom_id)
+                continue
+            population.append(atom_id)
+            violations.append({
+                "kind": "unknown_block_field", "atom_id": atom_id, "field": field,
+                "detail": (
+                    f"'{field}:' is not a field this codebase writes or reads; the door "
+                    "deletes 'block_reason', it does not rename it"
+                ),
+            })
+            verdict = release_verdict(atom_id, root)
+            for src in verdict["unreadable_sources"]:
+                violations.append({"kind": "blind_scan", "atom_id": atom_id, "source": src})
+            if not verdict["released"]:
+                violations.append({
+                    "kind": "unresolvable_discharge", "atom_id": atom_id, "field": field,
+                    "claim": str(atom.get(field) or "").strip(),
+                    "detail": (
+                        "the discharge cites an authority no director doc on disk contains: "
+                        + verdict["reason"]
+                    ),
+                })
+
+    return {
+        "atoms_scanned": len(atoms),
+        "population": len(population),
+        "stale_park_cells": sorted(set(stale_park_cells)),
+        "violations": violations,
+    }
+
+
 # -------------------------------------------------------------------------- the rendering
 
 def render_markdown(cases: list[dict], root: Path | None = None) -> str:
@@ -457,7 +575,10 @@ def check(root: Path | None = None, map_path: Path | None = None,
         problems.append({"kind": "stale_rendering", "path": str(rp)})
     for u in unreadable:
         problems.append({"kind": "blind_scan", "source": u})
-    return {"cases": cases, "problems": problems, "rendering": expected}
+    discharges = discharge_violations(map_path, root)
+    problems.extend(discharges["violations"])
+    return {"cases": cases, "problems": problems, "rendering": expected,
+            "discharges": discharges}
 
 
 def main(argv=None) -> int:
@@ -486,9 +607,16 @@ def main(argv=None) -> int:
     for c in res["cases"]:
         print(f"{c['atom_id']:44s} {c['attachment_count']:3d} built toward  "
               f"{'RELEASED' if release_verdict(c['atom_id'])['released'] else 'pending'}")
+    d = res["discharges"]
+    print(f"discharge control: {d['atoms_scanned']} atoms scanned, "
+          f"population {d['population']}, {len(d['violations'])} violations"
+          + (f", {len(d['stale_park_cells'])} stale park cells (reported, not enforced)"
+             if d["stale_park_cells"] else ""))
     if args.check and res["problems"]:
         for p in res["problems"]:
-            print(f"PROBLEM {p['kind']}: {p.get('path') or p.get('source')}", file=sys.stderr)
+            print(f"PROBLEM {p['kind']}: "
+                  f"{p.get('atom_id') or p.get('path') or p.get('source')}"
+                  f"{' — ' + p['detail'] if p.get('detail') else ''}", file=sys.stderr)
         return 1
     return 0
 

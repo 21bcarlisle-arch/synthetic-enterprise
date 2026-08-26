@@ -396,18 +396,51 @@ BASELINE_DATE = "2026-08-06"
 #   F401 277 is NOT this pass's doing — it was already one BELOW the floor at pristine
 #   HEAD, i.e. someone deleted an unused import without lowering the baseline. Shrunk
 #   here per the shrink-only rule, which is the whole point of the stale-entry check.
+#   2026-08-26  I001 1373 -> 1362, F401 277 -> 273, E402 176 -> 174, E401 21 -> 20
+#     THE RATCHET CAUGHT THE MAP SPLIT, which is the first time it has caught anything it was
+#     not pointed at, and it is worth recording as evidence that it works rather than as a
+#     chore. The harness-lane prune inserted `from tools import maturity_map_store as map_store`
+#     into 47 modules by hand; the resulting tree came in at I001 1398 (+25), F401 291 (+14) and
+#     E402 179 (+3) against this baseline, and the landing was REFUSED. Fixed at source per this
+#     ratchet's stated remedy -- `ruff --select I001,F401 --fix` on exactly the landed pathspec,
+#     then six `# noqa: E402` annotations where the store import must follow a `sys.path.insert`
+#     -- and never by raising a count.
+#
+#     TWO DEAD PROBES DELETED RATHER THAN ANNOTATED, and the distinction matters because a
+#     `noqa` on genuinely dead code is debt wearing a permit. `background/health_check.py` and
+#     `tools/discovery_pass_ceiling.py` each opened with `try: import yaml / except ImportError`
+#     guarding a parse that the store now performs. The store imports yaml at MODULE scope, so a
+#     missing yaml fails those modules' own imports long before either probe is reached: the
+#     branches were unreachable, no test asserted them, and they are gone with the parse they
+#     guarded.
+#
+#     THE 08-06 WARNING ABOUT `--fix` FIRED AGAIN, EXACTLY AS WRITTEN. On
+#     `background/supervisor.py` ruff's isort split a single
+#     `from background.coupled_triad import (...)  # noqa: E402` into two statements and carried
+#     the `noqa` onto only one of them, minting a fresh E402 while clearing an I001. Restored by
+#     hand. It was caught the way that entry says to catch it: the per-file, per-code census of
+#     the RESULTING TREE was set-differenced against a `git archive HEAD` extraction, and that
+#     diff contains ONLY removals -- 18 of them, in 13 files, summing exactly to 2378 -> 2360.
+#     No total would have shown this; the sum was going down either way.
+#
+#     The floor therefore drops on four codes at once. Every one of the 18 is a real violation
+#     removed from a real file, and 7 of them (gate_authorization F401 x2, health_check I001 x2,
+#     naive_organ F401, process_run_complete I001, moap_stage F401) were PRE-EXISTING debt the
+#     same `--fix` pass cleared incidentally -- shrink-only, so they are recorded here rather
+#     than left as stale entries, which is the failure the 08-09 episode-3 entry above wedged
+#     the publish gate on.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
-    "I001": 1373,
-    "F401": 277,
-    "E402": 176,
+    "I001": 1362,
+    "F401": 273,
+    "E402": 174,
     "F841": 128,
     "E741": 108,
     "F811": 95,
     "E702": 76,
     "E701": 45,
     "F541": 27,
-    "E401": 21,
+    "E401": 20,
     "E731": 19,
     "W293": 19,
     "E722": 5,
@@ -418,7 +451,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2378  # was 2379; -1 (F401 278 -> 277; see the 2026-08-26 entry)
+RUFF_BASELINE_TOTAL = 2360  # was 2378; -18 across four codes (see the 2026-08-26 entry)
 
 
 # --------------------------------------------------------------------------

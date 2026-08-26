@@ -174,6 +174,11 @@ CODE_PREFIXES = (
 # effect is caught at commit time.
 LEVEL_SURFACE_FILES = (
     "docs/design/maturity_map.yaml",
+    # THE OTHER HALF OF THE SAME MAP (2026-08-26, the harness-lane prune). Splitting the
+    # finished atoms into a sibling file would otherwise have MADE a fail-open here: a level
+    # or target edit landing in the closed half would have selected no level-sensitive test at
+    # all, because this list named one of the two files the map now consists of.
+    "docs/design/maturity_map_closed.yaml",
     "docs/observability/gate_authorizations.jsonl",
 )
 # The map/store contract, named once and shared by both surfaces that can break it (the map
@@ -1378,7 +1383,18 @@ def main() -> int:
     targets = select_targets(staged)
     if not targets:
         return 0  # pure docs/data commit -- nothing that can break a control
-    print(f"[test-gate] {len(targets)} test file(s): {', '.join(targets)}")
+    # FLUSHED, AND THE FLUSH IS NOT COSMETIC (2026-08-26). `subprocess.run` below inherits this
+    # process's fds, so pytest writes STRAIGHT to them while every `print` above sits in Python's
+    # block buffer -- which, whenever this hook's output is captured to a pipe rather than a tty,
+    # flushes at EXIT and lands BEHIND the child's. The whole of this gate's narration therefore
+    # arrived after pytest's, so the TAIL of the captured stream -- the thing
+    # `child_diagnostics.verdict_excerpt` reads to name the step that refused -- was always this
+    # line and never the red nodes. Three consecutive `surgical_land` refusals quoted a file list
+    # under the word REFUSED as a result (fixed the other way in `8af9488a1`, by capping what one
+    # line may take of the excerpt budget; this makes the ORDER honest, which is the half that
+    # belongs here). Flushing before handing the fds to a child is the general rule, not a patch
+    # for this call site.
+    print(f"[test-gate] {len(targets)} test file(s): {', '.join(targets)}", flush=True)
     gitless_env = _gitless_env(os.environ)
     r = subprocess.run(
         [sys.executable, "-m", "pytest", *targets, "-q", "--no-header", "-p", "no:cacheprovider"],

@@ -28,6 +28,8 @@ from pathlib import Path
 import yaml
 
 PROJECT = Path(__file__).resolve().parent.parent.parent
+from tools import maturity_map_store as map_store  # noqa: E402
+
 MAP_PATH = PROJECT / "docs" / "design" / "maturity_map.yaml"
 
 if str(PROJECT) not in sys.path:
@@ -768,7 +770,7 @@ def check_block_hygiene(atoms: list) -> list:
 
 
 def _load_live_atoms() -> list:
-    return yaml.safe_load(MAP_PATH.read_text())
+    return map_store.load_atoms(MAP_PATH)
 
 
 # ── tests over the LIVE map (the phase-close gate itself) ────────────────────

@@ -33,11 +33,27 @@ PROJECT = Path(__file__).resolve().parent.parent.parent
 REAL_MAP = PROJECT / "docs" / "design" / "maturity_map.yaml"
 REAL_STORE = PROJECT / "docs" / "design" / "simplifications"
 
-# Two disjoint real atoms currently at level 0 -- the H9/H10 pair this build
-# is for. Kept generic (looked up, not hard-required) so the test survives a
-# level bump of either atom.
-ATOM_A = "H9_map_write_serialisation"
-ATOM_B = "H10_worktree_isolation"
+def _two_drawn_atom_ids() -> tuple[str, str]:
+    """Two disjoint real atoms taken from the DRAWN half at runtime, because the drawn half is
+    the one `merge` writes.
+
+    This header used to claim the pair was "looked up, not hard-required ... so the test
+    survives a level bump", while the code hardcoded `H9_map_write_serialisation` and
+    `H10_worktree_isolation`. The 2026-08-26 map split collected the claim: both atoms had
+    reached their targets, both moved to `maturity_map_closed.yaml`, and the fold went looking
+    for them in the live half and raised `atom id not found` -- which reads like a merge defect
+    and is nothing of the kind. Reaching target is the SUCCESS path, so any hardcoded live-half
+    id is a time bomb with a misleading failure message on it. Taking the pair from the half
+    under test cannot rot that way; `test_EVERY_atom_in_the_real_map_is_foldable` is the proof
+    standing behind "any two of them will do"."""
+    from tools import maturity_map_store as map_store
+
+    ids = [a["id"] for a in map_store.load_live_atoms()]
+    assert len(ids) >= 2, "the drawn half must hold two atoms for the no-lost-update proof"
+    return ids[0], ids[1]
+
+
+ATOM_A, ATOM_B = _two_drawn_atom_ids()
 
 
 def _split_blocks(text: str) -> dict[str, str]:
@@ -195,10 +211,15 @@ def test_merge_lands_both_and_preserves_every_other_atom(tmp_path):
     changed = {k for k in before_blocks if before_blocks[k] != after_blocks[k]}
     assert changed == {ATOM_A, ATOM_B}, f"unexpected blocks changed: {changed}"
 
-    # hand-authored fields on an untouched atom are intact (spot check)
-    d1 = next(a for a in yaml.safe_load(before) if a["id"] == "D1_bill_correctness")
-    d2 = next(a for a in yaml.safe_load(after) if a["id"] == "D1_bill_correctness")
-    assert d1 == d2
+    # Hand-authored fields on untouched atoms are intact. This was a spot check on one
+    # hardcoded id (`D1_bill_correctness`) until that atom reached its target and moved to the
+    # closed half, at which point the check raised StopIteration -- it had been silently
+    # testing nothing about the atom it named, and then failed for a reason unrelated to the
+    # fold. Every atom EXCEPT the two folded is a strictly stronger claim than any one of them
+    # and has nothing left to go stale.
+    untouched_before = {a["id"]: a for a in yaml.safe_load(before) if a["id"] not in (ATOM_A, ATOM_B)}
+    untouched_after = {a["id"]: a for a in yaml.safe_load(after) if a["id"] not in (ATOM_A, ATOM_B)}
+    assert untouched_before and untouched_before == untouched_after
 
     # inboxes cleared after a successful fold
     assert not list(inbox_dir.glob("*.yaml"))

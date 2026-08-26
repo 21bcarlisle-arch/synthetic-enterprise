@@ -18,6 +18,7 @@ from pathlib import Path
 
 import yaml
 
+from tools import maturity_map_store as map_store
 from tools.merge_atom_status import unfolded_inbox_ids
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -97,7 +98,11 @@ def _duplicate_keys_by_atom(text: str) -> dict:
 def test_no_atom_in_the_real_map_has_duplicate_keys():
     """THE control: a duplicate key is silent data loss -- the shadowed value is
     simply gone, and every reader agrees on the wrong answer."""
-    dupes = _duplicate_keys_by_atom(REAL_MAP_YAML.read_text(encoding="utf-8"))
+    # `map_text()` is the concatenation of BOTH halves, which is what this scanner wants: a
+    # duplicate key is silent data loss wherever the record lives, and a closed atom's record
+    # is still read by every survey. Scanning the drawn half alone would leave 224 records
+    # unchecked by a control whose whole subject is records nobody re-reads.
+    dupes = _duplicate_keys_by_atom(map_store.map_text(REAL_MAP_YAML))
     assert dupes == {}, (
         "atom(s) with duplicate keys -- pyyaml keeps the LAST silently, so the "
         f"shadowed value is lost with no error anywhere: {dupes}"
@@ -204,7 +209,7 @@ def _map_findings_vs_ledger(atoms, ledger, store_dir=None):
 
 def _real_map_and_ledger():
     return (
-        yaml.safe_load(REAL_MAP_YAML.read_text(encoding="utf-8")),
+        map_store.load_atoms(REAL_MAP_YAML),
         json.loads(REAL_LEDGER.read_text(encoding="utf-8")),
     )
 

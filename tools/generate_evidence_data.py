@@ -94,6 +94,7 @@ if str(PROJECT) not in sys.path:
 # end. site/ is already on sys.path above.
 import ia_register as _ia  # noqa: E402
 
+from tools import maturity_map_store as map_store  # noqa: E402
 from tools import simplifications_store as store  # noqa: E402 (H41 record tenant)
 
 MAP_PATH = PROJECT / "docs" / "design" / "maturity_map.yaml"
@@ -202,7 +203,7 @@ def atom_records(map_path: Path = MAP_PATH) -> dict[str, dict]:
     dependency at publish scope. Captures the scalar fields this page shows plus the
     multi-line-tolerant `evidence:` list.
     """
-    text = _require(map_path, "maturity map")
+    text = map_store.map_text(map_path) if Path(map_path).exists() else _require(map_path, "maturity map")
     records: dict[str, dict] = {}
     current: str | None = None
     ev_buf: list[str] | None = None

@@ -112,6 +112,73 @@ def test_the_LIVE_book_reports_a_verdict_consistent_with_its_own_rows(tmp_path):
                                              and data["median_implied_bill_change_pct"] < 25.0)
 
 
+def _a_book_of(n: int) -> tuple[dict, dict]:
+    """A synthetic book wide enough for a CONCENTRATION to mean something.
+
+    NOT THE LIVE BOOK, AND THAT IS THE POINT. The first version of the two controls below read
+    the published book, and the pre-commit gate refused them: the gate builds its tree from HEAD
+    plus the pathspec, `latest_run_output()` picks the newest `run_output_*.json` ON DISK, and
+    the newest one here was an untracked artefact another lane had just written. The control was
+    therefore graded against a different book from the one it passed on -- a control whose
+    subject moves under it is not measuring what it names (R15 fail-open by drifting subject).
+    The population claim is about the SEARCH, so the book only has to be varied and wide.
+    """
+    run, customers = {}, []
+    for i in range(n):
+        cid = f"S{i}"
+        run[cid] = {"segment": "resi", "cost_to_serve_gbp": 60.0 + 2.0 * (i % 25),
+                    "commodity": "electricity"}
+        kwh = 1200.0 + 300.0 * (i % 40)
+        rate = 110.0 + 1.7 * (i % 30)
+        customers.append({"legs": {"e": {
+            "cid": cid, "total_kwh": kwh * 3, "avg_rate_gbp_per_mwh": rate,
+            "bill_count": 36, "revenue_gbp": kwh * 3 * rate / 1000.0}}})
+    return {"per_customer_lifetime": run}, {"customers": customers}
+
+
+def test_a_WIDE_book_does_not_pile_a_THIRD_of_itself_onto_ONE_MARGIN():
+    """THE POPULATION CONTROL, and the one that would have caught this a week earlier.
+
+    Nothing in the per-account record was wrong on 2026-08-25 -- each row was a legitimate argmax
+    over the candidates it was given. The defect was only visible ACROSS the book: 107 of 263
+    published accounts on exactly GBP 130/MWh and 83 more on exactly 100, two rungs of the
+    module's own candidate grid carrying 72% of the customers. A per-customer decision that
+    returns the same number for a third of the book is reporting its own constants, and no
+    single-account test can see it.
+
+    The threshold is 10% and it is a long way from both sides: measured on the published book,
+    the grid-quantised record was 40.7% and the refined one is 1.9%.
+
+    MUTATION (must fire): return the grid's argmax instead of refining it.
+    """
+    run, book = _a_book_of(60)
+    out = cvp.compare(run, book)
+
+    assert out["accounts_priced"] >= 50, "too few accounts for a concentration to mean anything"
+    assert out["chosen_margin_concentration"] < 0.10, (
+        "{:.1%} of the book was given one identical margin, so the answer is being quantised "
+        "onto something other than the customer".format(out["chosen_margin_concentration"])
+    )
+
+
+def test_a_WIDE_book_separates_a_TRIMMED_grid_from_a_BINDING_bound():
+    """The record's own reading of itself, pinned. On the published book 165 accounts have
+    candidates removed by the support bound and NONE of them would have chosen a removed one --
+    the two facts have to be separately legible or the count gets read as the cause, which is
+    exactly what happened.
+
+    MUTATION (must fire): set `extrapolation_bound = candidates_removed > 0` again.
+    """
+    run, book = _a_book_of(60)
+    out = cvp.compare(run, book)
+
+    assert out["grid_trimmed"] > 0, "nothing was trimmed on this book, so this proves nothing"
+    assert out["extrapolation_bound"] < out["grid_trimmed"], (
+        "every account whose grid was trimmed is also reported as having been DECIDED by the "
+        "bound, which is the conflation this field exists to stop"
+    )
+
+
 # --------------------------------------------------------------------------- #
 # The coupled-triad measurement: belief against truth, at the chosen price     #
 # --------------------------------------------------------------------------- #
@@ -233,6 +300,183 @@ def test_an_UNSCORABLE_average_leaves_the_cause_open_rather_than_asserting_one()
     clause = cvp._control_clause({"available": False}, [])
 
     assert "could not be scored" in clause and "stays open" in clause
+
+
+# ---------------------------------------------------------------------------
+# The two sides are not independent (2026-08-26)
+# ---------------------------------------------------------------------------
+
+def test_the_shared_calibration_is_READ_OFF_THE_TREE_and_can_come_apart(tmp_path):
+    """THE NULL CONTROL, and without it "co-calibrated" is also satisfied by the constant True.
+
+    The claim is that the company's estimator and the world's price response descend from one
+    published series. A tool asserting that about itself is checked by nothing: the day one side
+    is genuinely re-calibrated the assertion goes stale in the flattering direction, because a
+    stale "not independent" is the caveat that never lifts and a stale "independent" is the one
+    that publishes shared arithmetic as inference.
+
+    MUTATION (must fire): return a hard-coded `co_calibrated: True`.
+    """
+    live = cvp.shared_calibration_holds()
+    assert live["co_calibrated"] is True
+    assert all(s["cites_the_series"] for s in live["sides"].values())
+
+    # Now a tree where the WORLD leg cites something else entirely. Nothing about this tool
+    # changes; the record must.
+    for side in live["sides"].values():
+        src = tmp_path / side["source"]
+        src.parent.mkdir(parents=True, exist_ok=True)
+        src.write_text((REPO / side["source"]).read_text(encoding="utf-8"), encoding="utf-8")
+    world = tmp_path / live["sides"]["world"]["source"]
+    world.write_text(world.read_text(encoding="utf-8").replace(
+        live["sides"]["world"]["witness"], "Calibrated from this supplier's own departures"),
+        encoding="utf-8")
+
+    import unittest.mock as _mock
+    with _mock.patch.object(cvp, "PROJECT", tmp_path):
+        recalibrated = cvp.shared_calibration_holds()
+
+    assert recalibrated["co_calibrated"] is False
+    assert recalibrated["sides"]["world"]["cites_the_series"] is False
+    assert recalibrated["sides"]["company"]["cites_the_series"] is True
+
+
+def test_a_witness_that_cannot_be_READ_leaves_the_pair_UNPUBLISHABLE(tmp_path):
+    """R15 fail-silent, in the direction that matters: an unavailable check is a FAILED check.
+    "We could not read the source" is not "the two sides are independent", and resolving it the
+    other way would let a moved file discharge the refusal."""
+    import unittest.mock as _mock
+
+    with _mock.patch.object(cvp, "PROJECT", tmp_path / "nothing-here"):
+        blind = cvp.shared_calibration_holds()
+
+    assert blind["co_calibrated"] is True
+    assert blind["unreadable"] and all(
+        s["cites_the_series"] is None for s in blind["sides"].values())
+
+
+def test_an_account_scored_where_the_world_EXTRAPOLATES_says_so_on_its_own_ROW():
+    """The world's curve stops being a measurement partway along itself: past
+    `_CALIBRATED_SAVINGS_CEILING_GBP` of annual shortfall it continues the last informed slope,
+    which is a named simplification and not an observation. A reader of ONE account cannot tell
+    which side of that line the comparison was struck on unless the row says.
+
+    MUTATION (must fire): report `world_curve_beyond_calibration: False` for every account.
+    """
+    from simulation.market_switching_propensity import (
+        _CALIBRATED_SAVINGS_CEILING_GBP,
+        CALIBRATION_ANNUAL_BILL_GBP,
+    )
+    from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
+
+    svt = get_svt_elec_rate_gbp_per_mwh("2025-01-01")
+    edge = _CALIBRATED_SAVINGS_CEILING_GBP / CALIBRATION_ANNUAL_BILL_GBP   # 23.5% dearer
+
+    def _at(differential):
+        return cvp.belief_versus_truth(
+            offered_rate=svt * (1.0 + differential), current_rate=svt, tenure_years=4.0,
+            eac_kwh=3100, segment="resi", term_start="2025-01-01")
+
+    inside, beyond = _at(edge * 0.5), _at(edge * 2.0)
+
+    assert inside["world_curve_beyond_calibration"] is False
+    assert "observed" in inside["world_curve_basis"]
+    assert beyond["world_curve_beyond_calibration"] is True
+    assert "EXTRAPOLATED" in beyond["world_curve_basis"]
+    # The threshold is the WORLD'S OWN constant, not a copy of it that can drift apart.
+    assert beyond["world_calibration_ceiling_gbp"] == _CALIBRATED_SAVINGS_CEILING_GBP
+    assert inside["both_sides_calibrated_from"] == cvp.SHARED_CALIBRATION_SERIES
+
+
+def test_a_CHEAPER_position_is_SATURATED_and_never_flagged_as_EXTRAPOLATED():
+    """THE THIRD STATE, and it is not pedantry. The ceiling bounds the DEARER leg only: below
+    parity `churn_position_multiplier` is the exact reciprocal of the win leg and extrapolates
+    nothing, so flagging a keen price as out-of-observation would inflate the count and make the
+    refusal unfalsifiable. But a GBP 468/yr saving is not "inside the calibrated window" either --
+    the win leg is FLAT there, at a ceiling the world defends as real (you cannot win more
+    customers than the market has engaged households to give). Reporting a saturation as an
+    observation is the same lie in the opposite direction.
+
+    MUTATION (must fire): collapse the three states back to `beyond ? extrapolated : observed`.
+    """
+    from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
+
+    svt = get_svt_elec_rate_gbp_per_mwh("2025-01-01")
+    deep = cvp.belief_versus_truth(offered_rate=svt * 0.4, current_rate=svt, tenure_years=4.0,
+                                   eac_kwh=3100, segment="resi", term_start="2025-01-01")
+    keen = cvp.belief_versus_truth(offered_rate=svt * 0.95, current_rate=svt, tenure_years=4.0,
+                                   eac_kwh=3100, segment="resi", term_start="2025-01-01")
+
+    assert deep["world_curve_beyond_calibration"] is False
+    assert "saturated" in deep["world_curve_basis"]
+    assert keen["world_curve_beyond_calibration"] is False
+    assert "observed" in keen["world_curve_basis"]
+
+
+def test_the_gap_REFUSES_to_be_published_as_inference_while_the_sides_share_a_source():
+    """The published median error is a real measurement of a real disagreement. What it is NOT is
+    evidence that the company inferred anything -- two fits of one series disagree about noise,
+    and that disagreement has exactly the shape a reader will quote as foresight.
+
+    MUTATION (must fire): report `publishable_as_evidence_of_inference: True` regardless.
+    """
+    rows = [{"belief_vs_truth": {"belief_error_pp": e, "price_differential_vs_svt": d,
+                                 "world_curve_beyond_calibration": d > 0.24}}
+            for e, d in ((-3.0, 0.53), (2.0, 0.10), (6.0, 0.60))]
+
+    summary = cvp._belief_summary(rows)
+
+    assert summary["publishable_as_evidence_of_inference"] is False
+    assert summary["scored_beyond_the_world_calibration"] == 2
+    assert summary["share_beyond_the_world_calibration"] == pytest.approx(0.667, abs=0.001)
+    assert "NOT EVIDENCE" in summary["refusal"]
+    assert summary["shared_calibration"]["what_would_discharge_it"]
+    # The verdict paragraph is what gets pasted into a digest, so the refusal has to travel in it.
+    assert "NOT evidence of the company's inference" in cvp._co_calibration_clause(summary)
+
+
+def test_the_refusal_LIFTS_when_the_sides_stop_sharing_a_source(monkeypatch):
+    """THE OTHER HALF OF THE NULL. A refusal that cannot be discharged is a constant, and a
+    constant caveat teaches a reader to skip it. Once the two sides are independent the same rows
+    must become publishable and the clause must say so."""
+    monkeypatch.setattr(cvp, "shared_calibration_holds", lambda: {
+        "co_calibrated": False, "series": "two independent series", "sides": {},
+        "unreadable": [], "why_it_disqualifies_the_gap": "", "what_would_discharge_it": ""})
+    rows = [{"belief_vs_truth": {"belief_error_pp": 2.0, "price_differential_vs_svt": 0.1,
+                                 "world_curve_beyond_calibration": False}}]
+
+    summary = cvp._belief_summary(rows)
+
+    assert summary["publishable_as_evidence_of_inference"] is True
+    assert summary["refusal"] == ""
+    assert "no longer share a calibration source" in cvp._co_calibration_clause(summary)
+
+
+def test_the_LEDGER_write_refuses_a_CO_CALIBRATED_pair():
+    """A caveat nested three keys deep does not survive being quoted; the ledger is where this
+    pair is read as the company's inference against the world's truth. Declaring the twin on the
+    map would not make the two sides independent, so this refusal sits AHEAD of that one."""
+    source = (REPO / "tools/couple_value_based_pricing.py").read_text(encoding="utf-8")
+    tail = source[source.index("if __name__ =="):]
+
+    assert "shared_calibration_holds()" in tail
+    assert tail.index("shared_calibration_holds()") < tail.index("write_gap_entry(")
+    assert tail.index('co_calibrated') < tail.index("write_gap_entry(")
+
+
+def test_the_price_belief_gap_CARRIES_the_refusal_into_its_own_components():
+    """A note is the first thing an aggregator drops. The ledger row a later reader consults must
+    carry the disqualification as a FIELD, not only as prose."""
+    rows = [{"belief_vs_truth": {"company_believes_p_leave": 0.2, "world_would_p_leave": w,
+                                 "world_curve_beyond_calibration": True}}
+            for w in (0.05, 0.10, 0.30, 0.40)]
+
+    gap = cvp.price_belief_gap(rows)
+
+    assert gap.components["publishable_as_evidence_of_inference"] is False
+    assert gap.components["accounts_beyond_the_world_calibration"] == 4
+    assert cvp.SHARED_CALIBRATION_SERIES == gap.components["co_calibrated_from"]
+    assert "NOT PUBLISHABLE AS EVIDENCE" in gap.note
 
 
 def test_the_price_belief_gap_is_scored_against_NO_SKILL_not_against_zero():

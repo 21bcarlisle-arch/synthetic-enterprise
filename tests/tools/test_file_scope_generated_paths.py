@@ -17,6 +17,7 @@ from __future__ import annotations
 import pytest
 
 from tools import file_scope_generated_paths as fs
+from tools import maturity_map_store as map_store  # noqa: E402
 
 GENERATED = {"site/data/dashboard.json", "site/data/glossary.json"}
 
@@ -121,7 +122,7 @@ def test_the_repaired_instance_stays_repaired():
     ground in its scope) rather than the exact path list, so a legitimate scope edit does not
     fail here while a regression to `site/data/` does."""
     import yaml
-    loaded = yaml.safe_load(fs.MAP_PATH.read_text(encoding="utf-8"))
+    loaded = map_store.load_atoms(fs.MAP_PATH)
     atoms = loaded if isinstance(loaded, list) else (loaded or {}).get("atoms", [])
     g13 = next(a for a in atoms
                if isinstance(a, dict) and a.get("id") == "G13_projection_consumers")

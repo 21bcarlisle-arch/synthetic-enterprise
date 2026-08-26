@@ -32,6 +32,8 @@ import json
 import re
 from pathlib import Path
 
+from tools import maturity_map_store as map_store
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 GAP_LEDGER_PATH = PROJECT_DIR / "docs" / "observability" / "coupled_gap_ledger.json"
 MATURITY_MAP_PATH = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
@@ -347,7 +349,7 @@ def _load_map_atoms() -> list:
     except ImportError:
         return []
     try:
-        atoms = yaml.safe_load(MATURITY_MAP_PATH.read_text(encoding="utf-8"))
+        atoms = map_store.load_atoms(MATURITY_MAP_PATH)
     except (OSError, yaml.YAMLError):
         return []
     return atoms if isinstance(atoms, list) else []

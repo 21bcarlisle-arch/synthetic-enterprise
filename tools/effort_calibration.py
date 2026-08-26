@@ -39,7 +39,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-import yaml
+from tools import maturity_map_store as map_store
 
 PROJECT = Path(__file__).resolve().parent.parent
 MATURITY_MAP_YAML = PROJECT / "docs" / "design" / "maturity_map.yaml"
@@ -97,7 +97,7 @@ def load_atom_registry(map_path: Path = MATURITY_MAP_YAML) -> dict[str, dict]:
     activate automatically the day FRAME starts populating them, with no
     change to this tool. The extra fields are additive -- existing callers
     that only read 'lane'/'size' are unaffected."""
-    data = yaml.safe_load(map_path.read_text()) or []
+    data = map_store.load_atoms(map_path) or []
     registry: dict[str, dict] = {}
     for atom in data:
         aid = atom.get("id")

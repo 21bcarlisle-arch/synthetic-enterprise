@@ -23,16 +23,23 @@ from __future__ import annotations
 
 import copy
 
-import yaml
-
-import tools.generate_proof_data as gpd
 import background.coupled_triad as ct
+import tools.generate_proof_data as gpd
+from tools import maturity_map_store as map_store
 
 MATURITY_MAP = gpd.MATURITY_MAP_YAML
 
 
 def _atoms():
-    return yaml.safe_load(MATURITY_MAP.read_text())
+    """THE WHOLE MAP, through the store, because that is what the code under test reads.
+
+    `gpd._load_atoms()` calls `map_store.load_atoms()`. Parsing the drawn half here instead
+    would have made this test's expectation a DIFFERENT population from the subject's -- and
+    when the map became two files that is exactly what happened: every coupled world atom at
+    >=L2 had reached its target, so it sat in the closed half, `expected_ge_l2` came back
+    empty, and the fail-open guard on line ~247 fired against a map that was entirely healthy.
+    An expectation must be read from the same place as the thing it judges."""
+    return map_store.load_atoms(MATURITY_MAP)
 
 
 def _real_ledger():

@@ -95,6 +95,7 @@ if str(ROOT) not in sys.path:
 
 # Reuse AO1's row builder verbatim -- this module must never re-derive the orphan set it checks
 # against, or G6 would be measuring the ledger against a second opinion of its own making.
+from tools import maturity_map_store as map_store  # noqa: E402 (after the sys.path setup above)
 from tools.capability_index import build_rows, orphans  # noqa: E402
 
 MAP_REL = "docs/design/maturity_map.yaml"
@@ -390,18 +391,26 @@ def _staged_paths(root: Path) -> set:
     return {line.strip() for line in out.stdout.splitlines() if line.strip()}
 
 
+def _whole_map_at(root: Path, rev_prefix: str) -> str | None:
+    """Both halves of the map at a revision, concatenated -- an epoch closes across the whole
+    map, and since 2026-08-26 the finished atoms of a closing epoch live in the closed half."""
+    parts = [t for t in (_git_show(root, rev_prefix + rel) for rel in map_store.MAP_PARTS_REL)
+             if t is not None]
+    return "\n".join(parts) if parts else None
+
+
 def gate(root: Path) -> tuple[int, list[str]]:
     """Refuse a commit that CLOSES an epoch with no committed pass record for it."""
-    if MAP_REL not in _staged_paths(root):
+    if not any(rel in _staged_paths(root) for rel in map_store.MAP_PARTS_REL):
         return 0, ["consolidation gate: map not staged -- no epoch can close in this commit."]
 
-    staged_map = _git_show(root, ":" + MAP_REL)
+    staged_map = _whole_map_at(root, ":")
     if staged_map is None:
         return 2, ["the map is staged but its blob is unreadable -- refusing rather than allowing "
                    "an unverifiable epoch close (fail-closed)."]
     staged_atoms = atoms_from_map(staged_map)
 
-    head_map = _git_show(root, "HEAD:" + MAP_REL)
+    head_map = _whole_map_at(root, "HEAD:")
     # No map at HEAD: treat every closed epoch as newly closed. Fail-closed direction.
     head_closed = closed_epochs(atoms_from_map(head_map)) if head_map else set()
     newly_closed = closed_epochs(staged_atoms) - head_closed
@@ -479,7 +488,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.record:
             return _do_record(args, root, ledger)
 
-        atoms = atoms_from_map((root / MAP_REL).read_text(encoding="utf-8"))
+        atoms = atoms_from_map(map_store.map_text(root / MAP_REL))
         paths, scanned = live_orphan_paths(root)
         failures, report = check(read_ledger(ledger), atoms, paths, root)
         print("CONSOLIDATION RHYTHM -- %d atoms, %d modules scanned, %d record(s)"

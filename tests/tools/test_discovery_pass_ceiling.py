@@ -20,6 +20,7 @@ import json
 import pytest
 
 from tools import discovery_pass_ceiling as ceiling
+from tools import maturity_map_store as map_store
 
 
 def _ts(day: str) -> float:
@@ -618,6 +619,21 @@ def test_MUTATION_an_unreachable_target_beside_payable_work_gets_neither_of_the_
     crit = ceiling.exit_criterion("EP6_wall_protocol_typing")
     assert crit is not None, "EP6's recorded battery has gone missing"
     assert crit["unpayable"] and crit["payable"], crit
+    # THE STATE MOVED ON, 2026-08-26, and the docstring above says what to do about it: EP6
+    # reached its own target (2/2), so it is no longer below target and this module surveys
+    # only atoms that are. The fourth answer has stopped being needed FOR THIS ATOM -- which is
+    # a fact to be told rather than a test to delete, so the sibling fixture test below still
+    # proves the verdict shape and this one reports the live state honestly instead of dying on
+    # a StopIteration that reads like the control broke.
+    atom = next(
+        (a for a in map_store.load_atoms() if a.get("id") == "EP6_wall_protocol_typing"), None
+    )
+    assert atom is not None, "EP6 has left the map entirely -- that is a different finding"
+    if atom.get("level_current", 0) >= atom.get("level_target", 0):
+        pytest.skip(
+            "EP6 reached its target; an at-target atom is outside this module's survey, so the "
+            "live-tree instance of the fourth answer has been discharged by the level move"
+        )
     row = next(r for r in ceiling.decisions(5) if r["atom"] == "EP6_wall_protocol_typing")
     assert "UNREACHABLE HERE" in row["decision"], row["decision"]
     assert "BUILD WORK REMAINS" in row["decision"]

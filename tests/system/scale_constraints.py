@@ -53,6 +53,7 @@ from company.interfaces.bitemporal_event_log import BitemporalEventLog
 # ── production sources under test — imported at module scope so a monkeypatch
 # against the SOURCE module (the R15 break) is seen by the probes below ───────
 from saas import bill_generator
+from tools import maturity_map_store as map_store
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -623,7 +624,11 @@ def assert_durable_state_is_not_forked(record: dict) -> None:
 
 def probe_time_scale_declarations() -> dict:
     """Derive who owes a declaration from the REAL map, and read the REAL register."""
-    atoms = yaml.safe_load(MATURITY_MAP.read_text(encoding="utf-8"))
+    # THE WHOLE MAP, both halves. C-S5's owed population is every company-side atom at L3+,
+    # and an atom at L3+ has almost always reached its target -- so reading the drawn half
+    # alone would derive an owed set of nearly nothing and report the constraint satisfied by
+    # not looking. That is the FAIL-OPEN shape this file exists to refuse.
+    atoms = map_store.load_atoms(MATURITY_MAP)
     if isinstance(atoms, dict):  # tolerate a wrapped document
         atoms = atoms.get("atoms", [])
     owed = {

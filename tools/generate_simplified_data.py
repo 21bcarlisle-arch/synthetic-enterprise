@@ -25,6 +25,7 @@ import yaml
 if str(Path(__file__).resolve().parent.parent) not in sys.path:
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from tools import maturity_map_store as map_store  # noqa: E402
 from tools import simplifications_store as store  # noqa: E402
 from tools.abolished_block_classes import (  # noqa: E402
     ABOLISHED_BLOCK_CLASSES,
@@ -56,7 +57,7 @@ def _load_atoms():
     if not MATURITY_MAP_YAML.is_file():
         return None
     try:
-        data = yaml.safe_load(MATURITY_MAP_YAML.read_text())
+        data = map_store.load_atoms(MATURITY_MAP_YAML)
     except yaml.YAMLError:
         return None
     return data

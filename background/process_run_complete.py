@@ -2899,6 +2899,13 @@ _PROCESS_STARTED_MONOTONIC = time.monotonic()
 CENSUS_COMPLETE = "complete"            # ran to the end: this IS the whole red set
 CENSUS_PARTIAL = "partial"              # hit GATE_RED_CENSUS_MAXFAIL -- there may be more
 CENSUS_FAIL_FAST_ONLY = "fail_fast_only"  # no census: the `-x` node id is all that is known
+# A FOURTH provenance, because the source is a different suite (2026-08-26): the node ids came
+# from the PRE-COMMIT HOOK CHAIN, which the publisher shells out to and whose output it captures.
+# That chain stops at the FIRST refusing hook, so its red set is complete for the hook that
+# refused and says nothing about the hooks behind it -- neither "the whole red set" nor "we
+# stopped at one test" nor "no census ran" describes that, and reusing `partial` would have made
+# the alarm claim a 50-failure bound that never fired. See `_record_commit_refusal_reds`.
+CENSUS_HOOK_CHAIN = "hook_chain"
 
 
 def red_census_argv(gate_argv):
@@ -3050,6 +3057,55 @@ def _clear_blocking_tests():
         log("Publish gate: could not clear the stale blocking-test record: {}".format(exc))
 
 
+# ── THE RECORD MUST CARRY WHAT THE PUBLISHER ALREADY SAW (2026-08-26, five consecutive
+# refusals recorded as `blocking_tests: []`) ─────────────────────────────────────────────────
+#
+# WHY. `_log_gate_failure_payload` above closes this hole for the publisher's OWN scoped gate.
+# It does nothing for the OTHER red the publisher meets: the pre-commit HOOK CHAIN, which runs
+# inside `git commit` and refuses on its own suite. On that path the publisher's scoped gate was
+# GREEN -- so `_clear_blocking_tests` had just deleted the record -- and the hook chain's verdict
+# was captured, tailed into `sim-runner-log.md`, and dropped. Observed 2026-08-26 04:40Z: the log
+# names six failing node ids and "[test-gate] TESTS FAILED -- COMMIT REFUSED", while
+# `.publish_gate_state.json` read `blocking_tests: []`, `total_red: 0`, `suspects: {}` through
+# five consecutive refusals. That is FAIL-SILENT at the RECORD layer (R15): the diagnostic was
+# taken and thrown away, so the wedge draw, the alarms and four direction records reasoned about
+# a deadline while the machine held the answer -- the 840s deadline raised the day before was
+# bought with this blindness, and the gate that night finished in 636s and was refused on TESTS.
+#
+# WHAT. The same cross-process file the alarm already reads, written by the only code that holds
+# the hook chain's output. Two properties this must have, both mutation-tested:
+#   * A REFUSAL CARRYING A RED POPULATES IT. Parsed from `_parse_failed_node_ids`, the same
+#     parser the blocking gate uses, so the two can never disagree about what a failure is.
+#   * A REFUSAL CARRYING NO RED WRITES NOTHING. A parser that always finds something is the
+#     fail-open twin of the fail-silent it replaces: a non-test refusal (scope-evidence,
+#     level-promotion, the finding-class gate) and a clean empty index must both leave the
+#     record ABSENT, which every reader already renders as "unrecorded" rather than as a guess.
+# BOTH STREAMS, IN FULL, not the `_tail` the log line uses: `stderr_tail(...) or
+# stderr_tail(...)` returns ONE stream, and the hook chain's pytest writes its summary to stdout
+# while git writes its own errors to stderr -- so the log's own tail can be the stream that does
+# NOT carry the answer, and its 40-line bound can cut the summary section off the top.
+def _record_commit_refusal_reds(stdout, stderr, git_hash="unknown"):
+    """Publish the node IDs the pre-commit HOOK CHAIN named, for the alarm. Never raises.
+
+    Returns the node ids recorded -- empty when the refusal named no test, which is a fact and
+    not a failure of this function."""
+    try:
+        node_ids = _parse_failed_node_ids("{}\n{}".format(stdout or "", stderr or ""))
+    except Exception as exc:  # noqa: BLE001 -- a diagnostic must never red the path it observes
+        log("Publish commit refusal: could not parse the hook chain's output ({}: {}) -- "
+            "no blocking test recorded.".format(type(exc).__name__, exc))
+        return []
+    if not node_ids:
+        log("Publish commit REFUSED with no FAILED/ERROR summary in the hook chain's output -- "
+            "recording NO blocking test. The refusal was a non-test gate (or the output carried "
+            "no summary); an absent answer must read as absent, never as a guess.")
+        return []
+    log("Publish commit REFUSED by the hook chain -- blocking test(s): {}".format(
+        "; ".join(node_ids[:GATE_MAX_CITED_BLOCKING_TESTS])))
+    _write_blocking_tests(node_ids, git_hash, census=CENSUS_HOOK_CHAIN)
+    return node_ids
+
+
 def last_blocking_tests(now=None, path=None):
     """(node_ids, git_hash) from the last red gate, or ([], None) if not knowably recent.
 
@@ -3092,7 +3148,8 @@ def last_red_census(now=None, path=None):
         if not isinstance(ts, (int, float)) or now - float(ts) > GATE_BLOCKING_TESTS_MAX_AGE_SECONDS:
             return CENSUS_FAIL_FAST_ONLY, 0
         status = rec.get("census")
-        if status not in (CENSUS_COMPLETE, CENSUS_PARTIAL, CENSUS_FAIL_FAST_ONLY):
+        if status not in (CENSUS_COMPLETE, CENSUS_PARTIAL, CENSUS_FAIL_FAST_ONLY,
+                          CENSUS_HOOK_CHAIN):
             return CENSUS_FAIL_FAST_ONLY, 0
         total = rec.get("total_red")
         return str(status), int(total) if isinstance(total, int) else 0
@@ -3395,8 +3452,8 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
         # this module's first landing for). The log line is the operator signal -- staleness
         # surfaces without anyone opening the site -- and the artefact is what the Knowledge
         # index will render so a reader sees which pages are stale BEFORE clicking in.
-        from tools.generate_knowledge_review import (
-            generate as gen_k_review, needs_attention, unwritten)
+        from tools.generate_knowledge_review import generate as gen_k_review
+        from tools.generate_knowledge_review import needs_attention, unwritten
         _kr = gen_k_review()
         # TWO numbers, deliberately. The first counts pages a reader could be MISLED by --
         # written but unchecked, or checked too long ago. The second counts topics with no
@@ -4127,7 +4184,8 @@ def git_commit_push(git_hash, net_margin, outcome=None):
             # never dangling uncommitted. -A stages the inbox DELETIONS. No-op if nothing
             # was folded this cycle.
             if not _git_add_or_refuse(
-                    ["-A", "docs/design/maturity_map.yaml", "docs/design/atom_status"],
+                    ["-A", "docs/design/maturity_map.yaml", "docs/design/maturity_map_closed.yaml",
+                     "docs/design/atom_status"],
                     timeout=120, label="Auto-process publish (map fold)"):
                 return _outcome(COMMIT_REFUSED, False)
             # COMMIT TIMEOUT (2026-08-03): this is NOT a bare `git commit` -- it runs
@@ -4151,7 +4209,8 @@ def git_commit_push(git_hash, net_margin, outcome=None):
             # `docs/design` paths are the ones the `-A` add above stages, including the
             # atom_status inbox DELETIONS, so they must be named here or the fold never lands.
             pathspec = _commit_pathspec(
-                files, ("docs/design/maturity_map.yaml", "docs/design/atom_status"))
+                files, ("docs/design/maturity_map.yaml", "docs/design/maturity_map_closed.yaml",
+                        "docs/design/atom_status"))
             if not pathspec:
                 log("Publish commit REFUSED: nothing in the publish surface is known to git, "
                     "so there is no pathspec to commit. Committing the bare index here would "
@@ -4200,9 +4259,14 @@ def git_commit_push(git_hash, net_margin, outcome=None):
             # An empty index is a no-op; a hook refusal is a publish that FAILED and must retry.
             # Note the direction: an unreadable tail reads as REFUSED, never as a clean no-op --
             # the same fail-toward-retrying rule as RETRYABLE_PUBLISH_OUTCOMES.
-            return _outcome(
-                NOTHING_TO_COMMIT if _git_said_nothing_to_commit(_tail) else COMMIT_REFUSED,
-                False)
+            refused = not _git_said_nothing_to_commit(_tail)
+            if refused:
+                # The hook chain's verdict reaches the RECORD, not just this log line -- see
+                # `_record_commit_refusal_reds`. Keyed on the REFUSAL, not on the no-op, so the
+                # empty-index case cannot write a record at all.
+                _record_commit_refusal_reds(getattr(result, "stdout", None),
+                                            getattr(result, "stderr", None), git_hash)
+            return _outcome(COMMIT_REFUSED if refused else NOTHING_TO_COMMIT, False)
 
         if not _push_due():
             log("Committed locally, push deferred (throttled to every {}min)".format(
@@ -4372,7 +4436,7 @@ def _refresh_published_liveness_on_skip(git_hash: str) -> bool:
     # Shared with the provenance banner (_commit_and_push_paths): same narrow-pathspec,
     # never-hold-the-lock-across-commit, self-verifying-push discipline. Extracted rather than
     # cloned when the banner needed the identical shape -- SP3's own instruction.
-    if not _commit_and_push_paths(files, msg, label="Liveness heartbeat"):
+    if not _commit_and_push_paths(files, msg, label="Liveness heartbeat", git_hash=git_hash):
         return False
     _record_push_time()
     return True
@@ -4559,7 +4623,7 @@ def _publish_provenance_banner(git_hash, *, reason=None):
            "the last VERIFIED run and now says so; no unverified figure published "
            "(DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)".format(git_hash))
     try:
-        return _commit_and_push_paths([target], msg, label="Provenance banner")
+        return _commit_and_push_paths([target], msg, label="Provenance banner", git_hash=git_hash)
     except Exception as exc:  # noqa: BLE001 -- see docstring
         log("Provenance banner publish raised (non-fatal): {}".format(exc))
         return False
@@ -4608,7 +4672,7 @@ def _provenance_is_publishable(paths, *, label="publish") -> bool:
     return True
 
 
-def _commit_and_push_paths(paths, msg, *, label):
+def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
     """Commit exactly `paths` and self-verify the push against origin. Returns True iff origin
     ADVANCED to this HEAD.
 
@@ -4664,6 +4728,11 @@ def _commit_and_push_paths(paths, msg, *, label):
         # a banner silently refused by a gate is the failure this whole build exists to end.
         if _tail and "nothing to commit" not in _tail.lower():
             log("{} commit FAILED (rc={}):\n{}".format(label, result.returncode, _tail))
+            # R10, the class and not the instance: this is the SAME hook chain refusing the SAME
+            # tree, and a banner/heartbeat refusal discards the node ids exactly as the content
+            # path did. Guarded by the same "not a clean no-op" test the log line uses.
+            _record_commit_refusal_reds(getattr(result, "stdout", None),
+                                        getattr(result, "stderr", None), git_hash)
         return False
     push = subprocess.run(["git", "push", "origin", "HEAD:main"], cwd=str(PROJECT_DIR),
                           timeout=60, stderr=subprocess.PIPE, text=True)
@@ -5184,6 +5253,11 @@ def _census_clause(census, total_red, shown):
         return (" AT LEAST {} test(s) are red at this HEAD (the report-only census hit its own "
                 "{}-failure bound, so there may be more). This is a STACK, not a single "
                 "defect.".format(total_red, GATE_RED_CENSUS_MAXFAIL))
+    if census == CENSUS_HOOK_CHAIN:
+        return (" {} test(s) were named by the PRE-COMMIT HOOK CHAIN that refused the publish "
+                "commit -- that is the whole red set of the hook that refused, and the hooks "
+                "behind it never ran, so there may be more. Fix these TOGETHER and expect the "
+                "next hook to have its own say.".format(total_red))
     return (" DEPTH UNKNOWN: the gate runs fail-fast and the report-only census did not run "
             "(no budget, timed out, or unavailable -- see the log), so this may be one red of "
             "many. Do NOT read it as the only one.")

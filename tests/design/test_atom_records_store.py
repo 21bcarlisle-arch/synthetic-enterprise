@@ -58,6 +58,8 @@ from tools import merge_atom_status
 from tools import simplifications_store as store
 
 PROJECT = Path(__file__).resolve().parent.parent.parent
+from tools import maturity_map_store as map_store  # noqa: E402
+
 MAP_PATH = PROJECT / "docs" / "design" / "maturity_map.yaml"
 STORE_DIR = PROJECT / "docs" / "design" / "simplifications"
 
@@ -65,7 +67,8 @@ DECL = store.RECORDS_DECLARATION_FIELD
 
 
 def _load_atoms(path: Path = MAP_PATH) -> list:
-    return yaml.safe_load(path.read_text(encoding="utf-8"))
+    """BOTH halves of the map (2026-08-26) -- see the note in test_atom_notes_store."""
+    return map_store.load_atoms(path)
 
 
 # --------------------------------------------------------------------------

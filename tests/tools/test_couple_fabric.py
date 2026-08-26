@@ -59,10 +59,12 @@ def test_the_ledger_atom_ids_are_REAL_map_atoms():
     entry would have been written successfully and rendered nowhere, every run,
     forever. A typo in a string constant is precisely what review reads past.
     """
-    import yaml
+    from tools import maturity_map_store as map_store
 
-    atoms = yaml.safe_load(
-        (cf.PROJECT_DIR / "docs" / "design" / "maturity_map.yaml").read_text()
+    # Whole map: these constants name atoms that are FINISHED, so they live in the closed
+    # half. Reading the live half alone would fail this on storage, not on a real typo.
+    atoms = map_store.load_atoms(
+        cf.PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
     )
     ids = {a["id"] for a in atoms}
     for constant in (fgl.FABRIC_WORLD_ATOM, fgl.GENERATOR_WORLD_ATOM, fgl.FABRIC_TWIN_ATOM):
@@ -77,10 +79,10 @@ def test_the_fabric_pairs_are_REGISTERED_couplings_or_the_panel_cannot_see_them(
     trips the "depth nobody copes with" detector. The table reads like a
     cross-check and behaves like a whitelist.
     """
-    import yaml
+    from tools import maturity_map_store as map_store
 
-    atoms = yaml.safe_load(
-        (cf.PROJECT_DIR / "docs" / "design" / "maturity_map.yaml").read_text()
+    atoms = map_store.load_atoms(
+        cf.PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
     )
     coupling = coupled_triad.build_coupling(atoms)
     for world in (fgl.FABRIC_WORLD_ATOM, fgl.GENERATOR_WORLD_ATOM):

@@ -26,6 +26,8 @@ import yaml
 from tools import simplifications_store as store
 
 PROJECT = Path(__file__).resolve().parent.parent.parent
+from tools import maturity_map_store as map_store  # noqa: E402
+
 MAP_PATH = PROJECT / "docs" / "design" / "maturity_map.yaml"
 STORE_DIR = PROJECT / "docs" / "design" / "simplifications"
 # RESTORED 640K -> 400K, 2026-08-09, by H32 (`H32_map_size_ratchet_red_on_head`) — the
@@ -87,14 +89,16 @@ MAP_MAX_BYTES_PER_ATOM = 12 * 1024
 
 
 def _load_atoms(path: Path = MAP_PATH) -> list:
-    return yaml.safe_load(path.read_text(encoding="utf-8"))
+    """BOTH halves of the map (2026-08-26): a store file is an orphan only if NO atom anywhere
+    declares it, so reading one half would report every closed atom's store file as orphaned."""
+    return map_store.load_atoms(path)
 
 
 def _map_has_simplifications_field(path: Path = MAP_PATH) -> bool:
     import re
 
     pat = re.compile(r"^\s*simplifications:\s")
-    return any(pat.match(ln) for ln in path.read_text(encoding="utf-8").splitlines())
+    return any(pat.match(ln) for ln in map_store.map_text(path).splitlines())
 
 
 def _store_is_populated() -> bool:
@@ -350,10 +354,19 @@ def test_map_has_no_simplifications_field_when_store_populated():
     )
 
 
+def _map_bytes() -> int:
+    """The WHOLE map on disk -- both halves (2026-08-26). Measuring only the drawn half would
+    have turned this ratchet fail-open the moment the map was split: 3,947 of its 5,420 lines
+    moved to the sibling file, so the ceiling would have been met by the SPLIT rather than by
+    the register living in the store, and unbounded accretion into a closed atom would have
+    become invisible to the one control that exists to see it."""
+    return len(map_store.map_text(MAP_PATH).encode("utf-8"))
+
+
 def test_map_within_size_ratchet_when_store_populated():
     if not _store_is_populated():
         pytest.skip("store empty")
-    size = MAP_PATH.stat().st_size
+    size = _map_bytes()
     assert size < MAP_SIZE_CEILING, (
         f"maturity_map.yaml is {size} bytes, over the {MAP_SIZE_CEILING}-byte "
         "spine ratchet -- the register must live in the store, not the map"
@@ -407,9 +420,7 @@ def test_map_within_per_atom_budget():
     never red this, accreting prose into one always must."""
     if not _store_is_populated():
         pytest.skip("store empty")
-    violations = check_per_atom_budget(
-        atom_byte_sizes(MAP_PATH.read_text(encoding="utf-8"))
-    )
+    violations = check_per_atom_budget(atom_byte_sizes(map_store.map_text(MAP_PATH)))
     assert not violations, "per-atom budget:\n  " + "\n  ".join(violations)
 
 
@@ -441,9 +452,9 @@ def test_atom_byte_sizes_measures_the_real_map():
     """The measurement must be anchored to the live map, not only to synthetic
     fixtures -- a sizer that returned {} would make every budget test above vacuous
     while still passing (the tautology R15 warns about, one layer down)."""
-    sizes = atom_byte_sizes(MAP_PATH.read_text(encoding="utf-8"))
+    sizes = atom_byte_sizes(map_store.map_text(MAP_PATH))
     assert len(sizes) > 100, f"only {len(sizes)} atoms parsed out of the live map"
-    assert sum(sizes.values()) > 0.9 * MAP_PATH.stat().st_size, (
+    assert sum(sizes.values()) > 0.9 * _map_bytes(), (
         "atom blocks account for <90% of the map -- the sizer is missing content, so "
         "the budget it feeds is measuring the wrong thing"
     )
