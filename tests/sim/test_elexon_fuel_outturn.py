@@ -379,3 +379,126 @@ def test_coverage_over_a_year_with_no_imports_raises_rather_than_reading_as_full
     series = fuel.to_settlement_periods([row("COAL", 500)])
     with pytest.raises(fuel.FuelOutturnUnavailable):
         fuel.import_coverage(series)
+# --------------------------------------------------------------------------- #
+# The zero-carbon must-run fleet: the one series allowed across half-hourly    #
+# --------------------------------------------------------------------------- #
+
+def must_run_rows(readings, *, date: str, start_period: int = 1) -> list[dict]:
+    """One (NUCLEAR, NPSHYD) pair per half hour, from `readings` of (nuclear_mw, hydro_mw)."""
+    out: list[dict] = []
+    for offset, (nuclear, hydro) in enumerate(readings):
+        period = start_period + offset
+        out.append(row("NUCLEAR", nuclear, date=date, period=period))
+        out.append(row("NPSHYD", hydro, date=date, period=period))
+    return out
+
+
+def test_every_fuel_handed_over_half_hourly_has_a_published_factor_of_exactly_zero():
+    """Condition 1 of the boundary: no part of the ANSWER may cross at this grain.
+
+    Half-hourly gas and coal are refused because they ARE NESO's arithmetic. A series whose
+    published factor is zero transfers no emissions term at all -- every gram in the
+    reconstructed number still comes from a merit order this project decides for itself. That is
+    the entire justification for the exception, so it is asserted against NESO's own published
+    figure rather than against a sentence in a docstring.
+
+    MUTATION (must fire): add "BIOMASS" (120 gCO2/kWh) or "CCGT" (394) to
+    `ZERO_CARBON_MUST_RUN_FUEL_TYPES`.
+    """
+    for fuel_type in fuel.ZERO_CARBON_MUST_RUN_FUEL_TYPES:
+        assert fuel_type in fuel.NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH, (
+            f"{fuel_type} is handed over half-hourly with no published factor to check it against"
+        )
+        assert fuel.NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH[fuel_type] == 0.0, (
+            f"{fuel_type} carries carbon on NESO's own table and must not cross half-hourly"
+        )
+
+
+def test_a_zero_published_factor_is_NOT_sufficient_and_pumped_storage_is_why():
+    """Condition 2, and this test exists because condition 1 alone is fail-open.
+
+    NESO publishes PUMPED STORAGE at zero gCO2/kWh, exactly like nuclear and hydro. Pumped
+    storage is also pure price arbitrage -- it IS the merit order, wearing a zero factor -- so a
+    rule of "hand over anything at zero" would hand over the answer while passing the test above.
+    What separates them is the sign: a store goes NEGATIVE when it charges, and an availability
+    cannot. That is the checkable form of "this is not a dispatch decision".
+
+    MUTATION (must fire): add "PS" to `ZERO_CARBON_MUST_RUN_FUEL_TYPES`.
+    """
+    assert fuel.NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH["PS"] == 0.0, (
+        "this test is only meaningful while pumped storage carries a zero factor"
+    )
+    assert "PS" not in fuel.ZERO_CARBON_MUST_RUN_FUEL_TYPES
+    # And the sign rule that justifies the refusal is the one the parse actually applies.
+    negative = fuel.zero_carbon_must_run_by_period(
+        must_run_rows([(3_000.0, 400.0), (3_000.0, -1_766.0)], date="2024-03-01")
+    )
+    assert ("2024-03-01", 1) in negative
+    assert ("2024-03-01", 2) not in negative
+
+
+def test_a_half_hour_MISSING_one_must_run_fuel_is_skipped_rather_than_summed_as_zero():
+    """A hole in the NUCLEAR feed and a half hour GB ran no reactors are one shape in JSON.
+
+    Summed as zero the hole becomes a half hour whose baseload vanished, which the dispatch
+    answers by burning gas for the whole residual -- inventing a dirty half hour out of a gap in
+    the feed (R15 FAIL-OPEN). The same call `thermal_by_period` makes.
+
+    MUTATION (must fire): `sum(latest.get((key, f), 0.0) for f in ZERO_CARBON_MUST_RUN_FUEL_TYPES)`.
+    """
+    rows = [
+        row("NUCLEAR", 3_400, date="2024-03-01", period=1),
+        row("NPSHYD", 550, date="2024-03-01", period=1),
+        row("NPSHYD", 600, date="2024-03-01", period=2),   # NUCLEAR absent -- a hole, not a fact
+    ]
+    series = fuel.zero_carbon_must_run_by_period(rows)
+    assert ("2024-03-01", 2) not in series
+    assert series[("2024-03-01", 1)] == pytest.approx(3_950.0)
+
+
+def test_a_ZERO_SUM_half_hour_is_a_dropout_and_never_reaches_the_dispatch():
+    """GB has not had its whole nuclear and hydro fleet at zero in this window.
+
+    A total of exactly zero is therefore a feed hole, and taken at face value it is the
+    cleanest-possible-grid fiction `neso_carbon_intensity` already paid for once. Individual
+    zeros are KEPT: one fleet idle while the other runs is a fact, not a hole.
+
+    MUTATION (must fire): drop the `if total <= 0.0: continue` guard.
+    """
+    series = fuel.zero_carbon_must_run_by_period(
+        must_run_rows([(0.0, 0.0), (3_400.0, 0.0), (0.0, 600.0)], date="2024-03-01")
+    )
+    assert ("2024-03-01", 1) not in series          # both zero -- a dropout
+    assert series[("2024-03-01", 2)] == pytest.approx(3_400.0)   # hydro genuinely idle
+    assert series[("2024-03-01", 3)] == pytest.approx(600.0)     # reactors genuinely off
+
+
+def test_coverage_counts_the_half_hours_that_FELL_BACK_rather_than_reporting_full_coverage():
+    """The fallback is invisible in the shape, so only this count can report it.
+
+    A half hour served from the flat 5,600 MW and one served from a measured 5,600 MW produce an
+    identical number. Without a coverage figure the correction could quietly stop applying to
+    most of the series and nothing downstream would read differently (R15 FAIL-SILENT).
+
+    MUTATION (must fire): return `usable_fraction: 1.0`, or stop counting the refusals.
+    """
+    rows = must_run_rows(
+        [(3_400.0, 550.0), (0.0, 0.0), (3_400.0, -10.0), (3_400.0, 600.0)], date="2024-03-01"
+    )
+    rows.append(row("NUCLEAR", 3_400, date="2024-03-01", period=9))  # NPSHYD absent
+    coverage = fuel.zero_carbon_must_run_coverage(rows)
+    assert coverage["half_hours_seen"] == pytest.approx(5.0)
+    assert coverage["usable_half_hours"] == pytest.approx(2.0)
+    assert coverage["usable_fraction"] == pytest.approx(0.4)
+    assert coverage["zero_sum_half_hours"] == pytest.approx(1.0)
+    assert coverage["negative_half_hours"] == pytest.approx(1.0)
+    assert coverage["missing_fuel_half_hours"] == pytest.approx(1.0)
+
+
+def test_a_must_run_series_with_nothing_usable_RAISES_rather_than_returning_a_flat_block():
+    """An absent series must not read as a grid whose baseload never moved.
+
+    MUTATION (must fire): return `{}` instead of raising.
+    """
+    with pytest.raises(fuel.FuelOutturnUnavailable):
+        fuel.zero_carbon_must_run_by_period(must_run_rows([(0.0, 0.0)], date="2024-03-01"))

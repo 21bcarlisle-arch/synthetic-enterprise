@@ -103,6 +103,11 @@ CACHE_PATH = Path("sim/cache/elexon_fuelhh_carbon_relevant.json")
 #: what makes adding the thermal series a create rather than a rewrite.
 THERMAL_CACHE_PATH = Path("sim/cache/elexon_fuelhh_thermal.json")
 
+#: A THIRD file, for the reason the second one exists: the two live caches are 235 MB and 63 MB
+#: and the sim producer re-reads the working tree every cycle, so widening a fuel filter in place
+#: is a window in which a running process sees a truncated file. A new path is a create.
+ZERO_CARBON_MUST_RUN_CACHE_PATH = Path("sim/cache/elexon_fuelhh_zero_carbon_must_run.json")
+
 #: The fuel types this module reads. EVERY OTHER ROW IS DISCARDED AT FETCH, and the discard is
 #: the reduction that makes the cache 50 MB instead of 300 MB — so it is named here rather than
 #: left for a reader to infer from a file listing. A cache is a reduced extract or it is raw, and
@@ -113,6 +118,54 @@ COAL_FUEL_TYPE = "COAL"
 #: single scalar per year these produce and why nothing finer than that ever crosses the
 #: boundary into the reconstruction.
 THERMAL_FUEL_TYPES = ("CCGT", "OCGT")
+
+#: The ZERO-CARBON MUST-RUN fleet, and this is the one series in this module that crosses the
+#: boundary at HALF-HOURLY grain. Every other half-hourly view here is held back to one scalar a
+#: year, so the exception needs a reason that is checkable rather than argued.
+#:
+#: TWO CONDITIONS, BOTH TESTED, and it takes both. A fuel may be handed over half-hourly only if:
+#:
+#:   1. NESO'S OWN PUBLISHED FACTOR FOR IT IS EXACTLY ZERO, so nothing about the answer crosses.
+#:      Handing this series over transfers no emissions term at all: every gram in the
+#:      reconstructed number still comes from the merit order this project decides for itself.
+#:      That is the whole difference from half-hourly gas or coal, which ARE the answer.
+#:   2. THE PUBLISHED OUTTURN IS NEVER NEGATIVE, which is what separates an AVAILABILITY from a
+#:      DISPATCH DECISION. Condition 1 alone is not enough and the counter-example is in the same
+#:      table: NESO publishes PUMPED STORAGE at zero too, and pumped storage is pure arbitrage —
+#:      it is the merit order, wearing a zero factor. It gives itself away by going negative when
+#:      it pumps. Nuclear and run-of-river hydro cannot: their output IS their availability, set
+#:      by which reactors are online and how much water is coming down the hill, and neither is
+#:      answering the question the reconstruction exists to answer.
+#:
+#: WHY THE GRAIN IS DIFFERENT FROM COAL'S, which is handed over as one capacity per year. Coal's
+#: half-hourly output is a dispatch decision, so only its AVAILABILITY may cross, and availability
+#: for a fleet is an annual fact. For nuclear and hydro, availability itself moves half hour by
+#: half hour — an outage is not an annual event — so the annual grain would discard the very thing
+#: being handed over. Same rule, different fleet.
+ZERO_CARBON_MUST_RUN_FUEL_TYPES = ("NUCLEAR", "NPSHYD")
+
+#: NESO's OWN published generation factors, gCO2/kWh, fetched from
+#: `api.carbonintensity.org.uk/intensity/factors` (the same table as the Carbon Intensity Forecast
+#: Methodology). NOT this project's numbers: the reconstruction is graded against the series these
+#: build, so the test that condition 1 above holds has to read NESO's figure and not ours.
+#:
+#: PUMPED STORAGE AND SOLAR AND WIND ARE CARRIED DELIBERATELY, at zero, even though this module
+#: hands none of them over. A table containing only the fuels that pass the test could not fail
+#: the test (R15 TAUTOLOGY): the entries that make it a real check are the ones sitting at zero
+#: that are still refused.
+NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH = {
+    "BIOMASS": 120.0,
+    "CCGT": 394.0,
+    "COAL": 937.0,
+    "NPSHYD": 0.0,      # "Hydro"
+    "NUCLEAR": 0.0,
+    "OCGT": 651.0,
+    "OIL": 935.0,
+    "OTHER": 300.0,
+    "PS": 0.0,          # "Pumped Storage" -- zero-factor and still refused; see condition 2
+    "SOLAR": 0.0,
+    "WIND": 0.0,
+}
 
 #: Elexon fuel type -> the connected market, for every GB interconnector in the dataset.
 INTERCONNECTOR_MARKETS = {
@@ -191,6 +244,25 @@ def _fetch_thermal_window(start: date_cls, end: date_cls, *, timeout: float = 90
     return [row for row in data if row.get("fuelType") in keep]
 
 
+def _fetch_zero_carbon_window(start: date_cls, end: date_cls, *, timeout: float = 90.0) -> list[dict]:
+    """One settlement-date window, reduced to the zero-carbon must-run fuel types."""
+    url = (
+        f"{BASE_URL}{DATASET_ENDPOINT}?settlementDateFrom={start.isoformat()}"
+        f"&settlementDateTo={end.isoformat()}&format=json"
+    )
+    request = urllib.request.Request(url, headers={"Accept": "application/json"})
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError) as exc:
+        raise FuelOutturnUnavailable(f"Elexon FUELHH fetch failed for {url}: {exc}") from exc
+    data = payload.get("data")
+    if not isinstance(data, list):
+        raise FuelOutturnUnavailable(f"Elexon returned no `data` list for {url}: {payload!r}")
+    keep = set(ZERO_CARBON_MUST_RUN_FUEL_TYPES)
+    return [row for row in data if row.get("fuelType") in keep]
+
+
 def _walk(start_date: str, end_date: str, window_fetcher, pause_s: float) -> list[dict]:
     """Walk [start_date, end_date] in the API's own window size, one fetcher per fuel filter."""
     start = date_cls.fromisoformat(start_date)
@@ -223,6 +295,11 @@ def fetch(start_date: str, end_date: str, *, pause_s: float = 0.1) -> list[dict]
 def fetch_thermal(start_date: str, end_date: str, *, pause_s: float = 0.1) -> list[dict]:
     """The same walk, keeping CCGT and OCGT instead of coal and the cables."""
     return _walk(start_date, end_date, _fetch_thermal_window, pause_s)
+
+
+def fetch_zero_carbon_must_run(start_date: str, end_date: str, *, pause_s: float = 0.1) -> list[dict]:
+    """The same walk, keeping the zero-carbon must-run fleet instead of coal and the cables."""
+    return _walk(start_date, end_date, _fetch_zero_carbon_window, pause_s)
 
 
 def to_settlement_periods(rows: Iterable[Mapping]) -> dict[tuple[str, int], dict[str, float]]:
@@ -505,6 +582,173 @@ def thermal_floor_by_year(
     return out
 
 
+def zero_carbon_must_run_by_period(
+    rows: Iterable[Mapping],
+) -> dict[tuple[str, int], float]:
+    """{(date, period): NUCLEAR + NPSHYD MW} — the fleet the reconstruction cannot infer.
+
+    THE GAP THIS CLOSES, and it is a TIMING gap rather than a level one, which is what makes it
+    different from the three corrections before it. `grid_carbon_intensity` has always served the
+    must-run block from a FLAT 8,000 MW, of which 5,600 MW is nuclear and hydro. GB's is not flat
+    and never was: over 2016-2025 this series moves by gigawatts within a single week as reactors
+    go off for refuelling and river flow rises and falls. Every megawatt of that movement is a
+    megawatt the model made the gas stack serve on a schedule of its own invention — so the
+    residual it dispatches against has been wrong in a time-varying way, in exactly the axis
+    (correlation, 0.726 in 2024) that the thermal floor left untouched and that holds this atom
+    at L2.
+
+    WHY THIS MAY CROSS AT HALF-HOURLY GRAIN when gas and coal may not: see the two conditions on
+    `ZERO_CARBON_MUST_RUN_FUEL_TYPES`. Both are tested, and condition 2 is the load-bearing one —
+    a zero published factor alone would also admit pumped storage, which is the merit order in
+    disguise.
+
+    BOTH FUELS MUST BE PRESENT IN A HALF HOUR or it is skipped, the same call
+    `thermal_by_period` makes and for the same reason: a missing NUCLEAR row summed as zero would
+    hand the dispatch a half hour in which GB ran no reactors, which is a fiction this series
+    exists to remove, reintroduced by the parse meant to remove it (R15 FAIL-OPEN).
+
+    A SKIPPED HALF HOUR IS NOT A ZERO ONE. The caller finds no key and falls back to the flat
+    5,600 MW — the behaviour this series is correcting, which is bounded and already published,
+    rather than a half hour with no baseload at all. That is the same direction-of-error argument
+    `build_shape` already makes for a missing import reading.
+
+    A NEGATIVE READING IS REFUSED as absent, and it is not a formality: condition 2 above is the
+    entire reason this series is allowed across the boundary at this grain, so a negative reading
+    means the claim that these fuels cannot store has stopped being true and the half hour must
+    not be used. `zero_carbon_must_run_coverage` counts them so the refusal is visible rather
+    than silent.
+
+    A ZERO SUM IS A DROPOUT. GB has not had its entire nuclear and hydro fleet at zero output in
+    this window, so a total of exactly zero is a feed hole — the lesson `neso_carbon_intensity`
+    learned when NESO published `actual: 0` and the first run reported the cleanest possible grid
+    as fact. Individual zeros are kept: one fleet at zero while the other runs is a fact.
+    """
+    latest: dict[tuple[tuple[str, int], str], float] = {}
+    for row in rows:
+        date_str = row.get("settlementDate")
+        period = row.get("settlementPeriod")
+        fuel = row.get("fuelType")
+        value = row.get("generation")
+        if date_str is None or period is None or fuel is None or value is None:
+            continue
+        if str(fuel) not in ZERO_CARBON_MUST_RUN_FUEL_TYPES:
+            continue
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            continue
+        try:
+            key = (str(date_str), int(period))
+        except (TypeError, ValueError):
+            continue
+        # LAST ROW WINS, the same revision rule the coal, cable and thermal parses apply.
+        latest[(key, str(fuel))] = float(value)
+
+    out: dict[tuple[str, int], float] = {}
+    for key in {k for k, _ in latest}:
+        readings = [latest.get((key, fuel)) for fuel in ZERO_CARBON_MUST_RUN_FUEL_TYPES]
+        if any(reading is None for reading in readings):
+            continue
+        if any(float(reading) < 0.0 for reading in readings):
+            continue
+        total = sum(float(reading) for reading in readings)
+        if total <= 0.0:
+            continue
+        out[key] = total
+    if not out:
+        raise FuelOutturnUnavailable(
+            "no half hour carried a usable reading for every zero-carbon must-run fuel type. "
+            "This is an absence, not a grid that ran no nuclear."
+        )
+    return out
+
+
+def zero_carbon_must_run_coverage(rows: Iterable[Mapping]) -> dict[str, float]:
+    """How much of the series got a real reading, and how much fell back to the flat block.
+
+    PUBLISHED BESIDE THE FEED, because the fallback is invisible in the shape itself: a half hour
+    served from the flat 5,600 MW and a half hour served from a measured 5,600 MW produce the
+    identical number, and only this count can tell a reader which happened. A correction whose
+    coverage is unstated is a correction that can quietly stop applying (R15 FAIL-SILENT).
+
+    `negative_half_hours` is the one to watch. It is zero on the published outturn today, and the
+    day it is not, the second condition that lets this series cross the boundary at half-hourly
+    grain has failed and the crossing has to be re-argued rather than re-clamped.
+    """
+    latest: dict[tuple[tuple[str, int], str], float] = {}
+    for row in rows:
+        date_str = row.get("settlementDate")
+        period = row.get("settlementPeriod")
+        fuel = row.get("fuelType")
+        value = row.get("generation")
+        if date_str is None or period is None or fuel is None or value is None:
+            continue
+        if str(fuel) not in ZERO_CARBON_MUST_RUN_FUEL_TYPES:
+            continue
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            continue
+        try:
+            latest[((str(date_str), int(period)), str(fuel))] = float(value)
+        except (TypeError, ValueError):
+            continue
+
+    keys = {k for k, _ in latest}
+    usable = 0
+    missing_fuel = 0
+    negative = 0
+    zero_sum = 0
+    values: list[float] = []
+    for key in keys:
+        readings = [latest.get((key, fuel)) for fuel in ZERO_CARBON_MUST_RUN_FUEL_TYPES]
+        if any(reading is None for reading in readings):
+            missing_fuel += 1
+            continue
+        if any(float(reading) < 0.0 for reading in readings):
+            negative += 1
+            continue
+        total = sum(float(reading) for reading in readings)
+        if total <= 0.0:
+            zero_sum += 1
+            continue
+        usable += 1
+        values.append(total)
+    if not keys:
+        raise FuelOutturnUnavailable("no half hour carried any zero-carbon must-run row at all")
+    return {
+        "half_hours_seen": float(len(keys)),
+        "usable_half_hours": float(usable),
+        "usable_fraction": usable / len(keys),
+        "missing_fuel_half_hours": float(missing_fuel),
+        "negative_half_hours": float(negative),
+        "zero_sum_half_hours": float(zero_sum),
+        "min_mw": min(values) if values else 0.0,
+        "max_mw": max(values) if values else 0.0,
+        "mean_mw": (sum(values) / len(values)) if values else 0.0,
+    }
+
+
+def load_cached_zero_carbon_must_run() -> list[dict]:
+    """The cached zero-carbon must-run rows, or a refusal — never an empty list as a cache hit.
+
+    Absence is raised for the reason the other two loaders raise it: a missing series silently
+    restores the flat block this measurement exists to remove, and a shape that reverts to a
+    known-wrong form without saying so is the worst available failure.
+    """
+    if not ZERO_CARBON_MUST_RUN_CACHE_PATH.exists():
+        raise FuelOutturnUnavailable(
+            f"{ZERO_CARBON_MUST_RUN_CACHE_PATH} does not exist. Run "
+            "`python3 -m sim.elexon_fuel_outturn --zero-carbon-must-run` to build it. An absent "
+            "series is a shape whose baseload is flat, not a grid whose reactors never moved."
+        )
+    rows = json.loads(ZERO_CARBON_MUST_RUN_CACHE_PATH.read_text())
+    if not rows:
+        raise FuelOutturnUnavailable(f"{ZERO_CARBON_MUST_RUN_CACHE_PATH} is empty")
+    return rows
+
+
+def write_zero_carbon_must_run_cache(rows: list[dict]) -> None:
+    ZERO_CARBON_MUST_RUN_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    ZERO_CARBON_MUST_RUN_CACHE_PATH.write_text(json.dumps(rows, separators=(",", ":")))
+
+
 def load_cached() -> list[dict]:
     """The cached rows, or a refusal. Never an empty list dressed as a cache hit."""
     if not CACHE_PATH.exists():
@@ -553,7 +797,39 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Fetch and cache Elexon's half-hourly fuel mix.")
     parser.add_argument("--from", dest="start", default="2016-01-01")
     parser.add_argument("--to", dest="end", default="2025-12-31")
+    # BOTH FLAGS WERE ALREADY PROMISED BY THE LOADERS' OWN ERROR MESSAGES and neither was parsed:
+    # `load_cached_thermal` has told the reader to run `--thermal` since the day it was written,
+    # and that command exited 2 on an unrecognised argument. Fixed on touch rather than filed.
+    parser.add_argument("--thermal", action="store_true",
+                        help="fetch the CCGT+OCGT series into the thermal cache instead")
+    parser.add_argument("--zero-carbon-must-run", dest="zero_carbon", action="store_true",
+                        help="fetch the NUCLEAR+NPSHYD series into the must-run cache instead")
     args = parser.parse_args(argv)
+
+    if args.thermal:
+        rows = fetch_thermal(args.start, args.end)
+        write_thermal_cache(rows)
+        floors = thermal_floor_by_year(thermal_by_period(rows))
+        print(f"{len(rows):,} rows -> {len(floors):,} year(s)")
+        for year, record in sorted(floors.items()):
+            print(f"  {year}  thermal floor {record['floor_mw']:>8,.0f} MW "
+                  f"(p1 {record['p1_mw']:>8,.0f} MW, {record['half_hours']:>7,.0f} half hours)")
+        print(f"cached to {THERMAL_CACHE_PATH}")
+        return 0
+
+    if args.zero_carbon:
+        rows = fetch_zero_carbon_must_run(args.start, args.end)
+        write_zero_carbon_must_run_cache(rows)
+        coverage = zero_carbon_must_run_coverage(rows)
+        print(f"{len(rows):,} rows -> {coverage['usable_half_hours']:,.0f} usable half hours "
+              f"({coverage['usable_fraction']:.2%} of {coverage['half_hours_seen']:,.0f})")
+        print(f"  nuclear+hydro  min {coverage['min_mw']:,.0f} MW  "
+              f"mean {coverage['mean_mw']:,.0f} MW  max {coverage['max_mw']:,.0f} MW")
+        print(f"  refused: {coverage['negative_half_hours']:,.0f} negative, "
+              f"{coverage['missing_fuel_half_hours']:,.0f} missing a fuel, "
+              f"{coverage['zero_sum_half_hours']:,.0f} zero-sum")
+        print(f"cached to {ZERO_CARBON_MUST_RUN_CACHE_PATH}")
+        return 0
 
     rows = fetch(args.start, args.end)
     write_cache(rows)
