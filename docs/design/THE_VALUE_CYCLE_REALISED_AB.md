@@ -668,6 +668,20 @@ then how much of *any* arm's result is a churn outcome at all is an open questio
 then re-run the comparison on the book it creates — *"a negative result on the right population
 is worth more to me than a £3M headline on the wrong one."*
 
+> **THIS READING PREDATES THE DUAL-FUEL FUNNEL AND IS OWED A RE-RUN.** Both artefacts were
+> generated at 17:09Z/17:31Z, before `fb8a8fda5` (2026-08-26 20:35) made the acquisition funnel
+> win **gas** legs as well as electricity. Every account the funnel grew inside this A/B's
+> window is therefore single-fuel, and the director's own words on that commit are that a
+> single-fuel book *"quietly distorts every per-customer number we've been arguing about"* —
+> cost-to-serve, churn and lifetime value all move with dual fuel. The figures below are correct
+> for the book they ran on and that book is **resi + SME, electricity-only growth**. They are
+> **not** superseded in the way the I&C sections above are — the segment question they answer is
+> settled — but the magnitude is owed a re-run on the dual-fuel book, and this note is here so
+> the next reader does not have to infer it from a commit date. Said once, in the file's own
+> terms: an artefact that cannot name its own book is the defect logged as
+> `WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26.md`, and this
+> paragraph is that finding applied to its own author.
+
 The suspension is now live: `docs/design/curriculum/served_segments.json` reads
 `served: ["resi", "SME"]`, and C_IC1, C_IC2, C_IC3, C_IC4 and C_IC3g are in `suspended_accounts`.
 The control book is **131 accounts** where the superseded runs had 172. Artefacts:
