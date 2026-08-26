@@ -1279,3 +1279,67 @@ def test_a_timeout_raised_AFTER_the_lock_was_held_is_not_dressed_up_as_contentio
     assert "Nothing is wrong with the change" not in str(excinfo.value), (
         "a real bug inside the lock was reported as ordinary contention"
     )
+
+
+# ---------------------------------------------------------------------------
+# the refusal has to name its own cause (2026-08-26)
+# ---------------------------------------------------------------------------
+
+_PASSING_TICK = "[test-gate] ✓ finding-class consolidation holds"
+_REAL_REFUSAL = ("\n[test-gate] ❌ A STAGING DOCUMENT THIS COMMIT WRITES HAS NO PARSEABLE "
+                 "SEVERITY HEADER -- COMMIT REFUSED.\n" + "detail line\n" * 20)
+
+
+def test_a_stdout_of_only_passing_ticks_does_not_starve_the_stderr_verdict():
+    """THE DEFECT, MEASURED. Landing 416 archived findings was refused and the message named
+    nothing: the gate had printed one line before dying — a check that PASSED — so
+    `said_nothing` was False, the stderr budget collapsed to that line's 45 characters, and
+    the ❌ block was truncated to a fragment of its own elision notice.
+
+    Sizing the diagnostic off stdout's LENGTH rather than its CONTENT means the more checks
+    a gate clears before failing, the less of the failure a reader is shown."""
+    excerpt = sl._verdict_excerpt(_PASSING_TICK, _REAL_REFUSAL, limit=1200)
+    assert "NO PARSEABLE SEVERITY HEADER" in excerpt
+    assert "COMMIT REFUSED" in excerpt
+
+
+def test_a_stdout_that_DOES_carry_the_verdict_still_caps_stderr():
+    """The partner, and the property the original reserve existed to protect: a gate that
+    refuses on stdout must not have its verdict buried under library warnings."""
+    noise = "SyntaxWarning: invalid escape sequence\n" * 200
+    stdout = _PASSING_TICK + "\n[test-gate] ❌ TESTS FAILED -- COMMIT REFUSED.\n"
+    excerpt = sl._verdict_excerpt(stdout, noise, limit=1200)
+    assert "TESTS FAILED" in excerpt
+    assert excerpt.count("SyntaxWarning") < 20
+
+
+def test_an_empty_stdout_still_gives_stderr_the_whole_budget():
+    """The case the original code got right, kept: a gate that dies on a traceback and says
+    nothing on stdout needs the full budget over there."""
+    excerpt = sl._verdict_excerpt("", _REAL_REFUSAL, limit=1200)
+    assert "NO PARSEABLE SEVERITY HEADER" in excerpt
+
+
+@pytest.mark.parametrize("marker", ["❌", "✗", "FAILED", "REFUSED", "BREACH", "Traceback"])
+def test_every_refusal_marker_is_recognised_as_a_verdict(marker):
+    assert sl._carries_a_verdict(f"[test-gate] {marker} something")
+
+
+def test_a_new_refusal_shape_that_is_not_in_the_marker_list_is_caught_by_the_fallback():
+    """R15, the SAFE DIRECTION. An unrecognised refusal shape must fall back to giving
+    stderr the FULL budget, never to hiding it — a marker list that silently swallowed a
+    new refusal would rebuild the defect this fixes."""
+    unknown = "[test-gate] the gate is unhappy in a way nobody has spelled yet"
+    assert sl._carries_a_verdict(unknown) is False
+    excerpt = sl._verdict_excerpt(unknown, _REAL_REFUSAL, limit=1200)
+    assert "NO PARSEABLE SEVERITY HEADER" in excerpt
+
+
+def test_the_budget_no_longer_shrinks_as_the_gate_clears_more_checks():
+    """The class, stated as a property: a gate that clears twenty checks before failing must
+    show a reader NO LESS of the failure than one that clears one."""
+    one_tick = sl._verdict_excerpt(_PASSING_TICK, _REAL_REFUSAL, limit=1200)
+    twenty = sl._verdict_excerpt("\n".join([_PASSING_TICK] * 20),
+                                            _REAL_REFUSAL, limit=1200)
+    assert "NO PARSEABLE SEVERITY HEADER" in one_tick
+    assert "NO PARSEABLE SEVERITY HEADER" in twenty

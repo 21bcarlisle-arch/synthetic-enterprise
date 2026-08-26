@@ -564,6 +564,25 @@ _VERDICT_TRUNCATED = child_diagnostics.VERDICT_TRUNCATED
 _NO_OUTPUT = child_diagnostics.NO_OUTPUT
 _is_verdict_line = child_diagnostics.is_verdict_line
 
+#: The markers that make a stream the one carrying a REFUSAL, as opposed to a stream that
+#: happens to be non-empty. A gate prints a ✓ per check it clears, so "stdout is non-empty"
+#: says only that some check passed -- and sizing the stderr budget off that starves the
+#: diagnostic in proportion to how much of the gate WORKED.
+_VERDICT_MARKERS = ("❌", "✗", "FAILED", "REFUSED", "BREACH", "Traceback", "ERROR")
+
+
+def _carries_a_verdict(text: str) -> bool:
+    """Does this stream name a failure, or has it only reported successes?
+
+    Deliberately a fixed marker list rather than "anything that is not a ✓": a gate is free
+    to print prose, and prose that happens to lack a tick is not a verdict. Adding a new
+    refusal shape to a gate means adding its marker here, and
+    `test_a_new_refusal_shape_that_is_not_in_the_marker_list_is_caught_by_the_fallback`
+    pins the safe direction -- an unrecognised refusal falls back to giving stderr the FULL
+    budget, never to hiding it.
+    """
+    return any(marker in text for marker in _VERDICT_MARKERS)
+
 
 def _verdict_excerpt(stdout: str, stderr: str = "", limit: int = 4000) -> str:
     """Why a red gate refused, from BOTH of its streams, labelled.
@@ -590,8 +609,20 @@ def _verdict_excerpt(stdout: str, stderr: str = "", limit: int = 4000) -> str:
     # both ends: a gate that refuses in three lines would be buried under 400 characters of
     # SyntaxWarning -- visually the same defect as the one this replaced -- while a gate that
     # dies on a traceback and says nothing on stdout needs the whole budget over here. So the
-    # cap is the size of the stdout section, except when there IS no stdout section.
-    said_nothing = out_text.strip() in ("", child_diagnostics.NO_OUTPUT)
+    # cap is the size of the stdout section, except when that section carries no verdict.
+    #
+    # "NO STDOUT SECTION" WAS THE WRONG TEST, and it cost a refusal that named nothing
+    # (2026-08-26, landing 416 archived findings). The gate had printed exactly one line
+    # before dying -- `[test-gate] ✓ finding-class consolidation holds`, a check that
+    # PASSED -- so `said_nothing` was False, the stderr budget collapsed to the 45
+    # characters of that tick, and the ❌ block naming the real refusal was truncated to a
+    # fragment of its own elision notice. A passing tick is not a verdict. Sizing the
+    # diagnostic off stdout's LENGTH rather than its CONTENT means the more checks a gate
+    # clears before failing, the less of the failure a reader is shown -- the control
+    # degrading exactly as the thing it watches gets closer to working, which is the same
+    # class as `child_diagnostics._elide_long` earlier the same day.
+    said_nothing = (out_text.strip() in ("", child_diagnostics.NO_OUTPUT)
+                    or not _carries_a_verdict(out_text))
     err_budget = limit if said_nothing else min(reserve, len(out_text))
     err_text, _ = child_diagnostics.verdict_excerpt(stderr, max_chars=err_budget,
                                                     empty_marker="")
