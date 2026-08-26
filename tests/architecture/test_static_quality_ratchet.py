@@ -448,9 +448,18 @@ BASELINE_DATE = "2026-08-06"
 #     plus two F541 that HEAD's copy of `tools/revenue_sanity_check.py` carried and the working
 #     tree's did not. Net six down, and the per-file per-code census of the resulting tree
 #     set-differenced against `git archive HEAD` is removals only, no additions.
+#   2026-08-26  I001 1357 -> 1356  (the worker-test isolation repair, sideways again)
+#     `tests/background/test_background_worker.py` carried one already-dirty import block, and
+#     `ruff --select I001 --fix` over the single file being landed cleared it. THIS IS THE THIRD
+#     SHRINK TODAY and the pattern is worth naming rather than repeating silently: every commit
+#     that touches a file carrying pre-existing I001 debt clears it as a side effect of the
+#     ratchet's own remedy, and then reds on the stale floor it just created. That is the design
+#     working -- a floor nobody shrinks stops measuring -- but it means the cost of this ratchet
+#     is one extra gate cycle per commit that lands a dirty file, and the way out is paying the
+#     1,356 down rather than tuning the control.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
-    "I001": 1357,
+    "I001": 1356,
     "F401": 272,
     "E402": 174,
     "F841": 128,
@@ -470,7 +479,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2352  # was 2358; -6 across three codes (see the entry above)
+RUFF_BASELINE_TOTAL = 2351  # was 2352; -1 (I001 1357 -> 1356; see the entry above)
 
 
 # --------------------------------------------------------------------------

@@ -48,6 +48,40 @@ def _isolate(tmp_path, monkeypatch):
     yield
 
 
+#: RECORD ONLY THE PUBLISHER LAUNCHES (2026-08-26).
+#:
+#: These tests patch `background_worker.subprocess.run` -- the MODULE's `run`, so every
+#: subprocess ANY module makes inside `process_leftover_run_markers` lands in the recorder, not
+#: just the publisher launch the test is about. That was harmless while the failure path made no
+#: subprocess calls of its own. It is not harmless now: on a non-zero return the worker calls
+#: `process_run_complete.record_publish_gate_outcome` -> `wedge_suspects` -> `blame_commits`,
+#: which shells `git log -- <file>` for each test named in the LIVE
+#: `.last_gate_blocking_tests.json`. So the call count became a function of whether the machine
+#: currently has a wedged publish -- these two tests were green all week and went red at 07:06
+#: today because a real refusal had put a real file in that state.
+#:
+#: A control that fails exactly when the thing it watches is in the state it exists to describe
+#: is the shape this whole morning was about. The blame lookup is CORRECT behaviour and the test
+#: must not forbid it; what the test means is "which markers did the publisher get", so it
+#: records that and nothing else. Keyed on the processor's own filename rather than on argument
+#: position, because position is what made this fragile in the first place.
+_PUBLISHER = "process_run_complete.py"
+
+
+def _is_publisher_launch(cmd) -> bool:
+    return any(_PUBLISHER in str(part) for part in (cmd or []))
+
+
+def _record_publisher(calls):
+    """A `subprocess.run` stand-in that appends only the publisher's marker argument."""
+    def _run(*a, **k):
+        cmd = a[0] if a else k.get("args")
+        if _is_publisher_launch(cmd):
+            calls.append(cmd[-1])
+        return None
+    return _run
+
+
 def _fake_success(*args, **kwargs):
     return MagicMock(returncode=0)
 
@@ -311,7 +345,7 @@ def test_processing_order_is_deterministic_sorted(monkeypatch):
 
     calls = []
     monkeypatch.setattr(background_worker.subprocess, "run",
-                        lambda *a, **k: calls.append(a[0][-1]) or MagicMock(returncode=1, stderr=""))
+                        lambda *a, **k: _record_publisher(calls)(*a, **k) or MagicMock(returncode=1, stderr=""))
 
     background_worker.process_leftover_run_markers()
 
@@ -353,7 +387,7 @@ def test_superseded_markers_are_retired_without_running_the_pipeline():
     calls = []
     import unittest.mock as m
     with m.patch.object(background_worker.subprocess, "run",
-                        lambda *a, **k: calls.append(a[0][-1]) or _fake_success()):
+                        lambda *a, **k: _record_publisher(calls)(*a, **k) or _fake_success()):
         background_worker.process_leftover_run_markers()
 
     assert calls == [], "a superseded marker must never be fed to the publish pipeline"
@@ -379,7 +413,7 @@ def test_an_unsuperseded_marker_is_still_published():
     calls = []
     import unittest.mock as m
     with m.patch.object(background_worker.subprocess, "run",
-                        lambda *a, **k: calls.append(a[0][-1]) or _fake_success()):
+                        lambda *a, **k: _record_publisher(calls)(*a, **k) or _fake_success()):
         background_worker.process_leftover_run_markers()
 
     assert [Path(c).name for c in calls] == [newer.name]
@@ -396,7 +430,7 @@ def test_mixed_backlog_retires_the_stale_and_publishes_the_live_one():
     calls = []
     import unittest.mock as m
     with m.patch.object(background_worker.subprocess, "run",
-                        lambda *a, **k: calls.append(a[0][-1]) or _fake_success()):
+                        lambda *a, **k: _record_publisher(calls)(*a, **k) or _fake_success()):
         background_worker.process_leftover_run_markers()
 
     assert [Path(c).name for c in calls] == [live.name]
@@ -419,7 +453,7 @@ def test_no_published_run_yet_retires_nothing():
     calls = []
     import unittest.mock as m
     with m.patch.object(background_worker.subprocess, "run",
-                        lambda *a, **k: calls.append(a[0][-1]) or MagicMock(returncode=1, stderr="")):
+                        lambda *a, **k: _record_publisher(calls)(*a, **k) or MagicMock(returncode=1, stderr="")):
         background_worker.process_leftover_run_markers()
 
     assert len(calls) == 3
@@ -549,7 +583,7 @@ def test_a_failed_retirement_never_breaks_the_sweep(monkeypatch):
     monkeypatch.setattr(Path, "rename", _boom)
     calls = []
     monkeypatch.setattr(background_worker.subprocess, "run",
-                        lambda *a, **k: calls.append(a[0][-1]) or _fake_success())
+                        lambda *a, **k: _record_publisher(calls)(*a, **k) or _fake_success())
 
     background_worker.process_leftover_run_markers()  # must not raise
 
@@ -698,6 +732,7 @@ def test_a_crashed_publisher_is_not_a_publish_and_retires_nothing(monkeypatch, r
 # reconciliation), never a published business surface -- so it must never wedge the live
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
+
 pytestmark = pytest.mark.operational
 
 
