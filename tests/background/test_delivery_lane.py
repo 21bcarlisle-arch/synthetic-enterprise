@@ -30,6 +30,8 @@ WHAT THESE TESTS GUARD, and none of them is about the happy path:
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -428,6 +430,195 @@ def test_the_emergency_check_FAILS_TOWARD_the_emergency(monkeypatch):
     monkeypatch.setattr(sup, "_publish_gate_wedge_active", _boom)
 
     assert sup._priority_zero_active() is True
+
+
+# --------------------------------------------------------------------------- #
+# 5. The progress signal: it must be able to PASS, and it must be able to FIRE  #
+# --------------------------------------------------------------------------- #
+# THE DEFECT, 2026-08-26. Every claim above was recorded with `paths=[]`, and
+# `seat_work_in_hand._last_commit_time_touching([])` short-circuits to 0.0, so the
+# "this work is moving" branch was unreachable for this whole store: every Lane 0
+# claim was swept at 100 minutes regardless of what landed, and each sweep filed an
+# alarm reading "Nothing has landed in the tree since it was claimed". Twelve such
+# documents exist; at least five had subjects sitting in `docs/staging/done/` at HEAD.
+#
+# R15 calls a control that cannot fail worse than none. This was one turn over: a
+# control whose PASS branch could not be reached, so its verdict was a constant. The
+# test that did not exist -- and whose absence is why it shipped -- is the NULL
+# CONTROL: same age, same deadline, same real commit landing after the claim, only
+# the path binding varies.
+
+
+@pytest.fixture()
+def repo(tmp_path, monkeypatch):
+    """A REAL git repo. Both halves of this signal are answers from `git show` and `git log`,
+    so a mock would test the mock: the 2026-08-21 and 2026-08-26 defects were both about what
+    git actually says on a shared tree, and neither would have been visible against a stub."""
+    root = tmp_path / "repo"
+    root.mkdir()
+    env = {"GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t", "GIT_COMMITTER_NAME": "t",
+           "GIT_COMMITTER_EMAIL": "t@t"}
+
+    def git(*args, **kw):
+        out = subprocess.run(["git", *args], cwd=root, capture_output=True, text=True,
+                             env={**os.environ, **env, **kw.pop("env", {})})
+        assert out.returncode == 0, out.stderr
+        return out.stdout.strip()
+
+    git("init", "-q")
+    (root / "seed.txt").write_text("seed\n")
+    git("add", "seed.txt")
+    git("commit", "-q", "-m", "seed")
+    monkeypatch.setattr(dl, "PROJECT_DIR", root)
+    monkeypatch.setattr(claims_mod, "PROJECT_DIR", root)
+    return {"root": root, "git": git, "claims": tmp_path / "claims.json"}
+
+
+def _land(repo, relpath: str, body: str = "x\n") -> float:
+    """Commit a real file and return the commit's own timestamp."""
+    target = repo["root"] / relpath
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(body)
+    repo["git"]("add", relpath)
+    repo["git"]("commit", "-q", "-m", f"land {relpath}")
+    return float(repo["git"]("log", "-1", "--format=%ct"))
+
+
+def test_THE_NULL_CONTROL_a_claim_that_landed_a_commit_SURVIVES_the_sweep(repo):
+    """THE TEST THAT DID NOT EXIST. A claim one minute older than a commit that landed against
+    its paths, swept one second past the 100-minute deadline: it must be left alone, because it
+    moved 99 minutes ago.
+
+    MUTATION (must fire): go back to `paths=[]` at the claim site — that is the shipped code, and
+    it sweeps this claim.
+    """
+    landed_at = _land(repo, "background/thing.py")
+    claimed_at = landed_at - 60
+    claims_mod.claim("focus-item", "doing the thing", paths=[], path=repo["claims"],
+                     now=claimed_at)
+
+    bound = dl.record_landing("focus-item", path=repo["claims"])
+
+    assert bound == ["background/thing.py"], "the landing bound the wrong scope"
+
+    now = claimed_at + dl.CLAIM_STALE_SECONDS + 1
+    stale = claims_mod.stale_claims(path=repo["claims"], now=now,
+                                    stale_after=dl.CLAIM_STALE_SECONDS)
+
+    assert stale == [], (
+        "a Lane 0 claim that landed a real commit against its own paths was swept anyway -- "
+        "the pass branch is still unreachable and the verdict is still a constant"
+    )
+
+
+def test_THE_MUTATION_a_claim_that_landed_NOTHING_is_still_swept(repo):
+    """The other half of the pair, and the property the deadline exists for. Identical claim,
+    identical age, identical busy tree -- a commit DID land, just not against this claim -- and
+    it must go back in the pool.
+
+    This is also the 2026-08-21 defect's guard: the commit below is real and newer than the
+    claim, so an unscoped `head > claimed_at` would credit this stalled claim with it.
+    """
+    claimed_at = float(repo["git"]("log", "-1", "--format=%ct")) - 60
+    claims_mod.claim("focus-item", "said it was doing the thing", paths=[],
+                     path=repo["claims"], now=claimed_at)
+    _land(repo, "some/other/lane.py")            # the tree moves; this claim does not
+
+    now = claimed_at + dl.CLAIM_STALE_SECONDS + 1
+    stale = claims_mod.stale_claims(path=repo["claims"], now=now,
+                                    stale_after=dl.CLAIM_STALE_SECONDS)
+
+    assert [w for w, _, _ in stale] == ["focus-item"]
+
+
+def test_the_deadline_is_RESTARTED_by_a_landing_and_not_ABOLISHED_by_it(repo):
+    """The opposite failure, and the one the old `continue` had: one commit at minute two bought
+    the claim eternity. A tick that lands an increment and then dies would strand the item
+    forever — the stall this machinery exists to catch, wearing a receipt.
+
+    MUTATION (must fire): restore `if moved > claimed_at: continue`.
+    """
+    landed_at = _land(repo, "background/thing.py")
+    claims_mod.claim("focus-item", "", paths=[], path=repo["claims"], now=landed_at - 60)
+    dl.record_landing("focus-item", path=repo["claims"])
+
+    just_inside = landed_at + dl.CLAIM_STALE_SECONDS - 1
+    just_outside = landed_at + dl.CLAIM_STALE_SECONDS + 1
+
+    assert claims_mod.stale_claims(path=repo["claims"], now=just_inside,
+                                   stale_after=dl.CLAIM_STALE_SECONDS) == []
+    assert [w for w, _, _ in claims_mod.stale_claims(path=repo["claims"], now=just_outside,
+                                                     stale_after=dl.CLAIM_STALE_SECONDS)
+            ] == ["focus-item"], "a single landing made the claim permanent"
+
+
+def test_the_bound_paths_are_GITS_and_the_caller_cannot_widen_them(repo):
+    """The 2026-08-21 hole, closed by construction rather than by instruction. If a tick could
+    name its own scope it would eventually name `docs/` or `background/`, and four other lanes
+    committing there would certify it as moving — 'the seat certified by everyone else'.
+
+    MUTATION (must fire): accept a `paths` argument from the caller and bind it.
+    """
+    import inspect
+
+    assert "paths" not in inspect.signature(dl.record_landing).parameters, (
+        "record_landing takes a path list from its caller, so a claim can be credited with "
+        "any lane's commits by naming a wide enough directory"
+    )
+
+    landed_at = _land(repo, "a/one.py")
+    claims_mod.claim("f", "", paths=[], path=repo["claims"], now=landed_at - 60)
+
+    assert dl.record_landing("f", path=repo["claims"]) == ["a/one.py"]
+
+    _land(repo, "a/two.py", "y\n")
+
+    assert dl.record_landing("f", path=repo["claims"]) == ["a/one.py", "a/two.py"], (
+        "each landing must ADD its own files: an increment that re-binds only the newest "
+        "commit throws away the scope of everything landed before it, so the deadline stops "
+        "watching the earlier work"
+    )
+
+
+def test_record_landing_REFUSES_a_commit_that_is_not_newer_than_the_claim(repo):
+    """Otherwise the call is a heartbeat with extra steps: a tick that landed nothing could bind
+    its own pre-claim work, or somebody else's, and restart the deadline on it forever.
+
+    MUTATION (must fire): drop the `when <= since` check.
+    """
+    landed_at = _land(repo, "background/thing.py")
+    claims_mod.claim("f", "", paths=[], path=repo["claims"], now=landed_at + 60)
+
+    assert dl.record_landing("f", path=repo["claims"]) == []
+    assert claims_mod._load(repo["claims"])["f"]["paths"] == []
+
+
+def test_record_landing_binds_NOTHING_when_there_is_no_claim_or_no_commit(repo):
+    """FAIL TOWARD THE POOL. An unavailable check is a failed check (R15), and the failure that
+    costs least is the claim going back in the draw."""
+    _land(repo, "background/thing.py")
+
+    assert dl.record_landing("never-claimed", path=repo["claims"]) == []
+
+    claims_mod.claim("f", "", paths=[], path=repo["claims"], now=0.0)
+
+    assert dl.record_landing("f", commit="nope-not-a-ref", path=repo["claims"]) == []
+    assert dl.record_landing("f", commit="", path=repo["claims"]) == []
+
+
+def test_the_TICK_IS_TOLD_to_bind_its_landings(tree):
+    """A mechanism nobody invokes is the fix that isn't, and the only caller here is a worker
+    tick reading a doorbell. MAKE_IT_STICK: the command has to be IN the handover, next to the
+    instruction to land, or this becomes the class of rule that decays.
+
+    MUTATION (must fire): leave the doorbell as it was.
+    """
+    tree["write"]([_item("the-key")])
+
+    bell = dl.doorbell(dl.next_item(now=NOW_EPOCH, path=tree["claims"]))
+
+    assert "--landed the-key" in bell
+    assert "AFTER EACH COMMIT" in bell
 
 
 def test_the_emergency_check_asks_the_RUNGS_OWN_predicates_not_the_message(monkeypatch):

@@ -69,6 +69,31 @@ day -- which is exactly the day a stall costs the most.
 Progress now means: a commit since the claim that TOUCHES THE CLAIMED PATHS. A claim with no
 paths has no observable progress signal at all, so it goes stale on schedule and is released.
 That is the fail-safe direction: work nobody can see moving belongs back in the draw.
+
+THE DEADLINE RUNS FROM THE LAST OBSERVED PROGRESS, NOT FROM THE CLAIM (fixed 2026-08-26)
+---------------------------------------------------------------------------------------
+The first two versions of `stale_claims` asked `moved > claimed_at` and, if so, `continue`d --
+"this work landed something: it is moving", forever. Two defects in one line, opposite ends:
+
+  * UNBOUNDED PASS. One commit at minute two bought the claim eternity. A seat that landed an
+    increment and then stopped was never swept, which is the stall this module exists for
+    wearing a receipt.
+  * UNREACHABLE PASS, which is the one that was measured. `background/delivery_lane.py` claims
+    every Lane 0 item with `paths=[]`, `_last_commit_time_touching([])` short-circuits to `0.0`,
+    so `0.0 > claimed_at` was never true and the `continue` was DEAD CODE for that whole store.
+    Every delivery-lane claim was swept on a 100-minute timer regardless of what landed against
+    it, and each sweep filed an alarm reading "Nothing has landed in the tree since it was
+    claimed" -- twelve of them, at least five about work that had provably landed. A control
+    whose verdict is a constant, alarming on its own record rather than on the tree.
+
+Staleness is now `now - max(claimed_at, moved)`: the clock restarts at every commit touching the
+claimed paths and keeps running afterwards. Landing something buys the deadline again, not
+immunity from it. The pass branch is reachable (land a commit against your paths) and bounded
+(stop landing them and it fires), which is what a signal has to be to be a signal.
+
+The paths are LATE-BOUND for work that has none at draw time: see `bind_paths` below and
+`delivery_lane.record_landing`, which derives them from a commit that exists rather than from
+the claimant's say-so.
 """
 from __future__ import annotations
 
@@ -153,6 +178,46 @@ def claim(work_id: str, note: str = "", paths: list[str] | None = None, *,
     _save(claims, p)
 
 
+#: Ceiling on a single claim's accumulated file_scope.
+#:
+#: NOT a performance limit. Every path added widens the set of commits that can certify the
+#: claim as moving, so an unbounded scope converges on "something in the tree touched one of
+#: these" -- which is the unbounded pass this module just removed, arriving through a different
+#: door. 200 is far above any real delivery item (the largest landing in this repo's history is
+#: ~80 files) and far below the point where the scope stops discriminating.
+MAX_BOUND_PATHS = 200
+
+
+def bind_paths(work_id: str, paths: list[str], *, path: Path | None = None) -> list[str]:
+    """Add `paths` to an existing claim's file_scope and return the claim's full path list.
+
+    LATE BINDING, and the deliberate difference from re-claiming: `claimed_at` is NOT touched.
+    Some work has no file_scope at draw time -- a delivery-lane item is direction, not an atom,
+    so there is no set of paths to name until the tick has landed something. Re-claiming would
+    reset the deadline from the claimant's assertion alone; binding paths instead hands the
+    deadline a SUBJECT and lets the commit clock decide, which is the whole point of scoping.
+
+    Returns `[]` and writes nothing if `work_id` is not claimed. Callers must supply paths that
+    came out of git (see `delivery_lane.record_landing`) -- a caller free-typing a broad path
+    here would re-open the shared-tree hole of 2026-08-21 by naming a directory four other lanes
+    commit into.
+    """
+    p = path or CLAIMS_FILE
+    claims = _load(p)
+    rec = claims.get(work_id)
+    if not isinstance(rec, dict):
+        return []
+    fresh = {str(x) for x in paths if str(x).strip()}
+    # At the ceiling, THIS landing's paths win: they are where the work is now, and the older
+    # ones are the likeliest to be picked up by another lane and certify a claim that stopped.
+    room = sorted(set(rec.get("paths") or []) - fresh)[:max(0, MAX_BOUND_PATHS - len(fresh))]
+    merged = sorted(fresh)[:MAX_BOUND_PATHS] + room
+    rec["paths"] = sorted(merged)
+    claims[work_id] = rec
+    _save(claims, p)
+    return rec["paths"]
+
+
 def release(work_id: str, *, path: Path | None = None) -> None:
     p = path or CLAIMS_FILE
     claims = _load(p)
@@ -166,27 +231,41 @@ def held(*, path: Path | None = None) -> list[str]:
     return sorted(_load(path or CLAIMS_FILE))
 
 
+def last_progress(rec: dict, *, head_time: float | None = None) -> float:
+    """The newest moment this claim can be OBSERVED to have advanced.
+
+    `max(claimed_at, moved)`, and both halves are load-bearing. `moved` alone would restart the
+    clock at a commit that predates the claim; `claimed_at` alone is the constant-verdict bug
+    this replaced. A claim with no bound paths has `moved == 0.0` and so answers `claimed_at`:
+    no observable signal means the deadline runs from the draw, which is the fail-safe direction
+    -- work nobody can see moving belongs back in the pool.
+    """
+    claimed_at = float(rec.get("claimed_at", 0))
+    moved = (head_time if head_time is not None
+             else _last_commit_time_touching(rec.get("paths") or []))
+    return max(claimed_at, float(moved))
+
+
 def stale_claims(*, path: Path | None = None, now: float | None = None,
                  head_time: float | None = None,
                  stale_after: float | None = None) -> list[tuple[str, dict, float]]:
-    """[(work_id, record, idle_seconds)] for claims past the deadline whose own paths have not
-    moved. `head_time` overrides the per-claim lookup, for tests.
+    """[(work_id, record, idle_seconds)] for claims whose own paths have not moved inside the
+    deadline. `idle` is measured from the LAST OBSERVED PROGRESS -- the newest commit touching
+    the claimed paths, or the claim itself when nothing has. `head_time` overrides the per-claim
+    lookup, for tests.
 
-    `stale_after` defaults to `STALE_AFTER_SECONDS`, so the interactive seat's behaviour is
-    byte-identical. It exists because `delivery_lane` shares this primitive with a different
-    deadline: its work is the multi-hour class by design, and a 45-minute deadline there would
-    thrash a claim rather than catch a stall. One store per subject, one deadline per subject,
-    ONE implementation."""
+    `stale_after` defaults to `STALE_AFTER_SECONDS`, so the interactive seat keeps its own
+    deadline. It exists because `delivery_lane` shares this primitive with a different one: its
+    work is the multi-hour class by design, and a 45-minute deadline there would thrash a claim
+    rather than catch a stall. One store per subject, one deadline per subject, ONE
+    implementation."""
     now = time.time() if now is None else now
     deadline = STALE_AFTER_SECONDS if stale_after is None else float(stale_after)
     out = []
     for work_id, rec in sorted(_load(path or CLAIMS_FILE).items()):
-        claimed_at = float(rec.get("claimed_at", 0))
-        moved = (head_time if head_time is not None
-                 else _last_commit_time_touching(rec.get("paths") or []))
-        if moved > claimed_at:
-            continue                      # THIS work landed something: it is moving
-        idle = now - claimed_at
+        # The clock restarts at every commit against the claimed paths and keeps running after
+        # it. Landing something buys the deadline again; it does not buy immunity from it.
+        idle = now - last_progress(rec, head_time=head_time)
         if idle >= deadline:
             out.append((work_id, rec, idle))
     return out
@@ -203,10 +282,23 @@ def sweep(*, path: Path | None = None, now: float | None = None,
     for work_id, rec, idle in stale_claims(path=p, now=now, head_time=head_time,
                                            stale_after=stale_after):
         note = (rec.get("note") or "").strip()
+        scope = rec.get("paths") or []
+        # SAY WHAT WAS ACTUALLY OBSERVED. The old text asserted "Nothing has landed in the tree
+        # since it was claimed" for every sweep including the no-paths case, where the tree was
+        # never asked -- an unsupported claim about state, and the sentence that sent at least
+        # five ticks to re-verify work that had provably landed.
+        observed = (
+            f"No commit has touched its {len(scope)} claimed path(s) "
+            f"({', '.join(scope[:5])}{'…' if len(scope) > 5 else ''}) in that time."
+            if scope else
+            "NO PATHS WERE EVER BOUND to this claim, so nothing about it could be observed -- "
+            "it is released on the clock, not because the work was seen to stall. Bind the "
+            "paths of each landing as it lands (`delivery_lane.record_landing`) and this "
+            "becomes a real signal."
+        )
         message = (
             f"[SEAT] {work_id} was claimed and has not moved for {idle / 3600:.1f}h\n"
-            f"Nothing has landed in the tree since it was claimed. The claim is released and "
-            f"the work is drawable by any lane.\n"
+            f"{observed} The claim is released and the work is drawable by any lane.\n"
             f"{('What the seat said it was doing: ' + note) if note else ''}"
         )
         alarm_repetition.escalate(

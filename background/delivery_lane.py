@@ -61,10 +61,31 @@ three hours and rewrites focus from the state of the tree, so an item that is ge
 appearing. **The seat's next orientation is the acceptance test for its own last decision**, and it
 already records `previous_focus_drawn` beside it. Nothing has to be marked complete for the loop
 to close; `--release` exists only so a tick that finishes early does not sit on a claim.
+
+PROGRESS IS LATE-BOUND, BECAUSE A DECISION HAS NO FILE_SCOPE AT DRAW TIME
+-------------------------------------------------------------------------
+Shipped 2026-08-25 claiming every item with `paths=[]`, which made the deadline unconditional:
+`seat_work_in_hand._last_commit_time_touching([])` returns `0.0`, so the "this work is moving"
+branch was DEAD CODE for this entire store and every claim was swept at 100 minutes no matter
+what landed against it. Twelve alarms were filed saying "nothing has landed"; at least five had
+subjects sitting in `docs/staging/done/` at HEAD. The machine alarmed on its own record rather
+than on its state, and it cost whole ticks re-verifying finished work.
+
+The fix is not to widen the comparison back to HEAD -- that is the 2026-08-21 defect in the
+shared module, where four other lanes' twenty commits a day credited every stalled claim, and it
+trades a signal that never passes for one that never fails. Nor is it a heartbeat, the tautology
+R15 names first.
+
+It is `record_landing`: as each increment lands, the tick binds to its claim the paths THAT
+COMMIT actually touched, read out of git. The claimant chooses when to call it and nothing else
+-- it cannot name a path (the commit names them), it cannot bind a commit older than its own
+claim, and it cannot bind at all without a commit that passed the gate to exist. `claimed_at` is
+left alone on purpose, so the deadline is restarted by the commit clock rather than by the call.
 """
 from __future__ import annotations
 
 import argparse
+import subprocess
 import sys
 from pathlib import Path
 
@@ -115,6 +136,73 @@ def sweep_stale(now: float | None = None, path: Path | None = None) -> list[str]
         return []
 
 
+def _commit_facts(commit: str) -> tuple[float, list[str]]:
+    """(commit time as a UTC epoch, repo-relative paths it touched) for `commit`.
+
+    `(0.0, [])` for anything git will not answer — an unknown ref, a merge with no first-parent
+    diff, an empty commit. An unreadable commit binds NOTHING, which leaves the claim exactly as
+    it was and lets the deadline run: an unavailable check is a failed check (R15), and the safe
+    direction here is the work going back in the pool.
+    """
+    try:
+        out = subprocess.run(
+            ["git", "show", "--no-renames", "--pretty=format:%ct", "--name-only", commit],
+            cwd=PROJECT_DIR, capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return 0.0, []
+    if out.returncode != 0:
+        return 0.0, []
+    lines = [ln.strip() for ln in out.stdout.splitlines()]
+    if not lines or not lines[0]:
+        return 0.0, []
+    try:
+        when = float(lines[0])
+    except ValueError:
+        return 0.0, []
+    return when, sorted({ln for ln in lines[1:] if ln})
+
+
+def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = None,
+                   claimed_at: float | None = None) -> list[str]:
+    """Bind the paths a LANDED COMMIT touched to a Lane 0 claim. Returns the claim's full scope.
+
+    This is what makes the delivery lane's deadline conditional instead of a timer. Call it
+    immediately after each increment lands:
+
+        python3 -m background.delivery_lane --landed <focus-id>
+
+    WHAT THE CALLER CONTROLS IS ONLY *WHEN*. The paths come out of `git show`, so a tick cannot
+    name a broad directory and be credited with four other lanes' commits — the 2026-08-21 hole.
+    `claimed_at` is left untouched, so the deadline restarts from the commit's own timestamp via
+    `seat_work_in_hand.last_progress`, not from the moment this was called.
+
+    REFUSES, returning `[]` and writing nothing, when:
+      * `focus_id` is not claimed — there is no deadline to inform;
+      * the commit is unreadable or touched no files;
+      * the commit is NOT NEWER than the claim. A commit that predates the claim is somebody
+        else's work, or this tick's own earlier work, and crediting the claim with it would
+        restart a deadline on something that had already happened. This is the check that keeps
+        the call from being a heartbeat with extra steps.
+
+    Never raises: it is called from a tick that has just committed, and losing the binding is a
+    false alarm 100 minutes later, while raising would lose the tick.
+    """
+    try:
+        store = path or CLAIMS_FILE
+        rec = claims_mod._load(store).get(focus_id)
+        if not isinstance(rec, dict):
+            return []
+        when, paths = _commit_facts(commit)
+        if not paths:
+            return []
+        since = float(rec.get("claimed_at", 0)) if claimed_at is None else float(claimed_at)
+        if when <= since:
+            return []
+        return claims_mod.bind_paths(focus_id, paths, path=store)
+    except Exception:
+        return []
+
+
 def doorbell(item: dict) -> str:
     """What the tick reads. It has to carry the WORK, the REASON, and — because a focus item has
     no exit test — what to do about that."""
@@ -125,8 +213,12 @@ def doorbell(item: dict) -> str:
         "THIS IS DIRECTION, NOT AN ATOM: no exit test is written for it, so decide what done "
         "means, do the work, and LAND it by the ordinary route (tree_lock + pathspec commit, or "
         "`python3 -m tools.surgical_land`). If it is bigger than one turn, land the part you "
-        "finished -- a landed increment is what proves the claim is moving. When you judge it "
-        "finished: `python3 -m background.delivery_lane --release {key}`. You do not have to: the "
+        "finished -- a landed increment is what proves the claim is moving. IMMEDIATELY AFTER "
+        "EACH COMMIT, run `python3 -m background.delivery_lane --landed {key}`: that binds the "
+        "paths that commit touched to your claim, and it is the ONLY way this lane can see your "
+        "work moving. Skip it and the claim is swept back into the pool in 100 minutes however "
+        "much you landed. When you judge it finished: "
+        "`python3 -m background.delivery_lane --release {key}`. You do not have to: the "
         "seat re-orients every three hours and drops what is done, which is the real acceptance "
         "test."
     ).format(what=str(item.get("what") or item.get("id") or "").strip(),
@@ -172,12 +264,27 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--release", metavar="FOCUS_ID",
                     help="mark a delivery-lane item finished and free its claim")
+    ap.add_argument("--landed", metavar="FOCUS_ID",
+                    help="bind the paths of a just-landed commit to a claim, restarting its "
+                         "deadline from that commit's own timestamp")
+    ap.add_argument("--commit", default="HEAD",
+                    help="which commit --landed reads its paths from (default: HEAD)")
     ap.add_argument("--sweep", action="store_true",
                     help="return abandoned claims to the pool")
     args = ap.parse_args(argv)
     if args.release:
         claims_mod.release(args.release, path=CLAIMS_FILE)
         print(f"released {args.release}")
+        return 0
+    if args.landed:
+        scope = record_landing(args.landed, commit=args.commit)
+        if not scope:
+            # Non-zero: the caller believes it landed something and the lane disagrees, which it
+            # needs to hear NOW rather than as a false alarm in 100 minutes.
+            print(f"bound NOTHING to {args.landed}: it is not claimed, or {args.commit} is "
+                  f"unreadable, empty, or not newer than the claim")
+            return 1
+        print("bound {} path(s) to {}: {}".format(len(scope), args.landed, ", ".join(scope[:8])))
         return 0
     if args.sweep:
         freed = sweep_stale()
