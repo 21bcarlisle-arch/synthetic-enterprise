@@ -551,7 +551,13 @@ def main() -> int:
         if not files_to_scan:
             # No company files changed — scan all company/ for safety
             passed, violations = scan(files=None)
-            all_company = list(Path("company").rglob("*.py")) + list(Path("saas").rglob("*.py")) + list(Path("saas").rglob("*.py"))
+            # `saas` was walked TWICE here, inflating the reported total on the
+            # branch that scans EVERYTHING. A report-line count only -- no
+            # detection logic changes, so this stays inside the closed
+            # EPISTEMIC_VERIFIER_TIMING_DETECTION_TIER1.md ruling -- but it is the
+            # number a reader uses to judge whether the scan's coverage looked
+            # right, and an inflated one makes a narrow scan look broad.
+            all_company = list(Path("company").rglob("*.py")) + list(Path("saas").rglob("*.py"))
             print(_format_report(passed, violations, len(all_company)))
         else:
             passed, violations = scan(files=files_to_scan)
