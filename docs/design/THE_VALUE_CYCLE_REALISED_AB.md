@@ -577,3 +577,63 @@ the published **domestic** cap, applied to every segment including industrial. T
 error one layer along, it is unrepaired, and `extrapolation_bound` fired 3 times in this run. It
 was deliberately left out of this commit: repairing two mechanisms at once makes neither
 attributable.
+
+---
+
+## 2026-08-26 16:40Z — inference or luck: measured, and only half of it is visible
+
+`renewal_rate_chain` has logged `believed_p_retain` per priced renewal since the arm was
+built, with a comment saying why: *"Carried so the two can be compared afterwards, which is
+the only way to find out whether this company's beliefs are worth acting on."* Nothing ever
+compared them. `belief_vs_outcome` does — the belief against a **tally** of `event_type`, not
+against a second probability.
+
+```
+discrimination AUC       0.6463      (0.5 = no information at all)
+mean believed retention  0.7042
+realised retention       0.7500
+calibration error       -0.0458
+population               21 retained, 7 left
+```
+
+**The belief ranks.** Customers it thought likelier to stay were likelier to stay — modestly,
+on a small churned population, but above chance. So the arm's advantage is **not purely a
+lucky miscalibration**. It also slightly UNDER-states retention, consistent with the 2.4x–7.6x
+hazard over-statement measured this morning.
+
+**And the headline calibration figure is two large errors cancelling:**
+
+| believed p_retain | n | realised |
+|---|---|---|
+| 0.06 | 2 | **1.00** |
+| 0.33 | 4 | **1.00** |
+| 0.52 | 2 | 0.00 |
+| 0.65 | 5 | **0.20** — inverted |
+| 0.93 | 15 | 0.93 |
+
+Well calibrated exactly where most decisions are, and badly wrong in the middle. A single
+number would have hidden all of it.
+
+### The caveat is the finding: coverage is 48%
+
+**28 of 58 decisions could be matched to an outcome.** Everything above describes less than
+half the arm's answers, and `scored_share_of_priced` is published so it cannot be read as the
+whole book.
+
+The artefact now explains its own gap rather than leaving a hole.
+`simulation/customer_events.roll_lifecycle_event` returns `None` when `home_move_win_rates`
+carries no entry for the renewal month, so these are renewals at which **the world rolled no
+churn decision at all** — not renewals whose outcome is unknown. They are excluded rather than
+counted as retained, because scoring a belief about retention against a renewal where leaving
+was impossible would flatter the arm.
+
+`unmatched_by_year` = 2017: 6, 2018: 6, 2019: 7, 2020: 3, 2021: 2, 2022: 2, 2023: 2, 2024: 2,
+and every account in the sample is a **seed** account — C2, C3, C4, C6, C8, C9, at quarterly
+term starts. The PROS-* accounts match.
+
+**That is the next thing to open, and it is not a measurement tidy-up.** `home_move_win_rates`
+is built from `churn_model._renewal_periods` (acquisition_date + 365n, truncated at the last
+settled period) while the arm prices off the run's actual term list, and the seed accounts —
+which include the three I&C accounts carrying 97% of the delta — are the ones falling through.
+If the accounts that dominate the P&L are also the ones the churn machinery rarely rolls on,
+then how much of *any* arm's result is a churn outcome at all is an open question.
