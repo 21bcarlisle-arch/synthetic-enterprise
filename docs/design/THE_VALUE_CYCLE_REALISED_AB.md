@@ -416,6 +416,15 @@ the only thing that changed is the arm, and the comparison is clean.
 **A prediction was stamped before the run**
 (`ab_rerun_prediction.md`, scratch) so the result could disagree with it. It did.
 
+**Where the two columns below actually live.** The post-fix run wrote the tool's DEFAULT
+path, `docs/observability/value_cycle_ab.json` (`generated_at` 2026-08-26T12:35:29Z),
+committed in `b7db3e7b8`. The pre-fix run it is read against was preserved out of the way as
+`docs/observability/value_cycle_ab_prior_2026-08-26T0802Z.json` — and was left UNTRACKED
+until `6089f90a9`, so for a day this table's left-hand column cited an artefact that existed
+in one worktree and nowhere in the repo. A paired reading is only as committed as its
+weaker half: the artefact that is *superseded* is the one nothing routine will ever
+re-create, so it is the one that has to be landed deliberately.
+
 | | 08:02Z | predicted | 13:35Z | |
 |---|---|---|---|---|
 | `clamped_by_the_price_cap` | 27 | 0 | **0** | right |
