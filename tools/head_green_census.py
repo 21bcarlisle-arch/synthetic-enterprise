@@ -39,10 +39,13 @@ design; the defect was that nothing else was unscoped.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -82,10 +85,47 @@ HEAVY_IGNORES = (
 _FAILED_RE = re.compile(r"^FAILED\s+(\S+)", re.MULTILINE)
 _SUMMARY_RE = re.compile(r"(\d+)\s+passed")
 
+# THE CAUSE, not just the name (2026-08-22). `--tb=line` already prints one line per failure
+# ending in the exception type, and the census threw it away -- so a page said "12 newly failing
+# test(s)" and twelve node ids, and the reader had to re-run the suite to learn whether that was
+# twelve unrelated bugs or one guard firing twelve times. Director, 2026-08-21: *"Producing a
+# number without pinning what produced it is the shared failure."*
+#
+# A HISTOGRAM, not a per-node map, and deliberately so: `--tb=line` prints the SOURCE location of
+# the raise, not the node id, so any per-node attribution would have to be inferred by pairing
+# ordered lists -- correct until one failure prints two lines, and silently wrong afterwards. The
+# count per cause is the number that answers "is this one class or twelve", which is the question,
+# and it is read directly rather than reconstructed.
+#
+# IT UNDERCOUNTS, KNOWINGLY. A bare `assert x == y` prints as `assert 1 == 2` with no type name, so
+# it contributes to no bucket. The histogram is therefore a floor on named causes and NEVER a
+# partition of the reds: `ProductionWriteRefused x2` against 3 reds does not license "so 1 red had
+# another cause". Verified against real `--tb=line` output on 2026-08-22, not against a fixture
+# string -- the fixture would have agreed with whatever the regex did.
+_CAUSE_RE = re.compile(r"^\S+\.py:\d+: ([A-Za-z_][\w.]*(?:Error|Exception|Refused|Failed))",
+                       re.MULTILINE)
+
 
 def parse_failures(output: str) -> list[str]:
     """Every `FAILED <nodeid>` line, deduped, in a stable order."""
     return sorted(set(_FAILED_RE.findall(output or "")))
+
+
+def parse_causes(output: str) -> dict:
+    """`{exception type: count}` over the run's own tracebacks, commonest first.
+
+    Empty when the run printed no parseable cause -- which is a fact about the log, never a claim
+    that the failures had no cause, so callers report the names they do have and say nothing more.
+    """
+    counts = {}
+    for name in _CAUSE_RE.findall(output or ""):
+        counts[name] = counts.get(name, 0) + 1
+    return dict(sorted(counts.items(), key=lambda kv: (-kv[1], kv[0])))
+
+
+def summarise_causes(causes: dict) -> str:
+    """One line: `ProductionWriteRefused x12, AssertionError x1`. Empty string when unknown."""
+    return ", ".join("{} x{}".format(n.rsplit(".", 1)[-1], c) for n, c in causes.items())
 
 
 def parse_passed_count(output: str):
@@ -148,19 +188,88 @@ def pytest_argv() -> list:
     return argv
 
 
+# THE CENSUS'S SUBJECT IS A CLEAN CHECKOUT OF HEAD (2026-08-22), for the same reason the publish
+# gate's is -- DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09, *"publishing tests committed truth
+# only; the working tree belongs to the lanes."*
+#
+# THE DEFECT THIS CLOSES. Everything about this control said HEAD -- the module name, the opening
+# line "Is HEAD actually green?", the unit Description, the page it sends ("[HEAD-GREEN] N newly
+# failing test(s) at HEAD") -- and `run_suite` ran `cwd=PROJECT_DIR`, the live shared working tree.
+# So the nightly verdict was "the tree happened to be green while N lanes were mid-edit", which is
+# a much weaker claim wearing the same words. It is the exact substitution this module's own
+# docstring was written to name, one level up: the gate measured name-adjacency and called it HEAD;
+# this measured the working tree and called it HEAD. Observed 2026-08-22 01:40Z, while drawing the
+# sink guard's blast radius: 214 modified TRACKED paths sat in the tree, so any NEW_RED the 03:30 run
+# reported could have been authored by any lane and the page would have named the test, never the
+# cause. The director on 2026-08-21: *"Producing a number without pinning what produced it is the
+# shared failure."*
+#
+# NO SILENT FALLBACK. A checkout that cannot be built returns None and the caller reads UNPROVEN.
+# Falling back to `cwd=PROJECT_DIR` would restore the defect precisely when the machinery for
+# avoiding it is broken -- the fail-open shape R15 names, and worse than never having moved.
+CENSUS_SUBJECT_PREFIX = "head-green-census-"
+
+
+@contextlib.contextmanager
+def head_subject_checkout():
+    """Yield a clean checkout of HEAD, or None if one cannot be built.
+
+    Built by the publisher's OWN helpers rather than a second implementation, so the census and
+    the gate cannot drift apart about what "a checkout of HEAD" means. Its directory prefix is
+    deliberately its own: `_sweep_stale_head_checkouts` owns the publisher's prefix, and a census
+    tree inside that namespace could be swept by a concurrent publisher mid-run.
+    """
+    if str(PROJECT_DIR) not in sys.path:
+        sys.path.insert(0, str(PROJECT_DIR))
+    from background import process_run_complete as prc
+
+    head_sha = prc._head_sha()
+    if head_sha is None:
+        yield None
+        return
+    # `prc.HEAD_CHECKOUT_ROOT` (/var/tmp), NOT the default temp dir. On this box `/tmp` is a
+    # 3.9G tmpfs at 51% -- a ~130MB / 10,432-file checkout there is RAM, and the publisher chose
+    # /var/tmp (885G free, real disk) for exactly that reason. Measured 2026-08-22, after writing
+    # it the wrong way first.
+    tmp = Path(tempfile.mkdtemp(prefix=CENSUS_SUBJECT_PREFIX, dir=str(prc.HEAD_CHECKOUT_ROOT)))
+    try:
+        if not prc._materialise_head_into(tmp, head_sha):
+            yield None
+            return
+        # The suite contains tests whose subject is a git repo, so the checkout has to be one.
+        prc._make_checkout_a_repo(tmp, head_sha)
+        prc._overlay_untracked_data(tmp)
+        yield tmp
+    finally:
+        shutil.rmtree(str(tmp), ignore_errors=True)
+
+
 def run_suite(timeout: int = 3600) -> str:
-    proc = subprocess.run(pytest_argv(), cwd=str(PROJECT_DIR),
-                          capture_output=True, text=True, timeout=timeout)
-    return (proc.stdout or "") + (proc.stderr or "")
+    """Run the unscoped suite against a clean checkout of HEAD.
+
+    Returns the run's output, or "" when no subject could be built -- and "" carries no pytest
+    summary line, so `verdict()` reads it as UNPROVEN. The absence of a subject is therefore
+    expressed through the existing fail-safe rather than through a new branch that could be
+    got wrong.
+    """
+    with head_subject_checkout() as subject:
+        if subject is None:
+            return ""
+        proc = subprocess.run(pytest_argv(), cwd=str(subject),
+                              capture_output=True, text=True, timeout=timeout)
+        return (proc.stdout or "") + (proc.stderr or "")
 
 
 def evaluate(output: str, baseline_path: Path = BASELINE_PATH) -> dict:
     failures = parse_failures(output)
     passed = parse_passed_count(output)
+    causes = parse_causes(output)
     delta = diff_against_baseline(failures, load_baseline(baseline_path))
     status, reason = verdict(delta, passed)
+    if status == "NEW_RED" and causes:
+        reason += " [causes: {}]".format(summarise_causes(causes))
     return {"status": status, "reason": reason, "passed": passed,
-            "failures": failures, **delta}
+            "failures": failures, "causes": causes, **delta}
 
 
 def main(argv=None) -> int:
@@ -179,6 +288,8 @@ def main(argv=None) -> int:
         print(json.dumps(result, indent=2))
     else:
         print("{}: {}".format(result["status"], result["reason"]))
+        if result.get("causes"):
+            print("  causes   " + summarise_causes(result["causes"]))
         for name in result["new_red"]:
             print("  NEW RED  " + name)
         for name in result["fixed"]:
@@ -187,9 +298,12 @@ def main(argv=None) -> int:
     if args.notify and result["status"] == "NEW_RED":
         try:
             from background.notify import notify
+            causes = summarise_causes(result.get("causes") or {})
             notify(
-                "[HEAD-GREEN] {} newly failing test(s) at HEAD:\n  {}".format(
-                    len(result["new_red"]), "\n  ".join(result["new_red"][:12])),
+                "[HEAD-GREEN] {} newly failing test(s) at HEAD{}:\n  {}".format(
+                    len(result["new_red"]),
+                    " ({})".format(causes) if causes else "",
+                    "\n  ".join(result["new_red"][:12])),
                 kind="real_alarm",
                 headers={"X-Tags": "rotating_light", "X-Priority": "high"},
             )

@@ -9,6 +9,8 @@ blindness with a green light on top -- so both are pinned here with mutations.
 from __future__ import annotations
 
 import json
+import sys
+from pathlib import Path
 
 import pytest
 
@@ -138,3 +140,189 @@ def test_it_is_not_wired_into_the_pre_commit_hook():
     """A 25-minute gate gets bypassed, and hook-bypass is a wall."""
     hook = (hgc.PROJECT_DIR / "tools" / "git-hooks" / "pre-commit").read_text()
     assert "head_green_census" not in hook
+
+
+# ------------------------------------------------- its SUBJECT is HEAD, not the shared working tree
+
+def test_the_census_subject_is_never_the_shared_working_tree():
+    """THE NAME'S OWN CLAIM, pinned. Everything about this control said HEAD -- the module name,
+    the unit Description, the page it sends -- while `run_suite` ran `cwd=PROJECT_DIR`, the tree
+    every lane edits. The verdict was "the tree happened to be green while N lanes were mid-edit".
+
+    Asserted on the cwd actually handed to the subprocess, so restoring `cwd=str(PROJECT_DIR)`
+    fails here (the mutation; run 2026-08-22 and it does)."""
+    seen = {}
+
+    class _Proc:
+        stdout, stderr = "1 passed", ""
+
+    import subprocess as _sp
+    real = _sp.run
+
+    def fake_run(argv, cwd=None, **kw):
+        # Only the SUITE invocation is faked. The checkout machinery runs for real, or this
+        # would be asserting about a cwd no real run ever uses.
+        if list(argv[:3]) != [sys.executable, "-m", "pytest"]:
+            return real(argv, cwd=cwd, **kw)
+        seen["cwd"] = cwd
+        return _Proc()
+
+    _sp.run = fake_run
+    try:
+        hgc.run_suite()
+    finally:
+        _sp.run = real
+
+    assert seen.get("cwd") is not None, "the suite never ran"
+    assert Path(seen["cwd"]).resolve() != hgc.PROJECT_DIR.resolve(), (
+        "the census ran in the shared working tree, so its verdict is about whatever the lanes "
+        "had uncommitted -- not about HEAD"
+    )
+
+
+def test_a_subject_that_cannot_be_built_reads_UNPROVEN_never_GREEN():
+    """FAIL DIRECTION. Falling back to the working tree when the checkout machinery is broken
+    would restore the defect exactly when the means of avoiding it is unavailable -- the fail-open
+    shape R15 names. No subject must be indistinguishable from no evidence."""
+    import contextlib
+
+    @contextlib.contextmanager
+    def _no_subject():
+        yield None
+
+    real = hgc.head_subject_checkout
+    hgc.head_subject_checkout = _no_subject
+    try:
+        output = hgc.run_suite()
+    finally:
+        hgc.head_subject_checkout = real
+
+    assert output == "", "an unbuildable subject must produce no output to score"
+    assert hgc.evaluate(output)["status"] == "UNPROVEN"
+
+
+def test_the_built_subject_carries_committed_truth_and_not_the_lanes_edits():
+    """The behavioural half: the checkout really is HEAD, with none of the tree's modifications.
+
+    The cwd assertion above can be satisfied by any directory; this one asserts the property that
+    made the move worth making. Run against `PROJECT_DIR` instead of the checkout -- the mutation
+    -- and the modified-tracked-file list is non-empty whenever any lane is mid-edit, which on
+    2026-08-22 was 214 paths (measured, not estimated)."""
+    import subprocess
+
+    with hgc.head_subject_checkout() as subject:
+        if subject is None:
+            pytest.skip("checkout machinery unavailable on this box")
+        head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(subject),
+                              capture_output=True, text=True).stdout.strip()
+        live_head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(hgc.PROJECT_DIR),
+                                   capture_output=True, text=True).stdout.strip()
+        assert head == live_head, "the subject is not the commit the census claims to measure"
+
+        porcelain = subprocess.run(["git", "status", "--porcelain"], cwd=str(subject),
+                                   capture_output=True, text=True).stdout
+        modified = [ln for ln in porcelain.splitlines() if ln[:2].strip() in ("M", "MM", "D")]
+        assert modified == [], (
+            "the subject carries {} modified tracked path(s) -- it is somebody's working tree, "
+            "not committed truth: {}".format(len(modified), modified[:5])
+        )
+
+
+# ------------------------------------------------------- the page names the CAUSE, not just names
+
+def test_the_cause_is_read_from_the_runs_own_traceback_lines():
+    """A page of twelve node ids cannot say whether that is twelve bugs or one guard firing
+    twelve times. `--tb=line` already prints the type; the census used to discard it."""
+    log = (
+        "/repo/tests/production_surface_guard.py:154: "
+        "production_surface_guard.ProductionWriteRefused: TEST ISOLATION (G-T2)\n"
+        "/repo/tests/production_surface_guard.py:154: "
+        "production_surface_guard.ProductionWriteRefused: TEST ISOLATION (G-T2)\n"
+        "/repo/tests/x/test_y.py:9: AssertionError\n"
+    )
+    assert hgc.parse_causes(log) == {
+        "production_surface_guard.ProductionWriteRefused": 2, "AssertionError": 1}
+    # Commonest first, and the module prefix is dropped for the human-facing line.
+    assert hgc.summarise_causes(hgc.parse_causes(log)) == "ProductionWriteRefused x2, AssertionError x1"
+
+
+def test_an_unparseable_cause_says_nothing_rather_than_guessing():
+    """Empty is a fact about the LOG, never a claim that the failures had no cause. The verdict
+    must degrade to the old names-only payload, not to a confident wrong one."""
+    assert hgc.parse_causes("total gibberish") == {}
+    assert hgc.summarise_causes({}) == ""
+    result = hgc.evaluate(_OUTPUT)
+    assert "[causes:" not in result["reason"], "no cause lines in this log, so no cause claim"
+
+
+def test_the_new_red_reason_carries_its_causes(tmp_path):
+    """R5 -- the alert carries its own diagnostic payload."""
+    baseline = tmp_path / "b.json"
+    baseline.write_text(json.dumps({"known_red": []}))
+    log = (
+        "FAILED tests/a/test_one.py::test_alpha\n"
+        "/repo/tests/production_surface_guard.py:154: "
+        "production_surface_guard.ProductionWriteRefused: TEST ISOLATION (G-T2)\n"
+        "1 failed, 500 passed in 10s\n"
+    )
+    result = hgc.evaluate(log, baseline_path=baseline)
+    assert result["status"] == "NEW_RED"
+    assert "ProductionWriteRefused x1" in result["reason"]
+
+
+def test_a_cause_histogram_is_not_a_per_node_map():
+    """DELIBERATE LIMIT, pinned so nobody 'fixes' it into an unsound pairing: `--tb=line` prints
+    the raise SITE, not the node id, so counts are sound and per-node attribution is not."""
+    result = hgc.evaluate(_OUTPUT)
+    assert isinstance(result["causes"], dict)
+    assert all(isinstance(v, int) for v in result["causes"].values())
+
+
+def test_the_histogram_is_a_floor_on_named_causes_not_a_partition():
+    """A bare `assert x == y` prints no type under `--tb=line`, so it lands in no bucket. Pinned
+    from REAL pytest output (2026-08-22): 3 reds, 2 of them named -- and the missing one must not
+    be readable as evidence that a third distinct cause exists."""
+    real_tb_output = (
+        "/repo/tests/production_surface_guard.py:154: "
+        "production_surface_guard.ProductionWriteRefused: TEST ISOLATION (G-T2)\n"
+        "/repo/tests/production_surface_guard.py:154: "
+        "production_surface_guard.ProductionWriteRefused: TEST ISOLATION (G-T2)\n"
+        "/repo/tests/test_zz.py:8: assert 1 == 2\n"
+        "FAILED tests/test_zz.py::test_a\nFAILED tests/test_zz.py::test_b\n"
+        "FAILED tests/test_zz.py::test_c\n3 failed, 10 passed in 1s\n"
+    )
+    result = hgc.evaluate(real_tb_output)
+    assert sum(result["causes"].values()) == 2
+    assert len(result["failures"]) == 3, (
+        "the histogram totals less than the red count -- that gap is the unnamed causes, and "
+        "nothing may present the histogram as a partition of the reds"
+    )
+
+
+def test_the_subject_is_built_on_real_disk_not_the_tmpfs():
+    """`/tmp` is a 3.9G tmpfs on this box; the publisher put its checkouts in /var/tmp (real
+    disk) deliberately. A ~130MB checkout built in the default temp dir is RAM, and a census that
+    OOMs the box it measures is worse than one that does not run. Written the wrong way first,
+    so this pins it rather than trusting the next reader to remember."""
+    from background import process_run_complete as prc
+    with hgc.head_subject_checkout() as subject:
+        if subject is None:
+            pytest.skip("checkout machinery unavailable on this box")
+        assert Path(subject).parent.resolve() == Path(prc.HEAD_CHECKOUT_ROOT).resolve(), (
+            "the census subject is not under the publisher's checkout root -- found {}".format(
+                Path(subject).parent)
+        )
+        assert Path(subject).name.startswith(hgc.CENSUS_SUBJECT_PREFIX), (
+            "the census must own its own prefix: the publisher's stale-checkout sweeper owns "
+            "its namespace and would delete this tree mid-run"
+        )
+
+
+def test_the_subject_is_cleaned_up_even_though_it_is_large():
+    """130MB per nightly run, unswept, is a disk-headroom alarm in a fortnight."""
+    with hgc.head_subject_checkout() as subject:
+        if subject is None:
+            pytest.skip("checkout machinery unavailable on this box")
+        captured = Path(subject)
+        assert captured.exists()
+    assert not captured.exists(), "the census left its checkout behind"
