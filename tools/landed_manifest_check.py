@@ -153,11 +153,35 @@ def _real_index_env(root: Path) -> dict:
 
 
 def is_path_like(token: str) -> bool:
-    """Would a reader take this backticked token for a repo path?"""
+    """Would a reader take this backticked token for a REPO path?
+
+    NOT MERELY "a path" -- a path IN THIS REPOSITORY, and the distinction wedged a
+    419-file backlog for six days (2026-08-26).
+
+    Two staging documents mention an absolute scratch path in backticks:
+    `/tmp/claude-1000/.../scratchpad/land.sh` in `DIRECTOR_CONSOLE_2026-08-20.md` and a
+    sibling in a 2026-08-25 finding. Both are honest prose -- they describe a wrapper
+    script that really did exist outside the tree. This function called them repo paths,
+    the caller ran `git ls-tree <tree> -- /tmp/...`, git answered rc=128 "Invalid path", and
+    the checker RAISED. So it refused every commit that touched `docs/staging`, which is
+    every commit that would have cleared the archive backlog -- and the refusal named a
+    crash rather than a claim, because a checker that cannot read its input is not
+    reporting a false LANDED.
+
+    Fail-closed is right for "this path is missing from the tree". It is NOT right for
+    "this token was never about the tree". An absolute path, or one that climbs out of the
+    repository, is prose about somewhere else and cannot be a landing claim about here.
+    """
     t = token.strip().rstrip(".,;:)").strip()
     if not t or "/" not in t or " " in t:
         return False
     if "::" in t or "*" in t or "://" in t or t.startswith("-"):
+        return False
+    # OUTSIDE THE REPOSITORY IS NOT A CLAIM ABOUT THE REPOSITORY. Absolute paths, home-dir
+    # paths, and anything climbing out through `..` are prose about elsewhere. `git ls-tree`
+    # rejects them at the plumbing level, so treating them as claims turns a document's
+    # honest mention of a scratch file into a commit refusal.
+    if t.startswith(("/", "~")) or t.split("/")[0] == "..":
         return False
     return t.endswith(_SOURCE_SUFFIXES)
 
@@ -171,7 +195,26 @@ def manifest_paths(text: str) -> list[str]:
     lines = text.splitlines()
     regions: list[str] = []
 
-    in_header = True
+    # A HEADER BLOCK ONLY EXISTS IF THE DOCUMENT HAS SECTIONS (2026-08-26). The design above
+    # says the authoritative claim surface is "the HEADER BLOCK (everything before the first
+    # `##` section), which is where `**status:** ... LANDED` lives" -- a handful of lines.
+    # In a document with NO `##` heading at all that rule silently swallows the whole file,
+    # so every backticked path anywhere in it becomes a landing claim.
+    #
+    # `docs/staging/DIRECTOR_CONSOLE_2026-08-26.md` is exactly that: no `##` headings, and a
+    # quoted session summary in its body. The line the control billed it for reads
+    # "`tests/simulation/test_policy_cost_coverage.py` remains uncommitted" -- the OPPOSITE
+    # of a landing claim, quoted from a handover. It refused the archive commit for six days
+    # on a sentence saying the file had NOT landed.
+    #
+    # This is the same shape as the narrowing recorded above ("a control that punishes the
+    # document reporting a defect is a control that stops findings being written"), one step
+    # further out: that pass fixed the BODY rule and left the header rule able to become the
+    # body. A document with no sections has no header block, and by this design's own words
+    # "prose elsewhere is discussion, and discussion is where honest quotation happens".
+    has_sections = any(_SECTION_HEADING.match(line) for line in lines)
+
+    in_header = has_sections
     in_manifest = False
     for line in lines:
         if _SECTION_HEADING.match(line):

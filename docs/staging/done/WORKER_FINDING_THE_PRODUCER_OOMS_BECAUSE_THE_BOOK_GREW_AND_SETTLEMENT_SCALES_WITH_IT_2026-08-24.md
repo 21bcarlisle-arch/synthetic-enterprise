@@ -1,5 +1,17 @@
 **Severity:** LATENT · **Lane:** H_harness
 
+> **ARCHIVED 2026-08-24 15:3x BST — its reserved repair was TAKEN, and the rank line below is
+> therefore stale rather than wrong.** Repair 2 ("give the guest more memory") was executed by
+> the director: `.wslconfig` now reads `memory=24GB / swap=8GB`, `wsl --shutdown` ran at
+> ~15:14:33, and the guest came back at 15:15 with MemTotal 23.5 GB and all 13 declared units
+> active, 0 failed. Repair 1 (shrink the world) was never taken and remains reserved. **Repair 3
+> (reduce the run's footprint in code) is still owed** and is still the right engineering — the
+> ceiling bought headroom against a book the director is deliberately growing toward 200
+> accounts, and settlement memory scales with book x years. Its closed-loop harness now exists:
+> `tools/settlement_footprint_probe.py`. Full closure evidence, and the falsifier that is NOT
+> yet satisfied (no run output has completed since 09:07 UTC), in
+> `done/WORKER_FINDING_THE_PRODUCER_OUTAGE_CLOSED_AT_THE_RESERVED_DOOR_2026-08-24.md`.
+
 # The producer OOMs because the book grew, and the only two clean repairs are the director's
 
 **Rank: TOP.** This is what is keeping the site at 05:27Z, which is the director's own stated

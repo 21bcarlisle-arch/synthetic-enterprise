@@ -15,7 +15,7 @@
 > shorthand to an atom is a judgement, and it belongs in a separate record that cites
 > this one, not in an automatic capture that would be putting words in his mouth.
 
-Source: `c6cee6e9-62fb-45a2-8e17-d45aa524771f.jsonl` · 8 turn(s).
+Source: `c6cee6e9-62fb-45a2-8e17-d45aa524771f.jsonl` · 9 turn(s).
 
 ### 2026-08-25T06:49:10.759Z
 
@@ -534,3 +534,41 @@ Source: `c6cee6e9-62fb-45a2-8e17-d45aa524771f.jsonl` · 8 turn(s).
 > honest when you touch it and let the banner do its job when it's
 > behind, but never interrupt real work to chase it.
 > ```
+
+### 2026-08-25T19:36:50.571Z
+
+> Verify the next publish cycle lands, then keep going.
+>
+> Then fix the thing that's actually limiting this project, and it's
+> my fault rather than yours.
+>
+> At the end of your last report you wrote "Verify the next publish
+> cycle lands, then keep going" as the obvious next step — and then
+> stopped and waited for me to type it back to you. You knew what to
+> do and couldn't do it. That is the shape I want gone.
+>
+> The cause is a constraint I imposed and am now lifting. When I
+> asked for the delivery seat I said it must decide and write
+> direction rather than code, so it could never be a second writer
+> on the tree. That was a defence against a problem you have since
+> solved — surgical landings, pathspec commits, tree locks. The
+> result was that orienting became autonomous while the actual
+> building stayed gated on my keypress, which is the opposite of
+> what I wanted.
+>
+> So the delivery seat may act, not only point. Give it — or the
+> ticks, or whatever you judge right — the scope and the budget to
+> do the class of work that has been happening in this interactive
+> session: the delivery seat itself, the baseline, the churn wiring.
+> Those were the most valuable things built this week and every one
+> of them needed me present. If the better answer is to make
+> turn-granting to this seat work properly, do that instead: the
+> supervisor already grants turns and logged 61 minutes of granting
+> with no state change, so today it doesn't work.
+>
+> The test is plain and I'll apply it literally. I go away for a
+> day. The project moves as much as it moved today. Nothing about
+> that requires me to be at a keyboard.
+>
+> You hold the delivery seat, and continuity of work is what that
+> seat is for. This is the first thing it owns.

@@ -247,3 +247,107 @@ def test_tripwire_the_real_instances_manifest_names_symbols_not_the_supplier_pat
 
     assert (REPO / "tools" / "symbol_landing_check.py").is_file(), \
         "the SYMBOL half of this class has no owner"
+
+
+# ---------------------------------------------------------------------------
+# a path outside the repository is not a claim about the repository (2026-08-26)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("token", [
+    "/tmp/claude-1000/-/c6cee6e9/scratchpad/land.sh",
+    "/home/rich/synthetic-enterprise/tools/x.py",
+    "~/scratch/apply_neso.py",
+    "../outside-the-repo/thing.py",
+])
+def test_a_path_outside_the_repo_is_not_a_landing_claim(token):
+    """THE DEFECT, AND ITS BLAST RADIUS. `DIRECTOR_CONSOLE_2026-08-20.md` mentions
+    `/tmp/claude-1000/.../scratchpad/land.sh` in backticks -- honest prose about a wrapper
+    script that really existed outside the tree. `is_path_like` called it a repo path, the
+    caller ran `git ls-tree <tree> -- /tmp/...`, git answered rc=128 "Invalid path", and the
+    checker RAISED.
+
+    So it refused every commit touching `docs/staging` -- which is every commit that would
+    have cleared the 419-file archive backlog, for six days. Fail-closed is right for "this
+    path is missing from the tree" and wrong for "this token was never about the tree": the
+    refusal named a crash, not a false LANDED, and a checker that cannot read its input is
+    not reporting the thing it exists to report.
+    """
+    assert is_path_like(token) is False
+
+
+@pytest.mark.parametrize("token", [
+    "tools/landed_manifest_check.py",
+    "docs/design/SURGICAL_LANDING.md",
+    "simulation/run_phase2b.py",
+    "tests/tools/test_landed_manifest_check.py",
+])
+def test_a_real_repo_path_is_still_a_landing_claim(token):
+    """THE PARTNER, and the one that matters most. A guard that excluded too much would
+    make every false LANDED invisible -- which is the defect this whole module exists to
+    catch, reintroduced by its own repair."""
+    assert is_path_like(token) is True
+
+
+def test_the_checker_survives_a_document_that_mentions_a_scratch_path():
+    """End to end on the real shape: a document making a landing claim about a genuine repo
+    path AND mentioning an absolute scratch path must yield exactly the repo path."""
+    text = (
+        "# A finding\n\n"
+        "**status:** LANDED\n"
+        "`tools/landed_manifest_check.py` carries the fix; "
+        "`/tmp/claude-1000/-/abc/scratchpad/land.sh` was the wrapper that found it.\n\n"
+        "## Discussion\n\nprose\n"
+    )
+    assert asserts_landing(text)
+    assert manifest_paths(text) == ["tools/landed_manifest_check.py"]
+
+
+# ---------------------------------------------------------------------------
+# a document with no sections has no header block (2026-08-26)
+# ---------------------------------------------------------------------------
+
+def test_a_document_with_no_sections_does_not_treat_its_whole_body_as_a_manifest():
+    """THE SECOND DEFECT IN THIS CONTROL, same shape as the first, one step further out.
+
+    The design says the claim surface is "the HEADER BLOCK (everything before the first
+    `##` section), which is where `**status:** ... LANDED` lives" — a handful of lines. In a
+    document with NO `##` heading that rule swallows the entire file, so every backticked
+    path anywhere becomes a landing claim.
+
+    `DIRECTOR_CONSOLE_2026-08-26.md` is exactly that shape, and the line it was billed for
+    reads "`tests/simulation/test_policy_cost_coverage.py` remains uncommitted" — the
+    OPPOSITE of a landing claim, quoted from a handover summary. The control refused the
+    archive commit for six days over a sentence saying the file had NOT landed.
+    """
+    text = (
+        "# A console note\n\n"
+        "**status:** LANDED\n\n"
+        "> Pending: `tests/simulation/test_policy_cost_coverage.py` remains uncommitted.\n"
+        "> Also mentioned in passing: `tools/couple_clv.py`.\n"
+    )
+    assert manifest_paths(text) == []
+
+
+def test_a_document_WITH_sections_still_claims_from_its_header_block():
+    """THE PARTNER, and the one that protects the control. Narrowing that also silenced the
+    normal shape would make every false LANDED invisible — this module's whole purpose."""
+    text = (
+        "# A finding\n\n"
+        "**status:** LANDED\n"
+        "`tools/couple_clv.py` carries the fix.\n\n"
+        "## Discussion\n\n"
+        "Elsewhere `simulation/run_phase2b.py` is only mentioned.\n"
+    )
+    assert manifest_paths(text) == ["tools/couple_clv.py"]
+
+
+def test_a_what_landed_section_still_claims_even_without_any_double_hash_heading():
+    """A document whose only heading is a `#### what landed` must still be read: the
+    manifest-section rule is independent of the header-block one, and the fix above must not
+    have coupled them."""
+    text = (
+        "# note\n\n"
+        "#### What landed\n\n"
+        "- `tools/couple_clv.py`\n"
+    )
+    assert manifest_paths(text) == ["tools/couple_clv.py"]

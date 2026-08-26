@@ -77,3 +77,54 @@ real-machine resource decision.
 `planning_on`, `believed_win_rate` and `realised_win_rate` per year are sound as a record of what
 the company believed and when. Any reading of the form "the company's conversion collapsed after
 2020" is an artefact of this entry, not a result.
+
+---
+
+## UPDATE 2026-08-25 (worker tick, PB3 exit (d)): the repair this finding recommended landed the same day, and the table above is stale
+
+`observed-with-evidence`. Repair (1) — *"raise or remove the settlement customer-year budget"*, the
+one this finding called **"the only repair that removes the distortion rather than relocating it"** —
+was committed hours after this document was written, and this document was never updated:
+
+    6474e3cc1  2026-08-24  sim: raise settlement customer-year budget 600 -> 1200 so the funnel,
+                           not the engine, decides the book
+
+Re-measured on the campaign record the shipped run actually produced at 1200.0
+(`docs/observability/book_growth_campaign.json`, written by
+`simulation.live_population._resolve_campaign`):
+
+| year | binding | quotes | wins | planning_on | realised |
+|---|---|---|---|---|---|
+| 2016 | growth_rate | 30 | 5 | belief | — |
+| 2018 | growth_rate | 70 | 14 | realised | 0.129 |
+| 2020 | growth_rate | 112 | 25 | realised | 0.169 |
+| 2021 | growth_rate | 144 | 21 | realised | 0.187 |
+| 2022 | growth_rate | 178 | 30 | realised | 0.175 |
+| 2024 | capital | 224 | 50 | realised | 0.174 |
+| 2025 | capital | 158 | 35 | realised | 0.184 |
+
+**Not one year of the shipped run is `settlement_engine`-bound.** Total customer-years committed is
+1061.8 against the 1200.0 budget, so the cap is no longer reached at all; `notes` carries a single
+entry and it is a MARKET-THIN year (2022), which is a commercial result and not an artefact. The
+collapse this finding measured — 0 wins from 2021 on, realised rate decaying 0.169 → 0.051 — is
+gone: wins now rise 21 → 30 → 45 → 50 and the learned rate sits flat at 0.17–0.19, which is where
+the funnel actually converts. The binding constraint in the last two years is `capital`, and running
+out of money is a commercial outcome the supplier owns.
+
+**Severity stays LATENT, and deliberately no `**Discharged:**` line.** The distortion is absent at
+HEAD, not made impossible: the budget binds again the moment the book grows past it, and the
+artefact that proves the current state — the campaign record — is untracked and rewritten by every
+run, so no committed test can assert "zero settlement-bound years" without going red on a legitimate
+future state.
+
+What HAS changed durably is that the contamination is no longer silent. This finding's real harm was
+that a machine-decided year was indistinguishable from a market-decided one in anything published
+downstream. PB3's exit-(d) gap measurer, landed this tick, partitions on exactly that: it scores the
+belief-vs-truth gap over market-decided years only and reports machine-bound years as a separate,
+counted exclusion, in the ledger entry the Proof door renders. The count is `0` today and will say so
+when it is not. The wall reasoning above is untouched and still correct — that partition is on the
+HARNESS side, which is permitted to see both, and nothing about it reaches the company.
+
+Reading guidance in "What is safe to read today" is now the *opposite* way round: "the company's
+conversion collapsed after 2020" was an artefact of the 600.0 cap, and at 1200.0 there is no
+collapse to read.

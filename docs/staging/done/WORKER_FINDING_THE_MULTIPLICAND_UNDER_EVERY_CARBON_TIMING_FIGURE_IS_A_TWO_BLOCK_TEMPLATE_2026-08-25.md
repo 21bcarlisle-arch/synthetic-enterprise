@@ -1,4 +1,59 @@
-**Severity:** LATENT · **Lane:** W4_the_wall
+**Severity:** RECORDED · **Lane:** W4_the_wall
+
+> **DISPOSITION 2026-08-25 (worker tick).** CONFIRMED, and it closes exactly the way step 1 of
+> its own closed loop said it would: as a **duplicate of `W1_11_fabric_physics_core`** on the
+> world side, plus the copy repair on the published side. Both halves are done.
+>
+> **The producer is named.** `simulation/demand_model.py::build_demand_shape` adds heating as
+> `hdd × k × HEATING_PERIOD_WEIGHTS`, and `HEATING_PERIOD_WEIGHTS` (`demand_model.py:94`) is a
+> single module-level constant: uniform weight over periods 13-20 and 34-44, zero elsewhere,
+> **identical for every premise in the country**. The plateau boundaries in the published data
+> match the constant exactly — C7's 2021-02-11 profile steps up at p13 and p34 and down after
+> p20 and p44, to the period. The base PC1 shape contributes 12.29 kWh of the day; the template
+> places 61.5 kWh of heating.
+>
+> **The 04:00 cliff is explained, and the explanation is the same defect.** It is not a heating
+> artefact: `EV_CHARGING_PERIODS = range(1, 9)` (`demand_model.py:596`) spreads
+> `EV_CHARGING_KWH_PER_NIGHT` flat across p1-p8 and stops dead at 04:00. C7 has `ev: True`. So
+> the producer *can* explain the discontinuity — it is a second rectangular block with a hard
+> edge, which answers the finding's cheapest falsifier in the direction that confirms the shape
+> is specified rather than measured.
+>
+> **Population, not the five panels — answered, and it is the whole book, not these accounts.**
+> The template is a module constant, so every electrically-heated household gets it. Measured
+> share of the day's kWh inside the 19 template periods, on the days the page prices: C7 86.3%,
+> C8 94.5%, C9 91.7% on their hardest days; the four industrial accounts sit at 39.7-46.0%,
+> which is the 19/48 = 39.6% uniform baseline — i.e. no concentration, correctly, since they are
+> not electrically heated. The measure discriminates.
+>
+> **Already registered, so no new world atom was minted.** `W1_11_fabric_physics_core`
+> (`docs/design/PREMISE_FABRIC_PHYSICS_DISCOVER.md`, line 42) names this mechanism in these
+> words: *"`HEATING_PERIOD_WEIGHTS` … is a single module-level constant … Every home therefore
+> heats at exactly the same minutes with exactly the same rectangular shape."* Re-filing it
+> would have been the duplicate this finding explicitly asked to be checked for.
+>
+> **What was repaired here is the ATTRIBUTION, which was live on a customer-facing panel.**
+> Per step 4. `site/explore/index.html` said *"so **when** this household drew made its carbon
+> N% higher"*. It now says *"when this household's **profile has it drawing**"*, and a new
+> rendered paragraph publishes the measured share **with its own null baseline** — "86% of its
+> kWh falls in 06:00-10:00 and 16:30-22:00 … 19 of 48 half hours, so a day with no
+> concentration at all would put 40% here". `tools/generate_explore_carbon.py::shape_provenance`
+> measures it per household-day; `modelled_load_windows()` **derives** the window from
+> `HEATING_PERIOD_WEIGHTS` rather than restating it, so when W1_11 lands a per-home shape the
+> sentence follows the model instead of going quietly stale while still sounding measured.
+>
+> **R10/R15 — the class, and five mutations that fire.** Four controls in
+> `tests/tools/test_grid_intensity_feed_and_explore_carbon.py` and
+> `site/test_explore_second_clock.py`: a priced panel with no provenance fails; a hard-coded
+> window fails; a restored attribution clause fails; a deleted null baseline fails; dropping
+> the render call fails. Each was mutated and observed red, then restored green.
+>
+> **One observation NOT chased, `inferred`, filed here rather than as a new doorbell:** running
+> the producer today for C7/2021-02-11 returns 64.05 kWh where the committed
+> `sim/hh_data/C7.csv` holds 89.22. The shape matches to the period; only the level differs, so
+> this looks like the committed file predating a change in the dwelling/occupancy record rather
+> than a shape defect. It does not touch this finding's claim and belongs to whoever next opens
+> the HH generator.
 
 **Rank:** backlog, ahead of the coal-and-interconnector build that EP13's L3 waits on — because
 if this is what it looks like, that build improves the *intensity* side of a product whose
