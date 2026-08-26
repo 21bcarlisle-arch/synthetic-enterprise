@@ -3032,16 +3032,16 @@ Arrears: DESNZ business energy debt (GREEN <8%, crisis <12%).
 
 | Year | Complaint rate% | C.Bench hi | C.RAG | Arrears rate% | A.Bench hi | A.RAG |
 |------|-----------------|-----------|-------|---------------|-----------|-------|
-| 2016 | 5.62% | 6% | OK | 31.2% | 8% | ! |
-| 2017 | 5.64% | 6% | OK | 44.4% | 8% | ! |
-| 2018 | 5.11% | 6% | OK | 40.0% | 8% | ! |
-| 2019 | 4.71% | 6% | OK | 46.2% | 8% | ! |
-| 2020 | 4.58% | 6% | OK | 50.9% | 8% | ! |
-| 2021 | 4.32% | 8% | OK | 63.6% | 12% | ! |
-| 2022 | 4.36% | 8% | OK | 44.9% | 12% | ! |
-| 2023 | 3.88% | 8% | OK | 58.3% | 12% | ! |
-| 2024 | 3.77% | 6% | OK | 47.1% | 8% | ! |
-| 2025 | 4.83% | 6% | OK | 39.3% | 8% | ! |
+| 2016 | 5.62% | 6% | OK | 25.0% | 8% | ! |
+| 2017 | 5.64% | 6% | OK | 22.2% | 8% | ! |
+| 2018 | 5.11% | 6% | OK | 26.7% | 8% | ! |
+| 2019 | 4.71% | 6% | OK | 33.3% | 8% | ! |
+| 2020 | 4.58% | 6% | OK | 34.0% | 8% | ! |
+| 2021 | 4.32% | 8% | OK | 37.9% | 12% | ! |
+| 2022 | 4.36% | 8% | OK | 30.3% | 12% | ! |
+| 2023 | 3.88% | 8% | OK | 46.6% | 12% | ! |
+| 2024 | 3.77% | 6% | OK | 39.4% | 8% | ! |
+| 2025 | 4.83% | 6% | OK | 33.5% | 8% | ! |
 
 **Complaints:** 10 of 10 years GREEN (I&C baseline 2-6% normal, 2-8% crisis).
 **Arrears:** 0 of 10 years GREEN (DESNZ I&C baseline <8% normal, <12% crisis).
@@ -3259,17 +3259,17 @@ the model ever flag this customer, at any renewal, before they left?
 
 ## Scenario Sensitivity Analysis (Phase PZ)
 
-Live portfolio (229 active customers) under 12-month forward scenarios.
-Generated: 2026-08-26T17:53:33Z
+Live portfolio (191 active customers) under 12-month forward scenarios.
+Generated: 2026-08-26T18:09:15Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
 | Scenario | Elec Fwd (£/MWh) | Gas Fwd (£/MWh) | Hedge Rec | Renewing | Exposure Delta |
 |----------|------------------|-----------------|-----------|----------|----------------|
 | Base | 86.7 | 55.1 | INCREASE | 0 | — |
-| Bull | 56.1 | 35.7 | INCREASE | 0 | £-409,392 |
-| Bear | 147.9 | 93.8 | INCREASE | 0 | +£818,784 |
-| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£1,607,306 |
+| Bull | 56.1 | 35.7 | INCREASE | 0 | £-8,874 |
+| Bear | 147.9 | 93.8 | INCREASE | 0 | +£17,748 |
+| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£36,166 |
 
 **Scenario labels:**
 - **Base**: Base (normal OU, long-run mean start)
