@@ -1,182 +1,231 @@
 version: 1
-oriented_at: "2026-08-25T23:21:29.324152+00:00"
+oriented_at: "2026-08-26T05:20:29.341002+00:00"
 thesis_read: >-
-  Three hours, eleven commits, nine substantive, and the top of the last record was answered
-  properly: the value arm no longer reports a ceiling as a decision. A coarse grid that could only
-  ever return one of its own sixteen numbers now brackets, and a refinement decides -- 107 accounts
-  sitting on exactly GBP 130 became a concentration of 1.9%, with interior optima on 257 of 263 and
-  only one account still at the top of its grid. That is the difference between a per-customer
-  decision and a rule wearing one, and it is the single most thesis-relevant thing this project has
-  built. LANE 0 landed too, so this record is reachable by a draw, and publishing is live again --
-  the cause was never the deadline but two files git had never seen, and the receipt redesign the
-  last record ordered was correctly REJECTED on analysis rather than built, because only the second
-  gate can see what the commit is landing. Both of those items therefore leave focus. What the
-  improved arm bought is a much sharper problem, and it is the world's, not the company's. Freed to
-  choose, the arm chose a median of GBP 115/MWh and a +53% median bill -- roughly GBP 900 a year on
-  a typical account -- and it is right to, because `simulation/market_switching_propensity.py:55`
-  caps the world's annual switching rate at 22% once savings available pass GBP 400, and both sides
-  cap the leave probability at 0.95. So the world models one in five leaving whether a rival is GBP
-  400 or GBP 2,000 cheaper, and one in twenty staying whatever they are charged. The arm has priced
-  its entire book into the flat top of that curve, which is beyond anything the DESNZ series it was
-  fitted to ever observed. This is the coupled-triad rule biting exactly where it was meant to: no
-  company capability is complete until it has faced a world that can defeat it, and this world
-  cannot defeat a supplier that gouges. It also weakens the headline comparison -- a +2.0pp
-  belief-versus-truth gap between an estimator and a truth fitted from the same published series,
-  read where neither has data, is co-calibration and not demonstrated inference. So the honest
-  position is that the per-customer machinery is now real and the instrument that would judge it is
-  not. On the previous focus: the brief again reports none of it drawn, and again the brief is
-  wrong -- it counts maturity-map atom draws only, and three of the five items were non-atom
-  instructions, two of which landed. The steer is working and unmeasured; that is now the third
-  record in a row where this seat's own instrument would have told the next seat to give up on
-  steers that were succeeding. The genuine drift is different and it repeated within this stretch:
-  the arm rebuild -- 207 lines, and the best work here -- is sitting UNCOMMITTED in a shared tree
-  with 462 untracked paths, which is the exact defect the last record caught on LANE 0 and fixed.
+  Two commits, two substantive, and both of them real: the value arm is now at HEAD and the
+  zero-carbon must-run fleet is read half-hourly instead of assumed flat. So the previous
+  direction steered and the machine took it. But the finding of this stretch is that four
+  consecutive records -- mine included -- have misdiagnosed why publishing keeps dying, and the
+  machine's own log has been holding the answer the whole time. Publishing has been down since
+  00:21 UTC. `docs/observability/.publish_gate_state.json` reads `total_red: 0`,
+  `blocking_tests: []`, `suspects: {}`, and records the kind as `commit_did_not_land` with the
+  prose "refused/timed out/never reached origin". `docs/observability/sim-runner-log.md:203191`
+  records the same event as `[test-gate] TESTS FAILED -- COMMIT REFUSED`, `6 failed, 471 passed
+  in 636.44s`, with all six nodes named. The gate did not time out; it finished in 636s inside a
+  budget of 840s that was raised yesterday to fix a problem that was not this one. And the six
+  reds have one cause: `tests/tools/test_generate_proof_coupled_gaps.py::test_empty_ledger_fails_
+  closed_not_silent` fails on `expected_ge_l2` being empty -- "fail-open guard: expected >=1
+  coupled world atom at >=L2 in the live map", `assert set()`. There are no coupled world atoms
+  at L2 in the live map because the live map is the 74-atom half of a split that has never
+  landed. I reproduced this: HEAD plus the two staged map halves and nothing else reds five
+  level-sensitive tests with "store holds records but no such atom in the map" for A1, A2, A9,
+  W4_2, W4_3, W4_4, W5_1 and the rest of the 224. So the publish wedge IS the half-rolled map
+  split, and the publisher has been trying to commit that 224-atom truncation every forty
+  minutes since midnight with the gate correctly refusing it each time. The gate is the only
+  thing standing between this project and a record that has lost three quarters of its atoms.
+  Against the thesis proper the position is better than last night and still not claimable. The
+  value arm is genuinely per-customer at HEAD -- 263 accounts, 187 distinct margins, the modal
+  margin covering 1.9% of the book, verified from the committed blob. What sits one commit
+  behind it is more important than the arm: `tools/couple_value_based_pricing.py` now writes a
+  `shared_calibration` block that states the company's churn estimator and the world's
+  `churn_position_multiplier` both descend from the same DESNZ 2015-2025 series, sets
+  `publishable_as_evidence_of_inference: false`, flags that 193 of 263 accounts (73.4%) were
+  scored beyond the world's own calibration, and says what would discharge it. That is the
+  company declining to claim an advantage it cannot separate from shared arithmetic, and it is
+  the most thesis-honest artefact this project has produced. It is uncommitted, and it is
+  uncommitted because of the same map split. On the previous focus: item one was named and NOT
+  drawn, for a reason worth recording -- the worker that landed the value arm looked at the
+  split, correctly identified sweeping it as the hazard CLAUDE.md names, and left it "for the
+  lane that owns the split". No lane owns it. The discipline that stops one lane eating another's
+  work has no counterpart that assigns a large in-flight write to somebody, so it has sat for
+  three records getting more dangerous. That is the drift, and it is structural, not laziness.
 stretch_reviewed:
-  since: "2026-08-25T20:22:29.336970+00:00"
-  commits: 11
-  substantive: 9
+  since: "2026-08-26T02:20:07.163415+00:00"
+  commits: 2
+  substantive: 2
 focus:
-  - id: land-the-value-arm
+  - id: land-the-map-split
     what: >-
-      Check HEAD first; if it is already there, say so and stop, which costs one lookup. Otherwise
-      land through `tools.surgical_land` by pathspec: `company/pricing/value_based_renewal.py`,
-      `tests/company/pricing/test_value_based_renewal.py`, `tools/couple_value_based_pricing.py`,
-      `tests/tools/test_couple_value_based_pricing.py` and
-      `docs/observability/value_based_pricing_arms.json`. Stage only those hunks, never a broad add.
+      Land the map split as ONE commit, then its re-filer as the immediately next commit, with
+      nothing landing in between. The pathspec is the IMPORT CLOSURE, not the seven paths my last
+      record named -- derive it with `grep -rl maturity_map_store --include=*.py background/ tools/
+      site/ tests/`, which returns 52 files (50 modified, 2 untracked), and add
+      `docs/design/maturity_map.yaml`, `docs/design/maturity_map_closed.yaml`,
+      `docs/design/MAP_SPLIT_2026-08-26.md`, `docs/design/MATURITY_MAP.md` and
+      `tests/tools/test_couple_value_based_pricing.py` (that last one because
+      `tools/couple_value_based_pricing.py` is inside the closure and must not land without its
+      own control). Before landing, assert on HEAD+pathspec -- not the worktree -- that
+      `tests/tools/test_generate_proof_coupled_gaps.py`,
+      `tests/background/test_derived_artefact_register.py`, `tests/design/test_atom_records_store.py`,
+      `tests/design/test_maturity_map_facets.py` and `tests/test_coupled_triad_gate.py` are all
+      green; the two `TestStaleness` nodes may have a second cause, so if they stay red after the
+      split lands, diagnose them separately rather than holding the split. Then add
+      `maturity_map_store.refile()` -- move any atom whose half disagrees with `is_closed` into the
+      correct half as one two-file write, BOTH directions -- call it from `merge_atom_status.merge()`
+      after the field fold, make the fold stage `MAP_PARTS_REL` rather than `MAP_REL`, and
+      mutation-test it both directions plus a null control per R15. Use `python3 -m tools.surgical_land`,
+      never `--no-verify`, and do not wrap it in `timeout`.
     why: >-
-      This is the coarse-bracket-plus-refinement rebuild that turned the arm from a bound-reporter
-      into a per-customer chooser, and git has never seen a line of it. The last record caught this
-      exact shape on LANE 0 and the fix held; the tree has since documented a concurrent lane
-      reverting uncommitted work mid-tick. Done when `git ls-files` and `git log` show the rebuild
-      at HEAD and the arms record beside it, so the evidence for every claim above survives a power
-      cut.
-  - id: W2_3_competitor_field
+      This one commit is the publish wedge, the record-destruction hazard and the tree-wide wedge,
+      all three. Publishing is down because the gate keeps refusing a commit that would delete 224
+      atoms; the co-calibration record and the coupler are stranded behind it; 50 modules in the
+      working tree import a file git has never seen, so the supervisor that reads the working tree
+      is running today on a module that does not exist at HEAD. And the re-filer is not optional
+      polish: `tests/tools/test_maturity_map_store.py::test_the_split_predicate_agrees_with_where_
+      every_atom_actually_SITS` reds the moment any atom's level reaches its own, that test sits on
+      the tree-wide selection so it refuses EVERY lane, and `EP13_adapter_carbon_intensity` -- level
+      2 heading for 3, `loop_stage: build`, drawn right now -- is the atom that arms it. Landing the
+      split without the re-filer trades one incident for a worse one. Done when HEAD holds all of it,
+      `map_store.load_atoms()` reads 298 from HEAD, the named tests are green in the gated tree, the
+      re-filer's mutation tests fire in both directions, and the next publish cycle records a
+      success rather than a sixth `commit_did_not_land`.
+  - id: publish-state-records-no-red
     what: >-
-      Make the world's switching curve say when it is being read outside its own data.
-      `_savings_to_rate` in `simulation/market_switching_propensity.py` is fitted to the DESNZ
-      2015-2025 series and returns a flat `_MAX_RATE = 0.22` for every savings figure above GBP
-      400, and `WORLD_MAX_CHURN_PROBABILITY` caps the leave probability at 0.95. Do NOT invent a
-      steeper elasticity. Make the out-of-calibration region explicit and reported at the seam --
-      the world's own equivalent of the `model_support_bound` the company arm already carries -- so
-      that a run in which the company prices into the flat top is visible as unsupported
-      extrapolation rather than a confident answer. Then re-run the arms comparison and record what
-      the arm's choices look like once the world can say "I do not know".
+      Make `.publish_gate_state.json` carry what the publisher already saw. In
+      `background/process_run_complete.py`, the branch at ~4195 captures the hook chain's output
+      into `_tail` and logs it, then calls `record_publish_gate_failure` with a prose `reason` and
+      nothing else -- so the failing node IDs are written to `sim-runner-log.md` and discarded
+      everywhere a reader would look. Pass the captured tail through, parse the `FAILED <nodeid>`
+      lines out of it into `blocking_tests`, and populate `suspects` from their files. Mutation-test
+      both ways per R15: a refusal carrying a known red must populate `blocking_tests`, and a clean
+      empty-index no-op must leave it empty -- a parser that always finds something is the fail-open
+      twin of the fail-silent it replaces.
     why: >-
-      The thesis says the advantage must come from inference and there must be a baseline to beat.
-      Neither claim can be made against a world that keeps 78% of a book whatever it charges, and
-      the arm has put its whole book past GBP 400 of savings available where the curve is flat. R13
-      binds this: it is a baseline change, so it is made for fidelity to the data only and decided
-      blind to what it does to the company's numbers -- an extrapolation flag is defensible because
-      the series genuinely has no observations there, and a new number would not be. Done when a
-      reader of the run can see which decisions were taken in a region the world has no evidence
-      for, and the arm's verdict says so in its own words.
-  - id: harness-lane-prune
+      Tonight the state file said `total_red: 0`, `blocking_tests: []`, `suspects: {}` through five
+      consecutive refusals whose log entries name six failing tests and print "COMMIT REFUSED". That
+      is R15's FAIL-SILENT shape at the record layer: the diagnostic was taken and thrown away, so
+      every downstream reader -- the wedge detector, the alarms, and four of my own direction
+      records -- has been reasoning about a deadline while the machine held the answer. Yesterday's
+      raise of `_COMMIT_DEADLINE` from 600 to 840 was bought with that blindness; tonight's gate
+      finished in 636s and was refused on tests, so the deadline lever was never the lever. Fixing
+      the split unwedges publishing once; this is what stops the next wedge costing a whole
+      orientation to diagnose. Done when a deliberately-red publish attempt leaves the failing node
+      IDs in the state file, and the mutation test proves the clean case stays empty.
+  - id: EP13_adapter_carbon_intensity
     what: >-
-      Execute the split designed on 2026-08-24, which is unchanged since: `H_harness` still holds
-      117 of 298 atoms and only 20 carry a gap. Move closed atoms out of the drawn file behind a
-      loader, honouring the named hazard that `site/moap_coherence.py` derives Live/Building/Planned
-      from atom levels and will flip Live nodes to Planned unless that reader still receives all
-      atoms. In the same pass, dispose of the idle atoms sitting over the discovery pass ceiling --
-      promote or close, one line of reason each.
+      Land the carbon rebuild and take the atom from level 2 to 3. `sim/grid_carbon_intensity.py`
+      (+152) and `tests/sim/test_grid_carbon_intensity.py` (+142) are still uncommitted;
+      `sim/elexon_fuel_outturn.py` landed at `feaa30fed` this stretch, so the atom is half in git.
+      Land the remaining `file_scope` paths with their tests in the same commit, self-certify the
+      level move into `gate_authorizations.jsonl` via `record_level_up_self_certified` with the
+      evidence, and never `--no-verify` a `level_current` change. HARD ORDERING: this must not land
+      until the re-filer from the first item is at HEAD, because raising this level is exactly what
+      arms the tree-wide wedge.
     why: >-
-      The director named it twice on 24 August and made it the fourth item of his own console
-      queue; it has now been carried across two direction records with the analysis done and the
-      execution not, which makes it the clearest thing that is drifting. It is also the livelock:
-      the draw keeps spending tokens rediscovering that these are decisions, and a decision is what
-      this seat is for. Done when the drawn map is materially smaller, every atom is either live
-      work or closed with a reason, and the coherence reader still shows the same Live nodes.
+      It is the only atom in the drawn half whose level moves this stretch on work that is already
+      built and tested, and the brief is right that a level move beats a tidy. It also closes a lie
+      I told: my record of 2026-08-25 reported the carbon panel correction as `corrected: true` when
+      it was 152 uncommitted lines, and it is still 152 uncommitted lines. A correction that is not
+      in git has not been made. Done when the atom reads level 3 in the map, the ledger holds the
+      self-certification with its evidence, and the carbon figures on the site derive from the
+      half-hourly read rather than the factor table.
   - id: EP1_clv_three_horizon
     what: >-
-      Fix the instrument before the estimator. `docs/observability/coupled_gap_ledger.json` still
-      carries `measured_at: 2026-08-19` over 5 counted accounts out of 13 available, on a book that
-      now holds 263, and its own note says the comparison is structurally impossible -- the
-      accounts EP1 values are exactly the right-censored ones it refuses to grade. Re-measure, and
-      either find a grading that reaches live accounts or record in that ledger that this gap
-      cannot be moved by building and why.
+      Re-measure or retire the CLV gap, and write the decision into
+      `docs/observability/coupled_gap_ledger.json` either way. It still reads
+      `measured_at: 2026-08-19`, 5 counted accounts of 13 available, 8 excluded as right-censored,
+      on a book that now holds 263, with a gap of 1.76 against a no-skill mean-absolute-error of
+      GBP 817.89 and 3 sign disagreements out of 5. Either find a grading that reaches live accounts
+      -- the ledger's own note says the exclusions are right-censored, which is the population the
+      estimator actually serves -- or write into the ledger, in its own words, that this comparison
+      cannot be moved by building and name the instrument that would replace it.
     why: >-
-      Lifetime value is the quantity every per-customer choice in the thesis is ultimately made on,
-      and this figure has been quoted as current in three consecutive direction records while
-      resting on five completed lives from a week ago. An estimator cannot be improved against a
-      sample that cannot see the accounts it is used on, which is why the atom draws without
-      moving. Done when the ledger's own timestamp and account count match the book it describes,
-      or the ledger states plainly that it never can.
+      A gap above 1 says the company's per-customer lifetime value carries LESS information than
+      handing every account the population mean. That is the thesis losing to its own baseline on
+      the one quantity every per-customer decision rests on, and it has now been quoted as current
+      in five consecutive direction records off five completed lives from a week ago. The atom was
+      drawn again this stretch and did not move, which is the signal: an estimator cannot be
+      improved against a sample that excludes the accounts it is used on. Done when the ledger's
+      timestamp and account count match the book it describes, or the ledger says plainly that it
+      never can and what would.
 not_now:
   - what: Wiring the value arm to the live renewal desk.
     why: >-
-      Rejected for the third record running and the reason is now stronger, not weaker. The arm is
-      a genuine per-customer chooser and it still says `fit_to_run: false` about itself, because it
-      would move the median bill +53% on the strength of a world curve that is flat where it is
-      being read. Wiring it would push a real pricing defect behind the wall for the company to
-      have to rediscover, which is the one thing the epistemic design is for.
-  - what: Moving `_MAX_RATE`, `WORLD_MAX_CHURN_PROBABILITY` or the company's churn cap so the arm's answer looks sensible.
+      Rejected for the fifth record and the reason is now written by the machine rather than by me.
+      The arm's own record says `fit_to_run: false` and
+      `belief_gap_publishable_as_evidence_of_inference: false`; it would move the median bill
+      +53.1%; 5 of 263 accounts want to price below the floor because their standing charge is the
+      whole relationship; and 193 of 263 were scored beyond the world's own calibration. Wiring it
+      would push a known pricing defect behind the wall for the company to rediscover, which is the
+      single thing the epistemic design exists to prevent.
+  - what: Raising `_COMMIT_DEADLINE` again, or any gate budget, to get publishing back.
     why: >-
-      This is the cheapest available fix and it is goal-seeking against a calibrated belief. R12
-      says an output is a diagnostic and never something to tune toward; R13 says the baseline
-      changes for fidelity reasons decided blind to company results. A number chosen to make a
-      pricing rule read well is the exact inversion this project exists to avoid, and the finding
-      that surfaced it says so first.
-  - what: Deriving the real elasticity above GBP 400 of savings available, rather than flagging it.
+      My own last record framed the publish fix as needing a measured gate time to size it. That was
+      wrong and the measurement refutes it: `commit_hook_duration.jsonl` shows tonight's refusals at
+      640-693s against a ceiling of 840 with headroom 0.23, `outcome: "refused"` not `"timeout"`,
+      and the gate log shows it completing in 636s with six named reds. The clock is not the
+      binding constraint and the director already ruled that no gate budget grows here. The correct
+      fix is landing the split, and it costs nothing extra.
+  - what: >-
+      Halving the publisher's two full suite runs per cycle, which the code's own comment names as
+      "the real repair".
     why: >-
-      There is no published GB series where a household was offered that much and observed, so any
-      value would be authored rather than measured -- which makes it a curriculum value and the
-      director's, not mine. Flagging the extrapolation needs no such number, delivers the honesty
-      the comparison actually lacks, and leaves him a clean question if he ever wants the number.
-  - what: Explore's remaining stages with real data, the director's own third priority.
+      It is probably right eventually and it is wrong tonight. The publisher's scoped gate and the
+      commit hook chain do not share a subject -- one runs against a fallback checkout under
+      `/var/tmp/publish-gate-head-*`, the other against HEAD+pathspec inside the hook -- so
+      de-duplicating them on the grounds that they run the same files is the fail-open shape where
+      a receipt from one tree gets accepted as evidence about another. It touches the commit gate,
+      which is a wall, and it needs its own design and its own controls. It also stops looking
+      urgent the moment publishing is landing again.
+  - what: Filing new findings against the 36 already sitting LATENT.
     why: >-
-      Those stages render exactly the numbers the second focus item is currently deciding the
-      credibility of. Publishing them now spends the effort twice and risks putting a figure on the
-      live surface that the same night's work says is unsupported. It moves up the moment the world
-      can state where it does not know.
-  - what: The publish commit's hook budget -- 393 seconds of a 600 second allowance spent by the first two of fifteen test files.
+      Four of tonight's staging documents are auto-filed repetition alarms for focus items --
+      `land-the-map-split`, `land-the-value-arm`, `land-lane-zero`, `publish-path-lands` -- and one
+      of those four describes work that landed hours ago. The queue is describing the record rather
+      than reality, and lengthening it makes that worse. Landing the split clears most of them.
+  - what: >-
+      Building the general fix for the ownership gap -- that a large in-flight write has no route to
+      being assigned to a lane.
     why: >-
-      Publishing is live, the fifteen-hour outage traced to untracked files rather than to the
-      deadline, and the receipt redesign named last night was correctly killed on analysis because
-      only the second gate can see what the commit is landing. One always-run entry was already
-      made twenty times cheaper this stretch. The finding stays LATENT deliberately: it is a real
-      accretion, and it is not what is standing between this company and the thesis tonight.
-  - what: Filing further findings against the 30 already sitting LATENT.
+      It is a genuine structural finding and it is the reason the split sat three records, but it is
+      a harness design problem and the instance is on fire. This record solves the instance by
+      assigning it in the first focus item, in the seat's own name, so no worker has to decide
+      whether landing 52 files is sweeping. If a second write strands the same way, it earns its
+      own item.
+  - what: Deriving a switching elasticity above GBP 400 of savings available.
     why: >-
-      The director named this directly as a token cost, and five class documents already cover
-      these shapes. The queue needs discharging, not lengthening -- the harness prune above is the
-      discharging.
-  - what: Re-opening the director's first two console priorities -- 200 residential through the funnel, and the win-rate loop.
+      Unchanged from last record and now supported by the machine: no published GB series observed a
+      household offered that much, so any value would be authored rather than measured -- a
+      curriculum value, and the director's under R13, not mine. The coupler already records the
+      73.4% of accounts scored beyond that calibration, which is the honest move and needs no new
+      number.
+  - what: Explore's remaining stages with real data, the director's third console priority.
     why: >-
-      Both have moved and neither needs steering from here. The priced book is 256 residential of
-      263, and the win side got its build this morning when the funnel was made to read the
-      company's own price position through the same elasticity the loss side uses. Steering work
-      that is already running costs a draw and buys nothing.
+      It renders figures whose credibility the co-calibration record is currently deciding, and
+      publishing cannot carry them to a live surface until the first item lands anyway. Building it
+      tonight risks putting a number on the public site that the same night's work says is not yet
+      evidence of anything. It moves up the moment publishing is landing and the coupler is at HEAD.
 wrong:
   - what: >-
-      The value arm rebuild -- 207 lines, the most thesis-relevant work in the repository, and the
-      evidence behind every claim in this record -- was left uncommitted in a shared working tree
-      that holds 462 untracked paths and carries a standing alarm for exactly this.
+      Four consecutive direction records, mine most recently, have attributed the publish wedge to
+      the commit deadline. It is six red tests -- four in
+      `tests/tools/test_generate_proof_coupled_gaps.py`, two in
+      `tests/background/test_derived_artefact_register.py` -- named in `sim-runner-log.md:203191`
+      with the gate completing in 636s inside its 840s budget. The state file every reader consults
+      says `total_red: 0`.
     corrected: false
   - what: >-
-      The world's switching curve saturates at 22% a year above GBP 400 of savings available and
-      both leave-probability caps sit at 0.95, so the simulation cannot punish a supplier that
-      overcharges. It went unnoticed for months because the belief was only ever reported; the
-      first decision made out of it found it immediately.
-    corrected: false
-  - what: >-
-      The belief-versus-truth gap has been published as evidence of the company's inference while
-      the company's estimator and the world's truth are fitted from the same published switching
-      series and are being read where neither has data. Agreement there is co-calibration, not
-      demonstrated inference, and the record did not say so.
-    corrected: false
-  - what: >-
-      This seat's orienting brief again reported that NONE of the previous focus was drawn while
-      two of the five items landed inside the window. It counts maturity-map atom draws only, so a
-      non-atom instruction is invisible to it by construction and reads as ignored -- which tells
-      the next seat to abandon steers that are working. Third record carrying this.
-    corrected: false
-  - what: >-
-      The carbon panel's 1.36x correction averaged an axis the model gets right with the one it
-      gets wrong, and the wrong one was the only axis a household could act on. Found and rebuilt
-      this stretch.
+      My last record's first focus item named a seven-path pathspec for the map split. The real
+      import closure is 52 files. A worker following that instruction would have landed a partial
+      rewiring and left 45 modules importing a module that still was not at HEAD -- the drawn
+      pathspec would have been the careless pathspec it was written to prevent.
     corrected: true
   - what: >-
-      The lint ratchet lints the whole repository but was selected by its own filename stem, so the
-      only commits it could ever see were the ones that touched it, and 22 violations walked past.
-      It now joins the always-run set at a twentieth the cost of the entry above it.
-    corrected: true
+      The record of 2026-08-25 reported the carbon panel correction as `corrected: true`. It is
+      still 152 uncommitted lines in `sim/grid_carbon_intensity.py` plus 142 in its test. I told the
+      director something was fixed that git has never seen, and it is still not fixed.
+    corrected: false
+  - what: >-
+      The map split's own invariant test sits on the tree-wide selection and reds when any atom's
+      level reaches its own -- so the success path of the entire machine refuses every commit in
+      every lane, and no re-filing function exists to satisfy it. The split shipped a control whose
+      release was undefined, which is R11's no-orphan-transitions clause applied to an invariant
+      rather than a flag.
+    corrected: false
+  - what: >-
+      `docs/observability/autonomous-runner-log.md` is carrying test fixture output as if it were
+      production: "claude binary not found at /tmp/pytest-of-rich/pytest-19/...", and launch lines
+      whose pid is a `MagicMock` repr. A test writes into the live operational log, so anyone
+      diagnosing the runner from it reads three phantom launches per cycle. Noted, not fixed --
+      LATENT, not worth a focus slot tonight.
+    corrected: false
 for_the_director: []

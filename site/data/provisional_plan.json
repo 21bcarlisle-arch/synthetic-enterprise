@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-25T21:36:06.771174+00:00",
+  "generated_at": "2026-08-26T06:33:11.353503+00:00",
   "law_a": "The plan is a diagnostic and a tie-breaker, NEVER a target. Dates are forecasts; exit tests remain the ONLY gate. No atom may be promoted, and no verification shortened, to hit a forecast. Deviation from the plan is ALLOWED and expected -- re-rank on evidence -- but must be logged with a reason. See CLAUDE.md.",
   "confidence_tiers": {
     "1": "HIGH",
@@ -68,34 +68,16 @@
     ]
   },
   "critical_path_by_epoch": {
-    "2": {
-      "open_atoms": 23,
-      "critical_chain": [
-        "W2_payment_channel_dd_consistency_invariant",
-        "W2_non_dd_miss_vocabulary"
-      ],
-      "critical_chain_length": 2
-    },
-    "1": {
-      "open_atoms": 1,
-      "critical_chain": [
-        "W4_2_verifier_timing_extension"
-      ],
-      "critical_chain_length": 1
-    },
     "3": {
-      "open_atoms": 47,
+      "open_atoms": 39,
       "critical_chain": [
-        "D27_belief_window_saturates_on_this_book",
-        "D29_the_as_of_buffer_floors_the_memory_grid",
-        "D30_the_belief_band_is_this_books_length",
-        "D31_the_recon_grid_saturates_beyond_this_books_window",
-        "D32_the_latency_headline_cannot_attribute_its_two_knobs",
-        "D33_the_collapse_predicate_is_bit_equality",
-        "D34_the_resolution_floor_covers_two_of_five_figures",
-        "D35_the_render_site_sweep_stops_at_this_processs_edge"
+        "SITE4_ia_register_and_nav",
+        "SITE6_knowledge_in_nav_glossary_dissolved",
+        "SITE8_home_reordered_and_link_labels",
+        "SITE9_harness_tab_and_director_record",
+        "SITE11_proof_dissolved"
       ],
-      "critical_chain_length": 8
+      "critical_chain_length": 5
     },
     "4": {
       "open_atoms": 8,
@@ -114,27 +96,36 @@
       ],
       "critical_chain_length": 2
     },
+    "2": {
+      "open_atoms": 22,
+      "critical_chain": [
+        "W2_payment_channel_dd_consistency_invariant",
+        "W2_non_dd_miss_vocabulary"
+      ],
+      "critical_chain_length": 2
+    },
     "None": {
       "open_atoms": 1,
       "critical_chain": [
         "D_opening_dd_seasonal_sizing"
       ],
       "critical_chain_length": 1
+    },
+    "1": {
+      "open_atoms": 0,
+      "critical_chain": [],
+      "critical_chain_length": 0
     }
   },
   "concurrency": {
-    "total_open_atoms": 84,
-    "code_free_discover_frame_atoms": 26,
-    "atoms_with_real_file_scope": 58,
-    "max_concurrent_width_overall": 57,
+    "total_open_atoms": 74,
+    "code_free_discover_frame_atoms": 25,
+    "atoms_with_real_file_scope": 49,
+    "max_concurrent_width_overall": 55,
     "per_epoch": {
       "3": {
-        "open_atoms": 47,
+        "open_atoms": 39,
         "max_concurrent_width": 29
-      },
-      "1": {
-        "open_atoms": 1,
-        "max_concurrent_width": 1
       },
       "4": {
         "open_atoms": 8,
@@ -145,8 +136,8 @@
         "max_concurrent_width": 4
       },
       "2": {
-        "open_atoms": 23,
-        "max_concurrent_width": 17
+        "open_atoms": 22,
+        "max_concurrent_width": 16
       },
       "None": {
         "open_atoms": 1,
@@ -157,11 +148,11 @@
   },
   "director_hours": {
     "window_days": 3.0,
-    "from_rich_touches": 44,
-    "substantive_staged_doc_touches": 539,
-    "routine_daemon_markers_excluded": 3464,
+    "from_rich_touches": 70,
+    "substantive_staged_doc_touches": 551,
+    "routine_daemon_markers_excluded": 3465,
     "tier1_gates_closed_all_time": 8,
-    "estimated_director_hours_per_day": 76.82,
+    "estimated_director_hours_per_day": 79.64,
     "methodology": "Counts real artefacts from git history (from_rich_*.md messages + non-routine staged docs closed to docs/staging/done/ in the last 3 days), multiplied by an effort-per-touch ANCHORED to company/governance/decision_rights.py's own registered rate card (analogous tiers, not new invented figures) -- see EFFORT_ANCHOR_MINUTES in this script. This measures artefact COUNT precisely; effort-per-touch is an anchored estimate, not directly observed clock time (R9: label what's measured vs inferred).",
     "caveat": "This window (2026-07-10 to present) is CLAUDE.md's own time-boxed SPIKE_WEEKEND override -- an explicitly unusual high-throughput period, not necessarily the sustained steady-state rate once it reverts at the weekly reset."
   },
