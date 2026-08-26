@@ -14,7 +14,6 @@ Output: markdown-formatted report for NTFY / annual report appendage.
 """
 import json
 import sys
-from pathlib import Path
 
 # Industry benchmarks: (min_net_pct, max_net_pct, label)
 SEGMENT_BENCHMARKS = {
@@ -67,8 +66,8 @@ def run_check(data: dict) -> tuple[bool, str]:
     policy_and_network = total_gross - total_net - total_cap
     wholesale = total_rev - total_gross
     lines += [
-        f"| Line | £ | % Revenue |",
-        f"|------|---|-----------|",
+        "| Line | £ | % Revenue |",
+        "|------|---|-----------|",
         f"| Supply Revenue (ex-VAT, ex-policy passthrough) | £{total_rev:,.0f} | 100.0% |",
         f"| Wholesale cost | -£{wholesale:,.0f} | {100*wholesale/total_rev:.1f}% |",
         f"| **Gross supply margin** | **£{total_gross:,.0f}** | **{100*total_gross/total_rev:.1f}%** |",

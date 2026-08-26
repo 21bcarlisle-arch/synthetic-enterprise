@@ -41,8 +41,13 @@ REDIRECTS = SITE / "_redirects"
 NS = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
 CANONICAL_HOST = "https://poesys.net"
 
-# Directories kept in-repo for reference but 301'd away by site/_redirects -- listing
-# any of them in the sitemap would advertise a dead-end URL to a crawler.
+# Doors that once existed and are now DELETED from the repo (03dd8c49e, 2026-08-20, the
+# director's five-tab consolidation; their redirects went with them in 9d2277095). Nothing
+# 301s them any more and nothing serves them, so this list is no longer "what _redirects
+# points away" -- it is a RATCHET: a deleted door must never be re-advertised to a crawler
+# without the page coming back too, which test_every_advertised_url_is_a_page_that_actually_
+# exists would then catch. Kept hand-typed on purpose: a deletion leaves nothing on disk to
+# derive from.
 REDIRECTED_LEGACY = ("/method/", "/simplified/", "/project/", "/tours/", "/wip-flow/",
                      "/platform/", "/method-casebook/", "/supplier/", "/sim/")
 # Off-nav / internal surfaces that must never be advertised.
@@ -68,10 +73,21 @@ def sitemap_text() -> str:
 # The sitemap exists, parses, and covers the canonical door set
 # ===========================================================================
 def test_sitemap_is_valid_xml_and_lists_the_canonical_doors(sitemap_text):
+    """The canonical set is DERIVED from disk; only the front door is named.
+
+    Until 2026-08-23 this hand-typed /proof/, /company/ and /world/. 03dd8c49e
+    (2026-08-20, the director's five-tab consolidation) deleted all three from the repo
+    AND from the sitemap, so from that day the control failed while accusing a sitemap
+    that was correct -- a fixture naming a retired path, the same shape 58fcdc2e6 fixed
+    the same way in test_site_structure.py's mobile-pass list three days earlier.
+
+    The front door is asserted by name because it is the one door no glob can find:
+    site/index.html sits at the root, not in a door directory.
+    """
     locs = _locs(sitemap_text)
-    for door in (CANONICAL_HOST + "/", CANONICAL_HOST + "/proof/",
-                 CANONICAL_HOST + "/company/", CANONICAL_HOST + "/world/"):
-        assert door in locs, f"canonical door {door!r} missing from sitemap.xml"
+    assert CANONICAL_HOST + "/" in locs, "the front door is missing from sitemap.xml"
+    for door in sorted(_public_doors_on_disk()):
+        assert CANONICAL_HOST + door in locs, f"canonical door {door!r} missing from sitemap.xml"
 
 
 def test_every_advertised_url_is_a_page_that_actually_exists(sitemap_text):
@@ -126,16 +142,7 @@ def test_no_advertised_url_is_itself_a_redirect_source(sitemap_text):
     """Independent oracle: derive the redirect sources from site/_redirects itself
     rather than from the hardcoded list above, so a NEW redirect added later cannot
     silently leave a stale sitemap entry behind."""
-    assert REDIRECTS.is_file(), "site/_redirects missing -- cannot cross-check"
-    sources = set()
-    for line in REDIRECTS.read_text().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        parts = line.split()
-        if len(parts) >= 2 and parts[0].startswith("/"):
-            sources.add(parts[0].rstrip("*").rstrip("/") or "/")
-    assert len(sources) > 3, f"parsed only {len(sources)} redirect sources -- oracle is empty"
+    sources = _redirect_sources()
     clashes = []
     for loc in _locs(sitemap_text):
         rel = "/" + loc[len(CANONICAL_HOST):].strip("/")
@@ -148,18 +155,62 @@ def test_no_advertised_url_is_itself_a_redirect_source(sitemap_text):
 # The OTHER direction: a public door that exists must be advertised
 # ===========================================================================
 def _redirect_sources() -> set[str]:
-    """Redirect sources parsed from site/_redirects (independent oracle)."""
+    """Redirect sources parsed from site/_redirects (independent oracle).
+
+    NON-VACUITY FLOOR, DERIVED RATHER THAN A MAGIC NUMBER. This asserted `> 3` until
+    2026-08-23, a number written when the file carried forty rules. 9d2277095 and
+    351bd2103 (director ruling, 2026-08-21: "no one has ever visited those URLs, there
+    is no history to protect") cut it to one on purpose, and the floor then fired on the
+    CORRECT state -- a control red because reality got smaller, not because it broke.
+
+    What the floor is actually for is the parser going silent: an unreadable, truncated
+    or reformatted _redirects would yield an empty `sources`, and every cross-check that
+    consumes it would then pass vacuously. So the floor is now "every rule line in the
+    file was understood" -- true at one rule, true at forty, and false the moment a rule
+    line stops parsing. It is also the only floor that cannot be satisfied by a file with
+    no rules at all, which is asserted separately below.
+    """
     assert REDIRECTS.is_file(), "site/_redirects missing -- cannot cross-check"
-    sources = set()
-    for line in REDIRECTS.read_text().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
+    return _parse_redirects(REDIRECTS.read_text())
+
+
+def _parse_redirects(text: str) -> set[str]:
+    """The parse and its floor, as one function over TEXT -- so the R15 mutants below
+    drive the real subject on a scratch document instead of re-deriving the rule."""
+    rule_lines = [ln.strip() for ln in text.splitlines()
+                  if ln.strip() and not ln.strip().startswith("#")]
+    assert rule_lines, "site/_redirects carries no rule at all -- oracle is empty"
+    sources, unparsed = set(), []
+    for line in rule_lines:
         parts = line.split()
         if len(parts) >= 2 and parts[0].startswith("/"):
             sources.add(parts[0].rstrip("*").rstrip("/") or "/")
-    assert len(sources) > 3, f"parsed only {len(sources)} redirect sources -- oracle is empty"
+        else:
+            unparsed.append(line)
+    assert not unparsed, (
+        f"parsed {len(rule_lines) - len(unparsed)} of {len(rule_lines)} rule line(s) in "
+        f"site/_redirects -- the oracle silently dropped {unparsed}")
     return sources
+
+
+def test_the_redirect_oracle_floor_fires_on_a_silent_parse(sitemap_text):
+    """R15, both directions, on SCRATCH text -- never by mutating site/_redirects.
+
+    The floor this replaces was `len(sources) > 3`, and it could not tell "the parser
+    broke" from "the director deleted rules on purpose". These two mutants are the
+    defects it is actually for.
+    """
+    live = REDIRECTS.read_text()
+    assert _parse_redirects(live), "null control: the real file must parse to something"
+
+    # M1: a rule line the parser cannot read must be reported, not dropped.
+    with pytest.raises(AssertionError, match="silently dropped"):
+        _parse_redirects(live + "\nthis-is-not-a-rule\n")
+
+    # M2: a file of comments only is an empty oracle, and every cross-check that
+    # consumes it would otherwise pass vacuously.
+    with pytest.raises(AssertionError, match="no rule at all"):
+        _parse_redirects("# every rule deleted\n\n# nothing left\n")
 
 
 def _public_doors_on_disk() -> set[str]:

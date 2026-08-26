@@ -115,7 +115,13 @@ def test_ui_status_returns_mobile_page_that_reads_latest():
     assert "/read?path=status/LATEST.md" in r.text
 
 
-def test_healthz_no_auth_required():
+def test_healthz_no_auth_required(tmp_path, monkeypatch):
+    """ISOLATED like its two neighbours below, and for the same reason they already are:
+    `/healthz` proves staging is writable by actually writing `.healthz_probe` into STAGING_DIR,
+    so an unpatched call here writes the real `docs/staging/` and the G-T2 production-surface
+    guard refuses it. The subject of this test is that the endpoint needs no auth and returns the
+    four keys — not that the probe lands on the production surface."""
+    monkeypatch.setattr("background.file_api.STAGING_DIR", tmp_path)
     r = client.get("/healthz")
     assert r.status_code == 200
     body = r.json()
@@ -253,8 +259,9 @@ def test_query_no_context_still_works(monkeypatch):
 
 
 def test_query_ollama_unreachable_returns_503(monkeypatch):
-    import background.file_api as fa
     import httpx as _httpx
+
+    import background.file_api as fa
     def mock_post(url, json=None, timeout=None):
         raise _httpx.ConnectError("Connection refused")
     monkeypatch.setattr(fa.httpx, "post", mock_post)

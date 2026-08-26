@@ -253,3 +253,59 @@ def test_the_earlier_four_pins_are_still_in_force(pinned):
         f"supervisor.{pinned} is pointing at the REAL checkout inside tests/background/ -- the "
         "autouse isolation fixture in conftest.py has lost a pin"
     )
+
+
+# ---------------------------------------------------------------------------
+# NINTH INSTANCE -- the sim_runner sweep (2026-08-17)
+# ---------------------------------------------------------------------------
+
+def test_no_sim_runner_path_constant_points_into_the_real_checkout():
+    """The ninth instance of this directory's oldest class, and the first that leaks
+    OUTWARD: `sim_runner.record_run_outcome` writes `.sim_producer_state.json`, which
+    supervisor RUNG 1d reads as PRIORITY-ZERO drawable work. Unisolated, the ordinary
+    `run_simulation()` tests stamped `consecutive_failures: 6` onto the live machine's
+    producer-health file -- i.e. a test could make the real draw ladder drop everything
+    and 'go fix the producer' on a healthy box.
+
+    The conftest pin is a SWEEP over every Path constant on the module rather than a
+    ninth remembered name, so this asserts the property (nothing points into the real
+    tree) rather than one path. A tenth constant added tomorrow is covered, and this
+    control still fires if the sweep is deleted or narrowed."""
+    from pathlib import Path
+
+    from background import sim_runner
+
+    repo_root = Path(__file__).resolve().parents[2]
+    offenders = []
+    for name in dir(sim_runner):
+        if name.startswith("__"):
+            continue
+        value = getattr(sim_runner, name, None)
+        if not isinstance(value, Path):
+            continue
+        try:
+            value.relative_to(repo_root)
+        except ValueError:
+            continue
+        offenders.append(f"sim_runner.{name} = {value}")
+
+    assert not offenders, (
+        "these sim_runner path constants point into the REAL checkout inside "
+        "tests/background/ -- the autouse sweep in conftest.py has been lost or "
+        "narrowed, and a test run will write live daemon state:\n  "
+        + "\n  ".join(offenders)
+    )
+
+
+def test_the_sweep_leaves_paths_outside_the_checkout_alone():
+    """The sweep must not be a blunt 'redirect everything': a constant already pointing
+    outside the repo (a system path, an absolute temp location) is not this class's
+    problem, and rewriting it would break honest tests for no reason."""
+    from pathlib import Path
+
+    from background import sim_runner
+
+    # The pin redirects into tmp, preserving the tail -- so the ORIGINAL relative shape
+    # must survive, which is what makes a redirected constant still meaningful to read.
+    assert sim_runner.PRODUCER_STATE_FILE.name == ".sim_producer_state.json"
+    assert isinstance(sim_runner.LOG_FILE, Path)

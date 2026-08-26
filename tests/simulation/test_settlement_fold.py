@@ -194,5 +194,15 @@ def test_the_run_builds_exactly_one_fold_and_feeds_it_where_the_list_is_extended
     assert src.count("settled_fold = SettlementFold()") == 1, (
         "the run builds more than one fold")
     assert src.count("settled_fold.add(") == 1, "the fold is fed in more than one place"
-    assert "all_records.extend(settled_this_term)\n        settled_fold.add(settled_this_term)" \
-        in src, "the fold is no longer fed on the line that extends the list"
+    # The book is extended and the fold is fed in ONE block, with nothing between them that
+    # could ask the fold a question. The line reads differently since the book began holding
+    # daily rows (2026-08-24), so the property is asserted on the ORDER rather than on one
+    # literal line: the registers and the fold both see the same term, and both see it only
+    # after the loop has finished asking questions about the book as it stood before it.
+    block = src.split("period_registers.add(settled_this_term")[1].split("\n\n")[0]
+    assert "all_records.extend(fold_to_days(settled_this_term))" in block
+    assert "settled_fold.add(settled_this_term)" in block
+    assert src.index("settled_fold.add(settled_this_term)") > \
+        src.index("all_records.extend(fold_to_days(settled_this_term))"), (
+            "the fold is fed before the book is extended, which is the point-in-time drift "
+            "this test exists to catch")

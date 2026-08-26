@@ -21,9 +21,25 @@ from __future__ import annotations
 
 import subprocess as _sp
 
+import pytest
+
 from background import process_run_complete as prc
 from background import publish_provenance as prov
 from background import publish_scope
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _the_publisher_log_goes_to_tmp(tmp_path_factory):
+    """THIS FILE DRIVES THE REAL PUBLISHER, so its diagnostics must not reach the real record.
+
+    `prc.log()` appends to `docs/observability/sim-runner-log.md` -- the file the PUBLISHING
+    DOWN alarm sends a human to. Four tests here exercise publish paths that log, so without
+    this their fixture rows land beside the genuine sim-runner rows and read as real gate
+    verdicts."""
+    dest = tmp_path_factory.mktemp("publisher-log") / "sim-runner-log.md"
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(prc, "LOG_FILE", dest)
+        yield dest
 
 # The injected-red exemplar. Asserted to EXIST below rather than merely referenced: a renamed
 # or deleted exemplar must fail this file loudly, never let it pass over nothing

@@ -94,3 +94,34 @@ def test_the_deadline_is_longer_than_a_fight_with_the_commit_gate(claims):
     """A gate run is ~15 minutes and several of 2026-08-20's commits took three attempts. A
     deadline under that would fire on honest work and get switched off."""
     assert S.STALE_AFTER_SECONDS >= 40 * 60
+
+
+# ------------------------------------- THE SHARED-TREE HOLE (found 2026-08-21)
+# Shipped 2026-08-20 comparing the claim against the TREE's HEAD. This is a shared checkout
+# with four other lanes committing into it, so HEAD moves within minutes whatever the seat
+# does -- and a live claim was observed reading as MOVING while the seat had done nothing.
+# The first version avoided "the seat certifies itself" and landed on "the seat is certified
+# by everyone else", which is the same defect wearing the opposite costume.
+
+def test_another_lanes_commit_does_not_count_as_progress_on_my_claim(claims):
+    """The exact observed failure: the tree moved, the claimed work did not."""
+    S.claim("PB3", "", paths=["company/growth/"], path=claims, now=1000.0)
+    # head_time is left to the real per-claim lookup; the claimed path has no commits, so a
+    # busy tree cannot rescue it.
+    stale = S.stale_claims(path=claims, now=1000.0 + 5 * 3600)
+    assert [w for w, _, _ in stale] == ["PB3"], (
+        "a claim was credited with work outside its own paths"
+    )
+
+
+def test_a_commit_touching_the_claimed_paths_IS_progress(claims):
+    S.claim("PB3", "", paths=["company/growth/"], path=claims, now=1000.0)
+    assert S.stale_claims(path=claims, now=1000.0 + 5 * 3600, head_time=1001.0) == []
+
+
+def test_a_claim_with_no_paths_releases_on_schedule(claims):
+    """No paths means no observable progress signal. Releasing is the fail-safe direction:
+    work nobody can see moving belongs back in the draw, not held by whoever asked for it."""
+    S.claim("PB3", "", path=claims, now=0.0)
+    stale = S.stale_claims(path=claims, now=S.STALE_AFTER_SECONDS + 1)
+    assert [w for w, _, _ in stale] == ["PB3"]

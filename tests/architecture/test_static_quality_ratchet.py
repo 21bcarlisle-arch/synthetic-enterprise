@@ -439,17 +439,26 @@ BASELINE_DATE = "2026-08-06"
 #     shrinks rather than being left stale -- which is the exact failure the 08-09 episode-3
 #     entry above wedged the publish gate on for hours, and the failure this commit's own first
 #     gate run reproduced in ninety seconds.
+#   2026-08-26  I001 1360 -> 1357, F401 273 -> 272, F541 27 -> 25  (landing eleven written-but-
+#               never-committed test files)
+#     The ratchet fired UPWARD first, which is the direction that matters: four of the eleven
+#     carried an un-sorted import block and I001 went 1360 -> 1361 on the resulting tree. Fixed
+#     at source with `ruff --select I001,F401 --fix` over exactly the landed pathspec, per this
+#     ratchet's stated remedy, and the same pass cleared three MORE that were already there --
+#     plus two F541 that HEAD's copy of `tools/revenue_sanity_check.py` carried and the working
+#     tree's did not. Net six down, and the per-file per-code census of the resulting tree
+#     set-differenced against `git archive HEAD` is removals only, no additions.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
-    "I001": 1360,
-    "F401": 273,
+    "I001": 1357,
+    "F401": 272,
     "E402": 174,
     "F841": 128,
     "E741": 108,
     "F811": 95,
     "E702": 76,
     "E701": 45,
-    "F541": 27,
+    "F541": 25,
     "E401": 20,
     "E731": 19,
     "W293": 19,
@@ -461,7 +470,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2358  # was 2360; -2 (I001 1362 -> 1360; see the entry above)
+RUFF_BASELINE_TOTAL = 2352  # was 2358; -6 across three codes (see the entry above)
 
 
 # --------------------------------------------------------------------------

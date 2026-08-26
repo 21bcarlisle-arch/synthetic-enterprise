@@ -124,10 +124,22 @@ def test_the_narrow_measure_has_a_known_and_stated_blind_spot():
 def test_the_pilot_line_reports_zero_firing_as_no_comparison_possible(tmp_path, monkeypatch):
     """The self-note line carries the same honesty rule as the full report. This is the line the
     director actually reads each morning, so it is the one that must never imply safety it has not
-    measured."""
+    measured.
+
+    THE WINDOW IS PINNED, and that is the point of this edit rather than an incidental tidy. This
+    test used to read the LIVE `model_tier_pilot.yaml`, so it asserted the open-window branch only
+    for as long as the real pilot happened to be open. The pilot closed on its declared `ends`
+    (2026-08-19) exactly as designed, and on 2026-08-20 this test went red with nothing wrong with
+    it or with the code — a time bomb that then refused EVERY lane's commit until someone read it.
+    The subject here is the zero-firing message, not the window; the window has its own test below.
+    Pinning `starts` to the real one keeps the logged tick inside the reporting period."""
     log = tmp_path / "t.jsonl"
     _write_log(log, [{"ts": 1786500000, "tier": "opus", "classes": ["level_move"]}])
     monkeypatch.setattr(rep, "TIER_LOG", log)
+    cfg = tmp_path / "pilot.yaml"
+    cfg.write_text("version: 1\nstarts: '2026-08-12'\nends: '2999-01-01'\n"
+                   "classes:\n  stale_gap_row: {enabled: true}\n")
+    monkeypatch.setattr(rep, "PILOT_CONFIG", cfg)
     line = rep.pilot_line()
     assert "NOT FIRED YET" in line
     assert "never an absence of harm" in line
