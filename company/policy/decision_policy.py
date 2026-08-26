@@ -26,10 +26,10 @@ guard on the live path, so "pre-deferral-pricing" is not a real fork in the
 current code (see FROZEN_POLICY_BASELINE_DESIGN.md's honest-gap note).
 """
 
+import hashlib
 from contextlib import contextmanager
 from contextvars import ContextVar
-from dataclasses import dataclass
-import hashlib
+from dataclasses import dataclass, replace
 
 
 @dataclass(frozen=True)
@@ -68,6 +68,21 @@ class DecisionPolicy:
     # which segment via company/analytics/nudge_discovery.py, without ever
     # seeing simulation/nudge_physics.py's hidden tone-susceptibility.
     tone_mode: str = "firm_toned"
+
+    # THE VALUE CYCLE'S ONE VARIABLE (2026-08-26, docs/design/THE_VALUE_CYCLE_REALISED_AB.md).
+    # Which rule sets the renewal MARGIN: `"flat_rules"` is the £2.00/MWh every account pays
+    # today, `"value_based"` is company/pricing/value_based_renewal.py choosing per customer from
+    # the company's own beliefs. It is a POLICY FIELD rather than a new switch because the honest
+    # comparison between the two is realised rather than expected -- the same book, the same
+    # world, run once per arm -- and this dataclass is already the thing a run's decision
+    # identity is swapped by (`tools/run_frozen_baseline.py` does exactly that for the naive
+    # arm). Reusing it also inherits `run_phase2b.main`'s refusal of a run whose `policy` and
+    # whose `policy_scope` disagree, which is precisely the chimera an A/B on pricing would
+    # otherwise be exposed to: one variable changed in one place, or the delta means nothing.
+    #
+    # The default is the CONTROL, so every existing caller is untouched and a run that does not
+    # ask for the experiment is byte-identical to today's.
+    renewal_margin_arm: str = "flat_rules"
 
     def retention_discount_for_risk(self, company_est: float) -> float:
         """Return the retention discount fraction for a given churn estimate."""
@@ -108,6 +123,17 @@ NAIVE_POLICY = DecisionPolicy(
     use_var_hedge_decision=False,
     framing_mode="gain_framed",
 )
+
+# THE VALUE ARM, and NOTHING ELSE (2026-08-26). Built from CURRENT_POLICY by
+# `dataclasses.replace` rather than typed out, because the whole worth of the
+# comparison it is for is that exactly ONE field differs: a second hand-written
+# literal would drift from `current` the first time a retention tier moved, and
+# the realised delta would then carry an uncontrolled variable — the defect
+# `WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10` recorded and the
+# active-policy block below exists to close.
+# `test_the_value_arm_policy_differs_from_current_in_exactly_one_field` pins it.
+VALUE_ARM_POLICY = replace(
+    CURRENT_POLICY, name="value_arm", renewal_margin_arm="value_based")
 
 
 # ---- THE RUN'S POLICY, for consumers that are not handed one ----------------

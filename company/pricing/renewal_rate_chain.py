@@ -24,9 +24,19 @@ THE GROUP TEST (§3m), APPLIED AND PASSED
 it landed two doors and said so. Here the answer is yes, and the total is a
 single number: **the unit rate the customer contracts at.** The term is struck at
 one rate; the premium multiplies it; the surcharge multiplies that; the
-profitability uplift adds to that; the cap clamps the result. Five writers, one
-number, and the arithmetic is a chain — reorder any two of them and the answer
-changes. That is why they are one door and not five.
+profitability uplift adds to that; the VALUE ARM adds what this account is worth
+rather than what it cost; the cap clamps the result. Six writers, one number, and
+the arithmetic is a chain — reorder any two of them and the answer changes. That
+is why they are one door and not six.
+
+THE SIXTH WRITER IS THE REASON THIS DOOR EARNS ITS DESIGN (2026-08-26,
+`docs/design/THE_VALUE_CYCLE_REALISED_AB.md`). The value arm was built on
+2026-08-25 and had no caller but a harness tool, and the thing that made wiring
+it safe was already here: it needs a CEILING, because run unbounded against the
+real book it chose margins between £60 and £200/MWh against a flat £2, and the
+cap clamp it needs is writer 4. Placing it at 3b rather than giving it its own
+ceiling is the one-door argument paying for itself — "the cap clamps what the
+uplift added" was written about writer 3 and turned out to be about this one.
 
 The fourth writer, the unprofitability uplift, went behind its OWN door in step
 22 (`company/interfaces/customer_profitability.py`) at a time when the other four
@@ -73,12 +83,15 @@ from dataclasses import dataclass, field
 from datetime import date
 
 from company.interfaces.customer_profitability import renewal_unit_rate_uplift
+from company.policy.decision_policy import active_policy
 from company.pricing.margin_feedback import compute_margin_surcharge
 from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
 from company.pricing.tariff_engine import (
     PORTFOLIO_PREMIUM_LOOKBACK,
     compute_portfolio_premium,
 )
+from company.pricing.value_based_renewal import renewal_margin_uplift
+from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 
 __all__ = ["RenewalRateChain", "decide_renewal_rate"]
 
@@ -111,6 +124,12 @@ class RenewalRateChain:
     dynamic_pricing_entries: list[dict] = field(default_factory=list)
     margin_feedback_entries: list[dict] = field(default_factory=list)
     profitability_uplift_entries: list[dict] = field(default_factory=list)
+    #: WRITER 3b's own log, kept apart from `profitability_uplift_entries` even though both are
+    #: additive £/MWh moves. They answer different questions -- "is this account losing money"
+    #: versus "what is this account worth" -- and a realised A/B has to be able to attribute a
+    #: difference to ONE of them. Empty on the control arm, which is how a reader tells a run
+    #: that priced flat from one that priced per customer and happened to land near flat.
+    value_arm_entries: list[dict] = field(default_factory=list)
     decomposition: dict | None = None
 
 
@@ -252,6 +271,70 @@ def decide_renewal_rate(
             "cause": "profitability_uplift",
             "basis": "gbp_per_mwh",
             "magnitude": round(pnl_uplift, 4),
+            "rate_before": round(rate_before, 4),
+            "rate_after": round(unit_rate, 4),
+        })
+
+    # WRITER 3b — THE VALUE ARM: what this account is worth, rather than what it cost.
+    #
+    # It sits HERE, after the two learned adjustments and writer 3, and BEFORE the cap, and both
+    # halves of that placement are load-bearing. After, because it prices against the rate this
+    # supplier has actually arrived at rather than a hypothetical one. Before, because the cap is
+    # the only writer that can move a rate DOWN and this arm is the one most able to need it: run
+    # unbounded against the real book it chose margins between £60 and £200/MWh against a flat
+    # £2, so a placement past the ceiling would publish a rate the supplier is not allowed to
+    # charge. Inheriting writer 4 rather than growing its own ceiling is the whole argument for
+    # the one-door design (`company/interfaces/renewal_rate_chain.py`: "the cap clamps what the
+    # uplift added").
+    #
+    # THE ARM IS READ FROM THE RUN'S ACTIVE POLICY, not passed in, because this door must not
+    # grow a company decision object: `active_policy()` exists for exactly the consumer that
+    # cannot be handed one, and `run_phase2b.main` already REFUSES a run whose `policy` and whose
+    # `policy_scope` disagree -- so the A/B cannot become a chimera without the run dying first.
+    # On the control arm `renewal_margin_uplift` returns 0.0 before computing anything, so this
+    # block is a single comparison and a no-op, which is what makes the control byte-identical.
+    arm_uplift = renewal_margin_uplift(
+        account_id=billing_account,
+        commodity=commodity,
+        tariff_type=tariff_type,
+        term_index=term_index,
+        term_start=term_start,
+        locked_unit_rate=unit_rate,
+        settled_records=settled_records,
+        is_domestic=is_domestic,
+        arm=active_policy().renewal_margin_arm,
+    )
+    if unit_rate is not None and arm_uplift.decision is not None:
+        rate_before = unit_rate
+        unit_rate += arm_uplift.uplift_gbp_per_mwh
+        decision = arm_uplift.decision
+        entry = {
+            "customer_id": billing_account,
+            "commodity": commodity,
+            "term_start": term_start,
+            "arm": decision.arm,
+            "chosen_margin_gbp_per_mwh": round(decision.margin_gbp_per_mwh, 4),
+            "flat_rule_margin_gbp_per_mwh": TARGET_MARGIN_GBP_PER_MWH,
+            "uplift_gbp_per_mwh": round(arm_uplift.uplift_gbp_per_mwh, 4),
+            # THE BELIEF, LABELLED AS ONE. `expected_value_gbp` is the company's own number and
+            # is never evidence the decision was right -- the realised A/B is. Carried so the
+            # two can be compared afterwards, which is the only way to find out whether this
+            # company's beliefs are worth acting on.
+            "believed_p_retain": round(decision.p_retain, 4),
+            "believed_expected_value_gbp": round(decision.expected_value_gbp, 2),
+            "endpoint_bound": decision.endpoint_bound,
+            "endpoint_side": decision.endpoint_side,
+            "withheld_reason": decision.withheld_reason,
+            "unit_rate_original": round(rate_original or 0.0, 4),
+            "unit_rate_before": round(rate_before, 4),
+            "unit_rate_after": round(unit_rate, 4),
+        }
+        result.value_arm_entries.append(entry)
+        result.chain_entries.append(entry)
+        result.components.append({
+            "cause": "value_arm",
+            "basis": "gbp_per_mwh",
+            "magnitude": round(arm_uplift.uplift_gbp_per_mwh, 4),
             "rate_before": round(rate_before, 4),
             "rate_after": round(unit_rate, 4),
         })

@@ -94,8 +94,8 @@ from dataclasses import dataclass, field
 from company.crm.enriched_churn_estimate import enriched_churn_estimate
 from company.crm.payment_behaviour_analytics import BehaviourScore
 from company.regulatory.pricing_permissions import check_class_margin
-from saas.payment_behaviour import DEFAULT_CREDIT_RISK, bad_debt_provision_gbp
 from saas.clv_model import DISCOUNT_RATE_ANNUAL, _annuity_factor
+from saas.payment_behaviour import DEFAULT_CREDIT_RISK, bad_debt_provision_gbp
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 
 #: The two arms. `FLAT_RULES` is what the company does today and is the CONTROL; `VALUE_BASED`
@@ -738,3 +738,175 @@ def decide_margin(
         extrapolation_bound=extrapolation_bound,
         withheld_reason=withheld,
     )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# THE CHAIN ADAPTER — what a renewal desk can actually call
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+#
+# `decide_margin` above takes twenty keyword arguments and every one is a company observable,
+# which is the property that makes it honest and also the reason it had no caller but a harness
+# tool: `company/pricing/renewal_rate_chain.decide_renewal_rate` -- the ONE door through which
+# every rate-moving supplier decision fires -- holds an account id, a term start and the
+# supplier's own settled book, and not one of tenure, EAC, cost-to-serve or the rate this
+# customer is on today. `tools/couple_value_based_pricing.py` assembles those from a FINISHED
+# run's output, which a renewal cannot do because the run has not finished.
+#
+# So this layer derives them, from the same two things `customer_profitability.
+# renewal_unit_rate_uplift` already derives its answer from: the account id and the supplier's
+# settled records, bounded to what had settled before the term was struck. The seam does not
+# grow, and the derivation sits behind the wall where a real supplier's would be.
+#
+# THE ELIGIBILITY RULE IS IMPORTED, NOT RESTATED. `company/crm/customer_profitability.py`
+# already owns the vocabulary for "a renewal a per-MWh writer may move" -- electricity, a fixed
+# or pass-through product, a locked rate to adjust, not the acquisition term. A second copy here
+# would let two writers in the SAME chain silently disagree about which renewals they apply to,
+# which is the mirror error of duplication the AO2 amendment names.
+
+from company.crm.customer_profitability import (  # noqa: E402
+    MIN_TERM_INDEX_FOR_UPLIFT,
+    UPLIFTABLE_COMMODITY,
+    UPLIFTABLE_TARIFF_TYPES,
+)
+from saas.cost_to_serve import cost_to_serve_for_period  # noqa: E402
+
+#: The rolling window every derivation below reads. IT IS THE SAME WINDOW
+#: `run_phase2b._company_eac_estimate` uses for the churn estimate's EAC -- half-open
+#: `[term_start - 1y, term_start)` -- and that is load-bearing rather than tidy. This arm's
+#: objective is `p_retain(m) x (m x eac_mwh + ...)`, and the `p_retain` it multiplies by is
+#: estimated against an EAC from that window. Two different sizes for one customer inside one
+#: product would make the arm's own objective internally inconsistent and nothing would say so.
+OBSERVATION_WINDOW_YEARS = 1
+
+
+@dataclass(frozen=True)
+class MarginArmUplift:
+    """What the value arm moved this renewal by, and enough to refute it.
+
+    `uplift_gbp_per_mwh` is a DELTA AGAINST THE FLAT RULE, never a margin: the rate handed to the
+    chain already carries `TARGET_MARGIN_GBP_PER_MWH`, so adding the chosen margin outright would
+    charge the flat rule twice. It is SIGNED, because the arm prices some accounts BELOW the flat
+    rule -- measured, 5 of 263 -- and a writer that could only add would turn a per-customer
+    decision back into a surcharge.
+    """
+
+    uplift_gbp_per_mwh: float
+    #: The full decision, or `None` when the arm did not run.
+    decision: MarginDecision | None = None
+    #: WHY it did not run. Carried rather than inferred from a 0.0, because an arm that ran and
+    #: chose the flat margin and an arm that never ran are the same number and opposite facts --
+    #: R15's fail-silent pattern, and the one this adapter is most exposed to.
+    not_run_reason: str | None = None
+
+
+def renewal_margin_uplift(
+    *,
+    account_id: str,
+    commodity: str,
+    tariff_type: str | None,
+    term_index: int,
+    term_start: str,
+    locked_unit_rate: float | None,
+    settled_records: list[dict],
+    is_domestic: bool,
+    arm: str,
+) -> MarginArmUplift:
+    """The £/MWh this renewal moves by, under ONE arm, from the supplier's own settled book.
+
+    Returns a ZERO uplift for `FLAT_RULES` before computing anything, so a run on the control arm
+    is byte-identical to a run with this writer absent. That is what makes the A/B a comparison
+    of one variable rather than of two code paths, and it is asserted rather than assumed by
+    `test_the_control_arm_is_byte_identical_to_no_writer_at_all`.
+
+    POINT-IN-TIME: every derivation filters `settlement_date < term_start` before reading
+    anything, the same bound `estimate_prior_term_net_margin` applies one writer along.
+
+    `is_domestic` rather than a segment string: the door already carries that boolean and
+    `cost_to_serve_for_period` accepts exactly two segments, so mapping here keeps ONE vocabulary
+    for one fact instead of two that can disagree.
+    """
+    if arm == FLAT_RULES:
+        return MarginArmUplift(0.0)
+    if arm not in ARMS:
+        raise MarginDecisionUnavailable(f"{arm!r} is not an arm; expected one of {ARMS}")
+    if locked_unit_rate is None:
+        return MarginArmUplift(0.0, not_run_reason="no locked rate to move")
+    if term_index < MIN_TERM_INDEX_FOR_UPLIFT:
+        return MarginArmUplift(0.0, not_run_reason="acquisition term: nothing observed yet")
+    if commodity != UPLIFTABLE_COMMODITY:
+        return MarginArmUplift(
+            0.0, not_run_reason=f"commodity {commodity!r} is not priced by this arm")
+    if tariff_type not in UPLIFTABLE_TARIFF_TYPES:
+        return MarginArmUplift(
+            0.0, not_run_reason=f"tariff type {tariff_type!r} has no locked margin to move")
+
+    segment = "resi" if is_domestic else "SME"
+    observed = observed_account_state(account_id, term_start, settled_records, segment)
+    if observed is None:
+        return MarginArmUplift(
+            0.0, not_run_reason="nothing settled for this account inside the observation window")
+
+    decision = decide_margin(
+        customer_id=account_id,
+        arm=VALUE_BASED,
+        current_rate_gbp_per_mwh=observed["current_rate_gbp_per_mwh"],
+        # The rate BEFORE margin. The strike already added the flat rule, so subtracting it is
+        # what makes `base + chosen` the arm's own answer rather than the flat rule plus it.
+        base_rate_gbp_per_mwh=float(locked_unit_rate) - TARGET_MARGIN_GBP_PER_MWH,
+        eac_kwh=observed["eac_kwh"],
+        tenure_years=observed["tenure_years"],
+        cost_to_serve_gbp_per_year=observed["cost_to_serve_gbp_per_year"],
+        segment=segment,
+        renewal_year=int(term_start[:4]),
+    )
+    return MarginArmUplift(
+        uplift_gbp_per_mwh=decision.margin_gbp_per_mwh - TARGET_MARGIN_GBP_PER_MWH,
+        decision=decision,
+    )
+
+
+def observed_account_state(
+    account_id: str, term_start: str, settled_records: list[dict], segment: str,
+) -> dict | None:
+    """Tenure, EAC, the rate this account is actually on, and cost-to-serve — all observed.
+
+    Returns `None` where the account has nothing settled inside the window before this term. That
+    is a STATE and not an error: an account with no observed history is one this arm has no basis
+    to price, and the caller adds 0.0 rather than the arm guessing at it.
+    """
+    from datetime import date as _date
+
+    start = _date.fromisoformat(term_start)
+    window_open = start.replace(year=start.year - OBSERVATION_WINDOW_YEARS).isoformat()
+
+    prior = [
+        r for r in settled_records
+        if r.get("customer_id") == account_id
+        and r.get("commodity", UPLIFTABLE_COMMODITY) == UPLIFTABLE_COMMODITY
+        and r.get("settlement_date", "") < term_start
+    ]
+    if not prior:
+        return None
+    window = [r for r in prior if r.get("settlement_date", "") >= window_open]
+    if not window:
+        return None
+
+    kwh = sum(float(r.get("consumption_kwh") or 0.0) for r in window)
+    revenue = sum(float(r.get("revenue_gbp") or 0.0) for r in window)
+    if kwh <= 0.0:
+        return None
+
+    return {
+        "eac_kwh": kwh,
+        # THE REALISED RATE, not a quoted one: what the supplier actually billed over the window,
+        # revenue over volume. A stored headline rate stops describing the account the moment a
+        # discount, a cap clamp or a part-term moves it, and all three happen here.
+        "current_rate_gbp_per_mwh": revenue / (kwh / 1000.0),
+        "tenure_years": max(0.0, (start - _date.fromisoformat(
+            min(r.get("settlement_date", term_start) for r in prior))).days / 365.25),
+        "cost_to_serve_gbp_per_year": sum(
+            cost_to_serve_for_period(
+                segment, float(r.get("revenue_gbp") or 0.0), UPLIFTABLE_COMMODITY,
+                periods=int(r.get("settlement_periods_folded", 1) or 1))
+            for r in window),
+    }

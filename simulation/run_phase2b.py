@@ -1164,6 +1164,10 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
     prev_term_revenue: dict[str, float] = {}
     margin_feedback_log: list[dict] = []
     profitability_uplift_log: list[dict] = []
+    # WRITER 3b's log (2026-08-26, the value cycle). Empty on every run of the control arm, which
+    # is the point: an empty list here and a list of flat-margin choices are different facts, and
+    # only one of them means "this run priced per customer".
+    value_arm_log: list[dict] = []
     # EP2 sub-atom 3 (2026-08-13, WORKER_FINDING_TWO_PRICING_LOOPS_...): four writers move one
     # `unit_rate` at renewal — the portfolio premium, the margin surcharge, the profitability
     # uplift and the domestic price cap. Each of their own logs used to record a before/after
@@ -1347,6 +1351,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         dynamic_pricing_log.extend(_chain.dynamic_pricing_entries)
         margin_feedback_log.extend(_chain.margin_feedback_entries)
         profitability_uplift_log.extend(_chain.profitability_uplift_entries)
+        value_arm_log.extend(_chain.value_arm_entries)
         if _chain.decomposition is not None:
             rate_decomposition_log.append(_chain.decomposition)
 
@@ -2825,6 +2830,7 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
         "triad_log": triad_log,
         "margin_feedback_log": margin_feedback_log,
         "profitability_uplift_log": profitability_uplift_log,
+        "value_arm_log": value_arm_log,   # the value cycle's per-renewal decisions
         "demand_response_log": demand_response_log,   # Phase 52
         "hedge_var_log": hedge_var_log,
         "dynamic_pricing_log": dynamic_pricing_log,

@@ -53,6 +53,7 @@ from company.interfaces.collections_communication import collections_tone_for
 from company.policy.decision_policy import (
     CURRENT_POLICY,
     NAIVE_POLICY,
+    VALUE_ARM_POLICY,
     DecisionPolicy,
     active_policy,
     framing_type_for,
@@ -126,7 +127,69 @@ FIELD_CONSUMPTION = {
         "via": "active_scope",
         "probe": lambda: collections_tone_for("C0001", "2023-01-31"),
     },
+    # THE VALUE CYCLE'S ONE VARIABLE (2026-08-26). Resolved from inside
+    # `company/pricing/renewal_rate_chain.decide_renewal_rate`, which is a WALL
+    # DOOR and must not gain a policy argument: its own docstring argues that
+    # what crosses is "a plain value, the supplier's own settled records, or the
+    # supplier's own realised margin history", and a company decision object is
+    # none of those. So it is the second `active_scope` field, for the same
+    # reason as the first -- the consumer cannot be handed one.
+    #
+    # THE PROBE IS THE REAL DOOR, not a stub. It drives `decide_renewal_rate`
+    # itself with an account whose own settled book is inside the arm's
+    # observation window, so under `flat_rules` it returns the struck rate
+    # untouched and under `value_based` it returns a different one. A probe that
+    # read the field back off the policy would be the tautology R15 names: it
+    # would pass against a chain that ignored the scope entirely.
+    "renewal_margin_arm": {
+        "via": "active_scope",
+        "probe": lambda: _renewal_rate_under_the_active_arm(),
+        # The witnessing pair. NAIVE_POLICY prices flat too -- the last-generation company had
+        # no per-customer view either -- so CURRENT vs NAIVE cannot witness this field at all.
+        # VALUE_ARM_POLICY is CURRENT with this one field changed, which is exactly the pair the
+        # realised A/B runs.
+        "arms": (CURRENT_POLICY, VALUE_ARM_POLICY),
+    },
 }
+
+
+def _renewal_rate_under_the_active_arm() -> float | None:
+    """Drive the renewal rate chain on one account and return the rate it decided.
+
+    Deliberately an SME account (`is_domestic=False`) so the domestic price cap -- writer 4, the
+    only writer that can move a rate DOWN -- cannot clamp the two arms back onto the same number
+    and make this probe report agreement where there is none.
+    """
+    from company.pricing.renewal_rate_chain import decide_renewal_rate
+
+    settled = [
+        {
+            "customer_id": "C0001",
+            "commodity": "electricity",
+            "settlement_date": f"2020-{m:02d}-15",
+            "term_start": "2020-01-01",
+            "consumption_kwh": 250.0,
+            "revenue_gbp": 45.0,
+            "net_margin_gbp": 1.0,
+            "margin_gbp": 5.0,
+            "settlement_periods_folded": 48,
+        }
+        for m in range(1, 13)
+    ]
+    return decide_renewal_rate(
+        customer_id="C0001",
+        billing_account="C0001",
+        commodity="electricity",
+        term_start="2021-01-01",
+        tariff_type="fixed",
+        term_index=2,
+        struck_unit_rate_gbp_per_mwh=200.0,
+        portfolio_margin_rates=[],
+        prior_term_margin_gbp=None,
+        prior_term_revenue_gbp=0.0,
+        is_domestic=False,
+        settled_records=settled,
+    ).unit_rate_gbp_per_mwh
 
 
 def _production_files() -> list[Path]:
@@ -252,16 +315,23 @@ def test_an_active_scope_field_switches_with_the_run(field):
     under NAIVE_POLICY the letters must be uniformly firm, because that is what the
     policy the arm claims to be running says."""
     probe = FIELD_CONSUMPTION[field]["probe"]
-    with policy_scope(CURRENT_POLICY):
-        under_current = probe()
-    with policy_scope(NAIVE_POLICY):
-        under_naive = probe()
-    assert getattr(CURRENT_POLICY, field) != getattr(NAIVE_POLICY, field), (
+    # WHICH TWO POLICIES WITNESS THIS FIELD IS THE FIELD'S OWN PROPERTY (2026-08-26). This test
+    # used to hardcode CURRENT vs NAIVE, which was true of the only active-scope field there
+    # was. `renewal_margin_arm` is `flat_rules` in BOTH of those -- the naive company priced
+    # flat too -- so a hardcoded pair would have hit the vacuity guard below and forced either a
+    # skip or a dishonest edit to NAIVE_POLICY. A field declares its own witnessing pair; the
+    # default stays CURRENT/NAIVE, so nothing else moved.
+    left, right = FIELD_CONSUMPTION[field].get("arms", (CURRENT_POLICY, NAIVE_POLICY))
+    with policy_scope(left):
+        under_left = probe()
+    with policy_scope(right):
+        under_right = probe()
+    assert getattr(left, field) != getattr(right, field), (
         f"the two policies agree on {field}, so this probe cannot witness a pin"
     )
-    assert under_naive != under_current, (
-        f"{field} resolved identically in both arms ({under_naive!r}) — the naive arm "
-        f"is running the live policy's {field}"
+    assert under_left != under_right, (
+        f"{field} resolved identically in both arms ({under_left!r}) — the {right.name} arm "
+        f"is running the {left.name} policy's {field}"
     )
 
 

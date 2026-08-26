@@ -429,9 +429,19 @@ BASELINE_DATE = "2026-08-06"
 #     same `--fix` pass cleared incidentally -- shrink-only, so they are recorded here rather
 #     than left as stale entries, which is the failure the 08-09 episode-3 entry above wedged
 #     the publish gate on.
+#   2026-08-26  I001 1362 -> 1360  (the value cycle's wiring, sideways)
+#     Landing `renewal_margin_arm` touched three files in `company/pricing/` and
+#     `company/policy/`, and `ruff --select I001 --fix` on exactly those cleared two blocks that
+#     were ALREADY dirty before this change went near them -- `decision_policy.py` and
+#     `value_based_renewal.py`, one each. Nothing was minted: the per-file per-code census of
+#     the resulting tree, set-differenced against a `git archive HEAD` extraction, is two
+#     removals and NOT ONE addition. A drop caused sideways is still a drop, so the floor
+#     shrinks rather than being left stale -- which is the exact failure the 08-09 episode-3
+#     entry above wedged the publish gate on for hours, and the failure this commit's own first
+#     gate run reproduced in ninety seconds.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
-    "I001": 1362,
+    "I001": 1360,
     "F401": 273,
     "E402": 174,
     "F841": 128,
@@ -451,7 +461,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2360  # was 2378; -18 across four codes (see the 2026-08-26 entry)
+RUFF_BASELINE_TOTAL = 2358  # was 2360; -2 (I001 1362 -> 1360; see the entry above)
 
 
 # --------------------------------------------------------------------------
