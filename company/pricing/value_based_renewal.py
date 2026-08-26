@@ -769,6 +769,7 @@ from company.crm.customer_profitability import (  # noqa: E402
     UPLIFTABLE_TARIFF_TYPES,
 )
 from saas.cost_to_serve import cost_to_serve_for_period  # noqa: E402
+from saas.non_commodity import standing_charge_rate  # noqa: E402
 
 #: The rolling window every derivation below reads. IT IS THE SAME WINDOW
 #: `run_phase2b._company_eac_estimate` uses for the churn estimate's EAC -- half-open
@@ -815,6 +816,7 @@ def renewal_margin_uplift(
     settled_records: list[dict],
     is_domestic: bool,
     arm: str,
+    max_offered_rate_gbp_per_mwh: float | None = None,
 ) -> MarginArmUplift:
     """The £/MWh this renewal moves by, under ONE arm, from the supplier's own settled book.
 
@@ -829,6 +831,25 @@ def renewal_margin_uplift(
     `is_domestic` rather than a segment string: the door already carries that boolean and
     `cost_to_serve_for_period` accepts exactly two segments, so mapping here keeps ONE vocabulary
     for one fact instead of two that can disagree.
+
+    `max_offered_rate_gbp_per_mwh` IS THE CEILING THE SEARCH RUNS UNDER, and passing it is the
+    2026-08-26 half of the same finding. `decide_margin` says in its own body that "THE CEILING IS
+    APPLIED BEFORE THE SEARCH, not after it. Scoring a candidate the company may not lawfully offer
+    and then clamping the winner would report an expected value nobody can earn, and would make the
+    arm look better than the supplier it describes." This adapter passed no ceiling at all, so on
+    the ONE path a live run uses, the cap arrived afterwards as chain writer 4 -- exactly the
+    forbidden order, on 27 of the 66 renewals the first ten-year A/B priced.
+
+    Two things followed and both are R15 shapes rather than approximations. `ceiling_bound` is
+    computed as `max_offered_rate_gbp_per_mwh is not None and ...`, so on this path it was
+    STRUCTURALLY False: the flag that exists to tell a reader the cap decided the price could not
+    fire on the only caller where the cap ever decided one (fail-silent). And `believed_p_retain`
+    /`believed_expected_value_gbp` -- the beliefs the A/B's belief-vs-truth column scores -- were
+    the arm's beliefs at a rate the customer was never charged, while the world churned them at the
+    capped one. The two sides of that comparison were different prices.
+
+    `None` remains legitimate and means what it says: no ceiling binds this renewal. A non-domestic
+    or non-capped product genuinely has none, and the caller that knows which is the chain.
     """
     if arm == FLAT_RULES:
         return MarginArmUplift(0.0)
@@ -865,6 +886,20 @@ def renewal_margin_uplift(
             cost_to_serve_gbp_per_year=observed["cost_to_serve_gbp_per_year"],
             segment=segment,
             renewal_year=int(term_start[:4]),
+            # EVERYTHING THIS ACCOUNT'S OWN RECORDS ALREADY SAID, and until 2026-08-26 none of it
+            # was passed. `decide_margin` takes twenty company observables; this adapter handed it
+            # six and let the rest default, so the arm the ten-year A/B scored was not the arm
+            # `tools/couple_value_based_pricing.py` probes -- that tool passes the standing charge,
+            # the billed revenue and the lifetime, and its 263-account probe came back 6/263
+            # endpoint-bound where the chain's came back 36/66. Same module, same book, different
+            # information. The defaults are not neutral: an absent standing charge makes the arm
+            # OVER-PRICE (`expected_value_gbp`'s docstring measures it at 80.00 -> 60.00 GBP/MWh,
+            # because fixed revenue is only earned from a customer who stays, so forgetting it
+            # makes losing them look cheap).
+            annual_revenue_gbp=observed["annual_revenue_gbp"],
+            fixed_revenue_gbp_per_year=observed["fixed_revenue_gbp_per_year"],
+            expected_periods=observed["expected_periods"],
+            max_offered_rate_gbp_per_mwh=max_offered_rate_gbp_per_mwh,
         )
     except MarginDecisionUnavailable as exc:
         # "NO OFFER" IS AN ANSWER, AND A LIVE PRICING CHAIN MUST BE ABLE TO HEAR IT (2026-08-26).
@@ -899,6 +934,31 @@ def observed_account_state(
     Returns `None` where the account has nothing settled inside the window before this term. That
     is a STATE and not an error: an account with no observed history is one this arm has no basis
     to price, and the caller adds 0.0 rather than the arm guessing at it.
+
+    THE STANDING CHARGE IS SPLIT OUT OF THE RATE, AND UNTIL 2026-08-26 IT WAS NOT (this is the
+    mechanism behind `WORKER_FINDING_VALUE_ARM_CHOOSES_A_BOUND_NOT_A_CUSTOMER`). A settled record's
+    `revenue_gbp` INCLUDES the per-period standing charge -- `simulation/hedged_settlement.py`
+    adds `sc_per_period` into it explicitly -- so `revenue / volume` is an ALL-IN GBP/MWh. The
+    number it was being compared against is not: `base_rate_gbp_per_mwh + margin`, the offer
+    handed to the churn model, is a commodity unit rate with no standing charge in it at all.
+
+    The gap between those two is the standing charge expressed per MWh, and on a small domestic
+    account it is enormous: GBP 0.27/day is about GBP 99 a year, which over 1,779 kWh is GBP
+    55/MWh. So the arm was asking its churn model how a customer feels about moving from an all-in
+    GBP 176/MWh to a commodity GBP 130/MWh, and the model correctly answered "that is a price
+    CUT". Fifty-five pounds a megawatt-hour of phantom headroom, spent before the belief registered
+    any rise at all -- and the support bound is `current_rate x 1.831`, so the inflated rate
+    inflated the frontier by the same proportion on the way past.
+
+    Netting it off makes the comparison like-for-like. `annual_revenue_gbp` still carries the WHOLE
+    bill, because bad debt is taken on what the customer owes rather than on the commodity leg of
+    it, and `fixed_revenue_gbp_per_year` carries the standing charge into the EV where
+    `expected_value_gbp`'s own docstring says it belongs.
+
+    Policy and network costs are deliberately NOT netted off: on a pass-through tariff the customer
+    really is billed them per MWh, and the struck rate this is compared against carries them too
+    (`renewal_desk.strike_fixed_unit_rate` builds wholesale + capital + policy + network). Only the
+    standing charge is billed on a basis the offered rate has no term for.
     """
     from datetime import date as _date
 
@@ -922,17 +982,62 @@ def observed_account_state(
     if kwh <= 0.0:
         return None
 
+    fixed_revenue = _observed_standing_charge_gbp(window, segment)
+    tenure_years = max(0.0, (start - _date.fromisoformat(
+        min(r.get("settlement_date", term_start) for r in prior))).days / 365.25)
+
     return {
         "eac_kwh": kwh,
-        # THE REALISED RATE, not a quoted one: what the supplier actually billed over the window,
-        # revenue over volume. A stored headline rate stops describing the account the moment a
-        # discount, a cap clamp or a part-term moves it, and all three happen here.
-        "current_rate_gbp_per_mwh": revenue / (kwh / 1000.0),
-        "tenure_years": max(0.0, (start - _date.fromisoformat(
-            min(r.get("settlement_date", term_start) for r in prior))).days / 365.25),
+        # THE REALISED COMMODITY RATE, not a quoted one: what the supplier actually billed over
+        # the window per MWh, with the standing charge taken back out so it is the same KIND of
+        # number as the offer it will be compared against. A stored headline rate stops describing
+        # the account the moment a discount, a cap clamp or a part-term moves it, and all three
+        # happen here.
+        "current_rate_gbp_per_mwh": max(0.0, revenue - fixed_revenue) / (kwh / 1000.0),
+        # THE WHOLE BILL, because that is what a defaulting customer fails to pay.
+        "annual_revenue_gbp": revenue,
+        "fixed_revenue_gbp_per_year": fixed_revenue,
+        "tenure_years": tenure_years,
+        # HOW LONG THIS ACCOUNT IS EXPECTED TO LAST, from its own observed tenure. Until
+        # 2026-08-26 this adapter passed nothing, so every renewal in a live run was priced at
+        # `FALLBACK_LIFETIME_PERIODS` -- the deliberately pessimistic one-period value written for
+        # an account that has given NO evidence -- including accounts with years of settled
+        # history in the very records this function was handed. It is a uniform scalar on EV so it
+        # never moved the CHOICE; it made every published `believed_expected_value_gbp` on the
+        # chain path the value of one period of a relationship the company had already observed
+        # for four years. Capped at the CLV model's own horizon, as `couple_value_based_pricing`
+        # caps it, so a long-tenured account cannot buy an unbounded lifetime from its own past.
+        "expected_periods": min(MAX_EXPECTED_PERIODS, max(1.0, tenure_years)),
         "cost_to_serve_gbp_per_year": sum(
             cost_to_serve_for_period(
                 segment, float(r.get("revenue_gbp") or 0.0), UPLIFTABLE_COMMODITY,
                 periods=int(r.get("settlement_periods_folded", 1) or 1))
             for r in window),
     }
+
+
+#: The longest lifetime this arm will price on, in renewal periods. Not a belief of its own: it is
+#: the horizon `tools/couple_value_based_pricing.py` already applies to the same decision, named
+#: once here rather than restated at a second call site where the two could drift apart.
+MAX_EXPECTED_PERIODS: float = 6.0
+
+
+def _observed_standing_charge_gbp(window: list[dict], segment: str) -> float:
+    """What this account was billed in STANDING CHARGE over the window, from its own records.
+
+    THE RECORD IS AUTHORITATIVE AND THE TARIFF TABLE IS THE FALLBACK, which is the same order
+    `saas/bill_generator.py` reads them in and the order `saas/non_commodity.standing_charge_rate`
+    asks to be read in ("FALLBACK ONLY. The authoritative standing charge for a real bill is the
+    year-calibrated value on each settlement record"). A settlement generator that stamps
+    `standing_charge_gbp` on every period is describing what this customer actually paid; the flat
+    per-day rate is what the company would charge an account it has no record for.
+
+    THE FALLBACK COUNTS DAYS AND NOT RECORDS. There are 48 settlement periods in a day and the
+    standing charge is per DAY, so summing a per-day rate over records would overstate it 48-fold.
+    Distinct settlement dates is the observable that means "days this account was supplied".
+    """
+    stamped = sum(float(r.get("standing_charge_gbp") or 0.0) for r in window)
+    if stamped > 0.0:
+        return stamped
+    days = len({r.get("settlement_date") for r in window if r.get("settlement_date")})
+    return days * standing_charge_rate(UPLIFTABLE_COMMODITY, segment)

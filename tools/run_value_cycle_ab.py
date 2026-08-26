@@ -168,6 +168,18 @@ def arm_decision_shape(result: dict) -> dict:
         "endpoint_at_ceiling": sum(1 for e in log if e.get("endpoint_side") == "ceiling"),
         "endpoint_at_floor": sum(1 for e in log if e.get("endpoint_side") == "floor"),
         "withheld": sum(1 for e in log if e.get("withheld_reason")),
+        # WHICH bound ended the interval the answer sat at, read from the decision rather than
+        # reconstructed from the rate. Until 2026-08-26 neither could be counted here: the chain
+        # passed the arm no ceiling, so `ceiling_bound` was structurally False on the only path a
+        # run uses, and the cap arrived afterwards as a clamp instead. See `decided_by`.
+        "ceiling_bound": sum(1 for e in log if e.get("ceiling_bound")),
+        "extrapolation_bound": sum(1 for e in log if e.get("extrapolation_bound")),
+        # THIS SHOULD NOW BE ZERO FOR EVERY RENEWAL THE ARM PRICED, and it is a control rather
+        # than a statistic. The arm searches under the same cap writer 4 applies, so a priced
+        # renewal that the cap still clamped means the two have come apart -- either the ceiling
+        # stopped being threaded through or the two reads of it disagree. A nonzero count here is
+        # the finding, not a caveat: it says the published `believed_p_retain` is a belief about a
+        # price the customer was not charged.
         "clamped_by_the_price_cap": sum(
             1 for e in log if e.get("unit_rate_contracted") is not None
             and e["unit_rate_contracted"] < e["unit_rate_after"] - 1e-9),

@@ -21,6 +21,17 @@ THE FOUR THINGS THAT CAN GO WRONG HERE, and each has a mutation below rather tha
      supplier is not allowed to charge — a compliance breach produced by a pricing improvement.
   4. THE ARM FIRES WHEN NOBODY ASKED. It reads the run's ACTIVE POLICY rather than an argument,
      so a leaked scope would turn every ordinary run into the experiment.
+
+  5. THE ARM IS HANDED LESS THAN THE ARM NEEDS (added 2026-08-26). `decide_margin` takes twenty
+     company observables and this adapter used to pass six, letting the rest default. That is the
+     defect the first ten-year A/B measured without naming: 36 of 66 answers sat on a bound, 27
+     were clamped by the cap afterwards, and the median chosen margin was GBP 100.50/MWh against a
+     regulated EBIT allowance of GBP 3.73-8.54. Two defaults did it. The billed `revenue_gbp`
+     INCLUDES the standing charge, so `revenue / volume` is an ALL-IN rate being compared against
+     a commodity-only offer -- GBP 55/MWh of phantom headroom on a small domestic account, spent
+     before the churn model saw any rise. And no ceiling reached the search, so the cap landed
+     afterwards as a clamp, which `decide_margin` refuses in its own body and which made
+     `ceiling_bound` structurally unable to fire on the one path a live run uses.
 """
 from __future__ import annotations
 
@@ -316,3 +327,206 @@ def test_a_DECLINE_and_a_NEVER_LOOKED_are_not_the_same_row():
                           struck_unit_rate_gbp_per_mwh=251.45)
     assert ineligible.value_arm_entries == []
     assert len(declined.value_arm_entries) == 1 and declined.value_arm_entries[0]["declined"]
+
+
+# ── 5. the arm is handed what the arm needs ─────────────────────────────────────────────────
+#
+# Every test below is a MUTATION on `observed_account_state` / `renewal_margin_uplift`: revert the
+# 2026-08-26 change it names and the test reds. They are grouped here because they share one
+# subject -- the information the chain gives the decision -- and one finding,
+# WORKER_FINDING_VALUE_ARM_CHOOSES_A_BOUND_NOT_A_CUSTOMER.
+
+STANDING_CHARGE_GBP_PER_DAY = 0.27
+DAYS_PER_ROW = 10
+
+
+def _settled_with_standing_charge(account: str = "C1", *, year: int = 2020,
+                                  commodity_rate: float = 120.0,
+                                  annual_kwh: float = 1779.0) -> list[dict]:
+    """A year of a SMALL DOMESTIC account's book, billed the way the world really bills it.
+
+    `revenue_gbp` carries the commodity leg AND the standing charge, because that is what
+    `simulation/hedged_settlement.py` stamps -- `revenue_gbp = settled[...] + sc_per_period`. The
+    size is the point: 1,779 kWh a year at GBP 0.27/day means the standing charge is GBP 97 of a
+    GBP 311 bill, so an all-in GBP/MWh overstates the commodity rate by nearly half.
+    """
+    rows = []
+    kwh_per_row = annual_kwh / 36.0
+    for m in range(1, 13):
+        for d in (5, 15, 25):
+            rows.append({
+                "customer_id": account,
+                "commodity": "electricity",
+                "settlement_date": f"{year}-{m:02d}-{d:02d}",
+                "consumption_kwh": kwh_per_row,
+                "revenue_gbp": (kwh_per_row / 1000.0) * commodity_rate
+                + STANDING_CHARGE_GBP_PER_DAY * DAYS_PER_ROW,
+                "standing_charge_gbp": STANDING_CHARGE_GBP_PER_DAY * DAYS_PER_ROW,
+                "settlement_periods_folded": 48 * DAYS_PER_ROW,
+            })
+    return rows
+
+
+def test_the_arm_prices_against_the_COMMODITY_rate_not_the_ALL_IN_billed_one():
+    """MUTATION 5a — the rate the churn model is asked about must be the same KIND of number as
+    the offer it is compared against.
+
+    `base_rate_gbp_per_mwh + margin` is a commodity unit rate with no standing charge in it. If
+    `current_rate_gbp_per_mwh` is billed-revenue-over-volume it is not, and the difference is
+    read by the model as headroom the supplier does not have. Restore
+    `revenue / (kwh / 1000.0)` and this reds on the first assertion.
+    """
+    records = _settled_with_standing_charge()
+    observed = vbr.observed_account_state("C1", "2021-01-01", records, "resi")
+
+    all_in = (sum(r["revenue_gbp"] for r in records)
+              / (sum(r["consumption_kwh"] for r in records) / 1000.0))
+    assert observed["current_rate_gbp_per_mwh"] == pytest.approx(120.0, abs=0.01), (
+        "the arm's 'current rate' is not this account's commodity rate -- it is carrying the "
+        f"standing charge, which on this account is worth {all_in - 120.0:.0f} GBP/MWh of "
+        "headroom the supplier has not actually got"
+    )
+    # The NULL CONTROL, and it is what makes the assertion above a measurement rather than a
+    # restatement: on a fixture where the standing charge were negligible the two numbers would
+    # agree and this test could not tell the mechanisms apart.
+    assert all_in - observed["current_rate_gbp_per_mwh"] > 40.0, (
+        "this fixture cannot see the defect it is written for -- the all-in and commodity rates "
+        "are too close for the choice between them to move any decision"
+    )
+
+
+def test_forgetting_the_STANDING_CHARGE_makes_the_chain_arm_OVER_PRICE():
+    """MUTATION 5b — the CONSEQUENCE, priced. `expected_value_gbp`'s docstring already measures
+    this on the decision (80.00 -> 60.00 GBP/MWh, because fixed revenue is only earned from a
+    customer who STAYS, so forgetting it makes losing them look cheap). This asserts the chain
+    path actually gets the corrected answer and not the inflated one.
+
+    Both arms of the comparison are run here rather than asserted against a literal, so the test
+    measures the mechanism rather than today's number.
+    """
+    records = _settled_with_standing_charge()
+    observed = vbr.observed_account_state("C1", "2021-01-01", records, "resi")
+    base = 120.0 - TARGET_MARGIN_GBP_PER_MWH
+    common = dict(customer_id="C1", arm=vbr.VALUE_BASED, base_rate_gbp_per_mwh=base,
+                  eac_kwh=observed["eac_kwh"], tenure_years=observed["tenure_years"],
+                  cost_to_serve_gbp_per_year=observed["cost_to_serve_gbp_per_year"],
+                  segment="resi", renewal_year=2021)
+
+    all_in = (sum(r["revenue_gbp"] for r in records)
+              / (sum(r["consumption_kwh"] for r in records) / 1000.0))
+    forgetful = vbr.decide_margin(current_rate_gbp_per_mwh=all_in, **common)
+    corrected = vbr.decide_margin(
+        current_rate_gbp_per_mwh=observed["current_rate_gbp_per_mwh"],
+        annual_revenue_gbp=observed["annual_revenue_gbp"],
+        fixed_revenue_gbp_per_year=observed["fixed_revenue_gbp_per_year"],
+        expected_periods=observed["expected_periods"],
+        **common)
+
+    assert corrected.margin_gbp_per_mwh < forgetful.margin_gbp_per_mwh - 50.0, (
+        "the corrected arm is not pricing materially below the forgetful one, so either the "
+        "standing charge is not reaching the decision or it no longer moves it: measured "
+        f"{corrected.margin_gbp_per_mwh:.2f} against {forgetful.margin_gbp_per_mwh:.2f} GBP/MWh"
+    )
+
+
+def test_the_arm_prices_a_renewal_at_its_OBSERVED_lifetime_not_the_no_evidence_fallback():
+    """MUTATION 5c — `FALLBACK_LIFETIME_PERIODS` is written for an account that has given NO
+    evidence, and the chain applied it to every account including ones with years of settled
+    history in the records it was handed.
+
+    A uniform scalar on EV, so it never moved the CHOICE -- which is exactly why it survived: the
+    only thing it corrupted was every published `believed_expected_value_gbp`, and nothing
+    compared those to anything until the A/B did.
+    """
+    records = (_settled_with_standing_charge(year=2018)
+               + _settled_with_standing_charge(year=2019)
+               + _settled_with_standing_charge(year=2020))
+    observed = vbr.observed_account_state("C1", "2021-01-01", records, "resi")
+    assert observed["tenure_years"] > 2.9
+    assert observed["expected_periods"] > vbr.FALLBACK_LIFETIME_PERIODS, (
+        "a three-year account is still being priced at the one-period fallback meant for an "
+        "account with no history at all"
+    )
+    assert observed["expected_periods"] <= vbr.MAX_EXPECTED_PERIODS, (
+        "observed tenure is buying an unbounded lifetime -- the CLV horizon must still cap it")
+
+
+def test_the_STANDING_CHARGE_FALLBACK_counts_DAYS_and_not_SETTLEMENT_ROWS():
+    """MUTATION 5d — the fail-open that the fallback path invites. There are 48 settlement periods
+    in a day and the tariff rate is per DAY, so a fallback that sums a per-day rate over records
+    overstates the standing charge by up to 48x -- which would swamp the whole bill and send every
+    answer to the floor. Only reachable for a generator that stamps no `standing_charge_gbp`, which
+    is why it is tested rather than trusted.
+    """
+    records = _settled_with_standing_charge()
+    for row in records:
+        row.pop("standing_charge_gbp")
+    observed = vbr.observed_account_state("C1", "2021-01-01", records, "resi")
+
+    days = len({r["settlement_date"] for r in records})
+    assert observed["fixed_revenue_gbp_per_year"] == pytest.approx(
+        days * STANDING_CHARGE_GBP_PER_DAY, rel=1e-6), (
+        "the fallback standing charge is not days x the per-day rate -- if it is counting rows "
+        "or periods it is inflating this account's fixed revenue by up to 48x"
+    )
+    assert observed["fixed_revenue_gbp_per_year"] < observed["annual_revenue_gbp"], (
+        "the fallback standing charge exceeds the whole bill, which is the 48x shape")
+
+
+def test_the_CAP_is_INSIDE_the_search_and_never_a_CLAMP_on_a_renewal_the_arm_PRICED():
+    """MUTATION 5e — the ORDER, which `decide_margin` refuses in its own body: "Scoring a candidate
+    the company may not lawfully offer and then clamping the winner would report an expected value
+    nobody can earn, and would make the arm look better than the supplier it describes."
+
+    The invariant is exact rather than statistical. The arm's `lawful` filter keeps only margins
+    where `base + m <= cap`, and the chain's post-arm rate IS `base + m`, so a renewal the arm
+    priced can never afterwards be clamped. A `price_cap` component on a PRICED renewal therefore
+    means the ceiling stopped being threaded, or the arm's read of it and writer 4's have come
+    apart. Drop `max_offered_rate_gbp_per_mwh` from the adapter call and this reds three ways.
+    """
+    domestic = dict(is_domestic=True, tariff_type="fixed", term_start="2021-06-01",
+                    struck_unit_rate_gbp_per_mwh=120.0,
+                    settled_records=_settled_with_standing_charge())
+    with policy_scope(VALUE_ARM_POLICY):
+        result = _drive(**domestic)
+
+    priced = [e for e in result.value_arm_entries if not e.get("declined")]
+    assert priced, "the fixture no longer exercises a priced domestic renewal"
+    entry = priced[0]
+
+    assert not [c for c in result.components if c["cause"] == "price_cap"], (
+        "the cap clamped a rate the arm had already chosen -- it is landing AFTER the search "
+        "again, so the belief recorded on this renewal is a belief about a price the customer "
+        "was never charged"
+    )
+    assert entry["unit_rate_contracted"] == pytest.approx(entry["unit_rate_after"], abs=1e-6)
+    assert entry["ceiling_bound"] is True, (
+        "the cap decided this price and the record does not say so -- `ceiling_bound` is "
+        "computed as `max_offered_rate_gbp_per_mwh is not None and ...`, so an adapter that "
+        "passes no ceiling makes this flag STRUCTURALLY unable to fire (R15 fail-silent)"
+    )
+
+
+def test_the_arm_NEVER_ASKS_for_a_rate_above_the_cap_it_was_given():
+    """The population-level form of the invariant above, across the shapes a domestic renewal
+    takes. Either the arm prices under the cap, or it declines -- there is no third outcome in
+    which it asks for an unlawful rate and is rescued by writer 4.
+    """
+    from datetime import date as _date
+
+    from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
+
+    for struck in (80.0, 120.0, 160.0, 185.0):
+        with policy_scope(VALUE_ARM_POLICY):
+            result = _drive(is_domestic=True, tariff_type="fixed", term_start="2021-06-01",
+                            struck_unit_rate_gbp_per_mwh=struck,
+                            settled_records=_settled_with_standing_charge(
+                                commodity_rate=struck))
+        cap = get_cap_unit_rate_for_date("electricity", _date(2021, 6, 1))
+        for entry in result.value_arm_entries:
+            if entry.get("declined"):
+                continue
+            assert entry["unit_rate_after"] <= cap + 1e-6, (
+                f"struck at {struck}: the arm asked for {entry['unit_rate_after']:.2f} GBP/MWh "
+                f"against a cap of {cap:.2f} -- an unlawful offer that only writer 4 stops"
+            )

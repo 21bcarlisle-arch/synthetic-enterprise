@@ -293,6 +293,22 @@ def decide_renewal_rate(
     # `policy_scope` disagree -- so the A/B cannot become a chimera without the run dying first.
     # On the control arm `renewal_margin_uplift` returns 0.0 before computing anything, so this
     # block is a single comparison and a no-op, which is what makes the control byte-identical.
+    # THE CEILING THE ARM SEARCHES UNDER IS THE ONE WRITER 4 IS ABOUT TO APPLY, read here rather
+    # than left to land afterwards (2026-08-26). Inheriting writer 4's ceiling was always the
+    # design -- "the cap clamps what the uplift added" -- but inheriting it as a POST-HOC clamp is
+    # not the same as deciding under it, and `decide_margin` refuses the distinction explicitly:
+    # scoring a candidate the company may not lawfully offer and then clamping the winner reports
+    # an expected value nobody can earn. On the first ten-year A/B that happened to 27 of 66
+    # renewals, and `ceiling_bound` -- the flag whose entire job is to tell a reader the cap chose
+    # the price -- could not fire, because the arm was never told there was a cap.
+    #
+    # SAME SOURCE, SAME KEY, SAME APPLICABILITY TEST as writer 4 below, deliberately: two readings
+    # of one ceiling inside one chain is the shape where a rate gets decided under a bound it is
+    # then clamped by a different one.
+    cap_ceiling = None
+    if is_domestic and tariff_type in CAPPED_TARIFF_TYPES:
+        cap_ceiling = get_cap_unit_rate_for_date(commodity, date.fromisoformat(term_start[:10]))
+
     arm_uplift = renewal_margin_uplift(
         account_id=billing_account,
         commodity=commodity,
@@ -303,6 +319,7 @@ def decide_renewal_rate(
         settled_records=settled_records,
         is_domestic=is_domestic,
         arm=active_policy().renewal_margin_arm,
+        max_offered_rate_gbp_per_mwh=cap_ceiling,
     )
     if arm_uplift.declined:
         # A DECLINE IS A DECISION AND IT GOES IN THE LOG. The rate is untouched -- a supplier
@@ -338,6 +355,13 @@ def decide_renewal_rate(
             "believed_expected_value_gbp": round(decision.expected_value_gbp, 2),
             "endpoint_bound": decision.endpoint_bound,
             "endpoint_side": decision.endpoint_side,
+            # WHICH BOUND ACTUALLY DECIDED, carried out of the decision rather than inferred from
+            # the rate afterwards. `endpoint_side` says the answer sat at an end of the searchable
+            # interval; these two say WHY that interval ended there -- the lawful cap, or the
+            # frontier of what the churn model has evidence for. A reader given only the first
+            # cannot tell a supplier that obeyed the price cap from one whose belief ran out.
+            "ceiling_bound": decision.ceiling_bound,
+            "extrapolation_bound": decision.extrapolation_bound,
             "withheld_reason": decision.withheld_reason,
             "unit_rate_original": round(rate_original or 0.0, 4),
             "unit_rate_before": round(rate_before, 4),
@@ -358,8 +382,11 @@ def decide_renewal_rate(
     # term start, not the term-start calendar year: a term starting 15 Feb 2022
     # was struck under the Oct-2021 cap that ran to 31 Mar 2022, not under a
     # full-year 2022 blend that averages in the +54% April step it predates.
-    if unit_rate is not None and is_domestic and tariff_type in CAPPED_TARIFF_TYPES:
-        cap = get_cap_unit_rate_for_date(commodity, date.fromisoformat(term_start[:10]))
+    if unit_rate is not None:
+        # THE SAME OBJECT the arm above searched under, not a second lookup of the same thing.
+        # Two reads of one ceiling inside one chain is how a rate comes to be decided under one
+        # bound and clamped by another; `cap_ceiling` already carries the applicability test.
+        cap = cap_ceiling
         if cap is not None:
             if cap < unit_rate:
                 # Nothing logged the cap before, so a capped renewal's published

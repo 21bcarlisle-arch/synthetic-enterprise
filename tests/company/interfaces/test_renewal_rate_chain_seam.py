@@ -469,7 +469,12 @@ def test_the_cap_is_the_last_writer_and_the_order_is_load_bearing():
     # expression is identical; only the order moves. A supplier that adds £5/MWh
     # to a domestic fixed renewal AFTER clamping it is charging above the cap.
     start = src.index("    # WRITER 3 —")
-    end = src.index("    # WRITER 4 —")
+    # ENDS AT WRITER 3b, NOT AT WRITER 4 (retargeted 2026-08-26, when 3b gained the ceiling it
+    # searches under). The mutation this control describes is "lift writer 3 out and run it after
+    # the clamp"; bounding it at writer 4 used to mean the same thing and now sweeps 3b along with
+    # it, which moves three writers instead of one and takes `cap_ceiling`'s definition past its
+    # own use. A mutant that dies of `UnboundLocalError` proves nothing about ORDER.
+    end = src.index("    # WRITER 3b —")
     uplift_block = src[start:end]
     assert "pnl_uplift" in uplift_block, "block bounds moved — this is no longer the defect"
     close = "    # Close the chain."
@@ -510,9 +515,17 @@ def test_the_cap_binds_domestic_fixed_only():
 
 
 def test_mutation_dropping_the_cap_eligibility_rule_is_caught():
+    """RETARGETED 2026-08-26, and the control got STRONGER rather than moved.
+
+    The eligibility rule used to live on writer 4's own `if`. It now lives one block earlier, on
+    `cap_ceiling`, because writer 3b — the value arm — has to SEARCH under the same ceiling writer
+    4 applies rather than be clamped by it afterwards. So there is one read of the rule where
+    there were nearly two, and dropping it now breaks both the arm's ceiling and the clamp
+    together, which is exactly the coupling that makes a single read worth having.
+    """
     mutated = _impl_source().replace(
-        "    if unit_rate is not None and is_domestic and tariff_type in CAPPED_TARIFF_TYPES:",
-        "    if unit_rate is not None:  # <-- the defect",
+        "    if is_domestic and tariff_type in CAPPED_TARIFF_TYPES:",
+        "    if True:  # <-- the defect",
         1,
     )
     assert "the defect" in mutated, "the mutation did not take"
