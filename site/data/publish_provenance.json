@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-08-26T11:44:28Z",
+    "checked_at": "2026-08-26T12:18:30Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_committed_store_credits_a_falsifier_the_repository_does_not_have",
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_every_declared_honest_absence_is_still_absent_and_still_silenced",
@@ -12,23 +12,23 @@
       "FAILED tests/background/test_seat_guard_daemons.py::TestStructuralLock::test_every_main_entrypoint_is_guarded"
     ],
     "nonblocking_reds_total": 29,
-    "open_findings": 32
+    "open_findings": 33
   },
   "last_verified": {
-    "generated_at": "2026-08-26T12:11:49Z",
-    "git_commit": "8afa34ceb",
-    "run_id": "run_output_8afa34ceb_20260826T114529Z.json",
-    "verified_at": "2026-08-26T12:11:49Z"
+    "generated_at": "2026-08-26T12:45:29Z",
+    "git_commit": "96bddcbf6",
+    "run_id": "run_output_96bddcbf6_20260826T121930Z.json",
+    "verified_at": "2026-08-26T12:45:29Z"
   },
   "paused_reason": null,
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-26T12:11:49Z",
-    "git_commit": "8afa34ceb",
-    "run_id": "run_output_8afa34ceb_20260826T114529Z.json",
-    "verified_at": "2026-08-26T12:11:49Z"
+    "generated_at": "2026-08-26T12:45:29Z",
+    "git_commit": "96bddcbf6",
+    "run_id": "run_output_96bddcbf6_20260826T121930Z.json",
+    "verified_at": "2026-08-26T12:45:29Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-26T12:11:49Z"
+  "written_at": "2026-08-26T12:45:29Z"
 }
