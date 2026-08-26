@@ -25,7 +25,13 @@ from pathlib import Path
 
 import pytest
 
-from background import gap_ledger_reconciler, notification_digest, sim_runner, supervisor
+from background import (
+    gap_ledger_reconciler,
+    notification_digest,
+    process_run_complete,
+    sim_runner,
+    supervisor,
+)
 from tests.background import env_constant_sync as _env_sync
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -212,6 +218,33 @@ def _isolate_publish_gate_wedge_state(tmp_path, monkeypatch):
     monkeypatch.setattr(
         supervisor, "SIM_RUNNER_HOLD_FLAG",
         tmp_path / ".sim_runner_hold_absent", raising=False,
+    )
+    # THE BLOCKING-TEST RECORD (2026-08-26) -- the TENTH instance, and the one that held the
+    # operational-layer signal RED for five consecutive hourly checks. `record_publish_gate_
+    # failure` re-derives the wedge suspects on EVERY failure (H42, "evidence before suspicion"),
+    # and that derivation reads the REAL docs/observability/.last_gate_blocking_tests.json:
+    # last_blocking_tests -> blocking_test_files -> first_party_imports -> blame_commits, which
+    # SHELLS `git log` once per suspect set. Two tests in test_background_worker.py
+    # (test_processing_order_is_deterministic_sorted, test_no_published_run_yet_retires_nothing)
+    # drive the rc=1 failure path with `subprocess.run` patched to COUNT calls -- and
+    # `background_worker.subprocess` is the stdlib module object, so that patch is global and the
+    # blame `git log` lands in the same list as the publisher invocations. Observed 2026-08-26
+    # 07:07Z: `assert 6 == 3`, the three extra entries all `site/test_harness_delivery_record.py`,
+    # the file the live record happened to name at that moment.
+    #
+    # THE WEATHER AS ITS SUBJECT, exactly like the stall tracker and the digest above: the record
+    # is written by the last hook-chain refusal and expires after GATE_BLOCKING_TESTS_MAX_AGE_
+    # SECONDS, so those two tests are green on a checkout whose last gate was clean, red for a few
+    # hours after any refusal, and green again once it staled -- with nothing about their own
+    # subject having changed. That is the whole of the RUNG-1b persistent red being drawn here.
+    #
+    # An ABSENT tmp path reads as ([], None) -- "this alarm does not know" -- which yields {} from
+    # wedge_suspects, so no blame, no git, and no live docs/staging/ scan from linked_findings
+    # either (an empty trail returns before it globs). The tests that are ABOUT the record write it
+    # in their own body or pass `path=`, both of which win over this fixture.
+    monkeypatch.setattr(
+        process_run_complete, "GATE_BLOCKING_TESTS_FILE",
+        tmp_path / ".last_gate_blocking_tests_absent.json", raising=False,
     )
     # RUNG 1d PRODUCER STARVATION (2026-08-17) -- the NINTH instance, and the first that leaks the
     # other way: a test WRITING live state that a priority-zero rung READS. `sim_runner.

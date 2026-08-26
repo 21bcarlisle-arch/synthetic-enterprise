@@ -309,3 +309,37 @@ def test_the_sweep_leaves_paths_outside_the_checkout_alone():
     # must survive, which is what makes a redirected constant still meaningful to read.
     assert sim_runner.PRODUCER_STATE_FILE.name == ".sim_producer_state.json"
     assert isinstance(sim_runner.LOG_FILE, Path)
+
+
+def test_the_blocking_test_record_is_pinned_away_from_the_live_checkout():
+    """TENTH INSTANCE of this file's class (2026-08-26), asserted here rather than left to the
+    two tests it red-ed.
+
+    `process_run_complete.record_publish_gate_failure` re-derives its suspect set on every
+    failure, and that derivation starts at the REAL `.last_gate_blocking_tests.json` and ends in
+    `blame_commits`, which SHELLS `git log`. Any test in this directory that drives a publish
+    failure with `subprocess.run` patched therefore counts a call it never made -- observed as
+    `assert 6 == 3` in test_background_worker.py, which held the RUNG-1b operational-layer signal
+    RED for five consecutive hourly checks.
+
+    Two assertions, and the second is the one that matters: the path is pinned (fails
+    deterministically the moment the conftest pin is dropped) AND the derivation it feeds is
+    genuinely inert, so nothing downstream reaches git or the live staging directory."""
+    from pathlib import Path
+
+    from background import process_run_complete as prc
+
+    repo_root = Path(__file__).resolve().parents[2]
+    with pytest.raises(ValueError):
+        # relative_to raises == the pinned path is OUTSIDE the checkout.
+        Path(prc.GATE_BLOCKING_TESTS_FILE).relative_to(repo_root)
+
+    blocking, git_hash = prc.last_blocking_tests()
+    assert (blocking, git_hash) == ([], None), (
+        "the blocking-test record is readable under this directory's fixture -- a live red is "
+        "leaking into every test here that drives the publish-failure path"
+    )
+    assert prc.wedge_suspects(blocking) == {}, (
+        "an empty blocking record must derive NO suspects: a non-empty answer here means "
+        "blame_commits will shell `git log` inside tests that have patched subprocess.run"
+    )
