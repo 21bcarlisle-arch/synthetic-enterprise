@@ -82,6 +82,37 @@ def test_recovery_clears_the_pause_and_advances(tmp_path):
     assert state["showing_run"]["run_id"] == RUN_B
 
 
+def test_recovery_clears_the_REASON_and_not_only_the_flag(tmp_path):
+    """The test above pauses with NO reason, so it runs at the one value where clearing and not
+    clearing `paused_reason` are indistinguishable -- and for two days they were.
+
+    Observed 2026-08-26 on the live endpoint, not inferred: `poesys.net/data/publish_
+    provenance.json` served `paused_since: null`, `verification_state: "verified"` and
+    `paused_reason: "scoped publish-path suite red at git=4683e68f7; blocking tests: ..."` in the
+    same object. `4683e68f7` is 2026-08-24. Every green publish since had cleared the flag and
+    left the sentence, so the public file asserted red and green simultaneously.
+
+    MUTATION (must fire): drop `state["paused_reason"] = None` from `record_verified`.
+    """
+    p = _p(tmp_path)
+    prov.record_verified(run_id=RUN_A, git_commit=SHA_A, path=p, now=_at(0))
+    prov.record_paused(reason="scoped publish-path suite red at git=deadbeef1",
+                       path=p, now=_at(5))
+    paused = prov.read(p)
+    # NULL CONTROL: the reason has to be THERE first, or a green assertion below proves only that
+    # nothing ever wrote it.
+    assert "deadbeef1" in str(paused["paused_reason"])
+
+    state = prov.record_verified(run_id=RUN_B, git_commit=SHA_B, path=p, now=_at(90))
+    assert not state.get("paused_reason"), (
+        "the pause cleared but its explanation did not: a reader fetching this file is told the "
+        "gate is verified and, in the same object, why it is red -- {!r}".format(
+            state.get("paused_reason"))
+    )
+    # And it must survive the round trip to disk, which is what the endpoint actually serves.
+    assert not json.loads(p.read_text())["paused_reason"]
+
+
 def test_an_annotation_can_never_pause_or_unpause_the_site(tmp_path):
     """A noisy finding count must not become an outage, and it must not be able to launder a
     paused site into a verified-looking one either. The annotation is a different KIND of

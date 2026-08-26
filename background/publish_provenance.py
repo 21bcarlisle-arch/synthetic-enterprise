@@ -289,6 +289,15 @@ def record_verified(*, run_id, git_commit, generated_at=None, path: Path = None,
     state["showing_run"] = stamp
     state["last_verified"] = stamp
     state["paused_since"] = None
+    # AND THE REASON GOES WITH IT (2026-08-26). Clearing `paused_since` alone left the sentence
+    # that EXPLAINED the pause sitting on the public endpoint after the pause was over. Observed:
+    # `poesys.net/data/publish_provenance.json` served `paused_reason = "scoped publish-path suite
+    # red at git=4683e68f7; blocking tests: ..."` -- a 2026-08-24 red -- alongside
+    # `paused_since: null` and `verification_state: verified`, through every green publish for two
+    # days. A reader fetching that file was told the gate was red and green in the same object.
+    # R11's no-orphan-transitions clause read the other way round: the release of a hold must
+    # clear everything the hold asserted, not just the flag the code happens to check.
+    state["paused_reason"] = None
     return _write(state, path, now)
 
 
