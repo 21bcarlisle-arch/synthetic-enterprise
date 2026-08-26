@@ -140,10 +140,13 @@ NAMED_GAPS = [
     "no half hour is dispatched with no gas running -- but that floor is the year's single lowest "
     "reading (303 MW in 2024, against a 1st percentile of 1,720 MW), deliberately the most "
     "conservative number available, so quiet half hours still run less gas than GB actually ran",
-    "the floor corrects the LEVEL of the clean end and not the TIMING of it: correlation against "
-    "the published series moved by less than 0.004 in every year and is still 0.73 in 2024, so "
-    "this shape knows how clean a quiet half hour is far better than it knows which half hours "
-    "were the quiet ones",
+    "the shape still knows how clean a quiet half hour is far better than it knows WHICH half "
+    "hours were the quiet ones: correlation against the published series is 0.75 in 2024 and "
+    "falls year by year (0.88 in 2019). Measuring the fleet GB actually ran, rather than "
+    "assuming a flat one, is the first correction that moved this axis at all -- it improved "
+    "correlation in all six measured years, where the thermal floor moved it by less than 0.004 "
+    "in every one -- but 0.75 is still an instrument that would point a customer at some of the "
+    "wrong half hours",
     "interconnector imports are counted at NESO's own published per-cable factors, but two of "
     "GB's nine cables postdate that table -- North Sea Link (Norway) and Viking Link (Denmark) -- "
     "so their flow is still dispatched as GB gas and reads dirtier than it was; that is 34% of "
@@ -151,7 +154,12 @@ NAMED_GAPS = [
     "coal is dispatched from the fleet's demonstrated annual maximum, but its place in merit is "
     "fixed above the CCGT band rather than recomputed from the gas/coal spread, so the 2021-22 "
     "gas spike understates coal",
-    "the must-run floor is a constant 8 GW; nuclear outages and hydro seasonality are not modelled",
+    "the must-run block is no longer a constant 8 GW -- nuclear and run-of-river hydro now come "
+    "from Elexon's published half-hourly outturn (99.97% of half hours; 544 MW to 9,831 MW "
+    "against the 5,600 MW this model used to assume) -- but the BIOMASS half of that block is "
+    "still a flat 2,400 MW. Biomass carries 120 gCO2/kWh on NESO's own table, so its metered "
+    "output is an emissions term and may not cross the wall; it is modelled, it is wrong (2024's "
+    "outturn averages nearer 2.7 GW and swings 1.0-3.0 GW), and it is the next thing to build",
     "national only -- no regional series is offered, modelled or otherwise",
     "outturn, never forecast: this grades what happened and must not judge shifting advice",
     "no loss correction is applied here and none must be applied downstream either",
@@ -187,15 +195,22 @@ NAMED_GAPS = [
 #: lets the thermal stack reach exactly zero, in 16.1% of 2024's half hours.
 ERROR_DIRECTION = (
     "The RANGE is overstated, and that is the sentence to carry: this shape's p95/p5 spread runs "
-    "about 1.36x the published series', so any benefit computed from moving load between quiet "
-    "and busy half hours is an UPPER BOUND on the real one. THAT 1.36x IS A BLEND OF TWO AXES "
+    "about 1.38x the published series', so any benefit computed from moving load between quiet "
+    "and busy half hours is an UPPER BOUND on the real one. THAT 1.38x IS A BLEND OF TWO AXES "
     "THAT BEHAVE OPPOSITELY, and the one a household can act on is the worse of them: split "
-    "day-by-day (2026-08-25), this shape's BETWEEN-day swing matches the published series to "
-    "within 7% in every year 2019-2024 (0.93-1.00x, mean 0.96), while its WITHIN-day swing is "
-    "too large in every one of those years (1.41-1.58x, mean 1.48). A customer can move the "
+    "day-by-day, this shape's BETWEEN-day swing matches the published series to "
+    "within 8% in every year 2019-2024 (0.92-1.00x, mean 0.97), while its WITHIN-day swing is "
+    "too large in every one of those years (1.35-1.54x, mean 1.45). A customer can move the "
     "washing from 6pm to 2am; they cannot move it to a windier Tuesday in March -- so the whole "
     "of this model's exaggeration sits on the only axis a time-shifting recommendation acts on, "
-    "and the annual figure UNDERSTATES the correction such a claim needs by about a tenth. What "
+    "and the annual figure UNDERSTATES the correction such a claim needs by about a tenth. "
+    "MEASURING THE MUST-RUN FLEET (2026-08-26) IMPROVED THAT AXIS AND WORSENED THE HEADLINE, "
+    "and both halves are published because reporting only the first is how a correction becomes "
+    "a claim: within-day overstatement fell from 1.48x to 1.45x (and from 1.44x to 1.35x in "
+    "2024), max/min overstatement fell from 1.04x to 1.01x, correlation and mean absolute error "
+    "improved in ALL SIX measured years -- while p95/p5 overstatement rose from 1.36x to 1.38x, "
+    "worse in four years of six. p95/p5 and max/min are two statistics under one word 'spread' "
+    "and they moved in opposite directions here, so neither is quoted alone. What "
     "is no longer true, and was "
     "until the thermal floor was measured on 2026-08-25, is that the clean END is uniformly "
     "optimistic: flooring the stack at the gas fleet's demonstrated annual minimum moved the "
@@ -384,7 +399,8 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
           extra_dates: set[str] | None = None,
           import_coverage: dict | None = None,
           coal_capacity_by_year: dict | None = None,
-          thermal_floor_by_year: dict | None = None) -> dict:
+          thermal_floor_by_year: dict | None = None,
+          zero_carbon_must_run_coverage: dict | None = None) -> dict:
     if not shape:
         raise ShapeUnavailable("no shape to publish")
     last_date = max(key[0] for key in shape)
@@ -473,6 +489,34 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
                 for y, r in sorted(thermal_floor_by_year.items())
             }
         ),
+        # HOW MUCH OF THE SERIES ACTUALLY GOT THE CORRECTION, because the shape cannot show it.
+        # A half hour served from the flat 5,600 MW block and one served from a MEASURED 5,600 MW
+        # produce an identical number, so without this count the nuclear-and-hydro correction
+        # could quietly stop applying to most of the series and nothing downstream would read
+        # differently (R15 FAIL-SILENT). `negative_half_hours` is the one to watch: it is the
+        # second of the two conditions that let this series cross the wall at half-hourly grain
+        # at all, and the day it stops being zero the crossing has to be re-argued.
+        "zero_carbon_must_run_coverage": (
+            None if zero_carbon_must_run_coverage is None else {
+                "usable_fraction": round(
+                    float(zero_carbon_must_run_coverage["usable_fraction"]), 4),
+                "usable_half_hours": int(zero_carbon_must_run_coverage["usable_half_hours"]),
+                "negative_half_hours": int(
+                    zero_carbon_must_run_coverage["negative_half_hours"]),
+                "min_mw": round(float(zero_carbon_must_run_coverage["min_mw"])),
+                "mean_mw": round(float(zero_carbon_must_run_coverage["mean_mw"])),
+                "max_mw": round(float(zero_carbon_must_run_coverage["max_mw"])),
+                "what_it_means": (
+                    "The share of half hours whose NUCLEAR+NPSHYD outturn Elexon published, so "
+                    "the must-run block is the fleet GB actually ran rather than a flat 5,600 "
+                    "MW. The remainder falls back to that flat block -- the behaviour the whole "
+                    "series had before 2026-08-26 -- and never to zero. The min/mean/max are "
+                    "why this mattered: a block published as constant moves between 544 MW and "
+                    "9,831 MW, and every megawatt of that was made up by the gas stack on a "
+                    "schedule of the model's own invention."
+                ),
+            }
+        ),
         "records_window_days": window_days,
         "records_cover": {
             "from": min((r["date"] for r in records), default=first_kept),
@@ -511,27 +555,32 @@ def fuel_mix() -> tuple[dict, dict, dict, dict]:
 
     series = fuel.to_settlement_periods(fuel.load_cached())
     floors = fuel.thermal_floor_by_year(fuel.thermal_by_period(fuel.load_cached_thermal()))
+    must_run_rows = fuel.load_cached_zero_carbon_must_run()
     return (
         fuel.imports_by_period(series),
         fuel.coal_capacity_by_year(series),
         fuel.import_coverage(series),
         floors,
+        fuel.zero_carbon_must_run_by_period(must_run_rows),
+        fuel.zero_carbon_must_run_coverage(must_run_rows),
     )
 
 
 def generate(out_path: Path | None = None) -> dict:
     demand = aggregate_demand(json.loads(DEMAND_CACHE.read_text(encoding="utf-8")))
     renewables = aggregate_renewable_generation(json.loads(AGWS_CACHE.read_text(encoding="utf-8")))
-    imports, coal_capacity, coverage, thermal_floors = fuel_mix()
+    imports, coal_capacity, coverage, thermal_floors, must_run, must_run_coverage = fuel_mix()
     shape = build_shape(
         demand,
         renewables,
         imports_by_period=imports,
         coal_capacity_by_year=coal_capacity,
         thermal_floor_by_year={y: r["floor_mw"] for y, r in thermal_floors.items()},
+        zero_carbon_must_run_by_period=must_run,
     )
     data = build(shape, demand, extra_dates=dates_with_reads(), import_coverage=coverage,
-                 coal_capacity_by_year=coal_capacity, thermal_floor_by_year=thermal_floors)
+                 coal_capacity_by_year=coal_capacity, thermal_floor_by_year=thermal_floors,
+                 zero_carbon_must_run_coverage=must_run_coverage)
     dest = OUT_PATH if out_path is None else out_path
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(data, indent=1) + "\n", encoding="utf-8")

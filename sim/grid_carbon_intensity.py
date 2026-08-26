@@ -110,24 +110,24 @@ and are kept here, rewritten, because what replaced them is a smaller gap and no
     correction on top is item 2 of the disqualification battery.
 
 WHICH WAY THE ERRORS POINT, and this is the sentence to read if you read only one. THE RANGE IS
-STILL OVERSTATED — p95/p5 runs about 1.36x the published series' — so ANY BENEFIT COMPUTED FROM
+STILL OVERSTATED — p95/p5 runs about 1.38x the published series' — so ANY BENEFIT COMPUTED FROM
 MOVING LOAD BETWEEN QUIET AND BUSY HALF HOURS IS AN UPPER BOUND on the real one. That is the
 error direction that matters here, because it flatters the mission's own thesis, and it must be
 carried on the face of anything published from this rather than left in a module nobody opens.
 
-AND THAT 1.36x IS A BLEND OF TWO AXES THAT POINT OPPOSITE WAYS (2026-08-25). Split day by day by
+AND THAT 1.38x IS A BLEND OF TWO AXES THAT POINT OPPOSITE WAYS. Split day by day by
 `neso_carbon_intensity.compare_shapes`, this shape's BETWEEN-day swing matches the published
-series to within 7% in every year 2019-2024 (0.93-1.00x, mean 0.96) and its WITHIN-day swing is
-too wide in every one of them (1.41-1.58x, mean 1.48). The aggregate figure averages a term this
+series to within 8% in every year 2019-2024 (0.92-1.00x, mean 0.97) and its WITHIN-day swing is
+too wide in every one of them (1.35-1.54x, mean 1.45). The aggregate figure averages a term this
 model gets RIGHT with a term it gets WRONG — and the wrong one is the only axis a customer can
 act on, because a household can move the washing from 6pm to 2am and cannot move it to a windier
 Tuesday in March. So the annual correction UNDERSTATES what an intra-day shifting claim needs.
 Nothing here was tuned to that: the split is a measurement and R12 forbids moving a constant to
 change it.
 
-WHAT THAT RE-DIAGNOSED, and it is the reason the level did not move. The thermal floor closed a
-LEVEL error at the clean end and left CORRELATION untouched at 0.726 in 2024 — the model knows
-how clean a quiet half hour is and still does not know WHICH half hours were the quiet ones. The
+WHAT THAT RE-DIAGNOSED, and it is what the 2026-08-26 build was aimed at. The thermal floor closed
+a LEVEL error at the clean end and left CORRELATION untouched at 0.726 in 2024 — the model knew
+how clean a quiet half hour is and still did not know WHICH half hours were the quiet ones. The
 decomposition says where that lives: the day MEANS track well (day-mean correlation 0.761 in
 2024, 0.931 in 2019), the within-day ordering does not. Measured against the candidates in the
 gap list above, the error correlates with RENEWABLE SHARE (-0.49 in 2024) far more than with
@@ -235,6 +235,70 @@ wrong half hours, and no amount of getting the LEVEL of the clean end right fixe
 the thing FAILS LIKE REALITY, and this fails in a different place than it did this morning. LAW
 A: the plan is a diagnostic, and where a date and a test conflict the date is wrong.
 
+WHAT THE MEASURED MUST-RUN FLEET BOUGHT (2026-08-26, fourth build). The must-run block had been a
+FLAT 8,000 MW since this module was written — 2,400 MW of biomass and 5,600 MW of nuclear and
+hydro — and GB's is not flat and never was. Elexon publishes NUCLEAR and NPSHYD half-hourly in the
+same FUELHH dataset the coal and cable series already come from, and over 2016-2025 that block
+runs between 544 MW and 9,831 MW, mean 6,013 MW. Every megawatt of that movement was previously
+made up by the gas stack on a schedule of this model's own invention, which is a TIMING error by
+construction — and timing is precisely the axis the thermal floor left untouched.
+
+WHY THIS MAY CROSS THE WALL AT HALF-HOURLY GRAIN when gas and coal may not, because that is the
+question a reader should ask and the answer has to be checkable rather than argued. Two
+conditions, both tested in `tests/sim/test_elexon_fuel_outturn.py`:
+
+  1. NESO'S OWN PUBLISHED FACTOR for both fuels is EXACTLY ZERO, so no part of the answer crosses.
+     What is handed over changes the RESIDUAL the merit order serves, never the merit order's
+     verdict; every gram this module returns still comes from a dispatch it decided itself. That
+     is the whole difference from half-hourly gas, which IS NESO's arithmetic.
+  2. THE PUBLISHED OUTTURN IS NEVER NEGATIVE, which is what separates an availability from a
+     dispatch decision — and this is the load-bearing one. NESO publishes PUMPED STORAGE at zero
+     too, and pumped storage is pure arbitrage wearing a zero factor. It gives itself away by
+     going negative when it pumps. Nuclear and run-of-river hydro cannot. Measured over the whole
+     published series: 0 negative half hours in 175,212.
+
+MEASURED BEFORE AND AFTER IN ONE PROCESS against identical caches, with the handed-over series as
+the only variable — and the refactor that made room for it was first proven to change no number
+at all when the argument is defaulted (max absolute difference 0.0 over 20,000 random half hours):
+
+    year   corr: was -> now   MAE: was -> now   within-day: was -> now   p95/p5 over: was -> now
+    2019      0.863 -> 0.883    0.116 -> 0.112       1.414 -> 1.478           1.28 -> 1.39
+    2020      0.849 -> 0.869    0.143 -> 0.133       1.437 -> 1.457           1.15 -> 1.16
+    2021      0.883 -> 0.909    0.126 -> 0.105       1.454 -> 1.403           1.30 -> 1.26
+    2022      0.843 -> 0.871    0.169 -> 0.149       1.584 -> 1.538           1.15 -> 1.13
+    2023      0.793 -> 0.795    0.212 -> 0.204       1.573 -> 1.469           1.55 -> 1.57
+    2024      0.726 -> 0.746    0.282 -> 0.268       1.440 -> 1.352           1.74 -> 1.75
+
+  * CORRELATION IMPROVED IN ALL SIX YEARS, which no previous correction here has done. The
+    thermal floor moved it by less than 0.004 in every year; coal and the cables moved it by
+    0.01-0.05 but LOST 2021. This is the first thing built for the timing axis that reached it.
+  * MEAN ABSOLUTE ERROR IMPROVED IN ALL SIX YEARS as well, and within-day overstatement — the
+    only axis a household can act on — fell from a mean of 1.484x to 1.450x, and from 1.440x to
+    1.352x in 2024, the year that matters most and scores worst.
+  * IT IS NOT A CLEAN WIN AND THE HEADLINE WENT THE WRONG WAY. p95/p5 overstatement ROSE from
+    1.362x to 1.378x and is worse in four years of six. Max/min overstatement fell 1.044x ->
+    1.007x over the same runs. Those are two statistics under the one word "spread" and they
+    moved in OPPOSITE directions, which is exactly the trap `thermal_floor_by_year` already
+    names: quoting whichever one improved would be choosing the flattering statistic. Both are
+    published, in the feed and on the page.
+  * WITHIN-DAY GOT WORSE IN 2019 AND 2020 (1.414 -> 1.478, 1.437 -> 1.457) while improving in the
+    other four. Named rather than averaged away.
+
+STILL L2 AFTER THIS BUILD TOO, and the reason is the same one, smaller. Correlation is 0.746 in
+2024 where it was 0.726. That is real movement on the axis that holds the level, in the right
+direction, in every year — and it is not enough: an instrument at 0.75 against the published
+series still points a customer at some of the wrong half hours, and L3 means the thing FAILS LIKE
+REALITY. The second Expert Hour is also still untaken. LAW A: the drawn plan said 2->3, a plan is
+a diagnostic and never a target, and where a date and a test conflict the date is wrong.
+
+THE NEXT GAP IS NAMED AND SIZED, and it is the other half of the same block. BIOMASS is still a
+flat 2,400 MW. It may NOT be handed over the way nuclear and hydro were — it carries 120
+gCO2/kWh on NESO's own table, so its metered output is an emissions term and condition 1 above
+refuses it — and it is wrong in a way that is now measurable: 2024's published outturn averages
+nearer 2.7 GW and swings 1.0-3.0 GW. Closing it means MODELLING biomass dispatch (a CfD-supported
+plant that is price-responsive but not merit-ordered like gas), not reading it. That is a harder
+build than this one and it is the honest next step rather than a fourth availability series.
+
 And one finding that is about GB rather than about us: NESO'S OWN FLOOR FALLS AND ITS OWN SPREAD
 WIDENS across the window (0.217 -> 0.105, 9.3x -> 21.6x). That is real decarbonisation -- as
 renewables grow the clean end genuinely gets cleaner -- so the two series are converging on the
@@ -277,7 +341,9 @@ SHAPE_BASIS = (
     "imports counted at NESO's published per-cable factors for the cables it publishes one for "
     "(84% of imported MWh over the series, 66% in 2024); the thermal stack held at or above the "
     "CCGT+OCGT fleet's demonstrated annual MINIMUM output, so no half hour is dispatched with no "
-    "gas running at all."
+    "gas running at all; and the zero-carbon must-run block taken from Elexon's published "
+    "half-hourly NUCLEAR+NPSHYD outturn where it exists (99.97% of half hours) rather than "
+    "assumed flat, with the biomass share of that block still modelled at a constant 2,400 MW."
 )
 
 #: Biomass, gCO2/kWh, on NESO's own Carbon Intensity methodology -- the same methodology whose
@@ -296,6 +362,21 @@ MUST_RUN_BIOMASS_SHARE = 0.30
 #: DERIVED, never a literal, so a caller can always decompose the number it was given -- the
 #: rule `carbon_emissions.grid_intensity_g_co2e_per_kwh` already keeps on the annual side.
 MUST_RUN_EMISSIONS_RATE_T_PER_MWH = MUST_RUN_BIOMASS_SHARE * BIOMASS_G_CO2_PER_KWH / 1000.0
+
+#: THE FLAT BLOCK, SPLIT INTO ITS TWO HALVES, so the half that can be MEASURED can be replaced
+#: without disturbing the half that cannot. These are names for numbers that were already here,
+#: not new numbers: 0.30 x 8,000 and its complement.
+#:
+#:   * `MUST_RUN_BIOMASS_MW` STAYS MODELLED. Biomass carries 120 gCO2/kWh on NESO's own table, so
+#:     handing over its metered output would hand over an emissions term -- the one thing the
+#:     boundary exists to stop -- and Drax is dispatchable besides. It is wrong (2024's outturn
+#:     averages nearer 2.7 GW and swings 1.0-3.0 GW) and it is left wrong ON PURPOSE, so that this
+#:     build changes exactly one variable and the measurement below means what it says.
+#:   * `MUST_RUN_ZERO_CARBON_MW` IS THE FALLBACK ONLY. It is what a half hour gets when the
+#:     published nuclear+hydro outturn is absent for it, and it is precisely the number the whole
+#:     series used before 2026-08-26.
+MUST_RUN_BIOMASS_MW = MUST_RUN_BIOMASS_SHARE * MUST_RUN_FLOOR_MW
+MUST_RUN_ZERO_CARBON_MW = MUST_RUN_FLOOR_MW - MUST_RUN_BIOMASS_MW
 
 
 class ShapeUnavailable(Exception):
@@ -316,6 +397,7 @@ def emissions_rate_t_per_mwh(
     import_rate_t_per_mwh: float = 0.0,
     coal_capacity_mw: float = 0.0,
     thermal_floor_mw: float = 0.0,
+    zero_carbon_must_run_mw: float | None = None,
 ) -> float:
     """Tonnes CO2 per MWh of demand met, in ONE half hour, on the dispatch above.
 
@@ -337,6 +419,16 @@ def emissions_rate_t_per_mwh(
     `elexon_fuel_outturn.thermal_floor_by_year`. The same class of input as the coal capacity and
     supplied at the same grain, one scalar per year, for the same reason: a half-hourly gas
     series would make this NESO's arithmetic rather than a second route to it.
+
+    `zero_carbon_must_run_mw` — the HALF HOUR's published NUCLEAR + NPSHYD outturn, and the only
+    input here that crosses at that grain. `None` means "not published for this half hour" and
+    falls back to `MUST_RUN_ZERO_CARBON_MW`, the flat 5,600 MW every half hour used before
+    2026-08-26. It is allowed across at half-hourly grain because it satisfies two conditions
+    that half-hourly gas and coal do not, both tested in `tests/sim/test_elexon_fuel_outturn.py`:
+    NESO's own published factor for both fuels is exactly ZERO, so no part of the answer crosses;
+    and neither fuel's outturn can go negative, which is what distinguishes an availability from
+    a dispatch decision (pumped storage carries a zero factor too, and is refused on the second
+    condition). Every gram this function returns still comes from a merit order it decided itself.
 
     THE DEFAULTS REPRODUCE THE PRE-2026-08-25 SHAPE EXACTLY, and that is a liability rather than
     a convenience: a caller that forgets them gets the known-wrong series silently. The control
@@ -363,8 +455,21 @@ def emissions_rate_t_per_mwh(
     # together exceed demand it is WIND that is constrained off, and the nuclear fleet keeps
     # running because it cannot economically do anything else. So the floor is taken against
     # DEMAND, and the renewable surplus is curtailed rather than the baseload.
-    must_run_mw = min(demand_mw, MUST_RUN_FLOOR_MW)
-    thermal_mw = max(0.0, residual_mw - MUST_RUN_FLOOR_MW)
+    #
+    # THE BLOCK IS NO LONGER FLAT, and this is the correction this call was added for. Until
+    # 2026-08-26 the whole 8,000 MW was a constant, so the model made the gas stack cover every
+    # gigawatt GB's reactors and rivers actually moved -- on a schedule of the model's own
+    # invention. That is a TIMING error by construction, and timing is the axis the thermal floor
+    # left at correlation 0.726. The measured half of the block now comes from the published
+    # outturn; the biomass half stays modelled, because it carries carbon.
+    zero_carbon_mw = (
+        MUST_RUN_ZERO_CARBON_MW
+        if zero_carbon_must_run_mw is None
+        else max(0.0, float(zero_carbon_must_run_mw))
+    )
+    must_run_capacity_mw = MUST_RUN_BIOMASS_MW + zero_carbon_mw
+    must_run_mw = min(demand_mw, must_run_capacity_mw)
+    thermal_mw = max(0.0, residual_mw - must_run_capacity_mw)
 
     # THE THERMAL FLOOR, and it is the correction that took this shape's largest remaining
     # clean-end error. The line above lets the stack reach EXACTLY ZERO, and GB's never does:
@@ -415,8 +520,23 @@ def emissions_rate_t_per_mwh(
     # coal's SRMC. Deriving a second route would mean inventing a coal fuel-input factor that is
     # nowhere in this tree. Sanity, not calibration: the 2019 DUKES figure of 0.992 sits 5.9%
     # above NESO's own published coal factor of 0.937, on the dirtier side of it.
+    #
+    # ONLY THE BIOMASS SHARE OF WHAT RAN CARRIES CARBON, which is what the old single blended rate
+    # already said when the block was fixed: 0.30 x 120 g applied to the whole 8,000 MW is the
+    # same tonnage as 120 g applied to 2,400 MW of it. Written out per-fuel it stays true when
+    # the zero-carbon half moves, and it makes the boundary claim ARITHMETICALLY visible -- the
+    # measured series is multiplied by nothing, because its factor is zero.
+    #
+    # THE SHARE IS TAKEN OF WHAT WAS SERVED, not of the whole block, so a half hour whose demand
+    # is smaller than the block scales biomass down with everything else. That reproduces the old
+    # `min(demand, 8000) * blended_rate` exactly whenever the zero-carbon half is at its fallback.
+    biomass_served_mw = (
+        MUST_RUN_BIOMASS_MW * (must_run_mw / must_run_capacity_mw)
+        if must_run_capacity_mw > 0.0
+        else 0.0
+    )
     tonnes = (
-        must_run_mw * MUST_RUN_EMISSIONS_RATE_T_PER_MWH
+        biomass_served_mw * (BIOMASS_G_CO2_PER_KWH / 1000.0)
         + import_mw * max(0.0, float(import_rate_t_per_mwh))
         + ccgt_mw * (EF_GAS_TCO2_PER_MWH_TH / mean_dispatched_eff)
         + coal_mw * EF_COAL_TCO2_PER_MWH_E_BY_YEAR[y]
@@ -432,6 +552,7 @@ def build_shape(
     imports_by_period: Mapping[tuple[str, int], tuple[float, float]] | None = None,
     coal_capacity_by_year: Mapping[int, float] | None = None,
     thermal_floor_by_year: Mapping[int, float] | None = None,
+    zero_carbon_must_run_by_period: Mapping[tuple[str, int], float] | None = None,
 ) -> dict[tuple[str, int], float]:
     """{(settlement date, period): shape}, normalised per CALENDAR YEAR to a demand-weighted
     mean of exactly 1.0.
@@ -476,6 +597,12 @@ def build_shape(
         # year's measured floor into a year it was not measured in; a year with no measurement
         # gets no floor, which is the pre-existing behaviour rather than an invented one.
         floor_mw = float((thermal_floor_by_year or {}).get(year, 0.0))
+        # ABSENT, NOT ZERO, and the distinction is the whole safety of this input. `.get` with no
+        # default hands `None` to a parameter that reads it as "not published for this half hour"
+        # and falls back to the flat block. A `0.0` default would mean "GB ran no reactors", which
+        # is a fiction the dispatch would answer by burning gas for the whole residual -- the
+        # same fail-open shape `zero_carbon_must_run_by_period` refuses one layer up.
+        zero_carbon_mw = (zero_carbon_must_run_by_period or {}).get(key)
         try:
             rates[key] = emissions_rate_t_per_mwh(
                 float(demand_mw),
@@ -485,6 +612,9 @@ def build_shape(
                 import_rate_t_per_mwh=float(import_rate),
                 coal_capacity_mw=coal_mw,
                 thermal_floor_mw=floor_mw,
+                zero_carbon_must_run_mw=(
+                    None if zero_carbon_mw is None else float(zero_carbon_mw)
+                ),
             )
         except (ShapeUnavailable, ValueError, KeyError):
             continue

@@ -614,3 +614,145 @@ def test_this_module_declares_NO_absolute_annual_intensity_series():
         "(and it is a wall crossing besides)"
     )
     assert "dimensionless" in gci.SHAPE_BASIS
+# --------------------------------------------------------------------------- #
+# The measured zero-carbon must-run block                                     #
+# --------------------------------------------------------------------------- #
+
+def test_the_DEFAULTED_argument_reproduces_the_flat_8_GW_BLOCK_EXACTLY():
+    """The refactor that split the block must change no number until the series is supplied.
+
+    This is what makes the before/after measurement mean anything: the two arms differ by ONE
+    input, not by an arithmetic rewrite that happened to travel with it. The old code applied one
+    blended rate (0.30 x 120 g) to the whole 8,000 MW; the new code applies 120 g to the 2,400 MW
+    of biomass inside it. Those are the same tonnage, and they have to stay the same tonnage
+    across every regime -- oversupply, the CCGT band, above it, and demand below the block.
+
+    MUTATION (must fire): change `MUST_RUN_BIOMASS_MW`, or take the biomass share of the whole
+    block instead of the share of what was SERVED.
+    """
+    for demand, renewables in [
+        (45_000.0, 2_000.0),     # still winter evening, above the CCGT band
+        (30_000.0, 12_000.0),    # ordinary, inside the band
+        (22_000.0, 18_000.0),    # quiet, nothing left to dispatch
+        (6_000.0, 1_000.0),      # demand BELOW the must-run block, so it is scaled down
+    ]:
+        expected = (
+            min(demand, merit.MUST_RUN_FLOOR_MW) * gci.MUST_RUN_EMISSIONS_RATE_T_PER_MWH
+        )
+        rate = gci.emissions_rate_t_per_mwh(demand, renewables, YEAR)
+        must_run_only = gci.emissions_rate_t_per_mwh(demand, demand, YEAR)
+        assert must_run_only == pytest.approx(expected / demand), (
+            f"the block's own tonnage moved at demand={demand:,.0f}"
+        )
+        assert rate > 0.0
+    # And the two names still decompose the constant they were derived from.
+    assert gci.MUST_RUN_BIOMASS_MW + gci.MUST_RUN_ZERO_CARBON_MW == pytest.approx(
+        merit.MUST_RUN_FLOOR_MW
+    )
+    assert gci.MUST_RUN_ZERO_CARBON_MW == pytest.approx(5_600.0)
+
+
+def test_the_MEASURED_series_is_multiplied_by_no_emission_factor_at_all():
+    """The boundary claim, made arithmetically rather than in prose.
+
+    Nuclear and hydro may cross at half-hourly grain BECAUSE they carry no carbon: what crosses
+    changes the residual the merit order serves, never the merit order's answer. If this series
+    ever picked up a factor, that argument would be void and the reconstruction would be reading
+    NESO's arithmetic. So: in the ordinary regime the must-run tonnage must be EXACTLY the
+    modelled biomass block, whatever the measured series says.
+
+    MUTATION (must fire): price the handed-over MW at any non-zero factor -- e.g. restore
+    `must_run_mw * MUST_RUN_EMISSIONS_RATE_T_PER_MWH` over the widened block.
+    """
+    # ISOLATE THE MUST-RUN TERM. Renewables cover the whole of demand, so the residual is
+    # negative, no thermal plant runs and no floor is given: every gram returned is the must-run
+    # block's own. Whatever the measured series says, that tonnage must be the BIOMASS block and
+    # nothing else -- 2,400 MW at 120 gCO2/kWh -- because the measured half of the block is
+    # multiplied by NESO's published factor for it, which is zero.
+    demand = 40_000.0
+    isolated = {
+        mw: gci.emissions_rate_t_per_mwh(demand, demand, YEAR, zero_carbon_must_run_mw=mw)
+        for mw in (1_000.0, 3_950.0, 5_600.0, 9_800.0)
+    }
+    expected = gci.MUST_RUN_BIOMASS_MW * gci.BIOMASS_G_CO2_PER_KWH / 1000.0 / demand
+    for mw, rate in isolated.items():
+        assert rate == pytest.approx(expected), (
+            f"{mw:,.0f} MW of zero-carbon must-run changed the block's carbon; it must not"
+        )
+    # THE FIXTURE MUST BE ABLE TO SEE THE DEFECT, and the first version of this test could not:
+    # priced at the old blended rate the whole block is 0.036 t/MWh, which at the FALLBACK 5,600
+    # MW is arithmetically identical to 2,400 MW of biomass at 120 g. Only a measured value away
+    # from 5,600 can tell them apart, so this asserts that the panel above contains some.
+    assert [mw for mw in isolated if mw != gci.MUST_RUN_ZERO_CARBON_MW], (
+        "every fixture sits at the fallback, where the correct and the mispriced arithmetic agree"
+    )
+
+    # And in a dispatching half hour, more measured baseload can only ever make it cleaner.
+    ordered = [
+        gci.emissions_rate_t_per_mwh(demand, 5_000.0, YEAR, zero_carbon_must_run_mw=mw)
+        for mw in sorted(isolated)
+    ]
+    assert ordered == sorted(ordered, reverse=True), (
+        "more zero-carbon must-run made a half hour DIRTIER, which is not a dispatch"
+    )
+
+
+def test_an_UNPUBLISHED_half_hour_falls_back_to_the_flat_BLOCK_and_never_to_zero():
+    """`None` means "not published for this half hour", and it must not mean "no reactors ran".
+
+    Read as zero, a gap in the feed hands the gas stack the entire residual and invents a dirty
+    half hour out of nothing -- the fail-open shape the parse refuses one layer up, reintroduced
+    at the point of use. The fallback is the flat 5,600 MW: the behaviour this whole series is
+    correcting, which is bounded and already published.
+
+    MUTATION (must fire): `(zero_carbon_must_run_by_period or {}).get(key, 0.0)` in `build_shape`,
+    or default the parameter to `0.0` instead of `None`.
+    """
+    assert gci.emissions_rate_t_per_mwh(
+        40_000.0, 5_000.0, YEAR, zero_carbon_must_run_mw=None
+    ) == pytest.approx(gci.emissions_rate_t_per_mwh(40_000.0, 5_000.0, YEAR))
+    assert gci.emissions_rate_t_per_mwh(
+        40_000.0, 5_000.0, YEAR, zero_carbon_must_run_mw=0.0
+    ) > gci.emissions_rate_t_per_mwh(40_000.0, 5_000.0, YEAR), (
+        "this fixture cannot tell absent from zero, so it proves nothing"
+    )
+
+    d = {("2024-03-01", 1): 40_000.0, ("2024-03-01", 2): 40_000.0}
+    r = {("2024-03-01", 1): 5_000.0, ("2024-03-01", 2): 5_000.0}
+    # Period 2 is published at a real 2024 reading of 3,950 MW; period 1 is absent. Supplying
+    # period 1 EXPLICITLY at the flat block must therefore change nothing at all, and supplying
+    # it as zero must change it a great deal. That pair is what tells absent from zero -- the
+    # shape alone cannot, which is the whole reason this test is written this way.
+    partial = gci.build_shape(d, r, zero_carbon_must_run_by_period={("2024-03-01", 2): 3_950.0})
+    explicit_flat = gci.build_shape(d, r, zero_carbon_must_run_by_period={
+        ("2024-03-01", 1): gci.MUST_RUN_ZERO_CARBON_MW, ("2024-03-01", 2): 3_950.0,
+    })
+    assert partial == explicit_flat
+    as_zero = gci.build_shape(d, r, zero_carbon_must_run_by_period={
+        ("2024-03-01", 1): 0.0, ("2024-03-01", 2): 3_950.0,
+    })
+    assert as_zero != partial, "this fixture cannot tell the fallback from zero, so it proves nothing"
+    # And the published half hour carries LESS baseload than the flat block it replaced (3,950 MW
+    # against 5,600 MW), so it reads dirtier -- the flat block was too generous in 2024, which is
+    # the level half of what this correction found.
+    assert partial[("2024-03-01", 2)] > partial[("2024-03-01", 1)]
+    assert gci.build_shape(d, r, zero_carbon_must_run_by_period={}) == gci.build_shape(d, r)
+
+
+def test_a_MEASURED_block_larger_than_demand_cannot_manufacture_generation():
+    """The same cap the flat block and the thermal floor already carry, on a series that now
+    reaches 9,831 MW in the published outturn -- above some summer-night demands.
+
+    Uncapped, the block would push total generation past demand and the rate would still be
+    divided by demand, reporting an intensity for energy nobody consumed.
+
+    MUTATION (must fire): drop the `min(demand_mw, must_run_capacity_mw)` cap.
+    """
+    rate = gci.emissions_rate_t_per_mwh(6_000.0, 0.0, YEAR, zero_carbon_must_run_mw=9_800.0)
+    # Demand is 6 GW against a 12.2 GW block: biomass is served pro-rata, nothing else runs.
+    served_fraction = 6_000.0 / (gci.MUST_RUN_BIOMASS_MW + 9_800.0)
+    expected_tonnes = gci.MUST_RUN_BIOMASS_MW * served_fraction * gci.BIOMASS_G_CO2_PER_KWH / 1000.0
+    assert rate == pytest.approx(expected_tonnes / 6_000.0)
+    assert rate < gci.MUST_RUN_EMISSIONS_RATE_T_PER_MWH, (
+        "a half hour drowned in zero-carbon baseload must read cleaner than the blended block"
+    )
