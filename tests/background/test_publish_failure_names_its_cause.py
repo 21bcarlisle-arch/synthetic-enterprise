@@ -41,11 +41,12 @@ docs/observability/sim-runner-log.md and docs/observability/background-worker-lo
 from __future__ import annotations
 
 import subprocess
+from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
 
-from background import background_worker, sim_runner
+from background import background_worker, child_diagnostics, sim_runner
 from background.child_diagnostics import (
     NOT_PIPED,
     SAID_NOTHING,
@@ -292,6 +293,70 @@ class TestTheExcerptSelectsTheVerdictRatherThanTheTail:
         assert "900 failed, 12 passed" in text, "truncation dropped the count"
         assert VERDICT_TRUNCATED in text, "truncation happened silently (no silent caps)"
         assert "test_module_0.py" in text, "the earliest red nodes are what you act on first"
+
+    def test_ONE_ENORMOUS_LINE_IN_THE_TAIL_CANNOT_EVICT_THE_VERDICT(self):
+        """The 2026-08-26 defect, on the shape that actually produced it three times running.
+
+        Both reads in `verdict_excerpt` are defended against a stream whose NOISE IS UNBOUNDED.
+        Neither was defended against ONE LINE that is. `tools/pre_commit_test_gate.py` prints
+        its selected file list as a single comma-joined line -- over 4,000 characters at 62
+        files -- and Python BLOCK-BUFFERS a hook's `print` while pytest writes straight to the
+        inherited fd, so that line lands in the TAIL and pytest's own `FAILED` nodes land
+        earlier. The tail then legitimately claimed the entire budget and every red node was
+        dropped: three consecutive `surgical_land` refusals quoted a list of file names under
+        the word REFUSED and named no failing test at all.
+
+        THE MUTATION IS BELOW, INSIDE THE TEST, because the defect is a budget interaction and
+        not a branch: with the per-line cap removed the excerpt carries ZERO red nodes, with it
+        the same stream carries both. A fixture assertion alone would not have caught it --
+        every existing test in this class uses short lines, which is precisely why this shipped.
+
+        THE SUBJECT IS `surgical_land._verdict_excerpt`, NOT `child_output_excerpt`, and that
+        choice is load-bearing rather than incidental. Only the former passes a `max_chars`
+        budget, and the defect IS the budget: a first draft of this test asserted against
+        `child_output_excerpt`, which passes no budget at all, so nothing could ever be elided
+        and the test asserted a property of a path the incident never took. The caller is
+        imported rather than its budget copied, so a change to that budget moves this test with
+        it instead of leaving it agreeing with a number that has moved on.
+        """
+        from tools import surgical_land
+        noise = ["tests/x/test_{}.py .......".format(i) for i in range(60)]
+        red = ["FAILED tests/a.py::test_one - AssertionError",
+               "FAILED tests/b.py::test_two - AssertionError",
+               "2 failed, 1500 passed in 300.0s"]
+        narration = ["[test-gate] OK check {}".format(i) for i in range(38)]
+        one_enormous_line = "[test-gate] 62 test file(s): " + ", ".join(
+            "tests/very/long/path/number_{}.py".format(i) for i in range(120))
+        assert len(one_enormous_line) > 4000, "fixture no longer reproduces the incident"
+        stream = "\n".join(noise + red + narration
+                           + [one_enormous_line, "[test-gate] TESTS FAILED -- COMMIT REFUSED."])
+
+        # The fixture must genuinely put the red nodes OUTSIDE the tail, or this proves nothing.
+        assert not any("FAILED tests/" in ln
+                       for ln in stream.splitlines()[-STDERR_TAIL_LINES:])
+
+        text = surgical_land._verdict_excerpt(stream, "")
+        assert text.count("FAILED tests/") == 2, "the red nodes were evicted by one long line"
+        assert "2 failed, 1500 passed" in text, "the count that says whether the list is whole"
+        assert "elided so it cannot eat the budget" in text, "the elision must be visible"
+
+        # MUTATION: remove the per-line cap and the same stream loses its whole verdict.
+        with mock.patch.object(child_diagnostics, "_elide_long", lambda ln, mc: ln):
+            mutated = surgical_land._verdict_excerpt(stream, "")
+        assert mutated.count("FAILED tests/") == 0, (
+            "the control cannot fail -- without the per-line cap this stream must lose its "
+            "red nodes, and it did not, so the assertion above proves nothing (R15)"
+        )
+
+    def test_a_short_stream_is_not_elided_at_all(self):
+        """The null control for the cap. A fix that shortened every line would pass the test
+        above while quietly truncating ordinary refusals, which are the common case."""
+        from tools import surgical_land
+        stream = "\n".join(["FAILED tests/a.py::test_one - AssertionError",
+                            "1 failed, 3 passed in 1.0s"])
+        text = surgical_land._verdict_excerpt(stream, "")
+        assert "elided so it cannot eat the budget" not in text
+        assert "FAILED tests/a.py::test_one - AssertionError" in text
 
 
 # ── half one: the leftover-marker sweep ──────────────────────────────────────────────────

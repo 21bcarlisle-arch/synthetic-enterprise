@@ -62,6 +62,26 @@ TAIL_JOIN = ("  [... and the last {} lines, where a fail-fast chain leaves the r
              "whichever step went red ...]")
 NO_OUTPUT = "<the gate produced no output to quote>"
 
+#: NO SINGLE LINE MAY EAT THE BUDGET (2026-08-26). The two reads below are each defended
+#: against a stream whose NOISE IS UNBOUNDED; neither was defended against ONE LINE that is,
+#: and a harness's own narration is where that happens. `tools/pre_commit_test_gate.py` prints
+#: its selected file list as a single comma-joined line: at 54 files it is ~2,000 characters and
+#: at 62 it is over 4,000, so it ALONE exceeded the 4,000-char budget `surgical_land` passes.
+#: The tail then legitimately claimed the whole budget, the `len(floor) >= max_chars` branch
+#: below returned the tail alone, and EVERY `FAILED tests/...` node was dropped -- three
+#: consecutive refusals in a row quoted a list of file names under the word REFUSED and named
+#: no failing test at all. The reader's next move is decided by WHAT went red; a refusal that
+#: cannot say costs a whole diagnostic cycle each time, and this one cost three.
+#:
+#: The fix is a CLASS fix rather than a shorter file list, because the file list is not special
+#: -- any step in a twelve-gate chain may print one long line, and the next one will not be this
+#: one. So: no line, in the tail or in the selection, may occupy more than this fraction of the
+#: budget. An elided line still names its step, which is all the tail is for, and the space it
+#: gives back is exactly what the selection needs. Elision is VISIBLE, per the no-silent-caps
+#: rule the truncation markers above already follow.
+MAX_LINE_SHARE_OF_BUDGET = 0.25
+LINE_ELIDED = "  [... {} more characters on this line, elided so it cannot eat the budget ...]"
+
 #: How much of a stream the tail is, when a caller does not say. Sized like STDERR_TAIL_LINES
 #: for the same reason: one Python traceback, or one gate's refusal block, fits comfortably.
 DEFAULT_TAIL_LINES = STDERR_TAIL_LINES
@@ -184,10 +204,13 @@ def verdict_excerpt(text: str, *, max_chars: int | None = None,
 
     tail_n = max_lines if max_lines is not None else DEFAULT_TAIL_LINES
     cut = max(0, len(lines) - tail_n)
-    tail = lines[cut:]
+    tail = [_elide_long(ln, max_chars) for ln in lines[cut:]]
     # ONLY the verdict lines the tail would lose. A verdict line already inside the tail is
     # printed by the tail; repeating it would spend the budget saying the same thing twice.
-    earlier = [ln for ln in lines[:cut] if is_verdict_line(ln)]
+    # Elided BEFORE the membership test, never after: `is_verdict_line` reads the start of a
+    # line, and an elided line keeps its start, so selection is unaffected either way -- but a
+    # 4,000-character FAILED node would otherwise reproduce the eviction one level in.
+    earlier = [_elide_long(ln, max_chars) for ln in lines[:cut] if is_verdict_line(ln)]
 
     if not earlier:
         return _cap_chars("\n".join(tail), max_chars), False
@@ -214,6 +237,24 @@ def verdict_excerpt(text: str, *, max_chars: int | None = None,
         # NO SILENT CAPS. A truncated list that does not say so reads as a complete one.
         keep = keep[:-1] + [VERDICT_TRUNCATED] if keep else [VERDICT_TRUNCATED]
     return "\n".join(keep + [joiner] + tail), True
+
+
+def _elide_long(line: str, max_chars: int | None) -> str:
+    """One line, shortened if it would take more than its share of the excerpt budget.
+
+    Keeps the HEAD of the line, because that is where a step names itself
+    (`[test-gate] 62 test file(s): ...`, `FAILED tests/x.py::y`) -- and where `is_verdict_line`
+    looks. The elision is stated in the output rather than silent, so a reader can tell a
+    shortened line from a short one.
+
+    No budget means no share to exceed, so nothing is elided: an unbounded caller wants the
+    whole stream and this function must not be the thing that decides otherwise."""
+    if max_chars is None:
+        return line
+    cap = max(1, int(max_chars * MAX_LINE_SHARE_OF_BUDGET))
+    if len(line) <= cap:
+        return line
+    return line[:cap] + LINE_ELIDED.format(len(line) - cap)
 
 
 def _cap_chars(text: str, max_chars: int | None) -> str:
