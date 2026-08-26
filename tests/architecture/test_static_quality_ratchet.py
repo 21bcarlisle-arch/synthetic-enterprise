@@ -116,6 +116,21 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-08-26  I001 1350 -> 1348, E741 108 -> 107  (the tree-divergence walk)
+#     Three violations fixed as a side effect of touching the files this commit already had
+#     open, per this ratchet's standing per-file remedy — not a tidying pass:
+#       * tests/saas/reporting/test_phase_cn_unit_economics.py  I001 x2, E741 x1 — another
+#         lane's uncommitted work in that file, landed here rather than left to red the
+#         ratchet for whoever committed next. One E741 (`l`, :146) SURVIVES and is left:
+#         renaming it is that lane's call, not this walk's.
+#     A FOURTH MOVE WAS MEASURED AND THEN LANDED BY SOMEONE ELSE MID-FLIGHT.
+#     `tools/surgical_land.py:136` I001 was in this walk's first two pathspecs; concurrent
+#     lanes committed that repair while the gate was running, so it is now at HEAD and the
+#     floor it earned belongs to that commit, not this one. This entry was re-derived rather
+#     than re-used: a baseline copied from a measurement taken three HEADs ago is a frozen
+#     census of a tree nobody has, which is what `test_ruff_no_rule_exceeds_baseline` caught
+#     on the attempt before this one. RE-MEASURE AT THE HEAD YOU ARE ACTUALLY COMMITTING
+#     ONTO — on a shared tree that is not the same HEAD you planned against.
 #   2026-08-26  I001 1355 -> 1350  (the I&C segment suspension)
 #     Five import blocks sorted as a side effect of touching the files that land the
 #     director's 2026-08-24 suspension. Not a tidying pass: `ruff --fix` was run on each
@@ -491,11 +506,11 @@ BASELINE_DATE = "2026-08-06"
 #     seat_work_in_hand F401 -1, sim_runner I001 -1. Four removals, no additions.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
-    "I001": 1350,
+    "I001": 1348,
     "F401": 269,
     "E402": 174,
     "F841": 127,
-    "E741": 108,
+    "E741": 107,
     "F811": 95,
     "E702": 76,
     "E701": 45,
@@ -511,7 +526,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2341  # was 2346; -5 (I001; see the 2026-08-26 suspension entry)
+RUFF_BASELINE_TOTAL = 2338  # was 2341; -3 (I001 -2, E741 -1; see the tree-divergence walk entry)
 
 
 # --------------------------------------------------------------------------

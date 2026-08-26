@@ -157,8 +157,37 @@ def test_closed_account_notice_date_tracks_the_record_not_a_constant():
 
 
 def test_closed_account_notice_empty_for_still_active_customer():
-    d = json.loads((CUSTOMERS_DIR / "C_IC1.json").read_text())
-    assert _closed_account_notice(d, d["invoices"]) == ""
+    """An account with no churn event gets no closed-account line.
+
+    THE ACCOUNT IS DISCOVERED, NOT NAMED (2026-08-26, R10). This read
+    `C_IC1.json` by name until the 2026-08-24 segment suspension stopped the
+    company serving I&C: the publish that followed regenerated
+    `site/data/customers/` without a single I&C account, and this test died on
+    `FileNotFoundError` -- not because the behaviour it guards changed, but
+    because the fixture it named had left the book. A test that hardcodes one
+    account id is a test the next curriculum dial breaks, and the failure looks
+    like a billing regression rather than a stale fixture.
+
+    So the account is now SELECTED by the property under test -- the first still
+    active one in the live book. The precondition is asserted rather than
+    assumed: if the book ever carries no active account at all, this fails
+    loudly instead of passing vacuously over an empty loop.
+    """
+    active = []
+    for f in sorted(CUSTOMERS_DIR.glob("*.json")):
+        if f.name == "_index.json":
+            continue
+        d = json.loads(f.read_text())
+        if not any(e.get("type") == "churned" for e in d.get("timeline", [])):
+            active.append((f.name, d))
+
+    assert active, (
+        "the live book carries no still-active account, so this test would pass "
+        "without checking anything -- regenerate site/data/customers/"
+    )
+    for name, d in active:
+        assert _closed_account_notice(d, d.get("invoices", [])) == "", (
+            name + " is still active but rendered a closed-account notice")
 
 
 def test_closed_account_notice_across_full_live_book_no_exceptions():

@@ -113,7 +113,7 @@ account for cost-to-serve at the customer level.
 - **"Done" = named artifact.** Every completion (NTFY/report) must cite evidence: PROJECT_OVERVIEW.md entry, passing test count, or fetchable file. No artifact -> say "in progress".
 ---
 ## Technical environment
-**Hardware (Skynet):** Intel i5-13400F, 32GB DDR4, RTX 3060 12GB VRAM. Windows 11 Pro + WSL2/Ubuntu.
+**Hardware (Skynet):** Intel i5-13400F, RTX 3060 12GB VRAM, Windows 11 Pro + WSL2/Ubuntu. **The binding memory figure is the WSL2 GUEST's, never the host's 32GB — and it MOVES** (~15GB until the director raised it mid-outage 2026-08-24, 14 sim-runner OOM kills that day; ~23.5GB now). Never quote it from here — read it: `background.resource_headroom.sample()["total_mb"]`.
 **Network/AI:** Tailscale WSL2 `100.69.81.59` | File API `https://skynet-1.taila062fa.ts.net:8765` | Claude Code → qwen3:14b/Ollama → risk committee (Ollama)
 **Key paths:** `docs/staging/` (instructions) | `docs/status/LATEST.md` | `docs/reports/ANNUAL_REPORT.md`
 **Data:** Elexon `data.elexon.co.uk` (key-free; API migrated to Insights Solution — legacy wrappers partly stale) | NESO CKAN | Open-Meteo | synthetic forward curves

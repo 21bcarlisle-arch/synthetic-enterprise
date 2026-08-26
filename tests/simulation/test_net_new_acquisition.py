@@ -847,8 +847,27 @@ def test_b2_the_two_flags_are_INDEPENDENT_and_the_default_path_is_untouched(monk
 # winning customers was missing from its own accounts, and the activation record for this
 # very campaign had told the director "Growth costs money."
 
-CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 1295
-CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 157155.0
+# RE-MEASURED 2026-08-26 (1,295 -> 1,115 quotes, £157,155 -> £135,285), on this test's own
+# instruction: "the shipped campaign has been re-sized -- re-measure before trusting the
+# figures in this file's header". Two director-ordered changes moved the prospect mix, and
+# neither is a regression:
+#   * 4e884cdbf  the I&C suspension (director, 2026-08-24) -- the campaign stopped quoting
+#                the business segments it is no longer allowed to serve.
+#   * fb8a8fda5  the funnel won electricity and never gas -- fixing that changed which
+#                prospects the campaign draws, and how far into 2025 its schedule runs.
+# This file went red at fb8a8fda5 and stayed red across three further commits, because the
+# gate selects tests by filename stem and no commit since touched a stem that reaches here.
+CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG = 1115
+CAMPAIGN_SPEND_AT_SHIPPED_CONFIG = 135285.0
+
+#: The subset the ACCOUNTS can carry: quotes dated inside [REPORT_START, REPORT_END].
+#: The campaign's schedule now runs to 2025-07-20 while the run reports to 2025-06-07, so 49
+#: quotes are dated after the last day the accounts cover. Those are not dropped spend -- in
+#: the reported world they have not happened yet, and booking them would put £6,000 of cost
+#: in a period the ledger does not report. What the exit clause claims, and what is asserted
+#: below, is that nothing INSIDE the window goes unbooked.
+CAMPAIGN_QUOTES_INSIDE_WINDOW = 1066
+CAMPAIGN_SPEND_INSIDE_WINDOW = 129285.0
 
 
 def test_c_every_quote_the_campaign_paid_for_is_BOOKED_as_acquisition_spend():
@@ -861,7 +880,11 @@ def test_c_every_quote_the_campaign_paid_for_is_BOOKED_as_acquisition_spend():
     campaign.
     """
     from simulation.live_population import campaign_quotes_paid_for
-    from simulation.run_phase2b import campaign_acquisition_spend_events
+    from simulation.run_phase2b import (
+        REPORT_END,
+        REPORT_START,
+        campaign_acquisition_spend_events,
+    )
 
     quotes = campaign_quotes_paid_for()
     events = campaign_acquisition_spend_events()
@@ -872,13 +895,22 @@ def test_c_every_quote_the_campaign_paid_for_is_BOOKED_as_acquisition_spend():
     )
     assert round(sum(q["amount_gbp"] for q in quotes), 2) == CAMPAIGN_SPEND_AT_SHIPPED_CONFIG
 
-    assert len(events) == len(quotes), (
-        f"{len(quotes) - len(events)} quote(s) the company paid for were never booked"
+    # THE SUBJECT IS THE REPORTED PERIOD, not the campaign's whole schedule (2026-08-26).
+    # `campaign_acquisition_spend_events` books what the accounts cover; the clause is that
+    # nothing inside that period escapes it.
+    inside = [q for q in quotes if REPORT_START <= q["event_date"] <= REPORT_END]
+    assert len(inside) == CAMPAIGN_QUOTES_INSIDE_WINDOW, (
+        f"the reported period now carries {len(inside)} quotes -- re-measure the header"
     )
+    assert len(events) == len(inside), (
+        f"{len(inside) - len(events)} quote(s) the company paid for inside the reported "
+        "period were never booked"
+    )
+    quotes = inside
     # The ledger's sign convention: spend is a NEGATIVE amount (`saas.ledger.
     # make_acquisition_spend_event`), and `company.finance.pnl` negates it back into an
     # operating cost. A positive row here would ADD £157,155 of margin instead.
-    assert round(-sum(e["amount_gbp"] for e in events), 2) == CAMPAIGN_SPEND_AT_SHIPPED_CONFIG
+    assert round(-sum(e["amount_gbp"] for e in events), 2) == CAMPAIGN_SPEND_INSIDE_WINDOW
 
     by_account = {e["billing_account"]: e for e in events}
     for quote in quotes:
@@ -928,17 +960,42 @@ def test_c_the_window_filter_excludes_nothing_at_the_shipped_configuration():
 
     A period filter that silently dropped part of the decade would understate the very
     cost this build exists to book, and it would look identical to a smaller campaign.
-    Asserted rather than argued: at the full window every quote is inside it.
+
+    RE-AIMED 2026-08-26. As written this asserted that EVERY quote is inside the window --
+    which was true only while the campaign's schedule and the report's period happened to
+    end together, and stopped being true at fb8a8fda5 when fixing the electricity-only
+    funnel changed how far into 2025 the schedule runs. It reds at a coincidence, not at
+    the defect.
+
+    The defect it exists to catch is a drop INSIDE the decade: a quote dated in a period
+    the accounts cover, paid for, and missing from them. A quote dated 2025-07-20 in a run
+    that reports to 2025-06-07 is a different thing entirely -- in the reported world it
+    has not happened yet, and booking it would put cost in a period the ledger does not
+    report. So the claim is now stated as what it means: the excluded set is exactly the
+    post-period tail, and the window's interior is whole.
     """
     from simulation.live_population import campaign_quotes_paid_for
     from simulation.run_phase2b import REPORT_END, REPORT_START, campaign_acquisition_spend_events
 
     outside = [
-        q["prospect_id"] for q in campaign_quotes_paid_for()
+        q for q in campaign_quotes_paid_for()
         if not REPORT_START <= q["event_date"] <= REPORT_END
     ]
-    assert not outside, f"quotes fall outside the reported period and are dropped: {outside}"
-    assert len(campaign_acquisition_spend_events()) == CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG
+    # Nothing is dropped from BEFORE or WITHIN the reported period -- the only exclusions
+    # are dated after its last day. A quote dated 2019 going missing would fail here, which
+    # is the case the original assertion was written for.
+    early = [q["prospect_id"] for q in outside if q["event_date"] < REPORT_START]
+    assert not early, f"quotes predate the reported period and are dropped: {early}"
+    assert all(q["event_date"] > REPORT_END for q in outside)
+
+    # NON-VACUITY: the tail must be a tail. If it ever grew to a material share of the
+    # campaign, "outside the period" would have become the excuse the original assertion
+    # was guarding against, and this reds rather than absorbing it.
+    assert len(outside) < 0.10 * CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG, (
+        f"{len(outside)} of {CAMPAIGN_QUOTES_AT_SHIPPED_CONFIG} quotes fall outside the "
+        "reported period -- that is no longer a schedule tail, it is unbooked spend"
+    )
+    assert len(campaign_acquisition_spend_events()) == CAMPAIGN_QUOTES_INSIDE_WINDOW
 
 
 def test_c_MUTATION_the_window_filter_can_actually_EXCLUDE():

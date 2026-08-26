@@ -160,6 +160,68 @@ def test_the_dial_moves_the_real_book_and_the_null_control_moves_it_back(monkeyp
     )
 
 
+# --- the third arrival path: the campaign's own winners ----------------------------------
+# THE SUBJECT HAS TO BE MADE TO ARRIVE. A book reaches `live_population`'s caller by three
+# routes -- the static roster, the drawn trickle, and the growth campaign's winners -- and the
+# test above only proves the dial on the first two, because the shipped funnel has never won a
+# non-residential prospect. That is the whole difficulty: on the real funnel a campaign filter
+# that works and a campaign filter that is missing entirely produce byte-identical books, so
+# neither an assertion about the real run nor a mutation of the filter could tell them apart.
+# The winners are therefore INJECTED, which is the only way this control can be made to fail.
+_INJECTED_WINNERS = [
+    {"customer_id": "TEST-CAMPAIGN-WIN-RESI", "segment": "resi",
+     "acquisition_date": "2026-08-26", "acquisition_type": "net_new_won"},
+    {"customer_id": "TEST-CAMPAIGN-WIN-IC", "segment": "I&C",
+     "acquisition_date": "2026-08-26", "acquisition_type": "net_new_won"},
+]
+
+
+def _ids(book):
+    return {c.get("customer_id") for c in book}
+
+
+def test_a_campaign_win_in_a_suspended_segment_never_joins_the_book(monkeypatch):
+    """THE GUARD, AND THE NULL CONTROL THAT PROVES IT IS NOT VACUOUS (2026-08-26).
+
+    `live_population` filtered `static` and `drawn` and let the campaign's winners through
+    unfiltered. Nothing published was ever wrong because of it -- the funnel only ever won
+    households -- which is exactly why it survived unnoticed: a guard whose subject never
+    arrives looks identical to a guard that works.
+
+    Both halves are load-bearing and neither is sufficient alone:
+
+    * SUSPENDED -- the injected I&C winner must be absent. Revert the `_serves` filter at the
+      campaign call site and this assertion reds; that is the mutation.
+    * NULL CONTROL -- the same injected I&C winner must be PRESENT when nothing is suspended.
+      Without it the first half passes just as happily on a campaign path that is dead, on an
+      injection that never reaches the book, and on a `_won_customer_dicts` patch that simply
+      failed to take -- the wrong-subject shape this file's docstring names.
+
+    The residential winner is asserted present in BOTH directions, so the filter cannot pass by
+    discarding every campaign win rather than the suspended one.
+    """
+    monkeypatch.setattr(lp, "_won_customer_dicts", lambda outcome: list(_INJECTED_WINNERS))
+
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", ",".join(CANONICAL_SEGMENTS))
+    everything = _ids(lp.live_population(base_seed=20260826))
+
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", "resi")
+    resi_only = _ids(lp.live_population(base_seed=20260826))
+
+    assert "TEST-CAMPAIGN-WIN-IC" in everything, (
+        "NULL CONTROL FAILED: the injected I&C winner never reached the book even with every "
+        "segment served, so the suspension assertion below would pass for the wrong reason"
+    )
+    assert "TEST-CAMPAIGN-WIN-IC" not in resi_only, (
+        "a campaign win in a SUSPENDED segment joined the book -- the filter is applied to the "
+        "static roster and the drawn trickle but not to the campaign's winners"
+    )
+    assert "TEST-CAMPAIGN-WIN-RESI" in everything and "TEST-CAMPAIGN-WIN-RESI" in resi_only, (
+        "the served campaign win was dropped too -- this is not a segment filter, it is a "
+        "campaign filter"
+    )
+
+
 # --- founding_capital_gbp(): the balance sheet dial --------------------------------------
 def test_founding_capital_is_read_from_the_committed_curriculum_file():
     on_disk = json.loads(lp._FOUNDING_CAPITAL_CURRICULUM.read_text())

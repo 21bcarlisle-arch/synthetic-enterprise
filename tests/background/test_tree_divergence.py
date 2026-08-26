@@ -225,3 +225,107 @@ def test_the_check_exit_code_fires_on_an_unmeasurable_tree(tmp_path, capsys):
         assert "could not be measured" in capsys.readouterr().out
     finally:
         mod.measure = monkey
+
+
+# ── severity: how far over the line, and whether the reader hears it ─────────────────────────
+
+def _m(files: int, age: float) -> dict:
+    """A measure shaped like the real one, for the two fields severity reads."""
+    return {"total_files": files, "oldest_age_hours": age, "by_lane": {},
+            "attributed_files": 0, "unattributed_files": files,
+            # `breaches()` names the oldest path, and the publish path calls it before notify.
+            # Omitting it here made the routing tests fail inside that function's blanket
+            # `except Exception` -- a fixture gap presenting exactly like a silent control.
+            "oldest_path": "tests/simulation/test_policy_cost_coverage.py"}
+
+
+def test_severity_is_quiet_for_an_ordinary_breach():
+    """R15 BOTH WAYS. If `severe` cannot come back False it is a constant, and hoisting
+    everything re-teaches the same skimming habit one volume up."""
+    s = td.severity(_m(td.FILE_COUNT_THRESHOLD + 2, td.AGE_HOURS_THRESHOLD + 1))
+    assert s["severe"] is False
+    assert s["worst_multiple"] < td.ESCALATION_MULTIPLE
+
+
+def test_severity_fires_on_the_breach_it_was_written_for():
+    """The real 2026-08-26 state: 436 files against a 15 line, oldest 158.6h against 4h."""
+    s = td.severity(_m(436, 158.6))
+    assert s["severe"] is True
+    assert s["file_multiple"] == 29.1
+    assert s["age_multiple"] == 39.6
+    assert "29.1x the file line" in s["reason"]
+    assert "39.6x the age line" in s["reason"]
+
+
+def test_either_axis_alone_is_enough():
+    """A handful of files sitting for a week is the same disease as a week's worth at once --
+    the age axis must be able to escalate on its own, and vice versa."""
+    assert td.severity(_m(3, td.AGE_HOURS_THRESHOLD * 20))["severe"] is True
+    assert td.severity(_m(td.FILE_COUNT_THRESHOLD * 20, 0.1))["severe"] is True
+
+
+def test_an_unmeasurable_tree_is_severe_not_quiet():
+    """The one state where the reader most needs to hear something is the state a fail-open
+    swallows. It has no multiples to report and must still escalate."""
+    s = td.severity({"unavailable": True, "unavailable_reason": "git rc=128"})
+    assert s["severe"] is True
+    assert s["worst_multiple"] is None
+    assert "FAILED check" in s["reason"]
+
+
+def test_a_severe_breach_leaves_the_digest_and_arrives_as_itself(monkeypatch):
+    """THE WHOLE POINT (R1, consumer-verified). Severity is worth nothing if the caller still
+    batches it: the six-day absorption happened because `_publish_tree_divergence` chose the
+    digest on CATEGORY alone. This asserts the ROUTING, not the grading.
+
+    MUTATION: restore the unconditional `topic_class=notification_digest.DIVERGENCE` and this
+    fails on the topic_class assertion while every severity test above stays green -- which is
+    exactly the gap that let a correctly-firing control go unheard."""
+    from background import notify as notify_mod
+    from background import process_run_complete as prc
+
+    sent = []
+    monkeypatch.setattr(td, "measure", lambda *a, **kw: _m(436, 158.6))
+    monkeypatch.setattr(td, "write_artifact", lambda *a, **kw: None)
+    monkeypatch.setattr(td, "top_squatters", lambda *a, **kw: "unattributed:docs (422 files)")
+    monkeypatch.setattr(prc, "log", lambda *a, **kw: None)
+    monkeypatch.setattr(notify_mod, "notify",
+                        lambda msg, **kw: sent.append((msg, kw.get("topic_class"))))
+
+    prc._publish_tree_divergence()
+
+    assert sent, "a severe breach must still be named"
+    msg, topic_class = sent[0]
+    assert topic_class is None, (
+        "a 29x breach was routed to the digest -- `is_instant(None)` is what takes it out")
+    # The headline carries the WORST axis (39.6x on age), and the body carries both. The
+    # age axis is the one that mattered here: 436 files landed in an afternoon would be work
+    # in flight, the same 436 sitting for six and a half days is the disease.
+    assert "39.6x OVER" in msg, msg
+    assert "29.1x the file line" in msg and "39.6x the age line" in msg, msg
+    assert "blocks nothing" in msg, "report-only must survive the escalation"
+
+
+def test_an_ordinary_breach_still_goes_to_the_digest(monkeypatch):
+    """The other half, and the one that keeps G-N3 intact: routing on magnitude must not turn
+    every breach into a page. Without this, deleting the `severe` branch entirely would pass."""
+    from background import notification_digest
+    from background import notify as notify_mod
+    from background import process_run_complete as prc
+
+    sent = []
+    monkeypatch.setattr(td, "measure",
+                        lambda *a, **kw: _m(td.FILE_COUNT_THRESHOLD + 2,
+                                            td.AGE_HOURS_THRESHOLD + 1))
+    monkeypatch.setattr(td, "write_artifact", lambda *a, **kw: None)
+    monkeypatch.setattr(td, "top_squatters", lambda *a, **kw: "H_harness (17 files)")
+    monkeypatch.setattr(prc, "log", lambda *a, **kw: None)
+    monkeypatch.setattr(notify_mod, "notify",
+                        lambda msg, **kw: sent.append((msg, kw.get("topic_class"))))
+
+    prc._publish_tree_divergence()
+
+    assert sent
+    msg, topic_class = sent[0]
+    assert topic_class == notification_digest.DIVERGENCE, "an ordinary squat must stay batched"
+    assert "OVER]" not in msg, "the ordinary case must not borrow the severe prefix"

@@ -62,9 +62,51 @@ def _flag_off_by_default(monkeypatch):
     monkeypatch.setenv("SE_GROW_BOOK", "0")
 
 
+def _served_static_roster():
+    """The static roster AS THE RUN SERVES IT — the literal minus the suspended segments.
+
+    THE BASELINE MOVED WHEN THE DIRECTOR MOVED IT (2026-08-24), and this suite went on
+    measuring against the old one. `live_population` now filters `CUSTOMERS` through
+    `served_segments()` before anything else touches the book, so the whole literal is no
+    longer what any consumer sees: five I&C accounts (`C_IC1`..`C_IC4`, `C_IC3g`) are
+    suspended, and 13 of the 18 are served.
+
+    `_resolve_book() == list(CUSTOMERS)` therefore asserted a state the director had
+    ordered changed. It is the "control that asserts the model stays bad" shape: the
+    assertion reds not because the wire regressed but because the business did what it was
+    told. Both tests below are re-aimed at the served roster, which is what "byte-identical
+    to today's static-book report" has meant since the suspension landed.
+
+    Derived, never listed: hardcoding the five IDs here would be a second copy of
+    `served_segments()`, wrong the first time the director suspends or restores a segment.
+    """
+    from simulation.live_population import _serves, served_segments
+
+    served = served_segments()
+    return [c for c in CUSTOMERS if _serves(c, served)]
+
+
+def test_the_suspension_is_actually_biting_on_this_roster():
+    """NON-VACUITY, and the independence leg (R15 TAUTOLOGY).
+
+    Every assertion below compares the wire against `_served_static_roster()`, which is
+    built from the same predicate `live_population` uses — so on its own it would pass just
+    as happily if the filter became a no-op and the suite silently went back to measuring
+    the whole literal. This states the suspension's effect DIRECTLY instead: business
+    accounts absent, residential accounts present, and the served book strictly smaller than
+    the roster it came from.
+    """
+    served = _served_static_roster()
+    assert len(served) < len(CUSTOMERS), "the filter is a no-op -- the baseline is untrustworthy"
+    assert served, "the filter removed everything -- an empty book proves nothing below"
+    assert not any(c["segment"] in {"ic", "sme"} for c in served), \
+        "a suspended segment is being served"
+    assert any(c["segment"] == "resi" for c in served), "the filter took the resi book too"
+
+
 def test_resolve_book_flag_off_byte_identical_to_static_customers():
-    """Default-OFF the resolved book equals the static literal exactly."""
-    assert _resolve_book() == list(CUSTOMERS)
+    """Default-OFF the resolved book equals the static roster the run actually serves."""
+    assert _resolve_book() == _served_static_roster()
 
 
 def test_resolve_book_flag_on_additively_carries_syn_cohort(monkeypatch):
@@ -84,7 +126,11 @@ def test_resolve_book_flag_on_additively_carries_syn_cohort(monkeypatch):
     monkeypatch.setenv("SE_GROW_BOOK", "0")
     book = _resolve_book()
 
-    static_ids = {c["customer_id"] for c in CUSTOMERS}
+    # SERVED, not the whole literal (2026-08-24 suspension; see `_served_static_roster`).
+    # As `CUSTOMERS`, `static_ids <= live_ids` demanded the book carry five accounts the
+    # director had suspended -- the additivity claim asserted against a roster the run no
+    # longer serves.
+    static_ids = {c["customer_id"] for c in _served_static_roster()}
     live_ids = {c["customer_id"] for c in book}
     syn_ids = live_ids - static_ids
 

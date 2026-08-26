@@ -1,6 +1,7 @@
 """Phase CN: Unit Economics annual report section tests."""
-import pytest
 import json
+
+import pytest
 
 
 def _load_data():
@@ -47,17 +48,39 @@ def test_crisis_year_flagged():
     assert "<<" in result  # at least one low-margin year
 
 
-# 6. Revenue per customer increases through 2022
+# 6. Revenue per customer rises into the 2022 crisis year
 def test_revenue_increases_by_2022():
+    """The CLAIM is that the crisis year lifted revenue per customer. The old assertion
+    was `> £200,000`, which is not that claim -- it is a fact about WHO WAS ON THE BOOK.
+
+    Filed 2026-08-24 as
+    `WORKER_FINDING_A_REV_PER_CUSTOMER_THRESHOLD_TEST_REDS_THE_MOMENT_THE_GROWN_BOOK_IS_COMMITTED`,
+    which named the class exactly: "a test that pins an ABSOLUTE figure which is really a
+    function of population size". £200k per customer is only reachable on a book whose
+    revenue is >98% five industrial accounts. The director suspended I&C on the same day
+    the finding was filed; both stalled; the residential book renders ~£3,500 and this
+    assertion would have reddened every lane the moment the new run output was committed.
+
+    So it now asserts the RISE -- 2022 above the pre-crisis 2020 -- which is the sentence
+    the test's own title makes and which holds on any book. R15: it still fails if the
+    crisis stops showing in the unit economics, which is the thing worth catching.
+    """
     import re
+
     from saas.reporting.annual_report import _section_unit_economics
     data = _load_data()
     result = _section_unit_economics(data)
-    # 2022 crisis year drove revenue per customer into hundreds of thousands
-    rows = [l for l in result.split("\n") if "| 2022 |" in l]
-    assert rows, "No 2022 row in unit economics table"
-    m = re.findall(r"£([\d,]+)", rows[0])
-    assert m and int(m[0].replace(",", "")) > 200_000, f"2022 rev/cust should exceed £200k in crisis year, got {m}"
+
+    def rev_per_customer(year):
+        rows = [line for line in result.split("\n") if f"| {year} |" in line]
+        assert rows, f"No {year} row in unit economics table"
+        figures = re.findall(r"£([\d,]+)", rows[0])
+        assert figures, f"No £ figure in the {year} row: {rows[0]!r}"
+        return int(figures[0].replace(",", ""))
+
+    crisis, pre_crisis = rev_per_customer(2022), rev_per_customer(2020)
+    assert crisis > pre_crisis, (
+        f"2022 rev/cust ({crisis:,}) should exceed pre-crisis 2020 ({pre_crisis:,})")
 
 
 # 7. Best year identified

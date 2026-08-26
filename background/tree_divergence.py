@@ -221,6 +221,58 @@ def breaches(m: dict) -> list[str]:
     return out
 
 
+#: How many multiples past a threshold stop a breach being routine. Set at 5x rather than
+#: tuned: the breach this was written for stood at 29x the file line and 39x the age line,
+#: so any value in this region separates it from the ordinary two-or-three-files-over that
+#: the digest exists to absorb. It is a DIAL -- moving it changes what gets hoisted, never
+#: whether the breach is measured or whether it blocks anything (it blocks nothing).
+ESCALATION_MULTIPLE = 5.0
+
+
+def severity(m: dict) -> dict:
+    """HOW FAR over the line, not merely whether. PURE, so it can be mutation-tested.
+
+    THE CONTROL FIRED CORRECTLY EVERY DAY AND COULD NOT BE HEARD (2026-08-26). This module
+    is report-only by deliberate design and that design is right -- the publish gate's
+    subject is a clean HEAD checkout precisely so a lane's uncommitted work cannot halt
+    publishing. But report-only had come to mean "one line in a batched digest", and
+    `process_run_complete._publish_tree_divergence` routes to that digest on CATEGORY alone.
+    So 436 files at 29x the file threshold, with the oldest at 158h against a 4h line, read
+    exactly like three files two hours over. It was named daily for six days and absorbed
+    every time.
+
+    A control that fires and cannot be heard is the same family as a control that cannot
+    fire, and it fails the same way: the reader learns nothing from the alarm's presence.
+    The repair is not a louder alarm for everything -- that re-teaches the same lesson one
+    volume up -- it is to make MAGNITUDE part of the routing decision, so the ordinary case
+    stays batched and the extraordinary one arrives as itself.
+
+    Returns the worst multiple on each axis and whether either is past
+    `ESCALATION_MULTIPLE`. An UNMEASURABLE tree is severe: it is the one state where the
+    reader most needs to hear something, and it is the state a fail-open would swallow.
+    """
+    if m.get("unavailable"):
+        return {"severe": True, "file_multiple": None, "age_multiple": None,
+                "worst_multiple": None,
+                "reason": "the tree could not be measured, which is a FAILED check"}
+    file_mult = m["total_files"] / FILE_COUNT_THRESHOLD if FILE_COUNT_THRESHOLD else 0.0
+    age_mult = m["oldest_age_hours"] / AGE_HOURS_THRESHOLD if AGE_HOURS_THRESHOLD else 0.0
+    worst = max(file_mult, age_mult)
+    severe = worst >= ESCALATION_MULTIPLE
+    return {
+        "severe": severe,
+        "file_multiple": round(file_mult, 1),
+        "age_multiple": round(age_mult, 1),
+        "worst_multiple": round(worst, 1),
+        "reason": (
+            "{}x the file line ({} vs {}) and {}x the age line ({}h vs {}h)".format(
+                round(file_mult, 1), m["total_files"], FILE_COUNT_THRESHOLD,
+                round(age_mult, 1), m["oldest_age_hours"], AGE_HOURS_THRESHOLD)
+            if severe else "within {}x of both lines".format(ESCALATION_MULTIPLE)
+        ),
+    }
+
+
 def top_squatters(m: dict, n: int = 3) -> str:
     if m.get("unavailable"):   # called in the same log line as the counts; must not raise into
         return "unknown (measure unavailable)"   # the publish path this module observes

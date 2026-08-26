@@ -189,16 +189,35 @@ def annotate_notes(notes: list) -> tuple[list[str], list[dict]]:
 
 
 def _load_atoms(path: Path | None = None):
-    import yaml
+    """Every atom the register is published FROM -- read through the same loader
+    the publisher uses.
 
+    THE SUBJECT HAS TO MATCH THE PUBLISHER'S (2026-08-26). This read the map YAML
+    directly with `yaml.safe_load` while `generate_simplified_data.py` reads it
+    with `map_store.load_atoms`, which also resolves the sharded/closed store.
+    The two therefore scanned different books -- 74 atoms here against the
+    publisher's 298 -- so this module measured the dead-rule exposure of a
+    quarter of the register and reported it as the whole: 29 notes against the
+    81 actually published. Both numbers were computed correctly; they were
+    answers to different questions, and only one of them was the question the
+    docstring asks.
+
+    That is why the count is compared against the PUBLISHED artefact in
+    `test_real_register_exposure_is_measured_and_fully_marked` rather than
+    against itself -- a self-consistent exposure figure is exactly what a
+    narrowed subject produces.
+
+    FAIL-CLOSED (R15) is unchanged: an unavailable or unparseable source returns
+    None, and callers must treat that as "cannot verify", never as an empty pass.
+    """
     src = path or MATURITY_MAP_YAML
     if not src.is_file():
-        # FAIL-CLOSED (R15): an unavailable source is a FAILED check, never a
-        # silent pass. Callers must treat None as "cannot verify".
         return None
     try:
-        data = yaml.safe_load(src.read_text())
-    except yaml.YAMLError:
+        from tools import maturity_map_store as map_store
+
+        data = map_store.load_atoms(src)
+    except Exception:
         return None
     return data if isinstance(data, list) else None
 

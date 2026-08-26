@@ -90,7 +90,7 @@ def get_entry(finding_key: str, path: Path | None = None) -> dict | None:
 
 def get_state(finding_key: str, path: Path | None = None) -> AdjudicationState | None:
     entry = get_entry(finding_key, path)
-    return entry["state"] if entry else None
+    return entry.get("state") if entry else None
 
 
 def is_known(finding_key: str, path: Path | None = None) -> bool:
@@ -100,8 +100,53 @@ def is_known(finding_key: str, path: Path | None = None) -> bool:
     return get_state(finding_key, path) is not None
 
 
+def malformed_entries(path: Path | None = None) -> list[str]:
+    """Ledger keys whose row is not a readable adjudication.
+
+    WHY THIS EXISTS, AND WHY IT IS NOT JUST A `.get()` (2026-08-26, R10/R15).
+    `record_adjudication` validates `state` against `_VALID_STATES` and cannot
+    write a row without one -- but the ledger is a plain JSON file, and a row
+    written into it BY HAND bypasses that writer entirely. One did: the
+    2026-08-25 Expert-Hour verdict on `EP13_adapter_carbon_intensity` carried
+    `verdict`/`fix`/`method`/`independence` and no `state`, and every reader that
+    subscripted `e["state"]` raised `KeyError` on it -- taking down the daily
+    sanity digest, which is the mechanism that would otherwise have REPORTED the
+    problem. The failure silenced its own alarm.
+
+    The readers above now use `.get()`, which keeps one bad row from felling the
+    daemon. On its own that is FAIL-OPEN -- a malformed row would simply vanish
+    from `open_findings()` and nobody would ever learn it was there. So the
+    tolerance is paired with this detector, and a test asserts the REAL ledger
+    has none: the row is skipped by the readers and LOUD in the control, rather
+    than silently dropped by both.
+
+    Instance repaired in the same pass; this is the class (R10).
+
+    SCOPED TO THE DEFECT, DELIBERATELY. The predicate is "has no readable state",
+    NOT "has a state in `_VALID_STATES`". Those are different claims and only the
+    first one is this function's business: `_VALID_STATES` holds three values
+    while the live ledger carries eight (`open-confirmed-defect`, `fixed`,
+    `superseded`, `open-needs-judgement`, `adjudicated-methodology-note` are all
+    in real rows written by hand). That gap is a genuine vocabulary drift between
+    the writer's contract and the ledger's practice, and deciding which of the
+    two is right is an authoring decision, not a repair -- widening the constant
+    here to make this control green would be picking that decision by side
+    effect. Left QUEUED and named, per SELF-INTERRUPT DISCIPLINE. A control whose
+    scope is wider than its claim reds against a later passer-by for a reason its
+    docstring never promised, which is how controls get disabled rather than
+    fixed.
+    """
+    bad = []
+    for key, entry in load_ledger(path).items():
+        if not isinstance(entry, dict):
+            bad.append(key)
+        elif not isinstance(entry.get("state"), str) or not entry["state"].strip():
+            bad.append(key)
+    return sorted(bad)
+
+
 def open_findings(path: Path | None = None) -> list[dict]:
-    return [e for e in load_ledger(path).values() if e["state"] == "open"]
+    return [e for e in load_ledger(path).values() if e.get("state") == "open"]
 
 
 def all_entries(path: Path | None = None) -> list[dict]:

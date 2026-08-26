@@ -1511,8 +1511,10 @@ Part 0 / PROJECT_TAB_OVERHAUL.md / SUPPLIER_TAB_OVERHAUL.md scope, front of queu
   item, not built now (a genuine class-level fix -- wiring the other 19
   invariants, an SME consumption band, independent segment cross-checking --
   is a substantial build, not a quick patch).
-- **three_horizon_clv.py wiring (2026-07-11, found while scoping the /customers/
-  forecast-profit-and-cashflow director page comment)**: `company/core/three_horizon_clv.py`
+- **commitment/actual/re-forecast wiring (2026-07-11, found while scoping the /customers/
+  forecast-profit-and-cashflow director page comment; renamed 2026-08-19 from
+  `three_horizon_clv.py` — see `company/core/commitment_actual_forecast.py`'s module
+  docstring)**: `company/core/commitment_actual_forecast.py`
   has real H1 (signing-time commitment)/H2 (running realized P&L)/H3 (genuinely forward-looking
   discounted forecast with `remaining_contract_years`/`updated_annual_margin_gbp`/
   `updated_churn_probability`) machinery, but is completely unwired -- the only non-test hit

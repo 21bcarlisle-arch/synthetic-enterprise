@@ -2382,14 +2382,29 @@ def _publish_tree_divergence():
             # would page once and then be silent forever, which is the opposite of daily.
             from background import notification_digest
             from background.notify import notify
-            notify("[TREE DIVERGENCE] " + "; ".join(found) + ". By lane: " + _td.top_squatters(m)
-                   + ". Report only — the publish gate's subject is HEAD, so this blocks nothing.",
+            # ROUTED ON MAGNITUDE, NOT CATEGORY ALONE (2026-08-26). G-N3 batches "divergence",
+            # and for the ordinary two-files-over that is exactly right. But routing on the
+            # category by itself made 436 files at 29x the line read like three files at 1.2x:
+            # the breach was named correctly every day for six days and absorbed every time,
+            # because a digest line is what the reader had learned to skim. Report-only stays
+            # report-only -- this still blocks nothing and returns None -- but a breach this
+            # far out now arrives as its own message instead of as one line among many.
+            sev = _td.severity(m)
+            digest_class = None if sev["severe"] else notification_digest.DIVERGENCE
+            prefix = ("[TREE DIVERGENCE — {}x OVER] ".format(sev["worst_multiple"])
+                      if sev["severe"] and sev["worst_multiple"] else "[TREE DIVERGENCE] ")
+            notify(prefix + "; ".join(found)
+                   + (". " + sev["reason"] + "." if sev["severe"] else "")
+                   + " By lane: " + _td.top_squatters(m)
+                   + ". Report only — the publish gate's subject is HEAD, so this blocks nothing."
+                   + (" Walk it by lane and land what is finished; a sweep that only makes the"
+                      " count fall is the same defect wearing a smaller number."
+                      if sev["severe"] else ""),
                    kind="real_alarm",
-                   # G-N3 (director 2026-08-12): "divergence" is one of the four categories he
-                   # named for batching, and this message already says it blocks nothing. It
-                   # goes in the digest; the transition/re-escalate contract above still
-                   # decides WHETHER there is anything to say.
-                   topic_class=notification_digest.DIVERGENCE,
+                   topic_class=digest_class,
+                   # The transition/re-escalate contract is UNCHANGED and still decides whether
+                   # there is anything to say at all. Severity decides only how it travels, so
+                   # a standing severe squat still pages once a day rather than every cycle.
                    transition_key="tree_divergence",
                    state=_td.top_squatters(m),
                    re_escalate_after=24 * 3600)

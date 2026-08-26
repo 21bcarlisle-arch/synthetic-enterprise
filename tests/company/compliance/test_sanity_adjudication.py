@@ -80,3 +80,82 @@ def test_readjudication_overwrites_prior_verdict(path):
     entries = ledger.all_entries(path=path)
     assert len(entries) == 1
     assert entries[0]["state"] == "adjudicated-real"
+
+
+# --- the hand-written row, and the reader it felled ------------------------------------
+# 2026-08-26. `adjudicate()` validates and cannot write a row without a `state`, but the
+# ledger is a plain JSON file and a row written into it BY HAND bypasses that writer. One
+# did -- the Expert-Hour verdict on EP13_adapter_carbon_intensity carried
+# `verdict`/`fix`/`method` and no `state` -- and every reader that subscripted `e["state"]`
+# raised KeyError on it, taking down the daily sanity digest: the very mechanism that would
+# otherwise have reported the problem. The failure silenced its own alarm.
+
+
+def _handwritten_row_without_a_state(path):
+    """A row as a human writes it straight into the JSON -- rich, and stateless."""
+    import json
+    json.dump(
+        {"expert_hour:SOMETHING": {
+            "finding_key": "expert_hour:SOMETHING",
+            "verdict": "NOT_THIS_IS_REAL -- level held",
+            "evidence": "observed-with-evidence",
+        }},
+        path.open("w"),
+    )
+
+
+def test_a_handwritten_row_with_no_state_does_not_fell_the_readers(path):
+    """TOLERANCE. One malformed row must not take down `open_findings()` for the other
+    102 -- the daemon that reports problems cannot be the thing a problem stops."""
+    _handwritten_row_without_a_state(path)
+    assert ledger.open_findings(path=path) == []
+    assert ledger.get_state("expert_hour:SOMETHING", path=path) is None
+    assert ledger.is_known("expert_hour:SOMETHING", path=path) is False
+
+
+def test_the_malformed_row_is_LOUD_rather_than_silently_dropped(path):
+    """THE OTHER HALF, and the one that makes the tolerance safe (R15).
+
+    `.get()` alone is FAIL-OPEN: the row would simply vanish from `open_findings()` and
+    nobody would learn it existed. Skipped by the readers AND named by the control is the
+    only combination that is not a silent drop.
+    """
+    _handwritten_row_without_a_state(path)
+    assert ledger.malformed_entries(path=path) == ["expert_hour:SOMETHING"]
+
+
+def test_the_detector_is_not_a_constant(path):
+    """NULL CONTROL. A detector that always names something is no more use than one that
+    never does -- a well-formed ledger must come back clean."""
+    ledger.adjudicate("a", "open", "e1", "claude", path=path)
+    ledger.adjudicate("b", "adjudicated-real", "e2", "claude", path=path)
+    assert ledger.malformed_entries(path=path) == []
+
+
+@pytest.mark.parametrize(
+    "state", [None, "", "   ", 7, [], {}],
+    ids=["null", "empty", "whitespace", "int", "list", "dict"],
+)
+def test_a_present_but_unreadable_state_counts_as_malformed(path, state):
+    """FAIL-OPEN, PINNED. A `state` that is present but not a usable string is exactly as
+    unreadable as an absent one, and must not slip through on truthiness alone."""
+    import json
+    json.dump({"k": {"finding_key": "k", "state": state}}, path.open("w"))
+    assert ledger.malformed_entries(path=path) == ["k"]
+
+
+def test_a_row_that_is_not_a_dict_at_all_is_caught_not_raised(path):
+    import json
+    json.dump({"k": "this should have been an object"}, path.open("w"))
+    assert ledger.malformed_entries(path=path) == ["k"]
+
+
+def test_THE_REAL_SHIPPED_LEDGER_HAS_NO_MALFORMED_ROWS():
+    """THE LOAD-BEARING ONE. Everything above judges the detector against fixtures; this
+    judges the ledger the daemon actually reads. It is the assertion that would have caught
+    the EP13 row on the day it was written, and it fails on the real file, not a fake one.
+    """
+    assert ledger.malformed_entries() == [], (
+        "a row in docs/observability/sanity_adjudication_ledger.json has no readable "
+        "`state` -- every reader subscripting e['state'] will KeyError on it"
+    )
