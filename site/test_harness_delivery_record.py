@@ -17,6 +17,7 @@ from outside unless the page says which it is.
 """
 from __future__ import annotations
 
+import html as _html
 import json
 import re
 import shutil
@@ -48,7 +49,24 @@ PANELS = ("delivery-kpis", "delivery-did", "delivery-decided", "delivery-wrong",
 
 
 def _text(html: str) -> str:
-    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html or "")).strip()
+    """Recover what a READER sees from a fragment of rendered HTML.
+
+    UNESCAPE, OR THE CHECKER READS A DIFFERENT STRING THAN THE READER (2026-08-26). This stripped
+    tags and collapsed whitespace but left HTML entities intact, so it compared an ESCAPED
+    rendering against the UNESCAPED source JSON. `index.html` renders every mistake through
+    `esc()` -- correctly, it assigns to `.innerHTML` -- so the moment an entry's opening 60
+    characters contained a `"`, `&`, `<` or `>`, the panel carried the text, the browser showed
+    the text, and this helper could not find it.
+
+    It cost eight publish cycles: the first recorded mistake begins `Commit `03b60e1e9` announced
+    in its own subject that "the fi...`, the page rendered `&quot;the fi`, and the site lane
+    refused every publish commit from 04:40 UTC on. That is the same class as the docstring
+    below it -- a control firing on the SUCCESS path -- one layer further down.
+
+    ORDER MATTERS: strip tags FIRST, then unescape. Unescaping first would turn a literal
+    `&lt;b&gt;` in the copy into `<b>` and let the tag-stripper eat a reader-visible string.
+    """
+    return re.sub(r"\s+", " ", _html.unescape(re.sub(r"<[^>]+>", " ", html or ""))).strip()
 
 
 def _render(overrides: dict | None = None) -> dict:
@@ -194,3 +212,27 @@ def test_a_MISSING_delivery_feed_renders_a_stated_absence_and_not_a_blank_page()
     body = _text(out["delivery-did"]["innerHTML"])
 
     assert body, "a broken feed leaves the panel silently empty"
+
+
+def test_the_text_extractor_reads_the_same_string_the_reader_does():
+    """R15 for `_text` itself: the helper every assertion in this file routes through must
+    recover the READER's string, not the markup's.
+
+    This is the control for the 2026-08-26 wedge. `index.html` escapes every mistake through
+    `esc()` before assigning to `.innerHTML`, which is correct -- a browser parsing `&quot;`
+    shows `"`. A checker that skips the unescape compares against a string no reader ever sees
+    and reds on a perfectly good page. Eight publish cycles were refused that way.
+
+    MUTATION (must fire): drop the `_html.unescape(...)` call from `_text` and the entity case
+    below reds. Restore it and it passes.
+    """
+    # The exact shape the door emits: escaped entity inside a stripped tag.
+    assert _text('<p>said &quot;the fi</p>') == 'said "the fi'
+    assert _text("<p>a &amp; b</p>") == "a & b"
+
+    # ORDER: an escaped tag is reader-visible copy and must SURVIVE, not be eaten by the
+    # tag-stripper. This fires if unescape is moved before the tag strip.
+    assert _text("<p>use &lt;b&gt; for bold</p>") == "use <b> for bold"
+
+    # Real tags are still removed, and whitespace still collapses.
+    assert _text('<div class="card">  one   <span>two</span>  </div>') == "one two"
