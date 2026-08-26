@@ -767,3 +767,56 @@ rule on the book it actually serves, by £16,773 over the run, with the three ca
 attached. It does **not** license a headline percentage, a claim about households in general, or
 any figure carried over from the superseded sections — and the £3.08M in particular is now a
 fact about five accounts the company no longer serves.
+
+---
+
+## 2026-08-26 21:45Z — why the delta concentrates: the arm can only act at renewals, and the book is young
+
+The residential re-read left one thing unexplained. Suspending I&C removed a 500x distortion and
+the concentration barely moved — 0.9941 to 0.9935 — and on the resi-only book the top three
+movers are C9, C8 and C2, all *residential* seed accounts. So the concentration was never about
+segments. This is what it is about, measured rather than argued.
+
+**The arm acts ONLY at renewals**, and on the electricity accounts it can price:
+
+| | count | share |
+|---|---|---|
+| electricity accounts on the book | 210 | — |
+| with at least one renewal decision in the window | 156 | 74.3% |
+| **the arm can never act on at all** | **54** | **25.7%** |
+
+And of the 156 it can touch, most it can touch barely:
+
+| renewal decisions | accounts | cumulative |
+|---|---|---|
+| 1 | 53 | 34.0% |
+| 2 | 29 | 52.6% |
+| 3 | 28 | 70.5% |
+| 4 | 9 | 76.3% |
+| 5–9 | 37 | 100% |
+
+Median **2**, mean 2.96. **Only 37 accounts — 17.6% of the priceable book — have five or more
+renewals**, and those are where a per-customer strategy has room to compound: each decision moves
+the rate the next one starts from, so the effect is cumulative in a way a single decision is not.
+
+That is the concentration, fully explained. C1–C9 were acquired in 2016 and have nine renewals
+each; a PROS-2024 account has one. **Exposure to a renewal-time arm is proportional to renewal
+count, and this book's renewal count is dominated by nine accounts.** Changing which segments are
+served could never have fixed that, and did not.
+
+### What follows, and what does not
+
+**This is not a defect and there is nothing here to repair.** A four-year-old supplier really does
+have a young book, and an arm that prices at renewal really can only act when a customer renews.
+Both are faithful.
+
+**It does bound what any A/B on this book can show.** A per-customer pricing result measured here
+is a result about 37 accounts with room to compound plus 119 with one or two decisions each — and
+that is worth stating beside any future headline, positive or negative.
+
+**The lever is the WINDOW or the BOOK'S AGE, and both are curriculum — the director's, not this
+seat's (R13).** The baseline world changes only for fidelity reasons decided blind to company
+P&L, and this seat has just watched book age move the company's P&L, which makes it exactly the
+change it must not make. Recorded here for whoever holds the curriculum. A longer window over the
+same real history, or a book seeded with more mature accounts, would give the arm more decisions
+per customer; whether either is the world this company should live in is not an engineering call.
