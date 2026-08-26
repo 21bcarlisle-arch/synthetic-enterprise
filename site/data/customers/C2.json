@@ -22,60 +22,60 @@
     "recommended_uplift_pct": null
   },
   "avg_hedge_fraction": 0.919,
-  "clv_gbp": 855.12,
+  "clv_gbp": 596.4,
   "churn_probability": 0.41,
-  "expected_lifetime_periods": 14.53,
-  "forecast_annual_profit_gbp": 114.1,
+  "expected_lifetime_periods": 13.07,
+  "forecast_annual_profit_gbp": 83.75,
   "forecast_cashflow": [
     {
       "year_offset": 1,
-      "undiscounted_gbp": 114.1,
-      "discounted_gbp": 103.73
+      "undiscounted_gbp": 83.75,
+      "discounted_gbp": 76.14
     },
     {
       "year_offset": 2,
-      "undiscounted_gbp": 114.1,
-      "discounted_gbp": 94.3
+      "undiscounted_gbp": 83.75,
+      "discounted_gbp": 69.22
     },
     {
       "year_offset": 3,
-      "undiscounted_gbp": 114.1,
-      "discounted_gbp": 85.73
+      "undiscounted_gbp": 83.75,
+      "discounted_gbp": 62.93
     },
     {
       "year_offset": 4,
-      "undiscounted_gbp": 114.1,
-      "discounted_gbp": 77.94
+      "undiscounted_gbp": 83.75,
+      "discounted_gbp": 57.2
     },
     {
       "year_offset": 5,
-      "undiscounted_gbp": 114.1,
-      "discounted_gbp": 70.85
+      "undiscounted_gbp": 83.75,
+      "discounted_gbp": 52.0
     },
     {
       "year_offset": 6,
-      "undiscounted_gbp": 114.1,
-      "discounted_gbp": 64.41
+      "undiscounted_gbp": 83.75,
+      "discounted_gbp": 47.28
     },
     {
       "year_offset": 7,
-      "undiscounted_gbp": 114.1,
-      "discounted_gbp": 58.55
+      "undiscounted_gbp": 83.75,
+      "discounted_gbp": 42.98
     },
     {
       "year_offset": 8,
-      "undiscounted_gbp": 114.1,
-      "discounted_gbp": 53.23
+      "undiscounted_gbp": 83.75,
+      "discounted_gbp": 39.07
     },
     {
       "year_offset": 9,
-      "undiscounted_gbp": 114.1,
-      "discounted_gbp": 48.39
+      "undiscounted_gbp": 83.75,
+      "discounted_gbp": 35.52
     },
     {
       "year_offset": 10,
-      "undiscounted_gbp": 114.1,
-      "discounted_gbp": 43.99
+      "undiscounted_gbp": 83.75,
+      "discounted_gbp": 32.29
     }
   ],
   "forward_looking_basis": "account",
@@ -89,10 +89,10 @@
   },
   "dual_fuel_combined": {
     "gas_account_id": "C2g",
-    "gas_lifetime_net_gbp": 1027.25,
-    "gas_lifetime_revenue_gbp": 7846.18,
-    "combined_net_gbp": 2037.92,
-    "combined_revenue_gbp": 14590.09
+    "gas_lifetime_net_gbp": 754.09,
+    "gas_lifetime_revenue_gbp": 7573.02,
+    "combined_net_gbp": 1764.76,
+    "combined_revenue_gbp": 14316.93
   },
   "annual_pnl": [
     {
@@ -4774,7 +4774,7 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-21",
+    "as_of_date": "2025-06-23",
     "entries": [
       {
         "date": "2016-05-01",
@@ -7806,7 +7806,7 @@
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 5% churn risk at decision time, SIM realized probability was 1%.",
       "company_belief": 0.048,
-      "sim_truth": 0.008,
+      "sim_truth": 0.011,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null

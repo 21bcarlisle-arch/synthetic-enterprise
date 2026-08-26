@@ -15,20 +15,20 @@
     "open_findings": 29
   },
   "last_verified": {
-    "generated_at": "2026-08-26T18:50:34Z",
-    "git_commit": "6c732c989",
-    "run_id": "run_output_6c732c989_20260826T182701Z.json",
-    "verified_at": "2026-08-26T18:50:34Z"
+    "generated_at": "2026-08-26T21:38:29Z",
+    "git_commit": "e13dd038d",
+    "run_id": "run_output_e13dd038d_20260826T194343Z.json",
+    "verified_at": "2026-08-26T21:38:29Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=3510b43e2; blocking tests: FAILED tests/tools/test_generate_dashboard_data_population_seam.py::test_resolve_book_flag_off_byte_identical_to_static_customers, FAILED tests/tools/test_generate_dashboard_data_population_seam.py::test_resolve_book_flag_on_additively_carries_syn_cohort",
-  "paused_since": "2026-08-26T20:18:10Z",
+  "paused_reason": null,
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-26T18:50:34Z",
-    "git_commit": "6c732c989",
-    "run_id": "run_output_6c732c989_20260826T182701Z.json",
-    "verified_at": "2026-08-26T18:50:34Z"
+    "generated_at": "2026-08-26T21:38:29Z",
+    "git_commit": "e13dd038d",
+    "run_id": "run_output_e13dd038d_20260826T194343Z.json",
+    "verified_at": "2026-08-26T21:38:29Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-08-26T21:24:05Z"
+  "verification_state": "verified",
+  "written_at": "2026-08-26T21:38:29Z"
 }

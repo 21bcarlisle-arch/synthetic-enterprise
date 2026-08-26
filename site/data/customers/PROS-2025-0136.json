@@ -3,7 +3,7 @@
   "base_account_id": "PROS-2025-0136",
   "segment": "resi",
   "commodity": "electricity",
-  "is_dual_fuel": false,
+  "is_dual_fuel": true,
   "acquisition_date": "2025-05-01",
   "tariff_name": "Standard Variable (Electricity)",
   "meter_type": "Smart",
@@ -36,7 +36,13 @@
     },
     "gas": null
   },
-  "dual_fuel_combined": null,
+  "dual_fuel_combined": {
+    "gas_account_id": "PROS-2025-0136g",
+    "gas_lifetime_net_gbp": 18.28,
+    "gas_lifetime_revenue_gbp": 46.79,
+    "combined_net_gbp": 46.35,
+    "combined_revenue_gbp": 132.01
+  },
   "annual_pnl": [
     {
       "year": 2025,
@@ -57,7 +63,7 @@
   ],
   "invoices": [
     {
-      "id": "PROS-2025-0136-INV7238",
+      "id": "PROS-2025-0136-INV12450",
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
@@ -98,7 +104,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0136-INV7239",
+      "id": "PROS-2025-0136-INV12451",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -140,26 +146,26 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-21",
+    "as_of_date": "2025-06-23",
     "entries": [
       {
         "date": "2025-06-01",
         "type": "invoice_raised",
-        "invoice_number": 7238,
+        "invoice_number": 12450,
         "amount_gbp": 85.71,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7238 raised",
+        "description": "Invoice INV12450 raised",
         "running_balance_gbp": 85.71
       },
       {
         "date": "2025-06-11",
         "type": "invoice_raised",
-        "invoice_number": 7239,
+        "invoice_number": 12451,
         "amount_gbp": 18.96,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7239 raised",
+        "description": "Invoice INV12451 raised",
         "running_balance_gbp": 104.67
       }
     ],

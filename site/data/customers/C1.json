@@ -38,10 +38,10 @@
   },
   "dual_fuel_combined": {
     "gas_account_id": "C1g",
-    "gas_lifetime_net_gbp": 744.76,
-    "gas_lifetime_revenue_gbp": 2929.05,
-    "combined_net_gbp": 1237.22,
-    "combined_revenue_gbp": 4809.15
+    "gas_lifetime_net_gbp": 741.02,
+    "gas_lifetime_revenue_gbp": 2925.3,
+    "combined_net_gbp": 1233.48,
+    "combined_revenue_gbp": 4805.41
   },
   "annual_pnl": [
     {
@@ -3091,7 +3091,7 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-21",
+    "as_of_date": "2025-06-23",
     "entries": [
       {
         "date": "2016-02-05",
@@ -4916,9 +4916,9 @@
       "customer_id": "C1",
       "date": "2019-12-31",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 8% churn risk at decision time, SIM realized probability was 4%.",
+      "description": "Renewal outcome: RENEWED -- company believed 8% churn risk at decision time, SIM realized probability was 3%.",
       "company_belief": 0.085,
-      "sim_truth": 0.038,
+      "sim_truth": 0.033,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null

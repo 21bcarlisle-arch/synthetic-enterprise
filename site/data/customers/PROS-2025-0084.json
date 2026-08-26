@@ -3,7 +3,7 @@
   "base_account_id": "PROS-2025-0084",
   "segment": "resi",
   "commodity": "electricity",
-  "is_dual_fuel": false,
+  "is_dual_fuel": true,
   "acquisition_date": "2025-03-20",
   "tariff_name": "Standard Variable (Electricity)",
   "meter_type": "Smart",
@@ -36,7 +36,13 @@
     },
     "gas": null
   },
-  "dual_fuel_combined": null,
+  "dual_fuel_combined": {
+    "gas_account_id": "PROS-2025-0084g",
+    "gas_lifetime_net_gbp": 46.03,
+    "gas_lifetime_revenue_gbp": 191.97,
+    "combined_net_gbp": 139.47,
+    "combined_revenue_gbp": 517.24
+  },
   "annual_pnl": [
     {
       "year": 2025,
@@ -50,7 +56,7 @@
   "timeline": [],
   "invoices": [
     {
-      "id": "PROS-2025-0084-INV7192",
+      "id": "PROS-2025-0084-INV12362",
       "date": "2025-03-31",
       "period_start": "2025-03-20",
       "period_end": "2025-03-31",
@@ -91,7 +97,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0084-INV7193",
+      "id": "PROS-2025-0084-INV12363",
       "date": "2025-04-30",
       "period_start": "2025-04-01",
       "period_end": "2025-04-30",
@@ -132,7 +138,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0084-INV7194",
+      "id": "PROS-2025-0084-INV12364",
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
@@ -173,7 +179,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0084-INV7195",
+      "id": "PROS-2025-0084-INV12365",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -215,22 +221,22 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-21",
+    "as_of_date": "2025-06-23",
     "entries": [
       {
         "date": "2025-04-01",
         "type": "invoice_raised",
-        "invoice_number": 7192,
+        "invoice_number": 12362,
         "amount_gbp": 71.13,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7192 raised",
+        "description": "Invoice INV12362 raised",
         "running_balance_gbp": 71.13
       },
       {
         "date": "2025-04-15",
         "type": "payment_received",
-        "invoice_number": 7192,
+        "invoice_number": 12362,
         "amount_gbp": -71.13,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -240,17 +246,17 @@
       {
         "date": "2025-05-04",
         "type": "invoice_raised",
-        "invoice_number": 7193,
+        "invoice_number": 12363,
         "amount_gbp": 149.87,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7193 raised",
+        "description": "Invoice INV12363 raised",
         "running_balance_gbp": 149.87
       },
       {
         "date": "2025-05-18",
         "type": "payment_received",
-        "invoice_number": 7193,
+        "invoice_number": 12363,
         "amount_gbp": -149.87,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -260,27 +266,27 @@
       {
         "date": "2025-06-03",
         "type": "invoice_raised",
-        "invoice_number": 7194,
+        "invoice_number": 12364,
         "amount_gbp": 145.66,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7194 raised",
+        "description": "Invoice INV12364 raised",
         "running_balance_gbp": 145.66
       },
       {
         "date": "2025-06-12",
         "type": "invoice_raised",
-        "invoice_number": 7195,
+        "invoice_number": 12365,
         "amount_gbp": 32.14,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7195 raised",
+        "description": "Invoice INV12365 raised",
         "running_balance_gbp": 177.8
       },
       {
         "date": "2025-06-17",
         "type": "payment_received",
-        "invoice_number": 7194,
+        "invoice_number": 12364,
         "amount_gbp": -145.66,
         "info_amount_gbp": null,
         "method": "standard_credit",

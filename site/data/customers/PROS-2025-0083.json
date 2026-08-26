@@ -3,7 +3,7 @@
   "base_account_id": "PROS-2025-0083",
   "segment": "resi",
   "commodity": "electricity",
-  "is_dual_fuel": false,
+  "is_dual_fuel": true,
   "acquisition_date": "2025-03-20",
   "tariff_name": "Standard Variable (Electricity)",
   "meter_type": "Smart",
@@ -36,7 +36,13 @@
     },
     "gas": null
   },
-  "dual_fuel_combined": null,
+  "dual_fuel_combined": {
+    "gas_account_id": "PROS-2025-0083g",
+    "gas_lifetime_net_gbp": 44.39,
+    "gas_lifetime_revenue_gbp": 179.02,
+    "combined_net_gbp": 175.74,
+    "combined_revenue_gbp": 821.02
+  },
   "annual_pnl": [
     {
       "year": 2025,
@@ -57,7 +63,7 @@
   ],
   "invoices": [
     {
-      "id": "PROS-2025-0083-INV7188",
+      "id": "PROS-2025-0083-INV12354",
       "date": "2025-03-31",
       "period_start": "2025-03-20",
       "period_end": "2025-03-31",
@@ -98,7 +104,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0083-INV7189",
+      "id": "PROS-2025-0083-INV12355",
       "date": "2025-04-30",
       "period_start": "2025-04-01",
       "period_end": "2025-04-30",
@@ -139,7 +145,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0083-INV7190",
+      "id": "PROS-2025-0083-INV12356",
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
@@ -180,7 +186,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0083-INV7191",
+      "id": "PROS-2025-0083-INV12357",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -222,22 +228,22 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-21",
+    "as_of_date": "2025-06-23",
     "entries": [
       {
         "date": "2025-04-01",
         "type": "invoice_raised",
-        "invoice_number": 7188,
+        "invoice_number": 12354,
         "amount_gbp": 158.18,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7188 raised",
+        "description": "Invoice INV12354 raised",
         "running_balance_gbp": 158.18
       },
       {
         "date": "2025-04-15",
         "type": "payment_received",
-        "invoice_number": 7188,
+        "invoice_number": 12354,
         "amount_gbp": -158.18,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -247,17 +253,17 @@
       {
         "date": "2025-05-02",
         "type": "invoice_raised",
-        "invoice_number": 7189,
+        "invoice_number": 12355,
         "amount_gbp": 323.41,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7189 raised",
+        "description": "Invoice INV12355 raised",
         "running_balance_gbp": 323.41
       },
       {
         "date": "2025-05-16",
         "type": "payment_received",
-        "invoice_number": 7189,
+        "invoice_number": 12355,
         "amount_gbp": -323.41,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -267,27 +273,27 @@
       {
         "date": "2025-06-04",
         "type": "invoice_raised",
-        "invoice_number": 7190,
+        "invoice_number": 12356,
         "amount_gbp": 270.47,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7190 raised",
+        "description": "Invoice INV12356 raised",
         "running_balance_gbp": 270.47
       },
       {
         "date": "2025-06-10",
         "type": "invoice_raised",
-        "invoice_number": 7191,
+        "invoice_number": 12357,
         "amount_gbp": 47.33,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7191 raised",
+        "description": "Invoice INV12357 raised",
         "running_balance_gbp": 317.8
       },
       {
         "date": "2025-06-18",
         "type": "payment_received",
-        "invoice_number": 7190,
+        "invoice_number": 12356,
         "amount_gbp": -270.47,
         "info_amount_gbp": null,
         "method": "direct_debit",

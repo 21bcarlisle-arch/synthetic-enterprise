@@ -3,7 +3,7 @@
   "base_account_id": "PROS-2025-0153",
   "segment": "resi",
   "commodity": "electricity",
-  "is_dual_fuel": false,
+  "is_dual_fuel": true,
   "acquisition_date": "2025-05-13",
   "tariff_name": "Standard Variable (Electricity)",
   "meter_type": "Smart",
@@ -36,7 +36,13 @@
     },
     "gas": null
   },
-  "dual_fuel_combined": null,
+  "dual_fuel_combined": {
+    "gas_account_id": "PROS-2025-0153g",
+    "gas_lifetime_net_gbp": 7.32,
+    "gas_lifetime_revenue_gbp": 30.87,
+    "combined_net_gbp": 29.2,
+    "combined_revenue_gbp": 103.23
+  },
   "annual_pnl": [
     {
       "year": 2025,
@@ -58,7 +64,7 @@
   ],
   "invoices": [
     {
-      "id": "PROS-2025-0153-INV7244",
+      "id": "PROS-2025-0153-INV12461",
       "date": "2025-05-31",
       "period_start": "2025-05-13",
       "period_end": "2025-05-31",
@@ -99,7 +105,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2025-0153-INV7245",
+      "id": "PROS-2025-0153-INV12462",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -141,32 +147,32 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-21",
+    "as_of_date": "2025-06-23",
     "entries": [
       {
         "date": "2025-06-01",
         "type": "invoice_raised",
-        "invoice_number": 7244,
+        "invoice_number": 12461,
         "amount_gbp": 65.45,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7244 raised",
+        "description": "Invoice INV12461 raised",
         "running_balance_gbp": 65.45
       },
       {
         "date": "2025-06-07",
         "type": "invoice_raised",
-        "invoice_number": 7245,
+        "invoice_number": 12462,
         "amount_gbp": 24.07,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7245 raised",
+        "description": "Invoice INV12462 raised",
         "running_balance_gbp": 89.52
       },
       {
         "date": "2025-06-15",
         "type": "payment_received",
-        "invoice_number": 7244,
+        "invoice_number": 12461,
         "amount_gbp": -65.45,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -176,7 +182,7 @@
       {
         "date": "2025-06-21",
         "type": "payment_failed",
-        "invoice_number": 7245,
+        "invoice_number": 12462,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",

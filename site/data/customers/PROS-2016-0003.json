@@ -3,7 +3,7 @@
   "base_account_id": "PROS-2016-0003",
   "segment": "resi",
   "commodity": "electricity",
-  "is_dual_fuel": false,
+  "is_dual_fuel": true,
   "acquisition_date": "2016-01-06",
   "tariff_name": "Standard Variable (Electricity)",
   "meter_type": "Traditional",
@@ -36,7 +36,13 @@
     },
     "gas": null
   },
-  "dual_fuel_combined": null,
+  "dual_fuel_combined": {
+    "gas_account_id": "PROS-2016-0003g",
+    "gas_lifetime_net_gbp": 227.9,
+    "gas_lifetime_revenue_gbp": 932.77,
+    "combined_net_gbp": 504.47,
+    "combined_revenue_gbp": 2322.43
+  },
   "annual_pnl": [
     {
       "year": 2016,
@@ -1113,7 +1119,7 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-21",
+    "as_of_date": "2025-06-23",
     "entries": [
       {
         "date": "2016-02-03",

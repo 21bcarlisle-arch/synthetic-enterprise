@@ -3,7 +3,7 @@
   "base_account_id": "PROS-2021-0051",
   "segment": "resi",
   "commodity": "electricity",
-  "is_dual_fuel": false,
+  "is_dual_fuel": true,
   "acquisition_date": "2021-02-16",
   "tariff_name": "Standard Variable (Electricity)",
   "meter_type": "Smart",
@@ -12,10 +12,10 @@
     "bottom_line": "23901660421"
   },
   "mprn": null,
-  "lifetime_revenue_gbp": 5054.43,
-  "lifetime_gross_gbp": 2907.42,
-  "lifetime_net_gbp": 975.45,
-  "lifetime_net_after_cts_gbp": 738.49,
+  "lifetime_revenue_gbp": 5054.45,
+  "lifetime_gross_gbp": 2907.44,
+  "lifetime_net_gbp": 975.48,
+  "lifetime_net_after_cts_gbp": 738.51,
   "cost_to_serve_gbp": 236.96,
   "pricing_action": {
     "flag": "OK",
@@ -31,12 +31,18 @@
   "forward_looking_account_id": "PROS-2021-0051",
   "commodity_split": {
     "electricity": {
-      "net_gbp": 975.45,
-      "revenue_gbp": 5054.43
+      "net_gbp": 975.48,
+      "revenue_gbp": 5054.45
     },
     "gas": null
   },
-  "dual_fuel_combined": null,
+  "dual_fuel_combined": {
+    "gas_account_id": "PROS-2021-0051g",
+    "gas_lifetime_net_gbp": 260.66,
+    "gas_lifetime_revenue_gbp": 2857.83,
+    "combined_net_gbp": 1236.14,
+    "combined_revenue_gbp": 7912.28
+  },
   "annual_pnl": [
     {
       "year": 2021,
@@ -73,10 +79,10 @@
     {
       "year": 2025,
       "revenue_gbp": 0,
-      "gross_gbp": 298.86,
-      "net_gbp": 64.15,
+      "gross_gbp": 298.89,
+      "net_gbp": 64.18,
       "tariff_min": 168.29,
-      "tariff_max": 327.74
+      "tariff_max": 327.77
     }
   ],
   "timeline": [
@@ -119,13 +125,13 @@
       "date": "2025-02-15",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 218.0 \u00a3/MWh",
+      "detail": "Tariff renewed at 219.0 \u00a3/MWh",
       "effect": "Unit rate stepped 21.54p/kWh -> 21.57p/kWh"
     }
   ],
   "invoices": [
     {
-      "id": "PROS-2021-0051-INV4322",
+      "id": "PROS-2021-0051-INV6909",
       "date": "2021-02-28",
       "period_start": "2021-02-16",
       "period_end": "2021-02-28",
@@ -166,7 +172,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4323",
+      "id": "PROS-2021-0051-INV6910",
       "date": "2021-03-31",
       "period_start": "2021-03-01",
       "period_end": "2021-03-31",
@@ -207,7 +213,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4324",
+      "id": "PROS-2021-0051-INV6911",
       "date": "2021-04-30",
       "period_start": "2021-04-01",
       "period_end": "2021-04-30",
@@ -248,7 +254,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4325",
+      "id": "PROS-2021-0051-INV6912",
       "date": "2021-05-31",
       "period_start": "2021-05-01",
       "period_end": "2021-05-31",
@@ -289,7 +295,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4326",
+      "id": "PROS-2021-0051-INV6913",
       "date": "2021-06-30",
       "period_start": "2021-06-01",
       "period_end": "2021-06-30",
@@ -330,7 +336,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4327",
+      "id": "PROS-2021-0051-INV6914",
       "date": "2021-07-31",
       "period_start": "2021-07-01",
       "period_end": "2021-07-31",
@@ -371,7 +377,7 @@
       "catchup_back_billing_cap_applied": false
     },
     {
-      "id": "PROS-2021-0051-INV4328",
+      "id": "PROS-2021-0051-INV6915",
       "date": "2021-08-31",
       "period_start": "2021-08-01",
       "period_end": "2021-08-31",
@@ -412,7 +418,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4329",
+      "id": "PROS-2021-0051-INV6916",
       "date": "2021-09-30",
       "period_start": "2021-09-01",
       "period_end": "2021-09-30",
@@ -453,7 +459,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4330",
+      "id": "PROS-2021-0051-INV6917",
       "date": "2021-10-31",
       "period_start": "2021-10-01",
       "period_end": "2021-10-31",
@@ -494,7 +500,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4331",
+      "id": "PROS-2021-0051-INV6918",
       "date": "2021-11-30",
       "period_start": "2021-11-01",
       "period_end": "2021-11-30",
@@ -535,7 +541,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4332",
+      "id": "PROS-2021-0051-INV6919",
       "date": "2021-12-31",
       "period_start": "2021-12-01",
       "period_end": "2021-12-31",
@@ -576,7 +582,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4333",
+      "id": "PROS-2021-0051-INV6920",
       "date": "2022-01-31",
       "period_start": "2022-01-01",
       "period_end": "2022-01-31",
@@ -617,7 +623,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4334",
+      "id": "PROS-2021-0051-INV6921",
       "date": "2022-02-28",
       "period_start": "2022-02-01",
       "period_end": "2022-02-28",
@@ -658,7 +664,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4335",
+      "id": "PROS-2021-0051-INV6922",
       "date": "2022-03-31",
       "period_start": "2022-03-01",
       "period_end": "2022-03-31",
@@ -699,7 +705,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4336",
+      "id": "PROS-2021-0051-INV6923",
       "date": "2022-04-30",
       "period_start": "2022-04-01",
       "period_end": "2022-04-30",
@@ -740,7 +746,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4337",
+      "id": "PROS-2021-0051-INV6924",
       "date": "2022-05-31",
       "period_start": "2022-05-01",
       "period_end": "2022-05-31",
@@ -781,7 +787,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4338",
+      "id": "PROS-2021-0051-INV6925",
       "date": "2022-06-30",
       "period_start": "2022-06-01",
       "period_end": "2022-06-30",
@@ -822,7 +828,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4339",
+      "id": "PROS-2021-0051-INV6926",
       "date": "2022-07-31",
       "period_start": "2022-07-01",
       "period_end": "2022-07-31",
@@ -863,7 +869,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4340",
+      "id": "PROS-2021-0051-INV6927",
       "date": "2022-08-31",
       "period_start": "2022-08-01",
       "period_end": "2022-08-31",
@@ -904,7 +910,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4341",
+      "id": "PROS-2021-0051-INV6928",
       "date": "2022-09-30",
       "period_start": "2022-09-01",
       "period_end": "2022-09-30",
@@ -945,7 +951,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4342",
+      "id": "PROS-2021-0051-INV6929",
       "date": "2022-10-31",
       "period_start": "2022-10-01",
       "period_end": "2022-10-31",
@@ -986,7 +992,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4343",
+      "id": "PROS-2021-0051-INV6930",
       "date": "2022-11-30",
       "period_start": "2022-11-01",
       "period_end": "2022-11-30",
@@ -1027,7 +1033,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4344",
+      "id": "PROS-2021-0051-INV6931",
       "date": "2022-12-31",
       "period_start": "2022-12-01",
       "period_end": "2022-12-31",
@@ -1068,7 +1074,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4345",
+      "id": "PROS-2021-0051-INV6932",
       "date": "2023-01-31",
       "period_start": "2023-01-01",
       "period_end": "2023-01-31",
@@ -1109,7 +1115,7 @@
       "catchup_back_billing_cap_applied": false
     },
     {
-      "id": "PROS-2021-0051-INV4346",
+      "id": "PROS-2021-0051-INV6933",
       "date": "2023-02-28",
       "period_start": "2023-02-01",
       "period_end": "2023-02-28",
@@ -1150,7 +1156,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4347",
+      "id": "PROS-2021-0051-INV6934",
       "date": "2023-03-31",
       "period_start": "2023-03-01",
       "period_end": "2023-03-31",
@@ -1191,7 +1197,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4348",
+      "id": "PROS-2021-0051-INV6935",
       "date": "2023-04-30",
       "period_start": "2023-04-01",
       "period_end": "2023-04-30",
@@ -1232,7 +1238,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4349",
+      "id": "PROS-2021-0051-INV6936",
       "date": "2023-05-31",
       "period_start": "2023-05-01",
       "period_end": "2023-05-31",
@@ -1273,7 +1279,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4350",
+      "id": "PROS-2021-0051-INV6937",
       "date": "2023-06-30",
       "period_start": "2023-06-01",
       "period_end": "2023-06-30",
@@ -1314,7 +1320,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4351",
+      "id": "PROS-2021-0051-INV6938",
       "date": "2023-07-31",
       "period_start": "2023-07-01",
       "period_end": "2023-07-31",
@@ -1355,7 +1361,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4352",
+      "id": "PROS-2021-0051-INV6939",
       "date": "2023-08-31",
       "period_start": "2023-08-01",
       "period_end": "2023-08-31",
@@ -1396,7 +1402,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4353",
+      "id": "PROS-2021-0051-INV6940",
       "date": "2023-09-30",
       "period_start": "2023-09-01",
       "period_end": "2023-09-30",
@@ -1437,7 +1443,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4354",
+      "id": "PROS-2021-0051-INV6941",
       "date": "2023-10-31",
       "period_start": "2023-10-01",
       "period_end": "2023-10-31",
@@ -1478,7 +1484,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4355",
+      "id": "PROS-2021-0051-INV6942",
       "date": "2023-11-30",
       "period_start": "2023-11-01",
       "period_end": "2023-11-30",
@@ -1519,7 +1525,7 @@
       "catchup_back_billing_cap_applied": false
     },
     {
-      "id": "PROS-2021-0051-INV4356",
+      "id": "PROS-2021-0051-INV6943",
       "date": "2023-12-31",
       "period_start": "2023-12-01",
       "period_end": "2023-12-31",
@@ -1560,7 +1566,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4357",
+      "id": "PROS-2021-0051-INV6944",
       "date": "2024-01-31",
       "period_start": "2024-01-01",
       "period_end": "2024-01-31",
@@ -1601,7 +1607,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4358",
+      "id": "PROS-2021-0051-INV6945",
       "date": "2024-02-29",
       "period_start": "2024-02-01",
       "period_end": "2024-02-29",
@@ -1642,7 +1648,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4359",
+      "id": "PROS-2021-0051-INV6946",
       "date": "2024-03-31",
       "period_start": "2024-03-01",
       "period_end": "2024-03-31",
@@ -1683,7 +1689,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4360",
+      "id": "PROS-2021-0051-INV6947",
       "date": "2024-04-30",
       "period_start": "2024-04-01",
       "period_end": "2024-04-30",
@@ -1724,7 +1730,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4361",
+      "id": "PROS-2021-0051-INV6948",
       "date": "2024-05-31",
       "period_start": "2024-05-01",
       "period_end": "2024-05-31",
@@ -1765,7 +1771,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4362",
+      "id": "PROS-2021-0051-INV6949",
       "date": "2024-06-30",
       "period_start": "2024-06-01",
       "period_end": "2024-06-30",
@@ -1806,7 +1812,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4363",
+      "id": "PROS-2021-0051-INV6950",
       "date": "2024-07-31",
       "period_start": "2024-07-01",
       "period_end": "2024-07-31",
@@ -1847,7 +1853,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4364",
+      "id": "PROS-2021-0051-INV6951",
       "date": "2024-08-31",
       "period_start": "2024-08-01",
       "period_end": "2024-08-31",
@@ -1888,7 +1894,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4365",
+      "id": "PROS-2021-0051-INV6952",
       "date": "2024-09-30",
       "period_start": "2024-09-01",
       "period_end": "2024-09-30",
@@ -1929,7 +1935,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4366",
+      "id": "PROS-2021-0051-INV6953",
       "date": "2024-10-31",
       "period_start": "2024-10-01",
       "period_end": "2024-10-31",
@@ -1970,7 +1976,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4367",
+      "id": "PROS-2021-0051-INV6954",
       "date": "2024-11-30",
       "period_start": "2024-11-01",
       "period_end": "2024-11-30",
@@ -2011,7 +2017,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4368",
+      "id": "PROS-2021-0051-INV6955",
       "date": "2024-12-31",
       "period_start": "2024-12-01",
       "period_end": "2024-12-31",
@@ -2052,7 +2058,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4369",
+      "id": "PROS-2021-0051-INV6956",
       "date": "2025-01-31",
       "period_start": "2025-01-01",
       "period_end": "2025-01-31",
@@ -2093,7 +2099,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4370",
+      "id": "PROS-2021-0051-INV6957",
       "date": "2025-02-28",
       "period_start": "2025-02-01",
       "period_end": "2025-02-28",
@@ -2134,20 +2140,20 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4371",
+      "id": "PROS-2021-0051-INV6958",
       "date": "2025-03-31",
       "period_start": "2025-03-01",
       "period_end": "2025-03-31",
       "commodity": "electricity",
       "consumption_kwh": 382.4,
-      "unit_rate_p_per_kwh": 21.543,
-      "commodity_amount_gbp": 82.38,
+      "unit_rate_p_per_kwh": 21.546,
+      "commodity_amount_gbp": 82.39,
       "standing_charge_gbp": 18.88,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.609,
       "non_commodity_amount_gbp": 21.03,
-      "vat_gbp": 6.11,
-      "amount_gbp": 128.4,
+      "vat_gbp": 6.12,
+      "amount_gbp": 128.42,
       "status": "PAID",
       "meter_serial": "M00061814",
       "mpan": "1000000000809",
@@ -2160,8 +2166,8 @@
           "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 382.4,
-          "amount_gbp": 82.38,
-          "unit_rate_p_per_kwh": 21.543
+          "amount_gbp": 82.39,
+          "unit_rate_p_per_kwh": 21.546
         }
       ],
       "catchup_applied": false,
@@ -2175,7 +2181,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4372",
+      "id": "PROS-2021-0051-INV6959",
       "date": "2025-04-30",
       "period_start": "2025-04-01",
       "period_end": "2025-04-30",
@@ -2216,7 +2222,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4373",
+      "id": "PROS-2021-0051-INV6960",
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
@@ -2257,7 +2263,7 @@
       "catchup_back_billing_cap_applied": null
     },
     {
-      "id": "PROS-2021-0051-INV4374",
+      "id": "PROS-2021-0051-INV6961",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -2299,22 +2305,22 @@
     }
   ],
   "ledger": {
-    "as_of_date": "2025-06-21",
+    "as_of_date": "2025-06-23",
     "entries": [
       {
         "date": "2021-03-04",
         "type": "invoice_raised",
-        "invoice_number": 4322,
+        "invoice_number": 6909,
         "amount_gbp": 41.44,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4322 raised",
+        "description": "Invoice INV6909 raised",
         "running_balance_gbp": 41.44
       },
       {
         "date": "2021-03-18",
         "type": "payment_received",
-        "invoice_number": 4322,
+        "invoice_number": 6909,
         "amount_gbp": -41.44,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2324,17 +2330,17 @@
       {
         "date": "2021-04-04",
         "type": "invoice_raised",
-        "invoice_number": 4323,
+        "invoice_number": 6910,
         "amount_gbp": 96.89,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4323 raised",
+        "description": "Invoice INV6910 raised",
         "running_balance_gbp": 96.89
       },
       {
         "date": "2021-04-18",
         "type": "payment_received",
-        "invoice_number": 4323,
+        "invoice_number": 6910,
         "amount_gbp": -96.89,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2344,17 +2350,17 @@
       {
         "date": "2021-05-05",
         "type": "invoice_raised",
-        "invoice_number": 4324,
+        "invoice_number": 6911,
         "amount_gbp": 77.39,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4324 raised",
+        "description": "Invoice INV6911 raised",
         "running_balance_gbp": 77.39
       },
       {
         "date": "2021-05-19",
         "type": "payment_failed",
-        "invoice_number": 4324,
+        "invoice_number": 6911,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2364,7 +2370,7 @@
       {
         "date": "2021-05-26",
         "type": "notice",
-        "invoice_number": 4324,
+        "invoice_number": 6911,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2374,17 +2380,17 @@
       {
         "date": "2021-06-01",
         "type": "invoice_raised",
-        "invoice_number": 4325,
+        "invoice_number": 6912,
         "amount_gbp": 75.97,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4325 raised",
+        "description": "Invoice INV6912 raised",
         "running_balance_gbp": 153.36
       },
       {
         "date": "2021-06-09",
         "type": "notice",
-        "invoice_number": 4324,
+        "invoice_number": 6911,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2394,7 +2400,7 @@
       {
         "date": "2021-06-15",
         "type": "payment_received",
-        "invoice_number": 4325,
+        "invoice_number": 6912,
         "amount_gbp": -75.97,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2404,17 +2410,17 @@
       {
         "date": "2021-06-30",
         "type": "invoice_raised",
-        "invoice_number": 4326,
+        "invoice_number": 6913,
         "amount_gbp": 83.13,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4326 raised",
+        "description": "Invoice INV6913 raised",
         "running_balance_gbp": 160.52
       },
       {
         "date": "2021-07-03",
         "type": "arrears_resolved",
-        "invoice_number": 4324,
+        "invoice_number": 6911,
         "amount_gbp": -77.39,
         "info_amount_gbp": null,
         "method": "payment_plan",
@@ -2424,7 +2430,7 @@
       {
         "date": "2021-07-14",
         "type": "payment_received",
-        "invoice_number": 4326,
+        "invoice_number": 6913,
         "amount_gbp": -83.13,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2434,17 +2440,17 @@
       {
         "date": "2021-08-01",
         "type": "invoice_raised",
-        "invoice_number": 4327,
+        "invoice_number": 6914,
         "amount_gbp": 61.23,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4327 raised",
+        "description": "Invoice INV6914 raised",
         "running_balance_gbp": 61.23
       },
       {
         "date": "2021-08-15",
         "type": "payment_received",
-        "invoice_number": 4327,
+        "invoice_number": 6914,
         "amount_gbp": -61.23,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2454,17 +2460,17 @@
       {
         "date": "2021-09-01",
         "type": "invoice_raised",
-        "invoice_number": 4328,
+        "invoice_number": 6915,
         "amount_gbp": 72.72,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4328 raised",
+        "description": "Invoice INV6915 raised",
         "running_balance_gbp": 72.72
       },
       {
         "date": "2021-09-15",
         "type": "payment_received",
-        "invoice_number": 4328,
+        "invoice_number": 6915,
         "amount_gbp": -72.72,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2474,17 +2480,17 @@
       {
         "date": "2021-10-01",
         "type": "invoice_raised",
-        "invoice_number": 4329,
+        "invoice_number": 6916,
         "amount_gbp": 77.28,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4329 raised",
+        "description": "Invoice INV6916 raised",
         "running_balance_gbp": 77.28
       },
       {
         "date": "2021-10-15",
         "type": "payment_received",
-        "invoice_number": 4329,
+        "invoice_number": 6916,
         "amount_gbp": -77.28,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2494,17 +2500,17 @@
       {
         "date": "2021-10-31",
         "type": "invoice_raised",
-        "invoice_number": 4330,
+        "invoice_number": 6917,
         "amount_gbp": 81.12,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4330 raised",
+        "description": "Invoice INV6917 raised",
         "running_balance_gbp": 81.12
       },
       {
         "date": "2021-11-14",
         "type": "payment_received",
-        "invoice_number": 4330,
+        "invoice_number": 6917,
         "amount_gbp": -81.12,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2514,17 +2520,17 @@
       {
         "date": "2021-12-03",
         "type": "invoice_raised",
-        "invoice_number": 4331,
+        "invoice_number": 6918,
         "amount_gbp": 96.22,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4331 raised",
+        "description": "Invoice INV6918 raised",
         "running_balance_gbp": 96.22
       },
       {
         "date": "2021-12-17",
         "type": "payment_received",
-        "invoice_number": 4331,
+        "invoice_number": 6918,
         "amount_gbp": -96.22,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2534,17 +2540,17 @@
       {
         "date": "2022-01-02",
         "type": "invoice_raised",
-        "invoice_number": 4332,
+        "invoice_number": 6919,
         "amount_gbp": 99.55,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4332 raised",
+        "description": "Invoice INV6919 raised",
         "running_balance_gbp": 99.55
       },
       {
         "date": "2022-01-16",
         "type": "payment_received",
-        "invoice_number": 4332,
+        "invoice_number": 6919,
         "amount_gbp": -99.55,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2554,27 +2560,27 @@
       {
         "date": "2022-02-02",
         "type": "invoice_raised",
-        "invoice_number": 4333,
+        "invoice_number": 6920,
         "amount_gbp": 108.61,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4333 raised",
+        "description": "Invoice INV6920 raised",
         "running_balance_gbp": 108.61
       },
       {
         "date": "2022-03-02",
         "type": "invoice_raised",
-        "invoice_number": 4334,
+        "invoice_number": 6921,
         "amount_gbp": 127.62,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4334 raised",
+        "description": "Invoice INV6921 raised",
         "running_balance_gbp": 236.23
       },
       {
         "date": "2022-03-25",
         "type": "payment_received",
-        "invoice_number": 4333,
+        "invoice_number": 6920,
         "amount_gbp": -108.61,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2584,17 +2590,17 @@
       {
         "date": "2022-04-07",
         "type": "invoice_raised",
-        "invoice_number": 4335,
+        "invoice_number": 6922,
         "amount_gbp": 173.48,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4335 raised",
+        "description": "Invoice INV6922 raised",
         "running_balance_gbp": 301.1
       },
       {
         "date": "2022-04-21",
         "type": "payment_failed",
-        "invoice_number": 4335,
+        "invoice_number": 6922,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2604,7 +2610,7 @@
       {
         "date": "2022-04-28",
         "type": "notice",
-        "invoice_number": 4335,
+        "invoice_number": 6922,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2614,17 +2620,17 @@
       {
         "date": "2022-04-30",
         "type": "invoice_raised",
-        "invoice_number": 4336,
+        "invoice_number": 6923,
         "amount_gbp": 138.14,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4336 raised",
+        "description": "Invoice INV6923 raised",
         "running_balance_gbp": 439.24
       },
       {
         "date": "2022-05-07",
         "type": "payment_received",
-        "invoice_number": 4334,
+        "invoice_number": 6921,
         "amount_gbp": -127.62,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2634,7 +2640,7 @@
       {
         "date": "2022-05-12",
         "type": "notice",
-        "invoice_number": 4335,
+        "invoice_number": 6922,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2644,7 +2650,7 @@
       {
         "date": "2022-06-05",
         "type": "arrears_resolved",
-        "invoice_number": 4335,
+        "invoice_number": 6922,
         "amount_gbp": -173.48,
         "info_amount_gbp": null,
         "method": "payment_plan",
@@ -2654,17 +2660,17 @@
       {
         "date": "2022-06-05",
         "type": "invoice_raised",
-        "invoice_number": 4337,
+        "invoice_number": 6924,
         "amount_gbp": 136.24,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4337 raised",
+        "description": "Invoice INV6924 raised",
         "running_balance_gbp": 274.38
       },
       {
         "date": "2022-06-19",
         "type": "payment_failed",
-        "invoice_number": 4337,
+        "invoice_number": 6924,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2674,7 +2680,7 @@
       {
         "date": "2022-06-26",
         "type": "notice",
-        "invoice_number": 4337,
+        "invoice_number": 6924,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2684,17 +2690,17 @@
       {
         "date": "2022-06-30",
         "type": "invoice_raised",
-        "invoice_number": 4338,
+        "invoice_number": 6925,
         "amount_gbp": 127.74,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4338 raised",
+        "description": "Invoice INV6925 raised",
         "running_balance_gbp": 402.12
       },
       {
         "date": "2022-07-10",
         "type": "notice",
-        "invoice_number": 4337,
+        "invoice_number": 6924,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2704,7 +2710,7 @@
       {
         "date": "2022-07-14",
         "type": "payment_failed",
-        "invoice_number": 4338,
+        "invoice_number": 6925,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2714,7 +2720,7 @@
       {
         "date": "2022-07-16",
         "type": "payment_received",
-        "invoice_number": 4336,
+        "invoice_number": 6923,
         "amount_gbp": -138.14,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2724,7 +2730,7 @@
       {
         "date": "2022-07-21",
         "type": "notice",
-        "invoice_number": 4338,
+        "invoice_number": 6925,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2734,17 +2740,17 @@
       {
         "date": "2022-08-02",
         "type": "invoice_raised",
-        "invoice_number": 4339,
+        "invoice_number": 6926,
         "amount_gbp": 130.37,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4339 raised",
+        "description": "Invoice INV6926 raised",
         "running_balance_gbp": 394.35
       },
       {
         "date": "2022-08-03",
         "type": "arrears_resolved",
-        "invoice_number": 4337,
+        "invoice_number": 6924,
         "amount_gbp": -136.24,
         "info_amount_gbp": null,
         "method": "payment_plan",
@@ -2754,7 +2760,7 @@
       {
         "date": "2022-08-04",
         "type": "notice",
-        "invoice_number": 4338,
+        "invoice_number": 6925,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2764,7 +2770,7 @@
       {
         "date": "2022-08-16",
         "type": "payment_received",
-        "invoice_number": 4339,
+        "invoice_number": 6926,
         "amount_gbp": -130.37,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2774,7 +2780,7 @@
       {
         "date": "2022-08-28",
         "type": "arrears_resolved",
-        "invoice_number": 4338,
+        "invoice_number": 6925,
         "amount_gbp": -127.74,
         "info_amount_gbp": null,
         "method": "payment_plan",
@@ -2784,27 +2790,27 @@
       {
         "date": "2022-09-05",
         "type": "invoice_raised",
-        "invoice_number": 4340,
+        "invoice_number": 6927,
         "amount_gbp": 130.81,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4340 raised",
+        "description": "Invoice INV6927 raised",
         "running_balance_gbp": 130.81
       },
       {
         "date": "2022-10-07",
         "type": "invoice_raised",
-        "invoice_number": 4341,
+        "invoice_number": 6928,
         "amount_gbp": 139.32,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4341 raised",
+        "description": "Invoice INV6928 raised",
         "running_balance_gbp": 270.13
       },
       {
         "date": "2022-10-23",
         "type": "payment_received",
-        "invoice_number": 4340,
+        "invoice_number": 6927,
         "amount_gbp": -130.81,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2814,17 +2820,17 @@
       {
         "date": "2022-11-02",
         "type": "invoice_raised",
-        "invoice_number": 4342,
+        "invoice_number": 6929,
         "amount_gbp": 146.54,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4342 raised",
+        "description": "Invoice INV6929 raised",
         "running_balance_gbp": 285.86
       },
       {
         "date": "2022-11-16",
         "type": "payment_failed",
-        "invoice_number": 4342,
+        "invoice_number": 6929,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2834,7 +2840,7 @@
       {
         "date": "2022-11-23",
         "type": "notice",
-        "invoice_number": 4342,
+        "invoice_number": 6929,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2844,17 +2850,17 @@
       {
         "date": "2022-12-03",
         "type": "invoice_raised",
-        "invoice_number": 4343,
+        "invoice_number": 6930,
         "amount_gbp": 173.56,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4343 raised",
+        "description": "Invoice INV6930 raised",
         "running_balance_gbp": 459.42
       },
       {
         "date": "2022-12-07",
         "type": "notice",
-        "invoice_number": 4342,
+        "invoice_number": 6929,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2864,7 +2870,7 @@
       {
         "date": "2022-12-19",
         "type": "payment_received",
-        "invoice_number": 4341,
+        "invoice_number": 6928,
         "amount_gbp": -139.32,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2874,7 +2880,7 @@
       {
         "date": "2022-12-31",
         "type": "arrears_resolved",
-        "invoice_number": 4342,
+        "invoice_number": 6929,
         "amount_gbp": -146.53,
         "info_amount_gbp": null,
         "method": "payment_plan",
@@ -2884,27 +2890,27 @@
       {
         "date": "2022-12-31",
         "type": "invoice_raised",
-        "invoice_number": 4344,
+        "invoice_number": 6931,
         "amount_gbp": 154.05,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4344 raised",
+        "description": "Invoice INV6931 raised",
         "running_balance_gbp": 327.62
       },
       {
         "date": "2023-02-01",
         "type": "invoice_raised",
-        "invoice_number": 4345,
+        "invoice_number": 6932,
         "amount_gbp": 207.94,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4345 raised",
+        "description": "Invoice INV6932 raised",
         "running_balance_gbp": 535.56
       },
       {
         "date": "2023-02-02",
         "type": "payment_received",
-        "invoice_number": 4343,
+        "invoice_number": 6930,
         "amount_gbp": -173.56,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2914,7 +2920,7 @@
       {
         "date": "2023-02-15",
         "type": "payment_received",
-        "invoice_number": 4345,
+        "invoice_number": 6932,
         "amount_gbp": -207.94,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2924,7 +2930,7 @@
       {
         "date": "2023-02-19",
         "type": "payment_received",
-        "invoice_number": 4344,
+        "invoice_number": 6931,
         "amount_gbp": -154.05,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2934,17 +2940,17 @@
       {
         "date": "2023-02-28",
         "type": "invoice_raised",
-        "invoice_number": 4346,
+        "invoice_number": 6933,
         "amount_gbp": 171.38,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4346 raised",
+        "description": "Invoice INV6933 raised",
         "running_balance_gbp": 171.39
       },
       {
         "date": "2023-03-14",
         "type": "payment_received",
-        "invoice_number": 4346,
+        "invoice_number": 6933,
         "amount_gbp": -171.38,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2954,17 +2960,17 @@
       {
         "date": "2023-04-04",
         "type": "invoice_raised",
-        "invoice_number": 4347,
+        "invoice_number": 6934,
         "amount_gbp": 179.76,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4347 raised",
+        "description": "Invoice INV6934 raised",
         "running_balance_gbp": 179.77
       },
       {
         "date": "2023-04-18",
         "type": "payment_received",
-        "invoice_number": 4347,
+        "invoice_number": 6934,
         "amount_gbp": -179.76,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2974,17 +2980,17 @@
       {
         "date": "2023-05-01",
         "type": "invoice_raised",
-        "invoice_number": 4348,
+        "invoice_number": 6935,
         "amount_gbp": 144.01,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4348 raised",
+        "description": "Invoice INV6935 raised",
         "running_balance_gbp": 144.02
       },
       {
         "date": "2023-05-23",
         "type": "payment_received",
-        "invoice_number": 4348,
+        "invoice_number": 6935,
         "amount_gbp": -144.01,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -2994,17 +3000,17 @@
       {
         "date": "2023-06-04",
         "type": "invoice_raised",
-        "invoice_number": 4349,
+        "invoice_number": 6936,
         "amount_gbp": 143.1,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4349 raised",
+        "description": "Invoice INV6936 raised",
         "running_balance_gbp": 143.11
       },
       {
         "date": "2023-06-18",
         "type": "payment_received",
-        "invoice_number": 4349,
+        "invoice_number": 6936,
         "amount_gbp": -143.1,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3014,17 +3020,17 @@
       {
         "date": "2023-07-02",
         "type": "invoice_raised",
-        "invoice_number": 4350,
+        "invoice_number": 6937,
         "amount_gbp": 133.82,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4350 raised",
+        "description": "Invoice INV6937 raised",
         "running_balance_gbp": 133.83
       },
       {
         "date": "2023-07-16",
         "type": "payment_received",
-        "invoice_number": 4350,
+        "invoice_number": 6937,
         "amount_gbp": -133.82,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3034,17 +3040,17 @@
       {
         "date": "2023-08-04",
         "type": "invoice_raised",
-        "invoice_number": 4351,
+        "invoice_number": 6938,
         "amount_gbp": 136.59,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4351 raised",
+        "description": "Invoice INV6938 raised",
         "running_balance_gbp": 136.6
       },
       {
         "date": "2023-08-18",
         "type": "payment_received",
-        "invoice_number": 4351,
+        "invoice_number": 6938,
         "amount_gbp": -136.59,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3054,17 +3060,17 @@
       {
         "date": "2023-09-04",
         "type": "invoice_raised",
-        "invoice_number": 4352,
+        "invoice_number": 6939,
         "amount_gbp": 137.07,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4352 raised",
+        "description": "Invoice INV6939 raised",
         "running_balance_gbp": 137.08
       },
       {
         "date": "2023-09-18",
         "type": "payment_received",
-        "invoice_number": 4352,
+        "invoice_number": 6939,
         "amount_gbp": -137.07,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3074,17 +3080,17 @@
       {
         "date": "2023-10-04",
         "type": "invoice_raised",
-        "invoice_number": 4353,
+        "invoice_number": 6940,
         "amount_gbp": 145.43,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4353 raised",
+        "description": "Invoice INV6940 raised",
         "running_balance_gbp": 145.44
       },
       {
         "date": "2023-10-18",
         "type": "payment_received",
-        "invoice_number": 4353,
+        "invoice_number": 6940,
         "amount_gbp": -145.43,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3094,17 +3100,17 @@
       {
         "date": "2023-11-04",
         "type": "invoice_raised",
-        "invoice_number": 4354,
+        "invoice_number": 6941,
         "amount_gbp": 140.66,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4354 raised",
+        "description": "Invoice INV6941 raised",
         "running_balance_gbp": 140.67
       },
       {
         "date": "2023-11-18",
         "type": "payment_received",
-        "invoice_number": 4354,
+        "invoice_number": 6941,
         "amount_gbp": -140.66,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3114,17 +3120,17 @@
       {
         "date": "2023-12-05",
         "type": "invoice_raised",
-        "invoice_number": 4355,
+        "invoice_number": 6942,
         "amount_gbp": 196.09,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4355 raised",
+        "description": "Invoice INV6942 raised",
         "running_balance_gbp": 196.1
       },
       {
         "date": "2023-12-19",
         "type": "payment_received",
-        "invoice_number": 4355,
+        "invoice_number": 6942,
         "amount_gbp": -196.09,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3134,17 +3140,17 @@
       {
         "date": "2023-12-31",
         "type": "invoice_raised",
-        "invoice_number": 4356,
+        "invoice_number": 6943,
         "amount_gbp": 185.41,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4356 raised",
+        "description": "Invoice INV6943 raised",
         "running_balance_gbp": 185.42
       },
       {
         "date": "2024-01-14",
         "type": "payment_received",
-        "invoice_number": 4356,
+        "invoice_number": 6943,
         "amount_gbp": -185.41,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3154,17 +3160,17 @@
       {
         "date": "2024-02-02",
         "type": "invoice_raised",
-        "invoice_number": 4357,
+        "invoice_number": 6944,
         "amount_gbp": 187.69,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4357 raised",
+        "description": "Invoice INV6944 raised",
         "running_balance_gbp": 187.7
       },
       {
         "date": "2024-02-16",
         "type": "payment_received",
-        "invoice_number": 4357,
+        "invoice_number": 6944,
         "amount_gbp": -187.69,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3174,17 +3180,17 @@
       {
         "date": "2024-02-29",
         "type": "invoice_raised",
-        "invoice_number": 4358,
+        "invoice_number": 6945,
         "amount_gbp": 152.46,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4358 raised",
+        "description": "Invoice INV6945 raised",
         "running_balance_gbp": 152.47
       },
       {
         "date": "2024-03-14",
         "type": "payment_received",
-        "invoice_number": 4358,
+        "invoice_number": 6945,
         "amount_gbp": -152.46,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3194,17 +3200,17 @@
       {
         "date": "2024-04-01",
         "type": "invoice_raised",
-        "invoice_number": 4359,
+        "invoice_number": 6946,
         "amount_gbp": 135.2,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4359 raised",
+        "description": "Invoice INV6946 raised",
         "running_balance_gbp": 135.21
       },
       {
         "date": "2024-04-15",
         "type": "payment_received",
-        "invoice_number": 4359,
+        "invoice_number": 6946,
         "amount_gbp": -135.2,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3214,17 +3220,17 @@
       {
         "date": "2024-05-03",
         "type": "invoice_raised",
-        "invoice_number": 4360,
+        "invoice_number": 6947,
         "amount_gbp": 108.16,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4360 raised",
+        "description": "Invoice INV6947 raised",
         "running_balance_gbp": 108.17
       },
       {
         "date": "2024-05-17",
         "type": "payment_received",
-        "invoice_number": 4360,
+        "invoice_number": 6947,
         "amount_gbp": -108.16,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3234,17 +3240,17 @@
       {
         "date": "2024-06-07",
         "type": "invoice_raised",
-        "invoice_number": 4361,
+        "invoice_number": 6948,
         "amount_gbp": 106.27,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4361 raised",
+        "description": "Invoice INV6948 raised",
         "running_balance_gbp": 106.28
       },
       {
         "date": "2024-06-21",
         "type": "payment_received",
-        "invoice_number": 4361,
+        "invoice_number": 6948,
         "amount_gbp": -106.27,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3254,17 +3260,17 @@
       {
         "date": "2024-07-05",
         "type": "invoice_raised",
-        "invoice_number": 4362,
+        "invoice_number": 6949,
         "amount_gbp": 99.34,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4362 raised",
+        "description": "Invoice INV6949 raised",
         "running_balance_gbp": 99.35
       },
       {
         "date": "2024-07-19",
         "type": "payment_received",
-        "invoice_number": 4362,
+        "invoice_number": 6949,
         "amount_gbp": -99.34,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3274,17 +3280,17 @@
       {
         "date": "2024-08-04",
         "type": "invoice_raised",
-        "invoice_number": 4363,
+        "invoice_number": 6950,
         "amount_gbp": 103.2,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4363 raised",
+        "description": "Invoice INV6950 raised",
         "running_balance_gbp": 103.21
       },
       {
         "date": "2024-08-18",
         "type": "payment_received",
-        "invoice_number": 4363,
+        "invoice_number": 6950,
         "amount_gbp": -103.2,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3294,17 +3300,17 @@
       {
         "date": "2024-09-01",
         "type": "invoice_raised",
-        "invoice_number": 4364,
+        "invoice_number": 6951,
         "amount_gbp": 102.76,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4364 raised",
+        "description": "Invoice INV6951 raised",
         "running_balance_gbp": 102.77
       },
       {
         "date": "2024-09-15",
         "type": "payment_received",
-        "invoice_number": 4364,
+        "invoice_number": 6951,
         "amount_gbp": -102.76,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3314,17 +3320,17 @@
       {
         "date": "2024-10-04",
         "type": "invoice_raised",
-        "invoice_number": 4365,
+        "invoice_number": 6952,
         "amount_gbp": 109.02,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4365 raised",
+        "description": "Invoice INV6952 raised",
         "running_balance_gbp": 109.03
       },
       {
         "date": "2024-10-18",
         "type": "payment_received",
-        "invoice_number": 4365,
+        "invoice_number": 6952,
         "amount_gbp": -109.02,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3334,17 +3340,17 @@
       {
         "date": "2024-11-05",
         "type": "invoice_raised",
-        "invoice_number": 4366,
+        "invoice_number": 6953,
         "amount_gbp": 117.47,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4366 raised",
+        "description": "Invoice INV6953 raised",
         "running_balance_gbp": 117.48
       },
       {
         "date": "2024-11-19",
         "type": "payment_received",
-        "invoice_number": 4366,
+        "invoice_number": 6953,
         "amount_gbp": -117.47,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3354,17 +3360,17 @@
       {
         "date": "2024-12-03",
         "type": "invoice_raised",
-        "invoice_number": 4367,
+        "invoice_number": 6954,
         "amount_gbp": 131.99,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4367 raised",
+        "description": "Invoice INV6954 raised",
         "running_balance_gbp": 132.0
       },
       {
         "date": "2024-12-21",
         "type": "payment_received",
-        "invoice_number": 4367,
+        "invoice_number": 6954,
         "amount_gbp": -131.99,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3374,17 +3380,17 @@
       {
         "date": "2025-01-01",
         "type": "invoice_raised",
-        "invoice_number": 4368,
+        "invoice_number": 6955,
         "amount_gbp": 136.82,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4368 raised",
+        "description": "Invoice INV6955 raised",
         "running_balance_gbp": 136.83
       },
       {
         "date": "2025-01-15",
         "type": "payment_received",
-        "invoice_number": 4368,
+        "invoice_number": 6955,
         "amount_gbp": -136.82,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3394,17 +3400,17 @@
       {
         "date": "2025-02-02",
         "type": "invoice_raised",
-        "invoice_number": 4369,
+        "invoice_number": 6956,
         "amount_gbp": 129.64,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4369 raised",
+        "description": "Invoice INV6956 raised",
         "running_balance_gbp": 129.65
       },
       {
         "date": "2025-02-16",
         "type": "payment_received",
-        "invoice_number": 4369,
+        "invoice_number": 6956,
         "amount_gbp": -129.64,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3414,17 +3420,17 @@
       {
         "date": "2025-02-28",
         "type": "invoice_raised",
-        "invoice_number": 4370,
+        "invoice_number": 6957,
         "amount_gbp": 117.37,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4370 raised",
+        "description": "Invoice INV6957 raised",
         "running_balance_gbp": 117.38
       },
       {
         "date": "2025-03-14",
         "type": "payment_received",
-        "invoice_number": 4370,
+        "invoice_number": 6957,
         "amount_gbp": -117.37,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3434,18 +3440,18 @@
       {
         "date": "2025-04-03",
         "type": "invoice_raised",
-        "invoice_number": 4371,
-        "amount_gbp": 128.4,
+        "invoice_number": 6958,
+        "amount_gbp": 128.42,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4371 raised",
-        "running_balance_gbp": 128.41
+        "description": "Invoice INV6958 raised",
+        "running_balance_gbp": 128.43
       },
       {
         "date": "2025-04-17",
         "type": "payment_received",
-        "invoice_number": 4371,
-        "amount_gbp": -128.4,
+        "invoice_number": 6958,
+        "amount_gbp": -128.42,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -3454,17 +3460,17 @@
       {
         "date": "2025-05-02",
         "type": "invoice_raised",
-        "invoice_number": 4372,
+        "invoice_number": 6959,
         "amount_gbp": 103.54,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4372 raised",
+        "description": "Invoice INV6959 raised",
         "running_balance_gbp": 103.55
       },
       {
         "date": "2025-05-16",
         "type": "payment_received",
-        "invoice_number": 4372,
+        "invoice_number": 6959,
         "amount_gbp": -103.54,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3474,27 +3480,27 @@
       {
         "date": "2025-06-01",
         "type": "invoice_raised",
-        "invoice_number": 4373,
+        "invoice_number": 6960,
         "amount_gbp": 101.06,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4373 raised",
+        "description": "Invoice INV6960 raised",
         "running_balance_gbp": 101.07
       },
       {
         "date": "2025-06-10",
         "type": "invoice_raised",
-        "invoice_number": 4374,
+        "invoice_number": 6961,
         "amount_gbp": 22.34,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV4374 raised",
+        "description": "Invoice INV6961 raised",
         "running_balance_gbp": 123.41
       },
       {
         "date": "2025-06-15",
         "type": "payment_received",
-        "invoice_number": 4373,
+        "invoice_number": 6960,
         "amount_gbp": -101.06,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -3503,8 +3509,8 @@
       }
     ],
     "current_balance_gbp": 22.35,
-    "total_billed_gbp": 6563.41,
-    "total_collected_gbp": 6541.06,
+    "total_billed_gbp": 6563.43,
+    "total_collected_gbp": 6541.08,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
@@ -4006,9 +4012,9 @@
       "customer_id": "PROS-2021-0051",
       "date": "2024-02-16",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 18% churn risk at decision time, SIM realized probability was 1%.",
+      "description": "Renewal outcome: RENEWED -- company believed 18% churn risk at decision time, SIM realized probability was 3%.",
       "company_belief": 0.18,
-      "sim_truth": 0.012,
+      "sim_truth": 0.032,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
