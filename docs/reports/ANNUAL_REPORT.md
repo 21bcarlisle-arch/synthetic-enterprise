@@ -952,6 +952,19 @@ CM (Capacity Market) and FiT (Feed-in Tariff) levies apply to ALL demand includi
 
 Total policy cost: £133,281 across all years. Net margin is after deducting this. Revenue side: tariff pass-through at term-start year's levy rate — basis risk arises when cross-year terms meet a different actual levy (notably 2022 CfD rebate).
 
+### Rate coverage — EXTRAPOLATED RATES in this window
+
+Of the 13 year-keyed policy and network rate tables behind these figures, **13 of 13** serve at least one date in the reported window (2016-01-01 to 2025-06-07) from outside their own tabulated coverage. Where a date falls beyond a table's last published year, the last tabulated rate is carried forward; where it falls before the first, the first is carried back.
+
+| Clamped from | Tables | Last tabulated year |
+|--------------|--------|---------------------|
+| 2025-01-01 | 4 (cfd_levy_by_year, elec_sc_pence_per_day_by_year, gas_sc_pence_per_day_by_year, mutualization_levy_by_year) | 2024 |
+| 2025-04-01 | 6 (cm_levy_by_year, duos_ic_by_year, fit_levy_by_year, gas_network_cost_by_year, ggl_rate_gbp_per_meter_year, network_cost_resi_sme_by_year) | 2024 |
+
+A further 9 table(s) clamp at the LEADING edge — the window opens before their first tabulated year, so the earliest bills are priced on a rate carried back rather than one published for that year.
+
+This is a statement about how far the rate tables reach, and **not a claim that the carried-forward rates are wrong** — extrapolating an unpublished year from the last published one is a normal modelling choice. What would not be normal is doing it without saying so.
+
 ## Network Charges — DUoS + TNUoS (Phase 29a)
 
 Electricity network charges deducted from net_margin_gbp each year. 
@@ -3751,17 +3764,17 @@ the model ever flag this customer, at any renewal, before they left?
 
 ## Scenario Sensitivity Analysis (Phase PZ)
 
-Live portfolio (191 active customers) under 12-month forward scenarios.
-Generated: 2026-08-26T19:42:16Z
+Live portfolio (353 active customers) under 12-month forward scenarios.
+Generated: 2026-08-26T22:42:00Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
 | Scenario | Elec Fwd (£/MWh) | Gas Fwd (£/MWh) | Hedge Rec | Renewing | Exposure Delta |
 |----------|------------------|-----------------|-----------|----------|----------------|
 | Base | 86.7 | 55.1 | INCREASE | 0 | — |
-| Bull | 56.1 | 35.7 | INCREASE | 0 | £-8,874 |
-| Bear | 147.9 | 93.8 | INCREASE | 0 | +£17,748 |
-| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£36,166 |
+| Bull | 56.1 | 35.7 | INCREASE | 0 | £-18,988 |
+| Bear | 147.9 | 93.8 | INCREASE | 0 | +£37,976 |
+| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£65,020 |
 
 **Scenario labels:**
 - **Base**: Base (normal OU, long-run mean start)
