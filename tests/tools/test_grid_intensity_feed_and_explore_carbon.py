@@ -884,3 +884,119 @@ def test_the_page_does_not_credit_the_HOUSEHOLD_for_the_TEMPLATES_shape():
         "the provenance sentence no longer prints its own null baseline, so a reader is asked "
         "to supply the 40%-is-flat comparison himself and cannot"
     )
+
+
+# --------------------------------------------------------------------------- #
+# The biomass envelope: measured, published, and deliberately not dispatched   #
+# --------------------------------------------------------------------------- #
+
+def test_the_feed_REFUSES_to_publish_without_the_BIOMASS_envelope_too():
+    """The envelope is not dispatched, and it is still REQUIRED, which is the whole of what
+    makes the not-dispatched decision honest.
+
+    A diagnostic that may quietly go missing is a named gap whose size stops being published the
+    moment it matters -- the basis line would still say biomass is held at 2,400 MW and the rows
+    that let a reader check how wrong that is would simply be absent (R15 FAIL-SILENT).
+
+    MUTATION (must fire): make `fuel_mix()` swallow the biomass loader's refusal.
+    """
+    from sim import elexon_fuel_outturn as fuel
+
+    original = fuel.BIOMASS_CACHE_PATH
+    try:
+        fuel.BIOMASS_CACHE_PATH = REPO / "sim" / "cache" / "no_such_biomass_cache.json"
+        with pytest.raises(fuel.FuelOutturnUnavailable):
+            gif.fuel_mix()
+    finally:
+        fuel.BIOMASS_CACHE_PATH = original
+
+
+def test_the_UNWIRED_flag_is_a_DECISION_and_not_an_INERT_switch():
+    """R11: a flag whose release triggers nothing is a defect.
+
+    `BIOMASS_DISPATCH_WIRED` is False because the correction was MEASURED to make the published
+    series worse on four axes of five, not because the dispatch was never finished. This test
+    holds both halves of that sentence to account: while the flag is False the published shape
+    must be exactly the flat-2,400-MW one, and flipping it must actually move the shape --
+    otherwise the flag is decoration and the day someone flips it nothing would happen.
+
+    MUTATION (must fire): pass the envelope to `build_shape` regardless of the flag, or wire the
+    flag to a parameter the dispatch ignores.
+    """
+    from sim.grid_carbon_intensity import build_shape
+
+    assert gif.BIOMASS_DISPATCH_WIRED is False, (
+        "if this has been flipped on, the before/after measurement in its own docstring has to "
+        "be re-run and re-published first -- it is the evidence the flag stands on"
+    )
+    demand = {("2024-03-01", p): 20_000.0 for p in range(1, 40)}
+    renewables = {key: 5_000.0 + 375.0 * key[1] for key in demand}
+    envelope = {2024: {"capacity_mw": 3_328.0, "floor_mw": 73.0, "p1_mw": 550.0,
+                       "p99_mw": 3_219.0, "mean_mw": 2_142.0, "half_hours": 17_559.0}}
+
+    unwired = build_shape(demand, renewables, biomass_envelope_by_year=None)
+    assert unwired == build_shape(demand, renewables), "the unwired path is not the flat block"
+    assert build_shape(demand, renewables, biomass_envelope_by_year=envelope) != unwired, (
+        "flipping the flag would change nothing, so it is not a decision -- it is decoration"
+    )
+
+    # AND THE FLAG HAS TO GOVERN THE PUBLISHING CALL, which the two assertions above cannot
+    # show: they prove the PARAMETER works, and the first draft of this test stopped there --
+    # the mutation that hard-codes `biomass_envelope_by_year=None` in `generate()`, severing the
+    # flag from the only call site that publishes anything, SURVIVED it. Checked on the parsed
+    # call rather than on the source text so a mention in a comment cannot satisfy it.
+    import ast
+    import inspect
+
+    call = next(
+        node
+        for node in ast.walk(ast.parse(inspect.getsource(gif.generate)))
+        if isinstance(node, ast.Call) and getattr(node.func, "id", None) == "build_shape"
+    )
+    keyword = next(k for k in call.keywords if k.arg == "biomass_envelope_by_year")
+    assert "BIOMASS_DISPATCH_WIRED" in {
+        n.id for n in ast.walk(keyword.value) if isinstance(n, ast.Name)
+    }, (
+        "`generate()` does not consult the flag, so `BIOMASS_DISPATCH_WIRED` documents a "
+        "decision the publishing path does not actually make"
+    )
+
+
+def test_the_published_BASIS_says_biomass_is_still_FLAT_while_the_flag_is_off():
+    """R14 applied to a basis: the sentence that travels with the number must describe the
+    arithmetic that produced it, not the arithmetic that exists in the tree.
+
+    The one way this correction could do real damage is by being DESCRIBED as applied while the
+    published series was still flat -- a reader would take the spread at face value.
+
+    MUTATION (must fire): edit `SHAPE_BASIS` to claim the fleet is dispatched while
+    `BIOMASS_DISPATCH_WIRED` is False.
+    """
+    from sim.grid_carbon_intensity import SHAPE_BASIS
+
+    if not gif.BIOMASS_DISPATCH_WIRED:
+        assert "constant 2,400 MW" in SHAPE_BASIS
+        assert "NOT dispatched" in SHAPE_BASIS
+    else:
+        assert "constant 2,400 MW" not in SHAPE_BASIS
+
+
+def test_the_envelope_REACHES_the_published_feed_with_both_ends_and_the_mean():
+    """The measurement has to arrive where a reader is, not only where the tests are.
+
+    MUTATION (must fire): drop `biomass_envelope_by_year` from the `build()` call in
+    `generate()`, or publish only one end of the envelope.
+    """
+    shape = {("2024-03-01", p): 1.0 + 0.01 * p for p in range(1, 20)}
+    built = gif.build(
+        shape, {k: 30_000.0 for k in shape},
+        biomass_envelope_by_year={2024: {"capacity_mw": 3_328.4, "floor_mw": 73.2,
+                                         "p1_mw": 550.0, "p99_mw": 3_219.0,
+                                         "mean_mw": 2_142.6, "half_hours": 17_559.0}},
+    )
+    row = built["biomass_envelope_mw"]["2024"]
+    assert row["floor_mw"] == 73 and row["capacity_mw"] == 3_328
+    assert row["mean_mw"] == 2_143, (
+        "the mean is what makes the flat 2,400 MW assumption checkable by a reader"
+    )
+    assert gif.build(shape, {k: 30_000.0 for k in shape})["biomass_envelope_mw"] is None

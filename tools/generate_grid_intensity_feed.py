@@ -400,7 +400,8 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
           import_coverage: dict | None = None,
           coal_capacity_by_year: dict | None = None,
           thermal_floor_by_year: dict | None = None,
-          zero_carbon_must_run_coverage: dict | None = None) -> dict:
+          zero_carbon_must_run_coverage: dict | None = None,
+          biomass_envelope_by_year: dict | None = None) -> dict:
     if not shape:
         raise ShapeUnavailable("no shape to publish")
     last_date = max(key[0] for key in shape)
@@ -489,6 +490,30 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
                 for y, r in sorted(thermal_floor_by_year.items())
             }
         ),
+        # THE BIOMASS ENVELOPE, PUBLISHED AS A MEASUREMENT AND NOT AS AN INPUT. `capacity_mw`
+        # and `floor_mw` are what the fleet was observed at its highest and lowest that year;
+        # `mean_mw` is where it actually spent its time. NONE of them reaches the shape above --
+        # see `BIOMASS_DISPATCH_WIRED` for the measurement that decided that and for why the
+        # answer is an outage model rather than a tidier percentile.
+        #
+        # IT IS PUBLISHED ANYWAY, AND THAT IS THE POINT OF PUBLISHING IT: the basis line says
+        # biomass is held at a constant 2,400 MW, and these rows are how a reader checks how
+        # wrong that is without taking this project's word for it. A named gap with its size
+        # beside it is a different artefact from a named gap alone.
+        "biomass_envelope_mw": (
+            None if biomass_envelope_by_year is None
+            else {
+                str(y): {
+                    "floor_mw": round(float(r["floor_mw"])),
+                    "capacity_mw": round(float(r["capacity_mw"])),
+                    "p1_mw": round(float(r["p1_mw"])),
+                    "p99_mw": round(float(r["p99_mw"])),
+                    "mean_mw": round(float(r["mean_mw"])),
+                    "half_hours": int(r["half_hours"]),
+                }
+                for y, r in sorted(biomass_envelope_by_year.items())
+            }
+        ),
         # HOW MUCH OF THE SERIES ACTUALLY GOT THE CORRECTION, because the shape cannot show it.
         # A half hour served from the flat 5,600 MW block and one served from a MEASURED 5,600 MW
         # produce an identical number, so without this count the nuclear-and-hydro correction
@@ -538,6 +563,42 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
     }
 
 
+#: THE BIOMASS ENVELOPE IS MEASURED, PUBLISHED, AND DELIBERATELY NOT DISPATCHED, and this flag
+#: exists so that decision is a stated one rather than a forgotten keyword. Everything the
+#: dispatch needs is built and R15-proven in `sim/grid_carbon_intensity.py`; what stopped it was
+#: the measurement, which said the correction makes the published series WORSE and said why.
+#:
+#: MEASURED 2026-08-26 over 2019-2024, one process, identical caches, the envelope as the only
+#: variable. Correlation moved 0.8453 -> 0.8466 (up in four years of six) and EVERYTHING ELSE
+#: went backwards: mean absolute error 0.1617 -> 0.1679, within-day overstatement 1.4496 ->
+#: 1.5047, p95/p5 5.32 -> 6.33, and 2024's max/min spread 24.5 -> 83.3.
+#:
+#: THE MECHANISM, and it is the part worth keeping rather than the verdict. The model was
+#: designed as a fleet RAMPING with the residual, and against the published outturn it is not
+#: one: the residual sits ABOVE the demonstrated capacity in 96.4% of 2019's half hours and
+#: 83.6% of 2024's, so what the change actually did in almost every half hour was raise a flat
+#: 2,400 MW block to a flat ~3,300 MW one -- and in the remaining tenth it dropped the fleet to
+#: the demonstrated minimum of 73 MW. That cliff lands exactly on the quiet half hours the clean
+#: end is measured over, which is the whole of the spread blow-up.
+#:
+#: AND THE PREMISE ITSELF IS REFUTED, which is why the answer is not a different statistic.
+#: Correlation between the residual and the published biomass outturn runs 0.16-0.58 across
+#: 2018-2025 -- 2.6% to 33.5% of the fleet's variance. Biomass under a CfD is paid a strike
+#: price on metered output, so it runs when it is AVAILABLE and its low readings are outages,
+#: not price responses. Availability is not derivable from the residual, so closing this needs an
+#: outage model and not a tidier percentile.
+#:
+#: WHY THE RAW MINIMUM WAS NOT SWAPPED FOR `p1_mw` WHEN THE RESULT CAME BACK BAD. It would have
+#: scored better -- 2024's p1 is 550 MW against a 73 MW minimum, which lifts the clean end and
+#: narrows the swing. That is choosing a statistic because of what it does to this model's grade,
+#: which is exactly what R12 and R13 forbid, and it would have hidden the refuted premise behind
+#: a better number. `thermal_floor_by_year` takes the raw minimum for the opposite reason and the
+#: asymmetry is worth naming: for gas, a lower floor errs BACK toward the known-wrong baseline;
+#: for biomass -- the only carbon-carrying term in the must-run block -- a lower floor errs PAST
+#: it, into a cleaner clean end. Same doctrine, opposite fuel, opposite direction.
+BIOMASS_DISPATCH_WIRED = False
+
+
 def fuel_mix() -> tuple[dict, dict, dict, dict]:
     """(imports by half hour, coal capacity by year, the measured import coverage, thermal floor).
 
@@ -549,13 +610,16 @@ def fuel_mix() -> tuple[dict, dict, dict, dict]:
     series that quietly lost three corrections and says nothing about it.
 
     THE FLOOR IS UNPACKED TO `{year: floor_mw}` HERE, so the `p1_mw` published beside it stays a
-    diagnostic and has no path into the dispatch.
+    diagnostic and has no path into the dispatch. The biomass envelope is unpacked the same way
+    one layer down, in `build_shape`, and for a stronger version of the same reason: its
+    `mean_mw` would fit the published series better than either honest end.
     """
     from sim import elexon_fuel_outturn as fuel
 
     series = fuel.to_settlement_periods(fuel.load_cached())
     floors = fuel.thermal_floor_by_year(fuel.thermal_by_period(fuel.load_cached_thermal()))
     must_run_rows = fuel.load_cached_zero_carbon_must_run()
+    biomass = fuel.biomass_envelope_by_year(fuel.biomass_by_period(fuel.load_cached_biomass()))
     return (
         fuel.imports_by_period(series),
         fuel.coal_capacity_by_year(series),
@@ -563,13 +627,15 @@ def fuel_mix() -> tuple[dict, dict, dict, dict]:
         floors,
         fuel.zero_carbon_must_run_by_period(must_run_rows),
         fuel.zero_carbon_must_run_coverage(must_run_rows),
+        biomass,
     )
 
 
 def generate(out_path: Path | None = None) -> dict:
     demand = aggregate_demand(json.loads(DEMAND_CACHE.read_text(encoding="utf-8")))
     renewables = aggregate_renewable_generation(json.loads(AGWS_CACHE.read_text(encoding="utf-8")))
-    imports, coal_capacity, coverage, thermal_floors, must_run, must_run_coverage = fuel_mix()
+    (imports, coal_capacity, coverage, thermal_floors, must_run, must_run_coverage,
+     biomass_envelope) = fuel_mix()
     shape = build_shape(
         demand,
         renewables,
@@ -577,10 +643,12 @@ def generate(out_path: Path | None = None) -> dict:
         coal_capacity_by_year=coal_capacity,
         thermal_floor_by_year={y: r["floor_mw"] for y, r in thermal_floors.items()},
         zero_carbon_must_run_by_period=must_run,
+        biomass_envelope_by_year=biomass_envelope if BIOMASS_DISPATCH_WIRED else None,
     )
     data = build(shape, demand, extra_dates=dates_with_reads(), import_coverage=coverage,
                  coal_capacity_by_year=coal_capacity, thermal_floor_by_year=thermal_floors,
-                 zero_carbon_must_run_coverage=must_run_coverage)
+                 zero_carbon_must_run_coverage=must_run_coverage,
+                 biomass_envelope_by_year=biomass_envelope)
     dest = OUT_PATH if out_path is None else out_path
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(data, indent=1) + "\n", encoding="utf-8")

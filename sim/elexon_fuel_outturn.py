@@ -144,6 +144,24 @@ THERMAL_FUEL_TYPES = ("CCGT", "OCGT")
 #: being handed over. Same rule, different fleet.
 ZERO_CARBON_MUST_RUN_FUEL_TYPES = ("NUCLEAR", "NPSHYD")
 
+#: THE BIOMASS FLEET, AND IT IS HERE UNDER THE OPPOSITE RULING TO THE ONE ABOVE. Biomass FAILS
+#: condition 1 outright — NESO prices it at 120 gCO2/kWh on its own table, so its half-hourly
+#: outturn IS an emissions term and handing it over would hand over part of the answer this
+#: module exists to derive independently. It is read anyway, at COAL'S grain: annual scalars, an
+#: envelope the fleet demonstrated it could sit inside, and never a half hour.
+#:
+#: The distinction is the same one `coal_capacity_by_year` already makes and it is worth restating
+#: because this is the fuel where getting it wrong would be invisible. What crosses is what the
+#: fleet was ABLE to do in a year, which is a fact about steel. How much of that runs in any given
+#: half hour is a dispatch decision, and `grid_carbon_intensity` decides it — from the residual it
+#: computed itself, against an envelope, with no biomass reading anywhere near the half hour.
+BIOMASS_FUEL_TYPE = "BIOMASS"
+
+#: A FOURTH file, for the reason the second and third exist: the live caches are 235 MB, 63 MB and
+#: 64 MB, and the sim producer re-reads the working tree every cycle, so widening a fuel filter in
+#: place is a window in which a running process sees a truncated file. A new path is a create.
+BIOMASS_CACHE_PATH = Path("sim/cache/elexon_fuelhh_biomass.json")
+
 #: NESO's OWN published generation factors, gCO2/kWh, fetched from
 #: `api.carbonintensity.org.uk/intensity/factors` (the same table as the Carbon Intensity Forecast
 #: Methodology). NOT this project's numbers: the reconstruction is graded against the series these
@@ -263,6 +281,24 @@ def _fetch_zero_carbon_window(start: date_cls, end: date_cls, *, timeout: float 
     return [row for row in data if row.get("fuelType") in keep]
 
 
+def _fetch_biomass_window(start: date_cls, end: date_cls, *, timeout: float = 90.0) -> list[dict]:
+    """One settlement-date window, reduced to the biomass fleet."""
+    url = (
+        f"{BASE_URL}{DATASET_ENDPOINT}?settlementDateFrom={start.isoformat()}"
+        f"&settlementDateTo={end.isoformat()}&format=json"
+    )
+    request = urllib.request.Request(url, headers={"Accept": "application/json"})
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, OSError) as exc:
+        raise FuelOutturnUnavailable(f"Elexon FUELHH fetch failed for {url}: {exc}") from exc
+    data = payload.get("data")
+    if not isinstance(data, list):
+        raise FuelOutturnUnavailable(f"Elexon returned no `data` list for {url}: {payload!r}")
+    return [row for row in data if row.get("fuelType") == BIOMASS_FUEL_TYPE]
+
+
 def _walk(start_date: str, end_date: str, window_fetcher, pause_s: float) -> list[dict]:
     """Walk [start_date, end_date] in the API's own window size, one fetcher per fuel filter."""
     start = date_cls.fromisoformat(start_date)
@@ -300,6 +336,11 @@ def fetch_thermal(start_date: str, end_date: str, *, pause_s: float = 0.1) -> li
 def fetch_zero_carbon_must_run(start_date: str, end_date: str, *, pause_s: float = 0.1) -> list[dict]:
     """The same walk, keeping the zero-carbon must-run fleet instead of coal and the cables."""
     return _walk(start_date, end_date, _fetch_zero_carbon_window, pause_s)
+
+
+def fetch_biomass(start_date: str, end_date: str, *, pause_s: float = 0.1) -> list[dict]:
+    """The same walk, keeping the biomass fleet instead of coal and the cables."""
+    return _walk(start_date, end_date, _fetch_biomass_window, pause_s)
 
 
 def to_settlement_periods(rows: Iterable[Mapping]) -> dict[tuple[str, int], dict[str, float]]:
@@ -725,6 +766,115 @@ def zero_carbon_must_run_coverage(rows: Iterable[Mapping]) -> dict[str, float]:
     }
 
 
+def biomass_by_period(rows: Iterable[Mapping]) -> dict[tuple[str, int], float]:
+    """{(date, period): BIOMASS MW} — the raw biomass outturn, for MEASUREMENT ONLY.
+
+    THIS SERIES MUST NOT REACH A HALF HOUR OF THE RECONSTRUCTION and that is not a style
+    preference, it is condition 1 of the boundary rule at the top of this module read the only
+    way it can be read: NESO prices biomass at 120 gCO2/kWh, so every value here is an emissions
+    term. Handing it over half-hourly would make the reconstruction NESO's arithmetic wearing
+    this project's variable names — precisely what half-hourly gas and coal are refused for.
+
+    It exists so `biomass_envelope_by_year` can reduce it to annual scalars, which is coal's
+    grain and coal's justification: what a fleet was ABLE to do in a year is a fact about steel,
+    and how much of that runs in any given half hour is the dispatch decision the reconstruction
+    owns. A non-positive reading is dropped by the reducer, not here — a raw view stays raw.
+    """
+    latest: dict[tuple[str, int], float] = {}
+    for row in rows:
+        if str(row.get("fuelType")) != BIOMASS_FUEL_TYPE:
+            continue
+        settlement_date = str(row.get("settlementDate") or "")[:10]
+        try:
+            period = int(row.get("settlementPeriod"))
+            mw = float(row.get("generation"))
+        except (TypeError, ValueError):
+            continue
+        if not settlement_date or not (1 <= period <= 50):
+            continue
+        # LAST ROW WINS, the same rule `to_settlement_periods` keeps: FUELHH is republished with
+        # revisions and the later row is the corrected one.
+        latest[(settlement_date, period)] = mw
+    return latest
+
+
+def biomass_envelope_by_year(
+    biomass_mw_by_period: Mapping[tuple[str, int], float],
+) -> dict[int, dict[str, float]]:
+    """{year: {capacity_mw, floor_mw, p1_mw, p99_mw, mean_mw, half_hours}} — the envelope the
+    biomass fleet demonstrated it could sit inside, one row per calendar year.
+
+    THE GAP THIS CLOSES. `grid_carbon_intensity` has served biomass from a FLAT 2,400 MW since
+    the module was written, while the other half of the same must-run block was replaced with
+    measured outturn on 2026-08-26. GB's biomass fleet is not flat either: it swings by
+    gigawatts as units come off for maintenance and as prices fall, and it is the only carbon-
+    carrying term in the must-run block — so every megawatt of that movement was being made up
+    by the gas stack at roughly three times biomass's emissions rate, on a schedule of the
+    model's own invention.
+
+    WHAT CROSSES AND WHAT DOES NOT, because this fuel is the one where the line is easiest to
+    lose. Two scalars a year cross: the largest and the smallest output the fleet was observed
+    at. Both are facts about the plant. What does NOT cross is when it sat where — that is the
+    dispatch decision, and `grid_carbon_intensity.emissions_rate_t_per_mwh` makes it from the
+    residual it computed itself. The test that this holds is not a promise in this docstring: it
+    is that the reconstruction takes two floats per year and has no access to this mapping.
+
+    WHY BOTH ENDS AND NOT A CAPACITY ALONE. A fleet modelled between zero and its maximum would
+    be free to switch off entirely in a quiet half hour, which is the same defect the thermal
+    floor was built to remove one fuel over — and biomass is worse, because switching it off is
+    the change that makes a quiet half hour read as PERFECTLY CLEAN. The demonstrated minimum is
+    what the fleet was never observed below, so it is the honest floor.
+
+    THE SAME ROBUST-VERSUS-FLATTERING CARE `thermal_floor_by_year` TAKES, and here it cuts the
+    other way, which is why it is stated rather than inherited. The raw minimum is fragile: one
+    dropped half hour sets it. The robust answer is the 1st percentile, and the 1st percentile is
+    HIGHER — a higher biomass floor means MORE zero-carbon-ish generation in quiet half hours,
+    a cleaner modelled clean end, and a WIDER modelled swing. That flatters nothing in a fixed
+    direction here, so `p1_mw` and `p99_mw` are published as DIAGNOSTICS beside the raw ends and
+    the raw ends are what the reconstruction is given (R12: reported, never consumed).
+
+    A NON-POSITIVE READING IS DROPPED AS ABSENT rather than taken as the floor, the same call
+    `thermal_floor_by_year` makes and for the same evidenced reason: `neso_carbon_intensity`
+    found five half hours published at exactly zero, and a zero in a fleet that has never
+    produced zero is a feed dropout.
+
+    R13: nothing downstream may adjust these to move the company's numbers. They move only if
+    Elexon republishes the outturn.
+    """
+    by_year: dict[int, list[float]] = {}
+    for key, mw in biomass_mw_by_period.items():
+        try:
+            year = int(key[0][:4])
+        except (TypeError, ValueError):
+            continue
+        value = float(mw)
+        if value <= 0.0:
+            continue
+        by_year.setdefault(year, []).append(value)
+
+    out: dict[int, dict[str, float]] = {}
+    for year, values in by_year.items():
+        values.sort()
+        # Nearest-rank, the same rule `thermal_floor_by_year` and `neso_carbon_intensity`
+        # already use, so three percentile implementations in this tree cannot report
+        # different things about the same tail.
+        low = min(len(values) - 1, max(0, int(0.01 * len(values))))
+        high = min(len(values) - 1, max(0, int(0.99 * len(values))))
+        out[year] = {
+            "capacity_mw": values[-1],
+            "floor_mw": values[0],
+            "p1_mw": values[low],
+            "p99_mw": values[high],
+            "mean_mw": sum(values) / len(values),
+            "half_hours": float(len(values)),
+        }
+    if not out:
+        raise FuelOutturnUnavailable(
+            "no positive biomass reading in any year, so no envelope can be measured"
+        )
+    return out
+
+
 def load_cached_zero_carbon_must_run() -> list[dict]:
     """The cached zero-carbon must-run rows, or a refusal — never an empty list as a cache hit.
 
@@ -747,6 +897,30 @@ def load_cached_zero_carbon_must_run() -> list[dict]:
 def write_zero_carbon_must_run_cache(rows: list[dict]) -> None:
     ZERO_CARBON_MUST_RUN_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
     ZERO_CARBON_MUST_RUN_CACHE_PATH.write_text(json.dumps(rows, separators=(",", ":")))
+
+
+def load_cached_biomass() -> list[dict]:
+    """The cached biomass rows, or a refusal — never an empty list dressed as a cache hit.
+
+    Absence is raised for the reason the other three loaders raise it: a missing series silently
+    restores the flat 2,400 MW block this measurement exists to remove, and a shape that reverts
+    to a known-wrong form without saying so is the worst available failure.
+    """
+    if not BIOMASS_CACHE_PATH.exists():
+        raise FuelOutturnUnavailable(
+            f"{BIOMASS_CACHE_PATH} does not exist. Run "
+            "`python3 -m sim.elexon_fuel_outturn --biomass` to build it. An absent series is a "
+            "shape whose biomass fleet never moved, not a grid that burned wood at a constant."
+        )
+    rows = json.loads(BIOMASS_CACHE_PATH.read_text())
+    if not rows:
+        raise FuelOutturnUnavailable(f"{BIOMASS_CACHE_PATH} is empty")
+    return rows
+
+
+def write_biomass_cache(rows: list[dict]) -> None:
+    BIOMASS_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    BIOMASS_CACHE_PATH.write_text(json.dumps(rows, separators=(",", ":")))
 
 
 def load_cached() -> list[dict]:
@@ -804,7 +978,21 @@ def main(argv: list[str] | None = None) -> int:
                         help="fetch the CCGT+OCGT series into the thermal cache instead")
     parser.add_argument("--zero-carbon-must-run", dest="zero_carbon", action="store_true",
                         help="fetch the NUCLEAR+NPSHYD series into the must-run cache instead")
+    parser.add_argument("--biomass", action="store_true",
+                        help="fetch the BIOMASS series into the biomass cache instead")
     args = parser.parse_args(argv)
+
+    if args.biomass:
+        rows = fetch_biomass(args.start, args.end)
+        write_biomass_cache(rows)
+        envelope = biomass_envelope_by_year(biomass_by_period(rows))
+        print(f"{len(rows):,} rows -> {len(envelope):,} year(s)")
+        for year, record in sorted(envelope.items()):
+            print(f"  {year}  biomass {record['floor_mw']:>7,.0f} - {record['capacity_mw']:>7,.0f} MW "
+                  f"(p1 {record['p1_mw']:>7,.0f}, mean {record['mean_mw']:>7,.0f}, "
+                  f"p99 {record['p99_mw']:>7,.0f}; {record['half_hours']:>7,.0f} half hours)")
+        print(f"cached to {BIOMASS_CACHE_PATH}")
+        return 0
 
     if args.thermal:
         rows = fetch_thermal(args.start, args.end)

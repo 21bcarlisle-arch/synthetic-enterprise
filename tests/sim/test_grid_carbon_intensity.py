@@ -756,3 +756,220 @@ def test_a_MEASURED_block_larger_than_demand_cannot_manufacture_generation():
     assert rate < gci.MUST_RUN_EMISSIONS_RATE_T_PER_MWH, (
         "a half hour drowned in zero-carbon baseload must read cleaner than the blended block"
     )
+
+
+# --------------------------------------------------------------------------- #
+# The DISPATCHED biomass fleet -- an envelope crossed, a schedule decided here #
+# --------------------------------------------------------------------------- #
+#
+# The band these tests work in is chosen so the arithmetic is hand-checkable. When the residual
+# left after the zero-carbon block sits INSIDE the envelope, biomass absorbs it exactly and the
+# thermal stack dispatches nothing -- so the whole rate is the biomass term and a wrong dispatch
+# cannot hide behind a gas number that moved to compensate.
+
+ENVELOPE_FLOOR_MW = 900.0      # the 2024 fortnight's demonstrated minimum
+ENVELOPE_CAPACITY_MW = 3_180.0  # and its demonstrated maximum
+
+
+def biomass_only_rate(demand: float, renewables: float, *, zero_carbon: float,
+                      floor: float | None = None, capacity: float | None = None) -> float:
+    return gci.emissions_rate_t_per_mwh(
+        demand, renewables, YEAR,
+        zero_carbon_must_run_mw=zero_carbon,
+        biomass_floor_mw=floor,
+        biomass_capacity_mw=capacity,
+    )
+
+
+def test_the_DEFAULTED_envelope_reproduces_the_FLAT_2400_MW_FLEET_EXACTLY():
+    """The enabling refactor must change no number until an envelope is supplied.
+
+    This is what makes the before/after measurement mean anything: the two arms differ by ONE
+    input and not by an arithmetic rewrite that travelled with it. It is asserted twice over --
+    defaulted, and handed a DELIBERATELY FLAT envelope -- because those are two different code
+    paths through the clamp and only the second proves the clamp itself collapses to the
+    constant it replaced.
+
+    MUTATION (must fire): default `biomass_floor_mw` to 0 instead of to the capacity, which is
+    the natural-looking choice and lets the fleet switch off in every quiet half hour.
+    """
+    for demand, renewables in [
+        (45_000.0, 2_000.0),     # still winter evening, above the CCGT band
+        (30_000.0, 12_000.0),    # ordinary, inside the band
+        (22_000.0, 18_000.0),    # quiet, nothing left to dispatch
+        (6_000.0, 1_000.0),      # demand BELOW the block, so it is scaled down
+        (20_000.0, 20_000.0),    # renewables meet the lot; the block still runs
+    ]:
+        for zero_carbon in (None, 5_600.0, 9_800.0, 700.0):
+            base = gci.emissions_rate_t_per_mwh(
+                demand, renewables, YEAR, zero_carbon_must_run_mw=zero_carbon
+            )
+            flat = gci.emissions_rate_t_per_mwh(
+                demand, renewables, YEAR, zero_carbon_must_run_mw=zero_carbon,
+                biomass_capacity_mw=gci.MUST_RUN_BIOMASS_MW,
+                biomass_floor_mw=gci.MUST_RUN_BIOMASS_MW,
+            )
+            assert flat == base, (
+                f"a flat envelope moved the rate at demand={demand:,.0f} zc={zero_carbon}: "
+                "the clamp does not collapse to the constant it replaced, so no measurement "
+                "against this baseline isolates the dispatch"
+            )
+
+
+def test_the_fleet_RAMPS_with_the_residual_and_never_leaves_its_ENVELOPE():
+    """The dispatch decision this module owns, checked at all three regimes of the clamp.
+
+    Inside the band the biomass term IS the residual left after the zero-carbon block, which is
+    what a CfD-supported plant does: it takes what the residual offers up to its capacity. Below
+    the band it holds at its demonstrated minimum; above it, it saturates and gas takes the rest.
+
+    MUTATION (must fire): drop either end of the clamp, or dispatch biomass from the year's
+    `mean_mw` instead of from the residual -- the flattering choice, because a mean fits the
+    published series better than either honest end.
+    """
+    demand, zero_carbon = 20_000.0, 5_600.0
+    rate_of = lambda mw: mw * gci.BIOMASS_G_CO2_PER_KWH / 1000.0 / demand  # noqa: E731
+
+    # BELOW the band: the residual cannot fill the floor, and the fleet holds at it.
+    floored = biomass_only_rate(demand, 14_000.0, zero_carbon=zero_carbon,
+                                floor=ENVELOPE_FLOOR_MW, capacity=ENVELOPE_CAPACITY_MW)
+    assert floored == pytest.approx(rate_of(ENVELOPE_FLOOR_MW))
+
+    # INSIDE the band: biomass absorbs the residual exactly and nothing thermal runs.
+    for renewables, expected_mw in [(13_000.0, 1_400.0), (12_000.0, 2_400.0)]:
+        inside = biomass_only_rate(demand, renewables, zero_carbon=zero_carbon,
+                                   floor=ENVELOPE_FLOOR_MW, capacity=ENVELOPE_CAPACITY_MW)
+        assert inside == pytest.approx(rate_of(expected_mw)), (
+            f"the fleet did not follow the residual at renewables={renewables:,.0f}"
+        )
+
+    # ABOVE the band: it saturates at the demonstrated maximum and the gas stack takes the rest,
+    # so the rate must EXCEED the pure-biomass rate rather than continuing to track the residual.
+    above = biomass_only_rate(demand, 11_000.0, zero_carbon=zero_carbon,
+                              floor=ENVELOPE_FLOOR_MW, capacity=ENVELOPE_CAPACITY_MW)
+    # THE COMPARISON IS AGAINST THE UNCAPPED FLEET, NOT AGAINST THE CAPACITY, and the first
+    # version of this line got that wrong: `above > rate_of(capacity)` is satisfied by a fleet
+    # that simply kept growing past its maximum, so the mutation that removes the upper clamp
+    # SURVIVED it. The residual left after saturation is 3,400 MW; served as biomass it would
+    # cost 120 g, and it must instead cost the gas stack's several hundred.
+    uncapped_mw = demand - 11_000.0 - zero_carbon
+    assert above > rate_of(uncapped_mw), (
+        "past the demonstrated maximum the fleet must saturate and the REMAINDER must be served "
+        "by gas at several times biomass's factor -- a rate at or below the uncapped fleet's "
+        "means the clamp let biomass grow past what GB's plant was ever observed to produce"
+    )
+
+    # And the ramp is MONOTONE across the whole range, which no single point above can show.
+    rates = [
+        biomass_only_rate(demand, renewables, zero_carbon=zero_carbon,
+                          floor=ENVELOPE_FLOOR_MW, capacity=ENVELOPE_CAPACITY_MW)
+        for renewables in range(14_500, 10_000, -250)
+    ]
+    assert rates == sorted(rates), "the rate must rise monotonically as the residual grows"
+
+
+def test_a_QUIET_half_hour_backs_the_fleet_DOWN_TO_ITS_FLOOR_AND_NEVER_TO_ZERO():
+    """The fail-open this envelope was given a bottom end to prevent.
+
+    A fleet modelled between zero and its maximum switches off exactly when renewables meet
+    demand -- and biomass is the ONLY carbon-carrying term in the must-run block, so switching
+    it off makes the half hour read as a perfectly clean grid. That is the same defect the
+    thermal floor was built to remove one fuel over, at the one fuel where it does most damage,
+    because a perfectly clean half hour is precisely what a time-shifting recommendation points
+    a customer at.
+
+    MUTATION (must fire): clamp the fleet to `[0, capacity]` instead of `[floor, capacity]`.
+    """
+    demand = 20_000.0
+    at_floor = biomass_only_rate(demand, demand, zero_carbon=5_600.0,
+                                 floor=ENVELOPE_FLOOR_MW, capacity=ENVELOPE_CAPACITY_MW)
+    assert at_floor == pytest.approx(
+        ENVELOPE_FLOOR_MW * gci.BIOMASS_G_CO2_PER_KWH / 1000.0 / demand
+    )
+    assert at_floor > 0.0, (
+        "a half hour whose renewables met the whole of demand still burns wood; a zero here is "
+        "the fabricated perfectly-clean grid this module exists to refuse"
+    )
+
+
+def test_ONLY_the_two_ENDS_of_the_envelope_reach_the_dispatch():
+    """R15 INDEPENDENCE, and the control that keeps the boundary claim checkable.
+
+    The envelope record carries `mean_mw`, `p1_mw`, `p99_mw` and `half_hours` beside the two
+    ends. None of them may reach a half hour: `mean_mw` in particular is a summary of WHEN the
+    fleet ran, it would fit the published series better than either honest end, and consuming it
+    would make this a reading of biomass outturn wearing the word "envelope".
+
+    Asserted by CONSEQUENCE rather than by inspection -- perturb each field and see whether the
+    published shape moves -- because a grep for the field name cannot tell a use from a mention.
+
+    MUTATION (must fire): pass the whole record down to `emissions_rate_t_per_mwh`, or dispatch
+    from `mean_mw`.
+    """
+    # THE FIXTURE HAS TO SPAN BOTH ENDS OF THE CLAMP, and the first version of it did not: with
+    # renewables never above 15 GW the residual always cleared the floor, `floor_mw` was never
+    # the binding end, and the control below reported that the floor "did not reach the
+    # dispatch" -- a finding about the fixture, not about the code. Renewables run from 5 GW
+    # (capacity binds) to 19.5 GW (floor binds) so both ends are exercised.
+    demand = {("2024-03-01", p): 20_000.0 for p in range(1, 40)}
+    renewables = {key: 5_000.0 + 375.0 * key[1] for key in demand}
+    envelope = {
+        2024: {"capacity_mw": ENVELOPE_CAPACITY_MW, "floor_mw": ENVELOPE_FLOOR_MW,
+               "p1_mw": 950.0, "p99_mw": 3_100.0, "mean_mw": 2_455.0, "half_hours": 17_568.0},
+    }
+    baseline = gci.build_shape(demand, renewables, biomass_envelope_by_year=envelope)
+
+    for field, moved in [("p1_mw", 2_900.0), ("p99_mw", 1_000.0),
+                         ("mean_mw", 400.0), ("half_hours", 3.0)]:
+        perturbed = {2024: {**envelope[2024], field: moved}}
+        assert gci.build_shape(
+            demand, renewables, biomass_envelope_by_year=perturbed
+        ) == baseline, f"`{field}` reached the dispatch; it is a diagnostic, not an input"
+
+    for field, moved in [("capacity_mw", 1_500.0), ("floor_mw", 100.0)]:
+        perturbed = {2024: {**envelope[2024], field: moved}}
+        assert gci.build_shape(
+            demand, renewables, biomass_envelope_by_year=perturbed
+        ) != baseline, f"`{field}` did NOT reach the dispatch, so this test proves nothing"
+
+
+def test_a_year_with_NO_envelope_falls_back_to_the_FLAT_BLOCK_and_never_to_zero_biomass():
+    """The mirror of the must-run fallback, and the same fail-open it refuses.
+
+    A `.get(year, 0.0)` default would say "the fleet generated nothing that year", which the
+    dispatch answers by reading every quiet half hour as clean -- worse than the flat block it
+    replaced rather than better.
+
+    MUTATION (must fire): default the missing year to a zero-width envelope at zero.
+    """
+    demand = {("2019-03-01", p): 25_000.0 for p in range(1, 20)}
+    renewables = {key: 24_000.0 for key in demand}
+    only_2024 = {2024: {"capacity_mw": ENVELOPE_CAPACITY_MW, "floor_mw": ENVELOPE_FLOOR_MW,
+                        "p1_mw": 950.0, "p99_mw": 3_100.0, "mean_mw": 2_455.0,
+                        "half_hours": 17_568.0}}
+    assert gci.build_shape(
+        demand, renewables, biomass_envelope_by_year=only_2024
+    ) == gci.build_shape(demand, renewables)
+    assert gci.build_shape(demand, renewables, biomass_envelope_by_year={}) == gci.build_shape(
+        demand, renewables
+    )
+    # And the fallback is the FLAT FLEET, not an absent one: the rate is still positive in a
+    # half hour whose renewables met almost all of demand.
+    assert gci.emissions_rate_t_per_mwh(25_000.0, 25_000.0, 2019) > 0.0
+
+
+def test_a_DISPATCHED_fleet_larger_than_demand_cannot_manufacture_generation():
+    """The same cap the flat block and the thermal floor already carry, on a term that now
+    moves -- and the pro-rata scaling has to follow the DISPATCHED fleet, not the constant.
+
+    MUTATION (must fire): scale the served share by `MUST_RUN_BIOMASS_MW` instead of by the
+    fleet this half hour actually dispatched.
+    """
+    demand = 6_000.0
+    rate = biomass_only_rate(demand, 0.0, zero_carbon=9_800.0,
+                             floor=ENVELOPE_FLOOR_MW, capacity=ENVELOPE_CAPACITY_MW)
+    # Residual 6,000 minus a 9,800 MW zero-carbon block is negative, so biomass holds at its
+    # floor and the block is 10,700 MW against 6,000 MW of demand.
+    served_fraction = demand / (ENVELOPE_FLOOR_MW + 9_800.0)
+    expected = ENVELOPE_FLOOR_MW * served_fraction * gci.BIOMASS_G_CO2_PER_KWH / 1000.0
+    assert rate == pytest.approx(expected / demand)

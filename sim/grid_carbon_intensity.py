@@ -343,7 +343,10 @@ SHAPE_BASIS = (
     "CCGT+OCGT fleet's demonstrated annual MINIMUM output, so no half hour is dispatched with no "
     "gas running at all; and the zero-carbon must-run block taken from Elexon's published "
     "half-hourly NUCLEAR+NPSHYD outturn where it exists (99.97% of half hours) rather than "
-    "assumed flat, with the biomass share of that block still modelled at a constant 2,400 MW."
+    "assumed flat, with the biomass share of that block still modelled at a constant 2,400 MW "
+    "-- the fleet's demonstrated annual envelope is now measured and published beside this "
+    "series as a diagnostic, and is NOT dispatched, because doing so was measured to make the "
+    "series worse on four axes of five (see `generate_grid_intensity_feed.BIOMASS_DISPATCH_WIRED`)."
 )
 
 #: Biomass, gCO2/kWh, on NESO's own Carbon Intensity methodology -- the same methodology whose
@@ -398,6 +401,8 @@ def emissions_rate_t_per_mwh(
     coal_capacity_mw: float = 0.0,
     thermal_floor_mw: float = 0.0,
     zero_carbon_must_run_mw: float | None = None,
+    biomass_capacity_mw: float | None = None,
+    biomass_floor_mw: float | None = None,
 ) -> float:
     """Tonnes CO2 per MWh of demand met, in ONE half hour, on the dispatch above.
 
@@ -429,6 +434,15 @@ def emissions_rate_t_per_mwh(
     and neither fuel's outturn can go negative, which is what distinguishes an availability from
     a dispatch decision (pumped storage carries a zero factor too, and is refused on the second
     condition). Every gram this function returns still comes from a merit order it decided itself.
+
+    `biomass_capacity_mw` / `biomass_floor_mw` — the biomass fleet's demonstrated maximum and
+    minimum output IN THAT YEAR, from `elexon_fuel_outturn.biomass_envelope_by_year`. AN
+    ENVELOPE, NOT A DISPATCH, and biomass is the fuel where that distinction does the most work:
+    it FAILS the half-hourly test above outright (NESO prices it at 120 gCO2/kWh, so its metered
+    output is an emissions term), so it crosses at COAL'S grain — two scalars a year, facts about
+    what the plant was able to do — and where inside that envelope it sits in any half hour is
+    decided here, from the residual, with no biomass reading in sight. `None` for either falls
+    back to the flat `MUST_RUN_BIOMASS_MW` used before 2026-08-26, exactly.
 
     THE DEFAULTS REPRODUCE THE PRE-2026-08-25 SHAPE EXACTLY, and that is a liability rather than
     a convenience: a caller that forgets them gets the known-wrong series silently. The control
@@ -467,7 +481,37 @@ def emissions_rate_t_per_mwh(
         if zero_carbon_must_run_mw is None
         else max(0.0, float(zero_carbon_must_run_mw))
     )
-    must_run_capacity_mw = MUST_RUN_BIOMASS_MW + zero_carbon_mw
+
+    # AND NEITHER IS THE BIOMASS HALF, which is what this call was added for and which had to be
+    # done differently from the half above it. Biomass may not be handed over half-hourly at any
+    # price — NESO's factor for it is 120 gCO2/kWh, so its metered output IS part of the answer —
+    # so what crosses is an ENVELOPE, two scalars a year, and the dispatch inside it is decided
+    # here. A CfD-supported plant is paid a strike price for what it generates, so it runs at the
+    # top of its envelope whenever the residual has room for it and backs down toward its
+    # demonstrated minimum when it does not. That is a merit position, not a reading: below gas,
+    # above nothing, and answering only to the residual this function computed for itself.
+    #
+    # WHAT THIS DOES NOT MODEL, named because it sets the direction of the remaining error:
+    # OUTAGES. A unit off for maintenance is invisible from the residual, so the modelled fleet
+    # sits nearer the top of its envelope than GB's did, which means slightly too much 120 g
+    # generation displacing slightly too much 350-400 g gas. The error is toward UNDERSTATING
+    # emissions in busy half hours, and it is bounded by the envelope's own width.
+    biomass_capacity = (
+        MUST_RUN_BIOMASS_MW
+        if biomass_capacity_mw is None
+        else max(0.0, float(biomass_capacity_mw))
+    )
+    # THE FLOOR DEFAULTS TO THE CAPACITY, and that is the whole of why this change can be proven
+    # to move nothing when it is not asked to: floor == capacity collapses the clamp below to the
+    # constant it replaced, for every input, with no branch.
+    biomass_floor = (
+        biomass_capacity
+        if biomass_floor_mw is None
+        else min(max(0.0, float(biomass_floor_mw)), biomass_capacity)
+    )
+    biomass_mw = min(max(residual_mw - zero_carbon_mw, biomass_floor), biomass_capacity)
+
+    must_run_capacity_mw = biomass_mw + zero_carbon_mw
     must_run_mw = min(demand_mw, must_run_capacity_mw)
     thermal_mw = max(0.0, residual_mw - must_run_capacity_mw)
 
@@ -531,7 +575,7 @@ def emissions_rate_t_per_mwh(
     # is smaller than the block scales biomass down with everything else. That reproduces the old
     # `min(demand, 8000) * blended_rate` exactly whenever the zero-carbon half is at its fallback.
     biomass_served_mw = (
-        MUST_RUN_BIOMASS_MW * (must_run_mw / must_run_capacity_mw)
+        biomass_mw * (must_run_mw / must_run_capacity_mw)
         if must_run_capacity_mw > 0.0
         else 0.0
     )
@@ -553,6 +597,7 @@ def build_shape(
     coal_capacity_by_year: Mapping[int, float] | None = None,
     thermal_floor_by_year: Mapping[int, float] | None = None,
     zero_carbon_must_run_by_period: Mapping[tuple[str, int], float] | None = None,
+    biomass_envelope_by_year: Mapping[int, Mapping[str, float]] | None = None,
 ) -> dict[tuple[str, int], float]:
     """{(settlement date, period): shape}, normalised per CALENDAR YEAR to a demand-weighted
     mean of exactly 1.0.
@@ -603,6 +648,17 @@ def build_shape(
         # is a fiction the dispatch would answer by burning gas for the whole residual -- the
         # same fail-open shape `zero_carbon_must_run_by_period` refuses one layer up.
         zero_carbon_mw = (zero_carbon_must_run_by_period or {}).get(key)
+        # THE REAL YEAR AGAIN, for the coal reason exactly: an envelope is a fact about the fleet
+        # THAT year, and clamping 2025 to 2024 would hand a closed or derated fleet the capacity
+        # of the year before. A year with no measurement gets `None` and the flat block, which is
+        # the pre-existing behaviour and not an invented one.
+        #
+        # THE WHOLE RECORD IS NEVER PASSED DOWN. `capacity_mw` and `floor_mw` are unpacked here,
+        # so the diagnostics beside them (`p1_mw`, `p99_mw`, `mean_mw`) cannot reach the dispatch
+        # by accident -- the same guard `thermal_floor_by_year`'s unpacking already provides, and
+        # it matters more here because `mean_mw` is the number a goal-seeking author would reach
+        # for and it would fit the published series better than either honest end (R12/R13).
+        envelope = (biomass_envelope_by_year or {}).get(year)
         try:
             rates[key] = emissions_rate_t_per_mwh(
                 float(demand_mw),
@@ -614,6 +670,12 @@ def build_shape(
                 thermal_floor_mw=floor_mw,
                 zero_carbon_must_run_mw=(
                     None if zero_carbon_mw is None else float(zero_carbon_mw)
+                ),
+                biomass_capacity_mw=(
+                    None if envelope is None else float(envelope["capacity_mw"])
+                ),
+                biomass_floor_mw=(
+                    None if envelope is None else float(envelope["floor_mw"])
                 ),
             )
         except (ShapeUnavailable, ValueError, KeyError):

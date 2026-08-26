@@ -502,3 +502,147 @@ def test_a_must_run_series_with_nothing_usable_RAISES_rather_than_returning_a_fl
     """
     with pytest.raises(fuel.FuelOutturnUnavailable):
         fuel.zero_carbon_must_run_by_period(must_run_rows([(0.0, 0.0)], date="2024-03-01"))
+
+
+# --------------------------------------------------------------------------- #
+# The biomass envelope -- the fuel that is REFUSED at half-hourly grain        #
+# --------------------------------------------------------------------------- #
+
+def biomass_rows(readings, *, date: str, start_period: int = 1) -> list[dict]:
+    """One BIOMASS row per half hour, from `readings` of MW."""
+    return [
+        row("BIOMASS", mw, date=date, period=start_period + offset)
+        for offset, mw in enumerate(readings)
+    ]
+
+
+def test_biomass_FAILS_the_half_hourly_crossing_test_that_nuclear_and_hydro_PASS():
+    """The reason this fuel is read at coal's grain and not at the must-run block's.
+
+    This is the test that keeps the two rulings from blurring into "we read published outturn".
+    Nuclear and hydro cross half-hourly because NESO prices them at exactly zero, so nothing of
+    the ANSWER crosses. Biomass is priced at 120 gCO2/kWh on the same table -- its outturn IS an
+    emissions term -- so it is refused at that grain and only its annual envelope crosses.
+
+    READ FROM NESO'S OWN TABLE, not from a constant this project chose (R15 INDEPENDENCE): if
+    NESO ever republished biomass at zero, this test would say so rather than defend a ruling
+    that had stopped being true.
+
+    MUTATION (must fire): add `BIOMASS` to `ZERO_CARBON_MUST_RUN_FUEL_TYPES`.
+    """
+    assert fuel.NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH["BIOMASS"] > 0.0, (
+        "if NESO now prices biomass at zero the crossing rule has to be re-argued, not assumed"
+    )
+    assert fuel.BIOMASS_FUEL_TYPE not in fuel.ZERO_CARBON_MUST_RUN_FUEL_TYPES
+    for crossing in fuel.ZERO_CARBON_MUST_RUN_FUEL_TYPES:
+        assert fuel.NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH[crossing] == 0.0
+
+
+def test_the_envelope_carries_BOTH_ENDS_and_consumes_neither_percentile():
+    """`capacity_mw` is the demonstrated maximum and `floor_mw` the demonstrated minimum.
+
+    BOTH ENDS, because an envelope open at the bottom lets the fleet switch off in a quiet half
+    hour -- and biomass switching off is exactly the change that makes a quiet half hour read as
+    a perfectly clean grid, which is the direction every error in this module has to be checked
+    against.
+
+    The percentiles are published BESIDE them and never in place of them (R12: reported, never
+    consumed); `mean_mw` is the one a goal-seeking author would reach for.
+
+    MUTATION (must fire): return `p1_mw` as `floor_mw`, or `p99_mw` as `capacity_mw`.
+    """
+    # Split across four settlement dates because a day holds 48 periods, and the sample has to
+    # be long enough that NEAREST-RANK puts both percentiles strictly inside the raw ends --
+    # on a hundred readings the 99th percentile IS the maximum and the test could not tell the
+    # robust statistic from the flattering one it exists to keep out of the dispatch.
+    days = {
+        "2024-03-01": [900.0] + [2_500.0] * 47,
+        "2024-03-02": [2_500.0] * 48,
+        "2024-03-03": [2_500.0] * 48,
+        "2024-03-04": [2_500.0] * 47 + [3_180.0],
+    }
+    rows = [r for date, mws in days.items() for r in biomass_rows(mws, date=date)]
+    envelope = fuel.biomass_envelope_by_year(fuel.biomass_by_period(rows))[2024]
+    readings = [mw for mws in days.values() for mw in mws]
+    assert envelope["floor_mw"] == pytest.approx(900.0)
+    assert envelope["capacity_mw"] == pytest.approx(3_180.0)
+    assert envelope["half_hours"] == pytest.approx(192.0)
+    assert envelope["p1_mw"] > envelope["floor_mw"], (
+        "the robust statistic must sit above the raw minimum, which is why it is not consumed"
+    )
+    assert envelope["p99_mw"] < envelope["capacity_mw"]
+    assert envelope["mean_mw"] == pytest.approx(sum(readings) / len(readings))
+
+
+def test_a_ZERO_biomass_reading_is_dropped_as_ABSENT_rather_than_taken_as_the_floor():
+    """The lesson `neso_carbon_intensity` learned when NESO published `actual: 0`.
+
+    A zero from a fleet that has never produced zero is a feed dropout. Taken as the floor it
+    would hand the dispatch a fleet allowed to switch off entirely -- the fail-open shape, at
+    exactly the fuel where it does the most damage.
+
+    MUTATION (must fire): drop the `if value <= 0.0: continue` guard.
+    """
+    envelope = fuel.biomass_envelope_by_year(
+        fuel.biomass_by_period(
+            biomass_rows([0.0, 1_400.0, -5.0, 2_900.0], date="2024-03-01")
+        )
+    )[2024]
+    assert envelope["floor_mw"] == pytest.approx(1_400.0)
+    assert envelope["half_hours"] == pytest.approx(2.0)
+
+
+def test_the_envelope_is_PER_YEAR_and_never_borrowed_across_one():
+    """A fleet derates and units close; a year's envelope is a fact about that year.
+
+    MUTATION (must fire): key the envelope on anything but the settlement date's year.
+    """
+    rows = (
+        biomass_rows([1_000.0, 3_000.0], date="2023-06-01")
+        + biomass_rows([500.0, 1_200.0], date="2024-06-01")
+    )
+    envelope = fuel.biomass_envelope_by_year(fuel.biomass_by_period(rows))
+    assert envelope[2023]["capacity_mw"] == pytest.approx(3_000.0)
+    assert envelope[2024]["capacity_mw"] == pytest.approx(1_200.0)
+    assert envelope[2024]["floor_mw"] == pytest.approx(500.0)
+
+
+def test_LAST_ROW_WINS_for_a_REPUBLISHED_biomass_half_hour():
+    """FUELHH is republished with revisions; the later row is the corrected one.
+
+    MUTATION (must fire): keep the first reading, or sum the two.
+    """
+    rows = [
+        row("BIOMASS", 3_000.0, date="2024-03-01", period=7),
+        row("BIOMASS", 1_100.0, date="2024-03-01", period=7),
+    ]
+    series = fuel.biomass_by_period(rows)
+    assert series[("2024-03-01", 7)] == pytest.approx(1_100.0)
+    assert len(series) == 1
+
+
+def test_a_biomass_series_with_nothing_usable_RAISES_rather_than_returning_an_envelope():
+    """An absent series must not read as a fleet with no envelope, because the caller's
+    fallback for "no envelope" is the flat 2,400 MW block this measurement exists to remove.
+
+    MUTATION (must fire): return `{}` instead of raising.
+    """
+    with pytest.raises(fuel.FuelOutturnUnavailable):
+        fuel.biomass_envelope_by_year(
+            fuel.biomass_by_period(biomass_rows([0.0, 0.0], date="2024-03-01"))
+        )
+
+
+def test_the_biomass_LOADER_refuses_an_absent_cache_rather_than_reverting_in_silence():
+    """The same refusal the other three loaders carry (R15 FAIL-OPEN).
+
+    MUTATION (must fire): return `[]` when the cache is missing.
+    """
+    missing = Path("sim/cache/does_not_exist_biomass.json")
+    original = fuel.BIOMASS_CACHE_PATH
+    try:
+        fuel.BIOMASS_CACHE_PATH = missing
+        with pytest.raises(fuel.FuelOutturnUnavailable):
+            fuel.load_cached_biomass()
+    finally:
+        fuel.BIOMASS_CACHE_PATH = original
