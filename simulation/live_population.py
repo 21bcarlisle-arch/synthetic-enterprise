@@ -192,7 +192,24 @@ def live_population(base_seed: Optional[int] = None) -> List[dict]:
     # it has returned the static roster alone under a disabled draw since it was
     # written -- so the campaign already knew how to plan against a book with no
     # arrivals in it. Nothing was missing but the reachability.
-    won = _won_customer_dicts(_campaign(_pre_growth_book(seed), seed))
+    # THE SUSPENSION HAS TO REACH THE CAMPAIGN TOO, and it did not (2026-08-26). The comment
+    # at the top of this function says the filter is applied "FIRST, before the drawn trickle
+    # and before the campaign", and that was true of two of the three: `static` is filtered and
+    # `drawn` is filtered, and the campaign's winners went into the book unfiltered.
+    #
+    # Nothing in the published record was wrong because of it -- the funnel has only ever won
+    # residential prospects, so the filter would have removed nothing -- which is exactly why
+    # it survived: a guard whose subject never arrives looks identical to a guard that works.
+    # The director's 2026-08-26 wording is the reason it is closed rather than noted: the
+    # company "starts with none of them AND DOESN'T TRY TO WIN ANY", and a book that can grow
+    # into a suspended segment does not satisfy the second half however quiet it has been.
+    #
+    # Filtered at the WIN and not at the quote, deliberately: `campaign_quotes_paid_for` is the
+    # record of what the company SPENT pursuing, and a supplier that quoted a prospect it will
+    # not serve has still spent the money. Hiding that would make the acquisition cost per win
+    # flatter itself. So the spend stays visible and the account never joins the book.
+    won = [c for c in _won_customer_dicts(_campaign(_pre_growth_book(seed), seed))
+           if _serves(c, served)]
     if won:
         register_drawn_points(won)
         book = book + won

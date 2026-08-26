@@ -116,6 +116,16 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-08-26  I001 1355 -> 1350  (the I&C segment suspension)
+#     Five import blocks sorted as a side effect of touching the files that land the
+#     director's 2026-08-24 suspension. Not a tidying pass: `ruff --fix` was run on each
+#     file this commit already had open, which is the only way a per-file ratchet is ever
+#     paid -- the debt is invisible until something else brings you to the file.
+#     FIVE AND NOT SIX, and the first attempt claimed six. The working tree had a sixth
+#     sorted block in a file belonging to a DIFFERENT commit, so a baseline frozen off the
+#     working tree described a tree this commit does not create -- and the gate, which
+#     scores the extracted tree, refused it. Measured per-file against `git show HEAD:` for
+#     exactly the paths in this pathspec: test_phase24a_ic_customer 3, gas_pass_through 2.
 #   2026-08-26  F841 128 -> 127  (the CLV selection-profile commit)
 #     `couple_clv.build_observations` bound `accounts = run.get("by_billing_account")`
 #     and never read it — the population it actually walks comes from
@@ -125,6 +135,12 @@ BASELINE_DATE = "2026-08-06"
 #     brings you to the file. Removed rather than left as a free shrink deferred to
 #     nobody, because a pre-existing violation in a file you are already editing is
 #     the cheapest one this ratchet will ever offer.
+#   2026-08-17  I001 1375 -> 1373  (the 3-day content freeze, 2026-08-14 07:04 UTC on)
+#     [HEADER RESTORED 2026-08-26. This line was deleted earlier the same day by the
+#     F841 entry above, whose edit anchored on the SHRINK LOG title plus the line that
+#     followed it -- so the paragraph below silently reattached to the F841 entry and
+#     read as if one commit had moved two codes for two unrelated reasons. A log that
+#     misattributes its own entries is worse than a shorter one.]
 #     TWO counts, TWO different causes, and only one of them was a working-tree
 #     transient — the split matters, because freezing the tree's number would have
 #     re-frozen a floor HEAD had already left.
@@ -475,7 +491,7 @@ BASELINE_DATE = "2026-08-06"
 #     seat_work_in_hand F401 -1, sim_runner I001 -1. Four removals, no additions.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
-    "I001": 1355,
+    "I001": 1350,
     "F401": 269,
     "E402": 174,
     "F841": 127,
@@ -495,7 +511,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2346  # was 2347; -1 (F841; see the 2026-08-26 shrink-log entry)
+RUFF_BASELINE_TOTAL = 2341  # was 2346; -5 (I001; see the 2026-08-26 suspension entry)
 
 
 # --------------------------------------------------------------------------

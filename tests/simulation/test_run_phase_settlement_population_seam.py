@@ -49,6 +49,16 @@ def _flag_off_by_default(monkeypatch):
     # invariants are unchanged -- they now STATE the state they test instead of
     # inheriting it from a default that the director has since moved.
     monkeypatch.setenv(_ACTIVATION_ENV, "0")
+    # SEGMENT SUSPENSION, 2026-08-26, and the same discipline a third time. These
+    # assertions compare the resolved book against the raw `CUSTOMERS` literal, which is
+    # the right claim about the DRAW FLAG and the wrong one the moment the director
+    # suspends a segment: his 2026-08-24 I&C suspension went live today and reddened six
+    # of these without the flag being involved. A suite that means "every segment served"
+    # has to say so rather than inherit it -- exactly the reasoning the two paragraphs
+    # above already applied to the other two flags. The suspension has its own tests in
+    # `tests/simulation/test_live_population_seam.py` and
+    # `tests/simulation/test_served_segments_curriculum.py`.
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", "resi,SME,I&C")
     # PB3 EXIT (b2), 2026-08-25: the same discipline for the OTHER flag, and the
     # reason is the change that made it necessary. `live_population()` used to
     # resolve the net-new campaign INSIDE its `draw_population_enabled()` branch,

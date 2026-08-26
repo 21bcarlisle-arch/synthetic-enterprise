@@ -22,9 +22,10 @@ def test_c_ic3g_customer_defined():
 def test_gas_pass_through_renewal_rate_lower():
     """Pass-through gas unit_rate excludes policy/network — lower than fixed equivalent."""
     from pathlib import Path
-    from simulation.run_phase2b import _build_gas_renewal_schedule
+
     from saas.customers import CUSTOMERS
     from sim.gas_prices_history import load_nbp_history
+    from simulation.run_phase2b import _build_gas_renewal_schedule
 
     if not Path("sim/gas_data/nbp_sap.csv").exists():
         pytest.skip("NBP gas price data not available")
@@ -51,9 +52,10 @@ def test_gas_pass_through_renewal_rate_lower():
 def test_gas_pass_through_tariff_type_in_schedule():
     """Gas renewal schedule stores tariff_type in each term."""
     from pathlib import Path
-    from simulation.run_phase2b import _build_gas_renewal_schedule
+
     from saas.customers import CUSTOMERS
     from sim.gas_prices_history import load_nbp_history
+    from simulation.run_phase2b import _build_gas_renewal_schedule
 
     if not Path("sim/gas_data/nbp_sap.csv").exists():
         pytest.skip("NBP gas price data not available")
@@ -157,15 +159,30 @@ def test_existing_gas_customers_default_fixed():
         )
 
 
-def test_gas_pass_through_customer_in_fast_run():
-    """Fast-mode sim includes C_IC3g gas settlement records."""
+def test_gas_pass_through_customer_in_fast_run(serves_industrial_accounts):
+    """Fast-mode sim includes C_IC3g gas settlement records.
+
+    Uses `serves_industrial_accounts` (tests/simulation/conftest.py). This is a CAPABILITY
+    test -- can the settlement engine handle a 5 GWh pass-through gas account -- and the
+    director's I&C suspension removes C_IC3g from the live book, so without the override it
+    asserts nothing. The curriculum rules exactly this case: "a supplier that has never
+    onboarded an I&C customer still has to be able to."
+
+    An earlier attempt set the env var inside this body and reloaded nothing. That cannot
+    work: `run_phase2b` binds `CUSTOMERS = live_population()` at IMPORT time, so by the time
+    a test runs the book is already chosen. The fixture reloads the module, which is the
+    only thing that moves it.
+    """
     import os
+    prior_fast = os.environ.get("SIM_FAST_MODE")
     os.environ["SIM_FAST_MODE"] = "1"
     try:
-        from simulation.run_phase2b import main
-        result = main()
+        result = serves_industrial_accounts.main()
     finally:
-        del os.environ["SIM_FAST_MODE"]
+        if prior_fast is None:
+            os.environ.pop("SIM_FAST_MODE", None)
+        else:
+            os.environ["SIM_FAST_MODE"] = prior_fast
 
     all_records = result.get("all_records", [])
     ic3g_records = [r for r in all_records if r.get("customer_id") == "C_IC3g"]
@@ -227,18 +244,31 @@ def test_gas_pass_through_record_commodity_is_gas():
 
 
 def test_c_ic3g_tariff_type_is_pass_through():
-    from simulation.run_phase2b import GAS_CUSTOMERS
-    c = next(c for c in GAS_CUSTOMERS if c["customer_id"] == "C_IC3g")
+    # THE ROSTER, NOT THE SERVED BOOK. `run_phase2b.ELEC_CUSTOMERS`/`GAS_CUSTOMERS`
+    # apply the director's segment suspension, so reading them made this a test of
+    # WHO THE COMPANY SELLS TO rather than of the I&C capability. See the twin note on
+    # `test_c_ic1_segment_is_ic`: the curriculum promised these read the rows directly,
+    # and until 2026-08-26 none of them did.
+    from saas.customers import CUSTOMERS
+    c = next(c for c in CUSTOMERS if c["customer_id"] == "C_IC3g")
     assert c.get("tariff_type") == "pass_through"
 
 
 def test_c_ic3g_commodity_is_gas():
-    from simulation.run_phase2b import GAS_CUSTOMERS
-    c = next(c for c in GAS_CUSTOMERS if c["customer_id"] == "C_IC3g")
+    # THE ROSTER, NOT THE SERVED BOOK. `run_phase2b.ELEC_CUSTOMERS`/`GAS_CUSTOMERS`
+    # apply the director's segment suspension, so reading them made this a test of
+    # WHO THE COMPANY SELLS TO rather than of the I&C capability. See the twin note on
+    # `test_c_ic1_segment_is_ic`: the curriculum promised these read the rows directly,
+    # and until 2026-08-26 none of them did.
+    from saas.customers import CUSTOMERS
+    c = next(c for c in CUSTOMERS if c["customer_id"] == "C_IC3g")
     assert c.get("commodity") == "gas"
 
 
 def test_c_ic3g_segment_is_ic():
-    from simulation.run_phase2b import GAS_CUSTOMERS
-    c = next(c for c in GAS_CUSTOMERS if c["customer_id"] == "C_IC3g")
+    """From the ROSTER, not the served book -- see the twin in
+    `tests/simulation/test_phase24a_ic_customer.py::test_c_ic1_segment_is_ic` for why."""
+    from saas.customers import CUSTOMERS
+
+    c = next(c for c in CUSTOMERS if c["customer_id"] == "C_IC3g")
     assert c.get("segment") == "I&C"

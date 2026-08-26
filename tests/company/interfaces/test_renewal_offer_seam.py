@@ -550,9 +550,23 @@ def test_a_flex_gas_term_is_the_one_case_that_deliberately_diverges():
     CORRECTION, so it is recorded rather than hidden behind 'no number moves'."""
     from simulation.run_phase2b import GAS_CUSTOMERS
 
-    assert {c.get("tariff_type", "fixed") for c in GAS_CUSTOMERS} == {
-        "fixed", "pass_through",
-    }, "a flex gas customer now exists — the divergence above is live, re-rule it"
+    # WHAT THIS GUARDS IS "NO FLEX", AND NOTHING ELSE. It used to assert the served book's
+    # gas tariff set was exactly {fixed, pass_through}, which pins two things: that no flex
+    # gas customer exists — the divergence this test is about — and, incidentally, that a
+    # pass_through gas customer DOES. The second is a fact about WHICH SEGMENTS THE COMPANY
+    # SERVES, which is the director's curriculum and not this seam's business.
+    #
+    # It cost 48 hours (2026-08-26). The director's 2026-08-24 console instruction to
+    # suspend I&C was mechanised, staged in `docs/design/curriculum/served_segments.json`,
+    # and left at all-three because setting it to `["resi"]` removes C_IC3g — the only
+    # pass_through gas account — and reds THIS line. The curriculum file says so in its own
+    # `basis` field. So an over-tight assertion in a seam test held a director's ruling
+    # unlanded, and every per-customer figure argued over in the meantime was measured on a
+    # book he had already ordered changed.
+    #
+    # A narrowing set is not the failure this test exists to catch. A flex gas term is.
+    assert "flex" not in {c.get("tariff_type", "fixed") for c in GAS_CUSTOMERS}, (
+        "a flex gas customer now exists — the divergence above is live, re-rule it")
     strike = seam.request_fixed_unit_rate(
         tariff_type="flex", company_forward_price_gbp_per_mwh=62.4, eac_kwh=14000,
         term_start="2019-04-01", published_policy_cost_per_mwh=5.6,

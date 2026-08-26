@@ -77,6 +77,26 @@ def _clear_flag(monkeypatch):
     yield
 
 
+@pytest.fixture(autouse=True)
+def _every_segment_served(monkeypatch):
+    """Hold the SEGMENT SUSPENSION constant so these tests measure the DRAW FLAG.
+
+    They compare `live_population()` against the raw `CUSTOMERS` literal, which is the
+    right claim about the flag and the wrong one the moment a segment is suspended: on
+    2026-08-26 the director's I&C suspension went live and seven of them reddened without
+    the draw flag being involved at all.
+
+    Two properties were riding on one assertion. The suspension has its own test below
+    (`test_a_suspended_segment_never_reaches_the_book`) and its own file
+    (`tests/simulation/test_served_segments_curriculum.py`); these keep the flag.
+
+    Pinned through the ENV override rather than by monkeypatching `served_segments`,
+    because the override is a real supported path with its own tests -- patching the
+    function would make these pass against a `served_segments` that had stopped working.
+    """
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", "resi,SME,I&C")
+
+
 def test_flag_off_predicate_is_false():
     assert lp.draw_population_enabled() is False
 
@@ -732,3 +752,55 @@ def test_every_account_in_the_book_has_exactly_one_dwelling_of_its_own(monkeypat
             assert hh.customer_id == cid
     finally:
         lp._CAMPAIGN_MEMO.clear()
+
+
+def test_a_suspended_segment_never_reaches_the_book(monkeypatch):
+    """The property the autouse fixture above pins OUT of every other test in this file,
+    asserted here on its own so it is covered deliberately rather than as a side effect.
+
+    Named in that fixture's docstring, and it has to exist or the docstring is a promise
+    nothing keeps."""
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", "resi")
+    book = lp.live_population()
+    assert book, "a resi-only book must not be empty"
+    assert {c.get("segment") for c in book} == {"resi"}
+    assert not any(c["customer_id"].startswith("C_IC") for c in book)
+    # And the roster it was filtered FROM still carries them: suspension, not deletion.
+    assert any(c["customer_id"].startswith("C_IC") for c in CUSTOMERS)
+
+
+def test_the_campaign_cannot_win_into_a_suspended_segment(monkeypatch):
+    """R15 for the 2026-08-26 gap. The suspension filtered the static roster and the drawn
+    trickle and NOT the campaign's winners, so a book that started with none of a segment
+    could still grow into it -- the director's "doesn't try to win any" unenforced.
+
+    Proven by construction rather than by hoping the funnel stays residential: a campaign
+    that returns an I&C winner must not put it on a resi-only book. Without the filter this
+    reds; the funnel's own behaviour is not what makes it pass.
+    """
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", "resi")
+    monkeypatch.setenv("SE_GROW_BOOK", "1")
+
+    intruder = {"customer_id": "WON-IC-1", "segment": "I&C", "commodity": "electricity",
+                "acquisition_date": "2024-01-01", "acquisition_type": "net_new_won"}
+    monkeypatch.setattr(lp, "_won_customer_dicts", lambda outcome: [intruder])
+    monkeypatch.setattr(lp, "register_drawn_points", lambda points: None)
+
+    book = lp.live_population()
+    assert not any(c["customer_id"] == "WON-IC-1" for c in book), (
+        "the campaign won into a suspended segment: the book grew into a segment the "
+        "company had stopped serving")
+
+
+def test_the_campaign_CAN_still_win_into_a_served_segment(monkeypatch):
+    """The partner. A filter that drops every winner would satisfy the test above and
+    silently stop the book growing at all."""
+    monkeypatch.setenv("SE_SERVED_SEGMENTS", "resi")
+    monkeypatch.setenv("SE_GROW_BOOK", "1")
+
+    winner = {"customer_id": "WON-RESI-1", "segment": "resi", "commodity": "electricity",
+              "acquisition_date": "2024-01-01", "acquisition_type": "net_new_won"}
+    monkeypatch.setattr(lp, "_won_customer_dicts", lambda outcome: [winner])
+    monkeypatch.setattr(lp, "register_drawn_points", lambda points: None)
+
+    assert any(c["customer_id"] == "WON-RESI-1" for c in lp.live_population())

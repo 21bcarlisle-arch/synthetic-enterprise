@@ -2,21 +2,18 @@
   "_meta": {
     "artefact": "served_segments",
     "version": 1,
-    "status": "ACTIVE \u2014 2026-08-24",
-    "authority": "Director console 2026-08-24, verbatim: \"suspend I&C from the book. Keep the capability built and tested, don't delete it, but stop the company serving business accounts for now. It dwarfs residential, makes every per-customer figure unreadable, and contradicts the carbon thesis the site leads with. Grow residential toward 200, earned through the funnel as you've just built it.\" Stated in the same message as the standing priority it serves: \"I don't care about profit \u2014 it's fiction ... What I care about is that every customer and segment is individually credible and free of inconsistencies. \u00a31.4m or \u00a35m is irrelevant; a household that couldn't exist is not.\"",
-    "r13_discipline": "WHICH SEGMENTS THIS SUPPLIER SERVES is a curriculum question \u2014 which world the company lives in \u2014 and therefore the director's. This file is his instrument and holds the whole decision: a list of segments, nothing else. It is the ONLY thing that suspends a segment; no code branches on `I&C` to disable it, and nothing was deleted.",
+    "status": "ACTIVE — 2026-08-26 (I&C suspended; resi + SME served)",
+    "authority": "Director console 2026-08-24, verbatim: \"suspend I&C from the book. Keep the capability built and tested, don't delete it, but stop the company serving business accounts for now. It dwarfs residential, makes every per-customer figure unreadable, and contradicts the carbon thesis the site leads with. Grow residential toward 200, earned through the funnel as you've just built it.\" Stated in the same message as the standing priority it serves: \"I don't care about profit — it's fiction ... What I care about is that every customer and segment is individually credible and free of inconsistencies. £1.4m or £5m is irrelevant; a household that couldn't exist is not.\"",
+    "r13_discipline": "WHICH SEGMENTS THIS SUPPLIER SERVES is a curriculum question — which world the company lives in — and therefore the director's. This file is his instrument and holds the whole decision: a list of segments, nothing else. It is the ONLY thing that suspends a segment; no code branches on `I&C` to disable it, and nothing was deleted.",
     "consumed_by": "simulation.live_population.served_segments() / live_population()"
   },
   "served": {
     "value": [
       "resi",
-      "SME",
-      "I&C"
+      "SME"
     ],
-    "basis": "TEMPORARILY ALL THREE. The suspension is staged but not yet landed: it reds tests/company/interfaces/test_renewal_offer_seam.py, whose fixture asserts the gas tariff-type set of the SERVED book and loses its pass_through case when C_IC3g goes. That is a real consequence of the suspension and it needs its own fix in the suspension commit, not a rushed one inside an unrelated unwedge. Set back to [\"resi\"] with that fix.",
+    "basis": "RESI + SME. The 2026-08-24 console instruction (\"suspend I&C from the book ... stop the company serving business accounts for now\") is now LIVE. It had been staged and left at all three for 48 hours because setting it reds one assertion in tests/company/interfaces/test_renewal_offer_seam.py -- an over-tight characterisation that pinned the served book's gas tariff set to exactly {fixed, pass_through}, so removing C_IC3g (the only pass_through gas account) broke a test whose stated guard is 'no flex gas customer exists'. Rewritten to assert that and nothing else, and the suspension landed with it. Every per-customer figure argued over between 2026-08-24 and now was measured on a book the director had already ordered changed.\n\nSME IS KEPT, and that is a departure from the 2026-08-24 staging (which listed C5 and C6 among suspended_accounts) taken under the 2026-08-26 console instruction: \"Keep SME on both sides unless you judge it distorts the same way, in which case suspend it too and say why.\" MEASURED, not assumed. On the 2026-08-26 value-arm A/B the per-account realised deltas were C_IC1 +1,764,966, C_IC2 +854,196, C_IC3 +359,663 against C5 +1,574 and C6 +2,754 -- and the residential accounts beside them, C2 +1,147, C8 +3,659, C9 +5,134. The two SME accounts sit INSIDE the residential range; the industrial accounts are two to three orders of magnitude outside it. SME does not distort the arithmetic the way I&C does, so it stays served.",
     "suspended_accounts": [
-      "C5",
-      "C6",
       "C_IC1",
       "C_IC2",
       "C_IC3",
@@ -26,13 +23,13 @@
     "restore": "Add the segment back to `served`. Nothing else. The accounts are still in `saas/customers.py`, their modules are still imported, and their tests still run."
   },
   "what_is_NOT_suspended": {
-    "the_capability": "Every I&C module remains built, imported and tested: company/market/ic_flexibility_revenue.py, the Triad curtailment path (simulation/triad.py), HH settlement, the DUoS/TNUoS split in simulation/policy_costs.py, and the I&C rows in saas/customers.py. The director asked for the capability kept and the SERVICE stopped, and those are different things \u2014 a supplier that has never onboarded an I&C customer still has to be able to.",
+    "the_capability": "Every I&C module remains built, imported and tested: company/market/ic_flexibility_revenue.py, the Triad curtailment path (simulation/triad.py), HH settlement, the DUoS/TNUoS split in simulation/policy_costs.py, and the I&C rows in saas/customers.py. The director asked for the capability kept and the SERVICE stopped, and those are different things — a supplier that has never onboarded an I&C customer still has to be able to.",
     "the_tests": "tests/simulation/test_phase24a_ic_customer.py and every sibling still run against the I&C rows directly rather than through the book, so suspension cannot rot them. If it ever does, the suspension has quietly become a deletion.",
     "the_history": "Nothing is rewritten. Runs published before 2026-08-24 served I&C and their figures were correct for the book they had."
   },
   "why_it_matters_beyond_readability": {
     "the_carbon_contradiction": "The front door leads with a carbon thesis and the book was >98% industrial by revenue. A reader who followed the argument and then looked at the accounts found a different company.",
-    "the_arithmetic": "Blended per-customer figures over a book that is 5 industrial accounts and 26 households are meaningless in both directions \u2014 the blended revenue per customer was \u00a367,564 on a book whose typical member paid \u00a3473.",
-    "the_settlement_engine": "I&C accounts settle half-hourly (17,520 records per customer-year) and households settle on a profile class. Suspending them is therefore also the cheapest available fix to the engine ceiling that was binding PB3's growth curve \u2014 see docs/design/SETTLEMENT_CEILING_2026-08-24.md."
+    "the_arithmetic": "Blended per-customer figures over a book that is 5 industrial accounts and 26 households are meaningless in both directions — the blended revenue per customer was £67,564 on a book whose typical member paid £473.",
+    "the_settlement_engine": "I&C accounts settle half-hourly (17,520 records per customer-year) and households settle on a profile class. Suspending them is therefore also the cheapest available fix to the engine ceiling that was binding PB3's growth curve — see docs/design/SETTLEMENT_CEILING_2026-08-24.md."
   }
 }
