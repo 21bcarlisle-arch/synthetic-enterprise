@@ -268,3 +268,96 @@ R12: the arm losing is a **measurement**. No constant moves because of it — no
 `MAX_CHURN_PROBABILITY`, not `_MAX_RATE`, not the candidate grid, not the support bound. The
 control was frozen before it was replaced precisely so this number could come out negative and
 mean something. The next step is to grade the lifetime term, not to make the arm look better.
+
+---
+
+## THE ANSWER TO BOTH OF THE ABOVE (2026-08-26): the chain handed the arm six of its twenty inputs
+
+The two findings in the previous section — *the arm loses* and *half its answers were a bound's*
+— looked like two problems and were one. They have the same cause and it is not in the decision.
+
+`decide_margin` takes twenty company observables. `renewal_margin_uplift`, its only production
+caller and the one every figure above was produced through, passed **six** and let the rest
+default. `tools/couple_value_based_pricing.py` — the probe that reported 6 endpoint-bound of 263
+— passes the full set. **Same module, same book, different information.** That is the whole of the
+difference between "a per-customer chooser" and "a bound-follower", and it is why only the
+realised run could see it.
+
+Two of the defaults were the mechanism.
+
+### 1. The rate the arm compared against was not the same KIND of number as its offer
+
+A settled record's `revenue_gbp` **includes** the per-period standing charge —
+`simulation/hedged_settlement.py` adds `sc_per_period` into it explicitly. So
+`observed_account_state`'s `revenue / volume` was an **all-in** £/MWh. The number it was compared
+against is not: `base_rate_gbp_per_mwh + margin`, the offer handed to the churn model, is a
+commodity unit rate with no standing charge term in it at all.
+
+The gap between them is the standing charge expressed per MWh, and on a small domestic account it
+is enormous. £0.27/day is about £99 a year; over 1,779 kWh that is **£55/MWh**. The arm was asking
+its churn model how a customer feels about moving from an all-in £176/MWh to a commodity £130/MWh,
+and the model correctly answered *that is a price cut*. Fifty-five pounds a megawatt-hour of
+phantom headroom, spent before the belief registered any rise at all — and the support bound is
+`current_rate × 1.831`, so the inflated rate inflated the frontier by the same proportion on the
+way past.
+
+Measured on that account: the chosen margin falls from **£193.00 to £60.00/MWh** once the standing
+charge is netted out of the rate and put back into the EV.
+
+**This is also the better-evidenced explanation of the loss.** The previous section attributed the
+£124,791 of gross margin lost on three extra churns to an underweighted `annuity(lifetime, r)`.
+But `expected_value_gbp`'s own docstring already names a mechanism with exactly that signature and
+it is this one: *"fixed revenue is only earned from a customer who STAYS, so it sits inside the
+retention term. Making retention more valuable makes losing the customer more expensive, and the
+optimiser responds by charging LESS to keep them."* An arm that never saw its standing charge
+under-prices what losing a customer costs, wins on the margin it can see, and pays for it over the
+years it cannot — which is the measured result, stated in advance, by the module itself.
+
+The ungraded lifetime term remains ungraded and remains worth grading. It is no longer the
+*leading* candidate.
+
+### 2. No ceiling reached the search, so the cap arrived afterwards as a clamp
+
+`decide_margin` refuses this order in its own body: *"THE CEILING IS APPLIED BEFORE THE SEARCH, not
+after it. Scoring a candidate the company may not lawfully offer and then clamping the winner would
+report an expected value nobody can earn, and would make the arm look better than the supplier it
+describes."* The adapter passed no `max_offered_rate_gbp_per_mwh`, so on the only path a live run
+uses, the cap landed as chain writer 4 — exactly the forbidden order, on 27 of the 66 renewals.
+
+Two consequences, both R15 shapes rather than approximations:
+
+- `ceiling_bound` is computed as `max_offered_rate_gbp_per_mwh is not None and …`. The flag whose
+  entire job is to tell a reader **the cap chose this price** was **structurally unable to fire**
+  on the one caller where the cap ever chose one. Fail-silent, and it is why the artefact could
+  report `endpoint_at_ceiling: 20` while `ceiling_bound` stayed invisible.
+- `believed_p_retain` and `believed_expected_value_gbp` — the beliefs the belief-vs-truth column
+  scores — were the arm's beliefs at a rate the customer was **never charged**, while the world
+  churned them at the capped one. The two sides of that comparison were different prices.
+
+Mutation-tested: pre-fix, the arm asks **£211.75/MWh against a £189.50 cap** — an unlawful offer
+that only writer 4 stopped.
+
+### Why this is not the goal-seek R12 forbids
+
+Nothing was tuned so the arm would behave. No constant moved: not `MAX_CHURN_PROBABILITY`, not the
+candidate grid, not the support bound, not the churn model's sensitivities. What changed is that
+the arm now sees **more** of what its own records already said — its standing charge, its billed
+revenue, its observed lifetime — and that the ceiling which already bound it moved from *after* the
+decision to *inside* it, where the record can name it.
+
+The direction this cuts is against the arm, not for it. It prices **lower**, it can now be refused
+outright where no lawful margin exists, and `ceiling_bound` firing makes visible a fact the old
+artefact concealed: on a capped domestic account, the cap really does decide the price. A tighter
+bound would have hidden the belief; this exposes it.
+
+### What the record now carries
+
+`ceiling_bound` and `extrapolation_bound` reach the run log and `decision_shape` counts them, so a
+reader can tell a supplier that obeyed the price cap from one whose belief ran out. And
+`clamped_by_the_price_cap` becomes a **control** rather than a statistic: the arm's `lawful` filter
+keeps only margins where `base + m ≤ cap`, and the chain's post-arm rate *is* `base + m`, so a
+priced renewal can never afterwards be clamped. A nonzero count means the two reads of the ceiling
+have come apart — and it says the published beliefs are beliefs about a price nobody was charged.
+
+R15-proven in `tests/company/pricing/test_value_arm_in_the_renewal_chain.py` §5 (six controls, four
+mutation-proven to red on the pre-fix mechanism). Landed `8b450a839`.
