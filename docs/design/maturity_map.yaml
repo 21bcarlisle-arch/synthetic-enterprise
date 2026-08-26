@@ -1067,7 +1067,7 @@
     'tests/sim/test_elexon_fuel_outturn.py',
     'tests/company/carbon/test_half_hourly_footprint.py',
     'tests/tools/test_grid_intensity_feed_and_explore_carbon.py']
-  simplifications_count: 6
+  simplifications_count: 7
 - id: EP14_adapter_published_cost_stack
   title: "The non-commodity stack, parsed from what is actually published"
   gain: "Network and policy costs stop being parameters and start being documents that change under the company."

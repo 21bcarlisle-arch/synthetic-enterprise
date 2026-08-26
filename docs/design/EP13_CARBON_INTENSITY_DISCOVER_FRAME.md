@@ -218,9 +218,20 @@ reading must fail loud, never read as great.
    `no_source` rather than a substitute, regional behind step 2.
 4. **Wire it to the surviving consumer from step 1**, so the move changes a rendered number (R11).
    This is the only step that can move a level, and it is gated on step 1.
-5. **The gap.** Forecast vs outturn per period, published as a **distribution, not a mean** — a mean
-   error over a series whose whole point is intraday variation would hide exactly the periods the
-   advice targets.
+5. ~~**The gap.**~~ **DONE 2026-08-26** — `neso_carbon_intensity.forecast_skill()` grades NESO's
+   own published forecast against NESO's own published outturn, as a distribution per year, and
+   `published_forecast_skill` carries it into the feed. Both sides were already in the cache
+   fetched on 2026-08-25 for the shape comparison; no fetch was needed. The headline is a
+   **ceiling**: following the published forecast captures a mean 86% of a day's achievable
+   within-day saving (median 91%, p5 55%, and 7 days of 2,165 worse than not shifting at all).
+   Unlike the reconstruction's overstatement, no improvement to this model can recover it, so the
+   honest reading of any timing figure here is *(this model's overstatement) × (what a forecast
+   could actually pick)* — and that sentence now reaches the customer page, pinned to the
+   measurement by test. The step's "distribution, not a mean" clause is the load-bearing one and
+   is enforced (`MIN_DAYS_FOR_A_DISTRIBUTION`, and percentiles beside every mean).
+   One finding about the counterparty rather than about us: NESO's published *forecast* field
+   carries six half hours in 2019 that are not a grid (13,579 gCO₂/kWh among them), refused
+   against the maximum of NESO's own per-fuel factor table rather than trimmed by percentile.
 6. **Only then**, marginal intensity from `merit_order_reconstruction` as a *second* series — and that
    is §2's director values-call, surfaced here, not taken here.
 

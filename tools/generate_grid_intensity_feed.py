@@ -219,7 +219,15 @@ ERROR_DIRECTION = (
     "That is MEASURED, year by year, in `versus_published` below and never inferred from the gap "
     "list, which is the same reason the gaps are not all pushing one way: an import's sign "
     "depends on what it displaced -- against the mid-merit gas band a Dutch import is dirtier "
-    "than what it replaced, against a peaker it is cleaner -- so only the net is knowable."
+    "than what it replaced, against a peaker it is cleaner -- so only the net is knowable. "
+    "AND THERE IS A SECOND FACTOR ON THE SAME SIDE THAT IS NOT ABOUT THIS MODEL AT ALL, "
+    "measured 2026-08-26 and carried in `published_forecast_skill` below. Every figure here is "
+    "computed with hindsight; a household has to act on a FORECAST. Graded against NESO's own "
+    "outturn, NESO's own published forecast picks a three-hour window that delivers about 86% "
+    "of that day's achievable within-day saving on the mean day, about 55% on the worst day in "
+    "twenty, and on a handful of days a window DIRTIER than simply not shifting. That ceiling "
+    "cannot be built away by improving this model, so the honest reading of any timing benefit "
+    "on this feed is this model's overstatement TIMES what a forecast could actually pick."
 )
 
 
@@ -280,21 +288,27 @@ def typical_day(shape: dict) -> dict:
     }
 
 
-def published_series(demand: dict) -> tuple[dict | None, str]:
-    """NESO's published shape on the same normalisation as ours, or (None, why).
+def published_series(demand: dict) -> tuple[dict | None, str, dict | None]:
+    """(NESO's published shape on our normalisation, why-not, the parsed half hours).
 
-    SPLIT OUT OF `versus_published` so it is fetched ONCE per run and used twice -- for the
-    year-level comparison, and for the per-half-hour values the records carry. Building it
-    twice would double the cost of the one part of this generator that reads a 12 MB cache,
-    on a machine whose memory the director has named as a budget being spent.
+    SPLIT OUT OF `versus_published` so it is fetched ONCE per run and used three times -- for
+    the year-level comparison, for the per-half-hour values the records carry, and for
+    `published_forecast_skill`. Building it again would multiply the cost of the one part of
+    this generator that reads a 12 MB cache, on a machine whose memory the director has named
+    as a budget being spent.
+
+    THE THIRD ELEMENT IS THE RAW PARSE, forecast field and all, and it is deliberately NOT the
+    shape: `forecast_skill` grades grams against grams within a day and a shape normalised over
+    a year would have divided both sides by the same constant and lost the units the answer is
+    stated in.
     """
     try:
         from sim import neso_carbon_intensity as neso
 
-        return neso.published_shape(
-            neso.actual_by_period(neso.to_settlement_periods(neso.load_cached())), demand), ""
+        parsed = neso.to_settlement_periods(neso.load_cached())
+        return neso.published_shape(neso.actual_by_period(parsed), demand), "", parsed
     except Exception as exc:  # noqa: BLE001 -- an absent comparison is reported, never fatal
-        return None, "{}: {}".format(type(exc).__name__, exc)
+        return None, "{}: {}".format(type(exc).__name__, exc), None
 
 
 def versus_published(shape: dict, demand: dict, published: dict | None = None,
@@ -319,7 +333,7 @@ def versus_published(shape: dict, demand: dict, published: dict | None = None,
         return {"available": False, "why": "{}: {}".format(type(exc).__name__, exc)}
 
     if published is None:
-        published, why_unavailable = published_series(demand)
+        published, why_unavailable, _ = published_series(demand)
     if published is None:
         return {"available": False, "why": why_unavailable}
 
@@ -395,6 +409,82 @@ def versus_published(shape: dict, demand: dict, published: dict | None = None,
     }
 
 
+def published_forecast_skill(shape: dict, parsed: dict | None, why_unavailable: str = "") -> dict:
+    """The CEILING every timing claim on this feed sits under, and it is not about this model.
+
+    `versus_published` says how wrong the RECONSTRUCTION is. This says how wrong the FORECAST a
+    household would actually have acted on was -- NESO's own day-ahead number graded against
+    NESO's own outturn, both published by the counterparty, neither of them ours. The two
+    compound, and only one of them can ever be built away: a perfect grid model, a perfect
+    household model and perfect execution still cannot beat the forecast that existed at the
+    time.
+
+    WHY IT BELONGS IN THE FEED RATHER THAN IN A DOCSTRING. The page quotes a within-day spread
+    and turns it into a saving. That arithmetic silently assumes the customer knew which half
+    hours were the clean ones. Measured over 2019-2024, following the published forecast
+    captures about 86% of the achievable within-day saving on the mean day and about 55% on the
+    worst day in twenty -- so the honest reading of any shifting figure here is (this model's
+    overstatement) x (what the forecast could actually pick). A ceiling that lives in a module
+    nobody opens is not carried by the number when the number is quoted.
+
+    UNAVAILABLE IS SAID, NEVER OMITTED, for the same reason `versus_published` says it: a
+    missing ceiling reads as no ceiling.
+    """
+    if parsed is None:
+        return {"available": False,
+                "why": why_unavailable or "the published series was not parsed this run"}
+    try:
+        from sim import neso_carbon_intensity as neso
+    except Exception as exc:  # noqa: BLE001 -- an absent ceiling is reported, never fatal
+        return {"available": False, "why": "{}: {}".format(type(exc).__name__, exc)}
+
+    years: dict[str, dict] = {}
+    sensitivity: dict[str, list[float]] = {}
+    for year in sorted({k[0][:4] for k in shape}):
+        try:
+            measured = neso.forecast_skill(parsed, year)
+        except Exception:  # noqa: BLE001 -- a year the forecast does not cover is simply absent
+            continue
+        years[year] = {
+            k: (round(v, 4) if isinstance(v, float) else v) for k, v in measured.items()
+        }
+        for window, value in neso.window_sensitivity(parsed, year).items():
+            sensitivity.setdefault(window, []).append(value)
+    if not years:
+        return {"available": False,
+                "why": ("no year in this shape has enough published forecast/outturn days to "
+                        "make a distribution")}
+
+    captures = [row["capture_mean"] for row in years.values()]
+    return {
+        "available": True,
+        "source": neso.PUBLISHED_BASIS,
+        "by_year": years,
+        "shift_window_half_hours": neso.DEFAULT_SHIFT_WINDOW_HALF_HOURS,
+        "capture_mean_across_years": round(sum(captures) / len(captures), 4),
+        "capture_worst_year": min(years, key=lambda y: years[y]["capture_mean"]),
+        # THE DIAL, PUBLISHED. The window length is a choice about how long a household runs an
+        # appliance, and any choice inside a headline is somewhere the headline can be improved
+        # without the world changing. The sweep is here so that cannot be done quietly.
+        "window_sensitivity_capture_mean": {
+            window: round(sum(values) / len(values), 4)
+            for window, values in sorted(sensitivity.items(), key=lambda kv: int(kv[0]))
+        },
+        "what_it_means": (
+            "NESO's published FORECAST graded against NESO's published OUTTURN -- the "
+            "counterparty's own belief-vs-truth gap, computed from the same key-free API any "
+            "supplier can read, and nothing to do with this project's reconstruction. "
+            "`capture_mean` is the fraction of a day's ACHIEVABLE within-day saving that "
+            "picking the cleanest window BY FORECAST actually delivered, scored on outturn, "
+            "where 1.0 is as well as hindsight could have done. Reported as a distribution and "
+            "never as a mean alone, because the calm days that need no advice would otherwise "
+            "average away the volatile ones the advice exists for. It is a CEILING: every "
+            "timing figure on this feed should be read as this model's overstatement times "
+            "what the forecast could actually pick, and the second factor cannot be built away."
+        ),
+    }
+
+
 def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
           extra_dates: set[str] | None = None,
           import_coverage: dict | None = None,
@@ -415,7 +505,7 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
     # company's belief, the world's published truth, and the gap between them for THIS meter.
     # `null` where NESO published nothing -- an absence, never a substituted 1.0, which would be
     # the flat method smuggled in and would always pull the gap toward zero.
-    published, published_why = published_series(demand)
+    published, published_why, published_parsed = published_series(demand)
     records = [
         {
             "date": date_str,
@@ -558,6 +648,7 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
         },
         "by_year": by_year,
         "versus_published": versus_published(shape, demand, published, published_why),
+        "published_forecast_skill": published_forecast_skill(shape, published_parsed, published_why),
         "typical_day": typical_day(shape),
         "records": records,
     }

@@ -62,10 +62,16 @@ WHAT THIS DOES NOT DO
     rather than measured. The abatement ledger will eventually want them; nothing in the tree
     can use one yet, and fetching a series no consumer reads is how `docs/market_data/` grew a
     feed that was rewritten every cycle for no reader. When a consumer exists, extend here.
-  * NO FORECAST-VS-OUTTURN GRADING. Both are parsed and both are kept, because they answer
-    different questions -- forecast is what a customer could have acted on, outturn is what
-    happened -- but grading advice against outturn is a foresight leak and this module offers
-    no helper that would make it convenient.
+  * NO PER-HALF-HOUR FORECAST-VS-OUTTURN PAIRING IS HANDED OUT, and that refusal is now the
+    load-bearing half of a sentence that used to refuse the whole thing. Until 2026-08-26 this
+    bullet read "NO FORECAST-VS-OUTTURN GRADING… this module offers no helper that would make
+    it convenient", and it was conflating two different acts. Grading the COMPANY's advice
+    against outturn is a foresight leak and stays refused. Grading NESO'S OWN FORECAST against
+    NESO'S OWN OUTTURN is a fact about the counterparty's published data that any real supplier
+    could compute from the same key-free API, and it is the one thing that bounds what shifting
+    advice can ever be worth. `forecast_skill()` measures the second and returns ANNUAL
+    AGGREGATES ONLY -- no key, no pair, nothing a caller could join back to a half hour. The
+    control is `test_forecast_skill_hands_back_no_half_hour_pairing`, not this paragraph.
   * NO WRITING TO `docs/market_data/`. This is world truth for the HARNESS to measure the
     company's belief against. The company reads the shape feed and must go on being wrong in
     the ways named there; handing it NESO's series would delete the gap instead of measuring it.
@@ -107,6 +113,39 @@ PUBLISHED_BASIS = (
     "LOSS-CORRECTED, INCLUDES interconnector imports at the exporting country's intensity, "
     "INCLUDES coal. Both forecast and actual are published; 'actual' is outturn."
 )
+
+
+#: THE ONE READING THIS MODULE REFUSES, and it is refused by physics rather than by percentile.
+#: NESO's published forecast field carries six half hours in 2019 that are not a grid: 13,579,
+#: 9,612, 4,179, 1,589 gCO2/kWh and two more. GB's dirtiest conceivable half hour is a grid
+#: running on nothing but the dirtiest fuel NESO itself prices, so the ceiling is the MAXIMUM OF
+#: NESO'S OWN PUBLISHED FACTOR TABLE -- 937 gCO2/kWh, coal -- taken from
+#: `elexon_fuel_outturn.NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH` rather than written here, so a
+#: correction to that table moves this and a literal cannot drift away from it.
+#:
+#: THE BOUND IS NOWHERE NEAR THE DATA and that is what makes it a refusal rather than a trim:
+#: across 104,454 published half hours the 99.99th percentile forecast is 434 and the highest
+#: reading below the ceiling is 447. Six values sit above 937, the nearest of them at 1,589 --
+#: a factor of 3.6 clear of anything real. It is applied to FORECAST AND ACTUAL ALIKE; a filter
+#: on one side of a comparison measures the filter.
+def _physical_ceiling_g_co2_per_kwh() -> float:
+    from sim.elexon_fuel_outturn import NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH
+
+    return max(NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH.values())
+
+
+#: A distribution over a handful of days is a handful of days. `forecast_skill` refuses below
+#: this rather than returning percentiles that are three numbers wearing a percentile's name.
+MIN_DAYS_FOR_A_DISTRIBUTION = 30
+
+#: The appliance window the capture statistic is measured over: 6 half hours = 3 hours, a wash
+#: plus a dryer, or an overnight EV top-up. A CHOICE, so it is reported in the result and its
+#: sensitivity is published beside it (`window_sensitivity`) -- a dial nobody can see is a dial
+#: somebody will eventually turn.
+DEFAULT_SHIFT_WINDOW_HALF_HOURS = 6
+
+#: The windows the sensitivity sweep reports, so the choice above is visibly not load-bearing.
+SENSITIVITY_WINDOWS = (2, 4, 6, 8, 12)
 
 
 class NesoIntensityUnavailable(Exception):
@@ -435,6 +474,200 @@ def compare_shapes(
         "reconstructed_renormalisation_divisor": ours_divisor,
         "published_renormalisation_divisor": theirs_divisor,
     }
+
+
+def forecast_skill(
+    series: Mapping[tuple[str, int], Mapping[str, float]],
+    year: str,
+    *,
+    window_half_hours: int = DEFAULT_SHIFT_WINDOW_HALF_HOURS,
+) -> dict[str, float | int | None]:
+    """NESO's OWN forecast graded against NESO'S OWN outturn — the ceiling on shifting advice.
+
+    THE QUESTION THIS ANSWERS, and why it is not the same question as `compare_shapes`.
+    `compare_shapes` measures how wrong THIS PROJECT'S reconstruction is. This measures how
+    wrong the PUBLISHED FORECAST is — the number a household would actually have acted on,
+    published by the counterparty, hours before the half hour it describes. The two compound
+    and neither substitutes for the other: a perfect model of the grid, a perfect model of the
+    household and perfect execution still cannot beat the forecast that was available at the
+    time. So this is a CEILING on the whole mission's thesis, and it is measurable for free
+    from a cache that was already on disk for another purpose.
+
+    It is also the atom's stated fidelity prize (`EP13_CARBON_INTENSITY_DISCOVER_FRAME` §5 and
+    §7 step 5): *"the company acts on the FORECAST and is settled against the ACTUAL, which is a
+    belief-vs-truth gap available for free from a public API."* EP10's advertised gap had no
+    truth side. This one is published by the counterparty, so it needs no world change at all.
+
+    WHAT COMES BACK IS A DISTRIBUTION, NEVER A MEAN, and that is §7 step 5's actual requirement
+    rather than a presentation preference: a mean error over a series whose entire point is
+    intra-day variation averages the calm days that need no advice together with the volatile
+    ones the advice exists for, and hides exactly the periods it targets.
+
+    THE THREE STATISTICS, in the order they should be read:
+
+    1. `mean_abs_error_g` and the signed percentiles — how far off the published forecast is in
+       grams. Useful, and the least interesting of the three, because a forecast that is 20 g
+       high all day misleads nobody about WHEN to run the washing.
+    2. `level_error_sd_g` / `timing_error_sd_g` — the same day-mean-removed split
+       `compare_shapes` uses, for the same reason. The level term costs a shifting claim
+       nothing; the timing term is the whole of what it costs.
+    3. `capture_*` — THE ONE THAT MATTERS, and the only one stated in the units the mission
+       cares about. Per day: rank the half hours by FORECAST, take the cleanest
+       `window_half_hours` of them, and ask what fraction of the day's ACHIEVABLE saving that
+       pick actually delivered — where achievable is the same window chosen with hindsight.
+       1.0 is a forecast that picked as well as hindsight could; 0.0 is a pick no better than
+       running at a random time; NEGATIVE is a pick that was dirtier than the day's average,
+       which happens and is counted rather than clamped.
+
+    NOTHING HERE IS CLAMPED, TRIMMED OR WINSORISED except the physical refusal above, and the
+    refused count is returned so an absence can never read as a clean series (R15 fail-silent).
+    A day whose achievable saving is zero — a genuinely flat day, where every window is the same
+    window — is DEGENERATE, not perfect: its capture fraction is 0/0 and it is excluded and
+    counted, never recorded as 1.0. That substitution is the fail-open shape this whole family
+    of statistics is prone to, and `test_a_flat_day_is_degenerate_not_a_perfect_forecast` fires
+    on it.
+
+    R12: this is a DIAGNOSTIC. No constant in this repository may be moved to improve it, and
+    the direction of that temptation is unusually strong here because the number flatters the
+    mission's own thesis when it is high.
+    """
+    window = int(window_half_hours)
+    if window < 1:
+        raise NesoIntensityUnavailable("a shifting window of fewer than one half hour is not a window")
+
+    ceiling = _physical_ceiling_g_co2_per_kwh()
+    by_date: dict[str, list[tuple[int, float, float]]] = {}
+    refused = 0
+    for (date_str, period), entry in series.items():
+        if date_str[:4] != str(year):
+            continue
+        if "actual" not in entry or "forecast" not in entry:
+            continue
+        actual, forecast = float(entry["actual"]), float(entry["forecast"])
+        # SYMMETRIC BY CONSTRUCTION. Refusing only the forecast side would remove the half hours
+        # where the forecast was absurd and keep the outturn that made it look wrong, which
+        # measures the filter rather than the forecast.
+        if actual > ceiling or forecast > ceiling or actual <= 0.0 or forecast <= 0.0:
+            refused += 1
+            continue
+        by_date.setdefault(date_str, []).append((period, forecast, actual))
+
+    # A SHORT DAY IS NOT A DAY for the capture statistic: the cleanest three hours of a
+    # thirty-period day are the cleanest three hours of a truncated day, and the achievable
+    # saving is measured against a mean that never saw the missing half hours. Dropped days are
+    # counted, because a coverage hole that shortens the panel is the confound this project has
+    # already been caught by once.
+    minimum_periods = 40
+    short_days = sum(1 for values in by_date.values() if len(values) < minimum_periods)
+    days = {d: sorted(v) for d, v in by_date.items() if len(v) >= minimum_periods}
+    if len(days) < MIN_DAYS_FOR_A_DISTRIBUTION:
+        raise NesoIntensityUnavailable(
+            f"{year} has {len(days)} usable day(s) with both a forecast and an outturn, and a "
+            f"distribution needs at least {MIN_DAYS_FOR_A_DISTRIBUTION}. A percentile over a "
+            "handful of days is a handful of days wearing a percentile's name."
+        )
+
+    errors: list[float] = []
+    day_means: list[float] = []
+    timing_deviations: list[float] = []
+    for values in days.values():
+        day_errors = [forecast - actual for _, forecast, actual in values]
+        day_mean = sum(day_errors) / len(day_errors)
+        day_means.append(day_mean)
+        timing_deviations.extend(e - day_mean for e in day_errors)
+        errors.extend(day_errors)
+
+    captures, negative_days, degenerate_days = _capture_fractions(days, window)
+    if not captures:
+        raise NesoIntensityUnavailable(
+            f"every usable day in {year} was flat enough to have no achievable within-day "
+            "saving, so there is no capture fraction to report"
+        )
+
+    errors.sort()
+    captures.sort()
+    grand_mean_error = sum(day_means) / len(day_means)
+    level_sd = (sum((m - grand_mean_error) ** 2 for m in day_means) / len(day_means)) ** 0.5
+    timing_sd = (sum(d * d for d in timing_deviations) / len(timing_deviations)) ** 0.5
+
+    return {
+        "year": int(year),
+        "half_hours": len(errors),
+        "days": len(days),
+        "refused_half_hours": refused,
+        "short_days_dropped": short_days,
+        "refusal_ceiling_g": ceiling,
+        "mean_error_g": sum(errors) / len(errors),
+        "mean_abs_error_g": sum(abs(e) for e in errors) / len(errors),
+        "error_p5_g": _percentile(errors, 0.05),
+        "error_p50_g": _percentile(errors, 0.50),
+        "error_p95_g": _percentile(errors, 0.95),
+        "level_error_sd_g": level_sd,
+        "timing_error_sd_g": timing_sd,
+        "shift_window_half_hours": window,
+        "capture_days": len(captures),
+        "capture_degenerate_days": degenerate_days,
+        "capture_days_worse_than_average": negative_days,
+        "capture_mean": sum(captures) / len(captures),
+        "capture_p5": _percentile(captures, 0.05),
+        "capture_p25": _percentile(captures, 0.25),
+        "capture_p50": _percentile(captures, 0.50),
+        "capture_min": captures[0],
+    }
+
+
+def _capture_fractions(
+    days: Mapping[str, list[tuple[int, float, float]]],
+    window: int,
+) -> tuple[list[float], int, int]:
+    """(fractions, days worse than average, degenerate days) — the arithmetic of statistic 3.
+
+    Split out because it is the one piece here with a wrong version that looks right: picking
+    the window by ACTUAL on both sides measures nothing (it is 1.0 every day by construction),
+    and clamping the fraction into [0, 1] deletes the days the forecast actively misled on.
+    """
+    fractions: list[float] = []
+    negative = 0
+    degenerate = 0
+    for values in days.values():
+        actuals = [actual for _, _, actual in values]
+        day_mean = sum(actuals) / len(actuals)
+        # THE PICK IS BY FORECAST AND THE SCORE IS BY OUTTURN. Ties broken on settlement period
+        # so the pick is reproducible; a set-based tie-break would make the statistic depend on
+        # dict ordering, which is the kind of instability that gets read as a real movement.
+        chosen = sorted(values, key=lambda row: (row[1], row[0]))[:window]
+        delivered = day_mean - sum(actual for _, _, actual in chosen) / window
+        achievable = day_mean - sum(sorted(actuals)[:window]) / window
+        if achievable <= 0.0:
+            degenerate += 1
+            continue
+        fraction = delivered / achievable
+        if fraction < 0.0:
+            negative += 1
+        fractions.append(fraction)
+    return fractions, negative, degenerate
+
+
+def window_sensitivity(
+    series: Mapping[tuple[str, int], Mapping[str, float]],
+    year: str,
+    windows: Iterable[int] = SENSITIVITY_WINDOWS,
+) -> dict[str, float]:
+    """`capture_mean` at each window length — the published proof that the dial is not the answer.
+
+    `DEFAULT_SHIFT_WINDOW_HALF_HOURS` is a choice about how long a household runs an appliance,
+    and any choice inside a headline statistic is a place a number can be improved without
+    anything about the world changing. Publishing the sweep beside the headline is what makes
+    that impossible to do quietly; measured on the real series the spread across 2-12 half hours
+    is about four percentage points, so the choice is visibly not carrying the result.
+    """
+    out: dict[str, float] = {}
+    for window in windows:
+        try:
+            out[str(int(window))] = float(forecast_skill(series, year, window_half_hours=int(window))["capture_mean"])
+        except NesoIntensityUnavailable:
+            continue
+    return out
 
 
 def _percentile(sorted_values: list[float], fraction: float) -> float:

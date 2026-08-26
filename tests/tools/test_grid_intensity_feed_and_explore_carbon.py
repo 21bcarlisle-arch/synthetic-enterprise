@@ -1000,3 +1000,129 @@ def test_the_envelope_REACHES_the_published_feed_with_both_ends_and_the_mean():
         "the mean is what makes the flat 2,400 MW assumption checkable by a reader"
     )
     assert gif.build(shape, {k: 30_000.0 for k in shape})["biomass_envelope_mw"] is None
+
+
+# --------------------------------------------------------------------------- #
+# The CEILING block: the counterparty's own forecast error, published beside    #
+# the model's. Mutation-run 2026-08-26.                                         #
+# --------------------------------------------------------------------------- #
+
+def _forecast_days(n_days: int, per_period) -> dict:
+    out = {}
+    for day in range(n_days):
+        date_str = f"2024-{1 + day // 28:02d}-{1 + day % 28:02d}"
+        for period in range(1, 49):
+            forecast, actual = per_period(day, period)
+            out[(date_str, period)] = {"forecast": float(forecast), "actual": float(actual)}
+    return out
+
+
+def test_the_forecast_ceiling_reaches_the_feed_with_its_dial_visible():
+    """The block a page may quote, and the sweep that stops the dial being turned quietly.
+
+    `shift_window_half_hours` is a choice about how long a household runs an appliance. Any
+    choice inside a headline is somewhere the headline can be improved without the world
+    changing, so the sweep across 2-12 half hours is published beside it."""
+    parsed = _forecast_days(40, lambda d, p: (100.0 + 60.0 * ((p * 7) % 48) / 48.0,) * 2)
+    shape = {k: 1.0 for k in parsed}
+    block = gif.published_forecast_skill(shape, parsed)
+
+    assert block["available"] is True
+    assert block["by_year"]["2024"]["capture_mean"] == pytest.approx(1.0)
+    assert block["shift_window_half_hours"] == 6
+    assert set(block["window_sensitivity_capture_mean"]) == {"2", "4", "6", "8", "12"}
+    assert "ceiling" in block["what_it_means"].lower()
+
+
+def test_an_ABSENT_forecast_ceiling_is_REPORTED_not_omitted():
+    """R15 FAIL-SILENT, and the failure is worse here than for the comparison beside it: a
+    missing ceiling does not read as 'no measurement', it reads as NO CEILING -- i.e. as a
+    forecast that could pick the clean half hours perfectly, which is the most flattering
+    answer available to a page that sells time-shifting."""
+    block = gif.published_forecast_skill({("2024-01-01", 1): 1.0}, None, "cache absent in this tree")
+    assert block["available"] is False
+    assert "cache absent" in block["why"]
+
+    short = _forecast_days(3, lambda d, p: (100.0 + p,) * 2)
+    thin = gif.published_forecast_skill({k: 1.0 for k in short}, short)
+    assert thin["available"] is False
+    assert "distribution" in thin["why"]
+
+
+def test_the_ceiling_is_measured_on_the_counterpartys_series_and_not_on_ours():
+    """R15 TAUTOLOGY. The block must not move when THIS MODEL's shape changes -- it is a fact
+    about NESO's forecasting, and a ceiling derived from the thing it caps is not a ceiling.
+    Only the set of YEARS is taken from our shape, which is why the years are asserted too."""
+    parsed = _forecast_days(40, lambda d, p: (100.0 + 60.0 * ((p * 3) % 48) / 48.0,
+                                              100.0 + 60.0 * ((p * 7) % 48) / 48.0))
+    flat = gif.published_forecast_skill({k: 1.0 for k in parsed}, parsed)
+    swinging = gif.published_forecast_skill({k: float(k[1]) for k in parsed}, parsed)
+
+    assert flat["by_year"] == swinging["by_year"]
+    assert list(flat["by_year"]) == ["2024"]
+
+
+def test_the_live_feed_carries_the_ceiling_and_it_is_neither_perfect_nor_absent():
+    """R11-adjacent: the published artefact, not the function. A capture of 1.0 would mean the
+    grading collapsed into hindsight; an absent block would mean the page's timing figures are
+    quoted with no ceiling at all."""
+    if not FEED.exists():
+        pytest.skip("feed not generated in this tree")
+    block = json.loads(FEED.read_text())["published_forecast_skill"]
+    assert block["available"] is True, block.get("why")
+    assert 0.6 < block["capture_mean_across_years"] < 0.98
+    assert block["by_year"], "no year reached the feed"
+    for year, row in block["by_year"].items():
+        assert row["capture_p5"] < row["capture_mean"], f"{year} published a mean, not a spread"
+
+
+def test_the_CEILING_PERCENTAGES_QUOTED_in_ERROR_DIRECTION_are_the_MEASURED_ones():
+    """The defect this whole module has been caught by twice: a number written in the grammar
+    of a measurement that no longer matches the measurement beside it.
+
+    ERROR_DIRECTION reaches the customer page verbatim (`site/explore/index.html` renders
+    `g.error_direction`). It now quotes two percentages -- the mean day's capture and the worst
+    day in twenty -- and both must be the figures `published_forecast_skill` actually computes,
+    to the tolerance the words "about" earn and no further.
+
+    MUTATION (run 2026-08-26, fires): change either quoted percentage by five points.
+    """
+    import re
+
+    if not FEED.exists():
+        pytest.skip("feed not generated in this tree")
+    block = json.loads(FEED.read_text())["published_forecast_skill"]
+    if not block.get("available"):
+        pytest.skip("no published forecast series cached in this tree")
+
+    quoted = [
+        int(found)
+        for pattern in (r"about (\d+)% of that day's achievable",
+                        r"about (\d+)% on the worst day in twenty")
+        for found in re.findall(pattern, gif.ERROR_DIRECTION)
+    ]
+    assert len(quoted) == 2, (
+        "ERROR_DIRECTION no longer quotes exactly the two capture percentages this control "
+        "checks, so it has lost its subject rather than passed"
+    )
+    mean_pct, worst_pct = quoted
+    measured_mean = 100.0 * block["capture_mean_across_years"]
+    measured_worst = 100.0 * (
+        sum(row["capture_p5"] for row in block["by_year"].values()) / len(block["by_year"])
+    )
+    assert abs(mean_pct - measured_mean) <= 2.0, (
+        f"the page is told {mean_pct}% and the feed measures {measured_mean:.1f}%"
+    )
+    assert abs(worst_pct - measured_worst) <= 2.0, (
+        f"the page is told {worst_pct}% on the worst day in twenty and the feed measures "
+        f"{measured_worst:.1f}%"
+    )
+
+
+def test_the_page_is_not_told_the_ceiling_can_be_built_away():
+    """The one thing this sentence must never soften into. The forecast gap is not a defect in
+    the reconstruction and no amount of modelling recovers it -- a reader who takes it as
+    'another thing they will fix' will keep reading the timing figures at face value."""
+    text = gif.ERROR_DIRECTION.lower()
+    assert "forecast" in text and "ceiling" in text
+    assert "cannot be built away" in text

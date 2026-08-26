@@ -22,15 +22,19 @@ import pytest
 
 from sim.neso_carbon_intensity import (
     FIRST_PUBLISHED_DATE,
+    MIN_DAYS_FOR_A_DISTRIBUTION,
     PUBLISHED_BASIS,
+    SENSITIVITY_WINDOWS,
     NesoIntensityUnavailable,
     actual_by_period,
     compare_shapes,
     fetch_national,
+    forecast_skill,
     load_cached,
     published_shape,
     settlement_key,
     to_settlement_periods,
+    window_sensitivity,
 )
 
 LONDON = ZoneInfo("Europe/London")
@@ -502,3 +506,206 @@ def test_the_published_basis_names_what_makes_the_two_series_differ():
 def test_actual_by_period_is_a_plain_view():
     series = {("2024-01-15", 1): {"actual": 99.0, "forecast": 117.0}}
     assert actual_by_period(series) == {("2024-01-15", 1): 99.0}
+
+
+# --------------------------------------------------------------------------------------
+# forecast_skill -- NESO's own forecast graded against NESO's own outturn
+#
+# Every control below was MUTATION-RUN on 2026-08-26: the named defect was written into
+# `sim/neso_carbon_intensity.py`, the test confirmed RED, and the module restored GREEN. A
+# control that has not been seen to fail is not evidence (R15).
+# --------------------------------------------------------------------------------------
+
+def _fabricated_days(n_days: int, per_period, *, periods: int = 48) -> dict:
+    """{(date, period): {"forecast": g, "actual": g}} from a rule, for `n_days` whole days.
+
+    Fabricated on purpose and never sampled from the cache: these controls have to exercise
+    shapes the real series does not contain (a perfectly flat day, an inverted forecast, an
+    impossible reading), and a fixture drawn from the data could only ever test the data.
+    """
+    out = {}
+    for day in range(n_days):
+        date_str = f"2024-{1 + day // 28:02d}-{1 + day % 28:02d}"
+        for period in range(1, periods + 1):
+            forecast, actual = per_period(day, period)
+            out[(date_str, period)] = {"forecast": float(forecast), "actual": float(actual)}
+    return out
+
+
+def _sawtooth(day: int, period: int) -> float:
+    """A day with a real within-day swing, so there is an achievable saving to capture."""
+    return 100.0 + 60.0 * ((period * 7) % 48) / 48.0
+
+
+def test_a_perfect_forecast_captures_exactly_all_of_the_achievable_saving():
+    """The anchor. If this is not 1.0 the statistic is not measuring what it says."""
+    series = _fabricated_days(40, lambda d, p: (_sawtooth(d, p), _sawtooth(d, p)))
+    measured = forecast_skill(series, "2024")
+    assert measured["capture_mean"] == pytest.approx(1.0)
+    assert measured["capture_min"] == pytest.approx(1.0)
+    assert measured["capture_days_worse_than_average"] == 0
+
+
+def test_the_window_is_picked_by_forecast_and_scored_on_outturn():
+    """MUTATION: pick the window by `actual` instead of `forecast`.
+
+    That mutation makes the statistic 1.0 on EVERY input by construction -- it would be
+    hindsight grading hindsight -- so it survives the perfect-forecast test above and only this
+    one, whose forecast deliberately ranks the day backwards, can see it."""
+    inverted = _fabricated_days(40, lambda d, p: (200.0 - _sawtooth(d, p), _sawtooth(d, p)))
+    measured = forecast_skill(inverted, "2024")
+    assert measured["capture_mean"] < 0.0, (
+        "a forecast that ranks the day backwards must score below zero, not 1.0"
+    )
+
+
+def test_a_forecast_that_picks_worse_than_average_is_reported_negative():
+    """MUTATION: `fraction = max(0.0, fraction)`.
+
+    Clamping is the most natural-looking edit in this function and it deletes exactly the days
+    the ceiling exists to warn about -- the ones where following the published forecast was
+    worse than not shifting at all. On the real 2019 series the worst day scores -1.20."""
+    inverted = _fabricated_days(40, lambda d, p: (200.0 - _sawtooth(d, p), _sawtooth(d, p)))
+    measured = forecast_skill(inverted, "2024")
+    assert measured["capture_min"] < 0.0
+    assert measured["capture_days_worse_than_average"] == measured["capture_days"]
+
+
+def test_a_flat_day_is_degenerate_not_a_perfect_forecast():
+    """MUTATION: record a day with no achievable saving as capture 1.0 (R15 FAIL-OPEN).
+
+    A flat day is 0/0. Scoring it 1.0 is the fail-open substitution that would let a series of
+    perfectly flat days -- the exact failure a broken feed produces -- report the most
+    flattering possible answer."""
+    half_flat = _fabricated_days(
+        40, lambda d, p: ((100.0, 100.0) if d % 2 == 0 else (_sawtooth(d, p), _sawtooth(d, p))))
+    measured = forecast_skill(half_flat, "2024")
+    assert measured["capture_degenerate_days"] == 20
+    assert measured["capture_days"] == 20
+    assert measured["days"] == 40, "the flat days are excluded from the capture, not from the panel"
+
+    all_flat = _fabricated_days(40, lambda d, p: (100.0, 100.0))
+    with pytest.raises(NesoIntensityUnavailable):
+        forecast_skill(all_flat, "2024")
+
+
+def test_an_impossible_published_forecast_is_refused_by_physics_and_counted():
+    """MUTATION: drop the ceiling test.
+
+    NESO's published forecast field really does carry 13,579 gCO2/kWh (2019-07-24). Averaged in
+    it moves that year's timing dispersion from 15.1 to 154.7 -- a tenfold artefact in the one
+    statistic this module exists to state."""
+    series = _fabricated_days(40, lambda d, p: (_sawtooth(d, p), _sawtooth(d, p)))
+    series[("2024-01-01", 1)] = {"forecast": 13579.0, "actual": 112.0}
+    measured = forecast_skill(series, "2024")
+    assert measured["refused_half_hours"] == 1
+    assert measured["half_hours"] == 40 * 48 - 1
+    assert measured["mean_abs_error_g"] < 1.0, "the impossible reading reached the error statistics"
+
+
+def test_the_refusal_is_symmetric_across_forecast_and_outturn():
+    """MUTATION: refuse on `forecast > ceiling` only.
+
+    A filter applied to one side of a comparison measures the filter: it would remove the half
+    hours where the forecast was absurd and keep the outturn that made it look wrong."""
+    series = _fabricated_days(40, lambda d, p: (_sawtooth(d, p), _sawtooth(d, p)))
+    series[("2024-01-01", 1)] = {"forecast": 112.0, "actual": 13579.0}
+    assert forecast_skill(series, "2024")["refused_half_hours"] == 1
+
+
+def test_the_ceiling_is_derived_from_nesos_own_factor_table(monkeypatch):
+    """MUTATION: write the ceiling as the literal 937.0.
+
+    The number is only defensible because it is the maximum of NESO's OWN published per-fuel
+    factors -- the dirtiest grid GB could physically be. A literal would go on saying 937 after
+    that table was corrected, at which point it is a fitted threshold nobody chose."""
+    import sim.elexon_fuel_outturn as fuel
+
+    monkeypatch.setitem(fuel.NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH, "COAL", 5000.0)
+    series = _fabricated_days(40, lambda d, p: (_sawtooth(d, p), _sawtooth(d, p)))
+    series[("2024-01-01", 1)] = {"forecast": 4000.0, "actual": 112.0}
+    measured = forecast_skill(series, "2024")
+    assert measured["refusal_ceiling_g"] == 5000.0
+    assert measured["refused_half_hours"] == 0, "the ceiling did not follow its own source table"
+
+
+def test_the_level_and_timing_split_removes_the_day_mean_not_the_series_mean():
+    """MUTATION: subtract the grand mean instead of each day's own mean.
+
+    The split is the whole content of the statistic -- a forecast 20 g high all day misleads
+    nobody about WHEN to run the washing. These days have a per-day OFFSET and no within-day
+    error at all, so the timing term must be exactly zero; subtracting the series mean instead
+    would report the between-day spread as a timing error."""
+    series = _fabricated_days(40, lambda d, p: (_sawtooth(d, p) + d, _sawtooth(d, p)))
+    measured = forecast_skill(series, "2024")
+    assert measured["timing_error_sd_g"] == pytest.approx(0.0, abs=1e-9)
+    assert measured["level_error_sd_g"] > 10.0
+
+
+def test_forecast_skill_hands_back_no_half_hour_pairing():
+    """MUTATION: return the (forecast, actual) pairs alongside the aggregates.
+
+    This is the control the module docstring's refusal rests on. Grading NESO's forecast
+    against NESO's outturn is a fact about published data; handing a caller a per-half-hour
+    pairing is a foresight surface, and the difference has to be checkable rather than
+    promised. Every value that comes back is a scalar, and none of them is a settlement key."""
+    series = _fabricated_days(40, lambda d, p: (_sawtooth(d, p), _sawtooth(d, p)))
+    measured = forecast_skill(series, "2024")
+    for key, value in measured.items():
+        assert isinstance(key, str), f"{key!r} is not an aggregate's name"
+        assert isinstance(value, (int, float)), f"{key} carries {type(value).__name__}, not a scalar"
+    assert len(measured) < 40, "an aggregate set this large is a series in disguise"
+
+
+def test_a_handful_of_days_is_refused_rather_than_percentiled():
+    """MUTATION: `MIN_DAYS_FOR_A_DISTRIBUTION = 1`.
+
+    A p5 over four days is the minimum of four days. The refusal is what stops a coverage hole
+    being published as a distribution (R15 FAIL-SILENT: an unavailable measure must say so)."""
+    series = _fabricated_days(4, lambda d, p: (_sawtooth(d, p), _sawtooth(d, p)))
+    with pytest.raises(NesoIntensityUnavailable) as excinfo:
+        forecast_skill(series, "2024")
+    assert str(MIN_DAYS_FOR_A_DISTRIBUTION) in str(excinfo.value)
+
+
+def test_a_short_day_is_dropped_from_the_capture_and_counted():
+    """A truncated day's 'day mean' never saw the missing half hours, so its achievable saving
+    is measured against the wrong baseline. Dropped, and said -- a coverage hole that quietly
+    shortens the panel is a confound this project has already been caught by once."""
+    series = _fabricated_days(40, lambda d, p: (_sawtooth(d, p), _sawtooth(d, p)))
+    for period in range(20, 49):
+        del series[("2024-01-01", period)]
+    measured = forecast_skill(series, "2024")
+    assert measured["short_days_dropped"] == 1
+    assert measured["days"] == 39
+
+
+def test_the_window_length_is_reported_and_moves_the_answer_it_is_given_to():
+    """The dial is visible. `shift_window_half_hours` comes back in the row, and the sensitivity
+    sweep exists so a headline cannot be improved by quietly widening the window."""
+    inverted = _fabricated_days(40, lambda d, p: (200.0 - _sawtooth(d, p), _sawtooth(d, p)))
+    assert forecast_skill(inverted, "2024", window_half_hours=2)["shift_window_half_hours"] == 2
+    sweep = window_sensitivity(inverted, "2024")
+    assert set(sweep) == {str(w) for w in SENSITIVITY_WINDOWS}
+    with pytest.raises(NesoIntensityUnavailable):
+        forecast_skill(inverted, "2024", window_half_hours=0)
+
+
+def test_the_real_published_forecast_is_measurably_imperfect_and_measurably_useful():
+    """The measurement on the REAL cached series, pinned loosely on both sides.
+
+    Loosely because this is a fact about NESO's forecasting, not about this repository, and a
+    tight pin would red the day the cache is extended. Both sides are asserted because the two
+    failure modes point opposite ways: a capture of 1.0 means the grading collapsed into
+    hindsight, and a capture near 0 means the pick is not being made on the forecast at all."""
+    import pathlib
+
+    if not pathlib.Path("sim/cache/neso_carbon_intensity_national.json").exists():
+        pytest.skip("published series not cached")
+    series = to_settlement_periods(load_cached())
+    measured = forecast_skill(series, "2024")
+    assert 0.6 < measured["capture_mean"] < 0.98
+    assert measured["capture_p5"] < measured["capture_mean"], "no distribution, only a mean"
+    assert measured["timing_error_sd_g"] > measured["level_error_sd_g"], (
+        "the forecast's error would be pure level, which would cost a shifting claim nothing"
+    )

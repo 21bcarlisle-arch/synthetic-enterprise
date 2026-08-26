@@ -104,6 +104,15 @@ and are kept here, rewritten, because what replaced them is a smaller gap and no
   * OUTTURN, NOT FORECAST. The brief is explicit that the two answer different questions:
     forecast is what a customer could have acted on, outturn is what actually happened. This is
     outturn, so it grades what DID happen and must never be used to judge shifting advice.
+    HOW MUCH THAT GAP IS WORTH IS NO LONGER AN OPEN QUESTION (2026-08-26). It is not a gap in
+    THIS module -- an outturn series is the right thing for this module to be -- but every
+    figure derived from it is computed with hindsight a household never had, and
+    `neso_carbon_intensity.forecast_skill` now measures the size of that advantage on NESO's
+    own published forecast against NESO's own published outturn. Following that forecast
+    captures about 86% of a day's achievable within-day saving on the mean day and about 55%
+    on the worst day in twenty. It is a CEILING and it compounds with the overstatement below:
+    no improvement to this reconstruction can recover it, because it is a fact about what was
+    knowable at the time rather than about what the grid did.
   * NO LOSS CORRECTION IS APPLIED, and none must be added downstream either. The denominator is
     Elexon's transmission-boundary demand outturn, so this is per kWh at that boundary; NESO's
     published series is separately loss-corrected to a consumed basis. Applying a second
