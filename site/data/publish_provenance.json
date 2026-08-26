@@ -1,17 +1,17 @@
 {
   "annotation": {
-    "checked_at": "2026-08-26T18:25:56Z",
+    "checked_at": "2026-08-26T19:42:42Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_no_committed_store_credits_a_falsifier_the_repository_does_not_have",
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_every_declared_honest_absence_is_still_absent_and_still_silenced",
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_falsifier.py::test_MUTATION_the_word_only_predicate_fires_this_contradiction_on_the_real_corpus",
       "FAILED tests/architecture/test_no_committed_store_claims_an_unlanded_symbol.py::test_the_symbol_population_is_not_vacuous",
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_no_stale_baseline_entries",
-      "FAILED tests/architecture/test_static_quality_ratchet.py::test_ruff_baseline_matches_frozen_census",
-      "FAILED tests/background/test_aged_staging_digest.py::test_digest_still_dedupes_to_once_per_day_with_aged_docs_present",
-      "FAILED tests/background/test_defect_backlog_draw.py::test_rung_is_in_authorized_set_enumeration"
+      "FAILED tests/background/test_defect_backlog_draw.py::test_rung_is_in_authorized_set_enumeration",
+      "FAILED tests/background/test_publish_gate_stub_roots_are_repo_shaped.py::test_every_module_that_drives_the_gate_uses_the_shared_root_shape",
+      "FAILED tests/background/test_seat_guard_daemons.py::TestStructuralLock::test_every_main_entrypoint_is_guarded",
+      "FAILED tests/background/test_suppression_lint.py::test_live_tree_passes - Ass..."
     ],
-    "nonblocking_reds_total": 46,
+    "nonblocking_reds_total": 44,
     "open_findings": 29
   },
   "last_verified": {
@@ -20,8 +20,8 @@
     "run_id": "run_output_6c732c989_20260826T182701Z.json",
     "verified_at": "2026-08-26T18:50:34Z"
   },
-  "paused_reason": null,
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=e13dd038d; blocking tests: FAILED tests/tools/test_generate_dashboard_data_population_seam.py::test_resolve_book_flag_off_byte_identical_to_static_customers, FAILED tests/tools/test_generate_dashboard_data_population_seam.py::test_resolve_book_flag_on_additively_carries_syn_cohort",
+  "paused_since": "2026-08-26T20:18:10Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-08-26T18:50:34Z",
@@ -29,6 +29,6 @@
     "run_id": "run_output_6c732c989_20260826T182701Z.json",
     "verified_at": "2026-08-26T18:50:34Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-08-26T18:50:34Z"
+  "verification_state": "paused",
+  "written_at": "2026-08-26T20:18:10Z"
 }
