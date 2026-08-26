@@ -928,3 +928,161 @@ to charge many times what a regulated efficient supplier earns."
 
 **This is why the arm stays unwired from the renewal desk**, and it is a better-stated reason
 than the one it replaces.
+
+---
+
+## 2026-08-27 — the world answered a 28× price rise with two churns, and neither side is lying: they price against different references
+
+**THE OUTPUT IS A MEASUREMENT, NOT A REPAIR.** Nothing in the company's belief and nothing in the
+world's switching response is changed by this section. Where the arithmetic lands on the world's
+curve it is recorded for the curriculum (R13) and left there.
+
+Read on `docs/observability/value_cycle_ab_resi.json` (generated 2026-08-26T17:09:29Z). No new run:
+both sides were already published.
+
+### The question
+
+The value arm repriced 42 residential renewals at a median `median_margin_gbp_per_mwh` of 57.75
+against the control's `control_margin_gbp_per_mwh` of 2.00 — nominally 28× — and the world
+returned 34 churn events against the control's 32. Two. If the world does not punish price, then
+every realised A/B result to date is a fact about the switching curve and the +£16,773 headline
+cannot be attributed to inference. That is the fourth way for the arm's advantage to be hollow,
+after ACCESS, after the horizon, and after the BOUND the ceiling section closed.
+
+### Finding 1 — the published `calibration_error` of 0.0107 is a cancellation, not a calibration
+
+`belief_vs_outcome` reports `mean_believed_p_retain` 0.760675 against `realised_retention_rate`
+0.750 on 24 matched decisions, a `calibration_error` of 0.0107. Summed into leavers that is the
+comparison the direction asked for, and it agrees almost exactly:
+
+| believed p_retain | n | expected leavers | realised leavers | gap |
+|---|---|---|---|---|
+| 0.3318 | 4 | 2.673 | 0 | **−2.673** |
+| 0.5417 | 1 | 0.458 | 1 | +0.542 |
+| 0.6158 | 4 | 1.537 | 4 | **+2.463** |
+| 0.9283 | 15 | 1.076 | 1 | −0.076 |
+| **total** | **24** | **5.744** | **6** | **+0.256** |
+
+The aggregate gap is +0.256 leavers on 5.744 expected — 4.5%. The sum of the *absolute* bucket
+gaps is **5.753**, which is 100.2% of the quantity being predicted. Every unit of predictive
+error is present; the reported statistic is the residue after two errors of ~2.5 leavers each
+cancel in opposite directions. **An aggregate calibration figure over a bimodal decision set is
+the R15 net-statistic shape** — it cannot fail on this data, because the two halves are
+constructed to net out. `calibration_error` should not be read as evidence of a calibrated belief.
+
+The `discrimination_auc` of 0.6944 is carried entirely by the top bucket: 15 of 24 decisions sit
+at believed p_retain 0.928 and 14 of those were retained. Strip that bucket and the ranking on the
+9 at-risk decisions is **inverted** — the four the company thought were most likely to leave all
+stayed, and four of the five it thought were safer all left. The arm ranks the book correctly only
+because most of the book was never at risk.
+
+### Finding 2 — the world is not forgiving; at the arm's own price position it multiplies churn 5.7–7.7×
+
+The price leg is live and wired. `simulation/run_phase2b.py:1676` passes
+`new_rate_gbp_per_mwh=unit_rate` — the arm's own chosen rate — into `roll_lifecycle_event`, which
+computes `_price_differential_vs_market` against the published SVT and applies
+`churn_position_multiplier`. Landed 2026-08-25; this is not the pre-fix world.
+
+The arm's rate sits £55.75/MWh above the control's. Against the SVT of the years in the roster
+that is a position 30–40 points of SVT dearer, wherever the control itself sat:
+
+| term | SVT £/MWh | £55.75 as % of SVT | churn multiplier |
+|---|---|---|---|
+| 2017-04-01 | 140.00 | +39.8% | **×7.72** |
+| 2018-04-01 | 152.50 | +36.6% | **×7.06** |
+| 2019-04-01 | 185.60 | +30.0% | **×5.73** |
+
+**"28×" is a margin ratio and it is not a rate position.** Twenty-eight times a £2/MWh margin is a
+~+37% move in the rate a household actually compares, and the world's response to that is a
+five-to-eightfold increase in the chance they leave. The world punishes price hard.
+
+### Finding 3 — the world's own curve predicts 7–18 flips; it produced 3
+
+The dice roll is `_random.Random(f"{billing_account}_{term_start_str}").random()` —
+**seeded on the account and term only, so it is byte-identical in both arms.** An arm can only
+change an outcome by moving `effective_p_retain` across that fixed roll. The flip window is
+therefore exactly the increase in churn probability, and at ×7 with `WORLD_MAX_CHURN_PROBABILITY`
+0.95 binding:
+
+| control p_churn | arm p_churn | flip window | expected flips on 24 |
+|---|---|---|---|
+| 0.05 | 0.350 | 0.300 | 7.2 |
+| 0.10 | 0.700 | 0.600 | 14.4 |
+| 0.20 | 0.950 | 0.750 | 18.0 |
+
+`churn_roster_diff` records **3** accounts churning only under the arm (C1_2, C3, C7) and 1 only
+under the control (PROS-2018-0003). Three, against a floor of seven on the world's own arithmetic.
+The world's curve and the world's realised roster disagree with each other — so the shortfall is
+not the curve being soft.
+
+### Finding 4 — the reason, and it is that the two sides price against different references
+
+The company's belief keys on a **delta against the customer's own previous rate**
+(`company/crm/churn_model.py:305`, `rate_increase_pct = (new − old) / old`, net of
+`market_move_pct` at line 310 — a delta against a delta). The world keys on a **level against the
+published SVT** (`simulation/customer_events.py:67`, `(new − svt) / svt`).
+
+These are different quantities and they disagree in both directions:
+
+- A supplier that was **cheap and moves to average** reads as a large rise in the company's frame
+  (high believed churn) and as **parity** in the world's (multiplier ≈ 1.0). That is bucket 1:
+  four accounts believed 67% likely to leave, **none did**.
+- A supplier that was **dear and barely moves** reads as flat in the company's frame (low believed
+  churn) and as **+30% vs SVT** in the world's (multiplier ≈ 6×). That is bucket 3: four accounts
+  believed 38% likely to leave, **all four did**.
+
+That is the observed inversion, in the right direction, on both tails. It also explains Finding 3
+without any appeal to a soft curve: the ×7 multiplier is computed against SVT, and most of the 42
+renewals were not 37% above SVT — the company's own belief says so. Inverting the model at
+believed p_retain 0.928 (base 0.10, tenure discount −0.05, sensitivity 0.8) gives a rate move of
+**~3–4%** for 15 of the 24 scored decisions. The decision set is **bimodal — roughly 15 near-flat
+renewals and 5 large rises — and the median margin of 57.75 does not describe it.**
+
+### The verdict: it is the third, and the effective n is 4, not 42
+
+Not "the belief over-predicts" — it over-predicts on one tail and under-predicts on the other by
+almost identical amounts. Not "the world under-punishes" — its multiplier at the arm's position is
+5.7–7.7× and its price leg is correctly wired. **The sample cannot separate them**, and it is far
+smaller than 42:
+
+- 42 priced → **24** have any outcome at all. `unmatched_decisions` is **18 (43%)**: the world
+  rolled no churn decision, because `build_home_move_win_rates` carries no entry for that renewal
+  month. Those decisions are **unpunishable at any multiplier**.
+- 24 scored → **9** sit outside the top believed bucket, and those 9 carry all the information.
+- The *causal* question — did repricing cause departures — rests on the roster difference, which
+  is **3 in and 1 out**. **n = 4.**
+
+A ×7 world response and a bimodal 42-decision sample with 43% of it unrollable cannot distinguish
+a mis-calibrated belief from a mis-referenced one on four differing outcomes.
+
+### What would separate them
+
+1. **Close the 18-unmatched hole first.** Any measurement where 43% of the treatment is
+   structurally incapable of producing an outcome has a denominator problem before it has a
+   calibration problem. `roll_lifecycle_event` returning `None` for a renewal the arm priced is
+   the defect; the arm's term list and `churn_model._renewal_periods` derive their schedules
+   independently and must be reconciled.
+2. **Measure the slope, not the level — a price ladder.** Run the arm at several margin
+   multipliers on the same book and the same seeds, and compare the *slope* of believed churn
+   against the *slope* of realised churn. Because the roll is fixed per (account, term_start), a
+   ladder needs no matched pairs and no distributional assumption: the flip count as a function of
+   price is a direct read of the world's curve against the company's. It converts an n=4 level
+   comparison into a dose-response with 42 decisions at every rung, and it is the only design here
+   that can separate "wrong level" from "wrong reference".
+3. **Publish both references side by side per decision.** `value_arm_log` should carry the world's
+   `rate_vs_svt_pct` next to the company's `rate_increase_pct`. Finding 4 took an inversion in a
+   4-row bucket table to detect; it would have been one column.
+
+### For the curriculum, recorded and not acted on (R13)
+
+Nothing here says the world's switching response is wrong. Its multiplier is steep, its wiring is
+correct, and its extrapolation above saturation was already chosen against the company. The one
+item that belongs in front of the director is the **reference-frame divergence itself** — the
+company is structurally unable to see the quantity the world punishes, because
+`rate_increase_pct` never contains the SVT level. Whether a real supplier can see its own position
+against the published SVT is a question about the world's observables, not about the company's
+model, and it is the director's to rule on. It must be decided blind to what it does to this
+delta.
+
+**The +£16,773 headline is not refuted and it is not confirmed.** It rests on four differing churn
+outcomes and a belief whose aggregate agreement with the world is arithmetic coincidence.
