@@ -433,7 +433,7 @@ def belief_vs_outcome(value: dict) -> dict:
         else:
             outcome.setdefault(key, True)  # retained
 
-    scored, unmatched = [], 0
+    scored, unmatched, unmatched_rows = [], 0, []
     for entry in log:
         if not isinstance(entry, dict) or entry.get("declined"):
             continue
@@ -442,9 +442,18 @@ def belief_vs_outcome(value: dict) -> dict:
             continue
         key = (entry.get("customer_id"), entry.get("term_start"))
         if key not in outcome:
-            # NAMED, not dropped: an unmatched decision changes the denominator, and a
-            # calibration figure whose denominator moved silently is not a measurement.
+            # NAMED AND SAMPLED, not dropped. An unmatched decision changes the
+            # denominator, and a calibration figure whose denominator moved silently is
+            # not a measurement -- but a bare COUNT is not much better, because the first
+            # live run reported 30 of 58 unmatched and nothing in the artefact could say
+            # why. `roll_lifecycle_event` returns None when `home_move_win_rates` has no
+            # entry for that renewal month, and that roster's renewal schedule is derived
+            # independently (`churn_model._renewal_periods`, acquisition_date + 365n,
+            # truncated at the last settled period) from the term list the arm prices off.
+            # So the artefact carries a sample and a per-year count, and the next reader
+            # gets a hypothesis instead of a hole.
             unmatched += 1
+            unmatched_rows.append({"account": key[0], "term_start": key[1]})
             continue
         scored.append({
             "account": entry.get("customer_id"),
@@ -483,6 +492,27 @@ def belief_vs_outcome(value: dict) -> dict:
         "available": True,
         "priced_and_scored": len(scored),
         "unmatched_decisions": unmatched,
+        # COVERAGE, published beside the statistics rather than left to be divided out.
+        # The first live run scored 28 of 58 decisions: the calibration and AUC below
+        # therefore describe less than half the arm's answers, and a reader who missed
+        # that would take them for the whole book. An unmatched decision is one the arm
+        # priced and the world logged no lifecycle event for at that (account, term)
+        # -- why that happens for half of them is NOT yet diagnosed, and saying so is
+        # the point of this field.
+        "scored_share_of_priced": (
+            len(scored) / (len(scored) + unmatched) if (len(scored) + unmatched) else None),
+        "unmatched_sample": unmatched_rows[:10],
+        "unmatched_by_year": dict(sorted(collections.Counter(
+            (r["term_start"] or "")[:4] for r in unmatched_rows).items())),
+        "unmatched_meaning": (
+            "the arm priced this renewal and the world logged no lifecycle event at that "
+            "(account, term_start). `simulation/customer_events.roll_lifecycle_event` "
+            "returns None when `home_move_win_rates` carries no entry for the renewal "
+            "month, and that roster's schedule is derived independently of the term list "
+            "the arm prices off -- so these are renewals at which the world rolled NO "
+            "churn decision, not renewals whose outcome is unknown. They are excluded "
+            "rather than counted as retained: scoring a belief about retention against a "
+            "renewal where leaving was impossible would flatter the arm."),
         "mean_believed_p_retain": believed_mean,
         "realised_retention_rate": realised_rate,
         "calibration_error": believed_mean - realised_rate,
@@ -505,7 +535,9 @@ def belief_vs_outcome(value: dict) -> dict:
             "improves. Above 0.5 with a large `calibration_error` means the arm ranks "
             "customers correctly and misjudges the level, which is a different and more "
             "repairable finding. `auc_population` is published because this statistic is "
-            "noise when one side is small. R12: diagnostic, never a target."
+            "noise when one side is small. READ `scored_share_of_priced` FIRST: these "
+            "statistics describe only the decisions that could be matched to an outcome, "
+            "and on the first live run that was 28 of 58. R12: diagnostic, never a target."
         ),
     }
 

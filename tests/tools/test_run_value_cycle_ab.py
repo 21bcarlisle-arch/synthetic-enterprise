@@ -597,3 +597,42 @@ def test_belief_vs_outcome_is_unavailable_with_a_named_reason(phase2b):
     result = belief_vs_outcome({"phase2b": phase2b})
     assert result["available"] is False
     assert result["reason"]
+
+
+def test_coverage_is_published_so_the_statistics_cannot_be_read_as_the_whole_book():
+    """The first live run scored 28 of 58 decisions. Calibration and AUC over half a
+    population are still worth having and are NOT the same claim as over all of it, so the
+    share is a published field rather than something a reader must divide out."""
+    log = [_decision("A", 0.9), _decision("GHOST1", 0.9), _decision("GHOST2", 0.9)]
+    result = belief_vs_outcome(_arm_with(log, [_event("A", "renewed")]))
+    assert result["scored_share_of_priced"] == pytest.approx(1 / 3)
+    assert "scored_share_of_priced" in result["reading"]
+
+
+def test_full_coverage_reports_one_rather_than_being_omitted():
+    """A field that only appears when it is bad is a field a reader learns to ignore."""
+    log = [_decision("A", 0.9), _decision("B", 0.2)]
+    events = [_event("A", "renewed"), _event("B", "churned")]
+    assert belief_vs_outcome(_arm_with(log, events))["scored_share_of_priced"] == 1.0
+
+
+def test_the_unmatched_decisions_are_sampled_and_dated_not_merely_counted():
+    """A bare count is not much better than a silent drop. The first live run reported 30
+    of 58 unmatched and nothing in the artefact could say why, so the next reader gets a
+    sample, a per-year distribution and a stated hypothesis."""
+    log = [_decision("A", 0.9),
+           _decision("G", 0.9, term="2023-05-01"),
+           _decision("H", 0.5, term="2023-09-01")]
+    result = belief_vs_outcome(_arm_with(log, [_event("A", "renewed")]))
+    assert result["unmatched_by_year"] == {"2023": 2}
+    assert {r["account"] for r in result["unmatched_sample"]} == {"G", "H"}
+    assert "rolled NO" in result["unmatched_meaning"]
+
+
+def test_an_unmatched_decision_is_excluded_rather_than_counted_as_retained():
+    """Scoring a belief about retention against a renewal where leaving was impossible
+    would flatter the arm — the realised rate must not absorb them."""
+    log = [_decision("A", 0.9), _decision("B", 0.9)]
+    result = belief_vs_outcome(_arm_with(log, [_event("A", "churned")]))
+    assert result["priced_and_scored"] == 1
+    assert result["realised_retention_rate"] == 0.0
