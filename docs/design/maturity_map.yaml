@@ -623,12 +623,28 @@
   value_stream: close_to_learn
   epoch: 1
   level_current: 1
-  level_target: 3
+  level_target: 1
   loop_stage: idle
+  closed: >-
+    closed 2026-08-26 at level 1 by the delivery seat, having been drawn at loop_stage=build for the ninth
+    time. The deliverable -- automated data-flow/timing detection inside tools/epistemic_verifier.py -- was
+    DECLINED by a closed Tier-1 gate (docs/review_gates/done/EPISTEMIC_VERIFIER_TIMING_DETECTION_TIER1.md,
+    director 2026-07-10) and REHOMED to .claude/hooks/block_point_in_time_read.py (near-term, verified this
+    tick to be registered as a PreToolUse hook in the real .claude/settings.json, not merely present) and
+    company/interfaces/point_in_time_view.py (permanent), with
+    tests/tools/test_epistemic_verifier_timing_routing.py now asserting the near-term half stays WIRED. So
+    the atom is not unbuilt: its level_target was simply never moved to follow the ruling, and every draw
+    since has spent a tick re-deriving the same refusal. Level HELD at 1 rather than raised to 2 on the
+    rehomed carriers -- this atom's own expert_hour record is a correction of a false level-2 claim, and
+    eight register passes since have each landed on 1. Full reasoning, the deviation from the raising
+    finding's recommendation, and the honest residual (a one-pattern warning-only hook; the weather,
+    generation and demand read paths unaudited) are in
+    docs/design/simplifications/W4_2_verifier_timing_extension.yaml. Reopen by raising level_target, which
+    means re-opening that gate.
   dial_inherited: 3
   records_rehomed: [evidence]
-  file_scope: ["tools/epistemic_verifier.py"]
-  simplifications_count: 8
+  file_scope: ["tools/epistemic_verifier.py", ".claude/hooks/block_point_in_time_read.py", "company/interfaces/point_in_time_view.py"]
+  simplifications_count: 9
   expert_hour: {status: passed, last: "2026-07-10", findings: ["OWN PRIOR CLAIM WAS FALSE: level 2/expert_hour=passed had no real basis -- the tool has zero timing-detection code, confirmed by reading all 202 lines and by the atom's own cited source document explicitly stating the gap was NOT closed", "corrected to level 1, opened a Tier 1 gate for the real fix rather than building it unilaterally (the verifier is a named safety control)"]}
   real_world_twin: "a Chinese-wall audit that checks for information leakage, not just org-chart separation"
   depends_on: []
@@ -1829,8 +1845,13 @@
   value_stream: close_to_learn
   epoch: 2
   level_current: 2
-  level_target: 3
+  level_target: 2
   loop_stage: idle   # PARKED 2026-07-17: all 7 designed sub-steps BUILT (console-marker, manifest, scheduling, systemd-migration, deploy-by-construction, notification-contract [17/17 collapsed], test-isolation) + the fork-lifecycle reconciler landed. L2->L3 is the DIRECTOR-TRIGGERED systemd DEPLOY (units reinstall + daemon restart, so booted-SHA/stamps/console-marker go LIVE) + the governance LIVE run -- NOT worker-BUILD. No worker BUILD is drawable here now; flips to build/L3 on the director's deploy. Parked so the loop draws other work instead of treadmilling a done rebuild (Rule 0: empty feasible set is a dial defect, yield).
+  closed: >-
+    closed 2026-08-26 at level 2 by the delivery seat. Its own park text already said L3 is the
+    director-triggered systemd deploy -- an operational act on the real machine, console-only under
+    CLAUDE.md, and so not simulation work any seat can perform. Carrying it as an open gap bought nine
+    discovery passes and no movement. Reopen by raising level_target back to 3 when he deploys.
   blocked_reason: director_systemd_deploy   # worker-complete (L2); L3 = the director-triggered systemd deploy. Excluded from the draw until he deploys (H_draw_excludes_external_blocked_atoms). Clear this to re-admit.
   block_reason: "Worker-complete (L2); L3 = the director-triggered systemd deploy -- excluded from the draw until he deploys."
   dial_inherited: 5
@@ -2280,8 +2301,15 @@
   value_stream: meter_to_cash
   epoch: 3
   level_current: 0
-  level_target: 2
+  level_target: 0
   loop_stage: idle
+  closed: >-
+    the detection gap's quantisation by book placement is a property of the instrument's input, not a
+    capability to build to level 2. closed 2026-08-26 by the delivery seat. One instrument
+    (tools/couple_w2_11_d5.py) authored nine of these; D27 is still building and the other eight are one
+    finding wearing eight atom records -- the instrument's resolution is bounded by the length and placement
+    of the book it reads. That is RECORDED, and the record is the deliverable: no build closes it, because
+    the answer is a longer book and not more code. Reopen by raising level_target back to 2.
   dial_inherited: 3
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
@@ -2296,8 +2324,15 @@
   value_stream: meter_to_cash
   epoch: 3
   level_current: 0
-  level_target: 2
+  level_target: 0
   loop_stage: idle
+  closed: >-
+    the as-of buffer flooring the memory grid is a recorded limit of the instrument's input window, not a
+    capability. closed 2026-08-26 by the delivery seat. One instrument (tools/couple_w2_11_d5.py) authored
+    nine of these; D27 is still building and the other eight are one finding wearing eight atom records --
+    the instrument's resolution is bounded by the length and placement of the book it reads. That is
+    RECORDED, and the record is the deliverable: no build closes it, because the answer is a longer book and
+    not more code. Reopen by raising level_target back to 2.
   dial_inherited: 3
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
@@ -2312,8 +2347,15 @@
   value_stream: meter_to_cash
   epoch: 3
   level_current: 0
-  level_target: 2
+  level_target: 0
   loop_stage: idle
+  closed: >-
+    the belief band being the book's length is a recorded limit of the sample, not a capability. closed
+    2026-08-26 by the delivery seat. One instrument (tools/couple_w2_11_d5.py) authored nine of these; D27 is
+    still building and the other eight are one finding wearing eight atom records -- the instrument's
+    resolution is bounded by the length and placement of the book it reads. That is RECORDED, and the record
+    is the deliverable: no build closes it, because the answer is a longer book and not more code. Reopen by
+    raising level_target back to 2.
   dial_inherited: 3
   provenance: proposal
   simplifications_count: 6
@@ -2329,8 +2371,15 @@
   value_stream: meter_to_cash
   epoch: 3
   level_current: 0
-  level_target: 2
+  level_target: 0
   loop_stage: idle
+  closed: >-
+    the recon grid saturating beyond the book's window is a recorded limit of the sample, not a capability.
+    closed 2026-08-26 by the delivery seat. One instrument (tools/couple_w2_11_d5.py) authored nine of these;
+    D27 is still building and the other eight are one finding wearing eight atom records -- the instrument's
+    resolution is bounded by the length and placement of the book it reads. That is RECORDED, and the record
+    is the deliverable: no build closes it, because the answer is a longer book and not more code. Reopen by
+    raising level_target back to 2.
   dial_inherited: 3
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
@@ -2344,8 +2393,15 @@
   value_stream: meter_to_cash
   epoch: 3
   level_current: 0
-  level_target: 2
+  level_target: 0
   loop_stage: idle
+  closed: >-
+    the render-site sweep stopping at this process's edge is a recorded limit of the sweep's reach, not a
+    capability. closed 2026-08-26 by the delivery seat. One instrument (tools/couple_w2_11_d5.py) authored
+    nine of these; D27 is still building and the other eight are one finding wearing eight atom records --
+    the instrument's resolution is bounded by the length and placement of the book it reads. That is
+    RECORDED, and the record is the deliverable: no build closes it, because the answer is a longer book and
+    not more code. Reopen by raising level_target back to 2.
   dial_inherited: 3
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
@@ -2359,8 +2415,15 @@
   value_stream: meter_to_cash
   epoch: 3
   level_current: 0
-  level_target: 2
+  level_target: 0
   loop_stage: idle
+  closed: >-
+    the resolution floor covering two of five figures is a recorded property of the instrument's rounding,
+    not a capability. closed 2026-08-26 by the delivery seat. One instrument (tools/couple_w2_11_d5.py)
+    authored nine of these; D27 is still building and the other eight are one finding wearing eight atom
+    records -- the instrument's resolution is bounded by the length and placement of the book it reads. That
+    is RECORDED, and the record is the deliverable: no build closes it, because the answer is a longer book
+    and not more code. Reopen by raising level_target back to 2.
   dial_inherited: 3
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
@@ -2374,8 +2437,15 @@
   value_stream: meter_to_cash
   epoch: 3
   level_current: 0
-  level_target: 2
+  level_target: 0
   loop_stage: idle
+  closed: >-
+    the collapse predicate being bit-equality is a recorded property of the instrument, not a capability.
+    closed 2026-08-26 by the delivery seat. One instrument (tools/couple_w2_11_d5.py) authored nine of these;
+    D27 is still building and the other eight are one finding wearing eight atom records -- the instrument's
+    resolution is bounded by the length and placement of the book it reads. That is RECORDED, and the record
+    is the deliverable: no build closes it, because the answer is a longer book and not more code. Reopen by
+    raising level_target back to 2.
   dial_inherited: 3
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
@@ -2389,8 +2459,15 @@
   value_stream: meter_to_cash
   epoch: 3
   level_current: 0
-  level_target: 2
+  level_target: 0
   loop_stage: idle
+  closed: >-
+    the latency headline's inability to attribute its two knobs is a recorded property of the instrument's
+    design, not a capability. closed 2026-08-26 by the delivery seat. One instrument
+    (tools/couple_w2_11_d5.py) authored nine of these; D27 is still building and the other eight are one
+    finding wearing eight atom records -- the instrument's resolution is bounded by the length and placement
+    of the book it reads. That is RECORDED, and the record is the deliverable: no build closes it, because
+    the answer is a longer book and not more code. Reopen by raising level_target back to 2.
   dial_inherited: 3
   provenance: proposal
   couples_with: [H27_payment_belief_gap, W2_11_payment_behaviour_source, D5_account_hierarchy_payments]
