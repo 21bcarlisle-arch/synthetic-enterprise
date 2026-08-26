@@ -146,6 +146,7 @@ def decide_renewal_rate(
     prior_term_margin_gbp: float | None,
     prior_term_revenue_gbp: float,
     is_domestic: bool,
+    segment: str | None = None,
     settled_records: list[dict],
 ) -> RenewalRateChain:
     """Decide the rate this renewal is contracted at.
@@ -318,6 +319,11 @@ def decide_renewal_rate(
         locked_unit_rate=unit_rate,
         settled_records=settled_records,
         is_domestic=is_domestic,
+        # The account's OWN segment, not the two-valued collapse of it. See
+        # `renewal_margin_uplift`'s mapping comment: the churn model has an I&C branch that
+        # the boolean could not reach, and that unreachability was 99.5% of the value arm's
+        # measured loss. `None` keeps the old behaviour for a caller that does not know.
+        segment=segment,
         arm=active_policy().renewal_margin_arm,
         max_offered_rate_gbp_per_mwh=cap_ceiling,
     )

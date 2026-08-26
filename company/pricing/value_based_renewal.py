@@ -91,6 +91,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from company.crm.churn_model import CHURN_SEGMENTS, RESI_SEGMENT, SME_SEGMENT
 from company.crm.enriched_churn_estimate import enriched_churn_estimate
 from company.crm.payment_behaviour_analytics import BehaviourScore
 from company.regulatory.pricing_permissions import check_class_margin
@@ -805,6 +806,45 @@ class MarginArmUplift:
     not_run_reason: str | None = None
 
 
+
+def segments_for(segment: str | None, is_domestic: bool) -> tuple[str, str]:
+    """(churn_segment, cost_segment) for one account -- two vocabularies, mapped, not shared.
+
+    TWO VOCABULARIES, MAPPED, NOT SHARED (2026-08-26, WORKER_FINDING_THE_VALUE_ARMS_WHOLE_
+    LOSS_IS_ONE_INDUSTRIAL_ACCOUNT_PRICED_AS_A_HOUSEHOLD). This read
+    `segment = "resi" if is_domestic else "SME"` and used the result for BOTH the churn model
+    and the cost tables, on the stated reasoning that `cost_to_serve_for_period` accepts
+    exactly two segments so one vocabulary beats two that can disagree. That is right about
+    costs and wrong about churn: `company/crm/churn_model.estimate_churn_probability` branches
+    THREE ways, and its I&C arm exists precisely to switch bill-size-driven churn OFF
+    (`IC_BILL_STRESS_SENSITIVITY = 0.0` -- "I&C: rate-driven churn, not bill-size-driven").
+    Collapsing to two made that branch UNREACHABLE from the only production caller.
+
+    Measured cost, on C_IC3 (3,936,105 kWh/yr): on the SME path the bill-stress term is
+    `0.25 x max(0, annual_bill/3000 - 1)` against a bill in the hundreds of thousands, so
+    P(leave) SATURATES AT 1.0000 for every candidate margin -- including margins BELOW what
+    the company already charges. With `p_retain = 0` flat across the grid there is nothing to
+    maximise and the search falls to the floor, GBP 0.50/MWh under the control's GBP 2.00. On
+    3.94 GWh that giveaway compounded to -GBP 94,314 of realised margin, which was 99.5% of the
+    value arm's entire measured loss. On the I&C path the same account reads 0.0288 at the
+    floor and rises properly to 0.8094 at GBP 46. At DOMESTIC volume the resi path also gives
+    0.0288 -- the curve is correct for households and saturates at industrial scale.
+
+    `segment` is optional and falls back to the old mapping, so every existing caller keeps its
+    behaviour and only a caller that KNOWS the segment changes anything. It is not a wall
+    crossing: a supplier knows which of its own customers are industrial -- they are
+    half-hourly settled on bespoke contracts -- exactly as it already knows `is_domestic`.
+    """
+    churn_segment = (
+        segment if segment in CHURN_SEGMENTS
+        else (RESI_SEGMENT if is_domestic else SME_SEGMENT))
+    # The COST vocabulary, derived from the churn one rather than the other way round,
+    # because the cost tables are the side with fewer categories and mapping down is
+    # lossless where mapping up would have to invent.
+    cost_segment = RESI_SEGMENT if churn_segment == RESI_SEGMENT else SME_SEGMENT
+    return churn_segment, cost_segment
+
+
 def renewal_margin_uplift(
     *,
     account_id: str,
@@ -817,6 +857,7 @@ def renewal_margin_uplift(
     is_domestic: bool,
     arm: str,
     max_offered_rate_gbp_per_mwh: float | None = None,
+    segment: str | None = None,
 ) -> MarginArmUplift:
     """The £/MWh this renewal moves by, under ONE arm, from the supplier's own settled book.
 
@@ -866,8 +907,9 @@ def renewal_margin_uplift(
         return MarginArmUplift(
             0.0, not_run_reason=f"tariff type {tariff_type!r} has no locked margin to move")
 
-    segment = "resi" if is_domestic else "SME"
-    observed = observed_account_state(account_id, term_start, settled_records, segment)
+    # Two vocabularies, mapped rather than shared -- see `segments_for`.
+    churn_segment, cost_segment = segments_for(segment, is_domestic)
+    observed = observed_account_state(account_id, term_start, settled_records, cost_segment)
     if observed is None:
         return MarginArmUplift(
             0.0, not_run_reason="nothing settled for this account inside the observation window")
@@ -884,7 +926,8 @@ def renewal_margin_uplift(
             eac_kwh=observed["eac_kwh"],
             tenure_years=observed["tenure_years"],
             cost_to_serve_gbp_per_year=observed["cost_to_serve_gbp_per_year"],
-            segment=segment,
+            # THE CHURN vocabulary, not the cost one -- see the mapping above.
+            segment=churn_segment,
             renewal_year=int(term_start[:4]),
             # EVERYTHING THIS ACCOUNT'S OWN RECORDS ALREADY SAID, and until 2026-08-26 none of it
             # was passed. `decide_margin` takes twenty company observables; this adapter handed it

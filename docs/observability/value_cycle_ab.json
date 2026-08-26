@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26T14:25:45Z",
+  "generated_at": "2026-08-26T15:03:09Z",
   "report_end": null,
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what ACTUALLY happened. No figure here is anything the company believed.",
   "arm_identity": {
@@ -20,48 +20,48 @@
     "renewals_priced_by_the_arm": 0
   },
   "value_arm": {
-    "total_net_gbp": 1053938.960033,
-    "total_gross_margin_gbp": 6420446.307998814,
-    "total_bad_debt_gbp": 124787.597279,
-    "final_treasury_gbp": 1303938.960032942,
-    "enterprise_value_gbp": 1280531.0113621687,
+    "total_net_gbp": 4228180.385084,
+    "total_gross_margin_gbp": 8255801.949132639,
+    "total_bad_debt_gbp": 112654.052364,
+    "final_treasury_gbp": 4478180.385084512,
+    "enterprise_value_gbp": 3685004.8869991414,
     "account_count": 170,
     "churned_accounts": 48,
-    "renewals_priced_by_the_arm": 69
+    "renewals_priced_by_the_arm": 66
   },
   "realised_delta": {
-    "net_margin_gbp": -91742.06948000006,
-    "enterprise_value_gbp": -110730.67942245351,
+    "net_margin_gbp": 3082499.3555710004,
+    "enterprise_value_gbp": 2293743.1962145194,
     "accounts_at_end": -2,
     "churned_accounts": 3,
-    "gross_margin_gbp": -123005.76416293532,
-    "bad_debt_gbp": -2755.8317090000055
+    "gross_margin_gbp": 1712349.87697089,
+    "bad_debt_gbp": -14889.376623999997
   },
   "decision_shape": {
-    "priced": 59,
-    "declined": 10,
-    "declined_share_of_renewals_seen": 0.1449,
-    "distinct_margins": 29,
-    "modal_margin_share_of_book": 0.2712,
-    "median_margin_gbp_per_mwh": 39.75,
+    "priced": 58,
+    "declined": 8,
+    "declined_share_of_renewals_seen": 0.1212,
+    "distinct_margins": 41,
+    "modal_margin_share_of_book": 0.1379,
+    "median_margin_gbp_per_mwh": 60.0,
     "control_margin_gbp_per_mwh": 2.0,
-    "endpoint_bound": 36,
-    "endpoint_at_ceiling": 20,
-    "endpoint_at_floor": 16,
+    "endpoint_bound": 25,
+    "endpoint_at_ceiling": 25,
+    "endpoint_at_floor": 0,
     "withheld": 0,
     "ceiling_bound": 20,
-    "extrapolation_bound": 2,
+    "extrapolation_bound": 3,
     "clamped_by_the_price_cap": 0
   },
   "churn_roster_diff": {
     "available": true,
-    "churned_under_both": 44,
+    "churned_under_both": 43,
     "margin_basis": "net_margin_gbp summed from the world's own settled records (phase2b.all_records) -- after wholesale, levies, network, capital and bad debt, BEFORE cost-to-serve",
     "only_in_value_arm": [
       {
         "account": "C1_2",
         "segment": null,
-        "realised_lifetime_margin_gbp": 266.847234
+        "realised_lifetime_margin_gbp": 223.9619130000001
       },
       {
         "account": "C3",
@@ -77,57 +77,77 @@
         "account": "C7",
         "segment": null,
         "realised_lifetime_margin_gbp": 887.9003260000005
+      },
+      {
+        "account": "C_IC3",
+        "segment": null,
+        "realised_lifetime_margin_gbp": 554979.9743840025
       }
     ],
     "only_in_control_arm": [
+      {
+        "account": "PROS-2018-0003",
+        "segment": null,
+        "realised_lifetime_margin_gbp": 24.126500000000032
+      },
       {
         "account": "PROS-2019-0003",
         "segment": null,
         "realised_lifetime_margin_gbp": 45.48987700000005
       }
     ],
-    "only_in_value_arm_realised_gbp": 6535.203790999996,
-    "only_in_control_arm_realised_gbp": 45.48987700000005,
-    "largest_single_difference_gbp": 4405.100468999995,
-    "reading": "If `largest_single_difference_gbp` is a large share of `realised_delta.gross_margin_gbp`, the headline is a statement about ONE decision and n=1 is not a thesis -- read it as a case study and say so. The realised figures are whole-life and come from the arm's own run, so an account present in both rosters is not compared here at all: only the accounts the two arms treated DIFFERENTLY appear. R12: diagnostic, never a target."
+    "only_in_value_arm_realised_gbp": 561472.2928540024,
+    "only_in_control_arm_realised_gbp": 69.61637700000009,
+    "largest_single_difference_gbp": 554979.9743840025,
+    "realised_coverage": {
+      "only_in_value_arm": {
+        "accounts": 5,
+        "valued": 5
+      },
+      "only_in_control_arm": {
+        "accounts": 2,
+        "valued": 2
+      }
+    },
+    "reading": "If `largest_single_difference_gbp` is a large share of `realised_delta.gross_margin_gbp`, the headline is a statement about ONE decision and n=1 is not a thesis -- read it as a case study and say so. The realised figures are whole-life and come from the arm's own run, so an account present in both rosters is not compared here at all: only the accounts the two arms treated DIFFERENTLY appear. A total of null means accounts differed but NONE could be valued -- that is an unavailable measurement, and it must never be read as zero concentration; check `realised_coverage`, and where `valued` is short of `accounts` the totals are a FLOOR. Only an empty roster side legitimately totals 0.0. R12: diagnostic, never a target."
   },
   "margin_movers": {
     "available": true,
     "accounts_compared": 259,
     "margin_basis": "net_margin_gbp summed from the world's own settled records (phase2b.all_records) -- after wholesale, levies, network, capital and bad debt, BEFORE cost-to-serve",
-    "accounts_that_moved": 87,
-    "net_delta_gbp": -94813.70118900202,
-    "total_absolute_movement_gbp": 159870.21817100138,
+    "accounts_that_moved": 88,
+    "net_delta_gbp": 2994342.8689469993,
+    "total_absolute_movement_gbp": 2998876.049020999,
     "top_n": 15,
-    "concentration_top_n_share_of_absolute_movement": 0.996791929229424,
+    "concentration_top_n_share_of_absolute_movement": 0.9997049422845307,
     "biggest_movers": [
-      {
-        "account": "C_IC3",
-        "segment": null,
-        "control_gbp": 195317.43275600023,
-        "value_arm_gbp": 101003.24729799954,
-        "delta_gbp": -94314.18545800069
-      },
       {
         "account": "C_IC1",
         "segment": null,
         "control_gbp": 531323.454885,
-        "value_arm_gbp": 500194.971583999,
-        "delta_gbp": -31128.48330100102
+        "value_arm_gbp": 2296289.8576429985,
+        "delta_gbp": 1764966.4027579986
       },
       {
         "account": "C_IC2",
         "segment": null,
         "control_gbp": 365689.28768199973,
-        "value_arm_gbp": 381042.8746089994,
-        "delta_gbp": 15353.586926999677
+        "value_arm_gbp": 1219884.7925339981,
+        "delta_gbp": 854195.5048519984
+      },
+      {
+        "account": "C_IC3",
+        "segment": null,
+        "control_gbp": 195317.43275600023,
+        "value_arm_gbp": 554979.9743840025,
+        "delta_gbp": 359662.5416280023
       },
       {
         "account": "C9",
         "segment": null,
         "control_gbp": 1502.288469000001,
-        "value_arm_gbp": 6746.698704000017,
-        "delta_gbp": 5244.410235000016
+        "value_arm_gbp": 6636.259854000011,
+        "delta_gbp": 5133.97138500001
       },
       {
         "account": "C8",
@@ -154,15 +174,22 @@
         "account": "C2",
         "segment": null,
         "control_gbp": 1907.2163540000097,
-        "value_arm_gbp": 2875.9556539999917,
-        "delta_gbp": 968.739299999982
+        "value_arm_gbp": 3054.6055419999943,
+        "delta_gbp": 1147.3891879999846
+      },
+      {
+        "account": "PROS-2018-0003",
+        "segment": null,
+        "control_gbp": 24.126500000000032,
+        "value_arm_gbp": 982.1958379999986,
+        "delta_gbp": 958.0693379999985
       },
       {
         "account": "PROS-2019-0003",
         "segment": null,
         "control_gbp": 45.48987700000005,
-        "value_arm_gbp": 941.5845940000024,
-        "delta_gbp": 896.0947170000023
+        "value_arm_gbp": 877.6894790000015,
+        "delta_gbp": 832.1996020000014
       },
       {
         "account": "C1",
@@ -170,6 +197,13 @@
         "control_gbp": 1250.4532439999941,
         "value_arm_gbp": 466.1534819999985,
         "delta_gbp": -784.2997619999956
+      },
+      {
+        "account": "C4",
+        "segment": null,
+        "control_gbp": -2554.1444800000036,
+        "value_arm_gbp": -1785.4661359999964,
+        "delta_gbp": 768.6783440000072
       },
       {
         "account": "C3",
@@ -186,25 +220,11 @@
         "delta_gbp": 639.862073000002
       },
       {
-        "account": "C4",
-        "segment": null,
-        "control_gbp": -2554.1444800000036,
-        "value_arm_gbp": -1971.2224990000038,
-        "delta_gbp": 582.9219809999997
-      },
-      {
-        "account": "PROS-2018-0003",
-        "segment": null,
-        "control_gbp": 24.126500000000032,
-        "value_arm_gbp": 523.7120470000013,
-        "delta_gbp": 499.5855470000013
-      },
-      {
         "account": "C1_2",
         "segment": null,
         "control_gbp": null,
-        "value_arm_gbp": 266.847234,
-        "delta_gbp": 266.847234
+        "value_arm_gbp": 223.9619130000001,
+        "delta_gbp": 223.9619130000001
       }
     ],
     "reading": "`concentration_top_n_share_of_absolute_movement` near 1.0 means a handful of accounts ARE the headline and it should be read as a case study, not a portfolio result. Spread thin, the portfolio claim stands. Note that `net_delta_gbp` is the NET-of-all-costs line and will not equal `realised_delta.gross_margin_gbp`, which is a different basis (R14) -- they are here to be compared in SHAPE, not summed. R12: diagnostic, never a target."

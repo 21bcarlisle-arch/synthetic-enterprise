@@ -1345,6 +1345,9 @@ def main(report_end: str | None = None, sim_interface=None, policy: DecisionPoli
             prior_term_margin_gbp=prev_term_margin.get(cid),
             prior_term_revenue_gbp=prev_term_revenue.get(cid, 0.0),
             is_domestic=cid in _RESI_CUSTOMER_IDS,
+            # `_SEGMENT_OF` already exists here for the Triad carve-out, so the fact the
+            # renewal desk was missing was three lines away the whole time.
+            segment=_SEGMENT_OF.get(cid, "resi"),
             settled_records=all_records,
         )
         unit_rate = _chain.unit_rate_gbp_per_mwh

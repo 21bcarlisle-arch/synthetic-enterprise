@@ -100,6 +100,29 @@ IC_RATE_SENSITIVITY = 1.5       # highly price-sensitive -- 10% rate rise -> +15
 IC_TENURE_DISCOUNT_PER_YEAR = 0.005  # less loyalty benefit per year
 IC_BILL_STRESS_THRESHOLD_GBP = 50_000.0  # retained for backward-compat; unused when sensitivity=0
 IC_BILL_STRESS_SENSITIVITY = 0.0    # I&C: rate-driven churn, not bill-size-driven
+
+#: THE SEGMENT VALUES `estimate_churn_probability` ACTUALLY BRANCHES ON, exported so a
+#: caller can check its own vocabulary against this one instead of assuming they match.
+#:
+#: They did not match, and it cost the value arm its whole measured loss (2026-08-26,
+#: WORKER_FINDING_THE_VALUE_ARMS_WHOLE_LOSS_IS_ONE_INDUSTRIAL_ACCOUNT_PRICED_AS_A_HOUSEHOLD).
+#: `renewal_margin_uplift` collapsed every account to `"resi"`/`"SME"` because the cost
+#: tables take two, so `IC_SEGMENT` -- and with it the whole point of the constants above,
+#: which exist to switch bill-size-driven churn OFF for industrial customers -- was
+#: unreachable from the only production caller. On a 3.9 GWh account the SME path returns
+#: P(leave) = 1.0000 at EVERY candidate margin, including margins below what the company
+#: already charges.
+#:
+#: THIS IS THE THIRD SEGMENT VOCABULARY IN THIS COMPANY and the reason it is exported
+#: rather than left implicit: `company/pricing/segment_profitability.KNOWN_SEGMENTS` uses
+#: `{"residential_credit", "residential_ppm", "sme", "i_and_c"}` and
+#: `saas/cost_to_serve` takes two. A caller that imported the wrong one would match
+#: NOTHING and silently fall back -- which is exactly the failure this constant exists to
+#: make checkable.
+IC_SEGMENT = "I&C"
+SME_SEGMENT = "SME"
+RESI_SEGMENT = "resi"
+CHURN_SEGMENTS = (RESI_SEGMENT, SME_SEGMENT, IC_SEGMENT)
 # Phase 22a: post-crisis churn hangover. When the company observes that a
 # customer's prior term had a large net loss (>20% of revenue), customers
 # who survived crisis prices remain financially anxious even after rates fall.

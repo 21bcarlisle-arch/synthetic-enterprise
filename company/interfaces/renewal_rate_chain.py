@@ -48,6 +48,7 @@ def decide_renewal_rate(
     prior_term_revenue_gbp: float,
     is_domestic: bool,
     settled_records: list[dict],
+    segment: str | None = None,
 ) -> RenewalRateChain:
     """Ask the company what rate it is contracting this renewal at.
 
@@ -69,6 +70,12 @@ def decide_renewal_rate(
     from company.pricing.renewal_rate_chain import decide_renewal_rate as _decide
 
     return _decide(
+        # THE ACCOUNT'S OWN SEGMENT, and it has to cross HERE or it crosses nowhere: the
+        # world imports this door, not the desk behind it, so a parameter added to the desk
+        # alone would be a release whose effect is nothing (R11) -- and worse, the world
+        # passing it would raise TypeError on the first renewal of a ten-year run. Optional,
+        # so the pre-2026-08-26 callers that only know `is_domestic` are unchanged.
+        segment=segment,
         customer_id=customer_id,
         billing_account=billing_account,
         commodity=commodity,

@@ -517,3 +517,63 @@ the probe are not asking the same company.*
 Full record, including why the one-line repair is filed rather than applied inside a diagnosis
 commit (R12 — I already know which way it moves the headline):
 `docs/staging/done/WORKER_FINDING_THE_VALUE_ARMS_WHOLE_LOSS_IS_ONE_INDUSTRIAL_ACCOUNT_PRICED_AS_A_HOUSEHOLD_2026-08-26.md`.
+
+---
+
+## 2026-08-26 15:20Z — the segment repair: the sign flips, and the number is still three customers
+
+The repair: the account's real segment now reaches `estimate_churn_probability` through
+world → **door** → desk → arm, so the I&C branch is reachable from a live run for the first
+time. A prediction was stamped before the run. Four of five held; the one that failed is the
+one that decides how this may be read.
+
+**The control is BIT-IDENTICAL** — net £1,145,681.029513, EV £1,391,261.690785, to the last
+decimal place of both runs. The repair does not touch the baseline, so the delta is readable.
+
+| | before repair | predicted | after |
+|---|---|---|---|
+| `endpoint_at_floor` | 16 | falls | **0** ✅ |
+| C_IC3 delta | −£94,314 | ≥ 0 | **+£359,663** ✅ |
+| `realised_delta.enterprise_value_gbp` | −£110,731 | positive | **+£2,293,743** ✅ |
+| control arm | — | bit-identical | **bit-identical** ✅ |
+| `concentration_top_n_share` | 0.9968 | **falls a long way** | **0.9997** ❌ |
+
+**Net margin −£93,555 → +£3,082,499. Enterprise value −£110,731 → +£2,293,743.** The floor
+binding is gone entirely: the saturated accounts that had nowhere to go now have a curve that
+responds to price.
+
+### Why this is not the thesis proven, stated before anyone quotes the £3.08M
+
+**97% of the win is three customers.** C_IC1 +£1,764,966, C_IC2 +£854,196, C_IC3 +£359,663 —
+£2,978,824 of a £2,994,343 net movement. Concentration went UP, from 0.9968 to 0.9997. This
+book's economics are three industrial accounts and 256 rounding errors, and that was as true
+of the loss as it is of the win. *"A supplier deciding customer-by-customer beats flat rules"*
+is not what has been measured. What has been measured is that **pricing three large industrial
+accounts on a curve calibrated for them, rather than one calibrated for households, is worth
+about £3M on this book.** That is a real finding and a narrower one.
+
+**And the arm now charges 7.0x–16.1x the regulated allowance.** Median chosen margin
+£60.00/MWh against Ofgem's EBIT allowance of £3.73–£8.54. `endpoint_at_ceiling` rose 20 → 25
+of 58 priced. The arm has stopped being floor-bound and become ceiling-bound; the bound still
+decides a large share of its answers, it is simply the other bound.
+
+**The mechanism of the win deserves the same scepticism as the mechanism of the loss.** The
+company's churn model OVER-states hazard by 2.4x–7.6x in every elevated bucket (measured
+2026-08-26 against a tally of 622 renewal outcomes). So on the I&C branch the arm believes a
+large margin will probably lose the customer — P(leave) 0.81 at £46 — charges it anyway
+because the expected value still maximises there, and then mostly **does not** lose them.
+Four of the five I&C accounts stay. The arm is winning because the world's industrial
+customers are stickier than the company believes, which is being wrong in a profitable
+direction, not predicting better.
+
+That is the next thing to measure and it is not a tidying task: **an arm that profits from its
+own miscalibration has not demonstrated inference advantage.** The honest headline until then
+is the narrow one above.
+
+### Two category errors, one repaired
+
+`max_supported_rate_increase_pct()` takes no arguments and derives a single +83.1% bound from
+the published **domestic** cap, applied to every segment including industrial. That is the same
+error one layer along, it is unrepaired, and `extrapolation_bound` fired 3 times in this run. It
+was deliberately left out of this commit: repairing two mechanisms at once makes neither
+attributable.
