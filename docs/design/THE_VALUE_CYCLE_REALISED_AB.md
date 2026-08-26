@@ -7,6 +7,22 @@ reserved to me and I'm giving it to you now."*
 **Entry evidence:** `docs/design/EPOCH2_EVIDENCE_2026-08-26.md` — five of six questions pass; Q4
 fails and is recorded as bounding publication rather than construction.
 
+> ## READ THIS FIRST — the answer is at the bottom of this file, and it is not £3.08M
+>
+> Every result between "THE FIRST FULL RESULT" and "inference or luck" below was measured on a
+> book the director had **already ordered changed** on 2026-08-24, and none of those sections
+> said so, because at the time nobody had noticed. They are kept — nothing here is rewritten —
+> but they are **SUPERSEDED**, and the two figures that escaped into conversation are both
+> about five industrial accounts:
+>
+> | reading | book | net delta | status |
+> |---|---|---|---|
+> | −£110,731 EV | resi + SME + **I&C** | −£93,555 | superseded |
+> | +£2,293,743 EV | resi + SME + **I&C** | +£3,082,499 | superseded — 99.97% of it 15 I&C accounts |
+> | **+£10,800 EV** | **resi + SME (the served book)** | **+£16,773** | **current — [see below](#2026-08-26-1709z--the-answer-on-the-book-the-director-actually-asked-about)** |
+>
+> The last row is the only one that answers the question this project exists to ask.
+
 ## The thesis, stated as a measurable claim
 
 A supplier deciding customer-by-customer on what it can infer beats a flat-rules baseline
@@ -218,6 +234,9 @@ information. Grading it is what makes the next A/B attributable rather than mere
 ---
 
 ## THE FIRST FULL RESULT (2026-08-26): the arm loses, and the horizon is why
+**[SUPERSEDED — measured on the I&C book. The loss is five industrial accounts, not a finding
+about this supplier's customers. See "the answer on the book the director actually asked
+about" at the end of this file.]**
 
 Full 2016–2025 window, 263-account book, one variable (`renewal_margin_arm`), both arms inside
 `policy_scope` and passing `policy=`:
@@ -521,6 +540,9 @@ commit (R12 — I already know which way it moves the headline):
 ---
 
 ## 2026-08-26 15:20Z — the segment repair: the sign flips, and the number is still three customers
+**[SUPERSEDED — measured on the I&C book. This section already says the win is three industrial
+accounts; what it could not know is that those accounts were suspended from the book two days
+before it was written. The £3.08M must not be quoted. See the end of this file.]**
 
 The repair: the account's real segment now reaches `estimate_churn_probability` through
 world → **door** → desk → arm, so the I&C branch is reachable from a live run for the first
@@ -637,3 +659,97 @@ settled period) while the arm prices off the run's actual term list, and the see
 which include the three I&C accounts carrying 97% of the delta — are the ones falling through.
 If the accounts that dominate the P&L are also the ones the churn machinery rarely rolls on,
 then how much of *any* arm's result is a churn outcome at all is an open question.
+
+---
+
+## 2026-08-26 17:09Z — the answer on the book the director actually asked about
+
+**The instruction, 2026-08-26, restating the ruling of 24 August:** land the I&C suspension,
+then re-run the comparison on the book it creates — *"a negative result on the right population
+is worth more to me than a £3M headline on the wrong one."*
+
+The suspension is now live: `docs/design/curriculum/served_segments.json` reads
+`served: ["resi", "SME"]`, and C_IC1, C_IC2, C_IC3, C_IC4 and C_IC3g are in `suspended_accounts`.
+The control book is **131 accounts** where the superseded runs had 172. Artefacts:
+`docs/observability/value_cycle_ab_resi.json` (resi + SME, the served book) and
+`value_cycle_ab_resi_only.json` (households alone).
+
+### Which way it went
+
+**The value arm wins. On households it also wins.** Said plainly, because the instruction was to
+say it plainly either way: *per-customer pricing does beat flat rules on this supplier's
+residential book* — it is not the negative result the director was braced for.
+
+| | control (flat £2.00/MWh) | value arm | delta |
+|---|---|---|---|
+| net margin | £79,688.17 | £96,461.44 | **+£16,773.28** (+21.0%) |
+| enterprise value | £224,396.37 | £235,196.15 | **+£10,799.78** (+4.8%) |
+| gross margin | £433,174.76 | £419,023.25 | **−£14,151.51** |
+| bad debt | £32,984.26 | £30,393.17 | −£2,591.09 |
+| accounts at end | 131 | 130 | −1 |
+| churned | 32 | 34 | +2 |
+
+**Households alone** (I&C *and* SME suspended): net **+£11,828.26**, EV **+£9,759.28**. Same
+sign, same magnitude class. SME contributes about £4,900 and changes no conclusion — which is
+the measured basis on which SME stays served.
+
+### Why this is a thin positive and not a vindication
+
+The number is real and it is small, and three things about its shape matter more than its sign.
+
+**1. It is still a handful of accounts.** `concentration_top_n_share_of_absolute_movement` =
+**0.9941** — barely moved from the 0.9968 of the I&C run. Of 211 accounts compared, 60 moved,
+and 15 of them are 99.4% of all movement:
+
+| account | control | value arm | delta |
+|---|---|---|---|
+| C9 | £1,716.56 | £6,752.46 | **+£5,035.91** |
+| C8 | £1,920.42 | £5,591.40 | **+£3,670.98** |
+| C6 (SME) | £969.80 | £4,423.08 | **+£3,453.28** |
+| C5 (SME) | −£526.04 | £1,070.70 | **+£1,596.74** |
+| C2 | £2,037.92 | £2,910.41 | +£872.49 |
+| C1 | £1,237.22 | £466.15 | **−£771.06** |
+| C3 | £1,676.33 | £964.98 | **−£711.35** |
+
+Every one is a **seed** account. The ~200 accounts the funnel actually grew are the rounding
+errors now. Suspending I&C changed *which* small set of accounts carries the result; it did not
+make the result broad. "A supplier deciding customer-by-customer beats flat rules" is still not
+what has been shown — what has been shown is that **it beats flat rules on about seven
+households and two small businesses.**
+
+**2. Half the arm's answers are a bound's, not an inference's.** It priced **42** renewals out of
+a 131-account book and declined 8. Of the 42, **20 ended at the ceiling** (`endpoint_at_ceiling`
+= 20, `endpoint_at_floor` = 0, `extrapolation_bound` = 2). Median chosen margin **£57.75/MWh**
+against the control's £2.00. An account whose price is set by where the grid was cut is not an
+account whose price was inferred.
+
+**3. The control is weak and the ratio has to sit beside the win.** This company's flat
+£2.00/MWh is **23.4%–53.6%** of the EBIT allowance Ofgem grants an efficient supplier
+(£3.73–£8.54/MWh, cap period 11a). A 21% net improvement over a baseline priced at a third of
+the regulated allowance is a smaller achievement than the percentage suggests.
+
+### The number that does not fit, and it is the next thing to open
+
+**Gross margin FELL by £14,151 while net margin ROSE by £16,773** — a £30,924 divergence, of
+which lower bad debt explains only £2,591. `total_gross` is revenue minus wholesale;
+`total_net` is after levies, network, capital and bad debt.
+
+This is recorded as **observed and unexplained** (R9). It is not a rounding artefact and it
+matters to the reading: an arm that charges a median £57.75/MWh against £2.00 and ends the run
+with *less* gross margin is not obviously winning by pricing at all, and until the £28k is
+attributed, the mechanism behind the +£16,773 is not established. The candidate explanations —
+volume lost to the two extra churned accounts, and cost lines that fall with it — are
+**inferred, not measured**, and are deliberately not asserted here. Attributing that divergence
+is the next step, ahead of any further mechanism repair.
+
+`belief_vs_outcome` coverage on this book is **24 of 42 priced** (57%), so the inference-versus-
+luck question of the section above is re-opened at this scale and is not carried over: the AUC
+of 0.6463 was measured on the I&C book and does not describe this one.
+
+### What this does and does not license
+
+It licenses saying that the per-customer decision engine earns more than this company's flat
+rule on the book it actually serves, by £16,773 over the run, with the three caveats above
+attached. It does **not** license a headline percentage, a claim about households in general, or
+any figure carried over from the superseded sections — and the £3.08M in particular is now a
+fact about five accounts the company no longer serves.
