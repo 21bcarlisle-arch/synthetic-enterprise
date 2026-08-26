@@ -820,3 +820,111 @@ P&L, and this seat has just watched book age move the company's P&L, which makes
 change it must not make. Recorded here for whoever holds the curriculum. A longer window over the
 same real history, or a book seeded with more mature accounts, would give the arm more decisions
 per customer; whether either is the world this company should live in is not an engineering call.
+
+---
+
+## 2026-08-26 22:00Z — the two artefacts never disagreed: only one of them passes a ceiling
+
+The delivery seat drew this as arithmetic: *"establish why the value arm's maximiser still runs
+to its own bound on half the book, and either make the optimum interior for a reason that is
+about the customer, or report in the A/B artefact that the arm's win is a bound's and not an
+inference's."* It named two figures that appear to contradict each other and asked for them to
+be reconciled with their populations named before anything else was touched.
+
+They do not contradict each other, and the reason is not a population difference alone.
+
+### The two figures, and what each was actually measuring
+
+| | `value_based_pricing_arms.json` (the coupler) | `value_cycle_ab*.json` (the realised A/B) |
+|---|---|---|
+| unit | **one decision per ACCOUNT** | **one decision per RENEWAL EVENT the run reached** |
+| when | a single instant (`as_of_year` 2025) | each term's own start, across the whole window |
+| decisions | 397 | 42 priced / 8 declined (resi book, 17:09Z) |
+| `endpoint_at_ceiling` | **1** | **20** |
+| `endpoint_at_floor` | 18 | 0 |
+| `ceiling_bound` | 0 for every account | 20 |
+| **lawful ceiling passed** | **none — `max_offered_rate_gbp_per_mwh` is not passed at all** | the Ofgem domestic cap for that term's cap window |
+
+The filed diagnosis (`WORKER_FINDING_THE_CHURN_MODELS_CAP_MAKES_THE_PROFIT_MAXIMISING_PRICE_
+UNBOUNDED_2026-08-25`) recorded "interior optima on 255 of 263 accounts" against the A/B's "20 of
+42 at the ceiling". Both were true when written. The 255-of-263 figure is also **stale**: the
+coupler now prices 397 accounts and reports 19 at a grid edge, of which 18 are at the FLOOR —
+micro-consumption meters where the profit-maximising commodity margin is negative — and exactly
+**one** at a ceiling.
+
+### Why the same module gives two answers, and it is not the population
+
+`tools/couple_value_based_pricing.py` passes `decide_margin` no `max_offered_rate_gbp_per_mwh`.
+Read the module: with no ceiling, `lawful = candidates`, `ceiling_bound` is `False` by
+construction for every account, and `endpoint_side == "ceiling"` can only mean *the top of the
+candidate grid under the churn model's own support bound*. So the coupler's near-zero ceiling
+count is **not evidence that the cap does not bind** — it is a count that could not fire.
+
+That is the same defect class `8b450a839` fixed on the other call site, where the chain passed
+the arm no ceiling and the cap landed afterwards as a clamp, leaving `ceiling_bound` — the flag
+whose entire job is to say the cap chose the price — structurally unable to fire. Here it was
+never a bug in the decision; it was a bug in **reading two artefacts side by side that publish
+the same field name over different bounds**. An R15 FAIL-OPEN one level above the arithmetic: a
+control that cannot fire reads exactly like a control that fired zero times.
+
+**What landed.** The coupler now publishes a `population` block, and each row carries
+`lawful_ceiling_gbp_per_mwh` read off the arguments the call site actually passes — so the
+disclaimer lifts by itself the day a ceiling is threaded through, rather than rotting as a
+comment. The A/B's new `cross_section_reconciliation` READS that block instead of restating it,
+and refuses to reconcile against an artefact that predates it.
+
+### The reconciled answer, in one line
+
+**The optimum IS interior to what the company's own belief supports — and it lies ABOVE what the
+company may lawfully charge.** Both artefacts say this and neither could say it alone. Priced
+without a cap, the maximiser turns over inside the model's support on 396 of 397 accounts (the
+captive-floor repairs of 2026-08-25 worked). Priced under the cap at a real term, roughly half
+the arm's answers sit on the cap, because the interior optimum is above it.
+
+That is not a contradiction and it is not flattering. A margin pinned to the ceiling is a margin
+the arm did not choose: lift the ceiling and it goes higher, which is precisely what
+`ceiling_bound` records. **"The advantage must come from INFERENCE, never ACCESS" fails just as
+completely when the advantage comes from a BOUND.**
+
+### So the artefact now says so in its own headline
+
+`bound_attribution` is the section `decision_shape` could not be. That block counted
+`ceiling_bound` honestly and left it among fourteen other integers, so a run in which the cap set
+half the arm's prices read exactly like one in which it set none. The new section:
+
+- names the two bounds **apart** — the lawful cap is an external constraint a real supplier
+  really has; the support bound is this company's own ignorance — and never double-counts a
+  decision both reached;
+- splits the **median chosen margin** by who decided it, because a ceiling-decided median far
+  above the freely-chosen one says the arm wanted more than the law allows on exactly the
+  customers it was stopped on;
+- attributes the **realised money**, not only the count. On this book `margin_movers` has
+  repeatedly reported ~99% of absolute movement on fifteen accounts, so one capped renewal on the
+  account carrying the delta *is* the headline and a count-only reading would call it a footnote;
+- computes `decided_by` in three reachable branches — `the customer`, `mixed`, `a bound` — and
+  writes a sentence from the live counts, so it cannot describe a previous run.
+
+### What must NOT happen next, in the artefact's own words
+
+`bound_attribution.what_would_change_this` begins **"NOT moving the ceiling."** The optimum
+becomes interior for a reason about the customer only when the churn belief turns the expected
+value over *below* the cap — i.e. when a supplier-specific rise is punished harder than it is
+today. Any change to that sensitivity is a fidelity change: it must cite a published source
+(Ofgem switching data, a regulatory or academic elasticity estimate), never a chosen number, and
+must be decided blind to what it does to this delta (R13, R12). **If no defensible curve makes
+the optimum interior, that is the answer and it belongs in the artefact rather than in a moved
+bound.** Which is what this section is.
+
+### What is still open, and it is now stated rather than implied
+
+The customer-level question. The cap binding on half the priced renewals means the churn model
+does not punish a supplier-specific rise before the law does — the arm asks for a margin the
+regulator's own cap has to stop. Beside that sits the credibility figure the coupler already
+publishes: a median chosen margin of £65/MWh against an Ofgem EBIT allowance of £2.50–7.58/MWh
+for an efficient supplier, roughly 9× the top of the range. The coupler's verdict already says
+repricing the control to average behaviour would move it by a factor of two to four and "leave
+the arm's answer an order of magnitude away, so the arm is not beating a straw man — it is asking
+to charge many times what a regulated efficient supplier earns."
+
+**This is why the arm stays unwired from the renewal desk**, and it is a better-stated reason
+than the one it replaces.

@@ -212,3 +212,66 @@ arm, scored on outcomes -- is what settles it.
 - `python3 -m tools.couple_value_based_pricing` and
   `docs/observability/value_based_pricing_arms.json` for both tables above.
 - `company/crm/market_conditions.py::market_rate_move_pct` for the cap-derived market move.
+
+---
+
+# 2026-08-26, late: the "255 of 263" and the A/B's "20 of 42" were reconciled, and they never disagreed
+
+The delivery seat drew the apparent contradiction between this document's figures and the
+realised A/B's. Recording the answer here because this document is where the next reader starts,
+and because **one of the two figures above is now stale in a way that misleads**.
+
+## The reconciliation
+
+`observed-with-evidence`. Three differences, only the second of which matters:
+
+1. **Population.** This document's 255-of-263 comes from `tools/couple_value_based_pricing.py`,
+   which prices each account **once** at a single instant. The A/B's 20-of-42 comes from
+   `tools/run_value_cycle_ab.py`, which prices each **renewal event** a ten-year run actually
+   reached — repeat visits to a smaller roster, at each term's own rate.
+2. **Ceiling — and this is the whole answer.** The coupler passes `decide_margin` no
+   `max_offered_rate_gbp_per_mwh` at all. With no ceiling, `ceiling_bound` is `False` by
+   construction for every account and `endpoint_side == "ceiling"` can only mean the top of the
+   candidate grid under the churn model's own support bound. **Its ceiling count could not fire.**
+   The A/B prices under the Ofgem domestic cap for that term's cap window, threaded into the
+   search by `8b450a839`. The two files publish the same field NAME over two different bounds.
+3. **Conditions.** One year's rates and one cap window, against each renewal's own — including
+   2021-23, where the base rate is nearest the cap and the ceiling binds hardest.
+
+## What that makes true
+
+**The optimum is interior to what the belief supports AND above what the company may lawfully
+charge.** Both artefacts are correct; neither could say this alone. The captive-floor repairs
+recorded in the section above did work — priced without a cap the maximiser turns over inside the
+model's support on 396 of 397 accounts. Priced under the cap at a real term, about half the arm's
+answers sit on the cap, because the interior optimum is above it.
+
+## The stale figure, corrected
+
+**"interior optima on 255 of 263 accounts" describes a book the company no longer serves.** The
+coupler now prices **397** accounts and reports **19** at a grid edge — **18 at the FLOOR**
+(micro-consumption meters whose standing charge is the whole relationship, where the
+profit-maximising commodity margin is negative) and **1** at a ceiling. The direction of the
+remaining edge cases has reversed since this was written, and a reader quoting 255-of-263 against
+today's tree would be quoting the wrong book and the wrong end.
+
+## Where the answer now lives, mechanised rather than in prose
+
+- `couple_value_based_pricing` publishes a `population` block and a per-account
+  `lawful_ceiling_gbp_per_mwh` READ OFF the arguments the call site passes, so the disclaimer
+  lifts by itself the day a ceiling is threaded through.
+- `run_value_cycle_ab.bound_attribution` — the A/B's new headline section — says in one computed
+  sentence whether the customer or a bound chose these prices, names the two bounds apart, splits
+  the median margin by who decided it, and attributes the realised money.
+- `run_value_cycle_ab.cross_section_reconciliation` reads the coupler's population block and
+  refuses to reconcile against an artefact that predates it.
+- Landed `1ce8dff0e`; full record `docs/design/THE_VALUE_CYCLE_REALISED_AB.md`, section
+  "the two artefacts never disagreed". Six mutations verified to fire.
+
+## What this does NOT discharge
+
+The discharge condition at the top of this document is unchanged and is still not met. The cap
+binding on half the priced renewals says the churn model does not punish a supplier-specific rise
+before the law does. Making that optimum interior is a FIDELITY change — a published source,
+decided blind to what it does to the arm's result (R13, R12) — and **moving the ceiling is not an
+option that exists**. The arm stays unwired from the renewal desk.
