@@ -37,7 +37,18 @@ from pathlib import Path
 
 SITE = Path(__file__).resolve().parent
 _REPO = SITE.parent
-_MAP = _REPO / "docs" / "design" / "maturity_map.yaml"
+if str(_REPO) not in sys.path:
+    sys.path.insert(0, str(_REPO))
+
+# The map is TWO files since 2026-08-26 (the harness-lane prune): `maturity_map.yaml` holds the
+# atoms that still carry work, `maturity_map_closed.yaml` the ones that have reached target.
+# EVERY text read below goes through the store, which returns both halves concatenated, because
+# this module's node stages are derived from atom LEVELS: a reader that saw only the live half
+# would find no atom at target behind a finished node and render it Planned. That is the exact
+# hazard the split was designed around, and the store refuses rather than degrades.
+from tools import maturity_map_store as map_store  # noqa: E402
+
+_MAP = map_store.LIVE_PATH
 _MAPPING = SITE / "data" / "moap_node_atoms.json"
 
 # Front-door diagram node NAMES live in <span class="node-name">...</span>.
@@ -68,7 +79,7 @@ def map_atom_lanes(path: Path = _MAP) -> dict[str, str]:
     Lane is used only for the orphan rollup; a missing lane resolves to '?'."""
     lanes: dict[str, str] = {}
     current: str | None = None
-    for line in path.read_text(encoding="utf-8").splitlines():
+    for line in map_store.map_text(path).splitlines():
         m_id = re.match(r"\s*-\s+id:\s*([A-Za-z0-9_]+)\s*$", line)
         if m_id:
             current = m_id.group(1)

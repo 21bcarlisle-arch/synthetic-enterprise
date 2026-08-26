@@ -70,6 +70,7 @@ from pathlib import Path
 
 from background import direction as direction_mod
 from background import seat_work_in_hand as claims_mod
+from tools import maturity_map_store as map_store
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 MATURITY_MAP = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
@@ -91,9 +92,8 @@ def _atom_ids() -> set[str]:
     look unreachable and offers work that may duplicate an atom — noisy, and the safe direction:
     the opposite error would silently hide the seat's decisions whenever the map hiccuped."""
     try:
-        import yaml
 
-        atoms = yaml.safe_load(MATURITY_MAP.read_text(encoding="utf-8"))
+        atoms = map_store.load_atoms(MATURITY_MAP)
     except Exception:
         return set()
     if not isinstance(atoms, list):

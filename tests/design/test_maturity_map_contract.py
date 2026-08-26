@@ -41,6 +41,8 @@ import pytest
 import yaml
 
 PROJECT = Path(__file__).resolve().parent.parent.parent
+from tools import maturity_map_store as map_store  # noqa: E402
+
 MAP_PATH = PROJECT / "docs" / "design" / "maturity_map.yaml"
 
 # ── the grammar (check a) ───────────────────────────────────────────────────
@@ -162,8 +164,10 @@ LEGACY_MISSING_REQUIRED = {
 # ============================================================================
 
 def load_atoms(path: Path = MAP_PATH) -> list:
-    with open(path) as fh:
-        data = yaml.safe_load(fh)
+    """BOTH halves of the map (2026-08-26). The contract below checks dependency edges and id
+    uniqueness ACROSS the whole registry -- half of it would read every edge into a closed atom
+    as a dangling reference."""
+    data = map_store.load_atoms(path)
     assert isinstance(data, list), "maturity_map.yaml must be a top-level list of atoms"
     return data
 

@@ -35,6 +35,8 @@ from pathlib import Path
 
 import yaml
 
+from tools import maturity_map_store as map_store
+
 PROJECT = Path(__file__).resolve().parent.parent
 MATURITY_MAP_YAML = PROJECT / "docs" / "design" / "maturity_map.yaml"
 OUT_PATH = PROJECT / "site" / "data" / "provisional_plan.json"
@@ -274,7 +276,7 @@ def count_director_touches():
 
 
 def main():
-    atoms = yaml.safe_load(MATURITY_MAP_YAML.read_text(encoding="utf-8"))
+    atoms = map_store.load_atoms(MATURITY_MAP_YAML)
 
     data = {
         "generated_at": datetime.now(timezone.utc).isoformat(),

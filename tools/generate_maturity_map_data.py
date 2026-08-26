@@ -15,11 +15,10 @@ import json
 import sys
 from pathlib import Path
 
-import yaml
-
 PROJECT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT))
 from background.forward_attachment_register import attachments_by_atom  # noqa: E402
+from tools import maturity_map_store as map_store  # noqa: E402
 from tools import simplifications_store as _store  # noqa: E402 (the `name` drain, 2026-08-14)
 
 MATURITY_MAP_YAML = PROJECT / "docs" / "design" / "maturity_map.yaml"
@@ -99,8 +98,7 @@ EPOCH2_MOVEMENTS = [
 
 
 def _load_atoms():
-    with open(MATURITY_MAP_YAML) as f:
-        return yaml.safe_load(f)
+    return map_store.load_atoms(MATURITY_MAP_YAML)
 
 
 def _load_stall_state() -> dict:

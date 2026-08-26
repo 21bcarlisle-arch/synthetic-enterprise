@@ -57,7 +57,11 @@ SHARED_LOCK_NAME = ".tree-shared.lock"
 # orchestrator-/integrator-written ONLY (H9/H10 sole-writer doctrine, THREE
 # LANES Lane 1). A fork that touches it -- even one that mis-declares it in its
 # own file_scope -- is a corruption of shared state and must be caught.
-PROTECTED_PATHS = ("docs/design/maturity_map.yaml",)
+PROTECTED_PATHS = (
+    "docs/design/maturity_map.yaml",
+    # Both halves of the map are equally protected -- a fork must not write either (2026-08-26).
+    "docs/design/maturity_map_closed.yaml",
+)
 
 
 class TreeLockTimeout(Exception):

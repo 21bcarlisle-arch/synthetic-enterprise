@@ -110,6 +110,8 @@ import sys
 import time
 from pathlib import Path
 
+from tools import maturity_map_store as map_store
+
 REPO = Path(__file__).resolve().parent.parent
 MAP_PATH = "docs/design/maturity_map.yaml"
 LEDGER_PATH = "docs/observability/map_assertion_provenance.jsonl"
@@ -308,23 +310,43 @@ def _classify(*, level, scope: list[str], dir_claims: list[str], claims_the_map:
 
 def _map_atoms(repo: Path | None = None) -> list[dict]:
     """The map's cells. One reader, so a second caller cannot drift from build_rows."""
-    import yaml  # local: the tool is importable for tests without a yaml at import time
 
-    return yaml.safe_load(((repo or REPO) / MAP_PATH).read_text(encoding="utf-8"))
+    return map_store.load_atoms((repo or REPO) / MAP_PATH)
 
 
 def build_rows(repo: Path | None = None, atoms: list[dict] | None = None) -> list[dict]:
     """One row per map cell, carrying its three clocks and a status."""
-    import yaml  # local: the tool is importable for tests without a yaml at import time
 
     repo = repo or REPO
-    map_file = repo / MAP_PATH
-    map_text = map_file.read_text(encoding="utf-8")
     if atoms is None:
-        atoms = yaml.safe_load(map_text)
+        atoms = map_store.load_atoms(repo / MAP_PATH)
 
-    lines = assertion_lines(map_text)
-    blame = blame_times(repo, MAP_PATH)
+    # THE MAP IS TWO FILES (2026-08-26), AND THE BLAME JOIN IS LINE-NUMBERED, so the halves
+    # must be walked SEPARATELY and merged. Concatenating them first would give every closed
+    # atom a line number counted from the top of the union and blame it against the drawn
+    # file, silently resolving `asserted_at` from whatever unrelated line happens to sit
+    # there -- a join that still produces a number is exactly the failure mode the vacuity
+    # check below cannot see. A half that is absent (a fixture map with no closed sibling)
+    # contributes nothing rather than raising.
+    lines: dict[str, int] = {}
+    blame: dict[int, tuple] = {}
+    for rel in map_store.MAP_PARTS_REL:
+        part = repo / rel
+        if not part.exists():
+            continue
+        part_lines = assertion_lines(part.read_text(encoding="utf-8"))
+        try:
+            part_blame = blame_times(repo, rel)
+        except Exception:  # noqa: BLE001
+            # A half git does not know yet (the closed file between being written and being
+            # committed). Its claims are UNCOMMITTED with no assertion time -- which is what
+            # they are -- rather than silently absent, which would read as "asserted long ago".
+            part_blame = {n: (None, True) for n in part_lines.values()}
+        # Line numbers are per-file, so offset the closed half's into a disjoint band before
+        # merging. The band is the blame dict's own key space; nothing else reads these keys.
+        offset = max(blame) + 1 if blame else 0
+        lines.update({a: n + offset for a, n in part_lines.items() if a not in lines})
+        blame.update({n + offset: v for n, v in part_blame.items()})
     commits = path_commit_times(repo)
     verified = verification_times(repo)
     tracked_dirs = {p.rsplit("/", 1)[0] for p in commits if "/" in p}

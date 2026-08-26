@@ -14,6 +14,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from tools import maturity_map_store as map_store  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 GATE_PATH = ROOT / "tools" / "pre_commit_test_gate.py"
 
@@ -642,11 +644,16 @@ def test_gate_refuses_an_unparseable_maturity_map__mutation_proof():
         raised = False
         try:
             facets._load_live_atoms()
-        except yaml.YAMLError:
+        # Since 2026-08-26 the loader goes through `tools.maturity_map_store`, which wraps a
+        # parse failure in MapStoreError so the message can say WHICH half of the two-file map
+        # broke. What this test pins is unchanged and is the only thing it ever pinned: the
+        # loader RAISES rather than swallowing. Both types are accepted so the assertion cannot
+        # be greened by a future loader that catches the parse error and returns [].
+        except (yaml.YAMLError, map_store.MapStoreError):
             raised = True
         assert raised, (
-            "the facet loader must raise a YAMLError on an unparseable map -- if it swallows the "
-            "parse error the gate would pass a broken map (sibling gap re-opened)"
+            "the facet loader must RAISE on an unparseable map -- if it swallows the parse "
+            "error the gate would pass a broken map (sibling gap re-opened)"
         )
         facets.MAP_PATH = good
         assert isinstance(facets._load_live_atoms(), list), (
@@ -700,7 +707,7 @@ def test_scrub_does_NOT_close_ambient_cwd_upward_walk__known_residual_boundary()
     assert at_root_bare.stdout.strip() == "false", "sanity: the real worktree must never read as bare"
 
 
-import re
+import re  # noqa: E402
 
 
 def _hook_gate_modules() -> list[Path]:

@@ -543,8 +543,8 @@ def test_regression_existence_only_rule_would_have_starved_stub_atom(_isolate_ma
     assert picked is not None and picked["id"] == "STUB_ONLY"
 
     def _existence_only_pre_fix(atom):
-        from pathlib import Path as _P
         import re as _re
+        from pathlib import Path as _P
         for e in atom.get("evidence") or []:
             s = str(e)
             if not s.startswith("docs/design/"):
@@ -718,9 +718,10 @@ def test_h23_file_scope_is_narrowed_to_real_files_so_scope_sha_is_live():
     Reads the LIVE map by a __file__-derived repo path, independent of the
     autouse map-isolation fixture."""
     import pathlib
-    import yaml
+
+    from tools import maturity_map_store as map_store
     repo = pathlib.Path(__file__).resolve().parents[2]
-    atoms = yaml.safe_load((repo / "docs/design/maturity_map.yaml").read_text(encoding="utf-8"))
+    atoms = map_store.load_atoms(repo / "docs/design/maturity_map.yaml")
     h23 = next(a for a in atoms if a.get("id") == "H23_frame_saturation_draw_marker")
     assert h23["file_scope"], "H23 file_scope empty"
     for rel in h23["file_scope"]:
@@ -841,4 +842,5 @@ def test_regression_char_iteration_would_have_re_handed_scalar_atom(_isolate_map
 # reconciliation), never a published business surface -- so it must never wedge the live
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
+
 pytestmark = pytest.mark.operational

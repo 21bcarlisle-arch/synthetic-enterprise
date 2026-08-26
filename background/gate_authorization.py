@@ -31,8 +31,6 @@ provenance field records the trace for the prevention pass to verify.
 from __future__ import annotations
 
 import json
-import re
-import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -40,6 +38,7 @@ from pathlib import Path
 import yaml
 
 from background.finding_severity import classifiable_documents, parse_severity_file
+from tools import maturity_map_store as map_store
 
 # PHONE-NATIVE AUTHORITY WIRING (director console ratification 2026-07-22,
 # PHONE_NATIVE_AUTHORITY_CHANNEL_PROPOSAL_2026-07-22.md). This import is THE authorization-trust
@@ -97,7 +96,11 @@ def current_loop_stages(path: Path | None = None) -> dict:
     caller treats an unreadable map as 'no promotions detectable' -- the transport-health
     control separately alarms on a broken map, so this does not need to double-alarm)."""
     try:
-        docs = yaml.safe_load_all((path or MAP_PATH).read_text())
+        # BOTH halves, via the store's TEXT rather than its parsed atoms, so this keeps the
+        # `safe_load_all` shape-tolerance the walkers below rely on: fixtures here hand in
+        # maps that are dicts or multi-document, and a loader that insists on a top-level
+        # list turns those into an empty dict -- which reads downstream as `<lane-unknown>`.
+        docs = list(yaml.safe_load_all(map_store.map_text(path or MAP_PATH)))
         out: dict = {}
         for d in docs:
             out.update(atom_loop_stages(d))
@@ -282,7 +285,11 @@ def current_atom_lanes(path: Path | None = None) -> dict:
     missing lane into an UNKNOWN refusal, so failing to {} here fails CLOSED downstream
     rather than open."""
     try:
-        docs = yaml.safe_load_all((path or MAP_PATH).read_text())
+        # BOTH halves, via the store's TEXT rather than its parsed atoms, so this keeps the
+        # `safe_load_all` shape-tolerance the walkers below rely on: fixtures here hand in
+        # maps that are dicts or multi-document, and a loader that insists on a top-level
+        # list turns those into an empty dict -- which reads downstream as `<lane-unknown>`.
+        docs = list(yaml.safe_load_all(map_store.map_text(path or MAP_PATH)))
         out: dict = {}
         for d in docs:
             out.update(atom_lanes(d))

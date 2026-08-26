@@ -44,6 +44,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from background import direction as direction_mod
+from tools import maturity_map_store as map_store
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "delivery-seat-log.md"
@@ -276,8 +277,7 @@ def map_levels() -> dict:
     replaced by it: a level that moved in the map with no ledger entry is a different defect from
     a level that moved and was recorded, and only the diff can see the first."""
     try:
-        import yaml
-        atoms = yaml.safe_load(MATURITY_MAP.read_text(encoding="utf-8"))
+        atoms = map_store.load_atoms(MATURITY_MAP)
     except Exception:
         return {}
     if not isinstance(atoms, list):

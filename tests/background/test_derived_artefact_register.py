@@ -140,9 +140,10 @@ class TestCompleteness:
 
 @pytest.fixture
 def head_checkout_running_tree_code(head_checkout):
-    """A HEAD checkout whose registered-artefact MODULES are the working tree's.
+    """A checkout of THE TREE UNDER REVIEW: HEAD, overlaid with everything this change touches.
 
-    TWO REASONS, and the second is the one that was learned the hard way.
+    TWO REASONS FOR NOT USING HEAD ITSELF, and the second is the one that was learned the hard
+    way.
 
     1. The subject of a control test is the code under review, not the last commit's. `stale_in`
        drives `python -m <module> --check` with `cwd=root`, so a plain HEAD checkout tests the
@@ -154,13 +155,53 @@ def head_checkout_running_tree_code(head_checkout):
        blind `--check` would have required committing past a gate that the blindness itself
        reds.
 
-    The SOURCES stay HEAD's, which is what `repair_from` is specified against. Only the code
-    moves.
+    AND WHY IT IS NOW THE WHOLE DIFF RATHER THAN THREE FILES (2026-08-26). This fixture used to
+    copy exactly `art.source_file` for each registered artefact -- "only the code moves", with
+    the sources left at HEAD's. That treats a module's code as ONE FILE, and a module's code is
+    its import closure. The map-split landing gave all three registered oracles a new first-party
+    dependency (`tools/maturity_map_store.py`, which HEAD did not have) and changed the SHAPE of
+    a source they read (`docs/design/maturity_map.yaml` became two files, with the loader
+    fail-CLOSED on a missing sibling by design). Composed here, every oracle died at import, and
+    `stale_in` reported all three stale -- so the control's message accused three oracles of
+    being blind when what was actually broken was this fixture's idea of "the running code".
+
+    A CONTROL CANNOT BE RUN AGAINST A TREE MADE OF TWO COMMITS. Under `tools/surgical_land`, the
+    `HEAD` archived above is the PARENT and `REPO_ROOT` is the resulting tree, so overlaying the
+    diff reconstructs exactly the tree the commit would create -- which is the same subject the
+    rest of the gate judges. `repair_from` is re-run against it below before anything is mutated,
+    so the sources' provenance was never what this particular test rested on; the HEAD-ness only
+    ever mattered to the neighbouring tests that check a COMMITTED rendering against COMMITTED
+    sources, and those keep the plain `head_checkout`.
+
+    THE COST, STATED: in a dirty shared working tree this also picks up other lanes' in-flight
+    work. That is deliberate rather than tolerated -- it is precisely the tree the pre-commit
+    gate is about to judge, and a control that gates commits should fail on the tree that is
+    being committed rather than on a composition that exists nowhere.
     """
-    for art in dar.REGISTER:
-        src = REPO_ROOT / art.source_file
-        if src.is_file():
-            shutil.copyfile(src, head_checkout / art.source_file)
+    changed = subprocess.run(["git", "diff", "--name-only", "HEAD"], cwd=str(REPO_ROOT),
+                             capture_output=True, text=True, timeout=120)
+    untracked = subprocess.run(["git", "ls-files", "--others", "--exclude-standard"],
+                               cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=120)
+    if changed.returncode != 0 or untracked.returncode != 0:
+        pytest.skip("could not enumerate the tree under review")
+    for rel in sorted(set(changed.stdout.split()) | set(untracked.stdout.split())):
+        src = REPO_ROOT / rel
+        dest = head_checkout / rel
+        if src.is_dir():
+            # `git ls-files --others` reports an UNTRACKED DIRECTORY as one entry, and under
+            # `surgical_land` the two it reports are `node_modules` and `sim/cache` -- symlinks
+            # to a 213MB overlay. Copying either into a tmpfs the suite already fills is the
+            # wedge this file's own fixture docstring warns about, and deleting either would
+            # take the real one with it. Neither is a derived artefact; skip.
+            continue
+        if not src.is_file():
+            # A DELETION IS PART OF THE DIFF TOO. Leaving HEAD's copy behind would build a tree
+            # that carries a file the change removes -- the same two-commits-in-one-tree defect
+            # this fixture was just repaired for, arriving from the other direction.
+            dest.unlink(missing_ok=True)
+            continue
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(src, dest)
     return head_checkout
 
 

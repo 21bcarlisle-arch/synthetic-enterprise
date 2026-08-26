@@ -39,6 +39,8 @@ import yaml
 from tools import simplifications_store as store
 
 PROJECT = Path(__file__).resolve().parent.parent.parent
+from tools import maturity_map_store as map_store  # noqa: E402
+
 MAP_PATH = PROJECT / "docs" / "design" / "maturity_map.yaml"
 STORE_DIR = PROJECT / "docs" / "design" / "simplifications"
 
@@ -46,7 +48,9 @@ DECL = store.NOTES_DECLARATION_FIELD
 
 
 def _load_atoms(path: Path = MAP_PATH) -> list:
-    return yaml.safe_load(path.read_text(encoding="utf-8"))
+    """BOTH halves of the map (2026-08-26): the rehoming contract this file pins is about every
+    atom, and a finished atom is exactly as capable of carrying an inline note as a live one."""
+    return map_store.load_atoms(path)
 
 
 # --------------------------------------------------------------------------
@@ -64,7 +68,9 @@ def check_no_inline_notes(atoms: list) -> list[str]:
             if store.is_note_field(k):
                 violations.append(
                     f"{a.get('id')}: `{k}` is inline in the map -- note prose lives "
-                    "in the store (two sources of truth forbidden)"
+                    "in the store (two sources of truth forbidden). Write it with "
+                    f"`simplifications_store.set_note_for_atom({a.get('id')!r}, {k!r}, ...)` "
+                    f"and declare it in that atom's `notes_rehomed:` list."
                 )
     return violations
 

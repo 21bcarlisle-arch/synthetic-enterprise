@@ -389,3 +389,142 @@ def test_the_draw_does_not_consult_this_module():
     for rel in ("background/supervisor.py", "background/forward_attachment_register.py"):
         src = (PROJECT / rel).read_text()
         assert "pull_forward_proposal" not in src, f"{rel} must not consult the door"
+
+
+# ------------------------------------------------- the discharge control (R10 class fix)
+#
+# Origin: EP6_wall_protocol_typing was moved idle->build by a hand-authored
+# `block_reason_discharged:` citing a director instruction of 2026-08-19 that exists on no
+# channel. The field is one nothing writes and nothing reads. These tests pin BOTH
+# directions, and the vacuity guard matters more than usual here: the live population of
+# discharge-shaped fields is ZERO once that cell is restored, so a control that could never
+# fire would pass every test below for free.
+
+
+def _discharges(tree):
+    return pfp.discharge_violations(map_path=_map(tree), root=tree)
+
+
+def _kinds(result):
+    return {v["kind"] for v in result["violations"]}
+
+
+def test_a_clean_map_has_no_discharge_violations(tree):
+    res = _discharges(tree)
+    assert res["violations"] == []
+    assert res["population"] == 0
+    assert res["atoms_scanned"] == len(FAKE_MAP), "the scan must reach every atom"
+
+
+def test_mutation_an_unresolvable_discharge_fires(tree):
+    """THE DEFECT ITSELF, reproduced: the park is replaced by a discharge citing an
+    instruction that is on no disk. Both legs must fire."""
+    doc = yaml.safe_load(_map(tree).read_text())
+    atom = next(a for a in doc if a["id"] == "EP6_wall_protocol_typing")
+    del atom["block_reason"]
+    atom["loop_stage"] = "build"
+    atom["block_reason_discharged"] = (
+        "R13 curriculum sequencing, discharged by the director's instruction of 2026-08-19 "
+        "naming EP6 for promotion. This is not silence, it is the word."
+    )
+    _map(tree).write_text(yaml.safe_dump(doc, sort_keys=False))
+
+    res = _discharges(tree)
+    assert res["population"] == 1
+    assert _kinds(res) == {"unknown_block_field", "unresolvable_discharge"}
+    bad = next(v for v in res["violations"] if v["kind"] == "unresolvable_discharge")
+    assert bad["atom_id"] == "EP6_wall_protocol_typing"
+    assert "2026-08-19" in bad["claim"], "the unresolvable claim is quoted, not summarised"
+
+
+def test_the_control_cannot_be_greened_by_rewording_the_field(tree):
+    """Renaming the claim to any other spelling IS the violation — `unknown_block_field`
+    keys on the field NAME, so there is no wording that escapes it."""
+    for spelling in ("block_reason_resolved", "block_reason_lifted", "block_reason_note"):
+        doc = yaml.safe_load(_map(tree).read_text())
+        atom = next(a for a in doc if a["id"] == "EP6_wall_protocol_typing")
+        atom.pop("block_reason", None)
+        for k in [k for k in atom if k.startswith("block_reason")]:
+            del atom[k]
+        atom[spelling] = "discharged by the director, honest"
+        _map(tree).write_text(yaml.safe_dump(doc, sort_keys=False))
+        res = _discharges(tree)
+        assert "unknown_block_field" in _kinds(res), spelling
+
+
+def test_a_discharge_the_director_actually_authorised_resolves(tree):
+    """THE SECOND DIRECTION, and it is what stops the control being a rule that can only say
+    no: with his word on disk naming the atom, the discharge RESOLVES — only the field-name
+    leg remains, which is the map's own schema and not an authority question."""
+    doc = yaml.safe_load(_map(tree).read_text())
+    atom = next(a for a in doc if a["id"] == "EP6_wall_protocol_typing")
+    del atom["block_reason"]
+    atom["loop_stage"] = "build"
+    atom["block_reason_discharged"] = "discharged by the director's word"
+    _map(tree).write_text(yaml.safe_dump(doc, sort_keys=False))
+    _stage_director_word(
+        tree, body="Unblock EP6_wall_protocol_typing — pull it forward, the case is made.\n")
+
+    res = _discharges(tree)
+    assert "unresolvable_discharge" not in _kinds(res)
+    assert "unknown_block_field" in _kinds(res)
+
+
+def test_the_honest_door_leaves_nothing_for_this_control_to_find(tree):
+    """END TO END on the sanctioned path: `apply_release` DELETES `block_reason` rather than
+    renaming it, so a real release produces zero violations. This is the control's null —
+    the same atom, the same move, made through the door instead of by hand."""
+    _stage_director_word(
+        tree, body="Unblock EP6_wall_protocol_typing — pull it forward, the case is made.\n")
+    pfp.apply_release("EP6_wall_protocol_typing", map_path=_map(tree), root=tree)
+
+    atom = _atom(tree, "EP6_wall_protocol_typing")
+    assert atom["loop_stage"] == "build"
+    assert not [k for k in atom if k.startswith("block_reason")]
+    assert _discharges(tree)["violations"] == []
+
+
+def test_mutation_an_unreadable_map_is_a_violation_not_an_empty_pass(tree):
+    """FAIL-CLOSED: the checker being unable to look is a FAILED check (R15), never a
+    green one."""
+    _map(tree).write_text("{{ not: [valid: yaml")
+    res = _discharges(tree)
+    assert _kinds(res) == {"unreadable_map"}
+    assert res["atoms_scanned"] == 0
+
+
+def test_mutation_a_blind_scan_is_reported_on_a_discharged_atom(tree):
+    """An undecodable director doc means the release question was answered blind — with a
+    discharge in the map, that is reported rather than resolving quietly to 'no word'."""
+    doc = yaml.safe_load(_map(tree).read_text())
+    atom = next(a for a in doc if a["id"] == "EP6_wall_protocol_typing")
+    del atom["block_reason"]
+    atom["block_reason_discharged"] = "discharged, allegedly"
+    _map(tree).write_text(yaml.safe_dump(doc, sort_keys=False))
+    (tree / "docs/staging/from_rich_20260819_090000.md").write_bytes(b"\xff\xfe\x00garbage")
+
+    res = _discharges(tree)
+    assert "blind_scan" in _kinds(res)
+
+
+def test_the_stale_park_cell_leg_is_reported_and_never_enforced(tree):
+    """A live `block_reason` on a drawn atom is a DIFFERENT class (10 such at HEAD, none of
+    them this defect). It is surfaced as an observation and must not become a violation —
+    landing a control red on somebody else's population is how a wall gets disabled."""
+    doc = yaml.safe_load(_map(tree).read_text())
+    atom = next(a for a in doc if a["id"] == "EP6_wall_protocol_typing")
+    atom["loop_stage"] = "build"
+    _map(tree).write_text(yaml.safe_dump(doc, sort_keys=False))
+
+    res = _discharges(tree)
+    assert res["stale_park_cells"] == ["EP6_wall_protocol_typing"]
+    assert res["violations"] == []
+
+
+def test_live_map_has_no_unresolvable_discharge():
+    """THE LIVE TREE. The vacuity guard is explicit and is the whole reason the mutation
+    tests above exist: this population is legitimately zero, so this assertion alone would be
+    worth nothing."""
+    res = pfp.discharge_violations()
+    assert res["violations"] == [], res["violations"]
+    assert res["atoms_scanned"] > 200, "vacuity guard: the real map must have been read"

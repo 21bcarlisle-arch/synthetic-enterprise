@@ -71,6 +71,8 @@ Per lane, a living list of the conscious gaps between us and the real function: 
 
 The canonical store is **data, not prose** (`docs/design/maturity_map.yaml`), so the site can render it, the supervisor can draw work from it, and the matrix-vs-value-stream question dissolves into view toggles — as the director guessed, it's a data-mapping problem.
 
+**THE STORE IS TWO FILES SINCE 2026-08-26** (director's instruction of 2026-08-24, *"I'd rather the map were half the size and true"*; full record: `docs/design/MAP_SPLIT_2026-08-26.md`). `maturity_map.yaml` holds the atoms that still have somewhere to go — 74 of them, down from 298 — and its sibling `maturity_map_closed.yaml` holds the 224 that have reached their own target. **Neither file is the map on its own.** Read either half through `tools/maturity_map_store.py` and nothing else: `load_atoms()` for the whole map (what any reader asking "what does this project consist of" needs — the front door's Live/Building/Planned stages are derived from atom levels, so a half-read renders finished nodes as Planned), `load_live_atoms()` for the drawn map alone. The loader REFUSES a missing or broken closed half rather than returning the smaller answer.
+
 ```yaml
 # schema (one entry per capability)
 - id: D3_catchup_rebilling

@@ -52,6 +52,8 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
+from tools import maturity_map_store as map_store
+
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 MAP_PATH = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
 
@@ -157,9 +159,7 @@ def violations(root: Path | None = None) -> list[tuple[str, str]]:
     generated = generated_artefacts(root)
     base = Path(root) if root is not None else PROJECT_DIR
     try:
-        import yaml
-        loaded = yaml.safe_load((base / "docs" / "design" / "maturity_map.yaml")
-                                .read_text(encoding="utf-8"))
+        loaded = map_store.load_atoms(base / "docs" / "design" / "maturity_map.yaml")
     except Exception as exc:  # noqa: BLE001
         raise OracleUnavailable(f"the maturity map could not be read: {exc}") from exc
     atoms = loaded if isinstance(loaded, list) else (loaded or {}).get("atoms", [])

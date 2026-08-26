@@ -24,12 +24,13 @@ Run standalone for the per-node stage report:  python3 site/moap_stage.py
 """
 from __future__ import annotations
 
-import json
 import re
 import sys
 from pathlib import Path
 
-from moap_coherence import _MAP, _MAPPING, load_mapping
+from moap_coherence import _MAP, _MAPPING, load_mapping  # noqa: E402 (adds _REPO to sys.path)
+
+from tools import maturity_map_store as map_store  # noqa: E402
 
 SITE = Path(__file__).resolve().parent
 
@@ -60,7 +61,7 @@ def map_atom_levels(path: Path = _MAP) -> dict[str, dict[str, int]]:
     levels: dict[str, dict[str, int]] = {}
     seen_target: set[str] = set()
     current: str | None = None
-    for line in path.read_text(encoding="utf-8").splitlines():
+    for line in map_store.map_text(path).splitlines():
         m_id = _ID.match(line)
         if m_id:
             current = m_id.group(1)

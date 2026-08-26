@@ -8,19 +8,20 @@ Each atom below is parked (`loop_stage: idle`) and has had work filed toward it 
 
 ## EP16_anchored_generators — Generated worlds that stay tethered to reality
 
-- Lane `W1_market_weather` · epoch 4 · **2 built toward it**
-- Gate: director-reserved curriculum sequencing (R13). Epoch-4 commitment set (ruling §1); pull-forward is proposal-only (§3).
+- Lane `W1_market_weather` · epoch 4 · **3 built toward it**
+- Gate: director-reserved curriculum sequencing (R13). Epoch-4 commitment set (ruling §1); pull-forward is proposal-only (§3). DISCOVERY DISPOSITION 2026-08-26 (delivery seat, over the discovery pass ceiling at 5 passes with the level never having moved): no further DISCOVER pass is authorised, and this is a disposition rather than a closure because the atom is wanted and is a director ruling. The reason the passes could not move it is the block above -- the only act that promotes an epoch-4 curriculum atom is a curriculum decision, which R13 reserves to the director. Re-opens the day epoch 4 is named; until then a pass here is the livelock, not the work.
 - Status: **PENDING the director** — no word on disk
 
 The case (accretion ledger):
 
 - `2026-08-08` · `docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md` — the anchor that judges a generated home is itself gas-shaped, and the only electrically-heated home in the cast is the one it fails; a heat-pump band needs a real published source (EoH / SERL) before any generator can claim to be tethered.
+- `2026-08-09` · `docs/staging/done/WORKER_FINDING_MUTATION_VALID_ON_ONE_SUBPOPULATION_ONLY_2026-08-09.md` — an anchored generator is only as good as the mutation
 - `2026-08-11` · `docs/staging/done/PLANNER_MINTED_population_and_book_growth_2026-08-11.md` — the director ruled the world's population up and the book won by acquisition; a bigger population must still be anchored, its per-run variation is EP17's subject, and a won book is what a CLV number is for.
 
 ## EP17_varied_population_draw — A different cast every run
 
 - Lane `W2_customer_generator` · epoch 4 · **2 built toward it**
-- Gate: director-reserved curriculum sequencing (R13). Epoch-4 commitment set (ruling §1); pull-forward is proposal-only (§3). Population ACTIVATION is separately director-reserved as curriculum (the SE_DRAW_POPULATION reservation).
+- Gate: director-reserved curriculum sequencing (R13). Epoch-4 commitment set (ruling §1); pull-forward is proposal-only (§3). Population ACTIVATION is separately director-reserved as curriculum (the SE_DRAW_POPULATION reservation). DISCOVERY DISPOSITION 2026-08-26 (delivery seat, over the discovery pass ceiling at 6 passes with the level never having moved): no further DISCOVER pass is authorised, and this is a disposition rather than a closure because the atom is wanted and is a director ruling. The reason the passes could not move it is the block above -- the only act that promotes an epoch-4 curriculum atom is a curriculum decision, which R13 reserves to the director. Re-opens the day epoch 4 is named; until then a pass here is the livelock, not the work.
 - Still parked upstream: `EP16_anchored_generators`
 - Status: **PENDING the director** — no word on disk
 

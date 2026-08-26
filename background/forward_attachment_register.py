@@ -64,6 +64,7 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 if str(PROJECT_DIR) not in sys.path:
     sys.path.insert(0, str(PROJECT_DIR))
 
+from tools import maturity_map_store as map_store  # noqa: E402
 from tools import simplifications_store as _atom_store  # noqa: E402 (the `name` drain)
 
 MAP_PATH = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
@@ -105,8 +106,8 @@ def _map_atoms(map_path: Path | None = None) -> dict[str, dict]:
     id then reads as `unknown_atom`, which is the SAFE direction (loud), never a silent pass."""
     p = map_path or MAP_PATH
     try:
-        raw = yaml.safe_load(p.read_text())
-    except (OSError, yaml.YAMLError):
+        raw = map_store.load_atoms(p)
+    except (OSError, yaml.YAMLError, map_store.MapStoreError):
         return {}
     if not isinstance(raw, list):
         return {}

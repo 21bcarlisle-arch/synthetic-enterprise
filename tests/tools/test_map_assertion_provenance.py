@@ -1345,16 +1345,23 @@ def test_the_end_to_end_citation_check_fires_on_a_real_repo(repo: Path):
     assert findings[0].startswith(mp.PHANTOM_ATOM) and "`atom ZQ44`" in findings[0]
 
 
-def test_the_live_repo_still_carries_the_phantom_D_SERIES_this_hour_measured():
-    """The measurement, on the REAL bytes. Nine ids -- D37..D45 -- are cited as
-    minted atoms by nine consecutive H27 Hours and by this module's own header,
-    and the map has never carried one of them. This test is the class's
-    tripwire: it goes RED when the mint lands, which is the point at which the
-    hold note's outstanding repair is done and this assertion must be rewritten
-    to `== []`."""
+def test_the_live_repo_carries_no_phantom_D_SERIES_the_mint_landed():
+    """The tripwire fired and was discharged, 2026-08-14.
+
+    It was written as `{D37..D45} <= phantoms` -- RED the day the mint landed,
+    at which point the assertion was to be rewritten. The mint landed this
+    tick: nine cells, D37..D45, in `docs/design/maturity_map.yaml`. So the
+    assertion is now the direction that keeps meaning something -- NOT ONE of
+    those nine ids may go back to being a phantom, which is what would happen
+    if a cell were renamed or deleted while the nine Hours' source kept citing
+    it. Still measured on the REAL bytes, never a fixture."""
     findings = mp.cited_atom_findings(mp.cited_atom_rows(mp._map_atoms()))
     phantoms = {f.split("`atom ")[1].split("`")[0]
                 for f in findings if f.startswith(mp.PHANTOM_ATOM)}
-    assert {"D%d" % n for n in range(37, 46)} <= phantoms
+    assert phantoms & {"D%d" % n for n in range(37, 46)} == set(), (
+        "a minted D37..D45 cell has gone back to being a phantom -- the map "
+        "was edited away from ids that nine Hours' committed source cites: "
+        + ", ".join(sorted(phantoms))
+    )
     assert not any("`atom W`" in f for f in findings), \
         "a lane glob is not a citation -- see the id-shape filter"

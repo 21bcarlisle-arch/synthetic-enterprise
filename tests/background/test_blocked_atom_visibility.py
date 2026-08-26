@@ -268,7 +268,20 @@ UNPARKED_SUBJECT_COVERAGE: dict[str, list[str]] = {
         # WAS reverted. This entry is the ledger line this constant's docstring asks for.
         "EP1_clv_three_horizon",
     ],
-    "counterparty_adapter": [],
+    "counterparty_adapter": [
+        # 2026-08-25. Unparked by the door, not around it, and the distinction from EP6 is again
+        # the whole point: EP6 was an epoch-3 curriculum park discharged by a `block_reason_
+        # discharged:` field citing an artefact that exists on no channel, and it WAS reverted.
+        # This one names a real one and the artefact NAMES THE ATOM'S SUBJECT --
+        # `docs/staging/DIRECTOR_CONSOLE_2026-08-25.md:264`, quoted in the map beside the cell:
+        # "Wire the carbon ledger to live meter reads and grid intensity, publish it with its
+        # provenance, and say plainly what it does and does not yet include." The park was
+        # curriculum SEQUENCING (epoch-3 commitment set did not include it, pull-forward was
+        # proposal-only), and being asked for the thing directly is exactly what a pull-forward
+        # proposal exists to obtain -- so `block_reason` is null, `loop_stage` is `build`, and
+        # the field is DELETED-to-null the way `apply_release` does it rather than renamed.
+        "EP13_adapter_carbon_intensity",
+    ],
     "forecast_feed": [],
 }
 

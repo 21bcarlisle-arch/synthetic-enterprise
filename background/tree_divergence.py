@@ -40,6 +40,8 @@ import subprocess
 import time
 from pathlib import Path
 
+from tools import maturity_map_store as map_store
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 ARTIFACT_PATH = PROJECT_DIR / "docs" / "observability" / "tree_divergence.json"
 MAP_PATH = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
@@ -128,8 +130,8 @@ def _file_scope_index(map_path: Path | None = None) -> dict[str, str]:
     p = map_path or MAP_PATH
     index: dict[str, str] = {}
     try:
-        text = p.read_text(encoding="utf-8")
-    except OSError:
+        text = map_store.map_text(p)
+    except (OSError, map_store.MapStoreError):
         return index
     lane = None
     for line in text.splitlines():

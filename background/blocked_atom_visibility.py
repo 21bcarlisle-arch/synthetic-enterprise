@@ -86,6 +86,8 @@ from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+from tools import maturity_map_store as map_store
+
 REPO = Path(__file__).resolve().parent.parent
 MAP_PATH = REPO / "docs" / "design" / "maturity_map.yaml"
 DOC_PATH = REPO / "docs" / "design" / "BLOCKED_ATOM_VISIBILITY.md"
@@ -142,7 +144,7 @@ def load_atoms(path: Path | None = None) -> list[dict]:
     except ImportError as exc:  # pragma: no cover - yaml is a hard dependency of the map
         raise ProbeUnavailable("pyyaml unavailable: the map cannot be read") from exc
     try:
-        atoms = yaml.safe_load(src.read_text(encoding="utf-8"))
+        atoms = map_store.load_atoms(src)
     except (OSError, yaml.YAMLError) as exc:
         raise ProbeUnavailable("map unreadable at %s: %s" % (src, exc)) from exc
     if not isinstance(atoms, list):

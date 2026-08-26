@@ -123,6 +123,9 @@ from background.gate_authorization import (  # noqa: E402
 )
 
 MAP_REL = "docs/design/maturity_map.yaml"
+# Both halves of the map -- see _whole_map below. Imported rather than restated so the two
+# files can never drift apart from the store that defines them.
+from tools.maturity_map_store import MAP_PARTS_REL  # noqa: E402
 
 
 # ── pure map parsing (mutation-testable) ────────────────────────────────────────────────────
@@ -394,10 +397,23 @@ def _scope_status(paths: list) -> str | None:
     return r.stdout if r.returncode == 0 else None
 
 
+def _whole_map(rev_prefix: str) -> str | None:
+    """The WHOLE map at a revision: both halves, concatenated. The map became two files on
+    2026-08-26 (`maturity_map.yaml` + `maturity_map_closed.yaml`), and this gate compares atom
+    LEVELS -- so reading one half would let a level move in the other half through unrecorded,
+    and would also read every atom that merely MOVED between halves as a deletion. Both parts
+    resolve from the index (`:path`) whether or not this commit stages them, because the index
+    holds every tracked file; a part absent at the revision contributes nothing."""
+    parts = [t for t in (_git_show(f"{rev_prefix}{rel}") for rel in MAP_PARTS_REL) if t is not None]
+    if not parts:
+        return None
+    return "\n".join(parts)
+
+
 def main() -> int:
-    if MAP_REL not in _staged_names():
+    if not any(rel in _staged_names() for rel in MAP_PARTS_REL):
         return 0  # the map is not part of this commit -- never block a non-map commit
-    new_text = _git_show(f":{MAP_REL}")
+    new_text = _whole_map(":")
     if new_text is None:
         # Staged per the name list but the staged blob is unreadable -> cannot verify -> fail-closed.
         sys.stderr.write(
@@ -405,7 +421,7 @@ def main() -> int:
             f"COMMIT REFUSED (fail-closed; an unverifiable map change may hide a level increase).\n"
         )
         return 1
-    old_text = _git_show(f"HEAD:{MAP_REL}")  # None => new file, allowed
+    old_text = _whole_map("HEAD:")  # None => new file, allowed
     result = evaluate(old_text, new_text, read_ledger())
     if result["status"] in ("REJECT", "REJECT_UNPARSEABLE"):
         sys.stderr.write("\n[level-gate] ❌ COMMIT REFUSED (MATURITY_MAP.md §0 -- a level move must be "

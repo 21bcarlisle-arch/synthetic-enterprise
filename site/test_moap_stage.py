@@ -30,6 +30,8 @@ from moap_stage import (
     stage_disagreements,
 )
 
+from tools import maturity_map_store as map_store  # noqa: E402
+
 
 def _lv(current, target):
     return {"current": current, "target": target}
@@ -176,7 +178,9 @@ def test_level_parser_reads_real_map():
 
     # A ZERO TARGET MUST BE A RECORDED CLOSURE. The parser defaults a missing `level_target:` to
     # 1, so a zero here was written on purpose by somebody -- and this is what makes them say so.
-    map_text = _MAP.read_text(encoding="utf-8")
+    # BOTH halves (2026-08-26): a zero-target atom is overwhelmingly a CLOSED one, so reading
+    # only the drawn half would have made this check pass by no longer seeing its subjects.
+    map_text = map_store.map_text(_MAP)
     records = dict(zip(
         re.findall(r"^- id: ([A-Za-z0-9_]+)", map_text, re.M),
         re.split(r"^- id: [A-Za-z0-9_]+", map_text, flags=re.M)[1:],

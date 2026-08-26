@@ -122,6 +122,7 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
 from background import agenda as agenda_module  # noqa: E402
+
 # THE READ SIDE ONLY. `background/delivery_seat.py` -- the session that WRITES direction -- is
 # never imported here and must not be: the draw reads a validated file on disk and has no path to
 # the thing that produced it. See docs/design/THE_DELIVERY_SEAT.md §2 for why that severance is
@@ -130,11 +131,14 @@ from background import direction as _direction  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 from background.coupled_triad import (  # noqa: E402
     load_gap_ledger as _coupled_load_gap_ledger,
+)
+from background.coupled_triad import (  # noqa: E402
     world_l3_blocked as _coupled_world_l3_blocked,
 )
 from background.episode_monotonic import guard_episode  # noqa: E402  (PW4)
 from background.notify import notify  # noqa: E402
 from background.tmux_relay import is_session_idle  # noqa: E402 (read-only idle check)
+from tools import maturity_map_store as map_store  # noqa: E402 (the map's canonical reader)
 from tools import simplifications_store as _atom_store  # noqa: E402 (H41 record tenant)
 
 SESSION_NAME = "claude"
@@ -1070,7 +1074,7 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
     except ImportError:
         return []
     try:
-        atoms = yaml.safe_load(MATURITY_MAP_PATH.read_text(encoding="utf-8"))
+        atoms = map_store.load_atoms(MATURITY_MAP_PATH)
     except (OSError, yaml.YAMLError):
         return []
     if not isinstance(atoms, list):
@@ -1531,7 +1535,7 @@ def _idle_discover_frame_draw(rng: Any = None) -> dict | None:
     except ImportError:
         return None
     try:
-        atoms = yaml.safe_load(MATURITY_MAP_PATH.read_text(encoding="utf-8"))
+        atoms = map_store.load_atoms(MATURITY_MAP_PATH)
     except (OSError, yaml.YAMLError):
         return None
     if not isinstance(atoms, list):
@@ -1662,7 +1666,7 @@ def _idle_discover_frame_draw_concurrent(
     except ImportError:
         return []
     try:
-        atoms = yaml.safe_load(MATURITY_MAP_PATH.read_text(encoding="utf-8"))
+        atoms = map_store.load_atoms(MATURITY_MAP_PATH)
     except (OSError, yaml.YAMLError):
         return []
     if not isinstance(atoms, list):
@@ -1783,7 +1787,7 @@ def _site_lane_draw_concurrent(
     except ImportError:
         return []
     try:
-        atoms = yaml.safe_load(MATURITY_MAP_PATH.read_text(encoding="utf-8"))
+        atoms = map_store.load_atoms(MATURITY_MAP_PATH)
     except (OSError, yaml.YAMLError):
         return []
     if not isinstance(atoms, list):
@@ -1904,8 +1908,7 @@ def diagnose_map_blocked_set(atoms: list | None = None) -> str:
     on the transition, see check_map_exhausted_escalation)."""
     if atoms is None:
         try:
-            import yaml
-            atoms = yaml.safe_load(MATURITY_MAP_PATH.read_text(encoding="utf-8"))
+            atoms = map_store.load_atoms(MATURITY_MAP_PATH)
         except Exception:
             return "maturity map unreadable -- cannot diagnose the blocked-set"
     if not isinstance(atoms, list):
@@ -2011,8 +2014,7 @@ def build_atom_hold_reasons(atoms: list | None = None) -> dict:
     into a louder ``DRAWABLE``, never the reverse)."""
     if atoms is None:
         try:
-            import yaml
-            atoms = yaml.safe_load(MATURITY_MAP_PATH.read_text(encoding="utf-8"))
+            atoms = map_store.load_atoms(MATURITY_MAP_PATH)
         except Exception:
             return {}
     if not isinstance(atoms, list):
@@ -2545,7 +2547,7 @@ def _rule0_harden_draw(rng: Any = None) -> dict | None:
     except ImportError:
         return None
     try:
-        atoms = yaml.safe_load(MATURITY_MAP_PATH.read_text(encoding="utf-8"))
+        atoms = map_store.load_atoms(MATURITY_MAP_PATH)
     except (OSError, yaml.YAMLError):
         return None
     if not isinstance(atoms, list):
@@ -3748,6 +3750,14 @@ def _wedge_depth_clause(census, total_red, named, record_hash=None, head=None) -
     if census == "partial":
         return (f" DEPTH: AT LEAST {total} tests are red {where} (the census hit its own "
                 "failure bound, so there may be more). Treat this as a stack.")
+    if census == "hook_chain":
+        # Written by `process_run_complete._record_commit_refusal_reds`: the publisher's own
+        # scoped gate was GREEN and the pre-commit HOOK CHAIN refused. The chain stops at the
+        # first refusing hook, so this set is complete for that hook and silent about the rest.
+        return (f" DEPTH: {total} test(s) are red {where}, named by the PRE-COMMIT HOOK CHAIN "
+                "that refused the publish commit -- the publisher's own scoped gate was GREEN, "
+                "so do NOT go looking for a red in the publish scope. The hooks behind the "
+                "refusing one never ran; treat this as a stack and fix them together.")
     return (" DEPTH UNKNOWN: the gate is fail-fast and no report-only census is on record, so the "
             "test named above may be one red of several. Enumerate before assuming it is the only "
             "one -- run the gate's argv without `-x`.")
@@ -5462,7 +5472,8 @@ def _sync_origin_staging(_runner=None) -> list[str]:
     and must never stall the loop (Rule 0). Returns the list of filenames pulled (for logging/tests)."""
     run = _runner or _default_git_runner
     try:
-        import json as _json, time as _time
+        import json as _json
+        import time as _time
         try:
             last = float(_json.loads(ORIGIN_STAGING_SYNC_STAMP.read_text()).get("ts", 0))
         except Exception:

@@ -32,6 +32,17 @@ value lets the value arm win by construction — R15's tautology with money in i
 The honest earnings comparison is REALISED: the same book, the same world, run once per arm,
 scored on what actually happened. That needs two full runs and is the next step.
 
+AND IT DOES NOT MEASURE THE COMPANY'S INFERENCE, which is the thing the thesis is actually
+about. The belief-versus-truth block below holds the company's churn estimate beside the world's
+response, and both descend from ONE published series -- the DESNZ 2015-2025 switching counts
+(`shared_calibration_holds` reads that off each side's own source rather than asserting it here).
+A gap between two fits of one series is those fits disagreeing about noise; it is not a supplier
+knowing something. Nor is most of the book scored where the world is observing: past
+`_CALIBRATED_SAVINGS_CEILING_GBP` of annual shortfall the world continues its last informed
+slope, and the median account here sits well beyond that. So the pair REFUSES to be published as
+evidence of inference while that holds -- the summary carries the refusal, the verdict paragraph
+carries it, and the ledger write declines. What would discharge it is recorded beside it.
+
 WHAT IT FOUND ON ITS FIRST RUN, which is why the arm is not wired to the renewal desk. See
 `value_based_renewal.max_supported_rate_increase_pct` for the mechanism.
 
@@ -48,17 +59,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from background.gap_metric import _normalise, write_gap_entry
-
-from simulation.churn_ceiling import WORLD_MAX_CHURN_PROBABILITY
-from simulation.customer_events import _price_differential_vs_market
-from simulation.market_switching_propensity import churn_position_multiplier
 from company.crm.enriched_churn_estimate import enriched_churn_estimate
-from saas.non_commodity import standing_charge_rate
-from saas.payment_behaviour import (
-    CREDIT_RISK_BY_CUSTOMER,
-    DEFAULT_CREDIT_RISK,
-    PAYMENT_TIMING_DAYS_BY_CREDIT_RISK,
-)
 from company.pricing.regulated_average_margin import (
     AverageMarginUnavailable,
     average_player_margin,
@@ -70,7 +71,21 @@ from company.pricing.value_based_renewal import (
     decide_margin,
     max_supported_rate_increase_pct,
 )
+from saas.non_commodity import standing_charge_rate
+from saas.payment_behaviour import (
+    CREDIT_RISK_BY_CUSTOMER,
+    DEFAULT_CREDIT_RISK,
+    PAYMENT_TIMING_DAYS_BY_CREDIT_RISK,
+)
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
+from simulation.churn_ceiling import WORLD_MAX_CHURN_PROBABILITY
+from simulation.customer_events import _price_differential_vs_market
+from simulation.market_switching_propensity import (
+    _CALIBRATED_SAVINGS_CEILING_GBP,
+    CALIBRATION_ANNUAL_BILL_GBP,
+    churn_position_multiplier,
+)
+from tools import maturity_map_store as map_store
 
 PROJECT = Path(__file__).resolve().parent.parent
 BOOK_PATH = PROJECT / "site" / "data" / "customers.json"
@@ -84,6 +99,85 @@ AS_OF_YEAR = 2025
 #: publishes `bill_count` and `total_kwh` and not an EAC, so the annualisation is stated here
 #: rather than hidden in an expression.
 BILLS_PER_YEAR = 12.0
+
+#: THE ONE SERIES BOTH SIDES OF THIS PAIR WERE FITTED FROM. The coupled measurement below is
+#: read as "the company's inference against the world's truth", and that reading requires the two
+#: to be INDEPENDENT. They are not. The world's response and the company's estimator descend from
+#: the same published market-level switching counts, so the gap between them is, at least in part,
+#: two calibrations of one series disagreeing about noise -- an arithmetic residue wearing the
+#: costume of a company knowing something.
+SHARED_CALIBRATION_SERIES = (
+    "DESNZ electricity switching series 2015-2025, cross-referenced with the Ofgem Consumer "
+    "Engagement Survey"
+)
+
+#: Each side's OWN SOURCE saying so, so the claim is READ OFF THE TREE rather than asserted here
+#: by the tool that would benefit from asserting it (R15 tautology: a provenance claim written
+#: down beside the measurement is checked by nothing and goes stale silently). If either side is
+#: ever genuinely re-calibrated from an independent source, its witness leaves its source file and
+#: the refusal below lifts by itself -- which is what makes it a control and not a comment.
+_PROVENANCE_WITNESSES = (
+    ("world", "simulation/market_switching_propensity.py",
+     "Calibrated from DESNZ electricity switching series 2015-2025",
+     "`churn_position_multiplier` is the reciprocal of the win leg below saturation, and that "
+     "leg IS `_savings_to_rate` -- the piecewise curve fitted to the series"),
+    ("company", "company/crm/market_conditions.py",
+     "from the same public DESNZ/Ofgem series",
+     "`market_conditions_multiplier` scales every `enriched_churn_estimate`, and its own "
+     "docstring says it mirrors `simulation.market_switching_propensity`, reimplemented rather "
+     "than re-derived"),
+)
+
+
+def shared_calibration_holds() -> dict:
+    """Do the company's estimator and the world's response still descend from ONE series?
+
+    FAIL-CLOSED, DELIBERATELY. A witness file that cannot be read leaves the pair recorded as
+    CO-CALIBRATED and therefore unpublishable, because "we could not check" is not "they are
+    independent" -- an unavailable check is a failed check (R15 fail-silent).
+
+    Returns the record itself rather than a bare bool: a reader of
+    `docs/observability/value_based_pricing_arms.json` must be able to see the shared provenance,
+    both witnesses, and what would discharge it, without opening a source file.
+    """
+    sides, unreadable = {}, []
+    for side, relpath, witness, reaches in _PROVENANCE_WITNESSES:
+        entry = {"source": relpath, "witness": witness, "why_it_reaches_this_pair": reaches}
+        try:
+            entry["cites_the_series"] = witness in (PROJECT / relpath).read_text(encoding="utf-8")
+        except OSError as exc:
+            entry["cites_the_series"] = None
+            entry["why_unknown"] = f"{exc.__class__.__name__}: {str(exc)[:80]}"
+            unreadable.append(relpath)
+        sides[side] = entry
+    co_calibrated = bool(unreadable) or all(s["cites_the_series"] for s in sides.values())
+    return {
+        "co_calibrated": co_calibrated,
+        "series": SHARED_CALIBRATION_SERIES,
+        "sides": sides,
+        "unreadable": unreadable,
+        "why_it_disqualifies_the_gap": (
+            "A belief-versus-truth gap is quotable as evidence of the company's INFERENCE only if "
+            "the two sides were arrived at independently. Both of these were fitted from the same "
+            "market-level switching counts, so a small gap can be shared arithmetic and a large "
+            "one can be two fits disagreeing about noise. Neither reading distinguishes a company "
+            "that knows something from one that shares a source with the world it is being "
+            "scored against."
+        ),
+        "what_would_discharge_it": (
+            "ONE of: (a) the world leg re-calibrated from a series the company cannot read -- a "
+            "SUPPLIER-level churn series against that supplier's own position versus the market "
+            "(the 2018-19 small-supplier failures and the SoLR events are where to look), which "
+            "`churn_position_multiplier` already names as the thing that would settle its own "
+            "extrapolation; or (b) the company estimator re-fitted from its OWN observed "
+            "departures rather than the published market series, which is what a real supplier "
+            "actually has and this one does not yet use. Scoring the pair inside the calibrated "
+            "window does NOT discharge it -- that removes the extrapolation flag below and leaves "
+            "the shared source untouched. Neither does the realised two-run earnings comparison "
+            "named in this module's docstring, but that comparison does not need this to be "
+            "discharged: it scores what happened, not two curves against each other."
+        ),
+    }
 
 
 def latest_run_output() -> Path:
@@ -133,11 +227,39 @@ def belief_versus_truth(*, offered_rate: float, current_rate: float, tenure_year
     base = float(enriched_churn_estimate(current_rate, current_rate, tenure_years,
                                          float(eac_kwh), segment=segment))
     actual = min(base * churn_position_multiplier(differential), WORLD_MAX_CHURN_PROBABILITY)
+    # WHERE ON THE WORLD'S CURVE THIS ACCOUNT WAS SCORED, per account, because the curve stops
+    # being a measurement partway along it. `churn_position_multiplier` reads the differential as
+    # an annual shortfall against a GBP 1,700 bill and the DESNZ series informs it only to
+    # GBP 400 of that; past there the world continues the LAST INFORMED SLOPE, which is a named
+    # simplification and not an observation. An account scored out there is being compared against
+    # an extrapolation, and a reader of one row cannot tell unless the row says so.
+    shortfall_gbp = differential * CALIBRATION_ANNUAL_BILL_GBP
+    beyond = differential > 0.0 and shortfall_gbp > _CALIBRATED_SAVINGS_CEILING_GBP
+    if beyond:
+        basis = ("EXTRAPOLATED -- GBP {:.0f}/yr past the GBP {:.0f} the series informs, on the "
+                 "last measured slope".format(shortfall_gbp - _CALIBRATED_SAVINGS_CEILING_GBP,
+                                              _CALIBRATED_SAVINGS_CEILING_GBP))
+    elif -shortfall_gbp > _CALIBRATED_SAVINGS_CEILING_GBP:
+        # THE CHEAP SIDE IS NOT THE SAME CASE and calling it "inside the window" would be false.
+        # Past the ceiling the WIN leg is flat at `_MAX_RATE`, and the world defends that as a
+        # real bound rather than an extrapolation: you cannot win more customers than the market
+        # has engaged households to give. Not an observation either -- a saturation.
+        basis = ("saturated -- GBP {:.0f}/yr of saving, past the ceiling, where the win leg is "
+                 "flat at the engaged-segment maximum the world defends as a real bound".format(
+                     -shortfall_gbp))
+    else:
+        basis = "observed -- inside the calibrated window"
     return {
         "price_differential_vs_svt": round(differential, 4),
         "company_believes_p_leave": round(believed, 4),
         "world_would_p_leave": round(actual, 4),
         "belief_error_pp": round(100.0 * (believed - actual), 1),
+        "world_annual_shortfall_gbp": round(shortfall_gbp, 2),
+        "world_calibration_ceiling_gbp": _CALIBRATED_SAVINGS_CEILING_GBP,
+        "world_curve_beyond_calibration": beyond,
+        "world_curve_basis": basis,
+        #: NOT INDEPENDENT, said on the row itself. See `shared_calibration_holds`.
+        "both_sides_calibrated_from": SHARED_CALIBRATION_SERIES,
     }
 
 
@@ -263,8 +385,15 @@ def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
             "implied_bill_change_pct": round(
                 100.0 * (value.margin_gbp_per_mwh - flat.margin_gbp_per_mwh) / avg_rate, 1),
             "endpoint_bound": value.endpoint_bound,
+            #: WHICH end, because "wanted to charge more than it may" and "wanted to charge less
+            #: than it may" are opposite findings and this record used to report them as one.
+            "endpoint_side": value.endpoint_side,
             "ceiling_bound": value.ceiling_bound,
             "extrapolation_bound": value.extrapolation_bound,
+            #: How many candidates the bounds took off the grid, separately from whether that
+            #: changed the answer. The two used to be the same field and the count was being read
+            #: as the cause.
+            "candidates_removed": value.candidates_removed,
             "withheld_reason": value.withheld_reason,
             "credit_risk": CREDIT_RISK_BY_CUSTOMER.get(cid, DEFAULT_CREDIT_RISK),
             "expected_cost_gbp_per_year": round(value.costs.total_gbp, 2) if value.costs else None,
@@ -304,7 +433,17 @@ def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
         "differs_from_control": sum(
             1 for r in per_account if r["value_margin_gbp_per_mwh"] != TARGET_MARGIN_GBP_PER_MWH),
         "endpoint_bound": sum(1 for r in per_account if r["endpoint_bound"]),
+        "endpoint_at_ceiling": sum(1 for r in per_account if r["endpoint_side"] == "ceiling"),
+        "endpoint_at_floor": sum(1 for r in per_account if r["endpoint_side"] == "floor"),
         "extrapolation_bound": sum(1 for r in per_account if r["extrapolation_bound"]),
+        "grid_trimmed": sum(1 for r in per_account if r["candidates_removed"]),
+        #: THE SHARE OF THE BOOK ON ONE MARGIN, which is how a quantised search confesses. On
+        #: 2026-08-25 this was 0.407 -- 107 of 263 accounts on exactly GBP 130/MWh, a rung of the
+        #: candidate grid -- while every one of those accounts had a distinct interior optimum
+        #: within a pound of a different number. A record of per-customer decisions in which two
+        #: thirds of the book share two values is reporting the grid.
+        "chosen_margin_concentration": round(
+            max(chosen.values()) / n, 3) if n else None,
         "withheld_on_vulnerability": sum(1 for r in per_account if r["withheld_reason"]),
         "chosen_margins": {str(k): v for k, v in sorted(chosen.items())},
         "segmented_credit_risk": sum(1 for r in per_account if r["customer_id"] in CREDIT_RISK_BY_CUSTOMER),
@@ -328,17 +467,39 @@ def _belief_summary(rows: list[dict]) -> dict:
         return {"available": False, "why": "no account could be scored against the world"}
     errors = sorted(s["belief_error_pp"] for s in scored)
     n = len(errors)
+    beyond = sum(1 for s in scored if s.get("world_curve_beyond_calibration"))
+    differentials = sorted(s["price_differential_vs_svt"] for s in scored
+                           if s.get("price_differential_vs_svt") is not None)
+    provenance = shared_calibration_holds()
     return {
         "available": True,
         "accounts_scored": n,
         "median_belief_error_pp": errors[n // 2],
         "mean_belief_error_pp": round(sum(errors) / n, 1),
         "underestimating_departures": sum(1 for e in errors if e < -1.0),
+        "median_price_differential_vs_svt": (
+            round(differentials[len(differentials) // 2], 4) if differentials else None),
+        "scored_beyond_the_world_calibration": beyond,
+        "share_beyond_the_world_calibration": round(beyond / n, 3),
+        # THE REFUSAL, AND IT IS THE POINT OF THIS BLOCK. The number above is a real
+        # measurement of a real disagreement; what it is NOT is evidence that the company
+        # inferred anything. Published without this, a median of a couple of percentage points
+        # reads as "the company nearly knows the world" -- which is exactly what two calibrations
+        # of one series look like, and exactly what a reader will quote it as.
+        "publishable_as_evidence_of_inference": not provenance["co_calibrated"],
+        "shared_calibration": provenance,
+        "refusal": (
+            "NOT EVIDENCE OF THE COMPANY'S INFERENCE. The two sides share a calibration source "
+            "({}), and {} of {} scored accounts were compared at a differential where the world "
+            "EXTRAPOLATES rather than observes. Quote this as a measured disagreement between two "
+            "fits of one series; do not quote it as the company predicting the world. See "
+            "`shared_calibration.what_would_discharge_it`."
+        ).format(provenance["series"], beyond, n) if provenance["co_calibrated"] else "",
         "what_it_means": (
             "Positive means the company expects MORE departures than the world would deliver; "
             "negative means it expects FEWER -- it will over-price and be punished. This is the "
-            "gap the thesis says the advantage must come from: a supplier beats a flat rule only "
-            "to the degree this number is small."
+            "shape the thesis says the advantage must come from -- but only once the two sides "
+            "stop sharing a source; until then see `refusal`."
         ),
     }
 
@@ -366,6 +527,30 @@ def _belief_clause(belief: dict) -> str:
     return ("The belief is no longer the obvious cause -- the median account is scored {:+.1f}pp "
             "against the world, on the conservative side, with {} of {} under-estimating "
             "departures.").format(median, under, scored)
+
+
+def _co_calibration_clause(belief: dict) -> str:
+    """WHAT THE GAP ABOVE IS NOT, said in the same paragraph that quotes it.
+
+    A caveat that lives in a nested key is a caveat nobody reads: the verdict paragraph is what
+    gets pasted into a digest, so the refusal has to travel with the number rather than beside it.
+    Derived from the same record the refusal is derived from, so it cannot say "co-calibrated"
+    while the record says otherwise.
+    """
+    if not belief.get("available"):
+        return ""
+    if belief.get("publishable_as_evidence_of_inference"):
+        return ("The two sides no longer share a calibration source, so that gap now speaks to "
+                "the company's own inference.")
+    beyond = belief.get("scored_beyond_the_world_calibration") or 0
+    scored = belief.get("accounts_scored") or 0
+    return ("Either way it is NOT evidence of the company's inference: the company's estimator "
+            "and the world's price response descend from the same {}, and {} of {} accounts were "
+            "scored where the world extrapolates the last informed slope rather than observing "
+            "anything. A figure that cannot distinguish inference from shared arithmetic is not "
+            "quotable as either -- what would discharge it is recorded beside it.").format(
+        belief.get("shared_calibration", {}).get("series", "public switching series"),
+        beyond, scored)
 
 
 def _control_clause(average: dict, rows: list[dict]) -> str:
@@ -402,12 +587,14 @@ def _verdict(rows: list[dict], belief: dict, average: dict) -> dict:
     """
     if not rows:
         return {"fit_to_run": False, "why": "no account could be priced, so nothing was compared"}
+    at_ceiling = sum(1 for r in rows if r.get("endpoint_side") == "ceiling")
+    at_floor = sum(1 for r in rows if r.get("endpoint_side") == "floor")
     at_edge = sum(1 for r in rows if r["endpoint_bound"])
     median_change = sorted(r["implied_bill_change_pct"] for r in rows)[len(rows) // 2]
     fit = at_edge == 0 and median_change < 25.0
     if fit:
         why = ("The value arm found interior optima and moves the median bill "
-               "by {:+.0f}%.").format(median_change)
+               "by {:+.0f}%. ").format(median_change) + _co_calibration_clause(belief)
     else:
         # THE DIAGNOSIS IS DERIVED, NOT WRITTEN DOWN, and this paragraph is the reason that
         # rule earned itself. Until 2026-08-25 it asserted a fixed cause -- the churn model's
@@ -416,19 +603,38 @@ def _verdict(rows: list[dict], belief: dict, average: dict) -> dict:
         # correctly False for an entirely different reason. A stale cause beside a live number
         # is worse than no cause: a reader trusts it and stops looking.
         parts = []
-        if at_edge:
+        # THE TWO EDGES ARE OPPOSITE FINDINGS AND THIS SENTENCE USED TO CONFLATE THEM. Until
+        # 2026-08-25 any endpoint read as "chose the highest margin available", which on the
+        # book that then existed happened to be true. It is not true of the floor: the accounts
+        # sitting there are 190-340 kWh/year meters whose 98.55 GBP standing charge IS the
+        # relationship, and whose profit-maximising COMMODITY margin is NEGATIVE -- the arm wants
+        # to sell them electricity below cost to keep the standing charge, and cannot, because
+        # the lowest candidate on the grid is 0.50. A reader told that as "chose the highest
+        # margin available" concludes the exact opposite of what the arm found.
+        if at_ceiling:
             parts.append(
                 "chose the highest margin available to it on {} of {} accounts, which is a "
-                "ceiling reporting itself as a decision".format(at_edge, len(rows)))
+                "ceiling reporting itself as a decision".format(at_ceiling, len(rows)))
+        if at_floor:
+            parts.append(
+                "wanted to price BELOW the lowest margin it may offer on {} of {} accounts -- "
+                "micro-consumption meters whose standing charge is the whole relationship, where "
+                "the profit-maximising commodity margin is negative and the grid's floor is what "
+                "decided".format(at_floor, len(rows)))
         if median_change >= 25.0:
             parts.append(
                 "would move the median bill by {:+.0f}%, far outside anything this company has "
                 "ever charged or observed a customer respond to".format(median_change))
         why = ("The value arm " + " and ".join(parts) + ". Not fit to wire to the renewal desk. "
-               + _belief_clause(belief) + " " + _control_clause(average, rows))
+               + _belief_clause(belief) + " " + _co_calibration_clause(belief) + " "
+               + _control_clause(average, rows))
     return {
         "fit_to_run": fit,
+        "belief_gap_publishable_as_inference": bool(
+            belief.get("publishable_as_evidence_of_inference")),
         "at_grid_edge": at_edge,
+        "at_grid_edge_ceiling": at_ceiling,
+        "at_grid_edge_floor": at_floor,
         "median_implied_bill_change_pct": median_change,
         "why": why,
     }
@@ -458,12 +664,9 @@ def coupling_is_declared() -> tuple[bool, str]:
     naming one there is a map edit with its own owner.
     """
     try:
-        import yaml
-
         from background.coupled_triad import build_coupling
 
-        atoms = yaml.safe_load((PROJECT / "docs" / "design" / "maturity_map.yaml")
-                               .read_text(encoding="utf-8"))
+        atoms = map_store.load_atoms(PROJECT / "docs" / "design" / "maturity_map.yaml")
         coupling = build_coupling(atoms)
     except Exception as exc:
         return False, f"the map's coupling could not be read ({exc!r}), so the pair is unverified"
@@ -507,6 +710,8 @@ def price_belief_gap(rows: list[dict]):
     mean_actual = sum(actual) / len(actual)
     raw = sum(abs(b - a) for b, a in zip(believed, actual)) / len(actual)
     g0 = sum(abs(mean_actual - a) for a in actual) / len(actual)
+    provenance = shared_calibration_holds()
+    beyond = sum(1 for s in scored if s.get("world_curve_beyond_calibration"))
     return _normalise(
         raw, g0,
         "a supplier that predicts the population-mean departure probability for every account "
@@ -515,10 +720,19 @@ def price_belief_gap(rows: list[dict]):
         {"accounts_scored": len(scored),
          "company_mean_abs_error": round(raw, 4),
          "no_skill_mean_abs_error": round(g0, 4),
-         "world_mean_p_leave": round(mean_actual, 4)},
+         "world_mean_p_leave": round(mean_actual, 4),
+         # CARRIED INTO THE COMPONENTS, not only into the prose, because the ledger row is what
+         # a later reader consults and a note is the first thing an aggregator drops.
+         "publishable_as_evidence_of_inference": not provenance["co_calibrated"],
+         "co_calibrated_from": provenance["series"],
+         "accounts_beyond_the_world_calibration": beyond},
         note=("Measured at the price the company's OWN value arm chooses, which is where it "
               "would actually be wrong. Below 1.0 the per-customer belief beats the flat rule; "
-              "above 1.0 it is worse than predicting the mean."),
+              "above 1.0 it is worse than predicting the mean."
+              + ("" if not provenance["co_calibrated"] else
+                 " NOT PUBLISHABLE AS EVIDENCE OF THE COMPANY'S INFERENCE: both sides descend "
+                 "from {}, and {} of {} accounts were scored where the world extrapolates rather "
+                 "than observes.".format(provenance["series"], beyond, len(scored)))),
     )
 
 
@@ -553,7 +767,19 @@ if __name__ == "__main__":
                   "information than predicting the population mean, so no inference advantage "
                   "can be claimed from it.")
         _declared, _why = coupling_is_declared()
-        if _args.write_ledger and not _declared:
+        _provenance = shared_calibration_holds()
+        if _provenance["co_calibrated"]:
+            print("  NOT EVIDENCE OF INFERENCE: both sides descend from {}. {}".format(
+                _provenance["series"], _provenance["what_would_discharge_it"]))
+        if _args.write_ledger and _provenance["co_calibrated"]:
+            # THE REFUSAL WITH TEETH. The ledger is where this pair is read as the company's
+            # inference against the world's truth; writing a co-calibrated pair there publishes
+            # shared arithmetic under that heading, and no caveat further down the file survives
+            # the quoting. Refuses BEFORE the undeclared-coupling check because it is the wider
+            # objection: declaring the twin on the map would not make the two sides independent.
+            print("  ledger NOT written: the pair is co-calibrated, so the gap cannot be "
+                  "published as evidence of the company's inference")
+        elif _args.write_ledger and not _declared:
             print("  ledger NOT written: {}".format(_why))
         elif _args.write_ledger:
             _ledger = write_gap_entry(

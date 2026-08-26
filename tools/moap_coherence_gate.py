@@ -74,9 +74,13 @@ from moap_stage import stage_disagreements  # noqa: E402
 # model whose truth is ENCODED in the map+mapping the queries read, so gating on those two source
 # files gates the model too.
 MAP = "docs/design/maturity_map.yaml"
+# The map became TWO files on 2026-08-26 (the harness-lane prune). Both halves trigger this
+# gate: node stages are derived from atom LEVELS, so an edit to the closed half moves the
+# same derivation, and a gate that fires on one of the two files it reads is half a gate.
+MAP_CLOSED = "docs/design/maturity_map_closed.yaml"
 MAPPING = "site/data/moap_node_atoms.json"
 DIAGRAM = "site/index.html"
-TRIGGER_FILES = frozenset({MAP, MAPPING, DIAGRAM})
+TRIGGER_FILES = frozenset({MAP, MAP_CLOSED, MAPPING, DIAGRAM})
 
 MODE_FILE = ROOT / "tools" / "moap_coherence_gate.mode"
 ENFORCE = "enforce"

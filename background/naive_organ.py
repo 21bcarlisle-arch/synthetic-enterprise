@@ -40,10 +40,12 @@ import json
 import re
 import subprocess
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
+
+from tools import maturity_map_store as map_store
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 
@@ -310,8 +312,7 @@ def load_state(*, gitlog_window: str = "3 days ago") -> dict:
     agent_status = _load_json(AGENT_STATUS_PATH, {})
     idle_state = _load_json(IDLE_COUNTER_PATH, {})
     try:
-        import yaml
-        atoms = yaml.safe_load(MATURITY_MAP_PATH.read_text(encoding="utf-8"))
+        atoms = map_store.load_atoms(MATURITY_MAP_PATH)
     except Exception:
         atoms = []
     claims_text = ""

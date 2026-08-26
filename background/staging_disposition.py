@@ -24,6 +24,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from tools import maturity_map_store as map_store
+
 # The worker-written disposition banner (lower-cased match). Director-authored staged docs do not
 # carry this — it is written by a worker tick when it parks a multi-part item.
 WORKER_DISPOSITION_BANNER = "[in-progress disposition"
@@ -238,7 +240,7 @@ def selfdrawable_mint_in_progress(
 # `PLANNER_MINTED_` prefix scope also excludes DIRECTOR_*/ADVISOR_* SOURCE docs that merely QUOTE a
 # marker in prose (they are inbound instructions, not blocks-wearing-a-status) -- the mint doc's own
 # named exclusion, achieved by the filename prefix rather than a fragile content sniff.
-import re as _re  # local alias -- a detection must never shadow a caller's `re`
+import re as _re  # noqa: E402 -- local alias; a detection must never shadow a caller's `re`
 
 MINT_MARKED_PREFIX = "PLANNER_MINTED_"
 
@@ -278,10 +280,10 @@ def _load_map_atom_ids() -> set[str]:
     read/parse error returns an EMPTY set, so an atom-id releaser then resolves to nothing and is
     correctly flagged (never fabricates a phantom releaser)."""
     try:
-        import yaml
         from pathlib import Path as _P
+
         map_path = _P(__file__).resolve().parent.parent / "docs" / "design" / "maturity_map.yaml"
-        atoms = yaml.safe_load(map_path.read_text(encoding="utf-8")) or []
+        atoms = map_store.load_atoms(map_path) or []
     except Exception:
         return set()
     return {a.get("id") for a in atoms if isinstance(a, dict) and a.get("id")}

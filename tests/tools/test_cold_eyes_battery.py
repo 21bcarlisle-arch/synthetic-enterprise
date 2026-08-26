@@ -91,9 +91,9 @@ def test_EP6_MAY_NOT_BE_RECORDED_AT_L3_WHILE_ITS_OWN_BATTERY_IS_OUTSTANDING():
     a recorded walk, a predicate returning `()`, and two confirmed DISQUALIFYING failures.
     Nothing but that pass's own judgement stood between that state and a level move.
     """
-    import yaml
+    from tools import maturity_map_store as map_store
 
-    atoms = yaml.safe_load((ceb.PROJECT_DIR / "docs/design/maturity_map.yaml").read_text())
+    atoms = map_store.load_atoms(ceb.PROJECT_DIR / "docs/design/maturity_map.yaml")
     if isinstance(atoms, dict):
         atoms = atoms.get("atoms")
     cell = next((a for a in atoms if a.get("id") == CAP), None)

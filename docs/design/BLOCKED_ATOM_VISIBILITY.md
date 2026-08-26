@@ -8,7 +8,7 @@
 
 | Property | Source | Result |
 |---|---|---|
-| Invisible to the BUILD draw | `supervisor._maturity_map_draw_concurrent` (the real draw) | 77/77 parked atoms not offered — 52 proven excluded BY THE PARK (lifting the park alone makes them drawable), 25 excluded for another reason |
+| Invisible to the BUILD draw | `supervisor._maturity_map_draw_concurrent` (the real draw) | 77/77 parked atoms not offered — 43 proven excluded BY THE PARK (lifting the park alone makes them drawable), 34 excluded for another reason |
 | Visible to the staleness clocks | `tools/map_assertion_provenance.build_rows` (AO11) | 77/77 parked atoms carry a row |
 | Visible to the composition dial | this module, over all 298 atoms | 77 parked (18 with a gate stated in `block_reason`) |
 

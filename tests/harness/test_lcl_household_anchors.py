@@ -267,10 +267,11 @@ def test_a_TWO_HOUSEHOLD_bootstrap_is_allowed_but_a_ONE_HOUSEHOLD_one_is_not():
 
 
 def _atom_record():
-    import yaml
+    from tools import maturity_map_store as map_store
 
-    text = (anchors.LCL_PANEL_PATH.parents[3] / "docs/design/maturity_map.yaml").read_text()
-    for atom in yaml.safe_load(text):
+    for atom in map_store.load_atoms(
+        anchors.LCL_PANEL_PATH.parents[3] / "docs/design/maturity_map.yaml"
+    ):
         if atom["id"] == "H_GAP_fabric_belief_truth_gap":
             return atom
     raise AssertionError("H_GAP_fabric_belief_truth_gap is not in the map")
