@@ -15,10 +15,12 @@ Phase D (publish-gate disagreement) are their own atoms + tests. Phase B COMPUTE
 the stage; it does NOT gate -- so this file asserts the derivation, never a publish outcome.
 """
 import json
+import re
 import tempfile
 from pathlib import Path
 
 from moap_stage import (
+    _MAP,
     BUILDING,
     LIVE,
     PLANNED,
@@ -157,13 +159,60 @@ def test_level_parser_reads_real_map():
     the project would have to change its mind about to remove. `D3_catchup_rebilling` is a
     shipped billing capability at 3/3 with a director-ruling lineage: if it ever leaves the
     map, a test going red is the correct outcome rather than an accident.
+
+    THE TARGET ASSERTION CHANGED, 2026-08-26, because the map learned a state it did not have
+    when this was written. `level_target: 0` is now how a capability is CLOSED -- eight D-lane
+    atoms were closed that way ("no build closes it, because the answer is a longer book and not
+    more code. Reopen by raising level_target back to 2"). A blanket `target >= 1` reds on every
+    one of them and, worse, it was guarding the wrong thing: the danger a zero target carries is
+    that `current >= target` reads as `0 >= 0` and reports AT TARGET, which would publish an
+    abandoned capability as Live. That hazard now dies in `compute_stage` (which excludes closed
+    atoms) and is asserted directly below, so what is left to check here is that a zero target is
+    always a DELIBERATE closure carrying its record -- never an atom minted without ambition.
     """
     levels = map_atom_levels()
     assert len(levels) > 50, len(levels)
     assert all(0 <= v["current"] for v in levels.values())
-    assert all(v["target"] >= 1 for v in levels.values()), "every real atom target must be >= 1"
+
+    # A ZERO TARGET MUST BE A RECORDED CLOSURE. The parser defaults a missing `level_target:` to
+    # 1, so a zero here was written on purpose by somebody -- and this is what makes them say so.
+    map_text = _MAP.read_text(encoding="utf-8")
+    records = dict(zip(
+        re.findall(r"^- id: ([A-Za-z0-9_]+)", map_text, re.M),
+        re.split(r"^- id: [A-Za-z0-9_]+", map_text, flags=re.M)[1:],
+    ))
+    for atom_id, v in levels.items():
+        if v["target"] >= 1:
+            continue
+        assert re.search(r"^\s+closed:", records.get(atom_id, ""), re.M), (
+            f"{atom_id} has level_target 0 with no `closed:` record. A zero target is a decision "
+            "not to build, and a decision with no reason written down is an atom minted without "
+            "ambition -- invisible to the draw and unable to say why."
+        )
     anchor = levels.get("D3_catchup_rebilling")
     assert anchor == {"current": 3, "target": 3}, anchor
+
+
+def test_a_CLOSED_atom_can_never_make_a_node_LIVE():
+    """The false-green a zero target opens, killed at the derivation rather than in the map.
+
+    Read through the documented rule, a closed atom (`level_target: 0`) satisfies
+    `level_current >= level_target` as `0 >= 0` and reports itself AT TARGET. A node all of whose
+    atoms were closed would then publish as Live on the front door -- a capability nobody built,
+    announced as shipped, because the map recorded the decision to abandon it.
+
+    MUTATION (must fire): drop the `open_atoms` filter in `compute_stage`.
+    """
+    closed = {"current": 0, "target": 0}
+    assert compute_stage([closed]) == PLANNED
+    assert compute_stage([closed, dict(closed)]) == PLANNED
+    # A closed atom must not drag a genuinely finished node off Live either -- it is excluded,
+    # not counted as below target, or one closure would peg its node to Building for ever.
+    assert compute_stage([closed, {"current": 3, "target": 3}]) == LIVE
+    assert compute_stage([closed, {"current": 1, "target": 3}]) == BUILDING
+    # And the ordinary rule is untouched, so this fixture can still tell the two apart.
+    assert compute_stage([{"current": 3, "target": 3}]) == LIVE
+    assert compute_stage([{"current": 0, "target": 3}]) == PLANNED
 
 
 def test_every_real_front_door_node_computes_a_valid_stage():

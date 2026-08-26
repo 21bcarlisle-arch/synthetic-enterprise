@@ -86,9 +86,25 @@ def compute_stage(atom_levels: list[dict[str, int]]) -> str:
     false-green."""
     if not atom_levels:
         return PLANNED
-    if all(a["current"] >= a["target"] for a in atom_levels):
+    # A CLOSED ATOM CANNOT MAKE A NODE LIVE, and without this line it is the easiest false-green
+    # in the module. `level_target: 0` is how the map records a decision NOT to build something --
+    # eight D-lane atoms were closed that way on 2026-08-26 ("the record is the deliverable: no
+    # build closes it, because the answer is a longer book and not more code. Reopen by raising
+    # level_target back to 2"). Read through the rule above, such an atom satisfies
+    # `current >= target` as `0 >= 0` and reports itself AT TARGET, so a node whose capability was
+    # explicitly abandoned would publish as Live on the front door. That is the same vacuous-truth
+    # shape this function already guards on the empty list, arriving through a different door.
+    #
+    # EXCLUDED, NOT COUNTED AS BELOW TARGET, because a closed atom is not work in progress either:
+    # counting it as below target would peg every node touching one to Building for ever. A node
+    # left with NO open atoms falls through to PLANNED -- never LIVE -- which is the conservative
+    # end of a three-value vocabulary and the one Phase D can surface as a disagreement.
+    open_atoms = [a for a in atom_levels if a.get("target", 1) > 0]
+    if not open_atoms:
+        return PLANNED
+    if all(a["current"] >= a["target"] for a in open_atoms):
         return LIVE
-    if all(a["current"] == 0 for a in atom_levels):
+    if all(a["current"] == 0 for a in open_atoms):
         return PLANNED
     return BUILDING
 
