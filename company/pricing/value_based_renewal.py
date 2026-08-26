@@ -793,6 +793,11 @@ class MarginArmUplift:
     uplift_gbp_per_mwh: float
     #: The full decision, or `None` when the arm did not run.
     decision: MarginDecision | None = None
+    #: TRUE when the arm RAN and found no offer it could both lawfully make and honestly
+    #: predict. That is a DECISION and belongs in the log; not-eligible is not. A single
+    #: `not_run_reason` string cannot be branched on without parsing prose, and a reader that
+    #: has to parse prose to tell a decision from an omission will eventually get it wrong.
+    declined: bool = False
     #: WHY it did not run. Carried rather than inferred from a 0.0, because an arm that ran and
     #: chose the flat margin and an arm that never ran are the same number and opposite facts --
     #: R15's fail-silent pattern, and the one this adapter is most exposed to.
@@ -846,19 +851,40 @@ def renewal_margin_uplift(
         return MarginArmUplift(
             0.0, not_run_reason="nothing settled for this account inside the observation window")
 
-    decision = decide_margin(
-        customer_id=account_id,
-        arm=VALUE_BASED,
-        current_rate_gbp_per_mwh=observed["current_rate_gbp_per_mwh"],
-        # The rate BEFORE margin. The strike already added the flat rule, so subtracting it is
-        # what makes `base + chosen` the arm's own answer rather than the flat rule plus it.
-        base_rate_gbp_per_mwh=float(locked_unit_rate) - TARGET_MARGIN_GBP_PER_MWH,
-        eac_kwh=observed["eac_kwh"],
-        tenure_years=observed["tenure_years"],
-        cost_to_serve_gbp_per_year=observed["cost_to_serve_gbp_per_year"],
-        segment=segment,
-        renewal_year=int(term_start[:4]),
-    )
+    try:
+        decision = decide_margin(
+            customer_id=account_id,
+            arm=VALUE_BASED,
+            current_rate_gbp_per_mwh=observed["current_rate_gbp_per_mwh"],
+            # The rate BEFORE margin. The strike already added the flat rule, so subtracting it
+            # is what makes `base + chosen` the arm's own answer rather than the flat rule plus
+            # it.
+            base_rate_gbp_per_mwh=float(locked_unit_rate) - TARGET_MARGIN_GBP_PER_MWH,
+            eac_kwh=observed["eac_kwh"],
+            tenure_years=observed["tenure_years"],
+            cost_to_serve_gbp_per_year=observed["cost_to_serve_gbp_per_year"],
+            segment=segment,
+            renewal_year=int(term_start[:4]),
+        )
+    except MarginDecisionUnavailable as exc:
+        # "NO OFFER" IS AN ANSWER, AND A LIVE PRICING CHAIN MUST BE ABLE TO HEAR IT (2026-08-26).
+        #
+        # `decide_margin` raises when no candidate margin survives BOTH the price cap and the
+        # churn model's support bound, and its own message insists that is "a real answer -- there
+        # is no offer here this company can both lawfully make and honestly predict -- and not a
+        # default." Correct as a REPORT. Fatal as a WRITER: the first ten-year A/B died at
+        # `C_IC3`, 2021, base rate GBP 251.45, where +83.1% of the current rate leaves no lawful
+        # margin at all -- the 2016-2018 window never reached a rate high enough to produce one,
+        # which is exactly what a short window hides.
+        #
+        # So the arm DECLINES this renewal and the chain leaves the struck rate alone. That is
+        # the same outcome as the flat rule, which is the honest fallback: a supplier that cannot
+        # form a defensible view charges what it already charges. The distinction that must NOT
+        # be lost is between "declined, here is why" and "agreed with the control", so the reason
+        # is carried in full rather than collapsed to a 0.0 -- R15's fail-silent pattern, in the
+        # one place on this path where the arm has the most to say.
+        return MarginArmUplift(
+            0.0, not_run_reason="no lawful, predictable offer: {}".format(exc), declined=True)
     return MarginArmUplift(
         uplift_gbp_per_mwh=decision.margin_gbp_per_mwh - TARGET_MARGIN_GBP_PER_MWH,
         decision=decision,

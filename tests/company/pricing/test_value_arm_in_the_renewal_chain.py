@@ -253,3 +253,66 @@ def test_the_observation_window_is_the_one_the_churn_estimate_uses():
     future = _settled(year=2020) + _settled(year=2022)
     assert vbr.observed_account_state("C1", "2021-01-01", future, "resi")["eac_kwh"] == (
         pytest.approx(250.0 * 12))
+
+
+# ── 5. "no offer" is an ANSWER, and a live chain must be able to hear it ────────────────────
+
+def test_a_renewal_the_arm_CANNOT_LAWFULLY_PRICE_leaves_the_rate_alone_and_says_why():
+    """THE DEFECT THE FIRST TEN-YEAR A/B DIED ON, reproduced.
+
+    `decide_margin` RAISES `MarginDecisionUnavailable` when no candidate margin survives both the
+    price cap and the churn model's support bound (+83.1% of the current rate, the largest
+    single-step domestic move Ofgem has published). Its own message insists that is "a real
+    answer -- there is no offer here this company can both lawfully make and honestly predict --
+    and not a default", and as a REPORT that is right. As a WRITER inside a live pricing chain it
+    killed the run: `C_IC3`, 2021, base rate GBP 251.45.
+
+    The 2016-2018 window never reached a rate high enough to produce one, which is exactly what a
+    short window hides -- so this fixture forces the condition rather than waiting for a year
+    that happens to contain it.
+
+    THE OUTCOME IS THE CONTROL'S, AND THE RECORD IS NOT. The rate is untouched, because a
+    supplier that cannot form a defensible view charges what it already charges. But a decline
+    and a never-looked-at must not read the same in the run output, so it lands in
+    `value_arm_entries` with `declined: True` and the refusal in full.
+    """
+    # THE CONDITION IS BASE > CURRENT x 1.831, AND IT IS RECONSTRUCTED FROM THE REAL REFUSAL
+    # rather than guessed: `C_IC3` reported a support bound of GBP 193.1 at "83.1% above the
+    # current rate" against a base of GBP 251.45, so its realised current rate was ~GBP 105.5 and
+    # the STRUCK rate alone had already overshot what the churn model has evidence for. A cheap
+    # account meeting an expensive term -- 2021 wholesale -- not an expensive customer.
+    cheap = _settled(kwh_per_month=250.0, revenue_per_month=26.25)   # ~GBP 105/MWh realised
+    observed = vbr.observed_account_state("C1", "2021-01-01", cheap, "SME")
+    assert observed["current_rate_gbp_per_mwh"] * 1.831 < 251.45, (
+        "fixture no longer reproduces the incident -- the support bound reaches the base rate, "
+        "so the arm can price this and the refusal below would never fire")
+    with policy_scope(VALUE_ARM_POLICY):
+        result = _drive(settled_records=cheap, struck_unit_rate_gbp_per_mwh=251.45)
+
+    assert result.unit_rate_gbp_per_mwh == pytest.approx(251.45), (
+        "a renewal the arm cannot price must come out at the rate the chain struck")
+    assert not [c for c in result.components if c["cause"] == "value_arm"], (
+        "the arm declined, so it must not appear as a writer that moved the rate")
+    assert len(result.value_arm_entries) == 1
+    entry = result.value_arm_entries[0]
+    assert entry["declined"] is True
+    assert "no lawful, predictable offer" in entry["reason"]
+    assert "support bound" in entry["reason"], (
+        "the refusal must carry decide_margin's own words -- a reason that says only 'declined' "
+        "cannot tell a cap refusal from a support-bound refusal, and they are different findings")
+
+
+def test_a_DECLINE_and_a_NEVER_LOOKED_are_not_the_same_row():
+    """The R15 fail-silent guard on the split above, stated as the property that matters.
+
+    An ineligible renewal (gas, flex, acquisition term) writes NOTHING; a declined one writes a
+    row. Collapsing the two would make a book the arm walked past indistinguishable from a book
+    it examined and refused, and the A/B's `declined_share_of_renewals_seen` would silently read
+    zero for both.
+    """
+    with policy_scope(VALUE_ARM_POLICY):
+        ineligible = _drive(commodity="gas")
+        declined = _drive(settled_records=_settled(kwh_per_month=250.0, revenue_per_month=26.25),
+                          struck_unit_rate_gbp_per_mwh=251.45)
+    assert ineligible.value_arm_entries == []
+    assert len(declined.value_arm_entries) == 1 and declined.value_arm_entries[0]["declined"]

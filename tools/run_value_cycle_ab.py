@@ -135,11 +135,27 @@ def arm_decision_shape(result: dict) -> dict:
     log = result["phase2b"].get("value_arm_log", [])
     if not log:
         return {"priced": 0, "note": "this arm priced no renewal -- expected for the control"}
+    # DECLINES ARE DECISIONS AND ARE COUNTED APART FROM PRICES. `decide_margin` refuses a renewal
+    # where no candidate margin survives BOTH the price cap and the churn model's support bound
+    # -- at a high enough base rate there is no offer this company can lawfully make and honestly
+    # predict. The first ten-year A/B died on exactly that (`C_IC3`, 2021, base GBP 251.45), and
+    # the three-year window never reached a rate high enough to produce one. A run where the arm
+    # declined a fifth of the book is not the same experiment as one where it priced it all, and
+    # only this split says which happened.
+    declined = [e for e in log if e.get("declined")]
+    priced_entries = [e for e in log if not e.get("declined")]
+    if not priced_entries:
+        return {"priced": 0, "declined": len(declined),
+                "note": "the arm ran and declined every renewal it saw -- no lawful, predictable "
+                        "offer existed anywhere on this book"}
+    log = priced_entries
     margins = [e["chosen_margin_gbp_per_mwh"] for e in log]
     counts = collections.Counter(round(m, 2) for m in margins)
     modal_share = counts.most_common(1)[0][1] / len(margins)
     return {
         "priced": len(log),
+        "declined": len(declined),
+        "declined_share_of_renewals_seen": round(len(declined) / (len(log) + len(declined)), 4),
         "distinct_margins": len(counts),
         # THE CONCENTRATION IS THE HONESTY CHECK on "per customer". A grid that returns one of
         # its own rungs for most of the book is a rule wearing a decision's clothes; this number

@@ -149,3 +149,122 @@ pass had to be re-run before this document could be written.
 Steps 1–3 are reversible, cost ~24 minutes of machine time per experiment, and cannot reach a
 customer, a pound or a public claim. Step 4 is the one that touches what the company says about
 itself, and it stays behind the refusal the coupler already enforces.
+
+---
+
+## The dependency the first realised run exposed: the arm's LIFETIME term is ungraded
+
+**Added 2026-08-26, after the first realised A/B.** The arm's objective is
+
+    EV(m) = P(stay | m) x (m x eac_mwh + fixed_revenue - expected_cost(m)) x annuity(lifetime, r)
+
+Three factors. Two of them are measured: `P(stay|m)` comes from
+`company/crm/enriched_churn_estimate.py`, which is scored against the world's own churn, and the
+money terms come from the supplier's settled book. **The third is not measured at all**, and the
+2016-2018 result is what made that matter: +5.2% net margin, +£184 enterprise value. An arm that
+converts book into cash at break-even on enterprise value is an arm whose view of how long a
+customer lasts is doing no work — which is exactly what an unvalidated `annuity(lifetime, r)`
+would look like.
+
+### The gap that is published is not the gap it appears to be
+
+`docs/observability/coupled_gap_ledger.json` carries `EP1_clv_three_horizon` at **gap 1.76**
+against a no-skill baseline of £817.89 mean absolute error, measured 2026-08-19 over 5 completed
+lives. A gap above 1 says the company's per-customer lifetime value carries LESS information
+than assigning every account the population mean.
+
+**But `tools/couple_clv.py` already states, in its own docstring, that this row does not grade
+EP1's estimator**, and mechanises the declaration rather than leaving it implicit
+(`belief_provenance()` resolves the producing callable from the source tree by AST;
+`components.grades_atom_estimator` carries the answer onto the ledger row; its test fails the day
+EP1 *is* wired in and the declaration is not updated). Its reason:
+
+> EP1's estimator cannot be backtested today at all: a backtest needs a belief recorded BEFORE
+> the outcome, and `three_horizon_clv` is a single end-of-run table with no per-year series.
+
+So there are **two** problems under one number and they need separating:
+
+1. **Mis-subjection.** The 1.76 grades a different belief and wears EP1's id. A reader — this
+   seat included, in four consecutive direction records — takes it for EP1's.
+2. **Right-censoring.** Even with the right belief, the ledger's note is correct that lifetime
+   realised margin can only be scored on accounts whose life COMPLETED, and those are exactly the
+   accounts EP1 refuses to value. The population the estimator serves and the population it is
+   graded on are disjoint by construction.
+
+### What actually unblocks it, and it is not "find a grading that reaches live accounts"
+
+**(1) is a build, and a small one.** Write `three_horizon_clv`'s table once per YEAR during the
+run into the run output — a belief SERIES rather than an end-of-run table. That is all a backtest
+needs: a belief recorded before the outcome. The blocker the coupler names is that this sits
+outside EP1's declared `file_scope` and moves a published surface; `file_scope` is a DIAL and
+not a wall (CLAUDE.md RULE 0), and a surface that moves for a stated reason is the ordinary case.
+
+**(2) does not need live accounts at all — it needs a FIXED HORIZON.** The atom is called
+`EP1_clv_three_horizon`; the answer is in its own name. Scoring "did this belief predict TOTAL
+LIFETIME margin" can only ever use the dead, and the dead are a biased sample of the living
+because they are precisely the ones that churned. Scoring "as of date T, did the belief rank
+accounts by their realised margin over the NEXT k years, among accounts alive at T" uses only
+realised data, reaches the live population, and is the standard answer to right-censoring rather
+than an invention. It also fits what the arm actually needs: the arm does not need to know a
+customer's whole life, it needs the annuity over the term it is pricing.
+
+### Why this is the value cycle's next dependency and not a separate errand
+
+Until the lifetime term is graded, a realised A/B cannot say WHICH of the arm's three factors
+produced its result — and the first run's shape (margin up, book down, enterprise value flat) is
+consistent with a good churn signal being multiplied by a lifetime estimate that carries no
+information. Grading it is what makes the next A/B attributable rather than merely measured.
+
+---
+
+## THE FIRST FULL RESULT (2026-08-26): the arm loses, and the horizon is why
+
+Full 2016–2025 window, 263-account book, one variable (`renewal_margin_arm`), both arms inside
+`policy_scope` and passing `policy=`:
+
+| | control (flat £2/MWh) | value arm | delta |
+|---|---|---|---|
+| gross margin | £6,543,452 | £6,418,661 | **−£124,791** |
+| net margin | £1,145,681 | £1,052,126 | **−£93,555 (−8.2%)** |
+| enterprise value | £1,391,262 | £1,273,010 | **−£118,252 (−8.5%)** |
+| accounts at end | 172 | 170 | −2 |
+| churned | 45 | 48 | +3 |
+| renewals seen | — | 69 (66 priced, 3 declined) | — |
+
+**The sign flipped against the short window.** 2016–2018 gave +£4,713 net and +£184 enterprise
+value. The decade gives −£93,555 and −£118,252. Same code, same book, same world; a longer
+horizon. The cheap experiment did not under-measure the expensive one, it pointed the other way.
+That is now a standing fact about this instrument: **a truncated window is a different world, not
+a rehearsal.** It is also how a real refusal was found — `C_IC3`, 2021, no lawful predictable
+offer at all — in years the short window never reached.
+
+### The loss is a horizon effect, and it names its own cause
+
+Losing **£124,791 of GROSS margin on three extra churns** is not three customers' worth of
+revenue. It is the compounding loss of the remaining LIVES of accounts driven away early. A
+three-year window cannot show it: there is not enough remaining life left for it to compound.
+
+That is precisely the signature of an underweighted `annuity(lifetime, r)` — the one factor in
+the arm's objective that nothing grades (see the section above). The arm under-prices what losing
+a customer costs, wins on the margin it can see, and pays for it over the years it cannot.
+
+**So the ungraded lifetime term is no longer a tidiness concern. It is the leading candidate
+explanation for a measured £118k loss**, and grading it is the precondition for a second attempt
+being worth its 45 minutes.
+
+### And half the answers were a bound's, not a customer's
+
+36 of 66 priced renewals came back **endpoint-bound** — 20 at the ceiling, 16 at the floor — and
+**27 were clamped by the domestic price cap**. The 263-account decision snapshot
+(`value_based_pricing_arms.json`) reported 6 endpoint-bound of 263.
+
+So the same arm reads as a per-customer chooser on a book scored at one instant, and as a
+bound-follower over a decade of real terms. Only the realised run could tell those apart, and
+that difference is a stronger argument for this instrument than the delta is.
+
+### What must NOT happen next
+
+R12: the arm losing is a **measurement**. No constant moves because of it — not
+`MAX_CHURN_PROBABILITY`, not `_MAX_RATE`, not the candidate grid, not the support bound. The
+control was frozen before it was replaced precisely so this number could come out negative and
+mean something. The next step is to grade the lifetime term, not to make the arm look better.

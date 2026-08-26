@@ -304,6 +304,20 @@ def decide_renewal_rate(
         is_domestic=is_domestic,
         arm=active_policy().renewal_margin_arm,
     )
+    if arm_uplift.declined:
+        # A DECLINE IS A DECISION AND IT GOES IN THE LOG. The rate is untouched -- a supplier
+        # that cannot form a defensible view charges what it already charges -- but "the arm
+        # declined this renewal" and "the arm never looked at it" must not read the same in the
+        # run output, or the A/B cannot tell a book the arm priced from one it walked past.
+        result.value_arm_entries.append({
+            "customer_id": billing_account,
+            "commodity": commodity,
+            "term_start": term_start,
+            "arm": "value_based",
+            "declined": True,
+            "reason": arm_uplift.not_run_reason,
+            "unit_rate_unchanged": None if unit_rate is None else round(unit_rate, 4),
+        })
     if unit_rate is not None and arm_uplift.decision is not None:
         rate_before = unit_rate
         unit_rate += arm_uplift.uplift_gbp_per_mwh
