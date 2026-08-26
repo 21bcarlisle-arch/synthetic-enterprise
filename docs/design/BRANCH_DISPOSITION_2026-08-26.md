@@ -115,3 +115,41 @@ nobody returned to them in 23 days.
 
 Deleting a branch does not delete a commit while origin retains it; the tip SHAs above are the
 recovery handle, and this table is the record after that.
+
+## Postscript — the one kept branch was examined and could not land either
+
+`salvage/knife3-step39-consumer-half-20260820b` was held back from the deletions above as
+genuinely stranded work. Examined properly, it cannot land, and the reason is worth more than
+the branch is.
+
+**It applies almost cleanly.** Of its seven source files, six are untouched on main since the
+branch was cut; only `company/policy/decision_policy.py` has moved, and the two changes do not
+overlap textually — the branch rewrites a comment block, main added the `renewal_margin_arm`
+field near the top.
+
+**But its premise is false against the current tree.** The comment the branch installs states:
+
+> *"`run_phase2b.main()` was the world's last wall crossing into this module; cutting it meant
+> deleting the `policy` parameter, so those four fields now resolve exactly the way `tone_mode`
+> always did — from `active_policy()`."*
+
+`simulation/run_phase2b.py:877` on main today reads
+`def main(report_end=None, sim_interface=None, policy: DecisionPolicy | None = None)`. The
+parameter was never deleted. The branch is the CONSUMER half of a cut whose producer half is
+not in the tree — which its own commit subject says: *"the allowlist entry was removed but the
+cut it declares is not in the tree."*
+
+**And main has since built on the parameter staying.** `tools/run_value_cycle_ab.py` (2026-08-26)
+runs each arm inside `policy_scope(...)` **and** passes `policy=`, deliberately, to inherit
+`run_phase2b.main`'s refusal of a run whose argument and scope disagree — the chimera guard that
+stops an A/B silently comparing two different suppliers. Landing the consumer half alone would
+install a comment asserting a deleted parameter, against a tree whose value-cycle measurement
+depends on that parameter existing.
+
+**Disposition: DISCARDED, intent recorded.** What KNIFE3 step 39 (§3ah) wanted is still worth
+doing and is unchanged by this: move the `use_var_hedge_decision` switch out of the world and
+behind the company's own desk, with `HedgeDesk.set_term_hedge` returning `None` when the desk is
+not running the VaR layer — the established shape for a company door that declines, matching
+`request_tou_offer(...) is not None`. Tip `63ae1c8a0`. The work to do is the PRODUCER half first;
+the consumer half is nine lines and can be rewritten in an afternoon against whatever the tree
+says then, which is cheaper than carrying a branch whose comments describe a tree nobody has.
