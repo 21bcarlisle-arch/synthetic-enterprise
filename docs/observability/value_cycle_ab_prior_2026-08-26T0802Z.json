@@ -1,0 +1,71 @@
+{
+  "generated_at": "2026-08-26T08:02:13Z",
+  "report_end": null,
+  "what_this_is": "The same book and the same world, run once per pricing arm, scored on what ACTUALLY happened. No figure here is anything the company believed.",
+  "arm_identity": {
+    "differing_fields": [
+      "name",
+      "renewal_margin_arm"
+    ],
+    "why_it_matters": "`name` and `renewal_margin_arm` are the only two, and `name` does not reach a decision. Any third field here means the delta below carries an uncontrolled variable, which is the defect WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10 recorded on the sibling comparison."
+  },
+  "control_arm": {
+    "total_net_gbp": 1145681.029513,
+    "total_gross_margin_gbp": 6543452.072161749,
+    "total_bad_debt_gbp": 127543.428988,
+    "final_treasury_gbp": 1395681.0295124871,
+    "enterprise_value_gbp": 1391261.6907846222,
+    "account_count": 172,
+    "churned_accounts": 45,
+    "renewals_priced_by_the_arm": 0
+  },
+  "value_arm": {
+    "total_net_gbp": 1052125.753811,
+    "total_gross_margin_gbp": 6418661.212454528,
+    "total_bad_debt_gbp": 124841.444026,
+    "final_treasury_gbp": 1302125.7538107797,
+    "enterprise_value_gbp": 1273009.6428216312,
+    "account_count": 170,
+    "churned_accounts": 48,
+    "renewals_priced_by_the_arm": 69
+  },
+  "realised_delta": {
+    "net_margin_gbp": -93555.27570200013,
+    "enterprise_value_gbp": -118252.04796299106,
+    "accounts_at_end": -2,
+    "churned_accounts": 3,
+    "gross_margin_gbp": -124790.85970722139,
+    "bad_debt_gbp": -2701.9849620000023
+  },
+  "decision_shape": {
+    "priced": 66,
+    "declined": 3,
+    "declined_share_of_renewals_seen": 0.0435,
+    "distinct_margins": 36,
+    "modal_margin_share_of_book": 0.2424,
+    "median_margin_gbp_per_mwh": 100.5,
+    "control_margin_gbp_per_mwh": 2.0,
+    "endpoint_bound": 36,
+    "endpoint_at_ceiling": 20,
+    "endpoint_at_floor": 16,
+    "withheld": 0,
+    "clamped_by_the_price_cap": 27
+  },
+  "control_credibility": {
+    "available": true,
+    "read_from": "docs/observability/value_based_pricing_arms.json",
+    "source": "Ofgem Default Tariff Cap EBIT allowance, decision 25 August 2023, cap period 11a -- docs/domain_artefact_library/regulatory/price_cap_ebit_allowance.md",
+    "accounts_scored": 263,
+    "regulated_allowance_median_gbp_per_mwh": [
+      3.73,
+      8.54
+    ],
+    "control_gbp_per_mwh": 2.0,
+    "control_as_share_of_allowance": [
+      0.234,
+      0.536
+    ],
+    "what_it_means": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
+  },
+  "how_to_read_this": "A positive net-margin delta does NOT establish the thesis on its own. Check three things first, all carried above: how many of the arm's answers an endpoint or the support bound decided rather than the customer (`decision_shape`), how weak the control is against the regulated allowance (`control_credibility`), and how many renewals the arm actually priced (`renewals_priced_by_the_arm`) -- a small delta from an arm that priced almost nothing says nothing about pricing on value. A NEGATIVE delta is a result and not a defect: the arm maximises the company's own beliefs, so it loses exactly to the degree those beliefs are wrong, and finding that out is what this experiment is for."
+}
