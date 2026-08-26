@@ -125,12 +125,37 @@ def test_an_empty_WHAT_IT_GOT_WRONG_says_WHICH_kind_of_empty_it_is(rendered):
     identically from outside.
 
     MUTATION (must fire): render an empty panel, or the word "None".
+
+    THE EMPTY STATE IS READ FROM THE DATA, NOT GREPPED OUT OF THE HTML (2026-08-26). This
+    condition was `if "recorded" in body:` -- a WORD standing in as a proxy for a STATE, on the
+    reasoning that the empty-state sentence happens to contain it. On 2026-08-26 the seat had
+    recorded 27 mistakes, one of which used the word "recorded" in its own prose, so a fully
+    populated panel took the empty-state branch and demanded a sentence that has no business
+    being there. It refused the publish commit, at 06:52, on the FIRST cycle after the map-split
+    landing had cleared the real cause -- a control firing on the success path, which is the
+    class this whole morning was about.
+
+    A substring is not a state. `delivery.json` says which state it is in, so ask it.
     """
     body = _text(rendered["delivery-wrong"]["innerHTML"])
-
     assert body and body != "None"
-    if "recorded" in body:
-        assert "not that nothing went wrong" in body or "no orientation has recorded" in body
+
+    entries = (json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))
+               .get("what_it_got_wrong") or {}).get("entries") or []
+    if entries:
+        # POPULATED: the panel must actually carry the mistakes, not a summary of them. Read the
+        # first entry's own words back out of the rendering, so a panel that renders the count
+        # and drops the text fails here rather than passing on a plausible-looking number.
+        first = _text(entries[0].get("what", ""))[:60]
+        assert first and first in body, (
+            "the panel has {} recorded mistake(s) and does not carry the first one's text -- a "
+            "reader is being told the number and not the finding".format(len(entries))
+        )
+        return
+    assert "not that nothing went wrong" in body or "no orientation has recorded" in body, (
+        "the panel is EMPTY and does not say which kind of empty: a machine that found no "
+        "mistakes and one that never looked read identically from outside"
+    )
 
 
 def test_WHAT_IT_IS_DOING_NEXT_states_that_direction_can_never_BLOCK_work(rendered):
