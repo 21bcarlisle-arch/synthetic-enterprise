@@ -116,7 +116,15 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
-#   2026-08-17  I001 1375 -> 1373  (the 3-day content freeze, 2026-08-14 07:04 UTC on)
+#   2026-08-26  F841 128 -> 127  (the CLV selection-profile commit)
+#     `couple_clv.build_observations` bound `accounts = run.get("by_billing_account")`
+#     and never read it — the population it actually walks comes from
+#     `known_accounts(run, snapshots)` one line down. Found by running ruff over the
+#     files that commit touched rather than by looking for it, which is the only way
+#     a per-file ratchet ever gets paid: the debt is invisible until something else
+#     brings you to the file. Removed rather than left as a free shrink deferred to
+#     nobody, because a pre-existing violation in a file you are already editing is
+#     the cheapest one this ratchet will ever offer.
 #     TWO counts, TWO different causes, and only one of them was a working-tree
 #     transient — the split matters, because freezing the tree's number would have
 #     re-frozen a floor HEAD had already left.
@@ -470,7 +478,7 @@ RUFF_BASELINE: dict[str, int] = {
     "I001": 1355,
     "F401": 269,
     "E402": 174,
-    "F841": 128,
+    "F841": 127,
     "E741": 108,
     "F811": 95,
     "E702": 76,
@@ -487,7 +495,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2347  # was 2351; -4 (I001 -1, F401 -3; see the entry above)
+RUFF_BASELINE_TOTAL = 2346  # was 2347; -1 (F841; see the 2026-08-26 shrink-log entry)
 
 
 # --------------------------------------------------------------------------

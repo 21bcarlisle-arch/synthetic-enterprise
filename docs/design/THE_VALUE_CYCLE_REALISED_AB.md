@@ -361,3 +361,98 @@ have come apart — and it says the published beliefs are beliefs about a price 
 
 R15-proven in `tests/company/pricing/test_value_arm_in_the_renewal_chain.py` §5 (six controls, four
 mutation-proven to red on the pre-fix mechanism). Landed `8b450a839`.
+
+---
+
+## 2026-08-26 — the lifetime term was graded, and it is not the one that is wrong
+
+The section above ("The loss is a horizon effect") demoted the ungraded `annuity(lifetime, r)` from
+*leading* candidate to standing candidate once the missing standing charge was found. It is now
+graded, and it can be demoted further: **the lifetime term is not inflated. Measured two
+independent ways it runs SHORT.**
+
+Full record: `docs/staging/done/WORKER_FINDING_THE_CLV_GAP_IS_GRADED_ONLY_ON_THE_CUSTOMERS_WHO_LEFT_2026-08-26.md`.
+
+**Hazard against outcome**, counted from `event_type` over 622 renewal decisions: the company
+over-states churn hazard by 2.4x–7.6x in every elevated bucket, and an over-stated hazard gives a
+*shorter* believed tenure and a *smaller* CLV. At portfolio level, mean believed tenure 11.74 years
+against a realised implied 13.82.
+
+**Where the 5x came from instead.** The `EP1` gap is graded only on accounts whose life ENDED
+inside the run — a population selected on the quantity being predicted, whose realised value is
+2.96x below the still-supplied book like-for-like (a lower bound; the excluded side is still
+accruing). And all 33 graded accounts sat in the one hazard bucket where the model is *right*
+(0.05 believed, 0.053 realised). A calibrated estimator graded on exactly the 5% who left scores as
+a uniform five-fold over-estimate. `best_single_scale 0.204` was reading the population, not the
+horizon.
+
+**And a sharper defect underneath.** Recovering the hazard from EP1's own published horizons, all
+33 graded accounts return the *identical* value: one distinct hazard, a flat 20-year tenure for
+every account graded. "The error is in the level, not the ranking" was never a finding about the
+lifetime term — the lifetime term had no variance to contribute a ranking with. The hazard is
+`0.05 + 0.03 x bill_shock_count`, a step function of one integer that is zero for 42% of all
+renewal decisions in the run.
+
+So the arm's objective multiplies a per-customer margin by a term that is, on this population, a
+constant. **That is the lifetime finding, and it is about dispersion rather than level.** Whether
+giving the horizon real per-account dispersion changes the A/B is now a question worth its 45
+minutes; grading the level was the precondition, and the level is roughly right.
+
+None of this moves the realised A/B — net **−£93,555**, enterprise value **−£118,252** over ten
+years, measured on the whole book with no selection in it. It moves only the explanation.
+
+---
+
+## 2026-08-26 12:35Z — the A/B re-run: every mechanism fix landed, and the loss did not move
+
+The −£118,252 headline was measured at 08:02Z. `8b450a839` — the standing-charge and
+ceiling repair its own analysis called *"the better-evidenced explanation of the
+loss"* — landed at 08:46Z. Nobody re-ran it. Re-run now, on the same book and the
+same window.
+
+**The control reproduces bit-identically** — net £1,145,681.029513 in both runs — so
+the only thing that changed is the arm, and the comparison is clean.
+
+**A prediction was stamped before the run**
+(`ab_rerun_prediction.md`, scratch) so the result could disagree with it. It did.
+
+| | 08:02Z | predicted | 13:35Z | |
+|---|---|---|---|---|
+| `clamped_by_the_price_cap` | 27 | 0 | **0** | right |
+| `median_margin_gbp_per_mwh` | 100.50 | < 60 | **39.75** | right |
+| `endpoint_bound` | 36 of 66 | ≪ 10 | **36 of 59** | **wrong** |
+| `churned_accounts` | 48 (control 45) | ~45 | **48** | **wrong** |
+| `realised_delta.enterprise_value_gbp` | −118,252 | materially better | **−110,731** | **wrong** |
+
+**The repairs worked exactly as designed.** The cap now binds inside the search and
+clamps nothing afterwards; `ceiling_bound` fires 20 times where it was structurally
+unable to fire at all; `extrapolation_bound` fires twice; declines rise 3 → 10 as the
+arm refuses renewals it cannot lawfully and honestly price; and the median chosen
+margin more than halves, 100.50 → 39.75.
+
+**And the loss barely moved: −£118,252 → −£110,731, 6.4%.** So over-pricing was not
+the mechanism. The arm halved its price and lost the same money.
+
+### What the shape now says
+
+Of 69 renewals seen the arm declines 10 and prices 59. Of those 59, **36 land on a
+bound** — 20 at the ceiling (which is now genuinely the price cap deciding) and 16 at
+the floor. Add the 2 extrapolation-bound and the arm's own per-customer view chooses
+freely on **21 of 69**. On a capped domestic book, the regulator and the floor make
+most of the decisions, and that is a finding about what a per-customer arm can even
+do here, not a defect to repair.
+
+### The number that does not fit, and is the next thing to open
+
+The arm gives up **£123,006 of gross margin on 3 extra churns**. That is **£41,000 per
+churn** against domestic accounts whose whole-life margin averages ~£420. It cannot be
+three domestic customers. This book carries five I&C accounts averaging **£221,491** of
+lifetime margin, and the artefact reports only aggregates, so it cannot say which
+accounts the two arms lost differently.
+
+**If the delta is one large account, then "the value arm loses" is a statement about a
+single decision rather than a portfolio property, and n = 1 is not a thesis.** The A/B
+tool is being given a churn-roster diff — which accounts churned under one arm and not
+the other, with segment and realised lifetime margin — because a delta driven by three
+accounts out of 263 must name them. Until it does, neither the loss nor any future win
+should be read as a portfolio result.

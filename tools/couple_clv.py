@@ -172,6 +172,7 @@ from background.gap_metric import (
     GapResult,
     write_gap_entry,
 )
+from tools import clv_gap_selection
 
 #: The ledger key. EP1 is a COMPANY atom, and the pair it stands in is
 #: company-belief vs world-outcome rather than one map world atom -- the ledger
@@ -536,7 +537,22 @@ def magnitude_diagnostic(counted: list) -> dict:
 
       * `magnitude_inflated_accounts` -- how often |belief| EXCEEDS |realised|.
         Under an unbiased estimator this is a coin flip; a run of them is a
-        systematic scale error and points R4 at the horizon, not the ranking.
+        systematic scale error, in the ESTIMATOR or in the POPULATION.
+
+    THAT SECOND CAUSE IS NOT OPTIONAL READING, and this docstring used to omit
+    it. Until 2026-08-26 the line above said a run of over-estimates "points R4
+    at the horizon, not the ranking", and a whole stretch of work was aimed at
+    the lifetime term on the strength of it. A uniform scale error is equally
+    the signature of a graded population that is not a sample of the population
+    the estimator was formed over -- and `build_observations` counts an account
+    only once its life has ENDED, which selects on the outcome being predicted.
+    A perfectly calibrated estimator scores as a uniform over-estimate against a
+    population of accounts that all left early.
+
+    So `population_selection` (`tools/clv_gap_selection.selection_profile`) is
+    published beside this row and the two must be read together;
+    `tests/tools/test_clv_gap_selection.py` fails if a run publishes one
+    without the other.
       * `best_single_scale` -- the ONE constant that, applied to every belief,
         minimises the same mean absolute error, and the gap it would produce.
 
@@ -684,7 +700,6 @@ def build_observations(run: dict, belief: dict | None = None) -> dict:
     """
     if belief is None:
         belief = select_belief(run)
-    accounts = run.get("by_billing_account") or {}
     snapshots = belief["snapshots"]
     lifetimes = run.get("per_customer_lifetime") or {}
     roster = ceased_roster(run)
@@ -883,10 +898,16 @@ def measure(run: dict) -> tuple:
         normalisation=NORMALISATION_DIVISOR,
         raw_gap_is=DIVISOR_RAW_GAP_IS,
         baseline=(
-            "no-skill = assign every account the population's MEAN realised "
-            f"lifetime margin (GBP {mean_truth:.2f}); g0 = that predictor's mean "
-            f"absolute error (GBP {g0:.2f}). gap>1 means the company's "
-            "per-customer CLV carries less information than the portfolio mean."
+            "no-skill = assign every account the MEAN realised lifetime margin "
+            f"OF THE GRADED POPULATION (GBP {mean_truth:.2f}); g0 = that "
+            f"predictor's mean absolute error (GBP {g0:.2f}). gap>1 means the "
+            "company's per-customer CLV carries less information than that "
+            "mean. NOT the book's mean: the graded population is the accounts "
+            "whose life ENDED inside the run, so this divisor is fitted on a "
+            "population selected on the outcome, and the baseline is handed a "
+            "figure the company could not have formed at belief time. See "
+            "`components.population_selection` for how far the two populations "
+            "are apart before reading the ratio."
         ),
         components={
             "counted_accounts": len(counted),
@@ -923,6 +944,15 @@ def measure(run: dict) -> tuple:
             "belief_provenance": provenance,
             "grades_atom_estimator": provenance["grades_atom_estimator"],
             "error_decomposition": magnitude_diagnostic(counted),
+            # The three rows that say whether the scale error above belongs to
+            # the estimator or to the population it was graded on. Published
+            # together with it, never instead of it -- see
+            # `magnitude_diagnostic`'s docstring for what reading one alone
+            # cost.
+            "population_selection": clv_gap_selection.selection_profile(
+                run, counted),
+            "hazard_calibration": clv_gap_selection.hazard_calibration(run),
+            "lifetime_level": clv_gap_selection.lifetime_level(run, counted),
         },
         note=_whose_belief_note(belief),
     )
@@ -955,8 +985,15 @@ def _whose_belief_note(belief: dict) -> str:
             "empty population. TRUTH-WINDOW BIAS: the realised total spans the "
             "whole lifetime while the belief is taken at the first snapshot, so "
             "truth is measured over a longer window than the belief forecasts, "
-            "which flatters an over-estimating belief. R12: diagnostic, never a "
-            "target."
+            "which flatters an over-estimating belief. SURVIVORSHIP: the graded "
+            "population is every account whose life ENDED inside the run and no "
+            "other, so it is selected on the quantity being predicted, and the "
+            "no-skill divisor is fitted on that same selected population. A "
+            "calibrated estimator scores as a uniform over-estimate here; read "
+            "`components.population_selection` for the size of the shift and "
+            "`components.hazard_calibration` for which way the lifetime term is "
+            "actually wrong, before attributing the headline to the estimator. "
+            "R12: diagnostic, never a target."
         )
     return head + (
         f"WHOSE BELIEF: the graded field is `{BELIEF_FIELD}`, produced by "
@@ -970,7 +1007,15 @@ def _whose_belief_note(belief: dict) -> str:
            "predates it and the next run will grade EP1."
            if belief["ep1_series"]["grades_atom_estimator"]
            else "not resolvable from the source tree.")
-        + " Separately, still-supplied accounts are excluded as right-censored. "
+        + " SURVIVORSHIP applies to this branch exactly as it does to the other, "
+        "and is stated twice rather than once because a reader arrives at only one "
+        "of them: still-supplied accounts are excluded as right-censored, so the "
+        "graded population is every account whose life ENDED inside the run and no "
+        "other, selected on the quantity being predicted, and the no-skill divisor "
+        "is fitted on that same selected population. Read "
+        "`components.population_selection` for the size of the shift and "
+        "`components.hazard_calibration` for which way the lifetime term is "
+        "actually wrong, before attributing the headline to the estimator. "
         "R12: diagnostic, never a target."
     )
 
@@ -1053,6 +1098,52 @@ def main(argv=None) -> int:
         print(f"  one-scalar attribution: scale {dec['best_single_scale']:.3f} "
               f"-> gap {dec['gap_after_best_single_scale']:.4f} "
               f"(IN-SAMPLE; diagnostic, never a correction -- R12)")
+
+    # The three rows that say whether that scale belongs to the estimator or to
+    # the population. Printed HERE, next to the attribution, because a reader who
+    # stops at the line above is the reader this pair already misled once.
+    sel = result.components.get("population_selection") or {}
+    if sel.get("available"):
+        seg = sel["dominant_graded_segment"]
+        row = sel["by_segment"][seg]
+        ratio = sel["like_for_like_excluded_over_graded"]
+        print(f"  population selection  : graded are the accounts that LEFT "
+              f"(n={sel['graded']['n']}), excluded are still supplied "
+              f"(n={sel['excluded_still_supplied']['n']})")
+        print(f"    like-for-like ({seg}) : graded mean GBP "
+              f"{row['graded']['mean_gbp']:.2f}  vs still-supplied mean GBP "
+              f"{row['excluded_still_supplied']['mean_gbp']:.2f}"
+              + (f"  = {ratio:.2f}x" if ratio else "")
+              + "  (excluded side still accruing -> LOWER BOUND)")
+    else:
+        print(f"  population selection  : UNAVAILABLE -- {sel.get('reason')}")
+
+    haz = result.components.get("hazard_calibration") or {}
+    if haz.get("available"):
+        print(f"  hazard calibration    : believed mean tenure "
+              f"{haz['mean_believed_tenure_years']:.2f} yr  vs realised implied "
+              f"{haz['implied_realised_mean_tenure_years']:.2f} yr "
+              f"({haz['churn_events']}/{haz['decision_points']} renewals churned)")
+        for bucket in haz["by_believed_hazard"]:
+            if bucket["decisions"] < 10:
+                continue
+            over = bucket["believed_over_realised"]
+            print(f"    h={bucket['believed_hazard']:.2f} n={bucket['decisions']:>4} "
+                  f"realised {bucket['realised_rate']:.3f}"
+                  + (f"   believed/realised {over:.2f}x" if over else "   (no churn)"))
+    else:
+        print(f"  hazard calibration    : UNAVAILABLE -- {haz.get('reason')}")
+
+    lvl = result.components.get("lifetime_level") or {}
+    if lvl.get("available"):
+        print(f"  lifetime level        : {lvl['distinct_hazards']} distinct "
+              f"hazard(s) across {lvl['recovered_accounts']} graded accounts; "
+              f"median believed tenure {lvl['median_believed_tenure_years']:.2f} yr")
+        if lvl["hazard_is_constant_across_graded_population"]:
+            print("      CONSTANT -- the tenure horizon contributed NO "
+                  "per-account variation to the graded CLV")
+    else:
+        print(f"  lifetime level        : UNAVAILABLE -- {lvl.get('reason')}")
 
     if args.write_ledger:
         write_gap_entry(

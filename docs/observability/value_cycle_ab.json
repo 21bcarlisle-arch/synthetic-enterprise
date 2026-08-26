@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26T08:02:13Z",
+  "generated_at": "2026-08-26T12:35:29Z",
   "report_end": null,
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what ACTUALLY happened. No figure here is anything the company believed.",
   "arm_identity": {
@@ -20,36 +20,38 @@
     "renewals_priced_by_the_arm": 0
   },
   "value_arm": {
-    "total_net_gbp": 1052125.753811,
-    "total_gross_margin_gbp": 6418661.212454528,
-    "total_bad_debt_gbp": 124841.444026,
-    "final_treasury_gbp": 1302125.7538107797,
-    "enterprise_value_gbp": 1273009.6428216312,
+    "total_net_gbp": 1053938.960033,
+    "total_gross_margin_gbp": 6420446.307998814,
+    "total_bad_debt_gbp": 124787.597279,
+    "final_treasury_gbp": 1303938.960032942,
+    "enterprise_value_gbp": 1280531.0113621687,
     "account_count": 170,
     "churned_accounts": 48,
     "renewals_priced_by_the_arm": 69
   },
   "realised_delta": {
-    "net_margin_gbp": -93555.27570200013,
-    "enterprise_value_gbp": -118252.04796299106,
+    "net_margin_gbp": -91742.06948000006,
+    "enterprise_value_gbp": -110730.67942245351,
     "accounts_at_end": -2,
     "churned_accounts": 3,
-    "gross_margin_gbp": -124790.85970722139,
-    "bad_debt_gbp": -2701.9849620000023
+    "gross_margin_gbp": -123005.76416293532,
+    "bad_debt_gbp": -2755.8317090000055
   },
   "decision_shape": {
-    "priced": 66,
-    "declined": 3,
-    "declined_share_of_renewals_seen": 0.0435,
-    "distinct_margins": 36,
-    "modal_margin_share_of_book": 0.2424,
-    "median_margin_gbp_per_mwh": 100.5,
+    "priced": 59,
+    "declined": 10,
+    "declined_share_of_renewals_seen": 0.1449,
+    "distinct_margins": 29,
+    "modal_margin_share_of_book": 0.2712,
+    "median_margin_gbp_per_mwh": 39.75,
     "control_margin_gbp_per_mwh": 2.0,
     "endpoint_bound": 36,
     "endpoint_at_ceiling": 20,
     "endpoint_at_floor": 16,
     "withheld": 0,
-    "clamped_by_the_price_cap": 27
+    "ceiling_bound": 20,
+    "extrapolation_bound": 2,
+    "clamped_by_the_price_cap": 0
   },
   "control_credibility": {
     "available": true,
