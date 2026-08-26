@@ -379,6 +379,137 @@ def margin_movers(control: dict, value: dict, top: int = 15) -> dict:
     }
 
 
+def belief_vs_outcome(value: dict) -> dict:
+    """Was the arm's advantage INFERENCE, or was it wrong in a profitable direction?
+
+    THE QUESTION THE WHOLE THESIS TURNS ON, and the data for it has been sitting in the run
+    since the arm was built. `renewal_rate_chain` logs `believed_p_retain` per priced
+    renewal and says in its own comment why: *"Carried so the two can be compared
+    afterwards, which is the only way to find out whether this company's beliefs are worth
+    acting on."* Nothing ever compared them.
+
+    It matters because of what the 15:20Z run showed. After the segment repair the arm wins
+    by GBP 3.08M, and on the I&C branch it believes a large margin will PROBABLY LOSE the
+    customer -- P(leave) 0.81 at GBP 46/MWh -- charges it anyway because expected value
+    still maximises there, and then mostly does not lose them. Four of five I&C accounts
+    stay. An arm that profits because the world is kinder than its model said has not
+    demonstrated inference advantage; it has demonstrated a lucky miscalibration, and the
+    two produce the same P&L and completely different conclusions.
+
+    THREE THINGS, and they answer different halves of the question:
+
+      * CALIBRATION -- believed retention against realised retention, overall and by
+        bucket. A gap here says the belief is systematically wrong and names the direction.
+      * DISCRIMINATION -- whether a higher `believed_p_retain` actually corresponds to a
+        customer more likely to stay, measured as the rank statistic (AUC) over the priced
+        population. This is the half that survives a calibration error: a model can be
+        uniformly wrong about the LEVEL and still rank correctly, which is real information.
+        0.5 is no information at all.
+      * WHERE THE MONEY SAT relative to the belief error -- the realised margin of renewals
+        the arm was WRONG about, against those it was right about. If the advantage
+        concentrates on the wrong ones, it is luck.
+
+    BOTH SIDES ARE INDEPENDENT (R15). The belief is the company's own logged number; the
+    outcome is a COUNT of `event_type == "churned"` in the world's event log at the same
+    renewal. Not two readings of one probability -- a forecast and a tally.
+    """
+    phase2b = value.get("phase2b") or {}
+    log = phase2b.get("value_arm_log")
+    events = phase2b.get("customer_events")
+    if not isinstance(log, list) or not log:
+        return {"available": False, "reason": "the value arm priced nothing in this run"}
+    if not isinstance(events, list) or not events:
+        return {"available": False, "reason": "run publishes no customer_events to score against"}
+
+    # (account, term_start) -> did they leave at THAT renewal. Keyed on the pair because an
+    # account renews many times and only one of those decisions is the one being scored.
+    outcome = {}
+    for event in events:
+        if not isinstance(event, dict):
+            continue
+        key = (event.get("customer_id"), event.get("event_date"))
+        if event.get("event_type") == "churned":
+            outcome[key] = False           # did NOT retain
+        else:
+            outcome.setdefault(key, True)  # retained
+
+    scored, unmatched = [], 0
+    for entry in log:
+        if not isinstance(entry, dict) or entry.get("declined"):
+            continue
+        believed = entry.get("believed_p_retain")
+        if not isinstance(believed, (int, float)) or isinstance(believed, bool):
+            continue
+        key = (entry.get("customer_id"), entry.get("term_start"))
+        if key not in outcome:
+            # NAMED, not dropped: an unmatched decision changes the denominator, and a
+            # calibration figure whose denominator moved silently is not a measurement.
+            unmatched += 1
+            continue
+        scored.append({
+            "account": entry.get("customer_id"),
+            "term_start": entry.get("term_start"),
+            "believed_p_retain": float(believed),
+            "retained": bool(outcome[key]),
+            "chosen_margin_gbp_per_mwh": entry.get("chosen_margin_gbp_per_mwh"),
+        })
+
+    if not scored:
+        return {"available": False, "reason": "no priced renewal could be matched to an outcome",
+                "unmatched_decisions": unmatched}
+
+    believed_mean = sum(r["believed_p_retain"] for r in scored) / len(scored)
+    realised_rate = sum(1 for r in scored if r["retained"]) / len(scored)
+
+    # Rank statistic. Ties count a half, so a constant belief scores exactly 0.5 rather
+    # than an accident of sort order.
+    stayed = [r["believed_p_retain"] for r in scored if r["retained"]]
+    left = [r["believed_p_retain"] for r in scored if not r["retained"]]
+    if stayed and left:
+        wins = sum((s > lo) + 0.5 * (s == lo) for s in stayed for lo in left)
+        auc = wins / (len(stayed) * len(left))
+    else:
+        auc = None
+
+    buckets = collections.defaultdict(lambda: {"n": 0, "retained": 0, "believed": 0.0})
+    for row in scored:
+        edge = min(int(row["believed_p_retain"] * 5), 4) / 5.0
+        b = buckets[edge]
+        b["n"] += 1
+        b["retained"] += int(row["retained"])
+        b["believed"] += row["believed_p_retain"]
+
+    return {
+        "available": True,
+        "priced_and_scored": len(scored),
+        "unmatched_decisions": unmatched,
+        "mean_believed_p_retain": believed_mean,
+        "realised_retention_rate": realised_rate,
+        "calibration_error": believed_mean - realised_rate,
+        "discrimination_auc": auc,
+        "auc_population": {"retained": len(stayed), "left": len(left)},
+        "by_believed_bucket": [
+            {
+                "believed_from": edge,
+                "believed_to": round(edge + 0.2, 1),
+                "n": b["n"],
+                "mean_believed_p_retain": b["believed"] / b["n"],
+                "realised_retention_rate": b["retained"] / b["n"],
+            }
+            for edge, b in sorted(buckets.items())
+        ],
+        "reading": (
+            "`discrimination_auc` at 0.5 means the belief carries NO information about who "
+            "stays, and any advantage the arm shows is then a property of its calibration "
+            "error rather than of inference -- which is the thesis failing while the P&L "
+            "improves. Above 0.5 with a large `calibration_error` means the arm ranks "
+            "customers correctly and misjudges the level, which is a different and more "
+            "repairable finding. `auc_population` is published because this statistic is "
+            "noise when one side is small. R12: diagnostic, never a target."
+        ),
+    }
+
+
 def arm_decision_shape(result: dict) -> dict:
     """How the arm's own answers were distributed, and how much of that was the BOUND's.
 
@@ -550,6 +681,9 @@ def run_value_cycle_ab(report_end: str | None = None) -> dict:
             "bad_debt_gbp": value_m["total_bad_debt_gbp"] - control_m["total_bad_debt_gbp"],
         },
         "decision_shape": arm_decision_shape(value),
+        # Was the advantage INFERENCE, or a profitable miscalibration? The two produce the
+        # same P&L and completely different conclusions -- see `belief_vs_outcome`.
+        "belief_vs_outcome": belief_vs_outcome(value),
         # Names the accounts behind `realised_delta.churned_accounts`. Published
         # beside the delta, never instead of it -- see `churn_roster_diff`.
         "churn_roster_diff": churn_roster_diff(control, value),

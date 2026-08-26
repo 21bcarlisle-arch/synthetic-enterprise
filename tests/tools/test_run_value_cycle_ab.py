@@ -58,6 +58,7 @@ import pytest
 from tools.run_value_cycle_ab import (
     REPORTED_BASIS,
     SETTLED_BASIS,
+    belief_vs_outcome,
     churn_roster_diff,
     margin_movers,
     realised_metrics,
@@ -468,3 +469,131 @@ def test_the_expected_value_the_arm_maximises_is_not_among_the_metrics():
     absence is deliberate and stated in the docstring, so it is asserted here."""
     metrics = realised_metrics(_full_arm(expected_value_gbp=9_999.0))
     assert not any("expected_value" in key for key in metrics)
+
+
+# ---------------------------------------------------------------------------
+# belief_vs_outcome — inference, or a profitable miscalibration?
+# ---------------------------------------------------------------------------
+
+def _decision(account, believed, term="2020-01-01", margin=10.0, **extra):
+    return {"customer_id": account, "term_start": term,
+            "believed_p_retain": believed,
+            "chosen_margin_gbp_per_mwh": margin, **extra}
+
+
+def _event(account, event_type, term="2020-01-01"):
+    return {"customer_id": account, "event_date": term, "event_type": event_type}
+
+
+def _arm_with(log, events):
+    return {"phase2b": {"value_arm_log": log, "customer_events": events}}
+
+
+def test_a_belief_that_ranks_perfectly_scores_auc_one():
+    """The upper end. If this did not reach 1.0 the statistic could not report skill."""
+    log = [_decision(f"A{i}", p) for i, p in enumerate([0.95, 0.9, 0.85, 0.2, 0.15, 0.1])]
+    events = [_event(f"A{i}", t) for i, t in enumerate(["renewed"] * 3 + ["churned"] * 3)]
+    result = belief_vs_outcome(_arm_with(log, events))
+    assert result["available"] is True
+    assert result["discrimination_auc"] == pytest.approx(1.0)
+    assert result["priced_and_scored"] == 6
+
+
+def test_a_belief_carrying_NO_information_scores_exactly_a_half():
+    """THE RESULT THAT WOULD FALSIFY THE THESIS while the P&L still improved, so it must be
+    unmistakable rather than approximately a half. Ties count a half each, so a constant
+    belief cannot score 1.0 or 0.0 by an accident of sort order."""
+    log = [_decision(f"A{i}", 0.5) for i in range(6)]
+    events = [_event(f"A{i}", t) for i, t in enumerate(["renewed"] * 3 + ["churned"] * 3)]
+    assert belief_vs_outcome(_arm_with(log, events))["discrimination_auc"] == pytest.approx(0.5)
+
+
+def test_a_belief_that_ranks_BACKWARDS_scores_below_a_half():
+    """Anti-skill has to be distinguishable from no skill: an arm acting on an inverted
+    belief is worse than one acting on a coin, and 0.5 would hide that."""
+    log = [_decision(f"A{i}", p) for i, p in enumerate([0.1, 0.15, 0.2, 0.85, 0.9, 0.95])]
+    events = [_event(f"A{i}", t) for i, t in enumerate(["renewed"] * 3 + ["churned"] * 3)]
+    assert belief_vs_outcome(_arm_with(log, events))["discrimination_auc"] == pytest.approx(0.0)
+
+
+def test_calibration_error_names_its_direction():
+    """Believing customers are stickier than they are is a different defect from the
+    reverse, and the sign is the whole message."""
+    log = [_decision(f"A{i}", 0.9) for i in range(10)]
+    events = [_event(f"A{i}", t) for i, t in enumerate(["renewed"] * 5 + ["churned"] * 5)]
+    result = belief_vs_outcome(_arm_with(log, events))
+    assert result["mean_believed_p_retain"] == pytest.approx(0.9)
+    assert result["realised_retention_rate"] == pytest.approx(0.5)
+    assert result["calibration_error"] == pytest.approx(0.4)
+
+
+def test_calibration_and_discrimination_are_independent():
+    """A model can be uniformly wrong about the LEVEL and still rank correctly — which is
+    real information and a repairable defect. If these two moved together the measurement
+    could not tell 'wrong scale' from 'no signal', which is the distinction it exists for."""
+    log = [_decision(f"A{i}", p) for i, p in enumerate([0.99, 0.98, 0.97, 0.96, 0.95, 0.94])]
+    events = [_event(f"A{i}", t) for i, t in enumerate(["renewed"] * 3 + ["churned"] * 3)]
+    result = belief_vs_outcome(_arm_with(log, events))
+    assert result["discrimination_auc"] == pytest.approx(1.0)
+    assert result["calibration_error"] > 0.4
+
+
+def test_the_outcome_side_is_a_TALLY_not_a_second_probability():
+    """R15 INDEPENDENCE. A run publishing a contradictory probability field must not move
+    the realised side — the same defect `simulation/customer_events.py` records having paid
+    for once, when comparing two probabilities produced a spurious error pattern."""
+    log = [_decision(f"A{i}", 0.5) for i in range(4)]
+    events = [dict(_event(f"A{i}", t), realized_churn_probability=0.99,
+                   company_churn_estimate=0.99)
+              for i, t in enumerate(["renewed"] * 2 + ["churned"] * 2)]
+    assert belief_vs_outcome(_arm_with(log, events))["realised_retention_rate"] == (
+        pytest.approx(0.5))
+
+
+def test_a_decision_is_scored_against_ITS_OWN_renewal_not_any_other():
+    """An account renews many times and only one of those decisions is the one being
+    scored. Keying on the account alone would grade a 2020 decision against a 2024 outcome."""
+    log = [_decision("A", 0.9, term="2020-01-01"), _decision("A", 0.2, term="2024-01-01")]
+    events = [_event("A", "renewed", "2020-01-01"), _event("A", "churned", "2024-01-01")]
+    result = belief_vs_outcome(_arm_with(log, events))
+    assert result["discrimination_auc"] == pytest.approx(1.0)
+    assert result["priced_and_scored"] == 2
+
+
+def test_declined_renewals_are_not_scored_as_decisions():
+    """A decline is a decision NOT to price; scoring it would grade a belief the arm never
+    formed and move the denominator."""
+    log = [_decision("A", 0.9), {"customer_id": "B", "term_start": "2020-01-01",
+                                 "declined": True, "reason": "no lawful offer"}]
+    events = [_event("A", "renewed"), _event("B", "churned")]
+    assert belief_vs_outcome(_arm_with(log, events))["priced_and_scored"] == 1
+
+
+def test_an_unmatched_decision_is_COUNTED_not_dropped():
+    """A silently moving denominator makes a calibration figure unreadable."""
+    log = [_decision("A", 0.9), _decision("GHOST", 0.9)]
+    result = belief_vs_outcome(_arm_with(log, [_event("A", "renewed")]))
+    assert result["priced_and_scored"] == 1
+    assert result["unmatched_decisions"] == 1
+
+
+def test_the_auc_is_none_rather_than_invented_when_one_side_is_empty():
+    """FAIL-OPEN. With no churn there is nothing to rank against, and 1.0 would read as
+    perfect skill on a population that could not disagree."""
+    log = [_decision(f"A{i}", 0.9) for i in range(3)]
+    result = belief_vs_outcome(_arm_with(log, [_event(f"A{i}", "renewed") for i in range(3)]))
+    assert result["discrimination_auc"] is None
+    assert result["auc_population"] == {"retained": 3, "left": 0}
+
+
+@pytest.mark.parametrize("phase2b", [
+    {},
+    {"value_arm_log": [], "customer_events": [{"x": 1}]},
+    {"value_arm_log": [{"customer_id": "A"}], "customer_events": []},
+])
+def test_belief_vs_outcome_is_unavailable_with_a_named_reason(phase2b):
+    """FAIL-OPEN. 'The arm priced nothing' and 'I cannot score it' must not both render as
+    a clean absence."""
+    result = belief_vs_outcome({"phase2b": phase2b})
+    assert result["available"] is False
+    assert result["reason"]
