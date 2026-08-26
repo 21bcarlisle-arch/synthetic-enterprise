@@ -41,11 +41,16 @@ actually did. It computes cost-to-serve per account. Both are then reported and 
 
 THE DECISION
 ------------
-For a grid of candidate margins, ask the company's own churn model what each one would do to
-this customer's chance of staying, and take the one with the highest expected discounted
-contribution:
+Ask the company's own churn model what each candidate margin would do to this customer's chance
+of staying, and take the one with the highest expected discounted contribution:
 
-    EV(m) = P(stay | m) x (m x eac_mwh - cost_to_serve_per_year) x annuity(lifetime, r)
+    EV(m) = P(stay | m) x (m x eac_mwh + fixed_revenue - expected_cost(m)) x annuity(lifetime, r)
+
+A COARSE GRID BRACKETS IT AND A REFINEMENT DECIDES IT (2026-08-25), because for four months a
+grid alone did both jobs and could only ever return one of its own sixteen numbers. Over the
+real book that produced 107 accounts on exactly 130.00 and 83 on exactly 100.00 -- a record of
+"per-customer decisions" in which two rungs carried 72% of the customers. See
+`MARGIN_RESOLUTION_GBP_PER_MWH`.
 
 A cheap-to-serve customer who is unlikely to leave is worth keeping keenly. One who is leaving
 anyway and expensive to serve should not be bought back at a loss. Neither sentence is
@@ -111,24 +116,65 @@ ARMS = (FLAT_RULES, VALUE_BASED)
 #: ~£1,700 bill, about one percent, and the DESNZ-calibrated switching curve correctly shrugs at
 #: one percent. The "decision" was my own constant, read back.
 #:
-#: Widened until the model actually turns over, which it does. On that same account the expected
-#: value peaks near £80/MWh and falls away after, as churn passes half the book:
+#: Widened until the model actually turns over, which it does. Re-measured 2026-08-25 on the same
+#: account (3,100 kWh, on £120/MWh over a £118 base, four years' tenure, £80/yr to serve, £98.55
+#: of standing charge, six periods, renewing in 2025) — the earlier table here was taken before
+#: the churn model's captive floor was removed and before the supplier-specific/market-wide split
+#: reached the decision, and both moved it:
 #:
-#:      margin   offered   P(leave)      EV
-#:        2.00     120.0     0.060    -114.08
-#:       20.00     138.0     0.180      14.27
-#:       80.00     198.0     0.580     201.58     <- turn-over
-#:      160.00     278.0     0.925      81.76
+#:      margin   offered   P(leave)        EV
+#:        2.00     120.0     0.127     65.79
+#:       20.00     138.0     0.241    238.11
+#:       66.25     184.2     0.538    427.18     <- turn-over, and where the arm lands
+#:      130.00     248.0     0.911    157.47
+#:      200.00     318.0     0.979     56.47
 #:
 #: That is a finding about the company and not about this grid, and it is stated rather than
 #: tuned away: ON ITS OWN MODEL, the flat £2 is an order of magnitude below the value-maximising
 #: margin, and the only thing that stops a value-maximising supplier charging it is the
 #: competitive/lawful ceiling the renewal desk already applies. `max_offered_rate_gbp_per_mwh`
 #: is where that comes in, and `ceiling_bound` is how a reader is told it bound.
+#:
+#: THE TOP OF THIS GRID IS STILL A POLICY AND NOT A DERIVATION. One account of the 263 (a 954
+#: kWh meter) wants more than £200/MWh and gets £200 — reported `endpoint_side="ceiling"`, and
+#: left there deliberately: extending the grid so that one account reads as an "optimum" would
+#: publish a £250/MWh domestic commodity margin as a decision. Whether a supplier's grid should
+#: reach that far is a pricing policy, which is the director's, and it is one account.
 CANDIDATE_MARGINS_GBP_PER_MWH: tuple[float, ...] = (
     0.50, 1.00, 2.00, 3.00, 5.00, 8.00, 12.00, 20.00, 30.00, 45.00,
     60.00, 80.00, 100.00, 130.00, 160.00, 200.00,
 )
+
+#: THE GRID BRACKETS. THIS DECIDES. £/MWh, and the reason it exists is a measurement.
+#:
+#: On 2026-08-25 the arm was run over the real book and 107 of 263 accounts came back at exactly
+#: 130.00 GBP/MWh, 83 more at exactly 100.00 — two of this module's own constants, carrying 72%
+#: of the book between them. That reads as "the bound decided", and it is worse than that: the
+#: bound was not even binding. Re-scored on a 0.25 lattice the same 263 accounts have 180
+#: DISTINCT optima, every one of them strictly interior to the region the churn model supports,
+#: and the modal margin covers 5 accounts rather than 107. The optima were always per-customer;
+#: the grid was rounding them onto four rungs whose gaps (100 -> 130 -> 160) are thirty pounds
+#: wide, in a region where the whole spread of the book's answers is a hundred.
+#:
+#: A COARSE GRID IS NOT A CONSERVATIVE CHOICE, it is a silent one. It cannot make the arm's
+#: answer wrong by more than its own spacing, which is exactly the amount that decides whether a
+#: reader sees a decision or a constant. `tests/company/pricing/test_value_based_renewal.py::
+#: test_forgetting_the_STANDING_CHARGE_makes_the_arm_OVER_PRICE` had already worked around this
+#: by hand — it passes its own £1 grid, with a comment saying a grid whose gaps are wider than
+#: the effect measures the grid. That was true of every caller, not just that test.
+#:
+#: 0.25 GBP/MWh is about 80p a year on a 3.1 MWh domestic account: below anything a renewal
+#: quote would meaningfully distinguish, so refining further would report precision the decision
+#: does not have.
+MARGIN_RESOLUTION_GBP_PER_MWH: float = 0.25
+
+#: Sub-intervals per refinement pass. Nine points, re-bracket on the winner, halve-ish and
+#: repeat: each pass narrows the bracket by 4x, so any bracket this grid can produce reaches
+#: 0.25 in at most eight passes and ~70 churn evaluations. Bounded on purpose — the null-control
+#: test hands this module a grid running to £5,000/MWh, and a flat scan of that at 0.25 would be
+#: twenty thousand evaluations per customer.
+_REFINEMENT_SAMPLES: int = 8
+_REFINEMENT_MAX_PASSES: int = 12
 
 def max_supported_rate_increase_pct() -> float:
     """The largest single-step price rise this company's churn model has any evidence for,
@@ -222,10 +268,23 @@ class MarginDecision:
     #: Every candidate and its score, so a reader can see the shape of the trade-off rather than
     #: take the argmax on trust. Cheap: sixteen rows.
     considered: tuple[tuple[float, float], ...] = field(default_factory=tuple)
-    #: TRUE when the choice sits at an END of the candidate grid. An argmax at an endpoint is not
-    #: an optimum, it is a constant of this module read back, and the first version of this grid
-    #: returned one for every customer shape probed. Reported so nobody has to notice.
+    #: TRUE when the choice sits at an END of the searchable interval. An argmax at an endpoint is
+    #: not an optimum, it is a constant of this module read back, and the first version of this
+    #: grid returned one for every customer shape probed. Reported so nobody has to notice.
     endpoint_bound: bool = False
+    #: WHICH end, because they are opposite statements about the customer and the verdict that
+    #: reads this used to call both of them "chose the highest margin available". `"ceiling"`
+    #: means the arm wanted to charge more than it was allowed to. `"floor"` means it wanted to
+    #: charge LESS than the lowest margin on offer — measured, that is a 190 kWh/year account
+    #: whose standing charge is the entire relationship, and whose profit-maximising COMMODITY
+    #: margin is negative. Both are the bound deciding; only one of them is the arm straining
+    #: upward, and a reader told the wrong one draws the opposite conclusion.
+    endpoint_side: str | None = None
+    #: How many candidates the ceiling and support bounds took off the grid before the search saw
+    #: it. A COUNT AND NOT A VERDICT: `ceiling_bound`/`extrapolation_bound` say whether removing
+    #: them changed the answer, which on the real book they mostly did not — 165 accounts had
+    #: candidates trimmed and none of them would have chosen a trimmed one.
+    candidates_removed: int = 0
     #: The cost terms behind `expected_value_gbp`, itemised, and which of them this company has
     #: no figure for. A total that is missing collections cost or standing-charge revenue is a
     #: different number from one that is not, and only this field can tell them apart.
@@ -233,13 +292,16 @@ class MarginDecision:
     #: WHY the value arm declined to charge what it wanted to. `None` when it did not decline.
     #: This is the one place the arm is deliberately NOT a maximiser, and it says so out loud.
     withheld_reason: str | None = None
-    #: TRUE when candidates were removed because they implied a price change beyond anything the
-    #: churn model has evidence for. Reported, because "the model would have gone further" and
-    #: "the model turned over here" are completely different statements about the company.
+    #: TRUE when the support bound actually DECIDED — the margin this customer's own curve peaks
+    #: at lies beyond anything the churn model has evidence for, so the arm was stopped short of
+    #: its own answer. Until 2026-08-25 this meant merely that candidates had been REMOVED, which
+    #: on the real book was true for 165 of 263 accounts and binding for none of them: the peak
+    #: sat far below the frontier and the trimmed candidates were ones the arm was never going to
+    #: choose. A flag that fires when nothing happened is read as a cause, and it was.
     extrapolation_bound: bool = False
-    #: TRUE when a lawful/competitive ceiling removed candidates the model preferred. A
+    #: TRUE when the lawful/competitive ceiling actually DECIDED, same sense as above. A
     #: value-maximising supplier is still a supplier that obeys the cap, and when the cap is what
-    #: decided the price the reader should be told that rather than shown a "decision".
+    #: chose the price the reader should be told that rather than shown a "decision".
     ceiling_bound: bool = False
 
     @property
@@ -398,6 +460,63 @@ def expected_value_gbp(
     return p_retain * annual_contribution * _annuity_factor(expected_periods, discount_rate)
 
 
+def _refine(
+    score,
+    lo: float,
+    hi: float,
+    resolution: float = MARGIN_RESOLUTION_GBP_PER_MWH,
+) -> tuple[float, dict[float, tuple[float, float, "ExpectedAnnualCosts"]]]:
+    """Find the best margin INSIDE `[lo, hi]` to `resolution`, and return everything it scored.
+
+    THE COARSE GRID FINDS THE SHAPE; THIS FINDS THE NUMBER. The grid is what establishes that
+    this customer's expected value turns over at all and roughly where — that is a global claim
+    and it needs points spread across the whole feasible range. Where the peak actually sits is a
+    local question, and answering it by adding rungs to the global grid would cost every customer
+    the same evaluations whether or not their peak is anywhere near them.
+
+    RE-BRACKETING, NOT GOLDEN SECTION, and the difference is an assumption I am not entitled to.
+    Golden-section search converges faster and is only valid on a unimodal function; expected
+    value here is `P(stay | m) x contribution(m)`, and `P(stay)` comes from a piecewise model with
+    a saturation elbow in it, composed with a market multiplier in survival space. It is unimodal
+    on every account measured and I have no proof it is unimodal on every account there could be.
+    Sampling the whole bracket each pass and re-bracketing on the winner degrades gracefully if it
+    is not: the worst case is a local peak, which is what a coarse grid would have returned
+    anyway, rather than a confidently-converged wrong answer.
+
+    TIES GO TO THE LOWER MARGIN, at this resolution as at the grid's — see the call site.
+    """
+    scanned: dict[float, tuple[float, float, ExpectedAnnualCosts]] = {}
+
+    def at(margin: float) -> tuple[float, float, ExpectedAnnualCosts]:
+        key = round(margin, 6)
+        if key not in scanned:
+            scanned[key] = score(key)
+        return scanned[key]
+
+    lo, hi = min(lo, hi), max(lo, hi)
+    floor, ceiling = lo, hi
+    best = lo
+    passes = 0
+    while hi - lo > resolution and passes < _REFINEMENT_MAX_PASSES:
+        step = (hi - lo) / _REFINEMENT_SAMPLES
+        points = [lo + i * step for i in range(_REFINEMENT_SAMPLES + 1)]
+        best = max(points, key=lambda m: (round(at(m)[1], 6), -m))
+        lo, hi = max(lo, best - step), min(hi, best + step)
+        passes += 1
+    if hi - lo <= resolution:
+        best = max((lo, hi), key=lambda m: (round(at(m)[1], 6), -m))
+
+    # SNAPPED TO THE LATTICE, because a renewal margin of 66.328125 GBP/MWh claims a precision the
+    # decision does not have. Clamped to the ORIGINAL bracket and not the converged one -- the
+    # first draft clamped to the converged bracket, whose ends are wherever the search stopped,
+    # and handed back 66.328125 unchanged: a snap that can be undone by its own guard is not a
+    # snap. What the guard is actually for is the outer bound, so that is what it holds to.
+    snapped = round(round(best / resolution) * resolution, 6)
+    snapped = min(max(snapped, round(floor, 6)), round(ceiling, 6))
+    at(snapped)
+    return snapped, scanned
+
+
 def decide_margin(
     *,
     customer_id: str,
@@ -446,20 +565,35 @@ def decide_margin(
     eac_mwh = float(eac_kwh) / 1000.0
     periods = FALLBACK_LIFETIME_PERIODS if not expected_periods else float(expected_periods)
 
-    # EXPECTED COST, NOT COST TO SERVE. Everything it costs to have this customer for a year,
-    # including the cost of them not paying -- see `expected_annual_costs` for why bad debt is
-    # taken on the whole bill and not on the margin.
-    costs = expected_annual_costs(
-        cost_to_serve_gbp_per_year=cost_to_serve_gbp_per_year,
-        annual_revenue_gbp=(current_rate_gbp_per_mwh * eac_mwh
-                            if annual_revenue_gbp is None else annual_revenue_gbp),
-        credit_risk=credit_risk,
-        payment_delay_days=payment_delay_days,
-        collections_gbp_per_year=collections_gbp_per_year,
-        fixed_revenue_gbp_per_year=fixed_revenue_gbp_per_year,
-    )
+    # THE BILL MOVES WITH THE OFFER, AND SO DOES THE COST OF NOT BEING PAID. Until 2026-08-25
+    # expected cost was computed ONCE, off the bill this customer is on today, and held fixed
+    # across every candidate -- so the arm scored a 50% price rise as carrying exactly the default
+    # risk of the old price. Bad debt is a fraction of the bill and carrying cost is the bill
+    # borrowed for the payment delay; both are bigger on a bigger bill. Holding them still makes
+    # every extra pound of margin look like a clean pound, which is a subsidy from the arithmetic
+    # to the maximiser, and it is largest exactly where the arm wants to be.
+    #
+    # The LEVEL comes from the company's own billed record and the CHANGE from its own arithmetic:
+    # `observed bill + (candidate margin - the margin they are on) x volume`. At the current offer
+    # it reproduces the billed figure exactly, so nothing about today's number is re-derived.
+    #
+    # Measured, it moves the chosen margin by -0.17 GBP/MWh on the mean account of the real book,
+    # and it is here because it is right rather than because it is large: the default rates in
+    # `saas.payment_behaviour` run 0.5% to 8%, so this is a small correction to a big number, and
+    # a bigger one for exactly the customers the decision is about.
+    current_margin = float(current_rate_gbp_per_mwh) - float(base_rate_gbp_per_mwh)
+    observed_revenue = (current_rate_gbp_per_mwh * eac_mwh
+                        if annual_revenue_gbp is None else float(annual_revenue_gbp))
 
-    def _score(margin: float) -> tuple[float, float]:
+    def _score(margin: float) -> tuple[float, float, ExpectedAnnualCosts]:
+        costs = expected_annual_costs(
+            cost_to_serve_gbp_per_year=cost_to_serve_gbp_per_year,
+            annual_revenue_gbp=observed_revenue + (margin - current_margin) * eac_mwh,
+            credit_risk=credit_risk,
+            payment_delay_days=payment_delay_days,
+            collections_gbp_per_year=collections_gbp_per_year,
+            fixed_revenue_gbp_per_year=fixed_revenue_gbp_per_year,
+        )
         offered = base_rate_gbp_per_mwh + margin
         p_leave = enriched_churn_estimate(
             current_rate_gbp_per_mwh, offered, tenure_years, float(eac_kwh),
@@ -476,13 +610,13 @@ def decide_margin(
             cost_to_serve_gbp_per_year=costs.total_gbp,
             p_retain=p_stay, expected_periods=periods,
             fixed_revenue_gbp_per_year=costs.fixed_revenue_gbp,
-        )
+        ), costs
 
     if arm == FLAT_RULES:
         # THE CONTROL DOES NOT SEARCH. It prices the constant and then reports what that choice
         # was worth, so the two arms are scored by the same function and any difference between
         # them is the DECISION and never the scorer.
-        p_stay, value = _score(TARGET_MARGIN_GBP_PER_MWH)
+        p_stay, value, costs = _score(TARGET_MARGIN_GBP_PER_MWH)
         return MarginDecision(
             customer_id=customer_id, arm=FLAT_RULES,
             margin_gbp_per_mwh=TARGET_MARGIN_GBP_PER_MWH,
@@ -504,7 +638,6 @@ def decide_margin(
         if max_offered_rate_gbp_per_mwh is None
         or base_rate_gbp_per_mwh + m <= max_offered_rate_gbp_per_mwh + 1e-9
     )
-    ceiling_bound = len(lawful) < len(candidates)
 
     # AND THE MODEL'S OWN EVIDENCE BOUNDS IT TOO. See `max_supported_rate_increase_pct`: the
     # churn cap at 0.95 leaves a floor of customers who never leave, so an unbounded maximiser
@@ -512,7 +645,6 @@ def decide_margin(
     support_pct = max_supported_rate_increase_pct()
     ceiling_from_support = current_rate_gbp_per_mwh * (1.0 + support_pct / 100.0)
     allowed = tuple(m for m in lawful if base_rate_gbp_per_mwh + m <= ceiling_from_support + 1e-9)
-    extrapolation_bound = len(allowed) < len(lawful)
     if not allowed:
         raise MarginDecisionUnavailable(
             f"{customer_id}: no candidate margin survives both the ceiling "
@@ -521,14 +653,40 @@ def decide_margin(
             f"a base rate of {base_rate_gbp_per_mwh}. That is a real answer -- there is no offer "
             "here this company can both lawfully make and honestly predict -- and not a default."
         )
-    scored = [(margin, *_score(margin)) for margin in allowed]
+    scored = {margin: _score(margin) for margin in allowed}
     # TIES GO TO THE LOWER MARGIN, and it is not a rounding convention. On a flat stretch of the
     # switching curve several margins score identically; taking the highest would make the arm
     # prefer charging more for no expected gain, which is the shape a reader would rightly call
     # an excuse rather than a decision.
-    best_margin, best_p, best_value = min(
-        scored, key=lambda row: (-round(row[2], 6), row[0])
-    )
+    def _rank(margin: float) -> tuple[float, float]:
+        return (-round(scored[margin][1], 6), margin)
+
+    bracket_at = min(allowed, key=_rank)
+    # BRACKET WITH THE NEIGHBOURS, then find the peak between them. The grid says which stretch of
+    # the curve this customer's optimum is on; `_refine` says where on it. When the grid's winner
+    # is at an end there is only one neighbour, so the bracket is one-sided and the refinement can
+    # confirm the end rather than invent an interior point that is not there.
+    _at = allowed.index(bracket_at)
+    lo = allowed[max(0, _at - 1)]
+    hi = allowed[min(len(allowed) - 1, _at + 1)]
+    refined_best, refined = _refine(_score, lo, hi)
+    scored.update(refined)
+    # The refinement may never be WORSE than the grid point that bracketed it. It cannot be, on a
+    # bracket it sampled -- but the snap to the 0.25 lattice is a move the search did not choose,
+    # so the comparison is made rather than assumed.
+    best_margin = min((bracket_at, refined_best), key=_rank)
+    best_p, best_value, best_costs = scored[best_margin]
+
+    # DID THE BOUND ACTUALLY DECIDE? Answered by asking what the arm would have chosen with the
+    # bound lifted, because there is no other way to answer it: a candidate can be removed from
+    # the grid without being anywhere near the peak, and on the real book that is the usual case.
+    # The shadow score is a DIAGNOSTIC and never an offer -- it is not added to `considered`, no
+    # caller can act on it, and an unlawful candidate is still never scored as a price this
+    # company would make.
+    unbounded_best = min(candidates, key=lambda m: (-round(_score(m)[1], 6), m))
+    ceiling_bound = (max_offered_rate_gbp_per_mwh is not None
+                     and base_rate_gbp_per_mwh + unbounded_best > max_offered_rate_gbp_per_mwh + 1e-9)
+    extrapolation_bound = base_rate_gbp_per_mwh + unbounded_best > ceiling_from_support + 1e-9
 
     # THE FLOOR IS GONE, AND READING THE LICENCE IS WHY.
     #
@@ -564,14 +722,18 @@ def decide_margin(
     if not verdict.permitted:
         withheld = "{}: {}".format(verdict.condition, verdict.reason)
         best_margin = min(best_margin, TARGET_MARGIN_GBP_PER_MWH)
-        best_p, best_value = _score(best_margin)
+        best_p, best_value, best_costs = _score(best_margin)
 
+    at_floor = withheld is None and best_margin <= allowed[0] + 1e-9
+    at_ceiling = withheld is None and best_margin >= allowed[-1] - 1e-9
     return MarginDecision(
         customer_id=customer_id, arm=VALUE_BASED, margin_gbp_per_mwh=best_margin,
         expected_value_gbp=best_value, p_retain=best_p, expected_periods=periods,
-        cost_to_serve_gbp_per_year=costs.total_gbp, eac_mwh=eac_mwh, costs=costs,
-        considered=tuple((m, v) for m, _p, v in scored),
-        endpoint_bound=withheld is None and best_margin in (allowed[0], allowed[-1]),
+        cost_to_serve_gbp_per_year=best_costs.total_gbp, eac_mwh=eac_mwh, costs=best_costs,
+        considered=tuple(sorted((m, v) for m, (_p, v, _c) in scored.items())),
+        endpoint_bound=at_floor or at_ceiling,
+        endpoint_side=("ceiling" if at_ceiling else "floor" if at_floor else None),
+        candidates_removed=len(candidates) - len(allowed),
         ceiling_bound=ceiling_bound,
         extrapolation_bound=extrapolation_bound,
         withheld_reason=withheld,

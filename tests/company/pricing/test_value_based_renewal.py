@@ -438,3 +438,131 @@ def test_the_market_wide_half_of_a_rate_move_reaches_the_decision(monkeypatch):
     in_a_still_market = _decide_unguarded(monkeypatch, renewal_year=2026)
     assert in_a_moving_market.margin_gbp_per_mwh > in_a_still_market.margin_gbp_per_mwh
     assert in_a_moving_market.p_retain > in_a_still_market.p_retain
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# 2026-08-25, delivery seat: THE CHOICE WAS THE GRID'S, NOT THE CUSTOMER'S.
+#
+# Run over the real 263-account book, this arm returned exactly 130.00 GBP/MWh for 107 accounts
+# and exactly 100.00 for 83 more -- two of its own constants carrying 72% of the book -- while
+# 165 accounts were flagged support-bound. Both readings were wrong in the same direction: the
+# optima were per-customer all along (180 distinct on a 0.25 lattice, every one interior), the
+# grid was rounding them onto four rungs thirty pounds apart, and the bound that looked like the
+# cause was binding on NONE of them.
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+def test_the_chosen_margin_is_the_CUSTOMERS_optimum_and_not_a_RUNG_of_the_grid():
+    """THE HEADLINE, as arithmetic. If the grid were still deciding, the chosen margin would be
+    a member of `CANDIDATE_MARGINS_GBP_PER_MWH` and no margin off it could score better.
+
+    MUTATION (must fire): delete the refinement and return the grid's argmax.
+    """
+    decision = _decide(vbr.VALUE_BASED, max_offered_rate_gbp_per_mwh=250.0)
+
+    assert decision.margin_gbp_per_mwh not in vbr.CANDIDATE_MARGINS_GBP_PER_MWH, (
+        f"the answer is {decision.margin_gbp_per_mwh}, which is a rung of this module's own grid"
+    )
+    on_the_grid = max(
+        v for m, v in decision.considered if m in vbr.CANDIDATE_MARGINS_GBP_PER_MWH)
+    assert decision.expected_value_gbp > on_the_grid, (
+        "the refined answer is worth no more than the best grid rung, so the refinement is "
+        "decoration"
+    )
+
+
+def test_THREE_CUSTOMERS_ON_ONE_GRID_RUNG_GET_THREE_ANSWERS():
+    """The population defect in miniature -- 107 accounts on one rung, reproduced at n=3.
+
+    A 4 MWh, a 6 MWh and a 9 MWh account all sit on the 60.00 rung of the shipped grid, and the
+    grid alone therefore prices them identically. Their own optima are 67.25, 65.00 and 63.25:
+    the bigger the account, the less margin it takes to be worth keeping, which is a sentence
+    about customers and not about candidate lists.
+
+    THE FIRST VERSION OF THIS TEST WAS WRONG AND SAID SO. It used 3,100 vs 3,160 kWh, and after
+    the lattice snap was fixed both correctly returned 69.25 -- a 2% difference in consumption
+    moves the optimum by less than 25p/MWh, so demanding two answers there was demanding
+    precision the decision does not have. Separating the customers by more than the resolution
+    and less than the grid's spacing is what actually tests the claim.
+
+    MUTATION (must fire): return the grid's argmax instead of refining it -- all three collapse
+    to 60.00.
+    """
+    wide = dict(max_offered_rate_gbp_per_mwh=250.0)
+    chosen = [_decide(vbr.VALUE_BASED, eac_kwh=kwh, **wide).margin_gbp_per_mwh
+              for kwh in (4000, 6000, 9000)]
+
+    assert len(set(chosen)) == 3, (
+        f"three different customers on one rung of the grid were given {sorted(set(chosen))} -- "
+        "the answer is being quantised onto something other than the customer"
+    )
+    assert chosen == sorted(chosen, reverse=True), (
+        f"the bigger account is not the keener-priced one ({chosen}), so the ordering is not the "
+        "economics"
+    )
+
+
+def test_a_bound_that_TRIMMED_the_grid_but_did_not_change_the_answer_is_not_reported_as_binding():
+    """WHAT MADE THE SEAT READ THE RECORD WRONG. `extrapolation_bound` used to mean "candidates
+    were removed", and a reader -- correctly -- reads a bound flag as a statement that the bound
+    decided the price. On the real book it fired on 165 accounts and decided none of them.
+
+    MUTATION (must fire): report the flags as `len(allowed) < len(candidates)` again.
+    """
+    trimmed = _decide(vbr.VALUE_BASED, max_offered_rate_gbp_per_mwh=250.0)
+
+    assert trimmed.candidates_removed > 0, "nothing was trimmed, so this proves nothing"
+    assert not trimmed.ceiling_bound, (
+        "a ceiling that removed only candidates the arm would never have chosen is reported as "
+        "having decided the price"
+    )
+    assert not trimmed.endpoint_bound
+
+
+def test_the_NULL_a_ceiling_that_really_does_decide_still_says_so():
+    """The other half of the mutation above: narrowing the meaning must not empty it."""
+    binding = _decide(vbr.VALUE_BASED, max_offered_rate_gbp_per_mwh=130.0)
+
+    assert binding.ceiling_bound, "the ceiling chose the price and the record did not say so"
+    assert binding.endpoint_bound and binding.endpoint_side == "ceiling"
+
+
+def test_a_FLOOR_bound_choice_is_not_reported_as_the_arm_STRAINING_UPWARD():
+    """MEASURED ON THE REAL BOOK: five accounts of 190-340 kWh/year, whose 98.55 GBP standing
+    charge is the entire relationship and whose profit-maximising COMMODITY margin is negative --
+    the arm would sell them electricity below cost to keep the standing charge, and cannot,
+    because the lowest candidate is 0.50. The published verdict called that "chose the highest
+    margin available to it", which is the opposite of what happened.
+
+    MUTATION (must fire): collapse `endpoint_side` back to a single boolean.
+    """
+    tiny = _decide(vbr.VALUE_BASED, eac_kwh=200, cost_to_serve_gbp_per_year=6.0,
+                   expected_periods=1.0, fixed_revenue_gbp_per_year=98.55,
+                   max_offered_rate_gbp_per_mwh=250.0)
+
+    assert tiny.endpoint_side == "floor", (
+        f"a micro-consumption account chose {tiny.margin_gbp_per_mwh} and the record calls that "
+        f"{tiny.endpoint_side}"
+    )
+    assert tiny.margin_gbp_per_mwh == min(vbr.CANDIDATE_MARGINS_GBP_PER_MWH)
+
+
+def test_the_MARGINAL_pound_carries_its_own_default_risk():
+    """Expected cost used to be computed once, off the bill the customer is on TODAY, and held
+    fixed across every candidate -- so a 50% price rise was scored as carrying the default risk
+    of the old price. Bad debt is a fraction of the bill; a bigger bill is a bigger loss.
+
+    MUTATION (must fire): compute `expected_annual_costs` once, outside `_score`.
+    """
+    from saas.payment_behaviour import bad_debt_provision_gbp
+
+    priced = _decide(vbr.VALUE_BASED, credit_risk="high", annual_revenue_gbp=1700.0,
+                     max_offered_rate_gbp_per_mwh=250.0)
+    offered_bill = 1700.0 + (priced.margin_gbp_per_mwh - 2.0) * priced.eac_mwh
+
+    assert priced.margin_gbp_per_mwh > 2.0, "this customer was not repriced, so nothing is proven"
+    assert priced.costs.bad_debt_gbp == pytest.approx(
+        bad_debt_provision_gbp("high", offered_bill)), (
+        "the provision is {:.2f}, which is the rate applied to the bill this customer is on "
+        "today rather than the one they are being offered".format(priced.costs.bad_debt_gbp)
+    )
+    assert priced.costs.bad_debt_gbp > bad_debt_provision_gbp("high", 1700.0)
