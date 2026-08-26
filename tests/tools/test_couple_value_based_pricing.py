@@ -572,3 +572,82 @@ def test_the_refusal_is_reachable_from_the_write_path():
 
     assert "coupling_is_declared()" in tail
     assert tail.index("coupling_is_declared()") < tail.index("write_gap_entry(")
+
+
+# ---------------------------------------------------------------------------
+# population — the block that stops two artefacts being read as one measurement
+# ---------------------------------------------------------------------------
+#
+# THE DEFECT was a reconciliation, not an arithmetic error. This artefact and
+# `docs/observability/value_cycle_ab.json` publish `endpoint_at_ceiling` and `ceiling_bound`
+# from the SAME module over different populations under different ceilings, and on 2026-08-26
+# the two counts were read as contradicting each other ("interior on 255 of 263" against "at the
+# ceiling on 20 of 42"). Both were true. Neither could say so in its own words, and a reader had
+# to open two call sites to find out that only one of them passes a lawful ceiling at all.
+
+
+def test_the_artefact_says_WHICH_decisions_its_endpoint_counts_are_over():
+    out = cvp.compare(RUN, BOOK)
+    population = out["population"]
+
+    assert population["decisions"] == out["accounts_priced"]
+    assert population["distinct_accounts"] == out["accounts_priced"]
+    assert population["as_of_year"] == out["as_of_year"]
+    assert "per ACCOUNT" in population["unit"]
+    assert population["sibling_artefact"].endswith("value_cycle_ab.json")
+
+
+def test_a_ceiling_count_taken_WITHOUT_a_ceiling_says_so_in_its_own_words():
+    """R15 FAIL-OPEN, one level up from the arithmetic. This call site passes no
+    `max_offered_rate_gbp_per_mwh`, so `ceiling_bound` is structurally False for every account
+    and `endpoint_side == "ceiling"` can only mean the top of the candidate grid. Published
+    beside a sibling whose ceiling IS the Ofgem cap, a count that cannot fire reads exactly like
+    a count that fired zero times — and it was read that way."""
+    out = cvp.compare(RUN, BOOK)
+    population = out["population"]
+
+    assert population["lawful_ceiling_passed"] is False
+    assert population["priced_under_a_lawful_ceiling"] == 0
+    assert "NOT the Ofgem price cap" in population["what_endpoint_at_ceiling_means"]
+    assert "structurally False" in population["what_endpoint_at_ceiling_means"]
+    # And every row agrees with the summary rather than the summary asserting it alone.
+    assert all(r["lawful_ceiling_gbp_per_mwh"] is None for r in out["accounts"])
+    assert all(r["ceiling_bound"] is False for r in out["accounts"])
+
+
+def test_the_disclaimer_LIFTS_BY_ITSELF_the_day_a_real_ceiling_is_passed():
+    """MUTATION, and the one that matters: the block must be COMPUTED from the arguments
+    actually passed, never asserted. A prose note saying "no ceiling here" is a comment that
+    rots the moment someone threads one through — which is exactly what happened on the sibling
+    call site (`8b450a839`), where a ceiling that never reached the search left the flag whose
+    whole job was to report it unable to fire for months.
+
+    So the PASS branch is exercised directly with rows that carry a ceiling. Without this the
+    block is a constant wearing a computation's clothes: mutation would red it either way,
+    because it was only ever going to say one thing (R15, the unreachable-PASS-branch shape)."""
+    rows = [{"customer_id": "C1", "lawful_ceiling_gbp_per_mwh": 400.0},
+            {"customer_id": "C2", "lawful_ceiling_gbp_per_mwh": 350.0}]
+
+    population = cvp._population(rows, 2025)
+
+    assert population["lawful_ceiling_passed"] is True
+    assert population["priced_under_a_lawful_ceiling"] == 2
+    assert "NOT the Ofgem price cap" not in population["what_endpoint_at_ceiling_means"]
+    assert "is a measurement" in population["what_endpoint_at_ceiling_means"]
+
+    # And the OFF side of the same call, so the two branches are proven by one test rather
+    # than by two that could each be passing for the wrong reason.
+    off = cvp._population([{"customer_id": "C1", "lawful_ceiling_gbp_per_mwh": None}], 2025)
+    assert off["lawful_ceiling_passed"] is False
+    assert "structurally False" in off["what_endpoint_at_ceiling_means"]
+
+
+def test_the_row_level_ceiling_is_READ_from_the_call_sites_own_arguments():
+    """The summary can only be honest if the row it counts is derived rather than written. A
+    literal `None` in the record would make `lawful_ceiling_passed` a constant no future edit
+    could move, and the test above would still pass."""
+    source = Path(__file__).resolve().parents[2].joinpath(
+        "tools/couple_value_based_pricing.py").read_text(encoding="utf-8")
+
+    assert '"lawful_ceiling_gbp_per_mwh": common.get("max_offered_rate_gbp_per_mwh")' in source
+    assert '"lawful_ceiling_gbp_per_mwh": None' not in source

@@ -388,6 +388,17 @@ def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
             #: WHICH end, because "wanted to charge more than it may" and "wanted to charge less
             #: than it may" are opposite findings and this record used to report them as one.
             "endpoint_side": value.endpoint_side,
+            #: WHICH LAWFUL CEILING THIS ANSWER WAS DECIDED UNDER, or none -- read off the
+            #: arguments actually passed rather than described in a comment. This call site
+            #: passes no `max_offered_rate_gbp_per_mwh`, so `ceiling_bound` below is
+            #: structurally False for every account here and `endpoint_side == "ceiling"` can
+            #: only mean the top of the candidate grid under the churn model's support bound.
+            #: The sibling artefact (`docs/observability/value_cycle_ab.json`) prices under the
+            #: Ofgem domestic cap and publishes counts with the SAME NAMES, and the two were
+            #: read side by side as contradicting each other. Recorded per account so the day a
+            #: ceiling is threaded through here this becomes true by itself instead of leaving
+            #: a comment to rot.
+            "lawful_ceiling_gbp_per_mwh": common.get("max_offered_rate_gbp_per_mwh"),
             "ceiling_bound": value.ceiling_bound,
             "extrapolation_bound": value.extrapolation_bound,
             #: How many candidates the bounds took off the grid, separately from whether that
@@ -419,6 +430,12 @@ def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
         "as_of_year": as_of_year,
         "accounts_priced": n,
         "accounts_skipped": dict(skipped),
+        #: WHAT THE COUNTS BELOW ARE OVER, AND UNDER WHICH BOUNDS. See `_population`: this
+        #: artefact and the realised A/B publish `endpoint_at_ceiling` under one name over two
+        #: different populations under two different ceilings, and on 2026-08-26 the two were
+        #: read as contradicting each other ("interior on 255 of 263" against "at the ceiling on
+        #: 20 of 42"). Both were true. Neither could say so in its own words.
+        "population": _population(per_account, as_of_year),
         "control": {
             "arm": FLAT_RULES,
             "margin_gbp_per_mwh": TARGET_MARGIN_GBP_PER_MWH,
@@ -452,6 +469,47 @@ def compare(run: dict, book: dict, as_of_year: int = AS_OF_YEAR) -> dict:
         "belief_vs_truth": belief,
         "verdict": _verdict(per_account, belief, _average_player_summary(per_account)),
         "accounts": per_account,
+    }
+
+
+def _population(rows: list[dict], as_of_year: int) -> dict:
+    """WHICH decisions these counts are over, so they cannot be compared by name alone.
+
+    THE DEFECT THIS DISCHARGES is a reconciliation, not an arithmetic error. This artefact and
+    `docs/observability/value_cycle_ab.json` both publish `endpoint_bound`, `endpoint_at_ceiling`
+    and `ceiling_bound`, computed by the same `decide_margin` — and they disagree, because they
+    ask it different questions:
+
+      * here — ONE decision per account, taken at a single moment (`as_of_year`), off a finished
+        run's own record, with NO lawful ceiling passed;
+      * there — one decision per RENEWAL EVENT a ten-year run actually reached, at that term's
+        own rate under that term's own Ofgem cap window.
+
+    So `endpoint_at_ceiling` does not mean the same thing in the two files, and until this block
+    existed nothing in either said so. `what_endpoint_at_ceiling_means` is COMPUTED from whether
+    a ceiling was in fact passed, not asserted, so it changes by itself if that ever changes.
+    """
+    under_ceiling = sum(1 for r in rows if r.get("lawful_ceiling_gbp_per_mwh") is not None)
+    return {
+        "unit": "one renewal decision per ACCOUNT, taken at a single moment",
+        "as_of_year": as_of_year,
+        "decisions": len(rows),
+        "distinct_accounts": len({r["customer_id"] for r in rows}),
+        "priced_under_a_lawful_ceiling": under_ceiling,
+        "lawful_ceiling_passed": bool(under_ceiling),
+        "what_endpoint_at_ceiling_means": (
+            "the top of the candidate grid under the churn model's own support bound, and NOT "
+            "the Ofgem price cap: this call site passes no `max_offered_rate_gbp_per_mwh`, so "
+            "`ceiling_bound` is structurally False for every account here and its count is not "
+            "a measurement of anything. A run that DOES price under the cap will report a far "
+            "larger ceiling count on the same book and the same module, and that is not a "
+            "contradiction."
+            if not under_ceiling else
+            "the highest margin this account could lawfully be offered -- a real ceiling was "
+            "passed for {} of {} decisions, so `ceiling_bound` here is a measurement and can be "
+            "compared with the realised A/B's.".format(under_ceiling, len(rows))
+        ),
+        "sibling_artefact": "docs/observability/value_cycle_ab.json",
     }
 
 

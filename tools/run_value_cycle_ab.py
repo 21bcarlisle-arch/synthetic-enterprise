@@ -83,6 +83,13 @@ OUTPUT_PATH = PROJECT_DIR / "docs" / "observability" / "value_cycle_ab.json"
 #: computed. Read here, never recomputed -- see `control_credibility`.
 ARMS_ARTEFACT = PROJECT_DIR / "docs" / "observability" / "value_based_pricing_arms.json"
 
+#: The share -- of the arm's priced answers, or of the money it moved -- at which a BOUND
+#: rather than a customer is the honest subject of this artefact's headline. It is not a
+#: target, not a gate, and nothing passes or fails against it (R12): it is the single point at
+#: which the sentence `bound_attribution` writes has to change, named here so a reader can
+#: disagree with it in one place instead of inferring it from prose.
+BOUND_DECIDED_HEADLINE_SHARE = 0.5
+
 
 def realised_metrics(result: dict) -> dict:
     """What the WORLD did to one arm's book. Nothing the company believed appears here.
@@ -861,6 +868,296 @@ def arm_decision_shape(result: dict) -> dict:
     }
 
 
+def bound_attribution(control: dict, value: dict) -> dict:
+    """WHO CHOSE the arm's prices -- the customer, or a bound -- and where the money sits.
+
+    THE HEADLINE SECTION, and the thing `decision_shape` could report but not say. That block
+    counts `ceiling_bound` and `extrapolation_bound` honestly and leaves them among fourteen
+    other integers, so an artefact in which the lawful price cap set the margin on half the
+    arm's answers reads exactly like one in which it set none of them.
+
+    "The advantage must come from INFERENCE, never ACCESS" fails just as completely when the
+    advantage comes from a BOUND. A margin set by the ceiling is a margin the arm did not
+    choose: lift the ceiling and it would have gone higher, which is precisely what
+    `decide_margin` records `ceiling_bound` to answer -- *"DID THE BOUND ACTUALLY DECIDE?
+    Answered by asking what the arm would have chosen with the bound lifted, because there is
+    no other way to answer it."* This section carries that per-decision answer up to the
+    headline and puts the realised money beside it.
+
+    TWO BOUNDS, NAMED APART, because they are opposite findings. The CEILING is the Ofgem
+    domestic cap -- an external, lawful constraint a real supplier really has, and a price
+    pinned to it says the company's beliefs did not bite before the law did. The SUPPORT bound
+    is `max_supported_rate_increase_pct()` -- the frontier of what the churn model has evidence
+    for, which is this company's own ignorance and not a fact about the world.
+
+    THE MONEY, not only the count. A bound that decided many cheap answers and no expensive
+    ones is a footnote; one that decided the three accounts carrying the delta is the headline.
+    Attribution is by BILLING ACCOUNT because that is the unit the realised margin is summed on,
+    and an account is counted as bound-decided if ANY of its renewals was -- deliberately the
+    inclusive reading, since a single capped renewal fixes the rate that account then pays for
+    a whole term.
+    """
+    log = [e for e in ((value.get("phase2b") or {}).get("value_arm_log") or [])
+           if not e.get("declined")]
+    if not log:
+        return {
+            "available": False,
+            "why_not": (
+                "this arm priced no renewal, so there is no answer to attribute. Expected for "
+                "the control arm; on the value arm it means the writer never fired, and "
+                "`decision_shape` says the same thing."
+            ),
+        }
+
+    ceiling = [e for e in log if e.get("ceiling_bound")]
+    #: SUPPORT-ONLY, so the two counts do not double-count a decision both bounds reached. The
+    #: ceiling is named first because it is the binding one when both apply: the company may
+    #: not offer above it whatever its model believes.
+    support = [e for e in log if e.get("extrapolation_bound") and not e.get("ceiling_bound")]
+    bound_decided = ceiling + support
+    freely_chosen = [e for e in log
+                     if not e.get("ceiling_bound") and not e.get("extrapolation_bound")]
+
+    def _median(entries: list[dict]) -> float | None:
+        margins = sorted(e["chosen_margin_gbp_per_mwh"] for e in entries)
+        return round(margins[len(margins) // 2], 2) if margins else None
+
+    control_book, _ = _lifetime_by_billing_account(control)
+    value_book, basis = _lifetime_by_billing_account(value)
+    bound_accounts = {_billing_account_id(e["customer_id"]) for e in bound_decided
+                      if isinstance(e.get("customer_id"), str)}
+    net_on_bound = net_elsewhere = abs_on_bound = abs_elsewhere = 0.0
+    for account_id in set(control_book) | set(value_book):
+        c = (control_book.get(account_id) or {}).get("total")
+        v = (value_book.get(account_id) or {}).get("total")
+        if c is None and v is None:
+            continue
+        delta = (v or 0.0) - (c or 0.0)
+        if account_id in bound_accounts:
+            net_on_bound += delta
+            abs_on_bound += abs(delta)
+        else:
+            net_elsewhere += delta
+            abs_elsewhere += abs(delta)
+    total_abs = abs_on_bound + abs_elsewhere
+    share_of_movement = (abs_on_bound / total_abs) if total_abs else None
+    share_of_priced = len(bound_decided) / len(log)
+
+    if not bound_decided:
+        decided_by = "the customer"
+    elif (share_of_priced >= BOUND_DECIDED_HEADLINE_SHARE
+          or (share_of_movement or 0.0) >= BOUND_DECIDED_HEADLINE_SHARE):
+        decided_by = "a bound"
+    else:
+        decided_by = "mixed"
+
+    headline = (
+        "{bound} of {priced} priced renewals ({pct:.0%}) had their margin set by a bound rather "
+        "than by anything about the customer -- {ceiling} by the lawful price cap and {support} "
+        "by the frontier of what the churn model has evidence for. Those decisions sit on "
+        "{accounts} billing account(s) carrying {money}of the realised margin movement between "
+        "the arms. On this run the arm's answers were decided by {verdict}."
+    ).format(
+        bound=len(bound_decided), priced=len(log), pct=share_of_priced,
+        ceiling=len(ceiling), support=len(support), accounts=len(bound_accounts),
+        money=("{:.0%} ".format(share_of_movement) if share_of_movement is not None
+               else "an unmeasurable share "),
+        verdict=decided_by,
+    )
+
+    return {
+        "available": True,
+        #: THE ONE LINE. Computed from the counts above every time, never stored, so it cannot
+        #: describe a previous run.
+        "headline": headline,
+        "decided_by": decided_by,
+        "headline_share_threshold": BOUND_DECIDED_HEADLINE_SHARE,
+        "priced": len(log),
+        "decided_by_the_lawful_ceiling": len(ceiling),
+        "decided_by_the_model_support_bound": len(support),
+        "chosen_freely": len(freely_chosen),
+        "share_of_priced_decided_by_a_bound": round(share_of_priced, 4),
+        #: A CROSS-CHECK BETWEEN TWO FIELDS THAT MUST AGREE and are computed independently:
+        #: `ceiling_bound` is the shadow-score answer (what would it have chosen with the cap
+        #: lifted), `endpoint_side` is where the winner sat in the allowed set. A ceiling-bound
+        #: decision that did NOT sit at the ceiling means the search and the shadow score have
+        #: come apart, and that is a defect in `decide_margin` rather than a caveat here.
+        "ceiling_bound_and_sat_at_that_end": sum(
+            1 for e in ceiling if e.get("endpoint_side") == "ceiling"),
+        "median_margin_gbp_per_mwh": {
+            "decided_by_the_lawful_ceiling": _median(ceiling),
+            "decided_by_the_model_support_bound": _median(support),
+            "chosen_freely": _median(freely_chosen),
+            "control": TARGET_MARGIN_GBP_PER_MWH,
+            "what_the_gap_says": (
+                "if the ceiling-decided median sits well above the freely-chosen one, the arm "
+                "wanted more than the law allows on exactly the customers it was stopped on, "
+                "and the cap -- not the churn belief -- is what held the price down."
+            ),
+        },
+        "realised_margin_movement": {
+            "margin_basis": basis,
+            "billing_accounts_with_a_bound_decided_renewal": len(bound_accounts),
+            "net_delta_gbp_on_those_accounts": net_on_bound,
+            "net_delta_gbp_elsewhere": net_elsewhere,
+            "absolute_movement_gbp_on_those_accounts": abs_on_bound,
+            "absolute_movement_gbp_elsewhere": abs_elsewhere,
+            "share_of_absolute_movement_on_those_accounts": (
+                round(share_of_movement, 4) if share_of_movement is not None else None),
+        },
+        "what_would_change_this": (
+            "NOT moving the ceiling. A price pinned to the Ofgem cap becomes an inference the "
+            "moment the company's own belief turns the expected value over BELOW that cap -- "
+            "i.e. when the churn model punishes a supplier-specific rise hard enough that the "
+            "optimum is interior for a reason about the customer. Any change to that "
+            "sensitivity is a fidelity change: it must cite a published source and be decided "
+            "blind to what it does to this delta (R13, R12). If no defensible curve makes the "
+            "optimum interior, that is the answer and it belongs here rather than in a moved "
+            "bound."
+        ),
+        "reading": (
+            "`decided_by` is a description of THIS run and never a target (R12). \"the "
+            "customer\" means no priced answer was bound-decided; \"a bound\" means a bound "
+            "decided at least half of the answers or at least half of the money; \"mixed\" is "
+            "everything between, and it means the headline must not be attributed to either "
+            "without naming which half. A positive delta under \"a bound\" is not a refutation "
+            "of value-based pricing -- it is a statement that this run did not test it."
+        ),
+    }
+
+
+def _arms_path_label() -> str:
+    """The artefact's path as a reader would cite it, without assuming where it lives.
+
+    `Path.relative_to` RAISES on a path outside the repo, and the whole point of a section that
+    reports its own source is that the source can be redirected -- by a test, or by a caller
+    pointing at a prior snapshot. A message-formatting call that can raise turns an unavailable
+    check into a crash, which is a worse answer than either.
+    """
+    try:
+        return str(ARMS_ARTEFACT.relative_to(PROJECT_DIR))
+    except ValueError:
+        return str(ARMS_ARTEFACT)
+
+
+def cross_section_reconciliation(shape: dict) -> dict:
+    """Why this run's endpoint counts and the coupler's disagree, with both populations named.
+
+    THE READING THAT PROMPTED THIS, on 2026-08-26: the cross-section artefact reported interior
+    optima on 255 of 263 accounts while this one reported 20 of 42 priced renewals at the
+    ceiling, and the two were taken as contradicting each other. They do not. They are two
+    questions put to one module (`company.pricing.value_based_renewal.decide_margin`) over
+    different populations under different bounds, and BOTH answers are correct.
+
+    READ, never recomputed -- the same rule `control_credibility` follows and for the same
+    reason: two independent computations of one quantity that drift apart is the
+    `CLASS_MEASUREMENTS_THAT_MIRROR` shape this project has filed against itself. The coupler
+    owns its own population block; this reads it. If that block is absent the artefact is stale,
+    and this section says so rather than reconciling against numbers whose meaning it is
+    guessing at.
+    """
+    if not ARMS_ARTEFACT.is_file():
+        return {
+            "available": False,
+            "why_not": (
+                "{} has not been generated; run `python3 -m tools.couple_value_based_pricing`. "
+                "Until then this run's endpoint counts have nothing to be reconciled against."
+            ).format(_arms_path_label()),
+        }
+    try:
+        arms = json.loads(ARMS_ARTEFACT.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        return {"available": False, "why_not": f"{ARMS_ARTEFACT.name} unreadable: {exc}"}
+    population = arms.get("population")
+    if not isinstance(population, dict):
+        return {
+            "available": False,
+            "why_not": (
+                "{} predates the `population` block, so it does not say which ceiling its "
+                "`endpoint_at_ceiling` counts or how many decisions it took per account. "
+                "Re-run `python3 -m tools.couple_value_based_pricing`. Reconciling against it "
+                "without that block would mean assuming the very thing the two artefacts were "
+                "read as disagreeing about."
+            ).format(_arms_path_label()),
+        }
+
+    return {
+        "available": True,
+        "read_from": str(_arms_path_label()),
+        "why_this_is_here": (
+            "Both artefacts publish `endpoint_at_ceiling` and `ceiling_bound` from the same "
+            "module, and on 2026-08-26 the two counts were read as contradicting each other. "
+            "They are measured over different populations under different ceilings. Neither is "
+            "wrong; the names are."
+        ),
+        "cross_section": {
+            "unit": population.get("unit"),
+            "as_of_year": population.get("as_of_year"),
+            "decisions": population.get("decisions"),
+            "distinct_accounts": population.get("distinct_accounts"),
+            "lawful_ceiling_passed": population.get("lawful_ceiling_passed"),
+            "priced_under_a_lawful_ceiling": population.get("priced_under_a_lawful_ceiling"),
+            "endpoint_bound": arms.get("endpoint_bound"),
+            "endpoint_at_ceiling": arms.get("endpoint_at_ceiling"),
+            "endpoint_at_floor": arms.get("endpoint_at_floor"),
+            "extrapolation_bound": arms.get("extrapolation_bound"),
+            "what_endpoint_at_ceiling_means": population.get("what_endpoint_at_ceiling_means"),
+        },
+        "this_run": {
+            "unit": "one renewal decision per RENEWAL EVENT the run actually reached",
+            "decisions": shape.get("priced"),
+            "declined": shape.get("declined"),
+            "lawful_ceiling_passed": True,
+            "endpoint_bound": shape.get("endpoint_bound"),
+            "endpoint_at_ceiling": shape.get("endpoint_at_ceiling"),
+            "endpoint_at_floor": shape.get("endpoint_at_floor"),
+            "extrapolation_bound": shape.get("extrapolation_bound"),
+            "what_endpoint_at_ceiling_means": (
+                "the highest margin the Ofgem domestic cap allowed at that term's own cap "
+                "window, threaded into the search by `renewal_rate_chain` (8b450a839) rather "
+                "than clamped on afterwards."
+            ),
+        },
+        "the_three_differences": [
+            {
+                "difference": "population",
+                "measured": (
+                    "{} decision(s) over {} account(s) priced once at {}, against {} renewal "
+                    "event(s) this run actually reached across its whole window -- repeat "
+                    "visits to a smaller roster, at each term's own rate."
+                ).format(population.get("decisions"), population.get("distinct_accounts"),
+                         population.get("as_of_year"), shape.get("priced")),
+            },
+            {
+                "difference": "ceiling",
+                "measured": (
+                    "the cross-section priced {} of {} decision(s) under a lawful ceiling; this "
+                    "run priced every one under the domestic cap for its own term. Where no "
+                    "ceiling is passed `ceiling_bound` cannot fire at all, so a low ceiling "
+                    "count there is not evidence that the cap does not bind."
+                ).format(population.get("priced_under_a_lawful_ceiling"),
+                         population.get("decisions")),
+            },
+            {
+                "difference": "conditions",
+                "measured": (
+                    "the cross-section prices every account at one year's rates and one cap "
+                    "window; this run prices each renewal at the rate and cap in force when it "
+                    "fell, including the 2021-23 crisis window where the base rate is nearest "
+                    "the cap and the ceiling therefore binds hardest."
+                ),
+            },
+        ],
+        "what_this_does_NOT_reconcile": (
+            "Interior on the cross-section and ceiling-bound here are consistent AND both "
+            "unflattering: they say the belief's optimum is interior to the model's own support "
+            "but lies ABOVE what the company may lawfully charge. The customer-level question "
+            "-- does the churn model punish a supplier-specific rise before the law does -- is "
+            "open either way. See `bound_attribution.what_would_change_this`."
+        ),
+    }
+
+
 def control_credibility() -> dict:
     """CAVEAT 2, READ rather than recomputed: what an efficient supplier is allowed to earn.
 
@@ -881,7 +1178,7 @@ def control_credibility() -> dict:
             "why_not": (
                 "{} has not been generated; run `python3 -m tools.couple_value_based_pricing` "
                 "to produce the regulated-allowance comparison this caveat quotes."
-            ).format(ARMS_ARTEFACT.relative_to(PROJECT_DIR)),
+            ).format(_arms_path_label()),
         }
     try:
         block = json.loads(ARMS_ARTEFACT.read_text(encoding="utf-8"))["average_player"]
@@ -891,7 +1188,7 @@ def control_credibility() -> dict:
         return {"available": False, "why_not": "the coupler could not score the average player"}
     return {
         "available": True,
-        "read_from": str(ARMS_ARTEFACT.relative_to(PROJECT_DIR)),
+        "read_from": str(_arms_path_label()),
         "source": block.get("source"),
         "accounts_scored": block.get("accounts_scored"),
         "regulated_allowance_median_gbp_per_mwh": [
@@ -938,6 +1235,7 @@ def run_value_cycle_ab(report_end: str | None = None) -> dict:
     control_m = realised_metrics(control)
     value_m = realised_metrics(value)
     delta_net = value_m["total_net_gbp"] - control_m["total_net_gbp"]
+    shape = arm_decision_shape(value)
 
     return {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -980,7 +1278,14 @@ def run_value_cycle_ab(report_end: str | None = None) -> dict:
         # with no mechanism, which is the shape that let a GBP 3.08M figure stand for two days.
         "gross_to_net_bridge": gross_to_net_bridge(control, value),
         "churn_volume_attribution": churn_volume_attribution(control, value),
-        "decision_shape": arm_decision_shape(value),
+        "decision_shape": shape,
+        # WHO CHOSE the prices -- the customer or a bound -- as one sentence, above the
+        # calibration work, because how well a belief was calibrated is a secondary question
+        # on a decision the belief did not make. See `bound_attribution`.
+        "bound_attribution": bound_attribution(control, value),
+        # Why this run's endpoint counts and the cross-section coupler's disagree, with both
+        # populations named. Read from the coupler's artefact, never recomputed.
+        "cross_section_reconciliation": cross_section_reconciliation(shape),
         # Was the advantage INFERENCE, or a profitable miscalibration? The two produce the
         # same P&L and completely different conclusions -- see `belief_vs_outcome`.
         "belief_vs_outcome": belief_vs_outcome(value),
@@ -992,8 +1297,11 @@ def run_value_cycle_ab(report_end: str | None = None) -> dict:
         "margin_movers": margin_movers(control, value),
         "control_credibility": control_credibility(),
         "how_to_read_this": (
-            "A positive net-margin delta does NOT establish the thesis on its own. Check three "
-            "things first, all carried above: how many of the arm's answers an endpoint or the "
+            "A positive net-margin delta does NOT establish the thesis on its own. READ "
+            "`bound_attribution.headline` FIRST -- it says in one sentence whether the "
+            "customer or a bound chose these prices, and an advantage that came from a bound "
+            "is no more the company's inference than one that came from access. Then check "
+            "three things, all carried above: how many of the arm's answers an endpoint or the "
             "support bound decided rather than the customer (`decision_shape`), how weak the "
             "control is against the regulated allowance (`control_credibility`), and how many "
             "renewals the arm actually priced (`renewals_priced_by_the_arm`) -- a small delta "
@@ -1035,6 +1343,11 @@ def main(argv: list[str] | None = None) -> int:
     print("  arm priced {} renewal(s), {} distinct margins, {} endpoint-bound".format(
         shape.get("priced", 0), shape.get("distinct_margins", 0),
         shape.get("endpoint_bound", 0)))
+    # THE HEADLINE ON THE TERMINAL TOO, not only in the file. A caller who reads the printed
+    # net-margin delta and stops is exactly the reader this section was written for.
+    bound = result["bound_attribution"]
+    print("  WHO CHOSE   {}".format(
+        bound["headline"] if bound.get("available") else bound.get("why_not")))
     print("  wrote {}".format(args.out))
     return 0
 

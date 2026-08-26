@@ -53,14 +53,19 @@ test, and `margin_basis` is published beside the figures so the two bases cannot
 (R14).
 """
 
+import json
+
 import pytest
 
+from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 from simulation.live_population import served_segments
+from tools import run_value_cycle_ab as rvca
 from tools.run_value_cycle_ab import (
     REPORTED_BASIS,
     SETTLED_BASIS,
     belief_vs_outcome,
     book_identity,
+    bound_attribution,
     churn_roster_diff,
     churn_volume_attribution,
     gross_to_net_bridge,
@@ -865,3 +870,295 @@ def test_the_book_names_the_segments_it_was_allowed_to_serve(monkeypatch):
 
     monkeypatch.setenv("SE_SERVED_SEGMENTS", "resi,SME")
     assert book_identity(_ledger([_elec("C1", gross=1.0)]))["served_segments"] == ["resi", "SME"]
+
+
+# ---------------------------------------------------------------------------
+# bound_attribution — who chose the price, the customer or a bound
+# ---------------------------------------------------------------------------
+#
+# "The advantage must come from INFERENCE, never ACCESS" fails just as completely when the
+# advantage comes from a BOUND: a margin pinned to the lawful ceiling is a margin the arm did
+# not choose. `decision_shape` counted `ceiling_bound` honestly and left it among fourteen other
+# integers, so an artefact in which the price cap set half the arm's answers read exactly like
+# one in which it set none of them. This section is the sentence that block could not say, and
+# these tests are what stop it becoming a constant.
+
+def _priced(account, *, margin=30.0, ceiling=False, support=False, side="auto",
+            term="2020-01-01"):
+    return {"customer_id": account, "term_start": term,
+            "chosen_margin_gbp_per_mwh": margin,
+            "ceiling_bound": ceiling, "extrapolation_bound": support,
+            "endpoint_side": ("ceiling" if ceiling else None) if side == "auto" else side}
+
+
+def _arm_priced(log, lifetimes):
+    return {"phase2b": {"value_arm_log": log},
+            "per_customer_lifetime": {k: _life(v) for k, v in lifetimes.items()}}
+
+
+FLAT = {"A": 100.0, "B": 100.0, "C": 100.0, "D": 100.0}
+
+
+def test_an_arm_whose_answers_were_all_its_own_says_THE_CUSTOMER():
+    """The PASS branch, and it has to be reachable or the verdict is a constant reporting
+    itself as a measurement (R15's fourth shape)."""
+    value = _arm_priced([_priced(a) for a in "ABCD"], dict(FLAT, A=200.0))
+
+    out = bound_attribution(_arm_priced([], FLAT), value)
+
+    assert out["decided_by"] == "the customer"
+    assert out["decided_by_the_lawful_ceiling"] == 0
+    assert out["decided_by_the_model_support_bound"] == 0
+    assert out["chosen_freely"] == 4
+    assert out["share_of_priced_decided_by_a_bound"] == 0.0
+    assert "decided by the customer" in out["headline"]
+
+
+def test_an_arm_the_price_cap_decided_says_A_BOUND_and_names_which_one():
+    """The measured state on 2026-08-26: 20 of 42 priced renewals at the lawful ceiling. The
+    headline must say the cap chose them, not that the arm did."""
+    log = [_priced("A", ceiling=True), _priced("B", ceiling=True),
+           _priced("C"), _priced("D")]
+
+    out = bound_attribution(_arm_priced([], FLAT), _arm_priced(log, FLAT))
+
+    assert out["decided_by"] == "a bound"
+    assert out["decided_by_the_lawful_ceiling"] == 2
+    assert out["share_of_priced_decided_by_a_bound"] == 0.5
+    assert "2 by the lawful price cap" in out["headline"]
+    assert "0 by the frontier" in out["headline"]
+
+
+def test_the_two_bounds_are_counted_APART_and_never_twice():
+    """The ceiling is an external law a real supplier really has; the support bound is this
+    company's own ignorance. Reporting them as one number makes those read the same, and a
+    decision both bounds reached must not be counted twice."""
+    log = [_priced("A", ceiling=True, support=True), _priced("B", support=True),
+           _priced("C"), _priced("D")]
+
+    out = bound_attribution(_arm_priced([], FLAT), _arm_priced(log, FLAT))
+
+    assert out["decided_by_the_lawful_ceiling"] == 1
+    assert out["decided_by_the_model_support_bound"] == 1
+    assert out["chosen_freely"] == 2
+    assert (out["decided_by_the_lawful_ceiling"] + out["decided_by_the_model_support_bound"]
+            + out["chosen_freely"]) == out["priced"]
+
+
+def test_a_bound_that_decided_FEW_answers_but_ALL_THE_MONEY_still_says_A_BOUND():
+    """THE MUTATION THAT MATTERS. A count-only attribution is blind to exactly the case this
+    artefact keeps producing: `margin_movers` has reported 99.4% of the absolute movement on
+    fifteen accounts. One capped renewal on the account carrying the delta IS the headline, and
+    a section that only counted decisions would call it a footnote."""
+    log = [_priced("A", ceiling=True), _priced("B"), _priced("C"), _priced("D")]
+    value = _arm_priced(log, dict(FLAT, A=1000.0, B=110.0, C=110.0, D=110.0))
+
+    out = bound_attribution(_arm_priced([], FLAT), value)
+
+    assert out["share_of_priced_decided_by_a_bound"] == 0.25       # a minority of ANSWERS
+    money = out["realised_margin_movement"]
+    assert money["share_of_absolute_movement_on_those_accounts"] > 0.9
+    assert money["net_delta_gbp_on_those_accounts"] == pytest.approx(900.0)
+    assert money["net_delta_gbp_elsewhere"] == pytest.approx(30.0)
+    assert out["decided_by"] == "a bound"
+
+
+def test_a_bound_that_decided_few_answers_and_little_money_says_MIXED():
+    """The third branch, and it must not collapse into either neighbour: a minority bound is
+    neither 'the customer chose' nor 'a bound chose', and saying so is the honest answer."""
+    log = [_priced("A", ceiling=True), _priced("B"), _priced("C"), _priced("D")]
+    value = _arm_priced(log, dict(FLAT, A=110.0, B=1000.0, C=110.0, D=110.0))
+
+    out = bound_attribution(_arm_priced([], FLAT), value)
+
+    assert out["realised_margin_movement"][
+        "share_of_absolute_movement_on_those_accounts"] < 0.05
+    assert out["decided_by"] == "mixed"
+    assert "decided by mixed" in out["headline"]
+
+
+def test_the_median_margin_is_split_by_WHO_DECIDED_IT():
+    """The diagnostic the whole section exists to expose: if the ceiling-decided median sits
+    well above the freely-chosen one, the arm wanted more than the law allows on exactly the
+    customers it was stopped on, and the cap — not the churn belief — held the price down."""
+    log = [_priced("A", margin=180.0, ceiling=True), _priced("B", margin=190.0, ceiling=True),
+           _priced("C", margin=20.0), _priced("D", margin=24.0)]
+
+    medians = bound_attribution(_arm_priced([], FLAT),
+                                _arm_priced(log, FLAT))["median_margin_gbp_per_mwh"]
+
+    assert medians["decided_by_the_lawful_ceiling"] == 190.0
+    assert medians["chosen_freely"] == 24.0
+    assert medians["decided_by_the_model_support_bound"] is None
+    assert medians["control"] == TARGET_MARGIN_GBP_PER_MWH
+
+
+def test_a_ceiling_bound_answer_that_did_NOT_sit_at_the_ceiling_is_visible():
+    """A cross-check between two fields computed independently inside `decide_margin`:
+    `ceiling_bound` is the shadow score (what it would have chosen with the cap lifted),
+    `endpoint_side` is where the winner actually sat. They must agree; a divergence is a defect
+    in the search rather than a caveat here, and it has to be countable to be noticed."""
+    log = [_priced("A", ceiling=True, side="ceiling"), _priced("B", ceiling=True, side=None)]
+
+    out = bound_attribution(_arm_priced([], FLAT), _arm_priced(log, FLAT))
+
+    assert out["decided_by_the_lawful_ceiling"] == 2
+    assert out["ceiling_bound_and_sat_at_that_end"] == 1
+
+
+def test_declines_are_not_counted_as_answers_a_bound_decided():
+    """A decline is a decision and `decision_shape` counts it — but it is not a PRICE, and
+    folding it in here would dilute the share of answers a bound chose."""
+    log = [_priced("A", ceiling=True), _priced("B", ceiling=True),
+           {"customer_id": "C", "declined": True, "reason": "no lawful predictable offer"}]
+
+    out = bound_attribution(_arm_priced([], FLAT), _arm_priced(log, FLAT))
+
+    assert out["priced"] == 2
+    assert out["share_of_priced_decided_by_a_bound"] == 1.0
+
+
+def test_the_control_arm_is_UNAVAILABLE_with_a_reason_rather_than_a_flattering_zero():
+    """An arm that priced nothing has no answers to attribute. Reporting `decided_by: the
+    customer` there would be a control arm claiming the thesis."""
+    out = bound_attribution(_arm_priced([], FLAT), _arm_priced([], FLAT))
+
+    assert out["available"] is False
+    assert "priced no renewal" in out["why_not"]
+    assert "decided_by" not in out
+
+
+def test_the_headline_is_COMPUTED_and_moves_with_the_run():
+    """A stored sentence describes whichever run wrote it. This one is rebuilt from the counts
+    every time, so it cannot outlive them."""
+    few = bound_attribution(_arm_priced([], FLAT),
+                            _arm_priced([_priced("A", ceiling=True)] + [_priced(a) for a in "BCD"],
+                                        FLAT))["headline"]
+    many = bound_attribution(_arm_priced([], FLAT),
+                             _arm_priced([_priced(a, ceiling=True) for a in "ABCD"],
+                                         FLAT))["headline"]
+
+    assert "1 of 4 priced renewals (25%)" in few
+    assert "4 of 4 priced renewals (100%)" in many
+    assert few != many
+
+
+def test_the_section_refuses_to_recommend_moving_the_ceiling():
+    """R12/R13 in the artefact's own words. The one repair this finding must never propose is
+    the one that makes the number go away, and the artefact is where a later reader looks."""
+    out = bound_attribution(_arm_priced([], FLAT),
+                            _arm_priced([_priced("A", ceiling=True)], FLAT))
+
+    assert out["what_would_change_this"].startswith("NOT moving the ceiling")
+    assert "cite a published source" in out["what_would_change_this"]
+    assert "blind to what it does to this delta" in out["what_would_change_this"]
+
+
+# ---------------------------------------------------------------------------
+# cross_section_reconciliation — why the two artefacts' endpoint counts differ
+# ---------------------------------------------------------------------------
+
+SHAPE = {"priced": 42, "declined": 8, "endpoint_bound": 20, "endpoint_at_ceiling": 20,
+         "endpoint_at_floor": 0, "extrapolation_bound": 2}
+
+
+def _arms_artefact(tmp_path, monkeypatch, payload):
+    path = tmp_path / "value_based_pricing_arms.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    monkeypatch.setattr(rvca, "ARMS_ARTEFACT", path)
+    return path
+
+
+def test_the_two_populations_are_NAMED_rather_than_left_to_be_inferred(tmp_path, monkeypatch):
+    """The reading that prompted this, on 2026-08-26: interior optima on 255 of 263 accounts
+    against 20 of 42 priced renewals at the ceiling, taken as contradicting each other. They are
+    two questions put to one module over different populations under different bounds, and both
+    answers are correct."""
+    _arms_artefact(tmp_path, monkeypatch, {
+        "endpoint_bound": 19, "endpoint_at_ceiling": 1, "endpoint_at_floor": 18,
+        "extrapolation_bound": 0,
+        "population": {"unit": "one renewal decision per ACCOUNT, taken at a single moment",
+                       "as_of_year": 2025, "decisions": 397, "distinct_accounts": 397,
+                       "priced_under_a_lawful_ceiling": 0, "lawful_ceiling_passed": False,
+                       "what_endpoint_at_ceiling_means": "the top of the candidate grid"},
+    })
+
+    out = rvca.cross_section_reconciliation(SHAPE)
+
+    assert out["available"] is True
+    assert out["cross_section"]["decisions"] == 397
+    assert out["cross_section"]["lawful_ceiling_passed"] is False
+    assert out["this_run"]["decisions"] == 42
+    assert out["this_run"]["lawful_ceiling_passed"] is True
+    differences = {d["difference"] for d in out["the_three_differences"]}
+    assert differences == {"population", "ceiling", "conditions"}
+    measured = " ".join(d["measured"] for d in out["the_three_differences"])
+    assert "397" in measured and "42" in measured and "2025" in measured
+
+
+def test_a_low_ceiling_count_taken_without_a_ceiling_is_not_read_as_evidence(tmp_path,
+                                                                            monkeypatch):
+    """The specific misreading. Where no ceiling is passed `ceiling_bound` cannot fire at all,
+    so the cross-section's near-zero count is not evidence that the cap does not bind."""
+    _arms_artefact(tmp_path, monkeypatch, {
+        "endpoint_at_ceiling": 1,
+        "population": {"decisions": 397, "distinct_accounts": 397, "as_of_year": 2025,
+                       "priced_under_a_lawful_ceiling": 0, "lawful_ceiling_passed": False,
+                       "unit": "per ACCOUNT", "what_endpoint_at_ceiling_means": "grid top"},
+    })
+
+    ceiling = [d for d in rvca.cross_section_reconciliation(SHAPE)["the_three_differences"]
+               if d["difference"] == "ceiling"][0]
+
+    assert "priced 0 of 397" in ceiling["measured"]
+    assert "not evidence that the cap does not bind" in ceiling["measured"]
+
+
+def test_a_STALE_arms_artefact_is_refused_rather_than_reconciled_against(tmp_path, monkeypatch):
+    """FAIL-LOUD, not fail-open. An artefact predating the `population` block does not say which
+    ceiling its counts were taken under — reconciling against it would assume the very thing the
+    two files were read as disagreeing about."""
+    _arms_artefact(tmp_path, monkeypatch, {"endpoint_at_ceiling": 1, "accounts_priced": 397})
+
+    out = rvca.cross_section_reconciliation(SHAPE)
+
+    assert out["available"] is False
+    assert "predates the `population` block" in out["why_not"]
+    assert "couple_value_based_pricing" in out["why_not"]
+
+
+def test_a_MISSING_arms_artefact_says_so_instead_of_omitting_the_section(tmp_path, monkeypatch):
+    monkeypatch.setattr(rvca, "ARMS_ARTEFACT", tmp_path / "nothing.json")
+
+    out = rvca.cross_section_reconciliation(SHAPE)
+
+    assert out["available"] is False
+    assert "has not been generated" in out["why_not"]
+
+
+def test_an_UNREADABLE_arms_artefact_is_a_failed_check_not_a_passed_one(tmp_path, monkeypatch):
+    """R15 FAIL-SILENT: a checker that cannot run has not passed."""
+    path = tmp_path / "value_based_pricing_arms.json"
+    path.write_text("{not json", encoding="utf-8")
+    monkeypatch.setattr(rvca, "ARMS_ARTEFACT", path)
+
+    out = rvca.cross_section_reconciliation(SHAPE)
+
+    assert out["available"] is False
+    assert "unreadable" in out["why_not"]
+
+
+def test_the_reconciliation_does_not_claim_to_settle_the_customer_level_question(tmp_path,
+                                                                                monkeypatch):
+    """Both figures being explicable is not both being flattering. Interior on the cross-section
+    and ceiling-bound here are consistent AND both say the optimum lies above what the company
+    may lawfully charge."""
+    _arms_artefact(tmp_path, monkeypatch, {
+        "population": {"decisions": 397, "distinct_accounts": 397, "as_of_year": 2025,
+                       "priced_under_a_lawful_ceiling": 0, "lawful_ceiling_passed": False,
+                       "unit": "per ACCOUNT", "what_endpoint_at_ceiling_means": "grid top"}})
+
+    out = rvca.cross_section_reconciliation(SHAPE)
+
+    assert "open either way" in out["what_this_does_NOT_reconcile"]
+    assert "bound_attribution.what_would_change_this" in out["what_this_does_NOT_reconcile"]
