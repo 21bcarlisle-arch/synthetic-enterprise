@@ -76,7 +76,40 @@ FILE_COUNT_THRESHOLD = 15
 AGE_HOURS_THRESHOLD = 4.0
 
 
-def _is_generated(rel: str) -> bool:
+# THE ONE MIXED PREFIX (2026-08-26, found while closing the 436-file walk). Every other entry in
+# GENERATED_PREFIXES is owned end-to-end by one writer -- `docs/reports/` by the report generator,
+# `site/` by the publisher, `docs/state/` by the run. `docs/observability/` is not: it is the
+# machine's log directory AND the place agents write findings, audits, walks, retros and director
+# reports. Excluding it wholesale therefore hid AUTHORED PROSE, and did:
+# `docs/observability/DIRECTOR_REPORT_2026-08-20.md` -- a written report to the director -- sat
+# UNTRACKED for six days while this measure, running every publish cycle, could not see it. The
+# walk that closed the 436 lives in that same directory and was invisible for the same reason.
+#
+# The narrowing is UNTRACKED + `.md` + not `*-log.md`, and each clause earns its place:
+#   * untracked -- the machine's own documents under this prefix are all TRACKED and rewritten in
+#     place (`daily-self-note.md`, `autonomous-turn-output.md`); a brand-new `.md` here was
+#     authored, not generated. This is also what keeps the daily churn out.
+#   * `.md`      -- the JSON/JSONL ledgers under this prefix are machine state, no exceptions.
+#   * not `*-log.md` -- the append-only logs (`supervisor-log.md`, `delivery-seat-log.md`) are
+#     machine-written and several are untracked by design.
+# The residual carve-out is named and both directions are tested, so it can FAIL (R15): an
+# authored document fires, a log does not.
+OBSERVABILITY_PREFIX = "docs/observability/"
+
+
+def _is_authored_document(rel: str, untracked: bool) -> bool:
+    """An untracked, non-log Markdown document under the one mixed prefix is authored prose."""
+    if not untracked or not rel.startswith(OBSERVABILITY_PREFIX):
+        return False
+    name = rel.rsplit("/", 1)[-1]
+    if name.startswith(".") or not name.endswith(".md"):
+        return False
+    return not name.endswith("-log.md")
+
+
+def _is_generated(rel: str, untracked: bool = False) -> bool:
+    if _is_authored_document(rel, untracked):
+        return False
     return rel.startswith(GENERATED_PREFIXES) or _is_runtime_state(rel)
 
 
@@ -115,11 +148,12 @@ def _changed_paths_or_reason(project_dir: Path | None = None) -> tuple[list[str]
     for line in out.stdout.splitlines():
         if not line.strip():
             continue
+        untracked = line[:2] == "??"
         rel = line[3:].strip()
         if " -> " in rel:            # rename: take the destination
             rel = rel.split(" -> ", 1)[1]
         rel = rel.strip('"')
-        if not _is_generated(rel):
+        if not _is_generated(rel, untracked):
             paths.append(rel)
     return sorted(set(paths)), ""
 

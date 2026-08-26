@@ -65,6 +65,72 @@ def test_runtime_dotfiles_are_not_squatters():
         "a dotted DIRECTORY is not runtime state -- that is real source"
 
 
+# ── the one mixed prefix: authored prose is not churn ────────────────────────────────────────
+# `docs/observability/` is both the machine's log directory and where agents write findings,
+# audits, walks and director reports. The wholesale prefix exclusion hid the second kind, and did:
+# DIRECTOR_REPORT_2026-08-20.md sat UNTRACKED for six days, invisible to a measure running every
+# publish cycle. Both directions below, so the narrowing can FAIL (R15).
+
+def test_an_authored_document_under_the_mixed_prefix_is_counted():
+    """The named defect, at the shape it was found in.
+
+    MUTATION: drop `_is_authored_document` from `_is_generated` and this fails."""
+    for rel in ("docs/observability/DIRECTOR_REPORT_2026-08-20.md",
+                "docs/observability/TREE_DIVERGENCE_WALK_2026-08-26.md",
+                "docs/observability/coldwalk_findings_cro_2026-07-12.md"):
+        assert not td._is_generated(rel, untracked=True), rel
+
+
+def test_a_machine_log_under_the_mixed_prefix_stays_excluded():
+    """The mirror. Several of these are untracked BY DESIGN, so a narrowing that swept them in
+    would put the measure permanently over its own file line and name nothing.
+
+    MUTATION: drop the `-log.md` clause and this fails."""
+    for rel in ("docs/observability/supervisor-log.md", "docs/observability/delivery-seat-log.md",
+                "docs/observability/fork-salvage-log.md",
+                "docs/observability/trust_ledger.json",
+                "docs/observability/decision_log.jsonl",
+                "docs/observability/.worker_seat_status"):
+        assert td._is_generated(rel, untracked=True), rel
+
+
+def test_a_TRACKED_document_under_the_mixed_prefix_stays_excluded():
+    """`daily-self-note.md` is rewritten in place every morning and is tracked; counting tracked
+    churn here is the drowning the prefix exclusion exists to prevent. Only the untracked-and-
+    authored case was ever invisible.
+
+    MUTATION: ignore the `untracked` argument and this fails."""
+    assert td._is_generated("docs/observability/daily-self-note.md", untracked=False)
+    assert td._is_generated("docs/observability/DIRECTOR_REPORT_2026-08-20.md", untracked=False)
+
+
+def test_the_porcelain_wiring_actually_reaches_the_predicate(tmp_path):
+    """END-TO-END against a real repo, because the predicate being right proves nothing if the
+    `??` flag never reaches it -- that is exactly where a fail-open lives.
+
+    MUTATION: pass a constant for `untracked` in `_changed_paths_or_reason` and this fails."""
+    import subprocess
+
+    def git(*a):
+        subprocess.run(["git", *a], cwd=str(tmp_path), capture_output=True, check=True)
+
+    git("init", "-q")
+    git("config", "user.email", "t@t")
+    git("config", "user.name", "t")
+    obs = tmp_path / "docs" / "observability"
+    obs.mkdir(parents=True)
+    (obs / "seed.txt").write_text("x")
+    git("add", "-A")
+    git("commit", "-qm", "seed")
+
+    (obs / "DIRECTOR_REPORT_2026-08-20.md").write_text("a report to the director")
+    (obs / "supervisor-log.md").write_text("- machine line")
+    (obs / "trust_ledger.json").write_text("{}")
+
+    found = td.changed_paths(tmp_path)
+    assert found == ["docs/observability/DIRECTOR_REPORT_2026-08-20.md"], found
+
+
 def test_real_source_is_not_excluded():
     """The mirror: an exclusion list broad enough to quieten the measure would hide the defect."""
     for rel in ("simulation/live_population.py", "company/interfaces/supply_book.py",

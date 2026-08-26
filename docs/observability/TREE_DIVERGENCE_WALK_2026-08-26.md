@@ -354,3 +354,85 @@ phrasing that followed from the false count is now "ninety-three".
 23 → the two live-staging groups above. The severity routing this tail was named after was
 already in origin before the tick began; what this walk actually removed was an index that
 would have undone ten archive moves the moment anyone committed.
+
+---
+
+## 9. Closing the claim — and what the measure could never have seen
+
+Written on the next delivery tick, whose drawn direction was "land the remaining 31 diverged
+files … finished when the severity routing is in origin with its mutation test, the policy-cost
+tests are tracked, the oldest file is landed or explained, and the walk is written down."
+
+**All four were already true when the tick opened, and the doorbell's figures were stale.**
+Checked before acting, R7, against git rather than against the text that woke the seat:
+
+| The direction said | `git` says |
+|---|---|
+| `tree_divergence.py` has 52 uncommitted lines adding `severity()` | `severity()` and `ESCALATION_MULTIPLE = 5.0` landed in `46d17865a`, an ancestor of `origin/main`; six tests at `test_severity_*` / `test_a_severe_breach_*` |
+| `tests/simulation/test_policy_cost_coverage.py` still untracked at 7 days | tracked in `985afb3be` |
+| `PRIORITIES.md` at 159.27h, the oldest file in the tree | landed in `46d17865a` |
+| 31 files diverged | the tool measured **15** |
+| the walk is owed | §1–§8b above, landed in `711b3705f` |
+
+`HEAD == origin/main == 6d13de98a`; nothing was waiting to be pushed. This is the third
+recorded instance of a lane-0 doorbell citing figures the tree has already reversed, so the
+cost of re-deriving is small and the cost of trusting is a rebuilt landing.
+
+### 9a. Zero lane work remained — and that is what exposed the blind spot
+
+Of the 15 the tool named, **not one was work a lane had left behind**: ten were the publisher's
+own `run_complete_*.md` inbox (coalesced and retired by
+`background_worker.process_leftover_run_markers()`, transient by design), two were auto-minted
+alarm doorbells, three were per-tick status regeneration. The tail really was finished.
+
+Which raised the only question worth a tick: if nothing is squatting, is the measure looking
+everywhere? It was not. `GENERATED_PREFIXES` excludes `docs/observability/` **wholesale**, and
+that is the one prefix in the list not owned end-to-end by a single writer — every other entry
+belongs to the report generator, the publisher or the run, while this one is simultaneously the
+machine's log directory and the place agents write findings, audits, retros, walks and reports
+to the director. So the exclusion was hiding authored prose, and it had:
+
+```
+docs/observability/DIRECTOR_REPORT_2026-08-20.md — untracked 146.2h (6.1 days)
+```
+
+A written report to the director, finished, never committed, and **structurally invisible to a
+measure that ran every publish cycle for six days**. This walk lives in the same directory and
+was hidden for the same reason. It is the identical shape to the defect the tail is named
+after — an alarm firing correctly at something it cannot see — one level further in.
+
+**Narrowed, not disabled.** A file under `docs/observability/` now counts as source when it is
+UNTRACKED **and** `.md` **and** not `*-log.md`. Each clause is load-bearing and tested: the
+machine's own documents there are tracked and rewritten in place (`daily-self-note.md`), the
+ledgers are JSON, and the append-only logs are `*-log.md` and several are untracked by design.
+Widening it further would put the measure permanently over its own file line, which is the
+drowning the prefix list exists to prevent.
+
+R15, four mutations, each run and each observed to red the new tests:
+
+| Mutation | Result |
+|---|---|
+| drop `_is_authored_document` from `_is_generated` | 2 failed |
+| drop the `*-log.md` clause (sweep the logs in) | 2 failed |
+| ignore the `untracked` argument | 1 failed |
+| pass a constant for `untracked` in the porcelain loop | 1 failed |
+
+The fourth is the one that matters: the predicate being right proves nothing if `??` never
+reaches it, so that test runs end-to-end against a real `git init`ed repo rather than the
+predicate alone.
+
+**Result:** the measure went 15 → 18, not down. The count rising is the finding.
+`DIRECTOR_REPORT_2026-08-20.md` lands with this commit, and exactly one authored document
+surfaced — no false-positive flood.
+
+### 9b. Disposition, by group
+
+| Group | Files | Disposition |
+|---|---|---|
+| The four conditions the direction named | 4 | **ALREADY IN ORIGIN** — verified against git, not against the doorbell (§9) |
+| Publisher inbox, `run_complete_*.md` | 10 | **NOT RESIDUE** — the publisher's queue; coalesced and retired by its own sweep |
+| Auto-minted alarm doorbells | 2 | Left for the staging lane; committing them would not make them processed |
+| Per-tick status regeneration | 3 | Machine churn |
+| Authored prose the measure could not see | 1 | **LANDED**, and the blind spot closed with it |
+
+Nothing was deleted as residue this tick, and nothing was swept: every path above was read.
