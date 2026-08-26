@@ -269,3 +269,88 @@ Still breaching on both axes at the moment of writing, because this record and i
 commits are themselves uncommitted divergence until the gate returns. That is the honest
 state, and under §4 it is now the kind of breach that stays in the digest — which is what
 the ordinary case is supposed to look like.
+
+---
+
+## 8. The tail — walked 2026-08-26 (step 52), and the doorbell that called it was stale
+
+The Lane 0 doorbell that drew this tick asked for work that was **already in origin**. It
+named `background/tree_divergence.py`'s "52 uncommitted lines adding `severity()` and
+`ESCALATION_MULTIPLE = 5.0`", `process_run_complete.py` "modified alongside it", and
+`PRIORITIES.md` "at 159.27h, the oldest file in the tree". All three are clean at
+`46d17865a` (62 minutes before this tick), and `tests/simulation/test_policy_cost_coverage.py`
+landed at `985afb3be`. `HEAD == origin/main`, 0 ahead / 0 behind.
+
+The three R15 legs the doorbell asked to be checked both ways exist and are green
+(`tests/background/test_tree_divergence.py`, 27 passed): a breach at the escalation
+multiple routes as itself (`test_severity_fires_on_the_breach_it_was_written_for`), a
+breach just over the line stays batched (`test_severity_is_quiet_for_an_ordinary_breach`,
+`test_an_ordinary_breach_still_goes_to_the_digest`), and an UNMEASURABLE tree routes
+severe rather than being swallowed (`test_an_unmeasurable_tree_is_severe_not_quiet`,
+`test_the_check_exit_code_fires_on_an_unmeasurable_tree`). **Nothing was rebuilt.** The
+first move on a Lane 0 doorbell is to run its own cited check; the drawn work is whatever
+`git status` still says is uncommitted, which was 23 files, not 31.
+
+### The groups
+
+- **RESIDUE, 8 files — stale index entries that would have RESURRECTED archived findings.**
+  Eight `docs/staging/WORKER_FINDING_*` paths sat `AD` (added in the index, absent from the
+  worktree): a refused publish commit had left its payload staged, then the archive move
+  ran. Their `done/` twins are **already in HEAD**. Committing the index as it stood would
+  have re-created all eight in the staging root — the exact class
+  `background/staging_root_resurrection_watch.py` exists to catch, arriving through the
+  index rather than the worktree. Seven index blobs were byte-identical to their archives;
+  the eighth (`..._MULTIPLICAND_...`) differed only because the archive carries an appended
+  DISPOSITION note, i.e. a strict superset. Nothing was lost, so the entries were dropped
+  with `git restore --staged`, not committed.
+- **FINISHED, 2 files — real archive moves whose deletion half was never committed.**
+  `..._PUBLISHED_ACCOUNT_TABLE_...` (root blob identical to its untracked `done/` copy) and
+  `run_complete_20260826T194343Z.md` (twin already tracked). Landed.
+- **FINISHED-BUT-FALSE, 1 file — the oldest, and it was not safe to land as written.**
+  See §8a.
+- **LIVE STAGING, 9 files — not divergence.** Eight unprocessed `run_complete_*` markers
+  and one `WORKER_FINDING_REPEATING_ALARM_DOCS_LEFT_UNCOMMITTED...` doorbell. These are
+  work waiting to be drawn, not residue of work already done; committing them would not
+  make them processed. Left for the staging lane.
+- **HARNESS STATE, 2 files.** `docs/status/LATEST.md` (0.6h) and
+  `docs/context-handshake-latest.md` — per-tick regenerated status, landing with this.
+
+### 8a. The oldest file asserted a count all three instruments refute
+
+`docs/design/simplifications/KNIFE3_wall_crossing_paydown.yaml` had sat **161.09h**, the
+oldest thing in the tree. Its diff is a full rewrite of the stale-doorbell notice by KNIFE
+step 51 — genuinely valuable: it diagnoses that `--at-head` is **asymmetric** (working-tree
+register against HEAD's code) and therefore reports the *desk's claim*, not HEAD's count,
+which is how fourteen consecutive steps mis-stated a landing.
+
+It then made that same mistake in its own last paragraph. It states **"91 ruled, 5 owed …
+matching knife_hotspot_measure.py's live 5 (3 direct + 2 indirect)"** and **"A_composition_lift
+and B12 are both EXECUTED … ONLY TWO DESIGNS REMAIN"**. Measured before landing, all three
+instruments agree with each other and against it:
+
+```
+working tree   : 6 live (4 direct, 2 indirect); 91 ruled (cut 85, owed 6)
+--at-head      : 6 live (4 direct, 2 indirect); 91 ruled (cut 85, owed 6)
+--at-tree HEAD : 6 live (4 direct, 2 indirect); 91 ruled (cut 85, owed 6)
+```
+
+and the register's own `owed` rows, counted directly rather than by subtraction, are six:
+three to `B2_company_brain_decides_the_world`, two to `B14_the_run_does_not_measure_itself`,
+and **one to `A_composition_lift` — `simulation.run_phase2b -> company.policy.decision_policy`,
+still live, still ruled `owed`**. That is the row step 51 dropped, and calling its design
+EXECUTED is a **regression**: the committed text it replaced already said
+"A_composition_lift is now ONE row (decision_policy…)" and was right.
+
+So the file was neither landed as-written nor discarded. **The analysis is kept; the three
+count claims are corrected to what the tools return**, with the correction stating that the
+field asserted 5/5, sat 161h, and was re-measured on landing. Step 51 spent its opening
+paragraph on the rule that broke it — *do not read counts here, run the tool* — which is
+the argument for correcting the counts in place rather than trusting the prose around them.
+`level_current` stays **0 at 6/91 remaining**; it is not bumped, and the "ninety-five-percent-paid"
+phrasing that followed from the false count is now "ninety-three".
+
+### 8b. Closing state
+
+23 → the two live-staging groups above. The severity routing this tail was named after was
+already in origin before the tick began; what this walk actually removed was an index that
+would have undone ten archive moves the moment anyone committed.
