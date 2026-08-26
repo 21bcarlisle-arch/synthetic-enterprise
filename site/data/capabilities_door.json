@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-08-26T16:48:31Z",
- "git_commit": "570fb89921e15d02322ef7a2b50f87e5f71c94aa",
+ "generated_at": "2026-08-26T18:09:04Z",
+ "git_commit": "651f65b5089b859ce7edbbf598776f0b465d8887",
  "sources": {
   "record": "site/data/maturity_map.json",
   "status_rule": "site/moap_stage.py (Live / Building / Planned)",
@@ -25,7 +25,7 @@
      "checks": 56,
      "covered": 2,
      "of": 2,
-     "last_run": "2026-08-26T16:02:32.711713+00:00"
+     "last_run": "2026-08-26T17:53:46.108270+00:00"
     }
    },
    {
@@ -40,7 +40,7 @@
      "checks": 22,
      "covered": 1,
      "of": 1,
-     "last_run": "2026-08-26T16:02:32.711713+00:00"
+     "last_run": "2026-08-26T17:53:46.108270+00:00"
     }
    },
    {
@@ -55,7 +55,7 @@
      "checks": 62,
      "covered": 1,
      "of": 1,
-     "last_run": "2026-08-26T16:02:32.711713+00:00"
+     "last_run": "2026-08-26T17:53:46.108270+00:00"
     }
    },
    {
@@ -84,7 +84,7 @@
      "checks": 65,
      "covered": 4,
      "of": 4,
-     "last_run": "2026-08-26T16:02:32.711713+00:00"
+     "last_run": "2026-08-26T17:53:46.108270+00:00"
     }
    },
    {
@@ -110,7 +110,7 @@
      "checks": 20,
      "covered": 1,
      "of": 2,
-     "last_run": "2026-08-26T16:02:32.711713+00:00"
+     "last_run": "2026-08-26T17:53:46.108270+00:00"
     }
    },
    {
@@ -125,7 +125,7 @@
      "checks": 38,
      "covered": 1,
      "of": 1,
-     "last_run": "2026-08-26T16:02:32.711713+00:00"
+     "last_run": "2026-08-26T17:53:46.108270+00:00"
     }
    },
    {
@@ -180,7 +180,7 @@
      "checks": 98,
      "covered": 1,
      "of": 1,
-     "last_run": "2026-08-26T16:02:32.711713+00:00"
+     "last_run": "2026-08-26T17:53:46.108270+00:00"
     }
    },
    {
@@ -248,7 +248,7 @@
      "checks": 12,
      "covered": 2,
      "of": 3,
-     "last_run": "2026-08-26T16:02:32.711713+00:00"
+     "last_run": "2026-08-26T17:53:46.108270+00:00"
     }
    },
    {
@@ -264,7 +264,7 @@
      "checks": 35,
      "covered": 2,
      "of": 2,
-     "last_run": "2026-08-26T16:02:32.711713+00:00"
+     "last_run": "2026-08-26T17:53:46.108270+00:00"
     }
    },
    {
@@ -290,7 +290,7 @@
      "checks": 26,
      "covered": 1,
      "of": 1,
-     "last_run": "2026-08-26T16:02:32.711713+00:00"
+     "last_run": "2026-08-26T17:53:46.108270+00:00"
     }
    },
    {
@@ -600,18 +600,18 @@
     "value": 258,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-08-26T16:21:20Z"
+    "as_of": "2026-08-26T16:48:38Z"
    },
    {
-    "value": 263,
+    "value": 212,
     "basis": "book size used by the break-even analysis",
     "source": "site/data/dashboard.json",
     "as_of": "2016-2025"
    }
   ],
   "agree": false,
-  "low": 258,
-  "high": 263,
+  "low": 212,
+  "high": 258,
   "real_world": "A real GB supplier serves hundreds of thousands to millions of homes."
  },
  "gaps": [
@@ -624,8 +624,8 @@
     "when": "being worked on now",
     "waiting_on_count": 0
    },
-   "title": "The book is 258\u2013263 customers",
-   "what": "Everything on this page is true of a supplier with 258\u2013263 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 258 (accounts in the live customer feed), 263 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
+   "title": "The book is 212\u2013258 customers",
+   "what": "Everything on this page is true of a supplier with 212\u2013258 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 258 (accounts in the live customer feed), 212 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
   },
   {
    "plan": {

@@ -1,8 +1,8 @@
 {
   "meta": {
-    "generated_at": "2026-08-26T16:44:15Z",
+    "generated_at": "2026-08-26T18:04:55Z",
     "git_commit": "unknown",
-    "household_count": 258,
+    "household_count": 210,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
   "cases": [
@@ -21,44 +21,44 @@
     },
     {
       "category": "Largest company-vs-SIM churn divergence",
-      "headline": "94.8 percentage points apart at the 2019 renewal (sim 4.3% vs company 99.2%)",
+      "headline": "73.4 percentage points apart at the 2022 renewal (sim 79.8% vs company 6.4%)",
       "wall_side": "sim",
-      "account_id": "C_IC2",
-      "base_account_id": "C_IC2",
-      "segment": "I&C",
+      "account_id": "C6",
+      "base_account_id": "C6",
+      "segment": "SME",
       "commodity": "electricity",
       "link": {
-        "acc": "C_IC2",
+        "acc": "C6",
         "tab": "timeline",
-        "year": 2019
+        "year": 2022
       }
     },
     {
       "category": "Retention save, then churned anyway",
       "headline": "The company offered retention and won, then lost the account regardless",
       "wall_side": "company",
-      "account_id": "PROS-2020-0110",
-      "base_account_id": "PROS-2020-0110",
+      "account_id": "PROS-2018-0003",
+      "base_account_id": "PROS-2018-0003",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2020-0110",
+        "acc": "PROS-2018-0003",
         "tab": "timeline",
-        "year": 2025
+        "year": 2024
       }
     },
     {
       "category": "Heaviest arrears cascade",
-      "headline": "8 debt write-off event(s) in the arrears cascade",
+      "headline": "6 debt write-off event(s) in the arrears cascade",
       "wall_side": "company",
-      "account_id": "PROS-2019-0063",
-      "base_account_id": "PROS-2019-0063",
+      "account_id": "PROS-2020-0025",
+      "base_account_id": "PROS-2020-0025",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2019-0063",
+        "acc": "PROS-2020-0025",
         "tab": "timeline",
-        "year": 2019
+        "year": 2021
       }
     },
     {
@@ -77,16 +77,16 @@
     },
     {
       "category": "Silent-middle churn risk",
-      "headline": "True satisfaction fell 37.0 percentage points (73.9% in 2020 to 36.9% in 2025) but never once answered a survey -- invisible to the company's measurement instrument",
+      "headline": "True satisfaction fell 22.0 percentage points (62.5% in 2017 to 40.5% in 2024) but never once answered a survey -- invisible to the company's measurement instrument",
       "wall_side": "sim",
-      "account_id": "PROS-2019-0079",
-      "base_account_id": "PROS-2019-0079",
+      "account_id": "C4",
+      "base_account_id": "C4",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "PROS-2019-0079",
+        "acc": "C4",
         "tab": "timeline",
-        "year": 2025
+        "year": 2024
       }
     }
   ]
