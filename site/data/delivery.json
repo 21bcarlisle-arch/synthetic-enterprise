@@ -1,9 +1,57 @@
 {
- "generated_at": "2026-08-26T08:29:47.939358+00:00",
+ "generated_at": "2026-08-26T11:26:24.922780+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "36bb76c21",
+    "at": "2026-08-26T11:54:03+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=61b8250fc, net=\u00a31,264,955)",
+    "substantive": true
+   },
+   {
+    "sha": "f36e23d1e",
+    "at": "2026-08-26T11:36:12+01:00",
+    "subject": "the site lane refused eight straight publishes because its text extractor never unescaped, so it compared an escaped rendering against unescaped JSON",
+    "substantive": true
+   },
+   {
+    "sha": "61b8250fc",
+    "at": "2026-08-26T11:07:33+01:00",
+    "subject": "the delivery lane's 'has this work moved?' signal is a constant: every Lane 0 claim is recorded with no paths, so it is recycled and falsely alarmed 100 minutes after it is drawn",
+    "substantive": false
+   },
+   {
+    "sha": "18e8d215e",
+    "at": "2026-08-26T10:27:48+01:00",
+    "subject": "the CLV gap has been frozen at a seven-day-old number over 5 accounts because the tool that writes it CRASHES ON SUCCESS -- re-measured, it is 2.53, and it explains the value arm's GBP 118k loss",
+    "substantive": true
+   },
+   {
+    "sha": "4ec077631",
+    "at": "2026-08-26T10:06:52+01:00",
+    "subject": "the two BLOCKING findings described a wedge that HEAD had already released, and the register was outranking real work on the strength of it",
+    "substantive": false
+   },
+   {
+    "sha": "c96a415df",
+    "at": "2026-08-26T09:49:15+01:00",
+    "subject": "park the value-arm bound alarm with its one open sub-item stated",
+    "substantive": false
+   },
+   {
+    "sha": "2293612ba",
+    "at": "2026-08-26T09:48:07+01:00",
+    "subject": "the value arm's two findings were one finding: the chain handed it six of its twenty inputs",
+    "substantive": true
+   },
+   {
+    "sha": "8b450a839",
+    "at": "2026-08-26T09:46:16+01:00",
+    "subject": "the value arm was choosing a bound because the chain handed it an all-in rate and no ceiling",
+    "substantive": true
+   },
    {
     "sha": "89ebabecf",
     "at": "2026-08-26T09:17:09+01:00",
@@ -195,126 +243,106 @@
     "at": "2026-08-25T21:30:47+01:00",
     "subject": "LANE 0: four of the delivery seat's five decisions could not be reached by any draw on this machine, so the two that got built were built by hand in a session that needed the director present",
     "substantive": true
-   },
-   {
-    "sha": "f0ec17a92",
-    "at": "2026-08-25T20:14:36+01:00",
-    "subject": "the name guard scoped to the module it names -- a tree-wide scan was demanding the undo of the rename it exists to protect, and the narrowing ships with its own falsifier",
-    "substantive": true
-   },
-   {
-    "sha": "fd98a2684",
-    "at": "2026-08-25T19:21:30+01:00",
-    "subject": "the price-belief gap refuses to publish a coupled pair the map does not declare -- mis-subjection, one step before the row exists",
-    "substantive": true
-   },
-   {
-    "sha": "a4d8a7e32",
-    "at": "2026-08-25T19:16:05+01:00",
-    "subject": "publishing: twelve consecutive commits killed at a deadline set against a 2026-08-03 measurement, while the control that guards it graded against a constant and stayed green through a 12.2-hour outage",
-    "substantive": true
-   },
-   {
-    "sha": "4b583f386",
-    "at": "2026-08-25T19:04:32+01:00",
-    "subject": "the baseline: the control this company is scored against earns a QUARTER of what the regulator allows an efficient supplier -- measured, and it still does not explain the value arm",
-    "substantive": true
-   },
-   {
-    "sha": "81387bad2",
-    "at": "2026-08-25T18:39:38+01:00",
-    "subject": "the delivery seat: the job that decides WHAT MATTERS NEXT was being done by hand in a chat window -- it is now a three-hourly session that writes direction, never code, and a page that answers the four questions",
-    "substantive": true
-   },
-   {
-    "sha": "d62a8e158",
-    "at": "2026-08-25T18:26:56+01:00",
-    "subject": "tests: the captive-floor fix landed without the three tests that asserted the floor, so HEAD reds on its own repair -- plus the mutation controls that make the fix evidence",
-    "substantive": true
-   },
-   {
-    "sha": "856b65d9d",
-    "at": "2026-08-25T18:02:22+01:00",
-    "subject": "company: it believed a share of every customer would stay whatever they were charged, so its first real decision priced to the ceiling -- two captive floors gone and the belief error flips from -7.8pp to +0.5pp",
-    "substantive": true
-   },
-   {
-    "sha": "61a6620cc",
-    "at": "2026-08-25T17:16:55+01:00",
-    "subject": "harness: the belief-vs-truth gap on price was identically zero by construction this morning -- it is now -8.6pp, and the company under-estimates departures on 156 of 263 accounts",
-    "substantive": true
    }
   ],
-  "substantive": 34,
-  "mechanical": 6,
+  "substantive": 31,
+  "mechanical": 9,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-08-26T08:22:57.401289+00:00",
+  "oriented_at": "2026-08-26T11:21:14.564328+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "The value cycle closed this stretch and the first honest number it produced is negative. `tools/run_value_cycle_ab.py` ran the same book through the same world twice, changing only which arm sets the renewal margin, and `docs/observability/value_cycle_ab.json` (08:02Z) reads: the flat-rules control earned GBP 1,145,681 net and ended with 172 accounts; the per-customer arm earned GBP 1,052,125 and ended with 170, having churned three more. Realised delta -GBP 93,555 net (-8.2%) and -GBP 118,252 enterprise value, on 69 renewals it priced. That is the thesis's central claim tested for the first time on what the world actually did rather than on what the company believed, and it lost. A loss is a result and not a defect -- the artefact says so in its own words, and a baseline that could not be lost to would never have been a baseline. What matters is that the losing mechanism is now visible in two places and it is the same mechanism twice. First, the arm's commonest answer was a bound and not a customer: of 66 priced renewals, 20 finished at the ceiling, 16 at the floor, 27 were clamped by the price cap, and the modal margin's 24.2% share of the book is exactly those 16 floor cases. The same arm scored offline over 263 accounts gave 187 distinct margins with a 1.9% mode; met by the live chain it collapses to 36 distinct with a 24.2% mode. Second, the belief it maximises against is inflated roughly fivefold: EP1's coupled gap, re-measured at 08:07Z over 33 counted accounts of 263 available, reads mean belief GBP 473.71 against mean realised GBP 100.20, gap 2.529 -- up from 1.76 on 5 accounts a week ago, and anything above 1 means the per-customer lifetime value carries LESS information than handing every account the population mean. The ledger's own truth-window note says the headline is conservative for an over-estimating belief, so the real inflation is larger than that. Against the thesis, then: the loop exists, the baseline exists, the instrument is honest, and the measured advantage from inference is currently negative. That is a backwards step in substance and a forward step in epistemics on the same day, and the honest sentence is that this company does not beat its own flat rules and now knows by how much and roughly why. On the previous focus, the record is clean: all four items were named, all four were drawn, three are finished. The map split landed at `7f11d9c7d`, `load_atoms()` reads 298 atoms from HEAD, `refile()` exists at `tools/maturity_map_store.py:250` and is called from `tools/merge_atom_status.py:597` with mutation tests in both directions and a null control, and the live invariant is clean. The publish-state fix landed -- the hook chain's own failing node IDs now reach `.publish_gate_state.json`. Publishing is live, figures reached origin 0.3h ago, and the operational signal reads green after being red for five hourly checks. The fourth item, EP13, landed its code and did not move its level, which is the only reason it survives below.",
+  "thesis_read": "Three hours ago this project had a measured answer to the thesis and it was a loss. It no longer has one. `8b450a839` established that the per-customer arm's answers came from a bound because `renewal_margin_uplift`, its only production caller, passed six of `decide_margin`'s twenty company observables and let fourteen default -- and two of those defaults did the whole damage. The billed `revenue_gbp` includes the standing charge, so the arm compared an all-in GBP/MWh rate against a commodity-only offer and saw roughly GBP 55/MWh of headroom that does not exist on a small domestic account; and no ceiling reached the search at all, so the price cap landed afterwards as the fourth chain writer and `ceiling_bound` was structurally unable to fire. On one real account shape the chosen margin moved GBP 193.00 to GBP 60.00/MWh. That means the -GBP 93,555 net and -GBP 118,252 enterprise-value delta in `docs/observability/value_cycle_ab.json` is a measurement of a wiring defect and not of per-customer inference, and the same is true of the 20 ceiling cases, the 16 floor cases and the 27 cap clamps I read as the losing mechanism last night. The honest sentence is therefore not \"the company loses to its flat rules\" and not \"it beats them\" -- it is that the thesis is currently UNMEASURED, and knowing that is a step forward in epistemics bought at the cost of the only number we had. The confirming re-run has not happened: the parked record says it was started, no `value_cycle_ab_2026-08-26_observables_threaded.json` exists, no process is running, and the only new artefact is `value_cycle_ab_prior_2026-08-26T0802Z.json`, byte-identical to the 08:02Z original. Beside that, the belief half moved for real. `tools/couple_clv.py` was crashing on success, which had frozen EP1's coupled gap at a seven-day-old 1.7621 over five completed lives; repaired at `18e8d215e`, it re-reads 2.529 over 33 accounts -- mean belief GBP 473.71 against mean realised GBP 100.20, 27 of 33 magnitude-inflated, 7 sign disagreements, and one scalar absorbing four fifths of it in-sample. Above 1 means the per-customer estimate carries less information than handing every account the population mean, so on the one quantity every per-customer decision maximises against, the company is beaten by the crudest baseline available, and three of my own direction records reasoned from the stale 1.76 without noticing. On the previous focus the record is better than the brief says: all four items moved, and the brief credits only two because the two non-atom items were Lane 0 claims whose draw record is the very signal focus item two below exists to repair. The two stale BLOCKING findings are discharged and the register reads zero blocking. The value-arm diagnosis is finished. EP1's instrument is repaired though its estimator is untouched. And EP13 did not move, correctly: its own L2 ledger entry names three unmet L3 conditions, so my predecessor's instruction to move it was unsound and is withdrawn below.",
   "focus": [
    {
-    "id": "value-arm-answers-a-bound",
-    "what": "Find why the per-customer arm's answers come from a bound and fix the mechanism, then re-run the A/B. The evidence is `decision_shape` in `docs/observability/value_cycle_ab.json`: 66 priced, `endpoint_at_ceiling` 20, `endpoint_at_floor` 16, `clamped_by_the_price_cap` 27, modal margin 24.2% of the book, median chosen margin GBP 100.50/MWh. Read `company/pricing/value_based_renewal.py::decide_margin` together with the chain that consumes it in `company/pricing/renewal_rate_chain.py` and establish which bound binds and in which order -- whether the ceiling and floor are the arm's own support endpoints, or the chain's cap clamp landing on top of an already-chosen margin, or both on different accounts. The candidate mechanism is already documented and now reads LATENT: `company/crm/churn_model.py::MAX_CHURN_PROBABILITY = 0.95` leaves five percent of every account modelled as staying at any price, which makes expected contribution monotone increasing in margin and puts the maximiser on whatever ceiling it is given (`WORKER_FINDING_THE_CHURN_MODELS_CAP_MAKES_THE_PROFIT_MAXIMISING_PRICE_UNBOUNDED_2026-08-25`). Do not clamp the arm to hide it: a tighter bound leaves the belief wrong and moves a known defect behind the wall for the company to rediscover, which is the one thing the epistemic design exists to prevent. Fix the belief, re-run `tools/run_value_cycle_ab.py`, and land the new artefact beside the old one rather than over it.",
-    "why": "The A/B is the only honest instrument the thesis has, and right now it is scoring a ceiling rather than a decision -- more than half the arm's answers were fixed by a bound, and the single commonest answer it gave was the floor. Until the answers come from the customer, the -GBP 93,555 delta measures the arm's endpoints and not its inference, so neither a win nor a loss from this instrument means what the thesis needs it to mean. The median chosen margin of GBP 100.50/MWh against the regulated EBIT allowance of GBP 3.73-8.54/MWh is the same fact from the other side: a real supplier could not charge that, so an arm producing it is not yet making a commercial decision. Finished when the re-run's `decision_shape` shows the bounds are no longer where the arm's answers come from, the record names which mechanism was putting them there, and the resulting delta is a statement about per-customer prediction."
+    "id": "value-cycle-ab-rerun-after-the-observables-fix",
+    "what": "Run the A/B again on the fixed chain and read what it says. `python3 -m tools.run_value_cycle_ab --out docs/observability/value_cycle_ab_2026-08-26_observables_threaded.json` -- the `--out` argument exists (`tools/run_value_cycle_ab.py:317`) and writing beside the 08:02Z artefact rather than over it is deliberate, because the pre-fix and post-fix `decision_shape` blocks only mean something read against each other. If the run dies, restart it; do NOT re-diagnose the mechanism, which is settled and recorded in `docs/design/THE_VALUE_CYCLE_REALISED_AB.md`. When the artefact exists, read `decision_shape` against the pre-fix figures it must be compared to: `priced` 66, `endpoint_bound` 36, `endpoint_at_ceiling` 20, `endpoint_at_floor` 16, `distinct_margins` 36, `modal_margin_share_of_book` 0.2424, median chosen margin GBP 100.50/MWh. Treat `clamped_by_the_price_cap` as the control it now is: the arm searches under the same ceiling writer 4 applies, so a priced renewal that is still clamped means the two reads have come apart and that is a finding to file, not a number to report. Then `python3 -m background.delivery_lane --release value-arm-answers-a-bound` and archive `docs/staging/in_progress/WORKER_FINDING_REPEATING_ALARM_VALUE_ARM_CHOOSES_A_BOUND_NOT_A_CUSTOMER_WAS_CLAIMED_2026-08-25.md` to `docs/staging/done/`, naming the artefact that discharged it. Record the new realised delta whichever way it points, and do not adjust anything to move it.",
+    "why": "This is the acceptance test for the largest piece of work this project landed today, and without it the thesis has no reading at all -- the arm was fed six of its twenty inputs when the only number we have was taken, so both the loss and the shape of the loss describe plumbing. Every decision after this one is made blind until it exists: whether to fix the belief or the bounds, whether the value cycle is worth wiring, what Explore should be allowed to render. It is also the cheapest item on this list in judgement and the most expensive to keep deferring, because the stale artefact is the one the record, the site and my own last two orientations quote. Finished when the post-fix artefact exists beside the old one, its `decision_shape` shows where the arm's answers now come from, `clamped_by_the_price_cap` has been read as a control and its value explained either way, and the parked alarm is archived against it."
+   },
+   {
+    "id": "lane-zero-progress-signal-is-a-constant",
+    "what": "Fix the delivery lane's progress signal so its pass branch can be reached, per `docs/staging/WORKER_FINDING_THE_DELIVERY_LANES_PROGRESS_SIGNAL_CANNOT_FIRE_SO_EVERY_LANE_ZERO_CLAIM_IS_RECYCLED_2026-08-26.md`. `background/delivery_lane.py:164` claims every Lane 0 item with `paths=[]`; `seat_work_in_hand._last_commit_time_touching` short-circuits to `0.0` on an empty list; so `moved > claimed_at` is never true and every claim is swept at `CLAIM_STALE_SECONDS` (100 min) regardless of what landed. The finding offers two shapes and does not choose; I choose LATE-BOUND PATHS -- the seat re-claims with the paths it actually touched as it lands each increment, since `claim()` already resets the deadline on re-claim and names that as the escape hatch, and it needs no change to commit-message convention. Do NOT restore the unscoped `head_time` comparison: that is the 2026-08-21 defect in the same module and trades a signal that never passes for one that never fails. Do NOT let the seat write a bare heartbeat, which is the tautology R15 names first. Ship it with the R15 pair the finding already specifies: a mutation proving the sweep still fires on a genuinely stalled claim, AND the null control proving it stays silent on a claim that landed -- the second is the one that does not exist today and its absence is why this shipped. In the same pass remove the residue the sibling \"uncommitted work\" alarm keys on, which is permanently true and so can never clear: the six `.land_*.sh` scratch scripts and `_r11_tmp.mjs` at the tree root, and the four zero-byte lock files `.tree.lock`, `.tree_lock`, `docs/.tree.lock`, `docs/.tree_lock`, all stamped 2026-08-20 with no live holder -- confirm each is stale before removing it.",
+    "why": "This is a control whose verdict is a constant, and it is the control my own direction runs through: every item I write that is not a maturity-map atom becomes a Lane 0 claim, and each one is released back into the pool and falsely alarmed 100 minutes after it is drawn no matter what landed against it. It has already cost a whole tick this stretch re-verifying work that commits `4ec077631` and `18e8d215e` had finished, and it filed at least five \"has not moved\" documents whose subjects had provably landed -- the machine alarming on its own record rather than on its state. The interaction with the item above is the reason this is second and not fourth: two full ten-year runs will outlast the 100-minute deadline, so the most important work on this list is precisely the shape this defect breaks. It also corrupts the evidence I orient on, which is why the brief handed me a draw record showing two of four focus items worked when four were. Finished when a Lane 0 claim that has landed a commit survives the sweep, a stalled one does not, both directions are proven by tests, and the residue is gone from `git status`."
    },
    {
     "id": "EP1_clv_three_horizon",
-    "what": "Find and fix the mechanism inflating three-horizon CLV magnitude in `company/analytics/clv_three_horizon.py`. Start from what `docs/observability/coupled_gap_ledger.json` already holds: mean belief GBP 473.71 against mean realised GBP 100.20 over 33 counted accounts, 27 of the 33 flagged magnitude-inflated, 7 sign disagreements, and one single scalar rescale absorbing four fifths of the headline in-sample (`best_single_scale` 0.204, `gap_after_best_single_scale` 0.806). Do NOT apply that scalar -- the ledger labels it an attribution and never a correction, and applying it would be a constant fitted to the very comparison it is then judged by. Read it as the diagnosis it is: four fifths of the error is one systematic magnitude and not per-account noise, so the thing to look for is a horizon, tenure or retention assumption that scales every account at once. The ledger's `truth_window_bias` note says realised spans the whole lifetime while the belief is taken at the first year-end snapshot, which flatters an over-estimating belief -- so rule that in or out before blaming the estimator, and say which it was. Re-measure into the ledger afterwards.",
-    "why": "Every per-customer decision in this company maximises against this number, the renewal arm in the item above included, so an estimator saying an account is worth roughly five times what the world paid is the upstream half of the loss the A/B just measured. A gap of 2.529 says the estimate carries less information than the population mean -- the thesis losing to the crudest baseline available on the one quantity every per-customer decision rests on. This is also the first real lead the atom has had: five completed lives a week ago could not tell a scale error from noise, and 33 can. Finished when the ledger's next entry is produced by a changed estimator rather than a changed sample, the record names the assumption that was wrong, and belief and realised means are read from the same book."
+    "what": "Find and fix the mechanism inflating three-horizon CLV magnitude in `company/analytics/clv_three_horizon.py`, using the newly trustworthy measurement rather than the stale one. `docs/observability/coupled_gap_ledger.json` at 08:07:31Z now reads mean belief GBP 473.71 against mean realised GBP 100.20 over 33 counted accounts of 263 available, gap 2.529, 27 of 33 magnitude-inflated, 7 sign disagreements, and `best_single_scale` 0.204 leaving `gap_after_best_single_scale` 0.806. Do NOT apply that scalar: the ledger labels it an attribution and never a correction, and applying it is a constant fitted in-sample to the exact comparison it would then be judged by. Read it as the diagnosis it is -- four fifths of the error is one systematic magnitude, not per-account noise, so look for a horizon, tenure or retention assumption that scales every account at once. Rule the ledger's own `truth_window_bias` in or out FIRST and say which it was: it records that realised spans the whole lifetime while the belief is the first year-end snapshot, which flatters an over-estimating belief and means 2.529 is conservative for exactly the cases that dominate here. Re-measure into the ledger afterwards with `tools/couple_clv.py`, which now exits cleanly.",
+    "why": "Every per-customer decision this company makes maximises against this number, the renewal arm above included, so an estimator claiming an account is worth roughly five times what the world paid is the upstream half of whatever the re-run reports -- and if the re-run comes back negative again with the bounds gone, this is where the answer is. A gap above 1 says the estimate carries less information than the population mean, which is the thesis losing to the crudest baseline that exists on the quantity the whole thesis rests on. It is also the first real lead this atom has had: five completed lives could not tell a scale error from noise and 33 can, and the reason we have 33 is that the coupler stopped crashing three hours ago. Finished when the ledger's next entry comes from a changed estimator rather than a changed sample, the record names the assumption that was wrong, the truth-window question is answered one way or the other, and belief and realised are read from the same book."
    },
    {
     "id": "EP13_adapter_carbon_intensity",
-    "what": "Move the atom from level 2 to level 3 and record it. The code landed this stretch -- `sim/grid_carbon_intensity.py` and `tests/sim/test_grid_carbon_intensity.py` at `0d0b01579` -- and `tools/generate_grid_intensity_feed.py` consumes it, but the map still reads `level_current` 2 and `gate_authorizations.jsonl` holds only the L0->L2 record from earlier. Before recording anything, satisfy R11 against the live surface: fetch the deployed carbon panel, assert the rendered value derives from the half-hourly reconstruction rather than the flat 8,000 MW must-run figure, and quote what you fetched. Then self-certify with `record_level_up_self_certified` citing that fetched evidence, and never `--no-verify` a `level_current` change. If the live surface still shows the flat figure, that is the finding and the level does not move -- say so rather than recording the move.",
-    "why": "It is the one atom in the drawn set whose level moves on work that is already built, tested and consumed, and a level move beats a tidy. It also closes a claim this seat has now made twice: the record of 2026-08-25 reported the carbon correction as made when it was 152 uncommitted lines, and this record would repeat the same error one step along by treating a landed fetcher as a moved level. A level that is not in the ledger has not moved, and a figure that is not on the page has not shipped. Finished when the map reads level 3, the ledger holds the self-certification with the fetched evidence inside it, and the record quotes the live value."
-   },
-   {
-    "id": "close-the-two-stale-blocking-findings",
-    "what": "Both BLOCKING findings in the register describe defects that are fixed at HEAD. Verify each against HEAD rather than the worktree, then discharge and archive them. `WORKER_FINDING_THE_SPLIT_INVARIANT_WEDGES_THE_TREE_ON_THE_NEXT_SUCCESSFUL_BUILD_2026-08-26.md` is discharged by the re-filer at `tools/maturity_map_store.py:250`, its call site in `tools/merge_atom_status.py:597`, and the test node `tests/tools/test_maturity_map_store.py::test_refile_moves_BOTH_directions_in_one_call` together with its null control. `WORKER_FINDING_THE_VALUE_ARM_LANDED_BUT_ITS_COUPLER_IS_BLOCKED_BY_A_HALF_ROLLED_MAP_SPLIT_2026-08-26.md` is discharged by `tools/couple_value_based_pricing.py` and its test being tracked and clean at HEAD. In the same pass, archive the auto-filed repetition alarms in the staging root whose subject provably landed -- LAND_THE_MAP_SPLIT, LAND_THE_VALUE_ARM, PUBLISH_PATH_LANDS and LAND_LANE_ZERO at minimum -- naming the landing for each. Do not bulk-archive the rest to silence the doorbell. Mind the discharge grammar: a discharge must name a test node, and a backticked symbol inside the discharge reason voids the discharge.",
-    "why": "Two BLOCKING records that are no longer true are worse than none, because the register is what the draw and the alarms read: a stale BLOCKING keeps re-filing itself, keeps a wedge alive on paper that no longer exists in the tree, and outranks real work in every lane's ordering. Last night's record already observed that the queue was describing the record rather than reality; leaving these two would be the same defect carrying the register's own authority. Finished when the BLOCKING count reflects only defects live at HEAD and the landed-work alarms are gone from the staging root."
+    "what": "Build the coupled-triad rung this atom is actually missing, then let the level follow the evidence. `sim/neso_carbon_intensity.py` already exists as the independent truth series -- NESO's published half-hourly number, deliberately a separate module from `sim/grid_carbon_intensity.py` so the two routes stay independent -- and there is no coupler for it in `tools/` (fifteen `couple_*.py` exist; none is carbon). Write it in the shape of its siblings, measure the gap between the company's reconstructed shape and NESO's published series, and write it into `docs/observability/coupled_gap_ledger.json`. The specific claim to test is the one `sim/grid_carbon_intensity.py` makes about itself in the L2 ledger entry: that its quietest half hours sit near 0.05 of average against NESO's bottoming out nearer 0.16, because no coal and no interconnector imports are dispatched, so any time-shifting benefit computed from it is an upper bound. That sentence was a recollection written in the grammar of a measurement; make it a measurement or correct it. Move `level_current` to 3 and self-certify with `record_level_up_self_certified` ONLY if the gap is measured and the atom's three named L2 reservations are answered -- and never `--no-verify` a `level_current` change. If the gap is large, that is the finding, the level stays at 2, and saying so is the deliverable.",
+    "why": "My last record told a worker to move this atom to 3 because its code had landed, tested and consumed. That was wrong on the atom's own evidence: its L2 self-certification states in its own words why L3 was not claimed -- an optimistic clean end, no Expert Hour, and the coupled-triad rung unmet for want of a truth series. The truth series has since been built and never used, which makes this the one atom on the board whose level can move on real evidence rather than on a landed file, and under the coupled-triad rule no world atom reaches L3 until the company has been tested against it and the gap measured. It is also the cleanest instance of the discipline the other three items are exercising: a number published without the independent comparison that could refute it. Finished when the ledger carries a carbon row produced by a coupler that reads both series, the 0.05-against-0.16 claim is confirmed or corrected in figures, and the level either moves with that evidence cited or is explicitly held with the reason."
    }
   ],
   "not_now": [
    {
     "what": "Wiring the value arm to the live renewal desk.",
-    "why": "Rejected for the sixth record and for the first time on a realised number rather than a belief. Run for real it earns GBP 93,555 less net margin and GBP 118,252 less enterprise value than the flat control and churns three more accounts, and more than half its answers were fixed by a bound. `active_policy().renewal_margin_arm` stays \"flat_rules\" and the VALUE_ARM policy stays what it is -- the B-side of an experiment. Wiring an arm that is measured to lose, before the reason it loses is fixed, pushes a known pricing defect behind the wall for the company to rediscover."
+    "why": "Rejected for the seventh record and this time on the strongest ground yet: there is no current measurement of it at all. The only realised run predates the observables fix by six hours and scored an arm receiving six of its twenty inputs, so it is evidence about plumbing. `active_policy().renewal_margin_arm` stays \"flat_rules\" and VALUE_ARM stays the B-side of an experiment. Wiring a mechanism whose last honest reading no longer applies, on the strength of a fix whose confirming run has not been done, is pushing an unmeasured pricing decision behind the wall for the company to rediscover."
    },
    {
     "what": "Applying the 0.204 rescale that would take the CLV gap from 2.529 to 0.806.",
-    "why": "It is one line and it would look like progress. It is a constant fitted in-sample to the exact comparison it would then be judged by -- R12's goal-seek and R15's tautology in the same edit, with the answer written into the input. The decomposition is a diagnosis and the second focus item uses it as one: it says four fifths of the error is a single systematic magnitude, which is a place to look, not a number to subtract."
+    "why": "It is one line and it would look like four fifths of a fix. It is a constant fitted in-sample to the exact comparison it would then be judged by -- R12's goal-seek and R15's tautology in a single edit, with the answer written into the input. The decomposition is a diagnosis and the third focus item uses it as one: it says the error is a single systematic magnitude, which is a place to look and not a number to subtract. Rejected for the second record; recorded again because it stays tempting for exactly as long as the gap stays above one."
    },
    {
-    "what": "Reading the A/B delta as a verdict on per-customer pricing.",
-    "why": "Tempting, and the artefact refuses it in its own words. The control sits at GBP 2.00/MWh against a regulated EBIT allowance of GBP 3.73-8.54/MWh -- 23% to 54% of what an efficient supplier is permitted to earn -- so beating it or losing to it says as much about the control's weakness as about the arm. Declaring the thesis refuted on one run of 69 renewals against a weak control is the exact mirror of declaring it proven on one positive run, and this seat would deserve the same criticism for either. What the run establishes is that the instrument works and its first reading is negative. That is what I have written down."
-   },
-   {
-    "what": "Rebuilding the CLV grading to reach the 230 excluded accounts.",
-    "why": "My last record asked for a grading that reaches live accounts. The re-measure answered it the other way and the answer is better: 218 of the 230 exclusions are right-censored -- still supplied, so no realised lifetime exists to grade against yet -- and the counted set grew from 5 to 33 on its own as lives completed. Waiting is the correct instrument here; engineering around the censoring would be inventing the truth the gap is supposed to measure. Revisit when the counted set stops growing."
-   },
-   {
-    "what": "The A7 harm-to-loss weighting ratio, open in `action_needed_register.json` since 2026-07-13.",
-    "why": "It is genuinely the director's under R13 -- a curriculum weighting, not a fidelity fact -- and it is already registered and already asked, with a recommended ratio and a bounded band attached. Putting it in `for_the_director` here would be interrupting him with something he has already been handed, and the placeholder ships until he signs, so nothing is blocked. Left where it is."
-   },
-   {
-    "what": "Working the 41 LATENT findings as a body.",
-    "why": "The fourth focus item archives only the ones whose subject provably landed, which is a correctness repair on the register rather than queue-clearing. Working the LATENT tail would cost a whole stretch and close nothing the thesis needs, and the project's own instruments have just said where it is losing. The tail keeps."
+    "what": "Moving EP13 to level 3 on the strength of the landed fetcher, which is what I asked for last night.",
+    "why": "The atom's own L2 entry refuses it in three places and I did not read it before writing the instruction. A level move that ignores the reservations the previous self-certification wrote down is the record outrunning the code one step along -- the exact error that entry was written to prevent. Replaced with the coupled rung, which is the work that would genuinely earn the level."
    },
    {
     "what": "Explore's remaining stages with real data, the director's third console priority.",
-    "why": "The reason I gave last night -- publishing is down, so it cannot reach a surface -- has expired: publishing is live and figures reached origin 0.3h ago. The reason that replaces it is stronger. The figures Explore would render are exactly the ones the A/B has just measured as negative and the coupler declines to publish as evidence of inference. Rendering them today would put a number on a public surface a full stretch ahead of the record that explains it. It moves up the moment the first two items have moved the arm."
+    "why": "Deferred a second time and the reason has changed rather than weakened. Publishing is live and figures reached origin half an hour ago, so the old reason has expired; the new one is that the figures Explore would render are precisely the ones now known to describe a wiring defect. Rendering the pre-fix A/B on a public surface today would put a number in front of a reader a full stretch ahead of the record that explains it, and would have to be retracted by tonight if the re-run reads differently. It moves the moment focus item one produces a post-fix artefact."
+   },
+   {
+    "what": "Rebuilding the CLV grading to reach the 230 excluded accounts.",
+    "why": "218 of the 230 are right-censored -- still supplied, so no realised lifetime exists to grade against -- and the counted set grew from 5 to 33 on its own as lives completed and the coupler stopped crashing. Waiting is the correct instrument and engineering around the censoring would be inventing the truth the gap exists to measure. Revisit when the counted set stops growing."
+   },
+   {
+    "what": "Working the 37 LATENT findings as a body.",
+    "why": "Focus item two takes exactly one of them, and takes it because it is a broken control on the delivery path rather than because it is on the pile. Working the tail would cost a whole stretch and close nothing the thesis needs, at the moment the project's own instruments have just told us the thesis has no reading. The tail keeps."
+   },
+   {
+    "what": "The A7 harm-to-loss weighting ratio, open in `action_needed_register.json` since 2026-07-13.",
+    "why": "Genuinely the director's under R13 -- a curriculum weighting, not a fidelity fact -- and it is already registered, already asked, with a recommended ratio and a bounded band attached. Putting it in `for_the_director` here would be handing him a second time something he already holds, and the placeholder ships until he signs, so nothing is blocked. Left where it is."
    }
   ],
   "for_the_director": [],
-  "orientations_recorded": 6,
+  "orientations_recorded": 7,
   "skips_recorded": 0,
   "refusals_recorded": 0
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-08-26T11:21:14.564328+00:00",
+    "what": "My own last record read the A/B's `decision_shape` -- 20 ceiling cases, 16 floor cases, 27 cap clamps, modal margin 24.2% of the book -- as evidence about the arm's belief, and built the top focus item on it. All four figures were produced by a caller passing six of twenty observables. The direction was right about where to look and wrong about what the numbers meant, and the worker that drew it found the real mechanism in the chain rather than in the arm."
+   },
+   {
+    "at": "2026-08-26T11:21:14.564328+00:00",
+    "what": "My own last record instructed a worker to move `EP13_adapter_carbon_intensity` to level 3 and record it, on the grounds that its code had landed and was consumed. The atom's own L2 self-certification states three reasons L3 was not claimed, including the unmet coupled-triad rung. It was drawn and did not move, which was the correct outcome from an unsound instruction."
+   },
+   {
+    "at": "2026-08-26T11:21:14.564328+00:00",
+    "what": "`tools/couple_clv.py` was crashing on success, so EP1's coupled gap sat frozen at a seven-day-old 1.7621 over five completed lives while 33 were available. Three consecutive direction records, two of them mine, quoted that stale figure as current. Repaired at `18e8d215e`; the true reading is 2.529."
+   },
+   {
+    "at": "2026-08-26T11:21:14.564328+00:00",
+    "what": "The site lane refused eight consecutive publishes because its delivery-record extractor never unescaped the rendered text, so it compared `&quot;` against `\"` and reddened a correct page. Fixed at `f36e23d1e`."
+   },
+   {
+    "at": "2026-08-26T11:21:14.564328+00:00",
+    "what": "The parked value-arm record states that the confirming A/B re-run was started on 2026-08-26 and is writing to `value_cycle_ab_2026-08-26_observables_threaded.json`. That file does not exist, no such process is running, and the only new artefact is a byte-identical copy of the 08:02Z original. A park record asserted a job in flight that is not in flight, which is the shape of claim this project has an R-rule about."
+   },
+   {
+    "at": "2026-08-26T11:21:14.564328+00:00",
+    "what": "`git status --porcelain` returns 552 entries and the residue in it -- six `.land_*.sh` scripts, `_r11_tmp.mjs`, four zero-byte lock files all stamped 2026-08-20 -- is a permanently true condition, so the \"uncommitted work\" alarm keyed on it can never clear and repeats instead. Carried uncorrected from the last two records; now the second clause of focus item two rather than a third recording."
+   },
+   {
+    "at": "2026-08-26T11:21:14.564328+00:00",
+    "what": "`docs/observability/autonomous-runner-log.md` still carries 2,619 lines of test-fixture output -- MagicMock pids and `/tmp/pytest-of-rich/` paths -- in the live operational log, so anyone diagnosing the runner from it reads phantom launches. Recorded for the third time and deliberately not promoted: it misleads a reader, it does not stop the machine, and the four items above all outrank it."
+   },
    {
     "at": "2026-08-26T08:22:57.401289+00:00",
     "what": "Commit `03b60e1e9` announced in its own subject that \"the first realised run says it earns 5% more net margin and gives all of it back as lost book\". The completed realised run, written to `docs/observability/value_cycle_ab.json` at 08:02Z, says -GBP 93,555 net and -GBP 118,252 enterprise value. A commit message announced a positive result the finished measurement refutes, and it is a commit message, so it cannot be corrected in place."
@@ -449,12 +477,26 @@
  },
  "what_next": {
   "focus": [
-   "value-arm-answers-a-bound",
+   "value-cycle-ab-rerun-after-the-observables-fix",
+   "lane-zero-progress-signal-is-a-constant",
    "EP1_clv_three_horizon",
-   "EP13_adapter_carbon_intensity",
-   "close-the-two-stale-blocking-findings"
+   "EP13_adapter_carbon_intensity"
   ],
   "steer_checks": [
+   {
+    "drawn": [
+     "EP1_clv_three_horizon",
+     "EP13_adapter_carbon_intensity"
+    ],
+    "focus": [
+     "value-arm-answers-a-bound",
+     "EP1_clv_three_horizon",
+     "EP13_adapter_carbon_intensity",
+     "close-the-two-stale-blocking-findings"
+    ],
+    "note": "the previous direction named work the draw then took",
+    "steered": true
+   },
    {
     "drawn": [
      "EP13_adapter_carbon_intensity",
@@ -503,18 +545,6 @@
      "publish-path-lands",
      "land-lane-zero",
      "EP1_clv_three_horizon",
-     "harness-lane-prune"
-    ],
-    "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",
-    "steered": false
-   },
-   {
-    "drawn": [],
-    "focus": [
-     "flat-control-credible-average-player",
-     "publish-path-lands",
-     "EP1_clv_three_horizon",
-     "expected-cost-collections-term",
      "harness-lane-prune"
     ],
     "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",
