@@ -465,3 +465,55 @@ tool is being given a churn-roster diff — which accounts churned under one arm
 the other, with segment and realised lifetime margin — because a delta driven by three
 accounts out of 263 must name them. Until it does, neither the loss nor any future win
 should be read as a portfolio result.
+
+---
+
+## 2026-08-26 14:20Z — it was one account, and it was priced as a household
+
+The A/B now names where its delta comes from. `margin_movers` over all 259 accounts:
+
+**`concentration_top_n_share_of_absolute_movement` = 0.9968.** Net delta −£94,814, of which
+**C_IC3 alone is −£94,314 — 99.5%.**
+
+| account | control | value arm | delta |
+|---|---|---|---|
+| **C_IC3** | £195,317 | £101,003 | **−£94,314** |
+| C_IC1 | £531,323 | £500,195 | −£31,128 |
+| C_IC2 | £365,689 | £381,043 | +£15,354 |
+
+So every "the value arm loses" statement in the sections above is a statement about **one
+industrial customer**. The churn story is dead: the four accounts the arm loses differently
+(C1_2, C3, C6, C7) are worth £6,534 between them and three are BETTER off under the arm.
+The loss is not a customer leaving; it is one customer **staying at the wrong price**.
+
+**The mechanism, measured on the company's own estimator.** `renewal_margin_uplift` maps
+`segment = "resi" if is_domestic else "SME"` — two values, because `cost_to_serve_for_period`
+takes two. `estimate_churn_probability` branches THREE ways, and its I&C arm exists to switch
+bill-size-driven churn off (`IC_BILL_STRESS_SENSITIVITY = 0.0`). On the SME path the stress
+term is `0.25 × max(0, annual_bill/£3,000 − 1)`, and C_IC3 consumes 3.94 GWh:
+
+| offered margin | SME path (what the arm gets) | I&C path (unreachable) |
+|---|---|---|
+| £0.50 — the floor | **1.0000** | 0.0288 |
+| £2.00 — the control | **1.0000** | 0.0288 |
+| £46.00 | **1.0000** | 0.8094 |
+
+The arm believes a 3.9 GWh customer is certain to leave **at any price it can offer, including
+one below what it already charges**. `p_retain = 0` flat across the grid leaves nothing to
+maximise, so the search falls to the floor — £0.50/MWh, under the control's £2.00. That is
+`endpoint_at_floor: 16`, and on 3.94 GWh a £1.50/MWh giveaway compounds to the £94,314 above.
+
+**Why the two earlier repairs could not have helped.** A saturated term notices nothing
+downstream of it. `8b450a839` corrected which rate is compared and which ceiling binds; both
+were real, and both sit behind a `p_leave` that had already lost all its information. That is
+why the loss moved 6.4% and no further.
+
+**Why the probe never saw it.** `tools/couple_value_based_pricing.py` passes the account's TRUE
+segment, reaches the I&C branch, and reports C_IC3 at £46.00/MWh endpoint-unbound. Same module,
+same book, different information — the second instance of the class `8b450a839` named on its
+first, and the reason that finding's own words are worth repeating: *the production caller and
+the probe are not asking the same company.*
+
+Full record, including why the one-line repair is filed rather than applied inside a diagnosis
+commit (R12 — I already know which way it moves the headline):
+`docs/staging/done/WORKER_FINDING_THE_VALUE_ARMS_WHOLE_LOSS_IS_ONE_INDUSTRIAL_ACCOUNT_PRICED_AS_A_HOUSEHOLD_2026-08-26.md`.

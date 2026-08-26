@@ -73,6 +73,7 @@ from company.policy.decision_policy import (
     VALUE_ARM_POLICY,
     policy_scope,
 )
+from saas.customer_reaction import _billing_account_id
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 from simulation.run_phase4c_on_phase2b import main as run_phase4c
 
@@ -122,6 +123,225 @@ def realised_metrics(result: dict) -> dict:
         # NOT a realised figure and labelled so: how many renewals the arm priced at all. It is
         # here because a delta of zero has two causes and only this number separates them.
         "renewals_priced_by_the_arm": len(phase2b.get("value_arm_log", [])),
+    }
+
+
+#: R14 -- the two bases an account's realised margin can be stated on, named where they
+#: are used rather than left for a reader to infer from a key.
+SETTLED_BASIS = ("net_margin_gbp summed from the world's own settled records "
+                 "(phase2b.all_records) -- after wholesale, levies, network, capital and "
+                 "bad debt, BEFORE cost-to-serve")
+REPORTED_BASIS = ("net_margin_after_cost_to_serve_gbp from the reporting layer's "
+                  "per_customer_lifetime -- after cost-to-serve as well")
+
+
+def _lifetime_by_billing_account(result: dict) -> tuple[dict, str]:
+    """Realised whole-life margin per BILLING ACCOUNT, with the basis it is stated on.
+
+    THREE LOOKUPS BEFORE THIS ONE WORKED, and each wrong turn was caught by a control
+    declaring a blank rather than a zero (2026-08-26). `per_customer_lifetime` is not in
+    the run at all: `saas/reporting/annual_report.py` BUILDS it, so it exists in the
+    published artefact and never in the in-memory result an A/B holds. It is also keyed
+    by CUSTOMER (`C1`, `C1g`) where `churned_billing_accounts` is keyed by BILLING
+    ACCOUNT (`C1`, `C1_2`).
+
+    So the primary source is the one the reporting layer itself aggregates from -- the
+    world's settled records -- which is strictly better for a harness: it is what
+    actually happened, not a renderer's derivation of it, and it is available without
+    invoking the reporting layer inside an experiment. `per_customer_lifetime` is still
+    preferred WHEN PRESENT, because an artefact-driven caller has the richer
+    after-cost-to-serve basis, and the basis is returned rather than assumed.
+
+    Dual-fuel legs are folded with the same helper `saas.clv_model.build_clv` uses, so
+    the two cannot drift into different ideas of one account. A billing account with no
+    records behind it (`C1_2`, a secondary account the household register does not carry)
+    stays `None` -- genuinely unvalued, and saying so is what surfaced all three lookup
+    faults instead of writing four real customers off as worthless.
+    """
+    merged: dict[str, dict] = {}
+
+    reported = result.get("per_customer_lifetime")
+    if not isinstance(reported, dict) or not reported:
+        reported = (result.get("phase2b") or {}).get("per_customer_lifetime")
+    if isinstance(reported, dict) and reported:
+        for customer_id, entry in reported.items():
+            if not isinstance(entry, dict):
+                continue
+            account_id = _billing_account_id(customer_id)
+            figure = entry.get("net_margin_after_cost_to_serve_gbp")
+            row = merged.setdefault(
+                account_id, {"segment": entry.get("segment"), "total": None})
+            if isinstance(figure, (int, float)) and not isinstance(figure, bool):
+                row["total"] = (row["total"] or 0.0) + float(figure)
+            if row["segment"] is None:
+                row["segment"] = entry.get("segment")
+        return merged, REPORTED_BASIS
+
+    records = (result.get("phase2b") or {}).get("all_records")
+    if not isinstance(records, list):
+        return {}, SETTLED_BASIS
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        customer_id = record.get("customer_id")
+        if not isinstance(customer_id, str):
+            continue
+        account_id = _billing_account_id(customer_id)
+        figure = record.get("net_margin_gbp")
+        row = merged.setdefault(
+            account_id, {"segment": record.get("segment"), "total": None})
+        if isinstance(figure, (int, float)) and not isinstance(figure, bool):
+            row["total"] = (row["total"] or 0.0) + float(figure)
+        if row["segment"] is None:
+            row["segment"] = record.get("segment")
+    return merged, SETTLED_BASIS
+
+
+def churn_roster_diff(control: dict, value: dict) -> dict:
+    """WHICH accounts the two arms lost differently, named, with what each was worth.
+
+    THE AGGREGATE WAS NOT ENOUGH, and the 12:35Z run is why. It reported the arm giving
+    up GBP 123,006 of gross margin on THREE extra churns -- GBP 41,000 each, against a
+    domestic book whose whole-life margin averages ~GBP 420. Three domestic customers
+    cannot cost that, so either the delta is carried by a handful of large accounts or
+    the churn count is not the mechanism at all; and with aggregates alone the artefact
+    could not tell those apart. A delta driven by three accounts out of 263 must name
+    them, because "the value arm loses" is a portfolio claim and three accounts are not
+    a portfolio.
+
+    Both sides come from `churned_billing_accounts` -- the WORLD's own roster, written
+    when a churn event actually fires -- and the value is
+    `per_customer_lifetime[...]['net_margin_after_cost_to_serve_gbp']`, the same
+    realised, settled figure `tools/couple_clv.py` grades against. Neither is anything
+    the company believed.
+
+    `only_in_value` is the interesting side: accounts the value arm drove away that the
+    control kept. `only_in_control` is published beside it because an arm that loses
+    three and SAVES two is a different animal from one that loses three, and the net
+    count alone hides the difference.
+    """
+    def roster(result: dict) -> set:
+        churned = result["phase2b"].get("churned_billing_accounts")
+        if not isinstance(churned, list):
+            # R15 FAIL-OPEN: an absent roster is not an empty one. Reporting "no
+            # accounts differ" from a missing field would be the most reassuring
+            # wrong answer this artefact could carry.
+            return None
+        return {a for a in churned if isinstance(a, str)}
+
+    control_churned, value_churned = roster(control), roster(value)
+    if control_churned is None or value_churned is None:
+        return {"available": False,
+                "reason": "a run published no churned_billing_accounts roster"}
+
+    lifetimes, basis = _lifetime_by_billing_account(value)
+    control_lifetimes, control_basis = _lifetime_by_billing_account(control)
+
+    def describe(account_id: str, source: dict) -> dict:
+        entry = source.get(account_id) or {}
+        return {
+            "account": account_id,
+            "segment": entry.get("segment"),
+            "realised_lifetime_margin_gbp": entry.get("total"),
+        }
+
+    only_value = sorted(value_churned - control_churned)
+    only_control = sorted(control_churned - value_churned)
+    lost = [describe(a, lifetimes) for a in only_value]
+    saved = [describe(a, control_lifetimes) for a in only_control]
+
+    def total(rows):
+        figures = [r["realised_lifetime_margin_gbp"] for r in rows
+                   if r["realised_lifetime_margin_gbp"] is not None]
+        return sum(figures) if figures else 0.0
+
+    return {
+        "available": True,
+        "churned_under_both": len(control_churned & value_churned),
+        "margin_basis": basis,
+        "only_in_value_arm": lost,
+        "only_in_control_arm": saved,
+        "only_in_value_arm_realised_gbp": total(lost),
+        "only_in_control_arm_realised_gbp": total(saved),
+        "largest_single_difference_gbp": max(
+            (abs(r["realised_lifetime_margin_gbp"]) for r in lost + saved
+             if r["realised_lifetime_margin_gbp"] is not None), default=0.0),
+        "reading": (
+            "If `largest_single_difference_gbp` is a large share of "
+            "`realised_delta.gross_margin_gbp`, the headline is a statement about ONE "
+            "decision and n=1 is not a thesis -- read it as a case study and say so. "
+            "The realised figures are whole-life and come from the arm's own run, so "
+            "an account present in both rosters is not compared here at all: only the "
+            "accounts the two arms treated DIFFERENTLY appear. R12: diagnostic, never "
+            "a target."
+        ),
+    }
+
+
+def margin_movers(control: dict, value: dict, top: int = 15) -> dict:
+    """WHERE the realised margin delta actually comes from, account by account.
+
+    THE CHURN ROSTER WAS NOT ENOUGH EITHER, and this is the second thing the 12:35Z run
+    forced. That run gave up GBP 123,006 of gross margin, and the roster named only four
+    extra churns whose whole-life revenue under the control totals ~GBP 69,000 -- less
+    than the delta, and an account that churns EARLY loses only the part of that it had
+    not yet earned. So the delta is not the churns, and with churn counts alone the
+    artefact could neither say that nor say what it is instead.
+
+    `concentration` is the number this exists to publish: the share of the total absolute
+    movement carried by the top few accounts. A delta spread thinly across 200 customers
+    is a portfolio result and supports a portfolio claim. A delta carried by three is a
+    case study wearing a portfolio's clothes, and the two must not read the same.
+
+    Both sides are realised, settled, whole-life margin from each arm's OWN run. An
+    account that churned under one arm still appears -- its margin simply stopped
+    earlier, which is the point.
+    """
+    control_book, control_basis = _lifetime_by_billing_account(control)
+    value_book, basis = _lifetime_by_billing_account(value)
+    if not control_book and not value_book:
+        return {"available": False, "reason": "neither arm published per_customer_lifetime"}
+
+    rows = []
+    for account_id in sorted(set(control_book) | set(value_book)):
+        c = (control_book.get(account_id) or {}).get("total")
+        v = (value_book.get(account_id) or {}).get("total")
+        if c is None and v is None:
+            continue
+        rows.append({
+            "account": account_id,
+            "segment": (value_book.get(account_id) or control_book.get(account_id)
+                        or {}).get("segment"),
+            "control_gbp": c,
+            "value_arm_gbp": v,
+            "delta_gbp": (v or 0.0) - (c or 0.0),
+        })
+
+    ranked = sorted(rows, key=lambda r: -abs(r["delta_gbp"]))
+    total_abs = sum(abs(r["delta_gbp"]) for r in rows)
+    top_abs = sum(abs(r["delta_gbp"]) for r in ranked[:top])
+    net = sum(r["delta_gbp"] for r in rows)
+
+    return {
+        "available": True,
+        "accounts_compared": len(rows),
+        "margin_basis": basis,
+        "accounts_that_moved": sum(1 for r in rows if r["delta_gbp"]),
+        "net_delta_gbp": net,
+        "total_absolute_movement_gbp": total_abs,
+        "top_n": top,
+        "concentration_top_n_share_of_absolute_movement": (
+            top_abs / total_abs if total_abs else None),
+        "biggest_movers": ranked[:top],
+        "reading": (
+            "`concentration_top_n_share_of_absolute_movement` near 1.0 means a handful "
+            "of accounts ARE the headline and it should be read as a case study, not a "
+            "portfolio result. Spread thin, the portfolio claim stands. Note that "
+            "`net_delta_gbp` is the NET-of-all-costs line and will not equal "
+            "`realised_delta.gross_margin_gbp`, which is a different basis (R14) -- "
+            "they are here to be compared in SHAPE, not summed. R12: diagnostic, never "
+            "a target."
+        ),
     }
 
 
@@ -296,6 +516,12 @@ def run_value_cycle_ab(report_end: str | None = None) -> dict:
             "bad_debt_gbp": value_m["total_bad_debt_gbp"] - control_m["total_bad_debt_gbp"],
         },
         "decision_shape": arm_decision_shape(value),
+        # Names the accounts behind `realised_delta.churned_accounts`. Published
+        # beside the delta, never instead of it -- see `churn_roster_diff`.
+        "churn_roster_diff": churn_roster_diff(control, value),
+        # WHERE the delta comes from, account by account, with its concentration.
+        # The roster names who left; this names who MOVED, which is not the same set.
+        "margin_movers": margin_movers(control, value),
         "control_credibility": control_credibility(),
         "how_to_read_this": (
             "A positive net-margin delta does NOT establish the thesis on its own. Check three "
