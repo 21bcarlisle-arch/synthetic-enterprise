@@ -222,17 +222,26 @@ def test_record_gate_run_appends_and_alarms(monkeypatch, tmp_path):
     spy = _Spy()
     monkeypatch.setattr("background.notify.notify", spy)
     p = tmp_path / "series.jsonl"
-    sdw.record_gate_run(600.0, 1800, "sha_ok_0001", "pass", p)      # headroom 0.67 -> ok
-    sdw.record_gate_run(1500.0, 1800, "sha_tight_01", "pass", p)    # headroom 0.17 -> tight
+    # THE CEILING IS SCALED OFF THE CADENCE (2026-08-26) so this fixture measures what it says.
+    # It used to read 600s/1800s and 1500s/1800s, chosen when the cadence was 330s: both runs
+    # were then over the cadence, which is what makes the absolute alarm page once and go quiet.
+    # Re-measuring the cadence to 1500s left the 600s run UNDER it, so the second figure never
+    # fired and the test reddened on an arrangement it had only ever assumed. Anchored to the
+    # constant, the intent survives any future re-measurement.
+    over = sdw.PUBLISH_CADENCE_SECONDS * 2.0        # over the cadence, roomy on headroom -> ok
+    tight = sdw.PUBLISH_CADENCE_SECONDS * 5.0       # over the cadence AND short of headroom
+    ceiling = sdw.PUBLISH_CADENCE_SECONDS * 6.0
+    sdw.record_gate_run(over, ceiling, "sha_ok_0001", "pass", p)      # headroom 0.67 -> ok
+    sdw.record_gate_run(tight, ceiling, "sha_tight_01", "pass", p)    # headroom 0.17 -> tight
     rows = sdw.read_series(p)
     assert [r["band"] for r in rows] == ["ok", "tight"]
     headroom_pages = [m for m, kw in spy.sent
                       if kw.get("transition_key") == "suite_duration_headroom"]
     assert len(headroom_pages) == 1 and "sha_tight" in headroom_pages[0]
-    # SECOND FIGURE, SEPARATE KEY (2026-08-21). Both runs here are over the 330s cadence, so the
+    # SECOND FIGURE, SEPARATE KEY (2026-08-21). Both runs here are over the cadence, so the
     # absolute alarm pages once on the FIRST one and stays silent on the second — a different
     # question from headroom, crossing at a different moment, and deliberately not folded in:
-    # the 600s run is `ok` on headroom and already 1.8x its own cadence.
+    # the first run is `ok` on headroom and already 2x its own cadence.
     absolute_pages = [m for m, kw in spy.sent
                       if kw.get("transition_key") == "publish_gate_absolute_duration"]
     assert len(absolute_pages) == 1 and "sha_ok_00" in absolute_pages[0]
@@ -441,11 +450,17 @@ def test_the_absolute_band_is_unmoved_by_a_ceiling_that_grew_to_fit():
 
     1250s is today's real gate run. Under every ceiling this project has shipped it is still four
     times the cadence, and the instrument must say so at 4500 exactly as loudly as at 600."""
-    verdicts = {sdw.absolute_band(1250.0) for _ in (600, 1800, 2600, 2900, 3400, 3600, 4500)}
+    # RELATIVE TO THE CADENCE, NOT A LITERAL (2026-08-26). These durations were chosen
+    # when `PUBLISH_CADENCE_SECONDS` was 330; re-measuring it to 1500 (runs got ~7.7x
+    # slower as the book grew) turned them from 'comfortably over' into 'under', and the
+    # tests reddened on a constant they were never about. A fixture that pins an absolute
+    # number against a MEASURED quantity is the same defect this module exists to watch.
+    over = sdw.PUBLISH_CADENCE_SECONDS * 2.0
+    verdicts = {sdw.absolute_band(over) for _ in (600, 1800, 2600, 2900, 3400, 3600, 4500)}
     assert verdicts == {"over_cadence"}, "a verdict that moved with the ceiling is the old figure"
     # And the headroom ratio over the same runtime DOES move — which is why a second figure had
     # to exist. This is the contrast the finding rests on, asserted rather than described.
-    assert sdw.headroom(1250.0, 600) != sdw.headroom(1250.0, 4500)
+    assert sdw.headroom(over, 600) != sdw.headroom(over, 4500)
     assert sdw.band(sdw.headroom(1250.0, 4500)) == "ok"  # "healthy" at 21 minutes
 
 
@@ -464,7 +479,7 @@ def test_a_genuinely_fast_gate_reads_within_the_cadence():
     must read within and the second must not."""
     assert sdw.absolute_band(39.0) == "within_cadence"
     assert sdw.absolute_band(sdw.PUBLISH_CADENCE_SECONDS - 1) == "within_cadence"
-    assert sdw.absolute_band(600.0) == "over_cadence"
+    assert sdw.absolute_band(sdw.PUBLISH_CADENCE_SECONDS + 1) == "over_cadence"
 
 
 def test_the_absolute_band_fails_closed_on_what_it_cannot_measure():
@@ -545,7 +560,8 @@ def test_the_record_stores_the_absolute_verdict_and_the_cadence_it_used(tmp_path
     the cadence rides along so a future re-derivation cannot silently change what old rows meant.
     MUTATION: drop either key from `record()` and this fails."""
     p = tmp_path / "series.jsonl"
-    rec = sdw.record(1250.0, 4500, "2c0ba712b", "pass", p)
+    # Relative to the cadence: a literal chosen against the old 330s reads within the new 1500s.
+    rec = sdw.record(sdw.PUBLISH_CADENCE_SECONDS * 2.0, 4500, "2c0ba712b", "pass", p)
     assert rec["cadence_band"] == "over_cadence"
     assert rec["cadence_seconds"] == sdw.PUBLISH_CADENCE_SECONDS
     assert json.loads(p.read_text().splitlines()[-1])["cadence_band"] == "over_cadence"
@@ -572,10 +588,28 @@ def test_the_cadence_is_read_from_a_measurement_not_an_aspiration():
     cadence) used as a production bound. This constant is instead the MEASURED median marker
     inter-arrival (334s over the last 200 markers), so it describes the world rather than a wish.
 
-    MUTATION: set it to a round aspirational 300 or 60 and this fails. The band is deliberately
-    wide — this pins the constant to the observed shape, not to one sample."""
-    assert 320 <= sdw.PUBLISH_CADENCE_SECONDS <= 440, (
-        "cadence must stay inside the measured p10-p90 inter-arrival band (324s-435s)")
+    MUTATION: set it to a round aspirational 300 or 60 and this fails.
+
+    MEASURED HERE, NOT PINNED (2026-08-26). This used to assert `320 <= C <= 440` — the p10-p90
+    band of the 2026-08-21 measurement. That guarded the right property against the wrong thing:
+    it pinned the constant to a MOMENT, so when runs slowed ~7.7x (the book grew about sixfold)
+    the world left the band and the test reddened on a number that had become correct. A control
+    that goes stale the moment its subject changes is the defect this whole module watches for,
+    one level up.
+
+    So the bound is recomputed from the markers on disk. It still fails on an aspiration — a
+    round 60 or 300 is far below any real inter-arrival — and it now also fails if the constant
+    drifts ABOVE the world, which is the silencing direction and the one that matters most.
+    """
+    measured = sdw.measure_publish_cadence_seconds()
+    if measured is None:
+        pytest.skip("fewer than three usable marker gaps on disk; nothing to measure against")
+    assert sdw.PUBLISH_CADENCE_SECONDS <= measured, (
+        f"cadence {sdw.PUBLISH_CADENCE_SECONDS}s is SOFTER than the measured "
+        f"{measured:.0f}s — the bound must never be looser than the observation")
+    assert sdw.PUBLISH_CADENCE_SECONDS >= measured * 0.5, (
+        f"cadence {sdw.PUBLISH_CADENCE_SECONDS}s is far below the measured {measured:.0f}s — "
+        "an aspiration used as a bound is what wedged publishing twice on 2026-08-21")
 
 
 def test_a_killed_run_is_not_certified_as_inside_the_cadence():

@@ -127,10 +127,88 @@ TREND_WINDOW = 5
 # 15 isn't verifying the current state, it's reporting on the past."* So the reference is the
 # CADENCE the gate gates, which is a fact about the world and not a budget anyone can raise.
 #
-# MEASURED, not assumed: the median inter-arrival of the last 200 `run_complete_*` markers is
-# 334s (p10 324s, p90 435s), over 970 markers spanning 2026-08-09 → 2026-08-21. 330 is that
-# median, rounded down so the bound is never softer than the observation.
-PUBLISH_CADENCE_SECONDS = 330
+# MEASURED, not assumed. RE-MEASURED 2026-08-26, and the re-measurement is the point.
+#
+# The original figure: median inter-arrival of the last 200 `run_complete_*` markers = 334s
+# (p10 324s, p90 435s) over 970 markers spanning 2026-08-09 → 2026-08-21, rounded DOWN to 330
+# so the bound was never softer than the observation. That was correct for the world it was
+# taken in.
+#
+# The world moved 7.7x and the constant did not. Measured over all 1,196 markers on disk:
+#
+#     2026-08-09 .. 08-21   n=1039   median   344s   <- the window 330 was taken from
+#     2026-08-22 .. 08-24   n=  98   median 1,528s
+#     2026-08-25 .. 08-26   n=  50   median 2,637s
+#
+# The book grew roughly sixfold over that period, so each run takes far longer and markers
+# arrive far apart. Against a live gate median of 526s, `cadence_band` therefore returned
+# `over_cadence` on 30 of the last 30 publish-gate runs — a control firing every single time,
+# which carries exactly as much information as one that never fires.
+#
+# THIS RAISE IS THE MOVE THE PARAGRAPH ABOVE WARNS ABOUT, and it is being made anyway, so the
+# distinction has to be stated rather than assumed. What that paragraph forbids is raising a
+# BUDGET to fit the work: six ceiling raises made the same runtime read as more headroom, and
+# `absolute_band()` cannot even be passed a ceiling so the move is structurally unavailable.
+# This is not that. `PUBLISH_CADENCE_SECONDS` is not a budget anyone chose; it is a measurement
+# of how often runs actually arrive, and a measurement that no longer matches the world is
+# simply wrong. Re-measuring it is the same act as re-freezing the ruff baseline after a real
+# shrink — and like that ratchet, the move is DATED, its window is named, and the evidence is
+# reproducible by `measure_publish_cadence_seconds()` below rather than asserted here.
+#
+# THE DIRECTION IS THE UNCOMFORTABLE ONE and a reader should weigh it as such: this makes the
+# alarm quieter. It is defensible only because the alarm was wrong 30 times out of 30, and a
+# control at 100% false positives trains the reader to skim it — which is how the tree-divergence
+# breach survived six days at 29x. An always-firing control and a never-firing one fail the same
+# way. If runs get fast again, this number must come back DOWN, and the log line below is where
+# that will be recorded.
+#
+# CADENCE LOG — every move, with its window and its direction.
+#   2026-08-26  330 -> 1500  (re-measured; runs got slower as the book grew ~6x)
+#     SAME METHOD AS THE ORIGINAL, deliberately: the median over the LAST 200 markers, which is
+#     1,526s, rounded DOWN to 1500 so the bound is never softer than the observation.
+#     A first attempt used 2400, taken from the 2026-08-25..08-26 slice alone (median 2,637s).
+#     That slice is real but it is a different method from the one this constant was defined by,
+#     and 2400 was SOFTER than the 200-marker observation — i.e. it broke the very rounding rule
+#     it cited. Caught by `measure_publish_cadence_seconds()` before it landed, which is the
+#     argument for the helper existing at all.
+PUBLISH_CADENCE_SECONDS = 1500
+
+
+def measure_publish_cadence_seconds(markers_dir=None, window: int = 200):
+    """Re-measure the publish cadence from the `run_complete_*` markers on disk.
+
+    THE EVIDENCE FOR `PUBLISH_CADENCE_SECONDS`, callable rather than quoted. The constant above
+    is a claim about the world, and a claim about the world that nobody can re-run is a claim
+    that goes stale silently — which is exactly what happened between 2026-08-21 and today.
+
+    Returns the median inter-arrival in seconds over the last `window` markers, or None when
+    there are fewer than three usable gaps. Gaps above two hours are dropped as run outages
+    rather than cadence, the same shape as the original measurement's own bounds.
+
+    NOT wired into the constant on purpose. A cadence that recomputed itself every call would
+    drift upward silently, which is the silencing move in a slower costume: the number has to
+    MOVE IN A COMMIT, with a dated log line and a reader able to disagree.
+    """
+    import datetime as _dt
+    import pathlib as _pathlib
+    import re as _re
+    import statistics as _statistics
+
+    roots = ([_pathlib.Path(markers_dir)] if markers_dir
+             else [PROJECT_DIR / "docs" / "staging" / "done",
+                   PROJECT_DIR / "docs" / "staging"])
+    stamps = []
+    for root in roots:
+        if not root.is_dir():
+            continue
+        for path in root.glob("run_complete_*.md"):
+            hit = _re.search(r"run_complete_(\d{8}T\d{6}Z)", path.name)
+            if hit:
+                stamps.append(_dt.datetime.strptime(hit.group(1), "%Y%m%dT%H%M%SZ"))
+    stamps = sorted(set(stamps))[-window:]
+    gaps = [(b - a).total_seconds() for a, b in zip(stamps, stamps[1:])
+            if 0 < (b - a).total_seconds() < 7200]
+    return _statistics.median(gaps) if len(gaps) >= 3 else None
 
 # THIS IS AN ALARM AND A SURFACE, NEVER A KILL, and that restraint is bought with evidence from
 # this morning. The first attempt at the director's *"put a limit on the absolute duration that
