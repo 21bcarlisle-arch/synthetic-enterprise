@@ -89,6 +89,8 @@ import subprocess
 import time
 from pathlib import Path
 
+from background.live_ledger_guard import guard_live_ledger_write
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 HEARTBEAT_FILE = PROJECT_DIR / "docs" / "observability" / ".seat_heartbeat.json"
 STAGING_DIR = PROJECT_DIR / "docs" / "staging"
@@ -172,6 +174,7 @@ def note_activity(tool: str, *, session_id: str = "", pid: int | None = None,
         "recent_tools": [tail[-1]] if handover_due else tail,
     }
     try:
+        guard_live_ledger_write(p, writer="seat_continuity.note_activity")
         p.parent.mkdir(parents=True, exist_ok=True)
         tmp = p.with_suffix(p.suffix + ".tmp")
         tmp.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
@@ -385,7 +388,6 @@ def sweep(*, path: Path | None = None, now: float | None = None,
     clean tree with no claims would be noise, and this module's whole purpose is to stop the
     director being the one who notices things.
     """
-    from background import alarm_repetition, seat_work_in_hand
 
     p = path or HEARTBEAT_FILE
     now = time.time() if now is None else now

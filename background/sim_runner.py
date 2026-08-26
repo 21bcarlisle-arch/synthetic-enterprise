@@ -72,13 +72,17 @@ BETWEEN_RUN_PAUSE_SECONDS = 60  # brief pause between back-to-back runs
 
 sys.path.insert(0, str(PROJECT_DIR))
 from background import publisher_budget  # noqa: E402
-from background.notify import notify  # noqa: E402
-from background.agent_status import update_agent_status  # noqa: E402
 from background.agent_protocol import AgentMessage  # noqa: E402
+from background.agent_status import update_agent_status  # noqa: E402
 from background.child_diagnostics import (  # noqa: E402
-    STDERR_TAIL_LINES, child_output_excerpt, failure_detail, stderr_tail,
+    STDERR_TAIL_LINES,
+    child_output_excerpt,
+    failure_detail,
+    stderr_tail,
 )
 from background.episode_monotonic import guard_episode  # noqa: E402
+from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
+from background.notify import notify  # noqa: E402
 
 #: The episode-scoped fields of PRODUCER_STATE_FILE, declared for `guard_episode`. A field added
 #: here without being declared is exactly the "wired it in but it is a no-op" gap the guard's own
@@ -186,6 +190,7 @@ def record_run_outcome(
 
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
+        guard_live_ledger_write(path, writer="sim_runner.record_run_outcome")
         path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
     except OSError as exc:
         log(f"producer-health state write failed (non-fatal): {exc}")

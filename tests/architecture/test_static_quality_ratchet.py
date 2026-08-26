@@ -457,10 +457,18 @@ BASELINE_DATE = "2026-08-06"
 #     working -- a floor nobody shrinks stops measuring -- but it means the cost of this ratchet
 #     is one extra gate cycle per commit that lands a dirty file, and the way out is paying the
 #     1,356 down rather than tuning the control.
+#   2026-08-26  I001 1356 -> 1355, F401 272 -> 269  (bringing six writers inside the live-ledger
+#               guard)
+#     Sideways again, and by now the pattern is the entry: routing
+#     `seat_continuity`, `seat_work_in_hand` and `sim_runner` through
+#     `guard_live_ledger_write` meant running the fix pass over them, which cleared three unused
+#     imports and one un-sorted block that were all there before the change went near them. Per
+#     file, set-differenced against `git archive HEAD`: seat_continuity F401 -2,
+#     seat_work_in_hand F401 -1, sim_runner I001 -1. Four removals, no additions.
 # --------------------------------------------------------------------------
 RUFF_BASELINE: dict[str, int] = {
-    "I001": 1356,
-    "F401": 272,
+    "I001": 1355,
+    "F401": 269,
     "E402": 174,
     "F841": 128,
     "E741": 108,
@@ -479,7 +487,7 @@ RUFF_BASELINE: dict[str, int] = {
     "W605": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2351  # was 2352; -1 (I001 1357 -> 1356; see the entry above)
+RUFF_BASELINE_TOTAL = 2347  # was 2351; -4 (I001 -1, F401 -3; see the entry above)
 
 
 # --------------------------------------------------------------------------

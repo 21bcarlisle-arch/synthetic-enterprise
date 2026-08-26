@@ -2206,7 +2206,9 @@ def _record_gate_green_clock(git_hash: str, now: float | None = None) -> bool:
     unwedge draw, never a silenced one. Returns whether the stamp landed, so the caller's tests
     can put both directions on trial instead of inferring them."""
     try:
-        _green_clock_path().write_text(json.dumps(
+        _green = _green_clock_path()
+        guard_live_ledger_write(_green, writer="process_run_complete._record_gate_green_clock")
+        _green.write_text(json.dumps(
             {"sha": git_hash, "ts": time.time() if now is None else float(now)}))
         return True
     except (OSError, TypeError, ValueError) as exc:  # noqa: BLE001 - see the docstring

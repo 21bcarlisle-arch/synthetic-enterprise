@@ -47,7 +47,19 @@ def test_MUTATION_the_hysteresis_gap_stops_a_flapping_alarm():
     assert dh.band(dh.RECOVERED_FLOOR_MB + 1, previous=dh.PRESSURE) == dh.HEALTHY
 
 
-def test_MUTATION_FAIL_CLOSED_an_unreadable_filesystem_is_pressure_never_healthy(monkeypatch):
+def test_MUTATION_FAIL_CLOSED_an_unreadable_filesystem_is_pressure_never_healthy(
+        monkeypatch, tmp_path):
+    """THE STATE FILE IS REDIRECTED, and it was not until 2026-08-26.
+
+    `observe()` persists its reading, so this test was writing the LIVE
+    `docs/observability/.disk_headroom_state.json` -- a test's fixture ("no such filesystem",
+    0 MB free, PRESSURE) becoming the machine's record of its own disk. Its neighbour two tests
+    down has redirected `STATE_FILE` since the day it was written; this one never did, and
+    nothing compared them. Found by `live_ledger_guard` on the day `disk_headroom._save` was
+    brought inside it, which is the guard doing exactly its job rather than a new rule.
+    """
+    monkeypatch.setattr(dh, "STATE_FILE", tmp_path / "state.json")
+
     def boom(_p):
         raise OSError("no such filesystem")
 

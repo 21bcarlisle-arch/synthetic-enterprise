@@ -1011,10 +1011,38 @@ def main(argv=None) -> int:
     crosscheck = detail["roster_crosscheck"]
     print(f"  roster sources agree  : {crosscheck['agrees']}")
 
+    # THE PRINTER MUST NOT ASSUME WHICH BELIEF WAS SELECTED (2026-08-26). There are TWO
+    # provenance shapes here and that is deliberate: `belief_provenance()` describes the LEGACY
+    # belief and names the estimator it calls (`estimator_imported_from`/`estimator_callable`),
+    # while `ep1_series_provenance()` describes EP1's OWN series and names the producer it
+    # reaches through (`producer_imported_from`). This line only ever knew the first, so the day
+    # `three_horizon_clv_snapshots` started being published -- the day the whole mis-subjection
+    # was repaired -- `select_belief` correctly began preferring EP1's series and `main()` died
+    # here on `KeyError: 'estimator_imported_from'`, AFTER computing the measurement and BEFORE
+    # `--write-ledger` could record it.
+    #
+    # That is why the ledger has read `measured_at: 2026-08-19`, 5 counted accounts, for four
+    # consecutive direction records while the tool that writes it had a fresh answer over 33.
+    # A reporting line that crashes on success is the same shape as everything else this
+    # morning: it worked until the thing it describes started working.
+    #
+    # So the trailer is rendered from WHATEVER KEYS THE SELECTED PROVENANCE CARRIES, in a stable
+    # order, rather than from a shape this function guesses. A new belief source therefore prints
+    # its own fields instead of killing the run, and a MISSING `grades_atom_estimator` is still a
+    # hard error -- that one is the load-bearing claim and must never be defaulted.
     prov = detail["belief_provenance"]
-    print(f"  belief graded         : {prov['belief_field']} "
-          f"<- {prov['produced_by']} -> "
-          f"{prov['estimator_imported_from']}.{prov['estimator_callable']}")
+    # Scalars inline; NESTED chains named rather than dumped. `belief_provenance` carries both
+    # the EP1 chain and the legacy chain as sub-dicts, and printing them whole buries the four
+    # facts a reader is here for under four hundred characters of repetition.
+    _scalars = [k for k in sorted(prov)
+                if k not in ("belief_field", "grades_atom_estimator")
+                and not isinstance(prov[k], dict)]
+    _chains = [k for k in sorted(prov) if isinstance(prov[k], dict)]
+    print(f"  belief graded         : {prov['belief_field']}")
+    print("    provenance          : "
+          + ", ".join(f"{k}={prov[k]}" for k in _scalars))
+    if _chains:
+        print(f"    chains recorded     : {', '.join(_chains)} (in the ledger entry, not here)")
     print(f"  grades EP1's estimator: {prov['grades_atom_estimator']}"
           + ("" if prov["grades_atom_estimator"]
              else "   <- this row is keyed to EP1 and does not grade it"))

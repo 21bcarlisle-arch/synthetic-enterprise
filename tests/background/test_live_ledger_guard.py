@@ -182,6 +182,36 @@ def _functions_that_write(tree) -> list:
     return out
 
 
+def _calls_the_guard(fn) -> bool:
+    """Does this function actually route its write through `guard_live_ledger_write`?
+
+    WHY THIS PREDICATE HAD TO EXIST (2026-08-26). The bound below tells its reader that when
+    the count moves, "the honest response is to widen the guard, not to bump the number." It
+    could not be. `covered` is keyed on the `GAP_LEDGER_PATH` CONVENTION -- four modules -- so
+    bringing a writer inside `live_ledger_guard` left it in the excluded population exactly as
+    before, and the number did not move by one. The remedy the control names had no effect on
+    the control's own measurement, which makes the bound a ratchet nobody can pay down: the only
+    move it leaves is the one it forbids.
+
+    Found by taking the remedy at its word. `disk_headroom._save` and `seat_work_in_hand._save`
+    were guarded, the guard immediately caught a REAL live-record write in
+    `test_disk_headroom.py` (a fixture reading of "no such filesystem, 0 MB free" persisting to
+    the machine's own `.disk_headroom_state.json`) -- and the count stayed at 81.
+
+    So membership is now the property that matters -- does the write go through the refusal --
+    rather than which constant the module happens to name. A guarded writer leaves the owed
+    population, which is what makes the floor payable.
+    """
+    for call in ast.walk(fn):
+        if isinstance(call, ast.Call):
+            name = call.func
+            if isinstance(name, ast.Name) and name.id == "guard_live_ledger_write":
+                return True
+            if isinstance(name, ast.Attribute) and name.attr == "guard_live_ledger_write":
+                return True
+    return False
+
+
 def test_the_writer_population_is_not_empty():
     """A census that finds nothing reads as a clean sweep. MUTATION: break the
     AST predicate so it matches no module -- the class test below would then
@@ -220,15 +250,49 @@ def test_the_narrowing_to_measurement_ledgers_is_measured_not_assumed():
     becoming the record. They are OWED, not covered: filed on the finding, not
     silently dropped.
 
-    MEASURED 2026-08-17, not estimated: **75** persisting functions across 40
-    `background/` modules touch that directory outside the guarded family. That
-    is far too large to guard in this tick without reding the many existing
-    tests that deliberately write live state paths, and pretending otherwise
-    would be the same defect one level up. So the number is pinned HERE, where
-    a reader of this control sees the boundary of what it actually covers.
+    MEASURED 2026-08-17, not estimated: **74** persisting functions across 40
+    `background/` modules touched that directory outside the guarded family, and
+    the bound was pinned one above at 75. That was far too large to guard in one
+    tick without reding the many existing tests that deliberately write live
+    state paths, so the number was pinned HERE, where a reader of this control
+    sees the boundary of what it actually covers.
 
     This test pins the excluded count so it cannot grow unnoticed. If it moves,
-    the honest response is to widen the guard, not to bump the number."""
+    the honest response is to widen the guard, not to bump the number.
+
+    2026-08-26 -- AND UNTIL TODAY THAT RESPONSE WAS IMPOSSIBLE, WHICH IS WHY THE
+    BOUND HAD SILENTLY BEEN BREACHED. The count reached 81: seven writers added
+    since the freeze (`disk_headroom._save`, `process_run_complete.
+    _record_gate_green_clock`, `publish_step_ledger._commit_state`,
+    `seat_continuity._handoff_for`, `seat_continuity.note_activity`,
+    `seat_work_in_hand._save`, `sim_runner.record_run_outcome`), none removed. It
+    refused every wide-pathspec commit, INCLUDING THE PUBLISH COMMIT.
+
+    Taking the remedy at its word did not work: `covered` is keyed on the
+    `GAP_LEDGER_PATH` CONVENTION -- four modules -- so bringing a writer inside
+    `live_ledger_guard` left it in this population exactly as before and the
+    count did not move by one. The only move the control left was the one it
+    forbids. A ratchet whose own stated remedy cannot reach its measurement is a
+    ratchet nobody can pay down, and this one had been un-payable since the day
+    it was written.
+
+    `_calls_the_guard` fixes that: membership is now "does this write go through
+    the refusal", not "which constant does the module name". Six of the seven
+    were then guarded and the count fell 81 -> 74, so the floor moves DOWN to 74
+    rather than being bumped -- below where it started. The seventh,
+    `seat_continuity._handoff_for`, is NOT guarded and is deliberately still
+    counted: it writes a STAGING document, not an observability record, so
+    guarding it would be a false positive of this predicate rather than a real
+    coverage gain. It stays owed and visible, as does
+    `sim_runner.py::run_simulation`, which is a second writer in an
+    already-partly-guarded module and is a bigger job than this pass.
+
+    THE GUARD EARNED ITS PLACE ON THE WAY IN. `disk_headroom._save`'s first
+    guarded run caught `test_disk_headroom.py::test_MUTATION_FAIL_CLOSED_...`
+    persisting a fixture reading -- "no such filesystem", 0 MB free, PRESSURE --
+    to the machine's own live `.disk_headroom_state.json`. Its neighbour two
+    tests down had redirected `STATE_FILE` since the day it was written; this
+    one never did, and nothing compared them."""
     covered = set(_gap_ledger_modules())
     excluded = []
     for py in sorted(BACKGROUND_DIR.glob("*.py")):
@@ -242,10 +306,13 @@ def test_the_narrowing_to_measurement_ledgers_is_measured_not_assumed():
         if "observability" not in src:
             continue
         for fn in _functions_that_write(tree):
+            if _calls_the_guard(fn):
+                continue
             excluded.append(f"{py.name}::{fn.name}")
-    assert len(excluded) <= 75, (
+    assert len(excluded) <= 74, (
         f"the un-guarded observability-writer population GREW to {len(excluded)} "
-        "-- widen `live_ledger_guard` rather than this bound: "
+        "-- widen `live_ledger_guard` rather than this bound, which is now a move "
+        "that actually lowers this number (see `_calls_the_guard`): "
         f"{sorted(excluded)}")
 
 

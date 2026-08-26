@@ -73,10 +73,11 @@ That is the fail-safe direction: work nobody can see moving belongs back in the 
 from __future__ import annotations
 
 import json
-import os
 import subprocess
 import time
 from pathlib import Path
+
+from background.live_ledger_guard import guard_live_ledger_write
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 CLAIMS_FILE = PROJECT_DIR / "docs" / "observability" / ".seat_work_in_hand.json"
@@ -106,6 +107,7 @@ def _load(path: Path) -> dict:
 
 
 def _save(claims: dict, path: Path) -> None:
+    guard_live_ledger_write(path, writer="seat_work_in_hand._save")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(claims, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 

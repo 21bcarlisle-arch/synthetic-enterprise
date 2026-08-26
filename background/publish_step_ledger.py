@@ -77,6 +77,8 @@ import traceback
 from contextlib import contextmanager
 from pathlib import Path
 
+from background.live_ledger_guard import guard_live_ledger_write
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 LEDGER_PATH = PROJECT_DIR / "site" / "data" / "publish_steps.json"
 STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".publish_step_state.json"
@@ -250,6 +252,8 @@ class PublishStepLedger:
         # interrupted cycle records nothing, and the degradation is re-detected next time --
         # failing toward RE-ALARMING rather than toward a phantom recovery.
         def _commit_state():
+            guard_live_ledger_write(
+                state_path, writer="publish_step_ledger._commit_state")
             state_path.parent.mkdir(parents=True, exist_ok=True)
             state_path.write_text(json.dumps({
                 "degraded": now_degraded,

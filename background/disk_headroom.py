@@ -68,6 +68,8 @@ import shutil
 import time
 from pathlib import Path
 
+from background.live_ledger_guard import guard_live_ledger_write
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".disk_headroom_state.json"
 
@@ -193,6 +195,7 @@ def _state() -> dict:
 
 
 def _save(payload: dict) -> None:
+    guard_live_ledger_write(STATE_FILE, writer="disk_headroom._save")
     STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     STATE_FILE.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
