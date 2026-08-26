@@ -250,10 +250,38 @@ def churn_roster_diff(control: dict, value: dict) -> dict:
     lost = [describe(a, lifetimes) for a in only_value]
     saved = [describe(a, control_lifetimes) for a in only_control]
 
+    def figures_of(rows):
+        return [r["realised_lifetime_margin_gbp"] for r in rows
+                if r["realised_lifetime_margin_gbp"] is not None]
+
+    # A ZERO HERE MUST MEAN "NOTHING DIFFERED", AND NOTHING ELSE. The per-account rows
+    # above already declare a blank correctly; it is the aggregation that used to
+    # collapse those blanks to 0.0, and the 13:58Z run did exactly that -- five named
+    # accounts, every figure null, every total 0.0. That run was superseded by 14:25Z
+    # before it was ever committed, so the ONLY surviving evidence of the defect is this
+    # control: the artefact in origin has never shown it, which is precisely why the
+    # fault could outlive the run that revealed it. That is the fourth R15 shape: the
+    # verdict was a CONSTANT no run could move. It is also the most reassuring wrong
+    # answer available, because `reading` below tells the reader to divide
+    # `largest_single_difference_gbp` into the headline delta, and a fabricated 0.0
+    # divides to "no concentration" -- i.e. "the loss is a portfolio property", the one
+    # conclusion this artefact was built to be able to REFUSE.
     def total(rows):
-        figures = [r["realised_lifetime_margin_gbp"] for r in rows
-                   if r["realised_lifetime_margin_gbp"] is not None]
-        return sum(figures) if figures else 0.0
+        if not rows:
+            return 0.0          # honest: the sum over an empty set of differences
+        figures = figures_of(rows)
+        return sum(figures) if figures else None
+
+    def largest_single(rows):
+        if not rows:
+            return 0.0
+        figures = figures_of(rows)
+        return max(abs(f) for f in figures) if figures else None
+
+    # Published because a PARTIAL blank makes the totals a FLOOR, not a measurement, and
+    # a floor that does not say so is read as a measurement.
+    def coverage(rows):
+        return {"accounts": len(rows), "valued": len(figures_of(rows))}
 
     return {
         "available": True,
@@ -263,17 +291,23 @@ def churn_roster_diff(control: dict, value: dict) -> dict:
         "only_in_control_arm": saved,
         "only_in_value_arm_realised_gbp": total(lost),
         "only_in_control_arm_realised_gbp": total(saved),
-        "largest_single_difference_gbp": max(
-            (abs(r["realised_lifetime_margin_gbp"]) for r in lost + saved
-             if r["realised_lifetime_margin_gbp"] is not None), default=0.0),
+        "largest_single_difference_gbp": largest_single(lost + saved),
+        "realised_coverage": {
+            "only_in_value_arm": coverage(lost),
+            "only_in_control_arm": coverage(saved),
+        },
         "reading": (
             "If `largest_single_difference_gbp` is a large share of "
             "`realised_delta.gross_margin_gbp`, the headline is a statement about ONE "
             "decision and n=1 is not a thesis -- read it as a case study and say so. "
             "The realised figures are whole-life and come from the arm's own run, so "
             "an account present in both rosters is not compared here at all: only the "
-            "accounts the two arms treated DIFFERENTLY appear. R12: diagnostic, never "
-            "a target."
+            "accounts the two arms treated DIFFERENTLY appear. A total of null means "
+            "accounts differed but NONE could be valued -- that is an unavailable "
+            "measurement, and it must never be read as zero concentration; check "
+            "`realised_coverage`, and where `valued` is short of `accounts` the totals "
+            "are a FLOOR. Only an empty roster side legitimately totals 0.0. R12: "
+            "diagnostic, never a target."
         ),
     }
 

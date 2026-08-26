@@ -171,6 +171,50 @@ def test_the_totals_sum_only_the_figures_that_exist():
                for r in diff["only_in_value_arm"])
 
 
+def test_an_all_blank_input_reports_unavailable_rather_than_zero():
+    """THE NULL CONTROL for the aggregation, and the defect the 13:58Z run showed.
+
+    Five accounts were named, every `realised_lifetime_margin_gbp` was null, and all
+    three totals read 0.0 — a verdict no run could move, R15's fourth shape. That run
+    was superseded by 14:25Z before it was ever committed, so no artefact in origin
+    records the fault and this test is the only thing that now holds it down. It is the
+    reassuring wrong answer specifically: `reading` sends the reader to divide
+    `largest_single_difference_gbp` into the headline delta, and a fabricated 0.0
+    divides to "no concentration", i.e. "the loss is a portfolio property" — the one
+    conclusion this artefact exists to be capable of refusing.
+    """
+    diff = churn_roster_diff(_arm(["KEPT"], {}), _arm(["GONE"], {}))
+
+    assert [r["account"] for r in diff["only_in_value_arm"]] == ["GONE"]
+    assert diff["only_in_value_arm_realised_gbp"] is None
+    assert diff["only_in_control_arm_realised_gbp"] is None
+    assert diff["largest_single_difference_gbp"] is None
+    assert diff["realised_coverage"]["only_in_value_arm"] == {"accounts": 1, "valued": 0}
+
+
+def test_an_empty_roster_side_still_totals_an_honest_zero():
+    """The partner to the null control, and the reason it is not simply "null when in
+    doubt". Nothing differing on a side really is 0.0 there — a control that answered
+    "unavailable" to every question would be as constant as the one it replaced."""
+    diff = churn_roster_diff(_arm([]), _arm(["K"], {"K": _life(250.0)}))
+
+    assert diff["only_in_control_arm"] == []
+    assert diff["only_in_control_arm_realised_gbp"] == 0.0
+    assert diff["only_in_value_arm_realised_gbp"] == pytest.approx(250.0)
+    assert diff["largest_single_difference_gbp"] == pytest.approx(250.0)
+
+
+def test_a_partially_valued_side_publishes_that_its_total_is_a_floor():
+    """A sum over two of five accounts is a FLOOR, and a floor that does not say so is
+    read as a measurement. The total stays a real number — it is known — but
+    `realised_coverage` is what stops it being divided into the headline as if complete."""
+    value = _arm(["K", "UNKNOWN"], {"K": _life(250.0)})
+    diff = churn_roster_diff(_arm([]), value)
+
+    assert diff["only_in_value_arm_realised_gbp"] == pytest.approx(250.0)
+    assert diff["realised_coverage"]["only_in_value_arm"] == {"accounts": 2, "valued": 1}
+
+
 def test_a_non_string_entry_in_the_roster_is_dropped_not_crashed():
     diff = churn_roster_diff(_arm([]), _arm(["A", None, 7, "B"]))
     assert sorted(r["account"] for r in diff["only_in_value_arm"]) == ["A", "B"]
