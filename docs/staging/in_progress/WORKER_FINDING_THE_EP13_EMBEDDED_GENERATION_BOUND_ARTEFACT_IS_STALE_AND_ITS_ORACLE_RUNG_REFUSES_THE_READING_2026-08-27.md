@@ -9,12 +9,42 @@ It was drawn by the scheduled tick that self-refilled `EP13_adapter_carbon_inten
 (level 2→3, `loop_stage: build`) and is **in flight now**, not queued:
 
 ```
-nohup python3 -m tools.ep13_embedded_generation_bound
-  pid 807748, launched 11:26 UTC, log: docs/observability/ep13_regen_20260827.log
+setsid nohup python3 -m tools.ep13_embedded_generation_bound
+  pid 1027522, relaunched 13:33 UTC, log: docs/observability/ep13_regen_20260827.log
 ```
 
 It loads only on-disk caches (`load_cached()`), so it needs no network and cannot block on one.
 The module prints nothing until it finishes — an empty log is normal, not a stall.
+
+### FIRST LAUNCH DIED — relaunched 2026-08-27 13:33 UTC, and the fix is `setsid`, not a retry
+
+The 11:26 launch (pid 807748) was gone by 13:33 with a **0-byte log** and the artefact still
+dated 06:30 at `grid: {u: 16, v: 4, w: 3}` — all three `observed-with-evidence` (`ps -p 807748`
+empty, `ls -la` on both paths, `grid` read out of the JSON). That is precisely the "process is
+gone and the artefact still reads 192" branch this file wrote for itself two hours earlier, so
+the instruction was followed rather than re-decided.
+
+**Why it died, and why a plain relaunch would have died the same way.** The original command was
+`nohup … &` from inside a worker-tick shell. `nohup` only detaches from SIGHUP-on-terminal-close;
+it leaves the child in the *session and process group of the tick that spawned it*, so when that
+session was torn down the job went with it. A multi-hour compute job launched from a **bounded**
+invocation therefore cannot outlive its own launcher — the very thing it needs to do. The
+relaunch uses `setsid`, which puts the job in a new session with no controlling terminal:
+
+```
+PID 1027522  PPID 382  PGID 1027522  SESS 1027522
+```
+
+`PGID == SESS == PID` and `PPID` reparented away from the tick shell is the check that it is
+genuinely detached — verified after launch, not assumed. **If this file is read again and the
+artefact is still stale, do NOT simply relaunch a third time: the `setsid` form has already been
+tried, so a third death is a different defect** (OOM against the sim-runner's history of kills,
+or the module raising before its first write) and the empty log stops being normal. Check
+`dmesg -T | grep -i oom` and run the module in the foreground for one year before re-queueing it.
+
+*Generalises past this file: this is R18's other half. R18 made waiters name their subject and
+carry a deadline; this is the same failure from the launcher's side — a job whose lifetime is
+shorter than the work it was launched to do looks exactly like a job still running.*
 
 **What unblocks this file:** `docs/observability/ep13_embedded_generation_bound.json` showing
 `cells: 144` instead of `192`. Until then item 1 is neither owed nor re-drawable.
