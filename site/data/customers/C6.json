@@ -867,9 +867,9 @@
       "customer_id": "C6",
       "date": "2017-04-01",
       "event_type": "outcome_churned",
-      "description": "Renewal outcome: CHURNED -- company believed 14% churn risk at decision time, SIM realized probability was 2%.",
+      "description": "Renewal outcome: CHURNED -- company believed 14% churn risk at decision time, SIM realized probability was 3%.",
       "company_belief": 0.145,
-      "sim_truth": 0.021,
+      "sim_truth": 0.029,
       "amount_gbp": null,
       "outcome": "churned",
       "framing_type": null

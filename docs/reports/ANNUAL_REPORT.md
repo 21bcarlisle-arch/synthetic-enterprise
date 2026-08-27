@@ -214,13 +214,13 @@ Accounts lost before end of window: C1, C3, C4, C5, C6, PROS-2016-0003, PROS-201
 | Account | Date | Outcome | p(churn) | p(win-back) | p(retain) | Roll |
 |---------|------|---------|----------|-------------|-----------|------|
 | C1 | 2016-12-31 | renewed | 0.0500 | 0.5500 | 0.9617 | 0.1646 |
-| C5 | 2016-12-31 | renewed | 0.0500 | 0.3500 | 0.9823 | 0.2812 |
+| C5 | 2016-12-31 | renewed | 0.0500 | 0.3500 | 0.9763 | 0.2812 |
 | C7 | 2016-12-31 | renewed | 0.0500 | 0.5500 | 0.9556 | 0.1050 |
 | PROS-2016-0003 | 2017-01-05 | renewed | 0.0500 | 0.5500 | 0.9675 | 0.2945 |
 | PROS-2016-0011 | 2017-01-11 | renewed | 0.0500 | 0.5500 | 0.9608 | 0.4726 |
 | PROS-2016-0020 | 2017-01-18 | renewed | 0.0500 | 0.5500 | 0.9772 | 0.6531 |
 | C2 | 2017-04-01 | renewed | 0.0500 | 0.5500 | 0.9763 | 0.9036 |
-| C6 | 2017-04-01 | churned **CHURNED** | 0.0500 | 0.3500 | 0.9787 | 0.9972 |
+| C6 | 2017-04-01 | churned **CHURNED** | 0.0500 | 0.3500 | 0.9709 | 0.9972 |
 | C8 | 2017-04-01 | renewed | 0.0500 | 0.5500 | 0.9854 | 0.1564 |
 | C3 | 2017-07-01 | renewed | 0.0500 | 0.5500 | 0.9767 | 0.8297 |
 | C9 | 2017-07-01 | renewed | 0.0500 | 0.5500 | 0.9836 | 0.4802 |
@@ -239,7 +239,7 @@ Accounts lost before end of window: C1, C3, C4, C5, C6, PROS-2016-0003, PROS-201
 | C9 | 2018-07-01 | renewed | 0.2900 | 0.5500 | 0.9183 | 0.0794 |
 | C4 | 2018-10-01 | churned **CHURNED** | 0.1400 | 0.5500 | 0.9050 | 0.9934 |
 | C1 | 2018-12-31 | renewed | 0.1700 | 0.5500 | 0.8765 | 0.0480 |
-| C5 | 2018-12-31 | renewed | 0.0800 | 0.3500 | 0.8261 | 0.3096 |
+| C5 | 2018-12-31 | renewed | 0.0800 | 0.3500 | 0.8582 | 0.3096 |
 | C7 | 2018-12-31 | renewed | 0.2000 | 0.5500 | 0.8495 | 0.6312 |
 | PROS-2018-0002 | 2019-01-02 | churned **CHURNED** | 0.0500 | 0.5500 | 0.9744 | 0.9949 |
 | PROS-2018-0003 | 2019-01-02 | renewed | 0.0500 | 0.5500 | 0.9890 | 0.8021 |
@@ -696,15 +696,15 @@ Accounts lost before end of window: C1, C3, C4, C5, C6, PROS-2016-0003, PROS-201
 
 At each renewal the company estimated churn risk from observable signals (rate change %, customer tenure). The SIM used its bill-shock model (actual bill amount relative to customer-specific thresholds). The gap is epistemic: in crisis years the company sees a rate % while the SIM sees the household-level financial shock — the same failure mode that surprised real suppliers in 2021-22.
 
-- **Average absolute error:** 477.3%
-- **Average signed error:** +462.6% (over-estimates vs SIM)
+- **Average absolute error:** 476.5%
+- **Average signed error:** +461.8% (over-estimates vs SIM)
 - **Renewal events with estimates:** 478
 
 | Year | Renewals | Avg error (signed) | Avg abs error |
 |------|----------|--------------------|---------------|
-| 2016 | 3 | +382.4% | 382.4% |
-| 2017 | 12 | +590.2% | 590.2% |
-| 2018 | 13 | +199.3% | 203.7% |
+| 2016 | 3 | +303.5% | 303.5% |
+| 2017 | 12 | +575.0% | 575.0% |
+| 2018 | 13 | +202.5% | 206.9% |
 | 2019 | 22 | +570.6% | 570.6% |
 | 2020 | 31 | +578.9% | 579.8% |
 | 2021 | 46 | +284.5% | 300.6% |
@@ -720,14 +720,14 @@ Positive error = company over-estimated churn vs SIM. Negative error = company u
 ~35% of domestic/SME customers actively choose a new fixed deal at term end. ~65% roll to SVT by inaction — they are inert: low rate sensitivity, ~5% churn base. Crisis years (2022) force all renewals passive (no fixed deals available).
 
 - **Total renewal events:** 478
-- **Active renewers:** 154 (32%) — mean company estimate 13.9%, abs error 667.6%
-- **Passive SVT-rollers:** 324 (68%) — mean company estimate 8.8%, abs error 386.9%
+- **Active renewers:** 154 (32%) — mean company estimate 13.9%, abs error 667.9%
+- **Passive SVT-rollers:** 324 (68%) — mean company estimate 8.8%, abs error 385.6%
 
 | Year | Active | Passive | Active est | Passive est | Active abs err | Passive abs err |
 |------|--------|---------|-----------|------------|---------------|----------------|
-| 2016 | 0 | 3 | 0.0% | 12.5% | 0.0% | 382.4% |
-| 2017 | 2 | 10 | 29.8% | 14.3% | 1361.0% | 436.0% |
-| 2018 | 7 | 6 | 24.1% | 10.9% | 353.7% | 28.7% |
+| 2016 | 0 | 3 | 0.0% | 12.5% | 0.0% | 303.5% |
+| 2017 | 2 | 10 | 29.8% | 14.3% | 1361.0% | 417.8% |
+| 2018 | 7 | 6 | 24.1% | 10.9% | 359.6% | 28.7% |
 | 2019 | 9 | 13 | 20.0% | 12.5% | 781.6% | 424.6% |
 | 2020 | 16 | 15 | 9.8% | 7.2% | 763.9% | 383.5% |
 | 2021 | 14 | 32 | 9.4% | 5.3% | 226.6% | 332.9% |
@@ -806,9 +806,9 @@ well-hedged and therefore not experiencing bill shocks during their last contrac
 
 | Year | Renewals | Mean Abs Error (×SIM) | Max Abs Error (×SIM) |
 |------|----------|-----------------------|---------------------|
-| 2016 | 3 | 3.82× ⚠ | 8.35× |
-| 2017 | 12 | 5.90× ⚠ | 17.72× |
-| 2018 | 13 | 2.04× ⚠ | 12.01× |
+| 2016 | 3 | 3.03× ⚠ | 5.98× |
+| 2017 | 12 | 5.75× ⚠ | 17.72× |
+| 2018 | 13 | 2.07× ⚠ | 12.01× |
 | 2019 | 22 | 5.71× ⚠ | 22.59× |
 | 2020 | 31 | 5.80× ⚠ | 44.98× |
 | 2021 | 46 | 3.01× ⚠ | 17.00× |
@@ -886,7 +886,7 @@ Total events: **43** (36 churn, 7 acquisition)
 
 | Date | Event | Customer | Detail |
 |------|-------|----------|--------|
-| 2017-04-01 | CHURN | C6 | SIM p=0.02, company est=0.15 |
+| 2017-04-01 | CHURN | C6 | SIM p=0.03, company est=0.15 |
 | 2018-01-05 | CHURN | PROS-2016-0003 | SIM p=0.10, company est=0.13 |
 | 2018-01-05 | ACQUISITION | PROS-2016-0003_3 | market-acquisition (predecessor: PROS-2016-0003) |
 | 2018-07-01 | CHURN | C3 | SIM p=0.12, company est=0.08 |
@@ -2496,6 +2496,7 @@ Latest renewal record per account. Risk bands: CRITICAL>=50% | HIGH>=30% | MEDIU
 | PROS-2024-0082 | resi | LOW | 4% | 17% | +11.3% [overpriced] | £347.28 |
 | PROS-2023-0065 | resi | LOW | 3% | 14% | -19.1% | £475.39 |
 | PROS-2024-0062 | resi | LOW | 3% | 10% | +3.7% | £298.80 |
+| C6 | SME | LOW | 3% | 15% | -13.2% | £-108.80 |
 | PROS-2024-0057 | resi | LOW | 3% | 5% | +1.5% | £301.33 |
 | C9 | resi | LOW | 3% | 12% | -19.5% | £1,154.31 |
 | PROS-2018-0002 | resi | LOW | 3% | 25% | -12.3% | £114.11 |
@@ -2506,7 +2507,6 @@ Latest renewal record per account. Risk bands: CRITICAL>=50% | HIGH>=30% | MEDIU
 | PROS-2018-0009 | resi | LOW | 2% | 10% | -6.0% | £617.64 |
 | PROS-2018-0024 | resi | LOW | 2% | 18% | -12.2% | £-244.86 |
 | PROS-2024-0040 | resi | LOW | 2% | 20% | +2.7% | £321.10 |
-| C6 | SME | LOW | 2% | 15% | -13.2% | £-108.80 |
 | PROS-2024-0096 | resi | LOW | 2% | 17% | -2.4% | £219.38 |
 | PROS-2024-0014 | resi | LOW | 2% | 5% | -3.4% | £408.48 |
 | PROS-2024-0010 | resi | LOW | 2% | 15% | -3.7% | £357.19 |
@@ -2562,7 +2562,7 @@ Per-churned-account analysis: pricing journey, rate-vs-SVT positioning, and comp
 
 | Account | Seg | Churn Date | Tenure | Last Rate Shock | Rate vs SVT | Sim Risk | Co. Est. | Margin Lost |
 |---------|-----|------------|--------|-----------------|-------------|----------|----------|-------------|
-| C6 | SME | 2017-04-01 | 1.0yr | -5.0% | -13.2% | 2% | 15% | £-108.80 |
+| C6 | SME | 2017-04-01 | 1.0yr | -5.0% | -13.2% | 3% | 15% | £-108.80 |
 | PROS-2016-0003 | resi | 2018-01-05 | 2.0yr | +5.7% | -15.2% | 10% | 13% | £166.58 |
 | C3 | resi | 2018-07-01 | 2.0yr | -1.4% | -17.1% | 12% | 8% | £57.74 |
 | C4 | resi | 2018-10-01 | 2.0yr | +0.5% | -4.5% | 10% | 13% | £-40.15 |
@@ -3579,7 +3579,7 @@ How well the company estimated churn probability versus actual simulation outcom
 
 | Customer | Date | Sim Probability | Company Estimate | Delta | Verdict |
 |----------|------|----------------|-----------------|-------|---------|
-| C6 | 2017-04 | 2.1% | 14.5% | +12.4pp | OVERESTIMATED |
+| C6 | 2017-04 | 2.9% | 14.5% | +11.6pp | OVERESTIMATED |
 | PROS-2016-0003 | 2018-01 | 9.8% | 13.4% | +3.5pp | ACCURATE |
 | C3 | 2018-07 | 11.8% | 8.4% | -3.4pp | ACCURATE |
 | C4 | 2018-10 | 9.5% | 13.4% | +3.9pp | ACCURATE |
@@ -3640,7 +3640,7 @@ How well the company estimated churn probability versus actual simulation outcom
 
 | Year | Customer | Est | SIM p | Recoverable? | Margin | Net value |
 |------|----------|-----|-------|-------------|--------|----------|
-| 2017 | C6 | 15% | 2% | No | £1,583 | £-50 |
+| 2017 | C6 | 15% | 3% | No | £1,583 | £-50 |
 | 2018 | PROS-2016-0003 | 13% | 10% | No | £438 | £-50 |
 | 2018 | C3 | 8% | 12% | No | £183 | £-50 |
 | 2018 | C4 | 13% | 10% | No | £195 | £-50 |
@@ -3776,7 +3776,7 @@ the model ever flag this customer, at any renewal, before they left?
 ## Scenario Sensitivity Analysis (Phase PZ)
 
 Live portfolio (354 active customers) under 12-month forward scenarios.
-Generated: 2026-08-27T17:13:30Z
+Generated: 2026-08-27T17:46:26Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
@@ -5328,7 +5328,7 @@ Total no-offer churns: **35** | Blind misses: **35** | Deliberate passes (unecon
 
 | Customer | Date | Reason | Co. est | SIM p | Detectable? | Margin at stake |
 |----------|------|--------|---------|-------|-------------|----------------|
-| C6 | 2017-04-01 | Blind miss | 0.15 | 0.02 | No | £1,582.89 |
+| C6 | 2017-04-01 | Blind miss | 0.15 | 0.03 | No | £1,582.89 |
 | PROS-2016-0003 | 2018-01-05 | Blind miss | 0.13 | 0.10 | No | £437.59 |
 | C3 | 2018-07-01 | Blind miss | 0.08 | 0.12 | No | £182.66 |
 | C4 | 2018-10-01 | Blind miss | 0.13 | 0.10 | No | £195.25 |
