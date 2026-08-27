@@ -36,6 +36,16 @@ from company.analytics.cohort_discovery import (
 def test_module_imports_no_simulation_internals():
     src = Path("company/analytics/cohort_discovery.py").read_text()
     tree = ast.parse(src)
+    # POPULATION FLOOR (2026-08-27). Every assertion below sits INSIDE the walk, so an
+    # empty population passes silently and the wall goes unguarded. A module that imports
+    # NOTHING means this scan is measuring nothing -- a rename, a re-export shim or a
+    # parse that found no imports would all read as "clean". Five separate controls were
+    # caught this way on 2026-08-27; the floor was the only thing that caught three.
+    _imports = [n for n in ast.walk(tree)
+                if isinstance(n, (ast.Import, ast.ImportFrom))]
+    assert _imports, (
+        "this module parsed to ZERO imports, so the wall check below asserts nothing -- "
+        "fix the scan, do not accept the green")
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:

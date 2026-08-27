@@ -390,6 +390,10 @@ def test_the_worlds_codec_never_imports_the_companys():
             mods.append(node.module)
         elif isinstance(node, ast.Import):
             mods.extend(a.name for a in node.names)
+    assert mods, (
+        "this module parsed to ZERO imports, so the loop below asserts nothing -- an empty "
+        "population is not a clean wall, it is a scan that stopped working "
+        "(population floor, 2026-08-27)")
     for m in mods:
         assert not m.startswith(("company", "saas")), f"wall violation: imports {m}"
 

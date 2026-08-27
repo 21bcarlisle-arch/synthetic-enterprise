@@ -107,6 +107,11 @@ def test_the_world_is_not_imported_here():
     import pathlib
 
     src = pathlib.Path("saas/property_model.py").read_text()
+    # POPULATION FLOOR (2026-08-27): every assertion sits INSIDE the walk, so an empty
+    # population passes silently and the wall goes unguarded. Zero imports means the scan
+    # measures nothing -- fix the scan, do not accept the green.
+    assert [n for n in ast.walk(ast.parse(src)) if isinstance(n, (ast.Import, ast.ImportFrom))], \
+        "this module parsed to ZERO imports -- the wall check below asserts nothing"
     for node in ast.walk(ast.parse(src)):
         if isinstance(node, ast.ImportFrom) and node.module:
             root = node.module.split(".")[0]

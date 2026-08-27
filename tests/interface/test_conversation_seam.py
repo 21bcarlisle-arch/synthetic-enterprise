@@ -272,6 +272,12 @@ def test_the_draw_helpers_the_measurement_rests_on_are_still_defined_where_it_lo
     it. `_hidden_trait_seeds` finds seeds by matching the helper's NAME at the call site,
     so renaming the helper would make it return the empty set -- and an empty subject is
     how a census passes while measuring nothing."""
+    # POPULATION FLOOR (2026-08-27). This test's own docstring names the risk -- "an empty
+    # subject is how a census passes while measuring nothing" -- and then loops with every
+    # assertion inside, so an empty _MEASURED_SEEDS passes it. Naming a hazard is not
+    # guarding against it.
+    assert _MEASURED_SEEDS, (
+        "_MEASURED_SEEDS is empty -- this census asserts nothing about the draw helpers")
     for module_path in _MEASURED_SEEDS:
         defined = {
             n.name for n in ast.walk(_producer_source(module_path))
@@ -289,6 +295,9 @@ def test_every_hidden_trait_the_world_draws_is_named_by_the_belt():
     you which exist. This asserts set EQUALITY, so it reds in both directions: a hidden
     trait added to the SIM with no belt name fails here rather than crossing unrefused,
     and a seed renamed out from under a belt entry fails rather than hollowing it."""
+    assert _MEASURED_SEEDS, (
+        "_MEASURED_SEEDS is empty -- the loop below asserts nothing and the draw helpers this "
+        "measurement rests on could all be gone (population floor, 2026-08-27)")
     for module_path, cited in _MEASURED_SEEDS.items():
         found = _hidden_trait_seeds(module_path)
         assert found == set(cited), (
@@ -307,6 +316,9 @@ def test_the_MEASURED_functions_still_exist_and_the_belt_still_names_them():
     """The derived hidden scalars have no seed, so the function IS the citation. Reds if
     a producer renames the function (the belt entry goes hollow) or if the belt entry is
     dropped (the scalar goes unnamed)."""
+    assert _MEASURED_FUNCTIONS, (
+        "_MEASURED_FUNCTIONS is empty -- every function this belt claims to have measured could "
+        "be gone and this test would still pass (population floor, 2026-08-27)")
     for module_path, cited in _MEASURED_FUNCTIONS.items():
         defined = {
             n.name for n in ast.walk(_producer_source(module_path))
@@ -363,6 +375,10 @@ def test_no_sim_or_company_import():
             mods.append(node.module)
         elif isinstance(node, ast.Import):
             mods.extend(a.name for a in node.names)
+    assert mods, (
+        "this module parsed to ZERO imports, so the loop below asserts nothing -- an\n"
+        "empty population is not a clean wall, it is a scan that stopped working "\
+        "(population floor, 2026-08-27)")
     for m in mods:
         assert not m.startswith(("sim", "simulation", "company", "saas")), \
             f"contract must not import {m}"

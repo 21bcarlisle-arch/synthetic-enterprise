@@ -72,6 +72,14 @@ def test_g_l3_unit_failed_and_crashlooping_alarm():
 def test_reaper_absent_no_kill_path_in_background():
     kill_call = re.compile(r"os\.kill\s*\(|signal\.SIGTERM|signal\.SIGKILL")
     import glob
+    # POPULATION FLOOR (2026-08-27). Every assertion is INSIDE this loop, so a glob that
+    # matched nothing would pass and the "impossible by CONSTRUCTION" claim above would be
+    # unbacked. This is a safety control -- the exit-143 vector that kills an interactive
+    # session -- so a vacuous green is the expensive kind.
+    _scanned = glob.glob(str(_BG / "*.py"))
+    assert len(_scanned) >= 20, (
+        f"only {len(_scanned)} background modules scanned -- the population collapsed, so "
+        "this control is asserting nothing about the kill path")
     for path in glob.glob(str(_BG / "*.py")):
         src = Path(path).read_text()
         assert "def reap_orphan" not in src, path
