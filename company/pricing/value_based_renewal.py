@@ -104,7 +104,25 @@ from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 #: made it, and so a third arm can be added without every call site growing a second flag.
 FLAT_RULES = "flat_rules"
 VALUE_BASED = "value_based"
-ARMS = (FLAT_RULES, VALUE_BASED)
+
+#: THE LEVEL-WITHOUT-SELECTION ARM (2026-08-27, director-directed). Applies ONE uplift to every
+#: renewal it prices -- the same renewals `value_based` prices, through the same guards and under
+#: the same lawful ceiling -- so the two arms differ by the CHOOSING and by nothing else.
+#:
+#: It exists because the value arm's £7,066 advantage came with `discrimination_auc` 0.4653, below
+#: a coin flip, so it cannot be attributed to inference. What the arm demonstrably did was price
+#: high (median £44.50/MWh against the flat rule's £2.00). Without this arm there is no way to
+#: separate "chose well" from "charged more", and the A/B's own `bound_attribution.reading`
+#: already says a delta it cannot attribute "is a statement that this run did not test it".
+#:
+#: NOT `FLAT_RULES` AT A DIFFERENT CONSTANT. `flat_rules` applies NO uplift at all -- its £2.00
+#: lives in the base rate of every contract -- so raising that constant raises the price for every
+#: customer on every contract, not for the renewals the arm priced. A whole-book price rise and a
+#: renewal-time price rise are different experiments; the first was tried on 2026-08-27, returned
+#: a 9.4x artefact, and was withdrawn.
+FLAT_AT_LEVEL = "flat_at_level"
+
+ARMS = (FLAT_RULES, VALUE_BASED, FLAT_AT_LEVEL)
 
 #: The margins the value arm may choose between, £/MWh. Deliberately BRACKETING the flat rule
 #: rather than starting at it: an arm that can only price ABOVE the control would beat it on
@@ -606,6 +624,7 @@ def decide_margin(
     is_deemed_contract: bool = False,
     book_general_margin_gbp_per_mwh: float | None = None,
     ladder_multiplier: float = 1.0,
+    flat_level_gbp_per_mwh: float | None = None,
 ) -> MarginDecision:
     """The offered margin for ONE customer, under ONE arm.
 
@@ -690,6 +709,53 @@ def decide_margin(
             current_rate_gbp_per_mwh=float(current_rate_gbp_per_mwh),
             offered_rate_gbp_per_mwh=(
                 float(base_rate_gbp_per_mwh) + TARGET_MARGIN_GBP_PER_MWH),
+        )
+
+    if arm == FLAT_AT_LEVEL:
+        # THE LEVEL WITHOUT THE SELECTION. One margin for every renewal this arm prices, scored
+        # by the same `_score` as the other two so any difference is the DECISION and never the
+        # scorer.
+        if flat_level_gbp_per_mwh is None:
+            raise MarginDecisionUnavailable(
+                f"{customer_id}: the flat-at-level arm was selected with no level set. A level of "
+                "zero would silently reproduce the flat rule and be reported as a level "
+                "comparison, so this refuses rather than defaults."
+            )
+        level = float(flat_level_gbp_per_mwh)
+        # CLAMPED, UNLIKE `FLAT_RULES`, AND THAT IS THE POINT. This arm exists to be compared
+        # against the value arm, which searches only lawful candidates -- so an unclamped level
+        # would let it price where the value arm may not and reproduce exactly the confound that
+        # made the 2026-08-27 whole-book attempt return a 9.4x artefact.
+        #
+        # AND THE CLAMP MUST SAY SO. The first full-decade run reported `distinct_margins: 4` for
+        # an arm that applies ONE level, alongside `endpoint_at_ceiling: 0` -- and both were true
+        # of the same run. `arm_decision_shape` reads `endpoint_side`, which the value arm's
+        # SEARCH sets and this branch did not, so the clamp fired silently and the shape reported
+        # a purely flat, unclamped arm. That is R15's FAIL-SILENT pattern exactly: a field that
+        # reads zero because nobody writes it, not because the thing did not happen. Clamping is
+        # the only mechanism that can vary a single constant, so those four values WERE the cap
+        # binding, and the report denied it.
+        #
+        # `"ceiling"` is the exact word for this and not a borrowed one -- see the field's own
+        # docstring: it "means the arm wanted to charge more than it was allowed to", which is
+        # what `min(level, headroom)` does when it bites.
+        clamped = False
+        if max_offered_rate_gbp_per_mwh is not None:
+            headroom = float(max_offered_rate_gbp_per_mwh) - float(base_rate_gbp_per_mwh)
+            if headroom < level:
+                level = headroom
+                clamped = True
+        p_stay, value, costs = _score(level)
+        return MarginDecision(
+            customer_id=customer_id, arm=FLAT_AT_LEVEL,
+            margin_gbp_per_mwh=level,
+            endpoint_bound=clamped,
+            endpoint_side="ceiling" if clamped else None,
+            expected_value_gbp=value, p_retain=p_stay, expected_periods=periods,
+            cost_to_serve_gbp_per_year=costs.total_gbp, eac_mwh=eac_mwh, costs=costs,
+            considered=((level, value),),
+            current_rate_gbp_per_mwh=float(current_rate_gbp_per_mwh),
+            offered_rate_gbp_per_mwh=float(base_rate_gbp_per_mwh) + level,
         )
 
     if not candidates:
@@ -969,6 +1035,7 @@ def renewal_margin_uplift(
     max_offered_rate_gbp_per_mwh: float | None = None,
     segment: str | None = None,
     ladder_multiplier: float = 1.0,
+    flat_level_gbp_per_mwh: float | None = None,
 ) -> MarginArmUplift:
     """The £/MWh this renewal moves by, under ONE arm, from the supplier's own settled book.
 
@@ -1005,6 +1072,11 @@ def renewal_margin_uplift(
     """
     if arm == FLAT_RULES:
         return MarginArmUplift(0.0)
+    # `FLAT_AT_LEVEL` deliberately does NOT return here. It must pass through every guard below --
+    # locked rate, term index, commodity, tariff type, observed state -- so it prices EXACTLY the
+    # renewals the value arm prices. An arm that priced a different population would compare the
+    # level against the selection AND against the book, which is the confound this arm exists to
+    # remove.
     if arm not in ARMS:
         raise MarginDecisionUnavailable(f"{arm!r} is not an arm; expected one of {ARMS}")
     if locked_unit_rate is None:
@@ -1028,7 +1100,10 @@ def renewal_margin_uplift(
     try:
         decision = decide_margin(
             customer_id=account_id,
-            arm=VALUE_BASED,
+            # THE ARM AS GIVEN, not a constant. This read `arm=VALUE_BASED` while the only other
+            # arm returned above, so the hardcoding was invisible; a third arm makes it a defect
+            # that would have silently priced `flat_at_level` renewals with the value arm.
+            arm=arm,
             current_rate_gbp_per_mwh=observed["current_rate_gbp_per_mwh"],
             # The rate BEFORE margin. The strike already added the flat rule, so subtracting it
             # is what makes `base + chosen` the arm's own answer rather than the flat rule plus
@@ -1057,6 +1132,7 @@ def renewal_margin_uplift(
             # THE RUNG, and it goes into the DECISION rather than onto its answer -- see the
             # ladder block in `decide_margin`. Default 1.0 leaves every existing caller alone.
             ladder_multiplier=ladder_multiplier,
+            flat_level_gbp_per_mwh=flat_level_gbp_per_mwh,
         )
     except MarginDecisionUnavailable as exc:
         # "NO OFFER" IS AN ANSWER, AND A LIVE PRICING CHAIN MUST BE ABLE TO HEAR IT (2026-08-26).

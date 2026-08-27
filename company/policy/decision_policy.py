@@ -104,6 +104,33 @@ class DecisionPolicy:
     # A/B -- is byte-identical to today's.
     renewal_margin_ladder_multiplier: float = 1.0
 
+    # THE FLAT-AT-LEVEL ARM'S LEVEL (2026-08-27, director-directed).
+    #
+    # The uplift, in GBP/MWh, that `renewal_margin_arm="flat_at_level"` applies to EVERY renewal
+    # it prices -- the same renewals the value arm prices, through the same guards and under the
+    # same lawful ceiling.
+    #
+    # WHY THE ARM EXISTS. The value arm beat flat rules by GBP 7,066 with `discrimination_auc`
+    # 0.4653 -- below a coin flip -- so the advantage cannot be attributed to inference. What it
+    # demonstrably did was price HIGH: a median 44.50 GBP/MWh against the flat rule's 2.00. This
+    # arm holds the LEVEL and removes the SELECTION, which is the only way to tell "chose well"
+    # from "charged more".
+    #
+    # NOT THE LADDER. `renewal_margin_ladder_multiplier` delivers `flat + k x (chosen - flat)`, a
+    # fraction of the arm's OWN per-customer answer, so it varies the SLOPE and never removes the
+    # choosing. At k=0 it is the flat rule at 2.00, not at the arm's level. The two dials answer
+    # different questions and neither substitutes for the other.
+    #
+    # A COMMERCIAL POSTURE, not only a measurement construct: a supplier that puts the same
+    # increase on every renewing customer is doing an ordinary thing, and it is what most
+    # suppliers actually did in 2022. That is why it belongs on the company's policy beside the
+    # ladder rather than in the harness.
+    #
+    # `None` is the default and means the arm is not selected; selecting the arm without a level
+    # is refused rather than defaulted, because a flat arm whose level was silently 0.0 would
+    # reproduce the flat rule and be reported as a level comparison.
+    renewal_margin_flat_level_gbp_per_mwh: float | None = None
+
     def retention_discount_for_risk(self, company_est: float) -> float:
         """Return the retention discount fraction for a given churn estimate."""
         if self.retention_discount_mode == "flat":

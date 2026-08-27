@@ -79,6 +79,33 @@ Outside that draw/coverage/wall machinery, **no live module reads any of them.**
 > learning three facts that change nothing. (`tou_price_sensitivity` in `company/crm/` and
 > `sim/weather_price_sensitivity.py` are unrelated — substring matches, not uses.)
 
+### The curriculum declares two discovery channels that do not exist
+*(added after the initial filing, on reading the marginals themselves)*
+
+`docs/design/segmentation_curriculum_v1.json` does not merely draw these axes — it makes a sourced,
+written claim about how each becomes knowable:
+
+| Axis | `hidden_truth_only` | The curriculum's stated discovery channel | Exists? |
+|---|---|---|---|
+| `price_sensitivity` (30/45/25, Ofgem engagement work) | **false** | *"discoverable via rate-change churn response (get_churn_estimate)"* | **NO** — absent from every churn-response module |
+| `channel_pref` (55/30/15, Ofcom/Ofgem) | **false** | *"discoverable via the contact channel actually used"* | **NO** — `contact_propensity` keys on the engagement archetype, never on `channel_pref` |
+| `green_stance` (30/45/25, DESNZ tracker) | **true** | none, by design | consistent ✓ |
+
+`green_stance` is honest: it declares itself hidden with no observable, and that is exactly what it
+is. The other two are the problem. Each is marked **discoverable**, names its channel, and cites a
+real source — and the channel is not implemented, so the axis is undiscoverable *in principle*, not
+merely undiscovered.
+
+**This converts S1 from a fidelity improvement into a contract repair.** The coupled-triad gap for
+these axes cannot be measured today, while the curriculum states it can. A company that tried to
+learn price sensitivity from churn response would be right to try and would fail forever, and the
+failure would read as a weak company model.
+
+The contrast that proves the distinction is drawn deliberately elsewhere: `contact_propensity.py:69`
+says of its own engagement multipliers, *"The engagement multipliers ARE new physics and do move
+simulated outcomes."* That module knew to say which of its inputs move outcomes. The attitude axes
+never got that sentence — or that wiring.
+
 ### NOT MODELLED AT ALL
 Product fit as a *choice*; reputation/brand; green willingness-to-**pay** (and no green product to
 buy); **and any trade-off between axes** — the multiplicative stack means no household can rank

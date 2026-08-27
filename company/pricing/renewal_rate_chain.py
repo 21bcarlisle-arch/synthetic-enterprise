@@ -330,6 +330,11 @@ def decide_renewal_rate(
         # the arm, because it is the same kind of fact and a second resolution path is how one
         # run comes to be executing two policies. `1.0` on every ordinary run.
         ladder_multiplier=active_policy().renewal_margin_ladder_multiplier,
+        # THE FLAT-AT-LEVEL ARM'S LEVEL, resolved from the SAME active policy and at the SAME
+        # site as the arm and the rung, for the reason stated above: the rate chain is a wall
+        # door and must not gain a policy argument, and a second resolution path is how one run
+        # comes to be executing two policies. `None` on every ordinary run.
+        flat_level_gbp_per_mwh=active_policy().renewal_margin_flat_level_gbp_per_mwh,
     )
     if arm_uplift.declined:
         # A DECLINE IS A DECISION AND IT GOES IN THE LOG. The rate is untouched -- a supplier
