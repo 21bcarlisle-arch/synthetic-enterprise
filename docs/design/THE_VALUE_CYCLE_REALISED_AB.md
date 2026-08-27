@@ -1441,3 +1441,58 @@ measurement, not a conclusion available from this one.
 
 Artefact: `docs/observability/value_cycle_ab_resi_renewal_fixed.json`. Prior:
 `docs/observability/value_cycle_ab_resi.json`.
+
+### What the £7,066 actually is — read straight off the same artefact
+
+The A/B publishes four fields that together answer "was the advantage inference?" without needing
+another run. None of them was added for this question; all four were already there.
+
+| field | value | what it says |
+|---|---|---|
+| `discrimination_auc` | **0.4653** | the belief carries no information about who stays |
+| `decision_shape.median_margin_gbp_per_mwh` | **44.50** vs 2.00 | the arm prices ~22× the flat rule |
+| `decision_shape.distinct_margins` | 24 of 25 priced | it does VARY — nearly a unique margin each |
+| `bound_attribution.share_of_priced_decided_by_a_bound` | **0.24** | a quarter were set by a bound, not the model |
+| `margin_movers.concentration_top_n_share_of_absolute_movement` | **0.9928** | 15 of 211 accounts are 99.3% of the movement |
+
+**The arm varies its price and the variation is uninformative.** 24 distinct margins across 25
+decisions is not a flat rule in disguise — it really is choosing per customer. But AUC 0.4653 says
+those choices carry no signal about who will stay, so the variation is noise around a level, not
+selection.
+
+**A quarter of the decisions were not the model's.** `bound_attribution`'s headline: *"6 of 25
+priced renewals (24%) had their margin set by a bound rather than by anything about the customer
+— 6 by the lawful price cap ... Those decisions sit on 1 billing account carrying 40% of the
+realised margin movement between the arms."* One account, bound-decided, is 40% of the money.
+
+**And 147 of 211 accounts did not move at all.** `margin_movers` reports 64 that moved and a top-15
+concentration of 0.9928, with its own reading: *"near 1.0 means a handful of accounts ARE the
+headline and it should be read as a case study, not a portfolio result."*
+
+So the honest statement of the result is:
+
+> Priced 22× higher on a handful of accounts whose staying-or-leaving the model could not predict,
+> with a quarter of the decisions made by the price cap rather than by the model, and one
+> bound-decided account carrying 40% of the difference.
+
+That is not "value-based pricing beats flat rules". It is closer to "raising prices a long way
+mostly worked on this book", which is a claim about the book's price elasticity and not about the
+company's belief.
+
+`bound_attribution.reading` states the discipline this has to be read under, and it was written
+before this run: *"A positive delta under 'a bound' is not a refutation of value-based pricing —
+it is a statement that this run did not test it."* `decided_by` here is `"mixed"`, which the same
+field defines as "the headline must not be attributed to either without naming which half". Both
+halves are named above.
+
+### The measurement that would settle the remainder
+
+A THIRD ARM: flat rules at the value arm's own realised median margin (£44.50), rather than at
+`TARGET_MARGIN_GBP_PER_MWH = 2.00`. That holds the LEVEL constant and removes the SELECTION, so:
+
+* if flat-at-£44.50 reproduces the £7,066, the arm is a price rise wearing a model;
+* if it does not, the per-customer variation is worth something even at AUC 0.4653, and the next
+  question is what it is picking up that the retention belief is not.
+
+It is one run and a constant override. Not built in this session, and named here so it is not
+re-derived: the arm's own `decision_shape.median_margin_gbp_per_mwh` is the number to set.
