@@ -15,11 +15,30 @@ fails and is recorded as bounding publication rather than construction.
 > but they are **SUPERSEDED**, and the two figures that escaped into conversation are both
 > about five industrial accounts:
 >
-> | reading | book | net delta | status |
+> | reading | book — segments, accounts, artefact + commit | net delta | status |
 > |---|---|---|---|
-> | −£110,731 EV | resi + SME + **I&C** | −£93,555 | superseded |
-> | +£2,293,743 EV | resi + SME + **I&C** | +£3,082,499 | superseded — 99.97% of it 15 I&C accounts |
-> | **+£10,800 EV** | **resi + SME (the served book)** | **+£16,773** | **current — [see below](#2026-08-26-1709z--the-answer-on-the-book-the-director-actually-asked-about)** |
+> | −£110,731 EV | resi + SME + **I&C** · 172 ctl → 170 val at end · `value_cycle_ab_prior_2026-08-26T0802Z.json` @ `6089f90a9` | −£93,555 | superseded |
+> | +£2,293,743 EV | resi + SME + **I&C** · 172 ctl → 170 val at end · `value_cycle_ab.json` @ `b0f5ee0e8` | +£3,082,499 | superseded — 99.97% of it 15 I&C accounts |
+> | +£10,800 EV | resi + SME · 131 ctl → 130 val at end · `value_cycle_ab_resi.json` @ `4e884cdbf` | +£16,773 | superseded 2026-08-27 — [the renewal schedule was broken under it](#2026-08-27--the-renewal-schedule-was-repaired-and-the-belief-quality-result-did-not-survive-it): only 28 of 58 priced renewals ever met a churn roll |
+> | **+£7,149 EV** | **resi + SME** · **210 billing accounts settled in window** (187 dual-fuel, 89.0%; 210 with an electricity leg), **126 ctl → 123 val at end** · `value_cycle_ab_resi_renewal_fixed.json` @ `353fe96b8` | **+£7,066** | **current — full window (`report_end: null`), generated 2026-08-27T09:49:09Z; [what the £7,066 actually is](#what-the-7066-actually-is--read-straight-off-the-same-artefact)** |
+>
+> **Clock (R14).** Every delta in this table is *settled* — `net_margin_gbp` summed from the world's
+> own settled records after wholesale, levies, network, capital and bad debt, before cost-to-serve.
+> The EV column is the arms' `enterprise_value_gbp` difference on the same basis. No figure here is
+> billed or banked, and none of them is anything the company believed.
+>
+> **Provenance note, 2026-08-27.** Rows 1–3 are left exactly as they were written. Reading their
+> artefacts back off disk to fill the new book column turned up one disagreement worth stating
+> rather than silently correcting: row 1's file records `enterprise_value_gbp: −118,252`, not the
+> −£110,731 the row quotes. The row is kept as published; the artefact is the record.
+>
+> **What "book" means here, and why it is now in the table.** Until 2026-08-27 the artefacts could
+> not name their own population — the book resolves at import time from the curriculum file, so a
+> run on the wrong segments produced a clean, complete, entirely plausible artefact
+> (`WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26`). Only the last row's
+> artefact carries a `book_identity` block; rows 1–3 have their accounts read from the arms
+> themselves and their segments inferred from the run that produced them. The filename was never the
+> control: `value_cycle_ab_resi.json` in fact served resi **and** SME.
 >
 > The last row is the only one that answers the question this project exists to ask.
 
@@ -1309,6 +1328,41 @@ stranded in dying worktrees. `ExecStopPost=background.fork_salvage` now bounds t
 that, but **a sim pass killed at 119 minutes leaves no artefact at all** — not a partial result, a
 zero. The gate a landing must pass costs a further **397 s median** (`commit_hook_duration.jsonl`,
 n = 38, recent runs 384-405 s, ceiling 840 s).
+
+### 2026-08-27 11:05Z — the upper bound replaced by a direct measurement of the thing itself
+
+The table above priced a pass off `run_annual_report`, which renders a report on top of the sim, and
+said so: **632 s was an upper bound, not the instruments' actual cost.** It has now been measured
+directly — one `run_phase4c_on_phase2b.main(report_end=None)` call, nothing else in the process,
+`/usr/bin/time -v`, started 10:56:36Z on a machine simultaneously running a `process_run_complete`
+publish and a pytest suite (so this is a *contended* number, not a quiet-machine best case):
+
+| | measured |
+|---|---|
+| one full-window `run_phase4c` pass | **559.8 s** (9 min 20 s) |
+| import cost, paid once per process | 3.0 s |
+| wall clock incl. interpreter start | 9 min 24.7 s |
+| peak resident set | **2.85 GB** |
+
+**The upper bound was 13% high and the fit verdict survives, with more room than it claimed.** Every
+row below is therefore conservative. Re-priced at 559.8 s/pass plus the 397 s median gate:
+
+| | sim passes | measured cost, + one gate | share of the 120 min bound |
+|---|---|---|---|
+| `run_value_cycle_ab` (full window) | 2 | **25.3 min** | 0.21 |
+| `run_price_ladder --rungs 0,0.5,1,2` | 5 | **53.3 min** | 0.44 |
+| `run_price_ladder` (default 6 rungs) | 7 | **71.9 min** | 0.60 |
+| AB then the 4-rung ladder, both landed | 7 | 78.6 min | 0.66 |
+
+The last row now *fits* at the median where the estimate had it at 87 min — but it fits with 41
+minutes of slack for orientation, staging and a tail, and the tail is the thing that killed it
+before. One instrument per tick stays the recommendation; what changed is that the pair is no longer
+arithmetically impossible, only imprudent.
+
+The memory figure is the one that got worse on inspection: **2.85 GB for a single pass**, against a
+WSL2 guest whose live total reads 24.0 GB and 94 lifetime OOM kills. A seven-pass ladder holds every
+rung's decisions in memory at once, which is how the 02:14 tick reached 15 GB. That is a reason to
+prefer the 4-rung ladder that is independent of the clock.
 
 ### What each instrument costs, at median and at the observed tail
 
