@@ -1,28 +1,28 @@
 {
   "annotation": {
-    "checked_at": "2026-08-27T10:35:17Z",
+    "checked_at": "2026-08-27T11:08:02Z",
     "nonblocking_reds": [
       "FAILED tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py::test_no_committed_discharge_cites_a_falsifier_the_repository_does_not_have",
       "FAILED tests/tools/test_couple_w2_11_d5.py::test_the_shadow_finder_is_derived_and_discriminates"
     ],
     "nonblocking_reds_total": 2,
-    "open_findings": 35
+    "open_findings": 36
   },
   "last_verified": {
-    "generated_at": "2026-08-27T11:01:18Z",
-    "git_commit": "fed888d6f",
-    "run_id": "run_output_fed888d6f_20260827T103623Z.json",
-    "verified_at": "2026-08-27T11:01:18Z"
+    "generated_at": "2026-08-27T11:32:42Z",
+    "git_commit": "c50a99449",
+    "run_id": "run_output_c50a99449_20260827T110902Z.json",
+    "verified_at": "2026-08-27T11:32:42Z"
   },
   "paused_reason": null,
   "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-08-27T11:01:18Z",
-    "git_commit": "fed888d6f",
-    "run_id": "run_output_fed888d6f_20260827T103623Z.json",
-    "verified_at": "2026-08-27T11:01:18Z"
+    "generated_at": "2026-08-27T11:32:42Z",
+    "git_commit": "c50a99449",
+    "run_id": "run_output_c50a99449_20260827T110902Z.json",
+    "verified_at": "2026-08-27T11:32:42Z"
   },
   "verification_state": "verified",
-  "written_at": "2026-08-27T11:01:18Z"
+  "written_at": "2026-08-27T11:32:42Z"
 }
