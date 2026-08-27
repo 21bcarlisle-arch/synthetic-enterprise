@@ -82,7 +82,12 @@ _RECOMMENDATION = re.compile(
     r"|unless told otherwise"
     r"|unless you say otherwise"
     r"|here'?s what i'?m doing"
-    r"|i'?m (doing|going to|proceeding|acting)"
+    # "I am" AS WELL AS "I'm" (2026-08-27). `i'?m` matches `im` and `i'm` and NOT `i am`, so a
+    # message written formally -- "I am doing X next", "I am going to measure Y" -- was refused
+    # for lacking a statement of intention it plainly contained, and told to state what it was
+    # doing. A control that demands a particular CONTRACTION is one people learn to phrase
+    # around rather than obey. Not a weakening: the two spellings are the same statement.
+    r"|i(?:'?m| am) (doing|going to|proceeding|acting)"
     r"|i will\b"
     r"|i'?ve decided"
     r"|my recommendation"

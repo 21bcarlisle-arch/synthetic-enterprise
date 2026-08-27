@@ -183,3 +183,39 @@ def test_send_ntfy_still_sends_a_recommending_message():
     assert _probe_ntfy_utils().send_ntfy(
         "Publish gate cleared. I'm proceeding to the next atom unless you object."
     ) == "pytest-suppressed"
+
+
+# ---------------------------------------------------------------------------
+# "I am" IS THE SAME STATEMENT AS "I'm" (2026-08-27)
+# ---------------------------------------------------------------------------
+# `_RECOMMENDATION` matched `i'?m`, which covers `im` and `i'm` and NOT `i am`. A message written
+# formally -- "I am doing X next" -- was therefore refused for lacking a statement of intention it
+# plainly contained, and told to state what it was doing. Found by this seat writing exactly such
+# a message and being refused twice before reading the regex.
+#
+# A control that demands a particular CONTRACTION is one people learn to phrase around rather than
+# obey, and phrasing-around is how a guard becomes decoration.
+
+@pytest.mark.parametrize("stated", [
+    "I am doing the measurement next",
+    "I am going to separate the two arms",
+    "I am proceeding with the third arm",
+    "I'm doing the measurement next",
+    "Im going to measure it",
+])
+def test_a_stated_intention_is_recognised_in_either_spelling(stated):
+    from background.recommendation_guard import _RECOMMENDATION
+    assert _RECOMMENDATION.search(stated), f"{stated!r} states an intention and was not recognised"
+
+
+@pytest.mark.parametrize("not_stated", [
+    "I wondered whether to do it",
+    "It might be worth measuring",
+    "Someone should look at the third arm",
+])
+def test_the_widening_does_NOT_swallow_a_bare_musing(not_stated):
+    """THE PARTNER. Recognising more phrasings must not turn every sentence containing 'I' into a
+    recommendation -- that would let a bare ask through, which is the whole thing this guard
+    exists to refuse."""
+    from background.recommendation_guard import _RECOMMENDATION
+    assert not _RECOMMENDATION.search(not_stated), f"{not_stated!r} states no intention"
