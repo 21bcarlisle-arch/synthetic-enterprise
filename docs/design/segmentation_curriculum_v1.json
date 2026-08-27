@@ -2,42 +2,88 @@
   "_meta": {
     "artefact": "segmentation_curriculum",
     "version": 1,
-    "status": "PROVISIONAL — director-authorized to set, ratifiable",
+    "status": "PROVISIONAL \u2014 director-authorized to set, ratifiable",
     "authority": "director console 2026-07-21: 'Set the five curriculum values and proceed with the structure.' Authentication convention (a).",
-    "r13_discipline": "These are CURRICULUM (difficulty) values the director delegated the agent to set THIS TIME. Set from PUBLISHED-ESTIMATE / neutral priors, NOT tuned to any company outcome (R13 anti-goal-seek core preserved). Versioned + named + ratifiable — a real curriculum artefact, not silent parameter drift. The director may overturn any value; the generator reads this file so a change is one versioned edit, never a code change.",
+    "r13_discipline": "These are CURRICULUM (difficulty) values the director delegated the agent to set THIS TIME. Set from PUBLISHED-ESTIMATE / neutral priors, NOT tuned to any company outcome (R13 anti-goal-seek core preserved). Versioned + named + ratifiable \u2014 a real curriculum artefact, not silent parameter drift. The director may overturn any value; the generator reads this file so a change is one versioned edit, never a code change.",
     "consumed_by": "the segmentation generator (population_draw.assign_cohort + tenure->adoption gating), per docs/design/SEGMENTATION_GENERATOR_BUILD_PLAN.md"
   },
   "green_stance_marginals": {
-    "value": {"engaged": 0.30, "neutral": 0.45, "disengaged": 0.25},
+    "value": {
+      "engaged": 0.3,
+      "neutral": 0.45,
+      "disengaged": 0.25
+    },
     "basis": "DESNZ Public Attitudes Tracker climate-concern distributions, discounted for the well-documented attitude-action gap (concern is high but active pro-environmental engagement is a minority). PROVISIONAL.",
     "hidden_truth_only": true,
-    "note": "green_stance has NO company observable (verification §2) — it is generated as hidden SIM truth, never part of a company-discoverable cohort."
+    "note": "green_stance has NO company observable (verification \u00a72) \u2014 it is generated as hidden SIM truth, never part of a company-discoverable cohort."
   },
   "price_sensitivity_marginals": {
-    "value": {"high": 0.30, "medium": 0.45, "low": 0.25},
-    "basis": "GB retail-energy switching/engagement segmentation (Ofgem consumer engagement work): an active-switcher minority, a disengaged 'stuck' minority, a middle majority. PROVISIONAL.",
+    "value": {
+      "high": 0.3,
+      "medium": 0.45,
+      "low": 0.25
+    },
+    "basis": "GB retail-energy switching/engagement segmentation (Ofgem consumer engagement work): an active-switcher minority, a disengaged 'stuck' minority, a middle majority. PROVISIONAL. The RESPONSE WEIGHTS these shares carry are anchored separately and are not provisional: Ofgem/BMG 'Understanding Consumers' Energy Tariff Choices' (n=3,235, fieldwork Mar-Apr 2024, published Jul 2025) puts savings-importance at 41% overall and 35%-44% across every subgroup it reports -- see market_switching_propensity.PRICE_SENSITIVITY_WEIGHT.",
     "hidden_truth_only": false,
-    "note": "discoverable via rate-change churn response (get_churn_estimate)."
+    "note": "DISCOVERABLE, and as of 2026-08-27 that is true rather than intended. The channel is the household's own churn response to a rate change: simulation/customer_events.py weights the price differential by simulation.population_draw.price_elasticity_for_customer before rolling the renewal, so a supplier observing repeated rate moves and departures can estimate it. Until that wiring the axis was drawn, coverage-tested, wall-guarded and read by NOTHING, and this note named a route that did not exist. Inference is statistical and slow, not a lookup: one renewal is one Bernoulli draw, and only the SEGMENT mean is even in principle learnable -- PRICE_ELASTICITY_SEGMENT_R2 puts 98% of a household's elasticity within-segment and orthogonal to it."
   },
   "channel_pref_marginals": {
-    "value": {"digital": 0.55, "phone": 0.30, "assisted": 0.15},
+    "value": {
+      "digital": 0.55,
+      "phone": 0.3,
+      "assisted": 0.15
+    },
     "basis": "UK digital-adoption + assisted-digital / vulnerable-customer shares (Ofcom digital inclusion; Ofgem vulnerability). PROVISIONAL.",
-    "hidden_truth_only": false,
-    "note": "discoverable via the contact channel actually used."
+    "hidden_truth_only": true,
+    "note": "HIDDEN. 2026-08-27: this claimed 'discoverable via the contact channel actually used' and no such channel existed -- simulation/contact_propensity.py keys on the ENGAGEMENT archetype and never reads channel_pref, which is read by no live module at all. A trait with no observable is hidden truth, and saying otherwise made the axis undiscoverable IN PRINCIPLE while the curriculum promised a route: a supplier that tried to learn it would be right to try and would fail forever, and the failure would read as a weak company model. Director's rule, same day: 'if a trait has no channel the company can observe, either give it one or mark it hidden.' Marked hidden because wiring contact channel to this axis is a roadmap item and a false claim must not wait on it. Wiring it later is what flips this back."
   },
   "tenure_adoption_gating_strength": {
-    "value": {"renter_adoption_propensity_multiplier": 0.17, "gated_tenures": ["private_rent", "social_rent"], "owner_multiplier": 1.0, "per_asset": {"solar_pv": {"own_outright": 1.0, "own_mortgage": 1.0, "private_rent": 0.10, "social_rent": 0.25}, "ev": {"own_outright": 1.0, "own_mortgage": 1.0, "private_rent": 0.55, "social_rent": 0.55}, "heat_pump": {"own_outright": 1.0, "own_mortgage": 1.0, "private_rent": 0.14, "social_rent": 0.35}}},
-    "basis": "DESNZ Public Attitudes Tracker Spring 2026: 42% of renters say a heat-pump decision 'is not theirs to make' vs 7% of owner-occupiers. The scalar 0.17 ≈ 7/42 (the owner-vs-renter agency ratio) is the ASSET-AGNOSTIC fallback. per_asset (director CONFIRMED 2026-07-22, FROM_AGENT_SEGMENTATION_INTEGRATION_FOLLOWON) refines it PER ASSET × tenure: solar_pv (roof-mod + split-incentive => private_rent 0.10 / social_rent 0.25, ASSERTED); ev (has_driveway already carries the off-street barrier, so tenure adds only a weak split-incentive => 0.55 both, ASSERTED, weakest gate); heat_pump (DESNZ Spring-2026 42% renters vs 7% owners 'not theirs to make' => private_rent 0.14 / social_rent 0.35). Owner tenures (own_outright/own_mortgage) = 1.0 (unchanged eligibility). ASSERTED = R13 director curriculum, changeable on his word, NEVER tuned to company outcomes; falsifiable per docs/market_research/population_fusion_assumptions_register.json. The exact Cramér's V was NOT fabricated (register). PROVISIONAL.",
+    "value": {
+      "renter_adoption_propensity_multiplier": 0.17,
+      "gated_tenures": [
+        "private_rent",
+        "social_rent"
+      ],
+      "owner_multiplier": 1.0,
+      "per_asset": {
+        "solar_pv": {
+          "own_outright": 1.0,
+          "own_mortgage": 1.0,
+          "private_rent": 0.1,
+          "social_rent": 0.25
+        },
+        "ev": {
+          "own_outright": 1.0,
+          "own_mortgage": 1.0,
+          "private_rent": 0.55,
+          "social_rent": 0.55
+        },
+        "heat_pump": {
+          "own_outright": 1.0,
+          "own_mortgage": 1.0,
+          "private_rent": 0.14,
+          "social_rent": 0.35
+        }
+      }
+    },
+    "basis": "DESNZ Public Attitudes Tracker Spring 2026: 42% of renters say a heat-pump decision 'is not theirs to make' vs 7% of owner-occupiers. The scalar 0.17 \u2248 7/42 (the owner-vs-renter agency ratio) is the ASSET-AGNOSTIC fallback. per_asset (director CONFIRMED 2026-07-22, FROM_AGENT_SEGMENTATION_INTEGRATION_FOLLOWON) refines it PER ASSET \u00d7 tenure: solar_pv (roof-mod + split-incentive => private_rent 0.10 / social_rent 0.25, ASSERTED); ev (has_driveway already carries the off-street barrier, so tenure adds only a weak split-incentive => 0.55 both, ASSERTED, weakest gate); heat_pump (DESNZ Spring-2026 42% renters vs 7% owners 'not theirs to make' => private_rent 0.14 / social_rent 0.35). Owner tenures (own_outright/own_mortgage) = 1.0 (unchanged eligibility). ASSERTED = R13 director curriculum, changeable on his word, NEVER tuned to company outcomes; falsifiable per docs/market_research/population_fusion_assumptions_register.json. The exact Cram\u00e9r's V was NOT fabricated (register). PROVISIONAL.",
     "hidden_truth_only": false,
     "note": "the SIM-truth gate; the company must DISCOVER that tenure gates adoption from its acquisition/interaction data (the coupled-triad gap)."
   },
   "region_marginal_synthetic_acquisitions": {
     "value": {
-      "South East": 0.152, "London": 0.140, "North West": 0.118, "East": 0.107,
-      "South West": 0.101, "West Midlands": 0.099, "Yorkshire and The Humber": 0.094,
-      "East Midlands": 0.083, "Wales": 0.057, "North East": 0.049
+      "South East": 0.152,
+      "London": 0.14,
+      "North West": 0.118,
+      "East": 0.107,
+      "South West": 0.101,
+      "West Midlands": 0.099,
+      "Yorkshire and The Humber": 0.094,
+      "East Midlands": 0.083,
+      "Wales": 0.057,
+      "North East": 0.049
     },
-    "basis": "Census 2021 England & Wales household counts by region, normalised over the schema's 10-region set. This is closer to FIDELITY than difficulty (a real population distribution) but is set here so synthetic acquisitions stop defaulting to the UNKNOWN_SYNTHETIC placeholder (population_draw.py:111). PROVISIONAL — shares sum to 1.0.",
+    "basis": "Census 2021 England & Wales household counts by region, normalised over the schema's 10-region set. This is closer to FIDELITY than difficulty (a real population distribution) but is set here so synthetic acquisitions stop defaulting to the UNKNOWN_SYNTHETIC placeholder (population_draw.py:111). PROVISIONAL \u2014 shares sum to 1.0.",
     "hidden_truth_only": false,
     "note": "region is a public prior the company observes at enrolment."
   }

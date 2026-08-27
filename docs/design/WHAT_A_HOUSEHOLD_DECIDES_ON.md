@@ -208,3 +208,51 @@ This split is why S1 can proceed without a director act, and why its calibration
 state (R7/R9): every "consumed by nothing" claim above was checked by enumerating live-tree readers
 and discarding substring matches, which is the failure mode that produced five false findings on
 2026-08-27 alone.*
+
+---
+
+## AMENDMENT, 2026-08-27 (same day): S1 is built, and the evidence demotes it
+
+S1 was filed as *"first; smallest work, largest richness gain"*. It is built, and the calibration
+that came with it says the second half of that claim was wrong. Recorded here rather than quietly
+edited above, and argued in full in
+`docs/staging/done/WORKER_FINDING_THE_WORLD_PRICED_IN_PERCENT_WHEN_HOUSEHOLDS_DECIDE_IN_POUNDS_2026-08-27.md`.
+
+1. **The richness gain is SMALL, on published evidence.** Ofgem/BMG 2024 (n=3,235) puts price
+   importance at 35%–44% across every subgroup it reports — a **1.26x** spread, not the 3.75x this
+   roadmap's first implementation asserted. GB households weight price homogeneously. *"If the
+   honest distribution leaves little to infer, that's the finding"* (director) — and it does.
+
+2. **A bigger fidelity defect was sitting underneath it, and it was NOT on this roadmap.** The world
+   converted price differentials into pounds with one market-average bill for every household, so it
+   was effectively percentage-keyed while the evidence says households decide in absolute pounds.
+   Fixed. **This matters more than S1**: it makes customer value scale with consumption, and
+   consumption is OBSERVABLE — the first genuinely inferable structure in this part of the world,
+   where `price_sensitivity` is hidden by construction.
+
+3. **Between-group was the wrong quantity.** Elasticity is close to orthogonal to observables, so a
+   segment mean is not a distribution. Now a continuous per-household draw (5th–95th: 0.35x–2.13x)
+   with the segment explaining 2%.
+
+### What this does to the sequence
+
+- **S1 — done, and smaller than advertised.**
+- **NEW, ahead of S3: exit fees.** Ofgem measures them at **22%** of the switching decision, with a
+  **17%** minority who *"disproportionately prioritise exit fees over other factors"* — a published
+  segment with a genuinely different decision rule. The world does not model exit fees at all. This
+  is better evidenced than anything remaining below and it is cheap.
+- **S3 (trade-offs) is promoted in importance and its target changes.** The published second axis is
+  **customer service at 32%**, and the largest published per-household spread anywhere in this
+  research is satisfaction-driven (1.46x, Table 4) — larger than price sensitivity's. The world
+  already has `satisfaction_score` on a universal curve, and a supplier observes its own service
+  failures, so this is inferable in a way the hidden attitude axes are not.
+- **S4 (green) is demoted.** `green_stance` has no company observable and must never acquire a proxy
+  (`.claude/rules`), so it can add world richness but never inference headroom.
+
+### And the measurement cannot currently see any of it
+
+The level-vs-selection instrument needs **61 seeds x 3 arms (~30 h)** to resolve a £1,106 effect,
+because a decade run prices only ~30 renewals. **No roadmap item below should be judged by a
+single-run A/B figure.** The unlock is book VOLUME — `SE_DRAW_POPULATION`, default-off and
+director-reserved — which CA3 had already registered as the condition for segmentation being
+testable at all. This quantifies it at roughly **60x** the current renewal count.

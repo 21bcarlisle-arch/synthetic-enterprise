@@ -100,3 +100,61 @@ world worked**, and it now exists as a standing instrument rather than a one-off
 
 *Evidence: `run_value_cycle_ab.py` realised metrics, full-decade and 2019 windows, schedule-fixed.
 Arm + 17 R15 tests land with this doc.*
+
+---
+
+# CORRECTION, same day: the number above is inside the noise, and the instrument cannot resolve it
+
+**Added 2026-08-27, after the director asked where the marginals came from.** The finding above is
+left standing exactly as published — this repository's rule is that corrections go BESIDE the
+original, never over it — but **its headline figure should not be quoted.**
+
+## What was wrong with it
+
+"Selection is worth −£1,388.80 over the decade" was **one run of one world**, reported to the penny.
+Nobody had measured what the same comparison does when only the draw changes. Once that was
+measured, by re-running all three arms across seeds that vary only which households are drawn
+elastic:
+
+| world | seeds | selection worth | `level_share` |
+|---|---|---|---|
+| as published above | 1 | −£1,389 | 1.197 |
+| invented 3.75x weights | 4 | −£3,668 … +£3,846 | 0.66 – 1.55 |
+| evidence 1.26x weights, between-group only | 2 | −£2,565, −£1,389 | 1.23 – 1.38 |
+| **corrected: £-scaled + within-segment variance** | 3 | **−£3,574 … +£5,117** (mean +£1,106) | 0.41 – 1.46 |
+
+**The sign is not stable across draws.** −£1,389 is one sample from a distribution roughly ±£4,400
+wide. The DIRECTION claimed above ("the level explains all of the advantage") survives in some
+worlds and reverses in others.
+
+## Why the instrument cannot settle it, which is the more useful finding
+
+At the measured spread (SD ≈ £4,384 across seeds), detecting a mean of £1,106 at 95% confidence
+needs **61 seeds × 3 arms ≈ 30 hours of compute**. Every level-vs-selection number produced today,
+including the one above, sits inside a ±£5,000 band at n=1.
+
+The cause is structural and not fixable by patience: a decade run prices roughly **30 renewals**, so
+a handful of lumpy per-customer decisions dominate the total. Averaging over seeds costs linearly;
+the honest fix is a **bigger book**, where per-run variance falls as renewals rise.
+
+That is `SE_DRAW_POPULATION` — default-OFF and director-reserved
+(`CA4_COHORT_ACTIVATION_SEQUENCING_VERDICT.md`). **CA3 already registered segmentation as
+"untestable at the current book" and named the unlock as volume.** This quantifies it: roughly
+**60x** the current renewal count, or the same run repeated 61 times.
+
+## What still stands
+
+- The third arm itself, and everything structural in it: the hardcoded `arm=VALUE_BASED` defect, the
+  ceiling clamp, the refusal without a level, and the FAIL-SILENT `endpoint_side` fix (confirmed on
+  a later run, which reported `endpoint_at_ceiling: 3` where the first reported 0).
+- **The enterprise-value reading is still discarded**, and for a reason noise does not touch: EV is
+  computed from the company's own churn belief, so it scores the arm with the arm's own model.
+- The world-side reading — that a world of universal response functions leaves little for
+  per-customer selection to select on — is unaffected by this correction and is now better
+  evidenced (see `WHAT_A_HOUSEHOLD_DECIDES_ON.md` and the Ofgem/BMG calibration).
+
+## The lesson, which is the fourth instance of one shape in a day
+
+A single-run difference was reported as a measurement because it was *precise*. Precision is not
+resolution. The noise floor should have been measured BEFORE the first figure was published, not
+after the director asked a question that happened to expose it.
